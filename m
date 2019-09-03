@@ -1,12 +1,13 @@
-From: =?utf-8?Q?=E9=82=AE=E4=BB=B6=E7=BE=A4=E5=8F=91=E5=A5=BD=E5=B8=AE?=
- =?utf-8?Q?=E6=89=8B?= <otweat-Ia5hNhXQDQk@public.gmane.org>
-Subject: =?utf-8?B?6YKu5Lu2576k5Y+R5aW95biu5omL?=
-Date: 3 Sep 2019 20:44:37 +0800
-Message-ID: <40181.5097707853$1567514775@news.gmane.org>
+From: Sales-cN+i3/wyLmJBDgjK7y7TUQ@public.gmane.org
+Subject: CONGRATULATIONS FROM MEGA LOTTERY2019!!
+Date: Wed, 04 Sep 2019 00:49:57 +0200
+Message-ID: <20190903225120.606EC21A07A92@ml01.01.org>
+Reply-To: remittance.axitea-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -19,32 +20,8 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-5Lit5riv6L+Q6L6TK+mmmea4r+S7k+WCqCvmi7znrrEr6KOF5Y245p+c5pyN5Yqh5Lit5riv6L+Q
-6L6T5pyN5Yqh5Li76KaB5LuO5LqL5YWo5Zu95ZCE5Zyw5Yiw6aaZ5riv6JG15raM56CB5aS044CB
-5py65Zy65Y+K5YW25LuW56uZ5Zy655qE5pWj6LSn5ou86L2mJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IOaPkOS+m+mmmea4r+S4gOiIrOi0uOaY
-k+OAgeS5sOWNleOAgeaVo+i0p+aLvOi9puOAgeWQqOi9puOAgeaVtOafnOi/kOi+k+acjeWKoeWP
-iua3seWcs+eahOS6pOS7k+acjeWKoe+8jOW5tuWPr+S7o+eQhui/m+WHuuWPo+aKpeWFs+aKpeaj
-gOmFjeWll+acjeWKoS4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
-bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
-cDsmbmJzcDsg4pagIOWkp+mZhuS4iumXqOaPkOi0p++8jOi/kOi+k+aKpeWFs+S4gOadoem+meac
-jeWKoeKWoCDpppnmuK/mnInljbjotKflubPlj7DvvIzlj6/mj5Dkvpvoo4XljbjotKfvvIzmi7zn
-rrHvvIzku5PlgqjmnI3liqHilqAg5Lmd6b6ZL+aWsOeVjC/muK/lspvmtL7pgIHlhazlj7jku6Xl
-j4rku5PlupPilqAg6aaZ5riv5py65Zy6L+S7k+eggeWktOS7ky/np4Hkurrku5PnmoTlhaXku5Pm
-nI3liqEg4pagIOa3seWcs+S6pOS7k+acjeWKoeS4rea4r+i0p+i/kOaciemZkOWFrOWPuOiBlOez
-u+S6uu+8mkphbmVNb2JpbGUg77yaKzg2LTE4NTY2MjIyNTYyJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
-c3A7IFFROjcyNDUyMzUwMSjlvq7kv6HlkIzlj7fvvIlFLW1haWwgMe+8mkphbmUxODU2NjIyMjU2
-MkBob3RtYWlsLmNvbQ0KRS1tYWlsIDI6Jm5ic3A7Jm5ic3A7IDcyNDUyMzUwMUBxcS5jb20gDQrp
-ppnmuK/vvJrokbXmtozkuInlj7fotKfmn5znoIHlpLTljZfot680LTXlj7flm57ml4vlpITkuK3p
-l7TmsYflrp3liqjlipvlgZzovablnLoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
-dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
-aW1tCg==
+Lucky Winner,
+ We are delighted to inform you of the MEGA LOTTERY PICKER 2019 DRAW held on AUG/17/2019; Due to mix up of names and numbers the results were released on AUG/21/2019.  Your name attached to ticket number: 01890419 with serial number: 9912 drew lucky numbers: 4-13-21-27-36-38 with bonus ball 45 which consequently won in the 3rd   category, you have therefore been approved the winner for a lump sum pay out of Four Million Five Hundred Thousand United State Dollars ($4,500,000.00) Congratulations! Note: This is a tax-free draw and all participants were selected through a computer ballot system drawn from Over 40,000,000, people worldwide.
+ Please kindly download the attachement for more information on  how to claim your won Prize
+ Thanks,
+Regards.
