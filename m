@@ -1,103 +1,106 @@
-From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
-Subject: Re: [PATCH v5] mm/nvdimm: Fix endian conversion =?utf-8?Q?issues?=
- =?utf-8?Q?=C2=A0?=
-Date: Mon, 09 Sep 2019 20:48:02 +0530
-Message-ID: <871rwp1ot1.fsf@linux.ibm.com>
-References: <20190809074726.27815-1-aneesh.kumar@linux.ibm.com>
+Return-Path: <SRS0=Z5NW=XB=lists.01.org=linux-nvdimm-bounces@kernel.org>
+X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
+	aws-us-west-2-korg-lkml-1.web.codeaurora.org
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	FROM_EXCESS_BASE64,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F3B6C43331
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Sep 2019 06:16:05 +0000 (UTC)
+Received: from ml01.01.org (ml01.01.org [198.145.21.10])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPS id A0BDB2075C
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Sep 2019 06:16:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ed.swmail.top header.i=@ed.swmail.top header.b="W84GeDUP"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A0BDB2075C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=hardfindtronics.com
+Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
+Received: from [127.0.0.1] (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 991D120294F0A;
+	Thu,  5 Sep 2019 23:16:56 -0700 (PDT)
+Received-SPF: Permerror (SPF Permanent Error: Too many DNS lookups)
+ identity=mailfrom; client-ip=106.12.150.83; helo=bhd3.sosung.net;
+ envelope-from=zhan.bixia@ed.swmail.top; receiver=linux-nvdimm@lists.01.org 
+Received: from bhd3.sosung.net (bhd3.sosung.net [106.12.150.83])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id D0B892027725A
+ for <linux-nvdimm@lists.01.org>; Thu,  5 Sep 2019 23:16:51 -0700 (PDT)
+Received: from edm01.bossedm.com (edm01.chinaemail.cn [180.76.132.54])
+ by bhd3.sosung.net (Postfix) with ESMTPS id D90D0107C54
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 17:04:25 +0800 (CST)
+Received: from unknown (unknown [127.0.0.1])
+ by edm01.bossedm.com (Bossedm) with SMTP id C701B12134C
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 17:03:41 +0800 (CST)
+Date: Tue,  3 Sep 2019 17:03:41 +0800 (CST)
+From: "=?utf-8?B?WXVtaSA=?=" <yumi@hardfindtronics.com>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?UmU6IFJGUSBNQ1AyNTE1VC1JL1NUIDUwMHBjcw==?=
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190809074726.27815-1-aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+X-Notify-Mail: No
+Message-ID:
+ <1883#47401#linux-nvdimm@lists.01.org#e358f98847f1ee53ccc515b2fd0679bf#1567501421606>
+X-Iszbb: Yes
+X-ZZY-MESSAGE-ID: FA163E85126B5A250000000000006D2C6E5D000000000C00
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ed.swmail.top; s=s9527; 
+ t=1567501421; bh=0G8wYkyQvIdrlRW1tjPNneDw49aNukGi6Q9nyB8elWs=; 
+ h=Date:From:Subject:Message-ID;
+ b=W84GeDUPOky2o4Ghpz7ggD3IZZEjzBaKBJYGZG+ojSi5r0hooV6BQ7txvQIG/W1cj
+ WHrNQpp9Nnv05QLv0ISsnJGTrJrWXnKD8inWpvl+QdvBZyPr6KY0jlY/7SukJ30v+a
+ t3Za7rqHd+CX6tx1pIQAmkrbQ+WZLAaupmEm/oW0=
+X-Content-Filtered-By: Mailman/MimeDel 2.1.29
+X-BeenThere: linux-nvdimm@lists.01.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+ <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Post: <mailto:linux-nvdimm@lists.01.org>
+List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-List-Id: linux-nvdimm@lists.01.org
+ <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: yumi@hardfindtronics.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: base64
+Errors-To: linux-nvdimm-bounces@lists.01.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-ID: <20190903090341.2lWK8Bz8hzmfp3CI96HrmW13Q33gBIBdxP7G6pB2GOg@z>
 
-"Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org> writes:
-
-> nd_label->dpa issue was observed when trying to enable the namespace created
-> with little-endian kernel on a big-endian kernel. That made me run
-> `sparse` on the rest of the code and other changes are the result of that.
->
-> Fixes: d9b83c756953 ("libnvdimm, btt: rework error clearing")
-> Fixes: 9dedc73a4658 ("libnvdimm/btt: Fix LBA masking during 'free list' population")
->
-> Reviewed-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
-> ---
-> Changes from V4:
-> * Rebase to latest kernel
->
->  drivers/nvdimm/btt.c            | 8 ++++----
->  drivers/nvdimm/namespace_devs.c | 7 ++++---
->  2 files changed, 8 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index a8d56887ec88..3e9f45aec8d1 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -392,9 +392,9 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
->  	arena->freelist[lane].sub = 1 - arena->freelist[lane].sub;
->  	if (++(arena->freelist[lane].seq) == 4)
->  		arena->freelist[lane].seq = 1;
-> -	if (ent_e_flag(ent->old_map))
-> +	if (ent_e_flag(le32_to_cpu(ent->old_map)))
->  		arena->freelist[lane].has_err = 1;
-> -	arena->freelist[lane].block = le32_to_cpu(ent_lba(ent->old_map));
-> +	arena->freelist[lane].block = ent_lba(le32_to_cpu(ent->old_map));
->  
->  	return ret;
->  }
-> @@ -560,8 +560,8 @@ static int btt_freelist_init(struct arena_info *arena)
->  		 * FIXME: if error clearing fails during init, we want to make
->  		 * the BTT read-only
->  		 */
-> -		if (ent_e_flag(log_new.old_map) &&
-> -				!ent_normal(log_new.old_map)) {
-> +		if (ent_e_flag(le32_to_cpu(log_new.old_map)) &&
-> +		    !ent_normal(le32_to_cpu(log_new.old_map))) {
->  			arena->freelist[i].has_err = 1;
->  			ret = arena_clear_freelist_error(arena, i);
->  			if (ret)
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index a9c76df12cb9..f779cb2b0c69 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -1987,7 +1987,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  		nd_mapping = &nd_region->mapping[i];
->  		label_ent = list_first_entry_or_null(&nd_mapping->labels,
->  				typeof(*label_ent), list);
-> -		label0 = label_ent ? label_ent->label : 0;
-> +		label0 = label_ent ? label_ent->label : NULL;
->  
->  		if (!label0) {
->  			WARN_ON(1);
-> @@ -2322,8 +2322,9 @@ static struct device **scan_labels(struct nd_region *nd_region)
->  			continue;
->  
->  		/* skip labels that describe extents outside of the region */
-> -		if (nd_label->dpa < nd_mapping->start || nd_label->dpa > map_end)
-> -			continue;
-> +		if (__le64_to_cpu(nd_label->dpa) < nd_mapping->start ||
-> +		    __le64_to_cpu(nd_label->dpa) > map_end)
-> +				continue;
->  
->  		i = add_namespace_resource(nd_region, nd_label, devs, count);
->  		if (i < 0)
-> -- 
-> 2.21.0
-
-Gentle reminder.
-
-Dan - any update on this?
-
--aneesh
+DQoNCg0KDQoNCg0KCQ0KCQkmbmJzcDsmbmJzcDtIYXJkJm5ic3A7RmluZCZuYnNwO0VsZWN0cm9u
+aWNzIEx0ZC4NCnNvdXJjaW5nIGhhcmQgZmluZCBlbGVjdHJvbmljIGNvbXBvbmVudHMgDQoJDQoJ
+DQoJCSZuYnNwOyANCgkNCgkNCgkJRGVhciBDdXN0b21lciwgDQoJDQoJDQoJCU5pY2UgZGF5IQ0K
+VGhpcyBpcyBZdW1pIGZyb20gSGFyZCBGaW5kIEVsZWN0cm9uaWNzIEx0ZCh3d3cuaGFyZGZpbmRl
+bGVjdHJvbmljcy5jb20pJm5ic3A7d2hpY2ggaXMgYSBwcm9mZXNzaW9uYWwgZWxlY3Ryb25pY3Mg
+ZGlzdHJpYnV0b3Igd2l0aCAxMCB5ZWFycyBvZiBleHBlcmllbmNlcy4mbmJzcDsNCldlIGFyZSBn
+b29kIGF0Jm5ic3A7SGFyZCBGaW5kJm5ic3A7ZWxlY3Ryb25pYyBjb21wb25lbnRz77yaDQoNCklD
+OiBYaWxpbngsIEFsdGVyYSwgVEksIExULCBBRCxNaWNyb24uLg0KTUxDQyBDYXBhY2l0b3I6IE11
+cmF0YSwgU2Ftc3VuZywgWWFnZW8sIEFWWCwgS2VtZXQuLg0KRGlvZGUmYW1wO1RyYW5zaXN0b3I6
+IFZpc2hheSxUSSxTVC4uDQoNCklmIHlvdSZuYnNwO25lZWQmbmJzcDtzYW1wbGUsIHBscyBmZWVs
+IGZyZWUgdG8gY29udGFjdCBtZS4mbmJzcDsNClBscyBjaGVjayBvdXIgaG90IG9mZmVyLHdhaXQg
+Zm9yIHlvdXIga2luZGx5IFJGUTogDQoJDQoJDQoJCSZuYnNwOyANCgkNCgkNCgkJTUNQMTUyNVQt
+SS9UVCZuYnNwOyBNSUNST0NISVAgMjAxOCsgMC4yMnVzZCZuYnNwOyBTT1QtMjMmbmJzcDsgIA0K
+TUNQMTU0MVQtSS9UVCBNSUNST0NISVAgMjAxOCsgMC4yNXVzZCZuYnNwOyBTT1QyMy0zIA0KTUNQ
+MjUxNVQtSS9TVCBNSUNST0NISVAgMjAxOCsgMC42dXNkIDIwVFNTT1AgDQpNQ1A5NzAwVC1FL1RU
+IE1JQ1JPQ0hJUCAyMDE4KyAwLjE0NHVzZCBTT1QyMy0zICANCk1DUDYwNFQtSS9TTCZuYnNwOyBN
+SUNST0NISVAgMjAxOSsgMC4zMXVzZCAxNFNPSUMgDQoyNUxDMTAyNC1JL1NNIE1JQ1JPQ0hJUCAy
+MDE4KyAxdXNkIDhTT0lDIA0KOTNMQzU2QlQtSS9PVCZuYnNwOyBNSUNST0NISVAgMjAxOCsgMC4x
+NjJ1c2QgU09UMjMtNiANCjI0TEM2NC1JL1NOJm5ic3A7IE1JQ1JPQ0hJUCAyMDE4KyZuYnNwOyAw
+LjEzdXNkIDhTT0lDIA0KDQogDQoJDQoJDQoJCUtlZXAgc21pbGluZyBldmVyeSBkYXkmbmJzcDso
+Ku+/oynvv6MpIA0KCQ0KCQ0KCQlZdW1pJm5ic3A7KFByb2R1Y3QmbmJzcDtNYW5hZ2VyKSANCgkN
+CgkNCgkJSGFyZCZuYnNwO0ZpbmQmbmJzcDtFbGVjdHJvbmljcyBMdGQuDQpzb3VyY2luZyBoYXJk
+IGZpbmQgZWxlY3Ryb25pYyBjb21wb25lbnRzDQoNCjMxNSwgU2hhaGUgUm9kLCBMb25nIEdhbmcg
+RGlzdHJpY3QsIFNoZW56aGVuLCBDTiwgNTE4MDAwDQpUZWw6ICs4Ni03NTUtODQxOCA4MTAzJm5i
+c3A7Jm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7DQpTa3lwZSAmYW1wOyBFbWFpbDombmJzcDt5
+dW1pQGhhcmRmaW5kZWxlY3Ryb25pY3MuY29tDQpMaW5rZWRsbjp3d3cubGlua2VkaW4uY29tL2lu
+L3l1bWktZ2FvDQpGYWNlYm9vazombmJzcDtmYWNlYm9vay5jb20vWXVtaWhhcmRmaW5kDQombmJz
+cDsgDQoJDQoJDQoJCUlmIHlvdSBkb24ndCB3YW50IHRvIHJlY2VpdmUgdGhpcyBtYWlsLCBwbHMg
+cmV0dXJuIHdpdGggInJlbW92ZSIgb24gdGhlIHN1YmplY3QgbGluZS4gDQoJDQoJDQoJCSZuYnNw
+OyANCgkNCg0KDQoNCg0KCeaho+mTuue9keKAlOKAlOWcqOe6v+aWh+aho+WFjei0ueWkhOeQhiAN
+CuWmguaenOS9oOS4jeaDs+WGjeaUtuWIsOivpeS6p+WTgeeahOaOqOiNkOmCruS7tu+8jOivt+eC
+ueWHu+i/memHjOmAgOiuogpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
+cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
