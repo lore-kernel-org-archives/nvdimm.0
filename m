@@ -1,14 +1,23 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
- (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1F524202110C5
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 18:09:42 -0700 (PDT)
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH 1/2] libdaxctl: fix the system-ram capability check
-Date: Tue,  3 Sep 2019 19:08:18 -0600
-Message-Id: <20190904010819.11012-1-vishal.l.verma@intel.com>
+Received: from bosmailout09.eigbox.net (bosmailout09.eigbox.net [66.96.189.9])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
+ bits)) (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id 1EAF220214B30
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 15:51:18 -0700 (PDT)
+Received: from bosmailscan04.eigbox.net ([10.20.15.4])
+ by bosmailout09.eigbox.net with esmtp (Exim) id 1i5Hck-0007aV-KR
+ for linux-nvdimm@lists.01.org; Tue, 03 Sep 2019 18:50:06 -0400
+Received: from [10.115.3.33] (helo=bosimpout13)
+ by bosmailscan04.eigbox.net with esmtp (Exim) id 1i5Hck-0004KI-CI
+ for linux-nvdimm@lists.01.org; Tue, 03 Sep 2019 18:50:06 -0400
+Received: from [151.32.32.206] (port=50034 helo=Wise-PC.home-life.hub)
+ by bosauthsmtp04.eigbox.net with esmtpa (Exim) id 1i5Hce-0006zc-NE
+ for linux-nvdimm@lists.01.org; Tue, 03 Sep 2019 18:50:02 -0400
 MIME-Version: 1.0
+Subject: CONGRATULATIONS FROM MEGA LOTTERY2019!!
+From: Sales@ifsemea.com
+Date: Wed, 04 Sep 2019 00:49:57 +0200
+Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -16,48 +25,20 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
+Reply-To: remittance.axitea@outlook.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
+Message-Id: <20190903225120.618A821A07093@ml01.01.org>
 To: linux-nvdimm@lists.01.org
-Cc: Dave Hansen <dave.hansen@linux.intel.com>, Brice Goglin <Brice.Goglin@inria.fr>
 List-ID: <linux-nvdimm@lists.01.org>
 
-When checking a daxctl device for system-ram capability, we needn't look
-at the symlink resolution for /sys/bus/dax.../driver/module since the
-driver in question may not always have an associated module, and could
-be builtin instead.
-
-Change the symlink we resolve to simply '/sys/bus/dax.../driver' and
-since that too resolves to '.../kmem' in the system-ram case, the
-rest of the check remains unchanged.
-
-This is a pre-requisite to making daxctl-reconfigure-device work
-correctly when the target mode's driver might be builtin.
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- daxctl/lib/libdaxctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c0a859c..d9f2c33 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -406,7 +406,7 @@ static int dev_is_system_ram_capable(struct daxctl_dev *dev)
- 	if (!daxctl_dev_is_enabled(dev))
- 		return false;
- 
--	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
-+	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
- 		err(ctx, "%s: buffer too small!\n", devname);
- 		return false;
- 	}
--- 
-2.20.1
-
+Lucky Winner,
+ We are delighted to inform you of the MEGA LOTTERY PICKER 2019 DRAW held on AUG/17/2019; Due to mix up of names and numbers the results were released on AUG/21/2019.  Your name attached to ticket number: 01890419 with serial number: 9912 drew lucky numbers: 4-13-21-27-36-38 with bonus ball 45 which consequently won in the 3rd   category, you have therefore been approved the winner for a lump sum pay out of Four Million Five Hundred Thousand United State Dollars ($4,500,000.00) Congratulations! Note: This is a tax-free draw and all participants were selected through a computer ballot system drawn from Over 40,000,000, people worldwide.
+ Please kindly download the attachement for more information on  how to claim your won Prize
+ Thanks,
+Regards.
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
