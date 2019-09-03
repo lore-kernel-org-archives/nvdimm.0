@@ -1,16 +1,20 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mail2-relais-roc.national.inria.fr
- (mail2-relais-roc.national.inria.fr [192.134.164.83])
+Received: from EUR02-AM5-obe.outbound.protection.outlook.com
+ (mail-eopbgr00055.outbound.protection.outlook.com [40.107.0.55])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5B64221A09130
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 14:21:33 -0700 (PDT)
-From: Brice Goglin <Brice.Goglin@inria.fr>
-Subject: daxctl fails to reconfigure to system-ram when DAX modules built-in?
-Message-ID: <7b6e4dcd-6373-24e2-65f2-d08b2de461fb@inria.fr>
-Date: Tue, 3 Sep 2019 23:20:19 +0200
-MIME-Version: 1.0
+ by ml01.01.org (Postfix) with ESMTPS id AAE6B20218C38
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 02:28:17 -0700 (PDT)
+From: "Justin He (Arm Technology China)" <Justin.He@arm.com>
+Subject: RE: [PATCH 1/2] drivers/dax/kmem: use default numa_mem_id if
+ target_node is invalid
+Date: Tue, 3 Sep 2019 09:26:46 +0000
+Message-ID: <DB7PR08MB3082574FA8D63C67622C689DF7B90@DB7PR08MB3082.eurprd08.prod.outlook.com>
+References: <20190816111844.87442-1-justin.he@arm.com>
+ <20190816111844.87442-2-justin.he@arm.com>
+In-Reply-To: <20190816111844.87442-2-justin.he@arm.com>
 Content-Language: en-US
+MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -18,42 +22,52 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: "Justin He (Arm Technology China)" <Justin.He@arm.com>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 List-ID: <linux-nvdimm@lists.01.org>
 
-Hello
-
-It looks like daxctl fails to reconfigure to system-ram when
-DAX modules are built-in the kernel:
-
-$ daxctl reconfigure-device --mode=system-ram dax1.0 -v
-libdaxctl: daxctl_insert_kmod_for_mode: dax1.0: a modalias lookup list was not created
-error reconfiguring devices: No such device or address
-reconfigured 0 devices
-
-It looks like things were failing in kmod_module_new_from_lookup()
-
-I changed my .config with this and now it works:
--CONFIG_DEV_DAX=y
--CONFIG_DEV_DAX_PMEM=y
--CONFIG_DEV_DAX_KMEM=y
-+CONFIG_DEV_DAX=m
-+CONFIG_DEV_DAX_PMEM=m
-+CONFIG_DEV_DAX_KMEM=m
-
-(and +CONFIG_DEV_DAX_PMEM_COMPAT=m but it's now disabled in modprobe.d)
-
-
-This is with 5.2.11.
-
-Thanks
-Brice
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+SGkNClBpbmcuDQpUaGUgdGFyZ2V0X25vZGUgd2lsbCBiZSAtMSBpZiBudW1hIGRpc2FibGVkLiBJ
+SVVDLCBpdCBpcyBhIGdlbmVyaWMgaXNzdWUsIG5vdCBvbmx5IG9uIGFybTY0Lg0KDQoNCi0tDQpD
+aGVlcnMsDQpKdXN0aW4gKEppYSBIZSkNCg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
+LS0NCj4gRnJvbTogSmlhIEhlIDxqdXN0aW4uaGVAYXJtLmNvbT4NCj4gU2VudDogMjAxOcTqONTC
+MTbI1SAxOToxOQ0KPiBUbzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
+OyBWaXNoYWwgVmVybWENCj4gPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gQ2M6IEtlaXRo
+IEJ1c2NoIDxrZWl0aC5idXNjaEBpbnRlbC5jb20+OyBEYXZlIEppYW5nDQo+IDxkYXZlLmppYW5n
+QGludGVsLmNvbT47IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxA
+dmdlci5rZXJuZWwub3JnOyBKdXN0aW4gSGUgKEFybSBUZWNobm9sb2d5IENoaW5hKQ0KPiA8SnVz
+dGluLkhlQGFybS5jb20+DQo+IFN1YmplY3Q6IFtQQVRDSCAxLzJdIGRyaXZlcnMvZGF4L2ttZW06
+IHVzZSBkZWZhdWx0IG51bWFfbWVtX2lkIGlmDQo+IHRhcmdldF9ub2RlIGlzIGludmFsaWQNCj4N
+Cj4gSW4gc29tZSBwbGF0Zm9ybXMoZS5nIGFybTY0IGd1ZXN0KSwgdGhlIE5GSVQgaW5mbyBtaWdo
+dCBub3QgYmUgcmVhZHkuDQo+IFRoZW4gdGFyZ2V0X25vZGUgbWlnaHQgYmUgLTEuIEJ1dCBpZiB0
+aGVyZSBpcyBhIGRlZmF1bHQgbnVtYV9tZW1faWQoKSwNCj4gd2UgY2FuIHVzZSBpdCB0byBhdm9p
+ZCB1bm5lY2Vzc2FyeSBmYXRhbCBFSU5WTCBlcnJvci4NCj4NCj4gZGV2bV9tZW1yZW1hcF9wYWdl
+cygpIGFsc28gdXNlcyB0aGlzIGxvZ2ljIGlmIG5pZCBpcyBpbnZhbGlkLCB3ZSBjYW4NCj4ga2Vl
+cCB0aGUgc2FtZSBwYWdlIHdpdGggaXQuDQo+DQo+IFNpZ25lZC1vZmYtYnk6IEppYSBIZSA8anVz
+dGluLmhlQGFybS5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9kYXgva21lbS5jIHwgNiArKystLS0N
+Cj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+DQo+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9rbWVtLmMgYi9kcml2ZXJzL2RheC9rbWVtLmMNCj4g
+aW5kZXggYTAyMzE4YzZkMjhhLi5hZDYyZDU1MWQ5NGUgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMv
+ZGF4L2ttZW0uYw0KPiArKysgYi9kcml2ZXJzL2RheC9rbWVtLmMNCj4gQEAgLTMzLDkgKzMzLDkg
+QEAgaW50IGRldl9kYXhfa21lbV9wcm9iZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ICAgICAgICAq
+Lw0KPiAgICAgICBudW1hX25vZGUgPSBkZXZfZGF4LT50YXJnZXRfbm9kZTsNCj4gICAgICAgaWYg
+KG51bWFfbm9kZSA8IDApIHsNCj4gLSAgICAgICAgICAgICBkZXZfd2FybihkZXYsICJyZWplY3Rp
+bmcgREFYIHJlZ2lvbiAlcFIgd2l0aCBpbnZhbGlkDQo+IG5vZGU6ICVkXG4iLA0KPiAtICAgICAg
+ICAgICAgICAgICAgICAgIHJlcywgbnVtYV9ub2RlKTsNCj4gLSAgICAgICAgICAgICByZXR1cm4g
+LUVJTlZBTDsNCj4gKyAgICAgICAgICAgICBkZXZfd2FybihkZXYsICJEQVggJXBSIHdpdGggaW52
+YWxpZCBub2RlLCBhc3N1bWUgaXQNCj4gYXMgJWRcbiIsDQo+ICsgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHJlcywgbnVtYV9ub2RlLCBudW1hX21lbV9pZCgpKTsNCj4gKyAgICAgICAgICAg
+ICBudW1hX25vZGUgPSBudW1hX21lbV9pZCgpOw0KPiAgICAgICB9DQo+DQo+ICAgICAgIC8qIEhv
+dHBsdWcgc3RhcnRpbmcgYXQgdGhlIGJlZ2lubmluZyBvZiB0aGUgbmV4dCBibG9jazogKi8NCj4g
+LS0NCj4gMi4xNy4xDQoNCklNUE9SVEFOVCBOT1RJQ0U6IFRoZSBjb250ZW50cyBvZiB0aGlzIGVt
+YWlsIGFuZCBhbnkgYXR0YWNobWVudHMgYXJlIGNvbmZpZGVudGlhbCBhbmQgbWF5IGFsc28gYmUg
+cHJpdmlsZWdlZC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgcGxlYXNl
+IG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGFuZCBkbyBub3QgZGlzY2xvc2UgdGhlIGNv
+bnRlbnRzIHRvIGFueSBvdGhlciBwZXJzb24sIHVzZSBpdCBmb3IgYW55IHB1cnBvc2UsIG9yIHN0
+b3JlIG9yIGNvcHkgdGhlIGluZm9ybWF0aW9uIGluIGFueSBtZWRpdW0uIFRoYW5rIHlvdS4NCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
+bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
