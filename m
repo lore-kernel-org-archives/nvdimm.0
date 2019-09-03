@@ -1,9 +1,11 @@
-From: "Automatic Email Delivery Software" <postmaster-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Subject: Message could not be delivered
-Date: Tue, 3 Sep 2019 10:14:09 +0800
-Message-ID: <20190903021534.3A5FD20214B33@ml01.01.org>
+From: =?utf-8?Q?=E9=82=AE=E4=BB=B6=E7=BE=A4=E5=8F=91=E5=A5=BD=E5=B8=AE?=
+ =?utf-8?Q?=E6=89=8B?= <otweat-Ia5hNhXQDQk@public.gmane.org>
+Subject: =?utf-8?B?6YKu5Lu2576k5Y+R5aW95biu5omL?=
+Date: 3 Sep 2019 20:44:37 +0800
+Message-ID: <40181.5097707853$1567514775@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4078032448388098262=="
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -17,33 +19,32 @@ Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-This is a multi-part message in MIME format.
-
---===============4078032448388098262==
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-¨§Ò²ôgÃ‡¿¨ä¹1ãôŒ‚Æ/|>ÚÄ“qşr
-sÏv‚Qıëà4c¸µøhzÓäm3hJõæºñƒ¶‘˜8¸·sn4K†‡6CeOù1í_*(Y
-õzÒŸoë(¸?‰wŞ’
-ê·Çfğıcã‚¬Ã‹áBv#4QYMb5¥,Ì÷qp[­zTizœÜFÛyÅ
-VÊ%#:ÛSF†î(ŞµÒƒ‘êÒS•åëËü
-%ÙáäÔ´í¯»ƒkâlÕ#DoïFˆ
-ödîPsI10QbÄ‘·H¦ë«İXõçŠt<õB^¢ø¾êxª~Áï59üº‚ó¿š%;0É£Z½‹>b
-§À£/Æ¬‡†çnÊ›µ'CÏ*¾[ÆÄ\5 *,‡Oùb×[\û^`Ä»à”8_sÒÈoÀ9—sË¶Ó—'®/¦Ğj›ÕÆçfè£;WğÜC5ß‰;Y´6¹b%î¸¹r–¯’G…ic¦öàéT
-åù!&ĞkKh†P0ü%/)X³æD<UƒCi¹”yÛ
-
-
---===============4078032448388098262==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
-
---===============4078032448388098262==--
+5Lit5riv6L+Q6L6TK+mmmea4r+S7k+WCqCvmi7znrrEr6KOF5Y245p+c5pyN5Yqh5Lit5riv6L+Q
+6L6T5pyN5Yqh5Li76KaB5LuO5LqL5YWo5Zu95ZCE5Zyw5Yiw6aaZ5riv6JG15raM56CB5aS044CB
+5py65Zy65Y+K5YW25LuW56uZ5Zy655qE5pWj6LSn5ou86L2mJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IOaPkOS+m+mmmea4r+S4gOiIrOi0uOaY
+k+OAgeS5sOWNleOAgeaVo+i0p+aLvOi9puOAgeWQqOi9puOAgeaVtOafnOi/kOi+k+acjeWKoeWP
+iua3seWcs+eahOS6pOS7k+acjeWKoe+8jOW5tuWPr+S7o+eQhui/m+WHuuWPo+aKpeWFs+aKpeaj
+gOmFjeWll+acjeWKoS4mbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsg4pagIOWkp+mZhuS4iumXqOaPkOi0p++8jOi/kOi+k+aKpeWFs+S4gOadoem+meac
+jeWKoeKWoCDpppnmuK/mnInljbjotKflubPlj7DvvIzlj6/mj5Dkvpvoo4XljbjotKfvvIzmi7zn
+rrHvvIzku5PlgqjmnI3liqHilqAg5Lmd6b6ZL+aWsOeVjC/muK/lspvmtL7pgIHlhazlj7jku6Xl
+j4rku5PlupPilqAg6aaZ5riv5py65Zy6L+S7k+eggeWktOS7ky/np4Hkurrku5PnmoTlhaXku5Pm
+nI3liqEg4pagIOa3seWcs+S6pOS7k+acjeWKoeS4rea4r+i0p+i/kOaciemZkOWFrOWPuOiBlOez
+u+S6uu+8mkphbmVNb2JpbGUg77yaKzg2LTE4NTY2MjIyNTYyJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7IFFROjcyNDUyMzUwMSjlvq7kv6HlkIzlj7fvvIlFLW1haWwgMe+8mkphbmUxODU2NjIyMjU2
+MkBob3RtYWlsLmNvbQ0KRS1tYWlsIDI6Jm5ic3A7Jm5ic3A7IDcyNDUyMzUwMUBxcS5jb20gDQrp
+ppnmuK/vvJrokbXmtozkuInlj7fotKfmn5znoIHlpLTljZfot680LTXlj7flm57ml4vlpITkuK3p
+l7TmsYflrp3liqjlipvlgZzovablnLoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlz
+dHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZk
+aW1tCg==
