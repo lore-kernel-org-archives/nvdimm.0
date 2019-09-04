@@ -1,146 +1,74 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RFC PATCH v2 00/19] RDMA/FS DAX truncate proposal V1,000,002 ;-)
-Date: Wed, 4 Sep 2019 09:54:25 -0700
-Message-ID: <20190904165425.GB31319@iweiny-DESK2.sc.intel.com>
-References: <20190821185703.GB5965@iweiny-DESK2.sc.intel.com>
- <20190821194810.GI8653@ziepe.ca>
- <20190821204421.GE5965@iweiny-DESK2.sc.intel.com>
- <20190823032345.GG1119@dread.disaster.area>
- <20190823120428.GA12968@ziepe.ca>
- <20190824001124.GI1119@dread.disaster.area>
- <20190824050836.GC1092@iweiny-DESK2.sc.intel.com>
- <20190826055510.GL1119@dread.disaster.area>
- <20190829020230.GA18249@iweiny-DESK2.sc.intel.com>
- <20190902222618.GR1119@dread.disaster.area>
+From: Brice Goglin <Brice.Goglin-MZpvjPyXg2s@public.gmane.org>
+Subject: Re: [ndctl PATCH 2/2] libdaxctl: fix device reconfiguration with
+ builtin drivers
+Date: Wed, 4 Sep 2019 19:30:13 +0200
+Message-ID: <544e35d2-8600-0f93-79f3-642a0b851710@inria.fr>
+References: <20190904010819.11012-1-vishal.l.verma@intel.com>
+ <20190904010819.11012-2-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190902222618.GR1119@dread.disaster.area>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Theodore Ts'o <tytso@mit.edu>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190904010819.11012-2-vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On Tue, Sep 03, 2019 at 08:26:18AM +1000, Dave Chinner wrote:
-> On Wed, Aug 28, 2019 at 07:02:31PM -0700, Ira Weiny wrote:
-> > On Mon, Aug 26, 2019 at 03:55:10PM +1000, Dave Chinner wrote:
-> > > On Fri, Aug 23, 2019 at 10:08:36PM -0700, Ira Weiny wrote:
-> > > > On Sat, Aug 24, 2019 at 10:11:24AM +1000, Dave Chinner wrote:
-> > > > > On Fri, Aug 23, 2019 at 09:04:29AM -0300, Jason Gunthorpe wrote:
-> > > > "Leases are associated with an open file description (see open(2)).  This means
-> > > > that duplicate file descriptors (created by, for example, fork(2) or dup(2))
-> > > > refer to the same lease, and this lease may be modified or released using any
-> > > > of these descriptors.  Furthermore,  the lease is released by either an
-> > > > explicit F_UNLCK operation on any of these duplicate file descriptors, or when
-> > > > all such file descriptors have been closed."
-> > > 
-> > > Right, the lease is attached to the struct file, so it follows
-> > > where-ever the struct file goes. That doesn't mean it's actually
-> > > useful when the struct file is duplicated and/or passed to another
-> > > process. :/
-> > > 
-> > > AFAICT, the problem is that when we take another reference to the
-> > > struct file, or when the struct file is passed to a different
-> > > process, nothing updates the lease or lease state attached to that
-> > > struct file.
-> > 
-> > Ok, I probably should have made this more clear in the cover letter but _only_
-> > the process which took the lease can actually pin memory.
-> 
-> Sure, no question about that.
-> 
-> > That pinned memory _can_ be passed to another process but those sub-process' can
-> > _not_ use the original lease to pin _more_ of the file.  They would need to
-> > take their own lease to do that.
-> 
-> Yes, they would need a new lease to extend it. But that ignores the
-> fact they don't have a lease on the existing pins they are using and
-> have no control over the lease those pins originated under.  e.g.
-> the originating process dies (for whatever reason) and now we have
-> pins without a valid lease holder.
-
-Define "valid lease holder"?
-
-> 
-> If something else now takes an exclusive lease on the file (because
-> the original exclusive lease no longer exists), it's not going to
-> work correctly because of the zombied page pins caused by closing
-> the exclusive lease they were gained under. IOWs, pages pinned under
-> an exclusive lease are no longer "exclusive" the moment the original
-> exclusive lease is dropped, and pins passed to another process are
-> no longer covered by the original lease they were created under.
-
-The page pins are not zombied the lease is.  The lease still exists, it can't
-be dropped while the pins are in place.  I need to double check the
-implementation but that was the intent.
-
-Yep just did a quick check, I have a test for that.  If the page pins exist
-then the lease can _not_ be released.  Closing the FD will "zombie" the lease
-but it and the struct file will still exist until the pins go away.
-
-Furthermore, a "zombie" lease is _not_ sufficient to pin more pages.  (I have a
-test for this too.)  I apologize that I don't have something to submit to
-xfstests.  I'm new to that code base.
-
-I'm happy to share the code I have which I've been using to test...  But it is
-pretty rough as it has undergone a number of changes.  I think it would be
-better to convert my test series to xfstests.
-
-However, I don't know if it is ok to require RDMA within those tests.  Right
-now that is the only sub-system I have allowed to create these page pins.  So
-I'm not sure what to do at this time.  I'm open to suggestions.
-
-> 
-> > Sorry for not being clear on that.
-> 
-> I know exactly what you are saying. What I'm failing to get across
-> is that file layout leases don't actually allow the behaviour you
-> want to have.
-
-Not currently, no.  But we are discussing the semantics to allow them _to_ have
-the behavior needed.
-
-> 
-> > > As such, leases that require callbacks to userspace are currently
-> > > only valid within the process context the lease was taken in.
-> > 
-> > But for long term pins we are not requiring callbacks.
-> 
-> Regardless, we still require an active lease for long term pins so
-> that other lease holders fail operations appropriately. And that
-> exclusive lease must follow the process that pins the pages so that
-> the life cycle is the same...
-
-I disagree.  See below.
-
-> 
-> > > Indeed, even closing the fd the lease was taken on without
-> > > F_UNLCKing it first doesn't mean the lease has been torn down if
-> > > there is some other reference to the struct file. That means the
-> > > original lease owner will still get SIGIO delivered to that fd on a
-> > > lease break regardless of whether it is open or not. ANd if we
-> > > implement "layout lease not released within SIGIO response timeout"
-> > > then that process will get killed, despite the fact it may not even
-> > > have a reference to that file anymore.
-> > 
-> > I'm not seeing that as a problem.  This is all a result of the application
-> > failing to do the right thing.
-> 
-> How is that not a problem?
-
-The application has taken an exclusive lease and they don't have to let it go.
-
-IOW, there is little difference between the application closing the FD and
-creating a zombie lease vs keeping the FD open with a real lease.  Because no
-SIGIO is sent and there is no need to react to it anyway as the intention is to
-keep the lease active and the layout pinned "indefinitely".
-
-Furthermore, in both cases the admin must kill the application to change the
-layout forcibly.  Basically applications don't _have_ to do the right thing but
-the kernel and the filesystem is still protected while the admin has a way to
-correct the situation given a bad application.
-
-Therefore, from the POV of the kernel and file system I don't see a problem.
-
-Ira
+VGhhbmtzLCB0aGlzIHdvcmtzIGhlcmUgKG9uIGEgRGViaWFuIHRlc3Rpbmcgd2l0aCB2YW5pbGxh
+IDUuMi4xMSBhbmQKNS4zLXJjNykuCgpCcmljZQoKCkxlIDA0LzA5LzIwMTkgw6AgMDM6MDgsIFZp
+c2hhbCBWZXJtYSBhIMOpY3JpdMKgOgo+IFdoZW4gdGhlIGRyaXZlciBvZiBhIGdpdmVuIHJlY29u
+ZmlndXJhdGlvbiBtb2RlIGlzIGJ1aWx0aW4sIGxpYmRheGN0bAo+IGlzbid0IGFibGUgdG8gYnVp
+bGQgYSBtb2R1bGUgbG9va3VwIGxpc3QgdXNpbmcga21vZC4gSG93ZXZlciwgaXQgZG9lc24ndAo+
+IG5lZWQgdG8gZmFpbCBpbiB0aGlzIGNhc2UsIGFzIGl0IGlzIGFjY2VwdGFibGUgZm9yIGEgZHJp
+dmVyIHRvIGJlCj4gYnVpbHRpbi4KPgo+IFVzZSB0aGUga21vZCAnaW5pdHN0YXRlJyB0byBkZXRl
+cm1pbmUgd2hldGhlciB0aGUgdGFyZ2V0IGRyaXZlciBtYXkgYmUKPiBidWlsdGluLCBhbmQgZW5z
+dXJlIGl0IGlzIGF2YWlsYWJsZSBieSBwcm9iaW5nIGl0IHZpYSBhIG5hbWVkIGxvb2t1cC4KPiBJ
+ZiBpdCBpcyBhdmFpbGFibGUsIHNraXAgdGhlIG1vZGFsaWFzIGJhc2VkIGxpc3Qgd2FsaywgYW5k
+IGJpbmQgdG8gaXQKPiBkaXJlY3RseS4KPgo+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9wbWVt
+L25kY3RsL2lzc3Vlcy8xMDgKPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRl
+bC5jb20+Cj4gUmVwb3J0ZWQtYnk6IEJyaWNlIEdvZ2xpbiA8QnJpY2UuR29nbGluQGlucmlhLmZy
+Pgo+IFJlcG9ydGVkLWJ5OiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AbGludXguaW50ZWwuY29t
+Pgo+IFNpZ25lZC1vZmYtYnk6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29t
+Pgo+IC0tLQo+ICBkYXhjdGwvbGliL2xpYmRheGN0bC5jIHwgMzMgKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrCj4gIDEgZmlsZSBjaGFuZ2VkLCAzMyBpbnNlcnRpb25zKCspCj4KPiBk
+aWZmIC0tZ2l0IGEvZGF4Y3RsL2xpYi9saWJkYXhjdGwuYyBiL2RheGN0bC9saWIvbGliZGF4Y3Rs
+LmMKPiBpbmRleCBkOWYyYzMzLi43YTY1YmVkIDEwMDY0NAo+IC0tLSBhL2RheGN0bC9saWIvbGli
+ZGF4Y3RsLmMKPiArKysgYi9kYXhjdGwvbGliL2xpYmRheGN0bC5jCj4gQEAgLTg2OCw2ICs4Njgs
+MzcgQEAgREFYQ1RMX0VYUE9SVCBpbnQgZGF4Y3RsX2Rldl9pc19lbmFibGVkKHN0cnVjdCBkYXhj
+dGxfZGV2ICpkZXYpCj4gIAlyZXR1cm4gaXNfZW5hYmxlZChwYXRoKTsKPiAgfQo+ICAKPiArc3Rh
+dGljIGludCB0cnlfa21vZF9idWlsdGluKHN0cnVjdCBkYXhjdGxfZGV2ICpkZXYsIGNvbnN0IGNo
+YXIgKm1vZF9uYW1lKQo+ICt7Cj4gKwljb25zdCBjaGFyICpkZXZuYW1lID0gZGF4Y3RsX2Rldl9n
+ZXRfZGV2bmFtZShkZXYpOwo+ICsJc3RydWN0IGRheGN0bF9jdHggKmN0eCA9IGRheGN0bF9kZXZf
+Z2V0X2N0eChkZXYpOwo+ICsJc3RydWN0IGttb2RfbW9kdWxlICprbW9kOwo+ICsJaW50IHJjID0g
+LUVOWElPOwo+ICsKPiArCXJjID0ga21vZF9tb2R1bGVfbmV3X2Zyb21fbmFtZShjdHgtPmttb2Rf
+Y3R4LCBtb2RfbmFtZSwgJmttb2QpOwo+ICsJaWYgKHJjIDwgMCkgewo+ICsJCWVycihjdHgsICIl
+czogZmFpbGVkIGdldHRpbmcgbW9kdWxlIGZvcjogJXM6ICVzXG4iLAo+ICsJCQlkZXZuYW1lLCBt
+b2RfbmFtZSwgc3RyZXJyb3IoLXJjKSk7Cj4gKwkJcmV0dXJuIHJjOwo+ICsJfQo+ICsKPiArCWlm
+IChrbW9kX21vZHVsZV9nZXRfaW5pdHN0YXRlKGttb2QpICE9IEtNT0RfTU9EVUxFX0JVSUxUSU4p
+Cj4gKwkJcmV0dXJuIC1FTlhJTzsKPiArCj4gKwlkYmcoY3R4LCAiJXMgaW5zZXJ0aW5nIG1vZHVs
+ZTogJXNcbiIsIGRldm5hbWUsCj4gKwkJa21vZF9tb2R1bGVfZ2V0X25hbWUoa21vZCkpOwo+ICsJ
+cmMgPSBrbW9kX21vZHVsZV9wcm9iZV9pbnNlcnRfbW9kdWxlKGttb2QsCj4gKwkJCUtNT0RfUFJP
+QkVfQVBQTFlfQkxBQ0tMSVNULAo+ICsJCQlOVUxMLCBOVUxMLCBOVUxMLCBOVUxMKTsKPiArCWlm
+IChyYyA8IDApIHsKPiArCQllcnIoY3R4LCAiJXM6IGluc2VydCBmYWlsdXJlOiAlZFxuIiwgZGV2
+bmFtZSwgcmMpOwo+ICsJCXJldHVybiByYzsKPiArCX0KPiArCWRldi0+bW9kdWxlID0ga21vZDsK
+PiArCj4gKwlyZXR1cm4gMDsKPiArfQo+ICsKPiAgc3RhdGljIGludCBkYXhjdGxfaW5zZXJ0X2tt
+b2RfZm9yX21vZGUoc3RydWN0IGRheGN0bF9kZXYgKmRldiwKPiAgCQljb25zdCBjaGFyICptb2Rf
+bmFtZSkKPiAgewo+IEBAIC04NzcsNiArOTA4LDggQEAgc3RhdGljIGludCBkYXhjdGxfaW5zZXJ0
+X2ttb2RfZm9yX21vZGUoc3RydWN0IGRheGN0bF9kZXYgKmRldiwKPiAgCWludCByYyA9IC1FTlhJ
+TzsKPiAgCj4gIAlpZiAoZGV2LT5rbW9kX2xpc3QgPT0gTlVMTCkgewo+ICsJCWlmICh0cnlfa21v
+ZF9idWlsdGluKGRldiwgbW9kX25hbWUpID09IDApCj4gKwkJCXJldHVybiAwOwo+ICAJCWVycihj
+dHgsICIlczogYSBtb2RhbGlhcyBsb29rdXAgbGlzdCB3YXMgbm90IGNyZWF0ZWRcbiIsCj4gIAkJ
+CQlkZXZuYW1lKTsKPiAgCQlyZXR1cm4gcmM7Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1t
+QGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LW52ZGltbQo=
