@@ -1,19 +1,17 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from EUR02-AM5-obe.outbound.protection.outlook.com
- (mail-eopbgr00055.outbound.protection.outlook.com [40.107.0.55])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id AAE6B20218C38
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 02:28:17 -0700 (PDT)
-From: "Justin He (Arm Technology China)" <Justin.He@arm.com>
-Subject: RE: [PATCH 1/2] drivers/dax/kmem: use default numa_mem_id if
- target_node is invalid
-Date: Tue, 3 Sep 2019 09:26:46 +0000
-Message-ID: <DB7PR08MB3082574FA8D63C67622C689DF7B90@DB7PR08MB3082.eurprd08.prod.outlook.com>
-References: <20190816111844.87442-1-justin.he@arm.com>
- <20190816111844.87442-2-justin.he@arm.com>
-In-Reply-To: <20190816111844.87442-2-justin.he@arm.com>
-Content-Language: en-US
+ by ml01.01.org (Postfix) with ESMTPS id 7D4AA2021B709
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 22:10:02 -0700 (PDT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v7 4/7] libnvdimm/pfn_dev: Add page size and struct page size
+ to pfn superblock
+Date: Wed,  4 Sep 2019 10:38:19 +0530
+Message-Id: <20190904050822.23139-5-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20190904050822.23139-1-aneesh.kumar@linux.ibm.com>
+References: <20190904050822.23139-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
@@ -22,52 +20,95 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-To: "Justin He (Arm Technology China)" <Justin.He@arm.com>, Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+To: dan.j.williams@intel.com
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-SGkNClBpbmcuDQpUaGUgdGFyZ2V0X25vZGUgd2lsbCBiZSAtMSBpZiBudW1hIGRpc2FibGVkLiBJ
-SVVDLCBpdCBpcyBhIGdlbmVyaWMgaXNzdWUsIG5vdCBvbmx5IG9uIGFybTY0Lg0KDQoNCi0tDQpD
-aGVlcnMsDQpKdXN0aW4gKEppYSBIZSkNCg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0NCj4gRnJvbTogSmlhIEhlIDxqdXN0aW4uaGVAYXJtLmNvbT4NCj4gU2VudDogMjAxOcTqONTC
-MTbI1SAxOToxOQ0KPiBUbzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
-OyBWaXNoYWwgVmVybWENCj4gPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gQ2M6IEtlaXRo
-IEJ1c2NoIDxrZWl0aC5idXNjaEBpbnRlbC5jb20+OyBEYXZlIEppYW5nDQo+IDxkYXZlLmppYW5n
-QGludGVsLmNvbT47IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxA
-dmdlci5rZXJuZWwub3JnOyBKdXN0aW4gSGUgKEFybSBUZWNobm9sb2d5IENoaW5hKQ0KPiA8SnVz
-dGluLkhlQGFybS5jb20+DQo+IFN1YmplY3Q6IFtQQVRDSCAxLzJdIGRyaXZlcnMvZGF4L2ttZW06
-IHVzZSBkZWZhdWx0IG51bWFfbWVtX2lkIGlmDQo+IHRhcmdldF9ub2RlIGlzIGludmFsaWQNCj4N
-Cj4gSW4gc29tZSBwbGF0Zm9ybXMoZS5nIGFybTY0IGd1ZXN0KSwgdGhlIE5GSVQgaW5mbyBtaWdo
-dCBub3QgYmUgcmVhZHkuDQo+IFRoZW4gdGFyZ2V0X25vZGUgbWlnaHQgYmUgLTEuIEJ1dCBpZiB0
-aGVyZSBpcyBhIGRlZmF1bHQgbnVtYV9tZW1faWQoKSwNCj4gd2UgY2FuIHVzZSBpdCB0byBhdm9p
-ZCB1bm5lY2Vzc2FyeSBmYXRhbCBFSU5WTCBlcnJvci4NCj4NCj4gZGV2bV9tZW1yZW1hcF9wYWdl
-cygpIGFsc28gdXNlcyB0aGlzIGxvZ2ljIGlmIG5pZCBpcyBpbnZhbGlkLCB3ZSBjYW4NCj4ga2Vl
-cCB0aGUgc2FtZSBwYWdlIHdpdGggaXQuDQo+DQo+IFNpZ25lZC1vZmYtYnk6IEppYSBIZSA8anVz
-dGluLmhlQGFybS5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9kYXgva21lbS5jIHwgNiArKystLS0N
-Cj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+DQo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9rbWVtLmMgYi9kcml2ZXJzL2RheC9rbWVtLmMNCj4g
-aW5kZXggYTAyMzE4YzZkMjhhLi5hZDYyZDU1MWQ5NGUgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMv
-ZGF4L2ttZW0uYw0KPiArKysgYi9kcml2ZXJzL2RheC9rbWVtLmMNCj4gQEAgLTMzLDkgKzMzLDkg
-QEAgaW50IGRldl9kYXhfa21lbV9wcm9iZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ICAgICAgICAq
-Lw0KPiAgICAgICBudW1hX25vZGUgPSBkZXZfZGF4LT50YXJnZXRfbm9kZTsNCj4gICAgICAgaWYg
-KG51bWFfbm9kZSA8IDApIHsNCj4gLSAgICAgICAgICAgICBkZXZfd2FybihkZXYsICJyZWplY3Rp
-bmcgREFYIHJlZ2lvbiAlcFIgd2l0aCBpbnZhbGlkDQo+IG5vZGU6ICVkXG4iLA0KPiAtICAgICAg
-ICAgICAgICAgICAgICAgIHJlcywgbnVtYV9ub2RlKTsNCj4gLSAgICAgICAgICAgICByZXR1cm4g
-LUVJTlZBTDsNCj4gKyAgICAgICAgICAgICBkZXZfd2FybihkZXYsICJEQVggJXBSIHdpdGggaW52
-YWxpZCBub2RlLCBhc3N1bWUgaXQNCj4gYXMgJWRcbiIsDQo+ICsgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHJlcywgbnVtYV9ub2RlLCBudW1hX21lbV9pZCgpKTsNCj4gKyAgICAgICAgICAg
-ICBudW1hX25vZGUgPSBudW1hX21lbV9pZCgpOw0KPiAgICAgICB9DQo+DQo+ICAgICAgIC8qIEhv
-dHBsdWcgc3RhcnRpbmcgYXQgdGhlIGJlZ2lubmluZyBvZiB0aGUgbmV4dCBibG9jazogKi8NCj4g
-LS0NCj4gMi4xNy4xDQoNCklNUE9SVEFOVCBOT1RJQ0U6IFRoZSBjb250ZW50cyBvZiB0aGlzIGVt
-YWlsIGFuZCBhbnkgYXR0YWNobWVudHMgYXJlIGNvbmZpZGVudGlhbCBhbmQgbWF5IGFsc28gYmUg
-cHJpdmlsZWdlZC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgcGxlYXNl
-IG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGFuZCBkbyBub3QgZGlzY2xvc2UgdGhlIGNv
-bnRlbnRzIHRvIGFueSBvdGhlciBwZXJzb24sIHVzZSBpdCBmb3IgYW55IHB1cnBvc2UsIG9yIHN0
-b3JlIG9yIGNvcHkgdGhlIGluZm9ybWF0aW9uIGluIGFueSBtZWRpdW0uIFRoYW5rIHlvdS4NCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAx
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+This is needed so that pmem probe don't wrongly initialize a namespace
+which doesn't have enough space reserved for holding struct pages
+with the current kernel.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ drivers/nvdimm/pfn.h      |  5 ++++-
+ drivers/nvdimm/pfn_devs.c | 25 ++++++++++++++++++++++++-
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
+index 7381673b7b70..acb19517f678 100644
+--- a/drivers/nvdimm/pfn.h
++++ b/drivers/nvdimm/pfn.h
+@@ -29,7 +29,10 @@ struct nd_pfn_sb {
+ 	/* minor-version-2 record the base alignment of the mapping */
+ 	__le32 align;
+ 	/* minor-version-3 guarantee the padding and flags are zero */
+-	u8 padding[4000];
++	/* minor-version-4 record the page size and struct page size */
++	__le32 page_size;
++	__le16 page_struct_size;
++	u8 padding[3994];
+ 	__le64 checksum;
+ };
+ 
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index cd120feb9213..ce9ef18282dd 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -460,6 +460,11 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
+ 		pfn_sb->align = 0;
+ 
++	if (__le16_to_cpu(pfn_sb->version_minor) < 4) {
++		pfn_sb->page_struct_size = cpu_to_le16(64);
++		pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
++	}
++
+ 	switch (le32_to_cpu(pfn_sb->mode)) {
+ 	case PFN_MODE_RAM:
+ 	case PFN_MODE_PMEM:
+@@ -475,6 +480,22 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		align = 1UL << ilog2(offset);
+ 	mode = le32_to_cpu(pfn_sb->mode);
+ 
++	if ((le32_to_cpu(pfn_sb->page_size) > PAGE_SIZE) &&
++			(mode == PFN_MODE_PMEM)) {
++		dev_err(&nd_pfn->dev,
++				"init failed, page size mismatch %d\n",
++				le32_to_cpu(pfn_sb->page_size));
++		return -EOPNOTSUPP;
++	}
++
++	if ((le16_to_cpu(pfn_sb->page_struct_size) < sizeof(struct page)) &&
++			(mode == PFN_MODE_PMEM)) {
++		dev_err(&nd_pfn->dev,
++				"init failed, struct page size mismatch %d\n",
++				le16_to_cpu(pfn_sb->page_struct_size));
++		return -EOPNOTSUPP;
++	}
++
+ 	if (!nd_pfn->uuid) {
+ 		/*
+ 		 * When probing a namepace via nd_pfn_probe() the uuid
+@@ -730,8 +751,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
+ 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
+ 	pfn_sb->version_major = cpu_to_le16(1);
+-	pfn_sb->version_minor = cpu_to_le16(3);
++	pfn_sb->version_minor = cpu_to_le16(4);
+ 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
++	pfn_sb->page_struct_size = cpu_to_le16(MAX_STRUCT_PAGE_SIZE);
++	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+ 
+-- 
+2.21.0
+
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
