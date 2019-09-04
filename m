@@ -1,15 +1,15 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
- [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com
+ [148.163.156.1])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D4AA2021B709
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 22:10:02 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 8788421A070B8
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 22:09:43 -0700 (PDT)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v7 4/7] libnvdimm/pfn_dev: Add page size and struct page size
- to pfn superblock
-Date: Wed,  4 Sep 2019 10:38:19 +0530
-Message-Id: <20190904050822.23139-5-aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v7 2/7] libnvdimm/pmem: Advance namespace seed for specific
+ probe errors
+Date: Wed,  4 Sep 2019 10:38:17 +0530
+Message-Id: <20190904050822.23139-3-aneesh.kumar@linux.ibm.com>
 In-Reply-To: <20190904050822.23139-1-aneesh.kumar@linux.ibm.com>
 References: <20190904050822.23139-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
@@ -28,82 +28,82 @@ To: dan.j.williams@intel.com
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-This is needed so that pmem probe don't wrongly initialize a namespace
-which doesn't have enough space reserved for holding struct pages
-with the current kernel.
+In order to support marking namespaces with unsupported feature/versions
+disabled, nvdimm core should advance the namespace seed on these
+probe failures. Otherwise, these failed namespaces will be considered a
+seed namespace and will be wrongly used while creating new namespaces.
+
+Add -EOPNOTSUPP as return from pmem probe callback to indicate a namespace
+initialization failures due to pfn superblock feature/version mismatch.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
- drivers/nvdimm/pfn.h      |  5 ++++-
- drivers/nvdimm/pfn_devs.c | 25 ++++++++++++++++++++++++-
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ drivers/nvdimm/bus.c  |  3 ++-
+ drivers/nvdimm/pmem.c | 29 +++++++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/pfn.h b/drivers/nvdimm/pfn.h
-index 7381673b7b70..acb19517f678 100644
---- a/drivers/nvdimm/pfn.h
-+++ b/drivers/nvdimm/pfn.h
-@@ -29,7 +29,10 @@ struct nd_pfn_sb {
- 	/* minor-version-2 record the base alignment of the mapping */
- 	__le32 align;
- 	/* minor-version-3 guarantee the padding and flags are zero */
--	u8 padding[4000];
-+	/* minor-version-4 record the page size and struct page size */
-+	__le32 page_size;
-+	__le16 page_struct_size;
-+	u8 padding[3994];
- 	__le64 checksum;
- };
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 9b64e68a20b8..dfe2fdb2db7d 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -95,7 +95,8 @@ static int nvdimm_bus_probe(struct device *dev)
+ 	rc = nd_drv->probe(dev);
+ 	debug_nvdimm_unlock(dev);
  
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index cd120feb9213..ce9ef18282dd 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -460,6 +460,11 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 	if (__le16_to_cpu(pfn_sb->version_minor) < 2)
- 		pfn_sb->align = 0;
+-	if (rc == 0 && dev->parent && is_nd_region(dev->parent))
++	if ((rc == 0 || rc == -EOPNOTSUPP) &&
++			dev->parent && is_nd_region(dev->parent))
+ 		nd_region_advance_seeds(to_nd_region(dev->parent), dev);
+ 	nvdimm_bus_probe_end(nvdimm_bus);
  
-+	if (__le16_to_cpu(pfn_sb->version_minor) < 4) {
-+		pfn_sb->page_struct_size = cpu_to_le16(64);
-+		pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
-+	}
-+
- 	switch (le32_to_cpu(pfn_sb->mode)) {
- 	case PFN_MODE_RAM:
- 	case PFN_MODE_PMEM:
-@@ -475,6 +480,22 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		align = 1UL << ilog2(offset);
- 	mode = le32_to_cpu(pfn_sb->mode);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 4c121dd03dd9..f9f76f6ba07b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -490,6 +490,7 @@ static int pmem_attach_disk(struct device *dev,
  
-+	if ((le32_to_cpu(pfn_sb->page_size) > PAGE_SIZE) &&
-+			(mode == PFN_MODE_PMEM)) {
-+		dev_err(&nd_pfn->dev,
-+				"init failed, page size mismatch %d\n",
-+				le32_to_cpu(pfn_sb->page_size));
-+		return -EOPNOTSUPP;
-+	}
+ static int nd_pmem_probe(struct device *dev)
+ {
++	int ret;
+ 	struct nd_namespace_common *ndns;
+ 
+ 	ndns = nvdimm_namespace_common_probe(dev);
+@@ -505,12 +506,32 @@ static int nd_pmem_probe(struct device *dev)
+ 	if (is_nd_pfn(dev))
+ 		return pmem_attach_disk(dev, ndns);
+ 
+-	/* if we find a valid info-block we'll come back as that personality */
+-	if (nd_btt_probe(dev, ndns) == 0 || nd_pfn_probe(dev, ndns) == 0
+-			|| nd_dax_probe(dev, ndns) == 0)
++	ret = nd_btt_probe(dev, ndns);
++	if (ret == 0)
+ 		return -ENXIO;
+ 
+-	/* ...otherwise we're just a raw pmem device */
++	/*
++	 * We have two failure conditions here, there is no
++	 * info reserver block or we found a valid info reserve block
++	 * but failed to initialize the pfn superblock.
++	 *
++	 * For the first case consider namespace as a raw pmem namespace
++	 * and attach a disk.
++	 *
++	 * For the latter, consider this a success and advance the namespace
++	 * seed.
++	 */
++	ret = nd_pfn_probe(dev, ndns);
++	if (ret == 0)
++		return -ENXIO;
++	else if (ret == -EOPNOTSUPP)
++		return ret;
 +
-+	if ((le16_to_cpu(pfn_sb->page_struct_size) < sizeof(struct page)) &&
-+			(mode == PFN_MODE_PMEM)) {
-+		dev_err(&nd_pfn->dev,
-+				"init failed, struct page size mismatch %d\n",
-+				le16_to_cpu(pfn_sb->page_struct_size));
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (!nd_pfn->uuid) {
- 		/*
- 		 * When probing a namepace via nd_pfn_probe() the uuid
-@@ -730,8 +751,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	memcpy(pfn_sb->uuid, nd_pfn->uuid, 16);
- 	memcpy(pfn_sb->parent_uuid, nd_dev_to_uuid(&ndns->dev), 16);
- 	pfn_sb->version_major = cpu_to_le16(1);
--	pfn_sb->version_minor = cpu_to_le16(3);
-+	pfn_sb->version_minor = cpu_to_le16(4);
- 	pfn_sb->align = cpu_to_le32(nd_pfn->align);
-+	pfn_sb->page_struct_size = cpu_to_le16(MAX_STRUCT_PAGE_SIZE);
-+	pfn_sb->page_size = cpu_to_le32(PAGE_SIZE);
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
++	ret = nd_dax_probe(dev, ndns);
++	if (ret == 0)
++		return -ENXIO;
++	else if (ret == -EOPNOTSUPP)
++		return ret;
+ 	return pmem_attach_disk(dev, ndns);
+ }
  
 -- 
 2.21.0
