@@ -1,23 +1,18 @@
 Return-Path: <linux-nvdimm-bounces@lists.01.org>
-Received: from bosmailout09.eigbox.net (bosmailout09.eigbox.net [66.96.189.9])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256
- bits)) (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 1EAF220214B30
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 15:51:18 -0700 (PDT)
-Received: from bosmailscan04.eigbox.net ([10.20.15.4])
- by bosmailout09.eigbox.net with esmtp (Exim) id 1i5Hck-0007aV-KR
- for linux-nvdimm@lists.01.org; Tue, 03 Sep 2019 18:50:06 -0400
-Received: from [10.115.3.33] (helo=bosimpout13)
- by bosmailscan04.eigbox.net with esmtp (Exim) id 1i5Hck-0004KI-CI
- for linux-nvdimm@lists.01.org; Tue, 03 Sep 2019 18:50:06 -0400
-Received: from [151.32.32.206] (port=50034 helo=Wise-PC.home-life.hub)
- by bosauthsmtp04.eigbox.net with esmtpa (Exim) id 1i5Hce-0006zc-NE
- for linux-nvdimm@lists.01.org; Tue, 03 Sep 2019 18:50:02 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id B0E132021DD34
+ for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 22:09:52 -0700 (PDT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v7 3/7] libnvdimm/pfn_dev: Add a build check to make sure we
+ notice when struct page size change
+Date: Wed,  4 Sep 2019 10:38:18 +0530
+Message-Id: <20190904050822.23139-4-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20190904050822.23139-1-aneesh.kumar@linux.ibm.com>
+References: <20190904050822.23139-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
-Subject: CONGRATULATIONS FROM MEGA LOTTERY2019!!
-From: Sales@ifsemea.com
-Date: Wed, 04 Sep 2019 00:49:57 +0200
-Content-Description: Mail message body
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,20 +20,70 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: remittance.axitea@outlook.com
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-Id: <20190903225120.618A821A07093@ml01.01.org>
-To: linux-nvdimm@lists.01.org
+To: dan.j.williams@intel.com
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm@lists.01.org
 List-ID: <linux-nvdimm@lists.01.org>
 
-Lucky Winner,
- We are delighted to inform you of the MEGA LOTTERY PICKER 2019 DRAW held on AUG/17/2019; Due to mix up of names and numbers the results were released on AUG/21/2019.  Your name attached to ticket number: 01890419 with serial number: 9912 drew lucky numbers: 4-13-21-27-36-38 with bonus ball 45 which consequently won in the 3rd   category, you have therefore been approved the winner for a lump sum pay out of Four Million Five Hundred Thousand United State Dollars ($4,500,000.00) Congratulations! Note: This is a tax-free draw and all participants were selected through a computer ballot system drawn from Over 40,000,000, people worldwide.
- Please kindly download the attachement for more information on  how to claim your won Prize
- Thanks,
-Regards.
+Namespaces created with PFN_MODE_PMEM mode stores struct page in the reserve
+block area. We need to make sure we account for the right struct page
+size while doing this. Instead of directly depending on sizeof(struct page)
+which can change based on different kernel config option, use the max struct
+page size (64) while calculating the reserve block area. This makes sure pmem
+device can be used across kernels built with different configs.
+
+If the above assumption of max struct page size change, we need to update the
+reserve block allocation space for new namespaces created.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ drivers/nvdimm/nd.h       |  4 ++++
+ drivers/nvdimm/pfn_devs.c | 10 +++++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 1b9955651379..e89af4b2d8e9 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -375,6 +375,10 @@ unsigned int pmem_sector_size(struct nd_namespace_common *ndns);
+ void nvdimm_badblocks_populate(struct nd_region *nd_region,
+ 		struct badblocks *bb, const struct resource *res);
+ #if IS_ENABLED(CONFIG_ND_CLAIM)
++
++/* max struct page size independent of kernel config */
++#define MAX_STRUCT_PAGE_SIZE 64
++
+ int nvdimm_setup_pfn(struct nd_pfn *nd_pfn, struct dev_pagemap *pgmap);
+ int devm_nsio_enable(struct device *dev, struct nd_namespace_io *nsio);
+ void devm_nsio_disable(struct device *dev, struct nd_namespace_io *nsio);
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 3e7b11cf1aae..cd120feb9213 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -701,8 +701,16 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		 * The altmap should be padded out to the block size used
+ 		 * when populating the vmemmap. This *should* be equal to
+ 		 * PMD_SIZE for most architectures.
++		 *
++		 * Also make sure size of struct page is less than 64. We
++		 * want to make sure we use large enough size here so that
++		 * we don't have a dynamic reserve space depending on
++		 * struct page size. But we also want to make sure we notice
++		 * when we end up adding new elements to struct page.
+ 		 */
+-		offset = ALIGN(start + SZ_8K + 64 * npfns, align) - start;
++		BUILD_BUG_ON(sizeof(struct page) > MAX_STRUCT_PAGE_SIZE);
++		offset = ALIGN(start + SZ_8K + MAX_STRUCT_PAGE_SIZE * npfns, align)
++			- start;
+ 	} else if (nd_pfn->mode == PFN_MODE_RAM)
+ 		offset = ALIGN(start + SZ_8K, align) - start;
+ 	else
+-- 
+2.21.0
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
