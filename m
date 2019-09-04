@@ -1,77 +1,56 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v4] libnvdimm: Enable unit test infrastructure compile checks
-Date: Wed, 04 Sep 2019 15:43:31 -0700
-Message-ID: <156763690875.2556198.15786177395425033830.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [RFC PATCH v2 02/19] fs/locks: Add Exclusive flag to user Layout
+ lease
+Date: Wed, 4 Sep 2019 16:12:35 -0700
+Message-ID: <69a7c037-6b4b-dbe3-2b42-77f85043b9eb@nvidia.com>
+References: <20190809225833.6657-1-ira.weiny@intel.com>
+ <20190809225833.6657-3-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190809225833.6657-3-ira.weiny@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: jgg@ziepe.ca
-Cc: =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: ira.weiny@intel.com, Andrew Morton <akpm@linux-foundation.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Michal Hocko <mhocko@suse.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-nvdimm@lists.01.org
 
-The infrastructure to mock core libnvdimm routines for unit testing
-purposes is prone to bitrot relative to refactoring of that core.
-Arrange for the unit test core to be built when CONFIG_COMPILE_TEST=y.
-This does not result in a functional unit test environment, it is only a
-helper for 0day to catch unit test build regressions.
+On 8/9/19 3:58 PM, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> Add an exclusive lease flag which indicates that the layout mechanism
+> can not be broken.
 
-Note that there are a few x86isms in the implementation, so this does
-not bother compile testing this architectures other than 64-bit x86.
+After studying the rest of these discussions extensively, I think in all
+cases FL_EXCLUSIVE is better named "unbreakable", rather than exclusive.
 
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Reported-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Link: https://lore.kernel.org/r/156097224232.1086847.9463861924683372741.stgit@dwillia2-desk3.amr.corp.intel.com
----
-Changes since v3:
+If you read your sentence above, it basically reinforces that idea: "add an
+exclusive flag to mean it is unbreakable" is a bit of a disconnect. It 
+would be better to say,
 
-- Switch the Makefile operator from := to += to make sure the unit test
-  infrastructure is incrementally included.
+Add an "unbreakable" lease flag which indicates that the layout lease
+cannot be broken.
 
-Jason, lets try this again. This seems to resolve the build error for
-me. I believe ":=" would have intermittent results in a parallel build
-and sometimes result in other targets in drivers/nvdimm/Makefile being
-bypassed. This has been exposed to the 0day robot for a day with no
-reports.
+Furthermore, while this may or may not be a way forward on the "we cannot
+have more than one process take a layout lease on a file/range", it at
+least stops making it impossible. In other words, no one is going to
+write a patch that allows sharing an exclusive layout lease--but someone
+might well update some of these patches here to make it possible to
+have multiple processes take unbreakable leases on the same file/range.
+
+I haven't worked through everything there yet, but again:
+
+* FL_UNBREAKABLE is the name you're looking for here, and
+
+* I think we want to allow multiple processes to take FL_UNBREAKABLE
+leases on the same file/range, so that we can make RDMA setups
+reasonable. By "reasonable" I mean, "no need to have a lead process
+that owns all the leases".
 
 
- drivers/nvdimm/Kconfig  |   12 ++++++++++++
- drivers/nvdimm/Makefile |    4 ++++
- 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index a5fde15e91d3..36af7af6b7cf 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -118,4 +118,16 @@ config NVDIMM_KEYS
- 	depends on ENCRYPTED_KEYS
- 	depends on (LIBNVDIMM=ENCRYPTED_KEYS) || LIBNVDIMM=m
- 
-+config NVDIMM_TEST_BUILD
-+	tristate "Build the unit test core"
-+	depends on m
-+	depends on COMPILE_TEST && X86_64
-+	default m if COMPILE_TEST
-+	help
-+	  Build the core of the unit test infrastructure. The result of
-+	  this build is non-functional for unit test execution, but it
-+	  otherwise helps catch build errors induced by changes to the
-+	  core devm_memremap_pages() implementation and other
-+	  infrastructure.
-+
- endif
-diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
-index cefe233e0b52..29203f3d3069 100644
---- a/drivers/nvdimm/Makefile
-+++ b/drivers/nvdimm/Makefile
-@@ -29,3 +29,7 @@ libnvdimm-$(CONFIG_BTT) += btt_devs.o
- libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
- libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
- libnvdimm-$(CONFIG_NVDIMM_KEYS) += security.o
-+
-+TOOLS := ../../tools
-+TEST_SRC := $(TOOLS)/testing/nvdimm/test
-+obj-$(CONFIG_NVDIMM_TEST_BUILD) += $(TEST_SRC)/iomap.o
+thanks,
+-- 
+John Hubbard
+NVIDIA
