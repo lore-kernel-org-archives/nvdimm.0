@@ -1,81 +1,77 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RFC PATCH v2 16/19] RDMA/uverbs: Add back pointer to system
- file object
-Date: Wed, 4 Sep 2019 15:25:50 -0700
-Message-ID: <20190904222549.GC31319@iweiny-DESK2.sc.intel.com>
-References: <20190809225833.6657-17-ira.weiny@intel.com>
- <20190812130039.GD24457@ziepe.ca>
- <20190812172826.GA19746@iweiny-DESK2.sc.intel.com>
- <20190812175615.GI24457@ziepe.ca>
- <20190812211537.GE20634@iweiny-DESK2.sc.intel.com>
- <20190813114842.GB29508@ziepe.ca>
- <20190813174142.GB11882@iweiny-DESK2.sc.intel.com>
- <20190813180022.GF29508@ziepe.ca>
- <20190813203858.GA12695@iweiny-DESK2.sc.intel.com>
- <20190814122308.GB13770@ziepe.ca>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v4] libnvdimm: Enable unit test infrastructure compile checks
+Date: Wed, 04 Sep 2019 15:43:31 -0700
+Message-ID: <156763690875.2556198.15786177395425033830.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190814122308.GB13770@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+To: jgg@ziepe.ca
+Cc: =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Aug 14, 2019 at 09:23:08AM -0300, Jason Gunthorpe wrote:
-> On Tue, Aug 13, 2019 at 01:38:59PM -0700, Ira Weiny wrote:
-> > On Tue, Aug 13, 2019 at 03:00:22PM -0300, Jason Gunthorpe wrote:
-> > > On Tue, Aug 13, 2019 at 10:41:42AM -0700, Ira Weiny wrote:
-> > > 
-> > > > And I was pretty sure uverbs_destroy_ufile_hw() would take care of (or ensure
-> > > > that some other thread is) destroying all the MR's we have associated with this
-> > > > FD.
-> > > 
-> > > fd's can't be revoked, so destroy_ufile_hw() can't touch them. It
-> > > deletes any underlying HW resources, but the FD persists.
-> > 
-> > I misspoke.  I should have said associated with this "context".  And of course
-> > uverbs_destroy_ufile_hw() does not touch the FD.  What I mean is that the
-> > struct file which had file_pins hanging off of it would be getting its file
-> > pins destroyed by uverbs_destroy_ufile_hw().  Therefore we don't need the FD
-> > after uverbs_destroy_ufile_hw() is done.
-> > 
-> > But since it does not block it may be that the struct file is gone before the
-> > MR is actually destroyed.  Which means I think the GUP code would blow up in
-> > that case...  :-(
-> 
-> Oh, yes, that is true, you also can't rely on the struct file living
-> longer than the HW objects either, that isn't how the lifetime model
-> works.
+The infrastructure to mock core libnvdimm routines for unit testing
+purposes is prone to bitrot relative to refactoring of that core.
+Arrange for the unit test core to be built when CONFIG_COMPILE_TEST=y.
+This does not result in a functional unit test environment, it is only a
+helper for 0day to catch unit test build regressions.
 
-Reviewing all these old threads...  And this made me think.  While the HW
-objects may out live the struct file.
+Note that there are a few x86isms in the implementation, so this does
+not bother compile testing this architectures other than 64-bit x86.
 
-They _are_ going away in a finite amount of time right?  It is not like they
-could be held forever right?
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Reported-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Link: https://lore.kernel.org/r/156097224232.1086847.9463861924683372741.stgit@dwillia2-desk3.amr.corp.intel.com
+---
+Changes since v3:
 
-Ira
+- Switch the Makefile operator from := to += to make sure the unit test
+  infrastructure is incrementally included.
 
-> 
-> If GUP consumes the struct file it must allow the struct file to be
-> deleted before the GUP pin is released.
-> 
-> > The drivers could provide some generic object (in RDMA this could be the
-> > uverbs_attr_bundle) which represents their "context".
-> 
-> For RDMA the obvious context is the struct ib_mr *
-> 
-> > But for the procfs interface, that context then needs to be associated with any
-> > file which points to it...  For RDMA, or any other "FD based pin mechanism", it
-> > would be up to the driver to "install" a procfs handler into any struct file
-> > which _may_ point to this context.  (before _or_ after memory pins).
-> 
-> Is this all just for debugging? Seems like a lot of complication just
-> to print a string
-> 
-> Generally, I think you'd be better to associate things with the
-> mm_struct not some struct file... The whole design is simpler as GUP
-> already has the mm_struct.
-> 
-> Jason
+Jason, lets try this again. This seems to resolve the build error for
+me. I believe ":=" would have intermittent results in a parallel build
+and sometimes result in other targets in drivers/nvdimm/Makefile being
+bypassed. This has been exposed to the 0day robot for a day with no
+reports.
+
+
+ drivers/nvdimm/Kconfig  |   12 ++++++++++++
+ drivers/nvdimm/Makefile |    4 ++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index a5fde15e91d3..36af7af6b7cf 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -118,4 +118,16 @@ config NVDIMM_KEYS
+ 	depends on ENCRYPTED_KEYS
+ 	depends on (LIBNVDIMM=ENCRYPTED_KEYS) || LIBNVDIMM=m
+ 
++config NVDIMM_TEST_BUILD
++	tristate "Build the unit test core"
++	depends on m
++	depends on COMPILE_TEST && X86_64
++	default m if COMPILE_TEST
++	help
++	  Build the core of the unit test infrastructure. The result of
++	  this build is non-functional for unit test execution, but it
++	  otherwise helps catch build errors induced by changes to the
++	  core devm_memremap_pages() implementation and other
++	  infrastructure.
++
+ endif
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index cefe233e0b52..29203f3d3069 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -29,3 +29,7 @@ libnvdimm-$(CONFIG_BTT) += btt_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_PFN) += pfn_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_DAX) += dax_devs.o
+ libnvdimm-$(CONFIG_NVDIMM_KEYS) += security.o
++
++TOOLS := ../../tools
++TEST_SRC := $(TOOLS)/testing/nvdimm/test
++obj-$(CONFIG_NVDIMM_TEST_BUILD) += $(TEST_SRC)/iomap.o
