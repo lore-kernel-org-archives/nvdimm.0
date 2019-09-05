@@ -1,46 +1,71 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4] libnvdimm: Enable unit test infrastructure compile
- checks
-Date: Thu, 5 Sep 2019 11:50:11 -0300
-Message-ID: <20190905145011.GA11796@ziepe.ca>
-References: <156763690875.2556198.15786177395425033830.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: [PATCH v9 0/7] Mark the namespace disabled on pfn superblock mismatch
+Date: Thu,  5 Sep 2019 21:15:56 +0530
+Message-ID: <20190905154603.10349-1-aneesh.kumar@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <156763690875.2556198.15786177395425033830.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-On Wed, Sep 04, 2019 at 03:43:31PM -0700, Dan Williams wrote:
-> The infrastructure to mock core libnvdimm routines for unit testing
-> purposes is prone to bitrot relative to refactoring of that core.
-> Arrange for the unit test core to be built when CONFIG_COMPILE_TEST=y.
-> This does not result in a functional unit test environment, it is only a
-> helper for 0day to catch unit test build regressions.
-> 
-> Note that there are a few x86isms in the implementation, so this does
-> not bother compile testing this architectures other than 64-bit x86.
-> 
-> Cc: Jérôme Glisse <jglisse@redhat.com>
-> Cc: Jason Gunthorpe <jgg@mellanox.com>
-> Reported-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> Link: https://lore.kernel.org/r/156097224232.1086847.9463861924683372741.stgit@dwillia2-desk3.amr.corp.intel.com
-> Changes since v3:
-> 
-> - Switch the Makefile operator from := to += to make sure the unit test
->   infrastructure is incrementally included.
-> 
-> Jason, lets try this again. This seems to resolve the build error for
-> me. I believe ":=" would have intermittent results in a parallel build
-> and sometimes result in other targets in drivers/nvdimm/Makefile being
-> bypassed. This has been exposed to the 0day robot for a day with no
-> reports.
+We add new members to pfn superblock (PAGE_SIZE and struct page size) in this series.
+This is now checked while initializing the namespace. If we find a mismatch we mark
+the namespace disabled.
 
-Okay, again we go
+This series also handle configs where hugepage support is not enabled by default.
+This can result in different align restrictions for dax namespace. We mark the
+dax namespace disabled if we find the alignment not supported.
 
-Jason
+Changes from v8:
+* updated patch 7 for addressing review feedback
+
+Changes from v6:
+* Formatting changes
+
+Changes from v5:
+* Split patch 3
+* Update commit message
+* Add MAX_STRUCT_PAGE_SIZE with value 64 and use that when allocating reserve block
+* Add BUILD_BUG_ON if we find sizeof(struct page) > 64
+
+
+
+Aneesh Kumar K.V (6):
+  libnvdimm/pmem: Advance namespace seed for specific probe errors
+  libnvdimm/pfn_dev: Add a build check to make sure we notice when
+    struct page size change
+  libnvdimm/pfn_dev: Add page size and struct page size to pfn
+    superblock
+  libnvdimm/label: Remove the dpa align check
+  libnvdimm: Use PAGE_SIZE instead of SZ_4K for align check
+  libnvdimm/dax: Pick the right alignment default when creating dax
+    devices
+
+Dan Williams (1):
+  libnvdimm/region: Rewrite _probe_success() to _advance_seeds()
+
+ drivers/nvdimm/bus.c            |   8 +--
+ drivers/nvdimm/label.c          |   5 --
+ drivers/nvdimm/namespace_devs.c |  40 +++++++++---
+ drivers/nvdimm/nd-core.h        |   3 +-
+ drivers/nvdimm/nd.h             |  10 +--
+ drivers/nvdimm/pfn.h            |   5 +-
+ drivers/nvdimm/pfn_devs.c       | 110 +++++++++++++++++++++++++-------
+ drivers/nvdimm/pmem.c           |  29 +++++++--
+ drivers/nvdimm/region_devs.c    |  76 ++++------------------
+ include/linux/huge_mm.h         |   7 +-
+ 10 files changed, 176 insertions(+), 117 deletions(-)
+
+-- 
+2.21.0
