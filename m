@@ -1,56 +1,58 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [RFC PATCH v2 02/19] fs/locks: Add Exclusive flag to user Layout
- lease
-Date: Wed, 4 Sep 2019 16:12:35 -0700
-Message-ID: <69a7c037-6b4b-dbe3-2b42-77f85043b9eb@nvidia.com>
-References: <20190809225833.6657-1-ira.weiny@intel.com>
- <20190809225833.6657-3-ira.weiny@intel.com>
+From: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ndctl PATCH v2 1/2] libdaxctl: fix the system-ram capability check
+Date: Wed,  4 Sep 2019 19:13:13 -0600
+Message-ID: <20190905011314.18610-1-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190809225833.6657-3-ira.weiny@intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: ira.weiny@intel.com, Andrew Morton <akpm@linux-foundation.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Michal Hocko <mhocko@suse.com>, Dave Chinner <david@fromorbit.com>, linux-xfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Brice Goglin <Brice.Goglin-MZpvjPyXg2s@public.gmane.org>
 List-Id: linux-nvdimm@lists.01.org
 
-On 8/9/19 3:58 PM, ira.weiny@intel.com wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> Add an exclusive lease flag which indicates that the layout mechanism
-> can not be broken.
+When checking a daxctl device for system-ram capability, we needn't look
+at the symlink resolution for /sys/bus/dax.../driver/module since the
+driver in question may not always have an associated module, and could
+be builtin instead.
 
-After studying the rest of these discussions extensively, I think in all
-cases FL_EXCLUSIVE is better named "unbreakable", rather than exclusive.
+Change the symlink we resolve to simply '/sys/bus/dax.../driver' and
+since that too resolves to '.../kmem' in the system-ram case, the
+rest of the check remains unchanged.
 
-If you read your sentence above, it basically reinforces that idea: "add an
-exclusive flag to mean it is unbreakable" is a bit of a disconnect. It 
-would be better to say,
+This is a pre-requisite to making daxctl-reconfigure-device work
+correctly when the target mode's driver might be builtin.
 
-Add an "unbreakable" lease flag which indicates that the layout lease
-cannot be broken.
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
 
-Furthermore, while this may or may not be a way forward on the "we cannot
-have more than one process take a layout lease on a file/range", it at
-least stops making it impossible. In other words, no one is going to
-write a patch that allows sharing an exclusive layout lease--but someone
-might well update some of these patches here to make it possible to
-have multiple processes take unbreakable leases on the same file/range.
+v2: Collect Reviewed-by tags
 
-I haven't worked through everything there yet, but again:
+ daxctl/lib/libdaxctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-* FL_UNBREAKABLE is the name you're looking for here, and
-
-* I think we want to allow multiple processes to take FL_UNBREAKABLE
-leases on the same file/range, so that we can make RDMA setups
-reasonable. By "reasonable" I mean, "no need to have a lead process
-that owns all the leases".
-
-
-
-thanks,
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c0a859c..d9f2c33 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -406,7 +406,7 @@ static int dev_is_system_ram_capable(struct daxctl_dev *dev)
+ 	if (!daxctl_dev_is_enabled(dev))
+ 		return false;
+ 
+-	if (snprintf(path, len, "%s/driver/module", dev->dev_path) >= len) {
++	if (snprintf(path, len, "%s/driver", dev->dev_path) >= len) {
+ 		err(ctx, "%s: buffer too small!\n", devname);
+ 		return false;
+ 	}
 -- 
-John Hubbard
-NVIDIA
+2.20.1
