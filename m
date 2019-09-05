@@ -1,106 +1,46 @@
-From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
-Subject: Re: [PATCH v8] libnvdimm/dax: Pick the right alignment default when
- creating dax devices
-Date: Thu, 5 Sep 2019 11:15:01 +0530
-Message-ID: <3c5e4fe3-7cc7-3e55-6616-da084f10f9fd@linux.ibm.com>
-References: <20190904065320.6005-1-aneesh.kumar@linux.ibm.com>
- <CAPcyv4hD8SAFNNAWBP9q55wdPf-HYTEjpS4m+rT0VPoGodZULw@mail.gmail.com>
- <33b377ac-86ea-b195-fd83-90c01df604cc@linux.ibm.com>
- <CAPcyv4hBHjrTSHRkwU8CQcXF4EHoz0rzu6L-U-QxRpWkPSAhUQ@mail.gmail.com>
- <d46212fb-7bbb-3db8-5a65-2c8799021fd6@linux.ibm.com>
- <CAPcyv4impX2OEd3ZATz_4_UjOvC4N78uU+PBPRK+id3Nh0EPCw@mail.gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4] libnvdimm: Enable unit test infrastructure compile
+ checks
+Date: Thu, 5 Sep 2019 11:50:11 -0300
+Message-ID: <20190905145011.GA11796@ziepe.ca>
+References: <156763690875.2556198.15786177395425033830.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4impX2OEd3ZATz_4_UjOvC4N78uU+PBPRK+id3Nh0EPCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "Kirill A . Shutemov" <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <156763690875.2556198.15786177395425033830.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@lst.de>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-Id: linux-nvdimm@lists.01.org
 
-On 9/5/19 10:45 AM, Dan Williams wrote:
-> On Wed, Sep 4, 2019 at 9:10 PM Aneesh Kumar K.V
-> <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org> wrote:
->>
->> On 9/5/19 8:29 AM, Dan Williams wrote:
->>>>> Keep this 'static' there's no usage of this routine outside of pfn_devs.c
->>>>>
->>>>>>     {
->>>>>> -       /*
->>>>>> -        * This needs to be a non-static variable because the *_SIZE
->>>>>> -        * macros aren't always constants.
->>>>>> -        */
->>>>>> -       const unsigned long supported_alignments[] = {
->>>>>> -               PAGE_SIZE,
->>>>>> -#ifdef CONFIG_TRANSPARENT_HUGEPAGE
->>>>>> -               HPAGE_PMD_SIZE,
->>>>>> +       static unsigned long supported_alignments[3];
->>>>>
->>>>> Why is marked static? It's being dynamically populated each invocation
->>>>> so static is just wasting space in the .data section.
->>>>>
->>>>
->>>> The return of that function is address and that would require me to use
->>>> a global variable. I could add a check
->>>>
->>>> /* Check if initialized */
->>>>     if (supported_alignment[1])
->>>>           return supported_alignment;
->>>>
->>>> in the function to updating that array every time called.
->>>
->>> Oh true, my mistake. I was thrown off by the constant
->>> re-initialization. Another option is to pass in the storage since the
->>> array needs to be populated at run time. Otherwise I would consider it
->>> a layering violation for libnvdimm to assume that
->>> has_transparent_hugepage() gives a constant result. I.e. put this
->>>
->>>           unsigned long aligns[4] = { [0] = 0, };
->>>
->>> ...in align_store() and supported_alignments_show() then
->>> nd_pfn_supported_alignments() does not need to worry about
->>> zero-initializing the fields it does not set.
->>
->> That requires callers to track the size of aligns array. If we add
->> different alignment support later, we will end up updating all the call
->> site?
+On Wed, Sep 04, 2019 at 03:43:31PM -0700, Dan Williams wrote:
+> The infrastructure to mock core libnvdimm routines for unit testing
+> purposes is prone to bitrot relative to refactoring of that core.
+> Arrange for the unit test core to be built when CONFIG_COMPILE_TEST=y.
+> This does not result in a functional unit test environment, it is only a
+> helper for 0day to catch unit test build regressions.
 > 
-> 2 sites for something that gets updated maybe once a decade?
+> Note that there are a few x86isms in the implementation, so this does
+> not bother compile testing this architectures other than 64-bit x86.
 > 
->>
->> How about?
->>
->> static const unsigned long *nd_pfn_supported_alignments(void)
->> {
->>          static unsigned long supported_alignments[4];
->>
->>          if (supported_alignments[0])
->>                  return supported_alignments;
->>
->>          supported_alignments[0] = PAGE_SIZE;
->>
->>          if (has_transparent_hugepage()) {
->>                  supported_alignments[1] = HPAGE_PMD_SIZE;
->>                  if (IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD))
->>                          supported_alignments[2] = HPAGE_PUD_SIZE;
->>          }
+> Cc: Jérôme Glisse <jglisse@redhat.com>
+> Cc: Jason Gunthorpe <jgg@mellanox.com>
+> Reported-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> Link: https://lore.kernel.org/r/156097224232.1086847.9463861924683372741.stgit@dwillia2-desk3.amr.corp.intel.com
+> Changes since v3:
 > 
-> Again, this makes assumptions that has_transparent_hugepage() always
-> returns the same result every time it is called.
+> - Switch the Makefile operator from := to += to make sure the unit test
+>   infrastructure is incrementally included.
 > 
+> Jason, lets try this again. This seems to resolve the build error for
+> me. I believe ":=" would have intermittent results in a parallel build
+> and sometimes result in other targets in drivers/nvdimm/Makefile being
+> bypassed. This has been exposed to the 0day robot for a day with no
+> reports.
 
-That assuming is true right? For architectures supporting THP we don't 
-support changing that during runtime. Allowing to change that during 
-runtime would have other impacts.
+Okay, again we go
 
--aneesh
+Jason
