@@ -3,55 +3,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	FROM_EXCESS_BASE64,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F3B6C43331
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Sep 2019 06:16:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47FC7C43331
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Sep 2019 17:49:20 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A0BDB2075C
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Sep 2019 06:16:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id B4F5920842
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Sep 2019 17:49:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=ed.swmail.top header.i=@ed.swmail.top header.b="W84GeDUP"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A0BDB2075C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=hardfindtronics.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="w9mvMZHj"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B4F5920842
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 991D120294F0A;
-	Thu,  5 Sep 2019 23:16:56 -0700 (PDT)
-Received-SPF: Permerror (SPF Permanent Error: Too many DNS lookups)
- identity=mailfrom; client-ip=106.12.150.83; helo=bhd3.sosung.net;
- envelope-from=zhan.bixia@ed.swmail.top; receiver=linux-nvdimm@lists.01.org 
-Received: from bhd3.sosung.net (bhd3.sosung.net [106.12.150.83])
- (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 171D820294F25;
+	Fri,  6 Sep 2019 10:50:08 -0700 (PDT)
+Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
+ client-ip=2607:f8b0:4864:20::244; helo=mail-oi1-x244.google.com;
+ envelope-from=dan.j.williams@intel.com; receiver=linux-nvdimm@lists.01.org 
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
+ [IPv6:2607:f8b0:4864:20::244])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D0B892027725A
- for <linux-nvdimm@lists.01.org>; Thu,  5 Sep 2019 23:16:51 -0700 (PDT)
-Received: from edm01.bossedm.com (edm01.chinaemail.cn [180.76.132.54])
- by bhd3.sosung.net (Postfix) with ESMTPS id D90D0107C54
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 17:04:25 +0800 (CST)
-Received: from unknown (unknown [127.0.0.1])
- by edm01.bossedm.com (Bossedm) with SMTP id C701B12134C
- for <linux-nvdimm@lists.01.org>; Tue,  3 Sep 2019 17:03:41 +0800 (CST)
-Date: Tue,  3 Sep 2019 17:03:41 +0800 (CST)
-From: "=?utf-8?B?WXVtaSA=?=" <yumi@hardfindtronics.com>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?UmU6IFJGUSBNQ1AyNTE1VC1JL1NUIDUwMHBjcw==?=
-Mime-Version: 1.0
-X-Notify-Mail: No
+ by ml01.01.org (Postfix) with ESMTPS id 475392027725A
+ for <linux-nvdimm@lists.01.org>; Fri,  6 Sep 2019 10:50:06 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id w144so5646316oia.6
+ for <linux-nvdimm@lists.01.org>; Fri, 06 Sep 2019 10:49:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=intel-com.20150623.gappssmtp.com; s=20150623;
+ h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+ :cc; bh=v0nCUWfBIIke8wwI1KyHL3YbLuJIie4lZRF4o2QAa+U=;
+ b=w9mvMZHjPsWt2wobT50t3BacTw+r6JWhWrAAMCRxMT+y42StYak3JdhEstaeezDbFz
+ 5D+YAGD+9uImohq67WH2J/CCRTTDaLzmW3aNN6J7gNEjIxb/NbFK3ai/+neHxUqopRe4
+ kwsDljl0uMkWijhJj75ACoOmliGJkq7BSg7xt6ISm1/RLeM3M2PJoekNx81oC5NEVz+U
+ q5X8Pjw8AQHAe23Y/lrlV6Irn3yIkAqh3WfO3/UG2TYLISTsg4SjnPmY8YMHNd0qtjJh
+ h58yw39L+8CplWLYKSlBhz00s7ahXrBPqQEze/WZpes6LUMY9+gsrvQxgoXgbBV4sUp/
+ ro5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+ :message-id:subject:to:cc;
+ bh=v0nCUWfBIIke8wwI1KyHL3YbLuJIie4lZRF4o2QAa+U=;
+ b=ew7dpDKpqyNcSJVB022u1hYdORdsWd7JTQBSS5UlX0d3RvVp7sgY3ElXPdJVGxziAm
+ FSIx6WyGx3aPCSOv+YE3upsjbMo0FeMxmrTNmZ1gwgYqc725wxErNbDtKULoH6jeKdKF
+ D/cI5ywGFUA1pjxhnjVGjIkqlXUDE3yuUmRjOozeF+iWLxgGa/nAtRyre2xdgRvIQ3LS
+ krVrXr7mxMl8XcbIwjhCD6dMOaaQep/hDRj5nTh9dpOPpPxpoXiSaOwE0D4zkjzwrO9J
+ 2IeL+5iyc9pROVa3QlLYkhKm6PEzwCEXTYdyfk0wWcVpXCSQWiMF4SiBtWVaxNYGTSuG
+ 2gdw==
+X-Gm-Message-State: APjAAAW6KmXtVICe5t7v4iLPgXyERrW4O0ugxz+SLeWZtI85xZe1WjXo
+ eOc8V7kReHagfH+OHjpYosZoNfy7rgRLGCJEHBy+Gg==
+X-Google-Smtp-Source: APXvYqwIjRdKvXtSKs1CFHbh7noAzQrZn7gaPwXlKUXyVYYMR0KgmWTElXrbpBWGx+83AIEG1btt+VsAOolhNr1yLns=
+X-Received: by 2002:aca:4b05:: with SMTP id y5mr7790208oia.70.1567792156564;
+ Fri, 06 Sep 2019 10:49:16 -0700 (PDT)
+MIME-Version: 1.0
+References: <20190905154603.10349-1-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20190905154603.10349-1-aneesh.kumar@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 6 Sep 2019 10:49:05 -0700
 Message-ID:
- <1883#47401#linux-nvdimm@lists.01.org#e358f98847f1ee53ccc515b2fd0679bf#1567501421606>
-X-Iszbb: Yes
-X-ZZY-MESSAGE-ID: FA163E85126B5A250000000000006D2C6E5D000000000C00
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ed.swmail.top; s=s9527; 
- t=1567501421; bh=0G8wYkyQvIdrlRW1tjPNneDw49aNukGi6Q9nyB8elWs=; 
- h=Date:From:Subject:Message-ID;
- b=W84GeDUPOky2o4Ghpz7ggD3IZZEjzBaKBJYGZG+ojSi5r0hooV6BQ7txvQIG/W1cj
- WHrNQpp9Nnv05QLv0ISsnJGTrJrWXnKD8inWpvl+QdvBZyPr6KY0jlY/7SukJ30v+a
- t3Za7rqHd+CX6tx1pIQAmkrbQ+WZLAaupmEm/oW0=
-X-Content-Filtered-By: Mailman/MimeDel 2.1.29
+ <CAPcyv4jsDeZ27cfCQbeNtwxWhaUb-nT-U=mQnMM18GL7yxc7RQ@mail.gmail.com>
+Subject: Re: [PATCH v9 0/7] Mark the namespace disabled on pfn superblock
+ mismatch
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-BeenThere: linux-nvdimm@lists.01.org
 X-Mailman-Version: 2.1.29
 Precedence: list
@@ -63,44 +79,68 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: yumi@hardfindtronics.com
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
-Message-ID: <20190903090341.2lWK8Bz8hzmfp3CI96HrmW13Q33gBIBdxP7G6pB2GOg@z>
+Message-ID: <20190906174905.65vre-ZzR1yzOvOQxUcvVBqdl4EaDdXAkWsqFfO0ThE@z>
 
-DQoNCg0KDQoNCg0KCQ0KCQkmbmJzcDsmbmJzcDtIYXJkJm5ic3A7RmluZCZuYnNwO0VsZWN0cm9u
-aWNzIEx0ZC4NCnNvdXJjaW5nIGhhcmQgZmluZCBlbGVjdHJvbmljIGNvbXBvbmVudHMgDQoJDQoJ
-DQoJCSZuYnNwOyANCgkNCgkNCgkJRGVhciBDdXN0b21lciwgDQoJDQoJDQoJCU5pY2UgZGF5IQ0K
-VGhpcyBpcyBZdW1pIGZyb20gSGFyZCBGaW5kIEVsZWN0cm9uaWNzIEx0ZCh3d3cuaGFyZGZpbmRl
-bGVjdHJvbmljcy5jb20pJm5ic3A7d2hpY2ggaXMgYSBwcm9mZXNzaW9uYWwgZWxlY3Ryb25pY3Mg
-ZGlzdHJpYnV0b3Igd2l0aCAxMCB5ZWFycyBvZiBleHBlcmllbmNlcy4mbmJzcDsNCldlIGFyZSBn
-b29kIGF0Jm5ic3A7SGFyZCBGaW5kJm5ic3A7ZWxlY3Ryb25pYyBjb21wb25lbnRz77yaDQoNCklD
-OiBYaWxpbngsIEFsdGVyYSwgVEksIExULCBBRCxNaWNyb24uLg0KTUxDQyBDYXBhY2l0b3I6IE11
-cmF0YSwgU2Ftc3VuZywgWWFnZW8sIEFWWCwgS2VtZXQuLg0KRGlvZGUmYW1wO1RyYW5zaXN0b3I6
-IFZpc2hheSxUSSxTVC4uDQoNCklmIHlvdSZuYnNwO25lZWQmbmJzcDtzYW1wbGUsIHBscyBmZWVs
-IGZyZWUgdG8gY29udGFjdCBtZS4mbmJzcDsNClBscyBjaGVjayBvdXIgaG90IG9mZmVyLHdhaXQg
-Zm9yIHlvdXIga2luZGx5IFJGUTogDQoJDQoJDQoJCSZuYnNwOyANCgkNCgkNCgkJTUNQMTUyNVQt
-SS9UVCZuYnNwOyBNSUNST0NISVAgMjAxOCsgMC4yMnVzZCZuYnNwOyBTT1QtMjMmbmJzcDsgIA0K
-TUNQMTU0MVQtSS9UVCBNSUNST0NISVAgMjAxOCsgMC4yNXVzZCZuYnNwOyBTT1QyMy0zIA0KTUNQ
-MjUxNVQtSS9TVCBNSUNST0NISVAgMjAxOCsgMC42dXNkIDIwVFNTT1AgDQpNQ1A5NzAwVC1FL1RU
-IE1JQ1JPQ0hJUCAyMDE4KyAwLjE0NHVzZCBTT1QyMy0zICANCk1DUDYwNFQtSS9TTCZuYnNwOyBN
-SUNST0NISVAgMjAxOSsgMC4zMXVzZCAxNFNPSUMgDQoyNUxDMTAyNC1JL1NNIE1JQ1JPQ0hJUCAy
-MDE4KyAxdXNkIDhTT0lDIA0KOTNMQzU2QlQtSS9PVCZuYnNwOyBNSUNST0NISVAgMjAxOCsgMC4x
-NjJ1c2QgU09UMjMtNiANCjI0TEM2NC1JL1NOJm5ic3A7IE1JQ1JPQ0hJUCAyMDE4KyZuYnNwOyAw
-LjEzdXNkIDhTT0lDIA0KDQogDQoJDQoJDQoJCUtlZXAgc21pbGluZyBldmVyeSBkYXkmbmJzcDso
-Ku+/oynvv6MpIA0KCQ0KCQ0KCQlZdW1pJm5ic3A7KFByb2R1Y3QmbmJzcDtNYW5hZ2VyKSANCgkN
-CgkNCgkJSGFyZCZuYnNwO0ZpbmQmbmJzcDtFbGVjdHJvbmljcyBMdGQuDQpzb3VyY2luZyBoYXJk
-IGZpbmQgZWxlY3Ryb25pYyBjb21wb25lbnRzDQoNCjMxNSwgU2hhaGUgUm9kLCBMb25nIEdhbmcg
-RGlzdHJpY3QsIFNoZW56aGVuLCBDTiwgNTE4MDAwDQpUZWw6ICs4Ni03NTUtODQxOCA4MTAzJm5i
-c3A7Jm5ic3A7ICZuYnNwOyAmbmJzcDsgJm5ic3A7DQpTa3lwZSAmYW1wOyBFbWFpbDombmJzcDt5
-dW1pQGhhcmRmaW5kZWxlY3Ryb25pY3MuY29tDQpMaW5rZWRsbjp3d3cubGlua2VkaW4uY29tL2lu
-L3l1bWktZ2FvDQpGYWNlYm9vazombmJzcDtmYWNlYm9vay5jb20vWXVtaWhhcmRmaW5kDQombmJz
-cDsgDQoJDQoJDQoJCUlmIHlvdSBkb24ndCB3YW50IHRvIHJlY2VpdmUgdGhpcyBtYWlsLCBwbHMg
-cmV0dXJuIHdpdGggInJlbW92ZSIgb24gdGhlIHN1YmplY3QgbGluZS4gDQoJDQoJDQoJCSZuYnNw
-OyANCgkNCg0KDQoNCg0KCeaho+mTuue9keKAlOKAlOWcqOe6v+aWh+aho+WFjei0ueWkhOeQhiAN
-CuWmguaenOS9oOS4jeaDs+WGjeaUtuWIsOivpeS6p+WTgeeahOaOqOiNkOmCruS7tu+8jOivt+eC
-ueWHu+i/memHjOmAgOiuogpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
-cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+On Thu, Sep 5, 2019 at 8:46 AM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
+>
+> We add new members to pfn superblock (PAGE_SIZE and struct page size) in this series.
+> This is now checked while initializing the namespace. If we find a mismatch we mark
+> the namespace disabled.
+>
+> This series also handle configs where hugepage support is not enabled by default.
+> This can result in different align restrictions for dax namespace. We mark the
+> dax namespace disabled if we find the alignment not supported.
+>
+> Changes from v8:
+> * updated patch 7 for addressing review feedback
+>
+> Changes from v6:
+> * Formatting changes
+>
+> Changes from v5:
+> * Split patch 3
+> * Update commit message
+> * Add MAX_STRUCT_PAGE_SIZE with value 64 and use that when allocating reserve block
+> * Add BUILD_BUG_ON if we find sizeof(struct page) > 64
+>
+>
+>
+> Aneesh Kumar K.V (6):
+>   libnvdimm/pmem: Advance namespace seed for specific probe errors
+>   libnvdimm/pfn_dev: Add a build check to make sure we notice when
+>     struct page size change
+>   libnvdimm/pfn_dev: Add page size and struct page size to pfn
+>     superblock
+>   libnvdimm/label: Remove the dpa align check
+>   libnvdimm: Use PAGE_SIZE instead of SZ_4K for align check
+>   libnvdimm/dax: Pick the right alignment default when creating dax
+>     devices
+>
+> Dan Williams (1):
+>   libnvdimm/region: Rewrite _probe_success() to _advance_seeds()
+>
+>  drivers/nvdimm/bus.c            |   8 +--
+>  drivers/nvdimm/label.c          |   5 --
+>  drivers/nvdimm/namespace_devs.c |  40 +++++++++---
+>  drivers/nvdimm/nd-core.h        |   3 +-
+>  drivers/nvdimm/nd.h             |  10 +--
+>  drivers/nvdimm/pfn.h            |   5 +-
+>  drivers/nvdimm/pfn_devs.c       | 110 +++++++++++++++++++++++++-------
+>  drivers/nvdimm/pmem.c           |  29 +++++++--
+>  drivers/nvdimm/region_devs.c    |  76 ++++------------------
+>  include/linux/huge_mm.h         |   7 +-
+>  10 files changed, 176 insertions(+), 117 deletions(-)
+
+Looks good, 0day has no complaints and this passes all the current
+unit tests. I'll get it pushed out for v5.4 consideration. Thanks
+Aneesh!
+_______________________________________________
+Linux-nvdimm mailing list
+Linux-nvdimm@lists.01.org
+https://lists.01.org/mailman/listinfo/linux-nvdimm
