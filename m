@@ -1,78 +1,48 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v9 0/7] Mark the namespace disabled on pfn superblock
- mismatch
-Date: Fri, 6 Sep 2019 10:49:05 -0700
-Message-ID: <CAPcyv4jsDeZ27cfCQbeNtwxWhaUb-nT-U=mQnMM18GL7yxc7RQ@mail.gmail.com>
-References: <20190905154603.10349-1-aneesh.kumar@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fix for v5.3-rc8
+Date: Fri, 6 Sep 2019 13:00:00 -0700
+Message-ID: <CAPcyv4jDWgZDJTAgghrFX1MQXPJX_6jiqsmx9sQUOL7ZaWtk+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20190905154603.10349-1-aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
-Cc: linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, jmoyer <jmoyer@redhat.com>
 List-Id: linux-nvdimm@lists.01.org
 
-On Thu, Sep 5, 2019 at 8:46 AM Aneesh Kumar K.V
-<aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org> wrote:
->
-> We add new members to pfn superblock (PAGE_SIZE and struct page size) in this series.
-> This is now checked while initializing the namespace. If we find a mismatch we mark
-> the namespace disabled.
->
-> This series also handle configs where hugepage support is not enabled by default.
-> This can result in different align restrictions for dax namespace. We mark the
-> dax namespace disabled if we find the alignment not supported.
->
-> Changes from v8:
-> * updated patch 7 for addressing review feedback
->
-> Changes from v6:
-> * Formatting changes
->
-> Changes from v5:
-> * Split patch 3
-> * Update commit message
-> * Add MAX_STRUCT_PAGE_SIZE with value 64 and use that when allocating reserve block
-> * Add BUILD_BUG_ON if we find sizeof(struct page) > 64
->
->
->
-> Aneesh Kumar K.V (6):
->   libnvdimm/pmem: Advance namespace seed for specific probe errors
->   libnvdimm/pfn_dev: Add a build check to make sure we notice when
->     struct page size change
->   libnvdimm/pfn_dev: Add page size and struct page size to pfn
->     superblock
->   libnvdimm/label: Remove the dpa align check
->   libnvdimm: Use PAGE_SIZE instead of SZ_4K for align check
->   libnvdimm/dax: Pick the right alignment default when creating dax
->     devices
->
-> Dan Williams (1):
->   libnvdimm/region: Rewrite _probe_success() to _advance_seeds()
->
->  drivers/nvdimm/bus.c            |   8 +--
->  drivers/nvdimm/label.c          |   5 --
->  drivers/nvdimm/namespace_devs.c |  40 +++++++++---
->  drivers/nvdimm/nd-core.h        |   3 +-
->  drivers/nvdimm/nd.h             |  10 +--
->  drivers/nvdimm/pfn.h            |   5 +-
->  drivers/nvdimm/pfn_devs.c       | 110 +++++++++++++++++++++++++-------
->  drivers/nvdimm/pmem.c           |  29 +++++++--
->  drivers/nvdimm/region_devs.c    |  76 ++++------------------
->  include/linux/huge_mm.h         |   7 +-
->  10 files changed, 176 insertions(+), 117 deletions(-)
+Hi Linus, please pull from:
 
-Looks good, 0day has no complaints and this passes all the current
-unit tests. I'll get it pushed out for v5.4 consideration. Thanks
-Aneesh!
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+tags/libnvdimm-fix-5.3-rc8
+
+...to receive a fix for a regression introduced in v5.3-rc1. The
+latest version has shipped in -next with no reported issues.
+
+---
+
+The following changes since commit a55aa89aab90fae7c815b0551b07be37db359d76:
+
+  Linux 5.3-rc6 (2019-08-25 12:01:23 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+tags/libnvdimm-fix-5.3-rc8
+
+for you to fetch changes up to 274b924088e93593c76fb122d24bc0ef18d0ddf4:
+
+  libnvdimm/pfn: Fix namespace creation on misaligned addresses
+(2019-08-28 10:33:13 -0700)
+
+----------------------------------------------------------------
+libnvdimm fix v5.3-rc8
+
+- Restore support for 1GB alignment namespaces, truncate the end of
+  misaligned namespaces.
+
+----------------------------------------------------------------
+Jeff Moyer (1):
+      libnvdimm/pfn: Fix namespace creation on misaligned addresses
+
+ drivers/nvdimm/pfn_devs.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
