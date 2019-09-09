@@ -1,11 +1,14 @@
-From: "gp-card.website" <info-9cCaitLcGXCjqF0zXc6tqg@public.gmane.org>
-Subject: =?windows-1251?B?wejn7eXxLe7h8/fl7ej/Lg==?=
-Date: Mon, 9 Sep 2019 11:39:27 +0300
-Message-ID: <8a5d14b89239130c0005b31ffbdff5c51e9876@gp-card.website>
+From: "Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+Subject: Re: [PATCH v5] mm/nvdimm: Fix endian conversion =?utf-8?Q?issues?=
+ =?utf-8?Q?=C2=A0?=
+Date: Mon, 09 Sep 2019 20:48:02 +0530
+Message-ID: <871rwp1ot1.fsf@linux.ibm.com>
+References: <20190809074726.27815-1-aneesh.kumar@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="cp1251"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190809074726.27815-1-aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -15,28 +18,86 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-nvdimm@lists.01.org
 
-wejn7eXxLezl8O7v8Oj/8uj/IP3y7ukg7eXk5evoCgoxMi0xMyDx5e3y/+Hw/woKxOv/IODx8ejx
-8uXt8u7iLCDv7uzu+e3o6u7iIPDz6u7i7uTo8uXr5ek6IOzu8uji4Pbo/ywg7vDj4O3o5+D26P8g
-8ODh7vL7LCD99PTl6vLo4u3g/yDq7uzs8+3o6uD26P8uCgoxNyDx5e3y/+Hw/woK0fLw7ujy5ev8
-7eD/IOTl//Ll6/zt7vHy/CDiINPq8ODo7eUgMjAxOS0gMjAyMCDjLgoKMjMg8eXt8v/h8P8KCsLd
-xCAtIOru7fLw4Ory+yDiIPPx6+7i6P/1IO3u4vv1IPLu8OPu4vv1IO7x6+7m7eXt6OksIOLu5+zu
-5u3u8fLl6SDoIOvo4eXw4Ovo5+D26Ogg4uDr/vLt7uPuIOru7fLw7uv/CgoyNCDx5e3y/+Hw/woK
-ItTOzy3q7u3y8O7r/CIgwvHlIO4g6u7t8vDu6+UsIO/w7uLl8Org9SDoIPDo8erg9SDv8Ogg8ODh
-7vLlIPEg1MvPCgoyNS0yNiDx5e3y/+Hw/woKz/Du4/Dg7OzgIOTr/yDx7+X26ODr6PHy7uIg7+4g
-5+Dq8+/q4OwKCjI1LTI2IPHl7fL/4fD/CgrS8ODt8e/u8PLt4P8g6+7j6PHy6OrgIOgg7u/y6Ozo
-5+D26P8g6+7j6PHy6Pfl8ero9SDn4PLw4PIg6u7s7+Dt6OgKCjI3LTI4IPHl7fL/4fD/CgrT7/Dg
-4uvl7ffl8ero6SDz9+XyLiDP7urg5+Dy5evoIP309OXq8uji7e7x8uguIMH+5Obl8vsuCgrP7vHr
-5eTt6OUg7uHt7uLr5e3o/yDt4CDx4Ony5QoKzOXt5eTm7OXt8goKyO3y5fDt5fIKCs3l5OLo5ujs
-7vHy/AoKxfHr6CDzIMLg8SDi7uft6Ort8/Ig5O7v7uvt6PLl6/zt++Ug4u7v8O7x+yAtIO7h8OD5
-4Ony5fH8LCDs+yDi8eXj5OAg8ODk+yDC4Owg7+7s7vf8IQoKLS0K0SDz4uDm5e3o5ewsIAoK1PDo
-5OAgxODt6Ovu4u3gIKCgoKCgCldlYjogdmVkLm9yZy51YQoK0e7u4fnl7ejlIP/i6//l8vH/IOru
-7Ozl8Pfl8ero7CDv8OXk6+7m5e3o5ewsIODk8OXx7uLg7e4g7eAg/evl6vLw7u3t++kg4OTw5fEg
-bGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZy4KCtfy7uH7IO7y7+jx4PL88f8g7vIg8ODx8fvr6ugs
-IO/w7unk6PLlIO/uIP3y7ukg8fH76+rlOgoKTGlzdC1VbnN1YnNjcmliZSBmcm9tIHRoZSBuZXdz
-bGV0dGVyIO5yIGNvbXBsYWluIOBi7nV0IFNQwMwuCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZk
-aW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LW52ZGltbQo=
+"Aneesh Kumar K.V" <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org> writes:
+
+> nd_label->dpa issue was observed when trying to enable the namespace created
+> with little-endian kernel on a big-endian kernel. That made me run
+> `sparse` on the rest of the code and other changes are the result of that.
+>
+> Fixes: d9b83c756953 ("libnvdimm, btt: rework error clearing")
+> Fixes: 9dedc73a4658 ("libnvdimm/btt: Fix LBA masking during 'free list' population")
+>
+> Reviewed-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>
+> ---
+> Changes from V4:
+> * Rebase to latest kernel
+>
+>  drivers/nvdimm/btt.c            | 8 ++++----
+>  drivers/nvdimm/namespace_devs.c | 7 ++++---
+>  2 files changed, 8 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index a8d56887ec88..3e9f45aec8d1 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -392,9 +392,9 @@ static int btt_flog_write(struct arena_info *arena, u32 lane, u32 sub,
+>  	arena->freelist[lane].sub = 1 - arena->freelist[lane].sub;
+>  	if (++(arena->freelist[lane].seq) == 4)
+>  		arena->freelist[lane].seq = 1;
+> -	if (ent_e_flag(ent->old_map))
+> +	if (ent_e_flag(le32_to_cpu(ent->old_map)))
+>  		arena->freelist[lane].has_err = 1;
+> -	arena->freelist[lane].block = le32_to_cpu(ent_lba(ent->old_map));
+> +	arena->freelist[lane].block = ent_lba(le32_to_cpu(ent->old_map));
+>  
+>  	return ret;
+>  }
+> @@ -560,8 +560,8 @@ static int btt_freelist_init(struct arena_info *arena)
+>  		 * FIXME: if error clearing fails during init, we want to make
+>  		 * the BTT read-only
+>  		 */
+> -		if (ent_e_flag(log_new.old_map) &&
+> -				!ent_normal(log_new.old_map)) {
+> +		if (ent_e_flag(le32_to_cpu(log_new.old_map)) &&
+> +		    !ent_normal(le32_to_cpu(log_new.old_map))) {
+>  			arena->freelist[i].has_err = 1;
+>  			ret = arena_clear_freelist_error(arena, i);
+>  			if (ret)
+> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+> index a9c76df12cb9..f779cb2b0c69 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1987,7 +1987,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+>  		nd_mapping = &nd_region->mapping[i];
+>  		label_ent = list_first_entry_or_null(&nd_mapping->labels,
+>  				typeof(*label_ent), list);
+> -		label0 = label_ent ? label_ent->label : 0;
+> +		label0 = label_ent ? label_ent->label : NULL;
+>  
+>  		if (!label0) {
+>  			WARN_ON(1);
+> @@ -2322,8 +2322,9 @@ static struct device **scan_labels(struct nd_region *nd_region)
+>  			continue;
+>  
+>  		/* skip labels that describe extents outside of the region */
+> -		if (nd_label->dpa < nd_mapping->start || nd_label->dpa > map_end)
+> -			continue;
+> +		if (__le64_to_cpu(nd_label->dpa) < nd_mapping->start ||
+> +		    __le64_to_cpu(nd_label->dpa) > map_end)
+> +				continue;
+>  
+>  		i = add_namespace_resource(nd_region, nd_label, devs, count);
+>  		if (i < 0)
+> -- 
+> 2.21.0
+
+Gentle reminder.
+
+Dan - any update on this?
+
+-aneesh
