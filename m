@@ -2,90 +2,54 @@ Return-Path: <SRS0=XqkJ=XG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB263C49ED6
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Sep 2019 18:43:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBCCDECDE20
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Sep 2019 20:30:59 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 90C712084D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Sep 2019 18:43:45 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="HCaGG62/"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 90C712084D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	by mail.kernel.org (Postfix) with ESMTPS id B06FB2082C
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Sep 2019 20:30:59 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B06FB2082C
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B98F8202BCBB7;
-	Wed, 11 Sep 2019 11:43:53 -0700 (PDT)
-Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=156.151.31.86; helo=userp2130.oracle.com;
- envelope-from=dan.carpenter@oracle.com; receiver=linux-nvdimm@lists.01.org 
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	by ml01.01.org (Postfix) with ESMTP id 5BA88202BDCB6;
+	Wed, 11 Sep 2019 13:31:07 -0700 (PDT)
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.200;
+ helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com;
+ receiver=linux-nvdimm@lists.01.org 
+Received: from smtprelay.hostedemail.com (smtprelay0200.hostedemail.com
+ [216.40.44.200])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 7D54F21962301
- for <linux-nvdimm@lists.01.org>; Wed, 11 Sep 2019 11:43:52 -0700 (PDT)
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
- by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x8BIhVqx057041;
- Wed, 11 Sep 2019 18:43:42 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com;
- h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2019-08-05;
- bh=PpbjP/K7FS/mhoPoFUIAdpkmq3dsAewLE9s1QyDDJa0=;
- b=HCaGG62/OUogK5kDUJX8eKcIBNc4qkq3JHV4gsLrMxOSiF7DUUB1GD2yojxzvJSfgdUg
- IQYJJrnn7v/KN1sxGkSUaFj166y2WV1bnFPxNoHoPNPtTvY72YOdyOUs6D6Tbe3PUnID
- 56xXRSPU2lbOT4UyD0y7EEFzUX4M06yq9XROHZbGJIOHDd7NZLSPvq8PLba/DGHnpBlT
- +UAk/glklN7aPmijNmla+bbMPeBYI6Ux/Awt8ZVLTyjqM3vzdA8glvG9eSlMZcih8q5l
- PDQrddNfimBTaovRvWH/Xk+vm+SnXUFSuTCUzRSHc37abpQsn2qIPA2L05rNs8Jb0Jqp ag== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
- by userp2130.oracle.com with ESMTP id 2uw1m943vv-1
- (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
- Wed, 11 Sep 2019 18:43:42 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
- by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id x8BIhXnt024817;
- Wed, 11 Sep 2019 18:43:42 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
- by aserp3030.oracle.com with ESMTP id 2uxj893hsy-1
- (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
- Wed, 11 Sep 2019 18:43:41 +0000
-Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
- by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id x8BIhdlD029626;
- Wed, 11 Sep 2019 18:43:40 GMT
-Received: from kadam (/41.57.98.10) by default (Oracle Beehive Gateway v4.0)
- with ESMTP ; Wed, 11 Sep 2019 11:43:39 -0700
-Date: Wed, 11 Sep 2019 21:43:33 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Dan Williams <dan.j.williams@intel.com>
+ by ml01.01.org (Postfix) with ESMTPS id 70B3C21962301
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Sep 2019 13:31:05 -0700 (PDT)
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net
+ [216.40.38.60])
+ by smtprelay04.hostedemail.com (Postfix) with ESMTP id E1B2718025E8E;
+ Wed, 11 Sep 2019 20:30:55 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: paste13_7c63038856825
+X-Filterd-Recvd-Size: 1990
+Received: from XPS-9350.home (unknown [47.151.152.152])
+ (Authenticated sender: joe@perches.com)
+ by omf19.hostedemail.com (Postfix) with ESMTPA;
+ Wed, 11 Sep 2019 20:30:54 +0000 (UTC)
+Message-ID: <37a9f105f85b7accb5eefe788f8d129e9fddaa2c.camel@perches.com>
 Subject: Re: [Ksummit-discuss] [PATCH v2 3/3] libnvdimm, MAINTAINERS:
  Maintainer Entry Profile
-Message-ID: <20190911184332.GL20699@kadam>
+From: Joe Perches <joe@perches.com>
+To: Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org
+Date: Wed, 11 Sep 2019 13:30:53 -0700
+In-Reply-To: <156821693963.2951081.11214256396118531359.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <156821692280.2951081.18036584954940423225.stgit@dwillia2-desk3.amr.corp.intel.com>
  <156821693963.2951081.11214256396118531359.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: Evolution 3.32.1-2 
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <156821693963.2951081.11214256396118531359.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9377
- signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0
- malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1906280000 definitions=main-1909110171
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9377
- signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0
- priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1906280000
- definitions=main-1909110171
 X-BeenThere: linux-nvdimm@lists.01.org
 X-Mailman-Version: 2.1.29
 Precedence: list
@@ -97,14 +61,16 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org,
- linux-kernel@vger.kernel.org, bpf@vger.kernel.org
+Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-On Wed, Sep 11, 2019 at 08:48:59AM -0700, Dan Williams wrote:
+On Wed, 2019-09-11 at 08:48 -0700, Dan Williams wrote:
+> Document the basic policies of the libnvdimm subsystem and provide a first
+> example of a Maintainer Entry Profile for others to duplicate and edit.
+[]
 > +Coding Style Addendum
 > +---------------------
 > +libnvdimm expects multi-line statements to be double indented. I.e.
@@ -112,28 +78,21 @@ On Wed, Sep 11, 2019 at 08:48:59AM -0700, Dan Williams wrote:
 > +        if (x...
 > +                        && ...y) {
 
-That looks horrible and it causes a checkpatch warning.  :(  Why not
-do it the same way that everyone else does it.
+I don't find a good reason to do this.
 
-	if (blah_blah_x && <-- && has to be on the first line for checkpatch
-	    blah_blah_y) { <-- [tab][space][space][space][space]blah
+> diff --git a/MAINTAINERS b/MAINTAINERS
+[]
+> @@ -9185,6 +9185,7 @@ M:	Dan Williams <dan.j.williams@intel.com>
+>  M:	Vishal Verma <vishal.l.verma@intel.com>
+>  M:	Dave Jiang <dave.jiang@intel.com>
+>  L:	linux-nvdimm@lists.01.org
+> +P:	Documentation/nvdimm/maintainer-entry-profile.rst
 
-Now all the conditions are aligned visually which makes it readable.
-They aren't aligned with the indent block so it's easy to tell the
-inside from the if condition.
+I also think the indirection to a separate
+file is not a good thing.
 
-I kind of hate all this extra documentation because now everyone thinks
-they can invent new hoops to jump through.
-
-Speaking of hoops, the BPF documentation says that you have to figure
-out which tree a patch applies to instead of just working against
-linux-next.  Is there an automated way to do that?  I looked through my
-inbox and there are a bunch of patches marked as going through the
-bpf-next tree but about half were marked incorrectly so it looks like
-everyone who tries to tag their patches is going to do it badly anyway.
-
-regards,
-dan carpenter
+Separate styles for individual subsystems is
+not something I would want to encourage.
 
 _______________________________________________
 Linux-nvdimm mailing list
