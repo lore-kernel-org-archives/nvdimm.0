@@ -1,73 +1,104 @@
-Return-Path: <SRS0=qDk8=XF=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=XqkJ=XG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DC3C3A5A2
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 10 Sep 2019 09:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD367C49ED6
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Sep 2019 12:03:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CD527206A5
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 10 Sep 2019 09:09:09 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="QYcl9tvm"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CD527206A5
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 79C5F20872
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Sep 2019 12:03:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 79C5F20872
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 25929202BB9A8;
-	Tue, 10 Sep 2019 02:09:29 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id C2917202BCBBB;
+	Wed, 11 Sep 2019 05:03:58 -0700 (PDT)
 Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=2607:f8b0:4864:20::344; helo=mail-ot1-x344.google.com;
- envelope-from=dan.j.williams@intel.com; receiver=linux-nvdimm@lists.01.org 
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com
- [IPv6:2607:f8b0:4864:20::344])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ client-ip=195.135.220.15; helo=mx1.suse.de; envelope-from=jthumshirn@suse.de;
+ receiver=linux-nvdimm@lists.01.org 
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 66E7220294F07
- for <linux-nvdimm@lists.01.org>; Tue, 10 Sep 2019 02:09:26 -0700 (PDT)
-Received: by mail-ot1-x344.google.com with SMTP id y39so17383931ota.7
- for <linux-nvdimm@lists.01.org>; Tue, 10 Sep 2019 02:09:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=intel-com.20150623.gappssmtp.com; s=20150623;
- h=mime-version:references:in-reply-to:from:date:message-id:subject:to
- :cc; bh=gzySq2KgU23Lz62leK1/JYGc7N1eDn8ko0/2bOX2/jA=;
- b=QYcl9tvm/E8Bmj+3/7A3sDwjTV1JrxFts8PHtnSfl9Bfcoq69qypc9U89qKqe0f2EQ
- uuEh2GnVcws7kS/Fagzex3PDMNhSLBJJCrY3T2z0ANeyE9jsY53teLqUKwYt/vtafWQS
- ysom1jPbg2ko8BjpXumMqfTLNJTH0iIqMIwLTQwxodyLaz6ozOgvmz7k5fQWUl4L1Uwa
- E27aXddAqDmNOG76TH4rj5U6zOgHz1WW1SaIE8IBJmKVYCoxKXGd42J82Q8Mf9ArWfjr
- CwkuOzAYgnlLdBClYwWOtChPPBl0xkoXSCdbGM6HGLduIhfJo7j1t4egYJ+EuC0QN7yn
- n19Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=1e100.net; s=20161025;
- h=x-gm-message-state:mime-version:references:in-reply-to:from:date
- :message-id:subject:to:cc;
- bh=gzySq2KgU23Lz62leK1/JYGc7N1eDn8ko0/2bOX2/jA=;
- b=J6D7a3721aCNi349tWu3PeKiL3CntCpc/PFVaUinKKWwOujVBekthOq4Y3iG1eYtan
- M06kKxFOBeQ1gmAMwnSsPZqpfPGFFyPdwNcGialW4C5p8qe+YI8sNxdmnmirqEgSCMtt
- 9BiX/vJMhrLtgiI9kGfS/edoYknEwW2ocaH0WOaFYVA1REMktHC2OxmJTBdpJfT2Sg87
- 8bGoz7a9/MgxdqKuKvRFgnDZK1hFn+v9QS9ufbqucdcSoiwC7Y1OCnbZ0W1U3T/PuWbG
- Q4wwv9/DEFemEOc7s0YOx0mw5N/MeESExG44CNuOIcgiG7Y6G4fAaNtDqHmpMsAW3NFK
- QP/A==
-X-Gm-Message-State: APjAAAVG57MtdzbFcPUJCo9nHZZwugofZo+MSboTfgv5dxzZ1/MzBVI2
- nrXKqLC9RJ0hb0u/QYIgn5KCVgSe3bzhqoeMPGcHxg==
-X-Google-Smtp-Source: APXvYqxwLshjInXu0oU2m4xsjP474lcUaazRBBAqlBtfF7xR3iJNA8yJ0eNDpzK0DGmThD+e5HZt29ol1d8Q4WS4GVY=
-X-Received: by 2002:a9d:6d15:: with SMTP id o21mr25318322otp.363.1568106545407; 
- Tue, 10 Sep 2019 02:09:05 -0700 (PDT)
-MIME-Version: 1.0
-References: <20190910062826.10041-1-aneesh.kumar@linux.ibm.com>
- <CAPcyv4jmO381oLTHBM80jNy6uNNkXvsOyGTjqSY4zzaS6-4_nQ@mail.gmail.com>
- <14129b58-37a5-56f5-9e90-8740400d07f6@linux.ibm.com>
-In-Reply-To: <14129b58-37a5-56f5-9e90-8740400d07f6@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 10 Sep 2019 02:08:53 -0700
-Message-ID: <CAPcyv4iYjz-v23eHkhnJqE4wnvoE2uvJ5HE9xrwPCnOCVZ3G2Q@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 51FB4202BCBB7
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Sep 2019 05:03:56 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+ by mx1.suse.de (Postfix) with ESMTP id DD00AAC16;
+ Wed, 11 Sep 2019 12:03:44 +0000 (UTC)
 Subject: Re: [PATCH 1/2] libnvdimm/altmap: Track namespace boundaries in altmap
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+ dan.j.williams@intel.com, mpe@ellerman.id.au, oohall@gmail.com
+References: <20190910062826.10041-1-aneesh.kumar@linux.ibm.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Openpgp: preference=signencrypt
+Autocrypt: addr=jthumshirn@suse.de; prefer-encrypt=mutual; keydata=
+ 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
+Message-ID: <26b12cb9-3062-2769-74f4-c5fce70d45a7@suse.de>
+Date: Wed, 11 Sep 2019 14:03:44 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.8.0
+MIME-Version: 1.0
+In-Reply-To: <20190910062826.10041-1-aneesh.kumar@linux.ibm.com>
+Content-Language: en-US
 X-BeenThere: linux-nvdimm@lists.01.org
 X-Mailman-Version: 2.1.29
 Precedence: list
@@ -79,59 +110,20 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Cc: Sachin Sant <sachinp@linux.vnet.ibm.com>,
- Michael Ellerman <mpe@ellerman.id.au>,
- linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
- linux-nvdimm <linux-nvdimm@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Cc: Sachin Sant <sachinp@linux.vnet.ibm.com>, linuxppc-dev@lists.ozlabs.org,
+ linux-nvdimm@lists.01.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-On Tue, Sep 10, 2019 at 1:31 AM Aneesh Kumar K.V
-<aneesh.kumar@linux.ibm.com> wrote:
->
-> On 9/10/19 1:40 PM, Dan Williams wrote:
-> > On Mon, Sep 9, 2019 at 11:29 PM Aneesh Kumar K.V
-> > <aneesh.kumar@linux.ibm.com> wrote:
-> >>
-> >> With PFN_MODE_PMEM namespace, the memmap area is allocated from the device
-> >> area. Some architectures map the memmap area with large page size. On
-> >> architectures like ppc64, 16MB page for memap mapping can map 262144 pfns.
-> >> This maps a namespace size of 16G.
-> >>
-> >> When populating memmap region with 16MB page from the device area,
-> >> make sure the allocated space is not used to map resources outside this
-> >> namespace. Such usage of device area will prevent a namespace destroy.
-> >>
-> >> Add resource end pnf in altmap and use that to check if the memmap area
-> >> allocation can map pfn outside the namespace. On ppc64 in such case we fallback
-> >> to allocation from memory.
-> >
-> > Shouldn't this instead be comprehended by nd_pfn_init() to increase
-> > the reservation size so that it fits in the alignment? It may not
-> > always be possible to fall back to allocation from memory for
-> > extremely large pmem devices. I.e. at 64GB of memmap per 1TB of pmem
-> > there may not be enough DRAM to store the memmap.
-> >
->
-> We do switch between DRAM and device for memmap allocation. ppc64
-> vmemmap_populate  does
->
-> if (altmap && !altmap_cross_boundary(altmap, start, page_size)) {
->         p = altmap_alloc_block_buf(page_size, altmap);
->         if (!p)
->                 pr_debug("altmap block allocation failed, falling back to system memory");
->         }
->         if (!p)
->                 p = vmemmap_alloc_block_buf(page_size, node);
->
->
-> With that we should be using DRAM for the first and the last mapping,
-> rest of the memmap should be backed by device.
-
-Ah, ok, makes sense.
-_______________________________________________
-Linux-nvdimm mailing list
-Linux-nvdimm@lists.01.org
-https://lists.01.org/mailman/listinfo/linux-nvdimm
+TG9va3MgZ29vZCwKUmV2aWV3ZWQtYnk6IEpvaGFubmVzIFRodW1zaGlybiA8anRodW1zaGlybkBz
+dXNlLmRlPgoKLS0gCkpvaGFubmVzIFRodW1zaGlybiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICBTVVNFIExhYnMgRmlsZXN5c3RlbXMKanRodW1zaGlybkBzdXNlLmRlICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICArNDkgOTExIDc0MDUzIDY4OQpTVVNFIFNvZnR3YXJlIFNvbHV0aW9u
+cyBHZXJtYW55IEdtYkgKTWF4ZmVsZHN0ci4gNQo5MDQwOSBOw7xybmJlcmcKR2VybWFueQooSFJC
+IDI0NzE2NSwgQUcgTcO8bmNoZW4pCktleSBmaW5nZXJwcmludCA9IEVDMzggOUNBQiBDMkM0IEYy
+NUQgODYwMCBEMEQwIDAzOTMgOTY5RCAyRDc2IDA4NTAKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtbnZkaW1tCg==
