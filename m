@@ -3,58 +3,51 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74EEFC4CEC5
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 14:51:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61E62C4CEC7
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 15:01:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 49CF220856
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 14:51:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 49CF220856
+	by mail.kernel.org (Postfix) with ESMTPS id 4272820830
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 15:01:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4272820830
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B802C202E6DE0;
-	Thu, 12 Sep 2019 07:51:46 -0700 (PDT)
-Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.216;
+	by ml01.01.org (Postfix) with ESMTP id A0B92202E2938;
+	Thu, 12 Sep 2019 08:01:53 -0700 (PDT)
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.19;
  helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from smtprelay.hostedemail.com (smtprelay0216.hostedemail.com
- [216.40.44.216])
+Received: from smtprelay.hostedemail.com (smtprelay0019.hostedemail.com
+ [216.40.44.19])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id EB8CE202E2938
- for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 07:51:44 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id F26A02194EB77
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 08:01:51 -0700 (PDT)
 Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net
  [216.40.38.60])
- by smtprelay03.hostedemail.com (Postfix) with ESMTP id 92CC1831D72C;
- Thu, 12 Sep 2019 14:51:41 +0000 (UTC)
+ by smtprelay06.hostedemail.com (Postfix) with ESMTP id B13BC18224D69;
+ Thu, 12 Sep 2019 15:01:48 +0000 (UTC)
 X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: yard89_8305e22eeb808
-X-Filterd-Recvd-Size: 2937
+X-HE-Tag: pump00_49bc2d71dfd50
+X-Filterd-Recvd-Size: 1798
 Received: from XPS-9350.home (unknown [47.151.152.152])
  (Authenticated sender: joe@perches.com)
- by omf12.hostedemail.com (Postfix) with ESMTPA;
- Thu, 12 Sep 2019 14:51:40 +0000 (UTC)
-Message-ID: <9d4633cf0bbf531393ce170444d607eb2e915f48.camel@perches.com>
-Subject: Re: [Ksummit-discuss] [PATCH v2 3/3] libnvdimm, MAINTAINERS:
- Maintainer Entry Profile
+ by omf13.hostedemail.com (Postfix) with ESMTPA;
+ Thu, 12 Sep 2019 15:01:46 +0000 (UTC)
+Message-ID: <33c0f43ef2334de5885e5fcf041483a2afb13787.camel@perches.com>
+Subject: Re: [PATCH 01/13] nvdimm: Use more typical whitespace
 From: Joe Perches <joe@perches.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 Sep 2019 07:51:39 -0700
-In-Reply-To: <CAPcyv4iu13D5P+ExdeW8OGMV8g49fMUy52xbYZM+bewwVSwhjg@mail.gmail.com>
-References: <156821692280.2951081.18036584954940423225.stgit@dwillia2-desk3.amr.corp.intel.com>
- <156821693963.2951081.11214256396118531359.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20190911184332.GL20699@kadam>
- <9132e214-9b57-07dc-7ee2-f6bc52e960c5@kernel.dk>
- <CAPcyv4ij3s+9uO0f9aLHGj3=ACG7hAjZ0Rf=tyFmpt3+uQyymw@mail.gmail.com>
- <CANiq72k2so3ZcqA3iRziGY=Shd_B1=qGoXXROeAF7Y3+pDmqyA@mail.gmail.com>
- <e9cb9bc8bd7fe38a5bb6ff7b7222b512acc7b018.camel@perches.com>
- <5eebafcb85a23a59f01681e73c83b387c59f4a4b.camel@perches.com>
- <CAPcyv4iu13D5P+ExdeW8OGMV8g49fMUy52xbYZM+bewwVSwhjg@mail.gmail.com>
+To: Christoph Hellwig <hch@infradead.org>
+Date: Thu, 12 Sep 2019 08:01:45 -0700
+In-Reply-To: <20190912121707.GA16029@infradead.org>
+References: <cover.1568256705.git.joe@perches.com>
+ <7a5598bda6a3d18d75c3e76ab89d9d95e8952500.1568256705.git.joe@perches.com>
+ <20190912121707.GA16029@infradead.org>
 User-Agent: Evolution 3.32.1-2 
 MIME-Version: 1.0
 X-BeenThere: linux-nvdimm@lists.01.org
@@ -68,57 +61,36 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Cc: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>,
- Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
- Dan Carpenter <dan.carpenter@oracle.com>,
- linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
+ Dan Carpenter <dan.carpenter@oracle.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-On Thu, 2019-09-12 at 07:17 -0700, Dan Williams wrote:
+On Thu, 2019-09-12 at 05:17 -0700, Christoph Hellwig wrote:
+> Instead of arguing what is better just stick to what the surrounding
+> code does.
 
-> Ok, good to confirm that we do not yet have an objective standard for
-> coding style. This means it's not yet something process documentation
-> can better standardize for contributors and will be subject to ongoing
-> taste debates. Lets reclaim the time to talk about objective items
-> that *can* clarified across maintainers.
+That's not always feasible nor readable.
 
-No, let's not and just clarify whether or not whitespace
-style patches are acceptable patch submissions.
+Especially for the logic inversion blocks where
+the existing code does unreadable and error prone
+things like hiding semicolons immediately after
+comments.
 
-Coding style fragmentation is not otherwise acceptable to me.
+	if (foo)
+		/* longish comment */;
+	else {
+		<code>;
+	}
 
-nvdimm mandating 2 tab indentation when nvdimm itself is not
-at all consistent in that regard is also whitespace noise.
+> Or in other words:  Feel free to be a codingstyle nazi for your code
+> (I am for some of mine), but leave others peoples code alone with
+> "cleanup" patches.
 
-> As for libnvdimm at this point I'd rather start with objective
-> checkpatch error cleanups and defer the personal taste items.
-
-Fine by me.
-
-I do want to avoid documenting per-subsystem coding styles.
-
-How about adding something to MAINTAINERS like:
-
-A:	Accepting patches by newbies or CodingStyle strict
-
-and checkpatch could be changed turn off a bunch of
-whitespace rules on a subsystem basis when run with
--f for files or without -f for a patch.
-
-Most of this comes down to whitespace like
-
-	a = b + c
-
-where it hardly matters if the CodingStyle mandated
-space around + is used or
-
-	foo = bar(baz,
-			qux)
-
-where qux position is not really important.
+My point was to avoid documenting per-subsystem
+coding style rules.
 
 
 _______________________________________________
