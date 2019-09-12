@@ -3,53 +3,52 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A4FDC4CEC7
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 20:34:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 810E8C4CEC7
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 21:08:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CCC05208E4
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 20:34:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CCC05208E4
+	by mail.kernel.org (Postfix) with ESMTPS id 5216420830
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 21:08:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5216420830
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 63EF3202E6DFF;
-	Thu, 12 Sep 2019 13:34:54 -0700 (PDT)
-Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.247;
+	by ml01.01.org (Postfix) with ESMTP id B1162202E292D;
+	Thu, 12 Sep 2019 14:08:20 -0700 (PDT)
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.51;
  helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from smtprelay.hostedemail.com (smtprelay0247.hostedemail.com
- [216.40.44.247])
+Received: from smtprelay.hostedemail.com (smtprelay0051.hostedemail.com
+ [216.40.44.51])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3B32D202E291C
- for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 13:34:52 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 21EB8202E291C
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 14:08:19 -0700 (PDT)
 Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net
  [216.40.38.60])
- by smtprelay03.hostedemail.com (Postfix) with ESMTP id B7E4E837F24A;
- Thu, 12 Sep 2019 20:34:51 +0000 (UTC)
+ by smtprelay08.hostedemail.com (Postfix) with ESMTP id 0F77D182CED5B;
+ Thu, 12 Sep 2019 21:08:19 +0000 (UTC)
 X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: wood38_47427da86d73d
-X-Filterd-Recvd-Size: 1803
+X-HE-Tag: prose06_4875ac028f41a
+X-Filterd-Recvd-Size: 1878
 Received: from XPS-9350.home (unknown [47.151.152.152])
  (Authenticated sender: joe@perches.com)
- by omf11.hostedemail.com (Postfix) with ESMTPA;
- Thu, 12 Sep 2019 20:34:49 +0000 (UTC)
-Message-ID: <4299c79e33f22e237e42515ea436f187d8beb32e.camel@perches.com>
-Subject: Re: [Ksummit-discuss] [PATCH v2 0/3] Maintainer Entry Profiles
+ by omf12.hostedemail.com (Postfix) with ESMTPA;
+ Thu, 12 Sep 2019 21:08:17 +0000 (UTC)
+Message-ID: <4df0a07ec8f1391acfa987ecef184a50e7831000.camel@perches.com>
+Subject: Re: [PATCH 00/13] nvdimm: Use more common kernel coding style
 From: Joe Perches <joe@perches.com>
-To: Bart Van Assche <bvanassche@acm.org>, "Martin K. Petersen"
- <martin.petersen@oracle.com>, Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 Sep 2019 13:34:48 -0700
-In-Reply-To: <74984dc0-d5e4-f272-34b9-9a78619d5a83@acm.org>
-References: <156821692280.2951081.18036584954940423225.stgit@dwillia2-desk3.amr.corp.intel.com>
- <yq1o8zqeqhb.fsf@oracle.com> <6fe45562-9493-25cf-afdb-6c0e702a49b4@acm.org>
- <44c08faf43fa77fb271f8dbb579079fb09007716.camel@perches.com>
- <74984dc0-d5e4-f272-34b9-9a78619d5a83@acm.org>
+To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, Jeff Moyer
+ <jmoyer@redhat.com>
+Date: Thu, 12 Sep 2019 14:08:16 -0700
+In-Reply-To: <CANiq72kTsf=0rEufDMo7BzMNv1dqc5=ws7fSd=H_e=cpHR24Kg@mail.gmail.com>
+References: <cover.1568256705.git.joe@perches.com>
+ <x498sqtvclx.fsf@segfault.boston.devel.redhat.com>
+ <CANiq72kTsf=0rEufDMo7BzMNv1dqc5=ws7fSd=H_e=cpHR24Kg@mail.gmail.com>
 User-Agent: Evolution 3.32.1-2 
 MIME-Version: 1.0
 X-BeenThere: linux-nvdimm@lists.01.org
@@ -63,26 +62,40 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Cc: ksummit-discuss@lists.linuxfoundation.org, linux-nvdimm@lists.01.org,
- Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org,
- Steve French <stfrench@microsoft.com>,
- Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>,
- "Tobin C. Harding" <me@tobin.cc>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+ Dan Carpenter <dan.carpenter@oracle.com>,
+ linux-nvdimm <linux-nvdimm@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-On Thu, 2019-09-12 at 13:01 -0700, Bart Van Assche wrote:
+On Thu, 2019-09-12 at 16:21 +0200, Miguel Ojeda wrote:
 
-> Another argument in favor of W=1 is that the formatting of kernel-doc
-> headers is checked only if W=1 is passed to make.
+> As soon as you get accustomed to have formatting done and enforced
+> automatically, it is great. Other major projects have done so for
+> quite a while now.
 
-Actually, but for the fact there are far too many
-to generally enable that warning right now,
-(an x86-64 defconfig has more than 1000)
-that sounds pretty reasonable to me.
+Please name the major projects and then point to their
+.clang-format equivalents.
 
+Also note the size/scope/complexity of the major projects.
+
+thanks.
+
+> If doesn't think it is good enough, please let us know and, if it is
+> close enough, we can look at going for a newer LLVM to match the style
+> a bit more.
+
+I used the latest one, and quite a bit of the conversion
+was unpleasant to read.
+
+>  Also note that one can disable formatting for some
+> sections of code if really needed.
+
+Marking sections _no_auto_format_ isn't really a
+good solution is it?
+.
 
 
 _______________________________________________
