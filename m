@@ -2,49 +2,49 @@ Return-Path: <SRS0=iZWN=XH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 755B8C4CEC7
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 22:15:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40D4EC4CEC7
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 22:38:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3476B20856
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 22:15:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3476B20856
+	by mail.kernel.org (Postfix) with ESMTPS id 14EF620856
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 22:38:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 14EF620856
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 39217202E6E07;
-	Thu, 12 Sep 2019 15:15:11 -0700 (PDT)
-Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.161;
+	by ml01.01.org (Postfix) with ESMTP id D9DB1202E6E0A;
+	Thu, 12 Sep 2019 15:38:42 -0700 (PDT)
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.135;
  helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from smtprelay.hostedemail.com (smtprelay0161.hostedemail.com
- [216.40.44.161])
+Received: from smtprelay.hostedemail.com (smtprelay0135.hostedemail.com
+ [216.40.44.135])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 33581202B75E6
- for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 15:15:09 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 6DE02202E6E02
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 15:38:41 -0700 (PDT)
 Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net
  [216.40.38.60])
- by smtprelay07.hostedemail.com (Postfix) with ESMTP id 58571181D3368;
- Thu, 12 Sep 2019 22:15:09 +0000 (UTC)
+ by smtprelay07.hostedemail.com (Postfix) with ESMTP id DEFFE181D3377;
+ Thu, 12 Sep 2019 22:38:40 +0000 (UTC)
 X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: pin05_49dff1f532f1d
-X-Filterd-Recvd-Size: 3395
+X-HE-Tag: stone95_85d3c9f42163a
+X-Filterd-Recvd-Size: 2128
 Received: from XPS-9350.home (unknown [47.151.152.152])
  (Authenticated sender: joe@perches.com)
- by omf08.hostedemail.com (Postfix) with ESMTPA;
- Thu, 12 Sep 2019 22:15:07 +0000 (UTC)
-Message-ID: <2e3b15aea8645f38cea9442a4b6eb95f5b33eec6.camel@perches.com>
+ by omf12.hostedemail.com (Postfix) with ESMTPA;
+ Thu, 12 Sep 2019 22:38:39 +0000 (UTC)
+Message-ID: <4f759f8c4f4d59fd60008e833334e29b0da0869c.camel@perches.com>
 Subject: Re: [PATCH 00/13] nvdimm: Use more common kernel coding style
 From: Joe Perches <joe@perches.com>
 To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, Nick Desaulniers
  <ndesaulniers@google.com>
-Date: Thu, 12 Sep 2019 15:15:06 -0700
+Date: Thu, 12 Sep 2019 15:38:38 -0700
 In-Reply-To: <CANiq72mgbepmw=G5pM7iSRf-Eob7AHFzLw=76uFivpNGtccyKw@mail.gmail.com>
 References: <cover.1568256705.git.joe@perches.com>
  <x498sqtvclx.fsf@segfault.boston.devel.redhat.com>
@@ -81,56 +81,25 @@ On Thu, 2019-09-12 at 23:58 +0200, Miguel Ojeda wrote:
 > 
 > Mozilla, WebKit, LLVM and Microsoft. They have their style distributed
 > with the official clang-format, not sure if they enforce it.
-> 
-> Same for Chromium/Chrome, but it looks like they indeed enforce it:
 
-thanks for that list.
+At least for LLVM, it appears not.
 
-> > I used the latest one, and quite a bit of the conversion
-> > was unpleasant to read.
-> 
-> It would be good to see particularly bad snippets to see if we can do
-> something about them (and, if needed, try to improve clang-format to
-> support whatever we need).
+I just tried a very small portion of the clang compiler:
 
-As I mentioned earlier, look at the __stringify conversion.
-Also the C() blocks.
+$ git ls-files llvm/lib/CodeGen/ | wc -l
+293
+$ git ls-files llvm/lib/CodeGen/ | xargs clang-format -i
 
-btw: emacs 'mark-whole-buffer indent-region',
-the tool I used for each file in patch 1, also
-made a mess of the C() block.
+and got:
 
-> Did you tweak the parameters with the new ones?
+$ git diff --shortstat
+ 245 files changed, 19519 insertions(+), 17794 deletions(-)
 
-No.  I used
+btw: that seems a pretty small ~7% of the overall lines
 
-$ clang-format --version
-clang-format version 10.0.0 (git://github.com/llvm/llvm-project.git 305b961f64b75e73110e309341535f6d5a48ed72)
+$ git ls-files llvm/lib/CodeGen/ | xargs wc -l | tail -1
+ 251034 total
 
-and the existing .clang_format from
-next-20190904 35394d031b710e832849fca60d0f53b513f0c390
-
-> I am preparing an RFC
-> patch for an updated .clang-format configuration that improves quite a
-> bit the results w.r.t. to the current one (and allows for some leeway
-> on the developer's side, which helps prevent some cases too).
-
-Well, one day no doubt an automated tool will be
-more useful for the kernel.  Hope you keep at it
-and good luck.
-
-> > Marking sections _no_auto_format_ isn't really a
-> > good solution is it?
-> 
-> I am thinking about special tables that are hand-crafted or very
-> complex macros. For those, yes, I think it is a fine solution. That is
-> why clang-format has that feature to begin with, and you can see an
-> example in Mozilla's style guide which points here:
-> 
->   https://github.com/mozilla/gecko-dev/blob/master/xpcom/io/nsEscape.cpp#L22
-> 
-> Cheers,
-> Miguel
 
 _______________________________________________
 Linux-nvdimm mailing list
