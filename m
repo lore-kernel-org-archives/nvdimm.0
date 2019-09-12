@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-10.0 required=3.0
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB659C5ACAE
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 02:55:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E54EEECDE20
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 02:55:25 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B4CC32085B
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 02:55:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B4CC32085B
+	by mail.kernel.org (Postfix) with ESMTPS id C64872085B
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 02:55:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C64872085B
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4565C202C80B2;
-	Wed, 11 Sep 2019 19:55:29 -0700 (PDT)
-Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.74;
+	by ml01.01.org (Postfix) with ESMTP id 57C2A202C80A6;
+	Wed, 11 Sep 2019 19:55:31 -0700 (PDT)
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.137;
  helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from smtprelay.hostedemail.com (smtprelay0074.hostedemail.com
- [216.40.44.74])
+Received: from smtprelay.hostedemail.com (smtprelay0137.hostedemail.com
+ [216.40.44.137])
  (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id BF59F2194EB77
- for <linux-nvdimm@lists.01.org>; Wed, 11 Sep 2019 19:55:27 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id CEFFF202C80A0
+ for <linux-nvdimm@lists.01.org>; Wed, 11 Sep 2019 19:55:29 -0700 (PDT)
 Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net
  [216.40.38.60])
- by smtprelay02.hostedemail.com (Postfix) with ESMTP id 107971E06F;
- Thu, 12 Sep 2019 02:55:21 +0000 (UTC)
+ by smtprelay03.hostedemail.com (Postfix) with ESMTP id EF03A8024B45;
+ Thu, 12 Sep 2019 02:55:22 +0000 (UTC)
 X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-HE-Tag: jar29_85d6914c8b35d
-X-Filterd-Recvd-Size: 2108
+X-HE-Tag: feast04_861bb7d71dd62
+X-Filterd-Recvd-Size: 3643
 Received: from joe-laptop.perches.com (unknown [47.151.152.152])
  (Authenticated sender: joe@perches.com)
  by omf16.hostedemail.com (Postfix) with ESMTPA;
- Thu, 12 Sep 2019 02:55:19 +0000 (UTC)
+ Thu, 12 Sep 2019 02:55:21 +0000 (UTC)
 From: Joe Perches <joe@perches.com>
 To: Dan Williams <dan.j.williams@intel.com>,
  Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
  Keith Busch <keith.busch@intel.com>, Ira Weiny <ira.weiny@intel.com>
-Subject: [PATCH 08/13] nvdimm: Use typical kernel style indentation
-Date: Wed, 11 Sep 2019 19:54:38 -0700
-Message-Id: <fd4e3624b79eb7ef39d3148bfea012d7bdd3733f.1568256708.git.joe@perches.com>
+Subject: [PATCH 09/13] nvdimm: btt.h: Neaten #defines to improve readability
+Date: Wed, 11 Sep 2019 19:54:39 -0700
+Message-Id: <d1815f376a158c940cc9f9f6d5000398ba531237.1568256708.git.joe@perches.com>
 X-Mailer: git-send-email 2.15.0
 In-Reply-To: <cover.1568256705.git.joe@perches.com>
 References: <cover.1568256705.git.joe@perches.com>
@@ -69,42 +69,82 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-Make the nvdimm code more like the rest of the kernel.
+Use tab alignment to make the content and macro a bit more intelligible.
 
-Avoid indentation of labels and spaces where tabs should be used.
+Use the BIT and BIT_ULL macros.
+Convert MAP_LBA_MASK to use the already defined shift masks.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/nvdimm/btt.c         | 2 +-
- drivers/nvdimm/region_devs.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/nvdimm/btt.h | 54 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 39851edc2cc5..0df4461fe607 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1320,7 +1320,7 @@ static int btt_write_pg(struct btt *btt, struct bio_integrity_payload *bip,
- 		u32 cur_len;
- 		int e_flag;
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 1da76da3e159..fb0f4546153f 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -10,34 +10,34 @@
+ #include <linux/badblocks.h>
+ #include <linux/types.h>
  
--	retry:
-+retry:
- 		lane = nd_region_acquire_lane(btt->nd_region);
+-#define BTT_SIG_LEN 16
+-#define BTT_SIG "BTT_ARENA_INFO\0"
+-#define MAP_ENT_SIZE 4
+-#define MAP_TRIM_SHIFT 31
+-#define MAP_TRIM_MASK (1 << MAP_TRIM_SHIFT)
+-#define MAP_ERR_SHIFT 30
+-#define MAP_ERR_MASK (1 << MAP_ERR_SHIFT)
+-#define MAP_LBA_MASK (~((1 << MAP_TRIM_SHIFT) | (1 << MAP_ERR_SHIFT)))
+-#define MAP_ENT_NORMAL 0xC0000000
+-#define LOG_GRP_SIZE sizeof(struct log_group)
+-#define LOG_ENT_SIZE sizeof(struct log_entry)
+-#define ARENA_MIN_SIZE (1UL << 24)	/* 16 MB */
+-#define ARENA_MAX_SIZE (1ULL << 39)	/* 512 GB */
+-#define RTT_VALID (1UL << 31)
+-#define RTT_INVALID 0
+-#define BTT_PG_SIZE 4096
+-#define BTT_DEFAULT_NFREE ND_MAX_LANES
+-#define LOG_SEQ_INIT 1
+-
+-#define IB_FLAG_ERROR 0x00000001
+-#define IB_FLAG_ERROR_MASK 0x00000001
+-
+-#define ent_lba(ent) (ent & MAP_LBA_MASK)
+-#define ent_e_flag(ent) (!!(ent & MAP_ERR_MASK))
+-#define ent_z_flag(ent) (!!(ent & MAP_TRIM_MASK))
+-#define set_e_flag(ent) (ent |= MAP_ERR_MASK)
++#define BTT_SIG_LEN		16
++#define BTT_SIG			"BTT_ARENA_INFO\0"
++#define MAP_ENT_SIZE		4
++#define MAP_TRIM_SHIFT		31
++#define MAP_TRIM_MASK		BIT(MAP_TRIM_SHIFT)
++#define MAP_ERR_SHIFT		30
++#define MAP_ERR_MASK		BIT(MAP_ERR_SHIFT)
++#define MAP_LBA_MASK		(~(MAP_TRIM_MASK | MAP_ERR_MASK))
++#define MAP_ENT_NORMAL		0xC0000000
++#define LOG_GRP_SIZE		sizeof(struct log_group)
++#define LOG_ENT_SIZE		sizeof(struct log_entry)
++#define ARENA_MIN_SIZE		BIT(24)		/* 16 MB */
++#define ARENA_MAX_SIZE		BIT_ULL(39)	/* 512 GB */
++#define RTT_VALID		BIT(31)
++#define RTT_INVALID		0
++#define BTT_PG_SIZE		4096
++#define BTT_DEFAULT_NFREE	ND_MAX_LANES
++#define LOG_SEQ_INIT		1
++
++#define IB_FLAG_ERROR		0x00000001
++#define IB_FLAG_ERROR_MASK	0x00000001
++
++#define ent_lba(ent)		((ent) & MAP_LBA_MASK)
++#define ent_e_flag(ent)		(!!((ent) & MAP_ERR_MASK))
++#define ent_z_flag(ent)		(!!((ent) & MAP_TRIM_MASK))
++#define set_e_flag(ent)		((ent) |= MAP_ERR_MASK)
+ /* 'normal' is both e and z flags set */
+-#define ent_normal(ent) (ent_e_flag(ent) && ent_z_flag(ent))
++#define ent_normal(ent)		(ent_e_flag(ent) && ent_z_flag(ent))
  
- 		ret = lba_to_arena(btt, sector, &premap, &arena);
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 16dfdbdbf1c8..65df07481909 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1044,7 +1044,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	if (!nd_region->lane)
- 		goto err_percpu;
- 
--        for (i = 0; i < nr_cpu_ids; i++) {
-+	for (i = 0; i < nr_cpu_ids; i++) {
- 		struct nd_percpu_lane *ndl;
- 
- 		ndl = per_cpu_ptr(nd_region->lane, i);
+ enum btt_init_state {
+ 	INIT_UNCHECKED = 0,
 -- 
 2.15.0
 
