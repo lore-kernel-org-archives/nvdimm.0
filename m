@@ -2,70 +2,54 @@ Return-Path: <SRS0=iZWN=XH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A26B6ECDE20
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 08:00:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C77C5ACAE
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 08:15:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6E1A32075C
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 08:00:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="LUE8CLyX"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6E1A32075C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 9F1182171F
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Sep 2019 08:15:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9F1182171F
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2D178202E290C;
-	Thu, 12 Sep 2019 01:00:52 -0700 (PDT)
-Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=2607:f8b0:4864:20::341; helo=mail-ot1-x341.google.com;
- envelope-from=dan.j.williams@intel.com; receiver=linux-nvdimm@lists.01.org 
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com
- [IPv6:2607:f8b0:4864:20::341])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 354C0202E290E;
+	Thu, 12 Sep 2019 01:15:47 -0700 (PDT)
+Received-SPF: None (no SPF record) identity=mailfrom; client-ip=216.40.44.79;
+ helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com;
+ receiver=linux-nvdimm@lists.01.org 
+Received: from smtprelay.hostedemail.com (smtprelay0079.hostedemail.com
+ [216.40.44.79])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 5E4B9202C80B7
- for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 01:00:50 -0700 (PDT)
-Received: by mail-ot1-x341.google.com with SMTP id g16so10033160otp.8
- for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 01:00:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=intel-com.20150623.gappssmtp.com; s=20150623;
- h=mime-version:references:in-reply-to:from:date:message-id:subject:to
- :cc; bh=5qmb78FYDeqJwCvfIUFA64DMXds2PW8DdSpXeskuPq4=;
- b=LUE8CLyXWQcGt5ozi574sQ/J9n0AJBvhhr7mv+LYM7f/8vSmrjw+pFEvB6VjkLyi2t
- VykulW20DQEli1D3Mh2AuNGF45hqYL+SxnAJSDp01zHAp7mNNNUbKM/cre3vGpdeRS6H
- wy/2DOV2srDzpSUJ9zXH7YcwAPvdS4tOSNJEu2rY6jsa/6oo8fa3kREiLMB6QAxQBtaz
- E7jQbOT+uvfQSV/Cwgx6NmLW/9DJGQ2Q4QibUNeUoSN8y2iId9qV2HceqdpD3NzVa0jg
- RKOTKjKQdX+ORNbR4e7Wz/Z+71lOHkS+iVKdy00uIPl4ofTM9OQ2hBVdGTSodfBfBWV0
- NRTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=1e100.net; s=20161025;
- h=x-gm-message-state:mime-version:references:in-reply-to:from:date
- :message-id:subject:to:cc;
- bh=5qmb78FYDeqJwCvfIUFA64DMXds2PW8DdSpXeskuPq4=;
- b=Oxl5uk/MLEw5iJr9uDz1U3rC/XHA+VBUfRparmFG6h9w6RXZYZFqc9k60aCqxFWuQz
- xdnzIneYmJRttQwuFJUyWF1Pm7jj9OZwwIqll2MjLPBnqGOSFCwjtVFW1duBWa70+QUA
- 6pPzzlE7FvOqWv9Pxm3kn7q7zjzLVxBwujreBivjGX5ZbN/8rtsmN1F0q17uy3q9DbTz
- +K+T97of6EmtjoNU4cAh+nO9gRsPRzto4RHUieGyGlWBfPnK1F5eCN2XB56hnJpOGTXf
- iSC4zTH1ojfY16rWZvRZB1PntNTOIqOmnjbxTMxEDlHoSjZpjSDVt7ScDEClO3j4Jlxo
- /SzA==
-X-Gm-Message-State: APjAAAWrXSIZ/3IqvoicWKJOdRwnbEAZCEQuXGrDpqAwY8uMbe0/aKNG
- cBw49sbRUpIRSM6G5wvbfb+vX0wWVrlNDrx1SMB7hQ==
-X-Google-Smtp-Source: APXvYqyNoKF90/9aOosnjKNEcyJn0PnaFlqebXAMnVcR447j+ePIeVT1xmancYwa1G/50/CDhUr+1E5BW/SAO4iY+u4=
-X-Received: by 2002:a9d:5ccc:: with SMTP id r12mr8105329oti.71.1568275245893; 
- Thu, 12 Sep 2019 01:00:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1568256705.git.joe@perches.com>
-In-Reply-To: <cover.1568256705.git.joe@perches.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 12 Sep 2019 01:00:35 -0700
-Message-ID: <CAPcyv4hzoSp-bFx19Yj71H7x3D66-TE4uCpcHm4S9sJsGtXugA@mail.gmail.com>
+ by ml01.01.org (Postfix) with ESMTPS id 561C8202C80B7
+ for <linux-nvdimm@lists.01.org>; Thu, 12 Sep 2019 01:15:46 -0700 (PDT)
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net
+ [216.40.38.60])
+ by smtprelay05.hostedemail.com (Postfix) with ESMTP id ABE5E1801585D;
+ Thu, 12 Sep 2019 08:15:40 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: help45_1436e6ec66121
+X-Filterd-Recvd-Size: 2134
+Received: from XPS-9350.home (unknown [47.151.152.152])
+ (Authenticated sender: joe@perches.com)
+ by omf13.hostedemail.com (Postfix) with ESMTPA;
+ Thu, 12 Sep 2019 08:15:38 +0000 (UTC)
+Message-ID: <be3c626c2e9d14fe2fa9d0403bc02832231cc437.camel@perches.com>
 Subject: Re: [PATCH 00/13] nvdimm: Use more common kernel coding style
-To: Joe Perches <joe@perches.com>
+From: Joe Perches <joe@perches.com>
+To: Dan Williams <dan.j.williams@intel.com>, Miguel Ojeda
+ <miguel.ojeda.sandonis@gmail.com>
+Date: Thu, 12 Sep 2019 01:15:37 -0700
+In-Reply-To: <CAPcyv4hzoSp-bFx19Yj71H7x3D66-TE4uCpcHm4S9sJsGtXugA@mail.gmail.com>
+References: <cover.1568256705.git.joe@perches.com>
+ <CAPcyv4hzoSp-bFx19Yj71H7x3D66-TE4uCpcHm4S9sJsGtXugA@mail.gmail.com>
+User-Agent: Evolution 3.32.1-2 
+MIME-Version: 1.0
 X-BeenThere: linux-nvdimm@lists.01.org
 X-Mailman-Version: 2.1.29
 Precedence: list
@@ -85,14 +69,35 @@ Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-Hi Joe,
+On Thu, 2019-09-12 at 01:00 -0700, Dan Williams wrote:
+> Hi Joe,
+> 
+> On Wed, Sep 11, 2019 at 7:55 PM Joe Perches <joe@perches.com> wrote:
+> > Rather than have a local coding style, use the typical kernel style.
+> 
+> I'd rather automate this. I'm going to do once-over with clang-format
+> and see what falls out.
 
-On Wed, Sep 11, 2019 at 7:55 PM Joe Perches <joe@perches.com> wrote:
->
-> Rather than have a local coding style, use the typical kernel style.
+I am adding Miguel Ojeda to the cc's.
 
-I'd rather automate this. I'm going to do once-over with clang-format
-and see what falls out.
+Of course you are welcome to try it, but I believe that
+clang-format doesn't work all that well yet.
+
+It's more a work in progress rather than a "standard".
+
+I believe you'll find that the patch series I sent
+ends up with a rather more typical kernel style.
+
+I suggest you try to apply the series I sent and then
+run clang-format on that and see the differences.
+
+Ideally one day, something tool like clang-format
+might be locally applied by every developer for their
+own personal style with some other neutral style the
+content actually distributed.
+
+cheers, Joe
+
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
