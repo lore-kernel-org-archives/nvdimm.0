@@ -7,66 +7,66 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECC6C3A5A2
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:48:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 133DEC3A5A2
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:48:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CC3BA2073F
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:48:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id D554E2073F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:48:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="SUDeHQQ0"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC3BA2073F
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="GsWGBhOH"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D554E2073F
 Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 841DD202ECFBE;
-	Fri, 20 Sep 2019 16:47:09 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 9F948202ECFC0;
+	Fri, 20 Sep 2019 16:47:34 -0700 (PDT)
 Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=2607:f8b0:4864:20::d4a; helo=mail-io1-xd4a.google.com;
- envelope-from=3qv6fxq4kdg4ndqzpmztussuzesaasxq.oayxuzgj-zhpuyyxuefe.mn.ads@flex--brendanhiggins.bounces.google.com;
+ client-ip=2607:f8b0:4864:20::d49; helo=mail-io1-xd49.google.com;
+ envelope-from=3k16fxq4kdfg1h4d30d78668di6ee6b4.2ecb8dkn-dl38ccb8iji.qr.eh6@flex--brendanhiggins.bounces.google.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from mail-io1-xd4a.google.com (mail-io1-xd4a.google.com
- [IPv6:2607:f8b0:4864:20::d4a])
+Received: from mail-io1-xd49.google.com (mail-io1-xd49.google.com
+ [IPv6:2607:f8b0:4864:20::d49])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 3951D202ECFBC
- for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:47:08 -0700 (PDT)
-Received: by mail-io1-xd4a.google.com with SMTP id w16so13032810ioc.15
- for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:48:13 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 70700202ECFBC
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:47:33 -0700 (PDT)
+Received: by mail-io1-xd49.google.com with SMTP id g8so13026745iop.19
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:48:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=20161025;
  h=date:in-reply-to:message-id:mime-version:references:subject:from:to
- :cc; bh=V+e6Sk3SdH6RDyqe735Wb6nHpwM2/KCwKA8BXrg2X1g=;
- b=SUDeHQQ0TGHjgV67eGqKS7MHheUse9xfBssZR5rn0NGawYl83lq5opMTpxD/rQ7R5b
- EIojMuwRRa47pmPCUWIN0QYILYxGwXYn0RMkbkreU0m+0r2fnd47K7o/EXcLL0fpNHO0
- Y6RPJ67KLNEWpRfbsbOd09GQ1C5sZIjnhywIEl/l/ZHjM/M7MX5MH39z2NG+ih8YPk5A
- UmHxtnxJfUF9GBHJuW5dL8E/oaShIEcmIPrVftYFtxfV05GBEJtFsaboMWD9m/p0OY9f
- SfwnZgkUEXq2zECWL4UixLsfv13j8zGNPLfgDNdFQxkgIQen3wnEJFmLoCTfCX+VfTYB
- L+PA==
+ :cc; bh=ElRDx1qJcaCd9VphSUpnYDbASsESTUgM/w0RFDoqEmU=;
+ b=GsWGBhOHFwqzmYbnIwAYtO57z8py3WOmCJPdLFYuw6RFrKLNNB9f+XUdSZKJPEfvfD
+ +NPUejzdLRFYtwKn24zsQIDdlhUH4qeWO7CUg3F5Oh6T8iCFpluNFZJfsTVxA48xUjI7
+ 0cRQMZT+GVzHvmIQHfg0vMnqkRF6nw3Z+dYyNWlIrFCThTwglM+W0GIoNNAeRxE1KVXg
+ bJYFBMD1KgiimcmXehIcJauhLSg0Qaa7OBoFzVXFWXGm2ACk92z4rmMdBpmyo2tkZso4
+ vGNbfyLO6jfHLBPB64QxZYZEhxxuOi2rvoSWYu2nV1Krj/0uC0+xeyeUj9svgmSWetAY
+ DrPQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=1e100.net; s=20161025;
  h=x-gm-message-state:date:in-reply-to:message-id:mime-version
  :references:subject:from:to:cc;
- bh=V+e6Sk3SdH6RDyqe735Wb6nHpwM2/KCwKA8BXrg2X1g=;
- b=eGvSsI+MapovwBhUrYw9uoA9vpNCG3FEXXldMJ/uTWBUzseuA908GXtLnSxYelZVrK
- xHhW4bNxdM6176fkq7xLiWRiX4yZs6PV/Ms+o2MBCacwGJ/W5n5caGlTPyyUFGi5hdW/
- 1G7b/f/hw02eN/iugXYGNfjkvMqcL0Rb4Jt76BBnWEu8EQRJe7MVl7oOn3LnOkaUCL8U
- wnDdAFJMex0NsQ9tJF69h2hzUHpVvpBx65eRvfJSFgW6g87OgZOg+jyP9NtZX0Ah2asb
- m/uYQyR9owqKkR1AAj3md1Km1cbCKCU1dpiTz9GARX1nnzVT0AbbPu5UEU17xhcAN3Ka
- rmtg==
-X-Gm-Message-State: APjAAAVPLzd/wg0JM8fVoHZb74ikd5UwWdmXUO3zCevgcZjW2XJW1ySC
- iyll2r0QKMqoOilSoFUJ4z29W4VCu5dmCf8fdtcctA==
-X-Google-Smtp-Source: APXvYqy2lGxX9vxoqYb/T5Fqv+vanUV7FC+qxn/C4nzL+T1vHGns1LRSArgOYFN5hH+oDzD+XeGMPn/Zcfl/i0UEi6ayHQ==
-X-Received: by 2002:a05:6214:12c8:: with SMTP id
- s8mr2793384qvv.141.1569021609344; 
- Fri, 20 Sep 2019 16:20:09 -0700 (PDT)
-Date: Fri, 20 Sep 2019 16:19:15 -0700
+ bh=ElRDx1qJcaCd9VphSUpnYDbASsESTUgM/w0RFDoqEmU=;
+ b=V9W6jbz4t5GVwn/d09QQryJzYXVHLt233Lu8Nge9aP6ousZ96AnaGltvMSWuzdXg1c
+ D+FYgus61DAtUVM2eV4z+9raEQrD9rx7X/RiRl1dA/WJ+Yvn4cqPLEzWChriTgSpzgWZ
+ /3OQCvBkLdC0Kcfkz5G9wIUhm1+krW8xf6f5h4x+5cqkjkqqTCIRR8wj3eajV8+oTOBG
+ ZNSRjORBIzzKrh1bVGIC1PS83WYS6buhKvQvLTRH7VksNJZWU35wEP756SOYKUxvMUwV
+ bfeNUuJY/baHPRDoQOWclOAAPUN8tHlAuRBD1o05RIde+bk9puwB5uV01CVoDqlYxtOD
+ fXgA==
+X-Gm-Message-State: APjAAAXLO4j1URNOcwomONDr4ClvkDuj2ATDjnE2ysEtK5cfsJ/HOAef
+ flZlMi4+air+cK3H7cuyodFEWGnQt4wyJOrLEAnHmg==
+X-Google-Smtp-Source: APXvYqwzprpUv3Sy57r3sQtteXWHKXfGpdgcIHLQjNVIB2eFN+Njs56UhVpiXHuIqV01MQkxK/5GcVapBZZ9KRKCqd8mXw==
+X-Received: by 2002:a63:5807:: with SMTP id m7mr17564787pgb.371.1569021587112; 
+ Fri, 20 Sep 2019 16:19:47 -0700 (PDT)
+Date: Fri, 20 Sep 2019 16:19:07 -0700
 In-Reply-To: <20190920231923.141900-1-brendanhiggins@google.com>
-Message-Id: <20190920231923.141900-12-brendanhiggins@google.com>
+Message-Id: <20190920231923.141900-4-brendanhiggins@google.com>
 Mime-Version: 1.0
 References: <20190920231923.141900-1-brendanhiggins@google.com>
 X-Mailer: git-send-email 2.23.0.351.gc4317032e6-goog
-Subject: [PATCH v16 11/19] kunit: test: add the concept of assertions
+Subject: [PATCH v16 03/19] kunit: test: add string_stream a std::stream like
+ string builder
 From: Brendan Higgins <brendanhiggins@google.com>
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, 
  keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, 
@@ -90,372 +90,323 @@ Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com,
  wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com,
  dan.carpenter@oracle.com, devicetree@vger.kernel.org,
  linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org,
- rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com,
- richard@nod.at, torvalds@linux-foundation.org, rdunlap@infradead.org,
- linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au,
- linux-fsdevel@vger.kernel.org
+ rostedt@goodmis.org, Stephen Boyd <swboyd@chromium.org>, julia.lawall@lip6.fr,
+ kunit-dev@googlegroups.com, richard@nod.at, torvalds@linux-foundation.org,
+ rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch,
+ mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-Add support for assertions which are like expectations except the test
-terminates if the assertion is not satisfied.
+A number of test features need to do pretty complicated string printing
+where it may not be possible to rely on a single preallocated string
+with parameters.
 
-The idea with assertions is that you use them to state all the
-preconditions for your test. Logically speaking, these are the premises
-of the test case, so if a premise isn't true, there is no point in
-continuing the test case because there are no conclusions that can be
-drawn without the premises. Whereas, the expectation is the thing you
-are trying to prove. It is not used universally in x-unit style test
-frameworks, but I really like it as a convention.  You could still
-express the idea of a premise using the above idiom, but I think
-KUNIT_ASSERT_* states the intended idea perfectly.
+So provide a library for constructing the string as you go similar to
+C++'s std::string. string_stream is really just a string builder,
+nothing more.
 
 Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
 Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Stephen Boyd <sboyd@kernel.org>
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
 ---
- include/kunit/test.h           | 282 ++++++++++++++++++++++++++++++++-
- lib/kunit/string-stream-test.c |   2 +-
- lib/kunit/test-test.c          |   7 +-
- 3 files changed, 283 insertions(+), 8 deletions(-)
+ include/kunit/string-stream.h |  51 ++++++++
+ lib/kunit/Makefile            |   3 +-
+ lib/kunit/string-stream.c     | 217 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 270 insertions(+), 1 deletion(-)
+ create mode 100644 include/kunit/string-stream.h
+ create mode 100644 lib/kunit/string-stream.c
 
-diff --git a/include/kunit/test.h b/include/kunit/test.h
-index 3d554d7c1c79..8b7eb03d4971 100644
---- a/include/kunit/test.h
-+++ b/include/kunit/test.h
-@@ -87,8 +87,9 @@ struct kunit;
-  * @name:     the name of the test case.
-  *
-  * A test case is a function with the signature,
-- * ``void (*)(struct kunit *)`` that makes expectations (see
-- * KUNIT_EXPECT_TRUE()) about code under test. Each test case is associated
-+ * ``void (*)(struct kunit *)``
-+ * that makes expectations and assertions (see KUNIT_EXPECT_TRUE() and
-+ * KUNIT_ASSERT_TRUE()) about code under test. Each test case is associated
-  * with a &struct kunit_suite and will be run after the suite's init
-  * function and followed by the suite's exit function.
-  *
-@@ -1210,4 +1211,281 @@ do {									       \
- 						fmt,			       \
- 						##__VA_ARGS__)
- 
-+#define KUNIT_ASSERT_FAILURE(test, fmt, ...) \
-+	KUNIT_FAIL_ASSERTION(test, KUNIT_ASSERTION, fmt, ##__VA_ARGS__)
-+
-+/**
-+ * KUNIT_ASSERT_TRUE() - Sets an assertion that @condition is true.
-+ * @test: The test context object.
-+ * @condition: an arbitrary boolean expression. The test fails and aborts when
-+ * this does not evaluate to true.
+diff --git a/include/kunit/string-stream.h b/include/kunit/string-stream.h
+new file mode 100644
+index 000000000000..fe98a00b75a9
+--- /dev/null
++++ b/include/kunit/string-stream.h
+@@ -0,0 +1,51 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * C++ stream style string builder used in KUnit for building messages.
 + *
-+ * This and assertions of the form `KUNIT_ASSERT_*` will cause the test case to
-+ * fail *and immediately abort* when the specified condition is not met. Unlike
-+ * an expectation failure, it will prevent the test case from continuing to run;
-+ * this is otherwise known as an *assertion failure*.
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins@google.com>
 + */
-+#define KUNIT_ASSERT_TRUE(test, condition) \
-+	KUNIT_TRUE_ASSERTION(test, KUNIT_ASSERTION, condition)
 +
-+#define KUNIT_ASSERT_TRUE_MSG(test, condition, fmt, ...)		       \
-+	KUNIT_TRUE_MSG_ASSERTION(test,					       \
-+				 KUNIT_ASSERTION,			       \
-+				 condition,				       \
-+				 fmt,					       \
-+				 ##__VA_ARGS__)
++#ifndef _KUNIT_STRING_STREAM_H
++#define _KUNIT_STRING_STREAM_H
 +
-+/**
-+ * KUNIT_ASSERT_FALSE() - Sets an assertion that @condition is false.
-+ * @test: The test context object.
-+ * @condition: an arbitrary boolean expression.
++#include <linux/spinlock.h>
++#include <linux/types.h>
++#include <stdarg.h>
++
++struct string_stream_fragment {
++	struct kunit *test;
++	struct list_head node;
++	char *fragment;
++};
++
++struct string_stream {
++	size_t length;
++	struct list_head fragments;
++	/* length and fragments are protected by this lock */
++	spinlock_t lock;
++	struct kunit *test;
++	gfp_t gfp;
++};
++
++struct kunit;
++
++struct string_stream *alloc_string_stream(struct kunit *test, gfp_t gfp);
++
++int __printf(2, 3) string_stream_add(struct string_stream *stream,
++				     const char *fmt, ...);
++
++int string_stream_vadd(struct string_stream *stream,
++		       const char *fmt,
++		       va_list args);
++
++char *string_stream_get_string(struct string_stream *stream);
++
++int string_stream_append(struct string_stream *stream,
++			 struct string_stream *other);
++
++bool string_stream_is_empty(struct string_stream *stream);
++
++int string_stream_destroy(struct string_stream *stream);
++
++#endif /* _KUNIT_STRING_STREAM_H */
+diff --git a/lib/kunit/Makefile b/lib/kunit/Makefile
+index 5efdc4dea2c0..275b565a0e81 100644
+--- a/lib/kunit/Makefile
++++ b/lib/kunit/Makefile
+@@ -1 +1,2 @@
+-obj-$(CONFIG_KUNIT) +=			test.o
++obj-$(CONFIG_KUNIT) +=			test.o \
++					string-stream.o
+diff --git a/lib/kunit/string-stream.c b/lib/kunit/string-stream.c
+new file mode 100644
+index 000000000000..e6d17aacca30
+--- /dev/null
++++ b/lib/kunit/string-stream.c
+@@ -0,0 +1,217 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * C++ stream style string builder used in KUnit for building messages.
 + *
-+ * Sets an assertion that the value that @condition evaluates to is false. This
-+ * is the same as KUNIT_EXPECT_FALSE(), except it causes an assertion failure
-+ * (see KUNIT_ASSERT_TRUE()) when the assertion is not met.
++ * Copyright (C) 2019, Google LLC.
++ * Author: Brendan Higgins <brendanhiggins@google.com>
 + */
-+#define KUNIT_ASSERT_FALSE(test, condition) \
-+	KUNIT_FALSE_ASSERTION(test, KUNIT_ASSERTION, condition)
 +
-+#define KUNIT_ASSERT_FALSE_MSG(test, condition, fmt, ...)		       \
-+	KUNIT_FALSE_MSG_ASSERTION(test,					       \
-+				  KUNIT_ASSERTION,			       \
-+				  condition,				       \
-+				  fmt,					       \
-+				  ##__VA_ARGS__)
++#include <kunit/string-stream.h>
++#include <kunit/test.h>
++#include <linux/list.h>
++#include <linux/slab.h>
 +
-+/**
-+ * KUNIT_ASSERT_EQ() - Sets an assertion that @left and @right are equal.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a primitive C type.
-+ * @right: an arbitrary expression that evaluates to a primitive C type.
-+ *
-+ * Sets an assertion that the values that @left and @right evaluate to are
-+ * equal. This is the same as KUNIT_EXPECT_EQ(), except it causes an assertion
-+ * failure (see KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_EQ(test, left, right) \
-+	KUNIT_BINARY_EQ_ASSERTION(test, KUNIT_ASSERTION, left, right)
++struct string_stream_fragment_alloc_context {
++	struct kunit *test;
++	int len;
++	gfp_t gfp;
++};
 +
-+#define KUNIT_ASSERT_EQ_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_EQ_MSG_ASSERTION(test,				       \
-+				      KUNIT_ASSERTION,			       \
-+				      left,				       \
-+				      right,				       \
-+				      fmt,				       \
-+				      ##__VA_ARGS__)
++static int string_stream_fragment_init(struct kunit_resource *res,
++				       void *context)
++{
++	struct string_stream_fragment_alloc_context *ctx = context;
++	struct string_stream_fragment *frag;
 +
-+/**
-+ * KUNIT_ASSERT_PTR_EQ() - Asserts that pointers @left and @right are equal.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a pointer.
-+ * @right: an arbitrary expression that evaluates to a pointer.
-+ *
-+ * Sets an assertion that the values that @left and @right evaluate to are
-+ * equal. This is the same as KUNIT_EXPECT_EQ(), except it causes an assertion
-+ * failure (see KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_PTR_EQ(test, left, right) \
-+	KUNIT_BINARY_PTR_EQ_ASSERTION(test, KUNIT_ASSERTION, left, right)
++	frag = kunit_kzalloc(ctx->test, sizeof(*frag), ctx->gfp);
++	if (!frag)
++		return -ENOMEM;
 +
-+#define KUNIT_ASSERT_PTR_EQ_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_PTR_EQ_MSG_ASSERTION(test,				       \
-+					  KUNIT_ASSERTION,		       \
-+					  left,				       \
-+					  right,			       \
-+					  fmt,				       \
-+					  ##__VA_ARGS__)
++	frag->test = ctx->test;
++	frag->fragment = kunit_kmalloc(ctx->test, ctx->len, ctx->gfp);
++	if (!frag->fragment)
++		return -ENOMEM;
 +
-+/**
-+ * KUNIT_ASSERT_NE() - An assertion that @left and @right are not equal.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a primitive C type.
-+ * @right: an arbitrary expression that evaluates to a primitive C type.
-+ *
-+ * Sets an assertion that the values that @left and @right evaluate to are not
-+ * equal. This is the same as KUNIT_EXPECT_NE(), except it causes an assertion
-+ * failure (see KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_NE(test, left, right) \
-+	KUNIT_BINARY_NE_ASSERTION(test, KUNIT_ASSERTION, left, right)
++	res->allocation = frag;
 +
-+#define KUNIT_ASSERT_NE_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_NE_MSG_ASSERTION(test,				       \
-+				      KUNIT_ASSERTION,			       \
-+				      left,				       \
-+				      right,				       \
-+				      fmt,				       \
-+				      ##__VA_ARGS__)
++	return 0;
++}
 +
-+/**
-+ * KUNIT_ASSERT_PTR_NE() - Asserts that pointers @left and @right are not equal.
-+ * KUNIT_ASSERT_PTR_EQ() - Asserts that pointers @left and @right are equal.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a pointer.
-+ * @right: an arbitrary expression that evaluates to a pointer.
-+ *
-+ * Sets an assertion that the values that @left and @right evaluate to are not
-+ * equal. This is the same as KUNIT_EXPECT_NE(), except it causes an assertion
-+ * failure (see KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_PTR_NE(test, left, right) \
-+	KUNIT_BINARY_PTR_NE_ASSERTION(test, KUNIT_ASSERTION, left, right)
++static void string_stream_fragment_free(struct kunit_resource *res)
++{
++	struct string_stream_fragment *frag = res->allocation;
 +
-+#define KUNIT_ASSERT_PTR_NE_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_PTR_NE_MSG_ASSERTION(test,				       \
-+					  KUNIT_ASSERTION,		       \
-+					  left,				       \
-+					  right,			       \
-+					  fmt,				       \
-+					  ##__VA_ARGS__)
-+/**
-+ * KUNIT_ASSERT_LT() - An assertion that @left is less than @right.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a primitive C type.
-+ * @right: an arbitrary expression that evaluates to a primitive C type.
-+ *
-+ * Sets an assertion that the value that @left evaluates to is less than the
-+ * value that @right evaluates to. This is the same as KUNIT_EXPECT_LT(), except
-+ * it causes an assertion failure (see KUNIT_ASSERT_TRUE()) when the assertion
-+ * is not met.
-+ */
-+#define KUNIT_ASSERT_LT(test, left, right) \
-+	KUNIT_BINARY_LT_ASSERTION(test, KUNIT_ASSERTION, left, right)
++	list_del(&frag->node);
++	kunit_kfree(frag->test, frag->fragment);
++	kunit_kfree(frag->test, frag);
++}
 +
-+#define KUNIT_ASSERT_LT_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_LT_MSG_ASSERTION(test,				       \
-+				      KUNIT_ASSERTION,			       \
-+				      left,				       \
-+				      right,				       \
-+				      fmt,				       \
-+				      ##__VA_ARGS__)
-+/**
-+ * KUNIT_ASSERT_LE() - An assertion that @left is less than or equal to @right.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a primitive C type.
-+ * @right: an arbitrary expression that evaluates to a primitive C type.
-+ *
-+ * Sets an assertion that the value that @left evaluates to is less than or
-+ * equal to the value that @right evaluates to. This is the same as
-+ * KUNIT_EXPECT_LE(), except it causes an assertion failure (see
-+ * KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_LE(test, left, right) \
-+	KUNIT_BINARY_LE_ASSERTION(test, KUNIT_ASSERTION, left, right)
++static struct string_stream_fragment *alloc_string_stream_fragment(
++		struct kunit *test, int len, gfp_t gfp)
++{
++	struct string_stream_fragment_alloc_context context = {
++		.test = test,
++		.len = len,
++		.gfp = gfp
++	};
 +
-+#define KUNIT_ASSERT_LE_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_LE_MSG_ASSERTION(test,				       \
-+				      KUNIT_ASSERTION,			       \
-+				      left,				       \
-+				      right,				       \
-+				      fmt,				       \
-+				      ##__VA_ARGS__)
++	return kunit_alloc_resource(test,
++				    string_stream_fragment_init,
++				    string_stream_fragment_free,
++				    gfp,
++				    &context);
++}
 +
-+/**
-+ * KUNIT_ASSERT_GT() - An assertion that @left is greater than @right.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a primitive C type.
-+ * @right: an arbitrary expression that evaluates to a primitive C type.
-+ *
-+ * Sets an assertion that the value that @left evaluates to is greater than the
-+ * value that @right evaluates to. This is the same as KUNIT_EXPECT_GT(), except
-+ * it causes an assertion failure (see KUNIT_ASSERT_TRUE()) when the assertion
-+ * is not met.
-+ */
-+#define KUNIT_ASSERT_GT(test, left, right) \
-+	KUNIT_BINARY_GT_ASSERTION(test, KUNIT_ASSERTION, left, right)
++static int string_stream_fragment_destroy(struct string_stream_fragment *frag)
++{
++	return kunit_resource_destroy(frag->test,
++				      kunit_resource_instance_match,
++				      string_stream_fragment_free,
++				      frag);
++}
 +
-+#define KUNIT_ASSERT_GT_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_GT_MSG_ASSERTION(test,				       \
-+				      KUNIT_ASSERTION,			       \
-+				      left,				       \
-+				      right,				       \
-+				      fmt,				       \
-+				      ##__VA_ARGS__)
++int string_stream_vadd(struct string_stream *stream,
++		       const char *fmt,
++		       va_list args)
++{
++	struct string_stream_fragment *frag_container;
++	int len;
++	va_list args_for_counting;
 +
-+/**
-+ * KUNIT_ASSERT_GE() - Assertion that @left is greater than or equal to @right.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a primitive C type.
-+ * @right: an arbitrary expression that evaluates to a primitive C type.
-+ *
-+ * Sets an assertion that the value that @left evaluates to is greater than the
-+ * value that @right evaluates to. This is the same as KUNIT_EXPECT_GE(), except
-+ * it causes an assertion failure (see KUNIT_ASSERT_TRUE()) when the assertion
-+ * is not met.
-+ */
-+#define KUNIT_ASSERT_GE(test, left, right) \
-+	KUNIT_BINARY_GE_ASSERTION(test, KUNIT_ASSERTION, left, right)
++	/* Make a copy because `vsnprintf` could change it */
++	va_copy(args_for_counting, args);
 +
-+#define KUNIT_ASSERT_GE_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_GE_MSG_ASSERTION(test,				       \
-+				      KUNIT_ASSERTION,			       \
-+				      left,				       \
-+				      right,				       \
-+				      fmt,				       \
-+				      ##__VA_ARGS__)
++	/* Need space for null byte. */
++	len = vsnprintf(NULL, 0, fmt, args_for_counting) + 1;
 +
-+/**
-+ * KUNIT_ASSERT_STREQ() - An assertion that strings @left and @right are equal.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a null terminated string.
-+ * @right: an arbitrary expression that evaluates to a null terminated string.
-+ *
-+ * Sets an assertion that the values that @left and @right evaluate to are
-+ * equal. This is the same as KUNIT_EXPECT_STREQ(), except it causes an
-+ * assertion failure (see KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_STREQ(test, left, right) \
-+	KUNIT_BINARY_STR_EQ_ASSERTION(test, KUNIT_ASSERTION, left, right)
++	va_end(args_for_counting);
 +
-+#define KUNIT_ASSERT_STREQ_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_STR_EQ_MSG_ASSERTION(test,				       \
-+					  KUNIT_ASSERTION,		       \
-+					  left,				       \
-+					  right,			       \
-+					  fmt,				       \
-+					  ##__VA_ARGS__)
++	frag_container = alloc_string_stream_fragment(stream->test,
++						      len,
++						      stream->gfp);
++	if (!frag_container)
++		return -ENOMEM;
 +
-+/**
-+ * KUNIT_ASSERT_STRNEQ() - Expects that strings @left and @right are not equal.
-+ * @test: The test context object.
-+ * @left: an arbitrary expression that evaluates to a null terminated string.
-+ * @right: an arbitrary expression that evaluates to a null terminated string.
-+ *
-+ * Sets an expectation that the values that @left and @right evaluate to are
-+ * not equal. This is semantically equivalent to
-+ * KUNIT_ASSERT_TRUE(@test, strcmp((@left), (@right))). See KUNIT_ASSERT_TRUE()
-+ * for more information.
-+ */
-+#define KUNIT_ASSERT_STRNEQ(test, left, right) \
-+	KUNIT_BINARY_STR_NE_ASSERTION(test, KUNIT_ASSERTION, left, right)
++	len = vsnprintf(frag_container->fragment, len, fmt, args);
++	spin_lock(&stream->lock);
++	stream->length += len;
++	list_add_tail(&frag_container->node, &stream->fragments);
++	spin_unlock(&stream->lock);
 +
-+#define KUNIT_ASSERT_STRNEQ_MSG(test, left, right, fmt, ...)		       \
-+	KUNIT_BINARY_STR_NE_MSG_ASSERTION(test,				       \
-+					  KUNIT_ASSERTION,		       \
-+					  left,				       \
-+					  right,			       \
-+					  fmt,				       \
-+					  ##__VA_ARGS__)
++	return 0;
++}
 +
-+/**
-+ * KUNIT_ASSERT_NOT_ERR_OR_NULL() - Assertion that @ptr is not null and not err.
-+ * @test: The test context object.
-+ * @ptr: an arbitrary pointer.
-+ *
-+ * Sets an assertion that the value that @ptr evaluates to is not null and not
-+ * an errno stored in a pointer. This is the same as
-+ * KUNIT_EXPECT_NOT_ERR_OR_NULL(), except it causes an assertion failure (see
-+ * KUNIT_ASSERT_TRUE()) when the assertion is not met.
-+ */
-+#define KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr) \
-+	KUNIT_PTR_NOT_ERR_OR_NULL_ASSERTION(test, KUNIT_ASSERTION, ptr)
++int string_stream_add(struct string_stream *stream, const char *fmt, ...)
++{
++	va_list args;
++	int result;
 +
-+#define KUNIT_ASSERT_NOT_ERR_OR_NULL_MSG(test, ptr, fmt, ...)		       \
-+	KUNIT_PTR_NOT_ERR_OR_NULL_MSG_ASSERTION(test,			       \
-+						KUNIT_ASSERTION,	       \
-+						ptr,			       \
-+						fmt,			       \
-+						##__VA_ARGS__)
++	va_start(args, fmt);
++	result = string_stream_vadd(stream, fmt, args);
++	va_end(args);
 +
- #endif /* _KUNIT_TEST_H */
-diff --git a/lib/kunit/string-stream-test.c b/lib/kunit/string-stream-test.c
-index 75229e267c32..76cc05eb00ed 100644
---- a/lib/kunit/string-stream-test.c
-+++ b/lib/kunit/string-stream-test.c
-@@ -35,7 +35,7 @@ static void string_stream_test_get_string(struct kunit *test)
- 	string_stream_add(stream, " %s", "bar");
- 
- 	output = string_stream_get_string(stream);
--	KUNIT_EXPECT_STREQ(test, output, "Foo bar");
-+	KUNIT_ASSERT_STREQ(test, output, "Foo bar");
- }
- 
- static struct kunit_case string_stream_test_cases[] = {
-diff --git a/lib/kunit/test-test.c b/lib/kunit/test-test.c
-index 06d34d36b103..e0ab4bd546ea 100644
---- a/lib/kunit/test-test.c
-+++ b/lib/kunit/test-test.c
-@@ -78,16 +78,13 @@ static int kunit_try_catch_test_init(struct kunit *test)
- 	struct kunit_try_catch_test_context *ctx;
- 
- 	ctx = kunit_kzalloc(test, sizeof(*ctx), GFP_KERNEL);
--	if (!ctx)
--		return -ENOMEM;
--
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ctx);
- 	test->priv = ctx;
- 
- 	ctx->try_catch = kunit_kmalloc(test,
- 				       sizeof(*ctx->try_catch),
- 				       GFP_KERNEL);
--	if (!ctx->try_catch)
--		return -ENOMEM;
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ctx->try_catch);
- 
- 	return 0;
- }
++	return result;
++}
++
++static void string_stream_clear(struct string_stream *stream)
++{
++	struct string_stream_fragment *frag_container, *frag_container_safe;
++
++	spin_lock(&stream->lock);
++	list_for_each_entry_safe(frag_container,
++				 frag_container_safe,
++				 &stream->fragments,
++				 node) {
++		string_stream_fragment_destroy(frag_container);
++	}
++	stream->length = 0;
++	spin_unlock(&stream->lock);
++}
++
++char *string_stream_get_string(struct string_stream *stream)
++{
++	struct string_stream_fragment *frag_container;
++	size_t buf_len = stream->length + 1; /* +1 for null byte. */
++	char *buf;
++
++	buf = kunit_kzalloc(stream->test, buf_len, stream->gfp);
++	if (!buf)
++		return NULL;
++
++	spin_lock(&stream->lock);
++	list_for_each_entry(frag_container, &stream->fragments, node)
++		strlcat(buf, frag_container->fragment, buf_len);
++	spin_unlock(&stream->lock);
++
++	return buf;
++}
++
++int string_stream_append(struct string_stream *stream,
++			 struct string_stream *other)
++{
++	const char *other_content;
++
++	other_content = string_stream_get_string(other);
++
++	if (!other_content)
++		return -ENOMEM;
++
++	return string_stream_add(stream, other_content);
++}
++
++bool string_stream_is_empty(struct string_stream *stream)
++{
++	return list_empty(&stream->fragments);
++}
++
++struct string_stream_alloc_context {
++	struct kunit *test;
++	gfp_t gfp;
++};
++
++static int string_stream_init(struct kunit_resource *res, void *context)
++{
++	struct string_stream *stream;
++	struct string_stream_alloc_context *ctx = context;
++
++	stream = kunit_kzalloc(ctx->test, sizeof(*stream), ctx->gfp);
++	if (!stream)
++		return -ENOMEM;
++
++	res->allocation = stream;
++	stream->gfp = ctx->gfp;
++	stream->test = ctx->test;
++	INIT_LIST_HEAD(&stream->fragments);
++	spin_lock_init(&stream->lock);
++
++	return 0;
++}
++
++static void string_stream_free(struct kunit_resource *res)
++{
++	struct string_stream *stream = res->allocation;
++
++	string_stream_clear(stream);
++}
++
++struct string_stream *alloc_string_stream(struct kunit *test, gfp_t gfp)
++{
++	struct string_stream_alloc_context context = {
++		.test = test,
++		.gfp = gfp
++	};
++
++	return kunit_alloc_resource(test,
++				    string_stream_init,
++				    string_stream_free,
++				    gfp,
++				    &context);
++}
++
++int string_stream_destroy(struct string_stream *stream)
++{
++	return kunit_resource_destroy(stream->test,
++				      kunit_resource_instance_match,
++				      string_stream_free,
++				      stream);
++}
 -- 
 2.23.0.351.gc4317032e6-goog
 
