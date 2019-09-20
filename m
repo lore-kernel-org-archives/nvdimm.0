@@ -7,66 +7,65 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4481BC49ED7
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:49:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E5B3C3A5A2
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:49:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 13DB32173E
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:49:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 262A92073F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:49:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="fN8BbWKk"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 13DB32173E
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="D9ssoF4i"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 262A92073F
 Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C3621202ECFC6;
-	Fri, 20 Sep 2019 16:48:08 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id E0300202ECFC8;
+	Fri, 20 Sep 2019 16:48:37 -0700 (PDT)
 Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=2607:f8b0:4864:20::849; helo=mail-qt1-x849.google.com;
- envelope-from=3sv6fxq4kdhyvlyhxuhbcaachmaiiafy.wigfchor-hpxcggfcmnm.uv.ila@flex--brendanhiggins.bounces.google.com;
+ client-ip=2607:f8b0:4864:20::749; helo=mail-qk1-x749.google.com;
+ envelope-from=3v16fxq4kdiqjzmvlivpqooqv0owwotm.kwutqv25-v3lquutq010.89.wzo@flex--brendanhiggins.bounces.google.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from mail-qt1-x849.google.com (mail-qt1-x849.google.com
- [IPv6:2607:f8b0:4864:20::849])
+Received: from mail-qk1-x749.google.com (mail-qk1-x749.google.com
+ [IPv6:2607:f8b0:4864:20::749])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id A01C3202ECFBC
- for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:48:07 -0700 (PDT)
-Received: by mail-qt1-x849.google.com with SMTP id p56so10081644qtj.14
- for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:49:12 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 2F2FE202ECFBC
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:48:36 -0700 (PDT)
+Received: by mail-qk1-x749.google.com with SMTP id d25so10063723qkk.17
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:49:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=20161025;
  h=date:in-reply-to:message-id:mime-version:references:subject:from:to
- :cc; bh=XW6ObdsygoQczUzhnAeFOiZL9hvh/FcVMF1CQf4gGoM=;
- b=fN8BbWKkmRWbki39ZBHS5ypTABzdFkBbS17uOOzZIBa9I0/uONV1bGF+mQFoBxTwHy
- zF4o8ega2hGp8xygdEQArh+kCnmLjjjr9TYrCZwA//Tm2wHujPFBJClVGn9j86/H0jLi
- b2Xaxq8Lzq6txv7pSIc+jnf/1UXvj+mWm9RYoYPs7FksxUFLw+SbqXRKqFET1FnQOD/9
- 4kkQrjNSMR2R3RzMaznpXBVtLPYJMhMBVI668K3BGdfu3bwViWUN3QqJTUwTRbLFtiNU
- Ej22MFIEnLSsw8vnMbCiXQVCdTWw23HPUbk7RFORErjOyEgfVwdH6/QHN6VKjkYfLBTe
- EIXQ==
+ :cc; bh=kn+0r7CDFmPHQws2Z+HRgp03O+EE7Nh4RU07v5olnXQ=;
+ b=D9ssoF4ipBwV847C0cjnXrRXAQcdppI7EOYNdGwK7yapTIiGN6IqSwuzfc8JudHgWR
+ DDvqB359ZjduS4JJbjST8oH87XP0gI0nQGheG9haTGTZlsHvLFCuWQcJ/tsL6Dc1voNX
+ 3xXom1IImokl9nln9Xx7YbolIyirgq0ZwBxMQuEnqhRXt/PFYTg+9Bv4s5Tk5d8GZe9e
+ RV6uSIyyHEB8Xis7NDaUBFl8lUFdwUF6ietUONOIXZbNSKwbp4cmdYJ3kbVEhXU3nRMf
+ rfFVbnAhzHx7LAMcK4MHFOZcBGREVeFOqAvBzclrXdsmD5cpZQhrL7iXDhUKFOgBo+yf
+ 74sg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=1e100.net; s=20161025;
  h=x-gm-message-state:date:in-reply-to:message-id:mime-version
  :references:subject:from:to:cc;
- bh=XW6ObdsygoQczUzhnAeFOiZL9hvh/FcVMF1CQf4gGoM=;
- b=GuBV0pr599QTH7ZlNHMG4XNbhIhtWbTD18MYzTjG9SNb6YhR/nxoMq++WkTaVfKjQD
- wqdGHKP1uqZyELUBojpSa6EuqiD6gktW6+c/a3tzkcdxbWo7p4TKiYeeR0Z6YwJfpgqR
- xNK0WTG2d6YZvLtzpcj96SwRp44x/W0hogPQc0L/5gbECK5DLJJ7jHUZv/e4t9UR6aqe
- Vy42YjPcDCcjR441xn+mRQQlEn+n+WLF2ASPx/97BGDt+2A1Z58oDH9eMqOxiWjvaZVo
- 9rOgZ/d+rg0aq39UtwSODj/maa01b+7ubTlz1t7pAXQ76qkBpUpbv6YoVo8lX1sQcApD
- 4McA==
-X-Gm-Message-State: APjAAAVCkQx7Yv9/hk/Ay4sEIlEBQeTUpBJ42z4urWt69FldvMw/iRCe
- cZE1a93t01Y1PZQf21rnLOOF3nLmav7phC+4fi3v8Q==
-X-Google-Smtp-Source: APXvYqxKVyhgyp4fnQJvfBqNIedf10ujv/TGP90gZCYCjp1JDQT/YqURWr/Bs7K6Ny1E5F/kXnYi2soTBwRXscawpsjg+g==
-X-Received: by 2002:a63:1f1f:: with SMTP id f31mr17488162pgf.353.1569021617565; 
- Fri, 20 Sep 2019 16:20:17 -0700 (PDT)
-Date: Fri, 20 Sep 2019 16:19:18 -0700
+ bh=kn+0r7CDFmPHQws2Z+HRgp03O+EE7Nh4RU07v5olnXQ=;
+ b=d5p4K64Ku31PUIR/C2LcDLUExuf7ahmZm45L+i+cBRoChNDPPHoSLGCmy7slt6bkTv
+ 0VEVFdqcVs4x3SrS2OmhofHQmMRyNS9iWqlxP7PnrbhmUQWY3Syy3ot3lXW0+/UZQ0ha
+ XiL83x8hTmb7mU8/2d/TaZVAUyu1LQCbyn5miX+hQpRUpQJ/8k/J9NKUYz63pUZbh8xA
+ FH/tx/VAksXxLHTx5elqHLchzjs6RLYl2T/391YfMFsXWxX6V76w6wfxJ7f1ZU7KcTXh
+ 6Vi2vaT7GbY51Qr0n+FL8kG7DVUt74C2umsqDwD+Wk6rSNMSiENn/gJtn3wo6RgHWnYI
+ UDXw==
+X-Gm-Message-State: APjAAAUbIpek3yDghekhB/ai+EdpsYdsAkSOZWRnWCjf2/0krUTSSzby
+ eYbmVV/n0oXwJVVG80umyTXoLWuA6R44tBiDUccMvQ==
+X-Google-Smtp-Source: APXvYqxXIDX2P4YzdS48vzv/kEGqjUlci6nkdmwJewz2Pj/XqXGtlq51eAvpho6zXR7/9gV8XOKbJmv47q8gAzoqmRxxfQ==
+X-Received: by 2002:a63:d846:: with SMTP id k6mr17811762pgj.378.1569021631494; 
+ Fri, 20 Sep 2019 16:20:31 -0700 (PDT)
+Date: Fri, 20 Sep 2019 16:19:23 -0700
 In-Reply-To: <20190920231923.141900-1-brendanhiggins@google.com>
-Message-Id: <20190920231923.141900-15-brendanhiggins@google.com>
+Message-Id: <20190920231923.141900-20-brendanhiggins@google.com>
 Mime-Version: 1.0
 References: <20190920231923.141900-1-brendanhiggins@google.com>
 X-Mailer: git-send-email 2.23.0.351.gc4317032e6-goog
-Subject: [PATCH v16 14/19] kunit: defconfig: add defconfigs for building KUnit
- tests
+Subject: [PATCH v16 19/19] kunit: fix failure to build without printk
 From: Brendan Higgins <brendanhiggins@google.com>
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, 
  keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, 
@@ -83,157 +82,183 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com,
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>, pmladek@suse.com,
+ linux-doc@vger.kernel.org, amir73il@gmail.com,
  Brendan Higgins <brendanhiggins@google.com>, dri-devel@lists.freedesktop.org,
  Alexander.Levin@microsoft.com, linux-kselftest@vger.kernel.org,
- linux-nvdimm@lists.01.org, khilman@baylibre.com, knut.omang@oracle.com,
- wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com,
+ Stephen Rothwell <sfr@canb.auug.org.au>, linux-nvdimm@lists.01.org,
+ khilman@baylibre.com, knut.omang@oracle.com, wfg@linux.intel.com,
+ joel@jms.id.au, rientjes@google.com, jdike@addtoit.com,
  dan.carpenter@oracle.com, devicetree@vger.kernel.org,
  linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org,
  rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com,
  richard@nod.at, torvalds@linux-foundation.org, rdunlap@infradead.org,
  linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au,
- linux-fsdevel@vger.kernel.org
+ linux-fsdevel@vger.kernel.org, Joe Perches <joe@perches.com>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-Add defconfig for UML and a fragment that can be used to configure other
-architectures for building KUnit tests. Add option to kunit_tool to use
-a defconfig to create the kunitconfig.
+Previously KUnit assumed that printk would always be present, which is
+not a valid assumption to make. Fix that by removing call to
+vprintk_emit, and calling printk directly.
 
+This fixes a build error[1] reported by Randy.
+
+For context this change comes after much discussion. My first stab[2] at
+this was just to make the KUnit logging code compile out; however, it
+was agreed that if we were going to use vprintk_emit, then vprintk_emit
+should provide a no-op stub, which lead to my second attempt[3]. In
+response to me trying to stub out vprintk_emit, Sergey Senozhatsky
+suggested a way for me to remove our usage of vprintk_emit, which led to
+my third attempt at solving this[4].
+
+In my third version of this patch[4], I completely removed vprintk_emit,
+as suggested by Sergey; however, there was a bit of debate over whether
+Sergey's solution was the best. The debate arose due to Sergey's version
+resulting in a checkpatch warning, which resulted in a debate over
+correct printk usage. Joe Perches offered an alternative fix which was
+somewhat less far reaching than what Sergey had suggested and
+importantly relied on continuing to use %pV. Much of the debated
+centered around whether %pV should be widely used, and whether Sergey's
+version would result in object size bloat. Ultimately, we decided to go
+with Sergey's version.
+
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Link[1]: https://lore.kernel.org/linux-kselftest/c7229254-0d90-d90e-f3df-5b6d6fc0b51f@infradead.org/
+Link[2]: https://lore.kernel.org/linux-kselftest/20190827174932.44177-1-brendanhiggins@google.com/
+Link[3]: https://lore.kernel.org/linux-kselftest/20190827234835.234473-1-brendanhiggins@google.com/
+Link[4]: https://lore.kernel.org/linux-kselftest/20190828093143.163302-1-brendanhiggins@google.com/
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Tim.Bird@sony.com
 Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Stephen Boyd <sboyd@kernel.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 ---
- arch/um/configs/kunit_defconfig              |  3 +++
- tools/testing/kunit/configs/all_tests.config |  3 +++
- tools/testing/kunit/kunit.py                 | 28 +++++++++++++++++---
- tools/testing/kunit/kunit_kernel.py          |  3 ++-
- 4 files changed, 32 insertions(+), 5 deletions(-)
- create mode 100644 arch/um/configs/kunit_defconfig
- create mode 100644 tools/testing/kunit/configs/all_tests.config
+ include/kunit/test.h |  5 ++--
+ lib/kunit/test.c     | 57 +++++---------------------------------------
+ 2 files changed, 8 insertions(+), 54 deletions(-)
 
-diff --git a/arch/um/configs/kunit_defconfig b/arch/um/configs/kunit_defconfig
-new file mode 100644
-index 000000000000..9235b7d42d38
---- /dev/null
-+++ b/arch/um/configs/kunit_defconfig
-@@ -0,0 +1,3 @@
-+CONFIG_KUNIT=y
-+CONFIG_KUNIT_TEST=y
-+CONFIG_KUNIT_EXAMPLE_TEST=y
-diff --git a/tools/testing/kunit/configs/all_tests.config b/tools/testing/kunit/configs/all_tests.config
-new file mode 100644
-index 000000000000..9235b7d42d38
---- /dev/null
-+++ b/tools/testing/kunit/configs/all_tests.config
-@@ -0,0 +1,3 @@
-+CONFIG_KUNIT=y
-+CONFIG_KUNIT_TEST=y
-+CONFIG_KUNIT_EXAMPLE_TEST=y
-diff --git a/tools/testing/kunit/kunit.py b/tools/testing/kunit/kunit.py
-index da11bd62a4b8..0944dea5c321 100755
---- a/tools/testing/kunit/kunit.py
-+++ b/tools/testing/kunit/kunit.py
-@@ -11,6 +11,7 @@ import argparse
- import sys
- import os
- import time
-+import shutil
+diff --git a/include/kunit/test.h b/include/kunit/test.h
+index 8b7eb03d4971..dba48304b3bd 100644
+--- a/include/kunit/test.h
++++ b/include/kunit/test.h
+@@ -339,9 +339,8 @@ static inline void *kunit_kzalloc(struct kunit *test, size_t size, gfp_t gfp)
  
- from collections import namedtuple
- from enum import Enum, auto
-@@ -21,7 +22,7 @@ import kunit_parser
+ void kunit_cleanup(struct kunit *test);
  
- KunitResult = namedtuple('KunitResult', ['status','result'])
+-void __printf(3, 4) kunit_printk(const char *level,
+-				 const struct kunit *test,
+-				 const char *fmt, ...);
++#define kunit_printk(lvl, test, fmt, ...) \
++	printk(lvl "\t# %s: " fmt, (test)->name, ##__VA_ARGS__)
  
--KunitRequest = namedtuple('KunitRequest', ['raw_output','timeout', 'jobs', 'build_dir'])
-+KunitRequest = namedtuple('KunitRequest', ['raw_output','timeout', 'jobs', 'build_dir', 'defconfig'])
+ /**
+  * kunit_info() - Prints an INFO level message associated with @test.
+diff --git a/lib/kunit/test.c b/lib/kunit/test.c
+index b2ca9b94c353..c83c0fa59cbd 100644
+--- a/lib/kunit/test.c
++++ b/lib/kunit/test.c
+@@ -16,36 +16,12 @@ static void kunit_set_failure(struct kunit *test)
+ 	WRITE_ONCE(test->success, false);
+ }
  
- class KunitStatus(Enum):
- 	SUCCESS = auto()
-@@ -29,8 +30,16 @@ class KunitStatus(Enum):
- 	BUILD_FAILURE = auto()
- 	TEST_FAILURE = auto()
+-static int kunit_vprintk_emit(int level, const char *fmt, va_list args)
+-{
+-	return vprintk_emit(0, level, NULL, 0, fmt, args);
+-}
+-
+-static int kunit_printk_emit(int level, const char *fmt, ...)
+-{
+-	va_list args;
+-	int ret;
+-
+-	va_start(args, fmt);
+-	ret = kunit_vprintk_emit(level, fmt, args);
+-	va_end(args);
+-
+-	return ret;
+-}
+-
+-static void kunit_vprintk(const struct kunit *test,
+-			  const char *level,
+-			  struct va_format *vaf)
+-{
+-	kunit_printk_emit(level[1] - '0', "\t# %s: %pV", test->name, vaf);
+-}
+-
+ static void kunit_print_tap_version(void)
+ {
+ 	static bool kunit_has_printed_tap_version;
  
-+def create_default_kunitconfig():
-+	if not os.path.exists(kunit_kernel.KUNITCONFIG_PATH):
-+		shutil.copyfile('arch/um/configs/kunit_defconfig',
-+				kunit_kernel.KUNITCONFIG_PATH)
-+
- def run_tests(linux: kunit_kernel.LinuxSourceTree,
- 	      request: KunitRequest) -> KunitResult:
-+	if request.defconfig:
-+		create_default_kunitconfig()
-+
- 	config_start = time.time()
- 	success = linux.build_reconfig(request.build_dir)
- 	config_end = time.time()
-@@ -72,7 +81,7 @@ def run_tests(linux: kunit_kernel.LinuxSourceTree,
- 	else:
- 		return KunitResult(KunitStatus.SUCCESS, test_result)
+ 	if (!kunit_has_printed_tap_version) {
+-		kunit_printk_emit(LOGLEVEL_INFO, "TAP version 14\n");
++		pr_info("TAP version 14\n");
+ 		kunit_has_printed_tap_version = true;
+ 	}
+ }
+@@ -64,10 +40,8 @@ static size_t kunit_test_cases_len(struct kunit_case *test_cases)
+ static void kunit_print_subtest_start(struct kunit_suite *suite)
+ {
+ 	kunit_print_tap_version();
+-	kunit_printk_emit(LOGLEVEL_INFO, "\t# Subtest: %s\n", suite->name);
+-	kunit_printk_emit(LOGLEVEL_INFO,
+-			  "\t1..%zd\n",
+-			  kunit_test_cases_len(suite->test_cases));
++	pr_info("\t# Subtest: %s\n", suite->name);
++	pr_info("\t1..%zd\n", kunit_test_cases_len(suite->test_cases));
+ }
  
--def main(argv, linux):
-+def main(argv, linux=None):
- 	parser = argparse.ArgumentParser(
- 			description='Helps writing and running KUnit tests.')
- 	subparser = parser.add_subparsers(dest='subcommand')
-@@ -99,13 +108,24 @@ def main(argv, linux):
- 				'directory.',
- 				type=str, default=None, metavar='build_dir')
+ static void kunit_print_ok_not_ok(bool should_indent,
+@@ -87,9 +61,7 @@ static void kunit_print_ok_not_ok(bool should_indent,
+ 	else
+ 		ok_not_ok = "not ok";
  
-+	run_parser.add_argument('--defconfig',
-+				help='Uses a default kunitconfig.',
-+				action='store_true')
-+
- 	cli_args = parser.parse_args(argv)
+-	kunit_printk_emit(LOGLEVEL_INFO,
+-			  "%s%s %zd - %s\n",
+-			  indent, ok_not_ok, test_number, description);
++	pr_info("%s%s %zd - %s\n", indent, ok_not_ok, test_number, description);
+ }
  
- 	if cli_args.subcommand == 'run':
-+		if cli_args.defconfig:
-+			create_default_kunitconfig()
-+
-+		if not linux:
-+			linux = kunit_kernel.LinuxSourceTree()
-+
- 		request = KunitRequest(cli_args.raw_output,
- 				       cli_args.timeout,
- 				       cli_args.jobs,
--				       cli_args.build_dir)
-+				       cli_args.build_dir,
-+				       cli_args.defconfig)
- 		result = run_tests(linux, request)
- 		if result.status != KunitStatus.SUCCESS:
- 			sys.exit(1)
-@@ -113,4 +133,4 @@ def main(argv, linux):
- 		parser.print_help()
- 
- if __name__ == '__main__':
--	main(sys.argv[1:], kunit_kernel.LinuxSourceTree())
-+	main(sys.argv[1:])
-diff --git a/tools/testing/kunit/kunit_kernel.py b/tools/testing/kunit/kunit_kernel.py
-index 07c0abf2f47d..bf3876835331 100644
---- a/tools/testing/kunit/kunit_kernel.py
-+++ b/tools/testing/kunit/kunit_kernel.py
-@@ -14,6 +14,7 @@ import os
- import kunit_config
- 
- KCONFIG_PATH = '.config'
-+KUNITCONFIG_PATH = 'kunitconfig'
- 
- class ConfigError(Exception):
- 	"""Represents an error trying to configure the Linux kernel."""
-@@ -81,7 +82,7 @@ class LinuxSourceTree(object):
- 
- 	def __init__(self):
- 		self._kconfig = kunit_config.Kconfig()
--		self._kconfig.read_from_file('kunitconfig')
-+		self._kconfig.read_from_file(KUNITCONFIG_PATH)
- 		self._ops = LinuxSourceTreeOperations()
- 
- 	def clean(self):
+ static bool kunit_suite_has_succeeded(struct kunit_suite *suite)
+@@ -133,11 +105,11 @@ static void kunit_print_string_stream(struct kunit *test,
+ 		kunit_err(test,
+ 			  "Could not allocate buffer, dumping stream:\n");
+ 		list_for_each_entry(fragment, &stream->fragments, node) {
+-			kunit_err(test, fragment->fragment);
++			kunit_err(test, "%s", fragment->fragment);
+ 		}
+ 		kunit_err(test, "\n");
+ 	} else {
+-		kunit_err(test, buf);
++		kunit_err(test, "%s", buf);
+ 		kunit_kfree(test, buf);
+ 	}
+ }
+@@ -504,20 +476,3 @@ void kunit_cleanup(struct kunit *test)
+ 		kunit_resource_free(test, resource);
+ 	}
+ }
+-
+-void kunit_printk(const char *level,
+-		  const struct kunit *test,
+-		  const char *fmt, ...)
+-{
+-	struct va_format vaf;
+-	va_list args;
+-
+-	va_start(args, fmt);
+-
+-	vaf.fmt = fmt;
+-	vaf.va = &args;
+-
+-	kunit_vprintk(test, level, &vaf);
+-
+-	va_end(args);
+-}
 -- 
 2.23.0.351.gc4317032e6-goog
 
