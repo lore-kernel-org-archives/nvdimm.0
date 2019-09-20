@@ -7,66 +7,66 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 133DEC3A5A2
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:48:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4481BC49ED7
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:49:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D554E2073F
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:48:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 13DB32173E
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Sep 2019 23:49:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="GsWGBhOH"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D554E2073F
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="fN8BbWKk"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 13DB32173E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9F948202ECFC0;
-	Fri, 20 Sep 2019 16:47:34 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id C3621202ECFC6;
+	Fri, 20 Sep 2019 16:48:08 -0700 (PDT)
 Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=2607:f8b0:4864:20::d49; helo=mail-io1-xd49.google.com;
- envelope-from=3k16fxq4kdfg1h4d30d78668di6ee6b4.2ecb8dkn-dl38ccb8iji.qr.eh6@flex--brendanhiggins.bounces.google.com;
+ client-ip=2607:f8b0:4864:20::849; helo=mail-qt1-x849.google.com;
+ envelope-from=3sv6fxq4kdhyvlyhxuhbcaachmaiiafy.wigfchor-hpxcggfcmnm.uv.ila@flex--brendanhiggins.bounces.google.com;
  receiver=linux-nvdimm@lists.01.org 
-Received: from mail-io1-xd49.google.com (mail-io1-xd49.google.com
- [IPv6:2607:f8b0:4864:20::d49])
+Received: from mail-qt1-x849.google.com (mail-qt1-x849.google.com
+ [IPv6:2607:f8b0:4864:20::849])
  (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id 70700202ECFBC
- for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:47:33 -0700 (PDT)
-Received: by mail-io1-xd49.google.com with SMTP id g8so13026745iop.19
- for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:48:38 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id A01C3202ECFBC
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:48:07 -0700 (PDT)
+Received: by mail-qt1-x849.google.com with SMTP id p56so10081644qtj.14
+ for <linux-nvdimm@lists.01.org>; Fri, 20 Sep 2019 16:49:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=20161025;
  h=date:in-reply-to:message-id:mime-version:references:subject:from:to
- :cc; bh=ElRDx1qJcaCd9VphSUpnYDbASsESTUgM/w0RFDoqEmU=;
- b=GsWGBhOHFwqzmYbnIwAYtO57z8py3WOmCJPdLFYuw6RFrKLNNB9f+XUdSZKJPEfvfD
- +NPUejzdLRFYtwKn24zsQIDdlhUH4qeWO7CUg3F5Oh6T8iCFpluNFZJfsTVxA48xUjI7
- 0cRQMZT+GVzHvmIQHfg0vMnqkRF6nw3Z+dYyNWlIrFCThTwglM+W0GIoNNAeRxE1KVXg
- bJYFBMD1KgiimcmXehIcJauhLSg0Qaa7OBoFzVXFWXGm2ACk92z4rmMdBpmyo2tkZso4
- vGNbfyLO6jfHLBPB64QxZYZEhxxuOi2rvoSWYu2nV1Krj/0uC0+xeyeUj9svgmSWetAY
- DrPQ==
+ :cc; bh=XW6ObdsygoQczUzhnAeFOiZL9hvh/FcVMF1CQf4gGoM=;
+ b=fN8BbWKkmRWbki39ZBHS5ypTABzdFkBbS17uOOzZIBa9I0/uONV1bGF+mQFoBxTwHy
+ zF4o8ega2hGp8xygdEQArh+kCnmLjjjr9TYrCZwA//Tm2wHujPFBJClVGn9j86/H0jLi
+ b2Xaxq8Lzq6txv7pSIc+jnf/1UXvj+mWm9RYoYPs7FksxUFLw+SbqXRKqFET1FnQOD/9
+ 4kkQrjNSMR2R3RzMaznpXBVtLPYJMhMBVI668K3BGdfu3bwViWUN3QqJTUwTRbLFtiNU
+ Ej22MFIEnLSsw8vnMbCiXQVCdTWw23HPUbk7RFORErjOyEgfVwdH6/QHN6VKjkYfLBTe
+ EIXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=1e100.net; s=20161025;
  h=x-gm-message-state:date:in-reply-to:message-id:mime-version
  :references:subject:from:to:cc;
- bh=ElRDx1qJcaCd9VphSUpnYDbASsESTUgM/w0RFDoqEmU=;
- b=V9W6jbz4t5GVwn/d09QQryJzYXVHLt233Lu8Nge9aP6ousZ96AnaGltvMSWuzdXg1c
- D+FYgus61DAtUVM2eV4z+9raEQrD9rx7X/RiRl1dA/WJ+Yvn4cqPLEzWChriTgSpzgWZ
- /3OQCvBkLdC0Kcfkz5G9wIUhm1+krW8xf6f5h4x+5cqkjkqqTCIRR8wj3eajV8+oTOBG
- ZNSRjORBIzzKrh1bVGIC1PS83WYS6buhKvQvLTRH7VksNJZWU35wEP756SOYKUxvMUwV
- bfeNUuJY/baHPRDoQOWclOAAPUN8tHlAuRBD1o05RIde+bk9puwB5uV01CVoDqlYxtOD
- fXgA==
-X-Gm-Message-State: APjAAAXLO4j1URNOcwomONDr4ClvkDuj2ATDjnE2ysEtK5cfsJ/HOAef
- flZlMi4+air+cK3H7cuyodFEWGnQt4wyJOrLEAnHmg==
-X-Google-Smtp-Source: APXvYqwzprpUv3Sy57r3sQtteXWHKXfGpdgcIHLQjNVIB2eFN+Njs56UhVpiXHuIqV01MQkxK/5GcVapBZZ9KRKCqd8mXw==
-X-Received: by 2002:a63:5807:: with SMTP id m7mr17564787pgb.371.1569021587112; 
- Fri, 20 Sep 2019 16:19:47 -0700 (PDT)
-Date: Fri, 20 Sep 2019 16:19:07 -0700
+ bh=XW6ObdsygoQczUzhnAeFOiZL9hvh/FcVMF1CQf4gGoM=;
+ b=GuBV0pr599QTH7ZlNHMG4XNbhIhtWbTD18MYzTjG9SNb6YhR/nxoMq++WkTaVfKjQD
+ wqdGHKP1uqZyELUBojpSa6EuqiD6gktW6+c/a3tzkcdxbWo7p4TKiYeeR0Z6YwJfpgqR
+ xNK0WTG2d6YZvLtzpcj96SwRp44x/W0hogPQc0L/5gbECK5DLJJ7jHUZv/e4t9UR6aqe
+ Vy42YjPcDCcjR441xn+mRQQlEn+n+WLF2ASPx/97BGDt+2A1Z58oDH9eMqOxiWjvaZVo
+ 9rOgZ/d+rg0aq39UtwSODj/maa01b+7ubTlz1t7pAXQ76qkBpUpbv6YoVo8lX1sQcApD
+ 4McA==
+X-Gm-Message-State: APjAAAVCkQx7Yv9/hk/Ay4sEIlEBQeTUpBJ42z4urWt69FldvMw/iRCe
+ cZE1a93t01Y1PZQf21rnLOOF3nLmav7phC+4fi3v8Q==
+X-Google-Smtp-Source: APXvYqxKVyhgyp4fnQJvfBqNIedf10ujv/TGP90gZCYCjp1JDQT/YqURWr/Bs7K6Ny1E5F/kXnYi2soTBwRXscawpsjg+g==
+X-Received: by 2002:a63:1f1f:: with SMTP id f31mr17488162pgf.353.1569021617565; 
+ Fri, 20 Sep 2019 16:20:17 -0700 (PDT)
+Date: Fri, 20 Sep 2019 16:19:18 -0700
 In-Reply-To: <20190920231923.141900-1-brendanhiggins@google.com>
-Message-Id: <20190920231923.141900-4-brendanhiggins@google.com>
+Message-Id: <20190920231923.141900-15-brendanhiggins@google.com>
 Mime-Version: 1.0
 References: <20190920231923.141900-1-brendanhiggins@google.com>
 X-Mailer: git-send-email 2.23.0.351.gc4317032e6-goog
-Subject: [PATCH v16 03/19] kunit: test: add string_stream a std::stream like
- string builder
+Subject: [PATCH v16 14/19] kunit: defconfig: add defconfigs for building KUnit
+ tests
 From: Brendan Higgins <brendanhiggins@google.com>
 To: frowand.list@gmail.com, gregkh@linuxfoundation.org, jpoimboe@redhat.com, 
  keescook@google.com, kieran.bingham@ideasonboard.com, mcgrof@kernel.org, 
@@ -90,323 +90,150 @@ Cc: pmladek@suse.com, linux-doc@vger.kernel.org, amir73il@gmail.com,
  wfg@linux.intel.com, joel@jms.id.au, rientjes@google.com, jdike@addtoit.com,
  dan.carpenter@oracle.com, devicetree@vger.kernel.org,
  linux-kbuild@vger.kernel.org, Tim.Bird@sony.com, linux-um@lists.infradead.org,
- rostedt@goodmis.org, Stephen Boyd <swboyd@chromium.org>, julia.lawall@lip6.fr,
- kunit-dev@googlegroups.com, richard@nod.at, torvalds@linux-foundation.org,
- rdunlap@infradead.org, linux-kernel@vger.kernel.org, daniel@ffwll.ch,
- mpe@ellerman.id.au, linux-fsdevel@vger.kernel.org
+ rostedt@goodmis.org, julia.lawall@lip6.fr, kunit-dev@googlegroups.com,
+ richard@nod.at, torvalds@linux-foundation.org, rdunlap@infradead.org,
+ linux-kernel@vger.kernel.org, daniel@ffwll.ch, mpe@ellerman.id.au,
+ linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-A number of test features need to do pretty complicated string printing
-where it may not be possible to rely on a single preallocated string
-with parameters.
-
-So provide a library for constructing the string as you go similar to
-C++'s std::string. string_stream is really just a string builder,
-nothing more.
+Add defconfig for UML and a fragment that can be used to configure other
+architectures for building KUnit tests. Add option to kunit_tool to use
+a defconfig to create the kunitconfig.
 
 Signed-off-by: Brendan Higgins <brendanhiggins@google.com>
 Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
-Reviewed-by: Stephen Boyd <swboyd@chromium.org>
+Reviewed-by: Stephen Boyd <sboyd@kernel.org>
 ---
- include/kunit/string-stream.h |  51 ++++++++
- lib/kunit/Makefile            |   3 +-
- lib/kunit/string-stream.c     | 217 ++++++++++++++++++++++++++++++++++
- 3 files changed, 270 insertions(+), 1 deletion(-)
- create mode 100644 include/kunit/string-stream.h
- create mode 100644 lib/kunit/string-stream.c
+ arch/um/configs/kunit_defconfig              |  3 +++
+ tools/testing/kunit/configs/all_tests.config |  3 +++
+ tools/testing/kunit/kunit.py                 | 28 +++++++++++++++++---
+ tools/testing/kunit/kunit_kernel.py          |  3 ++-
+ 4 files changed, 32 insertions(+), 5 deletions(-)
+ create mode 100644 arch/um/configs/kunit_defconfig
+ create mode 100644 tools/testing/kunit/configs/all_tests.config
 
-diff --git a/include/kunit/string-stream.h b/include/kunit/string-stream.h
+diff --git a/arch/um/configs/kunit_defconfig b/arch/um/configs/kunit_defconfig
 new file mode 100644
-index 000000000000..fe98a00b75a9
+index 000000000000..9235b7d42d38
 --- /dev/null
-+++ b/include/kunit/string-stream.h
-@@ -0,0 +1,51 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * C++ stream style string builder used in KUnit for building messages.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
-+
-+#ifndef _KUNIT_STRING_STREAM_H
-+#define _KUNIT_STRING_STREAM_H
-+
-+#include <linux/spinlock.h>
-+#include <linux/types.h>
-+#include <stdarg.h>
-+
-+struct string_stream_fragment {
-+	struct kunit *test;
-+	struct list_head node;
-+	char *fragment;
-+};
-+
-+struct string_stream {
-+	size_t length;
-+	struct list_head fragments;
-+	/* length and fragments are protected by this lock */
-+	spinlock_t lock;
-+	struct kunit *test;
-+	gfp_t gfp;
-+};
-+
-+struct kunit;
-+
-+struct string_stream *alloc_string_stream(struct kunit *test, gfp_t gfp);
-+
-+int __printf(2, 3) string_stream_add(struct string_stream *stream,
-+				     const char *fmt, ...);
-+
-+int string_stream_vadd(struct string_stream *stream,
-+		       const char *fmt,
-+		       va_list args);
-+
-+char *string_stream_get_string(struct string_stream *stream);
-+
-+int string_stream_append(struct string_stream *stream,
-+			 struct string_stream *other);
-+
-+bool string_stream_is_empty(struct string_stream *stream);
-+
-+int string_stream_destroy(struct string_stream *stream);
-+
-+#endif /* _KUNIT_STRING_STREAM_H */
-diff --git a/lib/kunit/Makefile b/lib/kunit/Makefile
-index 5efdc4dea2c0..275b565a0e81 100644
---- a/lib/kunit/Makefile
-+++ b/lib/kunit/Makefile
-@@ -1 +1,2 @@
--obj-$(CONFIG_KUNIT) +=			test.o
-+obj-$(CONFIG_KUNIT) +=			test.o \
-+					string-stream.o
-diff --git a/lib/kunit/string-stream.c b/lib/kunit/string-stream.c
++++ b/arch/um/configs/kunit_defconfig
+@@ -0,0 +1,3 @@
++CONFIG_KUNIT=y
++CONFIG_KUNIT_TEST=y
++CONFIG_KUNIT_EXAMPLE_TEST=y
+diff --git a/tools/testing/kunit/configs/all_tests.config b/tools/testing/kunit/configs/all_tests.config
 new file mode 100644
-index 000000000000..e6d17aacca30
+index 000000000000..9235b7d42d38
 --- /dev/null
-+++ b/lib/kunit/string-stream.c
-@@ -0,0 +1,217 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * C++ stream style string builder used in KUnit for building messages.
-+ *
-+ * Copyright (C) 2019, Google LLC.
-+ * Author: Brendan Higgins <brendanhiggins@google.com>
-+ */
++++ b/tools/testing/kunit/configs/all_tests.config
+@@ -0,0 +1,3 @@
++CONFIG_KUNIT=y
++CONFIG_KUNIT_TEST=y
++CONFIG_KUNIT_EXAMPLE_TEST=y
+diff --git a/tools/testing/kunit/kunit.py b/tools/testing/kunit/kunit.py
+index da11bd62a4b8..0944dea5c321 100755
+--- a/tools/testing/kunit/kunit.py
++++ b/tools/testing/kunit/kunit.py
+@@ -11,6 +11,7 @@ import argparse
+ import sys
+ import os
+ import time
++import shutil
+ 
+ from collections import namedtuple
+ from enum import Enum, auto
+@@ -21,7 +22,7 @@ import kunit_parser
+ 
+ KunitResult = namedtuple('KunitResult', ['status','result'])
+ 
+-KunitRequest = namedtuple('KunitRequest', ['raw_output','timeout', 'jobs', 'build_dir'])
++KunitRequest = namedtuple('KunitRequest', ['raw_output','timeout', 'jobs', 'build_dir', 'defconfig'])
+ 
+ class KunitStatus(Enum):
+ 	SUCCESS = auto()
+@@ -29,8 +30,16 @@ class KunitStatus(Enum):
+ 	BUILD_FAILURE = auto()
+ 	TEST_FAILURE = auto()
+ 
++def create_default_kunitconfig():
++	if not os.path.exists(kunit_kernel.KUNITCONFIG_PATH):
++		shutil.copyfile('arch/um/configs/kunit_defconfig',
++				kunit_kernel.KUNITCONFIG_PATH)
 +
-+#include <kunit/string-stream.h>
-+#include <kunit/test.h>
-+#include <linux/list.h>
-+#include <linux/slab.h>
+ def run_tests(linux: kunit_kernel.LinuxSourceTree,
+ 	      request: KunitRequest) -> KunitResult:
++	if request.defconfig:
++		create_default_kunitconfig()
 +
-+struct string_stream_fragment_alloc_context {
-+	struct kunit *test;
-+	int len;
-+	gfp_t gfp;
-+};
+ 	config_start = time.time()
+ 	success = linux.build_reconfig(request.build_dir)
+ 	config_end = time.time()
+@@ -72,7 +81,7 @@ def run_tests(linux: kunit_kernel.LinuxSourceTree,
+ 	else:
+ 		return KunitResult(KunitStatus.SUCCESS, test_result)
+ 
+-def main(argv, linux):
++def main(argv, linux=None):
+ 	parser = argparse.ArgumentParser(
+ 			description='Helps writing and running KUnit tests.')
+ 	subparser = parser.add_subparsers(dest='subcommand')
+@@ -99,13 +108,24 @@ def main(argv, linux):
+ 				'directory.',
+ 				type=str, default=None, metavar='build_dir')
+ 
++	run_parser.add_argument('--defconfig',
++				help='Uses a default kunitconfig.',
++				action='store_true')
 +
-+static int string_stream_fragment_init(struct kunit_resource *res,
-+				       void *context)
-+{
-+	struct string_stream_fragment_alloc_context *ctx = context;
-+	struct string_stream_fragment *frag;
+ 	cli_args = parser.parse_args(argv)
+ 
+ 	if cli_args.subcommand == 'run':
++		if cli_args.defconfig:
++			create_default_kunitconfig()
 +
-+	frag = kunit_kzalloc(ctx->test, sizeof(*frag), ctx->gfp);
-+	if (!frag)
-+		return -ENOMEM;
++		if not linux:
++			linux = kunit_kernel.LinuxSourceTree()
 +
-+	frag->test = ctx->test;
-+	frag->fragment = kunit_kmalloc(ctx->test, ctx->len, ctx->gfp);
-+	if (!frag->fragment)
-+		return -ENOMEM;
-+
-+	res->allocation = frag;
-+
-+	return 0;
-+}
-+
-+static void string_stream_fragment_free(struct kunit_resource *res)
-+{
-+	struct string_stream_fragment *frag = res->allocation;
-+
-+	list_del(&frag->node);
-+	kunit_kfree(frag->test, frag->fragment);
-+	kunit_kfree(frag->test, frag);
-+}
-+
-+static struct string_stream_fragment *alloc_string_stream_fragment(
-+		struct kunit *test, int len, gfp_t gfp)
-+{
-+	struct string_stream_fragment_alloc_context context = {
-+		.test = test,
-+		.len = len,
-+		.gfp = gfp
-+	};
-+
-+	return kunit_alloc_resource(test,
-+				    string_stream_fragment_init,
-+				    string_stream_fragment_free,
-+				    gfp,
-+				    &context);
-+}
-+
-+static int string_stream_fragment_destroy(struct string_stream_fragment *frag)
-+{
-+	return kunit_resource_destroy(frag->test,
-+				      kunit_resource_instance_match,
-+				      string_stream_fragment_free,
-+				      frag);
-+}
-+
-+int string_stream_vadd(struct string_stream *stream,
-+		       const char *fmt,
-+		       va_list args)
-+{
-+	struct string_stream_fragment *frag_container;
-+	int len;
-+	va_list args_for_counting;
-+
-+	/* Make a copy because `vsnprintf` could change it */
-+	va_copy(args_for_counting, args);
-+
-+	/* Need space for null byte. */
-+	len = vsnprintf(NULL, 0, fmt, args_for_counting) + 1;
-+
-+	va_end(args_for_counting);
-+
-+	frag_container = alloc_string_stream_fragment(stream->test,
-+						      len,
-+						      stream->gfp);
-+	if (!frag_container)
-+		return -ENOMEM;
-+
-+	len = vsnprintf(frag_container->fragment, len, fmt, args);
-+	spin_lock(&stream->lock);
-+	stream->length += len;
-+	list_add_tail(&frag_container->node, &stream->fragments);
-+	spin_unlock(&stream->lock);
-+
-+	return 0;
-+}
-+
-+int string_stream_add(struct string_stream *stream, const char *fmt, ...)
-+{
-+	va_list args;
-+	int result;
-+
-+	va_start(args, fmt);
-+	result = string_stream_vadd(stream, fmt, args);
-+	va_end(args);
-+
-+	return result;
-+}
-+
-+static void string_stream_clear(struct string_stream *stream)
-+{
-+	struct string_stream_fragment *frag_container, *frag_container_safe;
-+
-+	spin_lock(&stream->lock);
-+	list_for_each_entry_safe(frag_container,
-+				 frag_container_safe,
-+				 &stream->fragments,
-+				 node) {
-+		string_stream_fragment_destroy(frag_container);
-+	}
-+	stream->length = 0;
-+	spin_unlock(&stream->lock);
-+}
-+
-+char *string_stream_get_string(struct string_stream *stream)
-+{
-+	struct string_stream_fragment *frag_container;
-+	size_t buf_len = stream->length + 1; /* +1 for null byte. */
-+	char *buf;
-+
-+	buf = kunit_kzalloc(stream->test, buf_len, stream->gfp);
-+	if (!buf)
-+		return NULL;
-+
-+	spin_lock(&stream->lock);
-+	list_for_each_entry(frag_container, &stream->fragments, node)
-+		strlcat(buf, frag_container->fragment, buf_len);
-+	spin_unlock(&stream->lock);
-+
-+	return buf;
-+}
-+
-+int string_stream_append(struct string_stream *stream,
-+			 struct string_stream *other)
-+{
-+	const char *other_content;
-+
-+	other_content = string_stream_get_string(other);
-+
-+	if (!other_content)
-+		return -ENOMEM;
-+
-+	return string_stream_add(stream, other_content);
-+}
-+
-+bool string_stream_is_empty(struct string_stream *stream)
-+{
-+	return list_empty(&stream->fragments);
-+}
-+
-+struct string_stream_alloc_context {
-+	struct kunit *test;
-+	gfp_t gfp;
-+};
-+
-+static int string_stream_init(struct kunit_resource *res, void *context)
-+{
-+	struct string_stream *stream;
-+	struct string_stream_alloc_context *ctx = context;
-+
-+	stream = kunit_kzalloc(ctx->test, sizeof(*stream), ctx->gfp);
-+	if (!stream)
-+		return -ENOMEM;
-+
-+	res->allocation = stream;
-+	stream->gfp = ctx->gfp;
-+	stream->test = ctx->test;
-+	INIT_LIST_HEAD(&stream->fragments);
-+	spin_lock_init(&stream->lock);
-+
-+	return 0;
-+}
-+
-+static void string_stream_free(struct kunit_resource *res)
-+{
-+	struct string_stream *stream = res->allocation;
-+
-+	string_stream_clear(stream);
-+}
-+
-+struct string_stream *alloc_string_stream(struct kunit *test, gfp_t gfp)
-+{
-+	struct string_stream_alloc_context context = {
-+		.test = test,
-+		.gfp = gfp
-+	};
-+
-+	return kunit_alloc_resource(test,
-+				    string_stream_init,
-+				    string_stream_free,
-+				    gfp,
-+				    &context);
-+}
-+
-+int string_stream_destroy(struct string_stream *stream)
-+{
-+	return kunit_resource_destroy(stream->test,
-+				      kunit_resource_instance_match,
-+				      string_stream_free,
-+				      stream);
-+}
+ 		request = KunitRequest(cli_args.raw_output,
+ 				       cli_args.timeout,
+ 				       cli_args.jobs,
+-				       cli_args.build_dir)
++				       cli_args.build_dir,
++				       cli_args.defconfig)
+ 		result = run_tests(linux, request)
+ 		if result.status != KunitStatus.SUCCESS:
+ 			sys.exit(1)
+@@ -113,4 +133,4 @@ def main(argv, linux):
+ 		parser.print_help()
+ 
+ if __name__ == '__main__':
+-	main(sys.argv[1:], kunit_kernel.LinuxSourceTree())
++	main(sys.argv[1:])
+diff --git a/tools/testing/kunit/kunit_kernel.py b/tools/testing/kunit/kunit_kernel.py
+index 07c0abf2f47d..bf3876835331 100644
+--- a/tools/testing/kunit/kunit_kernel.py
++++ b/tools/testing/kunit/kunit_kernel.py
+@@ -14,6 +14,7 @@ import os
+ import kunit_config
+ 
+ KCONFIG_PATH = '.config'
++KUNITCONFIG_PATH = 'kunitconfig'
+ 
+ class ConfigError(Exception):
+ 	"""Represents an error trying to configure the Linux kernel."""
+@@ -81,7 +82,7 @@ class LinuxSourceTree(object):
+ 
+ 	def __init__(self):
+ 		self._kconfig = kunit_config.Kconfig()
+-		self._kconfig.read_from_file('kunitconfig')
++		self._kconfig.read_from_file(KUNITCONFIG_PATH)
+ 		self._ops = LinuxSourceTreeOperations()
+ 
+ 	def clean(self):
 -- 
 2.23.0.351.gc4317032e6-goog
 
