@@ -1,72 +1,83 @@
-Return-Path: <SRS0=wwh3=XT=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=GzT/=XU=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74907C432C1
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Sep 2019 17:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97CB2C432C1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 25 Sep 2019 03:51:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4DD052146E
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Sep 2019 17:44:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="xHa5Le0b"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4DD052146E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 58D0720665
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 25 Sep 2019 03:51:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 58D0720665
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1F461202F73B1;
-	Tue, 24 Sep 2019 10:46:27 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id A76BE202F73DD;
+	Tue, 24 Sep 2019 20:53:33 -0700 (PDT)
 Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
- client-ip=2607:f8b0:4864:20::244; helo=mail-oi1-x244.google.com;
- envelope-from=dan.j.williams@intel.com; receiver=linux-nvdimm@lists.01.org 
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com
- [IPv6:2607:f8b0:4864:20::244])
- (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com;
+ envelope-from=aneesh.kumar@linux.ibm.com; receiver=linux-nvdimm@lists.01.org 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com
+ [148.163.158.5])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
  (No client certificate requested)
- by ml01.01.org (Postfix) with ESMTPS id D73FA202EF27C
- for <linux-nvdimm@lists.01.org>; Tue, 24 Sep 2019 10:46:25 -0700 (PDT)
-Received: by mail-oi1-x244.google.com with SMTP id w17so2422482oiw.8
- for <linux-nvdimm@lists.01.org>; Tue, 24 Sep 2019 10:44:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=intel-com.20150623.gappssmtp.com; s=20150623;
- h=mime-version:references:in-reply-to:from:date:message-id:subject:to
- :cc; bh=Pwi3v3/eeuCMJP1kakBxgsx/z8MzTJMBZi3TcsuXfD8=;
- b=xHa5Le0bFjzzgtu4UA+qX7oT9GocKtBq7Xl37UBLzT6F80XgwshE/KJRo7/gDT05dz
- cKG0ASrlUMYJrRC8oMXfluJtGFlg638AdkIt7mYU4shAe3LfWelo3DxXudA4uCBikTL2
- oK9XKKbaXC0KqUAjkzYGDbuR8AEnOObj0aULTTU8LlJihmNXrH73ee77BwMcjt6BQziG
- uYJNTPGo5QSv1/6VZM66TO5qNHs1r/eiEx3nsiINou8l2Ijbo8Q5FMtfi+iDYB7PlidU
- b9oD/50kCmsSHA4rWxnDmZS8i3KZAZR5O27FCZoOq5UjBlx/c785AlJAguM6DQfbs9Qx
- eMZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=1e100.net; s=20161025;
- h=x-gm-message-state:mime-version:references:in-reply-to:from:date
- :message-id:subject:to:cc;
- bh=Pwi3v3/eeuCMJP1kakBxgsx/z8MzTJMBZi3TcsuXfD8=;
- b=CwRmya9JBuQYLfbOQukefbAG4wtr9Nu+kavySu6blXJscGojvAfnI+3aD5z3b2MU5R
- RugRsJtsnlDqBFbPOPAh37NHbZ5lk33XdHRvNVnnJjbNB11ouafflX8kKox/sNRaau8v
- 7Qlc6DGOUrbN+zZZIXZxUvopDtgEKrjXn+/fzdMbT8ZKfxwWHtEudJldCT9R+Qj/R1mk
- 5hlX7AG0BulvR8atOcLpNN0EquEVnzXrI0oZN4PhcoVQwD5BN7h4skjGy5u59FhXd89h
- qtYtDn1cqqlBZWSe/71iN4qpWJHcXvz/ldoW9fc3ZmkAPaAp3ohf/fgC3lOrQJyMYCz7
- k2xA==
-X-Gm-Message-State: APjAAAVu0Bp7d5sAMlPEe4Bt/PL6Fe/P+9z6QNrVC9exiK7n6NNueeGo
- nT1Pnr8jxtGt6A/RqZG/3jJfzbpLq31HpWOtmebEeYzj
-X-Google-Smtp-Source: APXvYqydfSZkrqS0gdUrhVzS5ly9nrwL9bfZ+wnPoCLrlEThrki+tInTEXBQDioYJbfPYimPhkF297yYxBp1sB+LQ4A=
-X-Received: by 2002:aca:df88:: with SMTP id w130mr1287076oig.0.1569347044056; 
- Tue, 24 Sep 2019 10:44:04 -0700 (PDT)
+ by ml01.01.org (Postfix) with ESMTPS id 49EBF202BB9C2
+ for <linux-nvdimm@lists.01.org>; Tue, 24 Sep 2019 20:53:32 -0700 (PDT)
+Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
+ by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id
+ x8P3kpLo084504; Tue, 24 Sep 2019 23:51:07 -0400
+Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com
+ [169.55.85.253])
+ by mx0b-001b2d01.pphosted.com with ESMTP id 2v7x9hcc5h-1
+ (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+ Tue, 24 Sep 2019 23:51:07 -0400
+Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
+ by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x8P3jr8d018868;
+ Wed, 25 Sep 2019 03:51:07 GMT
+Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com
+ [9.57.198.26]) by ppma01wdc.us.ibm.com with ESMTP id 2v5bg72eyp-1
+ (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+ Wed, 25 Sep 2019 03:51:07 +0000
+Received: from b01ledav001.gho.pok.ibm.com (b01ledav001.gho.pok.ibm.com
+ [9.57.199.106])
+ by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id
+ x8P3p6PJ12452738
+ (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+ Wed, 25 Sep 2019 03:51:06 GMT
+Received: from b01ledav001.gho.pok.ibm.com (unknown [127.0.0.1])
+ by IMSVA (Postfix) with ESMTP id 2069B2805A;
+ Wed, 25 Sep 2019 03:51:06 +0000 (GMT)
+Received: from b01ledav001.gho.pok.ibm.com (unknown [127.0.0.1])
+ by IMSVA (Postfix) with ESMTP id 93CB028058;
+ Wed, 25 Sep 2019 03:51:04 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.199.47.34])
+ by b01ledav001.gho.pok.ibm.com (Postfix) with ESMTP;
+ Wed, 25 Sep 2019 03:51:04 +0000 (GMT)
+X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v6] mm/pgmap: Use correct alignment when looking at first
+ pfn from a region
+In-Reply-To: <20190919122501.df660f0d23806a3f46d11b61@linux-foundation.org>
+References: <20190917153129.12905-1-aneesh.kumar@linux.ibm.com>
+ <20190919122501.df660f0d23806a3f46d11b61@linux-foundation.org>
+Date: Wed, 25 Sep 2019 09:21:02 +0530
+Message-ID: <8736glowyh.fsf@linux.ibm.com>
 MIME-Version: 1.0
-References: <156934642272.30222.5230162488753445916.stgit@djiang5-desk3.ch.intel.com>
-In-Reply-To: <156934642272.30222.5230162488753445916.stgit@djiang5-desk3.ch.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 24 Sep 2019 10:43:53 -0700
-Message-ID: <CAPcyv4huSU2PAd48Z5UYCR7NXgaRVhrE38WkaWPP4MUjpCwgyw@mail.gmail.com>
-Subject: Re: [PATCH v2] libnvdimm: prevent nvdimm from requesting key when
- security is disabled
-To: Dave Jiang <dave.jiang@intel.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:, ,
+ definitions=2019-09-25_02:, , signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0
+ priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=782 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1908290000 definitions=main-1909250036
 X-BeenThere: linux-nvdimm@lists.01.org
 X-Mailman-Version: 2.1.29
 Precedence: list
@@ -78,35 +89,33 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Cc: jthumshirn@suse.com, peter.stark@ts.fujitsu.com,
- linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-On Tue, Sep 24, 2019 at 10:35 AM Dave Jiang <dave.jiang@intel.com> wrote:
->
-> Current implementation attempts to request keys from the keyring even when
-> security is not enabled. Change behavior so when security is disabled it
-> will skip key request.
->
-> Error messages seen when no keys are installed and libnvdimm is loaded:
->
-> request-key[4598]: Cannot find command to construct key 661489677
-> request-key[4606]: Cannot find command to construct key 34713726
-> ...
->
-> Fixes: 4c6926a23b76 ("acpi/nfit, libnvdimm: Add unlock of nvdimm support for Intel DIMMs")
->
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->
-> v2:
-> - Fix up commit header to add more information and cc stable. (Dan)
+Andrew Morton <akpm@linux-foundation.org> writes:
 
-Looks, good, applied.
+> On Tue, 17 Sep 2019 21:01:29 +0530 "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> wrote:
+>
+>> vmem_altmap_offset() adjust the section aligned base_pfn offset.
+>> So we need to make sure we account for the same when computing base_pfn.
+>> 
+>> ie, for altmap_valid case, our pfn_first should be:
+>> 
+>> pfn_first = altmap->base_pfn + vmem_altmap_offset(altmap);
+>
+> What are the user-visible runtime effects of this change?
+
+This was found by code inspection. If the pmem region is not correctly
+section aligned we can skip pfns while iterating device pfn using 
+	for_each_device_pfn(pfn, pgmap)
+
+
+I still would want Dan to ack the change though.
+
+-aneesh
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
