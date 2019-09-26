@@ -1,37 +1,73 @@
 Return-Path: <SRS0=toYW=XV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.5 required=3.0 tests=DEAR_SOMETHING,
-	HEADER_FROM_DIFFERENT_DOMAINS,LOTS_OF_MONEY,MAILING_LIST_MULTI,MONEY_FORM,
-	SPF_HELO_NONE,SPF_PASS,SUBJ_ALL_CAPS,T_FILL_THIS_FORM_LOAN,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD8C4C432C2
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 26 Sep 2019 03:02:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BD77C432C2
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 26 Sep 2019 03:31:01 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 81CC7222BF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 26 Sep 2019 03:02:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 81CC7222BF
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=loans.com
+	by mail.kernel.org (Postfix) with ESMTPS id CC59C222BD
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 26 Sep 2019 03:31:00 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="tbR/W/kw"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC59C222BD
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from [127.0.0.1] (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 180AE2010B849;
-	Wed, 25 Sep 2019 20:05:04 -0700 (PDT)
-Received-SPF: None (no SPF record) identity=mailfrom; client-ip=60.249.248.121;
- helo=loans.com; envelope-from=info@loans.com;
- receiver=linux-nvdimm@lists.01.org 
-Received: from loans.com (60-249-248-121.HINET-IP.hinet.net [60.249.248.121])
- by ml01.01.org (Postfix) with ESMTP id B163D2010B83B
- for <linux-nvdimm@lists.01.org>; Wed, 25 Sep 2019 20:05:01 -0700 (PDT)
-From: "BBK LOANS & INVESTMENT CO" <info@loans.com>
+	by ml01.01.org (Postfix) with ESMTP id 2FEE22010B84F;
+	Wed, 25 Sep 2019 20:33:10 -0700 (PDT)
+Received-SPF: Pass (sender SPF authorized) identity=mailfrom;
+ client-ip=2607:f8b0:4864:20::541; helo=mail-pg1-x541.google.com;
+ envelope-from=taeho1224@gmail.com; receiver=linux-nvdimm@lists.01.org 
+Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com
+ [IPv6:2607:f8b0:4864:20::541])
+ (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+ (No client certificate requested)
+ by ml01.01.org (Postfix) with ESMTPS id F13322010B848
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Sep 2019 20:33:09 -0700 (PDT)
+Received: by mail-pg1-x541.google.com with SMTP id z12so655830pgp.9
+ for <linux-nvdimm@lists.01.org>; Wed, 25 Sep 2019 20:31:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=20161025;
+ h=from:to:cc:subject:date:message-id;
+ bh=6ZAkreEHB/lqlL9aDOyiHcVgk+KB9MY8IQI5aLNve74=;
+ b=tbR/W/kwYXbJoypDoQTRZSgSwbGpwKAnFDJcjsyzR9Kc+PpZmidxLtezMCeUdiZdTT
+ C9KfviPoEHpQBqU4KZMraWUM+0c1aQiMnMdoCMUpCkQewBhlSplUKHTFHu7dnm1Za59J
+ iXQLQz4JhDlzzq54MxvK1QQloB08u5TkcT8RQUD95Ze+FhmH/ek9cFk3yWDAh4O2fy2B
+ x/6Q8QOr8bzLVrJtrTHEFzaEYtdFirYmVa1MVVcrMi86K5nzPmg1GQoze+jxqyrOpJUj
+ uzoHDzbVS71LoOzva68zTzENvv3Z44mjkTPQz41764zYGsl5c5mQJW6jXJ4rJ+sXpjqW
+ /90g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=1e100.net; s=20161025;
+ h=x-gm-message-state:from:to:cc:subject:date:message-id;
+ bh=6ZAkreEHB/lqlL9aDOyiHcVgk+KB9MY8IQI5aLNve74=;
+ b=igON/GPy8m+JB+RJCknSlWOetz9e2wfdTV8IfLnizsF22Vzm7jc0x4rBVaWP9Chx92
+ 2Nb2A3xlRr6hjPg/Dwbj86Xqmyn4WE5Kq0tDbbPb6UPwHImcQ6M9M5U4W72ja0IOavS1
+ JlYH5+Utyq5w1QF5zytqonSGODMM9XWhJtY/OS8159RC3EI5+qoQbocw3tGFS+jYUzp1
+ elb61be2o3ww0e36riZPM2FWzP7L3fJZ4vCBaS5ADiyGIh1SfCMIcASOhZe6vdvzp7hE
+ 9fI3WDtmjARG4ew+ngmxjyil756D21Rqee/C0rUlBB8DQOLi3OJq09QARMYF54GmClXM
+ xFzg==
+X-Gm-Message-State: APjAAAWTOuMKLlHrj6XC3J26j/3S0gvm/jwZIX/COgvWM2up1fEntVPm
+ 32XqRAbwn+md+itX/i9dltPMMwNN
+X-Google-Smtp-Source: APXvYqy+BcgkIjb9R5sYpPi5zzDF76Tg8Q+uBKVq7TUpzF4hadb8ULOOacODyR4ag709y5UoJS92bA==
+X-Received: by 2002:a63:f342:: with SMTP id t2mr1226449pgj.194.1569468659330; 
+ Wed, 25 Sep 2019 20:30:59 -0700 (PDT)
+Received: from localhost.localdomain ([143.248.231.190])
+ by smtp.gmail.com with ESMTPSA id 193sm495381pfc.59.2019.09.25.20.30.57
+ (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+ Wed, 25 Sep 2019 20:30:58 -0700 (PDT)
+From: Taeho Hwang <taeho1224@gmail.com>
 To: linux-nvdimm@lists.01.org
-Subject: RE: LOAN & INVESTMENT NOW READY. PLEASE READ OUR MAIL.
-Date: 26 Sep 2019 11:02:50 +0800
-Message-ID: <20190926110249.68B91BC11F92B231@loans.com>
-MIME-Version: 1.0
+Subject: [PATCH] pmem: emulating usable memory as persistent memory
+Date: Thu, 26 Sep 2019 12:30:53 +0900
+Message-Id: <1569468653-3489-1-git-send-email-taeho1224@gmail.com>
+X-Mailer: git-send-email 2.7.4
 X-BeenThere: linux-nvdimm@lists.01.org
 X-Mailman-Version: 2.1.29
 Precedence: list
@@ -43,50 +79,96 @@ List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request@lists.01.org?subject=subscribe>
-Reply-To: bbkloanscompany@aol.com
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Errors-To: linux-nvdimm-bounces@lists.01.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces@lists.01.org>
 
-Dear Sir/Ma'am
+This patch checks whether the specified memory (memmap) is
+userable or not. This patch prevents non-existing memory
+from being emulated as persistent memory.
+If non-existing memory is specified by memmap without
+this patch, struct nd_namespace_io and struct pmem_device
+will have invalid values.
 
-We have set aside $100 Billion US Dollars for our loans 
+Signed-off-by: Taeho Hwang <taeho1224@gmail.com>
+---
+ arch/x86/kernel/e820.c | 56 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 55 insertions(+), 1 deletion(-)
 
-program. BBK LOANS & INVESTMENT CO is now open to all people 
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 76dd605..ba9115d 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -178,9 +178,63 @@ static void __init __e820__range_add(struct e820_table *table, u64 start, u64 si
+ 	table->nr_entries++;
+ }
+ 
++static void __init __e820__range_add_pram(struct e820_table *table, u64 start,
++					  u64 size)
++{
++	int nr_entries = table->nr_entries;
++	int new_nr_entries = nr_entries;
++	u64 range_start, range_end;
++	u64 end = start + size;
++	bool flag;
++	int i;
++
++	if (nr_entries >= ARRAY_SIZE(table->entries)) {
++		pr_err("too many entries; ignoring [mem %#010llx-%#010llx]\n",
++		       start, start + size - 1);
++		return;
++	}
++
++	for (i = 0; i < nr_entries; i++) {
++		if (table->entries[i].type != E820_TYPE_RESERVED_KERN &&
++				table->entries[i].type != E820_TYPE_RAM)
++			continue;
++
++		range_start = table->entries[i].addr;
++		range_end = table->entries[i].addr + table->entries[i].size;
++		flag = false;
++		if (range_start <= start && start < range_end) {
++			table->entries[new_nr_entries].addr = start;
++			if (end <= range_end)
++				table->entries[new_nr_entries].size = size;
++			else
++				table->entries[new_nr_entries].size =
++					range_end - start;
++			flag = true;
++		} else if (range_start < end && end <= range_end) {
++			table->entries[new_nr_entries].addr = range_start;
++			table->entries[new_nr_entries].size = end - range_end;
++			flag = true;
++		} else if (start <= range_start && range_end <= end) {
++			table->entries[new_nr_entries].addr = range_start;
++			table->entries[new_nr_entries].size =
++				range_end - range_start;
++			flag = true;
++		}
++		if (flag) {
++			table->entries[new_nr_entries].type = E820_TYPE_PRAM;
++			if (++new_nr_entries >= ARRAY_SIZE(table->entries))
++				break;
++		}
++	}
++	table->nr_entries = new_nr_entries;
++}
++
+ void __init e820__range_add(u64 start, u64 size, enum e820_type type)
+ {
+-	__e820__range_add(e820_table, start, size, type);
++	if (type == E820_TYPE_PRAM || type == E820_TYPE_PMEM)
++		__e820__range_add_pram(e820_table, start, size);
++	else
++		__e820__range_add(e820_table, start, size, type);
+ }
+ 
+ static void __init e820_print_type(enum e820_type type)
+-- 
+2.7.4
 
-looking for a loan. We offer loans grant at an affordable 
-
-interest rate of 3% for per annum (1 year). This program is 
-
-available to all credible and honest loan seekers who are in 
-
-need of a business loan, home mortgages, real estates etc. We 
-
-give up to US$100,000,000 (One Hundred Million US Dollars) in 
-
-loan grants.
-
-
-Fill in the blank spaces for full application:
-
- 1. Full Name:
- 2. Address:
- 3. Occupation:
- 4. Date of Birth:
- 5. Man/Woman:
- 6. Nationality:
- 7. Country Where You Now Live:
- 8. Mobile No:
- 9. Loan Amount:
-
-You can contact us immediately by sending the above mentioned 
-
-information to our email here below;
-
-Ms. Elham Ibrahim Hassan
-Operations Director
-Email: bbkloanscompany@aol.com
 _______________________________________________
 Linux-nvdimm mailing list
 Linux-nvdimm@lists.01.org
