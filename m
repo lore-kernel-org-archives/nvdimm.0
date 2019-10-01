@@ -2,50 +2,61 @@ Return-Path: <SRS0=DLT4=X2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1094CECE58A
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Oct 2019 13:56:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8944BC352AA
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Oct 2019 16:40:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D3E752190F
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Oct 2019 13:56:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D3E752190F
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lwn.net
+	by mail.kernel.org (Postfix) with ESMTPS id 5F57A2190F
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Oct 2019 16:40:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="P3Y7Mr9s"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5F57A2190F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A5A8E10FC71F3;
-	Tue,  1 Oct 2019 06:57:31 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.79.88.28; helo=ms.lwn.net; envelope-from=corbet@lwn.net; receiver=<UNKNOWN> 
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
+	by ml01.01.org (Postfix) with ESMTP id 3906010FC71F4;
+	Tue,  1 Oct 2019 09:41:45 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 059EC10096C9B
-	for <linux-nvdimm@lists.01.org>; Tue,  1 Oct 2019 06:57:29 -0700 (PDT)
-Received: from lwn.net (localhost [127.0.0.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTPS id C753910113636
+	for <linux-nvdimm@lists.01.org>; Tue,  1 Oct 2019 09:41:42 -0700 (PDT)
+Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ms.lwn.net (Postfix) with ESMTPSA id 32FD6491;
-	Tue,  1 Oct 2019 13:56:00 +0000 (UTC)
-Date: Tue, 1 Oct 2019 07:55:59 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 2/3] Maintainer Handbook: Maintainer Entry Profile
-Message-ID: <20191001075559.629eb059@lwn.net>
-In-Reply-To: <156821693396.2951081.7340292149329436920.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <156821692280.2951081.18036584954940423225.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<156821693396.2951081.7340292149329436920.stgit@dwillia2-desk3.amr.corp.intel.com>
-Organization: LWN.net
+	by mail.kernel.org (Postfix) with ESMTPSA id 740A421920;
+	Tue,  1 Oct 2019 16:40:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1569948015;
+	bh=QX3Uw/g/qNvjxcndCvrLA2SLcuboyt6nJO2FgrcqYSI=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=P3Y7Mr9s/MtOtv01V0csO4fMlxsD7Od6UitBURJ/j+oCYnV5S79N792d0hMvaDDI0
+	 LfJ5wOWwCux9UY3ArRk/jWY3qRa9lkHsHqpAejjqafEQHsT5daBkwrVgnrlRFlNFyj
+	 Rbo7eK9gfxa03t9lRkIdfUcxq7z8FkfkaLd05u+M=
+From: Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.3 36/71] libnvdimm/region: Initialize bad block for volatile namespaces
+Date: Tue,  1 Oct 2019 12:38:46 -0400
+Message-Id: <20191001163922.14735-36-sashal@kernel.org>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191001163922.14735-1-sashal@kernel.org>
+References: <20191001163922.14735-1-sashal@kernel.org>
 MIME-Version: 1.0
-Message-ID-Hash: GP3CEOHGQ5PGGZVNK7M2ZYZTUP5EYQRT
-X-Message-ID-Hash: GP3CEOHGQ5PGGZVNK7M2ZYZTUP5EYQRT
-X-MailFrom: corbet@lwn.net
+X-stable: review
+X-Patchwork-Hint: Ignore
+Message-ID-Hash: 55N64P3HXYHZRD4U5YSKCUGXL24PLXR2
+X-Message-ID-Hash: 55N64P3HXYHZRD4U5YSKCUGXL24PLXR2
+X-MailFrom: sashal@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Mauro Carvalho Chehab <mchehab@kernel.org>, Steve French <stfrench@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, "Tobin C. Harding" <me@tobin.cc>, Olof Johansson <olof@lixom.net>, Daniel Vetter <daniel.vetter@ffwll.ch>, Joe Perches <joe@perches.com>, Dmitry Vyukov <dvyukov@google.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-nvdimm@lists.01.org, ksummit-discuss@lists.linuxfoundation.org
+CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
@@ -58,51 +69,110 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 11 Sep 2019 08:48:54 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 
-> As presented at the 2018 Linux Plumbers conference [1], the Maintainer
-> Entry Profile (formerly Subsystem Profile) is proposed as a way to reduce
-> friction between committers and maintainers and encourage conversations
-> amongst maintainers about common best practices. While coding-style,
-> submit-checklist, and submitting-drivers lay out some common expectations
-> there remain local customs and maintainer preferences that vary by
-> subsystem.
-> 
-> The profile contains short answers to some of the common policy questions a
-> contributor might have that are local to the subsystem / device-driver, or
-> otherwise not covered by the top-level process documents.
-> 
-> Overview: General introduction to how the subsystem operates
-> Submit Checklist Addendum: Mechanical items that gate submission staging
-> Key Cycle Dates:
->  - Last -rc for new feature submissions: Expected lead time for submissions
->  - Last -rc to merge features: Deadline for merge decisions
-> Coding Style Addendum: Clarifications of local style preferences
-> Resubmit Cadence: When to ping the maintainer
-> Checkpatch / Style Cleanups: Policy on pure cleanup patches
+[ Upstream commit c42adf87e4e7ed77f6ffe288dc90f980d07d68df ]
 
-So I'm finally back home after my European tour, and I have it on good
-authority that my bag might even get here eventually too.  That means I'm
-digging through a pile of docs stuff I've been neglecting badly...
+We do check for a bad block during namespace init and that use
+region bad block list. We need to initialize the bad block
+for volatile regions for this to work. We also observe a lockdep
+warning as below because the lock is not initialized correctly
+since we skip bad block init for volatile regions.
 
-My intention is to apply these patches.  But as I was reading through
-them, one little nagging thing came to mind...
+ INFO: trying to register non-static key.
+ the code is fine but needs lockdep annotation.
+ turning off the locking correctness validator.
+ CPU: 2 PID: 1 Comm: swapper/0 Not tainted 5.3.0-rc1-15699-g3dee241c937e #149
+ Call Trace:
+ [c0000000f95cb250] [c00000000147dd84] dump_stack+0xe8/0x164 (unreliable)
+ [c0000000f95cb2a0] [c00000000022ccd8] register_lock_class+0x308/0xa60
+ [c0000000f95cb3a0] [c000000000229cc0] __lock_acquire+0x170/0x1ff0
+ [c0000000f95cb4c0] [c00000000022c740] lock_acquire+0x220/0x270
+ [c0000000f95cb580] [c000000000a93230] badblocks_check+0xc0/0x290
+ [c0000000f95cb5f0] [c000000000d97540] nd_pfn_validate+0x5c0/0x7f0
+ [c0000000f95cb6d0] [c000000000d98300] nd_dax_probe+0xd0/0x1f0
+ [c0000000f95cb760] [c000000000d9b66c] nd_pmem_probe+0x10c/0x160
+ [c0000000f95cb790] [c000000000d7f5ec] nvdimm_bus_probe+0x10c/0x240
+ [c0000000f95cb820] [c000000000d0f844] really_probe+0x254/0x4e0
+ [c0000000f95cb8b0] [c000000000d0fdfc] driver_probe_device+0x16c/0x1e0
+ [c0000000f95cb930] [c000000000d10238] device_driver_attach+0x68/0xa0
+ [c0000000f95cb970] [c000000000d1040c] __driver_attach+0x19c/0x1c0
+ [c0000000f95cb9f0] [c000000000d0c4c4] bus_for_each_dev+0x94/0x130
+ [c0000000f95cba50] [c000000000d0f014] driver_attach+0x34/0x50
+ [c0000000f95cba70] [c000000000d0e208] bus_add_driver+0x178/0x2f0
+ [c0000000f95cbb00] [c000000000d117c8] driver_register+0x108/0x170
+ [c0000000f95cbb70] [c000000000d7edb0] __nd_driver_register+0xe0/0x100
+ [c0000000f95cbbd0] [c000000001a6baa4] nd_pmem_driver_init+0x34/0x48
+ [c0000000f95cbbf0] [c0000000000106f4] do_one_initcall+0x1d4/0x4b0
+ [c0000000f95cbcd0] [c0000000019f499c] kernel_init_freeable+0x544/0x65c
+ [c0000000f95cbdb0] [c000000000010d6c] kernel_init+0x2c/0x180
+ [c0000000f95cbe20] [c00000000000b954] ret_from_kernel_thread+0x5c/0x68
 
-> See Documentation/maintainer/maintainer-entry-profile.rst for more details,
-> and a follow-on example profile for the libnvdimm subsystem.
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Link: https://lore.kernel.org/r/20190919083355.26340-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/nvdimm/bus.c         | 2 +-
+ drivers/nvdimm/region.c      | 4 ++--
+ drivers/nvdimm/region_devs.c | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-Thus far, the maintainer guide is focused on how to *be* a maintainer.
-This document, instead, is more about how to deal with specific
-maintainers.  So I suspect that Documentation/maintainer might be the
-wrong place for it.
-
-Should we maybe place it instead under Documentation/process, or even
-create a new top-level "book" for this information?
-
-Thanks,
-
-jon
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 798c5c4aea9ca..bb3f20ebc276d 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -182,7 +182,7 @@ static int nvdimm_clear_badblocks_region(struct device *dev, void *data)
+ 	sector_t sector;
+ 
+ 	/* make sure device is a region */
+-	if (!is_nd_pmem(dev))
++	if (!is_memory(dev))
+ 		return 0;
+ 
+ 	nd_region = to_nd_region(dev);
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 37bf8719a2a44..0f6978e72e7cd 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -34,7 +34,7 @@ static int nd_region_probe(struct device *dev)
+ 	if (rc)
+ 		return rc;
+ 
+-	if (is_nd_pmem(&nd_region->dev)) {
++	if (is_memory(&nd_region->dev)) {
+ 		struct resource ndr_res;
+ 
+ 		if (devm_init_badblocks(dev, &nd_region->bb))
+@@ -123,7 +123,7 @@ static void nd_region_notify(struct device *dev, enum nvdimm_event event)
+ 		struct nd_region *nd_region = to_nd_region(dev);
+ 		struct resource res;
+ 
+-		if (is_nd_pmem(&nd_region->dev)) {
++		if (is_memory(&nd_region->dev)) {
+ 			res.start = nd_region->ndr_start;
+ 			res.end = nd_region->ndr_start +
+ 				nd_region->ndr_size - 1;
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index af30cbe7a8ea2..47b48800fb758 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -632,11 +632,11 @@ static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
+ 	if (!is_memory(dev) && a == &dev_attr_dax_seed.attr)
+ 		return 0;
+ 
+-	if (!is_nd_pmem(dev) && a == &dev_attr_badblocks.attr)
++	if (!is_memory(dev) && a == &dev_attr_badblocks.attr)
+ 		return 0;
+ 
+ 	if (a == &dev_attr_resource.attr) {
+-		if (is_nd_pmem(dev))
++		if (is_memory(dev))
+ 			return 0400;
+ 		else
+ 			return 0;
+-- 
+2.20.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
