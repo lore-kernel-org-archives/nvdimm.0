@@ -1,67 +1,61 @@
-Return-Path: <SRS0=37nA=X7=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=J2wO=YA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CECC5C4360C
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  6 Oct 2019 17:25:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF388C47404
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  7 Oct 2019 08:20:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9B9042077B
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  6 Oct 2019 17:25:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 8B10320867
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  7 Oct 2019 08:20:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RFX9iEr5"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9B9042077B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="ucHtKJn0"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8B10320867
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A393510FC3CBB;
-	Sun,  6 Oct 2019 10:28:32 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::244; helo=mail-lj1-x244.google.com; envelope-from=torvalds@linuxfoundation.org; receiver=<UNKNOWN> 
-Received: from mail-lj1-x244.google.com (mail-lj1-x244.google.com [IPv6:2a00:1450:4864:20::244])
+	by ml01.01.org (Postfix) with ESMTP id 91C1910FC575F;
+	Mon,  7 Oct 2019 01:23:30 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::643; helo=mail-pl1-x643.google.com; envelope-from=brendanhiggins@google.com; receiver=<UNKNOWN> 
+Received: from mail-pl1-x643.google.com (mail-pl1-x643.google.com [IPv6:2607:f8b0:4864:20::643])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DCAF010FC3CB9
-	for <linux-nvdimm@lists.01.org>; Sun,  6 Oct 2019 10:28:29 -0700 (PDT)
-Received: by mail-lj1-x244.google.com with SMTP id m13so11193641ljj.11
-        for <linux-nvdimm@lists.01.org>; Sun, 06 Oct 2019 10:25:44 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 592DF10FC575C
+	for <linux-nvdimm@lists.01.org>; Mon,  7 Oct 2019 01:23:27 -0700 (PDT)
+Received: by mail-pl1-x643.google.com with SMTP id c3so5030831plo.2
+        for <linux-nvdimm@lists.01.org>; Mon, 07 Oct 2019 01:20:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
+        d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=nqhtcbRfDvEQJJkAJFzv4RBTuiXKftvmCXLEi1f3srQ=;
-        b=RFX9iEr5oOWgtzp3IBXT04OndQR1DU0EDSHmP2z8P81qc5WnlH3q3z+H6Fn+Q2bRDQ
-         H0mj8t0g+mmdm8jwf4l9ysW9y9jx14fPTmNboT3xsSFw9Hg+XXFMXj7P26RjheVyaX4i
-         ysqZhaJqY2V93IZXO8nKnxagXIV7guXuOEkKQ=
+        bh=ote0/C1JReGNWp+FkearLP+n5iZPIKVYgqsUmtRTjFs=;
+        b=ucHtKJn0UJ/TfFDX+4FXj4mOFaUq1DsFLZGjyuBNxfgLXveZezTTcBAH3AoBOIOBEU
+         9Q68fJQlIZMn6KrlKTDzJpjNG8TqWULiaH2rlCAcf0lZ+nNuMEV+zgZrBiY1Dw9yJ+u+
+         CnikzZLmoBcE6hsbUbbZy61X/2MSIy8UU9KMfv7H8WYsp7Inq5RegXOks3+X+J8jqMPm
+         hKQmH60pRG9T9rirx2yP0hvm85sKqjotn7r05OGpiU9g/AO8TGbcjQmonzZgKOXmk0sp
+         Q/OF6iGuie1Fhf7sgCtf3kcTPs1M9fwLUXXUhWuFlWamP+XzN2k7qw0YD2qXx5TZ+Lra
+         z5Tg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=nqhtcbRfDvEQJJkAJFzv4RBTuiXKftvmCXLEi1f3srQ=;
-        b=dZwLnG35fAPItoj5QKoDLkk7YusfYM2/MK/oZL4qwRS6w94naj/qpSK1YtKEMQncvL
-         bfzrrexgMrL5XN9JJPDksbyqmM3oO/Fi1iLMFwibTcA8Ox34ECEZF1//J2OPCIY3IBiJ
-         APzQQOUxIKUvddZAlieeLSDZExXVRsQdjTPLjR3wf2g61Rp863L1O8FOB/xxx/bj8mWD
-         3gIqmBdsHSth3bElnE8wCiwNh1hY+0ewd9Wdd20PbmrfqfGsx0rXaqchXL1S134ce4w2
-         NJAXtzzSekAAb3104FrBXAQVS6bHpqvoQI0NojVBBGP/jSYwgjkHRaQZNdHFRLKln2Je
-         PEzw==
-X-Gm-Message-State: APjAAAV5yNz+kfljGC4hBbxmRkxDz35AP6fBoNG7SlEjFEqqhhmO5aSC
-	vbFxhdd80aKtu6KUIO6KQ8RV7ukBsz0=
-X-Google-Smtp-Source: APXvYqySL4KZVQ3IXO0Big+/dwX3K2gHcTb/IWcXliGaYCOWZSU5MB/fXs6y38iXnvpKfxg/7cUSPQ==
-X-Received: by 2002:a2e:4296:: with SMTP id h22mr15968651ljf.208.1570382741148;
-        Sun, 06 Oct 2019 10:25:41 -0700 (PDT)
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com. [209.85.167.43])
-        by smtp.gmail.com with ESMTPSA id b25sm3085563ljj.36.2019.10.06.10.25.40
-        for <linux-nvdimm@lists.01.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 06 Oct 2019 10:25:40 -0700 (PDT)
-Received: by mail-lf1-f43.google.com with SMTP id w6so7645267lfl.2
-        for <linux-nvdimm@lists.01.org>; Sun, 06 Oct 2019 10:25:40 -0700 (PDT)
-X-Received: by 2002:a19:741a:: with SMTP id v26mr14509292lfe.79.1570382307072;
- Sun, 06 Oct 2019 10:18:27 -0700 (PDT)
+        bh=ote0/C1JReGNWp+FkearLP+n5iZPIKVYgqsUmtRTjFs=;
+        b=f1yjo1+vq6rBY66d4/XUFUdFvvzzRGQe3xYZtmG2jPijmbotubq0ZNspbkoH+pcibU
+         zjnm66aS4/Fzu6gv6dbFn5DELbyeq8YI9So9Smh0MJVF/wp9jA7uJQ7GG22CHFBG7iID
+         OF5yq8V0PnqVF/r0RxRd0KnEIxax4Y+7o00We/4n/CY8lZ8QgIFTmwEO6OKObYvE4Z3I
+         6IoLt//+EBCbPYDj3KOvqyu/LXkLh8ie7lIY1iVFZnJ5yUbYMN+ODcoy4r0sjaPuZT8l
+         7meq6fMoRl1jmhLS1/8fSiZHchLy1M5zxCx8MFhVRzEoCRJekJACkgOApmIkiOjDO0hM
+         k1Aw==
+X-Gm-Message-State: APjAAAXz2jglWV/yjKyw1U4QevmHsYftK0X8abQHGC3PVOkSU+LNuF5A
+	og02UykI9GNGy446hsEicvIPnbuBDWxJ92ZLJIYWzA==
+X-Google-Smtp-Source: APXvYqx8Yk5sgQkWXnFQm4/CGRSWyRMpxzmUgLAHY9vWCZW1JOEviLWEyRGwfm5yzonhZdNlXfXkmD5OjjAPHS+whBM=
+X-Received: by 2002:a17:902:8f88:: with SMTP id z8mr28990175plo.232.1570436445413;
+ Mon, 07 Oct 2019 01:20:45 -0700 (PDT)
 MIME-Version: 1.0
 References: <CAHk-=whX-JbpM2Sc85epng_GAgGGzxRAJ2SSKkMf9N1Lsqe+OA@mail.gmail.com>
  <56e2e1a7-f8fe-765b-8452-1710b41895bf@kernel.org> <20191004222714.GA107737@google.com>
@@ -71,24 +65,23 @@ References: <CAHk-=whX-JbpM2Sc85epng_GAgGGzxRAJ2SSKkMf9N1Lsqe+OA@mail.gmail.com>
  <544bdfcb-fb35-5008-ec94-8d404a08fd14@kernel.org> <CAFd5g467PkfELixpU0JbaepEAAD_ugAA340-uORngC-eXsQQ-g@mail.gmail.com>
  <20191006165436.GA29585@mit.edu>
 In-Reply-To: <20191006165436.GA29585@mit.edu>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 6 Oct 2019 10:18:11 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjcJxypxUOSF-jc=SQKT1CrOoTMyT7soYzbvK3965JmCA@mail.gmail.com>
-Message-ID: <CAHk-=wjcJxypxUOSF-jc=SQKT1CrOoTMyT7soYzbvK3965JmCA@mail.gmail.com>
+From: Brendan Higgins <brendanhiggins@google.com>
+Date: Mon, 7 Oct 2019 01:20:34 -0700
+Message-ID: <CAFd5g47XogYaO24fHnRR9wyki_r4oQg0qSWo9kOgnXpyTuJAWw@mail.gmail.com>
 Subject: Re: [PATCH v18 00/19] kunit: introduce KUnit, the Linux kernel unit
  testing framework
 To: "Theodore Y. Ts'o" <tytso@mit.edu>
-Message-ID-Hash: TRJVCL3KXSOZ5SDU4HFZNL23ZVKP24X5
-X-Message-ID-Hash: TRJVCL3KXSOZ5SDU4HFZNL23ZVKP24X5
-X-MailFrom: torvalds@linuxfoundation.org
+Message-ID-Hash: 2ABHV5QDSTM2256BHEXSY2KVYARYA3GV
+X-Message-ID-Hash: 2ABHV5QDSTM2256BHEXSY2KVYARYA3GV
+X-MailFrom: brendanhiggins@google.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Brendan Higgins <brendanhiggins@google.com>, shuah <shuah@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, Sasha Levin <Alexander.Levin@microsoft.com>, "B
- ird, Timothy" <Tim.Bird@sony.com>, Amir Goldstein <amir73il@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Daniel Vetter <daniel@ffwll.ch>, Jeff Dike <jdike@addtoit.com>, Joel Stanley <joel@jms.id.au>, Julia Lawall <julia.lawall@lip6.fr>, Kevin Hilman <khilman@baylibre.com>, Knut Omang <knut.omang@oracle.com>, Michael Ellerman <mpe@ellerman.id.au>, Petr Mladek <pmladek@suse.com>, Randy Dunlap <rdunlap@infradead.org>, Richard Weinberger <richard@nod.at>, David Rientjes <rientjes@google.com>, Steven Rostedt <rostedt@goodmis.org>, wfg@linux.intel.com
+CC: shuah <shuah@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Frank Rowand <frowand.list@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Kees Cook <keescook@google.com>, Kieran Bingham <kieran.bingham@ideasonboard.com>, Luis Chamberlain <mcgrof@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Rob Herring <robh@kernel.org>, Stephen Boyd <sboyd@kernel.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, devicetree <devicetree@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, kunit-dev@googlegroups.com, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, Sasha Levin <Alexander.Levin@microsoft.com>,
+  "Bird, Timothy" <Tim.Bird@sony.com>, Amir Goldstein <amir73il@gmail.com>, Dan Carpenter <dan.carpenter@oracle.com>, Daniel Vetter <daniel@ffwll.ch>, Jeff Dike <jdike@addtoit.com>, Joel Stanley <joel@jms.id.au>, Julia Lawall <julia.lawall@lip6.fr>, Kevin Hilman <khilman@baylibre.com>, Knut Omang <knut.omang@oracle.com>, Michael Ellerman <mpe@ellerman.id.au>, Petr Mladek <pmladek@suse.com>, Randy Dunlap <rdunlap@infradead.org>, Richard Weinberger <richard@nod.at>, David Rientjes <rientjes@google.com>, Steven Rostedt <rostedt@goodmis.org>, wfg@linux.intel.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TRJVCL3KXSOZ5SDU4HFZNL23ZVKP24X5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2ABHV5QDSTM2256BHEXSY2KVYARYA3GV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -99,24 +92,80 @@ Content-Transfer-Encoding: 7bit
 
 On Sun, Oct 6, 2019 at 9:55 AM Theodore Y. Ts'o <tytso@mit.edu> wrote:
 >
+> On Fri, Oct 04, 2019 at 06:18:04PM -0700, Brendan Higgins wrote:
+> > > Let's talk about current state. Right now kunit is in linux-next and
+> > > we want to add a few more tests. We will have to coordinate the effort.
+> > > Once kunit get into mainline, then the need for this coordination goes
+> > > down.
+> >
+> > Sure, I was just thinking that getting other people to write the tests
+> > would be better. Since not only is it then useful to someone else, it
+> > provides the best possible exercise of KUnit.
+>
 > Well, one thing we *can* do is if (a) if we can create a kselftest
 > branch which we know is stable and won't change, and (b) we can get
 > assurances that Linus *will* accept that branch during the next merge
 > window, those subsystems which want to use kself test can simply pull
 > it into their tree.
 
-Yes.
+Yeah, I can't think of any reason that you haven't outlined already
+why that might not work, but that seems kind of like circumventing
+Linus.
 
-At the same time, I don't think it needs to be even that fancy. Even
-if it's not a stable branch that gets shared between different
-developers, it would be good to just have people do a "let's try this"
-throw-away branch to use the kunit functionality and verify that
-"yeah, this is fairly convenient for ext4".
+> We've done this before in the file system world, when there has been
+> some common set of changes needed to improve, say, Direct I/O, where
+> the changes are put into a standalone branch, say, in the xfs tree,
+> and those file systems which need it as a building block can pull it
+> into their tree, and then add the changes needed to use those changes
+> into their file system git tree.  These changes are generally not
+> terribly controversial, and we've not had to worry about people want
+> to bikeshed the changes.
+>
+> There is a risk with doing this of course, which is that if the branch
+> *is* controversial, or gets bike-shedded for some reason, then Linus
+> gets upset and any branches which depended on said branch will get
+> rejected at the next merge window.  Which is the requirement for (a)
+> and (b) above.  Presumably, the fact that people were unwilling to let
+> Kunit land during this merge window might will *because* we think more
+> changes might be pending?
 
-It doesn't have to be merged in that form, but just confirmation that
-the infrastructure is helpful before it gets merged would be good.
+My understanding, based on what I have been told, is that we were
+simply unlucky with the timing when Linus pulled the branch in the
+first week of the 5.4 merge window (Friday), such that once I fixed
+the directory naming issue, the updated changes didn't spend enough
+time in linux-next. And now with this issue fixed and KUnit back in
+linux-next, if nothing interesting happens between now and 5.5, it
+will be accepted in the 5.5 merge window. I do not think that anyone
+is expecting anymore changes before merging.
 
-               Linus
+Shuah, Linus, is my understanding correct?
+
+> The other thing I suppose I can do is to let the ext4 kunit tests land
+> in ext4 tree, but with the necessary #ifdef's around things like
+> "#include <kunit/test.h>" so that the build won't blow up w/o kunit
+> changes being in the tree that I'm building.  It means I won't be able
+> to run the tests without creating a test integration branch and
+> merging in kunit by hand, which will super-annoying, of course.  And
+> if some of the bike-shedding is in Kunit's interfaces, then that
+> becomes problematic as well, since any tests that are in ext4.git tree
+> might change if people want to rename Kunit's publically exported
+> functions (for example).
+
+Yeah, that seems even worse. I'm sorry to have caused this frustration.
+
+> > Hey Ted, do you know if that ext4 timestamp test can go in through
+> > linux-kselftest? It seemed fairly self-contained. Or is that what you
+> > were saying wouldn't work for you?
+>
+> Well, I was hoping that we might start creating more tests beyond just
+> the ext4 timestamp tests....
+
+Okay, that's what I thought (and what I hoped) you were saying :-)
+
+I hope we can figure out something that will work for you. Or
+otherwise that you won't mind waiting until 5.5.
+
+Sorry
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
