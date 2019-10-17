@@ -1,85 +1,119 @@
 Return-Path: <SRS0=//bq=YK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.4 required=3.0 tests=DEAR_SOMETHING,
-	DKIM_ADSP_CUSTOM_MED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 438ACFA372A
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Oct 2019 15:24:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C97FA372A
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Oct 2019 15:31:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 216B221848
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Oct 2019 15:24:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 216B221848
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id CAF8E20663
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Oct 2019 15:31:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CAF8E20663
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2C622100DC3E1;
-	Thu, 17 Oct 2019 08:27:20 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=94.177.232.70; helo=mail.moleaves.ml; envelope-from=apache@mail.moleaves.ml; receiver=<UNKNOWN> 
-Received: from mail.moleaves.ml (unknown [94.177.232.70])
-	by ml01.01.org (Postfix) with ESMTP id 67273100DC3C5
-	for <linux-nvdimm@lists.01.org>; Thu, 17 Oct 2019 07:52:01 -0700 (PDT)
-Received: by mail.moleaves.ml (Postfix, from userid 48)
-	id A71261D09; Thu, 17 Oct 2019 10:49:01 -0400 (EDT)
-To: linux-nvdimm@lists.01.org
-Subject: Project Establishment
-X-PHP-Originating-Script: 0:amiialer.php
-From: Aseel Finance UAE. <saifd9604@gmail.com>
+	by ml01.01.org (Postfix) with ESMTP id 1F62E100DC3D1;
+	Thu, 17 Oct 2019 08:34:36 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.115; helo=mga14.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id E07AA100DC3C9
+	for <linux-nvdimm@lists.01.org>; Thu, 17 Oct 2019 08:34:27 -0700 (PDT)
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 17 Oct 2019 08:31:28 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.67,308,1566889200";
+   d="scan'208";a="226202626"
+Received: from fmsmsx105.amr.corp.intel.com ([10.18.124.203])
+  by fmsmga002.fm.intel.com with ESMTP; 17 Oct 2019 08:31:28 -0700
+Received: from fmsmsx151.amr.corp.intel.com (10.18.125.4) by
+ FMSMSX105.amr.corp.intel.com (10.18.124.203) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Thu, 17 Oct 2019 08:31:28 -0700
+Received: from crsmsx101.amr.corp.intel.com (172.18.63.136) by
+ FMSMSX151.amr.corp.intel.com (10.18.125.4) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Thu, 17 Oct 2019 08:31:27 -0700
+Received: from crsmsx102.amr.corp.intel.com ([169.254.2.18]) by
+ CRSMSX101.amr.corp.intel.com ([169.254.1.128]) with mapi id 14.03.0439.000;
+ Thu, 17 Oct 2019 09:31:25 -0600
+From: "Weiny, Ira" <ira.weiny@intel.com>
+To: luanshi <zhangliguang@linux.alibaba.com>, "Williams, Dan J"
+	<dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>,
+	"Jiang, Dave" <dave.jiang@intel.com>, "Busch, Keith" <keith.busch@intel.com>
+Subject: RE: [PATCH v1] libnvdimm: fix kernel-doc notation
+Thread-Topic: [PATCH v1] libnvdimm: fix kernel-doc notation
+Thread-Index: AQHVhIl0HtXbMJbt5Uu8f+JzaDzlzKde9oyw
+Date: Thu, 17 Oct 2019 15:31:24 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E92B4F88E@CRSMSX102.amr.corp.intel.com>
+References: <1571275380-28209-1-git-send-email-zhangliguang@linux.alibaba.com>
+In-Reply-To: <1571275380-28209-1-git-send-email-zhangliguang@linux.alibaba.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiMDExODNjZDctNmJmYi00YThkLTkwYjgtNjE3NDQ0Y2Q2NDJjIiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoidTNmTjd1Y3J3UFdVWTE5RGFLckNlWFRxV3VDMUJhbFNQakZXVXp1Nzl3WTJnY0hNK0ZWaE5jNW5cL1NsTWRpTEQifQ==
+x-ctpclassification: CTP_NT
+dlp-product: dlpe-windows
+dlp-version: 11.2.0.6
+dlp-reaction: no-action
+x-originating-ip: [172.18.205.10]
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Message-Id: <20191017144901.A71261D09@mail.moleaves.ml>
-Date: Thu, 17 Oct 2019 10:49:01 -0400 (EDT)
-Message-ID-Hash: BFAQW5KLGN7JJUVAEFDOPUITLWTSFEKO
-X-Message-ID-Hash: BFAQW5KLGN7JJUVAEFDOPUITLWTSFEKO
-X-MailFrom: apache@mail.moleaves.ml
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Message-ID-Hash: AX7UCGTVRHERMTTG2QMGKTQZXRNUIV77
+X-Message-ID-Hash: AX7UCGTVRHERMTTG2QMGKTQZXRNUIV77
+X-MailFrom: ira.weiny@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: saifdawood01@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BFAQW5KLGN7JJUVAEFDOPUITLWTSFEKO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AX7UCGTVRHERMTTG2QMGKTQZXRNUIV77/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dear Sir,
+> Subject: [PATCH v1] libnvdimm: fix kernel-doc notation
+> 
+> Fix kernel-doc notation in drivers/nvdimm/namespace_devs.c.
+> 
+> Fixes: bf9bccc14c05 ("libnvdimm: pmem label sets and namespace
+> instantiation.")
+> Signed-off-by: Liguang Zhang <zhangliguang@linux.alibaba.com>
 
-As-Salaam-Alaikum.
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
-Greetings from Aseel Islamic Finance PJSC.
-
-Aseel Islamic finance PJSC is private joint stock company that was
-
-established in 2006 and has built a leading market position for itself in the UAE's finance market which specializes in loan finance and investment activities in real estate, hospitality, sports, industrial & sustainable technologies, strategic financial investments,specialized education, healthcare services, agriculture,manufacturing, mining, energy and additional environmentally sustainable projects.
-
-My Name is Saif dawood. Do you have projects that require funding? We have finance available for your projects with over 2 trillion private and corporate investment portfolios. Aseel Islamic finance PJSC is
-looking for equity partners, entrepreneur, fund raisers and portfolio managers who will pay up to 3.5% interest and/or part equity position with a 5 to 10 year hold. In 2030, we plan on acquiring up to 2 trillion in high-quality, low risk assets and investments to capitalize on the current market cycle.
-
-Aseel Islamic finance PJSC is acting as a lender and the fund will be disbursed on a clear interest rate of 3.5% annually to the equity partners and entrepreneurs for their investment projects. We also give a 2% commission to brokers, who bring project owners for finance or
-other opportunities.
-
-For further details, kindly send us via email with your business plans or project summary.
-
-Regards,
-
-Mr. SaIf Dawood
-International Business Coordinator 
-Aseel Islamic Finance PJSC 
-Al Mankhool, Dubai C2 Tower,
-Ground floor,P.O 94669 Dubai,
-United Arab Emirates               
-+971 586 242 191
-
+> ---
+>  drivers/nvdimm/namespace_devs.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/nvdimm/namespace_devs.c
+> b/drivers/nvdimm/namespace_devs.c index cca0a3b..3851245 100644
+> --- a/drivers/nvdimm/namespace_devs.c
+> +++ b/drivers/nvdimm/namespace_devs.c
+> @@ -1900,7 +1900,7 @@ static int select_pmem_id(struct nd_region
+> *nd_region, u8 *pmem_id)
+>  /**
+>   * create_namespace_pmem - validate interleave set labelling, retrieve
+> label0
+>   * @nd_region: region with mappings to validate
+> - * @nspm: target namespace to create
+> + * @nsindex: target namespace index to create
+>   * @nd_label: target pmem namespace label to evaluate
+>   */
+>  static struct device *create_namespace_pmem(struct nd_region
+> *nd_region,
+> --
+> 1.8.3.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
