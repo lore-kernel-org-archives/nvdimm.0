@@ -2,57 +2,65 @@ Return-Path: <SRS0=eWMM=YN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D437CA9EA0
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 03:23:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45BE0CA9EAE
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 23:35:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7CC3D206C1
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 03:23:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7CC3D206C1
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 0CE8221A4A
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 23:35:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0CE8221A4A
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D71F91007A826;
-	Sat, 19 Oct 2019 20:25:42 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 87C9E10079B20;
+	Sun, 20 Oct 2019 16:37:02 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.210.66; helo=mail-ot1-f66.google.com; envelope-from=rjwysocki@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-ot1-f66.google.com (mail-ot1-f66.google.com [209.85.210.66])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A8A0A1007B5D1
-	for <linux-nvdimm@lists.01.org>; Sat, 19 Oct 2019 20:25:40 -0700 (PDT)
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Oct 2019 20:23:45 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.67,318,1566889200";
-   d="scan'208";a="187207980"
-Received: from vverma7-desk1.lm.intel.com ([10.232.112.164])
-  by orsmga007.jf.intel.com with ESMTP; 19 Oct 2019 20:23:44 -0700
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <linux-nvdimm@lists.01.org>
-Subject: [ndctl PATCH v2 10/10] daxctl: add --no-movable option for onlining memory
-Date: Sat, 19 Oct 2019 21:23:32 -0600
-Message-Id: <20191020032332.16776-11-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20191020032332.16776-1-vishal.l.verma@intel.com>
-References: <20191020032332.16776-1-vishal.l.verma@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id B2D2910079B1E
+	for <linux-nvdimm@lists.01.org>; Sun, 20 Oct 2019 16:36:57 -0700 (PDT)
+Received: by mail-ot1-f66.google.com with SMTP id y39so9455376ota.7
+        for <linux-nvdimm@lists.01.org>; Sun, 20 Oct 2019 16:35:08 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=N1/IHN/ve/UVAvkgwgytXM/n+jeqbbwYBnVAoJItoZs=;
+        b=NxMHEiBUnP6JvbQs9PPJcAtI/X0mTOhayJ1n+3A9kIoqIGUYB48oC0H8h3wNf4TTws
+         +C8Ap4fC3lJVUVkwKS9xK9Ovt05bYZ5vnuOCnlrxXf7njz2PquNmWUYhZZL66VwwP2fk
+         dMCdm6StDWRSypXelWp7QuIHA4IcgR8d2cxl/EpregWD7j83TyJ6+KW08o4EkOAUlAnp
+         Sh/pJ6RUDiSXBjqDrUBJH0blGHrUUmDn3zf1yQoE86d7opdeD6WR5kQ9GH2Jn6oph/E3
+         4U1m590WheYUlHkuG8PFcXrEPwl8MKXEgnx/VaSviPwX6qqMK8jqLClC2/PBB1AIYS1A
+         IHtw==
+X-Gm-Message-State: APjAAAWEwdBMxuxv+Y3EoXofTknanp0+zfz9WE31FxcF8mItyo3WQ2Ws
+	/Y/3rQ7mG3PocqcKu8XlaWW3+eL8oaIf2g+ODuA=
+X-Google-Smtp-Source: APXvYqyuOzu9MZlBlyPAZ1+sMzYtlHZqQtbfvDQ/pZzcle5REH+v+AVjOknrXhmJX1pYgksatO3r38jMIOd9qPCFG+k=
+X-Received: by 2002:a9d:664:: with SMTP id 91mr9655425otn.189.1571614507410;
+ Sun, 20 Oct 2019 16:35:07 -0700 (PDT)
 MIME-Version: 1.0
-Message-ID-Hash: XLJ5BLHUL6LTYNJ7ZZ7JXLQVN7J6BQ2C
-X-Message-ID-Hash: XLJ5BLHUL6LTYNJ7ZZ7JXLQVN7J6BQ2C
-X-MailFrom: vishal.l.verma@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Ben Olson <ben.olson@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+References: <20191018123534.GA6549@mwanda>
+In-Reply-To: <20191018123534.GA6549@mwanda>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Mon, 21 Oct 2019 01:34:56 +0200
+Message-ID: <CAJZ5v0jeoJrrn56VqRSoY-Mc9rp04tWYbTCsQugZV=vXQk0nNg@mail.gmail.com>
+Subject: Re: [PATCH] acpi/nfit: unlock on error in scrub_show()
+To: Dan Carpenter <dan.carpenter@oracle.com>, Dan Williams <dan.j.williams@intel.com>
+Message-ID-Hash: XCH6R7B5K2ULRTPMNMDFEH4HYCGHH35L
+X-Message-ID-Hash: XCH6R7B5K2ULRTPMNMDFEH4HYCGHH35L
+X-MailFrom: rjwysocki@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XLJ5BLHUL6LTYNJ7ZZ7JXLQVN7J6BQ2C/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XCH6R7B5K2ULRTPMNMDFEH4HYCGHH35L/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,169 +69,35 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a new '--no-movable' option to daxctl commands that may online
-memory - i.e. daxctl-reconfigure-device and daxctl-online-memory.
+On Fri, Oct 18, 2019 at 2:38 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> We change the locking in this function and forgot to update this error
+> path so we are accidentally still holding the "dev->lockdep_mutex".
+>
+> Fixes: 87a30e1f05d7 ("driver-core, libnvdimm: Let device subsystems add local lockdep coverage")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 1413324982f0..14e68f202f81 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1322,7 +1322,7 @@ static ssize_t scrub_show(struct device *dev,
+>         nfit_device_lock(dev);
+>         nd_desc = dev_get_drvdata(dev);
+>         if (!nd_desc) {
+> -               device_unlock(dev);
+> +               nfit_device_unlock(dev);
+>                 return rc;
+>         }
+>         acpi_desc = to_acpi_desc(nd_desc);
+> --
 
-Users may wish additional control over the state of the newly added
-memory. Retain the daxctl default for onlining memory as 'movable', but
-allow it to be overridden using the above option.
+Applying as a fix for 5.4, thanks!
 
-Link: https://github.com/pmem/ndctl/issues/110
-Cc: Ben Olson <ben.olson@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Documentation/daxctl/daxctl-online-memory.txt |  2 ++
- .../daxctl/daxctl-reconfigure-device.txt      |  2 ++
- Documentation/daxctl/movable-options.txt      |  9 +++++
- daxctl/device.c                               | 34 ++++++++++++++++---
- 4 files changed, 43 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/daxctl/movable-options.txt
-
-diff --git a/Documentation/daxctl/daxctl-online-memory.txt b/Documentation/daxctl/daxctl-online-memory.txt
-index 5ac1cbf..08b45cc 100644
---- a/Documentation/daxctl/daxctl-online-memory.txt
-+++ b/Documentation/daxctl/daxctl-online-memory.txt
-@@ -62,6 +62,8 @@ OPTIONS
- 	more /dev/daxX.Y devices, where X is the region id and Y is the device
- 	instance id.
- 
-+include::movable-options.txt[]
-+
- -u::
- --human::
- 	By default the command will output machine-friendly raw-integer
-diff --git a/Documentation/daxctl/daxctl-reconfigure-device.txt b/Documentation/daxctl/daxctl-reconfigure-device.txt
-index 4663529..cb28fed 100644
---- a/Documentation/daxctl/daxctl-reconfigure-device.txt
-+++ b/Documentation/daxctl/daxctl-reconfigure-device.txt
-@@ -135,6 +135,8 @@ OPTIONS
- 	brought online automatically and immediately with the 'online_movable'
- 	policy. Use this option to disable the automatic onlining behavior.
- 
-+include::movable-options.txt[]
-+
- -f::
- --force::
- 	When converting from "system-ram" mode to "devdax", it is expected
-diff --git a/Documentation/daxctl/movable-options.txt b/Documentation/daxctl/movable-options.txt
-new file mode 100644
-index 0000000..cecd401
---- /dev/null
-+++ b/Documentation/daxctl/movable-options.txt
-@@ -0,0 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+--no-movable::
-+	'--movable' is the default. This can be overridden to online new
-+	memory such that is is not 'movable'. This allows any allocation
-+	to potentially be served from this memory. This may preclude subsequent
-+	removal. With the '--movable' behavior (which is default), kernel
-+	allocations will not consider this memory, and it will be reserved
-+	for application use.
-diff --git a/daxctl/device.c b/daxctl/device.c
-index 28698bf..72e506e 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -21,6 +21,7 @@ static struct {
- 	const char *mode;
- 	int region_id;
- 	bool no_online;
-+	bool no_movable;
- 	bool force;
- 	bool human;
- 	bool verbose;
-@@ -37,6 +38,12 @@ enum dev_mode {
- static enum dev_mode reconfig_mode = DAXCTL_DEV_MODE_UNKNOWN;
- static unsigned long flags;
- 
-+enum memory_zone {
-+	MEM_ZONE_MOVABLE,
-+	MEM_ZONE_NORMAL,
-+};
-+static enum memory_zone mem_zone = MEM_ZONE_MOVABLE;
-+
- enum device_action {
- 	ACTION_RECONFIG,
- 	ACTION_ONLINE,
-@@ -55,13 +62,24 @@ OPT_BOOLEAN('N', "no-online", &param.no_online, \
- OPT_BOOLEAN('f', "force", &param.force, \
- 		"attempt to offline memory sections before reconfiguration")
- 
-+#define ZONE_OPTIONS() \
-+OPT_BOOLEAN('\0', "no-movable", &param.no_movable, \
-+		"online memory in ZONE_NORMAL")
-+
- static const struct option reconfig_options[] = {
- 	BASE_OPTIONS(),
- 	RECONFIG_OPTIONS(),
-+	ZONE_OPTIONS(),
-+	OPT_END(),
-+};
-+
-+static const struct option online_options[] = {
-+	BASE_OPTIONS(),
-+	ZONE_OPTIONS(),
- 	OPT_END(),
- };
- 
--static const struct option memory_options[] = {
-+static const struct option offline_options[] = {
- 	BASE_OPTIONS(),
- 	OPT_END(),
- };
-@@ -126,6 +144,8 @@ static const char *parse_device_options(int argc, const char **argv,
- 		}
- 		if (strcmp(param.mode, "system-ram") == 0) {
- 			reconfig_mode = DAXCTL_DEV_MODE_RAM;
-+			if (param.no_movable)
-+				mem_zone = MEM_ZONE_NORMAL;
- 		} else if (strcmp(param.mode, "devdax") == 0) {
- 			reconfig_mode = DAXCTL_DEV_MODE_DEVDAX;
- 			if (param.no_online) {
-@@ -136,6 +156,9 @@ static const char *parse_device_options(int argc, const char **argv,
- 		}
- 		break;
- 	case ACTION_ONLINE:
-+		if (param.no_movable)
-+			mem_zone = MEM_ZONE_NORMAL;
-+		/* fall through */
- 	case ACTION_OFFLINE:
- 		/* nothing special */
- 		break;
-@@ -194,7 +217,10 @@ static int dev_online_memory(struct daxctl_dev *dev)
- 			num_on == 1 ? "" : "s");
- 
- 	/* online the remaining sections */
--	rc = daxctl_memory_online(mem);
-+	if (param.no_movable)
-+		rc = daxctl_memory_online_no_movable(mem);
-+	else
-+		rc = daxctl_memory_online(mem);
- 	if (rc < 0) {
- 		fprintf(stderr, "%s: failed to online memory: %s\n",
- 			devname, strerror(-rc));
-@@ -521,7 +547,7 @@ int cmd_online_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
- {
- 	char *usage = "daxctl online-memory <device> [<options>]";
- 	const char *device = parse_device_options(argc, argv, ACTION_ONLINE,
--			memory_options, usage, ctx);
-+			online_options, usage, ctx);
- 	int processed, rc;
- 
- 	rc = do_xaction_device(device, ACTION_ONLINE, ctx, &processed);
-@@ -538,7 +564,7 @@ int cmd_offline_memory(int argc, const char **argv, struct daxctl_ctx *ctx)
- {
- 	char *usage = "daxctl offline-memory <device> [<options>]";
- 	const char *device = parse_device_options(argc, argv, ACTION_OFFLINE,
--			memory_options, usage, ctx);
-+			offline_options, usage, ctx);
- 	int processed, rc;
- 
- 	rc = do_xaction_device(device, ACTION_OFFLINE, ctx, &processed);
--- 
-2.20.1
+@Dan W: Please let me know if you'd rather take it yourself.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
