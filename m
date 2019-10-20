@@ -2,56 +2,57 @@ Return-Path: <SRS0=eWMM=YN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0
+	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C37CA9EAD
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 03:23:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2695ACA9EA0
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 03:23:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id ACC1A206C1
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 03:23:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ACC1A206C1
+	by mail.kernel.org (Postfix) with ESMTPS id F3B39206C1
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Oct 2019 03:23:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F3B39206C1
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 122F21007B5CB;
+	by ml01.01.org (Postfix) with ESMTP id 27CF01007B5CF;
 	Sat, 19 Oct 2019 20:25:39 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E18541007B5C0
-	for <linux-nvdimm@lists.01.org>; Sat, 19 Oct 2019 20:25:36 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 6ADEC1007B5C0
+	for <linux-nvdimm@lists.01.org>; Sat, 19 Oct 2019 20:25:37 -0700 (PDT)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
   by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 19 Oct 2019 20:23:41 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.67,318,1566889200";
-   d="scan'208";a="187207946"
+   d="scan'208";a="187207949"
 Received: from vverma7-desk1.lm.intel.com ([10.232.112.164])
-  by orsmga007.jf.intel.com with ESMTP; 19 Oct 2019 20:23:40 -0700
+  by orsmga007.jf.intel.com with ESMTP; 19 Oct 2019 20:23:41 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-nvdimm@lists.01.org>
-Subject: [ndctl PATCH v2 02/10] libdaxctl: refactor memblock_is_online() checks
-Date: Sat, 19 Oct 2019 21:23:24 -0600
-Message-Id: <20191020032332.16776-3-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 03/10] daxctl/device.c: fix json output omission for reconfigure-device
+Date: Sat, 19 Oct 2019 21:23:25 -0600
+Message-Id: <20191020032332.16776-4-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20191020032332.16776-1-vishal.l.verma@intel.com>
 References: <20191020032332.16776-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: WRSPNCKQ5ZOLCMSK77FOOT62VLRO5PFN
-X-Message-ID-Hash: WRSPNCKQ5ZOLCMSK77FOOT62VLRO5PFN
+Message-ID-Hash: ALMWKEXRX4NDTUUQANUZKB5ZDYRU5KOY
+X-Message-ID-Hash: ALMWKEXRX4NDTUUQANUZKB5ZDYRU5KOY
 X-MailFrom: vishal.l.verma@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Ben Olson <ben.olson@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>
+CC: Ben Olson <ben.olson@intel.com>, Dave Hansen <dave.hansen@linux.intel.com>, Michal Biesek <michal.biesek@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WRSPNCKQ5ZOLCMSK77FOOT62VLRO5PFN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ALMWKEXRX4NDTUUQANUZKB5ZDYRU5KOY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -60,171 +61,34 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The {online,offline}_one_memblock() helpers both open-coded the check
-for whether a block is online. There is already a function to perform
-this check - memblock_is_online(). Consolidate the checking using this
-helper everywhere it is applicable.
+The reconfig_mode_{devdax,system_ram}() function can have a positive
+return status from memory online/offline operations, indicating skipped
+memory blocks. Don't omit printing the device listing json in these
+cases; the reconfiguration has succeeded, and its results should be
+printed.
 
+Link: https://github.com/pmem/ndctl/issues/115
+Reported-by: Michal Biesek <michal.biesek@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- daxctl/lib/libdaxctl.c | 90 +++++++++++++++++-------------------------
- 1 file changed, 37 insertions(+), 53 deletions(-)
+ daxctl/device.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index a828644..6243857 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -1047,12 +1047,11 @@ DAXCTL_EXPORT unsigned long daxctl_memory_get_block_size(struct daxctl_memory *m
- 	return mem->block_size;
- }
- 
--static int online_one_memblock(struct daxctl_memory *mem, char *memblock)
-+static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
- {
- 	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
--	const char *mode = "online_movable";
- 	int len = mem->buf_len, rc;
- 	char buf[SYSFS_ATTR_SIZE];
- 	char *path = mem->mem_buf;
-@@ -1073,41 +1072,20 @@ static int online_one_memblock(struct daxctl_memory *mem, char *memblock)
- 		return rc;
+diff --git a/daxctl/device.c b/daxctl/device.c
+index 4887ccf..920efc6 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -398,7 +398,7 @@ static int do_reconfig(struct daxctl_dev *dev, enum dev_mode mode,
+ 		rc = -EINVAL;
  	}
  
--	/*
--	 * if already online, possibly due to kernel config or a udev rule,
--	 * there is nothing to do and we can skip over the memblock
--	 */
- 	if (strncmp(buf, "online", 6) == 0)
- 		return 1;
- 
--	rc = sysfs_write_attr_quiet(ctx, path, mode);
--	if (rc) {
--		/*
--		 * While we performed an already-online check above, there
--		 * is still a TOCTOU hole where someone (such as a udev rule)
--		 * may have raced to online the memory. In such a case,
--		 * the sysfs store will fail, however we can check for this
--		 * by simply reading the state again. If it changed to the
--		 * desired state, then we don't have to error out.
--		 */
--		if (sysfs_read_attr(ctx, path, buf) == 0) {
--			if (strncmp(buf, "online", 6) == 0)
--				return 1;
--		}
--		err(ctx, "%s: Failed to online %s: %s\n",
--			devname, path, strerror(-rc));
--	}
--	return rc;
-+	/* offline */
-+	return 0;
- }
- 
--static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
-+static int online_one_memblock(struct daxctl_memory *mem, char *memblock)
- {
- 	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
--	const char *mode = "offline";
-+	const char *mode = "online_movable";
- 	int len = mem->buf_len, rc;
--	char buf[SYSFS_ATTR_SIZE];
- 	char *path = mem->mem_buf;
- 	const char *node_path;
- 
-@@ -1119,37 +1097,39 @@ static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
- 	if (rc < 0)
- 		return -ENOMEM;
- 
--	rc = sysfs_read_attr(ctx, path, buf);
--	if (rc) {
--		err(ctx, "%s: Failed to read %s: %s\n",
--			devname, path, strerror(-rc));
-+	/*
-+	 * if already online, possibly due to kernel config or a udev rule,
-+	 * there is nothing to do and we can skip over the memblock
-+	 */
-+	rc = memblock_is_online(mem, memblock);
-+	if (rc)
- 		return rc;
--	}
--
--	/* if already offline, there is nothing to do */
--	if (strncmp(buf, "offline", 7) == 0)
--		return 1;
- 
- 	rc = sysfs_write_attr_quiet(ctx, path, mode);
- 	if (rc) {
--		/* Close the TOCTOU hole like in online_one_memblock() above */
--		if (sysfs_read_attr(ctx, path, buf) == 0) {
--			if (strncmp(buf, "offline", 7) == 0)
--				return 1;
--		}
--		err(ctx, "%s: Failed to offline %s: %s\n",
-+		/*
-+		 * While we performed an already-online check above, there
-+		 * is still a TOCTOU hole where someone (such as a udev rule)
-+		 * may have raced to online the memory. In such a case,
-+		 * the sysfs store will fail, however we can check for this
-+		 * by simply reading the state again. If it changed to the
-+		 * desired state, then we don't have to error out.
-+		 */
-+		if (memblock_is_online(mem, memblock))
-+			return 1;
-+		err(ctx, "%s: Failed to online %s: %s\n",
- 			devname, path, strerror(-rc));
- 	}
- 	return rc;
- }
- 
--static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
-+static int offline_one_memblock(struct daxctl_memory *mem, char *memblock)
- {
- 	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
- 	const char *devname = daxctl_dev_get_devname(dev);
- 	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	const char *mode = "offline";
- 	int len = mem->buf_len, rc;
--	char buf[SYSFS_ATTR_SIZE];
- 	char *path = mem->mem_buf;
- 	const char *node_path;
- 
-@@ -1161,18 +1141,22 @@ static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
- 	if (rc < 0)
- 		return -ENOMEM;
- 
--	rc = sysfs_read_attr(ctx, path, buf);
--	if (rc) {
--		err(ctx, "%s: Failed to read %s: %s\n",
--			devname, path, strerror(-rc));
-+	/* if already offline, there is nothing to do */
-+	rc = memblock_is_online(mem, memblock);
+-	if (rc)
 +	if (rc < 0)
  		return rc;
--	}
--
--	if (strncmp(buf, "online", 6) == 0)
-+	if (!rc)
- 		return 1;
  
--	/* offline */
--	return 0;
-+	rc = sysfs_write_attr_quiet(ctx, path, mode);
-+	if (rc) {
-+		/* Close the TOCTOU hole like in online_one_memblock() above */
-+		if (!memblock_is_online(mem, memblock))
-+			return 1;
-+		err(ctx, "%s: Failed to offline %s: %s\n",
-+			devname, path, strerror(-rc));
-+	}
-+	return rc;
- }
- 
- static bool memblock_in_dev(struct daxctl_memory *mem, const char *memblock)
+ 	*jdevs = json_object_new_array();
 -- 
 2.20.1
 _______________________________________________
