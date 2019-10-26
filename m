@@ -2,56 +2,55 @@ Return-Path: <SRS0=gNwG=YT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BF4ECA9EA0
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 26 Oct 2019 01:20:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E933CA9EA0
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 26 Oct 2019 01:20:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 48B5121D7B
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 26 Oct 2019 01:20:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 48B5121D7B
+	by mail.kernel.org (Postfix) with ESMTPS id 7853520650
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 26 Oct 2019 01:20:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7853520650
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4D8E4100EA604;
-	Fri, 25 Oct 2019 18:21:52 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.93; helo=mga11.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+	by ml01.01.org (Postfix) with ESMTP id 64813100EA607;
+	Fri, 25 Oct 2019 18:21:58 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3E9C1100EA603
-	for <linux-nvdimm@lists.01.org>; Fri, 25 Oct 2019 18:21:50 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id A9E67100EA605
+	for <linux-nvdimm@lists.01.org>; Fri, 25 Oct 2019 18:21:55 -0700 (PDT)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 18:20:39 -0700
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 18:20:44 -0700
 X-IronPort-AV: E=Sophos;i="5.68,230,1569308400";
-   d="scan'208";a="202765243"
+   d="scan'208";a="373709682"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 18:20:39 -0700
-Subject: [ndctl PATCH 1/2] test/dax.sh: Make dax.sh more robust vs small
- namespaces
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 25 Oct 2019 18:20:44 -0700
+Subject: [ndctl PATCH 2/2] test/dax.sh: Split into ext4 and xfs tests
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
-Date: Fri, 25 Oct 2019 18:06:22 -0700
-Message-ID: <157205198226.4128114.4933188611203174148.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Fri, 25 Oct 2019 18:06:27 -0700
+Message-ID: <157205198738.4128114.5465698718258048294.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <157205197710.4128114.10329643056047769577.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <157205197710.4128114.10329643056047769577.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-2-gc94f
 MIME-Version: 1.0
-Message-ID-Hash: EEIGG5TJZASP4AOEQTANRTMSB46FAZCV
-X-Message-ID-Hash: EEIGG5TJZASP4AOEQTANRTMSB46FAZCV
+Message-ID-Hash: ARTI3LHFT3ZQBIBIQ623HC5RO5M6BVRU
+X-Message-ID-Hash: ARTI3LHFT3ZQBIBIQ623HC5RO5M6BVRU
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EEIGG5TJZASP4AOEQTANRTMSB46FAZCV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ARTI3LHFT3ZQBIBIQ623HC5RO5M6BVRU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -60,37 +59,167 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-If the namespace returned by test/dax-dev is too small ext4 may default
-to a 1K block-size. A 1K block-size precludes dax operation, so force a
-4K block-size in all cases.
+Given the test can fail based on the fs make it a passed in parameter
+and split the tests.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/dax.sh |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ test/Makefile.am |    3 +-
+ test/dax-ext4.sh |    1 +
+ test/dax-xfs.sh  |    1 +
+ test/dax.sh      |  101 +++++++++++++++++++++++++++++++-----------------------
+ 4 files changed, 62 insertions(+), 44 deletions(-)
+ create mode 120000 test/dax-ext4.sh
+ create mode 120000 test/dax-xfs.sh
 
+diff --git a/test/Makefile.am b/test/Makefile.am
+index 84474d080252..829146d5da74 100644
+--- a/test/Makefile.am
++++ b/test/Makefile.am
+@@ -46,7 +46,8 @@ TESTS +=\
+ 	blk-ns \
+ 	pmem-ns \
+ 	dax-dev \
+-	dax.sh \
++	dax-ext4.sh \
++	dax-xfs.sh \
+ 	device-dax \
+ 	device-dax-fio.sh \
+ 	mmap.sh \
+diff --git a/test/dax-ext4.sh b/test/dax-ext4.sh
+new file mode 120000
+index 000000000000..da4ec437a92a
+--- /dev/null
++++ b/test/dax-ext4.sh
+@@ -0,0 +1 @@
++dax.sh
+\ No newline at end of file
+diff --git a/test/dax-xfs.sh b/test/dax-xfs.sh
+new file mode 120000
+index 000000000000..da4ec437a92a
+--- /dev/null
++++ b/test/dax-xfs.sh
+@@ -0,0 +1 @@
++dax.sh
+\ No newline at end of file
 diff --git a/test/dax.sh b/test/dax.sh
-index 45c2027494e8..44bc6436a4a9 100755
+index 44bc6436a4a9..3933107920a9 100755
 --- a/test/dax.sh
 +++ b/test/dax.sh
-@@ -68,7 +68,7 @@ json=$($NDCTL list -N -n $dev)
+@@ -59,6 +59,56 @@ run_test() {
+ 	fi
+ }
+ 
++run_ext4() {
++	mkfs.ext4 -b 4096 /dev/$blockdev
++	mount /dev/$blockdev $MNT -o dax
++	fallocate -l 1GiB $MNT/$FILE
++	run_test $LINENO
++	umount $MNT
++
++	# convert pmem to put the memmap on the device
++	json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
++	eval $(json2var <<< "$json")
++	[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++	#note the blockdev returned from ndctl create-namespace lacks the /dev prefix
++
++	mkfs.ext4 -b 4096 /dev/$blockdev
++	mount /dev/$blockdev $MNT -o dax
++	fallocate -l 1GiB $MNT/$FILE
++	run_test $LINENO
++	umount $MNT
++	json=$($NDCTL create-namespace -m raw -f -e $dev)
++
++	eval $(json2var <<< "$json")
++	[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++	true
++}
++
++run_xfs() {
++	mkfs.xfs -f -d su=2m,sw=1,agcount=2 -m reflink=0 /dev/$blockdev
++	mount /dev/$blockdev $MNT -o dax
++	fallocate -l 1GiB $MNT/$FILE
++	run_test $LINENO
++	umount $MNT
++
++	# convert pmem to put the memmap on the device
++	json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
++	eval $(json2var <<< "$json")
++	[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++	mkfs.xfs -f -d su=2m,sw=1,agcount=2 -m reflink=0 /dev/$blockdev
++
++	mount /dev/$blockdev $MNT -o dax
++	fallocate -l 1GiB $MNT/$FILE
++	run_test $LINENO
++	umount $MNT
++	# revert namespace to raw mode
++
++	json=$($NDCTL create-namespace -m raw -f -e $dev)
++	eval $(json2var <<< "$json")
++	[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++	true
++}
++
+ set -e
+ mkdir -p $MNT
+ trap 'err $LINENO cleanup' ERR
+@@ -68,48 +118,13 @@ json=$($NDCTL list -N -n $dev)
  eval $(json2var <<< "$json")
  rc=1
  
--mkfs.ext4 /dev/$blockdev
-+mkfs.ext4 -b 4096 /dev/$blockdev
- mount /dev/$blockdev $MNT -o dax
- fallocate -l 1GiB $MNT/$FILE
- run_test $LINENO
-@@ -80,7 +80,7 @@ eval $(json2var <<< "$json")
- [ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+-mkfs.ext4 -b 4096 /dev/$blockdev
+-mount /dev/$blockdev $MNT -o dax
+-fallocate -l 1GiB $MNT/$FILE
+-run_test $LINENO
+-umount $MNT
+-
+-# convert pmem to put the memmap on the device
+-json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
+-eval $(json2var <<< "$json")
+-[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+-
+-#note the blockdev returned from ndctl create-namespace lacks the /dev prefix
+-mkfs.ext4 -b 4096 /dev/$blockdev
+-mount /dev/$blockdev $MNT -o dax
+-fallocate -l 1GiB $MNT/$FILE
+-run_test $LINENO
+-umount $MNT
+-
+-json=$($NDCTL create-namespace -m raw -f -e $dev)
+-eval $(json2var <<< "$json")
+-[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+-
+-mkfs.xfs -f -d su=2m,sw=1,agcount=2 -m reflink=0 /dev/$blockdev
+-mount /dev/$blockdev $MNT -o dax
+-fallocate -l 1GiB $MNT/$FILE
+-run_test $LINENO
+-umount $MNT
+-
+-# convert pmem to put the memmap on the device
+-json=$($NDCTL create-namespace -m fsdax -M dev -f -e $dev)
+-eval $(json2var <<< "$json")
+-[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
+-
+-mkfs.xfs -f -d su=2m,sw=1,agcount=2 -m reflink=0 /dev/$blockdev
+-mount /dev/$blockdev $MNT -o dax
+-fallocate -l 1GiB $MNT/$FILE
+-run_test $LINENO
+-umount $MNT
+-
+-# revert namespace to raw mode
+-json=$($NDCTL create-namespace -m raw -f -e $dev)
+-eval $(json2var <<< "$json")
+-[ $mode != "fsdax" ] && echo "fail: $LINENO" &&  exit 1
++if [ $(basename $0) = "dax-ext4.sh" ]; then
++	run_ext4
++elif [ $(basename $0) = "dax-xfs.sh" ]; then
++	run_xfs
++else
++	run_ext4
++	run_xfs
++fi
  
- #note the blockdev returned from ndctl create-namespace lacks the /dev prefix
--mkfs.ext4 /dev/$blockdev
-+mkfs.ext4 -b 4096 /dev/$blockdev
- mount /dev/$blockdev $MNT -o dax
- fallocate -l 1GiB $MNT/$FILE
- run_test $LINENO
+ exit 0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
