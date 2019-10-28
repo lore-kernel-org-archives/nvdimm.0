@@ -2,84 +2,78 @@ Return-Path: <SRS0=dDVn=YV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B963CA9EC0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 22:12:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E63CA9EC0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 23:08:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2CAE520830
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 22:12:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id B60AE214E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 23:08:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dYZ0N1zG"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2CAE520830
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="h5sKvzwG"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B60AE214E0
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id F200F100EA63E;
-	Mon, 28 Oct 2019 15:13:24 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-1.mimecast.com [205.139.110.61])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 23968100EA521;
+	Mon, 28 Oct 2019 16:09:39 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::244; helo=mail-oi1-x244.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9212E100EA63A
-	for <linux-nvdimm@lists.01.org>; Mon, 28 Oct 2019 15:13:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1572300753;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=LUee+wYEbuSeB3k4G32oatRkIGid2AimfRnnWXrwOck=;
-	b=dYZ0N1zGUn1A8dTFjkoh6P1wKSmCPxAIvH/atdebk1xhYGDmiqknamWSInL7e8jV395DR4
-	/RAs3MLc05jBpdksnPLYj+7+YVRHGxjF/fmkUpRMtukdDZF0C0snuhItf2U+6YEh4N7Mpy
-	nTRkVFSdJSLYzXm4U4CZdDMGOrR1XKk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-18--la1hE_oNpelRxjRwqBREg-1; Mon, 28 Oct 2019 18:12:25 -0400
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C5C672B6;
-	Mon, 28 Oct 2019 22:12:24 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 41FE75C1B2;
-	Mon, 28 Oct 2019 22:12:24 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [ndctl patch 3/4] query_fw_finish_status: get rid of redundant variable
-References: <20191018202302.8122-1-jmoyer@redhat.com>
-	<20191018202302.8122-4-jmoyer@redhat.com>
-	<20191018205424.GA12760@iweiny-DESK2.sc.intel.com>
-	<x49sgnp7ohp.fsf@segfault.boston.devel.redhat.com>
-	<49b7cb5dae88ada6945b15eb1cf2e5e798173861.camel@intel.com>
-	<7187044f4f6dca57f43879cd2d493949735f63a2.camel@intel.com>
-	<20191025222115.GA6536@iweiny-DESK2.sc.intel.com>
-	<x49v9s8veyb.fsf@segfault.boston.devel.redhat.com>
-	<20191028211338.GA9826@iweiny-DESK2.sc.intel.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Mon, 28 Oct 2019 18:12:23 -0400
-In-Reply-To: <20191028211338.GA9826@iweiny-DESK2.sc.intel.com> (Ira Weiny's
-	message of "Mon, 28 Oct 2019 14:13:39 -0700")
-Message-ID: <x49v9s834fs.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+	by ml01.01.org (Postfix) with ESMTPS id 823A3100EA63F
+	for <linux-nvdimm@lists.01.org>; Mon, 28 Oct 2019 16:09:37 -0700 (PDT)
+Received: by mail-oi1-x244.google.com with SMTP id g81so7390167oib.8
+        for <linux-nvdimm@lists.01.org>; Mon, 28 Oct 2019 16:08:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ya/hl3kSxLpkLPv5c7BeEGlhWkdu/wLTkTM0UC21b64=;
+        b=h5sKvzwG18seVCu38EtLBa8XX3UEDh3zXJALKsSIPpKx30ctYy0LEmiydo2CnuPahe
+         ELqGsk5TH8vpYL8/aVfVzYD3Zka2Qh9e9Wy1gkJOeRmzczxduc0z6kxJamVHrs/OQ8tw
+         M3RzxVLGTwRdwd8jV9GYKb8zgU5btAT5XsEl6ODU2DqG0c3ipk+RsiDUTJdJLLQSfUjB
+         eE3ieaJs7iLafKik9Mf8V54bP7Y/R/nW1OqhncnY5fHof16j1hFNmsAy3RAFj9gDFqd1
+         N3MAuwhzsRdVqzZ6rrOh6cS759koUsN6YeIZRLMxGA/UNwI2oRtrmsLAudvydvULrHes
+         /48Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ya/hl3kSxLpkLPv5c7BeEGlhWkdu/wLTkTM0UC21b64=;
+        b=IeOZVvs5UTWbNQlCbZPlqqhirC5jk1P1e+9wjlLiwCDm3TwK7M4gJNED0K3lfhJw3Y
+         8qkmedZ8N0/Yl0x4jNifxvGn5k2FVouVi+DOaY2h76LNExjxJP62PrFHeNPFcDPzuI0L
+         8eo3enGtgU2RWpscATydNkIxfYctCmlhSsRBsmLkUVGdWGv4FYdsScRFGhJbCLp3xv8Q
+         YULUpaagK6oVxTwXVx3RCEZrWdJtlYfO+Z1JMtM8CdActfVsSyhvO69Ea3sPjswD18WH
+         P5oVYNk2zCQ9bIDWPzrZITwj4u8ZPATK0Gw+j9k2W5e1n/qwdHYJnPcsi4GRTyCrscfG
+         53yw==
+X-Gm-Message-State: APjAAAWouhxBRUMMCJsd/nKlKkoB57R7Yq5h7lI0tS798FdDYd3yKk9O
+	yj1MtU3etrw1y16tttCuo0CeGDOlPJ+TCIDhYhYIpQ==
+X-Google-Smtp-Source: APXvYqzFqH80OPpGVmqK4MrGIOR9FzP/5Z5IS+6ciRSQLycC7zjZETQcpJ2/hgttcT47FsAAzUpRt6/OlgUss4UXiOU=
+X-Received: by 2002:aca:620a:: with SMTP id w10mr1526488oib.0.1572304128418;
+ Mon, 28 Oct 2019 16:08:48 -0700 (PDT)
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-X-MC-Unique: -la1hE_oNpelRxjRwqBREg-1
-X-Mimecast-Spam-Score: 0
-Message-ID-Hash: BPRULSOYKQZWUWR2PFD7WSWQORNJMRRT
-X-Message-ID-Hash: BPRULSOYKQZWUWR2PFD7WSWQORNJMRRT
-X-MailFrom: jmoyer@redhat.com
+References: <20191028094825.21448-1-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20191028094825.21448-1-aneesh.kumar@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 28 Oct 2019 16:08:37 -0700
+Message-ID: <CAPcyv4gZ=wKzwscu_nch8VUtNTHusKzjmMhYZWo+Se=BPO9q8g@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/4] libnvdimm/namespace: Make namespace size
+ validation arch dependent
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Message-ID-Hash: 3CYOXQJGVELWOAKYBIMRT47FH3V3O6D7
+X-Message-ID-Hash: 3CYOXQJGVELWOAKYBIMRT47FH3V3O6D7
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+CC: Michael Ellerman <mpe@ellerman.id.au>, linux-nvdimm <linux-nvdimm@lists.01.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BPRULSOYKQZWUWR2PFD7WSWQORNJMRRT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3CYOXQJGVELWOAKYBIMRT47FH3V3O6D7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -88,219 +82,114 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Ira Weiny <ira.weiny@intel.com> writes:
-
-> On Mon, Oct 28, 2019 at 03:37:48PM -0400, Jeff Moyer wrote:
->> Ira Weiny <ira.weiny@intel.com> writes:
->> 
->> >> (Watching the unit test run fall into an infinite loop..) Nope, the
->> >> break is in the switch scope, the while loop needs the 'goto out'.
->> >> 
->> >> Yes this bit definitely needs to be refactored :)
->> >
->> > How about this patch instead?  Untested.
->> 
->> I'm not a fan of the looping with gotos.
+On Mon, Oct 28, 2019 at 2:48 AM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
 >
-> Me either... But... the logic here is not the same.
+> The page size used to map the namespace is arch dependent. For example
+> architectures like ppc64 use 16MB page size for direct-mapping. If the namespace
+> size is not aligned to the mapping page size, we can observe kernel crash
+> during namespace init and destroy.
+>
+> This is due to kernel doing partial map/unmap of the resource range
+>
+> BUG: Unable to handle kernel data access at 0xc001000406000000
+> Faulting instruction address: 0xc000000000090790
+> NIP [c000000000090790] arch_add_memory+0xc0/0x130
+> LR [c000000000090744] arch_add_memory+0x74/0x130
+> Call Trace:
+>  arch_add_memory+0x74/0x130 (unreliable)
+>  memremap_pages+0x74c/0xa30
+>  devm_memremap_pages+0x3c/0xa0
+>  pmem_attach_disk+0x188/0x770
+>  nvdimm_bus_probe+0xd8/0x470
+>  really_probe+0x148/0x570
+>  driver_probe_device+0x19c/0x1d0
+>  device_driver_attach+0xcc/0x100
+>  bind_store+0x134/0x1c0
+>  drv_attr_store+0x44/0x60
+>  sysfs_kf_write+0x74/0xc0
+>  kernfs_fop_write+0x1b4/0x290
+>  __vfs_write+0x3c/0x70
+>  vfs_write+0xd0/0x260
+>  ksys_write+0xdc/0x130
+>  system_call+0x5c/0x68
+>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  arch/arm64/mm/flush.c     | 11 +++++++++++
+>  arch/powerpc/lib/pmem.c   | 21 +++++++++++++++++++--
+>  arch/x86/mm/pageattr.c    | 12 ++++++++++++
+>  include/linux/libnvdimm.h |  1 +
+>  4 files changed, 43 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm64/mm/flush.c b/arch/arm64/mm/flush.c
+> index ac485163a4a7..90c54c600023 100644
+> --- a/arch/arm64/mm/flush.c
+> +++ b/arch/arm64/mm/flush.c
+> @@ -91,4 +91,15 @@ void arch_invalidate_pmem(void *addr, size_t size)
+>         __inval_dcache_area(addr, size);
+>  }
+>  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+> +
+> +unsigned long arch_validate_namespace_size(unsigned int ndr_mappings, unsigned long size)
+> +{
+> +       u32 remainder;
+> +
+> +       div_u64_rem(size, PAGE_SIZE * ndr_mappings, &remainder);
+> +       if (remainder)
+> +               return PAGE_SIZE * ndr_mappings;
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(arch_validate_namespace_size);
+>  #endif
+> diff --git a/arch/powerpc/lib/pmem.c b/arch/powerpc/lib/pmem.c
+> index 377712e85605..2e661a08dae5 100644
+> --- a/arch/powerpc/lib/pmem.c
+> +++ b/arch/powerpc/lib/pmem.c
+> @@ -17,14 +17,31 @@ void arch_wb_cache_pmem(void *addr, size_t size)
+>         unsigned long start = (unsigned long) addr;
+>         flush_dcache_range(start, start + size);
+>  }
+> -EXPORT_SYMBOL(arch_wb_cache_pmem);
+> +EXPORT_SYMBOL_GPL(arch_wb_cache_pmem);
+>
+>  void arch_invalidate_pmem(void *addr, size_t size)
+>  {
+>         unsigned long start = (unsigned long) addr;
+>         flush_dcache_range(start, start + size);
+>  }
+> -EXPORT_SYMBOL(arch_invalidate_pmem);
+> +EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+> +
+> +unsigned long arch_validate_namespace_size(unsigned int ndr_mappings, unsigned long size)
+> +{
+> +       u32 remainder;
+> +       unsigned long linear_map_size;
+> +
+> +       if (radix_enabled())
+> +               linear_map_size = PAGE_SIZE;
+> +       else
+> +               linear_map_size = (1UL << mmu_psize_defs[mmu_linear_psize].shift);
 
-How about this one, then?  Again, compile-tested only.  I'll run it
-through testing only if you like it better than your approach.  If you
-like your appraoch better, I'll go ahead and review and test that.
+This seems more a "supported_alignments" problem, and less a namespace
+size or PAGE_SIZE problem, because if the starting address is
+misaligned this size validation can still succeed when it shouldn't.
 
-Cheers,
-Jeff
+One problem is that __size_store() does not validate the size against
+the namespace alignment.
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index b1b84c2..63d4d4a 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -674,6 +674,52 @@ out:
- 	return rc;
- }
- 
-+/*
-+ * Wait for a command to complete, up to the firmware-specified timeout.
-+ * Returns -errno on error.  On success, which means either the command
-+ * completed (sucessfully or with an error), or we timed out waiting for
-+ * it, return 0.  The caller needs to check the status on its own if this
-+ * function returns 0.
-+ */
-+static int query_fw_finish_status_timeout(struct ndctl_cmd *cmd,
-+					  struct fw_info *fw)
-+{
-+	enum ND_FW_STATUS status;
-+	struct timespec sleeptime, start, now;
-+	int rc;
-+
-+	rc = clock_gettime(CLOCK_MONOTONIC, &start);
-+	if (rc < 0)
-+		return rc;
-+
-+	sleeptime.tv_nsec = fw->query_interval / 1000;
-+	sleeptime.tv_sec = 0;
-+
-+	while ((rc = ndctl_cmd_submit(cmd)) == 0 &&
-+	       (status = ndctl_cmd_fw_xlat_firmware_status(cmd)) == FW_EBUSY) {
-+
-+		rc = clock_gettime(CLOCK_MONOTONIC, &now);
-+		if (rc < 0)
-+			break;
-+
-+		/*
-+		 * If we expire max query time, we timed out
-+		 */
-+		if (now.tv_sec - start.tv_sec > fw->max_query / 1000000)
-+			break;
-+
-+		/*
-+		 * Sleep the interval dictated by firmware before
-+		 * query again.
-+		 */
-+		rc = nanosleep(&sleeptime, NULL);
-+		if (rc < 0)
-+			break;
-+	}
-+
-+	return rc;
-+}
-+
- static int query_fw_finish_status(struct ndctl_dimm *dimm,
- 		struct action_context *actx)
- {
-@@ -682,94 +728,55 @@ static int query_fw_finish_status(struct ndctl_dimm *dimm,
- 	struct ndctl_cmd *cmd;
- 	int rc;
- 	enum ND_FW_STATUS status;
--	struct timespec now, before, after;
- 	uint64_t ver;
- 
- 	cmd = ndctl_dimm_cmd_new_fw_finish_query(uctx->start);
- 	if (!cmd)
- 		return -ENXIO;
- 
--	rc = clock_gettime(CLOCK_MONOTONIC, &before);
-+	rc = query_fw_finish_status_timeout(cmd, fw);
- 	if (rc < 0)
--		goto out;
--
--	now.tv_nsec = fw->query_interval / 1000;
--	now.tv_sec = 0;
--
--	do {
--		rc = ndctl_cmd_submit(cmd);
--		if (rc < 0)
--			break;
--
--		status = ndctl_cmd_fw_xlat_firmware_status(cmd);
--		switch (status) {
--		case FW_SUCCESS:
--			ver = ndctl_cmd_fw_fquery_get_fw_rev(cmd);
--			if (ver == 0) {
--				fprintf(stderr, "No firmware updated.\n");
--				rc = -ENXIO;
--				goto out;
--			}
--
--			printf("Image updated successfully to DIMM %s.\n",
--					ndctl_dimm_get_devname(dimm));
--			printf("Firmware version %#lx.\n", ver);
--			printf("Cold reboot to activate.\n");
--			rc = 0;
--			goto out;
--			break;
--		case FW_EBUSY:
--			/* Still on going, continue */
--			rc = clock_gettime(CLOCK_MONOTONIC, &after);
--			if (rc < 0) {
--				rc = -errno;
--				goto out;
--			}
--
--			/*
--			 * If we expire max query time,
--			 * we timed out
--			 */
--			if (after.tv_sec - before.tv_sec >
--					fw->max_query / 1000000) {
--				rc = -ETIMEDOUT;
--				goto out;
--			}
-+		goto unref;
- 
--			/*
--			 * Sleep the interval dictated by firmware
--			 * before query again.
--			 */
--			rc = nanosleep(&now, NULL);
--			if (rc < 0) {
--				rc = -errno;
--				goto out;
--			}
--			break;
--		case FW_EBADFW:
--			fprintf(stderr,
--				"Firmware failed to verify by DIMM %s.\n",
--				ndctl_dimm_get_devname(dimm));
--		case FW_EINVAL_CTX:
--		case FW_ESEQUENCE:
-+	status = ndctl_cmd_fw_xlat_firmware_status(cmd);
-+	switch (status) {
-+	case FW_SUCCESS:
-+		ver = ndctl_cmd_fw_fquery_get_fw_rev(cmd);
-+		if (ver == 0) {
-+			fprintf(stderr, "No firmware updated.\n");
- 			rc = -ENXIO;
--			goto out;
--		case FW_ENORES:
--			fprintf(stderr,
--				"Firmware update sequence timed out: %s\n",
--				ndctl_dimm_get_devname(dimm));
--			rc = -ETIMEDOUT;
--			goto out;
--		default:
--			fprintf(stderr,
--				"Unknown update status: %#x on DIMM %s\n",
--				status, ndctl_dimm_get_devname(dimm));
--			rc = -EINVAL;
--			goto out;
-+			break;
- 		}
--	} while (true);
- 
--out:
-+		printf("Image updated successfully to DIMM %s.\n",
-+		       ndctl_dimm_get_devname(dimm));
-+		printf("Firmware version %#lx.\n", ver);
-+		printf("Cold reboot to activate.\n");
-+		break;
-+	case FW_EBADFW:
-+		fprintf(stderr,
-+			"Firmware failed to verify by DIMM %s.\n",
-+			ndctl_dimm_get_devname(dimm));
-+	case FW_EINVAL_CTX:
-+	case FW_ESEQUENCE:
-+		rc = -ENXIO;
-+		break;
-+	case FW_EBUSY:
-+	case FW_ENORES:
-+		fprintf(stderr,
-+			"Firmware update sequence timed out: %s\n",
-+			ndctl_dimm_get_devname(dimm));
-+		rc = -ETIMEDOUT;
-+		break;
-+	default:
-+		fprintf(stderr,
-+			"Unknown update status: %#x on DIMM %s\n",
-+			status, ndctl_dimm_get_devname(dimm));
-+		rc = -EINVAL;
-+		break;
-+	}
-+
-+unref:
- 	ndctl_cmd_unref(cmd);
- 	return rc;
- }
+However, the next problem is that alignment is a property of the pfn
+device, but not the raw namespace. I think this alignment constraint
+should be captured by exposing "align" and "supported_alignments" at
+the namespace level as the minimum alignment. The pfn level alignment
+could then be an additional alignment constraint, but ndctl would
+likely set them to the same value.
+
+The "* ndr_mappings" constraint should be left out of the interface,
+because that's a side effect of supporting namespace-type-blk aliasing
+which no platform seems to do in practice. If for some strange reason
+it's need in the future I'd rather expose the "aliasing" property
+rather than fold it into the align / supported_aligns interface.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
