@@ -2,80 +2,83 @@ Return-Path: <SRS0=dDVn=YV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E456CA9EBC
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 02:43:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BABF7C47E49
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 09:48:45 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id F2DCF21783
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 02:43:23 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rxSmDbo0"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F2DCF21783
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id 820152184C
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Oct 2019 09:48:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 820152184C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 01400100EA619;
-	Sun, 27 Oct 2019 19:44:18 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::d42; helo=mail-io1-xd42.google.com; envelope-from=oohall@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id EE3CF100EA624;
+	Mon, 28 Oct 2019 02:49:36 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D2D19100EA613
-	for <linux-nvdimm@lists.01.org>; Sun, 27 Oct 2019 19:44:15 -0700 (PDT)
-Received: by mail-io1-xd42.google.com with SMTP id h9so9076706ioh.2
-        for <linux-nvdimm@lists.01.org>; Sun, 27 Oct 2019 19:43:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=WajkIfso2UlXgRkDGGI9iOFobax0DuU9gdm0Iijm/A8=;
-        b=rxSmDbo0YmfGeXOIN+Q9biZMXG5q+/XkXO3AjnWZKG9k2QoYsiz7/3dMdXaUmdydtA
-         6BWrxQMI0AHuw0nXVv4ks4FtDO7UoGpAD31IjfmfGxPe4Gt//TYkVcJYWnDP1v1jNz+o
-         c75oqllYLie1bX5jJdtqgLTrpy7qu3HR3TgrMMT1EF/Lmiodbh/48fx9vULV8AFTCVh4
-         fcDqWkceNEwGsW++o1WE2+6Q5BW2nt6F1IKAKdnQqPfjoMyeDjSDkldHsSGNfZ72PjAv
-         F/EwrYkqQLRi7CzIaRe56lr3UGRIuZFnStLJw69W5mywrUb9uT2V7KbcbKewcbFnfShe
-         B4hQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=WajkIfso2UlXgRkDGGI9iOFobax0DuU9gdm0Iijm/A8=;
-        b=oB5w3LCtHmUYmOLGvx3D5lJoDk6YL0vtOQA5yrlevS1lbSUFvyzXcijeV8YUnbBWFl
-         LV6OUsC+FtZRMezMHnfErcdkItCXYNXRZJWP5YfS8K4QhMMZ8aGIRUUBOoXMaxM52A9N
-         txPilbANMNCo3QKv+guxl4aY5yqyC/2j2d4yNg9NkE/KbEdcpSEF4XHiGjercIm2wUl0
-         4Z4RkDLiL479EsFpflE9xSSP3xXuH+ah1U/Ols2RG8N3dhtV5Dom94bK4nhVththazoB
-         MCkFT8LLaeF+UqQjzGaWIdt1T5OUr58mDkpAFF3nL28jX4vcUVV1Dd/2n+hlgYCPHMyX
-         oA6Q==
-X-Gm-Message-State: APjAAAVQxGaEeUXBlPZbloh0Lcsl5LcPo+AR+te76brhR4cZUIrDIlxb
-	/gZHjPJmSrxfC0mBReLAYE56O0fIbgFuxr1FvJ4=
-X-Google-Smtp-Source: APXvYqwOWm0fMe4Z+23NbNt4s3moVCNRfSkGYs68cOaCdJ7rNfZZA3zAvx6xOt8t6pKut1UDb6mLgbG5D1F93mKzz20=
-X-Received: by 2002:a5d:8247:: with SMTP id n7mr8103790ioo.195.1572230600541;
- Sun, 27 Oct 2019 19:43:20 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id BDC2E100EA61F
+	for <linux-nvdimm@lists.01.org>; Mon, 28 Oct 2019 02:49:34 -0700 (PDT)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id x9S9lWOK146660;
+	Mon, 28 Oct 2019 05:48:37 -0400
+Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2vwt4x6dh3-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 28 Oct 2019 05:48:37 -0400
+Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
+	by ppma01dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id x9S9jBAT013274;
+	Mon, 28 Oct 2019 09:48:36 GMT
+Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
+	by ppma01dal.us.ibm.com with ESMTP id 2vvds8n21g-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 28 Oct 2019 09:48:36 +0000
+Received: from b03ledav006.gho.boulder.ibm.com (b03ledav006.gho.boulder.ibm.com [9.17.130.237])
+	by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id x9S9mYvo51249518
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 28 Oct 2019 09:48:34 GMT
+Received: from b03ledav006.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C6EF1C605D;
+	Mon, 28 Oct 2019 09:48:34 +0000 (GMT)
+Received: from b03ledav006.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E450AC6055;
+	Mon, 28 Oct 2019 09:48:32 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.199.43.125])
+	by b03ledav006.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Mon, 28 Oct 2019 09:48:32 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: dan.j.williams@intel.com, mpe@ellerman.id.au
+Subject: [RFC PATCH 2/4] libnvdimm/namespace: Disable the region if the namespace size is not aligned correctly
+Date: Mon, 28 Oct 2019 15:18:23 +0530
+Message-Id: <20191028094825.21448-2-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.21.0
+In-Reply-To: <20191028094825.21448-1-aneesh.kumar@linux.ibm.com>
+References: <20191028094825.21448-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
-References: <20191025044721.16617-1-alastair@au1.ibm.com> <20191025044721.16617-10-alastair@au1.ibm.com>
-In-Reply-To: <20191025044721.16617-10-alastair@au1.ibm.com>
-From: "Oliver O'Halloran" <oohall@gmail.com>
-Date: Mon, 28 Oct 2019 13:43:09 +1100
-Message-ID: <CAOSf1CGwuAkeayfk0uowN8gkKXWy8jKzgLX5-Gxxqn3ENNiUdA@mail.gmail.com>
-Subject: Re: [PATCH 09/10] powerpc: Enable OpenCAPI Storage Class Memory
- driver on bare metal
-To: "Alastair D'Silva" <alastair@au1.ibm.com>
-Message-ID-Hash: 2X4TYIZMIL3GPTLG7COF6LDVBNBWU3PW
-X-Message-ID-Hash: 2X4TYIZMIL3GPTLG7COF6LDVBNBWU3PW
-X-MailFrom: oohall@gmail.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: alastair@d-silva.org, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-28_04:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=978 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1908290000 definitions=main-1910280098
+Message-ID-Hash: EJEUX2LXFHMTY43B3HJTGO66UL3MYBDO
+X-Message-ID-Hash: EJEUX2LXFHMTY43B3HJTGO66UL3MYBDO
+X-MailFrom: aneesh.kumar@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm@lists.01.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2X4TYIZMIL3GPTLG7COF6LDVBNBWU3PW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EJEUX2LXFHMTY43B3HJTGO66UL3MYBDO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -84,39 +87,61 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 25, 2019 at 3:51 PM Alastair D'Silva <alastair@au1.ibm.com> wrote:
->
-> From: Alastair D'Silva <alastair@d-silva.org>
->
-> Enable OpenCAPI Storage Class Memory driver on bare metal
->
-> Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
-> ---
->  arch/powerpc/configs/powernv_defconfig | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/arch/powerpc/configs/powernv_defconfig b/arch/powerpc/configs/powernv_defconfig
-> index 6658cceb928c..45c0eff94964 100644
-> --- a/arch/powerpc/configs/powernv_defconfig
-> +++ b/arch/powerpc/configs/powernv_defconfig
-> @@ -352,3 +352,7 @@ CONFIG_KVM_BOOK3S_64=m
->  CONFIG_KVM_BOOK3S_64_HV=m
->  CONFIG_VHOST_NET=m
->  CONFIG_PRINTK_TIME=y
-> +CONFIG_OCXL_SCM=m
+During namespace initialization, if kernel finds the namespace size not
+aligned as per arch-specific restriction, disable the region completely.
 
-> +CONFIG_DEV_DAX=y
-> +CONFIG_DEV_DAX_PMEM=y
+Even though kernel validates the namespace size while creating the namespace
+nvdimm core still needs to make sure namespaces with wrong size are not initialized.
+This can happen when users move SCM across different architectures and with
+architectures like ppc64 when we use different MMU translation modes.
 
-These should probably be modules. Having them as builtins will force
-their dependencies (i.e. libnvdimm) to be built into the kernel too.
+ppc64 allow booting systems with different translation mode based on kernel
+parameter and the two translation mode (hash and radix) have different
+direct-map page size restrictions.
 
-> +CONFIG_FS_DAX=y
-> --
-> 2.21.0
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+Marking the region disabled enables the user to either re-init the namespace
+using the dimm interface or boot back to the right kernel supporting the alignment.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ drivers/nvdimm/namespace_devs.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index cca0a3ba1d2c..fcde9f2bf2ea 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1912,6 +1912,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	struct nd_label_ent *label_ent;
+ 	struct nd_namespace_pmem *nspm;
+ 	struct nd_mapping *nd_mapping;
++	unsigned long map_align_size;
+ 	resource_size_t size = 0;
+ 	struct resource *res;
+ 	struct device *dev;
+@@ -2010,6 +2011,20 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 
+ 	}
+ 
++	map_align_size = arch_validate_namespace_size(nd_region->ndr_mappings, size);
++	if (map_align_size) {
++		dev_err(&nd_region->dev, "%llu is not %ldK aligned\n", size,
++				map_align_size/ SZ_1K);
++		/*
++		 * Disable this region completely. A wrongly sized namespace
++		 * size implies the start address of other namespace would also
++		 * be wrong and we would find confusing crashes w.r.t
++		 * direct-map address.
++		 */
++		rc = -EINVAL;
++		goto err;
++	}
++
+ 	if (!nspm->alt_name || !nspm->uuid) {
+ 		rc = -ENOMEM;
+ 		goto err;
+-- 
+2.21.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
