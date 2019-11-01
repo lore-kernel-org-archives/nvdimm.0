@@ -2,74 +2,81 @@ Return-Path: <SRS0=tOjs=YZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECC46CA9ECB
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 01:14:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AB89CA9EC9
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 03:27:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B1086208CB
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 01:14:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=nifty.com header.i=@nifty.com header.b="Bzq9d8FJ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B1086208CB
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=socionext.com
+	by mail.kernel.org (Postfix) with ESMTPS id 06258208C0
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 03:27:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 06258208C0
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7B09D100DC40F;
-	Thu, 31 Oct 2019 18:14:44 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=210.131.2.91; helo=conssluserg-06.nifty.com; envelope-from=yamada.masahiro@socionext.com; receiver=<UNKNOWN> 
-Received: from conssluserg-06.nifty.com (conssluserg-06.nifty.com [210.131.2.91])
+	by ml01.01.org (Postfix) with ESMTP id 41BE7100DC412;
+	Thu, 31 Oct 2019 20:28:04 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C024E100DC40B
-	for <linux-nvdimm@lists.01.org>; Thu, 31 Oct 2019 18:14:41 -0700 (PDT)
-Received: from mail-ua1-f48.google.com (mail-ua1-f48.google.com [209.85.222.48]) (authenticated)
-	by conssluserg-06.nifty.com with ESMTP id xA11Dmb6029374
-	for <linux-nvdimm@lists.01.org>; Fri, 1 Nov 2019 10:13:49 +0900
-DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-06.nifty.com xA11Dmb6029374
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
-	s=dec2015msa; t=1572570829;
-	bh=gq2ntcwWwPmJbX6KujZPFJEqb9x4csC/Cehv9Nngo0w=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=Bzq9d8FJodYz9vCF76NW7o+SZ/rPK0s7Th0OZWmA6N+1dAxUQJNuK52yFbN90VdQI
-	 uwVbIzRLJbdSy8oE9Hggm7lFTAxl8PEX7a+E1OGUjan7Sy7ROOzI1vDX3KVe3jSGMT
-	 f+wAPPDA4utqcaXdKya1zM8aYI9OGyNgzU5V0WCRYHY8aAqZJhQ3PEPsHpjC47vWvz
-	 niGHFm3AdBGfgvV0a3DmfQZa6Frnz7RzwLCf15jU9f8TipjC7jHmlEaTEt/rQbdmPb
-	 jQDH8jWeRym1XSfBcEunMaj+4d0Maot3Ryespos1dGFoFgGaktyocly3JDDun6yaox
-	 ymNSbd+pGr8Zg==
-X-Nifty-SrcIP: [209.85.222.48]
-Received: by mail-ua1-f48.google.com with SMTP id f21so2491497uan.3
-        for <linux-nvdimm@lists.01.org>; Thu, 31 Oct 2019 18:13:48 -0700 (PDT)
-X-Gm-Message-State: APjAAAWWYrES/Mo6nJVhHtZAG4qPDA1NP2V9zdAMsA+n6RcM5jhB4Ule
-	1S9NGQAbZV+z3JJViFvdpCj/qXESrMwb4EDaoBE=
-X-Google-Smtp-Source: APXvYqw/PajTAhDXPdOfLwuMzSOHJNtlGhOENV4a2oNhQQR/ci6cU5z+to6L/NH38vwTMbUIwFxp8YSFIT2xqMloz1E=
-X-Received: by 2002:ab0:279a:: with SMTP id t26mr779257uap.40.1572570827659;
- Thu, 31 Oct 2019 18:13:47 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id EBDC0100DC40F
+	for <linux-nvdimm@lists.01.org>; Thu, 31 Oct 2019 20:28:01 -0700 (PDT)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id xA13Gogt047193;
+	Thu, 31 Oct 2019 23:27:35 -0400
+Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 2w0c9u0uh5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 31 Oct 2019 23:27:35 -0400
+Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
+	by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xA13CD5L027408;
+	Fri, 1 Nov 2019 03:27:38 GMT
+Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
+	by ppma01wdc.us.ibm.com with ESMTP id 2vxwh5vve9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 01 Nov 2019 03:27:38 +0000
+Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
+	by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xA13RXE144892428
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 1 Nov 2019 03:27:34 GMT
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E2DFCAC05B;
+	Fri,  1 Nov 2019 03:27:33 +0000 (GMT)
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1905BAC059;
+	Fri,  1 Nov 2019 03:27:32 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.199.34.169])
+	by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
+	Fri,  1 Nov 2019 03:27:31 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: dan.j.williams@intel.com
+Subject: [PATCH v5] libnvdimm/pfn_dev: Don't clear device memmap area during generic namespace probe
+Date: Fri,  1 Nov 2019 08:57:28 +0530
+Message-Id: <20191101032728.113001-1-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
-References: <20191003102915.28301-1-yamada.masahiro@socionext.com>
- <20191003102915.28301-4-yamada.masahiro@socionext.com> <x497e4kluxq.fsf@segfault.boston.devel.redhat.com>
-In-Reply-To: <x497e4kluxq.fsf@segfault.boston.devel.redhat.com>
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Fri, 1 Nov 2019 10:13:10 +0900
-X-Gmail-Original-Message-ID: <CAK7LNASmpO6Dn2M1DtoCDs=RM+jwW7_tRhq7nqDU1YZWdRafuw@mail.gmail.com>
-Message-ID: <CAK7LNASmpO6Dn2M1DtoCDs=RM+jwW7_tRhq7nqDU1YZWdRafuw@mail.gmail.com>
-Subject: Re: [PATCH 4/4] modpost: do not set ->preloaded for symbols from Module.symvers
-To: Jeff Moyer <jmoyer@redhat.com>
-Message-ID-Hash: AWZ4RZI4QXGT6OO3X6PD4Q3UBSFZDER5
-X-Message-ID-Hash: AWZ4RZI4QXGT6OO3X6PD4Q3UBSFZDER5
-X-MailFrom: yamada.masahiro@socionext.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-31_08:,,
+ signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ malwarescore=0 suspectscore=1 phishscore=0 bulkscore=0 spamscore=0
+ clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
+ mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.0.1-1908290000 definitions=main-1911010031
+Message-ID-Hash: HQS54BCHMMMKHYYJU6CONVMRLEIV7PLO
+X-Message-ID-Hash: HQS54BCHMMMKHYYJU6CONVMRLEIV7PLO
+X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Michal Marek <michal.lkml@markovi.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AWZ4RZI4QXGT6OO3X6PD4Q3UBSFZDER5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HQS54BCHMMMKHYYJU6CONVMRLEIV7PLO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -78,77 +85,58 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Nov 1, 2019 at 1:51 AM Jeff Moyer <jmoyer@redhat.com> wrote:
->
-> Masahiro Yamada <yamada.masahiro@socionext.com> writes:
->
-> > Now that there is no overwrap between symbols from ELF files and
-> > ones from Module.symvers.
-> >
-> > So, the 'exported twice' warning should be reported irrespective
-> > of where the symbol in question came from. Only the exceptional case
-> > is when __crc_<sym> symbol appears before __ksymtab_<sym>. This
-> > typically occurs for EXPORT_SYMBOL in .S files.
->
-> Hi, Masahiro,
->
-> After apply this patch, I get the following modpost warnings when doing:
->
-> $ make M=tools/tesing/nvdimm
-> ...
->   Building modules, stage 2.
->   MODPOST 12 modules
-> WARNING: tools/testing/nvdimm/libnvdimm: 'nvdimm_bus_lock' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> WARNING: tools/testing/nvdimm/libnvdimm: 'nvdimm_bus_unlock' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> WARNING: tools/testing/nvdimm/libnvdimm: 'is_nvdimm_bus_locked' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> WARNING: tools/testing/nvdimm/libnvdimm: 'devm_nvdimm_memremap' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> WARNING: tools/testing/nvdimm/libnvdimm: 'nd_fletcher64' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> WARNING: tools/testing/nvdimm/libnvdimm: 'to_nd_desc' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> WARNING: tools/testing/nvdimm/libnvdimm: 'to_nvdimm_bus_dev' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
-> ...
->
-> There are a lot of these warnings.  :)
+nvdimm core use nd_pfn_validate when looking for devdax or fsdax namespace. In this
+case device resources are allocated against nd_namespace_io dev. In-order to
+allow remap of range in nd_pfn_clear_memmap_error(), move the device memmap
+area clearing while initializing pfn namespace. With this device
+resource are allocated against nd_pfn and we can use nd_pfn->dev for remapping.
 
-These warnings are correct since
-drivers/nvdimm/Makefile and
-tools/testing/nvdimm/Kbuild
-compile the same files.
+This also avoids calling nd_pfn_clear_mmap_errors twice. Once while probing the
+namespace and second while initializing a pfn namespace.
 
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+Changes from v4:
+* Make code changes suggested by Dan
 
+ drivers/nvdimm/pfn_devs.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-
->  If I revert this patch, no
-> complaints.
->
-> Cheers,
-> Jeff
->
->
-> >
-> > Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> > ---
-> >
-> >  scripts/mod/modpost.c | 1 -
-> >  1 file changed, 1 deletion(-)
-> >
-> > diff --git a/scripts/mod/modpost.c b/scripts/mod/modpost.c
-> > index 5234555cf550..6ca38d10efc5 100644
-> > --- a/scripts/mod/modpost.c
-> > +++ b/scripts/mod/modpost.c
-> > @@ -2457,7 +2457,6 @@ static void read_dump(const char *fname, unsigned int kernel)
-> >               s = sym_add_exported(symname, namespace, mod,
-> >                                    export_no(export));
-> >               s->kernel    = kernel;
-> > -             s->preloaded = 1;
-> >               s->is_static = 0;
-> >               sym_update_crc(symname, mod, crc, export_no(export));
-> >       }
->
-
-
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 60d81fae06ee..96727fd493f7 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -591,7 +591,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		return -ENXIO;
+ 	}
+ 
+-	return nd_pfn_clear_memmap_errors(nd_pfn);
++	return 0;
+ }
+ EXPORT_SYMBOL(nd_pfn_validate);
+ 
+@@ -729,6 +729,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 		sig = PFN_SIG;
+ 
+ 	rc = nd_pfn_validate(nd_pfn, sig);
++	if (rc == 0)
++		return nd_pfn_clear_memmap_errors(nd_pfn);
+ 	if (rc != -ENODEV)
+ 		return rc;
+ 
+@@ -796,6 +798,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
+ 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+ 
++	rc = nd_pfn_clear_memmap_errors(nd_pfn);
++	if (rc)
++		return rc;
++
+ 	return nvdimm_write_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb), 0);
+ }
+ 
 -- 
-Best Regards
-Masahiro Yamada
+2.23.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
