@@ -2,81 +2,79 @@ Return-Path: <SRS0=tOjs=YZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AB89CA9EC9
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 03:27:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5680CA9ED0
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 18:52:38 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 06258208C0
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 03:27:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 06258208C0
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id A014021897
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Nov 2019 18:52:38 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BLlFl4qx"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A014021897
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 41BE7100DC412;
-	Thu, 31 Oct 2019 20:28:04 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id C31B3100DC418;
+	Fri,  1 Nov 2019 11:52:56 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id EBDC0100DC40F
-	for <linux-nvdimm@lists.01.org>; Thu, 31 Oct 2019 20:28:01 -0700 (PDT)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id xA13Gogt047193;
-	Thu, 31 Oct 2019 23:27:35 -0400
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 2w0c9u0uh5-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 31 Oct 2019 23:27:35 -0400
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-	by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xA13CD5L027408;
-	Fri, 1 Nov 2019 03:27:38 GMT
-Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
-	by ppma01wdc.us.ibm.com with ESMTP id 2vxwh5vve9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 01 Nov 2019 03:27:38 +0000
-Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
-	by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xA13RXE144892428
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 1 Nov 2019 03:27:34 GMT
-Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E2DFCAC05B;
-	Fri,  1 Nov 2019 03:27:33 +0000 (GMT)
-Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 1905BAC059;
-	Fri,  1 Nov 2019 03:27:32 +0000 (GMT)
-Received: from skywalker.ibmuc.com (unknown [9.199.34.169])
-	by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
-	Fri,  1 Nov 2019 03:27:31 +0000 (GMT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: dan.j.williams@intel.com
-Subject: [PATCH v5] libnvdimm/pfn_dev: Don't clear device memmap area during generic namespace probe
-Date: Fri,  1 Nov 2019 08:57:28 +0530
-Message-Id: <20191101032728.113001-1-aneesh.kumar@linux.ibm.com>
-X-Mailer: git-send-email 2.23.0
+	by ml01.01.org (Postfix) with ESMTPS id BBA76100DC414
+	for <linux-nvdimm@lists.01.org>; Fri,  1 Nov 2019 11:52:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1572634354;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=7vllCCVrOpmYyfvb9Xg8yUmypgDAYnIAfaIkWG13YkI=;
+	b=BLlFl4qx6Ixre0EKnfeNJIBu7wsJSZKr2kIFaIsoec54sa4jerr8MEs5BYYLQmz5CnJxK4
+	6+56IIMdGIDyKrpT0QsywLeCeZc/h/Ebrs3xpVIjRtSBCtZyOjqIqkT5xq/lpAibo0OrG7
+	MZewOSTBMMVy+cIWFkIGYX0o5j20dK8=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-133-5oo6zwAIOUexO0zYswBGLw-1; Fri, 01 Nov 2019 14:52:31 -0400
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D04681005500;
+	Fri,  1 Nov 2019 18:52:29 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 9E9F4600D1;
+	Fri,  1 Nov 2019 18:52:28 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH 4/4] modpost: do not set ->preloaded for symbols from Module.symvers
+References: <20191003102915.28301-1-yamada.masahiro@socionext.com>
+	<20191003102915.28301-4-yamada.masahiro@socionext.com>
+	<x497e4kluxq.fsf@segfault.boston.devel.redhat.com>
+	<CAK7LNASmpO6Dn2M1DtoCDs=RM+jwW7_tRhq7nqDU1YZWdRafuw@mail.gmail.com>
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date: Fri, 01 Nov 2019 14:52:27 -0400
+In-Reply-To: <CAK7LNASmpO6Dn2M1DtoCDs=RM+jwW7_tRhq7nqDU1YZWdRafuw@mail.gmail.com>
+	(Masahiro Yamada's message of "Fri, 1 Nov 2019 10:13:10 +0900")
+Message-ID: <x494kznctuc.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-10-31_08:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=1 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1908290000 definitions=main-1911010031
-Message-ID-Hash: HQS54BCHMMMKHYYJU6CONVMRLEIV7PLO
-X-Message-ID-Hash: HQS54BCHMMMKHYYJU6CONVMRLEIV7PLO
-X-MailFrom: aneesh.kumar@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-MC-Unique: 5oo6zwAIOUexO0zYswBGLw-1
+X-Mimecast-Spam-Score: 0
+Message-ID-Hash: 2WQXEBXQHLBRAK6SRJAHKSGPSNM4A5OU
+X-Message-ID-Hash: 2WQXEBXQHLBRAK6SRJAHKSGPSNM4A5OU
+X-MailFrom: jmoyer@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Michal Marek <michal.lkml@markovi.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HQS54BCHMMMKHYYJU6CONVMRLEIV7PLO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2WQXEBXQHLBRAK6SRJAHKSGPSNM4A5OU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -85,58 +83,52 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-nvdimm core use nd_pfn_validate when looking for devdax or fsdax namespace. In this
-case device resources are allocated against nd_namespace_io dev. In-order to
-allow remap of range in nd_pfn_clear_memmap_error(), move the device memmap
-area clearing while initializing pfn namespace. With this device
-resource are allocated against nd_pfn and we can use nd_pfn->dev for remapping.
+Masahiro Yamada <yamada.masahiro@socionext.com> writes:
 
-This also avoids calling nd_pfn_clear_mmap_errors twice. Once while probing the
-namespace and second while initializing a pfn namespace.
+> On Fri, Nov 1, 2019 at 1:51 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+>>
+>> Masahiro Yamada <yamada.masahiro@socionext.com> writes:
+>>
+>> > Now that there is no overwrap between symbols from ELF files and
+>> > ones from Module.symvers.
+>> >
+>> > So, the 'exported twice' warning should be reported irrespective
+>> > of where the symbol in question came from. Only the exceptional case
+>> > is when __crc_<sym> symbol appears before __ksymtab_<sym>. This
+>> > typically occurs for EXPORT_SYMBOL in .S files.
+>>
+>> Hi, Masahiro,
+>>
+>> After apply this patch, I get the following modpost warnings when doing:
+>>
+>> $ make M=tools/tesing/nvdimm
+>> ...
+>>   Building modules, stage 2.
+>>   MODPOST 12 modules
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'nvdimm_bus_lock' exported
+>> twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'nvdimm_bus_unlock'
+>> exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'is_nvdimm_bus_locked'
+>> exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'devm_nvdimm_memremap'
+>> exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'nd_fletcher64' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'to_nd_desc' exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> WARNING: tools/testing/nvdimm/libnvdimm: 'to_nvdimm_bus_dev'
+>> exported twice. Previous export was in drivers/nvdimm/libnvdimm.ko
+>> ...
+>>
+>> There are a lot of these warnings.  :)
+>
+> These warnings are correct since
+> drivers/nvdimm/Makefile and
+> tools/testing/nvdimm/Kbuild
+> compile the same files.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
-Changes from v4:
-* Make code changes suggested by Dan
+Yeah, but that's by design.  Is there a way to silence these warnings?
 
- drivers/nvdimm/pfn_devs.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-index 60d81fae06ee..96727fd493f7 100644
---- a/drivers/nvdimm/pfn_devs.c
-+++ b/drivers/nvdimm/pfn_devs.c
-@@ -591,7 +591,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
- 		return -ENXIO;
- 	}
- 
--	return nd_pfn_clear_memmap_errors(nd_pfn);
-+	return 0;
- }
- EXPORT_SYMBOL(nd_pfn_validate);
- 
-@@ -729,6 +729,8 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 		sig = PFN_SIG;
- 
- 	rc = nd_pfn_validate(nd_pfn, sig);
-+	if (rc == 0)
-+		return nd_pfn_clear_memmap_errors(nd_pfn);
- 	if (rc != -ENODEV)
- 		return rc;
- 
-@@ -796,6 +798,10 @@ static int nd_pfn_init(struct nd_pfn *nd_pfn)
- 	checksum = nd_sb_checksum((struct nd_gen_sb *) pfn_sb);
- 	pfn_sb->checksum = cpu_to_le64(checksum);
- 
-+	rc = nd_pfn_clear_memmap_errors(nd_pfn);
-+	if (rc)
-+		return rc;
-+
- 	return nvdimm_write_bytes(ndns, SZ_4K, pfn_sb, sizeof(*pfn_sb), 0);
- }
- 
--- 
-2.23.0
+-Jeff
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
