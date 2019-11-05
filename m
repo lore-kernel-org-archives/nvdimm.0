@@ -2,60 +2,90 @@ Return-Path: <SRS0=fU+n=Y5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC901C1747C
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  5 Nov 2019 13:52:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE58C5DF61
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  5 Nov 2019 17:27:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 96EE421928
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  5 Nov 2019 13:52:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 96EE421928
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=settonco.com
+	by mail.kernel.org (Postfix) with ESMTPS id 75E6B214B2
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  5 Nov 2019 17:27:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 75E6B214B2
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B48D3100DC41F;
-	Tue,  5 Nov 2019 05:55:41 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=108.62.5.25; helo=settonco.com; envelope-from=info@settonco.com; receiver=<UNKNOWN> 
-Received: from settonco.com (unknown [108.62.5.25])
-	by ml01.01.org (Postfix) with ESMTP id 4CECC100DC41C
-	for <linux-nvdimm@lists.01.org>; Tue,  5 Nov 2019 05:55:39 -0800 (PST)
-From: Konan Kendrick <Info@settonco.com>
-To: linux-nvdimm@lists.01.org
-Subject: Re: FW: Outstanding Payments
-Date: 05 Nov 2019 05:52:53 -0800
-Message-ID: <20191105055253.44D4B5AA0EA9248B@settonco.com>
+	by ml01.01.org (Postfix) with ESMTP id 02EAD100DC42E;
+	Tue,  5 Nov 2019 09:30:11 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id EF85F100DC426
+	for <linux-nvdimm@lists.01.org>; Tue,  5 Nov 2019 09:30:08 -0800 (PST)
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Nov 2019 09:27:27 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.68,271,1569308400";
+   d="scan'208";a="232547289"
+Received: from vverma7-desk1.amr.corp.intel.com (HELO vverma7-desk1.lm.intel.com) ([10.232.112.164])
+  by fmsmga002.fm.intel.com with ESMTP; 05 Nov 2019 09:27:27 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <linux-nvdimm@lists.01.org>
+Subject: [ndctl PATCH v2 2/2] ndctl/namespace: fix reported count for disable-namespace
+Date: Tue,  5 Nov 2019 10:27:13 -0700
+Message-Id: <20191105172713.3628-2-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20191105172713.3628-1-vishal.l.verma@intel.com>
+References: <20191105172713.3628-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_2FE386A0.0A1692AA"
-Message-ID-Hash: ULG5UW4B4MQ3BT4OKGUHQ6MK5ABZPTAR
-X-Message-ID-Hash: ULG5UW4B4MQ3BT4OKGUHQ6MK5ABZPTAR
-X-MailFrom: Info@settonco.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Message-ID-Hash: MBHAEM2RCVFR4CQJ634P5M5U5AP7P5GS
+X-Message-ID-Hash: MBHAEM2RCVFR4CQJ634P5M5U5AP7P5GS
+X-MailFrom: vishal.l.verma@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ULG5UW4B4MQ3BT4OKGUHQ6MK5ABZPTAR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MBHAEM2RCVFR4CQJ634P5M5U5AP7P5GS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0012_2FE386A0.0A1692AA
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+Make the count reported disable-namespace consistent with
+enable-namespace by skipping namespaces that were already disabled.
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ ndctl/namespace.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index f2987ca..57998ce 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1426,6 +1426,10 @@ static int do_xaction_namespace(const char *namespace,
+ 					continue;
+ 				switch (action) {
+ 				case ACTION_DISABLE:
++					if (!ndctl_namespace_is_enabled(ndns)) {
++						rc = 0;
++						continue;
++					}
+ 					rc = ndctl_namespace_disable_safe(ndns);
+ 					if (rc == 0)
+ 						(*processed)++;
+-- 
+2.20.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
-------=_NextPart_000_0012_2FE386A0.0A1692AA--
