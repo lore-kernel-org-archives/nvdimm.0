@@ -2,56 +2,56 @@ Return-Path: <SRS0=DOXq=Y7=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E1C1C5DF60
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Nov 2019 04:11:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1708C5DF60
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Nov 2019 04:11:49 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6C3EC2178F
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Nov 2019 04:11:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6C3EC2178F
+	by mail.kernel.org (Postfix) with ESMTPS id 79319222D1
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Nov 2019 04:11:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 79319222D1
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 03C04100DC2B3;
-	Wed,  6 Nov 2019 20:14:13 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.93; helo=mga11.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+	by ml01.01.org (Postfix) with ESMTP id 1B635100DC2B5;
+	Wed,  6 Nov 2019 20:14:19 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id EF98D100DC2A2
-	for <linux-nvdimm@lists.01.org>; Wed,  6 Nov 2019 20:14:10 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id CF92B100DC2A4
+	for <linux-nvdimm@lists.01.org>; Wed,  6 Nov 2019 20:14:16 -0800 (PST)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Nov 2019 20:11:41 -0800
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Nov 2019 20:11:46 -0800
 X-IronPort-AV: E=Sophos;i="5.68,276,1569308400";
-   d="scan'208";a="403972229"
+   d="scan'208";a="402608938"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Nov 2019 20:11:40 -0800
-Subject: [PATCH 09/16] dax: Create a dax device_type
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 06 Nov 2019 20:11:46 -0800
+Subject: [PATCH 10/16] dax: Simplify root read-only definition for the
+ 'resource' attribute
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-nvdimm@lists.01.org
-Date: Wed, 06 Nov 2019 19:57:23 -0800
-Message-ID: <157309904365.1582359.5451327195246651379.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 06 Nov 2019 19:57:29 -0800
+Message-ID: <157309904959.1582359.7281180042781955506.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <157309899529.1582359.15358067933360719580.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <157309899529.1582359.15358067933360719580.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-2-gc94f
 MIME-Version: 1.0
-Message-ID-Hash: P3H4RTVLLJI6AVYJLSWRZPY7KEJ3OMKV
-X-Message-ID-Hash: P3H4RTVLLJI6AVYJLSWRZPY7KEJ3OMKV
+Message-ID-Hash: ENU3DZVYXKCSAJ2H2IAX4AMQHVQVCFYS
+X-Message-ID-Hash: ENU3DZVYXKCSAJ2H2IAX4AMQHVQVCFYS
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: peterz@infradead.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/P3H4RTVLLJI6AVYJLSWRZPY7KEJ3OMKV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ENU3DZVYXKCSAJ2H2IAX4AMQHVQVCFYS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -60,42 +60,38 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Move the open coded release method and attribute groups to a 'struct
-device_type' instance.
+Rather than update the permission in ->is_visible() set the permission
+directly at declaration time.
 
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/dax/bus.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/dax/bus.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 8fafbeab510a..f3e6e00ece40 100644
+index f3e6e00ece40..ce6d648d7670 100644
 --- a/drivers/dax/bus.c
 +++ b/drivers/dax/bus.c
-@@ -373,6 +373,11 @@ static void dev_dax_release(struct device *dev)
- 	kfree(dev_dax);
+@@ -309,7 +309,7 @@ static ssize_t resource_show(struct device *dev,
+ 
+ 	return sprintf(buf, "%#llx\n", dev_dax_resource(dev_dax));
+ }
+-static DEVICE_ATTR_RO(resource);
++static DEVICE_ATTR(resource, 0400, resource_show, NULL);
+ 
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -329,8 +329,6 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
+ 
+ 	if (a == &dev_attr_target_node.attr && dev_dax_target_node(dev_dax) < 0)
+ 		return 0;
+-	if (a == &dev_attr_resource.attr)
+-		return 0400;
+ 	return a->mode;
  }
  
-+static const struct device_type dev_dax_type = {
-+	.release = dev_dax_release,
-+	.groups = dax_attribute_groups,
-+};
-+
- static void unregister_dev_dax(void *dev)
- {
- 	struct dev_dax *dev_dax = to_dev_dax(dev);
-@@ -430,8 +435,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
- 	else
- 		dev->class = dax_class;
- 	dev->parent = parent;
--	dev->groups = dax_attribute_groups;
--	dev->release = dev_dax_release;
-+	dev->type = &dev_dax_type;
- 	dev_set_name(dev, "dax%d.%d", dax_region->id, id);
- 
- 	rc = device_add(dev);
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
