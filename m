@@ -1,80 +1,49 @@
 Return-Path: <SRS0=ebnJ=ZF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: *
+X-Spam-Status: No, score=1.1 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FSL_HELO_FAKE,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_DBL_SPAM,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5033FC43331
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Nov 2019 01:26:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F342C17441
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Nov 2019 02:04:29 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 093E6222CE
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Nov 2019 01:26:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="doPKvu1g"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 093E6222CE
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id D9342206B6
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Nov 2019 02:04:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D9342206B6
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 34940100DC41F;
-	Tue, 12 Nov 2019 17:28:05 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::243; helo=mail-oi1-x243.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2DFDA100DC41C
-	for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 17:28:01 -0800 (PST)
-Received: by mail-oi1-x243.google.com with SMTP id 22so271121oip.7
-        for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 17:26:19 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=d0MB/SSMpogQj4Fcl4IC+pxpUwq0gyFs7A/amSO1m4Y=;
-        b=doPKvu1gZNpcuqwOmCORE1idu0dAD0+ZV4ybOrLIR70xlU/Ld+eQ7FHZDb7gjt5NSd
-         uISrpZzkm2+LjEtMuDDLkKlB7O2X18chqvg8BtH28z3+X12qZdHaQHtuQushixLAzJg7
-         t983ph1Tvk4oDHv2V/w4UkB4XE4huboN+gnSOdLM32WdvXQhALzflaDwdfqPOs4q1FDx
-         KHTaYVXq5pc5+JMyRNtd4GCn8D2IdH6SpPmHk2S+B8emEa5gIX6d6TAhG7Nj1WNaSqx/
-         ZxFw0h3C4SOkt6WE3U5FxbkudR4vKN1cP2Z3YTQ4vcdCMRuvF/2j35Cwczb+P1sv6s+B
-         KzQw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=d0MB/SSMpogQj4Fcl4IC+pxpUwq0gyFs7A/amSO1m4Y=;
-        b=ZrXpYy4Pj9bg3DhAy7N81o88xHMcbq5QcW1Vm9TVF+kfRi0/9t6NudIeUafVzlK5up
-         WHuYQ1eDyxaUPhIzF+VrzJf5mYzEw//rarCVACWS3s/1OmghBIB1e4SYa5+M/rOv4ad2
-         uvszs7ifhSmmmYfVD+JRLYqYs8rnc4XpUcNhG9pG8oKgKXhcqtdE3yPktO/Tx3ju5k/n
-         W2CSW3i9WUnyEn+jzN5eROupsQXbFqVE1nV51TAG3JdNvTPavcvj5WgOU//bsPt5IwIZ
-         Yn/nSWtQX/pqFP+ZDj5I6QhFJOyjGBhz7x2BTXOw/V6tLBQcN+tsLUr/nGuRWyJC3wkP
-         b/MA==
-X-Gm-Message-State: APjAAAWaFe+yAKI2ponR72m8HCucdT2hN0XbN06Jt998SkAXkCuXjQBs
-	ql++NUxbODmftXLxZQB7emAkWfb9JVszTN0c2tKK9g==
-X-Google-Smtp-Source: APXvYqxe6zvqvkMBezUGqzKAEYSTwQ/sNKuj6ffZfvcWwiO9AOk1SDdrnEGOgdcqBDW/SJNVakQKutXfNYK60w6drc8=
-X-Received: by 2002:aca:ead7:: with SMTP id i206mr499780oih.0.1573608378184;
- Tue, 12 Nov 2019 17:26:18 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id CA1B5100DC41F;
+	Tue, 12 Nov 2019 18:06:10 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=23.228.73.173; helo=gmail.com; envelope-from=normanatlas54yg@gmail.com; receiver=<UNKNOWN> 
+Received: from gmail.com (unknown [23.228.73.173])
+	by ml01.01.org (Postfix) with SMTP id 5F2BD100DC41C
+	for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 18:06:08 -0800 (PST)
+Received: from unknown (82.37.149.123)
+	by smtp.mixedthings.net with ESMTP; Tue, 12 Nov 2019 08:01:09 -1000
+Message-ID: <2E977664.8C0CCAC5@gmail.com>
+Date: Tue, 12 Nov 2019 07:52:07 -1000
+From: "Nereida Duncan" <normanatlas54yg@gmail.com>
+User-Agent: Mozilla/5.0 (Windows; U; Windows NT 5.1; de-DE; rv:1.7.6) Gecko/20050317 Thunderbird/1.0.2
+X-Accept-Language: en-us
 MIME-Version: 1.0
-References: <157309899529.1582359.15358067933360719580.stgit@dwillia2-desk3.amr.corp.intel.com>
- <157309901655.1582359.18126990555058555754.stgit@dwillia2-desk3.amr.corp.intel.com>
- <87h839tpo9.fsf@linux.ibm.com>
-In-Reply-To: <87h839tpo9.fsf@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 12 Nov 2019 17:26:07 -0800
-Message-ID: <CAPcyv4gTRiZuA8A7cDxCZtHJv=LZMjd=tVgq35gbc0K8BUDHsA@mail.gmail.com>
-Subject: Re: [PATCH 04/16] libnvdimm: Move nd_numa_attribute_group to device_type
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Message-ID-Hash: NGWY3HX5LRQZT3LIT5RGUM226YKTU32L
-X-Message-ID-Hash: NGWY3HX5LRQZT3LIT5RGUM226YKTU32L
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, Michael Ellerman <mpe@ellerman.id.au>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>
+To: <linux-nvdimm@lists.01.org>
+Subject: re: need seo for my lists.01.org
+X-Priority: 1
+Message-ID-Hash: HA2IN2XBONYZNPTH3PJBMLUWNXZU3OGX
+X-Message-ID-Hash: HA2IN2XBONYZNPTH3PJBMLUWNXZU3OGX
+X-MailFrom: normanatlas54yg@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NGWY3HX5LRQZT3LIT5RGUM226YKTU32L/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HA2IN2XBONYZNPTH3PJBMLUWNXZU3OGX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,30 +52,31 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 12, 2019 at 1:23 AM Aneesh Kumar K.V
-<aneesh.kumar@linux.ibm.com> wrote:
->
-> Dan Williams <dan.j.williams@intel.com> writes:
->
-> > A 'struct device_type' instance can carry default attributes for the
-> > device. Use this facility to remove the export of
-> > nd_numa_attribute_group and put the responsibility on the core rather
-> > than leaf implementations to define this attribute.
-> >
-> > Cc: Ira Weiny <ira.weiny@intel.com>
-> > Cc: Michael Ellerman <mpe@ellerman.id.au>
-> > Cc: "Oliver O'Halloran" <oohall@gmail.com>
-> > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> > Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
->
-> can we also expose target_node in a similar way? This allows application
-> to better understand the node locality of the SCM device.
+hi
 
-It is already exported for device-dax instances. See
-DEVICE_ATTR_RO(target_node) in drivers/dax/bus.c. I did not see a use
-case for it to be exported for other nvdimm device types.
+After checking lists.01.org we`ve seen that you lack DA and TF proper
+values
+
+We can take care of that with any of our plans here
+http://www.liftmyrank.co/affordable-seo-services-small-businesses/
+
+
+Regards
+Nereida Duncan
+
+
+
+
+
+
+
+
+
+
+
+http://www.liftmyrank.co/unsubscribe/
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
