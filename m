@@ -4,81 +4,81 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F4F8C43331
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 11:49:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B944C43331
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 11:49:38 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3EA662084E
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 11:49:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3EA662084E
+	by mail.kernel.org (Postfix) with ESMTPS id 2AFFF21A49
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 11:49:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2AFFF21A49
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0F131100DC418;
-	Tue, 12 Nov 2019 03:51:16 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id 21CA9100DC41C;
+	Tue, 12 Nov 2019 03:51:25 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 33DD3100DC409
-	for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 03:51:14 -0800 (PST)
-Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id xACBlpWp054386;
-	Tue, 12 Nov 2019 06:48:18 -0500
-Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2w7td945h7-1
+	by ml01.01.org (Postfix) with ESMTPS id D3C5E100DC419
+	for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 03:51:22 -0800 (PST)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id xACBljoS141159;
+	Tue, 12 Nov 2019 06:49:29 -0500
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2w7qdbrewx-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 Nov 2019 06:48:17 -0500
-Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
-	by ppma01dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xACBhXXR020744;
-	Tue, 12 Nov 2019 11:48:16 GMT
-Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
-	by ppma01dal.us.ibm.com with ESMTP id 2w5n36dswa-1
+	Tue, 12 Nov 2019 06:49:28 -0500
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+	by ppma04dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xACBdt7S004064;
+	Tue, 12 Nov 2019 11:49:13 GMT
+Received: from b03cxnp08026.gho.boulder.ibm.com (b03cxnp08026.gho.boulder.ibm.com [9.17.130.18])
+	by ppma04dal.us.ibm.com with ESMTP id 2w5n36dqeh-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 Nov 2019 11:48:16 +0000
-Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
-	by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xACBmFwq55378382
+	Tue, 12 Nov 2019 11:49:13 +0000
+Received: from b03ledav001.gho.boulder.ibm.com (b03ledav001.gho.boulder.ibm.com [9.17.130.232])
+	by b03cxnp08026.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xACBnCIC34406714
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 12 Nov 2019 11:48:15 GMT
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C7438AE060;
-	Tue, 12 Nov 2019 11:48:15 +0000 (GMT)
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C9352AE05F;
-	Tue, 12 Nov 2019 11:48:11 +0000 (GMT)
+	Tue, 12 Nov 2019 11:49:12 GMT
+Received: from b03ledav001.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id BCE936E04E;
+	Tue, 12 Nov 2019 11:49:12 +0000 (GMT)
+Received: from b03ledav001.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B82C36E058;
+	Tue, 12 Nov 2019 11:49:07 +0000 (GMT)
 Received: from skywalker.linux.ibm.com (unknown [9.199.45.124])
-	by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
-	Tue, 12 Nov 2019 11:48:11 +0000 (GMT)
+	by b03ledav001.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Tue, 12 Nov 2019 11:49:07 +0000 (GMT)
 X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Subject: Re: [PATCH 07/16] libnvdimm: Move nvdimm_attribute_group to device_type
-In-Reply-To: <157309903201.1582359.10966209746585062329.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <157309899529.1582359.15358067933360719580.stgit@dwillia2-desk3.amr.corp.intel.com> <157309903201.1582359.10966209746585062329.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Tue, 12 Nov 2019 17:18:08 +0530
-Message-ID: <87tv79s4cn.fsf@linux.ibm.com>
+Subject: Re: [PATCH 09/16] dax: Create a dax device_type
+In-Reply-To: <157309904365.1582359.5451327195246651379.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <157309899529.1582359.15358067933360719580.stgit@dwillia2-desk3.amr.corp.intel.com> <157309904365.1582359.5451327195246651379.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 12 Nov 2019 17:19:04 +0530
+Message-ID: <87o8xhs4b3.fsf@linux.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-11-12_03:,,
  signatures=0
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=2 phishscore=0 bulkscore=0 spamscore=0
+ malwarescore=0 suspectscore=0 phishscore=0 bulkscore=0 spamscore=0
  clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
  mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
  scancount=1 engine=8.0.1-1910280000 definitions=main-1911120107
-Message-ID-Hash: XYXYYSKPGG2CTZUYJKO7JOWXBUVWI76S
-X-Message-ID-Hash: XYXYYSKPGG2CTZUYJKO7JOWXBUVWI76S
+Message-ID-Hash: 2DTF2FFULBWMGCOZTFMQWZT7VQPVNW3Y
+X-Message-ID-Hash: 2DTF2FFULBWMGCOZTFMQWZT7VQPVNW3Y
 X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Michael Ellerman <mpe@ellerman.id.au>, peterz@infradead.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+CC: peterz@infradead.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XYXYYSKPGG2CTZUYJKO7JOWXBUVWI76S/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2DTF2FFULBWMGCOZTFMQWZT7VQPVNW3Y/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -89,136 +89,44 @@ Content-Transfer-Encoding: 7bit
 
 Dan Williams <dan.j.williams@intel.com> writes:
 
-> A 'struct device_type' instance can carry default attributes for the
-> device. Use this facility to remove the export of
-> nvdimm_attribute_group and put the responsibility on the core rather
-> than leaf implementations to define this attribute.
+> Move the open coded release method and attribute groups to a 'struct
+> device_type' instance.
 >
 Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+
 > Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: "Oliver O'Halloran" <oohall@gmail.com>
 > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  arch/powerpc/platforms/pseries/papr_scm.c |    9 ++-----
->  drivers/acpi/nfit/core.c                  |    1 -
->  drivers/nvdimm/dimm_devs.c                |   36 +++++++++++++++--------------
->  include/linux/libnvdimm.h                 |    1 -
->  4 files changed, 20 insertions(+), 27 deletions(-)
+>  drivers/dax/bus.c |    8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> index 0405fb769336..8354737ac340 100644
-> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> @@ -289,11 +289,6 @@ static const struct attribute_group *bus_attr_groups[] = {
->  	NULL,
->  };
->  
-> -static const struct attribute_group *papr_scm_dimm_groups[] = {
-> -	&nvdimm_attribute_group,
-> -	NULL,
-> -};
-> -
->  static inline int papr_scm_node(int node)
->  {
->  	int min_dist = INT_MAX, dist;
-> @@ -339,8 +334,8 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
->  	dimm_flags = 0;
->  	set_bit(NDD_ALIASING, &dimm_flags);
->  
-> -	p->nvdimm = nvdimm_create(p->bus, p, papr_scm_dimm_groups,
-> -				dimm_flags, PAPR_SCM_DIMM_CMD_MASK, 0, NULL);
-> +	p->nvdimm = nvdimm_create(p->bus, p, NULL, dimm_flags,
-> +				  PAPR_SCM_DIMM_CMD_MASK, 0, NULL);
->  	if (!p->nvdimm) {
->  		dev_err(dev, "Error creating DIMM object for %pOF\n", p->dn);
->  		goto err;
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 69c406ecc3a6..84fc1f865802 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1698,7 +1698,6 @@ static const struct attribute_group acpi_nfit_dimm_attribute_group = {
->  };
->  
->  static const struct attribute_group *acpi_nfit_dimm_attribute_groups[] = {
-> -	&nvdimm_attribute_group,
->  	&acpi_nfit_dimm_attribute_group,
->  	NULL,
->  };
-> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-> index 278867c68682..94ea6dba6b4f 100644
-> --- a/drivers/nvdimm/dimm_devs.c
-> +++ b/drivers/nvdimm/dimm_devs.c
-> @@ -202,22 +202,6 @@ static void nvdimm_release(struct device *dev)
->  	kfree(nvdimm);
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 8fafbeab510a..f3e6e00ece40 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -373,6 +373,11 @@ static void dev_dax_release(struct device *dev)
+>  	kfree(dev_dax);
 >  }
 >  
-> -static const struct attribute_group *nvdimm_attribute_groups[] = {
-> -	&nd_device_attribute_group,
-> -	NULL,
-> -};
-> -
-> -static const struct device_type nvdimm_device_type = {
-> -	.name = "nvdimm",
-> -	.release = nvdimm_release,
-> -	.groups = nvdimm_attribute_groups,
-> -};
-> -
-> -bool is_nvdimm(struct device *dev)
-> -{
-> -	return dev->type == &nvdimm_device_type;
-> -}
-> -
->  struct nvdimm *to_nvdimm(struct device *dev)
+> +static const struct device_type dev_dax_type = {
+> +	.release = dev_dax_release,
+> +	.groups = dax_attribute_groups,
+> +};
+> +
+>  static void unregister_dev_dax(void *dev)
 >  {
->  	struct nvdimm *nvdimm = container_of(dev, struct nvdimm, dev);
-> @@ -456,11 +440,27 @@ static umode_t nvdimm_visible(struct kobject *kobj, struct attribute *a, int n)
->  	return 0;
->  }
+>  	struct dev_dax *dev_dax = to_dev_dax(dev);
+> @@ -430,8 +435,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+>  	else
+>  		dev->class = dax_class;
+>  	dev->parent = parent;
+> -	dev->groups = dax_attribute_groups;
+> -	dev->release = dev_dax_release;
+> +	dev->type = &dev_dax_type;
+>  	dev_set_name(dev, "dax%d.%d", dax_region->id, id);
 >  
-> -struct attribute_group nvdimm_attribute_group = {
-> +static const struct attribute_group nvdimm_attribute_group = {
->  	.attrs = nvdimm_attributes,
->  	.is_visible = nvdimm_visible,
->  };
-> -EXPORT_SYMBOL_GPL(nvdimm_attribute_group);
-> +
-> +static const struct attribute_group *nvdimm_attribute_groups[] = {
-> +	&nd_device_attribute_group,
-> +	&nvdimm_attribute_group,
-> +	NULL,
-> +};
-> +
-> +static const struct device_type nvdimm_device_type = {
-> +	.name = "nvdimm",
-> +	.release = nvdimm_release,
-> +	.groups = nvdimm_attribute_groups,
-> +};
-> +
-> +bool is_nvdimm(struct device *dev)
-> +{
-> +	return dev->type == &nvdimm_device_type;
-> +}
->  
->  struct nvdimm *__nvdimm_create(struct nvdimm_bus *nvdimm_bus,
->  		void *provider_data, const struct attribute_group **groups,
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index eb597d1cb891..3644af97bcb4 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -66,7 +66,6 @@ enum {
->  };
->  
->  extern struct attribute_group nvdimm_bus_attribute_group;
-> -extern struct attribute_group nvdimm_attribute_group;
->  
->  struct nvdimm;
->  struct nvdimm_bus_descriptor;
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+>  	rc = device_add(dev);
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
