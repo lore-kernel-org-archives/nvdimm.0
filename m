@@ -2,83 +2,77 @@ Return-Path: <SRS0=5Nm1=ZE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5E90C17440
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 11:51:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6842DC17441
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 17:15:32 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 826452084E
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 11:51:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 826452084E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 3269721D7F
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Nov 2019 17:15:32 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="BV3xxOHW"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3269721D7F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8579C100DC41F;
-	Tue, 12 Nov 2019 03:53:08 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 2C4F6100DC419;
+	Tue, 12 Nov 2019 09:17:17 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::341; helo=mail-ot1-x341.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 772D4100DC418
-	for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 03:53:06 -0800 (PST)
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.27/8.16.0.27) with SMTP id xACBlmeE066031;
-	Tue, 12 Nov 2019 06:50:13 -0500
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2w7td0v0mk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 Nov 2019 06:50:12 -0500
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-	by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xACBhKKq016153;
-	Tue, 12 Nov 2019 11:50:15 GMT
-Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
-	by ppma01wdc.us.ibm.com with ESMTP id 2w5n36e805-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 Nov 2019 11:50:15 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-	by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xACBoAYs50200876
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 12 Nov 2019 11:50:10 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 1BA096A051;
-	Tue, 12 Nov 2019 11:50:10 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 57B9E6A047;
-	Tue, 12 Nov 2019 11:50:06 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.199.45.124])
-	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Tue, 12 Nov 2019 11:50:05 +0000 (GMT)
-X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Subject: Re: [PATCH 12/16] dax: Add numa_node to the default device-dax attributes
-In-Reply-To: <157309906102.1582359.4262088001244476001.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <157309899529.1582359.15358067933360719580.stgit@dwillia2-desk3.amr.corp.intel.com> <157309906102.1582359.4262088001244476001.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Tue, 12 Nov 2019 17:20:03 +0530
-Message-ID: <87imnps49g.fsf@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 100A2100DC415
+	for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 09:17:14 -0800 (PST)
+Received: by mail-ot1-x341.google.com with SMTP id d5so14989573otp.4
+        for <linux-nvdimm@lists.01.org>; Tue, 12 Nov 2019 09:15:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=JVzIXHrO764GfG4Qiqm8/IBriT7RsdH75hTLmp9BmRA=;
+        b=BV3xxOHWbIQpFI5CB7uozaEEkwDC3lyWKTSTyPa4TC3Rd1nV/7MnrtvXeaQ1Zn/abG
+         nhzwgNg+HMP/zc7thH3+NozpyQbz1ePQ/ASz5y+YgICE0CRqSZzdHbEDliWn//CnYMRu
+         vHRCY+Y8CVfx8lHiYzbdQMlPFcMr0aCT+stJMsIb3zLNuQGMY/pTwW26u1A1i3C9XOW+
+         nw+Nq64NnYGla6dF2P9v2y4kMFTef25LsJwSzbFUjnSsxuStNJXwc4PC154fjf3VfdPF
+         5LsksQleIaBa3iFOcbqYVbhweUIDtdGWopLOAv0G/rosJkOeTyOR/j9fGyVuxi7E4yrJ
+         BsoQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=JVzIXHrO764GfG4Qiqm8/IBriT7RsdH75hTLmp9BmRA=;
+        b=umLgjJWwwLpFvT+2Jt99+q/+ghZJ2jWlVaqLqyjM3pcNXexQEfG9lTE0WI9di8ZWmC
+         lNTMYa1wK1cy+D7dmysLu9g51EhzF4wzdeV2/a0fRFp0N8Zt2ecEWc1NdalqqfYcVwVM
+         2vg/wRG/sSTZ/xkScN8WeACZ7DQPmHuwFlH0iA9Nm6LyqPEdbivfcI2O2NrF39OaUqs/
+         G6s/+kpj7SEuzChWY6QaluP4Hy3n+idUs3BQ3Dj6gekhvZ1iLjHlatD3Y60wE48QqKVs
+         Vox65w8hYctaKGfn3ONF7mSEiIxfg43FYGBxipg8eN0kRHdTt/odlzXx93VqBZb4Jw7B
+         t2eA==
+X-Gm-Message-State: APjAAAV0ioOd7QLZ0dDVBfdlrzmcaE3RR7y+4QbE/39kwazWioqn0tE3
+	xX6h4e2Dnfgklb7T77jOug37GOMDlRxdxgz0TgHJLA==
+X-Google-Smtp-Source: APXvYqxBWRXUbhgUeJAvflllA99xOkq97GoI6xicPLh5pWfFwhtbLObGxHb1Ub62atqTxWhI8Bsq8hQNoxBqMIRsSJw=
+X-Received: by 2002:a9d:5f11:: with SMTP id f17mr4555105oti.207.1573578928797;
+ Tue, 12 Nov 2019 09:15:28 -0800 (PST)
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:,, definitions=2019-11-12_03:,,
- signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 suspectscore=2 phishscore=0 bulkscore=0 spamscore=0
- clxscore=1015 lowpriorityscore=0 mlxscore=0 impostorscore=0
- mlxlogscore=999 adultscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.0.1-1910280000 definitions=main-1911120107
-Message-ID-Hash: YZX4V53EDID6677AMB2FNZCXRJCBG7VE
-X-Message-ID-Hash: YZX4V53EDID6677AMB2FNZCXRJCBG7VE
-X-MailFrom: aneesh.kumar@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: peterz@infradead.org, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+References: <MN2PR02MB63362F7B019844D94D243CE2A5770@MN2PR02MB6336.namprd02.prod.outlook.com>
+In-Reply-To: <MN2PR02MB63362F7B019844D94D243CE2A5770@MN2PR02MB6336.namprd02.prod.outlook.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 12 Nov 2019 09:15:18 -0800
+Message-ID: <CAPcyv4j75cQ4dSqyKGuioyyf0O9r0BG0TjFgv+w=64gLah5z6w@mail.gmail.com>
+Subject: Re: DAX filesystem support on ARMv8
+To: Bharat Kumar Gogada <bharatku@xilinx.com>
+Message-ID-Hash: H447JEAUYWIRGF7GOXRELXKRS2UNLEV7
+X-Message-ID-Hash: H447JEAUYWIRGF7GOXRELXKRS2UNLEV7
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "willy@infradead.org" <willy@infradead.org>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "jack@suse.cz" <jack@suse.cz>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YZX4V53EDID6677AMB2FNZCXRJCBG7VE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/H447JEAUYWIRGF7GOXRELXKRS2UNLEV7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -87,63 +81,23 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dan Williams <dan.j.williams@intel.com> writes:
-
-> It is confusing that device-dax instances publish a 'target_node'
-> attribute, but not a 'numa_node'. The 'numa_node' information is
-> available elsewhere in the sysfs device hierarchy, but it is not obvious
-> and not reliable from one device-dax instance-type (e.g. child devices
-> of nvdimm namespaces) to the next (e.g. 'hmem' devices defined by EFI
-> Specific Purpose Memory and the ACPI HMAT).
+On Mon, Nov 11, 2019 at 6:12 PM Bharat Kumar Gogada <bharatku@xilinx.com> wrote:
 >
-
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/dax/bus.c |   10 ++++++++++
->  1 file changed, 10 insertions(+)
+> Hi All,
 >
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index ce6d648d7670..0879b9663eb7 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -322,6 +322,13 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
->  }
->  static DEVICE_ATTR_RO(modalias);
->  
-> +static ssize_t numa_node_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	return sprintf(buf, "%d\n", dev_to_node(dev));
-> +}
-> +static DEVICE_ATTR_RO(numa_node);
-> +
->  static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
->  {
->  	struct device *dev = container_of(kobj, struct device, kobj);
-> @@ -329,6 +336,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
->  
->  	if (a == &dev_attr_target_node.attr && dev_dax_target_node(dev_dax) < 0)
->  		return 0;
-> +	if (a == &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
-> +		return 0;
->  	return a->mode;
->  }
->  
-> @@ -337,6 +346,7 @@ static struct attribute *dev_dax_attributes[] = {
->  	&dev_attr_size.attr,
->  	&dev_attr_target_node.attr,
->  	&dev_attr_resource.attr,
-> +	&dev_attr_numa_node.attr,
->  	NULL,
->  };
->  
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+> As per Documentation/filesystems/dax.txt
+>
+> The DAX code does not work correctly on architectures which have virtually
+> mapped caches such as ARM, MIPS and SPARC.
+>
+> Can anyone please shed light on dax filesystem issue w.r.t ARM architecture ?
+
+The concern is VIVT caches since the kernel will want to flush pmem
+addresses with different virtual addresses than what userspace is
+using. As far as I know, ARMv8 has VIPT caches, so should not have an
+issue. Willy initially wrote those restrictions, but I am assuming
+that the concern was managing the caches in the presence of virtual
+aliases.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
