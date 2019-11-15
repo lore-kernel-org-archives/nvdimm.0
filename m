@@ -2,95 +2,201 @@ Return-Path: <SRS0=0kfp=ZH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BFEDC43215
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 04:30:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D708C432C3
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 09:48:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1462E2072D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 04:30:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="guB1CbXX"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1462E2072D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 7E13820748
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 09:48:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7E13820748
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4A848100DC3D0;
-	Thu, 14 Nov 2019 20:32:18 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::243; helo=mail-oi1-x243.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id EB102100DC3D2;
+	Fri, 15 Nov 2019 01:50:13 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx1.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
+Received: from mx1.suse.de (mx2.suse.de [195.135.220.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9392D100EEBB6
-	for <linux-nvdimm@lists.01.org>; Thu, 14 Nov 2019 20:32:16 -0800 (PST)
-Received: by mail-oi1-x243.google.com with SMTP id s71so7473602oih.11
-        for <linux-nvdimm@lists.01.org>; Thu, 14 Nov 2019 20:30:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=kRWArS8EY6M5DOjOjqwZ6+pvf8YoFwoc/oPe6h/50XU=;
-        b=guB1CbXX81G22dmWZBHxcVVxa54wwF5isiRP8DfyGl6WLw5qsD8/1yYkL94xe1bvja
-         YWrfIftutXLXDL0eJK6ZS/da065bfHQYvNr79ght47XY6Zo0Ik8kf5tpJXSMFAAFQnCw
-         ubcAHiqDy1ycfTVOPB41eht7V6f8fV65ZKDZ0inrspQuNJKy3jkEwKSowxth/UevHA+Z
-         fTEAoFQL0v3zpTHMc57OpaWN8U0odan50b9dK7PBSP1E9f0eElQWxG9JTLJNXx33+/fU
-         uN/a1NVNCswzKJSR8+RQj5yu/EViETOWFER8emzdphHbCRqRIAw57SwazMYWno23m3Pf
-         w2vA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=kRWArS8EY6M5DOjOjqwZ6+pvf8YoFwoc/oPe6h/50XU=;
-        b=lSUNlsrqefgQvO5o+fBRKNahtFPZTF624nkFOSitWh8Tx7M+fpmqVWphv9vIThNZyc
-         lao5e7kI3lZnYxwsu8lzEgYIPShS8PTagCteTUD4qRgCPuhpGfJF4Pwtt37PUACFVOVj
-         BVE08WdhAphoPjr7g/QjZUKM3Zm05hbSG1IhvVg6DasTpd9Kn7zHOGZ+n7uCtoeWKKx9
-         jjrCt1iyoUYpBZcc+yEPL1damoSsk9YPVOwK7f+8QfpTubrhrfePVoOnybsSpSAe8NLe
-         dxrU+2P5U8W0QoWY0wLCZF/gCSBQQbwud6ziTpn3NfMFN5URLf3jgzUWaRbeDVFMeTaY
-         si8A==
-X-Gm-Message-State: APjAAAVg9a1sqMc4SwPwG2Y1RvGVzHAkxPcixLD5U/bfRmIfh4Hz4t0q
-	iGuNvScWMFc6Lbf100r6seK5AmCPE8p0UIwAEZwTiQ==
-X-Google-Smtp-Source: APXvYqxglauMMGlyWf/TClpfIHTmgAmcgrRFm8og4eYzgO7jYK3rFnEyN8B0fbbAiBI0hQLPzfZ1wmS7ammk00zCWVA=
-X-Received: by 2002:aca:ead7:: with SMTP id i206mr6863559oih.0.1573792250134;
- Thu, 14 Nov 2019 20:30:50 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 6D2F8100DC3CB
+	for <linux-nvdimm@lists.01.org>; Fri, 15 Nov 2019 01:50:10 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+	by mx1.suse.de (Postfix) with ESMTP id 9E007B154;
+	Fri, 15 Nov 2019 09:48:44 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+	id B5EE51E3BEA; Fri, 15 Nov 2019 10:48:42 +0100 (CET)
+Date: Fri, 15 Nov 2019 10:48:42 +0100
+From: Jan Kara <jack@suse.cz>
+To: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/2] mm: devmap: refactor 1-based refcounting for
+ ZONE_DEVICE pages
+Message-ID: <20191115094842.GA9043@quack2.suse.cz>
+References: <20191115001134.2489505-1-jhubbard@nvidia.com>
+ <20191115001134.2489505-3-jhubbard@nvidia.com>
 MIME-Version: 1.0
-References: <20191025044721.16617-1-alastair@au1.ibm.com> <20191025044721.16617-3-alastair@au1.ibm.com>
-In-Reply-To: <20191025044721.16617-3-alastair@au1.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 14 Nov 2019 20:30:38 -0800
-Message-ID: <CAPcyv4gb7xZpY+F9qupJbLznqHbyCOuOee8R6aLby72UkyjtZg@mail.gmail.com>
-Subject: Re: [PATCH 02/10] nvdimm: remove prototypes for nonexistent functions
-To: "Alastair D'Silva" <alastair@au1.ibm.com>
-Message-ID-Hash: 6X4PFG2QUQSRJUE52BIOY5RGPONWMAQV
-X-Message-ID-Hash: 6X4PFG2QUQSRJUE52BIOY5RGPONWMAQV
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: alastair@d-silva.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Krzysztof Kozlowski <krzk@kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Anton Blanchard <anton@ozlabs.org>, David Gibson <david@gibson.dropbear.id.au>, Hari Bathini <hbathini@linux.ibm.com>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, =?UTF-8?Q?C=C3=A9dric_Le_Goater?= <clg@kaod.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Greg Kurz <groug@kaod.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.com>, Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Wei Yang <richard.weiyang@gmail.com
- >, Qian Cai <cai@lca.pw>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20191115001134.2489505-3-jhubbard@nvidia.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: 4UQGOZO7R7XOAFIL4ZH37WZO2H2S4ARR
+X-Message-ID-Hash: 4UQGOZO7R7XOAFIL4ZH37WZO2H2S4ARR
+X-MailFrom: jack@suse.cz
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6X4PFG2QUQSRJUE52BIOY5RGPONWMAQV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4UQGOZO7R7XOAFIL4ZH37WZO2H2S4ARR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Oct 24, 2019 at 9:49 PM Alastair D'Silva <alastair@au1.ibm.com> wrote:
->
-> From: Alastair D'Silva <alastair@d-silva.org>
->
-> These functions don't exist, so remove the prototypes for them.
->
-> Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+On Thu 14-11-19 16:11:34, John Hubbard wrote:
+> An upcoming patch changes and complicates the refcounting and
+> especially the "put page" aspects of it. In order to keep
+> everything clean, refactor the devmap page release routines:
+>=20
+> * Rename put_devmap_managed_page() to page_is_devmap_managed(),
+>   and limit the functionality to "read only": return a bool,
+>   with no side effects.
+>=20
+> * Add a new routine, put_devmap_managed_page(), to handle checking
+>   what kind of page it is, and what kind of refcount handling it
+>   requires.
+>=20
+> * Rename __put_devmap_managed_page() to free_devmap_managed_page(),
+>   and limit the functionality to unconditionally freeing a devmap
+>   page.
+>=20
+> This is originally based on a separate patch by Ira Weiny, which
+> applied to an early version of the put_user_page() experiments.
+> Since then, J=E9r=F4me Glisse suggested the refactoring described above.
+>=20
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Suggested-by: J=E9r=F4me Glisse <jglisse@redhat.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 
-Looks good, applied.
+Looks good to me. You can add:
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+
+								Honza
+
+> ---
+>  include/linux/mm.h | 27 ++++++++++++++++++++++++---
+>  mm/memremap.c      | 16 ++--------------
+>  2 files changed, 26 insertions(+), 17 deletions(-)
+>=20
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index a2adf95b3f9c..96228376139c 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -967,9 +967,10 @@ static inline bool is_zone_device_page(const struct =
+page *page)
+>  #endif
+> =20
+>  #ifdef CONFIG_DEV_PAGEMAP_OPS
+> -void __put_devmap_managed_page(struct page *page);
+> +void free_devmap_managed_page(struct page *page);
+>  DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
+> -static inline bool put_devmap_managed_page(struct page *page)
+> +
+> +static inline bool page_is_devmap_managed(struct page *page)
+>  {
+>  	if (!static_branch_unlikely(&devmap_managed_key))
+>  		return false;
+> @@ -978,7 +979,6 @@ static inline bool put_devmap_managed_page(struct pag=
+e *page)
+>  	switch (page->pgmap->type) {
+>  	case MEMORY_DEVICE_PRIVATE:
+>  	case MEMORY_DEVICE_FS_DAX:
+> -		__put_devmap_managed_page(page);
+>  		return true;
+>  	default:
+>  		break;
+> @@ -986,6 +986,27 @@ static inline bool put_devmap_managed_page(struct pa=
+ge *page)
+>  	return false;
+>  }
+> =20
+> +static inline bool put_devmap_managed_page(struct page *page)
+> +{
+> +	bool is_devmap =3D page_is_devmap_managed(page);
+> +
+> +	if (is_devmap) {
+> +		int count =3D page_ref_dec_return(page);
+> +
+> +		/*
+> +		 * devmap page refcounts are 1-based, rather than 0-based: if
+> +		 * refcount is 1, then the page is free and the refcount is
+> +		 * stable because nobody holds a reference on the page.
+> +		 */
+> +		if (count =3D=3D 1)
+> +			free_devmap_managed_page(page);
+> +		else if (!count)
+> +			__put_page(page);
+> +	}
+> +
+> +	return is_devmap;
+> +}
+> +
+>  #else /* CONFIG_DEV_PAGEMAP_OPS */
+>  static inline bool put_devmap_managed_page(struct page *page)
+>  {
+> diff --git a/mm/memremap.c b/mm/memremap.c
+> index e899fa876a62..2ba773859031 100644
+> --- a/mm/memremap.c
+> +++ b/mm/memremap.c
+> @@ -411,20 +411,8 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pf=
+n,
+>  EXPORT_SYMBOL_GPL(get_dev_pagemap);
+> =20
+>  #ifdef CONFIG_DEV_PAGEMAP_OPS
+> -void __put_devmap_managed_page(struct page *page)
+> +void free_devmap_managed_page(struct page *page)
+>  {
+> -	int count =3D page_ref_dec_return(page);
+> -
+> -	/* still busy */
+> -	if (count > 1)
+> -		return;
+> -
+> -	/* only triggered by the dev_pagemap shutdown path */
+> -	if (count =3D=3D 0) {
+> -		__put_page(page);
+> -		return;
+> -	}
+> -
+>  	/* notify page idle for dax */
+>  	if (!is_device_private_page(page)) {
+>  		wake_up_var(&page->_refcount);
+> @@ -461,5 +449,5 @@ void __put_devmap_managed_page(struct page *page)
+>  	page->mapping =3D NULL;
+>  	page->pgmap->ops->page_free(page);
+>  }
+> -EXPORT_SYMBOL(__put_devmap_managed_page);
+> +EXPORT_SYMBOL(free_devmap_managed_page);
+>  #endif /* CONFIG_DEV_PAGEMAP_OPS */
+> --=20
+> 2.24.0
+>=20
+--=20
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
