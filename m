@@ -2,178 +2,95 @@ Return-Path: <SRS0=0kfp=ZH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D235C33C9B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 00:11:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BFEDC43215
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 04:30:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 62BF0206E6
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 00:11:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 1462E2072D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 Nov 2019 04:30:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="OIRUY7Dc"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 62BF0206E6
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=nvidia.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="guB1CbXX"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1462E2072D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0E59F100DC3D8;
-	Thu, 14 Nov 2019 16:13:06 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.228.121.65; helo=hqemgate16.nvidia.com; envelope-from=jhubbard@nvidia.com; receiver=<UNKNOWN> 
-Received: from hqemgate16.nvidia.com (hqemgate16.nvidia.com [216.228.121.65])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4A848100DC3D0;
+	Thu, 14 Nov 2019 20:32:18 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::243; helo=mail-oi1-x243.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A1E3A100DC3CF
-	for <linux-nvdimm@lists.01.org>; Thu, 14 Nov 2019 16:13:03 -0800 (PST)
-Received: from hqpgpgate102.nvidia.com (Not Verified[216.228.121.13]) by hqemgate16.nvidia.com (using TLS: TLSv1.2, DES-CBC3-SHA)
-	id <B5dcded000001>; Thu, 14 Nov 2019 16:10:40 -0800
-Received: from hqmail.nvidia.com ([172.20.161.6])
-  by hqpgpgate102.nvidia.com (PGP Universal service);
-  Thu, 14 Nov 2019 16:11:35 -0800
-X-PGP-Universal: processed;
-	by hqpgpgate102.nvidia.com on Thu, 14 Nov 2019 16:11:35 -0800
-Received: from HQMAIL107.nvidia.com (172.20.187.13) by HQMAIL105.nvidia.com
- (172.20.187.12) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 15 Nov
- 2019 00:11:35 +0000
-Received: from hqnvemgw03.nvidia.com (10.124.88.68) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3 via Frontend
- Transport; Fri, 15 Nov 2019 00:11:35 +0000
-Received: from blueforge.nvidia.com (Not Verified[10.110.48.28]) by hqnvemgw03.nvidia.com with Trustwave SEG (v7,5,8,10121)
-	id <B5dcded370001>; Thu, 14 Nov 2019 16:11:35 -0800
-From: John Hubbard <jhubbard@nvidia.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH 1/2] mm: Cleanup __put_devmap_managed_page() vs ->page_free()
-Date: Thu, 14 Nov 2019 16:11:33 -0800
-Message-ID: <20191115001134.2489505-2-jhubbard@nvidia.com>
-X-Mailer: git-send-email 2.24.0
-In-Reply-To: <20191115001134.2489505-1-jhubbard@nvidia.com>
-References: <20191115001134.2489505-1-jhubbard@nvidia.com>
+	by ml01.01.org (Postfix) with ESMTPS id 9392D100EEBB6
+	for <linux-nvdimm@lists.01.org>; Thu, 14 Nov 2019 20:32:16 -0800 (PST)
+Received: by mail-oi1-x243.google.com with SMTP id s71so7473602oih.11
+        for <linux-nvdimm@lists.01.org>; Thu, 14 Nov 2019 20:30:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kRWArS8EY6M5DOjOjqwZ6+pvf8YoFwoc/oPe6h/50XU=;
+        b=guB1CbXX81G22dmWZBHxcVVxa54wwF5isiRP8DfyGl6WLw5qsD8/1yYkL94xe1bvja
+         YWrfIftutXLXDL0eJK6ZS/da065bfHQYvNr79ght47XY6Zo0Ik8kf5tpJXSMFAAFQnCw
+         ubcAHiqDy1ycfTVOPB41eht7V6f8fV65ZKDZ0inrspQuNJKy3jkEwKSowxth/UevHA+Z
+         fTEAoFQL0v3zpTHMc57OpaWN8U0odan50b9dK7PBSP1E9f0eElQWxG9JTLJNXx33+/fU
+         uN/a1NVNCswzKJSR8+RQj5yu/EViETOWFER8emzdphHbCRqRIAw57SwazMYWno23m3Pf
+         w2vA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kRWArS8EY6M5DOjOjqwZ6+pvf8YoFwoc/oPe6h/50XU=;
+        b=lSUNlsrqefgQvO5o+fBRKNahtFPZTF624nkFOSitWh8Tx7M+fpmqVWphv9vIThNZyc
+         lao5e7kI3lZnYxwsu8lzEgYIPShS8PTagCteTUD4qRgCPuhpGfJF4Pwtt37PUACFVOVj
+         BVE08WdhAphoPjr7g/QjZUKM3Zm05hbSG1IhvVg6DasTpd9Kn7zHOGZ+n7uCtoeWKKx9
+         jjrCt1iyoUYpBZcc+yEPL1damoSsk9YPVOwK7f+8QfpTubrhrfePVoOnybsSpSAe8NLe
+         dxrU+2P5U8W0QoWY0wLCZF/gCSBQQbwud6ziTpn3NfMFN5URLf3jgzUWaRbeDVFMeTaY
+         si8A==
+X-Gm-Message-State: APjAAAVg9a1sqMc4SwPwG2Y1RvGVzHAkxPcixLD5U/bfRmIfh4Hz4t0q
+	iGuNvScWMFc6Lbf100r6seK5AmCPE8p0UIwAEZwTiQ==
+X-Google-Smtp-Source: APXvYqxglauMMGlyWf/TClpfIHTmgAmcgrRFm8og4eYzgO7jYK3rFnEyN8B0fbbAiBI0hQLPzfZ1wmS7ammk00zCWVA=
+X-Received: by 2002:aca:ead7:: with SMTP id i206mr6863559oih.0.1573792250134;
+ Thu, 14 Nov 2019 20:30:50 -0800 (PST)
 MIME-Version: 1.0
-X-NVConfidentiality: public
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-	t=1573776640; bh=AC3B+bSuSOhCIQMFfknGmFthqUy5L4DGDhYzXP1+5TU=;
-	h=X-PGP-Universal:From:To:CC:Subject:Date:Message-ID:X-Mailer:
-	 In-Reply-To:References:MIME-Version:X-NVConfidentiality:
-	 Content-Type:Content-Transfer-Encoding;
-	b=OIRUY7DckagIctnCbr5saMRKOLq4oBXmH571qAP08JP5JvrUEggWHPNeOvnQfV+XV
-	 1VLFVB36gtVHUzkM8kjfLhq/+ZzoqK6x1V9ydseZyhI3M1DPjKjXrKECEMGmejxHMY
-	 XSU9FkEnWj3E4kvEtRdM8W4N4qGDHm0dY3xAMZtvEzonvJPg1Kzf50G9ecdeZGWKdT
-	 RA9l8ZtEnKpkXe2+yWriRpIHV4hVouGVWmXv94uHkZ0QzqAUv8pgXumOCF4YVVEzLl
-	 SZFkBKEqhBOJ4x6e/MkH5fLxVCuIlrJBd2w1OP1O2kpvohTDWqrSkJiCnw7WSr3Ln2
-	 YLbig7kOqQN7w==
-Message-ID-Hash: NHMCLDJC2TDDXJB72EIX7TWPS4X2FGGS
-X-Message-ID-Hash: NHMCLDJC2TDDXJB72EIX7TWPS4X2FGGS
-X-MailFrom: jhubbard@nvidia.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Christoph Hellwig <hch@lst.de>
+References: <20191025044721.16617-1-alastair@au1.ibm.com> <20191025044721.16617-3-alastair@au1.ibm.com>
+In-Reply-To: <20191025044721.16617-3-alastair@au1.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Nov 2019 20:30:38 -0800
+Message-ID: <CAPcyv4gb7xZpY+F9qupJbLznqHbyCOuOee8R6aLby72UkyjtZg@mail.gmail.com>
+Subject: Re: [PATCH 02/10] nvdimm: remove prototypes for nonexistent functions
+To: "Alastair D'Silva" <alastair@au1.ibm.com>
+Message-ID-Hash: 6X4PFG2QUQSRJUE52BIOY5RGPONWMAQV
+X-Message-ID-Hash: 6X4PFG2QUQSRJUE52BIOY5RGPONWMAQV
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: alastair@d-silva.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Krzysztof Kozlowski <krzk@kernel.org>, Geert Uytterhoeven <geert+renesas@glider.be>, Anton Blanchard <anton@ozlabs.org>, David Gibson <david@gibson.dropbear.id.au>, Hari Bathini <hbathini@linux.ibm.com>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, =?UTF-8?Q?C=C3=A9dric_Le_Goater?= <clg@kaod.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Greg Kurz <groug@kaod.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Oscar Salvador <osalvador@suse.com>, Michal Hocko <mhocko@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Wei Yang <richard.weiyang@gmail.com
+ >, Qian Cai <cai@lca.pw>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NHMCLDJC2TDDXJB72EIX7TWPS4X2FGGS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6X4PFG2QUQSRJUE52BIOY5RGPONWMAQV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-RnJvbTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCkFmdGVyIHRo
-ZSByZW1vdmFsIG9mIHRoZSBkZXZpY2UtcHVibGljIGluZnJhc3RydWN0dXJlIHRoZXJlIGFyZSBv
-bmx5IDINCi0+cGFnZV9mcmVlKCkgY2FsbCBiYWNrcyBpbiB0aGUga2VybmVsLiBPbmUgb2YgdGhv
-c2UgaXMgYSBkZXZpY2UtcHJpdmF0ZQ0KY2FsbGJhY2sgaW4gdGhlIG5vdXZlYXUgZHJpdmVyLCB0
-aGUgb3RoZXIgaXMgYSBnZW5lcmljIHdha2V1cCBuZWVkZWQgaW4NCnRoZSBEQVggY2FzZS4gSW4g
-dGhlIGhvcGVzIHRoYXQgYWxsIC0+cGFnZV9mcmVlKCkgY2FsbGJhY2tzIGNhbiBiZQ0KbWlncmF0
-ZWQgdG8gY29tbW9uIGNvcmUga2VybmVsIGZ1bmN0aW9uYWxpdHksIG1vdmUgdGhlIGRldmljZS1w
-cml2YXRlDQpzcGVjaWZpYyBhY3Rpb25zIGluIF9fcHV0X2Rldm1hcF9tYW5hZ2VkX3BhZ2UoKSB1
-bmRlciB0aGUNCmlzX2RldmljZV9wcml2YXRlX3BhZ2UoKSBjb25kaXRpb25hbCwgaW5jbHVkaW5n
-IHRoZSAtPnBhZ2VfZnJlZSgpDQpjYWxsYmFjay4gRm9yIHRoZSBvdGhlciBwYWdlIHR5cGVzIGp1
-c3Qgb3Blbi1jb2RlIHRoZSBnZW5lcmljIHdha2V1cC4NCg0KWWVzLCB0aGUgd2FrZXVwIGlzIG9u
-bHkgbmVlZGVkIGluIHRoZSBNRU1PUllfREVWSUNFX0ZTREFYIGNhc2UsIGJ1dCBpdA0KZG9lcyBu
-byBoYXJtIGluIHRoZSBNRU1PUllfREVWSUNFX0RFVkRBWCBhbmQgTUVNT1JZX0RFVklDRV9QQ0lf
-UDJQRE1BDQpjYXNlLg0KDQpDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4NCkNjOiBDaHJpc3Rv
-cGggSGVsbHdpZyA8aGNoQGxzdC5kZT4NCkNjOiBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5j
-b20+DQpSZXZpZXdlZC1ieTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+DQpT
-aWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NClNp
-Z25lZC1vZmYtYnk6IEpvaG4gSHViYmFyZCA8amh1YmJhcmRAbnZpZGlhLmNvbT4NCi0tLQ0KIGRy
-aXZlcnMvbnZkaW1tL3BtZW0uYyB8ICA2IC0tLS0NCiBtbS9tZW1yZW1hcC5jICAgICAgICAgfCA4
-MCArKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tDQogMiBmaWxlcyBj
-aGFuZ2VkLCA0NCBpbnNlcnRpb25zKCspLCA0MiBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvbnZkaW1tL3BtZW0uYyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KaW5kZXggZjlm
-NzZmNmJhMDdiLi4yMWRiMWNlOGMwYWUgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL252ZGltbS9wbWVt
-LmMNCisrKyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KQEAgLTMzOCwxMyArMzM4LDcgQEAgc3Rh
-dGljIHZvaWQgcG1lbV9yZWxlYXNlX2Rpc2sodm9pZCAqX19wbWVtKQ0KIAlwdXRfZGlzayhwbWVt
-LT5kaXNrKTsNCiB9DQogDQotc3RhdGljIHZvaWQgcG1lbV9wYWdlbWFwX3BhZ2VfZnJlZShzdHJ1
-Y3QgcGFnZSAqcGFnZSkNCi17DQotCXdha2VfdXBfdmFyKCZwYWdlLT5fcmVmY291bnQpOw0KLX0N
-Ci0NCiBzdGF0aWMgY29uc3Qgc3RydWN0IGRldl9wYWdlbWFwX29wcyBmc2RheF9wYWdlbWFwX29w
-cyA9IHsNCi0JLnBhZ2VfZnJlZQkJPSBwbWVtX3BhZ2VtYXBfcGFnZV9mcmVlLA0KIAkua2lsbAkJ
-CT0gcG1lbV9wYWdlbWFwX2tpbGwsDQogCS5jbGVhbnVwCQk9IHBtZW1fcGFnZW1hcF9jbGVhbnVw
-LA0KIH07DQpkaWZmIC0tZ2l0IGEvbW0vbWVtcmVtYXAuYyBiL21tL21lbXJlbWFwLmMNCmluZGV4
-IDAzY2NiZGZlYjY5Ny4uZTg5OWZhODc2YTYyIDEwMDY0NA0KLS0tIGEvbW0vbWVtcmVtYXAuYw0K
-KysrIGIvbW0vbWVtcmVtYXAuYw0KQEAgLTI3LDcgKzI3LDggQEAgc3RhdGljIHZvaWQgZGV2bWFw
-X21hbmFnZWRfZW5hYmxlX3B1dCh2b2lkKQ0KIA0KIHN0YXRpYyBpbnQgZGV2bWFwX21hbmFnZWRf
-ZW5hYmxlX2dldChzdHJ1Y3QgZGV2X3BhZ2VtYXAgKnBnbWFwKQ0KIHsNCi0JaWYgKCFwZ21hcC0+
-b3BzIHx8ICFwZ21hcC0+b3BzLT5wYWdlX2ZyZWUpIHsNCisJaWYgKHBnbWFwLT50eXBlID09IE1F
-TU9SWV9ERVZJQ0VfUFJJVkFURSAmJg0KKwkgICAgKCFwZ21hcC0+b3BzIHx8ICFwZ21hcC0+b3Bz
-LT5wYWdlX2ZyZWUpKSB7DQogCQlXQVJOKDEsICJNaXNzaW5nIHBhZ2VfZnJlZSBtZXRob2RcbiIp
-Ow0KIAkJcmV0dXJuIC1FSU5WQUw7DQogCX0NCkBAIC00MTQsNDQgKzQxNSw1MSBAQCB2b2lkIF9f
-cHV0X2Rldm1hcF9tYW5hZ2VkX3BhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpDQogew0KIAlpbnQgY291
-bnQgPSBwYWdlX3JlZl9kZWNfcmV0dXJuKHBhZ2UpOw0KIA0KLQkvKg0KLQkgKiBJZiByZWZjb3Vu
-dCBpcyAxIHRoZW4gcGFnZSBpcyBmcmVlZCBhbmQgcmVmY291bnQgaXMgc3RhYmxlIGFzIG5vYm9k
-eQ0KLQkgKiBob2xkcyBhIHJlZmVyZW5jZSBvbiB0aGUgcGFnZS4NCi0JICovDQotCWlmIChjb3Vu
-dCA9PSAxKSB7DQotCQkvKiBDbGVhciBBY3RpdmUgYml0IGluIGNhc2Ugb2YgcGFyYWxsZWwgbWFy
-a19wYWdlX2FjY2Vzc2VkICovDQotCQlfX0NsZWFyUGFnZUFjdGl2ZShwYWdlKTsNCi0JCV9fQ2xl
-YXJQYWdlV2FpdGVycyhwYWdlKTsNCisJLyogc3RpbGwgYnVzeSAqLw0KKwlpZiAoY291bnQgPiAx
-KQ0KKwkJcmV0dXJuOw0KIA0KLQkJbWVtX2Nncm91cF91bmNoYXJnZShwYWdlKTsNCisJLyogb25s
-eSB0cmlnZ2VyZWQgYnkgdGhlIGRldl9wYWdlbWFwIHNodXRkb3duIHBhdGggKi8NCisJaWYgKGNv
-dW50ID09IDApIHsNCisJCV9fcHV0X3BhZ2UocGFnZSk7DQorCQlyZXR1cm47DQorCX0NCiANCi0J
-CS8qDQotCQkgKiBXaGVuIGEgZGV2aWNlX3ByaXZhdGUgcGFnZSBpcyBmcmVlZCwgdGhlIHBhZ2Ut
-Pm1hcHBpbmcgZmllbGQNCi0JCSAqIG1heSBzdGlsbCBjb250YWluIGEgKHN0YWxlKSBtYXBwaW5n
-IHZhbHVlLiBGb3IgZXhhbXBsZSwgdGhlDQotCQkgKiBsb3dlciBiaXRzIG9mIHBhZ2UtPm1hcHBp
-bmcgbWF5IHN0aWxsIGlkZW50aWZ5IHRoZSBwYWdlIGFzDQotCQkgKiBhbiBhbm9ueW1vdXMgcGFn
-ZS4gVWx0aW1hdGVseSwgdGhpcyBlbnRpcmUgZmllbGQgaXMganVzdA0KLQkJICogc3RhbGUgYW5k
-IHdyb25nLCBhbmQgaXQgd2lsbCBjYXVzZSBlcnJvcnMgaWYgbm90IGNsZWFyZWQuDQotCQkgKiBP
-bmUgZXhhbXBsZSBpczoNCi0JCSAqDQotCQkgKiAgbWlncmF0ZV92bWFfcGFnZXMoKQ0KLQkJICog
-ICAgbWlncmF0ZV92bWFfaW5zZXJ0X3BhZ2UoKQ0KLQkJICogICAgICBwYWdlX2FkZF9uZXdfYW5v
-bl9ybWFwKCkNCi0JCSAqICAgICAgICBfX3BhZ2Vfc2V0X2Fub25fcm1hcCgpDQotCQkgKiAgICAg
-ICAgICAuLi5jaGVja3MgcGFnZS0+bWFwcGluZywgdmlhIFBhZ2VBbm9uKHBhZ2UpIGNhbGwsDQot
-CQkgKiAgICAgICAgICAgIGFuZCBpbmNvcnJlY3RseSBjb25jbHVkZXMgdGhhdCB0aGUgcGFnZSBp
-cyBhbg0KLQkJICogICAgICAgICAgICBhbm9ueW1vdXMgcGFnZS4gVGhlcmVmb3JlLCBpdCBpbmNv
-cnJlY3RseSwNCi0JCSAqICAgICAgICAgICAgc2lsZW50bHkgZmFpbHMgdG8gc2V0IHVwIHRoZSBu
-ZXcgYW5vbiBybWFwLg0KLQkJICoNCi0JCSAqIEZvciBvdGhlciB0eXBlcyBvZiBaT05FX0RFVklD
-RSBwYWdlcywgbWlncmF0aW9uIGlzIGVpdGhlcg0KLQkJICogaGFuZGxlZCBkaWZmZXJlbnRseSBv
-ciBub3QgZG9uZSBhdCBhbGwsIHNvIHRoZXJlIGlzIG5vIG5lZWQNCi0JCSAqIHRvIGNsZWFyIHBh
-Z2UtPm1hcHBpbmcuDQotCQkgKi8NCi0JCWlmIChpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKHBhZ2Up
-KQ0KLQkJCXBhZ2UtPm1hcHBpbmcgPSBOVUxMOw0KKwkvKiBub3RpZnkgcGFnZSBpZGxlIGZvciBk
-YXggKi8NCisJaWYgKCFpc19kZXZpY2VfcHJpdmF0ZV9wYWdlKHBhZ2UpKSB7DQorCQl3YWtlX3Vw
-X3ZhcigmcGFnZS0+X3JlZmNvdW50KTsNCisJCXJldHVybjsNCisJfQ0KIA0KLQkJcGFnZS0+cGdt
-YXAtPm9wcy0+cGFnZV9mcmVlKHBhZ2UpOw0KLQl9IGVsc2UgaWYgKCFjb3VudCkNCi0JCV9fcHV0
-X3BhZ2UocGFnZSk7DQorCS8qIENsZWFyIEFjdGl2ZSBiaXQgaW4gY2FzZSBvZiBwYXJhbGxlbCBt
-YXJrX3BhZ2VfYWNjZXNzZWQgKi8NCisJX19DbGVhclBhZ2VBY3RpdmUocGFnZSk7DQorCV9fQ2xl
-YXJQYWdlV2FpdGVycyhwYWdlKTsNCisNCisJbWVtX2Nncm91cF91bmNoYXJnZShwYWdlKTsNCisN
-CisJLyoNCisJICogV2hlbiBhIGRldmljZV9wcml2YXRlIHBhZ2UgaXMgZnJlZWQsIHRoZSBwYWdl
-LT5tYXBwaW5nIGZpZWxkDQorCSAqIG1heSBzdGlsbCBjb250YWluIGEgKHN0YWxlKSBtYXBwaW5n
-IHZhbHVlLiBGb3IgZXhhbXBsZSwgdGhlDQorCSAqIGxvd2VyIGJpdHMgb2YgcGFnZS0+bWFwcGlu
-ZyBtYXkgc3RpbGwgaWRlbnRpZnkgdGhlIHBhZ2UgYXMgYW4NCisJICogYW5vbnltb3VzIHBhZ2Uu
-IFVsdGltYXRlbHksIHRoaXMgZW50aXJlIGZpZWxkIGlzIGp1c3Qgc3RhbGUNCisJICogYW5kIHdy
-b25nLCBhbmQgaXQgd2lsbCBjYXVzZSBlcnJvcnMgaWYgbm90IGNsZWFyZWQuICBPbmUNCisJICog
-ZXhhbXBsZSBpczoNCisJICoNCisJICogIG1pZ3JhdGVfdm1hX3BhZ2VzKCkNCisJICogICAgbWln
-cmF0ZV92bWFfaW5zZXJ0X3BhZ2UoKQ0KKwkgKiAgICAgIHBhZ2VfYWRkX25ld19hbm9uX3JtYXAo
-KQ0KKwkgKiAgICAgICAgX19wYWdlX3NldF9hbm9uX3JtYXAoKQ0KKwkgKiAgICAgICAgICAuLi5j
-aGVja3MgcGFnZS0+bWFwcGluZywgdmlhIFBhZ2VBbm9uKHBhZ2UpIGNhbGwsDQorCSAqICAgICAg
-ICAgICAgYW5kIGluY29ycmVjdGx5IGNvbmNsdWRlcyB0aGF0IHRoZSBwYWdlIGlzIGFuDQorCSAq
-ICAgICAgICAgICAgYW5vbnltb3VzIHBhZ2UuIFRoZXJlZm9yZSwgaXQgaW5jb3JyZWN0bHksDQor
-CSAqICAgICAgICAgICAgc2lsZW50bHkgZmFpbHMgdG8gc2V0IHVwIHRoZSBuZXcgYW5vbiBybWFw
-Lg0KKwkgKg0KKwkgKiBGb3Igb3RoZXIgdHlwZXMgb2YgWk9ORV9ERVZJQ0UgcGFnZXMsIG1pZ3Jh
-dGlvbiBpcyBlaXRoZXINCisJICogaGFuZGxlZCBkaWZmZXJlbnRseSBvciBub3QgZG9uZSBhdCBh
-bGwsIHNvIHRoZXJlIGlzIG5vIG5lZWQNCisJICogdG8gY2xlYXIgcGFnZS0+bWFwcGluZy4NCisJ
-ICovDQorCXBhZ2UtPm1hcHBpbmcgPSBOVUxMOw0KKwlwYWdlLT5wZ21hcC0+b3BzLT5wYWdlX2Zy
-ZWUocGFnZSk7DQogfQ0KIEVYUE9SVF9TWU1CT0woX19wdXRfZGV2bWFwX21hbmFnZWRfcGFnZSk7
-DQogI2VuZGlmIC8qIENPTkZJR19ERVZfUEFHRU1BUF9PUFMgKi8NCi0tIA0KMi4yNC4wDQpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
-bWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUg
-c2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+On Thu, Oct 24, 2019 at 9:49 PM Alastair D'Silva <alastair@au1.ibm.com> wrote:
+>
+> From: Alastair D'Silva <alastair@d-silva.org>
+>
+> These functions don't exist, so remove the prototypes for them.
+>
+> Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+
+Looks good, applied.
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
