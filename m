@@ -2,210 +2,162 @@ Return-Path: <SRS0=kq3P=ZK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3507CC432C0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 07:08:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AA0EC432C0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:45:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 073A620722
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 07:08:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="HWYQdaeo"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 073A620722
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	by mail.kernel.org (Postfix) with ESMTPS id 5B9DF20740
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:45:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5B9DF20740
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6BE37100DC3F2;
-	Sun, 17 Nov 2019 23:09:54 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=batv+189483ff2217bb486f00+5930+infradead.org+hch@bombadil.srs.infradead.org; receiver=<UNKNOWN> 
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id EBA5A100DC3FA;
+	Mon, 18 Nov 2019 01:46:40 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0134E100DC3EC
-	for <linux-nvdimm@lists.01.org>; Sun, 17 Nov 2019 23:09:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Transfer-Encoding
-	:Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
-	Sender:Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:
-	Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:
-	List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=8ExZk9kczKbYZaf+JhYjsw3ZlJG/piiUaGK9LX777sQ=; b=HWYQdaeoViTJh8ki1f8oz62GPc
-	S/9Pz7w7AlVu5+aaOjLpiy0pqQiH1U9UzwZUlaqga/snXQcMZ6w+JzwIKPiGvVQZNR+abF4Ymu368
-	koJGbrV5zpC27FQXI56DpaATg1VIR4EEutNGTtJWQzSKs25LwLh5M/8DHct0IXWa5oJdCrTECNaQr
-	dzmWJQ21ALWiDg6IIPx7Qmk82vaS6wZAsOtdNxFiUVCfB8xSAAYKqIJTLy74ScZXnpZKidUdXu4zk
-	0dEUeV1Z+nGlNIcnBuJ65GkTrCX5Bq1mbfARwB+2tIz0plZ4rzGpTJ/E7gUJr0c1ogfBzo+Qxe87Z
-	D0dyFaiA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1iWb98-0002G9-83; Mon, 18 Nov 2019 07:08:26 +0000
-Date: Sun, 17 Nov 2019 23:08:26 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 2/2] mm: devmap: refactor 1-based refcounting for
- ZONE_DEVICE pages
-Message-ID: <20191118070826.GB3099@infradead.org>
-References: <20191115001134.2489505-1-jhubbard@nvidia.com>
- <20191115001134.2489505-3-jhubbard@nvidia.com>
+	by ml01.01.org (Postfix) with ESMTPS id 7FD3A100DC3F2
+	for <linux-nvdimm@lists.01.org>; Mon, 18 Nov 2019 01:46:36 -0800 (PST)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAI9g9xg007676;
+	Mon, 18 Nov 2019 04:45:18 -0500
+Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2waym9e0pg-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Nov 2019 04:45:18 -0500
+Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
+	by ppma02wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAI9jBEL001662;
+	Mon, 18 Nov 2019 09:45:17 GMT
+Received: from b03cxnp08025.gho.boulder.ibm.com (b03cxnp08025.gho.boulder.ibm.com [9.17.130.17])
+	by ppma02wdc.us.ibm.com with ESMTP id 2wa8r614wa-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Nov 2019 09:45:17 +0000
+Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
+	by b03cxnp08025.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAI9jGtq52756830
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 18 Nov 2019 09:45:16 GMT
+Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 925AF6A047;
+	Mon, 18 Nov 2019 09:45:16 +0000 (GMT)
+Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 35AB36A04D;
+	Mon, 18 Nov 2019 09:45:13 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.199.34.246])
+	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Mon, 18 Nov 2019 09:45:12 +0000 (GMT)
+X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Subject: Re: [PATCH v2 13/18] libnvdimm: Export the target_node attribute for regions and namespaces
+In-Reply-To: <157401274500.43284.2369509941678577768.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <157401267421.43284.2135775608523385279.stgit@dwillia2-desk3.amr.corp.intel.com> <157401274500.43284.2369509941678577768.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 18 Nov 2019 15:15:10 +0530
+Message-ID: <87zhgth61l.fsf@linux.ibm.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20191115001134.2489505-3-jhubbard@nvidia.com>
-User-Agent: Mutt/1.12.1 (2019-06-15)
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
-Message-ID-Hash: ZID4TDJPLAUGE2PSOQWW52DWII6EK5PR
-X-Message-ID-Hash: ZID4TDJPLAUGE2PSOQWW52DWII6EK5PR
-X-MailFrom: BATV+189483ff2217bb486f00+5930+infradead.org+hch@bombadil.srs.infradead.org
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, Jens Axboe <axboe@kernel.dk>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
+ definitions=2019-11-18_01:2019-11-15,2019-11-17 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 adultscore=0
+ mlxscore=0 suspectscore=0 spamscore=0 clxscore=1011 lowpriorityscore=0
+ phishscore=0 mlxlogscore=999 malwarescore=0 impostorscore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-1910280000 definitions=main-1911180087
+Message-ID-Hash: 2CFWOZWL4FRC6HSXUOI5CMRNZQ5B3IMP
+X-Message-ID-Hash: 2CFWOZWL4FRC6HSXUOI5CMRNZQ5B3IMP
+X-MailFrom: aneesh.kumar@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: peterz@infradead.org, dave.hansen@linux.intel.com, hch@lst.de, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZID4TDJPLAUGE2PSOQWW52DWII6EK5PR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2CFWOZWL4FRC6HSXUOI5CMRNZQ5B3IMP/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-On Thu, Nov 14, 2019 at 04:11:34PM -0800, John Hubbard wrote:
-> An upcoming patch changes and complicates the refcounting and
-> especially the "put page" aspects of it. In order to keep
-> everything clean, refactor the devmap page release routines:
->=20
-> * Rename put_devmap_managed_page() to page_is_devmap_managed(),
->   and limit the functionality to "read only": return a bool,
->   with no side effects.
->=20
-> * Add a new routine, put_devmap_managed_page(), to handle checking
->   what kind of page it is, and what kind of refcount handling it
->   requires.
->=20
-> * Rename __put_devmap_managed_page() to free_devmap_managed_page(),
->   and limit the functionality to unconditionally freeing a devmap
->   page.
->=20
-> This is originally based on a separate patch by Ira Weiny, which
-> applied to an early version of the put_user_page() experiments.
-> Since then, J=E9r=F4me Glisse suggested the refactoring described above.
+Dan Williams <dan.j.williams@intel.com> writes:
 
-I can't say I'm a big fan of this as it adds a lot more inlined
-code to put_page, which has a lot of callsites.  Can't we instead
-try to figure out a way to move away from the off by one refcounting?
+> Aneesh points out that some platforms may have "local" attached
+> persistent memory and "remote" persistent memory that map to the same
+> "online" node, or persistent memory devices with different performance
+> properties. In this case 'numa_node' is identical for the two instances,
+> but 'target_node' is differentiated so platform firmware can communicate
+> distinct performance properties per range. Expose 'target_node' by
+> default to allow for disambiguation of devices that share the same
+> numa_map_to_online_node() result.
+>
 
->=20
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Suggested-by: J=E9r=F4me Glisse <jglisse@redhat.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+
+> Reported-by: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  include/linux/mm.h | 27 ++++++++++++++++++++++++---
->  mm/memremap.c      | 16 ++--------------
->  2 files changed, 26 insertions(+), 17 deletions(-)
->=20
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index a2adf95b3f9c..96228376139c 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -967,9 +967,10 @@ static inline bool is_zone_device_page(const struct =
-page *page)
->  #endif
-> =20
->  #ifdef CONFIG_DEV_PAGEMAP_OPS
-> -void __put_devmap_managed_page(struct page *page);
-> +void free_devmap_managed_page(struct page *page);
->  DECLARE_STATIC_KEY_FALSE(devmap_managed_key);
-> -static inline bool put_devmap_managed_page(struct page *page)
-> +
-> +static inline bool page_is_devmap_managed(struct page *page)
->  {
->  	if (!static_branch_unlikely(&devmap_managed_key))
->  		return false;
-> @@ -978,7 +979,6 @@ static inline bool put_devmap_managed_page(struct pag=
-e *page)
->  	switch (page->pgmap->type) {
->  	case MEMORY_DEVICE_PRIVATE:
->  	case MEMORY_DEVICE_FS_DAX:
-> -		__put_devmap_managed_page(page);
->  		return true;
->  	default:
->  		break;
-> @@ -986,6 +986,27 @@ static inline bool put_devmap_managed_page(struct pa=
-ge *page)
->  	return false;
+>  drivers/nvdimm/bus.c |   29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+>
+> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+> index 1d330d46d036..f76d709426f7 100644
+> --- a/drivers/nvdimm/bus.c
+> +++ b/drivers/nvdimm/bus.c
+> @@ -685,17 +685,46 @@ static ssize_t numa_node_show(struct device *dev,
 >  }
-> =20
-> +static inline bool put_devmap_managed_page(struct page *page)
+>  static DEVICE_ATTR_RO(numa_node);
+>  
+> +static int nvdimm_dev_to_target_node(struct device *dev)
 > +{
-> +	bool is_devmap =3D page_is_devmap_managed(page);
+> +	struct device *parent = dev->parent;
+> +	struct nd_region *nd_region = NULL;
 > +
-> +	if (is_devmap) {
-> +		int count =3D page_ref_dec_return(page);
+> +	if (is_nd_region(dev))
+> +		nd_region = to_nd_region(dev);
+> +	else if (parent && is_nd_region(parent))
+> +		nd_region = to_nd_region(parent);
 > +
-> +		/*
-> +		 * devmap page refcounts are 1-based, rather than 0-based: if
-> +		 * refcount is 1, then the page is free and the refcount is
-> +		 * stable because nobody holds a reference on the page.
-> +		 */
-> +		if (count =3D=3D 1)
-> +			free_devmap_managed_page(page);
-> +		else if (!count)
-> +			__put_page(page);
-> +	}
-> +
-> +	return is_devmap;
+> +	if (!nd_region)
+> +		return NUMA_NO_NODE;
+> +	return nd_region->target_node;
 > +}
 > +
->  #else /* CONFIG_DEV_PAGEMAP_OPS */
->  static inline bool put_devmap_managed_page(struct page *page)
+> +static ssize_t target_node_show(struct device *dev,
+> +		struct device_attribute *attr, char *buf)
+> +{
+> +	return sprintf(buf, "%d\n", nvdimm_dev_to_target_node(dev));
+> +}
+> +static DEVICE_ATTR_RO(target_node);
+> +
+>  static struct attribute *nd_numa_attributes[] = {
+>  	&dev_attr_numa_node.attr,
+> +	&dev_attr_target_node.attr,
+>  	NULL,
+>  };
+>  
+>  static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
+>  		int n)
 >  {
-> diff --git a/mm/memremap.c b/mm/memremap.c
-> index e899fa876a62..2ba773859031 100644
-> --- a/mm/memremap.c
-> +++ b/mm/memremap.c
-> @@ -411,20 +411,8 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pf=
-n,
->  EXPORT_SYMBOL_GPL(get_dev_pagemap);
-> =20
->  #ifdef CONFIG_DEV_PAGEMAP_OPS
-> -void __put_devmap_managed_page(struct page *page)
-> +void free_devmap_managed_page(struct page *page)
->  {
-> -	int count =3D page_ref_dec_return(page);
-> -
-> -	/* still busy */
-> -	if (count > 1)
-> -		return;
-> -
-> -	/* only triggered by the dev_pagemap shutdown path */
-> -	if (count =3D=3D 0) {
-> -		__put_page(page);
-> -		return;
-> -	}
-> -
->  	/* notify page idle for dax */
->  	if (!is_device_private_page(page)) {
->  		wake_up_var(&page->_refcount);
-> @@ -461,5 +449,5 @@ void __put_devmap_managed_page(struct page *page)
->  	page->mapping =3D NULL;
->  	page->pgmap->ops->page_free(page);
+> +	struct device *dev = container_of(kobj, typeof(*dev), kobj);
+> +
+>  	if (!IS_ENABLED(CONFIG_NUMA))
+>  		return 0;
+>  
+> +	if (a == &dev_attr_target_node.attr &&
+> +			nvdimm_dev_to_target_node(dev) == NUMA_NO_NODE)
+> +		return 0;
+> +
+>  	return a->mode;
 >  }
-> -EXPORT_SYMBOL(__put_devmap_managed_page);
-> +EXPORT_SYMBOL(free_devmap_managed_page);
->  #endif /* CONFIG_DEV_PAGEMAP_OPS */
-> --=20
-> 2.24.0
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
----end quoted text---
+>  
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
