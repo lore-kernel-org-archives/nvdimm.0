@@ -2,83 +2,83 @@ Return-Path: <SRS0=kq3P=ZK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B474AC43215
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60C46C432C0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:52:17 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9597A2071B
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:46:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9597A2071B
+	by mail.kernel.org (Postfix) with ESMTPS id 41ACE2071C
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:52:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 41ACE2071C
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4A9CF100DC2A4;
-	Mon, 18 Nov 2019 01:47:50 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id BED0B100DC3FC;
+	Mon, 18 Nov 2019 01:53:16 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 701EA100DC3FF
-	for <linux-nvdimm@lists.01.org>; Mon, 18 Nov 2019 01:47:48 -0800 (PST)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAI9gNoh018879;
-	Mon, 18 Nov 2019 04:45:40 -0500
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 2wayaw6q8x-1
+	by ml01.01.org (Postfix) with ESMTPS id 1FB41100DC3F9
+	for <linux-nvdimm@lists.01.org>; Mon, 18 Nov 2019 01:53:14 -0800 (PST)
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAI9ppF0069021;
+	Mon, 18 Nov 2019 04:52:09 -0500
+Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2wayf4xwg7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Nov 2019 04:45:40 -0500
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-	by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAI9jGsP023882;
-	Mon, 18 Nov 2019 09:45:43 GMT
-Received: from b03cxnp08028.gho.boulder.ibm.com (b03cxnp08028.gho.boulder.ibm.com [9.17.130.20])
-	by ppma01wdc.us.ibm.com with ESMTP id 2wa8r5s6hf-1
+	Mon, 18 Nov 2019 04:52:08 -0500
+Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
+	by ppma02wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAI9o4s1006441;
+	Mon, 18 Nov 2019 09:52:07 GMT
+Received: from b03cxnp08025.gho.boulder.ibm.com (b03cxnp08025.gho.boulder.ibm.com [9.17.130.17])
+	by ppma02wdc.us.ibm.com with ESMTP id 2wa8r61676-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Nov 2019 09:45:43 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-	by b03cxnp08028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAI9jcZ865864058
+	Mon, 18 Nov 2019 09:52:07 +0000
+Received: from b03ledav004.gho.boulder.ibm.com (b03ledav004.gho.boulder.ibm.com [9.17.130.235])
+	by b03cxnp08025.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAI9q7mZ61014302
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 18 Nov 2019 09:45:38 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7BE5E6A047;
-	Mon, 18 Nov 2019 09:45:38 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 205FF6A051;
-	Mon, 18 Nov 2019 09:45:35 +0000 (GMT)
+	Mon, 18 Nov 2019 09:52:07 GMT
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E537478060;
+	Mon, 18 Nov 2019 09:52:06 +0000 (GMT)
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id BB5F078069;
+	Mon, 18 Nov 2019 09:52:00 +0000 (GMT)
 Received: from skywalker.linux.ibm.com (unknown [9.199.34.246])
-	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Mon, 18 Nov 2019 09:45:34 +0000 (GMT)
+	by b03ledav004.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Mon, 18 Nov 2019 09:52:00 +0000 (GMT)
 X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Subject: Re: [PATCH v2 15/18] mm/numa: Skip NUMA_NO_NODE and online nodes in numa_map_to_online_node()
-In-Reply-To: <157401275716.43284.13185549705765009174.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <157401267421.43284.2135775608523385279.stgit@dwillia2-desk3.amr.corp.intel.com> <157401275716.43284.13185549705765009174.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Mon, 18 Nov 2019 15:15:33 +0530
-Message-ID: <87wobxh60y.fsf@linux.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [RFC PATCH 1/4] libnvdimm/namespace: Make namespace size validation arch dependent
+In-Reply-To: <CAPcyv4hroohsrXT1YHQB-L8ZFa2kUW+bKy03We4Mt7afeJgu3Q@mail.gmail.com>
+References: <20191028094825.21448-1-aneesh.kumar@linux.ibm.com> <CAPcyv4gZ=wKzwscu_nch8VUtNTHusKzjmMhYZWo+Se=BPO9q8g@mail.gmail.com> <6f85f4af-788d-aaef-db64-ab8d3faf6b1b@linux.ibm.com> <CAPcyv4gMnSe26QfSBABx0zj3XuFqy=K1XaGnmE3h3sP3Y76nRw@mail.gmail.com> <4c6e5743-663e-853b-2203-15c809965965@linux.ibm.com> <CAPcyv4h42_1deZDaaW1RqX0Ls+maiFO_1e=6xJuHTa3wdWvVvA@mail.gmail.com> <87o8xp5lo9.fsf@linux.ibm.com> <8736eohva1.fsf@linux.ibm.com> <CAPcyv4hroohsrXT1YHQB-L8ZFa2kUW+bKy03We4Mt7afeJgu3Q@mail.gmail.com>
+Date: Mon, 18 Nov 2019 15:21:57 +0530
+Message-ID: <87o8x9h5qa.fsf@linux.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
  definitions=2019-11-18_01:2019-11-15,2019-11-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- impostorscore=0 mlxlogscore=999 suspectscore=0 clxscore=1015 phishscore=0
- mlxscore=0 spamscore=0 adultscore=0 malwarescore=0 bulkscore=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1015
+ mlxscore=0 malwarescore=0 impostorscore=0 phishscore=0 bulkscore=0
+ mlxlogscore=999 priorityscore=1501 spamscore=0 suspectscore=0
  lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-1910280000 definitions=main-1911180087
-Message-ID-Hash: 3VNDNLOMO4PQRN5LUAOA55A6HVEQCIMA
-X-Message-ID-Hash: 3VNDNLOMO4PQRN5LUAOA55A6HVEQCIMA
+ engine=8.12.0-1910280000 definitions=main-1911180088
+Message-ID-Hash: NUKDJCWIIXMIBLQVGUULOBT3OXM263EG
+X-Message-ID-Hash: NUKDJCWIIXMIBLQVGUULOBT3OXM263EG
 X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: peterz@infradead.org, dave.hansen@linux.intel.com, hch@lst.de, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+CC: Michael Ellerman <mpe@ellerman.id.au>, linux-nvdimm <linux-nvdimm@lists.01.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3VNDNLOMO4PQRN5LUAOA55A6HVEQCIMA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NUKDJCWIIXMIBLQVGUULOBT3OXM263EG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -89,34 +89,64 @@ Content-Transfer-Encoding: 7bit
 
 Dan Williams <dan.j.williams@intel.com> writes:
 
-> Update numa_map_to_online_node() to stop falling back to numa node 0
-> when the input is NUMA_NO_NODE. Also, skip the lookup if @node is
-> online. This makes the routine compatible with other arch node mapping
-> routines.
+> On Sat, Nov 16, 2019 at 4:15 AM Aneesh Kumar K.V
+> <aneesh.kumar@linux.ibm.com> wrote:
+>>
 
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+....
+
+
+>>
+>> Considering the direct-map map size is not going to be user selectable,
+>> do you agree that we can skip the above step 0 configuration you
+>> suggested.
+>>
+>> The changes proposed in the patch series essentially does the rest.
+>>
+>> 1) It validate the size against the arch specific limit during
+>> namespace creation. (part of step 1)
 >
-> Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  mm/mempolicy.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> This validation is a surprise failure to ndctl.
 >
-> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-> index e2d8dd21ce9d..d618121bcc17 100644
-> --- a/mm/mempolicy.c
-> +++ b/mm/mempolicy.c
-> @@ -137,8 +137,8 @@ int numa_map_to_online_node(int node)
->  {
->  	int min_node;
->  
-> -	if (node == NUMA_NO_NODE)
-> -		node = 0;
-> +	if (node == NUMA_NO_NODE || node_online(node))
-> +		return node;
->  
->  	min_node = node;
->  	if (!node_online(node)) {
+>> 2) It also disable initializing a region if it find the size not
+>> correctly aligned as per the platform requirement.
+>
+> There needs to be a way for the user to discover the correct alignment
+> that the kernel will accept.
+>
+>> 3) Direct map  mapping size is different from supported_alignment for a
+>> namespace. The supported alignment controls what possible PAGE SIZE user want the
+>> namespace to be mapped to user space.
+>
+> No, the namespace alignment is different than the page mapping size.
+> The alignment is only interpreted as a mapping size at the device-dax
+> level, otherwise at the raw namespace level it's just an arbitrary
+> alignment.
+>
+>> With the above do you think the current patch series is good?
+>
+> I don't think we've quite converged on a solution.
+
+How about we make it a property of seed device. ie,
+we add `supported_size_align` RO attribute to the seed device. ndctl can
+use this to validate the size value. So this now becomes step0
+
+sys/bus/nd/devices/region0> cat btt0.0/supported_size_align 
+16777216
+/sys/bus/nd/devices/region0> cat pfn0.0/supported_size_align 
+16777216
+/sys/bus/nd/devices/region0> cat dax0.0/supported_size_align 
+16777216
+/sys/bus/nd/devices/region0>
+
+We follow that up with validating the size value written to size
+attribute(step 1).
+
+While initializing the namespaces already present in a region we again
+validate the size and if not properly aligned we mark the region
+disabled.
+
+-aneesh
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
