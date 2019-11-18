@@ -4,81 +4,88 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AA0EC432C0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:45:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87A6EC432C0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:46:29 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5B9DF20740
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:45:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5B9DF20740
+	by mail.kernel.org (Postfix) with ESMTPS id 68214206CC
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Nov 2019 09:46:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 68214206CC
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from new-ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EBA5A100DC3FA;
-	Mon, 18 Nov 2019 01:46:40 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id 1B4FB100DC3FA;
+	Mon, 18 Nov 2019 01:47:29 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7FD3A100DC3F2
-	for <linux-nvdimm@lists.01.org>; Mon, 18 Nov 2019 01:46:36 -0800 (PST)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAI9g9xg007676;
-	Mon, 18 Nov 2019 04:45:18 -0500
-Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2waym9e0pg-1
+	by ml01.01.org (Postfix) with ESMTPS id 30CCD100DC426
+	for <linux-nvdimm@lists.01.org>; Mon, 18 Nov 2019 01:47:25 -0800 (PST)
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAI9gEJk036479;
+	Mon, 18 Nov 2019 04:46:12 -0500
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2wayf4xpn7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Nov 2019 04:45:18 -0500
-Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
-	by ppma02wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAI9jBEL001662;
-	Mon, 18 Nov 2019 09:45:17 GMT
-Received: from b03cxnp08025.gho.boulder.ibm.com (b03cxnp08025.gho.boulder.ibm.com [9.17.130.17])
-	by ppma02wdc.us.ibm.com with ESMTP id 2wa8r614wa-1
+	Mon, 18 Nov 2019 04:46:12 -0500
+Received: from m0098393.ppops.net (m0098393.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id xAI9gKIO037310;
+	Mon, 18 Nov 2019 04:46:11 -0500
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2wayf4xpmd-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 18 Nov 2019 09:45:17 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-	by b03cxnp08025.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAI9jGtq52756830
+	Mon, 18 Nov 2019 04:46:11 -0500
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+	by ppma04dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAI9jBkx015703;
+	Mon, 18 Nov 2019 09:46:10 GMT
+Received: from b03cxnp07028.gho.boulder.ibm.com (b03cxnp07028.gho.boulder.ibm.com [9.17.130.15])
+	by ppma04dal.us.ibm.com with ESMTP id 2wa8r65gyg-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 18 Nov 2019 09:46:10 +0000
+Received: from b03ledav004.gho.boulder.ibm.com (b03ledav004.gho.boulder.ibm.com [9.17.130.235])
+	by b03cxnp07028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAI9k8ld34144528
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 18 Nov 2019 09:45:16 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 925AF6A047;
-	Mon, 18 Nov 2019 09:45:16 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 35AB36A04D;
-	Mon, 18 Nov 2019 09:45:13 +0000 (GMT)
+	Mon, 18 Nov 2019 09:46:09 GMT
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D6BC378063;
+	Mon, 18 Nov 2019 09:46:08 +0000 (GMT)
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 41CEC78067;
+	Mon, 18 Nov 2019 09:46:04 +0000 (GMT)
 Received: from skywalker.linux.ibm.com (unknown [9.199.34.246])
-	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Mon, 18 Nov 2019 09:45:12 +0000 (GMT)
+	by b03ledav004.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Mon, 18 Nov 2019 09:46:03 +0000 (GMT)
 X-Mailer: emacs 26.2 (via feedmail 11-beta-1 I)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Subject: Re: [PATCH v2 13/18] libnvdimm: Export the target_node attribute for regions and namespaces
-In-Reply-To: <157401274500.43284.2369509941678577768.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <157401267421.43284.2135775608523385279.stgit@dwillia2-desk3.amr.corp.intel.com> <157401274500.43284.2369509941678577768.stgit@dwillia2-desk3.amr.corp.intel.com>
-Date: Mon, 18 Nov 2019 15:15:10 +0530
-Message-ID: <87zhgth61l.fsf@linux.ibm.com>
+Subject: Re: [PATCH v2 16/18] powerpc/papr_scm: Switch to numa_map_to_online_node()
+In-Reply-To: <157401276263.43284.12616818803654229788.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <157401267421.43284.2135775608523385279.stgit@dwillia2-desk3.amr.corp.intel.com> <157401276263.43284.12616818803654229788.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 18 Nov 2019 15:16:02 +0530
+Message-ID: <87tv71h605.fsf@linux.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
  definitions=2019-11-18_01:2019-11-15,2019-11-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 adultscore=0
- mlxscore=0 suspectscore=0 spamscore=0 clxscore=1011 lowpriorityscore=0
- phishscore=0 mlxlogscore=999 malwarescore=0 impostorscore=0
- priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1015
+ mlxscore=0 malwarescore=0 impostorscore=0 phishscore=0 bulkscore=0
+ mlxlogscore=999 priorityscore=1501 spamscore=0 suspectscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-1910280000 definitions=main-1911180087
-Message-ID-Hash: 2CFWOZWL4FRC6HSXUOI5CMRNZQ5B3IMP
-X-Message-ID-Hash: 2CFWOZWL4FRC6HSXUOI5CMRNZQ5B3IMP
+Message-ID-Hash: HJRWED24RWD72ECOFOYXZDZMX2J3XTCC
+X-Message-ID-Hash: HJRWED24RWD72ECOFOYXZDZMX2J3XTCC
 X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: peterz@infradead.org, dave.hansen@linux.intel.com, hch@lst.de, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, peterz@infradead.org, dave.hansen@linux.intel.com, hch@lst.de, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2CFWOZWL4FRC6HSXUOI5CMRNZQ5B3IMP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HJRWED24RWD72ECOFOYXZDZMX2J3XTCC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -89,75 +96,61 @@ Content-Transfer-Encoding: 7bit
 
 Dan Williams <dan.j.williams@intel.com> writes:
 
-> Aneesh points out that some platforms may have "local" attached
-> persistent memory and "remote" persistent memory that map to the same
-> "online" node, or persistent memory devices with different performance
-> properties. In this case 'numa_node' is identical for the two instances,
-> but 'target_node' is differentiated so platform firmware can communicate
-> distinct performance properties per range. Expose 'target_node' by
-> default to allow for disambiguation of devices that share the same
-> numa_map_to_online_node() result.
+> Now that the core exports numa_map_to_online_node() switch to that
+> instead of the locally coded duplicate.
 >
 
 Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Paul Mackerras <paulus@samba.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: "Oliver O'Halloran" <oohall@gmail.com>
 > Reported-by: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  drivers/nvdimm/bus.c |   29 +++++++++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
+>  arch/powerpc/platforms/pseries/papr_scm.c |   21 +--------------------
+>  1 file changed, 1 insertion(+), 20 deletions(-)
 >
-> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> index 1d330d46d036..f76d709426f7 100644
-> --- a/drivers/nvdimm/bus.c
-> +++ b/drivers/nvdimm/bus.c
-> @@ -685,17 +685,46 @@ static ssize_t numa_node_show(struct device *dev,
+> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+> index 33aa59e666e5..ef81515f3b6a 100644
+> --- a/arch/powerpc/platforms/pseries/papr_scm.c
+> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
+> @@ -284,25 +284,6 @@ int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+>  	return 0;
 >  }
->  static DEVICE_ATTR_RO(numa_node);
 >  
-> +static int nvdimm_dev_to_target_node(struct device *dev)
-> +{
-> +	struct device *parent = dev->parent;
-> +	struct nd_region *nd_region = NULL;
-> +
-> +	if (is_nd_region(dev))
-> +		nd_region = to_nd_region(dev);
-> +	else if (parent && is_nd_region(parent))
-> +		nd_region = to_nd_region(parent);
-> +
-> +	if (!nd_region)
-> +		return NUMA_NO_NODE;
-> +	return nd_region->target_node;
-> +}
-> +
-> +static ssize_t target_node_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	return sprintf(buf, "%d\n", nvdimm_dev_to_target_node(dev));
-> +}
-> +static DEVICE_ATTR_RO(target_node);
-> +
->  static struct attribute *nd_numa_attributes[] = {
->  	&dev_attr_numa_node.attr,
-> +	&dev_attr_target_node.attr,
->  	NULL,
->  };
->  
->  static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
->  		int n)
+> -static inline int papr_scm_node(int node)
+> -{
+> -	int min_dist = INT_MAX, dist;
+> -	int nid, min_node;
+> -
+> -	if ((node == NUMA_NO_NODE) || node_online(node))
+> -		return node;
+> -
+> -	min_node = first_online_node;
+> -	for_each_online_node(nid) {
+> -		dist = node_distance(node, nid);
+> -		if (dist < min_dist) {
+> -			min_dist = dist;
+> -			min_node = nid;
+> -		}
+> -	}
+> -	return min_node;
+> -}
+> -
+>  static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
 >  {
-> +	struct device *dev = container_of(kobj, typeof(*dev), kobj);
-> +
->  	if (!IS_ENABLED(CONFIG_NUMA))
->  		return 0;
+>  	struct device *dev = &p->pdev->dev;
+> @@ -347,7 +328,7 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
 >  
-> +	if (a == &dev_attr_target_node.attr &&
-> +			nvdimm_dev_to_target_node(dev) == NUMA_NO_NODE)
-> +		return 0;
-> +
->  	return a->mode;
->  }
->  
+>  	memset(&ndr_desc, 0, sizeof(ndr_desc));
+>  	target_nid = dev_to_node(&p->pdev->dev);
+> -	online_nid = papr_scm_node(target_nid);
+> +	online_nid = numa_map_to_online_node(target_nid);
+>  	ndr_desc.numa_node = online_nid;
+>  	ndr_desc.target_node = target_nid;
+>  	ndr_desc.res = &p->res;
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
