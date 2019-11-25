@@ -1,178 +1,61 @@
-Return-Path: <SRS0=4QRz=ZQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=BykY=ZR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,SUBJ_ALL_CAPS,TVD_SPACE_RATIO,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 548F8C43141
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 24 Nov 2019 21:14:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94096C432C0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Nov 2019 05:48:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2E52F2080D
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 24 Nov 2019 21:14:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2E52F2080D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 412542071A
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Nov 2019 05:48:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 412542071A
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=rexcohanoi.vn
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 022D8100DC3FD;
-	Sun, 24 Nov 2019 13:17:39 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.93; helo=mga11.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 24549100DC3F6
-	for <linux-nvdimm@lists.01.org>; Sun, 24 Nov 2019 13:17:37 -0800 (PST)
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Nov 2019 13:14:14 -0800
-X-IronPort-AV: E=Sophos;i="5.69,239,1571727600";
-   d="scan'208";a="358651187"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 24 Nov 2019 13:14:14 -0800
-Subject: [PATCH v3 3/3] libnvdimm, MAINTAINERS: Maintainer Entry Profile
-From: Dan Williams <dan.j.williams@intel.com>
-To: corbet@lwn.net
-Date: Sun, 24 Nov 2019 12:59:58 -0800
-Message-ID: <157462919825.1729495.5877405723948988416.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <157462918268.1729495.10257190766638995699.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <157462918268.1729495.10257190766638995699.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by ml01.01.org (Postfix) with ESMTP id B1D89100DC3F0;
+	Sun, 24 Nov 2019 21:51:40 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=108.62.5.43; helo=rexcohanoi.vn; envelope-from=info@rexcohanoi.vn; receiver=<UNKNOWN> 
+Received: from rexcohanoi.vn (unknown [108.62.5.43])
+	by ml01.01.org (Postfix) with ESMTP id 0C952100DC3E4
+	for <linux-nvdimm@lists.01.org>; Sun, 24 Nov 2019 21:51:37 -0800 (PST)
+From: Mason Grey <info@rexcohanoi.vn>
+To: linux-nvdimm@lists.01.org
+Subject: Re: MAS/056/GBMH/019 (PURCHASW ORDER)
+Date: 24 Nov 2019 21:48:12 -0800
+Message-ID: <20191124214812.75B151D6C2F4F1DA@rexcohanoi.vn>
 MIME-Version: 1.0
-Message-ID-Hash: SFFIOQOZN3XL62XZ23KAJDOQR3IKLDLW
-X-Message-ID-Hash: SFFIOQOZN3XL62XZ23KAJDOQR3IKLDLW
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-doc@vger.kernel.org
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_6344615B.8F8D5D98"
+Message-ID-Hash: LKQGDFGX65YXBN4GKDRJLMCGT344234U
+X-Message-ID-Hash: LKQGDFGX65YXBN4GKDRJLMCGT344234U
+X-MailFrom: info@rexcohanoi.vn
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SFFIOQOZN3XL62XZ23KAJDOQR3IKLDLW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LKQGDFGX65YXBN4GKDRJLMCGT344234U/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_6344615B.8F8D5D98
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Document the basic policies of the libnvdimm subsystem and provide a first
-example of a Maintainer Entry Profile for others to duplicate and edit.
-
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/nvdimm/maintainer-entry-profile.rst |   59 +++++++++++++++++++++
- MAINTAINERS                                       |    4 +
- 2 files changed, 63 insertions(+)
- create mode 100644 Documentation/nvdimm/maintainer-entry-profile.rst
-
-diff --git a/Documentation/nvdimm/maintainer-entry-profile.rst b/Documentation/nvdimm/maintainer-entry-profile.rst
-new file mode 100644
-index 000000000000..77081fd9be95
---- /dev/null
-+++ b/Documentation/nvdimm/maintainer-entry-profile.rst
-@@ -0,0 +1,59 @@
-+LIBNVDIMM Maintainer Entry Profile
-+==================================
-+
-+Overview
-+--------
-+The libnvdimm subsystem manages persistent memory across multiple
-+architectures. The mailing list, is tracked by patchwork here:
-+https://patchwork.kernel.org/project/linux-nvdimm/list/
-+...and that instance is configured to give feedback to submitters on
-+patch acceptance and upstream merge. Patches are merged to either the
-+'libnvdimm-fixes', or 'libnvdimm-for-next' branch. Those branches are
-+available here:
-+https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/
-+
-+In general patches can be submitted against the latest -rc, however if
-+the incoming code change is dependent on other pending changes then the
-+patch should be based on the libnvdimm-for-next branch. However, since
-+persistent memory sits at the intersection of storage and memory there
-+are cases where patches are more suitable to be merged through a
-+Filesystem or the Memory Management tree. When in doubt copy the nvdimm
-+list and the maintainers will help route.
-+
-+Submissions will be exposed to the kbuild robot for compile regression
-+testing. It helps to get a success notification from that infrastructure
-+before submitting, but it is not required.
-+
-+
-+Submit Checklist Addendum
-+-------------------------
-+There are unit tests for the subsystem via the ndctl utility:
-+https://github.com/pmem/ndctl
-+Those tests need to be passed before the patches go upstream, but not
-+necessarily before initial posting. Contact the list if you need help
-+getting the test environment set up.
-+
-+### ACPI Device Specific Methods (_DSM)
-+Before patches enabling for a new _DSM family will be considered it must
-+be assigned a format-interface-code from the NVDIMM Sub-team of the ACPI
-+Specification Working Group. In general, the stance of the subsystem is
-+to push back on the proliferation of NVDIMM command sets, do strongly
-+consider implementing support for an existing command set. See
-+drivers/acpi/nfit/nfit.h for the set of support command sets.
-+
-+
-+Key Cycle Dates
-+---------------
-+New submissions can be sent at any time, but if they intend to hit the
-+next merge window they should be sent before -rc4, and ideally
-+stabilized in the libnvdimm-for-next branch by -rc6. Of course if a
-+patch set requires more than 2 weeks of review -rc4 is already too late
-+and some patches may require multiple development cycles to review.
-+
-+
-+Review Cadence
-+--------------
-+In general, please wait up to one week before pinging for feedback. A
-+private mail reminder is preferred. Alternatively ask for other
-+developers that have Reviewed-by tags for libnvdimm changes to take a
-+look and offer their opinion.
-diff --git a/MAINTAINERS b/MAINTAINERS
-index e5d111a86e61..2be1e18a368e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9185,6 +9185,7 @@ M:	Dan Williams <dan.j.williams@intel.com>
- M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
- L:	linux-nvdimm@lists.01.org
-+P:	Documentation/nvdimm/maintainer-entry-profile.rst
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/blk.c
-@@ -9195,6 +9196,7 @@ M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dan Williams <dan.j.williams@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
- L:	linux-nvdimm@lists.01.org
-+P:	Documentation/nvdimm/maintainer-entry-profile.rst
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/btt*
-@@ -9204,6 +9206,7 @@ M:	Dan Williams <dan.j.williams@intel.com>
- M:	Vishal Verma <vishal.l.verma@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
- L:	linux-nvdimm@lists.01.org
-+P:	Documentation/nvdimm/maintainer-entry-profile.rst
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem*
-@@ -9223,6 +9226,7 @@ M:	Dave Jiang <dave.jiang@intel.com>
- M:	Keith Busch <keith.busch@intel.com>
- M:	Ira Weiny <ira.weiny@intel.com>
- L:	linux-nvdimm@lists.01.org
-+P:	Documentation/nvdimm/maintainer-entry-profile.rst
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
- S:	Supported
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_6344615B.8F8D5D98--
