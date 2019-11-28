@@ -2,128 +2,57 @@ Return-Path: <SRS0=pnkO=ZU=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.1 required=3.0 tests=DKIM_ADSP_NXDOMAIN,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AE72C432C0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Nov 2019 08:32:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F1B5C432C0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Nov 2019 19:41:06 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6B34E21775
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Nov 2019 08:32:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6B34E21775
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 0AF392176D
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Nov 2019 19:41:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0AF392176D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=gduptlhh.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1DE64101134F2;
-	Thu, 28 Nov 2019 00:35:23 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 35CDD101134E9
-	for <linux-nvdimm@lists.01.org>; Thu, 28 Nov 2019 00:35:21 -0800 (PST)
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xAS8RFxr043915;
-	Thu, 28 Nov 2019 03:31:55 -0500
-Received: from ppma03dal.us.ibm.com (b.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.11])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2wjar88411-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 28 Nov 2019 03:31:55 -0500
-Received: from pps.filterd (ppma03dal.us.ibm.com [127.0.0.1])
-	by ppma03dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id xAS8UBWO007767;
-	Thu, 28 Nov 2019 08:31:54 GMT
-Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
-	by ppma03dal.us.ibm.com with ESMTP id 2wevd772b5-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 28 Nov 2019 08:31:54 +0000
-Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
-	by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xAS8VrZu49545670
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 28 Nov 2019 08:31:53 GMT
-Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A664AAC05F;
-	Thu, 28 Nov 2019 08:31:53 +0000 (GMT)
-Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 67177AC059;
-	Thu, 28 Nov 2019 08:31:48 +0000 (GMT)
-Received: from skywalker.ibmuc.com (unknown [9.199.39.131])
-	by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
-	Thu, 28 Nov 2019 08:31:47 +0000 (GMT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: dan.j.williams@intel.com
-Subject: [PATCH v2 6/6] libnvdimm/namespace: Expose arch specific supported size align value
-Date: Thu, 28 Nov 2019 14:00:57 +0530
-Message-Id: <20191128083057.141425-6-aneesh.kumar@linux.ibm.com>
-X-Mailer: git-send-email 2.23.0
-In-Reply-To: <20191128083057.141425-1-aneesh.kumar@linux.ibm.com>
-References: <20191128083057.141425-1-aneesh.kumar@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTP id 708A2101134F6;
+	Thu, 28 Nov 2019 11:44:28 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=122.190.107.252; helo=gduptlhh.org; envelope-from=tlw@gduptlhh.org; receiver=<UNKNOWN> 
+Received: from gduptlhh.org (unknown [122.190.107.252])
+	by ml01.01.org (Postfix) with ESMTP id 54504101134F4
+	for <linux-nvdimm@lists.01.org>; Thu, 28 Nov 2019 11:44:24 -0800 (PST)
+Message-ID: <5E42836342D1DE7D60B0059CA07664EB@gduptlhh.org>
+From: =?utf-8?B?6K+36L2s5Lqk55u45YWz5Y2V5L2N?= <tlw@gduptlhh.org>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?5aaC5L2V6K6p5oKo55qE5Yqe5YWs5bqU55So5rC05bmz6L+F6YCf5o+Q5Y2H77yBMjAxOQ==?=
+	=?utf-8?B?LTExLTI5Mzo0MTowMg==?=
+Date: Fri, 29 Nov 2019 03:40:55 +0800
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
- definitions=2019-11-28_01:2019-11-28,2019-11-28 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0 mlxscore=0
- phishscore=0 impostorscore=0 clxscore=1015 suspectscore=1 mlxlogscore=902
- adultscore=0 malwarescore=0 spamscore=0 bulkscore=0 priorityscore=1501
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-1910280000
- definitions=main-1911280071
-Message-ID-Hash: XTRPMQWBJOAONFAOX6UUNA2CUG6LYZWV
-X-Message-ID-Hash: XTRPMQWBJOAONFAOX6UUNA2CUG6LYZWV
-X-MailFrom: aneesh.kumar@linux.ibm.com
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5512
+Message-ID-Hash: LE54CMR3FPYO443BQ4FA2FDHBEYN6C7C
+X-Message-ID-Hash: LE54CMR3FPYO443BQ4FA2FDHBEYN6C7C
+X-MailFrom: tlw@gduptlhh.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XTRPMQWBJOAONFAOX6UUNA2CUG6LYZWV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LE54CMR3FPYO443BQ4FA2FDHBEYN6C7C/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-Expose supported size align as a namespace RO attribute. Usespace can use this
-to validate the size argument specified when creating a new namespace.
-
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- drivers/nvdimm/namespace_devs.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 6a83db9f8734..22c714469f87 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1684,6 +1684,14 @@ static ssize_t force_raw_show(struct device *dev,
- }
- static DEVICE_ATTR_RW(force_raw);
- 
-+static ssize_t supported_size_align_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%ld\n", arch_namespace_align_size());
-+}
-+static DEVICE_ATTR_RO(supported_size_align);
-+
-+
- static struct attribute *nd_namespace_attributes[] = {
- 	&dev_attr_nstype.attr,
- 	&dev_attr_size.attr,
-@@ -1696,6 +1704,7 @@ static struct attribute *nd_namespace_attributes[] = {
- 	&dev_attr_sector_size.attr,
- 	&dev_attr_dpa_extents.attr,
- 	&dev_attr_holder_class.attr,
-+	&dev_attr_supported_size_align.attr,
- 	NULL,
- };
- 
--- 
-2.23.0
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+5p2lIOiHqiAg6K+36L2s5Lqk55u45YWz5Y2V5L2NICDnmoQg5L+hIOS7tiAuLi4gLi4uCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
+YWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBz
+ZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
