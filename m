@@ -1,107 +1,238 @@
-Return-Path: <SRS0=pnkO=ZU=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=q0mV=ZV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.6 required=3.0 tests=DKIM_ADSP_ALL,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MIXED_ES,
-	SPF_HELO_NONE,SPF_PASS,UNICODE_OBFU_ASC,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18249C432C0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Nov 2019 20:42:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35101C432C0
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Nov 2019 11:56:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7CEE121775
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Nov 2019 20:42:38 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=nbc1.info header.i=@nbc1.info header.b="ixsN6L7v"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7CEE121775
-Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=nbc1.info
+	by mail.kernel.org (Postfix) with ESMTPS id 163E921781
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Nov 2019 11:56:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 163E921781
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C884F101134F8;
-	Thu, 28 Nov 2019 12:46:00 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=92.53.97.137; helo=mail.nbc1.info; envelope-from=info@nbc1.info; receiver=<UNKNOWN> 
-Received: from mail.nbc1.info (nbc1.info [92.53.97.137])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 758C21011350D;
+	Fri, 29 Nov 2019 04:00:14 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=79.96.170.134; helo=cloudserver094114.home.pl; envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN> 
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5140E101134F6
-	for <linux-nvdimm@lists.01.org>; Thu, 28 Nov 2019 12:45:58 -0800 (PST)
-Message-ID: <86128a4cb86caef6d531b7e4ef3b204c6ff32bcc7e@nbc1.info>
-From: Dominica <info@nbc1.info>
-To: linux-nvdimm@lists.01.org
-Subject: =?utf-8?B?0JDRgNC10L3QtNCwINCz0L7RgdGD0LTQsNGA0YHRgtCy?=
-	=?utf-8?B?0LXQvdC90L7QuSDQvdC10LTQstC40LbQuNC80L7RgdGC?=
-	=?utf-8?B?0Lg=?=
-Date: Thu, 28 Nov 2019 22:42:29 +0200
+	by ml01.01.org (Postfix) with ESMTPS id 04ECB1011350B
+	for <linux-nvdimm@lists.01.org>; Fri, 29 Nov 2019 04:00:11 -0800 (PST)
+Received: from 79.184.255.242.ipv4.supernova.orange.pl (79.184.255.242) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.320)
+ id fd5d8e3d9f99383b; Fri, 29 Nov 2019 12:56:46 +0100
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 14/18] acpi/numa: Up-level "map to online node" functionality
+Date: Fri, 29 Nov 2019 12:56:45 +0100
+Message-ID: <1753949.6LdYI5zB43@kreacher>
+In-Reply-To: <157401275104.43284.15865121806241743141.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <157401267421.43284.2135775608523385279.stgit@dwillia2-desk3.amr.corp.intel.com> <157401275104.43284.15865121806241743141.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-DKIM-Signature: v=1; a=rsa-sha256; d=nbc1.info; s=mail;
-	c=relaxed/relaxed; t=1574973749;
-	h=message-id:from:to:subject:date:mime-version:list-unsubscribe;
-	bh=CpoGuMsY6gdflM+kZGLxURp0BhT/OlQg1d/3Tsr7RVY=;
-	b=ixsN6L7vLS4txV5iv0atiYNVtQq9ZpzSKEQO6HDUCjKcJwfJjo+3aUSa1/7Q7B
-	P+aZjP2OWt3QIMkDHw759UyKP+gnKb3CaXaRfUUevgI3UmOz4XJhJ3NcYSje4lKR
-	UPPI5+0R6lG+Z3Tz689wH77IEL1kl2qBvQWqP0GwalZaI=
-Message-ID-Hash: IE5JZJL66QXYLPAJB67DSRJSLWFMUILE
-X-Message-ID-Hash: IE5JZJL66QXYLPAJB67DSRJSLWFMUILE
-X-MailFrom: info@nbc1.info
+Content-Type: text/plain; charset="us-ascii"
+Message-ID-Hash: TKJQAYK7CDFXBQB5QFRIITN2G7E3L4MZ
+X-Message-ID-Hash: TKJQAYK7CDFXBQB5QFRIITN2G7E3L4MZ
+X-MailFrom: rjw@rjwysocki.net
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-Content-Type: text/plain; charset="utf-8"
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: linux-nvdimm@lists.01.org, Michal Hocko <mhocko@suse.com>, peterz@infradead.org, dave.hansen@linux.intel.com, hch@lst.de, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-acpi@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IE5JZJL66QXYLPAJB67DSRJSLWFMUILE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TKJQAYK7CDFXBQB5QFRIITN2G7E3L4MZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 
-0JTQsNGC0LAg0L/RgNC+0LLQtdC00LXQvdC40Y86IDUg0LTQtdC60LDQsdGA0Y8NCg0K0JPQvtGB
-0YPQtNCw0YDRgdGC0LLQtdC90L3QvtC1IOKAkyDQp9Cw0YHRgtC90L7QtSDQv9Cw0YDRgtC90LXR
-gNGB0YLQstC+INCyINCj0LrRgNCw0LjQvdC1DQoNCtCe0LHQt9C+0YA6IMKgwqDCoMKgDQoNCjEu
-INCe0LHRitC10LrRgtGLINCz0L7RgdGD0LTQsNGA0YHRgtCy0LXQvdC90L7QuSDRgdC+0LHRgdGC
-0LLQtdC90L3QvtGB0YLQuDog0L/RgNCw0LLQvtCy0L7QuSDRgNC10LbQuNC8LCDQtNC+0L/Rg9GB
-0YLQuNC80YvQtSDQvtC/0LXRgNCw0YbQuNC4DQoyLiDQk9C+0YHRg9C00LDRgNGB0YLQstC10L3Q
-vdC+0LUgLdGH0LDRgdGC0L3QvtC1INC/0LDRgNGC0L3QtdGA0YHRgtCy0L46INGB0YTQtdGA0LAg
-0Lgg0L/RgNCw0LrRgtC40LrQsCDQv9GA0LjQvNC10L3QtdC90LjRjw0KMy4g0JrQu9GO0YfQtdCy
-0YvQtSDRgNC40YHQutC4LCDQstC+0LfQvdC40LrQsNGO0YnQuNC1INC/0YDQuCDRgdC+0YLRgNGD
-0LTQvdC40YfQtdGB0YLQstC1INGBINCz0L7RgdGD0LTQsNGA0YHRgtCy0LXQvdC90YvQvNC4L9C6
-0L7QvNC80YPQvdCw0LvRjNC90YvQvNC4INGB0YPQsdGK0LXQutGC0LDQvNC4DQo0LiDQodC+0LLQ
-vNC10YHRgtC90LDRjyDQtNC10Y/RgtC10LvRjNC90L7RgdGC0Ywg0YEg0LPQvtGB0YPQtNCw0YDR
-gdGC0LLQtdC90L3Ri9C8L9C60L7QvNC80YPQvdCw0LvRjNC90YvQvCDQv9GA0LXQtNC/0YDQuNGP
-0YLQuNC10LwNCjUuINCY0L3QstC10YHRgtC40YbQuNC+0L3QvdCw0Y8g0LTQtdGP0YLQtdC70YzQ
-vdC+0YHRgtGMINGBINCz0L7RgdGD0LTQsNGA0YHRgtCy0LXQvdC90YvQvCDQv9GA0LXQtNC/0YDQ
-uNGP0YLQuNC10LwNCjYuINCa0L7QvdGB0L7RgNGG0LjRg9C8INC60LDQuiDQvtGA0LPQsNC90LjQ
-t9Cw0YbQuNC+0L3QvdC+0LUg0L7QsdGK0LXQtNC40L3QtdC90LjQtSDQs9C+0YHRg9C00LDRgNGB
-0YLQstC10L3QvdC+0LPQvi/QutC+0LzQvNGD0L3QsNC70YzQvdC+0LPQviDQv9GA0LXQtNC/0YDQ
-uNGP0YLQuNGPINC4INGH0LDRgdGC0L3QvtCz0L4g0LjQvdCy0LXRgdGC0L7RgNCwOiDQsNC90LDQ
-u9C40Lcg0L/RgNCw0LLQvtCy0L7QuSDRg9GB0YLQvtC50YfQuNCy0L7RgdGC0LgNCjcuINCe0YLR
-h9GD0LbQtNC10L3QuNC1INCz0L7RgdGD0LTQsNGA0YHRgtCy0LXQvdC90L7Qs9C+INC40LzRg9GJ
-0LXRgdGC0LLQsA0KOC4g0JDRgNC10L3QtNCwINCz0L7RgdGD0LTQsNGA0YHRgtCy0LXQvdC90L7Q
-s9C+L9C60L7QvNC80YPQvdCw0LvRjNC90L7Qs9C+INC90LXQtNCy0LjQttC40LzQvtCz0L4g0LjQ
-vNGD0YnQtdGB0YLQstCwDQo5LiDQmtC+0L3RhtC10YHRgdC40Lgg0L3QsCDRgdGC0YDQvtC40YLQ
-tdC70YzRgdGC0LLQviDQuNC90YTRgNCw0YHRgtGA0YPQutGC0YPRgNC90YvRhSDQvtCx0YrQtdC6
-0YLQvtCyOiDRgdC60YDRi9GC0YvQtSDQuNC90LLQtdGB0YLQuNGG0LjQvtC90L3Ri9C1INCy0L7Q
-t9C80L7QttC90L7RgdGC0LguINCSINC+0LbQuNC00LDQvdC40LUg0L3QvtCy0L7Qs9C+INC30LDQ
-utC+0L3QsCAi0J4g0LrQvtC90YbQtdGB0YHQuNGP0YUiDQoxMC4g0J7Qv9C10YDQsNGG0LjQuCDQ
-s9C+0YHRg9C00LDRgNGB0YLQstC10L3QvdGL0YUg0YHRg9Cx0YrQtdC60YLQvtCyINGBINC30LXQ
-vNC10LvRjNC90YvQvNC4INGD0YfQsNGB0YLQutCw0LzQuA0KMTEuINCg0LXQsNC70LjQt9Cw0YbQ
-uNGPINC/0YDQvtC10LrRgtC+0LIg0LbQuNC70LjRidC90L7Qs9C+INGB0YLRgNC+0LjRgtC10LvR
-jNGB0YLQstCwINC/0YDQuCDRg9GH0LDRgdGC0LjQuCDQs9C+0YHRg9C00LDRgNGB0YLQstC10L3Q
-vdC+0LPQviDRgdGD0LHRitC10LrRgtCwDQoNCtCf0YDQuNC90Y/RgtGMINGD0YfQsNGB0YLQuNC1
-PiBodHRwOi8vcGFydG5lcnN0dm8uaW4udWEvdHJhaW5pbmcvMTQ5L2dvc3VkYXJzdHZlbm5vZS1j
-aGFzdG5vZS1wYXJ0bmVyc3R2by12LXVrcmFpbmUtb2ItZWZmZWt0aXZuaWgtc3RyYXRlZ2l5YWgt
-dmxvemhlbml5YS1zcmVkc3R2LXYtZ29zdWRhcnN0dmVubmllLW11bmljaXBhbG5pZS1wcm9la3Rp
-Lmh0bQ0KDQotLSDCoMKgwqDCoA0K0KEg0YPQstCw0LbQtdC90LjQtdC8LCDCoMKgwqDCoA0K0JzQ
-sNGA0LjQvdCwINCi0LjQvNGD0YDQvtCy0L3QsCDCoMKgwqDCoA0KZW1haWwt0LzQsNGA0LrQtdGC
-0L7Qu9C+0LMgwqDCoMKgwqANCtCd0LUg0L/QvtC70YPRh9Cw0YLRjCDQv9C+0YfRgtGDLg0KTGlz
-dC1VbnN1YnNjcmliZSBmcm9tIHRoZSBuZXdzbGV0dGVyINC+ciBjb21wbGFpbiDQsGLQvnV0IFNQ
-0JDQnC4NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1
-bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5v
-cmcK
+On Sunday, November 17, 2019 6:45:51 PM CET Dan Williams wrote:
+> The acpi_map_pxm_to_online_node() helper is used to find the closest
+> online node to a given proximity domain. This is used to map devices in
+> a proximity domain with no online memory or cpus to the closest online
+> node and populate a device's 'numa_node' property. The numa_node
+> property allows applications to be migrated "close" to a resource.
+> 
+> In preparation for providing a generic facility to optionally map an
+> address range to its closest online node, or the node the range would
+> represent were it to be onlined (target_node), up-level the core of
+> acpi_map_pxm_to_online_node() to a generic mm/numa helper.
+> 
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+It looks like this is the only patch in the series needing my attention and
+it is fine by me, so
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+>  drivers/acpi/numa.c  |   41 -----------------------------------------
+>  include/linux/acpi.h |   23 ++++++++++++++++++++++-
+>  include/linux/numa.h |    9 +++++++++
+>  mm/mempolicy.c       |   30 ++++++++++++++++++++++++++++++
+>  4 files changed, 61 insertions(+), 42 deletions(-)
+> 
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index eadbf90e65d1..47b4969d9b93 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -72,47 +72,6 @@ int acpi_map_pxm_to_node(int pxm)
+>  }
+>  EXPORT_SYMBOL(acpi_map_pxm_to_node);
+>  
+> -/**
+> - * acpi_map_pxm_to_online_node - Map proximity ID to online node
+> - * @pxm: ACPI proximity ID
+> - *
+> - * This is similar to acpi_map_pxm_to_node(), but always returns an online
+> - * node.  When the mapped node from a given proximity ID is offline, it
+> - * looks up the node distance table and returns the nearest online node.
+> - *
+> - * ACPI device drivers, which are called after the NUMA initialization has
+> - * completed in the kernel, can call this interface to obtain their device
+> - * NUMA topology from ACPI tables.  Such drivers do not have to deal with
+> - * offline nodes.  A node may be offline when a device proximity ID is
+> - * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
+> - * "numa=off" on x86.
+> - */
+> -int acpi_map_pxm_to_online_node(int pxm)
+> -{
+> -	int node, min_node;
+> -
+> -	node = acpi_map_pxm_to_node(pxm);
+> -
+> -	if (node == NUMA_NO_NODE)
+> -		node = 0;
+> -
+> -	min_node = node;
+> -	if (!node_online(node)) {
+> -		int min_dist = INT_MAX, dist, n;
+> -
+> -		for_each_online_node(n) {
+> -			dist = node_distance(node, n);
+> -			if (dist < min_dist) {
+> -				min_dist = dist;
+> -				min_node = n;
+> -			}
+> -		}
+> -	}
+> -
+> -	return min_node;
+> -}
+> -EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
+> -
+>  static void __init
+>  acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+>  {
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 8b4e516bac00..aeedd09f2f71 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -401,9 +401,30 @@ extern void acpi_osi_setup(char *str);
+>  extern bool acpi_osi_is_win8(void);
+>  
+>  #ifdef CONFIG_ACPI_NUMA
+> -int acpi_map_pxm_to_online_node(int pxm);
+>  int acpi_map_pxm_to_node(int pxm);
+>  int acpi_get_node(acpi_handle handle);
+> +
+> +/**
+> + * acpi_map_pxm_to_online_node - Map proximity ID to online node
+> + * @pxm: ACPI proximity ID
+> + *
+> + * This is similar to acpi_map_pxm_to_node(), but always returns an online
+> + * node.  When the mapped node from a given proximity ID is offline, it
+> + * looks up the node distance table and returns the nearest online node.
+> + *
+> + * ACPI device drivers, which are called after the NUMA initialization has
+> + * completed in the kernel, can call this interface to obtain their device
+> + * NUMA topology from ACPI tables.  Such drivers do not have to deal with
+> + * offline nodes.  A node may be offline when a device proximity ID is
+> + * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
+> + * "numa=off" on x86.
+> + */
+> +static inline int acpi_map_pxm_to_online_node(int pxm)
+> +{
+> +	int node = acpi_map_pxm_to_node(pxm);
+> +
+> +	return numa_map_to_online_node(node);
+> +}
+>  #else
+>  static inline int acpi_map_pxm_to_online_node(int pxm)
+>  {
+> diff --git a/include/linux/numa.h b/include/linux/numa.h
+> index 110b0e5d0fb0..20f4e44b186c 100644
+> --- a/include/linux/numa.h
+> +++ b/include/linux/numa.h
+> @@ -13,4 +13,13 @@
+>  
+>  #define	NUMA_NO_NODE	(-1)
+>  
+> +#ifdef CONFIG_NUMA
+> +int numa_map_to_online_node(int node);
+> +#else
+> +static inline int numa_map_to_online_node(int node)
+> +{
+> +	return NUMA_NO_NODE;
+> +}
+> +#endif
+> +
+>  #endif /* _LINUX_NUMA_H */
+> diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+> index 4ae967bcf954..e2d8dd21ce9d 100644
+> --- a/mm/mempolicy.c
+> +++ b/mm/mempolicy.c
+> @@ -127,6 +127,36 @@ static struct mempolicy default_policy = {
+>  
+>  static struct mempolicy preferred_node_policy[MAX_NUMNODES];
+>  
+> +/**
+> + * numa_map_to_online_node - Find closest online node
+> + * @nid: Node id to start the search
+> + *
+> + * Lookup the next closest node by distance if @nid is not online.
+> + */
+> +int numa_map_to_online_node(int node)
+> +{
+> +	int min_node;
+> +
+> +	if (node == NUMA_NO_NODE)
+> +		node = 0;
+> +
+> +	min_node = node;
+> +	if (!node_online(node)) {
+> +		int min_dist = INT_MAX, dist, n;
+> +
+> +		for_each_online_node(n) {
+> +			dist = node_distance(node, n);
+> +			if (dist < min_dist) {
+> +				min_dist = dist;
+> +				min_node = n;
+> +			}
+> +		}
+> +	}
+> +
+> +	return min_node;
+> +}
+> +EXPORT_SYMBOL_GPL(numa_map_to_online_node);
+> +
+>  struct mempolicy *get_task_policy(struct task_struct *p)
+>  {
+>  	struct mempolicy *pol = p->mempolicy;
+> 
+
+
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
