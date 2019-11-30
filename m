@@ -1,180 +1,106 @@
-Return-Path: <SRS0=q0mV=ZV=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=nK7J=ZW=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-10.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.5 required=3.0 tests=CHARSET_FARAWAY_HEADER,
+	HEADER_FROM_DIFFERENT_DOMAINS,HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BC95C432C3
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Nov 2019 18:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC915C432C0
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 30 Nov 2019 21:33:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C86D921771
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Nov 2019 18:56:36 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="Q1+qt9qm"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C86D921771
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 967132082E
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 30 Nov 2019 21:33:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 967132082E
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=masterkeychrysler.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 208481011350C;
-	Fri, 29 Nov 2019 10:59:59 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::242; helo=mail-oi1-x242.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 1C31310113308;
+	Sat, 30 Nov 2019 13:37:09 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=192.190.42.45; helo=localhost.localdomain; envelope-from=info@masterkeychrysler.com; receiver=<UNKNOWN> 
+Received: from localhost.localdomain (unknown [192.190.42.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C5674100DC3EC
-	for <linux-nvdimm@lists.01.org>; Fri, 29 Nov 2019 10:59:57 -0800 (PST)
-Received: by mail-oi1-x242.google.com with SMTP id 14so26800757oir.12
-        for <linux-nvdimm@lists.01.org>; Fri, 29 Nov 2019 10:56:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=xboj7F00bLbKnatedgQze9i2APMnPtQy1LrQNkM7FYQ=;
-        b=Q1+qt9qmF/rLkAGqDYkEHYeW6EPQtxzZ+8NtolvjMgoSovWm13CTHenqOgKWRP4D4f
-         aKXtgJD3mrzRgeFkX4xXtZZU7Tdp+RyHrJh2Cs5RgQvLZ4qveq/M2BTUPg1q7EfeQAVw
-         lVGygT+Pwk34HBtkoZLFR+TF2OmaHYuV/8l+eJJCQwlE3ZOt6U/fTUUIwPhaZU5STa0e
-         quHtjFQJVApCTJ9Cl5pvi3VW+Ts1WpNYNTuKfsnptFQciYz3CLt+VGAkAr5hxfFJ07W4
-         S906t//NGSvk1EVk2cIcfrb2jweYPzanpDN9XPOBJVtzBuizrtYc+UHNa+DFFutxL+j5
-         Lb8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=xboj7F00bLbKnatedgQze9i2APMnPtQy1LrQNkM7FYQ=;
-        b=diyLj7SDk9UPt1DSVOYuDypunf4IHGlK9gaxjgJYU/TeadaUOTkZ3k82z+nz9VoTLi
-         N98BgnzqZsULdN+kkDppyynOgUmg9avwLcw0Si+bqrh9ubtNZrd2tMVCS79UyQx15UGp
-         j0C0kRfH01ga4qWwXOljOsKniv9sLRvzJ6YLv02ITPIZsV7na56yrobcUfQr0rZwBraV
-         kcA0Mpt8JtTeKmT5OTUZom9UqFDfm/zRkk+t6F1E50wYYl+rVOMvSnJb0MbyifuPXCUn
-         90hQFXCp4PrQIqT02/zJm69rlREV2rtlGUuLzfEUf9CFi6pJd+MypKjxlSFPaKxmBGjQ
-         nwMQ==
-X-Gm-Message-State: APjAAAXPeUHZ9u31W3m1FgnZtwZK+fRmpx7gKcAy17TapF3MndIrhO9G
-	i6fZVoeMF+P/zUH9e/NjLCNAvIEZ4e/wx4wY5hP7+g==
-X-Google-Smtp-Source: APXvYqzd57f2wxECF4fesi3hhXmvOo40o4Zq2olC+h0RWJ9X7eKDf4fWTmQ75AQmTV7EkFg6r5iSKXRdJRJrI8ZfR34=
-X-Received: by 2002:a54:468e:: with SMTP id k14mr1852547oic.105.1575053793229;
- Fri, 29 Nov 2019 10:56:33 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 344DA100DC2C2
+	for <linux-nvdimm@lists.01.org>; Sat, 30 Nov 2019 13:37:07 -0800 (PST)
+Received: from zwvyfmwv (unknown [182.111.170.135])
+	by localhost.localdomain (Postfix) with ESMTPA id 730362BF521;
+	Sat, 30 Nov 2019 16:17:20 +0100 (CET)
+Message-ID: <DA6FF065AAAC99EA6D1D3A5A48C27B2B@zwvyfmwv>
+From: "sjlhsjzb" <info@masterkeychrysler.com>
+To: <krahme@boyden.com>,
+	<jack@collecta.com>,
+	<hr@guorn.com>,
+	<adngroh@syylmy.com>,
+	<vinod@aceskill.com>,
+	<wanghong@eqilai.com>,
+	<eotubo@br.ibm.com>,
+	<rick.lee@tekni-plex.com>,
+	<info@ijzerenman.com>,
+	<josh.pabst@smdpstudio.com>,
+	<dlewey@tauck.com>,
+	<zhaopin@fenrir-tec.com>,
+	<gujarat@autonics.com>,
+	<linux-nvdimm@lists.01.org>,
+	<www@cnu.edu>,
+	<hi@yetang.com>,
+	<broy1@binghamton.edu>,
+	<fenglin@ujs.edu.cn>,
+	<jazyjoez@keanefed.com>,
+	<chenkunpeng@hiwayslaw.com>,
+	<hr@ztgt.cn>
+Subject: =?gb2312?B?zNjJq9ChwsO53bn+4LZLVNSytLLNtcXE47bH4NChu++6zbTzxMw=?=
+	=?gb2312?B?ydm4vrykx+nFvsW+x7DH6cnu0rvOx76rxre+xrXqzbXFxMz9ttS7sA==?=
+	=?gb2312?B?w7LLxrTzs6TNyLjfzPTDwMWux+7Xt7K7yeHW1dPatbHJz8HL1tDE6g==?=
+	=?gb2312?B?xNDB7LW8tcTH6bi+?=
+Date: Sun, 1 Dec 2019 00:00:32 +0800
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 29 Nov 2019 10:56:22 -0800
-Message-ID: <CAPcyv4jftz7mN=4zNPo1tGZfcXxfKunTUF4Owof6pJ108GYk=g@mail.gmail.com>
-Subject: [GIT PULL] libnvdimm for v5.5
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID-Hash: OVDVFGUCTAQSOAP3SM6UZDTZH2DN5AEK
-X-Message-ID-Hash: OVDVFGUCTAQSOAP3SM6UZDTZH2DN5AEK
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5512
+Message-ID-Hash: VLL3IDRD4O4T5LH5CWKA2FJK5GCMWVNT
+X-Message-ID-Hash: VLL3IDRD4O4T5LH5CWKA2FJK5GCMWVNT
+X-MailFrom: info@masterkeychrysler.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OVDVFGUCTAQSOAP3SM6UZDTZH2DN5AEK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VLL3IDRD4O4T5LH5CWKA2FJK5GCMWVNT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+Content-Type: multipart/mixed; boundary="===============5669613267871092646=="
+
+--===============5669613267871092646==
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
+
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
+L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PWdi
+MjMxMiIgaHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBuYW1lPUdFTkVSQVRPUiBjb250
+ZW50PSJNU0hUTUwgMTAuMDAuOTIwMC4xNzU1NiI+PC9IRUFEPg0KPEJPRFk+DQo8UD48QSBocmVm
+PSJodHRwOi8vaGFkMjAxNS5jb20vIj5odHRwOi8vaGFkMjAxNS5jb20vPC9BPjwvUD4NCjxQPiZu
+YnNwOzwvUD4NCjxQPszYyavQocLDud25/uC2S1TUsrSyzbXFxOO2x+DQobvvus2088TMydm4vryk
+x+nFvsW+x7DH6cnu0rvOxyZuYnNwOyA8L1A+DQo8UD6+q8a3vsa16s21xcTM/bbUu7DDssvGtPOz
+pM3IuN/M9MPAxa7H7te3srvJ4dbV09q1scnPwcvW0MTqxNDB7LW8tcTH6bi+PC9QPjwvQk9EWT48
+L0hUTUw+DQo=
+
+
+--===============5669613267871092646==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi Linus, please pull from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-for-5.5
-
-...to receive the libnvdimm update for this cycle. The highlight this
-cycle is continuing integration fixes for PowerPC and some resulting
-optimizations. These commits have appeared in -next with no reported
-issues.
-
----
-
-The following changes since commit d6d5df1db6e9d7f8f76d2911707f7d5877251b02:
-
-  Linux 5.4-rc5 (2019-10-27 13:19:19 -0400)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-for-5.5
-
-for you to fetch changes up to 0dfbb932bb67dc76646e579ec5cd21a12125a458:
-
-  MAINTAINERS: Remove Keith from NVDIMM maintainers (2019-11-25 15:45:08 -0800)
-
-----------------------------------------------------------------
-libnvdimm for 5.5
-
-- Updates to better support vmalloc space restrictions on PowerPC platforms.
-
-- Cleanups to move common sysfs attributes to core 'struct device_type'
-  objects.
-
-- Export the 'target_node' attribute (the effective numa node if pmem is
-  marked online) for regions and namespaces.
-
-- Miscellaneous fixups and optimizations.
-
-----------------------------------------------------------------
-Alastair D'Silva (1):
-      libnvdimm: Remove prototypes for nonexistent functions
-
-Aneesh Kumar K.V (2):
-      libnvdimm/pfn_dev: Don't clear device memmap area during generic
-namespace probe
-      libnvdimm/namespace: Differentiate between probe mapping and
-runtime mapping
-
-Dan Williams (14):
-      libnvdimm/pmem: Delete include of nd-core.h
-      libnvdimm: Move attribute groups to device type
-      libnvdimm: Move region attribute group definition
-      libnvdimm: Move nd_device_attribute_group to device_type
-      libnvdimm: Move nd_numa_attribute_group to device_type
-      libnvdimm: Move nd_region_attribute_group to device_type
-      libnvdimm: Move nd_mapping_attribute_group to device_type
-      libnvdimm: Move nvdimm_attribute_group to device_type
-      libnvdimm: Move nvdimm_bus_attribute_group to device_type
-      dax: Create a dax device_type
-      dax: Simplify root read-only definition for the 'resource' attribute
-      libnvdimm: Simplify root read-only definition for the 'resource' attribute
-      dax: Add numa_node to the default device-dax attributes
-      libnvdimm: Export the target_node attribute for regions and namespaces
-
-Ira Weiny (2):
-      libnvdimm/namsepace: Don't set claim_class on error
-      libnvdimm: Trivial comment fix
-
-Keith Busch (1):
-      MAINTAINERS: Remove Keith from NVDIMM maintainers
-
-Qian Cai (1):
-      libnvdimm/btt: fix variable 'rc' set but not used
-
- MAINTAINERS                               |   2 -
- arch/powerpc/platforms/pseries/papr_scm.c |  25 +---
- drivers/acpi/nfit/core.c                  |   7 -
- drivers/dax/bus.c                         |  22 ++-
- drivers/dax/pmem/core.c                   |   6 +-
- drivers/nvdimm/btt.c                      |  18 ++-
- drivers/nvdimm/btt_devs.c                 |  24 +--
- drivers/nvdimm/bus.c                      |  44 +++++-
- drivers/nvdimm/claim.c                    |  14 +-
- drivers/nvdimm/core.c                     |   8 +-
- drivers/nvdimm/dax_devs.c                 |  27 ++--
- drivers/nvdimm/dimm_devs.c                |  30 ++--
- drivers/nvdimm/e820.c                     |  13 --
- drivers/nvdimm/namespace_devs.c           | 114 +++++++++------
- drivers/nvdimm/nd-core.h                  |  21 ++-
- drivers/nvdimm/nd.h                       |  27 ++--
- drivers/nvdimm/of_pmem.c                  |  13 --
- drivers/nvdimm/pfn_devs.c                 |  64 ++++----
- drivers/nvdimm/pmem.c                     |  18 ++-
- drivers/nvdimm/region_devs.c              | 235 +++++++++++++++---------------
- include/linux/libnvdimm.h                 |   7 -
- include/linux/nd.h                        |   2 +-
- 22 files changed, 387 insertions(+), 354 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+--===============5669613267871092646==--
