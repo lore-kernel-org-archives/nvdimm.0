@@ -2,76 +2,93 @@ Return-Path: <SRS0=N1lh=ZZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0
-	tests=HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 187AEC432C0
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 02:43:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F87BC432C3
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 03:48:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DE5D420684
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 02:43:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DE5D420684
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id E65EA2084B
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 03:48:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E65EA2084B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=au1.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2601110113638;
-	Mon,  2 Dec 2019 18:46:59 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.136; helo=mga12.intel.com; envelope-from=redhairer.li@intel.com; receiver=<UNKNOWN> 
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	by ml01.01.org (Postfix) with ESMTP id 1ACB91011363F;
+	Mon,  2 Dec 2019 19:51:52 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 439BC101134E3
-	for <linux-nvdimm@lists.01.org>; Mon,  2 Dec 2019 18:46:55 -0800 (PST)
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 02 Dec 2019 18:43:32 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,271,1571727600";
-   d="scan'208,223";a="361031331"
-Received: from pgsmsx111.gar.corp.intel.com ([10.108.55.200])
-  by orsmga004.jf.intel.com with ESMTP; 02 Dec 2019 18:43:31 -0800
-Received: from pgsmsx114.gar.corp.intel.com ([169.254.4.197]) by
- PGSMSX111.gar.corp.intel.com ([10.108.55.200]) with mapi id 14.03.0439.000;
- Tue, 3 Dec 2019 10:38:49 +0800
-From: "Li, Redhairer" <redhairer.li@intel.com>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: RE: daxctl: Change region input type from INTEGER to STRING.
-Thread-Topic: daxctl: Change region input type from INTEGER to STRING.
-Thread-Index: AdWgS+HioQKQhQkFRMaZk8EtSuhX4gD/71wAAFsuySAA8o+awA==
-Date: Tue, 3 Dec 2019 02:38:49 +0000
-Message-ID: <2369E669066F8E42A79A3DF0E43B9E643AC9DC32@pgsmsx114.gar.corp.intel.com>
-References: <2369E669066F8E42A79A3DF0E43B9E643AC95A81@pgsmsx114.gar.corp.intel.com>
- <CAPcyv4gvih=YwGcuDs8M168kAq3Skp8khq6QDRq8ju-S_sL_Nw@mail.gmail.com>
- <2369E669066F8E42A79A3DF0E43B9E643AC9B3DA@pgsmsx114.gar.corp.intel.com>
-In-Reply-To: <2369E669066F8E42A79A3DF0E43B9E643AC9B3DA@pgsmsx114.gar.corp.intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: yes
-X-MS-TNEF-Correlator: 
-x-titus-metadata-40: eyJDYXRlZ29yeUxhYmVscyI6IiIsIk1ldGFkYXRhIjp7Im5zIjoiaHR0cDpcL1wvd3d3LnRpdHVzLmNvbVwvbnNcL0ludGVsMyIsImlkIjoiNjEyMjhiMzMtNWYyYy00OWY0LWIwZDAtMGQwNjczMWRlYmI4IiwicHJvcHMiOlt7Im4iOiJDVFBDbGFzc2lmaWNhdGlvbiIsInZhbHMiOlt7InZhbHVlIjoiQ1RQX05UIn1dfV19LCJTdWJqZWN0TGFiZWxzIjpbXSwiVE1DVmVyc2lvbiI6IjE3LjEwLjE4MDQuNDkiLCJUcnVzdGVkTGFiZWxIYXNoIjoiNmV3Y0lyWFwvbXRkd0NLdEtJVHVTd3N3TFJqZFAwTHdRZ212cmY1QitqTFJFd3RpYmw2bVVIbkh0RjVaVXQxQU4ifQ==
-x-ctpclassification: CTP_NT
-dlp-product: dlpe-windows
-dlp-version: 11.2.0.6
-dlp-reaction: no-action
-x-originating-ip: [172.30.20.205]
+	by ml01.01.org (Postfix) with ESMTPS id 702DB1011363B
+	for <linux-nvdimm@lists.01.org>; Mon,  2 Dec 2019 19:51:50 -0800 (PST)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xB33kksL006780
+	for <linux-nvdimm@lists.01.org>; Mon, 2 Dec 2019 22:48:26 -0500
+Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2wm6cy9sbj-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Mon, 02 Dec 2019 22:48:26 -0500
+Received: from localhost
+	by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
+	Tue, 3 Dec 2019 03:48:23 -0000
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
+	by e06smtp05.uk.ibm.com (192.168.101.135) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Tue, 3 Dec 2019 03:48:16 -0000
+Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xB33mFXj45088900
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 3 Dec 2019 03:48:15 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id AAA6142041;
+	Tue,  3 Dec 2019 03:48:15 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 537F042042;
+	Tue,  3 Dec 2019 03:48:15 +0000 (GMT)
+Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue,  3 Dec 2019 03:48:15 +0000 (GMT)
+Received: from adsilva.ozlabs.ibm.com (haven.au.ibm.com [9.192.254.114])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 44DE2A03C7;
+	Tue,  3 Dec 2019 14:48:12 +1100 (AEDT)
+From: "Alastair D'Silva" <alastair@au1.ibm.com>
+To: alastair@d-silva.org
+Subject: [PATCH v2 02/27] nvdimm: remove prototypes for nonexistent functions
+Date: Tue,  3 Dec 2019 14:46:30 +1100
+X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20191203034655.51561-1-alastair@au1.ibm.com>
+References: <20191203034655.51561-1-alastair@au1.ibm.com>
 MIME-Version: 1.0
-Message-ID-Hash: VSQBNW2KNNGTL363DZP2HGVCWWG7ZS77
-X-Message-ID-Hash: VSQBNW2KNNGTL363DZP2HGVCWWG7ZS77
-X-MailFrom: redhairer.li@intel.com
+X-TM-AS-GCONF: 00
+x-cbid: 19120303-0020-0000-0000-00000392CC59
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 19120303-0021-0000-0000-000021E9EAA8
+Message-Id: <20191203034655.51561-3-alastair@au1.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
+ definitions=2019-12-02_06:2019-11-29,2019-12-02 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ malwarescore=0 priorityscore=1501 suspectscore=1 bulkscore=0 phishscore=0
+ mlxlogscore=709 adultscore=0 spamscore=0 mlxscore=0 lowpriorityscore=0
+ clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-1910280000 definitions=main-1912030032
+Message-ID-Hash: LXH3YFYF3R7CL2I7X6W2TWJDK47GQN22
+X-Message-ID-Hash: LXH3YFYF3R7CL2I7X6W2TWJDK47GQN22
+X-MailFrom: alastair@au1.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
-CC: "'linux-nvdimm@lists.01.org'" <linux-nvdimm@lists.01.org>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, linux-kernel@vger.kernel.org, linuxppc-dev@list
+ s.ozlabs.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VSQBNW2KNNGTL363DZP2HGVCWWG7ZS77/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LXH3YFYF3R7CL2I7X6W2TWJDK47GQN22/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,336 +97,34 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I have squashed my previous two change.
-Please refer it.
+From: Alastair D'Silva <alastair@d-silva.org>
 
------Original Message-----
-From: Li, Redhairer 
-Sent: Thursday, November 28, 2019 2:56 PM
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Subject: RE: daxctl: Change region input type from INTEGER to STRING.
+These functions don't exist, so remove the prototypes for them.
 
+Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+Reviewed-by: Frederic Barrat <fbarrat@linux.ibm.com>
+---
+ drivers/nvdimm/nd-core.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-Hi Dan,
-
-I have modified it by your feedback.
-
-SHA-1: 00abd19ad64a4ac2f352cbeb1d2fabcb3ffa10ea
-
-* * daxctl: Change region input type from INTEGER to STRING.
-
-daxctl use STRING to be region input type.
-It makes daxctl can accept both <region-id> and region name as region parameter eg.
-daxctl list -r region5
-daxctl list -r 5
-
-Link: https://github.com/pmem/ndctl/issues/109
-Signed-off-by: Redhairer Li <redhairer.li@intel.com>
-
------Original Message-----
-From: Dan Williams <dan.j.williams@intel.com>
-Sent: Wednesday, November 27, 2019 3:21 AM
-To: Li, Redhairer <redhairer.li@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Subject: Re: daxctl: Change region input type from INTEGER to STRING.
-
-Hi Redhairer,
-
-Thanks for submitting this first patch! Some feedback for submitting patches by email. The first is to make sure you are sending the patch in plain text, this one was in html format. The patch also needs to be included in the mail directly so the review can be done inline. This is what tools like "git send-email" or "stg mail" will do for you.
-Some more comments below where I pasted the patch manually:
-
-On Thu, Nov 21, 2019 at 1:18 AM Li, Redhairer <redhairer.li@intel.com> wrote:
->
->
->
-> SHA-1: 66f34cdc26c58143fb8f11813dae98257b19ddc5
->
->
->
-> * daxctl: Change region input type from INTEGER to STRING.
->
->
->
-> daxctl use STRING to be region input type. It makes daxctl can accept 
-> both <region-id> and region name as region parameter
->
-> eg.
->
-> daxctl list -r region5
->
-> daxctl list -r 5
->
->
->
-> Link: https://github.com/pmem/ndctl/issues/109
->
-> Signed-off-by: Redhairer Li <redhairer.li@intel.com>
->
->
-
-My mail reader has line wrapped this quotation below, "git send-email"
-and "stg mail" will help with that problem:
-
-From 66f34cdc26c58143fb8f11813dae98257b19ddc5 Mon Sep 17 00:00:00
-> 2001
-> From: redhairer <redhairer.li@intel.com>
-> Date: Thu, 21 Nov 2019 17:10:21 +0800
-> Subject: [PATCH] daxctl: Change region input type from INTEGER to 
-> STRING.
->
-> daxctl use STRING to be region input type. It makes daxctl can accept 
-> both <region-id> and region name as region parameter
-
-This line went past 80 columns. You can set your text editor to wrap at 80 lines.
-
-> eg.
-> daxctl list -r region5
-> daxctl list -r 5
->
-> Link: https://github.com/pmem/ndctl/issues/109
-> Signed-off-by: Redhairer Li <redhairer.li@intel.com>
-> ---
->  daxctl/device.c                | 11 ++++-------
->  daxctl/lib/libdaxctl-private.h |  1 +
->  daxctl/lib/libdaxctl.c         |  6 ++++++
->  daxctl/lib/libdaxctl.sym       |  1 +
->  daxctl/libdaxctl.h             |  1 +
->  daxctl/list.c                  | 14 ++++++--------
->  util/filter.c                  | 20 ++++++++++++++++++++
->  util/filter.h                  |  2 ++
->  util/sysfs.h                   |  6 ++++++
->  9 files changed, 47 insertions(+), 15 deletions(-)
->
-> diff --git a/daxctl/device.c b/daxctl/device.c index 72e506e..d9db2f9
-> 100644
-> --- a/daxctl/device.c
-> +++ b/daxctl/device.c
-> @@ -19,15 +19,13 @@
->  static struct {
->   const char *dev;
->   const char *mode;
-> - int region_id;
-> + const char *region;
->   bool no_online;
->   bool no_movable;
->   bool force;
->   bool human;
->   bool verbose;
-> -} param = {
-> - .region_id = -1,
-> -};
-> +} param;
->
->  enum dev_mode {
->   DAXCTL_DEV_MODE_UNKNOWN,
-> @@ -51,7 +49,7 @@ enum device_action {  };
->
->  #define BASE_OPTIONS() \
-> -OPT_INTEGER('r', "region", &param.region_id, "restrict to the given 
-> region"), \
-> +OPT_STRING('r', "region", &param.region, "region-id", "filter by
-> region"), \
->  OPT_BOOLEAN('u', "human", &param.human, "use human friendly number 
-> formats"), \  OPT_BOOLEAN('v', "verbose", &param.verbose, "emit more 
-> debug
-> messages")
->
-> @@ -484,8 +482,7 @@ static int do_xaction_device(const char *device, 
-> enum device_action action,
->   *processed = 0;
->
->   daxctl_region_foreach(ctx, region) {
-> - if (param.region_id >= 0 && param.region_id
-> - != daxctl_region_get_id(region))
-> + if (!util_daxctl_region_filter(region, device))
->   continue;
->
->   daxctl_dev_foreach(region, dev) {
-> diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl- 
-> private.h index 9f9c70d..169a8b8 100644
-> --- a/daxctl/lib/libdaxctl-private.h
-> +++ b/daxctl/lib/libdaxctl-private.h
-> @@ -80,6 +80,7 @@ struct daxctl_region {
->   uuid_t uuid;
->   int refcount;
->   char *devname;
-> + char *regionname;
-
-So I don't think that "regionname" should be a property of 'struct daxctl_region' because there is no kernel device with that name for daxctl regions. I think this region name should only exist as a special case for "daxctl list".
-
->   size_t buf_len;
->   void *region_buf;
->   int devices_init;
-> diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c index 
-> ee4a069..59697cd 100644
-> --- a/daxctl/lib/libdaxctl.c
-> +++ b/daxctl/lib/libdaxctl.c
-> @@ -287,6 +287,7 @@ static struct daxctl_region *add_dax_region(void 
-> *parent, int id,
->   region->refcount = 1;
->   list_head_init(&region->devices);
->   region->devname = strdup(devpath_to_devname(base));
-> + region->regionname = strdup(devpath_to_regionname(base));
->
->   sprintf(path, "%s/%s/size", base, attrs);
->   if (sysfs_read_attr(ctx, path, buf) == 0) @@ -553,6 +554,11 @@ 
-> DAXCTL_EXPORT const char *daxctl_region_get_devname(struct 
-> daxctl_region *region
->   return region->devname;
->  }
->
-> +DAXCTL_EXPORT const char *daxctl_region_get_regionname(struct
-> daxctl_region *region)
-> +{
-> + return region->regionname;
-> +}
-> +
->  DAXCTL_EXPORT const char *daxctl_region_get_path(struct daxctl_region
-> *region)  {
-
-API users should be aware that the region identifier is just a number, so I don't think we need these additions.
-
->   return region->region_path;
-> diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym index 
-> 87d0236..13e5aec 100644
-> --- a/daxctl/lib/libdaxctl.sym
-> +++ b/daxctl/lib/libdaxctl.sym
-> @@ -35,6 +35,7 @@ LIBDAXCTL_3 {
->  global:
->   daxctl_region_get_available_size;
->   daxctl_region_get_devname;
-> + daxctl_region_get_regionname;
->   daxctl_region_get_dev_seed;
->  } LIBDAXCTL_2;
->
-> diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h index 
-> 6c545e1..1592c2f 100644
-> --- a/daxctl/libdaxctl.h
-> +++ b/daxctl/libdaxctl.h
-> @@ -54,6 +54,7 @@ unsigned long long
-> daxctl_region_get_available_size(
->  unsigned long long daxctl_region_get_size(struct daxctl_region 
-> *region);  unsigned long daxctl_region_get_align(struct daxctl_region 
-> *region);  const char *daxctl_region_get_devname(struct daxctl_region 
-> *region);
-> +const char *daxctl_region_get_regionname(struct daxctl_region
-> *region);
->  const char *daxctl_region_get_path(struct daxctl_region *region);
->
->  struct daxctl_dev *daxctl_region_get_dev_seed(struct daxctl_region 
-> *region); diff --git a/daxctl/list.c b/daxctl/list.c index 
-> e56300d..6c6251b 100644
-> --- a/daxctl/list.c
-> +++ b/daxctl/list.c
-> @@ -44,10 +44,8 @@ static unsigned long listopts_to_flags(void)
->
->  static struct {
->   const char *dev;
-> - int region_id;
-> -} param = {
-> - .region_id = -1,
-> -};
-> + const char *region;
-> +} param;
->
->  static int did_fail;
->
-> @@ -66,7 +64,8 @@ static int num_list_flags(void)  int cmd_list(int 
-> argc, const char **argv, struct daxctl_ctx *ctx)  {
->   const struct option options[] = {
-> - OPT_INTEGER('r', "region", &param.region_id, "filter by region"),
-> + OPT_STRING('r', "region", &param.region, "region-id", "filter by 
-> + region"),
->   OPT_STRING('d', "dev", &param.dev, "dev-id",
->   "filter by dax device instance name"),
->   OPT_BOOLEAN('D', "devices", &list.devs, "include dax device info"), 
-> @@ -94,7 +93,7 @@ int cmd_list(int argc, const char **argv, struct 
-> daxctl_ctx *ctx)
->   usage_with_options(u, options);
->
->   if (num_list_flags() == 0) {
-> - list.regions = param.region_id >= 0;
-> + list.regions = !!param.region;
->   list.devs = !!param.dev;
->   }
->
-> @@ -106,8 +105,7 @@ int cmd_list(int argc, const char **argv, struct 
-> daxctl_ctx *ctx)
->   daxctl_region_foreach(ctx, region) {
->   struct json_object *jregion = NULL;
->
-> - if (param.region_id >= 0 && param.region_id
-> - != daxctl_region_get_id(region))
-> + if (!util_daxctl_region_filter(region, param.region))
->   continue;
->
->   if (list.regions) {
-> diff --git a/util/filter.c b/util/filter.c index 1734bce..da647a8
-> 100644
-> --- a/util/filter.c
-> +++ b/util/filter.c
-> @@ -335,6 +335,26 @@ struct daxctl_dev *util_daxctl_dev_filter(struct 
-> daxctl_dev *dev,
->   return NULL;
->  }
->
-> +struct daxctl_region *util_daxctl_region_filter(struct daxctl_region
-> *region,
-> + const char *ident)
-> +{
-> + int region_id;
-> + const char *region_name;
-> +
-> + if (!ident || strcmp(ident, "all") == 0) return region;
-> +
-> + if (sscanf(ident, "%d", &region_id) == 1 &&
-> + daxctl_region_get_id(region) == region_id) return region;
-
-Let's just add a "sscanf(ident, "region%d", &region_id)" in the case the above ident does not match.
-
-> +
-> + region_name = daxctl_region_get_regionname(region);
-> + if (strcmp(region_name, ident)==0)
-> + return region;
-
-...with the above new sscanf then daxctl_region_get_regionname() is not needed.
-
-> +
-> + return NULL;
-> +}
-> +
->  static enum ndctl_namespace_mode mode_to_type(const char *mode)  {
->   if (!mode)
-> diff --git a/util/filter.h b/util/filter.h index c2cdddf..0c12b94
-> 100644
-> --- a/util/filter.h
-> +++ b/util/filter.h
-> @@ -37,6 +37,8 @@ struct ndctl_region
-> *util_region_filter_by_namespace(struct ndctl_region *region
->   const char *ident);
->  struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
->   const char *ident);
-> +struct daxctl_region *util_daxctl_region_filter(struct daxctl_region
-> *region,
-> + const char *ident);
->
->  struct json_object;
->
-> diff --git a/util/sysfs.h b/util/sysfs.h index fb169c6..84c0965 100644
-> --- a/util/sysfs.h
-> +++ b/util/sysfs.h
-> @@ -37,4 +37,10 @@ static inline const char *devpath_to_devname(const 
-> char *devpath)  {
->   return strrchr(devpath, '/') + 1;
->  }
-> +
-> +static inline const char *devpath_to_regionname(const char *devpath) 
-> +{
-> + char* tmp_devpath = strdup(devpath);  return 
-> +strtok(strstr(tmp_devpath, "region"), "/");
-
-Another reason to not create "daxctl_region_get_regionname" is that not all daxctl devices will have "region" in the devpath.
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 25fa121104d0..9f121a6aeb02 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -124,11 +124,7 @@ void nd_region_create_dax_seed(struct nd_region *nd_region);
+ int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
+ void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
+ void nd_synchronize(void);
+-int nvdimm_bus_register_dimms(struct nvdimm_bus *nvdimm_bus);
+-int nvdimm_bus_register_regions(struct nvdimm_bus *nvdimm_bus);
+-int nvdimm_bus_init_interleave_sets(struct nvdimm_bus *nvdimm_bus);
+ void __nd_device_register(struct device *dev);
+-int nd_match_dimm(struct device *dev, void *data);
+ struct nd_label_id;
+ char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
+ bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
+-- 
+2.23.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
