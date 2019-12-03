@@ -6,77 +6,77 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F916C43141
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 03:48:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1FCBC43141
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 03:48:34 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3C692215B2
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 03:48:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3C692215B2
+	by mail.kernel.org (Postfix) with ESMTPS id 839332073F
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Dec 2019 03:48:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 839332073F
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=au1.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5F14310113668;
-	Mon,  2 Dec 2019 19:51:53 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id 8432710113664;
+	Mon,  2 Dec 2019 19:51:54 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id EB00910113637
-	for <linux-nvdimm@lists.01.org>; Mon,  2 Dec 2019 19:51:50 -0800 (PST)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xB33kmbT083966
-	for <linux-nvdimm@lists.01.org>; Mon, 2 Dec 2019 22:48:27 -0500
-Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2wm6xb0nxp-1
+	by ml01.01.org (Postfix) with ESMTPS id ECE9F10113637
+	for <linux-nvdimm@lists.01.org>; Mon,  2 Dec 2019 19:51:51 -0800 (PST)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id xB33knR7077047
+	for <linux-nvdimm@lists.01.org>; Mon, 2 Dec 2019 22:48:29 -0500
+Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2wknuapy6t-1
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Mon, 02 Dec 2019 22:48:27 -0500
+	for <linux-nvdimm@lists.01.org>; Mon, 02 Dec 2019 22:48:28 -0500
 Received: from localhost
-	by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
-	Tue, 3 Dec 2019 03:48:24 -0000
-Received: from b06avi18626390.portsmouth.uk.ibm.com (9.149.26.192)
-	by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	Tue, 3 Dec 2019 03:48:25 -0000
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (9.149.109.195)
+	by e06smtp07.uk.ibm.com (192.168.101.137) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
 	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Tue, 3 Dec 2019 03:48:16 -0000
+	Tue, 3 Dec 2019 03:48:18 -0000
 Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xB33lZVF46661902
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id xB33mH6I63111196
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 3 Dec 2019 03:47:35 GMT
+	Tue, 3 Dec 2019 03:48:17 GMT
 Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9AD545204F;
-	Tue,  3 Dec 2019 03:48:15 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 672B55204E;
+	Tue,  3 Dec 2019 03:48:17 +0000 (GMT)
 Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 4911652059;
-	Tue,  3 Dec 2019 03:48:15 +0000 (GMT)
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id BC70F52050;
+	Tue,  3 Dec 2019 03:48:16 +0000 (GMT)
 Received: from adsilva.ozlabs.ibm.com (haven.au.ibm.com [9.192.254.114])
 	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 60092A03CC;
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id AA740A03D2;
 	Tue,  3 Dec 2019 14:48:12 +1100 (AEDT)
 From: "Alastair D'Silva" <alastair@au1.ibm.com>
 To: alastair@d-silva.org
-Subject: [PATCH v2 04/27] mm/memory_hotplug: Allow check_hotplug_memory_addressable to be called from drivers
-Date: Tue,  3 Dec 2019 14:46:32 +1100
+Subject: [PATCH v2 08/27] ocxl: Save the device serial number in ocxl_fn
+Date: Tue,  3 Dec 2019 14:46:36 +1100
 X-Mailer: git-send-email 2.23.0
 In-Reply-To: <20191203034655.51561-1-alastair@au1.ibm.com>
 References: <20191203034655.51561-1-alastair@au1.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
-x-cbid: 19120303-0016-0000-0000-000002D0158B
+x-cbid: 19120303-0028-0000-0000-000003C3CC73
 X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 19120303-0017-0000-0000-000033320CA4
-Message-Id: <20191203034655.51561-5-alastair@au1.ibm.com>
+x-cbparentid: 19120303-0029-0000-0000-00002486E432
+Message-Id: <20191203034655.51561-9-alastair@au1.ibm.com>
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.95,18.0.572
  definitions=2019-12-02_06:2019-11-29,2019-12-02 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 malwarescore=0
- suspectscore=3 lowpriorityscore=0 phishscore=0 priorityscore=1501
- impostorscore=0 clxscore=1015 adultscore=0 mlxlogscore=893 mlxscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501 mlxscore=0
+ bulkscore=0 adultscore=0 mlxlogscore=484 phishscore=0 spamscore=0
+ lowpriorityscore=0 impostorscore=0 suspectscore=1 malwarescore=0
+ clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-1910280000 definitions=main-1912030032
-Message-ID-Hash: JHEVY7BJM5UXXKAZ2ZAHIMBKN3DAZ4XK
-X-Message-ID-Hash: JHEVY7BJM5UXXKAZ2ZAHIMBKN3DAZ4XK
+Message-ID-Hash: 6KZM7B7XNDQMCKZTA5Z5HYMCOPZ4LPK2
+X-Message-ID-Hash: 6KZM7B7XNDQMCKZTA5Z5HYMCOPZ4LPK2
 X-MailFrom: alastair@au1.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -85,7 +85,7 @@ CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@sa
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JHEVY7BJM5UXXKAZ2ZAHIMBKN3DAZ4XK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6KZM7B7XNDQMCKZTA5Z5HYMCOPZ4LPK2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -96,50 +96,93 @@ Content-Transfer-Encoding: 7bit
 
 From: Alastair D'Silva <alastair@d-silva.org>
 
-When setting up OpenCAPI connected persistent memory, the range check may
-not be performed until quite late (or perhaps not at all, if the user does
-not establish a DAX device).
-
-This patch makes the range check callable so we can perform the check while
-probing the OpenCAPI SCM device.
+This patch retrieves the serial number of the card and makes it available
+to consumers of the ocxl driver via the ocxl_fn struct.
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+Acked-by: Frederic Barrat <fbarrat@linux.ibm.com>
+Acked-by: Andrew Donnellan <ajd@linux.ibm.com>
 ---
- include/linux/memory_hotplug.h | 5 +++++
- mm/memory_hotplug.c            | 4 ++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/misc/ocxl/config.c | 46 ++++++++++++++++++++++++++++++++++++++
+ include/misc/ocxl.h        |  1 +
+ 2 files changed, 47 insertions(+)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index f46ea71b4ffd..3f3a010b60d2 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -339,6 +339,11 @@ static inline int remove_memory(int nid, u64 start, u64 size)
- static inline void __remove_memory(int nid, u64 start, u64 size) {}
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-+int check_hotplug_memory_addressable(unsigned long pfn,
-+		unsigned long nr_pages);
-+#endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
-+
- extern void __ref free_area_init_core_hotplug(int nid);
- extern int __add_memory(int nid, u64 start, u64 size);
- extern int add_memory(int nid, u64 start, u64 size);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index b5be827ecda5..abd9624bd0c1 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -278,8 +278,8 @@ static int check_pfn_span(unsigned long pfn, unsigned long nr_pages,
+diff --git a/drivers/misc/ocxl/config.c b/drivers/misc/ocxl/config.c
+index fb0c3b6f8312..a9203c309365 100644
+--- a/drivers/misc/ocxl/config.c
++++ b/drivers/misc/ocxl/config.c
+@@ -71,6 +71,51 @@ static int find_dvsec_afu_ctrl(struct pci_dev *dev, u8 afu_idx)
  	return 0;
  }
  
--static int check_hotplug_memory_addressable(unsigned long pfn,
--					    unsigned long nr_pages)
-+int check_hotplug_memory_addressable(unsigned long pfn,
-+				     unsigned long nr_pages)
++/**
++ * Find a related PCI device (function 0)
++ * @device: PCI device to match
++ *
++ * Returns a pointer to the related device, or null if not found
++ */
++static struct pci_dev *get_function_0(struct pci_dev *dev)
++{
++	unsigned int devfn = PCI_DEVFN(PCI_SLOT(dev->devfn), 0); // Look for function 0
++
++	return pci_get_domain_bus_and_slot(pci_domain_nr(dev->bus),
++					dev->bus->number, devfn);
++}
++
++static void read_serial(struct pci_dev *dev, struct ocxl_fn_config *fn)
++{
++	u32 low, high;
++	int pos;
++
++	pos = pci_find_ext_capability(dev, PCI_EXT_CAP_ID_DSN);
++	if (pos) {
++		pci_read_config_dword(dev, pos + 0x04, &low);
++		pci_read_config_dword(dev, pos + 0x08, &high);
++
++		fn->serial = low | ((u64)high) << 32;
++
++		return;
++	}
++
++	if (PCI_FUNC(dev->devfn) != 0) {
++		struct pci_dev *related = get_function_0(dev);
++
++		if (!related) {
++			fn->serial = 0;
++			return;
++		}
++
++		read_serial(related, fn);
++		pci_dev_put(related);
++		return;
++	}
++
++	fn->serial = 0;
++}
++
+ static void read_pasid(struct pci_dev *dev, struct ocxl_fn_config *fn)
  {
- 	const u64 max_addr = PFN_PHYS(pfn + nr_pages) - 1;
+ 	u16 val;
+@@ -208,6 +253,7 @@ int ocxl_config_read_function(struct pci_dev *dev, struct ocxl_fn_config *fn)
+ 	int rc;
  
+ 	read_pasid(dev, fn);
++	read_serial(dev, fn);
+ 
+ 	rc = read_dvsec_tl(dev, fn);
+ 	if (rc) {
+diff --git a/include/misc/ocxl.h b/include/misc/ocxl.h
+index 6f7c02f0d5e3..9843051c3c5b 100644
+--- a/include/misc/ocxl.h
++++ b/include/misc/ocxl.h
+@@ -46,6 +46,7 @@ struct ocxl_fn_config {
+ 	int dvsec_afu_info_pos; /* offset of the AFU information DVSEC */
+ 	s8 max_pasid_log;
+ 	s8 max_afu_index;
++	u64 serial;
+ };
+ 
+ enum ocxl_endian {
 -- 
 2.23.0
 _______________________________________________
