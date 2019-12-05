@@ -1,102 +1,107 @@
 Return-Path: <SRS0=dklJ=Z3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.5 required=3.0 tests=CHARSET_FARAWAY_HEADER,
-	HEADER_FROM_DIFFERENT_DOMAINS,HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B4DAC43603
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  5 Dec 2019 06:15:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE25AC2D0BF
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  5 Dec 2019 19:35:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 09DDF22464
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  5 Dec 2019 06:15:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 09DDF22464
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=snupg.com
+	by mail.kernel.org (Postfix) with ESMTPS id 9E6A8224F8
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  5 Dec 2019 19:35:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9E6A8224F8
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 16BB310113327;
-	Wed,  4 Dec 2019 22:18:47 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=1.85.42.195; helo=root.domain; envelope-from=wujing@snupg.com; receiver=<UNKNOWN> 
-Received: from root.domain (unknown [1.85.42.195])
-	by ml01.01.org (Postfix) with ESMTP id 27100100DC2D7
-	for <linux-nvdimm@lists.01.org>; Wed,  4 Dec 2019 22:18:43 -0800 (PST)
-Received: by root.domain (CSmail for UNIX, from userid 503)
-	id 95732AB23; Thu,  5 Dec 2019 13:04:57 +0800 (CST)
-Received: from lx (unknown [182.110.236.32])
-	by root.domain (CSmail for UNIX) with ESMTPA id A1250A707;
-	Thu,  5 Dec 2019 13:04:56 +0800 (CST)
-Message-ID: <7E7FC68D34EE32AF0079BF6A998870DC@lx>
-From: "jhb" <wujing@snupg.com>
-To: <hr@zuo-chuang.com>,
-	<wonghin.lee@aia.com>,
-	<xxl@dongri.com>,
-	<monty@monty.com.cn>,
-	<info@batonsoft.com>,
-	<linux-nvdimm@lists.01.org>,
-	<zunliang.ding@hspharm.cn>,
-	<jay@toky.com>,
-	<perkinja@udmercy.edu>,
-	<preston@ukec.net>,
-	<info@pulsar-inc.com>,
-	<service@be-tech.com.cn>,
-	<mumbai@halarship.com>,
-	<slgs@hawaii.edu>,
-	<admissions@scsu.edu>,
-	<nituzu@eged.com>,
-	<smsgcx@imu.edu.cn>,
-	<sales-manager@feellife.com>,
-	<srp336@optimum.com>,
-	<hr@ichido.com.cn>
-Subject: =?gb2312?B?tv7Krsvqv7TXxbfHs6PE27fbxMy320LLq8LtzrLDyMPD19PJs7ei?=
-	=?gb2312?B?yc/Iq8Lj19TD/rrcysfT1bvzsrvSqrTtuf3DwMWux/PIxMfzx/PE4w==?=
-Date: Thu, 5 Dec 2019 13:11:50 +0800
+	by ml01.01.org (Postfix) with ESMTP id 707701011350A;
+	Thu,  5 Dec 2019 11:38:44 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id B823210113504;
+	Thu,  5 Dec 2019 11:38:41 -0800 (PST)
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 05 Dec 2019 11:35:18 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,282,1571727600";
+   d="gz'50?scan'50,208,50";a="411755705"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga005.fm.intel.com with ESMTP; 05 Dec 2019 11:35:12 -0800
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+	(envelope-from <lkp@intel.com>)
+	id 1icwu7-000434-R6; Fri, 06 Dec 2019 03:35:11 +0800
+Date: Fri, 6 Dec 2019 03:34:35 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Alastair D'Silva <alastair@au1.ibm.com>
+Subject: Re: [PATCH v2 16/27] nvdimm/ocxl: Implement the Read Error Log
+ command
+Message-ID: <201912060249.X7EgQ5wF%lkp@intel.com>
+References: <20191203034655.51561-17-alastair@au1.ibm.com>
 MIME-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2900.5512
-X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5512
-Message-ID-Hash: EGC55DMUH4Z4PEZEWXONOXZF5UQDC5HJ
-X-Message-ID-Hash: EGC55DMUH4Z4PEZEWXONOXZF5UQDC5HJ
-X-MailFrom: wujing@snupg.com
+In-Reply-To: <20191203034655.51561-17-alastair@au1.ibm.com>
+User-Agent: NeoMutt/20170113 (1.7.2)
+Message-ID-Hash: EDTDF6FO2STG34FA5EAY4DSMHMGQ6VZQ
+X-Message-ID-Hash: EDTDF6FO2STG34FA5EAY4DSMHMGQ6VZQ
+X-MailFrom: lkp@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Content-Disposition: inline
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: kbuild-all@lists.01.org, alastair@d-silva.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, li
+ nux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EGC55DMUH4Z4PEZEWXONOXZF5UQDC5HJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EDTDF6FO2STG34FA5EAY4DSMHMGQ6VZQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: multipart/mixed; boundary="===============0749674337615551782=="
-
---===============0749674337615551782==
-Content-Type: text/html;
-	charset="gb2312"
-Content-Transfer-Encoding: base64
-
-PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDQuMCBUcmFuc2l0aW9uYWwv
-L0VOIj4NCjxIVE1MPjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PWdi
-MjMxMiIgaHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBuYW1lPUdFTkVSQVRPUiBjb250
-ZW50PSJNU0hUTUwgMTAuMDAuOTIwMC4xNzU1NiI+PC9IRUFEPg0KPEJPRFk+DQo8UD48QSBocmVm
-PSJodHRwOi8vaGFkMjAxNS5jb20vIj5odHRwOi8vaGFkMjAxNS5jb20vPC9BPjwvUD4NCjxQPiZu
-YnNwOzwvUD4NCjxQPrb+yq7L6r+018W3x7OjxNu328TMt9tCy6vC7c6yw8jDw9fTybO3osnPyKvC
-49fUw/663MrH09W787K70qq07bn9Jm5ic3A7IDwvUD4NCjxQPsPAxa7H88jEx/PH88TjPC9QPjwv
-Qk9EWT48L0hUTUw+DQo=
-
-
---===============0749674337615551782==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+Hi Alastair,
+
+Thank you for the patch! Yet something to improve:
+
+[auto build test ERROR on v5.4-rc8]
+[also build test ERROR on char-misc/char-misc-testing]
+[cannot apply to linux-nvdimm/libnvdimm-for-next linus/master next-20191205]
+[if your patch is applied to the wrong git tree, please drop us a note to help
+improve the system. BTW, we also suggest to use '--base' option to specify the
+base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+
+url:    https://github.com/0day-ci/linux/commits/Alastair-D-Silva/Add-support-for-OpenCAPI-SCM-devices/20191203-120511
+base:    af42d3466bdc8f39806b26f593604fdc54140bcb
+config: x86_64-randconfig-b001-20191203 (attached as .config)
+compiler: gcc-7 (Debian 7.5.0-1) 7.5.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=x86_64 
+
+If you fix the issue, kindly add following tag
+Reported-by: kbuild test robot <lkp@intel.com>
+
+All errors (new ones prefixed by >>):
+
+   In file included from <command-line>:32:0:
+>> ./usr/include/nvdimm/ocxl-scm.h:21:24: error: C++ style comments are not allowed in ISO C90
+     __u32 log_identifier; // out
+                           ^
+>> ./usr/include/nvdimm/ocxl-scm.h:21:24: error: (this will be reported only once per input file)
+
+---
+0-DAY kernel test infrastructure                 Open Source Technology Center
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org Intel Corporation
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
---===============0749674337615551782==--
