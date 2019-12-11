@@ -1,65 +1,85 @@
-Return-Path: <SRS0=r690=2A=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=kDe7=2B=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.1 required=3.0 tests=DKIM_ADSP_NXDOMAIN,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32720C43603
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 10 Dec 2019 23:55:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 500A3C43603
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Dec 2019 01:44:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EE15D206A1
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 10 Dec 2019 23:55:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EE15D206A1
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=hymyslncj.net
+	by mail.kernel.org (Postfix) with ESMTPS id 23DAF20836
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Dec 2019 01:44:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 23DAF20836
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E70A110113618;
-	Tue, 10 Dec 2019 15:59:07 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=111.176.77.77; helo=hymyslncj.net; envelope-from=eepxc@hymyslncj.net; receiver=<UNKNOWN> 
-Received: from hymyslncj.net (unknown [111.176.77.77])
-	by ml01.01.org (Postfix) with ESMTP id 92592100DC2C2
-	for <linux-nvdimm@lists.01.org>; Tue, 10 Dec 2019 15:58:52 -0800 (PST)
-Message-ID: <FD7E2ADA9E7E49C462A9409B7D75266E@hymyslncj.net>
-From: =?utf-8?B?5YWz5aqa?= <eepxc@hymyslncj.net>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?bGludXgtbnZkaW1t77ya5oKoIOWlvSDvvIE=?=
-Date: Mon, 9 Dec 2019 07:55:19 +0800
+	by ml01.01.org (Postfix) with ESMTP id 1DEEE10113616;
+	Tue, 10 Dec 2019 17:47:32 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 475E710113507
+	for <linux-nvdimm@lists.01.org>; Tue, 10 Dec 2019 17:47:29 -0800 (PST)
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Dec 2019 17:44:07 -0800
+X-IronPort-AV: E=Sophos;i="5.69,301,1571727600";
+   d="scan'208";a="207504762"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 10 Dec 2019 17:44:07 -0800
+Subject: [ndctl PATCH 1/4] ndctl/build: Do not use `check-news` when `NEWS`
+ file is absent entirely.
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-nvdimm@lists.01.org
+Date: Tue, 10 Dec 2019 17:29:51 -0800
+Message-ID: <157602779173.1290519.2114609018855604805.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_068D_014D04BB.16F807A0"
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2900.5512
-X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.5512
-Message-ID-Hash: 7YSTMUSDKWBAHEBSW4DFMGTCYZQ6ABJK
-X-Message-ID-Hash: 7YSTMUSDKWBAHEBSW4DFMGTCYZQ6ABJK
-X-MailFrom: eepxc@hymyslncj.net
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Message-ID-Hash: PIL6SVUJSCPEQA3RAZ2643MSPR32O2IV
+X-Message-ID-Hash: PIL6SVUJSCPEQA3RAZ2643MSPR32O2IV
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Auke Kok <auke-jan.h.kok@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7YSTMUSDKWBAHEBSW4DFMGTCYZQ6ABJK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PIL6SVUJSCPEQA3RAZ2643MSPR32O2IV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_068D_014D04BB.16F807A0
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+From: Auke Kok <auke-jan.h.kok@intel.com>
+
+Kill 'check-news' in AM_INIT_AUTOMAKE.
+
+Signed-off-by: Auke Kok <auke-jan.h.kok@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ configure.ac |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4737cfff77f2..5ec8d2f87598 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -8,7 +8,6 @@ AC_INIT([ndctl],
+ AC_CONFIG_SRCDIR([ndctl/lib/libndctl.c])
+ AC_CONFIG_AUX_DIR([build-aux])
+ AM_INIT_AUTOMAKE([
+-	check-news
+ 	foreign
+ 	1.11
+ 	-Wall
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
-------=_NextPart_000_068D_014D04BB.16F807A0--
