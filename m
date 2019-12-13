@@ -2,164 +2,233 @@ Return-Path: <SRS0=jxku=2D=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A0C2C43603
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Dec 2019 20:58:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89C1AC43603
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Dec 2019 21:18:49 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8BF8A246B0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Dec 2019 20:58:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8BF8A246B0
+	by mail.kernel.org (Postfix) with ESMTPS id CCFF220663
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Dec 2019 21:18:48 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="Z37IwFua"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CCFF220663
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E311810113695;
-	Fri, 13 Dec 2019 09:23:16 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=sean.j.christopherson@intel.com; receiver=<UNKNOWN> 
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id A1C2410097F08;
+	Fri, 13 Dec 2019 10:16:49 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::244; helo=mail-oi1-x244.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 82CA010113692
-	for <linux-nvdimm@lists.01.org>; Fri, 13 Dec 2019 09:23:14 -0800 (PST)
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 13 Dec 2019 09:19:51 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.69,309,1571727600";
-   d="scan'208";a="414351942"
-Received: from sjchrist-coffee.jf.intel.com (HELO linux.intel.com) ([10.54.74.202])
-  by fmsmga005.fm.intel.com with ESMTP; 13 Dec 2019 09:19:50 -0800
-Date: Fri, 13 Dec 2019 09:19:50 -0800
-From: Sean Christopherson <sean.j.christopherson@intel.com>
-To: Liran Alon <liran.alon@oracle.com>
-Subject: Re: [PATCH v5 2/2] kvm: Use huge pages for DAX-backed files
-Message-ID: <20191213171950.GA31552@linux.intel.com>
-References: <20191212182238.46535-1-brho@google.com>
- <20191212182238.46535-3-brho@google.com>
- <06108004-1720-41EB-BCAB-BFA8FEBF4772@oracle.com>
- <ED482280-CB47-4AB6-9E7E-EEE7848E0F8B@oracle.com>
- <f8e948ff-6a2a-a6d6-9d8e-92b93003354a@google.com>
- <65FB6CC1-3AD2-4D6F-9481-500BD7037203@oracle.com>
+	by ml01.01.org (Postfix) with ESMTPS id 6DCDD10097F06
+	for <linux-nvdimm@lists.01.org>; Fri, 13 Dec 2019 10:16:47 -0800 (PST)
+Received: by mail-oi1-x244.google.com with SMTP id a124so1540168oii.13
+        for <linux-nvdimm@lists.01.org>; Fri, 13 Dec 2019 10:13:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=w1cqQGOHLxt9WnlMRPGWtbihZqq/TPUJMIUsmupkqQc=;
+        b=Z37IwFuamUtHj2UGycAzTlRIcOH/54EKCkDpaxP7Qp3MLa22kc/Usl9HnTrRe+y3QV
+         jmlzBiBcgKWz0AkFOWkABdgtG4hYJTy1l4UIT6yWZWyPw9dRV6jw8VgbCyBLWLKiWGEX
+         vM6Poow6sLwsq/ysxLVntPEkC62ExQjZKQkH6702/0HtxVqhTzpHmVb6lnPrLaCqpsEL
+         zgjoMLNDG4MeH71UbAFhH4TqD4PJMpQDpjWWrZvQirUHWydeRNzmnynyQH4+Xkyz7ims
+         L+1U3HsYxKKlN5qI/Ha+t6ww7rmUaJZ9hBlYoQDd0mpeknpPM1bHMMTuLHN+KJ75i+eW
+         EFZA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=w1cqQGOHLxt9WnlMRPGWtbihZqq/TPUJMIUsmupkqQc=;
+        b=Jm6D7XxuuyTikIhzlNjlIc6Q4ws8TfT8PwsoeFtAzpPqqLQDvjzQaHFbT1s7FEeq//
+         2EvpFMLPFrk2NEMNqHxL3io5XQ4r6rPnhCxRlHrL0AaMV+Ei/Z/sopZlNtZpds9SqTAK
+         NqAdOfLuou4CplIFl7K2g5AymeZwL05h0GlulNnvpPXRgAOcAIlnp7QXF+JitE8jC0RC
+         4E776OIsNGq6s4ScFLJnT87nwjFVq6O97Kd4JvmdVBUJ1jO98NcvnyB/dCEWuhawnMu1
+         cv8hTrPVo8jiDw1WnyeuOVnI2gQTSE98vQnAgelAm8vVOII+qCcM7QpsJLDz3V27w+Zi
+         DntQ==
+X-Gm-Message-State: APjAAAXc9oUAQco8XeqY1SQn1DT2AbXjkwajYdUTrG83j6Yn1Wfi2AE4
+	1KqZgv1+EY2+quRuT9h7BD7MTIepUG+znxRLCgYSzw==
+X-Google-Smtp-Source: APXvYqxZoubPWEAIaOvxFMZ9FPSoIReuNH6FLAi59sGYLvNzO+lWknFm2sHcIblMBoPXq/5GgUFCfD2MPq696t8Tmuc=
+X-Received: by 2002:aca:4c9:: with SMTP id 192mr7971550oie.105.1576260803989;
+ Fri, 13 Dec 2019 10:13:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <65FB6CC1-3AD2-4D6F-9481-500BD7037203@oracle.com>
-User-Agent: Mutt/1.5.24 (2015-08-30)
-Message-ID-Hash: GJEUD5G3J3YW4VSTNPLYAFPYSXZLJXZC
-X-Message-ID-Hash: GJEUD5G3J3YW4VSTNPLYAFPYSXZLJXZC
-X-MailFrom: sean.j.christopherson@intel.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Barret Rhoden <brho@google.com>, Paolo Bonzini <pbonzini@redhat.com>, David Hildenbrand <david@redhat.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-nvdimm@lists.01.org, x86@kernel.org, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, jason.zeng@intel.com
+References: <20191212182238.46535-1-brho@google.com> <20191212182238.46535-2-brho@google.com>
+ <20191213174702.GB31552@linux.intel.com>
+In-Reply-To: <20191213174702.GB31552@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Dec 2019 10:13:13 -0800
+Message-ID: <CAPcyv4ia3mp9d24fBiSXh2m_T4sLHnJHeg6VLw2AZmk8DAD7qQ@mail.gmail.com>
+Subject: Re: [PATCH v5 1/2] mm: make dev_pagemap_mapping_shift() externally visible
+To: Sean Christopherson <sean.j.christopherson@intel.com>
+Message-ID-Hash: 5UMXXXQIHS3X3QTZPTZE7E2N7PTQYXFY
+X-Message-ID-Hash: 5UMXXXQIHS3X3QTZPTZE7E2N7PTQYXFY
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Barret Rhoden <brho@google.com>, Paolo Bonzini <pbonzini@redhat.com>, David Hildenbrand <david@redhat.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, KVM list <kvm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zeng, Jason" <jason.zeng@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GJEUD5G3J3YW4VSTNPLYAFPYSXZLJXZC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5UMXXXQIHS3X3QTZPTZE7E2N7PTQYXFY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gRnJpLCBEZWMgMTMsIDIwMTkgYXQgMDM6MDc6MzFBTSArMDIwMCwgTGlyYW4gQWxvbiB3cm90
-ZToNCj4gDQo+ID4gT24gMTIgRGVjIDIwMTksIGF0IDIxOjU1LCBCYXJyZXQgUmhvZGVuIDxicmhv
-QGdvb2dsZS5jb20+IHdyb3RlOg0KPiA+IA0KPiA+Pj4+IE5vdGUgdGhhdCBLVk0gYWxyZWFkeSBm
-YXVsdGVkIGluIHRoZSBwYWdlIChvciBodWdlIHBhZ2UpIGluIHRoZSBob3N0J3MNCj4gPj4+PiBw
-YWdlIHRhYmxlLCBhbmQgd2UgaG9sZCB0aGUgS1ZNIG1tdSBzcGlubG9jay4gIFdlIGdyYWJiZWQg
-dGhhdCBsb2NrIGluDQo+ID4+Pj4ga3ZtX21tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX2Vu
-ZCwgYmVmb3JlIGNoZWNraW5nIHRoZSBtbXUgc2VxLg0KPiA+Pj4+IA0KPiA+Pj4+IFNpZ25lZC1v
-ZmYtYnk6IEJhcnJldCBSaG9kZW4gPGJyaG9AZ29vZ2xlLmNvbT4NCj4gPj4+IA0KPiA+Pj4gSSBk
-b27igJl0IHRoaW5rIHRoZSByaWdodCBwbGFjZSB0byBjaGFuZ2UgZm9yIHRoaXMgZnVuY3Rpb25h
-bGl0eSBpcw0KPiA+Pj4gdHJhbnNwYXJlbnRfaHVnZXBhZ2VfYWRqdXN0KCkgd2hpY2ggaXMgbWVh
-bnQgdG8gaGFuZGxlIFBGTnMgdGhhdCBhcmUNCj4gPj4+IG1hcHBlZCBhcyBwYXJ0IG9mIGEgdHJh
-bnNwYXJlbnQgaHVnZS1wYWdlLg0KPiA+Pj4gDQo+ID4+PiBGb3IgZXhhbXBsZSwgdGhpcyB3b3Vs
-ZCBwcmV2ZW50IG1hcHBpbmcgREFYLWJhY2tlZCBmaWxlIHBhZ2UgYXMgMUdCLiAgQXMNCj4gPj4+
-IHRyYW5zcGFyZW50X2h1Z2VwYWdlX2FkanVzdCgpIG9ubHkgaGFuZGxlcyB0aGUgY2FzZSAobGV2
-ZWwgPT0NCj4gPj4+IFBUX1BBR0VfVEFCTEVfTEVWRUwpLg0KDQpUZWFjaGluZyB0aHBfYWRqdXN0
-KCkgaG93IHRvIGhhbmRsZSAxR0Igd291bGRuJ3QgYmUgYSBiYWQgdGhpbmcuICBJdCdzDQp1bmxp
-a2VseSBUSFAgaXRzZWxmIHdpbGwgc3VwcG9ydCAxR0IgcGFnZXMgYW55IHRpbWUgc29vbiwgYnV0
-IGhhdmluZyB0aGUNCmxvZ2ljIHRoZXJlIHdvdWxkbid0IGh1cnQgYW55dGhpbmcuDQoNCj4gPj4+
-IEFzIHlvdSBhcmUgcGFyc2luZyB0aGUgcGFnZS10YWJsZXMgdG8gZGlzY292ZXIgdGhlIHBhZ2Ut
-c2l6ZSB0aGUgUEZOIGlzDQo+ID4+PiBtYXBwZWQgaW4sIEkgdGhpbmsgeW91IHNob3VsZCBpbnN0
-ZWFkIG1vZGlmeSBrdm1faG9zdF9wYWdlX3NpemUoKSB0bw0KPiA+Pj4gcGFyc2UgcGFnZS10YWJs
-ZXMgaW5zdGVhZCBvZiByZWx5IG9uIHZtYV9rZXJuZWxfcGFnZXNpemUoKSAoV2hpY2ggcmVsaWVz
-DQo+ID4+PiBvbiB2bWEtPnZtX29wcy0+cGFnZXNpemUoKSkgaW4gY2FzZSBvZiBpc196b25lX2Rl
-dmljZV9wYWdlKCkuDQo+ID4+Pg0KPiA+Pj4gVGhlIG1haW4gY29tcGxpY2F0aW9uIHRob3VnaCBv
-ZiBkb2luZyB0aGlzIGlzIHRoYXQgYXQgdGhpcyBwb2ludCB5b3UNCj4gPj4+IGRvbuKAmXQgeWV0
-IGhhdmUgdGhlIFBGTiB0aGF0IGlzIHJldHJpZXZlZCBieSB0cnlfYXN5bmNfcGYoKS4gU28gbWF5
-YmUgeW91DQo+ID4+PiBzaG91bGQgY29uc2lkZXIgbW9kaWZ5aW5nIHRoZSBvcmRlciBvZiBjYWxs
-cyBpbiB0ZHBfcGFnZV9mYXVsdCgpICYNCj4gPj4+IEZOQU1FKHBhZ2VfZmF1bHQpKCkuDQo+ID4+
-PiANCj4gPj4+IC1MaXJhbg0KPiA+PiBPciBhbHRlcm5hdGl2ZWx5IHdoZW4gdGhpbmtpbmcgYWJv
-dXQgaXQgbW9yZSwgbWF5YmUganVzdCByZW5hbWUNCj4gPj4gdHJhbnNwYXJlbnRfaHVnZXBhZ2Vf
-YWRqdXN0KCkgdG8gbm90IGJlIHNwZWNpZmljIHRvIFRIUCBhbmQgYmV0dGVyIGhhbmRsZQ0KPiA+
-PiB0aGUgY2FzZSBvZiBwYXJzaW5nIHBhZ2UtdGFibGVzIGNoYW5naW5nIG1hcHBpbmctbGV2ZWwg
-dG8gMUdCLg0KPiA+PiBUaGF0IGlzIHByb2JhYmx5IGVhc2llciBhbmQgbW9yZSBlbGVnYW50Lg0K
-DQpBZ3JlZWQuDQoNCj4gPiBJIGNhbiByZW5hbWUgaXQgdG8gaHVnZXBhZ2VfYWRqdXN0KCksIHNp
-bmNlIGl0J3Mgbm90IGp1c3QgVEhQIGFueW1vcmUuDQoNCk9yIG1heWJlIGFsbG93ZWRfaHVnZXBh
-Z2VfYWRqdXN0KCk/ICBUbyBwYWlyIHdpdGggZGlzYWxsb3dlZF9odWdlcGFnZV9hZGp1c3QoKSwN
-CndoaWNoIGFkanVzdHMgS1ZNJ3MgcGFnZSBzaXplIGluIHRoZSBvcHBvc2l0ZSBkaXJlY3Rpb24g
-dG8gYXZvaWQgdGhlIGlUTEINCm11bHRpLWhpdCBpc3N1ZS4NCg0KPiANCj4gU291bmRzIGdvb2Qu
-DQo+IA0KPiA+IA0KPiA+IEkgd2FzIGEgbGl0dGxlIGhlc2l0YW50IHRvIGNoYW5nZSB0aGUgdGhp
-cyB0byBoYW5kbGUgMSBHQiBwYWdlcyB3aXRoIHRoaXMNCj4gPiBwYXRjaHNldCBhdCBmaXJzdC4g
-IEkgZGlkbid0IHdhbnQgdG8gYnJlYWsgdGhlIG5vbi1EQVggY2FzZSBzdHVmZiBieSBkb2luZw0K
-PiA+IHNvLg0KPiANCj4gV2h5IHdvdWxkIGl0IGFmZmVjdCBub24tREFYIGNhc2U/DQo+IFlvdXIg
-cGF0Y2ggc2hvdWxkIGp1c3QgbWFrZSBodWdlcGFnZV9hZGp1c3QoKSB0byBwYXJzZSBwYWdlLXRh
-YmxlcyBvbmx5IGluIGNhc2UgaXNfem9uZV9kZXZpY2VfcGFnZSgpLiBPdGhlcndpc2UsIHBhZ2Ug
-dGFibGVzIHNob3VsZG7igJl0IGJlIHBhcnNlZC4NCj4gaS5lLiBUSFAgbWVyZ2VkIHBhZ2VzIHNo
-b3VsZCBzdGlsbCBiZSBkZXRlY3RlZCBieSBQYWdlVHJhbnNDb21wb3VuZE1hcCgpLg0KDQpJIHRo
-aW5rIHdoYXQgQmFycmV0IGlzIHNheWluZyBpcyB0aGF0IHRlYWNoaW5nIHRocF9hZGp1c3QoKSBo
-b3cgdG8gZG8gMWdiDQptYXBwaW5ncyB3b3VsZCBuYXR1cmFsbHkgYWZmZWN0IHRoZSBjb2RlIHBh
-dGggZm9yIFRIUCBwYWdlcy4gIEJ1dCBJIGFncmVlDQp0aGF0IGl0IHdvdWxkIGJlIHN1cGVyZmlj
-aWFsLg0KIA0KPiA+IFNwZWNpZmljYWxseSwgY2FuIGEgVEhQIHBhZ2UgYmUgMSBHQiwgYW5kIGlm
-IHNvLCBob3cgY2FuIHlvdSB0ZWxsPyAgSWYgeW91DQo+ID4gY2FuJ3QgdGVsbCBlYXNpbHksIEkg
-Y291bGQgd2FsayB0aGUgcGFnZSB0YWJsZSBmb3IgYWxsIGNhc2VzLCBpbnN0ZWFkIG9mDQo+ID4g
-anVzdCB6b25lX2RldmljZSgpLg0KDQpObywgVEhQIGRvZXNuJ3QgY3VycmVudGx5IHN1cHBvcnQg
-MWdiIHBhZ2VzLiAgRXhwbGljaXRpbmcgcmV0dXJuaW5nDQpQTURfU0laRSBvbiBQYWdlVHJhbnND
-b21wb3VuZE1hcCgpIHdvdWxkIGJlIGEgZ29vZCB0aGluZyBmcm9tIGEgcmVhZGFiaWxpdHkNCnBl
-cnNwZWN0aXZlLg0KDQo+IEkgcHJlZmVyIHRvIHdhbGsgcGFnZS10YWJsZXMgb25seSBmb3IgaXNf
-em9uZV9kZXZpY2VfcGFnZSgpLg0KPiANCj4gPiANCj4gPiBJJ2QgYWxzbyBoYXZlIHRvIGRyb3Ag
-dGhlICJsZXZlbCA9PSBQVF9QQUdFX1RBQkxFX0xFVkVMIiBjaGVjaywgSSB0aGluaywNCj4gPiB3
-aGljaCB3b3VsZCBvcGVuIHRoaXMgdXAgdG8gaHVnZXRsYmZzIHBhZ2VzIChiYXNlZCBvbiB0aGUg
-Y29tbWVudHMpLiAgSXMNCj4gPiB0aGVyZSBhbnkgcmVhc29uIHdoeSB0aGF0IHdvdWxkIGJlIGEg
-YmFkIGlkZWE/DQoNCk5vLCB0aGUgImxldmVsID09IFBUX1BBR0VfVEFCTEVfTEVWRUwiIGNoZWNr
-IGlzIHRvIGZpbHRlciBvdXQgdGhlIGNhc2UNCndoZXJlIEtWTSBpcyBhbHJlYWR5IHBsYW5uaW5n
-IG9uIHVzaW5nIGEgbGFyZ2UgcGFnZSwgZS5nLiB3aGVuIHRoZSBtZW1vcnkNCmlzIGJhY2tlZCBi
-eSBodWdldGxicy4NCg0KPiBLVk0gYWxyZWFkeSBzdXBwb3J0cyBtYXBwaW5nIDFHQiBodWdldGxi
-ZnMgcGFnZXMuIEFzIGxldmVsIGlzIHNldCB0bw0KPiBQVUQtbGV2ZWwgYnkNCj4gdGRwX3BhZ2Vf
-ZmF1bHQoKS0+bWFwcGluZ19sZXZlbCgpLT5ob3N0X21hcHBpbmdfbGV2ZWwoKS0+a3ZtX2hvc3Rf
-cGFnZV9zaXplKCktPnZtYV9rZXJuZWxfcGFnZXNpemUoKS4NCj4gQXMgVk1BIHdoaWNoIGlzIG1t
-YXAgb2YgaHVnZXRsYmZzIHNldHMgdm1hLT52bV9vcHMgdG8gaHVnZXRsYl92bV9vcHMoKSB3aGVy
-ZQ0KPiBodWdldGxiX3ZtX29wX3BhZ2VzaXplKCkgd2lsbCByZXR1cm4gYXBwcm9wcmlhdGUgcGFn
-ZS1zaXplLg0KPiANCj4gU3BlY2lmaWNhbGx5LCBJIGRvbuKAmXQgdGhpbmsgVEhQIGV2ZXIgbWVy
-Z2VzIHNtYWxsIHBhZ2VzIHRvIDFHQiBwYWdlcy4gSSB0aGluaw0KPiB0aGlzIGlzIHdoeSB0cmFu
-c3BhcmVudF9odWdlcGFnZV9hZGp1c3QoKSBjaGVja3MgUGFnZVRyYW5zQ29tcG91bmRNYXAoKSBv
-bmx5DQo+IGluIGNhc2UgbGV2ZWwgPT0gUFRfUEFHRV9UQUJMRV9MRVZFTC4gSSB0aGluayB5b3Ug
-c2hvdWxkIGtlZXAgdGhpcyBjaGVjayBpbg0KPiB0aGUgY2FzZSBvZiAhaXNfem9uZV9kZXZpY2Vf
-cGFnZSgpLg0KDQpJIHdvdWxkIGFkZCAxZ2Igc3VwcG9ydCBmb3IgREFYIGFzIGEgdGhpcmQgcGF0
-Y2ggaW4gdGhpcyBzZXJpZXMuICBUbyBwYXZlDQp0aGUgd2F5IGluIHBhdGNoIDIvMiwgY2hhbmdl
-IGl0IHRvIHJlcGxhY2UgImJvb2wgcGZuX2lzX2h1Z2VfbWFwcGVkKCkiIHdpdGgNCiJpbnQgaG9z
-dF9wZm5fbWFwcGluZ19sZXZlbCgpIiwgYW5kIG1heWJlIGFsc28gcmVuYW1pbmcgaG9zdF9tYXBw
-aW5nX2xldmVsKCkNCnRvIGhvc3Rfdm1hX21hcHBpbmdfbGV2ZWwoKSB0byBhdm9pZCBjb25mdXNp
-b24uDQoNClRoZW4gYWxsb3dlZF9odWdlcGFnZV9hZGp1c3QoKSB3b3VsZCBsb29rIHNvbWV0aGlu
-ZyBsaWtlOg0KDQpzdGF0aWMgdm9pZCBhbGxvd2VkX2h1Z2VwYWdlX2FkanVzdChzdHJ1Y3Qga3Zt
-X3ZjcHUgKnZjcHUsIGdmbl90IGdmbiwNCgkJCQkgICAga3ZtX3Bmbl90ICpwZm5wLCBpbnQgKmxl
-dmVscCwgaW50IG1heF9sZXZlbCkNCnsNCglrdm1fcGZuX3QgcGZuID0gKnBmbnA7DQoJaW50IGxl
-dmVsID0gKmxldmVscDsJDQoJdW5zaWduZWQgbG9uZyBtYXNrOw0KDQoJaWYgKGlzX2Vycm9yX25v
-c2xvdF9wZm4ocGZuKSB8fCAha3ZtX2lzX3Jlc2VydmVkX3BmbihwZm4pIHx8DQoJICAgIGxldmVs
-ID09IFBUX1BBR0VfVEFCTEVfTEVWRUwpDQoJCXJldHVybjsNCg0KCS8qDQoJICogbW11X25vdGlm
-aWVyX3JldHJ5KCkgd2FzIHN1Y2Nlc3NmdWwgYW5kIG1tdV9sb2NrIGlzIGhlbGQsIHNvDQoJICog
-dGhlIHBtZC9wdWQgY2FuJ3QgYmUgc3BsaXQgZnJvbSB1bmRlciB1cy4NCgkgKi8NCglsZXZlbCA9
-IGhvc3RfcGZuX21hcHBpbmdfbGV2ZWwodmNwdS0+a3ZtLCBnZm4sIHBmbik7DQoNCgkqbGV2ZWxw
-ID0gbGV2ZWwgPSBtaW4obGV2ZWwsIG1heF9sZXZlbCk7DQoJbWFzayA9IEtWTV9QQUdFU19QRVJf
-SFBBR0UobGV2ZWwpIC0gMTsNCglWTV9CVUdfT04oKGdmbiAmIG1hc2spICE9IChwZm4gJiBtYXNr
-KSk7DQoJKnBmbnAgPSBwZm4gJiB+bWFzazsNCn0KX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1u
-dmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgt
-bnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+On Fri, Dec 13, 2019 at 9:47 AM Sean Christopherson
+<sean.j.christopherson@intel.com> wrote:
+>
+> On Thu, Dec 12, 2019 at 01:22:37PM -0500, Barret Rhoden wrote:
+> > KVM has a use case for determining the size of a dax mapping.
+> >
+> > The KVM code has easy access to the address and the mm, and
+> > dev_pagemap_mapping_shift() needs only those parameters.  It was
+> > deriving them from page and vma.  This commit changes those parameters
+> > from (page, vma) to (address, mm).
+> >
+> > Signed-off-by: Barret Rhoden <brho@google.com>
+> > Reviewed-by: David Hildenbrand <david@redhat.com>
+> > Acked-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  include/linux/mm.h  |  3 +++
+> >  mm/memory-failure.c | 38 +++-----------------------------------
+> >  mm/util.c           | 34 ++++++++++++++++++++++++++++++++++
+> >  3 files changed, 40 insertions(+), 35 deletions(-)
+> >
+> > diff --git a/include/linux/mm.h b/include/linux/mm.h
+> > index a2adf95b3f9c..bfd1882dd5c6 100644
+> > --- a/include/linux/mm.h
+> > +++ b/include/linux/mm.h
+> > @@ -1013,6 +1013,9 @@ static inline bool is_pci_p2pdma_page(const struct page *page)
+> >  #define page_ref_zero_or_close_to_overflow(page) \
+> >       ((unsigned int) page_ref_count(page) + 127u <= 127u)
+> >
+> > +unsigned long dev_pagemap_mapping_shift(unsigned long address,
+> > +                                     struct mm_struct *mm);
+> > +
+> >  static inline void get_page(struct page *page)
+> >  {
+> >       page = compound_head(page);
+> > diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+> > index 3151c87dff73..bafa464c8290 100644
+> > --- a/mm/memory-failure.c
+> > +++ b/mm/memory-failure.c
+> > @@ -261,40 +261,6 @@ void shake_page(struct page *p, int access)
+> >  }
+> >  EXPORT_SYMBOL_GPL(shake_page);
+> >
+> > -static unsigned long dev_pagemap_mapping_shift(struct page *page,
+> > -             struct vm_area_struct *vma)
+> > -{
+> > -     unsigned long address = vma_address(page, vma);
+> > -     pgd_t *pgd;
+> > -     p4d_t *p4d;
+> > -     pud_t *pud;
+> > -     pmd_t *pmd;
+> > -     pte_t *pte;
+> > -
+> > -     pgd = pgd_offset(vma->vm_mm, address);
+> > -     if (!pgd_present(*pgd))
+> > -             return 0;
+> > -     p4d = p4d_offset(pgd, address);
+> > -     if (!p4d_present(*p4d))
+> > -             return 0;
+> > -     pud = pud_offset(p4d, address);
+> > -     if (!pud_present(*pud))
+> > -             return 0;
+> > -     if (pud_devmap(*pud))
+> > -             return PUD_SHIFT;
+> > -     pmd = pmd_offset(pud, address);
+> > -     if (!pmd_present(*pmd))
+> > -             return 0;
+> > -     if (pmd_devmap(*pmd))
+> > -             return PMD_SHIFT;
+> > -     pte = pte_offset_map(pmd, address);
+> > -     if (!pte_present(*pte))
+> > -             return 0;
+> > -     if (pte_devmap(*pte))
+> > -             return PAGE_SHIFT;
+> > -     return 0;
+> > -}
+> > -
+> >  /*
+> >   * Failure handling: if we can't find or can't kill a process there's
+> >   * not much we can do.       We just print a message and ignore otherwise.
+> > @@ -324,7 +290,9 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+> >       }
+> >       tk->addr = page_address_in_vma(p, vma);
+> >       if (is_zone_device_page(p))
+> > -             tk->size_shift = dev_pagemap_mapping_shift(p, vma);
+> > +             tk->size_shift =
+> > +                     dev_pagemap_mapping_shift(vma_address(page, vma),
+> > +                                               vma->vm_mm);
+> >       else
+> >               tk->size_shift = compound_order(compound_head(p)) + PAGE_SHIFT;
+> >
+> > diff --git a/mm/util.c b/mm/util.c
+> > index 3ad6db9a722e..59984e6b40ab 100644
+> > --- a/mm/util.c
+> > +++ b/mm/util.c
+> > @@ -901,3 +901,37 @@ int memcmp_pages(struct page *page1, struct page *page2)
+> >       kunmap_atomic(addr1);
+> >       return ret;
+> >  }
+> > +
+> > +unsigned long dev_pagemap_mapping_shift(unsigned long address,
+> > +                                     struct mm_struct *mm)
+> > +{
+> > +     pgd_t *pgd;
+> > +     p4d_t *p4d;
+> > +     pud_t *pud;
+> > +     pmd_t *pmd;
+> > +     pte_t *pte;
+> > +
+> > +     pgd = pgd_offset(mm, address);
+> > +     if (!pgd_present(*pgd))
+> > +             return 0;
+> > +     p4d = p4d_offset(pgd, address);
+> > +     if (!p4d_present(*p4d))
+> > +             return 0;
+> > +     pud = pud_offset(p4d, address);
+> > +     if (!pud_present(*pud))
+> > +             return 0;
+> > +     if (pud_devmap(*pud))
+> > +             return PUD_SHIFT;
+> > +     pmd = pmd_offset(pud, address);
+> > +     if (!pmd_present(*pmd))
+> > +             return 0;
+> > +     if (pmd_devmap(*pmd))
+> > +             return PMD_SHIFT;
+> > +     pte = pte_offset_map(pmd, address);
+> > +     if (!pte_present(*pte))
+> > +             return 0;
+> > +     if (pte_devmap(*pte))
+> > +             return PAGE_SHIFT;
+> > +     return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(dev_pagemap_mapping_shift);
+>
+> This is basically a rehash of lookup_address_in_pgd(), and doesn't provide
+> exactly what KVM needs.  E.g. KVM works with levels instead of shifts, and
+> it would be nice to provide the pte so that KVM can sanity check that the
+> pfn from this walk matches the pfn it plans on mapping.
+>
+> Instead of exporting dev_pagemap_mapping_shift(), what about relacing it
+> with a patch to introduce lookup_address_mm() and export that?
+>
+> dev_pagemap_mapping_shift() could then wrap the new helper (if you want),
+> and KVM could do lookup_address_mm() for querying the size of ZONE_DEVICE
+> pages.
+
+All of the above sounds great to me. Should have looked that much
+harder when implementing dev_pagemap_mapping_shift() originally.
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
