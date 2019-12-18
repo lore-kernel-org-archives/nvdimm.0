@@ -1,94 +1,82 @@
 Return-Path: <SRS0=X/oK=2I=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.2 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EE91C43603
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Dec 2019 16:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3694C43603
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Dec 2019 18:28:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 54A78218AC
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Dec 2019 16:16:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 8BD032465E
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Dec 2019 18:28:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="tRnFOYF/"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 54A78218AC
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=bestmaildelivery.life header.i=sales@bestmaildelivery.life header.b="vH+WtjNL"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8BD032465E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=bestmaildelivery.life
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 466FE10113663;
-	Wed, 18 Dec 2019 08:19:47 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::343; helo=mail-ot1-x343.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 818B310113662;
+	Wed, 18 Dec 2019 10:32:03 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=112.137.166.158; helo=bestmaildelivery.life; envelope-from=sales@bestmaildelivery.life; receiver=<UNKNOWN> 
+Received: from bestmaildelivery.life (bestmaildelivery.life [112.137.166.158])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9CEAD10113636
-	for <linux-nvdimm@lists.01.org>; Wed, 18 Dec 2019 08:19:45 -0800 (PST)
-Received: by mail-ot1-x343.google.com with SMTP id h9so548511otj.11
-        for <linux-nvdimm@lists.01.org>; Wed, 18 Dec 2019 08:16:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=bQp6lLSFsS8pqkcDpe8OVwPL/u8pI2v8s9QRkMC8/LY=;
-        b=tRnFOYF/epm7tidSQIRXBdeBxXIa4BJo1VRQsmwhGTjWmPRErT92f/jiOjkTgqFwgh
-         A84Btf6w+aSgwBxMjQw7gZkdpii6YTSJbbOxdmwQm4AB3/K7Sh8Oou6UKzSR7rqOEMV4
-         +EEwK1HiVoS46TOpj237MjnZTyDq6RTZQkWs/4mGPaLmiOFC61x/cITw4HfBRLMxh6GJ
-         lIFcaFfkq4zxkzYzXbR2Og5i0Tzhny7wjqPSQbA6BNbgEFHpA+6ytgfc6K28KamWUNlG
-         8r4/Ar8pFOHJUiKNqv3J+ed4/+hqJcY/u5uz0UDHGqk8bjzYzSEhWRteEbWH4d6hs4RE
-         /bCw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=bQp6lLSFsS8pqkcDpe8OVwPL/u8pI2v8s9QRkMC8/LY=;
-        b=Cm7Nw/CRSre5lIOLwKk801QkJVjHqEwJgZcpLxA37PfZKsW1W/AZb/ssEo0pbWOLTT
-         G1F+0vTjvMTza7dWSRyAEbwEF9WWGr8q9GXfMVAq3t28ZIhe+zYGXSCUKiImlP4ru9bB
-         b5zrUrVqq4vHTB7FM2Tm91bG8eddX9RrWvx228tSeX05/FXDZePj47ZF9zuYW1l+QHNl
-         mHghvN+rGTi9DdPSxtOThcA4AQ87lhE3Dp2RMkJFnfW6QCgGG1PUaz+pbvgpE3O0/OKY
-         F9a3jmgspW5c87sMx+eNlVTzSGW0iFdr3OY+y0lPoQ0uf6nEmbTg+Me+wCBqeo9ZX9vF
-         ZSLw==
-X-Gm-Message-State: APjAAAV/VynV1DJyNs1/VPWaz69HKU4c/anhrCL2AOxkB1Wo3s4Jsg+8
-	ha4cN/c4JK+vjHI+KlLQ9maEN9JQgdUmbTacZvv3aw==
-X-Google-Smtp-Source: APXvYqwEg3IS2Fr0jEUrhRTS22qd4QsBxlvGobOYtVgWk5VzqbAIWO93VIpuu/k8Mp/blvn1XgfMxt3zEIiWwBtMTzI=
-X-Received: by 2002:a9d:4789:: with SMTP id b9mr3233923otf.247.1576685781765;
- Wed, 18 Dec 2019 08:16:21 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id D4C1C10113600
+	for <linux-nvdimm@lists.01.org>; Wed, 18 Dec 2019 10:32:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=default; d=bestmaildelivery.life;
+ h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; i=sales@bestmaildelivery.life;
+ bh=b/4zymXB4zKdhPeIgSKiG3HTDfw=;
+ b=vH+WtjNLvUyVwjB1c+unUQpagZpY5ylsPRAq56znvTD2n2B5rtHwjoRoFdj9pRMHYH+4i0HFerdL
+   i7XBLrXP1KSiwuAs6veaub5a+WzStPt90x+79qUeYgJ1LcfJv4Y753r4pWYqCPCTSvie2HssNvj/
+   dSLO0YvBzfdd0ey9TvQ=
+DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=default; d=bestmaildelivery.life;
+ b=B6UGQTv/UrIzeABkCYOAJ7tz8QJ0rbG6oaL5/Cl0Nip+LdHakTCcDtlIEMlLXpy+WqgSjESX+8ZQ
+   YRxdZrpd/dofEEA40QNPzPXTCWWr+VsmT96SxNal3jNgyyeM4SXG7n9ClmwMO7HQitGVMKjAuRtR
+   6GjfBVgG5p7T0HPF1mQ=;
+From: =?utf-8?B?57O757uf566h55CG5ZGY?= <sales@bestmaildelivery.life>
+To: linux-nvdimm <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?44CQbGludXgtbnZkaW1tQGxpc3RzLg==?=
+	=?utf-8?B?MDEub3Jn44CR6YKu566x5bCG5ruh77yM6K+35Y+K5pe25riF55CG6YKu566x?=
+Date: Wed, 18 Dec 2019 10:28:24 -0800
+Message-ID: <003355b49cb6$6724fb2c$1bb222e7$@rsmb>
 MIME-Version: 1.0
-References: <20191218025145.26741-1-yi.zhang@redhat.com>
-In-Reply-To: <20191218025145.26741-1-yi.zhang@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 18 Dec 2019 08:16:10 -0800
-Message-ID: <CAPcyv4h6XgTB7Dv_PAVSjU+0cEw5tsVf3BUYGCPfxRudEKamrw@mail.gmail.com>
-Subject: Re: [PATCH ndctl] ndctl, test: add bus-id parameter for
- start-scrub/wait-scrub operation
-To: Yi Zhang <yi.zhang@redhat.com>
-Message-ID-Hash: IJH5CSPFDOMUI5R2KZNQ5DBROSYGT2ZK
-X-Message-ID-Hash: IJH5CSPFDOMUI5R2KZNQ5DBROSYGT2ZK
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>
+X-Mailer: Microsoft Outlook 16.0
+Message-ID-Hash: OSW4OZNHNO3WZGQOISWTUMJDREGHKTUJ
+X-Message-ID-Hash: OSW4OZNHNO3WZGQOISWTUMJDREGHKTUJ
+X-MailFrom: sales@bestmaildelivery.life
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IJH5CSPFDOMUI5R2KZNQ5DBROSYGT2ZK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OSW4OZNHNO3WZGQOISWTUMJDREGHKTUJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Tue, Dec 17, 2019 at 11:18 PM Yi Zhang <yi.zhang@redhat.com> wrote:
->
-> On some NVDIMM servers, scrub operation will take long time to be finished
-> as it start on all nvdimm buses in the system, add the bus-id parameter to
-> do the scrub on the NFIT_TEST_BUS0
-
-Looks good, applied.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+ICAgDQrmuKnppqjmj5DnpLrvvJrmgqjnmoTlhY3otLnkvIHkuJrnlLXlrZDpgq7ku7Yg5bey6KKr
+5YiX5Li65Y+W5raIDQoNCuWwiuaVrOeahOeUqOaIt++8mg0KDQogICAgICAgICAg5qC55o2u44CK
+6Z2e57uP6JCl5oCn5LqS6IGU572R5L+h5oGv5pyN5Yqh5aSH5qGI566h55CG5Yqe5rOV44CL56ys
+5Y2B5YWr5p2h5rOV6KeE77yM5oKo55qE5Z+f5ZCN5bCa5pyq6L+b6KGM5aSH5qGI77yM5pqC5pe2
+5peg5rOV6K6/6Zeu44CC6K+35Y+C6ICDIOW3peS/oemDqOebuOWFs+Wkh+ahiOa1geeoiyDov5vo
+oYznm7jlhbPmk43kvZzjgIIgDQoNCua4qemmqOaPkOekuu+8mg0KDQogICAgICAgICAg5LiA44CB
+5q2k6aG16Z2i5piv5o+Q56S66aG16Z2i77yM55So5LqO6K6/6Zeu5Y2z5bCG5Yiw5pyf55qE5Z+f
+5oiW55S15a2Q6YKu5Lu25Zyw5Z2A77yM6Iul5oKo5pyJ5YW25LuW5Y6f5Zug6ZyA57un57ut5L2/
+55So5q2k6YKu566x6KaB5LmIIOWmguaenOaCqOayoeacieeUs+ivt+atpOWPlua2iO+8jOivt+aM
+ieeFp+S7peS4i+atpemqpOaBouWkjeaCqOeahOW4kOaIt+mCrueuseeUqOaIt+eZu+W9lemhteeZ
+u+W9leOAgiANCg0KICAgICAgICAgIOS6jOOAgeWmguaenOaCqOW3sue7j+aYr+mCrueuseeUqOaI
+t+W5tuS4lOaaguaXtuaXoOazleiusOW9le+8jOaIluiAheaCqOW4jOacm+mAgOiuouWwhuadpeea
+hOmAmuefpeaIluaPkOmGkuWPlua2iOS7peWQjueahOmAmuefpeeZu+W9leOAgiANCg0K5oSf6LCi
+5oKo55qE6YWN5ZCI77yBDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4w
+MS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVA
+bGlzdHMuMDEub3JnCg==
