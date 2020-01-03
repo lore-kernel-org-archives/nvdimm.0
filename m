@@ -1,156 +1,249 @@
-Return-Path: <SRS0=L4zF=2X=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=02oh=2Y=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.2 required=3.0 tests=DATE_IN_FUTURE_06_12,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,PDS_BTC_ID,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDE32C2D0C2
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  2 Jan 2020 19:31:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 216BCC2D0C2
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  3 Jan 2020 14:12:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A362E2469E
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  2 Jan 2020 19:31:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A362E2469E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=kirosa.jp
+	by mail.kernel.org (Postfix) with ESMTPS id DDCC121835
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  3 Jan 2020 14:12:51 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="fAU1oio5"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DDCC121835
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BBE9010097DEE;
-	Thu,  2 Jan 2020 11:34:29 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=123.136.117.20; helo=[123.136.117.20]; envelope-from=k-sato@kirosa.jp; receiver=<UNKNOWN> 
-Received: from [123.136.117.20] (unknown [123.136.117.20])
-	by ml01.01.org (Postfix) with ESMTP id AC13F10097DEC
-	for <linux-nvdimm@lists.01.org>; Thu,  2 Jan 2020 11:34:25 -0800 (PST)
-From: <k-sato@kirosa.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?SMOtZ2ggZMOlxYhnxJvFmS4gWcO4dcWZIMOlY2PDuHXFiHQgd8OlcyDDpXR0w6Vja8SbZC4=?=
-Date: 3 Jan 2020 10:24:05 +0700
-Message-ID: <002101d5c1e6$04c48155$3ca9e899$@kirosa.jp>
+	by ml01.01.org (Postfix) with ESMTP id 1A25310097F36;
+	Fri,  3 Jan 2020 06:16:11 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id DD28510113693
+	for <linux-nvdimm@lists.01.org>; Fri,  3 Jan 2020 06:16:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1578060767;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CGMg0pHtt4SVc4uhGk+7pIjVLdzZuIJr8uS5jcpc3MY=;
+	b=fAU1oio51SZavWUAwL8vE4GnstVQfJ++F+/ENj3Z0CgdKacEX0iI5MPIcCOZftqUgkY+Qf
+	GTW56ah/0qpy6kthvPTTYE1HEAGNUnQd059aBWcpcF0QemZfxBupy/3LyWVLKPOk1jcW88
+	Zrydrh7ZZzmnh5g199a+DlI2ORxxFzM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-385--FlagLmkMOm7LZJqTa9NNQ-1; Fri, 03 Jan 2020 09:12:43 -0500
+X-MC-Unique: -FlagLmkMOm7LZJqTa9NNQ-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 29D92801A0D;
+	Fri,  3 Jan 2020 14:12:42 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 11FFE386;
+	Fri,  3 Jan 2020 14:12:36 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 9A02E2202E9; Fri,  3 Jan 2020 09:12:35 -0500 (EST)
+Date: Fri, 3 Jan 2020 09:12:35 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 02/19] dax: Pass dax_dev to dax_writeback_mapping_range()
+Message-ID: <20200103141235.GA13350@redhat.com>
+References: <20190821175720.25901-1-vgoyal@redhat.com>
+ <20190821175720.25901-3-vgoyal@redhat.com>
+ <20190826115316.GB21051@infradead.org>
+ <20190826203326.GB13860@redhat.com>
+ <20190826205829.GC13860@redhat.com>
 MIME-Version: 1.0
-X-Mailer: Microsoft Office Outlook 11
-Thread-Index: Acqgo9x9q3p24n4fqgo9x9q3p24n4f==
-X-MimeOLE: Produced By Microsoft MimeOLE V6.1.7601.17514
-Message-ID-Hash: 6L5C2TYPJLMWUN2SH5BUPHZF7XYRO62M
-X-Message-ID-Hash: 6L5C2TYPJLMWUN2SH5BUPHZF7XYRO62M
-X-MailFrom: k-sato@kirosa.jp
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+Content-Disposition: inline
+In-Reply-To: <20190826205829.GC13860@redhat.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Message-ID-Hash: MM2NLFCQQ3HUDL3ZWH6EGXXKH4C2TMBP
+X-Message-ID-Hash: MM2NLFCQQ3HUDL3ZWH6EGXXKH4C2TMBP
+X-MailFrom: vgoyal@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, virtio-fs@redhat.com, miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, Christoph Hellwig <hch@infradead.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6L5C2TYPJLMWUN2SH5BUPHZF7XYRO62M/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MM2NLFCQQ3HUDL3ZWH6EGXXKH4C2TMBP/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: multipart/mixed; boundary="===============0642606631906593795=="
-
-This is a multi-part message in MIME format.
-
---===============0642606631906593795==
-Content-Type: text/plain;
-	charset="cp-850"
-Content-Transfer-Encoding: quoted-printable
-
-H&#283;ll&#248;!
-
-&#205; &#229;m &#229; h&#229;cker wh&#248; h&#229;s &#229;ccess t&#248; =
-y&#248;&#252;r &#248;p&#283;r&#229;t&#237;ng syst&#283;m.
-&#205; &#229;ls&#248; h&#229;v&#283; full &#229;cc&#283;ss t&#248; =
-y&#248;&#252;r &#229;cc&#248;&#252;&#328;t.
-
-&#205;'v&#283; b&#283;&#283;n w&#229;tch&#237;ng y&#248;&#252; f&#248;r =
-&#229; f&#283;w m&#248;nths n&#248;w.
-Th&#283; f&#229;ct &#237;s th&#229;t y&#248;&#252; w&#283;r&#283; =
-&#237;nf&#283;ct&#283;d w&#237;th m&#229;lw&#229;r&#283; =
-thr&#248;&#252;gh &#229;n &#229;d&#252;lt s&#237;t&#283; th&#229;t =
-y&#248;&#252; v&#237;s&#237;t&#283;d.
-
-&#205;f y&#248;&#252; &#229;r&#283; n&#248;t =
-f&#229;m&#237;l&#237;&#229;r w&#237;th th&#237;s, &#205; w&#237;ll =
-&#283;xpl&#229;&#237;n.
-Tr&#248;j&#229;n V&#237;r&#252;s g&#237;v&#283;s m&#283; f&#252;ll =
-&#229;cc&#283;ss &#229;nd c&#248;ntr&#248;l &#248;v&#283;r &#229; =
-c&#248;mp&#252;t&#283;r &#248;r &#248;th&#283;r d&#283;v&#237;c&#283;.
-Th&#237;s m&#283;&#229;ns th&#229;t &#205; c&#229;n s&#283;&#283; =
-&#283;v&#283;ryth&#237;ng &#248;n y&#248;&#252;r scr&#283;&#283;n, =
-t&#252;rn &#248;n th&#283; c&#229;m&#283;r&#229; &#229;nd =
-m&#237;cr&#248;ph&#248;n&#283;, b&#252;t y&#248;&#252; d&#248; n&#248;t =
-kn&#248;w &#229;b&#248;&#252;t &#237;t.
-
-&#205; &#229;ls&#248; h&#229;v&#283; &#229;cc&#283;ss t&#248; &#229;ll =
-y&#248;&#252;r c&#248;nt&#229;cts &#229;nd &#229;ll y&#248;&#252;r =
-c&#248;rr&#283;sp&#248;nd&#283;nc&#283;.
-
-Why y&#248;&#252;r &#229;nt&#237;v&#237;r&#252;s d&#237;d n&#248;t =
-det&#283;ct m&#229;lw&#229;r&#283;?
-&#197;nsw&#283;r: My m&#229;lw&#229;r&#283; &#252;s&#283;s th&#283; =
-dr&#237;v&#283;r, &#205; &#252;pd&#229;t&#283; &#237;ts =
-s&#237;gn&#229;t&#252;r&#283;s &#283;v&#283;ry 4 h&#248;&#252;rs s&#248; =
-th&#229;t y&#248;&#252;r &#229;nt&#237;v&#237;r&#252;s &#237;s =
-s&#237;l&#283;nt.
-
-&#205; m&#229;d&#283; &#229; v&#237;d&#283;&#248; sh&#248;w&#237;ng =
-h&#248;w y&#248;&#252; s&#229;t&#237;sfy y&#248;&#252;rs&#283;lf &#237;n =
-th&#283; l&#283;ft h&#229;lf &#248;f th&#283; scr&#283;&#283;n, &#229;nd =
-&#237;n th&#283; r&#237;ght h&#229;lf y&#248;&#252; s&#283;e th&#283; =
-v&#237;d&#283;&#248; th&#229;t y&#248;&#252; w&#229;tch&#283;d. =
-W&#237;th &#248;n&#283; cl&#237;ck &#248;f th&#283; =
-m&#248;&#252;s&#283;,
-&#205; c&#229;n s&#283;nd th&#237;s v&#237;d&#283;&#248; t&#248; =
-&#229;ll y&#248;&#252;r &#283;m&#229;&#237;ls &#229;nd =
-c&#248;nt&#229;cts &#248;n s&#248;c&#237;&#229;l n&#283;tw&#248;rks. =
-&#205; c&#229;n &#229;ls&#248; p&#248;st &#229;cc&#283;ss t&#248; =
-&#229;ll y&#248;&#252;r &#283;-m&#229;&#237;l =
-c&#248;rr&#283;sp&#248;nd&#283;nc&#283; &#229;nd =
-m&#283;ss&#283;ng&#283;rs th&#229;t y&#248;&#252; &#252;s&#283;.
-
-&#205;f y&#248;&#252; w&#229;nt t&#248; pr&#283;v&#283;nt th&#237;s, =
-tr&#229;nsf&#283;r th&#283; &#229;m&#248;&#252;nt &#248;f $1500(USD) =
-t&#248; my b&#237;tc&#248;&#237;n &#229;ddr&#283;ss (&#237;f =
-y&#248;&#252; d&#248; n&#248;t kn&#248;w h&#248;w t&#248; d&#248; =
-th&#237;s, wr&#237;t&#283; t&#248; G&#248;&#248;gl&#283;: 'B&#252;y =
-B&#237;tc&#248;&#237;n').
-
-My b&#237;tc&#248;&#237;n &#229;ddr&#283;ss (B&#356;C W&#229;ll&#283;t) =
-&#237;s: 19A5rdrxb4MREtyGWo944uRoNDBxBPNNG8
-
-&#197;ft&#283;r r&#283;c&#283;&#237;v&#237;ng th&#283; =
-p&#229;ym&#283;nt, &#205; w&#237;ll d&#283;l&#283;t&#283; th&#283; =
-v&#237;d&#283;&#248; &#229;nd y&#248;&#252; w&#237;ll n&#283;v&#283;r =
-h&#283;&#229;r m&#283; &#229;g&#229;&#237;n.
-&#205; g&#237;v&#283; y&#248;&#252; 48 h&#248;&#252;rs t&#248; p&#229;y.
-&#205; h&#229;v&#283; &#229; n&#248;t&#237;c&#283; =
-r&#283;&#229;d&#237;ng th&#237;s l&#283;tt&#283;r, &#229;nd th&#283; =
-t&#237;m&#283;r w&#237;ll w&#248;rk wh&#283;n y&#248;&#252; =
-s&#283;&#283; th&#237;s l&#283;tt&#283;r.
-F&#237;l&#237;ng &#229; c&#248;mpl&#229;&#237;nt =
-s&#248;m&#283;wh&#283;r&#283; d&#248;&#283;s n&#248;t m&#229;k&#283; =
-s&#283;ns&#283; b&#283;c&#229;&#252;s&#283; th&#237;s =
-&#283;m&#229;&#237;l c&#229;nn&#248;t b&#283; tr&#229;ck&#283;d =
-l&#237;k&#283; my b&#237;tc&#248;&#237;n &#229;ddr&#283;ss.
-&#205; d&#248; n&#248;t m&#229;k&#283; &#229;ny m&#237;st&#229;k&#283;s.
-
-&#205;f &#205; f&#237;nd th&#229;t y&#248;&#252; h&#229;v&#283; =
-sh&#229;r&#283;d th&#237;s m&#283;ss&#229;g&#283; w&#237;th =
-s&#248;m&#283;&#248;n&#283; &#283;lse, th&#283; v&#237;d&#283;&#248; =
-w&#237;ll b&#283; &#237;mm&#283;d&#237;&#229;t&#283;ly =
-d&#237;str&#237;b&#252;t&#283;d.
-
-B&#283;st r&#283;g&#229;rds!
---===============0642606631906593795==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+On Mon, Aug 26, 2019 at 04:58:29PM -0400, Vivek Goyal wrote:
+> On Mon, Aug 26, 2019 at 04:33:26PM -0400, Vivek Goyal wrote:
+> > On Mon, Aug 26, 2019 at 04:53:16AM -0700, Christoph Hellwig wrote:
+> > > On Wed, Aug 21, 2019 at 01:57:03PM -0400, Vivek Goyal wrote:
+> > > > Right now dax_writeback_mapping_range() is passed a bdev and dax_dev
+> > > > is searched from that bdev name.
+> > > > 
+> > > > virtio-fs does not have a bdev. So pass in dax_dev also to
+> > > > dax_writeback_mapping_range(). If dax_dev is passed in, bdev is not
+> > > > used otherwise dax_dev is searched using bdev.
+> > > 
+> > > Please just pass in only the dax_device and get rid of the block device.
+> > > The callers should have one at hand easily, e.g. for XFS just call
+> > > xfs_find_daxdev_for_inode instead of xfs_find_bdev_for_inode.
+> > 
+> > Sure. Here is the updated patch.
+> > 
+> > This patch can probably go upstream independently. If you are fine with
+> > the patch, I can post it separately for inclusion.
+> 
+> Forgot to update function declaration in case of !CONFIG_FS_DAX. Here is
+> the updated patch.
+> 
+> Subject: dax: Pass dax_dev instead of bdev to dax_writeback_mapping_range()
+> 
+> As of now dax_writeback_mapping_range() takes "struct block_device" as a
+> parameter and dax_dev is searched from bdev name. This also involves taking
+> a fresh reference on dax_dev and putting that reference at the end of
+> function.
+> 
+> We are developing a new filesystem virtio-fs and using dax to access host
+> page cache directly. But there is no block device. IOW, we want to make
+> use of dax but want to get rid of this assumption that there is always
+> a block device associated with dax_dev.
+> 
+> So pass in "struct dax_device" as parameter instead of bdev.
+> 
+> ext2/ext4/xfs are current users and they already have a reference on
+> dax_device. So there is no need to take reference and drop reference to
+> dax_device on each call of this function.
+> 
+> Suggested-by: Christoph Hellwig <hch@infradead.org>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+
+Hi Dan,
+
+Ping for this patch. I see christoph and Jan acked it. Can we take it. Not
+sure how to get ack from ext4 developers.
+
+Thanks
+Vivek
+
+> ---
+>  fs/dax.c            |    8 +-------
+>  fs/ext2/inode.c     |    5 +++--
+>  fs/ext4/inode.c     |    2 +-
+>  fs/xfs/xfs_aops.c   |    2 +-
+>  include/linux/dax.h |    4 ++--
+>  5 files changed, 8 insertions(+), 13 deletions(-)
+> 
+> Index: rhvgoyal-linux-fuse/fs/dax.c
+> ===================================================================
+> --- rhvgoyal-linux-fuse.orig/fs/dax.c	2019-08-26 16:45:26.093710196 -0400
+> +++ rhvgoyal-linux-fuse/fs/dax.c	2019-08-26 16:45:29.462710196 -0400
+> @@ -936,12 +936,11 @@ static int dax_writeback_one(struct xa_s
+>   * on persistent storage prior to completion of the operation.
+>   */
+>  int dax_writeback_mapping_range(struct address_space *mapping,
+> -		struct block_device *bdev, struct writeback_control *wbc)
+> +		struct dax_device *dax_dev, struct writeback_control *wbc)
+>  {
+>  	XA_STATE(xas, &mapping->i_pages, wbc->range_start >> PAGE_SHIFT);
+>  	struct inode *inode = mapping->host;
+>  	pgoff_t end_index = wbc->range_end >> PAGE_SHIFT;
+> -	struct dax_device *dax_dev;
+>  	void *entry;
+>  	int ret = 0;
+>  	unsigned int scanned = 0;
+> @@ -952,10 +951,6 @@ int dax_writeback_mapping_range(struct a
+>  	if (!mapping->nrexceptional || wbc->sync_mode != WB_SYNC_ALL)
+>  		return 0;
+>  
+> -	dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
+> -	if (!dax_dev)
+> -		return -EIO;
+> -
+>  	trace_dax_writeback_range(inode, xas.xa_index, end_index);
+>  
+>  	tag_pages_for_writeback(mapping, xas.xa_index, end_index);
+> @@ -976,7 +971,6 @@ int dax_writeback_mapping_range(struct a
+>  		xas_lock_irq(&xas);
+>  	}
+>  	xas_unlock_irq(&xas);
+> -	put_dax(dax_dev);
+>  	trace_dax_writeback_range_done(inode, xas.xa_index, end_index);
+>  	return ret;
+>  }
+> Index: rhvgoyal-linux-fuse/include/linux/dax.h
+> ===================================================================
+> --- rhvgoyal-linux-fuse.orig/include/linux/dax.h	2019-08-26 16:45:26.094710196 -0400
+> +++ rhvgoyal-linux-fuse/include/linux/dax.h	2019-08-26 16:46:08.101710196 -0400
+> @@ -141,7 +141,7 @@ static inline void fs_put_dax(struct dax
+>  
+>  struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
+>  int dax_writeback_mapping_range(struct address_space *mapping,
+> -		struct block_device *bdev, struct writeback_control *wbc);
+> +		struct dax_device *dax_dev, struct writeback_control *wbc);
+>  
+>  struct page *dax_layout_busy_page(struct address_space *mapping);
+>  dax_entry_t dax_lock_page(struct page *page);
+> @@ -180,7 +180,7 @@ static inline struct page *dax_layout_bu
+>  }
+>  
+>  static inline int dax_writeback_mapping_range(struct address_space *mapping,
+> -		struct block_device *bdev, struct writeback_control *wbc)
+> +		struct dax_device *dax_dev, struct writeback_control *wbc)
+>  {
+>  	return -EOPNOTSUPP;
+>  }
+> Index: rhvgoyal-linux-fuse/fs/xfs/xfs_aops.c
+> ===================================================================
+> --- rhvgoyal-linux-fuse.orig/fs/xfs/xfs_aops.c	2019-08-26 16:45:26.094710196 -0400
+> +++ rhvgoyal-linux-fuse/fs/xfs/xfs_aops.c	2019-08-26 16:45:29.471710196 -0400
+> @@ -1120,7 +1120,7 @@ xfs_dax_writepages(
+>  {
+>  	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
+>  	return dax_writeback_mapping_range(mapping,
+> -			xfs_find_bdev_for_inode(mapping->host), wbc);
+> +			xfs_find_daxdev_for_inode(mapping->host), wbc);
+>  }
+>  
+>  STATIC int
+> Index: rhvgoyal-linux-fuse/fs/ext4/inode.c
+> ===================================================================
+> --- rhvgoyal-linux-fuse.orig/fs/ext4/inode.c	2019-08-26 16:45:26.093710196 -0400
+> +++ rhvgoyal-linux-fuse/fs/ext4/inode.c	2019-08-26 16:45:29.475710196 -0400
+> @@ -2992,7 +2992,7 @@ static int ext4_dax_writepages(struct ad
+>  	percpu_down_read(&sbi->s_journal_flag_rwsem);
+>  	trace_ext4_writepages(inode, wbc);
+>  
+> -	ret = dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev, wbc);
+> +	ret = dax_writeback_mapping_range(mapping, sbi->s_daxdev, wbc);
+>  	trace_ext4_writepages_result(inode, wbc, ret,
+>  				     nr_to_write - wbc->nr_to_write);
+>  	percpu_up_read(&sbi->s_journal_flag_rwsem);
+> Index: rhvgoyal-linux-fuse/fs/ext2/inode.c
+> ===================================================================
+> --- rhvgoyal-linux-fuse.orig/fs/ext2/inode.c	2019-08-26 16:45:26.093710196 -0400
+> +++ rhvgoyal-linux-fuse/fs/ext2/inode.c	2019-08-26 16:45:29.477710196 -0400
+> @@ -957,8 +957,9 @@ ext2_writepages(struct address_space *ma
+>  static int
+>  ext2_dax_writepages(struct address_space *mapping, struct writeback_control *wbc)
+>  {
+> -	return dax_writeback_mapping_range(mapping,
+> -			mapping->host->i_sb->s_bdev, wbc);
+> +	struct ext2_sb_info *sbi = EXT2_SB(mapping->host->i_sb);
+> +
+> +	return dax_writeback_mapping_range(mapping, sbi->s_daxdev, wbc);
+>  }
+>  
+>  const struct address_space_operations ext2_aops = {
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
---===============0642606631906593795==--
-
