@@ -2,82 +2,81 @@ Return-Path: <SRS0=l53K=25=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7046CC33C99
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 01:39:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F55DC00523
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 06:49:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 45B6020673
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 01:39:43 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="YgTkFvh6"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 45B6020673
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 6A2932075D
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 06:49:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6A2932075D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 330DE10097DA7;
-	Tue,  7 Jan 2020 17:43:02 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::341; helo=mail-ot1-x341.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4423110097DAD;
+	Tue,  7 Jan 2020 22:52:43 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 71AD510097E1B
-	for <linux-nvdimm@lists.01.org>; Tue,  7 Jan 2020 17:42:59 -0800 (PST)
-Received: by mail-ot1-x341.google.com with SMTP id r9so1977443otp.13
-        for <linux-nvdimm@lists.01.org>; Tue, 07 Jan 2020 17:39:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/d9k45/z7659u+xtEjN+MYx3Q6GpIJRf/rpR3Gk/DdU=;
-        b=YgTkFvh6k7M6dHhTjbBTUDG+NIIUI6w5fWZZA+SRtfvALbUkv5kvWYonJKu3sSN8bN
-         b+37/Q5KLz31UR0SYudLvDmy3JK9UFCkDIiMhXQQj3dHQVUjo9J9ywjL/XUPmwYswP+/
-         xeZnbYsjQkynkvVrvx19nSACawRXUpVW3q/vIubfYBFV7v5sMRYWA0QCbBX53/Lh0Y7W
-         ilS3gDYmvch66jqOGL1GQp/MCtciI6dWOmQeI8tXQSnJmFLQE2FOeA4lxSiGMCYIgXRf
-         1q2zJd9/QHTXMPJFdyvYajbTtvIkBgU7ptveduecznGjcWJeA/35nNkhH+y9tInkFeK1
-         ra9w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/d9k45/z7659u+xtEjN+MYx3Q6GpIJRf/rpR3Gk/DdU=;
-        b=CmyfFxbu+b98eZOgoefU4XTzIdZGlHAc93GnX6PgrDbSq2hJUEeSq73pR4bUPAVWa0
-         rIdsEWPDHkXkj/sRuk+H8/Cao/dP+Pf2psJskzvmJDb90Tihw98GeRPiNDfq1UbQhTrH
-         RrWNW7MqfUch5YxM5V91id/NsW9qXTfsuF7Y3UOYRt8T3CeUOLOtOt2eVs7SeNYvx3OM
-         0CvHtt/GUMkxE4obkjf83nfehCpU6eygQFlQzYiYJWfCykgBHNslrCnL0b7UAg0OXk8l
-         cFSP3yg1K+oGttvvfCk9tj9RUXONyVn8pg60SMiikLUzNfed/tYXlZjuhgxKc59eSkPf
-         X58Q==
-X-Gm-Message-State: APjAAAVftJ5mFO8TAjxzK7AD2/mL/DutfN2bX38twhD0mP40GPFsSdnk
-	ShyWEBwvoyETG6qmI+RaXbwcDhRGj/Az1qYc8T6Iog==
-X-Google-Smtp-Source: APXvYqxdf0Bo2pMJ9s40oQqu9673Krm3/AIHd7ihdu+tmuZao9+mHEVhrRD0TY+1uOwKKPxbusMCMUEGKxcHJtyvZxo=
-X-Received: by 2002:a9d:68cc:: with SMTP id i12mr2328311oto.207.1578447579439;
- Tue, 07 Jan 2020 17:39:39 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 934FF10097E17
+	for <linux-nvdimm@lists.01.org>; Tue,  7 Jan 2020 22:52:38 -0800 (PST)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0086lVmX140152;
+	Wed, 8 Jan 2020 01:49:15 -0500
+Received: from ppma05wdc.us.ibm.com (1b.90.2fa9.ip4.static.sl-reverse.com [169.47.144.27])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 2xctgqeb1r-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 08 Jan 2020 01:49:15 -0500
+Received: from pps.filterd (ppma05wdc.us.ibm.com [127.0.0.1])
+	by ppma05wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 0086k02K006811;
+	Wed, 8 Jan 2020 06:49:15 GMT
+Received: from b03cxnp07029.gho.boulder.ibm.com (b03cxnp07029.gho.boulder.ibm.com [9.17.130.16])
+	by ppma05wdc.us.ibm.com with ESMTP id 2xajb69xc0-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 08 Jan 2020 06:49:14 +0000
+Received: from b03ledav001.gho.boulder.ibm.com (b03ledav001.gho.boulder.ibm.com [9.17.130.232])
+	by b03cxnp07029.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0086nD3u50790878
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 8 Jan 2020 06:49:13 GMT
+Received: from b03ledav001.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A29C16E04E;
+	Wed,  8 Jan 2020 06:49:13 +0000 (GMT)
+Received: from b03ledav001.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 094A36E04C;
+	Wed,  8 Jan 2020 06:49:11 +0000 (GMT)
+Received: from skywalker.in.ibm.com (unknown [9.204.201.20])
+	by b03ledav001.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Wed,  8 Jan 2020 06:49:11 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: dan.j.williams@intel.com
+Subject: [RFC PATCH] libnvdimm: Update the meaning for persistence_domain values
+Date: Wed,  8 Jan 2020 12:19:05 +0530
+Message-Id: <20200108064905.170394-1-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-References: <20191212182238.46535-1-brho@google.com> <20191212182238.46535-3-brho@google.com>
- <06108004-1720-41EB-BCAB-BFA8FEBF4772@oracle.com> <ED482280-CB47-4AB6-9E7E-EEE7848E0F8B@oracle.com>
- <f8e948ff-6a2a-a6d6-9d8e-92b93003354a@google.com> <65FB6CC1-3AD2-4D6F-9481-500BD7037203@oracle.com>
- <20191213171950.GA31552@linux.intel.com> <e012696f-f13e-5af1-2b14-084607d69bfa@google.com>
- <20200107190522.GA16987@linux.intel.com> <08a36944-ad5a-ca49-99b3-d3908ce0658b@google.com>
- <20200108012014.GF16987@linux.intel.com>
-In-Reply-To: <20200108012014.GF16987@linux.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 7 Jan 2020 17:39:28 -0800
-Message-ID: <CAPcyv4jW3HTU7mmctL_d+zTS8yT_NLxa5cx_w8nbqVSwBMdSLQ@mail.gmail.com>
-Subject: Re: [PATCH v5 2/2] kvm: Use huge pages for DAX-backed files
-To: Sean Christopherson <sean.j.christopherson@intel.com>
-Message-ID-Hash: B4LD2FOSQK54RFJPOMW6AWKBYDPFGRVN
-X-Message-ID-Hash: B4LD2FOSQK54RFJPOMW6AWKBYDPFGRVN
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Barret Rhoden <brho@google.com>, Liran Alon <liran.alon@oracle.com>, Paolo Bonzini <pbonzini@redhat.com>, David Hildenbrand <david@redhat.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>, KVM list <kvm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zeng, Jason" <jason.zeng@intel.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-01-08_01:2020-01-07,2020-01-08 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0
+ priorityscore=1501 spamscore=0 malwarescore=0 impostorscore=0
+ mlxlogscore=999 lowpriorityscore=0 suspectscore=1 mlxscore=0 adultscore=0
+ clxscore=1015 phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-1910280000 definitions=main-2001080057
+Message-ID-Hash: 4WY42ZCATFVUMGRTJEYLHCCWDUFLPC67
+X-Message-ID-Hash: 4WY42ZCATFVUMGRTJEYLHCCWDUFLPC67
+X-MailFrom: aneesh.kumar@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/B4LD2FOSQK54RFJPOMW6AWKBYDPFGRVN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4WY42ZCATFVUMGRTJEYLHCCWDUFLPC67/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -86,45 +85,64 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 7, 2020 at 5:20 PM Sean Christopherson
-<sean.j.christopherson@intel.com> wrote:
->
-> On Tue, Jan 07, 2020 at 02:19:06PM -0500, Barret Rhoden wrote:
-> > On 1/7/20 2:05 PM, Sean Christopherson wrote:
-> > >Hopefully you haven't put too much effort into the rework, because I want
-> > >to commandeer the proposed changes and use them as the basis for a more
-> > >aggressive overhaul of KVM's hugepage handling.  Ironically, there's a bug
-> > >in KVM's THP handling that I _think_ can be avoided by using the DAX
-> > >approach of walking the host PTEs.
-> > >
-> > >I'm in the process of testing, hopefully I'll get a series sent out later
-> > >today.  If not, I should at least be able to provide an update.
-> >
-> > Nice timing.  I was just about to get back to this, so I haven't put any
-> > time in yet.  =)
-> >
-> > Please CC me, and I'll try your patches out on my end.
->
-> Will do.  Barring last minute hiccups, the code is ready, just need to
-> finish off a few changelogs.  Should get it out early tomorrow.
->
-> One question that may help avoid some churn: are huge DAX pages not
-> tracked as compound pages?  The comment from your/this patch is pretty
-> unequivocal, but I wanted to double check that they will really return
-> false for PageCompound(), as opposed to only returning false for
-> PageTransCompoundMap().
+Currently, kernel shows the below values
+	"persistence_domain":"cpu_cache"
+	"persistence_domain":"memory_controller"
+	"persistence_domain":"unknown"
 
-PageCompound() returns false.
+This patch updates the meaning of these values such that
 
->
->         /*
->          * DAX pages do not use compound pages.  ...
->          */
->
+"cpu_cache" indicates no extra instructions is needed to ensure the persistence
+of data in the pmem media on power failure.
 
-None of the head / tail page infrastructure is set up for dax pages.
-They are just independent 'struct page' objects that are
-opportunistically mapped by different pte sizes in the dax core.
+"memory_controller" indicates platform provided instructions need to be issued
+as per documented sequence to make sure data flushed is guaranteed to be on pmem
+media in case of system power loss.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ arch/powerpc/platforms/pseries/papr_scm.c | 7 ++++++-
+ include/linux/libnvdimm.h                 | 6 +++---
+ 2 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index c2ef320ba1bf..26a5ef263758 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -360,8 +360,13 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
+ 
+ 	if (p->is_volatile)
+ 		p->region = nvdimm_volatile_region_create(p->bus, &ndr_desc);
+-	else
++	else {
++		/*
++		 * We need to flush things correctly to guarantee persistance
++		 */
++		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
+ 		p->region = nvdimm_pmem_region_create(p->bus, &ndr_desc);
++	}
+ 	if (!p->region) {
+ 		dev_err(dev, "Error registering region %pR from %pOF\n",
+ 				ndr_desc.res, p->dn);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f2a33f2e3ba8..9126737377e1 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -52,9 +52,9 @@ enum {
+ 	 */
+ 	ND_REGION_PERSIST_CACHE = 1,
+ 	/*
+-	 * Platform provides mechanisms to automatically flush outstanding
+-	 * write data from memory controler to pmem on system power loss.
+-	 * (ADR)
++	 * Platform provides instructions to flush data such that on completion
++	 * of the instructions, data flushed is guaranteed to be on pmem even
++	 * in case of a system power loss.
+ 	 */
+ 	ND_REGION_PERSIST_MEMCTRL = 2,
+ 
+-- 
+2.24.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
