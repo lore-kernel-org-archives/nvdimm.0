@@ -2,83 +2,55 @@ Return-Path: <SRS0=l53K=25=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 369ABC00523
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 06:53:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC1EDC33CA4
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:07 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 11D8F2073A
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 06:53:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 11D8F2073A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id B7DED20838
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B7DED20838
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0DDE510097DC8;
-	Tue,  7 Jan 2020 22:56:28 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id 50E3D10097DF4;
+	Wed,  8 Jan 2020 12:30:26 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=sean.j.christopherson@intel.com; receiver=<UNKNOWN> 
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3BEB110097DC7
-	for <linux-nvdimm@lists.01.org>; Tue,  7 Jan 2020 22:56:26 -0800 (PST)
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0086r6tl016407;
-	Wed, 8 Jan 2020 01:53:06 -0500
-Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2xb9514k64-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 08 Jan 2020 01:53:06 -0500
-Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
-	by ppma04dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 0086pHOA020127;
-	Wed, 8 Jan 2020 06:52:35 GMT
-Received: from b03cxnp08028.gho.boulder.ibm.com (b03cxnp08028.gho.boulder.ibm.com [9.17.130.20])
-	by ppma04dal.us.ibm.com with ESMTP id 2xajb6tc0b-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 08 Jan 2020 06:52:35 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-	by b03cxnp08028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0086qYBZ64618792
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 8 Jan 2020 06:52:34 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E6A676A054;
-	Wed,  8 Jan 2020 06:52:33 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6404C6A047;
-	Wed,  8 Jan 2020 06:52:32 +0000 (GMT)
-Received: from skywalker.in.ibm.com (unknown [9.204.201.20])
-	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Wed,  8 Jan 2020 06:52:32 +0000 (GMT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: dan.j.williams@intel.com
-Subject: [PATCH v3 2/6] libnvdimm/namespace: Validate namespace start addr and size
-Date: Wed,  8 Jan 2020 12:22:15 +0530
-Message-Id: <20200108065219.171221-2-aneesh.kumar@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 31B8C10097DEE
+	for <linux-nvdimm@lists.01.org>; Wed,  8 Jan 2020 12:30:23 -0800 (PST)
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Jan 2020 12:27:04 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.69,411,1571727600";
+   d="scan'208";a="211658348"
+Received: from sjchrist-coffee.jf.intel.com ([10.54.74.202])
+  by orsmga007.jf.intel.com with ESMTP; 08 Jan 2020 12:27:04 -0800
+From: Sean Christopherson <sean.j.christopherson@intel.com>
+To: Paolo Bonzini <pbonzini@redhat.com>
+Subject: [PATCH 00/14] KVM: x86/mmu: Huge page fixes, cleanup, and DAX
+Date: Wed,  8 Jan 2020 12:24:34 -0800
+Message-Id: <20200108202448.9669-1-sean.j.christopherson@intel.com>
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200108065219.171221-1-aneesh.kumar@linux.ibm.com>
-References: <20200108065219.171221-1-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
- definitions=2020-01-08_01:2020-01-07,2020-01-08 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- mlxlogscore=935 lowpriorityscore=0 clxscore=1015 spamscore=0 adultscore=0
- malwarescore=0 suspectscore=1 mlxscore=0 phishscore=0 priorityscore=1501
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-1910280000 definitions=main-2001080058
-Message-ID-Hash: XAZPSPIXWD5VF7FTDFXWEMAKTDEG57UI
-X-Message-ID-Hash: XAZPSPIXWD5VF7FTDFXWEMAKTDEG57UI
-X-MailFrom: aneesh.kumar@linux.ibm.com
+Message-ID-Hash: 3TLDE6DO72Y2PI5YWVBRKMW3NLEONGKO
+X-Message-ID-Hash: 3TLDE6DO72Y2PI5YWVBRKMW3NLEONGKO
+X-MailFrom: sean.j.christopherson@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+CC: Paul Mackerras <paulus@ozlabs.org>, Sean Christopherson <sean.j.christopherson@intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, Wanpeng Li <wanpengli@tencent.com>, Jim Mattson <jmattson@google.com>, Joerg Roedel <joro@8bytes.org>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Marc Zyngier <maz@kernel.org>, James Morse <james.morse@arm.com>, Julien Thierry <julien.thierry.kdev@gmail.com>, Suzuki K Poulose <suzuki.poulose@arm.com>, kvm-ppc@vger.kernel.org, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, syzbot+c9d1fb51ac9d0d10c39d@syzkaller.appspotmail.com, Andrea Arcangeli <aarcange@redhat.com>, Barret Rhoden <brho@google.com>, David Hildenbrand <david@redhat.com>, Jason Zeng <jason.zeng@intel.com>, Liran Alon <liran.alon@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XAZPSPIXWD5VF7FTDFXWEMAKTDEG57UI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3TLDE6DO72Y2PI5YWVBRKMW3NLEONGKO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -87,92 +59,71 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Make sure namespace start addr and size are properly aligned as per architecture
-restrictions. If the namespace is not aligned we mark the namespace 'disabled'
+This series is a mix of bug fixes, cleanup and new support in KVM's
+handling of huge pages.  The series initially stemmed from a syzkaller
+bug report[1], which is fixed by patch 02, "mm: thp: KVM: Explicitly
+check for THP when populating secondary MMU".
 
-Architectures like ppc64 use different page size than PAGE_SIZE to map
-direct-map address range. The kernel needs to make sure the namespace size is aligned
-correctly for the direct-map page size.
+While investigating options for fixing the syzkaller bug, I realized KVM
+could reuse the approach from Barret's series to enable huge pages for DAX
+mappings in KVM[2] for all types of huge mappings, i.e. walk the host page
+tables instead of querying metadata (patches 05 - 09).
 
-kernel log will contain information as below.
+Walking the host page tables sidesteps the issues with refcounting and
+identifying THP mappings (in theory), and using a common method for
+identifying huge mappings should improve (haven't actually measured) KVM's
+overall page fault latency by eliminating the vma lookup that is currently
+used to identify HugeTLB mappings.  Eliminating the HugeTLB specific code
+also allows for additional cleanup (patches 10 - 13).
 
-[    5.810939] nd_pmem namespace0.1: invalid size/SPA
-[    5.810969] nd_pmem: probe of namespace0.1 failed with error -95
+Testing the page walk approach revealed several pre-existing bugs that
+are included here (patches 01, 03 and 04) because the changes interact
+with the rest of the series, e.g. without the read-only memslots fix,
+walking the host page tables without explicitly filtering out HugeTLB
+mappings would pick up read-only memslots and introduce a completely
+unintended functional change.
 
-and the namespace will be marked 'disabled'
+Lastly, with the page walk infrastructure in place, supporting DAX-based
+huge mappings becomes a trivial change (patch 14).
 
-  {
-    "dev":"namespace0.1",
-    "mode":"fsdax",
-    "map":"mem",
-    "size":1071644672,
-    "uuid":"25577a00-c012-421d-89ca-3ee189e08848",
-    "sector_size":512,
-    "state":"disabled"
-  },
+Based on kvm/queue, commit e41a90be9659 ("KVM: x86/mmu: WARN if root_hpa
+is invalid when handling a page fault")
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
----
- drivers/nvdimm/namespace_devs.c | 39 +++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+Paolo, assuming I understand your workflow, patch 01 can be squashed with
+the buggy commit as it's still sitting in kvm/queue.
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 032dc61725ff..0751fd4b7d4a 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1113,6 +1113,40 @@ resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
- }
- EXPORT_SYMBOL(nvdimm_namespace_capacity);
- 
-+static bool nvdimm_valid_namespace(struct nd_namespace_common *ndns, resource_size_t size)
-+{
-+	struct device *dev = &ndns->dev;
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	unsigned long align_size = arch_namespace_align_size();
-+	struct resource *res;
-+	u32 remainder;
-+
-+	if (is_namespace_blk(dev))
-+		return true;
-+
-+	div_u64_rem(size, align_size * nd_region->ndr_mappings, &remainder);
-+	if (remainder)
-+		return false;
-+
-+	if (is_namespace_pmem(dev)) {
-+		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
-+
-+		res = &nspm->nsio.res;
-+	} else if (is_namespace_io(dev)) {
-+		struct nd_namespace_io *nsio = to_nd_namespace_io(dev);
-+
-+		res = &nsio->res;
-+	} else
-+		/* cannot reach */
-+		return false;
-+
-+	div_u64_rem(res->start, align_size * nd_region->ndr_mappings, &remainder);
-+	if (remainder)
-+		return false;
-+
-+	return true;
-+}
-+
- bool nvdimm_namespace_locked(struct nd_namespace_common *ndns)
- {
- 	int i;
-@@ -1739,6 +1773,11 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- 		return ERR_PTR(-ENODEV);
- 	}
- 
-+	if (!nvdimm_valid_namespace(ndns, size)) {
-+		dev_err(&ndns->dev, "invalid size/SPA");
-+		return ERR_PTR(-EOPNOTSUPP);
-+	}
-+
- 	if (is_namespace_pmem(&ndns->dev)) {
- 		struct nd_namespace_pmem *nspm;
- 
+[1] https://lkml.kernel.org/r/0000000000003cffc30599d3d1a0@google.com
+[2] https://lkml.kernel.org/r/20191212182238.46535-1-brho@google.com
+
+Sean Christopherson (14):
+  KVM: x86/mmu: Enforce max_level on HugeTLB mappings
+  mm: thp: KVM: Explicitly check for THP when populating secondary MMU
+  KVM: Use vcpu-specific gva->hva translation when querying host page
+    size
+  KVM: Play nice with read-only memslots when querying host page size
+  x86/mm: Introduce lookup_address_in_mm()
+  KVM: x86/mmu: Refactor THP adjust to prep for changing query
+  KVM: x86/mmu: Walk host page tables to find THP mappings
+  KVM: x86/mmu: Drop level optimization from fast_page_fault()
+  KVM: x86/mmu: Rely on host page tables to find HugeTLB mappings
+  KVM: x86/mmu: Remove obsolete gfn restoration in FNAME(fetch)
+  KVM: x86/mmu: Zap any compound page when collapsing sptes
+  KVM: x86/mmu: Fold max_mapping_level() into kvm_mmu_hugepage_adjust()
+  KVM: x86/mmu: Remove lpage_is_disallowed() check from set_spte()
+  KVM: x86/mmu: Use huge pages for DAX-backed files
+
+ arch/powerpc/kvm/book3s_xive_native.c |   2 +-
+ arch/x86/include/asm/pgtable_types.h  |   4 +
+ arch/x86/kvm/mmu/mmu.c                | 208 ++++++++++----------------
+ arch/x86/kvm/mmu/paging_tmpl.h        |  29 +---
+ arch/x86/mm/pageattr.c                |  11 ++
+ include/linux/huge_mm.h               |   6 +
+ include/linux/kvm_host.h              |   3 +-
+ mm/huge_memory.c                      |  11 ++
+ virt/kvm/arm/mmu.c                    |   8 +-
+ virt/kvm/kvm_main.c                   |  24 ++-
+ 10 files changed, 145 insertions(+), 161 deletions(-)
+
 -- 
 2.24.1
 _______________________________________________
