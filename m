@@ -6,45 +6,45 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26D69C33CA7
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 090D3C33CA8
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 00EE520705
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 00EE520705
+	by mail.kernel.org (Postfix) with ESMTPS id DD42E20720
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD42E20720
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 128CD10097DB9;
-	Wed,  8 Jan 2020 12:30:31 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id AADCF10097E1E;
+	Wed,  8 Jan 2020 12:30:28 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=sean.j.christopherson@intel.com; receiver=<UNKNOWN> 
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0FE2310097DEE
-	for <linux-nvdimm@lists.01.org>; Wed,  8 Jan 2020 12:30:26 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id AFF3610097DEE
+	for <linux-nvdimm@lists.01.org>; Wed,  8 Jan 2020 12:30:25 -0800 (PST)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Jan 2020 12:27:06 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,411,1571727600";
-   d="scan'208";a="211658380"
+   d="scan'208";a="211658366"
 Received: from sjchrist-coffee.jf.intel.com ([10.54.74.202])
   by orsmga007.jf.intel.com with ESMTP; 08 Jan 2020 12:27:06 -0800
 From: Sean Christopherson <sean.j.christopherson@intel.com>
 To: Paolo Bonzini <pbonzini@redhat.com>
-Subject: [PATCH 08/14] KVM: x86/mmu: Drop level optimization from fast_page_fault()
-Date: Wed,  8 Jan 2020 12:24:42 -0800
-Message-Id: <20200108202448.9669-9-sean.j.christopherson@intel.com>
+Subject: [PATCH 04/14] KVM: Play nice with read-only memslots when querying host page size
+Date: Wed,  8 Jan 2020 12:24:38 -0800
+Message-Id: <20200108202448.9669-5-sean.j.christopherson@intel.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200108202448.9669-1-sean.j.christopherson@intel.com>
 References: <20200108202448.9669-1-sean.j.christopherson@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: ZW6P7JE3CCUQCNOI3Q6PFBJELM6BAS2K
-X-Message-ID-Hash: ZW6P7JE3CCUQCNOI3Q6PFBJELM6BAS2K
+Message-ID-Hash: NCOEWCIO7LEBYBGCI4V63CCYHEYCZGJH
+X-Message-ID-Hash: NCOEWCIO7LEBYBGCI4V63CCYHEYCZGJH
 X-MailFrom: sean.j.christopherson@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -52,7 +52,7 @@ CC: Paul Mackerras <paulus@ozlabs.org>, Sean Christopherson <sean.j.christophers
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZW6P7JE3CCUQCNOI3Q6PFBJELM6BAS2K/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NCOEWCIO7LEBYBGCI4V63CCYHEYCZGJH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,50 +61,55 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Remove fast_page_fault()'s optimization to stop the shadow walk if the
-iterator level drops below the intended map level.  The intended map
-level is only acccurate for HugeTLB mappings (THP mappings are detected
-after fast_page_fault()), i.e. it's not required for correctness, and
-a future patch will also move HugeTLB mapping detection to after
-fast_page_fault().
+Open code an equivalent of kvm_vcpu_gfn_to_memslot() when querying the
+host page size to avoid the "writable" check in __gfn_to_hva_many(),
+which will always fail on read-only memslots due to gfn_to_hva()
+assuming writes.  Functionally, this allows x86 to create large mappings
+for read-only memslots that are backed by HugeTLB mappings.
 
+Note, the changelog for commit 05da45583de9 ("KVM: MMU: large page
+support") states "If the largepage contains write-protected pages, a
+large pte is not used.", but "write-protected" refers to pages that are
+temporarily read-only, e.g. read-only memslots didn't even exist at the
+time.
+
+Fixes: 4d8b81abc47b ("KVM: introduce readonly memslot")
+Cc: stable@vger.kernel.org
 Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
 ---
- arch/x86/kvm/mmu/mmu.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ virt/kvm/kvm_main.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/kvm/mmu/mmu.c b/arch/x86/kvm/mmu/mmu.c
-index 4bd7f745b56d..7d78d1d996ed 100644
---- a/arch/x86/kvm/mmu/mmu.c
-+++ b/arch/x86/kvm/mmu/mmu.c
-@@ -3593,7 +3593,7 @@ static bool is_access_allowed(u32 fault_err_code, u64 spte)
-  * - true: let the vcpu to access on the same address again.
-  * - false: let the real page fault path to fix it.
-  */
--static bool fast_page_fault(struct kvm_vcpu *vcpu, gpa_t cr2_or_gpa, int level,
-+static bool fast_page_fault(struct kvm_vcpu *vcpu, gpa_t cr2_or_gpa,
- 			    u32 error_code)
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index 5f7f06824c2b..d9aced677ddd 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -1418,15 +1418,23 @@ EXPORT_SYMBOL_GPL(kvm_is_visible_gfn);
+ 
+ unsigned long kvm_host_page_size(struct kvm_vcpu *vcpu, gfn_t gfn)
  {
- 	struct kvm_shadow_walk_iterator iterator;
-@@ -3611,8 +3611,7 @@ static bool fast_page_fault(struct kvm_vcpu *vcpu, gpa_t cr2_or_gpa, int level,
- 		u64 new_spte;
++	struct kvm_memory_slot *slot;
+ 	struct vm_area_struct *vma;
+ 	unsigned long addr, size;
  
- 		for_each_shadow_entry_lockless(vcpu, cr2_or_gpa, iterator, spte)
--			if (!is_shadow_present_pte(spte) ||
--			    iterator.level < level)
-+			if (!is_shadow_present_pte(spte))
- 				break;
+ 	size = PAGE_SIZE;
  
- 		sp = page_header(__pa(iterator.sptep));
-@@ -4223,7 +4222,7 @@ static int direct_page_fault(struct kvm_vcpu *vcpu, gpa_t gpa, u32 error_code,
- 	if (level > PT_PAGE_TABLE_LEVEL)
- 		gfn &= ~(KVM_PAGES_PER_HPAGE(level) - 1);
+-	addr = kvm_vcpu_gfn_to_hva(vcpu, gfn);
+-	if (kvm_is_error_hva(addr))
++	/*
++	 * Manually do the equivalent of kvm_vcpu_gfn_to_hva() to avoid the
++	 * "writable" check in __gfn_to_hva_many(), which will always fail on
++	 * read-only memslots due to gfn_to_hva() assuming writes.
++	 */
++	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
++	if (!slot || slot->flags & KVM_MEMSLOT_INVALID)
+ 		return PAGE_SIZE;
  
--	if (fast_page_fault(vcpu, gpa, level, error_code))
-+	if (fast_page_fault(vcpu, gpa, error_code))
- 		return RET_PF_RETRY;
- 
- 	mmu_seq = vcpu->kvm->mmu_notifier_seq;
++	addr = __gfn_to_hva_memslot(slot, gfn);
++
+ 	down_read(&current->mm->mmap_sem);
+ 	vma = find_vma(current->mm, addr);
+ 	if (!vma)
 -- 
 2.24.1
 _______________________________________________
