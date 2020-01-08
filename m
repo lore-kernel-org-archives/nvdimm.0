@@ -6,24 +6,24 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D590C47409
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C77FEC33CB7
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:28 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 48D0D20720
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 48D0D20720
+	by mail.kernel.org (Postfix) with ESMTPS id A883920643
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jan 2020 20:27:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A883920643
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7C43610097DCC;
-	Wed,  8 Jan 2020 12:30:32 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id BCC2C10097DD2;
+	Wed,  8 Jan 2020 12:30:34 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=sean.j.christopherson@intel.com; receiver=<UNKNOWN> 
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 602EF10097DEE
+	by ml01.01.org (Postfix) with ESMTPS id 803FD10097DEE
 	for <linux-nvdimm@lists.01.org>; Wed,  8 Jan 2020 12:30:26 -0800 (PST)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
@@ -31,20 +31,20 @@ Received: from orsmga007.jf.intel.com ([10.7.209.58])
   by orsmga101.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 08 Jan 2020 12:27:07 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.69,411,1571727600";
-   d="scan'208";a="211658395"
+   d="scan'208";a="211658401"
 Received: from sjchrist-coffee.jf.intel.com ([10.54.74.202])
   by orsmga007.jf.intel.com with ESMTP; 08 Jan 2020 12:27:07 -0800
 From: Sean Christopherson <sean.j.christopherson@intel.com>
 To: Paolo Bonzini <pbonzini@redhat.com>
-Subject: [PATCH 12/14] KVM: x86/mmu: Fold max_mapping_level() into kvm_mmu_hugepage_adjust()
-Date: Wed,  8 Jan 2020 12:24:46 -0800
-Message-Id: <20200108202448.9669-13-sean.j.christopherson@intel.com>
+Subject: [PATCH 14/14] KVM: x86/mmu: Use huge pages for DAX-backed files
+Date: Wed,  8 Jan 2020 12:24:48 -0800
+Message-Id: <20200108202448.9669-15-sean.j.christopherson@intel.com>
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200108202448.9669-1-sean.j.christopherson@intel.com>
 References: <20200108202448.9669-1-sean.j.christopherson@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: H6QE4MQLNPVGEAO5XBWEES237G7U4JIZ
-X-Message-ID-Hash: H6QE4MQLNPVGEAO5XBWEES237G7U4JIZ
+Message-ID-Hash: 3OHPHVDMGGSVU7WOZTBZIAYDT2PUHV4O
+X-Message-ID-Hash: 3OHPHVDMGGSVU7WOZTBZIAYDT2PUHV4O
 X-MailFrom: sean.j.christopherson@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -52,7 +52,7 @@ CC: Paul Mackerras <paulus@ozlabs.org>, Sean Christopherson <sean.j.christophers
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/H6QE4MQLNPVGEAO5XBWEES237G7U4JIZ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3OHPHVDMGGSVU7WOZTBZIAYDT2PUHV4O/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,160 +61,64 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Fold max_mapping_level() into kvm_mmu_hugepage_adjust() now that HugeTLB
-mappings are handled in kvm_mmu_hugepage_adjust(), i.e. there isn't a
-need to pre-calculate the max mapping level.  Co-locating all hugepage
-checks eliminates a memslot lookup, at the cost of performing the
-__mmu_gfn_lpage_is_disallowed() checks while holding mmu_lock.
+Walk the host page tables to identify hugepage mappings for ZONE_DEVICE
+pfns, i.e. DAX pages.  Explicitly query kvm_is_zone_device_pfn() when
+deciding whether or not to bother walking the host page tables, as DAX
+pages do not set up the head/tail infrastructure, i.e. will return false
+for PageCompound() even when using huge pages.
 
-The latency of lpage_is_disallowed() is likely negligible relative to
-the rest of the code run while holding mmu_lock, and can be offset to
-some extent by eliminating the mmu_gfn_lpage_is_disallowed() check in
-set_spte() in a future patch.  Eliminating the check in set_spte() is
-made possible by performing the initial lpage_is_disallowed() checks
-while holding mmu_lock.
+Zap ZONE_DEVICE sptes when disabling dirty logging, e.g. if live
+migration fails, to allow KVM to rebuild large pages for DAX-based
+mappings.  Presumably DAX favors large pages, and worst case scenario is
+a minor performance hit as KVM will need to re-fault all DAX-based
+pages.
 
+Suggested-by: Barret Rhoden <brho@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jason Zeng <jason.zeng@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Liran Alon <liran.alon@oracle.com>
+Cc: linux-nvdimm <linux-nvdimm@lists.01.org>
 Signed-off-by: Sean Christopherson <sean.j.christopherson@intel.com>
 ---
- arch/x86/kvm/mmu/mmu.c         | 60 ++++++++++++++--------------------
- arch/x86/kvm/mmu/paging_tmpl.h |  2 --
- 2 files changed, 24 insertions(+), 38 deletions(-)
+ arch/x86/kvm/mmu/mmu.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/arch/x86/kvm/mmu/mmu.c b/arch/x86/kvm/mmu/mmu.c
-index f93b0c5e4170..f2667fe0dc75 100644
+index 1e4e0ac169a7..324e1919722f 100644
 --- a/arch/x86/kvm/mmu/mmu.c
 +++ b/arch/x86/kvm/mmu/mmu.c
-@@ -1310,27 +1310,6 @@ gfn_to_memslot_dirty_bitmap(struct kvm_vcpu *vcpu, gfn_t gfn,
- 	return slot;
- }
+@@ -3250,7 +3250,7 @@ static int host_pfn_mapping_level(struct kvm_vcpu *vcpu, gfn_t gfn,
+ 		     PT_DIRECTORY_LEVEL != (int)PG_LEVEL_2M ||
+ 		     PT_PDPE_LEVEL != (int)PG_LEVEL_1G);
  
--static int max_mapping_level(struct kvm_vcpu *vcpu, gfn_t gfn,
--			     int max_level)
--{
--	struct kvm_memory_slot *slot;
--
--	if (unlikely(max_level == PT_PAGE_TABLE_LEVEL))
--		return PT_PAGE_TABLE_LEVEL;
--
--	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
--	if (!memslot_valid_for_gpte(slot, true))
--		return PT_PAGE_TABLE_LEVEL;
--
--	max_level = min(max_level, kvm_x86_ops->get_lpage_level());
--	for ( ; max_level > PT_PAGE_TABLE_LEVEL; max_level--) {
--		if (!__mmu_gfn_lpage_is_disallowed(gfn, max_level, slot))
--			break;
--	}
--
--	return max_level;
--}
--
- /*
-  * About rmap_head encoding:
-  *
-@@ -3101,10 +3080,11 @@ static int set_spte(struct kvm_vcpu *vcpu, u64 *sptep,
- 	if (pte_access & ACC_WRITE_MASK) {
- 
- 		/*
--		 * Other vcpu creates new sp in the window between
--		 * max_mapping_level() and acquiring mmu-lock. We can
--		 * allow guest to retry the access, the mapping can
--		 * be fixed if guest refault.
-+		 * Legacy code to handle an obsolete scenario where a different
-+		 * vcpu creates new sp in the window between this vcpu's query
-+		 * of lpage_is_disallowed() and acquiring mmu_lock.  No longer
-+		 * necessary now that lpage_is_disallowed() is called after
-+		 * acquiring mmu_lock.
- 		 */
- 		if (level > PT_PAGE_TABLE_LEVEL &&
- 		    mmu_gfn_lpage_is_disallowed(vcpu, gfn, level))
-@@ -3295,9 +3275,8 @@ static void direct_pte_prefetch(struct kvm_vcpu *vcpu, u64 *sptep)
- }
- 
- static int host_pfn_mapping_level(struct kvm_vcpu *vcpu, gfn_t gfn,
--				  kvm_pfn_t pfn)
-+				  kvm_pfn_t pfn, struct kvm_memory_slot *slot)
- {
--	struct kvm_memory_slot *slot;
- 	unsigned long hva;
- 	pte_t *pte;
- 	int level;
-@@ -3310,16 +3289,13 @@ static int host_pfn_mapping_level(struct kvm_vcpu *vcpu, gfn_t gfn,
+-	if (!PageCompound(pfn_to_page(pfn)))
++	if (!PageCompound(pfn_to_page(pfn)) && !kvm_is_zone_device_pfn(pfn))
  		return PT_PAGE_TABLE_LEVEL;
  
  	/*
--	 * Manually do the equivalent of kvm_vcpu_gfn_to_hva() to avoid the
-+	 * Note, using the already-retrieved memslot and __gfn_to_hva_memslot()
-+	 * is not solely for performance, it's also necessary to avoid the
- 	 * "writable" check in __gfn_to_hva_many(), which will always fail on
- 	 * read-only memslots due to gfn_to_hva() assuming writes.  Earlier
- 	 * page fault steps have already verified the guest isn't writing a
- 	 * read-only memslot.
- 	 */
--	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
--	if (!memslot_valid_for_gpte(slot, true))
--		return PT_PAGE_TABLE_LEVEL;
--
- 	hva = __gfn_to_hva_memslot(slot, gfn);
- 
- 	pte = lookup_address_in_mm(vcpu->kvm->mm, hva, &level);
-@@ -3332,18 +3308,32 @@ static int host_pfn_mapping_level(struct kvm_vcpu *vcpu, gfn_t gfn,
- static int kvm_mmu_hugepage_adjust(struct kvm_vcpu *vcpu, gfn_t gfn,
- 				   int max_level, kvm_pfn_t *pfnp)
- {
-+	struct kvm_memory_slot *slot;
- 	kvm_pfn_t pfn = *pfnp;
- 	kvm_pfn_t mask;
- 	int level;
- 
--	if (max_level == PT_PAGE_TABLE_LEVEL)
-+	if (unlikely(max_level == PT_PAGE_TABLE_LEVEL))
+@@ -3282,8 +3282,7 @@ static int kvm_mmu_hugepage_adjust(struct kvm_vcpu *vcpu, gfn_t gfn,
+ 	if (unlikely(max_level == PT_PAGE_TABLE_LEVEL))
  		return PT_PAGE_TABLE_LEVEL;
  
- 	if (is_error_noslot_pfn(pfn) || kvm_is_reserved_pfn(pfn) ||
- 	    kvm_is_zone_device_pfn(pfn))
+-	if (is_error_noslot_pfn(pfn) || kvm_is_reserved_pfn(pfn) ||
+-	    kvm_is_zone_device_pfn(pfn))
++	if (is_error_noslot_pfn(pfn) || kvm_is_reserved_pfn(pfn))
  		return PT_PAGE_TABLE_LEVEL;
  
--	level = host_pfn_mapping_level(vcpu, gfn, pfn);
-+	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
-+	if (!memslot_valid_for_gpte(slot, true))
-+		return PT_PAGE_TABLE_LEVEL;
-+
-+	max_level = min(max_level, kvm_x86_ops->get_lpage_level());
-+	for ( ; max_level > PT_PAGE_TABLE_LEVEL; max_level--) {
-+		if (!__mmu_gfn_lpage_is_disallowed(gfn, max_level, slot))
-+			break;
-+	}
-+
-+	if (max_level == PT_PAGE_TABLE_LEVEL)
-+		return PT_PAGE_TABLE_LEVEL;
-+
-+	level = host_pfn_mapping_level(vcpu, gfn, pfn, slot);
- 	if (level == PT_PAGE_TABLE_LEVEL)
- 		return level;
+ 	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
+@@ -5910,8 +5909,8 @@ static bool kvm_mmu_zap_collapsible_spte(struct kvm *kvm,
+ 		 * mapping if the indirect sp has level = 1.
+ 		 */
+ 		if (sp->role.direct && !kvm_is_reserved_pfn(pfn) &&
+-		    !kvm_is_zone_device_pfn(pfn) &&
+-		    PageCompound(pfn_to_page(pfn))) {
++		    (kvm_is_zone_device_pfn(pfn) ||
++		     PageCompound(pfn_to_page(pfn)))) {
+ 			pte_list_remove(rmap_head, sptep);
  
-@@ -4182,8 +4172,6 @@ static int direct_page_fault(struct kvm_vcpu *vcpu, gpa_t gpa, u32 error_code,
- 	if (lpage_disallowed)
- 		max_level = PT_PAGE_TABLE_LEVEL;
- 
--	max_level = max_mapping_level(vcpu, gfn, max_level);
--
- 	if (fast_page_fault(vcpu, gpa, error_code))
- 		return RET_PF_RETRY;
- 
-diff --git a/arch/x86/kvm/mmu/paging_tmpl.h b/arch/x86/kvm/mmu/paging_tmpl.h
-index 0560982eda8b..ea174d85700a 100644
---- a/arch/x86/kvm/mmu/paging_tmpl.h
-+++ b/arch/x86/kvm/mmu/paging_tmpl.h
-@@ -817,8 +817,6 @@ static int FNAME(page_fault)(struct kvm_vcpu *vcpu, gpa_t addr, u32 error_code,
- 	else
- 		max_level = walker.level;
- 
--	max_level = max_mapping_level(vcpu, walker.gfn, max_level);
--
- 	mmu_seq = vcpu->kvm->mmu_notifier_seq;
- 	smp_rmb();
- 
+ 			if (kvm_available_flush_tlb_with_range())
 -- 
 2.24.1
 _______________________________________________
