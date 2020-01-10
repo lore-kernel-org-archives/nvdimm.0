@@ -1,58 +1,85 @@
-Return-Path: <SRS0=56Ge=26=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=2e0I=27=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7331BC282DD
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jan 2020 21:05:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32DEEC33CA2
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 08:20:54 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4B4D22072E
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jan 2020 21:05:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4B4D22072E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linutronix.de
+	by mail.kernel.org (Postfix) with ESMTPS id E9D862072A
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 08:20:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="vu878lOo"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E9D862072A
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1049F10097DCE;
-	Thu,  9 Jan 2020 13:08:27 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2a0a:51c0:0:12e:550::1; helo=galois.linutronix.de; envelope-from=tglx@linutronix.de; receiver=<UNKNOWN> 
-Received: from Galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-	(using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 8C1DC10097DD0;
+	Fri, 10 Jan 2020 00:24:11 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::542; helo=mail-pg1-x542.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 497DE10097DCA
-	for <linux-nvdimm@lists.01.org>; Thu,  9 Jan 2020 13:08:24 -0800 (PST)
-Received: from p5b06da22.dip0.t-ipconnect.de ([91.6.218.34] helo=nanos.tec.linutronix.de)
-	by Galois.linutronix.de with esmtpsa (TLS1.2:DHE_RSA_AES_256_CBC_SHA256:256)
-	(Exim 4.80)
-	(envelope-from <tglx@linutronix.de>)
-	id 1ipez7-0008OC-Ij; Thu, 09 Jan 2020 22:04:53 +0100
-Received: by nanos.tec.linutronix.de (Postfix, from userid 1000)
-	id 0AA1A105BCE; Thu,  9 Jan 2020 22:04:53 +0100 (CET)
-From: Thomas Gleixner <tglx@linutronix.de>
-To: Sean Christopherson <sean.j.christopherson@intel.com>, Paolo Bonzini <pbonzini@redhat.com>
-Subject: Re: [PATCH 05/14] x86/mm: Introduce lookup_address_in_mm()
-In-Reply-To: <20200108202448.9669-6-sean.j.christopherson@intel.com>
-References: <20200108202448.9669-1-sean.j.christopherson@intel.com> <20200108202448.9669-6-sean.j.christopherson@intel.com>
-Date: Thu, 09 Jan 2020 22:04:53 +0100
-Message-ID: <871rs8batm.fsf@nanos.tec.linutronix.de>
+	by ml01.01.org (Postfix) with ESMTPS id 3568410097DF8
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 00:24:10 -0800 (PST)
+Received: by mail-pg1-x542.google.com with SMTP id r11so656688pgf.1
+        for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 00:20:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=7b8XZOJXTk9zV76aUeE358xzYYpesRiHnpjM8weZogk=;
+        b=vu878lOopdqQ+PrVkdO+JayiWO+IGIMGxt4b1rBO7X4NZDl5VVsm1eoO1zZo+tylJK
+         6Vr9qDyApsNC2iC5rHddG718AXggc65u3frPAwvV3GMVRZO297c3gJy8NIgqeYijsyIw
+         zYakl8jDJ0Zho9+fX1nb2cd6XnVt4Fwk/xAaiScAd04HeFYcNN5A20W68k/SUiz/Synw
+         MUwK/W1I0aD5So7lUrHxBd85j0U0HIfKURi4f/FV5ADyaR6hL/dTERsWZLCunYTd60Gb
+         SxfYxTDbNWIL15hAy4+cvqwRFSYaa4Hy7pis/64FdC5WmRhPugc5dcc/p2eiPdw1fy0S
+         sD8A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=7b8XZOJXTk9zV76aUeE358xzYYpesRiHnpjM8weZogk=;
+        b=fi755HJZjNmSe2GR413c5G6RiLKBus5dyuGCwEendacieLN/ogreh/izIS/6BVS7DC
+         vuX/OFdvF/5a8M2lFQ5AVKBGfbyRah4l1pAGbsg/ZiCErpwIWrjom2LW21bvz7fjdhit
+         VAXZkDmgrvxR3CkrPmCCYd8Leiduz5BwwyoYS3XRdLXcb/thKKnSv/Ic1JMRuBcpbegU
+         BMm4eJ3OU3UXU4j1Gsl8Yv2FfQ42bC3/g+K5KSLfuV5mc4XUFW5iRA9qKUgIbMf74/Pl
+         IpYq5cL/tQJ2zuY94HyD0dBigjAoQYcyxNZkY3tIsiJye10HqgT24twtH/Jmop1lWT4B
+         W1jw==
+X-Gm-Message-State: APjAAAWkDMtjTwwFlTBIn7kHQUeUb94yUX6xhveSnCe2ofiX4qwFJIma
+	udQqpeZTyw7sRwCKiG2Njq6HrbbMM7Q=
+X-Google-Smtp-Source: APXvYqyV0Nnfdlw43HYX2NtpfTy8Y6GbVxK+kT+L2aKtY9+C3d0QvwQEqVmCcemhXBozzqBO1VJS9Q==
+X-Received: by 2002:a63:510e:: with SMTP id f14mr2899834pgb.35.1578644450525;
+        Fri, 10 Jan 2020 00:20:50 -0800 (PST)
+Received: from santosiv.in.ibm.com ([129.41.84.78])
+        by smtp.gmail.com with ESMTPSA id d65sm1755123pfa.159.2020.01.10.00.20.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 10 Jan 2020 00:20:49 -0800 (PST)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: linux-nvdimm@lists.01.org,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH ndctl] ndctl/namespace: Fix enable-namespace error for seed namespaces
+Date: Fri, 10 Jan 2020 13:50:17 +0530
+Message-Id: <20200110082017.3485529-1-santosh@fossix.org>
+X-Mailer: git-send-email 2.24.1
+In-Reply-To: <157854344810.1994459.8270881085555839853.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <157854344810.1994459.8270881085555839853.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-X-Linutronix-Spam-Score: -1.0
-X-Linutronix-Spam-Level: -
-X-Linutronix-Spam-Status: No , -1.0 points, 5.0 required,  ALL_TRUSTED=-1,SHORTCIRCUIT=-0.0001
-Message-ID-Hash: B25QYIO7JLOTIQEMDFFXHPYAHOM2NXNX
-X-Message-ID-Hash: B25QYIO7JLOTIQEMDFFXHPYAHOM2NXNX
-X-MailFrom: tglx@linutronix.de
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Paul Mackerras <paulus@ozlabs.org>, Sean Christopherson <sean.j.christopherson@intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>, Wanpeng Li <wanpengli@tencent.com>, Jim Mattson <jmattson@google.com>, Joerg Roedel <joro@8bytes.org>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Marc Zyngier <maz@kernel.org>, James Morse <james.morse@arm.com>, Julien Thierry <julien.thierry.kdev@gmail.com>, Suzuki K Poulose <suzuki.poulose@arm.com>, kvm-ppc@vger.kernel.org, kvm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, syzbot+c9d1fb51ac9d0d10c39d@syzkaller.appspotmail.com, Andrea Arcangeli <aarcange@redhat.com>, Barret Rhoden <brho@google.com>, David Hildenbrand <david@redhat.com>, Jason Zeng <jason.zeng@intel.com>, Liran Alon <liran.alon@oracle.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Message-ID-Hash: 6PJ7O2WCGU3B4GIKYUIZBBGZJMJLOSCD
+X-Message-ID-Hash: 6PJ7O2WCGU3B4GIKYUIZBBGZJMJLOSCD
+X-MailFrom: santosh@fossix.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: harish@linux.ibm.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/B25QYIO7JLOTIQEMDFFXHPYAHOM2NXNX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6PJ7O2WCGU3B4GIKYUIZBBGZJMJLOSCD/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,26 +88,39 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Sean Christopherson <sean.j.christopherson@intel.com> writes:
+'ndctl enable-namespace all' tries to enable seed namespaces too, which results
+in a error like
 
-> diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-> index b5e49e6bac63..400ac8da75e8 100644
-> --- a/arch/x86/include/asm/pgtable_types.h
-> +++ b/arch/x86/include/asm/pgtable_types.h
-> @@ -561,6 +561,10 @@ static inline void update_page_count(int level, unsigned long pages) { }
->  extern pte_t *lookup_address(unsigned long address, unsigned int *level);
->  extern pte_t *lookup_address_in_pgd(pgd_t *pgd, unsigned long address,
->  				    unsigned int *level);
-> +
-> +struct mm_struct;
-> +pte_t *lookup_address_in_mm(struct mm_struct *mm, unsigned long address,
-> +			    unsigned int *level);
+libndctl: ndctl_namespace_enable: namespace1.0: failed to enable
 
-Please keep the file consistent and use extern even if not required.
+Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+---
+ ndctl/lib/libndctl.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Other than that:
-
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 6596f94..4839214 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -4010,11 +4010,16 @@ NDCTL_EXPORT int ndctl_namespace_enable(struct ndctl_namespace *ndns)
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+ 	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
+ 	struct ndctl_region *region = ndns->region;
++	unsigned long long size = ndctl_namespace_get_size(ndns);
+ 	int rc;
+ 
+ 	if (ndctl_namespace_is_enabled(ndns))
+ 		return 0;
+ 
++	/* Don't try to enable idle namespace (no capacity allocated) */
++	if (size == 0)
++		return -1;
++
+ 	rc = ndctl_bind(ctx, ndns->module, devname);
+ 
+ 	/*
+-- 
+2.24.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
