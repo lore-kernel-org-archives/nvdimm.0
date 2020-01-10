@@ -2,79 +2,81 @@ Return-Path: <SRS0=2e0I=27=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C39D1C282DD
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:06:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ADEAC282DD
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:07:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 961092087F
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:06:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id D058B2084D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:07:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="axed6TwD"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 961092087F
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="X1C81cDB"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D058B2084D
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6DE841007B8C7;
-	Fri, 10 Jan 2020 11:09:23 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	by ml01.01.org (Postfix) with ESMTP id A7F99100978C0;
+	Fri, 10 Jan 2020 11:10:28 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 15CD81007B8C1
-	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:09:21 -0800 (PST)
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3QXD131594;
-	Fri, 10 Jan 2020 19:04:41 GMT
+	by ml01.01.org (Postfix) with ESMTPS id D44C710097DD7
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:10:25 -0800 (PST)
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+	by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ489v101370;
+	Fri, 10 Jan 2020 19:06:48 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id; s=corp-2019-08-05;
- bh=K02kkFXDrMIX6YodXiO0Fgzhx0GR3LcBWdgkuRCLUG8=;
- b=axed6TwDxqR6ISlz7EM/dQfIM2IUtrTmNxzk4d/KRqjxctWY1PPr88tyDi//qdcLo+n1
- ZZFC1rXW0fk0F9HnCO9x5/4nhqQoQitlLIbckoeTLgXJ6NQjAwJSeng+CZ6V8W71bw1b
- cWV2SEttEYj3OnQqN4s6MvrMccKf/LgaAW+ePzHvEL53b3/nUUBI5YcEEtjcBL5rNAkX
- bFmsABeWtULk0tdyJ12ZZyOKkP7AFKxBU+XVlFbmUrl/EzYNiOwNvT3PMaezXhZmOtY8
- fBWAk6x5Z9lWu8a6sDyyFZxf1FbYN2gMToA5k26/g6ivw05wIacxFnrOtjCh8AzYUPnF Og==
+ subject : date : message-id : in-reply-to : references; s=corp-2019-08-05;
+ bh=MhOBiFDMMT29+VAIydrH0CPWpq+g29L7+unCxWM/Z+4=;
+ b=X1C81cDBcc6zBx6wUvH97zlln5XYqhJFsBOzb+NhMu64yTJ8Y8Ddy524aVvfH91E2Qwi
+ EljaT9eUhxVKyGw4JjWxSb2yVC/mWh5WpPBjBUcU5l0qypsatrtNjo2B4bFLqkzAS4ZU
+ //fove2KpjDxt5esFfPNHqMA0hYyEegwsYbmO3xnMXnnv3japqx+0vkuq4+PHVpY+jEP
+ ORAuknMDIv/gMEQhR2dx4O/iyOVJNAtA6pHnGJSYJ7EhlkgPpyvtAUE1Gov3iuBwlMqO
+ 3A3dMgroQeS2mRnxqfGduppkRINZ/5FXuG1dYndFA0HqcQVNMwCYuN11vKw6EJkeJvSk fQ==
 Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2130.oracle.com with ESMTP id 2xaj4um8fc-1
+	by aserp2120.oracle.com with ESMTP id 2xajnqm1kv-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jan 2020 19:04:41 +0000
+	Fri, 10 Jan 2020 19:06:48 +0000
 Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3tmo183684;
-	Fri, 10 Jan 2020 19:04:40 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-	by aserp3030.oracle.com with ESMTP id 2xedhyptmq-1
+	by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3rAK183505;
+	Fri, 10 Jan 2020 19:04:48 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3030.oracle.com with ESMTP id 2xedhyptut-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jan 2020 19:04:40 +0000
+	Fri, 10 Jan 2020 19:04:48 +0000
 Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-	by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00AJ4bCN006586;
-	Fri, 10 Jan 2020 19:04:37 GMT
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 00AJ4lHr021020;
+	Fri, 10 Jan 2020 19:04:47 GMT
 Received: from paddy.uk.oracle.com (/10.175.192.165)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Fri, 10 Jan 2020 11:04:36 -0800
+	with ESMTP ; Fri, 10 Jan 2020 11:04:47 -0800
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
-Subject: [PATCH RFC 00/10] device-dax: Support devices without PFN metadata
-Date: Fri, 10 Jan 2020 19:03:03 +0000
-Message-Id: <20200110190313.17144-1-joao.m.martins@oracle.com>
+Subject: [PATCH RFC 02/10] mm: Handle pmd entries in follow_pfn()
+Date: Fri, 10 Jan 2020 19:03:05 +0000
+Message-Id: <20200110190313.17144-3-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200110190313.17144-1-joao.m.martins@oracle.com>
+References: <20200110190313.17144-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9496 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=518
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.0.1-1911140001 definitions=main-2001100154
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9496 signatures=668685
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
+ suspectscore=1 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=574 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
  definitions=main-2001100154
-Message-ID-Hash: VVWHX4NDV2SA7LHCJMQ4MAOTIVMGHBUF
-X-Message-ID-Hash: VVWHX4NDV2SA7LHCJMQ4MAOTIVMGHBUF
+Message-ID-Hash: OE5QP6ZB4CXKK62HWOCBG3I5GTBKKSY5
+X-Message-ID-Hash: OE5QP6ZB4CXKK62HWOCBG3I5GTBKKSY5
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -82,7 +84,7 @@ CC: Alex Williamson <alex.williamson@redhat.com>, Cornelia Huck <cohuck@redhat.c
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VVWHX4NDV2SA7LHCJMQ4MAOTIVMGHBUF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OE5QP6ZB4CXKK62HWOCBG3I5GTBKKSY5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -92,183 +94,48 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hey,
+When follow_pfn hits a pmd_huge() it won't return a valid PFN
+given it's usage of follow_pte(). Fix that up to pass a @pmdpp
+and thus allow callers to get the pmd pointer. If we encounter
+such a huge page, we calculate the pfn offset to the PMD
+accordingly.
 
-Presented herewith a small series which allows device-dax to work without
-struct page to be used to back KVM guests memory. It's an RFC, and there's
-still some items we're looking at (see TODO below); but wondering if folks
-would be OK carving some time out of their busy schedules to provide feedback
-direction-wise on this work.
+This allows KVM to handle 2M hugepage pfns on VM_PFNMAP vmas.
 
-In virtualized environments (specially those with no kernel-backed PV
-interfaces, and just SR-IOV), memory is largelly assigned to guests: either
-persistent with NVDIMMs or volatile for regular RAM. The kernel
-(hypervisor) tracks it with 'struct page' (64b) for each 4K page. Overall
-we're spending 16GB for each 1Tb of host memory tracked that the kernel won't
-need  which could instead be used to create other guests. One of motivations of
-this series is to then get that memory used for 'struct page', when it is meant
-to solely be used by userspace. This is also useful for the case of memory
-backing guests virtual NVDIMMs. The other neat side effect is that the
-hypervisor has no virtual mapping of the guest and hence code gadgets (if
-found) are limited in their effectiveness.
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+---
+ mm/memory.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-It is expected that a smaller (instead of total) amount of host memory is
-defined for the kernel (with mem=X or memmap=X!Y). For KVM userspace VMM (e.g.
-QEMU), the main thing that is needed is a device which open + mmap + close with
-a certain alignment (4K, 2M, 1G). That made us look at device-dax which does
-just that and so the work comprised here was improving what's there and the
-interfaces it uses.
-
-The series is divided as follows:
-
- * Patch 1 , 3: Preparatory work for patch 7 for adding support for
-	       vmf_insert_{pmd,pud} with dax pfn flags PFN_DEV|PFN_SPECIAL
-	
- * Patch 2 , 4: Preparatory work for patch 7 for adding support for
-	       follow_pfn() to work with 2M/1G huge pages, which is
-	       what KVM uses for VM_PFNMAP.
-
- * Patch 5 - 7: One bugfix and device-dax support for PFN_DEV|PFN_SPECIAL,
-	       which encompasses mainly dealing with the lack of devmap,
-	       and creating a VM_PFNMAP vma.
-
- * Patch 8: PMEM support for no PFN metadata only for device-dax namespaces.
-	   At the very end of the cover letter (after scissors mark),
-	   there's a patch for ndctl to be able to create namespaces
-	   with '--mode devdax --map none'.
-
- * Patch 9: Let VFIO handle VM_PFNMAP without relying on vm_pgoff being
- 	    a PFN.
-
- * Patch 10: The actual end consumer example for RAM case. The patch just adds a
-	     label storage area which consequently allows namespaces to be
-	     created. We picked PMEM legacy for starters.
-
-Thoughts, coments appreciated.
-
-	Joao
-
-P.S. As an example to try this out:
-
- 1) add 'memmap=48G!16G' to the kernel command line, on a host with 64G,
- and kernel has 16G.
-
- 2) create a devdax namespace with 1G hugepages: 
-
- $ ndctl create-namespace --verbose --mode devdax --map none --size 32G --align 1G -r 0
+diff --git a/mm/memory.c b/mm/memory.c
+index cfc3668bddeb..db99684d2cb3 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -4366,6 +4366,7 @@ EXPORT_SYMBOL(follow_pte_pmd);
+ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+ 	unsigned long *pfn)
  {
-  "dev":"namespace0.0",
-  "mode":"devdax",
-  "map":"none",
-  "size":"32.00 GiB (34.36 GB)",
-  "uuid":"dfdd05cd-2611-46ac-8bcd-10b6194f32d4",
-  "daxregion":{
-    "id":0,
-    "size":"32.00 GiB (34.36 GB)",
-    "align":1073741824,
-    "devices":[
-      {
-        "chardev":"dax0.0",
-        "size":"32.00 GiB (34.36 GB)",
-        "target_node":0,
-        "mode":"devdax"
-      }
-    ]
-  },
-  "align":1073741824
- }
-
- 3) Add this to your qemu params:
-  -m 32G 
-  -object memory-backend-file,id=mem,size=32G,mem-path=/dev/dax0.0,share=on,align=1G
-  -numa node,memdev=mem
-
-TODO:
-
- * Discontiguous regions/namespaces: The work above is limited to max
-contiguous extent, coming from nvdimm dpa allocation heuristics -- which I take
-is because of what specs allow for persistent namespaces. But for volatile RAM
-case we would need handling of discontiguous extents (hence a region would represent
-more than a resource) to be less bound to how guests are placed on the system.
-I played around with multi-resource for device-dax, but I'm wondering about
-UABI: 1) whether nvdimm DPA allocation heuristics should be relaxed for RAM
-case (under certain nvdimm region bits); or if 2) device-dax would have it's
-own separate UABI to be used by daxctl (which would be also useful for hmem
-devices?).
-
- * MCE handling: For contiguous regions vm_pgoff could be set to the pfn in
-device-dax, which would allow collect_procs() to find the processes solely based
-on the PFN. But for discontiguous namespaces, not sure if this would work; perhaps
-looking at the dax-region pfn range for each DAX vma.
-
- * NUMA: For now excluded setting the target_node; while these two patches
- are being worked on[1][2].
-
- [1] https://lore.kernel.org/lkml/157401276776.43284.12396353118982684546.stgit@dwillia2-desk3.amr.corp.intel.com/
- [2] https://lore.kernel.org/lkml/157401277293.43284.3805106435228534675.stgit@dwillia2-desk3.amr.corp.intel.com/
-
-
-Joao Martins (9):
-  mm: Add pmd support for _PAGE_SPECIAL
-  mm: Handle pmd entries in follow_pfn()
-  mm: Add pud support for _PAGE_SPECIAL
-  mm: Handle pud entries in follow_pfn()
-  device-dax: Do not enforce MADV_DONTFORK on mmap()
-  device-dax: Introduce pfn_flags helper
-  device-dax: Add support for PFN_SPECIAL flags
-  dax/pmem: Add device-dax support for PFN_MODE_NONE
-  nvdimm/e820: add multiple namespaces support
-
-Nikita Leshenko (1):
-  vfio/type1: Use follow_pfn for VM_FPNMAP VMAs
-
- arch/x86/include/asm/pgtable.h  |  34 ++++-
- drivers/dax/bus.c               |   3 +-
- drivers/dax/device.c            |  78 ++++++++----
- drivers/dax/pmem/core.c         |  36 +++++-
- drivers/nvdimm/e820.c           | 212 ++++++++++++++++++++++++++++----
- drivers/vfio/vfio_iommu_type1.c |   6 +-
- mm/gup.c                        |   6 +
- mm/huge_memory.c                |  15 ++-
- mm/memory.c                     |  67 ++++++++--
- 9 files changed, 382 insertions(+), 75 deletions(-)
-
-8>----------------
-Subject: [PATCH] ndctl: add 'devdax' support for NDCTL_PFN_LOC_NONE
-
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 7fb00078646b..2568943eb207 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -206,6 +206,8 @@ static int set_defaults(enum device_action mode)
- 			/* pass */;
- 		else if (strcmp(param.map, "dev") == 0)
- 			/* pass */;
-+		else if (strcmp(param.map, "none") == 0)
-+			/* pass */;
- 		else {
- 			error("invalid map location '%s'\n", param.map);
- 			rc = -EINVAL;
-@@ -755,9 +757,17 @@ static int validate_namespace_options(struct ndctl_region *region,
- 	if (param.map) {
- 		if (!strcmp(param.map, "mem"))
- 			p->loc = NDCTL_PFN_LOC_RAM;
-+		else if (!strcmp(param.map, "none"))
-+			p->loc = NDCTL_PFN_LOC_NONE;
- 		else
- 			p->loc = NDCTL_PFN_LOC_PMEM;
++	pmd_t *pmdpp = NULL;
+ 	int ret = -EINVAL;
+ 	spinlock_t *ptl;
+ 	pte_t *ptep;
+@@ -4373,10 +4374,14 @@ int follow_pfn(struct vm_area_struct *vma, unsigned long address,
+ 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
+ 		return ret;
  
-+		if (p->loc == NDCTL_PFN_LOC_NONE
-+			&& p->mode != NDCTL_NS_MODE_DAX) {
-+			debug("--map=none only valid for devdax mode namespace\n");
-+			return -EINVAL;
-+		}
-+
- 		if (ndns && p->mode != NDCTL_NS_MODE_MEMORY
- 			&& p->mode != NDCTL_NS_MODE_DAX) {
- 			debug("%s: --map= only valid for fsdax mode namespace\n",
-
-
+-	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
++	ret = follow_pte_pmd(vma->vm_mm, address, NULL,
++			     &ptep, &pmdpp, &ptl);
+ 	if (ret)
+ 		return ret;
+-	*pfn = pte_pfn(*ptep);
++	if (pmdpp)
++		*pfn = pmd_pfn(*pmdpp) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
++	else
++		*pfn = pte_pfn(*ptep);
+ 	pte_unmap_unlock(ptep, ptl);
+ 	return 0;
+ }
 -- 
 2.17.1
 _______________________________________________
