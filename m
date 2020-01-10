@@ -7,60 +7,60 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90087C33CA3
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4B86C33CA5
 	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:06:01 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 673BA2087F
+	by mail.kernel.org (Postfix) with ESMTPS id 9B8A820842
 	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:06:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="eihdRw9s"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 673BA2087F
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="AnMka1g1"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9B8A820842
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 470071007B8C0;
+	by ml01.01.org (Postfix) with ESMTP id 5AFFF1007B8C4;
 	Fri, 10 Jan 2020 11:09:20 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
 Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id AA42F10096CA2
-	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:09:17 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 5FDAA100866F8
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:09:18 -0800 (PST)
 Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-	by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3IaH100963;
-	Fri, 10 Jan 2020 19:05:06 GMT
+	by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3Br1100944;
+	Fri, 10 Jan 2020 19:04:44 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2019-08-05;
- bh=C8D0pIaGNjjh2JphNwNEtO74QjeO7OaTgDpMn2oUCOQ=;
- b=eihdRw9sB5AAEspn7seM1U5ZcQbXLdkmwvsQYq2bO9Gh6HcrtIMT2X1++G3XqobSqNQJ
- 2th6fRWrI2JHwTh3bDyM3j7IFK/n4eaTF6XXuhcNM24OZw0++etfJw7hRiHC/FrZYrWq
- tXB3SxHo3dktk0cXhtdwWv+I3oeI3mjbpCxSvhgjVHD/nZ+c1/Een82LrDaX+2MSlm2z
- KBhhzugXijUeAt31lKRdngewyAINmeeKeg2nu1kGN93Iy/78Tlp81CmoCobLHGWW2xaa
- pn+lpZY2zX/iUxyX7w+gWnLRnd3lzaehmeXPVGVTarifoch91V/lvKx273jo77IMnCd9 eA==
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by aserp2120.oracle.com with ESMTP id 2xajnqm1cu-1
+ bh=lmAqIjgm7HVbSyXw06vW1C3Rvk9MKSm3/YBzLlEguL0=;
+ b=AnMka1g154EpkiM9ty3oJyhJn5eWfNl5iaIKez8elA1e04Peo9Aeateeo2qtcXUoJqKc
+ ZxPNkT/ypti5w79K0d/0fReEG/D5KXOdi5es5Lmd6MKy2mEmpMTZnJLE+CLzoaJJXZj+
+ zz37gPKnTkH0pMZ9NJWSZS/cM1b2LJs/Hq1pviSEV9L/wdxQbHsjZRhlTE3A01NiWZEt
+ wMjuLQhx+lkmMDA1Ue6GN/WswconK96BMLUfVc/vYO3TOUstM6vCaeqGUfsCoDmXOroU
+ dK2wo1Vpn6XP6n261naL7aPuAAppyBiaP24Mf9Nv+06hJejovTX9lYKCAD3Iwv/ks8b+ WA==
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by aserp2120.oracle.com with ESMTP id 2xajnqm1aq-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jan 2020 19:05:05 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ4Dwn106360;
-	Fri, 10 Jan 2020 19:05:05 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by userp3030.oracle.com with ESMTP id 2xevfdhx8d-1
+	Fri, 10 Jan 2020 19:04:43 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ49CZ069268;
+	Fri, 10 Jan 2020 19:04:43 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3020.oracle.com with ESMTP id 2xevfebtjk-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jan 2020 19:05:05 +0000
+	Fri, 10 Jan 2020 19:04:43 +0000
 Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00AJ54wI014657;
-	Fri, 10 Jan 2020 19:05:04 GMT
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 00AJ4gMM020986;
+	Fri, 10 Jan 2020 19:04:42 GMT
 Received: from paddy.uk.oracle.com (/10.175.192.165)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Fri, 10 Jan 2020 11:05:03 -0800
+	with ESMTP ; Fri, 10 Jan 2020 11:04:41 -0800
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
-Subject: [PATCH RFC 05/10] device-dax: Do not enforce MADV_DONTFORK on mmap()
-Date: Fri, 10 Jan 2020 19:03:08 +0000
-Message-Id: <20200110190313.17144-6-joao.m.martins@oracle.com>
+Subject: [PATCH RFC 01/10] mm: Add pmd support for _PAGE_SPECIAL
+Date: Fri, 10 Jan 2020 19:03:04 +0000
+Message-Id: <20200110190313.17144-2-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200110190313.17144-1-joao.m.martins@oracle.com>
 References: <20200110190313.17144-1-joao.m.martins@oracle.com>
@@ -75,8 +75,8 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=150
  lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
  definitions=main-2001100154
-Message-ID-Hash: OUPONUZ2HKMVRX6B4LOXBCZARGAZXYNO
-X-Message-ID-Hash: OUPONUZ2HKMVRX6B4LOXBCZARGAZXYNO
+Message-ID-Hash: 4WWROSWMSLJXYUHDFPRHPVDGBQNZU6GY
+X-Message-ID-Hash: 4WWROSWMSLJXYUHDFPRHPVDGBQNZU6GY
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -84,7 +84,7 @@ CC: Alex Williamson <alex.williamson@redhat.com>, Cornelia Huck <cohuck@redhat.c
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OUPONUZ2HKMVRX6B4LOXBCZARGAZXYNO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4WWROSWMSLJXYUHDFPRHPVDGBQNZU6GY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,80 +94,126 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently check_vma() checks for VM_DONTCOPY for a device-dax
-when the dax region is not backed by devmap (i.e. PFN_MAP is not set).
-VM_DONTCOPY is set through madvise(MADV_DONTFORK) and it only sets it
-at an address returned from mmap(). check_vma() is called at devdax
-mmap hence checking VM_DONTCOPY prevents a process from mmap-ing the
-device.
+Currently vmf_insert_pfn_pmd only works with devmap
+and BUG_ON otherwise. Add support for handling
+page special when pfn_t has it marked with PFN_SPECIAL.
 
-Let's not enforce MADV_DONTFORK at mmap(), but rather when it actually
-gets used (on fault). The assumptions don't change, as it is
-expected to still retain/madvise MADV_DONTFORK after mmap.
+Usage of page special aren't expected to do GUP
+hence return no pages on gup_huge_pmd() much like how
+it is done for ptes on gup_pte_range().
+
+This allows a DAX driver to handle 2M hugepages without
+struct pages.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- drivers/dax/device.c | 28 ++++++++++++++++++++--------
- 1 file changed, 20 insertions(+), 8 deletions(-)
+ arch/x86/include/asm/pgtable.h | 16 +++++++++++++++-
+ mm/gup.c                       |  3 +++
+ mm/huge_memory.c               |  7 ++++---
+ mm/memory.c                    |  3 ++-
+ 4 files changed, 24 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 1af823b2fe6b..c6a7f5e12c54 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -14,7 +14,7 @@
- #include "dax-private.h"
- #include "bus.h"
- 
--static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
-+static int check_vma_mmap(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 		const char *func)
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index ad97dc155195..60351c0c15fe 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -255,7 +255,7 @@ static inline int pmd_large(pmd_t pte)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline int pmd_trans_huge(pmd_t pmd)
  {
- 	struct dax_region *dax_region = dev_dax->region;
-@@ -41,17 +41,29 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
- 		return -EINVAL;
- 	}
+-	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
++	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP|_PAGE_SPECIAL)) == _PAGE_PSE;
+ }
  
--	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) == PFN_DEV
--			&& (vma->vm_flags & VM_DONTCOPY) == 0) {
-+	if (!vma_is_dax(vma)) {
- 		dev_info_ratelimited(dev,
--				"%s: %s: fail, dax range requires MADV_DONTFORK\n",
-+				"%s: %s: fail, vma is not DAX capable\n",
- 				current->comm, func);
- 		return -EINVAL;
- 	}
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+@@ -293,6 +293,15 @@ static inline int pgd_devmap(pgd_t pgd)
+ {
+ 	return 0;
+ }
++#endif
++
++#ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
++static inline int pmd_special(pmd_t pmd)
++{
++	return !!(pmd_flags(pmd) & _PAGE_SPECIAL);
++}
++#endif
++
+ #endif
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--	if (!vma_is_dax(vma)) {
--		dev_info_ratelimited(dev,
--				"%s: %s: fail, vma is not DAX capable\n",
-+	return 0;
+@@ -414,6 +423,11 @@ static inline pmd_t pmd_mkdevmap(pmd_t pmd)
+ 	return pmd_set_flags(pmd, _PAGE_DEVMAP);
+ }
+ 
++static inline pmd_t pmd_mkspecial(pmd_t pmd)
++{
++	return pmd_set_flags(pmd, _PAGE_SPECIAL);
 +}
 +
-+static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
-+		     const char *func)
-+{
-+	int rc;
-+
-+	rc = check_vma_mmap(dev_dax, vma, func);
-+	if (rc < 0)
-+		return rc;
-+
-+	if ((dev_dax->region->pfn_flags & (PFN_DEV|PFN_MAP)) == PFN_DEV
-+			&& (vma->vm_flags & VM_DONTCOPY) == 0) {
-+		dev_info_ratelimited(&dev_dax->dev,
-+				"%s: %s: fail, dax range requires MADV_DONTFORK\n",
- 				current->comm, func);
- 		return -EINVAL;
+ static inline pmd_t pmd_mkhuge(pmd_t pmd)
+ {
+ 	return pmd_set_flags(pmd, _PAGE_PSE);
+diff --git a/mm/gup.c b/mm/gup.c
+index 7646bf993b25..ba5f10535392 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2079,6 +2079,9 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+ 		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
  	}
-@@ -315,7 +327,7 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- 	 * fault time.
+ 
++	if (pmd_special(orig))
++		return 0;
++
+ 	refs = 0;
+ 	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 	do {
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 41a0fbddc96b..06ad4d6f7477 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -791,6 +791,8 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
+ 	if (pfn_t_devmap(pfn))
+ 		entry = pmd_mkdevmap(entry);
++	else if (pfn_t_special(pfn))
++		entry = pmd_mkspecial(entry);
+ 	if (write) {
+ 		entry = pmd_mkyoung(pmd_mkdirty(entry));
+ 		entry = maybe_pmd_mkwrite(entry, vma);
+@@ -823,8 +825,7 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write)
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
  	 */
- 	id = dax_read_lock();
--	rc = check_vma(dev_dax, vma, __func__);
-+	rc = check_vma_mmap(dev_dax, vma, __func__);
- 	dax_read_unlock(id);
- 	if (rc)
- 		return rc;
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
+-			!pfn_t_devmap(pfn));
++	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+@@ -2013,7 +2014,7 @@ spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma)
+ 	spinlock_t *ptl;
+ 	ptl = pmd_lock(vma->vm_mm, pmd);
+ 	if (likely(is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) ||
+-			pmd_devmap(*pmd)))
++			pmd_devmap(*pmd) || pmd_special(*pmd)))
+ 		return ptl;
+ 	spin_unlock(ptl);
+ 	return NULL;
+diff --git a/mm/memory.c b/mm/memory.c
+index 45442d9a4f52..cfc3668bddeb 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1165,7 +1165,8 @@ static inline unsigned long zap_pmd_range(struct mmu_gather *tlb,
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
++		if (is_swap_pmd(*pmd) || pmd_trans_huge(*pmd) ||
++		    pmd_devmap(*pmd) || pmd_special(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE)
+ 				__split_huge_pmd(vma, pmd, addr, false, NULL);
+ 			else if (zap_huge_pmd(tlb, vma, pmd, addr))
 -- 
 2.17.1
 _______________________________________________
