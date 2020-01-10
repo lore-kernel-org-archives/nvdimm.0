@@ -2,81 +2,81 @@ Return-Path: <SRS0=2e0I=27=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,UNWANTED_LANGUAGE_BODY,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AB18C282DD
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:05:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E5C0C33CA5
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:05:57 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 31110214D8
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:05:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 542CF2051A
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:05:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="JrPCmplD"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 31110214D8
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="CrULY4cf"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 542CF2051A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0A3EF10096C97;
-	Fri, 10 Jan 2020 11:09:15 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	by ml01.01.org (Postfix) with ESMTP id 21AEE10096C9B;
+	Fri, 10 Jan 2020 11:09:16 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0684A10096C96
-	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:09:09 -0800 (PST)
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3xrK131913;
-	Fri, 10 Jan 2020 19:05:32 GMT
+	by ml01.01.org (Postfix) with ESMTPS id A60EA100978DF
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:09:14 -0800 (PST)
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+	by userp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3CH8110888;
+	Fri, 10 Jan 2020 19:04:54 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2019-08-05;
- bh=KCRuAAvQAwl0rfqZGNTEjq3Xbk+5StxMV3R+zKC6+g8=;
- b=JrPCmplD9EMEh51IfNBg19dXdZpwX0YSrH0fuLXZbPtzBggR1OlVflWX3ojalVgEQ16k
- YfQESJzZDYlOWPMN2sTcqvz9ZXxYTDy32sFop2GrM41KDU3xYuc6wJ6yiPKXXPBApWZT
- xOsCwsJEfeWi1ChoY5o/CkkaxUK7gFzYpGvcUIkqT3p183iiqFmsrAFCTAYZ8Sd5r1IZ
- JgsiPMiCL0pQM/GeOjZQeEhh5n/rinDIpAy8EFAivHI1yoeAOjZ7M6YzFO0woSNnYz/A
- 8qPEjY4km8oE0MYe0GaQeAF7E4a/XDEj3UHH1SX8Ln3csinf83vsCblTS8thQ1MHXt3c /w==
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2130.oracle.com with ESMTP id 2xaj4um8jn-1
+ bh=91h706fXsdEJXZDnw67zTo1mSfBkU/j9Erd5I1z7aCg=;
+ b=CrULY4cfFvZsA2qw7NIKPR6egO/hAPbaNQDQeIddAlyjfmNf1Eu7rlxJDD/C7SWOFlb4
+ 9FssiPbqhbHhrXyUFQNfA+/whTHpQmArL4bk0lhHg8iFDxVB8nEtCrg1leogQp7KL8d/
+ cg3EF1XYzYE6iLJtVGueP1TEFX+eQ3IFLsVLqxSaIGn68F22OMey6y7SwAOCE8K03WVZ
+ 4FES+ozykOyjgQRqbzlfhx5Jx+8f5EtIkLQc5icI/NZsuR9nGjlgOEkWdyMSfNnVnR+e
+ BSHpYCrrxgINh2JOT56+QBxKIDT2FqGWz04t14mdO+ttS7R3qna5FMqoU3Wqoi2kPatj hw==
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by userp2120.oracle.com with ESMTP id 2xakbrbyq7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jan 2020 19:05:32 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3tj7183577;
-	Fri, 10 Jan 2020 19:05:31 GMT
+	Fri, 10 Jan 2020 19:04:54 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ4A0l069372;
+	Fri, 10 Jan 2020 19:04:53 GMT
 Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by aserp3030.oracle.com with ESMTP id 2xedhypv58-1
+	by aserp3020.oracle.com with ESMTP id 2xevfebv47-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 10 Jan 2020 19:05:31 +0000
+	Fri, 10 Jan 2020 19:04:53 +0000
 Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00AJ5UBM014974;
-	Fri, 10 Jan 2020 19:05:30 GMT
+	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00AJ4qpm014575;
+	Fri, 10 Jan 2020 19:04:52 GMT
 Received: from paddy.uk.oracle.com (/10.175.192.165)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Fri, 10 Jan 2020 11:05:29 -0800
+	with ESMTP ; Fri, 10 Jan 2020 11:04:52 -0800
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
-Subject: [PATCH RFC 10/10] nvdimm/e820: add multiple namespaces support
-Date: Fri, 10 Jan 2020 19:03:13 +0000
-Message-Id: <20200110190313.17144-11-joao.m.martins@oracle.com>
+Subject: [PATCH RFC 03/10] mm: Add pud support for _PAGE_SPECIAL
+Date: Fri, 10 Jan 2020 19:03:06 +0000
+Message-Id: <20200110190313.17144-4-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200110190313.17144-1-joao.m.martins@oracle.com>
 References: <20200110190313.17144-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9496 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=3 malwarescore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 malwarescore=0
  phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.0.1-1911140001 definitions=main-2001100154
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9496 signatures=668685
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=3 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ suspectscore=1 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
  lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
  definitions=main-2001100154
-Message-ID-Hash: 3DPPCTZ66IG37BA4PKDKU5JV4NSS53OR
-X-Message-ID-Hash: 3DPPCTZ66IG37BA4PKDKU5JV4NSS53OR
+Message-ID-Hash: AGCIKPR7PRI3YJPOHP7OIYUNWMYOV4R3
+X-Message-ID-Hash: AGCIKPR7PRI3YJPOHP7OIYUNWMYOV4R3
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -84,7 +84,7 @@ CC: Alex Williamson <alex.williamson@redhat.com>, Cornelia Huck <cohuck@redhat.c
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3DPPCTZ66IG37BA4PKDKU5JV4NSS53OR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AGCIKPR7PRI3YJPOHP7OIYUNWMYOV4R3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,283 +94,130 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-User can define regions with 'memmap=size!offset' which in turn
-creates PMEM legacy devices. But because it is a label-less
-NVDIMM device we only have one namespace for the whole device.
+Currently vmf_insert_pfn_pud only works with devmap
+and BUG_ON otherwise. Add support for handling
+page special when pfn_t has it marked with PFN_SPECIAL.
 
-Add support for multiple namespaces by adding ndctl control
-support, and exposing a minimal set of features:
-(ND_CMD_GET_CONFIG_SIZE, ND_CMD_GET_CONFIG_DATA,
-ND_CMD_SET_CONFIG_DATA) alongside NDD_ALIASING because we can
-store labels.
+Usage of this type of pages aren't expected to do GUP
+hence return no pages on gup_huge_pud() much like how
+it is done for ptes on gup_pte_range() and for pmds on
+gup_huge_pmd().
 
-Initialization is a little different: We allocate and register an
-nvdimm bus with an @nvdimm_descriptor which we use to locate
-where we are keeping our label storage area. The config data
-get/set/size operations are then simply memcpying to this area.
-
-Equivalent approach can also be found in the NFIT tests which
-emulate the same thing.
+This allows device-dax to handle 1G hugepages without
+struct pages.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- drivers/nvdimm/e820.c | 212 +++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 191 insertions(+), 21 deletions(-)
+ arch/x86/include/asm/pgtable.h | 18 +++++++++++++++++-
+ mm/gup.c                       |  3 +++
+ mm/huge_memory.c               |  8 +++++---
+ mm/memory.c                    |  3 ++-
+ 4 files changed, 27 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/nvdimm/e820.c b/drivers/nvdimm/e820.c
-index e02f60ad6c99..36fbff3d7110 100644
---- a/drivers/nvdimm/e820.c
-+++ b/drivers/nvdimm/e820.c
-@@ -7,14 +7,21 @@
- #include <linux/memory_hotplug.h>
- #include <linux/libnvdimm.h>
- #include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/ndctl.h>
-+#include <linux/nd.h>
- 
--static int e820_pmem_remove(struct platform_device *pdev)
--{
--	struct nvdimm_bus *nvdimm_bus = platform_get_drvdata(pdev);
-+#define LABEL_SIZE SZ_128K
- 
--	nvdimm_bus_unregister(nvdimm_bus);
--	return 0;
--}
-+struct e820_descriptor {
-+	struct nd_interleave_set nd_set;
-+	struct nvdimm_bus_descriptor nd_desc;
-+	void *label;
-+	unsigned char cookie1[16];
-+	unsigned char cookie2[16];
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct nvdimm *nvdimm;
-+};
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int e820_range_to_nid(resource_size_t addr)
-@@ -28,43 +35,206 @@ static int e820_range_to_nid(resource_size_t addr)
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 60351c0c15fe..2027c063fa16 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -261,7 +261,7 @@ static inline int pmd_trans_huge(pmd_t pmd)
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static inline int pud_trans_huge(pud_t pud)
+ {
+-	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
++	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP|_PAGE_SPECIAL)) == _PAGE_PSE;
  }
  #endif
  
-+static int e820_get_config_size(struct nd_cmd_get_config_size *nd_cmd,
-+				unsigned int buf_len)
+@@ -300,6 +300,17 @@ static inline int pmd_special(pmd_t pmd)
+ {
+ 	return !!(pmd_flags(pmd) & _PAGE_SPECIAL);
+ }
++
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++static inline int pud_special(pud_t pud)
 +{
-+	if (buf_len < sizeof(*nd_cmd))
-+		return -EINVAL;
-+
-+	nd_cmd->status = 0;
-+	nd_cmd->config_size = LABEL_SIZE;
-+	nd_cmd->max_xfer = SZ_4K;
-+
++	return !!(pud_flags(pud) & _PAGE_SPECIAL);
++}
++#else
++static inline int pud_special(pud_t pud)
++{
 +	return 0;
 +}
-+
-+static int e820_get_config_data(struct nd_cmd_get_config_data_hdr
-+		*nd_cmd, unsigned int buf_len, void *label)
-+{
-+	unsigned int len, offset = nd_cmd->in_offset;
-+	int rc;
-+
-+	if (buf_len < sizeof(*nd_cmd))
-+		return -EINVAL;
-+	if (offset >= LABEL_SIZE)
-+		return -EINVAL;
-+	if (nd_cmd->in_length + sizeof(*nd_cmd) > buf_len)
-+		return -EINVAL;
-+
-+	nd_cmd->status = 0;
-+	len = min(nd_cmd->in_length, LABEL_SIZE - offset);
-+	memcpy(nd_cmd->out_buf, label + offset, len);
-+	rc = buf_len - sizeof(*nd_cmd) - len;
-+
-+	return rc;
-+}
-+
-+static int e820_set_config_data(struct nd_cmd_set_config_hdr *nd_cmd,
-+		unsigned int buf_len, void *label)
-+{
-+	unsigned int len, offset = nd_cmd->in_offset;
-+	u32 *status;
-+	int rc;
-+
-+	if (buf_len < sizeof(*nd_cmd))
-+		return -EINVAL;
-+	if (offset >= LABEL_SIZE)
-+		return -EINVAL;
-+	if (nd_cmd->in_length + sizeof(*nd_cmd) + 4 > buf_len)
-+		return -EINVAL;
-+
-+	status = (void *)nd_cmd + nd_cmd->in_length + sizeof(*nd_cmd);
-+	*status = 0;
-+	len = min(nd_cmd->in_length, LABEL_SIZE - offset);
-+	memcpy(label + offset, nd_cmd->in_buf, len);
-+	rc = buf_len - sizeof(*nd_cmd) - (len + 4);
-+
-+	return rc;
-+}
-+
-+static struct e820_descriptor *to_e820_desc(struct nvdimm_bus_descriptor *desc)
-+{
-+	return container_of(desc, struct e820_descriptor, nd_desc);
-+}
-+
-+static int e820_ndctl(struct nvdimm_bus_descriptor *nd_desc,
-+			 struct nvdimm *nvdimm, unsigned int cmd, void *buf,
-+			 unsigned int buf_len, int *cmd_rc)
-+{
-+	struct e820_descriptor *t = to_e820_desc(nd_desc);
-+	int rc = -EINVAL;
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		rc = e820_get_config_size(buf, buf_len);
-+		break;
-+	case ND_CMD_GET_CONFIG_DATA:
-+		rc = e820_get_config_data(buf, buf_len, t->label);
-+		break;
-+	case ND_CMD_SET_CONFIG_DATA:
-+		rc = e820_set_config_data(buf, buf_len, t->label);
-+		break;
-+	default:
-+		return rc;
-+	}
-+
-+	return rc;
-+}
-+
-+static void e820_desc_free(struct e820_descriptor *desc)
-+{
-+	if (!desc)
-+		return;
-+
-+	nvdimm_bus_unregister(desc->nvdimm_bus);
-+	kfree(desc->label);
-+	kfree(desc);
-+}
-+
-+static struct e820_descriptor *e820_desc_alloc(struct platform_device *pdev)
-+{
-+	struct nvdimm_bus_descriptor *nd_desc;
-+	unsigned int cmd_mask, dimm_flags;
-+	struct device *dev = &pdev->dev;
-+	struct nvdimm_bus *nvdimm_bus;
-+	struct e820_descriptor *desc;
-+	struct nvdimm *nvdimm;
-+
-+	desc = kzalloc(sizeof(*desc), GFP_KERNEL);
-+	if (!desc)
-+		goto err;
-+
-+	desc->label = kzalloc(LABEL_SIZE, GFP_KERNEL);
-+	if (!desc->label)
-+		goto err;
-+
-+	nd_desc = &desc->nd_desc;
-+	nd_desc->provider_name = "e820";
-+	nd_desc->module = THIS_MODULE;
-+	nd_desc->ndctl = e820_ndctl;
-+	nvdimm_bus = nvdimm_bus_register(&pdev->dev, nd_desc);
-+	if (!nvdimm_bus) {
-+		dev_err(dev, "nvdimm bus registration failure\n");
-+		goto err;
-+	}
-+	desc->nvdimm_bus = nvdimm_bus;
-+
-+	cmd_mask = (1UL << ND_CMD_GET_CONFIG_SIZE |
-+			1UL << ND_CMD_GET_CONFIG_DATA |
-+			1UL << ND_CMD_SET_CONFIG_DATA);
-+	dimm_flags = (1UL << NDD_ALIASING);
-+	nvdimm = nvdimm_create(nvdimm_bus, pdev, NULL,
-+				dimm_flags, cmd_mask, 0, NULL);
-+	if (!nvdimm) {
-+		dev_err(dev, "nvdimm creation failure\n");
-+		goto err;
-+	}
-+	desc->nvdimm = nvdimm;
-+	return desc;
-+
-+err:
-+	e820_desc_free(desc);
-+	return NULL;
-+}
-+
- static int e820_register_one(struct resource *res, void *data)
- {
-+	struct platform_device *pdev = data;
- 	struct nd_region_desc ndr_desc;
--	struct nvdimm_bus *nvdimm_bus = data;
-+	struct nd_mapping_desc mapping;
-+	struct e820_descriptor *desc;
-+
-+	desc = e820_desc_alloc(pdev);
-+	if (!desc)
-+		return -ENOMEM;
-+
-+	mapping.nvdimm = desc->nvdimm;
-+	mapping.start = res->start;
-+	mapping.size = resource_size(res);
-+	mapping.position = 0;
-+
-+	generate_random_uuid(desc->cookie1);
-+	desc->nd_set.cookie1 = (u64) desc->cookie1;
-+	generate_random_uuid(desc->cookie2);
-+	desc->nd_set.cookie2 = (u64) desc->cookie2;
+ #endif
  
- 	memset(&ndr_desc, 0, sizeof(ndr_desc));
- 	ndr_desc.res = res;
- 	ndr_desc.numa_node = e820_range_to_nid(res->start);
- 	ndr_desc.target_node = ndr_desc.numa_node;
-+	ndr_desc.mapping = &mapping;
-+	ndr_desc.num_mappings = 1;
-+	ndr_desc.nd_set = &desc->nd_set;
- 	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
--	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
-+	if (!nvdimm_pmem_region_create(desc->nvdimm_bus, &ndr_desc)) {
-+		e820_desc_free(desc);
-+		dev_err(&pdev->dev, "nvdimm region creation failure\n");
- 		return -ENXIO;
-+	}
-+
-+	platform_set_drvdata(pdev, desc);
-+	return 0;
-+}
-+
-+static int e820_pmem_remove(struct platform_device *pdev)
-+{
-+	struct e820_descriptor *desc = platform_get_drvdata(pdev);
-+
-+	e820_desc_free(desc);
- 	return 0;
+ #endif
+@@ -487,6 +498,11 @@ static inline pud_t pud_mkhuge(pud_t pud)
+ 	return pud_set_flags(pud, _PAGE_PSE);
  }
  
- static int e820_pmem_probe(struct platform_device *pdev)
++static inline pud_t pud_mkspecial(pud_t pud)
++{
++	return pud_set_flags(pud, _PAGE_SPECIAL);
++}
++
+ static inline pud_t pud_mkyoung(pud_t pud)
  {
--	static struct nvdimm_bus_descriptor nd_desc;
--	struct device *dev = &pdev->dev;
--	struct nvdimm_bus *nvdimm_bus;
- 	int rc = -ENXIO;
+ 	return pud_set_flags(pud, _PAGE_ACCESSED);
+diff --git a/mm/gup.c b/mm/gup.c
+index ba5f10535392..ae4abe5878ad 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2123,6 +2123,9 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+ 		return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
+ 	}
  
--	nd_desc.provider_name = "e820";
--	nd_desc.module = THIS_MODULE;
--	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
--	if (!nvdimm_bus)
--		goto err;
--	platform_set_drvdata(pdev, nvdimm_bus);
--
- 	rc = walk_iomem_res_desc(IORES_DESC_PERSISTENT_MEMORY_LEGACY,
--			IORESOURCE_MEM, 0, -1, nvdimm_bus, e820_register_one);
-+			IORESOURCE_MEM, 0, -1, pdev, e820_register_one);
- 	if (rc)
- 		goto err;
- 	return 0;
- err:
--	nvdimm_bus_unregister(nvdimm_bus);
--	dev_err(dev, "failed to register legacy persistent memory ranges\n");
-+	dev_err(&pdev->dev, "failed to register legacy persistent memory ranges\n");
- 	return rc;
- }
++	if (pud_special(orig))
++		return 0;
++
+ 	refs = 0;
+ 	page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+ 	do {
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 06ad4d6f7477..cff707163bc1 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -879,6 +879,8 @@ static void insert_pfn_pud(struct vm_area_struct *vma, unsigned long addr,
+ 	entry = pud_mkhuge(pfn_t_pud(pfn, prot));
+ 	if (pfn_t_devmap(pfn))
+ 		entry = pud_mkdevmap(entry);
++	else if (pfn_t_special(pfn))
++		entry = pud_mkspecial(entry);
+ 	if (write) {
+ 		entry = pud_mkyoung(pud_mkdirty(entry));
+ 		entry = maybe_pud_mkwrite(entry, vma);
+@@ -901,8 +903,7 @@ vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn, bool write)
+ 	 * but we need to be consistent with PTEs and architectures that
+ 	 * can't support a 'special' bit.
+ 	 */
+-	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
+-			!pfn_t_devmap(pfn));
++	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
+ 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
+ 						(VM_PFNMAP|VM_MIXEDMAP));
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+@@ -2031,7 +2032,8 @@ spinlock_t *__pud_trans_huge_lock(pud_t *pud, struct vm_area_struct *vma)
+ 	spinlock_t *ptl;
  
+ 	ptl = pud_lock(vma->vm_mm, pud);
+-	if (likely(pud_trans_huge(*pud) || pud_devmap(*pud)))
++	if (likely(pud_trans_huge(*pud) || pud_devmap(*pud)) ||
++		   pud_special(*pud))
+ 		return ptl;
+ 	spin_unlock(ptl);
+ 	return NULL;
+diff --git a/mm/memory.c b/mm/memory.c
+index db99684d2cb3..109643219e1b 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1201,7 +1201,8 @@ static inline unsigned long zap_pud_range(struct mmu_gather *tlb,
+ 	pud = pud_offset(p4d, addr);
+ 	do {
+ 		next = pud_addr_end(addr, end);
+-		if (pud_trans_huge(*pud) || pud_devmap(*pud)) {
++		if (pud_trans_huge(*pud) || pud_devmap(*pud) ||
++		    pud_special(*pud)) {
+ 			if (next - addr != HPAGE_PUD_SIZE) {
+ 				VM_BUG_ON_VMA(!rwsem_is_locked(&tlb->mm->mmap_sem), vma);
+ 				split_huge_pud(vma, pud, addr);
 -- 
 2.17.1
 _______________________________________________
