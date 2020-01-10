@@ -2,119 +2,158 @@ Return-Path: <SRS0=2e0I=27=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DADCC282DD
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 17:56:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16157C282DD
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:05:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E250B2080D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 17:56:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id DC3F320838
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jan 2020 19:05:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="NBesgImp"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E250B2080D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="akuQOJ4o"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC3F320838
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8663110097DD6;
-	Fri, 10 Jan 2020 09:59:59 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::341; helo=mail-ot1-x341.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x341.google.com (mail-ot1-x341.google.com [IPv6:2607:f8b0:4864:20::341])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 87A6810097DD7;
+	Fri, 10 Jan 2020 11:08:54 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 79E7C10097DD2
-	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 09:59:57 -0800 (PST)
-Received: by mail-ot1-x341.google.com with SMTP id k14so2782235otn.4
-        for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 09:56:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=W3PWjx3JfKLsAXlDElcUMaB7uUfwmy5lvbGHGy1SJK4=;
-        b=NBesgImpfZTueLo5VrUYb4CNOZNGlX3yIGmQQjVi1E21PwUTORK9s/awLYxZSm3/jv
-         ROx1ujiyYMbmujdJFRlG3TVgLdn1kr2CSft9kLvlIpBeE+JLVxXx3/oLKTRqgTPMwF2j
-         i+kqaTvGvr7I3bk+/MdgAU/hvHoSLIjoEPbKnMQdmcXnGwsc+WotJ21kMhoKWG9ZJZzb
-         i3na2SP3AC40uBhiEqPYbWkbxzHeNsBgFTl/32lSw0/vz82mz3NOMA5g2YpRCvZi7WqE
-         kQ/RD1bhkrdjWKC/07DPThVLaTX9KjR531GguSMVO4qlV9/kRDEJszOQmrTyj+2PBRu8
-         uAbA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=W3PWjx3JfKLsAXlDElcUMaB7uUfwmy5lvbGHGy1SJK4=;
-        b=AEmqVWiRIcey9t1V3TxEiEOaTz4WoHwi14dEabnwplWrNVdrJJhVjkKfy6EKNyqhPd
-         2Dkm7Fsdtbp+QtWGIFm8mDKEz43W2QsP5rOEjUW8EWslYYEj7EOV8DFbcMfMHeuaI5X0
-         W6zmjd84J3wqUQu5UynZ/Amc5OJDpA8n6Hnqjuc116l1+QdDRVcTDOp50FfxcrJggqM2
-         F4beSnDawQve+/1RYwvAEBlcHaPkmJCO97ZVPJ2wzKGkuyVytFU8FECovdOHR2ss437x
-         VMJeHoewyghKYp/+TQFK2elQy+0oHGKDQNiI9AKsVmoERT0qY4Z9kdVhudG7FgdR4zOE
-         Dazw==
-X-Gm-Message-State: APjAAAUjlf7y1NzNp5v1BOcURH85rKox68YlWlzgP/FrVRGKrl1uicYc
-	y0LyWEXNc6af+B7cXsdldh/YODPEUXDqYYBju7HR7w==
-X-Google-Smtp-Source: APXvYqz+QrVu67/pBuFiBABU3ocZu9tMGl2+pqO8AAJy5OPsBl7k+eet4z8xwsrmd8mfOP56/EOK9fZ1Q5ebsSBaRcY=
-X-Received: by 2002:a9d:68cc:: with SMTP id i12mr3479557oto.207.1578678997162;
- Fri, 10 Jan 2020 09:56:37 -0800 (PST)
-MIME-Version: 1.0
-References: <157854344810.1994459.8270881085555839853.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20200110082017.3485529-1-santosh@fossix.org>
-In-Reply-To: <20200110082017.3485529-1-santosh@fossix.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 Jan 2020 09:56:26 -0800
-Message-ID: <CAPcyv4h-ke4Jorqx6md+gfgVupNgXn-qm8Yx7vaLNa4O+91jeg@mail.gmail.com>
-Subject: Re: [PATCH ndctl] ndctl/namespace: Fix enable-namespace error for
- seed namespaces
-To: Santosh Sivaraj <santosh@fossix.org>
-Message-ID-Hash: KPUCC6EZB3TMKJD6SZX2FSUOLIL3HKV4
-X-Message-ID-Hash: KPUCC6EZB3TMKJD6SZX2FSUOLIL3HKV4
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, harish@linux.ibm.com
+	by ml01.01.org (Postfix) with ESMTPS id 1F0BD10097DD5
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jan 2020 11:08:53 -0800 (PST)
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+	by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ4GGE101455;
+	Fri, 10 Jan 2020 19:05:10 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references; s=corp-2019-08-05;
+ bh=MHgz05oZOaycJTUzvHe+/2r6D+V+CAPUNuF1+l0RUqk=;
+ b=akuQOJ4oyrHAWCsm1Qeez7Nv1vtW+9n8sxvrA44yFKWjM07BtIuB9c9UCV2ceeiIfhD5
+ fcXALB3yW5Ym7HofN0nVLwDzwkAhDMLQa2lH+WiYpMQxdXMIiPgKDgKF2nt8IwqmyXfn
+ jx6DbzVey39Sm9YdfSUM77U3azh8MRz7Ru89NkhyOw92HIKtlfX4s48NMcSAFrERCkJQ
+ BzbvVZuCAeFo6IuoNGxV20zPc7LJ5AIxAvRZRuIfyx+8gJASy4gPQ2BL8oaYunc1dQ8J
+ svR8Gbn6/CRGg3c5y0py2nYZycHMISPY5mlPhfDCDB/p3Sx0QvtaowAlxYgcZi9kUGDr mw==
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+	by aserp2120.oracle.com with ESMTP id 2xajnqm1d0-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 10 Jan 2020 19:05:10 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+	by aserp3030.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00AJ3t1e183573;
+	Fri, 10 Jan 2020 19:05:09 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+	by aserp3030.oracle.com with ESMTP id 2xedhypum9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 10 Jan 2020 19:05:09 +0000
+Received: from abhmp0013.oracle.com (abhmp0013.oracle.com [141.146.116.19])
+	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00AJ59wD014700;
+	Fri, 10 Jan 2020 19:05:09 GMT
+Received: from paddy.uk.oracle.com (/10.175.192.165)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Fri, 10 Jan 2020 11:05:08 -0800
+From: Joao Martins <joao.m.martins@oracle.com>
+To: linux-nvdimm@lists.01.org
+Subject: [PATCH RFC 06/10] device-dax: Introduce pfn_flags helper
+Date: Fri, 10 Jan 2020 19:03:09 +0000
+Message-Id: <20200110190313.17144-7-joao.m.martins@oracle.com>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200110190313.17144-1-joao.m.martins@oracle.com>
+References: <20200110190313.17144-1-joao.m.martins@oracle.com>
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9496 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 malwarescore=0
+ phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=800
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.0.1-1911140001 definitions=main-2001100154
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9496 signatures=668685
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
+ suspectscore=1 phishscore=0 bulkscore=0 spamscore=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=865 adultscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
+ definitions=main-2001100154
+Message-ID-Hash: 2O2UXM2B2HYB6JHA6TEUOPFW5TT72TBN
+X-Message-ID-Hash: 2O2UXM2B2HYB6JHA6TEUOPFW5TT72TBN
+X-MailFrom: joao.m.martins@oracle.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Alex Williamson <alex.williamson@redhat.com>, Cornelia Huck <cohuck@redhat.com>, kvm@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Liran Alon <liran.alon@oracle.com>, Nikita Leshenko <nikita.leshchenko@oracle.com>, Barret Rhoden <brho@google.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Matthew Wilcox <willy@infradead.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KPUCC6EZB3TMKJD6SZX2FSUOLIL3HKV4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2O2UXM2B2HYB6JHA6TEUOPFW5TT72TBN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 10, 2020 at 12:21 AM Santosh Sivaraj <santosh@fossix.org> wrote:
->
-> 'ndctl enable-namespace all' tries to enable seed namespaces too, which results
-> in a error like
->
-> libndctl: ndctl_namespace_enable: namespace1.0: failed to enable
->
-> Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
-> ---
->  ndctl/lib/libndctl.c | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-> index 6596f94..4839214 100644
-> --- a/ndctl/lib/libndctl.c
-> +++ b/ndctl/lib/libndctl.c
-> @@ -4010,11 +4010,16 @@ NDCTL_EXPORT int ndctl_namespace_enable(struct ndctl_namespace *ndns)
->         const char *devname = ndctl_namespace_get_devname(ndns);
->         struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
->         struct ndctl_region *region = ndns->region;
-> +       unsigned long long size = ndctl_namespace_get_size(ndns);
->         int rc;
->
->         if (ndctl_namespace_is_enabled(ndns))
->                 return 0;
->
-> +       /* Don't try to enable idle namespace (no capacity allocated) */
-> +       if (size == 0)
-> +               return -1;
+Replace PFN_DEV|PFN_MAP check call sites with two helper functions
+dax_is_pfn_dev() and dax_is_pfn_map().
 
-Concept looks good to me, just resend with that -1 changed to a named
-error code (-ENXIO).
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+---
+ drivers/dax/device.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index c6a7f5e12c54..113a554de3ee 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -14,6 +14,17 @@
+ #include "dax-private.h"
+ #include "bus.h"
+ 
++static int dax_is_pfn_dev(struct dev_dax *dev_dax)
++{
++	return (dev_dax->region->pfn_flags & (PFN_DEV|PFN_MAP)) == PFN_DEV;
++}
++
++static int dax_is_pfn_map(struct dev_dax *dev_dax)
++{
++	return (dev_dax->region->pfn_flags &
++		(PFN_DEV|PFN_MAP)) == (PFN_DEV|PFN_MAP);
++}
++
+ static int check_vma_mmap(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 		const char *func)
+ {
+@@ -60,8 +71,7 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	if ((dev_dax->region->pfn_flags & (PFN_DEV|PFN_MAP)) == PFN_DEV
+-			&& (vma->vm_flags & VM_DONTCOPY) == 0) {
++	if (dax_is_pfn_dev(dev_dax) && (vma->vm_flags & VM_DONTCOPY) == 0) {
+ 		dev_info_ratelimited(&dev_dax->dev,
+ 				"%s: %s: fail, dax range requires MADV_DONTFORK\n",
+ 				current->comm, func);
+@@ -140,7 +150,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 	}
+ 
+ 	/* dax pmd mappings require pfn_t_devmap() */
+-	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
++	if (!dax_is_pfn_map(dev_dax)) {
+ 		dev_dbg(dev, "region lacks devmap flags\n");
+ 		return VM_FAULT_SIGBUS;
+ 	}
+@@ -190,7 +200,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 	}
+ 
+ 	/* dax pud mappings require pfn_t_devmap() */
+-	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
++	if (!dax_is_pfn_map(dev_dax)) {
+ 		dev_dbg(dev, "region lacks devmap flags\n");
+ 		return VM_FAULT_SIGBUS;
+ 	}
+-- 
+2.17.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
