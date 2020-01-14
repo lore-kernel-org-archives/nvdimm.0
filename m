@@ -2,93 +2,83 @@ Return-Path: <SRS0=V8Pd=3D=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60FEBC33CB1
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 08:43:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5732C33CB2
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 20:31:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 26DE5207FF
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 08:43:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id B27D824655
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 20:31:52 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="QBggGLZ2"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 26DE5207FF
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aGNveF/y"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B27D824655
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 96ABD10097E0C;
-	Tue, 14 Jan 2020 00:46:29 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=dan.carpenter@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 1F11F10097DA6;
+	Tue, 14 Jan 2020 12:35:11 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id F23DE10097DF6
-	for <linux-nvdimm@lists.01.org>; Tue, 14 Jan 2020 00:46:27 -0800 (PST)
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-	by aserp2120.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00E8h4qf037205;
-	Tue, 14 Jan 2020 08:43:04 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2019-08-05;
- bh=6e/W9TQHg2xePSimcFP2Q3jO4cc4W9D6PWex2C6fsU4=;
- b=QBggGLZ2dhJzcmsoH2/qO79QuzRdqaLO0X67jUtBcsLiQ6+nFHKe/lq6kxRACIxTrnjj
- 4wMbzVgFbBpgShZP7J43Hdn1f/OqgcJe41abgKn5nk1yxRLnX4k9jasKmv61mMbNfF+a
- zXX7GJs+60itiq4N1weg7UBRFy+lLVB9eMQIIAYQa95ic6a+TBCS6Po2i1yiucWY8eL9
- IozcQI8In/uQNkwF4h34+c6lZCT+aX5BYKlgvjOPFdACG6hK2oGQDz2vUfyMz9XSKG8E
- HwHnz2QEG0oqcixcHLoIugrHyqLStXTI1f/9YM0xDGRePd3YVCIFsPJc+8GyA2TYuvpk rQ==
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by aserp2120.oracle.com with ESMTP id 2xf73tmarc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 14 Jan 2020 08:43:04 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.0.27/8.16.0.27) with SMTP id 00E8d7WV143109;
-	Tue, 14 Jan 2020 08:41:03 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by userp3020.oracle.com with ESMTP id 2xh8ernms0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 14 Jan 2020 08:41:03 +0000
-Received: from abhmp0016.oracle.com (abhmp0016.oracle.com [141.146.116.22])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 00E8f12N008342;
-	Tue, 14 Jan 2020 08:41:01 GMT
-Received: from kadam (/129.205.23.165)
-	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Tue, 14 Jan 2020 00:41:00 -0800
-Date: Tue, 14 Jan 2020 11:40:51 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: syzbot <syzbot+002f559bf34c2c7467d0@syzkaller.appspotmail.com>,
-        dave.jiang@intel.com, dan.j.williams@intel.com
-Subject: Re: KASAN: vmalloc-out-of-bounds Read in acpi_nfit_ctl
-Message-ID: <20200114084051.GB3719@kadam>
-References: <0000000000009acfef059c13c771@google.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1974A10097DFB
+	for <linux-nvdimm@lists.01.org>; Tue, 14 Jan 2020 12:35:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1579033908;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wtpq5coZ2n/ZQ8jUD3c2zBl1PMy/gRfERqCXjCgcqe0=;
+	b=aGNveF/y13pQdlpCrRHJjfk9+pVVd/SUw6ttc5hrkTGS5M8AQRVlR0Wm9wiay5zThIP3Hm
+	sLzYtrKp8VyouXQLl7b4F0i1CaInHDOAX77rLNv12H8L7peA4vuxyQzi8ZM72D3I4/WbuP
+	vZn01Pbf6O+PiLDpAfIOMg+n2Ifbem4=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-54-8W0FTxhgPbSbgnwHyRaNiQ-1; Tue, 14 Jan 2020 15:31:45 -0500
+X-MC-Unique: 8W0FTxhgPbSbgnwHyRaNiQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BA35EDB62;
+	Tue, 14 Jan 2020 20:31:43 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id D992760BE0;
+	Tue, 14 Jan 2020 20:31:38 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 6B78F220A24; Tue, 14 Jan 2020 15:31:38 -0500 (EST)
+Date: Tue, 14 Jan 2020 15:31:38 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 01/19] dax: remove block device dependencies
+Message-ID: <20200114203138.GA3145@redhat.com>
+References: <20200107125159.GA15745@infradead.org>
+ <CAPcyv4jZE35sbDo6J4ihioEUFTuekJ3_h0=2Ra4PY+xn2xn1cQ@mail.gmail.com>
+ <20200107170731.GA472641@magnolia>
+ <CAPcyv4ggH7-QhYg+YOOWn_m25uds+-0L46=N09ap-LALeGuU_A@mail.gmail.com>
+ <20200107180101.GC15920@redhat.com>
+ <CAPcyv4gmdoqpwwwy4dS3D2eZFjmJ_Zi39k=1a4wn-_ksm-UV4A@mail.gmail.com>
+ <20200107183307.GD15920@redhat.com>
+ <CAPcyv4ggoS4dWjq-1KbcuaDtroHKEi5Vu19ggJ-qgycs6w1eCA@mail.gmail.com>
+ <20200109112447.GG27035@quack2.suse.cz>
+ <CAPcyv4j5Mra8qeLO3=+BYZMeXNAxFXv7Ex7tL9gra1TbhOgiqg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <0000000000009acfef059c13c771@google.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9499 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 spamscore=0 mlxscore=0 mlxlogscore=999
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.0.1-1911140001 definitions=main-2001140076
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9499 signatures=668685
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 malwarescore=0
- suspectscore=0 phishscore=0 bulkscore=0 spamscore=0 clxscore=1011
- lowpriorityscore=0 mlxscore=0 impostorscore=0 mlxlogscore=999 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.0.1-1911140001
- definitions=main-2001140077
-Message-ID-Hash: 3KHWYY3MWKLGQI56RFRX2NWJXQAPFKAM
-X-Message-ID-Hash: 3KHWYY3MWKLGQI56RFRX2NWJXQAPFKAM
-X-MailFrom: dan.carpenter@oracle.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, rjw@rjwysocki.net, syzkaller-bugs@googlegroups.com
+In-Reply-To: <CAPcyv4j5Mra8qeLO3=+BYZMeXNAxFXv7Ex7tL9gra1TbhOgiqg@mail.gmail.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Message-ID-Hash: 6Z5MLDU72ZJKIGTBFCTQRFDHTL2I2TE2
+X-Message-ID-Hash: 6Z5MLDU72ZJKIGTBFCTQRFDHTL2I2TE2
+X-MailFrom: vgoyal@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3KHWYY3MWKLGQI56RFRX2NWJXQAPFKAM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6Z5MLDU72ZJKIGTBFCTQRFDHTL2I2TE2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -97,155 +87,65 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jan 13, 2020 at 10:34:10PM -0800, syzbot wrote:
-> Hello,
+On Thu, Jan 09, 2020 at 12:03:01PM -0800, Dan Williams wrote:
+> On Thu, Jan 9, 2020 at 3:27 AM Jan Kara <jack@suse.cz> wrote:
+> >
+> > On Tue 07-01-20 10:49:55, Dan Williams wrote:
+> > > On Tue, Jan 7, 2020 at 10:33 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > > W.r.t partitioning, bdev_dax_pgoff() seems to be the pain point where
+> > > > dax code refers back to block device to figure out partition offset in
+> > > > dax device. If we create a dax object corresponding to "struct block_device"
+> > > > and store sector offset in that, then we could pass that object to dax
+> > > > code and not worry about referring back to bdev. I have written some
+> > > > proof of concept code and called that object "dax_handle". I can post
+> > > > that code if there is interest.
+> > >
+> > > I don't think it's worth it in the end especially considering
+> > > filesystems are looking to operate on /dev/dax devices directly and
+> > > remove block entanglements entirely.
+> > >
+> > > > IMHO, it feels useful to be able to partition and use a dax capable
+> > > > block device in same way as non-dax block device. It will be really
+> > > > odd to think that if filesystem is on /dev/pmem0p1, then dax can't
+> > > > be enabled but if filesystem is on /dev/mapper/pmem0p1, then dax
+> > > > will work.
+> > >
+> > > That can already happen today. If you do not properly align the
+> > > partition then dax operations will be disabled. This proposal just
+> > > extends that existing failure domain to make all partitions fail to
+> > > support dax.
+> >
+> > Well, I have some sympathy with the sysadmin that has /dev/pmem0 device,
+> > decides to create partitions on it for whatever (possibly misguided)
+> > reason and then ponders why the hell DAX is not working? And PAGE_SIZE
+> > partition alignment is so obvious and widespread that I don't count it as a
+> > realistic error case sysadmins would be pondering about currently.
+> >
+> > So I'd find two options reasonably consistent:
+> > 1) Keep status quo where partitions are created and support DAX.
+> > 2) Stop partition creation altogether, if anyones wants to split pmem
+> > device further, he can use dm-linear for that (i.e., kpartx).
+> >
+> > But I'm not sure if the ship hasn't already sailed for option 2) to be
+> > feasible without angry users and Linus reverting the change.
 > 
-> syzbot found the following crash on:
+> Christoph? I feel myself leaning more and more to the "keep pmem
+> partitions" camp.
 > 
-> HEAD commit:    040a3c33 Merge tag 'iommu-fixes-v5.5-rc5' of git://git.ker..
-> git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=120a5d8ee00000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=7e89bd00623fe71e
-> dashboard link: https://syzkaller.appspot.com/bug?extid=002f559bf34c2c7467d0
-> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
-> userspace arch: i386
+> I don't see "drop partition support" effort ending well given the long
+> standing "ext4 fails to mount when dax is not available" precedent.
 > 
-> Unfortunately, I don't have any reproducer for this crash yet.
-> 
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+002f559bf34c2c7467d0@syzkaller.appspotmail.com
-> 
-> ==================================================================
-> BUG: KASAN: vmalloc-out-of-bounds in test_bit
-> include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
-> BUG: KASAN: vmalloc-out-of-bounds in acpi_nfit_ctl+0x47f/0x1840
-> drivers/acpi/nfit/core.c:495
-> Read of size 8 at addr ffffc90002ddbbb8 by task syz-executor.1/5941
-> 
-> CPU: 3 PID: 5941 Comm: syz-executor.1 Not tainted 5.5.0-rc5-syzkaller #0
-> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS
-> rel-1.12.0-59-gc9ba5276e321-prebuilt.qemu.org 04/01/2014
-> Call Trace:
->  __dump_stack lib/dump_stack.c:77 [inline]
->  dump_stack+0x197/0x210 lib/dump_stack.c:118
->  print_address_description.constprop.0.cold+0x5/0x30b mm/kasan/report.c:374
->  __kasan_report.cold+0x1b/0x41 mm/kasan/report.c:506
->  kasan_report+0x12/0x20 mm/kasan/common.c:639
->  check_memory_region_inline mm/kasan/generic.c:185 [inline]
->  check_memory_region+0x134/0x1a0 mm/kasan/generic.c:192
->  __kasan_check_read+0x11/0x20 mm/kasan/common.c:95
->  test_bit include/asm-generic/bitops/instrumented-non-atomic.h:110 [inline]
->  acpi_nfit_ctl+0x47f/0x1840 drivers/acpi/nfit/core.c:495
->  __nd_ioctl drivers/nvdimm/bus.c:1152 [inline]
->  nd_ioctl.isra.0+0xfe2/0x1580 drivers/nvdimm/bus.c:1230
+> I think the next least bad option is to have a dax_get_by_host()
+> variant that passes an offset and length pair rather than requiring a
+> later bdev_dax_pgoff() to recall the offset. This also prevents
+> needing to add another dax-device object representation.
 
-drivers/acpi/nfit/core.c
-   438  int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
-   439                  unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
-                                          ^^^^^^^^^
-"buf" comes from the user.
+I am wondering what's the conclusion on this. I want to this to make
+progress in some direction so that I can make progress on virtiofs DAX
+support.
 
-   440  {
-   441          struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
-   442          struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
-   443          union acpi_object in_obj, in_buf, *out_obj;
-   444          const struct nd_cmd_desc *desc = NULL;
-   445          struct device *dev = acpi_desc->dev;
-   446          struct nd_cmd_pkg *call_pkg = NULL;
-   447          const char *cmd_name, *dimm_name;
-   448          unsigned long cmd_mask, dsm_mask;
-   449          u32 offset, fw_status = 0;
-   450          acpi_handle handle;
-   451          const guid_t *guid;
-   452          int func, rc, i;
-   453  
-   454          if (cmd_rc)
-   455                  *cmd_rc = -EINVAL;
-   456  
-   457          if (cmd == ND_CMD_CALL)
-   458                  call_pkg = buf;
-                        ^^^^^^^^^^^^^^
-   459          func = cmd_to_func(nfit_mem, cmd, call_pkg);
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-func is call_pkg->nd_command so it comes from the user.
-
-   460          if (func < 0)
-   461                  return func;
-   462  
-   463          if (nvdimm) {
-   464                  struct acpi_device *adev = nfit_mem->adev;
-   465  
-   466                  if (!adev)
-   467                          return -ENOTTY;
-   468  
-   469                  dimm_name = nvdimm_name(nvdimm);
-   470                  cmd_name = nvdimm_cmd_name(cmd);
-   471                  cmd_mask = nvdimm_cmd_mask(nvdimm);
-   472                  dsm_mask = nfit_mem->dsm_mask;
-   473                  desc = nd_cmd_dimm_desc(cmd);
-   474                  guid = to_nfit_uuid(nfit_mem->family);
-   475                  handle = adev->handle;
-   476          } else {
-   477                  struct acpi_device *adev = to_acpi_dev(acpi_desc);
-   478  
-   479                  cmd_name = nvdimm_bus_cmd_name(cmd);
-   480                  cmd_mask = nd_desc->cmd_mask;
-   481                  dsm_mask = nd_desc->bus_dsm_mask;
-   482                  desc = nd_cmd_bus_desc(cmd);
-   483                  guid = to_nfit_uuid(NFIT_DEV_BUS);
-   484                  handle = adev->handle;
-   485                  dimm_name = "bus";
-   486          }
-   487  
-   488          if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
-   489                  return -ENOTTY;
-   490  
-   491          /*
-   492           * Check for a valid command.  For ND_CMD_CALL, we also have to
-   493           * make sure that the DSM function is supported.
-   494           */
-   495          if (cmd == ND_CMD_CALL && !test_bit(func, &dsm_mask))
-                                                    ^^^^
-If func is more than sizeof(long) * 8 then this will overflow.  The
-temptation is to add a check on func in cmd_to_func() but capping it at
-sizeof(long) * 8 feels unnatural and I'm not sure what the max function
-should be.
-
-[Edit.  I see below that > 31 is not supported. ]
-
-   496                  return -ENOTTY;
-   497          else if (!test_bit(cmd, &cmd_mask))
-   498                  return -ENOTTY;
-   499  
-   500          in_obj.type = ACPI_TYPE_PACKAGE;
-   501          in_obj.package.count = 1;
-   502          in_obj.package.elements = &in_buf;
-
-There is a another problem in acpi_nfit_clear_to_send().
-
-acpi/nfit/core.c
-  3485  /* prevent security commands from being issued via ioctl */
-  3486  static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
-  3487                  struct nvdimm *nvdimm, unsigned int cmd, void *buf)
-  3488  {
-  3489          struct nd_cmd_pkg *call_pkg = buf;
-  3490          unsigned int func;
-  3491  
-  3492          if (nvdimm && cmd == ND_CMD_CALL &&
-  3493                          call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
-  3494                  func = call_pkg->nd_command;
-  3495                  if ((1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
-                             ^^^^^^^^^
-This is undefined if func is greater than 31.
-
-  3496                          return -EOPNOTSUPP;
-  3497          }
-  3498  
-  3499          return __acpi_nfit_clear_to_send(nd_desc, nvdimm, cmd);
-  3500  }
-
-regards,
-dan carpenter
+Thanks
+Vivek
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
