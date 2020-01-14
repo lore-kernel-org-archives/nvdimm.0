@@ -2,82 +2,83 @@ Return-Path: <SRS0=V8Pd=3D=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE166C33CB3
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 20:39:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA0AAC33C9E
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 21:28:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C448A24670
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 20:39:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 4839924656
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jan 2020 21:28:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="1ufiHoIh"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C448A24670
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="W73v8VQ9"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4839924656
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2769A10097DAF;
-	Tue, 14 Jan 2020 12:42:33 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::344; helo=mail-ot1-x344.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id B278E10097DB8;
+	Tue, 14 Jan 2020 13:31:39 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E8AAC10097E0A
-	for <linux-nvdimm@lists.01.org>; Tue, 14 Jan 2020 12:42:31 -0800 (PST)
-Received: by mail-ot1-x344.google.com with SMTP id p8so13953505oth.10
-        for <linux-nvdimm@lists.01.org>; Tue, 14 Jan 2020 12:39:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KIZnzMCbYIPyWmmiZXOrwZsr2d1DaLuYf9PqBFFGxaY=;
-        b=1ufiHoIhgkel1wNgfe5RR02iDJ6+fd8UzlDlpmsKFP4dFT9Zw+z+eHe5IHCwBCzia3
-         Qx3uIUdT99fmuIsed3Wcx0ZiytVs24h1TKYzEHptbEJN6KLwBLnismJWzCM54qIzbXng
-         6i+ainEaEBsD70PzhoIWMZ4fJhRG9/48EC7wGC+l3Tme4CNXCr+PDkn9oDjPuVkiudiu
-         Jx7Hin+lVNC4afdBHw5tEOHqQLhQ+LCEm1bcbgLD2uj8DLGYhrZaQksVeFHTnazOxnuZ
-         Kf5qJe/0whlXEMBDWBNM1CA1AAsAXa05zB+qlcDBZa7WUgJ3Wn6b+JSCmcNfsshtiJ1A
-         CETA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KIZnzMCbYIPyWmmiZXOrwZsr2d1DaLuYf9PqBFFGxaY=;
-        b=AzQ3Up1a+eGExDbZJV4EVImnGpC+bPFZuCqNrUly7irtc4zDtEFhwk4wvdvZuUQQUT
-         iHEL+sKDYe7dIurpSJmxix5W8ducQwOZXrvfDhuryHN6/uw41VQU2/BGD5azvPfbDmwb
-         NOABtm6SSr1gfExfJ5L6Dlalg0j6DUp3voQCDkZrdqAe7LDyO8c8f6uzxEp0/+uDeoUm
-         6D0Bbx9OVCd9lbCE+TWzG43Jt5wHpjmSZmes92A0HSVNUi7D+WiUJnU7nXnlP7MTqqlJ
-         YU9A92U0Q5CJo8iP8OWBKtxZWOz86l4WpKFaz11M+svq9h22rOSh2HtwpsFsLEFmRfFM
-         DrPw==
-X-Gm-Message-State: APjAAAWb0oh/ER1fSCNiNoYxtn0mSEH5JHqyQv2qpM7o9WBcl1ui5yNx
-	5XBHAj5aIdbP+X1GQhGjaTG0ORKx6QjOO1a0s9Ssrw==
-X-Google-Smtp-Source: APXvYqzvyu/O19EV+W3nd5Qbhe0VPu8Zpxx4j6lAGURR9nwfPKNQXF393TmIiEgkujYPUIcgpRgr0BZ6QoEDec2+nxI=
-X-Received: by 2002:a9d:68d3:: with SMTP id i19mr130746oto.71.1579034351613;
- Tue, 14 Jan 2020 12:39:11 -0800 (PST)
-MIME-Version: 1.0
-References: <20200107125159.GA15745@infradead.org> <CAPcyv4jZE35sbDo6J4ihioEUFTuekJ3_h0=2Ra4PY+xn2xn1cQ@mail.gmail.com>
- <20200107170731.GA472641@magnolia> <CAPcyv4ggH7-QhYg+YOOWn_m25uds+-0L46=N09ap-LALeGuU_A@mail.gmail.com>
- <20200107180101.GC15920@redhat.com> <CAPcyv4gmdoqpwwwy4dS3D2eZFjmJ_Zi39k=1a4wn-_ksm-UV4A@mail.gmail.com>
- <20200107183307.GD15920@redhat.com> <CAPcyv4ggoS4dWjq-1KbcuaDtroHKEi5Vu19ggJ-qgycs6w1eCA@mail.gmail.com>
- <20200109112447.GG27035@quack2.suse.cz> <CAPcyv4j5Mra8qeLO3=+BYZMeXNAxFXv7Ex7tL9gra1TbhOgiqg@mail.gmail.com>
- <20200114203138.GA3145@redhat.com>
-In-Reply-To: <20200114203138.GA3145@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 14 Jan 2020 12:39:00 -0800
-Message-ID: <CAPcyv4iXKFt207Pen+E1CnqCFtC1G85fxw5EXFVx+jtykGWMXA@mail.gmail.com>
+	by ml01.01.org (Postfix) with ESMTPS id A71D210097DB4
+	for <linux-nvdimm@lists.01.org>; Tue, 14 Jan 2020 13:31:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1579037297;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=CmEl4tOAlf+q1dssiqaydOdwINh9FE1HPfFzHT2TJms=;
+	b=W73v8VQ9HPGMDgLyKAp+MPRGddfr87f9RSwMTzAZ4lYPeMCBC2gRPkl3OV8LFEE4C5/ATm
+	Aepu3BhIikiXBZFu5ux+opaXLExbFWlqwDYVufq7Tq8rWeMk7lFut4aQ6QW4/OryKnS0jd
+	P3QyoTivHKGhklppm17km5p+X9WiAH0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-225-ulhA3bQmN5-1R1ohd67YdA-1; Tue, 14 Jan 2020 16:28:12 -0500
+X-MC-Unique: ulhA3bQmN5-1R1ohd67YdA-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9B0CE100728F;
+	Tue, 14 Jan 2020 21:28:10 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id B2C7B10372F3;
+	Tue, 14 Jan 2020 21:28:05 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 47D7B220A24; Tue, 14 Jan 2020 16:28:05 -0500 (EST)
+Date: Tue, 14 Jan 2020 16:28:05 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: [PATCH 01/19] dax: remove block device dependencies
-To: Vivek Goyal <vgoyal@redhat.com>
-Message-ID-Hash: JLBEWFXBJARX3FGJ6WIDU5IMYVJQGTSA
-X-Message-ID-Hash: JLBEWFXBJARX3FGJ6WIDU5IMYVJQGTSA
-X-MailFrom: dan.j.williams@intel.com
+Message-ID: <20200114212805.GB3145@redhat.com>
+References: <20200107170731.GA472641@magnolia>
+ <CAPcyv4ggH7-QhYg+YOOWn_m25uds+-0L46=N09ap-LALeGuU_A@mail.gmail.com>
+ <20200107180101.GC15920@redhat.com>
+ <CAPcyv4gmdoqpwwwy4dS3D2eZFjmJ_Zi39k=1a4wn-_ksm-UV4A@mail.gmail.com>
+ <20200107183307.GD15920@redhat.com>
+ <CAPcyv4ggoS4dWjq-1KbcuaDtroHKEi5Vu19ggJ-qgycs6w1eCA@mail.gmail.com>
+ <20200109112447.GG27035@quack2.suse.cz>
+ <CAPcyv4j5Mra8qeLO3=+BYZMeXNAxFXv7Ex7tL9gra1TbhOgiqg@mail.gmail.com>
+ <20200114203138.GA3145@redhat.com>
+ <CAPcyv4iXKFt207Pen+E1CnqCFtC1G85fxw5EXFVx+jtykGWMXA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iXKFt207Pen+E1CnqCFtC1G85fxw5EXFVx+jtykGWMXA@mail.gmail.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Message-ID-Hash: C5MLJHCCWX5X77GBLKCJBDM3LRYJJSVK
+X-Message-ID-Hash: C5MLJHCCWX5X77GBLKCJBDM3LRYJJSVK
+X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JLBEWFXBJARX3FGJ6WIDU5IMYVJQGTSA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C5MLJHCCWX5X77GBLKCJBDM3LRYJJSVK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -86,70 +87,105 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 14, 2020 at 12:31 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Thu, Jan 09, 2020 at 12:03:01PM -0800, Dan Williams wrote:
-> > On Thu, Jan 9, 2020 at 3:27 AM Jan Kara <jack@suse.cz> wrote:
-> > >
-> > > On Tue 07-01-20 10:49:55, Dan Williams wrote:
-> > > > On Tue, Jan 7, 2020 at 10:33 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > > > W.r.t partitioning, bdev_dax_pgoff() seems to be the pain point where
-> > > > > dax code refers back to block device to figure out partition offset in
-> > > > > dax device. If we create a dax object corresponding to "struct block_device"
-> > > > > and store sector offset in that, then we could pass that object to dax
-> > > > > code and not worry about referring back to bdev. I have written some
-> > > > > proof of concept code and called that object "dax_handle". I can post
-> > > > > that code if there is interest.
-> > > >
-> > > > I don't think it's worth it in the end especially considering
-> > > > filesystems are looking to operate on /dev/dax devices directly and
-> > > > remove block entanglements entirely.
-> > > >
-> > > > > IMHO, it feels useful to be able to partition and use a dax capable
-> > > > > block device in same way as non-dax block device. It will be really
-> > > > > odd to think that if filesystem is on /dev/pmem0p1, then dax can't
-> > > > > be enabled but if filesystem is on /dev/mapper/pmem0p1, then dax
-> > > > > will work.
-> > > >
-> > > > That can already happen today. If you do not properly align the
-> > > > partition then dax operations will be disabled. This proposal just
-> > > > extends that existing failure domain to make all partitions fail to
-> > > > support dax.
-> > >
-> > > Well, I have some sympathy with the sysadmin that has /dev/pmem0 device,
-> > > decides to create partitions on it for whatever (possibly misguided)
-> > > reason and then ponders why the hell DAX is not working? And PAGE_SIZE
-> > > partition alignment is so obvious and widespread that I don't count it as a
-> > > realistic error case sysadmins would be pondering about currently.
-> > >
-> > > So I'd find two options reasonably consistent:
-> > > 1) Keep status quo where partitions are created and support DAX.
-> > > 2) Stop partition creation altogether, if anyones wants to split pmem
-> > > device further, he can use dm-linear for that (i.e., kpartx).
-> > >
-> > > But I'm not sure if the ship hasn't already sailed for option 2) to be
-> > > feasible without angry users and Linus reverting the change.
+On Tue, Jan 14, 2020 at 12:39:00PM -0800, Dan Williams wrote:
+> On Tue, Jan 14, 2020 at 12:31 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 > >
-> > Christoph? I feel myself leaning more and more to the "keep pmem
-> > partitions" camp.
+> > On Thu, Jan 09, 2020 at 12:03:01PM -0800, Dan Williams wrote:
+> > > On Thu, Jan 9, 2020 at 3:27 AM Jan Kara <jack@suse.cz> wrote:
+> > > >
+> > > > On Tue 07-01-20 10:49:55, Dan Williams wrote:
+> > > > > On Tue, Jan 7, 2020 at 10:33 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > > > > W.r.t partitioning, bdev_dax_pgoff() seems to be the pain point where
+> > > > > > dax code refers back to block device to figure out partition offset in
+> > > > > > dax device. If we create a dax object corresponding to "struct block_device"
+> > > > > > and store sector offset in that, then we could pass that object to dax
+> > > > > > code and not worry about referring back to bdev. I have written some
+> > > > > > proof of concept code and called that object "dax_handle". I can post
+> > > > > > that code if there is interest.
+> > > > >
+> > > > > I don't think it's worth it in the end especially considering
+> > > > > filesystems are looking to operate on /dev/dax devices directly and
+> > > > > remove block entanglements entirely.
+> > > > >
+> > > > > > IMHO, it feels useful to be able to partition and use a dax capable
+> > > > > > block device in same way as non-dax block device. It will be really
+> > > > > > odd to think that if filesystem is on /dev/pmem0p1, then dax can't
+> > > > > > be enabled but if filesystem is on /dev/mapper/pmem0p1, then dax
+> > > > > > will work.
+> > > > >
+> > > > > That can already happen today. If you do not properly align the
+> > > > > partition then dax operations will be disabled. This proposal just
+> > > > > extends that existing failure domain to make all partitions fail to
+> > > > > support dax.
+> > > >
+> > > > Well, I have some sympathy with the sysadmin that has /dev/pmem0 device,
+> > > > decides to create partitions on it for whatever (possibly misguided)
+> > > > reason and then ponders why the hell DAX is not working? And PAGE_SIZE
+> > > > partition alignment is so obvious and widespread that I don't count it as a
+> > > > realistic error case sysadmins would be pondering about currently.
+> > > >
+> > > > So I'd find two options reasonably consistent:
+> > > > 1) Keep status quo where partitions are created and support DAX.
+> > > > 2) Stop partition creation altogether, if anyones wants to split pmem
+> > > > device further, he can use dm-linear for that (i.e., kpartx).
+> > > >
+> > > > But I'm not sure if the ship hasn't already sailed for option 2) to be
+> > > > feasible without angry users and Linus reverting the change.
+> > >
+> > > Christoph? I feel myself leaning more and more to the "keep pmem
+> > > partitions" camp.
+> > >
+> > > I don't see "drop partition support" effort ending well given the long
+> > > standing "ext4 fails to mount when dax is not available" precedent.
+> > >
+> > > I think the next least bad option is to have a dax_get_by_host()
+> > > variant that passes an offset and length pair rather than requiring a
+> > > later bdev_dax_pgoff() to recall the offset. This also prevents
+> > > needing to add another dax-device object representation.
 > >
-> > I don't see "drop partition support" effort ending well given the long
-> > standing "ext4 fails to mount when dax is not available" precedent.
-> >
-> > I think the next least bad option is to have a dax_get_by_host()
-> > variant that passes an offset and length pair rather than requiring a
-> > later bdev_dax_pgoff() to recall the offset. This also prevents
-> > needing to add another dax-device object representation.
->
-> I am wondering what's the conclusion on this. I want to this to make
-> progress in some direction so that I can make progress on virtiofs DAX
-> support.
+> > I am wondering what's the conclusion on this. I want to this to make
+> > progress in some direction so that I can make progress on virtiofs DAX
+> > support.
+> 
+> I think we should at least try to delete the partition support and see
+> if anyone screams. Have a module option to revert the behavior so
+> people are not stuck waiting for the revert to land, but if it stays
+> quiet then we're in a better place with that support pushed out of the
+> dax core.
 
-I think we should at least try to delete the partition support and see
-if anyone screams. Have a module option to revert the behavior so
-people are not stuck waiting for the revert to land, but if it stays
-quiet then we're in a better place with that support pushed out of the
-dax core.
+Hi Dan,
+
+So basically keep partition support code just that disable it by default
+and it is enabled by some knob say kernel command line option/module
+option.
+
+At what point of time will we remove that code completely. I mean what
+if people scream after two kernel releases, after we have removed the
+code.
+
+Also, from distribution's perspective, we might not hear from our
+customers for a very long time (till we backport that code in to
+existing releases or release this new code in next major release). From
+that view point I will not like to break existing user visible behavior.
+
+How bad it is to keep partition support around. To me it feels reasonaly
+simple where we just have to store offset into dax device into another
+dax object and pass that object around (instead of dax_device). If that's
+the case, I am not sure why to even venture into a direction where some
+user's setup might be broken.
+
+Also from an application perspective, /dev/pmem is a block device, so it
+should behave like a block device, (including kernel partition table support).
+From that view, dax looks like just an additional feature of that device
+which can be enabled by passing option "-o dax".
+
+IOW, can we reconsider the idea of not supporting kernel partition tables
+for dax capable block devices. I can only see downsides of removing kernel
+partition table support and only upside seems to be little cleanup of dax
+core code.
+
+Thanks
+Vivek
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
