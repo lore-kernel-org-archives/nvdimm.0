@@ -2,64 +2,76 @@ Return-Path: <SRS0=+IV0=3E=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E93EC33CB1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Jan 2020 09:03:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E703C32771
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Jan 2020 16:55:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 26D3D24655
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Jan 2020 09:03:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 26D3D24655
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+	by mail.kernel.org (Postfix) with ESMTPS id 485EE214AF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Jan 2020 16:55:40 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LqlB/C5C"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 485EE214AF
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 656D610097DC2;
-	Wed, 15 Jan 2020 01:06:38 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 895DC10097DC7;
+	Wed, 15 Jan 2020 08:58:58 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6224C10097DAF
-	for <linux-nvdimm@lists.01.org>; Wed, 15 Jan 2020 01:06:35 -0800 (PST)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.220.254])
-	by mx2.suse.de (Postfix) with ESMTP id 063F3AC6E;
-	Wed, 15 Jan 2020 09:03:13 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-	id 3EAEA1E0CBC; Wed, 15 Jan 2020 10:03:06 +0100 (CET)
-Date: Wed, 15 Jan 2020 10:03:06 +0100
-From: Jan Kara <jack@suse.cz>
-To: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 01/19] dax: remove block device dependencies
-Message-ID: <20200115090306.GA31450@quack2.suse.cz>
-References: <CAPcyv4ggH7-QhYg+YOOWn_m25uds+-0L46=N09ap-LALeGuU_A@mail.gmail.com>
- <20200107180101.GC15920@redhat.com>
- <CAPcyv4gmdoqpwwwy4dS3D2eZFjmJ_Zi39k=1a4wn-_ksm-UV4A@mail.gmail.com>
- <20200107183307.GD15920@redhat.com>
- <CAPcyv4ggoS4dWjq-1KbcuaDtroHKEi5Vu19ggJ-qgycs6w1eCA@mail.gmail.com>
- <20200109112447.GG27035@quack2.suse.cz>
- <CAPcyv4j5Mra8qeLO3=+BYZMeXNAxFXv7Ex7tL9gra1TbhOgiqg@mail.gmail.com>
- <20200114203138.GA3145@redhat.com>
- <CAPcyv4iXKFt207Pen+E1CnqCFtC1G85fxw5EXFVx+jtykGWMXA@mail.gmail.com>
- <20200114212805.GB3145@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1EBDE10097DC5
+	for <linux-nvdimm@lists.01.org>; Wed, 15 Jan 2020 08:58:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1579107337;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=aiHy9sVh9o7u8SSTG9b+BoOWpHEYOVZOoS63pLilv8A=;
+	b=LqlB/C5C2/ZewzLO/nG2GNndrKbUGxcIcDB69f2Mu4XhaULjWOFZXI7Vn2S9nvdZZD+E06
+	mIWHn9n5n15MBTYEms7dWO5qPpBpCpI/DZwP4rIOAML7yEF+avmibcZKDVDQuw5kT0aK3J
+	JW1uXMP/MF0SbgHGW1NIlYpffar4RNs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-270-Vmp3RQsmNtCNXXfRZsBGsw-1; Wed, 15 Jan 2020 11:55:33 -0500
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 70C258E0F62;
+	Wed, 15 Jan 2020 16:55:32 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 0701A811E0;
+	Wed, 15 Jan 2020 16:55:31 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [RFC PATCH] libnvdimm: Update the meaning for persistence_domain values
+References: <20200108064905.170394-1-aneesh.kumar@linux.ibm.com>
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date: Wed, 15 Jan 2020 11:55:30 -0500
+In-Reply-To: <20200108064905.170394-1-aneesh.kumar@linux.ibm.com> (Aneesh
+	Kumar K. V.'s message of "Wed, 8 Jan 2020 12:19:05 +0530")
+Message-ID: <x49o8v4oe0t.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200114212805.GB3145@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: MJSN6JZSZCCWC6IUSJYJ3DQPTAWVLDMW
-X-Message-ID-Hash: MJSN6JZSZCCWC6IUSJYJ3DQPTAWVLDMW
-X-MailFrom: jack@suse.cz
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-MC-Unique: Vmp3RQsmNtCNXXfRZsBGsw-1
+X-Mimecast-Spam-Score: 0
+Message-ID-Hash: DCUWKY2AWYJO5YRRD7RVL7NVRVTOV53E
+X-Message-ID-Hash: DCUWKY2AWYJO5YRRD7RVL7NVRVTOV53E
+X-MailFrom: jmoyer@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MJSN6JZSZCCWC6IUSJYJ3DQPTAWVLDMW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DCUWKY2AWYJO5YRRD7RVL7NVRVTOV53E/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,61 +80,69 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue 14-01-20 16:28:05, Vivek Goyal wrote:
-> On Tue, Jan 14, 2020 at 12:39:00PM -0800, Dan Williams wrote:
-> > I think we should at least try to delete the partition support and see
-> > if anyone screams. Have a module option to revert the behavior so
-> > people are not stuck waiting for the revert to land, but if it stays
-> > quiet then we're in a better place with that support pushed out of the
-> > dax core.
-> 
-> Hi Dan,
-> 
-> So basically keep partition support code just that disable it by default
-> and it is enabled by some knob say kernel command line option/module
-> option.
-> 
-> At what point of time will we remove that code completely. I mean what
-> if people scream after two kernel releases, after we have removed the
-> code.
-> 
-> Also, from distribution's perspective, we might not hear from our
-> customers for a very long time (till we backport that code in to
-> existing releases or release this new code in next major release). From
-> that view point I will not like to break existing user visible behavior.
-> 
-> How bad it is to keep partition support around. To me it feels reasonaly
-> simple where we just have to store offset into dax device into another
-> dax object and pass that object around (instead of dax_device). If that's
-> the case, I am not sure why to even venture into a direction where some
-> user's setup might be broken.
-> 
-> Also from an application perspective, /dev/pmem is a block device, so it
-> should behave like a block device, (including kernel partition table support).
-> From that view, dax looks like just an additional feature of that device
-> which can be enabled by passing option "-o dax".
+"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
 
-Well, not all block devices are partitionable. For example cdroms are
-standard block devices but partitioning does not run for them. Similarly
-device mapper devices are block devices but not partitioned. So there is
-some precedens in not doing partitioning for some types of block devices.
+> Currently, kernel shows the below values
+> 	"persistence_domain":"cpu_cache"
+> 	"persistence_domain":"memory_controller"
+> 	"persistence_domain":"unknown"
+>
+> This patch updates the meaning of these values such that
+>
+> "cpu_cache" indicates no extra instructions is needed to ensure the persistence
+> of data in the pmem media on power failure.
+>
+> "memory_controller" indicates platform provided instructions need to be issued
+> as per documented sequence to make sure data flushed is guaranteed to be on pmem
+> media in case of system power loss.
+>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  arch/powerpc/platforms/pseries/papr_scm.c | 7 ++++++-
+>  include/linux/libnvdimm.h                 | 6 +++---
+>  2 files changed, 9 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+> index c2ef320ba1bf..26a5ef263758 100644
+> --- a/arch/powerpc/platforms/pseries/papr_scm.c
+> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
+> @@ -360,8 +360,13 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
+>  
+>  	if (p->is_volatile)
+>  		p->region = nvdimm_volatile_region_create(p->bus, &ndr_desc);
+> -	else
+> +	else {
+> +		/*
+> +		 * We need to flush things correctly to guarantee persistance
+> +		 */
+> +		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
+>  		p->region = nvdimm_pmem_region_create(p->bus, &ndr_desc);
+> +	}
+>  	if (!p->region) {
+>  		dev_err(dev, "Error registering region %pR from %pOF\n",
+>  				ndr_desc.res, p->dn);
 
-For the rest I agree that kernels where pmem devices are partitionable have
-shipped in enterprise distros and are going to be supported (and used) for
-5-10 years before users decide to move on to something newer - at which
-point we'll only find out whether someone used the feature or not. So
-deprecation is going to be somewhat interesting. On the other hand clever
-udev rule that detects partition table on pmem device and uses kpartx to
-partition these devices (like what happens e.g. for dm-multipath devices)
-could possibly be used as a replacement for kernel support so there's a way
-out of this...
+Would you also update of_pmem to indicate the persistence domain,
+please?
 
-So I don't care too deeply about what the decision is going to be.
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index f2a33f2e3ba8..9126737377e1 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -52,9 +52,9 @@ enum {
+>  	 */
+>  	ND_REGION_PERSIST_CACHE = 1,
+>  	/*
+> -	 * Platform provides mechanisms to automatically flush outstanding
+> -	 * write data from memory controler to pmem on system power loss.
+> -	 * (ADR)
+> +	 * Platform provides instructions to flush data such that on completion
+> +	 * of the instructions, data flushed is guaranteed to be on pmem even
+> +	 * in case of a system power loss.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+I find the prior description easier to understand.
+
+-Jeff
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
