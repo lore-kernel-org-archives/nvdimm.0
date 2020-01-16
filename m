@@ -1,108 +1,175 @@
-Return-Path: <SRS0=+IV0=3E=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=EZ84=3F=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA1F1C32771
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Jan 2020 21:08:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0685AC33CB1
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jan 2020 06:25:03 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B464B2084D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Jan 2020 21:08:58 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ny8mOJC2"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B464B2084D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id D203B20728
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jan 2020 06:25:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D203B20728
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 12C0B10097DD8;
-	Wed, 15 Jan 2020 13:12:17 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 2A40610096C92;
+	Wed, 15 Jan 2020 22:28:21 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7C74410113616
-	for <linux-nvdimm@lists.01.org>; Wed, 15 Jan 2020 13:12:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1579122535;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=N75/xtseFm0C8W8jITG046cI1TLgiVpisIBQsGTwX3Q=;
-	b=Ny8mOJC2/GdEqthNxvDyM4z2GUJh/aN0Qj5n4O2DEYb69NJ5kNJmw9kOUrB4sgePuFnreO
-	l1R95VG7ODq0sKbSNjrnZNabWbpHqy6QWSpynPODDvpObrtJthLOs1haX/ySU9kArXV4H+
-	gPjWiK2Z1UgUqI9iiuArWGCaTiTrxjk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-124-OgVfptpyPr2T97swFAWMag-1; Wed, 15 Jan 2020 16:08:52 -0500
-X-MC-Unique: OgVfptpyPr2T97swFAWMag-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B474B1005510;
-	Wed, 15 Jan 2020 21:08:50 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 9DFAAA4B60;
-	Wed, 15 Jan 2020 21:08:44 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 50A22100978DE
+	for <linux-nvdimm@lists.01.org>; Wed, 15 Jan 2020 22:28:19 -0800 (PST)
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 00G6CJTJ009031
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jan 2020 01:25:00 -0500
+Received: from e06smtp02.uk.ibm.com (e06smtp02.uk.ibm.com [195.75.94.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2xhy3vpc0e-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jan 2020 01:25:00 -0500
+Received: from localhost
+	by e06smtp02.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <aneesh.kumar@linux.ibm.com>;
+	Thu, 16 Jan 2020 06:24:58 -0000
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (9.149.109.195)
+	by e06smtp02.uk.ibm.com (192.168.101.132) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Thu, 16 Jan 2020 06:24:55 -0000
+Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 00G6Os6J20512978
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 16 Jan 2020 06:24:54 GMT
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 251A24C050;
+	Thu, 16 Jan 2020 06:24:54 +0000 (GMT)
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 364424C040;
+	Thu, 16 Jan 2020 06:24:53 +0000 (GMT)
+Received: from [9.199.45.56] (unknown [9.199.45.56])
+	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Thu, 16 Jan 2020 06:24:52 +0000 (GMT)
+Subject: Re: [RFC PATCH] libnvdimm: Update the meaning for persistence_domain
+ values
 To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 01/19] dax: remove block device dependencies
-References: <20200107180101.GC15920@redhat.com>
-	<CAPcyv4gmdoqpwwwy4dS3D2eZFjmJ_Zi39k=1a4wn-_ksm-UV4A@mail.gmail.com>
-	<20200107183307.GD15920@redhat.com>
-	<CAPcyv4ggoS4dWjq-1KbcuaDtroHKEi5Vu19ggJ-qgycs6w1eCA@mail.gmail.com>
-	<20200109112447.GG27035@quack2.suse.cz>
-	<CAPcyv4j5Mra8qeLO3=+BYZMeXNAxFXv7Ex7tL9gra1TbhOgiqg@mail.gmail.com>
-	<20200114203138.GA3145@redhat.com>
-	<CAPcyv4iXKFt207Pen+E1CnqCFtC1G85fxw5EXFVx+jtykGWMXA@mail.gmail.com>
-	<20200114212805.GB3145@redhat.com>
-	<CAPcyv4igrs40uWuCB163PPBLqyGVaVbaNfE=kCfHRPRuvZdxQA@mail.gmail.com>
-	<20200115195617.GA4133@redhat.com>
-	<CAPcyv4iEoN9SnBveG7-Mhvd+wQApi1XKVnuYpyYxDybrFv_YYw@mail.gmail.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Wed, 15 Jan 2020 16:08:43 -0500
-In-Reply-To: <CAPcyv4iEoN9SnBveG7-Mhvd+wQApi1XKVnuYpyYxDybrFv_YYw@mail.gmail.com>
-	(Dan Williams's message of "Wed, 15 Jan 2020 12:17:40 -0800")
-Message-ID: <x49wo9smnqc.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+References: <20200108064905.170394-1-aneesh.kumar@linux.ibm.com>
+ <x49o8v4oe0t.fsf@segfault.boston.devel.redhat.com>
+ <a87b5da8-54d1-3c1a-f068-4d2f389576c9@linux.ibm.com>
+ <x49k15soc5v.fsf@segfault.boston.devel.redhat.com>
+ <3184f0f6-1dc7-28b8-0b29-b2b9afa490d3@linux.ibm.com>
+ <CAPcyv4i9rvDmFW09A6uChhsiRAgENVp6KTPUmDcUrO5haan6=g@mail.gmail.com>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Date: Thu, 16 Jan 2020 11:54:52 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.3.1
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-Message-ID-Hash: DAUZUK3ASYZ7HLR4CWWFALEEJPGRLMBO
-X-Message-ID-Hash: DAUZUK3ASYZ7HLR4CWWFALEEJPGRLMBO
-X-MailFrom: jmoyer@redhat.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+In-Reply-To: <CAPcyv4i9rvDmFW09A6uChhsiRAgENVp6KTPUmDcUrO5haan6=g@mail.gmail.com>
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+x-cbid: 20011606-0008-0000-0000-00000349C949
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20011606-0009-0000-0000-00004A6A21D2
+Message-Id: <3a9db225-37dc-a4f0-a160-b5fb3c63e663@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-01-16_02:2020-01-16,2020-01-15 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 clxscore=1011
+ malwarescore=0 adultscore=0 priorityscore=1501 mlxscore=0 spamscore=0
+ lowpriorityscore=0 bulkscore=0 phishscore=0 mlxlogscore=999
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-1910280000 definitions=main-2001160052
+Message-ID-Hash: OMTGP47PHQ5HLZLX2SX72GCY7VPOY3NR
+X-Message-ID-Hash: OMTGP47PHQ5HLZLX2SX72GCY7VPOY3NR
+X-MailFrom: aneesh.kumar@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DAUZUK3ASYZ7HLR4CWWFALEEJPGRLMBO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OMTGP47PHQ5HLZLX2SX72GCY7VPOY3NR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-Hi, Dan,
+On 1/16/20 1:18 AM, Dan Williams wrote:
+> On Wed, Jan 15, 2020 at 9:56 AM Aneesh Kumar K.V
+> <aneesh.kumar@linux.ibm.com> wrote:
+>>
+>> On 1/15/20 11:05 PM, Jeff Moyer wrote:
+>>> "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
+>>>
+>>
+>>>>>> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+>>>>>> index f2a33f2e3ba8..9126737377e1 100644
+>>>>>> --- a/include/linux/libnvdimm.h
+>>>>>> +++ b/include/linux/libnvdimm.h
+>>>>>> @@ -52,9 +52,9 @@ enum {
+>>>>>>              */
+>>>>>>             ND_REGION_PERSIST_CACHE = 1,
+>>>>>>             /*
+>>>>>> -   * Platform provides mechanisms to automatically flush outstanding
+>>>>>> -   * write data from memory controler to pmem on system power loss.
+>>>>>> -   * (ADR)
+>>>>>> +   * Platform provides instructions to flush data such that on completion
+>>>>>> +   * of the instructions, data flushed is guaranteed to be on pmem even
+>>>>>> +   * in case of a system power loss.
+>>>>>
+>>>>> I find the prior description easier to understand.
+>>>>
+>>>> I was trying to avoid the term 'automatically, 'memory controler' and
+>>>> ADR. Can I update the above as
+>>>
+>>> I can understand avoiding the very x86-specific "ADR," but is memory
+>>> controller not accurate for your platform?
+>>>
+>>>> /*
+>>>>    * Platform provides mechanisms to flush outstanding write data
+>>>>    * to pmem on system power loss.
+>>>>    */
+>>>
+>>> That's way too broad.  :) The comments are describing the persistence
+>>> domain.  i.e. if you get data to $HERE, it is guaranteed to make it out
+>>> to stable media.
+>>
+>> With technologies like OpenCAPI, we possibly may not want to call them
+>> "memory controller"? In a way platform mechanism will flush them such
+>> that on power failure, it is guaranteed to be on the pmem media. But
+>> should we call these boundary "memory_controller"? May be we can
+>> consider "memory controller" an overloaded term there. Considering we
+>> are  calling this as memory_controller for application to parse via
+>> sysfs, may be the documentation can also carry the same term.
+> 
+> I don't see how OpenCAPI or any other transport has any bearing on the
+> "memory_controller" term. It's still a controller of persistent memory
+> and it needs to have the write data received at its buffers / queue to
+> ensure that the data gets persisted, or, as in the cpu_cache case,
+> some other agent takes responsibility for shuttling pending writes
+> that have hit the cache out over the transport to be persisted.
+> 
 
-Dan Williams <dan.j.williams@intel.com> writes:
+Agreed. I want to make sure we document that details correctly. It is a 
+controller of persistent memory and in some cases, there is no reserve 
+power available to keep things in self-refresh mode and to flush things 
+automatically. The platform provided mechanism will ensure the write 
+data is in the pmem media.
 
-> I'm going to take a look at how hard it would be to develop a kpartx
-> fallback in udev. If that can live across the driver transition then
-> maybe this can be a non-event for end users that already have that
-> udev update deployed.
+Should the later have a persistence_domain value "pmem media" ? Even 
+then I am not sure how applications are supposed to use this information.
 
-I just wanted to remind you that label-less dimms still exist, and are
-still being shipped.  For those devices, the only way to subdivide the
-storage is via partitioning.
+IMHO what is important for application is to differentiate between 
+whether a platform specific flush mechanism is needed or not. Hence was 
+trying to keep this as two value property. IS there any other detail 
+application is supposed to infer from this property?
 
--Jeff
+-aneesh
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
