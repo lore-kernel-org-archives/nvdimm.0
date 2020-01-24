@@ -1,80 +1,79 @@
-Return-Path: <SRS0=tjCE=3M=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=rk+v=3N=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1026EC33CAF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 23 Jan 2020 21:49:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E73EC2D0CE
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 24 Jan 2020 05:57:27 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C3C20207FF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 23 Jan 2020 21:49:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 010342071A
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 24 Jan 2020 05:57:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="AKigSPzM"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C3C20207FF
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="YfwL2Tz5"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 010342071A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A98101007B8F6;
-	Thu, 23 Jan 2020 13:53:08 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::244; helo=mail-oi1-x244.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
+	by ml01.01.org (Postfix) with ESMTP id B7A8E10097E00;
+	Thu, 23 Jan 2020 22:00:44 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::344; helo=mail-ot1-x344.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 49B9910097DFE
-	for <linux-nvdimm@lists.01.org>; Thu, 23 Jan 2020 13:53:06 -0800 (PST)
-Received: by mail-oi1-x244.google.com with SMTP id c16so4453311oic.3
-        for <linux-nvdimm@lists.01.org>; Thu, 23 Jan 2020 13:49:48 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 7BEDC10097DE3
+	for <linux-nvdimm@lists.01.org>; Thu, 23 Jan 2020 22:00:42 -0800 (PST)
+Received: by mail-ot1-x344.google.com with SMTP id 77so618203oty.6
+        for <linux-nvdimm@lists.01.org>; Thu, 23 Jan 2020 21:57:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=S935iTNsR30a4CSNLom2KZfe2GAU9enVCcRjMbR4lpE=;
-        b=AKigSPzM1pExN/0OUORy7NpgODYyQ4J3t8r/+dJLxrjRj6ZgcGmzkknMRn5g54jugV
-         PuPjFHoT8J762NdoRQVHcHl9aReYnbqomBumabhWbyCGFZ3akBYIa+Oo2ZAyxeNPEUG6
-         slSOLUOGXe0plcCeEtyTizIlDOrUNqXRHiyll5b912xeRne4Brkv3g2Yj5DnnnWMx9xf
-         nOQ+q3+Roi/lwXJJNqrhQmJ7M+daSkVy5CUvw9WY97DQv/1645/V+S819BZ4sC9JHHJB
-         FhR+LdjY2IZ9E5Xk/eA4jTuxHrwwKXTVcvl+QK/5vMd9aUzZIaBey7OBVe4+f9tunZmO
-         QNFg==
+        bh=JoTxk9bqG1PpdgFpg7GVeHpI9w14fs1olgczjLVo6N8=;
+        b=YfwL2Tz5UpDlR4dEbr3CSv8neZxuCjM6heImLL4SduSvZgCwmv3YjlR2NQpJxaXFDe
+         q2sjnxV2zDwSmO50fjk8Y/GdqeNOcdtIHe/3WNhymHf1NHmzXPZ/c7W0q4H4cqkO0BJH
+         9R78RNlBvwts93mUVLgnlbGId8+YJprpRhZNL4EMgqRPR4xAvSgwLzP8xNacZCURLVAi
+         rRWsC/ZZUsxYPwRsB8xQASRTMVh9fhOGtHsnbO1+N/ef3BttOlCcZzbCQerWhARPYCcU
+         CSWDmNL9JvCl+m5p5rgc+MBsU+eRyA5gASdWS0s2fGIrSe5eyRXH/ucfHP51nYign5lw
+         rc3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=S935iTNsR30a4CSNLom2KZfe2GAU9enVCcRjMbR4lpE=;
-        b=G5S1PsCh4H58YKzxA0XZj/M1nSEld1VQpygVx6wZwcOpIWSB0yBO4e+WGGCjPlefeu
-         CS/LLuUj6NxuDt4iqW7ZVDKIo8RAWpx6mdFeWcUrhbWrMYtc+S+MiwWBVIpz8ZhYB8Rp
-         etlucFjY+v4lLx9MD2CMQPKIqPb2BaUaxPtZHiwxICtE8vVOIpWA2A3pfhWXAAujlfdP
-         yyWN+ZBHfVUqO+7m0BE+JGb5D9OSBIxe6yXJgjNlp9z6yVK4b0xQWMYPAVUIIDHEAY3G
-         sfR4jHgJGBKMVudaIzMWDjR9W1bzrUj/KMaq16k6tDiitVTvUKzXQR6MTvqe0bE1pqvW
-         mOOA==
-X-Gm-Message-State: APjAAAXPTu+HgIqB2Rzv7GP55YXMqG1T1YC4k3d8WfbVJfnmyy0OCWKH
-	d8kFSZIXCTzvkaa8UEZrj0Tdz79BGLTZxb0X1vx8vA==
-X-Google-Smtp-Source: APXvYqx4QUtx9s2lROgpkdUqlxbaltm1ZPSPZIGO6zsZcw5gUbC6uA34HmB9vJLOfKcAsmsAfZMR+8aobM49R/8fTys=
-X-Received: by 2002:aca:1103:: with SMTP id 3mr32140oir.70.1579816187113; Thu,
- 23 Jan 2020 13:49:47 -0800 (PST)
+        bh=JoTxk9bqG1PpdgFpg7GVeHpI9w14fs1olgczjLVo6N8=;
+        b=jEdRi1o0u25tQRLZU033X7+TmOno04gjaWLOTbj9x9e1cvSS/9QBfcZ/n4YXOEqxWc
+         vnMVExzcRUDJlZxJ6b29CKdr3tzEGosBA9GDHpSXYI3Y0CxO9uMKgpNylCn5Czyt6Vq3
+         waanM5qTGym3VY1/R8rB24A55nxJsqZAR+/A8EnhyLv+SF6zxskk2B0QQkenm7oW915s
+         NhmUVG7PPkpBxs79xlc+qJbNjLFv0NJLx/Oz+HKmtlTaCnujVX3gNVu/uH15rWEn335q
+         hoU+7txX47TmFebhJY89RzWteOHYz+dwUb0bi9vJ6wHXfFX/sN0XsrkVPpTuseqatuIF
+         hzDA==
+X-Gm-Message-State: APjAAAXWD4dZp35ep4mKAZriWEmS0PpTigmwWemEQ4NmJtftpn0MsVFE
+	r+AwaQHimrDjTpWwwwa3iULn5OYuwbxinbu5CB9doQ==
+X-Google-Smtp-Source: APXvYqwcTqbmNU+/yZEycO98WyVQMSRsSO4U5t/sNX+uiZmWTXXop4IuoIJqP6eO1je7y8Q0rJdviV/k5ku/gPX8Yfg=
+X-Received: by 2002:a9d:68cc:: with SMTP id i12mr1467530oto.207.1579845443232;
+ Thu, 23 Jan 2020 21:57:23 -0800 (PST)
 MIME-Version: 1.0
-References: <20191203034655.51561-1-alastair@au1.ibm.com> <20191203034655.51561-3-alastair@au1.ibm.com>
- <CAPcyv4hhK1dyqqe=CwnGfd=hRdUJn0pL6scCUgCz2R+bijZvYg@mail.gmail.com>
-In-Reply-To: <CAPcyv4hhK1dyqqe=CwnGfd=hRdUJn0pL6scCUgCz2R+bijZvYg@mail.gmail.com>
+References: <20200120140749.69549-1-aneesh.kumar@linux.ibm.com> <20200120140749.69549-2-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20200120140749.69549-2-aneesh.kumar@linux.ibm.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 23 Jan 2020 13:49:36 -0800
-Message-ID: <CAPcyv4in5yHD3i2nYgaJsNKkVAJf4h4N+HUbhkmWjXzVK2jN=w@mail.gmail.com>
-Subject: Re: [PATCH v2 02/27] nvdimm: remove prototypes for nonexistent functions
-To: "Alastair D'Silva" <alastair@au1.ibm.com>
-Message-ID-Hash: LVDUQG2MCTDERRLSWWSDUYQD3VPH6DMB
-X-Message-ID-Hash: LVDUQG2MCTDERRLSWWSDUYQD3VPH6DMB
+Date: Thu, 23 Jan 2020 21:57:12 -0800
+Message-ID: <CAPcyv4jcZhQcKr=0OGWc1aZb0OQ1ws2edd-LZMR-EJ_Z2174Sg@mail.gmail.com>
+Subject: Re: [PATCH v4 1/6] libnvdimm/namespace: Make namespace size
+ validation arch dependent
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Message-ID-Hash: OEJET62C3TIE4YEI2CRTPNFIEBEMJAQQ
+X-Message-ID-Hash: OEJET62C3TIE4YEI2CRTPNFIEBEMJAQQ
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: alastair@d-silva.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?UTF-8?Q?C=C3=A9dric_Le_Goater?= <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, Linux Kernel Mailing List <li
- nux-kernel@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LVDUQG2MCTDERRLSWWSDUYQD3VPH6DMB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OEJET62C3TIE4YEI2CRTPNFIEBEMJAQQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,34 +82,142 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-[ add Aneesh ]
+On Mon, Jan 20, 2020 at 6:08 AM Aneesh Kumar K.V
+<aneesh.kumar@linux.ibm.com> wrote:
+>
+> The page size used to map the namespace is arch dependent. For example
+> architectures like ppc64 use 16MB page size for direct-mapping. If the namespace
+> size is not aligned to the mapping page size, users can observe kernel crash
+> during namespace init and destroy.
+>
+> This is due to kernel doing partial map/unmap of the resource range
+>
+> BUG: Unable to handle kernel data access at 0xc001000406000000
+> Faulting instruction address: 0xc000000000090790
+> NIP [c000000000090790] arch_add_memory+0xc0/0x130
+> LR [c000000000090744] arch_add_memory+0x74/0x130
+> Call Trace:
+>  arch_add_memory+0x74/0x130 (unreliable)
+>  memremap_pages+0x74c/0xa30
+>  devm_memremap_pages+0x3c/0xa0
+>  pmem_attach_disk+0x188/0x770
+>  nvdimm_bus_probe+0xd8/0x470
+>  really_probe+0x148/0x570
+>  driver_probe_device+0x19c/0x1d0
+>  device_driver_attach+0xcc/0x100
+>  bind_store+0x134/0x1c0
+>  drv_attr_store+0x44/0x60
+>  sysfs_kf_write+0x74/0xc0
+>  kernfs_fop_write+0x1b4/0x290
+>  __vfs_write+0x3c/0x70
+>  vfs_write+0xd0/0x260
+>  ksys_write+0xdc/0x130
+>  system_call+0x5c/0x68
+>
+> Kernel should also ensure that namespace size is also mulitple of subsection size.
+>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  arch/arm64/mm/flush.c     | 6 ++++++
+>  arch/powerpc/lib/pmem.c   | 9 +++++++++
+>  arch/x86/mm/pageattr.c    | 7 +++++++
+>  include/linux/libnvdimm.h | 1 +
+>  4 files changed, 23 insertions(+)
+>
+> diff --git a/arch/arm64/mm/flush.c b/arch/arm64/mm/flush.c
+> index ac485163a4a7..95cb5538bc6e 100644
+> --- a/arch/arm64/mm/flush.c
+> +++ b/arch/arm64/mm/flush.c
+> @@ -91,4 +91,10 @@ void arch_invalidate_pmem(void *addr, size_t size)
+>         __inval_dcache_area(addr, size);
+>  }
+>  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+> +
+> +unsigned long arch_namespace_map_size(void)
+> +{
+> +       return PAGE_SIZE;
+> +}
+> +EXPORT_SYMBOL_GPL(arch_namespace_map_size);
+>  #endif
+> diff --git a/arch/powerpc/lib/pmem.c b/arch/powerpc/lib/pmem.c
+> index 0666a8d29596..63dca24e4a18 100644
+> --- a/arch/powerpc/lib/pmem.c
+> +++ b/arch/powerpc/lib/pmem.c
+> @@ -26,6 +26,15 @@ void arch_invalidate_pmem(void *addr, size_t size)
+>  }
+>  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+>
+> +unsigned long arch_namespace_map_size(void)
+> +{
+> +       if (radix_enabled())
+> +               return PAGE_SIZE;
+> +       return (1UL << mmu_psize_defs[mmu_linear_psize].shift);
+> +
+> +}
+> +EXPORT_SYMBOL_GPL(arch_namespace_map_size);
+> +
+>  /*
+>   * CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE symbols
+>   */
+> diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+> index 1b99ad05b117..d78b5082f376 100644
+> --- a/arch/x86/mm/pageattr.c
+> +++ b/arch/x86/mm/pageattr.c
+> @@ -310,6 +310,13 @@ void arch_invalidate_pmem(void *addr, size_t size)
+>  }
+>  EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
+>
+> +unsigned long arch_namespace_map_size(void)
+> +{
+> +       return PAGE_SIZE;
+> +}
+> +EXPORT_SYMBOL_GPL(arch_namespace_map_size);
+> +
+> +
+>  static void __cpa_flush_all(void *arg)
+>  {
+>         unsigned long cache = (unsigned long)arg;
+> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+> index 9df091bd30ba..a3476dbd2656 100644
+> --- a/include/linux/libnvdimm.h
+> +++ b/include/linux/libnvdimm.h
+> @@ -284,4 +284,5 @@ static inline void arch_invalidate_pmem(void *addr, size_t size)
+>  }
+>  #endif
+>
+> +unsigned long arch_namespace_map_size(void);
 
+This property is more generic than the nvdimm namespace mapping size,
+it's more the fundamental remap granularity that the architecture
+supports. So I would expect this to be defined in core header files.
+Something like:
 
-On Tue, Dec 3, 2019 at 4:10 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> On Mon, Dec 2, 2019 at 7:48 PM Alastair D'Silva <alastair@au1.ibm.com> wrote:
-> >
-> > From: Alastair D'Silva <alastair@d-silva.org>
-> >
-> > These functions don't exist, so remove the prototypes for them.
-> >
-> > Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
-> > Reviewed-by: Frederic Barrat <fbarrat@linux.ibm.com>
-> > ---
->
-> This was already merged as commit:
->
->     cda93d6965a1 libnvdimm: Remove prototypes for nonexistent functions
->
-> You should have received a notification from the patchwork bot that it
-> was already accepted.
->
-> What baseline did you use for this submission?
+diff --git a/include/linux/io.h b/include/linux/io.h
+index a59834bc0a11..58b3b2091dbb 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -155,6 +155,13 @@ enum {
+ void *memremap(resource_size_t offset, size_t size, unsigned long flags);
+ void memunmap(void *addr);
 
-I never got an answer to this, and I have not seen any updates. Can I
-ask you to get an initial review from Aneesh who has been doing good
-work in the nvdimm core, and then we can look to get this in the
-pipeline for the v5.7 kernel?
++#ifndef memremap_min_align
++static inline unsigned int memremap_min_align(void)
++{
++       return PAGE_SIZE;
++}
++#endif
++
+ /*
+  * On x86 PAT systems we have memory tracking that keeps track of
+  * the allowed mappings on memory ranges. This tracking works for
+
+...and then have a definition is asm/io.h like this:
+
+unsigned int memremap_min_align(void);
+#define memremap_min_align memremap_min_align
+
+That way only architectures that want to opt out of the default need
+to define something in their local header.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
