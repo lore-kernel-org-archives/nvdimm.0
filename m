@@ -2,71 +2,55 @@ Return-Path: <SRS0=QiZa=3T=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 722CAC2D0DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jan 2020 19:05:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2150AC2D0DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jan 2020 20:22:09 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4E6B82082E
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jan 2020 19:05:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4E6B82082E
+	by mail.kernel.org (Postfix) with ESMTPS id CB8932083E
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jan 2020 20:22:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CB8932083E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id F346F1007B1F6;
-	Thu, 30 Jan 2020 11:08:59 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.115; helo=mga14.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+	by ml01.01.org (Postfix) with ESMTP id 4628E1007B1FA;
+	Thu, 30 Jan 2020 12:25:26 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CB02D1007B1F4
-	for <linux-nvdimm@lists.01.org>; Thu, 30 Jan 2020 11:08:56 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id B9DAE1007B1F8
+	for <linux-nvdimm@lists.01.org>; Thu, 30 Jan 2020 12:25:24 -0800 (PST)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Jan 2020 11:05:38 -0800
-X-ExtLoop1: 1
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Jan 2020 12:22:05 -0800
 X-IronPort-AV: E=Sophos;i="5.70,382,1574150400";
-   d="scan'208";a="222887487"
-Received: from fmsmsx105.amr.corp.intel.com ([10.18.124.203])
-  by orsmga008.jf.intel.com with ESMTP; 30 Jan 2020 11:05:34 -0800
-Received: from fmsmsx122.amr.corp.intel.com (10.18.125.37) by
- FMSMSX105.amr.corp.intel.com (10.18.124.203) with Microsoft SMTP Server (TLS)
- id 14.3.439.0; Thu, 30 Jan 2020 11:05:34 -0800
-Received: from fmsmsx114.amr.corp.intel.com ([169.254.6.143]) by
- fmsmsx122.amr.corp.intel.com ([169.254.5.232]) with mapi id 14.03.0439.000;
- Thu, 30 Jan 2020 11:05:33 -0800
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: [ndctl PATCH] ndctl/lib: make dimm_ops in private.h extern
-Thread-Topic: [ndctl PATCH] ndctl/lib: make dimm_ops in private.h extern
-Thread-Index: AQHV158JEHnvUTuYw06fHnV9kEDNjqgEFugAgAAAcwA=
-Date: Thu, 30 Jan 2020 19:05:32 +0000
-Message-ID: <bb6913f28ab3653efda460cee33aebe1c391ae09.camel@intel.com>
-References: <20200130185631.29817-1-vishal.l.verma@intel.com>
-	 <CAPcyv4hLaLTdDjEhfkYHPCUyeRRSxXu=prG05WZFYtMTo=TFBQ@mail.gmail.com>
-In-Reply-To: <CAPcyv4hLaLTdDjEhfkYHPCUyeRRSxXu=prG05WZFYtMTo=TFBQ@mail.gmail.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Evolution 3.32.5 (3.32.5-1.fc30) 
-x-originating-ip: [10.232.112.164]
-Content-ID: <2A189A5B11E94C46AEAD3879AABEFC31@intel.com>
+   d="scan'208";a="262300421"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 30 Jan 2020 12:22:05 -0800
+Subject: [PATCH 1/5] mm/memremap_pages: Kill unused __devm_memremap_pages()
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-nvdimm@lists.01.org
+Date: Thu, 30 Jan 2020 12:06:01 -0800
+Message-ID: <158041476158.3889308.4221100673554151124.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <158041475480.3889308.655103391935006598.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <158041475480.3889308.655103391935006598.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: JFPQRQG43SZYXAZ2ERL47TM242IDPVTL
-X-Message-ID-Hash: JFPQRQG43SZYXAZ2ERL47TM242IDPVTL
-X-MailFrom: vishal.l.verma@intel.com
+Message-ID-Hash: CMQLGAMQJQ74AJT2QKST7KCN77LUCWQZ
+X-Message-ID-Hash: CMQLGAMQJQ74AJT2QKST7KCN77LUCWQZ
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+CC: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JFPQRQG43SZYXAZ2ERL47TM242IDPVTL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CMQLGAMQJQ74AJT2QKST7KCN77LUCWQZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -75,19 +59,28 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, 2020-01-30 at 11:03 -0800, Dan Williams wrote:
-> On Thu, Jan 30, 2020 at 10:56 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
-> > A toolchain update in Fedora 32 caused new compile errors due to
-> > multiple definitions of dimm_ops structures. The declarations in
-> > 'private.h' for the various NFIT families are present so that libndctl
-> > can find all the per-family dimm-ops. However they need to be declared
-> > as extern because the actual definitions are in <family>.c
-> 
-> Looks good to me. Does this quiet the build spew?
+Kill this definition that was introduced in commit 41e94a851304 ("add
+devm_memremap_pages") add never used.
 
-I'm testing that now - it at least doesn't introduce any new errors in
-my F30 environment and makes sense.
+Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ include/linux/io.h |    2 --
+ 1 file changed, 2 deletions(-)
 
+diff --git a/include/linux/io.h b/include/linux/io.h
+index a59834bc0a11..35e8d84935e0 100644
+--- a/include/linux/io.h
++++ b/include/linux/io.h
+@@ -79,8 +79,6 @@ void *devm_memremap(struct device *dev, resource_size_t offset,
+ 		size_t size, unsigned long flags);
+ void devm_memunmap(struct device *dev, void *addr);
+ 
+-void *__devm_memremap_pages(struct device *dev, struct resource *res);
+-
+ #ifdef CONFIG_PCI
+ /*
+  * The PCI specifications (Rev 3.0, 3.2.5 "Transaction Ordering and
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
