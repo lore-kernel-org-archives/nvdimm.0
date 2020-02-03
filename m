@@ -6,69 +6,59 @@ X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BD2FC35247
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Feb 2020 20:01:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63FC3C35247
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Feb 2020 21:34:51 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D57B620658
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Feb 2020 20:01:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 27D6720720
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Feb 2020 21:34:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gzMWaasP"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D57B620658
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="qCNcTepK"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 27D6720720
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0106610FC338D;
-	Mon,  3 Feb 2020 12:04:28 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 5B1A010FC3378;
+	Mon,  3 Feb 2020 13:38:08 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 689BA10FC338A
-	for <linux-nvdimm@lists.01.org>; Mon,  3 Feb 2020 12:04:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1580760066;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=Mq7eC6RWo7NxMEeb9FO/cFzew1eeG07ZdDsPtcMILro=;
-	b=gzMWaasP+IfEcPQZpA1UTP7F0CZM6oT0bZVisp3rsvKqT9IqkB18o40NJ8rWOWk37O9sCK
-	oo99fCqFwbvekGtNhxucrFTF5YwV8dkotDCH719xB4GIRN1ESqUivizfByYFY6nI0tNbE9
-	VB4UVt9XPsv1REvyWrGsFCJ3w2+DhK4=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-69-uWyTju_KPoeAry3qqPmknA-1; Mon, 03 Feb 2020 15:00:50 -0500
-X-MC-Unique: uWyTju_KPoeAry3qqPmknA-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 04E7E800D41;
-	Mon,  3 Feb 2020 20:00:49 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 701831001B09;
-	Mon,  3 Feb 2020 20:00:46 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 058A92202E9; Mon,  3 Feb 2020 15:00:45 -0500 (EST)
-From: Vivek Goyal <vgoyal@redhat.com>
-To: linux-fsdevel@vger.kernel.org,
-	linux-nvdimm@lists.01.org,
-	dan.j.williams@intel.com,
-	hch@infradead.org
-Subject: [RFC PATCH 0/5][V2] dax,pmem: Provide a dax operation to zero range of memory
-Date: Mon,  3 Feb 2020 15:00:24 -0500
-Message-Id: <20200203200029.4592-1-vgoyal@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id DFA5D10097E04
+	for <linux-nvdimm@lists.01.org>; Mon,  3 Feb 2020 13:38:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=RopiKUB7iog3vHCG/dVyQVRi17HY++IdZnq14RjmMqo=; b=qCNcTepKO/3xSSn/r68TuzJnKt
+	b2OiqCyvcFUUCCCK6Cv9cMtmbBCWvbSY9HbCzoQ+nTTK6Pxo9KdDl8xjsD8mavlTxr7ffgM4bY5jI
+	AODGNG2a/KJ1GGnInvzU2bGXJQvPtn8Zr75YRh7YBiM2wN1RwLhSBO+Dpq/R4gXUvmr2f4yVsBA2O
+	+HQNwoIKHINdjxW34l2NoVYFStBBu88xEuAh/WLw1BQ9ds7XH6Lcjx9XTY2FLc8xLwLXQAOjFquka
+	NX3t2BWf08QbBO6vk11n1FqvqNxg6EvK59GsxvC8Ev6WMc16PJw/v/43KKDud2wKo2JGkG+ghrgsv
+	0jE6UybQ==;
+Received: from willy by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1iyjMg-0004O9-7p; Mon, 03 Feb 2020 21:34:42 +0000
+Date: Mon, 3 Feb 2020 13:34:42 -0800
+From: Matthew Wilcox <willy@infradead.org>
+To: Joao Martins <joao.m.martins@oracle.com>
+Subject: Re: [PATCH RFC 01/10] mm: Add pmd support for _PAGE_SPECIAL
+Message-ID: <20200203213442.GK8731@bombadil.infradead.org>
+References: <20200110190313.17144-1-joao.m.martins@oracle.com>
+ <20200110190313.17144-2-joao.m.martins@oracle.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Message-ID-Hash: VCUOFKUGBYIRZ6OLILWCTDYDRZWZ5K44
-X-Message-ID-Hash: VCUOFKUGBYIRZ6OLILWCTDYDRZWZ5K44
-X-MailFrom: vgoyal@redhat.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: dm-devel@redhat.com
+Content-Disposition: inline
+In-Reply-To: <20200110190313.17144-2-joao.m.martins@oracle.com>
+Message-ID-Hash: WIBWZPXMODO4SW2W7DPOC7TK7VH3O4PC
+X-Message-ID-Hash: WIBWZPXMODO4SW2W7DPOC7TK7VH3O4PC
+X-MailFrom: willy@infradead.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm@lists.01.org, Alex Williamson <alex.williamson@redhat.com>, Cornelia Huck <cohuck@redhat.com>, kvm@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Liran Alon <liran.alon@oracle.com>, Nikita Leshenko <nikita.leshchenko@oracle.com>, Barret Rhoden <brho@google.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VCUOFKUGBYIRZ6OLILWCTDYDRZWZ5K44/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WIBWZPXMODO4SW2W7DPOC7TK7VH3O4PC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,64 +67,77 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
+On Fri, Jan 10, 2020 at 07:03:04PM +0000, Joao Martins wrote:
+> +++ b/arch/x86/include/asm/pgtable.h
+> @@ -293,6 +293,15 @@ static inline int pgd_devmap(pgd_t pgd)
+>  {
+>  	return 0;
+>  }
+> +#endif
+> +
+> +#ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
+> +static inline int pmd_special(pmd_t pmd)
+> +{
+> +	return !!(pmd_flags(pmd) & _PAGE_SPECIAL);
+> +}
+> +#endif
 
-This is V2 of patches. I posted V1 here.
+The ifdef/endif don't make much sense here; x86 does have PTE_SPECIAL,
+and this is an x86 header file, so that can be assumed.
 
-https://lore.kernel.org/linux-fsdevel/20200123165249.GA7664@redhat.com/
+> +++ b/mm/gup.c
+> @@ -2079,6 +2079,9 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+>  		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
+>  	}
+>  
+> +	if (pmd_special(orig))
+> +		return 0;
 
-Changes since V1.
-- Took care of feedback from Christoph.
-- Made ->zero_page_range() mandatory operation.
-- Provided a generic helper to zero range for non-pmem drivers.
-- Merged __dax_zero_page_range() and iomap_dax_zero()
-- Made changes to dm drivers.
-- Limited range zeroing to with-in single page.
-- Tested patches with real hardware.  
+Here, you're calling it unconditionally.  I think you need a pmd_special()
+conditionally defined in include/asm-generic/pgtable.h
 
-description
------------
-This is an RFC patch series to provide a dax operation to zero a range of
-memory. It will also clear poison in the process.
++#ifndef CONFIG_ARCH_HAS_PTE_SPECIAL
++static inline bool pmd_special(pmd_t pmd)
++{
++	return false;
++}
++#endif
 
-Motivation from this patch comes from Christoph's feedback that he will
-rather prefer a dax way to zero a range instead of relying on having to
-call blkdev_issue_zeroout() in __dax_zero_page_range().
+(oh, and plese use bool instead of int; I know that's different from
+pte_special(), but pte_special() predates bool and nobody's done the work
+to convert it yet)
 
-https://lkml.org/lkml/2019/8/26/361
+> +++ b/mm/huge_memory.c
+> @@ -791,6 +791,8 @@ static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+>  	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
+>  	if (pfn_t_devmap(pfn))
+>  		entry = pmd_mkdevmap(entry);
+> +	else if (pfn_t_special(pfn))
+> +		entry = pmd_mkspecial(entry);
 
-My motivation for this change is virtiofs DAX support. There we use DAX
-but we don't have a block device. So any dax code which has the assumption
-that there is always a block device associated is a problem. So this
-is more of a cleanup of one of the places where dax has this dependency
-on block device and if we add a dax operation for zeroing a range, it
-can help with not having to call blkdev_issue_zeroout() in dax path.
+Again, we'll need a generic one.
 
-Thanks
-Vivek
+> @@ -823,8 +825,7 @@ vm_fault_t vmf_insert_pfn_pmd(struct vm_fault *vmf, pfn_t pfn, bool write)
+>  	 * but we need to be consistent with PTEs and architectures that
+>  	 * can't support a 'special' bit.
+>  	 */
+> -	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
+> -			!pfn_t_devmap(pfn));
+> +	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
 
-Vivek Goyal (5):
-  dax, pmem: Add a dax operation zero_page_range
-  s390,dax: Add dax zero_page_range operation to dcssblk driver
-  dm,dax: Add dax zero_page_range operation
-  dax,iomap: Start using dax native zero_page_range()
-  dax,iomap: Add helper dax_iomap_zero() to zero a range
+Should that rather be ...
 
- drivers/dax/super.c           | 20 ++++++++++++
- drivers/md/dm-linear.c        | 18 +++++++++++
- drivers/md/dm-log-writes.c    | 17 ++++++++++
- drivers/md/dm-stripe.c        | 23 ++++++++++++++
- drivers/md/dm.c               | 30 ++++++++++++++++++
- drivers/nvdimm/pmem.c         | 50 +++++++++++++++++++++++++++++
- drivers/s390/block/dcssblk.c  |  7 ++++
- fs/dax.c                      | 60 ++++++++++++++---------------------
- fs/iomap/buffered-io.c        |  9 +-----
- include/linux/dax.h           | 17 ++++++----
- include/linux/device-mapper.h |  3 ++
- 11 files changed, 204 insertions(+), 50 deletions(-)
++	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) &&
++			!pfn_t_devmap(pfn) && !pfn_t_special(pfn));
 
--- 
-2.18.1
+I also think this comment needs adjusting:
+
+        /*
+         * There is no pmd_special() but there may be special pmds, e.g.
+         * in a direct-access (dax) mapping, so let's just replicate the
+         * !CONFIG_ARCH_HAS_PTE_SPECIAL case from vm_normal_page() here.
+         */
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
