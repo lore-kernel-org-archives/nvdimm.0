@@ -1,117 +1,70 @@
 Return-Path: <SRS0=/Rsh=32=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.3 required=3.0 tests=FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8F0EC33CAC
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  6 Feb 2020 15:40:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49D5DC35247
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  6 Feb 2020 22:16:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6D8F1222C2
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  6 Feb 2020 15:40:02 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ZjzLOh9E"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6D8F1222C2
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 057FE217BA
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  6 Feb 2020 22:16:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 057FE217BA
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=ukr.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8209A10077D18;
-	Thu,  6 Feb 2020 07:43:19 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 3A1D010FC3176;
+	Thu,  6 Feb 2020 14:19:38 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=78.110.60.69; helo=78-110-60-69.net.hts.ru; envelope-from=drefggod@ukr.net; receiver=<UNKNOWN> 
+Received: from 78-110-60-69.net.hts.ru (unknown [78.110.60.69])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0D4C61007A831
-	for <linux-nvdimm@lists.01.org>; Thu,  6 Feb 2020 07:43:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1581003597;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yYOYGUmwnwR/sxALNyTmJEU8tjH1tqXxiHmaN9nBtbg=;
-	b=ZjzLOh9EJ2zL/wQz+7OJN7EjnBs7pgXdIhd003kEwLwcPhFWub24KuHVnXf5PtNV08u1gJ
-	qj9fDYlKWVQvm/d7+ShGN8lR8GKj9+W96kAs1xCRGeNH8Iw+bWahMGIhkUDIzDkEILt+Mf
-	/O5HNqB7Wr2MO/fW9qk7dNmqM3y0Dcc=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-63-W7fKFVbAO-mVmHC7HOWqXg-1; Thu, 06 Feb 2020 10:39:50 -0500
-X-MC-Unique: W7fKFVbAO-mVmHC7HOWqXg-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 85C7010054E3;
-	Thu,  6 Feb 2020 15:39:49 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id E35AE857BF;
-	Thu,  6 Feb 2020 15:39:48 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: Jan Kara <jack@suse.cz>
-Subject: Re: [patch] dax: pass NOWAIT flag to iomap_apply
-References: <x49r1z86e1d.fsf@segfault.boston.devel.redhat.com>
-	<20200206084740.GE14001@quack2.suse.cz>
-	<x49tv43lr98.fsf@segfault.boston.devel.redhat.com>
-	<20200206144338.GB26114@quack2.suse.cz>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Thu, 06 Feb 2020 10:39:47 -0500
-In-Reply-To: <20200206144338.GB26114@quack2.suse.cz> (Jan Kara's message of
-	"Thu, 6 Feb 2020 15:43:38 +0100")
-Message-ID: <x49ftfnlo70.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+	by ml01.01.org (Postfix) with ESMTPS id 5A7951007A84C
+	for <linux-nvdimm@lists.01.org>; Thu,  6 Feb 2020 14:19:35 -0800 (PST)
+Message-ID: <DD276C202DF9C3F02C2960E0C477E1E0@ukr.net>
+From: =?windows-1251?B?wejn7eXxLdbl7fLwIC0g8eXs6O3g8Psg6CDy?=
+	=?windows-1251?B?8OXt6O3j6A==?= <drefggod@ukr.net>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?windows-1251?B?z/Do4+vg+ODl7CDt4CDh6Oft5fEg8eXs6O3g?=
+	=?windows-1251?B?8PssIPLw5e3o7ePoIOgg7ODx8uXwIOrr4PHx?=
+	=?windows-1251?B?+yDi5eTz+ej1IOHo5+3l8ezl7e7iLCDz9+jy?=
+	=?windows-1251?B?5evl6SDoIO/x6PXu6+7j7uIh?=
+Date: Fri, 7 Feb 2020 00:15:43 +0200
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-Message-ID-Hash: AAGCNYOOENEGOGK2TLPHGFE6TR2OLQKN
-X-Message-ID-Hash: AAGCNYOOENEGOGK2TLPHGFE6TR2OLQKN
-X-MailFrom: jmoyer@redhat.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, willy@infradead.org
+Message-ID-Hash: FILWVZCA5RYDC76LNWGLV7HPCC3YJB5A
+X-Message-ID-Hash: FILWVZCA5RYDC76LNWGLV7HPCC3YJB5A
+X-MailFrom: drefggod@ukr.net
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Content-Type: text/plain; charset="windows-1251"
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AAGCNYOOENEGOGK2TLPHGFE6TR2OLQKN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FILWVZCA5RYDC76LNWGLV7HPCC3YJB5A/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 
-Jan Kara <jack@suse.cz> writes:
-
-> On Thu 06-02-20 09:33:39, Jeff Moyer wrote:
->> Jan Kara <jack@suse.cz> writes:
->> 
->> > On Wed 05-02-20 14:15:58, Jeff Moyer wrote:
->> >> fstests generic/471 reports a failure when run with MOUNT_OPTIONS="-o
->> >> dax".  The reason is that the initial pwrite to an empty file with the
->> >> RWF_NOWAIT flag set does not return -EAGAIN.  It turns out that
->> >> dax_iomap_rw doesn't pass that flag through to iomap_apply.
->> >> 
->> >> With this patch applied, generic/471 passes for me.
->> >> 
->> >> Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
->> >
->> > The patch looks good to me. You can add:
->> >
->> > Reviewed-by: Jan Kara <jack@suse.cz>
->> >
->> > BTW, I've just noticed ext4 seems to be buggy in this regard and even this
->> > patch doesn't fix it. So I guess you've been using XFS for testing this?
->> 
->> That's right, sorry I didn't mention that.  Will you send a patch for
->> ext4, or do you want me to look into it?
->
-> I've taken down a note in todo list to eventually look into that but if you
-> can have a look, I'm more than happy to remove that entry :).
-
-OK, I'll take a look.
-
--Jeff
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+x+Tw4OLx8uLz6fLlIQ0KDQrI5OXg6/zt++wg6O3x8vDz7OXt8u7sIOTr/yDv7uL7+OXt6P8g8/Du
+4u3/IO/w7vTl8fHo7u3g6+jn7OAg6CDw4Ofi6PLo/yDv5fDx7u3g6+Ag/+Lr//7y8f8g6vPw8fsg
+7+7i+/jl7ejlIOri4Ovo9Ojq4Pbo6C4gyOzl7e3uIOru8O/u8ODy6OLt++kg8vDl7ejt4yDv7ufi
+7uvo8iDz9+Xx8vwg4vH+IPHv5fbo9Ojq8yDv8O7i7uTo7O7pIOru7O/g7ejl6SDk5f/y5ev87e7x
+8ugsIPPw7uLl7fwg6u7s7+Xy5e3y7e7x8ugg7+Xw8e7t4OvgIOgg7+7n4u7r6PIg4OTg7/Lo8O7i
+4PL8IOLx/iDv8O7j8ODs7PMg7uHz9+Xt6P8g6O3k6OLo5PPg6/zt7iDv7uQg7+7y8OXh7e7x8ugg
+4uD45ekg6u7s7+Dt6OguDQoNCsHr6Obg6fjo5SDx5ezo7eDw+yDoIPLw5e3o7ePoIOIgyujl4uUN
+Cg0Kz+7k8O7h7eXlIO3gIPHg6fLlIC0gaHR0cHM6Ly9iY3UuYmVzdC8NCg0KxfHr6CDv6PH87O4g
+7+7v4OvuIOogwuDsIO/uIO746OHq5Swgwvsg7O7m5fLlDQrN5SDv7uvz9+Dy/CDw4PHx++vq8y6g
+6OvooO/u5uDr7uLg8vzx/yDt4CBTcGFtDQpMaXN0LVVuc3Vic2NyaWJloGZyb20gdGhlIG5ld3Ns
+ZXR0ZXIgb3KgY29tcGxhaW4gYWJvdXQgU3BhbQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgt
+bnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
