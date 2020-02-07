@@ -2,81 +2,74 @@ Return-Path: <SRS0=GwHd=33=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32043C2BA83
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 17:06:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED69C47409
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 20:27:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0846421741
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 17:06:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id E954C21775
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 20:27:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="xOuwqNiX"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0846421741
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cNn2knW7"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E954C21775
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2928110FC3586;
-	Fri,  7 Feb 2020 09:10:05 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::241; helo=mail-oi1-x241.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com [IPv6:2607:f8b0:4864:20::241])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id AA89410FC3599;
+	Fri,  7 Feb 2020 12:30:30 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3F71C10FC3584
-	for <linux-nvdimm@lists.01.org>; Fri,  7 Feb 2020 09:10:02 -0800 (PST)
-Received: by mail-oi1-x241.google.com with SMTP id p125so2623481oif.10
-        for <linux-nvdimm@lists.01.org>; Fri, 07 Feb 2020 09:06:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=zeTa1kMSEl3fLJZjvubhBF7lLU+TSysbdNVa6LXQMGs=;
-        b=xOuwqNiXcHB10xcosisChgV9ONSo/c2Qus/rR544MZlBpD5Ay7hfJC9WVKAzaAd+7f
-         U/ogZnw+r/oWo8eLbbH1uz2FRsW4ncL3QQaYOXB5tMGUNUgy9QHudVLVGzSGf8tXQiLG
-         G6FWY4st3CWg8CfeGHSGW+U0i4wcqLAm7c9T7Azgx+NnGbBA+0LfgBRgJ8ftSQl4fhml
-         Ib9zZx/YscmftDwtkfPV4UTOHlsHGOZr/rD9r64BmBjyAr0bHE9Q0BvufvvHXSJLVzc9
-         NuNjDbXAE4Jh3nBxliXXwfSgHCDqAqeTlhhwOsS2lluLxXV//IML04qYltBOcwek/+nD
-         vPfQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=zeTa1kMSEl3fLJZjvubhBF7lLU+TSysbdNVa6LXQMGs=;
-        b=q7WUdJ3o9cwDR7UJJUxR0kZfF7nsEb60DzztZwIWKqr4r8Tw4AZHyw9KpccHpQQTJF
-         YA0eQlrSIfs8VKorrwFnUpEz2eBH0DsfS2+8x30ChQ6GysbgY8voiFW2I5mCSXxqzNz5
-         XJy9V38YS+coHskmXzy7uLJ9bhhvoXSlckUQi0fQxygwmGvokUeEEKx5eWyVF8E/qXUz
-         35uPgyg0PtXzqIOYZI84bIo1Tgdt3iqj9gl56BiXVlVpTq0JnAoOkckzka2uoaE9i4l8
-         xAKUpaNzmiXOy3qDzo/KZ0i98OQ1Vb+kiHTOSzj4Yjz5O2xv3iXpO50lw2iadowzJUjk
-         05Lg==
-X-Gm-Message-State: APjAAAWRbvCBv/ILI4TeZS1fW0+trt0DiDgG6rZKRSwaeCCh6AZQgmR2
-	Su13P4EKqOcRY/yyTc9/lsUCQiyjYcNL0N0PqGi5Gg==
-X-Google-Smtp-Source: APXvYqyM78u7JQAugFgv5zZBfNuG8N7zn04ejIqfum6zEtPcj48HqoBLg00kLaeSxn3H7xzZslVIa+EkM26FbgU/wvs=
-X-Received: by 2002:a05:6808:a83:: with SMTP id q3mr2851359oij.0.1581095203775;
- Fri, 07 Feb 2020 09:06:43 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 10FB710FC3592
+	for <linux-nvdimm@lists.01.org>; Fri,  7 Feb 2020 12:30:27 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1581107229;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=1xKgewOcOXOvkG5+BQKERYsXsHqhJlKwJrAB1sWMGeI=;
+	b=cNn2knW7Cay/bn/vupLpq/F2X3DntwGacmqjf4cLEL0CmHma4Xdxd7SXIpYyDc60CO3lB6
+	SF8nQwC0d0zdA3mjMX5NNniHsxGXxEFScU6XAHenRzH9k0xCRN7HKPDVr7VHOi3ynmgm6I
+	8BsUhObaBXqtWDn6DBg8CKhMTJ6kgBw=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-266-i6v90NH-MISjJ_WKwZ5_xA-1; Fri, 07 Feb 2020 15:27:07 -0500
+X-MC-Unique: i6v90NH-MISjJ_WKwZ5_xA-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BE59A8010E7;
+	Fri,  7 Feb 2020 20:27:05 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 087A9100164D;
+	Fri,  7 Feb 2020 20:27:03 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 89CE6220A24; Fri,  7 Feb 2020 15:27:02 -0500 (EST)
+From: Vivek Goyal <vgoyal@redhat.com>
+To: linux-fsdevel@vger.kernel.org,
+	linux-nvdimm@lists.01.org,
+	hch@infradead.org,
+	dan.j.williams@intel.com
+Subject: [PATCH v3 0/7] dax,pmem: Provide a dax operation to zero range of memory 
+Date: Fri,  7 Feb 2020 15:26:45 -0500
+Message-Id: <20200207202652.1439-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-References: <20200203200029.4592-1-vgoyal@redhat.com> <20200203200029.4592-2-vgoyal@redhat.com>
- <20200205183050.GA26711@infradead.org> <20200205200259.GE14544@redhat.com>
- <CAPcyv4iY=gw86UDLqpiCtathGXRUuxOMuU=unwxzA-cm=0x+Sg@mail.gmail.com>
- <20200206074142.GB28365@infradead.org> <CAPcyv4iTBTOuKjQX3eoojLM=Eai_pfARXmzpMAtgi5OWBHXvzQ@mail.gmail.com>
- <20200207170150.GC11998@redhat.com>
-In-Reply-To: <20200207170150.GC11998@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 7 Feb 2020 09:06:32 -0800
-Message-ID: <CAPcyv4g8jUhaKXhoh-1cvE4oi2v0JQcLrnFUW9zsRiC4F-7-zQ@mail.gmail.com>
-Subject: Re: [PATCH 1/5] dax, pmem: Add a dax operation zero_page_range
-To: Vivek Goyal <vgoyal@redhat.com>
-Message-ID-Hash: JEPU4FP7T3HFLQH6XOQDZ34YKUFQVDWV
-X-Message-ID-Hash: JEPU4FP7T3HFLQH6XOQDZ34YKUFQVDWV
-X-MailFrom: dan.j.williams@intel.com
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Message-ID-Hash: ENLCVEPKNFXETJITYIJFUKZTX6ODU6BR
+X-Message-ID-Hash: ENLCVEPKNFXETJITYIJFUKZTX6ODU6BR
+X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Christoph Hellwig <hch@infradead.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, device-mapper development <dm-devel@redhat.com>
+CC: dm-devel@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JEPU4FP7T3HFLQH6XOQDZ34YKUFQVDWV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ENLCVEPKNFXETJITYIJFUKZTX6ODU6BR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -85,41 +78,62 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 7, 2020 at 9:02 AM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Fri, Feb 07, 2020 at 08:57:39AM -0800, Dan Williams wrote:
-> > On Wed, Feb 5, 2020 at 11:41 PM Christoph Hellwig <hch@infradead.org> wrote:
-> > >
-> > > On Wed, Feb 05, 2020 at 04:40:44PM -0800, Dan Williams wrote:
-> > > > > I don't have any reason not to pass phys_addr_t. If that sounds better,
-> > > > > will make changes.
-> > > >
-> > > > The problem is device-mapper. That wants to use offset to route
-> > > > through the map to the leaf device. If it weren't for the firmware
-> > > > communication requirement you could do:
-> > > >
-> > > > dax_direct_access(...)
-> > > > generic_dax_zero_page_range(...)
-> > > >
-> > > > ...but as long as the firmware error clearing path is required I think
-> > > > we need to do pass the pgoff through the interface and do the pgoff to
-> > > > virt / phys translation inside the ops handler.
-> > >
-> > > Maybe phys_addr_t was the wrong type - but why do we split the offset
-> > > into the block device argument into a pgoff and offset into page instead
-> > > of a single 64-bit value?
-> >
-> > Oh, got it yes, that looks odd for sub-page zeroing. Yes, let's just
-> > have one device relative byte-offset.
->
-> So what's the best type to represent this offset. "u64" or "phys_addr_t"
-> or "loff_t" or something else.  I like phys_addr_t followed by u64.
+Hi,
 
-Let's make it u64.
+This is V3 of patches. I have dropped RFC tag from the series as it
+looks like there is agreement on the interface. These patches are also
+available at.
 
-phys_addr_t has already led to confusion in this thread because the
-first question I ask when I read it is "why call ->direct_access() to
-do the translation when you already have the physical address?".
+https://github.com/rhvgoyal/linux/commits/dax-zero-range-v3
+
+I posted previous versions here.
+
+v2:
+https://lore.kernel.org/linux-fsdevel/20200203200029.4592-1-vgoyal@redhat.com/
+v1:
+https://lore.kernel.org/linux-fsdevel/20200123165249.GA7664@redhat.com/
+
+Changes since V2:
+
+Primarily took care of comments from Christoph.
+
+- Changed zero_copy_range() parameters to pass dax device offset as u64.
+- Fixed comment which says current interface only supports zeroing
+  with-in page.
+- Refactored pmem_do_bvec() and reused write side of code in
+  zero_page_range().
+- Removed generic_dax_zero_page_range()
+- Fixed s390 dcssblk.c compilation issue.
+
+Please review. 
+
+Thanks
+Vivek
+
+Vivek Goyal (7):
+  pmem: Add functions for reading/writing page to/from pmem
+  pmem: Enable pmem_do_write() to deal with arbitrary ranges
+  dax, pmem: Add a dax operation zero_page_range
+  s390,dcssblk,dax: Add dax zero_page_range operation to dcssblk driver
+  dm,dax: Add dax zero_page_range operation
+  dax,iomap: Start using dax native zero_page_range()
+  dax,iomap: Add helper dax_iomap_zero() to zero a range
+
+ drivers/dax/super.c           |  19 ++++++
+ drivers/md/dm-linear.c        |  21 +++++++
+ drivers/md/dm-log-writes.c    |  19 ++++++
+ drivers/md/dm-stripe.c        |  26 ++++++++
+ drivers/md/dm.c               |  31 ++++++++++
+ drivers/nvdimm/pmem.c         | 112 ++++++++++++++++++++++++----------
+ drivers/s390/block/dcssblk.c  |  17 ++++++
+ fs/dax.c                      |  53 ++++------------
+ fs/iomap/buffered-io.c        |   9 +--
+ include/linux/dax.h           |  20 ++----
+ include/linux/device-mapper.h |   3 +
+ 11 files changed, 235 insertions(+), 95 deletions(-)
+
+-- 
+2.20.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
