@@ -1,62 +1,102 @@
-Return-Path: <SRS0=/Rsh=32=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=GwHd=33=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,SUBJ_ALL_CAPS,TVD_SPACE_RATIO,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF495C35247
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  6 Feb 2020 22:33:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 902C3C04EB5
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 15:31:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7579C218AC
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  6 Feb 2020 22:33:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7579C218AC
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=goldenhorseformarble.com
+	by mail.kernel.org (Postfix) with ESMTPS id 37F2621927
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 15:31:19 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="PGuq9NkN"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 37F2621927
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 873F010FC317D;
-	Thu,  6 Feb 2020 14:36:58 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=103.133.108.205; helo=goldenhorseformarble.com; envelope-from=export@goldenhorseformarble.com; receiver=<UNKNOWN> 
-Received: from goldenhorseformarble.com (unknown [103.133.108.205])
-	by ml01.01.org (Postfix) with ESMTP id 17D5B1007A84C
-	for <linux-nvdimm@lists.01.org>; Thu,  6 Feb 2020 14:36:53 -0800 (PST)
-From: Mohamed<export@goldenhorseformarble.com>
-To: linux-nvdimm@lists.01.org
-Subject: PAYMENT ADVICE 
-Date: 06 Feb 2020 14:33:24 -0800
-Message-ID: <20200206143323.CADABD4BD643E48C@goldenhorseformarble.com>
+	by ml01.01.org (Postfix) with ESMTP id 455331007B1FC;
+	Fri,  7 Feb 2020 07:34:36 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 9BADF1007B1C6
+	for <linux-nvdimm@lists.01.org>; Fri,  7 Feb 2020 07:34:33 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1581089475;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=lJl9IZ4rUKZV3MVrE3d9DP7C/ZB0uGxE0eGmP9j33k8=;
+	b=PGuq9NkNAKhjROaBmo5RAfHQIYDjjK6NZZGR28zo2Twdq0UYn2lFAqgBfkAS1rMGDFfZpL
+	OBdWWBCrhRzIbKR4nHI5/zicNIM3ew8/rUWk+LT6/fwE47CVl1X7IXaCpLPDQCOBFT/VgV
+	zKwY9PRgZSaUJ+LZ4umNNkJSCEeUsBs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-373-uIY1Wbw4ODWEPr8MtHbRMg-1; Fri, 07 Feb 2020 10:31:11 -0500
+X-MC-Unique: uIY1Wbw4ODWEPr8MtHbRMg-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B7746189F762;
+	Fri,  7 Feb 2020 15:31:09 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id D38B68ECE6;
+	Fri,  7 Feb 2020 15:31:06 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 645CD220A24; Fri,  7 Feb 2020 10:31:06 -0500 (EST)
+Date: Fri, 7 Feb 2020 10:31:06 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH 4/5] dax,iomap: Start using dax native zero_page_range()
+Message-ID: <20200207153106.GA11998@redhat.com>
+References: <20200203200029.4592-1-vgoyal@redhat.com>
+ <20200203200029.4592-5-vgoyal@redhat.com>
+ <20200205183356.GD26711@infradead.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_5CAE88A2.9FF7880D"
-Message-ID-Hash: RKXYAT6TGPH3GTE7TVEOYF7G4JAYAD7C
-X-Message-ID-Hash: RKXYAT6TGPH3GTE7TVEOYF7G4JAYAD7C
-X-MailFrom: export@goldenhorseformarble.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Content-Disposition: inline
+In-Reply-To: <20200205183356.GD26711@infradead.org>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Message-ID-Hash: BKDZ2PUUQDVZKPVXU6J6FVIERJNNIQEA
+X-Message-ID-Hash: BKDZ2PUUQDVZKPVXU6J6FVIERJNNIQEA
+X-MailFrom: vgoyal@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, dm-devel@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: info.illinoistoolwork@mail.bg
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RKXYAT6TGPH3GTE7TVEOYF7G4JAYAD7C/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BKDZ2PUUQDVZKPVXU6J6FVIERJNNIQEA/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0012_5CAE88A2.9FF7880D
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+On Wed, Feb 05, 2020 at 10:33:56AM -0800, Christoph Hellwig wrote:
+> On Mon, Feb 03, 2020 at 03:00:28PM -0500, Vivek Goyal wrote:
+> > +	id = dax_read_lock();
+> > +	rc = dax_zero_page_range(dax_dev, pgoff, offset, size);
+> > +	dax_read_unlock(id);
+> > +	return rc;
+> 
+> Is there a good reason not to move the locking into dax_zero_page_range?
+
+Thinking more about it. If we keep locking outside, then we don't have
+to take lock again when we recurse into dax_zero_page_range() in device
+mapper path. IIUC, just taking lock once at top level is enough. If that's
+the case then it probably is better to keep locking outside of
+dax_zero_page_range().
+
+Thanks
+Vivek
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
-------=_NextPart_000_0012_5CAE88A2.9FF7880D--
