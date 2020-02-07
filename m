@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63AE0C35242
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 20:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F904C2BA83
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 20:27:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3CEAF222C2
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 20:27:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 777CF21741
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Feb 2020 20:27:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="SFTUINxz"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3CEAF222C2
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OKxV7tlF"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 777CF21741
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 02B0B10FC35A7;
+	by ml01.01.org (Postfix) with ESMTP id 1BAB510FC35AC;
 	Fri,  7 Feb 2020 12:30:33 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E2EE510FC3592
+	by ml01.01.org (Postfix) with ESMTPS id 0265C10FC3594
 	for <linux-nvdimm@lists.01.org>; Fri,  7 Feb 2020 12:30:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1581107231;
@@ -34,45 +34,45 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=WTamhpAnwChD3OEQqxRkf3An1EjerkCeXOOCWgzEmpk=;
-	b=SFTUINxzWy12RlbIg/g1g30+NdWtrMQ6frVpUstPdYGSZ5F9VJ3EdPkHrDvI2Uonhp6inp
-	CV2xRTeTe2YJOQpSDQsgDVn9RKT0Q/Uo5NJM/3TLglTE4XdXNvgsSBQuqDreHyp8PQtTI0
-	/bYcsD0tifWnDaiBf6WvZJR+lKo61dk=
+	bh=8foEyay8+OOzaGQuCRaBURtgFdqxdF17uA4H4O9cpZo=;
+	b=OKxV7tlFGN36NTC7dCAueq/wywOlzSB/JoWUeiddoSpTI3kA21Q73AiWv0Hu+VXBji5MR5
+	R/rf2vEDyQHTwc3LvDFjVOU2aef83x8HZJp3Y+zHbol5MjJ/9FPOq3b6h4jvOe+8xWKAxS
+	2yJQLFyavz3BVTNOLdHtIHwEEYYjBZM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-227-DweDYff0PISyNIl050Upmw-1; Fri, 07 Feb 2020 15:27:07 -0500
-X-MC-Unique: DweDYff0PISyNIl050Upmw-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+ us-mta-310-fzC9EGLuMAyyP2LKicSqnQ-1; Fri, 07 Feb 2020 15:27:06 -0500
+X-MC-Unique: fzC9EGLuMAyyP2LKicSqnQ-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5B7EC107B267;
-	Fri,  7 Feb 2020 20:27:06 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C4758801E74;
+	Fri,  7 Feb 2020 20:27:05 +0000 (UTC)
 Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 3670060BF7;
-	Fri,  7 Feb 2020 20:27:06 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 057545DA7E;
+	Fri,  7 Feb 2020 20:27:03 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id AE4192257D9; Fri,  7 Feb 2020 15:27:02 -0500 (EST)
+	id 8E3172257D3; Fri,  7 Feb 2020 15:27:02 -0500 (EST)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	hch@infradead.org,
 	dan.j.williams@intel.com
-Subject: [PATCH v3 7/7] dax,iomap: Add helper dax_iomap_zero() to zero a range
-Date: Fri,  7 Feb 2020 15:26:52 -0500
-Message-Id: <20200207202652.1439-8-vgoyal@redhat.com>
+Subject: [PATCH v3 1/7] pmem: Add functions for reading/writing page to/from pmem
+Date: Fri,  7 Feb 2020 15:26:46 -0500
+Message-Id: <20200207202652.1439-2-vgoyal@redhat.com>
 In-Reply-To: <20200207202652.1439-1-vgoyal@redhat.com>
 References: <20200207202652.1439-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-Message-ID-Hash: AHIVQNK5ZTLM452BAI2ELNN72QSWM3HJ
-X-Message-ID-Hash: AHIVQNK5ZTLM452BAI2ELNN72QSWM3HJ
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Message-ID-Hash: FNL4IT7G5PGQ6KDZNTKJ3QHWO5SVDOSV
+X-Message-ID-Hash: FNL4IT7G5PGQ6KDZNTKJ3QHWO5SVDOSV
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: dm-devel@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AHIVQNK5ZTLM452BAI2ELNN72QSWM3HJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FNL4IT7G5PGQ6KDZNTKJ3QHWO5SVDOSV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,113 +81,118 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a helper dax_ioamp_zero() to zero a range. This patch basically
-merges __dax_zero_page_range() and iomap_dax_zero().
+This splits pmem_do_bvec() into pmem_do_read() and pmem_do_write().
+pmem_do_write() will be used by pmem zero_page_range() as well. Hence
+sharing the same code.
 
 Suggested-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/dax.c               | 12 ++++++------
- fs/iomap/buffered-io.c |  9 +--------
- include/linux/dax.h    | 17 +++--------------
- 3 files changed, 10 insertions(+), 28 deletions(-)
+ drivers/nvdimm/pmem.c | 79 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 48 insertions(+), 31 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 6757e12b86b2..f6c4788ba764 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1044,23 +1044,23 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
- 	return ret;
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index ad8e4df1282b..9ad07cb8c9fc 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -136,9 +136,25 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
+ 	return BLK_STS_OK;
  }
  
--int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int size)
-+int dax_iomap_zero(loff_t pos, unsigned offset, unsigned size,
-+		   struct iomap *iomap)
+-static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+-			unsigned int len, unsigned int off, unsigned int op,
+-			sector_t sector)
++static blk_status_t pmem_do_read(struct pmem_device *pmem,
++			struct page *page, unsigned int page_off,
++			sector_t sector, unsigned int len)
++{
++	blk_status_t rc;
++	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
++	void *pmem_addr = pmem->virt_addr + pmem_off;
++
++	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
++		return BLK_STS_IOERR;
++
++	rc = read_pmem(page, page_off, pmem_addr, len);
++	flush_dcache_page(page);
++	return rc;
++}
++
++static blk_status_t pmem_do_write(struct pmem_device *pmem,
++			struct page *page, unsigned int page_off,
++			sector_t sector, unsigned int len)
  {
- 	pgoff_t pgoff;
- 	long rc, id;
-+	sector_t sector = iomap_sector(iomap, pos & PAGE_MASK);
+ 	blk_status_t rc = BLK_STS_OK;
+ 	bool bad_pmem = false;
+@@ -148,39 +164,40 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
+ 	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
+ 		bad_pmem = true;
  
--	rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
-+	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
- 	if (rc)
- 		return rc;
+-	if (!op_is_write(op)) {
+-		if (unlikely(bad_pmem))
+-			rc = BLK_STS_IOERR;
+-		else {
+-			rc = read_pmem(page, off, pmem_addr, len);
+-			flush_dcache_page(page);
+-		}
+-	} else {
+-		/*
+-		 * Note that we write the data both before and after
+-		 * clearing poison.  The write before clear poison
+-		 * handles situations where the latest written data is
+-		 * preserved and the clear poison operation simply marks
+-		 * the address range as valid without changing the data.
+-		 * In this case application software can assume that an
+-		 * interrupted write will either return the new good
+-		 * data or an error.
+-		 *
+-		 * However, if pmem_clear_poison() leaves the data in an
+-		 * indeterminate state we need to perform the write
+-		 * after clear poison.
+-		 */
+-		flush_dcache_page(page);
+-		write_pmem(pmem_addr, page, off, len);
+-		if (unlikely(bad_pmem)) {
+-			rc = pmem_clear_poison(pmem, pmem_off, len);
+-			write_pmem(pmem_addr, page, off, len);
+-		}
++	/*
++	 * Note that we write the data both before and after
++	 * clearing poison.  The write before clear poison
++	 * handles situations where the latest written data is
++	 * preserved and the clear poison operation simply marks
++	 * the address range as valid without changing the data.
++	 * In this case application software can assume that an
++	 * interrupted write will either return the new good
++	 * data or an error.
++	 *
++	 * However, if pmem_clear_poison() leaves the data in an
++	 * indeterminate state we need to perform the write
++	 * after clear poison.
++	 */
++	flush_dcache_page(page);
++	write_pmem(pmem_addr, page, page_off, len);
++	if (unlikely(bad_pmem)) {
++		rc = pmem_clear_poison(pmem, pmem_off, len);
++		write_pmem(pmem_addr, page, page_off, len);
+ 	}
  
- 	id = dax_read_lock();
--	rc = dax_zero_page_range(dax_dev, (pgoff << PAGE_SHIFT) + offset, size);
-+	rc = dax_zero_page_range(iomap->dax_dev, (pgoff << PAGE_SHIFT) + offset,
-+				 size);
- 	dax_read_unlock(id);
  	return rc;
  }
--EXPORT_SYMBOL_GPL(__dax_zero_page_range);
  
- static loff_t
- dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
-diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
-index 828444e14d09..5a5d784a110e 100644
---- a/fs/iomap/buffered-io.c
-+++ b/fs/iomap/buffered-io.c
-@@ -974,13 +974,6 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
- 	return iomap_write_end(inode, pos, bytes, bytes, page, iomap, srcmap);
- }
- 
--static int iomap_dax_zero(loff_t pos, unsigned offset, unsigned bytes,
--		struct iomap *iomap)
--{
--	return __dax_zero_page_range(iomap->bdev, iomap->dax_dev,
--			iomap_sector(iomap, pos & PAGE_MASK), offset, bytes);
--}
--
- static loff_t
- iomap_zero_range_actor(struct inode *inode, loff_t pos, loff_t count,
- 		void *data, struct iomap *iomap, struct iomap *srcmap)
-@@ -1000,7 +993,7 @@ iomap_zero_range_actor(struct inode *inode, loff_t pos, loff_t count,
- 		bytes = min_t(loff_t, PAGE_SIZE - offset, count);
- 
- 		if (IS_DAX(inode))
--			status = iomap_dax_zero(pos, offset, bytes, iomap);
-+			status = dax_iomap_zero(pos, offset, bytes, iomap);
- 		else
- 			status = iomap_zero(inode, pos, offset, bytes, iomap,
- 					srcmap);
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index a555f0aeb7bd..31d0e6fc3023 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -13,6 +13,7 @@
- typedef unsigned long dax_entry_t;
- 
- struct iomap_ops;
-+struct iomap;
- struct dax_device;
- struct dax_operations {
- 	/*
-@@ -223,20 +224,8 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
--
--#ifdef CONFIG_FS_DAX
--int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int length);
--#else
--static inline int __dax_zero_page_range(struct block_device *bdev,
--		struct dax_device *dax_dev, sector_t sector,
--		unsigned int offset, unsigned int length)
--{
--	return -ENXIO;
--}
--#endif
--
-+int dax_iomap_zero(loff_t pos, unsigned offset, unsigned size,
-+			struct iomap *iomap);
- static inline bool dax_mapping(struct address_space *mapping)
++static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
++			unsigned int len, unsigned int off, unsigned int op,
++			sector_t sector)
++{
++	if (!op_is_write(op))
++		return pmem_do_read(pmem, page, off, sector, len);
++
++	return pmem_do_write(pmem, page, off, sector, len);
++}
++
+ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
  {
- 	return mapping->host && IS_DAX(mapping->host);
+ 	int ret = 0;
 -- 
 2.20.1
 _______________________________________________
