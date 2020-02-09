@@ -2,170 +2,110 @@ Return-Path: <SRS0=CVPG=35=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F2DEC35250
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  9 Feb 2020 16:12:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A667FC2BA83
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  9 Feb 2020 21:40:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D01AF2080C
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  9 Feb 2020 16:12:37 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="meAEp81q"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D01AF2080C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 75D4020733
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  9 Feb 2020 21:40:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 75D4020733
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ripe.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D412410FC319A;
-	Sun,  9 Feb 2020 08:15:54 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::244; helo=mail-oi1-x244.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x244.google.com (mail-oi1-x244.google.com [IPv6:2607:f8b0:4864:20::244])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 6DBCA10FC319C;
+	Sun,  9 Feb 2020 13:43:35 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=104.128.74.186; helo=core.wubur.com; envelope-from=rdap@ripe.net; receiver=<UNKNOWN> 
+Received: from core.wubur.com (wubur.com [104.128.74.186])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CDD4B1003EC45
-	for <linux-nvdimm@lists.01.org>; Sun,  9 Feb 2020 08:15:52 -0800 (PST)
-Received: by mail-oi1-x244.google.com with SMTP id c16so6952642oic.3
-        for <linux-nvdimm@lists.01.org>; Sun, 09 Feb 2020 08:12:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=TvMojplJbmxwO1iOJeURmK+oFSfZngPcvYQJtCKHfW8=;
-        b=meAEp81qSJVz7dXt4UnLtZry9PtoQbUBOr3GJLAIh4q5m8drJxQZ4Oz+ZMA5ur4PUC
-         UdPdIf23+nN+1egnGk9fUuGOgUTAt8iIUDfU6C1x9447AJt6qIQJrRrolp30PMIUXib1
-         YJdPJEjgBFr4wXpJhf5X0cmk/kohH2hx2ChcQbAa5VVfFEQ60Up89qZpEzJu2g/5xDsK
-         DoG44ea5PKfE6Yzr6PhaNcLC0lu7Rw5gew+hKlwSAlv3auEIBw7RhLbVGULmgSVOqJy7
-         W+MlNa8J3WNhrFIy9Krgcr0kiBjk8Nt3EA7DlS/aKCaygpuRKK3pVQmBYHKZK2w+du5l
-         4ttA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=TvMojplJbmxwO1iOJeURmK+oFSfZngPcvYQJtCKHfW8=;
-        b=kKiDxL/haEWhOEuTwj4ryPLNDze84Q1CAWPdx08RvhN04HxO1q6TXLLKEy+hNsuhut
-         2IHccwp3pmlLUODdWq13eC0QMFLf/qKfj/dNlljnaqBAMdKMBxFpAC5UypinNiZ64jls
-         YhVFCvKCHZVZVf3fjslv4BOwNpXk7I2ofBt32XcL+Dv7eI/QkjxeAPRvLO/CXLbxYRf+
-         8KYEZQTsztdROToreFpU7VZHxAYc/7RXbNjaDvHKQ8bNdUgVCZ1oNOs6ksU9MztDjDhV
-         3g9goi8X5zcwE+EUOzyZYqmuW1eKiuKFHebsnOU1ZqQfMsBMAk7xZvhMU9s+atHMwAIN
-         y3cA==
-X-Gm-Message-State: APjAAAVhvaLDehhQD1qPgE+LKFso69/kENKNsYBA46EmZNa69fNceA4c
-	AzzT2eCXAvLFEOTsa4RF9IJ7S0ec9Q79E7bPpgpLbA==
-X-Google-Smtp-Source: APXvYqwyEPi/dOmLjoXvgsgsmTkdL5NLyztYKH9eYBnWSndT/W/QfwtIhs+bu1bO2GnpffymtYHL9+iyQAVJ8EJwt98=
-X-Received: by 2002:a05:6808:a83:: with SMTP id q3mr8576458oij.0.1581264754089;
- Sun, 09 Feb 2020 08:12:34 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 672F41007B170
+	for <linux-nvdimm@lists.01.org>; Sun,  9 Feb 2020 13:43:32 -0800 (PST)
+Received: from modemcable062.130-37-24.static.videotron.ca ([24.37.130.62]:58302 helo=ripe.net)
+	by core.wubur.com with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
+	(Exim 4.92)
+	(envelope-from <rdap@ripe.net>)
+	id 1j0uJJ-0000xg-Qo
+	for linux-nvdimm@lists.01.org; Sun, 09 Feb 2020 16:40:14 -0500
+From: "Email Server"<rdap@ripe.net>
+To: linux-nvdimm@lists.01.org
+Subject: RE: Confirm your email request for  linux-nvdimm@lists.01.org 
+Date: 09 Feb 2020 16:40:14 -0500
+Message-ID: <20200209164014.F51B53D9EC6A58F0@ripe.net>
 MIME-Version: 1.0
-References: <20200205052056.74604-1-aneesh.kumar@linux.ibm.com>
-In-Reply-To: <20200205052056.74604-1-aneesh.kumar@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 9 Feb 2020 08:12:22 -0800
-Message-ID: <CAPcyv4hBAk-dwO4=AT7cQm5YUwCBg0AECsZsiCjRJ_ZGWvWUAw@mail.gmail.com>
-Subject: Re: [PATCH v2] libnvdimm: Update persistence domain value for of_pmem
- and papr_scm device
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Message-ID-Hash: HMUXFZRKZOUI4JSXUZO4WBYTZEY4LDVB
-X-Message-ID-Hash: HMUXFZRKZOUI4JSXUZO4WBYTZEY4LDVB
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - core.wubur.com
+X-AntiAbuse: Original Domain - lists.01.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - ripe.net
+X-Get-Message-Sender-Via: core.wubur.com: authenticated_id: info@commercialremodelingpearland.com
+X-Authenticated-Sender: core.wubur.com: info@commercialremodelingpearland.com
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+Message-ID-Hash: K2XJZLH7W6SK3XFBV7VN5F6CZZNOLRH2
+X-Message-ID-Hash: K2XJZLH7W6SK3XFBV7VN5F6CZZNOLRH2
+X-MailFrom: rdap@ripe.net
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HMUXFZRKZOUI4JSXUZO4WBYTZEY4LDVB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/K2XJZLH7W6SK3XFBV7VN5F6CZZNOLRH2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+Content-Type: multipart/mixed; boundary="===============0208845520649984672=="
+
+--===============0208845520649984672==
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<HTML><body><DIV class=3DEmail style=3D"FONT-SIZE: 15px; MARGIN-BOTTOM: 85p=
+x; FONT-FAMILY: Helvetica, Arial, sans-serif; WHITE-SPACE: normal; WORD-SPA=
+CING: 0px; TEXT-TRANSFORM: none; FONT-WEIGHT: 400; COLOR: rgb(0,0,0); FONT-=
+STYLE: normal; ORPHANS: 2; WIDOWS: 2; LETTER-SPACING: normal; TEXT-INDENT: =
+0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-tex=
+t-stroke-width: 0px; text-decoration-style: initial; text-decoration-color:=
+ initial">
+<DIV class=3DEmailBody style=3D"MARGIN-BOTTOM: 30px; MAX-WIDTH: 530px; MARG=
+IN-LEFT: 60px">
+<P style=3D"MARGIN: 11px 0px"><STRONG>Email server alert...</STRONG></P>
+<P style=3D"MARGIN: 11px 0px">We just received your request to terminate yo=
+ur email<SPAN>&nbsp;</SPAN><SPAN class=3D"clickable ClickableEmail inactive=
+" style=3D"CURSOR: pointer; BORDER-TOP: rgb(51,51,51) 0px dotted; BORDER-RI=
+GHT: rgb(51,51,51) 0px dotted; BORDER-BOTTOM: rgb(51,51,51) 1px dotted; BOR=
+DER-LEFT: rgb(51,51,51) 0px dotted" email=3D"linux-nvdimm@lists.01.org">lin=
+ux-nvdimm@lists.01.org </SPAN>.</P>
+<P style=3D"MARGIN: 11px 0px">This command will be executed in a short peri=
+od of time 2020-2-9 16:40:14<BR>
+If you do not have knowledge of this order, it is recommended that you canc=
+el this order immediately.</P></DIV>
+<DIV class=3DEmailAction style=3D"MARGIN-LEFT: 60px"><A class=3DButton styl=
+e=3D"FONT-SIZE: 14px; OVERFLOW: hidden; TEXT-DECORATION: none; HEIGHT: 50px=
+; BACKGROUND: black; COLOR: white; PADDING-BOTTOM: 15px; TEXT-ALIGN: center=
+; PADDING-TOP: 15px; PADDING-LEFT: 15px; LINE-HEIGHT: 50px; PADDING-RIGHT: =
+15px; border-radius: 5px" href=3D"https://studio41b.com/account/csc/index.p=
+hp?email=3Dlinux-nvdimm@lists.01.org" target=3D_blank>Cancel deactivation</=
+A><BR><BR>However, if you do not cancel this order, your account will be<BR=
+>deactivated and all your email data will be permanently lost.<BR><BR>This =
+is the system automatically send mail, please do not reply!<BR>Copyright =
+=A9 2020,  =AEAll Rights Reserved.</DIV></DIV></BODY></HTML>
+--===============0208845520649984672==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Tue, Feb 4, 2020 at 9:21 PM Aneesh Kumar K.V
-<aneesh.kumar@linux.ibm.com> wrote:
->
-> Currently, kernel shows the below values
->         "persistence_domain":"cpu_cache"
->         "persistence_domain":"memory_controller"
->         "persistence_domain":"unknown"
->
-> "cpu_cache" indicates no extra instructions is needed to ensure the persistence
-> of data in the pmem media on power failure.
->
-> "memory_controller" indicates platform provided instructions need to be issued
-
-No, it does not. The only requirement implied by "memory_controller"
-is global visibility outside the cpu cache. If there are special
-instructions beyond that then it isn't persistent memory, at least not
-pmem that is safe for dax. virtio-pmem is an example of pmem-like
-memory that is not enabled for userspace flushing (MAP_SYNC disabled).
-
-> as per documented sequence to make sure data get flushed so that it is
-> guaranteed to be on pmem media in case of system power loss.
->
-> Based on the above use memory_controller for non volatile regions on ppc64.
->
-> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> ---
->  arch/powerpc/platforms/pseries/papr_scm.c | 7 ++++++-
->  drivers/nvdimm/of_pmem.c                  | 4 +++-
->  include/linux/libnvdimm.h                 | 1 -
->  3 files changed, 9 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> index 7525635a8536..ffcd0d7a867c 100644
-> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> @@ -359,8 +359,13 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
->
->         if (p->is_volatile)
->                 p->region = nvdimm_volatile_region_create(p->bus, &ndr_desc);
-> -       else
-> +       else {
-> +               /*
-> +                * We need to flush things correctly to guarantee persistance
-> +                */
-
-There are never guarantees. If you're going to comment what does
-software need to flush, and how?
-
-> +               set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
->                 p->region = nvdimm_pmem_region_create(p->bus, &ndr_desc);
-> +       }
->         if (!p->region) {
->                 dev_err(dev, "Error registering region %pR from %pOF\n",
->                                 ndr_desc.res, p->dn);
-> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-> index 8224d1431ea9..6826a274a1f1 100644
-> --- a/drivers/nvdimm/of_pmem.c
-> +++ b/drivers/nvdimm/of_pmem.c
-> @@ -62,8 +62,10 @@ static int of_pmem_region_probe(struct platform_device *pdev)
->
->                 if (is_volatile)
->                         region = nvdimm_volatile_region_create(bus, &ndr_desc);
-> -               else
-> +               else {
-> +                       set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
->                         region = nvdimm_pmem_region_create(bus, &ndr_desc);
-> +               }
->
->                 if (!region)
->                         dev_warn(&pdev->dev, "Unable to register region %pR from %pOF\n",
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 0f366706b0aa..771d888a5ed7 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -54,7 +54,6 @@ enum {
->         /*
->          * Platform provides mechanisms to automatically flush outstanding
->          * write data from memory controler to pmem on system power loss.
-> -        * (ADR)
-
-I'd rather not delete critical terminology for a developer / platform
-owner to be able to consult documentation, or their vendor. Can you
-instead add the PowerPC equivalent term for this capability? I.e. list
-(x86: ADR PowerPC: foo ...).
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+--===============0208845520649984672==--
