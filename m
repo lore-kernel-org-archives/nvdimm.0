@@ -2,79 +2,89 @@ Return-Path: <SRS0=nxzV=36=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_2 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17090C35254
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 10 Feb 2020 18:18:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C1C2C352A4
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 10 Feb 2020 20:53:27 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B902F20838
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 10 Feb 2020 18:18:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="d+3c2VIO"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B902F20838
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id E91E92070A
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 10 Feb 2020 20:53:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E91E92070A
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=de.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A0F9D10FC3170;
-	Mon, 10 Feb 2020 10:22:09 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::344; helo=mail-ot1-x344.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id C5FB210FC3170;
+	Mon, 10 Feb 2020 12:56:43 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=gerald.schaefer@de.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C0AFA1007B189
-	for <linux-nvdimm@lists.01.org>; Mon, 10 Feb 2020 10:22:07 -0800 (PST)
-Received: by mail-ot1-x344.google.com with SMTP id j20so7323500otq.3
-        for <linux-nvdimm@lists.01.org>; Mon, 10 Feb 2020 10:18:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=sChepdk/YRCs175rH+BlGbDcDcJGkfdLslqExTb4U1g=;
-        b=d+3c2VIOvcKpD1iC4w32tg1QuhpLzU51h/HM6XcbN433+JUsDqFG2Qx0edoUXCFafr
-         jfWxRFfRvg56AaKAiVzr+eGt/v+rqb8/x1bGPk2Sj+igIx6Yk6Y5mGrgE0Fkia/mC10o
-         0WJnXETrkVxIArvWeTLJCo57ea8AlILEl7EjWKMkzbyLmkSJVmSAenV0z4a0Ro9/Dnmv
-         RsVv7iUNI/Dywc8nlEpHL4+pe5UDByGU6RrDf5jw96fUvGrVlohdShByE7KcXD/cxHCa
-         dYrMXaE2hAiAoENR22SpbnL3IKy9UGXpwNaK9+avYdM8rYve36W+4uQttpacr+XZIb4h
-         kyLQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=sChepdk/YRCs175rH+BlGbDcDcJGkfdLslqExTb4U1g=;
-        b=n2Hczdi6NZJSRvEDrG9bVg4nN6nETtfxzkpj9s7oAZXBhuquI7ISEVihqoikzQmG1K
-         IKsQUriwDvAqfWkSoO4JD8Jqc77lf/XBDQ9g/W1HBedQis2q297VA6t0DDP4Q27HUVLf
-         HFK18CZROY5wXtD4omQ5xCdzJ0Vp/LSWCfvSRBxu9puOJ0lJ+8uI28iVZVCydZvF+dtm
-         rxtA0CoPs083RknL1SN+d9MrhthPYkx+JA63MVKcTZ6fN94FrUBU1pgnTC8GAyfucZGm
-         GJ3Qft5q5TzqMgCgvNQv7gYtaOVPXSDl7O2NIF204ZRRPdyRXlnf0EcPAQ5OaUp7Dkpc
-         0qjw==
-X-Gm-Message-State: APjAAAWdTR8clIsuhoHNhD2js0rPRMnPp2IRxqjnIHtmKRFhe3u6VIVW
-	VAkRHOPD70S/L0mzwgJtfMWTmwy4d6vB/3NvlOtoyA==
-X-Google-Smtp-Source: APXvYqw5dqlbFTDvCEPFe2LoGhASJEseZ0YYyWL4QJ9Xa9w78JPVLSL/kfwVyCTB+RCGG1wYY0Truua6n8OTOyd8Tb0=
-X-Received: by 2002:a9d:1284:: with SMTP id g4mr1983799otg.207.1581358729382;
- Mon, 10 Feb 2020 10:18:49 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id C0F6210097DFC
+	for <linux-nvdimm@lists.01.org>; Mon, 10 Feb 2020 12:56:40 -0800 (PST)
+Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01AKnLu0109274
+	for <linux-nvdimm@lists.01.org>; Mon, 10 Feb 2020 15:53:22 -0500
+Received: from e06smtp02.uk.ibm.com (e06smtp02.uk.ibm.com [195.75.94.98])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 2y38gxed5x-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Mon, 10 Feb 2020 15:53:22 -0500
+Received: from localhost
+	by e06smtp02.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <gerald.schaefer@de.ibm.com>;
+	Mon, 10 Feb 2020 20:53:20 -0000
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
+	by e06smtp02.uk.ibm.com (192.168.101.132) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Mon, 10 Feb 2020 20:53:17 -0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01AKrHfX52691032
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 10 Feb 2020 20:53:17 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0107CA404D;
+	Mon, 10 Feb 2020 20:53:17 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B08A8A4040;
+	Mon, 10 Feb 2020 20:53:16 +0000 (GMT)
+Received: from thinkpad (unknown [9.152.97.75])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon, 10 Feb 2020 20:53:16 +0000 (GMT)
+Date: Mon, 10 Feb 2020 21:53:15 +0100
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+To: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v3 4/7] s390,dcssblk,dax: Add dax zero_page_range
+ operation to dcssblk driver
+In-Reply-To: <20200207202652.1439-5-vgoyal@redhat.com>
+References: <20200207202652.1439-1-vgoyal@redhat.com>
+	<20200207202652.1439-5-vgoyal@redhat.com>
+X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; x86_64-redhat-linux-gnu)
 MIME-Version: 1.0
-References: <20200205052056.74604-1-aneesh.kumar@linux.ibm.com>
- <CAPcyv4hBAk-dwO4=AT7cQm5YUwCBg0AECsZsiCjRJ_ZGWvWUAw@mail.gmail.com> <87y2ta8qy7.fsf@linux.ibm.com>
-In-Reply-To: <87y2ta8qy7.fsf@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 10 Feb 2020 10:18:38 -0800
-Message-ID: <CAPcyv4hNV88FJybgoRyM=JuKgrwYaf+CLWfFWt5X3yFMrecU=Q@mail.gmail.com>
-Subject: Re: [PATCH v2] libnvdimm: Update persistence domain value for of_pmem
- and papr_scm device
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Message-ID-Hash: 4LS5QXNQNT2BJFLERJ4AAFG4LYNTFU34
-X-Message-ID-Hash: 4LS5QXNQNT2BJFLERJ4AAFG4LYNTFU34
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+X-TM-AS-GCONF: 00
+x-cbid: 20021020-0008-0000-0000-00000351A023
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20021020-0009-0000-0000-00004A723F38
+Message-Id: <20200210215315.27b7e310@thinkpad>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-02-10_07:2020-02-10,2020-02-10 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0
+ lowpriorityscore=0 spamscore=0 bulkscore=0 impostorscore=0 mlxscore=0
+ adultscore=0 clxscore=1011 malwarescore=0 phishscore=0 priorityscore=1501
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002100149
+Message-ID-Hash: C3XASVZENFBDXHAT3AGEMRVI53YXZMWF
+X-Message-ID-Hash: C3XASVZENFBDXHAT3AGEMRVI53YXZMWF
+X-MailFrom: gerald.schaefer@de.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, hch@infradead.org, dm-devel@redhat.com, linux-s390@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4LS5QXNQNT2BJFLERJ4AAFG4LYNTFU34/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C3XASVZENFBDXHAT3AGEMRVI53YXZMWF/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,133 +93,47 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Feb 10, 2020 at 6:20 AM Aneesh Kumar K.V
-<aneesh.kumar@linux.ibm.com> wrote:
->
-> Dan Williams <dan.j.williams@intel.com> writes:
->
-> > On Tue, Feb 4, 2020 at 9:21 PM Aneesh Kumar K.V
-> > <aneesh.kumar@linux.ibm.com> wrote:
-> >>
-> >> Currently, kernel shows the below values
-> >>         "persistence_domain":"cpu_cache"
-> >>         "persistence_domain":"memory_controller"
-> >>         "persistence_domain":"unknown"
-> >>
-> >> "cpu_cache" indicates no extra instructions is needed to ensure the persistence
-> >> of data in the pmem media on power failure.
-> >>
-> >> "memory_controller" indicates platform provided instructions need to be issued
-> >
-> > No, it does not. The only requirement implied by "memory_controller"
-> > is global visibility outside the cpu cache. If there are special
-> > instructions beyond that then it isn't persistent memory, at least not
-> > pmem that is safe for dax. virtio-pmem is an example of pmem-like
-> > memory that is not enabled for userspace flushing (MAP_SYNC disabled).
-> >
->
-> Can you explain this more? The way I was expecting the application to
-> interpret the value was, a regular store instruction doesn't guarantee
-> persistence if you find the "memory_controller" value for
-> persistence_domain. Instead, we need to make sure we flush data to the
-> controller at which point the platform will take care of the persistence in
-> case of power loss. How we flush data to the controller will also be
-> defined by the platform.
+On Fri,  7 Feb 2020 15:26:49 -0500
+Vivek Goyal <vgoyal@redhat.com> wrote:
 
-If the platform requires any flush mechanism outside of the base cpu
-ISA of cache flushes and memory barriers then MAP_SYNC needs to be
-explicitly disabled to force the application to call fsync()/msync().
-Then those platform specific mechanisms need to be triggered through a
-platform-aware driver.
+> Add dax operation zero_page_range for dcssblk driver.
+> 
+> CC: linux-s390@vger.kernel.org
+> Suggested-by: Christoph Hellwig <hch@infradead.org>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  drivers/s390/block/dcssblk.c | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+> index 63502ca537eb..331abab5d066 100644
+> --- a/drivers/s390/block/dcssblk.c
+> +++ b/drivers/s390/block/dcssblk.c
+> @@ -57,11 +57,28 @@ static size_t dcssblk_dax_copy_to_iter(struct dax_device *dax_dev,
+>  	return copy_to_iter(addr, bytes, i);
+>  }
+>  
+> +static int dcssblk_dax_zero_page_range(struct dax_device *dax_dev, u64 offset,
+> +				       size_t len)
+> +{
+> +	long rc;
+> +	void *kaddr;
+> +	pgoff_t pgoff = offset >> PAGE_SHIFT;
+> +	unsigned page_offset = offset_in_page(offset);
+> +
+> +	rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
 
->
->
-> >> as per documented sequence to make sure data get flushed so that it is
-> >> guaranteed to be on pmem media in case of system power loss.
-> >>
-> >> Based on the above use memory_controller for non volatile regions on ppc64.
-> >>
-> >> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> >> ---
-> >>  arch/powerpc/platforms/pseries/papr_scm.c | 7 ++++++-
-> >>  drivers/nvdimm/of_pmem.c                  | 4 +++-
-> >>  include/linux/libnvdimm.h                 | 1 -
-> >>  3 files changed, 9 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> >> index 7525635a8536..ffcd0d7a867c 100644
-> >> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> >> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> >> @@ -359,8 +359,13 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
-> >>
-> >>         if (p->is_volatile)
-> >>                 p->region = nvdimm_volatile_region_create(p->bus, &ndr_desc);
-> >> -       else
-> >> +       else {
-> >> +               /*
-> >> +                * We need to flush things correctly to guarantee persistance
-> >> +                */
-> >
-> > There are never guarantees. If you're going to comment what does
-> > software need to flush, and how?
->
-> Can you explain why you say there are never guarantees? If you follow the platform
-> recommended instruction sequence to flush data, we can be sure of data
-> persistence in the pmem media.
+Why do you pass only 1 page as nr_pages argument for dax_direct_access()?
+In some other patch in this series there is a comment that this will
+currently only be used for one page, but support for more pages might be
+added later. Wouldn't it make sense to rather use something like
+PAGE_ALIGN(page_offset + len) >> PAGE_SHIFT instead of 1 here, so that
+this won't have to be changed when callers will be ready to use it
+with more than one page?
 
-Because storage can always fail. You can reduce risk, but never
-eliminate it. This is similar to SSDs that use latent capacitance to
-flush their write caches on driver power loss. Even if the application
-successfully flushes its writes to buffers that are protected by that
-capacitance that power source can still (and in practice does) fail.
-
->
->
-> >
-> >> +               set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
-> >>                 p->region = nvdimm_pmem_region_create(p->bus, &ndr_desc);
-> >> +       }
-> >>         if (!p->region) {
-> >>                 dev_err(dev, "Error registering region %pR from %pOF\n",
-> >>                                 ndr_desc.res, p->dn);
-> >> diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-> >> index 8224d1431ea9..6826a274a1f1 100644
-> >> --- a/drivers/nvdimm/of_pmem.c
-> >> +++ b/drivers/nvdimm/of_pmem.c
-> >> @@ -62,8 +62,10 @@ static int of_pmem_region_probe(struct platform_device *pdev)
-> >>
-> >>                 if (is_volatile)
-> >>                         region = nvdimm_volatile_region_create(bus, &ndr_desc);
-> >> -               else
-> >> +               else {
-> >> +                       set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc.flags);
-> >>                         region = nvdimm_pmem_region_create(bus, &ndr_desc);
-> >> +               }
-> >>
-> >>                 if (!region)
-> >>                         dev_warn(&pdev->dev, "Unable to register region %pR from %pOF\n",
-> >> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> >> index 0f366706b0aa..771d888a5ed7 100644
-> >> --- a/include/linux/libnvdimm.h
-> >> +++ b/include/linux/libnvdimm.h
-> >> @@ -54,7 +54,6 @@ enum {
-> >>         /*
-> >>          * Platform provides mechanisms to automatically flush outstanding
-> >>          * write data from memory controler to pmem on system power loss.
-> >> -        * (ADR)
-> >
-> > I'd rather not delete critical terminology for a developer / platform
-> > owner to be able to consult documentation, or their vendor. Can you
-> > instead add the PowerPC equivalent term for this capability? I.e. list
-> > (x86: ADR PowerPC: foo ...).
->
-> Power ISA doesn't clearly call out what mechanism will be used to ensure
-> that a load following power loss will return the previously flushed
-> data. Hence there is no description of details like Asynchronous DRAM
-> Refresh. Only details specified is with respect to flush sequence that ensures
-> that a load following power loss will return the value stored.
-
-What is this "flush sequence"?
+Of course, I guess then we'd also need some check on the return value
+from dax_direct_access(), i.e. if the returned available range is
+large enough for the requested range.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
