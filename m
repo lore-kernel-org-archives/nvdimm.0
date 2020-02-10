@@ -1,111 +1,106 @@
-Return-Path: <SRS0=CVPG=35=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=nxzV=36=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A667FC2BA83
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  9 Feb 2020 21:40:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAED0C352A3
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 10 Feb 2020 11:28:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 75D4020733
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  9 Feb 2020 21:40:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 75D4020733
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ripe.net
+	by mail.kernel.org (Postfix) with ESMTPS id 61A9120838
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 10 Feb 2020 11:28:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 61A9120838
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6DBCA10FC319C;
-	Sun,  9 Feb 2020 13:43:35 -0800 (PST)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=104.128.74.186; helo=core.wubur.com; envelope-from=rdap@ripe.net; receiver=<UNKNOWN> 
-Received: from core.wubur.com (wubur.com [104.128.74.186])
+	by ml01.01.org (Postfix) with ESMTP id 493A41007B1F6;
+	Mon, 10 Feb 2020 03:31:25 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 672F41007B170
-	for <linux-nvdimm@lists.01.org>; Sun,  9 Feb 2020 13:43:32 -0800 (PST)
-Received: from modemcable062.130-37-24.static.videotron.ca ([24.37.130.62]:58302 helo=ripe.net)
-	by core.wubur.com with esmtpsa (TLSv1.2:ECDHE-RSA-AES256-GCM-SHA384:256)
-	(Exim 4.92)
-	(envelope-from <rdap@ripe.net>)
-	id 1j0uJJ-0000xg-Qo
-	for linux-nvdimm@lists.01.org; Sun, 09 Feb 2020 16:40:14 -0500
-From: "Email Server"<rdap@ripe.net>
-To: linux-nvdimm@lists.01.org
-Subject: RE: Confirm your email request for  linux-nvdimm@lists.01.org 
-Date: 09 Feb 2020 16:40:14 -0500
-Message-ID: <20200209164014.F51B53D9EC6A58F0@ripe.net>
+	by ml01.01.org (Postfix) with ESMTPS id AE8F810097DC6
+	for <linux-nvdimm@lists.01.org>; Mon, 10 Feb 2020 03:31:23 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+	by mx2.suse.de (Postfix) with ESMTP id A8F81B1A8;
+	Mon, 10 Feb 2020 11:28:04 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+	id E7A521E0E2C; Mon, 10 Feb 2020 12:28:03 +0100 (CET)
+Date: Mon, 10 Feb 2020 12:28:03 +0100
+From: Jan Kara <jack@suse.cz>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] tools/testing/nvdimm: Fix compilation failure without
+ CONFIG_DEV_DAX_PMEM_COMPAT
+Message-ID: <20200210112803.GA16326@quack2.suse.cz>
+References: <20200123154720.12097-1-jack@suse.cz>
 MIME-Version: 1.0
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - core.wubur.com
-X-AntiAbuse: Original Domain - lists.01.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - ripe.net
-X-Get-Message-Sender-Via: core.wubur.com: authenticated_id: info@commercialremodelingpearland.com
-X-Authenticated-Sender: core.wubur.com: info@commercialremodelingpearland.com
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-Message-ID-Hash: K2XJZLH7W6SK3XFBV7VN5F6CZZNOLRH2
-X-Message-ID-Hash: K2XJZLH7W6SK3XFBV7VN5F6CZZNOLRH2
-X-MailFrom: rdap@ripe.net
+Content-Disposition: inline
+In-Reply-To: <20200123154720.12097-1-jack@suse.cz>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: MCD6Q3QOZNN7N6RQ2LQ2ZPDTOZRUELNS
+X-Message-ID-Hash: MCD6Q3QOZNN7N6RQ2LQ2ZPDTOZRUELNS
+X-MailFrom: jack@suse.cz
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/K2XJZLH7W6SK3XFBV7VN5F6CZZNOLRH2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MCD6Q3QOZNN7N6RQ2LQ2ZPDTOZRUELNS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: multipart/mixed; boundary="===============0208845520649984672=="
-
---===============0208845520649984672==
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<HTML><body><DIV class=3DEmail style=3D"FONT-SIZE: 15px; MARGIN-BOTTOM: 85p=
-x; FONT-FAMILY: Helvetica, Arial, sans-serif; WHITE-SPACE: normal; WORD-SPA=
-CING: 0px; TEXT-TRANSFORM: none; FONT-WEIGHT: 400; COLOR: rgb(0,0,0); FONT-=
-STYLE: normal; ORPHANS: 2; WIDOWS: 2; LETTER-SPACING: normal; TEXT-INDENT: =
-0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-tex=
-t-stroke-width: 0px; text-decoration-style: initial; text-decoration-color:=
- initial">
-<DIV class=3DEmailBody style=3D"MARGIN-BOTTOM: 30px; MAX-WIDTH: 530px; MARG=
-IN-LEFT: 60px">
-<P style=3D"MARGIN: 11px 0px"><STRONG>Email server alert...</STRONG></P>
-<P style=3D"MARGIN: 11px 0px">We just received your request to terminate yo=
-ur email<SPAN>&nbsp;</SPAN><SPAN class=3D"clickable ClickableEmail inactive=
-" style=3D"CURSOR: pointer; BORDER-TOP: rgb(51,51,51) 0px dotted; BORDER-RI=
-GHT: rgb(51,51,51) 0px dotted; BORDER-BOTTOM: rgb(51,51,51) 1px dotted; BOR=
-DER-LEFT: rgb(51,51,51) 0px dotted" email=3D"linux-nvdimm@lists.01.org">lin=
-ux-nvdimm@lists.01.org </SPAN>.</P>
-<P style=3D"MARGIN: 11px 0px">This command will be executed in a short peri=
-od of time 2020-2-9 16:40:14<BR>
-If you do not have knowledge of this order, it is recommended that you canc=
-el this order immediately.</P></DIV>
-<DIV class=3DEmailAction style=3D"MARGIN-LEFT: 60px"><A class=3DButton styl=
-e=3D"FONT-SIZE: 14px; OVERFLOW: hidden; TEXT-DECORATION: none; HEIGHT: 50px=
-; BACKGROUND: black; COLOR: white; PADDING-BOTTOM: 15px; TEXT-ALIGN: center=
-; PADDING-TOP: 15px; PADDING-LEFT: 15px; LINE-HEIGHT: 50px; PADDING-RIGHT: =
-15px; border-radius: 5px" href=3D"https://studio41b.com/account/csc/index.p=
-hp?email=3Dlinux-nvdimm@lists.01.org" target=3D_blank>Cancel deactivation</=
-A><BR><BR>However, if you do not cancel this order, your account will be<BR=
->deactivated and all your email data will be permanently lost.<BR><BR>This =
-is the system automatically send mail, please do not reply!<BR>Copyright =
-=A9 2020,  =AEAll Rights Reserved.</DIV></DIV></BODY></HTML>
---===============0208845520649984672==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+On Thu 23-01-20 16:47:20, Jan Kara wrote:
+> When a kernel is configured without CONFIG_DEV_DAX_PMEM_COMPAT, the
+> compilation of tools/testing/nvdimm fails with:
+> 
+>   Building modules, stage 2.
+>   MODPOST 11 modules
+> ERROR: "dax_pmem_compat_test" [tools/testing/nvdimm/test/nfit_test.ko] undefined!
+> 
+> Fix the problem by calling dax_pmem_compat_test() only if the kernel has
+> the required functionality.
+> 
+> Signed-off-by: Jan Kara <jack@suse.cz>
+
+Ping?
+
+								Honza
+
+> ---
+>  tools/testing/nvdimm/test/nfit.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> index bf6422a6af7f..a8ee5c4d41eb 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -3164,7 +3164,9 @@ static __init int nfit_test_init(void)
+>  	mcsafe_test();
+>  	dax_pmem_test();
+>  	dax_pmem_core_test();
+> +#ifdef CONFIG_DEV_DAX_PMEM_COMPAT
+>  	dax_pmem_compat_test();
+> +#endif
+>  
+>  	nfit_test_setup(nfit_test_lookup, nfit_test_evaluate_dsm);
+>  
+> -- 
+> 2.16.4
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
---===============0208845520649984672==--
