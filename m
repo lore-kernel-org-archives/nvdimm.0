@@ -2,76 +2,73 @@ Return-Path: <SRS0=sp4a=4A=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B2A3C3B189
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 12 Feb 2020 17:08:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AD31C3B186
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 12 Feb 2020 17:08:03 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id F39FA24673
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 12 Feb 2020 17:08:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id F395721734
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 12 Feb 2020 17:08:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gNcbxa1i"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F39FA24673
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="KRBd1zRB"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F395721734
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0591210FC337F;
-	Wed, 12 Feb 2020 09:11:16 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [207.211.31.81])
+	by ml01.01.org (Postfix) with ESMTP id 1CBF010FC3384;
+	Wed, 12 Feb 2020 09:11:18 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [205.139.110.61])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0219B10FC317F
-	for <linux-nvdimm@lists.01.org>; Wed, 12 Feb 2020 09:11:13 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 196851007B191
+	for <linux-nvdimm@lists.01.org>; Wed, 12 Feb 2020 09:11:15 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1581527275;
+	s=mimecast20190719; t=1581527276;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=+Kx97YjoepQpQ0kz210ikU62VnqPVqaOjhm9SlazRBo=;
-	b=gNcbxa1isplaIvP9rBjxqY2ejICIZ/qnU8BEf+6rbzT1vqz273d3oXqK5vyv5SZo7Ejh74
-	4fxcjGLwl/mXcQgtpT/ZjK+LSzXnQG2imJYukUvz6oayGDHzYO7oQjiyLsuREvTZtgVSw9
-	/OQFYYMhcpUJR8Fa19OrWJtwCHybt0k=
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=uVtVcsiKhkuKKf+gRgkYGjwkWDveu2K52NRmmgOy/F0=;
+	b=KRBd1zRBi9AQzncaxbt68Uxp6ys3VIFemT1/XLg+2e+Uiatz9X2Ia1pIxQ43RcEPKR3oTP
+	NtisM7HxVoFI08Du/pN8PvnrAAjqOt9ZGmj1KSiiRtGTmg4YknpA7t8kO0J331SI7kasyW
+	uK87tDQF6LtB4IWgeJkB23+q8QixTwM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-367-e1m5cTtcPZ-n_WXIgSZPsQ-1; Wed, 12 Feb 2020 12:07:51 -0500
-X-MC-Unique: e1m5cTtcPZ-n_WXIgSZPsQ-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+ us-mta-282-w09-80CIMHqzsasM6BehBw-1; Wed, 12 Feb 2020 12:07:51 -0500
+X-MC-Unique: w09-80CIMHqzsasM6BehBw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 432DF800D41;
-	Wed, 12 Feb 2020 17:07:50 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BCD1EDBA5;
+	Wed, 12 Feb 2020 17:07:49 +0000 (UTC)
 Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 21BC25C1B2;
-	Wed, 12 Feb 2020 17:07:50 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 2445C89F30;
+	Wed, 12 Feb 2020 17:07:47 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id C052D2257D7; Wed, 12 Feb 2020 12:07:46 -0500 (EST)
+	id AAF6C220A24; Wed, 12 Feb 2020 12:07:46 -0500 (EST)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	dan.j.williams@intel.com,
 	hch@infradead.org
-Subject: [PATCH 5/6] drivers/dax: Use dax_pgoff() instead of bdev_dax_pgoff()
-Date: Wed, 12 Feb 2020 12:07:32 -0500
-Message-Id: <20200212170733.8092-6-vgoyal@redhat.com>
-In-Reply-To: <20200212170733.8092-1-vgoyal@redhat.com>
-References: <20200212170733.8092-1-vgoyal@redhat.com>
+Subject: [RFC PATCH 0/6] dax: Replace bdev_dax_pgoff() with dax_pgoff()
+Date: Wed, 12 Feb 2020 12:07:27 -0500
+Message-Id: <20200212170733.8092-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Message-ID-Hash: 6RZCOTNZ56ZFENU7CCHNP74RQJCTPERW
-X-Message-ID-Hash: 6RZCOTNZ56ZFENU7CCHNP74RQJCTPERW
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+Message-ID-Hash: YTXY3PFQ3AB5BUUZ62SFCKMWU6YTIMSR
+X-Message-ID-Hash: YTXY3PFQ3AB5BUUZ62SFCKMWU6YTIMSR
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: dm-devel@redhat.com, jack@suse.cz
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6RZCOTNZ56ZFENU7CCHNP74RQJCTPERW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YTXY3PFQ3AB5BUUZ62SFCKMWU6YTIMSR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,35 +77,63 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Start using dax_pgoff() instead of bdev_dax_pgoff().
+Currently dax code assumes that there is always a block device
+associated with it. And block device is passed around in few routines. I
+am implementing DAX support for virtiofs and there is no block device
+while we are using dax device. So I need dax code to move away from
+this assumption that there is always a block device.
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- drivers/dax/super.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+We seem to pass around block deivce only to calculate the partition
+offset into dax device. bdev_dax_pgoff() does get_start_sect(bdev).
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index e9daa30e4250..ee35ecc61545 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -97,7 +97,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 		return false;
- 	}
+There are two proposed solutions to this problem.
+
+- Get rid of kernel partition support for pmem devices.
+
+- Caller stores offset into dax device and passes that in along with
+  dax_device.
+
+First solution was discussed recently in this thread.
+
+https://lore.kernel.org/linux-fsdevel/20200107125159.GA15745@infradead.org/
+
+I feel we already shipped partition support for dax block devices and
+going back now will be painful and its easy to break users out there
+which are using partitions.
+
+Hence I thought of writing patches for second proposal and see how bad
+it looks. To me patches are fairly small and don't break backward 
+compatibility and seem like a good step in the direction of removing
+dax assumptions about block device.
+
+So I am posting this RFC patch series, which is just boot tested.
+
+Any feedback or comments are welcome.
+
+Thanks
+Vivek
  
--	err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
-+	err = dax_pgoff(get_start_sect(bdev), start, PAGE_SIZE, &pgoff);
- 	if (err) {
- 		pr_debug("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
-@@ -105,7 +105,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 	}
- 
- 	last_page = PFN_DOWN((start + sectors - 1) * 512) * PAGE_SIZE / 512;
--	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
-+	err = dax_pgoff(get_start_sect(bdev), last_page, PAGE_SIZE, &pgoff_end);
- 	if (err) {
- 		pr_debug("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
+
+Vivek Goyal (6):
+  dax: Define a helper dax_pgoff() which takes in dax_offset as argument
+  dax,iomap,ext4,ext2,xfs: Save dax_offset in "struct iomap"
+  fs/dax.c: Start using dax_pgoff() instead of bdev_dax_pgoff()
+  dax, dm/md: Use dax_pgoff() instead of bdev_dax_pgoff()
+  drivers/dax: Use dax_pgoff() instead of bdev_dax_pgoff()
+  dax: Remove bdev_dax_pgoff() helper
+
+ drivers/dax/super.c        | 11 +++++------
+ drivers/md/dm-linear.c     |  9 ++++++---
+ drivers/md/dm-log-writes.c |  9 ++++++---
+ drivers/md/dm-stripe.c     |  8 +++++---
+ fs/dax.c                   | 13 ++++++-------
+ fs/ext2/inode.c            |  1 +
+ fs/ext4/inode.c            |  1 +
+ fs/xfs/xfs_iomap.c         |  2 ++
+ include/linux/dax.h        |  2 +-
+ include/linux/iomap.h      |  1 +
+ 10 files changed, 34 insertions(+), 23 deletions(-)
+
 -- 
 2.20.1
 _______________________________________________
