@@ -2,94 +2,59 @@ Return-Path: <SRS0=ootz=4C=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.4 required=3.0 tests=DATE_IN_PAST_12_24,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCD4DC35242
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 03:26:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77832C3B18F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 09:42:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8D1FB217F4
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 03:26:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8D1FB217F4
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 3215820873
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 09:42:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3215820873
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6378E10FC33F1;
-	Thu, 13 Feb 2020 19:29:57 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id 07C2410FC33ED;
+	Fri, 14 Feb 2020 01:45:29 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9C47610FC3190
-	for <linux-nvdimm@lists.01.org>; Thu, 13 Feb 2020 19:29:55 -0800 (PST)
-Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01E3Llie158648;
-	Thu, 13 Feb 2020 22:26:36 -0500
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2y1tn6y6k8-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 13 Feb 2020 22:26:36 -0500
-Received: from m0187473.ppops.net (m0187473.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 01E3MFPe159701;
-	Thu, 13 Feb 2020 22:26:35 -0500
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2y1tn6y6jx-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 13 Feb 2020 22:26:35 -0500
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-	by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 01E3NYPa021929;
-	Fri, 14 Feb 2020 03:26:34 GMT
-Received: from b01cxnp23034.gho.pok.ibm.com (b01cxnp23034.gho.pok.ibm.com [9.57.198.29])
-	by ppma01wdc.us.ibm.com with ESMTP id 2y5bbyu8ex-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 14 Feb 2020 03:26:34 +0000
-Received: from b01ledav002.gho.pok.ibm.com (b01ledav002.gho.pok.ibm.com [9.57.199.107])
-	by b01cxnp23034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01E3QYl346006578
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 14 Feb 2020 03:26:34 GMT
-Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E71CD124052;
-	Fri, 14 Feb 2020 03:26:33 +0000 (GMT)
-Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 32344124058;
-	Fri, 14 Feb 2020 03:26:27 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.85.90.43])
-	by b01ledav002.gho.pok.ibm.com (Postfix) with ESMTP;
-	Fri, 14 Feb 2020 03:26:26 +0000 (GMT)
-X-Mailer: emacs 27.0.60 (via feedmail 11-beta-1 I)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v2 1/4] mm/memremap_pages: Introduce
- memremap_compat_align()
-In-Reply-To: <CAPcyv4i8xNEsdX=8c2+ehf24U2AFcc-sKmAPS9UoVvm8z0aRng@mail.gmail.com>
-References: <158155489850.3343782.2687127373754434980.stgit@dwillia2-desk3.amr.corp.intel.com>
- <158155490379.3343782.10305190793306743949.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x498sl677cf.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4i8xNEsdX=8c2+ehf24U2AFcc-sKmAPS9UoVvm8z0aRng@mail.gmail.com>
-Date: Fri, 14 Feb 2020 08:56:22 +0530
-Message-ID: <878sl5x31d.fsf@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id CC34D10FC33EA
+	for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 01:45:26 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+	by mx2.suse.de (Postfix) with ESMTP id 00004ACC6;
+	Fri, 14 Feb 2020 09:42:07 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+	id 7AD7D1E0D3F; Thu, 13 Feb 2020 21:58:43 +0100 (CET)
+Date: Thu, 13 Feb 2020 21:58:43 +0100
+From: Jan Kara <jack@suse.cz>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] tools/testing/nvdimm: Fix compilation failure without
+ CONFIG_DEV_DAX_PMEM_COMPAT
+Message-ID: <20200213205843.GA6600@quack2.suse.cz>
+References: <20200123154720.12097-1-jack@suse.cz>
+ <x498sl73nsc.fsf@segfault.boston.devel.redhat.com>
+ <CAPcyv4jKKfWCNHtxQDYcKV_6hMXWrATkppQ4v=4E0teOmT8+mg@mail.gmail.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
- definitions=2020-02-13_10:2020-02-12,2020-02-13 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 adultscore=0
- malwarescore=0 mlxscore=0 impostorscore=0 phishscore=0 priorityscore=1501
- suspectscore=0 lowpriorityscore=0 mlxlogscore=999 spamscore=0
- clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2001150001 definitions=main-2002140025
-Message-ID-Hash: AYY37V2OEEQVQGLKIYBOM5KVBQGTXEGA
-X-Message-ID-Hash: AYY37V2OEEQVQGLKIYBOM5KVBQGTXEGA
-X-MailFrom: aneesh.kumar@linux.ibm.com
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jKKfWCNHtxQDYcKV_6hMXWrATkppQ4v=4E0teOmT8+mg@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: B2FI7R7QG5FVHDFKTBW5XDOELNFE777Y
+X-Message-ID-Hash: B2FI7R7QG5FVHDFKTBW5XDOELNFE777Y
+X-MailFrom: jack@suse.cz
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+CC: Jan Kara <jack@suse.cz>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AYY37V2OEEQVQGLKIYBOM5KVBQGTXEGA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/B2FI7R7QG5FVHDFKTBW5XDOELNFE777Y/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -98,97 +63,60 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dan Williams <dan.j.williams@intel.com> writes:
+On Wed 12-02-20 12:49:41, Dan Williams wrote:
+> On Wed, Feb 12, 2020 at 6:04 AM Jeff Moyer <jmoyer@redhat.com> wrote:
+> >
+> > Jan Kara <jack@suse.cz> writes:
+> >
+> > > When a kernel is configured without CONFIG_DEV_DAX_PMEM_COMPAT, the
+> > > compilation of tools/testing/nvdimm fails with:
+> > >
+> > >   Building modules, stage 2.
+> > >   MODPOST 11 modules
+> > > ERROR: "dax_pmem_compat_test" [tools/testing/nvdimm/test/nfit_test.ko] undefined!
+> > >
+> > > Fix the problem by calling dax_pmem_compat_test() only if the kernel has
+> > > the required functionality.
+> > >
+> > > Signed-off-by: Jan Kara <jack@suse.cz>
+> >
+> > What's the motivation?  Is this just to fix randconfig builds?  The
+> > reason I ask is that the test suite will expect to be able to find the
+> > dax_pmem_compat module, so it doesn't make sense to me to disable those
+> > tests only in the kernel as you'll hit a problem when running the tests
+> > anyway.
+> 
+> Yeah, at a minimum you'd also need to go fix up nfit_test_init() to
+> not check for the dax_pmem_compat module:
+> 
+> https://github.com/pmem/ndctl/blob/master/test/core.c#L119
 
-> On Thu, Feb 13, 2020 at 8:58 AM Jeff Moyer <jmoyer@redhat.com> wrote:
->>
->> Dan Williams <dan.j.williams@intel.com> writes:
->>
->> > The "sub-section memory hotplug" facility allows memremap_pages() users
->> > like libnvdimm to compensate for hardware platforms like x86 that have a
->> > section size larger than their hardware memory mapping granularity.  The
->> > compensation that sub-section support affords is being tolerant of
->> > physical memory resources shifting by units smaller (64MiB on x86) than
->> > the memory-hotplug section size (128 MiB). Where the platform
->> > physical-memory mapping granularity is limited by the number and
->> > capability of address-decode-registers in the memory controller.
->> >
->> > While the sub-section support allows memremap_pages() to operate on
->> > sub-section (2MiB) granularity, the Power architecture may still
->> > require 16MiB alignment on "!radix_enabled()" platforms.
->> >
->> > In order for libnvdimm to be able to detect and manage this per-arch
->> > limitation, introduce memremap_compat_align() as a common minimum
->> > alignment across all driver-facing memory-mapping interfaces, and let
->> > Power override it to 16MiB in the "!radix_enabled()" case.
->> >
->> > The assumption / requirement for 16MiB to be a viable
->> > memremap_compat_align() value is that Power does not have platforms
->> > where its equivalent of address-decode-registers never hardware remaps a
->> > persistent memory resource on smaller than 16MiB boundaries. Note that I
->> > tried my best to not add a new Kconfig symbol, but header include
->> > entanglements defeated the #ifndef memremap_compat_align design pattern
->> > and the need to export it defeats the __weak design pattern for arch
->> > overrides.
->> >
->> > Based on an initial patch by Aneesh.
->>
->> I have just a couple of questions.
->>
->> First, can you please add a comment above the generic implementation of
->> memremap_compat_align describing its purpose, and why a platform might
->> want to override it?
->
-> Sure, how about:
->
-> /*
->  * The memremap() and memremap_pages() interfaces are alternately used
->  * to map persistent memory namespaces. These interfaces place different
->  * constraints on the alignment and size of the mapping (namespace).
->  * memremap() can map individual PAGE_SIZE pages. memremap_pages() can
->  * only map subsections (2MB), and at least one architecture (PowerPC)
->  * the minimum mapping granularity of memremap_pages() is 16MB.
->  *
->  * The role of memremap_compat_align() is to communicate the minimum
->  * arch supported alignment of a namespace such that it can freely
->  * switch modes without violating the arch constraint. Namely, do not
->  * allow a namespace to be PAGE_SIZE aligned since that namespace may be
->  * reconfigured into a mode that requires SUBSECTION_SIZE alignment.
->  */
->
->> Second, I will take it at face value that the power architecture
->> requires a 16MB alignment, but it's not clear to me why mmu_linear_psize
->> was chosen to represent that.  What's the relationship, there, and can
->> we please have a comment explaining it?
->
-> Aneesh, can you help here?
+OK.
 
-With hash translation, we map the direct-map range with just one page
-size. Based on different restrictions as described in htab_init_page_sizes
-we can end up choosing 16M, 64K or even 4K. We use the variable
-mmu_linear_psize to indicate which page size we used for direct-map
-range. 
+> > But, I understand if you want to prevent build bots from hitting
+> > compilation failures due to this.
+> 
+> Hmm, build bots would only hit what's covered by
+> CONFIG_NVDIMM_TEST_BUILD, and that's only building
+> tools/testing/nvdimm/test/iomap.c.
+> 
+> Jan, were you just looking to use nfit_test outside of running the
+> ndctl test suites? Or was this just a drive-by compilation test?
 
-ie we should do. 
+The problem is following: We build our distro kernels without
+CONFIG_DEV_DAX_PMEM_COMPAT because we don't need that functionality. And
+Jing Han (from Intel ;) is now complaining that he cannot compile and run
+the ndctl testsuite on our kernels... It seems stupid to enable that config
+option for all distro users just to be able to run the testsuite but OTOH
+it would be neat to be able to run the testsuite with stock distro
+config.
 
- +unsigned long arch_namespace_align_size(void)
- +{
- +	unsigned long sub_section_size = (1UL << SUBSECTION_SHIFT);
- +
- +	if (radix_enabled())
- +		return sub_section_size;
- +	return max(sub_section_size, (1UL << mmu_psize_defs[mmu_linear_psize].shift));
- +
- +}
- +EXPORT_SYMBOL_GPL(arch_namespace_align_size);
+								Honza
 
-as done here
 
-https://lore.kernel.org/linux-nvdimm/20200120140749.69549-4-aneesh.kumar@linux.ibm.com/
-
-Dan can you update the powerpc definition?
-
--aneesh
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
