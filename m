@@ -2,78 +2,87 @@ Return-Path: <SRS0=sXHL=4B=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	FSL_HELO_FAKE,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37C39C3B186
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 13 Feb 2020 02:28:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88125C2BA83
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 13 Feb 2020 09:32:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0140320724
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 13 Feb 2020 02:28:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 4E0382173E
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 13 Feb 2020 09:32:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="zJGAaqSk"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0140320724
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IZ/jRT8t"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4E0382173E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CF31210FC3399;
-	Wed, 12 Feb 2020 18:31:45 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::343; helo=mail-ot1-x343.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
+	by ml01.01.org (Postfix) with ESMTP id 0822D10FC33E0;
+	Thu, 13 Feb 2020 01:35:53 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::341; helo=mail-wm1-x341.google.com; envelope-from=mingo.kernel.org@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7DE5B10FC338F
-	for <linux-nvdimm@lists.01.org>; Wed, 12 Feb 2020 18:31:42 -0800 (PST)
-Received: by mail-ot1-x343.google.com with SMTP id z9so4109326oth.5
-        for <linux-nvdimm@lists.01.org>; Wed, 12 Feb 2020 18:28:25 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 86AFD1007B18B
+	for <linux-nvdimm@lists.01.org>; Thu, 13 Feb 2020 01:35:49 -0800 (PST)
+Received: by mail-wm1-x341.google.com with SMTP id p17so5770067wma.1
+        for <linux-nvdimm@lists.01.org>; Thu, 13 Feb 2020 01:32:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=5hAsIRHvvpbi9rt/0W0BIpJsAiPhpdF9DzTF7MWukEo=;
-        b=zJGAaqSk9K45xDEtrZiv/eOt/Ret00uN1fgyVdZproL1adSyD3VrZY3pR4XpqymNJW
-         ApzlQ7myJviaJFmW3r7/Rllj9Ed0UUxk9+C/DmXXheJZiTXT59ftF8p36g6LzIjRvBqc
-         ZZj8JVPNGEWHyHxZgOBNL4iiF2vOzApFiqufTlM2/EZ0C4uNM7S6XcLqNDt34xO3N+G7
-         KuDK8VjJO/tRGg66BRphEyinEj+iy3Ly1mTDvflzMjfNHldnPcKlZkIAlfIIRFGatD/D
-         7ccyMkJKacDSLOnpGVgbb/n2hoaVk/ayop78E+SWsmesilm15DqWiamjefiCPjDYyvmz
-         ivPQ==
+        d=gmail.com; s=20161025;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=Szpi62myEK2IMzveHJnGljROe4VEIiMR6+A5LS1u+08=;
+        b=IZ/jRT8tVuua0sL39WTc+wyGo7krKaHTgpTnUl6GA1IzY929+tYE9xzDHAPJ7eTUO4
+         ewWD2AVTtOansBKEcImgFyD7gZaWyArRt8E4YCpaAgHfU8WHenLdRYHI4xn8aASzxx79
+         Ki6UFtPL8l51d6rRU+Ku9dAGw/oAWy/+YbVcLRm0aGNzTvj9oW3bFAbNM2aYs0W3QG5W
+         DL1T4RR4+IfykhyLhURbuLf1MT9uIEnqFMTovXQLXmhV0F8nHfMhqg9U1C25ocG9RUUP
+         nZiL9rIzo9xWbB5is9YKKSA4GKFwUsl08AgZMdpUceBZ2bfFJc3BmsqHDu7tyHSP4GfX
+         2AAA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=5hAsIRHvvpbi9rt/0W0BIpJsAiPhpdF9DzTF7MWukEo=;
-        b=XkITdEoO5LNUVIZ721dMI7DX/2oxPyyaFFiHHOG2wWn2mo/fT0L0ER4ytCiAmiCSpG
-         yOxrzkBbU8uLimwxe1J3JmEb9oOc8AwLtS8UkSg5/7wO74zwuequ42ZR7dtycrFhZO5r
-         cvgCzj9/KkuxSieHsETL0URoS8wASzjliXdN9FqpDASei1kRSZfR+UHpNLPgeASVYgyk
-         cQwgM6lDbVSONM0Y5pD0BkCFcmFvmpkBI1eEx4m4RP9oGtXZga3npFkktCTOZ83UbflG
-         vGma8dSO5zn1LaRnicluFfxr1wZ5EH1J3j4U7EQ4R7+ar0CC6eLAFdaWzMbEbVvI5ArB
-         Ijpg==
-X-Gm-Message-State: APjAAAWRpVTCDz50o5dGCiv8ZfnZcTVU7LjEWBoCH/3I8bnEc4r2w8so
-	/gnHFdhU5CsqQpSUUVFsyUa6HvYLzBBqmQ3xB3mYIA==
-X-Google-Smtp-Source: APXvYqyB1g28ziokD8TaCIEowARkDkHag634xZ0PYBC6lk0WvB8JgTYQ6kgB8A/dwCYa7XBhGmjNCjcVRl0Q06TnwKU=
-X-Received: by 2002:a9d:6f11:: with SMTP id n17mr11611078otq.126.1581560903990;
- Wed, 12 Feb 2020 18:28:23 -0800 (PST)
-MIME-Version: 1.0
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to:user-agent;
+        bh=Szpi62myEK2IMzveHJnGljROe4VEIiMR6+A5LS1u+08=;
+        b=OwmgTl3X3fLONDRQ3oAX6afZp59w+JkHw3fdnwvBtmyDkgGmiN+6LZIUVIqR287Z20
+         Z6oaZ3M2vFve259wr9xUJPwLh+xwbK/YEAs1iL7EJQQX2KxMZGDmVnUwZMkPJy37M5dy
+         0iZZNk33fMi6LeX4fO0pWj4NC6Ya1ICNk1Iy9VQWN87iWOq5ouOkb4cUFIzY6qRVrEy7
+         FZ36YXChmyCLZ0VEkWi/vlkU09puMDznCsJ5HfBU+bubRWhx2Jc2M7TPDhne0Bf4lfC9
+         CGZ5IOoqJGG+nCOWTzLo0qGRI90nBg44zS25nXkGifdO14ivzQm+7THMYuSLPb+JvXtj
+         cUBw==
+X-Gm-Message-State: APjAAAUWPpogoT+VsOCrilNiPqfM7NtxwzQ1tpRuL+AJJKrKOC0j8eCZ
+	v9Ztv+69rie8kXMoCmzgh40=
+X-Google-Smtp-Source: APXvYqzsD2FBaQGfErOtCUuWNM+0vrFghHrVr/9Xriu0M2+OB7g2HYg2A1mGS+dIBGwoOTZNi3+MgA==
+X-Received: by 2002:a1c:6a06:: with SMTP id f6mr4886871wmc.137.1581586350475;
+        Thu, 13 Feb 2020 01:32:30 -0800 (PST)
+Received: from gmail.com (54033286.catv.pool.telekom.hu. [84.3.50.134])
+        by smtp.gmail.com with ESMTPSA id l2sm2160747wme.1.2020.02.13.01.32.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 13 Feb 2020 01:32:29 -0800 (PST)
+Sender: Ingo Molnar <mingo.kernel.org@gmail.com>
+Date: Thu, 13 Feb 2020 10:32:27 +0100
+From: Ingo Molnar <mingo@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v4 4/6] x86/mm: Introduce CONFIG_KEEP_NUMA
+Message-ID: <20200213093227.GA90266@gmail.com>
 References: <157966227494.2508551.7206194169374588977.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <157966227494.2508551.7206194169374588977.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 12 Feb 2020 18:28:12 -0800
-Message-ID: <CAPcyv4j8ouOpaAEXELzKdr1m6cPWw=XOeRg4FqXPAgV3ZqUJoA@mail.gmail.com>
-Subject: Re: [PATCH v4 0/6] Memory Hierarchy: Enable target node lookups for
- reserved memory
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>
-Message-ID-Hash: 6YOYARQITYIXUUXR5DBANAISBBYEAMX6
-X-Message-ID-Hash: 6YOYARQITYIXUUXR5DBANAISBBYEAMX6
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: David Hildenbrand <david@redhat.com>, Borislav Petkov <bp@alien8.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, kbuild test robot <lkp@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Michael Ellerman <mpe@ellerman.id.au>, X86 ML <x86@kernel.org>, Andy Lutomirski <luto@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+ <157966229575.2508551.1892426244277171485.stgit@dwillia2-desk3.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <157966229575.2508551.1892426244277171485.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: 2K6IDVYS6GFOVA6GXAURCA3OSWBFWPW6
+X-Message-ID-Hash: 2K6IDVYS6GFOVA6GXAURCA3OSWBFWPW6
+X-MailFrom: mingo.kernel.org@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: tglx@linutronix.de, mingo@redhat.com, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Michal Hocko <mhocko@suse.com>, hch@lst.de, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6YOYARQITYIXUUXR5DBANAISBBYEAMX6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2K6IDVYS6GFOVA6GXAURCA3OSWBFWPW6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,83 +91,104 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 21, 2020 at 7:20 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> Changes since v3 [1]:
-> - Cleanup numa_map_to_online_node() to remove redundant "if
->   (!node_online(node))" (Aneesh)
->
-> [1]: http://lore.kernel.org/r/157954696789.2239526.17707265517154476652.stgit@dwillia2-desk3.amr.corp.intel.com
->
+
+* Dan Williams <dan.j.williams@intel.com> wrote:
+
+> Currently x86 numa_meminfo is marked __initdata in the
+> CONFIG_MEMORY_HOTPLUG=n case. In support of a new facility to allow
+> drivers to map reserved memory to a 'target_node'
+> (phys_to_target_node()), add support for removing the __initdata
+> designation for those users. Both memory hotplug and
+> phys_to_target_node() users select CONFIG_KEEP_NUMA to tell the arch to
+> maintain its physical address to numa mapping infrastructure post init.
+> 
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: <x86@kernel.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->
-> Merge notes:
->
-> x86 folks: This has an ack from Rafael for ACPI, and Michael for Power.
-> With an x86 ack I plan to take this through the libnvdimm tree provided
-> the x86 touches look ok to you.
+>  arch/x86/mm/numa.c   |    6 +-----
+>  include/linux/numa.h |    6 ++++++
+>  mm/Kconfig           |    5 +++++
+>  3 files changed, 12 insertions(+), 5 deletions(-)
 
-Ping x86 folks. There's no additional changes identified for this
-series. Can I request an ack to take it through libnvdimm.git? Do you
-need a resend?
+The concept and the x86 portions look sane, just a few minor nits:
 
-    x86/mm: Introduce CONFIG_KEEP_NUMA
-    x86/numa: Provide a range-to-target_node lookup facility
+> 
+> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+> index 99f7a68738f0..5289d9d6799a 100644
+> --- a/arch/x86/mm/numa.c
+> +++ b/arch/x86/mm/numa.c
+> @@ -25,11 +25,7 @@ nodemask_t numa_nodes_parsed __initdata;
+>  struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
+>  EXPORT_SYMBOL(node_data);
+>  
+> -static struct numa_meminfo numa_meminfo
+> -#ifndef CONFIG_MEMORY_HOTPLUG
+> -__initdata
+> -#endif
+> -;
+> +static struct numa_meminfo numa_meminfo __initdata_numa;
+>  
+>  static int numa_distance_cnt;
+>  static u8 *numa_distance;
+> diff --git a/include/linux/numa.h b/include/linux/numa.h
+> index 20f4e44b186c..c005ed6b807b 100644
+> --- a/include/linux/numa.h
+> +++ b/include/linux/numa.h
+> @@ -13,6 +13,12 @@
+>  
+>  #define	NUMA_NO_NODE	(-1)
+>  
+> +#ifdef CONFIG_KEEP_NUMA
+> +#define __initdata_numa
+> +#else
+> +#define __initdata_numa __initdata
+> +#endif
+> +
+>  #ifdef CONFIG_NUMA
+>  int numa_map_to_online_node(int node);
+>  #else
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index ab80933be65f..001f1185eadf 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -139,6 +139,10 @@ config HAVE_FAST_GUP
+>  config ARCH_KEEP_MEMBLOCK
+>  	bool
+>  
+> +# Keep arch numa mapping infrastructure post-init.
+
+s/numa/NUMA
+
+Please also capitalize consistently in the rest of the series.
+
+> +config KEEP_NUMA
+> +	bool
 
 
->
-> ---
->
-> Cover:
->
-> Arrange for platform numa info to be preserved for determining
-> 'target_node' data. Where a 'target_node' is the node a reserved memory
-> range will become when it is onlined.
->
-> This new infrastructure is expected to be more valuable over time for
-> Memory Tiers / Hierarchy management as more platforms (via the ACPI HMAT
-> and EFI Specific Purpose Memory) publish reserved or "soft-reserved"
-> ranges to Linux. Linux system administrators will expect to be able to
-> interact with those ranges with a unique numa node number when/if that
-> memory is onlined via the dax_kmem driver [2].
->
-> One configuration that currently fails to properly convey the target
-> node for the resulting memory hotplug operation is persistent memory
-> defined by the memmap=nn!ss parameter. For example, today if node1 is a
-> memory only node, and all the memory from node1 is specified to
-> memmap=nn!ss and subsequently onlined, it will end up being onlined as
-> node0 memory. As it stands, memory_add_physaddr_to_nid() can only
-> identify online nodes and since node1 in this example has no online cpus
-> / memory the target node is initialized node0.
->
-> The fix is to preserve rather than discard the numa_meminfo entries that
-> are relevant for reserved memory ranges, and to uplevel the node
-> distance helper for determining the "local" (closest) node relative to
-> an initiator node.
->
-> [2]: https://pmem.io/ndctl/daxctl-reconfigure-device.html
->
-> ---
->
-> Dan Williams (6):
->       ACPI: NUMA: Up-level "map to online node" functionality
->       mm/numa: Skip NUMA_NO_NODE and online nodes in numa_map_to_online_node()
->       powerpc/papr_scm: Switch to numa_map_to_online_node()
->       x86/mm: Introduce CONFIG_KEEP_NUMA
->       x86/numa: Provide a range-to-target_node lookup facility
->       libnvdimm/e820: Retrieve and populate correct 'target_node' info
->
->
->  arch/powerpc/platforms/pseries/papr_scm.c |   21 --------
->  arch/x86/Kconfig                          |    1
->  arch/x86/mm/numa.c                        |   74 +++++++++++++++++++++++------
->  drivers/acpi/numa/srat.c                  |   41 ----------------
->  drivers/nvdimm/e820.c                     |   18 ++-----
->  include/linux/acpi.h                      |   23 +++++++++
->  include/linux/numa.h                      |   23 +++++++++
->  mm/Kconfig                                |    5 ++
->  mm/mempolicy.c                            |   31 ++++++++++++
->  9 files changed, 145 insertions(+), 92 deletions(-)
+So most of our recent new NUMA options followed the naming pattern of:
+
+  CONFIG_NUMA_*
+
+Such as CONFIG_NUMA_BALANCING or CONFIG_NUMA_EMU.
+
+So I'd suggesting naming it to CONFIG_NUMA_KEEP, or, a bit more 
+descriptively, such as CONFIG_NUMA_KEEP_MAPPING or such?
+
+'Keeping NUMA' is kind of lame - of course we keep NUMA. ;-)
+
+Thanks,
+
+	Ingo
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
