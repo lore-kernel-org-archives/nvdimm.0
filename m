@@ -2,151 +2,152 @@ Return-Path: <SRS0=ootz=4C=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF23C2BA83
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 11:09:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05F17C3F68F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 12:57:32 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2C0522082F
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 11:09:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2C0522082F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id CE8522168B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 12:57:31 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GHEv1RJP"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CE8522168B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id F0D2010FC3401;
-	Fri, 14 Feb 2020 03:12:33 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=fbarrat@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id A7E7B10FC3402;
+	Fri, 14 Feb 2020 05:00:48 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0EA3510FC33ED
-	for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 03:12:32 -0800 (PST)
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01EB4hjq036163
-	for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 06:09:15 -0500
-Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2y4j88jyru-1
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 06:09:14 -0500
-Received: from localhost
-	by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-nvdimm@lists.01.org> from <fbarrat@linux.ibm.com>;
-	Fri, 14 Feb 2020 11:09:12 -0000
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
-	by e06smtp05.uk.ibm.com (192.168.101.135) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Fri, 14 Feb 2020 11:09:06 -0000
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01EB94aI55640210
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 14 Feb 2020 11:09:04 GMT
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 787A5A405B;
-	Fri, 14 Feb 2020 11:09:04 +0000 (GMT)
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 74ADFA406A;
-	Fri, 14 Feb 2020 11:09:03 +0000 (GMT)
-Received: from pic2.home (unknown [9.145.28.205])
-	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Fri, 14 Feb 2020 11:09:03 +0000 (GMT)
-Subject: Re: [PATCH v2 05/27] powerpc: Map & release OpenCAPI LPC memory
-To: "Alastair D'Silva" <alastair@au1.ibm.com>, alastair@d-silva.org
-References: <20191203034655.51561-1-alastair@au1.ibm.com>
- <20191203034655.51561-6-alastair@au1.ibm.com>
-From: Frederic Barrat <fbarrat@linux.ibm.com>
-Date: Fri, 14 Feb 2020 12:09:03 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.4.1
+	by ml01.01.org (Postfix) with ESMTPS id 9C1A410FC33FB
+	for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 05:00:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1581685048;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=M0W1G09myWqh7xVsLTycq4q1u2+SorrNYLpq3JdGz7g=;
+	b=GHEv1RJPjYt/B3canbkU8DZfUHA1zTOfDu45UVO2kiQ/TUcj4zFkEXDtXOhCBUwVl+u1h6
+	vc8Xj4V/hQDtfzXAAmwzDeWKA0grCRtQNydtIKnXmYyhT8NzjLdwjJ9W1S7OYWateonB6s
+	gbfmopYS7vKW5YpheYcNdq2v/ZPgUis=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-18-L4pxzCI4MtmRVwXtGSPurA-1; Fri, 14 Feb 2020 07:57:21 -0500
+X-MC-Unique: L4pxzCI4MtmRVwXtGSPurA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7ACF8107B267;
+	Fri, 14 Feb 2020 12:57:20 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id CCC978ECFA;
+	Fri, 14 Feb 2020 12:57:17 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 4BD172257D2; Fri, 14 Feb 2020 07:57:17 -0500 (EST)
+Date: Fri, 14 Feb 2020 07:57:17 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org,
+	hch@infradead.org, dan.j.williams@intel.com
+Subject: Re: [PATCH v3 0/7] dax,pmem: Provide a dax operation to zero range
+ of memory
+Message-ID: <20200214125717.GA18654@redhat.com>
+References: <20200207202652.1439-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20191203034655.51561-6-alastair@au1.ibm.com>
-Content-Language: en-US
-X-TM-AS-GCONF: 00
-x-cbid: 20021411-0020-0000-0000-000003AA12A9
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20021411-0021-0000-0000-000022020116
-Message-Id: <85e5a3d4-bac2-a8fc-8fc7-865be539dc3c@linux.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
- definitions=2020-02-14_03:2020-02-12,2020-02-14 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=908
- impostorscore=0 priorityscore=1501 spamscore=0 adultscore=0 mlxscore=0
- malwarescore=0 phishscore=0 clxscore=1015 lowpriorityscore=0
- suspectscore=2 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2001150001 definitions=main-2002140091
-Message-ID-Hash: MAK2TWF6YXAHKBXFE2HTSM2DKS45WS6Z
-X-Message-ID-Hash: MAK2TWF6YXAHKBXFE2HTSM2DKS45WS6Z
-X-MailFrom: fbarrat@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linu
- x-mm@kvack.org
+Content-Disposition: inline
+In-Reply-To: <20200207202652.1439-1-vgoyal@redhat.com>
+User-Agent: Mutt/1.12.1 (2019-06-15)
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Message-ID-Hash: IE4CXSNERYTDRXDRYRWJBB6NX6FIIO2T
+X-Message-ID-Hash: IE4CXSNERYTDRXDRYRWJBB6NX6FIIO2T
+X-MailFrom: vgoyal@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: dm-devel@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MAK2TWF6YXAHKBXFE2HTSM2DKS45WS6Z/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IE4CXSNERYTDRXDRYRWJBB6NX6FIIO2T/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQoNCkxlIDAzLzEyLzIwMTkgw6AgMDQ6NDYsIEFsYXN0YWlyIEQnU2lsdmEgYSDDqWNyaXTCoDoN
-Cj4gRnJvbTogQWxhc3RhaXIgRCdTaWx2YSA8YWxhc3RhaXJAZC1zaWx2YS5vcmc+DQo+IA0KPiBU
-aGlzIHBhdGNoIGFkZHMgcGxhdGZvcm0gc3VwcG9ydCB0byBtYXAgJiByZWxlYXNlIExQQyBtZW1v
-cnkuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBBbGFzdGFpciBEJ1NpbHZhIDxhbGFzdGFpckBkLXNp
-bHZhLm9yZz4NCj4gLS0tDQo+ICAgYXJjaC9wb3dlcnBjL2luY2x1ZGUvYXNtL3Budi1vY3hsLmgg
-ICB8ICAyICsrDQo+ICAgYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L29jeGwuYyB8IDQy
-ICsrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiAgIDIgZmlsZXMgY2hhbmdlZCwgNDQgaW5z
-ZXJ0aW9ucygrKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2FyY2gvcG93ZXJwYy9pbmNsdWRlL2FzbS9w
-bnYtb2N4bC5oIGIvYXJjaC9wb3dlcnBjL2luY2x1ZGUvYXNtL3Budi1vY3hsLmgNCj4gaW5kZXgg
-N2RlODI2NDdlNzYxLi5mOGY4ZmZiNDhhYTggMTAwNjQ0DQo+IC0tLSBhL2FyY2gvcG93ZXJwYy9p
-bmNsdWRlL2FzbS9wbnYtb2N4bC5oDQo+ICsrKyBiL2FyY2gvcG93ZXJwYy9pbmNsdWRlL2FzbS9w
-bnYtb2N4bC5oDQo+IEBAIC0zMiw1ICszMiw3IEBAIGV4dGVybiBpbnQgcG52X29jeGxfc3BhX3Jl
-bW92ZV9wZV9mcm9tX2NhY2hlKHZvaWQgKnBsYXRmb3JtX2RhdGEsIGludCBwZV9oYW5kbGUpDQo+
-ICAgDQo+ICAgZXh0ZXJuIGludCBwbnZfb2N4bF9hbGxvY194aXZlX2lycSh1MzIgKmlycSwgdTY0
-ICp0cmlnZ2VyX2FkZHIpOw0KPiAgIGV4dGVybiB2b2lkIHBudl9vY3hsX2ZyZWVfeGl2ZV9pcnEo
-dTMyIGlycSk7DQo+ICtleHRlcm4gdTY0IHBudl9vY3hsX3BsYXRmb3JtX2xwY19zZXR1cChzdHJ1
-Y3QgcGNpX2RldiAqcGRldiwgdTY0IHNpemUpOw0KPiArZXh0ZXJuIHZvaWQgcG52X29jeGxfcGxh
-dGZvcm1fbHBjX3JlbGVhc2Uoc3RydWN0IHBjaV9kZXYgKnBkZXYpOw0KPiAgIA0KPiAgICNlbmRp
-ZiAvKiBfQVNNX1BOVl9PQ1hMX0ggKi8NCj4gZGlmZiAtLWdpdCBhL2FyY2gvcG93ZXJwYy9wbGF0
-Zm9ybXMvcG93ZXJudi9vY3hsLmMgYi9hcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bvd2VybnYvb2N4
-bC5jDQo+IGluZGV4IDhjNjVhYWNkYTljOC4uYjU2YTQ4ZGFmNDhjIDEwMDY0NA0KPiAtLS0gYS9h
-cmNoL3Bvd2VycGMvcGxhdGZvcm1zL3Bvd2VybnYvb2N4bC5jDQo+ICsrKyBiL2FyY2gvcG93ZXJw
-Yy9wbGF0Zm9ybXMvcG93ZXJudi9vY3hsLmMNCj4gQEAgLTQ3NSw2ICs0NzUsNDggQEAgdm9pZCBw
-bnZfb2N4bF9zcGFfcmVsZWFzZSh2b2lkICpwbGF0Zm9ybV9kYXRhKQ0KPiAgIH0NCj4gICBFWFBP
-UlRfU1lNQk9MX0dQTChwbnZfb2N4bF9zcGFfcmVsZWFzZSk7DQo+ICAgDQo+ICt1NjQgcG52X29j
-eGxfcGxhdGZvcm1fbHBjX3NldHVwKHN0cnVjdCBwY2lfZGV2ICpwZGV2LCB1NjQgc2l6ZSkNCj4g
-K3sNCj4gKwlzdHJ1Y3QgcGNpX2NvbnRyb2xsZXIgKmhvc2UgPSBwY2lfYnVzX3RvX2hvc3QocGRl
-di0+YnVzKTsNCj4gKwlzdHJ1Y3QgcG52X3BoYiAqcGhiID0gaG9zZS0+cHJpdmF0ZV9kYXRhOw0K
-PiArCXUzMiBiZGZuID0gcGNpX2Rldl9pZChwZGV2KTsNCj4gKwlfX2JlNjQgYmFzZV9hZGRyX2Jl
-NjQ7DQo+ICsJdTY0IGJhc2VfYWRkcjsNCj4gKwlpbnQgcmM7DQo+ICsNCj4gKwlyYyA9IG9wYWxf
-bnB1X21lbV9hbGxvYyhwaGItPm9wYWxfaWQsIGJkZm4sIHNpemUsICZiYXNlX2FkZHJfYmU2NCk7
-DQo+ICsJaWYgKHJjKSB7DQo+ICsJCWRldl93YXJuKCZwZGV2LT5kZXYsDQo+ICsJCQkgIk9QQUwg
-Y291bGQgbm90IGFsbG9jYXRlIExQQyBtZW1vcnksIHJjPSVkXG4iLCByYyk7DQo+ICsJCXJldHVy
-biAwOw0KPiArCX0NCj4gKw0KPiArCWJhc2VfYWRkciA9IGJlNjRfdG9fY3B1KGJhc2VfYWRkcl9i
-ZTY0KTsNCj4gKw0KPiArCXJjID0gY2hlY2tfaG90cGx1Z19tZW1vcnlfYWRkcmVzc2FibGUoYmFz
-ZV9hZGRyID4+IFBBR0VfU0hJRlQsDQo+ICsJCQkJCSAgICAgIHNpemUgPj4gUEFHRV9TSElGVCk7
-DQoNCg0KY2hlY2tfaG90cGx1Z19tZW1vcnlfYWRkcmVzc2FibGUoKSBpcyBvbmx5IGRlY2xhcmVk
-IGlmIA0KQ09ORklHX01FTU9SWV9IT1RQTFVHX1NQQVJTRSBpcyBzZWxlY3RlZC4NCkkgdGhpbmsg
-d2UgYWxzbyBuZWVkIGEgI2lmZGVmIGhlcmUuDQoNCiAgIEZyZWQNCg0KDQo+ICsJaWYgKHJjKQ0K
-PiArCQlyZXR1cm4gMDsNCj4gKw0KPiArCXJldHVybiBiYXNlX2FkZHI7DQo+ICt9DQo+ICtFWFBP
-UlRfU1lNQk9MX0dQTChwbnZfb2N4bF9wbGF0Zm9ybV9scGNfc2V0dXApOw0KPiArDQo+ICt2b2lk
-IHBudl9vY3hsX3BsYXRmb3JtX2xwY19yZWxlYXNlKHN0cnVjdCBwY2lfZGV2ICpwZGV2KQ0KPiAr
-ew0KPiArCXN0cnVjdCBwY2lfY29udHJvbGxlciAqaG9zZSA9IHBjaV9idXNfdG9faG9zdChwZGV2
-LT5idXMpOw0KPiArCXN0cnVjdCBwbnZfcGhiICpwaGIgPSBob3NlLT5wcml2YXRlX2RhdGE7DQo+
-ICsJdTMyIGJkZm4gPSBwY2lfZGV2X2lkKHBkZXYpOw0KPiArCWludCByYzsNCj4gKw0KPiArCXJj
-ID0gb3BhbF9ucHVfbWVtX3JlbGVhc2UocGhiLT5vcGFsX2lkLCBiZGZuKTsNCj4gKwlpZiAocmMp
-DQo+ICsJCWRldl93YXJuKCZwZGV2LT5kZXYsDQo+ICsJCQkgIk9QQUwgcmVwb3J0ZWQgcmM9JWQg
-d2hlbiByZWxlYXNpbmcgTFBDIG1lbW9yeVxuIiwgcmMpOw0KPiArfQ0KPiArRVhQT1JUX1NZTUJP
-TF9HUEwocG52X29jeGxfcGxhdGZvcm1fbHBjX3JlbGVhc2UpOw0KPiArDQo+ICsNCj4gICBpbnQg
-cG52X29jeGxfc3BhX3JlbW92ZV9wZV9mcm9tX2NhY2hlKHZvaWQgKnBsYXRmb3JtX2RhdGEsIGlu
-dCBwZV9oYW5kbGUpDQo+ICAgew0KPiAgIAlzdHJ1Y3Qgc3BhX2RhdGEgKmRhdGEgPSAoc3RydWN0
-IHNwYV9kYXRhICopIHBsYXRmb3JtX2RhdGE7DQo+IA0KX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51
-eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGlu
-dXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+On Fri, Feb 07, 2020 at 03:26:45PM -0500, Vivek Goyal wrote:
+> Hi,
+> 
+> This is V3 of patches. I have dropped RFC tag from the series as it
+> looks like there is agreement on the interface. These patches are also
+> available at.
+
+Hi Dan, Christoph,
+
+Ping for this patch series. How does it look? Do you have concerns?
+If not, it will be good if this is merged.
+
+Thanks
+Vivek
+
+> 
+> https://github.com/rhvgoyal/linux/commits/dax-zero-range-v3
+> 
+> I posted previous versions here.
+> 
+> v2:
+> https://lore.kernel.org/linux-fsdevel/20200203200029.4592-1-vgoyal@redhat.com/
+> v1:
+> https://lore.kernel.org/linux-fsdevel/20200123165249.GA7664@redhat.com/
+> 
+> Changes since V2:
+> 
+> Primarily took care of comments from Christoph.
+> 
+> - Changed zero_copy_range() parameters to pass dax device offset as u64.
+> - Fixed comment which says current interface only supports zeroing
+>   with-in page.
+> - Refactored pmem_do_bvec() and reused write side of code in
+>   zero_page_range().
+> - Removed generic_dax_zero_page_range()
+> - Fixed s390 dcssblk.c compilation issue.
+> 
+> Please review. 
+> 
+> Thanks
+> Vivek
+> 
+> Vivek Goyal (7):
+>   pmem: Add functions for reading/writing page to/from pmem
+>   pmem: Enable pmem_do_write() to deal with arbitrary ranges
+>   dax, pmem: Add a dax operation zero_page_range
+>   s390,dcssblk,dax: Add dax zero_page_range operation to dcssblk driver
+>   dm,dax: Add dax zero_page_range operation
+>   dax,iomap: Start using dax native zero_page_range()
+>   dax,iomap: Add helper dax_iomap_zero() to zero a range
+> 
+>  drivers/dax/super.c           |  19 ++++++
+>  drivers/md/dm-linear.c        |  21 +++++++
+>  drivers/md/dm-log-writes.c    |  19 ++++++
+>  drivers/md/dm-stripe.c        |  26 ++++++++
+>  drivers/md/dm.c               |  31 ++++++++++
+>  drivers/nvdimm/pmem.c         | 112 ++++++++++++++++++++++++----------
+>  drivers/s390/block/dcssblk.c  |  17 ++++++
+>  fs/dax.c                      |  53 ++++------------
+>  fs/iomap/buffered-io.c        |   9 +--
+>  include/linux/dax.h           |  20 ++----
+>  include/linux/device-mapper.h |   3 +
+>  11 files changed, 235 insertions(+), 95 deletions(-)
+> 
+> -- 
+> 2.20.1
+> 
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
