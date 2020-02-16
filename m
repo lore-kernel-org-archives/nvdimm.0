@@ -1,81 +1,57 @@
-Return-Path: <SRS0=ootz=4C=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=WMzx=4E=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BD10C35242
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 23:05:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2589C3B1BF
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 16 Feb 2020 20:16:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D5D3E20848
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Feb 2020 23:05:25 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="JMTUKbWT"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D5D3E20848
+	by mail.kernel.org (Postfix) with ESMTPS id 73B2F2084E
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 16 Feb 2020 20:16:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 73B2F2084E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B216010FC341F;
-	Fri, 14 Feb 2020 15:08:42 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::343; helo=mail-ot1-x343.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 1845F1007A831;
+	Sun, 16 Feb 2020 12:20:07 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id EE6141007A841
-	for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 15:08:40 -0800 (PST)
-Received: by mail-ot1-x343.google.com with SMTP id i6so10731875otr.7
-        for <linux-nvdimm@lists.01.org>; Fri, 14 Feb 2020 15:05:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=MFbGjBAZ9jJ0epeJ8+efVvoWM9zaa3+GyCDFwE2/leM=;
-        b=JMTUKbWTyneQpCu5P7I6UY4sjbtgcldSXd8L6n24Ux/t41POpIteMsP3aa4eebSYZl
-         puBtNSopjm55AOT7X1FSnUU4whwN+YFgMC9PCjzgxdcA5tNBbmDW1XPp4uYbNM75J1Gl
-         +6wP4N0b//tq9VMwWxGNNCKfxpvP9+eiqoIGuiMRRza2HJaZEeQ4isuHO7iYlwmw6zR8
-         5NJfOBLW0bd+vnwxwOKAMtiZ0HDb91pCHTz9sqX+VJBKT0Q9aEnm1QgJy5aGqk71HIuF
-         LJwai3h5GTbqhdXGkMACukn4Zknw283nV1VHgNb/33G68/BRUNMw2ertvirUBT8Kng3e
-         li5g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=MFbGjBAZ9jJ0epeJ8+efVvoWM9zaa3+GyCDFwE2/leM=;
-        b=Eo86fOjbDnMEFIk9x7rIU4zDhrOWs6TN/Q+iDiY3PkeK0qtKLxPcMlDlxRnfaC88ie
-         4N3qzITja2TdelSbf7CfYLdJ3zw7fDvvKJVNZWfbfkFwU2VnD/DCp9WH+cNLC20md3Up
-         NK8OtO559zTceoNBef8ukFKeCOosecaCNsEeG4zvg4iyVR9lLtUHIc4z6LM5Qr+K83Iw
-         tl/20fmtyc5vdisADp2QQ1C3COQ1YrKONl/FT89NyU80R4MMA44dFJQlpGzfe8y797gM
-         Hwf2CrhTcKtooX+ZDnrP9J4oOFOm9QtLHADWumdElNqTCrO3XfJPlx79ZmjnZ5oSgcMd
-         5h2Q==
-X-Gm-Message-State: APjAAAVGB+XQWCypIoVYUbFxwHOo2RdGWuf3UQaL68lHeiPGj4LcCqki
-	l9lQDj5teVhEqcs9EjcqsJPWUojZRvC7mHcmN4kkeQ==
-X-Google-Smtp-Source: APXvYqyiTvPjMMOcsUvKfqz6iMQdR7SXgorFNb7wdpVGvSunO+Nl0vivaI37jSYP7UU4tRj9jLKbuUD42j/eENCmZ7c=
-X-Received: by 2002:a9d:7852:: with SMTP id c18mr3938798otm.247.1581721522180;
- Fri, 14 Feb 2020 15:05:22 -0800 (PST)
-MIME-Version: 1.0
-References: <158155489850.3343782.2687127373754434980.stgit@dwillia2-desk3.amr.corp.intel.com>
- <158155490379.3343782.10305190793306743949.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x498sl677cf.fsf@segfault.boston.devel.redhat.com> <CAPcyv4i8xNEsdX=8c2+ehf24U2AFcc-sKmAPS9UoVvm8z0aRng@mail.gmail.com>
- <x49k14odgwz.fsf@segfault.boston.devel.redhat.com>
-In-Reply-To: <x49k14odgwz.fsf@segfault.boston.devel.redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id E23081007B8E0
+	for <linux-nvdimm@lists.01.org>; Sun, 16 Feb 2020 12:20:04 -0800 (PST)
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Feb 2020 12:16:47 -0800
+X-IronPort-AV: E=Sophos;i="5.70,450,1574150400";
+   d="scan'208";a="381986279"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 16 Feb 2020 12:16:47 -0800
+Subject: [PATCH v5 0/6] Memory Hierarchy: Enable target node lookups for
+ reserved memory
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 14 Feb 2020 15:05:09 -0800
-Message-ID: <CAPcyv4hc2ZOyymas1svXYQFa49tziC2ZkVLfgKVV64bu4gTTEg@mail.gmail.com>
-Subject: Re: [PATCH v2 1/4] mm/memremap_pages: Introduce memremap_compat_align()
-To: Jeff Moyer <jmoyer@redhat.com>
-Message-ID-Hash: IWT7Y3DS2VXXLUSC3COJBV7UPBAGBFFF
-X-Message-ID-Hash: IWT7Y3DS2VXXLUSC3COJBV7UPBAGBFFF
+To: linux-nvdimm@lists.01.org
+Date: Sun, 16 Feb 2020 12:00:42 -0800
+Message-ID: <158188324272.894464.5941332130956525504.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <157966227494.2508551.7206194169374588977.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <157966227494.2508551.7206194169374588977.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Message-ID-Hash: ISHPEJ6GPO4J3PPMW77G7RGWUPB7MOFX
+X-Message-ID-Hash: ISHPEJ6GPO4J3PPMW77G7RGWUPB7MOFX
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+CC: David Hildenbrand <david@redhat.com>, Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, kbuild test robot <lkp@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Andy Lutomirski <luto@kernel.org>, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IWT7Y3DS2VXXLUSC3COJBV7UPBAGBFFF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ISHPEJ6GPO4J3PPMW77G7RGWUPB7MOFX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -84,41 +60,79 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 14, 2020 at 12:59 PM Jeff Moyer <jmoyer@redhat.com> wrote:
->
-> Dan Williams <dan.j.williams@intel.com> writes:
->
-> > On Thu, Feb 13, 2020 at 8:58 AM Jeff Moyer <jmoyer@redhat.com> wrote:
->
-> >> I have just a couple of questions.
-> >>
-> >> First, can you please add a comment above the generic implementation of
-> >> memremap_compat_align describing its purpose, and why a platform might
-> >> want to override it?
-> >
-> > Sure, how about:
-> >
-> > /*
-> >  * The memremap() and memremap_pages() interfaces are alternately used
-> >  * to map persistent memory namespaces. These interfaces place different
-> >  * constraints on the alignment and size of the mapping (namespace).
-> >  * memremap() can map individual PAGE_SIZE pages. memremap_pages() can
-> >  * only map subsections (2MB), and at least one architecture (PowerPC)
-> >  * the minimum mapping granularity of memremap_pages() is 16MB.
-> >  *
-> >  * The role of memremap_compat_align() is to communicate the minimum
-> >  * arch supported alignment of a namespace such that it can freely
-> >  * switch modes without violating the arch constraint. Namely, do not
-> >  * allow a namespace to be PAGE_SIZE aligned since that namespace may be
-> >  * reconfigured into a mode that requires SUBSECTION_SIZE alignment.
-> >  */
->
-> Well, if we modify the x86 variant to be PAGE_SIZE, I think that text
-> won't work.  How about:
+Changes since v4 [1]:
+- Rename CONFIG_KEEP_NUMA to CONFIG_NUMA_KEEP_MEMINFO (Ingo)
+- Rename __initdata_numa to __initdata_or_meminfo (Thomas)
+- Capitalize NUMA throughout (Ingo)
+- Replace explicit memcpy with implicit structure copy to address an 80
+  column violation, and fixup a function definition line-wrap (Ingo)
+- Rename numa_move_memblk() to numa_move_tail_memblk(), and remove the
+  stale kernel-doc that implied @dst was optional (Thomas)
+- Comment that phys_to_target_node() is an optional arch implementation
+  detail that consumers must gate with "depends on $ARCH"
+- Apply Ingo's conditional reviewed-by
 
-...but I'm not looking to change it to PAGE_SIZE, I'm going to fix the
-alignment check to skip if the namespace has "inner" alignment
-padding, i.e. "start_pad" and/or "end_trunc" are non-zero.
+[1]: http://lore.kernel.org/r/157966227494.2508551.7206194169374588977.stgit@dwillia2-desk3.amr.corp.intel.com
+
+---
+
+Merge notes: I believe this addresses all outstanding comments, barring
+additional feedback I will push to libnvdimm-for-next.
+
+---
+
+Cover:
+
+Arrange for platform NUMA info to be preserved for determining
+'target_node' data. Where a 'target_node' is the node a reserved memory
+range will become when it is onlined.
+
+This new infrastructure is expected to be more valuable over time for
+Memory Tiers / Hierarchy management as more platforms (via the ACPI HMAT
+and EFI Specific Purpose Memory) publish reserved or "soft-reserved"
+ranges to Linux. Linux system administrators will expect to be able to
+interact with those ranges with a unique NUMA node number when/if that
+memory is onlined via the dax_kmem driver [2].
+
+One configuration that currently fails to properly convey the target
+node for the resulting memory hotplug operation is persistent memory
+defined by the memmap=nn!ss parameter. For example, today if node1 is a
+memory only node, and all the memory from node1 is specified to
+memmap=nn!ss and subsequently onlined, it will end up being onlined as
+node0 memory. As it stands, memory_add_physaddr_to_nid() can only
+identify online nodes and since node1 in this example has no online cpus
+/ memory the target node is initialized node0.
+
+The fix is to preserve rather than discard the numa_meminfo entries that
+are relevant for reserved memory ranges, and to uplevel the node
+distance helper for determining the "local" (closest) node relative to
+an initiator node.
+
+[2]: https://pmem.io/ndctl/daxctl-reconfigure-device.html
+
+---
+
+Dan Williams (6):
+      ACPI: NUMA: Up-level "map to online node" functionality
+      mm/numa: Skip NUMA_NO_NODE and online nodes in numa_map_to_online_node()
+      powerpc/papr_scm: Switch to numa_map_to_online_node()
+      x86/mm: Introduce CONFIG_NUMA_KEEP_MEMINFO
+      x86/NUMA: Provide a range-to-target_node lookup facility
+      libnvdimm/e820: Retrieve and populate correct 'target_node' info
+
+
+ arch/powerpc/platforms/pseries/papr_scm.c |   21 ---------
+ arch/x86/Kconfig                          |    1 
+ arch/x86/mm/numa.c                        |   67 +++++++++++++++++++++++------
+ drivers/acpi/numa/srat.c                  |   41 ------------------
+ drivers/nvdimm/e820.c                     |   18 ++------
+ include/linux/acpi.h                      |   23 ++++++++++
+ include/linux/numa.h                      |   30 +++++++++++++
+ mm/Kconfig                                |    5 ++
+ mm/mempolicy.c                            |   26 +++++++++++
+ 9 files changed, 140 insertions(+), 92 deletions(-)
+
+base-commit: bb6d3fb354c5ee8d6bde2d576eb7220ea09862b9
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
