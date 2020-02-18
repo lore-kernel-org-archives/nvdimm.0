@@ -1,75 +1,86 @@
-Return-Path: <SRS0=vGBf=4F=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=zDE3=4G=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 050C6C34021
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Feb 2020 18:17:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8711C34044
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 15:54:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D2AA4207FD
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Feb 2020 18:17:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QIun2OyL"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D2AA4207FD
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 74608207FD
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 15:54:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 74608207FD
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DF13D10FC3599;
-	Mon, 17 Feb 2020 10:20:41 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 02F6A10FC3398;
+	Tue, 18 Feb 2020 07:57:10 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A674A10FC3596
-	for <linux-nvdimm@lists.01.org>; Mon, 17 Feb 2020 10:20:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1581963441;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=QLSHE2VWqBfvikw59u2hpmf5ebtQkqK0yTUskCOtUmM=;
-	b=QIun2OyLn9LbQCTkmHDMWJ1ACk+ftm8AOJ3dkXZHcSz0pOWYncvU+X5nDIeQT/roAUc5/k
-	NnvC14zkraw17cbRG6K/jShiqaXMMI31uOUAyCANIsti56/HvPnIF5tIq/ohO7j1mgBkUb
-	EFgoijuGTFntuqdCiPpm4zS7fHJSdXM=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-343-cLXb4cAzMSOrhSq6EHDIoA-1; Mon, 17 Feb 2020 13:17:12 -0500
-X-MC-Unique: cLXb4cAzMSOrhSq6EHDIoA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4DCA3140A;
-	Mon, 17 Feb 2020 18:17:11 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 5919E60BFB;
-	Mon, 17 Feb 2020 18:17:08 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id F04EB2257D2; Mon, 17 Feb 2020 13:17:07 -0500 (EST)
-From: Vivek Goyal <vgoyal@redhat.com>
-To: linux-fsdevel@vger.kernel.org,
-	linux-nvdimm@lists.01.org,
-	hch@infradead.org,
-	dan.j.williams@intel.com
-Subject: [PATCH v4 0/7] dax/pmem: Provide a dax operation to zero range of memory
-Date: Mon, 17 Feb 2020 13:16:46 -0500
-Message-Id: <20200217181653.4706-1-vgoyal@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 36AEF100780A1
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 07:57:06 -0800 (PST)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01IFoEYq084457
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 10:53:48 -0500
+Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2y6cbapkr2-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 10:53:48 -0500
+Received: from localhost
+	by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
+	Tue, 18 Feb 2020 15:53:34 -0000
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
+	by e06smtp07.uk.ibm.com (192.168.101.137) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Tue, 18 Feb 2020 15:53:31 -0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01IFrUei57344126
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 18 Feb 2020 15:53:30 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 64C8811C04A;
+	Tue, 18 Feb 2020 15:53:30 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C21F911C054;
+	Tue, 18 Feb 2020 15:53:28 +0000 (GMT)
+Received: from vajain21.in.ibm.com.com (unknown [9.199.60.35])
+	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue, 18 Feb 2020 15:53:28 +0000 (GMT)
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: linux-nvdimm@lists.01.org
+Subject: [ndctl PATCH] ndctl,daxctl: Ensure allocated contexts are released before exit
+Date: Tue, 18 Feb 2020 21:23:14 +0530
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-Message-ID-Hash: I7HBLNQKZ6I6FDHZT4QGUOFLKH3APNNQ
-X-Message-ID-Hash: I7HBLNQKZ6I6FDHZT4QGUOFLKH3APNNQ
-X-MailFrom: vgoyal@redhat.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: dm-devel@redhat.com
+X-TM-AS-GCONF: 00
+x-cbid: 20021815-0028-0000-0000-000003DC2A53
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20021815-0029-0000-0000-000024A13404
+Message-Id: <20200218155314.89123-1-vaibhav@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-02-18_04:2020-02-18,2020-02-18 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0
+ priorityscore=1501 suspectscore=1 impostorscore=0 adultscore=0
+ lowpriorityscore=0 bulkscore=0 malwarescore=0 clxscore=1015 phishscore=0
+ mlxscore=0 mlxlogscore=835 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002180119
+Message-ID-Hash: C2J5XR4FZC6PM2URN2SZLOR62IJ7NWMZ
+X-Message-ID-Hash: C2J5XR4FZC6PM2URN2SZLOR62IJ7NWMZ
+X-MailFrom: vaibhav@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I7HBLNQKZ6I6FDHZT4QGUOFLKH3APNNQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C2J5XR4FZC6PM2URN2SZLOR62IJ7NWMZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -78,53 +89,141 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
+Presently main_handle_internal_command() will simply call exit() on
+the return value from run_builtin(). This prevents release of allocated
+contexts 'struct ndctl_ctx' or 'struct daxctl_ctx' when the main
+thread exits.
 
-This is V4 of patches. These patches are also available at.
+To fix this behavior so that allocated context are properly
+deallocated, the patch updates main_handle_internal_command() removing
+the call to exit() and instead storing the return value from
+run_builtin() into a new out-argument to the function named
+'int *out'.  Also main_handle_internal_command() now returns a boolean
+value indicating if the given command was handled or not.
 
-https://github.com/rhvgoyal/linux/commits/dax-zero-range-v4
+With the above change, daxctl/main() and ndctl/main() are updated to
+pass this extra argument 'out' to main_handle_internal_command() and
+handle its return value to possibly indicate an error for "Unknown
+command" or exiting with the code indicated by 'out'.
 
-Changes since V3.
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+ daxctl/daxctl.c | 11 +++++++----
+ ndctl/ndctl.c   | 12 ++++++++----
+ util/main.c     | 12 ++++++++----
+ util/main.h     |  5 +++--
+ 4 files changed, 26 insertions(+), 14 deletions(-)
 
-- Rebased patches on top of 5.6-rc1
-- Took care of some of the comments from Christoph.
-- Captured some Reviewed-by tags in some of the patches.  
-
-Previous version of patches are here.
-v3:
-https://lore.kernel.org/linux-fsdevel/20200214125717.GA18654@redhat.com/T/#t
-v2:
-https://lore.kernel.org/linux-fsdevel/20200203200029.4592-1-vgoyal@redhat.com/
-v1:
-https://lore.kernel.org/linux-fsdevel/20200123165249.GA7664@redhat.com/
-
-Thanks
-Vivek
-
-Vivek Goyal (7):
-  pmem: Add functions for reading/writing page to/from pmem
-  pmem: Enable pmem_do_write() to deal with arbitrary ranges
-  dax, pmem: Add a dax operation zero_page_range
-  s390,dcssblk,dax: Add dax zero_page_range operation to dcssblk driver
-  dm,dax: Add dax zero_page_range operation
-  dax,iomap: Start using dax native zero_page_range()
-  dax,iomap: Add helper dax_iomap_zero() to zero a range
-
- drivers/dax/super.c           |  19 ++++++
- drivers/md/dm-linear.c        |  21 +++++++
- drivers/md/dm-log-writes.c    |  19 ++++++
- drivers/md/dm-stripe.c        |  26 ++++++++
- drivers/md/dm.c               |  31 +++++++++
- drivers/nvdimm/pmem.c         | 115 +++++++++++++++++++++++-----------
- drivers/s390/block/dcssblk.c  |  17 +++++
- fs/dax.c                      |  53 ++++------------
- fs/iomap/buffered-io.c        |   9 +--
- include/linux/dax.h           |  20 ++----
- include/linux/device-mapper.h |   3 +
- 11 files changed, 233 insertions(+), 100 deletions(-)
-
+diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
+index 1ab073200313..3e2b0c94002b 100644
+--- a/daxctl/daxctl.c
++++ b/daxctl/daxctl.c
+@@ -79,7 +79,7 @@ static struct cmd_struct commands[] = {
+ int main(int argc, const char **argv)
+ {
+ 	struct daxctl_ctx *ctx;
+-	int rc;
++	int rc, out;
+ 
+ 	/* Look for flags.. */
+ 	argv++;
+@@ -100,10 +100,13 @@ int main(int argc, const char **argv)
+ 	rc = daxctl_new(&ctx);
+ 	if (rc)
+ 		goto out;
+-	main_handle_internal_command(argc, argv, ctx, commands,
+-			ARRAY_SIZE(commands), PROG_DAXCTL);
++	rc = main_handle_internal_command(argc, argv, ctx, commands,
++				     ARRAY_SIZE(commands), PROG_DAXCTL, &out);
+ 	daxctl_unref(ctx);
+-	fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
++	if (!rc)
++		fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
++
++	return out;
+ out:
+ 	return 1;
+ }
+diff --git a/ndctl/ndctl.c b/ndctl/ndctl.c
+index 6c4975c9f841..6c3a1bb339fc 100644
+--- a/ndctl/ndctl.c
++++ b/ndctl/ndctl.c
+@@ -112,7 +112,7 @@ static struct cmd_struct commands[] = {
+ int main(int argc, const char **argv)
+ {
+ 	struct ndctl_ctx *ctx;
+-	int rc;
++	int rc, out;
+ 
+ 	/* Look for flags.. */
+ 	argv++;
+@@ -133,10 +133,14 @@ int main(int argc, const char **argv)
+ 	rc = ndctl_new(&ctx);
+ 	if (rc)
+ 		goto out;
+-	main_handle_internal_command(argc, argv, ctx, commands,
+-			ARRAY_SIZE(commands), PROG_NDCTL);
++	rc = main_handle_internal_command(argc, argv, ctx, commands,
++					  ARRAY_SIZE(commands), PROG_NDCTL,
++					  &out);
+ 	ndctl_unref(ctx);
+-	fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
++	if (!rc)
++		fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
++
++	return out;
+ out:
+ 	return 1;
+ }
+diff --git a/util/main.c b/util/main.c
+index 4f925f84966a..19894d86b914 100644
+--- a/util/main.c
++++ b/util/main.c
+@@ -121,11 +121,12 @@ out:
+ 	return status;
+ }
+ 
+-void main_handle_internal_command(int argc, const char **argv, void *ctx,
+-		struct cmd_struct *cmds, int num_cmds, enum program prog)
++int main_handle_internal_command(int argc, const char **argv, void *ctx,
++		struct cmd_struct *cmds, int num_cmds, enum program prog,
++		int *out)
+ {
+ 	const char *cmd = argv[0];
+-	int i;
++	int i, handled = 0;
+ 
+ 	/* Turn "<binary> cmd --help" into "<binary> help cmd" */
+ 	if (argc > 1 && !strcmp(argv[1], "--help")) {
+@@ -137,6 +138,9 @@ void main_handle_internal_command(int argc, const char **argv, void *ctx,
+ 		struct cmd_struct *p = cmds+i;
+ 		if (strcmp(p->cmd, cmd))
+ 			continue;
+-		exit(run_builtin(p, argc, argv, ctx, prog));
++		*out = run_builtin(p, argc, argv, ctx, prog);
++		handled = 1;
+ 	}
++
++	return handled;
+ }
+diff --git a/util/main.h b/util/main.h
+index 35fb33e63049..4d4ea1dc1af7 100644
+--- a/util/main.h
++++ b/util/main.h
+@@ -35,8 +35,9 @@ struct cmd_struct {
+ 
+ int main_handle_options(const char ***argv, int *argc, const char *usage_msg,
+ 		struct cmd_struct *cmds, int num_cmds);
+-void main_handle_internal_command(int argc, const char **argv, void *ctx,
+-		struct cmd_struct *cmds, int num_cmds, enum program prog);
++int main_handle_internal_command(int argc, const char **argv, void *ctx,
++		struct cmd_struct *cmds, int num_cmds, enum program prog,
++		int *out);
+ int help_show_man_page(const char *cmd, const char *util_name,
+ 		const char *viewer);
+ #endif /* __MAIN_H__ */
 -- 
-2.20.1
+2.24.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
