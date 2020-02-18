@@ -2,107 +2,97 @@ Return-Path: <SRS0=zDE3=4G=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	FROM_EXCESS_BASE64,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C75E9C34026
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 16:16:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CF55C34026
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 16:41:01 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A8B7324649
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 16:16:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id CE764208C4
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 16:41:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=adv.unimelbes.xyz header.i=@adv.unimelbes.xyz header.b="0J4bb5XK"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A8B7324649
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=onerivertronics.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="oid16IX7"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CE764208C4
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id ACB9810FC33E7;
-	Tue, 18 Feb 2020 08:19:30 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=106.12.150.83; helo=bhd3.sosung.net; envelope-from=raymond@adv.unimelbes.xyz; receiver=<UNKNOWN> 
-Received: from bhd3.sosung.net (bhd3.sosung.net [106.12.150.83])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 427C610FC33E7;
+	Tue, 18 Feb 2020 08:42:58 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::241; helo=mail-oi1-x241.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-oi1-x241.google.com (mail-oi1-x241.google.com [IPv6:2607:f8b0:4864:20::241])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 769F210FC3398
-	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 08:19:25 -0800 (PST)
-Received: from edm01.bossedm.com (edm01.chinaemail.cn [180.76.132.54])
-	by bhd3.sosung.net (Postfix) with ESMTPS id AB2A8101E40
-	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 21:25:53 +0800 (CST)
-Received: from unknown (unknown [127.0.0.1])
-	by edm01.bossedm.com (Bossedm) with SMTP id BE1602E272D
-	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 20:43:33 +0800 (CST)
-Date: Tue, 18 Feb 2020 20:43:33 +0800 (CST)
-From: "=?utf-8?B?QmlsbGllIA==?=" <billie@onerivertronics.com>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?TmVlZCBHUk0xODhSNjBHMTA2TUU0N0QgLSAyMCAwMDAgcGNz?=
-Mime-Version: 1.0
-X-Notify-Mail: No
-Message-ID: <1858#54479#linux-nvdimm@lists.01.org#e358f98847f1ee53ccc515b2fd0679bf#1582029813567>
-X-Iszbb: Yes
-X-ZZY-MESSAGE-ID: FA163E85126BBC2D000000000000F5DB4B5E000000000600
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=adv.unimelbes.xyz;
-	s=s9527; t=1582029813;
-	bh=NPsvoxIV4ouozY6UEmrsWy87BK/bnk21q1SIBhS2qY4=;
-	h=Date:From:Subject:Message-ID;
-	b=0J4bb5XKlGnMfS92nWPGbCYOA1fVgnUBtaJTLeheIKdbriaIi9K5KaTxy2REp3HM1
-	 bKTBB4kAZEioL+JekWckhGAAQrbe/kwl5K4scHPSiirsCPsR2C2pWi0c5GHHMKAZmr
-	 KNnt97J7XzOiqO2JxhSe3ursbWiVNR3YDtR19lt4=
-Message-ID-Hash: YS3QKZKJESOXBWFCDV26UOVJDYFBO5QM
-X-Message-ID-Hash: YS3QKZKJESOXBWFCDV26UOVJDYFBO5QM
-X-MailFrom: raymond@adv.unimelbes.xyz
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+	by ml01.01.org (Postfix) with ESMTPS id AFF3A1007B1FD
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 08:42:55 -0800 (PST)
+Received: by mail-oi1-x241.google.com with SMTP id a142so20706881oii.7
+        for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 08:40:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=p8K7bRgMIpoqIE67OrY5lFjC6s4gW3U9U0H2xoj25kw=;
+        b=oid16IX7f7CHfsm6agFZdtMQgo0SiRT7u7TlInmVa8wfmQkPjI2PE7uAcn/BLB6i45
+         Kjzk+N7PNIFzvVSxiZZOJDyT9Kw8l4IogvK5vI9tgDEderngrjcAlkC38mIqQcoXf/eH
+         cmYZMFSPW2HgWGAJwOzre6HOFTu08anqPp2J05cZGpplXxD4/giON09LYBDBt4ub/g1T
+         HUjZxgWE0/IbVc+rlpuyAZy84grJObAjLOX9E8JUS1xduhug9OkmUEsqBlGKIZWfCz8p
+         jFg4asDnUKBTRyrC1mcM9xz1bfv3TMQoWR2Ywn4e8o5rbwRq32R+Gd3SJzn0w9UVFNpJ
+         WbKQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=p8K7bRgMIpoqIE67OrY5lFjC6s4gW3U9U0H2xoj25kw=;
+        b=ZPXPHLCTNiTFIBxaPBjSBNzZcbxljTuwYphP9lGjjW8tFfmV0cCAIwS8twB67M4RL/
+         x6p2POJPVRrxV7dpf05H4guG4XFyoDSRPqiHjPiLJ387ZqcS+H1ZjDzzrTRAc4PZGbXf
+         keiyBb8kNEwlU34u/D803NK+MqSIBeezGhBUcV10qzFglNqwhwOkxXPPoF/30aKtPBnU
+         iG+LTWiWbX1IZ2fMFiKaMSjNLF4NZ8VShtLNp/K7OZN2gg/L0TipeF9xdcv5sszfaFBI
+         D5e+Jw8XNMYNgv8+P+jyxW1MxDpUirISSsBiTtcFZN7Vo4Dz1DHdlRirpBxI693stxdu
+         EWuQ==
+X-Gm-Message-State: APjAAAUSjuJbGYKF10y/ZjSZJrBVqgx7nz1dIBd7edHSAyxZAH1tZu+R
+	r0fcN4SFhFnVluK/yV2Ps9+V6z25MD/7iPEO/5peuA==
+X-Google-Smtp-Source: APXvYqxKj389Ca7isA6lXFGih3cTi2B4mIYr7lceKx2QMSg6NIbiU0Fm0H3yxQ04HNpK9kjVtiKI3dPA4qJKh00QkiM=
+X-Received: by 2002:aca:4c9:: with SMTP id 192mr1871066oie.105.1582044051997;
+ Tue, 18 Feb 2020 08:40:51 -0800 (PST)
+MIME-Version: 1.0
+References: <20200218155314.89123-1-vaibhav@linux.ibm.com>
+In-Reply-To: <20200218155314.89123-1-vaibhav@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 18 Feb 2020 08:40:41 -0800
+Message-ID: <CAPcyv4isdnEi=-EOv5EVu=6u7D32eLFLGWK0K5nQZa+9SMMGkQ@mail.gmail.com>
+Subject: Re: [ndctl PATCH] ndctl,daxctl: Ensure allocated contexts are
+ released before exit
+To: Vaibhav Jain <vaibhav@linux.ibm.com>
+Message-ID-Hash: 4QQU6GQ6O7QYEJU3VRLCDTQTROD3AMJU
+X-Message-ID-Hash: 4QQU6GQ6O7QYEJU3VRLCDTQTROD3AMJU
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: billie@onerivertronics.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YS3QKZKJESOXBWFCDV26UOVJDYFBO5QM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4QQU6GQ6O7QYEJU3VRLCDTQTROD3AMJU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQoNCg0KDQoNCg0KCQ0KCQkgDQoJDQoJDQoJCSANCgkNCgkNCgkJJm5ic3A7IA0KCQ0KCQ0KCQlI
-ZWxsbyBkZWFyLCANCgkNCgkNCgkJJm5ic3A7IA0KCQ0KCQ0KCQlIb3cgYXJlIHlvdT8gDQoJDQoJ
-DQoJCUkgYW0mbmJzcDtCaWxsaWUgZnJvbSBPbmUgUml2ZXIgRWxlY3Ryb25pYyBMaW1pdGVkIHdp
-dGggb3ZlciAxMCB5ZWFyc+KAmSBleHBlcmllbmNl77yMY292ZXJpbmcgZ29vZCBxdWFsaXR5IGFu
-ZCBPbmUteWVhci13YXJyYW50eSBlbGVjdHJvbmljIGNvbXBvbmVudHMuIA0KCQ0KCQ0KCQkmbmJz
-cDsgDQoJDQoJDQoJCVBscyZuYnNwO2NoZWNrJm5ic3A7b3VyIGhvdCZuYnNwO29mZmVyIHRoaXMg
-d2VlazoNCg0KUkMwNDAySlItMDczSzNMIDEwSy9SIFlBR0VPIDIwMTgrIDAuMDAwNHVzZCANClJD
-MDQwMkpSLTA3M1IzTCAxMEsvUiBZQUdFTyAyMDE4KyAwLjAwMDR1c2QgDQpSQzA2MDNGUi0wNzEw
-MFJMIDVLL1IgWUFHRU8gMjAxOCsgMC4wMDF1c2QgDQpSQzA4MDVKUi0wNzEwS0wgNUsvUiBZQUdF
-TyAyMDE4KyAwLjAwMXVzZCANClJDMDgwNUpSLTA3MTBLTCA1Sy9SIFlBR0VPIDIwMTgrIDAuMDAx
-dXNkIA0KUkMwODA1SlItMDcxMktMIDVLL1IgWUFHRU8gMjAxOCsgMC4wMDF1c2QgDQpSQzA4MDVK
-Ui0wNzMzS0wgNUsvUiBZQUdFTyAyMDE4KyAwLjAwMXVzZCANClJDMDgwNUpSLTA3NEs3TCA1Sy9S
-IFlBR0VPIDIwMTgrIDAuMDAxdXNkIA0KUkMwODA1SlItMDc0SzdMIDVLL1IgWUFHRU8gMjAxOCsg
-MC4wMDF1c2QgDQpSQzEyMDZGUi0wNzRLM0wgNUsvUiBZQUdFTyAyMDE4KyAwLjAwMTR1c2QgDQpS
-QzEyMDZKUi0wNzIyUkwgNUsvUiBZQUdFTyAyMDE4KyAwLjAwMTR1c2QNCg0KQ0wwNUExMDZNUDVO
-VU5DIDEwSy9SIFNhbXN1bmcgMjAxOCsgMC4wMDg4dXNkIA0KQ0wxMEIxMDJLQzhOTk5DIDRLL1Ig
-U2Ftc3VuZyAyMDE4KyAwLjAwNTl1c2QgDQpDTDEwQjEwM0tCOE5OTkMgNEsvUiBTYW1zdW5nIDIw
-MTgrIDAuMDAyOXVzZCANCkNMMjFCMTA1S0JGTk5ORSAySy9SIFNhbXN1bmcgMjAxOCsgMC4wMTJ1
-c2QgDQpDTDIxQjQ3NEtPRk5OTkcgM0svUiBTYW1zdW5nIDIwMTgrIDAuMDEwN3VzZCANCkNMMzFC
-MTA2S09ITk5ORSAySy9SIFNhbXN1bmcgMjAxOCsgMC4wMzF1c2QgDQpDTDMyQTIyNktBSk5OTkUg
-MUsvUiBTYW1zdW5nIDIwMTgrIDAuMDY0MXVzZA0KDQogDQoJDQoJDQoJCQ0KCQ0KCQ0KCQlXYWl0
-IGZvciB5b3VyIGlucXVpcnkuDQpTaG9ydCBsZWFkIHRpbWUmYW1wO2dvb2QgcHJpY2U6IE1pY3Jv
-Y2hpcCwgWGlsaW54LCBBbHRlcmEgQkdBIENQTEQsIGNhcGFjaXRvcnMmYW1wO3Jlc2lzdG9ycyhP
-cmRlciBmcm9tIDEgcGNzLCAxIHllYXIgd2FycmFudHkpIA0KCQ0KCQ0KCQkmbmJzcDsgDQoJDQoJ
-DQoJCUJlc3QgUmVnYXJkcw0KIA0KCQ0KCQ0KCQlCaWxsaWUgDQoJDQoJDQoJCVNhbGVzIG1hbmFn
-ZXIgDQoJDQoJDQoJCU9uZSBSaXZlciBFbGVjdHJvbmljIExpbWl0ZWQNCm9uZSB5ZWFyIGd1YXJh
-bnRlZWQgZWxlY3Ryb25pYyANCmRpc3RyaWJ1dG9yIA0KCQ0KCQ0KCQk4MjggTm9ydGgsIENlbnRl
-ciwgTHVvSHUgRGlzdCwgU2hlbnpoZW4sIEd1YW5nZG9uZywgQ2hpbmEsIDUxODAwMCANCgkNCgkN
-CgkJVGVsOiArODYtNzU1LTg0MTcgNTcwOQ0KU2t5cGUvRW1haWw6Jm5ic3A7YmlsbGllQG9uZXJp
-dmVyaGsuY29tDQogDQoJDQoJDQoJCVdlYjpodHRwczovL3d3dy5vbmVyaXZlcmhrLmNvbSANCgkN
-CgkNCgkJDQoJDQoJDQoJCQ0KCQ0KCQ0KCQlJZiB5b3UgZG9uJ3Qgd2FudCB0byByZWNlaXZlIHRo
-aXMgbWFpbCwgcGxzIHJldHVybiB3aXRoICJyZW1vdmUiIG9uIHRoZSBzdWJqZWN0IGxpbmUgDQoJ
-DQoNCg0KDQoNCgnmoaPpk7rnvZHigJTigJTlnKjnur/mlofmoaPlhY3otLnlpITnkIYgDQrlpoLm
-npzkvaDkuI3mg7Plho3mlLbliLDor6Xkuqflk4HnmoTmjqjojZDpgq7ku7bvvIzor7fngrnlh7vo
-v5nph4zpgIDorqIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3Jn
-ClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3Rz
-LjAxLm9yZwo=
+On Tue, Feb 18, 2020 at 7:53 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
+>
+> Presently main_handle_internal_command() will simply call exit() on
+> the return value from run_builtin(). This prevents release of allocated
+> contexts 'struct ndctl_ctx' or 'struct daxctl_ctx' when the main
+> thread exits.
+>
+
+There is ultimately no leak since process exit cleans up all
+resources. Does this address a functional problem, or is it just a
+hygiene fixup?
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
