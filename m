@@ -6,72 +6,72 @@ X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D7AC3404C
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90DF1C34031
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 48902206E2
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 60E6C24656
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bwAmmk/t"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 48902206E2
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="V68OgOWE"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 60E6C24656
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E39D810FC3598;
-	Tue, 18 Feb 2020 13:49:57 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 08BB410FC359C;
+	Tue, 18 Feb 2020 13:49:59 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
 Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0FF5810FC33FD
-	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 13:49:54 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 17B2610FC3581
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 13:49:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1582062541;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=cnevXfGVEDsFBctQatqNzlbLF8HNLGY3ShXMHssDWiQ=;
-	b=bwAmmk/tRY0QIF0C3xm6HscuO56L73fIUB2b0EsdS0AsMjWfVeT8zo1ZactK4sU5HjRdwQ
-	ADhxNpmCEE6oBU8+oSZ5cBY8hElATqT5FUYUkfhlLirnaUUDhHydiGtDYUwuMUku6LF4ar
-	5jPIYHOFaVNdjWRFmgmVJSiPWd7jgKM=
+	bh=Df+aJmrWeo0wbVJ8nParNgumveMm7/SrswBWEMMxch4=;
+	b=V68OgOWEL+3luxF5pByMPWrwxWjo/dKARvlEA6aE0jWB8fv+wKhyivCJU3y0WtvwPiZlTV
+	6W++D+e2exFFBpaOeXs8+14NpRHJ3BisODQtl7mUiDzrFxV6f9SRUGX6QuXDGORfSbz2aq
+	z/TAlg+evsLMdoTou7/E16KYXdhsRco=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-405-_qRODWZyNFm7pCqRV7mn4w-1; Tue, 18 Feb 2020 16:48:57 -0500
-X-MC-Unique: _qRODWZyNFm7pCqRV7mn4w-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+ us-mta-323-m3ep5xkYMnChUTTFO9SX-A-1; Tue, 18 Feb 2020 16:48:57 -0500
+X-MC-Unique: m3ep5xkYMnChUTTFO9SX-A-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6AE20190B2AB;
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7F5CA10CE785;
 	Tue, 18 Feb 2020 21:48:56 +0000 (UTC)
 Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 4557D90089;
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 58E0F5C1B0;
 	Tue, 18 Feb 2020 21:48:56 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id AE6712257D7; Tue, 18 Feb 2020 16:48:52 -0500 (EST)
+	id B85582257D9; Tue, 18 Feb 2020 16:48:52 -0500 (EST)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	hch@infradead.org,
 	dan.j.williams@intel.com
-Subject: [PATCH v5 5/8] s390,dcssblk,dax: Add dax zero_page_range operation to dcssblk driver
-Date: Tue, 18 Feb 2020 16:48:38 -0500
-Message-Id: <20200218214841.10076-6-vgoyal@redhat.com>
+Subject: [PATCH v5 7/8] dax,iomap: Start using dax native zero_page_range()
+Date: Tue, 18 Feb 2020 16:48:40 -0500
+Message-Id: <20200218214841.10076-8-vgoyal@redhat.com>
 In-Reply-To: <20200218214841.10076-1-vgoyal@redhat.com>
 References: <20200218214841.10076-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-Message-ID-Hash: W5YBACJD4CP5DVVS7HHDQLNIDTPR7IWI
-X-Message-ID-Hash: W5YBACJD4CP5DVVS7HHDQLNIDTPR7IWI
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Message-ID-Hash: IDSNKDI2T7PMQ44MKOOR4A47L2BZ3RKN
+X-Message-ID-Hash: IDSNKDI2T7PMQ44MKOOR4A47L2BZ3RKN
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: dm-devel@redhat.com, linux-s390@vger.kernel.org, Gerald Schaefer <gerald.schaefer@de.ibm.com>
+CC: dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/W5YBACJD4CP5DVVS7HHDQLNIDTPR7IWI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IDSNKDI2T7PMQ44MKOOR4A47L2BZ3RKN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,49 +80,78 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add dax operation zero_page_range for dcssblk driver.
+Get rid of calling block device interface for zeroing in iomap dax
+zeroing path and use dax native zeroing interface instead.
 
-CC: linux-s390@vger.kernel.org
 Suggested-by: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- drivers/s390/block/dcssblk.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ fs/dax.c | 45 +++++++++------------------------------------
+ 1 file changed, 9 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
-index 63502ca537eb..331abab5d066 100644
---- a/drivers/s390/block/dcssblk.c
-+++ b/drivers/s390/block/dcssblk.c
-@@ -57,11 +57,28 @@ static size_t dcssblk_dax_copy_to_iter(struct dax_device *dax_dev,
- 	return copy_to_iter(addr, bytes, i);
+diff --git a/fs/dax.c b/fs/dax.c
+index 35da144375a0..f8ae0a9984fa 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1038,48 +1038,21 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+ 	return ret;
  }
  
-+static int dcssblk_dax_zero_page_range(struct dax_device *dax_dev, u64 offset,
-+				       size_t len)
-+{
-+	long rc;
-+	void *kaddr;
-+	pgoff_t pgoff = offset >> PAGE_SHIFT;
-+	unsigned page_offset = offset_in_page(offset);
-+
-+	rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
-+	if (rc < 0)
-+		return rc;
-+	memset(kaddr + page_offset, 0, len);
-+	dax_flush(dax_dev, kaddr + page_offset, len);
-+	return 0;
-+}
-+
- static const struct dax_operations dcssblk_dax_ops = {
- 	.direct_access = dcssblk_dax_direct_access,
- 	.dax_supported = generic_fsdax_supported,
- 	.copy_from_iter = dcssblk_dax_copy_from_iter,
- 	.copy_to_iter = dcssblk_dax_copy_to_iter,
-+	.zero_page_range = dcssblk_dax_zero_page_range,
- };
+-static bool dax_range_is_aligned(struct block_device *bdev,
+-				 unsigned int offset, unsigned int length)
+-{
+-	unsigned short sector_size = bdev_logical_block_size(bdev);
+-
+-	if (!IS_ALIGNED(offset, sector_size))
+-		return false;
+-	if (!IS_ALIGNED(length, sector_size))
+-		return false;
+-
+-	return true;
+-}
+-
+ int __dax_zero_page_range(struct block_device *bdev,
+ 		struct dax_device *dax_dev, sector_t sector,
+ 		unsigned int offset, unsigned int size)
+ {
+-	if (dax_range_is_aligned(bdev, offset, size)) {
+-		sector_t start_sector = sector + (offset >> 9);
+-
+-		return blkdev_issue_zeroout(bdev, start_sector,
+-				size >> 9, GFP_NOFS, 0);
+-	} else {
+-		pgoff_t pgoff;
+-		long rc, id;
+-		void *kaddr;
++	pgoff_t pgoff;
++	long rc, id;
  
- struct dcssblk_dev_info {
+-		rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
+-		if (rc)
+-			return rc;
++	rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
++	if (rc)
++		return rc;
+ 
+-		id = dax_read_lock();
+-		rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
+-		if (rc < 0) {
+-			dax_read_unlock(id);
+-			return rc;
+-		}
+-		memset(kaddr + offset, 0, size);
+-		dax_flush(dax_dev, kaddr + offset, size);
+-		dax_read_unlock(id);
+-	}
+-	return 0;
++	id = dax_read_lock();
++	rc = dax_zero_page_range(dax_dev, (pgoff << PAGE_SHIFT) + offset, size);
++	dax_read_unlock(id);
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(__dax_zero_page_range);
+ 
 -- 
 2.20.1
 _______________________________________________
