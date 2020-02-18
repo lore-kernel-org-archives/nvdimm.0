@@ -6,72 +6,72 @@ X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88E2BC3404D
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D7AC3404C
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5A3FE206E2
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 48902206E2
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 18 Feb 2020 21:49:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UF0+2Fgb"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5A3FE206E2
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bwAmmk/t"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 48902206E2
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D12F110FC3590;
-	Tue, 18 Feb 2020 13:49:55 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	by ml01.01.org (Postfix) with ESMTP id E39D810FC3598;
+	Tue, 18 Feb 2020 13:49:57 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BB0DB10FC33F2
-	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 13:49:53 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 0FF5810FC33FD
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Feb 2020 13:49:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1582062540;
+	s=mimecast20190719; t=1582062541;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=MPuW8FJYXb4EyYv2Zcbckz83nVUeVWfBw8sxF/N5fjs=;
-	b=UF0+2FgblivKYIXxXMGw/QFgAqnySdhKDxd61Rc4zR4w6STslQKSjlPHbCHMWTETUbIleE
-	GEbG8HosTrReeqEe3CaPV2972fzgZioHJGC8p8WL+QcS7qyzabUrJHE2No77ftAa1sJsb8
-	uf4UkA5lez5AsYVRMrNvQekPX92gq6o=
+	bh=cnevXfGVEDsFBctQatqNzlbLF8HNLGY3ShXMHssDWiQ=;
+	b=bwAmmk/tRY0QIF0C3xm6HscuO56L73fIUB2b0EsdS0AsMjWfVeT8zo1ZactK4sU5HjRdwQ
+	ADhxNpmCEE6oBU8+oSZ5cBY8hElATqT5FUYUkfhlLirnaUUDhHydiGtDYUwuMUku6LF4ar
+	5jPIYHOFaVNdjWRFmgmVJSiPWd7jgKM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-423-t2mG82F3PxyQsJxHcH8wnQ-1; Tue, 18 Feb 2020 16:48:57 -0500
-X-MC-Unique: t2mG82F3PxyQsJxHcH8wnQ-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+ us-mta-405-_qRODWZyNFm7pCqRV7mn4w-1; Tue, 18 Feb 2020 16:48:57 -0500
+X-MC-Unique: _qRODWZyNFm7pCqRV7mn4w-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id EF155802567;
-	Tue, 18 Feb 2020 21:48:55 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6AE20190B2AB;
+	Tue, 18 Feb 2020 21:48:56 +0000 (UTC)
 Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 10EBE5C1B0;
-	Tue, 18 Feb 2020 21:48:53 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 4557D90089;
+	Tue, 18 Feb 2020 21:48:56 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 8E9362257D3; Tue, 18 Feb 2020 16:48:52 -0500 (EST)
+	id AE6712257D7; Tue, 18 Feb 2020 16:48:52 -0500 (EST)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	hch@infradead.org,
 	dan.j.williams@intel.com
-Subject: [PATCH v5 1/8] pmem: Add functions for reading/writing page to/from pmem
-Date: Tue, 18 Feb 2020 16:48:34 -0500
-Message-Id: <20200218214841.10076-2-vgoyal@redhat.com>
+Subject: [PATCH v5 5/8] s390,dcssblk,dax: Add dax zero_page_range operation to dcssblk driver
+Date: Tue, 18 Feb 2020 16:48:38 -0500
+Message-Id: <20200218214841.10076-6-vgoyal@redhat.com>
 In-Reply-To: <20200218214841.10076-1-vgoyal@redhat.com>
 References: <20200218214841.10076-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Message-ID-Hash: MAE6LDRYRYRPSLPWZNS6ZEML4LHAYBBX
-X-Message-ID-Hash: MAE6LDRYRYRPSLPWZNS6ZEML4LHAYBBX
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Message-ID-Hash: W5YBACJD4CP5DVVS7HHDQLNIDTPR7IWI
+X-Message-ID-Hash: W5YBACJD4CP5DVVS7HHDQLNIDTPR7IWI
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>
+CC: dm-devel@redhat.com, linux-s390@vger.kernel.org, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MAE6LDRYRYRPSLPWZNS6ZEML4LHAYBBX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/W5YBACJD4CP5DVVS7HHDQLNIDTPR7IWI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,135 +80,49 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This splits pmem_do_bvec() into pmem_do_read() and pmem_do_write().
-pmem_do_write() will be used by pmem zero_page_range() as well. Hence
-sharing the same code.
+Add dax operation zero_page_range for dcssblk driver.
 
+CC: linux-s390@vger.kernel.org
 Suggested-by: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- drivers/nvdimm/pmem.c | 86 +++++++++++++++++++++++++------------------
- 1 file changed, 50 insertions(+), 36 deletions(-)
+ drivers/s390/block/dcssblk.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 4eae441f86c9..075b11682192 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -136,9 +136,25 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
- 	return BLK_STS_OK;
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 63502ca537eb..331abab5d066 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -57,11 +57,28 @@ static size_t dcssblk_dax_copy_to_iter(struct dax_device *dax_dev,
+ 	return copy_to_iter(addr, bytes, i);
  }
  
--static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
--			unsigned int len, unsigned int off, unsigned int op,
--			sector_t sector)
-+static blk_status_t pmem_do_read(struct pmem_device *pmem,
-+			struct page *page, unsigned int page_off,
-+			sector_t sector, unsigned int len)
++static int dcssblk_dax_zero_page_range(struct dax_device *dax_dev, u64 offset,
++				       size_t len)
 +{
-+	blk_status_t rc;
-+	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
-+	void *pmem_addr = pmem->virt_addr + pmem_off;
++	long rc;
++	void *kaddr;
++	pgoff_t pgoff = offset >> PAGE_SHIFT;
++	unsigned page_offset = offset_in_page(offset);
 +
-+	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
-+		return BLK_STS_IOERR;
-+
-+	rc = read_pmem(page, page_off, pmem_addr, len);
-+	flush_dcache_page(page);
-+	return rc;
++	rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
++	if (rc < 0)
++		return rc;
++	memset(kaddr + page_offset, 0, len);
++	dax_flush(dax_dev, kaddr + page_offset, len);
++	return 0;
 +}
 +
-+static blk_status_t pmem_do_write(struct pmem_device *pmem,
-+			struct page *page, unsigned int page_off,
-+			sector_t sector, unsigned int len)
- {
- 	blk_status_t rc = BLK_STS_OK;
- 	bool bad_pmem = false;
-@@ -148,34 +164,25 @@ static blk_status_t pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- 	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
- 		bad_pmem = true;
+ static const struct dax_operations dcssblk_dax_ops = {
+ 	.direct_access = dcssblk_dax_direct_access,
+ 	.dax_supported = generic_fsdax_supported,
+ 	.copy_from_iter = dcssblk_dax_copy_from_iter,
+ 	.copy_to_iter = dcssblk_dax_copy_to_iter,
++	.zero_page_range = dcssblk_dax_zero_page_range,
+ };
  
--	if (!op_is_write(op)) {
--		if (unlikely(bad_pmem))
--			rc = BLK_STS_IOERR;
--		else {
--			rc = read_pmem(page, off, pmem_addr, len);
--			flush_dcache_page(page);
--		}
--	} else {
--		/*
--		 * Note that we write the data both before and after
--		 * clearing poison.  The write before clear poison
--		 * handles situations where the latest written data is
--		 * preserved and the clear poison operation simply marks
--		 * the address range as valid without changing the data.
--		 * In this case application software can assume that an
--		 * interrupted write will either return the new good
--		 * data or an error.
--		 *
--		 * However, if pmem_clear_poison() leaves the data in an
--		 * indeterminate state we need to perform the write
--		 * after clear poison.
--		 */
--		flush_dcache_page(page);
--		write_pmem(pmem_addr, page, off, len);
--		if (unlikely(bad_pmem)) {
--			rc = pmem_clear_poison(pmem, pmem_off, len);
--			write_pmem(pmem_addr, page, off, len);
--		}
-+	/*
-+	 * Note that we write the data both before and after
-+	 * clearing poison.  The write before clear poison
-+	 * handles situations where the latest written data is
-+	 * preserved and the clear poison operation simply marks
-+	 * the address range as valid without changing the data.
-+	 * In this case application software can assume that an
-+	 * interrupted write will either return the new good
-+	 * data or an error.
-+	 *
-+	 * However, if pmem_clear_poison() leaves the data in an
-+	 * indeterminate state we need to perform the write
-+	 * after clear poison.
-+	 */
-+	flush_dcache_page(page);
-+	write_pmem(pmem_addr, page, page_off, len);
-+	if (unlikely(bad_pmem)) {
-+		rc = pmem_clear_poison(pmem, pmem_off, len);
-+		write_pmem(pmem_addr, page, page_off, len);
- 	}
- 
- 	return rc;
-@@ -197,8 +204,12 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
- 
- 	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
--		rc = pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len,
--				bvec.bv_offset, bio_op(bio), iter.bi_sector);
-+		if (op_is_write(bio_op(bio)))
-+			rc = pmem_do_write(pmem, bvec.bv_page, bvec.bv_offset,
-+				iter.bi_sector, bvec.bv_len);
-+		else
-+			rc = pmem_do_read(pmem, bvec.bv_page, bvec.bv_offset,
-+				iter.bi_sector, bvec.bv_len);
- 		if (rc) {
- 			bio->bi_status = rc;
- 			break;
-@@ -223,9 +234,12 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	struct pmem_device *pmem = bdev->bd_queue->queuedata;
- 	blk_status_t rc;
- 
--	rc = pmem_do_bvec(pmem, page, hpage_nr_pages(page) * PAGE_SIZE,
--			  0, op, sector);
--
-+	if (op_is_write(op))
-+		rc = pmem_do_write(pmem, page, 0, sector,
-+				   hpage_nr_pages(page) * PAGE_SIZE);
-+	else
-+		rc = pmem_do_read(pmem, page, 0, sector,
-+				   hpage_nr_pages(page) * PAGE_SIZE);
- 	/*
- 	 * The ->rw_page interface is subtle and tricky.  The core
- 	 * retries on any error, so we can only invoke page_endio() in
+ struct dcssblk_dev_info {
 -- 
 2.20.1
 _______________________________________________
