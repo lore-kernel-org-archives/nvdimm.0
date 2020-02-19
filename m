@@ -1,123 +1,154 @@
 Return-Path: <SRS0=g7wc=4H=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.4 required=3.0 tests=DEAR_SOMETHING,DKIM_INVALID,
-	DKIM_SIGNED,FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,
-	HK_RANDOM_REPLYTO,HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84613C34022
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Feb 2020 08:25:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D833FC34056
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Feb 2020 17:55:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4A58D222D9
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Feb 2020 08:25:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 89F0824673
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Feb 2020 17:55:50 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=smtpwala.xyz header.i=@smtpwala.xyz header.b="C3xx4CmH";
-	dkim=temperror (0-bit key) header.d=webwebmail.info header.i=chris.mount@webwebmail.info header.b="HvCsN4MD"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4A58D222D9
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=webwebmail.info
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="d+KgCPUx"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 89F0824673
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4EF8410FC35AC;
-	Wed, 19 Feb 2020 00:26:50 -0800 (PST)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=192.236.154.106; helo=server10.notificat.info; envelope-from=chris.mount@webwebmail.info; receiver=<UNKNOWN> 
-Received: from server10.notificat.info (server10.notificat.info [192.236.154.106])
-	by ml01.01.org (Postfix) with ESMTP id 92AD210077CE6
-	for <linux-nvdimm@lists.01.org>; Wed, 19 Feb 2020 00:26:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=asdzxcv; d=smtpwala.xyz;
- h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding;
- bh=9/B6j6L1cLo7VQHB7/6Xah5+hDA=;
- b=C3xx4CmH0nqp09qSU/10/q8S4djgryUPBJLHlq5KaCQReHIbzZ1mGgEC9vvG9P4GKs/ZwUuqKAG1
-   CTMqG8o2A9F8N/iffY8k2KfAUFiD+GoSXnXjXYcS95sOAD8P+PoFNuXpEwYmRLp+fAXGDjO5Tc/q
-   EZDzTji3IeR3kZ7OIwc=
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=asdzxcv; d=webwebmail.info;
- h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding; i=chris.mount@webwebmail.info;
- bh=9/B6j6L1cLo7VQHB7/6Xah5+hDA=;
- b=HvCsN4MDPJ60NpwgT9lIFLWI/GSlrMwCqPvCVhdAh5lY468cLloSwgW2VtPZutR/KBnxQl7Y/l8B
-   y47ofHyx+ZtACzwCZCTfNqmn9lzqJXs3ZgzOSdH+bb0NyVV1RHvDau1XB7H3TwQv4k0byUu5L5w1
-   MYenCYBqTOI/Eh1Fm2k=
-DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=asdzxcv; d=webwebmail.info;
- b=MgynOGjexNf5khYTOXEdGLyayfVWSlTd5WWESF/4464av3APs4fRy3uLPKO5/m4mr8PSI8vqTanr
-   OB8YzpAIWmXZ9Kutya/TBdmAvpeOSFxz4X8ZtjubgMiB1IShm7BFBk71DwXVpk633h5LJRnc7P8m
-   VwzANY0gdPTrWEIrcU4=;
-From: "C. Mount. (U.K Loans)"<chris.mount@webwebmail.info>
-To: linux-nvdimm@lists.01.org
-Subject: Re: Project Loan
-Date: 19 Feb 2020 10:25:53 +0200
-Message-ID: <20200219102553.9D2D8CB41704927E@webwebmail.info>
+	by ml01.01.org (Postfix) with ESMTP id 9F32A10FC316E;
+	Wed, 19 Feb 2020 09:56:42 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 5574E1007B1C3
+	for <linux-nvdimm@lists.01.org>; Wed, 19 Feb 2020 09:56:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1582134947;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=G7sz7EWdyJf+soZEx7Q9kI9BEyE1FbIaNgdhECk6FA8=;
+	b=d+KgCPUx6XdMs9A9GAm0CjJAxKomwuWdMNPzSH6lrc3CBAVZ8pyHECIw4PgMknbtYXQrYj
+	H1A4gkq+PzJnGlN89x+VDhKoPuiPMfc71F2oPMJXXVwIwFmCRt4TfEojTa5DYvdFc8Oco7
+	52PQJAt2Ff2/Zhi0waUIOoaPEq18FWg=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-323-tmy7Fzl2Nky6y99GAykDjA-1; Wed, 19 Feb 2020 12:55:45 -0500
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AE5028010CA;
+	Wed, 19 Feb 2020 17:55:44 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 66CF488859;
+	Wed, 19 Feb 2020 17:55:44 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [ndctl PATCH] ndctl/list: Drop named list objects from verbose listing
+References: <157481532698.2805671.8095763752180655226.stgit@dwillia2-desk3.amr.corp.intel.com>
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date: Wed, 19 Feb 2020 12:55:43 -0500
+In-Reply-To: <157481532698.2805671.8095763752180655226.stgit@dwillia2-desk3.amr.corp.intel.com>
+	(Dan Williams's message of "Tue, 26 Nov 2019 16:42:07 -0800")
+Message-ID: <x49sgj6law0.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Message-ID-Hash: T6JADUK3NIMXRSERXEQTEWNT73XPNHTV
-X-Message-ID-Hash: T6JADUK3NIMXRSERXEQTEWNT73XPNHTV
-X-MailFrom: chris.mount@webwebmail.info
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-MC-Unique: tmy7Fzl2Nky6y99GAykDjA-1
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Message-ID-Hash: 6UKYGW6BEOGYDQVZNL7H6ONATW6XJQWH
+X-Message-ID-Hash: 6UKYGW6BEOGYDQVZNL7H6ONATW6XJQWH
+X-MailFrom: jmoyer@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: christophermountffl4@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/T6JADUK3NIMXRSERXEQTEWNT73XPNHTV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6UKYGW6BEOGYDQVZNL7H6ONATW6XJQWH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: multipart/mixed; boundary="===============2731998679655951129=="
-
---===============2731998679655951129==
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.=
-w3.org/TR/html4/loose.dtd">
-
-<HTML><HEAD>
-<META name=3DGENERATOR content=3D"MSHTML 11.00.9600.19003"></HEAD>
-<body style=3D"MARGIN: 0.5em">
-<P>
-<P><SPAN class=3Dfont style=3D"FONT-FAMILY: Georgia">Dear Sir, <BR><BR>Than=
-k you for connecting with us this new year, we are glad to have set our loa=
-n plan this year 2020/2021 towards Europe. <BR>
-I would like to discuss doing business with you in relation to any project =
-finance you may have, and your capital growth. We are hands-on investors so=
-urcing for innovative entrepreneurs and consultants with investment opportu=
-nities in commercial-real estate industrial projects, hotel development , t=
-ourism-hospitality projects, renewable energy, waste-recycling, mineral-min=
-ing, heavy construction, environmental-tech projects,etc, that have the rig=
-ht mix of flair, growth potentials and market=20
-vision. <BR>Whether it&#8217;s a start-up project looking to launch a pilot=
- project, a company with proven technology that needs capital input to reac=
-hing commercial scale. We are open to structure a loan package and agreemen=
-t based on your financial needs and projections. Our financial solutions ha=
-ve many advantages over a traditional commercial loans from other banks. <B=
-R>
-For information on our low interest-rate loans and application and if your =
-interested for a follow-up, kindly let me know so I can give you more detai=
-ls.<BR>Thank you.<BR><BR><SPAN class=3Dsize style=3D"FONT-SIZE: 13px"><SPAN=
- class=3Dcolour style=3D"COLOR: rgb(128,128,0)"><SPAN class=3Dsize style=3D=
-"FONT-SIZE: 13px"><SPAN class=3Dcolour style=3D"COLOR: rgb(128,128,0)"><SPA=
-N class=3Dsize style=3D"FONT-SIZE: 13px"><SPAN class=3Dcolour style=3D"COLO=
-R: rgb(128,128,0)"><SPAN class=3Dfont style=3D"FONT-FAMILY: Georgia"><B>
-Kind Regards, <BR>Christopher Mount<BR>Email: <A href=3D"mailto:christopher=
-mountffl4@gmail.com">christophermountffl4@gmail.com</A></B></SPAN></SPAN></=
-SPAN></SPAN></SPAN></SPAN></SPAN></SPAN></P>
-<DIV>
-<DIV>
-<DIV><BR></DIV></DIV></DIV>
-<DIV>
-<DIV><BR></DIV></DIV>
-<P></P></BODY></HTML>
---===============2731998679655951129==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+Dan Williams <dan.j.williams@intel.com> writes:
+
+> The only expected difference between "ndctl list -R" and "ndctl list
+> -Rv" is some additional output fields. Instead it currently results in
+> the region array being contained in a named "regions" list object.
+>
+> # ndctl list -R -r 0
+> [
+>   {
+>     "dev":"region0",
+>     "size":4294967296,
+>     "available_size":0,
+>     "max_available_extent":0,
+>     "type":"pmem",
+>     "persistence_domain":"unknown"
+>   }
+> ]
+>
+> # ndctl list -Rv -r 0
+> {
+>   "regions":[
+>     {
+>       "dev":"region0",
+>       "size":4294967296,
+>       "available_size":0,
+>       "max_available_extent":0,
+>       "type":"pmem",
+>       "numa_node":0,
+>       "target_node":2,
+>       "persistence_domain":"unknown",
+>       "namespaces":[
+>         {
+>           "dev":"namespace0.0",
+>           "mode":"fsdax",
+>           "map":"mem",
+>           "size":4294967296,
+>           "sector_size":512,
+>           "blockdev":"pmem0",
+>           "numa_node":0,
+>           "target_node":2
+>         }
+>       ]
+>     }
+>   ]
+> }
+>
+> Drop the named list, by not including namespaces in the listing. Extra
+> objects only appear at the -vv level. "ndctl list -v" and "ndctl list
+> -Nv" are synonyms and behave as expected.
+>
+> # ndctl list -Rv -r 0
+> [
+>   {
+>     "dev":"region0",
+>     "size":4294967296,
+>     "available_size":0,
+>     "max_available_extent":0,
+>     "type":"pmem",
+>     "numa_node":0,
+>     "target_node":2,
+>     "persistence_domain":"unknown"
+>   }
+> ]
+>
+
+Will this break existing code that parses the javascript output?
+
+-Jeff
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
---===============2731998679655951129==--
