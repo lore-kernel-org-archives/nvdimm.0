@@ -2,87 +2,85 @@ Return-Path: <SRS0=ffZ5=4I=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81DECC11D07
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Feb 2020 10:00:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27B5EC11D04
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Feb 2020 10:50:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 61BB824654
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Feb 2020 10:00:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 61BB824654
+	by mail.kernel.org (Postfix) with ESMTPS id EE53B2071E
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Feb 2020 10:50:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EE53B2071E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 801F410FC3590;
-	Thu, 20 Feb 2020 02:01:39 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id 0E34910FC35B1;
+	Thu, 20 Feb 2020 02:51:35 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0DE431003E996
-	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 01:59:35 -0800 (PST)
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01K9smHs002923
-	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 04:58:43 -0500
-Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2y8ubpjfpd-1
+	by ml01.01.org (Postfix) with ESMTPS id 7161A10FC35B0
+	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 02:50:45 -0800 (PST)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01KAihbC068686
+	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 05:49:52 -0500
+Received: from e06smtp07.uk.ibm.com (e06smtp07.uk.ibm.com [195.75.94.103])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2y8ubg444v-1
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 04:58:42 -0500
+	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 05:49:52 -0500
 Received: from localhost
-	by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e06smtp07.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
-	Thu, 20 Feb 2020 09:58:41 -0000
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (9.149.109.194)
-	by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	Thu, 20 Feb 2020 10:49:50 -0000
+Received: from b06avi18878370.portsmouth.uk.ibm.com (9.149.26.194)
+	by e06smtp07.uk.ibm.com (192.168.101.137) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
 	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Thu, 20 Feb 2020 09:58:37 -0000
+	Thu, 20 Feb 2020 10:49:47 -0000
 Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01K9wYTK22478918
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01KAnj2K27590990
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 20 Feb 2020 09:58:34 GMT
+	Thu, 20 Feb 2020 10:49:46 GMT
 Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2ED4CA4053;
-	Thu, 20 Feb 2020 09:58:34 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id CCA6BA4057;
+	Thu, 20 Feb 2020 10:49:45 +0000 (GMT)
 Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BC6DFA4057;
-	Thu, 20 Feb 2020 09:58:30 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 2FFDBA404D;
+	Thu, 20 Feb 2020 10:49:43 +0000 (GMT)
 Received: from vajain21.in.ibm.com.com (unknown [9.199.53.128])
 	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Thu, 20 Feb 2020 09:58:30 +0000 (GMT)
+	Thu, 20 Feb 2020 10:49:42 +0000 (GMT)
 From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
-Subject: [PATCH 4/8] UAPI: ndctl: Introduce NVDIMM_FAMILY_PAPR_SCM as a new NVDIMM DSM family
-Date: Thu, 20 Feb 2020 15:28:01 +0530
+To: linux-nvdimm@lists.01.org
+Subject: [ndctl PATCH 0/8] Add support for reporting papr-scm nvdimm health
+Date: Thu, 20 Feb 2020 16:19:20 +0530
 X-Mailer: git-send-email 2.24.1
-In-Reply-To: <20200220095805.197229-1-vaibhav@linux.ibm.com>
-References: <20200220095805.197229-1-vaibhav@linux.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
-x-cbid: 20022009-0016-0000-0000-000002E889E6
+x-cbid: 20022010-0028-0000-0000-000003DCB789
 X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20022009-0017-0000-0000-0000334BA583
-Message-Id: <20200220095805.197229-5-vaibhav@linux.ibm.com>
+x-cbparentid: 20022010-0029-0000-0000-000024A1C724
+Message-Id: <20200220104928.198625-1-vaibhav@linux.ibm.com>
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
  definitions=2020-02-20_02:2020-02-19,2020-02-20 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1015
- priorityscore=1501 suspectscore=0 spamscore=0 bulkscore=0 impostorscore=0
- mlxlogscore=823 lowpriorityscore=0 malwarescore=0 phishscore=0 mlxscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
- definitions=main-2002200073
-Message-ID-Hash: VQDKLPGU2WJECXOQVAJ2ZGBCOUVNP53Z
-X-Message-ID-Hash: VQDKLPGU2WJECXOQVAJ2ZGBCOUVNP53Z
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
+ priorityscore=1501 suspectscore=0 mlxscore=0 mlxlogscore=999 bulkscore=0
+ malwarescore=0 spamscore=0 impostorscore=0 phishscore=0 adultscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002200079
+Message-ID-Hash: QWQ4DLUKF27DFB4KDT6MOAUP5TMTBJ23
+X-Message-ID-Hash: QWQ4DLUKF27DFB4KDT6MOAUP5TMTBJ23
 X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <ellerman@au1.ibm.com>, Alastair D'Silva <alastair@au1.ibm.com>
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Alastair D'Silva <alastair@au1.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VQDKLPGU2WJECXOQVAJ2ZGBCOUVNP53Z/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QWQ4DLUKF27DFB4KDT6MOAUP5TMTBJ23/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,26 +89,94 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add PAPR-scm family of DSM command-set to the white list of NVDIMM
-command sets.
+This patch-set proposes changes to libndctl to add support for reporting
+health for nvdimms that support the PAPR standard[1]. The standard defines
+heathenism (HCALL) through which a guest kernel can query and fetch health
+and performance stats of an nvdimm attached to the hypervisor[2]. Until
+now 'ndctl' was unable to report these stats for papr_scm dimms on PPC64
+guests due to absence of ACPI/NFIT, a limitation which this patch-set tries
+to address.
 
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
- include/uapi/linux/ndctl.h | 1 +
- 1 file changed, 1 insertion(+)
+The patch-set introduces support for the new PAPR-SCM DSM family defined at
+[3] via a new dimm-ops named 'papr_scm_dimm_ops'. Infrastructure to probe
+and distinguish papr-scm dimms from other dimm families that may support
+ACPI/NFIT is implemented by updating the 'struct ndctl_dimm' initialization
+routines to bifurcate based on the nvdimm type. We also introduce two new
+dimm-ops for handling initialization of dimm specific data for specific DSM
+families. 
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index de5d90212409..99fb60600ef8 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -244,6 +244,7 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_HPE2 2
- #define NVDIMM_FAMILY_MSFT 3
- #define NVDIMM_FAMILY_HYPERV 4
-+#define NVDIMM_FAMILY_PAPR_SCM 5
- 
- #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
- 					struct nd_cmd_pkg)
+These changes coupled with proposed ndtcl changes located at Ref[4] should
+provide a way for the user to retrieve NVDIMM health status using ndtcl for
+papr_scm guests. Below is a sample output using proposed kernel + ndctl
+changes:
+
+ # ndctl list -DH
+[
+  {
+    "dev":"nmem0",
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty"
+    }
+  }
+]
+
+Structure of the patchset
+=========================
+
+We start with a re-factoring patch that splits the 'add_dimm()' function
+into two functions one that take care of allocating and initializing
+'struct ndctl_dimm' and another that takes care of initializing nfit
+specific dimm attributes.
+
+Patch-2 introduces new dimm ops 'dimm_init()' & 'dimm_uninit()' to handle
+DSM family specific initialization of 'struct ndctl_dimm'.
+
+Patch-3 introduces probe function of papr_scm nvdimms and assigning
+'papr_scm_dimm_ops' to 'dimm->ops' if needed. Subsequent patch-4 adds
+support for parsing papr_scm nvdimm flags and updating 'dimm->flags' with
+them.
+
+Patches-5,6 implements scaffolding to add support for PAPR_SCM DSM commands
+and pull in their definitions from the kernel. This implementation resides
+in newly added 'papr_scm.c' file.
+
+Finally Patched-7,8 add support for issuing and handling the result of
+'struct ndctl_cmd' to request dimm health stats from papr_scm kernel module
+and returning appropriate health status to libndctl for reporting.
+
+References:
+[1]: "Power Architecture Platform Reference"
+      https://en.wikipedia.org/wiki/Power_Architecture_Platform_Reference
+[2]: "[DOC,v2] powerpc: Provide initial documentation for PAPR hcalls"
+     https://patchwork.ozlabs.org/patch/1154292/
+[3]: "[PATCH 5/8] powerpc/uapi: Introduce uapi header 'papr_scm_dsm.h' for
+     papr_scm DSMs"
+     https://patchwork.ozlabs.org/patch/1241352/
+[4]: "powerpc/papr_scm: Add support for reporting nvdimm health"
+     https://patchwork.ozlabs.org/project/linuxppc-dev/list/?series=159701     
+
+Vaibhav Jain (8):
+  libndctl: Refactor out add_dimm() to handle NFIT specific init
+  libndctl: Introduce a new dimm-ops dimm_init() & dimm_uninit()
+  libncdtl: Add initial support for NVDIMM_FAMILY_PAPR_SCM dimm family
+  libndctl: Add support for parsing of_pmem dimm flags and monitor mode
+  libndctl,papr_scm: Add definitions for PAPR_SCM DSM commands
+  libndctl,papr_scm: Implement scaffolding to issue and handle DSM cmds
+  libndctl,papr_scm: Implement support for DSM_PAPR_SCM_HEALTH
+  libndctl,papr_scm: Add support for reporting bad shutdown
+
+ ndctl/lib/Makefile.am    |   1 +
+ ndctl/lib/libndctl.c     | 263 +++++++++++++++++++++++++----------
+ ndctl/lib/papr_scm.c     | 292 +++++++++++++++++++++++++++++++++++++++
+ ndctl/lib/papr_scm_dsm.h | 143 +++++++++++++++++++
+ ndctl/lib/private.h      |   7 +
+ ndctl/libndctl.h         |   1 +
+ ndctl/ndctl.h            |   1 +
+ 7 files changed, 634 insertions(+), 74 deletions(-)
+ create mode 100644 ndctl/lib/papr_scm.c
+ create mode 100644 ndctl/lib/papr_scm_dsm.h
+
 -- 
 2.24.1
 _______________________________________________
