@@ -2,85 +2,85 @@ Return-Path: <SRS0=hxna=4J=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	UPPERCASE_50_75,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16272C11D24
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:29:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D47B2C11D00
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:29:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EB069208E4
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:29:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EB069208E4
+	by mail.kernel.org (Postfix) with ESMTPS id B586F20716
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:29:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B586F20716
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=au1.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 08CCC10FC3638;
-	Thu, 20 Feb 2020 19:30:31 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 20C6A10FC36C2;
+	Thu, 20 Feb 2020 19:30:32 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C27C210FC360D
+	by ml01.01.org (Postfix) with ESMTPS id CDFAF10FC3610
 	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 19:30:28 -0800 (PST)
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01L3L09u107976
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01L3Sib0102305
 	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 22:29:36 -0500
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2ya6e618hd-1
+Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2y9ytr4638-1
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 22:29:36 -0500
+	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 22:29:35 -0500
 Received: from localhost
-	by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
 	Fri, 21 Feb 2020 03:29:33 -0000
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
-	by e06smtp03.uk.ibm.com (192.168.101.133) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
+	by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
 	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Fri, 21 Feb 2020 03:29:27 -0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01L3SBe549086650
+	Fri, 21 Feb 2020 03:29:25 -0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01L3S9BZ49807518
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 21 Feb 2020 03:28:11 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 1757FA404D;
-	Fri, 21 Feb 2020 03:28:11 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7252BA4040;
-	Fri, 21 Feb 2020 03:28:10 +0000 (GMT)
+	Fri, 21 Feb 2020 03:28:10 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D13D7A4064;
+	Fri, 21 Feb 2020 03:28:09 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 29246A4060;
+	Fri, 21 Feb 2020 03:28:09 +0000 (GMT)
 Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Fri, 21 Feb 2020 03:28:10 +0000 (GMT)
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri, 21 Feb 2020 03:28:09 +0000 (GMT)
 Received: from adsilva.ozlabs.ibm.com (haven.au.ibm.com [9.192.254.114])
 	(using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 7B369A03DD;
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 3DEC4A03CC;
 	Fri, 21 Feb 2020 14:28:03 +1100 (AEDT)
 From: "Alastair D'Silva" <alastair@au1.ibm.com>
 To: alastair@d-silva.org
-Subject: [PATCH v3 16/27] powerpc/powernv/pmem: Register a character device for userspace to interact with
-Date: Fri, 21 Feb 2020 14:27:09 +1100
+Subject: [PATCH v3 12/27] powerpc/powernv/pmem: Add register addresses & status values to the header
+Date: Fri, 21 Feb 2020 14:27:05 +1100
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200221032720.33893-1-alastair@au1.ibm.com>
 References: <20200221032720.33893-1-alastair@au1.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
-x-cbid: 20022103-0012-0000-0000-00000388D1D4
+x-cbid: 20022103-4275-0000-0000-000003A3FE70
 X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20022103-0013-0000-0000-000021C56A75
-Message-Id: <20200221032720.33893-17-alastair@au1.ibm.com>
+x-cbparentid: 20022103-4276-0000-0000-000038B80C88
+Message-Id: <20200221032720.33893-13-alastair@au1.ibm.com>
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
  definitions=2020-02-20_19:2020-02-19,2020-02-20 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- suspectscore=3 phishscore=0 adultscore=0 clxscore=1015 impostorscore=0
- malwarescore=0 spamscore=0 bulkscore=0 priorityscore=1501 mlxscore=0
- mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2001150001 definitions=main-2002210020
-Message-ID-Hash: V5ZIQZC5T33LSOUBM474NTMMRAGETHEX
-X-Message-ID-Hash: V5ZIQZC5T33LSOUBM474NTMMRAGETHEX
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ suspectscore=1 clxscore=1015 mlxlogscore=962 mlxscore=0 adultscore=0
+ lowpriorityscore=0 malwarescore=0 spamscore=0 impostorscore=0 phishscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002210021
+Message-ID-Hash: UPTRLD4OVQMS5BLBFMV7MAV6AVTZYMBS
+X-Message-ID-Hash: UPTRLD4OVQMS5BLBFMV7MAV6AVTZYMBS
 X-MailFrom: alastair@au1.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -89,7 +89,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/V5ZIQZC5T33LSOUBM474NTMMRAGETHEX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UPTRLD4OVQMS5BLBFMV7MAV6AVTZYMBS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -100,202 +100,96 @@ Content-Transfer-Encoding: 7bit
 
 From: Alastair D'Silva <alastair@d-silva.org>
 
-This patch introduces a character device (/dev/ocxl-scmX) which further
-patches will use to interact with userspace.
+These values have been taken from the device specifications.
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
 ---
- arch/powerpc/platforms/powernv/pmem/ocxl.c    | 116 +++++++++++++++++-
- .../platforms/powernv/pmem/ocxl_internal.h    |   2 +
- 2 files changed, 116 insertions(+), 2 deletions(-)
+ .../platforms/powernv/pmem/ocxl_internal.h    | 72 +++++++++++++++++++
+ 1 file changed, 72 insertions(+)
 
-diff --git a/arch/powerpc/platforms/powernv/pmem/ocxl.c b/arch/powerpc/platforms/powernv/pmem/ocxl.c
-index b8bd7e703b19..63109a870d2c 100644
---- a/arch/powerpc/platforms/powernv/pmem/ocxl.c
-+++ b/arch/powerpc/platforms/powernv/pmem/ocxl.c
-@@ -10,6 +10,7 @@
- #include <misc/ocxl.h>
- #include <linux/delay.h>
- #include <linux/ndctl.h>
-+#include <linux/fs.h>
- #include <linux/mm_types.h>
- #include <linux/memory_hotplug.h>
- #include "ocxl_internal.h"
-@@ -339,6 +340,9 @@ static void free_ocxlpmem(struct ocxlpmem *ocxlpmem)
- 
- 	free_minor(ocxlpmem);
- 
-+	if (ocxlpmem->cdev.owner)
-+		cdev_del(&ocxlpmem->cdev);
-+
- 	if (ocxlpmem->metadata_addr)
- 		devm_memunmap(&ocxlpmem->dev, ocxlpmem->metadata_addr);
- 
-@@ -396,6 +400,70 @@ static int ocxlpmem_register(struct ocxlpmem *ocxlpmem)
- 	return device_register(&ocxlpmem->dev);
- }
- 
-+static void ocxlpmem_put(struct ocxlpmem *ocxlpmem)
-+{
-+	put_device(&ocxlpmem->dev);
-+}
-+
-+static struct ocxlpmem *ocxlpmem_get(struct ocxlpmem *ocxlpmem)
-+{
-+	return (get_device(&ocxlpmem->dev) == NULL) ? NULL : ocxlpmem;
-+}
-+
-+static struct ocxlpmem *find_and_get_ocxlpmem(dev_t devno)
-+{
-+	struct ocxlpmem *ocxlpmem;
-+	int minor = MINOR(devno);
-+	/*
-+	 * We don't declare an RCU critical section here, as our AFU
-+	 * is protected by a reference counter on the device. By the time the
-+	 * minor number of a device is removed from the idr, the ref count of
-+	 * the device is already at 0, so no user API will access that AFU and
-+	 * this function can't return it.
-+	 */
-+	ocxlpmem = idr_find(&minors_idr, minor);
-+	if (ocxlpmem)
-+		ocxlpmem_get(ocxlpmem);
-+	return ocxlpmem;
-+}
-+
-+static int file_open(struct inode *inode, struct file *file)
-+{
-+	struct ocxlpmem *ocxlpmem;
-+
-+	ocxlpmem = find_and_get_ocxlpmem(inode->i_rdev);
-+	if (!ocxlpmem)
-+		return -ENODEV;
-+
-+	file->private_data = ocxlpmem;
-+	return 0;
-+}
-+
-+static int file_release(struct inode *inode, struct file *file)
-+{
-+	struct ocxlpmem *ocxlpmem = file->private_data;
-+
-+	ocxlpmem_put(ocxlpmem);
-+	return 0;
-+}
-+
-+static const struct file_operations fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= file_open,
-+	.release	= file_release,
-+};
-+
-+/**
-+ * create_cdev() - Create the chardev in /dev for the device
-+ * @ocxlpmem: the SCM metadata
-+ * Return: 0 on success, negative on failure
-+ */
-+static int create_cdev(struct ocxlpmem *ocxlpmem)
-+{
-+	cdev_init(&ocxlpmem->cdev, &fops);
-+	return cdev_add(&ocxlpmem->cdev, ocxlpmem->dev.devt, 1);
-+}
-+
- /**
-  * ocxlpmem_remove() - Free an OpenCAPI persistent memory device
-  * @pdev: the PCI device information struct
-@@ -572,6 +640,11 @@ static int probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		goto err;
- 	}
- 
-+	if (create_cdev(ocxlpmem)) {
-+		dev_err(&pdev->dev, "Could not create character device\n");
-+		goto err;
-+	}
-+
- 	elapsed = 0;
- 	timeout = ocxlpmem->readiness_timeout + ocxlpmem->memory_available_timeout;
- 	while (!is_usable(ocxlpmem, false)) {
-@@ -613,20 +686,59 @@ static struct pci_driver pci_driver = {
- 	.shutdown = ocxlpmem_remove,
- };
- 
-+static int file_init(void)
-+{
-+	int rc;
-+
-+	mutex_init(&minors_idr_lock);
-+	idr_init(&minors_idr);
-+
-+	rc = alloc_chrdev_region(&ocxlpmem_dev, 0, NUM_MINORS, "ocxl-pmem");
-+	if (rc) {
-+		idr_destroy(&minors_idr);
-+		pr_err("Unable to allocate OpenCAPI persistent memory major number: %d\n", rc);
-+		return rc;
-+	}
-+
-+	ocxlpmem_class = class_create(THIS_MODULE, "ocxl-pmem");
-+	if (IS_ERR(ocxlpmem_class)) {
-+		idr_destroy(&minors_idr);
-+		pr_err("Unable to create ocxl-pmem class\n");
-+		unregister_chrdev_region(ocxlpmem_dev, NUM_MINORS);
-+		return PTR_ERR(ocxlpmem_class);
-+	}
-+
-+	return 0;
-+}
-+
-+static void file_exit(void)
-+{
-+	class_destroy(ocxlpmem_class);
-+	unregister_chrdev_region(ocxlpmem_dev, NUM_MINORS);
-+	idr_destroy(&minors_idr);
-+}
-+
- static int __init ocxlpmem_init(void)
- {
--	int rc = 0;
-+	int rc;
- 
--	rc = pci_register_driver(&pci_driver);
-+	rc = file_init();
- 	if (rc)
- 		return rc;
- 
-+	rc = pci_register_driver(&pci_driver);
-+	if (rc) {
-+		file_exit();
-+		return rc;
-+	}
-+
- 	return 0;
- }
- 
- static void ocxlpmem_exit(void)
- {
- 	pci_unregister_driver(&pci_driver);
-+	file_exit();
- }
- 
- module_init(ocxlpmem_init);
 diff --git a/arch/powerpc/platforms/powernv/pmem/ocxl_internal.h b/arch/powerpc/platforms/powernv/pmem/ocxl_internal.h
-index 28e2020f6355..d2d81fec7bb1 100644
+index 0faf3740e9b8..9cf3e42750e7 100644
 --- a/arch/powerpc/platforms/powernv/pmem/ocxl_internal.h
 +++ b/arch/powerpc/platforms/powernv/pmem/ocxl_internal.h
-@@ -2,6 +2,7 @@
- // Copyright 2019 IBM Corp.
+@@ -8,6 +8,78 @@
  
- #include <linux/pci.h>
-+#include <linux/cdev.h>
- #include <misc/ocxl.h>
- #include <linux/libnvdimm.h>
- #include <linux/mm.h>
-@@ -99,6 +100,7 @@ struct ocxlpmem_function0 {
- struct ocxlpmem {
- 	struct device dev;
+ #define LABEL_AREA_SIZE	(1UL << PA_SECTION_SHIFT)
+ 
++#define GLOBAL_MMIO_CHI		0x000
++#define GLOBAL_MMIO_CHIC	0x008
++#define GLOBAL_MMIO_CHIE	0x010
++#define GLOBAL_MMIO_CHIEC	0x018
++#define GLOBAL_MMIO_HCI		0x020
++#define GLOBAL_MMIO_HCIC	0x028
++#define GLOBAL_MMIO_IMA0_OHP	0x040
++#define GLOBAL_MMIO_IMA0_CFP	0x048
++#define GLOBAL_MMIO_IMA1_OHP	0x050
++#define GLOBAL_MMIO_IMA1_CFP	0x058
++#define GLOBAL_MMIO_ACMA_CREQO	0x100
++#define GLOBAL_MMIO_ACMA_CRSPO	0x104
++#define GLOBAL_MMIO_ACMA_CDBO	0x108
++#define GLOBAL_MMIO_ACMA_CDBS	0x10c
++#define GLOBAL_MMIO_NSCMA_CREQO	0x120
++#define GLOBAL_MMIO_NSCMA_CRSPO	0x124
++#define GLOBAL_MMIO_NSCMA_CDBO	0x128
++#define GLOBAL_MMIO_NSCMA_CDBS	0x12c
++#define GLOBAL_MMIO_CSTS	0x140
++#define GLOBAL_MMIO_FWVER	0x148
++#define GLOBAL_MMIO_CCAP0	0x160
++#define GLOBAL_MMIO_CCAP1	0x168
++
++#define GLOBAL_MMIO_CHI_ACRA	BIT_ULL(0)
++#define GLOBAL_MMIO_CHI_NSCRA	BIT_ULL(1)
++#define GLOBAL_MMIO_CHI_CRDY	BIT_ULL(4)
++#define GLOBAL_MMIO_CHI_CFFS	BIT_ULL(5)
++#define GLOBAL_MMIO_CHI_MA	BIT_ULL(6)
++#define GLOBAL_MMIO_CHI_ELA	BIT_ULL(7)
++#define GLOBAL_MMIO_CHI_CDA	BIT_ULL(8)
++#define GLOBAL_MMIO_CHI_CHFS	BIT_ULL(9)
++
++#define GLOBAL_MMIO_CHI_ALL	(GLOBAL_MMIO_CHI_ACRA | \
++				 GLOBAL_MMIO_CHI_NSCRA | \
++				 GLOBAL_MMIO_CHI_CRDY | \
++				 GLOBAL_MMIO_CHI_CFFS | \
++				 GLOBAL_MMIO_CHI_MA | \
++				 GLOBAL_MMIO_CHI_ELA | \
++				 GLOBAL_MMIO_CHI_CDA | \
++				 GLOBAL_MMIO_CHI_CHFS)
++
++#define GLOBAL_MMIO_HCI_ACRW				BIT_ULL(0)
++#define GLOBAL_MMIO_HCI_NSCRW				BIT_ULL(1)
++#define GLOBAL_MMIO_HCI_AFU_RESET			BIT_ULL(2)
++#define GLOBAL_MMIO_HCI_FW_DEBUG			BIT_ULL(3)
++#define GLOBAL_MMIO_HCI_CONTROLLER_DUMP			BIT_ULL(4)
++#define GLOBAL_MMIO_HCI_CONTROLLER_DUMP_COLLECTED	BIT_ULL(5)
++#define GLOBAL_MMIO_HCI_REQ_HEALTH_PERF			BIT_ULL(6)
++
++#define ADMIN_COMMAND_HEARTBEAT		0x00u
++#define ADMIN_COMMAND_SHUTDOWN		0x01u
++#define ADMIN_COMMAND_FW_UPDATE		0x02u
++#define ADMIN_COMMAND_FW_DEBUG		0x03u
++#define ADMIN_COMMAND_ERRLOG		0x04u
++#define ADMIN_COMMAND_SMART		0x05u
++#define ADMIN_COMMAND_CONTROLLER_STATS	0x06u
++#define ADMIN_COMMAND_CONTROLLER_DUMP	0x07u
++#define ADMIN_COMMAND_CMD_CAPS		0x08u
++#define ADMIN_COMMAND_MAX		0x08u
++
++#define STATUS_SUCCESS		0x00
++#define STATUS_MEM_UNAVAILABLE	0x20
++#define STATUS_BAD_OPCODE	0x50
++#define STATUS_BAD_REQUEST_PARM	0x51
++#define STATUS_BAD_DATA_PARM	0x52
++#define STATUS_DEBUG_BLOCKED	0x70
++#define STATUS_FAIL		0xFF
++
++#define STATUS_FW_UPDATE_BLOCKED 0x21
++#define STATUS_FW_ARG_INVALID	0x51
++#define STATUS_FW_INVALID	0x52
++
+ struct ocxlpmem_function0 {
  	struct pci_dev *pdev;
-+	struct cdev cdev;
  	struct ocxl_fn *ocxl_fn;
- 	struct nd_interleave_set nd_set;
- 	struct nvdimm_bus_descriptor bus_desc;
 -- 
 2.24.1
 _______________________________________________
