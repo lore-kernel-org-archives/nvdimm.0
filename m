@@ -6,77 +6,80 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DEAEC11D28
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:28:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BAD1C11D00
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:28:28 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DC5EF24672
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:28:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC5EF24672
+	by mail.kernel.org (Postfix) with ESMTPS id 67CFF208E4
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 03:28:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 67CFF208E4
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=au1.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1B6E710FC3615;
-	Thu, 20 Feb 2020 19:29:15 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id 4F19A10FC361C;
+	Thu, 20 Feb 2020 19:29:16 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 975F810FC3608
+	by ml01.01.org (Postfix) with ESMTPS id CF55D10FC360B
 	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 19:29:12 -0800 (PST)
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01L3JGxn067466
-	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 22:28:20 -0500
-Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2y8ubvvvt3-1
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01L3KI2v104777
+	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 22:28:19 -0500
+Received: from e06smtp02.uk.ibm.com (e06smtp02.uk.ibm.com [195.75.94.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2y8ubqh1hv-1
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
 	for <linux-nvdimm@lists.01.org>; Thu, 20 Feb 2020 22:28:19 -0500
 Received: from localhost
-	by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e06smtp02.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
-	Fri, 21 Feb 2020 03:28:16 -0000
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
-	by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	Fri, 21 Feb 2020 03:28:17 -0000
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (9.149.109.195)
+	by e06smtp02.uk.ibm.com (192.168.101.132) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
 	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Fri, 21 Feb 2020 03:28:08 -0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01L3S89x51314814
+	Fri, 21 Feb 2020 03:28:10 -0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01L3S9Kg59768916
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 21 Feb 2020 03:28:08 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id EE38F52052;
-	Fri, 21 Feb 2020 03:28:07 +0000 (GMT)
+	Fri, 21 Feb 2020 03:28:09 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 928ADAE045;
+	Fri, 21 Feb 2020 03:28:09 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E7655AE051;
+	Fri, 21 Feb 2020 03:28:08 +0000 (GMT)
 Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 45FC35204E;
-	Fri, 21 Feb 2020 03:28:07 +0000 (GMT)
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri, 21 Feb 2020 03:28:08 +0000 (GMT)
 Received: from adsilva.ozlabs.ibm.com (haven.au.ibm.com [9.192.254.114])
 	(using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id A59CDA027A;
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id EEA46A03B7;
 	Fri, 21 Feb 2020 14:28:02 +1100 (AEDT)
 From: "Alastair D'Silva" <alastair@au1.ibm.com>
 To: alastair@d-silva.org
-Subject: [PATCH v3 03/27] powerpc: Map & release OpenCAPI LPC memory
-Date: Fri, 21 Feb 2020 14:26:56 +1100
+Subject: [PATCH v3 07/27] ocxl: Add functions to map/unmap LPC memory
+Date: Fri, 21 Feb 2020 14:27:00 +1100
 X-Mailer: git-send-email 2.24.1
 In-Reply-To: <20200221032720.33893-1-alastair@au1.ibm.com>
 References: <20200221032720.33893-1-alastair@au1.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
-x-cbid: 20022103-4275-0000-0000-000003A3FE60
+x-cbid: 20022103-0008-0000-0000-00000354F599
 X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20022103-4276-0000-0000-000038B80C78
-Message-Id: <20200221032720.33893-4-alastair@au1.ibm.com>
+x-cbparentid: 20022103-0009-0000-0000-00004A76073A
+Message-Id: <20200221032720.33893-8-alastair@au1.ibm.com>
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
  definitions=2020-02-20_19:2020-02-19,2020-02-20 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 phishscore=0
- spamscore=0 priorityscore=1501 mlxlogscore=494 bulkscore=0 malwarescore=0
- lowpriorityscore=0 clxscore=1015 adultscore=0 mlxscore=0 suspectscore=3
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1015
+ priorityscore=1501 suspectscore=1 spamscore=0 bulkscore=0 impostorscore=0
+ mlxlogscore=808 lowpriorityscore=0 malwarescore=0 phishscore=0 mlxscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2001150001
  definitions=main-2002210020
-Message-ID-Hash: 3P6W74MO4WZE37YJKCFPQLYSY62JU3LS
-X-Message-ID-Hash: 3P6W74MO4WZE37YJKCFPQLYSY62JU3LS
+Message-ID-Hash: UGQZZ7SKWWTRVLDNO7ONZJ7YSBM257AS
+X-Message-ID-Hash: UGQZZ7SKWWTRVLDNO7ONZJ7YSBM257AS
 X-MailFrom: alastair@au1.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -85,7 +88,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3P6W74MO4WZE37YJKCFPQLYSY62JU3LS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UGQZZ7SKWWTRVLDNO7ONZJ7YSBM257AS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -96,82 +99,130 @@ Content-Transfer-Encoding: 7bit
 
 From: Alastair D'Silva <alastair@d-silva.org>
 
-This patch adds platform support to map & release LPC memory.
+Add functions to map/unmap LPC memory
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
 ---
- arch/powerpc/include/asm/pnv-ocxl.h   |  4 +++
- arch/powerpc/platforms/powernv/ocxl.c | 43 +++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+)
+ drivers/misc/ocxl/core.c          | 51 +++++++++++++++++++++++++++++++
+ drivers/misc/ocxl/ocxl_internal.h |  3 ++
+ include/misc/ocxl.h               | 21 +++++++++++++
+ 3 files changed, 75 insertions(+)
 
-diff --git a/arch/powerpc/include/asm/pnv-ocxl.h b/arch/powerpc/include/asm/pnv-ocxl.h
-index 7de82647e761..0b2a6707e555 100644
---- a/arch/powerpc/include/asm/pnv-ocxl.h
-+++ b/arch/powerpc/include/asm/pnv-ocxl.h
-@@ -32,5 +32,9 @@ extern int pnv_ocxl_spa_remove_pe_from_cache(void *platform_data, int pe_handle)
- 
- extern int pnv_ocxl_alloc_xive_irq(u32 *irq, u64 *trigger_addr);
- extern void pnv_ocxl_free_xive_irq(u32 irq);
-+#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-+u64 pnv_ocxl_platform_lpc_setup(struct pci_dev *pdev, u64 size);
-+void pnv_ocxl_platform_lpc_release(struct pci_dev *pdev);
-+#endif
- 
- #endif /* _ASM_PNV_OCXL_H */
-diff --git a/arch/powerpc/platforms/powernv/ocxl.c b/arch/powerpc/platforms/powernv/ocxl.c
-index 8c65aacda9c8..f2edbcc67361 100644
---- a/arch/powerpc/platforms/powernv/ocxl.c
-+++ b/arch/powerpc/platforms/powernv/ocxl.c
-@@ -475,6 +475,49 @@ void pnv_ocxl_spa_release(void *platform_data)
+diff --git a/drivers/misc/ocxl/core.c b/drivers/misc/ocxl/core.c
+index 2531c6cf19a0..75ff14e3882a 100644
+--- a/drivers/misc/ocxl/core.c
++++ b/drivers/misc/ocxl/core.c
+@@ -210,6 +210,56 @@ static void unmap_mmio_areas(struct ocxl_afu *afu)
+ 	release_fn_bar(afu->fn, afu->config.global_mmio_bar);
  }
- EXPORT_SYMBOL_GPL(pnv_ocxl_spa_release);
  
-+#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-+u64 pnv_ocxl_platform_lpc_setup(struct pci_dev *pdev, u64 size)
++int ocxl_afu_map_lpc_mem(struct ocxl_afu *afu)
 +{
-+	struct pci_controller *hose = pci_bus_to_host(pdev->bus);
-+	struct pnv_phb *phb = hose->private_data;
-+	u32 bdfn = pci_dev_id(pdev);
-+	__be64 base_addr_be64;
-+	u64 base_addr;
-+	int rc;
++	struct pci_dev *dev = to_pci_dev(afu->fn->dev.parent);
 +
-+	rc = opal_npu_mem_alloc(phb->opal_id, bdfn, size, &base_addr_be64);
-+	if (rc) {
-+		dev_warn(&pdev->dev,
-+			 "OPAL could not allocate LPC memory, rc=%d\n", rc);
++	if ((afu->config.lpc_mem_size + afu->config.special_purpose_mem_size) == 0)
 +		return 0;
++
++	afu->lpc_base_addr = ocxl_link_lpc_map(afu->fn->link, dev);
++	if (afu->lpc_base_addr == 0)
++		return -EINVAL;
++
++	if (afu->config.lpc_mem_size > 0) {
++		afu->lpc_res.start = afu->lpc_base_addr + afu->config.lpc_mem_offset;
++		afu->lpc_res.end = afu->lpc_res.start + afu->config.lpc_mem_size - 1;
 +	}
 +
-+	base_addr = be64_to_cpu(base_addr_be64);
++	if (afu->config.special_purpose_mem_size > 0) {
++		afu->special_purpose_res.start = afu->lpc_base_addr +
++						 afu->config.special_purpose_mem_offset;
++		afu->special_purpose_res.end = afu->special_purpose_res.start +
++					       afu->config.special_purpose_mem_size - 1;
++	}
 +
-+	rc = check_hotplug_memory_addressable(base_addr >> PAGE_SHIFT,
-+					      size >> PAGE_SHIFT);
-+	if (rc)
-+		return 0;
-+
-+	return base_addr;
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(pnv_ocxl_platform_lpc_setup);
++EXPORT_SYMBOL_GPL(ocxl_afu_map_lpc_mem);
 +
-+void pnv_ocxl_platform_lpc_release(struct pci_dev *pdev)
++struct resource *ocxl_afu_lpc_mem(struct ocxl_afu *afu)
 +{
-+	struct pci_controller *hose = pci_bus_to_host(pdev->bus);
-+	struct pnv_phb *phb = hose->private_data;
-+	u32 bdfn = pci_dev_id(pdev);
-+	int rc;
-+
-+	rc = opal_npu_mem_release(phb->opal_id, bdfn);
-+	if (rc)
-+		dev_warn(&pdev->dev,
-+			 "OPAL reported rc=%d when releasing LPC memory\n", rc);
++	return &afu->lpc_res;
 +}
-+EXPORT_SYMBOL_GPL(pnv_ocxl_platform_lpc_release);
-+#endif
++EXPORT_SYMBOL_GPL(ocxl_afu_lpc_mem);
 +
- int pnv_ocxl_spa_remove_pe_from_cache(void *platform_data, int pe_handle)
++static void unmap_lpc_mem(struct ocxl_afu *afu)
++{
++	struct pci_dev *dev = to_pci_dev(afu->fn->dev.parent);
++
++	if (afu->lpc_res.start || afu->special_purpose_res.start) {
++		void *link = afu->fn->link;
++
++		// only release the link when the the last consumer calls release
++		ocxl_link_lpc_release(link, dev);
++
++		afu->lpc_res.start = 0;
++		afu->lpc_res.end = 0;
++		afu->special_purpose_res.start = 0;
++		afu->special_purpose_res.end = 0;
++	}
++}
++
+ static int configure_afu(struct ocxl_afu *afu, u8 afu_idx, struct pci_dev *dev)
  {
- 	struct spa_data *data = (struct spa_data *) platform_data;
+ 	int rc;
+@@ -251,6 +301,7 @@ static int configure_afu(struct ocxl_afu *afu, u8 afu_idx, struct pci_dev *dev)
+ 
+ static void deconfigure_afu(struct ocxl_afu *afu)
+ {
++	unmap_lpc_mem(afu);
+ 	unmap_mmio_areas(afu);
+ 	reclaim_afu_pasid(afu);
+ 	reclaim_afu_actag(afu);
+diff --git a/drivers/misc/ocxl/ocxl_internal.h b/drivers/misc/ocxl/ocxl_internal.h
+index d0c8c4838f42..ce0cac1da416 100644
+--- a/drivers/misc/ocxl/ocxl_internal.h
++++ b/drivers/misc/ocxl/ocxl_internal.h
+@@ -52,6 +52,9 @@ struct ocxl_afu {
+ 	void __iomem *global_mmio_ptr;
+ 	u64 pp_mmio_start;
+ 	void *private;
++	u64 lpc_base_addr; /* Covers both LPC & special purpose memory */
++	struct resource lpc_res;
++	struct resource special_purpose_res;
+ };
+ 
+ enum ocxl_context_status {
+diff --git a/include/misc/ocxl.h b/include/misc/ocxl.h
+index 357ef1aadbc0..d8b0b4d46bfb 100644
+--- a/include/misc/ocxl.h
++++ b/include/misc/ocxl.h
+@@ -203,6 +203,27 @@ int ocxl_irq_set_handler(struct ocxl_context *ctx, int irq_id,
+ 
+ // AFU Metadata
+ 
++/**
++ * ocxl_afu_map_lpc_mem() - Map the LPC system & special purpose memory for an AFU
++ * Do not call this during device discovery, as there may me multiple
++ * devices on a link, and the memory is mapped for the whole link, not
++ * just one device. It should only be called after all devices have
++ * registered their memory on the link.
++ *
++ * @afu: The AFU that has the LPC memory to map
++ *
++ * Returns 0 on success, negative on failure
++ */
++int ocxl_afu_map_lpc_mem(struct ocxl_afu *afu);
++
++/**
++ * ocxl_afu_lpc_mem() - Get the physical address range of LPC memory for an AFU
++ * @afu: The AFU associated with the LPC memory
++ *
++ * Returns a pointer to the resource struct for the physical address range
++ */
++struct resource *ocxl_afu_lpc_mem(struct ocxl_afu *afu);
++
+ /**
+  * ocxl_afu_config() - Get a pointer to the config for an AFU
+  * @afu: a pointer to the AFU to get the config for
 -- 
 2.24.1
 _______________________________________________
