@@ -1,83 +1,77 @@
-Return-Path: <SRS0=hxna=4J=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=KJ6e=4K=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7DFDC3566F
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 21:34:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15528C35666
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 22 Feb 2020 18:30:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7DD0B24653
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Feb 2020 21:34:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id DD9CE206EF
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 22 Feb 2020 18:30:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TmBLJDSm"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7DD0B24653
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="rbOWC4VR"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD9CE206EF
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9092A10FC317E;
-	Fri, 21 Feb 2020 13:34:58 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id A413A1007A84E;
+	Sat, 22 Feb 2020 10:31:10 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::f49; helo=mail-qv1-xf49.google.com; envelope-from=3nxnrxgykdfo256dn28gg8d6.4gedafmp-fn5aeedaklk.st.gj8@flex--adelva.bounces.google.com; receiver=<UNKNOWN> 
+Received: from mail-qv1-xf49.google.com (mail-qv1-xf49.google.com [IPv6:2607:f8b0:4864:20::f49])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6F83C1007B1EA
-	for <linux-nvdimm@lists.01.org>; Fri, 21 Feb 2020 13:34:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1582320842;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=AE85XWtWsi6tOM06pCMH0Q1Jbd3MvrBhMiJghYd0Kfk=;
-	b=TmBLJDSmf70kSkDzioEBBhNKP1lXn4s+/Jx61TY/HPU9KZ/+XkAi5m1lAekP7miGVq47pd
-	THfmNSPrhYdWvgxdakuYk/FqkqiQF148NYYtj+8U+gG4su3Jnqni/FJH0Oh9c5u52ep1zP
-	IQI6rp95lDEA+KVLPrnDBB/I8Fs27xo=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-485-1XR95YiTMcuW5tTVBdDbzw-1; Fri, 21 Feb 2020 16:33:59 -0500
-X-MC-Unique: 1XR95YiTMcuW5tTVBdDbzw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 75EFB8018A9;
-	Fri, 21 Feb 2020 21:33:58 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id D83279053D;
-	Fri, 21 Feb 2020 21:33:52 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 2/8] drivers/pmem: Allow pmem_clear_poison() to accept arbitrary offset and len
-References: <20200218214841.10076-1-vgoyal@redhat.com>
-	<20200218214841.10076-3-vgoyal@redhat.com>
-	<x49lfoxj622.fsf@segfault.boston.devel.redhat.com>
-	<20200220215707.GC10816@redhat.com>
-	<x498skv3i5r.fsf@segfault.boston.devel.redhat.com>
-	<20200221201759.GF25974@redhat.com>
-	<CAPcyv4j3BPGvrhuVaQZgvZ0i+M+i-Ab0BH+mAjR_aZzu4_kidQ@mail.gmail.com>
-	<20200221212449.GG25974@redhat.com>
-	<CAPcyv4gBHuTDW1M-3W=0nuH1v3whChb8TAK1aA0gosBSKpkqcg@mail.gmail.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Fri, 21 Feb 2020 16:33:52 -0500
-In-Reply-To: <CAPcyv4gBHuTDW1M-3W=0nuH1v3whChb8TAK1aA0gosBSKpkqcg@mail.gmail.com>
-	(Dan Williams's message of "Fri, 21 Feb 2020 13:30:56 -0800")
-Message-ID: <x49o8tr1v7j.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
-MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-Message-ID-Hash: AFBEAF72UJ6RRHMFRJJQ3BTRDDKWOODF
-X-Message-ID-Hash: AFBEAF72UJ6RRHMFRJJQ3BTRDDKWOODF
-X-MailFrom: jmoyer@redhat.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, device-mapper development <dm-devel@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id EA49D1007B1FC
+	for <linux-nvdimm@lists.01.org>; Sat, 22 Feb 2020 10:31:07 -0800 (PST)
+Received: by mail-qv1-xf49.google.com with SMTP id g6so3663943qvp.0
+        for <linux-nvdimm@lists.01.org>; Sat, 22 Feb 2020 10:30:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=1SCGFJcdT57UM9g569dFzCXIAoXI2cL9T0Egcs4At5A=;
+        b=rbOWC4VRcR9Ei8+SP5+fapjsG7JlPOKlvg+6qkAOKcy6S/PxZg8y9o8/iIVVyJzQkW
+         9ip7Q7kYYyXMXXXHv88LopTajfUnbdYyt5OkA+tLHFSAE90ujIrBQjaMBXPPp3jSfvC/
+         DVzVECbEepl/OuWA/FGV1dp5oEP9g6coMxU0VY7VWgdnJigkNDeJpwObPa47iOzjo3at
+         qMKV56vuAatorqaL/0c60rV+QnIljtSwi795S+MLa3Y7gsohW1qCnzUjKct0OM33VHCm
+         PxSouKW+/VhINbMOOj1hyCHu3RxI4zYU7SmlVsv+iSMtdW/a8qWiRR6aBgUJXOg8kr/B
+         yTcA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=1SCGFJcdT57UM9g569dFzCXIAoXI2cL9T0Egcs4At5A=;
+        b=n0nJnuFaSDSmiRotkP9Dd8KMmzgZ1GmNWFQ5j32ZEALb45UWboMaSaBvBGAH5XdHxM
+         xzlzIBRqN8Q0lZv0HLTdDpY6EiiTioSBe0HPb4ZX8QCNQVUkc5emz8E9L9vs6uZ+Oluf
+         hwq7htH+Ldp8WItjhYSePe0PEAABMgMF+iCTTcV4GTjygKeRCs9n7pj3Brg8+lTtbmIJ
+         tFTrwpe+4lg25IFk6vMNWLkof2KnXQK6G3m1ERR0z/Yk6xV7A1pZHDpA8BD3hjaDrw+1
+         +vGhCUMbtwpHM5iNlni2T/8WMzCISZyP6uLXptF2iVGM70p43j4t2LgAKlX1VLQhwQGA
+         BjJg==
+X-Gm-Message-State: APjAAAUX7fezOp43oDCCTPqys7KLUBQJSsPVYWzVpjydX4hT/84ztzPw
+	prPzqHo0JU1PeXlrzD/4eznxzw5LRUA=
+X-Google-Smtp-Source: APXvYqyI0nbEkK8t5PqjH2XUeMtXnlvIm2qcZEUezASmjw62vNPGTkH8/bD15V7Jh7dUFdFSRS3DMwUqrcY=
+X-Received: by 2002:ac8:835:: with SMTP id u50mr38957444qth.15.1582396213599;
+ Sat, 22 Feb 2020 10:30:13 -0800 (PST)
+Date: Sat, 22 Feb 2020 10:30:09 -0800
+Message-Id: <20200222183010.197844-1-adelva@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.25.0.265.gbab2e86ba0-goog
+Subject: [PATCH 1/2] libnvdimm/of_pmem: handle memory-region in DT
+From: Alistair Delva <adelva@google.com>
+To: linux-kernel@vger.kernel.org
+Message-ID-Hash: 3EM2JAO24TNUV4CFLLRVANDNZX26FXHW
+X-Message-ID-Hash: 3EM2JAO24TNUV4CFLLRVANDNZX26FXHW
+X-MailFrom: 3NXNRXgYKDFo256DN28GG8D6.4GEDAFMP-FN5AEEDAKLK.ST.GJ8@flex--adelva.bounces.google.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Kenny Root <kroot@google.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-nvdimm@lists.01.org, kernel-team@android.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AFBEAF72UJ6RRHMFRJJQ3BTRDDKWOODF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3EM2JAO24TNUV4CFLLRVANDNZX26FXHW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -86,15 +80,130 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dan Williams <dan.j.williams@intel.com> writes:
+From: Kenny Root <kroot@google.com>
 
-> Oh you misunderstood my comment, the "move badblocks to filesystem"
-> proposal is long term / down the road thing to consider. In the near
-> term this unaligned block zeroing facility is an improvement.
+Add support for parsing the 'memory-region' DT property in addition to
+the 'reg' DT property. This enables use cases where the pmem region is
+not in I/O address space or dedicated memory (e.g. a bootloader
+carveout).
 
-I'm not sure I agree.  I'm going to think about it and get back to you.
+Signed-off-by: Kenny Root <kroot@google.com>
+Signed-off-by: Alistair Delva <adelva@google.com>
+Cc: "Oliver O'Halloran" <oohall@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: devicetree@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
+Cc: kernel-team@android.com
+---
+ drivers/nvdimm/of_pmem.c | 75 ++++++++++++++++++++++++++--------------
+ 1 file changed, 50 insertions(+), 25 deletions(-)
 
--Jeff
+diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+index 8224d1431ea9..a68e44fb0041 100644
+--- a/drivers/nvdimm/of_pmem.c
++++ b/drivers/nvdimm/of_pmem.c
+@@ -14,13 +14,47 @@ struct of_pmem_private {
+ 	struct nvdimm_bus *bus;
+ };
+ 
++static void of_pmem_register_region(struct platform_device *pdev,
++				    struct nvdimm_bus *bus,
++				    struct device_node *np,
++				    struct resource *res, bool is_volatile)
++{
++	struct nd_region_desc ndr_desc;
++	struct nd_region *region;
++
++	/*
++	 * NB: libnvdimm copies the data from ndr_desc into it's own
++	 * structures so passing a stack pointer is fine.
++	 */
++	memset(&ndr_desc, 0, sizeof(ndr_desc));
++	ndr_desc.numa_node = dev_to_node(&pdev->dev);
++	ndr_desc.target_node = ndr_desc.numa_node;
++	ndr_desc.res = res;
++	ndr_desc.of_node = np;
++	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
++
++	if (is_volatile)
++		region = nvdimm_volatile_region_create(bus, &ndr_desc);
++	else
++		region = nvdimm_pmem_region_create(bus, &ndr_desc);
++
++	if (!region)
++		dev_warn(&pdev->dev,
++			 "Unable to register region %pR from %pOF\n",
++			 ndr_desc.res, np);
++	else
++		dev_dbg(&pdev->dev, "Registered region %pR from %pOF\n",
++			ndr_desc.res, np);
++}
++
+ static int of_pmem_region_probe(struct platform_device *pdev)
+ {
+ 	struct of_pmem_private *priv;
+-	struct device_node *np;
++	struct device_node *mrp, *np;
+ 	struct nvdimm_bus *bus;
++	struct resource res;
+ 	bool is_volatile;
+-	int i;
++	int i, ret;
+ 
+ 	np = dev_of_node(&pdev->dev);
+ 	if (!np)
+@@ -46,31 +80,22 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+ 			is_volatile ? "volatile" : "non-volatile",  np);
+ 
+ 	for (i = 0; i < pdev->num_resources; i++) {
+-		struct nd_region_desc ndr_desc;
+-		struct nd_region *region;
+-
+-		/*
+-		 * NB: libnvdimm copies the data from ndr_desc into it's own
+-		 * structures so passing a stack pointer is fine.
+-		 */
+-		memset(&ndr_desc, 0, sizeof(ndr_desc));
+-		ndr_desc.numa_node = dev_to_node(&pdev->dev);
+-		ndr_desc.target_node = ndr_desc.numa_node;
+-		ndr_desc.res = &pdev->resource[i];
+-		ndr_desc.of_node = np;
+-		set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+-
+-		if (is_volatile)
+-			region = nvdimm_volatile_region_create(bus, &ndr_desc);
+-		else
+-			region = nvdimm_pmem_region_create(bus, &ndr_desc);
++		of_pmem_register_region(pdev, bus, np, &pdev->resource[i],
++					is_volatile);
++	}
+ 
+-		if (!region)
+-			dev_warn(&pdev->dev, "Unable to register region %pR from %pOF\n",
+-					ndr_desc.res, np);
++	i = 0;
++	while ((mr_np = of_parse_phandle(np, "memory-region", i++))) {
++		ret = of_address_to_resource(mr_np, 0, &res);
++		if (ret)
++			dev_warn(
++				&pdev->dev,
++				"Unable to acquire memory-region from %pOF: %d\n",
++				mr_np, ret);
+ 		else
+-			dev_dbg(&pdev->dev, "Registered region %pR from %pOF\n",
+-					ndr_desc.res, np);
++			of_pmem_register_region(pdev, bus, np, &res,
++						is_volatile);
++		of_node_put(mr_np);
+ 	}
+ 
+ 	return 0;
+-- 
+2.25.0.265.gbab2e86ba0-goog
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
