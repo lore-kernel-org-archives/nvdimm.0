@@ -6,83 +6,83 @@ X-Spam-Status: No, score=-5.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FEDEC35673
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 02:11:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52FCEC35673
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 02:51:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2DD14206E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 02:11:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2DD14206E0
+	by mail.kernel.org (Postfix) with ESMTPS id 27510206E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 02:51:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 27510206E0
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 23F3610FC3404;
-	Sun, 23 Feb 2020 18:12:12 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id E6A3610FC3408;
+	Sun, 23 Feb 2020 18:52:37 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=ajd@linux.ibm.com; receiver=<UNKNOWN> 
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 676AE10FC33FC
-	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 18:12:10 -0800 (PST)
-Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01O25T5l123449
-	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 21:11:17 -0500
-Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 2yb0g2qhkr-1
+	by ml01.01.org (Postfix) with ESMTPS id DA5A510FC33FD
+	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 18:52:35 -0800 (PST)
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01O2pRA4108438
+	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 21:51:43 -0500
+Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2ybu12cwdb-1
 	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 21:11:17 -0500
+	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 21:51:43 -0500
 Received: from localhost
-	by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
 	for <linux-nvdimm@lists.01.org> from <ajd@linux.ibm.com>;
-	Mon, 24 Feb 2020 02:11:14 -0000
-Received: from b06cxnps4076.portsmouth.uk.ibm.com (9.149.109.198)
-	by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	Mon, 24 Feb 2020 02:51:40 -0000
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (9.149.109.196)
+	by e06smtp05.uk.ibm.com (192.168.101.135) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
 	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Mon, 24 Feb 2020 02:11:07 -0000
+	Mon, 24 Feb 2020 02:51:32 -0000
 Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01O2B6LF27000902
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01O2pVLd49676454
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 24 Feb 2020 02:11:06 GMT
+	Mon, 24 Feb 2020 02:51:31 GMT
 Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 17C76A405C;
-	Mon, 24 Feb 2020 02:11:06 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id D97AAA405C;
+	Mon, 24 Feb 2020 02:51:31 +0000 (GMT)
 Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B3B92A405B;
-	Mon, 24 Feb 2020 02:11:05 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 7FC2CA405B;
+	Mon, 24 Feb 2020 02:51:31 +0000 (GMT)
 Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
 	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon, 24 Feb 2020 02:11:05 +0000 (GMT)
+	Mon, 24 Feb 2020 02:51:31 +0000 (GMT)
 Received: from [10.61.2.125] (haven.au.ibm.com [9.192.254.114])
 	(using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
 	(No client certificate requested)
-	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 08C47A00E5;
-	Mon, 24 Feb 2020 13:11:01 +1100 (AEDT)
-Subject: Re: [PATCH v3 05/27] ocxl: Address kernel doc errors & warnings
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 9F4A9A00E5;
+	Mon, 24 Feb 2020 13:51:26 +1100 (AEDT)
+Subject: Re: [PATCH v3 03/27] powerpc: Map & release OpenCAPI LPC memory
 To: "Alastair D'Silva" <alastair@au1.ibm.com>, alastair@d-silva.org
 References: <20200221032720.33893-1-alastair@au1.ibm.com>
- <20200221032720.33893-6-alastair@au1.ibm.com>
+ <20200221032720.33893-4-alastair@au1.ibm.com>
 From: Andrew Donnellan <ajd@linux.ibm.com>
-Date: Mon, 24 Feb 2020 13:11:04 +1100
+Date: Mon, 24 Feb 2020 13:51:29 +1100
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.5.0
 MIME-Version: 1.0
-In-Reply-To: <20200221032720.33893-6-alastair@au1.ibm.com>
+In-Reply-To: <20200221032720.33893-4-alastair@au1.ibm.com>
 Content-Language: en-US
 X-TM-AS-GCONF: 00
-x-cbid: 20022402-0016-0000-0000-000002E99DB3
+x-cbid: 20022402-0020-0000-0000-000003ACF11B
 X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20022402-0017-0000-0000-0000334CC2CC
-Message-Id: <acb1ea38-8a91-075a-4eb4-73e6ddbfe7a9@linux.ibm.com>
+x-cbparentid: 20022402-0021-0000-0000-000022050039
+Message-Id: <61e2b75b-334e-9eec-d14d-7dfdb4654415@linux.ibm.com>
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
  definitions=2020-02-23_07:2020-02-21,2020-02-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- malwarescore=0 impostorscore=0 bulkscore=0 adultscore=0 phishscore=0
- priorityscore=1501 spamscore=0 mlxlogscore=669 suspectscore=0 mlxscore=0
- clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2001150001 definitions=main-2002240015
-Message-ID-Hash: DMSQXZ3IDZJ5C6Y76GODV3CSQ4TVZ3SF
-X-Message-ID-Hash: DMSQXZ3IDZJ5C6Y76GODV3CSQ4TVZ3SF
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 suspectscore=0
+ malwarescore=0 bulkscore=0 phishscore=0 mlxlogscore=537 spamscore=0
+ adultscore=0 impostorscore=0 mlxscore=0 lowpriorityscore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002240022
+Message-ID-Hash: QFL7FJALSCV56QJDPXLQGDPUGYOOTIYX
+X-Message-ID-Hash: QFL7FJALSCV56QJDPXLQGDPUGYOOTIYX
 X-MailFrom: ajd@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -91,7 +91,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DMSQXZ3IDZJ5C6Y76GODV3CSQ4TVZ3SF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QFL7FJALSCV56QJDPXLQGDPUGYOOTIYX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -103,16 +103,13 @@ Content-Transfer-Encoding: 7bit
 On 21/2/20 2:26 pm, Alastair D'Silva wrote:
 > From: Alastair D'Silva <alastair@d-silva.org>
 > 
-> This patch addresses warnings and errors from the kernel doc scripts for
-> the OpenCAPI driver.
-> 
-> It also makes minor tweaks to make the docs more consistent.
+> This patch adds platform support to map & release LPC memory.
 > 
 > Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
 
-Looks good, fixes all the kerneldoc warnings I get.
+Nothing seems obviously wrong here.
 
-Acked-by: Andrew Donnellan <ajd@linux.ibm.com>
+Reviewed-by: Andrew Donnellan <ajd@linux.ibm.com>
 
 
 -- 
