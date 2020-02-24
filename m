@@ -2,83 +2,76 @@ Return-Path: <SRS0=vyQW=4M=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.3 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E40C35673
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 01:51:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDEF1C35679
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 02:08:20 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 34BBB2071C
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 01:51:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 922912067D
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Feb 2020 02:08:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FFO+GTQR"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 34BBB2071C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="kJZgCePM"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 922912067D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0437710FC33E8;
-	Sun, 23 Feb 2020 17:52:12 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::342; helo=mail-wm1-x342.google.com; envelope-from=jbi.octave@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+	by ml01.01.org (Postfix) with ESMTP id 5006C10FC33EE;
+	Sun, 23 Feb 2020 18:09:12 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::649; helo=mail-pl1-x649.google.com; envelope-from=3etbtxgykdlywzahrwckkcha.ykihejqt-jrzeiiheopo.wx.knc@flex--adelva.bounces.google.com; receiver=<UNKNOWN> 
+Received: from mail-pl1-x649.google.com (mail-pl1-x649.google.com [IPv6:2607:f8b0:4864:20::649])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A498310FC33E6
-	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 17:52:08 -0800 (PST)
-Received: by mail-wm1-x342.google.com with SMTP id s10so7364618wmh.3
-        for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 17:51:16 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 7776710FC33E7
+	for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 18:09:10 -0800 (PST)
+Received: by mail-pl1-x649.google.com with SMTP id 36so4283279plc.12
+        for <linux-nvdimm@lists.01.org>; Sun, 23 Feb 2020 18:08:18 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=nfdAonBHBDdIO56FXt/6K3IvqAFG9q35tqL/Ax7yCLk=;
-        b=FFO+GTQRYzvhCR/T9+OWH1M/t3DTcKoSYbe3tNNlO+4/iYItgFWLssom6rF8Xp9YL8
-         FxIOs3ucAdHWJObclb57laiH68CJjjRonzGzNSWiCQ/ESHEqfnKpwxZFfjpEupFud1Gh
-         ScWU0ls2v0O4nQQImaNXlT+NkoNmtJKDBODogXyRBkFgjkWET9G11A95E8WFvbabMkKT
-         9rXEO9BXZPJFODc7CEd8pXl1KQuU8Kb3GqpOCwqpN8BcPH7Xx+UPCD5KKsaTfES7j0mA
-         UeBHMq2Ab5fM0AceBfL3d0nyb19eoV8z4Uv4Tl07m86GL4c8Ymptqshgij9ep3Wd8xjI
-         UgoQ==
+        d=google.com; s=20161025;
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=TTWq2HAMIWzKgBL7Xe45vNa7b1DEMoXXBFSs7M828Vo=;
+        b=kJZgCePMmoxwA2xDEAPwUZmHtat6929L1+S4W8sNm4SjPsz1lNFd5rhvU8L0yzXAP4
+         rcE6/ANzHRN09BnKZ9+yl1v5Ku5Ihl8A5hZbFNQVCoxh+iX5Y4vDOxxl7C3y0ifWWGME
+         AVgAOmvnqo68lf+lsCTX64xV8O+AvAKhDjxAL/msdLzlmpNdY6HK8y+OvqgWKL6qdKkR
+         8YoVFcIkWHgF2nltRXaDDfOzN4wAaD4It2dEXMPIGxUuQ/CK/RKWtQ9FIsCBSAcgLCuO
+         yzpHLAWXUwxyFSCa3jOj+4rYUCFJT+H7nKnOoe/v2D1tLLPcn3nJuTq0QEKzvQCy2JBb
+         O5CA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=nfdAonBHBDdIO56FXt/6K3IvqAFG9q35tqL/Ax7yCLk=;
-        b=Mu6pqwJlKWgSLyOc3WUeahG0ibeVvfHaA4DwDpFA60cZAfVhYHGoDs58uvhtuAxQRi
-         l8okfFgUBJWthI2h6YmeXNR+gKXDkjGBE6RwNLxV7J0Oo4NTQIJwgQRmkgX7az/8N+xb
-         Q/wGM9vEPifuFLicnrEnhi4aaAq4PvSN3Uj0c3GhrW4ox7dBVhw9p3n/NL1vlKqk2A0J
-         C6CAU50l3JaHhOf75xTsRL9FsEvfAZD23o7haaOUC7Uvz9pbWcGWJPDK3dR2DLslMQmI
-         /Lj+v4VOIJ8KYeRcZE4SrQlr88vnP0DGiYk12SPci3uTPcL4jW0ahz3lhxeML+yFFiRu
-         BHEA==
-X-Gm-Message-State: APjAAAVXv7RMqNN0EifVrVexHZPCXwi9JmrZZ5gEIkRcLM5IQbFcWxAH
-	1CSyzbKPe8UcY4mUS3fsxQ==
-X-Google-Smtp-Source: APXvYqxJAxUIP1L7ykTRvXbpONm2cH/HKZWVO+UYiPkZXblqP/FothfdvA4k9N0h6ME4NC2QJV/tMA==
-X-Received: by 2002:a05:600c:114d:: with SMTP id z13mr18633181wmz.105.1582509074914;
-        Sun, 23 Feb 2020 17:51:14 -0800 (PST)
-Received: from ninjahub.lan (host-2-102-13-223.as13285.net. [2.102.13.223])
-        by smtp.googlemail.com with ESMTPSA id q6sm9528128wrf.67.2020.02.23.17.51.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 23 Feb 2020 17:51:14 -0800 (PST)
-From: Jules Irenge <jbi.octave@gmail.com>
-To: boqun.feng@gmail.com
-Subject: [PATCH v2] dax: Add missing annotations for dax_read_lock() and dax_read_unlock()
-Date: Mon, 24 Feb 2020 01:50:49 +0000
-Message-Id: <20200224015049.57556-1-jbi.octave@gmail.com>
-X-Mailer: git-send-email 2.24.1
-MIME-Version: 1.0
-Message-ID-Hash: LPWTYFPP43A4X6IHNYFXF7HIAPQZUNCK
-X-Message-ID-Hash: LPWTYFPP43A4X6IHNYFXF7HIAPQZUNCK
-X-MailFrom: jbi.octave@gmail.com
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=TTWq2HAMIWzKgBL7Xe45vNa7b1DEMoXXBFSs7M828Vo=;
+        b=bJf611sAGOMLEh1uxFRQRT5xi/7TS6PapKZkOYWcuHt75Hod3D+Et2DLDqR68Wz0g3
+         UAPHo5icVVi2A5yUEbnhKUk21lrNFmLcTCjBfnpFE1218kRuzs1ZxLzCOUprI3k+ZiS+
+         24s+V544P846nPUDkbxOHeIyLGwavo7uAImSTcGshHqqm3Mnffn8TPPKEO83UTkHNQlg
+         d5elXuUCxWb2Y1GX9j/m9d622NspLJhx42DEIQFiCpwMoBoPRxB62BqeSnMyveX7xBEw
+         FsXchNnAX7s9oKWMf4jx9ZRwUbsDcLn9EMTD480X9xKuOp3rKwRNOb9XP2QVAJYaBc47
+         scww==
+X-Gm-Message-State: APjAAAX5vw3FF63OAWnx8U+MO7f7u8gvfkqTyClqa/FBIR1kYXX4ZHY6
+	kXVAPM4GmWF7aIFhQ1ZlBRjmxkS7vVA=
+X-Google-Smtp-Source: APXvYqy3+lHEJgJYcJNPNBHbt3vzQS08gQtp0v+NV+Un3Tbvyi8fw9vGD/+7qqprOjXR7zGnFnF9cUYziBY=
+X-Received: by 2002:a63:3407:: with SMTP id b7mr23534176pga.163.1582510097904;
+ Sun, 23 Feb 2020 18:08:17 -0800 (PST)
+Date: Sun, 23 Feb 2020 18:08:13 -0800
+Message-Id: <20200224020815.139570-1-adelva@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.25.0.265.gbab2e86ba0-goog
+Subject: [PATCH v2 1/3] libnvdimm/of_pmem: factor out region registration
+From: Alistair Delva <adelva@google.com>
+To: linux-kernel@vger.kernel.org
+Message-ID-Hash: 4M7OW776GNONSFS7OY27LTWEWU7LP35M
+X-Message-ID-Hash: 4M7OW776GNONSFS7OY27LTWEWU7LP35M
+X-MailFrom: 3ETBTXgYKDLYWZahrWckkcha.Ykihejqt-jrZeiiheopo.wx.knc@flex--adelva.bounces.google.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: vishal.l.verma@intel.co, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, yi.zhang@redhat.com, Jules Irenge <jbi.octave@gmail.com>
+CC: Kenny Root <kroot@google.com>, Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org, linux-nvdimm@lists.01.org, kernel-team@android.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LPWTYFPP43A4X6IHNYFXF7HIAPQZUNCK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4M7OW776GNONSFS7OY27LTWEWU7LP35M/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -87,47 +80,108 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Sparse reports warnings at dax_read_lock() and dax_read_unlock()
+From: Kenny Root <kroot@google.com>
 
-warning: context imbalance in dax_read_lock() - wrong count at exit
-warning: context imbalance in dax_read_unlock() - unexpected unlock
+From: Kenny Root <kroot@google.com>
 
-The root cause is the missing annotations at dax_read_lock()
-	and dax_read_unlock()
+Factor out region registration for 'reg' node. A follow-up change will
+use of_pmem_register_region() to handle memory-region nodes too.
 
-Add the missing __acquires(&dax_srcu) annotation to dax_read_lock()
-Add the missing __releases(&dax_srcu) annotation to dax_read_unlock()
-
-Signed-off-by: Jules Irenge <jbi.octave@gmail.com>
+Signed-off-by: Kenny Root <kroot@google.com>
+Signed-off-by: Alistair Delva <adelva@google.com>
+Reviewed-by: "Oliver O'Halloran" <oohall@gmail.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: devicetree@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
+Cc: kernel-team@android.com
 ---
-Changes since V1
-Correct commit log typing mistakes
+ drivers/nvdimm/of_pmem.c | 60 +++++++++++++++++++++++-----------------
+ 1 file changed, 35 insertions(+), 25 deletions(-)
 
- drivers/dax/super.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 26a654dbc69a..f872a2fb98d4 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -28,13 +28,13 @@ static struct super_block *dax_superblock __read_mostly;
- static struct hlist_head dax_host_list[DAX_HASH_SIZE];
- static DEFINE_SPINLOCK(dax_host_lock);
+diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
+index 8224d1431ea9..fdf54494e8c9 100644
+--- a/drivers/nvdimm/of_pmem.c
++++ b/drivers/nvdimm/of_pmem.c
+@@ -14,6 +14,39 @@ struct of_pmem_private {
+ 	struct nvdimm_bus *bus;
+ };
  
--int dax_read_lock(void)
-+int dax_read_lock(void) __acquires(&dax_srcu)
++static void of_pmem_register_region(struct platform_device *pdev,
++				    struct nvdimm_bus *bus,
++				    struct device_node *np,
++				    struct resource *res, bool is_volatile)
++{
++	struct nd_region_desc ndr_desc;
++	struct nd_region *region;
++
++	/*
++	 * NB: libnvdimm copies the data from ndr_desc into it's own
++	 * structures so passing a stack pointer is fine.
++	 */
++	memset(&ndr_desc, 0, sizeof(ndr_desc));
++	ndr_desc.numa_node = dev_to_node(&pdev->dev);
++	ndr_desc.target_node = ndr_desc.numa_node;
++	ndr_desc.res = res;
++	ndr_desc.of_node = np;
++	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
++
++	if (is_volatile)
++		region = nvdimm_volatile_region_create(bus, &ndr_desc);
++	else
++		region = nvdimm_pmem_region_create(bus, &ndr_desc);
++
++	if (!region)
++		dev_warn(&pdev->dev,
++			 "Unable to register region %pR from %pOF\n",
++			 ndr_desc.res, np);
++	else
++		dev_dbg(&pdev->dev, "Registered region %pR from %pOF\n",
++			ndr_desc.res, np);
++}
++
+ static int of_pmem_region_probe(struct platform_device *pdev)
  {
- 	return srcu_read_lock(&dax_srcu);
- }
- EXPORT_SYMBOL_GPL(dax_read_lock);
+ 	struct of_pmem_private *priv;
+@@ -46,31 +79,8 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+ 			is_volatile ? "volatile" : "non-volatile",  np);
  
--void dax_read_unlock(int id)
-+void dax_read_unlock(int id) __releases(&dax_srcu)
- {
- 	srcu_read_unlock(&dax_srcu, id);
- }
+ 	for (i = 0; i < pdev->num_resources; i++) {
+-		struct nd_region_desc ndr_desc;
+-		struct nd_region *region;
+-
+-		/*
+-		 * NB: libnvdimm copies the data from ndr_desc into it's own
+-		 * structures so passing a stack pointer is fine.
+-		 */
+-		memset(&ndr_desc, 0, sizeof(ndr_desc));
+-		ndr_desc.numa_node = dev_to_node(&pdev->dev);
+-		ndr_desc.target_node = ndr_desc.numa_node;
+-		ndr_desc.res = &pdev->resource[i];
+-		ndr_desc.of_node = np;
+-		set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+-
+-		if (is_volatile)
+-			region = nvdimm_volatile_region_create(bus, &ndr_desc);
+-		else
+-			region = nvdimm_pmem_region_create(bus, &ndr_desc);
+-
+-		if (!region)
+-			dev_warn(&pdev->dev, "Unable to register region %pR from %pOF\n",
+-					ndr_desc.res, np);
+-		else
+-			dev_dbg(&pdev->dev, "Registered region %pR from %pOF\n",
+-					ndr_desc.res, np);
++		of_pmem_register_region(pdev, bus, np, &pdev->resource[i],
++					is_volatile);
+ 	}
+ 
+ 	return 0;
 -- 
-2.24.1
+2.25.0.265.gbab2e86ba0-goog
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
