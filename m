@@ -3,65 +3,71 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6082C3F2D1
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 07:15:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F83FC3F2CD
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 14:05:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7289C246A0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 07:15:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id E841E2051A
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 14:05:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="XxdwK4hX"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7289C246A0
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linuxfoundation.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="mtQ9sSvz"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E841E2051A
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EE84210FC36DC;
-	Thu, 27 Feb 2020 23:16:16 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4E5AF10FC36E6;
+	Fri, 28 Feb 2020 06:06:09 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=batv+961d4909b86d2e9c90d3+6032+infradead.org+hch@bombadil.srs.infradead.org; receiver=<UNKNOWN> 
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B6B9410FC36DA
-	for <linux-nvdimm@lists.01.org>; Thu, 27 Feb 2020 23:16:15 -0800 (PST)
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id B6D562469D;
-	Fri, 28 Feb 2020 07:15:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1582874123;
-	bh=bzqcvY1+w7p+H0tBmGUux2b6d1gIUiq/keZNLNBznKc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=XxdwK4hX9SZG6cAVJ0xxZYzqkemDxOmWY+1cEmTnG4oE4Is+PBG7kHaRUPLcqZa6I
-	 d6IGDzBLr4do0Wg1pJ5rCWIJV/BjZIkr2D3Cl0iJkW8GoyZG6jjyNX/oSPJsGpkcGC
-	 3xXHY8ZcCXVl//QBuWTZ6yQC5BG057R15eUhlo4Q=
-Date: Fri, 28 Feb 2020 08:15:20 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Andrew Donnellan <ajd@linux.ibm.com>
-Subject: Re: [PATCH v3 25/27] powerpc/powernv/pmem: Expose the serial number
- in sysfs
-Message-ID: <20200228071520.GA2897773@kroah.com>
-References: <20200221032720.33893-1-alastair@au1.ibm.com>
- <20200221032720.33893-26-alastair@au1.ibm.com>
- <96687fbf-38ab-13ff-ca19-ccb67bbc4405@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 98BAD10FC36E4
+	for <linux-nvdimm@lists.01.org>; Fri, 28 Feb 2020 06:06:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20170209; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=l/9vD4kWJ5DgSyvKhFv1tb5oLOTsgXLSNIzvAAdRX2o=; b=mtQ9sSvzCTY3BgpfOC5D6cHQFZ
+	Ixh2Tv/4gk5gFcBys/QcmXPiA5puZzBqBTeFRuaSaH9QNSl0CfAglRw6bNLx6AhO7qlQlH957/HD6
+	HM0yj+eoyohvvRCiPJYQqJWZABZeaoIgzGoT8oK1uBJSrUjBGRXGgJDcuyyxFISQGu0lsQukeM5/4
+	GLt4ahZoIPPu7FbZqDZ12B/QLmJAxu3kS6CLYe1V0/Shv7FP6vb8SJfCGT0WrmWMLoe5Cd1+J4lcY
+	UAGcWqH+e1nEcznk5WKgMdVW6DkCturcBrWQ1BrsKa7ai3BQXloxASvhwdD8ZZkDDocxBjmYONzzP
+	80DEcfqw==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1j7gGK-00048K-IE; Fri, 28 Feb 2020 14:05:08 +0000
+Date: Fri, 28 Feb 2020 06:05:08 -0800
+From: Christoph Hellwig <hch@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v5 2/8] drivers/pmem: Allow pmem_clear_poison() to accept
+ arbitrary offset and len
+Message-ID: <20200228140508.GA2987@infradead.org>
+References: <x49lfoxj622.fsf@segfault.boston.devel.redhat.com>
+ <20200220215707.GC10816@redhat.com>
+ <x498skv3i5r.fsf@segfault.boston.devel.redhat.com>
+ <20200221201759.GF25974@redhat.com>
+ <20200223230330.GE10737@dread.disaster.area>
+ <20200224153844.GB14651@redhat.com>
+ <20200227030248.GG10737@dread.disaster.area>
+ <CAPcyv4gTSb-xZ2k938HxQeAXATvGg1aSkEGPfrzeQAz9idkgzQ@mail.gmail.com>
+ <20200228013054.GO10737@dread.disaster.area>
+ <CAPcyv4i2vjUGrwaRsjp1-L0wFf0a00e46F-SUbocQBkiQ3M1kg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <96687fbf-38ab-13ff-ca19-ccb67bbc4405@linux.ibm.com>
-Message-ID-Hash: ZLT3NSV2PTKC3MHQUSHNZHKNDLMXVOHI
-X-Message-ID-Hash: ZLT3NSV2PTKC3MHQUSHNZHKNDLMXVOHI
-X-MailFrom: gregkh@linuxfoundation.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Alastair D'Silva <alastair@au1.ibm.com>, alastair@d-silva.org, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?iso-8859-1?Q?C=E9dric?= Le Goater <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, linux-kernel@vger.kern
- el.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
+In-Reply-To: <CAPcyv4i2vjUGrwaRsjp1-L0wFf0a00e46F-SUbocQBkiQ3M1kg@mail.gmail.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Message-ID-Hash: RLF6LFUXMGABRK6AEEQU7OYNG5U4YJLV
+X-Message-ID-Hash: RLF6LFUXMGABRK6AEEQU7OYNG5U4YJLV
+X-MailFrom: BATV+961d4909b86d2e9c90d3+6032+infradead.org+hch@bombadil.srs.infradead.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, device-mapper development <dm-devel@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZLT3NSV2PTKC3MHQUSHNZHKNDLMXVOHI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RLF6LFUXMGABRK6AEEQU7OYNG5U4YJLV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -70,33 +76,21 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 28, 2020 at 05:25:31PM +1100, Andrew Donnellan wrote:
-> On 21/2/20 2:27 pm, Alastair D'Silva wrote:
-> > +int ocxlpmem_sysfs_add(struct ocxlpmem *ocxlpmem)
-> > +{
-> > +	int i, rc;
-> > +
-> > +	for (i = 0; i < ARRAY_SIZE(attrs); i++) {
-> > +		rc = device_create_file(&ocxlpmem->dev, &attrs[i]);
-> > +		if (rc) {
-> > +			for (; --i >= 0;)
-> > +				device_remove_file(&ocxlpmem->dev, &attrs[i]);
-> 
-> I'd rather avoid weird for loop constructs if possible.
-> 
-> Is it actually dangerous to call device_remove_file() on an attr that hasn't
-> been added? If not then I'd rather define an err: label and loop over the
-> whole array there.
+On Thu, Feb 27, 2020 at 07:28:41PM -0800, Dan Williams wrote:
+> "don't perform generic memory-error-handling, there's an fs that owns
+> this daxdev and wants to disposition errors". The fs/dax.c
+> infrastructure that sets up ->index and ->mapping would still need to
+> be there for ext4 until its ready to take on the same responsibility.
+> Last I checked the ext4 reverse mapping implementation was not as
+> capable as XFS. This goes back to why the initial design avoided
+> relying on not universally available / stable reverse-mapping
+> facilities and opted for extending the generic mm/memory-failure.c
+> implementation.
 
-None of this should be used at all, just use attribute groups properly
-and the driver core will handle this all for you.
-
-device_create/remove_file should never be called by anyone anymore if at all
-possible.
-
-thanks,
-
-greg k-h
+The important but is that we stop using ->index and ->mapping when XFS
+is used as that enables using DAX+reflinks, which actually is the most
+requested DAX feature on XFS (way more than silly runtime flag switches
+for example).
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
