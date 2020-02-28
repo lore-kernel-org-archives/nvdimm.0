@@ -2,185 +2,122 @@ Return-Path: <SRS0=7gGT=4Q=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42946C3F2CE
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 03:28:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB21C3F2D2
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 06:13:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 09D8A246A0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 03:28:55 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="iFtgCGgz"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 09D8A246A0
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 34D6C246A8
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 06:13:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 34D6C246A8
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7FB8F10FC3192;
-	Thu, 27 Feb 2020 19:29:47 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::242; helo=mail-oi1-x242.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id C1FD810FC3180;
+	Thu, 27 Feb 2020 22:14:03 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=ajd@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8DFE710FC3192
-	for <linux-nvdimm@lists.01.org>; Thu, 27 Feb 2020 19:29:45 -0800 (PST)
-Received: by mail-oi1-x242.google.com with SMTP id c16so1558433oic.3
-        for <linux-nvdimm@lists.01.org>; Thu, 27 Feb 2020 19:28:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=GEX6rvdBlO7hz9k8V7o5YOXnBqCUwNjK2oTZUppbe28=;
-        b=iFtgCGgz7stZT+cTg0hEEXaO6+15FCXvWoh0GPbqKQE17YrUava9nJT2WH5/fEUePy
-         hWaaTAxg8ONBYVQnvIyUU0UXZdpKmU5/h54lowSHdTy1ko2XzKsUE/V82ZvP4RN7dCu7
-         qKTGAa8oWqij2/t07hF3e+G/Cm431bgJzuBWfBUFL1Lr2JEDqbmSscKoldDvYrL6NP8G
-         S/xqMZttg9FiCRMgNIczj2TwUN/45WkdAne58ZRNQ8yodldeCCLic/LXD0i1FZ12upL+
-         4UjrSmXjdFhQC5TmfNfJmn1kWGKcDxNczhFRqNRKTcG+yAFNJ82E6v90QTo8/keoV2qI
-         q87A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=GEX6rvdBlO7hz9k8V7o5YOXnBqCUwNjK2oTZUppbe28=;
-        b=RQ0YMw1Wfrie2WqWRAklb7raaQbgDxd8K80wbbS+0CCwmS5W95S97hBX4egTw0nSeo
-         gupuNYNsovIxUsYDjw9D8ImifT0mcdY2aDGCahdgVWCvHAYCn3M1yY4qHFOzA4U6ao+x
-         ToFc2wWm2nrUHbr1xwtEQDpcz7oObFNV/OaMF4MF7gL44rFLAwJK15VnWSSkywJ8gQ93
-         AouB/L5ruf28yydMjXgmgs7lGHoO7qQT1aALFM7+qEpCBdAUmXC4pyQ8mrsslL/uhmic
-         XwXllbsPEVoXIchXigc4QFRsegrnHHaHCl+S/AVyK5k3LTOIU+p+gdDM0khfq569cO85
-         pFVg==
-X-Gm-Message-State: APjAAAVEgOVb4IywKe/JsGxkrBp/V4Yguygf1EJPJCocKkoblecJTvtS
-	m5INpMgOH7+4nZHiTA+un3kdhfTDt4Mvp3IVJsiNqQ==
-X-Google-Smtp-Source: APXvYqwQar6+RTCUGLwq/zZ52sZmJNQGhbFyt0+u8eKfi4z6SLcYdrIfqOMEAyhGR5Y0vg5HRZsmmP1OzNllORh8E8c=
-X-Received: by 2002:aca:3f54:: with SMTP id m81mr1636050oia.73.1582860532725;
- Thu, 27 Feb 2020 19:28:52 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id C5E151007A84E
+	for <linux-nvdimm@lists.01.org>; Thu, 27 Feb 2020 22:14:00 -0800 (PST)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 01S6AEcD147028
+	for <linux-nvdimm@lists.01.org>; Fri, 28 Feb 2020 01:13:08 -0500
+Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 2yepxf9v4q-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Fri, 28 Feb 2020 01:13:08 -0500
+Received: from localhost
+	by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <ajd@linux.ibm.com>;
+	Fri, 28 Feb 2020 06:13:05 -0000
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
+	by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Fri, 28 Feb 2020 06:12:56 -0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 01S6CteC40304740
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 28 Feb 2020 06:12:56 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E084DAE053;
+	Fri, 28 Feb 2020 06:12:55 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 89E4BAE051;
+	Fri, 28 Feb 2020 06:12:55 +0000 (GMT)
+Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri, 28 Feb 2020 06:12:55 +0000 (GMT)
+Received: from [10.61.2.125] (haven.au.ibm.com [9.192.254.114])
+	(using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 025AAA01F5;
+	Fri, 28 Feb 2020 17:12:50 +1100 (AEDT)
+Subject: Re: [PATCH v3 21/27] powerpc/powernv/pmem: Add an IOCTL to request
+ controller health & perf data
+To: "Alastair D'Silva" <alastair@au1.ibm.com>, alastair@d-silva.org
+References: <20200221032720.33893-1-alastair@au1.ibm.com>
+ <20200221032720.33893-22-alastair@au1.ibm.com>
+From: Andrew Donnellan <ajd@linux.ibm.com>
+Date: Fri, 28 Feb 2020 17:12:53 +1100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.5.0
 MIME-Version: 1.0
-References: <20200218214841.10076-1-vgoyal@redhat.com> <20200218214841.10076-3-vgoyal@redhat.com>
- <x49lfoxj622.fsf@segfault.boston.devel.redhat.com> <20200220215707.GC10816@redhat.com>
- <x498skv3i5r.fsf@segfault.boston.devel.redhat.com> <20200221201759.GF25974@redhat.com>
- <20200223230330.GE10737@dread.disaster.area> <20200224153844.GB14651@redhat.com>
- <20200227030248.GG10737@dread.disaster.area> <CAPcyv4gTSb-xZ2k938HxQeAXATvGg1aSkEGPfrzeQAz9idkgzQ@mail.gmail.com>
- <20200228013054.GO10737@dread.disaster.area>
-In-Reply-To: <20200228013054.GO10737@dread.disaster.area>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 27 Feb 2020 19:28:41 -0800
-Message-ID: <CAPcyv4i2vjUGrwaRsjp1-L0wFf0a00e46F-SUbocQBkiQ3M1kg@mail.gmail.com>
-Subject: Re: [PATCH v5 2/8] drivers/pmem: Allow pmem_clear_poison() to accept
- arbitrary offset and len
-To: Dave Chinner <david@fromorbit.com>
-Message-ID-Hash: ZJ5XUHPBCI6ZSMOQAIYGGRX5BKEAFLOM
-X-Message-ID-Hash: ZJ5XUHPBCI6ZSMOQAIYGGRX5BKEAFLOM
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, device-mapper development <dm-devel@redhat.com>
+In-Reply-To: <20200221032720.33893-22-alastair@au1.ibm.com>
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+x-cbid: 20022806-4275-0000-0000-000003A63B3C
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20022806-4276-0000-0000-000038BAB55A
+Message-Id: <fdc5faec-d03d-3cba-4a9c-add7e522ad13@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-02-28_01:2020-02-26,2020-02-28 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 bulkscore=0
+ mlxscore=0 clxscore=1015 adultscore=0 suspectscore=0 impostorscore=0
+ priorityscore=1501 malwarescore=0 phishscore=0 lowpriorityscore=0
+ mlxlogscore=690 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2002280054
+Message-ID-Hash: RGFHRODIIMHAWYGWTLEYNSIXNQWCTX46
+X-Message-ID-Hash: RGFHRODIIMHAWYGWTLEYNSIXNQWCTX46
+X-MailFrom: ajd@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, linux-kernel@vger.kernel.org, linuxppc
+ -dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZJ5XUHPBCI6ZSMOQAIYGGRX5BKEAFLOM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RGFHRODIIMHAWYGWTLEYNSIXNQWCTX46/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 27, 2020 at 5:31 PM Dave Chinner <david@fromorbit.com> wrote:
-> On Wed, Feb 26, 2020 at 08:19:37PM -0800, Dan Williams wrote:
-[..]
-> > So you want the FS to have error handling for just pmem errors or all
-> > memory errors?
->
-> Just pmem errors in the specific range the filesystem manages - we
-> really only care storage errors because those are the only errors
-> the filesystem is responsible for handling correctly.
->
-> Somebody else can worry about errors that hit page cache pages -
-> page cache pages require mapping/index pointers on each page anyway,
-> so a generic mechanism for handling those errors can be built into
-> the page cache. And if the error is in general kernel memory, then
-> it's game over for the entire kernel at that point, not just the
-> filesystem.
->
-> > And you want this to be done without the mm core using
-> > page->index to identify what to unmap when the error happens?
->
-> Isn't that exactly what I just said? We get the page address that
-> failed, the daxdev can turn that into a sector address and call into
-> the filesystem with a {sector, len, errno} tuple. We then do a
-> reverse mapping lookup on {sector, len} to find all the owners of
-> that range in the filesystem. If it's file data, that owner record
-> gives us the inode and the offset into the file, which then gives us
-> a {mapping, index} tuple.
->
-> Further, the filesytem reverse map is aware that it's blocks can be
-> shared by multiple owners, so it will have a record for every inode
-> and file offset that maps to that page. Hence we can simply iterate
-> the reverse map and do that whacky collect_procs/kill_procs dance
-> for every {mapping, index} pair that references the the bad range.
->
-> Nothing ever needs to be stored on the struct page...
+On 21/2/20 2:27 pm, Alastair D'Silva wrote:
+> From: Alastair D'Silva <alastair@d-silva.org>
+> 
+> When health & performance data is requested from the controller,
+> it responds with an error log containing the requested information.
+> 
+> This patch allows the request to me issued via an IOCTL.
 
-Ok, so fs/dax.c needs to coordinate with mm/memory-failure.c to say
-"don't perform generic memory-error-handling, there's an fs that owns
-this daxdev and wants to disposition errors". The fs/dax.c
-infrastructure that sets up ->index and ->mapping would still need to
-be there for ext4 until its ready to take on the same responsibility.
-Last I checked the ext4 reverse mapping implementation was not as
-capable as XFS. This goes back to why the initial design avoided
-relying on not universally available / stable reverse-mapping
-facilities and opted for extending the generic mm/memory-failure.c
-implementation.
+A better explanation would be good - this IOCTL triggers a request to 
+the controller to collect controller health/perf data, and the 
+controller will later respond with an error log that can be picked up 
+via the error log IOCTL that you've defined earlier.
 
-If XFS optionally supplants mm/memory-failure.c I would expect we'd
-want to do better than the "whacky collect_procs/kill_procs"
-implementation and let applications register for a notification format
-better than BUS_MCEERR_AO signals.
 
-> > Memory
-> > error scanning is not universally available on all pmem
-> > implementations, so FS will need to subscribe for memory-error
-> > handling events.
->
-> No. Filesystems interact with the underlying device abstraction, not
-> the physical storage that lies behind that device abstraction.  The
-> filesystem should not interface with pmem directly in any way (all
-> direct accesses are hidden inside fs/dax.c!), nor should it care
-> about the quirks of the pmem implementation it is sitting on. That's
-> what the daxdev abstraction is supposed to hide from the users of
-> the pmem.
-
-I wasn't proposing that XFS have a machine-check handler, I was trying
-to get to the next level detail of the async notification interface to
-the fs.
-
->
-> IOWs, the daxdev infrastructure subscribes to memory-error event
-> subsystem, calls out to the filesystem when an error in a page in
-> the daxdev is reported. The filesystem only needs to know the
-> {sector, len, errno} tuple related to the error; it is the device's
-> responsibility to handle the physical mechanics of listening,
-> filtering and translating MCEs to a format the filesystem
-> understands....
->
-> Another reason it should be provided by the daxdev as a {sector,
-> len, errno} tuple is that it also allows non-dax block devices to
-> implement the similar error notifications and provide filesystems
-> with exactly the same information so the filesystem can start
-> auto-recovery processes....
-
-The driver layer does already have 'struct badblocks' that both pmem
-and md use, just no current way for the FS to get a reference to it.
-However, my hope was to get away from the interface being sector based
-because the error granularity is already smaller than a sector in the
-daxdev case as compared to a bdev. A daxdev native error record should
-be a daxdev relative byte offset, not a sector. If the fs wants to
-align the blast radius of the error to sectors or fs-blocks that's its
-choice, but I don't think the driver interface should preclude
-sub-sector error handling. Essentially I don't want to add more bdev
-semantics to fs/dax.c while Vivek is busy removing them.
+-- 
+Andrew Donnellan              OzLabs, ADL Canberra
+ajd@linux.ibm.com             IBM Australia Limited
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
