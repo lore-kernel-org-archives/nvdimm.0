@@ -2,84 +2,77 @@ Return-Path: <SRS0=7gGT=4Q=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2218BC3F2D2
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 16:27:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B13C9C3F2D2
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 16:35:20 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id ECC07246A0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 16:27:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 83A3E246BB
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Feb 2020 16:35:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="bukCJoLW"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ECC07246A0
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="cXR/XWkS"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 83A3E246BB
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 71C6710FC33FA;
-	Fri, 28 Feb 2020 08:28:01 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::343; helo=mail-ot1-x343.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 1A8FB10FC3403;
+	Fri, 28 Feb 2020 08:36:12 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [205.139.110.61])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CBF1D10078091
-	for <linux-nvdimm@lists.01.org>; Fri, 28 Feb 2020 08:27:58 -0800 (PST)
-Received: by mail-ot1-x343.google.com with SMTP id j16so3142422otl.1
-        for <linux-nvdimm@lists.01.org>; Fri, 28 Feb 2020 08:27:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=akPX/Le0d2EiQmbAvQA94ZihJyml6bsfezTs1xR+aWI=;
-        b=bukCJoLWpFuG4kP9cdoMOAtCcw6mtymH0738+Cr/dDuwu2ERG+5ejt9RigalXEkE32
-         ogfqK+z82ZNA/pFMw3Cu3QBXiOahIJfVWFrSmMRHS/dIAbAT8wPAeq/8mbKwzGbs87el
-         vvNtku4b4DFwyy2BaTPexmQz08UfnrFhesbV0UQsYbBzUnOuocPHTK+SKO6ylLGpWw9h
-         Q59r+4Gy7GuB89UgLq2iltRlyb851aKavJ+mzpWZYrohrqmC2lFhYZEOIfwymFvKJz7g
-         fsLSmh+43Inz1Qqeyiq/bD/wEsiC3YMv33ThnmFvBY8AOX+YrlWks1wsVEeDIpKM5wou
-         FpPA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=akPX/Le0d2EiQmbAvQA94ZihJyml6bsfezTs1xR+aWI=;
-        b=Ek3/SnSa/CBuKDdpiu5OHpxVAqYizski9TCDeBzuXAXfzNSyYVRBa2zCrKP91PMjfx
-         sOMo351qw1L3CqRYRUK1hNHLlWiLOI0GO8Fs5Mu+k433jz7547CDYY5h/880C/xGKzDM
-         4LkrzkNzVKZWKKyenlPBBBzAWfe0C4w1XGflZ5WQHh3W2PvzPxfXvqNVFGdY/TtR/4ly
-         VgpUYcsLY+AyNLudSryI4ErD/ENz0ux3KZIzHegEX9icGwzxQ+3uHVkPw5ZiptF3f7Sk
-         24c0T+1fBncnC7JxipeLHZFpiO0z3wGaG5L2lNbSFg9cS1Ffl6rtv+EJbnl0XUOuMppb
-         FUAA==
-X-Gm-Message-State: APjAAAU5z54qNNtAWRuLmL4GvOqTWEDwJJ77SjE67s5CIgYWRnwUo7fx
-	SuMJ28fEP/apnGirOV+jYeVBF5m9AF8u0YhlCUI8Dw==
-X-Google-Smtp-Source: APXvYqxPIfQgCnD3v9HTx5cFPLUInp7b+fRgEsmGH/hBamVfDcdplRO8p87KJZr4ZSNSQycJp3mYOu5p6SffilbLu3s=
-X-Received: by 2002:a9d:6c9:: with SMTP id 67mr4103721otx.363.1582907225590;
- Fri, 28 Feb 2020 08:27:05 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 714C310FC33FA
+	for <linux-nvdimm@lists.01.org>; Fri, 28 Feb 2020 08:36:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1582907717;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=XTanuHOyQwvPVyidmZKXd8IbWyhZm0ECw7LNYOxssqY=;
+	b=cXR/XWkSsFsB2Mf4HKu6YnHLaHnaPxKhFxlUZorTKaQeGvGJhRGZgRdiaOWZs4cfyjDiS6
+	m83o+HnR43IEV9Ag8Bl+sGYRGEBq9D0opepQFE0jXhLx7In6/PpoRWHZQR+2eyHh6XRKPr
+	ldLKWrX6QRx2/llM5cP1tUy0249OGdw=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-226-iKngdN3BMPamfLCyAJ56CQ-1; Fri, 28 Feb 2020 11:35:15 -0500
+X-MC-Unique: iKngdN3BMPamfLCyAJ56CQ-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id EDFEC1005513;
+	Fri, 28 Feb 2020 16:35:13 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.18.25.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 4A5775D9CD;
+	Fri, 28 Feb 2020 16:35:11 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id CB59C2257D5; Fri, 28 Feb 2020 11:35:10 -0500 (EST)
+From: Vivek Goyal <vgoyal@redhat.com>
+To: linux-fsdevel@vger.kernel.org,
+	linux-nvdimm@lists.01.org,
+	hch@infradead.org,
+	dan.j.williams@intel.com
+Subject: [PATCH v6 3/6] s390,dcssblk,dax: Add dax zero_page_range operation to dcssblk driver
+Date: Fri, 28 Feb 2020 11:34:53 -0500
+Message-Id: <20200228163456.1587-4-vgoyal@redhat.com>
+In-Reply-To: <20200228163456.1587-1-vgoyal@redhat.com>
+References: <20200228163456.1587-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-References: <x49lfoxj622.fsf@segfault.boston.devel.redhat.com>
- <20200220215707.GC10816@redhat.com> <x498skv3i5r.fsf@segfault.boston.devel.redhat.com>
- <20200221201759.GF25974@redhat.com> <20200223230330.GE10737@dread.disaster.area>
- <20200224153844.GB14651@redhat.com> <20200227030248.GG10737@dread.disaster.area>
- <CAPcyv4gTSb-xZ2k938HxQeAXATvGg1aSkEGPfrzeQAz9idkgzQ@mail.gmail.com>
- <20200228013054.GO10737@dread.disaster.area> <CAPcyv4i2vjUGrwaRsjp1-L0wFf0a00e46F-SUbocQBkiQ3M1kg@mail.gmail.com>
- <20200228140508.GA2987@infradead.org>
-In-Reply-To: <20200228140508.GA2987@infradead.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 28 Feb 2020 08:26:54 -0800
-Message-ID: <CAPcyv4ivX2cah1YLBZzWPdULOFX7Ds4nuboPh4mf94uN1YeMVg@mail.gmail.com>
-Subject: Re: [PATCH v5 2/8] drivers/pmem: Allow pmem_clear_poison() to accept
- arbitrary offset and len
-To: Christoph Hellwig <hch@infradead.org>
-Message-ID-Hash: GAD7S7WJHZMTVOIQL6GGRKU5KSLJACT4
-X-Message-ID-Hash: GAD7S7WJHZMTVOIQL6GGRKU5KSLJACT4
-X-MailFrom: dan.j.williams@intel.com
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Message-ID-Hash: DMSXOBTAABZUEGOHXSN23ETXSLWTD7DO
+X-Message-ID-Hash: DMSXOBTAABZUEGOHXSN23ETXSLWTD7DO
+X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Dave Chinner <david@fromorbit.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, device-mapper development <dm-devel@redhat.com>
+CC: david@fromorbit.com, dm-devel@redhat.com, linux-s390@vger.kernel.org, Gerald Schaefer <gerald.schaefer@de.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GAD7S7WJHZMTVOIQL6GGRKU5KSLJACT4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DMSXOBTAABZUEGOHXSN23ETXSLWTD7DO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -88,28 +81,49 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 28, 2020 at 6:05 AM Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Thu, Feb 27, 2020 at 07:28:41PM -0800, Dan Williams wrote:
-> > "don't perform generic memory-error-handling, there's an fs that owns
-> > this daxdev and wants to disposition errors". The fs/dax.c
-> > infrastructure that sets up ->index and ->mapping would still need to
-> > be there for ext4 until its ready to take on the same responsibility.
-> > Last I checked the ext4 reverse mapping implementation was not as
-> > capable as XFS. This goes back to why the initial design avoided
-> > relying on not universally available / stable reverse-mapping
-> > facilities and opted for extending the generic mm/memory-failure.c
-> > implementation.
->
-> The important but is that we stop using ->index and ->mapping when XFS
-> is used as that enables using DAX+reflinks, which actually is the most
-> requested DAX feature on XFS (way more than silly runtime flag switches
-> for example).
+Add dax operation zero_page_range for dcssblk driver.
 
-Understood. To be clear the plan we are marching to is knock down all
-the known objections to the removal of the "experimental" designation.
-reflink is on that list and so is per-file dax. The thought was that
-pef-file dax was a nearer term goal than reflink.
+CC: linux-s390@vger.kernel.org
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ drivers/s390/block/dcssblk.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+index 63502ca537eb..ab3e2898816c 100644
+--- a/drivers/s390/block/dcssblk.c
++++ b/drivers/s390/block/dcssblk.c
+@@ -57,11 +57,26 @@ static size_t dcssblk_dax_copy_to_iter(struct dax_device *dax_dev,
+ 	return copy_to_iter(addr, bytes, i);
+ }
+ 
++static int dcssblk_dax_zero_page_range(struct dax_device *dax_dev,
++				       pgoff_t pgoff, size_t nr_pages)
++{
++	long rc;
++	void *kaddr;
++
++	rc = dax_direct_access(dax_dev, pgoff, nr_pages, &kaddr, NULL);
++	if (rc < 0)
++		return rc;
++	memset(kaddr, 0, nr_pages << PAGE_SHIFT);
++	dax_flush(dax_dev, kaddr, nr_pages << PAGE_SHIFT);
++	return 0;
++}
++
+ static const struct dax_operations dcssblk_dax_ops = {
+ 	.direct_access = dcssblk_dax_direct_access,
+ 	.dax_supported = generic_fsdax_supported,
+ 	.copy_from_iter = dcssblk_dax_copy_from_iter,
+ 	.copy_to_iter = dcssblk_dax_copy_to_iter,
++	.zero_page_range = dcssblk_dax_zero_page_range,
+ };
+ 
+ struct dcssblk_dev_info {
+-- 
+2.20.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
