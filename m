@@ -2,78 +2,53 @@ Return-Path: <SRS0=kIc1=4R=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E88B8C3F2D3
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 29 Feb 2020 09:21:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59876C3F2C6
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 29 Feb 2020 20:36:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id BFC23246AF
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 29 Feb 2020 09:21:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VVPSupxC"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BFC23246AF
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id C691F2073D
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 29 Feb 2020 20:36:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C691F2073D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 084B410FC337F;
-	Sat, 29 Feb 2020 01:22:45 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::342; helo=mail-wm1-x342.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 0A5B610FC3160;
+	Sat, 29 Feb 2020 12:37:04 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2DB8010FC3190
-	for <linux-nvdimm@lists.01.org>; Sat, 29 Feb 2020 01:22:42 -0800 (PST)
-Received: by mail-wm1-x342.google.com with SMTP id g83so3708239wme.1
-        for <linux-nvdimm@lists.01.org>; Sat, 29 Feb 2020 01:21:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=2Ue+Dgx3CeJSePHgMAW1fINAp8LiFMrWYxPNI01tF+o=;
-        b=VVPSupxCDZkkwJM0MuDX9yAVNfzq2i20C46ilTipuMbfK6l0nZb/BKn1/XdwebMeiv
-         t2xcgHSniB3MKaroeXK4nR+DcPgDxbWR30zD9RR8oBloBpVXwwEAvELJRhHJheOooch6
-         AL1GBbnr7DrKL7XwdsXHxymQXtL6qu7oDGLHVDq2QA9CBvv2KS3xgfE5//9ZdKO24frF
-         iX0UEZKXNMxk4SOHXamSczkyh2f4Ep9b8YG7nw0VL/FXzcL3t/1rrge9pnAjNePfFQfx
-         94jYhaNVO6BW/X2uUXHrchRqQx8rUFTZymcU84RKq1yf1zkD/xaUjIgfPc9htlsS4L4u
-         fyhw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=2Ue+Dgx3CeJSePHgMAW1fINAp8LiFMrWYxPNI01tF+o=;
-        b=B/YWLyaEdCxeMZBC0QbDq2pDVLYUc+essb2n5Z9RuCWNqI/IXVK/LvMbn5k8Iv6pqH
-         uys+spmOYcQEkqtOFeeymOxG7OdX1Ox0Ybxbg/7hg5IV9wSOkrhSd7iiatmEZtnU/D4f
-         AIBGDQCjmwrbq17YU6ufutqr/62n6ZYzt9k0uqQoFJqAmVB8+vSVXD41qgFnXwvjuVek
-         n4Fkqq0waNGVzaN6gcDfgUpINbM/PqSG6ttvyt9xGJNUmtSlR72ptv/CnR9skiz8cmaL
-         N2INysgXEAOihavCVjDfuX0jtW0PFpgwZTtN6bfQJnv4ck7LvDeVp2MSWt9bxYc6y4VP
-         azfw==
-X-Gm-Message-State: APjAAAWWpyUMBxMcyPpxJaiTMz6R0MogFgOWJLvlmxtQJ70y03UWImh2
-	AFInBEJH4COi1Eku+Fylwn2ziz0QyVvwEJHc5oc=
-X-Google-Smtp-Source: APXvYqwXr3ckvpjnUV3luGA4fCi4IOXlgKlcLyhHcepYxIFSxB+bII3J0lhiHYkO46BI/jCcSRb6B2gBvrulhaqW66Y=
-X-Received: by 2002:a1c:25c5:: with SMTP id l188mr9801660wml.105.1582968108954;
- Sat, 29 Feb 2020 01:21:48 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 288341007B185
+	for <linux-nvdimm@lists.01.org>; Sat, 29 Feb 2020 12:37:01 -0800 (PST)
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Feb 2020 12:36:09 -0800
+X-IronPort-AV: E=Sophos;i="5.70,501,1574150400";
+   d="scan'208";a="232628648"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 29 Feb 2020 12:36:09 -0800
+Subject: [ndctl PATCH 00/36] Multiple topics / backlog for v68
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-nvdimm@lists.01.org
+Date: Sat, 29 Feb 2020 12:20:04 -0800
+Message-ID: <158300760415.2141307.14060353322051900501.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-References: <20200228163456.1587-1-vgoyal@redhat.com> <20200228163456.1587-3-vgoyal@redhat.com>
-In-Reply-To: <20200228163456.1587-3-vgoyal@redhat.com>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Sat, 29 Feb 2020 10:21:37 +0100
-Message-ID: <CAM9Jb+gLczXgFmLJg8a=XThoJT1S8XajFkb8AkjDCV1XXyarqg@mail.gmail.com>
-Subject: Re: [PATCH v6 2/6] dax, pmem: Add a dax operation zero_page_range
-To: Vivek Goyal <vgoyal@redhat.com>
-Message-ID-Hash: ZW7CTBZCV2XWPSRIAX7WAK3RP42EKJ4P
-X-Message-ID-Hash: ZW7CTBZCV2XWPSRIAX7WAK3RP42EKJ4P
-X-MailFrom: pankaj.gupta.linux@gmail.com
+Message-ID-Hash: UM2XVCXF5ODEQVCZEHOLLD5BLELB3PZU
+X-Message-ID-Hash: UM2XVCXF5ODEQVCZEHOLLD5BLELB3PZU
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, hch@infradead.org, david@fromorbit.com, dm-devel@redhat.com
+CC: Michal Biesek <michal.biesek@intel.com>, Auke Kok <auke-jan.h.kok@intel.com>, Jan Kara <jack@suse.cz>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZW7CTBZCV2XWPSRIAX7WAK3RP42EKJ4P/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UM2XVCXF5ODEQVCZEHOLLD5BLELB3PZU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,116 +57,220 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->
-> Add a dax operation zero_page_range, to zero a page. This will also clear any
-> known poison in the page being zeroed.
->
-> As of now, zeroing of one page is allowed in a single call. There
-> are no callers which are trying to zero more than a page in a single call.
-> Once we grow the callers which zero more than a page in single call, we
-> can add that support. Primary reason for not doing that yet is that this
-> will add little complexity in dm implementation where a range might be
-> spanning multiple underlying targets and one will have to split the range
-> into multiple sub ranges and call zero_page_range() on individual targets.
->
-> Suggested-by: Christoph Hellwig <hch@infradead.org>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  drivers/dax/super.c   | 20 ++++++++++++++++++++
->  drivers/nvdimm/pmem.c | 11 +++++++++++
->  include/linux/dax.h   |  4 ++++
->  3 files changed, 35 insertions(+)
->
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 0aa4b6bc5101..e498daf3c0d7 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -344,6 +344,26 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
->  }
->  EXPORT_SYMBOL_GPL(dax_copy_to_iter);
->
-> +int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-> +                       size_t nr_pages)
-> +{
-> +       if (!dax_alive(dax_dev))
-> +               return -ENXIO;
-> +
-> +       if (!dax_dev->ops->zero_page_range)
-> +               return -EOPNOTSUPP;
-> +       /*
-> +        * There are no callers that want to zero more than one page as of now.
-> +        * Once users are there, this check can be removed after the
-> +        * device mapper code has been updated to split ranges across targets.
-> +        */
-> +       if (nr_pages != 1)
-> +               return -EIO;
-> +
-> +       return dax_dev->ops->zero_page_range(dax_dev, pgoff, nr_pages);
-> +}
-> +EXPORT_SYMBOL_GPL(dax_zero_page_range);
-> +
->  #ifdef CONFIG_ARCH_HAS_PMEM_API
->  void arch_wb_cache_pmem(void *addr, size_t size);
->  void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 075b11682192..5b774ddd0efb 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -282,6 +282,16 @@ static const struct block_device_operations pmem_fops = {
->         .revalidate_disk =      nvdimm_revalidate_disk,
->  };
->
-> +static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-> +                                   size_t nr_pages)
-> +{
-> +       struct pmem_device *pmem = dax_get_private(dax_dev);
-> +
-> +       return blk_status_to_errno(pmem_do_write(pmem, ZERO_PAGE(0), 0,
-> +                                  PFN_PHYS(pgoff) >> SECTOR_SHIFT,
-> +                                  PAGE_SIZE));
-> +}
-> +
->  static long pmem_dax_direct_access(struct dax_device *dax_dev,
->                 pgoff_t pgoff, long nr_pages, void **kaddr, pfn_t *pfn)
->  {
-> @@ -313,6 +323,7 @@ static const struct dax_operations pmem_dax_ops = {
->         .dax_supported = generic_fsdax_supported,
->         .copy_from_iter = pmem_copy_from_iter,
->         .copy_to_iter = pmem_copy_to_iter,
-> +       .zero_page_range = pmem_dax_zero_page_range,
->  };
->
->  static const struct attribute_group *pmem_attribute_groups[] = {
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 328c2dbb4409..71735c430c05 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -34,6 +34,8 @@ struct dax_operations {
->         /* copy_to_iter: required operation for fs-dax direct-i/o */
->         size_t (*copy_to_iter)(struct dax_device *, pgoff_t, void *, size_t,
->                         struct iov_iter *);
-> +       /* zero_page_range: required operation. Zero page range   */
-> +       int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
->  };
->
->  extern struct attribute_group dax_attribute_group;
-> @@ -199,6 +201,8 @@ size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
->                 size_t bytes, struct iov_iter *i);
->  size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
->                 size_t bytes, struct iov_iter *i);
-> +int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-> +                       size_t nr_pages);
->  void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
->
->  ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
-> --
-> 2.20.1
+Changes from review:
+- Add NDCTL_LIST_LINT to not regress list output (Jeff)
+- Add kernel-doc description for ndctl_region_set_align() (Jeff)
 
-Zeroing single page seems right approach for now.
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+---
+
+About half of these have been posted previously, but have been reworked
+and revised as they have percolated in my tree relative to other
+arriving features. Yes, it is quite a lot to ingest at once, but given
+the interdependencies and need to catch up I decided to post it all
+together.
+
+The recommendation on how to review is to start with the new tests,
+those introduce some new commands, and those new commands introduce some
+new library routines. The rest are miscellaneous updates, fixes, and
+cleanups.
+
+New tests:
+----------
+dm.sh: When touching the kernel's core dax infrastructure there are
+simple bugs that can be caught by simply firing up a device-mapper dax
+configuration.
+
+track-uuid.sh: The kernel bug that lead to this condition of the kernel
+garbage collecting the wrong label required a specific namespace
+manipulation sequence. Record and replay that sequence against future
+kernel updates.
+
+sub-section.sh: Sub-section support adds machinery to add/remove
+namespaces on sub-128M boundaries. Force these section collisions and
+validate the kernel tracks the mappings.
+
+align.sh: The kernel has grown the ability to align namespace capacity
+provisioning at the region level, since the sub-section changes it has
+stopped creating namespace with non-zero start_pad, and now it also
+needs to enforce up to a 16M minimum alignment on PowerPC. These
+alignment requirements / checks need to be balanced against not
+regressing currently defined namespaces. Given the kernel will stop
+generating problematic configurations by default a tool was needed to
+regression test old configs. The new read-infoblock and write-infoblock
+commands are added to support that testing and debug.
+
+New commands:
+-------------
+ndctl read-infoblock: A compliment to read-labels, it can validate and
+dump the known infoblock formats in json format. It can also dump the
+raw binary infoblock image from a namespace for backup purposes.
+
+ndctl write-infoblock: Generate an fsdax, or devdax infoblock from
+passed in parameters. It currently does not support generating btt
+infoblocks since that support would also want btt-arena generation
+support... maybe in a future update.
+
+New library apis:
+-----------------
+ndctl_namespace_get_target_node:
+ndctl_region_get_target_node: The target_node attribute indicates the
+numa node that this memory range would instantiate / join if it were
+hot-added via the dax_kmem driver. The target_node is also used to query
+platform firmware performance data.
+
+ndctl_region_get_align
+ndctl_region_set_align: Support the new alignment settings at the region
+level. This augments namespace creation to provision aligned spans of dpa
+(device-physical-address).
+
+New command options:
+--------------------
+ndctl create-namespace: --force: By default ndctl will disallow sub-16M
+aligned dax-mode namespace creation to encourage cross-arch
+compatibility. However, non-x86 supports 2M aligned namespaces, and
+--force will bypass the 16M alignment check.
+
+ndctl create-namespace: --no-autorecover: For debug cases the automatic
+cleanup of namespace creation failures destroys some forensic details.
+Exit without cleanup when this option is specified.
+
+ndctl list: --configured: The --idle option can be used to enumerate 
+namespaces that failed to initialize, but the output is cluttered with
+seed devices. The --configured option limits the listing to any
+namespace that has capacity allocated.
+
+ndctl list: NDCTL_LIST_LINT (environment variable): Allow environments
+to opt-in to 'ndctl list' fixes that structurally change the output
+format. This prevents ndctl invalidating scripts that are dependent on
+the buggy output.
+
+Fixes:
+------
+- Multiple fixups to create-namespace error reporting 
+- Require 16M minimum size for any non-raw namespace mode
+- Fix destruction of tpm.handle in test/security.sh
+- Fix ndctl_namespace_get_resource() to return the updated resource base
+  after ndctl_namespace_set_size()
+- Fix the warning spew from taking the address of a packed structure
+  member.
+
+
+---
+
+Dan Williams (36):
+      ndctl/list: Add 'target_node' to region and namespace verbose listings
+      ndctl/docs: Fix mailing list sign-up link
+      ndctl/list: Drop named list objects from verbose listing
+      daxctl/list: Avoid memory operations without resource data
+      ndctl/build: Fix distcheck
+      ndctl/namespace: Fix destroy-namespace accounting relative to seed devices
+      ndctl/region: Support ndctl_region_{get,set}_align()
+      ndctl/namespace: Emit better errors on failure
+      ndctl/namespace: Check for region alignment violations
+      ndctl/util: Up-level is_power_of_2() and introduce IS_ALIGNED
+      ndctl/namespace: Validate resource alignment for dax-mode namespaces
+      ndctl/namespace: Add read-infoblock command
+      ndctl/test: Update dax-dev to handle multiple e820 ranges
+      ndctl/namespace: Always zero info-blocks
+      ndctl/namespace: Disable autorecovery of create-namespace failures
+      ndctl/build: Fix EXTRA_DIST already defined errors
+      ndctl/test: Checkout device-mapper + dax operation
+      ndctl/test: Exercise sub-section sized namespace creation/deletion
+      ndctl/namespace: Kill off the legacy mode names
+      ndctl/namespace: Introduce mode-to-name and name-to-mode helpers
+      ndctl/namespace: Validate namespace size within validate_namespace_options()
+      ndctl/namespace: Clarify 16M minimum size requirement
+      ndctl/test: Regression test 'failed to track'
+      ndctl/dimm: Rework dimm command status reporting
+      ndctl/dimm: Rework iteration to drop unaligned pointers
+      ndctl/test: Fix typos / loss of tpm.handle in security test
+      ndctl/test: Relax dax_pmem_compat requirement
+      ndctl/namespace: Fix namespace-action vs namespace-mode confusion
+      ndctl/namespace: Update 'pfn' infoblock definition
+      ndctl/util: Return 0 for NULL arguments to parse_size64()
+      ndctl/namespace: Fix read-info-block vs read-infoblock
+      ndctl/namespace: Parse infoblocks from stdin
+      ndctl/namespace: Add write-infoblock command
+      ndctl/list: Add option to list configured + disabled namespaces
+      ndctl/lib/namespace: Fix resource retrieval after size change
+      ndctl/test: Regression test misaligned namespaces
+
+
+ CONTRIBUTING.md                                |    2 
+ Documentation/ndctl/Makefile.am                |    4 
+ Documentation/ndctl/ndctl-create-namespace.txt |   17 
+ Documentation/ndctl/ndctl-list.txt             |   64 +
+ Documentation/ndctl/ndctl-read-infoblock.txt   |   94 ++
+ Documentation/ndctl/ndctl-write-infoblock.txt  |  132 +++
+ ndctl/action.h                                 |    2 
+ ndctl/builtin.h                                |    2 
+ ndctl/check.c                                  |   20 
+ ndctl/lib/ars.c                                |   34 +
+ ndctl/lib/hpe1.c                               |   17 
+ ndctl/lib/hyperv.c                             |    7 
+ ndctl/lib/intel.c                              |   56 +
+ ndctl/lib/libndctl.c                           |  191 ++++
+ ndctl/lib/libndctl.sym                         |    4 
+ ndctl/lib/msft.c                               |    8 
+ ndctl/lib/nfit.c                               |   36 +
+ ndctl/lib/private.h                            |   16 
+ ndctl/libndctl-nfit.h                          |   11 
+ ndctl/libndctl.h                               |    5 
+ ndctl/list.c                                   |   59 +
+ ndctl/namespace.c                              | 1050 +++++++++++++++++++++---
+ ndctl/namespace.h                              |   61 +
+ ndctl/ndctl.c                                  |    2 
+ test/Makefile.am                               |   14 
+ test/align.sh                                  |  118 +++
+ test/blk-exhaust.sh                            |    2 
+ test/blk_namespaces.c                          |    1 
+ test/btt-check.sh                              |    2 
+ test/btt-errors.sh                             |    7 
+ test/btt-pad-compat.sh                         |    5 
+ test/clear.sh                                  |    2 
+ test/core.c                                    |    8 
+ test/create.sh                                 |    2 
+ test/dax-dev.c                                 |   17 
+ test/dax.sh                                    |    2 
+ test/daxctl-devices.sh                         |    2 
+ test/daxdev-errors.sh                          |    2 
+ test/device-dax-fio.sh                         |    2 
+ test/dm.sh                                     |   75 ++
+ test/dpa-alloc.c                               |   10 
+ test/dsm-fail.c                                |    5 
+ test/firmware-update.sh                        |    2 
+ test/inject-error.sh                           |    2 
+ test/inject-smart.sh                           |    2 
+ test/label-compat.sh                           |    5 
+ test/libndctl.c                                |   16 
+ test/max_available_extent_ns.sh                |    2 
+ test/mmap.sh                                   |    2 
+ test/monitor.sh                                |    2 
+ test/multi-dax.sh                              |    2 
+ test/parent-uuid.c                             |    1 
+ test/pfn-meta-errors.sh                        |    2 
+ test/pmem-errors.sh                            |   11 
+ test/rescan-partitions.sh                      |    2 
+ test/sector-mode.sh                            |    2 
+ test/security.sh                               |    6 
+ test/sub-section.sh                            |   77 ++
+ test/track-uuid.sh                             |   40 +
+ util/filter.c                                  |   46 +
+ util/filter.h                                  |    3 
+ util/fletcher.h                                |    1 
+ util/json.c                                    |   18 
+ util/json.h                                    |    1 
+ util/size.c                                    |    2 
+ util/size.h                                    |    8 
+ 66 files changed, 2112 insertions(+), 313 deletions(-)
+ create mode 100644 Documentation/ndctl/ndctl-read-infoblock.txt
+ create mode 100644 Documentation/ndctl/ndctl-write-infoblock.txt
+ create mode 100755 test/align.sh
+ create mode 100755 test/dm.sh
+ create mode 100755 test/sub-section.sh
+ create mode 100755 test/track-uuid.sh
+
+base-commit: 56f4a91b51b532fcdb8b44ace422dce48ed27c7d
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
