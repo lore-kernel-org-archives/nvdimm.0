@@ -1,83 +1,88 @@
-Return-Path: <SRS0=ddJu=4S=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=bKWN=4T=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.0 required=3.0 tests=DKIM_ADSP_NXDOMAIN,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCFEBC3F2CD
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  1 Mar 2020 00:53:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1437DC3F2D2
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Mar 2020 04:21:51 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 921F824650
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  1 Mar 2020 00:53:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="EVi4QsCC"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 921F824650
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id D47D724695
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Mar 2020 04:21:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D47D724695
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=vajain21.in.ibm.com.in.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id ED56410FC3411;
-	Sat, 29 Feb 2020 16:54:06 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::243; helo=mail-oi1-x243.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-x243.google.com (mail-oi1-x243.google.com [IPv6:2607:f8b0:4864:20::243])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id A93FB10FC3411;
+	Sun,  1 Mar 2020 20:22:41 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vajain21@vajain21.in.ibm.com.in.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E8A2910FC3405
-	for <linux-nvdimm@lists.01.org>; Sat, 29 Feb 2020 16:54:04 -0800 (PST)
-Received: by mail-oi1-x243.google.com with SMTP id a22so6760240oid.13
-        for <linux-nvdimm@lists.01.org>; Sat, 29 Feb 2020 16:53:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=vG5vKAngWN33ruKiQuTpYlNArSL1q2CIczuy2BXBfuE=;
-        b=EVi4QsCCZqdsO8jd42lKporuaZWmTGpqfIMnjxCebFY1LWoQBpvsJde3zsB8GpxnBt
-         zw4aJI2i9+UOBEhxpyIu55VAY1xuv9Ag0Y3eU7wTricIZszIxXYZE4fn5pAsYOrQP3UE
-         u+FMEGRsfhU/ecS+9x/87ShXW2Rhtg7ETsP1y4ObvCMTl62DpePlNTwWJPpBh9iKVFfU
-         Ux+Ccie/MIu1m1YMRSBahPdPTuVkoc7d6KZHCa1049ULEC/MLoxTYHlF7b+gO+CkG7zL
-         0l6Cy7fgfvdIUY/VJ44n1/GSKscbwmiZb2s0uxWcW0WFZVZxJVnVSja9gdLPJrjaCeYi
-         yfPA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=vG5vKAngWN33ruKiQuTpYlNArSL1q2CIczuy2BXBfuE=;
-        b=kARD9uwkaEMssodzeVYVQ9jyDrjSt1n7mTkB2QqdWDtWbh8E4K0th6IqyM6BxAm8bk
-         KAbAc+X7r5QCJInB7nsugkmS69OrhYl2htQ6vetUqCwyXav9HLLwlOucdG2Qm8yni7p3
-         myfvMnN/zkPoucaQDLG4A+x61VAMm6zWoHQBdyHeGs/8ujAfKEZ5hbTByYIDvLCOWHRB
-         WctUIF+RTUO8Tnz3O1Lw67Kp6QAforZzK+6DexGwA1r5XsZzxpRxSq326oKHECLBxo01
-         EF/7B9sXmHmrrh0P/7TWbAic1PAagOCaMMBDbDhkZmLoKuskjzUfTILElV4qJTp44m3x
-         Muuw==
-X-Gm-Message-State: APjAAAXPu0BR5Ya55yH6VhXK+z89Ir1cPPLFtv2GLkQQMShZrIJtBpkK
-	oAFZNphXvgscE8UyiyLU45KcAd90YSUwB6Zsjdav2A==
-X-Google-Smtp-Source: APXvYqxQUskahAUriWcdS5qGOWflBUlwfbNwzYextBzEpd0SD71vKrl0tWRo484a4970WvsZinC6zCJ5UkXvhnIXo7Y=
-X-Received: by 2002:a05:6808:a83:: with SMTP id q3mr7998258oij.0.1583023992112;
- Sat, 29 Feb 2020 16:53:12 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 3809810FC33EC
+	for <linux-nvdimm@lists.01.org>; Sun,  1 Mar 2020 20:22:39 -0800 (PST)
+Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0224KWJ7111577
+	for <linux-nvdimm@lists.01.org>; Sun, 1 Mar 2020 23:21:46 -0500
+Received: from e06smtp02.uk.ibm.com (e06smtp02.uk.ibm.com [195.75.94.98])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 2yfmyq866w-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Sun, 01 Mar 2020 23:21:46 -0500
+Received: from localhost
+	by e06smtp02.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <vajain21@vajain21.in.ibm.com.in.ibm.com>;
+	Mon, 2 Mar 2020 04:21:44 -0000
+Received: from b06avi18626390.portsmouth.uk.ibm.com (9.149.26.192)
+	by e06smtp02.uk.ibm.com (192.168.101.132) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Mon, 2 Mar 2020 04:21:42 -0000
+Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
+	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0224KhCf49021436
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 2 Mar 2020 04:20:43 GMT
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id EB94C4C044;
+	Mon,  2 Mar 2020 04:21:40 +0000 (GMT)
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 80EF04C040;
+	Mon,  2 Mar 2020 04:21:38 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.109.195.235])
+	by d06av22.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Mon,  2 Mar 2020 04:21:38 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 02 Mar 2020 09:51:37 +0530
+From: Vaibhav Jain <vajain21@vajain21.in.ibm.com.in.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH] libnvdimm/bus: return the outvar 'cmd_rc' error code in __nd_ioctl()
+In-Reply-To: <CAPcyv4hE_FG0YZXJVA1G=CBq8b9e0K54jxk5Sq5UKU-dnWT2Kg@mail.gmail.com>
+References: <20200122155304.120733-1-vaibhav@linux.ibm.com> <x49r1yrboh2.fsf@segfault.boston.devel.redhat.com> <CAPcyv4gn1M87AnuzOEorihG1nmCiHDKL0Z4HfLbNbkeOcO3GPw@mail.gmail.com> <CAPcyv4hE_FG0YZXJVA1G=CBq8b9e0K54jxk5Sq5UKU-dnWT2Kg@mail.gmail.com>
+Date: Mon, 02 Mar 2020 09:51:37 +0530
 MIME-Version: 1.0
-References: <157481532698.2805671.8095763752180655226.stgit@dwillia2-desk3.amr.corp.intel.com>
- <x49sgj6law0.fsf@segfault.boston.devel.redhat.com> <CAPcyv4ibE3ssieq=A5diqwRyiT6e3X=kcpQ3aA0vYneBpuSCAA@mail.gmail.com>
- <x49k14ila4r.fsf@segfault.boston.devel.redhat.com> <CAPcyv4hHU+RC6TZW94UrjFJZ1fsOU8Nug0GP+Mb5mBGW8qk+UQ@mail.gmail.com>
- <03b5da834f0be8bc7110c459f3172732b96e85fa.camel@intel.com>
- <CAPcyv4gVDEum7RiSMXug5fwNC04mEHo5MhAuUW37t4tN9y899A@mail.gmail.com>
- <00abe72085e75c1c54b87635c81352b628211707.camel@intel.com> <149112cd-0ae4-02b8-84ba-f13cce5aa45d@jp.fujitsu.com>
-In-Reply-To: <149112cd-0ae4-02b8-84ba-f13cce5aa45d@jp.fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 29 Feb 2020 16:53:01 -0800
-Message-ID: <CAPcyv4gyxSYKXFdkr2M646sEMYGNRTBq6SMzAJz+iuuk0XoC7w@mail.gmail.com>
-Subject: Re: [ndctl PATCH] ndctl/list: Drop named list objects from verbose listing
-To: "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
-Message-ID-Hash: C7JWGLRTT3VID6YZL2EESJ7UJ3WVKH26
-X-Message-ID-Hash: C7JWGLRTT3VID6YZL2EESJ7UJ3WVKH26
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+X-TM-AS-GCONF: 00
+x-cbid: 20030204-0008-0000-0000-0000035831D7
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20030204-0009-0000-0000-00004A795BC6
+Message-Id: <87y2sjtmi6.fsf@vajain21.in.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-03-01_09:2020-02-28,2020-03-01 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 clxscore=1034
+ priorityscore=1501 mlxlogscore=999 malwarescore=0 impostorscore=0
+ suspectscore=1 lowpriorityscore=0 bulkscore=0 spamscore=0 adultscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2003020030
+Message-ID-Hash: PKCF3QOIF3K2QZGHJ7QPAL47OH6VREIA
+X-Message-ID-Hash: PKCF3QOIF3K2QZGHJ7QPAL47OH6VREIA
+X-MailFrom: vajain21@vajain21.in.ibm.com.in.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C7JWGLRTT3VID6YZL2EESJ7UJ3WVKH26/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PKCF3QOIF3K2QZGHJ7QPAL47OH6VREIA/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -86,57 +91,75 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 21, 2020 at 2:21 AM qi.fuli@fujitsu.com <qi.fuli@fujitsu.com> wrote:
->
->
->
-> On 2/20/20 5:28 AM, Verma, Vishal L wrote:
-> > On Wed, 2020-02-19 at 12:09 -0800, Dan Williams wrote:
-> >>>>
-> >>>> Let's do a compromise, because users also hate nonsensical legacy that
-> >>>> they can't avoid. How about an environment variable,
-> >>>> "NDCTL_LIST_LINT", that users can set to opt into the latest /
-> >>>> cleanest output format with the understanding that the clean up may
-> >>>> regress scripts that were dependent on the old bugs.
-> >>>>
-> >>> Hm, this sounds good in concept, but how about waiting for this cleanup
-> >>> to go in after the (yes, long pending) config rework. Then this can just
-> >>> be a global config setting, and we won't have config things coming from
-> >>> the environment as well (which this would be a first of).
-> >>
-> >> That does make some sense, but I notice that git deals with "cosmetic"
-> >> environment variables (GIT_EDITOR, GIT_PAGER, etc) in addition to its
-> >> config file. So if we're borrowing from git, I'd also borrow that
-> >> config vs environment logic.
-> >
-> > True, that's reasonable. I guess I was hoping to avoid, if we can,
-> > suddenly having a multitude of config sources, but env variables are
-> > pretty standard and it should be fine to add them.
->
-> Hi,
->
-> I am sorry for suspending the ndctl global config patch for such a long
-> time. If it is not urgent, I would like to implement it.
+Hi Dan,
 
-It's getting more and more urgent, especially as more people are
-trying to use the DIMM security features and finding it difficult to
-contend with the command-line interface.
+Apologies for responding late to this. My response below
 
-The goal is to import  the git config system. Specifically one of the
-features of the git config syntax that are useful for DIMM security
-(and in the future Namespace security) is the ability to have named
-sub-sections. From the git config man page:
+Dan Williams <dan.j.williams@intel.com> writes:
 
-       Sections can be further divided into subsections. To begin a
-subsection put its name in double
-       quotes, separated by space from the section name, in the
-section header, like in the example
-       below:
+> On Tue, Feb 18, 2020 at 1:03 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>>
+>> On Tue, Feb 18, 2020 at 1:00 PM Jeff Moyer <jmoyer@redhat.com> wrote:
+>> >
+>> > Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+>> >
+>> > > Presently the error code returned via out variable 'cmd_rc' from the
+>> > > nvdimm-bus controller function is ignored when called from
+>> > > __nd_ioctl() and never communicated back to user-space code that called
+>> > > an ioctl on dimm/bus.
+>> > >
+>> > > This minor patch updates __nd_ioctl() to propagate the value of out
+>> > > variable 'cmd_rc' back to user-space in case it reports an error.
+>> > >
+>> > > Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+>> > > ---
+>> > >  drivers/nvdimm/bus.c | 5 +++++
+>> > >  1 file changed, 5 insertions(+)
+>> > >
+>> > > diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+>> > > index a8b515968569..5b687a27fdf2 100644
+>> > > --- a/drivers/nvdimm/bus.c
+>> > > +++ b/drivers/nvdimm/bus.c
+>> > > @@ -1153,6 +1153,11 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+>> > >       if (rc < 0)
+>> > >               goto out_unlock;
+>> > >
+>> > > +     if (cmd_rc < 0) {
+>> > > +             rc = cmd_rc;
+>> > > +             goto out_unlock;
+>> > > +     }
+>> > > +
+>> > >       if (!nvdimm && cmd == ND_CMD_CLEAR_ERROR && cmd_rc >= 0) {
+>> > >               struct nd_cmd_clear_error *clear_err = buf;
+>> >
+>> > Looks good to me.
+>> >
+>> > Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+>>
+>> Applied.
+>
+> Unapplied. This breaks the NVDIMM unit test, and now that I look
+> closer you are likely overlooking the fact that cmd_rc is a
+> translation of the firmware status, while the ioctl rc is whether the
+> command was successfully submitted. If you want the equivalent of
+> cmd_rc in userspace you need to translate the firmware status. See
+> ndctl_cmd_submit_xlat() in libndctl as an example of how the
+> equivalent of cmd_rc is generated from the firmware status.
 
-                   [section "subsection"]
+This seems to be departure from rest of the libndvdimm where a non zero
+value of out-var 'cmd_rc' is treated as an error and communicated back to the
+caller. 
 
-With that capability policy can be established by a named object
-instance. dimm.<dimm_id>.<attribute>, or namespace.<uuid>.<attribute>.
+However I agree to the points you made that semantics for __nd_ioctl()
+are different hence 'cmd_rc' need not be treated the same way as others.
+I think it will be better if these points are documented as
+code-comments in this function to make it more clearer as to why
+negative value 'cmd_rd' will be ignored and how userspace can get hold
+of it if needed.
+
+-- 
+Vaibhav Jain <vaibhav@linux.ibm.com>
+Linux Technology Center, IBM India Pvt. Ltd.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
