@@ -1,56 +1,54 @@
-Return-Path: <SRS0=QvMI=4U=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=ZDNc=4V=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E0FC3F2D1
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Mar 2020 23:14:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90E1CC3F2C6
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 02:24:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D2143208C3
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Mar 2020 23:14:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D2143208C3
+	by mail.kernel.org (Postfix) with ESMTPS id 66BBE20866
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 02:24:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 66BBE20866
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2C3A610FC361A;
-	Tue,  3 Mar 2020 15:15:35 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	by ml01.01.org (Postfix) with ESMTP id 8195210FC360E;
+	Tue,  3 Mar 2020 18:25:03 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 475FC10FC3617
-	for <linux-nvdimm@lists.01.org>; Tue,  3 Mar 2020 15:15:32 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 9006510FC3170
+	for <linux-nvdimm@lists.01.org>; Tue,  3 Mar 2020 18:25:01 -0800 (PST)
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga103.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Mar 2020 15:14:41 -0800
+  by orsmga105.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Mar 2020 18:24:09 -0800
 X-IronPort-AV: E=Sophos;i="5.70,511,1574150400";
-   d="scan'208";a="258543880"
+   d="scan'208";a="258595131"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Mar 2020 15:14:40 -0800
-Subject: [ndctl PATCH v2 2/2] ndctl/test: Relax dax_pmem_compat requirement
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/DHE-RSA-AES256-GCM-SHA384; 03 Mar 2020 18:24:08 -0800
+Subject: [PATCH v4 0/5] libnvdimm: Cross-arch compatible namespace alignment
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-nvdimm@lists.01.org
-Date: Tue, 03 Mar 2020 14:58:35 -0800
-Message-ID: <158327631566.2222444.16879386597302511191.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <158300774836.2141307.13052648687237614794.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <158300774836.2141307.13052648687237614794.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 03 Mar 2020 18:08:03 -0800
+Message-ID: <158328768294.2223916.16551505954326988623.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: 2CPK72PR7JNCLRITY76OF3K4F65757XP
-X-Message-ID-Hash: 2CPK72PR7JNCLRITY76OF3K4F65757XP
+Message-ID-Hash: NVG7BO72QVRGAAIDEVXDTAJB6WIYT6YW
+X-Message-ID-Hash: NVG7BO72QVRGAAIDEVXDTAJB6WIYT6YW
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Jan Kara <jack@suse.cz>
+CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2CPK72PR7JNCLRITY76OF3K4F65757XP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NVG7BO72QVRGAAIDEVXDTAJB6WIYT6YW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -59,36 +57,73 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-While there are some tests that require the new "dax-bus" device model,
-none of the tests require compatibility mode. Drop the requirement so
-the tests work with DEV_DAX_PMEM_COMPAT=n kernels.
+Changes since v3 [1]:
+- Collect Aneesh's Reviewed-by for Patch1-Patch3
 
-Link: http://lore.kernel.org/r/20200123154720.12097-1-jack@suse.cz
-Cc: Jan Kara <jack@suse.cz>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+- Add commentary to "libnvdimm/namespace: Enforce
+  memremap_compat_align()" to clarify alignment validation and why
+  start_pad is deprecated (Aneesh)
+
+[1]: http://lore.kernel.org/r/158291746615.1609624.7591692546429050845.stgit@dwillia2-desk3.amr.corp.intel.com
+
 ---
- test/core.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
 
-diff --git a/test/core.c b/test/core.c
-index 3aa746fe6786..5118d86483d4 100644
---- a/test/core.c
-+++ b/test/core.c
-@@ -180,6 +180,14 @@ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
- 
- retry:
- 		rc = kmod_module_new_from_name(*ctx, name, mod);
-+
-+		/*
-+		 * dax_pmem_compat is not required, missing is ok,
-+		 * present-but-production is not ok.
-+		 */
-+		if (rc && strcmp(name, "dax_pmem_compat") == 0)
-+			continue;
-+
- 		if (rc) {
- 			log_err(&log_ctx, "%s.ko: missing\n", name);
- 			break;
+Patch "mm/memremap_pages: Introduce memremap_compat_align()" still
+needs a PowerPC maintainer ack for the touches to
+arch/powerpc/mm/ioremap.c.
+
+---
+
+Aneesh reports that PowerPC requires 16MiB alignment for the address
+range passed to devm_memremap_pages(), and Jeff reports that it is
+possible to create a misaligned namespace which blocks future namespace
+creation in that region. Both of these issues require namespace
+alignment to be managed at the region level rather than padding at the
+namespace level which has been a broken approach to date.
+
+Introduce memremap_compat_align() to indicate the hard requirements of
+an arch's memremap_pages() implementation. Use the maximum known
+memremap_compat_align() to set the default namespace alignment for
+libnvdimm. Consult that alignment when allocating free space. Finally,
+allow the default region alignment to be overridden to maintain the same
+namespace creation capability as previous kernels (modulo dax operation
+not being supported with a non-zero start_pad).
+
+The ndctl unit tests, which have some misaligned namespace assumptions,
+are updated to use the alignment override where necessary.
+
+Thanks to Aneesh for early feedback and testing on this change to
+alignment handling.
+
+---
+
+Dan Williams (5):
+      mm/memremap_pages: Introduce memremap_compat_align()
+      libnvdimm/pfn: Prevent raw mode fallback if pfn-infoblock valid
+      libnvdimm/namespace: Enforce memremap_compat_align()
+      libnvdimm/region: Introduce NDD_LABELING
+      libnvdimm/region: Introduce an 'align' attribute
+
+
+ arch/powerpc/Kconfig                      |    1 
+ arch/powerpc/mm/ioremap.c                 |   21 +++++
+ arch/powerpc/platforms/pseries/papr_scm.c |    2 
+ drivers/acpi/nfit/core.c                  |    4 +
+ drivers/nvdimm/dimm.c                     |    2 
+ drivers/nvdimm/dimm_devs.c                |   95 +++++++++++++++++----
+ drivers/nvdimm/namespace_devs.c           |   28 +++++-
+ drivers/nvdimm/nd.h                       |    3 -
+ drivers/nvdimm/pfn.h                      |   12 +++
+ drivers/nvdimm/pfn_devs.c                 |   40 +++++++--
+ drivers/nvdimm/region_devs.c              |  132 ++++++++++++++++++++++++++---
+ include/linux/libnvdimm.h                 |    2 
+ include/linux/memremap.h                  |    8 ++
+ include/linux/mmzone.h                    |    1 
+ lib/Kconfig                               |    3 +
+ mm/memremap.c                             |   23 +++++
+ 16 files changed, 330 insertions(+), 47 deletions(-)
+
+base-commit: 1d0827b75ee7df497f611a2ac412a88135fb0ef5
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
