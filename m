@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4D3C3F2CE
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85D2EC3F2D7
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 229782468E
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 5C67922B48
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GRxiGidz"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 229782468E
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="aJh93ssU"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5C67922B48
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BD1BC10FC3780;
+	by ml01.01.org (Postfix) with ESMTP id D2C1910FC3788;
 	Wed,  4 Mar 2020 09:00:17 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CEB0310FC36C7
+	by ml01.01.org (Postfix) with ESMTPS id 18B1D10FC3776
 	for <linux-nvdimm@lists.01.org>; Wed,  4 Mar 2020 09:00:14 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1583341162;
@@ -34,46 +34,46 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=S6pQ8jsfaduj841lJuAnYCAgbmehnOTdC6Bq+PWck1A=;
-	b=GRxiGidzNo0K5ozehXWnphw2W3BEckGxccQ5TVgoE6oKVI7/rL8JUhmdvwsDhjd6vl7o2K
-	bc0PaWPlzZ2ClD6GVK3wgSSQJnJu9whNQjFU+tyO36YEV3SG9mehsWupDOPhWtvDzXw7vX
-	uKg2B/YkzfWvFS9Kla9VhravAhyRlU4=
+	bh=ZRgLnQcH2ZoQLdmHE/9Lqn0DzPj+SdCutG/kHD7VUtE=;
+	b=aJh93ssUVRbY/VUiA6NGbrMC8DeExCPdJ+FouDWB8BilpXzWbsoiI6DYWrPB8f4vW/XASW
+	52NeJt6K1U35+GzylAP1ToGwFSNnDdL9NaLK1MC58QKWDdRRLX6en9WFyul+sGAD/wRJUw
+	QJTHwTZCsVMYbk8OiDpr9cRNcNQ3Z+Y=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-438-PZVYUYR1NCiIri0PTi6-tg-1; Wed, 04 Mar 2020 11:59:20 -0500
-X-MC-Unique: PZVYUYR1NCiIri0PTi6-tg-1
+ us-mta-377-_BZubGb9M42ulPJLcLB7lw-1; Wed, 04 Mar 2020 11:59:20 -0500
+X-MC-Unique: _BZubGb9M42ulPJLcLB7lw-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 58FF9800D5C;
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6E3DBDB6B;
 	Wed,  4 Mar 2020 16:59:19 +0000 (UTC)
 Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 50DC619E9C;
-	Wed,  4 Mar 2020 16:59:12 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id D23F59CA3;
+	Wed,  4 Mar 2020 16:59:11 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 8A0BE225818; Wed,  4 Mar 2020 11:59:03 -0500 (EST)
+	id 5CF6522580F; Wed,  4 Mar 2020 11:59:03 -0500 (EST)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	virtio-fs@redhat.com,
 	miklos@szeredi.hu
-Subject: [PATCH 18/20] fuse: Release file in process context
-Date: Wed,  4 Mar 2020 11:58:43 -0500
-Message-Id: <20200304165845.3081-19-vgoyal@redhat.com>
+Subject: [PATCH 09/20] virtio_fs, dax: Set up virtio_fs dax_device
+Date: Wed,  4 Mar 2020 11:58:34 -0500
+Message-Id: <20200304165845.3081-10-vgoyal@redhat.com>
 In-Reply-To: <20200304165845.3081-1-vgoyal@redhat.com>
 References: <20200304165845.3081-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-Message-ID-Hash: 7VWVVNH7WENOJAEL3Y642NJJ5KTCHQGV
-X-Message-ID-Hash: 7VWVVNH7WENOJAEL3Y642NJJ5KTCHQGV
+Message-ID-Hash: 7K2VHZGISBG7NO7FCS2QHHSB5CVPKNN5
+X-Message-ID-Hash: 7K2VHZGISBG7NO7FCS2QHHSB5CVPKNN5
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: stefanha@redhat.com, dgilbert@redhat.com, mst@redhat.com
+CC: stefanha@redhat.com, dgilbert@redhat.com, mst@redhat.com, Sebastien Boeuf <sebastien.boeuf@intel.com>, Liu Bo <bo.liu@linux.alibaba.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7VWVVNH7WENOJAEL3Y642NJJ5KTCHQGV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7K2VHZGISBG7NO7FCS2QHHSB5CVPKNN5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,61 +82,185 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-fuse_file_put(sync) can be called with sync=true/false. If sync=true,
-it waits for release request response and then calls iput() in the
-caller's context. If sync=false, it does not wait for release request
-response, frees the fuse_file struct immediately and req->end function
-does the iput().
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-iput() can be a problem with DAX if called in req->end context. If this
-is last reference to inode (VFS has let go its reference already), then
-iput() will clean DAX mappings as well and send REMOVEMAPPING requests
-and wait for completion. (All the the worker thread context which is
-processing fuse replies from daemon on the host).
+Setup a dax device.
 
-That means it blocks worker thread and it stops processing further
-replies and system deadlocks.
+Use the shm capability to find the cache entry and map it.
 
-So for now, force sync release of file in case of DAX inodes.
+The DAX window is accessed by the fs/dax.c infrastructure and must have
+struct pages (at least on x86).  Use devm_memremap_pages() to map the
+DAX window PCI BAR and allocate struct page.
 
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+Signed-off-by: Dr. David Alan Gilbert <dgilbert@redhat.com>
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
+Signed-off-by: Liu Bo <bo.liu@linux.alibaba.com>
 ---
- fs/fuse/file.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ fs/fuse/virtio_fs.c            | 115 +++++++++++++++++++++++++++++++++
+ include/uapi/linux/virtio_fs.h |   3 +
+ 2 files changed, 118 insertions(+)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index afabeb1acd50..561428b66101 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -543,6 +543,7 @@ void fuse_release_common(struct file *file, bool isdir)
- 	struct fuse_file *ff = file->private_data;
- 	struct fuse_release_args *ra = ff->release_args;
- 	int opcode = isdir ? FUSE_RELEASEDIR : FUSE_RELEASE;
-+	bool sync = false;
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 62cdd6817b5b..b0574b208cd5 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -5,6 +5,9 @@
+  */
  
- 	fuse_prepare_release(fi, ff, file->f_flags, opcode);
+ #include <linux/fs.h>
++#include <linux/dax.h>
++#include <linux/pci.h>
++#include <linux/pfn_t.h>
+ #include <linux/module.h>
+ #include <linux/virtio.h>
+ #include <linux/virtio_fs.h>
+@@ -50,6 +53,12 @@ struct virtio_fs {
+ 	struct virtio_fs_vq *vqs;
+ 	unsigned int nvqs;               /* number of virtqueues */
+ 	unsigned int num_request_queues; /* number of request queues */
++	struct dax_device *dax_dev;
++
++	/* DAX memory window where file contents are mapped */
++	void *window_kaddr;
++	phys_addr_t window_phys_addr;
++	size_t window_len;
+ };
  
-@@ -562,8 +563,19 @@ void fuse_release_common(struct file *file, bool isdir)
- 	 * Make the release synchronous if this is a fuseblk mount,
- 	 * synchronous RELEASE is allowed (and desirable) in this case
- 	 * because the server can be trusted not to screw up.
-+	 *
-+	 * For DAX, fuse server is trusted. So it should be fine to
-+	 * do a sync file put. Doing async file put is creating
-+	 * problems right now because when request finish, iput()
-+	 * can lead to freeing of inode. That means it tears down
-+	 * mappings backing DAX memory and sends REMOVEMAPPING message
-+	 * to server and blocks for completion. Currently, waiting
-+	 * in req->end context deadlocks the system as same worker thread
-+	 * can't process REMOVEMAPPING reply it is waiting for.
- 	 */
--	fuse_file_put(ff, ff->fc->destroy, isdir);
-+	if (IS_DAX(file_inode(file)) || ff->fc->destroy)
-+		sync = true;
-+	fuse_file_put(ff, sync, isdir);
+ struct virtio_fs_forget_req {
+@@ -690,6 +699,108 @@ static void virtio_fs_cleanup_vqs(struct virtio_device *vdev,
+ 	vdev->config->del_vqs(vdev);
  }
  
- static int fuse_open(struct inode *inode, struct file *file)
++/* Map a window offset to a page frame number.  The window offset will have
++ * been produced by .iomap_begin(), which maps a file offset to a window
++ * offset.
++ */
++static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
++				    long nr_pages, void **kaddr, pfn_t *pfn)
++{
++	struct virtio_fs *fs = dax_get_private(dax_dev);
++	phys_addr_t offset = PFN_PHYS(pgoff);
++	size_t max_nr_pages = fs->window_len/PAGE_SIZE - pgoff;
++
++	if (kaddr)
++		*kaddr = fs->window_kaddr + offset;
++	if (pfn)
++		*pfn = phys_to_pfn_t(fs->window_phys_addr + offset,
++					PFN_DEV | PFN_MAP);
++	return nr_pages > max_nr_pages ? max_nr_pages : nr_pages;
++}
++
++static size_t virtio_fs_copy_from_iter(struct dax_device *dax_dev,
++				       pgoff_t pgoff, void *addr,
++				       size_t bytes, struct iov_iter *i)
++{
++	return copy_from_iter(addr, bytes, i);
++}
++
++static size_t virtio_fs_copy_to_iter(struct dax_device *dax_dev,
++				       pgoff_t pgoff, void *addr,
++				       size_t bytes, struct iov_iter *i)
++{
++	return copy_to_iter(addr, bytes, i);
++}
++
++static const struct dax_operations virtio_fs_dax_ops = {
++	.direct_access = virtio_fs_direct_access,
++	.copy_from_iter = virtio_fs_copy_from_iter,
++	.copy_to_iter = virtio_fs_copy_to_iter,
++};
++
++static void virtio_fs_cleanup_dax(void *data)
++{
++	struct virtio_fs *fs = data;
++
++	kill_dax(fs->dax_dev);
++	put_dax(fs->dax_dev);
++}
++
++static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
++{
++	struct virtio_shm_region cache_reg;
++	struct dev_pagemap *pgmap;
++	bool have_cache;
++
++	if (!IS_ENABLED(CONFIG_DAX_DRIVER))
++		return 0;
++
++	/* Get cache region */
++	have_cache = virtio_get_shm_region(vdev, &cache_reg,
++					   (u8)VIRTIO_FS_SHMCAP_ID_CACHE);
++	if (!have_cache) {
++		dev_notice(&vdev->dev, "%s: No cache capability\n", __func__);
++		return 0;
++	} else {
++		dev_notice(&vdev->dev, "Cache len: 0x%llx @ 0x%llx\n",
++			   cache_reg.len, cache_reg.addr);
++	}
++
++	pgmap = devm_kzalloc(&vdev->dev, sizeof(*pgmap), GFP_KERNEL);
++	if (!pgmap)
++		return -ENOMEM;
++
++	pgmap->type = MEMORY_DEVICE_FS_DAX;
++
++	/* Ideally we would directly use the PCI BAR resource but
++	 * devm_memremap_pages() wants its own copy in pgmap.  So
++	 * initialize a struct resource from scratch (only the start
++	 * and end fields will be used).
++	 */
++	pgmap->res = (struct resource){
++		.name = "virtio-fs dax window",
++		.start = (phys_addr_t) cache_reg.addr,
++		.end = (phys_addr_t) cache_reg.addr + cache_reg.len - 1,
++	};
++
++	fs->window_kaddr = devm_memremap_pages(&vdev->dev, pgmap);
++	if (IS_ERR(fs->window_kaddr))
++		return PTR_ERR(fs->window_kaddr);
++
++	fs->window_phys_addr = (phys_addr_t) cache_reg.addr;
++	fs->window_len = (phys_addr_t) cache_reg.len;
++
++	dev_dbg(&vdev->dev, "%s: window kaddr 0x%px phys_addr 0x%llx"
++		" len 0x%llx\n", __func__, fs->window_kaddr, cache_reg.addr,
++		cache_reg.len);
++
++	fs->dax_dev = alloc_dax(fs, NULL, &virtio_fs_dax_ops, 0);
++	if (!fs->dax_dev)
++		return -ENOMEM;
++
++	return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax, fs);
++}
++
+ static int virtio_fs_probe(struct virtio_device *vdev)
+ {
+ 	struct virtio_fs *fs;
+@@ -711,6 +822,10 @@ static int virtio_fs_probe(struct virtio_device *vdev)
+ 
+ 	/* TODO vq affinity */
+ 
++	ret = virtio_fs_setup_dax(vdev, fs);
++	if (ret < 0)
++		goto out_vqs;
++
+ 	/* Bring the device online in case the filesystem is mounted and
+ 	 * requests need to be sent before we return.
+ 	 */
+diff --git a/include/uapi/linux/virtio_fs.h b/include/uapi/linux/virtio_fs.h
+index b02eb2ac3d99..2f64abce781f 100644
+--- a/include/uapi/linux/virtio_fs.h
++++ b/include/uapi/linux/virtio_fs.h
+@@ -16,4 +16,7 @@ struct virtio_fs_config {
+ 	__u32 num_request_queues;
+ } __attribute__((packed));
+ 
++/* For the id field in virtio_pci_shm_cap */
++#define VIRTIO_FS_SHMCAP_ID_CACHE 0
++
+ #endif /* _UAPI_LINUX_VIRTIO_FS_H */
 -- 
 2.20.1
 _______________________________________________
