@@ -2,75 +2,78 @@ Return-Path: <SRS0=ZDNc=4V=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 067D5C3F2D8
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A304C3F2CE
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:29 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CC42922B48
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2FE5D22B48
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Mar 2020 16:59:29 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Uhi9syey"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC42922B48
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DFBMGL+H"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2FE5D22B48
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4C65C10FC3768;
+	by ml01.01.org (Postfix) with ESMTP id 670F510FC376D;
 	Wed,  4 Mar 2020 09:00:13 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [207.211.31.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0F64810FC36CE
-	for <linux-nvdimm@lists.01.org>; Wed,  4 Mar 2020 09:00:07 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 3EF0110FC36CE
+	for <linux-nvdimm@lists.01.org>; Wed,  4 Mar 2020 09:00:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1583341155;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=KqxwdR9zKaulXRhlk1T+G9VOHSY6Ymue2z8amR6F1KU=;
-	b=Uhi9syeyAaZi2gHcHty1wphIxYdw6LIdKC0eeiB2ToNI2B3ymL/SRi5PZyPA987e36qfle
-	HrJD7YpcLUVWgrMRgl9y7ttbsnKwX5ppNO8uKJbw2iHyX9ZhBBooPBa/HJey4RnKafc3jw
-	3/Wp1jhFdhjsruGHafLwqEZyW1v30pQ=
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Ljm8bumTyb/4W3KUJ3oIqUfg3wZGMAKiuOFC8bfSc0U=;
+	b=DFBMGL+H8WNR4Lg2f5FkSsfFWsZ2aU5OOUdhg+1tRchz0MAz3CTU+LHDUYBt+VyE/HqaKz
+	vK21T90GjpEfC5UnNylQlYu12YS13dLGrCvl9BVirLxESpdnS9My/LpYLtELDrDk47eMyS
+	Eb0UM+ft5n/uMAUghrKrwVIDApUeOnM=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-353-fJ9H8TuJPLCKuKyZqwwO-w-1; Wed, 04 Mar 2020 11:59:12 -0500
-X-MC-Unique: fJ9H8TuJPLCKuKyZqwwO-w-1
+ us-mta-63-ygJdFtY3NkStZ0nPmlTODw-1; Wed, 04 Mar 2020 11:59:13 -0500
+X-MC-Unique: ygJdFtY3NkStZ0nPmlTODw-1
 Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 61817100550E;
-	Wed,  4 Mar 2020 16:59:11 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 459D3DB65;
+	Wed,  4 Mar 2020 16:59:12 +0000 (UTC)
 Received: from horse.redhat.com (unknown [10.18.25.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 8C9E97388D;
-	Wed,  4 Mar 2020 16:59:03 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 1EF7273893;
+	Wed,  4 Mar 2020 16:59:12 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 334872257D2; Wed,  4 Mar 2020 11:59:03 -0500 (EST)
+	id 78406225814; Wed,  4 Mar 2020 11:59:03 -0500 (EST)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	virtio-fs@redhat.com,
 	miklos@szeredi.hu
-Subject: [PATCH 00/20] virtiofs: Add DAX support
-Date: Wed,  4 Mar 2020 11:58:25 -0500
-Message-Id: <20200304165845.3081-1-vgoyal@redhat.com>
+Subject: [PATCH 14/20] fuse,dax: add DAX mmap support
+Date: Wed,  4 Mar 2020 11:58:39 -0500
+Message-Id: <20200304165845.3081-15-vgoyal@redhat.com>
+In-Reply-To: <20200304165845.3081-1-vgoyal@redhat.com>
+References: <20200304165845.3081-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
-Message-ID-Hash: MOCBHA2HTZCPTLFH6Y3YGOQJZQRJ3NZ5
-X-Message-ID-Hash: MOCBHA2HTZCPTLFH6Y3YGOQJZQRJ3NZ5
+Message-ID-Hash: HFJ2VJXGKYFZO5Q3RRQ5QFGESMCGYSOK
+X-Message-ID-Hash: HFJ2VJXGKYFZO5Q3RRQ5QFGESMCGYSOK
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: stefanha@redhat.com, dgilbert@redhat.com, mst@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MOCBHA2HTZCPTLFH6Y3YGOQJZQRJ3NZ5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HFJ2VJXGKYFZO5Q3RRQ5QFGESMCGYSOK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -79,209 +82,108 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-This patch series adds DAX support to virtiofs filesystem. This allows
-bypassing guest page cache and allows mapping host page cache directly
-in guest address space.
+Add DAX mmap() support.
 
-When a page of file is needed, guest sends a request to map that page
-(in host page cache) in qemu address space. Inside guest this is
-a physical memory range controlled by virtiofs device. And guest
-directly maps this physical address range using DAX and hence gets
-access to file data on host.
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+---
+ fs/fuse/file.c | 62 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 61 insertions(+), 1 deletion(-)
 
-This can speed up things considerably in many situations. Also this
-can result in substantial memory savings as file data does not have
-to be copied in guest and it is directly accessed from host page
-cache.
-
-Most of the changes are limited to fuse/virtiofs. There are couple
-of changes needed in generic dax infrastructure and couple of changes
-in virtio to be able to access shared memory region.
-
-These patches apply on top of 5.6-rc4 and are also available here.
-
-https://github.com/rhvgoyal/linux/commits/vivek-04-march-2020
-
-Any review or feedback is welcome.
-
-Performance
-===========
-I have basically run bunch of fio jobs to get a sense of speed of
-various operations. I wrote a simple wrapper script to run fio jobs
-3 times and take their average and report it. These scripts and fio
-jobs are available here.
-
-https://github.com/rhvgoyal/virtiofs-tests
-
-I set up a directory on ramfs on host and exported that directory inside
-guest using virtio-fs and ran tests inside guests. Ran tests with
-cache=none both with dax enabled and disabled. cache=none option
-enforces no caching happens in guest both for data and metadata.
-
-Test Setup
------------
-- A fedora 29 host with 376Gi RAM, 2 sockets (20 cores per socket, 2
-  threads per core)
-
-- Using ramfs on host as backing store. 4 fio files of 8G each.
-
-- Created a VM with 64 VCPUS and 64GB memory. An 64GB cache window (for dax
-  mmap).
-
-Test Results
-------------
-- Results in two configurations have been reported. 
-  virtio-fs (cache=none) and virtio-fs (cache=none + dax).
-
-  There are other caching modes as well but to me cache=none seemed most
-  interesting for now because it does not cache anything in guest
-  and provides strong coherence. Other modes which provide less strong
-  coherence and hence are faster are yet to be benchmarked.
-
-- Three fio ioengines psync, libaio and mmap have been used.
-
-- I/O Workload of randread, radwrite, seqread and seqwrite have been run.
-
-- Each file size is 8G. Block size 4K. iodepth=16 
-
-- "multi" means same operation was done with 4 jobs and each job is
-  operating on a file of size 8G. 
-
-- Some results are "0 (KiB/s)". That means that particular operation is
-  not supported in that configuration.
-
-NAME                    I/O Operation           BW(Read/Write)
-virtiofs-cache-none     seqread-psync           35(MiB/s)
-virtiofs-cache-none-dax seqread-psync           643(MiB/s)
-
-virtiofs-cache-none     seqread-psync-multi     219(MiB/s)
-virtiofs-cache-none-dax seqread-psync-multi     2132(MiB/s)
-
-virtiofs-cache-none     seqread-mmap            0(KiB/s)
-virtiofs-cache-none-dax seqread-mmap            741(MiB/s)
-
-virtiofs-cache-none     seqread-mmap-multi      0(KiB/s)
-virtiofs-cache-none-dax seqread-mmap-multi      2530(MiB/s)
-
-virtiofs-cache-none     seqread-libaio          293(MiB/s)
-virtiofs-cache-none-dax seqread-libaio          425(MiB/s)
-
-virtiofs-cache-none     seqread-libaio-multi    207(MiB/s)
-virtiofs-cache-none-dax seqread-libaio-multi    1543(MiB/s)
-
-virtiofs-cache-none     randread-psync          36(MiB/s)
-virtiofs-cache-none-dax randread-psync          572(MiB/s)
-
-virtiofs-cache-none     randread-psync-multi    211(MiB/s)
-virtiofs-cache-none-dax randread-psync-multi    1764(MiB/s)
-
-virtiofs-cache-none     randread-mmap           0(KiB/s)
-virtiofs-cache-none-dax randread-mmap           719(MiB/s)
-
-virtiofs-cache-none     randread-mmap-multi     0(KiB/s)
-virtiofs-cache-none-dax randread-mmap-multi     2005(MiB/s)
-
-virtiofs-cache-none     randread-libaio         300(MiB/s)
-virtiofs-cache-none-dax randread-libaio         413(MiB/s)
-
-virtiofs-cache-none     randread-libaio-multi   327(MiB/s)
-virtiofs-cache-none-dax randread-libaio-multi   1326(MiB/s)
-
-virtiofs-cache-none     seqwrite-psync          34(MiB/s)
-virtiofs-cache-none-dax seqwrite-psync          494(MiB/s)
-
-virtiofs-cache-none     seqwrite-psync-multi    223(MiB/s)
-virtiofs-cache-none-dax seqwrite-psync-multi    1680(MiB/s)
-
-virtiofs-cache-none     seqwrite-mmap           0(KiB/s)
-virtiofs-cache-none-dax seqwrite-mmap           1217(MiB/s)
-
-virtiofs-cache-none     seqwrite-mmap-multi     0(KiB/s)
-virtiofs-cache-none-dax seqwrite-mmap-multi     2359(MiB/s)
-
-virtiofs-cache-none     seqwrite-libaio         282(MiB/s)
-virtiofs-cache-none-dax seqwrite-libaio         348(MiB/s)
-
-virtiofs-cache-none     seqwrite-libaio-multi   320(MiB/s)
-virtiofs-cache-none-dax seqwrite-libaio-multi   1255(MiB/s)
-
-virtiofs-cache-none     randwrite-psync         32(MiB/s)
-virtiofs-cache-none-dax randwrite-psync         458(MiB/s)
-
-virtiofs-cache-none     randwrite-psync-multi   213(MiB/s)
-virtiofs-cache-none-dax randwrite-psync-multi   1343(MiB/s)
-
-virtiofs-cache-none     randwrite-mmap          0(KiB/s)
-virtiofs-cache-none-dax randwrite-mmap          663(MiB/s)
-
-virtiofs-cache-none     randwrite-mmap-multi    0(KiB/s)
-virtiofs-cache-none-dax randwrite-mmap-multi    1820(MiB/s)
-
-virtiofs-cache-none     randwrite-libaio        292(MiB/s)
-virtiofs-cache-none-dax randwrite-libaio        341(MiB/s)
-
-virtiofs-cache-none     randwrite-libaio-multi  322(MiB/s)
-virtiofs-cache-none-dax randwrite-libaio-multi  1094(MiB/s)
-
-Conclusion
-===========
-- virtio-fs with dax enabled is significantly faster and memory
-  effiecient as comapred to non-dax operation.
-
-Note:
-  Right now dax window is 64G and max fio file size is 32G as well (4
-  files of 8G each). That means everything fits into dax window and no
-  reclaim is needed. Dax window reclaim logic is slower and if file
-  size is bigger than dax window size, performance slows down.
-
-Thanks
-Vivek
-
-Sebastien Boeuf (3):
-  virtio: Add get_shm_region method
-  virtio: Implement get_shm_region for PCI transport
-  virtio: Implement get_shm_region for MMIO transport
-
-Stefan Hajnoczi (2):
-  virtio_fs, dax: Set up virtio_fs dax_device
-  fuse,dax: add DAX mmap support
-
-Vivek Goyal (15):
-  dax: Modify bdev_dax_pgoff() to handle NULL bdev
-  dax: Create a range version of dax_layout_busy_page()
-  virtiofs: Provide a helper function for virtqueue initialization
-  fuse: Get rid of no_mount_options
-  fuse,virtiofs: Add a mount option to enable dax
-  fuse,virtiofs: Keep a list of free dax memory ranges
-  fuse: implement FUSE_INIT map_alignment field
-  fuse: Introduce setupmapping/removemapping commands
-  fuse, dax: Implement dax read/write operations
-  fuse, dax: Take ->i_mmap_sem lock during dax page fault
-  fuse,virtiofs: Define dax address space operations
-  fuse,virtiofs: Maintain a list of busy elements
-  fuse: Release file in process context
-  fuse: Take inode lock for dax inode truncation
-  fuse,virtiofs: Add logic to free up a memory range
-
- drivers/dax/super.c                |    3 +-
- drivers/virtio/virtio_mmio.c       |   32 +
- drivers/virtio/virtio_pci_modern.c |  107 +++
- fs/dax.c                           |   66 +-
- fs/fuse/dir.c                      |    2 +
- fs/fuse/file.c                     | 1162 +++++++++++++++++++++++++++-
- fs/fuse/fuse_i.h                   |  109 ++-
- fs/fuse/inode.c                    |  148 +++-
- fs/fuse/virtio_fs.c                |  250 +++++-
- include/linux/dax.h                |    6 +
- include/linux/virtio_config.h      |   17 +
- include/uapi/linux/fuse.h          |   42 +-
- include/uapi/linux/virtio_fs.h     |    3 +
- include/uapi/linux/virtio_mmio.h   |   11 +
- include/uapi/linux/virtio_pci.h    |   11 +-
- 15 files changed, 1888 insertions(+), 81 deletions(-)
-
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 9effdd3dc6d6..303496e6617f 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -2870,10 +2870,15 @@ static const struct vm_operations_struct fuse_file_vm_ops = {
+ 	.page_mkwrite	= fuse_page_mkwrite,
+ };
+ 
++static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma);
+ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct fuse_file *ff = file->private_data;
+ 
++	/* DAX mmap is superior to direct_io mmap */
++	if (IS_DAX(file_inode(file)))
++		return fuse_dax_mmap(file, vma);
++
+ 	if (ff->open_flags & FOPEN_DIRECT_IO) {
+ 		/* Can't provide the coherency needed for MAP_SHARED */
+ 		if (vma->vm_flags & VM_MAYSHARE)
+@@ -2892,9 +2897,63 @@ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return 0;
+ }
+ 
++static vm_fault_t __fuse_dax_fault(struct vm_fault *vmf,
++				   enum page_entry_size pe_size, bool write)
++{
++	vm_fault_t ret;
++	struct inode *inode = file_inode(vmf->vma->vm_file);
++	struct super_block *sb = inode->i_sb;
++	pfn_t pfn;
++
++	if (write)
++		sb_start_pagefault(sb);
++
++	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
++
++	if (ret & VM_FAULT_NEEDDSYNC)
++		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
++
++	if (write)
++		sb_end_pagefault(sb);
++
++	return ret;
++}
++
++static vm_fault_t fuse_dax_fault(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE,
++				vmf->flags & FAULT_FLAG_WRITE);
++}
++
++static vm_fault_t fuse_dax_huge_fault(struct vm_fault *vmf,
++			       enum page_entry_size pe_size)
++{
++	return __fuse_dax_fault(vmf, pe_size, vmf->flags & FAULT_FLAG_WRITE);
++}
++
++static vm_fault_t fuse_dax_page_mkwrite(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
++}
++
++static vm_fault_t fuse_dax_pfn_mkwrite(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
++}
++
++static const struct vm_operations_struct fuse_dax_vm_ops = {
++	.fault		= fuse_dax_fault,
++	.huge_fault	= fuse_dax_huge_fault,
++	.page_mkwrite	= fuse_dax_page_mkwrite,
++	.pfn_mkwrite	= fuse_dax_pfn_mkwrite,
++};
++
+ static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	return -EINVAL; /* TODO */
++	file_accessed(file);
++	vma->vm_ops = &fuse_dax_vm_ops;
++	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	return 0;
+ }
+ 
+ static int convert_fuse_file_lock(struct fuse_conn *fc,
+@@ -3940,6 +3999,7 @@ static const struct file_operations fuse_file_operations = {
+ 	.release	= fuse_release,
+ 	.fsync		= fuse_fsync,
+ 	.lock		= fuse_file_lock,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.flock		= fuse_file_flock,
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
 -- 
 2.20.1
 _______________________________________________
