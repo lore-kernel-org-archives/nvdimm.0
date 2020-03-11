@@ -2,174 +2,109 @@ Return-Path: <SRS0=6hgB=44=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A3FC10F27
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 07:03:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FC8AC10F29
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 11:20:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A0E252146E
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 07:03:59 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rd8rhWCg"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A0E252146E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id 51107208E4
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 11:20:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 51107208E4
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 934D110FC36EA;
-	Wed, 11 Mar 2020 00:04:50 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::d43; helo=mail-io1-xd43.google.com; envelope-from=amir73il@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 2713810FC36EA;
+	Wed, 11 Mar 2020 04:21:15 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DF27A10FC36E5
-	for <linux-nvdimm@lists.01.org>; Wed, 11 Mar 2020 00:04:46 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id m25so810233ioo.8
-        for <linux-nvdimm@lists.01.org>; Wed, 11 Mar 2020 00:03:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=8hb6iJ/Efn6V2wxOcA+ehqPLCrGm2i7aFEcinNiAwTg=;
-        b=rd8rhWCgH//f6swHt00TfU44oSyrPrCf9zNhKCp43xO5/c/lia8gyyB94BWGxKw6yV
-         QOm0DqL9P4U5T2uB6Inj7XI/UlbsEfDNG3do1rbezI/44mNdmxVEQCDVkll8kGrYaAts
-         AnQLHHVMbGjbmGMLgv1f/s/a2ayaX6Up7a8Mk/4/8kxlP++P1jSBtRfGYdv1fszrCbxB
-         J4YKst/ZXrjqvQcelfdiL548nQVPzdxVY02bdopH9Vz+v97xEl+GHknDNi4r2tcrPYJy
-         YXna9QlT8wDB2bvqb0c0qdd8LBkPPhhTwJblfNdloF3Yaj4tR2lznGCBm/Z0Trm4sqID
-         A62Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=8hb6iJ/Efn6V2wxOcA+ehqPLCrGm2i7aFEcinNiAwTg=;
-        b=Xb04yKSBt4RYwNgHY1gdkplm3qMH9SIpw9s1KXX2b2LBB6HjoUudltvdJrpe/qdZ3F
-         zmdKI9jQK7Yyez/rDS/8ECcCga5jSsN31gP+RzvOp5lo/XZSA4IUnWFH4B5sHVz6ml/r
-         B5V/YUal9nfPyOQXAso8nzGuPNyaT73/He1jM1T1Hw8AfvevymsbNOoOhd/ZkJpxqmaF
-         odEUQlorcHxTxVs+AJomJdfa/gbunQOVpdBP1vSqIl7bk1jrVFicZzy4AbYQjWDX9MgX
-         A7aQyElosXgKLiund5dcYSLCtuE+ZNt42RRLAr10l/TtXN7OtWAX/bhSLpniWaxFpC3B
-         cC7g==
-X-Gm-Message-State: ANhLgQ08gep9lhBiec2CZt6K+DNR+A2QR++a0S5TZirz+i8uG7m8A4ZX
-	0ZXiIRfuEJ4IJ/xZkTj44L7pVlhuMgnPidtpQvE=
-X-Google-Smtp-Source: ADFU+vsVx9UgJ7cAQ6SG+cvSpbW4652fcOa7BWrz3sf2jEUSFhkJmAIC862rB5+gVmJyC7VWx0RpfWNz15LQu2ii7R0=
-X-Received: by 2002:a6b:f718:: with SMTP id k24mr1627720iog.186.1583910234416;
- Wed, 11 Mar 2020 00:03:54 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 1F08610FC36E6
+	for <linux-nvdimm@lists.01.org>; Wed, 11 Mar 2020 04:21:12 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+	by mx2.suse.de (Postfix) with ESMTP id B7121AED2;
+	Wed, 11 Mar 2020 11:20:18 +0000 (UTC)
+Subject: Re: [PATCH v3] block: refactor duplicated macros
+To: Matteo Croce <mcroce@redhat.com>
+References: <20200311002254.121365-1-mcroce@redhat.com>
+From: Coly Li <colyli@suse.de>
+Organization: SUSE Labs
+Message-ID: <89925759-cbc1-e8f0-b9b3-23fd062ebbcd@suse.de>
+Date: Wed, 11 Mar 2020 19:20:11 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
+ Gecko/20100101 Thunderbird/68.5.0
 MIME-Version: 1.0
-References: <20200304165845.3081-1-vgoyal@redhat.com> <20200304165845.3081-13-vgoyal@redhat.com>
- <CAJfpeguY8gDYVp_q3-W6JNA24zCry+SfWmEW2zuHLQLhmyUB3Q@mail.gmail.com> <20200310203321.GF38440@redhat.com>
-In-Reply-To: <20200310203321.GF38440@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 11 Mar 2020 09:03:42 +0200
-Message-ID: <CAOQ4uxh2WdLdbcMp+qvQCX2hiBx+hLO1z5wkZtc-7GCuDdsthw@mail.gmail.com>
-Subject: Re: [PATCH 12/20] fuse: Introduce setupmapping/removemapping commands
-To: Vivek Goyal <vgoyal@redhat.com>
-Message-ID-Hash: HHANEB3YLZY26O7JV66AMOPV24IVG3LC
-X-Message-ID-Hash: HHANEB3YLZY26O7JV66AMOPV24IVG3LC
-X-MailFrom: amir73il@gmail.com
+In-Reply-To: <20200311002254.121365-1-mcroce@redhat.com>
+Content-Language: en-US
+Message-ID-Hash: FVEN6AFY7A4G72SO6OBDY2KQSG6XFZI6
+X-Message-ID-Hash: FVEN6AFY7A4G72SO6OBDY2KQSG6XFZI6
+X-MailFrom: colyli@suse.de
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Peng Tao <tao.peng@linux.alibaba.com>
+CC: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, xen-devel@lists.xenproject.org, linux-scsi@vger.kernel.org, linux-nfs@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.ibm.com>, Ulf Hansson <ulf.hansson@linaro.org>, Anna Schumaker <anna.schumaker@netapp.com>, Song Liu <song@kernel.org>, Guoqing Jiang <guoqing.jiang@cloud.ionos.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HHANEB3YLZY26O7JV66AMOPV24IVG3LC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FVEN6AFY7A4G72SO6OBDY2KQSG6XFZI6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Tue, Mar 10, 2020 at 10:34 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Tue, Mar 10, 2020 at 08:49:49PM +0100, Miklos Szeredi wrote:
-> > On Wed, Mar 4, 2020 at 5:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > >
-> > > Introduce two new fuse commands to setup/remove memory mappings. This
-> > > will be used to setup/tear down file mapping in dax window.
-> > >
-> > > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > > Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
-> > > ---
-> > >  include/uapi/linux/fuse.h | 37 +++++++++++++++++++++++++++++++++++++
-> > >  1 file changed, 37 insertions(+)
-> > >
-> > > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-> > > index 5b85819e045f..62633555d547 100644
-> > > --- a/include/uapi/linux/fuse.h
-> > > +++ b/include/uapi/linux/fuse.h
-> > > @@ -894,4 +894,41 @@ struct fuse_copy_file_range_in {
-> > >         uint64_t        flags;
-> > >  };
-> > >
-> > > +#define FUSE_SETUPMAPPING_ENTRIES 8
-> > > +#define FUSE_SETUPMAPPING_FLAG_WRITE (1ull << 0)
-> > > +struct fuse_setupmapping_in {
-> > > +       /* An already open handle */
-> > > +       uint64_t        fh;
-> > > +       /* Offset into the file to start the mapping */
-> > > +       uint64_t        foffset;
-> > > +       /* Length of mapping required */
-> > > +       uint64_t        len;
-> > > +       /* Flags, FUSE_SETUPMAPPING_FLAG_* */
-> > > +       uint64_t        flags;
-> > > +       /* Offset in Memory Window */
-> > > +       uint64_t        moffset;
-> > > +};
-> > > +
-> > > +struct fuse_setupmapping_out {
-> > > +       /* Offsets into the cache of mappings */
-> > > +       uint64_t        coffset[FUSE_SETUPMAPPING_ENTRIES];
-> > > +        /* Lengths of each mapping */
-> > > +        uint64_t       len[FUSE_SETUPMAPPING_ENTRIES];
-> > > +};
-> >
-> > fuse_setupmapping_out together with FUSE_SETUPMAPPING_ENTRIES seem to be unused.
->
-> This looks like leftover from the old code. I will get rid of it. Thanks.
->
-
-Hmm. I wonder if we should keep some out args for future extensions.
-Maybe return the mapped size even though it is all or nothing at this
-point?
-
-I have interest in a similar FUSE mapping functionality that was prototyped
-by Miklos and published here:
-https://lore.kernel.org/linux-fsdevel/CAJfpegtjEoE7H8tayLaQHG9fRSBiVuaspnmPr2oQiOZXVB1+7g@mail.gmail.com/
-
-In this prototype, a FUSE_MAP command is used by the server to map a
-range of file to the kernel for io. The command in args are quite similar to
-those in fuse_setupmapping_in, but since the server is on the same host,
-the mapping response is {mapfd, offset, size}.
-
-I wonder, if we decide to go forward with this prototype (and I may well decide
-to drive this forward), should the new command be overloading
-FUSE_SETUPMAPPING, by using new flags or should it be a new
-command? In either case, I think it would be best to try and make a decision
-now in order to avoid ambiguity with protocol command/flag names later on.
-
-If we decide that those are completely different beasts and it is agreed that
-the future command will be named, for example, FUSE_SETUPIOMAP
-with different arguments and that this naming will not create confusion and
-ambiguity with FUSE_SETUPMAPPING, then there is no actionable item at
-this time.
-
-But it is possible that there is something to gain from using the same
-command(?) and same book keeping mechanism for both types of
-mappings. Even server on same host could decide that it wants
-to map some file regions via mmap and some via iomap.
-In that case, perhaps we should make the FUSE_SETUPMAPPING
-response args expressive enough to be able to express an iomap
-mapping in the future and perhaps dax code should explicitly request
-for FUSE_SETUPMAPPING_FLAG_DAX mapping type?
-
-Thoughts?
-
-Amir.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+T24gMjAyMC8zLzExIDg6MjIg5LiK5Y2ILCBNYXR0ZW8gQ3JvY2Ugd3JvdGU6DQo+IFRoZSBtYWNy
+b3MgUEFHRV9TRUNUT1JTLCBQQUdFX1NFQ1RPUlNfU0hJRlQgYW5kIFNFQ1RPUl9NQVNLIGFyZSBk
+ZWZpbmVkDQo+IHNldmVyYWwgdGltZXMgaW4gZGlmZmVyZW50IGZsYXZvdXJzIGFjcm9zcyB0aGUg
+d2hvbGUgdHJlZS4NCj4gRGVmaW5lIHRoZW0ganVzdCBvbmNlIGluIGEgY29tbW9uIGhlYWRlci4N
+Cj4gDQo+IFdoaWxlIGF0IGl0LCByZXBsYWNlIHJlcGxhY2UgIlBBR0VfU0hJRlQgLSA5IiB3aXRo
+ICJQQUdFX1NFQ1RPUlNfU0hJRlQiIHRvbw0KPiBhbmQgcmVuYW1lIFNFQ1RPUl9NQVNLIHRvIFBB
+R0VfU0VDVE9SU19NQVNLLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWF0dGVvIENyb2NlIDxtY3Jv
+Y2VAcmVkaGF0LmNvbT4NCg0KSGkgTWF0dGVvLA0KDQpGb3IgdGhlIGJjYWNoZSBwYXJ0LCBpdCBs
+b29rcyBnb29kIHRvIG1lLg0KDQpBY2tlZC1ieTogQ29seSBMaSA8Y29seWxpQHN1c2UuZGU+DQoN
+Cj4gLS0tDQo+IHYzOg0KPiBBcyBHdW9xaW5nIEppYW5nIHN1Z2dlc3RlZCwgcmVwbGFjZSAiUEFH
+RV9TSElGVCAtIDkiIHdpdGggIlBBR0VfU0VDVE9SU19TSElGVCINCj4gDQo+IHYyOg0KPiBBcyBE
+YW4gV2lsbGlhbXMgc3VnZ2VzdGVkOg0KPiANCj4gICNkZWZpbmUgUEFHRV9TRUNUT1JTX01BU0sg
+ICAgICAgICAgICAofihQQUdFX1NFQ1RPUlMgLSAxKSkNCj4gDQo+ICBibG9jay9ibGstbGliLmMg
+ICAgICAgICAgICAgICAgICB8ICAyICstDQo+ICBibG9jay9ibGstc2V0dGluZ3MuYyAgICAgICAg
+ICAgICB8ICA0ICsrLS0NCj4gIGJsb2NrL3BhcnRpdGlvbi1nZW5lcmljLmMgICAgICAgIHwgIDIg
+Ky0NCj4gIGRyaXZlcnMvYmxvY2svYnJkLmMgICAgICAgICAgICAgIHwgIDMgLS0tDQo+ICBkcml2
+ZXJzL2Jsb2NrL251bGxfYmxrX21haW4uYyAgICB8IDE0ICsrKysrLS0tLS0tLS0tDQo+ICBkcml2
+ZXJzL2Jsb2NrL3pyYW0venJhbV9kcnYuYyAgICB8ICA4ICsrKystLS0tDQo+ICBkcml2ZXJzL2Js
+b2NrL3pyYW0venJhbV9kcnYuaCAgICB8ICAyIC0tDQo+ICBkcml2ZXJzL2RheC9zdXBlci5jICAg
+ICAgICAgICAgICB8ICAyICstDQo+ICBkcml2ZXJzL21kL2JjYWNoZS91dGlsLmggICAgICAgICB8
+ICAyIC0tDQo+ICBkcml2ZXJzL21kL2RtLWJ1ZmlvLmMgICAgICAgICAgICB8ICA2ICsrKy0tLQ0K
+PiAgZHJpdmVycy9tZC9kbS1pbnRlZ3JpdHkuYyAgICAgICAgfCAxMCArKysrKy0tLS0tDQo+ICBk
+cml2ZXJzL21kL2RtLXRhYmxlLmMgICAgICAgICAgICB8ICAyICstDQo+ICBkcml2ZXJzL21kL21k
+LmMgICAgICAgICAgICAgICAgICB8ICA0ICsrLS0NCj4gIGRyaXZlcnMvbWQvcmFpZDEuYyAgICAg
+ICAgICAgICAgIHwgIDIgKy0NCj4gIGRyaXZlcnMvbWQvcmFpZDEwLmMgICAgICAgICAgICAgIHwg
+IDIgKy0NCj4gIGRyaXZlcnMvbWQvcmFpZDUtY2FjaGUuYyAgICAgICAgIHwgMTAgKysrKystLS0t
+LQ0KPiAgZHJpdmVycy9tZC9yYWlkNS5oICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgZHJpdmVy
+cy9tbWMvY29yZS9ob3N0LmMgICAgICAgICAgfCAgMyArKy0NCj4gIGRyaXZlcnMvbnZtZS9ob3N0
+L2ZjLmMgICAgICAgICAgIHwgIDIgKy0NCj4gIGRyaXZlcnMvbnZtZS90YXJnZXQvbG9vcC5jICAg
+ICAgIHwgIDIgKy0NCj4gIGRyaXZlcnMvc2NzaS94ZW4tc2NzaWZyb250LmMgICAgIHwgIDQgKyst
+LQ0KPiAgZnMvZXJvZnMvaW50ZXJuYWwuaCAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgZnMvZXh0
+Mi9kaXIuYyAgICAgICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgZnMvaW9tYXAvYnVmZmVyZWQt
+aW8uYyAgICAgICAgICAgfCAgMiArLQ0KPiAgZnMvbGliZnMuYyAgICAgICAgICAgICAgICAgICAg
+ICAgfCAgMiArLQ0KPiAgZnMvbmZzL2Jsb2NrbGF5b3V0L2Jsb2NrbGF5b3V0LmggfCAgMiAtLQ0K
+PiAgZnMvbmlsZnMyL2Rpci5jICAgICAgICAgICAgICAgICAgfCAgMiArLQ0KPiAgaW5jbHVkZS9s
+aW51eC9ibGtkZXYuaCAgICAgICAgICAgfCAgNCArKysrDQo+ICBpbmNsdWRlL2xpbnV4L2Rldmlj
+ZS1tYXBwZXIuaCAgICB8ICAxIC0NCj4gIG1tL3BhZ2VfaW8uYyAgICAgICAgICAgICAgICAgICAg
+IHwgIDQgKystLQ0KPiAgbW0vc3dhcGZpbGUuYyAgICAgICAgICAgICAgICAgICAgfCAxMiArKysr
+KystLS0tLS0NCj4gIDMxIGZpbGVzIGNoYW5nZWQsIDU2IGluc2VydGlvbnMoKyksIDY1IGRlbGV0
+aW9ucygtKQ0KPiANCg0KW3NuaXBwZWRdDQoNCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWQvYmNh
+Y2hlL3V0aWwuaCBiL2RyaXZlcnMvbWQvYmNhY2hlL3V0aWwuaA0KPiBpbmRleCBjMDI5Zjc0NDMx
+OTAuLjU1MTk2ZTBmMzdjMyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZC9iY2FjaGUvdXRpbC5o
+DQo+ICsrKyBiL2RyaXZlcnMvbWQvYmNhY2hlL3V0aWwuaA0KPiBAQCAtMTUsOCArMTUsNiBAQA0K
+PiAgDQo+ICAjaW5jbHVkZSAiY2xvc3VyZS5oIg0KPiAgDQo+IC0jZGVmaW5lIFBBR0VfU0VDVE9S
+UwkJKFBBR0VfU0laRSAvIDUxMikNCj4gLQ0KPiAgc3RydWN0IGNsb3N1cmU7DQo+ICANCj4gICNp
+ZmRlZiBDT05GSUdfQkNBQ0hFX0RFQlVHDQoNCltzbmlwcGVkXQ0KDQoNCi0tIA0KDQpDb2x5IExp
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNj
+cmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
