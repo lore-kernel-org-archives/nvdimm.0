@@ -2,190 +2,131 @@ Return-Path: <SRS0=6hgB=44=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 494D0C10F29
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 15:12:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6369AC10F27
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 03:38:51 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 81C77206E7
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 15:12:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="LPUXGEF5"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 81C77206E7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=szeredi.hu
+	by mail.kernel.org (Postfix) with ESMTPS id 4022C22525
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Mar 2020 03:38:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4022C22525
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=au1.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E325510FC36F4;
-	Wed, 11 Mar 2020 08:13:20 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::d41; helo=mail-io1-xd41.google.com; envelope-from=miklos@szeredi.hu; receiver=<UNKNOWN> 
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 292D610FC36CC;
+	Tue, 10 Mar 2020 20:39:42 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=alastair@au1.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7D7B310FC3520
-	for <linux-nvdimm@lists.01.org>; Wed, 11 Mar 2020 08:13:18 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id h8so2269859iob.2
-        for <linux-nvdimm@lists.01.org>; Wed, 11 Mar 2020 08:12:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=zDINA0vZuHEOMHgRG8O8q8Cv6r3DuQRO69eZhFF5eEI=;
-        b=LPUXGEF5amYOBlrop1rcjSx8ZchMVTTL0Q8j/pP8BHayJceQuBOOq8WUjqMDAPx895
-         9IIyKqEalpT/MkO9z+NdQ49IQUNX1zj6RNQIdOLxH8Ewy+cMoKO32n73pUaLUprt9QaW
-         PJp5aNh7zDbiZn+7g0tDB0pJIQuBIRNfXjjoA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=zDINA0vZuHEOMHgRG8O8q8Cv6r3DuQRO69eZhFF5eEI=;
-        b=DstOZmCWo6fPZqlYQP7lw0HoiLz5TidgRuHKMQmaziy2bj0wBkEkVIJPlmy2JjL3y6
-         o3bqRXKtMpottVVMEnM6RoLO5wRM2fXWz6t+BSQ1/Zty3z7zhEaGGcROnKKSDHNa5L+o
-         w+UAe0i9o41Uqr7HLcnkZd4G8tDiG8IXE3Vpxn8S3YnOiUkZphw/Fjx/idAQHs1c9Fj/
-         Y7aixfySoyLpvvYn/6SyqYhlUlzFshJ0EJrGEh0GqiD1ONEN1vQ+YeDDuhWWC1rSke0A
-         lerWXEHfbMrS5w3AiDH21OYCEgInDqQMiCl3qF8eX2F3r0alxFHbqAbm7VPiliuMeILZ
-         hmQw==
-X-Gm-Message-State: ANhLgQ1DDq0aWuLSw8/4mThJfHMGEQKMZ3qZRc21qcAtS1UXVt6GkBRH
-	XUBjAFrYxw6O7+K0M6CwiEbnuAaGXU5yIJpiXWq+CVrR
-X-Google-Smtp-Source: ADFU+vvcCJuciXit7oxjlwuLQPMyjyQkvi+E6T6WbAs28DGpKmuWEM2zqBlhtPKMYLB1eY3XtFE56zv57fsgFipCP3s=
-X-Received: by 2002:a6b:9386:: with SMTP id v128mr3374290iod.15.1583939546534;
- Wed, 11 Mar 2020 08:12:26 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 1D6D810FC36C9
+	for <linux-nvdimm@lists.01.org>; Tue, 10 Mar 2020 20:39:40 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 02B3TM0D167904
+	for <linux-nvdimm@lists.01.org>; Tue, 10 Mar 2020 23:38:48 -0400
+Received: from e06smtp05.uk.ibm.com (e06smtp05.uk.ibm.com [195.75.94.101])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 2yppv230xx-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Tue, 10 Mar 2020 23:38:48 -0400
+Received: from localhost
+	by e06smtp05.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <alastair@au1.ibm.com>;
+	Wed, 11 Mar 2020 03:38:45 -0000
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (9.149.109.194)
+	by e06smtp05.uk.ibm.com (192.168.101.135) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Wed, 11 Mar 2020 03:38:38 -0000
+Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 02B3cbIQ25952406
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 11 Mar 2020 03:38:37 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2237242041;
+	Wed, 11 Mar 2020 03:38:37 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id BAE7D4203F;
+	Wed, 11 Mar 2020 03:38:36 +0000 (GMT)
+Received: from ozlabs.au.ibm.com (unknown [9.192.253.14])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Wed, 11 Mar 2020 03:38:36 +0000 (GMT)
+Received: from adsilva.ozlabs.ibm.com (haven.au.ibm.com [9.192.254.114])
+	(using TLSv1.2 with cipher AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ozlabs.au.ibm.com (Postfix) with ESMTPSA id 97549A0130;
+	Wed, 11 Mar 2020 14:38:31 +1100 (AEDT)
+Subject: Re: [PATCH v3 21/27] powerpc/powernv/pmem: Add an IOCTL to request
+ controller health & perf data
+From: "Alastair D'Silva" <alastair@au1.ibm.com>
+To: Frederic Barrat <fbarrat@linux.ibm.com>,
+        Andrew Donnellan
+	 <ajd@linux.ibm.com>
+Date: Wed, 11 Mar 2020 14:38:35 +1100
+In-Reply-To: <3ecb49e3-8828-ab7b-4391-5dd6127e76e0@linux.ibm.com>
+References: <20200221032720.33893-1-alastair@au1.ibm.com>
+	 <20200221032720.33893-22-alastair@au1.ibm.com>
+	 <fdc5faec-d03d-3cba-4a9c-add7e522ad13@linux.ibm.com>
+	 <3ecb49e3-8828-ab7b-4391-5dd6127e76e0@linux.ibm.com>
+Organization: IBM Australia
+User-Agent: Evolution 3.34.4 (3.34.4-1.fc31) 
 MIME-Version: 1.0
-References: <20200304165845.3081-1-vgoyal@redhat.com> <20200304165845.3081-13-vgoyal@redhat.com>
- <CAJfpeguY8gDYVp_q3-W6JNA24zCry+SfWmEW2zuHLQLhmyUB3Q@mail.gmail.com>
- <20200310203321.GF38440@redhat.com> <CAOQ4uxh2WdLdbcMp+qvQCX2hiBx+hLO1z5wkZtc-7GCuDdsthw@mail.gmail.com>
- <CAJfpeguwqEsPLtph73AG7bhm1Dp4ahyJtyW=Ud7L-OFwyEmwWg@mail.gmail.com> <20200311144124.GB83257@redhat.com>
-In-Reply-To: <20200311144124.GB83257@redhat.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Wed, 11 Mar 2020 16:12:15 +0100
-Message-ID: <CAJfpegvTo=FX5y+8R3hdkv6mOTAUQgg9qmzvL5oStddFW0OBgg@mail.gmail.com>
-Subject: Re: [PATCH 12/20] fuse: Introduce setupmapping/removemapping commands
-To: Vivek Goyal <vgoyal@redhat.com>
-Message-ID-Hash: JVRDTF2KT7PYQ6RCSUW5ZMKD4RMHYYSM
-X-Message-ID-Hash: JVRDTF2KT7PYQ6RCSUW5ZMKD4RMHYYSM
-X-MailFrom: miklos@szeredi.hu
+X-TM-AS-GCONF: 00
+x-cbid: 20031103-0020-0000-0000-000003B288B6
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20031103-0021-0000-0000-0000220AD6ED
+Message-Id: <97d52eefea5f362fee47e378a3e7ae51d565b291.camel@au1.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.572
+ definitions=2020-03-10_17:2020-03-10,2020-03-10 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ suspectscore=0 adultscore=0 spamscore=0 mlxlogscore=571 malwarescore=0
+ clxscore=1015 priorityscore=1501 mlxscore=0 impostorscore=0 phishscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2001150001 definitions=main-2003110020
+Message-ID-Hash: U75TLRKB62QO46XFU6GVBTFEYYETQJG3
+X-Message-ID-Hash: U75TLRKB62QO46XFU6GVBTFEYYETQJG3
+X-MailFrom: alastair@au1.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Amir Goldstein <amir73il@gmail.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Peng Tao <tao.peng@linux.alibaba.com>
+CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?ISO-8859-1?Q?C=E9dric?= Le Goater <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lis
+ ts.01.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JVRDTF2KT7PYQ6RCSUW5ZMKD4RMHYYSM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/U75TLRKB62QO46XFU6GVBTFEYYETQJG3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Wed, Mar 11, 2020 at 3:41 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Wed, Mar 11, 2020 at 03:19:18PM +0100, Miklos Szeredi wrote:
-> > On Wed, Mar 11, 2020 at 8:03 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> > >
-> > > On Tue, Mar 10, 2020 at 10:34 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > >
-> > > > On Tue, Mar 10, 2020 at 08:49:49PM +0100, Miklos Szeredi wrote:
-> > > > > On Wed, Mar 4, 2020 at 5:59 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > > > >
-> > > > > > Introduce two new fuse commands to setup/remove memory mappings. This
-> > > > > > will be used to setup/tear down file mapping in dax window.
-> > > > > >
-> > > > > > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > > > > > Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
-> > > > > > ---
-> > > > > >  include/uapi/linux/fuse.h | 37 +++++++++++++++++++++++++++++++++++++
-> > > > > >  1 file changed, 37 insertions(+)
-> > > > > >
-> > > > > > diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
-> > > > > > index 5b85819e045f..62633555d547 100644
-> > > > > > --- a/include/uapi/linux/fuse.h
-> > > > > > +++ b/include/uapi/linux/fuse.h
-> > > > > > @@ -894,4 +894,41 @@ struct fuse_copy_file_range_in {
-> > > > > >         uint64_t        flags;
-> > > > > >  };
-> > > > > >
-> > > > > > +#define FUSE_SETUPMAPPING_ENTRIES 8
-> > > > > > +#define FUSE_SETUPMAPPING_FLAG_WRITE (1ull << 0)
-> > > > > > +struct fuse_setupmapping_in {
-> > > > > > +       /* An already open handle */
-> > > > > > +       uint64_t        fh;
-> > > > > > +       /* Offset into the file to start the mapping */
-> > > > > > +       uint64_t        foffset;
-> > > > > > +       /* Length of mapping required */
-> > > > > > +       uint64_t        len;
-> > > > > > +       /* Flags, FUSE_SETUPMAPPING_FLAG_* */
-> > > > > > +       uint64_t        flags;
-> > > > > > +       /* Offset in Memory Window */
-> > > > > > +       uint64_t        moffset;
-> > > > > > +};
-> > > > > > +
-> > > > > > +struct fuse_setupmapping_out {
-> > > > > > +       /* Offsets into the cache of mappings */
-> > > > > > +       uint64_t        coffset[FUSE_SETUPMAPPING_ENTRIES];
-> > > > > > +        /* Lengths of each mapping */
-> > > > > > +        uint64_t       len[FUSE_SETUPMAPPING_ENTRIES];
-> > > > > > +};
-> > > > >
-> > > > > fuse_setupmapping_out together with FUSE_SETUPMAPPING_ENTRIES seem to be unused.
-> > > >
-> > > > This looks like leftover from the old code. I will get rid of it. Thanks.
-> > > >
-> > >
-> > > Hmm. I wonder if we should keep some out args for future extensions.
-> > > Maybe return the mapped size even though it is all or nothing at this
-> > > point?
-> > >
-> > > I have interest in a similar FUSE mapping functionality that was prototyped
-> > > by Miklos and published here:
-> > > https://lore.kernel.org/linux-fsdevel/CAJfpegtjEoE7H8tayLaQHG9fRSBiVuaspnmPr2oQiOZXVB1+7g@mail.gmail.com/
-> > >
-> > > In this prototype, a FUSE_MAP command is used by the server to map a
-> > > range of file to the kernel for io. The command in args are quite similar to
-> > > those in fuse_setupmapping_in, but since the server is on the same host,
-> > > the mapping response is {mapfd, offset, size}.
-> >
-> > Right.  So the difference is in which entity allocates the mapping.
-> > IOW whether the {fd, offset, size} is input or output in the protocol.
-> >
-> > I don't remember the reasons for going with the mapping being
-> > allocated by the client, not the other way round.   Vivek?
->
-> I think one of the main reasons is memory reclaim. Once all ranges in
-> a cache range are allocated, we need to free a memory range which can be
-> reused. And client has all the logic to free up that range so that it can
-> be remapped and reused for a different file/offset. Server will not know
-> any of this. So I will think that for virtiofs, server might not be
-> able to decide where to map a section of file and it has to be told
-> explicitly by the client.
-
-Okay.
-
-> >
-> > If the allocation were to be by the server, we could share the request
-> > type and possibly some code between the two, although the I/O
-> > mechanism would still be different.
-> >
->
-> So input parameters of both FUSE_SETUPMAPPING and FUSE_MAP seem
-> similar (except the moffset field).  Given output of FUSE_MAP reqeust
-> is very different, I would think it will be easier to have it as a
-> separate command.
->
-> Or can it be some sort of optional output args which can differentiate
-> between two types of requests.
->
-> /me personally finds it simpler to have separate command instead of
-> overloading FUSE_SETUPMAPPING. But its your call. :-)
-
-I too prefer a separate request type.
-
-Thanks,
-Miklos
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+T24gV2VkLCAyMDIwLTAzLTA0IGF0IDEyOjA2ICswMTAwLCBGcmVkZXJpYyBCYXJyYXQgd3JvdGU6
+DQo+IA0KPiBMZSAyOC8wMi8yMDIwIMOgIDA3OjEyLCBBbmRyZXcgRG9ubmVsbGFuIGEgw6ljcml0
+IDoNCj4gPiBPbiAyMS8yLzIwIDI6MjcgcG0sIEFsYXN0YWlyIEQnU2lsdmEgd3JvdGU6DQo+ID4g
+PiBGcm9tOiBBbGFzdGFpciBEJ1NpbHZhIDxhbGFzdGFpckBkLXNpbHZhLm9yZz4NCj4gPiA+IA0K
+PiA+ID4gV2hlbiBoZWFsdGggJiBwZXJmb3JtYW5jZSBkYXRhIGlzIHJlcXVlc3RlZCBmcm9tIHRo
+ZSBjb250cm9sbGVyLA0KPiA+ID4gaXQgcmVzcG9uZHMgd2l0aCBhbiBlcnJvciBsb2cgY29udGFp
+bmluZyB0aGUgcmVxdWVzdGVkDQo+ID4gPiBpbmZvcm1hdGlvbi4NCj4gPiA+IA0KPiA+ID4gVGhp
+cyBwYXRjaCBhbGxvd3MgdGhlIHJlcXVlc3QgdG8gbWUgaXNzdWVkIHZpYSBhbiBJT0NUTC4NCj4g
+PiANCj4gPiBBIGJldHRlciBleHBsYW5hdGlvbiB3b3VsZCBiZSBnb29kIC0gdGhpcyBJT0NUTCB0
+cmlnZ2VycyBhIHJlcXVlc3QNCj4gPiB0byANCj4gPiB0aGUgY29udHJvbGxlciB0byBjb2xsZWN0
+IGNvbnRyb2xsZXIgaGVhbHRoL3BlcmYgZGF0YSwgYW5kIHRoZSANCj4gPiBjb250cm9sbGVyIHdp
+bGwgbGF0ZXIgcmVzcG9uZCB3aXRoIGFuIGVycm9yIGxvZyB0aGF0IGNhbiBiZSBwaWNrZWQNCj4g
+PiB1cCANCj4gPiB2aWEgdGhlIGVycm9yIGxvZyBJT0NUTCB0aGF0IHlvdSd2ZSBkZWZpbmVkIGVh
+cmxpZXIuDQo+IA0KPiBBbmQgZXZlbiBtb3JlIHByZWNpc2VseSAodG8gYWxzbyBjaGVjayBteSB1
+bmRlcnN0YW5kaW5nKToNCj4gDQo+ICA+IHRoaXMgSU9DVEwgdHJpZ2dlcnMgYSByZXF1ZXN0IHRv
+DQo+ICA+IHRoZSBjb250cm9sbGVyIHRvIGNvbGxlY3QgY29udHJvbGxlciBoZWFsdGgvcGVyZiBk
+YXRhLCBhbmQgdGhlDQo+ICA+IGNvbnRyb2xsZXIgd2lsbCBsYXRlciByZXNwb25kDQo+IA0KPiBi
+eSByYWlzaW5nIGFuIGludGVycnVwdCB0byBsZXQgdGhlIHVzZXIgYXBwIGtub3cgdGhhdA0KPiAN
+Cj4gID4gYW4gZXJyb3IgbG9nIHRoYXQgY2FuIGJlIHBpY2tlZCB1cA0KPiAgPiB2aWEgdGhlIGVy
+cm9yIGxvZyBJT0NUTCB0aGF0IHlvdSd2ZSBkZWZpbmVkIGVhcmxpZXIuDQo+IA0KPiANCj4gVGhl
+IHJlc3Qgb2YgdGhlIHBhdGNoIGxvb2tzIG9rIHRvIG1lLg0KPiANCj4gICAgRnJlZA0KDQpPaw0K
+DQotLSANCkFsYXN0YWlyIEQnU2lsdmENCk9wZW4gU291cmNlIERldmVsb3Blcg0KTGludXggVGVj
+aG5vbG9neSBDZW50cmUsIElCTSBBdXN0cmFsaWENCm1vYjogMDQyMyA3NjIgODE5DQpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFp
+bGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2Vu
+ZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
