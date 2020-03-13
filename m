@@ -2,77 +2,80 @@ Return-Path: <SRS0=hzxk=46=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4AD7C2BB1D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Mar 2020 13:42:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 744C7C10DCE
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Mar 2020 15:41:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4C0B62074A
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Mar 2020 13:42:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 190A7206B7
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Mar 2020 15:41:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="O0/xIU8P"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4C0B62074A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="h9DQVYhY"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 190A7206B7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E931210FC3883;
-	Fri, 13 Mar 2020 06:43:11 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id C4C9810FC3887;
+	Fri, 13 Mar 2020 08:42:31 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::344; helo=mail-ot1-x344.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ot1-x344.google.com (mail-ot1-x344.google.com [IPv6:2607:f8b0:4864:20::344])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B2FC410FC3880
-	for <linux-nvdimm@lists.01.org>; Fri, 13 Mar 2020 06:43:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1584106937;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=WmJMCPjLeZOGPd5XvclGChfYUeyS2atWd4pQtWyZc14=;
-	b=O0/xIU8PYyIdhAF0dRYKwYnzU5sJmjuC5eimXNuOq93YuKRradlNDPKYEeF6Rr4YiirAq7
-	eaFsDZbwDoDxe5GbnqH8WFgqzKsRdNWGzMJtA8yKgXJzK0tMm3w4jSSKNebf1yJ1Dq2oON
-	PGw4v25ewUm2VYe/hNhmZGs6yHUg82g=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-408-dxlPnEmCMRqY71uj9jQetw-1; Fri, 13 Mar 2020 09:42:06 -0400
-X-MC-Unique: dxlPnEmCMRqY71uj9jQetw-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0C61518A8CAF;
-	Fri, 13 Mar 2020 13:42:04 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.18.25.210])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id A89A4101D480;
-	Fri, 13 Mar 2020 13:41:55 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 3896722021D; Fri, 13 Mar 2020 09:41:55 -0400 (EDT)
-Date: Fri, 13 Mar 2020 09:41:55 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH 13/20] fuse, dax: Implement dax read/write operations
-Message-ID: <20200313134155.GA156804@redhat.com>
-References: <20200304165845.3081-1-vgoyal@redhat.com>
- <20200304165845.3081-14-vgoyal@redhat.com>
- <CAJfpegtpgE+vnN0hvEVMDyNkYZ0h3_kNgxWCQUb2iuBdy8kEsw@mail.gmail.com>
- <20200312160208.GB114720@redhat.com>
- <CAJfpegtuCCRfKfctUyQBimAOpnOTvW5zodLAy307Mr_1h0+e7g@mail.gmail.com>
+	by ml01.01.org (Postfix) with ESMTPS id 19AB110FC3593
+	for <linux-nvdimm@lists.01.org>; Fri, 13 Mar 2020 08:42:29 -0700 (PDT)
+Received: by mail-ot1-x344.google.com with SMTP id j14so10566830otq.3
+        for <linux-nvdimm@lists.01.org>; Fri, 13 Mar 2020 08:41:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vYlJTH2qA+/4DS7qpZloj8tQt2V5eWoCXB8gjCwZ2kc=;
+        b=h9DQVYhYvQlcSyfImi53yYMU+O7Ol/wR+jtSYqOd2BSfTArxkJ7C0VM23mqbxyPzbm
+         V7kAmXRFsP3ChuCy60lApQc4f+RhN3vUFAGXvjPszt7TrWshRv0js69TIdAGQEj8P7WW
+         wZtItoT9BEIxk3CerPZ3v/lw2ylShpwCouJJCm9bPseawuLetrFJxvswcGJ/qSsJU50B
+         lxsklW9UVDXLnUPnMyBrWQmA26vqj6W/hqqRewo2B1PI+VQ6N0Tt+NLxZNpUz87QgPTP
+         b9Xm3rDqEWGCgiiht3tFjolMcS/sdwpnlZ/pOlmfDXt9mb6weuC89Nl1jMhSXU6FFsJK
+         G3XQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vYlJTH2qA+/4DS7qpZloj8tQt2V5eWoCXB8gjCwZ2kc=;
+        b=NueXEcW/bmnHAePQfsgxsJliQZ/EZXUlSyOhs1ZrOIZ5kVWdqb5J+cykwiIoL6okZd
+         rIfYTQ0FyCpIwj7haOnzIzBaaKfBcveZ0bpiw1o2cNQV+/uWcZuos1EY82NutaUWdE2z
+         Za/vbMCVEFK7pVp+brx+Li1ouh1Dn6OFZRWDPTuZEJ8t+PbkkI0nOPvJbtn5Jp3WBI1E
+         BY83qfKIJtovWSMHTzqYw/tvszkfxvJZflpSPbkn3obtKQfog/XVhM2e0C/KBWVzE6/h
+         lDG+H8DjmcJleUMv9spnHBkTRiS/MqXHoqYJyPSK3p6kmaFfc3CTBjWhDqf1oaMd+5+o
+         4PeA==
+X-Gm-Message-State: ANhLgQ118IWQfdljpqmQT2qus20JxaNqHJxPV2luWP5n2DInBYY81YgU
+	rthZzGkSeEUpGZEjt+LUqHYUPoLZiXpBDbd6M51BQg==
+X-Google-Smtp-Source: ADFU+vu4dTjfsE9awiFQZ7RTA8r1tCDcA0vOmyeGowfNEuM5ChlrpYd3gvqQYxDdF83y4nm1f7cGIwobrgpN3qwvPYk=
+X-Received: by 2002:a9d:6f07:: with SMTP id n7mr11049761otq.247.1584114097473;
+ Fri, 13 Mar 2020 08:41:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAJfpegtuCCRfKfctUyQBimAOpnOTvW5zodLAy307Mr_1h0+e7g@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Message-ID-Hash: EGYIB23LFWSDC4GYWPKMAQXA7FDHEGID
-X-Message-ID-Hash: EGYIB23LFWSDC4GYWPKMAQXA7FDHEGID
-X-MailFrom: vgoyal@redhat.com
+References: <SN6PR11MB2864B07E6EA3CFCDB77169FE96FD0@SN6PR11MB2864.namprd11.prod.outlook.com>
+ <CAPcyv4hX5D6G6uSCoeV78NfJtNj8cvk5=ouLJ+EL2SXvqi-d_Q@mail.gmail.com> <SN6PR11MB28647C6C4DE888D1B74A903B96FA0@SN6PR11MB2864.namprd11.prod.outlook.com>
+In-Reply-To: <SN6PR11MB28647C6C4DE888D1B74A903B96FA0@SN6PR11MB2864.namprd11.prod.outlook.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 13 Mar 2020 08:41:26 -0700
+Message-ID: <CAPcyv4igs_41gvtoqkA6a8LshkrXsKLBaZa3KwkuRRPyczdXSg@mail.gmail.com>
+Subject: Re: nfit_test: issue #2: modprobe: ERROR: could not insert
+ 'nfit_test': Unknown symbol in module, or unknown parameter
+To: "Dorau, Lukasz" <lukasz.dorau@intel.com>
+Message-ID-Hash: MTKGHRIZCXVXEZZMHFITO7FHNGUGSKLI
+X-Message-ID-Hash: MTKGHRIZCXVXEZZMHFITO7FHNGUGSKLI
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm <linux-nvdimm@lists.01.org>, virtio-fs@redhat.com, Stefan Hajnoczi <stefanha@redhat.com>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>, Liu Bo <bo.liu@linux.alibaba.com>, Peng Tao <tao.peng@linux.alibaba.com>
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Slusarz, Marcin" <marcin.slusarz@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EGYIB23LFWSDC4GYWPKMAQXA7FDHEGID/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MTKGHRIZCXVXEZZMHFITO7FHNGUGSKLI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,172 +84,99 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Mar 13, 2020 at 11:18:15AM +0100, Miklos Szeredi wrote:
-
-[..]
-> > > > +/* offset passed in should be aligned to FUSE_DAX_MEM_RANGE_SZ */
-> > > > +static int fuse_setup_one_mapping(struct inode *inode, loff_t offset,
-> > > > +                                 struct fuse_dax_mapping *dmap, bool writable,
-> > > > +                                 bool upgrade)
-> > > > +{
-> > > > +       struct fuse_conn *fc = get_fuse_conn(inode);
-> > > > +       struct fuse_inode *fi = get_fuse_inode(inode);
-> > > > +       struct fuse_setupmapping_in inarg;
-> > > > +       FUSE_ARGS(args);
-> > > > +       ssize_t err;
-> > > > +
-> > > > +       WARN_ON(offset % FUSE_DAX_MEM_RANGE_SZ);
-> > > > +       WARN_ON(fc->nr_free_ranges < 0);
-> > > > +
-> > > > +       /* Ask fuse daemon to setup mapping */
-> > > > +       memset(&inarg, 0, sizeof(inarg));
-> > > > +       inarg.foffset = offset;
-> > > > +       inarg.fh = -1;
-> > > > +       inarg.moffset = dmap->window_offset;
-> > > > +       inarg.len = FUSE_DAX_MEM_RANGE_SZ;
-> > > > +       inarg.flags |= FUSE_SETUPMAPPING_FLAG_READ;
-> > > > +       if (writable)
-> > > > +               inarg.flags |= FUSE_SETUPMAPPING_FLAG_WRITE;
-> > > > +       args.opcode = FUSE_SETUPMAPPING;
-> > > > +       args.nodeid = fi->nodeid;
-> > > > +       args.in_numargs = 1;
-> > > > +       args.in_args[0].size = sizeof(inarg);
-> > > > +       args.in_args[0].value = &inarg;
-> > >
-> > > args.force = true?
+On Fri, Mar 13, 2020 at 2:49 AM Dorau, Lukasz <lukasz.dorau@intel.com> wrote:
+>
+> On Thursday, March 12, 2020 6:06 PM Dan Williams <dan.j.williams@intel.com> wrote:
 > >
-> > I can do that but I am not sure what exactly does args.force do and
-> > why do we need it in this case.
-> 
-> Hm, it prevents interrupts.  Looking closely, however it will only
-> prevent SIGKILL from immediately interrupting the request, otherwise
-> it will send an INTERRUPT request and the filesystem can ignore that.
-> Might make sense to have a args.nonint flag to prevent the sending of
-> INTERRUPT...
-
-Hi Miklos,
-
-virtiofs does not support interrupt requests yet. Its fiq interrupt
-handler just does not do anything.
-
-static void virtio_fs_wake_interrupt_and_unlock(struct fuse_iqueue *fiq)
-__releases(fiq->lock)
-{
-        /*
-         * TODO interrupts.
-         *
-         * Normal fs operations on a local filesystems aren't interruptible.
-         * Exceptions are blocking lock operations; for example fcntl(F_SETLKW)
-         * with shared lock between host and guest.
-         */
-        spin_unlock(&fiq->lock);
-}
-
-So as of now setting force or not will not make any difference. We will
-still end up waiting for request to finish.
-
-Infact, I think there is no mechanism to set fc->no_interrupt in
-virtio_fs. If I am reading request_wait_answer(), correctly, it will
-see fc->no_interrupt is not set. That means filesystem supports
-interrupt requests and it will do wait_event_interruptible() and
-not even check for FR_FORCE bit. 
-
-Right now fc->no_interrupt is set in response to INTERRUPT request
-reply. Will it make sense to also be able to set it as part of
-connection negotation protocol and filesystem can tell in the
-beginning itself that it does not support interrupt and virtiofs
-can make use of that.
-
-So force flag is only useful if filesystem does not support interrupt
-and in that case we do wait_event_killable() and upon receiving
-SIGKILL, cancel request if it is still in pending queue. For virtiofs,
-we take request out of fiq->pending queue in submission path itself
-and if it can't be dispatched it waits on virtiofs speicfic queue
-with FR_PENDING cleared. That means, setting FR_FORCE for virtiofs
-does not mean anything as caller will end up waiting for
-request to finish anyway.
-
-IOW, setting FR_FORCE will make sense when we have mechanism to
-detect that request is still queued in virtiofs queues and have
-mechanism to cancel it. We don't have it. In fact, given we are
-a push model, we dispatch request immediately to filesystem,
-until and unless virtqueue is full. So probability of a request
-still in virtiofs queue is low.
-
-So may be we can start setting force at some point of time later
-when we have mechanism to cancel detect and cancel pending requests
-in virtiofs.
-
-> 
-> > First thing it does is that request is allocated with flag __GFP_NOFAIL.
-> > Second thing it does is that caller is forced to wait for request
-> > completion and its not an interruptible sleep.
+> > Yes, you're environment is not being careful to exclude the production
+> > version of the modules from being loaded. The ndctl unit test core
+> > also sanity checks nfit_Test and reports the collisions before running
+> > tests. See nfit_test_init():
 > >
-> > I am wondering what makes FUSE_SETUPMAPING/FUSE_REMOVEMAPPING requests
-> > special that we need to set force flag.
-> 
-> Maybe not for SETUPMAPPING (I was confused by the error log).
-> 
-> However if REMOVEMAPPING fails for some reason, than that dax mapping
-> will be leaked for the lifetime of the filesystem.   Or am I
-> misunderstanding it?
-
-FUSE_REMVOEMAPPING is not must. If we send another FUSE_SETUPMAPPING, then
-it will create the new mapping and free up resources associated with
-the previous mapping, IIUC.
-
-So at one point of time we were thinking that what's the point of
-sending FUSE_REMOVEMAPPING. It helps a bit with freeing up filesystem
-resources earlier. So if cache size is big, then there will not be
-much reclaim activity going and if we don't send FUSE_REMOVEMAPPING,
-all these filesystem resources will remain busy on host for a long
-time.
-
-> 
-> > > > +       ret = fuse_setup_one_mapping(inode,
-> > > > +                                    ALIGN_DOWN(pos, FUSE_DAX_MEM_RANGE_SZ),
-> > > > +                                    dmap, true, true);
-> > > > +       if (ret < 0) {
-> > > > +               printk("fuse_setup_one_mapping() failed. err=%d pos=0x%llx\n",
-> > > > +                      ret, pos);
-> > >
-> > > Again.
+> >     https://github.com/pmem/ndctl/blob/master/test/core.c#L119
 > >
-> > Will remove. How about converting some of them to pr_debug() instead? It
-> > can help with debugging if something is not working.
-> 
-> Okay, and please move it to fuse_setup_one_mapping() where there's
-> already a pr_debug() for the success case.
-
-Will do.
-
-> 
->  > > +
-> > > > +       /* Do not use dax for file extending writes as its an mmap and
-> > > > +        * trying to write beyong end of existing page will generate
-> > > > +        * SIGBUS.
-> > >
-> > > Ah, here it is.  So what happens in case of a race?  Does that
-> > > currently crash KVM?
+> > I'd recommend at least running:
 > >
-> > In case of race, yes, KVM hangs. So no shared directory operation yet
-> > till we have designed proper error handling in kvm path.
-> 
-> I think before this is merged we have to fix the KVM crash; that's not
-> acceptable even if we explicitly say that shared directory is not
-> supported for the time being.
+> >     make TESTS=libndctl check
+> >
+> > ...from latest ndctl.git to sanity check your nfit_test module
+> > dependencies before trying to load it manually.
+> >
+> > See the troubleshooting document:
+> >
+> >     https://github.com/pmem/ndctl#troubleshooting
+> >
+> > ...for other tips about how to prevent the production modules from loading.
+>
+> Thanks for tips! I have followed those instructions and it did not help:
+>
+> $ cat /etc/depmod.d/nvdimm-extra
+> override nfit * extra
+> override device_dax * extra
+> override dax_pmem * extra
+> override dax_pmem_core * extra
+> override dax_pmem_compat * extra
+> override libnvdimm * extra
+> override nd_blk * extra
+> override nd_btt * extra
+> override nd_e820 * extra
+> override nd_pmem * extra
+>
+> $ find /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/ -name "*nfit*"
+> /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/kernel/drivers/acpi/nfit
+> /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/kernel/drivers/acpi/nfit/nfit.ko.xz
+> /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/extra/nfit.ko.xz
+> /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/extra/test/nfit_test.ko.xz
+> /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/extra/test/nfit_test_iomap.ko.xz
+>
+> $ make TESTS=libndctl check
+> [...]
+> make --no-print-directory check-TESTS
+> SKIP: libndctl
+> ============================================================================
+> Testsuite summary for ndctl 67
+> ============================================================================
+> # TOTAL: 1
+> # PASS:  0
+> # SKIP:  1
+> # XFAIL: 0
+> # FAIL:  0
+> # XPASS: 0
+> # ERROR: 0
+> ============================================================================
+>
+> $ cat test/test-suite.log
+> [...]
+> .. contents:: :depth: 2
+>
+> SKIP: libndctl
+> ==============
+>
+> test/init: nfit_test_init: nfit.ko: appears to be production version: /lib/modules/5.6.0-rc1-13504-g7b27a8622f80/kernel/drivers/acpi/nfit/nfit.ko.xz
+> __ndctl_test_skip: explicit skip test_libndctl:2695
+> nfit_test unavailable skipping tests
+> libdaxctl: daxctl_unref: context 0xe02a00 released
+> libndctl: ndctl_unref: context 0xe05f20 released
+> attempted: 1 skipped: 1
+> SKIP libndctl (exit status: 77)
+>
+> As you can see 'ndctl' also cannot load the extra test version of the modules even if there is the following file:
+>
+> $ cat /etc/depmod.d/nvdimm-extra
+> override nfit * extra
+> override device_dax * extra
+> override dax_pmem * extra
+> override dax_pmem_core * extra
+> override dax_pmem_compat * extra
+> override libnvdimm * extra
+> override nd_blk * extra
+> override nd_btt * extra
+> override nd_e820 * extra
+> override nd_pmem * extra
+>
+> Can I try anything else? Do you have any suggestions?
 
-Ok, I will look into it. I had done some work in the past and realized
-its not trivial to fix kvm error paths. There are no users and propagating
-signals back into qemu instances and finding the right process is going to be
-tricky.
-
-Given the complexity of that work, I thought that for now we say that
-shared directory is not supported and once basic dax patches get merged,
-focus on kvm work.
-
-Thanks
-Vivek
+Do you have the nfit, or libnvdimm modules loading from the initramfs?
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
