@@ -1,154 +1,61 @@
-Return-Path: <SRS0=a5jw=47=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=xFPQ=5A=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A88A7C10DCE
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 14 Mar 2020 01:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9F06C10DCE
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 15 Mar 2020 08:34:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6D4E12074E
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 14 Mar 2020 01:21:33 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="V65RGzBW"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6D4E12074E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
+	by mail.kernel.org (Postfix) with ESMTPS id BAAFE20575
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 15 Mar 2020 08:34:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BAAFE20575
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lists.01.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 22BE110FC379F;
-	Fri, 13 Mar 2020 18:22:24 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::444; helo=mail-pf1-x444.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
-Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com [IPv6:2607:f8b0:4864:20::444])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 46F9D10078090;
+	Sun, 15 Mar 2020 01:35:07 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=178.47.177.203; helo=115-191.static.spheral.ru; envelope-from=linux-nvdimm@lists.01.org; receiver=<UNKNOWN> 
+Received: from 115-191.static.spheral.ru (unknown [178.47.177.203])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A752410FC3363
-	for <linux-nvdimm@lists.01.org>; Fri, 13 Mar 2020 18:22:21 -0700 (PDT)
-Received: by mail-pf1-x444.google.com with SMTP id c144so6326716pfb.10
-        for <linux-nvdimm@lists.01.org>; Fri, 13 Mar 2020 18:21:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fossix-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:in-reply-to:references:date:message-id
-         :mime-version;
-        bh=fjTjSXUTPxmhKb/gbbaGR/OvXETYgB9qnJBZykBuEHk=;
-        b=V65RGzBW+IeTWu5NJDyA35IYArEjNBxFfw850IA/HZ7mBksKfV9wWMmHcJpQ8Na1s7
-         vp0xXnPyxVWpGkY95PlODgUnKeNQJwQ8gRsdDYAKFg80TmywIASU39HTgve9KfOq8aEt
-         OXEM4mJLFlJ4z/7H0GNnDE59fzO2N3EoqMzKKtMALFSMXnNO/zLpHbpK+Ra6H8zjXVtX
-         2w8qyNSRoRvhxfU4wziiVD/hn1cGudFsMPjC1lMC0xdxT+aIhqPpQTmPxVXEDzmlKk+j
-         WYeFiBgiOHK8BqwsIODMESxLzbyw4WvKcImobXRccHxMwlsflhqKsiPBTEtcXQrEfviB
-         zXCw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
-         :message-id:mime-version;
-        bh=fjTjSXUTPxmhKb/gbbaGR/OvXETYgB9qnJBZykBuEHk=;
-        b=rRg2COMakRSnUAvSXCksd1fO14akltfdjaenurVQMk6zOdOBLaaYUJWJ+DzJ+n5DbA
-         SywKbCVBi79CWRTEP+dZEIwAz1VI8wzHqO+EteCtL+DljquAbWf8Z3FxEV6noRlGfpJl
-         FqZQYztV9rsmP1ueGjHNqr5CTABb6/+JbRgusjBGqjyzWIeLYX+0JfXsxHsPIdvOSM5o
-         caomosKRYG3ch2T1u9PHWQEQtcYD9XSD6mXp9MF23GSInPKIonwzyhwCHWzvjaXdNuoE
-         DfqygO3mULaidlCn2kK5En4e+GPHfDWjnOmWt4XnkiO7InvQ33FHC3LhqG8XvDGZMKQ2
-         muLA==
-X-Gm-Message-State: ANhLgQ3K3ccKpXp3bX0x5yq8QHI4rsu5vCgqyD/8Ana7ieIUbax7T3x8
-	4RDja39+7O+ilbtbleDv7RgVadud1pM=
-X-Google-Smtp-Source: ADFU+vsuZ1ZXIO875/31n4+qmjr6zBqC2VdgnKYR/4sw4SMGUhUhNWw5nplyXlACoAKO1F7fZLGuvQ==
-X-Received: by 2002:a63:a06e:: with SMTP id u46mr15524375pgn.140.1584148889696;
-        Fri, 13 Mar 2020 18:21:29 -0700 (PDT)
-Received: from localhost ([111.125.192.41])
-        by smtp.gmail.com with ESMTPSA id n22sm12568658pjq.36.2020.03.13.18.21.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 13 Mar 2020 18:21:28 -0700 (PDT)
-From: Santosh Sivaraj <santosh@fossix.org>
-To: linux-nvdimm@lists.01.org, Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] tools/test/nvdimm: Fix out of tree build
-In-Reply-To: <20200114054051.4115790-1-santosh@fossix.org>
-References: <20200114054051.4115790-1-santosh@fossix.org>
-Date: Sat, 14 Mar 2020 06:51:26 +0530
-Message-ID: <87d09fenop.fsf@santosiv.in.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id CCCC61007B1C5
+	for <linux-nvdimm@lists.01.org>; Sun, 15 Mar 2020 01:35:03 -0700 (PDT)
+Message-ID: <07fc75d93f35cfc3d2d76132c63fd5d9414a2453@lists.01.org>
+From: Tormented <linux-nvdimm@lists.01.org>
+To: linux-nvdimm@lists.01.org
+Subject: =?windows-1251?B?yuDqIOjx7+7r/Ofu4uDy/CDPyiDk6/8g5+Dw?=
+	=?windows-1251?B?4OHu8urgPw==?=
+Date: Sun, 15 Mar 2020 10:34:02 +0200
 MIME-Version: 1.0
-Message-ID-Hash: UBFOZAVOTBIT473YBGPGVI4Z454EIRKR
-X-Message-ID-Hash: UBFOZAVOTBIT473YBGPGVI4Z454EIRKR
-X-MailFrom: santosh@fossix.org
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Message-ID-Hash: SDS2IBXTKGXZ462O66THUB4ZMFYMQ4EF
+X-Message-ID-Hash: SDS2IBXTKGXZ462O66THUB4ZMFYMQ4EF
+X-MailFrom: linux-nvdimm@lists.01.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Content-Type: text/plain; charset="windows-1251"
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UBFOZAVOTBIT473YBGPGVI4Z454EIRKR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SDS2IBXTKGXZ462O66THUB4ZMFYMQ4EF/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 
-Hi Dan,
-
-Any comments on the below patch to fix builds that use KBUILD_OUT?
-
-Thanks,
-Santosh
-
-Santosh Sivaraj <santosh@fossix.org> writes:
-
-> Out of tree build using
->
->    make M=tools/test/nvdimm O=/tmp/build -C /tmp/build
->
-> fails with the following error
->
-> make: Entering directory '/tmp/build'
->   CC [M]  tools/testing/nvdimm/test/nfit.o
-> linux/tools/testing/nvdimm/test/nfit.c:19:10: fatal error: nd-core.h: No such file or directory
->    19 | #include <nd-core.h>
->       |          ^~~~~~~~~~~
-> compilation terminated.
->
-> That is because the kbuild file uses $(src) which points to
-> tools/testing/nvdimm, $(srctree) correctly points to root of the linux
-> source tree.
->
-> Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
-> ---
->  tools/testing/nvdimm/Kbuild      | 4 ++--
->  tools/testing/nvdimm/test/Kbuild | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-> index 6aca8d5be159..0615fa3d9f7e 100644
-> --- a/tools/testing/nvdimm/Kbuild
-> +++ b/tools/testing/nvdimm/Kbuild
-> @@ -22,8 +22,8 @@ DRIVERS := ../../../drivers
->  NVDIMM_SRC := $(DRIVERS)/nvdimm
->  ACPI_SRC := $(DRIVERS)/acpi/nfit
->  DAX_SRC := $(DRIVERS)/dax
-> -ccflags-y := -I$(src)/$(NVDIMM_SRC)/
-> -ccflags-y += -I$(src)/$(ACPI_SRC)/
-> +ccflags-y := -I$(srctree)/drivers/nvdimm/
-> +ccflags-y += -I$(srctree)/drivers/acpi/nfit/
->  
->  obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
->  obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
-> diff --git a/tools/testing/nvdimm/test/Kbuild b/tools/testing/nvdimm/test/Kbuild
-> index fb3c3d7cdb9b..75baebf8f4ba 100644
-> --- a/tools/testing/nvdimm/test/Kbuild
-> +++ b/tools/testing/nvdimm/test/Kbuild
-> @@ -1,6 +1,6 @@
->  # SPDX-License-Identifier: GPL-2.0
-> -ccflags-y := -I$(src)/../../../../drivers/nvdimm/
-> -ccflags-y += -I$(src)/../../../../drivers/acpi/nfit/
-> +ccflags-y := -I$(srctree)/drivers/nvdimm/
-> +ccflags-y += -I$(srctree)/drivers/acpi/nfit/
->  
->  obj-m += nfit_test.o
->  obj-m += nfit_test_iomap.o
-> -- 
-> 2.24.1
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+z/Dl4vDg8ugg8eLu6SDq7uzv/P7y5fAg4iDD5e3l8ODy7vAgxOXt5eMhDQoxMDAlIMHl8e/r4PLt
+7i4gMTAwJSDA4vLu7+jr7vIuDQrQ4OHu8uDl8iDzIOLx5fUhDQrP7uTw7uHt4P8g6O307vDs4Pbo
+/z4gaHR0cDovL2JpdC5seS8zY3JDbXF5DQoNCklmIHlvdSBkbyBub3Qgd2lzaCB0byByZWNlaXZl
+IGZ1cnRoZXIgZW1haWxzLCB0aGVuIHBsZWFzZSBjbGljayBoZXJlIHRvIExpc3QtVW5zdWJzY3Jp
+YmUNCg0KfCA4ODg4OCBTYW50YSBNb25pY2EgQmx2ZCwgU3VpdGUgODg4ODggTG9zIEFuZ2VsZXMs
+IENBIDg4ODg4LTg4ODg4LCBVU0EgfA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1t
+LWxlYXZlQGxpc3RzLjAxLm9yZwo=
