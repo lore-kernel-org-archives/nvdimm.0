@@ -6,75 +6,76 @@ X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A459C4332B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Mar 2020 03:37:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71584C4332B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Mar 2020 05:17:04 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3D28920724
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Mar 2020 03:37:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 3101C20722
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Mar 2020 05:17:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="WUNIUD7L"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3D28920724
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RGROg2aD"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3101C20722
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 78A9D10FC36EC;
-	Thu, 19 Mar 2020 20:38:12 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::343; helo=mail-ot1-x343.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x343.google.com (mail-ot1-x343.google.com [IPv6:2607:f8b0:4864:20::343])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 7989210FC36F0;
+	Thu, 19 Mar 2020 22:17:54 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.74; helo=us-smtp-delivery-74.mimecast.com; envelope-from=xifeng@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-74.mimecast.com (us-smtp-delivery-74.mimecast.com [63.128.21.74])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 4C65810FC36EA
-	for <linux-nvdimm@lists.01.org>; Thu, 19 Mar 2020 20:38:09 -0700 (PDT)
-Received: by mail-ot1-x343.google.com with SMTP id e19so4735801otj.7
-        for <linux-nvdimm@lists.01.org>; Thu, 19 Mar 2020 20:37:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Ywr2sC+6dreOtfdxEyV0euAo/a4FIIC/IQSVfI0jEMU=;
-        b=WUNIUD7L89FuNZw5Kpn07ADf/34JFqCn680ezj9rWGt0MFBDcqpxhm9mXl2vlpAFhd
-         ohjQwPcAyDgwhmJLMbrL2HIwq56EtAzOn6btKVeQKQg1gzh1hrRFrIMzmNnhm/p5BsNo
-         Yzcl2HxW436qwmAQL6/NCopvDs1rtj7Y3AceLCa+6grLmMub2intp59i+P/v4P9jIpoi
-         HevK15zR5l4MiHAEP+WLM8HB6vnVhHoZ4QYlNlnC84ghDcLQrtPR5GPDTi5b/lksSr0L
-         byhX5OTIhzZ8XnN0QSMfFKH0XKoIJId4Olme7vuWNpOqdFRYn9JRbnaWsHqH5hJxQtvd
-         OIww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Ywr2sC+6dreOtfdxEyV0euAo/a4FIIC/IQSVfI0jEMU=;
-        b=dAOVTnfVmrDxEOId7foDcNr/iz7upyeiFNGWCy8obe7qjgDbeml6NEUQebdkARdEK7
-         3KNjYoTDI36J+eceZ30pFbSmAmypil7fAw0Hh/SyRHCJ2JrEYjGQtjDmNmnI1PECHAHy
-         2QAcXcQZ/WFrMXcagLhN9VgTYM5doiWYM2vULA3LDeGU/c5RORJLMM31wvxgVNzsC3mb
-         WeXSKl4bMZ63YRGGJMJaIuYzdoYW2GNjcZNe7e4KltkfrQPrQuO2CVlL8Sx87aHYLk/o
-         ZvIarfaTDLUqAfWiAMxo0mDEz5ylOUm1KUdgjvgX0plJGV1YEEPuFIFmbLzv5m190Njq
-         RYzw==
-X-Gm-Message-State: ANhLgQ0lX+iIjpxgCXHw477e40b/QgsHR/DljgXM6HjOZRAsbWhytzu+
-	h8mQ5h78BxaSYm2TTIStAxiLFWHoiJdISfa60yRC7Q==
-X-Google-Smtp-Source: ADFU+vtGlimBujD7qsptb/7unW+rhdjYMRBF5Y92YkceWNjmyurdyUea44uwtWhw1TJZEIqJJE+5oB4Jxf302rSCa4Y=
-X-Received: by 2002:a9d:6398:: with SMTP id w24mr4194196otk.363.1584675438257;
- Thu, 19 Mar 2020 20:37:18 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200320021255.1778-1-xifeng@redhat.com> <CAPcyv4h61jpnWv5eOE5u5-THXBnmRKLqeTuyPcHXKiATKFyheQ@mail.gmail.com>
- <1404245216.17517222.1584674311320.JavaMail.zimbra@redhat.com>
-In-Reply-To: <1404245216.17517222.1584674311320.JavaMail.zimbra@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 19 Mar 2020 20:37:07 -0700
-Message-ID: <CAPcyv4hd_N0Hef8EysL2obYiZQA9ka_=iUt+NTjaQJVbzcME6Q@mail.gmail.com>
+	by ml01.01.org (Postfix) with ESMTPS id B596310FC36EB
+	for <linux-nvdimm@lists.01.org>; Thu, 19 Mar 2020 22:17:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1584681420;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=2Jp1Q0gj9lx08D1n9OCf/luwJWZTbMfYB7HZt6ztf4E=;
+	b=RGROg2aDDMdddPTpnZhmHVYyrWaLiNcP77xruWqGtRtAFAInQVMlmFPqQKxmty/Ffjw7/p
+	LKl3UC4ssGu+CWQcdVyJaa1kHzdwDu8GkVdIUdOowRDGmToDQDYDEcUoXJXriu5vguVHdi
+	YVnUWZfrAovi68k+83i6Og++S9EeyFQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-284-kzx4THIyMtyrqA9sOVbTng-1; Fri, 20 Mar 2020 01:16:58 -0400
+X-MC-Unique: kzx4THIyMtyrqA9sOVbTng-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E0E891401;
+	Fri, 20 Mar 2020 05:16:57 +0000 (UTC)
+Received: from colo-mx.corp.redhat.com (colo-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.20])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id CBE5E91291;
+	Fri, 20 Mar 2020 05:16:57 +0000 (UTC)
+Received: from zmail23.collab.prod.int.phx2.redhat.com (zmail23.collab.prod.int.phx2.redhat.com [10.5.83.28])
+	by colo-mx.corp.redhat.com (Postfix) with ESMTP id A315D1809563;
+	Fri, 20 Mar 2020 05:16:57 +0000 (UTC)
+Date: Fri, 20 Mar 2020 01:16:57 -0400 (EDT)
+From: Xiaoli Feng <xifeng@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Message-ID: <1667905528.17528206.1584681417038.JavaMail.zimbra@redhat.com>
+In-Reply-To: <CAPcyv4hd_N0Hef8EysL2obYiZQA9ka_=iUt+NTjaQJVbzcME6Q@mail.gmail.com>
+References: <20200320021255.1778-1-xifeng@redhat.com> <CAPcyv4h61jpnWv5eOE5u5-THXBnmRKLqeTuyPcHXKiATKFyheQ@mail.gmail.com> <1404245216.17517222.1584674311320.JavaMail.zimbra@redhat.com> <CAPcyv4hd_N0Hef8EysL2obYiZQA9ka_=iUt+NTjaQJVbzcME6Q@mail.gmail.com>
 Subject: Re: [PATCH v1] test/dax.sh: correct the pmd pagefault counts
  generated by dax-pmd
-To: Xiaoli Feng <xifeng@redhat.com>
-Message-ID-Hash: QMXEPYF4FGED2TWEZHO2HNWRCYC3I4LE
-X-Message-ID-Hash: QMXEPYF4FGED2TWEZHO2HNWRCYC3I4LE
-X-MailFrom: dan.j.williams@intel.com
+MIME-Version: 1.0
+X-Originating-IP: [10.72.12.163, 10.4.195.23]
+Thread-Topic: test/dax.sh: correct the pmd pagefault counts generated by dax-pmd
+Thread-Index: SgXu4/fX7x8gaqems0AT9uNGOLQwbw==
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Message-ID-Hash: GLOYIPJUNX52MFS36L2WN3SPGRZXUBB7
+X-Message-ID-Hash: GLOYIPJUNX52MFS36L2WN3SPGRZXUBB7
+X-MailFrom: xifeng@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QMXEPYF4FGED2TWEZHO2HNWRCYC3I4LE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GLOYIPJUNX52MFS36L2WN3SPGRZXUBB7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,41 +84,58 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Mar 19, 2020 at 8:19 PM Xiaoli Feng <xifeng@redhat.com> wrote:
->
-> Hi,
->
-> ----- Original Message -----
-> > From: "Dan Williams" <dan.j.williams@intel.com>
-> > To: "XiaoLi Feng" <xifeng@redhat.com>
-> > Cc: "linux-nvdimm" <linux-nvdimm@lists.01.org>
-> > Sent: Friday, March 20, 2020 10:36:05 AM
-> > Subject: Re: [PATCH v1] test/dax.sh: correct the pmd pagefault counts generated by dax-pmd
-> >
-> > On Thu, Mar 19, 2020 at 7:13 PM XiaoLi Feng <xifeng@redhat.com> wrote:
-> > >
-> > > From: Xiaoli Feng <xifeng@redhat.com>
-> > >
-> > > For directIO, cannot generate pmd pagefault by pread|pwrite|read|write
-> > > if do not map fd to memory. In dax-pmd.c, case 1 and case 4 each only
-> > > generate once pmd pagefault. So change the all counts from 10 to 8.
-> >
-> > What kernel are you seeing this failure on? It's passing for me on v5.6-rc.
->
-> I test on v4.18. I will test on v5.6.
->
+Hi,
 
-The tests are not backwards compatible with older kernels. If the
-current tests fail on an older kernel it means that older kernel is
-missing a backport of features / fixes from upstream. In this case the
-test was written as a regression test for kernel commit 6370740e5f8e
-("fs/dax: Fix pmd vs pte conflict detection"). v4.18 precedes the
-Xarray conversion of the filesystem-dax interface which incurred other
-pmd behavior fixes so I'm not sure it will ever map correctly to that
-baseline.
+----- Original Message -----
+> From: "Dan Williams" <dan.j.williams@intel.com>
+> To: "Xiaoli Feng" <xifeng@redhat.com>
+> Cc: "linux-nvdimm" <linux-nvdimm@lists.01.org>
+> Sent: Friday, March 20, 2020 11:37:07 AM
+> Subject: Re: [PATCH v1] test/dax.sh: correct the pmd pagefault counts generated by dax-pmd
+> 
+> On Thu, Mar 19, 2020 at 8:19 PM Xiaoli Feng <xifeng@redhat.com> wrote:
+> >
+> > Hi,
+> >
+> > ----- Original Message -----
+> > > From: "Dan Williams" <dan.j.williams@intel.com>
+> > > To: "XiaoLi Feng" <xifeng@redhat.com>
+> > > Cc: "linux-nvdimm" <linux-nvdimm@lists.01.org>
+> > > Sent: Friday, March 20, 2020 10:36:05 AM
+> > > Subject: Re: [PATCH v1] test/dax.sh: correct the pmd pagefault counts
+> > > generated by dax-pmd
+> > >
+> > > On Thu, Mar 19, 2020 at 7:13 PM XiaoLi Feng <xifeng@redhat.com> wrote:
+> > > >
+> > > > From: Xiaoli Feng <xifeng@redhat.com>
+> > > >
+> > > > For directIO, cannot generate pmd pagefault by pread|pwrite|read|write
+> > > > if do not map fd to memory. In dax-pmd.c, case 1 and case 4 each only
+> > > > generate once pmd pagefault. So change the all counts from 10 to 8.
+> > >
+> > > What kernel are you seeing this failure on? It's passing for me on
+> > > v5.6-rc.
+> >
+> > I test on v4.18. I will test on v5.6.
+> >
+> 
+> The tests are not backwards compatible with older kernels. If the
+> current tests fail on an older kernel it means that older kernel is
+> missing a backport of features / fixes from upstream. In this case the
+> test was written as a regression test for kernel commit 6370740e5f8e
+> ("fs/dax: Fix pmd vs pte conflict detection"). v4.18 precedes the
+> Xarray conversion of the filesystem-dax interface which incurred other
+> pmd behavior fixes so I'm not sure it will ever map correctly to that
+> baseline.
+> 
+> At a minimum I would say you would need to carry this change in the
+> distro package for ndctl that corresponds with that v4.18 kernel.
 
-At a minimum I would say you would need to carry this change in the
-distro package for ndctl that corresponds with that v4.18 kernel.
+My test kernel include the patch fs/dax: Fix pmd vs pte conflict detection.
+I am checking the changes from v4.18. Thanks for the info and suggestion.
+
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
