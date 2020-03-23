@@ -1,78 +1,60 @@
-Return-Path: <SRS0=9qxr=5I=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=DFBX=5J=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24406C4332E
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Mar 2020 18:40:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C5FC54FCF
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Mar 2020 00:10:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EC6CE20409
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Mar 2020 18:40:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="gmgI9N6R"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EC6CE20409
+	by mail.kernel.org (Postfix) with ESMTPS id 7DC8A20719
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Mar 2020 00:10:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7DC8A20719
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EC98610FC379E;
-	Mon, 23 Mar 2020 11:41:37 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::342; helo=mail-ot1-x342.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-x342.google.com (mail-ot1-x342.google.com [IPv6:2607:f8b0:4864:20::342])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 3A18610FC388C;
+	Mon, 23 Mar 2020 17:11:38 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E098310FC3797
-	for <linux-nvdimm@lists.01.org>; Mon, 23 Mar 2020 11:41:34 -0700 (PDT)
-Received: by mail-ot1-x342.google.com with SMTP id e19so14485820otj.7
-        for <linux-nvdimm@lists.01.org>; Mon, 23 Mar 2020 11:40:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JF4VmSimjtq6coHOhoT6Hj3UWbFBo+hkCp4f7I12HUo=;
-        b=gmgI9N6Rz/U+4gBPdcY2Xc1Wh0CXPU8OyoHgUTW19qBu1D1BV8GGuCL8jVfVho9Sqx
-         bJ0RgZ3pe5S/Kcm0a2FyfBJh5OpuDxP/62sEm1O05Z7gz7ysch6SXOiKomMltSpUI88G
-         aKMj6VTeeEoqmoLdkotfp0+vC86m1BsBjh0V2uOuejqPv+FsEwipDheYEllg85V76X4Y
-         7Ef4rl+SyWOQuIT3XFrpX9PXE9iUzUboo+laN20U825h4CGrV/pciNqptiJTULomDYE/
-         Y/+uHMdpxnJ5DW3zhvMlODdBgEqvFWow4ZnxVbcAnppOuZFIefEM/9+DuJ7gbHD7UzYb
-         M4xA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JF4VmSimjtq6coHOhoT6Hj3UWbFBo+hkCp4f7I12HUo=;
-        b=frz2JscTnZv7ylAvsXvGifcNA1A9YVeVuar+85KWySBs5ZOFY0/y6uDQEp6OToCsMP
-         NeNVkcalMVnS1YakEzOEItaTWeTgrrlAMk5uAifb+4DRqbdGMRjdwFgRykBABVYOzOrq
-         BtOe48V7i6fgv5DxoYylFr3khPrt+eNUjHHulz/rvuOa0jJCnsLSthj2DdVYfDzOmvle
-         4+XsX/McLHOMC+zjfZY+NCYuVNRx+Gk+xBGJLqx9mb5ySjq0znmQ0gvAxLVPz/kzJQjb
-         XHXOx1jjGe54nsabFcfnx90iUEtJxNWqbcJFUsKZr/JzcBHoFldwT5GGD7+um4LnUUXA
-         px+A==
-X-Gm-Message-State: ANhLgQ3Vx7BMvZkkyCDbPuox7mI80VFIOk+aqMgCmBtAYncoTZgjmSKf
-	WQZe+yTm+u2IvxUY2A64DVbNuw40ZnNQJxMREEUdDw==
-X-Google-Smtp-Source: ADFU+vvjdEUIjCDX50+QoDxaaY3gcdCIDlxcKrlRDwSy9dJHnAXPYDfzu78L2919UnJrR8+zj8mqhJq9hOG1Voq0/8s=
-X-Received: by 2002:a9d:3a45:: with SMTP id j63mr17759718otc.71.1584988843217;
- Mon, 23 Mar 2020 11:40:43 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200323183321.21889-1-vishal.l.verma@intel.com>
-In-Reply-To: <20200323183321.21889-1-vishal.l.verma@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id 808BB10FC3881
+	for <linux-nvdimm@lists.01.org>; Mon, 23 Mar 2020 17:11:35 -0700 (PDT)
+IronPort-SDR: w82thZgrLDi/W3H47QolllYVomGmOWMseRs8fymnuoLz2wgESRTloVWhf6eQDxvX7TnwxJ1fCg
+ ZzOkuG5LcTIA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 17:10:44 -0700
+IronPort-SDR: FXlZeJCeC8XzZ3K98a5LQIxztMUNO9atLkmlVAgtVKu97Fkyytph/17UqZ0ET8vqCXr+/RFVHV
+ 0IbaGsOux5KA==
+X-IronPort-AV: E=Sophos;i="5.72,298,1580803200";
+   d="scan'208";a="447678501"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 17:10:43 -0700
+Subject: [PATCH 01/12] device-dax: Drop the dax_region.pfn_flags attribute
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 23 Mar 2020 11:40:31 -0700
-Message-ID: <CAPcyv4jY7f5LfptRfpWDEs_15_zTa8uspxRuJcbO7nR-gPdw1Q@mail.gmail.com>
-Subject: Re: [ndctl PATCH] ndctl/namespace: Fix a resource leak in file_write_infoblock
-To: Vishal Verma <vishal.l.verma@intel.com>
-Message-ID-Hash: SF23KYV4EFSVGDT66ZVXK7VKYUK45XPD
-X-Message-ID-Hash: SF23KYV4EFSVGDT66ZVXK7VKYUK45XPD
+To: linux-mm@kvack.org
+Date: Mon, 23 Mar 2020 16:54:36 -0700
+Message-ID: <158500767684.2088294.8691316958585274856.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <158500767138.2088294.17131646259803932461.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <158500767138.2088294.17131646259803932461.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Message-ID-Hash: 3MNG75X24U7EIHKLE3NKSSJJMKYXUKR5
+X-Message-ID-Hash: 3MNG75X24U7EIHKLE3NKSSJJMKYXUKR5
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: dave.hansen@linux.intel.com, hch@lst.de, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SF23KYV4EFSVGDT66ZVXK7VKYUK45XPD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3MNG75X24U7EIHKLE3NKSSJJMKYXUKR5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,35 +63,176 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Mar 23, 2020 at 11:33 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> Static analysis reported that we were leaking 'fd' in one case in the
-> above function, fix the error handling to go through the 'out' label.
->
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  ndctl/namespace.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-> index 21252b6..0550580 100644
-> --- a/ndctl/namespace.c
-> +++ b/ndctl/namespace.c
-> @@ -1958,8 +1958,10 @@ static int file_write_infoblock(const char *path)
->         }
->
->         buf = calloc(INFOBLOCK_SZ, 1);
-> -       if (!buf)
-> -               return -ENOMEM;
-> +       if (!buf) {
-> +               rc = -ENOMEM;
-> +               goto out;
-> +       }
+All callers specify the same flags to alloc_dax_region(), so there is no
+need to allow for anything other than PFN_DEV|PFN_MAP, or carry a
+->pfn_flags around on the region. Device-dax instances are always page
+backed.
 
-Looks good:
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/dax/bus.c         |    4 +---
+ drivers/dax/bus.h         |    3 +--
+ drivers/dax/dax-private.h |    2 --
+ drivers/dax/device.c      |   26 +++-----------------------
+ drivers/dax/hmem/hmem.c   |    2 +-
+ drivers/dax/pmem/core.c   |    3 +--
+ 6 files changed, 7 insertions(+), 33 deletions(-)
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 46e46047a1f7..5301c294e861 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -226,8 +226,7 @@ static void dax_region_unregister(void *region)
+ }
+ 
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+-		struct resource *res, int target_node, unsigned int align,
+-		unsigned long long pfn_flags)
++		struct resource *res, int target_node, unsigned int align)
+ {
+ 	struct dax_region *dax_region;
+ 
+@@ -251,7 +250,6 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 
+ 	dev_set_drvdata(parent, dax_region);
+ 	memcpy(&dax_region->res, res, sizeof(*res));
+-	dax_region->pfn_flags = pfn_flags;
+ 	kref_init(&dax_region->kref);
+ 	dax_region->id = region_id;
+ 	dax_region->align = align;
+diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+index 9e4eba67e8b9..55577e9791da 100644
+--- a/drivers/dax/bus.h
++++ b/drivers/dax/bus.h
+@@ -10,8 +10,7 @@ struct dax_device;
+ struct dax_region;
+ void dax_region_put(struct dax_region *dax_region);
+ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+-		struct resource *res, int target_node, unsigned int align,
+-		unsigned long long flags);
++		struct resource *res, int target_node, unsigned int align);
+ 
+ enum dev_dax_subsys {
+ 	DEV_DAX_BUS,
+diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
+index 3107ce80e809..28767dc3ec13 100644
+--- a/drivers/dax/dax-private.h
++++ b/drivers/dax/dax-private.h
+@@ -23,7 +23,6 @@ void dax_bus_exit(void);
+  * @dev: parent device backing this region
+  * @align: allocation and mapping alignment for child dax devices
+  * @res: physical address range of the region
+- * @pfn_flags: identify whether the pfns are paged back or not
+  */
+ struct dax_region {
+ 	int id;
+@@ -32,7 +31,6 @@ struct dax_region {
+ 	struct device *dev;
+ 	unsigned int align;
+ 	struct resource res;
+-	unsigned long long pfn_flags;
+ };
+ 
+ /**
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 1af823b2fe6b..eaa651ddeccd 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -41,14 +41,6 @@ static int check_vma(struct dev_dax *dev_dax, struct vm_area_struct *vma,
+ 		return -EINVAL;
+ 	}
+ 
+-	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) == PFN_DEV
+-			&& (vma->vm_flags & VM_DONTCOPY) == 0) {
+-		dev_info_ratelimited(dev,
+-				"%s: %s: fail, dax range requires MADV_DONTFORK\n",
+-				current->comm, func);
+-		return -EINVAL;
+-	}
+-
+ 	if (!vma_is_dax(vma)) {
+ 		dev_info_ratelimited(dev,
+ 				"%s: %s: fail, vma is not DAX capable\n",
+@@ -102,7 +94,7 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+ 	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
+ }
+@@ -127,12 +119,6 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	/* dax pmd mappings require pfn_t_devmap() */
+-	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
+-		dev_dbg(dev, "region lacks devmap flags\n");
+-		return VM_FAULT_SIGBUS;
+-	}
+-
+ 	if (fault_size < dax_region->align)
+ 		return VM_FAULT_SIGBUS;
+ 	else if (fault_size > dax_region->align)
+@@ -150,7 +136,7 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+ 	return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
+ }
+@@ -177,12 +163,6 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	/* dax pud mappings require pfn_t_devmap() */
+-	if ((dax_region->pfn_flags & (PFN_DEV|PFN_MAP)) != (PFN_DEV|PFN_MAP)) {
+-		dev_dbg(dev, "region lacks devmap flags\n");
+-		return VM_FAULT_SIGBUS;
+-	}
+-
+ 	if (fault_size < dax_region->align)
+ 		return VM_FAULT_SIGBUS;
+ 	else if (fault_size > dax_region->align)
+@@ -200,7 +180,7 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	*pfn = phys_to_pfn_t(phys, dax_region->pfn_flags);
++	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+ 	return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
+ }
+diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+index 29ceb5795297..506893861253 100644
+--- a/drivers/dax/hmem/hmem.c
++++ b/drivers/dax/hmem/hmem.c
+@@ -22,7 +22,7 @@ static int dax_hmem_probe(struct platform_device *pdev)
+ 	memcpy(&pgmap.res, res, sizeof(*res));
+ 
+ 	dax_region = alloc_dax_region(dev, pdev->id, res, mri->target_node,
+-			PMD_SIZE, PFN_DEV|PFN_MAP);
++			PMD_SIZE);
+ 	if (!dax_region)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/dax/pmem/core.c b/drivers/dax/pmem/core.c
+index 2bedf8414fff..ea52bb77a294 100644
+--- a/drivers/dax/pmem/core.c
++++ b/drivers/dax/pmem/core.c
+@@ -53,8 +53,7 @@ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys)
+ 	memcpy(&res, &pgmap.res, sizeof(res));
+ 	res.start += offset;
+ 	dax_region = alloc_dax_region(dev, region_id, &res,
+-			nd_region->target_node, le32_to_cpu(pfn_sb->align),
+-			PFN_DEV|PFN_MAP);
++			nd_region->target_node, le32_to_cpu(pfn_sb->align));
+ 	if (!dax_region)
+ 		return ERR_PTR(-ENOMEM);
+ 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
