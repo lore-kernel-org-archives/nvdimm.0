@@ -2,57 +2,60 @@ Return-Path: <SRS0=DFBX=5J=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5428C43331
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Mar 2020 00:10:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4130FC54FCF
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Mar 2020 00:10:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7DE5820786
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Mar 2020 00:10:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7DE5820786
+	by mail.kernel.org (Postfix) with ESMTPS id 2274220786
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 24 Mar 2020 00:10:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2274220786
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2719910FC3883;
-	Mon, 23 Mar 2020 17:11:38 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	by ml01.01.org (Postfix) with ESMTP id 5C4F210FC3891;
+	Mon, 23 Mar 2020 17:11:43 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.126; helo=mga18.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5EDA110FC3881
-	for <linux-nvdimm@lists.01.org>; Mon, 23 Mar 2020 17:11:35 -0700 (PDT)
-IronPort-SDR: /RKbbLsM5md9PE+1Lj1lDNS9OIlt2+f8bx9Om8n6OgmucQveQbENo+pTbIupk0qO+apmhb38/P
- KNcCVqo/WkyQ==
+	by ml01.01.org (Postfix) with ESMTPS id 34A0E10FC3886
+	for <linux-nvdimm@lists.01.org>; Mon, 23 Mar 2020 17:11:40 -0700 (PDT)
+IronPort-SDR: gIbA5nX93cnhnXr4oQpVli7c70PdSOYJ/D8FTGDBIrKYffCr+/UeSLJeotEnhhMj8f+BDGqb9z
+ qYCgCT2dQMvw==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 17:10:38 -0700
-IronPort-SDR: B+kpyitPx/n7Zb9g0kUHAXGHfUrwQuJx+43OeoEyejezJiIvvlLYEtlqTgyG1WGtb1wmPZulSO
- Ij1jHCK6WKfQ==
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 17:10:50 -0700
+IronPort-SDR: wrCwhew8c8zRErxRyNieFX0ol7sog5GCQVQ8yk/r/ORZ3TRhUfhxM2/4Uq80SYz12ao5+PuO2Z
+ kWhp5ZSU5Mww==
 X-IronPort-AV: E=Sophos;i="5.72,298,1580803200";
-   d="scan'208";a="246362736"
+   d="scan'208";a="235382018"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 17:10:38 -0700
-Subject: [PATCH 00/12] device-dax: Support sub-dividing soft-reserved ranges
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 17:10:50 -0700
+Subject: [PATCH 02/12] device-dax: Move instance creation parameters to
+ 'struct dev_dax_data'
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-mm@kvack.org
-Date: Mon, 23 Mar 2020 16:54:31 -0700
-Message-ID: <158500767138.2088294.17131646259803932461.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 23 Mar 2020 16:54:43 -0700
+Message-ID: <158500768347.2088294.5638260757259826816.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <158500767138.2088294.17131646259803932461.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <158500767138.2088294.17131646259803932461.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: JUP6IRBE5RJ5QAMZEL7QA5XS4S45JDDU
-X-Message-ID-Hash: JUP6IRBE5RJ5QAMZEL7QA5XS4S45JDDU
+Message-ID-Hash: QWYBV432BPNYVEHCAN4HMEXLOREYFZ5B
+X-Message-ID-Hash: QWYBV432BPNYVEHCAN4HMEXLOREYFZ5B
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: David Hildenbrand <david@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, Michael Ellerman <mpe@ellerman.id.au>, Ben Skeggs <bskeggs@redhat.com>, Paul Mackerras <paulus@ozlabs.org>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Joao Martins <joao.m.martins@oracle.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+CC: dave.hansen@linux.intel.com, hch@lst.de, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JUP6IRBE5RJ5QAMZEL7QA5XS4S45JDDU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QWYBV432BPNYVEHCAN4HMEXLOREYFZ5B/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,89 +64,159 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The device-dax facility allows an address range to be directly mapped
-through a chardev, or turned around and hotplugged to the core kernel
-page allocator as System-RAM. It is the baseline mechanism for
-converting persistent memory (pmem) to be used as another volatile
-memory pool i.e. the current Memory Tiering hot topic on linux-mm.
+In preparation for adding more parameters to instance creation, move
+existing parameters to a new struct.
 
-In the case of pmem the nvdimm-namespace-label mechanism can sub-divide
-it, but that labeling mechanism is not available / applicable to
-soft-reserved ("EFI specific purpose") memory [1]. This series provides
-a sysfs-mechanism for the daxctl utility to enable provisioning of
-volatile-soft-reserved memory ranges.
-
-The motivations for this facility are:
-
-1/ Allow performance differentiated memory ranges to be split between
-   kernel-managed and directly-accessed use cases.
-
-2/ Allow physical memory to be provisioned along performance relevant
-   address boundaries. For example, divide a memory-side cache [2] along
-   cache-color boundaries.
-
-3/ Parcel out soft-reserved memory to VMs using device-dax as a security
-   / permissions boundary [3]. Specifically I have seen people (ab)using
-   memmap=nn!ss (mark System-RAM as Peristent Memory) just to get the
-   device-dax interface on custom address ranges.
-
-The baseline for this series is today's next/master + "[PATCH v2 0/6]
-Manual definition of Soft Reserved memory devices" [4].
-
-Big thanks to Joao for the early testing and feedback on this series!
-
-Given the dependencies on the memremap_pages() reworks in Andrew's tree
-and the proximity to v5.7 this is clearly v5.8 material. The patches in
-most need of a second opinion are the memremap_pages() reworks to switch
-from 'struct resource' to 'struct range' and allow for an array of
-ranges to be mapped at once.
-
-[1]: https://lore.kernel.org/r/157309097008.1579826.12818463304589384434.stgit@dwillia2-desk3.amr.corp.intel.com/
-[2]: https://lore.kernel.org/r/154899811738.3165233.12325692939590944259.stgit@dwillia2-desk3.amr.corp.intel.com/
-[3]: https://lore.kernel.org/r/20200110190313.17144-1-joao.m.martins@oracle.com/
-[4]: http://lore.kernel.org/r/158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com/
-
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/dax/bus.c       |   14 +++++++-------
+ drivers/dax/bus.h       |   16 ++++++++--------
+ drivers/dax/hmem/hmem.c |    8 +++++++-
+ drivers/dax/pmem/core.c |    9 ++++++++-
+ 4 files changed, 30 insertions(+), 17 deletions(-)
 
-Dan Williams (12):
-      device-dax: Drop the dax_region.pfn_flags attribute
-      device-dax: Move instance creation parameters to 'struct dev_dax_data'
-      device-dax: Make pgmap optional for instance creation
-      device-dax: Kill dax_kmem_res
-      device-dax: Add an allocation interface for device-dax instances
-      device-dax: Introduce seed devices
-      drivers/base: Make device_find_child_by_name() compatible with sysfs inputs
-      device-dax: Add resize support
-      mm/memremap_pages: Convert to 'struct range'
-      mm/memremap_pages: Support multiple ranges per invocation
-      device-dax: Add dis-contiguous resource support
-      device-dax: Introduce 'mapping' devices
-
-
- arch/powerpc/kvm/book3s_hv_uvmem.c     |   14 -
- drivers/base/core.c                    |    2 
- drivers/dax/bus.c                      |  877 ++++++++++++++++++++++++++++++--
- drivers/dax/bus.h                      |   28 +
- drivers/dax/dax-private.h              |   36 +
- drivers/dax/device.c                   |   97 ++--
- drivers/dax/hmem/hmem.c                |   18 -
- drivers/dax/kmem.c                     |  170 +++---
- drivers/dax/pmem/compat.c              |    2 
- drivers/dax/pmem/core.c                |   22 +
- drivers/gpu/drm/nouveau/nouveau_dmem.c |    4 
- drivers/nvdimm/badrange.c              |   26 -
- drivers/nvdimm/claim.c                 |   13 
- drivers/nvdimm/nd.h                    |    3 
- drivers/nvdimm/pfn_devs.c              |   13 
- drivers/nvdimm/pmem.c                  |   27 +
- drivers/nvdimm/region.c                |   21 -
- drivers/pci/p2pdma.c                   |   12 
- include/linux/memremap.h               |    9 
- include/linux/range.h                  |    6 
- mm/memremap.c                          |  297 ++++++-----
- tools/testing/nvdimm/dax-dev.c         |   22 +
- tools/testing/nvdimm/test/iomap.c      |    2 
- 23 files changed, 1318 insertions(+), 403 deletions(-)
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 5301c294e861..a5b1b7a82a87 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -395,9 +395,9 @@ static void unregister_dev_dax(void *dev)
+ 	put_device(dev);
+ }
+ 
+-struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+-		struct dev_pagemap *pgmap, enum dev_dax_subsys subsys)
++struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
+ {
++	struct dax_region *dax_region = data->dax_region;
+ 	struct device *parent = dax_region->dev;
+ 	struct dax_device *dax_dev;
+ 	struct dev_dax *dev_dax;
+@@ -405,14 +405,14 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+ 	struct device *dev;
+ 	int rc = -ENOMEM;
+ 
+-	if (id < 0)
++	if (data->id < 0)
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	dev_dax = kzalloc(sizeof(*dev_dax), GFP_KERNEL);
+ 	if (!dev_dax)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	memcpy(&dev_dax->pgmap, pgmap, sizeof(*pgmap));
++	memcpy(&dev_dax->pgmap, data->pgmap, sizeof(struct dev_pagemap));
+ 
+ 	/*
+ 	 * No 'host' or dax_operations since there is no access to this
+@@ -436,13 +436,13 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+ 
+ 	inode = dax_inode(dax_dev);
+ 	dev->devt = inode->i_rdev;
+-	if (subsys == DEV_DAX_BUS)
++	if (data->subsys == DEV_DAX_BUS)
+ 		dev->bus = &dax_bus_type;
+ 	else
+ 		dev->class = dax_class;
+ 	dev->parent = parent;
+ 	dev->type = &dev_dax_type;
+-	dev_set_name(dev, "dax%d.%d", dax_region->id, id);
++	dev_set_name(dev, "dax%d.%d", dax_region->id, data->id);
+ 
+ 	rc = device_add(dev);
+ 	if (rc) {
+@@ -462,7 +462,7 @@ struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+ 
+ 	return ERR_PTR(rc);
+ }
+-EXPORT_SYMBOL_GPL(__devm_create_dev_dax);
++EXPORT_SYMBOL_GPL(devm_create_dev_dax);
+ 
+ static int match_always_count;
+ 
+diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+index 55577e9791da..299c2e7fac09 100644
+--- a/drivers/dax/bus.h
++++ b/drivers/dax/bus.h
+@@ -13,18 +13,18 @@ struct dax_region *alloc_dax_region(struct device *parent, int region_id,
+ 		struct resource *res, int target_node, unsigned int align);
+ 
+ enum dev_dax_subsys {
+-	DEV_DAX_BUS,
++	DEV_DAX_BUS = 0, /* zeroed dev_dax_data picks this by default */
+ 	DEV_DAX_CLASS,
+ };
+ 
+-struct dev_dax *__devm_create_dev_dax(struct dax_region *dax_region, int id,
+-		struct dev_pagemap *pgmap, enum dev_dax_subsys subsys);
++struct dev_dax_data {
++	struct dax_region *dax_region;
++	struct dev_pagemap *pgmap;
++	enum dev_dax_subsys subsys;
++	int id;
++};
+ 
+-static inline struct dev_dax *devm_create_dev_dax(struct dax_region *dax_region,
+-		int id, struct dev_pagemap *pgmap)
+-{
+-	return __devm_create_dev_dax(dax_region, id, pgmap, DEV_DAX_BUS);
+-}
++struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data);
+ 
+ /* to be deleted when DEV_DAX_CLASS is removed */
+ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys);
+diff --git a/drivers/dax/hmem/hmem.c b/drivers/dax/hmem/hmem.c
+index 506893861253..b84fe17178d8 100644
+--- a/drivers/dax/hmem/hmem.c
++++ b/drivers/dax/hmem/hmem.c
+@@ -11,6 +11,7 @@ static int dax_hmem_probe(struct platform_device *pdev)
+ 	struct dev_pagemap pgmap = { };
+ 	struct dax_region *dax_region;
+ 	struct memregion_info *mri;
++	struct dev_dax_data data;
+ 	struct dev_dax *dev_dax;
+ 	struct resource *res;
+ 
+@@ -26,7 +27,12 @@ static int dax_hmem_probe(struct platform_device *pdev)
+ 	if (!dax_region)
+ 		return -ENOMEM;
+ 
+-	dev_dax = devm_create_dev_dax(dax_region, 0, &pgmap);
++	data = (struct dev_dax_data) {
++		.dax_region = dax_region,
++		.id = 0,
++		.pgmap = &pgmap,
++	};
++	dev_dax = devm_create_dev_dax(&data);
+ 	if (IS_ERR(dev_dax))
+ 		return PTR_ERR(dev_dax);
+ 
+diff --git a/drivers/dax/pmem/core.c b/drivers/dax/pmem/core.c
+index ea52bb77a294..08ee5947a49c 100644
+--- a/drivers/dax/pmem/core.c
++++ b/drivers/dax/pmem/core.c
+@@ -14,6 +14,7 @@ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys)
+ 	resource_size_t offset;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct dev_dax *dev_dax;
++	struct dev_dax_data data;
+ 	struct nd_namespace_io *nsio;
+ 	struct dax_region *dax_region;
+ 	struct dev_pagemap pgmap = { };
+@@ -57,7 +58,13 @@ struct dev_dax *__dax_pmem_probe(struct device *dev, enum dev_dax_subsys subsys)
+ 	if (!dax_region)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	dev_dax = __devm_create_dev_dax(dax_region, id, &pgmap, subsys);
++	data = (struct dev_dax_data) {
++		.dax_region = dax_region,
++		.id = id,
++		.pgmap = &pgmap,
++		.subsys = subsys,
++	};
++	dev_dax = devm_create_dev_dax(&data);
+ 
+ 	/* child dev_dax instances now own the lifetime of the dax_region */
+ 	dax_region_put(dax_region);
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
