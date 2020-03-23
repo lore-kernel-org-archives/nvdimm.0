@@ -1,61 +1,60 @@
-Return-Path: <SRS0=hbst=5H=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=9qxr=5I=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFA05C54FD0
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 22 Mar 2020 16:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F174C3F2CD
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Mar 2020 18:33:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 901BA20724
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 22 Mar 2020 16:29:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 901BA20724
+	by mail.kernel.org (Postfix) with ESMTPS id 42FC220719
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Mar 2020 18:33:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 42FC220719
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DCFD910FC378E;
-	Sun, 22 Mar 2020 09:29:57 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+	by ml01.01.org (Postfix) with ESMTP id 61B3310FC3798;
+	Mon, 23 Mar 2020 11:34:20 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 895BB10FC3602
-	for <linux-nvdimm@lists.01.org>; Sun, 22 Mar 2020 09:29:55 -0700 (PDT)
-IronPort-SDR: jN6OZsLKO5rLfU1XhoO6dTOipPhdCekIpsqLLDZnM9DQkEKC2q+A6UAyZGzPgC0fuYrpRFoI7E
- 2f0oCs9YdtVg==
+	by ml01.01.org (Postfix) with ESMTPS id 297A710FC3795
+	for <linux-nvdimm@lists.01.org>; Mon, 23 Mar 2020 11:34:17 -0700 (PDT)
+IronPort-SDR: 5e8qogPGXFZ2Exo5oOVGtdDvAnIN5idSmlqkvCzyeYARWAHUA//rnsQSeJ7M29olO3AX3W8BzF
+ C5bxDP+2ftpw==
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2020 09:29:04 -0700
-IronPort-SDR: hy334qU9gf7XAtxMeIChPaVru7f5WDXBOOEXmmF/GOf+dFYHqfZwnEYJD7N6C6bPuXCZkTzNcY
- 6XKBj8EfOaWA==
-X-IronPort-AV: E=Sophos;i="5.72,293,1580803200";
-   d="scan'208";a="325353273"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Mar 2020 09:29:04 -0700
-Subject: [PATCH v2 6/6] ACPI: HMAT: Attach a device for each soft-reserved
- range
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-acpi@vger.kernel.org
-Date: Sun, 22 Mar 2020 09:12:58 -0700
-Message-ID: <158489357825.1457606.17352509511987748598.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Mar 2020 11:33:27 -0700
+IronPort-SDR: B03f1vwCdxCHL3w4Yhekp9Z1aQnzlD41FgcEt06hKL3fts6nMv9Cr6uhYoUvbrWYG9I6n1RPcp
+ RvzdasFQno8g==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.72,297,1580803200";
+   d="scan'208";a="419597505"
+Received: from vverma7-desk1.amr.corp.intel.com (HELO vverma7-desk1.lm.intel.com) ([10.232.112.164])
+  by orsmga005.jf.intel.com with ESMTP; 23 Mar 2020 11:33:26 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <linux-nvdimm@lists.01.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl/namespace: Fix a resource leak in file_write_infoblock
+Date: Mon, 23 Mar 2020 12:33:21 -0600
+Message-Id: <20200323183321.21889-1-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.21.1
 MIME-Version: 1.0
-Message-ID-Hash: CWPXX74F5GSLFVB2VXH5BZQO5BPHJDKC
-X-Message-ID-Hash: CWPXX74F5GSLFVB2VXH5BZQO5BPHJDKC
-X-MailFrom: dan.j.williams@intel.com
+Message-ID-Hash: 4Q6SYEWNSW5PEIMYE3PMECONWI7LHFDW
+X-Message-ID-Hash: 4Q6SYEWNSW5PEIMYE3PMECONWI7LHFDW
+X-MailFrom: vishal.l.verma@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, peterz@infradead.org, dave.hansen@linux.intel.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, x86@kernel.org, joao.m.martins@oracle.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CWPXX74F5GSLFVB2VXH5BZQO5BPHJDKC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4Q6SYEWNSW5PEIMYE3PMECONWI7LHFDW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,141 +63,34 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The hmem enabling in commit 'cf8741ac57ed ("ACPI: NUMA: HMAT: Register
-"soft reserved" memory as an "hmem" device")' only registered ranges to
-the hmem driver for each soft-reservation that also appeared in the
-HMAT. While this is meant to encourage platform firmware to "do the
-right thing" and publish an HMAT, the corollary is that platforms that
-fail to publish an accurate HMAT will strand memory from Linux usage.
-Additionally, the "efi_fake_mem" kernel command line option enabling
-will strand memory by default without an HMAT.
+Static analysis reported that we were leaking 'fd' in one case in the
+above function, fix the error handling to go through the 'out' label.
 
-Arrange for "soft reserved" memory that goes unclaimed by HMAT entries
-to be published as raw resource ranges for the hmem driver to consume.
-
-Include a module parameter to disable either this fallback behavior, or
-the hmat enabling from creating hmem devices. The module parameter
-requires the hmem device enabling to have unique name in the module
-namespace: "device_hmem".
-
-Rather than mark this x86-only, include an interim phys_to_target_node()
-implementation for arm64.
-
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Brice Goglin <Brice.Goglin@inria.fr>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- arch/arm64/mm/numa.c      |   13 +++++++++++++
- drivers/dax/Kconfig       |    1 +
- drivers/dax/hmem/Makefile |    3 ++-
- drivers/dax/hmem/device.c |   33 +++++++++++++++++++++++++++++++++
- 4 files changed, 49 insertions(+), 1 deletion(-)
+ ndctl/namespace.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-index 4decf1659700..00fba21eaec0 100644
---- a/arch/arm64/mm/numa.c
-+++ b/arch/arm64/mm/numa.c
-@@ -468,3 +468,16 @@ int memory_add_physaddr_to_nid(u64 addr)
- 	pr_warn("Unknown node for memory at 0x%llx, assuming node 0\n", addr);
- 	return 0;
- }
-+
-+/*
-+ * device-dax instance registrations want a valid target-node in case
-+ * they are ever onlined as memory (see hmem_register_device()).
-+ *
-+ * TODO: consult cached numa info
-+ */
-+int phys_to_target_node(phys_addr_t addr)
-+{
-+	pr_warn_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
-+			addr);
-+	return 0;
-+}
-diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-index a229f45d34aa..163edde6ba41 100644
---- a/drivers/dax/Kconfig
-+++ b/drivers/dax/Kconfig
-@@ -50,6 +50,7 @@ config DEV_DAX_HMEM
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 21252b6..0550580 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1958,8 +1958,10 @@ static int file_write_infoblock(const char *path)
+ 	}
  
- config DEV_DAX_HMEM_DEVICES
- 	depends on DEV_DAX_HMEM
-+	select NUMA_KEEP_MEMINFO if NUMA
- 	def_bool y
+ 	buf = calloc(INFOBLOCK_SZ, 1);
+-	if (!buf)
+-		return -ENOMEM;
++	if (!buf) {
++		rc = -ENOMEM;
++		goto out;
++	}
  
- config DEV_DAX_KMEM
-diff --git a/drivers/dax/hmem/Makefile b/drivers/dax/hmem/Makefile
-index a9d353d0c9ed..57377b4c3d47 100644
---- a/drivers/dax/hmem/Makefile
-+++ b/drivers/dax/hmem/Makefile
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- obj-$(CONFIG_DEV_DAX_HMEM) += dax_hmem.o
--obj-$(CONFIG_DEV_DAX_HMEM_DEVICES) += device.o
-+obj-$(CONFIG_DEV_DAX_HMEM_DEVICES) += device_hmem.o
- 
-+device_hmem-y := device.o
- dax_hmem-y := hmem.o
-diff --git a/drivers/dax/hmem/device.c b/drivers/dax/hmem/device.c
-index 99bc15a8b031..f9c5fa8b1880 100644
---- a/drivers/dax/hmem/device.c
-+++ b/drivers/dax/hmem/device.c
-@@ -4,6 +4,9 @@
- #include <linux/module.h>
- #include <linux/mm.h>
- 
-+static bool nohmem;
-+module_param_named(disable, nohmem, bool, 0444);
-+
- void hmem_register_device(int target_nid, struct resource *r)
- {
- 	/* define a clean / non-busy resource for the platform device */
-@@ -16,6 +19,9 @@ void hmem_register_device(int target_nid, struct resource *r)
- 	struct memregion_info info;
- 	int rc, id;
- 
-+	if (nohmem)
-+		return;
-+
- 	rc = region_intersects(res.start, resource_size(&res), IORESOURCE_MEM,
- 			IORES_DESC_SOFT_RESERVED);
- 	if (rc != REGION_INTERSECTS)
-@@ -62,3 +68,30 @@ void hmem_register_device(int target_nid, struct resource *r)
- out_pdev:
- 	memregion_free(id);
- }
-+
-+static __init int hmem_register_one(struct resource *res, void *data)
-+{
-+	/*
-+	 * If the resource is not a top-level resource it was already
-+	 * assigned to a device by the HMAT parsing.
-+	 */
-+	if (res->parent != &iomem_resource)
-+		return 0;
-+
-+	hmem_register_device(phys_to_target_node(res->start), res);
-+
-+	return 0;
-+}
-+
-+static __init int hmem_init(void)
-+{
-+	walk_iomem_res_desc(IORES_DESC_SOFT_RESERVED,
-+			IORESOURCE_MEM, 0, -1, NULL, hmem_register_one);
-+	return 0;
-+}
-+
-+/*
-+ * As this is a fallback for address ranges unclaimed by the ACPI HMAT
-+ * parsing it must be at an initcall level greater than hmat_init().
-+ */
-+late_initcall(hmem_init);
+ 	switch (util_nsmode(param.mode)) {
+ 	case NDCTL_NS_MODE_FSDAX:
+-- 
+2.21.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
