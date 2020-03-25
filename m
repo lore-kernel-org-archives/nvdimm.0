@@ -2,66 +2,80 @@ Return-Path: <SRS0=h1DM=5K=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E504EC1975A
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 25 Mar 2020 11:10:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66A7EC1975A
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 25 Mar 2020 17:10:57 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id BC63F20775
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 25 Mar 2020 11:10:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 434DE20772
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 25 Mar 2020 17:10:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="LyTvEz1H"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BC63F20775
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="eHcC+28q"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 434DE20772
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C067610FC36EC;
-	Wed, 25 Mar 2020 04:11:38 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=will@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 12F5110FC3607;
+	Wed, 25 Mar 2020 10:11:47 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::543; helo=mail-ed1-x543.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 34B3710FC36E7
-	for <linux-nvdimm@lists.01.org>; Wed, 25 Mar 2020 04:11:36 -0700 (PDT)
-Received: from willie-the-truck (236.31.169.217.in-addr.arpa [217.169.31.236])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 6B8A320714;
-	Wed, 25 Mar 2020 11:10:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1585134645;
-	bh=+oORi421RJ9kNbff15hBXNngbNzPdLiPd7dkY8ZfVx8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LyTvEz1HkRScEIks3fLO6NxSaEHP3bTnF7g8lw6/Sw86AIEcst4Vj/SPWtZuK/NmF
-	 k0ZGmVK6WItq5DMMpc4X2IZd9Mq49bJLWf0Xffqqi6SYMw1UYEfFYhdKwRRgO6bl8X
-	 /zcT5VGeyoe/A3wFwuVze9CnAzNQ3nI/5MVCmnjU=
-Date: Wed, 25 Mar 2020 11:10:40 +0000
-From: Will Deacon <will@kernel.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 6/6] ACPI: HMAT: Attach a device for each
- soft-reserved range
-Message-ID: <20200325111039.GA32109@willie-the-truck>
+	by ml01.01.org (Postfix) with ESMTPS id C4C9910FC3166
+	for <linux-nvdimm@lists.01.org>; Wed, 25 Mar 2020 10:11:42 -0700 (PDT)
+Received: by mail-ed1-x543.google.com with SMTP id a43so3409172edf.6
+        for <linux-nvdimm@lists.01.org>; Wed, 25 Mar 2020 10:10:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3TB/V3cS5dQRTb7u6NS+KlfC79/CqRkvKXs/fm6g34w=;
+        b=eHcC+28qlTy7M88OlVi6MBXlOrqK6YikB2zKmxyH4Yh1II3FzBdkQrjEEUT5Zt3lJu
+         ckS7jpRPAdgt6whblMJd4ptrhZCQL79TrQz8EbzL0SeL83J/LyAjkzbRTsOj4IE/KEeE
+         s2Cx4bQIQCOK5OekxWCKafQD5/kxGKWTNVCCl4E/5W9kzq593H6wZiiDm60ecwOxStL2
+         LeujouVThMSlNjsaf48F3Yw3But0ebd1m3dEIw4LmAEfh2yIpX1peWDg7aUtH9KwQIa8
+         ruxLdm7gd+iIRBKXSIwL4KQlpkNOOyUGpbdyDdyC5u5j4vY/p7zfHHalqOU/fQZAlsKW
+         n5lQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3TB/V3cS5dQRTb7u6NS+KlfC79/CqRkvKXs/fm6g34w=;
+        b=CB5qcpXBGVNmcoR2k9R88bi8oJ3qnVkMZoC6UfnhNjKR3K0hsRAn2J2EYLxJ4wDt6r
+         DSWeHdDPNpKbiGIBJ0Nbw4EmUXMHaEXtsMzMrrv2AjxgmTbWa/3ejNs9iZj+zlKe1hLT
+         h4Iq2V2eVIaP0z/ZFpPOsojRkFywBWfEtn9DjJGr8Hec8S7pNco9hqDb5BggBk57gPh0
+         bTAsLvu517hjOpa9qS5pV4VsPInedpIeQUdTEVC6RY1ERfJWJscAs133RJGKz+h9Yllo
+         iYFmhJUQ/0KRLQUugEqEf8X+BPLh+nTGK5FYcurTll+ji32VaEzwicutrvkmVlIaRdA9
+         e7Fw==
+X-Gm-Message-State: ANhLgQ3qD/ni2EQkzwVx4WxnZU78WT0gCZ3G7TzEIZ7w6zVhprs5lCXH
+	kYibQUECAu5VY1En9VtTMTLs55zBZ/Y4DdZ2R8ASkw==
+X-Google-Smtp-Source: ADFU+vsMpfwwBF1AU4XFYsAjtIxydM3lmExgrwiqtzAko7x2yr0UVmhQyTxicjQSFrrQLSYnbAn1QFVDiy2ZTJ11JoQ=
+X-Received: by 2002:a17:906:1e8a:: with SMTP id e10mr4231020ejj.56.1585156250955;
+ Wed, 25 Mar 2020 10:10:50 -0700 (PDT)
+MIME-Version: 1.0
 References: <158489354353.1457606.8327903161927980740.stgit@dwillia2-desk3.amr.corp.intel.com>
  <158489357825.1457606.17352509511987748598.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <158489357825.1457606.17352509511987748598.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: OYKIRK3BX5SZYY5PJFPV4EG6YYDATTDU
-X-Message-ID-Hash: OYKIRK3BX5SZYY5PJFPV4EG6YYDATTDU
-X-MailFrom: will@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-acpi@vger.kernel.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, peterz@infradead.org, dave.hansen@linux.intel.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, x86@kernel.org, joao.m.martins@oracle.com
+ <20200325111039.GA32109@willie-the-truck>
+In-Reply-To: <20200325111039.GA32109@willie-the-truck>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 25 Mar 2020 10:10:36 -0700
+Message-ID: <CAPcyv4jQDbdUN3pwjkDx-R6Dd3adDSWq+50+O7mqZw5ezNXHeg@mail.gmail.com>
+Subject: Re: [PATCH v2 6/6] ACPI: HMAT: Attach a device for each soft-reserved range
+To: Will Deacon <will@kernel.org>
+Message-ID-Hash: NX2HKFBVOM7VNMIE7HX33O2JDBEZVXTH
+X-Message-ID-Hash: NX2HKFBVOM7VNMIE7HX33O2JDBEZVXTH
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Linux ACPI <linux-acpi@vger.kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, Joao Martins <joao.m.martins@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OYKIRK3BX5SZYY5PJFPV4EG6YYDATTDU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NX2HKFBVOM7VNMIE7HX33O2JDBEZVXTH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -70,69 +84,76 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Mar 22, 2020 at 09:12:58AM -0700, Dan Williams wrote:
-> The hmem enabling in commit 'cf8741ac57ed ("ACPI: NUMA: HMAT: Register
-> "soft reserved" memory as an "hmem" device")' only registered ranges to
-> the hmem driver for each soft-reservation that also appeared in the
-> HMAT. While this is meant to encourage platform firmware to "do the
-> right thing" and publish an HMAT, the corollary is that platforms that
-> fail to publish an accurate HMAT will strand memory from Linux usage.
-> Additionally, the "efi_fake_mem" kernel command line option enabling
-> will strand memory by default without an HMAT.
-> 
-> Arrange for "soft reserved" memory that goes unclaimed by HMAT entries
-> to be published as raw resource ranges for the hmem driver to consume.
-> 
-> Include a module parameter to disable either this fallback behavior, or
-> the hmat enabling from creating hmem devices. The module parameter
-> requires the hmem device enabling to have unique name in the module
-> namespace: "device_hmem".
-> 
-> Rather than mark this x86-only, include an interim phys_to_target_node()
-> implementation for arm64.
-> 
-> Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Cc: Brice Goglin <Brice.Goglin@inria.fr>
-> Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Jeff Moyer <jmoyer@redhat.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will@kernel.org>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  arch/arm64/mm/numa.c      |   13 +++++++++++++
->  drivers/dax/Kconfig       |    1 +
->  drivers/dax/hmem/Makefile |    3 ++-
->  drivers/dax/hmem/device.c |   33 +++++++++++++++++++++++++++++++++
->  4 files changed, 49 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-> index 4decf1659700..00fba21eaec0 100644
-> --- a/arch/arm64/mm/numa.c
-> +++ b/arch/arm64/mm/numa.c
-> @@ -468,3 +468,16 @@ int memory_add_physaddr_to_nid(u64 addr)
->  	pr_warn("Unknown node for memory at 0x%llx, assuming node 0\n", addr);
->  	return 0;
->  }
-> +
-> +/*
-> + * device-dax instance registrations want a valid target-node in case
-> + * they are ever onlined as memory (see hmem_register_device()).
-> + *
-> + * TODO: consult cached numa info
-> + */
-> +int phys_to_target_node(phys_addr_t addr)
-> +{
-> +	pr_warn_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
-> +			addr);
-> +	return 0;
-> +}
+On Wed, Mar 25, 2020 at 4:10 AM Will Deacon <will@kernel.org> wrote:
+>
+> On Sun, Mar 22, 2020 at 09:12:58AM -0700, Dan Williams wrote:
+> > The hmem enabling in commit 'cf8741ac57ed ("ACPI: NUMA: HMAT: Register
+> > "soft reserved" memory as an "hmem" device")' only registered ranges to
+> > the hmem driver for each soft-reservation that also appeared in the
+> > HMAT. While this is meant to encourage platform firmware to "do the
+> > right thing" and publish an HMAT, the corollary is that platforms that
+> > fail to publish an accurate HMAT will strand memory from Linux usage.
+> > Additionally, the "efi_fake_mem" kernel command line option enabling
+> > will strand memory by default without an HMAT.
+> >
+> > Arrange for "soft reserved" memory that goes unclaimed by HMAT entries
+> > to be published as raw resource ranges for the hmem driver to consume.
+> >
+> > Include a module parameter to disable either this fallback behavior, or
+> > the hmat enabling from creating hmem devices. The module parameter
+> > requires the hmem device enabling to have unique name in the module
+> > namespace: "device_hmem".
+> >
+> > Rather than mark this x86-only, include an interim phys_to_target_node()
+> > implementation for arm64.
+> >
+> > Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Cc: Brice Goglin <Brice.Goglin@inria.fr>
+> > Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > Cc: Jeff Moyer <jmoyer@redhat.com>
+> > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > Cc: Will Deacon <will@kernel.org>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  arch/arm64/mm/numa.c      |   13 +++++++++++++
+> >  drivers/dax/Kconfig       |    1 +
+> >  drivers/dax/hmem/Makefile |    3 ++-
+> >  drivers/dax/hmem/device.c |   33 +++++++++++++++++++++++++++++++++
+> >  4 files changed, 49 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+> > index 4decf1659700..00fba21eaec0 100644
+> > --- a/arch/arm64/mm/numa.c
+> > +++ b/arch/arm64/mm/numa.c
+> > @@ -468,3 +468,16 @@ int memory_add_physaddr_to_nid(u64 addr)
+> >       pr_warn("Unknown node for memory at 0x%llx, assuming node 0\n", addr);
+> >       return 0;
+> >  }
+> > +
+> > +/*
+> > + * device-dax instance registrations want a valid target-node in case
+> > + * they are ever onlined as memory (see hmem_register_device()).
+> > + *
+> > + * TODO: consult cached numa info
+> > + */
+> > +int phys_to_target_node(phys_addr_t addr)
+> > +{
+> > +     pr_warn_once("Unknown target node for memory at 0x%llx, assuming node 0\n",
+> > +                     addr);
+> > +     return 0;
+> > +}
+>
+> Could you implement a generic version of this by iterating over the nodes
+> with for_each_{,online_}node() and checking for intersection with
+> node_{start,end}_pfn()?
 
-Could you implement a generic version of this by iterating over the nodes
-with for_each_{,online_}node() and checking for intersection with
-node_{start,end}_pfn()?
-
-Will
+Interesting. The gap is that node_{start,end}_pfn() requires
+node_data[] which to date architectures have only setup for online
+nodes. Recall a target node is an offline node that could come online
+later. However, reworking offline data into node_data could be the
+local solution for arm64, I'd just ask that each of the 6
+memory-hotplug capable archs go make that opt-in decision themselves.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
