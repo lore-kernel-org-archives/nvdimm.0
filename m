@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0ED9C2D0EB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD276C43331
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:06 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 84771206F6
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 9278720786
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="hoY0Amw8"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 84771206F6
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="QzIshqlF"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9278720786
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4D7CB10FC3789;
-	Sun, 29 Mar 2020 22:53:50 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 6563710FC36DF;
+	Sun, 29 Mar 2020 22:53:56 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 8A0F81003ECB6
-	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:53:48 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 429341003ECB6
+	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:53:53 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 7AF382DC6858;
-	Mon, 30 Mar 2020 16:52:48 +1100 (AEDT)
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 1A36B2DC685C;
+	Mon, 30 Mar 2020 16:52:49 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
-	s=201810a; t=1585547569;
-	bh=g2tKnklWJ8nRzWz5jOb4SQnCXOC8tlA+PKeUIsvkvgs=;
+	s=201810a; t=1585547571;
+	bh=7micxHdia2GvvQ4mY81c4jBHOqLOZ0TeAcVaPQleunM=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hoY0Amw8E3jMSf124cMI1wOBWdhV16swXKrVuGoVuKJBlh/3/iI04X2bHZTflwSVT
-	 rXkGmTHKruF/ots8Q5MKXaWfN0FTpt6tBiDh44ZwOyTu+MjrxVmhH3f+1ZbJvqCY9T
-	 8p4a6Z+1e0cD086gWlUP0filTlBTCQyDL6L4ikJ5KfcZAd/WFDiTUxYmERPNcQ8LO1
-	 dVvD31gngYJE56oQA2OMztgkhZwDMSuUyo4rurny1G2ArnKsFgg755eAnzTE+dDBLB
-	 kusCv/GKPBY04EUChSAd95Z301G9lNDqGLp6YwFYrcwEk/0HugQDFLS/6em0wul/3e
-	 eJ1lBvVRdTCXPo2EenFtjKu9WVdT3b08+EVkoY7u01Tvsy8RUkHavAhN/EXnGBYy7b
-	 6teojKsAvPV4TXtwVIlKKXPgk1+euhW7uNgDbDCu4wJ6aVdak6PuZFkaydM7I/Io+x
-	 GIsf1TuI8RrZUBymhW1SvPuTVpH2iedMZZwDQJKIA9RByNtaLZLszsx59gxS26bFfE
-	 cWr0XYAzlnA2pq1V4GBMTtfvLJ2bKIFX84BVuPasQ7aB0Gwk8tem7NaxLJAp910yoF
-	 +lXFcuTaHlxiopdYshGLHOXT1lwOv3FyRkv/jAc2cyQrqp7AdMd/4ovUfT2+/bYZ/C
-	 er5boYLjD7a0hnoy9MFr6D50=
+	b=QzIshqlFp53qA4DB8IAUutZabSbcugvEaXNKxzsAZpWDALJWJPENQ0mvFoELV93rV
+	 xBDyaQhfw6Fw/7rbXS8HW2uZrWtaFnR2MvhNnl6jlQdn02p7u/PmP6ztacNKbuPyu9
+	 85tmlez/p2Zxt6TIwBFgAqzZRWTRiMnUh4iIZthtCkmm6j6qHrQe0olItNDpyXKcuu
+	 yrr563UM5DgGMo6LV7xzIIBif4ulFgC+/HkkjRqErrlhMI7zkwkMcxgPJBNiKUJris
+	 O3eIA6Pue08VWVHyK7Rqs/DxlrIVWcyA5LmzmtJO8eECSw88MVxEtfzv905BcPf3kH
+	 cMJ/o5fgzi/txiWRyh4RECCqzSOxZASTGF+B4aKQY9yDgE8tWr1RSDdkAgN9l5T7gK
+	 XufI3qOWi3HWntScxvoGIljl4WlGsy2jHNnAP16md7cjStgYPxE+MIOngRuFz9G+ot
+	 B0ZpigPUtr4kS4a5Zk/lekbvhIphRoTyFEEg27ngbAd4+R0Pdpi/03ray/974q6DRP
+	 oj9yVUBjNPWt7kNYNnilPCHMODV6tOeY6nPwnd/5fUVYpIYO/0G0qRYicw3MoB+cMo
+	 WNBBCFdNMn/eXciPsYoJgPiHCgAWonEXwlOPPECDtSKn/8ZevQqjdlygOvDl330WrX
+	 giiKa7eoY/kFQHdeCMxIcNVE=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4At045934;
-	Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ax045934;
+	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 20/25] nvdimm/ocxl: Add an IOCTL to request controller health & perf data
-Date: Fri, 27 Mar 2020 18:11:57 +1100
-Message-Id: <20200327071202.2159885-21-alastair@d-silva.org>
+Subject: [PATCH v4 24/25] nvdimm/ocxl: Expose the serial number & firmware version in sysfs
+Date: Fri, 27 Mar 2020 18:12:01 +1100
+Message-Id: <20200327071202.2159885-25-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
-Message-ID-Hash: KKLTMUKAWMVSFLJN535HJYYOGRYO7F5T
-X-Message-ID-Hash: KKLTMUKAWMVSFLJN535HJYYOGRYO7F5T
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
+Message-ID-Hash: CP57YFMUDSRSR7GUH7NPRHVEK2QQBEP2
+X-Message-ID-Hash: CP57YFMUDSRSR7GUH7NPRHVEK2QQBEP2
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KKLTMUKAWMVSFLJN535HJYYOGRYO7F5T/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CP57YFMUDSRSR7GUH7NPRHVEK2QQBEP2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,65 +77,75 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When health & performance data is requested from the controller,
-it responds with an error log containing the requested information.
-
-This patch allows the request to be issued via an IOCTL, the data
-can later be collected in userspace via the error log IOCTL introduced
-in a previous patch. Userspace will be notified of pending error
-logs via an event.
+This patch exposes the serial number & firmware version in sysfs,
+which will be used by ndctl in userspace to help users identify
+the device.
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
 ---
- drivers/nvdimm/ocxl/main.c     | 16 ++++++++++++++++
- include/uapi/nvdimm/ocxlpmem.h |  1 +
- 2 files changed, 17 insertions(+)
+ drivers/nvdimm/ocxl/main.c | 42 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/nvdimm/ocxl/main.c b/drivers/nvdimm/ocxl/main.c
-index cb6cdc9eb899..a4315472683c 100644
+index 92b4389e8cbb..1f422f0d51ef 100644
 --- a/drivers/nvdimm/ocxl/main.c
 +++ b/drivers/nvdimm/ocxl/main.c
-@@ -991,6 +991,18 @@ static int ioctl_event_check(struct ocxlpmem *ocxlpmem, u64 __user *uarg)
- 	return rc;
+@@ -235,6 +235,43 @@ static int reserve_metadata(struct ocxlpmem *ocxlpmem,
+ 	return 0;
  }
  
-+/**
-+ * req_controller_health_perf() - Request controller health & performance data
-+ * @ocxlpmem: the device metadata
-+ * Return: 0 on success, negative on failure
-+ */
-+int req_controller_health_perf(struct ocxlpmem *ocxlpmem)
++static ssize_t serial_show(struct device *device, struct device_attribute *attr,
++			   char *buf)
 +{
-+	return ocxl_global_mmio_set64(ocxlpmem->ocxl_afu, GLOBAL_MMIO_HCI,
-+				      OCXL_LITTLE_ENDIAN,
-+				      GLOBAL_MMIO_HCI_REQ_HEALTH_PERF);
++	struct nvdimm *nvdimm = to_nvdimm(device);
++	struct ocxlpmem *ocxlpmem = nvdimm_provider_data(nvdimm);
++	const struct ocxl_fn_config *fn_config = ocxl_function_config(ocxlpmem->ocxl_fn);
++
++	return scnprintf(buf, PAGE_SIZE, "%llu\n", fn_config->serial);
 +}
++static DEVICE_ATTR_RO(serial);
 +
- static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
- {
- 	struct ocxlpmem *ocxlpmem = file->private_data;
-@@ -1028,6 +1040,10 @@ static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
- 	case IOCTL_OCXLPMEM_EVENT_CHECK:
- 		rc = ioctl_event_check(ocxlpmem, (u64 __user *)args);
- 		break;
++static ssize_t fw_version_show(struct device *device,
++			       struct device_attribute *attr, char *buf)
++{
++	struct nvdimm *nvdimm = to_nvdimm(device);
++	struct ocxlpmem *ocxlpmem = nvdimm_provider_data(nvdimm);
 +
-+	case IOCTL_OCXLPMEM_REQUEST_HEALTH:
-+		rc = req_controller_health_perf(ocxlpmem);
-+		break;
- 	}
++	return scnprintf(buf, PAGE_SIZE, "%s\n", ocxlpmem->fw_version);
++}
++static DEVICE_ATTR_RO(fw_version);
++
++static struct attribute *ocxl_pmem_attrs[] = {
++	&dev_attr_serial.attr,
++	&dev_attr_fw_version.attr,
++	NULL,
++};
++
++static const struct attribute_group ocxl_pmem_attribute_group = {
++	.name = "ocxlpmem",
++	.attrs = ocxl_pmem_attrs,
++};
++
++static const struct attribute_group *ocxl_pmem_dimm_attribute_groups[] = {
++	&ocxl_pmem_attribute_group,
++	NULL,
++};
++
+ /**
+  * register_lpc_mem() - Discover persistent memory on a device and register it with the NVDIMM subsystem
+  * @ocxlpmem: the device metadata
+@@ -291,8 +328,9 @@ static int register_lpc_mem(struct ocxlpmem *ocxlpmem)
  
- 	return rc;
-diff --git a/include/uapi/nvdimm/ocxlpmem.h b/include/uapi/nvdimm/ocxlpmem.h
-index d573bd307e35..9c5c8585c1c2 100644
---- a/include/uapi/nvdimm/ocxlpmem.h
-+++ b/include/uapi/nvdimm/ocxlpmem.h
-@@ -91,5 +91,6 @@ struct ioctl_ocxlpmem_eventfd {
- #define IOCTL_OCXLPMEM_CONTROLLER_STATS			_IO(OCXLPMEM_MAGIC, 0x34)
- #define IOCTL_OCXLPMEM_EVENTFD				_IOW(OCXLPMEM_MAGIC, 0x35, struct ioctl_ocxlpmem_eventfd)
- #define IOCTL_OCXLPMEM_EVENT_CHECK			_IOR(OCXLPMEM_MAGIC, 0x36, __u64)
-+#define IOCTL_OCXLPMEM_REQUEST_HEALTH			_IO(OCXLPMEM_MAGIC, 0x37)
+ 	snprintf(serial, sizeof(serial), "%llx", fn_config->serial);
+ 	nd_mapping_desc.nvdimm = nvdimm_create(ocxlpmem->nvdimm_bus, ocxlpmem,
+-					       NULL, nvdimm_flags,
+-					       nvdimm_cmd_mask, 0, NULL);
++					       ocxl_pmem_dimm_attribute_groups,
++					       nvdimm_flags, nvdimm_cmd_mask, 0,
++					       NULL);
+ 	if (!nd_mapping_desc.nvdimm)
+ 		return -ENOMEM;
  
- #endif /* _UAPI_OCXL_SCM_H */
 -- 
 2.24.1
 _______________________________________________
