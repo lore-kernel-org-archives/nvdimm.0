@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A79E2C43331
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 08:59:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BFEB8C2D0EE
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 08:59:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7D74820B1F
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 08:59:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 9710620848
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 08:59:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="H7bb13Em"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7D74820B1F
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="Kalaxq5z"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9710620848
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 28E9E10FC3891;
-	Tue, 31 Mar 2020 02:00:19 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 4AF5010FC3893;
+	Tue, 31 Mar 2020 02:00:26 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 3D20E10FC388F
-	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 02:00:17 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 3B49210FC3886
+	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 02:00:24 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id BFE3E2DC6864;
-	Mon, 30 Mar 2020 16:52:59 +1100 (AEDT)
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 4BCB92DC6849;
+	Mon, 30 Mar 2020 16:53:02 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
-	s=201810a; t=1585547580;
-	bh=c5YZBYO+yginh2wx+CLNIvIUORNFUjOABhnB4YY2rcQ=;
+	s=201810a; t=1585547583;
+	bh=4YGi5cIVTJtyQ3RAuYeIobqzlKnYrZhy+tDNyNbmbBI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=H7bb13EmE2VTz/xNCZFvHIKXPP3TeNvxDkuS5IRaBtVx57jSBYN2U2LYEtdHLKsJ3
-	 w4c2EU9+WAnUbQQnn2xp5vsvkGT1oVzYp2Z/e9qG1S8bNA5QKVc7iJZO9lmsj3Qm4k
-	 YIxHdAmnT7hBPI3FtB6+r7Ep+eYY2O7BpcwMIEw17UqxBr0Ip3WA1RahjZq5SGA5Ao
-	 I23uOXicZiWYalDfMaAP2NyfLEbCxHY0EdojnqMAP/6/Tf+OvBKt2S3ukyx4Pr7N3r
-	 6phOUFhEe0kGDr8SDz4olli9RICvKa9rm5WkiTQCTRUSDQb79fCJRSVqKQf6L7vh2K
-	 CmuLTORzjDMeh9R9eyh8U6bRW8ofSvDfs5LP7/FcGukxTIsv83kPhH7UTN/r2SoUx4
-	 0TAiI6GwCc26okqemO+Q+PxHryoajtYkGAdoiaHm03kfiZinubmAkuDC9YGhE8celo
-	 fgVtJABORQ9OQtMPr394ZBKILzYYqr1Lx6qdvZrvB2OLIfP7Qu/LC0d1Ggjro7FRFo
-	 nfEOFx2RlxtY/oMHljhuxCRnhvchR1YYea6iUPgWi01teicDbR1nfWmsbl5z+TTcD4
-	 uyXvwNNJ98kh/UfzbI6Nzah+vwR8aHhe7kl+nvFRZHKmQQknMxkZ+Q/HK/UX9vOF4N
-	 yWRGXpaYIXGr/tLjjgQJvnFQ=
+	b=Kalaxq5zVXcqXTV+7cShrpQDd+DPjZ0pPj3T9DCz6pKgtR1jC4i1QdZ4SEX5u98e8
+	 mKVtVWsG0B4kjkBeXSf6ADl11fwAI/lJGptO7Tf+KvP3OWculqcOsJiOhWP/8WY0Mj
+	 YR9egnccj5YS2nT1mNHiRYvl+hfcbxFCe2QQnIAm0pnpRLBt5DP3TOBWlcReFrz7mR
+	 Vpy6p0JeKxz7QzJyGl5TtfstdMotqraAwA3yafv3XyqrYpXf0mzjw/Ypq6sRf+jyoD
+	 3AclM8QlsKopRJ5p03zihQ4NjOKFUTGcAblvp3FJrml3mxvQgH8cNtpmsD+i/2ni4b
+	 YiUOoudKtzWsjftqEx3J/ZkF49wCnIG9Jdz6uT10iPY2K371GsYcxNmQOqSNfmOQ/r
+	 W1LReKTP0Rpv1vxZAyq4KSphvzy4rOjiQwSTpdVwVmA1yMFA412VOuZaAUD4pBudtt
+	 aLsEbJ/C7y/SDEGhxgz+KPhJByXpDmpN64EBQ8Q5oWbrBtYktHR4O6mR69Fmty4HeM
+	 aOfCKx0hdaJQ3THwIrsnPhX7aWWvs0U1KMN9vVKbgO1aezYhhjSdR+FEItYQdhRnUp
+	 OHl1LYLkwGFzo+zpxHnP+j8wleROH4fR17cfK6tCa/NmWejDWYK23qZP1t+SqmGftV
+	 sCXgC3b2hOmfKrutn8Fut04Y=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ar045934;
-	Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ap045934;
+	Fri, 27 Mar 2020 18:12:18 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 18/25] nvdimm/ocxl: Add an IOCTL to report controller statistics
-Date: Fri, 27 Mar 2020 18:11:55 +1100
-Message-Id: <20200327071202.2159885-19-alastair@d-silva.org>
+Subject: [PATCH v4 16/25] nvdimm/ocxl: Implement the Read Error Log command
+Date: Fri, 27 Mar 2020 18:11:53 +1100
+Message-Id: <20200327071202.2159885-17-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
-Message-ID-Hash: CZSE6DLAUTVKKG2RGDVDNCQPD5QX6RRQ
-X-Message-ID-Hash: CZSE6DLAUTVKKG2RGDVDNCQPD5QX6RRQ
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:18 +1100 (AEDT)
+Message-ID-Hash: 3WC4BUKBZ3W7FXD4O4YS2F6ZEZHR5KAG
+X-Message-ID-Hash: 3WC4BUKBZ3W7FXD4O4YS2F6ZEZHR5KAG
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CZSE6DLAUTVKKG2RGDVDNCQPD5QX6RRQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3WC4BUKBZ3W7FXD4O4YS2F6ZEZHR5KAG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,36 +77,61 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The controller can report a number of statistics that are useful
-in evaluating the performance and reliability of the card.
+The read error log command extracts information from the controller's
+internal error log.
 
-This patch exposes this information via an IOCTL.
+This patch exposes this information in 2 ways:
+- During probe, if an error occurs & a log is available, print it to the
+  console
+- After probe, make the error log available to userspace via an IOCTL.
+  Userspace is notified of pending error logs in a later patch
+  ("powerpc/powernv/pmem: Forward events to userspace")
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
 ---
- drivers/nvdimm/ocxl/main.c     | 220 +++++++++++++++++++++++++++++++++
- include/uapi/nvdimm/ocxlpmem.h |  21 ++++
- 2 files changed, 241 insertions(+)
+ .../userspace-api/ioctl/ioctl-number.rst      |   1 +
+ drivers/nvdimm/ocxl/main.c                    | 240 ++++++++++++++++++
+ include/uapi/nvdimm/ocxlpmem.h                |  46 ++++
+ 3 files changed, 287 insertions(+)
+ create mode 100644 include/uapi/nvdimm/ocxlpmem.h
 
+diff --git a/Documentation/userspace-api/ioctl/ioctl-number.rst b/Documentation/userspace-api/ioctl/ioctl-number.rst
+index 9425377615ce..ba0ce7dca643 100644
+--- a/Documentation/userspace-api/ioctl/ioctl-number.rst
++++ b/Documentation/userspace-api/ioctl/ioctl-number.rst
+@@ -340,6 +340,7 @@ Code  Seq#    Include File                                           Comments
+ 0xC0  00-0F  linux/usb/iowarrior.h
+ 0xCA  00-0F  uapi/misc/cxl.h
+ 0xCA  10-2F  uapi/misc/ocxl.h
++0xCA  30-3F  uapi/nvdimm/ocxlpmem.h                                  OpenCAPI Persistent Memory
+ 0xCA  80-BF  uapi/scsi/cxlflash_ioctl.h
+ 0xCB  00-1F                                                          CBM serial IEC bus in development:
+                                                                      <mailto:michael.klein@puffin.lb.shuttle.de>
 diff --git a/drivers/nvdimm/ocxl/main.c b/drivers/nvdimm/ocxl/main.c
-index d0db358ded43..0040fc09cceb 100644
+index 9b85fcd3f1c9..e6be0029f658 100644
 --- a/drivers/nvdimm/ocxl/main.c
 +++ b/drivers/nvdimm/ocxl/main.c
-@@ -713,6 +713,221 @@ static int ioctl_controller_dump_complete(struct ocxlpmem *ocxlpmem)
- 				    GLOBAL_MMIO_HCI_CONTROLLER_DUMP_COLLECTED);
+@@ -13,6 +13,7 @@
+ #include <linux/fs.h>
+ #include <linux/mm_types.h>
+ #include <linux/memory_hotplug.h>
++#include <uapi/nvdimm/ocxlpmem.h>
+ #include "ocxlpmem.h"
+ 
+ static const struct pci_device_id pci_tbl[] = {
+@@ -401,10 +402,190 @@ static int file_release(struct inode *inode, struct file *file)
+ 	return 0;
  }
  
 +/**
-+ * controller_stats_header_parse() - Parse the first 64 bits of the controller stats admin command response
++ * error_log_header_parse() - Parse the first 64 bits of the error log command response
 + * @ocxlpmem: the device metadata
 + * @length: out, returns the number of bytes in the response (excluding the 64 bit header)
 + */
-+static int controller_stats_header_parse(struct ocxlpmem *ocxlpmem,
-+					 u32 *length)
++static int error_log_header_parse(struct ocxlpmem *ocxlpmem, u16 *length)
 +{
 +	int rc;
 +	u64 val;
-+
 +	u16 data_identifier;
 +	u32 data_length;
 +
@@ -117,11 +142,11 @@ index d0db358ded43..0040fc09cceb 100644
 +		return rc;
 +
 +	data_identifier = val >> 48;
-+	data_length = val & 0xFFFFFFFF;
++	data_length = val & 0xFFFF;
 +
-+	if (data_identifier != 0x4353) { // 'CS'
++	if (data_identifier != 0x454C) { // 'EL'
 +		dev_err(&ocxlpmem->dev,
-+			"Bad data identifier for error log data, expected 'CS', got '%2s' (%#x), data_length=%u\n",
++			"Bad data identifier for error log data, expected 'EL', got '%2s' (%#x), data_length=%u\n",
 +			(char *)&data_identifier,
 +			(unsigned int)data_identifier, data_length);
 +		return -EINVAL;
@@ -131,239 +156,285 @@ index d0db358ded43..0040fc09cceb 100644
 +	return 0;
 +}
 +
-+static int ioctl_controller_stats(struct ocxlpmem *ocxlpmem,
-+				  struct ioctl_ocxlpmem_controller_stats __user *uarg)
++static int read_error_log(struct ocxlpmem *ocxlpmem,
++			  struct ioctl_ocxlpmem_error_log *log,
++			  bool buf_is_user)
 +{
-+	struct ioctl_ocxlpmem_controller_stats args;
-+	u32 length;
-+	int rc;
 +	u64 val;
++	u16 user_buf_length;
++	u16 buf_length;
++	u64 *buf = (u64 *)log->buf_ptr;
++	u16 i;
++	int rc;
 +
-+	memset(&args, '\0', sizeof(args));
++	if (log->buf_size % 8)
++		return -EINVAL;
++
++	rc = ocxlpmem_chi(ocxlpmem, &val);
++	if (rc)
++		return rc;
++
++	if (!(val & GLOBAL_MMIO_CHI_ELA))
++		return -EAGAIN;
++
++	user_buf_length = log->buf_size;
 +
 +	mutex_lock(&ocxlpmem->admin_command.lock);
 +
-+	rc = ocxl_global_mmio_write64(ocxlpmem->ocxl_afu,
-+				      ocxlpmem->admin_command.request_offset + 0x08,
-+				      OCXL_LITTLE_ENDIAN, 0);
-+	if (rc)
-+		goto out;
-+
-+	rc = admin_command_execute(ocxlpmem, ADMIN_COMMAND_CONTROLLER_STATS);
-+	if (rc < 0)
-+		goto out;
++	rc = admin_command_execute(ocxlpmem, ADMIN_COMMAND_ERRLOG);
 +	if (rc != STATUS_SUCCESS) {
 +		warn_status(ocxlpmem,
-+			    "Unexpected status from controller stats", rc);
++			    "Unexpected status from retrieve error log", rc);
 +		goto out;
 +	}
 +
-+	rc = controller_stats_header_parse(ocxlpmem, &length);
++	rc = error_log_header_parse(ocxlpmem, &log->buf_size);
 +	if (rc)
 +		goto out;
++	// log->buf_size now contains the returned buffer size, not the user size
 +
-+	if (length != 0x140) // Documented length of controller stats response
-+		warn_status(ocxlpmem,
-+			    "Unexpected length for controller stats data, expected 0x140, got 0x%x",
-+			    length);
-+
-+#define SPID1_OFFSET		(ocxlpmem->admin_command.data_offset + 0x08)
-+#define SPID2_OFFSET		(ocxlpmem->admin_command.data_offset + 0x48)
-+#define RESET_INFO		(SPID1_OFFSET + 0x08)
-+#define UPTIME_LIFE		(SPID1_OFFSET + 0x10)
-+#define CRITICAL_UTIL		(SPID2_OFFSET + 0x08)
-+#define HOST_LOAD_COUNT		(SPID2_OFFSET + 0x10)
-+#define HOST_STORE_COUNT	(SPID2_OFFSET + 0x18)
-+#define HOST_LOAD_DURATION	(SPID2_OFFSET + 0x20)
-+#define HOST_STORE_DURATION	(SPID2_OFFSET + 0x28)
-+#define MEDIA_READ_COUNT	(SPID2_OFFSET + 0x50)
-+#define MEDIA_WRITE_COUNT	(SPID2_OFFSET + 0x58)
-+#define MEDIA_READ_DURATION	(SPID2_OFFSET + 0x60)
-+#define MEDIA_WRITE_DURATION	(SPID2_OFFSET + 0x68)
-+#define CACHE_READ_HIT_COUNT	(SPID2_OFFSET + 0x90)
-+#define CACHE_WRITE_HIT_COUNT	(SPID2_OFFSET + 0x98)
-+#define FAST_WRITE_COUNT	(SPID2_OFFSET + 0xA0)
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, SPID1_OFFSET,
-+				     OCXL_LITTLE_ENDIAN, &val);
-+	if (rc)
-+		goto out;
-+	if ((val >> 56) != 0x01) { // Check the parameter ID
-+		rc = -ENODEV;
-+		goto out;
-+	}
-+	if ((val & 0xFFFFFFFF) != 0x38) { // Check the length
-+		rc = -ENODEV;
-+		goto out;
-+	}
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, RESET_INFO,
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset + 0x08,
 +				     OCXL_LITTLE_ENDIAN, &val);
 +	if (rc)
 +		goto out;
 +
-+	args.reset_count = val >> 32;
-+	args.reset_uptime = val & 0xFFFFFFFF;
++	log->log_identifier = val >> 32;
++	log->program_reference_code = val & 0xFFFFFFFF;
 +
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, UPTIME_LIFE,
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset + 0x10,
 +				     OCXL_LITTLE_ENDIAN, &val);
 +	if (rc)
 +		goto out;
 +
-+	args.power_on_uptime = val >> 32;
-+	args.life_remaining = val & 0xFF;
++	log->error_log_type = val >> 56;
++	log->action_flags = (log->error_log_type == OCXLPMEM_ERROR_LOG_TYPE_GENERAL) ?
++			    (val >> 32) & 0xFFFFFF : 0;
++	log->power_on_seconds = val & 0xFFFFFFFF;
 +
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, SPID2_OFFSET,
-+				     OCXL_LITTLE_ENDIAN, &val);
-+	if (rc)
-+		goto out;
-+	if ((val >> 56) != 0x02) { // Check the parameter ID
-+		rc = -ENODEV;
-+		goto out;
-+	}
-+	if ((val & 0xFFFFFFFF) != 0xF8) { // Check the length
-+		rc = -ENODEV;
-+		goto out;
-+	}
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, CRITICAL_UTIL,
-+				     OCXL_LITTLE_ENDIAN, &val);
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset + 0x18,
++				     OCXL_LITTLE_ENDIAN, &log->timestamp);
 +	if (rc)
 +		goto out;
 +
-+	args.critical_resource_utilization = val & 0xff;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, HOST_LOAD_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.host_load_count);
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset + 0x20,
++				     OCXL_LITTLE_ENDIAN, &log->wwid[0]);
 +	if (rc)
 +		goto out;
 +
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, HOST_STORE_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.host_store_count);
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset + 0x28,
++				     OCXL_LITTLE_ENDIAN, &log->wwid[1]);
 +	if (rc)
 +		goto out;
 +
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, HOST_LOAD_DURATION,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.host_load_duration);
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset + 0x30,
++				     OCXL_HOST_ENDIAN, (u64 *)log->fw_revision);
 +	if (rc)
 +		goto out;
++	log->fw_revision[8] = '\0';
 +
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, HOST_STORE_DURATION,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.host_store_duration);
-+	if (rc)
-+		goto out;
++	buf_length = (user_buf_length < log->buf_size) ?
++		      user_buf_length : log->buf_size;
++	for (i = 0; i < buf_length / (sizeof(u64)); i++) {
++		rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++					     ocxlpmem->admin_command.data_offset +
++							i * sizeof(u64),
++					     OCXL_HOST_ENDIAN, &val);
++		if (rc)
++			goto out;
 +
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, MEDIA_READ_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.media_read_count);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, MEDIA_WRITE_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.media_write_count);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, MEDIA_READ_DURATION,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.media_read_duration);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, MEDIA_WRITE_DURATION,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.media_write_duration);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, CACHE_READ_HIT_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.cache_read_hit_count);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, CACHE_WRITE_HIT_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.cache_write_hit_count);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, FAST_WRITE_COUNT,
-+				     OCXL_LITTLE_ENDIAN,
-+				     &args.fast_write_count);
-+	if (rc)
-+		goto out;
-+
-+	if (copy_to_user(uarg, &args, sizeof(args))) {
-+		rc = -EFAULT;
-+		goto out;
++		if (buf_is_user) {
++			if (copy_to_user((u64 __user *)&buf[i], &val,
++					 sizeof(u64))) {
++				rc = -EFAULT;
++				goto out;
++			}
++		} else {
++			buf[i] = val;
++		}
 +	}
 +
 +	rc = admin_response_handled(ocxlpmem);
++	if (rc)
++		goto out;
 +
 +out:
 +	mutex_unlock(&ocxlpmem->admin_command.lock);
 +	return rc;
 +}
 +
- static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
- {
- 	struct ocxlpmem *ocxlpmem = file->private_data;
-@@ -736,6 +951,11 @@ static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
- 	case IOCTL_OCXLPMEM_CONTROLLER_DUMP_COMPLETE:
- 		rc = ioctl_controller_dump_complete(ocxlpmem);
- 		break;
++static int ioctl_error_log(struct ocxlpmem *ocxlpmem,
++			   struct ioctl_ocxlpmem_error_log __user *uarg)
++{
++	struct ioctl_ocxlpmem_error_log args;
++	int rc;
 +
-+	case IOCTL_OCXLPMEM_CONTROLLER_STATS:
-+		rc = ioctl_controller_stats(ocxlpmem,
-+					    (struct ioctl_ocxlpmem_controller_stats __user *)args);
++	if (copy_from_user(&args, uarg, sizeof(args)))
++		return -EFAULT;
++
++	rc = read_error_log(ocxlpmem, &args, true);
++	if (rc)
++		return rc;
++
++	if (copy_to_user(uarg, &args, sizeof(args)))
++		return -EFAULT;
++
++	return 0;
++}
++
++static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
++{
++	struct ocxlpmem *ocxlpmem = file->private_data;
++	int rc = -EINVAL;
++
++	switch (cmd) {
++	case IOCTL_OCXLPMEM_ERROR_LOG:
++		rc = ioctl_error_log(ocxlpmem,
++				     (struct ioctl_ocxlpmem_error_log __user *)args);
 +		break;
- 	}
- 
- 	return rc;
-diff --git a/include/uapi/nvdimm/ocxlpmem.h b/include/uapi/nvdimm/ocxlpmem.h
-index 05e2b3f7b27c..ca3a7098fa9d 100644
---- a/include/uapi/nvdimm/ocxlpmem.h
-+++ b/include/uapi/nvdimm/ocxlpmem.h
-@@ -51,6 +51,26 @@ struct ioctl_ocxlpmem_controller_dump_data {
- 	__u64 reserved[8];
++	}
++	return rc;
++}
++
+ static const struct file_operations fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= file_open,
+ 	.release	= file_release,
++	.unlocked_ioctl = file_ioctl,
++	.compat_ioctl   = file_ioctl,
  };
  
-+struct ioctl_ocxlpmem_controller_stats {
-+	__u32 reset_count;
-+	__u32 reset_uptime; /* seconds */
-+	__u32 power_on_uptime; /* seconds */
-+	__u8 life_remaining; /* percentage, 0-100 */
-+	__u8 critical_resource_utilization; /* percentage, 0-100 */
-+	__u8 reserved[2];
-+	__u64 host_load_count;
-+	__u64 host_store_count;
-+	__u64 host_load_duration; /* nanoseconds, total */
-+	__u64 host_store_duration; /* nanoseconds, total */
-+	__u64 media_read_count;
-+	__u64 media_write_count;
-+	__u64 media_read_duration; /* nanoseconds, total */
-+	__u64 media_write_duration; /* nanoseconds, total */
-+	__u64 cache_read_hit_count;
-+	__u64 cache_write_hit_count;
-+	__u64 fast_write_count;
+ /**
+@@ -493,6 +674,60 @@ static int read_device_metadata(struct ocxlpmem *ocxlpmem)
+ 	return 0;
+ }
+ 
++static const char *decode_error_log_type(u8 error_log_type)
++{
++	switch (error_log_type) {
++	case 0x00:
++		return "general";
++	case 0x01:
++		return "predictive failure";
++	case 0x02:
++		return "thermal warning";
++	case 0x03:
++		return "data loss";
++	case 0x04:
++		return "health & performance";
++	default:
++		return "unknown";
++	}
++}
++
++static void dump_error_log(struct ocxlpmem *ocxlpmem)
++{
++	struct ioctl_ocxlpmem_error_log log;
++	u32 buf_size;
++	u8 *buf;
++	int rc;
++
++	if (ocxlpmem->admin_command.data_size == 0)
++		return;
++
++	buf_size = ocxlpmem->admin_command.data_size - 0x48;
++	buf = kzalloc(buf_size, GFP_KERNEL);
++	if (!buf)
++		return;
++
++	log.buf_ptr = (u64)buf;
++	log.buf_size = buf_size;
++
++	rc = read_error_log(ocxlpmem, &log, false);
++	if (rc < 0)
++		goto out;
++
++	dev_warn(&ocxlpmem->dev,
++		 "OCXL PMEM Error log: WWID=0x%016llx%016llx LID=0x%x PRC=%x type=0x%x %s, Uptime=%u seconds timestamp=0x%llx\n",
++		 log.wwid[0], log.wwid[1],
++		 log.log_identifier, log.program_reference_code,
++		 log.error_log_type,
++		 decode_error_log_type(log.error_log_type),
++		 log.power_on_seconds, log.timestamp);
++	print_hex_dump(KERN_WARNING, "buf", DUMP_PREFIX_OFFSET, 16, 1, buf,
++		       log.buf_size, false);
++
++out:
++	kfree(buf);
++}
++
+ /**
+  * probe_function0() - Set up function 0 for an OpenCAPI persistent memory device
+  * This is important as it enables templates higher than 0 across all other
+@@ -656,6 +891,11 @@ static int probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	pci_set_drvdata(pdev, NULL);
+ 
+ err:
++	if (ocxlpmem &&
++	    (ocxlpmem_chi(ocxlpmem, &chi) == 0) &&
++	    (chi & GLOBAL_MMIO_CHI_ELA))
++		dump_error_log(ocxlpmem);
++
+ 	/*
+ 	 * Further cleanup is done in the release handler via free_ocxlpmem()
+ 	 * This allows us to keep the character device live to handle IOCTLs to
+diff --git a/include/uapi/nvdimm/ocxlpmem.h b/include/uapi/nvdimm/ocxlpmem.h
+new file mode 100644
+index 000000000000..5d3a03ea1e08
+--- /dev/null
++++ b/include/uapi/nvdimm/ocxlpmem.h
+@@ -0,0 +1,46 @@
++/* SPDX-License-Identifier: GPL-2.0+ WITH Linux-syscall-note */
++/* Copyright 2020 IBM Corp. */
++#ifndef _UAPI_OCXL_SCM_H
++#define _UAPI_OCXL_SCM_H
++
++#include <linux/types.h>
++#include <linux/ioctl.h>
++
++#define OCXLPMEM_ERROR_LOG_ACTION_RESET	(1 << (32 - 32))
++#define OCXLPMEM_ERROR_LOG_ACTION_CHKFW	(1 << (53 - 32))
++#define OCXLPMEM_ERROR_LOG_ACTION_REPLACE	(1 << (54 - 32))
++#define OCXLPMEM_ERROR_LOG_ACTION_DUMP		(1 << (55 - 32))
++
++#define OCXLPMEM_ERROR_LOG_TYPE_GENERAL		(0x00)
++#define OCXLPMEM_ERROR_LOG_TYPE_PREDICTIVE_FAILURE	(0x01)
++#define OCXLPMEM_ERROR_LOG_TYPE_THERMAL_WARNING	(0x02)
++#define OCXLPMEM_ERROR_LOG_TYPE_DATA_LOSS		(0x03)
++#define OCXLPMEM_ERROR_LOG_TYPE_HEALTH_PERFORMANCE	(0x04)
++
++struct ioctl_ocxlpmem_error_log {
++	__u32 log_identifier; /* out */
++	__u32 program_reference_code; /* out */
++	__u32 action_flags; /* out, recommended course of action */
++	__u32 power_on_seconds; /* out, Number of seconds the controller has been on when the error occurred */
++	__u64 timestamp; /* out, relative time since the current IPL */
++	__u64 wwid[2]; /* out, the NAA formatted WWID associated with the controller */
++	char  fw_revision[8 + 1]; /* out, firmware revision as null terminated text */
++	__u8  reserved0[7];
++	__u16 buf_size; /* in/out, buffer size provided/required.
++			 * If required is greater than provided, the buffer
++			 * will be truncated to the amount provided. If its
++			 * less, then only the required bytes will be populated.
++			 * If it is 0, then there are no more error log entries.
++			 */
++	__u8  error_log_type;
++	__u8  reserved1[5];
++	__u64 buf_ptr; /* coerced pointer to output buffer */
++	__u64 reserved2[2];
 +};
 +
- /* ioctl numbers */
- #define OCXLPMEM_MAGIC 0xCA
- /* OpenCAPI Persistent memory devices */
-@@ -58,5 +78,6 @@ struct ioctl_ocxlpmem_controller_dump_data {
- #define IOCTL_OCXLPMEM_CONTROLLER_DUMP			_IO(OCXLPMEM_MAGIC, 0x31)
- #define IOCTL_OCXLPMEM_CONTROLLER_DUMP_DATA		_IOWR(OCXLPMEM_MAGIC, 0x32, struct ioctl_ocxlpmem_controller_dump_data)
- #define IOCTL_OCXLPMEM_CONTROLLER_DUMP_COMPLETE		_IO(OCXLPMEM_MAGIC, 0x33)
-+#define IOCTL_OCXLPMEM_CONTROLLER_STATS			_IO(OCXLPMEM_MAGIC, 0x34)
- 
- #endif /* _UAPI_OCXL_SCM_H */
++/* ioctl numbers */
++#define OCXLPMEM_MAGIC 0xCA
++/* OpenCAPI Persistent memory devices */
++#define IOCTL_OCXLPMEM_ERROR_LOG			_IOWR(OCXLPMEM_MAGIC, 0x30, struct ioctl_ocxlpmem_error_log)
++
++#endif /* _UAPI_OCXL_SCM_H */
 -- 
 2.24.1
 _______________________________________________
