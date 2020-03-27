@@ -2,64 +2,64 @@ Return-Path: <SRS0=ZPMO=5P=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AE2AC2D0EE
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41393C2D0EB
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E3A1B2078B
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 180492082F
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="DcslQM+q"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E3A1B2078B
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="NrRTkA2b"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 180492082F
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B70D710FC379F;
-	Sun, 29 Mar 2020 22:54:08 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id DA16B10FC3883;
+	Sun, 29 Mar 2020 22:54:11 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 4557210FC3792
-	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:54:06 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 4F41510FC3795
+	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:54:09 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 32B862DC6860;
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 23A0E2DC6861;
 	Mon, 30 Mar 2020 16:52:54 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
-	s=201810a; t=1585547574;
-	bh=UtTeCR+k2Y01sGISBjlacY9KQsMxyTaomboXrU4wwyo=;
+	s=201810a; t=1585547576;
+	bh=8s7da4KbOpaV4mqdxyxNi6aCXQRjcGL9fg5XH8aq39A=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DcslQM+qGci9qChZilaQA/DfS7pIdT/bNqHpbmQhKkju0pgXMUz8JD90Cz+H1bOZ/
-	 amHXQtG9t9iPoAPZuinrZD7AwVpmAv1jXyLxSdfobhFwpgpUM0K6qXy+IAmaP+HmlE
-	 TNOYm4ybNsk99pct5O+F75N7mUe3GbKAMkrk8zM0bR7/KJdH31MXZ2m7M39Aa0aERC
-	 hhBsydX+iRUw3CN/F63pYnhDAkKdFRLC7xbyoEEdnEDLEc7Igxlv0Of84H5ld7cps0
-	 V0O9+JZZ2QIz8gyRAvAlapeKh5K8RWoV3B9FGc30JME4hgJGuzP427kc5vGzXjEH5K
-	 owUqeLtXwXVJDdQmdwFJCqkbEpULxf9gwx8QvS5clbc3TJNV4IZ6zQDxSjW7H/+yni
-	 p7+SHPCkLZZZhNXt04DvM8qX26uChSVK6PmzZI5tnv7hQSlx4XtQxD11dePDdL42r1
-	 fDYadY3krb5KndhtNhvCfr1WBs7e97qb4o94/aLW6iqXGP3/FzACm/xRJT/ctSx5kc
-	 y/c+jC1pb1s+PJWQOXQuxvUmL1yb7VAP+LmMsMHoSQ9prJ0i+wFPws4FtxKpAkFTyi
-	 0meqZfMRKeTShg5TSQuGOSjNVPBiPoAXGTDoW4TqYnZ+7azYSrqrMhWVYgnLWN69xR
-	 8KL4NoIcEOzKu9p7busd2CuE=
+	b=NrRTkA2bxZwFMeoCf0Wr6Odf6o65lo0QM+ThRM66hf/7Tb+pvtJVuQxJN394NTysC
+	 VgilHFKK5xR1f6lDBP0QlOXi2EJtvYeXpa6JFreVlZ03HY/0O6eVn0cvRH8pvqRpyo
+	 cdzWDRkWYXg1MPX4tN1fXYDXGdiYygmqECTUp+0YnDPD6LfGx+xx+gategBGRubdAL
+	 L0JRYtfskZ/D5Zw0QaK/Tz53JgYEGDdF037VYvOeTQp7vuawto13Te3Rm7pe7J0n3j
+	 H6iwZUTYry2yNKsgzOEM59Q5V7lk5UymbYbT6X5deJlY236MnLO6jpfeBIjPT8WeYG
+	 zbyXaR3DorudKtfRcOMCYngpMoCzEzYlFjON6mwdALYIvaxuWIpUi0eUv4wErujoca
+	 ev2YxG6LJtlTTbFLoAYDap+my1DyfAet2uXwgjOsEAogxT/DBD0646Y0yGqEn2L3J6
+	 hinFHFG49vIm36L/NCftTmxqx7+9UfvO5s+VkIilw2q9UHK+gBNkJiRQVDG1yFm5Rn
+	 co+eZdxegSRaD39VqYwEY+iKgvu/Jb1w0cb0ho+kiB03px14BmTNlQk4Tof0LqmFNk
+	 7tVG7Vgv/QEAcjH8bPZwH8sZw7WayGyD+FfKrWAwVv7XeAsc2mBHBKPSE++URXQ1Nz
+	 MdXl8DGDe8LMBnwkv+CQ57LQ=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ao045934;
-	Fri, 27 Mar 2020 18:12:18 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Aw045934;
+	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 15/25] nvdimm/ocxl: Register a character device for userspace to interact with
-Date: Fri, 27 Mar 2020 18:11:52 +1100
-Message-Id: <20200327071202.2159885-16-alastair@d-silva.org>
+Subject: [PATCH v4 23/25] nvdimm/ocxl: Expose SMART data via ndctl
+Date: Fri, 27 Mar 2020 18:12:00 +1100
+Message-Id: <20200327071202.2159885-24-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:18 +1100 (AEDT)
-Message-ID-Hash: EWOP2SZ3VFOJLPPRIZ7IOVWSXOJFJU4K
-X-Message-ID-Hash: EWOP2SZ3VFOJLPPRIZ7IOVWSXOJFJU4K
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
+Message-ID-Hash: J5ASZDBHX72SLXCVWSZJ3Y5LCNSWWBVD
+X-Message-ID-Hash: J5ASZDBHX72SLXCVWSZJ3Y5LCNSWWBVD
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EWOP2SZ3VFOJLPPRIZ7IOVWSXOJFJU4K/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J5ASZDBHX72SLXCVWSZJ3Y5LCNSWWBVD/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,212 +77,203 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch introduces a character device (/dev/ocxlpmemX) which further
-patches will use to interact with userspace, such as error logs,
-controller stats and card debug functionality.
+This patch retrieves proprietary formatted SMART data and makes it
+available via ndctl. A later contribution will be made to ndctl to
+parse this data.
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
 ---
- drivers/nvdimm/ocxl/main.c     | 117 ++++++++++++++++++++++++++++++++-
- drivers/nvdimm/ocxl/ocxlpmem.h |   2 +
- 2 files changed, 117 insertions(+), 2 deletions(-)
+ drivers/nvdimm/ocxl/main.c     | 113 +++++++++++++++++++++++++++++++++
+ drivers/nvdimm/ocxl/ocxlpmem.h |  18 ++++++
+ include/uapi/linux/ndctl.h     |   1 +
+ 3 files changed, 132 insertions(+)
 
 diff --git a/drivers/nvdimm/ocxl/main.c b/drivers/nvdimm/ocxl/main.c
-index 8db573036423..9b85fcd3f1c9 100644
+index 2811bf7efbab..92b4389e8cbb 100644
 --- a/drivers/nvdimm/ocxl/main.c
 +++ b/drivers/nvdimm/ocxl/main.c
-@@ -10,6 +10,7 @@
- #include <misc/ocxl.h>
- #include <linux/delay.h>
- #include <linux/ndctl.h>
-+#include <linux/fs.h>
- #include <linux/mm_types.h>
- #include <linux/memory_hotplug.h>
- #include "ocxlpmem.h"
-@@ -356,6 +357,67 @@ static int ocxlpmem_register(struct ocxlpmem *ocxlpmem)
- 	return device_register(&ocxlpmem->dev);
- }
- 
-+static void ocxlpmem_put(struct ocxlpmem *ocxlpmem)
-+{
-+	put_device(&ocxlpmem->dev);
-+}
-+
-+static struct ocxlpmem *ocxlpmem_get(struct ocxlpmem *ocxlpmem)
-+{
-+	return (!get_device(&ocxlpmem->dev)) ? NULL : ocxlpmem;
-+}
-+
-+static struct ocxlpmem *find_and_get_ocxlpmem(dev_t devno)
-+{
-+	struct ocxlpmem *ocxlpmem;
-+	int minor = MINOR(devno);
-+
-+	mutex_lock(&minors_idr_lock);
-+	ocxlpmem = idr_find(&minors_idr, minor);
-+	if (ocxlpmem)
-+		ocxlpmem_get(ocxlpmem);
-+	mutex_unlock(&minors_idr_lock);
-+
-+	return ocxlpmem;
-+}
-+
-+static int file_open(struct inode *inode, struct file *file)
-+{
-+	struct ocxlpmem *ocxlpmem;
-+
-+	ocxlpmem = find_and_get_ocxlpmem(inode->i_rdev);
-+	if (!ocxlpmem)
-+		return -ENODEV;
-+
-+	file->private_data = ocxlpmem;
-+	return 0;
-+}
-+
-+static int file_release(struct inode *inode, struct file *file)
-+{
-+	struct ocxlpmem *ocxlpmem = file->private_data;
-+
-+	ocxlpmem_put(ocxlpmem);
-+	return 0;
-+}
-+
-+static const struct file_operations fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= file_open,
-+	.release	= file_release,
-+};
-+
-+/**
-+ * create_cdev() - Create the chardev in /dev for the device
-+ * @ocxlpmem: the SCM metadata
-+ * Return: 0 on success, negative on failure
-+ */
-+static int create_cdev(struct ocxlpmem *ocxlpmem)
-+{
-+	cdev_init(&ocxlpmem->cdev, &fops);
-+	return cdev_add(&ocxlpmem->cdev, ocxlpmem->dev.devt, 1);
-+}
-+
- /**
-  * ocxlpmem_remove() - Free an OpenCAPI persistent memory device
-  * @pdev: the PCI device information struct
-@@ -376,6 +438,13 @@ static void remove(struct pci_dev *pdev)
- 		if (ocxlpmem->nvdimm_bus)
- 			nvdimm_bus_unregister(ocxlpmem->nvdimm_bus);
- 
-+		/*
-+		 * Remove the cdev early to prevent a race against userspace
-+		 * via the char dev
-+		 */
-+		if (ocxlpmem->cdev.owner)
-+			cdev_del(&ocxlpmem->cdev);
-+
- 		device_unregister(&ocxlpmem->dev);
- 	}
- }
-@@ -527,11 +596,18 @@ static int probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		goto err;
- 	}
- 
--	if (setup_command_metadata(ocxlpmem)) {
-+	rc = setup_command_metadata(ocxlpmem);
-+	if (rc) {
- 		dev_err(&pdev->dev, "Could not read command metadata\n");
- 		goto err;
- 	}
- 
-+	rc = create_cdev(ocxlpmem);
-+	if (rc) {
-+		dev_err(&pdev->dev, "Could not create character device\n");
-+		goto err;
-+	}
-+
- 	elapsed = 0;
- 	timeout = ocxlpmem->readiness_timeout +
- 		  ocxlpmem->memory_available_timeout;
-@@ -599,6 +675,36 @@ static struct pci_driver pci_driver = {
- 	.shutdown = remove,
- };
- 
-+static int file_init(void)
-+{
-+	int rc;
-+
-+	rc = alloc_chrdev_region(&ocxlpmem_dev, 0, NUM_MINORS, "ocxlpmem");
-+	if (rc) {
-+		idr_destroy(&minors_idr);
-+		pr_err("Unable to allocate OpenCAPI persistent memory major number: %d\n",
-+		       rc);
-+		return rc;
-+	}
-+
-+	ocxlpmem_class = class_create(THIS_MODULE, "ocxlpmem");
-+	if (IS_ERR(ocxlpmem_class)) {
-+		idr_destroy(&minors_idr);
-+		pr_err("Unable to create ocxlpmem class\n");
-+		unregister_chrdev_region(ocxlpmem_dev, NUM_MINORS);
-+		return PTR_ERR(ocxlpmem_class);
-+	}
-+
-+	return 0;
-+}
-+
-+static void file_exit(void)
-+{
-+	class_destroy(ocxlpmem_class);
-+	unregister_chrdev_region(ocxlpmem_dev, NUM_MINORS);
-+	idr_destroy(&minors_idr);
-+}
-+
- static int __init ocxlpmem_init(void)
- {
- 	int rc;
-@@ -606,16 +712,23 @@ static int __init ocxlpmem_init(void)
- 	mutex_init(&minors_idr_lock);
- 	idr_init(&minors_idr);
- 
--	rc = pci_register_driver(&pci_driver);
-+	rc = file_init();
- 	if (rc)
- 		return rc;
- 
-+	rc = pci_register_driver(&pci_driver);
-+	if (rc) {
-+		file_exit();
-+		return rc;
-+	}
-+
+@@ -82,6 +82,114 @@ static int ndctl_config_size(struct nd_cmd_get_config_size *command)
  	return 0;
  }
  
- static void ocxlpmem_exit(void)
- {
- 	pci_unregister_driver(&pci_driver);
-+	file_exit();
- }
++/**
++ * smart_header_parse() - Parse the first 64 bits of the SMART admin command response
++ * @ocxlpmem: the device metadata
++ * @length: out, returns the number of bytes in the response (excluding the 64 bit header)
++ */
++static int smart_header_parse(struct ocxlpmem *ocxlpmem, u32 *length)
++{
++	int rc;
++	u64 val;
++
++	u16 data_identifier;
++	u32 data_length;
++
++	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++				     ocxlpmem->admin_command.data_offset,
++				     OCXL_LITTLE_ENDIAN, &val);
++	if (rc)
++		return rc;
++
++	data_identifier = val >> 48;
++	data_length = val & 0xFFFFFFFF;
++
++	if (data_identifier != 0x534D) { // 'SM'
++		dev_err(&ocxlpmem->dev,
++			"Bad data identifier for smart data, expected 'SM', got '%2s'\n",
++			(char *)&data_identifier);
++		return -EINVAL;
++	}
++
++	*length = data_length;
++	return 0;
++}
++
++static int ndctl_smart(struct ocxlpmem *ocxlpmem, struct nd_cmd_pkg *pkg)
++{
++	u32 length, i;
++	struct nd_ocxl_smart *out;
++	int rc;
++
++	mutex_lock(&ocxlpmem->admin_command.lock);
++
++	rc = admin_command_execute(ocxlpmem, ADMIN_COMMAND_SMART);
++	if (rc < 0)
++		goto out;
++	if (rc != STATUS_SUCCESS) {
++		warn_status(ocxlpmem, "Unexpected status from SMART", rc);
++		goto out;
++	}
++
++	rc = smart_header_parse(ocxlpmem, &length);
++	if (rc)
++		goto out;
++
++	pkg->nd_fw_size = length + offsetof(struct nd_ocxl_smart, attribs);
++
++	length = min(length, (u32)(pkg->nd_size_out -
++		     offsetof(struct nd_ocxl_smart, attribs))); // bytes
++	out = (struct nd_ocxl_smart *)pkg->nd_payload;
++	// Each SMART attribute is 2 * 64 bits
++	out->count = length / (2 * sizeof(u64)); // attributes
++
++	for (i = 0; i < length; i += sizeof(u64)) {
++		rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
++					     ocxlpmem->admin_command.data_offset +
++					     sizeof(u64) + i,
++					     OCXL_LITTLE_ENDIAN,
++					     &out->attribs[i / sizeof(u64)]);
++		if (rc)
++			goto out;
++	}
++
++	rc = admin_response_handled(ocxlpmem);
++	if (rc)
++		goto out;
++
++out:
++	mutex_unlock(&ocxlpmem->admin_command.lock);
++	return rc;
++}
++
++static int ndctl_call(struct ocxlpmem *ocxlpmem, void *buf,
++		      unsigned int buf_len)
++{
++	struct nd_cmd_pkg *pkg = buf;
++
++	if (buf_len < sizeof(struct nd_cmd_pkg)) {
++		dev_err(&ocxlpmem->dev, "Invalid ND_CALL size=%u\n", buf_len);
++		return -EINVAL;
++	}
++
++	if (pkg->nd_family != NVDIMM_FAMILY_OCXL) {
++		dev_err(&ocxlpmem->dev, "Invalid ND_CALL family=0x%llx\n",
++			pkg->nd_family);
++		return -EINVAL;
++	}
++
++	switch (pkg->nd_command) {
++	case ND_CMD_OCXL_SMART:
++		return ndctl_smart(ocxlpmem, pkg);
++	default:
++		dev_err(&ocxlpmem->dev, "Invalid ND_CALL command=0x%llx\n",
++			pkg->nd_command);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ static int ndctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		 struct nvdimm *nvdimm,
+ 		 unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
+@@ -90,6 +198,10 @@ static int ndctl(struct nvdimm_bus_descriptor *nd_desc,
+ 						 struct ocxlpmem, bus_desc);
  
- module_init(ocxlpmem_init);
+ 	switch (cmd) {
++	case ND_CMD_CALL:
++		*cmd_rc = ndctl_call(ocxlpmem, buf, buf_len);
++		return 0;
++
+ 	case ND_CMD_GET_CONFIG_SIZE:
+ 		*cmd_rc = ndctl_config_size(buf);
+ 		return 0;
+@@ -173,6 +285,7 @@ static int register_lpc_mem(struct ocxlpmem *ocxlpmem)
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &nvdimm_cmd_mask);
+ 	set_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm_cmd_mask);
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &nvdimm_cmd_mask);
++	set_bit(ND_CMD_CALL, &nvdimm_cmd_mask);
+ 
+ 	set_bit(NDD_ALIASING, &nvdimm_flags);
+ 
 diff --git a/drivers/nvdimm/ocxl/ocxlpmem.h b/drivers/nvdimm/ocxl/ocxlpmem.h
-index b72b3f909fc3..ee3bd651f254 100644
+index c8794e7775ec..ebaf11692c09 100644
 --- a/drivers/nvdimm/ocxl/ocxlpmem.h
 +++ b/drivers/nvdimm/ocxl/ocxlpmem.h
-@@ -2,6 +2,7 @@
- // Copyright 2020 IBM Corp.
- 
- #include <linux/pci.h>
-+#include <linux/cdev.h>
+@@ -6,6 +6,7 @@
  #include <misc/ocxl.h>
  #include <linux/libnvdimm.h>
  #include <linux/mm.h>
-@@ -103,6 +104,7 @@ struct command_metadata {
++#include <linux/ndctl.h>
+ 
+ #define LABEL_AREA_SIZE	BIT_ULL(PA_SECTION_SHIFT)
+ #define DEFAULT_TIMEOUT 100
+@@ -101,6 +102,23 @@ struct command_metadata {
+ 	u8 op_code;
+ };
+ 
++struct nd_ocxl_smart {
++	__u8 count;
++	__u8 reserved[7];
++	__u64 attribs[0];
++} __packed;
++
++struct nd_pkg_ocxl {
++	struct nd_cmd_pkg gen;
++	union {
++		struct nd_ocxl_smart smart;
++	};
++};
++
++enum nd_cmd_ocxl {
++	ND_CMD_OCXL_SMART = 1,
++};
++
  struct ocxlpmem {
  	struct device dev;
  	struct pci_dev *pdev;
-+	struct cdev cdev;
- 	struct ocxl_fn *ocxl_fn;
- 	struct nd_interleave_set nd_set;
- 	struct nvdimm_bus_descriptor bus_desc;
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index de5d90212409..2885052e7f40 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -244,6 +244,7 @@ struct nd_cmd_pkg {
+ #define NVDIMM_FAMILY_HPE2 2
+ #define NVDIMM_FAMILY_MSFT 3
+ #define NVDIMM_FAMILY_HYPERV 4
++#define NVDIMM_FAMILY_OCXL 6
+ 
+ #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
+ 					struct nd_cmd_pkg)
 -- 
 2.24.1
 _______________________________________________
