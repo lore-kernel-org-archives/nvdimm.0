@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6167C2D0EE
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D7F5C43331
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:31 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9A53B2071B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 7432320714
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="hCzyPFbC"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9A53B2071B
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="ToWrV+3Z"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7432320714
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 37A2B10FC3BB0;
-	Fri, 27 Mar 2020 00:13:17 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 24A1410FC3BB3;
+	Fri, 27 Mar 2020 00:13:16 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 43E5210FC3614
+	by ml01.01.org (Postfix) with ESMTP id 12D3210FC3614
 	for <linux-nvdimm@lists.01.org>; Fri, 27 Mar 2020 00:13:12 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id E40E22DC682D;
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id EB93C2DC682E;
 	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
 	s=201810a; t=1585293141;
-	bh=NLU6a+GZmpbGM7ZZlM+S8RXczj/+GapNI1yMP3rrpMk=;
+	bh=vpE3Z7AWSr9my143HyVtO4yHV91rl8rmhtd6A3TKrQs=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=hCzyPFbCqeOcmtzW6SY05RhBcPIxs8zbC5tLYywSkBDdyzkBfaz87rhMNSBwMnoYp
-	 Zs73azLmq1wWh2TxHbBd8GSmjvxZSVtaA79yHebEbjTy/YXjZzrWCDDU5bDpxki2pB
-	 rN2yPnnECyv0AP/0MpPXrv8ZnHvyARjDQkGZauduLjpYcpvGKthonv2K2P7ZEGeT3r
-	 BWtkFZekdnExUu8PcpN9hof6O6UVI8aP0qrYDNZVkshtTLRvZbGfsRPrhKuotRnefo
-	 jCpgo90BgMbqz2oDrTKep24o4Co6T59jViwsTP8ee/qv0Xlz/j8EBmv20t8dT4DnuM
-	 nbJOUSeitii2d2dnPk723FdeI/+4gos4LDyKZz01DH5KbYRzCR+459OyUX++I1fKNK
-	 hqsTtTXeKLOz71rQf2BzGHmPkcWw7K5r3OBgi/R4EN56O38sqsK6yoBQvHi2orUs6j
-	 vVIvNEYUU+xmK+zTlYLatt9vnPH8wa81do/yIaNuL5o0jYorLHklmBJz3Yg8hb1eP3
-	 SJwPR8jJWB9+JkFp+pvthgTGgzLA8uozWXIEBpG6zASx0q7OCBnaODBeZqQSg5PLwn
-	 N1U5Xz2nG6uQ/mLENf2G4yEIrWdeJS7o8GXcUJwgjqe7dXHyrcZl9/+ZiO0yHu3jQb
-	 L2zJCEa24D4PbxYl88zmfV2s=
+	b=ToWrV+3ZvZNUE2ymKS5AQKjdsoM8VnN0qS7Mcg9YpzMua6UKfnzZyjTa2CjCdkbAx
+	 KA4DnOTootSPbswhgz91nw0o0biwbDxGGtU0moHxcS4X33+W5cUSY031Xl/IrjDcZd
+	 k3akP1KgKpgAFMucLlxQ3QSayVxS+wFdH5r/CbdTgtEm2Lm0kz0rlKGVn2QnbTTmUY
+	 UkMI0q1W76+Cvy4N74Irk+FktDx/FAGYFcmEmjYiX7Nqu9M/8R0gPLHdVNTj3r5m56
+	 z8ExH4vvUt4YZDpKoUykg9YeTGV2GWmofs8LL315gf708HqmzIocIMebbvWxygke/J
+	 32agGl9J6xWPkVtSWxa+am6KzeJxoO0/g4PK3Ng2KA76AixIloAhpOJc7kNPGwysHV
+	 T7Z+WgI/ICr/00Hx0uOy+52nbSf4jEphgh3ufk7wZnG00NaTJJ565EWv8n93D9nR/C
+	 8gE9SepGUhdH3IliID4vYmthn4YIuB85FAXfMAQ6NpMPmma20AplulMTz4Potr3Qw/
+	 krKKVXInJ8PzHdWHNiOFeLBHEa011pvUyKeZs2wdc6f8SoFaBDJl2Fl1zKiU3R5MjB
+	 e4zLtL+yqH7gkqhY5wwcPBO/0Knua2Y3YlppmvVOY4DDN5PsenvhIhiww1FHkOXtoP
+	 NiMUvB+XldjBvNPEI3v1PTTo=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Aa045934;
-	Fri, 27 Mar 2020 18:12:14 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ak045934;
+	Fri, 27 Mar 2020 18:12:16 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 01/25] powerpc/powernv: Add OPAL calls for LPC memory alloc/release
-Date: Fri, 27 Mar 2020 18:11:38 +1100
-Message-Id: <20200327071202.2159885-2-alastair@d-silva.org>
+Subject: [PATCH v4 11/25] powerpc: Enable the OpenCAPI Persistent Memory driver for powernv_defconfig
+Date: Fri, 27 Mar 2020 18:11:48 +1100
+Message-Id: <20200327071202.2159885-12-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:14 +1100 (AEDT)
-Message-ID-Hash: FBMDK4LTXTOX3PWM6ZBJQPFHRPFTBWKM
-X-Message-ID-Hash: FBMDK4LTXTOX3PWM6ZBJQPFHRPFTBWKM
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:17 +1100 (AEDT)
+Message-ID-Hash: 4WTEAWCSDIX7AN3MINYCHBJZ2PHLX37P
+X-Message-ID-Hash: 4WTEAWCSDIX7AN3MINYCHBJZ2PHLX37P
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FBMDK4LTXTOX3PWM6ZBJQPFHRPFTBWKM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4WTEAWCSDIX7AN3MINYCHBJZ2PHLX37P/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,56 +77,32 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add OPAL calls for LPC memory alloc/release
+This patch enables the OpenCAPI Persistent Memory driver, as well
+as DAX support, for the 'powernv' defconfig.
+
+DAX is not a strict requirement for the functioning of the driver, but it
+is likely that a user will want to create a DAX device on top of their
+persistent memory device.
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
-Acked-by: Andrew Donnellan <ajd@linux.ibm.com>
-Acked-by: Frederic Barrat <fbarrat@linux.ibm.com>
+Reviewed-by: Andrew Donnellan <ajd@linux.ibm.com>
 ---
- arch/powerpc/include/asm/opal-api.h        | 2 ++
- arch/powerpc/include/asm/opal.h            | 2 ++
- arch/powerpc/platforms/powernv/opal-call.c | 2 ++
- 3 files changed, 6 insertions(+)
+ arch/powerpc/configs/powernv_defconfig | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/arch/powerpc/include/asm/opal-api.h b/arch/powerpc/include/asm/opal-api.h
-index c1f25a760eb1..9298e603001b 100644
---- a/arch/powerpc/include/asm/opal-api.h
-+++ b/arch/powerpc/include/asm/opal-api.h
-@@ -208,6 +208,8 @@
- #define OPAL_HANDLE_HMI2			166
- #define	OPAL_NX_COPROC_INIT			167
- #define OPAL_XIVE_GET_VP_STATE			170
-+#define OPAL_NPU_MEM_ALLOC			171
-+#define OPAL_NPU_MEM_RELEASE			172
- #define OPAL_MPIPL_UPDATE			173
- #define OPAL_MPIPL_REGISTER_TAG			174
- #define OPAL_MPIPL_QUERY_TAG			175
-diff --git a/arch/powerpc/include/asm/opal.h b/arch/powerpc/include/asm/opal.h
-index 9986ac34b8e2..301fea46c7ca 100644
---- a/arch/powerpc/include/asm/opal.h
-+++ b/arch/powerpc/include/asm/opal.h
-@@ -39,6 +39,8 @@ int64_t opal_npu_spa_clear_cache(uint64_t phb_id, uint32_t bdfn,
- 				uint64_t PE_handle);
- int64_t opal_npu_tl_set(uint64_t phb_id, uint32_t bdfn, long cap,
- 			uint64_t rate_phys, uint32_t size);
-+int64_t opal_npu_mem_alloc(u64 phb_id, u32 bdfn, u64 size, __be64 *bar);
-+int64_t opal_npu_mem_release(u64 phb_id, u32 bdfn);
- 
- int64_t opal_console_write(int64_t term_number, __be64 *length,
- 			   const uint8_t *buffer);
-diff --git a/arch/powerpc/platforms/powernv/opal-call.c b/arch/powerpc/platforms/powernv/opal-call.c
-index 5cd0f52d258f..f26e58b72c04 100644
---- a/arch/powerpc/platforms/powernv/opal-call.c
-+++ b/arch/powerpc/platforms/powernv/opal-call.c
-@@ -287,6 +287,8 @@ OPAL_CALL(opal_pci_set_pbcq_tunnel_bar,		OPAL_PCI_SET_PBCQ_TUNNEL_BAR);
- OPAL_CALL(opal_sensor_read_u64,			OPAL_SENSOR_READ_U64);
- OPAL_CALL(opal_sensor_group_enable,		OPAL_SENSOR_GROUP_ENABLE);
- OPAL_CALL(opal_nx_coproc_init,			OPAL_NX_COPROC_INIT);
-+OPAL_CALL(opal_npu_mem_alloc,			OPAL_NPU_MEM_ALLOC);
-+OPAL_CALL(opal_npu_mem_release,			OPAL_NPU_MEM_RELEASE);
- OPAL_CALL(opal_mpipl_update,			OPAL_MPIPL_UPDATE);
- OPAL_CALL(opal_mpipl_register_tag,		OPAL_MPIPL_REGISTER_TAG);
- OPAL_CALL(opal_mpipl_query_tag,			OPAL_MPIPL_QUERY_TAG);
+diff --git a/arch/powerpc/configs/powernv_defconfig b/arch/powerpc/configs/powernv_defconfig
+index 71749377d164..921d77bbd3d2 100644
+--- a/arch/powerpc/configs/powernv_defconfig
++++ b/arch/powerpc/configs/powernv_defconfig
+@@ -348,3 +348,8 @@ CONFIG_KVM_BOOK3S_64=m
+ CONFIG_KVM_BOOK3S_64_HV=m
+ CONFIG_VHOST_NET=m
+ CONFIG_PRINTK_TIME=y
++CONFIG_ZONE_DEVICE=y
++CONFIG_OCXL_PMEM=m
++CONFIG_DEV_DAX=m
++CONFIG_DEV_DAX_PMEM=m
++CONFIG_FS_DAX=y
 -- 
 2.24.1
 _______________________________________________
