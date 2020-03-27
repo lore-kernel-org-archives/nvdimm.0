@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA4BC2D0F0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6167C2D0EE
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:33 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0E78B20714
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 9A53B2071B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="l0xv6Qkr"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0E78B20714
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="hCzyPFbC"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9A53B2071B
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E8FAD10FC3BA6;
-	Fri, 27 Mar 2020 00:13:15 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 37A2B10FC3BB0;
+	Fri, 27 Mar 2020 00:13:17 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id D6F7410FC3614
-	for <linux-nvdimm@lists.01.org>; Fri, 27 Mar 2020 00:13:11 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 43E5210FC3614
+	for <linux-nvdimm@lists.01.org>; Fri, 27 Mar 2020 00:13:12 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 738C32DC6829;
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id E40E22DC682D;
 	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
 	s=201810a; t=1585293141;
-	bh=iql+P5xKXAK7D5i2p3DQ+jr9oIISWrdh7woNYcXPetQ=;
+	bh=NLU6a+GZmpbGM7ZZlM+S8RXczj/+GapNI1yMP3rrpMk=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=l0xv6Qkr8VzM9ZG5lMS/tOu1JFQYeHTOxng+UyItI7K+BTfAdHAn5jl0Vc98MdH5L
-	 svJHiChQtX5o8cTO3dd/fdihbcTq1JBv0lcp1/0c3Ilk5aLLpJOnQ1FQ15klXidcI9
-	 HzlXm5cZbwJbsCl6Byo4R9vTIo8oGh+UAYH/OsCvx1PSCVjVWx1x/VXegbQyjMOR51
-	 V4LP4dGgNfczNXy3uzX+jsLMyTr269zBNIgIk44+ayuhFugOXkoTzpijNadY64HMyY
-	 8BwDM3tMr1Bi5xMuveddrROnBXS/aYhpLzKyHqCTZjwaY0YlGyMCNhgkHXqdKkM8/5
-	 0ZIjsg3Sg0ou01WLekF/gpkzxV28dn8yvkIO0OcGrhzyxu4kmlzPyFEp1rskt5UCkv
-	 N9C0oEHQG0GJR+e65zOkTmC8UkwdqUsHqI9kYTpXuJcrbPDSDPrsEljoPuI/NAibsH
-	 GIm4KPDgwMdhe2CXHCLovQFSBQww6wbR+rGrzrWcwkr7P7ps+fjPRJYXnZjA8AkvVk
-	 L//ADFtFERH1s3KlT4Xs2wPEdyiR6A3bFiTqt/0itt2K+YOTFn/gufrnwp3JV/eQJ5
-	 XLE9vu40yNlig92V8LtkILAEFfP0NQDPOGhMQca160KxhQYz8l7pPQdHYe+9lxRZBJ
-	 DGCfKUohqC6Ydh4+l1CuVtcI=
+	b=hCzyPFbCqeOcmtzW6SY05RhBcPIxs8zbC5tLYywSkBDdyzkBfaz87rhMNSBwMnoYp
+	 Zs73azLmq1wWh2TxHbBd8GSmjvxZSVtaA79yHebEbjTy/YXjZzrWCDDU5bDpxki2pB
+	 rN2yPnnECyv0AP/0MpPXrv8ZnHvyARjDQkGZauduLjpYcpvGKthonv2K2P7ZEGeT3r
+	 BWtkFZekdnExUu8PcpN9hof6O6UVI8aP0qrYDNZVkshtTLRvZbGfsRPrhKuotRnefo
+	 jCpgo90BgMbqz2oDrTKep24o4Co6T59jViwsTP8ee/qv0Xlz/j8EBmv20t8dT4DnuM
+	 nbJOUSeitii2d2dnPk723FdeI/+4gos4LDyKZz01DH5KbYRzCR+459OyUX++I1fKNK
+	 hqsTtTXeKLOz71rQf2BzGHmPkcWw7K5r3OBgi/R4EN56O38sqsK6yoBQvHi2orUs6j
+	 vVIvNEYUU+xmK+zTlYLatt9vnPH8wa81do/yIaNuL5o0jYorLHklmBJz3Yg8hb1eP3
+	 SJwPR8jJWB9+JkFp+pvthgTGgzLA8uozWXIEBpG6zASx0q7OCBnaODBeZqQSg5PLwn
+	 N1U5Xz2nG6uQ/mLENf2G4yEIrWdeJS7o8GXcUJwgjqe7dXHyrcZl9/+ZiO0yHu3jQb
+	 L2zJCEa24D4PbxYl88zmfV2s=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ag045934;
-	Fri, 27 Mar 2020 18:12:15 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Aa045934;
+	Fri, 27 Mar 2020 18:12:14 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 07/25] ocxl: Add functions to map/unmap LPC memory
-Date: Fri, 27 Mar 2020 18:11:44 +1100
-Message-Id: <20200327071202.2159885-8-alastair@d-silva.org>
+Subject: [PATCH v4 01/25] powerpc/powernv: Add OPAL calls for LPC memory alloc/release
+Date: Fri, 27 Mar 2020 18:11:38 +1100
+Message-Id: <20200327071202.2159885-2-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:16 +1100 (AEDT)
-Message-ID-Hash: QUFYV3PYVQB5UDLFGEYTLZIAU3UW7UK2
-X-Message-ID-Hash: QUFYV3PYVQB5UDLFGEYTLZIAU3UW7UK2
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:14 +1100 (AEDT)
+Message-ID-Hash: FBMDK4LTXTOX3PWM6ZBJQPFHRPFTBWKM
+X-Message-ID-Hash: FBMDK4LTXTOX3PWM6ZBJQPFHRPFTBWKM
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QUFYV3PYVQB5UDLFGEYTLZIAU3UW7UK2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FBMDK4LTXTOX3PWM6ZBJQPFHRPFTBWKM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,131 +77,56 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add functions to map/unmap LPC memory
+Add OPAL calls for LPC memory alloc/release
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+Acked-by: Andrew Donnellan <ajd@linux.ibm.com>
 Acked-by: Frederic Barrat <fbarrat@linux.ibm.com>
 ---
- drivers/misc/ocxl/core.c          | 51 +++++++++++++++++++++++++++++++
- drivers/misc/ocxl/ocxl_internal.h |  3 ++
- include/misc/ocxl.h               | 21 +++++++++++++
- 3 files changed, 75 insertions(+)
+ arch/powerpc/include/asm/opal-api.h        | 2 ++
+ arch/powerpc/include/asm/opal.h            | 2 ++
+ arch/powerpc/platforms/powernv/opal-call.c | 2 ++
+ 3 files changed, 6 insertions(+)
 
-diff --git a/drivers/misc/ocxl/core.c b/drivers/misc/ocxl/core.c
-index 2531c6cf19a0..75ff14e3882a 100644
---- a/drivers/misc/ocxl/core.c
-+++ b/drivers/misc/ocxl/core.c
-@@ -210,6 +210,56 @@ static void unmap_mmio_areas(struct ocxl_afu *afu)
- 	release_fn_bar(afu->fn, afu->config.global_mmio_bar);
- }
+diff --git a/arch/powerpc/include/asm/opal-api.h b/arch/powerpc/include/asm/opal-api.h
+index c1f25a760eb1..9298e603001b 100644
+--- a/arch/powerpc/include/asm/opal-api.h
++++ b/arch/powerpc/include/asm/opal-api.h
+@@ -208,6 +208,8 @@
+ #define OPAL_HANDLE_HMI2			166
+ #define	OPAL_NX_COPROC_INIT			167
+ #define OPAL_XIVE_GET_VP_STATE			170
++#define OPAL_NPU_MEM_ALLOC			171
++#define OPAL_NPU_MEM_RELEASE			172
+ #define OPAL_MPIPL_UPDATE			173
+ #define OPAL_MPIPL_REGISTER_TAG			174
+ #define OPAL_MPIPL_QUERY_TAG			175
+diff --git a/arch/powerpc/include/asm/opal.h b/arch/powerpc/include/asm/opal.h
+index 9986ac34b8e2..301fea46c7ca 100644
+--- a/arch/powerpc/include/asm/opal.h
++++ b/arch/powerpc/include/asm/opal.h
+@@ -39,6 +39,8 @@ int64_t opal_npu_spa_clear_cache(uint64_t phb_id, uint32_t bdfn,
+ 				uint64_t PE_handle);
+ int64_t opal_npu_tl_set(uint64_t phb_id, uint32_t bdfn, long cap,
+ 			uint64_t rate_phys, uint32_t size);
++int64_t opal_npu_mem_alloc(u64 phb_id, u32 bdfn, u64 size, __be64 *bar);
++int64_t opal_npu_mem_release(u64 phb_id, u32 bdfn);
  
-+int ocxl_afu_map_lpc_mem(struct ocxl_afu *afu)
-+{
-+	struct pci_dev *dev = to_pci_dev(afu->fn->dev.parent);
-+
-+	if ((afu->config.lpc_mem_size + afu->config.special_purpose_mem_size) == 0)
-+		return 0;
-+
-+	afu->lpc_base_addr = ocxl_link_lpc_map(afu->fn->link, dev);
-+	if (afu->lpc_base_addr == 0)
-+		return -EINVAL;
-+
-+	if (afu->config.lpc_mem_size > 0) {
-+		afu->lpc_res.start = afu->lpc_base_addr + afu->config.lpc_mem_offset;
-+		afu->lpc_res.end = afu->lpc_res.start + afu->config.lpc_mem_size - 1;
-+	}
-+
-+	if (afu->config.special_purpose_mem_size > 0) {
-+		afu->special_purpose_res.start = afu->lpc_base_addr +
-+						 afu->config.special_purpose_mem_offset;
-+		afu->special_purpose_res.end = afu->special_purpose_res.start +
-+					       afu->config.special_purpose_mem_size - 1;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ocxl_afu_map_lpc_mem);
-+
-+struct resource *ocxl_afu_lpc_mem(struct ocxl_afu *afu)
-+{
-+	return &afu->lpc_res;
-+}
-+EXPORT_SYMBOL_GPL(ocxl_afu_lpc_mem);
-+
-+static void unmap_lpc_mem(struct ocxl_afu *afu)
-+{
-+	struct pci_dev *dev = to_pci_dev(afu->fn->dev.parent);
-+
-+	if (afu->lpc_res.start || afu->special_purpose_res.start) {
-+		void *link = afu->fn->link;
-+
-+		// only release the link when the the last consumer calls release
-+		ocxl_link_lpc_release(link, dev);
-+
-+		afu->lpc_res.start = 0;
-+		afu->lpc_res.end = 0;
-+		afu->special_purpose_res.start = 0;
-+		afu->special_purpose_res.end = 0;
-+	}
-+}
-+
- static int configure_afu(struct ocxl_afu *afu, u8 afu_idx, struct pci_dev *dev)
- {
- 	int rc;
-@@ -251,6 +301,7 @@ static int configure_afu(struct ocxl_afu *afu, u8 afu_idx, struct pci_dev *dev)
- 
- static void deconfigure_afu(struct ocxl_afu *afu)
- {
-+	unmap_lpc_mem(afu);
- 	unmap_mmio_areas(afu);
- 	reclaim_afu_pasid(afu);
- 	reclaim_afu_actag(afu);
-diff --git a/drivers/misc/ocxl/ocxl_internal.h b/drivers/misc/ocxl/ocxl_internal.h
-index 2d7575225bd7..7b975a89db7b 100644
---- a/drivers/misc/ocxl/ocxl_internal.h
-+++ b/drivers/misc/ocxl/ocxl_internal.h
-@@ -52,6 +52,9 @@ struct ocxl_afu {
- 	void __iomem *global_mmio_ptr;
- 	u64 pp_mmio_start;
- 	void *private;
-+	u64 lpc_base_addr; /* Covers both LPC & special purpose memory */
-+	struct resource lpc_res;
-+	struct resource special_purpose_res;
- };
- 
- enum ocxl_context_status {
-diff --git a/include/misc/ocxl.h b/include/misc/ocxl.h
-index 357ef1aadbc0..d8b0b4d46bfb 100644
---- a/include/misc/ocxl.h
-+++ b/include/misc/ocxl.h
-@@ -203,6 +203,27 @@ int ocxl_irq_set_handler(struct ocxl_context *ctx, int irq_id,
- 
- // AFU Metadata
- 
-+/**
-+ * ocxl_afu_map_lpc_mem() - Map the LPC system & special purpose memory for an AFU
-+ * Do not call this during device discovery, as there may me multiple
-+ * devices on a link, and the memory is mapped for the whole link, not
-+ * just one device. It should only be called after all devices have
-+ * registered their memory on the link.
-+ *
-+ * @afu: The AFU that has the LPC memory to map
-+ *
-+ * Returns 0 on success, negative on failure
-+ */
-+int ocxl_afu_map_lpc_mem(struct ocxl_afu *afu);
-+
-+/**
-+ * ocxl_afu_lpc_mem() - Get the physical address range of LPC memory for an AFU
-+ * @afu: The AFU associated with the LPC memory
-+ *
-+ * Returns a pointer to the resource struct for the physical address range
-+ */
-+struct resource *ocxl_afu_lpc_mem(struct ocxl_afu *afu);
-+
- /**
-  * ocxl_afu_config() - Get a pointer to the config for an AFU
-  * @afu: a pointer to the AFU to get the config for
+ int64_t opal_console_write(int64_t term_number, __be64 *length,
+ 			   const uint8_t *buffer);
+diff --git a/arch/powerpc/platforms/powernv/opal-call.c b/arch/powerpc/platforms/powernv/opal-call.c
+index 5cd0f52d258f..f26e58b72c04 100644
+--- a/arch/powerpc/platforms/powernv/opal-call.c
++++ b/arch/powerpc/platforms/powernv/opal-call.c
+@@ -287,6 +287,8 @@ OPAL_CALL(opal_pci_set_pbcq_tunnel_bar,		OPAL_PCI_SET_PBCQ_TUNNEL_BAR);
+ OPAL_CALL(opal_sensor_read_u64,			OPAL_SENSOR_READ_U64);
+ OPAL_CALL(opal_sensor_group_enable,		OPAL_SENSOR_GROUP_ENABLE);
+ OPAL_CALL(opal_nx_coproc_init,			OPAL_NX_COPROC_INIT);
++OPAL_CALL(opal_npu_mem_alloc,			OPAL_NPU_MEM_ALLOC);
++OPAL_CALL(opal_npu_mem_release,			OPAL_NPU_MEM_RELEASE);
+ OPAL_CALL(opal_mpipl_update,			OPAL_MPIPL_UPDATE);
+ OPAL_CALL(opal_mpipl_register_tag,		OPAL_MPIPL_REGISTER_TAG);
+ OPAL_CALL(opal_mpipl_query_tag,			OPAL_MPIPL_QUERY_TAG);
 -- 
 2.24.1
 _______________________________________________
