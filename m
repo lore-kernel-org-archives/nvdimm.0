@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 376ECC2D0EE
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:52:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 124E7C43331
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:52:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C2D99206F6
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:52:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id D7B9F206F6
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:52:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="bMbioP7E"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C2D99206F6
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="iMjl+0uX"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D7B9F206F6
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5DBD610FC36CC;
-	Sun, 29 Mar 2020 22:53:41 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 7325110FC36F9;
+	Sun, 29 Mar 2020 22:53:45 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id DFED110FC363F
-	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:53:38 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id EB14E10FC36CD
+	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:53:42 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id BB2D52DC6849;
-	Mon, 30 Mar 2020 16:52:45 +1100 (AEDT)
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 277FA2DC684C;
+	Mon, 30 Mar 2020 16:52:46 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
-	s=201810a; t=1585547566;
-	bh=usgtpWwfPqN3Po8Erc64Din9rr6Mrn4qoxSsihnBfcI=;
+	s=201810a; t=1585547567;
+	bh=/c0sygyGptvZJ7mjxJ2I2ERy9RY2BO4lgAUmGcAOvOI=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=bMbioP7EtdRIN7Psu7rzMUpwa2C/X6QC4z279/qrlgZqOuYGPlOwaH67cXt1O9uFN
-	 yOjDqQ7nMQ+tvZeiC3hFYQ7HkNgHSBbyXfOcwjqnoGGaTF/NmFZa/cZdks4yFx1rMN
-	 SY8i1g6ylE1zIvnQ4+BlwncOv6lIg8IPtu7wxpS04cV44QA+KZi2iMEu6bwkTuOfof
-	 Y49t6MWeq96LBdLMYXjaSmO54h9U3i1fSUQp5vBqUJ19SIAdr2sm6OAW6Z1Qkuv20U
-	 7r9tsLXd/jVSP2tx5O3YbfGLhX60JbQU/5G2VTu+b3ndMWAb430Gz2hu8VpwC6JFRp
-	 0ESQ++Zwi1ehD6oM/g89XDPAa1J5Rnn890kEAlVRB7y46BhGvxZbPZ4Vw9AkNpJsHB
-	 cMV5R2mdHXLLQgCpbDHpG6zziIq/nLlkrhCrNCg5beqdPmiTucYeBODFIHKReDK02p
-	 +bTsSrqanwYTuozWj8TiV9BtUYmI6YnNsfpXcEHcUATwh7NBNKNuNIDiN2vKdHC56v
-	 3MJRPUnWhYZg6Q2eB5TAj14uimXz9l5Y0LlG1MynoP2X+JYl/o4p5ZmKb9I2wE1J6z
-	 /JOLdd+DdJwF1YHIa2bnFcs514YF3C+C5vK1g2b0TyRT23PrKcfcG1qzvflCD9DxrC
-	 nzuS2Tu74wUp1I8IUt9lKT1M=
+	b=iMjl+0uXIk2WsRYFK7QMnoeZwiXtbQvngMc30HklM7M/UaYiwbRU0QE9+G/GnjCpF
+	 6TnIi2bluBUjI33oB/IGG++wI53XGTIwCq5K0VlcVhmAbh8fhf/pZM4Ced6P4QxUan
+	 4mCoqUpqEQuPXCesRSY06c5qvKiv1LsP8cfIca3WUYgQYOJ/q/s8LwSNJX9HBkkIhn
+	 gDlQa2bD02tm9GPOYMeF42o7Bj/XBxnHbDvb+sZWgfzyMO+XkIa7CR1jZ4i6HRAFM+
+	 YbdnR295TH0kUDCjW5WeNmhPseRb1h1xcrGkr1E7ZJs7ZsylKwzALmMvOAhH9LL5vq
+	 3sSEcN0wjhm82H8oqQYmkz6pFE9Ngz7Yk7lRcCnGpzQVRWYRpVTksaPYJsbD/6F8t2
+	 MetLhu1IrJSl7OBndz4jJBgg6mmUQXdE5qPmzLqjrTwMXPbnNkvRn55MI0MKPAsiA2
+	 v3UhZHqDsS3yj8k9ftzhbgmpM9o3tilShHFLuLa6EEPGAyGhkC0JmK4UJSSU4vuBsl
+	 DAAPAo9W0AH+Quua6imoMGuoYzJ2F3ro6L2zDSZSLZw6BC3GtyzRpLXvgZ5C/FjG+f
+	 tIZ+HRu9YYQm06ECg8BUrm41v1jxxG21JM4D7E34KQMuRdIJeivVBNTbxAwVDV35Ax
+	 wfbVKJDpJWOjuCjbEN7nnoZA=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4B0045934;
-	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Au045934;
+	Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 25/25] MAINTAINERS: Add myself & nvdimm/ocxl to ocxl
-Date: Fri, 27 Mar 2020 18:12:02 +1100
-Message-Id: <20200327071202.2159885-26-alastair@d-silva.org>
+Subject: [PATCH v4 21/25] nvdimm/ocxl: Implement the heartbeat command
+Date: Fri, 27 Mar 2020 18:11:58 +1100
+Message-Id: <20200327071202.2159885-22-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
-Message-ID-Hash: BSQ7XGRCDX3Y673OUNCVAIDBF45XXMMJ
-X-Message-ID-Hash: BSQ7XGRCDX3Y673OUNCVAIDBF45XXMMJ
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
+Message-ID-Hash: 2HW65I34VO4LRQW64BM7GGN6FSAJG3IL
+X-Message-ID-Hash: 2HW65I34VO4LRQW64BM7GGN6FSAJG3IL
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BSQ7XGRCDX3Y673OUNCVAIDBF45XXMMJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2HW65I34VO4LRQW64BM7GGN6FSAJG3IL/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,38 +77,66 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The OpenCAPI Persistent Memory driver will be maintained as part ofi
-the ppc tree.
+The heartbeat admin command is a simple admin command that exercises
+the communication mechanisms within the controller.
 
-I'm also adding myself as an author of the driver & contributor to
-the generic ocxl driver.
+This patch issues a heartbeat command to the card during init to ensure
+we can communicate with the card's controller.
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
+Reviewed-by: Andrew Donnellan <ajd@linux.ibm.com>
 ---
- MAINTAINERS | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/nvdimm/ocxl/main.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f8670989ec91..3fb9a9f576a7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12064,13 +12064,16 @@ F:	tools/objtool/
- OCXL (Open Coherent Accelerator Processor Interface OpenCAPI) DRIVER
- M:	Frederic Barrat <fbarrat@linux.ibm.com>
- M:	Andrew Donnellan <ajd@linux.ibm.com>
-+M:	Alastair D'Silva <alastair@d-silva.org>
- L:	linuxppc-dev@lists.ozlabs.org
- S:	Supported
- F:	arch/powerpc/platforms/powernv/ocxl.c
-+F:	arch/powerpc/platforms/powernv/pmem/*
- F:	arch/powerpc/include/asm/pnv-ocxl.h
- F:	drivers/misc/ocxl/
- F:	include/misc/ocxl*
- F:	include/uapi/misc/ocxl.h
-+F:	include/uapi/nvdimm/ocxl-pmem.h
- F:	Documentation/userspace-api/accelerators/ocxl.rst
+diff --git a/drivers/nvdimm/ocxl/main.c b/drivers/nvdimm/ocxl/main.c
+index a4315472683c..2fbe3f2f77d9 100644
+--- a/drivers/nvdimm/ocxl/main.c
++++ b/drivers/nvdimm/ocxl/main.c
+@@ -272,6 +272,30 @@ static int setup_command_metadata(struct ocxlpmem *ocxlpmem)
+ 	return 0;
+ }
  
- OMAP AUDIO SUPPORT
++/**
++ * heartbeat() - Issue a heartbeat command to the controller
++ * @ocxlpmem: the device metadata
++ * Return: 0 if the controller responded correctly, negative on error
++ */
++static int heartbeat(struct ocxlpmem *ocxlpmem)
++{
++	int rc;
++
++	mutex_lock(&ocxlpmem->admin_command.lock);
++
++	rc = admin_command_execute(ocxlpmem, ADMIN_COMMAND_HEARTBEAT);
++	if (rc < 0)
++		goto out;
++	if (rc != STATUS_SUCCESS)
++		warn_status(ocxlpmem, "Unexpected status from heartbeat", rc);
++
++	(void)admin_response_handled(ocxlpmem);
++
++out:
++	mutex_unlock(&ocxlpmem->admin_command.lock);
++	return rc;
++}
++
+ /**
+  * allocate_minor() - Allocate a minor number to use for an OpenCAPI pmem device
+  * @ocxlpmem: the device metadata
+@@ -1460,6 +1484,12 @@ static int probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 		goto err;
+ 	}
+ 
++	rc = heartbeat(ocxlpmem);
++	if (rc) {
++		dev_err(&pdev->dev, "Heartbeat failed\n");
++		goto err;
++	}
++
+ 	elapsed = 0;
+ 	timeout = ocxlpmem->readiness_timeout +
+ 		  ocxlpmem->memory_available_timeout;
 -- 
 2.24.1
 _______________________________________________
