@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D7F5C43331
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D713C2D0E7
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7432320714
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id D7AA620705
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 27 Mar 2020 07:12:36 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="ToWrV+3Z"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7432320714
+	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="dDzEJ12M"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D7AA620705
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 24A1410FC3BB3;
-	Fri, 27 Mar 2020 00:13:16 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 7F20210FC3BBF;
+	Fri, 27 Mar 2020 00:13:17 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
 Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 12D3210FC3614
+	by ml01.01.org (Postfix) with ESMTP id 4E9C510FC3763
 	for <linux-nvdimm@lists.01.org>; Fri, 27 Mar 2020 00:13:12 -0700 (PDT)
 Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id EB93C2DC682E;
+	by ushosting.nmnhosting.com (Postfix) with ESMTPS id F39C02DC682F;
 	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
 	s=201810a; t=1585293141;
-	bh=vpE3Z7AWSr9my143HyVtO4yHV91rl8rmhtd6A3TKrQs=;
+	bh=cTN8FMRoX34pEnqAaScxUQo064CptcomhYQubar6PL4=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=ToWrV+3ZvZNUE2ymKS5AQKjdsoM8VnN0qS7Mcg9YpzMua6UKfnzZyjTa2CjCdkbAx
-	 KA4DnOTootSPbswhgz91nw0o0biwbDxGGtU0moHxcS4X33+W5cUSY031Xl/IrjDcZd
-	 k3akP1KgKpgAFMucLlxQ3QSayVxS+wFdH5r/CbdTgtEm2Lm0kz0rlKGVn2QnbTTmUY
-	 UkMI0q1W76+Cvy4N74Irk+FktDx/FAGYFcmEmjYiX7Nqu9M/8R0gPLHdVNTj3r5m56
-	 z8ExH4vvUt4YZDpKoUykg9YeTGV2GWmofs8LL315gf708HqmzIocIMebbvWxygke/J
-	 32agGl9J6xWPkVtSWxa+am6KzeJxoO0/g4PK3Ng2KA76AixIloAhpOJc7kNPGwysHV
-	 T7Z+WgI/ICr/00Hx0uOy+52nbSf4jEphgh3ufk7wZnG00NaTJJ565EWv8n93D9nR/C
-	 8gE9SepGUhdH3IliID4vYmthn4YIuB85FAXfMAQ6NpMPmma20AplulMTz4Potr3Qw/
-	 krKKVXInJ8PzHdWHNiOFeLBHEa011pvUyKeZs2wdc6f8SoFaBDJl2Fl1zKiU3R5MjB
-	 e4zLtL+yqH7gkqhY5wwcPBO/0Knua2Y3YlppmvVOY4DDN5PsenvhIhiww1FHkOXtoP
-	 NiMUvB+XldjBvNPEI3v1PTTo=
+	b=dDzEJ12MPCicxaVAdHkydps6s4bYG45dmh7GrJNLgOaIVhimCK4WsnAr28LxgF9nz
+	 SZ1C4w5tiF/ghQDzxSyJQQ4ZgL86wWzX423PKNWVFIFj724JhV5EldneRKE4rj1LGR
+	 61kGSrR6SXUtYsCr43AHIHhqj5D1VpoOx5qbkeXK5g2YJlwCRk53lmHuZyHWFsMv5C
+	 UIev+ORU4xZrQ+nJStJe5NkumRYilZyw4g2UzKJq9I4iulDlTSkXR/IVoMnbBPlFlS
+	 8FOnA4O9Q1Tn0zCEfOEGNYlZtINAXQFQRc9M9qM7imsIc/NTffHIa/hFYLBjGg47hz
+	 nBYcC2u3t8f52WVvJECJjIRV41puWvpmjrLjYPcMR2UG1JllWLEE4+EeK6I6xcpdJi
+	 gbT009RMoO44xqVORSk51rxQkr4y9PA1eXvMYxFTsby9DNUVwVL6kDGK48B5w8TbpK
+	 JcwCR9+3Qv0bF66b5pGwDBjYVyo1DYAjYC24hN28JGsUeDHjls4olMODbGP6DL3jAq
+	 O84KFtHng5DI3fXHjRvXAhVNzdPtu/Y/PBccmFoEnnsvqn1YapgeRb4gkqh2EyJPCM
+	 aVv9XZAGwUCwF27wFKECjzydTo1r+WX/+DJoNsp0Of3K7qTbKQnc2X9fCyLSk3dkt7
+	 r7OXXTocQUPjuAp4QH4snO5U=
 Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ak045934;
-	Fri, 27 Mar 2020 18:12:16 +1100 (AEDT)
+	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Ad045934;
+	Fri, 27 Mar 2020 18:12:15 +1100 (AEDT)
 	(envelope-from alastair@d-silva.org)
 From: "Alastair D'Silva" <alastair@d-silva.org>
 To: alastair@d-silva.org
-Subject: [PATCH v4 11/25] powerpc: Enable the OpenCAPI Persistent Memory driver for powernv_defconfig
-Date: Fri, 27 Mar 2020 18:11:48 +1100
-Message-Id: <20200327071202.2159885-12-alastair@d-silva.org>
+Subject: [PATCH v4 04/25] ocxl: Remove unnecessary externs
+Date: Fri, 27 Mar 2020 18:11:41 +1100
+Message-Id: <20200327071202.2159885-5-alastair@d-silva.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
 References: <20200327071202.2159885-1-alastair@d-silva.org>
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:17 +1100 (AEDT)
-Message-ID-Hash: 4WTEAWCSDIX7AN3MINYCHBJZ2PHLX37P
-X-Message-ID-Hash: 4WTEAWCSDIX7AN3MINYCHBJZ2PHLX37P
+X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:15 +1100 (AEDT)
+Message-ID-Hash: QGN2VULHY34FMYJZGC6IZUL4I4CXYQ6T
+X-Message-ID-Hash: QGN2VULHY34FMYJZGC6IZUL4I4CXYQ6T
 X-MailFrom: alastair@d-silva.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <b
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4WTEAWCSDIX7AN3MINYCHBJZ2PHLX37P/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QGN2VULHY34FMYJZGC6IZUL4I4CXYQ6T/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,32 +77,101 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch enables the OpenCAPI Persistent Memory driver, as well
-as DAX support, for the 'powernv' defconfig.
-
-DAX is not a strict requirement for the functioning of the driver, but it
-is likely that a user will want to create a DAX device on top of their
-persistent memory device.
+Function declarations don't need externs, remove the existing ones
+so they are consistent with newer code
 
 Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
-Reviewed-by: Andrew Donnellan <ajd@linux.ibm.com>
+Acked-by: Andrew Donnellan <ajd@linux.ibm.com>
+Acked-by: Frederic Barrat <fbarrat@linux.ibm.com>
 ---
- arch/powerpc/configs/powernv_defconfig | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/powerpc/include/asm/pnv-ocxl.h | 40 ++++++++++++++---------------
+ include/misc/ocxl.h                 |  6 ++---
+ 2 files changed, 22 insertions(+), 24 deletions(-)
 
-diff --git a/arch/powerpc/configs/powernv_defconfig b/arch/powerpc/configs/powernv_defconfig
-index 71749377d164..921d77bbd3d2 100644
---- a/arch/powerpc/configs/powernv_defconfig
-+++ b/arch/powerpc/configs/powernv_defconfig
-@@ -348,3 +348,8 @@ CONFIG_KVM_BOOK3S_64=m
- CONFIG_KVM_BOOK3S_64_HV=m
- CONFIG_VHOST_NET=m
- CONFIG_PRINTK_TIME=y
-+CONFIG_ZONE_DEVICE=y
-+CONFIG_OCXL_PMEM=m
-+CONFIG_DEV_DAX=m
-+CONFIG_DEV_DAX_PMEM=m
-+CONFIG_FS_DAX=y
+diff --git a/arch/powerpc/include/asm/pnv-ocxl.h b/arch/powerpc/include/asm/pnv-ocxl.h
+index 560a19bb71b7..205efc41a33c 100644
+--- a/arch/powerpc/include/asm/pnv-ocxl.h
++++ b/arch/powerpc/include/asm/pnv-ocxl.h
+@@ -9,29 +9,27 @@
+ #define PNV_OCXL_TL_BITS_PER_RATE       4
+ #define PNV_OCXL_TL_RATE_BUF_SIZE       ((PNV_OCXL_TL_MAX_TEMPLATE+1) * PNV_OCXL_TL_BITS_PER_RATE / 8)
+ 
+-extern int pnv_ocxl_get_actag(struct pci_dev *dev, u16 *base, u16 *enabled,
+-			u16 *supported);
+-extern int pnv_ocxl_get_pasid_count(struct pci_dev *dev, int *count);
++int pnv_ocxl_get_actag(struct pci_dev *dev, u16 *base, u16 *enabled, u16 *supported);
++int pnv_ocxl_get_pasid_count(struct pci_dev *dev, int *count);
+ 
+-extern int pnv_ocxl_get_tl_cap(struct pci_dev *dev, long *cap,
++int pnv_ocxl_get_tl_cap(struct pci_dev *dev, long *cap,
+ 			char *rate_buf, int rate_buf_size);
+-extern int pnv_ocxl_set_tl_conf(struct pci_dev *dev, long cap,
+-			uint64_t rate_buf_phys, int rate_buf_size);
+-
+-extern int pnv_ocxl_get_xsl_irq(struct pci_dev *dev, int *hwirq);
+-extern void pnv_ocxl_unmap_xsl_regs(void __iomem *dsisr, void __iomem *dar,
+-				void __iomem *tfc, void __iomem *pe_handle);
+-extern int pnv_ocxl_map_xsl_regs(struct pci_dev *dev, void __iomem **dsisr,
+-				void __iomem **dar, void __iomem **tfc,
+-				void __iomem **pe_handle);
+-
+-extern int pnv_ocxl_spa_setup(struct pci_dev *dev, void *spa_mem, int PE_mask,
+-			void **platform_data);
+-extern void pnv_ocxl_spa_release(void *platform_data);
+-extern int pnv_ocxl_spa_remove_pe_from_cache(void *platform_data, int pe_handle);
+-
+-extern int pnv_ocxl_alloc_xive_irq(u32 *irq, u64 *trigger_addr);
+-extern void pnv_ocxl_free_xive_irq(u32 irq);
++int pnv_ocxl_set_tl_conf(struct pci_dev *dev, long cap,
++			 uint64_t rate_buf_phys, int rate_buf_size);
++
++int pnv_ocxl_get_xsl_irq(struct pci_dev *dev, int *hwirq);
++void pnv_ocxl_unmap_xsl_regs(void __iomem *dsisr, void __iomem *dar,
++			     void __iomem *tfc, void __iomem *pe_handle);
++int pnv_ocxl_map_xsl_regs(struct pci_dev *dev, void __iomem **dsisr,
++			  void __iomem **dar, void __iomem **tfc,
++			  void __iomem **pe_handle);
++
++int pnv_ocxl_spa_setup(struct pci_dev *dev, void *spa_mem, int PE_mask, void **platform_data);
++void pnv_ocxl_spa_release(void *platform_data);
++int pnv_ocxl_spa_remove_pe_from_cache(void *platform_data, int pe_handle);
++
++int pnv_ocxl_alloc_xive_irq(u32 *irq, u64 *trigger_addr);
++void pnv_ocxl_free_xive_irq(u32 irq);
+ u64 pnv_ocxl_platform_lpc_setup(struct pci_dev *pdev, u64 size);
+ void pnv_ocxl_platform_lpc_release(struct pci_dev *pdev);
+ 
+diff --git a/include/misc/ocxl.h b/include/misc/ocxl.h
+index 06dd5839e438..0a762e387418 100644
+--- a/include/misc/ocxl.h
++++ b/include/misc/ocxl.h
+@@ -173,7 +173,7 @@ int ocxl_context_detach(struct ocxl_context *ctx);
+  *
+  * Returns 0 on success, negative on failure
+  */
+-extern int ocxl_afu_irq_alloc(struct ocxl_context *ctx, int *irq_id);
++int ocxl_afu_irq_alloc(struct ocxl_context *ctx, int *irq_id);
+ 
+ /**
+  * Frees an IRQ associated with an AFU context
+@@ -182,7 +182,7 @@ extern int ocxl_afu_irq_alloc(struct ocxl_context *ctx, int *irq_id);
+  *
+  * Returns 0 on success, negative on failure
+  */
+-extern int ocxl_afu_irq_free(struct ocxl_context *ctx, int irq_id);
++int ocxl_afu_irq_free(struct ocxl_context *ctx, int irq_id);
+ 
+ /**
+  * Gets the address of the trigger page for an IRQ
+@@ -193,7 +193,7 @@ extern int ocxl_afu_irq_free(struct ocxl_context *ctx, int irq_id);
+  *
+  * returns the trigger page address, or 0 if the IRQ is not valid
+  */
+-extern u64 ocxl_afu_irq_get_addr(struct ocxl_context *ctx, int irq_id);
++u64 ocxl_afu_irq_get_addr(struct ocxl_context *ctx, int irq_id);
+ 
+ /**
+  * Provide a callback to be called when an IRQ is triggered
 -- 
 2.24.1
 _______________________________________________
