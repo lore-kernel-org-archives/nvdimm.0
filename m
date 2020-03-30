@@ -2,218 +2,128 @@ Return-Path: <SRS0=ZPMO=5P=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7227FC43331
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 15:43:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6640DC2D0F0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 19:55:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3B2AC2073B
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 15:43:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 3256F20733
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 19:55:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=sap.com header.i=@sap.com header.b="dWiFg8nj";
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=sap.onmicrosoft.com header.i=@sap.onmicrosoft.com header.b="TBFJEZbg"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3B2AC2073B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=sap.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="l9UrcbgG"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3256F20733
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DD65510FC36EA;
-	Mon, 30 Mar 2020 08:43:49 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=68.232.159.191; helo=esa3.sap.c3s2.iphmx.com; envelope-from=otto.bruggeman@sap.com; receiver=<UNKNOWN> 
-Received: from esa3.sap.c3s2.iphmx.com (esa3.sap.c3s2.iphmx.com [68.232.159.191])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id AD7C210FC340C;
+	Mon, 30 Mar 2020 12:56:03 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::543; helo=mail-ed1-x543.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CE43910FC336D
-	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 08:43:47 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id D3B201007A83C
+	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 12:56:01 -0700 (PDT)
+Received: by mail-ed1-x543.google.com with SMTP id de14so22292169edb.4
+        for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 12:55:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=sap.com; i=@sap.com; q=dns/txt; s=it-20190212;
-  t=1585582979; x=1617118979;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=qdgro3q/g+hr8uuz/HHucDQ7NFQMtnt12UPmJ7fTwV8=;
-  b=dWiFg8njAVdTzbaLBcIBRhWiMzCNHyOBLgZIYefFGzJ2tyJYmIcepkV8
-   MDY7dQ775fZuqZ+2braukPY3ZfHIuP7J8rGRTiVD7rHDLwmc9tNi5iLMf
-   nQqQ9AlXvhc7UKLG10fj9V0tIjGepib1xewwc4OWspttPFCEIDrRmNFex
-   N7/DFlOfPsb6K0C+n70HfvLCrcYAmLEyFLuBZd/CEjTg3MWz1XsQZ7+1q
-   kolB1fnjThZg98rE9Pcm2loCrhDdASEjX0EOdS+XVijMdRGMGi3in9R3+
-   jawPSArX3qldO8vx44u5e1DtBqixxBtQTI6EIvFG1TPd/PHoBu3dRD+u0
-   Q==;
-IronPort-SDR: eoGEuhOLQKvtRGdSZgHMw9qvadvEYggMWRzOdmRoTgURdxvixmyf6MZo01ocyCZv6BbuTV0Idy
- doZd9psvsk3AkHGVYqfzGppdJ29S7gRQcKOxYmTFTXnEwg7QCcE2j8nSJG7zu9G69XSuHFyliy
- Ob1QM4e2ufErpM9Hko4QJ4C59xVsscFPFwUYLjEkU0U6ABt5BnukHEr7OC1p1xFk2PrD2EQ9hT
- /pqYw4WUNGKOkFTQYD8mBmX82HJ2H+02BjZuY0z6cavrvSeDObrgv1Fbab/7bSzv0SHugJIYUI
- v6oB+Jqlh4MuRpeI/s1iL3ZS
-X-Amp-Result: SKIPPED(no attachment in message)
-Received: from smtpgw02.mail.net.sap (HELO smtpgw.sap-ag.de) ([155.56.66.97])
-  by esa3.sap.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-SHA384; 30 Mar 2020 17:42:56 +0200
-Received: from EUR05-VI1-obe.outbound.protection.outlook.com (104.47.17.174)
- by smtpgw02.sap-ag.de (155.56.66.97) with Microsoft SMTP Server (TLS) id
- 15.0.1395.4; Mon, 30 Mar 2020 17:42:54 +0200
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=WKR8OT730gdL2DBfeaFYSjxPGKWSXjGmB3GF3lwKcjB5KGmQ1o/UPM+cPgU8dsQVe8yX5dNG5/iwT0uGw2fzi/QCfgsrJqcRzbzY2wmugPAF1GieXvGCmkr3hLk/Apq7YXceun4rXEG0KenXU0q4n+GGXpRnFRKaRNabYAgoUCIO8XJOGib5rSlfRRxhVQr6XzjQ9GIYDsHChHhdvSHfoefIIjq+aeJ9txlaDVAiiPSz4e+DZp+Jh6Kf/0JsM5CNmoPhgZ+vLyQPbJL5WtdBeN8CvQa2JAa8aO0XgYEioJGaXruMbwrEVVsjBI1l05i0FR0AUe0kJAZX1hydoOur6Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qdgro3q/g+hr8uuz/HHucDQ7NFQMtnt12UPmJ7fTwV8=;
- b=ThISMAouTQNgy/C/kat/yJtINxyyHSFTNENT+xs7c8hSr/O1iHMDDMUwD2e6qxZONcLnEEtkC5RfB/1kab+THamm9+gi0fiB3ihi21k+8s6iwrFCsxfIScEQs6jxM2WshOwuUFw0hXkx9ihCYIe/jE+P/CSWz1t3KmRiyJBihDYNh+xfV2caLXTuhPODCdG4SPI4Il9V9WPeMHPJrC+0ss39bs9NyxyahoCa4yQMiifXUFleIsSdYNFVQlW51L5Djo7/prJXf8zm2bCwNFjqE9vAq05bbk4HbeZutYkloMexnkbCZskH6TrHT1aEgQEn+Ygver/5DCT+CnHO7AYq5Q==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=sap.com; dmarc=pass action=none header.from=sap.com; dkim=pass
- header.d=sap.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sap.onmicrosoft.com;
- s=selector2-sap-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=qdgro3q/g+hr8uuz/HHucDQ7NFQMtnt12UPmJ7fTwV8=;
- b=TBFJEZbgt/Lnk2XYFhYIc0VeJ/9tsE47fdoiL4g2Og2Izz0UH/slKOj1ySydxPT21FeHp0IdTEaUmU59KWYmusO7YtYbrkpZbhDb+6GBv14LyFU70hfcM2NfxuF5S3zkV4C3jNuI5qx3C+KXIca09yKOkRVYzqT0Zm3VE6yirvs=
-Received: from AM0PR02MB3842.eurprd02.prod.outlook.com (52.134.80.145) by
- AM0PR02MB5555.eurprd02.prod.outlook.com (20.179.39.159) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.2856.19; Mon, 30 Mar 2020 15:42:53 +0000
-Received: from AM0PR02MB3842.eurprd02.prod.outlook.com
- ([fe80::41a9:104d:1efe:6e2]) by AM0PR02MB3842.eurprd02.prod.outlook.com
- ([fe80::41a9:104d:1efe:6e2%3]) with mapi id 15.20.2856.019; Mon, 30 Mar 2020
- 15:42:53 +0000
-From: "Bruggeman, Otto (external - Partner)" <otto.bruggeman@sap.com>
-To: "Bruggeman, Otto (external - Partner)" <otto.bruggeman@sap.com>, "Mikulas
- Patocka" <mpatocka@redhat.com>, Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>, Mike Snitzer <msnitzer@redhat.com>
-Subject: RE: Optane nvdimm performance
-Thread-Topic: Optane nvdimm performance
-Thread-Index: AQHWBghJaSj9hvr+Gk+/gQ/orgjnU6hhE9WwgAAzhyA=
-Date: Mon, 30 Mar 2020 15:42:52 +0000
-Message-ID: <AM0PR02MB38422D6FEBB0D5FB3D23167A9BCB0@AM0PR02MB3842.eurprd02.prod.outlook.com>
-References: <alpine.LRH.2.02.2003291116490.9236@file01.intranet.prod.int.rdu2.redhat.com>
- <AM0PR02MB3842ACBE359003CFBF32B6C59BCB0@AM0PR02MB3842.eurprd02.prod.outlook.com>
-In-Reply-To: <AM0PR02MB3842ACBE359003CFBF32B6C59BCB0@AM0PR02MB3842.eurprd02.prod.outlook.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-originating-ip: [193.16.224.10]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 1c8d3b87-7d93-4f26-1096-08d7d4c1027e
-x-ms-traffictypediagnostic: AM0PR02MB5555:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <AM0PR02MB555520B5A0A306790DEBC23B9BCB0@AM0PR02MB5555.eurprd02.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:3173;
-x-forefront-prvs: 0358535363
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM0PR02MB3842.eurprd02.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(10009020)(4636009)(39860400002)(396003)(366004)(346002)(376002)(136003)(66946007)(186003)(316002)(2940100002)(71200400001)(7116003)(54906003)(3480700007)(966005)(55016002)(110136005)(8936002)(26005)(8676002)(81166006)(2906002)(81156014)(9686003)(86362001)(76116006)(5660300002)(4326008)(66476007)(7696005)(52536014)(33656002)(64756008)(478600001)(6506007)(66556008)(66446008)(53546011);DIR:OUT;SFP:1101;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: E6jCVVk1EcgNV0kXv3iFrlBAPYNnutuXAP2bTH1sBdRyheO0ym1vBGoD71zNudp/LzlmLsMbV6xhIcLpfvpqg5lXzYkzjnXxwreJy6UVUbS8b0k4YK1ExERvBjtSlDLhLijxCHMsYcnlgIUqp5bbvTUHEI0GMTIOXLMJgGjE89o95f7vvmBp6bRub1LgM12/slq7zARSbamgjs1E+I8PhALeb77zN7dwcVTe+Qh4DnLfWnWa/meQvyAGYGrW+zf7ktwhPLPvnEEvQCD/vf8l7A0NNxKK4iOvqSUl+DqH9RI7HlEPX/aYugkl+vvtvCimzxeidrCvAjPu2x1RaCSXez7NmTraq62vRquAWwyn+GD3HByLTBcBF+9YwTu9S4GI6KW/aSl+8UAQWiEWAanC1fPzQy3xFs5zpjnPRnihngMhbr7RvSsNIKTtbTLMyweXDF7n+j8h5ovJbiC8bWFUKxj6wpDuwDkfLx7z28Vw/GGQ089l7bKwCa0BdB6wEMbzV6DTgLhZ4p5qdIozmqIBcA==
-x-ms-exchange-antispam-messagedata: 2O8aVlgZBtMl7Y0q8jYX/OJbL2yUcRt0eMBRGxrY7yPf4G0zUS97HOetQ4xpPuTvp8kbxTO5Hch4NlZPXxF0gJgNThqqrXA43oFb1eEowRqXnsOjkPPTooNmiEv4zbEct2X7faIoLav9dncLPphhSQ==
-Content-Type: text/plain; charset="us-ascii"
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=0m2AnfIRcCHRpZW6PDeIax9gdSThqigcANOhQSHQQRM=;
+        b=l9UrcbgGyZHpzzpXZ0ao5T6qmamT4bwpPo9Q1ZImIf8A7LLg6hVilR0KrN4O3gamsX
+         TTDYIQCaPyZJm/VklimIRgeNaVSOlkAPYBcWC6u4lLFVoKVG3GvRC4sgvM5WwLN230cR
+         NqacKnMDiHYRg5NxBw2W+fdR/djzIb+BwQuL5HGUnGcaGsEKVpBQA6Ibaza1SI8dNSo4
+         1wCRpauHNIBwEuVetbcLpEdV1LxzYnn6SincBoe4V3EhF3iBRM/JOpP5Gm6ettn+PyeR
+         kd8ucX/kUEddGzeLrJ8AcsMIcaAHlPDS+29wJSZpBltd4kvSmndVWXZiizq1H4clGtmK
+         Zjrg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0m2AnfIRcCHRpZW6PDeIax9gdSThqigcANOhQSHQQRM=;
+        b=G2bfomvyDHd4NBGTx4hJwp3IVsDb8TdKBEOy9Xj1L7IP1fEUHdPV27RTQ9/4hTqM3k
+         KujR24jiELbGSieqI2FYxLkWvJnAWi5R0C3ngsOkwW+w54fZAjKxpK9CDCoqSM5xWO4w
+         13a8W4rkrGGRAiwoVXwA/1cYVoY4S2v5VgZgGcBvBvB41cKRa/4m9llsG+kL7y+cR797
+         W29cVqY+0nMJ42tJCselAj6R85XmqpgXkur8G7eeNaNpzpLu8dbepgQMDNVHUMd5qv2m
+         nRK9DqG/h3yrQinBpUdddQEcQxKxLYUk30Nvo1tw3TEVEE0RVE9F7IXYLZsemeLNCePq
+         j6Lg==
+X-Gm-Message-State: ANhLgQ1ptkuDOuogh+xjTkoPVvf1qk+DrXrH7Pavc6m0BSbzzdLkxQwP
+	jQ4U4gmQ8w/L6rLtoRnJk+1/FrWT30eXiUKZCjyhwA==
+X-Google-Smtp-Source: ADFU+vuRYf2PNGMfKGMR9APzvmfg1zGeVpB4kVz6LrQE2pYYEguvqYB2rhx1GF+WePdck7GQUX3jq1SI88VCcV1b6Hc=
+X-Received: by 2002:a17:906:1697:: with SMTP id s23mr12715702ejd.211.1585598108932;
+ Mon, 30 Mar 2020 12:55:08 -0700 (PDT)
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-Network-Message-Id: 1c8d3b87-7d93-4f26-1096-08d7d4c1027e
-X-MS-Exchange-CrossTenant-originalarrivaltime: 30 Mar 2020 15:42:52.4061
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 42f7676c-f455-423c-82f6-dc2d99791af7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 8zkKUOuXpRtA7gS/b3T513qRV+cDqHGpN0tyBbxXCzTQyMhxGzPPXKx9yw8D7mvAFX/RBq5MyRVErVsZ1eItsw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM0PR02MB5555
-Message-ID-Hash: ACQ7J7PMBAFJ6SUXVECLZLVQNFAUYIPG
-X-Message-ID-Hash: ACQ7J7PMBAFJ6SUXVECLZLVQNFAUYIPG
-X-MailFrom: otto.bruggeman@sap.com
+References: <20200319195046.GA452@embeddedor.com> <CAJZ5v0iDVL1WWTmmQX+2JDmyAfu2e8nSdLSmCqA-WZV+7pBHvw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0iDVL1WWTmmQX+2JDmyAfu2e8nSdLSmCqA-WZV+7pBHvw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 30 Mar 2020 12:54:57 -0700
+Message-ID: <CAPcyv4icgZEn9r9-+-R+rBQKebq+QcpYGQ-dvCiqhkO8XmDmEA@mail.gmail.com>
+Subject: Re: [PATCH][next] acpi: nfit.h: Replace zero-length array with
+ flexible-array member
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Message-ID-Hash: QKWACDS5MT5XIHIK5D3ZQQLES6OCKHC4
+X-Message-ID-Hash: QKWACDS5MT5XIHIK5D3ZQQLES6OCKHC4
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>
+CC: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ACQ7J7PMBAFJ6SUXVECLZLVQNFAUYIPG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QKWACDS5MT5XIHIK5D3ZQQLES6OCKHC4/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-My apologies, I meant to forward this mail and managed to press the wrong button...
+On Wed, Mar 25, 2020 at 3:06 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Thu, Mar 19, 2020 at 9:15 PM Gustavo A. R. Silva
+> <gustavo@embeddedor.com> wrote:
+> >
+> > The current codebase makes use of the zero-length array language
+> > extension to the C90 standard, but the preferred mechanism to declare
+> > variable-length types such as these ones is a flexible array member[1][2],
+> > introduced in C99:
+> >
+> > struct foo {
+> >         int stuff;
+> >         struct boo array[];
+> > };
+> >
+> > By making use of the mechanism above, we will get a compiler warning
+> > in case the flexible array does not occur last in the structure, which
+> > will help us prevent some kind of undefined behavior bugs from being
+> > inadvertently introduced[3] to the codebase from now on.
+> >
+> > Also, notice that, dynamic memory allocations won't be affected by
+> > this change:
+> >
+> > "Flexible array members have incomplete type, and so the sizeof operator
+> > may not be applied. As a quirk of the original implementation of
+> > zero-length arrays, sizeof evaluates to zero."[1]
+> >
+> > This issue was found with the help of Coccinelle.
+> >
+> > [1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+> > [2] https://github.com/KSPP/linux/issues/21
+> > [3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+> >
+> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+>
+> Dan,
+>
+> I'm assuming that you will take care of this one or please let me know
+> otherwise.
 
------Original Message-----
-From: Bruggeman, Otto (external - Partner) <otto.bruggeman@sap.com> 
-Sent: Monday, March 30, 2020 2:38 PM
-To: Mikulas Patocka <mpatocka@redhat.com>; Dan Williams <dan.j.williams@intel.com>; Vishal Verma <vishal.l.verma@intel.com>; Dave Jiang <dave.jiang@intel.com>; Ira Weiny <ira.weiny@intel.com>; Mike Snitzer <msnitzer@redhat.com>
-Cc: linux-nvdimm@lists.01.org; dm-devel@redhat.com
-Subject: [CAUTION] RE: Optane nvdimm performance
-
-FYI Mal sehen was da an antworten kommen...
-
------Original Message-----
-From: Mikulas Patocka <mpatocka@redhat.com> 
-Sent: Sunday, March 29, 2020 10:26 PM
-To: Dan Williams <dan.j.williams@intel.com>; Vishal Verma <vishal.l.verma@intel.com>; Dave Jiang <dave.jiang@intel.com>; Ira Weiny <ira.weiny@intel.com>; Mike Snitzer <msnitzer@redhat.com>
-Cc: linux-nvdimm@lists.01.org; dm-devel@redhat.com
-Subject: Optane nvdimm performance
-
-Hi
-
-I performed some microbenchmarks on a system with real Optane-based nvdimm 
-and I found out that the fastest method how to write to persistent memory 
-is to fill a cacheline with 8 8-byte writes and then issue clwb or 
-clflushopt on the cacheline. With this method, we can achieve 1.6 GB/s 
-throughput for linear writes. On the other hand, non-temporal writes 
-achieve only 1.3 GB/s.
-
-The results are here:
-http://people.redhat.com/~mpatocka/testcases/pmem/microbenchmarks/pmem.txt
-
-The benchmarks here:
-http://people.redhat.com/~mpatocka/testcases/pmem/microbenchmarks/
-
-The winning benchmark is this:
-http://people.redhat.com/~mpatocka/testcases/pmem/microbenchmarks/thrp-write-8-clwb.c
-
-
-However, the kernel is not using this fastest method, it is using 
-non-temporal stores instead.
-
-
-I took the novafs filesystem (see git clone 
-https://github.com/NVSL/linux-nova), it uses 
-__copy_from_user_inatomic_nocache, which calls __copy_user_nocache which 
-performs non-temporal stores. I hacked __copy_user_nocache to use clwb 
-instead of non-temporal stores and it improved filesystem performance 
-significantly.
-
-This is the patch
-http://people.redhat.com/~mpatocka/testcases/pmem/benchmarks/copy-nocache.patch 
-(for the kernel 5.1 because novafs needs this version) and these are 
-benchmark results:
-http://people.redhat.com/~mpatocka/testcases/pmem/benchmarks/fs-bench.txt
-
-- you can see that "test2" has twice the write throughput of "test1"
-
-
-I took the dm-writecache driver, it uses memcpy_flushcache to write data 
-to persistent memory. I hacked memcpy_flushcache to use clwb instead of 
-non-temporal stores.
-
-The result is - for 512-byte writes, non-temporal stores perform better 
-than cache flushing. For 1024-byte and larger writes, cache flushing 
-performs better than non-temporal stores. (I also tried to use cached 
-writes + clwb for dm-writecache metadata updates, but it had bad 
-performance)
-
-
-Do you have some explanation why nontemporal stores are better for 
-512-byte copies and worse for 1024-byte copies? (like filling up some 
-buffers inside the CPU)?
-
-In the next email, I'm sending a patch that makes memcpy_flushcache use 
-clflushopt for transfers larger than 768 bytes.
-
-
-Mikulas
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+Yes, this one and the other 2 related libnvdimm fixups are in my queue.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
