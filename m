@@ -2,73 +2,85 @@ Return-Path: <SRS0=ZPMO=5P=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41393C2D0EB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41C28C43331
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 11:10:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 180492082F
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 05:53:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="NrRTkA2b"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 180492082F
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
+	by mail.kernel.org (Postfix) with ESMTPS id 1269920774
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 11:10:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1269920774
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DA16B10FC3883;
-	Sun, 29 Mar 2020 22:54:11 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
-Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 4F41510FC3795
-	for <linux-nvdimm@lists.01.org>; Sun, 29 Mar 2020 22:54:09 -0700 (PDT)
-Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 23A0E2DC6861;
-	Mon, 30 Mar 2020 16:52:54 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
-	s=201810a; t=1585547576;
-	bh=8s7da4KbOpaV4mqdxyxNi6aCXQRjcGL9fg5XH8aq39A=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=NrRTkA2bxZwFMeoCf0Wr6Odf6o65lo0QM+ThRM66hf/7Tb+pvtJVuQxJN394NTysC
-	 VgilHFKK5xR1f6lDBP0QlOXi2EJtvYeXpa6JFreVlZ03HY/0O6eVn0cvRH8pvqRpyo
-	 cdzWDRkWYXg1MPX4tN1fXYDXGdiYygmqECTUp+0YnDPD6LfGx+xx+gategBGRubdAL
-	 L0JRYtfskZ/D5Zw0QaK/Tz53JgYEGDdF037VYvOeTQp7vuawto13Te3Rm7pe7J0n3j
-	 H6iwZUTYry2yNKsgzOEM59Q5V7lk5UymbYbT6X5deJlY236MnLO6jpfeBIjPT8WeYG
-	 zbyXaR3DorudKtfRcOMCYngpMoCzEzYlFjON6mwdALYIvaxuWIpUi0eUv4wErujoca
-	 ev2YxG6LJtlTTbFLoAYDap+my1DyfAet2uXwgjOsEAogxT/DBD0646Y0yGqEn2L3J6
-	 hinFHFG49vIm36L/NCftTmxqx7+9UfvO5s+VkIilw2q9UHK+gBNkJiRQVDG1yFm5Rn
-	 co+eZdxegSRaD39VqYwEY+iKgvu/Jb1w0cb0ho+kiB03px14BmTNlQk4Tof0LqmFNk
-	 7tVG7Vgv/QEAcjH8bPZwH8sZw7WayGyD+FfKrWAwVv7XeAsc2mBHBKPSE++URXQ1Nz
-	 MdXl8DGDe8LMBnwkv+CQ57LQ=
-Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Aw045934;
-	Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
-	(envelope-from alastair@d-silva.org)
-From: "Alastair D'Silva" <alastair@d-silva.org>
-To: alastair@d-silva.org
-Subject: [PATCH v4 23/25] nvdimm/ocxl: Expose SMART data via ndctl
-Date: Fri, 27 Mar 2020 18:12:00 +1100
-Message-Id: <20200327071202.2159885-24-alastair@d-silva.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
-References: <20200327071202.2159885-1-alastair@d-silva.org>
+	by ml01.01.org (Postfix) with ESMTP id 5717810FC379F;
+	Mon, 30 Mar 2020 04:11:15 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 01E8410FC3789
+	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 04:11:12 -0700 (PDT)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 02UB2xDL110495
+	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 07:10:22 -0400
+Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3022qwy379-1
+	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
+	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 07:10:22 -0400
+Received: from localhost
+	by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
+	Mon, 30 Mar 2020 12:10:09 +0100
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (9.149.109.197)
+	by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
+	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
+	Mon, 30 Mar 2020 12:10:06 +0100
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 02UBAFFl41943062
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 30 Mar 2020 11:10:15 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6756AA405C;
+	Mon, 30 Mar 2020 11:10:15 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0E8CCA4054;
+	Mon, 30 Mar 2020 11:10:13 +0000 (GMT)
+Received: from vajain21.in.ibm.com.com (unknown [9.79.185.237])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon, 30 Mar 2020 11:10:12 +0000 (GMT)
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
+Subject: [PATCH v3 0/4] powerpc/papr_scm: Add support for reporting nvdimm health
+Date: Mon, 30 Mar 2020 16:39:39 +0530
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
-Message-ID-Hash: J5ASZDBHX72SLXCVWSZJ3Y5LCNSWWBVD
-X-Message-ID-Hash: J5ASZDBHX72SLXCVWSZJ3Y5LCNSWWBVD
-X-MailFrom: alastair@d-silva.org
+X-TM-AS-GCONF: 00
+x-cbid: 20033011-4275-0000-0000-000003B630D3
+X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
+x-cbparentid: 20033011-4276-0000-0000-000038CB7C9A
+Message-Id: <20200330110943.214097-1-vaibhav@linux.ibm.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.645
+ definitions=2020-03-30_01:2020-03-27,2020-03-30 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ phishscore=0 malwarescore=0 spamscore=0 mlxlogscore=999 impostorscore=0
+ suspectscore=0 adultscore=0 clxscore=1015 bulkscore=0 mlxscore=0
+ lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2003300106
+Message-ID-Hash: QX5D6UROH2MJ5OEXRZTEF6LUHJ24QJCG
+X-Message-ID-Hash: QX5D6UROH2MJ5OEXRZTEF6LUHJ24QJCG
+X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.r
- u>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <ellerman@au1.ibm.com>, Alastair D'Silva <alastair@au1.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J5ASZDBHX72SLXCVWSZJ3Y5LCNSWWBVD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QX5D6UROH2MJ5OEXRZTEF6LUHJ24QJCG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,203 +89,124 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch retrieves proprietary formatted SMART data and makes it
-available via ndctl. A later contribution will be made to ndctl to
-parse this data.
+The PAPR standard[1][3] provides mechanisms to query the health and
+performance stats of an NVDIMM via various hcalls as described in Ref[2].
+Until now these stats were never available nor exposed to the user-space
+tools like 'ndctl'. This is partly due to PAPR platform not having support
+for ACPI and NFIT. Hence 'ndctl' is unable to query and report the dimm
+health status and a user had no way to determine the current health status
+of a NDVIMM.
 
-Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
----
- drivers/nvdimm/ocxl/main.c     | 113 +++++++++++++++++++++++++++++++++
- drivers/nvdimm/ocxl/ocxlpmem.h |  18 ++++++
- include/uapi/linux/ndctl.h     |   1 +
- 3 files changed, 132 insertions(+)
+To overcome this limitation, this patch-set updates papr_scm kernel module
+to query and fetch nvdimm health stats using hcalls described in Ref[2].
+This health and performance stats are then exposed to userspace via syfs
+and Dimm-Specific-Methods(DSM) issued by libndctl.
 
-diff --git a/drivers/nvdimm/ocxl/main.c b/drivers/nvdimm/ocxl/main.c
-index 2811bf7efbab..92b4389e8cbb 100644
---- a/drivers/nvdimm/ocxl/main.c
-+++ b/drivers/nvdimm/ocxl/main.c
-@@ -82,6 +82,114 @@ static int ndctl_config_size(struct nd_cmd_get_config_size *command)
- 	return 0;
- }
- 
-+/**
-+ * smart_header_parse() - Parse the first 64 bits of the SMART admin command response
-+ * @ocxlpmem: the device metadata
-+ * @length: out, returns the number of bytes in the response (excluding the 64 bit header)
-+ */
-+static int smart_header_parse(struct ocxlpmem *ocxlpmem, u32 *length)
-+{
-+	int rc;
-+	u64 val;
-+
-+	u16 data_identifier;
-+	u32 data_length;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
-+				     ocxlpmem->admin_command.data_offset,
-+				     OCXL_LITTLE_ENDIAN, &val);
-+	if (rc)
-+		return rc;
-+
-+	data_identifier = val >> 48;
-+	data_length = val & 0xFFFFFFFF;
-+
-+	if (data_identifier != 0x534D) { // 'SM'
-+		dev_err(&ocxlpmem->dev,
-+			"Bad data identifier for smart data, expected 'SM', got '%2s'\n",
-+			(char *)&data_identifier);
-+		return -EINVAL;
-+	}
-+
-+	*length = data_length;
-+	return 0;
-+}
-+
-+static int ndctl_smart(struct ocxlpmem *ocxlpmem, struct nd_cmd_pkg *pkg)
-+{
-+	u32 length, i;
-+	struct nd_ocxl_smart *out;
-+	int rc;
-+
-+	mutex_lock(&ocxlpmem->admin_command.lock);
-+
-+	rc = admin_command_execute(ocxlpmem, ADMIN_COMMAND_SMART);
-+	if (rc < 0)
-+		goto out;
-+	if (rc != STATUS_SUCCESS) {
-+		warn_status(ocxlpmem, "Unexpected status from SMART", rc);
-+		goto out;
-+	}
-+
-+	rc = smart_header_parse(ocxlpmem, &length);
-+	if (rc)
-+		goto out;
-+
-+	pkg->nd_fw_size = length + offsetof(struct nd_ocxl_smart, attribs);
-+
-+	length = min(length, (u32)(pkg->nd_size_out -
-+		     offsetof(struct nd_ocxl_smart, attribs))); // bytes
-+	out = (struct nd_ocxl_smart *)pkg->nd_payload;
-+	// Each SMART attribute is 2 * 64 bits
-+	out->count = length / (2 * sizeof(u64)); // attributes
-+
-+	for (i = 0; i < length; i += sizeof(u64)) {
-+		rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
-+					     ocxlpmem->admin_command.data_offset +
-+					     sizeof(u64) + i,
-+					     OCXL_LITTLE_ENDIAN,
-+					     &out->attribs[i / sizeof(u64)]);
-+		if (rc)
-+			goto out;
-+	}
-+
-+	rc = admin_response_handled(ocxlpmem);
-+	if (rc)
-+		goto out;
-+
-+out:
-+	mutex_unlock(&ocxlpmem->admin_command.lock);
-+	return rc;
-+}
-+
-+static int ndctl_call(struct ocxlpmem *ocxlpmem, void *buf,
-+		      unsigned int buf_len)
-+{
-+	struct nd_cmd_pkg *pkg = buf;
-+
-+	if (buf_len < sizeof(struct nd_cmd_pkg)) {
-+		dev_err(&ocxlpmem->dev, "Invalid ND_CALL size=%u\n", buf_len);
-+		return -EINVAL;
-+	}
-+
-+	if (pkg->nd_family != NVDIMM_FAMILY_OCXL) {
-+		dev_err(&ocxlpmem->dev, "Invalid ND_CALL family=0x%llx\n",
-+			pkg->nd_family);
-+		return -EINVAL;
-+	}
-+
-+	switch (pkg->nd_command) {
-+	case ND_CMD_OCXL_SMART:
-+		return ndctl_smart(ocxlpmem, pkg);
-+	default:
-+		dev_err(&ocxlpmem->dev, "Invalid ND_CALL command=0x%llx\n",
-+			pkg->nd_command);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- static int ndctl(struct nvdimm_bus_descriptor *nd_desc,
- 		 struct nvdimm *nvdimm,
- 		 unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
-@@ -90,6 +198,10 @@ static int ndctl(struct nvdimm_bus_descriptor *nd_desc,
- 						 struct ocxlpmem, bus_desc);
- 
- 	switch (cmd) {
-+	case ND_CMD_CALL:
-+		*cmd_rc = ndctl_call(ocxlpmem, buf, buf_len);
-+		return 0;
-+
- 	case ND_CMD_GET_CONFIG_SIZE:
- 		*cmd_rc = ndctl_config_size(buf);
- 		return 0;
-@@ -173,6 +285,7 @@ static int register_lpc_mem(struct ocxlpmem *ocxlpmem)
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &nvdimm_cmd_mask);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &nvdimm_cmd_mask);
- 	set_bit(ND_CMD_SET_CONFIG_DATA, &nvdimm_cmd_mask);
-+	set_bit(ND_CMD_CALL, &nvdimm_cmd_mask);
- 
- 	set_bit(NDD_ALIASING, &nvdimm_flags);
- 
-diff --git a/drivers/nvdimm/ocxl/ocxlpmem.h b/drivers/nvdimm/ocxl/ocxlpmem.h
-index c8794e7775ec..ebaf11692c09 100644
---- a/drivers/nvdimm/ocxl/ocxlpmem.h
-+++ b/drivers/nvdimm/ocxl/ocxlpmem.h
-@@ -6,6 +6,7 @@
- #include <misc/ocxl.h>
- #include <linux/libnvdimm.h>
- #include <linux/mm.h>
-+#include <linux/ndctl.h>
- 
- #define LABEL_AREA_SIZE	BIT_ULL(PA_SECTION_SHIFT)
- #define DEFAULT_TIMEOUT 100
-@@ -101,6 +102,23 @@ struct command_metadata {
- 	u8 op_code;
- };
- 
-+struct nd_ocxl_smart {
-+	__u8 count;
-+	__u8 reserved[7];
-+	__u64 attribs[0];
-+} __packed;
-+
-+struct nd_pkg_ocxl {
-+	struct nd_cmd_pkg gen;
-+	union {
-+		struct nd_ocxl_smart smart;
-+	};
-+};
-+
-+enum nd_cmd_ocxl {
-+	ND_CMD_OCXL_SMART = 1,
-+};
-+
- struct ocxlpmem {
- 	struct device dev;
- 	struct pci_dev *pdev;
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index de5d90212409..2885052e7f40 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -244,6 +244,7 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_HPE2 2
- #define NVDIMM_FAMILY_MSFT 3
- #define NVDIMM_FAMILY_HYPERV 4
-+#define NVDIMM_FAMILY_OCXL 6
- 
- #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
- 					struct nd_cmd_pkg)
+These changes coupled with proposed ndtcl changes located at Ref[4] should
+provide a way for the user to retrieve NVDIMM health status using ndtcl.
+
+Below is a sample output using proposed kernel + ndctl for PAPR NVDIMM in
+a emulation environment:
+
+ # ndctl list -DH
+[
+  {
+    "dev":"nmem0",
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty"
+    }
+  }
+]
+
+Dimm health report output on a pseries guest lpar with vPMEM or HMS
+based nvdimms that are in perfectly healthy conditions:
+	
+ # ndctl list -d nmem0 -H
+[
+  {
+    "dev":"nmem0",
+    "health":{
+      "health_state":"ok",
+      "shutdown_state":"clean"
+    }
+  }
+]
+
+PAPR Dimm-Specific-Methods(DSM)
+================================
+
+As the name suggests DSMs are used by vendor specific code in libndctl to
+execute certain operations or fetch certain information for NVDIMMS. DSMs
+can be sent to papr_scm module via libndctl (userspace) and libnvdimm
+(kernel) using the ND_CMD_CALL ioctl which can be handled in the dimm
+control function papr_scm_ndctl(). For PAPR this patchset proposes a single
+DSM to retrieve DIMM health, defined in the newly introduced uapi header
+named 'papr_scm_dsm.h'. Support for more DSMs will be added in future.
+
+Structure of the patch-set
+==========================
+
+The patchset starts with implementing support for fetching nvdimm health
+information from PHYP and partially exposing it to user-space via nvdimm
+flags.
+
+Second & Third patches deal with implementing support for servicing DSM
+commands papr_scm.
+
+Finally the Fourth patch implements support for servicing DSM
+'DSM_PAPR_SCM_HEALTH' that returns the nvdimm health information to
+libndctl.
+
+Change-log
+==========
+v2..v3:
+
+* Updated the papr_scm_dsm.h header to be more confimant general kernel
+  guidelines for UAPI headers. [Aneesh]
+
+* Changed the definition of macro PAPR_SCM_DIMM_UNARMED_MASK to not
+  include case when the nvdimm is unarmed because its a vPMEM
+  nvdimm. [Aneesh]
+
+v1..v2:
+
+* Restructured the patch-set based on review comments on V1 patch-set to
+simplify the patch review. Multiple small patches have been combined into
+single patches to reduce cross referencing that was needed in earlier
+patch-set. Hence most of the patches in this patch-set as now new. [Aneesh]
+
+* Removed the initial work done for fetch nvdimm performance statistics.
+These changes will be re-proposed in a separate patch-set. [Aneesh]
+
+* Simplified handling of versioning of 'struct
+nd_papr_scm_dimm_health_stat_v1' as only one version of the structure is
+currently in existence.
+
+References:
+[1]: "Power Architecture Platform Reference"
+      https://en.wikipedia.org/wiki/Power_Architecture_Platform_Reference
+[2]: commit 58b278f568f0
+     ("powerpc: Provide initial documentation for PAPR hcalls")
+[3]: "Linux on Power Architecture Platform Reference"
+     https://members.openpowerfoundation.org/document/dl/469
+[4]: https://patchwork.kernel.org/project/linux-nvdimm/list/?series=244625
+
+Vaibhav Jain (4):
+  powerpc/papr_scm: Fetch nvdimm health information from PHYP
+  ndctl/uapi: Introduce NVDIMM_FAMILY_PAPR_SCM as a new NVDIMM DSM
+    family
+  powerpc/papr_scm,uapi: Add support for handling PAPR DSM commands
+  powerpc/papr_scm: Implement support for DSM_PAPR_SCM_HEALTH
+
+ arch/powerpc/include/asm/papr_scm.h          |  48 ++++
+ arch/powerpc/include/uapi/asm/papr_scm_dsm.h | 201 ++++++++++++++
+ arch/powerpc/platforms/pseries/papr_scm.c    | 269 ++++++++++++++++++-
+ include/uapi/linux/ndctl.h                   |   1 +
+ 4 files changed, 510 insertions(+), 9 deletions(-)
+ create mode 100644 arch/powerpc/include/asm/papr_scm.h
+ create mode 100644 arch/powerpc/include/uapi/asm/papr_scm_dsm.h
+
 -- 
 2.24.1
 _______________________________________________
