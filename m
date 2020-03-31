@@ -2,378 +2,125 @@ Return-Path: <SRS0=0pIv=5Q=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 114F1C2D0EF
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 08:59:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E92B9C2D0E8
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 09:47:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D873F20787
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 08:59:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id C03A62073B
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 09:47:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (4096-bit key) header.d=d-silva.org header.i=@d-silva.org header.b="WEAkgqy8"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D873F20787
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=d-silva.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="UC9I5RYM"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C03A62073B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 976A810FC3894;
-	Tue, 31 Mar 2020 02:00:36 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=66.55.73.32; helo=ushosting.nmnhosting.com; envelope-from=alastair@d-silva.org; receiver=<UNKNOWN> 
-Received: from ushosting.nmnhosting.com (ushosting.nmnhosting.com [66.55.73.32])
-	by ml01.01.org (Postfix) with ESMTP id 095A310FC3890
-	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 02:00:34 -0700 (PDT)
-Received: from mail2.nmnhosting.com (unknown [202.169.106.97])
-	by ushosting.nmnhosting.com (Postfix) with ESMTPS id 709922DC6863;
-	Mon, 30 Mar 2020 16:52:58 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=d-silva.org;
-	s=201810a; t=1585547579;
-	bh=/ca1KYpFanyYMVbs68dr19xdKxkz41V0vgTQ9aYJwrk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=WEAkgqy8sYoMNXNSHtEMHgFyUhgF7eswqGIzw5cTL9d8Ce/mAiuF+j3x6UsLKfeCJ
-	 sKdZc2iP7tvcfSfPjHmM5V72eHMWyvPdp7/ls+jgJF3WTd81TsaF4PPVObcERiLV61
-	 hiNs5FJcPjagQHqbTXyR15J5ngFd+eo6SsOLV0X8YkpTsMEm0ICDvFiSfEiuay91kn
-	 4ohxvdABPi+smiQm+O9dLWUxRXXz3jk1VFkHIcC+iC8yftoAlg/6XGbxqSs08xQu9A
-	 55RvHF+bmzPvzR3igzK2spwG9M3j9SURWqI7vlJXLMHk9HAlN1q/5Jdh/G5VOSaHJ1
-	 88QkO+qFKB48gAQ8Z9DkVMS5xIXff17UEwjngE3ppAKkQotDdHDo6o7O8ksTciapJW
-	 djlsNB+lf1rFQLBA29PqyfwXkZwEFhVhgTDCCbc0a8ga7B0O85V+VqzuT4ODU2bPdd
-	 ocBKT+GnvkXD3nwPqVZ39v0lOsGIAb5Bgly9fNCf1+DugXZQMjoBHNinZ1XefGz02V
-	 93blURIhnMD1Nk1FodnmCjbywYdB6f2mRb+jEwqvcQogdJN7xE+qxXW3kpuvBeU5dX
-	 NrokEv2reY/lK0p+vku/YE1ZckI+CDcB+Tjt2inhEyRDDJftojDu7CjT6J9Q/6B0rn
-	 VwiJrr14r7AX8jm6PdMRVxvc=
-Received: from localhost.lan ([10.0.1.179])
-	by mail2.nmnhosting.com (8.15.2/8.15.2) with ESMTP id 02R7C4Av045934;
-	Fri, 27 Mar 2020 18:12:19 +1100 (AEDT)
-	(envelope-from alastair@d-silva.org)
-From: "Alastair D'Silva" <alastair@d-silva.org>
-To: alastair@d-silva.org
-Subject: [PATCH v4 22/25] nvdimm/ocxl: Add debug IOCTLs
-Date: Fri, 27 Mar 2020 18:11:59 +1100
-Message-Id: <20200327071202.2159885-23-alastair@d-silva.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200327071202.2159885-1-alastair@d-silva.org>
-References: <20200327071202.2159885-1-alastair@d-silva.org>
+	by ml01.01.org (Postfix) with ESMTP id 5722C10FC3893;
+	Tue, 31 Mar 2020 02:47:58 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::541; helo=mail-ed1-x541.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id E1D521007B1F0
+	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 02:47:55 -0700 (PDT)
+Received: by mail-ed1-x541.google.com with SMTP id cw6so23587171edb.9
+        for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 02:47:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=wO/YEClVC4bznsIBM0aKMtzyOdSIvnqNmYs0tYYay5M=;
+        b=UC9I5RYMTF9x470AM1vJkHEv3YFBzuEm+FqIWOG/BDt9pFSYSGnVQjRsEFfxYkIldW
+         ZscYl4LsMwSzzOTh8nIeqrzHD7Oh7pqttet3w4SCRe3OYIG7Ny361CTK6RwOOwmH0gGe
+         ozxk+sP06lknqjpKHsV05924QErWHKeyTMANMO7VXzsZeK0gvVcPjNkk0S+62vwLZglR
+         5CMR15ggQLeAy7lRjsTcMklLAjoU4ukEVz4Nd/sr4ayD7GynyLDYYC70Kp8JYRS3bD7R
+         UDB21oAXgUKA44UJOy7qkB/qXCRijVo47sHBmX79YUxOCOykYol9sQ+A5tNwuK2/YyPw
+         PHeg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=wO/YEClVC4bznsIBM0aKMtzyOdSIvnqNmYs0tYYay5M=;
+        b=qcHRDyisXHymjPUTnJvJYcmc88B/ILGjkFHzU1ojYmZfyBOjx8y6vwPQ1P50+zJhw4
+         3ZDlZ5LH+01EnvFmGj7j6zXWAQyJjokjs1vtK/Nugr8p34YikkEpdHwxBDjw8b8NI2EJ
+         fzExCexwRmJ3nrVxISuw59g0mtCx6M0h/DkdefjkB3ZapXI/NLWoPD/sTYvMeyCQJPD0
+         1MoPYdVZDasY0Wz0fRsZ3ObTz7jAVmltcsZ294/7y7v5/9KJE6G0x2pcQa/A28mO/u7Y
+         2ijuX298GYVAfzb5Q6/SjVbxwoGkToY80+9x4Uvk5YK+r01wJvqZsqPmgevfH0bHSdOM
+         NlGg==
+X-Gm-Message-State: ANhLgQ1oythhn2ysIoarSsq1+m7lQT8az1GiD0hf1CCKwMeAQ7k9Cg2M
+	LGgwWhifuGECr9EnDIUA6ZQ82e1caW121Oqexmow6g==
+X-Google-Smtp-Source: ADFU+vvWqY2t1S0J4+IMaqLr+k2IqBAvI8NNneKhMPlo68uUyWVmxyn+o59Vbw4OGtjBIdtjhl5p3Eu+2+tXyuBD4KE=
+X-Received: by 2002:a17:906:1e42:: with SMTP id i2mr14186705ejj.317.1585648023325;
+ Tue, 31 Mar 2020 02:47:03 -0700 (PDT)
 MIME-Version: 1.0
-X-Greylist: Sender IP whitelisted, not delayed by milter-greylist-4.6.2 (mail2.nmnhosting.com [10.0.1.20]); Fri, 27 Mar 2020 18:12:20 +1100 (AEDT)
-Message-ID-Hash: BFKLZYRCCOZJEBNSTRTEBGFLGNAVU2UL
-X-Message-ID-Hash: BFKLZYRCCOZJEBNSTRTEBGFLGNAVU2UL
-X-MailFrom: alastair@d-silva.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Barrat <fbarrat@linux.ibm.com>, Andrew Donnellan <ajd@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>, Anton Blanchard <anton@ozlabs.org>, Krzysztof Kozlowski <krzk@kernel.org>, Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>, Madhavan Srinivasan <maddy@linux.vnet.ibm.com>, =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@kaod.org>, Anju T Sudhakar <anju@linux.vnet.ibm.com>, Hari Bathini <hbathini@linux.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kurz <groug@kaod.org>, Nicholas Piggin <npiggin@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Alexey Kardashevskiy <aik@ozlabs.r
- u>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
+References: <20200330141943.31696-1-yuehaibing@huawei.com>
+In-Reply-To: <20200330141943.31696-1-yuehaibing@huawei.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 31 Mar 2020 02:46:52 -0700
+Message-ID: <CAPcyv4jTTDHLpnLArL_YvnSr+FAVVOi0Xs4Wv3dBF-cgQrx7zw@mail.gmail.com>
+Subject: Re: [PATCH -next] libnvdimm/region: Fix build error
+To: YueHaibing <yuehaibing@huawei.com>
+Message-ID-Hash: 44BGM62ZV2C53RBOYLVAAY664O2KQVN2
+X-Message-ID-Hash: 44BGM62ZV2C53RBOYLVAAY664O2KQVN2
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BFKLZYRCCOZJEBNSTRTEBGFLGNAVU2UL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/44BGM62ZV2C53RBOYLVAAY664O2KQVN2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-These IOCTLs provide low level access to the card to aid in debugging
-controller/FPGA firmware.
-
-Signed-off-by: Alastair D'Silva <alastair@d-silva.org>
----
- drivers/nvdimm/ocxl/Kconfig    |   6 +
- drivers/nvdimm/ocxl/main.c     | 198 +++++++++++++++++++++++++++++++++
- drivers/nvdimm/ocxl/ocxlpmem.h |   2 +-
- include/uapi/nvdimm/ocxlpmem.h |  31 ++++++
- 4 files changed, 236 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/ocxl/Kconfig b/drivers/nvdimm/ocxl/Kconfig
-index c5d927520920..3f44429d70c9 100644
---- a/drivers/nvdimm/ocxl/Kconfig
-+++ b/drivers/nvdimm/ocxl/Kconfig
-@@ -12,4 +12,10 @@ config OCXL_PMEM
- 
- 	  Select N if unsure.
- 
-+config OCXL_PMEM_DEBUG
-+	bool "OpenCAPI Persistent Memory debugging"
-+	depends on OCXL_PMEM
-+	help
-+	  Enables low level IOCTLs for OpenCAPI Persistent Memory firmware development
-+
- endif
-diff --git a/drivers/nvdimm/ocxl/main.c b/drivers/nvdimm/ocxl/main.c
-index 2fbe3f2f77d9..2811bf7efbab 100644
---- a/drivers/nvdimm/ocxl/main.c
-+++ b/drivers/nvdimm/ocxl/main.c
-@@ -1027,6 +1027,183 @@ int req_controller_health_perf(struct ocxlpmem *ocxlpmem)
- 				      GLOBAL_MMIO_HCI_REQ_HEALTH_PERF);
- }
- 
-+#ifdef CONFIG_OCXL_PMEM_DEBUG
-+/**
-+ * enable_fwdebug() - Enable FW debug on the controller
-+ * @ocxlpmem: the device metadata
-+ * Return: 0 on success, negative on failure
-+ */
-+static int enable_fwdebug(const struct ocxlpmem *ocxlpmem)
-+{
-+	return ocxl_global_mmio_set64(ocxlpmem->ocxl_afu, GLOBAL_MMIO_HCI,
-+				      OCXL_LITTLE_ENDIAN,
-+				      GLOBAL_MMIO_HCI_FW_DEBUG);
-+}
-+
-+/**
-+ * disable_fwdebug() - Disable FW debug on the controller
-+ * @ocxlpmem: the device metadata
-+ * Return: 0 on success, negative on failure
-+ */
-+static int disable_fwdebug(const struct ocxlpmem *ocxlpmem)
-+{
-+	return ocxl_global_mmio_set64(ocxlpmem->ocxl_afu, GLOBAL_MMIO_HCIC,
-+				      OCXL_LITTLE_ENDIAN,
-+				      GLOBAL_MMIO_HCI_FW_DEBUG);
-+}
-+
-+static int ioctl_fwdebug(struct ocxlpmem *ocxlpmem,
-+			 struct ioctl_ocxl_pmem_fwdebug __user *uarg)
-+{
-+	struct ioctl_ocxl_pmem_fwdebug args;
-+	u64 val;
-+	int i;
-+	int rc;
-+
-+	if (copy_from_user(&args, uarg, sizeof(args)))
-+		return -EFAULT;
-+
-+	// Buffer size must be a multiple of 8
-+	if ((args.buf_size & 0x07))
-+		return -EINVAL;
-+
-+	if (args.buf_size > ocxlpmem->admin_command.data_size)
-+		return -EINVAL;
-+
-+	mutex_lock(&ocxlpmem->admin_command.lock);
-+
-+	rc = enable_fwdebug(ocxlpmem);
-+	if (rc)
-+		goto out;
-+
-+	// Write DebugAction & FunctionCode
-+	val = ((u64)args.debug_action << 56) | ((u64)args.function_code << 40);
-+
-+	rc = ocxl_global_mmio_write64(ocxlpmem->ocxl_afu,
-+				      ocxlpmem->admin_command.request_offset + 0x08,
-+				      OCXL_LITTLE_ENDIAN, val);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_write64(ocxlpmem->ocxl_afu,
-+				      ocxlpmem->admin_command.request_offset + 0x10,
-+				      OCXL_LITTLE_ENDIAN,
-+				      args.debug_parameter_1);
-+	if (rc)
-+		goto out;
-+
-+	rc = ocxl_global_mmio_write64(ocxlpmem->ocxl_afu,
-+				      ocxlpmem->admin_command.request_offset + 0x18,
-+				      OCXL_LITTLE_ENDIAN,
-+				      args.debug_parameter_2);
-+	if (rc)
-+		goto out;
-+
-+	// Populate admin command buffer
-+	if (args.buf_size) {
-+		for (i = 0; i < args.buf_size; i += sizeof(u64)) {
-+			u64 val;
-+
-+			if (copy_from_user(&val, &args.buf[i], sizeof(u64))) {
-+				rc = -EFAULT;
-+				goto out;
-+			}
-+
-+			rc = ocxl_global_mmio_write64(ocxlpmem->ocxl_afu,
-+						      ocxlpmem->admin_command.data_offset + i,
-+						      OCXL_HOST_ENDIAN, val);
-+			if (rc)
-+				goto out;
-+		}
-+	}
-+
-+	rc = admin_command_execute(ocxlpmem,
-+				   ocxlpmem->timeouts[ADMIN_COMMAND_FW_DEBUG]);
-+	if (rc < 0)
-+		goto out;
-+	if (rc != STATUS_SUCCESS) {
-+		warn_status(ocxlpmem, "Unexpected status from FW Debug", rc);
-+		goto out;
-+	}
-+
-+	if (args.buf_size) {
-+		for (i = 0; i < args.buf_size; i += sizeof(u64)) {
-+			u64 val;
-+
-+			rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu,
-+						     ocxlpmem->admin_command.data_offset + i,
-+						     OCXL_HOST_ENDIAN, &val);
-+			if (rc)
-+				goto out;
-+
-+			if (copy_to_user(&args.buf[i], &val, sizeof(u64))) {
-+				rc = -EFAULT;
-+				goto out;
-+			}
-+		}
-+	}
-+
-+	rc = admin_response_handled(ocxlpmem);
-+	if (rc)
-+		goto out;
-+
-+	rc = disable_fwdebug(ocxlpmem);
-+
-+out:
-+	mutex_unlock(&ocxlpmem->admin_command.lock);
-+	return rc;
-+}
-+
-+static int ioctl_shutdown(struct ocxlpmem *ocxlpmem)
-+{
-+	int rc;
-+
-+	mutex_lock(&ocxlpmem->admin_command.lock);
-+
-+	rc = admin_command_execute(ocxlpmem, ADMIN_COMMAND_SHUTDOWN);
-+	if (rc)
-+		goto out;
-+
-+	rc = admin_response_handled(ocxlpmem);
-+
-+out:
-+	mutex_unlock(&ocxlpmem->admin_command.lock);
-+	return rc;
-+}
-+
-+static int ioctl_mmio_write(struct ocxlpmem *ocxlpmem,
-+			    struct ioctl_ocxl_pmem_mmio __user *uarg)
-+{
-+	struct scm_ioctl_mmio args;
-+
-+	if (copy_from_user(&args, uarg, sizeof(args)))
-+		return -EFAULT;
-+
-+	return ocxl_global_mmio_write64(ocxlpmem->ocxl_afu, args.address,
-+					OCXL_LITTLE_ENDIAN, args.val);
-+}
-+
-+static int ioctl_mmio_read(struct ocxlpmem *ocxlpmem,
-+			   struct ioctl_ocxl_pmem_mmio __user *uarg)
-+{
-+	struct ioctl_ocxl_pmem_mmio args;
-+	int rc;
-+
-+	if (copy_from_user(&args, uarg, sizeof(args)))
-+		return -EFAULT;
-+
-+	rc = ocxl_global_mmio_read64(ocxlpmem->ocxl_afu, args.address,
-+				     OCXL_LITTLE_ENDIAN, &args.val);
-+	if (rc)
-+		return rc;
-+
-+	if (copy_to_user(uarg, &args, sizeof(args)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+#endif /* CONFIG_OCXL_PMEM_DEBUG */
-+
- static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
- {
- 	struct ocxlpmem *ocxlpmem = file->private_data;
-@@ -1068,6 +1245,27 @@ static long file_ioctl(struct file *file, unsigned int cmd, unsigned long args)
- 	case IOCTL_OCXLPMEM_REQUEST_HEALTH:
- 		rc = req_controller_health_perf(ocxlpmem);
- 		break;
-+
-+#ifdef CONFIG_OCXL_PMEM_DEBUG
-+	case IOCTL_OCXL_PMEM_FWDEBUG:
-+		rc = ioctl_fwdebug(ocxlpmem,
-+				   (struct ioctl_ocxl_pmem_fwdebug __user *)args);
-+		break;
-+
-+	case IOCTL_OCXL_PMEM_SHUTDOWN:
-+		rc = ioctl_shutdown(ocxlpmem);
-+		break;
-+
-+	case IOCTL_OCXL_PMEM_MMIO_WRITE:
-+		rc = ioctl_mmio_write(ocxlpmem,
-+				      (struct ioctl_ocxl_pmem_mmio __user *)args);
-+		break;
-+
-+	case IOCTL_OCXL_PMEM_MMIO_READ:
-+		rc = ioctl_mmio_read(ocxlpmem,
-+				     (struct ioctl_ocxl_pmem_mmio __user *)args);
-+		break;
-+#endif
- 	}
- 
- 	return rc;
-diff --git a/drivers/nvdimm/ocxl/ocxlpmem.h b/drivers/nvdimm/ocxl/ocxlpmem.h
-index 01721596f982..c8794e7775ec 100644
---- a/drivers/nvdimm/ocxl/ocxlpmem.h
-+++ b/drivers/nvdimm/ocxl/ocxlpmem.h
-@@ -158,7 +158,7 @@ int ocxlpmem_chi(const struct ocxlpmem *ocxlpmem, u64 *chi);
-  *
-  * @ocxlpmem: the device metadata
-  * @op_code: the code for the admin command
-- * Returns 0 on success, -EINVAL for a bad op code, -EBUSY on timeout
-+// * Returns 0 on success, -EINVAL for a bad op code, -EBUSY on timeout
-  */
- int admin_command_execute(struct ocxlpmem *ocxlpmem, u8 op_code);
- 
-diff --git a/include/uapi/nvdimm/ocxlpmem.h b/include/uapi/nvdimm/ocxlpmem.h
-index 9c5c8585c1c2..374b70690b3a 100644
---- a/include/uapi/nvdimm/ocxlpmem.h
-+++ b/include/uapi/nvdimm/ocxlpmem.h
-@@ -93,4 +93,35 @@ struct ioctl_ocxlpmem_eventfd {
- #define IOCTL_OCXLPMEM_EVENT_CHECK			_IOR(OCXLPMEM_MAGIC, 0x36, __u64)
- #define IOCTL_OCXLPMEM_REQUEST_HEALTH			_IO(OCXLPMEM_MAGIC, 0x37)
- 
-+/*
-+ * Debug IOCTLs, these are only available if the kernel is compiled with
-+ * CONFIG_OCXLPMEM_DEBUG
-+ */
-+
-+#define	OCXLPMEM_FWDEBUG_READ_CONTROLLER_MEMORY	0x01
-+#define	OCXLPMEM_FWDEBUG_WRITE_CONTROLLER_MEMORY	0x02
-+#define	OCXLPMEM_FWDEBUG_ENABLE_FUNCTION		0x03
-+#define	OCXLPMEM_FWDEBUG_DISABLE_FUNCTION		0x04
-+#define	OCXLPMEM_FWDEBUG_GET_PEL			0x05 /* Retrieve Persistent Error Log */
-+
-+struct ioctl_ocxlpmem_fwdebug { /* All args are inputs */
-+	__u64 debug_parameter_1;
-+	__u64 debug_parameter_2;
-+	__u64 buf; /* Coerced pointer to optional in/out data buffer */
-+	__u16 debug_action; /* OCXLPMEM_FWDEBUG_... */
-+	__u16 function_code;
-+	__u16 buf_size; /* Size of optional data buffer */
-+	__u16 reserved;
-+};
-+
-+struct ioctl_ocxlpmem_mmio {
-+	__u64 address; /* Offset in global MMIO space */
-+	__u64 val; /* value to write/was read */
-+};
-+
-+#define IOCTL_OCXLPMEM_FWDEBUG		_IOWR(OCXLPMEM_MAGIC, 0xf0, struct ioctl_ocxlpmem_fwdebug)
-+#define IOCTL_OCXLPMEM_MMIO_WRITE	_IOW(OCXLPMEM_MAGIC, 0xf1, struct ioctl_ocxlpmem_mmio)
-+#define IOCTL_OCXLPMEM_MMIO_READ	_IOWR(OCXLPMEM_MAGIC, 0xf2, struct ioctl_ocxlpmem_mmio)
-+#define IOCTL_OCXLPMEM_SHUTDOWN	_IO(OCXLPMEM_MAGIC, 0xf3)
-+
- #endif /* _UAPI_OCXL_SCM_H */
--- 
-2.24.1
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+T24gTW9uLCBNYXIgMzAsIDIwMjAgYXQgNzoyMyBBTSBZdWVIYWliaW5nIDx5dWVoYWliaW5nQGh1
+YXdlaS5jb20+IHdyb3RlOg0KPg0KPiBPbiBDT05GSUdfUFBDMzI9eSBidWlsZCBmYWlsczoNCj4N
+Cj4gZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYzoxMDM0OjE0OiBub3RlOiBpbiBleHBhbnNp
+b24gb2YgbWFjcm8g4oCYZG9fZGl24oCZDQo+ICAgcmVtYWluZGVyID0gZG9fZGl2KHBlcl9tYXBw
+aW5nLCBtYXBwaW5ncyk7DQo+ICAgICAgICAgICAgICAgXn5+fn5+DQo+IEluIGZpbGUgaW5jbHVk
+ZWQgZnJvbSAuL2FyY2gvcG93ZXJwYy9pbmNsdWRlL2dlbmVyYXRlZC9hc20vZGl2NjQuaDoxOjAs
+DQo+ICAgICAgICAgICAgICAgICAgZnJvbSAuL2luY2x1ZGUvbGludXgva2VybmVsLmg6MTgsDQo+
+ICAgICAgICAgICAgICAgICAgZnJvbSAuL2luY2x1ZGUvYXNtLWdlbmVyaWMvYnVnLmg6MTksDQo+
+ICAgICAgICAgICAgICAgICAgZnJvbSAuL2FyY2gvcG93ZXJwYy9pbmNsdWRlL2FzbS9idWcuaDox
+MDksDQo+ICAgICAgICAgICAgICAgICAgZnJvbSAuL2luY2x1ZGUvbGludXgvYnVnLmg6NSwNCj4g
+ICAgICAgICAgICAgICAgICBmcm9tIC4vaW5jbHVkZS9saW51eC9zY2F0dGVybGlzdC5oOjcsDQo+
+ICAgICAgICAgICAgICAgICAgZnJvbSBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jOjU6DQo+
+IC4vaW5jbHVkZS9hc20tZ2VuZXJpYy9kaXY2NC5oOjI0MzoyMjogZXJyb3I6IHBhc3NpbmcgYXJn
+dW1lbnQgMSBvZiDigJhfX2RpdjY0XzMy4oCZIGZyb20gaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlw
+ZSBbLVdlcnJvcj1pbmNvbXBhdGlibGUtcG9pbnRlci10eXBlc10NCj4gICAgX19yZW0gPSBfX2Rp
+djY0XzMyKCYobiksIF9fYmFzZSk7IFwNCj4NCj4gVXNlIGRpdl91NjQgaW5zdGVhZCBvZiBkb19k
+aXYgdG8gZml4IHRoaXMuDQo+DQo+IEZpeGVzOiAyNTIyYWZiODZhOGMgKCJsaWJudmRpbW0vcmVn
+aW9uOiBJbnRyb2R1Y2UgYW4gJ2FsaWduJyBhdHRyaWJ1dGUiKQ0KPiBTaWduZWQtb2ZmLWJ5OiBZ
+dWVIYWliaW5nIDx5dWVoYWliaW5nQGh1YXdlaS5jb20+DQo+IC0tLQ0KPiAgZHJpdmVycy9udmRp
+bW0vcmVnaW9uX2RldnMuYyB8IDQgKystLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9u
+cygrKSwgMiBkZWxldGlvbnMoLSkNCj4NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3Jl
+Z2lvbl9kZXZzLmMgYi9kcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jDQo+IGluZGV4IGJmMjM5
+ZTc4Mzk0MC4uMjI5MWYwNjQ5ZDI3IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL252ZGltbS9yZWdp
+b25fZGV2cy5jDQo+ICsrKyBiL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMNCj4gQEAgLTU2
+NCw3ICs1NjQsNyBAQCBzdGF0aWMgc3NpemVfdCBhbGlnbl9zdG9yZShzdHJ1Y3QgZGV2aWNlICpk
+ZXYsDQo+ICAgICAgICAgICogc3BhY2UgZm9yIHRoZSBuYW1lc3BhY2UuDQo+ICAgICAgICAgICov
+DQo+ICAgICAgICAgZHBhID0gdmFsOw0KPiAtICAgICAgIHJlbWFpbmRlciA9IGRvX2RpdihkcGEs
+IG5kX3JlZ2lvbi0+bmRyX21hcHBpbmdzKTsNCj4gKyAgICAgICByZW1haW5kZXIgPSBkaXZfdTY0
+KGRwYSwgbmRfcmVnaW9uLT5uZHJfbWFwcGluZ3MpOw0KDQpUaGlzIGlzIG5vdCBhbiBlcXVpdmFs
+ZW50IGNvbnZlcnNpb24uDQoNCiAgICBkcGEgPSBkaXZfdTY0X3JlbSh2YWwsIG5kX3JlZ2lvbi0+
+bmRyX21hcHBpbmdzLCAmcmVtYWluZGVyKTsNCg0KPiAgICAgICAgIGlmICghaXNfcG93ZXJfb2Zf
+MihkcGEpIHx8IGRwYSA8IFBBR0VfU0laRQ0KPiAgICAgICAgICAgICAgICAgICAgICAgICB8fCB2
+YWwgPiByZWdpb25fc2l6ZShuZF9yZWdpb24pIHx8IHJlbWFpbmRlcikNCj4gICAgICAgICAgICAg
+ICAgIHJldHVybiAtRUlOVkFMOw0KPiBAQCAtMTAzMSw3ICsxMDMxLDcgQEAgc3RhdGljIHVuc2ln
+bmVkIGxvbmcgZGVmYXVsdF9hbGlnbihzdHJ1Y3QgbmRfcmVnaW9uICpuZF9yZWdpb24pDQo+DQo+
+ICAgICAgICAgbWFwcGluZ3MgPSBtYXhfdCh1MTYsIDEsIG5kX3JlZ2lvbi0+bmRyX21hcHBpbmdz
+KTsNCj4gICAgICAgICBwZXJfbWFwcGluZyA9IGFsaWduOw0KPiAtICAgICAgIHJlbWFpbmRlciA9
+IGRvX2RpdihwZXJfbWFwcGluZywgbWFwcGluZ3MpOw0KPiArICAgICAgIHJlbWFpbmRlciA9IGRp
+dl91NjQocGVyX21hcHBpbmcsIG1hcHBpbmdzKTsNCg0KU2FtZSBwcm9ibGVtIGhlcmUuCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBt
+YWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBz
+ZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
