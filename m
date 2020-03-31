@@ -2,87 +2,77 @@ Return-Path: <SRS0=0pIv=5Q=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE74C2D0F0
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 14:33:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 838AFC2D0EE
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 19:34:54 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3C3732071A
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 14:33:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3C3732071A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 607DD2072E
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 19:34:54 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="Zy2QcGdq"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 607DD2072E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D69AF10FC3BA5;
-	Tue, 31 Mar 2020 07:33:54 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id B967910FC38AE;
+	Tue, 31 Mar 2020 12:35:43 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::544; helo=mail-ed1-x544.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C7AA310FC38BF
-	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 07:33:51 -0700 (PDT)
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 02VEWBrj013563
-	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 10:33:01 -0400
-Received: from e06smtp03.uk.ibm.com (e06smtp03.uk.ibm.com [195.75.94.99])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 303vfhax6a-1
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 10:33:01 -0400
-Received: from localhost
-	by e06smtp03.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
-	Tue, 31 Mar 2020 15:32:52 +0100
-Received: from b06avi18626390.portsmouth.uk.ibm.com (9.149.26.192)
-	by e06smtp03.uk.ibm.com (192.168.101.133) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Tue, 31 Mar 2020 15:32:50 +0100
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 02VEVqYc47710664
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 31 Mar 2020 14:31:52 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8CDD2A404D;
-	Tue, 31 Mar 2020 14:32:55 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D3379A4059;
-	Tue, 31 Mar 2020 14:32:52 +0000 (GMT)
-Received: from vajain21.in.ibm.com.com (unknown [9.85.86.229])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue, 31 Mar 2020 14:32:52 +0000 (GMT)
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
-Subject: [PATCH v5 4/4] powerpc/papr_scm: Implement support for DSM_PAPR_SCM_HEALTH
-Date: Tue, 31 Mar 2020 20:02:29 +0530
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200331143229.306718-1-vaibhav@linux.ibm.com>
-References: <20200331143229.306718-1-vaibhav@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 4C5FA10FC3613
+	for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 12:35:41 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id u59so26595898edc.12
+        for <linux-nvdimm@lists.01.org>; Tue, 31 Mar 2020 12:34:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=UlSJUrrtp+elCcnlxjegQ1+2cP9J0LpeSgRiaNQtR0s=;
+        b=Zy2QcGdq96G717VvvW34Dy4QXOTaxcKIc7ZNiy53geXC8plgwU9BjibuKZtmLKW6gn
+         m8mNVysOYxT1n8/aMgaH2yO34cOed9Q+6ts04a4bZmAuNwyDDO7SRKAXy+kpPzkg+vIY
+         TZYj+3JG41xlb594XCd4xTqHYQkwJu6pExStc8t/U5eVOOb5v6HYRFT0zX9Ctzo0fFYe
+         c9LKx1cQW3Q9sX3jbf0+sV8qHwdkhtW/zboEBhkp9l/782K7pjiDC/V8siom7J9b2Y9Z
+         ywOChx5Ti45Jd8kzhPU7ZhIuaBYou5Kjj7dlZ8I7+AXuzI/yzK8yUlKOHJBU3AGKT2KM
+         b6+w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=UlSJUrrtp+elCcnlxjegQ1+2cP9J0LpeSgRiaNQtR0s=;
+        b=oAg/54Ax2hd080sfaTl8GXEQf6mSlaC4qLGUbJUYhVaga0KoyJNlcG6nZO2zrfVsvn
+         0tG4/zmXjPfSpyZmoAzGZQyUimoQBtucRyvoNrEWU1YwOMbUzgelx17DjgrTQif+XLFW
+         bb4T5eUpUKBRXrGX7TfHkJ9jt2Z7/OBjCH6eQwGhmHjKrqkbtqJRi5aKVVh7PcB1uBwZ
+         HiiAby1ih5dZDIQWLCJWp5OdvJs0HucjYnQSQGBO/BCylUljqw4lMNlBUwdbbMEf6vqV
+         wKlfAIq9gtAkPwprfS/HE/qoZiQbK34lzP4/SDKvNnf7AZ37YcQ19WqHmKgIIq/xBTN7
+         nxZw==
+X-Gm-Message-State: ANhLgQ0ChLjRfNi7NHZXjGgA3DEAznl7x048GQUcjtWSYR72ChTnxPAc
+	7r64ZFURhsl6og1Fe1OsRBkBbw/hk+fUQuz5w6/t1w==
+X-Google-Smtp-Source: ADFU+vsrR9MztC+EwEAW0InOpTF7vKxHzltbCfwaPTJVFLJjv2U252HQlig7Y4YqehaKRemZ8x8lDhVxwSEZWjFKJ8E=
+X-Received: by 2002:a17:906:4bc4:: with SMTP id x4mr11811524ejv.201.1585683288829;
+ Tue, 31 Mar 2020 12:34:48 -0700 (PDT)
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-x-cbid: 20033114-0012-0000-0000-0000039BAAB8
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20033114-0013-0000-0000-000021D8B71F
-Message-Id: <20200331143229.306718-5-vaibhav@linux.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
- definitions=2020-03-31_04:2020-03-31,2020-03-31 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0
- lowpriorityscore=0 phishscore=0 impostorscore=0 malwarescore=0
- mlxlogscore=999 mlxscore=0 suspectscore=0 clxscore=1015 priorityscore=1501
- spamscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2003310129
-Message-ID-Hash: FB7RL6KCQNDLCQM2JTECMJ4O4GNJKQMO
-X-Message-ID-Hash: FB7RL6KCQNDLCQM2JTECMJ4O4GNJKQMO
-X-MailFrom: vaibhav@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <ellerman@au1.ibm.com>, Alastair D'Silva <alastair@au1.ibm.com>
+References: <20200228163456.1587-1-vgoyal@redhat.com> <20200228163456.1587-5-vgoyal@redhat.com>
+In-Reply-To: <20200228163456.1587-5-vgoyal@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 31 Mar 2020 12:34:36 -0700
+Message-ID: <CAPcyv4iWfL+KQjjUXqrTKOL8F4M05Vu=imm5tqsD6MO=XLzoMA@mail.gmail.com>
+Subject: Re: [PATCH v6 4/6] dm,dax: Add dax zero_page_range operation
+To: Vivek Goyal <vgoyal@redhat.com>
+Message-ID-Hash: PIAFVJKEK7LEF44HIAZWGPOJI2MDORN5
+X-Message-ID-Hash: PIAFVJKEK7LEF44HIAZWGPOJI2MDORN5
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@infradead.org>, david <david@fromorbit.com>, device-mapper development <dm-devel@redhat.com>, Mike Snitzer <msnitzer@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FB7RL6KCQNDLCQM2JTECMJ4O4GNJKQMO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PIAFVJKEK7LEF44HIAZWGPOJI2MDORN5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,275 +81,224 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch implements support for papr_scm command
-'DSM_PAPR_SCM_HEALTH' that returns a newly introduced 'struct
-nd_papr_scm_dimm_health_stat' instance containing dimm health
-information back to user space in response to ND_CMD_CALL. This
-functionality is implemented in newly introduced papr_scm_get_health()
-that queries the scm-dimm health information and then copies these bitmaps
-to the package payload whose layout is defined by 'struct
-papr_scm_ndctl_health'.
+[ Add Mike ]
 
-The patch also introduces a new member a new member 'struct
-papr_scm_priv.health' thats an instance of 'struct
-nd_papr_scm_dimm_health_stat' to cache the health information of a
-scm-dimm. As a result functions drc_pmem_query_health() and
-papr_flags_show() are updated to populate and use this new struct
-instead of two be64 integers that we earlier used.
+On Fri, Feb 28, 2020 at 8:35 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> This patch adds support for dax zero_page_range operation to dm targets.
 
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
-Changelog:
+Mike,
 
-v4..v5: None
+Sorry, I should have pinged you earlier, but could you take a look at
+this patch and ack it if it looks ok to go through the nvdimm tree
+with the rest of the series?
 
-v3..v4: Call the DSM_PAPR_SCM_HEALTH service function from
-	papr_scm_service_dsm() instead of papr_scm_ndctl(). [Aneesh]
-
-v2..v3: Updated struct nd_papr_scm_dimm_health_stat_v1 to use '__xx'
-	types as its exported to the userspace [Aneesh]
-	Changed the constants DSM_PAPR_SCM_DIMM_XX indicating dimm
-	health from enum to #defines [Aneesh]
-
-v1..v2: New patch in the series
----
- arch/powerpc/include/uapi/asm/papr_scm_dsm.h |  40 +++++++
- arch/powerpc/platforms/pseries/papr_scm.c    | 109 ++++++++++++++++---
- 2 files changed, 132 insertions(+), 17 deletions(-)
-
-diff --git a/arch/powerpc/include/uapi/asm/papr_scm_dsm.h b/arch/powerpc/include/uapi/asm/papr_scm_dsm.h
-index c039a49b41b4..8265125304ca 100644
---- a/arch/powerpc/include/uapi/asm/papr_scm_dsm.h
-+++ b/arch/powerpc/include/uapi/asm/papr_scm_dsm.h
-@@ -132,6 +132,7 @@ struct nd_papr_scm_cmd_pkg {
-  */
- enum dsm_papr_scm {
- 	DSM_PAPR_SCM_MIN =  0x10000,
-+	DSM_PAPR_SCM_HEALTH,
- 	DSM_PAPR_SCM_MAX,
- };
- 
-@@ -158,4 +159,43 @@ static void *papr_scm_pcmd_to_payload(struct nd_papr_scm_cmd_pkg *pcmd)
- 	else
- 		return (void *)((__u8 *) pcmd + pcmd->payload_offset);
- }
-+
-+/* Various scm-dimm health indicators */
-+#define DSM_PAPR_SCM_DIMM_HEALTHY       0
-+#define DSM_PAPR_SCM_DIMM_UNHEALTHY     1
-+#define DSM_PAPR_SCM_DIMM_CRITICAL      2
-+#define DSM_PAPR_SCM_DIMM_FATAL         3
-+
-+/*
-+ * Struct exchanged between kernel & ndctl in for PAPR_DSM_PAPR_SMART_HEALTH
-+ * Various bitflags indicate the health status of the dimm.
-+ *
-+ * dimm_unarmed		: Dimm not armed. So contents wont persist.
-+ * dimm_bad_shutdown	: Previous shutdown did not persist contents.
-+ * dimm_bad_restore	: Contents from previous shutdown werent restored.
-+ * dimm_scrubbed	: Contents of the dimm have been scrubbed.
-+ * dimm_locked		: Contents of the dimm cant be modified until CEC reboot
-+ * dimm_encrypted	: Contents of dimm are encrypted.
-+ * dimm_health		: Dimm health indicator.
-+ */
-+struct nd_papr_scm_dimm_health_stat_v1 {
-+	__u8 dimm_unarmed;
-+	__u8 dimm_bad_shutdown;
-+	__u8 dimm_bad_restore;
-+	__u8 dimm_scrubbed;
-+	__u8 dimm_locked;
-+	__u8 dimm_encrypted;
-+	__u16 dimm_health;
-+};
-+
-+/*
-+ * Typedef the current struct for dimm_health so that any application
-+ * or kernel recompiled after introducing a new version automatically
-+ * supports the new version.
-+ */
-+#define nd_papr_scm_dimm_health_stat nd_papr_scm_dimm_health_stat_v1
-+
-+/* Current version number for the dimm health struct */
-+#define ND_PAPR_SCM_DIMM_HEALTH_VERSION 1
-+
- #endif /* _UAPI_ASM_POWERPC_PAPR_SCM_DSM_H_ */
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index e8ce96d2249e..ce94762954e0 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -47,8 +47,7 @@ struct papr_scm_priv {
- 	struct mutex dimm_mutex;
- 
- 	/* Health information for the dimm */
--	__be64 health_bitmap;
--	__be64 health_bitmap_valid;
-+	struct nd_papr_scm_dimm_health_stat health;
- };
- 
- static int drc_pmem_bind(struct papr_scm_priv *p)
-@@ -158,6 +157,7 @@ static int drc_pmem_query_health(struct papr_scm_priv *p)
- {
- 	unsigned long ret[PLPAR_HCALL_BUFSIZE];
- 	int64_t rc;
-+	__be64 health;
- 
- 	rc = plpar_hcall(H_SCM_HEALTH, ret, p->drc_index);
- 	if (rc != H_SUCCESS) {
-@@ -172,13 +172,41 @@ static int drc_pmem_query_health(struct papr_scm_priv *p)
- 		return rc;
- 
- 	/* Store the retrieved health information in dimm platform data */
--	p->health_bitmap = ret[0];
--	p->health_bitmap_valid = ret[1];
-+	health = ret[0] & ret[1];
- 
- 	dev_dbg(&p->pdev->dev,
- 		"Queried dimm health info. Bitmap:0x%016llx Mask:0x%016llx\n",
--		be64_to_cpu(p->health_bitmap),
--		be64_to_cpu(p->health_bitmap_valid));
-+		be64_to_cpu(ret[0]),
-+		be64_to_cpu(ret[1]));
-+
-+	memset(&p->health, 0, sizeof(p->health));
-+
-+	/* Check for various masks in bitmap and set the buffer */
-+	if (health & PAPR_SCM_DIMM_UNARMED_MASK)
-+		p->health.dimm_unarmed = true;
-+
-+	if (health & PAPR_SCM_DIMM_BAD_SHUTDOWN_MASK)
-+		p->health.dimm_bad_shutdown = true;
-+
-+	if (health & PAPR_SCM_DIMM_BAD_RESTORE_MASK)
-+		p->health.dimm_bad_restore = true;
-+
-+	if (health & PAPR_SCM_DIMM_ENCRYPTED)
-+		p->health.dimm_encrypted = true;
-+
-+	if (health & PAPR_SCM_DIMM_SCRUBBED_AND_LOCKED) {
-+		p->health.dimm_locked = true;
-+		p->health.dimm_scrubbed = true;
-+	}
-+
-+	if (health & PAPR_SCM_DIMM_HEALTH_UNHEALTHY)
-+		p->health.dimm_health = DSM_PAPR_SCM_DIMM_UNHEALTHY;
-+
-+	if (health & PAPR_SCM_DIMM_HEALTH_CRITICAL)
-+		p->health.dimm_health = DSM_PAPR_SCM_DIMM_CRITICAL;
-+
-+	if (health & PAPR_SCM_DIMM_HEALTH_FATAL)
-+		p->health.dimm_health = DSM_PAPR_SCM_DIMM_FATAL;
- 
- 	mutex_unlock(&p->dimm_mutex);
- 	return 0;
-@@ -331,6 +359,51 @@ static int is_cmd_valid(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 	return 0;
- }
- 
-+/* Fetch the DIMM health info and populate it in provided package. */
-+static int papr_scm_get_health(struct papr_scm_priv *p,
-+			       struct nd_papr_scm_cmd_pkg *pkg)
-+{
-+	int rc;
-+	size_t copysize = sizeof(p->health);
-+
-+	rc = drc_pmem_query_health(p);
-+	if (rc)
-+		goto out;
-+	/*
-+	 * If the requested payload version is greater than one we know
-+	 * about, return the payload version we know about and let
-+	 * caller/userspace handle.
-+	 */
-+	if (pkg->payload_version > ND_PAPR_SCM_DIMM_HEALTH_VERSION)
-+		pkg->payload_version = ND_PAPR_SCM_DIMM_HEALTH_VERSION;
-+
-+	if (pkg->hdr.nd_size_out < copysize) {
-+		dev_dbg(&p->pdev->dev, "%s Payload not large enough\n",
-+			__func__);
-+		dev_dbg(&p->pdev->dev, "%s Expected %lu, available %u\n",
-+			__func__, copysize, pkg->hdr.nd_size_out);
-+		rc = -ENOSPC;
-+		goto out;
-+	}
-+
-+	dev_dbg(&p->pdev->dev, "%s Copying payload size=%lu version=0x%x\n",
-+		__func__, copysize, pkg->payload_version);
-+
-+	/* Copy a subset of health struct based on copysize */
-+	memcpy(papr_scm_pcmd_to_payload(pkg), &p->health, copysize);
-+	pkg->hdr.nd_fw_size = copysize;
-+
-+out:
-+	/*
-+	 * Put the error in out package and return success from function
-+	 * so that errors if any are propogated back to userspace.
-+	 */
-+	pkg->cmd_status = rc;
-+	dev_dbg(&p->pdev->dev, "%s completion code = %d\n", __func__, rc);
-+
-+	return 0;
-+}
-+
- static int papr_scm_service_dsm(struct papr_scm_priv *p,
- 				struct nd_papr_scm_cmd_pkg *call_pkg)
- {
-@@ -345,6 +418,9 @@ static int papr_scm_service_dsm(struct papr_scm_priv *p,
- 
- 	/* Depending on the DSM command call appropriate service routine */
- 	switch (call_pkg->hdr.nd_command) {
-+	case DSM_PAPR_SCM_HEALTH:
-+		return papr_scm_get_health(p, call_pkg);
-+
- 	default:
- 		pr_debug("Unsupported DSM command 0x%llx\n",
- 			 call_pkg->hdr.nd_command);
-@@ -431,7 +507,6 @@ static ssize_t papr_flags_show(struct device *dev,
- {
- 	struct nvdimm *dimm = to_nvdimm(dev);
- 	struct papr_scm_priv *p = nvdimm_provider_data(dimm);
--	__be64 health;
- 	int rc;
- 
- 	rc = drc_pmem_query_health(p);
-@@ -443,26 +518,26 @@ static ssize_t papr_flags_show(struct device *dev,
- 	if (rc)
- 		return rc;
- 
--	health = p->health_bitmap & p->health_bitmap_valid;
--
--	/* Check for various masks in bitmap and set the buffer */
--	if (health & PAPR_SCM_DIMM_UNARMED_MASK)
-+	if (p->health.dimm_unarmed)
- 		rc += sprintf(buf, "not_armed ");
- 
--	if (health & PAPR_SCM_DIMM_BAD_SHUTDOWN_MASK)
-+	if (p->health.dimm_bad_shutdown)
- 		rc += sprintf(buf + rc, "save_fail ");
- 
--	if (health & PAPR_SCM_DIMM_BAD_RESTORE_MASK)
-+	if (p->health.dimm_bad_restore)
- 		rc += sprintf(buf + rc, "restore_fail ");
- 
--	if (health & PAPR_SCM_DIMM_ENCRYPTED)
-+	if (p->health.dimm_encrypted)
- 		rc += sprintf(buf + rc, "encrypted ");
- 
--	if (health & PAPR_SCM_DIMM_SMART_EVENT_MASK)
-+	if (p->health.dimm_health)
- 		rc += sprintf(buf + rc, "smart_notify ");
- 
--	if (health & PAPR_SCM_DIMM_SCRUBBED_AND_LOCKED)
--		rc += sprintf(buf + rc, "scrubbed locked ");
-+	if (p->health.dimm_scrubbed)
-+		rc += sprintf(buf + rc, "scrubbed ");
-+
-+	if (p->health.dimm_locked)
-+		rc += sprintf(buf + rc, "locked ");
- 
- 	if (rc > 0)
- 		rc += sprintf(buf + rc, "\n");
--- 
-2.25.1
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  drivers/md/dm-linear.c        | 18 ++++++++++++++++++
+>  drivers/md/dm-log-writes.c    | 17 +++++++++++++++++
+>  drivers/md/dm-stripe.c        | 23 +++++++++++++++++++++++
+>  drivers/md/dm.c               | 30 ++++++++++++++++++++++++++++++
+>  include/linux/device-mapper.h |  3 +++
+>  5 files changed, 91 insertions(+)
+>
+> diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+> index 8d07fdf63a47..e1db43446327 100644
+> --- a/drivers/md/dm-linear.c
+> +++ b/drivers/md/dm-linear.c
+> @@ -201,10 +201,27 @@ static size_t linear_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
+>         return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
+>  }
+>
+> +static int linear_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+> +                                     size_t nr_pages)
+> +{
+> +       int ret;
+> +       struct linear_c *lc = ti->private;
+> +       struct block_device *bdev = lc->dev->bdev;
+> +       struct dax_device *dax_dev = lc->dev->dax_dev;
+> +       sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+> +
+> +       dev_sector = linear_map_sector(ti, sector);
+> +       ret = bdev_dax_pgoff(bdev, dev_sector, nr_pages << PAGE_SHIFT, &pgoff);
+> +       if (ret)
+> +               return ret;
+> +       return dax_zero_page_range(dax_dev, pgoff, nr_pages);
+> +}
+> +
+>  #else
+>  #define linear_dax_direct_access NULL
+>  #define linear_dax_copy_from_iter NULL
+>  #define linear_dax_copy_to_iter NULL
+> +#define linear_dax_zero_page_range NULL
+>  #endif
+>
+>  static struct target_type linear_target = {
+> @@ -226,6 +243,7 @@ static struct target_type linear_target = {
+>         .direct_access = linear_dax_direct_access,
+>         .dax_copy_from_iter = linear_dax_copy_from_iter,
+>         .dax_copy_to_iter = linear_dax_copy_to_iter,
+> +       .dax_zero_page_range = linear_dax_zero_page_range,
+>  };
+>
+>  int __init dm_linear_init(void)
+> diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
+> index 99721c76225d..8ea20b56b4d6 100644
+> --- a/drivers/md/dm-log-writes.c
+> +++ b/drivers/md/dm-log-writes.c
+> @@ -994,10 +994,26 @@ static size_t log_writes_dax_copy_to_iter(struct dm_target *ti,
+>         return dax_copy_to_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
+>  }
+>
+> +static int log_writes_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+> +                                         size_t nr_pages)
+> +{
+> +       int ret;
+> +       struct log_writes_c *lc = ti->private;
+> +       sector_t sector = pgoff * PAGE_SECTORS;
+> +
+> +       ret = bdev_dax_pgoff(lc->dev->bdev, sector, nr_pages << PAGE_SHIFT,
+> +                            &pgoff);
+> +       if (ret)
+> +               return ret;
+> +       return dax_zero_page_range(lc->dev->dax_dev, pgoff,
+> +                                  nr_pages << PAGE_SHIFT);
+> +}
+> +
+>  #else
+>  #define log_writes_dax_direct_access NULL
+>  #define log_writes_dax_copy_from_iter NULL
+>  #define log_writes_dax_copy_to_iter NULL
+> +#define log_writes_dax_zero_page_range NULL
+>  #endif
+>
+>  static struct target_type log_writes_target = {
+> @@ -1016,6 +1032,7 @@ static struct target_type log_writes_target = {
+>         .direct_access = log_writes_dax_direct_access,
+>         .dax_copy_from_iter = log_writes_dax_copy_from_iter,
+>         .dax_copy_to_iter = log_writes_dax_copy_to_iter,
+> +       .dax_zero_page_range = log_writes_dax_zero_page_range,
+>  };
+>
+>  static int __init dm_log_writes_init(void)
+> diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+> index 63bbcc20f49a..fa813c0f993d 100644
+> --- a/drivers/md/dm-stripe.c
+> +++ b/drivers/md/dm-stripe.c
+> @@ -360,10 +360,32 @@ static size_t stripe_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
+>         return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
+>  }
+>
+> +static int stripe_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+> +                                     size_t nr_pages)
+> +{
+> +       int ret;
+> +       sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+> +       struct stripe_c *sc = ti->private;
+> +       struct dax_device *dax_dev;
+> +       struct block_device *bdev;
+> +       uint32_t stripe;
+> +
+> +       stripe_map_sector(sc, sector, &stripe, &dev_sector);
+> +       dev_sector += sc->stripe[stripe].physical_start;
+> +       dax_dev = sc->stripe[stripe].dev->dax_dev;
+> +       bdev = sc->stripe[stripe].dev->bdev;
+> +
+> +       ret = bdev_dax_pgoff(bdev, dev_sector, nr_pages << PAGE_SHIFT, &pgoff);
+> +       if (ret)
+> +               return ret;
+> +       return dax_zero_page_range(dax_dev, pgoff, nr_pages);
+> +}
+> +
+>  #else
+>  #define stripe_dax_direct_access NULL
+>  #define stripe_dax_copy_from_iter NULL
+>  #define stripe_dax_copy_to_iter NULL
+> +#define stripe_dax_zero_page_range NULL
+>  #endif
+>
+>  /*
+> @@ -486,6 +508,7 @@ static struct target_type stripe_target = {
+>         .direct_access = stripe_dax_direct_access,
+>         .dax_copy_from_iter = stripe_dax_copy_from_iter,
+>         .dax_copy_to_iter = stripe_dax_copy_to_iter,
+> +       .dax_zero_page_range = stripe_dax_zero_page_range,
+>  };
+>
+>  int __init dm_stripe_init(void)
+> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+> index b89f07ee2eff..aa72d9e757c1 100644
+> --- a/drivers/md/dm.c
+> +++ b/drivers/md/dm.c
+> @@ -1198,6 +1198,35 @@ static size_t dm_dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
+>         return ret;
+>  }
+>
+> +static int dm_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+> +                                 size_t nr_pages)
+> +{
+> +       struct mapped_device *md = dax_get_private(dax_dev);
+> +       sector_t sector = pgoff * PAGE_SECTORS;
+> +       struct dm_target *ti;
+> +       int ret = -EIO;
+> +       int srcu_idx;
+> +
+> +       ti = dm_dax_get_live_target(md, sector, &srcu_idx);
+> +
+> +       if (!ti)
+> +               goto out;
+> +       if (WARN_ON(!ti->type->dax_zero_page_range)) {
+> +               /*
+> +                * ->zero_page_range() is mandatory dax operation. If we are
+> +                *  here, something is wrong.
+> +                */
+> +               dm_put_live_table(md, srcu_idx);
+> +               goto out;
+> +       }
+> +       ret = ti->type->dax_zero_page_range(ti, pgoff, nr_pages);
+> +
+> + out:
+> +       dm_put_live_table(md, srcu_idx);
+> +
+> +       return ret;
+> +}
+> +
+>  /*
+>   * A target may call dm_accept_partial_bio only from the map routine.  It is
+>   * allowed for all bio types except REQ_PREFLUSH, REQ_OP_ZONE_RESET,
+> @@ -3199,6 +3228,7 @@ static const struct dax_operations dm_dax_ops = {
+>         .dax_supported = dm_dax_supported,
+>         .copy_from_iter = dm_dax_copy_from_iter,
+>         .copy_to_iter = dm_dax_copy_to_iter,
+> +       .zero_page_range = dm_dax_zero_page_range,
+>  };
+>
+>  /*
+> diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
+> index 475668c69dbc..af48d9da3916 100644
+> --- a/include/linux/device-mapper.h
+> +++ b/include/linux/device-mapper.h
+> @@ -141,6 +141,8 @@ typedef long (*dm_dax_direct_access_fn) (struct dm_target *ti, pgoff_t pgoff,
+>                 long nr_pages, void **kaddr, pfn_t *pfn);
+>  typedef size_t (*dm_dax_copy_iter_fn)(struct dm_target *ti, pgoff_t pgoff,
+>                 void *addr, size_t bytes, struct iov_iter *i);
+> +typedef int (*dm_dax_zero_page_range_fn)(struct dm_target *ti, pgoff_t pgoff,
+> +               size_t nr_pages);
+>  #define PAGE_SECTORS (PAGE_SIZE / 512)
+>
+>  void dm_error(const char *message);
+> @@ -195,6 +197,7 @@ struct target_type {
+>         dm_dax_direct_access_fn direct_access;
+>         dm_dax_copy_iter_fn dax_copy_from_iter;
+>         dm_dax_copy_iter_fn dax_copy_to_iter;
+> +       dm_dax_zero_page_range_fn dax_zero_page_range;
+>
+>         /* For internal device-mapper use. */
+>         struct list_head list;
+> --
+> 2.20.1
+>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
