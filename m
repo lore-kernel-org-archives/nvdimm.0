@@ -1,129 +1,190 @@
-Return-Path: <SRS0=ZPMO=5P=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=0pIv=5Q=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6640DC2D0F0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 19:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 777A7C43331
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 00:28:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3256F20733
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 30 Mar 2020 19:55:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="l9UrcbgG"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3256F20733
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1390620784
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 31 Mar 2020 00:28:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1390620784
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=hpe.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id AD7C210FC340C;
-	Mon, 30 Mar 2020 12:56:03 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::543; helo=mail-ed1-x543.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id ABFEB10FC3607;
+	Mon, 30 Mar 2020 17:28:57 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.147.86; helo=mx0a-002e3701.pphosted.com; envelope-from=prvs=03591b7fa3=elliott@hpe.com; receiver=<UNKNOWN> 
+Received: from mx0a-002e3701.pphosted.com (mx0a-002e3701.pphosted.com [148.163.147.86])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D3B201007A83C
-	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 12:56:01 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id de14so22292169edb.4
-        for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 12:55:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=0m2AnfIRcCHRpZW6PDeIax9gdSThqigcANOhQSHQQRM=;
-        b=l9UrcbgGyZHpzzpXZ0ao5T6qmamT4bwpPo9Q1ZImIf8A7LLg6hVilR0KrN4O3gamsX
-         TTDYIQCaPyZJm/VklimIRgeNaVSOlkAPYBcWC6u4lLFVoKVG3GvRC4sgvM5WwLN230cR
-         NqacKnMDiHYRg5NxBw2W+fdR/djzIb+BwQuL5HGUnGcaGsEKVpBQA6Ibaza1SI8dNSo4
-         1wCRpauHNIBwEuVetbcLpEdV1LxzYnn6SincBoe4V3EhF3iBRM/JOpP5Gm6ettn+PyeR
-         kd8ucX/kUEddGzeLrJ8AcsMIcaAHlPDS+29wJSZpBltd4kvSmndVWXZiizq1H4clGtmK
-         Zjrg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=0m2AnfIRcCHRpZW6PDeIax9gdSThqigcANOhQSHQQRM=;
-        b=G2bfomvyDHd4NBGTx4hJwp3IVsDb8TdKBEOy9Xj1L7IP1fEUHdPV27RTQ9/4hTqM3k
-         KujR24jiELbGSieqI2FYxLkWvJnAWi5R0C3ngsOkwW+w54fZAjKxpK9CDCoqSM5xWO4w
-         13a8W4rkrGGRAiwoVXwA/1cYVoY4S2v5VgZgGcBvBvB41cKRa/4m9llsG+kL7y+cR797
-         W29cVqY+0nMJ42tJCselAj6R85XmqpgXkur8G7eeNaNpzpLu8dbepgQMDNVHUMd5qv2m
-         nRK9DqG/h3yrQinBpUdddQEcQxKxLYUk30Nvo1tw3TEVEE0RVE9F7IXYLZsemeLNCePq
-         j6Lg==
-X-Gm-Message-State: ANhLgQ1ptkuDOuogh+xjTkoPVvf1qk+DrXrH7Pavc6m0BSbzzdLkxQwP
-	jQ4U4gmQ8w/L6rLtoRnJk+1/FrWT30eXiUKZCjyhwA==
-X-Google-Smtp-Source: ADFU+vuRYf2PNGMfKGMR9APzvmfg1zGeVpB4kVz6LrQE2pYYEguvqYB2rhx1GF+WePdck7GQUX3jq1SI88VCcV1b6Hc=
-X-Received: by 2002:a17:906:1697:: with SMTP id s23mr12715702ejd.211.1585598108932;
- Mon, 30 Mar 2020 12:55:08 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 611D910FC3192
+	for <linux-nvdimm@lists.01.org>; Mon, 30 Mar 2020 17:28:54 -0700 (PDT)
+Received: from pps.filterd (m0148663.ppops.net [127.0.0.1])
+	by mx0a-002e3701.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 02V0NKkx012711;
+	Tue, 31 Mar 2020 00:28:04 GMT
+Received: from g9t5009.houston.hpe.com (g9t5009.houston.hpe.com [15.241.48.73])
+	by mx0a-002e3701.pphosted.com with ESMTP id 303qjk9df1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 31 Mar 2020 00:28:04 +0000
+Received: from G9W8456.americas.hpqcorp.net (exchangepmrr1.us.hpecorp.net [16.216.161.95])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by g9t5009.houston.hpe.com (Postfix) with ESMTPS id 899E270;
+	Tue, 31 Mar 2020 00:28:03 +0000 (UTC)
+Received: from G9W8454.americas.hpqcorp.net (2002:10d8:a104::10d8:a104) by
+ G9W8456.americas.hpqcorp.net (2002:10d8:a15f::10d8:a15f) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.2; Tue, 31 Mar 2020 00:28:03 +0000
+Received: from NAM11-CO1-obe.outbound.protection.outlook.com (15.241.52.12) by
+ G9W8454.americas.hpqcorp.net (16.216.161.4) with Microsoft SMTP Server (TLS)
+ id 15.0.1497.2 via Frontend Transport; Tue, 31 Mar 2020 00:28:03 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=oevEkno+XK3XJ7w/pi7ZaFjWwUrJtD1A97awpwNk/uN2J2y5gs40SZEwkCd4eAZpYDCoShOHHiCnkxwmFSaFcJHAQc+CDVJFIxoONTBJOtDVr9SORQZUH2bC6pYFQwQ35+UpOG9gKXtX34qnxBMrNUrQSWpXE2dTmwO/dGlBnCnepEMKhUfq232exDW/gw05tJzISKTddX5742+AFNLVXfzYquBOezR528TbDvzcWQA1SG7IBEL/e7B+0OowX1gIgvEWPI5uRrNfsOROFmFWCc20cldS+eEecqv7SnUjbA6gRGDJfuFMr/A8Batk2zltdywa+Pj5t8Y/2bQGI+2JpQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=VI6n+BX3RcEDHP6qKjzBAC5STXNbndYnJBlC+9jGfIg=;
+ b=Nhg/rfBzW+IHs/+g4t2uFLa1hcnVyRus3E0VBuhRVPP8rGRdVq48S13zMsNLOIvjTGm7S+GmmoHWEdfhNXe/Q4Cp9Bryh8hJ/7VYawBE3NxSbH/ylJ5i2rY95Ozo1M62V//n/ecNC+pa6Lw6/7eSkMbI7JuK2pKlylXcKno+PPWdlcz4JnbaAcDj3I2LGMRGWlvF6Df5NDF0mcm440C/fjFR386OGDX/2cnD/RgaVuDKRHp10ih5+7Z1MZWM2zWa75JuL4zZzoyzZYu9VmxxM3LCmhURFBQFxHcRtJhuS2X2bY3UrEL3I3QXFY+4iXf+WcRR/9fE7DQSk6egcbkJUw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=hpe.com; dmarc=pass action=none header.from=hpe.com; dkim=pass
+ header.d=hpe.com; arc=none
+Received: from CS1PR8401MB1237.NAMPRD84.PROD.OUTLOOK.COM
+ (2a01:111:e400:7514::15) by CS1PR8401MB0519.NAMPRD84.PROD.OUTLOOK.COM
+ (2a01:111:e400:7509::23) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.2856.20; Tue, 31 Mar
+ 2020 00:28:01 +0000
+Received: from CS1PR8401MB1237.NAMPRD84.PROD.OUTLOOK.COM
+ ([fe80::6023:914f:6cca:4c98]) by CS1PR8401MB1237.NAMPRD84.PROD.OUTLOOK.COM
+ ([fe80::6023:914f:6cca:4c98%7]) with mapi id 15.20.2856.019; Tue, 31 Mar 2020
+ 00:28:01 +0000
+From: "Elliott, Robert (Servers)" <elliott@hpe.com>
+To: Mikulas Patocka <mpatocka@redhat.com>,
+        Dan Williams
+	<dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Dave
+ Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+        Mike Snitzer
+	<msnitzer@redhat.com>
+Subject: RE: [PATCH v2] memcpy_flushcache: use cache flusing for larger
+ lengths
+Thread-Topic: [PATCH v2] memcpy_flushcache: use cache flusing for larger
+ lengths
+Thread-Index: AQHWBob+0rIHl10OXEaKSzaWD6MWpKhh0ScQ
+Date: Tue, 31 Mar 2020 00:28:01 +0000
+Message-ID: <CS1PR8401MB12377197482867F688BF93F7ABC80@CS1PR8401MB1237.NAMPRD84.PROD.OUTLOOK.COM>
+References: <alpine.LRH.2.02.2003291625590.32108@file01.intranet.prod.int.rdu2.redhat.com>
+ <alpine.LRH.2.02.2003300729320.9938@file01.intranet.prod.int.rdu2.redhat.com>
+In-Reply-To: <alpine.LRH.2.02.2003300729320.9938@file01.intranet.prod.int.rdu2.redhat.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [73.206.28.217]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-ht: Tenant
+x-ms-office365-filtering-correlation-id: 487cec50-a767-46f6-87fd-08d7d50a5ee6
+x-ms-traffictypediagnostic: CS1PR8401MB0519:
+x-microsoft-antispam-prvs: <CS1PR8401MB0519F05506A9C9E69E24D4B6ABC80@CS1PR8401MB0519.NAMPRD84.PROD.OUTLOOK.COM>
+x-ms-oob-tlc-oobclassifiers: OLM:473;
+x-forefront-prvs: 0359162B6D
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CS1PR8401MB1237.NAMPRD84.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFTY:;SFS:(10019020)(136003)(346002)(376002)(396003)(39860400002)(366004)(55016002)(81166006)(8676002)(81156014)(53546011)(54906003)(316002)(110136005)(7696005)(6506007)(66946007)(71200400001)(66446008)(86362001)(8936002)(33656002)(9686003)(186003)(478600001)(26005)(76116006)(4326008)(2906002)(64756008)(66476007)(52536014)(5660300002)(66556008);DIR:OUT;SFP:1102;
+received-spf: None (protection.outlook.com: hpe.com does not designate
+ permitted sender hosts)
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: JTiLml9JUPekVlsBCXfsfTKyJvTNiV1dZsrkQ1Un/YlbvqvfipcZkX+LNrVVo8xVIp3b3/egS5ou5oA1oVs08NkpeDRQ/PaKsCQuIghIz0tq6pDCp0uHI0xR9+U5GEi+F5l4yY6wsryGkUC+j7KzNiNO7VYLaQCvwvbx8jHL/26De1gvP+RsH67OZaQDwr/l68EBQ2vcDDRT4CliIyP6TTJ7/Ay+1mzMXOEiGjkmfGoaXV1bYNb40szvwQ0pcUDXHxdx49eT9z0r5udsrcWo67+lSzrb4csDz6KtZedb+9jYBDqQsyqvmTeoJFpnhxnAYw4cajs4IJf2Tsu1saisq+c3sKvFgXPdiDaYAZeW2OqMsNkTj/S5tscethihpCdxUBC/eNaBMY0dC2VAJiGWH3oiYS+EzUV23GzR8XXRv/N13v6kApw6k8PdtYtXBc9O
+x-ms-exchange-antispam-messagedata: YY8r65q0WyiPF93UJ3S4KRMPdfw+50yiJdr4o79W84aztSzvBEJNAefDIwnPkpark8tFhqZxqNaQSPTkpsB22ZyAlGC9s7whF6RFtMhZ1gGfK4UMJPciju7rFICfrgVhvQePDSEBcZvro0AV2iU2Rw==
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-References: <20200319195046.GA452@embeddedor.com> <CAJZ5v0iDVL1WWTmmQX+2JDmyAfu2e8nSdLSmCqA-WZV+7pBHvw@mail.gmail.com>
-In-Reply-To: <CAJZ5v0iDVL1WWTmmQX+2JDmyAfu2e8nSdLSmCqA-WZV+7pBHvw@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 30 Mar 2020 12:54:57 -0700
-Message-ID: <CAPcyv4icgZEn9r9-+-R+rBQKebq+QcpYGQ-dvCiqhkO8XmDmEA@mail.gmail.com>
-Subject: Re: [PATCH][next] acpi: nfit.h: Replace zero-length array with
- flexible-array member
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Message-ID-Hash: QKWACDS5MT5XIHIK5D3ZQQLES6OCKHC4
-X-Message-ID-Hash: QKWACDS5MT5XIHIK5D3ZQQLES6OCKHC4
-X-MailFrom: dan.j.williams@intel.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 487cec50-a767-46f6-87fd-08d7d50a5ee6
+X-MS-Exchange-CrossTenant-originalarrivaltime: 31 Mar 2020 00:28:01.3750
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 105b2061-b669-4b31-92ac-24d304d195dc
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: iZ3oXsVHYr/mCTYfW567NqKUugVjIu6HmfzIQdRVGILcGow4hZXCtKY6BpHJRPef
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: CS1PR8401MB0519
+X-OriginatorOrg: hpe.com
+X-HPE-SCL: -1
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
+ definitions=2020-03-30_07:2020-03-30,2020-03-30 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 phishscore=0
+ mlxlogscore=999 spamscore=0 adultscore=0 bulkscore=0 impostorscore=0
+ clxscore=1011 lowpriorityscore=0 suspectscore=0 malwarescore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2003310000
+Message-ID-Hash: XNV6A2JKANROO5COLVRKO5XXGL5WJPN7
+X-Message-ID-Hash: XNV6A2JKANROO5COLVRKO5XXGL5WJPN7
+X-MailFrom: prvs=03591b7fa3=elliott@hpe.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QKWACDS5MT5XIHIK5D3ZQQLES6OCKHC4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XNV6A2JKANROO5COLVRKO5XXGL5WJPN7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 25, 2020 at 3:06 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> On Thu, Mar 19, 2020 at 9:15 PM Gustavo A. R. Silva
-> <gustavo@embeddedor.com> wrote:
-> >
-> > The current codebase makes use of the zero-length array language
-> > extension to the C90 standard, but the preferred mechanism to declare
-> > variable-length types such as these ones is a flexible array member[1][2],
-> > introduced in C99:
-> >
-> > struct foo {
-> >         int stuff;
-> >         struct boo array[];
-> > };
-> >
-> > By making use of the mechanism above, we will get a compiler warning
-> > in case the flexible array does not occur last in the structure, which
-> > will help us prevent some kind of undefined behavior bugs from being
-> > inadvertently introduced[3] to the codebase from now on.
-> >
-> > Also, notice that, dynamic memory allocations won't be affected by
-> > this change:
-> >
-> > "Flexible array members have incomplete type, and so the sizeof operator
-> > may not be applied. As a quirk of the original implementation of
-> > zero-length arrays, sizeof evaluates to zero."[1]
-> >
-> > This issue was found with the help of Coccinelle.
-> >
-> > [1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-> > [2] https://github.com/KSPP/linux/issues/21
-> > [3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-> >
-> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->
-> Dan,
->
-> I'm assuming that you will take care of this one or please let me know
-> otherwise.
 
-Yes, this one and the other 2 related libnvdimm fixups are in my queue.
+
+> -----Original Message-----
+> From: Mikulas Patocka <mpatocka@redhat.com>
+> Sent: Monday, March 30, 2020 6:32 AM
+> To: Dan Williams <dan.j.williams@intel.com>; Vishal Verma
+> <vishal.l.verma@intel.com>; Dave Jiang <dave.jiang@intel.com>; Ira
+> Weiny <ira.weiny@intel.com>; Mike Snitzer <msnitzer@redhat.com>
+> Cc: linux-nvdimm@lists.01.org; dm-devel@redhat.com
+> Subject: [PATCH v2] memcpy_flushcache: use cache flusing for larger
+> lengths
+> 
+> I tested dm-writecache performance on a machine with Optane nvdimm
+> and it turned out that for larger writes, cached stores + cache
+> flushing perform better than non-temporal stores. This is the
+> throughput of dm- writecache measured with this command:
+> dd if=/dev/zero of=/dev/mapper/wc bs=64 oflag=direct
+> 
+> block size	512		1024		2048		4096
+> movnti	496 MB/s	642 MB/s	725 MB/s	744 MB/s
+> clflushopt	373 MB/s	688 MB/s	1.1 GB/s	1.2 GB/s
+> 
+> We can see that for smaller block, movnti performs better, but for
+> larger blocks, clflushopt has better performance.
+
+There are other interactions to consider... see threads from the last
+few years on the linux-nvdimm list.
+
+For example, software generally expects that read()s take a long time and
+avoids re-reading from disk; the normal pattern is to hold the data in
+memory and read it from there. By using normal stores, CPU caches end up
+holding a bunch of persistent memory data that is probably not going to
+be read again any time soon, bumping out more useful data. In contrast,
+movnti avoids filling the CPU caches.
+
+Another option is the AVX vmovntdq instruction (if available), the
+most recent of which does 64-byte (cache line) sized transfers to
+zmm registers. There's a hefty context switching overhead (e.g.,
+304 clocks), and the CPU often runs AVX instructions at a slower
+clock frequency, so it's hard to judge when it's worthwhile.
+
+In user space, glibc faces similar choices for its memcpy() functions;
+glibc memcpy() uses non-temporal stores for transfers > 75% of the
+L3 cache size divided by the number of cores. For example, with
+glibc-2.216-16.fc27 (August 2017), on a Broadwell system with
+E5-2699 36 cores 45 MiB L3 cache, non-temporal stores are used
+for memcpy()s over 36 MiB.
+
+It'd be nice if glibc, PMDK, and the kernel used the same algorithms.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
