@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C4EBC2BA16
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  3 Apr 2020 20:59:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5501BC43331
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  3 Apr 2020 20:59:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6D331206F6
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  3 Apr 2020 20:59:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 251E2206F5
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  3 Apr 2020 20:59:18 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="dtl99mgO"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6D331206F6
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="jkLGlFde"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 251E2206F5
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 753F610FC51C9;
-	Fri,  3 Apr 2020 14:00:04 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 8C67610FC51CB;
+	Fri,  3 Apr 2020 14:00:07 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
 Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 02AD810FC51C1
-	for <linux-nvdimm@lists.01.org>; Fri,  3 Apr 2020 14:00:01 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 159B510FC51CB
+	for <linux-nvdimm@lists.01.org>; Fri,  3 Apr 2020 14:00:05 -0700 (PDT)
 Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 033Kgpj0091279;
-	Fri, 3 Apr 2020 20:59:10 GMT
+	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 033KgsdB091302;
+	Fri, 3 Apr 2020 20:59:13 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=d3oLS7q7Bt4xe2EehGTJWVS620I5smV04E/wu/kUuTA=;
- b=dtl99mgOVsCnZR2sOWlwsgvpdp2VHGLZM6mU/0kwjSd/Q4iqJgRloQsMm7+3E7xSB/Pv
- jtWVbg8LI6doSDE+pPHi7Nrbo4rhPip/qNRHC4+/F5ru0rpHPGIZb8N2ogyxG5wi2XRq
- KTxnVC64x6CBca92RiDyoeFkHoBjOXpWLz8Wkt/ZZfVlXFGmd3qSSkSxq6dyhRPJiQEV
- Q+NID5TfAhplCMgH6mmBstbhot+o+AzDh0NWG1nKKkVYCNgJT4ogEO6cL7oK/1BIfkBV
- ImNgQ2Ts6KLo117zuzG9oXmuVQHyoWVak5kkIcTHwd7Q8UIod+vE+hYHsWuIHnRjWBKJ Nw==
+ bh=fd+kj5hdUgEeSzZU5xxwpKSvsunJ1vivSskCCrtknrw=;
+ b=jkLGlFdeXP74a1JMEvwbYPvnBccdBbDRRrHvzlPVwpFev8doRZmD0XQNVDwS4RqQNRkU
+ p9xCQokkHF9+xhI20dCJS066bnvPEbY3OuYpL0zUAvlq9cFSjIoWU1sJgiXLZyUvmq7M
+ krnPuwDZUwu9AxPojkWz1+6m1K7Fv0ICJJ9NPuWPIGfbX+SVpDErvCHZn2IuXK6vLKB9
+ EH4D34cm5+SnSFpeOTQZ5KEscwvsVG9iCkWRe3AK1XJPAmB36Bca9qA293jV8s4+SlXG
+ Idcsd50lS96z/Lv41i7oT2vLVX7tsrhV9PIZ5ZI2uUt/niiBzafc/2lwyFSgUinRlzGD lg==
 Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2120.oracle.com with ESMTP id 303aqj3p71-1
+	by userp2120.oracle.com with ESMTP id 303aqj3p78-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 03 Apr 2020 20:59:10 +0000
+	Fri, 03 Apr 2020 20:59:13 +0000
 Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 033KgPbW033023;
-	Fri, 3 Apr 2020 20:59:10 GMT
+	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 033KgPum033055;
+	Fri, 3 Apr 2020 20:59:12 GMT
 Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by aserp3030.oracle.com with ESMTP id 302g4y65wn-1
+	by aserp3030.oracle.com with ESMTP id 302g4y65yu-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 03 Apr 2020 20:59:09 +0000
+	Fri, 03 Apr 2020 20:59:12 +0000
 Received: from abhmp0005.oracle.com (abhmp0005.oracle.com [141.146.116.11])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 033Kx9cO017739;
-	Fri, 3 Apr 2020 20:59:09 GMT
+	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 033KxCH2017746;
+	Fri, 3 Apr 2020 20:59:12 GMT
 Received: from paddy.uk.oracle.com (/10.175.206.152)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Fri, 03 Apr 2020 13:59:09 -0700
+	with ESMTP ; Fri, 03 Apr 2020 13:59:11 -0700
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
 Cc: Dan Williams <dan.j.williams@intel.com>,
         Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH ndctl v1 01/10] daxctl: Cleanup whitespace
-Date: Fri,  3 Apr 2020 21:58:51 +0100
-Message-Id: <20200403205900.18035-2-joao.m.martins@oracle.com>
+Subject: [PATCH ndctl v1 03/10] daxctl: add resize support in reconfigure-device
+Date: Fri,  3 Apr 2020 21:58:53 +0100
+Message-Id: <20200403205900.18035-4-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200403205900.18035-1-joao.m.martins@oracle.com>
 References: <20200403205900.18035-1-joao.m.martins@oracle.com>
@@ -77,14 +77,14 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 phish
  priorityscore=1501 lowpriorityscore=0 adultscore=0 suspectscore=1
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2003020000
  definitions=main-2004030165
-Message-ID-Hash: UFBIN7NOT3XFNV5UH5MSE737WNF42QJL
-X-Message-ID-Hash: UFBIN7NOT3XFNV5UH5MSE737WNF42QJL
+Message-ID-Hash: IXLLV4J7EZCIIJY4FXQFUTZTKMYJOZ4O
+X-Message-ID-Hash: IXLLV4J7EZCIIJY4FXQFUTZTKMYJOZ4O
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UFBIN7NOT3XFNV5UH5MSE737WNF42QJL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IXLLV4J7EZCIIJY4FXQFUTZTKMYJOZ4O/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,28 +94,96 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Dan Williams <dan.j.williams@intel.com>
+Add the ability to change the size of an inactive dax
+device. Uses of this includes adjusting existing devices
+or enterily freeing the region device to make the space
+available.
 
-Re-indent util_daxctl_region_filter() to match expectations.
+	$ daxctl disable-device dax0.0
+	disabled 1 device
+	$ daxctl reconfigure-device -s 0 dax0.0
+	reconfigured 1 device
+	$ daxctl reconfigure-device -s 4G dax0.0
+	reconfigured 1 device
 
+@size (-s) and @mode (-m) are mutually exclusive as the latter relates
+to assigning memory to System-RAM through kmem as opposed
+to reconfiguring dynamic dax devices.
+
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- util/filter.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ daxctl/device.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/util/filter.c b/util/filter.c
-index af72793929e2..7d0159f8cef6 100644
---- a/util/filter.c
-+++ b/util/filter.c
-@@ -344,7 +344,7 @@ struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
- 		return region;
+diff --git a/daxctl/device.c b/daxctl/device.c
+index 705f1f8ff7f6..b483d2777ecb 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -34,6 +34,7 @@ enum dev_mode {
+ };
  
- 	if ((sscanf(ident, "%d", &region_id) == 1
--       || sscanf(ident, "region%d", &region_id) == 1)
-+				|| sscanf(ident, "region%d", &region_id) == 1)
- 			&& daxctl_region_get_id(region) == region_id)
- 		return region;
+ static enum dev_mode reconfig_mode = DAXCTL_DEV_MODE_UNKNOWN;
++static long long size = -1;
+ static unsigned long flags;
  
+ enum memory_zone {
+@@ -66,6 +67,7 @@ OPT_BOOLEAN('\0', "no-movable", &param.no_movable, \
+ 
+ static const struct option reconfig_options[] = {
+ 	BASE_OPTIONS(),
++	CREATE_OPTIONS(),
+ 	RECONFIG_OPTIONS(),
+ 	ZONE_OPTIONS(),
+ 	OPT_END(),
+@@ -135,12 +137,14 @@ static const char *parse_device_options(int argc, const char **argv,
+ 	/* Handle action-specific options */
+ 	switch (action) {
+ 	case ACTION_RECONFIG:
+-		if (!param.mode) {
+-			fprintf(stderr, "error: a 'mode' option is required\n");
++		if (!param.size && !param.mode) {
++			fprintf(stderr, "error: a 'mode' or 'size' option is required\n");
+ 			usage_with_options(u, reconfig_options);
+ 			rc = -EINVAL;
+ 		}
+-		if (strcmp(param.mode, "system-ram") == 0) {
++		if (param.size) {
++			size = __parse_size64(param.size, &units);
++		} else if (strcmp(param.mode, "system-ram") == 0) {
+ 			reconfig_mode = DAXCTL_DEV_MODE_RAM;
+ 			if (param.no_movable)
+ 				mem_zone = MEM_ZONE_NORMAL;
+@@ -309,6 +313,17 @@ static int dev_offline_memory(struct daxctl_dev *dev)
+ 	return 0;
+ }
+ 
++static int dev_resize(struct daxctl_dev *dev, unsigned long long val)
++{
++	int rc;
++
++	rc = daxctl_dev_set_size(dev, val);
++	if (rc < 0)
++		return rc;
++
++	return 0;
++}
++
+ static int disable_devdax_device(struct daxctl_dev *dev)
+ {
+ 	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+@@ -418,6 +433,11 @@ static int do_reconfig(struct daxctl_dev *dev, enum dev_mode mode,
+ 	struct json_object *jdev;
+ 	int rc = 0;
+ 
++	if (size >= 0) {
++		rc = dev_resize(dev, size);
++		return rc;
++	}
++
+ 	switch (mode) {
+ 	case DAXCTL_DEV_MODE_RAM:
+ 		rc = reconfig_mode_system_ram(dev);
 -- 
 2.17.1
 _______________________________________________
