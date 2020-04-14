@@ -2,77 +2,58 @@ Return-Path: <SRS0=8wp3=56=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F628C2BB1D
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Apr 2020 19:31:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F127C2BB1D
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Apr 2020 22:50:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 11E572076B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Apr 2020 19:31:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="GcmdrTId"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 11E572076B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id E95B42074D
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Apr 2020 22:50:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E95B42074D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E078810FCD94C;
-	Tue, 14 Apr 2020 12:31:39 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 0408D10FE2562;
+	Tue, 14 Apr 2020 15:51:16 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7195F10FC3779
-	for <linux-nvdimm@lists.01.org>; Tue, 14 Apr 2020 12:31:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1586892662;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=tX2A1lYpIi69ByBKUOVihFZNecxN5C8mk7sqpyU0EA8=;
-	b=GcmdrTIdLWzF4UIk5LW3aXRZW+73zs/qSG+NzbQBC2OKPWBHFN5ZB9HNF58JgJOGs5CPwA
-	P70RDEs/Tha+grRglIhNovwrgKPQOBiFlQJMjprf0NQ+WBJACBe7+QS23xQDFsU9jwu5rv
-	byCn/hTHJ89p4OAdEycxGiBB5jCEMNU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-245-TsVI3A-1M06YvsRJbwepyw-1; Tue, 14 Apr 2020 15:30:58 -0400
-X-MC-Unique: TsVI3A-1M06YvsRJbwepyw-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DB25D8017F3;
-	Tue, 14 Apr 2020 19:30:56 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-115-133.rdu2.redhat.com [10.10.115.133])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 8EDF2116D8B;
-	Tue, 14 Apr 2020 19:30:46 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id E0C1C220935; Tue, 14 Apr 2020 15:30:45 -0400 (EDT)
-Date: Tue, 14 Apr 2020 15:30:45 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
-To: Liu Bo <bo.liu@linux.alibaba.com>
-Subject: Re: [PATCH 20/20] fuse,virtiofs: Add logic to free up a memory range
-Message-ID: <20200414193045.GB210453@redhat.com>
-References: <20200304165845.3081-1-vgoyal@redhat.com>
- <20200304165845.3081-21-vgoyal@redhat.com>
- <20200326000904.GA34937@rsjd01523.et2sqa>
- <20200327140114.GB32717@redhat.com>
- <20200327220606.GA119028@rsjd01523.et2sqa>
+	by ml01.01.org (Postfix) with ESMTPS id 268F710FD2ADB
+	for <linux-nvdimm@lists.01.org>; Tue, 14 Apr 2020 15:51:13 -0700 (PDT)
+IronPort-SDR: mI75CQbYJUFtQ7ygP0wveIepp5v1SJkd9ChKTsrz14oRVJGMgtLmzYWMrs3CfyeEwr5gU391ly
+ CIl4a6EHvREg==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Apr 2020 15:50:39 -0700
+IronPort-SDR: XOqQSIUAd9gaNqWGKGML5J57BUfvQ6ojIUcssQoCJCAXjsxqVIWHdBUI2cJCA1NhP6Ia9Gh7Z2
+ nQ0LsGlZmBzg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.72,384,1580803200";
+   d="scan'208";a="298835830"
+Received: from vverma7-mobl4.lm.intel.com ([10.251.131.109])
+  by FMSMGA003.fm.intel.com with ESMTP; 14 Apr 2020 15:50:38 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <linux-mm@kvack.org>
+Subject: [PATCH v2] mm/memory_hotplug: refrain from adding memory into an impossible node
+Date: Tue, 14 Apr 2020 16:50:29 -0600
+Message-Id: <20200414225029.709-1-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.21.1
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200327220606.GA119028@rsjd01523.et2sqa>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
-Message-ID-Hash: SPNSCB3UY337OOK4ASCHK4N6VELXFOWV
-X-Message-ID-Hash: SPNSCB3UY337OOK4ASCHK4N6VELXFOWV
-X-MailFrom: vgoyal@redhat.com
+Message-ID-Hash: 4IBWIHD6DFODH5LJ7CBADYPVKBAPKNA4
+X-Message-ID-Hash: 4IBWIHD6DFODH5LJ7CBADYPVKBAPKNA4
+X-MailFrom: vishal.l.verma@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, virtio-fs@redhat.com, miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, mst@redhat.com
+CC: linux-nvdimm@lists.01.org, David Hildenbrand <david@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SPNSCB3UY337OOK4ASCHK4N6VELXFOWV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4IBWIHD6DFODH5LJ7CBADYPVKBAPKNA4/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,206 +62,105 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat, Mar 28, 2020 at 06:06:06AM +0800, Liu Bo wrote:
-> On Fri, Mar 27, 2020 at 10:01:14AM -0400, Vivek Goyal wrote:
-> > On Thu, Mar 26, 2020 at 08:09:05AM +0800, Liu Bo wrote:
-> > 
-> > [..]
-> > > > +/*
-> > > > + * Find first mapping in the tree and free it and return it. Do not add
-> > > > + * it back to free pool. If fault == true, this function should be called
-> > > > + * with fi->i_mmap_sem held.
-> > > > + */
-> > > > +static struct fuse_dax_mapping *inode_reclaim_one_dmap(struct fuse_conn *fc,
-> > > > +							 struct inode *inode,
-> > > > +							 bool fault)
-> > > > +{
-> > > > +	struct fuse_inode *fi = get_fuse_inode(inode);
-> > > > +	struct fuse_dax_mapping *dmap;
-> > > > +	int ret;
-> > > > +
-> > > > +	if (!fault)
-> > > > +		down_write(&fi->i_mmap_sem);
-> > > > +
-> > > > +	/*
-> > > > +	 * Make sure there are no references to inode pages using
-> > > > +	 * get_user_pages()
-> > > > +	 */
-> > > > +	ret = fuse_break_dax_layouts(inode, 0, 0);
-> > > 
-> > > Hi Vivek,
-> > > 
-> > > This patch is enabling inline reclaim for fault path, but fault path
-> > > has already holds a locked exceptional entry which I believe the above
-> > > fuse_break_dax_layouts() needs to wait for, can you please elaborate
-> > > on how this can be avoided?
-> > > 
-> > 
-> > Hi Liubo,
-> > 
-> > Can you please point to the exact lock you are referring to. I will
-> > check it out. Once we got rid of needing to take inode lock in
-> > reclaim path, that opended the door to do inline reclaim in fault
-> > path as well. But I was not aware of this exceptional entry lock.
-> 
-> Hi Vivek,
-> 
-> dax_iomap_{pte,pmd}_fault has called grab_mapping_entry to get a
-> locked entry, when this fault gets into inline reclaim, would
-> fuse_break_dax_layouts wait for the locked exceptional entry which is
-> locked in dax_iomap_{pte,pmd}_fault?
+A misbehaving qemu created a situation where the ACPI SRAT table
+advertised one fewer proximity domains than intended. The NFIT table did
+describe all the expected proximity domains. This caused the device dax
+driver to assign an impossible target_node to the device, and when
+hotplugged as system memory, this would fail with the following
+signature:
 
-Hi Liu Bo,
+  [  +0.001627] BUG: kernel NULL pointer dereference, address: 0000000000000088
+  [  +0.001331] #PF: supervisor read access in kernel mode
+  [  +0.000975] #PF: error_code(0x0000) - not-present page
+  [  +0.000976] PGD 80000001767d4067 P4D 80000001767d4067 PUD 10e0c4067 PMD 0
+  [  +0.001338] Oops: 0000 [#1] SMP PTI
+  [  +0.000676] CPU: 4 PID: 22737 Comm: kswapd3 Tainted: G           O      5.6.0-rc5 #9
+  [  +0.001457] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+      BIOS rel-1.13.0-0-gf21b5a4aeb02-prebuilt.qemu.org 04/01/2014
+  [  +0.001990] RIP: 0010:prepare_kswapd_sleep+0x7c/0xc0
+  [  +0.000780] Code: 89 df e8 87 fd ff ff 89 c2 31 c0 84 d2 74 e6 0f 1f 44
+                      00 00 48 8b 05 fb af 7a 01 48 63 93 88 1d 01 00 48 8b
+		      84 d0 20 0f 00 00 <48> 3b 98 88 00 00 00 75 28 f0 80 a0
+		      80 00 00 00 fe f0 80 a3 38 20
+  [  +0.002877] RSP: 0018:ffffc900017a3e78 EFLAGS: 00010202
+  [  +0.000805] RAX: 0000000000000000 RBX: ffff8881209e0000 RCX: 0000000000000000
+  [  +0.001115] RDX: 0000000000000003 RSI: 0000000000000000 RDI: ffff8881209e0e80
+  [  +0.001098] RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000008000
+  [  +0.001092] R10: 0000000000000000 R11: 0000000000000003 R12: 0000000000000003
+  [  +0.001092] R13: 0000000000000003 R14: 0000000000000000 R15: ffffc900017a3ec8
+  [  +0.001091] FS:  0000000000000000(0000) GS:ffff888318c00000(0000) knlGS:0000000000000000
+  [  +0.001275] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+  [  +0.000882] CR2: 0000000000000088 CR3: 0000000120b50002 CR4: 00000000001606e0
+  [  +0.001095] Call Trace:
+  [  +0.000388]  kswapd+0x103/0x520
+  [  +0.000494]  ? finish_wait+0x80/0x80
+  [  +0.000547]  ? balance_pgdat+0x5a0/0x5a0
+  [  +0.000607]  kthread+0x120/0x140
+  [  +0.000508]  ? kthread_create_on_node+0x60/0x60
+  [  +0.000706]  ret_from_fork+0x3a/0x50
 
-This is a good point. Indeed it can deadlock the way code is written
-currently.
+Add a check in the add_memory path to ensure that the node to which we
+are adding memory is in the node_possible_map
 
-Currently we are calling fuse_break_dax_layouts() on the whole file
-in memory inline reclaim path. I am thinking of changing that. Instead,
-find a mapped memory range and file offset and call
-fuse_break_dax_layouts() only on that range (2MB). This should ensure
-that we don't try to break dax layout in the range where we are holding
-exceptional entry lock and avoid deadlock possibility.
-
-This also has added benefit that we don't have to unmap the whole
-file in an attempt to reclaim one memory range. We will unmap only
-a portion of file and that should be good from performance point of
-view.
-
-Here is proof of concept patch which applies on top of my internal 
-tree.
-
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/fuse/file.c |   72 +++++++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 50 insertions(+), 22 deletions(-)
+ mm/memory_hotplug.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-Index: redhat-linux/fs/fuse/file.c
-===================================================================
---- redhat-linux.orig/fs/fuse/file.c	2020-04-14 13:47:19.493780528 -0400
-+++ redhat-linux/fs/fuse/file.c	2020-04-14 14:58:26.814079643 -0400
-@@ -4297,13 +4297,13 @@ static int fuse_break_dax_layouts(struct
-         return ret;
+v2:
+- Centralize the check in the add_memory path (David)
+- Instead of failing, add the memory to a nearby node, while warning
+  (and tainting) to call out attention to the firmware bug (Dan)
+
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 0a54ffac8c68..022df38a5d8a 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -980,6 +980,28 @@ static int check_hotplug_memory_range(u64 start, u64 size)
+ 	return 0;
  }
  
--/* Find first mapping in the tree and free it. */
--static struct fuse_dax_mapping *
--inode_reclaim_one_dmap_locked(struct fuse_conn *fc, struct inode *inode)
-+/* Find first mapped dmap for an inode and return file offset. Caller needs
-+ * to hold inode->i_dmap_sem lock either shared or exclusive. */
-+static struct fuse_dax_mapping *inode_lookup_first_dmap(struct fuse_conn *fc,
-+							struct inode *inode)
- {
- 	struct fuse_inode *fi = get_fuse_inode(inode);
- 	struct fuse_dax_mapping *dmap;
--	int ret;
- 
- 	for (dmap = fuse_dax_interval_tree_iter_first(&fi->dmap_tree, 0, -1);
- 	     dmap;
-@@ -4312,18 +4312,6 @@ inode_reclaim_one_dmap_locked(struct fus
- 		if (refcount_read(&dmap->refcnt) > 1)
- 			continue;
- 
--		ret = reclaim_one_dmap_locked(fc, inode, dmap);
--		if (ret < 0)
--			return ERR_PTR(ret);
--
--		/* Clean up dmap. Do not add back to free list */
--		dmap_remove_busy_list(fc, dmap);
--		dmap->inode = NULL;
--		dmap->start = dmap->end = 0;
--
--		pr_debug("fuse: %s: reclaimed memory range. inode=%px,"
--			 " window_offset=0x%llx, length=0x%llx\n", __func__,
--			 inode, dmap->window_offset, dmap->length);
- 		return dmap;
- 	}
- 
-@@ -4335,30 +4323,70 @@ inode_reclaim_one_dmap_locked(struct fus
-  * it back to free pool. If fault == true, this function should be called
-  * with fi->i_mmap_sem held.
-  */
--static struct fuse_dax_mapping *inode_reclaim_one_dmap(struct fuse_conn *fc,
--							 struct inode *inode,
--							 bool fault)
-+static struct fuse_dax_mapping *
-+inode_inline_reclaim_one_dmap(struct fuse_conn *fc, struct inode *inode,
-+			      bool fault)
- {
- 	struct fuse_inode *fi = get_fuse_inode(inode);
- 	struct fuse_dax_mapping *dmap;
-+	u64 dmap_start, dmap_end;
- 	int ret;
- 
- 	if (!fault)
- 		down_write(&fi->i_mmap_sem);
- 
-+	/* Lookup a dmap and corresponding file offset to reclaim. */
-+	down_read(&fi->i_dmap_sem);
-+	dmap = inode_lookup_first_dmap(fc, inode);
-+	if (dmap) {
-+		dmap_start = dmap->start;
-+		dmap_end = dmap->end;
-+	}
-+	up_read(&fi->i_dmap_sem);
++/*
++ * Check that the node provided for adding memory was valid.
++ * If not, find the nearest valid node and add the memory there while
++ * tainting the kernel and displaying a warning to bring attention to the
++ * underlying firmware problem.
++ * Return nid if valid, or an adjusted node number that can be used instead
++ * if the original nid was not valid
++ */
++static int check_hotplug_node(int nid)
++{
++	int alt_nid;
 +
-+	if (!dmap)
-+		goto out_mmap_sem;
++	if (node_possible(nid))
++		return nid;
++
++	alt_nid = numa_map_to_online_node(nid);
++	WARN_TAINT(1, TAINT_FIRMWARE_WORKAROUND,
++		   "node %d expected, but was absent from the node_possible_map, using %d instead\n",
++		   nid, alt_nid);
++	return alt_nid;
++}
++
+ static int online_memory_block(struct memory_block *mem, void *arg)
+ {
+ 	return device_online(&mem->dev);
+@@ -1005,6 +1027,10 @@ int __ref add_memory_resource(int nid, struct resource *res)
+ 	if (ret)
+ 		return ret;
+ 
++	nid = check_hotplug_node(nid);
++	if (nid < 0)
++		return -ENXIO;
++
+ 	mem_hotplug_begin();
+ 
  	/*
- 	 * Make sure there are no references to inode pages using
- 	 * get_user_pages()
- 	 */
--	ret = fuse_break_dax_layouts(inode, 0, 0);
-+	ret = fuse_break_dax_layouts(inode, dmap_start, dmap_end);
- 	if (ret) {
- 		printk("virtio_fs: fuse_break_dax_layouts() failed. err=%d\n",
- 		       ret);
- 		dmap = ERR_PTR(ret);
- 		goto out_mmap_sem;
- 	}
-+
- 	down_write(&fi->i_dmap_sem);
--	dmap = inode_reclaim_one_dmap_locked(fc, inode);
-+	dmap = fuse_dax_interval_tree_iter_first(&fi->dmap_tree, dmap_start,
-+						 dmap_start);
-+	/* Range already got reclaimed by somebody else */
-+	if (!dmap)
-+		goto out_write_dmap_sem;
-+
-+	/* still in use. */
-+	if (refcount_read(&dmap->refcnt) > 1) {
-+		dmap = NULL;
-+		goto out_write_dmap_sem;
-+	}
-+
-+	ret = reclaim_one_dmap_locked(fc, inode, dmap);
-+	if (ret < 0) {
-+		dmap = NULL;
-+		goto out_write_dmap_sem;
-+	}
-+
-+	/* Clean up dmap. Do not add back to free list */
-+	dmap_remove_busy_list(fc, dmap);
-+	dmap->inode = NULL;
-+	dmap->start = dmap->end = 0;
-+
-+	pr_debug("fuse: %s: inline reclaimed memory range. inode=%px,"
-+		 " window_offset=0x%llx, length=0x%llx\n", __func__,
-+		 inode, dmap->window_offset, dmap->length);
-+
-+out_write_dmap_sem:
- 	up_write(&fi->i_dmap_sem);
- out_mmap_sem:
- 	if (!fault)
-@@ -4379,7 +4407,7 @@ static struct fuse_dax_mapping *alloc_da
- 			return dmap;
- 
- 		if (fi->nr_dmaps) {
--			dmap = inode_reclaim_one_dmap(fc, inode, fault);
-+			dmap = inode_inline_reclaim_one_dmap(fc, inode, fault);
- 			if (dmap)
- 				return dmap;
- 			/* If we could not reclaim a mapping because it
-
+-- 
+2.21.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
