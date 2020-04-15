@@ -6,53 +6,53 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DAA4C2BB55
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Apr 2020 11:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55529C2BA19
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Apr 2020 11:48:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 14FE42137B
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Apr 2020 11:47:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 23B7E2166E
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 15 Apr 2020 11:48:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="G0lRCgYC"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 14FE42137B
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="X+27afTR"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 23B7E2166E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8F4C11010631F;
-	Wed, 15 Apr 2020 04:48:18 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id A616810106320;
+	Wed, 15 Apr 2020 04:48:43 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DDD1610106319
-	for <linux-nvdimm@lists.01.org>; Wed, 15 Apr 2020 04:48:15 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 29CA31010631B
+	for <linux-nvdimm@lists.01.org>; Wed, 15 Apr 2020 04:48:42 -0700 (PDT)
 Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 7243321655;
-	Wed, 15 Apr 2020 11:47:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPSA id A9FC521582;
+	Wed, 15 Apr 2020 11:48:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1586951266;
-	bh=5Gb4NGTfkx9h26Nx0aaiJNVgu0YKJnRYpcXYM3gzJnU=;
+	s=default; t=1586951292;
+	bh=8ueGKzVpssWmv48W/XObwKppzjDuII99J2uriC02WAw=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=G0lRCgYCYDiuMwiGzl0Jv5dpz9vw2Cs+3NsNM2ynLxmkOROGwHZO+73bbjtZdtoiG
-	 b6JcFUTF4lWVAOfA7zGFCn2ymC5leSeAIsF7EyLY8+QLRHVqXa2ULmrz+YbGAAfGP/
-	 TWtJTQMGeNBlZYm3S1btm++GkFj+JiyLyuv0F3bg=
+	b=X+27afTRjG0MFK7hnW40ZHF3l1g4Bsprqm0o73aj6WVkQ23Gij/l++yHr9geFHz4U
+	 aCorLyTaDV+dQL5oBigmnJ2DJCmdJNS8wzOhOkEgDlMQ5DhmjnGwumAynNMWxSa8zm
+	 XqDjt9cbe8PhABcIwdgHe5VJJA6W6Om0SriTC9kk=
 From: Sasha Levin <sashal@kernel.org>
 To: linux-kernel@vger.kernel.org,
 	stable@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 29/30] libnvdimm: Out of bounds read in __nd_ioctl()
-Date: Wed, 15 Apr 2020 07:47:10 -0400
-Message-Id: <20200415114711.15381-29-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 20/21] libnvdimm: Out of bounds read in __nd_ioctl()
+Date: Wed, 15 Apr 2020 07:47:47 -0400
+Message-Id: <20200415114748.15713-20-sashal@kernel.org>
 X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200415114711.15381-1-sashal@kernel.org>
-References: <20200415114711.15381-1-sashal@kernel.org>
+In-Reply-To: <20200415114748.15713-1-sashal@kernel.org>
+References: <20200415114748.15713-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-Message-ID-Hash: V7RHIBKECSXMWFGAMRW7KC6G4CPGWOJO
-X-Message-ID-Hash: V7RHIBKECSXMWFGAMRW7KC6G4CPGWOJO
+Message-ID-Hash: YZFIXJTOQK4OJVM3VLL75BS2E6357G66
+X-Message-ID-Hash: YZFIXJTOQK4OJVM3VLL75BS2E6357G66
 X-MailFrom: sashal@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -60,7 +60,7 @@ CC: Dan Carpenter <dan.carpenter@oracle.com>, Sasha Levin <sashal@kernel.org>, l
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/V7RHIBKECSXMWFGAMRW7KC6G4CPGWOJO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YZFIXJTOQK4OJVM3VLL75BS2E6357G66/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -88,10 +88,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 2f1b54fab399f..83e18b367944c 100644
+index 5768a4749564a..65ac1d3870f93 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
-@@ -951,8 +951,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+@@ -851,8 +851,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
  			return -EFAULT;
  	}
  
