@@ -2,87 +2,111 @@ Return-Path: <SRS0=XqdI=6B=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.3 required=3.0 tests=DKIM_ADSP_NXDOMAIN,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,TVD_PH_BODY_ACCOUNTS_PRE
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E855EC2BB1D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 06:51:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C056C2D0EF
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 17:37:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B98E7221E9
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 06:51:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B98E7221E9
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 01C04207FC
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 17:37:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=myanhembis.onmicrosoft.com header.i=@myanhembis.onmicrosoft.com header.b="f03J9Q5K"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 01C04207FC
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=yxaei.myanhembis.onmicrosoft.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 36398100DCB8E;
-	Thu, 16 Apr 2020 23:52:10 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id 7080B100DCB99;
+	Fri, 17 Apr 2020 10:37:27 -0700 (PDT)
+Received-SPF: Pass (helo) identity=helo; client-ip=52.100.132.89; helo=nam02-cy1-obe.outbound.protection.outlook.com; envelope-from=omcvs@yxaei.myanhembis.onmicrosoft.com; receiver=<UNKNOWN> 
+Received: from NAM02-CY1-obe.outbound.protection.outlook.com (mail-bgr052100132089.outbound.protection.outlook.com [52.100.132.89])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2FDEE100DCB8C
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Apr 2020 23:52:07 -0700 (PDT)
-Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03H6Xt9M066215
-	for <linux-nvdimm@lists.01.org>; Fri, 17 Apr 2020 02:51:49 -0400
-Received: from e06smtp04.uk.ibm.com (e06smtp04.uk.ibm.com [195.75.94.100])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 30f05wt2w6-1
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Fri, 17 Apr 2020 02:51:49 -0400
-Received: from localhost
-	by e06smtp04.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
-	Fri, 17 Apr 2020 07:51:08 +0100
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (9.149.109.194)
-	by e06smtp04.uk.ibm.com (192.168.101.134) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Fri, 17 Apr 2020 07:51:06 +0100
-Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03H6piZr48300076
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 17 Apr 2020 06:51:44 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 811F942047;
-	Fri, 17 Apr 2020 06:51:44 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 93D1E4203F;
-	Fri, 17 Apr 2020 06:51:42 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.79.187.50])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Fri, 17 Apr 2020 06:51:42 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Fri, 17 Apr 2020 12:21:41 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [ndctl PATCH] libndctl: Fix buffer 'offset' calculation in do_cmd()
-In-Reply-To: <20200416200207.GN2309605@iweiny-DESK2.sc.intel.com>
-References: <20200416185223.48486-1-vaibhav@linux.ibm.com> <20200416200207.GN2309605@iweiny-DESK2.sc.intel.com>
-Date: Fri, 17 Apr 2020 12:21:41 +0530
+	by ml01.01.org (Postfix) with ESMTPS id AFCC2100DCB97
+	for <linux-nvdimm@lists.01.org>; Fri, 17 Apr 2020 10:37:24 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=EM3+vSK2BK5Z3fjYjygMR6rU+Z02otasBTb6JB3fzG4DEDzMrdSPvKfxVU2Uit/Y0sVEIwG6zs9SXA8P+4TFBYzfX15nkP6FARC9RJpEkl3g2oOjvVPzOHnYk/S1VZEJC03cmZi/XkSIeTE5X+77Bqb1hKke9A+VnVXQyaaXG1mqNWFD4/5xA78Lh5Q2m9dkP2OoISp0TiZgloLzOaXITkjRssCM7xNrTfXc6kMqfCZM3WPAhHpa8t+Mss15lryxcazMpnyAmUtSFctpIUoP/GK+nKiLCU6PV8wmytlJoH6GR/jUN4RqrV0gQEoY8Xoxi59jrsdwkByr4UfjaWZA0Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=HVvpELTDVdPbfSmFnkVRBV+dsDL+yn3ncG+dBn75Hag=;
+ b=efi4o8FwHRC+8HDxjSVrpCw5xz4JpFa2oszsdGmJNVTLD7kqgmLyRzvW3wUB/ELnoflVudaQSvs4VGn6BXs8OJ86gkeDrP0zgZnMuPt4WDzTAp7+HyAJNx1peoMPjagmMwwZic9HBBbGDJ5VPt58ngAlBydX65N4b4Nd79qouzEzbHizC402GK2x61VZ6xF58YBLzo/zAQ8SqmSJ38ysSbAeVAayq8+92e39206UHQP7SUi2v15DUPsHFf+fmsiFwz6o8Tvif7srEGv/Bxq1XsXsiw0d/fFba29Ukb2mlpjTGIwUh6brYvgSBqc6wKETq0WY0dpv61dINEpsF6Z3cQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=yxaei.myanhembis.onmicrosoft.com; dmarc=pass action=none
+ header.from=yxaei.myanhembis.onmicrosoft.com; dkim=pass
+ header.d=yxaei.myanhembis.onmicrosoft.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=myanhembis.onmicrosoft.com; s=selector1-myanhembis-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=HVvpELTDVdPbfSmFnkVRBV+dsDL+yn3ncG+dBn75Hag=;
+ b=f03J9Q5K1qlu4jXLIuIHrxunHnpOuCnlSxvbzqkoWJ36zzFHq9GaGdsQMCT2ex6o4Yhv89CVw4Vs733D/OltVN194GnK+plq4yP0tbzob3gIi0PQQ65E50K5DQBj7h9qaV3cTSEIdDwyPQofWrYK6SjEtrds8U5U64twB1jMQhQ=
+Authentication-Results: lists.01.org; dkim=none (message not signed)
+ header.d=none;lists.01.org; dmarc=none action=none
+ header.from=yxaei.myanhembis.onmicrosoft.com;
+Received: from SC1P152MB2864.LAMP152.PROD.OUTLOOK.COM (20.177.234.19) by
+ SC1P152MB1325.LAMP152.PROD.OUTLOOK.COM (10.171.64.12) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.2921.29; Fri, 17 Apr 2020 17:37:08 +0000
+Received: from SC1P152MB2864.LAMP152.PROD.OUTLOOK.COM
+ ([fe80::e11c:35ed:71da:180a]) by SC1P152MB2864.LAMP152.PROD.OUTLOOK.COM
+ ([fe80::e11c:35ed:71da:180a%3]) with mapi id 15.20.2900.028; Fri, 17 Apr 2020
+ 17:37:08 +0000
+X-GUID: BE205B7F-254E-44E0-A313-718571F802DF
+X-Has-Attach: no
+From: "webmaster" <omcvs@yxaei.myanhembis.onmicrosoft.com>
+Subject: Webmail HelpDesk
+To: "linux-nvdimm" <linux-nvdimm@lists.01.org>
+Date: Fri, 17 Apr 2020 17:37:03 +0000
+Message-Id: <202004171737033781029@yxaei.myanhembis.onmicrosoft.com>
+X-Mailer: Foxmail 7, 2, 5, 140[cn]
+X-ClientProxiedBy: MN2PR12CA0025.namprd12.prod.outlook.com
+ (2603:10b6:208:a8::38) To SC1P152MB2864.LAMP152.PROD.OUTLOOK.COM
+ (2603:10d6:4:70::19)
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-x-cbid: 20041706-0016-0000-0000-0000030608DD
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20041706-0017-0000-0000-0000336A1049
-Message-Id: <87lfmuwqo2.fsf@vajain21.in.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
- definitions=2020-04-17_01:2020-04-14,2020-04-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxscore=0
- bulkscore=0 malwarescore=0 phishscore=0 clxscore=1011 mlxlogscore=999
- suspectscore=7 adultscore=0 priorityscore=1501 impostorscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2004170046
-Message-ID-Hash: NPU7ROZN2VVOGZMF6ZBQAYLYWOOTP6SJ
-X-Message-ID-Hash: NPU7ROZN2VVOGZMF6ZBQAYLYWOOTP6SJ
-X-MailFrom: vaibhav@linux.ibm.com
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from WIN-TKH21N4N0BD (3.19.66.133) by MN2PR12CA0025.namprd12.prod.outlook.com (2603:10b6:208:a8::38) with Microsoft SMTP Server (version=TLS1_0, cipher=TLS_RSA_WITH_AES_256_CBC_SHA) id 15.20.2921.25 via Frontend Transport; Fri, 17 Apr 2020 17:37:07 +0000
+X-GUID: BE205B7F-254E-44E0-A313-718571F802DF
+X-Has-Attach: no
+X-Mailer: Foxmail 7, 2, 5, 140[cn]
+X-Originating-IP: [17.151.1.68]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 2b213f05-a826-4af2-b703-08d7e2f5f39a
+X-MS-TrafficTypeDiagnostic: SC1P152MB1325:
+X-Microsoft-Antispam-PRVS: 
+	<SC1P152MB13253DD4D9933204FE9313A9CBD90@SC1P152MB1325.LAMP152.PROD.OUTLOOK.COM>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-Forefront-PRVS: 0376ECF4DD
+X-Forefront-Antispam-Report: 
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:9;SRV:;IPV:NLI;SFV:SPM;H:SC1P152MB2864.LAMP152.PROD.OUTLOOK.COM;PTR:;CAT:OSPM;SFTY:;SFS:(10001);DIR:OUT;SFP:1501;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 
+	wrI0pR8KqVXSXNoU6c+dQGguI+fOY1P6uyCrneDvUoWUvj6F+TPzFr8mWr5hIr9V7HxA6e2Au+wQlZj8qaS4eKghl9KAykFEkbcPOKPNZY5ky3eOcDbqDQOyz8hz2QQxhhlP3YxzkziepRqHYlE74ia0de8n39lz+QBEQ4KVEalYC/q7QPZGjc9oOdIuRk3o/lbQ08Np3KgwovaaROTZmwG3i4ItFsOYdTqQlDnONuNmwMAqYvkn20625qkneNvI+BOYnXbqRtZnuYb1QT/U5gEpUE1Z1pYtay1cuBJHTzJff3Fpc5MxXquFGOAzREc3FGqszTiHFpYPbAFDU08NOYaPQqVnySo0lsF9B28Bmud29FOc83tJCaCm/pVd1s23pgjPDFAKwFCL5OkqBlKO0TtkMJhyUUzFeO+jJDMPCrplgnQYrlwPYzpaIHjIP5jeYz37UfpPgETkwT2FmexFSJqaPqxrbLlvU18FyqNxpMxyiYOulus/ZM01ClIoAOssEHVUnN/Fqn2doYpijkSjizN6KUYuflT3p6MF2F+Hst1YBrRizdlJ/Y9D2WV7fL5l+PjXVDb4NkZ9UxHEvRen7TVklRCHp+rAHRvx9GO1IZp1UceKVepg5KnsMSpqeWby3Q7VCTeTBeu4Yp8toMTqcopIqk8WypbzVe3GQDJpthkjgQDzHKiZ2COSNeRUAuQAOodPOlFR5ptD/ufHKivhHW+dTrN99wpt6iy5ZTp7PYOoCDRJTbnZm+L0EADbOcyVhtHvDbp2/XP9qoJO2h95+8sM3h4lq+oA7XOiQH6TYS6YVInUD75BeT6Kd87t1F4yy7j/PHFPX24H6XtVVtky7m2t1liHgHQscCN6Mc1FmMbMhjA/rWyFN/pGxygOX8HGK/ntL0amJd2Zf3F7V/enpsu9irC6Yoqf5smkZvDPRENstTJ4r+bU9r0ov3BAKqmL
+X-MS-Exchange-AntiSpam-MessageData: 
+	rwY3ukWlB8IgXAkLXyZByRSXCR1kWV9ouwEHshahDME6yFtortjdzlYUCC/ZegzEtjV7CGamNM68jxCDDMyuzpSWDOyA34o80Sw1fB0IxF8fT5n0WTiLadRv1dtuW9iMxnQ1lGGnfZd7i7wFUz+Agw==
+X-OriginatorOrg: yxaei.myanhembis.onmicrosoft.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2b213f05-a826-4af2-b703-08d7e2f5f39a
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 17 Apr 2020 17:37:08.2179
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 431b042b-5997-429b-aeab-b683c964d952
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 1uYoe/gy289KqLnZTfkVNpk6JbGFSbcMMy51ksAPsKIxxZTNWPzwap4k/FPnRpgtMx4OIQsL43ChHgCopJJCfGwaErpNKVLc0qCkC2P/rCYXASX3uxMVZ+kUTxjYPv+E
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SC1P152MB1325
+Message-ID-Hash: URMT5NTIDIH5B7IMWKX4FDFO4RX5HAG4
+X-Message-ID-Hash: URMT5NTIDIH5B7IMWKX4FDFO4RX5HAG4
+X-MailFrom: omcvs@yxaei.myanhembis.onmicrosoft.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NPU7ROZN2VVOGZMF6ZBQAYLYWOOTP6SJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/URMT5NTIDIH5B7IMWKX4FDFO4RX5HAG4/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,123 +115,31 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
-
-Thanks for reviewing this patch. My responses below:
-
-Ira Weiny <ira.weiny@intel.com> writes:
-
-> On Fri, Apr 17, 2020 at 12:22:23AM +0530, Vaibhav Jain wrote:
->> The 'for' loop in do_cmd() that generates multiple ioctls to
->> libnvdimm assumes that each ioctl will result in transfer of
->> 'iter->max_xfer' bytes. Hence after each successful iteration the
->> buffer 'offset' is incremented by 'iter->max_xfer'.
->> 
->> This is in contrast to similar implementation in libnvdimm kernel
->> function nvdimm_get_config_data() which increments the buffer offset
->> by 'cmd->in_length' thats the actual number of bytes transferred from
->> the dimm/bus control function.
->> 
->> The implementation in kernel function nvdimm_get_config_data() is more
->> accurate compared to one in do_cmd() as former doesn't assume that
->> config/label-area data size is in multiples of 'iter->max_xfer'.
->> 
->> Hence the patch updates do_cmd() to increment the buffer 'offset'
->> variable by 'cmd->get_xfer()' rather than 'iter->max_xfer' after each
->> iteration.
->
-> This commit message is not correct.  The problem is that commit
-> a2fd7017b72d113ff7dfcf1b92b6a0a4de34c8b3 introduced the concept of
-> {get,set}_xfer() and did not change the loop iterator to match.
-The assumption to increment the buffer 'offset' by max_xfer instead of
-*(cmd->iter.xfer) or get_xfer() predates the commit
-a2fd7017b72d113ff7dfcf1b92b6a0a4de34c8b3
-
->
-> Having the loop iterator match is not 100% required here as ->set_xfer() will
-> only change alter the cmd length written on the final command when the loop is
-> exiting anyway.
-Agree that this condition is presently hit only at the final iteration
-of the loop. But as the patch description points out that this differs
-from the assumption made in kernel function nvdimm_get_config_data()
-which doesnt assume that max_xfer bytes will be transffered at each
-iteration.
-
-Since the label area is stored separately from the nvdimm (in many cases
-accessible only via slow i2c), a nvdimm/bus providers (like papr_scm)
-may want to return xfer < max_xfer bytes for ND_CMD_GET_CONFIG_DATA
-command without blocking.
-
-nvdimm_get_config_data() provides this flexibility but do_cmd()
-doesnt. Infact if a bus provider does such a thing then do_cmd() will
-skip over the buffer range that was never trasffered to/from kernel.
-
->
-> That said should set_xfer() ever do something more clever using get_xfer() is
-> cleaner.
->
->> 
->> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
->> ---
->>  ndctl/lib/libndctl.c | 6 ++++--
->>  1 file changed, 4 insertions(+), 2 deletions(-)
->> 
->> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
->> index cda17ff32410..24fa67f0ccd0 100644
->> --- a/ndctl/lib/libndctl.c
->> +++ b/ndctl/lib/libndctl.c
->> @@ -3089,7 +3089,7 @@ NDCTL_EXPORT int ndctl_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
->>  static int do_cmd(int fd, int ioctl_cmd, struct ndctl_cmd *cmd)
->>  {
->>  	int rc;
->> -	u32 offset;
->> +	u32 offset = 0;
->>  	const char *name, *sub_name = NULL;
->>  	struct ndctl_dimm *dimm = cmd->dimm;
->>  	struct ndctl_bus *bus = cmd_to_bus(cmd);
->> @@ -3116,7 +3116,7 @@ static int do_cmd(int fd, int ioctl_cmd, struct ndctl_cmd *cmd)
->>  			return rc;
->>  	}
->>  
->> -	for (offset = 0; offset < iter->total_xfer; offset += iter->max_xfer) {
->> +	while (offset < iter->total_xfer) {
->
-> FWIW I prefer for loops if possible.
-Sure will rework the for loop. Was just trying to avoid an ugly looking
-for loop that didnt have an iteration-expression.
-
->
->>  		cmd->set_xfer(cmd, min(iter->total_xfer - offset,
->>  				iter->max_xfer));
->>  		cmd->set_offset(cmd, offset);
->> @@ -3136,6 +3136,8 @@ static int do_cmd(int fd, int ioctl_cmd, struct ndctl_cmd *cmd)
->>  			rc = offset + cmd->get_xfer(cmd) - rc;
->>  			break;
->>  		}
->> +
->> +		offset += cmd->get_xfer(cmd) - rc;
->
-> Why "- rc"?  Doesn't this break WRITE?
-Thanks for catching this. Will get it fixed.
-
->
-> Ira
->
->>  	}
->>  
->>  	dbg(ctx, "bus: %d dimm: %#x cmd: %s%s%s total: %d max_xfer: %d status: %d fw: %d (%s)\n",
->> -- 
->> 2.25.2
->> _______________________________________________
->> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
->> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
--- 
-Vaibhav Jain <vaibhav@linux.ibm.com>
-Linux Technology Center, IBM India Pvt. Ltd.
+<div><p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	Dear Webmail User,
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	This message is from Webmail HelpDesk to all our account owners. We are currently upgrading our Accounts database. We are deleting all unused WebMail account to create more space for new accounts. In other for your account not to be suspended or deleted, you will have to update your account by providing the information listed below:
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	Confirm Your Webmail Account Details.
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	<a href="http://root.myetsl.com/" target="_blank"><span style="font-size:24px;">click</span></a>
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	You will be sent a new confirmation alphanumerical password which will be valid during this period and can be changed after the process.
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	We are very sorry for any inconveniences this might have caused you.
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	Thanks for your understanding.
+</p>
+<p style="color:#637381;text-transform:none;text-indent:0px;letter-spacing:normal;font-family:&quot;Open Sans&quot;, sans-serif;font-size:medium;font-style:normal;font-weight:400;word-spacing:0px;white-space:normal;box-sizing:inherit;orphans:2;widows:2;font-variant-ligatures:normal;font-variant-caps:normal;-webkit-text-stroke-width:0px;text-decoration-style:initial;text-decoration-color:initial;">
+	Webmail HelpDesk.<br style="box-sizing:inherit;" />
+Warning!!! Account owner that refuses to update his or her account within seven days of receiving this notice ends up being suspended permanently.
+</p></div>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
