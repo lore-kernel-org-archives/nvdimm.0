@@ -2,61 +2,78 @@ Return-Path: <SRS0=XqdI=6B=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29B27C38A2B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 18:05:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 011A9C2BB1D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 23:55:35 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 042612078E
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 18:05:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 042612078E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.alibaba.com
+	by mail.kernel.org (Postfix) with ESMTPS id AF447214D8
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Apr 2020 23:55:34 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="w3ik+6fF"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AF447214D8
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6DDB3100DCB9A;
-	Fri, 17 Apr 2020 11:05:39 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=115.124.30.43; helo=out30-43.freemail.mail.aliyun.com; envelope-from=bo.liu@linux.alibaba.com; receiver=<UNKNOWN> 
-Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 87F7E10106336;
+	Fri, 17 Apr 2020 16:55:47 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::644; helo=mail-ej1-x644.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6CAC3100DCB98
-	for <linux-nvdimm@lists.01.org>; Fri, 17 Apr 2020 11:05:36 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=bo.liu@linux.alibaba.com;NM=1;PH=DS;RN=9;SR=0;TI=SMTPD_---0TvqiUma_1587146713;
-Received: from rsjd01523.et2sqa(mailfrom:bo.liu@linux.alibaba.com fp:SMTPD_---0TvqiUma_1587146713)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Sat, 18 Apr 2020 02:05:19 +0800
-Date: Sat, 18 Apr 2020 02:05:13 +0800
-From: Liu Bo <bo.liu@linux.alibaba.com>
-To: Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH 20/20] fuse,virtiofs: Add logic to free up a memory range
-Message-ID: <20200417180513.GA67026@rsjd01523.et2sqa>
-References: <20200304165845.3081-1-vgoyal@redhat.com>
- <20200304165845.3081-21-vgoyal@redhat.com>
- <20200326000904.GA34937@rsjd01523.et2sqa>
- <20200327140114.GB32717@redhat.com>
- <20200327220606.GA119028@rsjd01523.et2sqa>
- <20200414193045.GB210453@redhat.com>
- <20200415172229.GA121484@rsjd01523.et2sqa>
- <20200416190507.GC276932@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id D6006100DCB9C
+	for <linux-nvdimm@lists.01.org>; Fri, 17 Apr 2020 16:55:45 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id s9so2861629eju.1
+        for <linux-nvdimm@lists.01.org>; Fri, 17 Apr 2020 16:55:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=453k+sSBzEUPOdDqBbcPAhnE5CqyaEgRScdPj0XtgZ0=;
+        b=w3ik+6fFxB5XeGvLPG1swJwBWELSqJfh1vpfu/q0fETqmDmztanQBYj72fl299xd07
+         nplfj85E5RDeb9R+1j05/WrwW0CXecFYLIrhGBFJDiJabl68eAkH0LjXuNCqYzU6LJIf
+         zDPyB3SGJ33zuKe8LMlOk3yOStmady8VpQ858g2YDSL6qpN77WfLlnmPqq1dCUo8Dq4y
+         btY4TtQAnH+TCLl6Th6gvKnlE6xp/whQh1W0/77RwqGWJ/9dnm9ZbG+YBoV9DhGe+uwL
+         k/FphrGIKeuELxN3CllO1cqpsyoN6t7F4pEVNrqY1/ehVMT7DntueJHK8nhzdvuVbDmO
+         cEwA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=453k+sSBzEUPOdDqBbcPAhnE5CqyaEgRScdPj0XtgZ0=;
+        b=L3Xswuj8CTJnn2xzsaG5z8z9fbD4MmWJcULEEeeRziFhBDdyjYv4JJrRfIpexXZV7f
+         fMwfJv+P74yQTXT7OHLoDrUHOV2SgPnDTVuXkVfOQMxFQjLxSwtMilaWzRs9ftSWSYvm
+         ceUCkzROpLVRV8gtcRyMvNbbAnb/xHzqi7jsrx0ILcnr2TqzgxmoPYtr7UD5aHsHNBxR
+         raGCFA3UtDsKuztEoXmdmtt1/lMyAiDE6kGQ388ei6W083Y6nfT37drJjaFQTK+QZofn
+         3RHk3v2T9Bmbdp2KaWPWbMdO7CBCwIQmSf9YYtjWW/4kSobdsC+2OVcrHN4OfjfCp5jd
+         KUwQ==
+X-Gm-Message-State: AGi0Pua+xc1kwD0ZYUUcah+QSFDE36FUP5SiCYUgYe0G1RUvSSmDBzcZ
+	WQuCKF03NjPA+gM1r6jjHATAXh3umFW17Z05cODndQ==
+X-Google-Smtp-Source: APiQypJp9NQ86ZACrxyDG7uNiPUT0j/uBuCZoYfvaokYMx0Lf+tLeNKpIPNKV9OyQLZXftdBqmIBigjUlaQXJbsLl3I=
+X-Received: by 2002:a17:906:eb90:: with SMTP id mh16mr5533705ejb.201.1587167730255;
+ Fri, 17 Apr 2020 16:55:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200416190507.GC276932@redhat.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-Message-ID-Hash: FOFK5BYVYISPJ6Y2RY3AUHQE24VRREKS
-X-Message-ID-Hash: FOFK5BYVYISPJ6Y2RY3AUHQE24VRREKS
-X-MailFrom: bo.liu@linux.alibaba.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, virtio-fs@redhat.com, miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, mst@redhat.com
+References: <20200416081314.2637325-1-santosh@fossix.org>
+In-Reply-To: <20200416081314.2637325-1-santosh@fossix.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 17 Apr 2020 16:55:19 -0700
+Message-ID: <CAPcyv4iQJ3qMovByZHCTXqgH-Z9g1HQcjEhQp_nGxQmnrP=wSA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v2] Skip region filtering if numa_node attribute is
+ not present
+To: Santosh Sivaraj <santosh@fossix.org>
+Message-ID-Hash: YOT5ADDUMHASJFWKMCVK5SPPFJSHEYZP
+X-Message-ID-Hash: YOT5ADDUMHASJFWKMCVK5SPPFJSHEYZP
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, harish@linux.ibm.com
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: bo.liu@linux.alibaba.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FOFK5BYVYISPJ6Y2RY3AUHQE24VRREKS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YOT5ADDUMHASJFWKMCVK5SPPFJSHEYZP/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,98 +82,17 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Apr 16, 2020 at 03:05:07PM -0400, Vivek Goyal wrote:
-> On Thu, Apr 16, 2020 at 01:22:29AM +0800, Liu Bo wrote:
-> > On Tue, Apr 14, 2020 at 03:30:45PM -0400, Vivek Goyal wrote:
-> > > On Sat, Mar 28, 2020 at 06:06:06AM +0800, Liu Bo wrote:
-> > > > On Fri, Mar 27, 2020 at 10:01:14AM -0400, Vivek Goyal wrote:
-> > > > > On Thu, Mar 26, 2020 at 08:09:05AM +0800, Liu Bo wrote:
-> > > > > 
-> > > > > [..]
-> > > > > > > +/*
-> > > > > > > + * Find first mapping in the tree and free it and return it. Do not add
-> > > > > > > + * it back to free pool. If fault == true, this function should be called
-> > > > > > > + * with fi->i_mmap_sem held.
-> > > > > > > + */
-> > > > > > > +static struct fuse_dax_mapping *inode_reclaim_one_dmap(struct fuse_conn *fc,
-> > > > > > > +							 struct inode *inode,
-> > > > > > > +							 bool fault)
-> > > > > > > +{
-> > > > > > > +	struct fuse_inode *fi = get_fuse_inode(inode);
-> > > > > > > +	struct fuse_dax_mapping *dmap;
-> > > > > > > +	int ret;
-> > > > > > > +
-> > > > > > > +	if (!fault)
-> > > > > > > +		down_write(&fi->i_mmap_sem);
-> > > > > > > +
-> > > > > > > +	/*
-> > > > > > > +	 * Make sure there are no references to inode pages using
-> > > > > > > +	 * get_user_pages()
-> > > > > > > +	 */
-> > > > > > > +	ret = fuse_break_dax_layouts(inode, 0, 0);
-> > > > > > 
-> > > > > > Hi Vivek,
-> > > > > > 
-> > > > > > This patch is enabling inline reclaim for fault path, but fault path
-> > > > > > has already holds a locked exceptional entry which I believe the above
-> > > > > > fuse_break_dax_layouts() needs to wait for, can you please elaborate
-> > > > > > on how this can be avoided?
-> > > > > > 
-> > > > > 
-> > > > > Hi Liubo,
-> > > > > 
-> > > > > Can you please point to the exact lock you are referring to. I will
-> > > > > check it out. Once we got rid of needing to take inode lock in
-> > > > > reclaim path, that opended the door to do inline reclaim in fault
-> > > > > path as well. But I was not aware of this exceptional entry lock.
-> > > > 
-> > > > Hi Vivek,
-> > > > 
-> > > > dax_iomap_{pte,pmd}_fault has called grab_mapping_entry to get a
-> > > > locked entry, when this fault gets into inline reclaim, would
-> > > > fuse_break_dax_layouts wait for the locked exceptional entry which is
-> > > > locked in dax_iomap_{pte,pmd}_fault?
-> > > 
-> > > Hi Liu Bo,
-> > > 
-> > > This is a good point. Indeed it can deadlock the way code is written
-> > > currently.
-> > >
-> > 
-> > It's 100% reproducible on 4.19, but not on 5.x which has xarray for
-> > dax_layout_busy_page.
-> > 
-> > It was weird that on 5.x kernel the deadlock is gone, it turned out
-> > that xarray search in dax_layout_busy_page simply skips the empty
-> > locked exceptional entry, I didn't get deeper to find out whether it's
-> > reasonable, but with that 5.x doesn't run to deadlock.
-> 
-> I found more problems with enabling inline reclaim in fault path. I
-> am holding fi->i_mmap_sem, shared and fuse_break_dax_layouts() can
-> drop fi->i_mmap_sem if page is busy. I don't think we can drop and
-> reacquire fi->i_mmap_sem while in fault path.
+On Thu, Apr 16, 2020 at 1:14 AM Santosh Sivaraj <santosh@fossix.org> wrote:
 >
-
-Good point, yes, dropping & reacquiring lock might bring more trouble
-w.r.t race on the i_mmap_sem.
-
-> Also fuse_break_dax_layouts() does not know if we are holding it
-> shared or exclusive.
-> 
-> So I will probably have to go back to disable inline reclaim in
-> fault path. If memory range is not available go back up in
-> fuse_dax_fault(), drop fi->i_mmap_sem lock and wait on wait queue for
-> a range to become free and retry.
-> 
-> I can retain the changes I did to break layout for a 2MB range only
-> and not the whole file. I think that's a good optimization to retain
-> anyway.
+> For kernel versions older than 5.4, the numa_node attribute is not
+> present for regions; due to which `ndctl list -U 1` fails to list
+> namespaces.
 >
+> Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
 
-That part does look reasonable to me.
+Looks good to me.
 
-thanks,
-liubo
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
