@@ -2,110 +2,94 @@ Return-Path: <SRS0=XhsV=6C=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B8EDC5321D
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 14:44:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDC1BC352BE
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:41:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 017F822244
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 14:44:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 963B622209
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:41:37 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="DJDR61UE"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 017F822244
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="JDXvnRUe"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 963B622209
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BD32510FC377A;
-	Sat, 18 Apr 2020 07:44:38 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 994C210FC62C5;
+	Sat, 18 Apr 2020 11:41:44 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B8BBA1010630A
-	for <linux-nvdimm@lists.01.org>; Sat, 18 Apr 2020 07:44:36 -0700 (PDT)
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 1066621BE5;
-	Sat, 18 Apr 2020 14:44:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1587221067;
-	bh=8ueGKzVpssWmv48W/XObwKppzjDuII99J2uriC02WAw=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=DJDR61UE0bitsp066OveImHi48y8jhdNVvN3OYYv6pfw7vBXLuls032jM+37e+9jE
-	 s6QmVvBXzD6xRpajGGo0n07FByz7/9x+cX8QBdp5DoYQCzpKz5QOY1ymga/MeBMr9Q
-	 Nibuozi9kaQI8Fr9TKSf4iUx+ea63/xv0Ez+Ilh4=
-From: Sasha Levin <sashal@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.9 17/23] libnvdimm: Out of bounds read in __nd_ioctl()
-Date: Sat, 18 Apr 2020 10:43:59 -0400
-Message-Id: <20200418144405.10565-17-sashal@kernel.org>
-X-Mailer: git-send-email 2.20.1
-In-Reply-To: <20200418144405.10565-1-sashal@kernel.org>
-References: <20200418144405.10565-1-sashal@kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 0334110FC3BBA
+	for <linux-nvdimm@lists.01.org>; Sat, 18 Apr 2020 11:41:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
+	Content-Type:MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:
+	To:From:Sender:Reply-To:Content-ID:Content-Description;
+	bh=PcYjWQQ7jWfjWjAXgVV1SYCf3duL2j5Dyqo6dTDCrvc=; b=JDXvnRUeifNZ+Ac5TUneCkXEfw
+	xGm7FAIuWAOT5gimqOHdhp/grioqH8IcST+jg0KLZY3liAOqyk+QRxz88gfFrn1pGspjvVf4kn+9z
+	6WnDEql0MbixpKyaGExg7dKQXpW5xcLjkR6Sghi8cCQI/hTO1yXq4UDTbsHmGn4nDqmEnHzJuU3K1
+	xD7HyAbbCak26otzJily36UMy3pM+4gOlaaVkoFKBllnKTlL2HIrqBh3/P+uJ7g73UIIdgCRYZljh
+	6KJkixDPOYB+DeexXaN99s1T3haGNSH+ia9YOZZ2bNW49PZ2AL6kZXsFv+3C4ILtQ3Sm08S03mSqL
+	JJuwddgw==;
+Received: from [2601:1c0:6280:3f0::19c2] (helo=smtpauth.infradead.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1jPsP4-0007rZ-33; Sat, 18 Apr 2020 18:41:22 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH 9/9] target: fix empty-body warning in target_core_pscsi.c
+Date: Sat, 18 Apr 2020 11:41:11 -0700
+Message-Id: <20200418184111.13401-10-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.16.4
+In-Reply-To: <20200418184111.13401-1-rdunlap@infradead.org>
+References: <20200418184111.13401-1-rdunlap@infradead.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Message-ID-Hash: KFDO2XGKQ2AYAHSHJV2FQ4HEJHQ3SSN5
-X-Message-ID-Hash: KFDO2XGKQ2AYAHSHJV2FQ4HEJHQ3SSN5
-X-MailFrom: sashal@kernel.org
+Message-ID-Hash: NXJK2FL2TH52K6SEAVLYARBZVOKRN5QE
+X-Message-ID-Hash: NXJK2FL2TH52K6SEAVLYARBZVOKRN5QE
+X-MailFrom: rdunlap@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Dan Carpenter <dan.carpenter@oracle.com>, Sasha Levin <sashal@kernel.org>, linux-nvdimm@lists.01.org
+CC: Randy Dunlap <rdunlap@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Chuck Lever <chuck.lever@oracle.com>, linux-nfs@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, Zzy Wysm <zzy@zzywysm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KFDO2XGKQ2AYAHSHJV2FQ4HEJHQ3SSN5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NXJK2FL2TH52K6SEAVLYARBZVOKRN5QE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
-
-[ Upstream commit f84afbdd3a9e5e10633695677b95422572f920dc ]
-
-The "cmd" comes from the user and it can be up to 255.  It it's more
-than the number of bits in long, it results out of bounds read when we
-check test_bit(cmd, &cmd_mask).  The highest valid value for "cmd" is
-ND_CMD_CALL (10) so I added a compare against that.
-
-Fixes: 62232e45f4a2 ("libnvdimm: control (ioctl) messages for nvdimm_bus and nvdimm devices")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Link: https://lore.kernel.org/r/20200225162055.amtosfy7m35aivxg@kili.mountain
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/nvdimm/bus.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 5768a4749564a..65ac1d3870f93 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -851,8 +851,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 			return -EFAULT;
- 	}
- 
--	if (!desc || (desc->out_num + desc->in_num == 0) ||
--			!test_bit(cmd, &cmd_mask))
-+	if (!desc ||
-+	    (desc->out_num + desc->in_num == 0) ||
-+	    cmd > ND_CMD_CALL ||
-+	    !test_bit(cmd, &cmd_mask))
- 		return -ENOTTY;
- 
- 	/* fail write commands (when read-only) */
--- 
-2.20.1
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+Rml4IGdjYyBlbXB0eS1ib2R5IHdhcm5pbmcgd2hlbiAtV2V4dHJhIGlzIHVzZWQ6DQoNCi4uL2Ry
+aXZlcnMvdGFyZ2V0L3RhcmdldF9jb3JlX3BzY3NpLmM6NjI0OjU6IHdhcm5pbmc6IHN1Z2dlc3Qg
+YnJhY2VzIGFyb3VuZCBlbXB0eSBib2R5IGluIGFuIOKAmGlm4oCZIHN0YXRlbWVudCBbLVdlbXB0
+eS1ib2R5XQ0KDQpTaWduZWQtb2ZmLWJ5OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5mcmFkZWFk
+Lm9yZz4NCkNjOiBMaW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+
+DQpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCkNjOiAiTWFy
+dGluIEsuIFBldGVyc2VuIiA8bWFydGluLnBldGVyc2VuQG9yYWNsZS5jb20+DQpDYzogbGludXgt
+c2NzaUB2Z2VyLmtlcm5lbC5vcmcNCkNjOiB0YXJnZXQtZGV2ZWxAdmdlci5rZXJuZWwub3JnDQot
+LS0NCiBkcml2ZXJzL3RhcmdldC90YXJnZXRfY29yZV9wc2NzaS5jIHwgICAgMyArKy0NCiAxIGZp
+bGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQoNCi0tLSBsaW51eC1u
+ZXh0LTIwMjAwNDE3Lm9yaWcvZHJpdmVycy90YXJnZXQvdGFyZ2V0X2NvcmVfcHNjc2kuYw0KKysr
+IGxpbnV4LW5leHQtMjAyMDA0MTcvZHJpdmVycy90YXJnZXQvdGFyZ2V0X2NvcmVfcHNjc2kuYw0K
+QEAgLTE4LDYgKzE4LDcgQEANCiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0KICNpbmNsdWRlIDxs
+aW51eC9zcGlubG9jay5oPg0KICNpbmNsdWRlIDxsaW51eC9nZW5oZC5oPg0KKyNpbmNsdWRlIDxs
+aW51eC9rZXJuZWwuaD4NCiAjaW5jbHVkZSA8bGludXgvY2Ryb20uaD4NCiAjaW5jbHVkZSA8bGlu
+dXgvcmF0ZWxpbWl0Lmg+DQogI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KQEAgLTYyMSw3ICs2
+MjIsNyBAQCBzdGF0aWMgdm9pZCBwc2NzaV9jb21wbGV0ZV9jbWQoc3RydWN0IHNlDQogDQogCQkJ
+YnVmID0gdHJhbnNwb3J0X2ttYXBfZGF0YV9zZyhjbWQpOw0KIAkJCWlmICghYnVmKQ0KLQkJCQk7
+IC8qIFhYWDogVENNX0xPR0lDQUxfVU5JVF9DT01NVU5JQ0FUSU9OX0ZBSUxVUkUgKi8NCisJCQkJ
+ZG9fZW1wdHkoKTsgLyogWFhYOiBUQ01fTE9HSUNBTF9VTklUX0NPTU1VTklDQVRJT05fRkFJTFVS
+RSAqLw0KIA0KIAkJCWlmIChjZGJbMF0gPT0gTU9ERV9TRU5TRV8xMCkgew0KIAkJCQlpZiAoIShi
+dWZbM10gJiAweDgwKSkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxp
+c3RzLjAxLm9yZwo=
