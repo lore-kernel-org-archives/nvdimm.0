@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79927C352BE
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:41:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16651C4CC77
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:41:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4E7E522209
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:41:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id E285022209
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:41:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="j5q/SQ1+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4E7E522209
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="jiUzn1PA"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E285022209
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EA6D610FC62D8;
-	Sat, 18 Apr 2020 11:41:45 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 0B00210FC62DB;
+	Sat, 18 Apr 2020 11:41:47 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 05C0810FC62C5
-	for <linux-nvdimm@lists.01.org>; Sat, 18 Apr 2020 11:41:41 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 5D95810FC3BBA
+	for <linux-nvdimm@lists.01.org>; Sat, 18 Apr 2020 11:41:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
 	Content-Type:MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:
 	To:From:Sender:Reply-To:Content-ID:Content-Description;
-	bh=RAwgh7dK6Aq2GUmD2z2q67RSpKe0Qba5fsNnenVzxMI=; b=j5q/SQ1+k3/+/NWSTV/WCIkHyr
-	zch6FAcwYZsrW1PmSwaW8sUH6ZWeOC45ea2Cw5ovOtRwJLJOkQhRg13tWis5r+icV/DhjmdEjwv79
-	s2h+fCIcRl3RnLCdtSGFczimDTd9m/8AzLPWV2hp+UzgF8z2XnH0R/f/a5DQg9nNd3Y73Ad9ZrO4P
-	SE8YtJq+oauVuVNS6MyEi2RLVp6TVtw40sWJHw1JEOXlVu7aGBz0X1bug3Vw49BLE3fO57MGGN/q0
-	Pmq5oXAMF6sIRcv8GgeZALDInNNSJ4NKJzYxSO84gAsonX87pABbmdSy94HL9m+wa0jkyxTrzud66
-	2h6YWfaA==;
+	bh=a1s3aPpvGKpLdiCJSF1xLoCWRs8yNfGARacikYyrDtI=; b=jiUzn1PA4booMrgyt5t3GsYFr/
+	ZqbT1yqWuAseTRoPR1cZ03WbQhbWrvrfb3Shktw7TgEPLJPejITeFAbVpfnenXWRmF7BSdlw5fufc
+	5xVlLn5sdiZQghsGwMmWWL3arC3NhWrkyBajNutMr9ImoAPpM5lUCW04FYz0kBfqOP3r4nEhct+h+
+	TCAeoRiWqPwZ5aMwlmi2X9WUo2e8C3nduhVceISsZ3l3t8Xh7FJIDIIpigt0+kncqSYZfrE4lZsBt
+	6TUBNG1H8zQfQhU58PLzemrg6gBhYWrYtkQmRG8kcbMriC/faW7nNfRC00eH2Qpc13GljIFfSJ2mg
+	RiFLp/YA==;
 Received: from [2601:1c0:6280:3f0::19c2] (helo=smtpauth.infradead.org)
 	by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1jPsP3-0007rZ-5p; Sat, 18 Apr 2020 18:41:21 +0000
+	id 1jPsP1-0007rZ-9Y; Sat, 18 Apr 2020 18:41:19 +0000
 From: Randy Dunlap <rdunlap@infradead.org>
 To: linux-kernel@vger.kernel.org
-Subject: [PATCH 8/9] dax: fix empty-body warnings in bus.c
-Date: Sat, 18 Apr 2020 11:41:10 -0700
-Message-Id: <20200418184111.13401-9-rdunlap@infradead.org>
+Subject: [PATCH 6/9] nfsd: fix empty-body warning in nfs4state.c
+Date: Sat, 18 Apr 2020 11:41:08 -0700
+Message-Id: <20200418184111.13401-7-rdunlap@infradead.org>
 X-Mailer: git-send-email 2.16.4
 In-Reply-To: <20200418184111.13401-1-rdunlap@infradead.org>
 References: <20200418184111.13401-1-rdunlap@infradead.org>
 MIME-Version: 1.0
-Message-ID-Hash: NO3P4NNRPVVXEV7P426RPJDODFBPX22E
-X-Message-ID-Hash: NO3P4NNRPVVXEV7P426RPJDODFBPX22E
+Message-ID-Hash: IJWQ2PKT77QZ2WCGLXXHFLJ7DUHQYCMC
+X-Message-ID-Hash: IJWQ2PKT77QZ2WCGLXXHFLJ7DUHQYCMC
 X-MailFrom: rdunlap@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -59,7 +59,7 @@ CC: Randy Dunlap <rdunlap@infradead.org>, Linus Torvalds <torvalds@linux-foundat
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NO3P4NNRPVVXEV7P426RPJDODFBPX22E/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IJWQ2PKT77QZ2WCGLXXHFLJ7DUHQYCMC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,31 +68,26 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 
-Rml4IGdjYyBlbXB0eS1ib2R5IHdhcm5pbmcgd2hlbiAtV2V4dHJhIGlzIHVzZWQ6DQoNCi4uL2Ry
-aXZlcnMvZGF4L2J1cy5jOjkzOjI3OiB3YXJuaW5nOiBzdWdnZXN0IGJyYWNlcyBhcm91bmQgZW1w
-dHkgYm9keSBpbiBhbiDigJhlbHNl4oCZIHN0YXRlbWVudCBbLVdlbXB0eS1ib2R5XQ0KLi4vZHJp
-dmVycy9kYXgvYnVzLmM6OTg6Mjk6IHdhcm5pbmc6IHN1Z2dlc3QgYnJhY2VzIGFyb3VuZCBlbXB0
-eSBib2R5IGluIGFuIOKAmGVsc2XigJkgc3RhdGVtZW50IFstV2VtcHR5LWJvZHldDQoNClNpZ25l
-ZC1vZmYtYnk6IFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZyYWRlYWQub3JnPg0KQ2M6IERhbiBX
-aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KQ2M6IFZpc2hhbCBWZXJtYSA8dmlz
-aGFsLmwudmVybWFAaW50ZWwuY29tPg0KQ2M6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwu
-Y29tPg0KQ2M6IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCkNjOiBMaW51cyBUb3J2YWxkcyA8
-dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+DQpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBs
-aW51eC1mb3VuZGF0aW9uLm9yZz4NCi0tLQ0KIGRyaXZlcnMvZGF4L2J1cy5jIHwgICAgNSArKyst
-LQ0KIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQoNCi0t
-LSBsaW51eC1uZXh0LTIwMjAwNDE3Lm9yaWcvZHJpdmVycy9kYXgvYnVzLmMNCisrKyBsaW51eC1u
-ZXh0LTIwMjAwNDE3L2RyaXZlcnMvZGF4L2J1cy5jDQpAQCAtMiw2ICsyLDcgQEANCiAvKiBDb3B5
-cmlnaHQoYykgMjAxNy0yMDE4IEludGVsIENvcnBvcmF0aW9uLiBBbGwgcmlnaHRzIHJlc2VydmVk
-LiAqLw0KICNpbmNsdWRlIDxsaW51eC9tZW1yZW1hcC5oPg0KICNpbmNsdWRlIDxsaW51eC9kZXZp
-Y2UuaD4NCisjaW5jbHVkZSA8bGludXgva2VybmVsLmg+DQogI2luY2x1ZGUgPGxpbnV4L211dGV4
-Lmg+DQogI2luY2x1ZGUgPGxpbnV4L2xpc3QuaD4NCiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPg0K
-QEAgLTkwLDEyICs5MSwxMiBAQCBzdGF0aWMgc3NpemVfdCBkb19pZF9zdG9yZShzdHJ1Y3QgZGV2
-aWNlDQogCQkJfSBlbHNlDQogCQkJCXJjID0gLUVOT01FTTsNCiAJCX0gZWxzZQ0KLQkJCS8qIG5v
-dGhpbmcgdG8gcmVtb3ZlICovOw0KKwkJCWRvX2VtcHR5KCk7IC8qIG5vdGhpbmcgdG8gcmVtb3Zl
-ICovDQogCX0gZWxzZSBpZiAoYWN0aW9uID09IElEX1JFTU9WRSkgew0KIAkJbGlzdF9kZWwoJmRh
-eF9pZC0+bGlzdCk7DQogCQlrZnJlZShkYXhfaWQpOw0KIAl9IGVsc2UNCi0JCS8qIGRheF9pZCBh
-bHJlYWR5IGFkZGVkICovOw0KKwkJZG9fZW1wdHkoKTsgLyogZGF4X2lkIGFscmVhZHkgYWRkZWQg
-Ki8NCiAJbXV0ZXhfdW5sb2NrKCZkYXhfYnVzX2xvY2spOw0KIA0KIAlpZiAocmMgPCAwKQpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0g
-bWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUg
-c2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+Rml4IGdjYyBlbXB0eS1ib2R5IHdhcm5pbmcgd2hlbiAtV2V4dHJhIGlzIHVzZWQ6DQoNCi4uL2Zz
+L25mc2QvbmZzNHN0YXRlLmM6Mzg5ODozOiB3YXJuaW5nOiBzdWdnZXN0IGJyYWNlcyBhcm91bmQg
+ZW1wdHkgYm9keSBpbiBhbiDigJhlbHNl4oCZIHN0YXRlbWVudCBbLVdlbXB0eS1ib2R5XQ0KDQpT
+aWduZWQtb2ZmLWJ5OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5mcmFkZWFkLm9yZz4NCkNjOiBM
+aW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+DQpDYzogQW5kcmV3
+IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCkNjOiAiSi4gQnJ1Y2UgRmllbGRz
+IiA8YmZpZWxkc0BmaWVsZHNlcy5vcmc+DQpDYzogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9y
+YWNsZS5jb20+DQpDYzogbGludXgtbmZzQHZnZXIua2VybmVsLm9yZw0KLS0tDQogZnMvbmZzZC9u
+ZnM0c3RhdGUuYyB8ICAgIDMgKystDQogMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwg
+MSBkZWxldGlvbigtKQ0KDQotLS0gbGludXgtbmV4dC0yMDIwMDQxNy5vcmlnL2ZzL25mc2QvbmZz
+NHN0YXRlLmMNCisrKyBsaW51eC1uZXh0LTIwMjAwNDE3L2ZzL25mc2QvbmZzNHN0YXRlLmMNCkBA
+IC0zNCw2ICszNCw3IEBADQogDQogI2luY2x1ZGUgPGxpbnV4L2ZpbGUuaD4NCiAjaW5jbHVkZSA8
+bGludXgvZnMuaD4NCisjaW5jbHVkZSA8bGludXgva2VybmVsLmg+DQogI2luY2x1ZGUgPGxpbnV4
+L3NsYWIuaD4NCiAjaW5jbHVkZSA8bGludXgvbmFtZWkuaD4NCiAjaW5jbHVkZSA8bGludXgvc3dh
+cC5oPg0KQEAgLTM4OTUsNyArMzg5Niw3IEBAIG5mc2Q0X3NldGNsaWVudGlkKHN0cnVjdCBzdmNf
+cnFzdCAqcnFzdHANCiAJCWNvcHlfY2xpZChuZXcsIGNvbmYpOw0KIAkJZ2VuX2NvbmZpcm0obmV3
+LCBubik7DQogCX0gZWxzZSAvKiBjYXNlIDQgKG5ldyBjbGllbnQpIG9yIGNhc2VzIDIsIDMgKGNs
+aWVudCByZWJvb3QpOiAqLw0KLQkJOw0KKwkJZG9fZW1wdHkoKTsNCiAJbmV3LT5jbF9taW5vcnZl
+cnNpb24gPSAwOw0KIAlnZW5fY2FsbGJhY2sobmV3LCBzZXRjbGlkLCBycXN0cCk7DQogCWFkZF90
+b191bmNvbmZpcm1lZChuZXcpOwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0
+cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVh
+dmVAbGlzdHMuMDEub3JnCg==
