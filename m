@@ -2,108 +2,115 @@ Return-Path: <SRS0=XhsV=6C=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2039FC3A5A0
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:55:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CECCC3A5A0
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:56:05 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id ED2FF21D93
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:55:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZSd4gPvR"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ED2FF21D93
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	by mail.kernel.org (Postfix) with ESMTPS id F33722223D
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 18 Apr 2020 18:56:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F33722223D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=perches.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8476210FC62E0;
-	Sat, 18 Apr 2020 11:55:52 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+	by ml01.01.org (Postfix) with ESMTP id A01B010FC62E5;
+	Sat, 18 Apr 2020 11:56:12 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=216.40.44.186; helo=smtprelay.hostedemail.com; envelope-from=joe@perches.com; receiver=<UNKNOWN> 
+Received: from smtprelay.hostedemail.com (smtprelay0186.hostedemail.com [216.40.44.186])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3A36810FC62DD
-	for <linux-nvdimm@lists.01.org>; Sat, 18 Apr 2020 11:55:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
-	Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:
-	Subject:Sender:Reply-To:Content-ID:Content-Description;
-	bh=Fw5l4YeyjM9q5bGtc9HETB0eI3KSL+di5A5JibSeUVA=; b=ZSd4gPvRX+1EcEyWBtmo2xeq+k
-	YGKz4bmzRQ0lBLMGURF5oh6CYWK4W10L7kKdDnAI5hJvRsl3/cWENuwUZYgrll4QOeY8IG2KAIwKm
-	DmODoHeVwqhNbpPD2mueD4eauFer8yFIuqk42bawnd9he64bV/jQfHVxkRxNmOAMcICHspMdvF49L
-	mwjxdxSsr1vLxgUV9OSBDAPsxY5sxHKI3ovi3k6+D0MPLbEOgd5u2ipYWdww6+1xj13RRsP3BbZTP
-	5/uu3l5yRFjedkT+1vldVo7jjG4LvH/c3xDAix8dZm74bZ5+P4Sk4RUlA1MpmcdYVcPWYAQRtLCOh
-	CMd3C1UQ==;
-Received: from [2601:1c0:6280:3f0::19c2]
-	by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1jPscv-0000Nr-Nv; Sat, 18 Apr 2020 18:55:41 +0000
-Subject: Re: [PATCH 2/9] fs: fix empty-body warning in posix_acl.c
-To: Linus Torvalds <torvalds@linux-foundation.org>
+	by ml01.01.org (Postfix) with ESMTPS id B2A0510FC62DF
+	for <linux-nvdimm@lists.01.org>; Sat, 18 Apr 2020 11:56:10 -0700 (PDT)
+Received: from filter.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
+	by smtprelay06.hostedemail.com (Postfix) with ESMTP id BBBA618018500;
+	Sat, 18 Apr 2020 18:56:01 +0000 (UTC)
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-HE-Tag: money21_1707d78e8f515
+X-Filterd-Recvd-Size: 3611
+Received: from XPS-9350.home (unknown [47.151.136.130])
+	(Authenticated sender: joe@perches.com)
+	by omf03.hostedemail.com (Postfix) with ESMTPA;
+	Sat, 18 Apr 2020 18:55:58 +0000 (UTC)
+Message-ID: <6c796219ea79d87093409f2dd1d3bf8e4a157ed7.camel@perches.com>
+Subject: Re: [PATCH 6/9] nfsd: fix empty-body warning in nfs4state.c
+From: Joe Perches <joe@perches.com>
+To: Chuck Lever <chuck.lever@oracle.com>, Randy Dunlap
+ <rdunlap@infradead.org>
+Date: Sat, 18 Apr 2020 11:53:44 -0700
+In-Reply-To: <CDCF7717-7CBC-47CA-9E83-3A18ECB3AB89@oracle.com>
 References: <20200418184111.13401-1-rdunlap@infradead.org>
- <20200418184111.13401-3-rdunlap@infradead.org>
- <CAHk-=wjSzuTyyBkmMDG4fx_sXzLJsh+9Xk-ubgbpJzJq_kzPsA@mail.gmail.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <722a746a-1438-60e3-04b2-c13eda2ad168@infradead.org>
-Date: Sat, 18 Apr 2020 11:55:38 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	 <20200418184111.13401-7-rdunlap@infradead.org>
+	 <CDCF7717-7CBC-47CA-9E83-3A18ECB3AB89@oracle.com>
+User-Agent: Evolution 3.34.1-2 
 MIME-Version: 1.0
-In-Reply-To: <CAHk-=wjSzuTyyBkmMDG4fx_sXzLJsh+9Xk-ubgbpJzJq_kzPsA@mail.gmail.com>
-Content-Language: en-US
-Message-ID-Hash: PCDDKTIYZUGIJDANQIGAUVYSZ6AKTWA6
-X-Message-ID-Hash: PCDDKTIYZUGIJDANQIGAUVYSZ6AKTWA6
-X-MailFrom: rdunlap@infradead.org
+Message-ID-Hash: YTXPZ75HHDHC4EHZQWZQG5FAZLFCGOQ7
+X-Message-ID-Hash: YTXPZ75HHDHC4EHZQWZQG5FAZLFCGOQ7
+X-MailFrom: joe@perches.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Chuck Lever <chuck.lever@oracle.com>, "open list:NFS, SUNRPC, AND..." <linux-nfs@vger.kernel.org>, Johannes Berg <johannes@sipsolutions.net>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-scsi <linux-scsi@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, Zzy Wysm <zzy@zzywysm.com>
+CC: LKML <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Bruce Fields <bfields@fieldses.org>,
+	Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
+	Johannes Berg <johannes@sipsolutions.net>, linux-nvdimm@lists.01.org,
+	"Martin K."@ml01.01.org, Petersen@ml01.01.org,
+	" <martin.petersen@oracle.com>, linux-scsi@vger.kernel.org, "@ml01.01.org,
+	target-devel@vger.kernel.org, Zzy Wysm <zzy@zzywysm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PCDDKTIYZUGIJDANQIGAUVYSZ6AKTWA6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YTXPZ75HHDHC4EHZQWZQG5FAZLFCGOQ7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On 4/18/20 11:53 AM, Linus Torvalds wrote:
-> On Sat, Apr 18, 2020 at 11:41 AM Randy Dunlap <rdunlap@infradead.org> wrote:
->>
->> Fix gcc empty-body warning when -Wextra is used:
-> 
-> Please don't do this.
-> 
-> First off, "do_empty()" adds nothing but confusion. Now it
-> syntactically looks like it does something, and it's a new pattern to
-> everybody. I've never seen it before.
-> 
-> Secondly, even if we were to do this, then the patch would be wrong:
-> 
->>         if (cmpxchg(p, ACL_NOT_CACHED, sentinel) != ACL_NOT_CACHED)
->> -               /* fall through */ ;
->> +               do_empty(); /* fall through */
-> 
-> That comment made little sense before, but it makes _no_ sense now.
-> 
-> What fall-through? I'm guessing it meant to say "nothing", and
-> somebody was confused. With "do_empty()", it's even more confusing.
-> 
-> Thirdly, there's a *reason* why "-Wextra" isn't used.
-> 
-> The warnings enabled by -Wextra are usually complete garbage, and
-> trying to fix them often makes the code worse. Exactly like here.
-
-OK, no problem.  That's why PATCH 0/9 says RFC.
-
-Oops. Crap. It was *supposed* to say RFC. :(
-
--- 
-~Randy
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+T24gU2F0LCAyMDIwLTA0LTE4IGF0IDE0OjQ1IC0wNDAwLCBDaHVjayBMZXZlciB3cm90ZToNCj4g
+PiBPbiBBcHIgMTgsIDIwMjAsIGF0IDI6NDEgUE0sIFJhbmR5IER1bmxhcCA8cmR1bmxhcEBpbmZy
+YWRlYWQub3JnPiB3cm90ZToNCj4gPiANCj4gPiBGaXggZ2NjIGVtcHR5LWJvZHkgd2FybmluZyB3
+aGVuIC1XZXh0cmEgaXMgdXNlZDoNCj4gPiANCj4gPiAuLi9mcy9uZnNkL25mczRzdGF0ZS5jOjM4
+OTg6Mzogd2FybmluZzogc3VnZ2VzdCBicmFjZXMgYXJvdW5kIGVtcHR5IGJvZHkgaW4gYW4g4oCY
+ZWxzZeKAmSBzdGF0ZW1lbnQgWy1XZW1wdHktYm9keV0NCj4gPiANCj4gPiBTaWduZWQtb2ZmLWJ5
+OiBSYW5keSBEdW5sYXAgPHJkdW5sYXBAaW5mcmFkZWFkLm9yZz4NCj4gPiBDYzogTGludXMgVG9y
+dmFsZHMgPHRvcnZhbGRzQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KPiA+IENjOiBBbmRyZXcgTW9y
+dG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KPiA+IENjOiAiSi4gQnJ1Y2UgRmllbGRz
+IiA8YmZpZWxkc0BmaWVsZHNlcy5vcmc+DQo+ID4gQ2M6IENodWNrIExldmVyIDxjaHVjay5sZXZl
+ckBvcmFjbGUuY29tPg0KPiA+IENjOiBsaW51eC1uZnNAdmdlci5rZXJuZWwub3JnDQo+IA0KPiBJ
+IGhhdmUgYSBwYXRjaCBpbiBteSBxdWV1ZSB0aGF0IGFkZHJlc3NlcyB0aGlzIHBhcnRpY3VsYXIg
+d2FybmluZywNCj4gYnV0IHlvdXIgY2hhbmdlIHdvcmtzIGZvciBtZSB0b28uDQo+IA0KPiBBY2tl
+ZC1ieTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9yYWNsZS5jb20+DQo+IA0KPiBVbmxlc3Mg
+QnJ1Y2Ugb2JqZWN0cy4NCj4gDQo+IA0KPiA+IC0tLQ0KPiA+IGZzL25mc2QvbmZzNHN0YXRlLmMg
+fCAgICAzICsrLQ0KPiA+IDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDEgZGVsZXRp
+b24oLSkNCj4gPiANCj4gPiAtLS0gbGludXgtbmV4dC0yMDIwMDQxNy5vcmlnL2ZzL25mc2QvbmZz
+NHN0YXRlLmMNCj4gPiArKysgbGludXgtbmV4dC0yMDIwMDQxNy9mcy9uZnNkL25mczRzdGF0ZS5j
+DQo+ID4gQEAgLTM0LDYgKzM0LDcgQEANCj4gPiANCj4gPiAjaW5jbHVkZSA8bGludXgvZmlsZS5o
+Pg0KPiA+ICNpbmNsdWRlIDxsaW51eC9mcy5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgva2VybmVs
+Lmg+DQo+ID4gI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4NCj4gPiAjaW5jbHVkZSA8bGludXgvbmFt
+ZWkuaD4NCj4gPiAjaW5jbHVkZSA8bGludXgvc3dhcC5oPg0KPiA+IEBAIC0zODk1LDcgKzM4OTYs
+NyBAQCBuZnNkNF9zZXRjbGllbnRpZChzdHJ1Y3Qgc3ZjX3Jxc3QgKnJxc3RwDQo+ID4gCQljb3B5
+X2NsaWQobmV3LCBjb25mKTsNCj4gPiAJCWdlbl9jb25maXJtKG5ldywgbm4pOw0KPiA+IAl9IGVs
+c2UgLyogY2FzZSA0IChuZXcgY2xpZW50KSBvciBjYXNlcyAyLCAzIChjbGllbnQgcmVib290KTog
+Ki8NCj4gPiAtCQk7DQo+ID4gKwkJZG9fZW1wdHkoKTsNCj4gPiAJbmV3LT5jbF9taW5vcnZlcnNp
+b24gPSAwOw0KPiA+IAlnZW5fY2FsbGJhY2sobmV3LCBzZXRjbGlkLCBycXN0cCk7DQo+ID4gCWFk
+ZF90b191bmNvbmZpcm1lZChuZXcpOw0KDQpUaGlzIGVtcHR5IGVsc2Ugc2VlbXMgc2lsbHkgYW5k
+IGNvdWxkIGxpa2VseSBiZSBiZXR0ZXIgaGFuZGxlZCBieQ0KYSBjb21tZW50IGFib3ZlIHRoZSBm
+aXJzdCBpZiwgc29tZXRoaW5nIGxpa2U6DQoNCgkvKiBmb3Igbm93IG9ubHkgaGFuZGxlIGNhc2Ug
+MTogcHJvYmFibGUgY2FsbGJhY2sgdXBkYXRlICovDQoJaWYgKGNvbmYgJiYgc2FtZV92ZXJmKCZj
+b25mLT5jbF92ZXJpZmllciwgJmNsdmVyaWZpZXIpKSB7DQoJCWNvcHlfY2xpZChuZXcsIGNvbmYp
+Ow0KCQlnZW5fY29uZmlybShuZXcsIG5uKTsNCgl9DQoNCndpdGggbm8gZWxzZSB1c2UuDQoNCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
+bSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmli
+ZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
