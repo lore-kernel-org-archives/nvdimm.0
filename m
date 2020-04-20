@@ -2,87 +2,82 @@ Return-Path: <SRS0=4/NT=6E=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.3 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2931C54FCC
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Apr 2020 07:57:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00D5AC3815B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Apr 2020 13:20:51 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B346B21927
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Apr 2020 07:57:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B346B21927
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id C7E332070B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Apr 2020 13:20:50 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jZm2UUq2"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C7E332070B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0A887100A027A;
-	Mon, 20 Apr 2020 00:57:41 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 81D5510106313;
+	Mon, 20 Apr 2020 06:20:46 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::343; helo=mail-wm1-x343.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-wm1-x343.google.com (mail-wm1-x343.google.com [IPv6:2a00:1450:4864:20::343])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 98D0B100A026D
-	for <linux-nvdimm@lists.01.org>; Mon, 20 Apr 2020 00:56:34 -0700 (PDT)
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03K7XGGS135463
-	for <linux-nvdimm@lists.01.org>; Mon, 20 Apr 2020 03:56:36 -0400
-Received: from e06smtp01.uk.ibm.com (e06smtp01.uk.ibm.com [195.75.94.97])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 30gfea33eh-1
-	(version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NOT)
-	for <linux-nvdimm@lists.01.org>; Mon, 20 Apr 2020 03:56:36 -0400
-Received: from localhost
-	by e06smtp01.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <linux-nvdimm@lists.01.org> from <vaibhav@linux.ibm.com>;
-	Mon, 20 Apr 2020 08:55:52 +0100
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (9.149.109.194)
-	by e06smtp01.uk.ibm.com (192.168.101.131) with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted;
-	(version=TLSv1/SSLv3 cipher=AES256-GCM-SHA384 bits=256/256)
-	Mon, 20 Apr 2020 08:55:48 +0100
-Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03K7uTwd45023348
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 20 Apr 2020 07:56:29 GMT
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3F47E11C04C;
-	Mon, 20 Apr 2020 07:56:29 +0000 (GMT)
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5EC0511C058;
-	Mon, 20 Apr 2020 07:56:26 +0000 (GMT)
-Received: from vajain21.in.ibm.com.com (unknown [9.199.35.142])
-	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Mon, 20 Apr 2020 07:56:25 +0000 (GMT)
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linux-nvdimm@lists.01.org
-Subject: [ndctl PATCH v2 6/6] libndctl,papr_scm: Implement support for PAPR_SCM_PDSM_HEALTH
-Date: Mon, 20 Apr 2020 13:25:56 +0530
-X-Mailer: git-send-email 2.25.3
-In-Reply-To: <20200420075556.272174-1-vaibhav@linux.ibm.com>
-References: <20200420075556.272174-1-vaibhav@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id BED12100DBB0B
+	for <linux-nvdimm@lists.01.org>; Mon, 20 Apr 2020 06:19:59 -0700 (PDT)
+Received: by mail-wm1-x343.google.com with SMTP id u16so2734498wmc.5
+        for <linux-nvdimm@lists.01.org>; Mon, 20 Apr 2020 06:20:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=HbALYnvj9b7TiRQ6HAqBN8J26z1aInuwy6QTO8EMY+I=;
+        b=jZm2UUq2zjNKVHP1+m+OOsr9+zzuILrI7wjwY/9JrBC5piC62jvTTbtdcvDr9INl5c
+         6icvBQX98bCQRu4iSJsSZApWvmr9ZbCLWZibrXkn7wS5xb4e4C/ICOiHI1nfJqBWgp0d
+         4qTYn9ur/ZTZBgha/eYrZZSX66bQhU0MdiEZKMgkLZrNeMzerZlHcijPpDLb8OH2pXNx
+         D3WmPygjrnuLAc4GkBS6NRVvtMcyThcUucBOLoxUz8vZzhlNREGq0ZRcrkPfcjJJv4tP
+         ZopbxiAhBhhg+RoiiIfB7G0QZc3GfPTkCE7VrzT6ma8YlFY0I6lDZkttm2Cc4A0j7zZC
+         Wwbg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=HbALYnvj9b7TiRQ6HAqBN8J26z1aInuwy6QTO8EMY+I=;
+        b=JuFt6GoqhQZYunFpNoDxogZ6vqmS2S1Vct5v3ByMWZE8mEXXvT/DMMJB7By0wVkF2B
+         t55wGihF3FcvjWfwvnqlgnc4NCpR2n7wJrk9NsgWpM0yUMU5TljKzBPd94Otyk9JbRT9
+         kANuwvwLR96bsMyKXlfVU9mMpgBncz5fe9aHpH+NxU8hNtxEzoEGDslQIgfz8fVZaIN1
+         1GKim76eH/WCOTOVWnF8LFulIKAO5EIf7oVOmVXQiWwaFTYCMbejIRKpkA/ZQWmut69/
+         qz799Ev9NarcJylfuDsmHDFsvx9xCpMvz1WPYD36kgTKBIzmua9VXkpaj6rBDX6TLFD0
+         SHaw==
+X-Gm-Message-State: AGi0PuakgjvqYPaEW9WvLyOkx4u8Qlog6L+JJ6bMN747x3hqUxgyzFcI
+	HYNT6e7WIzYs9+n/9BCZP6A=
+X-Google-Smtp-Source: APiQypJ3sBXuI4PxATAUoiduk4LKotXHhIwDCjwHAeKuon8DwwJa/VWAxVcq9SgNV9e+kI3dEVCx4w==
+X-Received: by 2002:a05:600c:2c04:: with SMTP id q4mr16987057wmg.7.1587388802106;
+        Mon, 20 Apr 2020 06:20:02 -0700 (PDT)
+Received: from PC192-168-2-103.speedport.ip (p5B05E57B.dip0.t-ipconnect.de. [91.5.229.123])
+        by smtp.gmail.com with ESMTPSA id z76sm1545815wmc.9.2020.04.20.06.20.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Apr 2020 06:20:01 -0700 (PDT)
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+To: linux-kernel@vger.kernel.org,
+	linux-nvdimm@lists.01.org
+Subject: [RFC 0/2] virtio-pmem: Asynchronous flush
+Date: Mon, 20 Apr 2020 15:19:45 +0200
+Message-Id: <20200420131947.41991-1-pankaj.gupta.linux@gmail.com>
+X-Mailer: git-send-email 2.24.1
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-x-cbid: 20042007-4275-0000-0000-000003C322F5
-X-IBM-AV-DETECTION: SAVI=unused REMOTE=unused XFE=unused
-x-cbparentid: 20042007-4276-0000-0000-000038D8A3CC
-Message-Id: <20200420075556.272174-7-vaibhav@linux.ibm.com>
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
- definitions=2020-04-20_02:2020-04-17,2020-04-20 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
- priorityscore=1501 adultscore=0 lowpriorityscore=0 mlxlogscore=999
- spamscore=0 phishscore=0 malwarescore=0 bulkscore=0 impostorscore=0
- suspectscore=1 mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2003020000 definitions=main-2004200067
-Message-ID-Hash: ZDN6K377S7J6K4RFXJFKIRVVUQJ3BSHD
-X-Message-ID-Hash: ZDN6K377S7J6K4RFXJFKIRVVUQJ3BSHD
-X-MailFrom: vaibhav@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Message-ID-Hash: JFZDO4TJHRT63Z2KCATIAR5ZRWGLLQIN
+X-Message-ID-Hash: JFZDO4TJHRT63Z2KCATIAR5ZRWGLLQIN
+X-MailFrom: pankaj.gupta.linux@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: david@redhat.com, mst@redhat.com, pankaj.gupta@cloud.ionos.com, Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZDN6K377S7J6K4RFXJFKIRVVUQJ3BSHD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JFZDO4TJHRT63Z2KCATIAR5ZRWGLLQIN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,168 +86,29 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add support for reporting DIMM health and shutdown state by issuing
-PAPR_SCM_PDSM_HEALTH request to papr_scm module. It returns an
-instance of 'struct nd_papr_pdsm_health' as defined in
-'papr_scm_pdsm.h'. The patch provides support for dimm-ops
-'new_smart', 'smart_get_health' & 'smart_get_shutdown_state' as newly
-introduced functions papr_new_smart_health(), papr_smart_get_health()
-& papr_smart_get_shutdown_state() respectively. These callbacks should
-enable ndctl to report DIMM health.
+ Jeff reported preflush order issue with the existing implementation
+ of virtio pmem preflush. Dan suggested[1] to implement asynchronous flush
+ for virtio pmem using work queue as done in md/RAID. This patch series
+ intends to solve the preflush ordering issue and also makes the flush
+ asynchronous from the submitting thread POV.
 
-Also a new member 'struct dimm_priv.health' is introduced which holds
-the current health status of the dimm. This member is set inside newly
-added function 'update_dimm_health_v1()' which parses the v1 payload
-returned by the kernel after servicing PAPR_SCM_PDSM_HEALTH. The
-function will also update dimm-flags viz 'struct ndctl_dimm.flags.f_*'
-based on the flags set in the returned payload.
+ Submitting this patch series for feeback and is in WIP. I have
+ done basic testing and currently doing more testing.
 
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
-Changelog:
+Pankaj Gupta (2):
+  pmem: make nvdimm_flush asynchronous
+  virtio_pmem: Async virtio-pmem flush
 
-v1..v2:
-* Squashed patch to report nvdimm bad shutdown state with this patch.
-* Switched to new structs/enums as defined in papr_scm_pdsm.h
----
- ndctl/lib/papr_scm.c | 90 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 87 insertions(+), 3 deletions(-)
+ drivers/nvdimm/nd_virtio.c   | 66 ++++++++++++++++++++++++++----------
+ drivers/nvdimm/pmem.c        | 15 ++++----
+ drivers/nvdimm/region_devs.c |  3 +-
+ drivers/nvdimm/virtio_pmem.c |  9 +++++
+ drivers/nvdimm/virtio_pmem.h | 12 +++++++
+ 5 files changed, 78 insertions(+), 27 deletions(-)
 
-diff --git a/ndctl/lib/papr_scm.c b/ndctl/lib/papr_scm.c
-index 9c11dd31a133..a54e632fa72c 100644
---- a/ndctl/lib/papr_scm.c
-+++ b/ndctl/lib/papr_scm.c
-@@ -33,7 +33,9 @@
- 
- /* Per dimm data. Holds per-dimm data parsed from the cmd_pkgs */
- struct dimm_priv {
--	/* Empty for now */
-+
-+	/* Cache the dimm health status */
-+	struct nd_papr_pdsm_health health;
- };
- 
- static bool papr_cmd_is_supported(struct ndctl_dimm *dimm, int cmd)
-@@ -88,6 +90,43 @@ static bool cmd_is_valid(struct ndctl_dimm *dimm, struct ndctl_cmd *cmd)
- 	return true;
- }
- 
-+/*
-+ * Parse the nd_papr_pdsm_health_v1 payload embedded in ndctl_cmd and
-+ * update dimm health/flags
-+ */
-+static int update_dimm_health_v1(struct ndctl_dimm *dimm, struct ndctl_cmd *cmd)
-+{
-+	struct nd_pdsm_cmd_pkg *pcmd = nd_to_pdsm_cmd_pkg(cmd->pkg);
-+	struct dimm_priv *p = dimm->dimm_user_data;
-+	const struct nd_papr_pdsm_health_v1 *health =
-+		pdsm_cmd_to_payload(pcmd);
-+
-+	/* Update the dimm flags */
-+	dimm->flags.f_arm = health->dimm_unarmed;
-+	dimm->flags.f_flush = health->dimm_bad_shutdown;
-+	dimm->flags.f_restore = health->dimm_bad_restore;
-+	dimm->flags.f_smart = (health->dimm_health != 0);
-+
-+	/* Cache the dimm health information */
-+	memcpy(&p->health, health, sizeof(*health));
-+	return 0;
-+}
-+
-+/* Check payload version returned and pass the packet to appropriate handler */
-+static int update_dimm_health(struct ndctl_dimm *dimm, struct ndctl_cmd *cmd)
-+{
-+	const struct nd_pdsm_cmd_pkg *pcmd = nd_to_pdsm_cmd_pkg(cmd->pkg);
-+
-+	if (pcmd->payload_version == 1)
-+		return update_dimm_health_v1(dimm, cmd);
-+
-+	/* unknown version */
-+	papr_err(dimm, "Unknown payload version for dimm_health.\n");
-+	papr_dbg(dimm, "dimm_health payload Ver=%d, Supported=%d\n",
-+		 pcmd->payload_version, ND_PAPR_PDSM_HEALTH_VERSION);
-+	return -EINVAL;
-+}
-+
- /* Parse a command payload and update dimm flags/private data */
- static int update_dimm_stats(struct ndctl_dimm *dimm, struct ndctl_cmd *cmd)
- {
-@@ -113,6 +152,8 @@ static int update_dimm_stats(struct ndctl_dimm *dimm, struct ndctl_cmd *cmd)
- 	/* Get the pdsm request and handle it */
- 	pcmd = nd_to_pdsm_cmd_pkg(cmd->pkg);
- 	switch (pcmd_to_pdsm(pcmd)) {
-+	case PAPR_SCM_PDSM_HEALTH:
-+		return update_dimm_health(dimm, cmd);
- 	default:
- 		papr_err(dimm, "Unhandled pdsm-request 0x%016llx\n",
- 			 pcmd_to_pdsm(pcmd));
-@@ -158,14 +199,54 @@ static struct ndctl_cmd *allocate_cmd(struct ndctl_dimm *dimm,
- 	return cmd;
- }
- 
-+static struct ndctl_cmd *papr_new_smart_health(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_cmd *cmd_ret;
-+
-+	cmd_ret = allocate_cmd(dimm, PAPR_SCM_PDSM_HEALTH,
-+			       sizeof(struct nd_papr_pdsm_health),
-+			       ND_PAPR_PDSM_HEALTH_VERSION);
-+	if (!cmd_ret) {
-+		papr_err(dimm, "Unable to allocate smart_health command\n");
-+		return NULL;
-+	}
-+
-+	cmd_ret->pkg[0].nd_size_out = ND_PDSM_ENVELOPE_CONTENT_SIZE(
-+		struct nd_papr_pdsm_health);
-+
-+	return cmd_ret;
-+}
-+
-+static unsigned int papr_smart_get_health(struct ndctl_cmd *cmd)
-+{
-+	struct dimm_priv *p = cmd->dimm->dimm_user_data;
-+
-+	/*
-+	 * Update the dimm stats and use some math to return one of
-+	 * defined ND_SMART_*_HEALTH values
-+	 */
-+	if (update_dimm_stats(cmd->dimm, cmd) || !p->health.dimm_health)
-+		return 0;
-+	else
-+		return 1 << (p->health.dimm_health - 1);
-+}
-+
-+static unsigned int papr_smart_get_shutdown_state(struct ndctl_cmd *cmd)
-+{
-+	struct dimm_priv *p = cmd->dimm->dimm_user_data;
-+
-+	/* Update dimm state and return f_flush */
-+	return update_dimm_stats(cmd->dimm, cmd) ?
-+		0 : p->health.dimm_bad_shutdown;
-+}
-+
- static unsigned int papr_smart_get_flags(struct ndctl_cmd *cmd)
- {
- 	/* In case of error return empty flags * */
- 	if (update_dimm_stats(cmd->dimm, cmd))
- 		return 0;
- 
--	/* Return empty flags for now as no DSM support */
--	return 0;
-+	return ND_SMART_HEALTH_VALID | ND_SMART_SHUTDOWN_VALID;
- }
- 
- static int papr_dimm_init(struct ndctl_dimm *dimm)
-@@ -206,4 +287,7 @@ struct ndctl_dimm_ops * const papr_scm_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.dimm_uninit = papr_dimm_uninit,
- 	.smart_get_flags = papr_smart_get_flags,
- 	.get_firmware_status =  papr_get_firmware_status,
-+	.new_smart = papr_new_smart_health,
-+	.smart_get_health = papr_smart_get_health,
-+	.smart_get_shutdown_state = papr_smart_get_shutdown_state,
- };
+[1] https://marc.info/?l=linux-kernel&m=157446316409937&w=2
 -- 
-2.25.3
+2.20.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
