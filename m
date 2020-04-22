@@ -1,4 +1,4 @@
-Return-Path: <SRS0=NnZC=6F=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=gkLb=6G=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
@@ -6,104 +6,56 @@ X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30CA3C54FCC
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 21 Apr 2020 13:58:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B1AC38A30
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Apr 2020 03:58:07 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DEE4420747
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 21 Apr 2020 13:58:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DEE4420747
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=rowland.harvard.edu
+	by mail.kernel.org (Postfix) with ESMTPS id 221F220747
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Apr 2020 03:58:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 221F220747
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=tnt.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BDE26100A30E4;
-	Tue, 21 Apr 2020 06:57:55 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.131.102.5; helo=netrider.rowland.org; envelope-from=stern+5e9eda24@rowland.harvard.edu; receiver=<UNKNOWN> 
-Received: from netrider.rowland.org (netrider.rowland.org [192.131.102.5])
-	by ml01.01.org (Postfix) with SMTP id D4E91100DCB6D
-	for <linux-nvdimm@lists.01.org>; Tue, 21 Apr 2020 06:57:53 -0700 (PDT)
-Received: (qmail 21373 invoked by uid 500); 21 Apr 2020 09:58:02 -0400
-Received: from localhost (sendmail-bs@127.0.0.1)
-  by localhost with SMTP; 21 Apr 2020 09:58:02 -0400
-Date: Tue, 21 Apr 2020 09:58:02 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-X-X-Sender: stern@netrider.rowland.org
-To: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 5/9] usb: fix empty-body warning in sysfs.c
-In-Reply-To: <87368xskga.fsf@notabene.neil.brown.name>
-Message-ID: <Pine.LNX.4.44L0.2004210956590.20254-100000@netrider.rowland.org>
+	by ml01.01.org (Postfix) with ESMTP id 18416100DCB7B;
+	Tue, 21 Apr 2020 20:57:52 -0700 (PDT)
+Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=142.11.249.189; helo=tnt.com; envelope-from=xbb.hk5.1@tnt.com; receiver=<UNKNOWN> 
+Received: from tnt.com (hwsrv-714897.hostwindsdns.com [142.11.249.189])
+	by ml01.01.org (Postfix) with ESMTP id BF186100DCB79
+	for <linux-nvdimm@lists.01.org>; Tue, 21 Apr 2020 20:57:49 -0700 (PDT)
+From: XBB.HK5.1 <xbb.hk5.1@tnt.com>
+To: linux-nvdimm@lists.01.org
+Subject: Consignment Note For Booking Order SQ193684
+Date: 21 Apr 2020 20:58:03 -0700
+Message-ID: <20200421205802.F4883A8330AF9E75@tnt.com>
 MIME-Version: 1.0
-Message-ID-Hash: PYBLGLQPB6LYKP3FT27UAYXT3OSLYGTF
-X-Message-ID-Hash: PYBLGLQPB6LYKP3FT27UAYXT3OSLYGTF
-X-MailFrom: stern+5e9eda24@rowland.harvard.edu
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_C8326FC6.14980D82"
+Message-ID-Hash: MD33ULPE4F4GWMHHPBGHIOKAF5NQ4WQC
+X-Message-ID-Hash: MD33ULPE4F4GWMHHPBGHIOKAF5NQ4WQC
+X-MailFrom: xbb.hk5.1@tnt.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Matthew Wilcox <willy@infradead.org>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, alsa-devel@alsa-project.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, "J. Bruce Fields" <bfields@fieldses.org>, Chuck Lever <chuck.lever@oracle.com>, linux-nfs@vger.kernel.org, Johannes Berg <johannes@sipsolutions.net>, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, Zzy Wysm <zzy@zzywysm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PYBLGLQPB6LYKP3FT27UAYXT3OSLYGTF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MD33ULPE4F4GWMHHPBGHIOKAF5NQ4WQC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_C8326FC6.14980D82
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Tue, 21 Apr 2020, NeilBrown wrote:
-
-> On Sat, Apr 18 2020, Alan Stern wrote:
-> 
-> > On Sat, 18 Apr 2020, Matthew Wilcox wrote:
-> >
-> >> On Sat, Apr 18, 2020 at 11:41:07AM -0700, Randy Dunlap wrote:
-> >> > +++ linux-next-20200327/drivers/usb/core/sysfs.c
-> >> > @@ -1263,7 +1263,7 @@ void usb_create_sysfs_intf_files(struct
-> >> >  	if (!alt->string && !(udev->quirks & USB_QUIRK_CONFIG_INTF_STRINGS))
-> >> >  		alt->string = usb_cache_string(udev, alt->desc.iInterface);
-> >> >  	if (alt->string && device_create_file(&intf->dev, &dev_attr_interface))
-> >> > -		;	/* We don't actually care if the function fails. */
-> >> > +		do_empty(); /* We don't actually care if the function fails. */
-> >> >  	intf->sysfs_files_created = 1;
-> >> >  }
-> >> 
-> >> Why not just?
-> >> 
-> >> +	if (alt->string)
-> >> +		device_create_file(&intf->dev, &dev_attr_interface);
-> >
-> > This is another __must_check function call.
-> >
-> > The reason we don't care if the call fails is because the file
-> > being created holds the USB interface string descriptor, something
-> > which is purely informational and hardly ever gets set (and no doubt
-> > gets used even less often).
-> >
-> > Is this another situation where the comment should be expanded and the 
-> > code modified to include a useless test and cast-to-void?
-> >
-> > Or should device_create_file() not be __must_check after all?
-> 
-> One approach to dealing with __must_check function that you don't want
-> to check is to cause failure to call
->    pr_debug("usb: interface descriptor file not created");
-> or similar.  It silences the compiler, serves as documentation, and
-> creates a message that is almost certainly never seen.
-> 
-> This is what I did in drivers/md/md.c...
-> 
-> 	if (mddev->kobj.sd &&
-> 	    sysfs_create_group(&mddev->kobj, &md_bitmap_group))
-> 		pr_debug("pointless warning\n");
-> 
-> (I give better warnings elsewhere - I must have run out of patience by
->  this point).
-
-That's a decent idea.  I'll do something along those lines.
-
-Alan Stern
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_C8326FC6.14980D82--
