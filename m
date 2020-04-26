@@ -1,46 +1,61 @@
-Return-Path: <SRS0=YGxs=6J=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=w1zF=6K=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0609FC55186
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 25 Apr 2020 11:32:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D49DC55199
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 26 Apr 2020 09:53:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CD93A206EC
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 25 Apr 2020 11:32:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CD93A206EC
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id 0F4DA2080C
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 26 Apr 2020 09:53:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0F4DA2080C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 99D0910106321;
-	Sat, 25 Apr 2020 04:31:44 -0700 (PDT)
-Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A9E071010631A
-	for <linux-nvdimm@lists.01.org>; Sat, 25 Apr 2020 04:31:42 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 9666E100A0269;
+	Sun, 26 Apr 2020 02:52:32 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=redhairer.li@intel.com; receiver=<UNKNOWN> 
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 7B5141010633E
+	for <linux-nvdimm@lists.01.org>; Sun, 26 Apr 2020 02:52:29 -0700 (PDT)
+IronPort-SDR: jq6X72wRSjqUkROMcN6+Gyasvf9XyZy4h9wIWdcBfFoddEzGRPUGrUYPlV15ShJYumt/vxzXKI
+ LwTPwuMBoxCA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2020 02:53:11 -0700
+IronPort-SDR: Qi8tUW/UaN/V0kM+3tL+HgbCCp5DmxMl3lthV78cgotuf4M36PrYBzyiFbdRwhjNys+EazPj5C
+ RkFQQZip9hOg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,319,1583222400";
+   d="scan'208";a="245795262"
+Received: from redhaire-mobl1.gar.corp.intel.com ([10.213.149.250])
+  by orsmga007.jf.intel.com with ESMTP; 26 Apr 2020 02:53:09 -0700
+From: Redhairer Li <redhairer.li@intel.com>
+To: linux-nvdimm@lists.01.org,
+	dan.j.williams@intel.com
+Subject: [PATCH 1/1] ndctl/namespace: Fix disable-namespace accounting relative to seed devices
+Date: Sun, 26 Apr 2020 17:52:32 +0800
+Message-Id: <20200426095232.27524-1-redhairer.li@intel.com>
+X-Mailer: git-send-email 2.20.1.windows.1
 MIME-Version: 1.0
-Subject: Re: [PATCH v5 8/8] dax,
- iomap: Add helper dax_iomap_zero() to zero a range
-From: neolift9@gmail.com
-To: linux-nvdimm@lists.01.org
-Date: Sat, 25 Apr 2020 11:31:42 -0000
-Message-ID: <20200425113142.2763.82883@ml01.vlan13.01.org>
-User-Agent: HyperKitty on https://lists.01.org/
-References: <20200218214841.10076-9-vgoyal@redhat.com>
-In-Reply-To: <20200218214841.10076-9-vgoyal@redhat.com>
-Message-ID-Hash: NTQD3KCO3EPKF34RSXR7TEB3XEXJY62X
-X-Message-ID-Hash: NTQD3KCO3EPKF34RSXR7TEB3XEXJY62X
-X-MailFrom: neolift9@gmail.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Message-ID-Hash: PKZPQ3YQH4223CJAA7KWJMB2QM7HSWTL
+X-Message-ID-Hash: PKZPQ3YQH4223CJAA7KWJMB2QM7HSWTL
+X-MailFrom: redhairer.li@intel.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Redhairer Li <redhairer.li@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NTQD3KCO3EPKF34RSXR7TEB3XEXJY62X/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PKZPQ3YQH4223CJAA7KWJMB2QM7HSWTL/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -49,7 +64,106 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We plan customized campaigns to meet your organizational requirements <a href="https://neolift.in/digital-marketing/seo/">seo services in pune</a> and campaign goals
+Seed namespaces are included in "ndctl disable-namespace all". However
+since the user never "creates" them it is surprising to see
+"disable-namespace" report 1 more namespace relative to the number that
+have been created. Catch attempts to disable a zero-sized namespace:
+
+Before:
+{
+  "dev":"namespace1.0",
+  "size":"492.00 MiB (515.90 MB)",
+  "blockdev":"pmem1"
+}
+{
+  "dev":"namespace1.1",
+  "size":"492.00 MiB (515.90 MB)",
+  "blockdev":"pmem1.1"
+}
+{
+  "dev":"namespace1.2",
+  "size":"492.00 MiB (515.90 MB)",
+  "blockdev":"pmem1.2"
+}
+disabled 4 namespaces
+
+After:
+{
+  "dev":"namespace1.0",
+  "size":"492.00 MiB (515.90 MB)",
+  "blockdev":"pmem1"
+}
+{
+  "dev":"namespace1.3",
+  "size":"492.00 MiB (515.90 MB)",
+  "blockdev":"pmem1.3"
+}
+{
+  "dev":"namespace1.1",
+  "size":"492.00 MiB (515.90 MB)",
+  "blockdev":"pmem1.1"
+}
+disabled 3 namespaces
+
+Signed-off-by: Redhairer Li <redhairer.li@intel.com>
+---
+ ndctl/lib/libndctl.c | 11 ++++++++---
+ ndctl/region.c       |  4 +++-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index ee737cb..49f362b 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -4231,6 +4231,7 @@ NDCTL_EXPORT int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns)
+ 	const char *bdev = NULL;
+ 	char path[50];
+ 	int fd;
++	unsigned long long size = ndctl_namespace_get_size(ndns);
+ 
+ 	if (pfn && ndctl_pfn_is_enabled(pfn))
+ 		bdev = ndctl_pfn_get_block_device(pfn);
+@@ -4260,9 +4261,13 @@ NDCTL_EXPORT int ndctl_namespace_disable_safe(struct ndctl_namespace *ndns)
+ 					devname, bdev, strerror(errno));
+ 			return -errno;
+ 		}
+-	} else
+-		ndctl_namespace_disable_invalidate(ndns);
+-
++	} else {
++		if (size == 0)
++			/* Don't try to disable idle namespace (no capacity allocated) */
++			return -ENXIO;
++		else
++			ndctl_namespace_disable_invalidate(ndns);
++	}
+ 	return 0;
+ }
+ 
+diff --git a/ndctl/region.c b/ndctl/region.c
+index 7945007..0014bb9 100644
+--- a/ndctl/region.c
++++ b/ndctl/region.c
+@@ -72,6 +72,7 @@ static int region_action(struct ndctl_region *region, enum device_action mode)
+ {
+ 	struct ndctl_namespace *ndns;
+ 	int rc = 0;
++	unsigned long long size;
+ 
+ 	switch (mode) {
+ 	case ACTION_ENABLE:
+@@ -80,7 +81,8 @@ static int region_action(struct ndctl_region *region, enum device_action mode)
+ 	case ACTION_DISABLE:
+ 		ndctl_namespace_foreach(region, ndns) {
+ 			rc = ndctl_namespace_disable_safe(ndns);
+-			if (rc)
++			size = ndctl_namespace_get_size(ndns);
++			if (rc && size != 0)
+ 				return rc;
+ 		}
+ 		rc = ndctl_region_disable_invalidate(region);
+-- 
+2.20.1.windows.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
