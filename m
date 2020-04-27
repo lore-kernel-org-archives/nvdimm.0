@@ -2,60 +2,62 @@ Return-Path: <SRS0=Or7U=6L=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 527ACC5519B
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Apr 2020 08:48:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91E8AC7C861
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Apr 2020 08:48:38 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 32708206D4
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Apr 2020 08:48:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 32708206D4
+	by mail.kernel.org (Postfix) with ESMTPS id 724322168B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Apr 2020 08:48:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 724322168B
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9EFF210FF7B80;
-	Mon, 27 Apr 2020 01:47:47 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id B592310FF7B84;
+	Mon, 27 Apr 2020 01:47:48 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id BCCDA1009F03D
-	for <linux-nvdimm@lists.01.org>; Mon, 27 Apr 2020 01:47:44 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 9C7C310FF7B7C
+	for <linux-nvdimm@lists.01.org>; Mon, 27 Apr 2020 01:47:45 -0700 (PDT)
 X-IronPort-AV: E=Sophos;i="5.73,323,1583164800";
-   d="scan'208";a="90547651"
+   d="scan'208";a="90547653"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 27 Apr 2020 16:48:31 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id B686750A9991;
-	Mon, 27 Apr 2020 16:37:48 +0800 (CST)
+  by heian.cn.fujitsu.com with ESMTP; 27 Apr 2020 16:48:32 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 1A32F4BCC88C;
+	Mon, 27 Apr 2020 16:37:52 +0800 (CST)
 Received: from G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Mon, 27 Apr 2020 16:48:31 +0800
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 27 Apr 2020 16:48:34 +0800
 Received: from localhost.localdomain (10.167.225.141) by
  G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Mon, 27 Apr 2020 16:48:30 +0800
+ id 15.0.1497.2 via Frontend Transport; Mon, 27 Apr 2020 16:48:34 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>
-Subject: [RFC PATCH 0/8] dax: Add a dax-rmap tree to support reflink
-Date: Mon, 27 Apr 2020 16:47:42 +0800
-Message-ID: <20200427084750.136031-1-ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH 3/8] fs/dax: Introduce dax_copy_edges() for COW
+Date: Mon, 27 Apr 2020 16:47:45 +0800
+Message-ID: <20200427084750.136031-4-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200427084750.136031-1-ruansy.fnst@cn.fujitsu.com>
+References: <20200427084750.136031-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: B686750A9991.AE152
+X-yoursite-MailScanner-ID: 1A32F4BCC88C.AF766
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: W57IF4VGKUCAPDXDICWZC3R5C7EDGMT2
-X-Message-ID-Hash: W57IF4VGKUCAPDXDICWZC3R5C7EDGMT2
+Message-ID-Hash: U4X3ZWMP7BLEVEBOKZE54TPPRV4LTQP3
+X-Message-ID-Hash: U4X3ZWMP7BLEVEBOKZE54TPPRV4LTQP3
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+CC: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com, Goldwyn Rodrigues <rgoldwyn@suse.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/W57IF4VGKUCAPDXDICWZC3R5C7EDGMT2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/U4X3ZWMP7BLEVEBOKZE54TPPRV4LTQP3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,51 +66,131 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patchset is a try to resolve the shared 'page cache' problem for
-fsdax.
+Add address output in dax_iomap_pfn() in order to perform a memcpy() in CoW
+case.  Since this function both output address and pfn, rename it to
+dax_iomap_direct_access().
 
-In order to track multiple mappings and indexes on one page, I
-introduced a dax-rmap rb-tree to manage the relationship.  A dax entry
-will be associated more than once if is shared.  At the second time we
-associate this entry, we create this rb-tree and store its root in
-page->private(not used in fsdax).  Insert (->mapping, ->index) when
-dax_associate_entry() and delete it when dax_disassociate_entry().
+dax_copy_edges() is a helper functions performs a copy from one part of
+the device to another for data not page aligned.
 
-We can iterate the dax-rmap rb-tree before any other operations on
-mappings of files.  Such as memory-failure and rmap.
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+---
+ fs/dax.c | 64 ++++++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 58 insertions(+), 6 deletions(-)
 
-Same as before, I borrowed and made some changes on Goldwyn's patchsets.
-These patches makes up for the lack of CoW mechanism in fsdax.
-
-The rests are dax & reflink support for xfs.
-
-(Rebased to 5.7-rc2)
-
-
-Shiyang Ruan (8):
-  fs/dax: Introduce dax-rmap btree for reflink
-  mm: add dax-rmap for memory-failure and rmap
-  fs/dax: Introduce dax_copy_edges() for COW
-  fs/dax: copy data before write
-  fs/dax: replace mmap entry in case of CoW
-  fs/dax: dedup file range to use a compare function
-  fs/xfs: handle CoW for fsdax write() path
-  fs/xfs: support dedupe for fsdax
-
- fs/dax.c               | 343 +++++++++++++++++++++++++++++++++++++----
- fs/ocfs2/file.c        |   2 +-
- fs/read_write.c        |  11 +-
- fs/xfs/xfs_bmap_util.c |   6 +-
- fs/xfs/xfs_file.c      |  10 +-
- fs/xfs/xfs_iomap.c     |   3 +-
- fs/xfs/xfs_iops.c      |  11 +-
- fs/xfs/xfs_reflink.c   |  79 ++++++----
- include/linux/dax.h    |  11 ++
- include/linux/fs.h     |   9 +-
- mm/memory-failure.c    |  63 ++++++--
- mm/rmap.c              |  54 +++++--
- 12 files changed, 498 insertions(+), 104 deletions(-)
-
+diff --git a/fs/dax.c b/fs/dax.c
+index 2f996c566103..8107ed10c851 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1111,8 +1111,8 @@ static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
+ 	return (iomap->addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
+ }
+ 
+-static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+-			 pfn_t *pfnp)
++static int dax_iomap_direct_access(struct iomap *iomap, loff_t pos, size_t size,
++			 pfn_t *pfnp, void **addr)
+ {
+ 	const sector_t sector = dax_iomap_sector(iomap, pos);
+ 	pgoff_t pgoff;
+@@ -1123,12 +1123,14 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 	if (rc)
+ 		return rc;
+ 	id = dax_read_lock();
+-	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+-				   NULL, pfnp);
++	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size), addr,
++				   pfnp);
+ 	if (length < 0) {
+ 		rc = length;
+ 		goto out;
+ 	}
++	if (!pfnp)
++		goto out_check_addr;
+ 	rc = -EINVAL;
+ 	if (PFN_PHYS(length) < size)
+ 		goto out;
+@@ -1138,11 +1140,59 @@ static int dax_iomap_pfn(struct iomap *iomap, loff_t pos, size_t size,
+ 	if (length > 1 && !pfn_t_devmap(*pfnp))
+ 		goto out;
+ 	rc = 0;
++
++out_check_addr:
++	if (!addr)
++		goto out;
++	if (!*addr)
++		rc = -EFAULT;
+ out:
+ 	dax_read_unlock(id);
+ 	return rc;
+ }
+ 
++/*
++ * dax_copy_edges - Copies the part of the pages not included in
++ *		    the write, but required for CoW because
++ *		    offset/offset+length are not page aligned.
++ */
++static int dax_copy_edges(loff_t pos, loff_t length, struct iomap *srcmap,
++			  void *daddr, bool pmd)
++{
++	size_t page_size = pmd ? PMD_SIZE : PAGE_SIZE;
++	loff_t offset = pos & (page_size - 1);
++	size_t size = ALIGN(offset + length, page_size);
++	loff_t end = pos + length;
++	loff_t pg_end = round_up(end, page_size);
++	void *saddr = 0;
++	int ret = 0;
++
++	ret = dax_iomap_direct_access(srcmap, pos, size, NULL, &saddr);
++	if (ret)
++		return ret;
++	/*
++	 * Copy the first part of the page
++	 * Note: we pass offset as length
++	 */
++	if (offset) {
++		if (saddr)
++			ret = memcpy_mcsafe(daddr, saddr, offset);
++		else
++			memset(daddr, 0, offset);
++	}
++
++	/* Copy the last part of the range */
++	if (end < pg_end) {
++		if (saddr)
++			ret = memcpy_mcsafe(daddr + offset + length,
++			       saddr + offset + length,	pg_end - end);
++		else
++			memset(daddr + offset + length, 0,
++					pg_end - end);
++	}
++	return ret;
++}
++
+ /*
+  * The user has performed a load from a hole in the file.  Allocating a new
+  * page in the file would cause excessive storage usage for workloads with
+@@ -1462,7 +1512,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+ 			major = VM_FAULT_MAJOR;
+ 		}
+-		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
++		error = dax_iomap_direct_access(&iomap, pos, PAGE_SIZE, &pfn,
++						NULL);
+ 		if (error < 0)
+ 			goto error_finish_iomap;
+ 
+@@ -1680,7 +1731,8 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 	switch (iomap.type) {
+ 	case IOMAP_MAPPED:
+-		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
++		error = dax_iomap_direct_access(&iomap, pos, PMD_SIZE, &pfn,
++						NULL);
+ 		if (error < 0)
+ 			goto finish_iomap;
+ 
 -- 
 2.26.2
 
