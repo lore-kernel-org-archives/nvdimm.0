@@ -1,173 +1,190 @@
-Return-Path: <SRS0=UXV5=6M=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=71B7=6N=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5C12C83008
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 28 Apr 2020 22:02:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FAEEC83004
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Apr 2020 07:52:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A51F6206D6
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 28 Apr 2020 22:02:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A51F6206D6
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fromorbit.com
+	by mail.kernel.org (Postfix) with ESMTPS id 73EFC2082E
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Apr 2020 07:52:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 73EFC2082E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 92F1B110D268C;
-	Tue, 28 Apr 2020 15:01:41 -0700 (PDT)
-Received-SPF: Pass (helo) identity=helo; client-ip=211.29.132.249; helo=mail105.syd.optusnet.com.au; envelope-from=david@fromorbit.com; receiver=<UNKNOWN> 
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
-	by ml01.01.org (Postfix) with ESMTP id 869121007A9ED
-	for <linux-nvdimm@lists.01.org>; Tue, 28 Apr 2020 15:01:38 -0700 (PDT)
-Received: from dread.disaster.area (pa49-195-157-175.pa.nsw.optusnet.com.au [49.195.157.175])
-	by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id 3E9873A45A1;
-	Wed, 29 Apr 2020 08:02:33 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1jTYJE-0008Uv-5w; Wed, 29 Apr 2020 08:02:32 +1000
-Date: Wed, 29 Apr 2020 08:02:32 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: Re: =?utf-8?B?5Zue5aSNOiBSZQ==?= =?utf-8?Q?=3A?= [RFC PATCH 0/8]
- dax: Add a dax-rmap tree to support reflink
-Message-ID: <20200428220232.GI2040@dread.disaster.area>
-References: <20200427084750.136031-1-ruansy.fnst@cn.fujitsu.com>
- <20200427122836.GD29705@bombadil.infradead.org>
- <em33c55fa5-15ca-4c46-8c27-6b0300fa4e51@g08fnstd180058>
- <20200428064318.GG2040@dread.disaster.area>
- <259fe633-e1ff-b279-cd8c-1a81eaa40941@cn.fujitsu.com>
- <20200428111636.GK29705@bombadil.infradead.org>
- <20200428112441.GH2040@dread.disaster.area>
- <20200428153732.GZ6742@magnolia>
+	by ml01.01.org (Postfix) with ESMTP id 9E514100675E6;
+	Wed, 29 Apr 2020 00:51:23 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 3AB88100675E4
+	for <linux-nvdimm@lists.01.org>; Wed, 29 Apr 2020 00:51:20 -0700 (PDT)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 03T7WwCE069783;
+	Wed, 29 Apr 2020 03:52:16 -0400
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 30mh6vbssu-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Apr 2020 03:52:16 -0400
+Received: from m0098421.ppops.net (m0098421.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 03T7WwYb069772;
+	Wed, 29 Apr 2020 03:52:15 -0400
+Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 30mh6vbss6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Apr 2020 03:52:15 -0400
+Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
+	by ppma02dal.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 03T7ocAi022747;
+	Wed, 29 Apr 2020 07:52:15 GMT
+Received: from b01cxnp22035.gho.pok.ibm.com (b01cxnp22035.gho.pok.ibm.com [9.57.198.25])
+	by ppma02dal.us.ibm.com with ESMTP id 30mcu6utmc-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 29 Apr 2020 07:52:15 +0000
+Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
+	by b01cxnp22035.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 03T7qEVl54329764
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 29 Apr 2020 07:52:14 GMT
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 614A8112061;
+	Wed, 29 Apr 2020 07:52:14 +0000 (GMT)
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DDF99112062;
+	Wed, 29 Apr 2020 07:52:11 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.199.44.76])
+	by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
+	Wed, 29 Apr 2020 07:52:11 +0000 (GMT)
+X-Mailer: emacs 27.0.91 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, linux-nvdimm@lists.01.org
+Subject: Re: [ndctl PATCH v2 1/6] libndctl: Refactor out add_dimm() to
+ handle NFIT specific init
+In-Reply-To: <20200420075556.272174-2-vaibhav@linux.ibm.com>
+References: <20200420075556.272174-1-vaibhav@linux.ibm.com>
+ <20200420075556.272174-2-vaibhav@linux.ibm.com>
+Date: Wed, 29 Apr 2020 13:22:09 +0530
+Message-ID: <87ftcm20gm.fsf@linux.ibm.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200428153732.GZ6742@magnolia>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=QIgWuTDL c=1 sm=1 tr=0
-	a=ONQRW0k9raierNYdzxQi9Q==:117 a=ONQRW0k9raierNYdzxQi9Q==:17
-	a=IkcTkHD0fZMA:10 a=cl8xLZFz6L8A:10 a=5KLPUuaC_9wA:10 a=JfrnYn6hAAAA:8
-	a=7-415B0cAAAA:8 a=l6wd5GMc4HtCNSAcdtkA:9 a=z4jTvAT5gXS7p1mQ:21
-	a=_k9EnfUi_P5Muxk2:21 a=QEXdDO2ut3YA:10 a=1CNFftbPRP8L7MoqJWF3:22
-	a=biEYGPWJfzWAr4FL6Ov7:22
-Message-ID-Hash: KHZWDTOFHTNCIRK6OZET6XEH4PD7VMBL
-X-Message-ID-Hash: KHZWDTOFHTNCIRK6OZET6XEH4PD7VMBL
-X-MailFrom: david@fromorbit.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.138,18.0.676
+ definitions=2020-04-29_02:2020-04-28,2020-04-29 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 phishscore=0
+ suspectscore=2 bulkscore=0 spamscore=0 mlxscore=0 impostorscore=0
+ malwarescore=0 adultscore=0 priorityscore=1501 lowpriorityscore=0
+ clxscore=1011 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2004290057
+Message-ID-Hash: AP7EXOGCZS732WFTVOHP6EFWT7IXEJWX
+X-Message-ID-Hash: AP7EXOGCZS732WFTVOHP6EFWT7IXEJWX
+X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Matthew Wilcox <willy@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "rgoldwyn@suse.de" <rgoldwyn@suse.de>, "Qi, Fuli" <qi.fuli@fujitsu.com>, "Gotou, Yasunori" <y-goto@fujitsu.com>
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KHZWDTOFHTNCIRK6OZET6XEH4PD7VMBL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AP7EXOGCZS732WFTVOHP6EFWT7IXEJWX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gVHVlLCBBcHIgMjgsIDIwMjAgYXQgMDg6Mzc6MzJBTSAtMDcwMCwgRGFycmljayBKLiBXb25n
-IHdyb3RlOg0KPiBPbiBUdWUsIEFwciAyOCwgMjAyMCBhdCAwOToyNDo0MVBNICsxMDAwLCBEYXZl
-IENoaW5uZXIgd3JvdGU6DQo+ID4gT24gVHVlLCBBcHIgMjgsIDIwMjAgYXQgMDQ6MTY6MzZBTSAt
-MDcwMCwgTWF0dGhldyBXaWxjb3ggd3JvdGU6DQo+ID4gPiBPbiBUdWUsIEFwciAyOCwgMjAyMCBh
-dCAwNTozMjo0MVBNICswODAwLCBSdWFuIFNoaXlhbmcgd3JvdGU6DQo+ID4gPiA+IE9uIDIwMjAv
-NC8yOCDkuIvljYgyOjQzLCBEYXZlIENoaW5uZXIgd3JvdGU6DQo+ID4gPiA+ID4gT24gVHVlLCBB
-cHIgMjgsIDIwMjAgYXQgMDY6MDk6NDdBTSArMDAwMCwgUnVhbiwgU2hpeWFuZyB3cm90ZToNCj4g
-PiA+ID4gPiA+IOWcqCAyMDIwLzQvMjcgMjA6Mjg6MzYsICJNYXR0aGV3IFdpbGNveCIgPHdpbGx5
-QGluZnJhZGVhZC5vcmc+IOWGmemBkzoNCj4gPiA+ID4gPiA+ID4gT24gTW9uLCBBcHIgMjcsIDIw
-MjAgYXQgMDQ6NDc6NDJQTSArMDgwMCwgU2hpeWFuZyBSdWFuIHdyb3RlOg0KPiA+ID4gPiA+ID4g
-PiA+ICAgVGhpcyBwYXRjaHNldCBpcyBhIHRyeSB0byByZXNvbHZlIHRoZSBzaGFyZWQgJ3BhZ2Ug
-Y2FjaGUnIHByb2JsZW0gZm9yDQo+ID4gPiA+ID4gPiA+ID4gICBmc2RheC4NCj4gPiA+ID4gPiA+
-ID4gPiANCj4gPiA+ID4gPiA+ID4gPiAgIEluIG9yZGVyIHRvIHRyYWNrIG11bHRpcGxlIG1hcHBp
-bmdzIGFuZCBpbmRleGVzIG9uIG9uZSBwYWdlLCBJDQo+ID4gPiA+ID4gPiA+ID4gICBpbnRyb2R1
-Y2VkIGEgZGF4LXJtYXAgcmItdHJlZSB0byBtYW5hZ2UgdGhlIHJlbGF0aW9uc2hpcC4gIEEgZGF4
-IGVudHJ5DQo+ID4gPiA+ID4gPiA+ID4gICB3aWxsIGJlIGFzc29jaWF0ZWQgbW9yZSB0aGFuIG9u
-Y2UgaWYgaXMgc2hhcmVkLiAgQXQgdGhlIHNlY29uZCB0aW1lIHdlDQo+ID4gPiA+ID4gPiA+ID4g
-ICBhc3NvY2lhdGUgdGhpcyBlbnRyeSwgd2UgY3JlYXRlIHRoaXMgcmItdHJlZSBhbmQgc3RvcmUg
-aXRzIHJvb3QgaW4NCj4gPiA+ID4gPiA+ID4gPiAgIHBhZ2UtPnByaXZhdGUobm90IHVzZWQgaW4g
-ZnNkYXgpLiAgSW5zZXJ0ICgtPm1hcHBpbmcsIC0+aW5kZXgpIHdoZW4NCj4gPiA+ID4gPiA+ID4g
-PiAgIGRheF9hc3NvY2lhdGVfZW50cnkoKSBhbmQgZGVsZXRlIGl0IHdoZW4gZGF4X2Rpc2Fzc29j
-aWF0ZV9lbnRyeSgpLg0KPiA+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiA+ID4gRG8gd2UgcmVhbGx5
-IHdhbnQgdG8gdHJhY2sgYWxsIG9mIHRoaXMgb24gYSBwZXItcGFnZSBiYXNpcz8gIEkgd291bGQN
-Cj4gPiA+ID4gPiA+ID4gaGF2ZSB0aG91Z2h0IGEgcGVyLWV4dGVudCBiYXNpcyB3YXMgbW9yZSB1
-c2VmdWwuICBFc3NlbnRpYWxseSwgY3JlYXRlDQo+ID4gPiA+ID4gPiA+IGEgbmV3IGFkZHJlc3Nf
-c3BhY2UgZm9yIGVhY2ggc2hhcmVkIGV4dGVudC4gIFBlciBwYWdlIGp1c3Qgc2VlbXMgbGlrZQ0K
-PiA+ID4gPiA+ID4gPiBhIGh1Z2Ugb3ZlcmhlYWQuDQo+ID4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+
-ID4gUGVyLWV4dGVudCB0cmFja2luZyBpcyBhIG5pY2UgaWRlYSBmb3IgbWUuICBJIGhhdmVuJ3Qg
-dGhvdWdodCBvZiBpdA0KPiA+ID4gPiA+ID4geWV0Li4uDQo+ID4gPiA+ID4gPiANCj4gPiA+ID4g
-PiA+IEJ1dCB0aGUgZXh0ZW50IGluZm8gaXMgbWFpbnRhaW5lZCBieSBmaWxlc3lzdGVtLiAgSSB0
-aGluayB3ZSBuZWVkIGEgd2F5DQo+ID4gPiA+ID4gPiB0byBvYnRhaW4gdGhpcyBpbmZvIGZyb20g
-RlMgd2hlbiBhc3NvY2lhdGluZyBhIHBhZ2UuICBNYXkgYmUgYSBiaXQNCj4gPiA+ID4gPiA+IGNv
-bXBsaWNhdGVkLiAgTGV0IG1lIHRoaW5rIGFib3V0IGl0Li4uDQo+ID4gPiA+ID4gDQo+ID4gPiA+
-ID4gVGhhdCdzIHdoeSBJIHdhbnQgdGhlIC11c2VyIG9mIHRoaXMgYXNzb2NpYXRpb24tIHRvIGRv
-IGEgZmlsZXN5c3RlbQ0KPiA+ID4gPiA+IGNhbGxvdXQgaW5zdGVhZCBvZiBrZWVwaW5nIGl0J3Mg
-b3duIG5haXZlIHRyYWNraW5nIGluZnJhc3RydWN0dXJlLg0KPiA+ID4gPiA+IFRoZSBmaWxlc3lz
-dGVtIGNhbiBkbyBhbiBlZmZpY2llbnQsIG9uLWRlbWFuZCByZXZlcnNlIG1hcHBpbmcgbG9va3Vw
-DQo+ID4gPiA+ID4gZnJvbSBpdCdzIG93biBleHRlbnQgdHJhY2tpbmcgaW5mcmFzdHJ1Y3R1cmUs
-IGFuZCB0aGVyZSdzIHplcm8NCj4gPiA+ID4gPiBydW50aW1lIG92ZXJoZWFkIHdoZW4gdGhlcmUg
-YXJlIG5vIGVycm9ycyBwcmVzZW50Lg0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+IEF0IHRoZSBtb21l
-bnQsIHRoaXMgImRheCBhc3NvY2lhdGlvbiIgaXMgdXNlZCB0byAicmVwb3J0IiBhIHN0b3JhZ2UN
-Cj4gPiA+ID4gPiBtZWRpYSBlcnJvciBkaXJlY3RseSB0byB1c2Vyc3BhY2UuIEkgc2F5ICJyZXBv
-cnQiIGJlY2F1c2Ugd2hhdCBpdA0KPiA+ID4gPiA+IGRvZXMgaXMga2lsbCB1c2Vyc3BhY2UgcHJv
-Y2Vzc2VzIGRlYWQuIFRoZSBzdG9yYWdlIG1lZGlhIGVycm9yDQo+ID4gPiA+ID4gYWN0dWFsbHkg
-bmVlZHMgdG8gYmUgcmVwb3J0ZWQgdG8gdGhlIG93bmVyIG9mIHRoZSBzdG9yYWdlIG1lZGlhLA0K
-PiA+ID4gPiA+IHdoaWNoIGluIHRoZSBjYXNlIG9mIEZTLURBWCBpcyB0aGUgZmlsZXN5dGVtLg0K
-PiA+ID4gPiANCj4gPiA+ID4gVW5kZXJzdG9vZC4NCj4gPiA+ID4gDQo+ID4gPiA+IEJUVywgdGhp
-cyBpcyB0aGUgdXNhZ2UgaW4gbWVtb3J5LWZhaWx1cmUsIHNvIHdoYXQgYWJvdXQgcm1hcD8gIEkg
-aGF2ZSBub3QNCj4gPiA+ID4gZm91bmQgaG93IHRvIHVzZSB0aGlzIHRyYWNraW5nIGluIHJtYXAu
-ICBEbyB5b3UgaGF2ZSBhbnkgaWRlYXM/DQo+ID4gPiA+IA0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+
-IFRoYXQgd2F5IHRoZSBmaWxlc3lzdGVtIGNhbiB0aGVuIGxvb2sgdXAgYWxsIHRoZSBvd25lcnMg
-b2YgdGhhdCBiYWQNCj4gPiA+ID4gPiBtZWRpYSByYW5nZSAoaS5lLiB0aGUgZmlsZXN5c3RlbSBi
-bG9jayBpdCBjb3JyZXNwb25kcyB0bykgYW5kIHRha2UNCj4gPiA+ID4gPiBhcHByb3ByaWF0ZSBh
-Y3Rpb24uIGUuZy4NCj4gPiA+ID4gDQo+ID4gPiA+IEkgdHJpZWQgd3JpdGluZyBhIGZ1bmN0aW9u
-IHRvIGxvb2sgdXAgYWxsIHRoZSBvd25lcnMnIGluZm8gb2Ygb25lIGJsb2NrIGluDQo+ID4gPiA+
-IHhmcyBmb3IgbWVtb3J5LWZhaWx1cmUgdXNlLiAgSXQgd2FzIGRyb3BwZWQgaW4gdGhpcyBwYXRj
-aHNldCBiZWNhdXNlIEkgZm91bmQNCj4gPiA+ID4gb3V0IHRoYXQgdGhpcyBsb29rdXAgZnVuY3Rp
-b24gbmVlZHMgJ3JtYXBidCcgdG8gYmUgZW5hYmxlZCB3aGVuIG1rZnMuICBCdXQNCj4gPiA+ID4g
-YnkgZGVmYXVsdCwgcm1hcGJ0IGlzIGRpc2FibGVkLiAgSSBhbSBub3Qgc3VyZSBpZiBpdCBtYXR0
-ZXJzLi4uDQo+ID4gPiANCj4gPiA+IEknbSBwcmV0dHkgc3VyZSB5b3UgY2FuJ3QgaGF2ZSBzaGFy
-ZWQgZXh0ZW50cyBvbiBhbiBYRlMgZmlsZXN5c3RlbSBpZiB5b3UNCj4gPiA+IF9kb24ndF8gaGF2
-ZSB0aGUgcm1hcGJ0IGZlYXR1cmUgZW5hYmxlZC4gIEkgbWVhbiwgdGhhdCdzIHdoeSBpdCBleGlz
-dHMuDQo+ID4gDQo+ID4gWW91J3JlIGNvbmZ1c2luZyByZWZsaW5rIHdpdGggcm1hcC4gOikNCj4g
-PiANCj4gPiBybWFwYnQgZG9lcyBhbGwgdGhlIHJldmVyc2UgbWFwcGluZyB0cmFja2luZywgcmVm
-bGluayBqdXN0IGRvZXMgdGhlDQo+ID4gc2hhcmVkIGRhdGEgZXh0ZW50IHRyYWNraW5nLg0KPiA+
-IA0KPiA+IEJ1dCBnaXZlbiB0aGF0IGFueW9uZSB3aG8gd2FudHMgdG8gdXNlIERBWCB3aXRoIHJl
-ZmxpbmsgaXMgZ29pbmcgdG8NCj4gPiBoYXZlIHRvIG1rZnMgdGhlaXIgZmlsZXN5c3RlbSBhbnl3
-YXkgKHRvIHR1cm4gb24gcmVmbGluaykgcmVxdWlyaW5nDQo+ID4gdGhhdCBybWFwYnQgaXMgYWxz
-byB0dXJuZWQgb24gaXMgbm90IGEgYmlnIGRlYWwuIEVzcGVjaWFsbHkgYXMgd2UNCj4gPiBjYW4g
-Y2hlY2sgaXQgYXQgbW91bnQgdGltZSBpbiB0aGUga2VybmVsLi4uDQo+IA0KPiBBcmUgd2UgZ29p
-bmcgdG8gdHVybiBvbiBybWFwIGJ5IGRlZmF1bHQ/ICBUaGUgbGFzdCBJIGNoZWNrZWQsIGl0IGRp
-ZA0KPiBoYXZlIGEgMTAtMjAlIHBlcmZvcm1hbmNlIGNvc3Qgb24gZXh0cmVtZSBtZXRhZGF0YS1o
-ZWF2eSB3b3JrbG9hZHMuDQo+IE9yIGRvIHdlIG9ubHkgZW5hYmxlIGl0IGJ5IGRlZmF1bHQgaWYg
-bWtmcyBkZXRlY3RzIGEgcG1lbSBkZXZpY2U/DQoNCkp1c3QgaGF2ZSB0aGUga2VybmVsIHJlZnVz
-ZSB0byBtb3VudCBhIHJlZmxpbmsgZW5hYmxlZCBmaWxlc3lzdGVtIG9uDQphIERBWCBjYXBhYmxl
-IGRldmljZSB1bmxlc3MgLW8gZGF4PW5ldmVyIG9yIHJtYXBidCBpcyBlbmFibGVkLg0KDQpUaGF0
-J2xsIGdldCB0aGUgbWVzc2FnZSBhY3Jvc3MgcHJldHR5IHF1aWNrbHkuLi4uDQoNCj4gKEFkbWl0
-dGVkbHksIG1vc3QgcGVvcGxlIGRvIG5vdCBydW4gZnN4IGFzIGEgcHJvZHVjdGl2aXR5IGFwcDsg
-dGhlDQo+IG5vcm1hbCBoaXQgaXMgdXN1YWxseSAzLTUlIHdoaWNoIG1pZ2h0IG5vdCBiZSBzdWNo
-IGEgYmlnIGRlYWwgc2luY2UgeW91DQo+IGFsc28gZ2V0IChoYWxmIG9mKSBvbmxpbmUgZnNjay4g
-OlApDQoNCkkgaGF2ZSBub3Qgbm90aWNlZCB0aGUgb3ZlcmhlYWQgYXQgYWxsIG9uIGFueSBvZiBt
-eSBwcm9kdWN0aW9uDQptYWNoaW5lcyBzaW5jZSBJIGVuYWJsZWQgaXQgd2F5IG9uIGFsbCBvZiB0
-aGVtIHdheSBiYWNrIHdoZW4uLi4uDQoNCkFuZCwgcmVhbGx5LCBwbWVtIGlzIGEgX3ZlcnkgcG9v
-ciBjaG9pY2VfIGZvciBtZXRhZGF0YSBpbnRlbnNpdmUNCmFwcGxpY2F0aW9ucyBvbiBYRlMgYXMg
-cG1lbSBpcyBjb21wbGV0ZWx5IHN5bmNocm9ub3VzLiAgWEZTIGhhcyBhbg0KYXN5bmMgSU8gbW9k
-ZWwgZm9yIGl0J3MgbWV0YWRhdGEgdGhhdCAqbXVzdCogYmUgYnVmZmVyZWQgKHNvIG5vDQpEQVgh
-KSBhbmQgdGhlIHN5bmNocm9ub3VzIG5hdHVyZSBvZiBwbWVtIGNvbXBsZXRlbHkgZGVmZWF0cyB0
-aGUNCmFyY2hpdGVjdHVyYWwgSU8gcGlwZWxpbmluZyBYRlMgdXNlcyB0byBhbGxvdyB0aG91c2Fu
-ZHMgb2YNCmNvbmN1cnJlbnQgbWV0YWRhdGEgSU9zIGluIGZsaWdodC4gT1RPSCwgcG1lbSBJTyBk
-ZXB0aCBpcyBsaW1pdGVkIHRvDQp0aGUgbnVtYmVyIG9mIENQVXMgdGhhdCBhcmUgY29uY3VycmVu
-dGx5IGlzc3VpbmcgSU8sIHNvIGl0IHJlYWxseSwNCnJlYWxseSBzdWNrcyBjb21wYXJlZCB0byBh
-IGhhbmRmdWwgb2YgaGlnaCBlbmQgbnZtZSBTU0RzIG9uIFBDSWUNCjQuMC4uLi4NCg0KU28gd2l0
-aCB0aGF0IGluIG1pbmQsIEkgc2VlIGxpdHRsZSByZWFzb24gdG8gY2FyZSBhYm91dCB0aGUgc21h
-bGwNCmFkZGl0aW9uYWwgb3ZlcmhlYWQgb2Ygcm1hcGJ0IG9uIEZTLURBWCBpbnN0YWxsYXRpb25z
-IHRoYXQgcmVxdWlyZQ0KcmVmbGluay4uLg0KDQpDaGVlcnMsDQoNCkRhdmUuDQotLSANCkRhdmUg
-Q2hpbm5lcg0KZGF2aWRAZnJvbW9yYml0LmNvbQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1u
-dmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+
+> Presently add_dimm() only probes dimms that support NFIT/ACPI. Hence
+> this patch refactors this functionality into two functions namely
+> add_dimm() and add_nfit_dimm(). Function add_dimm() performs
+> allocation and common 'struct ndctl_dimm' initialization and depending
+> on whether the dimm-bus supports NIFT, calls add_nfit_dimm(). Once
+> the probe is completed based on the value of 'ndctl_dimm.cmd_family'
+> appropriate dimm-ops are assigned to the dimm.
+>
+> In case dimm-bus is of unknown type or doesn't support NFIT the
+> initialization still continues, with no dimm-ops assigned to the
+> 'struct ndctl_dimm' there-by limiting the functionality available.
+>
+> This patch shouldn't introduce any behavioral change.
+>
+> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+> ---
+> Changelog:
+>
+> v1..v2:
+> * None
+> ---
+>  ndctl/lib/libndctl.c | 193 +++++++++++++++++++++++++------------------
+>  1 file changed, 112 insertions(+), 81 deletions(-)
+>
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index ee737cbbfe3e..d76dbf7e17de 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -1441,82 +1441,15 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
+>  static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
+>  static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
+>  
+> -static void *add_dimm(void *parent, int id, const char *dimm_base)
+> +static int add_nfit_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
+>  {
+> -	int formats, i;
+> -	struct ndctl_dimm *dimm;
+> +	int i, rc = -1;
+>  	char buf[SYSFS_ATTR_SIZE];
+> -	struct ndctl_bus *bus = parent;
+> -	struct ndctl_ctx *ctx = bus->ctx;
+> +	struct ndctl_ctx *ctx = dimm->bus->ctx;
+>  	char *path = calloc(1, strlen(dimm_base) + 100);
+>  
+>  	if (!path)
+> -		return NULL;
+> -
+> -	sprintf(path, "%s/nfit/formats", dimm_base);
+> -	if (sysfs_read_attr(ctx, path, buf) < 0)
+> -		formats = 1;
+> -	else
+
+....
+> +	rc = 0;
+> + err_read:
+> +
+> +	free(path);
+> +	return rc;
+> +}
+> +
+> +static void *add_dimm(void *parent, int id, const char *dimm_base)
+> +{
+> +	int formats, i, rc = -ENODEV;
+> +	struct ndctl_dimm *dimm = NULL;
+> +	char buf[SYSFS_ATTR_SIZE];
+> +	struct ndctl_bus *bus = parent;
+> +	struct ndctl_ctx *ctx = bus->ctx;
+> +	char *path = calloc(1, strlen(dimm_base) + 100);
+> +
+> +	if (!path)
+> +		return NULL;
+> +
+> +	sprintf(path, "%s/nfit/formats", dimm_base);
+
+Witht that abstraction this should be part of add_nfit_dimm?
+
+> +	if (sysfs_read_attr(ctx, path, buf) < 0)
+> +		formats = 1;
+> +	else
+> +		formats = clamp(strtoul(buf, NULL, 0), 1UL, 2UL);
+> +
+> +	dimm = calloc(1, sizeof(*dimm) + sizeof(int) * formats);
+> +	if (!dimm)
+> +		goto err_dimm;
+> +	dimm->bus = bus;
+> +	dimm->id = id;
+> +
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
