@@ -2,79 +2,57 @@ Return-Path: <SRS0=TPW+=6O=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 392D2C83006
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 08:34:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ACE2C8300B
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 08:41:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1070A2186A
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 08:34:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="C7NzSwQe"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1070A2186A
+	by mail.kernel.org (Postfix) with ESMTPS id ACA992192A
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 08:41:11 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ACA992192A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 60527111B218B;
-	Thu, 30 Apr 2020 01:33:06 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::644; helo=mail-ej1-x644.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id E8B5E111ADBD2;
+	Thu, 30 Apr 2020 01:40:01 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.136; helo=mga12.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8FFE1111B2187
-	for <linux-nvdimm@lists.01.org>; Thu, 30 Apr 2020 01:33:03 -0700 (PDT)
-Received: by mail-ej1-x644.google.com with SMTP id pg17so3982680ejb.9
-        for <linux-nvdimm@lists.01.org>; Thu, 30 Apr 2020 01:34:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=87dIcS/jrU3IxflLIkdtnvU4qll0iHvEZNuLGZ4o7wI=;
-        b=C7NzSwQeQ8r7hb6zu0mE43nN5BVsWOZy21t9s86oMspwPoqNG+2r9QwYXMI253bkO+
-         f2NXbqJEZlVUDXw2jKOJXTdMksOMSeCU/1+d1/KW3kPK6bDnIkjaV85ydvslVx7+7VaK
-         H/Wy8s3jtrbog9dFPbt+U8g4F9a/kPxAFzoHfDtTpSCDud/nTiDKxbIHNOx4gDT1cWli
-         scShmtfTOkTf1D6LztaDjOZAMAIUOcl9E1Ehg4s+icpPrmffJn6TfhOtMJuuVZZemCWo
-         u5q8IaOdIkls7C87+V/X7frCMtH72XB/et/faVXvhnFad5uP3/TQ8BbSLNTCllAusarT
-         BwFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=87dIcS/jrU3IxflLIkdtnvU4qll0iHvEZNuLGZ4o7wI=;
-        b=NXQhsbX1h+FjddziSFgDApAfE962gy7IIm+OL7Q95dshgqeFuAgNPNYPncc1dret2E
-         4cxZi2uAFIYJdYxBBRyxdGAT6djae338ah8Mki8kyqfo153Fojk6rCv4W8ZlUpxwrEkl
-         N1zQem1Khgbkc8ObEPDFfC2oTyaY/vJLNo8DCVfCecSK2YYnSmnmexWCnh6ENGMt+Blk
-         N0LtFpqFk4mpg6mJk8T+v/IdahgXiRbxF86vRKhp9P8y9kj6LtwDKTNav8/W/eiGQMY6
-         W6SHZt1VCim51UDOxwXbeeBko82SaNov4EzdYbRvvC84wsFl+Gs8kxGcvcLA0+EHMedC
-         8qbQ==
-X-Gm-Message-State: AGi0PuYVIdYj+DWjPNU+NhxJyT9JBNDEg35D7khOiAA38gKpHS9kYZnB
-	3OreFmUeJCITTf3YhdmFaG1D9NUmOoczX0lsa+m5cw==
-X-Google-Smtp-Source: APiQypLBVztlIIHfr3wCtEt+MVa/TaJHl/O1nuNqStB0TwAKkS6wTTbCgFJlPXMDG8iI601GTPaB481cRsH+FNdImHY=
-X-Received: by 2002:a17:906:7750:: with SMTP id o16mr1715515ejn.12.1588235651152;
- Thu, 30 Apr 2020 01:34:11 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200429160803.109056-1-david@redhat.com> <20200429160803.109056-3-david@redhat.com>
- <a7305cd8-8b2f-1d8f-7654-ecf777c46df6@redhat.com> <CAPcyv4i04+QLxiOyz04_eef2DFetEFKBUmi2A4xxw9abQD8hNQ@mail.gmail.com>
- <e32522cd-31bb-e129-47a6-9ec13b570506@redhat.com>
-In-Reply-To: <e32522cd-31bb-e129-47a6-9ec13b570506@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 05716111ADBD0
+	for <linux-nvdimm@lists.01.org>; Thu, 30 Apr 2020 01:39:59 -0700 (PDT)
+IronPort-SDR: 5PP1BFqYOKvdezvAbVukdDGEN3m/K5TD0CXynv/oUMAKJcdy1xcS3YEOf71neh50NHTnRl4kTx
+ WrD5HJ6EC3eA==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2020 01:41:08 -0700
+IronPort-SDR: +SbNMsauFiB5ELoBy32LzdT63RXPMNZtx+Zg3uwJQnCzI6godX+TRUBLmo9Zb6Ea60gLXsF8zn
+ QsPVZw6I4O/Q==
+X-IronPort-AV: E=Sophos;i="5.73,334,1583222400";
+   d="scan'208";a="405330939"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Apr 2020 01:41:07 -0700
+Subject: [PATCH v2 0/2] Replace and improve "mcsafe" with copy_safe()
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 30 Apr 2020 01:34:00 -0700
-Message-ID: <CAPcyv4gjRE23BHsBAnaVWAPUHWdenxYMUwDBnDF7UmoejmmbNQ@mail.gmail.com>
-Subject: Re: [PATCH v1 2/3] mm/memory_hotplug: Introduce MHP_DRIVER_MANAGED
-To: David Hildenbrand <david@redhat.com>
-Message-ID-Hash: 34EI3RMXK6AZJI7MN4QXW5DQAVMVAR2A
-X-Message-ID-Hash: 34EI3RMXK6AZJI7MN4QXW5DQAVMVAR2A
+To: tglx@linutronix.de, mingo@redhat.com
+Date: Thu, 30 Apr 2020 01:24:58 -0700
+Message-ID: <158823509800.2094061.9683997333958344535.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Message-ID-Hash: GWOAVBKP2XZT6HXA7TQ6MNPKBEWL7MWG
+X-Message-ID-Hash: GWOAVBKP2XZT6HXA7TQ6MNPKBEWL7MWG
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, virtio-dev@lists.oasis-open.org, virtualization@lists.linux-foundation.org, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-hyperv@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, xen-devel <xen-devel@lists.xenproject.org>, Michal Hocko <mhocko@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Michael S . Tsirkin" <mst@redhat.com>, Michal Hocko <mhocko@suse.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Wei Yang <richard.weiyang@gmail.com>, Baoquan He <bhe@redhat.com>, Eric Biederman <ebiederm@xmission.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Dave Hansen <dave.hansen@linux.intel.com>
+CC: Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@alien8.de>, stable@vger.kernel.org, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Arnaldo Carvalho de Melo <acme@kernel.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/34EI3RMXK6AZJI7MN4QXW5DQAVMVAR2A/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GWOAVBKP2XZT6HXA7TQ6MNPKBEWL7MWG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,68 +61,99 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Apr 30, 2020 at 1:21 AM David Hildenbrand <david@redhat.com> wrote:
-> >> Just because we decided to use some DAX memory in the current kernel as
-> >> system ram, doesn't mean we should make that decision for the kexec
-> >> kernel (e.g., using it as initial memory, placing kexec binaries onto
-> >> it, etc.). This is also not what we would observe during a real reboot.
-> >
-> > Agree.
-> >
-> >> I can see that the "System RAM" resource will show up as child resource
-> >> under the device e.g., in /proc/iomem.
-> >>
-> >> However, entries in /sys/firmware/memmap/ are created as "System RAM".
-> >
-> > True. Do you think this rename should just be limited to what type
-> > /sys/firmware/memmap/ emits? I have the concern, but no proof
->
-> We could split this patch into
->
-> MHP_NO_FIRMWARE_MEMMAP (create firmware memmap entries)
->
-> and
->
-> MHP_DRIVER_MANAGED (name of the resource)
->
-> See below, the latter might not be needed.
->
-> > currently, that there are /proc/iomem walkers that explicitly look for
-> > "System RAM", but might be thrown off by "System RAM (driver
-> > managed)". I was not aware of /sys/firmware/memmap until about 5
-> > minutes ago.
->
-> The only two users of /proc/iomem I am aware of are kexec-tools and some
-> s390x tools.
->
-> kexec-tools on x86-64 uses /sys/firmware/memmap to craft the initial
-> memmap, but uses /proc/iomem to
-> a) Find places for kexec images
-> b) Detect memory regions to dump via kdump
->
-> I am not yet sure if we really need the "System RAM (driver managed)"
-> part. If we can teach kexec-tools to
-> a) Don't place kexec images on "System RAM" that has a parent resource
-> (most likely requires kexec-tools changes)
-> b) Consider for kdump "System RAM" that has a parent resource
-> we might be able to avoid renaming that. (I assume that's already done)
->
-> E.g., regarding virtio-mem (patch #3) I am currently also looking into
-> creating a parent resource instead, like dax/kmem to avoid the rename:
->
-> :/# cat /proc/iomem
-> 00000000-00000fff : Reserved
-> [...]
-> 100000000-13fffffff : System RAM
-> 140000000-33fffffff : virtio0
->   140000000-147ffffff : System RAM
->   148000000-14fffffff : System RAM
->   150000000-157ffffff : System RAM
-> 340000000-303fffffff : virtio1
->   340000000-347ffffff : System RAM
-> 3280000000-32ffffffff : PCI Bus 0000:00
+Changes since v1:
+- Rename memcpy_mcsafe() to copy_safe() since the x86-machine-check
+  specifics have already been de-emphasized in a previous commit and are
+  further de-emphasized by these changes. (Linus)
 
-Looks good to me if it flies with kexec-tools.
+- Move copy_safe() out-of-line since it no longer reverts to plain
+  memcpy (Linus)
+
+- Move copy_safe() to its own stand-alone compilation unit where it no
+  longer entangles with arch/x86/lib/memcpy_64.S. This also allows perf
+  to stop tracking ongoing updates to that file due to copy_safe()
+  updates. (Linus)
+
+- Move the PowerPC implementation over to the new name.
+
+[1]: http://lore.kernel.org/r/158654083112.1572482.8944305411228188871.stgit@dwillia2-desk3.amr.corp.intel.com
+
+---
+
+The primary motivation to go touch memcpy_mcsafe() is that the existing
+benefit of doing slow and careful copies is obviated on newer CPUs. That
+fact solves the problem of needing to detect machine-check recovery
+capability. Now the old "mcsafe_key" opt-in to careful copying can be made
+an opt-out from the default fast copy implementation.
+
+The discussion with Linus further made clear that this facility had
+already lost its x86-machine-check specificity starting with commit
+2c89130a56a ("x86/asm/memcpy_mcsafe: Add write-protection-fault
+handling"). The new changes to not require a "careful copy" further
+de-emphasizes the role that x86-MCA plays in the implementation to just
+one more source of recoverable trap during the operation.
+
+With the above realizations the name "mcsafe" is no longer accurate and
+copy_safe() is proposed as its replacement. x86 grows a copy_safe_fast()
+implementation as a default implementation that is independent of
+detecting the presence of x86-MCA.
+
+---
+
+Dan Williams (2):
+      copy_safe: Rename memcpy_mcsafe() to copy_safe()
+      x86/copy_safe: Introduce copy_safe_fast()
+
+
+ arch/powerpc/Kconfig                               |    2 
+ arch/powerpc/include/asm/string.h                  |    2 
+ arch/powerpc/include/asm/uaccess.h                 |    4 
+ arch/powerpc/lib/Makefile                          |    2 
+ arch/powerpc/lib/copy_safe.S                       |    4 
+ arch/x86/Kconfig                                   |    2 
+ arch/x86/Kconfig.debug                             |    2 
+ arch/x86/include/asm/copy_safe.h                   |   18 ++
+ arch/x86/include/asm/copy_safe_test.h              |   75 +++++++++
+ arch/x86/include/asm/mcsafe_test.h                 |   75 ---------
+ arch/x86/include/asm/string_64.h                   |   32 ----
+ arch/x86/include/asm/uaccess_64.h                  |   21 ---
+ arch/x86/kernel/cpu/mce/core.c                     |    9 -
+ arch/x86/kernel/quirks.c                           |   10 -
+ arch/x86/lib/Makefile                              |    1 
+ arch/x86/lib/copy_safe.c                           |   66 ++++++++
+ arch/x86/lib/copy_safe_64.S                        |  163 ++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S                           |  115 --------------
+ arch/x86/lib/usercopy_64.c                         |   21 ---
+ drivers/md/dm-writecache.c                         |   12 +
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/pmem.c                              |    6 -
+ include/linux/string.h                             |   17 +-
+ include/linux/uio.h                                |   10 +
+ lib/Kconfig                                        |    2 
+ lib/iov_iter.c                                     |   36 ++--
+ tools/arch/x86/include/asm/copy_safe_test.h        |   13 ++
+ tools/arch/x86/include/asm/mcsafe_test.h           |   13 --
+ tools/arch/x86/lib/memcpy_64.S                     |  115 --------------
+ tools/objtool/check.c                              |    5 -
+ tools/perf/bench/Build                             |    1 
+ tools/perf/bench/mem-memcpy-x86-64-lib.c           |   24 ---
+ tools/testing/nvdimm/test/nfit.c                   |   49 +++---
+ .../testing/selftests/powerpc/copyloops/.gitignore |    2 
+ tools/testing/selftests/powerpc/copyloops/Makefile |    6 -
+ .../selftests/powerpc/copyloops/copy_safe.S        |    0 
+ 36 files changed, 429 insertions(+), 508 deletions(-)
+ rename arch/powerpc/lib/{memcpy_mcsafe_64.S => copy_safe.S} (98%)
+ create mode 100644 arch/x86/include/asm/copy_safe.h
+ create mode 100644 arch/x86/include/asm/copy_safe_test.h
+ delete mode 100644 arch/x86/include/asm/mcsafe_test.h
+ create mode 100644 arch/x86/lib/copy_safe.c
+ create mode 100644 arch/x86/lib/copy_safe_64.S
+ create mode 100644 tools/arch/x86/include/asm/copy_safe_test.h
+ delete mode 100644 tools/arch/x86/include/asm/mcsafe_test.h
+ delete mode 100644 tools/perf/bench/mem-memcpy-x86-64-lib.c
+ rename tools/testing/selftests/powerpc/copyloops/{memcpy_mcsafe_64.S => copy_safe.S} (100%)
+
+base-commit: b8dcd632c06b8706d22934f9bf9bf16a42b1ecc7
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
