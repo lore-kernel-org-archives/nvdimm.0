@@ -1,52 +1,71 @@
 Return-Path: <SRS0=TPW+=6O=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.8 required=3.0 tests=DEAR_SOMETHING,
-	DKIM_ADSP_CUSTOM_MED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BD77C8300A
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 10:07:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D98F4C8300A
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 10:29:49 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id AC3662186A
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 10:07:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AC3662186A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id A446920838
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Apr 2020 10:29:49 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ET/HEcMa"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A446920838
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 81D5A111B9BC0;
-	Thu, 30 Apr 2020 03:06:43 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=210.123.250.206; helo=mail.powererp.kr; envelope-from=projectaseel1@gmail.com; receiver=<UNKNOWN> 
-Received: from mail.powererp.kr (unknown [210.123.250.206])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 5EFBC111B5BBD;
+	Thu, 30 Apr 2020 03:28:39 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [207.211.31.81])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 34431111B5B7A
-	for <linux-nvdimm@lists.01.org>; Thu, 30 Apr 2020 03:06:37 -0700 (PDT)
-Received: from gmail.com (Unknown [142.91.3.98])
-	by mail.powererp.kr with ESMTPA
-	; Wed, 15 Apr 2020 21:58:23 +0900
-From: Aseel Islamic Finance PJSC <projectaseel1@gmail.com>
-To: linux-nvdimm@lists.01.org
-Subject: Re: Project establishment
-Date: 15 Apr 2020 05:58:22 -0700
-Message-ID: <20200415055822.09F4B36C1F674FDB@gmail.com>
+	by ml01.01.org (Postfix) with ESMTPS id F2984111B21B3
+	for <linux-nvdimm@lists.01.org>; Thu, 30 Apr 2020 03:28:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1588242585;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=F00GW0IDxO2YtXf8I1Htd7Li0LSvuJyIHlJhh9ba9cc=;
+	b=ET/HEcMaPnnU8Ikjs61jZltkM1jseyY3c45PGlU7miJREHCpkXXQLaY03Qe9vKzx/vNlZE
+	eKvP6zLAHOsdyXX/QZKFc24fU77NAjotl1JoCYIApC469dlGO4tppelP/N8c24f7OyH2V1
+	H3WFLVSoOOPwCGabrnnBfqff3BfwSUU=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-319-F5xrMv_8M0upE38nqrJ6fA-1; Thu, 30 Apr 2020 06:29:37 -0400
+X-MC-Unique: F5xrMv_8M0upE38nqrJ6fA-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0BD301899521;
+	Thu, 30 Apr 2020 10:29:32 +0000 (UTC)
+Received: from t480s.redhat.com (ovpn-113-172.ams2.redhat.com [10.36.113.172])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 963F15D780;
+	Thu, 30 Apr 2020 10:29:16 +0000 (UTC)
+From: David Hildenbrand <david@redhat.com>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH v2 0/3] mm/memory_hotplug: Allow to not create firmware memmap entries
+Date: Thu, 30 Apr 2020 12:29:05 +0200
+Message-Id: <20200430102908.10107-1-david@redhat.com>
 MIME-Version: 1.0
-Message-ID-Hash: M3XPIBSVT2Q2RESZROACFTDNDPG3QAZ5
-X-Message-ID-Hash: M3XPIBSVT2Q2RESZROACFTDNDPG3QAZ5
-X-MailFrom: projectaseel1@gmail.com
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Message-ID-Hash: IETURQDICMZV5EGNVLWAGOP4KVESB3DW
+X-Message-ID-Hash: IETURQDICMZV5EGNVLWAGOP4KVESB3DW
+X-MailFrom: david@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: linux-mm@kvack.org, virtio-dev@lists.oasis-open.org, virtualization@lists.linux-foundation.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-hyperv@vger.kernel.org, linux-s390@vger.kernel.org, xen-devel@lists.xenproject.org, Michal Hocko <mhocko@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Michael S . Tsirkin" <mst@redhat.com>, David Hildenbrand <david@redhat.com>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Eric Biederman <ebiederm@xmission.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Haiyang Zhang <haiyangz@microsoft.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Jason Wang <jasowang@redhat.com>, Juergen Gross <jgross@suse.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Len Brown <lenb@kernel.org>, Leonardo Bras <leobras.c@gmail.com>, Mich
+ ael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, Nathan Lynch <nathanl@linux.ibm.com>, Oscar Salvador <osalvador@suse.de>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Paul Mackerras <paulus@samba.org>, Pavel Tatashin <pasha.tatashin@soleen.com>, Pingfan Liu <kernelfans@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Stefano Stabellini <sstabellini@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Wei Liu <wei.liu@kernel.org>, Wei Yang <richard.weiyang@gmail.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: projectaseel1@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/M3XPIBSVT2Q2RESZROACFTDNDPG3QAZ5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IETURQDICMZV5EGNVLWAGOP4KVESB3DW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -55,50 +74,49 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dear Sir,
+This is the follow up of [1]:
+	[PATCH v1 0/3] mm/memory_hotplug: Make virtio-mem play nicely with
+	kexec-tools
 
-As-Salaam-Alaikum.
+I realized that this is not only helpful for virtio-mem, but also for
+dax/kmem - it's a fix for that use case (see patch #3) of persistent
+memory.
 
-Greetings from Aseel Islamic Finance PJSC.
+Also, while testing, I discovered that kexec-tools will *not* add dax/kmem
+memory (anything not directly under the root when parsing /proc/iomem) to
+the elfcorehdr, so this memory will never get included in a dump. This
+probably has to be fixed in kexec-tools - virtio-mem will require this as
+well.
 
-Aseel Islamic finance PJSC is private joint stock company that 
-was established in 2006 and has built a leading market position 
-for itself in the UAE's finance market which specializes in loan 
-finance and investment activities in real estate, hospitality, 
-sports, industrial & sustainable technologies, strategic 
-financial investments,
-specialized education, healthcare services, 
-agriculture,manufacturing, mining, energy and additional 
-environmentally sustainable projects.
+v1 -> v2:
+- Don't change the resource name
+- Rename the flag to MHP_NO_FIRMWARE_MEMMAP to reflect what it is doing
+- Rephrase subjects/descriptions
+- Use the flag for dax/kmem
 
-My Name is Saif dawood. Do you have projects that require 
-funding? We have finance available for your projects with over 2 
-trillion private and corporate investment portfolios. Aseel 
-Islamic finance PJSC is looking for equity partners, 
-entrepreneur, fund raisers and portfolio managers who will pay up 
-to 3.5% interest and/or part equity position with a 5 to 10 year 
-hold. In 2030, we plan on acquiring up to 2 trillion in high-
-quality, low risk assets and investments to capitalize on the 
-current market cycle.
+I'll have to rebase virtio-mem on these changes, there will be a resend.
 
-Aseel Islamic finance PJSC is acting as a lender and the fund 
-will be disbursed on a clear interest rate of 3.5% annually to 
-the equity partners and entrepreneurs for their investment 
-projects. We also give a 2% commission to brokers, who bring 
-project owners for finance or other opportunities.
+[1] https://lkml.kernel.org/r/20200429160803.109056-1-david@redhat.com
 
-For further details, kindly send us via email with your business 
-plans 
+David Hildenbrand (3):
+  mm/memory_hotplug: Prepare passing flags to add_memory() and friends
+  mm/memory_hotplug: Introduce MHP_NO_FIRMWARE_MEMMAP
+  device-dax: Add system ram (add_memory()) with MHP_NO_FIRMWARE_MEMMAP
 
-Regards,
+ arch/powerpc/platforms/powernv/memtrace.c       |  2 +-
+ arch/powerpc/platforms/pseries/hotplug-memory.c |  2 +-
+ drivers/acpi/acpi_memhotplug.c                  |  2 +-
+ drivers/base/memory.c                           |  2 +-
+ drivers/dax/kmem.c                              |  3 ++-
+ drivers/hv/hv_balloon.c                         |  2 +-
+ drivers/s390/char/sclp_cmd.c                    |  2 +-
+ drivers/xen/balloon.c                           |  2 +-
+ include/linux/memory_hotplug.h                  | 15 ++++++++++++---
+ mm/memory_hotplug.c                             | 14 ++++++++------
+ 10 files changed, 29 insertions(+), 17 deletions(-)
 
-Mr. SaIf Dawood
-International Business Coordinator
-Aseel Islamic Finance PJSC
-Al Mankhool, Dubai C2 Tower,
-Ground floor,P.O 94669 Dubai,
-United Arab Emirates
-+971 586 242 191
+-- 
+2.25.3
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
