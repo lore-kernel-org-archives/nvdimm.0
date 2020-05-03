@@ -1,142 +1,118 @@
-Return-Path: <SRS0=CgJU=6Q=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=/BFs=6R=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA25AC47254
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  2 May 2020 18:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34CE1C47257
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  3 May 2020 00:30:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8440420787
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  2 May 2020 18:03:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 0B96520721
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  3 May 2020 00:30:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="aSBw5wCD"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8440420787
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=amacapital-net.20150623.gappssmtp.com header.i=@amacapital-net.20150623.gappssmtp.com header.b="E1AEkHox"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0B96520721
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=amacapital.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CB17F1009D113;
-	Sat,  2 May 2020 11:01:50 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::544; helo=mail-ed1-x544.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+	by ml01.01.org (Postfix) with ESMTP id 9F1C411613790;
+	Sat,  2 May 2020 17:28:48 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::342; helo=mail-wm1-x342.google.com; envelope-from=luto@amacapital.net; receiver=<UNKNOWN> 
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A13F910113FC7
-	for <linux-nvdimm@lists.01.org>; Sat,  2 May 2020 11:01:48 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id d16so9870463edq.7
-        for <linux-nvdimm@lists.01.org>; Sat, 02 May 2020 11:03:13 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 42B5E1161378C
+	for <linux-nvdimm@lists.01.org>; Sat,  2 May 2020 17:28:45 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id z6so4597045wml.2
+        for <linux-nvdimm@lists.01.org>; Sat, 02 May 2020 17:30:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        d=amacapital-net.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=gzsuxDlItzKXIUBK7WGNpTkOsm9nq+BDdgFK8X2BWvo=;
-        b=aSBw5wCDConKD/IcaaHbp4Mo0CTJ0pgKRvNWRkiIWGE3lCN/oPbrEa9/oKAglpfRn1
-         ybYK1kBJxRVbPzvApGi7N1gI88wlw4xjREME4zX7kVXKZH3FDgSbie3ks5shBRY8TZ6q
-         DMFWhZRW7RkjeJCSKPKh/8pZ2QWGSZw/Nyq/zAlnOngdfv/+o/QV9wf4QVQZ5gXVDkzN
-         XNN+MYW95/ejtNi3wUzQ6oJ8i+BfB05eb9CwAbUAIbruiYbVwz5lfsdGnAXaouOdPAgk
-         c8v1YIbx6b+WQ999NPSKnSrIN3qI9oKtRGvdPYhTcKRXMBwc/GxItvO5XlgyBCaOSzcl
-         2H2w==
+         :cc:content-transfer-encoding;
+        bh=V2nT+jmzW6uK6j6RNvaRunaFhSFW7qRx5cWISy3xtsQ=;
+        b=E1AEkHox21046/Jzv0H2sg0BIzJvXI5WKdhrIfyzhtFbc0BBr2Jbbo4W/cz61zuCWi
+         N7wfdgGQbbeddGO74JguUI2EXq4+V2iEf/49y27rGKNWMBfesVlzBgPOzVPeBAWsDjVi
+         MwfyIgQ4sj5GybFYWk26pinWgUjQkfCWZ6xmmDA/YANZdJExvY+1eHRU0qsu08dgxRg4
+         yba0Fz8wK4DVM4JNI9vneWIr8MwO1iTNEI1j2c8OtrlAD2zgZyVuN0UPndhOvADA09K0
+         oGD9E7oaU2Xm77LaL1nDwVx5b0TQ2W5oTxfvUMvijPlQLM0HQwCdOkQFHHjX+VELIOiy
+         0BvQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=gzsuxDlItzKXIUBK7WGNpTkOsm9nq+BDdgFK8X2BWvo=;
-        b=q+QCSA/LNE2LM0QyWTFT3c7jhn1URV90PPq/gTsPVTRhxXDvPYco3TOF8KCUQubNYK
-         LCpo8mydXlrFaUTfZrzHWzuQvRNS2IchL8bvMR3Em7Aw9RAvS/HCHBVbeNIrxcpEZc8K
-         UsqRc4fnvVg4pPC39p8g8ksgaV19dmahobnOPpMDIyQxaemPcfWS1qiZg1RQxfIYs/gm
-         yf+Ox76sSa4VtdgfOLhRguJ+lvO5PXk6+jN52vv33Fy9rFyOczKmIK8jfj6R0onQwphZ
-         uTQGKD8Y5uDSdlzkHVB56WGslQv7JSDV+oBDypTHWqIC4b3hy/iFr8n+6gZ3MapS9f+e
-         jbQg==
-X-Gm-Message-State: AGi0PuaWfjcDLmvOCdkS4yuRZ4dTPJeEHvhP8/NMo3FuDDf+et3Kq1zY
-	HAzHoiST0jQkRIHst/mLJ1uBisExRNaH+YBC5heNig==
-X-Google-Smtp-Source: APiQypJrbz2VzfjebhxcGzu52aKY5ET0/26CFym5+FOkkSLJ9Vu46v3NJUgCYAVe4ZsgBJWlfsgCXWWgDBxtIIIlF1U=
-X-Received: by 2002:a05:6402:3136:: with SMTP id dd22mr8275680edb.165.1588442592251;
- Sat, 02 May 2020 11:03:12 -0700 (PDT)
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=V2nT+jmzW6uK6j6RNvaRunaFhSFW7qRx5cWISy3xtsQ=;
+        b=jCvbyz5HBqtoDUVdZK7Q1vJPtv+Z/2tGdZoXvebVPjID3ruDxcNK0tDsXseumZHUm0
+         GwzR9whC7fZbUGSjmHp1cuFV3wbDqBCYlij2zS2T3rObLRJ+IKjUd+TRlC9ltIGCfSBz
+         OpqmIyJ223rbSAMiUJfm4+4ZDkI4p/E1T/z+Ch6I548hRk637CzmRzKrx14WaIh/yGUk
+         +n9jnoP5SHWsPRuUTAafjOX6Kd6D67Gnta8PZob3tlzqybLr1PrWbtHwKeOHEYMHSZrI
+         IrVotLdGTJCW4GysRkrRXIEh4V/L/B/Y+UXTIeqAv2eSunNSkHcCzvY87viq2pbJ3Pax
+         J/VQ==
+X-Gm-Message-State: AGi0PuY3q0/EwHeoZMjUHOWCACJpt4RgAFIuQbJACSDJcCdyN0yXWtKE
+	jTkzV6kXs54gflX93bUuvlfY8XUM7Fq0r6mNmv95ww==
+X-Google-Smtp-Source: APiQypK033BSVa5j3+ZhThYcEUFkwS26U4I4SJPdSG0fksA6GljM8v6NbCEY+NCeISjVSggtF2WxUBXyAZEAOTUxbUM=
+X-Received: by 2002:a1c:4186:: with SMTP id o128mr6735406wma.21.1588465809902;
+ Sat, 02 May 2020 17:30:09 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200430102908.10107-1-david@redhat.com> <875zdg26hp.fsf@x220.int.ebiederm.org>
- <b28c9e02-8cf2-33ae-646b-fe50a185738e@redhat.com> <20200430152403.e0d6da5eb1cad06411ac6d46@linux-foundation.org>
- <5c908ec3-9495-531e-9291-cbab24f292d6@redhat.com> <CAPcyv4j=YKnr1HW4OhAmpzbuKjtfP7FdAn4-V7uA=b-Tcpfu+A@mail.gmail.com>
- <2d019c11-a478-9d70-abd5-4fd2ebf4bc1d@redhat.com> <CAPcyv4iOqS0Wbfa2KPfE1axQFGXoRB4mmPRP__Lmqpw6Qpr_ig@mail.gmail.com>
- <62dd4ce2-86cc-5b85-734f-ec8766528a1b@redhat.com> <0169e822-a6cc-1543-88ed-2a85d95ffb93@redhat.com>
- <CAPcyv4jGnR_fPtpKBC1rD2KRcT88bTkhqnTMmuwuc+f9Dwrz1g@mail.gmail.com>
- <9f3a813e-dc1d-b675-6e69-85beed3057a4@redhat.com> <CAPcyv4jjrxQ27rsfmz6wYPgmedevU=KG+wZ0GOm=qiE6tqa+VA@mail.gmail.com>
- <04242d48-5fa9-6da4-3e4a-991e401eb580@redhat.com> <CAPcyv4iXyOUDZgqhWH1KCObvATL=gP55xEr64rsRfUuJg5B+eQ@mail.gmail.com>
- <8242c0c5-2df2-fc0c-079a-3be62c113a11@redhat.com> <CAPcyv4h1nWjszkVJQgeXkUc=-nPv5=Me25BOGFQCpihUyFsD6w@mail.gmail.com>
- <467ccba3-80ac-085c-3127-d5618d77d3e0@redhat.com>
-In-Reply-To: <467ccba3-80ac-085c-3127-d5618d77d3e0@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 2 May 2020 11:03:01 -0700
-Message-ID: <CAPcyv4iqwh6k40DUy-Pwi2h5pJm9vu7+JU1ghELy=3MGM1naNg@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] mm/memory_hotplug: Introduce MHP_NO_FIRMWARE_MEMMAP
-To: David Hildenbrand <david@redhat.com>
-Message-ID-Hash: XFMNQNE3ENXPS3UXRHLQ3WUUWPIA55B2
-X-Message-ID-Hash: XFMNQNE3ENXPS3UXRHLQ3WUUWPIA55B2
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Andrew Morton <akpm@linux-foundation.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, virtio-dev@lists.oasis-open.org, virtualization@lists.linux-foundation.org, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-hyperv@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, xen-devel <xen-devel@lists.xenproject.org>, Michal Hocko <mhocko@kernel.org>, "Michael S . Tsirkin" <mst@redhat.com>, Michal Hocko <mhocko@suse.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Wei Yang <richard.weiyang@gmail.com>, Baoquan He <bhe@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>
+References: <CAHk-=wiMs=A90np0Hv5WjHY8HXQWpgtuq-xrrJvyk7_pNB4meg@mail.gmail.com>
+ <1962EE67-8AD1-409D-963A-4F1E1AB3B865@amacapital.net> <3908561D78D1C84285E8C5FCA982C28F7F60EBB6@ORSMSX115.amr.corp.intel.com>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F7F60EBB6@ORSMSX115.amr.corp.intel.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Sat, 2 May 2020 17:29:57 -0700
+Message-ID: <CALCETrW5zNLOrhOS69xeb3ANa0HVAW5+xaHvG2CA8iFy1ByHKQ@mail.gmail.com>
+Subject: Re: [PATCH v2 0/2] Replace and improve "mcsafe" with copy_safe()
+To: "Luck, Tony" <tony.luck@intel.com>
+Message-ID-Hash: HNNC544O2V56D7FJS2TR5Z67YVCMJE37
+X-Message-ID-Hash: HNNC544O2V56D7FJS2TR5Z67YVCMJE37
+X-MailFrom: luto@amacapital.net
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Linus Torvalds <torvalds@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Borislav Petkov <bp@alien8.de>, stable <stable@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "Tsaur, Erwin" <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Arnaldo Carvalho de Melo <acme@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XFMNQNE3ENXPS3UXRHLQ3WUUWPIA55B2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HNNC544O2V56D7FJS2TR5Z67YVCMJE37/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Sat, May 2, 2020 at 2:27 AM David Hildenbrand <david@redhat.com> wrote:
->
-> >> Now, let's clarify what I want regarding virtio-mem:
-> >>
-> >> 1. kexec should not add virtio-mem memory to the initial firmware
-> >>    memmap. The driver has to be in charge as discussed.
-> >> 2. kexec should not place kexec images onto virtio-mem memory. That
-> >>    would end badly.
-> >> 3. kexec should still dump virtio-mem memory via kdump.
-> >
-> > Ok, but then seems to say to me that dax/kmem is a different type of
-> > (driver managed) than virtio-mem and it's confusing to try to apply
-> > the same meaning. Why not just call your type for the distinct type it
-> > is "System RAM (virtio-mem)" and let any other driver managed memory
-> > follow the same "System RAM ($driver)" format if it wants?
->
-> I had the same idea but discarded it because it seemed to uglify the
-> add_memory() interface (passing yet another parameter only relevant for
-> driver managed memory). Maybe we really want a new one, because I like
-> that idea:
->
-> /*
->  * Add special, driver-managed memory to the system as system ram.
->  * The resource_name is expected to have the name format "System RAM
->  * ($DRIVER)", so user space (esp. kexec-tools)" can special-case it.
->  *
->  * For this memory, no entries in /sys/firmware/memmap are created,
->  * as this memory won't be part of the raw firmware-provided memory map
->  * e.g., after a reboot. Also, the created memory resource is flagged
->  * with IORESOURCE_MEM_DRIVER_MANAGED, so in-kernel users can special-
->  * case this memory (e.g., not place kexec images onto it).
->  */
-> int add_memory_driver_managed(int nid, u64 start, u64 size,
->                               const char *resource_name);
->
->
-> If we'd ever have to special case it even more in the kernel, we could
-> allow to specify further resource flags. While passing the driver name
-> instead of the resource_name would be an option, this way we don't have
-> to hand craft new resource strings for added memory resources.
->
-> Thoughts?
-
-Looks useful to me and simplifies walking /proc/iomem. I personally
-like the safety of the string just being the $driver component of the
-name, but I won't lose sleep if the interface stays freeform like you
-propose.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+T24gRnJpLCBNYXkgMSwgMjAyMCBhdCA3OjA5IEFNIEx1Y2ssIFRvbnkgPHRvbnkubHVja0BpbnRl
+bC5jb20+IHdyb3RlOg0KPg0KPiA+IE5vdyBtYXliZSBjb3B5X3RvX3VzZXIoKSBzaG91bGQgKmFs
+d2F5cyogd29yayB0aGlzIHdheSwgYnV0IEnigJltIG5vdCBjb252aW5jZWQuDQo+ID4gQ2VydGFp
+bmx5IHB1dF91c2VyKCkgc2hvdWxkbuKAmXQg4oCUIHRoZSByZXN1bHQgd291bGRu4oCZdCBldmVu
+IGJlIHdlbGwgZGVmaW5lZC4gQW5kIEnigJltDQo+ID4gIHVuY29udmluY2VkIHRoYXQgaXQgbWFr
+ZXMgbXVjaCBzZW5zZSBmb3IgdGhlIG1ham9yaXR5IG9mIGNvcHlfdG9fdXNlcigpIGNhbGxlcnMN
+Cj4gPiAgdGhhdCBhcmUgYWxzbyBkaXJlY3RseSBhY2Nlc3NpbmcgdGhlIHNvdXJjZSBzdHJ1Y3R1
+cmUuDQo+DQo+IE9uZSBjYXNlIHRoYXQgbWlnaHQgd29yayBpcyBjb3B5X3RvX3VzZXIoKSB0aGF0
+J3MgY29weWluZyBmcm9tIHRoZSBrZXJuZWwgcGFnZSBjYWNoZQ0KPiB0byB0aGUgdXNlciBpbiBy
+ZXNwb25zZSB0byBhIHJlYWQoMikgc3lzdGVtIGNhbGwuICBBY3Rpb24gd291bGQgYmUgdG8gY2hl
+Y2sgaWYgd2UgY291bGQNCj4gcmUtcmVhZCBmcm9tIHRoZSBmaWxlIHN5c3RlbSB0byBhIGRpZmZl
+cmVudCBwYWdlLiBJZiBub3QsIHJldHVybiAtRUlPLiBFaXRoZXIgd2F5IGRpdGNoIHRoZQ0KPiBw
+b2lzb24gcGFnZSBmcm9tIHRoZSBwYWdlIGNhY2hlLg0KPg0KDQpJIHRoaW5rIHRoYXQsIGJlZm9y
+ZSB3ZSBkbyB0b28gbXVjaCBkZXNpZ24gb2YgdGhlIHNlbWFudGljcyBvZiBqdXN0DQp0aGUgY29w
+eSBmdW5jdGlvbiwgd2UgbmVlZCBhIGRlc2lnbiBmb3IgdGhlIHdob2xlIHN5c3RlbS4NClNwZWNp
+ZmljYWxseToNCg0KV2hlbiB0aGUga2VybmVsIGZpbmRzIG91dCB0aGF0IGEga2VybmVsIHBhZ2Ug
+aXMgYmFkICh2aWEgI01DIG9yIHZpYQ0KYW55IG90aGVyIG1lY2hhbmlzbSksIHdoYXQgZG9lcyB0
+aGUga2VybmVsIGRvPyAgRG9lcyBpdCB1bm1hcCBpdD8NCkRvZXMgaXQgcmVwbGFjZSBpdCB3aXRo
+IGEgZHVtbXkgcGFnZT8gIERvZXMgaXQgbGVhdmUgaXQgdGhlcmU/DQoNCldoZW4gYSBjb3B5IGZ1
+bmN0aW9uIGhpdHMgYSBiYWQgcGFnZSBhbmQgdGhlIHBhZ2UgaXMgbm90IHlldCBrbm93biB0bw0K
+YmUgYmFkLCB3aGF0IGRvZXMgaXQgZG8/ICAoSS5lLiB0aGUgcGFnZSB3YXMgYmVsaWV2ZWQgdG8g
+YmUgZmluZSBidXQNCnRoZSBjb3B5IGZ1bmN0aW9uIGdldHMgI01DLikgIERvZXMgaXQgdW5tYXAg
+aXQgcmlnaHQgYXdheT8gIFdoYXQgZG9lcw0KaXQgcmV0dXJuPw0KDQpXaGVuIGEgY29weSBmdW5j
+dGlvbiBoaXRzIGEgcGFnZSB0aGF0IGlzIGFscmVhZHkga25vd24gdG8gYmUgYmFkDQpiZWNhdXNl
+IHRoZSBrZXJuZWwgZ290IHRoZSAib2ggY3JhcCwgYmFkIHBhZ2UiIG5vdGlmaWNhdGlvbiBlYXJs
+aWVyLA0Kd2hhdCBkb2VzIGl0IGRvPyAgUmV0dXJuIC1FSU8/ICBUYWtlIHNvbWUgZmFuY2llciBh
+Y3Rpb24gdW5kZXIgdGhlDQphc3N1bXB0aW9uIHRoYXQgaXQncyBjYWxsZWQgaW4gYSBwcmVlbXB0
+aWJsZSwgSVJRcy1vbiBjb250ZXh0LCB3aGVyZWFzDQp0aGUgb3JpZ2luYWwgI01DIG9yIG90aGVy
+IGhhcmR3YXJlIG5vdGlmaWNhdGlvbiBtYXkgaGF2ZSBjb21lIGF0IGENCmxlc3Mgb3Bwb3J0dW5l
+IHRpbWU/Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
+bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1
+bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5v
+cmcK
