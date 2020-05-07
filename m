@@ -2,78 +2,78 @@ Return-Path: <SRS0=mksC=6V=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F833C4724C
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 May 2020 21:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13308C4724C
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 May 2020 23:13:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D626F2075E
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 May 2020 21:20:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id D015920CC7
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 May 2020 23:13:13 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="hhdJwocm"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D626F2075E
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="hrgYnUms"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D015920CC7
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E2DAD11816D70;
-	Thu,  7 May 2020 14:18:46 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::541; helo=mail-ed1-x541.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
+	by ml01.01.org (Postfix) with ESMTP id 32AD01181F3BB;
+	Thu,  7 May 2020 16:11:13 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::542; helo=mail-ed1-x542.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 50BE611816D6D
-	for <linux-nvdimm@lists.01.org>; Thu,  7 May 2020 14:18:43 -0700 (PDT)
-Received: by mail-ed1-x541.google.com with SMTP id a8so6707329edv.2
-        for <linux-nvdimm@lists.01.org>; Thu, 07 May 2020 14:20:42 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 08B0F1181F3B8
+	for <linux-nvdimm@lists.01.org>; Thu,  7 May 2020 16:11:10 -0700 (PDT)
+Received: by mail-ed1-x542.google.com with SMTP id f12so6881946edn.12
+        for <linux-nvdimm@lists.01.org>; Thu, 07 May 2020 16:13:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=PHG6yTghcibf497dWa0jTcy5wb1cOxvUkXcsCAAAnu0=;
-        b=hhdJwocmiOmhRbStlbTJF+p2HOJLzKjtHBW7/pWc2QtLmrhNBExIXrUO2uQY5aJFic
-         NPqwRqO/FhcKBHF/m/7sj8CrG7BnmqViC07cpNI3aHZjYqvifvmstOVxRyhtVNXzcaw/
-         odCvKvCvH1ts+K/benGuSU6XoYNbAe9XYRePBEsMfRJi35r79vMwY/Cf/d9exGoIO/cM
-         i0K74AdGR8TY4T7Qk9WwZjhxA1Y5OmygaBA8PACbgoOiEb3IK8NwuA9XAFhB6Kl4J0w5
-         r81WRBbrVsb5OZs5KYgcZZylE6FCNIL9AkQr2yo6e9K3nuwFOmCkxlf5SdIXs7sUpoAI
-         LMRg==
+        bh=hOgoGFfrQiuxoVLXtR6ns0cA7T4PnQXjD00h0lBOWe4=;
+        b=hrgYnUmsGdoaS3xDvgxUWyQB+Y5ou6argIEx1l1Kr98VcT/PuZNB21w7VF4wNyOf3b
+         ZTR3HijaDV+aYn7AVymILBM1HG6SsF3OBVQw+NaTDBW7yCAUHp+xDTo+d2HF2cWV62Kx
+         J0RHUmvKSo3QkxABUHofYEIYdck5hZ1pQ6TIdTqfGuRxHAfc9lc9WoKNSXaf5jd4sGH6
+         5zsj2CdRwbHBtEc5v/2QRCkRx3FkrQQQfcWJEBhPumdfcYetulcFpdZ2IUdvb+Ej1ldh
+         tWc0dThiiOgWTKPjGS8u0xo8v7dsvuhAFMjWHTib/xrlps+UHajnDWMLelWRkA9TeCdP
+         2JmQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=PHG6yTghcibf497dWa0jTcy5wb1cOxvUkXcsCAAAnu0=;
-        b=Z/TecEVWBpEbi0NPeYGXLdpa/oObrq6OUysbHC4qbv8GQNzkP+XQmFvL3v8aeLFwz+
-         HXi78BF+aXWz1Z6RCVcrMBPdMA4tpNAwdNq6NUPdEt6MWqKvHvsw3yEAfoZ4J4ESTXP5
-         PheAgyZfOlFkAq1KOApJbAB2sKYqFO7f4FAK9FmX7JOxHncQUl+mzqFAvs2PTkKhkR6D
-         k1d0beKh7lwm2yWHukSl/sEU1EypseamdaWvY5KfqmqVlkZOkhFSVtFCJFH2nDDHPOrn
-         6HMm/TNJ+5tnQlEjCIfuLpgZvcjRTPOyZeMep/4GM9sATyYLPv0l7wmQkHHmY7MQiXyT
-         VZfg==
-X-Gm-Message-State: AGi0Puap+oZabUUpBhh6Mh2qpRX2l0c8m6ZdBCmobvN1m3/A+Z9A2a7b
-	bvQTn2BW9bK+eVj+KE3NJpSHFfPvOGAJDLFWxYDhKA==
-X-Google-Smtp-Source: APiQypIDiQajRa4tQ5UpB7rmME33WGj2fRXc8YbBkxmSYjWsrm7ee61hgisYO4/M3hOn/3+7xRKMFnT6KU6LZryG7mc=
-X-Received: by 2002:aa7:c643:: with SMTP id z3mr13702521edr.154.1588886441435;
- Thu, 07 May 2020 14:20:41 -0700 (PDT)
+        bh=hOgoGFfrQiuxoVLXtR6ns0cA7T4PnQXjD00h0lBOWe4=;
+        b=BeDekkyErX5dsX6VwuKq+mTkWRYDZQmUTcxlg2YOudY/xTm2bMARHllmUwZY+P1SSn
+         AeCvqP538IjwHnfo9Fnc/Xis7GsNWyZMP/JxtDGrmQaMrqIKgWMTz44Y5bVeR84wAX3B
+         tXhampCXElJRXLh5wYx3jSLQOFJqt4r5eWnvGt+FmV0RuJpQUfBDSQ5UZMRn9R7Aaqic
+         N8Dl6yf/GZ1Zwq1eUR+8k8bn8ISmGY/d2U14m4VLtjpr3xOkotAzeKNPaiqGHzo79+2+
+         yLdcRG/34apTpKCvojW8sCIUYDB74UAe/eJxLC1lXWttfwBZdDnaHNvRa8mO+iScwzJ8
+         UjXQ==
+X-Gm-Message-State: AGi0PuYV35ES1wIvrriEgnMYNv0DoYdDz21zcza0OgtlQyX3BeaGmFe1
+	pHSNh8AcPi4OUnu2Mb/Y8DUvdfQ93pzQXDeCkUHVlQ==
+X-Google-Smtp-Source: APiQypLKOsixtTx2ArZFZo5Vte0u7Uot4DdFVW14d0f8hZF71PsBU1ityGME4xeFTnZmsoCmyniMyBMwVkOsZylK9MA=
+X-Received: by 2002:a05:6402:3136:: with SMTP id dd22mr13983824edb.165.1588893188370;
+ Thu, 07 May 2020 16:13:08 -0700 (PDT)
 MIME-Version: 1.0
 References: <158880834905.2183490.15616329469420234017.stgit@dwillia2-desk3.amr.corp.intel.com>
- <bd3963f3-c6d6-f138-331c-9ac065633491@intel.com>
-In-Reply-To: <bd3963f3-c6d6-f138-331c-9ac065633491@intel.com>
+ <CAHp75Vf0zBnwHubK+C265M9nh3Y5K2K=8ck61HQtnW+021bgwQ@mail.gmail.com>
+In-Reply-To: <CAHp75Vf0zBnwHubK+C265M9nh3Y5K2K=8ck61HQtnW+021bgwQ@mail.gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 7 May 2020 14:20:30 -0700
-Message-ID: <CAPcyv4ikWy9E8ScM2k1wdxUuPegftvOFwyLr86MupYpHsmxnUg@mail.gmail.com>
+Date: Thu, 7 May 2020 16:12:57 -0700
+Message-ID: <CAPcyv4gOxrOZUKfA4cObKUaZRkkjRyQFkS+=Q9FXziK00CE8yA@mail.gmail.com>
 Subject: Re: [PATCH] ACPI: Drop rcu usage for MMIO mappings
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Message-ID-Hash: W56IPXOTCT5RYBAJ7COSKLH2CEVIUEQF
-X-Message-ID-Hash: W56IPXOTCT5RYBAJ7COSKLH2CEVIUEQF
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Message-ID-Hash: D4KQJFQOO5RU7UXOEWKRDOWNWJZS5VYJ
+X-Message-ID-Hash: D4KQJFQOO5RU7UXOEWKRDOWNWJZS5VYJ
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: stable <stable@vger.kernel.org>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Erik Kaneda <erik.kaneda@intel.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Erik Kaneda <erik.kaneda@intel.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/W56IPXOTCT5RYBAJ7COSKLH2CEVIUEQF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/D4KQJFQOO5RU7UXOEWKRDOWNWJZS5VYJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,26 +82,27 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, May 7, 2020 at 9:43 AM Rafael J. Wysocki
-<rafael.j.wysocki@intel.com> wrote:
+On Thu, May 7, 2020 at 2:25 AM Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
 >
-> On 5/7/2020 1:39 AM, Dan Williams wrote:
+> On Thu, May 7, 2020 at 3:21 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> >
 > > Recently a performance problem was reported for a process invoking a
 > > non-trival ASL program. The method call in this case ends up
 > > repetitively triggering a call path like:
 > >
-> >      acpi_ex_store
-> >      acpi_ex_store_object_to_node
-> >      acpi_ex_write_data_to_field
-> >      acpi_ex_insert_into_field
-> >      acpi_ex_write_with_update_rule
-> >      acpi_ex_field_datum_io
-> >      acpi_ex_access_region
-> >      acpi_ev_address_space_dispatch
-> >      acpi_ex_system_memory_space_handler
-> >      acpi_os_map_cleanup.part.14
-> >      _synchronize_rcu_expedited.constprop.89
-> >      schedule
+> >     acpi_ex_store
+> >     acpi_ex_store_object_to_node
+> >     acpi_ex_write_data_to_field
+> >     acpi_ex_insert_into_field
+> >     acpi_ex_write_with_update_rule
+> >     acpi_ex_field_datum_io
+> >     acpi_ex_access_region
+> >     acpi_ev_address_space_dispatch
+> >     acpi_ex_system_memory_space_handler
+> >     acpi_os_map_cleanup.part.14
+> >     _synchronize_rcu_expedited.constprop.89
+> >     schedule
 > >
 > > The end result of frequent synchronize_rcu_expedited() invocation is
 > > tiny sub-millisecond spurts of execution where the scheduler freely
@@ -124,22 +125,49 @@ On Thu, May 7, 2020 at 9:43 AM Rafael J. Wysocki
 > > triggers it means that APEI either needs more instrumentation like that
 > > to pre-emptively fail, or more infrastructure to arrange for pre-mapping
 > > the resources it needs in NMI context.
-> >
-> > Cc: <stable@vger.kernel.org>
-> > Fixes: 620242ae8c3d ("ACPI: Maintain a list of ACPI memory mapped I/O remappings")
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Borislav Petkov <bp@alien8.de>
-> > Cc: Ira Weiny <ira.weiny@intel.com>
-> > Cc: James Morse <james.morse@arm.com>
-> > Cc: Erik Kaneda <erik.kaneda@intel.com>
-> > Cc: Myron Stowe <myron.stowe@redhat.com>
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 >
-> linux-acpi is kind of relevant for this too, so please CC it.
+> ...
+>
+> > +static void __iomem *acpi_os_rw_map(acpi_physical_address phys_addr,
+> > +                                   unsigned int size, bool *did_fallback)
+> > +{
+> > +       void __iomem *virt_addr = NULL;
+>
+> Assignment is not needed as far as I can see.
 
-Whoops, my bad. Will resend with some of Andy's cleanup suggestions.
+True, holdover from a previous version, will drop.
+
+>
+> > +       if (WARN_ONCE(in_interrupt(), "ioremap in interrupt context\n"))
+> > +               return NULL;
+> > +
+> > +       /* Try to use a cached mapping and fallback otherwise */
+> > +       *did_fallback = false;
+> > +       mutex_lock(&acpi_ioremap_lock);
+> > +       virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
+> > +       if (virt_addr)
+> > +               return virt_addr;
+> > +       mutex_unlock(&acpi_ioremap_lock);
+> > +
+> > +       virt_addr = acpi_os_ioremap(phys_addr, size);
+> > +       *did_fallback = true;
+> > +
+> > +       return virt_addr;
+> > +}
+>
+> I'm wondering if Sparse is okay with this...
+
+Seems like it is:
+
+$ sparse --version
+v0.6.1-191-gc51a0382202e
+
+$ cat out | grep osl\.c
+  CHECK   drivers/acpi/osl.c
+drivers/acpi/osl.c:373:17: warning: cast removes address space
+'<asn:2>' of expression
+
+...was the only warning I got.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
