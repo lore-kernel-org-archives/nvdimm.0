@@ -7,52 +7,52 @@ X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1688BC38A2A
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 16:16:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C184FC47257
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 16:16:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E0FF824954
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 16:16:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 8EC2D24956
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 16:16:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="MZaYZgws"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E0FF824954
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="hg0J6vPc"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8EC2D24956
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A442D1187B6FE;
+	by ml01.01.org (Postfix) with ESMTP id C007411887081;
 	Fri,  8 May 2020 09:13:59 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:7c80:54:e::133; helo=bombadil.infradead.org; envelope-from=batv+ade674efe42abf9194a0+6102+infradead.org+hch@bombadil.srs.infradead.org; receiver=<UNKNOWN> 
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 970831186988C
+	by ml01.01.org (Postfix) with ESMTPS id 9A8A41187B6F5
 	for <linux-nvdimm@lists.01.org>; Fri,  8 May 2020 09:13:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20170209; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=j5nrzAlvNQFEC2KON7qkpQkXIXdfboSiMBR3IvqeqYg=; b=MZaYZgws8RyRNk7JmFkevJM5QG
-	XkP/5QQ+KcB03US1KdXYdVY4JWMd45+cQiqhbpJ2aisOmBp9lOOd4kfjkyTkjQwbZkkZrq450qSNz
-	0y+mklGTu6scOtDYJLkdl7wTCN9XMTxpbIQBHXEJpAvwuhpuK2AAll78bcBvs+NRHP1WHn24osKJD
-	+hBLRYfPBBwcRMGtWvC/ZB/eiukX+tAZRYobW/Vc17N2qUlFsAfCNtu1m53RPB6+kmGJVLmIZUBJa
-	rOfp4vdPLFhYMyKQ5cFw70aiKXFCl3jZXbIboLehfTk7XajvhEJiY/3q4vycGCJ2WbOoWFzQnh9zZ
-	x80RGkzQ==;
+	bh=StWP0crF+8pSNFux4pjsqh9CnHUPvltK4WN7YgDzDwo=; b=hg0J6vPc1CAtRbBcIKiIwGZj1R
+	U/NYXsltRCgUXRtF02xAh6x/dQQt7bD8PzPhXtSQ7xtfClVpUVDRELn7ixFyZ4B2pCgOFCooBv00b
+	Kb3UuE2iupMli5UVx0Ld3aKZ1QZcPq28l06UGMLW5DFIhlEjEpmVKcxKOP5Z6+5Ul64aYiy4wQLjf
+	XUU256tNa+A9CfSiuzAX8CUPPPYrqDPrd5en8kVJ2NLMaRiEdIyuo4wfyA6bowpdUqeN6bgwNuwZy
+	ZWQbvwwkYO4D0ebTcT0ciGUghRQlVk/s8oLF8DDRZGiij+odbfRZdhIEZqowwh8vFKNKZjPynC6hV
+	xkR17kBw==;
 Received: from [2001:4bb8:180:9d3f:90d7:9df8:7cd:3504] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1jX5fG-0004lz-8s; Fri, 08 May 2020 16:15:54 +0000
+	id 1jX5er-0004Wm-9C; Fri, 08 May 2020 16:15:30 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>
-Subject: [PATCH 11/15] dm: stop using ->queuedata
-Date: Fri,  8 May 2020 18:15:13 +0200
-Message-Id: <20200508161517.252308-12-hch@lst.de>
+Subject: [PATCH 03/15] drbd: stop using ->queuedata
+Date: Fri,  8 May 2020 18:15:05 +0200
+Message-Id: <20200508161517.252308-4-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200508161517.252308-1-hch@lst.de>
 References: <20200508161517.252308-1-hch@lst.de>
 MIME-Version: 1.0
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
-Message-ID-Hash: ED35BRKTQYYI6W57FCMDNXSWENSTZJGL
-X-Message-ID-Hash: ED35BRKTQYYI6W57FCMDNXSWENSTZJGL
+Message-ID-Hash: ZSP6MKU6YMOND5YICGNE6RFEUVIPCEQP
+X-Message-ID-Hash: ZSP6MKU6YMOND5YICGNE6RFEUVIPCEQP
 X-MailFrom: BATV+ade674efe42abf9194a0+6102+infradead.org+hch@bombadil.srs.infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -60,7 +60,7 @@ CC: Jim Paris <jim@jtan.com>, Geoff Levand <geoff@infradead.org>, Joshua Morris 
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ED35BRKTQYYI6W57FCMDNXSWENSTZJGL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZSP6MKU6YMOND5YICGNE6RFEUVIPCEQP/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -71,30 +71,35 @@ Content-Transfer-Encoding: 7bit
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/md/dm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/block/drbd/drbd_main.c | 1 -
+ drivers/block/drbd/drbd_req.c  | 2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index 0eb93da44ea2a..2aaae6c1ed312 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1783,7 +1783,7 @@ static blk_qc_t dm_process_bio(struct mapped_device *md,
+diff --git a/drivers/block/drbd/drbd_main.c b/drivers/block/drbd/drbd_main.c
+index c094c3c2c5d4d..be787b268f044 100644
+--- a/drivers/block/drbd/drbd_main.c
++++ b/drivers/block/drbd/drbd_main.c
+@@ -2805,7 +2805,6 @@ enum drbd_ret_code drbd_create_device(struct drbd_config_context *adm_ctx, unsig
+ 	if (!q)
+ 		goto out_no_q;
+ 	device->rq_queue = q;
+-	q->queuedata   = device;
  
- static blk_qc_t dm_make_request(struct request_queue *q, struct bio *bio)
+ 	disk = alloc_disk(1);
+ 	if (!disk)
+diff --git a/drivers/block/drbd/drbd_req.c b/drivers/block/drbd/drbd_req.c
+index 840c3aef3c5c9..02c104a0c45e0 100644
+--- a/drivers/block/drbd/drbd_req.c
++++ b/drivers/block/drbd/drbd_req.c
+@@ -1614,7 +1614,7 @@ void do_submit(struct work_struct *ws)
+ 
+ blk_qc_t drbd_make_request(struct request_queue *q, struct bio *bio)
  {
--	struct mapped_device *md = q->queuedata;
-+	struct mapped_device *md = bio->bi_disk->private_data;
- 	blk_qc_t ret = BLK_QC_T_NONE;
- 	int srcu_idx;
- 	struct dm_table *map;
-@@ -1980,7 +1980,6 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->queue = blk_alloc_queue(dm_make_request, numa_node_id);
- 	if (!md->queue)
- 		goto bad;
--	md->queue->queuedata = md;
+-	struct drbd_device *device = (struct drbd_device *) q->queuedata;
++	struct drbd_device *device = bio->bi_disk->private_data;
+ 	unsigned long start_jif;
  
- 	md->disk = alloc_disk_node(1, md->numa_node_id);
- 	if (!md->disk)
+ 	blk_queue_split(q, &bio);
 -- 
 2.26.2
 _______________________________________________
