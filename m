@@ -1,58 +1,70 @@
-Return-Path: <SRS0=mksC=6V=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=VXyD=6W=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65D13C35280
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 May 2020 23:55:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBE30C47247
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 08:42:39 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 319CD20720
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 May 2020 23:55:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 319CD20720
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id B56C5216FD
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 08:42:39 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WsuS/KY5"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B56C5216FD
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7E8491181F21A;
-	Thu,  7 May 2020 16:53:34 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 843C31184250E;
+	Fri,  8 May 2020 01:40:36 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 125AC1181F205
-	for <linux-nvdimm@lists.01.org>; Thu,  7 May 2020 16:53:31 -0700 (PDT)
-IronPort-SDR: vLDGQKuOLXDHtWghw28wm8jKRAaEZifiwBf4Uulak9GWluS4uO9q/e0M2vHnfOmKnlzJz7XCLY
- CXy15NL+OsTQ==
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2020 16:55:31 -0700
-IronPort-SDR: ka+TMz8D+wZX+awfx1R69MtBaIv58Pi9zH33FF2popoTwztxUaRb2E+qUdIlSDpbThN0/cL/rW
- f8d3NyYtFNIA==
-X-IronPort-AV: E=Sophos;i="5.73,365,1583222400";
-   d="scan'208";a="285189036"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 May 2020 16:55:31 -0700
-Subject: [PATCH v2] ACPI: Drop rcu usage for MMIO mappings
-From: Dan Williams <dan.j.williams@intel.com>
-To: rafael.j.wysocki@intel.com
-Date: Thu, 07 May 2020 16:39:20 -0700
-Message-ID: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by ml01.01.org (Postfix) with ESMTPS id 4EEE01108EF37
+	for <linux-nvdimm@lists.01.org>; Fri,  8 May 2020 01:40:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1588927354;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=ouBt4BfusFaa/lv0LTRbmOSgoxSr9cZTrvcQPivP5Jg=;
+	b=WsuS/KY5MMKBiOajQSSbkj9bRrxJbryD/IUVamXAAM1FW9GRjkt6zwdHytSI6393QsmMZ7
+	dOvROlUlWGq/6vhN6K82AKq+i2rMUd7RUQsZd0093B8Au+4j2pkEb5Shs4f9RteYqqxNAF
+	pICuz/HQ3oaSnfgn+rOhRR02eNpR7z0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-340-l6nWo52fN4uNSj25Te985g-1; Fri, 08 May 2020 04:42:30 -0400
+X-MC-Unique: l6nWo52fN4uNSj25Te985g-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B3D84461;
+	Fri,  8 May 2020 08:42:28 +0000 (UTC)
+Received: from t480s.redhat.com (ovpn-113-181.ams2.redhat.com [10.36.113.181])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id C8F425C1B0;
+	Fri,  8 May 2020 08:42:22 +0000 (UTC)
+From: David Hildenbrand <david@redhat.com>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH v4 0/4] mm/memory_hotplug: Interface to add driver-managed system ram
+Date: Fri,  8 May 2020 10:42:13 +0200
+Message-Id: <20200508084217.9160-1-david@redhat.com>
 MIME-Version: 1.0
-Message-ID-Hash: 7YS6VA53YSHVIAVWM7CVUQCL72NTNTJT
-X-Message-ID-Hash: 7YS6VA53YSHVIAVWM7CVUQCL72NTNTJT
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: stable@vger.kernel.org, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Erik Kaneda <erik.kaneda@intel.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Message-ID-Hash: 7BDE2GHBUOBV3CGU65KA4N422O4LR3NM
+X-Message-ID-Hash: 7BDE2GHBUOBV3CGU65KA4N422O4LR3NM
+X-MailFrom: david@redhat.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-mm@kvack.org, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Baoquan He <bhe@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Eric Biederman <ebiederm@xmission.com>, Michal Hocko <mhocko@suse.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Wei Yang <richard.weiyang@gmail.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7YS6VA53YSHVIAVWM7CVUQCL72NTNTJT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7BDE2GHBUOBV3CGU65KA4N422O4LR3NM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,297 +73,76 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Recently a performance problem was reported for a process invoking a
-non-trival ASL program. The method call in this case ends up
-repetitively triggering a call path like:
+I did some more testing to v3 and found issues with unloading the kmem
+module, followed by reconfiguring the namespace.
 
-    acpi_ex_store
-    acpi_ex_store_object_to_node
-    acpi_ex_write_data_to_field
-    acpi_ex_insert_into_field
-    acpi_ex_write_with_update_rule
-    acpi_ex_field_datum_io
-    acpi_ex_access_region
-    acpi_ev_address_space_dispatch
-    acpi_ex_system_memory_space_handler
-    acpi_os_map_cleanup.part.14
-    _synchronize_rcu_expedited.constprop.89
-    schedule
+kexec (via kexec_load()) can currently not properly handle memory added via
+dax/kmem, and will have similar issues with virtio-mem. kexec-tools will
+currently add all memory to the fixed-up initial firmware memmap. In case
+of dax/kmem, this means that - in contrast to a proper reboot - how that
+persistent memory will be used can no longer be configured by the kexec'd
+kernel. In case of virtio-mem it will be harmful, because that memory
+might contain inaccessible pieces that require coordination with hypervisor
+first.
 
-The end result of frequent synchronize_rcu_expedited() invocation is
-tiny sub-millisecond spurts of execution where the scheduler freely
-migrates this apparently sleepy task. The overhead of frequent scheduler
-invocation multiplies the execution time by a factor of 2-3X.
+In both cases, we want to let the driver in the kexec'd kernel handle
+detecting and adding the memory, like during an ordinary reboot.
+Introduce add_memory_driver_managed(). More on the samentics are in patch
+#1.
 
-For example, performance improves from 16 minutes to 7 minutes for a
-firmware update procedure across 24 devices.
+In the future, we might want to make this behavior configurable for
+dax/kmem- either by configuring it in the kernel (which would then also
+allow to configure kexec_file_load()) or in kexec-tools by also adding
+"System RAM (kmem)" memory from /proc/iomem to the fixed-up initial
+firmware memmap.
 
-Perhaps the rcu usage was intended to allow for not taking a sleeping
-lock in the acpi_os_{read,write}_memory() path which ostensibly could be
-called from an APEI NMI error interrupt? Neither rcu_read_lock() nor
-ioremap() are interrupt safe, so add a WARN_ONCE() to validate that rcu
-was not serving as a mechanism to avoid direct calls to ioremap(). Even
-the original implementation had a spin_lock_irqsave(), but that is not
-NMI safe.
+More on the motivation can be found in [1] and [2].
 
-APEI itself already has some concept of avoiding ioremap() from
-interrupt context (see erst_exec_move_data()), if the new warning
-triggers it means that APEI either needs more instrumentation like that
-to pre-emptively fail, or more infrastructure to arrange for pre-mapping
-the resources it needs in NMI context.
+v3 -> v4:
+- "device-dax: Don't leak kernel memory to user space after unloading kmem"
+-- Added
+- "device-dax: Add memory via add_memory_driver_managed()"
+-- kstrdup_const() the resource name to be used for added memory
+-- Remember if any hotremove failed / we still have memory added to the
+   system and conditionally kfree_const().
 
-Cc: <stable@vger.kernel.org>
-Fixes: 620242ae8c3d ("ACPI: Maintain a list of ACPI memory mapped I/O remappings")
-Cc: Len Brown <lenb@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: James Morse <james.morse@arm.com>
-Cc: Erik Kaneda <erik.kaneda@intel.com>
-Cc: Myron Stowe <myron.stowe@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v1 [1]:
+v2 -> v3:
+- Don't use flags for add_memory() and friends, provide
+  add_memory_driver_managed() instead.
+- Flag memory resources via IORESOURCE_MEM_DRIVER_MANAGED and handle them
+  in kexec.
+- Name memory resources "System RAM ($DRIVER)", visible via /proc/iomem
+- Added more details to the patch descriptions, especially regarding the
+  history of /sys/firmware/memmap
+- Add a comment to the device-dax change. Dropped Dave's Ack as the
 
-- Actually cc: the most important list for ACPI changes (Rafael)
+v1 -> v2:
+- Don't change the resource name
+- Rename the flag to MHP_NO_FIRMWARE_MEMMAP to reflect what it is doing
+- Rephrase subjects/descriptions
+- Use the flag for dax/kmem
 
-- Cleanup unnecessary variable initialization (Andy)
-
-Link: https://lore.kernel.org/linux-nvdimm/158880834905.2183490.15616329469420234017.stgit@dwillia2-desk3.amr.corp.intel.com/
+[1] https://lkml.kernel.org/r/20200429160803.109056-1-david@redhat.com
+[2] https://lkml.kernel.org/r/20200430102908.10107-1-david@redhat.com
 
 
- drivers/acpi/osl.c |  117 +++++++++++++++++++++++++---------------------------
- 1 file changed, 57 insertions(+), 60 deletions(-)
+David Hildenbrand (4):
+  device-dax: Don't leak kernel memory to user space after unloading
+    kmem
+  mm/memory_hotplug: Introduce add_memory_driver_managed()
+  kexec_file: Don't place kexec images on IORESOURCE_MEM_DRIVER_MANAGED
+  device-dax: Add memory via add_memory_driver_managed()
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 762c5d50b8fe..a44b75aac5d0 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -214,13 +214,13 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
- 	return pa;
- }
- 
--/* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
- static struct acpi_ioremap *
- acpi_map_lookup(acpi_physical_address phys, acpi_size size)
- {
- 	struct acpi_ioremap *map;
- 
--	list_for_each_entry_rcu(map, &acpi_ioremaps, list, acpi_ioremap_lock_held())
-+	lockdep_assert_held(&acpi_ioremap_lock);
-+	list_for_each_entry(map, &acpi_ioremaps, list)
- 		if (map->phys <= phys &&
- 		    phys + size <= map->phys + map->size)
- 			return map;
-@@ -228,7 +228,6 @@ acpi_map_lookup(acpi_physical_address phys, acpi_size size)
- 	return NULL;
- }
- 
--/* Must be called with 'acpi_ioremap_lock' or RCU read lock held. */
- static void __iomem *
- acpi_map_vaddr_lookup(acpi_physical_address phys, unsigned int size)
- {
-@@ -263,7 +262,8 @@ acpi_map_lookup_virt(void __iomem *virt, acpi_size size)
- {
- 	struct acpi_ioremap *map;
- 
--	list_for_each_entry_rcu(map, &acpi_ioremaps, list, acpi_ioremap_lock_held())
-+	lockdep_assert_held(&acpi_ioremap_lock);
-+	list_for_each_entry(map, &acpi_ioremaps, list)
- 		if (map->virt <= virt &&
- 		    virt + size <= map->virt + map->size)
- 			return map;
-@@ -360,7 +360,7 @@ void __iomem __ref
- 	map->size = pg_sz;
- 	map->refcount = 1;
- 
--	list_add_tail_rcu(&map->list, &acpi_ioremaps);
-+	list_add_tail(&map->list, &acpi_ioremaps);
- 
- out:
- 	mutex_unlock(&acpi_ioremap_lock);
-@@ -374,20 +374,13 @@ void *__ref acpi_os_map_memory(acpi_physical_address phys, acpi_size size)
- }
- EXPORT_SYMBOL_GPL(acpi_os_map_memory);
- 
--/* Must be called with mutex_lock(&acpi_ioremap_lock) */
--static unsigned long acpi_os_drop_map_ref(struct acpi_ioremap *map)
--{
--	unsigned long refcount = --map->refcount;
--
--	if (!refcount)
--		list_del_rcu(&map->list);
--	return refcount;
--}
--
--static void acpi_os_map_cleanup(struct acpi_ioremap *map)
-+static void acpi_os_drop_map_ref(struct acpi_ioremap *map)
- {
--	synchronize_rcu_expedited();
-+	lockdep_assert_held(&acpi_ioremap_lock);
-+	if (--map->refcount > 0)
-+		return;
- 	acpi_unmap(map->phys, map->virt);
-+	list_del(&map->list);
- 	kfree(map);
- }
- 
-@@ -408,7 +401,6 @@ static void acpi_os_map_cleanup(struct acpi_ioremap *map)
- void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
- {
- 	struct acpi_ioremap *map;
--	unsigned long refcount;
- 
- 	if (!acpi_permanent_mmap) {
- 		__acpi_unmap_table(virt, size);
-@@ -422,11 +414,8 @@ void __ref acpi_os_unmap_iomem(void __iomem *virt, acpi_size size)
- 		WARN(true, PREFIX "%s: bad address %p\n", __func__, virt);
- 		return;
- 	}
--	refcount = acpi_os_drop_map_ref(map);
-+	acpi_os_drop_map_ref(map);
- 	mutex_unlock(&acpi_ioremap_lock);
--
--	if (!refcount)
--		acpi_os_map_cleanup(map);
- }
- EXPORT_SYMBOL_GPL(acpi_os_unmap_iomem);
- 
-@@ -461,7 +450,6 @@ void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
- {
- 	u64 addr;
- 	struct acpi_ioremap *map;
--	unsigned long refcount;
- 
- 	if (gas->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		return;
-@@ -477,11 +465,8 @@ void acpi_os_unmap_generic_address(struct acpi_generic_address *gas)
- 		mutex_unlock(&acpi_ioremap_lock);
- 		return;
- 	}
--	refcount = acpi_os_drop_map_ref(map);
-+	acpi_os_drop_map_ref(map);
- 	mutex_unlock(&acpi_ioremap_lock);
--
--	if (!refcount)
--		acpi_os_map_cleanup(map);
- }
- EXPORT_SYMBOL(acpi_os_unmap_generic_address);
- 
-@@ -700,55 +685,71 @@ int acpi_os_read_iomem(void __iomem *virt_addr, u64 *value, u32 width)
- 	return 0;
- }
- 
-+static void __iomem *acpi_os_rw_map(acpi_physical_address phys_addr,
-+				    unsigned int size, bool *did_fallback)
-+{
-+	void __iomem *virt_addr;
-+
-+	if (WARN_ONCE(in_interrupt(), "ioremap in interrupt context\n"))
-+		return NULL;
-+
-+	/* Try to use a cached mapping and fallback otherwise */
-+	*did_fallback = false;
-+	mutex_lock(&acpi_ioremap_lock);
-+	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
-+	if (virt_addr)
-+		return virt_addr;
-+	mutex_unlock(&acpi_ioremap_lock);
-+
-+	virt_addr = acpi_os_ioremap(phys_addr, size);
-+	*did_fallback = true;
-+
-+	return virt_addr;
-+}
-+
-+static void acpi_os_rw_unmap(void __iomem *virt_addr, bool did_fallback)
-+{
-+	if (did_fallback) {
-+		/* in the fallback case no lock is held */
-+		iounmap(virt_addr);
-+		return;
-+	}
-+
-+	mutex_unlock(&acpi_ioremap_lock);
-+}
-+
- acpi_status
- acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
- {
--	void __iomem *virt_addr;
- 	unsigned int size = width / 8;
--	bool unmap = false;
-+	bool did_fallback = false;
-+	void __iomem *virt_addr;
- 	u64 dummy;
- 	int error;
- 
--	rcu_read_lock();
--	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
--	if (!virt_addr) {
--		rcu_read_unlock();
--		virt_addr = acpi_os_ioremap(phys_addr, size);
--		if (!virt_addr)
--			return AE_BAD_ADDRESS;
--		unmap = true;
--	}
--
-+	virt_addr = acpi_os_rw_map(phys_addr, size, &did_fallback);
-+	if (!virt_addr)
-+		return AE_BAD_ADDRESS;
- 	if (!value)
- 		value = &dummy;
- 
- 	error = acpi_os_read_iomem(virt_addr, value, width);
- 	BUG_ON(error);
- 
--	if (unmap)
--		iounmap(virt_addr);
--	else
--		rcu_read_unlock();
--
-+	acpi_os_rw_unmap(virt_addr, did_fallback);
- 	return AE_OK;
- }
- 
- acpi_status
- acpi_os_write_memory(acpi_physical_address phys_addr, u64 value, u32 width)
- {
--	void __iomem *virt_addr;
- 	unsigned int size = width / 8;
--	bool unmap = false;
-+	bool did_fallback = false;
-+	void __iomem *virt_addr;
- 
--	rcu_read_lock();
--	virt_addr = acpi_map_vaddr_lookup(phys_addr, size);
--	if (!virt_addr) {
--		rcu_read_unlock();
--		virt_addr = acpi_os_ioremap(phys_addr, size);
--		if (!virt_addr)
--			return AE_BAD_ADDRESS;
--		unmap = true;
--	}
-+	virt_addr = acpi_os_rw_map(phys_addr, size, &did_fallback);
-+	if (!virt_addr)
-+		return AE_BAD_ADDRESS;
- 
- 	switch (width) {
- 	case 8:
-@@ -767,11 +768,7 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u64 value, u32 width)
- 		BUG();
- 	}
- 
--	if (unmap)
--		iounmap(virt_addr);
--	else
--		rcu_read_unlock();
--
-+	acpi_os_rw_unmap(virt_addr, did_fallback);
- 	return AE_OK;
- }
- 
+ drivers/dax/dax-private.h      |  1 +
+ drivers/dax/kmem.c             | 42 ++++++++++++++++++++---
+ include/linux/ioport.h         |  1 +
+ include/linux/memory_hotplug.h |  2 ++
+ kernel/kexec_file.c            |  5 +++
+ mm/memory_hotplug.c            | 62 +++++++++++++++++++++++++++++++---
+ 6 files changed, 104 insertions(+), 9 deletions(-)
+
+-- 
+2.25.4
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
