@@ -2,73 +2,92 @@ Return-Path: <SRS0=VXyD=6W=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5081DC54E4A
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 08:42:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4AF2C47257
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 10:50:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 28DDA208D6
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 08:42:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Ciwc1Gyc"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 28DDA208D6
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 8524A208DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 10:50:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8524A208DB
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DAF3C1184251A;
-	Fri,  8 May 2020 01:40:44 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 8EFDD11847EC2;
+	Fri,  8 May 2020 03:48:10 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 4146E11842510
-	for <linux-nvdimm@lists.01.org>; Fri,  8 May 2020 01:40:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1588927365;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=f6TeMrGs7xjeCj9G607qVf2e66dWDywj8Qub6sAiaWA=;
-	b=Ciwc1Gyc7rUGo4o2E31rMdT+x/1y6/5dcWUsjUIUWMd03kIui1OBxVkvXjIr9fHN2UZUP5
-	i2GIA31KaoC7+hyI+hgLHfzmAsF5U9bGYNgNnKvYCWJyUP0v2JBBRevP6ZLI+/XY0Jk/AR
-	9TbT+v0yycoLrxehyrBjdzoPS21B8Hs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-184-e2MKSisaOFSWnPAgNcUing-1; Fri, 08 May 2020 04:42:43 -0400
-X-MC-Unique: e2MKSisaOFSWnPAgNcUing-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5C966107ACCA;
-	Fri,  8 May 2020 08:42:41 +0000 (UTC)
-Received: from t480s.redhat.com (ovpn-113-181.ams2.redhat.com [10.36.113.181])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 54D1C5C1C5;
-	Fri,  8 May 2020 08:42:38 +0000 (UTC)
-From: David Hildenbrand <david@redhat.com>
-To: linux-kernel@vger.kernel.org
-Subject: [PATCH v4 4/4] device-dax: Add memory via add_memory_driver_managed()
-Date: Fri,  8 May 2020 10:42:17 +0200
-Message-Id: <20200508084217.9160-5-david@redhat.com>
-In-Reply-To: <20200508084217.9160-1-david@redhat.com>
-References: <20200508084217.9160-1-david@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 9214F11847EBB
+	for <linux-nvdimm@lists.01.org>; Fri,  8 May 2020 03:48:08 -0700 (PDT)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 048AWsZl137433;
+	Fri, 8 May 2020 06:49:39 -0400
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 30vtsxgptt-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 08 May 2020 06:49:39 -0400
+Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 048AncFL176732;
+	Fri, 8 May 2020 06:49:38 -0400
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 30vtsxgpt3-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 08 May 2020 06:49:38 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 048Ajbsb020608;
+	Fri, 8 May 2020 10:49:36 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma03ams.nl.ibm.com with ESMTP id 30s0g5w8nx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 08 May 2020 10:49:35 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 048AnXc711796930
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 8 May 2020 10:49:33 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 491F542049;
+	Fri,  8 May 2020 10:49:33 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E67FA42045;
+	Fri,  8 May 2020 10:49:29 +0000 (GMT)
+Received: from vajain21-in-ibm-com (unknown [9.85.93.12])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Fri,  8 May 2020 10:49:29 +0000 (GMT)
+Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Fri, 08 May 2020 16:19:28 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v7 1/5] powerpc: Document details on H_SCM_HEALTH hcall
+Date: Fri,  8 May 2020 16:19:18 +0530
+Message-Id: <20200508104922.72565-2-vaibhav@linux.ibm.com>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200508104922.72565-1-vaibhav@linux.ibm.com>
+References: <20200508104922.72565-1-vaibhav@linux.ibm.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Message-ID-Hash: A4NSE3QNT7AQXHI7B2JAUHLPAQXPJS5M
-X-Message-ID-Hash: A4NSE3QNT7AQXHI7B2JAUHLPAQXPJS5M
-X-MailFrom: david@redhat.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.676
+ definitions=2020-05-08_08:2020-05-07,2020-05-08 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999
+ lowpriorityscore=0 malwarescore=0 clxscore=1015 suspectscore=0
+ phishscore=0 impostorscore=0 adultscore=0 mlxscore=0 priorityscore=1501
+ spamscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2003020000 definitions=main-2005080091
+Message-ID-Hash: APRYCNWLBLRUWRMW52KHSWGG6Y5KEG6V
+X-Message-ID-Hash: APRYCNWLBLRUWRMW52KHSWGG6Y5KEG6V
+X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-mm@kvack.org, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, Pavel Tatashin <pasha.tatashin@soleen.com>, David Hildenbrand <david@redhat.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Wei Yang <richard.weiyang@gmail.com>, Baoquan He <bhe@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Eric Biederman <ebiederm@xmission.com>
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Steven Rostedt <rostedt@goodmis.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/A4NSE3QNT7AQXHI7B2JAUHLPAQXPJS5M/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/APRYCNWLBLRUWRMW52KHSWGG6Y5KEG6V/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,217 +96,85 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently, when adding memory, we create entries in /sys/firmware/memmap/
-as "System RAM". This will lead to kexec-tools to add that memory to the
-fixed-up initial memmap for a kexec kernel (loaded via kexec_load()). The
-memory will be considered initial System RAM by the kexec'd kernel and
-can no longer be reconfigured. This is not what happens during a real
-reboot.
+Add documentation to 'papr_hcalls.rst' describing the bitmap flags
+that are returned from H_SCM_HEALTH hcall as per the PAPR-SCM
+specification.
 
-Let's add our memory via add_memory_driver_managed() now, so we won't
-create entries in /sys/firmware/memmap/ and indicate the memory as
-"System RAM (kmem)" in /proc/iomem. This allows everybody (especially
-kexec-tools) to identify that this memory is special and has to be treated
-differently than ordinary (hotplugged) System RAM.
-
-Before configuring the namespace:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-33fffffff : namespace0.0
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-After configuring the namespace:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-1481fffff : namespace0.0
-	  148200000-33fffffff : dax0.0
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-After loading kmem before this change:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-1481fffff : namespace0.0
-	  150000000-33fffffff : dax0.0
-	    150000000-33fffffff : System RAM
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-After loading kmem after this change:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-1481fffff : namespace0.0
-	  150000000-33fffffff : dax0.0
-	    150000000-33fffffff : System RAM (kmem)
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-After a proper reboot:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-1481fffff : namespace0.0
-	  148200000-33fffffff : dax0.0
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-Within the kexec kernel before this change:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-1481fffff : namespace0.0
-	  150000000-33fffffff : System RAM
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-Within the kexec kernel after this change:
-	[root@localhost ~]# cat /proc/iomem
-	...
-	140000000-33fffffff : Persistent Memory
-	  140000000-1481fffff : namespace0.0
-	  148200000-33fffffff : dax0.0
-	3280000000-32ffffffff : PCI Bus 0000:00
-
-/sys/firmware/memmap/ before this change:
-	0000000000000000-000000000009fc00 (System RAM)
-	000000000009fc00-00000000000a0000 (Reserved)
-	00000000000f0000-0000000000100000 (Reserved)
-	0000000000100000-00000000bffdf000 (System RAM)
-	00000000bffdf000-00000000c0000000 (Reserved)
-	00000000feffc000-00000000ff000000 (Reserved)
-	00000000fffc0000-0000000100000000 (Reserved)
-	0000000100000000-0000000140000000 (System RAM)
-	0000000150000000-0000000340000000 (System RAM)
-
-/sys/firmware/memmap/ after a proper reboot:
-	0000000000000000-000000000009fc00 (System RAM)
-	000000000009fc00-00000000000a0000 (Reserved)
-	00000000000f0000-0000000000100000 (Reserved)
-	0000000000100000-00000000bffdf000 (System RAM)
-	00000000bffdf000-00000000c0000000 (Reserved)
-	00000000feffc000-00000000ff000000 (Reserved)
-	00000000fffc0000-0000000100000000 (Reserved)
-	0000000100000000-0000000140000000 (System RAM)
-
-/sys/firmware/memmap/ after this change:
-	0000000000000000-000000000009fc00 (System RAM)
-	000000000009fc00-00000000000a0000 (Reserved)
-	00000000000f0000-0000000000100000 (Reserved)
-	0000000000100000-00000000bffdf000 (System RAM)
-	00000000bffdf000-00000000c0000000 (Reserved)
-	00000000feffc000-00000000ff000000 (Reserved)
-	00000000fffc0000-0000000100000000 (Reserved)
-	0000000100000000-0000000140000000 (System RAM)
-
-kexec-tools already seem to basically ignore any System RAM that's not
-on top level when searching for areas to place kexec images - but also
-for determining crash areas to dump via kdump. Changing the resource name
-won't have an impact.
-
-Handle unloading of the driver after memory hotremove failed properly, by
-duplicating the string if necessary.
-
-Acked-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 ---
- drivers/dax/dax-private.h |  1 +
- drivers/dax/kmem.c        | 28 ++++++++++++++++++++++++++--
- 2 files changed, 27 insertions(+), 2 deletions(-)
+Changelog:
 
-diff --git a/drivers/dax/dax-private.h b/drivers/dax/dax-private.h
-index 3107ce80e809..16850d5388ab 100644
---- a/drivers/dax/dax-private.h
-+++ b/drivers/dax/dax-private.h
-@@ -44,6 +44,7 @@ struct dax_region {
-  * @dev - device core
-  * @pgmap - pgmap for memmap setup / lifetime (driver owned)
-  * @dax_mem_res: physical address range of hotadded DAX memory
-+ * @dax_mem_name: name for hotadded DAX memory via add_memory_driver_managed()
-  */
- struct dev_dax {
- 	struct dax_region *region;
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 1e678bdf5aed..275aa5f87399 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -14,6 +14,11 @@
- #include "dax-private.h"
- #include "bus.h"
+v6..v7:
+* None
+
+v5..v6
+* New patch in the series
+---
+ Documentation/powerpc/papr_hcalls.rst | 43 ++++++++++++++++++++++++---
+ 1 file changed, 39 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/powerpc/papr_hcalls.rst b/Documentation/powerpc/papr_hcalls.rst
+index 3493631a60f8..9a5ba5eaf323 100644
+--- a/Documentation/powerpc/papr_hcalls.rst
++++ b/Documentation/powerpc/papr_hcalls.rst
+@@ -220,13 +220,48 @@ from the LPAR memory.
+ **H_SCM_HEALTH**
  
-+/* Memory resource name used for add_memory_driver_managed(). */
-+static const char *kmem_name;
-+/* Set if any memory will remain added when the driver will be unloaded. */
-+static bool any_hotremove_failed;
+ | Input: drcIndex
+-| Out: *health-bitmap, health-bit-valid-bitmap*
++| Out: *health-bitmap (r4), health-bit-valid-bitmap (r5)*
+ | Return Value: *H_Success, H_Parameter, H_Hardware*
+ 
+ Given a DRC Index return the info on predictive failure and overall health of
+-the NVDIMM. The asserted bits in the health-bitmap indicate a single predictive
+-failure and health-bit-valid-bitmap indicate which bits in health-bitmap are
+-valid.
++the NVDIMM. The asserted bits in the health-bitmap indicate one or more states
++(described in table below) of the NVDIMM and health-bit-valid-bitmap indicate
++which bits in health-bitmap are valid.
 +
- int dev_dax_kmem_probe(struct device *dev)
- {
- 	struct dev_dax *dev_dax = to_dev_dax(dev);
-@@ -70,7 +75,12 @@ int dev_dax_kmem_probe(struct device *dev)
- 	 */
- 	new_res->flags = IORESOURCE_SYSTEM_RAM;
- 
--	rc = add_memory(numa_node, new_res->start, resource_size(new_res));
-+	/*
-+	 * Ensure that future kexec'd kernels will not treat this as RAM
-+	 * automatically.
-+	 */
-+	rc = add_memory_driver_managed(numa_node, new_res->start,
-+				       resource_size(new_res), kmem_name);
- 	if (rc) {
- 		release_resource(new_res);
- 		kfree(new_res);
-@@ -100,6 +110,7 @@ static int dev_dax_kmem_remove(struct device *dev)
- 	 */
- 	rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
- 	if (rc) {
-+		any_hotremove_failed = true;
- 		dev_err(dev,
- 			"DAX region %pR cannot be hotremoved until the next reboot\n",
- 			res);
-@@ -124,6 +135,7 @@ static int dev_dax_kmem_remove(struct device *dev)
- 	 * permanently pinned as reserved by the unreleased
- 	 * request_mem_region().
- 	 */
-+	any_hotremove_failed = true;
- 	return 0;
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
-@@ -137,12 +149,24 @@ static struct dax_device_driver device_dax_kmem_driver = {
- 
- static int __init dax_kmem_init(void)
- {
--	return dax_driver_register(&device_dax_kmem_driver);
-+	int rc;
++Health Bitmap Flags:
 +
-+	/* Resource name is permanently allocated if any hotremove fails. */
-+	kmem_name = kstrdup_const("System RAM (kmem)", GFP_KERNEL);
-+	if (!kmem_name)
-+		return -ENOMEM;
-+
-+	rc = dax_driver_register(&device_dax_kmem_driver);
-+	if (rc)
-+		kfree_const(kmem_name);
-+	return rc;
- }
+++------+-----------------------------------------------------------------------+
++|  Bit |               Definition                                              |
+++======+=======================================================================+
++|  00  | SCM device is unable to persist memory contents.                      |
++|      | If the system is powered down, nothing will be saved.                 |
+++------+-----------------------------------------------------------------------+
++|  01  | SCM device failed to persist memory contents. Either contents were not|
++|      | saved successfully on power down or were not restored properly on     |
++|      | power up.                                                             |
+++------+-----------------------------------------------------------------------+
++|  02  | SCM device contents are persisted from previous IPL. The data from    |
++|      | the last boot were successfully restored.                             |
+++------+-----------------------------------------------------------------------+
++|  03  | SCM device contents are not persisted from previous IPL. There was no |
++|      | data to restore from the last boot.                                   |
+++------+-----------------------------------------------------------------------+
++|  04  | SCM device memory life remaining is critically low                    |
+++------+-----------------------------------------------------------------------+
++|  05  | SCM device will be garded off next IPL due to failure                 |
+++------+-----------------------------------------------------------------------+
++|  06  | SCM contents cannot persist due to current platform health status. A  |
++|      | hardware failure may prevent data from being saved or restored.       |
+++------+-----------------------------------------------------------------------+
++|  07  | SCM device is unable to persist memory contents in certain conditions |
+++------+-----------------------------------------------------------------------+
++|  08  | SCM device is encrypted                                               |
+++------+-----------------------------------------------------------------------+
++|  09  | SCM device has successfully completed a requested erase or secure     |
++|      | erase procedure.                                                      |
+++------+-----------------------------------------------------------------------+
++|10:63 | Reserved / Unused                                                     |
+++------+-----------------------------------------------------------------------+
  
- static void __exit dax_kmem_exit(void)
- {
- 	dax_driver_unregister(&device_dax_kmem_driver);
-+	if (!any_hotremove_failed)
-+		kfree_const(kmem_name);
- }
+ **H_SCM_PERFORMANCE_STATS**
  
- MODULE_AUTHOR("Intel Corporation");
 -- 
-2.25.4
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
