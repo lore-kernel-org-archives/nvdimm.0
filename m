@@ -1,65 +1,92 @@
-Return-Path: <SRS0=VXyD=6W=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=ouDP=6X=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DE44C54E49
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 23:53:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D553C47257
+	for <linux-nvdimm@archiver.kernel.org>; Sat,  9 May 2020 05:40:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 237AC2063A
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 May 2020 23:53:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 4B39821775
+	for <linux-nvdimm@archiver.kernel.org>; Sat,  9 May 2020 05:40:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="NlxsLycU"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 237AC2063A
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Vvq7p2CO"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4B39821775
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BE52D11897D7E;
-	Fri,  8 May 2020 16:51:03 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=akpm@linux-foundation.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 3C62311918F91;
+	Fri,  8 May 2020 22:38:34 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 379A01183DF43
-	for <linux-nvdimm@lists.01.org>; Fri,  8 May 2020 16:51:00 -0700 (PDT)
-Received: from localhost.localdomain (c-73-231-172-41.hsd1.ca.comcast.net [73.231.172.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id C36D12063A;
-	Fri,  8 May 2020 23:53:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1588981987;
-	bh=HhHKaurLAmb7NjsgrxbGjxSSVFmDRRfuuN9UCDjB39o=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=NlxsLycULu/0pDE5VncKMqsY68TvDzrBX4Z64itAzdFVs23jjGQe08PfomP/NtWT8
-	 t+PlAdQE7wuMV/9rpzTnihUcJMRtJqlsdArVibUT/u4A0ZhILXtPYgryyu3m8JvFgO
-	 cvEh5TrYedonuRC3JSEcG71eqRoSLBbbgIM2fD/M=
-Date: Fri, 8 May 2020 16:53:06 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH v4 1/4] device-dax: Don't leak kernel memory to user
- space after unloading kmem
-Message-Id: <20200508165306.7cd806f7e451c5c9bc2a40ac@linux-foundation.org>
-In-Reply-To: <20200508084217.9160-2-david@redhat.com>
-References: <20200508084217.9160-1-david@redhat.com>
-	<20200508084217.9160-2-david@redhat.com>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Message-ID-Hash: 6W7QSPE7ZEWAL6ZYR4TGD3UL33C4XWVE
-X-Message-ID-Hash: 6W7QSPE7ZEWAL6ZYR4TGD3UL33C4XWVE
-X-MailFrom: akpm@linux-foundation.org
+	by ml01.01.org (Postfix) with ESMTPS id ECCF711917FD4
+	for <linux-nvdimm@lists.01.org>; Fri,  8 May 2020 22:38:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1589002838;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=wLITgYcnji+lI1/U32+qXSFD10JDWBM8uaMukB/H0iE=;
+	b=Vvq7p2COu54dnAF91J5b9coXg6xBMBrNC1ITP4XaahwV19SZg5bDZOZrKQKP0vNlqANjAx
+	OGWLfRenVrKQpfY76U9EaDs7e3ZD/NnPg67pACRsbxFWbRVbP0a4yKUUCL1reN2XZTrAyJ
+	fBbfgECupXDxCrf0ix+skxcPRkmyig0=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-6-Hl-zLirNNuWyO2PZx9HIvA-1; Sat, 09 May 2020 01:40:37 -0400
+X-MC-Unique: Hl-zLirNNuWyO2PZx9HIvA-1
+Received: by mail-wm1-f70.google.com with SMTP id w2so6245400wmc.3
+        for <linux-nvdimm@lists.01.org>; Fri, 08 May 2020 22:40:37 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:content-transfer-encoding:from:mime-version
+         :subject:date:message-id:references:cc:in-reply-to:to;
+        bh=mTjszWW/EefMrw7aIGeEPuK1Cqsav+nLkGOW2S21ZN0=;
+        b=Ox73P/2qA00Slvm0ci4ZR6lo+B6MsMbMAzlOnBt9pVXAtcEvW0yzmrLv50vKpb2+MJ
+         A0k+jcqx0K7GftBmaHB97zOKN83WWQMzwv8uC7y9hFtlwk4ZXFtfNvPQVp4y06P42/Sw
+         D8oLJm0yr4z+awsguxIa/680I+4fUm6EunRif7zmX8CMIfObeNFeNOnNfBTJg068nj3f
+         /PPQAqz5YA1G3tFRuNn7uHMfzGuWye+42O7YNpXxTaEyEGWJhKQ+zyjdzr4PEMYvWBQ5
+         PA+FEWCoicghnS62kk3OJZCGQIVe68/oP1PCL1NWtDow2UwtzUn15ud6B+RTc0dgVQ04
+         G6xQ==
+X-Gm-Message-State: AGi0PuaG6vKb4ZG02/agQ+b5FocrH3ECiOM6ygSDKph9t+dOtpApfFIL
+	RQlGIQW6oY4rgD4B5EAz2t5LY0PaTIAyFZbU21lhMGzw0blESoUxq2X3JZGrGIQrOXXAX4GTG/l
+	Hywo5Wj7RblbGc/SOs3ZJ
+X-Received: by 2002:a5d:52ce:: with SMTP id r14mr7021358wrv.334.1589002836112;
+        Fri, 08 May 2020 22:40:36 -0700 (PDT)
+X-Google-Smtp-Source: APiQypLh46b+OJHiK+BmOVxHBKBIBg126/s6UEDmzeKxMWF5zY7CcNlENVRlnP1JVfzUUAXHjN/rxA==
+X-Received: by 2002:a5d:52ce:: with SMTP id r14mr7021307wrv.334.1589002835393;
+        Fri, 08 May 2020 22:40:35 -0700 (PDT)
+Received: from ?IPv6:2a01:598:b901:53f:9037:7517:2497:29c? ([2a01:598:b901:53f:9037:7517:2497:29c])
+        by smtp.gmail.com with ESMTPSA id z6sm437028wrq.1.2020.05.08.22.40.34
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 08 May 2020 22:40:34 -0700 (PDT)
+From: David Hildenbrand <david@redhat.com>
+Mime-Version: 1.0 (1.0)
+Subject: Re: [PATCH v4 1/4] device-dax: Don't leak kernel memory to user space after unloading kmem
+Date: Sat, 9 May 2020 07:40:33 +0200
+Message-Id: <B72EB609-44DC-4133-820C-9BEA95CA012D@redhat.com>
+References: <20200508165306.7cd806f7e451c5c9bc2a40ac@linux-foundation.org>
+In-Reply-To: <20200508165306.7cd806f7e451c5c9bc2a40ac@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+X-Mailer: iPhone Mail (17D50)
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Message-ID-Hash: Z6WC4HPS7TIUTQ2E757UJ7IHPQQQXIIT
+X-Message-ID-Hash: Z6WC4HPS7TIUTQ2E757UJ7IHPQQQXIIT
+X-MailFrom: david@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, Pavel Tatashin <pasha.tatashin@soleen.com>, stable@vger.kernel.org
+CC: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, kexec@lists.infradead.org, Pavel Tatashin <pasha.tatashin@soleen.com>, stable@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6W7QSPE7ZEWAL6ZYR4TGD3UL33C4XWVE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Z6WC4HPS7TIUTQ2E757UJ7IHPQQQXIIT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,47 +95,52 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 
-T24gRnJpLCAgOCBNYXkgMjAyMCAxMDo0MjoxNCArMDIwMCBEYXZpZCBIaWxkZW5icmFuZCA8ZGF2
-aWRAcmVkaGF0LmNvbT4gd3JvdGU6DQoNCj4gQXNzdW1lIHdlIGhhdmUga21lbSBjb25maWd1cmVk
-IGFuZCBsb2FkZWQ6DQo+ICAgW3Jvb3RAbG9jYWxob3N0IH5dIyBjYXQgL3Byb2MvaW9tZW0NCj4g
-ICAuLi4NCj4gICAxNDAwMDAwMDAtMzNmZmZmZmZmIDogUGVyc2lzdGVudCBNZW1vcnkkDQo+ICAg
-ICAxNDAwMDAwMDAtMTQ4MWZmZmZmIDogbmFtZXNwYWNlMC4wDQo+ICAgICAxNTAwMDAwMDAtMzNm
-ZmZmZmZmIDogZGF4MC4wDQo+ICAgICAgIDE1MDAwMDAwMC0zM2ZmZmZmZmYgOiBTeXN0ZW0gUkFN
-DQo+IA0KPiBBc3N1bWUgd2UgdHJ5IHRvIHVubG9hZCBrbWVtLiBUaGlzIGZvcmNlLXVubG9hZGlu
-ZyB3aWxsIHdvcmssIGV2ZW4gaWYNCj4gbWVtb3J5IGNhbm5vdCBnZXQgcmVtb3ZlZCBmcm9tIHRo
-ZSBzeXN0ZW0uDQo+ICAgW3Jvb3RAbG9jYWxob3N0IH5dIyBybW1vZCBrbWVtDQo+ICAgWyAgIDg2
-LjM4MDIyOF0gcmVtb3ZpbmcgbWVtb3J5IGZhaWxzLCBiZWNhdXNlIG1lbW9yeSBbMHgwMDAwMDAw
-MTUwMDAwMDAwLTB4MDAwMDAwMDE1N2ZmZmZmZl0gaXMgb25saW5lZA0KPiAgIC4uLg0KPiAgIFsg
-ICA4Ni40MzEyMjVdIGttZW0gZGF4MC4wOiBEQVggcmVnaW9uIFttZW0gMHgxNTAwMDAwMDAtMHgz
-M2ZmZmZmZmZdIGNhbm5vdCBiZSBob3RyZW1vdmVkIHVudGlsIHRoZSBuZXh0IHJlYm9vdA0KPiAN
-Cj4gTm93LCB3ZSBjYW4gcmVjb25maWd1cmUgdGhlIG5hbWVzcGFjZToNCj4gICBbcm9vdEBsb2Nh
-bGhvc3Qgfl0jIG5kY3RsIGNyZWF0ZS1uYW1lc3BhY2UgLS1mb3JjZSAtLXJlY29uZmlnPW5hbWVz
-cGFjZTAuMCAtLW1vZGU9ZGV2ZGF4DQo+ICAgWyAgMTMxLjQwOTM1MV0gbmRfcG1lbSBuYW1lc3Bh
-Y2UwLjA6IGNvdWxkIG5vdCByZXNlcnZlIHJlZ2lvbiBbbWVtIDB4MTQwMDAwMDAwLTB4MzNmZmZm
-ZmZmXWRheA0KPiAgIFsgIDEzMS40MTAxNDddIG5kX3BtZW06IHByb2JlIG9mIG5hbWVzcGFjZTAu
-MCBmYWlsZWQgd2l0aCBlcnJvciAtMTZuYW1lc3BhY2UwLjAgLS1tb2RlPWRldmRheA0KPiAgIC4u
-Lg0KPiANCj4gVGhpcyBmYWlscyBhcyBleHBlY3RlZCBkdWUgdG8gdGhlIGJ1c3kgbWVtb3J5IHJl
-c291cmNlLCBhbmQgdGhlIG1lbW9yeQ0KPiBjYW5ub3QgYmUgdXNlZC4gSG93ZXZlciwgdGhlIGRh
-eDAuMCBkZXZpY2UgaXMgcmVtb3ZlZCwgYW5kIGFsb25nIGl0cyBuYW1lLg0KPiANCj4gVGhlIG5h
-bWUgb2YgdGhlIG1lbW9yeSByZXNvdXJjZSBub3cgcG9pbnRzIGF0IGZyZWVkIG1lbW9yeSAobmFt
-ZSBvZiB0aGUNCj4gZGV2aWNlKS4NCj4gICBbcm9vdEBsb2NhbGhvc3Qgfl0jIGNhdCAvcHJvYy9p
-b21lbQ0KPiAgIC4uLg0KPiAgIDE0MDAwMDAwMC0zM2ZmZmZmZmYgOiBQZXJzaXN0ZW50IE1lbW9y
-eQ0KPiAgICAgMTQwMDAwMDAwLTE0ODFmZmZmZiA6IG5hbWVzcGFjZTAuMA0KPiAgICAgMTUwMDAw
-MDAwLTMzZmZmZmZmZiA6IO+/vV/vv71eN1/vv73vv70vX++/ve+/vXdS77+977+9V1Hvv73vv73v
-v71e77+977+977+9IC4uLg0KPiAgICAgMTUwMDAwMDAwLTMzZmZmZmZmZiA6IFN5c3RlbSBSQU0N
-Cj4gDQo+IFdlIGhhdmUgdG8gbWFrZSBzdXJlIHRvIGR1cGxpY2F0ZSB0aGUgc3RyaW5nLiBXaGls
-ZSBhdCBpdCwgcmVtb3ZlIHRoZQ0KPiBzdXBlcmZsdW91cyBzZXR0aW5nIG9mIHRoZSBuYW1lIGFu
-ZCBmaXh1cCBhIHN0YWxlIGNvbW1lbnQuDQo+IA0KPiBGaXhlczogOWY5NjBkYTcyYjI1ICgiZGV2
-aWNlLWRheDogIkhvdHJlbW92ZSIgcGVyc2lzdGVudCBtZW1vcnkgdGhhdCBpcyB1c2VkIGxpa2Ug
-bm9ybWFsIFJBTSIpDQo+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnICMgdjUuMw0KDQpobS4N
-Cg0KSXMgdGhpcyByZWFsbHkgLXN0YWJsZSBtYXRlcmlhbD8gIFRoZXNlIGFyZSBhbGwgcHJpdmls
-ZWdlZCBvcGVyYXRpb25zLA0KSSBleHBlY3Q/DQoNCkFzc3VtaW5nICJ5ZXMiLCBJJ3ZlIHF1ZXVl
-ZCB0aGlzIHNlcGFyYXRlbHksIHN0YWdlZCBmb3IgNS43LXJjWC4gIEknbGwNCnJlZG8gcGF0Y2hl
-cyAyLTQgYXMgYSB0aHJlZS1wYXRjaCBzZXJpZXMgZm9yIDUuOC1yYzEuDQoNCj4gQ2M6IERhbiBX
-aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiBDYzogVmlzaGFsIFZlcm1hIDx2
-aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IENjOiBEYXZlIEppYW5nIDxkYXZlLmppYW5nQGlu
-dGVsLmNvbT4NCj4gQ2M6IFBhdmVsIFRhdGFzaGluIDxwYXNoYS50YXRhc2hpbkBzb2xlZW4uY29t
-Pg0KDQpSZXZpZXdlcnMsIHBsZWFzZSA7KQ0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1u
-dmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+DQoNCj4gQW0gMDkuMDUuMjAyMCB1bSAwMTo1MyBzY2hyaWViIEFuZHJldyBNb3J0b24gPGFrcG1A
+bGludXgtZm91bmRhdGlvbi5vcmc+Og0KPiANCj4g77u/T24gRnJpLCAgOCBNYXkgMjAyMCAxMDo0
+MjoxNCArMDIwMCBEYXZpZCBIaWxkZW5icmFuZCA8ZGF2aWRAcmVkaGF0LmNvbT4gd3JvdGU6DQo+
+IA0KPj4gQXNzdW1lIHdlIGhhdmUga21lbSBjb25maWd1cmVkIGFuZCBsb2FkZWQ6DQo+PiAgW3Jv
+b3RAbG9jYWxob3N0IH5dIyBjYXQgL3Byb2MvaW9tZW0NCj4+ICAuLi4NCj4+ICAxNDAwMDAwMDAt
+MzNmZmZmZmZmIDogUGVyc2lzdGVudCBNZW1vcnkkDQo+PiAgICAxNDAwMDAwMDAtMTQ4MWZmZmZm
+IDogbmFtZXNwYWNlMC4wDQo+PiAgICAxNTAwMDAwMDAtMzNmZmZmZmZmIDogZGF4MC4wDQo+PiAg
+ICAgIDE1MDAwMDAwMC0zM2ZmZmZmZmYgOiBTeXN0ZW0gUkFNDQo+PiANCj4+IEFzc3VtZSB3ZSB0
+cnkgdG8gdW5sb2FkIGttZW0uIFRoaXMgZm9yY2UtdW5sb2FkaW5nIHdpbGwgd29yaywgZXZlbiBp
+Zg0KPj4gbWVtb3J5IGNhbm5vdCBnZXQgcmVtb3ZlZCBmcm9tIHRoZSBzeXN0ZW0uDQo+PiAgW3Jv
+b3RAbG9jYWxob3N0IH5dIyBybW1vZCBrbWVtDQo+PiAgWyAgIDg2LjM4MDIyOF0gcmVtb3Zpbmcg
+bWVtb3J5IGZhaWxzLCBiZWNhdXNlIG1lbW9yeSBbMHgwMDAwMDAwMTUwMDAwMDAwLTB4MDAwMDAw
+MDE1N2ZmZmZmZl0gaXMgb25saW5lZA0KPj4gIC4uLg0KPj4gIFsgICA4Ni40MzEyMjVdIGttZW0g
+ZGF4MC4wOiBEQVggcmVnaW9uIFttZW0gMHgxNTAwMDAwMDAtMHgzM2ZmZmZmZmZdIGNhbm5vdCBi
+ZSBob3RyZW1vdmVkIHVudGlsIHRoZSBuZXh0IHJlYm9vdA0KPj4gDQo+PiBOb3csIHdlIGNhbiBy
+ZWNvbmZpZ3VyZSB0aGUgbmFtZXNwYWNlOg0KPj4gIFtyb290QGxvY2FsaG9zdCB+XSMgbmRjdGwg
+Y3JlYXRlLW5hbWVzcGFjZSAtLWZvcmNlIC0tcmVjb25maWc9bmFtZXNwYWNlMC4wIC0tbW9kZT1k
+ZXZkYXgNCj4+ICBbICAxMzEuNDA5MzUxXSBuZF9wbWVtIG5hbWVzcGFjZTAuMDogY291bGQgbm90
+IHJlc2VydmUgcmVnaW9uIFttZW0gMHgxNDAwMDAwMDAtMHgzM2ZmZmZmZmZdZGF4DQo+PiAgWyAg
+MTMxLjQxMDE0N10gbmRfcG1lbTogcHJvYmUgb2YgbmFtZXNwYWNlMC4wIGZhaWxlZCB3aXRoIGVy
+cm9yIC0xNm5hbWVzcGFjZTAuMCAtLW1vZGU9ZGV2ZGF4DQo+PiAgLi4uDQo+PiANCj4+IFRoaXMg
+ZmFpbHMgYXMgZXhwZWN0ZWQgZHVlIHRvIHRoZSBidXN5IG1lbW9yeSByZXNvdXJjZSwgYW5kIHRo
+ZSBtZW1vcnkNCj4+IGNhbm5vdCBiZSB1c2VkLiBIb3dldmVyLCB0aGUgZGF4MC4wIGRldmljZSBp
+cyByZW1vdmVkLCBhbmQgYWxvbmcgaXRzIG5hbWUuDQo+PiANCj4+IFRoZSBuYW1lIG9mIHRoZSBt
+ZW1vcnkgcmVzb3VyY2Ugbm93IHBvaW50cyBhdCBmcmVlZCBtZW1vcnkgKG5hbWUgb2YgdGhlDQo+
+PiBkZXZpY2UpLg0KPj4gIFtyb290QGxvY2FsaG9zdCB+XSMgY2F0IC9wcm9jL2lvbWVtDQo+PiAg
+Li4uDQo+PiAgMTQwMDAwMDAwLTMzZmZmZmZmZiA6IFBlcnNpc3RlbnQgTWVtb3J5DQo+PiAgICAx
+NDAwMDAwMDAtMTQ4MWZmZmZmIDogbmFtZXNwYWNlMC4wDQo+PiAgICAxNTAwMDAwMDAtMzNmZmZm
+ZmZmIDog77+9X++/vV43X++/ve+/vS9f77+977+9d1Lvv73vv71XUe+/ve+/ve+/vV7vv73vv73v
+v70gLi4uDQo+PiAgICAxNTAwMDAwMDAtMzNmZmZmZmZmIDogU3lzdGVtIFJBTQ0KPj4gDQo+PiBX
+ZSBoYXZlIHRvIG1ha2Ugc3VyZSB0byBkdXBsaWNhdGUgdGhlIHN0cmluZy4gV2hpbGUgYXQgaXQs
+IHJlbW92ZSB0aGUNCj4+IHN1cGVyZmx1b3VzIHNldHRpbmcgb2YgdGhlIG5hbWUgYW5kIGZpeHVw
+IGEgc3RhbGUgY29tbWVudC4NCj4+IA0KPj4gRml4ZXM6IDlmOTYwZGE3MmIyNSAoImRldmljZS1k
+YXg6ICJIb3RyZW1vdmUiIHBlcnNpc3RlbnQgbWVtb3J5IHRoYXQgaXMgdXNlZCBsaWtlIG5vcm1h
+bCBSQU0iKQ0KPj4gQ2M6IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcgIyB2NS4zDQo+IA0KPiBobS4N
+Cj4gDQo+IElzIHRoaXMgcmVhbGx5IC1zdGFibGUgbWF0ZXJpYWw/ICBUaGVzZSBhcmUgYWxsIHBy
+aXZpbGVnZWQgb3BlcmF0aW9ucywNCj4gSSBleHBlY3Q/DQoNClllcywgbXkgdGhvdWdodCB3YXMg
+cmF0aGVyIHRoYXQgYW4gYWRtaW4gY291bGQgYnJpbmcgdGhlIHN5c3RlbSBpbnRvIHN1Y2ggYSBz
+dGF0ZSAoYnkgbWlzdGFrZT8pLiBMZXTigJhzIHNlZSBpZiBzb21lYm9keSBoYXMgYSBzdWdnZXN0
+aW9uLg0KDQpJIGd1ZXNzIGlmIHdlIHdlcmUgcmVhbGx5IHVubHVja3ksIHdlIGNvdWxkIGFjY2Vz
+cyBpbnZhbGlkIG1lbW9yeSBhbmQgdHJpZ2dlciBhIEJVRyAoZS5nLiwgcGFnZSBhdCB0aGUgZW5k
+IG9mIG1lbW9yeSBhbmQgZG9lcyBub3QgY29udGFpbiBhIDAgYnl0ZSkuDQoNCj4gDQo+IEFzc3Vt
+aW5nICJ5ZXMiLCBJJ3ZlIHF1ZXVlZCB0aGlzIHNlcGFyYXRlbHksIHN0YWdlZCBmb3IgNS43LXJj
+WC4gIEknbGwNCj4gcmVkbyBwYXRjaGVzIDItNCBhcyBhIHRocmVlLXBhdGNoIHNlcmllcyBmb3Ig
+NS44LXJjMS4NCg0KTWFrZSBzZW5zZSwgbGV04oCYcyB3YWl0IGZvciByZXZpZXcgZmVlZGJhY2ss
+IHRoYW5rcyENCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpU
+byB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4w
+MS5vcmcK
