@@ -2,91 +2,70 @@ Return-Path: <SRS0=fBV/=63=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAF18C2D0FC
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 03:48:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD88FC2D0F8
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 06:44:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8C752206F5
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 03:48:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8C752206F5
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id B06E920708
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 06:44:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B06E920708
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 99D5C11ACC609;
-	Tue, 12 May 2020 20:45:31 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id C46CE11AD099A;
+	Tue, 12 May 2020 23:42:17 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BD8F811ACC605
-	for <linux-nvdimm@lists.01.org>; Tue, 12 May 2020 20:45:28 -0700 (PDT)
-Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 04D3X5Tl176373;
-	Tue, 12 May 2020 23:48:00 -0400
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31016kc0xm-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 May 2020 23:47:59 -0400
-Received: from m0098404.ppops.net (m0098404.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 04D3YQUC182165;
-	Tue, 12 May 2020 23:47:59 -0400
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31016kc0x6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 12 May 2020 23:47:59 -0400
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-	by ppma01wdc.us.ibm.com (8.16.0.27/8.16.0.27) with SMTP id 04D3htE5029220;
-	Wed, 13 May 2020 03:47:58 GMT
-Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
-	by ppma01wdc.us.ibm.com with ESMTP id 3100ub3dnm-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 13 May 2020 03:47:58 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-	by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 04D3lu2H12190124
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 13 May 2020 03:47:56 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 55C676A047;
-	Wed, 13 May 2020 03:47:57 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8F1E16A04D;
-	Wed, 13 May 2020 03:47:54 +0000 (GMT)
-Received: from skywalker.ibmuc.com (unknown [9.102.3.92])
-	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Wed, 13 May 2020 03:47:54 +0000 (GMT)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au,
-        linux-nvdimm@lists.01.org
-Subject: [PATCH v2 5/5] powerpc/pmem: Avoid the barrier in flush routines
-Date: Wed, 13 May 2020 09:17:05 +0530
-Message-Id: <20200513034705.172983-5-aneesh.kumar@linux.ibm.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200513034705.172983-1-aneesh.kumar@linux.ibm.com>
-References: <20200513034705.172983-1-aneesh.kumar@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id B505711AD0620;
+	Tue, 12 May 2020 23:42:15 -0700 (PDT)
+IronPort-SDR: ejmulMGS/tvoKRd0V5IXemUxCoHsX100QerNJ+PqE5UX+12SJAJI5Zmbi8H322EDQ8MoP7sNGY
+ 5qgbNzExZsEw==
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 May 2020 23:44:50 -0700
+IronPort-SDR: m+GrZI82vskxK72fm/cQ3p6UfuX6BvZq2zsZLPC2QICJxDVSIUIRMMMFVmjYkeSfEZa1ov//jf
+ ZaaL9VICi1Xg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,386,1583222400";
+   d="gz'50?scan'50,208,50";a="371809547"
+Received: from lkp-server01.sh.intel.com (HELO lkp-server01) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 12 May 2020 23:44:48 -0700
+Received: from kbuild by lkp-server01 with local (Exim 4.89)
+	(envelope-from <lkp@intel.com>)
+	id 1jYl8J-000DiP-Cf; Wed, 13 May 2020 14:44:47 +0800
+Date: Wed, 13 May 2020 14:44:19 +0800
+From: kbuild test robot <lkp@intel.com>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+	linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au,
+	linux-nvdimm@lists.01.org
+Subject: Re: [PATCH v2 4/5] powerpc/pmem/of_pmem: Update of_pmem to use the
+ new barrier instruction.
+Message-ID: <202005131440.xcr4uAC8%lkp@intel.com>
+References: <20200513034705.172983-4-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.676
- definitions=2020-05-12_08:2020-05-11,2020-05-12 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- phishscore=0 lowpriorityscore=0 mlxscore=0 mlxlogscore=999 bulkscore=0
- malwarescore=0 adultscore=0 spamscore=0 clxscore=1015 impostorscore=0
- cotscore=-2147483648 suspectscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2005130031
-Message-ID-Hash: 6WUYJ2XQUGOQAXN2JPY76YDIUQ4PKTOS
-X-Message-ID-Hash: 6WUYJ2XQUGOQAXN2JPY76YDIUQ4PKTOS
-X-MailFrom: aneesh.kumar@linux.ibm.com
+In-Reply-To: <20200513034705.172983-4-aneesh.kumar@linux.ibm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: AD3K64ZPNYNVVRYTGPYQREQ2HNZOYCC5
+X-Message-ID-Hash: AD3K64ZPNYNVVRYTGPYQREQ2HNZOYCC5
+X-MailFrom: lkp@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: alistair@popple.id.au, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Content-Disposition: inline
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: kbuild-all@lists.01.org, alistair@popple.id.au, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6WUYJ2XQUGOQAXN2JPY76YDIUQ4PKTOS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AD3K64ZPNYNVVRYTGPYQREQ2HNZOYCC5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -95,128 +74,81 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-nvdimm expect the flush routines to just mark the cache clean. The barrier
-that mark the store globally visible is done in nvdimm_flush().
+Hi "Aneesh,
 
-Update the papr_scm driver to a simplified nvdim_flush callback that do
-only the required barrier.
+I love your patch! Yet something to improve:
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+[auto build test ERROR on powerpc/next]
+[also build test ERROR on linux-nvdimm/libnvdimm-for-next v5.7-rc5 next-20200512]
+[if your patch is applied to the wrong git tree, please drop us a note to help
+improve the system. BTW, we also suggest to use '--base' option to specify the
+base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+
+url:    https://github.com/0day-ci/linux/commits/Aneesh-Kumar-K-V/powerpc-pmem-Add-new-instructions-for-persistent-storage-and-sync/20200513-133938
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git next
+config: powerpc-storcenter_defconfig (attached as .config)
+compiler: powerpc-linux-gcc (GCC) 9.3.0
+reproduce:
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        COMPILER_INSTALL_PATH=$HOME/0day GCC_VERSION=9.3.0 make.cross ARCH=powerpc 
+
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kbuild test robot <lkp@intel.com>
+
+All errors (new ones prefixed by >>):
+
+WARNING: unmet direct dependencies detected for PPC_INDIRECT_PCI
+Depends on PCI
+Selected by
+- MPC10X_BRIDGE
+In file included from include/linux/highmem.h:12,
+from include/linux/pagemap.h:11,
+from include/linux/blkdev.h:16,
+from include/linux/blk-cgroup.h:23,
+from include/linux/writeback.h:14,
+from include/linux/memcontrol.h:22,
+from include/linux/swap.h:9,
+from include/linux/suspend.h:5,
+from arch/powerpc/kernel/asm-offsets.c:23:
+arch/powerpc/include/asm/cacheflush.h: In function 'arch_pmem_flush_barrier':
+>> arch/powerpc/include/asm/cacheflush.h:126:22: error: 'CPU_FTR_ARCH_31' undeclared (first use in this function); did you mean
+126 | if (cpu_has_feature(CPU_FTR_ARCH_31))
+| ^~~~~~~~~~~~~~~
+| CPU_FTR_ARCH_300
+arch/powerpc/include/asm/cacheflush.h:126:22: note: each undeclared identifier is reported only once for each function it appears in
+Makefile arch block certs crypto drivers fs include init ipc kernel lib mm net scripts security sound source usr virt [scripts/Makefile.build:100: arch/powerpc/kernel/asm-offsets.s] Error 1
+Target '__build' not remade because of errors.
+Makefile arch block certs crypto drivers fs include init ipc kernel lib mm net scripts security sound source usr virt [Makefile:1141: prepare0] Error 2
+Target 'prepare' not remade because of errors.
+make: Makefile arch block certs crypto drivers fs include init ipc kernel lib mm net scripts security sound source usr virt [Makefile:180: sub-make] Error 2
+
+vim +/CPU_FTR_ARCH_31 +126 arch/powerpc/include/asm/cacheflush.h
+
+   113	
+   114	#define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+   115		do { \
+   116			memcpy(dst, src, len); \
+   117			flush_icache_user_range(vma, page, vaddr, len); \
+   118		} while (0)
+   119	#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+   120		memcpy(dst, src, len)
+   121	
+   122	
+   123	#define arch_pmem_flush_barrier arch_pmem_flush_barrier
+   124	static inline void  arch_pmem_flush_barrier(void)
+   125	{
+ > 126		if (cpu_has_feature(CPU_FTR_ARCH_31))
+   127			asm volatile(PPC_PHWSYNC ::: "memory");
+   128		else
+   129			asm volatile("hwsync" ::: "memory");
+   130	}
+   131	
+
 ---
- arch/powerpc/lib/pmem.c                   | 34 +++++++++++++++++------
- arch/powerpc/platforms/pseries/papr_scm.c | 13 +++++++++
- 2 files changed, 39 insertions(+), 8 deletions(-)
-
-diff --git a/arch/powerpc/lib/pmem.c b/arch/powerpc/lib/pmem.c
-index 076d75efb57a..3ef15cfa925b 100644
---- a/arch/powerpc/lib/pmem.c
-+++ b/arch/powerpc/lib/pmem.c
-@@ -9,7 +9,7 @@
- 
- #include <asm/cacheflush.h>
- 
--static inline void clean_pmem_range_isa310(unsigned long start, unsigned long stop)
-+static inline void __clean_pmem_range(unsigned long start, unsigned long stop)
- {
- 	unsigned long shift = l1_dcache_shift();
- 	unsigned long bytes = l1_dcache_bytes();
-@@ -18,13 +18,22 @@ static inline void clean_pmem_range_isa310(unsigned long start, unsigned long st
- 	unsigned long i;
- 
- 	for (i = 0; i < size >> shift; i++, addr += bytes)
--		asm volatile(PPC_DCBSTPS(%0, %1): :"i"(0), "r"(addr): "memory");
-+		dcbf(addr);
-+}
- 
-+static inline void __flush_pmem_range(unsigned long start, unsigned long stop)
-+{
-+	unsigned long shift = l1_dcache_shift();
-+	unsigned long bytes = l1_dcache_bytes();
-+	void *addr = (void *)(start & ~(bytes - 1));
-+	unsigned long size = stop - (unsigned long)addr + (bytes - 1);
-+	unsigned long i;
- 
--	asm volatile(PPC_PHWSYNC ::: "memory");
-+	for (i = 0; i < size >> shift; i++, addr += bytes)
-+		dcbf(addr);
- }
- 
--static inline void flush_pmem_range_isa310(unsigned long start, unsigned long stop)
-+static inline void clean_pmem_range_isa310(unsigned long start, unsigned long stop)
- {
- 	unsigned long shift = l1_dcache_shift();
- 	unsigned long bytes = l1_dcache_bytes();
-@@ -33,24 +42,33 @@ static inline void flush_pmem_range_isa310(unsigned long start, unsigned long st
- 	unsigned long i;
- 
- 	for (i = 0; i < size >> shift; i++, addr += bytes)
--		asm volatile(PPC_DCBFPS(%0, %1): :"i"(0), "r"(addr): "memory");
-+		asm volatile(PPC_DCBSTPS(%0, %1): :"i"(0), "r"(addr): "memory");
-+}
- 
-+static inline void flush_pmem_range_isa310(unsigned long start, unsigned long stop)
-+{
-+	unsigned long shift = l1_dcache_shift();
-+	unsigned long bytes = l1_dcache_bytes();
-+	void *addr = (void *)(start & ~(bytes - 1));
-+	unsigned long size = stop - (unsigned long)addr + (bytes - 1);
-+	unsigned long i;
- 
--	asm volatile(PPC_PHWSYNC ::: "memory");
-+	for (i = 0; i < size >> shift; i++, addr += bytes)
-+		asm volatile(PPC_DCBFPS(%0, %1): :"i"(0), "r"(addr): "memory");
- }
- 
- static inline void clean_pmem_range(unsigned long start, unsigned long stop)
- {
- 	if (cpu_has_feature(CPU_FTR_ARCH_31))
- 		return clean_pmem_range_isa310(start, stop);
--	return flush_dcache_range(start, stop);
-+	return __clean_pmem_range(start, stop);
- }
- 
- static inline void flush_pmem_range(unsigned long start, unsigned long stop)
- {
- 	if (cpu_has_feature(CPU_FTR_ARCH_31))
- 		return flush_pmem_range_isa310(start, stop);
--	return flush_dcache_range(start, stop);
-+	return __flush_pmem_range(start, stop);
- }
- 
- /*
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index f35592423380..ad506e7003c9 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -285,6 +285,18 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
- 
- 	return 0;
- }
-+/*
-+ * We have made sure the pmem writes are done such that before calling this
-+ * all the caches are flushed/clean. We use dcbf/dcbfps to ensure this. Here
-+ * we just need to add the necessary barrier to make sure the above flushes
-+ * are have updated persistent storage before any data access or data transfer
-+ * caused by subsequent instructions is initiated.
-+ */
-+static int papr_scm_flush_sync(struct nd_region *nd_region, struct bio *bio)
-+{
-+	arch_pmem_flush_barrier();
-+	return 0;
-+}
- 
- static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
- {
-@@ -340,6 +352,7 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
- 	ndr_desc.mapping = &mapping;
- 	ndr_desc.num_mappings = 1;
- 	ndr_desc.nd_set = &p->nd_set;
-+	ndr_desc.flush = papr_scm_flush_sync;
- 
- 	if (p->is_volatile)
- 		p->region = nvdimm_volatile_region_create(p->bus, &ndr_desc);
--- 
-2.26.2
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
