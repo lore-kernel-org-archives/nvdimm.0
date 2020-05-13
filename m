@@ -2,70 +2,79 @@ Return-Path: <SRS0=fBV/=63=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47A55C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 18:45:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E37AFC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 22:27:02 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E6E2320690
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 18:45:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id DDE0020675
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 May 2020 22:27:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="RLQfxHVc"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E6E2320690
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="qnuaqcZy"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DDE0020675
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id AAFCE11AB2D1B;
-	Wed, 13 May 2020 11:43:03 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=song@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 65C2211ADB571;
+	Wed, 13 May 2020 15:24:22 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::634; helo=mail-ej1-x634.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7255911AB2D18
-	for <linux-nvdimm@lists.01.org>; Wed, 13 May 2020 11:43:01 -0700 (PDT)
-Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com [209.85.208.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id D9B20207CD
-	for <linux-nvdimm@lists.01.org>; Wed, 13 May 2020 18:45:40 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1589395541;
-	bh=y3uf4cDEBcGin/ahVjDWwwqBbdeSBPGoaou/iCBc+Ng=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=RLQfxHVcrn6lWhWEu0DDrnMIHIoZ+37WfrxEpZxqiKdV1WCyAtQwcUcFu2SvS2080
-	 VTE5vGbKGPtkrp13IOlhl2+f6sYzR7NeAlwZhvD/+sHUP7ta5YnAY2Vdmt9jo9N04s
-	 CEpGnXvJbsQIZi+fuoRT8dDY4nvc1HnFSDyGGc2w=
-Received: by mail-lj1-f182.google.com with SMTP id d21so702702ljg.9
-        for <linux-nvdimm@lists.01.org>; Wed, 13 May 2020 11:45:39 -0700 (PDT)
-X-Gm-Message-State: AOAM530KPiMX2so8F9XXpvbLPqdziS0vz/tl6TIC9x4C3sIAkk6EfPqS
-	2OgzAXGrGON+bHl4Yif3wGgjbxR2uTnI1+sBICY=
-X-Google-Smtp-Source: ABdhPJzyHaUiiK2XwtDLa9MHZHs3wyCWyuE6aX0bNKMPXZmRZyv4SYSAs5m7n5jeU7J7JeAy2/ppnnbYCoByE6/YYa8=
-X-Received: by 2002:a2e:9258:: with SMTP id v24mr280263ljg.109.1589395538071;
- Wed, 13 May 2020 11:45:38 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 08FE611A31CDC
+	for <linux-nvdimm@lists.01.org>; Wed, 13 May 2020 15:24:19 -0700 (PDT)
+Received: by mail-ej1-x634.google.com with SMTP id s9so1018132eju.1
+        for <linux-nvdimm@lists.01.org>; Wed, 13 May 2020 15:26:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=5gtvWq/MeF/6oEmnw1qXQmZlv3KNk4h6BjoEUKhO/AI=;
+        b=qnuaqcZyt8F/fu6JacXR348SsoSa3Tm7AzZNuvdyRoTov1keyBvQu8pXUwf75HxiOf
+         Kp75KOKoGDVG9AVOlHoBHnEOZ+aGnlYmnNxamZckzNM5gr/kauOLnvq8RbJVSj57g1cw
+         9NN4htlh7EN6fcqVbepwUivXJDqDlyuHYUdtHPY21wxmzjXy/ZgI5w7jQM2uM22NfFtA
+         q8lS8JkKuJziplyt33amkKJeLTRetS+ezNJTjHtj9SEkChz+0OHqn2TMVceqrJ2eD/4/
+         0tsEvnEt2hykkPAkDhJ48WHxBHzBhAZBdTwTt86tywE0BQeuxSyyhNQdkXE9MGPz7xQ5
+         Snkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5gtvWq/MeF/6oEmnw1qXQmZlv3KNk4h6BjoEUKhO/AI=;
+        b=scyM2v6F96hfXHQifOQB/G8bi2cB/AtvhlDK3pjxjZwzH7l+s6eccNf3DRaY7aLqQW
+         vqwFRfPhMiPGu4znxctRkU/7wFwwkk2L/KgomTdkXLwvnApXlt0GvU4XD1DO8q3waEjL
+         8B19eV/+27AILTn5TBreWP6v3buVnPX+LBSoJDvsNax+8ubviaaTy+ygQvNK5SrgF7Ln
+         BVQIZ5xQV8ID9k2IgmxH/wHwZu6wAjevXoe5fv4ChV7qbjKrouklWW5twg/2hsISjiyp
+         zl02NgSECKDFkqcJJsb32f3aqbZSpv2NnPK7NIBnCfRiU6EHXLtXC1PJQMiOh1v8eXAv
+         NAMA==
+X-Gm-Message-State: AOAM532JKMOvxHpfppainEm9PqQjrQMrYPe5AfnnO0A3Fb+SRQ/Hp09e
+	rWk/pwLNqycrTtYUYnparRNs2tL1sHfDeLwnQ4JJ+w==
+X-Google-Smtp-Source: ABdhPJz1YkZyiu1OaSAVXpO2AAQnxlh/qNnka1A5+jaiVwuM2r/ADoB+8k1+qusteX+AGprilg7rK2SWSnm96LhSDK4=
+X-Received: by 2002:a17:906:1f8b:: with SMTP id t11mr1180169ejr.201.1589408817417;
+ Wed, 13 May 2020 15:26:57 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200508161517.252308-1-hch@lst.de> <20200508161517.252308-13-hch@lst.de>
- <CAPhsuW6_Y53_XLFeVxhTDpTi_PKNLqqnrXLn+M2fJW268eE6_w@mail.gmail.com> <20200513183304.GA29895@lst.de>
-In-Reply-To: <20200513183304.GA29895@lst.de>
-From: Song Liu <song@kernel.org>
-Date: Wed, 13 May 2020 11:45:26 -0700
-X-Gmail-Original-Message-ID: <CAPhsuW6pG+-EAa-FW96r+LEP=j1nWEK0Zqk_fJeaAu2Hn9AqeA@mail.gmail.com>
-Message-ID: <CAPhsuW6pG+-EAa-FW96r+LEP=j1nWEK0Zqk_fJeaAu2Hn9AqeA@mail.gmail.com>
-Subject: Re: [PATCH 12/15] md: stop using ->queuedata
+References: <20200508161517.252308-1-hch@lst.de> <CAPcyv4j3gVqrZWCCc2Q-6JizGAQXW0b+R1BcvWCZOvzaukGLQg@mail.gmail.com>
+ <20200509082352.GB21834@lst.de> <CAPcyv4ggb7_rwzGbhHNXSHd+jjSpZC=+DMEztY6Cu8Bc=ZNzag@mail.gmail.com>
+ <20200512080820.GA2336@lst.de>
+In-Reply-To: <20200512080820.GA2336@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 13 May 2020 15:26:45 -0700
+Message-ID: <CAPcyv4iWB=ZMmpc1aWfpJabSbCdvB28dCeSp_xj7AZMfbF_rjg@mail.gmail.com>
+Subject: Re: remove a few uses of ->queuedata
 To: Christoph Hellwig <hch@lst.de>
-Message-ID-Hash: N325BU5QKIR5AS7ZIXXEEW22ZGCT3RGO
-X-Message-ID-Hash: N325BU5QKIR5AS7ZIXXEEW22ZGCT3RGO
-X-MailFrom: song@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Jens Axboe <axboe@kernel.dk>, Jim Paris <jim@jtan.com>, Geoff Levand <geoff@infradead.org>, Joshua Morris <josh.h.morris@us.ibm.com>, Philip Kelleher <pjk1939@linux.ibm.com>, Minchan Kim <minchan@kernel.org>, Nitin Gupta <ngupta@vflare.org>, Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>, linux-m68k@lists.linux-m68k.org, open list <linux-kernel@vger.kernel.org>, linux-xtensa@linux-xtensa.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-bcache@vger.kernel.org, linux-raid <linux-raid@vger.kernel.org>, linux-nvdimm@lists.01.org
+Message-ID-Hash: 3PMR5LBRMNYWAWHLDZOC256NSLBDY7AZ
+X-Message-ID-Hash: 3PMR5LBRMNYWAWHLDZOC256NSLBDY7AZ
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Jens Axboe <axboe@kernel.dk>, Jim Paris <jim@jtan.com>, Geoff Levand <geoff@infradead.org>, Joshua Morris <josh.h.morris@us.ibm.com>, Philip Kelleher <pjk1939@linux.ibm.com>, Minchan Kim <minchan@kernel.org>, Nitin Gupta <ngupta@vflare.org>, Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>, linux-m68k@lists.linux-m68k.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xtensa@linux-xtensa.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-bcache@vger.kernel.org, linux-raid <linux-raid@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/N325BU5QKIR5AS7ZIXXEEW22ZGCT3RGO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3PMR5LBRMNYWAWHLDZOC256NSLBDY7AZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -74,18 +83,28 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, May 13, 2020 at 11:33 AM Christoph Hellwig <hch@lst.de> wrote:
+On Tue, May 12, 2020 at 1:08 AM Christoph Hellwig <hch@lst.de> wrote:
 >
-> On Wed, May 13, 2020 at 11:29:17AM -0700, Song Liu wrote:
-> > On Fri, May 8, 2020 at 9:17 AM Christoph Hellwig <hch@lst.de> wrote:
-> > >
-> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> On Sat, May 09, 2020 at 08:07:14AM -0700, Dan Williams wrote:
+> > > which are all used in the I/O submission path (generic_make_request /
+> > > generic_make_request_checks).  This is mostly a prep cleanup patch to
+> > > also remove the pointless queue argument from ->make_request - then
+> > > ->queue is an extra dereference and extra churn.
 > >
-> > Thanks for the cleanup. IIUC, you want this go through md tree?
+> > Ah ok. If the changelogs had been filled in with something like "In
+> > preparation for removing @q from make_request_fn, stop using
+> > ->queuedata", I probably wouldn't have looked twice.
+> >
+> > For the nvdimm/ driver updates you can add:
+> >
+> >     Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> >
+> > ...or just let me know if you want me to pick those up through the nvdimm tree.
 >
-> Yes, please pick it up though the md tree.
+> I'd love you to pick them up through the nvdimm tree.  Do you want
+> to fix up the commit message yourself?
 
-Thanks for the clarification. Applied to md-next.
+Will do, thanks.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
