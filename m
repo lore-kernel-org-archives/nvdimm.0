@@ -3,49 +3,47 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: *
 X-Spam-Status: No, score=1.1 required=3.0 tests=DKIM_ADSP_DISCARD,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 347CBC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 May 2020 12:52:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEBB4C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 May 2020 13:28:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 01765206A5
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 May 2020 12:52:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 01765206A5
+	by mail.kernel.org (Postfix) with ESMTPS id BE69120734
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 May 2020 13:28:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BE69120734
 Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=fedex.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id AF83111B6D2CE;
-	Thu, 14 May 2020 05:49:44 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=82.103.81.186; helo=[82.103.81.186]; envelope-from=sharkeda99@gaalplpclu00074.linux.us.ups.com; receiver=<UNKNOWN> 
-Received: from [82.103.81.186] (unknown [82.103.81.186])
-	by ml01.01.org (Postfix) with ESMTP id 14F3311B6D2BE;
-	Thu, 14 May 2020 05:49:40 -0700 (PDT)
-Received: from  (
- [190.80.15.2])        by  with SMTP id
- Cd7EDEed; Thu, 14 May 2020 14:52:24 +0200
-Received: from [183.6.75.182] (account inexactrt10@njppsagent6.ups.com HELO RIRAHIN.DYEAKYF.biz)
-	by  (Postfix)
-	with ESMTPA id 2ADA8644D8 for linux-nvdimm@lists.01.org; Thu, 14 May 2020 14:52:24 +0200
+	by ml01.01.org (Postfix) with ESMTP id 54C4111B4C800;
+	Thu, 14 May 2020 06:25:29 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=95.23.93.122; helo=122.93.23.95.dynamic.jazztel.es; envelope-from=meridian8@pvma00192.prod.fedex.com; receiver=<UNKNOWN> 
+Received: from 122.93.23.95.dynamic.jazztel.es (122.93.23.95.dynamic.jazztel.es [95.23.93.122])
+	by ml01.01.org (Postfix) with ESMTP id 838B91185766D
+	for <linux-nvdimm@lists.01.org>; Thu, 14 May 2020 06:25:27 -0700 (PDT)
+Received: from [108.50.63.195] (account irreverentlya3@pvma00009.prod.fedex.com HELO JIBOXUDO.top)
+	by 122.93.23.95.dynamic.jazztel.es (Exim 4.89)
+	with ESMTPA id b1B48458 for linux-nvdimm@lists.01.org; Thu, 14 May 2020 14:28:11 +0100
+Subject: FedEx Shipment 504512437092 Delivered
+From: TrackingUpdates@fedex.com
 To: linux-nvdimm@lists.01.org
-From: trackingemail@fedex.com
-Subject: FedEx Shipment 223783895708: Delivered
-Message-ID: <2ae645d58d8c3b9e23c67ef2@ewaznwohx.zgwqkcaqcwlm.ch>
-Date: Thu, 14 May 2020 14:52:24 +0200
 MIME-Version: 1.0
-Message-ID-Hash: AVGAD3LUQCOWIDPG6G7UVGTSNMKCDTO6
-X-Message-ID-Hash: AVGAD3LUQCOWIDPG6G7UVGTSNMKCDTO6
-X-MailFrom: sharkeda99@gaalplpclu00074.linux.us.ups.com
+Message-ID: <141701.20200514142811@PEXOCUC.CUKIXYJ.club>
+X-Priority: 3
+Date: Thu, 14 May 2020 14:28:11 +0100
+Message-ID-Hash: LYR6RIVPR72O6XCYSASGYHHR2W3HZISL
+X-Message-ID-Hash: LYR6RIVPR72O6XCYSASGYHHR2W3HZISL
+X-MailFrom: meridian8@pvma00192.prod.fedex.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Content-Disposition: inline
 X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: trackingemail@fedex.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AVGAD3LUQCOWIDPG6G7UVGTSNMKCDTO6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LYR6RIVPR72O6XCYSASGYHHR2W3HZISL/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
