@@ -6,31 +6,31 @@ X-Spam-Status: No, score=2.2 required=3.0 tests=DEAR_SOMETHING,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60E9EC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 May 2020 03:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E0CAC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 May 2020 05:54:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id F23EE2074D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 May 2020 03:42:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F23EE2074D
+	by mail.kernel.org (Postfix) with ESMTPS id 06F692054F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 15 May 2020 05:54:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 06F692054F
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=5bo.com.tw
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5179A11B8BD35;
-	Thu, 14 May 2020 20:39:21 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id E20BA11BB4C24;
+	Thu, 14 May 2020 22:51:23 -0700 (PDT)
 Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=37.49.230.30; helo=5bo.com.tw; envelope-from=dmchen@5bo.com.tw; receiver=<UNKNOWN> 
 Received: from 5bo.com.tw (unknown [37.49.230.30])
-	by ml01.01.org (Postfix) with ESMTP id A6053119A8CD0
-	for <linux-nvdimm@lists.01.org>; Thu, 14 May 2020 20:39:17 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 1CD4811BB4C21
+	for <linux-nvdimm@lists.01.org>; Thu, 14 May 2020 22:51:19 -0700 (PDT)
 From: DMCHEN@5bo.com.tw
 To: linux-nvdimm@lists.01.org
 Subject: Important: Invoice Payment - Draft Copy
-Date: 15 May 2020 05:42:05 +0200
-Message-ID: <20200515054205.9EDA02276A9D1D3E@5bo.com.tw>
+Date: 15 May 2020 07:54:08 +0200
+Message-ID: <20200515075408.AFF35176D1C99472@5bo.com.tw>
 MIME-Version: 1.0
-Message-ID-Hash: ZLVLWB3GCZIFFLDDR5OSJD3XI52JZNG7
-X-Message-ID-Hash: ZLVLWB3GCZIFFLDDR5OSJD3XI52JZNG7
+Message-ID-Hash: T7D6OTZST7GYZ52X6T7ZP4EFYBTQNKHW
+X-Message-ID-Hash: T7D6OTZST7GYZ52X6T7ZP4EFYBTQNKHW
 X-MailFrom: DMCHEN@5bo.com.tw
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -38,7 +38,7 @@ X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZLVLWB3GCZIFFLDDR5OSJD3XI52JZNG7/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/T7D6OTZST7GYZ52X6T7ZP4EFYBTQNKHW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
