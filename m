@@ -2,90 +2,57 @@ Return-Path: <SRS0=BCNs=7B=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 723C2C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 19 May 2020 19:09:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E25DC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 19 May 2020 22:28:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3783B207FB
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 19 May 2020 19:09:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3783B207FB
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id ED54B206C3
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 19 May 2020 22:28:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ED54B206C3
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BA90B11E1FF68;
-	Tue, 19 May 2020 12:06:02 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id 79C1611E918F7;
+	Tue, 19 May 2020 15:25:26 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.126; helo=mga18.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 464E8100A027A
-	for <linux-nvdimm@lists.01.org>; Tue, 19 May 2020 12:06:01 -0700 (PDT)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 04JJ3pHp026184;
-	Tue, 19 May 2020 15:08:47 -0400
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 312c64sut1-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 19 May 2020 15:08:47 -0400
-Received: from m0098421.ppops.net (m0098421.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 04JJ7mUk040988;
-	Tue, 19 May 2020 15:08:47 -0400
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 312c64susc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 19 May 2020 15:08:46 -0400
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 04JJ12RG004538;
-	Tue, 19 May 2020 19:01:31 GMT
-Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
-	by ppma05fra.de.ibm.com with ESMTP id 313x4xgw38-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 19 May 2020 19:01:31 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 04JJ1S2N64553134
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 19 May 2020 19:01:29 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B995E52057;
-	Tue, 19 May 2020 19:01:28 +0000 (GMT)
-Received: from vajain21-in-ibm-com (unknown [9.85.89.230])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id 653415204E;
-	Tue, 19 May 2020 19:01:25 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Wed, 20 May 2020 00:31:24 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org,
-        linux-kernel@vger.kernel.org
-Subject: [RESEND PATCH v7 5/5] powerpc/papr_scm: Implement support for PAPR_SCM_PDSM_HEALTH
-Date: Wed, 20 May 2020 00:30:58 +0530
-Message-Id: <20200519190058.257981-6-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200519190058.257981-1-vaibhav@linux.ibm.com>
-References: <20200519190058.257981-1-vaibhav@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 7E55111E8C91B
+	for <linux-nvdimm@lists.01.org>; Tue, 19 May 2020 15:25:23 -0700 (PDT)
+IronPort-SDR: 26Dy8AmRJmGmn/hoVi5SUOJ+j6yOKMxKjZNcTkkwg9p7XIOE5ag9rmP91ue3LUC42VMDjDsb/T
+ 0M1JjW9Eyqjw==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2020 15:28:43 -0700
+IronPort-SDR: K4gouk3kgt6TlmETPZvcuoH4GKDKD8iWteFL3OMV34DttzTKYx2Vm86O3xgzK00SdxVPRNm6aX
+ xlKyDYPFpfmg==
+X-IronPort-AV: E=Sophos;i="5.73,411,1583222400";
+   d="scan'208";a="253395613"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 May 2020 15:28:43 -0700
+Subject: [PATCH v3 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user, kernel}
+From: Dan Williams <dan.j.williams@intel.com>
+To: tglx@linutronix.de, mingo@redhat.com
+Date: Tue, 19 May 2020 15:12:31 -0700
+Message-ID: <158992635164.403910.2616621400995359522.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.676
- definitions=2020-05-19_08:2020-05-19,2020-05-19 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- malwarescore=0 suspectscore=0 mlxlogscore=999 cotscore=-2147483648
- spamscore=0 priorityscore=1501 bulkscore=0 adultscore=0 phishscore=0
- mlxscore=0 lowpriorityscore=0 clxscore=1015 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2005190157
-Message-ID-Hash: NOD3Y5GUKS6RCPKNVK2TE6FCD5ZNZAAY
-X-Message-ID-Hash: NOD3Y5GUKS6RCPKNVK2TE6FCD5ZNZAAY
-X-MailFrom: vaibhav@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Steven Rostedt <rostedt@goodmis.org>
+Message-ID-Hash: DLHRQKTQFVORC564HMMJ7WESNM44RUAU
+X-Message-ID-Hash: DLHRQKTQFVORC564HMMJ7WESNM44RUAU
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@alien8.de>, stable@vger.kernel.org, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NOD3Y5GUKS6RCPKNVK2TE6FCD5ZNZAAY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DLHRQKTQFVORC564HMMJ7WESNM44RUAU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,316 +61,95 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch implements support for PDSM request 'PAPR_SCM_PDSM_HEALTH'
-that returns a newly introduced 'struct nd_papr_pdsm_health' instance
-containing dimm health information back to user space in response to
-ND_CMD_CALL. This functionality is implemented in newly introduced
-papr_scm_get_health() that queries the scm-dimm health information and
-then copies this information to the package payload whose layout is
-defined by 'struct nd_papr_pdsm_health'.
+Changes since v2 [1]:
+- Replace the non-descriptive copy_safe() with copy_mc_to_user() and
+  copy_mc_to_kernel() several code organization cleanups resulted from
+  this rename, which further proves the point that the name deeply
+  matters for maintainability in this case. (Linus)
 
-The patch also introduces a new member 'struct papr_scm_priv.health'
-thats an instance of 'struct nd_papr_pdsm_health' to cache the health
-information of a nvdimm. As a result functions drc_pmem_query_health()
-and flags_show() are updated to populate and use this new struct
-instead of a u64 integer that was earlier used.
+- Do not use copy_user_generic() as the generic x86 backend for
+  copy_mc_to_user() since the #MC handler explicitly wants the exception
+  to be trapped by a _ASM_EXTABLE_FAULT handler. (Vivek).
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+- Rename copy_safe_slow() to copy_mc_fragile() to better indicate what
+  the implementation is handling. copy_safe_fast() is replaced with
+  copy_mc_generic().
+
 ---
-Changelog:
 
-Resend:
-* None
+The primary motivation to go touch memcpy_mcsafe() is that the existing
+benefit of doing slow "handle with care" copies is obviated on newer
+CPUs. With that concern lifted it also obviates the need to continue to
+update the MCA-recovery capability detection code currently gated by
+"mcsafe_key". Now the old "mcsafe_key" opt-in to perform the copy with
+concerns for recovery fragility can instead be made an opt-out from the
+default fast copy implementation (enable_copy_mc_fragile()).
 
-v6..v7:
-* Updated flags_show() to use seq_buf_printf(). [Mpe]
-* Updated papr_scm_get_health() to use newly introduced
-  __drc_pmem_query_health() bypassing the cache [Mpe].
+The discussion with Linus on the first iteration of this patch
+identified that memcpy_mcsafe() was misnamed relative to its usage. The
+new names copy_mc_to_user() and copy_mc_to_kernel() clearly indicate the
+intended use case and lets the architecture organize the implementation
+accordingly.
 
-v5..v6:
-* Added attribute '__packed' to 'struct nd_papr_pdsm_health_v1' to
-  gaurd against possibility of different compilers adding different
-  paddings to the struct [ Dan Williams ]
+For both powerpc and x86 a copy_mc_generic() implementation is added as
+the backend for these interfaces.
 
-* Updated 'struct nd_papr_pdsm_health_v1' to use __u8 instead of
-  'bool' and also updated drc_pmem_query_health() to take this into
-  account. [ Dan Williams ]
+Patches are relative to tip/master.
 
-v4..v5:
-* None
-
-v3..v4:
-* Call the DSM_PAPR_SCM_HEALTH service function from
-  papr_scm_service_dsm() instead of papr_scm_ndctl(). [Aneesh]
-
-v2..v3:
-* Updated struct nd_papr_scm_dimm_health_stat_v1 to use '__xx' types
-  as its exported to the userspace [Aneesh]
-* Changed the constants DSM_PAPR_SCM_DIMM_XX indicating dimm health
-  from enum to #defines [Aneesh]
-
-v1..v2:
-* New patch in the series
 ---
- arch/powerpc/include/uapi/asm/papr_scm_pdsm.h |  39 ++++++
- arch/powerpc/platforms/pseries/papr_scm.c     | 125 +++++++++++++++---
- 2 files changed, 147 insertions(+), 17 deletions(-)
 
-diff --git a/arch/powerpc/include/uapi/asm/papr_scm_pdsm.h b/arch/powerpc/include/uapi/asm/papr_scm_pdsm.h
-index 671693439c1c..db0cf550dabe 100644
---- a/arch/powerpc/include/uapi/asm/papr_scm_pdsm.h
-+++ b/arch/powerpc/include/uapi/asm/papr_scm_pdsm.h
-@@ -113,6 +113,7 @@ struct nd_pdsm_cmd_pkg {
-  */
- enum papr_scm_pdsm {
- 	PAPR_SCM_PDSM_MIN = 0x0,
-+	PAPR_SCM_PDSM_HEALTH,
- 	PAPR_SCM_PDSM_MAX,
- };
- 
-@@ -131,4 +132,42 @@ static inline void *pdsm_cmd_to_payload(struct nd_pdsm_cmd_pkg *pcmd)
- 		return (void *)((__u8 *) pcmd + pcmd->payload_offset);
- }
- 
-+/* Various scm-dimm health indicators */
-+#define PAPR_PDSM_DIMM_HEALTHY       0
-+#define PAPR_PDSM_DIMM_UNHEALTHY     1
-+#define PAPR_PDSM_DIMM_CRITICAL      2
-+#define PAPR_PDSM_DIMM_FATAL         3
-+
-+/*
-+ * Struct exchanged between kernel & ndctl in for PAPR_SCM_PDSM_HEALTH
-+ * Various flags indicate the health status of the dimm.
-+ *
-+ * dimm_unarmed		: Dimm not armed. So contents wont persist.
-+ * dimm_bad_shutdown	: Previous shutdown did not persist contents.
-+ * dimm_bad_restore	: Contents from previous shutdown werent restored.
-+ * dimm_scrubbed	: Contents of the dimm have been scrubbed.
-+ * dimm_locked		: Contents of the dimm cant be modified until CEC reboot
-+ * dimm_encrypted	: Contents of dimm are encrypted.
-+ * dimm_health		: Dimm health indicator. One of PAPR_PDSM_DIMM_XXXX
-+ */
-+struct nd_papr_pdsm_health_v1 {
-+	__u8 dimm_unarmed;
-+	__u8 dimm_bad_shutdown;
-+	__u8 dimm_bad_restore;
-+	__u8 dimm_scrubbed;
-+	__u8 dimm_locked;
-+	__u8 dimm_encrypted;
-+	__u16 dimm_health;
-+} __packed;
-+
-+/*
-+ * Typedef the current struct for dimm_health so that any application
-+ * or kernel recompiled after introducing a new version automatically
-+ * supports the new version.
-+ */
-+#define nd_papr_pdsm_health nd_papr_pdsm_health_v1
-+
-+/* Current version number for the dimm health struct */
-+#define ND_PAPR_PDSM_HEALTH_VERSION 1
-+
- #endif /* _UAPI_ASM_POWERPC_PAPR_SCM_PDSM_H_ */
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index ed4b49a6f1e1..c59bf17ad054 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -88,7 +88,7 @@ struct papr_scm_priv {
- 	unsigned long lasthealth_jiffies;
- 
- 	/* Health information for the dimm */
--	u64 health_bitmap;
-+	struct nd_papr_pdsm_health health;
- };
- 
- static int drc_pmem_bind(struct papr_scm_priv *p)
-@@ -201,6 +201,7 @@ static int drc_pmem_query_n_bind(struct papr_scm_priv *p)
- static int __drc_pmem_query_health(struct papr_scm_priv *p)
- {
- 	unsigned long ret[PLPAR_HCALL_BUFSIZE];
-+	u64 health;
- 	s64 rc;
- 
- 	/* issue the hcall */
-@@ -208,18 +209,46 @@ static int __drc_pmem_query_health(struct papr_scm_priv *p)
- 	if (rc != H_SUCCESS) {
- 		dev_err(&p->pdev->dev,
- 			 "Failed to query health information, Err:%lld\n", rc);
--		rc = -ENXIO;
--		goto out;
-+		return -ENXIO;
- 	}
- 
- 	p->lasthealth_jiffies = jiffies;
--	p->health_bitmap = ret[0] & ret[1];
-+	health = ret[0] & ret[1];
- 
- 	dev_dbg(&p->pdev->dev,
- 		"Queried dimm health info. Bitmap:0x%016lx Mask:0x%016lx\n",
- 		ret[0], ret[1]);
--out:
--	return rc;
-+
-+	memset(&p->health, 0, sizeof(p->health));
-+
-+	/* Check for various masks in bitmap and set the buffer */
-+	if (health & PAPR_SCM_DIMM_UNARMED_MASK)
-+		p->health.dimm_unarmed = 1;
-+
-+	if (health & PAPR_SCM_DIMM_BAD_SHUTDOWN_MASK)
-+		p->health.dimm_bad_shutdown = 1;
-+
-+	if (health & PAPR_SCM_DIMM_BAD_RESTORE_MASK)
-+		p->health.dimm_bad_restore = 1;
-+
-+	if (health & PAPR_SCM_DIMM_ENCRYPTED)
-+		p->health.dimm_encrypted = 1;
-+
-+	if (health & PAPR_SCM_DIMM_SCRUBBED_AND_LOCKED) {
-+		p->health.dimm_locked = 1;
-+		p->health.dimm_scrubbed = 1;
-+	}
-+
-+	if (health & PAPR_SCM_DIMM_HEALTH_UNHEALTHY)
-+		p->health.dimm_health = PAPR_PDSM_DIMM_UNHEALTHY;
-+
-+	if (health & PAPR_SCM_DIMM_HEALTH_CRITICAL)
-+		p->health.dimm_health = PAPR_PDSM_DIMM_CRITICAL;
-+
-+	if (health & PAPR_SCM_DIMM_HEALTH_FATAL)
-+		p->health.dimm_health = PAPR_PDSM_DIMM_FATAL;
-+
-+	return 0;
- }
- 
- /* Min interval in seconds for assuming stable dimm health */
-@@ -403,6 +432,58 @@ static int is_cmd_valid(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 	return 0;
- }
- 
-+/* Fetch the DIMM health info and populate it in provided package. */
-+static int papr_scm_get_health(struct papr_scm_priv *p,
-+			       struct nd_pdsm_cmd_pkg *pkg)
-+{
-+	int rc;
-+	size_t copysize = sizeof(p->health);
-+
-+	/* Ensure dimm health mutex is taken preventing concurrent access */
-+	rc = mutex_lock_interruptible(&p->health_mutex);
-+	if (rc)
-+		goto out;
-+
-+	/* Always fetch upto date dimm health data ignoring cached values */
-+	rc = __drc_pmem_query_health(p);
-+	if (rc)
-+		goto out_unlock;
-+	/*
-+	 * If the requested payload version is greater than one we know
-+	 * about, return the payload version we know about and let
-+	 * caller/userspace handle.
-+	 */
-+	if (pkg->payload_version > ND_PAPR_PDSM_HEALTH_VERSION)
-+		pkg->payload_version = ND_PAPR_PDSM_HEALTH_VERSION;
-+
-+	if (pkg->hdr.nd_size_out < copysize) {
-+		dev_dbg(&p->pdev->dev, "Truncated payload (%u). Expected (%lu)",
-+			pkg->hdr.nd_size_out, copysize);
-+		rc = -ENOSPC;
-+		goto out_unlock;
-+	}
-+
-+	dev_dbg(&p->pdev->dev, "Copying payload size=%lu version=0x%x\n",
-+		copysize, pkg->payload_version);
-+
-+	/* Copy the health struct to the payload */
-+	memcpy(pdsm_cmd_to_payload(pkg), &p->health, copysize);
-+	pkg->hdr.nd_fw_size = copysize;
-+
-+out_unlock:
-+	mutex_unlock(&p->health_mutex);
-+
-+out:
-+	/*
-+	 * Put the error in out package and return success from function
-+	 * so that errors if any are propogated back to userspace.
-+	 */
-+	pkg->cmd_status = rc;
-+	dev_dbg(&p->pdev->dev, "completion code = %d\n", rc);
-+
-+	return 0;
-+}
-+
- static int papr_scm_service_pdsm(struct papr_scm_priv *p,
- 				struct nd_pdsm_cmd_pkg *call_pkg)
- {
-@@ -417,6 +498,9 @@ static int papr_scm_service_pdsm(struct papr_scm_priv *p,
- 
- 	/* Depending on the DSM command call appropriate service routine */
- 	switch (call_pkg->hdr.nd_command) {
-+	case PAPR_SCM_PDSM_HEALTH:
-+		return papr_scm_get_health(p, call_pkg);
-+
- 	default:
- 		dev_dbg(&p->pdev->dev, "Unsupported PDSM request 0x%llx\n",
- 			call_pkg->hdr.nd_command);
-@@ -485,34 +569,41 @@ static ssize_t flags_show(struct device *dev,
- 	struct nvdimm *dimm = to_nvdimm(dev);
- 	struct papr_scm_priv *p = nvdimm_provider_data(dimm);
- 	struct seq_buf s;
--	u64 health;
- 	int rc;
- 
- 	rc = drc_pmem_query_health(p);
- 	if (rc)
- 		return rc;
- 
--	/* Copy health_bitmap locally, check masks & update out buffer */
--	health = READ_ONCE(p->health_bitmap);
--
- 	seq_buf_init(&s, buf, PAGE_SIZE);
--	if (health & PAPR_SCM_DIMM_UNARMED_MASK)
-+
-+	/* Protect concurrent modifications to papr_scm_priv */
-+	rc = mutex_lock_interruptible(&p->health_mutex);
-+	if (rc)
-+		return rc;
-+
-+	if (p->health.dimm_unarmed)
- 		seq_buf_printf(&s, "not_armed ");
- 
--	if (health & PAPR_SCM_DIMM_BAD_SHUTDOWN_MASK)
-+	if (p->health.dimm_bad_shutdown)
- 		seq_buf_printf(&s, "flush_fail ");
- 
--	if (health & PAPR_SCM_DIMM_BAD_RESTORE_MASK)
-+	if (p->health.dimm_bad_restore)
- 		seq_buf_printf(&s, "restore_fail ");
- 
--	if (health & PAPR_SCM_DIMM_ENCRYPTED)
-+	if (p->health.dimm_encrypted)
- 		seq_buf_printf(&s, "encrypted ");
- 
--	if (health & PAPR_SCM_DIMM_SMART_EVENT_MASK)
-+	if (p->health.dimm_health)
- 		seq_buf_printf(&s, "smart_notify ");
- 
--	if (health & PAPR_SCM_DIMM_SCRUBBED_AND_LOCKED)
--		seq_buf_printf(&s, "scrubbed locked ");
-+	if (p->health.dimm_scrubbed)
-+		seq_buf_printf(&s, "scrubbed ");
-+
-+	if (p->health.dimm_locked)
-+		seq_buf_printf(&s, "locked ");
-+
-+	mutex_unlock(&p->health_mutex);
- 
- 	if (seq_buf_used(&s))
- 		seq_buf_printf(&s, "\n");
--- 
-2.26.2
+Dan Williams (2):
+      x86, powerpc: Rename memcpy_mcsafe() to copy_mc_to_{user,kernel}()
+      x86/copy_mc: Introduce copy_mc_generic()
+
+ arch/powerpc/Kconfig                               |    2 
+ arch/powerpc/include/asm/string.h                  |    2 
+ arch/powerpc/include/asm/uaccess.h                 |   40 +++--
+ arch/powerpc/lib/Makefile                          |    2 
+ arch/powerpc/lib/copy_mc_64.S                      |    4 
+ arch/x86/Kconfig                                   |    2 
+ arch/x86/Kconfig.debug                             |    2 
+ arch/x86/include/asm/copy_mc_test.h                |   75 +++++++++
+ arch/x86/include/asm/mcsafe_test.h                 |   75 ---------
+ arch/x86/include/asm/string_64.h                   |   32 ----
+ arch/x86/include/asm/uaccess_64.h                  |   35 ++--
+ arch/x86/kernel/cpu/mce/core.c                     |    8 -
+ arch/x86/kernel/quirks.c                           |    9 -
+ arch/x86/lib/Makefile                              |    1 
+ arch/x86/lib/copy_mc.c                             |   64 ++++++++
+ arch/x86/lib/copy_mc_64.S                          |  165 ++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S                           |  115 --------------
+ arch/x86/lib/usercopy_64.c                         |   21 ---
+ drivers/md/dm-writecache.c                         |   15 +-
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/pmem.c                              |    6 -
+ include/linux/string.h                             |    9 -
+ include/linux/uaccess.h                            |    9 +
+ include/linux/uio.h                                |   10 +
+ lib/Kconfig                                        |    7 +
+ lib/iov_iter.c                                     |   43 +++--
+ tools/arch/x86/include/asm/copy_safe_test.h        |   13 ++
+ tools/arch/x86/include/asm/mcsafe_test.h           |   13 --
+ tools/arch/x86/lib/memcpy_64.S                     |  115 --------------
+ tools/objtool/check.c                              |    5 -
+ tools/perf/bench/Build                             |    1 
+ tools/perf/bench/mem-memcpy-x86-64-lib.c           |   24 ---
+ tools/testing/nvdimm/test/nfit.c                   |   48 +++---
+ .../testing/selftests/powerpc/copyloops/.gitignore |    2 
+ tools/testing/selftests/powerpc/copyloops/Makefile |    6 -
+ .../testing/selftests/powerpc/copyloops/copy_mc.S  |    0 
+ 36 files changed, 460 insertions(+), 522 deletions(-)
+ rename arch/powerpc/lib/{memcpy_mcsafe_64.S => copy_mc_64.S} (98%)
+ create mode 100644 arch/x86/include/asm/copy_mc_test.h
+ delete mode 100644 arch/x86/include/asm/mcsafe_test.h
+ create mode 100644 arch/x86/lib/copy_mc.c
+ create mode 100644 arch/x86/lib/copy_mc_64.S
+ create mode 100644 tools/arch/x86/include/asm/copy_safe_test.h
+ delete mode 100644 tools/arch/x86/include/asm/mcsafe_test.h
+ delete mode 100644 tools/perf/bench/mem-memcpy-x86-64-lib.c
+ rename tools/testing/selftests/powerpc/copyloops/{memcpy_mcsafe_64.S => copy_mc.S} (100%)
+
+base-commit: bba413deb1065f1291cb1f366247513f11215520
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
