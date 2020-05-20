@@ -3,53 +3,54 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1254C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 20 May 2020 15:33:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D052EC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 20 May 2020 15:34:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5F419206F1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 20 May 2020 15:33:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5F419206F1
+	by mail.kernel.org (Postfix) with ESMTPS id AC1CB20708
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 20 May 2020 15:34:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AC1CB20708
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=ACULAB.COM
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5A03E11D77B99;
-	Wed, 20 May 2020 08:30:10 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 966AE11D77B9E;
+	Wed, 20 May 2020 08:31:31 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.82.80.151; helo=eu-smtp-delivery-151.mimecast.com; envelope-from=david.laight@aculab.com; receiver=<UNKNOWN> 
 Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [207.82.80.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BDA5711D77B93
-	for <linux-nvdimm@lists.01.org>; Wed, 20 May 2020 08:30:06 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id BBD9111D77B9A
+	for <linux-nvdimm@lists.01.org>; Wed, 20 May 2020 08:31:29 -0700 (PDT)
 Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
  TLS) by relay.mimecast.com with ESMTP id
- uk-mta-22-rP6gYl4LNfyrcK7WuRHs9w-1; Wed, 20 May 2020 16:33:27 +0100
-X-MC-Unique: rP6gYl4LNfyrcK7WuRHs9w-1
+ uk-mta-228-m9nY-k74MOCgdXhj5Ly8FA-1; Wed, 20 May 2020 16:34:51 +0100
+X-MC-Unique: m9nY-k74MOCgdXhj5Ly8FA-1
 Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
  AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Wed, 20 May 2020 16:33:27 +0100
+ Server (TLS) id 15.0.1347.2; Wed, 20 May 2020 16:34:50 +0100
 Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
  AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Wed, 20 May 2020 16:33:27 +0100
+ Wed, 20 May 2020 16:34:50 +0100
 From: David Laight <David.Laight@ACULAB.COM>
-To: 'Dan Williams' <dan.j.williams@intel.com>, Michael Ellerman
-	<mpe@ellerman.id.au>
+To: David Laight <David.Laight@ACULAB.COM>, 'Dan Williams'
+	<dan.j.williams@intel.com>, Michael Ellerman <mpe@ellerman.id.au>
 Subject: RE: [PATCH v3 1/2] x86, powerpc: Rename memcpy_mcsafe() to
  copy_mc_to_{user, kernel}()
 Thread-Topic: [PATCH v3 1/2] x86, powerpc: Rename memcpy_mcsafe() to
  copy_mc_to_{user, kernel}()
-Thread-Index: AQHWLrr3OGthQXUtsU6REk+fDuiGdKixGiVw
-Date: Wed, 20 May 2020 15:33:27 +0000
-Message-ID: <380699aca2424f5ab1fb55c220350908@AcuMS.aculab.com>
+Thread-Index: AQHWLrr3OGthQXUtsU6REk+fDuiGdKixGiVwgAAAsmA=
+Date: Wed, 20 May 2020 15:34:50 +0000
+Message-ID: <6a7200e6c57843eb8c6c08db9f991064@AcuMS.aculab.com>
 References: <158992635164.403910.2616621400995359522.stgit@dwillia2-desk3.amr.corp.intel.com>
  <158992635697.403910.6957168747147028694.stgit@dwillia2-desk3.amr.corp.intel.com>
  <87d06z7x1a.fsf@mpe.ellerman.id.au>
  <CAPcyv4igM-jK6OkPzd91ur_fNCaUxwbWTHhwWsWe-PJNjZdWGw@mail.gmail.com>
-In-Reply-To: <CAPcyv4igM-jK6OkPzd91ur_fNCaUxwbWTHhwWsWe-PJNjZdWGw@mail.gmail.com>
+ <380699aca2424f5ab1fb55c220350908@AcuMS.aculab.com>
+In-Reply-To: <380699aca2424f5ab1fb55c220350908@AcuMS.aculab.com>
 Accept-Language: en-GB, en-US
 Content-Language: en-US
 X-MS-Has-Attach: 
@@ -59,8 +60,8 @@ x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
 X-Mimecast-Spam-Score: 0
 X-Mimecast-Originator: aculab.com
-Message-ID-Hash: IFFWZ5RPK3VHGDCK2L252FZOBXEUM4HL
-X-Message-ID-Hash: IFFWZ5RPK3VHGDCK2L252FZOBXEUM4HL
+Message-ID-Hash: 3S2YEC2F7AAOKRO3LQQT2QKZN7AWIEMQ
+X-Message-ID-Hash: 3S2YEC2F7AAOKRO3LQQT2QKZN7AWIEMQ
 X-MailFrom: david.laight@aculab.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +69,7 @@ CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "X86 M
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IFFWZ5RPK3VHGDCK2L252FZOBXEUM4HL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3S2YEC2F7AAOKRO3LQQT2QKZN7AWIEMQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,20 +78,20 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Dan Williams
-> Sent: 20 May 2020 16:26
-...
-> > > +#ifdef CONFIG_ARCH_HAS_COPY_MC
-> > > +extern unsigned long __must_check
+> From: Dan Williams
+> > Sent: 20 May 2020 16:26
+> ...
+> > > > +#ifdef CONFIG_ARCH_HAS_COPY_MC
+> > > > +extern unsigned long __must_check
+> > >
+> > > We try not to add extern in headers anymore.
 > >
-> > We try not to add extern in headers anymore.
+> > Ok, I was doing the copy-pasta dance, but I'll remove this.
 > 
-> Ok, I was doing the copy-pasta dance, but I'll remove this.
+> It is data not code, it needs the extern to not be 'common'.
+> OTOH what is a global variable being used for?
 
-It is data not code, it needs the extern to not be 'common'.
-OTOH what is a global variable being used for?
-
-	David
+Aaarg not enough context...
 
 -
 Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
