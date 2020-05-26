@@ -1,54 +1,67 @@
-Return-Path: <SRS0=DAtX=7H=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=FwNh=7I=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DF8C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 May 2020 16:19:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93B3BC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 26 May 2020 12:14:25 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CB4F220812
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 May 2020 16:19:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CB4F220812
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lwn.net
+	by mail.kernel.org (Postfix) with ESMTPS id 3BFE020787
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 26 May 2020 12:14:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ellerman.id.au header.i=@ellerman.id.au header.b="jWI5D5V7"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3BFE020787
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E065E11D7C3A2;
-	Mon, 25 May 2020 09:15:19 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.79.88.28; helo=ms.lwn.net; envelope-from=corbet@lwn.net; receiver=<UNKNOWN> 
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id DBDD412120B7E;
+	Tue, 26 May 2020 05:10:20 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=203.11.71.1; helo=ozlabs.org; envelope-from=mpe@ellerman.id.au; receiver=<UNKNOWN> 
+Received: from ozlabs.org (ozlabs.org [203.11.71.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E3C1B122338D3
-	for <linux-nvdimm@lists.01.org>; Mon, 25 May 2020 09:15:17 -0700 (PDT)
-Received: from lwn.net (localhost [127.0.0.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTPS id 50F4E12120B7B
+	for <linux-nvdimm@lists.01.org>; Tue, 26 May 2020 05:10:16 -0700 (PDT)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
 	(No client certificate requested)
-	by ms.lwn.net (Postfix) with ESMTPSA id DBA9C2DC;
-	Mon, 25 May 2020 16:19:14 +0000 (UTC)
-Date: Mon, 25 May 2020 10:19:13 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH] nvdimm: fixes to maintainter-entry-profile
-Message-ID: <20200525101913.07735d91@lwn.net>
-In-Reply-To: <103a0e71-28b5-e4c2-fdf2-80d2dd005b44@infradead.org>
-References: <103a0e71-28b5-e4c2-fdf2-80d2dd005b44@infradead.org>
-Organization: LWN.net
+	by mail.ozlabs.org (Postfix) with ESMTPSA id 49WXvD1JR3z9sRW;
+	Tue, 26 May 2020 22:14:16 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ellerman.id.au;
+	s=201909; t=1590495257;
+	bh=edkHVtYOKN1TVgGDRKISh6yBxBVEyLNdkDMbZWBQadE=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=jWI5D5V7v1nS5Zu/kPhmvs3xLMxGeKkJ6iQjr/fNYMOTg+mcUqB5qTPqlT8+dPUso
+	 W21vKySR0RcRX+BzZRpQwJVNzfGWB1PyKCy7jqsQQaIDKWPXQsD8qdwSOdHrbxrI7z
+	 YkLKmvvLfbyd1/tBF9ELEPc87BF6KLYzAPQWtpOxKRwNaZdr38ZyOy2EryhBtYUC/j
+	 LBwq3hVjVebNuRw6eVDs6ynqeL3hcPcj8GDQbEc1ygosaYGPm4FIJZrQqKwoqtKTdM
+	 zYFV1CbzFadMKF7jhg9nvAOhk5c/oRbdXzM1+TLQoNFqzkRBOdl1l1mXKGgKGib8Xb
+	 8pUdR5p3WJ5Pw==
+From: Michael Ellerman <mpe@ellerman.id.au>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [RESEND PATCH v7 4/5] ndctl/papr_scm, uapi: Add support for PAPR nvdimm specific methods
+In-Reply-To: <87a71ww7f9.fsf@linux.ibm.com>
+References: <20200519190058.257981-1-vaibhav@linux.ibm.com> <20200519190058.257981-5-vaibhav@linux.ibm.com> <20200520153209.GC3660833@iweiny-DESK2.sc.intel.com> <87367t941j.fsf@mpe.ellerman.id.au> <87ftbswhb6.fsf@linux.ibm.com> <87a71ww7f9.fsf@linux.ibm.com>
+Date: Tue, 26 May 2020 22:14:39 +1000
+Message-ID: <875zcigafk.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
-Message-ID-Hash: I5M7MMQXZPB6P6IYRDFQZ3Z4XQTZ543F
-X-Message-ID-Hash: I5M7MMQXZPB6P6IYRDFQZ3Z4XQTZ543F
-X-MailFrom: corbet@lwn.net
+Message-ID-Hash: XF4ZFYSWNQMNXGG5Y4XGFW5TMGM3GJXG
+X-Message-ID-Hash: XF4ZFYSWNQMNXGG5Y4XGFW5TMGM3GJXG
+X-MailFrom: mpe@ellerman.id.au
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: LKML <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I5M7MMQXZPB6P6IYRDFQZ3Z4XQTZ543F/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XF4ZFYSWNQMNXGG5Y4XGFW5TMGM3GJXG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -57,28 +70,67 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, 21 May 2020 09:51:37 -0700
-Randy Dunlap <rdunlap@infradead.org> wrote:
+Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+> Hi Ira, Mpe and Aneesh,
+>
+> Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+>
+>> Michael Ellerman <mpe@ellerman.id.au> writes:
+>>
+>>> Ira Weiny <ira.weiny@intel.com> writes:
+>>>> On Wed, May 20, 2020 at 12:30:57AM +0530, Vaibhav Jain wrote:
+>>>>> Introduce support for Papr nvDimm Specific Methods (PDSM) in papr_scm
+>>>>> modules and add the command family to the white list of NVDIMM command
+>>>>> sets. Also advertise support for ND_CMD_CALL for the dimm
+>>>>> command mask and implement necessary scaffolding in the module to
+>>>>> handle ND_CMD_CALL ioctl and PDSM requests that we receive.
+>>> ...
+>>>>> + *
+>>>>> + * Payload Version:
+>>>>> + *
+>>>>> + * A 'payload_version' field is present in PDSM header that indicates a specific
+>>>>> + * version of the structure present in PDSM Payload for a given PDSM command.
+>>>>> + * This provides backward compatibility in case the PDSM Payload structure
+>>>>> + * evolves and different structures are supported by 'papr_scm' and 'libndctl'.
+>>>>> + *
+>>>>> + * When sending a PDSM Payload to 'papr_scm', 'libndctl' should send the version
+>>>>> + * of the payload struct it supports via 'payload_version' field. The 'papr_scm'
+>>>>> + * module when servicing the PDSM envelope checks the 'payload_version' and then
+>>>>> + * uses 'payload struct version' == MIN('payload_version field',
+>>>>> + * 'max payload-struct-version supported by papr_scm') to service the PDSM.
+>>>>> + * After servicing the PDSM, 'papr_scm' put the negotiated version of payload
+>>>>> + * struct in returned 'payload_version' field.
+>>>>
+>>>> FWIW many people believe using a size rather than version is more sustainable.
+>>>> It is expected that new payload structures are larger (more features) than the
+>>>> previous payload structure.
+>>>>
+>>>> I can't find references at the moment through.
+>>>
+>>> I think clone_args is a good modern example:
+>>>
+>>>   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/sched.h#n88
+>>
+>> Thank Ira and Mpe for pointing this out. I looked into how clone3 sycall
+>> handles clone_args and few differences came out:
+>>
+>> * Unlike clone_args that are always transferred in one direction from
+>>   user-space to kernel, payload contents of pdsms are transferred in both
+>>   directions. Having a single version number makes it easier for
+>>   user-space and kernel to determine what data will be exchanged.
+>>
+>> * For PDSMs, the version number is negotiated between libndctl and
+>>   kernel. For example in case kernel only supports an older version of
+>>   a structure, its free to send a lower version number back to
+>>   libndctl. Such negotiations doesnt happen with clone3 syscall.
+>
+> If you are ok with the explaination above please let me know. I will
+> quickly spin off a v8 addressing your review comments.
 
-> From: Randy Dunlap <rdunlap@infradead.org>
-> 
-> Fix punctuation and wording in a few places.
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: linux-nvdimm@lists.01.org
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: linux-doc@vger.kernel.org
-> ---
->  Documentation/nvdimm/maintainer-entry-profile.rst |   14 ++++++------
->  1 file changed, 7 insertions(+), 7 deletions(-)
+I don't have strong opinions about the user API, it's really up to the
+nvdimm folks.
 
-Applied, thanks.
-
-jon
+cheers
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
