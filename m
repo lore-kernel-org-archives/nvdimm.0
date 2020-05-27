@@ -2,205 +2,149 @@ Return-Path: <SRS0=JRRB=7J=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7B3CC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 27 May 2020 19:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 383B9C433E2
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 27 May 2020 23:32:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A641D207D3
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 27 May 2020 19:24:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="NZFXXmH+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A641D207D3
+	by mail.kernel.org (Postfix) with ESMTPS id 12AB820835
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 27 May 2020 23:32:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 12AB820835
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A22CF1226D92E;
-	Wed, 27 May 2020 12:20:29 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::643; helo=mail-ej1-x643.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id D9D401228E005;
+	Wed, 27 May 2020 16:28:03 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E3F971226D92C
-	for <linux-nvdimm@lists.01.org>; Wed, 27 May 2020 12:20:27 -0700 (PDT)
-Received: by mail-ej1-x643.google.com with SMTP id nr22so13066305ejb.6
-        for <linux-nvdimm@lists.01.org>; Wed, 27 May 2020 12:24:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=pwcQvktct+PEPZROE4QmD/chzZGbOnVQGeltSZ8Te0Q=;
-        b=NZFXXmH+hlzYWLYyCAZBWkEr1hTG8e3Wuil/hw7eWZALyJzgfQrXYxv2yYHDyUwAlw
-         DsZh9Tac0k9YaWtFvpPkSgKEj4ihNGPD9fjq3213yT4yRmn2ju/ak7cfS9ePscd7KdYQ
-         GgV5clEC76KqwTpvPF9q543WY5DShR804pOaipuu1k2N6EaC1av8mY3z13wZPdG1xyO/
-         AJDTKyAbe+6mTSx13Yp0uZqVPDUKB2783iQ5w3SIEkZpW7Y6PShPmcSFquVrL0+XZX8/
-         16T+mGP6FNYySXi+BTNvAOlGf4tcb+ZmtXn+3EDoSpCbm9CrtbcIK1bBGmzanvf2JXw4
-         ltfQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=pwcQvktct+PEPZROE4QmD/chzZGbOnVQGeltSZ8Te0Q=;
-        b=TTyIP436CFH0/vp/kFcU1lj7Z3M4rnExMpCeCmkeRP/EUBGUcr48DfZmFjABShdV4E
-         8lSicMV7owqq5XxMwk5EmBApQ7JV6ePfUFoWO8SQcT9yKRM0W2dQWSFn1g3dUumma+Uo
-         XI8KdEyUcD/2A5eP/39sBXgZwmBx52jtVU7NGCngLZvIA9c/h+8L+RloIjixseNRS7i9
-         Fi5MOCkFKABR+EBUjXRjCU1QMjq9sMUGvdO3n/7V7V4IK+FfboyTfO3gnof+Z168XVFN
-         NOS8913fAG+21PGm9/37l4Y1e0QJuiAtZRsFiflYaJ/Fs1y6gLwwNLTGJSrew9asmuUn
-         MEUg==
-X-Gm-Message-State: AOAM533L71dxAjmH5kSOs0o9iEdtmr3GzFDEBp+NeWzG6/4uKKhNTR1p
-	pg1wRd1KMhivmTMht//ltt4z/dvethpnd5Ur6/YuCw==
-X-Google-Smtp-Source: ABdhPJxdnS/dTEV3hVugEykwEOKbqCDpVFdn6ZsgJc+MeT/yGWGwoGajUQdM/ZV7/jX5pPBNztlD0CFexyHDnYZPFQA=
-X-Received: by 2002:a17:906:fac8:: with SMTP id lu8mr7214513ejb.432.1590607477555;
- Wed, 27 May 2020 12:24:37 -0700 (PDT)
-MIME-Version: 1.0
-References: <87d06swfr4.fsf@linux.ibm.com>
-In-Reply-To: <87d06swfr4.fsf@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 0F2E311FED4A7
+	for <linux-nvdimm@lists.01.org>; Wed, 27 May 2020 16:28:01 -0700 (PDT)
+IronPort-SDR: tjvQbf3OIXhHIIPYBJmZmdJV1XWOhLYjA6DTEX4thCmGPFmVlA33h/nyEOyGx2/PRVhQqqXSsI
+ 4tBrAQNXeCGQ==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2020 16:32:15 -0700
+IronPort-SDR: iEsL43pqVRxubhjulJjrmlksCwoF5232uz13oUS773kTp06RtP2k+Mh+fjGacTvc+lBxww8hrf
+ 6gisOIHbJNbg==
+X-IronPort-AV: E=Sophos;i="5.73,442,1583222400";
+   d="scan'208";a="302270504"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 May 2020 16:32:14 -0700
+Subject: [PATCH v5 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user, kernel}
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 May 2020 12:24:26 -0700
-Message-ID: <CAPcyv4jQmQceE_eptnfnrORfAUnikHConhchYLEUPARYRFOcbA@mail.gmail.com>
-Subject: Re: Feedback requested: Exposing NVDIMM performance statistics in a
- generic way
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-Message-ID-Hash: T2U7N3EREC3QYCEVQJJ7226DZH4ZD4CB
-X-Message-ID-Hash: T2U7N3EREC3QYCEVQJJ7226DZH4ZD4CB
+To: tglx@linutronix.de, mingo@redhat.com
+Date: Wed, 27 May 2020 16:16:02 -0700
+Message-ID: <159062136234.2192412.7285856919306307817.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Message-ID-Hash: YSAJCGUAWJVQCNQW4H3NISZC7ASPGAOJ
+X-Message-ID-Hash: YSAJCGUAWJVQCNQW4H3NISZC7ASPGAOJ
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Alastair D'Silva <alastair@d-silva.org>
+CC: Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@alien8.de>, stable@vger.kernel.org, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/T2U7N3EREC3QYCEVQJJ7226DZH4ZD4CB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YSAJCGUAWJVQCNQW4H3NISZC7ASPGAOJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gTW9uLCBNYXkgMjUsIDIwMjAgYXQgMjowMSBBTSBWYWliaGF2IEphaW4gPHZhaWJoYXZAbGlu
-dXguaWJtLmNvbT4gd3JvdGU6DQo+DQo+IEhlbGxvLA0KPg0KPiBJIGFtIGxvb2tpbmcgZm9yIHNv
-bWUgY29tbXVuaXR5IGZlZWRiYWNrIG9uIHRoZXNlIHR3byBQcm9ibGVtLXN0YXRlbWVudHM6DQo+
-DQo+IDEuSG93IHRvIGV4cG9zZSBOVkRJTU0gcGVyZm9ybWFuY2Ugc3RhdGlzdGljcyBpbiBhbiBh
-cmNoIG9yIG52ZGltbSB2ZW5kb3INCj4gYWdub3N0aWMgbWFubmVyID8NCj4NCj4gMi4gSXMgdGhl
-cmUgYSBjb21tb24gc2V0IG9mIHBlcmZvcm1hbmNlIHN0YXRpc3RpY3MgZm9yIE5WRElNTXMgdGhh
-dCBhbGwNCj4gdmVuZG9ycyBzaG91bGQgcHJvdmlkZSA/DQoNCkl0IHdvdWxkIGJlIG5pY2UgdG8g
-dHJ5IHRvIGVuY291cmFnZSBzb21lIGNvbW1vbiBrZXl3b3JkIG1ldHJpY3MNCmFjcm9zcyB2ZW5k
-b3JzLCBidXQgSSBzdXNwZWN0IHRoYXQgbGlrZSBwZXJmIHRoZXJlIHdpbGwgYWx3YXlzIGJlIHNv
-bWUNCnN0YXRpc3RpY3MgdGhhdCBhcmUgYXJjaGl0ZWN0dXJlIHNwZWNpZmljLg0KDQo+IFByb2Js
-ZW0gY29udGV4dA0KPiA9PT09PT09PT09PT09PT0NCj4gV2hpbGUgd29ya2luZyBvbiBicmluZyB1
-cCBvZiBQQVBSIFNDTSBiYXNlZCBOVkRJTU1zWzFdIGZvciBhcmNoL3Bvd2VycGMNCj4gd2Ugd2Fu
-dCB0byBleHBvc2UgY2VydGFpbiBkaW1tIHBlcmZvcm1hbmNlIHN0YXRpc3RpY3MgbGlrZSAiTWVk
-aWENCj4gUmVhZC9Xcml0ZSBDb3VudHMiLCAiUG93ZXItb24gU2Vjb25kcyIgZXRjIHRvIHVzZXIt
-c3BhY2UgWzJdLiBUaGVzZQ0KPiBwZXJmb3JtYW5jZSBzdGF0aXN0aWNzIGFyZSBzaW1pbGFyIHRv
-IHdoYXQgaXBtY3RsWzNdIHJlcG9ydHMgZm9yIEludGVswq4NCj4gT3B0YW5l4oSiIHBlcnNpc3Rl
-bnQgbWVtb3J5IHZpYSB0aGUgJy1zaG93IHBlcmZvcm1hbmNlJyBjb21tYW5kIGxpbmUNCj4gYXJn
-LiBIb3dldmVyIHRoZSByZXBvcnRlZCBzZXQgb2YgcGVyZm9ybWFuY2Ugc3RhdHMgZG9lc24ndCBj
-b3ZlciB0aGUNCj4gZW50aXJldHkgb2YgYWxsIHBlcmZvcm1hbmNlIHN0YXRzIHN1cHBvcnRlZCBi
-eSBQQVBSIFNDTSBiYXNlZCBOVkRpbW1zLg0KPg0KPiBGb3IgZXhhbXBsZSBoZXJlIGlzIGEgc3Vi
-c2V0IG9mIHBlcmZvcm1hbmNlIHN0YXRzIHdoaWNoIGFyZSBzcGVjaWZpYyB0bw0KPiBQQVBSIFND
-TSBOVkRpbW1zIGFuZCB0aGF0IG5vdCByZXBvcnRlZCBieSBpcG1jdGw6DQo+DQo+ICogQ29udHJv
-bGxlciBSZXNldCBDb3VudA0KPiAqIENvbnRyb2xsZXIgUmVzZXQgRWxhcHNlZCBUaW1lDQo+ICog
-UG93ZXItb24gU2Vjb25kcw0KPiAqIENhY2hlIFJlYWQgSGl0IENvdW50DQo+ICogQ2FjaGUgV3Jp
-dGUgSGl0IENvdW50DQo+DQo+IFBvc3NpYmlsaXR5IG9mIHVwZGF0aW5nIGlwbWN0bCB0byBhZGQg
-c3VwcG9ydCBmb3IgdGhlc2UgcGVyZm9ybWFuY2UNCj4gc3RhdGlzdGljcyBpcyBncmVhdGx5IGhh
-bXBlcmVkIGJ5IG5vIHN1cHBvcnQgZm9yIEFDUEkgb24gUG93ZXJwYw0KPiBhcmNoLiBTZWNvbmRs
-eSB2ZW5kb3JzIHdobyBkb250IHN1cHBvcnQgQUNQSS9ORklUIGNvbW1hbmQgc2V0DQo+IHNpbWls
-YXIgdG8gSW50ZWzCriBPcHRhbmXihKIgKEV4YW1wbGUgTVNGVCkgYXJlIGFsc28gbGVmdCBvdXQg
-aW4NCj4gbHVyY2guIFByb2JsZW0tc3RhdGVtZW50IzEgcG9pbnRzIHRvIHRoaXMgc3BlY2lmaWMg
-cHJvYmxlbS4NCg0KaXBtY3RsIGlzIHZlbmRvciBzcGVjaWZpYyBhbmQgT1MgYWdub3N0aWMuDQoN
-Cm5kY3RsIGlzIHZlbmRvci9wbGF0Zm9ybSBhZ25vc3RpYyBhbmQgTGludXggc3BlY2lmaWMuDQoN
-Cm5kY3RsIGlzIGJ1aWx0IGZvciB0aGlzIGFic3RyYWN0aW9uIGFzIGl0IGRlcGVuZHMgb24gbGli
-bnZkaW1tIG9mDQp3aGljaCBBQ1BJL05GSVQgaXMganVzdCBvbmUgb2YgbWFueSBjby1lcXVhbCBi
-dXMgcHJvdmlkZXJzLiBJbiBzaG9ydCwNCkkgd291bGQgZXhwZWN0IHRoaXMgc3VwcG9ydCB0byBs
-YW5kIGluIG5kY3RsLCBub3QgaXBtY3RsLg0KDQpUaGUgb25seSB0aGluZyB0aGF0IGhhcyBwcmV2
-ZW50ZWQgbmRjdGwgZnJvbSBhZGRpbmcgcGVyZm9ybWFuY2UNCnN0YXRpc3RpY3Mgd2FzIHRoZSBs
-YWNrIG9mIGEgcHVibGljIHNwZWNpZmljYXRpb24sIG90aGVyd2lzZSBuZGN0bA0KYWltcyB0byBh
-YnN0cmFjdCBhbmQgcHJvdmlkZSBhIGNvbW1vbiB0b29sIGZvciBhbnkgcHVibGljbHkgc3BlY2lm
-aWVkDQpwZXJzaXN0ZW50IG1lbW9yeSBkZXZpY2UuDQoNCj4gQWRkaXRpb25hbGx5IGluIGFic2Vu
-Y2Ugb2YgYW55IHByZS1hZ3JlZWQgc2V0IG9mIHBlcmZvcm1hbmNlIHN0YXRpc3RpY3MNCj4gd2hp
-Y2ggYWxsIHZlbmRvcnMgc2hvdWxkIHN1cHBvcnQsIGFkZGluZyBzdXBwb3J0IGZvciBzdWNoIGEN
-Cj4gZnVuY3Rpb25hbGl0eSBpbiBpcG1jdGwgbWF5IG5vdCBib2RlIHdlbGwgb2Ygb3RoZXIgbnZk
-aW1tIHZlbmRvcnMuIEZvcg0KPiBleGFtcGxlIGlmIHN1cHBvcnQgZm9yIHJlcG9ydGluZyAiQ29u
-dHJvbGxlciBSZXNldCBDb3VudCIgaXMgYWRkZWQgdG8NCj4gaXBtY3RsIHRoZW4gaXQgbWF5IG5v
-dCBiZSBhcHBsaWNhYmxlIHRvIG90aGVyIHZlbmRvcnMgc3VjaCBhcyBJbnRlbMKuDQo+IE9wdGFu
-ZeKEoi4gVGhpcyBpc3N1ZSBpcyB3aGF0IFByb2JsZW0tc3RhdGVtZW50IzIgcmVmZXJzIHRvLg0K
-Pg0KPiBQb3NzaWJsZSBTb2x1dGlvbiBmb3IgUHJvYmxlbSMxDQo+ID09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT0NCj4NCj4gT25lIHBvc3NpYmxlIHNvbHV0aW9uIHRvIFByb2JsZW0jMSBj
-YW4gdG8gYWRkIHN1cHBvcnQgZm9yIHJlcG9ydGluZw0KPiBOVkRJTU0gcGVyZm9ybWFuY2Ugc3Rh
-dGlzdGljcyBpbiAnbmR0Y2wnLiAnbGlibmRjdGwnIGFscmVhZHkgaGFzIGEgbGF5ZXINCj4gdGhh
-dCBhYnN0cmFjdHMgdW5kZXJseWluZyBOVkRJTU0gdmVuZG9ycyAodmlhIHN0cnVjdCBuZGN0bF9k
-aW1tX29wcyksDQo+IG1ha2luZyBzdXBwb3J0aW5nIGRpZmZlcmVudCBOVkRJTU0gdmVuZG9ycyBm
-YWlybHkgZWFzeS4gQWxzbyBuZGN0bCBpcw0KPiBtb3JlIHdpZGVseSB1c2VkIGNvbXBhcmVkIHRv
-ICdpcG1jdGwnLCBoZW5jZSBhZGRpbmcgc3VjaCBhIGZ1bmN0aW9uYWxpdHkNCj4gdG8gbmRjdGwg
-d291bGQgbWFrZSBpdCBtb3JlIHdpZGVseSB1c2VkLg0KPg0KPiBBYm92ZSBzb2x1dGlvbiB3YXMg
-aW1wbGVtZW50ZWQgYXMgUkZDIHBhdGNoLXNldFsyXSB0aGF0IGV4cG9zZXMgdGhlc2UNCj4gcGVy
-Zm9ybWFuY2Ugc3RhdGlzdGljcyB0aHJvdWdoIGEgZ2VuZXJpYyBhYnN0cmFjdGlvbiBpbiBsaWJu
-ZGN0bCBhbmQNCj4gYWRkZWQgYSBwcmVzZW50YXRpb24gbGF5ZXIgZm9yIHRoaXMgZGF0YSBpbiBu
-ZGN0bFs0XS4gSXQgYWRkZWQgYSBuZXcNCj4gY29tbWFuZCBsaW5lIGZsYWdzICctLXN0YXQnIHRv
-IG5kY3RsIHRvIHJlcG9ydCAqYWxsKiBudmRpbW0gdmVuZG9yDQo+IHJlcG9ydGVkIHBlcmZvcm1h
-bmNlIHN0YXRzLiBUaGUgb3V0cHV0IGlzIHNpbWlsYXIgdG8gb25lIGJlbG93Og0KPg0KPiAjIG5k
-Y3RsIGxpc3QgLUQgLS1zdGF0cw0KPiBbDQo+ICAgew0KPiAgICAgImRldiI6Im5tZW0wIiwNCj4g
-ICAgICJzdGF0cyI6ew0KPiAgICAgICAiUG93ZXItb24gU2Vjb25kcyI6NjAzOTMxLA0KPiAgICAg
-ICAiTWVkaWEgUmVhZCBDb3VudCI6MCwNCj4gICAgICAgIk1lZGlhIFdyaXRlIENvdW50Ijo2MzEz
-LA0KDQpJIHdvbmRlciBpZiB0aGlzIHNob3VsZCBiZSBleHBsaWNpdCBhYm91dCB0aGUgcGxhdGZv
-cm0tc3BlY2lmaWMgc3RhdHMNCnZlcnN1cyB0aGUgY29tbW9uIG9uZXM/IEF0IGxlYXN0IHdpdGgg
-dGhlIGhlYWx0aCBkYXRhIGltcGxlbWVudGF0aW9uDQpzbyBmYXIgaXQgaXMgaW1wbGVtZW50aW5n
-IGEgY29tbW9uIHNldCBvZiBrZXl3b3JkcyBhY3Jvc3MgdmVuZG9ycy4gSQ0KanVzdCB3b3JyeSB0
-aGF0IHNvbWVvbmUgdGhhdCB3cml0ZXMgYSB1c2VmdWwgdG9vbCBmb3IgdGhpcyBkYXRhIG5lZWRz
-DQp0byB1bmRlcnN0YW5kIHRoYXQgdGhlaXIgdG9vbCBpcyB2ZW5kb3IgZ2VuZXJpYywgb3IgdGll
-ZCB0byBhIGdpdmVuDQppbXBsZW1lbnRhdGlvbi4gSSdtIHRoaW5raW5nICJwbGF0Zm9ybV9zdGF0
-cyIgZm9yIHRoZSBvbmVzIHRoYXQgYXJlDQp0aWVkIHRvIHRoZSBudmRpbW0tYnVzLXByb3ZpZGVy
-IHZzICJzdGF0cyIgdGhhdCBtaWdodCByZWFzb25hYmx5IHNob3cNCnVwIG9uIG1vcmUgdGhhbiBv
-bmUgdmVuZG9yJ3MgaW1wbGVtZW50YXRpb24uDQoNCj4gICAgIH0NCj4gICB9DQo+IF0NCj4NCj4g
-VGhpcyB3YXMgZG9uZSBieSBhZGRpbmcgdHdvIG5ldyBkaW1tLW9wcyBjYWxsYmFja3MgdGhhdCB3
-ZXJlDQo+IGltcGxlbWVudGVkIGJ5IHRoZSBwYXByX3NjbSBpbXBsZW1lbnRhdGlvbiB3aXRoaW4g
-bGlibmRjdGwuIFRoZXNlDQo+IGNhbGxiYWNrcyBhcmUgaW52b2tlZCBieSBuZXdseSBpbnRyb2R1
-Y2UgY29kZSBpbiAndXRpbC9qc29uLXNtYXJ0LmMnDQo+IHRoYXQgZm9ybWF0IHRoZSByZXR1cm5l
-ZCBzdGF0cyBmcm9tIHRoZXNlIG5ldyBkaW1tLW9wcyBhbmQgdHJhbnNmb3JtDQo+IHRoZW0gaW50
-byBhIGpzb24tb2JqZWN0IHRvIGxhdGVyIHByZXNlbnRhdGlvbi4gSSB3b3VsZCByZXF1ZXN0IHlv
-dSB0bw0KPiBsb29rIGF0IFJGQyBwYXRjaC1zZXRbMl0gdG8gdW5kZXJzdGFuZCB0aGUgaW1wbGVt
-ZW50YXRpb24gZGV0YWlscy4NCg0KSSdtIG9rIHRvIGFkZCBzb21lIHN0YXRzIHRvIG5kY3RsLCBi
-dXQgSSB3YW50IG5kY3RsIHRvIGJlIGxpbWl0ZWQgdG8NCmdlbmVyYWwgc3RhdGlzdGljcyBhbmQg
-bm90IHBlcmZvcm1hbmNlIGNvdW50ZXJzLiBQZXJmb3JtYW5jZSBjb3VudGVycw0KYW5kIHBlcmZv
-cm1hbmNlIGV2ZW50cyBzaG91bGQgYmUgYWJzdHJhY3RlZCB0aHJvdWdoIHBlcmYgd2hlcmUNCnBv
-c3NpYmxlLg0KDQo+IFBvc3NpYmxlZCBTb2x1dGlvbiBmb3IgUHJvYmxlbSMyDQo+ID09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09DQo+DQo+IFNvbHV0aW9uIHRvIFByb2JsZW0tc3RhdGVt
-ZW50IzIgaXMgd2hhdCBlbHVkZXMgbWUgdGhvdWdoLiBJZiB0aGVyZSBpcyBhDQo+IG1pbmltYWwg
-c2V0IG9mIHBlcmZvcm1hbmNlIHN0YXRzIChzaW1pbGFyIHRvIHdoYXQgbmRjdGwgZW5mb3JjZXMg
-Zm9yDQo+IGhlYWx0aC1zdGF0cykgdGhlbiBpbXBsZW1lbnRhdGlvbiBvZiBzdWNoIGEgZnVuY3Rp
-b25hbGl0eSBpbg0KPiBuZGN0bC9pcG1jdGwgd291bGQgYmUgZWFzeSB0byBpbXBsZW1lbnQuIEJ1
-dCBpcyBpdCByZWFsbHkgcG9zc2libGUgdG8NCj4gaGF2ZSBzdWNoIGEgY29tbW9uIHNldCBvZiBw
-ZXJmb3JtYW5jZSBzdGF0cyB0aGF0IE5WRElNTSB2ZW5kb3JzIGNhbg0KPiBleHBvc2UuDQo+DQo+
-IFBhdGNoLXNldFsyXSB0aG91Z2ggdHJpZXMgdG8gYnlwYXNzIHRoaXMgcHJvYmxlbSBieSBsZXR0
-aW5nIHRoZSB2ZW5kb3INCj4gZGVzY2lkZSB3aGljaCBwZXJmb3JtYW5jZSBzdGF0cyB0byBleHBv
-c2UuIFRoaXMgb3BlbnMgdXAgYSBwb3NzaWJpbGl0eQ0KPiBvZiB0aGlzIGZ1bmN0aW9uYWxpdHkg
-dG8gYWJ1c2VkIGJ5IGRpbW0gdmVuZG9ycyB0byByZXBvcnRzIGFyYmlyYXJ5IGRhdGENCj4gdGhy
-b3VnaCB0aGlzIGZsYWcgdGhhdCBtYXkgbm90IGJlIHBlcmZvcm1hbmNlLXN0YXRzLg0KPg0KPiBT
-dW1taW5nLXVwDQo+ID09PT09PT09PT0NCj4NCj4gSW4gbGlnaHQgb2YgYWJvdmUsIHJlcXVlc3Rp
-bmcgeW91ciBmZWVkYmFjayBhcyB0byBob3cNCj4gcHJvYmxlbS1zdGF0ZW1lbnRzI3sxLCAyfSBj
-YW4gYmUgYWRkcmVzc2VkIHdpdGhpbiBuZGN0bCBzdWJzeXN0ZW0uIEFsc28NCj4gYXJlIHRoZXNl
-IHByb2JsZW1zIGV2ZW4gd29ydGggc29sdmluZy4NCg0KWWVzLCBJIHRoaW5rIGl0J3Mgd29ydGgg
-c29sdmluZywganVzdCB0aGUgaGFyZCBwYXJ0IG9mIGdpdmluZw0KaW1wbGVtZW50YXRpb25zIGVu
-b3VnaCBmcmVlZG9tIHRvIGNvbnZleSB0aGUgZGF0YSB0aGV5IG5lZWQsIGJ1dCBub3QNCmVub3Vn
-aCBmcmVlZG9tIHRoYXQgd2UgZGFtYWdlIG5kY3RsIGFuZCB0aGUga2VybmVsJ3MgYWJpbGl0eSB0
-bw0KbWFpbnRhaW4gYSBjb21tb24gaW50ZXJmYWNlIGFjcm9zcyB2ZW5kb3JzLg0KDQo+DQo+IFJl
-ZmVyZW5jZXMNCj4gPT09PT09PT09PQ0KPiBbMV0gaHR0cHM6Ly9naXRodWIuY29tL3RvcnZhbGRz
-L2xpbnV4L2Jsb2IvbWFzdGVyL0RvY3VtZW50YXRpb24vcG93ZXJwYy9wYXByX2hjYWxscy5yc3QN
-Cj4NCj4gWzJdICJbbmRjdGwgUkZDLVBBVENIIDAvNF0gQWRkIHN1cHBvcnQgZm9yIHJlcG9ydGlu
-ZyBQQVBSIE5WRElNTQ0KPiBTdGF0aXN0aWNzIg0KPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9s
-aW51eC1udmRpbW0vMjAyMDA1MTgxMTA4MTQuMTQ1NjQ0LTEtdmFpYmhhdkBsaW51eC5pYm0uY29t
-Lw0KPg0KPiBbM10gaHR0cHM6Ly9kb2NzLnBtZW0uaW8vaXBtY3RsLXVzZXItZ3VpZGUvaW5zdHJ1
-bWVudGF0aW9uL3Nob3ctZGV2aWNlLXBlcmZvcm1hbmNlDQo+DQo+IFs0XSAiW1JGQy1QQVRDSCAx
-LzRdIG5kY3RsLGxpYm5kY3RsOiBJbXBsZW1lbnQgbmV3IGRpbW0tb3BzICduZXdfc3RhdHMnDQo+
-IGFuZCAnZ2V0X3N0YXQnIg0KPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9saW51eC1udmRpbW0v
-MjAyMDA1MTQyMjUyNTguNTA4NDYzLTItdmFpYmhhdkBsaW51eC5pYm0uY29tDQoNCkFwcHJlY2lh
-dGUgdGhlIHRob3JvdWdoIHdyaXRlLXVwLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGlt
-bUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRp
-bW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+Changes since v4 [1]:
+- Fix up .gitignore for PowerPC test artifacts (Michael)
+
+- Collect Michael's Ack.
+
+[1]: http://lore.kernel.org/r/159010126119.975921.6614194205409771984.stgit@dwillia2-desk3.amr.corp.intel.com
+
+---
+
+The primary motivation to go touch memcpy_mcsafe() is that the existing
+benefit of doing slow "handle with care" copies is obviated on newer
+CPUs. With that concern lifted it also obviates the need to continue to
+update the MCA-recovery capability detection code currently gated by
+"mcsafe_key". Now the old "mcsafe_key" opt-in to perform the copy with
+concerns for recovery fragility can instead be made an opt-out from the
+default fast copy implementation (enable_copy_mc_fragile()).
+
+The discussion with Linus on the first iteration of this patch
+identified that memcpy_mcsafe() was misnamed relative to its usage. The
+new names copy_mc_to_user() and copy_mc_to_kernel() clearly indicate the
+intended use case and lets the architecture organize the implementation
+accordingly.
+
+For both powerpc and x86 a copy_mc_generic() implementation is added as
+the backend for these interfaces.
+
+Patches are relative to tip/master.
+
+---
+
+Dan Williams (2):
+      x86, powerpc: Rename memcpy_mcsafe() to copy_mc_to_{user,kernel}()
+      x86/copy_mc: Introduce copy_mc_generic()
+
+
+ arch/powerpc/Kconfig                               |    2 
+ arch/powerpc/include/asm/string.h                  |    2 
+ arch/powerpc/include/asm/uaccess.h                 |   40 +++--
+ arch/powerpc/lib/Makefile                          |    2 
+ arch/powerpc/lib/copy_mc_64.S                      |    4 
+ arch/x86/Kconfig                                   |    2 
+ arch/x86/Kconfig.debug                             |    2 
+ arch/x86/include/asm/copy_mc_test.h                |   75 +++++++++
+ arch/x86/include/asm/mcsafe_test.h                 |   75 ---------
+ arch/x86/include/asm/string_64.h                   |   32 ----
+ arch/x86/include/asm/uaccess.h                     |   21 +++
+ arch/x86/include/asm/uaccess_64.h                  |   20 --
+ arch/x86/kernel/cpu/mce/core.c                     |    8 -
+ arch/x86/kernel/quirks.c                           |    9 -
+ arch/x86/lib/Makefile                              |    1 
+ arch/x86/lib/copy_mc.c                             |   64 ++++++++
+ arch/x86/lib/copy_mc_64.S                          |  165 ++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S                           |  115 --------------
+ arch/x86/lib/usercopy_64.c                         |   21 ---
+ drivers/md/dm-writecache.c                         |   15 +-
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/pmem.c                              |    6 -
+ include/linux/string.h                             |    9 -
+ include/linux/uaccess.h                            |    9 +
+ include/linux/uio.h                                |   10 +
+ lib/Kconfig                                        |    7 +
+ lib/iov_iter.c                                     |   43 +++--
+ tools/arch/x86/include/asm/mcsafe_test.h           |   13 --
+ tools/arch/x86/lib/memcpy_64.S                     |  115 --------------
+ tools/objtool/check.c                              |    5 -
+ tools/perf/bench/Build                             |    1 
+ tools/perf/bench/mem-memcpy-x86-64-lib.c           |   24 ---
+ tools/testing/nvdimm/test/nfit.c                   |   48 +++---
+ .../testing/selftests/powerpc/copyloops/.gitignore |    2 
+ tools/testing/selftests/powerpc/copyloops/Makefile |    6 -
+ .../selftests/powerpc/copyloops/copy_mc_64.S       |    1 
+ .../selftests/powerpc/copyloops/memcpy_mcsafe_64.S |    1 
+ 37 files changed, 451 insertions(+), 526 deletions(-)
+ rename arch/powerpc/lib/{memcpy_mcsafe_64.S => copy_mc_64.S} (98%)
+ create mode 100644 arch/x86/include/asm/copy_mc_test.h
+ delete mode 100644 arch/x86/include/asm/mcsafe_test.h
+ create mode 100644 arch/x86/lib/copy_mc.c
+ create mode 100644 arch/x86/lib/copy_mc_64.S
+ delete mode 100644 tools/arch/x86/include/asm/mcsafe_test.h
+ delete mode 100644 tools/perf/bench/mem-memcpy-x86-64-lib.c
+ create mode 120000 tools/testing/selftests/powerpc/copyloops/copy_mc_64.S
+ delete mode 120000 tools/testing/selftests/powerpc/copyloops/memcpy_mcsafe_64.S
+
+base-commit: 229aaa8c059f2c908e0561453509f996f2b2d5c4
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
