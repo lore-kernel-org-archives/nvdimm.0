@@ -6,101 +6,97 @@ X-Spam-Status: No, score=-0.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAFEAC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 May 2020 00:55:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66040C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 May 2020 17:01:17 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 67AF5207CB
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 May 2020 00:55:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2DD17207BC
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 May 2020 17:01:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="jmlC2uEY"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 67AF5207CB
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=konnectglobalmarketing.com header.i=@konnectglobalmarketing.com header.b="FJyq159A";
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="HkVbIo6x"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2DD17207BC
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=konnectglobalmarketing.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C0EE01229706B;
-	Wed, 27 May 2020 17:51:16 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::635; helo=mail-ej1-x635.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 25A58122DEDC0;
+	Thu, 28 May 2020 09:56:58 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=54.240.27.228; helo=a27-228.smtp-out.us-west-2.amazonses.com; envelope-from=010101725c3b0cb3-61f69e3a-72c8-438c-ad01-5a71cacf7a85-000000@us-west-2.amazonses.com; receiver=<UNKNOWN> 
+Received: from a27-228.smtp-out.us-west-2.amazonses.com (a27-228.smtp-out.us-west-2.amazonses.com [54.240.27.228])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D175D12297069
-	for <linux-nvdimm@lists.01.org>; Wed, 27 May 2020 17:51:13 -0700 (PDT)
-Received: by mail-ej1-x635.google.com with SMTP id z5so30240000ejb.3
-        for <linux-nvdimm@lists.01.org>; Wed, 27 May 2020 17:55:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/NqIapQj4M62zo7NAMqZ1WXDa5DQy4R8lLb8tN0P9/I=;
-        b=jmlC2uEYMJxp3Ndg2n4Jc8tAGoiLXU5guSTAKk2zwKIsGHoWBTL6aNKskDb3TjqNb4
-         +X82xsb3nVPpHukjSUnQRVxPc4bHwDWc5FqOXfUjyBegtq1jdKYq+DsuVNwud0Ie408m
-         MDddKH0gFgXP7t/lUWAiRVoyJJiknR45tz+zWPeyXekyWyaIrAPXh0TL5Pnn8ad70DxE
-         nxV3xcaYSDRVDLPKctzIIvrO2QNG5kupe8ut/s3M8VagYAUMVFTjRh9U1VS1dsKelFqz
-         RB8kGAjP5C2Q/zTXFBfqPw4IceNBH3x5KNcFQP9C4iLMtoyhdR2yxA485YXveKDDvp1L
-         cOxg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/NqIapQj4M62zo7NAMqZ1WXDa5DQy4R8lLb8tN0P9/I=;
-        b=P/VFUbZ+m+w0/8rpJxl1U3iMLcCVqNjesKcpaZ/qOdibfV1F+qacgHP6nUZmpCKZRA
-         /J5okiPmY7iqW9eoKGAcz1lf5GdAV6KILtg2rf4Hqh0wYzOXcVKxquyLY5YwxUTBdn3C
-         seHsdlSXdWyCXWMk13AsUsisaQBrMREbJFqJLnfawbbVhS/+6CI4lSf/wa19AGD5343/
-         BjY6dcNSibRFSBbY0Jn6xLf9MdIzFtU+5bHgj+DzwhfqHkgIQTZduEnvWOYs4MyPQJ2g
-         uF6uJbiflnHieDNpgmgx8xcKh+gAWrrAuBiFvYYoog5CO3m/idRxZBmuyu/khjgrowzz
-         DSHg==
-X-Gm-Message-State: AOAM531j3ZCs+TekPoPPNHTGskKHRh0m89c2JO1bXsmmnfHaXopKbVKR
-	0ctQdP6O8EVblBBED647gfcXGXxbHnRei4K2KyXKUQ==
-X-Google-Smtp-Source: ABdhPJymJrNgUvg9FdZHtm1DONWdOyiN4v7MOZP9yHB8u9cpmKjtjqCd/4C8UZPeK/1+wkrxfL3N1id+Ip8wc+yn++0=
-X-Received: by 2002:a17:906:3597:: with SMTP id o23mr860338ejb.174.1590627325824;
- Wed, 27 May 2020 17:55:25 -0700 (PDT)
-MIME-Version: 1.0
-References: <87d06swfr4.fsf@linux.ibm.com> <CAPcyv4jQmQceE_eptnfnrORfAUnikHConhchYLEUPARYRFOcbA@mail.gmail.com>
-In-Reply-To: <CAPcyv4jQmQceE_eptnfnrORfAUnikHConhchYLEUPARYRFOcbA@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 May 2020 17:55:14 -0700
-Message-ID: <CAPcyv4iTNK1ixzBRkm=09mHfrWzmd97HE4v-M2K5Uz0cKKT=3Q@mail.gmail.com>
-Subject: Re: Feedback requested: Exposing NVDIMM performance statistics in a
- generic way
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-Message-ID-Hash: YRL4JJPCMGCENR6A65NRWWQZCWBKY3PI
-X-Message-ID-Hash: YRL4JJPCMGCENR6A65NRWWQZCWBKY3PI
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Alastair D'Silva <alastair@d-silva.org>
+	by ml01.01.org (Postfix) with ESMTPS id 54E13122DCD3D
+	for <linux-nvdimm@lists.01.org>; Thu, 28 May 2020 09:56:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=sknkt525wmvsd5qrslvt4aisaznnhvir; d=konnectglobalmarketing.com;
+	t=1590685273;
+	h=Subject:From:To:Date:Mime-Version:Content-Type:References:Message-Id;
+	bh=AcvDgFPydpM3J1pkXQ64yQkPwkSZcAHNdWCGQHh7zSE=;
+	b=FJyq159Amfgll2wvBuSPyQVFEdeYhYwUv8LbPdwGEWH2i6BQqZ/yMvns/9jl0U3M
+	/FHCqiIsUFxodyU8RH72ioALlYr0+gERhO2TPtXJuDlJSvcS/b5cvqApOjI9NODjYXc
+	VITJM432L3gEYwE2u8NMtLtj8YXDkaxr8c1LAD5g=
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=hsbnp7p3ensaochzwyq5wwmceodymuwv; d=amazonses.com; t=1590685273;
+	h=Subject:From:To:Date:Mime-Version:Content-Type:References:Message-Id:Feedback-ID;
+	bh=AcvDgFPydpM3J1pkXQ64yQkPwkSZcAHNdWCGQHh7zSE=;
+	b=HkVbIo6x2gCk4c87sD2xeXVtrmnGKMILYm68gvaISOCxxvGm2VBWc00oYZbOalqq
+	8pr9Kz9xIpdBWAFX1MGBVh/WSzJ8ViGwQEUNXmFgY7devZpO7usA7usIqgBDTaUsuFX
+	rNaEv5IbBwxNAX8td05W9fR6Mc7613jK4Z/m9VUs=
+Subject: RE: Proposal
+From: =?UTF-8?Q?Hailey_Jones?= <hailey@konnectglobalmarketing.com>
+To: =?UTF-8?Q?=27linux-nvdimm=40lists=2E01=2Eorg=27?=
+  <linux-nvdimm@lists.01.org>
+Date: Thu, 28 May 2020 17:01:13 +0000
+Mime-Version: 1.0
+References: <mail.379118b9-b9ea-41c3-b94c-efdc6c1d3d0f@storage.wm.amazon.com>
+ <mail.379118b9-b9ea-41c3-b94c-efdc6c1d3d0f@storage.wm.amazon.com>
+X-Priority: 3 (Normal)
+X-Mailer: Amazon WorkMail
+Thread-Index: AdY1CTpZ5vLXIXUET/iXms6UWWzTwg==
+Thread-Topic: RE: Proposal
+Message-ID: <010101725c3b0cb3-61f69e3a-72c8-438c-ad01-5a71cacf7a85-000000@us-west-2.amazonses.com>
+X-SES-Outgoing: 2020.05.28-54.240.27.228
+Feedback-ID: 1.us-west-2.An468LAV0jCjQDrDLvlZjeAthld7qrhZr+vow8irkvU=:AmazonSES
+Message-ID-Hash: FRU2HYWRG5FS6LIPFEK6MJ7WV4PL7HCP
+X-Message-ID-Hash: FRU2HYWRG5FS6LIPFEK6MJ7WV4PL7HCP
+X-MailFrom: 010101725c3b0cb3-61f69e3a-72c8-438c-ad01-5a71cacf7a85-000000@us-west-2.amazonses.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YRL4JJPCMGCENR6A65NRWWQZCWBKY3PI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FRU2HYWRG5FS6LIPFEK6MJ7WV4PL7HCP/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Wed, May 27, 2020 at 12:24 PM Dan Williams <dan.j.williams@intel.com> wrote:
-[..]
-> > This was done by adding two new dimm-ops callbacks that were
-> > implemented by the papr_scm implementation within libndctl. These
-> > callbacks are invoked by newly introduce code in 'util/json-smart.c'
-> > that format the returned stats from these new dimm-ops and transform
-> > them into a json-object to later presentation. I would request you to
-> > look at RFC patch-set[2] to understand the implementation details.
->
-> I'm ok to add some stats to ndctl, but I want ndctl to be limited to
-> general statistics and not performance counters. Performance counters
-> and performance events should be abstracted through perf where
-> possible.
-
-Another aspect that helps common statistics is to expose them in
-sysfs. I'm going to go review your proposed ioctl mechanism, but I
-would hope that is reserved for multi-field command payloads that need
-to be sent as a unit rather than statistics retrieval that is amenable
-to a sysfs interface.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+SGksDQoNCg0KRGlkIHlvdSBnZXQgYSBjaGFuY2UgdG8gZ28gdGhyb3VnaCBteSBwcmV2aW91cyBl
+bWFpbD8gDQoNCg0KS2luZGx5IGxldCBtZSBrbm93IHlvdXIgdGFyZ2V0IGF1ZGllbmNlIChTZWN0
+b3JzLCBKb2IgVGl0bGVzICYgR2VvZ3JhcGh5KSB0aGF0IHlvdSB3aXNoIHRvIHRhcmdldCwgc28g
+dGhhdCBJIGNhbiBnZXQgYmFjayB3aXRoIHRoZSBjb3VudHMsIHNhbXBsZXMgYW5kIHByaWNpbmcg
+ZGV0YWlscyBmb3IgeW91ciByZXZpZXcuIA0KDQrCoA0KQXBwcmVjaWF0ZSB5b3VyIHJlc3BvbnNl
+Lg0KDQrCoA0KVGhhbmtzLA0KDQpIYWlsZXkgSm9uZXMgLSBNYXJrZXRpbmcgRXhlY3V0aXZlDQoN
+CsKgDQrCoA0KSGksDQoNCsKgDQpXb3VsZCB5b3UgbGlrZSB0byBjb25uZWN0IHdpdGgga2V5IGRl
+Y2lzaW9uIG1ha2VycyBmcm9tIHRoZSBiZWxvdyBzZWN0b3JzOw0KDQrCoA0KTWFudWZhY3R1cmlu
+ZywgQ29uc3RydWN0aW9uLCBFZHVjYXRpb24sIFJldGFpbCwgSGVhbHRoY2FyZSwgRW5lcmd5LCBV
+dGlsaXRpZXMgJiBXYXN0ZSBUcmVhdG1lbnQsIFRyYW5zcG9ydGF0aW9uLCBCYW5raW5nICYgRmlu
+YW5jZSwgTWVkaWEgJiBJbnRlcm5ldCwgSG9zcGl0YWxpdHksIGV0Yy4gDQoNCsKgDQpZb3UgY2Fu
+IGNvbnRhY3QgdGhlbSB2aWEgZGlyZWN0wqBidXNpbmVzcyBlbWFpbHMgb3IgcGhvbmUgbnVtYmVy
+c8KgZm9yIHlvdXIgc2FsZXMgYW5kIG1hcmtldGluZyBpbml0aWF0aXZlcy4gDQoNCsKgDQpXZSBj
+YW4gYWxzbyBwcm92aWRlIHlvdSBjb250YWN0cyBmcm9tIGNvbXBhbmllcyBjdXJyZW50bHkgdXNp
+bmcgQWx0aXVtDQoNClNvZnR3YXJlLg0KDQrCoA0KS2luZGx5IGxldCBtZSBrbm93IHRoZSBTZWN0
+b3JzLCBKb2IgVGl0bGVzICYgR2VvZ3JhcGh5IHRoYXQgeW91IHdpc2ggdG8gdGFyZ2V0LCBzbyB0
+aGF0IEkgY2FuIGdldCBiYWNrIHdpdGggdGhlIHNhbXBsZXMsIGNvdW50cyBhbmQgbW9yZSBkZXRh
+aWxzIGZvciB5b3VyIHJldmlldy4gDQoNCsKgDQpMb29raW5nIGZvcndhcmQgdG8geW91ciByZXNw
+b25zZS4NCg0KwqANClRoYW5rcywNCg0KSGFpbGV5IEpvbmVzIC0gTWFya2V0aW5nIEV4ZWN1dGl2
+ZQ0KDQrCoA0KU3RheSBzYWZlLg0KDQpSZXBseSBiYWNrIOKAnFBhc3PigJ0gZm9yIG5vIGZ1cnRo
+ZXIgZW1haWxzLg0KDQrCoA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMu
+MDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZl
+QGxpc3RzLjAxLm9yZwo=
