@@ -3,43 +3,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-0.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,SUBJ_ALL_CAPS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,SUBJ_ALL_CAPS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E624AC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 May 2020 15:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC5A6C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 May 2020 17:58:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id AD798206A4
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 May 2020 15:20:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AD798206A4
+	by mail.kernel.org (Postfix) with ESMTPS id 730222074D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 May 2020 17:58:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 730222074D
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=eurotrading.bologna.it
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6EB95122F26BF;
-	Fri, 29 May 2020 08:16:29 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 7BDA711538877;
+	Fri, 29 May 2020 10:54:00 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=37.49.230.30; helo=eurotrading.bologna.it; envelope-from=carla@eurotrading.bologna.it; receiver=<UNKNOWN> 
 Received: from eurotrading.bologna.it (unknown [37.49.230.30])
-	by ml01.01.org (Postfix) with ESMTP id 445E3122E2766
-	for <linux-nvdimm@lists.01.org>; Fri, 29 May 2020 08:16:26 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 08C2011538874
+	for <linux-nvdimm@lists.01.org>; Fri, 29 May 2020 10:53:55 -0700 (PDT)
 From: Carla Dall'Olio<carla@eurotrading.bologna.it>
 To: linux-nvdimm@lists.01.org
 Subject: RE: PENDING PAYMENT
-Date: 29 May 2020 17:20:50 +0200
-Message-ID: <20200529172050.B46189E0EC89D1D1@eurotrading.bologna.it>
+Date: 29 May 2020 19:58:21 +0200
+Message-ID: <20200529195820.8F045FE57042D9D8@eurotrading.bologna.it>
 MIME-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_E1D8495A.AD1C394C"
-Message-ID-Hash: 6655WQFPWPO4NKMKAIVTVTUPGGAPWHZY
-X-Message-ID-Hash: 6655WQFPWPO4NKMKAIVTVTUPGGAPWHZY
+	boundary="----=_NextPart_000_0012_FD78D901.6A23890F"
+Message-ID-Hash: A2L4DTYK43OVK24HEPRAC65HRTCUQCMB
+X-Message-ID-Hash: A2L4DTYK43OVK24HEPRAC65HRTCUQCMB
 X-MailFrom: carla@eurotrading.bologna.it
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6655WQFPWPO4NKMKAIVTVTUPGGAPWHZY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/A2L4DTYK43OVK24HEPRAC65HRTCUQCMB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -48,7 +48,7 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0012_E1D8495A.AD1C394C
+------=_NextPart_000_0012_FD78D901.6A23890F
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -58,4 +58,4 @@ _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 
-------=_NextPart_000_0012_E1D8495A.AD1C394C--
+------=_NextPart_000_0012_FD78D901.6A23890F--
