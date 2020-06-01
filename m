@@ -2,160 +2,169 @@ Return-Path: <SRS0=BnuH=7O=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+X-Spam-Status: No, score=-8.3 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A946FC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Jun 2020 12:02:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B43AC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Jun 2020 12:07:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 84E5B20772
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Jun 2020 12:02:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 84E5B20772
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 163312077D
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Jun 2020 12:07:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 163312077D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3F055100DD895;
-	Mon,  1 Jun 2020 04:58:14 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id CE444100DD896;
+	Mon,  1 Jun 2020 05:02:28 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=msuchanek@suse.de; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DE77A100DEFFD
-	for <linux-nvdimm@lists.01.org>; Mon,  1 Jun 2020 04:58:12 -0700 (PDT)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 051C21KT085887;
-	Mon, 1 Jun 2020 08:02:08 -0400
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 31d0ns97xd-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 01 Jun 2020 08:02:07 -0400
-Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 051C22SM085957;
-	Mon, 1 Jun 2020 08:02:02 -0400
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 31d0ns97q6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 01 Jun 2020 08:02:02 -0400
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 051C0aQe025954;
-	Mon, 1 Jun 2020 12:01:41 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma05fra.de.ibm.com with ESMTP id 31bf481m2n-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 01 Jun 2020 12:01:40 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 051C0OoI54853974
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 1 Jun 2020 12:00:24 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7BFE7A406D;
-	Mon,  1 Jun 2020 12:01:38 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id DB21FA4057;
-	Mon,  1 Jun 2020 12:01:32 +0000 (GMT)
-Received: from vajain21-in-ibm-com (unknown [9.85.104.164])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Mon,  1 Jun 2020 12:01:32 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Mon, 01 Jun 2020 17:31:31 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Christoph Hellwig <hch@infradead.org>,
-        Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH v8 2/5] seq_buf: Export seq_buf_printf
-In-Reply-To: <20200527041244.37821-3-vaibhav@linux.ibm.com>
-References: <20200527041244.37821-1-vaibhav@linux.ibm.com> <20200527041244.37821-3-vaibhav@linux.ibm.com>
-Date: Mon, 01 Jun 2020 17:31:31 +0530
-Message-ID: <87367f9eqs.fsf@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 38F86100DEFFD
+	for <linux-nvdimm@lists.01.org>; Mon,  1 Jun 2020 05:02:26 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.220.254])
+	by mx2.suse.de (Postfix) with ESMTP id 58ABFABE6;
+	Mon,  1 Jun 2020 12:07:09 +0000 (UTC)
+Date: Mon, 1 Jun 2020 14:07:05 +0200
+From: Michal =?iso-8859-1?Q?Such=E1nek?= <msuchanek@suse.de>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [RFC PATCH 1/2] libnvdimm: Add prctl control for disabling
+ synchronous fault support.
+Message-ID: <20200601120705.GQ25173@kitsune.suse.cz>
+References: <20200529054141.156384-1-aneesh.kumar@linux.ibm.com>
+ <20200529093310.GL25173@kitsune.suse.cz>
+ <6183cf4a-d134-99e5-936e-ef35f530c2ec@linux.ibm.com>
+ <20200529095250.GP14550@quack2.suse.cz>
+ <7e8ee9e3-4d4d-e4b9-913b-1c2448adc62a@linux.ibm.com>
+ <20200601100925.GC3960@quack2.suse.cz>
+ <2bf026cc-2ed0-70b6-bf99-ecfd0fa3dac4@linux.ibm.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
- definitions=2020-06-01_07:2020-06-01,2020-06-01 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 spamscore=0
- adultscore=0 clxscore=1015 cotscore=-2147483648 malwarescore=0
- mlxlogscore=999 bulkscore=0 priorityscore=1501 impostorscore=0
- lowpriorityscore=0 phishscore=0 suspectscore=1 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006010087
-Message-ID-Hash: QVTIA347YUFQ36YYXCFBNUG3FAPZYYYW
-X-Message-ID-Hash: QVTIA347YUFQ36YYXCFBNUG3FAPZYYYW
-X-MailFrom: vaibhav@linux.ibm.com
+Content-Disposition: inline
+In-Reply-To: <2bf026cc-2ed0-70b6-bf99-ecfd0fa3dac4@linux.ibm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: 32YSPLNUMQP44RYZIXM7PJEREEO43I3T
+X-Message-ID-Hash: 32YSPLNUMQP44RYZIXM7PJEREEO43I3T
+X-MailFrom: msuchanek@suse.de
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Cezary Rojewski <cezary.rojewski@intel.com>, Piotr Maziarz <piotrx.maziarz@linux.intel.com>, Steven Rostedt <rostedt@goodmis.org>, Christoph Hellwig <hch@infradead.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Borislav Petkov <bp@alien8.de>, linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+CC: Jan Kara <jack@suse.cz>, jack@suse.de, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QVTIA347YUFQ36YYXCFBNUG3FAPZYYYW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/32YSPLNUMQP44RYZIXM7PJEREEO43I3T/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Jun 01, 2020 at 05:31:50PM +0530, Aneesh Kumar K.V wrote:
+> On 6/1/20 3:39 PM, Jan Kara wrote:
+> > On Fri 29-05-20 16:25:35, Aneesh Kumar K.V wrote:
+> > > On 5/29/20 3:22 PM, Jan Kara wrote:
+> > > > On Fri 29-05-20 15:07:31, Aneesh Kumar K.V wrote:
+> > > > > Thanks Michal. I also missed Jeff in this email thread.
+> > > >=20
+> > > > And I think you'll also need some of the sched maintainers for the =
+prctl
+> > > > bits...
+> > > >=20
+> > > > > On 5/29/20 3:03 PM, Michal Such=E1nek wrote:
+> > > > > > Adding Jan
+> > > > > >=20
+> > > > > > On Fri, May 29, 2020 at 11:11:39AM +0530, Aneesh Kumar K.V wrot=
+e:
+> > > > > > > With POWER10, architecture is adding new pmem flush and sync =
+instructions.
+> > > > > > > The kernel should prevent the usage of MAP_SYNC if applicatio=
+ns are not using
+> > > > > > > the new instructions on newer hardware.
+> > > > > > >=20
+> > > > > > > This patch adds a prctl option MAP_SYNC_ENABLE that can be us=
+ed to enable
+> > > > > > > the usage of MAP_SYNC. The kernel config option is added to a=
+llow the user
+> > > > > > > to control whether MAP_SYNC should be enabled by default or n=
+ot.
+> > > > > > >=20
+> > > > > > > Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> > > > ...
+> > > > > > > diff --git a/kernel/fork.c b/kernel/fork.c
+> > > > > > > index 8c700f881d92..d5a9a363e81e 100644
+> > > > > > > --- a/kernel/fork.c
+> > > > > > > +++ b/kernel/fork.c
+> > > > > > > @@ -963,6 +963,12 @@ __cacheline_aligned_in_smp DEFINE_SPINLO=
+CK(mmlist_lock);
+> > > > > > >     static unsigned long default_dump_filter =3D MMF_DUMP_FIL=
+TER_DEFAULT;
+> > > > > > > +#ifdef CONFIG_ARCH_MAP_SYNC_DISABLE
+> > > > > > > +unsigned long default_map_sync_mask =3D MMF_DISABLE_MAP_SYNC=
+_MASK;
+> > > > > > > +#else
+> > > > > > > +unsigned long default_map_sync_mask =3D 0;
+> > > > > > > +#endif
+> > > > > > > +
+> > > >=20
+> > > > I'm not sure CONFIG is really the right approach here. For a distro=
+ that would
+> > > > basically mean to disable MAP_SYNC for all PPC kernels unless appli=
+cation
+> > > > explicitly uses the right prctl. Shouldn't we rather initialize
+> > > > default_map_sync_mask on boot based on whether the CPU we run on re=
+quires
+> > > > new flush instructions or not? Otherwise the patch looks sensible.
+> > > >=20
+> > >=20
+> > > yes that is correct. We ideally want to deny MAP_SYNC only w.r.t POWE=
+R10.
+> > > But on a virtualized platform there is no easy way to detect that. We=
+ could
+> > > ideally hook this into the nvdimm driver where we look at the new com=
+pat
+> > > string ibm,persistent-memory-v2 and then disable MAP_SYNC
+> > > if we find a device with the specific value.
+> >=20
+> > Hum, couldn't we set some flag for nvdimm devices with
+> > "ibm,persistent-memory-v2" property and then check it during mmap(2) ti=
+me
+> > and when the device has this propery and the mmap(2) caller doesn't have
+> > the prctl set, we'd disallow MAP_SYNC? That should make things mostly
+> > seamless, shouldn't it? Only apps that want to use MAP_SYNC on these
+> > devices would need to use prctl(MMF_DISABLE_MAP_SYNC, 0) but then these
+> > applications need to be aware of new instructions so this isn't that mu=
+ch
+> > additional burden...
+>=20
+> I am not sure application would want to add that much details/knowledge
+> about a platform in their code. I was expecting application to do
+>=20
+> #ifdef __ppc64__
+>         prctl(MAP_SYNC_ENABLE, 1, 0, 0, 0));
+> #endif
+>         a =3D mmap(NULL, PAGE_SIZE, PROT_READ|PROT_WRITE,
+>                         MAP_SHARED_VALIDATE | MAP_SYNC, fd, 0);
+>=20
+>=20
+> For that code all the complexity that we add w.r.t ibm,persistent-memory-=
+v2
+> is not useful. Do you see a value in making all these device specific rat=
+her
+> than a conditional on  __ppc64__?
+If the vpmem devices continue to work with the old instruction on
+POWER10 then it makes sense to make this per-device.
 
-Hi Christoph and Steven,
+Also adding a message to kernel log in case the application does not do
+the prctl would be helful for people migrating old code to POWER10.
 
-Have addressed your review comment to update the patch description and
-title for this patch. Can you please provide your ack to this patch.
+Thanks
 
-Thanks,
-~ Vaibhav
-
-Vaibhav Jain <vaibhav@linux.ibm.com> writes:
-
-> 'seq_buf' provides a very useful abstraction for writing to a string
-> buffer without needing to worry about it over-flowing. However even
-> though the API has been stable for couple of years now its still not
-> exported to kernel loadable modules limiting its usage.
->
-> Hence this patch proposes update to 'seq_buf.c' to mark
-> seq_buf_printf() which is part of the seq_buf API to be exported to
-> kernel loadable GPL modules. This symbol will be used in later parts
-> of this patch-set to simplify content creation for a sysfs attribute.
->
-> Cc: Piotr Maziarz <piotrx.maziarz@linux.intel.com>
-> Cc: Cezary Rojewski <cezary.rojewski@intel.com>
-> Cc: Christoph Hellwig <hch@infradead.org>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
-> Changelog:
->
-> v7..v8:
-> * Updated the patch title [ Christoph Hellwig ]
-> * Updated patch description to replace confusing term 'external kernel
->   modules' to 'kernel lodable modules'.
->
-> Resend:
-> * Added ack from Steven Rostedt
->
-> v6..v7:
-> * New patch in the series
-> ---
->  lib/seq_buf.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/lib/seq_buf.c b/lib/seq_buf.c
-> index 4e865d42ab03..707453f5d58e 100644
-> --- a/lib/seq_buf.c
-> +++ b/lib/seq_buf.c
-> @@ -91,6 +91,7 @@ int seq_buf_printf(struct seq_buf *s, const char *fmt, ...)
->  
->  	return ret;
->  }
-> +EXPORT_SYMBOL_GPL(seq_buf_printf);
->  
->  #ifdef CONFIG_BINARY_PRINTF
->  /**
-> -- 
-> 2.26.2
->
--- 
+Michal
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
