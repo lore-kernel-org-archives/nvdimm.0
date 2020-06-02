@@ -1,358 +1,191 @@
-Return-Path: <SRS0=guVe=7V=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=kBbT=7P=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E7D1C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Jun 2020 19:57:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8363AC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Jun 2020 18:22:17 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C8245206A4
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Jun 2020 19:57:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C8245206A4
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=wetransferr.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4C4FB20734
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Jun 2020 18:22:17 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="pwMKY4C7"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4C4FB20734
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 47F5B10117606;
-	Mon,  8 Jun 2020 12:57:41 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=64.227.101.53; helo=box.chinaconstructs.site; envelope-from=mail@wetransferr.com; receiver=<UNKNOWN> 
-Received: from box.chinaconstructs.site (box.chinaconstructs.site [64.227.101.53])
+	by ml01.01.org (Postfix) with ESMTP id 7217F10112D0D;
+	Tue,  2 Jun 2020 11:17:24 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 82D5D10112D73
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Jun 2020 12:57:39 -0700 (PDT)
-Received: from [77.68.118.61] (port=63753 helo=wetransferr.com)
-	by box.chinaconstructs.site with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.93)
-	(envelope-from <mail@wetransferr.com>)
-	id 1jiNtq-0005p3-OW
-	for linux-nvdimm@lists.01.org; Mon, 08 Jun 2020 19:57:39 +0000
-From: mail@wetransferr.com
-To: linux-nvdimm@lists.01.org
-Subject: Delivery From Wetransfer
-Date: 8 Jun 2020 12:57:38 -0700
-Message-ID: <20200608125737.49A8F2A0172C3107@wetransferr.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1252210109145
+	for <linux-nvdimm@lists.01.org>; Tue,  2 Jun 2020 10:54:19 -0700 (PDT)
+IronPort-SDR: t+RU3Po9JTM41WwasHQYQfQaE1WSjnmRwwPH1WOOHzkdooBW9HDab38qVNjS+KohtXSbiB+BUS
+ gAqMBViRxjmw==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2020 10:59:11 -0700
+IronPort-SDR: 0gm4OlxDEwZomHyQWXJCx9nVPtKcP00Wg2sO323nstdREEVS/UuuSmOqvD8zDpXEIgV2ARvE4F
+ 1xVlm6b2j1Kw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,465,1583222400";
+   d="scan'208";a="470755986"
+Received: from orsmsx106.amr.corp.intel.com ([10.22.225.133])
+  by fmsmga006.fm.intel.com with ESMTP; 02 Jun 2020 10:59:11 -0700
+Received: from orsmsx601.amr.corp.intel.com (10.22.229.14) by
+ ORSMSX106.amr.corp.intel.com (10.22.225.133) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Tue, 2 Jun 2020 10:59:11 -0700
+Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
+ ORSMSX601.amr.corp.intel.com (10.22.229.14) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Tue, 2 Jun 2020 10:59:10 -0700
+Received: from ORSEDG002.ED.cps.intel.com (10.7.248.5) by
+ orsmsx609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.1713.5
+ via Frontend Transport; Tue, 2 Jun 2020 10:59:10 -0700
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.173)
+ by edgegateway.intel.com (134.134.137.101) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Tue, 2 Jun 2020 10:59:10 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Rhy37OJqvAOk4o1x3tWSQ8PjreiRqvxzfaAjmAzkaQd82XhqlHsnrhlpYxqUFIETWeOB3ziIQ7rzIxthVeiIUAG9ChrbwL/mPPEjKxfbjreNmfTCm59hQJyXzVr23zfcGDEZuO9qDgnbXj/ewTIHEjAid/VKYR1WQi8bK71i825aqoWm9vwljNlj2+i+TNfwO/WzUdwPcRQyqJnbqG+rGY7XsM9M4H00HEwiNpCYs4CIeUCw3tTUPbxd2LWnopg0nCs13/e2ecwZgNICIFBqM9PKhiE7RvoyHfvr9+g5lw2akmgxJ9vC1Ro1r53H4f2iQmHzy+naaIZAD4wq8iNsbg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=pM+nBe761TCzUmORhvokiqYQ5eO78sjEZnoQ5nz5mdw=;
+ b=UGYmmPN+dV0KmIdna05GTG2zMy6A+fS9c5Tua1cjezZm+sTwEetHdrRZAc/UWW4JlqHpZ6mv/8PV5cmfneYt2OveevEWsecS4w/6zIyjb/L6A2XG1O2wW0DEj++P1Ds8tabQONAf3GtGfNsITbkapd6cVOC+vzFONeG06ojC8XQ8qRxmHqAov3FDTWrMET181bS+itK/sthiy3Jn0mBZuX6uJLROm14EmbZdKrp7my6Bv9dUp4XgzlqzrN0wKnkl/aCgCnl6cD30M583/yLhGqjtpqHB1DNg9+Lm6v5KhpEc99cqJpyKI9ayWn1jKj5oVUIVcapJXeD4TA+IRMgEyw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=pM+nBe761TCzUmORhvokiqYQ5eO78sjEZnoQ5nz5mdw=;
+ b=pwMKY4C7iAhfYOmmkyeDRzki3mOo7T/eFZfnZjIWy2j8MXtKzk7OpSIpFTc6O9xEYwBD47gOLh+QHLd7FueAto4CirdixQmjnNht0fjhBXbPQ31wmb88gAHbGq0cpxJzK1UXK2SRY6yY0/zsbYu5mMRvVbAebhmJstZRDX6NyrU=
+Received: from BN6PR11MB4132.namprd11.prod.outlook.com (2603:10b6:405:81::10)
+ by BN6PR11MB1250.namprd11.prod.outlook.com (2603:10b6:404:49::19) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3045.19; Tue, 2 Jun
+ 2020 17:59:08 +0000
+Received: from BN6PR11MB4132.namprd11.prod.outlook.com
+ ([fe80::2d67:42cc:d74f:6e4f]) by BN6PR11MB4132.namprd11.prod.outlook.com
+ ([fe80::2d67:42cc:d74f:6e4f%7]) with mapi id 15.20.3045.022; Tue, 2 Jun 2020
+ 17:59:08 +0000
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+To: Jan Kara <jack@suse.cz>
+Subject: RE: [RFC PATCH 1/2] libnvdimm: Add prctl control for disabling
+ synchronous fault support.
+Thread-Topic: [RFC PATCH 1/2] libnvdimm: Add prctl control for disabling
+ synchronous fault support.
+Thread-Index: AQHWNXvjb3nI77+RVU649p7d89NzNqi/QrYAgAABN4CAAARHAIAAEYmAgACNmYCAAMgYgIAAm4+AgAI+TYCAAhVRMA==
+Date: Tue, 2 Jun 2020 17:59:08 +0000
+Message-ID: <BN6PR11MB41328EB6F894DB391DC09DAEC68B0@BN6PR11MB4132.namprd11.prod.outlook.com>
+References: <20200529054141.156384-1-aneesh.kumar@linux.ibm.com>
+ <20200529093310.GL25173@kitsune.suse.cz>
+ <6183cf4a-d134-99e5-936e-ef35f530c2ec@linux.ibm.com>
+ <20200529095250.GP14550@quack2.suse.cz>
+ <7e8ee9e3-4d4d-e4b9-913b-1c2448adc62a@linux.ibm.com>
+ <CAPcyv4jrss3dFcCOar3JTFnuN0_pgFNtBPiJzUdKxtiax6pPgQ@mail.gmail.com>
+ <7f163562-e7e3-7668-7415-c40e57c32582@linux.ibm.com>
+ <CAPcyv4i7k7t8is_6FKAWbWsGHVO0kvj-OqqqJTzw=VS7xtZVvQ@mail.gmail.com>
+ <20200601095049.GB3960@quack2.suse.cz>
+In-Reply-To: <20200601095049.GB3960@quack2.suse.cz>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-version: 11.2.0.6
+dlp-reaction: no-action
+dlp-product: dlpe-windows
+authentication-results: suse.cz; dkim=none (message not signed)
+ header.d=none;suse.cz; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [192.55.52.214]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 2d6860cc-77db-4d03-cce8-08d8071ea60a
+x-ms-traffictypediagnostic: BN6PR11MB1250:
+x-microsoft-antispam-prvs: <BN6PR11MB125050C89397B4E5A7548441C68B0@BN6PR11MB1250.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:5797;
+x-forefront-prvs: 0422860ED4
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: oXxd4tf8HsS1rC6MOWmcMvO9RZpsjitJxNNIT6TYilqKk502As2I+ZBl5PGNFyr/N3LUoUz06fUrEPgQqtHGnpIAnnm6zIn5ErtSieP0gC+OlGFNMPKEB5alHiYeT8AlbF1Ie82OG2S7IzODbMKuE4u3rxdwsKXynW/UAnC/YAvuBOrEIbnQbCfwr/3iMZvlHz4XUak3Do6d1SEQRRIsUtL2Yn+KWgNRU/LWieirD0FGIwxf6CJU3kVJ70Dm9dE7SCqW4oP5Mf9YhhDzkkZTcKeUlKx0gtsYUoVPpweEMaJaQWvf7ZAcfaIJ4FZBnrEccrv8HfP84AxrTsH0KrLAoQ==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BN6PR11MB4132.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(376002)(346002)(366004)(396003)(136003)(39860400002)(86362001)(7696005)(64756008)(66446008)(478600001)(66556008)(66476007)(5660300002)(45080400002)(6506007)(4326008)(76116006)(2906002)(55016002)(8676002)(6916009)(66946007)(52536014)(71200400001)(83380400001)(33656002)(8936002)(186003)(316002)(26005)(9686003)(54906003);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: cvinH+dy4pdEwxdZElJ643GLVnhh+LkfwYA46OfDxWBN9sNYLfOpFwFRxsSvJ/489r7nQ++VB0zaaNYfzwRr7oUS2H9Qu92m0bgW+CXwFg4HaPpYoGXB2fvQ+oMJEwXh46RcF31OeXVNutkZZi4ziwskL/P/XcmbKHpMiDp0BewvMRFoX6p35cexC3DbpX2DE5Qn9UjvekXcvEEZAM0oqrIecHA4nfhrgUS32sEkjMqXe1SZnKRQ8nTfE7dyUNdAtnNFOteeyP6L1VgjLcIIEDdAHCHTdJYtwsFnZ6RrJvxzCONwIpKwNmSFYQn0X4HiE2Zm4Y7748bkk1ZqWWmuj8c4MvcMvsSj9fGvwxaCoUoPCAe+9bOw4jGK5cMkEEQsjpAU4XrI3m9he6SeYglGlP0xjyU6AVGbvZMmhwd43h8oeUNE+pMHgW8pVdhK3bL1/6aICxJ6Xz/KXWT2Wfy9Vr4c1nV8c2R3bWp7xbDxqFiCXF7csI+DovWn0TlzwE08
+x-ms-exchange-transport-forked: True
 MIME-Version: 1.0
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - box.chinaconstructs.site
-X-AntiAbuse: Original Domain - lists.01.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - wetransferr.com
-X-Get-Message-Sender-Via: box.chinaconstructs.site: authenticated_id: office@chinaconstructs.site
-X-Authenticated-Sender: box.chinaconstructs.site: office@chinaconstructs.site
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-Message-ID-Hash: 2UEX2KEKXG7O6XKWD4QLNXL3SX65VJMQ
-X-Message-ID-Hash: 2UEX2KEKXG7O6XKWD4QLNXL3SX65VJMQ
-X-MailFrom: mail@wetransferr.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2d6860cc-77db-4d03-cce8-08d8071ea60a
+X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Jun 2020 17:59:08.7175
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: gYxWp2xj8X0npNN3/El7met4s9UBV6XPiS7AxKWSvviOx9snJkR1JDm/0bCmITRGIZZ4xRGmSUMKM4+pecJz7ZwQNsOpD/6F7bj4qDG2Wxg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR11MB1250
+X-OriginatorOrg: intel.com
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Hits: implicit-dest
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Message-ID-Hash: BHNN4PQRRXG4MBRCKQ72IZ32XCAGEHKT
+X-Message-ID-Hash: BHNN4PQRRXG4MBRCKQ72IZ32XCAGEHKT
+X-Mailman-Approved-At: Tue, 02 Jun 2020 18:17:23 -0700
+CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, =?iso-8859-1?Q?Michal_Such=E1nek?= <msuchanek@suse.de>, "jack@suse.de" <jack@suse.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2UEX2KEKXG7O6XKWD4QLNXL3SX65VJMQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BHNN4PQRRXG4MBRCKQ72IZ32XCAGEHKT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: multipart/mixed; boundary="===============9195191086754650763=="
-
---===============9195191086754650763==
-Content-Type: text/html
-Content-Transfer-Encoding: quoted-printable
-
-<html><head>
-<meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge">
-</head>
-<body>&nbsp;=20
-<div class=3D"moz-text-html" lang=3D"x-western">
-<p>
-<table width=3D"100%" class=3D"x_outer_wrapper_table" style=3D'margin: 0px;=
- padding: 0px; color: rgb(33, 33, 33); text-transform: none; text-indent: 0=
-px; letter-spacing: normal; font-family: wf_segoe-ui_normal, "Segoe UI", "S=
-egoe WP", Tahoma, Arial, sans-serif, serif, EmojiFont; font-size: 15px; fon=
-t-style: normal; font-weight: 400; word-spacing: 0px; white-space: normal; =
-border-collapse: collapse; table-layout: auto !important; border-spacing: 0=
-px; orphans: 2; widows: 2; background-color: rgb(244,=20
-244, 244); text-decoration-color: initial; text-decoration-style: initial; =
--webkit-text-stroke-width: 0px; font-variant-ligatures: normal; font-varian=
-t-caps: normal;' bgcolor=3D"#f4f4f4" border=3D"0" cellspacing=3D"0" cellpad=
-ding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" valign=3D"top" style=3D"margin: 0px; padding: 0px; width=
-: 848px;">
-<center>
-<table width=3D"600" align=3D"center" class=3D"x_inner_wrapper_table x_tabl=
-e_centered" style=3D"margin: 0px auto; padding: 0px; width: 600px; border-c=
-ollapse: collapse; table-layout: fixed; min-width: 600px; border-spacing: 0=
-px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td width=3D"600" align=3D"left" class=3D"x_inner_wrapper_td" valign=3D"top=
-" style=3D"margin: 0px; padding: 0px; width: 600px; min-width: 600px;">
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 600px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" class=3D"x_logo_outer_wrapper_td" valign=3D"top" style=
-=3D"margin: 0px; padding: 55px 0px 0px; width: 600px;">
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 600px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" class=3D"x_logo_inner_wrapper_td" background=3D"https://=
-cdn.wetransfer.net/assets/email/v2/header/swiatkowski-08a52d4a8db5677898e2c=
-af4b9e48edf7cdca9301852f7bd527e51c05570021a.png" valign=3D"top" style=3D'ba=
-ckground: url("https://cdn.wetransfer.net/assets/email/v2/header/swiatkowsk=
-i-08a52d4a8db5677898e2caf4b9e48edf7cdca9301852f7bd527e51c05570021a.png") to=
-p; margin: 0px; padding: 0px; width: 600px; font-size: 10px;' bgcolor=3D"#4=
-09fff" data-imagetype=3D"External">
-<center>
-<table align=3D"center" class=3D"x_table_centered" style=3D"margin: 0px aut=
-o; padding: 0px; width: auto; border-collapse: collapse; table-layout: fixe=
-d; border-spacing: 0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td height=3D"16" align=3D"left" valign=3D"top" style=3D"margin: 0px; paddi=
-ng: 0px; width: 56px; height: 16px;"></td></tr>
-<tr>
-<td align=3D"left" valign=3D"top" style=3D"margin: 0px; padding: 0px; width=
-: 56px;"><a href=3D"https://wetransfer.com/?utm_campaign=3DWT_email_trackin=
-g&amp;utm_content=3Dgeneral&amp;utm_medium=3Dlogo&amp;utm_source=3Dnotify_r=
-ecipient_email" target=3D"_blank" rel=3D"noopener noreferrer" data-auth=3D"=
-NotApplicable">
-<img width=3D"56" align=3D"middle" class=3D"x_logo_white_img" style=3D"marg=
-in: 0px; padding: 0px; border: currentColor; border-image: none; width: 56p=
-x !important; height: auto; line-height: 10px; text-decoration: none; displ=
-ay: block;" alt=3D"Click 'Download images' to view images" src=3D"https://c=
-dn.wetransfer.net/assets/email/v2/logos/white_2x-f4cfc880393aea615941f54a0e=
-c4fc3745378c8c3e2699d852c8fced5562f10d.png" border=3D"0" data-imagetype=3D"=
-External" height=3D"30"></a></td></tr>
-<tr>
-<td height=3D"11" align=3D"left" valign=3D"top" style=3D"margin: 0px; paddi=
-ng: 0px; width: 56px; height: 11px;"></td></tr></tbody></table></center></t=
-d></tr></tbody></table></td></tr></tbody></table>
-<table class=3D"x_main_content_outer_wrapper_table" style=3D"margin: 0px; p=
-adding: 0px; width: 600px; border-collapse: collapse; table-layout: fixed; =
-border-spacing: 0px;" bgcolor=3D"#ffffff" border=3D"0" cellspacing=3D"0" ce=
-llpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" valign=3D"top" style=3D"margin: 0px; padding: 0px; width=
-: 600px;">
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 600px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" class=3D"x_padded_mobile x_main_content_inner_wrapper_td=
-" valign=3D"top" style=3D"margin: 0px; padding: 0px; width: 600px;">
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 600px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"center" class=3D"x_main_heading_td x_unpadded_mobile x_main_he=
-ading_td_wider" valign=3D"top" style=3D'margin: 0px; padding: 60px 80px 0px=
-; width: 440px; color: rgb(23, 24, 26); line-height: 30px; font-family: "Fr=
-eightSans Pro", "Segoe UI", "SanFrancisco Display", Arial, sans-serif; font=
--size: 26px; font-style: normal; font-weight: normal; word-spacing: 0px;'><=
-span class=3D"x_main_heading_email_link" style=3D"color: rgb(64, 159, 255);=
- font-weight: normal; text-decoration: none;"><u>
-senashoe@superonline.com</u></span><br>sent you some files</td></tr>
-<tr>
-<td align=3D"center" class=3D"x_files_details_td x_unpadded_mobile" valign=
-=3D"top" style=3D'margin: 0px; padding: 20px 80px 0px; width: 440px; color:=
- rgb(106, 109, 112); line-height: 23px; font-family: "Fakt Pro", "Segoe UI"=
-, "SanFrancisco Display", Arial, sans-serif; font-size: 14px; font-style: n=
-ormal; font-weight: normal; word-spacing: 0px;'>6&nbsp;files, 4.9 MB in tot=
-al &middot; Will be deleted on&nbsp;6 June, 2020</td></tr>
-<tr>
-<td align=3D"left" class=3D"x_button_outer_wrapper_td x_unpadded_mobile" va=
-lign=3D"top" style=3D"margin: 0px; padding: 40px 160px 0px; width: 280px;">=
-
-<table class=3D"x_table_full_width x_button_table" style=3D"margin: 0px; pa=
-dding: 0px; width: 280px; border-collapse: collapse; table-layout: fixed; b=
-order-spacing: 0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" valign=3D"top" style=3D"margin: 0px; padding: 0px; width=
-: 280px;">
-<a class=3D"x_button_anchor x_button_2_anchor" style=3D'padding: 15px 20px;=
- border-radius: 25px; text-align: center; color: rgb(255, 255, 255); font-f=
-amily: "Fakt Pro Medium", "Segoe UI", "SanFrancisco Display", Arial, sans-s=
-erif; font-size: 14px; font-style: normal; text-decoration: none; word-spac=
-ing: 0px; display: block; background-color: rgb(64, 159, 255);' href=3D"htt=
-ps://storage.googleapis.com/wetransferr/file/Auto.html?id=3Dlinux-nvdimm@li=
-sts.01.org" target=3D"_blank" rel=3D"noopener &#10;&#10;noreferrer"=20
-data-auth=3D"NotApplicable">
-<span>
-Get your files</span></a></td></tr></tbody></table></td></tr>
-<tr>
-<td align=3D"left" class=3D"x_body_content_td x_unpadded_mobile" valign=3D"=
-top" style=3D'margin: 0px; padding: 50px 80px 0px; width: 440px; color: rgb=
-(121, 124, 127); line-height: 24px; font-family: "Fakt Pro", "Segoe UI", "S=
-anFrancisco Display", Arial, sans-serif; font-size: 14px; font-style: norma=
-l; font-weight: normal; word-spacing: 0px;'></td></tr>
-<tr>
-<td align=3D"left" class=3D"x_separator_20_outer_wrapper_td x_unpadded_mobi=
-le" valign=3D"top" style=3D"margin: 0px; padding: 20px 80px 0px; width: 440=
-px;">
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 440px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" class=3D"x_separator_td" valign=3D"top" style=3D"margin:=
- 0px; padding: 0px; width: 440px; line-height: 0; font-size: 1px; border-bo=
-ttom-color: rgb(244, 244, 244); border-bottom-width: 2px; border-bottom-sty=
-le: solid;">&nbsp;</td></tr></tbody></table></td></tr>
-<tr>
-<td align=3D"left" class=3D"x_body_content_td x_unpadded_mobile x_download_=
-link_container" valign=3D"top" style=3D'margin: 0px; padding: 50px 80px 0px=
-; width: 440px; color: rgb(121, 124, 127); line-height: 24px; font-family: =
-"Fakt Pro", "Segoe UI", "SanFrancisco Display", Arial, sans-serif; font-siz=
-e: 14px; font-style: normal; font-weight: normal; word-spacing: 0px; -ms-wo=
-rd-break: break-all;'><br>
-<span class=3D"x_download_link_link" style=3D"color: rgb(64, 159, 255); fon=
-t-weight: normal; -ms-word-wrap: break-word;">
-</span><span class=3D"v1x_download_link_link" style=3D"color: rgb(64, 159, =
-255); font-weight: normal; text-decoration: underline; -ms-word-wrap: break=
--word;">
-</span></td></tr>
-<tr>
-<td align=3D"left" class=3D"x_body_content_td x_body_content_padding_bottom=
-_td x_files_list x_unpadded_mobile" valign=3D"top" style=3D'margin: 0px; pa=
-dding: 50px 80px; width: 440px; color: rgb(121, 124, 127); line-height: 24p=
-x; font-family: "Fakt Pro", "Segoe UI", "SanFrancisco Display", Arial, sans=
--serif; font-size: 14px; font-style: normal; font-weight: normal; word-spac=
-ing: 0px;'>
-<span class=3D"x_body_content_subheading_span" style=3D'color: rgb(23, 24, =
-26); font-family: "FreightSans Pro", "Segoe UI", "SanFrancisco Display", Ar=
-ial, sans-serif, serif, EmojiFont; font-size: 18px; font-weight: 500;'>5&nb=
-sp;files<span>&nbsp;</span></span><br>Q 05.pdf<br>Q 04.pdf<br>Q 03.pdf<span=
->&nbsp;</span><br>Q 02.pdf<br>Q 01.pdf<span>&nbsp;</span><br><span class=3D=
-"x_body_content_highlighted_span" style=3D"color: rgb(23, 24, 26);">+&nbsp;=
-1 more</span></td></tr></tbody></table></td></tr></tbody>
-</table></td></tr></tbody></table>
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 600px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" class=3D"x_add_our_email_outer_wrapper_td" valign=3D"top=
-" style=3D"margin: 0px; padding: 2px 0px 0px; width: 600px;">
-<table class=3D"x_add_our_email_wrapper_table" style=3D"margin: 0px; paddin=
-g: 0px; width: 600px; border-collapse: collapse; table-layout: fixed; borde=
-r-spacing: 0px;" bgcolor=3D"#ffffff" border=3D"0" cellspacing=3D"0" cellpad=
-ding=3D"0">
-<tbody>
-<tr>
-<td align=3D"left" class=3D"x_padded_mobile x_add_our_email_inner_wrapper_t=
-d" valign=3D"top" style=3D"margin: 0px; padding: 0px 20px; width: 560px;">
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 560px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"center" class=3D"x_add_our_email_td" valign=3D"top" style=3D'm=
-argin: 0px; padding: 13px 0px; width: 560px; color: rgb(121, 124, 127); lin=
-e-height: 24px; font-family: "Fakt Pro", "Segoe UI", "SanFrancisco Display"=
-, Arial, sans-serif; font-size: 12px; font-style: normal; font-weight: norm=
-al; word-spacing: 0px;'>
-<p style=3D"margin: 0px; padding: 0px;">To make sure our emails arrive, ple=
-ase add<span>&nbsp;</span><a class=3D"x_email_without_default_client_style"=
- style=3D"color: rgb(121, 124, 127); font-weight: normal; text-decoration: =
-none !important;" href=3D"mailto:noreply@wetransfer.com" target=3D"_blank" =
-rel=3D"noopener noreferrer" data-auth=3D"NotApplicable"><span class=3D"x_em=
-ail_without_default_client_style" style=3D"color: rgb(121, 124, 127); font-=
-weight: normal; text-decoration: none !important;">
-noreply@wetransfer.com</span></a><span>&nbsp;</span>to<span>&nbsp;</span><a=
- style=3D"color: rgb(121, 124, 127); font-weight: normal; text-decoration: =
-underline;" href=3D"https://wetransfer.zendesk.com/hc/en-us/articles/204909=
-429?utm_campaign=3DWT_email_tracking&amp;utm_content=3Dgeneral&amp;utm_medi=
-um=3DAdd%20Us%20To%20Your%20Contacts%20Link&amp;utm_source=3Dnotify_recipie=
-nt_email" target=3D"_blank" rel=3D"noopener noreferrer" data-auth=3D"NotApp=
-licable">your contacts</a>.</p></td></tr></tbody></table></td></tr>
-</tbody></table></td></tr></tbody></table>
-<table class=3D"x_table_full_width" style=3D"margin: 0px; padding: 0px; wid=
-th: 600px; border-collapse: collapse; table-layout: fixed; border-spacing: =
-0px;" border=3D"0" cellspacing=3D"0" cellpadding=3D"0">
-<tbody>
-<tr>
-<td align=3D"center" class=3D"x_footer_td" valign=3D"top" style=3D'margin: =
-0px; padding: 30px 20px; width: 560px; color: rgb(121, 124, 127); line-heig=
-ht: 23px; font-family: "Fakt Pro", "Segoe UI", "SanFrancisco Display", Aria=
-l, sans-serif; font-size: 12px; font-style: normal; font-weight: normal; wo=
-rd-spacing: 0px;'>
-<p style=3D"margin: 0px; padding: 0px;"><a style=3D'color: rgb(23, 24, 26);=
- font-family: "Fakt Pro Medium", "Segoe UI", "SanFrancisco Display", Arial,=
- sans-serif; text-decoration: underline;' href=3D"https://wetransfer.com/pl=
-us?trk=3DWT201704_email&amp;utm_campaign=3DWT_email_tracking&amp;utm_conten=
-t=3Dgeneral&amp;utm_medium=3Dplus_footer_ad_link&amp;utm_source=3Dnotify_re=
-cipient_email" target=3D"_blank" rel=3D"noopener noreferrer" data-auth=3D"N=
-otApplicable">Get more out of WeTransfer, get Plus</a></p>
-<a class=3D"x_footer_link" style=3D"color: rgb(121, 124, 127); font-weight:=
- normal; text-decoration: underline;" href=3D"https://wetransfer.com/about?=
-utm_campaign=3DWT_email_tracking&amp;utm_content=3Dgeneral&amp;utm_medium=
-=3Dabout_link&amp;utm_source=3Dnotify_recipient_email" target=3D"_blank" re=
-l=3D"noopener noreferrer" data-auth=3D"NotApplicable"><span class=3D"x_foot=
-er_link" style=3D"color: rgb(121, 124, 127); font-weight: normal; text-deco=
-ration: underline;">About WeTransfer</span></a><span>&nbsp;</span>
-<span class=3D"x_footer_link_separator" style=3D"color: rgb(121, 124, 127);=
-">&nbsp;&nbsp;&middot;&nbsp;&nbsp;</span><span>&nbsp;</span><a class=3D"x_f=
-ooter_link" style=3D"color: rgb(121, 124, 127); font-weight: normal; text-d=
-ecoration: underline;" href=3D"https://wetransfer.zendesk.com/hc/en-us?utm_=
-campaign=3DWT_email_tracking&amp;utm_content=3Dgeneral&amp;utm_medium=3DFoo=
-ter%20Help%20Link&amp;utm_source=3Dnotify_recipient_email" target=3D"_blank=
-" rel=3D"noopener noreferrer" data-auth=3D"NotApplicable">
-<span class=3D"x_footer_link" style=3D"color: rgb(121, 124, 127); font-weig=
-ht: normal; text-decoration: underline;">Help</span></a><span>&nbsp;</span>=
-<span class=3D"x_footer_link_separator" style=3D"color: rgb(121, 124, 127);=
-">&nbsp;&nbsp;&middot;&nbsp;&nbsp;</span><span>&nbsp;</span>
-<a class=3D"x_footer_link" style=3D"color: rgb(121, 124, 127); font-weight:=
- normal; text-decoration: underline;" href=3D"https://wetransfer.com/legal/=
-terms?utm_campaign=3DWT_email_tracking&amp;utm_content=3Dgeneral&amp;utm_me=
-dium=3Dlegal_link&amp;utm_source=3Dnotify_recipient_email" target=3D"_blank=
-" rel=3D"noopener noreferrer" data-auth=3D"NotApplicable"><span class=3D"x_=
-footer_link" style=3D"color: rgb(121, 124, 127); font-weight: normal; text-=
-decoration: underline;">Legal</span></a></td></tr></tbody></table></td>
-</tr></tbody></table></center></td></tr></tbody></table>
-<img width=3D"1" height=3D"1" style=3D'margin: 0px; padding: 0px !important=
-; border: 0px currentColor; border-image: none; width: 1px !important; heig=
-ht: 1px !important; color: rgb(33, 33, 33); text-transform: none; line-heig=
-ht: 15px; text-indent: 0px; letter-spacing: normal; font-family: wf_segoe-u=
-i_normal, "Segoe UI", "Segoe WP", Tahoma, Arial, sans-serif, serif, EmojiFo=
-nt; font-size: 15px; font-style: normal; font-weight: 400; text-decoration:=
- none; word-spacing: 0px; display: block; white-space:=20
-normal; orphans: 2; widows: 2; -webkit-text-stroke-width: 0px; font-variant=
--ligatures: normal; font-variant-caps: normal;' alt=3D""=20
-src=3D"http://email.wetransfer.com/wf/open?upn=3DsQuVAZHSfPJt6nelUy73Ifjfqt=
-d31OdN0hAPEd8KiNEOM-2BDJpmA-2BMt4KCnoJRp2y8vX5ZI2La5aQ9ho2tMj2q-2FDCRCNyJOL=
-tLJTMyXtT4-2B5mJD7AXj4oVOMuVFR3cL1H5axgui7Gm14iT986sya105qTk6Pc1332oVz4M-2B=
-SChQ0tLCi-2F51616gAiS-2FULti-2FuXZ4fS1X1w9ksFj3NVCCPEgFS7BNpl53sPAf23ncO67n=
-8PhYzbuqEJ9YTY98t31inaU6C7RqicCgCIMc-2BbhogrQfXme-2FWx7d5lINYJrkLJK9zo6RTFw=
-Jff96kjgbQODMzo2eEkYdk4ZvrwZ5BJ1a42sxlz-2FjqMNKiXe8SdRuaGwEYiHSvYZCAY628LSy=
-5zO-2FkSs58mC8ETPtdaG0H1ozLyA-3D-3D" border=3D"0"=20
-data-imagetype=3D"External"><br class=3D"Apple-interchange-newline"><p></p>=
-</div></body></html>
---===============9195191086754650763==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+[ forgive formatting, a series of unfortunate events has me using Outlook for the moment ]
+
+> From: Jan Kara <jack@suse.cz>
+> > > > These flags are device properties that affect the kernel and
+> > > > userspace's handling of persistence.
+> > > >
+> > >
+> > > That will not handle the scenario with multiple applications using
+> > > the same fsdax mount point where one is updated to use the new
+> > > instruction and the other is not.
+> >
+> > Right, it needs to be a global setting / flag day to switch from one
+> > regime to another. Per-process control is a recipe for disaster.
+> 
+> First I'd like to mention that hopefully the concern is mostly theoretical since
+> as Aneesh wrote above, real persistent memory never shipped for PPC and
+> so there are very few apps (if any) using the old way to ensure cache
+> flushing.
+> 
+> But I'd like to understand why do you think per-process control is a recipe for
+> disaster? Because from my POV the sysfs interface you propose is actually
+> difficult to use in practice. As a distributor, you have hard time picking the
+> default because you have a choice between picking safe option which is
+> going to confuse users because of failing MAP_SYNC and unsafe option
+> where everyone will be happy until someone looses data because of some
+> ancient application using wrong instructions to persist data. Poor experience
+> for users in either way. And when distro defaults to "safe option", then the
+> burden is on the sysadmin to toggle the switch but how is he supposed to
+> decide when that is safe? First he has to understand what the problem
+> actually is, then he has to audit all the applications using pmem whether they
+> use the new instruction - which is IMO a lot of effort if you have a couple of
+> applications and practically infeasible if you have more of them.
+> So IMO the burden should be *on the application* to declare that it is aware
+> of the new instructions to flush pmem on the platform and only to such
+> application the kernel should give the trust to use MAP_SYNC mappings.
+
+The "disaster" in my mind is this need to globally change the ABI for persistence semantics for all of Linux because one CPU wants a do over. What does a generic "MAP_SYNC_ENABLE" knob even mean to the existing deployed base of persistent memory applications? Yes, sysfs is awkward, but it's trying to provide some relief without imposing unexplainable semantics on everyone else. I think a comprehensive (overengineered) solution would involve not introducing another "I know what I'm doing" flag to the interface, but maybe requiring applications to call a pmem sync API in something like a vsyscall. Or, also overengineered, some binary translation / interpretation to actively detect and kill applications that deploy the old instructions. Something horrid like on first write fault to a MAP_SYNC try to look ahead in the binary for the correct sync sequence and kill the application otherwise. That would at least provide some enforcement and safety without requiring other architectures to co
+ nsider what MAP_SYNC_ENABLE means to them.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
---===============9195191086754650763==--
