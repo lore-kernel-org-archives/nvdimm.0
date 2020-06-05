@@ -2,158 +2,135 @@ Return-Path: <SRS0=qLyS=7S=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.0 required=3.0 tests=MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9CDFC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  5 Jun 2020 02:31:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7946EC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  5 Jun 2020 13:32:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id AA59620772
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  5 Jun 2020 02:31:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AA59620772
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4686020663
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  5 Jun 2020 13:32:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4686020663
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 33AB6100A09F5;
-	Thu,  4 Jun 2020 19:26:12 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 306B5100A22F9
-	for <linux-nvdimm@lists.01.org>; Thu,  4 Jun 2020 19:26:09 -0700 (PDT)
-X-IronPort-AV: E=Sophos;i="5.73,474,1583164800";
-   d="scan'208";a="93872612"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 05 Jun 2020 10:31:16 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id BB1894BCC8B9;
-	Fri,  5 Jun 2020 10:31:13 +0800 (CST)
-Received: from [10.167.225.141] (10.167.225.141) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Fri, 5 Jun 2020 10:31:13 +0800
-Subject: =?UTF-8?B?UmU6IOWbnuWkjTogUmU6IFtSRkMgUEFUQ0ggMC84XSBkYXg6IEFkZCBh?=
- =?UTF-8?Q?_dax-rmap_tree_to_support_reflink?=
-To: Dave Chinner <david@fromorbit.com>, "Darrick J. Wong"
-	<darrick.wong@oracle.com>
-References: <20200427084750.136031-1-ruansy.fnst@cn.fujitsu.com>
- <20200427122836.GD29705@bombadil.infradead.org>
- <em33c55fa5-15ca-4c46-8c27-6b0300fa4e51@g08fnstd180058>
- <20200428064318.GG2040@dread.disaster.area>
- <153e13e6-8685-fb0d-6bd3-bb553c06bf51@cn.fujitsu.com>
- <20200604145107.GA1334206@magnolia>
- <20200605013023.GZ2040@dread.disaster.area>
-From: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
-Message-ID: <841a9dbb-daa7-3827-6bf9-664187e45a94@cn.fujitsu.com>
-Date: Fri, 5 Jun 2020 10:30:57 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+	by ml01.01.org (Postfix) with ESMTP id CFE5B100A026B;
+	Fri,  5 Jun 2020 06:27:18 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.210.68; helo=mail-ot1-f68.google.com; envelope-from=rjwysocki@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-ot1-f68.google.com (mail-ot1-f68.google.com [209.85.210.68])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id DB6CF100DEFFD
+	for <linux-nvdimm@lists.01.org>; Fri,  5 Jun 2020 06:27:15 -0700 (PDT)
+Received: by mail-ot1-f68.google.com with SMTP id h7so7621708otr.3
+        for <linux-nvdimm@lists.01.org>; Fri, 05 Jun 2020 06:32:26 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=r5xkCx6S6H0OEEUFi5jI6heu9Q5+k1PSszipZkD4qO4=;
+        b=KLxKpoI2q1eiXtxk0xBwvgSUbi2rojYj6nhzhPbBumshJVxHTkMLj/T3e/zLSkvsS4
+         uYKoMJATW4qRON/1W56KTlkh4udrn1M8n0vM6Ad9rTkQZLog3suGVobz46AorF5XqqIG
+         N/ZWK8gVVCcC1lHErcaVNmggUkIsp9a988cA9KpgDu5NWs4imwG8Ly0xPqpPudO35jNI
+         3bfOyf4gt/MjGQyZ4EeY4UGqoOY6zLcoJAq4hQcziErF9YKkDOzsoQAuI/4AySqk8UeW
+         CPcEmQM9FZcS5os9iD+MUFweVO9+AD6wqfg9fVTIcRx/Zs4bwzWMu3Gh1DDiTqOoaiLj
+         sv7w==
+X-Gm-Message-State: AOAM532cZtQOvXs74XpBSnQ3TI7D2wokLsOjVxOe0hsJ+uBKHECJv01X
+	iu14yYMDK0zAJQR18S0isphAHsyLb9GvlRKaEtE=
+X-Google-Smtp-Source: ABdhPJx/2s0YSjL0Yoa1CBlVQPXNsAgX1/mFvRuZ/AKVx+jsfWoonKouaBjMJfpsxJ/XGbfSXMxS1pgNexk4kOj/N9M=
+X-Received: by 2002:a05:6830:20d1:: with SMTP id z17mr7336449otq.167.1591363945478;
+ Fri, 05 Jun 2020 06:32:25 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20200605013023.GZ2040@dread.disaster.area>
-Content-Language: en-US
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) To
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204)
-X-yoursite-MailScanner-ID: BB1894BCC8B9.AEB9F
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: DWZREJPF5PPQBFKGD7PBNXRO4TF73VG2
-X-Message-ID-Hash: DWZREJPF5PPQBFKGD7PBNXRO4TF73VG2
-X-MailFrom: ruansy.fnst@cn.fujitsu.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Matthew Wilcox <willy@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "rgoldwyn@suse.de" <rgoldwyn@suse.de>, "Qi, Fuli" <qi.fuli@fujitsu.com>, "Gotou, Yasunori" <y-goto@fujitsu.com>
+References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Fri, 5 Jun 2020 15:32:14 +0200
+Message-ID: <CAJZ5v0gq55A7880dOJD7skwx7mnjsqbCqEGFvEo552U9W2zH3Q@mail.gmail.com>
+Subject: Re: [PATCH v2] ACPI: Drop rcu usage for MMIO mappings
+To: Dan Williams <dan.j.williams@intel.com>
+Message-ID-Hash: EKL32YY5M2QEUQKC6SLVVTCJKASCSNSF
+X-Message-ID-Hash: EKL32YY5M2QEUQKC6SLVVTCJKASCSNSF
+X-MailFrom: rjwysocki@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Rafael Wysocki <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Erik Kaneda <erik.kaneda@intel.com>, Myron Stowe <myron.stowe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DWZREJPF5PPQBFKGD7PBNXRO4TF73VG2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EKL32YY5M2QEUQKC6SLVVTCJKASCSNSF/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQoNCk9uIDIwMjAvNi81IOS4iuWNiDk6MzAsIERhdmUgQ2hpbm5lciB3cm90ZToNCj4gT24gVGh1
-LCBKdW4gMDQsIDIwMjAgYXQgMDc6NTE6MDdBTSAtMDcwMCwgRGFycmljayBKLiBXb25nIHdyb3Rl
-Og0KPj4gT24gVGh1LCBKdW4gMDQsIDIwMjAgYXQgMDM6Mzc6NDJQTSArMDgwMCwgUnVhbiBTaGl5
-YW5nIHdyb3RlOg0KPj4+DQo+Pj4NCj4+PiBPbiAyMDIwLzQvMjgg5LiL5Y2IMjo0MywgRGF2ZSBD
-aGlubmVyIHdyb3RlOg0KPj4+PiBPbiBUdWUsIEFwciAyOCwgMjAyMCBhdCAwNjowOTo0N0FNICsw
-MDAwLCBSdWFuLCBTaGl5YW5nIHdyb3RlOg0KPj4+Pj4NCj4+Pj4+IOWcqCAyMDIwLzQvMjcgMjA6
-Mjg6MzYsICJNYXR0aGV3IFdpbGNveCIgPHdpbGx5QGluZnJhZGVhZC5vcmc+IOWGmemBkzoNCj4+
-Pj4+DQo+Pj4+Pj4gT24gTW9uLCBBcHIgMjcsIDIwMjAgYXQgMDQ6NDc6NDJQTSArMDgwMCwgU2hp
-eWFuZyBSdWFuIHdyb3RlOg0KPj4+Pj4+PiAgICBUaGlzIHBhdGNoc2V0IGlzIGEgdHJ5IHRvIHJl
-c29sdmUgdGhlIHNoYXJlZCAncGFnZSBjYWNoZScgcHJvYmxlbSBmb3INCj4+Pj4+Pj4gICAgZnNk
-YXguDQo+Pj4+Pj4+DQo+Pj4+Pj4+ICAgIEluIG9yZGVyIHRvIHRyYWNrIG11bHRpcGxlIG1hcHBp
-bmdzIGFuZCBpbmRleGVzIG9uIG9uZSBwYWdlLCBJDQo+Pj4+Pj4+ICAgIGludHJvZHVjZWQgYSBk
-YXgtcm1hcCByYi10cmVlIHRvIG1hbmFnZSB0aGUgcmVsYXRpb25zaGlwLiAgQSBkYXggZW50cnkN
-Cj4+Pj4+Pj4gICAgd2lsbCBiZSBhc3NvY2lhdGVkIG1vcmUgdGhhbiBvbmNlIGlmIGlzIHNoYXJl
-ZC4gIEF0IHRoZSBzZWNvbmQgdGltZSB3ZQ0KPj4+Pj4+PiAgICBhc3NvY2lhdGUgdGhpcyBlbnRy
-eSwgd2UgY3JlYXRlIHRoaXMgcmItdHJlZSBhbmQgc3RvcmUgaXRzIHJvb3QgaW4NCj4+Pj4+Pj4g
-ICAgcGFnZS0+cHJpdmF0ZShub3QgdXNlZCBpbiBmc2RheCkuICBJbnNlcnQgKC0+bWFwcGluZywg
-LT5pbmRleCkgd2hlbg0KPj4+Pj4+PiAgICBkYXhfYXNzb2NpYXRlX2VudHJ5KCkgYW5kIGRlbGV0
-ZSBpdCB3aGVuIGRheF9kaXNhc3NvY2lhdGVfZW50cnkoKS4NCj4+Pj4+Pg0KPj4+Pj4+IERvIHdl
-IHJlYWxseSB3YW50IHRvIHRyYWNrIGFsbCBvZiB0aGlzIG9uIGEgcGVyLXBhZ2UgYmFzaXM/ICBJ
-IHdvdWxkDQo+Pj4+Pj4gaGF2ZSB0aG91Z2h0IGEgcGVyLWV4dGVudCBiYXNpcyB3YXMgbW9yZSB1
-c2VmdWwuICBFc3NlbnRpYWxseSwgY3JlYXRlDQo+Pj4+Pj4gYSBuZXcgYWRkcmVzc19zcGFjZSBm
-b3IgZWFjaCBzaGFyZWQgZXh0ZW50LiAgUGVyIHBhZ2UganVzdCBzZWVtcyBsaWtlDQo+Pj4+Pj4g
-YSBodWdlIG92ZXJoZWFkLg0KPj4+Pj4+DQo+Pj4+PiBQZXItZXh0ZW50IHRyYWNraW5nIGlzIGEg
-bmljZSBpZGVhIGZvciBtZS4gIEkgaGF2ZW4ndCB0aG91Z2h0IG9mIGl0DQo+Pj4+PiB5ZXQuLi4N
-Cj4+Pj4+DQo+Pj4+PiBCdXQgdGhlIGV4dGVudCBpbmZvIGlzIG1haW50YWluZWQgYnkgZmlsZXN5
-c3RlbS4gIEkgdGhpbmsgd2UgbmVlZCBhIHdheQ0KPj4+Pj4gdG8gb2J0YWluIHRoaXMgaW5mbyBm
-cm9tIEZTIHdoZW4gYXNzb2NpYXRpbmcgYSBwYWdlLiAgTWF5IGJlIGEgYml0DQo+Pj4+PiBjb21w
-bGljYXRlZC4gIExldCBtZSB0aGluayBhYm91dCBpdC4uLg0KPj4+Pg0KPj4+PiBUaGF0J3Mgd2h5
-IEkgd2FudCB0aGUgLXVzZXIgb2YgdGhpcyBhc3NvY2lhdGlvbi0gdG8gZG8gYSBmaWxlc3lzdGVt
-DQo+Pj4+IGNhbGxvdXQgaW5zdGVhZCBvZiBrZWVwaW5nIGl0J3Mgb3duIG5haXZlIHRyYWNraW5n
-IGluZnJhc3RydWN0dXJlLg0KPj4+PiBUaGUgZmlsZXN5c3RlbSBjYW4gZG8gYW4gZWZmaWNpZW50
-LCBvbi1kZW1hbmQgcmV2ZXJzZSBtYXBwaW5nIGxvb2t1cA0KPj4+PiBmcm9tIGl0J3Mgb3duIGV4
-dGVudCB0cmFja2luZyBpbmZyYXN0cnVjdHVyZSwgYW5kIHRoZXJlJ3MgemVybw0KPj4+PiBydW50
-aW1lIG92ZXJoZWFkIHdoZW4gdGhlcmUgYXJlIG5vIGVycm9ycyBwcmVzZW50Lg0KPj4+DQo+Pj4g
-SGkgRGF2ZSwNCj4+Pg0KPj4+IEkgcmFuIGludG8gc29tZSBkaWZmaWN1bHRpZXMgd2hlbiB0cnlp
-bmcgdG8gaW1wbGVtZW50IHRoZSBwZXItZXh0ZW50IHJtYXANCj4+PiB0cmFja2luZy4gIFNvLCBJ
-IHJlLXJlYWQgeW91ciBjb21tZW50cyBhbmQgZm91bmQgdGhhdCBJIHdhcyBtaXN1bmRlcnN0YW5k
-aW5nDQo+Pj4gd2hhdCB5b3UgZGVzY3JpYmVkIGhlcmUuDQo+Pj4NCj4+PiBJIHRoaW5rIHdoYXQg
-eW91IG1lYW4gaXM6IHdlIGRvbid0IG5lZWQgdGhlIGluLW1lbW9yeSBkYXgtcm1hcCB0cmFja2lu
-ZyBub3cuDQo+Pj4gSnVzdCBhc2sgdGhlIEZTIGZvciB0aGUgb3duZXIncyBpbmZvcm1hdGlvbiB0
-aGF0IGFzc29jaWF0ZSB3aXRoIG9uZSBwYWdlDQo+Pj4gd2hlbiBtZW1vcnktZmFpbHVyZS4gIFNv
-LCB0aGUgcGVyLXBhZ2UgKGV2ZW4gcGVyLWV4dGVudCkgZGF4LXJtYXAgaXMNCj4+PiBuZWVkbGVz
-cyBpbiB0aGlzIGNhc2UuICBJcyB0aGlzIHJpZ2h0Pw0KPj4NCj4+IFJpZ2h0LiAgWEZTIGFscmVh
-ZHkgaGFzIGl0cyBvd24gcm1hcCB0cmVlLg0KPiANCj4gKm5vZCoNCj4gDQo+Pj4gQmFzZWQgb24g
-dGhpcywgd2Ugb25seSBuZWVkIHRvIHN0b3JlIHRoZSBleHRlbnQgaW5mb3JtYXRpb24gb2YgYSBm
-c2RheCBwYWdlDQo+Pj4gaW4gaXRzIC0+bWFwcGluZyAoYnkgc2VhcmNoaW5nIGZyb20gRlMpLiAg
-VGhlbiBvYnRhaW4gdGhlIG93bmVycyBvZiB0aGlzDQo+Pj4gcGFnZSAoYWxzbyBieSBzZWFyY2hp
-bmcgZnJvbSBGUykgd2hlbiBtZW1vcnktZmFpbHVyZSBvciBvdGhlciBybWFwIGNhc2UNCj4+PiBv
-Y2N1cnMuDQo+Pg0KPj4gSSBkb24ndCBldmVuIHRoaW5rIHlvdSBuZWVkIHRoYXQgbXVjaC4gIEFs
-bCB5b3UgbmVlZCBpcyB0aGUgInBoeXNpY2FsIg0KPj4gb2Zmc2V0IG9mIHRoYXQgcGFnZSB3aXRo
-aW4gdGhlIHBtZW0gZGV2aWNlIChlLmcuICd0aGlzIGlzIHRoZSAzMDd0aCA0aw0KPj4gcGFnZSA9
-PSBvZmZzZXQgMTI1NzQ3MiBzaW5jZSB0aGUgc3RhcnQgb2YgL2Rldi9wbWVtMCcpIGFuZCB4ZnMg
-Y2FuIGxvb2sNCj4+IHVwIHRoZSBvd25lciBvZiB0aGF0IHJhbmdlIG9mIHBoeXNpY2FsIHN0b3Jh
-Z2UgYW5kIGRlYWwgd2l0aCBpdCBhcw0KPj4gbmVlZGVkLg0KPiANCj4gUmlnaHQuIElmIHdlIGhh
-dmUgdGhlIGRheCBkZXZpY2UgYXNzb2NpYXRlZCB3aXRoIHRoZSBwYWdlIHRoYXQgaGFkDQo+IHRo
-ZSBmYWlsdXJlLCB0aGVuIHdlIGNhbiBkZXRlcm1pbmUgdGhlIG9mZnNldCBvZiB0aGUgcGFnZSBp
-bnRvIHRoZQ0KPiBibG9jayBkZXZpY2UgYWRkcmVzcyBzcGFjZSBhbmQgdGhhdCdzIGFsbCB3ZSBu
-ZWVkIHRvIGZpbmQgdGhlIG93bmVyDQo+IG9mIHRoZSBwYWdlIGluIHRoZSBmaWxlc3lzdGVtLg0K
-PiANCj4gTm90ZSB0aGF0IHRoZXJlIG1heSBhY3R1YWxseSBiZSBubyBvd25lciAtIHRoZSBwYWdl
-IHRoYXQgaGFkIHRoZQ0KPiBmYXVsdCBtaWdodCBsYW5kIGluIGZyZWUgc3BhY2UsIGluIHdoaWNo
-IGNhc2Ugd2UgY2FuIHNpbXBseSB6ZXJvDQo+IHRoZSBwYWdlIGFuZCBjbGVhciB0aGUgZXJyb3Iu
-DQoNCk9LLiAgVGhhbmtzIGZvciBwb2ludGluZyBvdXQuDQoNCj4gDQo+Pj4gU28sIGEgZnNkYXgg
-cGFnZSBpcyBubyBsb25nZXIgYXNzb2NpYXRlZCB3aXRoIGEgc3BlY2lmaWMgZmlsZSwgYnV0IHdp
-dGggYQ0KPj4+IEZTKG9yIHRoZSBwbWVtIGRldmljZSkuICBJIHRoaW5rIGl0J3MgZWFzaWVyIHRv
-IHVuZGVyc3RhbmQgYW5kIGltcGxlbWVudC4NCj4gDQo+IEVmZmVjdGl2ZWx5LCB5ZXMuIEJ1dCB3
-ZSBzaG91bGRuJ3QgbmVlZCB0byBhY3R1YWxseSBhc3NvY2lhdGUgdGhlDQo+IHBhZ2Ugd2l0aCBh
-bnl0aGluZyBhdCB0aGUgZmlsZXN5c3RlbSBsZXZlbCBiZWNhdXNlIGl0IGlzIGFscmVhZHkNCj4g
-YXNzb2NpYXRlZCB3aXRoIGEgREFYIGRldmljZSBhdCBhIGxvd2VyIGxldmVsIHZpYSBhIGRldl9w
-YWdlbWFwLg0KPiBUaGUgaGFyZHdhcmUgcGFnZSBmYXVsdCBhbHJlYWR5IHJ1bnMgdGhvdWdodCB0
-aGlzIGNvZGUNCj4gbWVtb3J5X2ZhaWx1cmVfZGV2X3BhZ2VtYXAoKSBiZWZvcmUgaXQgZ2V0cyB0
-byB0aGUgREFYIGNvZGUsIHNvDQo+IHJlYWxseSBhbGwgd2UgbmVlZCB0byBpcyBoYXZlIHRoYXQg
-ZnVuY3Rpb24gcGFzcyB1cyB0aGUgcGFnZSwgb2Zmc2V0DQo+IGludG8gdGhlIGRldmljZSBhbmQs
-IHNheSwgdGhlIHN0cnVjdCBkYXhfZGV2aWNlIGFzc29jaWF0ZWQgd2l0aCB0aGF0DQo+IHBhZ2Ug
-c28gd2UgY2FuIGdldCB0byB0aGUgZmlsZXN5c3RlbSBzdXBlcmJsb2NrIHdlIGNhbiB0aGVuIHVz
-ZSBmb3INCj4gcm1hcCBsb29rdXBzIG9uLi4uDQo+IA0KDQpPSy4gIEkgd2FzIGp1c3QgdGhpbmtp
-bmcgYWJvdXQgaG93IGNhbiBJIGV4ZWN1dGUgdGhlIEZTIHJtYXAgc2VhcmNoIGZyb20gDQp0aGUg
-bWVtb3J5LWZhaWx1cmUuICBUaGFua3MgYWdhaW4gZm9yIHBvaW50aW5nIG91dC4gOikNCg0KDQot
-LQ0KVGhhbmtzLA0KUnVhbiBTaGl5YW5nLg0KDQo+IENoZWVycywNCj4gDQo+IERhdmUuDQo+IA0K
-DQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
-dmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJz
-Y3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+On Fri, May 8, 2020 at 1:55 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> Recently a performance problem was reported for a process invoking a
+> non-trival ASL program. The method call in this case ends up
+> repetitively triggering a call path like:
+>
+>     acpi_ex_store
+>     acpi_ex_store_object_to_node
+>     acpi_ex_write_data_to_field
+>     acpi_ex_insert_into_field
+>     acpi_ex_write_with_update_rule
+>     acpi_ex_field_datum_io
+>     acpi_ex_access_region
+>     acpi_ev_address_space_dispatch
+>     acpi_ex_system_memory_space_handler
+>     acpi_os_map_cleanup.part.14
+>     _synchronize_rcu_expedited.constprop.89
+>     schedule
+>
+> The end result of frequent synchronize_rcu_expedited() invocation is
+> tiny sub-millisecond spurts of execution where the scheduler freely
+> migrates this apparently sleepy task. The overhead of frequent scheduler
+> invocation multiplies the execution time by a factor of 2-3X.
+>
+> For example, performance improves from 16 minutes to 7 minutes for a
+> firmware update procedure across 24 devices.
+>
+> Perhaps the rcu usage was intended to allow for not taking a sleeping
+> lock in the acpi_os_{read,write}_memory() path which ostensibly could be
+> called from an APEI NMI error interrupt?
+
+Not really.
+
+acpi_os_{read|write}_memory() end up being called from non-NMI
+interrupt context via acpi_hw_{read|write}(), respectively, and quite
+obviously ioremap() cannot be run from there, but in those cases the
+mappings in question are there in the list already in all cases and so
+the ioremap() isn't used then.
+
+RCU is there to protect these users from walking the list while it is
+being updated.
+
+> Neither rcu_read_lock() nor ioremap() are interrupt safe, so add a WARN_ONCE() to validate that rcu
+> was not serving as a mechanism to avoid direct calls to ioremap().
+
+But it would produce false-positives if the IRQ context was not NMI,
+wouldn't it?
+
+> Even the original implementation had a spin_lock_irqsave(), but that is not
+> NMI safe.
+
+Which is not a problem (see above).
+
+> APEI itself already has some concept of avoiding ioremap() from
+> interrupt context (see erst_exec_move_data()), if the new warning
+> triggers it means that APEI either needs more instrumentation like that
+> to pre-emptively fail, or more infrastructure to arrange for pre-mapping
+> the resources it needs in NMI context.
+
+Well, I'm not sure about that.
+
+Thanks!
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
