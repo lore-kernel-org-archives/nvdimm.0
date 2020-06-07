@@ -6,66 +6,66 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59E5BC433E1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7363FC433E0
 	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Jun 2020 13:14:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 395D3206D5
+	by mail.kernel.org (Postfix) with ESMTPS id 5418520748
 	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Jun 2020 13:14:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 395D3206D5
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5418520748
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5A8F3100991A8;
+	by ml01.01.org (Postfix) with ESMTP id 7F264100983EF;
 	Sun,  7 Jun 2020 06:14:52 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BADB0100991A7
+	by ml01.01.org (Postfix) with ESMTPS id 014A1100991A7
 	for <linux-nvdimm@lists.01.org>; Sun,  7 Jun 2020 06:14:49 -0700 (PDT)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 057D2OC5165880;
-	Sun, 7 Jun 2020 09:14:06 -0400
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 057D1Vku178108;
+	Sun, 7 Jun 2020 09:14:19 -0400
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31g74s9qge-1
+	by mx0a-001b2d01.pphosted.com with ESMTP id 31gg8008dg-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 07 Jun 2020 09:14:06 -0400
-Received: from m0098421.ppops.net (m0098421.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 057D3QcX168785;
-	Sun, 7 Jun 2020 09:14:06 -0400
-Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31g74s9qg1-1
+	Sun, 07 Jun 2020 09:14:19 -0400
+Received: from m0187473.ppops.net (m0187473.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 057D2CqY179848;
+	Sun, 7 Jun 2020 09:14:19 -0400
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 31gg8008cw-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 07 Jun 2020 09:14:05 -0400
-Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
-	by ppma04fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 057D9vqv006051;
-	Sun, 7 Jun 2020 13:14:04 GMT
+	Sun, 07 Jun 2020 09:14:18 -0400
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+	by ppma03fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 057DA4sG001486;
+	Sun, 7 Jun 2020 13:14:16 GMT
 Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma04fra.de.ibm.com with ESMTP id 31g2s7rw50-1
+	by ppma03fra.de.ibm.com with ESMTP id 31g2s80vtd-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 07 Jun 2020 13:14:03 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 057DE1Vx64160092
+	Sun, 07 Jun 2020 13:14:16 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 057DEDb963897868
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Sun, 7 Jun 2020 13:14:01 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0191A4C044;
-	Sun,  7 Jun 2020 13:14:01 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BFDD54C040;
-	Sun,  7 Jun 2020 13:13:54 +0000 (GMT)
+	Sun, 7 Jun 2020 13:14:13 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2EAE611C04A;
+	Sun,  7 Jun 2020 13:14:13 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 0305B11C058;
+	Sun,  7 Jun 2020 13:14:09 +0000 (GMT)
 Received: from vajain21-in-ibm-com (unknown [9.85.68.227])
-	by d06av22.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Sun,  7 Jun 2020 13:13:54 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Sun, 07 Jun 2020 18:43:53 +0530
+	by d06av25.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Sun,  7 Jun 2020 13:14:08 +0000 (GMT)
+Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Sun, 07 Jun 2020 18:44:07 +0530
 From: Vaibhav Jain <vaibhav@linux.ibm.com>
 To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v11 2/6] seq_buf: Export seq_buf_printf
-Date: Sun,  7 Jun 2020 18:43:35 +0530
-Message-Id: <20200607131339.476036-3-vaibhav@linux.ibm.com>
+Subject: [PATCH v11 4/6] powerpc/papr_scm: Improve error logging and handling papr_scm_ndctl()
+Date: Sun,  7 Jun 2020 18:43:37 +0530
+Message-Id: <20200607131339.476036-5-vaibhav@linux.ibm.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200607131339.476036-1-vaibhav@linux.ibm.com>
 References: <20200607131339.476036-1-vaibhav@linux.ibm.com>
@@ -73,21 +73,21 @@ MIME-Version: 1.0
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
  definitions=2020-06-07_03:2020-06-04,2020-06-07 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 malwarescore=0
- mlxlogscore=999 spamscore=0 clxscore=1015 mlxscore=0 lowpriorityscore=0
- cotscore=-2147483648 adultscore=0 priorityscore=1501 suspectscore=0
- bulkscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 malwarescore=0
+ suspectscore=0 adultscore=0 spamscore=0 priorityscore=1501
+ lowpriorityscore=0 phishscore=0 impostorscore=0 clxscore=1015 bulkscore=0
+ mlxlogscore=999 cotscore=-2147483648 classifier=spam adjust=0 reason=mlx
  scancount=1 engine=8.12.0-2004280000 definitions=main-2006070096
-Message-ID-Hash: 7JZ7ZIGJDB5JXMFXVIJMBJNB5ZCEBGRB
-X-Message-ID-Hash: 7JZ7ZIGJDB5JXMFXVIJMBJNB5ZCEBGRB
+Message-ID-Hash: SJZFGTEY72XRKWDWJ45SYT3KHGK5MXBW
+X-Message-ID-Hash: SJZFGTEY72XRKWDWJ45SYT3KHGK5MXBW
 X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Steven Rostedt <rostedt@goodmis.org>, Piotr Maziarz <piotrx.maziarz@linux.intel.com>, Cezary Rojewski <cezary.rojewski@intel.com>, Christoph Hellwig <hch@infradead.org>, Borislav Petkov <bp@alien8.de>
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Steven Rostedt <rostedt@goodmis.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7JZ7ZIGJDB5JXMFXVIJMBJNB5ZCEBGRB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SJZFGTEY72XRKWDWJ45SYT3KHGK5MXBW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -96,64 +96,64 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-'seq_buf' provides a very useful abstraction for writing to a string
-buffer without needing to worry about it over-flowing. However even
-though the API has been stable for couple of years now its still not
-exported to kernel loadable modules limiting its usage.
+Since papr_scm_ndctl() can be called from outside papr_scm, its
+exposed to the possibility of receiving NULL as value of 'cmd_rc'
+argument. This patch updates papr_scm_ndctl() to protect against such
+possibility by assigning it pointer to a local variable in case cmd_rc
+== NULL.
 
-Hence this patch proposes update to 'seq_buf.c' to mark
-seq_buf_printf() which is part of the seq_buf API to be exported to
-kernel loadable GPL modules. This symbol will be used in later parts
-of this patch-set to simplify content creation for a sysfs attribute.
+Finally the patch also updates the 'default' add a debug log unknown
+'cmd' values.
 
-Cc: Piotr Maziarz <piotrx.maziarz@linux.intel.com>
-Cc: Cezary Rojewski <cezary.rojewski@intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Acked-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 ---
 Changelog:
 
 v10..v11:
-* None
+* Instead of returning *cmd_rd just return '0' in case nd_cmd is
+  handled. In case of unknown nd-cmd return -EINVAL
+  [ Ira and Dan Williams ]
+* Updated patch description.
 
-v9..v10:
-* None
-
-Resend:
-* Added ack from Steven Rostedt
-
-v8..v9:
-* None
-
-v7..v8:
-* Updated the patch title [ Christoph Hellwig ]
-* Updated patch description to replace confusing term 'external kernel
-  modules' to 'kernel lodable modules'.
-
-Resend:
-* Added ack from Steven Rostedt
-
-v6..v7:
+v9..v10
 * New patch in the series
 ---
- lib/seq_buf.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/platforms/pseries/papr_scm.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/lib/seq_buf.c b/lib/seq_buf.c
-index 4e865d42ab03..707453f5d58e 100644
---- a/lib/seq_buf.c
-+++ b/lib/seq_buf.c
-@@ -91,6 +91,7 @@ int seq_buf_printf(struct seq_buf *s, const char *fmt, ...)
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index 0c091622b15e..692ad3d79826 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -355,11 +355,16 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
+ {
+ 	struct nd_cmd_get_config_size *get_size_hdr;
+ 	struct papr_scm_priv *p;
++	int rc;
  
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(seq_buf_printf);
+ 	/* Only dimm-specific calls are supported atm */
+ 	if (!nvdimm)
+ 		return -EINVAL;
  
- #ifdef CONFIG_BINARY_PRINTF
- /**
++	/* Use a local variable in case cmd_rc pointer is NULL */
++	if (!cmd_rc)
++		cmd_rc = &rc;
++
+ 	p = nvdimm_provider_data(nvdimm);
+ 
+ 	switch (cmd) {
+@@ -381,6 +386,7 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
+ 		break;
+ 
+ 	default:
++		dev_dbg(&p->pdev->dev, "Unknown command = %d\n", cmd);
+ 		return -EINVAL;
+ 	}
+ 
 -- 
 2.26.2
 _______________________________________________
