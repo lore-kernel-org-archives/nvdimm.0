@@ -1,93 +1,103 @@
-Return-Path: <SRS0=IhP2=7U=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=guVe=7V=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9074C433E3
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Jun 2020 13:14:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA81DC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Jun 2020 07:43:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B3DD5206D5
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Jun 2020 13:14:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B3DD5206D5
+	by mail.kernel.org (Postfix) with ESMTPS id A69BD2076A
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Jun 2020 07:43:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A69BD2076A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 94DB310096C8A;
-	Sun,  7 Jun 2020 06:14:53 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+	by ml01.01.org (Postfix) with ESMTP id 92C9010109140;
+	Mon,  8 Jun 2020 00:43:15 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 599B5100991A7
-	for <linux-nvdimm@lists.01.org>; Sun,  7 Jun 2020 06:14:51 -0700 (PDT)
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 057D3QlV166080;
-	Sun, 7 Jun 2020 09:14:31 -0400
+	by ml01.01.org (Postfix) with ESMTPS id E39D510106A09
+	for <linux-nvdimm@lists.01.org>; Mon,  8 Jun 2020 00:43:12 -0700 (PDT)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0587ZFTq189619;
+	Mon, 8 Jun 2020 03:43:07 -0400
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31g5fb3h5v-1
+	by mx0a-001b2d01.pphosted.com with ESMTP id 31geq6mqtt-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 07 Jun 2020 09:14:31 -0400
-Received: from m0098396.ppops.net (m0098396.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 057D4opd173320;
-	Sun, 7 Jun 2020 09:14:31 -0400
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31g5fb3h5g-1
+	Mon, 08 Jun 2020 03:43:07 -0400
+Received: from m0098409.ppops.net (m0098409.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 0587aTBM194869;
+	Mon, 8 Jun 2020 03:43:06 -0400
+Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 31geq6mqt7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 07 Jun 2020 09:14:30 -0400
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 057D9veO027673;
-	Sun, 7 Jun 2020 13:14:28 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma05fra.de.ibm.com with ESMTP id 31g2s7rw07-1
+	Mon, 08 Jun 2020 03:43:06 -0400
+Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
+	by ppma01dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0587eplR024525;
+	Mon, 8 Jun 2020 07:43:05 GMT
+Received: from b01cxnp23033.gho.pok.ibm.com (b01cxnp23033.gho.pok.ibm.com [9.57.198.28])
+	by ppma01dal.us.ibm.com with ESMTP id 31g2s9as81-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Sun, 07 Jun 2020 13:14:28 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 057DEPVE51904620
+	Mon, 08 Jun 2020 07:43:05 +0000
+Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
+	by b01cxnp23033.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0587h4VB42336708
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Sun, 7 Jun 2020 13:14:25 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9D5A4A4055;
-	Sun,  7 Jun 2020 13:14:25 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 39629A4040;
-	Sun,  7 Jun 2020 13:14:21 +0000 (GMT)
-Received: from vajain21-in-ibm-com (unknown [9.85.68.227])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Sun,  7 Jun 2020 13:14:20 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Sun, 07 Jun 2020 18:44:19 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v11 6/6] powerpc/papr_scm: Implement support for PAPR_PDSM_HEALTH
-Date: Sun,  7 Jun 2020 18:43:39 +0530
-Message-Id: <20200607131339.476036-7-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20200607131339.476036-1-vaibhav@linux.ibm.com>
-References: <20200607131339.476036-1-vaibhav@linux.ibm.com>
+	Mon, 8 Jun 2020 07:43:04 GMT
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4A02AAE066;
+	Mon,  8 Jun 2020 07:43:04 +0000 (GMT)
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3D2C0AE05C;
+	Mon,  8 Jun 2020 07:43:01 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.85.88.17])
+	by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
+	Mon,  8 Jun 2020 07:43:00 +0000 (GMT)
+X-Mailer: emacs 27.0.91 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Jan Kara <jack@suse.cz>, "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: [RFC PATCH 1/2] libnvdimm: Add prctl control for disabling
+ synchronous fault support.
+In-Reply-To: <f8113a5b-be3b-3627-7535-ed2c9e0293f9@linux.ibm.com>
+References: <20200529054141.156384-1-aneesh.kumar@linux.ibm.com>
+ <20200529093310.GL25173@kitsune.suse.cz>
+ <6183cf4a-d134-99e5-936e-ef35f530c2ec@linux.ibm.com>
+ <20200529095250.GP14550@quack2.suse.cz>
+ <7e8ee9e3-4d4d-e4b9-913b-1c2448adc62a@linux.ibm.com>
+ <CAPcyv4jrss3dFcCOar3JTFnuN0_pgFNtBPiJzUdKxtiax6pPgQ@mail.gmail.com>
+ <7f163562-e7e3-7668-7415-c40e57c32582@linux.ibm.com>
+ <CAPcyv4i7k7t8is_6FKAWbWsGHVO0kvj-OqqqJTzw=VS7xtZVvQ@mail.gmail.com>
+ <20200601095049.GB3960@quack2.suse.cz>
+ <BN6PR11MB41328EB6F894DB391DC09DAEC68B0@BN6PR11MB4132.namprd11.prod.outlook.com>
+ <20200603082628.GE19165@quack2.suse.cz>
+ <f8113a5b-be3b-3627-7535-ed2c9e0293f9@linux.ibm.com>
+Date: Mon, 08 Jun 2020 13:12:58 +0530
+Message-ID: <877dwi9f5p.fsf@linux.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
- definitions=2020-06-07_03:2020-06-04,2020-06-07 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1015
- priorityscore=1501 mlxscore=0 spamscore=0 mlxlogscore=999 malwarescore=0
- lowpriorityscore=0 suspectscore=0 phishscore=0 cotscore=-2147483648
- bulkscore=0 impostorscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2004280000 definitions=main-2006070100
-Message-ID-Hash: JUDQ43XEDWGJGVHK6OR2JV4LS6LJJ2T3
-X-Message-ID-Hash: JUDQ43XEDWGJGVHK6OR2JV4LS6LJJ2T3
-X-MailFrom: vaibhav@linux.ibm.com
+ definitions=2020-06-08_03:2020-06-08,2020-06-08 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 spamscore=0
+ impostorscore=0 clxscore=1015 mlxscore=0 lowpriorityscore=0 adultscore=0
+ malwarescore=0 suspectscore=0 mlxlogscore=999 cotscore=-2147483648
+ phishscore=0 priorityscore=1501 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2006080053
+Message-ID-Hash: AIPTTWKFXLXZVQ4N5X7DP2M4QOP3MVP6
+X-Message-ID-Hash: AIPTTWKFXLXZVQ4N5X7DP2M4QOP3MVP6
+X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Steven Rostedt <rostedt@goodmis.org>
+CC: Michal =?utf-8?Q?Such=C3=A1nek?= <msuchanek@suse.de>, "jack@suse.de" <jack@suse.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JUDQ43XEDWGJGVHK6OR2JV4LS6LJJ2T3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AIPTTWKFXLXZVQ4N5X7DP2M4QOP3MVP6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -96,251 +106,113 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch implements support for PDSM request 'PAPR_PDSM_HEALTH'
-that returns a newly introduced 'struct nd_papr_pdsm_health' instance
-containing dimm health information back to user space in response to
-ND_CMD_CALL. This functionality is implemented in newly introduced
-papr_pdsm_health() that queries the nvdimm health information and
-then copies this information to the package payload whose layout is
-defined by 'struct nd_papr_pdsm_health'.
 
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
-Changelog:
 
-v10..v11:
-* Changed the definition of 'struct nd_papr_pdsm_health' to a maximal
-  struct 184 bytes in size [ Dan Williams ]
-* Added new field 'extension_flags' to 'struct nd_papr_pdsm_health'
-  [ Dan Williams ]
-* Updated papr_pdsm_health() to set field 'extension_flags' to 0.
-* Introduced a define ND_PDSM_PAYLOAD_MAX_SIZE that indicates the
-  maximum size of a payload.
-* Fixed a suspicious conversion from u64 to u8 in papr_pdsm_health
-  that was preventing correct initialization of 'struct
-  nd_papr_pdsm_health'. [ Ira ]
+"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
 
-v9..v10:
-* Removed code in papr_pdsm_health that performed validation on pdsm
-  payload version and corrosponding struct and defines used for
-  validation of payload version.
-* Dropped usage of struct papr_pdsm_health in 'struct
-  papr_scm_priv'. Instead papr_psdm_health() now uses
-  'papr_scm_priv.health_bitmap' to populate the pdsm payload.
-* Above change also fixes the problem where this patch was removing
-  the code that was previously introduced in this patch-series.
-  [ Ira ]
-* Introduced a new def ND_PDSM_ENVELOPE_HDR_SIZE that indicates the
-  space allocated to 'struct nd_pdsm_cmd_pkg' fields except 'struct
-  nd_cmd_pkg'. This def is useful in validating payload sizes.
-* Reworked papr_pdsm_health() to enforce a specific payload size for
-  'PAPR_PDSM_HEALTH' pdsm request.
+> On 6/3/20 1:56 PM, Jan Kara wrote:
+>> On Tue 02-06-20 17:59:08, Williams, Dan J wrote:
+>>> [ forgive formatting, a series of unfortunate events has me using Outlook for the moment ]
+>>>
+>>>> From: Jan Kara <jack@suse.cz>
+>>>>>>> These flags are device properties that affect the kernel and
+>>>>>>> userspace's handling of persistence.
+>>>>>>>
+>>>>>>
+>>>>>> That will not handle the scenario with multiple applications using
+>>>>>> the same fsdax mount point where one is updated to use the new
+>>>>>> instruction and the other is not.
+>>>>>
+>>>>> Right, it needs to be a global setting / flag day to switch from one
+>>>>> regime to another. Per-process control is a recipe for disaster.
+>>>>
+>>>> First I'd like to mention that hopefully the concern is mostly theoretical since
+>>>> as Aneesh wrote above, real persistent memory never shipped for PPC and
+>>>> so there are very few apps (if any) using the old way to ensure cache
+>>>> flushing.
+>>>>
+>>>> But I'd like to understand why do you think per-process control is a recipe for
+>>>> disaster? Because from my POV the sysfs interface you propose is actually
+>>>> difficult to use in practice. As a distributor, you have hard time picking the
+>>>> default because you have a choice between picking safe option which is
+>>>> going to confuse users because of failing MAP_SYNC and unsafe option
+>>>> where everyone will be happy until someone looses data because of some
+>>>> ancient application using wrong instructions to persist data. Poor experience
+>>>> for users in either way. And when distro defaults to "safe option", then the
+>>>> burden is on the sysadmin to toggle the switch but how is he supposed to
+>>>> decide when that is safe? First he has to understand what the problem
+>>>> actually is, then he has to audit all the applications using pmem whether they
+>>>> use the new instruction - which is IMO a lot of effort if you have a couple of
+>>>> applications and practically infeasible if you have more of them.
+>>>> So IMO the burden should be *on the application* to declare that it is aware
+>>>> of the new instructions to flush pmem on the platform and only to such
+>>>> application the kernel should give the trust to use MAP_SYNC mappings.
+>>>
+>>> The "disaster" in my mind is this need to globally change the ABI for
+>>> persistence semantics for all of Linux because one CPU wants a do over.
+>>> What does a generic "MAP_SYNC_ENABLE" knob even mean to the existing
+>>> deployed base of persistent memory applications? Yes, sysfs is awkward,
+>>> but it's trying to provide some relief without imposing unexplainable
+>>> semantics on everyone else. I think a comprehensive (overengineered)
+>>> solution would involve not introducing another "I know what I'm doing"
+>>> flag to the interface, but maybe requiring applications to call a pmem
+>>> sync API in something like a vsyscall. Or, also overengineered, some
+>>> binary translation / interpretation to actively detect and kill
+>>> applications that deploy the old instructions. Something horrid like on
+>>> first write fault to a MAP_SYNC try to look ahead in the binary for the
+>>> correct sync sequence and kill the application otherwise. That would at
+>>> least provide some enforcement and safety without requiring other
+>>> architectures to consider what MAP_SYNC_ENABLE means to them.
+>> 
+>> Thanks for explanation. So I absolutely agree that other architectures (and
+>> even older versions of POWER architecture) must not be influenced by the new
+>> tunable. That's why I wrote in my reply to Aneesh that I'd be for checking
+>> during mmap(2) with MAP_SYNC, whether we are in a situation where new PPC
+>> flush instructions are required and *only in that case* decide based on the
+>> prctl value whether MAP_SYNC should be allowed or not.
+>> 
+>
+> v2 version of the patch series does that
+>
+> https://lore.kernel.org/linuxppc-dev/20200602074909.36738-1-aneesh.kumar@linux.ibm.com/
+>
+>> Whether this solution is overengineering or not depends on how you think
+>> it's likely there will be applications trying to use old flush instructions
+>> with MAP_SYNC on POWER10 platforms...
+>> 
+>
+> Now considering that with ppc64 we never had a real persistent memory 
+> device available for the end-user to try and the new instructions are 
+> only needed on newer hardware, can we assume we have enough time to get 
+> the userspace to use new instructions?
+>
+> As a safety net, we can keep the dax device-specific sysfs control. But 
+> in reality, by the time newer hardware gets released, we can get the 
+> distributions updated to flip the CONFIG_ARCH_MAP_SYNC_DISABLE=n?
+>
+> With this:
+> 1) vPMEM continues to work and since it is a volatile region. That 
+> doesn't need any flush instructions.
+>
+> 2) We get pmdk and other user applications updated to use new 
+> instructions and make sure updated packages are made available to all 
+> distributions
+>
+> 3) On newer hardware, the device will appear with a new compat string. 
+> Hence older distributions won't initialize pmem on newer hardware.
+>
+> 4) If we have a newer kernel with an older distro, we use the per 
+> namespace sysfs knob that prevents the usage of MAP_SYNC.
+>
+> 5) After a year or so we mark the CONFIG_ARCH_MAP_SYNC_DISABLE=n
+> on ppc64 when we are confident that everybody is using the new flush 
+> instruction.
+>
 
-Resend:
-* Added ack from Aneesh.
+Is this approach ok for distributions? If so I can repost the series
+dropping the prctl change.
 
-v8..v9:
-* s/PAPR_SCM_PDSM_HEALTH/PAPR_PDSM_HEALTH/g  [ Dan , Aneesh ]
-* s/PAPR_SCM_PSDM_DIMM_*/PAPR_PDSM_DIMM_*/g
-* Renamed papr_scm_get_health() to papr_psdm_health()
-* Updated patch description to replace papr-scm dimm with nvdimm.
-
-v7..v8:
-* None
-
-Resend:
-* None
-
-v6..v7:
-* Updated flags_show() to use seq_buf_printf(). [Mpe]
-* Updated papr_scm_get_health() to use newly introduced
-  __drc_pmem_query_health() bypassing the cache [Mpe].
-
-v5..v6:
-* Added attribute '__packed' to 'struct nd_papr_pdsm_health_v1' to
-  gaurd against possibility of different compilers adding different
-  paddings to the struct [ Dan Williams ]
-
-* Updated 'struct nd_papr_pdsm_health_v1' to use __u8 instead of
-  'bool' and also updated drc_pmem_query_health() to take this into
-  account. [ Dan Williams ]
-
-v4..v5:
-* None
-
-v3..v4:
-* Call the DSM_PAPR_SCM_HEALTH service function from
-  papr_scm_service_dsm() instead of papr_scm_ndctl(). [Aneesh]
-
-v2..v3:
-* Updated struct nd_papr_scm_dimm_health_stat_v1 to use '__xx' types
-  as its exported to the userspace [Aneesh]
-* Changed the constants DSM_PAPR_SCM_DIMM_XX indicating dimm health
-  from enum to #defines [Aneesh]
-
-v1..v2:
-* New patch in the series
----
- arch/powerpc/include/uapi/asm/papr_pdsm.h | 43 ++++++++++++++
- arch/powerpc/platforms/pseries/papr_scm.c | 71 +++++++++++++++++++++++
- 2 files changed, 114 insertions(+)
-
-diff --git a/arch/powerpc/include/uapi/asm/papr_pdsm.h b/arch/powerpc/include/uapi/asm/papr_pdsm.h
-index df2447455cfe..12c7aa5ee8bf 100644
---- a/arch/powerpc/include/uapi/asm/papr_pdsm.h
-+++ b/arch/powerpc/include/uapi/asm/papr_pdsm.h
-@@ -72,13 +72,56 @@ struct nd_pdsm_cmd_pkg {
- 	__u8 payload[];		/* In/Out: Sub-cmd data buffer */
- } __packed;
- 
-+/* Calculate size used by the pdsm header fields minus 'struct nd_cmd_pkg' */
-+#define ND_PDSM_HDR_SIZE \
-+	(sizeof(struct nd_pdsm_cmd_pkg) - sizeof(struct nd_cmd_pkg))
-+
-+/* Max payload size that we can handle */
-+#define ND_PDSM_PAYLOAD_MAX_SIZE 184
-+
- /*
-  * Methods to be embedded in ND_CMD_CALL request. These are sent to the kernel
-  * via 'nd_pdsm_cmd_pkg.hdr.nd_command' member of the ioctl struct
-  */
- enum papr_pdsm {
- 	PAPR_PDSM_MIN = 0x0,
-+	PAPR_PDSM_HEALTH,
- 	PAPR_PDSM_MAX,
- };
- 
-+/* Various nvdimm health indicators */
-+#define PAPR_PDSM_DIMM_HEALTHY       0
-+#define PAPR_PDSM_DIMM_UNHEALTHY     1
-+#define PAPR_PDSM_DIMM_CRITICAL      2
-+#define PAPR_PDSM_DIMM_FATAL         3
-+
-+/*
-+ * Struct exchanged between kernel & ndctl in for PAPR_PDSM_HEALTH
-+ * Various flags indicate the health status of the dimm.
-+ *
-+ * extension_flags	: Any extension fields present in the struct.
-+ * dimm_unarmed		: Dimm not armed. So contents wont persist.
-+ * dimm_bad_shutdown	: Previous shutdown did not persist contents.
-+ * dimm_bad_restore	: Contents from previous shutdown werent restored.
-+ * dimm_scrubbed	: Contents of the dimm have been scrubbed.
-+ * dimm_locked		: Contents of the dimm cant be modified until CEC reboot
-+ * dimm_encrypted	: Contents of dimm are encrypted.
-+ * dimm_health		: Dimm health indicator. One of PAPR_PDSM_DIMM_XXXX
-+ */
-+struct nd_papr_pdsm_health {
-+	union {
-+		struct {
-+			__u32 extension_flags;
-+			__u8 dimm_unarmed;
-+			__u8 dimm_bad_shutdown;
-+			__u8 dimm_bad_restore;
-+			__u8 dimm_scrubbed;
-+			__u8 dimm_locked;
-+			__u8 dimm_encrypted;
-+			__u16 dimm_health;
-+		};
-+		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
-+	};
-+} __packed;
-+
- #endif /* _UAPI_ASM_POWERPC_PAPR_PDSM_H_ */
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 167fcf0e249d..047ca6bd26a9 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -436,6 +436,73 @@ static int is_cmd_valid(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 	return 0;
- }
- 
-+/* Fetch the DIMM health info and populate it in provided package. */
-+static int papr_pdsm_health(struct papr_scm_priv *p,
-+			    struct nd_pdsm_cmd_pkg *pkg)
-+{
-+	int rc;
-+	struct nd_papr_pdsm_health health = { 0 };
-+	u16 copysize = sizeof(struct nd_papr_pdsm_health);
-+	u16 payload_size = pkg->hdr.nd_size_out - ND_PDSM_HDR_SIZE;
-+
-+	/* Ensure correct payload size that can hold struct nd_papr_pdsm_health */
-+	if (payload_size != copysize) {
-+		dev_dbg(&p->pdev->dev,
-+			"Unexpected payload-size (%u). Expected (%u)",
-+			pkg->hdr.nd_size_out, copysize);
-+		rc = -ENOSPC;
-+		goto out;
-+	}
-+
-+	/* Ensure dimm health mutex is taken preventing concurrent access */
-+	rc = mutex_lock_interruptible(&p->health_mutex);
-+	if (rc)
-+		goto out;
-+
-+	/* Always fetch upto date dimm health data ignoring cached values */
-+	rc = __drc_pmem_query_health(p);
-+	if (rc) {
-+		mutex_unlock(&p->health_mutex);
-+		goto out;
-+	}
-+
-+	/* update health struct with various flags derived from health bitmap */
-+	health = (struct nd_papr_pdsm_health) {
-+		.extension_flags = 0,
-+		.dimm_unarmed = !!(p->health_bitmap & PAPR_PMEM_UNARMED_MASK),
-+		.dimm_bad_shutdown = !!(p->health_bitmap & PAPR_PMEM_BAD_SHUTDOWN_MASK),
-+		.dimm_bad_restore = !!(p->health_bitmap & PAPR_PMEM_BAD_RESTORE_MASK),
-+		.dimm_encrypted = !!(p->health_bitmap & PAPR_PMEM_ENCRYPTED),
-+		.dimm_locked = !!(p->health_bitmap & PAPR_PMEM_SCRUBBED_AND_LOCKED),
-+		.dimm_scrubbed = !!(p->health_bitmap & PAPR_PMEM_SCRUBBED_AND_LOCKED),
-+		.dimm_health = PAPR_PDSM_DIMM_HEALTHY,
-+	};
-+
-+	/* Update field dimm_health based on health_bitmap flags */
-+	if (p->health_bitmap & PAPR_PMEM_HEALTH_FATAL)
-+		health.dimm_health = PAPR_PDSM_DIMM_FATAL;
-+	else if (p->health_bitmap & PAPR_PMEM_HEALTH_CRITICAL)
-+		health.dimm_health = PAPR_PDSM_DIMM_CRITICAL;
-+	else if (p->health_bitmap & PAPR_PMEM_HEALTH_UNHEALTHY)
-+		health.dimm_health = PAPR_PDSM_DIMM_UNHEALTHY;
-+
-+	/* struct populated hence can release the mutex now */
-+	mutex_unlock(&p->health_mutex);
-+
-+	dev_dbg(&p->pdev->dev, "Copying payload size=%u\n", copysize);
-+
-+	/* Copy the health struct to the payload */
-+	memcpy(pdsm_cmd_to_payload(pkg), &health, copysize);
-+
-+	/* Update fw size including size of struct nd_pdsm_cmd_pkg fields */
-+	pkg->hdr.nd_fw_size = copysize + ND_PDSM_HDR_SIZE;
-+
-+out:
-+	dev_dbg(&p->pdev->dev, "completion code = %d\n", rc);
-+
-+	return rc;
-+}
-+
- /*
-  * For a given pdsm request call an appropriate service function.
-  * Returns errors if any while handling the pdsm command package.
-@@ -449,6 +516,10 @@ static int papr_scm_service_pdsm(struct papr_scm_priv *p,
- 
- 	/* Call pdsm service function */
- 	switch (pdsm) {
-+	case PAPR_PDSM_HEALTH:
-+		pkg->cmd_status = papr_pdsm_health(p, pkg);
-+		break;
-+
- 	default:
- 		dev_dbg(&p->pdev->dev, "PDSM[0x%x]: Unsupported PDSM request\n",
- 			pdsm);
--- 
-2.26.2
+-aneesh
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
