@@ -1,152 +1,116 @@
-Return-Path: <SRS0=guVe=7V=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=wyIz=7W=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	INCLUDES_PATCH,LOTS_OF_MONEY,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=DATE_IN_PAST_06_12,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B09C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Jun 2020 23:15:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B9F6C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  9 Jun 2020 00:15:33 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DF1F3207C3
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Jun 2020 23:15:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="i9/1dbXI"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DF1F3207C3
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id ED00A20823
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  9 Jun 2020 00:15:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ED00A20823
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BD3A1100AA7B4;
-	Mon,  8 Jun 2020 16:15:57 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id E984D100978C9;
+	Mon,  8 Jun 2020 17:15:32 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.93; helo=mga11.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 084BD10112D73
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Jun 2020 16:15:54 -0700 (PDT)
-Received: from sasha-vm.mshome.net (c-73-47-72-35.hsd1.nh.comcast.net [73.47.72.35])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id ACE242076A;
-	Mon,  8 Jun 2020 23:15:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1591658154;
-	bh=RyU8bCmCzVxSV2P47dF/Ddb+fy18hma9gz8vKz6FU4k=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=i9/1dbXIPdp39E9OwOyyPDCNsWx1RMQtvSu4w8JY168NaNjgKA7aGG3jocoAtfWyI
-	 BI12xEQxIl+fdlB13lw2LzoNUV9qwQRDMcRINzhHaD9iW31bse4zkdzp5eD9jnvDES
-	 ax7s4S5MTgb3aJWWj4BtGdTquH+0RtmvgX7BYP5s=
-From: Sasha Levin <sashal@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.6 186/606] device-dax: don't leak kernel memory to user space after unloading kmem
-Date: Mon,  8 Jun 2020 19:05:11 -0400
-Message-Id: <20200608231211.3363633-186-sashal@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
-References: <20200608231211.3363633-1-sashal@kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 83770100AA7B6;
+	Mon,  8 Jun 2020 17:15:28 -0700 (PDT)
+IronPort-SDR: SCcSq1a55xLj98I/dz2S3vD6bljAq1/sfcZ/cM2pDKdYMN9W0Kay6+/svdspV2LKSJM91sBx/5
+ TJmWD8DaOtqA==
+X-Amp-Result: UNKNOWN
+X-Amp-Original-Verdict: FILE UNKNOWN
+X-Amp-File-Uploaded: False
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2020 17:15:27 -0700
+IronPort-SDR: 9vr7aqJAg3E47iSIIgP7ZRXugz/ov06k6VkCmJI0LPSVGM90SmUd7P7uBCpdzwWbe5v1vq+RXR
+ 067/fP6IAz+A==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,489,1583222400";
+   d="gz'50?scan'50,208,50";a="306102918"
+Received: from lkp-server01.sh.intel.com (HELO 12d5c0ac8e64) ([10.239.97.150])
+  by orsmga008.jf.intel.com with ESMTP; 08 Jun 2020 17:15:22 -0700
+Received: from kbuild by 12d5c0ac8e64 with local (Exim 4.92)
+	(envelope-from <lkp@intel.com>)
+	id 1jiRvF-00004r-GG; Tue, 09 Jun 2020 00:15:21 +0000
+Date: Tue, 9 Jun 2020 00:59:56 +0800
+From: kernel test robot <lkp@intel.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org,
+	linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v11 5/6] ndctl/papr_scm,uapi: Add support for PAPR nvdimm
+ specific methods
+Message-ID: <202006090059.o4CE5D9b%lkp@intel.com>
+References: <20200607131339.476036-6-vaibhav@linux.ibm.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Message-ID-Hash: BABLJUMGFDM5GMJLRLA4P4W4R5ZM4ETY
-X-Message-ID-Hash: BABLJUMGFDM5GMJLRLA4P4W4R5ZM4ETY
-X-MailFrom: sashal@kernel.org
+In-Reply-To: <20200607131339.476036-6-vaibhav@linux.ibm.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: 54MCY32JXBM3L2TGQMEKNYLF26Y563QR
+X-Message-ID-Hash: 54MCY32JXBM3L2TGQMEKNYLF26Y563QR
+X-MailFrom: lkp@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Pavel Tatashin <pasha.tatashin@soleen.com>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-nvdimm@lists.01.org
+Content-Disposition: inline
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: kbuild-all@lists.01.org, clang-built-linux@googlegroups.com, Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Steven Rostedt <rostedt@goodmis.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BABLJUMGFDM5GMJLRLA4P4W4R5ZM4ETY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/54MCY32JXBM3L2TGQMEKNYLF26Y563QR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-RnJvbTogRGF2aWQgSGlsZGVuYnJhbmQgPGRhdmlkQHJlZGhhdC5jb20+DQoNCmNvbW1pdCA2MDg1
-OGMwMGU1ZjAxOGVkYTcxMWEzYWE4NGNmNjIyMTRlZjYyZDYxIHVwc3RyZWFtLg0KDQpBc3N1bWUg
-d2UgaGF2ZSBrbWVtIGNvbmZpZ3VyZWQgYW5kIGxvYWRlZDoNCg0KICBbcm9vdEBsb2NhbGhvc3Qg
-fl0jIGNhdCAvcHJvYy9pb21lbQ0KICAuLi4NCiAgMTQwMDAwMDAwLTMzZmZmZmZmZiA6IFBlcnNp
-c3RlbnQgTWVtb3J5JA0KICAgIDE0MDAwMDAwMC0xNDgxZmZmZmYgOiBuYW1lc3BhY2UwLjANCiAg
-ICAxNTAwMDAwMDAtMzNmZmZmZmZmIDogZGF4MC4wDQogICAgICAxNTAwMDAwMDAtMzNmZmZmZmZm
-IDogU3lzdGVtIFJBTQ0KDQpBc3N1bWUgd2UgdHJ5IHRvIHVubG9hZCBrbWVtLiBUaGlzIGZvcmNl
-LXVubG9hZGluZyB3aWxsIHdvcmssIGV2ZW4gaWYNCm1lbW9yeSBjYW5ub3QgZ2V0IHJlbW92ZWQg
-ZnJvbSB0aGUgc3lzdGVtLg0KDQogIFtyb290QGxvY2FsaG9zdCB+XSMgcm1tb2Qga21lbQ0KICBb
-ICAgODYuMzgwMjI4XSByZW1vdmluZyBtZW1vcnkgZmFpbHMsIGJlY2F1c2UgbWVtb3J5IFsweDAw
-MDAwMDAxNTAwMDAwMDAtMHgwMDAwMDAwMTU3ZmZmZmZmXSBpcyBvbmxpbmVkDQogIC4uLg0KICBb
-ICAgODYuNDMxMjI1XSBrbWVtIGRheDAuMDogREFYIHJlZ2lvbiBbbWVtIDB4MTUwMDAwMDAwLTB4
-MzNmZmZmZmZmXSBjYW5ub3QgYmUgaG90cmVtb3ZlZCB1bnRpbCB0aGUgbmV4dCByZWJvb3QNCg0K
-Tm93LCB3ZSBjYW4gcmVjb25maWd1cmUgdGhlIG5hbWVzcGFjZToNCg0KICBbcm9vdEBsb2NhbGhv
-c3Qgfl0jIG5kY3RsIGNyZWF0ZS1uYW1lc3BhY2UgLS1mb3JjZSAtLXJlY29uZmlnPW5hbWVzcGFj
-ZTAuMCAtLW1vZGU9ZGV2ZGF4DQogIFsgIDEzMS40MDkzNTFdIG5kX3BtZW0gbmFtZXNwYWNlMC4w
-OiBjb3VsZCBub3QgcmVzZXJ2ZSByZWdpb24gW21lbSAweDE0MDAwMDAwMC0weDMzZmZmZmZmZl1k
-YXgNCiAgWyAgMTMxLjQxMDE0N10gbmRfcG1lbTogcHJvYmUgb2YgbmFtZXNwYWNlMC4wIGZhaWxl
-ZCB3aXRoIGVycm9yIC0xNm5hbWVzcGFjZTAuMCAtLW1vZGU9ZGV2ZGF4DQogIC4uLg0KDQpUaGlz
-IGZhaWxzIGFzIGV4cGVjdGVkIGR1ZSB0byB0aGUgYnVzeSBtZW1vcnkgcmVzb3VyY2UsIGFuZCB0
-aGUgbWVtb3J5DQpjYW5ub3QgYmUgdXNlZC4gIEhvd2V2ZXIsIHRoZSBkYXgwLjAgZGV2aWNlIGlz
-IHJlbW92ZWQsIGFuZCBhbG9uZyBpdHMNCm5hbWUuDQoNClRoZSBuYW1lIG9mIHRoZSBtZW1vcnkg
-cmVzb3VyY2Ugbm93IHBvaW50cyBhdCBmcmVlZCBtZW1vcnkgKG5hbWUgb2YgdGhlDQpkZXZpY2Up
-Og0KDQogIFtyb290QGxvY2FsaG9zdCB+XSMgY2F0IC9wcm9jL2lvbWVtDQogIC4uLg0KICAxNDAw
-MDAwMDAtMzNmZmZmZmZmIDogUGVyc2lzdGVudCBNZW1vcnkNCiAgICAxNDAwMDAwMDAtMTQ4MWZm
-ZmZmIDogbmFtZXNwYWNlMC4wDQogICAgMTUwMDAwMDAwLTMzZmZmZmZmZiA6IO+/vV/vv71eN1/v
-v73vv70vX++/ve+/vXdS77+977+9V1Hvv73vv73vv71e77+977+977+9IC4uLg0KICAgIDE1MDAw
-MDAwMC0zM2ZmZmZmZmYgOiBTeXN0ZW0gUkFNDQoNCldlIGhhdmUgdG8gbWFrZSBzdXJlIHRvIGR1
-cGxpY2F0ZSB0aGUgc3RyaW5nLiAgV2hpbGUgYXQgaXQsIHJlbW92ZSB0aGUNCnN1cGVyZmx1b3Vz
-IHNldHRpbmcgb2YgdGhlIG5hbWUgYW5kIGZpeHVwIGEgc3RhbGUgY29tbWVudC4NCg0KRml4ZXM6
-IDlmOTYwZGE3MmIyNSAoImRldmljZS1kYXg6ICJIb3RyZW1vdmUiIHBlcnNpc3RlbnQgbWVtb3J5
-IHRoYXQgaXMgdXNlZCBsaWtlIG5vcm1hbCBSQU0iKQ0KU2lnbmVkLW9mZi1ieTogRGF2aWQgSGls
-ZGVuYnJhbmQgPGRhdmlkQHJlZGhhdC5jb20+DQpTaWduZWQtb2ZmLWJ5OiBBbmRyZXcgTW9ydG9u
-IDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
-bGlhbXNAaW50ZWwuY29tPg0KQ2M6IFZpc2hhbCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwu
-Y29tPg0KQ2M6IERhdmUgSmlhbmcgPGRhdmUuamlhbmdAaW50ZWwuY29tPg0KQ2M6IFBhdmVsIFRh
-dGFzaGluIDxwYXNoYS50YXRhc2hpbkBzb2xlZW4uY29tPg0KQ2M6IEFuZHJldyBNb3J0b24gPGFr
-cG1AbGludXgtZm91bmRhdGlvbi5vcmc+DQpDYzogPHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmc+CVs1
-LjNdDQpMaW5rOiBodHRwOi8vbGttbC5rZXJuZWwub3JnL3IvMjAyMDA1MDgwODQyMTcuOTE2MC0y
-LWRhdmlkQHJlZGhhdC5jb20NClNpZ25lZC1vZmYtYnk6IExpbnVzIFRvcnZhbGRzIDx0b3J2YWxk
-c0BsaW51eC1mb3VuZGF0aW9uLm9yZz4NClNpZ25lZC1vZmYtYnk6IEdyZWcgS3JvYWgtSGFydG1h
-biA8Z3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc+DQotLS0NCiBkcml2ZXJzL2RheC9rbWVtLmMg
-fCAxNCArKysrKysrKysrKy0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCAz
-IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kYXgva21lbS5jIGIvZHJpdmVy
-cy9kYXgva21lbS5jDQppbmRleCAzZDBhN2U3MDJjOTQuLjFlNjc4YmRmNWFlZCAxMDA2NDQNCi0t
-LSBhL2RyaXZlcnMvZGF4L2ttZW0uYw0KKysrIGIvZHJpdmVycy9kYXgva21lbS5jDQpAQCAtMjIs
-NiArMjIsNyBAQCBpbnQgZGV2X2RheF9rbWVtX3Byb2JlKHN0cnVjdCBkZXZpY2UgKmRldikNCiAJ
-cmVzb3VyY2Vfc2l6ZV90IGttZW1fc2l6ZTsNCiAJcmVzb3VyY2Vfc2l6ZV90IGttZW1fZW5kOw0K
-IAlzdHJ1Y3QgcmVzb3VyY2UgKm5ld19yZXM7DQorCWNvbnN0IGNoYXIgKm5ld19yZXNfbmFtZTsN
-CiAJaW50IG51bWFfbm9kZTsNCiAJaW50IHJjOw0KIA0KQEAgLTQ4LDExICs0OSwxNiBAQCBpbnQg
-ZGV2X2RheF9rbWVtX3Byb2JlKHN0cnVjdCBkZXZpY2UgKmRldikNCiAJa21lbV9zaXplICY9IH4o
-bWVtb3J5X2Jsb2NrX3NpemVfYnl0ZXMoKSAtIDEpOw0KIAlrbWVtX2VuZCA9IGttZW1fc3RhcnQg
-KyBrbWVtX3NpemU7DQogDQotCS8qIFJlZ2lvbiBpcyBwZXJtYW5lbnRseSByZXNlcnZlZC4gIEhv
-dC1yZW1vdmUgbm90IHlldCBpbXBsZW1lbnRlZC4gKi8NCi0JbmV3X3JlcyA9IHJlcXVlc3RfbWVt
-X3JlZ2lvbihrbWVtX3N0YXJ0LCBrbWVtX3NpemUsIGRldl9uYW1lKGRldikpOw0KKwluZXdfcmVz
-X25hbWUgPSBrc3RyZHVwKGRldl9uYW1lKGRldiksIEdGUF9LRVJORUwpOw0KKwlpZiAoIW5ld19y
-ZXNfbmFtZSkNCisJCXJldHVybiAtRU5PTUVNOw0KKw0KKwkvKiBSZWdpb24gaXMgcGVybWFuZW50
-bHkgcmVzZXJ2ZWQgaWYgaG90cmVtb3ZlIGZhaWxzLiAqLw0KKwluZXdfcmVzID0gcmVxdWVzdF9t
-ZW1fcmVnaW9uKGttZW1fc3RhcnQsIGttZW1fc2l6ZSwgbmV3X3Jlc19uYW1lKTsNCiAJaWYgKCFu
-ZXdfcmVzKSB7DQogCQlkZXZfd2FybihkZXYsICJjb3VsZCBub3QgcmVzZXJ2ZSByZWdpb24gWyVw
-YS0lcGFdXG4iLA0KIAkJCSAma21lbV9zdGFydCwgJmttZW1fZW5kKTsNCisJCWtmcmVlKG5ld19y
-ZXNfbmFtZSk7DQogCQlyZXR1cm4gLUVCVVNZOw0KIAl9DQogDQpAQCAtNjMsMTIgKzY5LDEyIEBA
-IGludCBkZXZfZGF4X2ttZW1fcHJvYmUoc3RydWN0IGRldmljZSAqZGV2KQ0KIAkgKiB1bmtub3du
-IHRvIHVzIHRoYXQgd2lsbCBicmVhayBhZGRfbWVtb3J5KCkgYmVsb3cuDQogCSAqLw0KIAluZXdf
-cmVzLT5mbGFncyA9IElPUkVTT1VSQ0VfU1lTVEVNX1JBTTsNCi0JbmV3X3Jlcy0+bmFtZSA9IGRl
-dl9uYW1lKGRldik7DQogDQogCXJjID0gYWRkX21lbW9yeShudW1hX25vZGUsIG5ld19yZXMtPnN0
-YXJ0LCByZXNvdXJjZV9zaXplKG5ld19yZXMpKTsNCiAJaWYgKHJjKSB7DQogCQlyZWxlYXNlX3Jl
-c291cmNlKG5ld19yZXMpOw0KIAkJa2ZyZWUobmV3X3Jlcyk7DQorCQlrZnJlZShuZXdfcmVzX25h
-bWUpOw0KIAkJcmV0dXJuIHJjOw0KIAl9DQogCWRldl9kYXgtPmRheF9rbWVtX3JlcyA9IG5ld19y
-ZXM7DQpAQCAtODMsNiArODksNyBAQCBzdGF0aWMgaW50IGRldl9kYXhfa21lbV9yZW1vdmUoc3Ry
-dWN0IGRldmljZSAqZGV2KQ0KIAlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9IGRldl9kYXgtPmRheF9r
-bWVtX3JlczsNCiAJcmVzb3VyY2Vfc2l6ZV90IGttZW1fc3RhcnQgPSByZXMtPnN0YXJ0Ow0KIAly
-ZXNvdXJjZV9zaXplX3Qga21lbV9zaXplID0gcmVzb3VyY2Vfc2l6ZShyZXMpOw0KKwljb25zdCBj
-aGFyICpyZXNfbmFtZSA9IHJlcy0+bmFtZTsNCiAJaW50IHJjOw0KIA0KIAkvKg0KQEAgLTEwMiw2
-ICsxMDksNyBAQCBzdGF0aWMgaW50IGRldl9kYXhfa21lbV9yZW1vdmUoc3RydWN0IGRldmljZSAq
-ZGV2KQ0KIAkvKiBSZWxlYXNlIGFuZCBmcmVlIGRheCByZXNvdXJjZXMgKi8NCiAJcmVsZWFzZV9y
-ZXNvdXJjZShyZXMpOw0KIAlrZnJlZShyZXMpOw0KKwlrZnJlZShyZXNfbmFtZSk7DQogCWRldl9k
-YXgtPmRheF9rbWVtX3JlcyA9IE5VTEw7DQogDQogCXJldHVybiAwOw0KLS0gDQoyLjI1LjENCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGlt
-bSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmli
-ZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
+Hi Vaibhav,
+
+Thank you for the patch! Perhaps something to improve:
+
+[auto build test WARNING on powerpc/next]
+[also build test WARNING on linus/master v5.7 next-20200605]
+[cannot apply to linux-nvdimm/libnvdimm-for-next scottwood/next]
+[if your patch is applied to the wrong git tree, please drop us a note to help
+improve the system. BTW, we also suggest to use '--base' option to specify the
+base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
+
+url:    https://github.com/0day-ci/linux/commits/Vaibhav-Jain/powerpc-papr_scm-Add-support-for-reporting-nvdimm-health/20200607-211653
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git next
+config: powerpc-randconfig-r016-20200607 (attached as .config)
+compiler: clang version 11.0.0 (https://github.com/llvm/llvm-project e429cffd4f228f70c1d9df0e5d77c08590dd9766)
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # install powerpc cross compiling tool for clang build
+        # apt-get install binutils-powerpc-linux-gnu
+        # save the attached .config to linux build tree
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross ARCH=powerpc 
+
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kernel test robot <lkp@intel.com>
+
+All warnings (new ones prefixed by >>, old ones prefixed by <<):
+
+In file included from <built-in>:1:
+>> ./usr/include/asm/papr_pdsm.h:69:20: warning: field 'hdr' with variable sized type 'struct nd_cmd_pkg' not at the end of a struct or class is a GNU extension [-Wgnu-variable-sized-type-not-at-end]
+struct nd_cmd_pkg hdr;  /* Package header containing sub-cmd */
+^
+1 warning generated.
+
+---
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
