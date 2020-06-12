@@ -1,377 +1,413 @@
-Return-Path: <SRS0=tYfS=7Y=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=dUeG=7Z=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB85AC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Jun 2020 18:03:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 622C7C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Jun 2020 00:12:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8E8C520836
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Jun 2020 18:03:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8E8C520836
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 3231020801
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Jun 2020 00:12:12 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="aIZOofC3"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3231020801
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3AF2B100978D2;
-	Thu, 11 Jun 2020 11:03:36 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id 0CD7D1009667B;
+	Thu, 11 Jun 2020 17:12:12 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=erik.kaneda@intel.com; receiver=<UNKNOWN> 
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id ED53D100978C9
-	for <linux-nvdimm@lists.01.org>; Thu, 11 Jun 2020 11:03:32 -0700 (PDT)
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05BHsjUs019173;
-	Thu, 11 Jun 2020 14:03:28 -0400
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31kse8g6ta-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 11 Jun 2020 14:03:28 -0400
-Received: from m0098417.ppops.net (m0098417.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 05BHtCiA019920;
-	Thu, 11 Jun 2020 14:03:27 -0400
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 31kse8g6sr-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 11 Jun 2020 14:03:27 -0400
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05BHbK8E013626;
-	Thu, 11 Jun 2020 18:03:26 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma04ams.nl.ibm.com with ESMTP id 31g2s8223d-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 11 Jun 2020 18:03:26 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05BI27s3459492
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 11 Jun 2020 18:02:07 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D6FF04204B;
-	Thu, 11 Jun 2020 18:03:23 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 850E842041;
-	Thu, 11 Jun 2020 18:03:20 +0000 (GMT)
-Received: from vajain21-in-ibm-com (unknown [9.85.86.168])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Thu, 11 Jun 2020 18:03:20 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Thu, 11 Jun 2020 23:33:19 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v11 5/6] ndctl/papr_scm, uapi: Add support for PAPR nvdimm specific methods
-In-Reply-To: <CAPcyv4h_0qSqS2P0=vNk9KWy-=WZq-giNupks+Q0+wmYVt9iLA@mail.gmail.com>
-References: <20200607131339.476036-6-vaibhav@linux.ibm.com> <202006090059.o4CE5D9b%lkp@intel.com> <CAPcyv4iQo_xgRGPx_j+RPzgWGZaigGRbc_kRzKEFePfVHenx5g@mail.gmail.com> <87mu5cw2gl.fsf@linux.ibm.com> <CAPcyv4jfeBoFCdg2sKP5ExpTTQ_+LyrJewTupcrTgh-qWykNxw@mail.gmail.com> <87k10fw29r.fsf@linux.ibm.com> <CAPcyv4h_0qSqS2P0=vNk9KWy-=WZq-giNupks+Q0+wmYVt9iLA@mail.gmail.com>
-Date: Thu, 11 Jun 2020 23:33:19 +0530
-Message-ID: <87h7vhwkd4.fsf@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id BF96C10096677
+	for <linux-nvdimm@lists.01.org>; Thu, 11 Jun 2020 17:12:09 -0700 (PDT)
+IronPort-SDR: cF03wONylh1GrE8L1TPmQXFzJgZdD64mlNMPSlpuU/iYAFvpal5x+hLXr/U43T+PKltEuXNXnj
+ NDGCGS1z+T4w==
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2020 17:12:09 -0700
+IronPort-SDR: WmSoRDXPlGay/stPwTrC0bJeqIZlezYfZxfcz9QvSlCD+EnCmo7s+5ejGCJT1kPtzKOoNxgMdn
+ Bn0zpWUNpWaA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.73,501,1583222400";
+   d="scan'208";a="275505971"
+Received: from fmsmsx106.amr.corp.intel.com ([10.18.124.204])
+  by orsmga006.jf.intel.com with ESMTP; 11 Jun 2020 17:12:08 -0700
+Received: from fmsmsx125.amr.corp.intel.com (10.18.125.40) by
+ FMSMSX106.amr.corp.intel.com (10.18.124.204) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Thu, 11 Jun 2020 17:12:08 -0700
+Received: from FMSEDG002.ED.cps.intel.com (10.1.192.134) by
+ FMSMSX125.amr.corp.intel.com (10.18.125.40) with Microsoft SMTP Server (TLS)
+ id 14.3.439.0; Thu, 11 Jun 2020 17:12:08 -0700
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (104.47.66.42) by
+ edgegateway.intel.com (192.55.55.69) with Microsoft SMTP Server (TLS) id
+ 14.3.439.0; Thu, 11 Jun 2020 17:12:08 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=ZbnjKVdu0E6pdkfDs4popo8XXP36V3Rfqy0FPfuaEeqDnhwD+Ld4jABSUs1FAZtj1I4VyygXj+PX0m+/hb5Bu3RpI7S/2ALW+troN6p/R4GuC5Src80bDwBo1gLGxFVCOiVPzEHFayAvr/BbdwRQrbUU/S9nNmkxhfj0VSAeyWmsd1ndC/D2L+ysmqcNSs7kIZRYcQaH84z61JiHtpqVxrlWjO4dAPt8bgniHXU7cxet7TFImUNZQIOfybyvNZ4MLRr/2w6FrcZhY8ZfZToR0uuB4nEE1HxyVD3cGzIag/ae7MTVpk1G+deAa6Nrlb/crZP7UTWPJJP7U1TcE/ReZw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=h1mCJL/rgevaraxb4tWpEHitB1U0L12764I9IxkjHz8=;
+ b=kXM3H2ztrcBRWE4b/VVYuWloDdLHYqbaClnf6AlzBaG2SnAV6JPa3hug9DVehxccknY6JpgIKCEHAZffOgzLRzxF/FX/pbF39QTdsxVzK4sEfgRpE/elPhzHl/DsDMJCyVhvSef0Dvuo8re6OqxFyQr3/m0QilLLuw6GwbNKIRSP6c+NDMPzKKQYtRYP1zr+Sp6r9PHt2WshzAG6e8uldZem7+rO8/EpJGXqoZtcLBOJy6CtiqRCozNkTCwbOqV2tuzi9wG+FShw7C/bl2dkJ4X6AQPsJ6ks5lE+MQzYLLm9hL1bhDCzwHenOchAjz43e4LgpCcojQ8Qtj82h5uPpA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=h1mCJL/rgevaraxb4tWpEHitB1U0L12764I9IxkjHz8=;
+ b=aIZOofC3o95xQunmUogj4/buHTBOXXydexmCvHXCC7oxE7X3VHaznz1STiz0Xa6t5zWYtgrgnX025fhgJlvheF5tes6QWqgiKzXMIqqi1be/xoHu5P8WB5tLFzRJF9fCnZTkAyMeVMfUDynBbyuQoacI5y0ymw4wkdyD7JIEnL8=
+Received: from BYAPR11MB3096.namprd11.prod.outlook.com (2603:10b6:a03:8f::14)
+ by BYAPR11MB3509.namprd11.prod.outlook.com (2603:10b6:a03:8e::25) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3088.21; Fri, 12 Jun
+ 2020 00:12:05 +0000
+Received: from BYAPR11MB3096.namprd11.prod.outlook.com
+ ([fe80::ad0c:c6a9:6f39:eb92]) by BYAPR11MB3096.namprd11.prod.outlook.com
+ ([fe80::ad0c:c6a9:6f39:eb92%5]) with mapi id 15.20.3088.019; Fri, 12 Jun 2020
+ 00:12:05 +0000
+From: "Kaneda, Erik" <erik.kaneda@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Williams, Dan J"
+	<dan.j.williams@intel.com>
+Subject: RE: [RFT][PATCH 2/3] ACPICA: Remove unused memory mappings on
+ interpreter exit
+Thread-Topic: [RFT][PATCH 2/3] ACPICA: Remove unused memory mappings on
+ interpreter exit
+Thread-Index: AQHWPyIKgbL3bQYNyEWDZiBdAuw+YqjUBIaQ
+Date: Fri, 12 Jun 2020 00:12:05 +0000
+Message-ID: <BYAPR11MB30963CB784B940A5CD58C4FAF0810@BYAPR11MB3096.namprd11.prod.outlook.com>
+References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <318372766.6LKUBsbRXE@kreacher> <3974162.pZLctmZ5Iv@kreacher>
+In-Reply-To: <3974162.pZLctmZ5Iv@kreacher>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-version: 11.2.0.6
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+authentication-results: rjwysocki.net; dkim=none (message not signed)
+ header.d=none;rjwysocki.net; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [134.134.136.214]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 669d60d8-bb16-4e59-9ecf-08d80e653d38
+x-ms-traffictypediagnostic: BYAPR11MB3509:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <BYAPR11MB3509AC253408E2334F4AA51DF0810@BYAPR11MB3509.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:6790;
+x-forefront-prvs: 0432A04947
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: dwOTmjTVJ20kNU7O3+TNlhTel6jGqhT4/tV1+qoJM7N4wcmRZjUlZFbwdE5g3+kbv23BnaKXQypBhKrzYV2Qy7/D2jTsAKPcVmrMPdB2lyNKWSbhOcVEC/JZOFWQ78YbE0w3DyUbYN7M6IQ7DUqVUQojLUZjpgMliQb6KQSDurhL+q0rxqBPCc16PgvM5hRpiryN1VHktKp2GiJTErpfnrEqEp13uyJbigNswrKxVpKRTZuaYXyTKUgCbGx7IRiBpcHH62RUY4iV5ghmHUyiXVq0M2EMgrCJlVJFrNaKt3eX+V4xeQ+pihjqpaoEZh9n8XERypDfNDUI2CiZ8HpYQw==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR11MB3096.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(396003)(39860400002)(136003)(376002)(346002)(366004)(52536014)(76116006)(66476007)(66946007)(66556008)(64756008)(54906003)(26005)(53546011)(7696005)(186003)(110136005)(33656002)(316002)(6506007)(83380400001)(66446008)(5660300002)(71200400001)(86362001)(2906002)(6636002)(4326008)(8936002)(7416002)(8676002)(478600001)(9686003)(55016002);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: 5SRndGw3YQNZkOAs6hZ9eWJEv0B13LdFuDtHlktbGMND350Ab2W556fQdpiITHR0fA2kjsE9r3fYXBnQjE6i/E+nr4zR5mhZjfD2lgegEUG481Nrkojn3IytDZcKk0Fk+UUVaHi9HQkXiUECRwEhgWXT14lw2Gwob4YjiCTo0B6QI4oSYQ23B8qsmAy9EOcgvZu95QAiJ7WBgFN0k3QkF35egx6qdesgts/mdgZoi4DcDFiFeQEWfLxcRYyckySKJcHRQ+BsJJCO/7orjIkLyDeK5G63NnYOC+ZWDAA0NVaSqCLkFsLEDktVP5xH+vPg5dmslU8ZWqQBBhyxLAWo6tkG5+ZHL3W95RuDxFOhDAjaqRgHlnlH0+esWrczSANy4tqCdkbWSwBiiRJkx78QGq+R4WMIq9KKdEKggAV2ic1G0Y8wyqJUlH7KoykRaBsiQsMuqXTwilQdtVMjYRgWoEBuOwtkEVjSauxfmWseOpqbloW23PoY/UUcGkkK81Ix
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
- definitions=2020-06-11_18:2020-06-11,2020-06-11 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999
- lowpriorityscore=0 adultscore=0 priorityscore=1501 mlxscore=0
- suspectscore=0 spamscore=0 phishscore=0 clxscore=1015 bulkscore=0
- cotscore=-2147483648 impostorscore=0 malwarescore=0 classifier=spam
- adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006110139
-Message-ID-Hash: 2C3WZIK4DSVSUCPDPGSRGVYHXCC52RMT
-X-Message-ID-Hash: 2C3WZIK4DSVSUCPDPGSRGVYHXCC52RMT
-X-MailFrom: vaibhav@linux.ibm.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 669d60d8-bb16-4e59-9ecf-08d80e653d38
+X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Jun 2020 00:12:05.2652
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: rqOpQYKXidWgzEn8vC2xEDaxm6TDMIXxtCX8cjdw/yXJkRFyFWt7DwQb1zNg5LU8+mcl9bxwUopl/08uH7RH2A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3509
+X-OriginatorOrg: intel.com
+Message-ID-Hash: NT2GO6JTDWW5YJ5QN7BBPW2Y2URXGN6I
+X-Message-ID-Hash: NT2GO6JTDWW5YJ5QN7BBPW2Y2URXGN6I
+X-MailFrom: erik.kaneda@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+CC: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Myron Stowe <myron.stowe@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Moore, Robert" <robert.moore@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2C3WZIK4DSVSUCPDPGSRGVYHXCC52RMT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NT2GO6JTDWW5YJ5QN7BBPW2Y2URXGN6I/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Dan Williams <dan.j.williams@intel.com> writes:
-
-> On Wed, Jun 10, 2020 at 5:10 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->>
->> Dan Williams <dan.j.williams@intel.com> writes:
->>
->> > On Tue, Jun 9, 2020 at 10:54 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->> >>
->> >> Thanks Dan for the consideration and taking time to look into this.
->> >>
->> >> My responses below:
->> >>
->> >> Dan Williams <dan.j.williams@intel.com> writes:
->> >>
->> >> > On Mon, Jun 8, 2020 at 5:16 PM kernel test robot <lkp@intel.com> wrote:
->> >> >>
->> >> >> Hi Vaibhav,
->> >> >>
->> >> >> Thank you for the patch! Perhaps something to improve:
->> >> >>
->> >> >> [auto build test WARNING on powerpc/next]
->> >> >> [also build test WARNING on linus/master v5.7 next-20200605]
->> >> >> [cannot apply to linux-nvdimm/libnvdimm-for-next scottwood/next]
->> >> >> [if your patch is applied to the wrong git tree, please drop us a note to help
->> >> >> improve the system. BTW, we also suggest to use '--base' option to specify the
->> >> >> base tree in git format-patch, please see https://stackoverflow.com/a/37406982]
->> >> >>
->> >> >> url:    https://github.com/0day-ci/linux/commits/Vaibhav-Jain/powerpc-papr_scm-Add-support-for-reporting-nvdimm-health/20200607-211653
->> >> >> base:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git next
->> >> >> config: powerpc-randconfig-r016-20200607 (attached as .config)
->> >> >> compiler: clang version 11.0.0 (https://github.com/llvm/llvm-project e429cffd4f228f70c1d9df0e5d77c08590dd9766)
->> >> >> reproduce (this is a W=1 build):
->> >> >>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->> >> >>         chmod +x ~/bin/make.cross
->> >> >>         # install powerpc cross compiling tool for clang build
->> >> >>         # apt-get install binutils-powerpc-linux-gnu
->> >> >>         # save the attached .config to linux build tree
->> >> >>         COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross ARCH=powerpc
->> >> >>
->> >> >> If you fix the issue, kindly add following tag as appropriate
->> >> >> Reported-by: kernel test robot <lkp@intel.com>
->> >> >>
->> >> >> All warnings (new ones prefixed by >>, old ones prefixed by <<):
->> >> >>
->> >> >> In file included from <built-in>:1:
->> >> >> >> ./usr/include/asm/papr_pdsm.h:69:20: warning: field 'hdr' with variable sized type 'struct nd_cmd_pkg' not at the end of a struct or class is a GNU extension [-Wgnu-variable-sized-type-not-at-end]
->> >> >> struct nd_cmd_pkg hdr;  /* Package header containing sub-cmd */
->> >> >
->> >> > Hi Vaibhav,
->> >> >
->> >> [.]
->> >> > This looks like it's going to need another round to get this fixed. I
->> >> > don't think 'struct nd_pdsm_cmd_pkg' should embed a definition of
->> >> > 'struct nd_cmd_pkg'. An instance of 'struct nd_cmd_pkg' carries a
->> >> > payload that is the 'pdsm' specifics. As the code has it now it's
->> >> > defined as a superset of 'struct nd_cmd_pkg' and the compiler warning
->> >> > is pointing out a real 'struct' organization problem.
->> >> >
->> >> > Given the soak time needed in -next after the code is finalized this
->> >> > there's no time to do another round of updates and still make the v5.8
->> >> > merge window.
->> >>
->> >> Agreed that this looks bad, a solution will probably need some more
->> >> review cycles resulting in this series missing the merge window.
->> >>
->> >> I am investigating into the possible solutions for this reported issue
->> >> and made few observations:
->> >>
->> >> I see command pkg for Intel, Hpe, Msft and Hyperv families using a
->> >> similar layout of embedding nd_cmd_pkg at the head of the
->> >> command-pkg. struct nd_pdsm_cmd_pkg is following the same pattern.
->> >>
->> >> struct nd_pdsm_cmd_pkg {
->> >>     struct nd_cmd_pkg hdr;
->> >>     /* other members */
->> >> };
->> >>
->> >> struct ndn_pkg_msft {
->> >>     struct nd_cmd_pkg gen;
->> >>     /* other members */
->> >> };
->> >> struct nd_pkg_intel {
->> >>     struct nd_cmd_pkg gen;
->> >>     /* other members */
->> >> };
->> >> struct ndn_pkg_hpe1 {
->> >>     struct nd_cmd_pkg gen;
->> >>     /* other members */
->> [.]
->> >
->> > In those cases the other members are a union and there is no second
->> > variable length array. Perhaps that is why those definitions are not
->> > getting flagged? I'm not seeing anything in ndctl build options that
->> > would explicitly disable this warning, but I'm not sure if the ndctl
->> > build environment is missing this build warning by accident.
->>
->> I tried building ndctl master with clang-10 with CC=clang and
->> CFLAGS="". Seeing the same warning messages reported for all command
->> package struct for existing command families.
->>
->> ./hpe1.h:334:20: warning: field 'gen' with variable sized type 'struct nd_cmd_pkg' not at the end of a struct or class is a GNU extension [-Wgnu-variable-sized-type-not-at-end]
->>         struct nd_cmd_pkg gen;
->>                           ^
->> ./msft.h:59:20: warning: field 'gen' with variable sized type 'struct nd_cmd_pkg' not at the end of a struct or class is a GNU extension [-Wgnu-variable-sized-type-not-at-end]
->>         struct nd_cmd_pkg       gen;
->>                                 ^
->> ./hyperv.h:34:20: warning: field 'gen' with variable sized type 'struct nd_cmd_pkg' not at the end of a struct or class is a GNU extension [-Wgnu-variable-sized-type-not-at-end]
->>         struct nd_cmd_pkg       gen;
->>                                 ^
->
-[.]
-> Good to know, but ugh now I'm just realizing this warning is only
-> coming from clang and not gcc. Frankly I'm not as concerned about
-> clang warnings and I should have been more careful looking at the
-> source of this warning.
-Thanks for acknowledging this.
-
-I digged deeper into this today and it seems that with clang, kernel code
-is compiled with diagnostic flag '-Wno-gnu' [1][2] which implicitly implies
-'-Wno-gnu-variable-sized-type-not-at-end'. Hence the structures with
-flexible arrays not the end of containing struct are not flagged in
-kernel code.
-
-[1] https://github.com/torvalds/linux/blob/b29482fde649c72441d5478a4ea2c52c56d97a5e/Makefile#L788
-[2] https://clang.llvm.org/docs/DiagnosticsReference.html#wgnu
-
-However this dignostic flag is not used for uapi header test hence
-build robot emmited this warning while trying to test compile
-'papr_pdsm.h' uapi header.
-
->
->> >
->> > Those variable size payloads are also not being used in any code paths
->> > that would look at the size of the command payload, like the kernel
->> > ioctl() path. The payload validation code needs static sizes and the
->> > payload parsing code wants to cast the payload to a known type. I
->> > don't think you can use the same struct definition for both those
->> > cases which is why the ndctl parsing code uses the union layout, but
->> > the kernel command marshaling code does strict layering.
->> Even if I switch to union layout and replacing the flexible array 'payload'
->> at end to a fixed size array something like below, I still see
->> '-Wgnu-variable-sized-type-not-at-end' warning reported by clang:
->>
->> union nd_pdsm_cmd_payload {
->>         struct nd_papr_pdsm_health health;
->>         __u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
->> };
->>
->> struct nd_pdsm_cmd_pkg {
->>         struct nd_cmd_pkg hdr;  /* Package header containing sub-cmd */
->>         __s32 cmd_status;       /* Out: Sub-cmd status returned back */
->>         __u16 reserved[2];      /* Ignored and to be used in future */
->>         union nd_pdsm_cmd_payload payload;
->> } __attribute__((packed));
->
-> Even though this is a clang warning, I'm still not sure it's a good
-> idea to copy the ndctl approach into the kernel. Could you perhaps
-> handle this the way that drivers/acpi/nfit/intel.c handles submitting
-> commands through the ND_CMD_CALL interface, i.e. by just defining the
-> command locally like this (from intel_security_flags()):
->
->         struct {
->                 struct nd_cmd_pkg pkg;
->                 struct nd_intel_get_security_state cmd;
->         } nd_cmd = {
->                 .pkg = {
->                         .nd_command = NVDIMM_INTEL_GET_SECURITY_STATE,
->                         .nd_family = NVDIMM_FAMILY_INTEL,
->                         .nd_size_out =
->                                 sizeof(struct nd_intel_get_security_state),
->                         .nd_fw_size =
->                                 sizeof(struct nd_intel_get_security_state),
->                 },
->         };
->
-> That way it's clear that the payload is 'struct
-> nd_intel_get_security_state' without needing to have a pre-existing
-> definition. For parsing in the ioctl path I think it's clearer to cast
-> the payload to the local pdsm structure for the command.
->
-In userspace libndctl code doesnt use '-Wno-gnu' (yet) hence this would
-still be reported as a warning. Also for each pdsm I want a consistent
-way to report errors back. Above would force me to define a 'status'
-field to report error in every pdsm payload struct.
-
-I have two possible solutions to work around the clang and 'status'
-field issue:
-
-1. I remove instance of 'struct nd_cmd_pkg' from 'nd_pdsm_cmd_pkg' like
-below. This should make the clang warning go away and I still keep the
-'cmd_status' field.
-
-struct nd_pdsm_cmd_pkg {
- 	__s32 cmd_status;	/* Out: Sub-cmd status returned back */
- 	__u16 reserved[2];	/* Ignored and to be used in future */
- 	__u8 payload[];		/* In/Out: Sub-cmd data buffer */
-} __packed;
-
-When sending CMD_CALL allocate and populate an envelop large enough to
-hold generic nd_cmd header, pdsm header and the payload like below:
-
-0             64                72                            255
-+------------+-----------------+--------------------------------+
-|nd_cmd_pkg  | nd_pdsm_cmd_pkg |    payload                     |
-+------------+-----------------+--------------------------------+
-
-pdsm handling code introduced in this patchset already uses helpers to
-convert nd_cmd_pkg -> nd_pdsm_cmd_pkg and nd_pdsm_cmd_pkg -> payload. So
-the impact to the patchset should be contained to these helper
-functions. There are places in pdsm service functions that directly
-access members of nd_cmd_pkg which may need some tweaking.
 
 
-2. I open-code members of 'struct nd_cmd_pkg' at start of 'struct
-nd_pdsm_cmd_pkg' except the nd_payload field like below. This struct
-should ensure ABI compatibility with 'struct nd_cmd_pkg'.
+> -----Original Message-----
+> From: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Sent: Wednesday, June 10, 2020 5:22 AM
+> To: Williams, Dan J <dan.j.williams@intel.com>
+> Cc: Kaneda, Erik <erik.kaneda@intel.com>; Wysocki, Rafael J
+> <rafael.j.wysocki@intel.com>; Len Brown <lenb@kernel.org>; Borislav
+> Petkov <bp@alien8.de>; Weiny, Ira <ira.weiny@intel.com>; James Morse
+> <james.morse@arm.com>; Myron Stowe <myron.stowe@redhat.com>;
+> Andy Shevchenko <andriy.shevchenko@linux.intel.com>; linux-
+> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
+> nvdimm@lists.01.org; Moore, Robert <robert.moore@intel.com>
+> Subject: [RFT][PATCH 2/3] ACPICA: Remove unused memory mappings on
+> interpreter exit
+> 
+> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> 
+> For transient memory opregions that are created dynamically under
+> the namespace and interpreter mutexes and go away quickly, there
+> still is the problem that removing their memory mappings may take
+> significant time and so doing that while holding the mutexes should
+> be avoided.
+> 
+> For example, unmapping a chunk of memory associated with a memory
+> opregion in Linux involves running synchronize_rcu_expedited()
+> which really should not be done with the namespace mutex held.
+> 
+> To address that problem, notice that the unused memory mappings left
+> behind by the "dynamic" opregions that went away need not be unmapped
+> right away when the opregion is deactivated.  Instead, they may be
+> unmapped when exiting the interpreter, after the namespace and
+> interpreter mutexes have been dropped (there's one more place dealing
+> with opregions in the debug code that can be treated analogously).
+> 
+> Accordingly, change acpi_ev_system_memory_region_setup() to put
+> the unused mappings into a global list instead of unmapping them
+> right away and add acpi_ev_system_release_memory_mappings() to
+> be called when leaving the interpreter in order to unmap the
+> unused memory mappings in the global list (which is protected
+> by the namespace mutex).
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/acpica/acevents.h |  2 ++
+>  drivers/acpi/acpica/dbtest.c   |  3 ++
+>  drivers/acpi/acpica/evrgnini.c | 51
+> ++++++++++++++++++++++++++++++++--
+>  drivers/acpi/acpica/exutils.c  |  3 ++
+>  drivers/acpi/acpica/utxface.c  | 23 +++++++++++++++
+>  include/acpi/acpixf.h          |  1 +
+>  6 files changed, 80 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+> index 79f292687bd6..463eb9124765 100644
+> --- a/drivers/acpi/acpica/acevents.h
+> +++ b/drivers/acpi/acpica/acevents.h
+> @@ -197,6 +197,8 @@ acpi_ev_execute_reg_method(union
+> acpi_operand_object *region_obj, u32 function);
+>  /*
+>   * evregini - Region initialization and setup
+>   */
+> +void acpi_ev_system_release_memory_mappings(void);
+> +
+>  acpi_status
+>  acpi_ev_system_memory_region_setup(acpi_handle handle,
+>  				   u32 function,
+> diff --git a/drivers/acpi/acpica/dbtest.c b/drivers/acpi/acpica/dbtest.c
+> index 6db44a5ac786..7dac6dae5c48 100644
+> --- a/drivers/acpi/acpica/dbtest.c
+> +++ b/drivers/acpi/acpica/dbtest.c
+> @@ -8,6 +8,7 @@
+>  #include <acpi/acpi.h>
+>  #include "accommon.h"
+>  #include "acdebug.h"
+> +#include "acevents.h"
+>  #include "acnamesp.h"
+>  #include "acpredef.h"
+>  #include "acinterp.h"
+> @@ -768,6 +769,8 @@ acpi_db_test_field_unit_type(union
+> acpi_operand_object *obj_desc)
+>  		acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+>  		acpi_ut_release_mutex(ACPI_MTX_INTERPRETER);
+> 
+> +		acpi_ev_system_release_memory_mappings();
+> +
+>  		bit_length = obj_desc->common_field.bit_length;
+>  		byte_length =
+> ACPI_ROUND_BITS_UP_TO_BYTES(bit_length);
+> 
+> diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+> index 48a5e6eaf9b9..946c4eef054d 100644
+> --- a/drivers/acpi/acpica/evrgnini.c
+> +++ b/drivers/acpi/acpica/evrgnini.c
+> @@ -16,6 +16,52 @@
+>  #define _COMPONENT          ACPI_EVENTS
+>  ACPI_MODULE_NAME("evrgnini")
+> 
+> +#ifdef ACPI_OS_MAP_MEMORY_FAST_PATH
+> +static struct acpi_mem_mapping *unused_memory_mappings;
+> +
+> +/*********************************************************
+> **********************
+> + *
+> + * FUNCTION:    acpi_ev_system_release_memory_mappings
+> + *
+> + * PARAMETERS:  None
+> + *
+> + * RETURN:      None
+> + *
+> + * DESCRIPTION: Release all of the unused memory mappings in the queue
+> + *              under the interpreter mutex.
+> + *
+> +
+> **********************************************************
+> ********************/
+> +void acpi_ev_system_release_memory_mappings(void)
+> +{
+> +	struct acpi_mem_mapping *mapping;
+> +
+> +
+> 	ACPI_FUNCTION_TRACE(acpi_ev_system_release_memory_mappin
+> gs);
+> +
+> +	acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+> +
+> +	while (unused_memory_mappings) {
+> +		mapping = unused_memory_mappings;
+> +		unused_memory_mappings = mapping->next;
+> +
+> +		acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+> +
+> +		acpi_os_unmap_memory(mapping->logical_address,
+> mapping->length);
 
-struct nd_pdsm_cmd_pkg {
-	__u64   nd_family;		/* family of commands */
-	__u64   nd_command;
-	__u32   nd_size_in;		/* INPUT: size of input args */
-	__u32   nd_size_out;		/* INPUT: size of payload */
-	__u32   nd_reserved2[9];	/* reserved must be zero */
-	__u32   nd_fw_size;		/* OUTPUT: size fw wants to return */
- 	__s32 cmd_status;	/* Out: Sub-cmd status returned back */
- 	__u16 reserved[2];	/* Ignored and to be used in future */
- 	__u8 payload[];		/* In/Out: Sub-cmd data buffer */
- } __packed;
+acpi_os_unmap_memory calls synchronize_rcu_expedited(). I'm no RCU expert but the 
+definition of this function states:
 
-BULD_BUG_ON((sizeof(struct nd_cmd_pkg) + 8) > sizeof(struct nd_pdsm_cmd_pkg))
+* Although this is a great improvement over previous expedited
+ * implementations, it is still unfriendly to real-time workloads, so is
+ * thus not recommended for any sort of common-case code.  In fact, if
+ * you are using synchronize_rcu_expedited() in a loop, please restructure
+ * your code to batch your updates, and then use a single synchronize_rcu()
+ * instead.
 
->>
->>
->> >
->> >> };
->> >>
->> >> Even though other command families implement similar command-package
->> >> layout they were not flagged (yet) as they are (I am guessing) serviced
->> >> in vendor acpi drivers rather than in kernel like in case of papr-scm
->> >> command family.
->> >
->> > I sincerely hope there are no vendor acpi kernel drivers outside of
->> > the upstream one.
->> Apologies if I was not clear. Was referring to nvdimm vendor uefi
->> drivers which ultimately service the DSM commands. Since CMD_CALL serves
->> as a conduit to send the command payload to these vendor drivers,
->> libnvdimm never needs to peek into the nd_cmd_pkg.payload
->> field. Consequently nfit module never hit this warning in kernel before.
->
-> Ah, understood, and no, that's not the root reason this problem is not
-> present in the kernel. The expectation is that any payload that the
-> kernel would need to consider should probably have a kernel specific
-> translation defined. For example,
->
->         ND_CMD_GET_CONFIG_SIZE
->         ND_CMD_GET_CONFIG_DATA
->         ND_CMD_SET_CONFIG_DATA
->
-> ...are payloads that the kernel needs to understand. However instead
-> of supporting each way to read / write the label area the expectation
-> is that all drivers just parse this common kernel payload and
-> translate it if necessary. For example ND_CMD_{GET,SET}_CONFIG_DATA is
-> optionally translated to the Intel DSMs, generic ACPI _LSR/_LSW, or
-> papr_scm_meta_{get,set}.
->
-> Outside of validating command numbers the expectation is that the
-> kernel does not validate/consume the contents of the ND_CMD_CALL
-> payload, it passes it to the backend where ACPI DSM or pdsm protocol
-> takes over.
-Right, but arent those independent IOCTLs to libnvdimm with a fixed
-predefined struct thats exchanged with libndctl. Not sure how can that
-help with exchanging pdsms with papr_scm that are variable in length and
-can only rely on CMD_CALL ioctl.
 
--- 
-Cheers
-~ Vaibhav
+> +		ACPI_FREE(mapping);
+> +
+> +		acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+> +	}
+> +
+> +	acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+> +
+> +	return_VOID;
+> +}
+> +#else /* !ACPI_OS_MAP_MEMORY_FAST_PATH */
+> +void acpi_ev_system_release_memory_mappings(void)
+> +{
+> +	return_VOID;
+> +}
+> +#endif /* !ACPI_OS_MAP_MEMORY_FAST_PATH */
+> +
+> 
+> /**********************************************************
+> *********************
+>   *
+>   * FUNCTION:    acpi_ev_system_memory_region_setup
+> @@ -60,9 +106,8 @@ acpi_ev_system_memory_region_setup(acpi_handle
+> handle,
+>  				while (local_region_context->first_mapping)
+> {
+>  					mapping = local_region_context-
+> >first_mapping;
+>  					local_region_context->first_mapping
+> = mapping->next;
+> -					acpi_os_unmap_memory(mapping-
+> >logical_address,
+> -							     mapping->length);
+> -					ACPI_FREE(mapping);
+> +					mapping->next =
+> unused_memory_mappings;
+> +					unused_memory_mappings =
+> mapping;
+>  				}
+>  #endif
+>  			}
+> diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
+> index 8fefa6feac2f..516d67664392 100644
+> --- a/drivers/acpi/acpica/exutils.c
+> +++ b/drivers/acpi/acpica/exutils.c
+> @@ -25,6 +25,7 @@
+> 
+>  #include <acpi/acpi.h>
+>  #include "accommon.h"
+> +#include "acevents.h"
+>  #include "acinterp.h"
+>  #include "amlcode.h"
+> 
+> @@ -106,6 +107,8 @@ void acpi_ex_exit_interpreter(void)
+>  			    "Could not release AML Interpreter mutex"));
+>  	}
+> 
+> +	acpi_ev_system_release_memory_mappings();
+> +
+>  	return_VOID;
+>  }
+> 
+> diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
+> index ca7c9f0144ef..d972696be846 100644
+> --- a/drivers/acpi/acpica/utxface.c
+> +++ b/drivers/acpi/acpica/utxface.c
+> @@ -11,6 +11,7 @@
+> 
+>  #include <acpi/acpi.h>
+>  #include "accommon.h"
+> +#include "acevents.h"
+>  #include "acdebug.h"
+> 
+>  #define _COMPONENT          ACPI_UTILITIES
+> @@ -244,6 +245,28 @@ acpi_status acpi_purge_cached_objects(void)
+> 
+>  ACPI_EXPORT_SYMBOL(acpi_purge_cached_objects)
+> 
+> +/*********************************************************
+> ********************
+> + *
+> + * FUNCTION:    acpi_release_unused_memory_mappings
+> + *
+> + * PARAMETERS:  None
+> + *
+> + * RETURN:      None
+> + *
+> + * DESCRIPTION: Remove memory mappings that are not used any more.
+> + *
+> +
+> **********************************************************
+> ******************/
+> +void acpi_release_unused_memory_mappings(void)
+> +{
+> +	ACPI_FUNCTION_TRACE(acpi_release_unused_memory_mappings);
+> +
+> +	acpi_ev_system_release_memory_mappings();
+> +
+> +	return_VOID;
+> +}
+> +
+> +ACPI_EXPORT_SYMBOL(acpi_release_unused_memory_mappings)
+> +
+> 
+> /**********************************************************
+> *******************
+>   *
+>   * FUNCTION:    acpi_install_interface
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index 1dc8d262035b..8d2cc02257ed 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -449,6 +449,7 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>  						    acpi_size length,
+>  						    struct acpi_pld_info
+>  						    **return_buffer))
+> +ACPI_EXTERNAL_RETURN_VOID(void
+> acpi_release_unused_memory_mappings(void))
+> 
+>  /*
+>   * ACPI table load/unload interfaces
+> --
+> 2.26.2
+> 
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
