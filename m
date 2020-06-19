@@ -2,83 +2,93 @@ Return-Path: <SRS0=O8sF=AA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17B79C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 02:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D776C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 13:10:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E7F6F20776
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 02:38:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E7F6F20776
+	by mail.kernel.org (Postfix) with ESMTPS id E0378208C7
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 13:10:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E0378208C7
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B2BEE10FC5757;
-	Thu, 18 Jun 2020 19:38:47 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id 6B62E10FC6661;
+	Fri, 19 Jun 2020 06:10:25 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 4FE2E10FC5754
-	for <linux-nvdimm@lists.01.org>; Thu, 18 Jun 2020 19:38:46 -0700 (PDT)
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05J2VmrT018485;
-	Thu, 18 Jun 2020 22:38:40 -0400
-Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 31rfyt6nsb-1
+	by ml01.01.org (Postfix) with ESMTPS id BABE610FC65CA
+	for <linux-nvdimm@lists.01.org>; Fri, 19 Jun 2020 06:10:23 -0700 (PDT)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 05JD2G3a048593;
+	Fri, 19 Jun 2020 09:10:14 -0400
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 31rthexemy-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 18 Jun 2020 22:38:39 -0400
-Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
-	by ppma03fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05J2LbIQ012675;
-	Fri, 19 Jun 2020 02:38:38 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma03fra.de.ibm.com with ESMTP id 31r0u9gmpg-1
+	Fri, 19 Jun 2020 09:10:14 -0400
+Received: from m0098409.ppops.net (m0098409.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 05JD2OdG049297;
+	Fri, 19 Jun 2020 09:10:13 -0400
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 31rthexema-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 19 Jun 2020 02:38:38 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05J2cZNU65274146
+	Fri, 19 Jun 2020 09:10:13 -0400
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+	by ppma04dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 05JD4pXb030013;
+	Fri, 19 Jun 2020 13:10:13 GMT
+Received: from b01cxnp22033.gho.pok.ibm.com (b01cxnp22033.gho.pok.ibm.com [9.57.198.23])
+	by ppma04dal.us.ibm.com with ESMTP id 31rd95fhqy-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 19 Jun 2020 13:10:13 +0000
+Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
+	by b01cxnp22033.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 05JDAC9T51380578
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 19 Jun 2020 02:38:35 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 70F1242041;
-	Fri, 19 Jun 2020 02:38:35 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C36E44203F;
-	Fri, 19 Jun 2020 02:38:32 +0000 (GMT)
-Received: from vajain21-in-ibm-com (unknown [9.85.74.60])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Fri, 19 Jun 2020 02:38:32 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Fri, 19 Jun 2020 08:08:31 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linux-nvdimm@lists.01.org
-Subject: [RESEND PATCH v2] monitor: Add epoll timeout for forcing a full dimm health check
-Date: Fri, 19 Jun 2020 08:08:30 +0530
-Message-Id: <20200619023830.353359-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.26.2
+	Fri, 19 Jun 2020 13:10:12 GMT
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1E7E6AE066;
+	Fri, 19 Jun 2020 13:10:12 +0000 (GMT)
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 57921AE05C;
+	Fri, 19 Jun 2020 13:10:09 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.79.220.36])
+	by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
+	Fri, 19 Jun 2020 13:10:09 +0000 (GMT)
+X-Mailer: emacs 27.0.91 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au,
+        linux-nvdimm@lists.01.org, dan.j.williams@intel.com
+Subject: Re: [PATCH v5 00/10] Support new pmem flush and sync instructions
+ for POWER
+In-Reply-To: <20200610062343.492293-1-aneesh.kumar@linux.ibm.com>
+References: <20200610062343.492293-1-aneesh.kumar@linux.ibm.com>
+Date: Fri, 19 Jun 2020 18:40:07 +0530
+Message-ID: <87tuz78amo.fsf@linux.ibm.com>
 MIME-Version: 1.0
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.216,18.0.687
- definitions=2020-06-18_21:2020-06-18,2020-06-18 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- mlxlogscore=999 clxscore=1011 lowpriorityscore=0 priorityscore=1501
- adultscore=0 bulkscore=0 malwarescore=0 suspectscore=1 phishscore=0
- cotscore=-2147483648 mlxscore=0 spamscore=0 classifier=spam adjust=0
+ definitions=2020-06-19_11:2020-06-19,2020-06-19 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 clxscore=1015
+ impostorscore=0 cotscore=-2147483648 bulkscore=0 adultscore=0
+ lowpriorityscore=0 spamscore=0 mlxlogscore=999 suspectscore=0
+ malwarescore=0 mlxscore=0 priorityscore=1501 classifier=spam adjust=0
  reason=mlx scancount=1 engine=8.12.0-2004280000
- definitions=main-2006190013
-Message-ID-Hash: PZEWBR6OULNJPS7SULOU5VAA3E3OMYUM
-X-Message-ID-Hash: PZEWBR6OULNJPS7SULOU5VAA3E3OMYUM
-X-MailFrom: vaibhav@linux.ibm.com
+ definitions=main-2006190092
+Message-ID-Hash: 5HRR6LFMIXF2JK5D4GL2XVR7TCKCZQQU
+X-Message-ID-Hash: 5HRR6LFMIXF2JK5D4GL2XVR7TCKCZQQU
+X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+CC: Jan Kara <jack@suse.cz>, msuchanek@suse.de
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PZEWBR6OULNJPS7SULOU5VAA3E3OMYUM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5HRR6LFMIXF2JK5D4GL2XVR7TCKCZQQU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -87,143 +97,90 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch adds a new command argument to the 'monitor' command namely
-'--poll' that triggers a call to notify_dimm_event() at regular
-intervals forcing a periodic check of status/events for the nvdimm
-objects i.e. bus, dimms, regions or namespaces.
 
-This behavior is useful for dimms that do not support event notifications
-in case the health status of an nvdimm changes. This is especially
-true in case of PAPR-SCM nvdimms as the PHYP hypervisor doesn't provide
-any notifications to the guest kernel on a change in nvdimm health
-status. In such case periodic polling of the is the only way to track
-the health of a nvdimm.
+"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
 
-The patch updates monitor_event() adding a timeout value to
-epoll_wait() call. Also to prevent the possibility of a single dimm
-generating enough events thereby preventing check for status of other
-nvdimms objects, a 'fullpoll_ts' time-stamp is added to keep track of
-when full check of all nvdimms objects happened. If after epoll_wait()
-returns 'fullpoll_ts' time-stamp indicates last a full status check
-for nvdimm objects happened beyond 'poll-interval' seconds then a full
-status check is enforced.
+> This patch series enables the usage os new pmem flush and sync instructions on POWER
+> architecture. POWER10 introduces two new variants of dcbf instructions (dcbstps and dcbfps)
+> that can be used to write modified locations back to persistent storage. Additionally,
+> POWER10 also introduce phwsync and plwsync which can be used to establish order of these
+> writes to persistent storage.
+>     
+> This series exposes these instructions to the rest of the kernel. The existing
+> dcbf and hwsync instructions in P8 and P9 are adequate to enable appropriate
+> synchronization with OpenCAPI-hosted persistent storage. Hence the new instructions
+> are added as a variant of the old ones that old hardware won't differentiate.
+>
+> On POWER10, pmem devices will be represented by a different device tree compat
+> strings. This ensures that older kernels won't initialize pmem devices on POWER10.
+>
+> W.r.t userspace we want to make sure applications are enabled to use MAP_SYNC only
+> if they are using the new instructions. To avoid the wrong usage of MAP_SYNC on
+> newer hardware, we disable MAP_SYNC by default on newer hardware. The namespace specific
+> attribute /sys/block/pmem0/dax/sync_fault can be used to enable MAP_SYNC later.
+>
+> With this:
+> 1) vPMEM continues to work since it is a volatile region. That 
+> doesn't need any flush instructions.
+>
+> 2) pmdk and other user applications get updated to use new instructions
+> and updated packages are made available to all distributions
+>
+> 3) On newer hardware, the device will appear with a new compat string. 
+> Hence older distributions won't initialize pmem on newer hardware.
+>
+> 4) If we have a newer kernel with an older distro, we use the per 
+> namespace sysfs knob that prevents the usage of MAP_SYNC.
+>
+> 5) Sometime in the future, we mark the CONFIG_ARCH_MAP_SYNC_DISABLE=n
+> on ppc64 when we are confident that everybody is using the new flush 
+> instruction.
+>
+> Chaanges from V4:
+> * Add namespace specific sychronous fault control.
+>
+> Changes from V3:
+> * Add new compat string to be used for the device.
+> * Use arch_pmem_flush_barrier() in dm-writecache.
+>
+> Aneesh Kumar K.V (10):
+>   powerpc/pmem: Restrict papr_scm to P8 and above.
+>   powerpc/pmem: Add new instructions for persistent storage and sync
+>   powerpc/pmem: Add flush routines using new pmem store and sync
+>     instruction
+>   libnvdimm/nvdimm/flush: Allow architecture to override the flush
+>     barrier
+>   powerpc/pmem/of_pmem: Update of_pmem to use the new barrier
+>     instruction.
+>   powerpc/pmem: Avoid the barrier in flush routines
+>   powerpc/book3s/pmem: Add WARN_ONCE to catch the wrong usage of pmem
+>     flush functions.
+>   libnvdimm/dax: Add a dax flag to control synchronous fault support
+>   powerpc/pmem: Disable synchronous fault by default
+>   powerpc/pmem: Initialize pmem device on newer hardware
+>
+>  arch/powerpc/include/asm/cacheflush.h     | 10 ++++
+>  arch/powerpc/include/asm/ppc-opcode.h     | 12 ++++
+>  arch/powerpc/lib/pmem.c                   | 46 ++++++++++++--
+>  arch/powerpc/platforms/Kconfig.cputype    |  9 +++
+>  arch/powerpc/platforms/pseries/papr_scm.c | 31 +++++++++-
+>  arch/powerpc/platforms/pseries/pmem.c     |  6 ++
+>  drivers/dax/bus.c                         |  2 +-
+>  drivers/dax/super.c                       | 73 +++++++++++++++++++++++
+>  drivers/md/dm-writecache.c                |  2 +-
+>  drivers/nvdimm/of_pmem.c                  |  8 +++
+>  drivers/nvdimm/pmem.c                     |  4 ++
+>  drivers/nvdimm/region_devs.c              | 24 ++++++--
+>  include/linux/dax.h                       | 16 +++++
+>  include/linux/libnvdimm.h                 |  8 +++
+>  mm/Kconfig                                |  3 +
+>  15 files changed, 243 insertions(+), 11 deletions(-)
 
-Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
-Changelog:
+Ping.
 
-Resend
-* None
+Are we good with the approach here? 
 
-v1..v2
-* Changed the '--check-interval' arg to '--poll' [Dan Williams]
-* Update the documentation and patch description of the '--poll' arg
-  to accuratly reflect that it can report status/events for
-  all nvdimm objects. [Dan Williams]
-
----
- Documentation/ndctl/ndctl-monitor.txt |  4 ++++
- ndctl/monitor.c                       | 31 ++++++++++++++++++++++++---
- 2 files changed, 32 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-index 2239f047266d..0b6bb5c416c6 100644
---- a/Documentation/ndctl/ndctl-monitor.txt
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -108,6 +108,10 @@ will not work if "--daemon" is specified.
- The monitor will attempt to enable the alarm control bits for all
- specified events.
- 
-+-p::
-+--poll=::
-+	Poll and report status/event every <n> seconds.
-+
- -u::
- --human::
- 	Output monitor notification as human friendly json format instead
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index 1755b87a5eeb..4e9b2236ff3c 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -4,6 +4,7 @@
- #include <stdio.h>
- #include <json-c/json.h>
- #include <libgen.h>
-+#include <time.h>
- #include <dirent.h>
- #include <util/json.h>
- #include <util/filter.h>
-@@ -33,6 +34,7 @@ static struct monitor {
- 	bool daemon;
- 	bool human;
- 	bool verbose;
-+	unsigned int poll_timeout;
- 	unsigned int event_flags;
- 	struct log_ctx ctx;
- } monitor;
-@@ -322,9 +324,14 @@ static int monitor_event(struct ndctl_ctx *ctx,
- 		struct monitor_filter_arg *mfa)
- {
- 	struct epoll_event ev, *events;
--	int nfds, epollfd, i, rc = 0;
-+	int nfds, epollfd, i, rc = 0, polltimeout = -1;
- 	struct monitor_dimm *mdimm;
- 	char buf;
-+	/* last time a full poll happened */
-+	struct timespec fullpoll_ts, ts;
-+
-+	if (monitor.poll_timeout)
-+		polltimeout = monitor.poll_timeout * 1000;
- 
- 	events = calloc(mfa->num_dimm, sizeof(struct epoll_event));
- 	if (!events) {
-@@ -354,14 +361,30 @@ static int monitor_event(struct ndctl_ctx *ctx,
- 		}
- 	}
- 
-+	clock_gettime(CLOCK_BOOTTIME, &fullpoll_ts);
- 	while (1) {
- 		did_fail = 0;
--		nfds = epoll_wait(epollfd, events, mfa->num_dimm, -1);
--		if (nfds <= 0 && errno != EINTR) {
-+		nfds = epoll_wait(epollfd, events, mfa->num_dimm, polltimeout);
-+		if (nfds < 0 && errno != EINTR) {
- 			err(&monitor, "epoll_wait error: (%s)\n", strerror(errno));
- 			rc = -errno;
- 			goto out;
- 		}
-+
-+		/* If needed force a full poll of dimm health */
-+		clock_gettime(CLOCK_BOOTTIME, &ts);
-+		if ((fullpoll_ts.tv_sec - ts.tv_sec) > monitor.poll_timeout) {
-+			nfds = 0;
-+			dbg(&monitor, "forcing a full poll\n");
-+		}
-+
-+		/* If we timed out then fill events array with all dimms */
-+		if (nfds == 0) {
-+			list_for_each(&mfa->dimms, mdimm, list)
-+				events[nfds++].data.ptr = mdimm;
-+			fullpoll_ts = ts;
-+		}
-+
- 		for (i = 0; i < nfds; i++) {
- 			mdimm = events[i].data.ptr;
- 			if (util_dimm_event_filter(mdimm, monitor.event_flags)) {
-@@ -570,6 +593,8 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
- 				"use human friendly output formats"),
- 		OPT_BOOLEAN('v', "verbose", &monitor.verbose,
- 				"emit extra debug messages to log"),
-+		OPT_UINTEGER('p', "poll", &monitor.poll_timeout,
-+			     "poll and report events/status every <n> seconds"),
- 		OPT_END(),
- 	};
- 	const char * const u[] = {
--- 
-2.26.2
+-aneesh
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
