@@ -1,52 +1,78 @@
 Return-Path: <SRS0=O8sF=AA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.2 required=3.0 tests=DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK,URIBL_DBL_SPAM,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-5.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66044C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 23:27:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5422C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 23:34:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 40BEA221EA
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 23:27:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 40BEA221EA
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id A430F22276
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Jun 2020 23:34:41 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="uBQGrWj5"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A430F22276
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B66A110FC72A5;
-	Fri, 19 Jun 2020 16:27:27 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=157.52.193.85; helo=gmail.com; envelope-from=normanatlas54iffx@gmail.com; receiver=<UNKNOWN> 
-Received: from gmail.com (unknown [157.52.193.85])
-	by ml01.01.org (Postfix) with SMTP id B3A7A10112D6B
-	for <linux-nvdimm@lists.01.org>; Fri, 19 Jun 2020 16:27:24 -0700 (PDT)
-Received: from unknown (HELO smtp-server1.cfdenselr.com) (Fri, 19 Jun 2020 13:13:23 -1000)
-	by mail.webhostings4u.com with QMQP; Fri, 19 Jun 2020 13:13:23 -1000
-Received: from [168.60.140.107] by smtp18.yenddx.com with SMTP; Fri, 19 Jun 2020 13:06:37 -1000
-Received: from unknown (195.75.191.40)
-	by public.micromail.com.au with QMQP; Fri, 19 Jun 2020 13:03:22 -1000
-Received: from snmp.otwaloow.com ([15.95.228.14]) by smtp-server1.cfdenselr.com with ESMTP; Fri, 19 Jun 2020 12:50:54 -1000
-Message-ID: <37B7093F.1A793FC6@gmail.com>
-Date: Fri, 19 Jun 2020 12:28:26 -1000
-From: "Treva Mercer" <normanatlas54iffx@gmail.com>
-User-Agent: Mozilla/5.0 (Macintosh; U; Intel Mac OS X; en-GB; rv:1.8.1.17) Gecko/20080914 Thunderbird/2.0.0.17
-X-Accept-Language: en-us
+	by ml01.01.org (Postfix) with ESMTP id 5C1DE10FC72A6;
+	Fri, 19 Jun 2020 16:34:41 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::544; helo=mail-ed1-x544.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 398AC10FC72A0
+	for <linux-nvdimm@lists.01.org>; Fri, 19 Jun 2020 16:34:32 -0700 (PDT)
+Received: by mail-ed1-x544.google.com with SMTP id cy7so2467267edb.5
+        for <linux-nvdimm@lists.01.org>; Fri, 19 Jun 2020 16:34:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=3oh1lM0wdhqgCoOS/xFM5A00tFqVqN9JQEyMolcljC8=;
+        b=uBQGrWj5aIklwNrXWJPn+kMeNQ808Jyi7uAgvjfUlhKZ5C7IajaHOnvoi7RgEVsoSB
+         iIZR0CQDNqm0YpU4bo2KW309H44aKomWkZ17amf6FzJQm90Q1djsFxbcz6yavhV/0Ri7
+         GdYcNAdVbTkgDrjMKIP5iIoNlmK6C83f8A6omRBPYPNaNEpqThZ82XYRDuSYc5SLGhEf
+         SWbPaSD7Vm/gShuWTjkH/fGG21QMCTdtLRY0cUWscgrNtvrOlxQPC/Wtv0XbTpkaITTC
+         xg/VCz2MaLUbU5UKoSWxAoet+5ACVmIu7wW03vNqiZU7bBv+8xOSumWl6qv9N0X0uzy3
+         IjAg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=3oh1lM0wdhqgCoOS/xFM5A00tFqVqN9JQEyMolcljC8=;
+        b=IDscR2rwtkEaRhWCVqYfztz3x0428+TkSvH7QrxxQsxrPmHcrky1t5XWcxujK1jtzy
+         GfgWq5QOmHwbsK13H5oVkzOogJ33yFaYx6oQedccwPFzSvWDLjbbIi7FJYTKFUPZp+s5
+         22kDj/jBSlf2x5EupH5CpqfuhgUE/BSZwZ0cJzFR57Qs7Gs8yT/lTN6Z4Hjgz04AQ12U
+         LL2gmXBkNw3iJDMRD85qPIrUHGPYezC2qIA+yls+4GCLsIrTATRfK5/KdZA4e32OuXul
+         vgqXC8ksYU+SL/WQLdrvJhhssiXvl6hVQYwNLw0vc8cd4mNBt/R1u58LlsCu6hkkYfPO
+         GgRA==
+X-Gm-Message-State: AOAM5309E6WFMjeGMfmNSETYfDVIYDjDb+/1FGPDf9KjMfsHlmSDS8Yr
+	8iH76od7Q88d7YqOOLDFY+M8k1DMc70X8q3I420eKA==
+X-Google-Smtp-Source: ABdhPJx1kkg19lhWY7x+PtRXCZG0CgWfBnmVpjBQddrdGinubYZdjNuitdIlW40ThyK57GofL1ihsG13q4deUgTRKWs=
+X-Received: by 2002:a05:6402:1441:: with SMTP id d1mr5551416edx.93.1592609670144;
+ Fri, 19 Jun 2020 16:34:30 -0700 (PDT)
 MIME-Version: 1.0
-To: <linux-nvdimm@lists.01.org>
-Subject: derstroy your enemies websites
-Message-ID-Hash: 6QIRUFFDLAABIZJD3MHNWVE6UGBKNGH6
-X-Message-ID-Hash: 6QIRUFFDLAABIZJD3MHNWVE6UGBKNGH6
-X-MailFrom: normanatlas54iffx@gmail.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+References: <BYAPR04MB4310650471DD3C25D77BEA6394980@BYAPR04MB4310.namprd04.prod.outlook.com>
+In-Reply-To: <BYAPR04MB4310650471DD3C25D77BEA6394980@BYAPR04MB4310.namprd04.prod.outlook.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 19 Jun 2020 16:34:19 -0700
+Message-ID: <CAPcyv4jDgD82S9VHWb-P5iP+UH-gqdsYcNmA=aMFNhKrdSEUqg@mail.gmail.com>
+Subject: Re: Question on PMEM regions (Linux 4.9 Kernel & above)
+To: "Ananth, Rajesh" <Rajesh.Ananth@smartm.com>
+Message-ID-Hash: OQCJN6ZFP52AOIRL3FLBET76QMTAZSIK
+X-Message-ID-Hash: OQCJN6ZFP52AOIRL3FLBET76QMTAZSIK
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6QIRUFFDLAABIZJD3MHNWVE6UGBKNGH6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OQCJN6ZFP52AOIRL3FLBET76QMTAZSIK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -55,12 +81,27 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-puts down a website by any means
+On Fri, Jun 19, 2020 at 4:18 PM Ananth, Rajesh <Rajesh.Ananth@smartm.com> wrote:
+>
+> I have a question on the default REGION creation (unlabeled NVDIMM) on the Interleave Sets.  I observe that for a Single Interleave Set, the Linux Kernels earlier to 4.9 create only one "Region0->namespace0.0" (pmem0 for the entire size), but in the later Kernels I observe for the same Interleave Set it creates "Region0->namespace0.0" and "Region1->namespace1.0" by default (pmem0, pmem1 for half the size of the Interleave set).
+>
+> I don't have any explicit labels created using the ndctl utilities. I just plug-in the fresh NVDIMM modules like I always do.
+>
+> I searched for and found the relevant information on that front regarding the nd_pmem driver and the support for multiple pmem namespaces.  I am wondering whether is there a way I could -- through Kernel Parameters or something -- get the default behavior the same as it existed before Kernel 4.9 driver changes.
 
-Negative SEO that works
+How is your platform BIOS indicating the persistent memory range? I
+suspect you might be using the non-standard Type-12 memory hack and
+are hitting this issue:
 
-www.blackhat.to
+23446cb66c07 x86/e820: Don't merge consecutive E820_PRAM ranges
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=23446cb66c07
 
+For it to show up as one range the BIOS needs to tell Linux that it is
+one coherent range. You can force the kernel to override the BIOS
+provided memory map with the memmap= parameter. Some details of that
+here:
+
+https://nvdimm.wiki.kernel.org/how_to_choose_the_correct_memmap_kernel_parameter_for_pmem_on_your_system
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
