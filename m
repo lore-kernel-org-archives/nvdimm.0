@@ -1,207 +1,143 @@
 Return-Path: <SRS0=CIuk=AG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.4 required=3.0 tests=CHARSET_FARAWAY_HEADER,
-	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-2.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62898C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Jun 2020 02:16:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBFF7C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Jun 2020 16:26:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 058DA2078D
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Jun 2020 02:16:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id AA31E204EA
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Jun 2020 16:26:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=necglobal.onmicrosoft.com header.i=@necglobal.onmicrosoft.com header.b="pQCNbQJL"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 058DA2078D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=nec.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="n1zHCoNM"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AA31E204EA
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B70D410FCD5CC;
-	Wed, 24 Jun 2020 19:16:46 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.140.43; helo=jpn01-ty1-obe.outbound.protection.outlook.com; envelope-from=naoya.horiguchi@nec.com; receiver=<UNKNOWN> 
-Received: from JPN01-TY1-obe.outbound.protection.outlook.com (mail-eopbgr1400043.outbound.protection.outlook.com [40.107.140.43])
+	by ml01.01.org (Postfix) with ESMTP id 8D2ED1003EFE8;
+	Thu, 25 Jun 2020 09:26:23 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=jane.chu@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8345810FCD5CA
-	for <linux-nvdimm@lists.01.org>; Wed, 24 Jun 2020 19:16:44 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=l9OnyzQ9HOZrSsNo9TJ8ZpOLzaM8qC3h4tjpW1z9NL4QGLPFYjsBdTi71KDySfEg3WKUE9txCFcivMqCH6BO/IgL4D5jq55YSRyYiyq93+c+M8ZViP9z4ud8KdFeiVKvRYNi3nxencNPGTfH1Fuhaxl6v3jLsqRYFt4xxl/Mf9Gm78eRB7Wdlhtd1Wg+RavZkZkSLVRbgV9umJEM19n6hy+PrV9eR8Ay4z9OdQWbRNQattMx8yrpckDwfNX895AWt8x1gWr/fc/q/AwLWPvjH0YPWfdm73dgB1uNgUqjHg9lMAuSuPqryRzvMuEsWXR3lUeYIRbpFsyuA5SKqhGL8Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QN+9oBK+Gzj5d84+9f1X9XkuAmr7dVwjxciP1m/OlMw=;
- b=Y6mClWZ6Vxxgvk3yylWAnOn+b/TAmvsV/IyY0A9Y1vrNTfSuVAj5NBuOrXBm8A97zlzXXsebpqXURchim88D3h71l6WQnUkPEm5RMhOSY4hbRFpMPXVfZBsb0Z9s8fY3o0k+gi/IheVBYwjvv7rqUW5MwyY2YEE00hLtfas+kcz4gTQaoZGgN3b0oDlDNgR2teeEb6+z+Mdc+2+PQZGzg1P/Yh08jf9/Iq7puRbc+WVwfjSB8On4sxmOiTE+FAL9fKMGRbOk/Y9/61gf2zOl6vuFvCX7kBD+6mdUm2cXBSEbhGklXUiwGPJwhCVaKAFX+aOcmzbQNPmiIBrKhj90qg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nec.com; dmarc=pass action=none header.from=nec.com; dkim=pass
- header.d=nec.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=necglobal.onmicrosoft.com; s=selector1-necglobal-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QN+9oBK+Gzj5d84+9f1X9XkuAmr7dVwjxciP1m/OlMw=;
- b=pQCNbQJLR1M9SEu30g3Ma1XUswZUkGTBefCggGjHKzOkH1CdFo2pfWjB0/pmoUUPOINOAEmGFVICH5H9mgEitqbFn46L0gnPYKjfq/vqbEMUUQwmY3PdPsnQ8tHNye6UDdY4X5OB20fAIFkMMN2yZwuC3uPQt+Frgiz3sN79bno=
-Received: from TY2PR01MB3210.jpnprd01.prod.outlook.com (2603:1096:404:74::14)
- by TYAPR01MB5452.jpnprd01.prod.outlook.com (2603:1096:404:803d::10) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3131.20; Thu, 25 Jun
- 2020 02:16:42 +0000
-Received: from TY2PR01MB3210.jpnprd01.prod.outlook.com
- ([fe80::3841:ec9f:5cdf:f58]) by TY2PR01MB3210.jpnprd01.prod.outlook.com
- ([fe80::3841:ec9f:5cdf:f58%5]) with mapi id 15.20.3131.020; Thu, 25 Jun 2020
- 02:16:42 +0000
-From: =?iso-2022-jp?B?SE9SSUdVQ0hJIE5BT1lBKBskQktZOH0hIUQ+TGkbKEIp?=
-	<naoya.horiguchi@nec.com>
-To: David Rientjes <rientjes@google.com>
+	by ml01.01.org (Postfix) with ESMTPS id 9393A1003EFE4
+	for <linux-nvdimm@lists.01.org>; Thu, 25 Jun 2020 09:26:21 -0700 (PDT)
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05PG7qRB176249;
+	Thu, 25 Jun 2020 16:26:07 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=u+J0urSX+VPS0JEyukwvvQzOKq9cJrq+hfdXkn5ldnA=;
+ b=n1zHCoNMnP6ZR3D0Xc25mVn17UPByoYPvWFElhYxTDlZMEj9pT3Nx98VHF+SDfbXjuv5
+ 3UBy/XijDQQ3fpqbgIfDEq8tI+cqYaOnAbUuI8wsftkhaODK9gpL/uhz87RFzVxQIMk1
+ 1B94FDBYPiR1BE4ObjHcKo4fwWiJivmpbk1oNhS99c/pX8N406zxLMTwXeuvOlidIzoV
+ 4gcYPLzhTFn5DfzgixJA4/sORyEYZQWNweZz6fzR8O8Lqiev1kNksh0gVQ9UskyQjsvG
+ bY3irJkjm8IvjcYg66s4dbzxGX+MGVDGREZWPJsN7rA4bdh5E9GUzjtcng1r9LUfBBS7 1A==
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by userp2120.oracle.com with ESMTP id 31uustsh3h-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Thu, 25 Jun 2020 16:26:07 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 05PG9ROi063312;
+	Thu, 25 Jun 2020 16:24:07 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+	by userp3030.oracle.com with ESMTP id 31uurssrh4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 25 Jun 2020 16:24:07 +0000
+Received: from abhmp0007.oracle.com (abhmp0007.oracle.com [141.146.116.13])
+	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 05PGO31n003645;
+	Thu, 25 Jun 2020 16:24:03 GMT
+Received: from [10.159.156.197] (/10.159.156.197)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Thu, 25 Jun 2020 16:24:03 +0000
 Subject: Re: [RFC] Make the memory failure blast radius more precise
-Thread-Topic: [RFC] Make the memory failure blast radius more precise
-Thread-Index: AQHWSZt3qNTHVUr/sEmZKbB8SUspNajmwT0AgABsioCAAWxVgA==
-Date: Thu, 25 Jun 2020 02:16:42 +0000
-Message-ID: <20200625021641.GA21811@hori.linux.bs1.fc.nec.co.jp>
+To: "Luck, Tony" <tony.luck@intel.com>, Matthew Wilcox <willy@infradead.org>
 References: <20200623201745.GG21350@casper.infradead.org>
  <20200623220412.GA21232@agluck-desk2.amr.corp.intel.com>
- <alpine.DEB.2.22.394.2006232114100.97817@chino.kir.corp.google.com>
-In-Reply-To: 
- <alpine.DEB.2.22.394.2006232114100.97817@chino.kir.corp.google.com>
-Accept-Language: ja-JP, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-authentication-results: google.com; dkim=none (message not signed)
- header.d=none;google.com; dmarc=none action=none header.from=nec.com;
-x-originating-ip: [165.225.110.205]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: c949bdc3-24f2-47c5-02c9-08d818adcd2c
-x-ms-traffictypediagnostic: TYAPR01MB5452:
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: 
- <TYAPR01MB545247C6294074D473AEB312E7920@TYAPR01MB5452.jpnprd01.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:8273;
-x-forefront-prvs: 0445A82F82
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 
- ZQ16/yKBgCnCWlKJBVXLfd+Q6Lz/JZzCR0mkSkLoS8E7NkAY4egFdp0+UUH6zsc7wHx3tdxbuXYbgLFE4gpLjCm1+iGauObko578DLDBN8CKPNGpVY3kTqGexwKnD2Zi5jTHp8AimxOSxbrJPROHnMXq+4cDsyUq8HG0pMYrawvmo5DAz+N1wVl6BNGH/iE+9luQALUVVgXj3iELTFT6+abldBdmDxdavarkTSAy6uYgSdEcYimrRPVkYAtsFC/OC5HCl0uuBDz+k0ttqvh61T9u0twHtR8U9KA4/9d52+1DMSb2+xlWZC+XBLlkxNPfEWNru5lpaflGEHASmzqWAw==
-x-forefront-antispam-report: 
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TY2PR01MB3210.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(136003)(39860400002)(366004)(396003)(346002)(376002)(66446008)(5660300002)(8676002)(66476007)(7416002)(66556008)(64756008)(66946007)(54906003)(478600001)(8936002)(55236004)(1076003)(71200400001)(316002)(85182001)(86362001)(33656002)(2906002)(4326008)(76116006)(186003)(9686003)(6506007)(6512007)(26005)(6916009)(6486002)(83380400001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata: 
- WvVKwgTIwJ/dKZBdAXPen6gmXvMH9J2jO4cchJWoaMewQrAfngEAAvlozJtfQHM8WjRPmvdYojsBpcaPHqqREv04wpxk8DH7x/SKB759qxXJImGgOQEzQU43z02+7QxHJAirKFnHJdXdI8Hly84fATPllFGgCENYy1ptNu0dEgbKHXdNcAkjdXyCStjVMmkkChgfmeKf2u9Ibfuv6bqTghgx6LAREVp2flqXUGPJluRkJmTvzEhAyZrPzVpu92GMFQqcKapI33dKMg4xSvtvpskc6Bks1HFFRRy4CuyGfVTopkRuEmaGo3LetJkcF6mxYojdArqqDG8ZqWLi9nfsUGZrLE+q257OvmTSPuHYLqeKO5WY6dUsrwTxeRSEM8N2p0JDcZAjC+aMEAlf4nSNeApYxJ1ApuA9LJ++Py6HNAzx2hhu6otDl7JcBdhaArOZzjubreLe+KDSpnGCtPdREJXP/AEN6mSbKzclQl5y2dz0EOkv45iWTFqMd+q9/vd8
-Content-ID: <B9AE754C81838545900FAB82053D93BD@jpnprd01.prod.outlook.com>
+ <20200623221741.GH21350@casper.infradead.org>
+ <20200623222658.GA21817@agluck-desk2.amr.corp.intel.com>
+ <20200623224027.GI21350@casper.infradead.org>
+ <24367ca1-ecb0-de96-b9e5-f94747838c74@oracle.com>
+ <3908561D78D1C84285E8C5FCA982C28F7F67BB29@ORSMSX115.amr.corp.intel.com>
+From: Jane Chu <jane.chu@oracle.com>
+Organization: Oracle Corporation
+Message-ID: <5aecb2f9-413f-acbb-f2ea-be75589725c6@oracle.com>
+Date: Thu, 25 Jun 2020 09:23:57 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-X-OriginatorOrg: nec.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: TY2PR01MB3210.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c949bdc3-24f2-47c5-02c9-08d818adcd2c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 25 Jun 2020 02:16:42.2678
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: e67df547-9d0d-4f4d-9161-51c6ed1f7d11
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: yiuPl0Arpu64Vo5JL2glirCGaAA+j8SzCpg82a1f/3rT7dU7OU9T7S91lXdMTpfElGzRmmburXohEY7Qxx/8aw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYAPR01MB5452
-Message-ID-Hash: HX2TE2DQFYSZNZDHJK54C42FE27RNCJZ
-X-Message-ID-Hash: HX2TE2DQFYSZNZDHJK54C42FE27RNCJZ
-X-MailFrom: naoya.horiguchi@nec.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Luck, Tony" <tony.luck@intel.com>, Mike Kravetz <mike.kravetz@oracle.com>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, Peter Xu <peterx@redhat.com>, Andrea Arcangeli <aarcange@redhat.com>, Matthew Wilcox <willy@infradead.org>, Borislav Petkov <bp@alien8.de>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Darrick J. Wong" <darrick.wong@oracle.com>
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F7F67BB29@ORSMSX115.amr.corp.intel.com>
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9663 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 phishscore=0 mlxscore=0
+ spamscore=0 mlxlogscore=999 bulkscore=0 suspectscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2006250102
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9663 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 mlxlogscore=999
+ cotscore=-2147483648 adultscore=0 bulkscore=0 spamscore=0 phishscore=0
+ suspectscore=0 priorityscore=1501 lowpriorityscore=0 clxscore=1015
+ impostorscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2004280000 definitions=main-2006250102
+Message-ID-Hash: LANSTJZOEVND2THSIAMF6V2IQXTBFROB
+X-Message-ID-Hash: LANSTJZOEVND2THSIAMF6V2IQXTBFROB
+X-MailFrom: jane.chu@oracle.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <naoya.horiguchi@nec.com>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, David Rientjes <rientjes@google.com>, Mike Kravetz <mike.kravetz@oracle.com>, "Dr. David Alan Gilbert" <dgilbert@redhat.com>, Peter Xu <peterx@redhat.com>, Andrea Arcangeli <aarcange@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HX2TE2DQFYSZNZDHJK54C42FE27RNCJZ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LANSTJZOEVND2THSIAMF6V2IQXTBFROB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 23, 2020 at 09:32:41PM -0700, David Rientjes wrote:
-> On Tue, 23 Jun 2020, Luck, Tony wrote:
+On 6/24/2020 5:13 PM, Luck, Tony wrote:
+>> Both the RFC patch and the above 5-step recovery plan look neat, step 4)
+>> is nice to carry forward on icelake when a single instruction to clear
+>> poison is available.
 > 
-> > > Hardware actually tells us the blast radius of the error, but we ignore
-> > > it and take out the entire page.  We've had a customer request to know
-> > > exactly how much of the page is damaged so they can avoid reconstructing
-> > > an entire 2MB page if only a single cacheline is damaged.
-> > > 
-> > > This is only a strawman that I did in an hour or two; I'd appreciate
-> > > architectural-level feedback.  Should I just convert memory_failure() to
-> > > always take an address & granularity?  Should I create a struct to pass
-> > > around (page, phys, granularity) instead of reconstructing the missing
-> > > pieces in half a dozen functions?  Is this functionality welcome at all,
-> > > or is the risk of upsetting applications which expect at least a page
-> > > of granularity too high?
-> > 
-> > What is the interface to these applications that want finer granularity?
-> > 
-> > Current code does very poorly with hugetlbfs pages ... user loses the
-> > whole 2 MB or 1GB. That's just silly (though I've been told that it is
-> > hard to fix because allowing a hugetlbfs page to be broken up at an arbitrary
-> > time as the result of a mahcine check means that the kernel needs locking
-> > around a bunch of fas paths that currently assume that a huge page will
-> > stay being a huge page).
-> > 
+> Jane,
 > 
-> Thanks for bringing this up, Tony.  Mike Kravetz pointed me to this thread 
-> (thanks Mike!) so let's add him in explicitly as well as Andrea, Peter, 
-> and David from Red Hat who we've been discussing an idea with that may 
-> introduce exactly this needed support but for different purposes :)  The 
-> timing of this thread is _uncanny_.
+> Clearing poison has some challenges.
 > 
-> To improve the performance of userfaultfd for the purposes of post-copy 
-> live migration we need to reduce the granularity in which pages are 
-> migrated; we're looking at this from a 1GB gigantic page perspective but 
-> the same arguments can likely be had for 2MB hugepages as well.  1GB pages 
-> are too much of a bottleneck and, as you bring up, 1GB is simply too much 
-> memory to poison :)  We don't have 1GB thp support so the big idea was to 
-> introduce thp-like DoubleMap support into hugetlbfs for the purposes of 
-> post-copy live migration and then I had the idea that this could be 
-> extended to memory failure as well.
+> On persistent memory it probably works (as the DIMM is going to remap that address to a different
+> part of the media to avoid the bad spot).
 > 
-> (We don't see the lack of 1GB thp here as a deficiency for anything other 
-> than these two issues, hugetlb provides strong guarantees.)
+> On DDR memory you'd need to decide whether the problem was transient, so that a simple
+> overwrite fixes the problem. Or persistent ... in which case the problem will likely come back
+> with the right data pattern.  To tell that you may need to run some memory test on the affected
+> area.
 > 
-> I don't want to hijack Matthew's thread which is primarily about DAX, but 
-> did get intrigued by your concerns about hugetlbfs page poisoning.  We can 
-> fork the thread off here to discuss only the hugetlb application of this 
-> if it makes sense to you or you'd like to collaborate on it as well.
+> If the error was just in a 4K page, I'd be inclined to copy the good data to a new page and
+> map that in instead. Throwing away one 4K page isn't likely to be painful.
 > 
-> The DoubleMap support would allow us to map the 1GB gigantic pages with 
-> the PUD and the PMDs as well (and, further, the 2MB hugepages with the PMD 
-> and PTEs) so that we can copy fragments into PMDs or PTEs and we don't 
-> need to migrate the entire gigantic page.  Any access triggers #PF through 
-> hugetlb_no_page() -> handle_userfault() which would trigger another 
-> UFFDIO_COPY and map another fragment.
->
-> Assume a world where this DoubleMap support already exists for hugetlb 
-> pages today and all the invariants including page migration are fixed up 
-> (since a PTE can now map a hugetlb page and a PMD can now map a gigantic 
-> hugetlb page).  It *seems* like we'd be able to reduce the blast radius 
-> here too on a hard memory failure: dissolve the gigantic page in place, 
-> SIGBUS/SIGKILL on the bad PMD or PTE, and avoid poisoning the head of the 
-> hugetlb page.  We agree that poisoning this large amount of memory is not 
-> ideal :)
-> 
-> Anyway, this was some brainstorming that I was doing with Mike and the 
-> others based on the idea of using DoubleMap support for post-copy live 
-> migration.  If you would be interested or would like to collaborate on 
-> it, we'd love to talk.
+> If it is in a 2M/1G page ... perhaps it is worth the effort and risk of trying to clear the poison
+> in place to avoid the pain of breaking up a large page.
 
-Thanks for proposing. I think that DoubleMap support could be a good
-solution generally (not only for the usecase of post-copy live migration).
-Splitting pud/pmd entry into pmd/pte entry makes smaller impact than migrating
-all healthy data to somewhere else.  The implementation could be challenging
-but not so as thp splitting because we don't have to consider collapsing.
+Thanks!  Yes I was only thinking about persistent memory, but 
+memory_failure_dev_pagemap() applies to DDR as well depends on the 
+underlying technology. In our use case, even if the error was just in a 
+4K page, we'd like to clear the poison and reuse the page to maintain a 
+contiguous 256MB extent in the filesystem.  Perhaps it is better to 
+leave that to the filesystem and driver.
 
-Dax mapping seems to have similar issue. If we can share pmd mapping and pte
-mapping to a dax file and covert the pmd mapping into pte mapping, we could
-contain errors in smaller granularity for pmem.
+Regards,
+-jane
 
-Thanks,
-Naoya Horiguchi
+> 
+> -Tony
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
