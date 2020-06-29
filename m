@@ -7,52 +7,52 @@ X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27D13C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:40:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 574FCC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:40:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id F3A2520672
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 314B020672
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:40:26 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="O9wCb3jp"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F3A2520672
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="L1r7EY9F"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 314B020672
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6EF03111F370F;
+	by ml01.01.org (Postfix) with ESMTP id 88373111F92B9;
 	Mon, 29 Jun 2020 12:40:21 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=batv+0d14f5278154a06d8b22+6154+infradead.org+hch@casper.srs.infradead.org; receiver=<UNKNOWN> 
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7CBF3111C7C50
+	by ml01.01.org (Postfix) with ESMTPS id 8DD45111C7C56
 	for <linux-nvdimm@lists.01.org>; Mon, 29 Jun 2020 12:40:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=x/Lapiju/RCIeWIuz3o8sd6pkgFSKFSdWu2H7EUGYIE=; b=O9wCb3jp0iCF1CzuvdGMrrLzoB
-	hUmM9g2VqtcNKR8cGfEwWvKwAuWyep1dCkN1TGIV6QFphRYIt2ecSV1/ZQtbW+fS7r3iCmyAbN5me
-	x371kR78nTdJ8F38UoZxUFoO+t2KRh7aPoJEcdv3emVhv+ywJ1JWZOU4zoGpuqprHCnoiyUOgRPKp
-	4frQBv8ziD+bikS/0M0ZAvAvo4amoKm9b9JV2ml9PXsCnOZjCsh8saZP7ylX/hR6jVbLLYLpMldWs
-	Kx8wmm37ZbimiGJQEhj6VYGKYeoaROtCQL/LkVXhbVLbE7JrAyT+OD1jFrH6yRio4V89SD6rsVIUg
-	qU3nOTnQ==;
+	bh=t6BqkN6Yxn/8o7GWQerTXSXZiT8M8tft7EnhoW3IIiE=; b=L1r7EY9FHzvyzP1GXJQq8PamRy
+	kklMB3B/Z5AAP3Qz+3yMUhnjDthIvzaMmika+09k+I9SG4WEZAz27Zc7R8q/CIaJAhDL1Vw5JTPP/
+	AZ+zHno+y/TSc0HS3BAt05sXoXJqTSDpWO5oz0rKQrhLvAp3Pmi7Fx3itzdowGp2kggIN20A8Ze1Y
+	KQtyy2SujehoRs4mDT1ZuP0yV/o/b7G/qsh2YKbGLedvrZAORnbzDSX5wU9BiGWR5fF3RMON6NxIy
+	XhSqrz6RqcUKLEkpYG9v3D+yp3TYTmJXD2arCvG0V0IFSdsIFbFgyQdmXf4PAC2OX+gRcnpXfeuLc
+	IYHHkXtA==;
 Received: from [2001:4bb8:184:76e3:fcca:c8dc:a4bf:12fa] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1jpzdG-0004Fv-Mp; Mon, 29 Jun 2020 19:39:59 +0000
+	id 1jpzdL-0004IV-Ik; Mon, 29 Jun 2020 19:40:03 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>
-Subject: [PATCH 05/20] ps3vram: stop using ->queuedata
-Date: Mon, 29 Jun 2020 21:39:32 +0200
-Message-Id: <20200629193947.2705954-6-hch@lst.de>
+Subject: [PATCH 08/20] zram: stop using ->queuedata
+Date: Mon, 29 Jun 2020 21:39:35 +0200
+Message-Id: <20200629193947.2705954-9-hch@lst.de>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20200629193947.2705954-1-hch@lst.de>
 References: <20200629193947.2705954-1-hch@lst.de>
 MIME-Version: 1.0
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
-Message-ID-Hash: NKRYA643D5H4PFFNORDGNCOK3G2JH5RE
-X-Message-ID-Hash: NKRYA643D5H4PFFNORDGNCOK3G2JH5RE
+Message-ID-Hash: LU4CW6RKM2ZNQQJ5KY77S567RRTUMLA3
+X-Message-ID-Hash: LU4CW6RKM2ZNQQJ5KY77S567RRTUMLA3
 X-MailFrom: BATV+0d14f5278154a06d8b22+6154+infradead.org+hch@casper.srs.infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -60,7 +60,7 @@ CC: dm-devel@redhat.com, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m6
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NKRYA643D5H4PFFNORDGNCOK3G2JH5RE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LU4CW6RKM2ZNQQJ5KY77S567RRTUMLA3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -74,30 +74,30 @@ field.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/block/ps3vram.c | 3 +--
+ drivers/block/zram/zram_drv.c | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/block/ps3vram.c b/drivers/block/ps3vram.c
-index 821d4d8b1d763e..5a1d1d137c7248 100644
---- a/drivers/block/ps3vram.c
-+++ b/drivers/block/ps3vram.c
-@@ -587,7 +587,7 @@ static struct bio *ps3vram_do_bio(struct ps3_system_bus_device *dev,
- 
- static blk_qc_t ps3vram_make_request(struct request_queue *q, struct bio *bio)
+diff --git a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
+index 6e2ad90b17a376..0564e3f384089e 100644
+--- a/drivers/block/zram/zram_drv.c
++++ b/drivers/block/zram/zram_drv.c
+@@ -1586,7 +1586,7 @@ static void __zram_make_request(struct zram *zram, struct bio *bio)
+  */
+ static blk_qc_t zram_make_request(struct request_queue *queue, struct bio *bio)
  {
--	struct ps3_system_bus_device *dev = q->queuedata;
-+	struct ps3_system_bus_device *dev = bio->bi_disk->private_data;
- 	struct ps3vram_priv *priv = ps3_system_bus_get_drvdata(dev);
- 	int busy;
+-	struct zram *zram = queue->queuedata;
++	struct zram *zram = bio->bi_disk->private_data;
  
-@@ -745,7 +745,6 @@ static int ps3vram_probe(struct ps3_system_bus_device *dev)
- 	}
+ 	if (!valid_io_request(zram, bio->bi_iter.bi_sector,
+ 					bio->bi_iter.bi_size)) {
+@@ -1912,7 +1912,6 @@ static int zram_add(void)
+ 	zram->disk->first_minor = device_id;
+ 	zram->disk->fops = &zram_devops;
+ 	zram->disk->queue = queue;
+-	zram->disk->queue->queuedata = zram;
+ 	zram->disk->private_data = zram;
+ 	snprintf(zram->disk->disk_name, 16, "zram%d", device_id);
  
- 	priv->queue = queue;
--	queue->queuedata = dev;
- 	blk_queue_max_segments(queue, BLK_MAX_SEGMENTS);
- 	blk_queue_max_segment_size(queue, BLK_MAX_SEGMENT_SIZE);
- 	blk_queue_max_hw_sectors(queue, BLK_SAFE_MAX_SECTORS);
 -- 
 2.26.2
 _______________________________________________
