@@ -6,59 +6,59 @@ X-Spam-Status: No, score=-7.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 046C0C433E6
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 18:54:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98AB0C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:28:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D91D12065D
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 18:54:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D91D12065D
+	by mail.kernel.org (Postfix) with ESMTPS id 7C67D2065F
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:28:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7C67D2065F
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A5AFB111B33DD;
-	Mon, 29 Jun 2020 11:54:02 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	by ml01.01.org (Postfix) with ESMTP id 60D81111C7C4D;
+	Mon, 29 Jun 2020 12:28:19 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0B604111B33D5;
-	Mon, 29 Jun 2020 11:53:59 -0700 (PDT)
-IronPort-SDR: zXnX4VPzb9C63P7NcA8l0kKn/m6gL/nYtRNOBG2CBEPaOU1NqE+ctA2oTq1MnmC3YvxkOZSx13
- 9/dd22parURg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9666"; a="143513617"
+	by ml01.01.org (Postfix) with ESMTPS id 0D3FC111B33D5;
+	Mon, 29 Jun 2020 12:28:17 -0700 (PDT)
+IronPort-SDR: TF0K/cjxMRi+aqGP54vtFSAdbUzw4qe3cgzRRFVRxbJjDissA66b85QpLn/w5BT2a6Qj4gr1XK
+ TxDmd/R6RrpQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9666"; a="164057209"
 X-IronPort-AV: E=Sophos;i="5.75,295,1589266800";
-   d="gz'50?scan'50,208,50";a="143513617"
+   d="gz'50?scan'50,208,50";a="164057209"
 X-Amp-Result: UNKNOWN
 X-Amp-Original-Verdict: FILE UNKNOWN
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2020 11:53:59 -0700
-IronPort-SDR: ez7WknEKxGeFMnd0AC5DrmIZB+xqAk7jzBAaxJccx4N1fz1CW/U9gT4rWvsQyMPXlBn8hGHeCu
- pS8Nf/YNU8nQ==
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2020 12:28:16 -0700
+IronPort-SDR: CDFnChUBtrqT9JOHzRECxVTTUmN7xj7TWTLBkwAmf27DdAP0N0Gjr+u7LkKu9jquD4ogX9TXYv
+ m49P1kxpCEaw==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.75,295,1589266800";
-   d="gz'50?scan'50,208,50";a="480890726"
+   d="gz'50?scan'50,208,50";a="280972780"
 Received: from lkp-server01.sh.intel.com (HELO 28879958b202) ([10.239.97.150])
-  by fmsmga005.fm.intel.com with ESMTP; 29 Jun 2020 11:53:55 -0700
+  by orsmga006.jf.intel.com with ESMTP; 29 Jun 2020 12:28:12 -0700
 Received: from kbuild by 28879958b202 with local (Exim 4.92)
 	(envelope-from <lkp@intel.com>)
-	id 1jpyug-00018Q-Qw; Mon, 29 Jun 2020 18:53:54 +0000
-Date: Tue, 30 Jun 2020 02:53:37 +0800
+	id 1jpzRr-00019R-G8; Mon, 29 Jun 2020 19:28:11 +0000
+Date: Tue, 30 Jun 2020 03:27:50 +0800
 From: kernel test robot <lkp@intel.com>
 To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
 	linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au,
 	linux-nvdimm@lists.01.org, dan.j.williams@intel.com
 Subject: Re: [PATCH v6 4/8] libnvdimm/nvdimm/flush: Allow architecture to
  override the flush barrier
-Message-ID: <202006300210.ADlNY4uw%lkp@intel.com>
+Message-ID: <202006300359.qHAg2InT%lkp@intel.com>
 References: <20200629135722.73558-5-aneesh.kumar@linux.ibm.com>
 MIME-Version: 1.0
 In-Reply-To: <20200629135722.73558-5-aneesh.kumar@linux.ibm.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: ZGSBPJVOTUFCVAVCNODJU274P4HIR3ZY
-X-Message-ID-Hash: ZGSBPJVOTUFCVAVCNODJU274P4HIR3ZY
+Message-ID-Hash: QMDKRW2PXKBWLCZX6L7GRN5DKGS4WLCS
+X-Message-ID-Hash: QMDKRW2PXKBWLCZX6L7GRN5DKGS4WLCS
 X-MailFrom: lkp@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -68,7 +68,7 @@ CC: kbuild-all@lists.01.org, Jan Kara <jack@suse.cz>, msuchanek@suse.de, "Aneesh
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZGSBPJVOTUFCVAVCNODJU274P4HIR3ZY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QMDKRW2PXKBWLCZX6L7GRN5DKGS4WLCS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,81 +83,42 @@ I love your patch! Yet something to improve:
 
 [auto build test ERROR on powerpc/next]
 [also build test ERROR on linux-nvdimm/libnvdimm-for-next v5.8-rc3 next-20200629]
-[cannot apply to scottwood/next]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use  as documented in
 https://git-scm.com/docs/git-format-patch]
 
 url:    https://github.com/0day-ci/linux/commits/Aneesh-Kumar-K-V/Support-new-pmem-flush-and-sync-instructions-for-POWER/20200629-223649
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git next
-config: arc-allyesconfig (attached as .config)
-compiler: arc-elf-gcc (GCC) 9.3.0
+config: mips-allyesconfig (attached as .config)
+compiler: mips-linux-gcc (GCC) 9.3.0
 reproduce (this is a W=1 build):
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
         # save the attached .config to linux build tree
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-9.3.0 make.cross ARCH=arc 
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-9.3.0 make.cross ARCH=mips 
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
 All errors (new ones prefixed by >>):
 
-   drivers/nvdimm/region_devs.c: In function 'generic_nvdimm_flush':
->> drivers/nvdimm/region_devs.c:1215:2: error: implicit declaration of function 'arch_pmem_flush_barrier' [-Werror=implicit-function-declaration]
-    1215 |  arch_pmem_flush_barrier();
-         |  ^~~~~~~~~~~~~~~~~~~~~~~
+   drivers/md/dm-writecache.c: In function 'writecache_commit_flushed':
+>> drivers/md/dm-writecache.c:539:3: error: implicit declaration of function 'arch_pmem_flush_barrier' [-Werror=implicit-function-declaration]
+     539 |   arch_pmem_flush_barrier();
+         |   ^~~~~~~~~~~~~~~~~~~~~~~
    cc1: some warnings being treated as errors
 
-vim +/arch_pmem_flush_barrier +1215 drivers/nvdimm/region_devs.c
+vim +/arch_pmem_flush_barrier +539 drivers/md/dm-writecache.c
 
-  1178	
-  1179	int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
-  1180	{
-  1181		int rc = 0;
-  1182	
-  1183		if (!nd_region->flush)
-  1184			rc = generic_nvdimm_flush(nd_region);
-  1185		else {
-  1186			if (nd_region->flush(nd_region, bio))
-  1187				rc = -EIO;
-  1188		}
-  1189	
-  1190		return rc;
-  1191	}
-  1192	/**
-  1193	 * nvdimm_flush - flush any posted write queues between the cpu and pmem media
-  1194	 * @nd_region: blk or interleaved pmem region
-  1195	 */
-  1196	int generic_nvdimm_flush(struct nd_region *nd_region)
-  1197	{
-  1198		struct nd_region_data *ndrd = dev_get_drvdata(&nd_region->dev);
-  1199		int i, idx;
-  1200	
-  1201		/*
-  1202		 * Try to encourage some diversity in flush hint addresses
-  1203		 * across cpus assuming a limited number of flush hints.
-  1204		 */
-  1205		idx = this_cpu_read(flush_idx);
-  1206		idx = this_cpu_add_return(flush_idx, hash_32(current->pid + idx, 8));
-  1207	
-  1208		/*
-  1209		 * The first arch_pmem_flush_barrier() is needed to 'sfence' all
-  1210		 * previous writes such that they are architecturally visible for
-  1211		 * the platform buffer flush. Note that we've already arranged for pmem
-  1212		 * writes to avoid the cache via memcpy_flushcache().  The final
-  1213		 * wmb() ensures ordering for the NVDIMM flush write.
-  1214		 */
-> 1215		arch_pmem_flush_barrier();
-  1216		for (i = 0; i < nd_region->ndr_mappings; i++)
-  1217			if (ndrd_get_flush_wpq(ndrd, i, 0))
-  1218				writeq(1, ndrd_get_flush_wpq(ndrd, i, idx));
-  1219		wmb();
-  1220	
-  1221		return 0;
-  1222	}
-  1223	EXPORT_SYMBOL_GPL(nvdimm_flush);
-  1224	
+   535	
+   536	static void writecache_commit_flushed(struct dm_writecache *wc, bool wait_for_ios)
+   537	{
+   538		if (WC_MODE_PMEM(wc))
+ > 539			arch_pmem_flush_barrier();
+   540		else
+   541			ssd_commit_flushed(wc, wait_for_ios);
+   542	}
+   543	
 
 ---
 0-DAY CI Kernel Test Service, Intel Corporation
