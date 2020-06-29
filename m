@@ -2,140 +2,277 @@ Return-Path: <SRS0=OAeV=AK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2770EC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 16:09:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16436C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 16:34:57 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0897D25586
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 16:09:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0897D25586
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
+	by mail.kernel.org (Postfix) with ESMTPS id D46EE2559B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 16:34:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D46EE2559B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9D8F0111B33D2;
-	Mon, 29 Jun 2020 09:09:45 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=msuchanek@suse.de; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 9C9AA111B33D2;
+	Mon, 29 Jun 2020 09:34:56 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=79.96.170.134; helo=cloudserver094114.home.pl; envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN> 
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 93AE3100A4626
-	for <linux-nvdimm@lists.01.org>; Mon, 29 Jun 2020 09:09:43 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id CD266ACDB;
-	Mon, 29 Jun 2020 16:09:41 +0000 (UTC)
-Date: Mon, 29 Jun 2020 18:09:40 +0200
-From: Michal =?iso-8859-1?Q?Such=E1nek?= <msuchanek@suse.de>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: Re: [PATCH v6 6/8] powerpc/pmem: Avoid the barrier in flush routines
-Message-ID: <20200629160940.GU21462@kitsune.suse.cz>
-References: <20200629135722.73558-1-aneesh.kumar@linux.ibm.com>
- <20200629135722.73558-7-aneesh.kumar@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 4ABBF100A4626
+	for <linux-nvdimm@lists.01.org>; Mon, 29 Jun 2020 09:34:54 -0700 (PDT)
+Received: from 89-64-84-69.dynamic.chello.pl (89.64.84.69) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.415)
+ id 39af2550cfacad4d; Mon, 29 Jun 2020 18:34:52 +0200
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Dan Williams <dan.j.williams@intel.com>, Erik Kaneda <erik.kaneda@intel.com>
+Subject: [PATCH v4 2/2] ACPICA: Preserve memory opregion mappings
+Date: Mon, 29 Jun 2020 18:33:58 +0200
+Message-ID: <1794490.F2OrUDcHQn@kreacher>
+In-Reply-To: <1666722.UopIai5n7p@kreacher>
+References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com> <2788992.3K7huLjdjL@kreacher> <1666722.UopIai5n7p@kreacher>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200629135722.73558-7-aneesh.kumar@linux.ibm.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: 3J2IIVSYENNVF2PFZAWBRJL6HK4NXXRU
-X-Message-ID-Hash: 3J2IIVSYENNVF2PFZAWBRJL6HK4NXXRU
-X-MailFrom: msuchanek@suse.de
+Content-Type: text/plain; charset="us-ascii"
+Message-ID-Hash: EKGSNOANCLGL6SKRDCOEHYCCM3GBPKNN
+X-Message-ID-Hash: EKGSNOANCLGL6SKRDCOEHYCCM3GBPKNN
+X-MailFrom: rjw@rjwysocki.net
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, linux-nvdimm@lists.01.org, Jan Kara <jack@suse.cz>
+CC: rafael.j.wysocki@intel.com, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Myron Stowe <myron.stowe@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Bob Moore <robert.moore@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3J2IIVSYENNVF2PFZAWBRJL6HK4NXXRU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EKGSNOANCLGL6SKRDCOEHYCCM3GBPKNN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hello,
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On Mon, Jun 29, 2020 at 07:27:20PM +0530, Aneesh Kumar K.V wrote:
-> nvdimm expect the flush routines to just mark the cache clean. The barrier
-> that mark the store globally visible is done in nvdimm_flush().
-> 
-> Update the papr_scm driver to a simplified nvdim_flush callback that do
-> only the required barrier.
-> 
-> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> ---
->  arch/powerpc/lib/pmem.c                   |  6 ------
->  arch/powerpc/platforms/pseries/papr_scm.c | 13 +++++++++++++
->  2 files changed, 13 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/powerpc/lib/pmem.c b/arch/powerpc/lib/pmem.c
-> index 5a61aaeb6930..21210fa676e5 100644
-> --- a/arch/powerpc/lib/pmem.c
-> +++ b/arch/powerpc/lib/pmem.c
-> @@ -19,9 +19,6 @@ static inline void __clean_pmem_range(unsigned long start, unsigned long stop)
->  
->  	for (i = 0; i < size >> shift; i++, addr += bytes)
->  		asm volatile(PPC_DCBSTPS(%0, %1): :"i"(0), "r"(addr): "memory");
-> -
-> -
-> -	asm volatile(PPC_PHWSYNC ::: "memory");
->  }
->  
->  static inline void __flush_pmem_range(unsigned long start, unsigned long stop)
-> @@ -34,9 +31,6 @@ static inline void __flush_pmem_range(unsigned long start, unsigned long stop)
->  
->  	for (i = 0; i < size >> shift; i++, addr += bytes)
->  		asm volatile(PPC_DCBFPS(%0, %1): :"i"(0), "r"(addr): "memory");
-> -
-> -
-> -	asm volatile(PPC_PHWSYNC ::: "memory");
->  }
->  
->  static inline void clean_pmem_range(unsigned long start, unsigned long stop)
-> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> index 9c569078a09f..9a9a0766f8b6 100644
-> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> @@ -630,6 +630,18 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
->  
->  	return 0;
->  }
-> +/*
-> + * We have made sure the pmem writes are done such that before calling this
-> + * all the caches are flushed/clean. We use dcbf/dcbfps to ensure this. Here
-> + * we just need to add the necessary barrier to make sure the above flushes
-> + * are have updated persistent storage before any data access or data transfer
-> + * caused by subsequent instructions is initiated.
-> + */
-> +static int papr_scm_flush_sync(struct nd_region *nd_region, struct bio *bio)
-> +{
-> +	arch_pmem_flush_barrier();
-> +	return 0;
-> +}
->  
->  static ssize_t flags_show(struct device *dev,
->  			  struct device_attribute *attr, char *buf)
-> @@ -743,6 +755,7 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
->  	ndr_desc.mapping = &mapping;
->  	ndr_desc.num_mappings = 1;
->  	ndr_desc.nd_set = &p->nd_set;
-> +	ndr_desc.flush = papr_scm_flush_sync;
+The ACPICA's strategy with respect to the handling of memory mappings
+associated with memory operation regions is to avoid mapping the
+entire region at once which may be problematic at least in principle
+(for example, it may lead to conflicts with overlapping mappings
+having different attributes created by drivers).  It may also be
+wasteful, because memory opregions on some systems take up vast
+chunks of address space while the fields in those regions actually
+accessed by AML are sparsely distributed.
 
-AFAICT currently the only device that implements flush is virtio_pmem.
-How does the nfit driver get away without implementing flush?
-Also the flush takes arguments that are completely unused but a user of
-the pmem region must assume they are used, and call flush() on the
-region rather than arch_pmem_flush_barrier() directly.  This may not
-work well with md as discussed with earlier iteration of the patchest.
+For this reason, a one-page "window" is mapped for a given opregion
+on the first memory access through it and if that "window" does not
+cover an address range accessed through that opregion subsequently,
+it is unmapped and a new "window" is mapped to replace it.  Next,
+if the new "window" is not sufficient to acess memory through the
+opregion in question in the future, it will be replaced with yet
+another "window" and so on.  That may lead to a suboptimal sequence
+of memory mapping and unmapping operations, for example if two fields
+in one opregion separated from each other by a sufficiently wide
+chunk of unused address space are accessed in an alternating pattern.
 
-Thanks
+The situation may still be suboptimal if the deferred unmapping
+introduced previously is supported by the OS layer.  For instance,
+the alternating memory access pattern mentioned above may produce
+a relatively long list of mappings to release with substantial
+duplication among the entries in it, which could be avoided if
+acpi_ex_system_memory_space_handler() did not release the mapping
+used by it previously as soon as the current access was not covered
+by it.
 
-Michal
+In order to improve that, modify acpi_ex_system_memory_space_handler()
+to preserve all of the memory mappings created by it until the memory
+regions associated with them go away.
+
+Accordingly, update acpi_ev_system_memory_region_setup() to unmap all
+memory associated with memory opregions that go away.
+
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpica/evrgnini.c | 14 ++++----
+ drivers/acpi/acpica/exregion.c | 65 ++++++++++++++++++++++++----------
+ include/acpi/actypes.h         | 12 +++++--
+ 3 files changed, 64 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+index aefc0145e583..89be3ccdad53 100644
+--- a/drivers/acpi/acpica/evrgnini.c
++++ b/drivers/acpi/acpica/evrgnini.c
+@@ -38,6 +38,7 @@ acpi_ev_system_memory_region_setup(acpi_handle handle,
+ 	union acpi_operand_object *region_desc =
+ 	    (union acpi_operand_object *)handle;
+ 	struct acpi_mem_space_context *local_region_context;
++	struct acpi_mem_mapping *mm;
+ 
+ 	ACPI_FUNCTION_TRACE(ev_system_memory_region_setup);
+ 
+@@ -46,13 +47,14 @@ acpi_ev_system_memory_region_setup(acpi_handle handle,
+ 			local_region_context =
+ 			    (struct acpi_mem_space_context *)*region_context;
+ 
+-			/* Delete a cached mapping if present */
++			/* Delete memory mappings if present */
+ 
+-			if (local_region_context->mapped_length) {
+-				acpi_os_unmap_memory(local_region_context->
+-						     mapped_logical_address,
+-						     local_region_context->
+-						     mapped_length);
++			while (local_region_context->first_mm) {
++				mm = local_region_context->first_mm;
++				local_region_context->first_mm = mm->next_mm;
++				acpi_os_unmap_memory(mm->logical_address,
++						     mm->length);
++				ACPI_FREE(mm);
+ 			}
+ 			ACPI_FREE(local_region_context);
+ 			*region_context = NULL;
+diff --git a/drivers/acpi/acpica/exregion.c b/drivers/acpi/acpica/exregion.c
+index d15a66de26c0..fd68f2134804 100644
+--- a/drivers/acpi/acpica/exregion.c
++++ b/drivers/acpi/acpica/exregion.c
+@@ -41,6 +41,7 @@ acpi_ex_system_memory_space_handler(u32 function,
+ 	acpi_status status = AE_OK;
+ 	void *logical_addr_ptr = NULL;
+ 	struct acpi_mem_space_context *mem_info = region_context;
++	struct acpi_mem_mapping *mm = mem_info->cur_mm;
+ 	u32 length;
+ 	acpi_size map_length;
+ 	acpi_size page_boundary_map_length;
+@@ -96,20 +97,38 @@ acpi_ex_system_memory_space_handler(u32 function,
+ 	 * Is 1) Address below the current mapping? OR
+ 	 *    2) Address beyond the current mapping?
+ 	 */
+-	if ((address < mem_info->mapped_physical_address) ||
+-	    (((u64) address + length) > ((u64)
+-					 mem_info->mapped_physical_address +
+-					 mem_info->mapped_length))) {
++	if (!mm || (address < mm->physical_address) ||
++	    ((u64) address + length > (u64) mm->physical_address + mm->length)) {
+ 		/*
+-		 * The request cannot be resolved by the current memory mapping;
+-		 * Delete the existing mapping and create a new one.
++		 * The request cannot be resolved by the current memory mapping.
++		 *
++		 * Look for an existing saved mapping covering the address range
++		 * at hand.  If found, save it as the current one and carry out
++		 * the access.
+ 		 */
+-		if (mem_info->mapped_length) {
++		for (mm = mem_info->first_mm; mm; mm = mm->next_mm) {
++			if (mm == mem_info->cur_mm)
++				continue;
++
++			if (address < mm->physical_address)
++				continue;
++
++			if ((u64) address + length >
++					(u64) mm->physical_address + mm->length)
++				continue;
+ 
+-			/* Valid mapping, delete it */
++			mem_info->cur_mm = mm;
++			goto access;
++		}
+ 
+-			acpi_os_unmap_memory(mem_info->mapped_logical_address,
+-					     mem_info->mapped_length);
++		/* Create a new mappings list entry */
++		mm = ACPI_ALLOCATE_ZEROED(sizeof(*mm));
++		if (!mm) {
++			ACPI_ERROR((AE_INFO,
++				    "Unable to save memory mapping at 0x%8.8X%8.8X, size %u",
++				    ACPI_FORMAT_UINT64(address),
++				    (u32)map_length));
++			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+ 
+ 		/*
+@@ -143,29 +162,39 @@ acpi_ex_system_memory_space_handler(u32 function,
+ 
+ 		/* Create a new mapping starting at the address given */
+ 
+-		mem_info->mapped_logical_address =
+-		    acpi_os_map_memory(address, map_length);
+-		if (!mem_info->mapped_logical_address) {
++		logical_addr_ptr = acpi_os_map_memory(address, map_length);
++		if (!logical_addr_ptr) {
+ 			ACPI_ERROR((AE_INFO,
+ 				    "Could not map memory at 0x%8.8X%8.8X, size %u",
+ 				    ACPI_FORMAT_UINT64(address),
+ 				    (u32)map_length));
+-			mem_info->mapped_length = 0;
++			ACPI_FREE(mm);
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+ 
+ 		/* Save the physical address and mapping size */
+ 
+-		mem_info->mapped_physical_address = address;
+-		mem_info->mapped_length = map_length;
++		mm->logical_address = logical_addr_ptr;
++		mm->physical_address = address;
++		mm->length = map_length;
++
++		/*
++		 * Add the new entry to the mappigs list and save it as the
++		 * current mapping.
++		 */
++		mm->next_mm = mem_info->first_mm;
++		mem_info->first_mm = mm;
++
++		mem_info->cur_mm = mm;
+ 	}
+ 
++access:
+ 	/*
+ 	 * Generate a logical pointer corresponding to the address we want to
+ 	 * access
+ 	 */
+-	logical_addr_ptr = mem_info->mapped_logical_address +
+-	    ((u64) address - (u64) mem_info->mapped_physical_address);
++	logical_addr_ptr = mm->logical_address +
++		((u64) address - (u64) mm->physical_address);
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "System-Memory (width %u) R/W %u Address=%8.8X%8.8X\n",
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index aa236b9e6f24..d005e35ab399 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1201,12 +1201,18 @@ struct acpi_pci_id {
+ 	u16 function;
+ };
+ 
++struct acpi_mem_mapping {
++	acpi_physical_address physical_address;
++	u8 *logical_address;
++	acpi_size length;
++	struct acpi_mem_mapping *next_mm;
++};
++
+ struct acpi_mem_space_context {
+ 	u32 length;
+ 	acpi_physical_address address;
+-	acpi_physical_address mapped_physical_address;
+-	u8 *mapped_logical_address;
+-	acpi_size mapped_length;
++	struct acpi_mem_mapping *cur_mm;
++	struct acpi_mem_mapping *first_mm;
+ };
+ 
+ /*
+-- 
+2.26.2
+
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
