@@ -2,73 +2,65 @@ Return-Path: <SRS0=OAeV=AK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98AB0C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:28:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70B70C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:40:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7C67D2065F
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:28:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7C67D2065F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4A71C206A1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Jun 2020 19:40:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="nX6H72rw"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4A71C206A1
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 60D81111C7C4D;
-	Mon, 29 Jun 2020 12:28:19 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id AA370111C7C4F;
+	Mon, 29 Jun 2020 12:40:17 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=batv+0d14f5278154a06d8b22+6154+infradead.org+hch@casper.srs.infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0D3FC111B33D5;
-	Mon, 29 Jun 2020 12:28:17 -0700 (PDT)
-IronPort-SDR: TF0K/cjxMRi+aqGP54vtFSAdbUzw4qe3cgzRRFVRxbJjDissA66b85QpLn/w5BT2a6Qj4gr1XK
- TxDmd/R6RrpQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9666"; a="164057209"
-X-IronPort-AV: E=Sophos;i="5.75,295,1589266800";
-   d="gz'50?scan'50,208,50";a="164057209"
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jun 2020 12:28:16 -0700
-IronPort-SDR: CDFnChUBtrqT9JOHzRECxVTTUmN7xj7TWTLBkwAmf27DdAP0N0Gjr+u7LkKu9jquD4ogX9TXYv
- m49P1kxpCEaw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,295,1589266800";
-   d="gz'50?scan'50,208,50";a="280972780"
-Received: from lkp-server01.sh.intel.com (HELO 28879958b202) ([10.239.97.150])
-  by orsmga006.jf.intel.com with ESMTP; 29 Jun 2020 12:28:12 -0700
-Received: from kbuild by 28879958b202 with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1jpzRr-00019R-G8; Mon, 29 Jun 2020 19:28:11 +0000
-Date: Tue, 30 Jun 2020 03:27:50 +0800
-From: kernel test robot <lkp@intel.com>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-	linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au,
-	linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Subject: Re: [PATCH v6 4/8] libnvdimm/nvdimm/flush: Allow architecture to
- override the flush barrier
-Message-ID: <202006300359.qHAg2InT%lkp@intel.com>
-References: <20200629135722.73558-5-aneesh.kumar@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 71A21111C7C4C
+	for <linux-nvdimm@lists.01.org>; Mon, 29 Jun 2020 12:40:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=U8tCb4h17a0rL+ZZdq18PAV+yDbvWsH96GC5gLr1vuc=; b=nX6H72rwNYY0Uodz17aYP0bvqk
+	9gSPPIErWrLN9tgBHhvIIJkOaKgVsJo4ToReNXQeJGEcFnMtOneeM9lvCktfvClRYHDtNElRZj2F6
+	8v+5TR40P7wF9sVI6FNZgxu5kOa2TO9rd1Tk/CVbrQpxDd6MTudpLktSUdh658nMTs0t6pbT8L0DU
+	oLPd3ny9KNPaRYcpjp5BKqZJvHEO/AQA8V3gJ3oEvuI02EACAolGm1l5wddF6nve0W3P8jOwehhxt
+	HUK/Vlvd1nnX1ZKXj4mHlQgYSZ/JMOLFPBM2+5fH9Dc8Y+nLWvs6b4VA5Ugvca4/Jx5cC4ko7Xilx
+	7KEB9k7g==;
+Received: from [2001:4bb8:184:76e3:fcca:c8dc:a4bf:12fa] (helo=localhost)
+	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1jpzd9-0004Eg-CR; Mon, 29 Jun 2020 19:39:52 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: Jens Axboe <axboe@kernel.dk>
+Subject: [PATCH 01/20] nfblock: stop using ->queuedata
+Date: Mon, 29 Jun 2020 21:39:28 +0200
+Message-Id: <20200629193947.2705954-2-hch@lst.de>
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20200629193947.2705954-1-hch@lst.de>
+References: <20200629193947.2705954-1-hch@lst.de>
 MIME-Version: 1.0
-In-Reply-To: <20200629135722.73558-5-aneesh.kumar@linux.ibm.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: QMDKRW2PXKBWLCZX6L7GRN5DKGS4WLCS
-X-Message-ID-Hash: QMDKRW2PXKBWLCZX6L7GRN5DKGS4WLCS
-X-MailFrom: lkp@intel.com
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Message-ID-Hash: MMX5472GMJ5CWNHSDBHUSCAPTFBA57GQ
+X-Message-ID-Hash: MMX5472GMJ5CWNHSDBHUSCAPTFBA57GQ
+X-MailFrom: BATV+0d14f5278154a06d8b22+6154+infradead.org+hch@casper.srs.infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-Content-Disposition: inline
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
-CC: kbuild-all@lists.01.org, Jan Kara <jack@suse.cz>, msuchanek@suse.de, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+CC: dm-devel@redhat.com, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-xtensa@linux-xtensa.org, drbd-dev@lists.linbit.com, linuxppc-dev@lists.ozlabs.org, linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QMDKRW2PXKBWLCZX6L7GRN5DKGS4WLCS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MMX5472GMJ5CWNHSDBHUSCAPTFBA57GQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,52 +69,37 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi "Aneesh,
+Instead of setting up the queuedata as well just use one private data
+field.
 
-I love your patch! Yet something to improve:
-
-[auto build test ERROR on powerpc/next]
-[also build test ERROR on linux-nvdimm/libnvdimm-for-next v5.8-rc3 next-20200629]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use  as documented in
-https://git-scm.com/docs/git-format-patch]
-
-url:    https://github.com/0day-ci/linux/commits/Aneesh-Kumar-K-V/Support-new-pmem-flush-and-sync-instructions-for-POWER/20200629-223649
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git next
-config: mips-allyesconfig (attached as .config)
-compiler: mips-linux-gcc (GCC) 9.3.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-9.3.0 make.cross ARCH=mips 
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
-   drivers/md/dm-writecache.c: In function 'writecache_commit_flushed':
->> drivers/md/dm-writecache.c:539:3: error: implicit declaration of function 'arch_pmem_flush_barrier' [-Werror=implicit-function-declaration]
-     539 |   arch_pmem_flush_barrier();
-         |   ^~~~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
-
-vim +/arch_pmem_flush_barrier +539 drivers/md/dm-writecache.c
-
-   535	
-   536	static void writecache_commit_flushed(struct dm_writecache *wc, bool wait_for_ios)
-   537	{
-   538		if (WC_MODE_PMEM(wc))
- > 539			arch_pmem_flush_barrier();
-   540		else
-   541			ssd_commit_flushed(wc, wait_for_ios);
-   542	}
-   543	
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+ arch/m68k/emu/nfblock.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/arch/m68k/emu/nfblock.c b/arch/m68k/emu/nfblock.c
+index c3a630440512e9..87e8b1700acd28 100644
+--- a/arch/m68k/emu/nfblock.c
++++ b/arch/m68k/emu/nfblock.c
+@@ -61,7 +61,7 @@ struct nfhd_device {
+ 
+ static blk_qc_t nfhd_make_request(struct request_queue *queue, struct bio *bio)
+ {
+-	struct nfhd_device *dev = queue->queuedata;
++	struct nfhd_device *dev = bio->bi_disk->private_data;
+ 	struct bio_vec bvec;
+ 	struct bvec_iter iter;
+ 	int dir, len, shift;
+@@ -122,7 +122,6 @@ static int __init nfhd_init_one(int id, u32 blocks, u32 bsize)
+ 	if (dev->queue == NULL)
+ 		goto free_dev;
+ 
+-	dev->queue->queuedata = dev;
+ 	blk_queue_logical_block_size(dev->queue, bsize);
+ 
+ 	dev->disk = alloc_disk(16);
+-- 
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
