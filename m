@@ -2,60 +2,163 @@ Return-Path: <SRS0=Ka32=AL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.0 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-6.0 required=3.0 tests=MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 328BCC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 30 Jun 2020 10:56:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2063BC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 30 Jun 2020 11:04:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0EF3320780
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 30 Jun 2020 10:56:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0EF3320780
-Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=dhl.com
+	by mail.kernel.org (Postfix) with ESMTPS id E46A22067D
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 30 Jun 2020 11:04:36 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E46A22067D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E24BF1141F7AC;
-	Tue, 30 Jun 2020 03:56:17 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=37.49.230.178; helo=dhl.com; envelope-from=uaeimportcollection@dhl.com; receiver=<UNKNOWN> 
-Received: from dhl.com (unknown [37.49.230.178])
-	by ml01.01.org (Postfix) with ESMTP id 3EE3D1141F7AB
-	for <linux-nvdimm@lists.01.org>; Tue, 30 Jun 2020 03:56:02 -0700 (PDT)
-From: uaeimportcollection@dhl.com
-To: linux-nvdimm@lists.01.org
-Subject: DHL Delivery e-Notification for incorrect  Info.
-Date: 30 Jun 2020 12:56:01 +0200
-Message-ID: <20200630125601.ABD955CF5A5BCF74@dhl.com>
+	by ml01.01.org (Postfix) with ESMTP id B9EAE111FF496;
+	Tue, 30 Jun 2020 04:04:36 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.167.194; helo=mail-oi1-f194.google.com; envelope-from=rjwysocki@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-oi1-f194.google.com (mail-oi1-f194.google.com [209.85.167.194])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 62255111F92B6
+	for <linux-nvdimm@lists.01.org>; Tue, 30 Jun 2020 04:04:34 -0700 (PDT)
+Received: by mail-oi1-f194.google.com with SMTP id k6so13193495oij.11
+        for <linux-nvdimm@lists.01.org>; Tue, 30 Jun 2020 04:04:34 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vXIRIHHncqo0zBLK3dtMRuMsQ9p5Az0FH+7MVXNOGgk=;
+        b=OZC+7OPxVp2ZtdyRvv0e+f3t3QHM1IijL3IeTCdryYuN4PxxALwjh3MB5mKBAW2xR6
+         Zzm/ATQY+y191VfC9capZD4iXRZ1sXpA2W0AOy1UUKjTuWOZ3+fjmm8JL0L8H/7HQZ9q
+         zxLOKV2+B+yxVAD0zXSr88FzR+j2NVWLumeaQv5viRmR8Tqpx4c0flUvGKfvYQVYV1l6
+         i+hnLi7q+dZwv9dEqzB6Mv9ruuZ3dj69RLevbXy4FKBrIFfG/5nOdb1ke1ZXsKDzrih6
+         r1UmIw6FTBcTtBzWkcZM6JvfDxYh0PhbAs9lXOqJCpgQ13rZME1MmgAnlLUJgeVRgcpA
+         pUnA==
+X-Gm-Message-State: AOAM532jPgDjb75qmqRHdlR1XdpSCKM4JdmZ5zaMKO6q4UBw6ncyiedj
+	WRHl2WvjtQcuqgh5YA7l3tVWh7ecdyQicEi5rnQ=
+X-Google-Smtp-Source: ABdhPJyrXV+odnKMMsJSNg1252EbQtYugp1MCGhfn0n9yvdE0dCa6B3S5wf96DbBHiDa3tUn2DkDotITWi/UNHXvnXk=
+X-Received: by 2002:a54:4585:: with SMTP id z5mr16015967oib.110.1593515073282;
+ Tue, 30 Jun 2020 04:04:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_A3D83773.8246EAB2"
-Message-ID-Hash: VPRX2WYWLUFUJTJ4JXRPKEWQ5BKJI332
-X-Message-ID-Hash: VPRX2WYWLUFUJTJ4JXRPKEWQ5BKJI332
-X-MailFrom: uaeimportcollection@dhl.com
+References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <2713141.s8EVnczdoM@kreacher> <2788992.3K7huLjdjL@kreacher>
+ <CAPcyv4hXkzpTr3bif7zyVx5EqoWTwLgYrt87Aj2=gVMo+jtUyg@mail.gmail.com>
+ <CAJZ5v0h4Hj4ax1mmMJn3z3VGtVWkoXzO0kOQ7CYnFKJV2cUGzw@mail.gmail.com> <CAPcyv4iZA6hHH=sh=CZPJ-6skJfeuAVRVAuMeTdD5LYVPRrTqQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4iZA6hHH=sh=CZPJ-6skJfeuAVRVAuMeTdD5LYVPRrTqQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Date: Tue, 30 Jun 2020 13:04:21 +0200
+Message-ID: <CAJZ5v0g8=tXU8HHkoXSOwSmRhTgwb5rW8N8QQga6AU91kp1dVw@mail.gmail.com>
+Subject: Re: [RFT][PATCH v3 0/4] ACPI: ACPICA / OSL: Avoid unmapping ACPI
+ memory inside of the AML interpreter
+To: Dan Williams <dan.j.williams@intel.com>
+Message-ID-Hash: HH3Q6UPRBSZVV5DGAN3UUVKYJL2QEYAO
+X-Message-ID-Hash: HH3Q6UPRBSZVV5DGAN3UUVKYJL2QEYAO
+X-MailFrom: rjwysocki@gmail.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Erik Kaneda <erik.kaneda@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Myron Stowe <myron.stowe@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Bob Moore <robert.moore@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VPRX2WYWLUFUJTJ4JXRPKEWQ5BKJI332/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HH3Q6UPRBSZVV5DGAN3UUVKYJL2QEYAO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0012_A3D83773.8246EAB2
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+On Mon, Jun 29, 2020 at 10:46 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> On Sun, Jun 28, 2020 at 10:09 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> >
+> > On Fri, Jun 26, 2020 at 8:41 PM Dan Williams <dan.j.williams@intel.com> wrote:
+> > >
+> > > On Fri, Jun 26, 2020 at 10:34 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > > >
+> > > > Hi All,
+> > > >
+> > > > On Monday, June 22, 2020 3:50:42 PM CEST Rafael J. Wysocki wrote:
+> > > > > Hi All,
+> > > > >
+> > > > > This series is to address the problem with RCU synchronization occurring,
+> > > > > possibly relatively often, inside of acpi_ex_system_memory_space_handler(),
+> > > > > when the namespace and interpreter mutexes are held.
+> > > > >
+> > > > > Like I said before, I had decided to change the approach used in the previous
+> > > > > iteration of this series and to allow the unmap operations carried out by
+> > > > > acpi_ex_system_memory_space_handler() to be deferred in the first place,
+> > > > > which is done in patches [1-2/4].
+> > > >
+> > > > In the meantime I realized that calling syncrhonize_rcu_expedited() under the
+> > > > "tables" mutex within ACPICA is not quite a good idea too and that there is no
+> > > > reason for any users of acpi_os_unmap_memory() in the tree to use the "sync"
+> > > > variant of unmapping.
+> > > >
+> > > > So, unless I'm missing something, acpi_os_unmap_memory() can be changed to
+> > > > always defer the final unmapping and the only ACPICA change needed to support
+> > > > that is the addition of the acpi_os_release_unused_mappings() call to get rid
+> > > > of the unused mappings when leaving the interpreter (module the extra call in
+> > > > the debug code for consistency).
+> > > >
+> > > > So patches [1-2/4] have been changed accordingly.
+> > > >
+> > > > > However, it turns out that the "fast-path" mapping is still useful on top of
+> > > > > the above to reduce the number of ioremap-iounmap cycles for the same address
+> > > > > range and so it is introduced by patches [3-4/4].
+> > > >
+> > > > Patches [3-4/4] still do what they did, but they have been simplified a bit
+> > > > after rebasing on top of the new [1-2/4].
+> > > >
+> > > > The below information is still valid, but it applies to the v3, of course.
+> > > >
+> > > > > For details, please refer to the patch changelogs.
+> > > > >
+> > > > > The series is available from the git branch at
+> > > > >
+> > > > >  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+> > > > >  acpica-osl
+> > > > >
+> > > > > for easier testing.
+> > > >
+> > > > Also the series have been tested locally.
+> > >
+> > > Ok, I'm still trying to get the original reporter to confirm this
+> > > reduces the execution time for ASL routines with a lot of OpRegion
+> > > touches. Shall I rebuild that test kernel with these changes, or are
+> > > the results from the original RFT still interesting?
+> >
+> > I'm mostly interested in the results with the v3 applied.
+> >
+>
+> Ok, I just got feedback on v2 and it still showed the 30 minute
+> execution time where 7 minutes was achieved previously.
+
+This probably means that "transient" memory opregions, which appear
+and go away during the AML execution, are involved and so moving the
+RCU synchronization outside of the interpreter and namespace locks is
+not enough to cover this case.
+
+It should be covered by the v4
+(https://lore.kernel.org/linux-acpi/1666722.UopIai5n7p@kreacher/T/#u),
+though, because the unmapping is completely asynchronous in there and
+it doesn't add any significant latency to the interpreter exit path.
+So I would expect to see much better results with the v4, so I'd
+recommend testing this one next.
+
+> > Also it would be good to check the impact of the first two patches
+> > alone relative to all four.
+>
+> I'll start with the full set and see if they can also support the
+> "first 2" experiment.
+
+In the v4 there are just two patches, so it should be straightforward
+enough to test with and without the top-most one. :-)
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
-------=_NextPart_000_0012_A3D83773.8246EAB2--
