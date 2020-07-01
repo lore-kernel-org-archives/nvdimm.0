@@ -2,92 +2,140 @@ Return-Path: <SRS0=Q7fh=AM=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F187C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  1 Jul 2020 18:26:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83A3DC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  1 Jul 2020 19:33:20 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EBCF4207F5
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  1 Jul 2020 18:26:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 599B4208DB
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  1 Jul 2020 19:33:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="dbu174cJ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EBCF4207F5
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="2oAU5Ir4"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 599B4208DB
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D206811022293;
-	Wed,  1 Jul 2020 11:26:21 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=msnitzer@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4915211460B21;
+	Wed,  1 Jul 2020 12:33:20 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B6E9D11001AB9
-	for <linux-nvdimm@lists.01.org>; Wed,  1 Jul 2020 11:26:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1593627978;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gM4o34lY2Q2Fu9DNpo9nmnqeENsycpsv4CwD0QpSKRo=;
-	b=dbu174cJhKEx2dtUzkFRaS0PVVs75PHM5sdDyGwbWiHhIXTmVlc6PhjLIg5DgqKGgfjgfS
-	ZfuLVCKw82obJVkHO1/PAXEd/Sr4lW+z2cF6vjNRvVbbMqWYYzzkL+h0brWAQW+oyqwh04
-	huwJyNriiIVu+T5fsBL00HXBRE/hoNw=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-467-ve54S7gINvapvHMQrfW7sQ-1; Wed, 01 Jul 2020 14:26:14 -0400
-X-MC-Unique: ve54S7gINvapvHMQrfW7sQ-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTPS id 0FA3F11427DB3
+	for <linux-nvdimm@lists.01.org>; Wed,  1 Jul 2020 12:33:18 -0700 (PDT)
+Received: from localhost (unknown [137.135.114.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7EE0A80183C;
-	Wed,  1 Jul 2020 18:26:11 +0000 (UTC)
-Received: from localhost (unknown [10.18.25.174])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 244BF5C1D3;
-	Wed,  1 Jul 2020 18:26:08 +0000 (UTC)
-Date: Wed, 1 Jul 2020 13:24:48 -0400
-From: Mike Snitzer <snitzer@redhat.com>
-To: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 10/20] dm: stop using ->queuedata
-Message-ID: <20200701172448.GA27528@redhat.com>
-References: <20200701085947.3354405-1-hch@lst.de>
- <20200701085947.3354405-11-hch@lst.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200701085947.3354405-11-hch@lst.de>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Message-ID-Hash: NXKSOL74ZDLY4ZVDDUIY3KAQEGH4K55H
-X-Message-ID-Hash: NXKSOL74ZDLY4ZVDDUIY3KAQEGH4K55H
-X-MailFrom: msnitzer@redhat.com
+	by mail.kernel.org (Postfix) with ESMTPSA id AA03D208A7;
+	Wed,  1 Jul 2020 19:33:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1593631997;
+	bh=3yFXOIlf/jaJ9LVqAKz8KOR8fQJjduxx7bKp5GcEi+M=;
+	h=Date:From:To:To:To:Cc:Cc:Cc:Cc:Cc:Cc:Cc:Cc:Subject:In-Reply-To:
+	 References:From;
+	b=2oAU5Ir4jBKIKpKMgw8qWqs+s4r3GWOAGleRz9cNaB7c62kttSM6hQEW709DGmX6g
+	 cb6Z7YnI+bVZJ/zs3Iciomyv9kNI1ZPkRDedEo72V2onSEYtaUFCvrUv1gZ0EhxMPw
+	 3ZldgAVF2MRpAMrLXrg5mwIlrdOPT+HuVVBCnbYk=
+Date: Wed, 01 Jul 2020 19:33:17 +0000
+From: Sasha Levin <sashal@kernel.org>
+To: Sasha Levin <sashal@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+To: linux-nvdimm@lists.01.org
+Subject: Re: [PATCH 01/12] libnvdimm: Validate command family indices
+In-Reply-To: <159312902579.1850128.3536310031352445291.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <159312902579.1850128.3536310031352445291.stgit@dwillia2-desk3.amr.corp.intel.com>
+Message-Id: <20200701193317.AA03D208A7@mail.kernel.org>
+Message-ID-Hash: 2IO4LG5V4PJDXCCVKUB5TDWBHN223SOZ
+X-Message-ID-Hash: 2IO4LG5V4PJDXCCVKUB5TDWBHN223SOZ
+X-MailFrom: sashal@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Jens Axboe <axboe@kernel.dk>, linux-bcache@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, dm-devel@redhat.com, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linuxppc-dev@lists.ozlabs.org, drbd-dev@lists.linbit.com
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, stable@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NXKSOL74ZDLY4ZVDDUIY3KAQEGH4K55H/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2IO4LG5V4PJDXCCVKUB5TDWBHN223SOZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 01 2020 at  4:59am -0400,
-Christoph Hellwig <hch@lst.de> wrote:
+Hi
 
-> Instead of setting up the queuedata as well just use one private data
-> field.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+[This is an automated email]
 
-Acked-by: Mike Snitzer <snitzer@redhat.com>
+This commit has been processed because it contains a "Fixes:" tag
+fixing commit: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism").
+
+The bot has tested the following trees: v5.7.6, v5.4.49, v4.19.130, v4.14.186, v4.9.228.
+
+v5.7.6: Failed to apply! Possible dependencies:
+    f517f7925b7b4 ("ndctl/papr_scm,uapi: Add support for PAPR nvdimm specific methods")
+
+v5.4.49: Failed to apply! Possible dependencies:
+    72c4ebbac476b ("powerpc/papr_scm: Mark papr_scm_ndctl() as static")
+    f517f7925b7b4 ("ndctl/papr_scm,uapi: Add support for PAPR nvdimm specific methods")
+
+v4.19.130: Failed to apply! Possible dependencies:
+    01091c496f920 ("acpi/nfit: improve bounds checking for 'func'")
+    0ead11181fe0c ("acpi, nfit: Collect shutdown status")
+    6f07f86c49407 ("acpi, nfit: Introduce nfit_mem flags")
+    72c4ebbac476b ("powerpc/papr_scm: Mark papr_scm_ndctl() as static")
+    b3ed2ce024c36 ("acpi/nfit: Add support for Intel DSM 1.8 commands")
+    b5beae5e224f1 ("powerpc/pseries: Add driver for PAPR SCM regions")
+    d6548ae4d16dc ("acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm")
+    f517f7925b7b4 ("ndctl/papr_scm,uapi: Add support for PAPR nvdimm specific methods")
+
+v4.14.186: Failed to apply! Possible dependencies:
+    01091c496f920 ("acpi/nfit: improve bounds checking for 'func'")
+    0e7f0741450b1 ("acpi, nfit: validate commands against the device type")
+    1194c4133195d ("nfit: Add Hyper-V NVDIMM DSM command set to white list")
+    11e1427016095 ("acpi, nfit: add support for NVDIMM_FAMILY_INTEL v1.6 DSMs")
+    466d1493ea830 ("acpi, nfit: rework NVDIMM leaf method detection")
+    4b27db7e26cdb ("acpi, nfit: add support for the _LSI, _LSR, and _LSW label methods")
+    6f07f86c49407 ("acpi, nfit: Introduce nfit_mem flags")
+    b37b3fd33d034 ("acpi nfit: Enable to show what feature is supported via ND_CMD_CALL for nfit_test")
+    b9b1504d3c6d6 ("acpi, nfit: hide unknown commands from nmemX/commands")
+    d6548ae4d16dc ("acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm")
+
+v4.9.228: Failed to apply! Possible dependencies:
+    095ab4b39f91b ("acpi, nfit: allow override of built-in bitmasks for nvdimm DSMs")
+    0f817ae696b04 ("usb: dwc3: pci: add a private driver structure")
+    36daf3aa399c0 ("usb: dwc3: pci: avoid build warning")
+    3f23df72dc351 ("mmc: sdhci-pci: Use ACPI to get max frequency for Intel NI byt sdio")
+    41c8bdb3ab10c ("acpi, nfit: Switch to use new generic UUID API")
+    42237e393f64d ("libnvdimm: allow a platform to force enable label support")
+    42b06496407c0 ("mmc: sdhci-pci: Add PCI ID for Intel NI byt sdio")
+    4b27db7e26cdb ("acpi, nfit: add support for the _LSI, _LSR, and _LSW label methods")
+    6f07f86c49407 ("acpi, nfit: Introduce nfit_mem flags")
+    8f078b38dd382 ("libnvdimm: convert NDD_ flags to use bitops, introduce NDD_LOCKED")
+    94116f8126de9 ("ACPI: Switch to use generic guid_t in acpi_evaluate_dsm()")
+    9cecca75b5a0d ("usb: dwc3: pci: call _DSM for suspend/resume")
+    9d62ed9651182 ("libnvdimm: handle locked label storage areas")
+    b7fe92999a98a ("ACPI / extlog: Switch to use new generic UUID API")
+    b917078c1c107 ("net: hns: Add ACPI support to check SFP present")
+    ba650cfcf9409 ("acpi, nfit: allow specifying a default DSM family")
+    c959a6b00ff58 ("mmc: sdhci-pci: Don't re-tune with runtime pm for some Intel devices")
+    d2061f9cc32db ("usb: typec: add driver for Intel Whiskey Cove PMIC USB Type-C PHY")
+    d6548ae4d16dc ("acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm")
+    fab9288428ec0 ("usb: USB Type-C connector class")
+
+
+NOTE: The patch will not be queued to stable trees until it is upstream.
+
+How should we proceed with this patch?
+
+-- 
+Thanks
+Sasha
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
