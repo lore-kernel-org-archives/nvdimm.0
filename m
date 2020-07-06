@@ -2,101 +2,176 @@ Return-Path: <SRS0=3ams=AR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.2 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC995C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  6 Jul 2020 04:48:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF82BC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  6 Jul 2020 09:29:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B7F4D20720
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  6 Jul 2020 04:48:32 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="A8QMvTN/"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B7F4D20720
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id C0E6D2074F
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  6 Jul 2020 09:29:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C0E6D2074F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7F89B11043C2C;
-	Sun,  5 Jul 2020 21:48:32 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=vkoul@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 659FD11068192;
+	Mon,  6 Jul 2020 02:29:56 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=harish@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9A0911003F508
-	for <linux-nvdimm@lists.01.org>; Sun,  5 Jul 2020 21:48:30 -0700 (PDT)
-Received: from localhost (unknown [122.182.251.219])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 4F0A420720;
-	Mon,  6 Jul 2020 04:48:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594010910;
-	bh=saajXkjFZV5Ysay/V5yS2+LctG2zyPPXgCNYyixmBgI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=A8QMvTN/gVISdfC7gmwMxMOxgudEVlVFrB9e4xhjcdL6RTBc/mgQM7pZj72Gtycmv
-	 ohIo6GAY8xfkvM0ae8iHztQNqQL9SJopoEchCTMXAx+6NrAxmWhxIHuEb3w7k8MNZl
-	 ObXOA/9Fe0bv3YA6Qd3KXpJCm1Yzo6/moH2aUJ+k=
-Date: Mon, 6 Jul 2020 10:18:24 +0530
-From: Vinod Koul <vkoul@kernel.org>
-To: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH 01/17] Documentation/driver-api: dmaengine/provider: drop
- doubled word
-Message-ID: <20200706044824.GB633187@vkoul-mobl>
-References: <20200704034502.17199-1-rdunlap@infradead.org>
- <20200704034502.17199-2-rdunlap@infradead.org>
+	by ml01.01.org (Postfix) with ESMTPS id C4EAC1106818F
+	for <linux-nvdimm@lists.01.org>; Mon,  6 Jul 2020 02:29:53 -0700 (PDT)
+Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06693NiL153688;
+	Mon, 6 Jul 2020 05:29:51 -0400
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 322ndv48rx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 06 Jul 2020 05:29:51 -0400
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+	by ppma03fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0669GsTD010034;
+	Mon, 6 Jul 2020 09:29:48 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma03fra.de.ibm.com with ESMTP id 322hd7s2u6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 06 Jul 2020 09:29:48 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0669Tj1P51314688
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 6 Jul 2020 09:29:45 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CB681A405F;
+	Mon,  6 Jul 2020 09:29:45 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 21141A405B;
+	Mon,  6 Jul 2020 09:29:44 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.102.1.42])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon,  6 Jul 2020 09:29:43 +0000 (GMT)
+Subject: Re: [PATCH ndctl] namespace-action: Don't act on any seed namespaces
+To: Santosh Sivaraj <santosh@fossix.org>, linux-nvdimm@lists.01.org,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>
+References: <20200705041519.3263863-1-santosh@fossix.org>
+From: Harish <harish@linux.ibm.com>
+Message-ID: <b79f5d0d-d0ef-09a3-5f19-456512941e6c@linux.ibm.com>
+Date: Mon, 6 Jul 2020 14:59:43 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.9.0
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200704034502.17199-2-rdunlap@infradead.org>
-Message-ID-Hash: DQJUVQ4QHYKOZQ3W7W5TCW45AVOZ7XTQ
-X-Message-ID-Hash: DQJUVQ4QHYKOZQ3W7W5TCW45AVOZ7XTQ
-X-MailFrom: vkoul@kernel.org
+In-Reply-To: <20200705041519.3263863-1-santosh@fossix.org>
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-07-06_04:2020-07-06,2020-07-06 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 suspectscore=0
+ clxscore=1011 cotscore=-2147483648 mlxlogscore=999 impostorscore=0
+ phishscore=0 lowpriorityscore=0 malwarescore=0 adultscore=0
+ priorityscore=1501 bulkscore=0 spamscore=0 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.12.0-2004280000
+ definitions=main-2007060068
+Message-ID-Hash: LBGKZM4ITF335DRPFSBFUCINLORP5RVZ
+X-Message-ID-Hash: LBGKZM4ITF335DRPFSBFUCINLORP5RVZ
+X-MailFrom: harish@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org, dmaengine@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, William Breathitt Gray <vilhelm.gray@gmail.com>, linux-iio@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>, linux-media@vger.kernel.org, Jon Mason <jdmason@kudzu.us>, Allen Hubbe <allenbh@gmail.com>, linux-ntb@googlegroups.com, linux-nvdimm@lists.01.org, linux-usb@vger.kernel.org, Eli Billauer <eli.billauer@gmail.com>
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DQJUVQ4QHYKOZQ3W7W5TCW45AVOZ7XTQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LBGKZM4ITF335DRPFSBFUCINLORP5RVZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-On 03-07-20, 20:44, Randy Dunlap wrote:
-> Drop the doubled word "has".
+Tested-by: Harish <harish@linux.ibm.com>
 
-Applied, thanks
+- Harish
 
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: linux-doc@vger.kernel.org
-> Cc: Vinod Koul <vkoul@kernel.org>
-> Cc: dmaengine@vger.kernel.org
+On 7/5/20 9:45 AM, Santosh Sivaraj wrote:
+> Catch seed namespaces early on. This will prevent checking for sizes in enable,
+> disable and destroy namespace code path, which in turn prevents the inconsistent
+> reporting in count of enabled/disabled namespaces.
+>
+> Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
 > ---
->  Documentation/driver-api/dmaengine/provider.rst |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- linux-next-20200701.orig/Documentation/driver-api/dmaengine/provider.rst
-> +++ linux-next-20200701/Documentation/driver-api/dmaengine/provider.rst
-> @@ -507,7 +507,7 @@ dma_cookie_t
->  DMA_CTRL_ACK
->  
->  - If clear, the descriptor cannot be reused by provider until the
-> -  client acknowledges receipt, i.e. has has a chance to establish any
-> +  client acknowledges receipt, i.e. has a chance to establish any
->    dependency chains
->  
->  - This can be acked by invoking async_tx_ack()
-
--- 
-~Vinod
+>   ndctl/lib/libndctl.c |  5 -----
+>   ndctl/namespace.c    | 14 ++------------
+>   2 files changed, 2 insertions(+), 17 deletions(-)
+>
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+> index ee737cb..d0599f7 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -4130,16 +4130,11 @@ NDCTL_EXPORT int ndctl_namespace_enable(struct ndctl_namespace *ndns)
+>   	const char *devname = ndctl_namespace_get_devname(ndns);
+>   	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
+>   	struct ndctl_region *region = ndns->region;
+> -	unsigned long long size = ndctl_namespace_get_size(ndns);
+>   	int rc;
+>   
+>   	if (ndctl_namespace_is_enabled(ndns))
+>   		return 0;
+>   
+> -	/* Don't try to enable idle namespace (no capacity allocated) */
+> -	if (size == 0)
+> -		return -ENXIO;
+> -
+>   	rc = ndctl_bind(ctx, ndns->module, devname);
+>   
+>   	/*
+> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+> index 0550580..5a086d0 100644
+> --- a/ndctl/namespace.c
+> +++ b/ndctl/namespace.c
+> @@ -1102,7 +1102,6 @@ static int namespace_destroy(struct ndctl_region *region,
+>   		struct ndctl_namespace *ndns)
+>   {
+>   	const char *devname = ndctl_namespace_get_devname(ndns);
+> -	unsigned long long size;
+>   	bool did_zero = false;
+>   	int rc;
+>   
+> @@ -1147,19 +1146,9 @@ static int namespace_destroy(struct ndctl_region *region,
+>   		goto out;
+>   	}
+>   
+> -	size = ndctl_namespace_get_size(ndns);
+> -
+>   	rc = ndctl_namespace_delete(ndns);
+>   	if (rc)
+>   		debug("%s: failed to reclaim\n", devname);
+> -
+> -	/*
+> -	 * Don't report a destroyed namespace when no capacity was
+> -	 * allocated.
+> -	 */
+> -	if (size == 0 && rc == 0)
+> -		rc = 1;
+> -
+>   out:
+>   	return rc;
+>   }
+> @@ -2128,8 +2117,9 @@ static int do_xaction_namespace(const char *namespace,
+>   			ndctl_namespace_foreach_safe(region, ndns, _n) {
+>   				ndns_name = ndctl_namespace_get_devname(ndns);
+>   
+> -				if (strcmp(namespace, "all") != 0
+> +				if ((strcmp(namespace, "all") != 0
+>   						&& strcmp(namespace, ndns_name) != 0)
+> +				    || ndctl_namespace_get_size(ndns) == 0)
+>   					continue;
+>   				switch (action) {
+>   				case ACTION_DISABLE:
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
