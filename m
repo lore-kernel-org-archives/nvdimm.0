@@ -1,50 +1,61 @@
-Return-Path: <SRS0=3ams=AR=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=hiqq=AS=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6525C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  6 Jul 2020 17:26:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 835F4C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  7 Jul 2020 00:23:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9A9F920775
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  6 Jul 2020 17:26:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9A9F920775
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
+	by mail.kernel.org (Postfix) with ESMTPS id 62162206DF
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  7 Jul 2020 00:23:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 62162206DF
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8173F11075BCC;
-	Mon,  6 Jul 2020 10:26:37 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 47C671107E169;
+	Mon,  6 Jul 2020 17:23:37 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 240C611075BCA
-	for <linux-nvdimm@lists.01.org>; Mon,  6 Jul 2020 10:26:35 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id E1EF2ACF2;
-	Mon,  6 Jul 2020 17:26:33 +0000 (UTC)
-From: Coly Li <colyli@suse.de>
-To: linux-nvdimm@lists.01.org
-Subject: [PATCH] dax: print error message by pr_info() in __generic_fsdax_supported()
-Date: Tue,  7 Jul 2020 01:26:26 +0800
-Message-Id: <20200706172626.5554-1-colyli@suse.de>
-X-Mailer: git-send-email 2.26.2
+	by ml01.01.org (Postfix) with ESMTPS id DC658110122B2
+	for <linux-nvdimm@lists.01.org>; Mon,  6 Jul 2020 17:23:34 -0700 (PDT)
+IronPort-SDR: Ojrc0KnaUWoUyrgtv8P6Nb2+31/fwh7NZcmVdMDPZlXw8I9GnYWSLtNPYHecMVgfbl1HMiK15+
+ zz8YcAn+Zu5g==
+X-IronPort-AV: E=McAfee;i="6000,8403,9674"; a="147530233"
+X-IronPort-AV: E=Sophos;i="5.75,321,1589266800";
+   d="scan'208";a="147530233"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jul 2020 17:23:34 -0700
+IronPort-SDR: 95vkV2BlzuBukNCHuQAgKx50KXPbFW+U7v1o2y4XF8rmhQH3Dd3Oic1fCsYj+T/yviasdyrz0x
+ EfwYOzj0x+cg==
+X-IronPort-AV: E=Sophos;i="5.75,321,1589266800";
+   d="scan'208";a="483316089"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jul 2020 17:23:33 -0700
+Subject: [PATCH v7 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user, kernel}
+From: Dan Williams <dan.j.williams@intel.com>
+To: tglx@linutronix.de, mingo@redhat.com, bp@alien8.de
+Date: Mon, 06 Jul 2020 17:07:18 -0700
+Message-ID: <159408043801.2272533.17485467640602344900.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: 2DVBFTO4XUZJFG7P5Z6AGPMGNJYMGT24
-X-Message-ID-Hash: 2DVBFTO4XUZJFG7P5Z6AGPMGNJYMGT24
-X-MailFrom: colyli@suse.de
+Message-ID-Hash: 3OMOBKI3C6C2FJRYB55Q2HH2CUJVWCFT
+X-Message-ID-Hash: 3OMOBKI3C6C2FJRYB55Q2HH2CUJVWCFT
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Coly Li <colyli@suse.de>, Michal Suchanek <msuchanek@suse.com>, Jan Kara <jack@suse.com>, Anthony Iliopoulos <ailiopoulos@suse.com>
+CC: Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, stable@vger.kernel.org, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2DVBFTO4XUZJFG7P5Z6AGPMGNJYMGT24/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3OMOBKI3C6C2FJRYB55Q2HH2CUJVWCFT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -53,109 +64,94 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In struct dax_operations, the callback routine dax_supported() returns
-a bool type result. For false return value, the caller has no idea
-whether the device does not support dax at all, or it is just some mis-
-configuration issue.
+Changes since v6 [1]:
+- Collected Tony's Reviewed-by.
 
-An example is formatting an Ext4 file system on pmem device on top of
-a NVDIMM namespace by,
- # mkfs.ext4 /dev/pmem0
-If the fs block size does not match kernel space memory page size (which
-is possible on non-x86 platform), mount this Ext4 file system will fail,
-  # mount -o dax /dev/pmem0 /mnt
-  mount: /mnt: wrong fs type, bad option, bad superblock on /dev/pmem0,
-  missing codepage or helper program, or other error.
-And from the dmesg output there is only the following information,
-  [  307.853148] EXT4-fs (pmem0): DAX unsupported by block device.
+- Rebased on v5.8-rc3 to address a conflict with commit e3a9e681adb7
+  ("x86/entry: Fixup bad_iret vs noinstr") No other functional changes,
+  and no other comments since v5. At this point I think I'll go ahead
+  with pushing to -next to get it some soak time for a potential v5.9
+  merge and catch any other conflicts that might arise in the meantime. Of
+  course, I'll immediately drop it from -next if x86.tip picks it up or
+  naks it. As it stands, nothing queued in x86.tip/master conflicts with
+  these.
 
-The above information is quite confusing. Because definiately the pmem0
-device supports dax operation, and the super block is consistent as how
-it was created by mkfs.ext4.
+[1]: http://lore.kernel.org/r/159244031857.1107636.5054974045023236143.stgit@dwillia2-desk3.amr.corp.intel.com
 
-Indeed the failure is from __generic_fsdax_supported() by the following
-code piece,
-        if (blocksize != PAGE_SIZE) {
-               pr_debug("%s: error: unsupported blocksize for dax\n",
-                                bdevname(bdev, buf));
-                return false;
-        }
-It is because the Ext4 block size is 4KB and kernel page size is 8KB or
-16KB.
-
-It is not simple to make dax_supported() from struct dax_operations
-or __generic_fsdax_supported() to return exact failure type right now.
-So the simplest fix is to use pr_info() to print all the error messages
-inside __generic_fsdax_supported(). Then users may find informative clue
-from the kernel message at least.
-
-Message printed by pr_debug() is very easy to be ignored by users. This
-patch prints error message by pr_info() in __generic_fsdax_supported(),
-when then mount fails, following lines can be found from dmesg output,
- [ 2705.500885] pmem0: error: unsupported blocksize for dax
- [ 2705.500888] EXT4-fs (pmem0): DAX unsupported by block device.
-Now the users may have idea the mount failure is from pmem driver for
-unsupported block size.
-
-Reported-by: Michal Suchanek <msuchanek@suse.com>
-Suggested-by: Jan Kara <jack@suse.com>
-Signed-off-by: Coly Li <colyli@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Anthony Iliopoulos <ailiopoulos@suse.com>
 ---
- drivers/dax/super.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 8e32345be0f7..de0d02ec0347 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -80,14 +80,14 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 	int err, id;
- 
- 	if (blocksize != PAGE_SIZE) {
--		pr_debug("%s: error: unsupported blocksize for dax\n",
-+		pr_info("%s: error: unsupported blocksize for dax\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
- 
- 	err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
- 	if (err) {
--		pr_debug("%s: error: unaligned partition for dax\n",
-+		pr_info("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
-@@ -95,7 +95,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 	last_page = PFN_DOWN((start + sectors - 1) * 512) * PAGE_SIZE / 512;
- 	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
- 	if (err) {
--		pr_debug("%s: error: unaligned partition for dax\n",
-+		pr_info("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
-@@ -106,7 +106,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 	dax_read_unlock(id);
- 
- 	if (len < 1 || len2 < 1) {
--		pr_debug("%s: error: dax access failed (%ld)\n",
-+		pr_info("%s: error: dax access failed (%ld)\n",
- 				bdevname(bdev, buf), len < 1 ? len : len2);
- 		return false;
- 	}
-@@ -139,7 +139,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 	}
- 
- 	if (!dax_enabled) {
--		pr_debug("%s: error: dax support not enabled\n",
-+		pr_info("%s: error: dax support not enabled\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
--- 
-2.26.2
+The primary motivation to go touch memcpy_mcsafe() is that the existing
+benefit of doing slow and careful copies is obviated on newer CPUs. That
+fact solves the problem of needing to detect machine-check recovery
+capability. Now the old "mcsafe_key" opt-in to careful copying can be made
+an opt-out from the default fast copy implementation.
+
+The discussion with Linus further made clear that this facility had
+already lost its x86-machine-check specificity starting with commit
+2c89130a56a ("x86/asm/memcpy_mcsafe: Add write-protection-fault
+handling"). The new changes to not require a "careful copy" further
+de-emphasizes the role that x86-MCA plays in the implementation to just
+one more source of recoverable trap during the operation.
+
+With the above realizations the name "mcsafe" is no longer accurate and
+copy_safe() is proposed as its replacement. x86 grows a copy_safe_fast()
+implementation as a default implementation that is independent of
+detecting the presence of x86-MCA.
+
+---
+
+Dan Williams (2):
+      x86, powerpc: Rename memcpy_mcsafe() to copy_mc_to_{user,kernel}()
+      x86/copy_mc: Introduce copy_mc_generic()
+
+
+ arch/powerpc/Kconfig                               |    2 
+ arch/powerpc/include/asm/string.h                  |    2 
+ arch/powerpc/include/asm/uaccess.h                 |   40 +++--
+ arch/powerpc/lib/Makefile                          |    2 
+ arch/powerpc/lib/copy_mc_64.S                      |    4 
+ arch/x86/Kconfig                                   |    2 
+ arch/x86/Kconfig.debug                             |    2 
+ arch/x86/include/asm/copy_mc_test.h                |   75 +++++++++
+ arch/x86/include/asm/mcsafe_test.h                 |   75 ---------
+ arch/x86/include/asm/string_64.h                   |   32 ----
+ arch/x86/include/asm/uaccess.h                     |   21 +++
+ arch/x86/include/asm/uaccess_64.h                  |   20 --
+ arch/x86/kernel/cpu/mce/core.c                     |    8 -
+ arch/x86/kernel/quirks.c                           |    9 -
+ arch/x86/lib/Makefile                              |    1 
+ arch/x86/lib/copy_mc.c                             |   64 ++++++++
+ arch/x86/lib/copy_mc_64.S                          |  165 ++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S                           |  115 --------------
+ arch/x86/lib/usercopy_64.c                         |   21 ---
+ drivers/md/dm-writecache.c                         |   15 +-
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/pmem.c                              |    6 -
+ include/linux/string.h                             |    9 -
+ include/linux/uaccess.h                            |    9 +
+ include/linux/uio.h                                |   10 +
+ lib/Kconfig                                        |    7 +
+ lib/iov_iter.c                                     |   43 +++--
+ tools/arch/x86/include/asm/mcsafe_test.h           |   13 --
+ tools/arch/x86/lib/memcpy_64.S                     |  115 --------------
+ tools/objtool/check.c                              |    5 -
+ tools/perf/bench/Build                             |    1 
+ tools/perf/bench/mem-memcpy-x86-64-lib.c           |   24 ---
+ tools/testing/nvdimm/test/nfit.c                   |   48 +++---
+ .../testing/selftests/powerpc/copyloops/.gitignore |    2 
+ tools/testing/selftests/powerpc/copyloops/Makefile |    6 -
+ .../selftests/powerpc/copyloops/copy_mc_64.S       |    1 
+ .../selftests/powerpc/copyloops/memcpy_mcsafe_64.S |    1 
+ 37 files changed, 451 insertions(+), 526 deletions(-)
+ rename arch/powerpc/lib/{memcpy_mcsafe_64.S => copy_mc_64.S} (98%)
+ create mode 100644 arch/x86/include/asm/copy_mc_test.h
+ delete mode 100644 arch/x86/include/asm/mcsafe_test.h
+ create mode 100644 arch/x86/lib/copy_mc.c
+ create mode 100644 arch/x86/lib/copy_mc_64.S
+ delete mode 100644 tools/arch/x86/include/asm/mcsafe_test.h
+ delete mode 100644 tools/perf/bench/mem-memcpy-x86-64-lib.c
+ create mode 120000 tools/testing/selftests/powerpc/copyloops/copy_mc_64.S
+ delete mode 120000 tools/testing/selftests/powerpc/copyloops/memcpy_mcsafe_64.S
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
