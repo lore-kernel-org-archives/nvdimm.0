@@ -2,81 +2,83 @@ Return-Path: <SRS0=UChI=AT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.6 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28D41C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jul 2020 10:18:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79C06C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jul 2020 11:04:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EE8192084C
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jul 2020 10:18:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 3DE372067D
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  8 Jul 2020 11:04:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="HO/KpHv/"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EE8192084C
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="Lo9fKvuA"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3DE372067D
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id ACB05110E5FDC;
-	Wed,  8 Jul 2020 03:18:16 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::644; helo=mail-pl1-x644.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
-Received: from mail-pl1-x644.google.com (mail-pl1-x644.google.com [IPv6:2607:f8b0:4864:20::644])
+	by ml01.01.org (Postfix) with ESMTP id 1F56B11137ECE;
+	Wed,  8 Jul 2020 04:04:08 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::1042; helo=mail-pj1-x1042.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pj1-x1042.google.com (mail-pj1-x1042.google.com [IPv6:2607:f8b0:4864:20::1042])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C8D7C110BA974
-	for <linux-nvdimm@lists.01.org>; Wed,  8 Jul 2020 03:18:13 -0700 (PDT)
-Received: by mail-pl1-x644.google.com with SMTP id x8so17096881plm.10
-        for <linux-nvdimm@lists.01.org>; Wed, 08 Jul 2020 03:18:13 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 816D3110E5FDC
+	for <linux-nvdimm@lists.01.org>; Wed,  8 Jul 2020 04:04:05 -0700 (PDT)
+Received: by mail-pj1-x1042.google.com with SMTP id md7so1036181pjb.1
+        for <linux-nvdimm@lists.01.org>; Wed, 08 Jul 2020 04:04:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=fossix-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:in-reply-to:references:date:message-id
-         :mime-version;
-        bh=Nu8tMtS1CHOKv8Npsd1m3FEiYGh7b41rILIM3J0Mdk4=;
-        b=HO/KpHv/Nn8ouKpmUwHdztzP4s/lq60LCvz93pKcwy5knT+gcgo4pb7Yamrg2xKbag
-         HQVdoU9bHDAK5XHWvolnuJL0IYRZ3loCWrvpfvI6KXiPe42OJ99kws2zzBltPpUm9P2p
-         1eGKzF7ljnOw96aclOjCblMhML83dAwjsunNti6FhtJdNbcC6Ee5BKAaoAp9TcvkmBZO
-         FxYWe4vIuuj/CsF1keO3zuMmOvunD1CmcdjYcKvvQTH+fT8e5gTbScAH8VqqSwlzRyKk
-         CAG70y7mB4+x1YnHPSfYOb0lFip7iSmkVjWd6oQ7q2oxZ28ay26pni57duu5Y35M4kQl
-         YOBA==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=iwAfytvZIH3aCQajOLWA71Tkle4RddoyjqGapiOw19w=;
+        b=Lo9fKvuAsNJ1EyjdE0WX5eo+8jXZ6QPRYET64IGtnJbyQ0SlLgaDy3eX21iTtZR9eL
+         3Z55QSPn3A9z4wCMp582MV3rxVQOkV85Y1hFQ0lQjcBm+3oAyPbI52MKFuSY5QuAioLN
+         7wPS+WnKNQK6Ix9VZupBa9at8aGs7W+L9X1GAL+RrOxu8uz26NL5K7XrkBQ3DsVsWKno
+         Q55MAIM8d1Pc9SV0X3vI9H2WEbS2+Y/HvcjDbhAqVH9Lxgs/8GDK7bGSui8xWt79sXiR
+         Vgp1JnH9FSq5pyr7/cuE7n9lDnSkLbtjYVpoYsQjnBg8wHRAb9bg3c5Sfham/4vK+Rzx
+         JcMA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
-         :message-id:mime-version;
-        bh=Nu8tMtS1CHOKv8Npsd1m3FEiYGh7b41rILIM3J0Mdk4=;
-        b=J8vnRkhWS/eKL26CwONOkQ/76PwnAuRgh3vYdhk/hfEq4KS1q1CqTczgRF7/+VFMWN
-         QD8ygRFqBmp3GhFNS+iwITZXuf3v5fcBA/Y2heim8MmPQUCEEpNml78XSen7rnJfHiOO
-         O5LrhFuIte9pB5RA6h/dDU8CaKjcD9W6NlQ3iDJtXKgOTL9kSsFD8t1eCiJhCTFXRrOv
-         fp9W9MjUtZUHx8ENm55Fg72tI9Ufw+HlqrQ0Q6+4Ti7wZ5wE4qY97dYTA8MWJ1Ovn5oS
-         BiURm04r1TEi3tpXlOail2Q8xY1RHJvi1Mtdljz/qFD4TQj/9CPYUXs3zm9SIXLj4HGc
-         Y9xw==
-X-Gm-Message-State: AOAM531t93HSlQPKsUwEKQ6xDqj1QvWDMejpRpauAREiw957NUhmzvpJ
-	0mGUgG5GrNUB2SxxRo3ZRC1Mhw==
-X-Google-Smtp-Source: ABdhPJyuBab+f0kOA9xJ+EH0O6BmGeBMoUhHDkVDa6b+rNsK1I8jKljCpYm8CUsJnh3zAi5C4SR+og==
-X-Received: by 2002:a17:90a:6acb:: with SMTP id b11mr8729198pjm.71.1594203493290;
-        Wed, 08 Jul 2020 03:18:13 -0700 (PDT)
-Received: from localhost ([203.223.190.240])
-        by smtp.gmail.com with ESMTPSA id br9sm4651498pjb.56.2020.07.08.03.18.12
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=iwAfytvZIH3aCQajOLWA71Tkle4RddoyjqGapiOw19w=;
+        b=oGl6BOPyKWF/+gMT9LWFafG0avQcEbU7NjO5og2x29G99vQwZG0YMaua5Fm82gW02T
+         ePzxoyjrUPLSfkKPZTeCbNhWK+TTFSVwfFJ8ReNjYGj0KBxjEhsmjSOT/y3DryMzkrx2
+         8uPLUdcyc2BXmpWBO+X+y0Y7BPOmGhlWVOggtfDAlEXx4SRW1gZl2/wk45mlNukjXNjC
+         1rUIcOjpFhGXvZPSM44BsfRzUHqwKT8qIw33rZg2kJHgB41+kQoxoIZIVuvrlKi3CtTF
+         vcjT5CSkD7EQLL6/BEaaaPalCWgTAg8RCPtaSfipk1x6p8R3IarSF6+ZeWNKI74GXJGI
+         yr9w==
+X-Gm-Message-State: AOAM533aNxeXhaNX3Db3TBfMSKTN4jQF5onOWE7fzvMGpU4KvuFCQP7+
+	fSRn9mnSuiZRv4abCoquu4+r+4li3OA=
+X-Google-Smtp-Source: ABdhPJyiY7dd/HbfMIgtFkQhM3syLQPYgklDbWd+yRwgRKTbskJs9kY/bdI+7jr7qusXztQhkNX82A==
+X-Received: by 2002:a17:902:b943:: with SMTP id h3mr14847824pls.38.1594206243726;
+        Wed, 08 Jul 2020 04:04:03 -0700 (PDT)
+Received: from santosiv.in.ibm.com.com ([203.223.190.240])
+        by smtp.gmail.com with ESMTPSA id u14sm26738672pfk.211.2020.07.08.04.04.00
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 08 Jul 2020 03:18:12 -0700 (PDT)
+        Wed, 08 Jul 2020 04:04:02 -0700 (PDT)
 From: Santosh Sivaraj <santosh@fossix.org>
-To: Harish <harish@linux.ibm.com>, linux-nvdimm@lists.01.org, dan.j.williams@intel.com, vishal.l.verma@intel.com
-Subject: Re: [ndctl PATCH] Documentation: write-infoblock namespace as mutually exclusive
-In-Reply-To: <20200708072319.10896-1-harish@linux.ibm.com>
-References: <20200708072319.10896-1-harish@linux.ibm.com>
-Date: Wed, 08 Jul 2020 15:48:06 +0530
-Message-ID: <877dves42p.fsf@santosiv.in.ibm.com>
+To: Linux NVDIMM <linux-nvdimm@lists.01.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH ndctl v2] infoblock: Set the default alignment to the platform alignment
+Date: Wed,  8 Jul 2020 16:33:06 +0530
+Message-Id: <20200708110306.279976-1-santosh@fossix.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Message-ID-Hash: VECFAPQ2ADUI3MEJO7L5SPQY7KXICFTG
-X-Message-ID-Hash: VECFAPQ2ADUI3MEJO7L5SPQY7KXICFTG
+Message-ID-Hash: ZEFHBBZLXPR5FLA4H26JTMSDJV7I7TVE
+X-Message-ID-Hash: ZEFHBBZLXPR5FLA4H26JTMSDJV7I7TVE
 X-MailFrom: santosh@fossix.org
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Harish <harish@linux.ibm.com>
+CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Harish Sriram <harish@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VECFAPQ2ADUI3MEJO7L5SPQY7KXICFTG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZEFHBBZLXPR5FLA4H26JTMSDJV7I7TVE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -85,82 +87,135 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+The default alignment for write-infoblock command is set to 2M. Change
+that to use the platform's supported alignment or PAGE_SIZE. The first
+supported alignment is taken as the default.
 
-Hi,
+Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+---
+ ndctl/namespace.c | 69 ++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 56 insertions(+), 13 deletions(-)
 
-Harish <harish@linux.ibm.com> writes:
+v2: Get the 'write-infoblock all' path right [Ira]
 
-> The write-infoblock command allows user to write to only one of
-> namespace, stdout or to a file. Document that explicitly and also
-> change the usage string to indicate mutual exclusion.
->
-> Signed-off-by: Harish <harish@linux.ibm.com>
-> ---
->  Documentation/ndctl/ndctl-write-infoblock.txt | 14 ++++++++------
->  ndctl/namespace.c                             |  4 +++-
->  2 files changed, 11 insertions(+), 7 deletions(-)
->
-> diff --git a/Documentation/ndctl/ndctl-write-infoblock.txt b/Documentation/ndctl/ndctl-write-infoblock.txt
-> index 8197559..c29327d 100644
-> --- a/Documentation/ndctl/ndctl-write-infoblock.txt
-> +++ b/Documentation/ndctl/ndctl-write-infoblock.txt
-> @@ -61,19 +61,21 @@ read 1 infoblock
->  
->  OPTIONS
->  -------
-> -<namespace(s)>::
-> -	One or more 'namespaceX.Y' device names. The keyword 'all' can be specified to
-> -	operate on every namespace in the system, optionally filtered by bus id (see
-> -        --bus= option), or region id (see --region= option).
-> +<namespace>::
-> +	Write the infoblock to 'namespaceX.Y' device name. The keyword 'all' can be
-> +	specified to operate on every namespace in the system, optionally filtered
-> +	by bus id (see --bus= option), or region id (see --region= option).
-> +	(mutually exclusive with --stdout and --output)
->  
->  -c::
->  --stdout::
-> -	Write the infoblock to stdout
-> +	Write the infoblock to stdout (mutually
-> +	exclusive with <namespace> and --output)
->  
->  -o::
->  --output=::
->  	Write the infoblock to the given file (mutually
-> -	exclusive with --stdout).
-> +	exclusive with <namespace> and --stdout).
->  
->  -m::
->  --mode=::
-> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-> index 0550580..cf6c4ea 100644
-> --- a/ndctl/namespace.c
-> +++ b/ndctl/namespace.c
-> @@ -2346,7 +2346,9 @@ int cmd_read_infoblock(int argc, const char **argv, struct ndctl_ctx *ctx)
->  
->  int cmd_write_infoblock(int argc, const char **argv, struct ndctl_ctx *ctx)
->  {
-> -	char *xable_usage = "ndctl write-infoblock <namespace> [<options>]";
-> +	char *xable_usage = "ndctl write-infoblock [<namespace> | -o <file> "
-> +			"| --stdout] [<options>]";
-> +
-
-This is now consistent with the man-page.
-
-Since size (-s) mandatory with --stdout, should that be included in the usage
-too?
-
-  Usage: ndctl write-infoblock [<namespace> | -o <file> | -s SIZE --stdout] [<options>]
-
-Reviewed-by: Santosh S <santosh@fossix.org>
-
-Thanks,
-Santosh
->  	const char *namespace = parse_namespace_options(argc, argv,
->  			ACTION_WRITE_INFOBLOCK, write_infoblock_options,
->  			xable_usage);
-> -- 
-> 2.26.2
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 0550580..8aa5a42 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -175,7 +175,7 @@ OPT_STRING('m', "mode", &param.mode, "operation-mode", \
+ OPT_STRING('s', "size", &param.size, "size", \
+ 	"override the image size to instantiate the infoblock"), \
+ OPT_STRING('a', "align", &param.align, "align", \
+-	"specify the expected physical alignment (default: 2M)"), \
++	"specify the expected physical alignment"), \
+ OPT_STRING('u', "uuid", &param.uuid, "uuid", \
+ 	"specify the uuid for the infoblock (default: autogenerate)"), \
+ OPT_STRING('M', "map", &param.map, "memmap-location", \
+@@ -325,23 +325,15 @@ static int set_defaults(enum device_action action)
+ 					sysconf(_SC_PAGE_SIZE));
+ 			rc = -EINVAL;
+ 		}
+-	} else if (action == ACTION_WRITE_INFOBLOCK)
+-		param.align = "2M";
++	}
+ 
+ 	if (param.size) {
+ 		unsigned long long size = parse_size64(param.size);
+-		unsigned long long align = parse_size64(param.align);
+ 
+ 		if (size == ULLONG_MAX) {
+ 			error("failed to parse namespace size '%s'\n",
+ 					param.size);
+ 			rc = -EINVAL;
+-		} else if (action == ACTION_WRITE_INFOBLOCK
+-				&& align < ULLONG_MAX
+-				&& !IS_ALIGNED(size, align)) {
+-			error("--size=%s not aligned to %s\n", param.size,
+-					param.align);
+-			rc = -EINVAL;
+ 		}
+ 	}
+ 
+@@ -1982,6 +1974,23 @@ out:
+ 	return rc;
+ }
+ 
++static unsigned long ndctl_get_default_alignment(struct ndctl_namespace *ndns)
++{
++	unsigned long long align = 0;
++	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
++	struct ndctl_pfn *pfn = ndctl_namespace_get_pfn(ndns);
++
++	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX && pfn)
++		align = ndctl_pfn_get_supported_alignment(pfn, 1);
++	else if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_DEVDAX && dax)
++		align = ndctl_dax_get_supported_alignment(dax, 1);
++
++	if (!align)
++		align =  sysconf(_SC_PAGE_SIZE);
++
++	return align;
++}
++
+ static int namespace_rw_infoblock(struct ndctl_namespace *ndns,
+ 		struct read_infoblock_ctx *ri_ctx, int write)
+ {
+@@ -2013,9 +2022,40 @@ static int namespace_rw_infoblock(struct ndctl_namespace *ndns,
+ 	}
+ 
+ 	sprintf(path, "/dev/%s", ndctl_namespace_get_block_device(ndns));
+-	if (write)
+-		rc = file_write_infoblock(path);
+-	else
++	if (write) {
++		unsigned long long align;
++		bool align_provided = true;
++
++		if (!param.align) {
++			align = ndctl_get_default_alignment(ndns);
++
++			if (asprintf((char **)&param.align, "%llu", align) < 0) {
++				rc = -EINVAL;
++				goto out;
++			}
++			align_provided = false;
++		}
++
++		if (param.size) {
++			unsigned long long size = parse_size64(param.size);
++			align = parse_size64(param.align);
++
++			if (align < ULLONG_MAX && !IS_ALIGNED(size, align)) {
++				error("--size=%s not aligned to %s\n", param.size,
++					param.align);
++
++				rc = -EINVAL;
++			}
++		}
++
++		if (!rc)
++			rc = file_write_infoblock(path);
++
++		if (!align_provided) {
++			free((char *)param.align);
++			param.align = NULL;
++		}
++	} else
+ 		rc = file_read_infoblock(path, ndns, ri_ctx);
+ 	param.parent_uuid = save;
+ out:
+@@ -2060,6 +2100,9 @@ static int do_xaction_namespace(const char *namespace,
+ 	}
+ 
+ 	if (action == ACTION_WRITE_INFOBLOCK && !namespace) {
++		if (!param.align)
++			param.align = "2M";
++
+ 		rc = file_write_infoblock(param.outfile);
+ 		if (rc >= 0)
+ 			(*processed)++;
+-- 
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
