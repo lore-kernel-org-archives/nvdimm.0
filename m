@@ -2,66 +2,60 @@ Return-Path: <SRS0=NTWP=AU=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.1 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.0 required=3.0 tests=DKIM_INVALID,DKIM_SIGNED,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC235C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:12:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A313C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:19:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8DD6520708
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:12:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 5210520708
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:19:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hd5Go24A"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8DD6520708
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HwWOLvLy"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5210520708
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6DF4911202AC9;
-	Thu,  9 Jul 2020 02:12:18 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 20E121141F7A8;
+	Thu,  9 Jul 2020 02:19:16 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
 Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 92036111FF49B
-	for <linux-nvdimm@lists.01.org>; Thu,  9 Jul 2020 02:12:15 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 8CC30111FF49B
+	for <linux-nvdimm@lists.01.org>; Thu,  9 Jul 2020 02:19:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1594285934;
+	s=mimecast20190719; t=1594286353;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=QpwS1vWzxNYsRbVzCpxXy92PEVS5TzvhnObTcapX3Nk=;
-	b=hd5Go24ANdtD8X01XCbiCS+KqQnOCnKh31VcIPRh26rNa2gn4MtsIt1RpC089GOXbFky1P
-	S2TibDA2mflXXqtunG6OM0dNnOYnEuHRU5dtSmYiYZqDzAzOcObmuDZNJQO/kVrXhV4+K4
-	uQ6VBgx3bwv6hQNQOPrQQDT+0feJPxc=
+	bh=QwGWrS6iXiM++NaFqF7ChcMES7ciRXytUns3JcRWr58=;
+	b=HwWOLvLywSe3SKnh3CKTWFdDN+vy2/zhjYGJ2uNNOHhl3W+VSnqOJIP04UGSQdoknUf3A8
+	KtKXNi6kNIBQEsiNuL8BF3a/DYhDH+x17TDin3j0UNSftTHElKVf48O3+2T+KArLv9oSQl
+	G9Fu/FvejZoYFufrZ9a5kQnVCDrEoHY=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-59-DKd0UOzSMmOKiLY4--yi-A-1; Thu, 09 Jul 2020 05:12:10 -0400
-X-MC-Unique: DKd0UOzSMmOKiLY4--yi-A-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+ us-mta-215-Hx3iYtBXPN22U0IVcKNmww-1; Thu, 09 Jul 2020 05:19:08 -0400
+X-MC-Unique: Hx3iYtBXPN22U0IVcKNmww-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1B86A107ACCA;
-	Thu,  9 Jul 2020 09:12:07 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E1547107ACCD;
+	Thu,  9 Jul 2020 09:19:04 +0000 (UTC)
 Received: from [10.36.114.174] (ovpn-114-174.ams2.redhat.com [10.36.114.174])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id B998010013C2;
-	Thu,  9 Jul 2020 09:11:58 +0000 (UTC)
-Subject: Re: [PATCH v3 6/6] mm/memory_hotplug: fix unpaired
- mem_hotplug_begin/done
-To: Jia He <justin.he@arm.com>, Catalin Marinas <catalin.marinas@arm.com>,
- Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>,
- Fenghua Yu <fenghua.yu@intel.com>,
- Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>,
- Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski
- <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
- Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
- Borislav Petkov <bp@alien8.de>, Andrew Morton <akpm@linux-foundation.org>
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 3E7AE5C1C3;
+	Thu,  9 Jul 2020 09:18:57 +0000 (UTC)
+Subject: Re: [PATCH v3 4/6] mm: don't export memory_add_physaddr_to_nid in
+ arch specific directory
+To: Mike Rapoport <rppt@linux.ibm.com>, Matthew Wilcox <willy@infradead.org>
 References: <20200709020629.91671-1-justin.he@arm.com>
- <20200709020629.91671-7-justin.he@arm.com>
+ <20200709020629.91671-5-justin.he@arm.com>
+ <20200709021104.GZ25523@casper.infradead.org>
+ <20200709091815.GF781326@linux.ibm.com>
 From: David Hildenbrand <david@redhat.com>
 Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
  mQINBFXLn5EBEAC+zYvAFJxCBY9Tr1xZgcESmxVNI/0ffzE/ZQOiHJl6mGkmA1R7/uUpiCjJ
@@ -107,24 +101,24 @@ Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
  njnuI31KBiLUks+paRkHQlFcgS2N3gkRBzH7xSZ+t7Re3jvXdXEzKBbQ+dC3lpJB0wPnyMcX
  FOTT3aZT7IgePkt5iC/BKBk3hqKteTnJFeVIT7EC+a6YUFg=
 Organization: Red Hat GmbH
-Message-ID: <2dfaf00b-9b08-8b90-6056-b53f7aa9b51c@redhat.com>
-Date: Thu, 9 Jul 2020 11:11:57 +0200
+Message-ID: <49a53674-f246-fdd6-009b-447a88cdb68e@redhat.com>
+Date: Thu, 9 Jul 2020 11:18:57 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
  Thunderbird/68.9.0
 MIME-Version: 1.0
-In-Reply-To: <20200709020629.91671-7-justin.he@arm.com>
+In-Reply-To: <20200709091815.GF781326@linux.ibm.com>
 Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Message-ID-Hash: X324FGNKU25Z6CUHBISYTVSDIKZDNI5Q
-X-Message-ID-Hash: X324FGNKU25Z6CUHBISYTVSDIKZDNI5Q
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Message-ID-Hash: ZPGMS4N4GIYAWOHKF7JYHTN6VNXCDEMU
+X-Message-ID-Hash: ZPGMS4N4GIYAWOHKF7JYHTN6VNXCDEMU
 X-MailFrom: david@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Baoquan He <bhe@redhat.com>, Chuhong Yuan <hslester96@gmail.com>, Mike Rapoport <rppt@linux.ibm.com>, Masahiro Yamada <masahiroy@kernel.org>, Michal Hocko <mhocko@suse.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Jonathan Cameron <Jonathan.Cameron@Huawei.com>, Kaly Xin <Kaly.Xin@arm.com>, stable@vger.kernel.org
+CC: Jia He <justin.he@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Baoquan He <bhe@redhat.com>, Chuhong Yuan <hslester96@gmail.com>, Masahiro Yamada <masahiroy@kernel.org>, Michal Hocko <mhocko@suse.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Kaly Xin <Kaly.Xin@arm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/X324FGNKU25Z6CUHBISYTVSDIKZDNI5Q/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZPGMS4N4GIYAWOHKF7JYHTN6VNXCDEMU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -133,68 +127,24 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 09.07.20 04:06, Jia He wrote:
-> When check_memblock_offlined_cb() returns failed rc(e.g. the memblock is
-> online at that time), mem_hotplug_begin/done is unpaired in such case.
+On 09.07.20 11:18, Mike Rapoport wrote:
+> On Thu, Jul 09, 2020 at 03:11:04AM +0100, Matthew Wilcox wrote:
+>> On Thu, Jul 09, 2020 at 10:06:27AM +0800, Jia He wrote:
+>>> After a general version of __weak memory_add_physaddr_to_nid implemented
+>>> and exported , it is no use exporting twice in arch directory even if
+>>> e,g, ia64/x86 have their specific version.
+>>>
+>>> This is to suppress the modpost warning:
+>>> WARNING: modpost: vmlinux: 'memory_add_physaddr_to_nid' exported twice.
+>>> Previous export was in vmlinux
+>>
+>> It's bad form to introduce a warning and then send a follow-up patch to
+>> fix the warning.  Just fold this patch into patch 1/6.
 > 
-> Therefore a warning:
->  Call Trace:
->   percpu_up_write+0x33/0x40
->   try_remove_memory+0x66/0x120
->   ? _cond_resched+0x19/0x30
->   remove_memory+0x2b/0x40
->   dev_dax_kmem_remove+0x36/0x72 [kmem]
->   device_release_driver_internal+0xf0/0x1c0
->   device_release_driver+0x12/0x20
->   bus_remove_device+0xe1/0x150
->   device_del+0x17b/0x3e0
->   unregister_dev_dax+0x29/0x60
->   devm_action_release+0x15/0x20
->   release_nodes+0x19a/0x1e0
->   devres_release_all+0x3f/0x50
->   device_release_driver_internal+0x100/0x1c0
->   driver_detach+0x4c/0x8f
->   bus_remove_driver+0x5c/0xd0
->   driver_unregister+0x31/0x50
->   dax_pmem_exit+0x10/0xfe0 [dax_pmem]
-> 
-> Fixes: f1037ec0cc8a ("mm/memory_hotplug: fix remove_memory() lockdep splat")
-> Cc: stable@vger.kernel.org # v5.6+
-> Signed-off-by: Jia He <justin.he@arm.com>
-> Reviewed-by: David Hildenbrand <david@redhat.com>
-> Acked-by: Michal Hocko <mhocko@suse.com>
-> Acked-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  mm/memory_hotplug.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index b49ab743d914..3e0645387daf 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -1752,7 +1752,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
->  	 */
->  	rc = walk_memory_blocks(start, size, NULL, check_memblock_offlined_cb);
->  	if (rc)
-> -		goto done;
-> +		return rc;
->  
->  	/* remove memmap entry */
->  	firmware_map_remove(start, start + size, "System RAM");
-> @@ -1776,9 +1776,8 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
->  
->  	try_offline_node(nid);
->  
-> -done:
->  	mem_hotplug_done();
-> -	return rc;
-> +	return 0;
->  }
->  
->  /**
+> Moreover, I think that patches 1-4 can be merged into one.
 > 
 
-@Andrew, can you pick that up directly? It's independent of the other stuff.
++1
 
 -- 
 Thanks,
