@@ -6,115 +6,231 @@ X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62E36C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:19:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 538B1C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 14:57:20 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 41996206C3
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:19:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 41996206C3
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1B3D920663
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 14:57:19 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1B3D920663
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 397A61141F7AB;
-	Thu,  9 Jul 2020 02:19:30 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=rppt@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id D74ED11202ACA;
+	Thu,  9 Jul 2020 07:57:19 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=79.96.170.134; helo=cloudserver094114.home.pl; envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN> 
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 426AA114129DA
-	for <linux-nvdimm@lists.01.org>; Thu,  9 Jul 2020 02:19:28 -0700 (PDT)
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06992P92149548;
-	Thu, 9 Jul 2020 05:18:25 -0400
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 325n5eh6s2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 09 Jul 2020 05:18:25 -0400
-Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 06992TWC149958;
-	Thu, 9 Jul 2020 05:18:24 -0400
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 325n5eh6r2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 09 Jul 2020 05:18:24 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0699A2Fw014205;
-	Thu, 9 Jul 2020 09:18:22 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma03ams.nl.ibm.com with ESMTP id 325k1vgqjt-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 09 Jul 2020 09:18:22 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0699IJQc54919672
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 9 Jul 2020 09:18:20 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id CB9DCAE05A;
-	Thu,  9 Jul 2020 09:18:19 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D5DF8AE045;
-	Thu,  9 Jul 2020 09:18:16 +0000 (GMT)
-Received: from linux.ibm.com (unknown [9.148.204.222])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
-	Thu,  9 Jul 2020 09:18:16 +0000 (GMT)
-Date: Thu, 9 Jul 2020 12:18:15 +0300
-From: Mike Rapoport <rppt@linux.ibm.com>
-To: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH v3 4/6] mm: don't export memory_add_physaddr_to_nid in
- arch specific directory
-Message-ID: <20200709091815.GF781326@linux.ibm.com>
-References: <20200709020629.91671-1-justin.he@arm.com>
- <20200709020629.91671-5-justin.he@arm.com>
- <20200709021104.GZ25523@casper.infradead.org>
+	by ml01.01.org (Postfix) with ESMTPS id B8A8A111F370F
+	for <linux-nvdimm@lists.01.org>; Thu,  9 Jul 2020 07:57:17 -0700 (PDT)
+Received: from 89-64-83-236.dynamic.chello.pl (89.64.83.236) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.415)
+ id 6f4b9f3a7ac1aaf9; Thu, 9 Jul 2020 16:57:14 +0200
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 11/12] PM, libnvdimm: Add 'mem-quiet' state and callback for firmware activation
+Date: Thu, 09 Jul 2020 16:57:12 +0200
+Message-ID: <23449996.3uVv1d17cZ@kreacher>
+In-Reply-To: <159408717289.2385045.14094866475168644020.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <159408711335.2385045.2567600405906448375.stgit@dwillia2-desk3.amr.corp.intel.com> <159408717289.2385045.14094866475168644020.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200709021104.GZ25523@casper.infradead.org>
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-07-09_04:2020-07-08,2020-07-09 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 spamscore=0
- impostorscore=0 mlxscore=0 adultscore=0 suspectscore=1 mlxlogscore=603
- phishscore=0 priorityscore=1501 lowpriorityscore=0 bulkscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2007090068
-Message-ID-Hash: 2ZUUYOQFDFFGVXEDXJUN4HYKINPD4SDX
-X-Message-ID-Hash: 2ZUUYOQFDFFGVXEDXJUN4HYKINPD4SDX
-X-MailFrom: rppt@linux.ibm.com
+Content-Type: text/plain; charset="us-ascii"
+Message-ID-Hash: 2VHFASE5UM36J7YPPACPO6ECXDSI7347
+X-Message-ID-Hash: 2VHFASE5UM36J7YPPACPO6ECXDSI7347
+X-MailFrom: rjw@rjwysocki.net
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Jia He <justin.he@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, David Hildenbrand <david@redhat.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Baoquan He <bhe@redhat.com>, Chuhong Yuan <hslester96@gmail.com>, Masahiro Yamada <masahiroy@kernel.org>, Michal Hocko <mhocko@suse.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Kaly Xin <Kaly.Xin@arm.com>
+CC: linux-nvdimm@lists.01.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2ZUUYOQFDFFGVXEDXJUN4HYKINPD4SDX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2VHFASE5UM36J7YPPACPO6ECXDSI7347/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jul 09, 2020 at 03:11:04AM +0100, Matthew Wilcox wrote:
-> On Thu, Jul 09, 2020 at 10:06:27AM +0800, Jia He wrote:
-> > After a general version of __weak memory_add_physaddr_to_nid implemented
-> > and exported , it is no use exporting twice in arch directory even if
-> > e,g, ia64/x86 have their specific version.
-> > 
-> > This is to suppress the modpost warning:
-> > WARNING: modpost: vmlinux: 'memory_add_physaddr_to_nid' exported twice.
-> > Previous export was in vmlinux
+On Tuesday, July 7, 2020 3:59:32 AM CEST Dan Williams wrote:
+> The runtime firmware activation capability of Intel NVDIMM devices
+> requires memory transactions to be disabled for 100s of microseconds.
+> This timeout is large enough to cause in-flight DMA to fail and other
+> application detectable timeouts. Arrange for firmware activation to be
+> executed while the system is "quiesced", all processes and device-DMA
+> frozen.
 > 
-> It's bad form to introduce a warning and then send a follow-up patch to
-> fix the warning.  Just fold this patch into patch 1/6.
+> It is already required that invoking device ->freeze() callbacks is
+> sufficient to cease DMA. A device that continues memory writes outside
+> of user-direction violates expectations of the PM core to be to
+> establish a coherent hibernation image.
+> 
+> That said, RDMA devices are an example of a device that access memory
+> outside of user process direction. RDMA drivers also typically assume
+> the system they are operating in will never be hibernated. A solution
+> for RDMA collisions with firmware activation is outside the scope of
+> this change and may need to rely on being able to survive the platform
+> imposed memory controller quiesce period.
 
-Moreover, I think that patches 1-4 can be merged into one.
+Thanks for following my suggestion to use the hibernation infrastructure
+rather than the suspend one, but I think it would be better to go a bit
+further with that.
 
--- 
-Sincerely yours,
-Mike.
+Namely, after thinking about this a bit more I have come to the conclusion
+that what is needed is an ability to execute a function, inside of the
+kernel, in a "quiet" environment in which memory updates are unlikely.
+
+While the hibernation infrastructure as is can be used for that, kind of, IMO
+it would be cleaner to introduce a helper for that, like in the (untested)
+patch below, so if the "quiet execution environment" is needed, whoever
+needs it may simply pass a function to hibernate_quiet_exec() and provide
+whatever user-space I/F is suitable on top of that.
+
+Please let me know what you think.
+
+Cheers!
+
+---
+ include/linux/suspend.h  |    6 ++
+ kernel/power/hibernate.c |   97 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
+
+Index: linux-pm/kernel/power/hibernate.c
+===================================================================
+--- linux-pm.orig/kernel/power/hibernate.c
++++ linux-pm/kernel/power/hibernate.c
+@@ -795,6 +795,103 @@ int hibernate(void)
+ 	return error;
+ }
+ 
++/**
++ * hibernate_quiet_exec - Execute a function with all devices frozen.
++ * @func: Function to execute.
++ * @data: Data pointer to pass to @func.
++ *
++ * Return the @func return value or an error code if it cannot be executed.
++ */
++int hibernate_quiet_exec(int (*func)(void *data), void *data)
++{
++	int error, nr_calls = 0;
++
++	lock_system_sleep();
++
++	if (!hibernate_acquire()) {
++		error = -EBUSY;
++		goto unlock;
++	}
++
++	pm_prepare_console();
++
++	error = __pm_notifier_call_chain(PM_HIBERNATION_PREPARE, -1, &nr_calls);
++	if (error) {
++		nr_calls--;
++		goto exit;
++	}
++
++	error = freeze_processes();
++	if (error)
++		goto exit;
++
++	lock_device_hotplug();
++
++	pm_suspend_clear_flags();
++
++	error = platform_begin(true);
++	if (error)
++		goto thaw;
++
++	error = freeze_kernel_threads();
++	if (error)
++		goto thaw;
++
++	error = dpm_prepare(PMSG_FREEZE);
++	if (error)
++		goto dpm_complete;
++
++	suspend_console();
++
++	error = dpm_suspend(PMSG_FREEZE);
++	if (error)
++		goto dpm_resume;
++
++	error = dpm_suspend_end(PMSG_FREEZE);
++	if (error)
++		goto dpm_resume;
++
++	error = platform_pre_snapshot(true);
++	if (error)
++		goto skip;
++
++	error = func(data);
++
++skip:
++	platform_finish(true);
++
++	dpm_resume_start(PMSG_THAW);
++
++dpm_resume:
++	dpm_resume(PMSG_THAW);
++
++	resume_console();
++
++dpm_complete:
++	dpm_complete(PMSG_THAW);
++
++	thaw_kernel_threads();
++
++thaw:
++	platform_end(true);
++
++	unlock_device_hotplug();
++
++	thaw_processes();
++
++exit:
++	__pm_notifier_call_chain(PM_POST_HIBERNATION, nr_calls, NULL);
++
++	pm_restore_console();
++
++	hibernate_release();
++
++unlock:
++	unlock_system_sleep();
++
++	return error;
++}
++EXPORT_SYMBOL_GPL(hibernate_quiet_exec);
+ 
+ /**
+  * software_resume - Resume from a saved hibernation image.
+Index: linux-pm/include/linux/suspend.h
+===================================================================
+--- linux-pm.orig/include/linux/suspend.h
++++ linux-pm/include/linux/suspend.h
+@@ -453,6 +453,8 @@ extern bool hibernation_available(void);
+ asmlinkage int swsusp_save(void);
+ extern struct pbe *restore_pblist;
+ int pfn_is_nosave(unsigned long pfn);
++
++int hibernate_quiet_exec(int (*func)(void *data), void *data);
+ #else /* CONFIG_HIBERNATION */
+ static inline void register_nosave_region(unsigned long b, unsigned long e) {}
+ static inline void register_nosave_region_late(unsigned long b, unsigned long e) {}
+@@ -464,6 +466,10 @@ static inline void hibernation_set_ops(c
+ static inline int hibernate(void) { return -ENOSYS; }
+ static inline bool system_entering_hibernation(void) { return false; }
+ static inline bool hibernation_available(void) { return false; }
++
++static inline hibernate_quiet_exec(int (*func)(void *data), void *data) {
++	return -ENOTSUPP;
++}
+ #endif /* CONFIG_HIBERNATION */
+ 
+ #ifdef CONFIG_HIBERNATION_SNAPSHOT_DEV
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
