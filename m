@@ -6,51 +6,51 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E2C42C4345B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 14:02:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9AADC4345D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 14:02:57 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B9281207BB
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 14:02:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id BF6DA2082E
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 14:02:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="Enpoo6ix"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B9281207BB
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="bPoTabPa"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BF6DA2082E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 94ECE110605C0;
-	Fri, 10 Jul 2020 07:02:56 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id B27C4110605C2;
+	Fri, 10 Jul 2020 07:02:57 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id F277D11003ED8
-	for <linux-nvdimm@lists.01.org>; Fri, 10 Jul 2020 07:02:49 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 0E16411003ED8
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jul 2020 07:02:52 -0700 (PDT)
 Received: from localhost (unknown [137.135.114.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 9033520849;
-	Fri, 10 Jul 2020 14:02:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPSA id A02E920857;
+	Fri, 10 Jul 2020 14:02:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594389769;
-	bh=3yFXOIlf/jaJ9LVqAKz8KOR8fQJjduxx7bKp5GcEi+M=;
+	s=default; t=1594389771;
+	bh=BWcfdF4SOViC4CYrJIgAVmv8l2cCHCM/PxYBkWm+YjE=;
 	h=Date:From:To:To:To:Cc:Cc:Cc:Cc:Cc:Cc:Cc:Cc:Subject:In-Reply-To:
 	 References:From;
-	b=Enpoo6ixM4fMy/bPcm4iVhfl8HFW2OiAwWW6Nh5+D+Lfi3hZWeF+AYiXuNXq71h8r
-	 bydkTP2/FSmKV/606lfR0VVJKK9jlozErg+Ouz7rJCBiqcRnpnnN1BXRMvLa9PIO1h
-	 l4PNEyfAtJv9taiw7eNd5ZzJaLq9zDf0B4JfrATE=
-Date: Fri, 10 Jul 2020 14:02:48 +0000
+	b=bPoTabPa3MV9z1YgTwLHahC7PzUZbXEi1a1H3NhVoaW5dhzsmLcXp4nb1KqjSveWW
+	 bM/dlUEKW8gr2D0i3zwnA5g+JTYiU6zuYoN/lMh/82FJFZ8Fpirf+kISKhigfgiowA
+	 b31TZJQvClM8TDu2l2SIheee5y1J5gbdd7LdCjYk=
+Date: Fri, 10 Jul 2020 14:02:51 +0000
 From: Sasha Levin <sashal@kernel.org>
 To: Sasha Levin <sashal@kernel.org>
 To: Dan Williams <dan.j.williams@intel.com>
 To: linux-nvdimm@lists.01.org
-Subject: Re: [PATCH 01/12] libnvdimm: Validate command family indices
-In-Reply-To: <159312902579.1850128.3536310031352445291.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <159312902579.1850128.3536310031352445291.stgit@dwillia2-desk3.amr.corp.intel.com>
-Message-Id: <20200710140249.9033520849@mail.kernel.org>
-Message-ID-Hash: HZ6YSTID3IKJOK4LZ5V6JEXUYOGC3XLB
-X-Message-ID-Hash: HZ6YSTID3IKJOK4LZ5V6JEXUYOGC3XLB
+Subject: Re: [PATCH v2 01/12] libnvdimm: Validate command family indices
+In-Reply-To: <159408711877.2385045.5738278265729770877.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <159408711877.2385045.5738278265729770877.stgit@dwillia2-desk3.amr.corp.intel.com>
+Message-Id: <20200710140251.A02E920857@mail.kernel.org>
+Message-ID-Hash: PWE6PJGVLVGY2KQEPHWQULSUH7VA2ST5
+X-Message-ID-Hash: PWE6PJGVLVGY2KQEPHWQULSUH7VA2ST5
 X-MailFrom: sashal@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -58,7 +58,7 @@ CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, stable
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HZ6YSTID3IKJOK4LZ5V6JEXUYOGC3XLB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PWE6PJGVLVGY2KQEPHWQULSUH7VA2ST5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -75,16 +75,16 @@ Hi
 This commit has been processed because it contains a "Fixes:" tag
 fixing commit: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism").
 
-The bot has tested the following trees: v5.7.6, v5.4.49, v4.19.130, v4.14.186, v4.9.228.
+The bot has tested the following trees: v5.7.7, v5.4.50, v4.19.131, v4.14.187, v4.9.229.
 
-v5.7.6: Failed to apply! Possible dependencies:
+v5.7.7: Failed to apply! Possible dependencies:
     f517f7925b7b4 ("ndctl/papr_scm,uapi: Add support for PAPR nvdimm specific methods")
 
-v5.4.49: Failed to apply! Possible dependencies:
+v5.4.50: Failed to apply! Possible dependencies:
     72c4ebbac476b ("powerpc/papr_scm: Mark papr_scm_ndctl() as static")
     f517f7925b7b4 ("ndctl/papr_scm,uapi: Add support for PAPR nvdimm specific methods")
 
-v4.19.130: Failed to apply! Possible dependencies:
+v4.19.131: Failed to apply! Possible dependencies:
     01091c496f920 ("acpi/nfit: improve bounds checking for 'func'")
     0ead11181fe0c ("acpi, nfit: Collect shutdown status")
     6f07f86c49407 ("acpi, nfit: Introduce nfit_mem flags")
@@ -94,7 +94,7 @@ v4.19.130: Failed to apply! Possible dependencies:
     d6548ae4d16dc ("acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm")
     f517f7925b7b4 ("ndctl/papr_scm,uapi: Add support for PAPR nvdimm specific methods")
 
-v4.14.186: Failed to apply! Possible dependencies:
+v4.14.187: Failed to apply! Possible dependencies:
     01091c496f920 ("acpi/nfit: improve bounds checking for 'func'")
     0e7f0741450b1 ("acpi, nfit: validate commands against the device type")
     1194c4133195d ("nfit: Add Hyper-V NVDIMM DSM command set to white list")
@@ -106,7 +106,7 @@ v4.14.186: Failed to apply! Possible dependencies:
     b9b1504d3c6d6 ("acpi, nfit: hide unknown commands from nmemX/commands")
     d6548ae4d16dc ("acpi/nfit, libnvdimm: Store dimm id as a member to struct nvdimm")
 
-v4.9.228: Failed to apply! Possible dependencies:
+v4.9.229: Failed to apply! Possible dependencies:
     095ab4b39f91b ("acpi, nfit: allow override of built-in bitmasks for nvdimm DSMs")
     0f817ae696b04 ("usb: dwc3: pci: add a private driver structure")
     36daf3aa399c0 ("usb: dwc3: pci: avoid build warning")
