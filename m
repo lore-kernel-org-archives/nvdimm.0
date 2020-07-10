@@ -2,132 +2,60 @@ Return-Path: <SRS0=4i1H=AV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.7 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C490CC433E1
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 03:17:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB0C0C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 07:10:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9BCF22072E
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 03:17:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9BCF22072E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=arm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 922BE2077D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 10 Jul 2020 07:10:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 922BE2077D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=5bo.com.tw
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8E6E811D3F629;
-	Thu,  9 Jul 2020 20:17:00 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=217.140.110.172; helo=foss.arm.com; envelope-from=justin.he@arm.com; receiver=<UNKNOWN> 
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by ml01.01.org (Postfix) with ESMTP id 7DE9711D3F625
-	for <linux-nvdimm@lists.01.org>; Thu,  9 Jul 2020 20:16:58 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C604D113E;
-	Thu,  9 Jul 2020 20:16:57 -0700 (PDT)
-Received: from localhost.localdomain (entos-thunderx2-02.shanghai.arm.com [10.169.212.213])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 43D383F9AB;
-	Thu,  9 Jul 2020 20:16:48 -0700 (PDT)
-From: Jia He <justin.he@arm.com>
-To: Catalin Marinas <catalin.marinas@arm.com>,
-	Will Deacon <will@kernel.org>,
-	Tony Luck <tony.luck@intel.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	Yoshinori Sato <ysato@users.sourceforge.jp>,
-	Rich Felker <dalias@libc.org>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Andy Lutomirski <luto@kernel.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	David Hildenbrand <david@redhat.com>
-Subject: [PATCH 2/2] mm/memory_hotplug: fix unpaired mem_hotplug_begin/done
-Date: Fri, 10 Jul 2020 11:16:19 +0800
-Message-Id: <20200710031619.18762-3-justin.he@arm.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20200710031619.18762-1-justin.he@arm.com>
-References: <20200710031619.18762-1-justin.he@arm.com>
-Message-ID-Hash: FXADW7HMSNESIAEEDJZVEQXDTYJ6SERQ
-X-Message-ID-Hash: FXADW7HMSNESIAEEDJZVEQXDTYJ6SERQ
-X-MailFrom: justin.he@arm.com
+	by ml01.01.org (Postfix) with ESMTP id 66F921228ED04;
+	Fri, 10 Jul 2020 00:10:43 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=37.49.224.4; helo=5bo.com.tw; envelope-from=finance1@5bo.com.tw; receiver=<UNKNOWN> 
+Received: from 5bo.com.tw (unknown [37.49.224.4])
+	by ml01.01.org (Postfix) with ESMTP id 06C521228E67F
+	for <linux-nvdimm@lists.01.org>; Fri, 10 Jul 2020 00:10:39 -0700 (PDT)
+From: finance1@5bo.com.tw
+To: linux-nvdimm@lists.01.org
+Subject: Important: Invoice Payment - Draft Copy
+Date: 10 Jul 2020 09:10:39 +0200
+Message-ID: <20200710091038.70E1A8AF1A4BEA69@5bo.com.tw>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_0BAE89A5.AE929F93"
+Message-ID-Hash: A47PBVLI7BWHIJI5SBJUCDKIR4IQIBC3
+X-Message-ID-Hash: A47PBVLI7BWHIJI5SBJUCDKIR4IQIBC3
+X-MailFrom: finance1@5bo.com.tw
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Baoquan He <bhe@redhat.com>, Chuhong Yuan <hslester96@gmail.com>, Mike Rapoport <rppt@linux.ibm.com>, Masahiro Yamada <masahiroy@kernel.org>, Michal Hocko <mhocko@suse.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, Jonathan Cameron <Jonathan.Cameron@Huawei.com>, Kaly Xin <Kaly.Xin@arm.com>, Jia He <justin.he@arm.com>, stable@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FXADW7HMSNESIAEEDJZVEQXDTYJ6SERQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/A47PBVLI7BWHIJI5SBJUCDKIR4IQIBC3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-MIME-Version: 1.0
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_0BAE89A5.AE929F93
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-When check_memblock_offlined_cb() returns failed rc(e.g. the memblock is
-online at that time), mem_hotplug_begin/done is unpaired in such case.
-
-Therefore a warning:
- Call Trace:
-  percpu_up_write+0x33/0x40
-  try_remove_memory+0x66/0x120
-  ? _cond_resched+0x19/0x30
-  remove_memory+0x2b/0x40
-  dev_dax_kmem_remove+0x36/0x72 [kmem]
-  device_release_driver_internal+0xf0/0x1c0
-  device_release_driver+0x12/0x20
-  bus_remove_device+0xe1/0x150
-  device_del+0x17b/0x3e0
-  unregister_dev_dax+0x29/0x60
-  devm_action_release+0x15/0x20
-  release_nodes+0x19a/0x1e0
-  devres_release_all+0x3f/0x50
-  device_release_driver_internal+0x100/0x1c0
-  driver_detach+0x4c/0x8f
-  bus_remove_driver+0x5c/0xd0
-  driver_unregister+0x31/0x50
-  dax_pmem_exit+0x10/0xfe0 [dax_pmem]
-
-Fixes: f1037ec0cc8a ("mm/memory_hotplug: fix remove_memory() lockdep splat")
-Cc: stable@vger.kernel.org # v5.6+
-Signed-off-by: Jia He <justin.he@arm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
----
- mm/memory_hotplug.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index b49ab743d914..3e0645387daf 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1752,7 +1752,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
- 	 */
- 	rc = walk_memory_blocks(start, size, NULL, check_memblock_offlined_cb);
- 	if (rc)
--		goto done;
-+		return rc;
- 
- 	/* remove memmap entry */
- 	firmware_map_remove(start, start + size, "System RAM");
-@@ -1776,9 +1776,8 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
- 
- 	try_offline_node(nid);
- 
--done:
- 	mem_hotplug_done();
--	return rc;
-+	return 0;
- }
- 
- /**
--- 
-2.17.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_0BAE89A5.AE929F93--
