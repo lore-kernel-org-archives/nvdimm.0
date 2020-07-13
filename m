@@ -2,139 +2,113 @@ Return-Path: <SRS0=jR4L=AY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0A99C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 09:46:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1127C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 14:03:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B6BF4206F0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 09:46:27 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="BJcbMsTB"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B6BF4206F0
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	by mail.kernel.org (Postfix) with ESMTPS id A42EF206F4
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 14:03:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A42EF206F4
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=rjwysocki.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9D1361172EFBB;
-	Mon, 13 Jul 2020 02:46:27 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+	by ml01.01.org (Postfix) with ESMTP id 6F210117E125C;
+	Mon, 13 Jul 2020 07:03:44 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=79.96.170.134; helo=cloudserver094114.home.pl; envelope-from=rjw@rjwysocki.net; receiver=<UNKNOWN> 
+Received: from cloudserver094114.home.pl (cloudserver094114.home.pl [79.96.170.134])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DA4DE1170194E
-	for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 02:46:25 -0700 (PDT)
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06D9WoDU186747;
-	Mon, 13 Jul 2020 09:46:23 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=PxyM3iaI6wn6JuO5xz2u2JKizc6ysmncBc89RQdV9+E=;
- b=BJcbMsTBRBPrPo1KdJmz90EGPdHym91KNvptLl+DW7ZthLgoUbWu+pY/TF+Lfu/3t1yi
- 8U2rvNji9Kzxozf9i2LJlCXBKrq17SSKiDFz1CAS+W6Rc2lNPMEuj3+214HRADgz/RaQ
- 9x5eF97ImG+SNADLIJjQOwJMp1gtsSgbVFses0qy7njcwKxR7rCIbtKXuXzSBCG2vS0E
- W4bPNLI2DYN2H1rjZ5BMsFJdagCf3DTUJ75X6gdGksuRjlLL0/HON3HxhhzsXrbaU38L
- FLl9RZaXUHnI8TmUWxGma4iU7DP+oJeHqCxo91hYMd28u+3nec+j/7f080VhnMLpp9jP Ew==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by userp2120.oracle.com with ESMTP id 32762n5x3q-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 13 Jul 2020 09:46:23 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06D9TUdO025732;
-	Mon, 13 Jul 2020 09:46:23 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-	by aserp3020.oracle.com with ESMTP id 327qb065y5-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 13 Jul 2020 09:46:22 +0000
-Received: from abhmp0004.oracle.com (abhmp0004.oracle.com [141.146.116.10])
-	by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 06D9kLnF009039;
-	Mon, 13 Jul 2020 09:46:21 GMT
-Received: from [10.175.167.147] (/10.175.167.147)
-	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Mon, 13 Jul 2020 02:46:21 -0700
-Subject: Re: [PATCH ndctl v1 10/10] daxctl/test: Add tests for dynamic dax
- regions
+	by ml01.01.org (Postfix) with ESMTPS id D79F3117A72E9
+	for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 07:03:41 -0700 (PDT)
+Received: from 89-64-85-181.dynamic.chello.pl (89.64.85.181) (HELO kreacher.localnet)
+ by serwer1319399.home.pl (79.96.170.134) with SMTP (IdeaSmtpServer 0.83.415)
+ id c54b7b5dd9a458f8; Mon, 13 Jul 2020 16:03:38 +0200
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 To: Dan Williams <dan.j.williams@intel.com>
-References: <20200403205900.18035-1-joao.m.martins@oracle.com>
- <20200403205900.18035-11-joao.m.martins@oracle.com>
- <CAPcyv4g=KifpmjbQYZYnxxYn=W0NBogvr6kGR3+bX14opYEZ=w@mail.gmail.com>
-From: Joao Martins <joao.m.martins@oracle.com>
-Message-ID: <428e465e-44ca-0ba1-4e17-1d9cd026ae39@oracle.com>
-Date: Mon, 13 Jul 2020 10:46:19 +0100
+Subject: Re: [PATCH v2 11/12] PM, libnvdimm: Add 'mem-quiet' state and callback for firmware activation
+Date: Mon, 13 Jul 2020 16:03:36 +0200
+Message-ID: <9508531.urFA0jK61m@kreacher>
+In-Reply-To: <CAPcyv4iiYMXO1fH0yQ2eBzpOWqPag0W=ebJwV6spGpNJQ9hnrg@mail.gmail.com>
+References: <159408711335.2385045.2567600405906448375.stgit@dwillia2-desk3.amr.corp.intel.com> <23449996.3uVv1d17cZ@kreacher> <CAPcyv4iiYMXO1fH0yQ2eBzpOWqPag0W=ebJwV6spGpNJQ9hnrg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4g=KifpmjbQYZYnxxYn=W0NBogvr6kGR3+bX14opYEZ=w@mail.gmail.com>
-Content-Language: en-US
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9680 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
- mlxscore=0 spamscore=0 phishscore=0 suspectscore=1 bulkscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2007130072
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9680 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 spamscore=0
- clxscore=1011 priorityscore=1501 mlxlogscore=999 lowpriorityscore=0
- bulkscore=0 suspectscore=1 phishscore=0 adultscore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007130072
-Message-ID-Hash: 4FJY445SJSJUNKR62UAH3MEOV26Z2LGH
-X-Message-ID-Hash: 4FJY445SJSJUNKR62UAH3MEOV26Z2LGH
-X-MailFrom: joao.m.martins@oracle.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>
+Content-Type: text/plain; charset="us-ascii"
+Message-ID-Hash: 62WRZYNR2V2QVA4KAVZMSDNUXGT5HELM
+X-Message-ID-Hash: 62WRZYNR2V2QVA4KAVZMSDNUXGT5HELM
+X-MailFrom: rjw@rjwysocki.net
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4FJY445SJSJUNKR62UAH3MEOV26Z2LGH/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/62WRZYNR2V2QVA4KAVZMSDNUXGT5HELM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 7/12/20 4:04 PM, Dan Williams wrote:
-> On Fri, Apr 3, 2020 at 1:59 PM Joao Martins <joao.m.martins@oracle.com> wrote:
->>
->> Add a couple tests which exercise the new sysfs based
->> interface for Soft-Reserved regions (by EFI/HMAT, or
->> efi_fake_mem).
->>
->> The tests exercise the daxctl orchestration surrounding
->> for creating/disabling/destroying/reconfiguring devices.
->> Furthermore it exercises dax region space allocation
->> code paths particularly:
->>
->>  1) zeroing out and reconfiguring a dax device from
->>  its current size to be max available and back to initial
->>  size
->>
->>  2) creates devices from holes in the beginning,
->>  middle of the region.
->>
->>  3) reconfigures devices in a interleaving fashion
->>
->>  4) test adjust of the region towards beginning and end
->>
->> The tests assume you pass a valid efi_fake_mem parameter
->> marked as EFI_MEMORY_SP e.g.
->>
->>         efi_fake_mem=112G@16G:0x40000
->>
->> Naturally it bails out from the test if hmem device driver
->> isn't loaded/builtin or no region is found.
+On Thursday, July 9, 2020 9:04:30 PM CEST Dan Williams wrote:
+> On Thu, Jul 9, 2020 at 7:57 AM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >
+> > On Tuesday, July 7, 2020 3:59:32 AM CEST Dan Williams wrote:
+> > > The runtime firmware activation capability of Intel NVDIMM devices
+> > > requires memory transactions to be disabled for 100s of microseconds.
+> > > This timeout is large enough to cause in-flight DMA to fail and other
+> > > application detectable timeouts. Arrange for firmware activation to be
+> > > executed while the system is "quiesced", all processes and device-DMA
+> > > frozen.
+> > >
+> > > It is already required that invoking device ->freeze() callbacks is
+> > > sufficient to cease DMA. A device that continues memory writes outside
+> > > of user-direction violates expectations of the PM core to be to
+> > > establish a coherent hibernation image.
+> > >
+> > > That said, RDMA devices are an example of a device that access memory
+> > > outside of user process direction. RDMA drivers also typically assume
+> > > the system they are operating in will never be hibernated. A solution
+> > > for RDMA collisions with firmware activation is outside the scope of
+> > > this change and may need to rely on being able to survive the platform
+> > > imposed memory controller quiesce period.
+> >
+> > Thanks for following my suggestion to use the hibernation infrastructure
+> > rather than the suspend one, but I think it would be better to go a bit
+> > further with that.
+> >
+> > Namely, after thinking about this a bit more I have come to the conclusion
+> > that what is needed is an ability to execute a function, inside of the
+> > kernel, in a "quiet" environment in which memory updates are unlikely.
+> >
+> > While the hibernation infrastructure as is can be used for that, kind of, IMO
+> > it would be cleaner to introduce a helper for that, like in the (untested)
+> > patch below, so if the "quiet execution environment" is needed, whoever
+> > needs it may simply pass a function to hibernate_quiet_exec() and provide
+> > whatever user-space I/F is suitable on top of that.
+> >
+> > Please let me know what you think.
 > 
-> So, I finally have the kernel passing this test. Thank you! I did
-> notice that I need to make sure that there is only one hmem range
-> defined otherwise the test gets confused and fails. I expect it spills
-> over to other regions when the test expects that the region should be
-> full. Could you take a look at adjusting the test to constrain its
-> allocations to a single region?
+> This looks good to me in concept.
 > 
-Yeap, will fix and send v2.
+> Would you expect that I trigger this from libnvdimm sysfs, or any
+> future users of this functionality to trigger it through their own
+> subsystem specific mechanisms?
+
+Yes, I would.
+
+> I have a place for it in libvdimm and could specify the activation
+> method directly as "suspend" vs "live" activation.
+
+Sounds good to me.
+
+Cheers!
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
