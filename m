@@ -1,66 +1,93 @@
-Return-Path: <SRS0=1VC5=AX=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=jR4L=AY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1299C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 12 Jul 2020 17:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D69BCC433E4
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 06:58:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C756B2067D
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 12 Jul 2020 17:09:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="OZqzQZEo"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C756B2067D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linuxfoundation.org
+	by mail.kernel.org (Postfix) with ESMTPS id B6FBA20791
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 06:58:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B6FBA20791
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 904E61159133F;
-	Sun, 12 Jul 2020 10:09:52 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 81A5D116E754F;
+	Sun, 12 Jul 2020 23:58:30 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=rppt@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 952F61159132B
-	for <linux-nvdimm@lists.01.org>; Sun, 12 Jul 2020 10:09:50 -0700 (PDT)
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 8DFDF20702;
-	Sun, 12 Jul 2020 17:09:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594573790;
-	bh=a848+2Ogmip7OA1pq5ZWFjhMfOh9SLYFsM119KDBbhQ=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=OZqzQZEoZxSAGSrZFfXjXZQUtkypTiKs2Oet5qlnQPBEPa6ZT4u2d206gYnjrbJlG
-	 BxemuBXiEumBOik0eAXItqnjOv/68W9VGr6zWzI0KQhtqMhYMb+hxYxeobXV6CpOk6
-	 myjlUwl2om3T4Vi71OVbj9wKlmHuif0siks+8bGo=
-Date: Sun, 12 Jul 2020 19:09:45 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+	by ml01.01.org (Postfix) with ESMTPS id 2E11D116E754B
+	for <linux-nvdimm@lists.01.org>; Sun, 12 Jul 2020 23:58:25 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06D5WLk6054775;
+	Mon, 13 Jul 2020 02:58:12 -0400
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 32771wky9x-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 13 Jul 2020 02:58:12 -0400
+Received: from m0098416.ppops.net (m0098416.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 06D6PkkL195365;
+	Mon, 13 Jul 2020 02:58:11 -0400
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 32771wky9m-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 13 Jul 2020 02:58:11 -0400
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 06D6lDl5025511;
+	Mon, 13 Jul 2020 06:58:09 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma06ams.nl.ibm.com with ESMTP id 3274pgsvre-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 13 Jul 2020 06:58:09 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 06D6w7xu7012664
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 13 Jul 2020 06:58:07 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8359FA405B;
+	Mon, 13 Jul 2020 06:58:07 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 71B74A4062;
+	Mon, 13 Jul 2020 06:58:04 +0000 (GMT)
+Received: from linux.ibm.com (unknown [9.148.203.145])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
+	Mon, 13 Jul 2020 06:58:04 +0000 (GMT)
+Date: Mon, 13 Jul 2020 09:58:01 +0300
+From: Mike Rapoport <rppt@linux.ibm.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 17/22] drivers/base: Make device_find_child_by_name()
- compatible with sysfs inputs
-Message-ID: <20200712170945.GA194499@kroah.com>
+Subject: Re: [PATCH v2 07/22] numa: Introduce a generic
+ memory_add_physaddr_to_nid()
+Message-ID: <20200713065801.GB11000@linux.ibm.com>
 References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159457125753.754248.6000936585361264069.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <159457120334.754248.12908401960465408733.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <159457125753.754248.6000936585361264069.stgit@dwillia2-desk3.amr.corp.intel.com>
-Message-ID-Hash: 7E4YAOGW5Z3PXHZFSYGFJV73I64KL2IG
-X-Message-ID-Hash: 7E4YAOGW5Z3PXHZFSYGFJV73I64KL2IG
-X-MailFrom: gregkh@linuxfoundation.org
+In-Reply-To: <159457120334.754248.12908401960465408733.stgit@dwillia2-desk3.amr.corp.intel.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-07-13_03:2020-07-10,2020-07-13 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxscore=0
+ mlxlogscore=971 impostorscore=0 malwarescore=0 suspectscore=0 adultscore=0
+ clxscore=1011 bulkscore=0 phishscore=0 lowpriorityscore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2007130037
+Message-ID-Hash: XLWCVHFE2VG2XZHN5IET2Z5LYS4RGUMU
+X-Message-ID-Hash: XLWCVHFE2VG2XZHN5IET2Z5LYS4RGUMU
+X-MailFrom: rppt@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rafael@kernel.org>, peterz@infradead.org, dave.hansen@linux.intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, joao.m.martins@oracle.com
+CC: linux-nvdimm@lists.01.org, Jia He <justin.he@arm.com>, Will Deacon <will@kernel.org>, David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, peterz@infradead.org, dave.hansen@linux.intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hch@lst.de, joao.m.martins@oracle.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7E4YAOGW5Z3PXHZFSYGFJV73I64KL2IG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XLWCVHFE2VG2XZHN5IET2Z5LYS4RGUMU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,39 +96,39 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sun, Jul 12, 2020 at 09:27:37AM -0700, Dan Williams wrote:
-> Use sysfs_streq() in device_find_child_by_name() to allow it to use a
-> sysfs input string that might contain a trailing newline.
-> 
-> The other "device by name" interfaces,
-> {bus,driver,class}_find_device_by_name(), already account for sysfs
-> strings.
-> 
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Hi Dan,
+
+On Sun, Jul 12, 2020 at 09:26:43AM -0700, Dan Williams wrote:
+> For architectures that opt into storing their numa data in memblock
+> (only ARM64 currently), add a memblock generic way to interrogate that
+> data for memory_add_physaddr_to_nid(). This requires ARCH_KEEP_MEMBLOCK
+> to keep memblock text and data around after boot.
+
+I afraid we are too far from using memblock as a generic placeholder for
+numa data. Although all architectures now have the numa info in
+memblock, only arm64 uses memblock as the primary source of that data.
+
+I'd rather prefer Jia's solution [1] to have a weak default for
+memory_add_physaddr_to_nid() and let architectures override it.
+
+[1] https://lore.kernel.org/lkml/20200710031619.18762-2-justin.he@arm.com
+
+> Cc: Mike Rapoport <rppt@linux.ibm.com>
+> Cc: Jia He <justin.he@arm.com>
+> Cc: Will Deacon <will@kernel.org>
+> Cc: David Hildenbrand <david@redhat.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  drivers/base/core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  include/linux/mm.h |   11 +++++++++++
+>  mm/Kconfig         |    6 ++++++
+>  mm/page_alloc.c    |   23 ++++++++++++++++++++++-
+>  3 files changed, 39 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> index 67d39a90b45c..5d31b962c898 100644
-> --- a/drivers/base/core.c
-> +++ b/drivers/base/core.c
-> @@ -3078,7 +3078,7 @@ struct device *device_find_child_by_name(struct device *parent,
->  
->  	klist_iter_init(&parent->p->klist_children, &i);
->  	while ((child = next_device(&i)))
-> -		if (!strcmp(dev_name(child), name) && get_device(child))
-> +		if (sysfs_streq(dev_name(child), name) && get_device(child))
 
-Who wants to call this function with a name passed from userspace?
-
-Not objecting to it, just curious...
-
-thanks,
-
-greg k-h
+-- 
+Sincerely yours,
+Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
