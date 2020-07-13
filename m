@@ -2,130 +2,122 @@ Return-Path: <SRS0=jR4L=AY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40C64C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 15:52:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B35B6C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 16:09:02 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1A2E22076D
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 15:52:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 7B218206F0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 16:09:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="wl1NZRBG"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1A2E22076D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linuxfoundation.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="Hi2uKJpg"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7B218206F0
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 10BF6117FA5B6;
-	Mon, 13 Jul 2020 08:52:24 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 3DB89118128FC;
+	Mon, 13 Jul 2020 09:09:02 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id AC60F117E12BC
-	for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 08:52:22 -0700 (PDT)
-Received: from localhost (83-86-89-107.cable.dynamic.v4.ziggo.nl [83.86.89.107])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id BE59D20663;
-	Mon, 13 Jul 2020 15:52:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1594655542;
-	bh=Hcixoq4GgPe0VCO4s6wUL8CqrZev3dIhKbWRkkOIrHc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=wl1NZRBGSi7cAVo8NztdIgBUgTQWNZEa4wL/fa93EpRcWtMHAVzi3ljykDEsPT7wY
-	 BSBmd7lLUo8a3wfMaWGkV93gEjLWGvbSbLjl6M/KlXZmAT7YEM7cfQHpIRkS5IlY1V
-	 vqCxN5LtjDOFOi7FWjtCOOK9yB+Z9NghG6kRstTs=
-Date: Mon, 13 Jul 2020 17:52:22 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 17/22] drivers/base: Make device_find_child_by_name()
- compatible with sysfs inputs
-Message-ID: <20200713155222.GB267581@kroah.com>
-References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159457125753.754248.6000936585361264069.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20200712170945.GA194499@kroah.com>
- <CAPcyv4h=7oB+PHEUa6otkoXYx+r_8GFbmuF-j_kOmHjpGB-=eg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4h=7oB+PHEUa6otkoXYx+r_8GFbmuF-j_kOmHjpGB-=eg@mail.gmail.com>
-Message-ID-Hash: LT3MFOAKVLVWPTY2EA7XLWARZBMKGLMA
-X-Message-ID-Hash: LT3MFOAKVLVWPTY2EA7XLWARZBMKGLMA
-X-MailFrom: gregkh@linuxfoundation.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Joao Martins <joao.m.martins@oracle.com>
+	by ml01.01.org (Postfix) with ESMTPS id 6BC3A118128FA
+	for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 09:08:59 -0700 (PDT)
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06DG2oGV153718;
+	Mon, 13 Jul 2020 16:08:57 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
+ bh=lpVMQgHXWEwziqNXeWi4pHdjy+sddg5bwh4bUJlXqI0=;
+ b=Hi2uKJpgJ/H+RdEBXP78eHFnDchCgSFJ/eGAxtPjzYTDNqMPnDPb8azXpZCvXMoZokqB
+ YuYq6ffGO8MxesuUS9olZYLJEg+uVmoSXEq9P0ymTTF2XmjXxS+TK71LCRGdkhwJkE9d
+ /P1Wob6fB1oXPw5d2Q2KEEhow6y/d8JAMy25Zgwph00Ii/4wRiw0DX0CDj4s/XaYqIOq
+ oTuoCnT98WVyt+CU902dRwcsdD/QbcM5lREPjm7QaC4H+s7GcsFxEthz/GlJoJ9RYX5G
+ KJq6KVC+IV0eeTdiWLB2bM8fvnL/302pQp5EzbCv9sX4plADB2EpTWABRMYQ3LkIww9u TQ==
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+	by userp2120.oracle.com with ESMTP id 32762n7v1v-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Mon, 13 Jul 2020 16:08:57 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06DG3XUk138226;
+	Mon, 13 Jul 2020 16:08:56 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3030.oracle.com with ESMTP id 327q0mhxb5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 13 Jul 2020 16:08:56 +0000
+Received: from abhmp0012.oracle.com (abhmp0012.oracle.com [141.146.116.18])
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06DG8tlq027581;
+	Mon, 13 Jul 2020 16:08:55 GMT
+Received: from paddy.uk.oracle.com (/10.175.167.147)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Mon, 13 Jul 2020 09:08:54 -0700
+From: Joao Martins <joao.m.martins@oracle.com>
+To: linux-nvdimm@lists.01.org
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH ndctl v2 01/10] daxctl: Cleanup whitespace
+Date: Mon, 13 Jul 2020 17:08:28 +0100
+Message-Id: <20200713160837.13774-2-joao.m.martins@oracle.com>
+X-Mailer: git-send-email 2.11.0
+In-Reply-To: <20200713160837.13774-1-joao.m.martins@oracle.com>
+References: <20200713160837.13774-1-joao.m.martins@oracle.com>
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9681 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 spamscore=0
+ mlxlogscore=999 bulkscore=0 adultscore=0 phishscore=0 suspectscore=1
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2007130119
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9681 signatures=668680
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 spamscore=0
+ clxscore=1015 priorityscore=1501 mlxlogscore=999 lowpriorityscore=0
+ bulkscore=0 suspectscore=1 phishscore=0 adultscore=0 impostorscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2007130119
+Message-ID-Hash: 3C2OPXCRKSYRRMGDTVOZGGASKOQN6MJK
+X-Message-ID-Hash: 3C2OPXCRKSYRRMGDTVOZGGASKOQN6MJK
+X-MailFrom: joao.m.martins@oracle.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LT3MFOAKVLVWPTY2EA7XLWARZBMKGLMA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3C2OPXCRKSYRRMGDTVOZGGASKOQN6MJK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Jul 13, 2020 at 08:39:43AM -0700, Dan Williams wrote:
-> On Sun, Jul 12, 2020 at 10:09 AM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> >
-> > On Sun, Jul 12, 2020 at 09:27:37AM -0700, Dan Williams wrote:
-> > > Use sysfs_streq() in device_find_child_by_name() to allow it to use a
-> > > sysfs input string that might contain a trailing newline.
-> > >
-> > > The other "device by name" interfaces,
-> > > {bus,driver,class}_find_device_by_name(), already account for sysfs
-> > > strings.
-> > >
-> > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > ---
-> > >  drivers/base/core.c |    2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/base/core.c b/drivers/base/core.c
-> > > index 67d39a90b45c..5d31b962c898 100644
-> > > --- a/drivers/base/core.c
-> > > +++ b/drivers/base/core.c
-> > > @@ -3078,7 +3078,7 @@ struct device *device_find_child_by_name(struct device *parent,
-> > >
-> > >       klist_iter_init(&parent->p->klist_children, &i);
-> > >       while ((child = next_device(&i)))
-> > > -             if (!strcmp(dev_name(child), name) && get_device(child))
-> > > +             if (sysfs_streq(dev_name(child), name) && get_device(child))
-> >
-> > Who wants to call this function with a name passed from userspace?
-> >
-> > Not objecting to it, just curious...
-> >
-> 
-> The series that incorporates this patch adds a partitioning mechanism
-> to "device-dax region" devices with an:
->     "echo 1 > regionX/create" to create a new partition / sub-instance
-> of a region, and...
->     "echo $devname > regionX/delete" to delete. Where $devname is
-> searched in the child devices of regionX to trigger device_del().
+From: Dan Williams <dan.j.williams@intel.com>
 
-Shouldn't that be done in configfs, not sysfs?
+Re-indent util_daxctl_region_filter() to match expectations.
 
-> This arrangement avoids one of the design mistakes of libnvdimm which
-> uses a sysfs attribute of the device to delete itself. Parent-device
-> triggered deletion rather than self-deletion avoids those locking
-> entanglements.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ util/filter.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Ugh, yeah, getting rid of that would be great, it's a mess.  I think
-scsi still does that :(
-
-thanks,
-
-greg k-h
+diff --git a/util/filter.c b/util/filter.c
+index af72793929e2..7d0159f8cef6 100644
+--- a/util/filter.c
++++ b/util/filter.c
+@@ -344,7 +344,7 @@ struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
+ 		return region;
+ 
+ 	if ((sscanf(ident, "%d", &region_id) == 1
+-       || sscanf(ident, "region%d", &region_id) == 1)
++				|| sscanf(ident, "region%d", &region_id) == 1)
+ 			&& daxctl_region_get_id(region) == region_id)
+ 		return region;
+ 
+-- 
+1.8.3.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
