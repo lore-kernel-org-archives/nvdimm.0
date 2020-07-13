@@ -2,353 +2,161 @@ Return-Path: <SRS0=jR4L=AY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0038CC433E6
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 16:09:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57B18C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 16:09:34 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C88942076D
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 16:09:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 22BEF2076D
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 13 Jul 2020 16:09:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="NWUiI7bb"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C88942076D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="r7ELJ2cB"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 22BEF2076D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C197411812904;
-	Mon, 13 Jul 2020 09:09:12 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 17F6E1181290E;
+	Mon, 13 Jul 2020 09:09:34 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::543; helo=mail-ed1-x543.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A543A11812905
-	for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 09:09:10 -0700 (PDT)
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06DG2oG9153678;
-	Mon, 13 Jul 2020 16:09:09 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
- subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=4s2mSg9kYaDxi57G6K467sUZRbv15wkylcd6Wz2Kx7Y=;
- b=NWUiI7bbBftlpuDLSqEVtpn5uK1/aqODF8O1xVrD1hn9AcCA4mfcC+8iWY//FrzbuwYY
- aM+kFRhDHRZf6qvZah5yJz+aQdXgwoXVLouHnzWfW2ORQu4S+EFtqDGfXkUUpK+iFw85
- tChaeZP1g4HrLuTiCNQlos+fWs/g/IK9LOAFn2Aj+Ai+1prX4Y7KTwebYScXX3wSMoY2
- EMxoUF46Q5aCq/GdKFGAWHEiNHxNOJNaj1ezckGw3QBwq6+Yp1t7arCmg8w0PZJwcQnF
- 3aLc8rtoIMRhWCcBgHFxnMp60ed06w4Di9rlgKBi3AWwHM778ciIwehfz5R4GcHveR2O 3Q==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by userp2120.oracle.com with ESMTP id 32762n7v3k-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Mon, 13 Jul 2020 16:09:09 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06DG3VBM127198;
-	Mon, 13 Jul 2020 16:09:08 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by aserp3020.oracle.com with ESMTP id 327qb11jqh-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 13 Jul 2020 16:09:08 +0000
-Received: from abhmp0012.oracle.com (abhmp0012.oracle.com [141.146.116.18])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 06DG97qS010835;
-	Mon, 13 Jul 2020 16:09:07 GMT
-Received: from paddy.uk.oracle.com (/10.175.167.147)
-	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Mon, 13 Jul 2020 09:09:07 -0700
-From: Joao Martins <joao.m.martins@oracle.com>
-To: linux-nvdimm@lists.01.org
-Cc: Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH ndctl v2 09/10] daxctl: add command to destroy device
-Date: Mon, 13 Jul 2020 17:08:36 +0100
-Message-Id: <20200713160837.13774-10-joao.m.martins@oracle.com>
-X-Mailer: git-send-email 2.11.0
-In-Reply-To: <20200713160837.13774-1-joao.m.martins@oracle.com>
-References: <20200713160837.13774-1-joao.m.martins@oracle.com>
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9681 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
- mlxscore=0 spamscore=0 phishscore=0 suspectscore=1 bulkscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2007130119
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9681 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 spamscore=0
- clxscore=1015 priorityscore=1501 mlxlogscore=999 lowpriorityscore=0
- bulkscore=0 suspectscore=1 phishscore=0 adultscore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007130119
-Message-ID-Hash: LCLSLAV7MSCXESM2SIP5Q54VLPYFNVTA
-X-Message-ID-Hash: LCLSLAV7MSCXESM2SIP5Q54VLPYFNVTA
-X-MailFrom: joao.m.martins@oracle.com
+	by ml01.01.org (Postfix) with ESMTPS id 16E47118128FB
+	for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 09:09:30 -0700 (PDT)
+Received: by mail-ed1-x543.google.com with SMTP id by13so14127687edb.11
+        for <linux-nvdimm@lists.01.org>; Mon, 13 Jul 2020 09:09:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=XPX1344KqFXDG152MSs7m1f71nuvQxMI0VbbfK01bWI=;
+        b=r7ELJ2cBdTaQzo9pqUPojaVz6tHhKqoH2KZY2zuAlJN0hbnOqbT4c12Oy38pcBR/Nj
+         utOjvomkH01KnV48ustA657XHya8dxhiC4zKoTXDfmRE5M9q3CaTL/2f1Ttg6runvIq7
+         RWnzutbQaMQZuQkbRYM6KLs9dYVs2pWP8m2YSi7TYPnwA2kYkHbV3zTVnZD3+aGspwQv
+         visTBbIeQ8KXGdQAzK/GZmGnfQOSTPpyx1Y/65IykomzQzj2jp7TFsb05AzbD0WDujBa
+         O7/7Q4OI36y4JCe9b58Hkm5W/23aJBSWmta1Co+BkMqTd+7t5uECfERRweordez+CtHr
+         OHsg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=XPX1344KqFXDG152MSs7m1f71nuvQxMI0VbbfK01bWI=;
+        b=aQy+RAP3Yp73dW3FS5PIU3oeuQQHL1Gud4+ZPU+w8XKnI3EFyl2G4lwLTCkoALLJCT
+         DJCWBfDPwls1k2LG+KvXPc6+npuGZ+yOg8eL7oAOeZvdPkZpOfuqI67Ks4T87c5dc1ae
+         RP3ktShAMjntfffwyGxA+YtdXgnxyA59DzS2j0AD9l68aopCDKERwDwnuYhTYlqPdi+m
+         uL4Ci8AvQE/8bIFHxQUov4aEFwakT8HXHsR9lGRRFb8LepplBP/pjxpt/InylSG5aJQA
+         UwhEgZcRoSgz2+psr2xXgGQcWbIx6CJOvopEhIbSY+OPpWlKZw8veb5EP2ISzNgP7onz
+         XIOg==
+X-Gm-Message-State: AOAM533wI1WDGcNtgUUYwiOlfAGITMg1YDMQng78jcZkqBuGq1jfxIy8
+	J5KxiZGdXAzkClTI1HDV1TGk9fyVNd/B1X27SstuNA==
+X-Google-Smtp-Source: ABdhPJzkfFp48TgN6o9u+tichXDgD3w2nI1pgUIrildgifHznsxd6AynKdQoAl6SqJnCRUpI/mZg24+ERLg8WLos9MU=
+X-Received: by 2002:a50:ee8a:: with SMTP id f10mr95726edr.383.1594656569387;
+ Mon, 13 Jul 2020 09:09:29 -0700 (PDT)
+MIME-Version: 1.0
+References: <159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <159457125753.754248.6000936585361264069.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20200712170945.GA194499@kroah.com> <CAPcyv4h=7oB+PHEUa6otkoXYx+r_8GFbmuF-j_kOmHjpGB-=eg@mail.gmail.com>
+ <20200713155222.GB267581@kroah.com>
+In-Reply-To: <20200713155222.GB267581@kroah.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 13 Jul 2020 09:09:18 -0700
+Message-ID: <CAPcyv4ijb3nS3WuO38Yn3epBec8uQqw+UfimqFByqRT9QXCpLw@mail.gmail.com>
+Subject: Re: [PATCH v2 17/22] drivers/base: Make device_find_child_by_name()
+ compatible with sysfs inputs
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Message-ID-Hash: WA2XNDJZBZL537BTVWFKTJJRSGUE7C6S
+X-Message-ID-Hash: WA2XNDJZBZL537BTVWFKTJJRSGUE7C6S
+X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Joao Martins <joao.m.martins@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LCLSLAV7MSCXESM2SIP5Q54VLPYFNVTA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WA2XNDJZBZL537BTVWFKTJJRSGUE7C6S/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add a 'destroy-device' command which destroys a
-dax device. Like namespaces, the device needs to
-be disabled in order to be destroyed. Example usage:
+On Mon, Jul 13, 2020 at 8:52 AM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Mon, Jul 13, 2020 at 08:39:43AM -0700, Dan Williams wrote:
+> > On Sun, Jul 12, 2020 at 10:09 AM Greg Kroah-Hartman
+> > <gregkh@linuxfoundation.org> wrote:
+> > >
+> > > On Sun, Jul 12, 2020 at 09:27:37AM -0700, Dan Williams wrote:
+> > > > Use sysfs_streq() in device_find_child_by_name() to allow it to use a
+> > > > sysfs input string that might contain a trailing newline.
+> > > >
+> > > > The other "device by name" interfaces,
+> > > > {bus,driver,class}_find_device_by_name(), already account for sysfs
+> > > > strings.
+> > > >
+> > > > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > > > Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+> > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > > > ---
+> > > >  drivers/base/core.c |    2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > >
+> > > > diff --git a/drivers/base/core.c b/drivers/base/core.c
+> > > > index 67d39a90b45c..5d31b962c898 100644
+> > > > --- a/drivers/base/core.c
+> > > > +++ b/drivers/base/core.c
+> > > > @@ -3078,7 +3078,7 @@ struct device *device_find_child_by_name(struct device *parent,
+> > > >
+> > > >       klist_iter_init(&parent->p->klist_children, &i);
+> > > >       while ((child = next_device(&i)))
+> > > > -             if (!strcmp(dev_name(child), name) && get_device(child))
+> > > > +             if (sysfs_streq(dev_name(child), name) && get_device(child))
+> > >
+> > > Who wants to call this function with a name passed from userspace?
+> > >
+> > > Not objecting to it, just curious...
+> > >
+> >
+> > The series that incorporates this patch adds a partitioning mechanism
+> > to "device-dax region" devices with an:
+> >     "echo 1 > regionX/create" to create a new partition / sub-instance
+> > of a region, and...
+> >     "echo $devname > regionX/delete" to delete. Where $devname is
+> > searched in the child devices of regionX to trigger device_del().
+>
+> Shouldn't that be done in configfs, not sysfs?
 
-	$ daxctl disable-device dax0.1
-	disabled 1 device
-	$ daxctl destroy-device dax0.1
-	destroyed 1 device
+I see configfs as an awkward fit for this situation. configfs wants to
+software define kernel objects whereas this facility wants to augment
+existing kernel enumerated device objects. The region device is
+created by firmware policy and is optionally partitioned, configfs
+objects don't exist at all until created. So for this I see sysfs +
+'scheme to trigger child device creation' as just enough mechanism
+that does not warrant full blown configfs.
 
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- Documentation/daxctl/Makefile.am               |  3 +-
- Documentation/daxctl/daxctl-destroy-device.txt | 63 ++++++++++++++++++++++++
- daxctl/builtin.h                               |  1 +
- daxctl/daxctl.c                                |  1 +
- daxctl/device.c                                | 66 ++++++++++++++++++++++++++
- 5 files changed, 133 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/daxctl/daxctl-destroy-device.txt
+I believe it was debates like this [1] that have led me to the camp of
+sysfs being capable of some device creation dynamism and leave
+configfs for purely software constructed objects.
 
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 27e201dfc254..2b3f92ca5b96 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -34,7 +34,8 @@ man1_MANS = \
- 	daxctl-offline-memory.1 \
- 	daxctl-disable-device.1 \
- 	daxctl-enable-device.1 \
--	daxctl-create-device.1
-+	daxctl-create-device.1 \
-+	daxctl-destroy-device.1
- 
- EXTRA_DIST = $(man1_MANS)
- 
-diff --git a/Documentation/daxctl/daxctl-destroy-device.txt b/Documentation/daxctl/daxctl-destroy-device.txt
-new file mode 100644
-index 000000000000..1c91cb2fab75
---- /dev/null
-+++ b/Documentation/daxctl/daxctl-destroy-device.txt
-@@ -0,0 +1,63 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+daxctl-destroy-device(1)
-+========================
-+
-+NAME
-+----
-+daxctl-destroy-device - Destroy a devdax device
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'daxctl destroy-device' <dax0.0> [<dax1.0>...<daxY.Z>] [<options>]
-+
-+EXAMPLES
-+--------
-+
-+* Destroys dax0.1
-+----
-+# daxctl disable-device dax0.1
-+disabled 1 device
-+# daxctl destroy-device dax0.1
-+destroyed 1 device
-+----
-+
-+* Destroys all devices in region id 0
-+----
-+# daxctl disable-device -r 0 all
-+disabled 3 devices
-+# daxctl destroy-device -r 0 all
-+destroyed 2 devices
-+----
-+
-+DESCRIPTION
-+-----------
-+
-+Destroys a dax device in 'devdax' mode.
-+
-+OPTIONS
-+-------
-+-r::
-+--region=::
-+	Restrict the operation to devices belonging to the specified region(s).
-+	A device-dax region is a contiguous range of memory that hosts one or
-+	more /dev/daxX.Y devices, where X is the region id and Y is the device
-+	instance id.
-+
-+-u::
-+--human::
-+	By default the command will output machine-friendly raw-integer
-+	data. Instead, with this flag, numbers representing storage size
-+	will be formatted as human readable strings with units, other
-+	fields are converted to hexadecimal strings.
-+
-+-v::
-+--verbose::
-+	Emit more debug messages
-+
-+include::../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linkdaxctl:daxctl-list[1],daxctl-reconfigure-device[1],daxctl-create-device[1]
-diff --git a/daxctl/builtin.h b/daxctl/builtin.h
-index 19b33933b91b..29ba63ca17aa 100644
---- a/daxctl/builtin.h
-+++ b/daxctl/builtin.h
-@@ -7,6 +7,7 @@ struct daxctl_ctx;
- int cmd_list(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_migrate(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_create_device(int argc, const char **argv, struct daxctl_ctx *ctx);
-+int cmd_destroy_device(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_disable_device(int argc, const char **argv, struct daxctl_ctx *ctx);
- int cmd_enable_device(int argc, const char **argv, struct daxctl_ctx *ctx);
-diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
-index 1f315168c513..bd5539900391 100644
---- a/daxctl/daxctl.c
-+++ b/daxctl/daxctl.c
-@@ -72,6 +72,7 @@ static struct cmd_struct commands[] = {
- 	{ "help", .d_fn = cmd_help },
- 	{ "migrate-device-model", .d_fn = cmd_migrate },
- 	{ "create-device", .d_fn = cmd_create_device },
-+	{ "destroy-device", .d_fn = cmd_destroy_device },
- 	{ "reconfigure-device", .d_fn = cmd_reconfig_device },
- 	{ "online-memory", .d_fn = cmd_online_memory },
- 	{ "offline-memory", .d_fn = cmd_offline_memory },
-diff --git a/daxctl/device.c b/daxctl/device.c
-index c038abba8063..05293d6c38ee 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -52,6 +52,7 @@ enum device_action {
- 	ACTION_CREATE,
- 	ACTION_DISABLE,
- 	ACTION_ENABLE,
-+	ACTION_DESTROY,
- };
- 
- #define BASE_OPTIONS() \
-@@ -69,6 +70,10 @@ OPT_BOOLEAN('f', "force", &param.force, \
- #define CREATE_OPTIONS() \
- OPT_STRING('s', "size", &param.size, "size", "size to switch the device to")
- 
-+#define DESTROY_OPTIONS() \
-+OPT_BOOLEAN('f', "force", &param.force, \
-+		"attempt to disable before destroying device")
-+
- #define ZONE_OPTIONS() \
- OPT_BOOLEAN('\0', "no-movable", &param.no_movable, \
- 		"online memory in ZONE_NORMAL")
-@@ -110,6 +115,12 @@ static const struct option enable_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option destroy_options[] = {
-+	BASE_OPTIONS(),
-+	DESTROY_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static const char *parse_device_options(int argc, const char **argv,
- 		enum device_action action, const struct option *options,
- 		const char *usage, struct daxctl_ctx *ctx)
-@@ -144,6 +155,9 @@ static const char *parse_device_options(int argc, const char **argv,
- 		case ACTION_ENABLE:
- 			action_string = "enable";
- 			break;
-+		case ACTION_DESTROY:
-+			action_string = "destroy";
-+			break;
- 		default:
- 			action_string = "<>";
- 			break;
-@@ -199,6 +213,7 @@ static const char *parse_device_options(int argc, const char **argv,
- 		if (param.no_movable)
- 			mem_zone = MEM_ZONE_NORMAL;
- 		/* fall through */
-+	case ACTION_DESTROY:
- 	case ACTION_OFFLINE:
- 	case ACTION_DISABLE:
- 	case ACTION_ENABLE:
-@@ -364,6 +379,35 @@ static int dev_resize(struct daxctl_dev *dev, unsigned long long val)
- 	return 0;
- }
- 
-+static int dev_destroy(struct daxctl_dev *dev)
-+{
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	int rc;
-+
-+	if (daxctl_dev_is_enabled(dev) && !param.force) {
-+		fprintf(stderr, "%s is active, specify --force for deletion\n",
-+			devname);
-+		return -ENXIO;
-+	} else {
-+		rc = daxctl_dev_disable(dev);
-+		if (rc) {
-+			fprintf(stderr, "%s: disable failed: %s\n",
-+				daxctl_dev_get_devname(dev), strerror(-rc));
-+			return rc;
-+		}
-+	}
-+
-+	rc = daxctl_dev_set_size(dev, 0);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = daxctl_region_destroy_dev(daxctl_dev_get_region(dev), dev);
-+	if (rc < 0)
-+		return rc;
-+
-+	return 0;
-+}
-+
- static int disable_devdax_device(struct daxctl_dev *dev)
- {
- 	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-@@ -689,6 +733,11 @@ static int do_xaction_device(const char *device, enum device_action action,
- 				if (rc == 0)
- 					(*processed)++;
- 				break;
-+			case ACTION_DESTROY:
-+				rc = dev_destroy(dev);
-+				if (rc == 0)
-+					(*processed)++;
-+				break;
- 			default:
- 				rc = -EINVAL;
- 				break;
-@@ -725,6 +774,23 @@ int cmd_create_device(int argc, const char **argv, struct daxctl_ctx *ctx)
- 	return rc;
- }
- 
-+int cmd_destroy_device(int argc, const char **argv, struct daxctl_ctx *ctx)
-+{
-+	char *usage = "daxctl destroy-device <device> [<options>]";
-+	const char *device = parse_device_options(argc, argv, ACTION_DESTROY,
-+			destroy_options, usage, ctx);
-+	int processed, rc;
-+
-+	rc = do_xaction_device(device, ACTION_DESTROY, ctx, &processed);
-+	if (rc < 0)
-+		fprintf(stderr, "error destroying devices: %s\n",
-+				strerror(-rc));
-+
-+	fprintf(stderr, "destroyed %d device%s\n", processed,
-+			processed == 1 ? "" : "s");
-+	return rc;
-+}
-+
- int cmd_reconfig_device(int argc, const char **argv, struct daxctl_ctx *ctx)
- {
- 	char *usage = "daxctl reconfigure-device <device> [<options>]";
--- 
-1.8.3.1
+[1]: https://lore.kernel.org/lkml/17377.42813.479466.690408@cse.unsw.edu.au/
+
+> > This arrangement avoids one of the design mistakes of libnvdimm which
+> > uses a sysfs attribute of the device to delete itself. Parent-device
+> > triggered deletion rather than self-deletion avoids those locking
+> > entanglements.
+>
+> Ugh, yeah, getting rid of that would be great, it's a mess.  I think
+> scsi still does that :(
+
+Yeah, both nvdimm and scsi both end up need to delay device deletion
+to its own thread, and it has led to bugs in the nvdimm case.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
