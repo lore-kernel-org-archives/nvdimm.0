@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53696C4346B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jul 2020 07:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5355AC4346E
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jul 2020 07:04:34 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2ED5F2220F
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jul 2020 07:04:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2ED5F2220F
+	by mail.kernel.org (Postfix) with ESMTPS id 32E6C2220F
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jul 2020 07:04:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 32E6C2220F
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 00C5610056B14;
-	Tue, 14 Jul 2020 00:04:32 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	by ml01.01.org (Postfix) with ESMTP id 1BEAC10056B1C;
+	Tue, 14 Jul 2020 00:04:34 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C480810056AFD
-	for <linux-nvdimm@lists.01.org>; Tue, 14 Jul 2020 00:04:28 -0700 (PDT)
-IronPort-SDR: Q0PTe7EP388qT0S2BRDRsyVcqaWDF5Hh4evrZVG+r6KltLWtFKORezpwnKWulqlXiXc2UjMDXR
- 5nhgRgYOtlRQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9681"; a="146304360"
+	by ml01.01.org (Postfix) with ESMTPS id 2E7CF10056B0F
+	for <linux-nvdimm@lists.01.org>; Tue, 14 Jul 2020 00:04:31 -0700 (PDT)
+IronPort-SDR: xDqMjruGZVTZZpXJAPWNNrkdhhr3dAIchzdAWw1CwYB+BYqSeKx4OxZu3nUOj4DkfEwp50JLLp
+ z26SQsb4OWMQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9681"; a="128914600"
 X-IronPort-AV: E=Sophos;i="5.75,350,1589266800";
-   d="scan'208";a="146304360"
+   d="scan'208";a="128914600"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2020 00:04:28 -0700
-IronPort-SDR: M1818UDpOziaMV+1NuZExXbDGKfxAHE7xxsE/1/8eIxmubbVe3Yh1zWgdqipkeJC59admPi65v
- orXIGfMQFVpQ==
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2020 00:04:30 -0700
+IronPort-SDR: OlctpnIJwdlGQxS+Bsa4EvBdFZhgaMgi6E93HtogmUqsYd+MIKqgpv8ZX2Fg+6KeQMAbeYu29A
+ wm1rPhIk0yOg==
 X-IronPort-AV: E=Sophos;i="5.75,350,1589266800";
-   d="scan'208";a="390397762"
+   d="scan'208";a="459583558"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2020 00:04:26 -0700
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2020 00:04:29 -0700
 From: ira.weiny@intel.com
 To: Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Andy Lutomirski <luto@kernel.org>,
 	Peter Zijlstra <peterz@infradead.org>
-Subject: [RFC PATCH 13/15] dax: Stray write protection for dax_direct_access()
-Date: Tue, 14 Jul 2020 00:02:18 -0700
-Message-Id: <20200714070220.3500839-14-ira.weiny@intel.com>
+Subject: [RFC PATCH 15/15] [dax|pmem]: Enable stray write protection
+Date: Tue, 14 Jul 2020 00:02:20 -0700
+Message-Id: <20200714070220.3500839-16-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20200714070220.3500839-1-ira.weiny@intel.com>
 References: <20200714070220.3500839-1-ira.weiny@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: 4VCPYB4R3QXGSCPX3ORYB2U5RQH7XTSW
-X-Message-ID-Hash: 4VCPYB4R3QXGSCPX3ORYB2U5RQH7XTSW
+Message-ID-Hash: 3YBERHXPQYWXOSWW4XJIDTVDBHF7SIBO
+X-Message-ID-Hash: 3YBERHXPQYWXOSWW4XJIDTVDBHF7SIBO
 X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4VCPYB4R3QXGSCPX3ORYB2U5RQH7XTSW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3YBERHXPQYWXOSWW4XJIDTVDBHF7SIBO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -73,41 +73,47 @@ Content-Transfer-Encoding: 7bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-dax_direct_access() is a special case of accessing pmem via a page
-offset and without a struct page.
+Protecting against stray writes is particularly important for PMEM
+because, unlike writes to anonymous memory, writes to PMEM persists
+across a reboot.  Thus data corruption could result in permanent loss of
+data.  Therefore, there is no option presented to the user.
 
-Because the dax driver is well aware of the special protections it has
-mapped memory with, call dev_access_[en|dis]able() directly instead of
-the unnecessary overhead of trying to get a page to kmap.
-
-Like kmap though, leverage the existing dax_read[un]lock() functions
-because they are already required to surround the use of the memory
-returned from dax_direct_access().
+Enable stray write protection by setting the flag in pgmap which
+requests it.  Note if Zone Device Access Protection not be supported
+this flag will have no affect.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/dax/super.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/dax/device.c  | 2 ++
+ drivers/nvdimm/pmem.c | 2 ++
+ 2 files changed, 4 insertions(+)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 021739768093..e8d0a28e6ed2 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -30,12 +30,14 @@ static DEFINE_SPINLOCK(dax_host_lock);
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index 4c0af2eb7e19..884f66d73d32 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -430,6 +430,8 @@ int dev_dax_probe(struct device *dev)
+ 	}
  
- int dax_read_lock(void)
- {
-+	dev_access_enable();
- 	return srcu_read_lock(&dax_srcu);
- }
- EXPORT_SYMBOL_GPL(dax_read_lock);
+ 	dev_dax->pgmap.type = MEMORY_DEVICE_DEVDAX;
++	dev_dax->pgmap.flags |= PGMAP_PROT_ENABLED;
++
+ 	addr = devm_memremap_pages(dev, &dev_dax->pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 46c11a09b813..9416a660eede 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -427,6 +427,8 @@ static int pmem_attach_disk(struct device *dev,
+ 		return -EBUSY;
+ 	}
  
- void dax_read_unlock(int id)
- {
-+	dev_access_disable();
- 	srcu_read_unlock(&dax_srcu, id);
- }
- EXPORT_SYMBOL_GPL(dax_read_unlock);
++	pmem->pgmap.flags |= PGMAP_PROT_ENABLED;
++
+ 	q = blk_alloc_queue(pmem_make_request, dev_to_node(dev));
+ 	if (!q)
+ 		return -ENOMEM;
 -- 
 2.25.1
 _______________________________________________
