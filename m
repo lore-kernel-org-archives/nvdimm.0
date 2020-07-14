@@ -1,175 +1,68 @@
-Return-Path: <SRS0=NTWP=AU=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=ES6B=AZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07D39C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C1AC433EA
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jul 2020 18:53:27 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C2684206E2
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  9 Jul 2020 09:37:15 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=armh.onmicrosoft.com header.i=@armh.onmicrosoft.com header.b="xQRmKImm";
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=armh.onmicrosoft.com header.i=@armh.onmicrosoft.com header.b="xQRmKImm"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C2684206E2
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=arm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 3709E22B51
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 14 Jul 2020 18:53:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3709E22B51
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 85D4F1141F7AC;
-	Thu,  9 Jul 2020 02:37:15 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.6.79; helo=eur04-db3-obe.outbound.protection.outlook.com; envelope-from=justin.he@arm.com; receiver=<UNKNOWN> 
-Received: from EUR04-DB3-obe.outbound.protection.outlook.com (mail-eopbgr60079.outbound.protection.outlook.com [40.107.6.79])
+	by ml01.01.org (Postfix) with ESMTP id 1D31B1167EB5A;
+	Tue, 14 Jul 2020 11:53:27 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0AE531141F7A8
-	for <linux-nvdimm@lists.01.org>; Thu,  9 Jul 2020 02:37:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=armh.onmicrosoft.com;
- s=selector2-armh-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UNkJ1GT23bvVx7BKqyG/rMU6wJA3ldpjaggg8j/RWz4=;
- b=xQRmKImmnytsy8+mYv45XybSb71RGGbGRoDBT+mv6eeyfvUEKVaKSnZdr7SM5GSDdQffCbZB7YtTONS2sDpc6hVbcv1XqoXx8Fck4qs5/FIAAB4GOrYorFSrtdvxqiSc/IacUxm4qJ0S6K7xqMEifEAQOWQWLps35n95aliox2o=
-Received: from AM5P194CA0012.EURP194.PROD.OUTLOOK.COM (2603:10a6:203:8f::22)
- by HE1PR08MB2777.eurprd08.prod.outlook.com (2603:10a6:7:2e::23) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.20; Thu, 9 Jul
- 2020 09:36:53 +0000
-Received: from VE1EUR03FT010.eop-EUR03.prod.protection.outlook.com
- (2603:10a6:203:8f:cafe::83) by AM5P194CA0012.outlook.office365.com
- (2603:10a6:203:8f::22) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3174.21 via Frontend
- Transport; Thu, 9 Jul 2020 09:36:53 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 63.35.35.123)
- smtp.mailfrom=arm.com; lists.01.org; dkim=pass (signature was verified)
- header.d=armh.onmicrosoft.com;lists.01.org; dmarc=bestguesspass action=none
- header.from=arm.com;
-Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
- 63.35.35.123 as permitted sender) receiver=protection.outlook.com;
- client-ip=63.35.35.123; helo=64aa7808-outbound-1.mta.getcheckrecipient.com;
-Received: from 64aa7808-outbound-1.mta.getcheckrecipient.com (63.35.35.123) by
- VE1EUR03FT010.mail.protection.outlook.com (10.152.18.113) with Microsoft SMTP
- Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.3174.21 via Frontend Transport; Thu, 9 Jul 2020 09:36:53 +0000
-Received: ("Tessian outbound 73b502bf693a:v62"); Thu, 09 Jul 2020 09:36:51 +0000
-X-CR-MTA-TID: 64aa7808
-Received: from e4cf6cc6711d.2
-	by 64aa7808-outbound-1.mta.getcheckrecipient.com id 8C2728F8-1433-4020-A5A6-DB44C55AFBD7.1;
-	Thu, 09 Jul 2020 09:36:46 +0000
-Received: from EUR05-VI1-obe.outbound.protection.outlook.com
-    by 64aa7808-outbound-1.mta.getcheckrecipient.com with ESMTPS id e4cf6cc6711d.2
-    (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384);
-    Thu, 09 Jul 2020 09:36:46 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=gJLfq9G1JAhsSfpJYU8hZVWH2i6OpreXtBVmZSh9ht9Gvpeic7CDSKSOO/5UpKsGGdYHn9W7tKfbnPP5rdYKsBBRUqh6ERaZxNKDpxyLnAU/6HjFemjbr+I7XJC2cA9YDx8gLUAVI+nN0uautfgJtdmseJvHTvOqiMW0WRezeJibtSsqL527VdfVyo+Q6PuKGyBsy4jmLPv51xS0Eu2Yz/g2BK37RQfzkMOJ3m8+3pYyr0z0NwYGGhaIXdLdqsdN+hLUt1bvFf4yot7/T3ezqEpuzcuQ9cILvizDzxUrwyT/MwULJdZ/ya6M/IJLtaYXLwCW9fNW7JIeiKI7b2EumQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UNkJ1GT23bvVx7BKqyG/rMU6wJA3ldpjaggg8j/RWz4=;
- b=SGuJPa/tEUGBQQv2sbwMUSyTnadicyNAR/QYtdK3p/WFV3aErkn+ep/VUaRpJvt0PMQAXslImDmK8Yfn0yaIczqXVB7L7QtYpipUGI/0mBlhzk4lqD9Qvaah5AyXuT7w7he6xFWDLRKjhq8gXVBVZvqoqTNYYOy5wlskJpKBOyP9XYtqZ8oswiV4iuOeV5YIHwasCni/3fPuXKpeO25erjR6TXWzs/AGC4OjktDa/xEuBMdOsuGhx8YZTrrdDHujgMqBJJ5hpMolqFrQrbILOr3Bz5cLv4Zu+/RQmqrmPfXRppZayyD42gF++Vf85Z5mNCq5BarhBvpXqIVQJSHaIw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
- header.d=arm.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=armh.onmicrosoft.com;
- s=selector2-armh-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=UNkJ1GT23bvVx7BKqyG/rMU6wJA3ldpjaggg8j/RWz4=;
- b=xQRmKImmnytsy8+mYv45XybSb71RGGbGRoDBT+mv6eeyfvUEKVaKSnZdr7SM5GSDdQffCbZB7YtTONS2sDpc6hVbcv1XqoXx8Fck4qs5/FIAAB4GOrYorFSrtdvxqiSc/IacUxm4qJ0S6K7xqMEifEAQOWQWLps35n95aliox2o=
-Received: from AM6PR08MB4069.eurprd08.prod.outlook.com (2603:10a6:20b:af::32)
- by AM6PR08MB4408.eurprd08.prod.outlook.com (2603:10a6:20b:be::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3153.24; Thu, 9 Jul
- 2020 09:36:43 +0000
-Received: from AM6PR08MB4069.eurprd08.prod.outlook.com
- ([fe80::8c97:9695:2f8d:3ae0]) by AM6PR08MB4069.eurprd08.prod.outlook.com
- ([fe80::8c97:9695:2f8d:3ae0%5]) with mapi id 15.20.3174.021; Thu, 9 Jul 2020
- 09:36:43 +0000
-From: Justin He <Justin.He@arm.com>
-To: David Hildenbrand <david@redhat.com>, Mike Rapoport <rppt@linux.ibm.com>,
-	Matthew Wilcox <willy@infradead.org>
-Subject: RE: [PATCH v3 4/6] mm: don't export memory_add_physaddr_to_nid in
- arch specific directory
-Thread-Topic: [PATCH v3 4/6] mm: don't export memory_add_physaddr_to_nid in
- arch specific directory
-Thread-Index: AQHWVZW4cB9QLv1x3USSUrS3ZjVOOaj+gToAgAB3WoCAAAAygIAABM2g
-Date: Thu, 9 Jul 2020 09:36:42 +0000
-Message-ID: 
- <AM6PR08MB406932241B7FB3753B77B113F7640@AM6PR08MB4069.eurprd08.prod.outlook.com>
-References: <20200709020629.91671-1-justin.he@arm.com>
- <20200709020629.91671-5-justin.he@arm.com>
- <20200709021104.GZ25523@casper.infradead.org>
- <20200709091815.GF781326@linux.ibm.com>
- <49a53674-f246-fdd6-009b-447a88cdb68e@redhat.com>
-In-Reply-To: <49a53674-f246-fdd6-009b-447a88cdb68e@redhat.com>
-Accept-Language: en-US, zh-CN
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ts-tracking-id: 2231c3a8-8a59-4901-a186-35c2b1673aa8.0
-x-checkrecipientchecked: true
-Authentication-Results-Original: redhat.com; dkim=none (message not signed)
- header.d=none;redhat.com; dmarc=none action=none header.from=arm.com;
-x-originating-ip: [203.126.0.112]
-x-ms-publictraffictype: Email
-X-MS-Office365-Filtering-HT: Tenant
-X-MS-Office365-Filtering-Correlation-Id: 409e15e8-1ebb-4b3e-3751-08d823eb9d05
-x-ms-traffictypediagnostic: AM6PR08MB4408:|HE1PR08MB2777:
-x-ms-exchange-transport-forked: True
-X-Microsoft-Antispam-PRVS: 
-	<HE1PR08MB27770F5129C8F5841693C0BBF7640@HE1PR08MB2777.eurprd08.prod.outlook.com>
-x-checkrecipientrouted: true
-nodisclaimer: true
-x-ms-oob-tlc-oobclassifiers: OLM:220;OLM:220;
-x-forefront-prvs: 04599F3534
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam-Untrusted: BCL:0;
-X-Microsoft-Antispam-Message-Info-Original: 
- 6hx1R9TLODq9DK6z3C4G5SvHatMqwOS7s7RM7Bg4GVdNU0SR+QOZ9Kr/It7d4u5QqBH1TqSHEYVM0ksIZgMarnSbxjbUwDcvHksO/3QjshScfcp5iWbc0UhMm1T0i9I2U+VNTMEwkYEw3fUQwu1ocVZ8rpB1Y9U7DHqjJdsLdRqerz7H0O92AcTU9sdgJbbCZdeYjCGZ392Uzk3xNa0m8PkBSGEljnHx0OCV/9fBb7kbWSJn4h4H7Wgnj2P7vdU2CYGq66T/AJsDz5O1g94PpP/0q4zBwOCsbQAUBGEPxAfImF49xzpADLDsf6UCDEFfagygCCaUcwiNVbNyrWeW5g==
-X-Forefront-Antispam-Report-Untrusted: 
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR08MB4069.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(396003)(39860400002)(376002)(366004)(136003)(346002)(316002)(6506007)(54906003)(110136005)(9686003)(86362001)(8676002)(52536014)(83380400001)(53546011)(5660300002)(26005)(33656002)(2906002)(66446008)(66476007)(64756008)(66556008)(66946007)(478600001)(55016002)(4326008)(71200400001)(7696005)(7416002)(186003)(8936002)(76116006)(7406005);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata: 
- LdVu64nkDjfdyPLZTLUM6C2bEskHMWCv56YV+OF7Of9zHgd9RyMCezG6mJvzV4a8PqKOR1Ld0aTUnl5d6DIk+TsjPOge5TTRWrLYC8ym1A6tYDorTXTw9o8RiPaDu2KH6uYxl4cIVtiGRAmeadOm9hPt0dy/kcUF8xZq/J6B74yHNUShv/RgWOp9yh0YiitOyG55cDurlzRxz+o3iGAiUGZlCNeyNF96vc3ZWvZiZWzO3cxIzMOJdim+caMvbSDE3hH7LGonLnZtdvSdMiI7YT/5K0Y0JKJIFDEulvXwSq0NrgIQdl8VG/QqoR9fK3aO0HKHn8/XTfEYcQIbZ+TqtyQNyZYO8Bqe61PsrC1g/vWwfdPSi8w+MbkkPOQw8aUAHPulP/TJYQIavdkXo7H+EZKVx2NfK3e16L3rKt36v6KOxa6Z+V8K2jxEqIle+uVDAH7aGPJWzKe/QQyWXdlCjgqgCxkSqwzYyQsaI2Jk8WA=
+	by ml01.01.org (Postfix) with ESMTPS id BBC95114342BB
+	for <linux-nvdimm@lists.01.org>; Tue, 14 Jul 2020 11:53:24 -0700 (PDT)
+IronPort-SDR: 2RJM3Mp9L/Nkq1w2S8BXK2wX3RtMqsWxtRor+b+8C8hXf4DryWDpXKqrTeEt7QQgvlNYr97iYx
+ FbrCUPBjGe2A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9682"; a="129094384"
+X-IronPort-AV: E=Sophos;i="5.75,352,1589266800";
+   d="scan'208";a="129094384"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jul 2020 11:53:23 -0700
+IronPort-SDR: K8KPclbMvzgCpNFSFhz9Nn0YwCcdCbQhJi73NeRnxAdxCClsbyjKHY02fk6MDlf/UteP15gYg8
+ 6LDggwpzlYUQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,352,1589266800";
+   d="scan'208";a="307978346"
+Received: from iweiny-desk2.sc.intel.com ([10.3.52.147])
+  by fmsmga004.fm.intel.com with ESMTP; 14 Jul 2020 11:53:23 -0700
+Date: Tue, 14 Jul 2020 11:53:22 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [RFC PATCH 04/15] x86/pks: Preserve the PKRS MSR on context
+ switch
+Message-ID: <20200714185322.GB3008823@iweiny-DESK2.sc.intel.com>
+References: <20200714070220.3500839-1-ira.weiny@intel.com>
+ <20200714070220.3500839-5-ira.weiny@intel.com>
+ <20200714082701.GO10769@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR08MB4408
-Original-Authentication-Results: redhat.com; dkim=none (message not signed)
- header.d=none;redhat.com; dmarc=none action=none header.from=arm.com;
-X-EOPAttributedMessage: 0
-X-MS-Exchange-Transport-CrossTenantHeadersStripped: 
- VE1EUR03FT010.eop-EUR03.prod.protection.outlook.com
-X-Forefront-Antispam-Report: 
-	CIP:63.35.35.123;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:64aa7808-outbound-1.mta.getcheckrecipient.com;PTR:ec2-63-35-35-123.eu-west-1.compute.amazonaws.com;CAT:NONE;SFTY:;SFS:(4636009)(39860400002)(346002)(396003)(376002)(136003)(46966005)(2906002)(4326008)(83380400001)(7696005)(186003)(81166007)(8936002)(82310400002)(336012)(356005)(8676002)(70206006)(70586007)(9686003)(86362001)(52536014)(316002)(478600001)(55016002)(26005)(54906003)(82740400003)(5660300002)(110136005)(47076004)(6506007)(53546011)(33656002)(36906005);DIR:OUT;SFP:1101;
-X-MS-Office365-Filtering-Correlation-Id-Prvs: 
-	169e7c69-2863-4e2c-df06-08d823eb971e
-X-Forefront-PRVS: 04599F3534
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	ANnK2qA3OIaNuLYa+eTUY4BJRYkeZEhAwFlH97SmQIcYZGUO8F4RXlLk/+TbZRZF8Oz8a6lQxdfEewtLV6mcmlmPG+FLzeQ9GweLfSdIScsF336XXaduRnzs0drAwBIzM48c/BdtG4c/rKMAJzZ/MLdAKG4d81Mrsqht7bnQOagb8L8JQ9Amv8Fuhpr6BdiMzxTXFi98O9Vr2BOGea2K/0L34mDpdV/6NTkRnwZ/74qXyqdd+Iv8cldxarMeglc/hdckDXu89B0XBjWg1aiNmVL/g7I2CGcFhkH078/AL3sAbzOiZPvbZpjVl2kFPKPYARRnyWysST6AknQWGFfY6yRPRf1l7phWLHb4+EbHxy6wHaYOGJ1Ch0dKzizcME15Afs/qokwqFbpXdZEX7b8pg==
-X-OriginatorOrg: arm.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 09 Jul 2020 09:36:53.0427
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 409e15e8-1ebb-4b3e-3751-08d823eb9d05
-X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[63.35.35.123];Helo=[64aa7808-outbound-1.mta.getcheckrecipient.com]
-X-MS-Exchange-CrossTenant-AuthSource: 
-	VE1EUR03FT010.eop-EUR03.prod.protection.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: HE1PR08MB2777
-Message-ID-Hash: CTSGDIZRR6YVU647ZTCXSJLI3GWEZSCL
-X-Message-ID-Hash: CTSGDIZRR6YVU647ZTCXSJLI3GWEZSCL
-X-MailFrom: Justin.He@arm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "x86@kernel.org" <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Andrew Morton <akpm@linux-foundation.org>, Baoquan He <bhe@redhat.com>, Chuhong Yuan <hslester96@gmail.com>, Masahiro Yamada <masahiroy@kernel.org>, Michal Hocko <mhocko@suse.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.
- org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Kaly Xin <Kaly.Xin@arm.com>
+Content-Disposition: inline
+In-Reply-To: <20200714082701.GO10769@hirez.programming.kicks-ass.net>
+User-Agent: Mutt/1.11.1 (2018-12-01)
+Message-ID-Hash: CSD3AFB2B2IEGNJYBNP6EGTWVGW5U3NF
+X-Message-ID-Hash: CSD3AFB2B2IEGNJYBNP6EGTWVGW5U3NF
+X-MailFrom: ira.weiny@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MZ23GVDKIFHM3G3K7PKDY37RO7DFS4SP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CSD3AFB2B2IEGNJYBNP6EGTWVGW5U3NF/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -178,59 +71,34 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi David
-
-> -----Original Message-----
-> From: David Hildenbrand <david@redhat.com>
-> Sent: Thursday, July 9, 2020 5:19 PM
-> To: Mike Rapoport <rppt@linux.ibm.com>; Matthew Wilcox
-> <willy@infradead.org>
-> Cc: Justin He <Justin.He@arm.com>; Catalin Marinas
-> <Catalin.Marinas@arm.com>; Will Deacon <will@kernel.org>; Tony Luck
-> <tony.luck@intel.com>; Fenghua Yu <fenghua.yu@intel.com>; Yoshinori Sato
-> <ysato@users.sourceforge.jp>; Rich Felker <dalias@libc.org>; Dave Hansen
-> <dave.hansen@linux.intel.com>; Andy Lutomirski <luto@kernel.org>; Peter
-> Zijlstra <peterz@infradead.org>; Thomas Gleixner <tglx@linutronix.de>;
-> Ingo Molnar <mingo@redhat.com>; Borislav Petkov <bp@alien8.de>;
-> x86@kernel.org; H. Peter Anvin <hpa@zytor.com>; Dan Williams
-> <dan.j.williams@intel.com>; Vishal Verma <vishal.l.verma@intel.com>; Dave
-> Jiang <dave.jiang@intel.com>; Andrew Morton <akpm@linux-foundation.org>;
-> Baoquan He <bhe@redhat.com>; Chuhong Yuan <hslester96@gmail.com>; Logan
-> Gunthorpe <logang@deltatee.com>; Masahiro Yamada <masahiroy@kernel.org>;
-> Michal Hocko <mhocko@suse.com>; linux-arm-kernel@lists.infradead.org;
-> linux-kernel@vger.kernel.org; linux-ia64@vger.kernel.org; linux-
-> sh@vger.kernel.org; linux-nvdimm@lists.01.org; linux-mm@kvack.org;
-> Jonathan Cameron <Jonathan.Cameron@huawei.com>; Kaly Xin <Kaly.Xin@arm.com>
-> Subject: Re: [PATCH v3 4/6] mm: don't export memory_add_physaddr_to_nid in
-> arch specific directory
+On Tue, Jul 14, 2020 at 10:27:01AM +0200, Peter Zijlstra wrote:
+> On Tue, Jul 14, 2020 at 12:02:09AM -0700, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > The PKRS MSR is defined as a per-core register.  This isolates memory
+> > access by CPU.  Unfortunately, the MSR is not preserved by XSAVE.
+> > Therefore, We must preserve the protections for individual tasks even if
+> > they are context switched out and placed on another cpu later.
 > 
-> On 09.07.20 11:18, Mike Rapoport wrote:
-> > On Thu, Jul 09, 2020 at 03:11:04AM +0100, Matthew Wilcox wrote:
-> >> On Thu, Jul 09, 2020 at 10:06:27AM +0800, Jia He wrote:
-> >>> After a general version of __weak memory_add_physaddr_to_nid
-> implemented
-> >>> and exported , it is no use exporting twice in arch directory even if
-> >>> e,g, ia64/x86 have their specific version.
-> >>>
-> >>> This is to suppress the modpost warning:
-> >>> WARNING: modpost: vmlinux: 'memory_add_physaddr_to_nid' exported twice.
-> >>> Previous export was in vmlinux
-> >>
-> >> It's bad form to introduce a warning and then send a follow-up patch to
-> >> fix the warning.  Just fold this patch into patch 1/6.
-> >
-> > Moreover, I think that patches 1-4 can be merged into one.
-> >
-> 
-> +1
+> This is a contradiction and utter trainwreck.
 
-Okay, will update, thanks
+I don't understand where there is a contradiction?  Perhaps I should have said
+the MSR is not XSAVE managed vs 'preserved'?
 
---
-Cheers,
-Justin (Jia He)
+> We're not going to do more
+> per-core MSRs and pretend they make sense per-task.
 
+I don't understand how this does not make sense.  The PKRS register is
+controlling the task's access to kernel memory and is designed to be restricted
+to that task.  Put another way, this is similar to CR3 which ultimately
+controls tasks memory access.  Per-process mm is inherent to memory access
+control and is per-task.  So how is this any different?  Many MSRs are like
+this.
 
+I suppose an alternative might be to disallow a context switch while the PKRS
+value is not the default but I don't see this being very desirable at all.
+
+Ira
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
