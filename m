@@ -5,86 +5,86 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6344C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:49:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B57BCC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8420A207E8
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:49:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 74B8B207FB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="DjpCF+U4"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8420A207E8
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="aQlDMZAC"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 74B8B207FB
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7763C11571BEC;
-	Thu, 16 Jul 2020 11:49:47 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	by ml01.01.org (Postfix) with ESMTP id 6C7E51108EF26;
+	Thu, 16 Jul 2020 11:47:43 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 13DC611571BE9
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:49:45 -0700 (PDT)
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIcGTo059705;
-	Thu, 16 Jul 2020 18:49:43 GMT
+	by ml01.01.org (Postfix) with ESMTPS id C7A1A11078320
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:47:40 -0700 (PDT)
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIb28w145415;
+	Thu, 16 Jul 2020 18:47:38 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=UK336btG/X7IpIfPfmuRoEp+2U5ISMmotevSo3n2BzQ=;
- b=DjpCF+U4boUR60iXlZfqG3jETSuf4TghocF8Jef2I25dFgMSGg29/rlgtT5ciE3sF2LS
- whBUzNhfg9e0hU7J37okp04TkPLlA2ipZOZxzXJr4sE7nf+1Q3+vXUG7SpVxnvZpMx2E
- oSogiiZB+Vbml0wEWcNFP1pK9t/WyN99pChPnuAEYUqlLEVwoe1Tb3Z10WTuqjJaFCvO
- uJJVgWnve2r3Qo0iGyOHYCCpJfWvINubWgkZNPCmW1RObKvom6RXTJQDe+9ZXJcXuFqQ
- 93rfkpaAXhehm0J5XFIGB3bmL5x2M04HCXKwENINnW/88T5lGwxuTQJWVUqF+PmtX4BK 4A==
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2130.oracle.com with ESMTP id 3274urk8yf-1
+ bh=oO/NCJa1NM2AEyBMOoJYFiIR4tLvVx5LwL/Nn7xIoaw=;
+ b=aQlDMZAC+mX06h5v+MtHgBEG9UfRa1J1G78gB3iDJX6A7L+hQAVrrBuVZUOWZPUhNTqo
+ IyBKhHFcefn5fXGTVebWMwwEj/hSssrxVQc2xJaZQ/mQwzDnEoZkUdFGxbUSGmU6rAXc
+ IcXPqf2BNcggjYPtdekRbe79d7uSmpalnSF4r4z9FRFaz3zeyOHS69hhRis0doU8/utt
+ Xgdi6MYt40bnVlds+fl9I9gop3dYmPI5KQR8J3VWSw2a8Mrpolk2GCcFsht6GK1bthAY
+ UdLz2+7sV/7F7i15MDQrDEZiHz+GpyB4H3fplQxdHOcMXYQYHIJeRQRqGOhXVx33Q+RA Dg==
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by aserp2120.oracle.com with ESMTP id 3275cmk6jt-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 16 Jul 2020 18:49:43 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbjfF095910;
-	Thu, 16 Jul 2020 18:47:42 GMT
-Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
-	by aserp3030.oracle.com with ESMTP id 327q0u0bqd-1
+	Thu, 16 Jul 2020 18:47:38 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbhFf163601;
+	Thu, 16 Jul 2020 18:47:38 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+	by aserp3020.oracle.com with ESMTP id 327qbc77y0-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 16 Jul 2020 18:47:42 +0000
+	Thu, 16 Jul 2020 18:47:38 +0000
 Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlgaV000520;
-	Thu, 16 Jul 2020 18:47:42 GMT
+	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 06GIlbfm025607;
+	Thu, 16 Jul 2020 18:47:37 GMT
 Received: from paddy.uk.oracle.com (/10.175.173.87)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 16 Jul 2020 11:47:41 -0700
+	with ESMTP ; Thu, 16 Jul 2020 11:47:37 -0700
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
 Cc: Dan Williams <dan.j.williams@intel.com>,
         Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH ndctl v1 5/8] libdaxctl: add mapping iterator APIs
-Date: Thu, 16 Jul 2020 19:47:04 +0100
-Message-Id: <20200716184707.23018-6-joao.m.martins@oracle.com>
+Subject: [PATCH ndctl v1 2/8] util/json: Print device align
+Date: Thu, 16 Jul 2020 19:47:01 +0100
+Message-Id: <20200716184707.23018-3-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200716184707.23018-1-joao.m.martins@oracle.com>
 References: <20200716184707.23018-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9684 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 malwarescore=0 spamscore=0
- mlxlogscore=999 bulkscore=0 adultscore=0 phishscore=0 suspectscore=3
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007160131
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
+ mlxscore=0 spamscore=0 phishscore=0 suspectscore=1 bulkscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2007160131
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9684 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 impostorscore=0
- suspectscore=3 phishscore=0 spamscore=0 mlxlogscore=999 malwarescore=0
- mlxscore=0 priorityscore=1501 adultscore=0 bulkscore=0 clxscore=1015
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 priorityscore=1501
+ bulkscore=0 adultscore=0 lowpriorityscore=0 phishscore=0 spamscore=0
+ impostorscore=0 malwarescore=0 mlxlogscore=999 clxscore=1015 mlxscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
  definitions=main-2007160131
-Message-ID-Hash: POW3S6VOEDGKTT3EAWJIKEECK7NAXN7W
-X-Message-ID-Hash: POW3S6VOEDGKTT3EAWJIKEECK7NAXN7W
+Message-ID-Hash: MTVEQ52AQNSS7VOLB4HH3XAWIL2G6WRX
+X-Message-ID-Hash: MTVEQ52AQNSS7VOLB4HH3XAWIL2G6WRX
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/POW3S6VOEDGKTT3EAWJIKEECK7NAXN7W/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MTVEQ52AQNSS7VOLB4HH3XAWIL2G6WRX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,191 +94,40 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add the following APIs to be able to iterate over a
-dynamic device-dax mapping list, as well as fetching
-each of the mapping attributes.
+Fetch device align and include it on listings.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- daxctl/lib/libdaxctl-private.h |  8 ++++
- daxctl/lib/libdaxctl.c         | 91 +++++++++++++++++++++++++++++++++++++++++-
- daxctl/lib/libdaxctl.sym       |  6 +++
- daxctl/libdaxctl.h             | 12 ++++++
- 4 files changed, 116 insertions(+), 1 deletion(-)
+ util/json.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index b307a8bc9438..6d05aefbeda0 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -91,6 +91,12 @@ struct daxctl_region {
- 	struct list_head devices;
- };
+diff --git a/util/json.c b/util/json.c
+index 21ab25674624..4d9787381d6b 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -278,7 +278,7 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+ 	const char *devname = daxctl_dev_get_devname(dev);
+ 	struct json_object *jdev, *jobj;
+-	int node, movable;
++	int node, movable, align;
  
-+struct daxctl_mapping {
-+	struct daxctl_dev *dev;
-+	unsigned long long pgoff, start, end;
-+	struct list_node list;
-+};
-+
- struct daxctl_dev {
- 	int id, major, minor;
- 	void *dev_buf;
-@@ -104,6 +110,8 @@ struct daxctl_dev {
- 	struct daxctl_region *region;
- 	struct daxctl_memory *mem;
- 	int target_node;
-+	int num_mappings;
-+	struct list_head mappings;
- };
+ 	jdev = json_object_new_object();
+ 	if (!devname || !jdev)
+@@ -299,6 +299,13 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 			json_object_object_add(jdev, "target_node", jobj);
+ 	}
  
- struct daxctl_memory {
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index c62e04bcdfd1..506cf4b93236 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -524,7 +524,8 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 			free(path);
- 			return dev_dup;
- 		}
--
-+	dev->num_mappings = -1;
-+	list_head_init(&dev->mappings);
- 	list_add(&region->devices, &dev->list);
- 	free(path);
- 	return dev;
-@@ -1148,6 +1149,94 @@ DAXCTL_EXPORT unsigned long daxctl_memory_get_block_size(struct daxctl_memory *m
- 	return mem->block_size;
- }
- 
-+static void mappings_init(struct daxctl_dev *dev)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char buf[SYSFS_ATTR_SIZE];
-+	char *path = dev->dev_buf;
-+	int i;
-+
-+	if (dev->num_mappings != -1)
-+		return;
-+
-+	dev->num_mappings = 0;
-+	for (;;) {
-+		struct daxctl_mapping *mapping;
-+		unsigned long long pgoff, start, end;
-+
-+		i = dev->num_mappings;
-+		mapping = calloc(1, sizeof(*mapping));
-+		if (!mapping) {
-+			err(ctx, "%s: mapping%u allocation failure\n",
-+				daxctl_dev_get_devname(dev), i);
-+			continue;
-+		}
-+
-+		sprintf(path, "%s/mapping%d/start", dev->dev_path, i);
-+		if (sysfs_read_attr(ctx, path, buf) < 0) {
-+			free(mapping);
-+			break;
-+		}
-+		start = strtoull(buf, NULL, 0);
-+
-+		sprintf(path, "%s/mapping%d/end", dev->dev_path, i);
-+		if (sysfs_read_attr(ctx, path, buf) < 0) {
-+			free(mapping);
-+			break;
-+		}
-+		end = strtoull(buf, NULL, 0);
-+
-+		sprintf(path, "%s/mapping%d/page_offset", dev->dev_path, i);
-+		if (sysfs_read_attr(ctx, path, buf) < 0) {
-+			free(mapping);
-+			break;
-+		}
-+		pgoff = strtoull(buf, NULL, 0);
-+
-+		mapping->dev = dev;
-+		mapping->start = start;
-+		mapping->end = end;
-+		mapping->pgoff = pgoff;
-+
-+		dev->num_mappings++;
-+		list_add(&dev->mappings, &mapping->list);
++	align = daxctl_dev_get_align(dev);
++	if (align > 0) {
++		jobj = util_json_object_size(daxctl_dev_get_align(dev), flags);
++		if (jobj)
++			json_object_object_add(jdev, "align", jobj);
 +	}
-+}
 +
-+DAXCTL_EXPORT struct daxctl_mapping *daxctl_mapping_get_first(struct daxctl_dev *dev)
-+{
-+	mappings_init(dev);
-+
-+	return list_top(&dev->mappings, struct daxctl_mapping, list);
-+}
-+
-+DAXCTL_EXPORT struct daxctl_mapping *daxctl_mapping_get_next(struct daxctl_mapping *mapping)
-+{
-+	struct daxctl_dev *dev = mapping->dev;
-+
-+	return list_next(&dev->mappings, mapping, list);
-+}
-+
-+DAXCTL_EXPORT unsigned long long daxctl_mapping_get_start(struct daxctl_mapping *mapping)
-+{
-+	return mapping->start;
-+}
-+
-+DAXCTL_EXPORT unsigned long long daxctl_mapping_get_end(struct daxctl_mapping *mapping)
-+{
-+	return mapping->end;
-+}
-+
-+DAXCTL_EXPORT unsigned long long  daxctl_mapping_get_offset(struct daxctl_mapping *mapping)
-+{
-+	return mapping->pgoff;
-+}
-+
-+DAXCTL_EXPORT unsigned long long daxctl_mapping_get_size(struct daxctl_mapping *mapping)
-+{
-+	return mapping->end - mapping->start + 1;
-+}
-+
- static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
- {
- 	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index c3d08179c9fd..08362b683678 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -83,4 +83,10 @@ global:
- 	daxctl_region_destroy_dev;
- 	daxctl_dev_get_align;
- 	daxctl_dev_set_align;
-+	daxctl_mapping_get_first;
-+	daxctl_mapping_get_next;
-+	daxctl_mapping_get_start;
-+	daxctl_mapping_get_end;
-+	daxctl_mapping_get_offset;
-+	daxctl_mapping_get_size;
- } LIBDAXCTL_7;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index b0bb5d78d357..f94a72fed85b 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -103,6 +103,18 @@ int daxctl_memory_online_no_movable(struct daxctl_memory *mem);
-              region != NULL; \
-              region = daxctl_region_get_next(region))
- 
-+struct daxctl_mapping;
-+struct daxctl_mapping *daxctl_mapping_get_first(struct daxctl_dev *dev);
-+struct daxctl_mapping *daxctl_mapping_get_next(struct daxctl_mapping *mapping);
-+#define daxctl_mapping_foreach(dev, mapping) \
-+        for (mapping = daxctl_mapping_get_first(dev); \
-+             mapping != NULL; \
-+             mapping = daxctl_mapping_get_next(mapping))
-+unsigned long long daxctl_mapping_get_start(struct daxctl_mapping *mapping);
-+unsigned long long daxctl_mapping_get_end(struct daxctl_mapping *mapping);
-+unsigned long long  daxctl_mapping_get_offset(struct daxctl_mapping *mapping);
-+unsigned long long daxctl_mapping_get_size(struct daxctl_mapping *mapping);
-+
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
+ 	if (mem)
+ 		jobj = json_object_new_string("system-ram");
+ 	else
 -- 
 1.8.3.1
 _______________________________________________
