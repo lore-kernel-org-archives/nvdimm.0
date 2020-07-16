@@ -4,63 +4,65 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 957B4C433EA
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6344C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:49:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 65B82207E8
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 8420A207E8
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:49:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="vH1RMHlr"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 65B82207E8
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="DjpCF+U4"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8420A207E8
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 32D3D11571BEF;
-	Thu, 16 Jul 2020 11:47:52 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 7763C11571BEC;
+	Thu, 16 Jul 2020 11:49:47 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
 Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5D2C11108EF26
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:47:50 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 13DC611571BE9
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:49:45 -0700 (PDT)
 Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIcC5e059656;
-	Thu, 16 Jul 2020 18:47:48 GMT
+	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIcGTo059705;
+	Thu, 16 Jul 2020 18:49:43 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=Y2Bv2dxeFkdqyYlI+JrtzhTtExT1WznUOd8+/Xsn90Q=;
- b=vH1RMHlr86to8+vO4ovikBux16WRz/+oVgyaKhiU4UUhEm8aZjU6VGgilLdSjmZntybd
- NQXXnLmlNkSOavzZxJyhyYrYrYRu9Omr6O3tcFjBAkM8HPuuSeDGgU0rHE8Kivs4EKTc
- o1xjvNANE+jjA5l1Q/YWBNhN6mi5fi43SBlZvojMJBfmyS5UR8H3TvpBwPZr2/ETSIz/
- sFZmyAcrJqcAg43vFNS1MyqEp825IoRByZeLEbKNyRcNa/tROn439rLoSd3XfRyo3w+/
- 3Ex8nyzouSfpUySWYvjp9ih5EBnVb3uuPMPM+NIGGdLogcuw9VcGBjUp89g6pTLuHQ2v eg==
+ bh=UK336btG/X7IpIfPfmuRoEp+2U5ISMmotevSo3n2BzQ=;
+ b=DjpCF+U4boUR60iXlZfqG3jETSuf4TghocF8Jef2I25dFgMSGg29/rlgtT5ciE3sF2LS
+ whBUzNhfg9e0hU7J37okp04TkPLlA2ipZOZxzXJr4sE7nf+1Q3+vXUG7SpVxnvZpMx2E
+ oSogiiZB+Vbml0wEWcNFP1pK9t/WyN99pChPnuAEYUqlLEVwoe1Tb3Z10WTuqjJaFCvO
+ uJJVgWnve2r3Qo0iGyOHYCCpJfWvINubWgkZNPCmW1RObKvom6RXTJQDe+9ZXJcXuFqQ
+ 93rfkpaAXhehm0J5XFIGB3bmL5x2M04HCXKwENINnW/88T5lGwxuTQJWVUqF+PmtX4BK 4A==
 Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2130.oracle.com with ESMTP id 3274urk8nw-1
+	by userp2130.oracle.com with ESMTP id 3274urk8yf-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 16 Jul 2020 18:47:48 +0000
+	Thu, 16 Jul 2020 18:49:43 +0000
 Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbjRM096023;
-	Thu, 16 Jul 2020 18:47:48 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-	by aserp3030.oracle.com with ESMTP id 327q0u0bu7-1
+	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbjfF095910;
+	Thu, 16 Jul 2020 18:47:42 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3030.oracle.com with ESMTP id 327q0u0bqd-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 16 Jul 2020 18:47:47 +0000
+	Thu, 16 Jul 2020 18:47:42 +0000
 Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlkFW011728;
-	Thu, 16 Jul 2020 18:47:46 GMT
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlgaV000520;
+	Thu, 16 Jul 2020 18:47:42 GMT
 Received: from paddy.uk.oracle.com (/10.175.173.87)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 16 Jul 2020 11:47:46 -0700
+	with ESMTP ; Thu, 16 Jul 2020 11:47:41 -0700
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
-Subject: [PATCH ndctl v1 8/8] daxctl: Allow restore devices from JSON metadata
-Date: Thu, 16 Jul 2020 19:47:07 +0100
-Message-Id: <20200716184707.23018-9-joao.m.martins@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH ndctl v1 5/8] libdaxctl: add mapping iterator APIs
+Date: Thu, 16 Jul 2020 19:47:04 +0100
+Message-Id: <20200716184707.23018-6-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200716184707.23018-1-joao.m.martins@oracle.com>
 References: <20200716184707.23018-1-joao.m.martins@oracle.com>
@@ -75,15 +77,14 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=
  mlxscore=0 priorityscore=1501 adultscore=0 bulkscore=0 clxscore=1015
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
  definitions=main-2007160131
-Message-ID-Hash: 2465OSDYIIQZVXSKIYLMNFIFEZJ76BHQ
-X-Message-ID-Hash: 2465OSDYIIQZVXSKIYLMNFIFEZJ76BHQ
+Message-ID-Hash: POW3S6VOEDGKTT3EAWJIKEECK7NAXN7W
+X-Message-ID-Hash: POW3S6VOEDGKTT3EAWJIKEECK7NAXN7W
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Jason Zeng <jason.zeng@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2465OSDYIIQZVXSKIYLMNFIFEZJ76BHQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/POW3S6VOEDGKTT3EAWJIKEECK7NAXN7W/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -93,263 +94,191 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add an option namely --restore which passes a parameter
-which is a JSON file path. The JSON file contains the
-data usually returned by:
-
-	$ daxctl list -d dax0.1
-	{
-	  "chardev":"dax0.1",
-	  "size":34359738368,
-	  "target_node":0,
-	  "align":1073741824,
-	  "mode":"devdax",
-	  "mappings":[
-	    {
-	      "page_offset":4194304,
-	      "start":25769803776,
-	      "end":42949672959,
-	      "size":17179869184
-	    },
-	    {
-	      "page_offset":0,
-	      "start":8589934592,
-	      "end":25769803775,
-	      "size":17179869184
-	    }
-	  ]
-	}
-
-For purposes of RFC, the input values in the mapping json are decimal
-for now. A device can then be created by specifying this same data
-to restore it e.g.
-
-	daxctl create-device -u --restore device.json
-	{
-	  "chardev":"dax0.1",
-	  "size":"32.00 GiB (34.36 GB)",
-	  "target_node":0,
-	  "align":"1024.00 MiB (1073.74 MB)",
-	  "mode":"devdax",
-	  "mappings":[
-	    {
-	      "page_offset":"0x400000",
-	      "start":"0x600000000",
-	      "end":"0x9ffffffff",
-	      "size":"16.00 GiB (17.18 GB)"
-	    },
-	    {
-	      "page_offset":"0",
-	      "start":"0x200000000",
-	      "end":"0x5ffffffff",
-	      "size":"16.00 GiB (17.18 GB)"
-	    }
-	  ]
-	}
-
-	created 1 device
-
-This is handy as we are able to kexec and restore previously mappings
-that we had established.
+Add the following APIs to be able to iterate over a
+dynamic device-dax mapping list, as well as fetching
+each of the mapping attributes.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- daxctl/device.c | 129 +++++++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 124 insertions(+), 5 deletions(-)
+ daxctl/lib/libdaxctl-private.h |  8 ++++
+ daxctl/lib/libdaxctl.c         | 91 +++++++++++++++++++++++++++++++++++++++++-
+ daxctl/lib/libdaxctl.sym       |  6 +++
+ daxctl/libdaxctl.h             | 12 ++++++
+ 4 files changed, 116 insertions(+), 1 deletion(-)
 
-diff --git a/daxctl/device.c b/daxctl/device.c
-index 3a844462829b..fe34f0e44569 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -13,6 +13,7 @@
- #include <util/json.h>
- #include <util/filter.h>
- #include <json-c/json.h>
-+#include <json-c/json_util.h>
- #include <daxctl/libdaxctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
-@@ -23,6 +24,7 @@ static struct {
- 	const char *region;
- 	const char *size;
- 	const char *align;
-+	const char *restore;
- 	bool no_online;
- 	bool no_movable;
- 	bool force;
-@@ -36,10 +38,16 @@ enum dev_mode {
- 	DAXCTL_DEV_MODE_RAM,
+diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
+index b307a8bc9438..6d05aefbeda0 100644
+--- a/daxctl/lib/libdaxctl-private.h
++++ b/daxctl/lib/libdaxctl-private.h
+@@ -91,6 +91,12 @@ struct daxctl_region {
+ 	struct list_head devices;
  };
  
-+struct mapping {
-+	unsigned long long start, end, pgoff;
++struct daxctl_mapping {
++	struct daxctl_dev *dev;
++	unsigned long long pgoff, start, end;
++	struct list_node list;
 +};
 +
- static enum dev_mode reconfig_mode = DAXCTL_DEV_MODE_UNKNOWN;
- static long long align = -1;
- static long long size = -1;
- static unsigned long flags;
-+static struct mapping *maps = NULL;
-+static long long nmaps = -1;
- 
- enum memory_zone {
- 	MEM_ZONE_MOVABLE,
-@@ -71,7 +79,9 @@ OPT_BOOLEAN('f', "force", &param.force, \
- 
- #define CREATE_OPTIONS() \
- OPT_STRING('s', "size", &param.size, "size", "size to switch the device to"), \
--OPT_STRING('a', "align", &param.align, "align", "alignment to switch the device to")
-+OPT_STRING('a', "align", &param.align, "align", "alignment to switch the device to"), \
-+OPT_STRING('\0', "restore", &param.restore, "restore", \
-+		"restore the device from device JSON")
- 
- #define DESTROY_OPTIONS() \
- OPT_BOOLEAN('f', "force", &param.force, \
-@@ -124,6 +134,94 @@ static const struct option destroy_options[] = {
- 	OPT_END(),
+ struct daxctl_dev {
+ 	int id, major, minor;
+ 	void *dev_buf;
+@@ -104,6 +110,8 @@ struct daxctl_dev {
+ 	struct daxctl_region *region;
+ 	struct daxctl_memory *mem;
+ 	int target_node;
++	int num_mappings;
++	struct list_head mappings;
  };
  
-+static int sort_mappings(const void *a, const void *b)
+ struct daxctl_memory {
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index c62e04bcdfd1..506cf4b93236 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -524,7 +524,8 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
+ 			free(path);
+ 			return dev_dup;
+ 		}
+-
++	dev->num_mappings = -1;
++	list_head_init(&dev->mappings);
+ 	list_add(&region->devices, &dev->list);
+ 	free(path);
+ 	return dev;
+@@ -1148,6 +1149,94 @@ DAXCTL_EXPORT unsigned long daxctl_memory_get_block_size(struct daxctl_memory *m
+ 	return mem->block_size;
+ }
+ 
++static void mappings_init(struct daxctl_dev *dev)
 +{
-+	json_object **jsoa, **jsob;
-+	struct json_object *va, *vb;
-+	unsigned long long pga, pgb;
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	char buf[SYSFS_ATTR_SIZE];
++	char *path = dev->dev_buf;
++	int i;
 +
-+	jsoa = (json_object **)a;
-+	jsob = (json_object **)b;
-+	if (!*jsoa && !*jsob)
-+		return 0;
++	if (dev->num_mappings != -1)
++		return;
 +
-+	if (!json_object_object_get_ex(*jsoa, "page_offset", &va) ||
-+	    !json_object_object_get_ex(*jsob, "page_offset", &vb))
-+		return 0;
++	dev->num_mappings = 0;
++	for (;;) {
++		struct daxctl_mapping *mapping;
++		unsigned long long pgoff, start, end;
 +
-+	pga = json_object_get_int64(va);
-+	pgb = json_object_get_int64(vb);
++		i = dev->num_mappings;
++		mapping = calloc(1, sizeof(*mapping));
++		if (!mapping) {
++			err(ctx, "%s: mapping%u allocation failure\n",
++				daxctl_dev_get_devname(dev), i);
++			continue;
++		}
 +
-+	return pga > pgb;
-+}
-+
-+static int parse_device_file(const char *filename)
-+{
-+	struct json_object *jobj, *jval = NULL, *jmappings = NULL;
-+	int i, len, rc = -EINVAL, region_id, id;
-+	const char *chardev;
-+	char  *region = NULL;
-+	struct mapping *m;
-+
-+	jobj = json_object_from_file(filename);
-+	if (!jobj)
-+		return rc;
-+
-+	if (!json_object_object_get_ex(jobj, "align", &jval))
-+		return rc;
-+	param.align = json_object_get_string(jval);
-+
-+	if (!json_object_object_get_ex(jobj, "size", &jval))
-+		return rc;
-+	param.size = json_object_get_string(jval);
-+
-+	if (!json_object_object_get_ex(jobj, "chardev", &jval))
-+		return rc;
-+	chardev = json_object_get_string(jval);
-+	if (sscanf(chardev, "dax%u.%u", &region_id, &id) != 2)
-+		return rc;
-+	if (asprintf(&region, "%u", region_id) < 0)
-+		return rc;
-+	param.region = region;
-+
-+	if (!json_object_object_get_ex(jobj, "mappings", &jmappings))
-+		return rc;
-+	json_object_array_sort(jmappings, sort_mappings);
-+
-+	len = json_object_array_length(jmappings);
-+	m = calloc(len, sizeof(*m));
-+	if (!m)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < len; i++) {
-+		struct json_object *j, *val;
-+
-+		j = json_object_array_get_idx(jmappings, i);
-+		if (!j)
-+			goto err;
-+
-+		if (!json_object_object_get_ex(j, "start", &val))
-+			goto err;
-+		m[i].start = json_object_get_int64(val);
-+
-+		if (!json_object_object_get_ex(j, "end", &val))
-+			goto err;
-+		m[i].end = json_object_get_int64(val);
-+
-+		if (!json_object_object_get_ex(j, "page_offset", &val))
-+			goto err;
-+		m[i].pgoff = json_object_get_int64(val);
-+	}
-+	maps = m;
-+	nmaps = len;
-+	rc = 0;
-+
-+err:
-+	if (!maps)
-+		free(m);
-+	return rc;
-+}
-+
- static const char *parse_device_options(int argc, const char **argv,
- 		enum device_action action, const struct option *options,
- 		const char *usage, struct daxctl_ctx *ctx)
-@@ -213,6 +311,13 @@ static const char *parse_device_options(int argc, const char **argv,
- 			align = __parse_size64(param.align, &units);
- 		break;
- 	case ACTION_CREATE:
-+		if (param.restore &&
-+		    (rc = parse_device_file(param.restore)) != 0) {
-+			fprintf(stderr,
-+				"error: failed to parse device file: %s\n",
-+				strerror(-rc));
++		sprintf(path, "%s/mapping%d/start", dev->dev_path, i);
++		if (sysfs_read_attr(ctx, path, buf) < 0) {
++			free(mapping);
 +			break;
 +		}
- 		if (param.size)
- 			size = __parse_size64(param.size, &units);
- 		if (param.align)
-@@ -524,7 +629,8 @@ static int do_create(struct daxctl_region *region, long long val,
- {
- 	struct json_object *jdev;
- 	struct daxctl_dev *dev;
--	int rc = 0;
-+	int i, rc = 0;
-+	long long alloc = 0;
- 
- 	if (daxctl_region_create_dev(region))
- 		return -ENOSPC;
-@@ -545,9 +651,22 @@ static int do_create(struct daxctl_region *region, long long val,
- 			return rc;
- 	}
- 
--	rc = daxctl_dev_set_size(dev, val);
--	if (rc < 0)
--		return rc;
-+	/* @maps is ordered by page_offset */
-+	for (i = 0; i < nmaps; i++) {
-+		rc = daxctl_dev_set_mapping(dev, maps[i].start, maps[i].end);
-+		if (rc < 0)
-+			return rc;
-+		alloc += (maps[i].end - maps[i].start + 1);
-+	}
++		start = strtoull(buf, NULL, 0);
 +
-+	if (nmaps > 0 && val > 0 && alloc != val) {
-+		fprintf(stderr, "%s: allocated %lld but specified size %lld\n",
-+			daxctl_dev_get_devname(dev), alloc, val);
-+	} else {
-+		rc = daxctl_dev_set_size(dev, val);
-+		if (rc < 0)
-+			return rc;
++		sprintf(path, "%s/mapping%d/end", dev->dev_path, i);
++		if (sysfs_read_attr(ctx, path, buf) < 0) {
++			free(mapping);
++			break;
++		}
++		end = strtoull(buf, NULL, 0);
++
++		sprintf(path, "%s/mapping%d/page_offset", dev->dev_path, i);
++		if (sysfs_read_attr(ctx, path, buf) < 0) {
++			free(mapping);
++			break;
++		}
++		pgoff = strtoull(buf, NULL, 0);
++
++		mapping->dev = dev;
++		mapping->start = start;
++		mapping->end = end;
++		mapping->pgoff = pgoff;
++
++		dev->num_mappings++;
++		list_add(&dev->mappings, &mapping->list);
 +	}
++}
++
++DAXCTL_EXPORT struct daxctl_mapping *daxctl_mapping_get_first(struct daxctl_dev *dev)
++{
++	mappings_init(dev);
++
++	return list_top(&dev->mappings, struct daxctl_mapping, list);
++}
++
++DAXCTL_EXPORT struct daxctl_mapping *daxctl_mapping_get_next(struct daxctl_mapping *mapping)
++{
++	struct daxctl_dev *dev = mapping->dev;
++
++	return list_next(&dev->mappings, mapping, list);
++}
++
++DAXCTL_EXPORT unsigned long long daxctl_mapping_get_start(struct daxctl_mapping *mapping)
++{
++	return mapping->start;
++}
++
++DAXCTL_EXPORT unsigned long long daxctl_mapping_get_end(struct daxctl_mapping *mapping)
++{
++	return mapping->end;
++}
++
++DAXCTL_EXPORT unsigned long long  daxctl_mapping_get_offset(struct daxctl_mapping *mapping)
++{
++	return mapping->pgoff;
++}
++
++DAXCTL_EXPORT unsigned long long daxctl_mapping_get_size(struct daxctl_mapping *mapping)
++{
++	return mapping->end - mapping->start + 1;
++}
++
+ static int memblock_is_online(struct daxctl_memory *mem, char *memblock)
+ {
+ 	struct daxctl_dev *dev = daxctl_memory_get_dev(mem);
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index c3d08179c9fd..08362b683678 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -83,4 +83,10 @@ global:
+ 	daxctl_region_destroy_dev;
+ 	daxctl_dev_get_align;
+ 	daxctl_dev_set_align;
++	daxctl_mapping_get_first;
++	daxctl_mapping_get_next;
++	daxctl_mapping_get_start;
++	daxctl_mapping_get_end;
++	daxctl_mapping_get_offset;
++	daxctl_mapping_get_size;
+ } LIBDAXCTL_7;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index b0bb5d78d357..f94a72fed85b 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -103,6 +103,18 @@ int daxctl_memory_online_no_movable(struct daxctl_memory *mem);
+              region != NULL; \
+              region = daxctl_region_get_next(region))
  
- 	rc = daxctl_dev_enable_devdax(dev);
- 	if (rc) {
++struct daxctl_mapping;
++struct daxctl_mapping *daxctl_mapping_get_first(struct daxctl_dev *dev);
++struct daxctl_mapping *daxctl_mapping_get_next(struct daxctl_mapping *mapping);
++#define daxctl_mapping_foreach(dev, mapping) \
++        for (mapping = daxctl_mapping_get_first(dev); \
++             mapping != NULL; \
++             mapping = daxctl_mapping_get_next(mapping))
++unsigned long long daxctl_mapping_get_start(struct daxctl_mapping *mapping);
++unsigned long long daxctl_mapping_get_end(struct daxctl_mapping *mapping);
++unsigned long long  daxctl_mapping_get_offset(struct daxctl_mapping *mapping);
++unsigned long long daxctl_mapping_get_size(struct daxctl_mapping *mapping);
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
 -- 
 1.8.3.1
 _______________________________________________
