@@ -7,68 +7,68 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BE33C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4DBBC433E4
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:49 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0C73B207E8
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 848BE207E8
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="NmBRkEnf"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0C73B207E8
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="r3jAv9It"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 848BE207E8
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B6B2C11571BF0;
-	Thu, 16 Jul 2020 11:47:46 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id DCAD611571BF7;
+	Thu, 16 Jul 2020 11:47:48 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
 Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2654011078321
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:47:43 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 16CC411571BF3
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:47:47 -0700 (PDT)
 Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIcDXu059674;
-	Thu, 16 Jul 2020 18:47:41 GMT
+	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIcg3I059855;
+	Thu, 16 Jul 2020 18:47:44 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=aBSi1lpzBMIY87jld3MWKzOCHTPvU/b8jx1r4Uu5aNQ=;
- b=NmBRkEnfFyUOud7vqUO+AyxcwW4MXodOtixCuexmM5/VUwamJSfHKOcDWHFnCSFgs4bh
- OrkP9NNYE0Np4515aRJ7vY5YeeKMmy2MDnCVhhCAQwv43ZwyhVXtFbCpp5E1Np0+jbo9
- jM7xxsbsnCN4mJ4Tlj4iEX8ncFpKBb76KPdxxWclY77RLpgwhsLANwBilCYMRELHJsuV
- hoP/aYChd8us6oaiIq0DM6F1UyP5gtgxYomTrcshlpUPUqtmv+BCSSYBw751yLn1dy/5
- /PjG5oBsqIqGRqlGfz3J2IhwFoKzXY5q4jXaJjNUi/6JLhZxg5TewiAFDrfMDZL6t1qG Mg==
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by userp2130.oracle.com with ESMTP id 3274urk8mx-1
+ bh=t2P2AIAk4ZNLW6HyD2mHfc2ay8bdG1XLlb49iW8oaZ8=;
+ b=r3jAv9ItRPFqgvu53i0ldUZufjWhcwuq+paCnfnHIUFFmxkvextHGsrG0aFyf94/pCMy
+ 1Fg+sByylSmOgtxr/mWBVopJ2ucomQk/Q6c4nIZyHi1SBPm0C1PRrlNAeXLqiG9qibYB
+ WJDCdCW6LmMAbb0KsI9az9pTjhybZ5ZXVCmljh9zckyskXUESSgIVV6jS0ecfSpUxlh7
+ Qak9lZFpd4YVHOu7U+65yw/1kQvZzmWMY2nua0MRARyhQD54HkNbTyPM6tTSPzeL4H/i
+ 8bUSBfvVInTVRfK4fsfhibpaRtjtS1SkQ0xSX2I8xRKhwBd73squeVIYVSNY5J14WOIq Ew==
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by userp2130.oracle.com with ESMTP id 3274urk8n9-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 16 Jul 2020 18:47:41 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbmZ4167687;
-	Thu, 16 Jul 2020 18:47:41 GMT
-Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-	by userp3020.oracle.com with ESMTP id 32akr3vv3n-1
+	Thu, 16 Jul 2020 18:47:44 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbisM163891;
+	Thu, 16 Jul 2020 18:47:44 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3020.oracle.com with ESMTP id 327qbc787e-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 16 Jul 2020 18:47:41 +0000
+	Thu, 16 Jul 2020 18:47:43 +0000
 Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlefO011692;
-	Thu, 16 Jul 2020 18:47:40 GMT
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlhva000567;
+	Thu, 16 Jul 2020 18:47:43 GMT
 Received: from paddy.uk.oracle.com (/10.175.173.87)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 16 Jul 2020 11:47:40 -0700
+	with ESMTP ; Thu, 16 Jul 2020 11:47:43 -0700
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
 Cc: Dan Williams <dan.j.williams@intel.com>,
         Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH ndctl v1 4/8] daxctl: add align support in create-device
-Date: Thu, 16 Jul 2020 19:47:03 +0100
-Message-Id: <20200716184707.23018-5-joao.m.martins@oracle.com>
+Subject: [PATCH ndctl v1 6/8] daxctl: include mappings when listing
+Date: Thu, 16 Jul 2020 19:47:05 +0100
+Message-Id: <20200716184707.23018-7-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200716184707.23018-1-joao.m.martins@oracle.com>
 References: <20200716184707.23018-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9684 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 malwarescore=0
- suspectscore=1 mlxlogscore=999 spamscore=0 mlxscore=0 bulkscore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
+ mlxscore=0 spamscore=0 phishscore=0 suspectscore=1 bulkscore=0
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2006250000 definitions=main-2007160131
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9684 signatures=668680
@@ -77,14 +77,14 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=
  mlxscore=0 priorityscore=1501 adultscore=0 bulkscore=0 clxscore=1015
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
  definitions=main-2007160131
-Message-ID-Hash: UN4PZ4WUZ6H4XRM42B6HVZ3WWIYSZ5BU
-X-Message-ID-Hash: UN4PZ4WUZ6H4XRM42B6HVZ3WWIYSZ5BU
+Message-ID-Hash: 6J2LKZTNW3BYXJHNEJRNF5PJ2UKQJOZJ
+X-Message-ID-Hash: 6J2LKZTNW3BYXJHNEJRNF5PJ2UKQJOZJ
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UN4PZ4WUZ6H4XRM42B6HVZ3WWIYSZ5BU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6J2LKZTNW3BYXJHNEJRNF5PJ2UKQJOZJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,40 +94,117 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-And thus allow changing devices alignment when creating
-a new child device.
+Iterate over the device mappings and print @page_offset,
+ @start, @end and a computed size.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- daxctl/device.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Perhaps hiding it behind a -v|--verbose?
+---
+ util/json.c | 54 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ util/json.h |  3 +++
+ 2 files changed, 56 insertions(+), 1 deletion(-)
 
-diff --git a/daxctl/device.c b/daxctl/device.c
-index 9d82ea12aca2..3a844462829b 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -215,6 +215,8 @@ static const char *parse_device_options(int argc, const char **argv,
- 	case ACTION_CREATE:
- 		if (param.size)
- 			size = __parse_size64(param.size, &units);
-+		if (param.align)
-+			align = __parse_size64(param.align, &units);
- 		/* fall through */
- 	case ACTION_ONLINE:
- 		if (param.no_movable)
-@@ -537,6 +539,12 @@ static int do_create(struct daxctl_region *region, long long val,
- 	if (val <= 0)
- 		return -ENOSPC;
+diff --git a/util/json.c b/util/json.c
+index 4d9787381d6b..c814298ad0dc 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -277,7 +277,8 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ {
+ 	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
+ 	const char *devname = daxctl_dev_get_devname(dev);
+-	struct json_object *jdev, *jobj;
++	struct json_object *jdev, *jobj, *jmappings = NULL;
++	struct daxctl_mapping *mapping = NULL;
+ 	int node, movable, align;
  
-+	if (align > 0) {
-+		rc = daxctl_dev_set_align(dev, align);
-+		if (rc < 0)
-+			return rc;
-+	}
+ 	jdev = json_object_new_object();
+@@ -331,6 +332,22 @@ struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
+ 			json_object_object_add(jdev, "state", jobj);
+ 	}
+ 
++	daxctl_mapping_foreach(dev, mapping) {
++		struct json_object *jmapping;
 +
- 	rc = daxctl_dev_set_size(dev, val);
- 	if (rc < 0)
- 		return rc;
++		if (!jmappings) {
++			jmappings = json_object_new_array();
++			if (!jmappings)
++				continue;
++
++			json_object_object_add(jdev, "mappings", jmappings);
++		}
++
++		jmapping = util_daxctl_mapping_to_json(mapping, flags);
++		if (!jmapping)
++			continue;
++		json_object_array_add(jmappings, jmapping);
++	}
+ 	return jdev;
+ }
+ 
+@@ -1180,6 +1197,41 @@ struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
+ 	return NULL;
+ }
+ 
++struct json_object *util_daxctl_mapping_to_json(struct daxctl_mapping *mapping,
++		unsigned long flags)
++{
++	struct json_object *jmapping = json_object_new_object();
++	struct json_object *jobj;
++
++	if (!jmapping)
++		return NULL;
++
++	jobj = util_json_object_hex(daxctl_mapping_get_offset(mapping), flags);
++	if (!jobj)
++		goto err;
++	json_object_object_add(jmapping, "page_offset", jobj);
++
++	jobj = util_json_object_hex(daxctl_mapping_get_start(mapping), flags);
++	if (!jobj)
++		goto err;
++	json_object_object_add(jmapping, "start", jobj);
++
++	jobj = util_json_object_hex(daxctl_mapping_get_end(mapping), flags);
++	if (!jobj)
++		goto err;
++	json_object_object_add(jmapping, "end", jobj);
++
++	jobj = util_json_object_size(daxctl_mapping_get_size(mapping), flags);
++	if (!jobj)
++		goto err;
++	json_object_object_add(jmapping, "size", jobj);
++
++	return jmapping;
++ err:
++	json_object_put(jmapping);
++	return NULL;
++}
++
+ struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
+ 		unsigned long flags)
+ {
+diff --git a/util/json.h b/util/json.h
+index 6d39d3aa4693..c32074939068 100644
+--- a/util/json.h
++++ b/util/json.h
+@@ -15,6 +15,7 @@
+ #include <stdio.h>
+ #include <stdbool.h>
+ #include <ndctl/libndctl.h>
++#include <daxctl/libdaxctl.h>
+ #include <ccan/short_types/short_types.h>
+ 
+ enum util_json_flags {
+@@ -36,6 +37,8 @@ struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
+ 		unsigned long flags);
+ struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
+ 		unsigned long flags);
++struct json_object *util_daxctl_mapping_to_json(struct daxctl_mapping *mapping,
++		unsigned long flags);
+ struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
+ 		unsigned long flags);
+ struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
 -- 
 1.8.3.1
 _______________________________________________
