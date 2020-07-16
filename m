@@ -7,84 +7,84 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0B38C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BE33C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6BC60207E8
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 0C73B207E8
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 18:47:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="jaRTKL52"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6BC60207E8
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="NmBRkEnf"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0C73B207E8
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 86DBA11571BEB;
-	Thu, 16 Jul 2020 11:47:44 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
+	by ml01.01.org (Postfix) with ESMTP id B6B2C11571BF0;
+	Thu, 16 Jul 2020 11:47:46 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1D04B11078320
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:47:40 -0700 (PDT)
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIb28v145415;
-	Thu, 16 Jul 2020 18:47:38 GMT
+	by ml01.01.org (Postfix) with ESMTPS id 2654011078321
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 11:47:43 -0700 (PDT)
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIcDXu059674;
+	Thu, 16 Jul 2020 18:47:41 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=GHorhZpluozLUMVAc2bOZLOZIfO5aEfQ1y342YF9NEE=;
- b=jaRTKL52zzj7wXFKTOGkElyWhuSe8fB+ovrEDmB6734rK+UWAN4fJPkKs/9TgUL0s+kR
- C+LKF/UcZxzJNC3O6pcEYdYon3lPDROmn//9xY0bVgh2YbzxNd1ocuEPHr/E37SChlv9
- WYne4fq5kVaisDhjuQvlY2CNod2CxQuW2A5Q1VHFLQcpDNF4uiSkG6VvSUOFA8bLzKst
- CG/lvKTjeWs0AwyzI4kaMyL60shpsiUAUwAPNabUPVVlin2SCj32XUlhTQuildDhTXJT
- IoEG0lKLx/QfGP2Ws993igrW+3CQhgcQhCz7rj6BJbo47bOHbsE2/WftWvDkhfg3Z0Hk 4A==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by aserp2120.oracle.com with ESMTP id 3275cmk6jq-1
+ bh=aBSi1lpzBMIY87jld3MWKzOCHTPvU/b8jx1r4Uu5aNQ=;
+ b=NmBRkEnfFyUOud7vqUO+AyxcwW4MXodOtixCuexmM5/VUwamJSfHKOcDWHFnCSFgs4bh
+ OrkP9NNYE0Np4515aRJ7vY5YeeKMmy2MDnCVhhCAQwv43ZwyhVXtFbCpp5E1Np0+jbo9
+ jM7xxsbsnCN4mJ4Tlj4iEX8ncFpKBb76KPdxxWclY77RLpgwhsLANwBilCYMRELHJsuV
+ hoP/aYChd8us6oaiIq0DM6F1UyP5gtgxYomTrcshlpUPUqtmv+BCSSYBw751yLn1dy/5
+ /PjG5oBsqIqGRqlGfz3J2IhwFoKzXY5q4jXaJjNUi/6JLhZxg5TewiAFDrfMDZL6t1qG Mg==
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by userp2130.oracle.com with ESMTP id 3274urk8mx-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 16 Jul 2020 18:47:38 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbh09163631;
-	Thu, 16 Jul 2020 18:47:37 GMT
+	Thu, 16 Jul 2020 18:47:41 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 06GIbmZ4167687;
+	Thu, 16 Jul 2020 18:47:41 GMT
 Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
-	by aserp3020.oracle.com with ESMTP id 327qbc77w0-1
+	by userp3020.oracle.com with ESMTP id 32akr3vv3n-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 16 Jul 2020 18:47:37 +0000
+	Thu, 16 Jul 2020 18:47:41 +0000
 Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlaTi011674;
-	Thu, 16 Jul 2020 18:47:36 GMT
+	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 06GIlefO011692;
+	Thu, 16 Jul 2020 18:47:40 GMT
 Received: from paddy.uk.oracle.com (/10.175.173.87)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 16 Jul 2020 11:47:36 -0700
+	with ESMTP ; Thu, 16 Jul 2020 11:47:40 -0700
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
 Cc: Dan Williams <dan.j.williams@intel.com>,
         Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH ndctl v1 1/8] daxctl: add daxctl_dev_{get,set}_align()
-Date: Thu, 16 Jul 2020 19:47:00 +0100
-Message-Id: <20200716184707.23018-2-joao.m.martins@oracle.com>
+Subject: [PATCH ndctl v1 4/8] daxctl: add align support in create-device
+Date: Thu, 16 Jul 2020 19:47:03 +0100
+Message-Id: <20200716184707.23018-5-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20200716184707.23018-1-joao.m.martins@oracle.com>
 References: <20200716184707.23018-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9684 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 malwarescore=0
- mlxscore=0 spamscore=0 phishscore=0 suspectscore=1 bulkscore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 malwarescore=0
+ suspectscore=1 mlxlogscore=999 spamscore=0 mlxscore=0 bulkscore=0
  adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2006250000 definitions=main-2007160131
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9684 signatures=668680
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 priorityscore=1501
- bulkscore=0 adultscore=0 lowpriorityscore=0 phishscore=0 spamscore=0
- impostorscore=0 malwarescore=0 mlxlogscore=999 clxscore=1015 mlxscore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 impostorscore=0
+ suspectscore=1 phishscore=0 spamscore=0 mlxlogscore=999 malwarescore=0
+ mlxscore=0 priorityscore=1501 adultscore=0 bulkscore=0 clxscore=1015
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
  definitions=main-2007160131
-Message-ID-Hash: 43ND2MGT7N37HM4ZIHC5QRQY4IEBXMAW
-X-Message-ID-Hash: 43ND2MGT7N37HM4ZIHC5QRQY4IEBXMAW
+Message-ID-Hash: UN4PZ4WUZ6H4XRM42B6HVZ3WWIYSZ5BU
+X-Message-ID-Hash: UN4PZ4WUZ6H4XRM42B6HVZ3WWIYSZ5BU
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/43ND2MGT7N37HM4ZIHC5QRQY4IEBXMAW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UN4PZ4WUZ6H4XRM42B6HVZ3WWIYSZ5BU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,104 +94,40 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add support for changing devices alignment.
+And thus allow changing devices alignment when creating
+a new child device.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- daxctl/lib/libdaxctl-private.h |  1 +
- daxctl/lib/libdaxctl.c         | 34 ++++++++++++++++++++++++++++++++++
- daxctl/lib/libdaxctl.sym       |  2 ++
- daxctl/libdaxctl.h             |  2 ++
- 4 files changed, 39 insertions(+)
+ daxctl/device.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/daxctl/lib/libdaxctl-private.h b/daxctl/lib/libdaxctl-private.h
-index 9f9c70d6024f..b307a8bc9438 100644
---- a/daxctl/lib/libdaxctl-private.h
-+++ b/daxctl/lib/libdaxctl-private.h
-@@ -99,6 +99,7 @@ struct daxctl_dev {
- 	struct list_node list;
- 	unsigned long long resource;
- 	unsigned long long size;
-+	unsigned long align;
- 	struct kmod_module *module;
- 	struct daxctl_region *region;
- 	struct daxctl_memory *mem;
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 9b43b68facfe..c62e04bcdfd1 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -498,6 +498,11 @@ static void *add_dax_dev(void *parent, int id, const char *daxdev_base)
- 		goto err_read;
- 	dev->size = strtoull(buf, NULL, 0);
+diff --git a/daxctl/device.c b/daxctl/device.c
+index 9d82ea12aca2..3a844462829b 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -215,6 +215,8 @@ static const char *parse_device_options(int argc, const char **argv,
+ 	case ACTION_CREATE:
+ 		if (param.size)
+ 			size = __parse_size64(param.size, &units);
++		if (param.align)
++			align = __parse_size64(param.align, &units);
+ 		/* fall through */
+ 	case ACTION_ONLINE:
+ 		if (param.no_movable)
+@@ -537,6 +539,12 @@ static int do_create(struct daxctl_region *region, long long val,
+ 	if (val <= 0)
+ 		return -ENOSPC;
  
-+	sprintf(path, "%s/align", daxdev_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		goto err_read;
-+	dev->align = strtoull(buf, NULL, 0);
-+
- 	dev->dev_path = strdup(daxdev_base);
- 	if (!dev->dev_path)
- 		goto err_read;
-@@ -1086,6 +1091,35 @@ DAXCTL_EXPORT int daxctl_dev_set_size(struct daxctl_dev *dev, unsigned long long
- 	return 0;
- }
- 
-+DAXCTL_EXPORT unsigned long daxctl_dev_get_align(struct daxctl_dev *dev)
-+{
-+	return dev->align;
-+}
-+
-+DAXCTL_EXPORT int daxctl_dev_set_align(struct daxctl_dev *dev, unsigned long align)
-+{
-+	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
-+	char buf[SYSFS_ATTR_SIZE];
-+	char *path = dev->dev_buf;
-+	int len = dev->buf_len;
-+
-+	if (snprintf(path, len, "%s/align", dev->dev_path) >= len) {
-+		err(ctx, "%s: buffer too small!\n",
-+				daxctl_dev_get_devname(dev));
-+		return -ENXIO;
++	if (align > 0) {
++		rc = daxctl_dev_set_align(dev, align);
++		if (rc < 0)
++			return rc;
 +	}
 +
-+	sprintf(buf, "%#lx\n", align);
-+	if (sysfs_write_attr(ctx, path, buf) < 0) {
-+		err(ctx, "%s: failed to set align\n",
-+				daxctl_dev_get_devname(dev));
-+		return -ENXIO;
-+	}
-+
-+	dev->align = align;
-+	return 0;
-+}
-+
- DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
- {
- 	return dev->target_node;
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index 33c926411037..c3d08179c9fd 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -81,4 +81,6 @@ global:
- 	daxctl_dev_set_size;
- 	daxctl_region_create_dev;
- 	daxctl_region_destroy_dev;
-+	daxctl_dev_get_align;
-+	daxctl_dev_set_align;
- } LIBDAXCTL_7;
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 2b14faad1895..b0bb5d78d357 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -71,6 +71,8 @@ int daxctl_dev_get_minor(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_resource(struct daxctl_dev *dev);
- unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
- int daxctl_dev_set_size(struct daxctl_dev *dev, unsigned long long size);
-+unsigned long daxctl_dev_get_align(struct daxctl_dev *dev);
-+int daxctl_dev_set_align(struct daxctl_dev *dev, unsigned long align);
- struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
- int daxctl_dev_is_enabled(struct daxctl_dev *dev);
- int daxctl_dev_disable(struct daxctl_dev *dev);
+ 	rc = daxctl_dev_set_size(dev, val);
+ 	if (rc < 0)
+ 		return rc;
 -- 
 1.8.3.1
 _______________________________________________
