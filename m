@@ -2,64 +2,67 @@ Return-Path: <SRS0=8S6p=A4=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF358C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9FACC433E6
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:06 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id BDA7020737
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BDA7020737
+	by mail.kernel.org (Postfix) with ESMTPS id 89C2D2074B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 89C2D2074B
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6D52C11E9F634;
-	Fri, 17 Jul 2020 00:21:04 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	by ml01.01.org (Postfix) with ESMTP id A48E211EB8DEF;
+	Fri, 17 Jul 2020 00:21:05 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 38C0711571BF6
-	for <linux-nvdimm@lists.01.org>; Fri, 17 Jul 2020 00:21:01 -0700 (PDT)
-IronPort-SDR: O+TUmQfHCAaH/SISZxVmWGEO+narmskTWM2a0fP0Y9bwu1Cd8IFNJ3y2gYe+xW/VRZpaRanxwV
- tcf5HuRt7Sjw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9684"; a="167682216"
+	by ml01.01.org (Postfix) with ESMTPS id 4A72B11E99A00
+	for <linux-nvdimm@lists.01.org>; Fri, 17 Jul 2020 00:21:03 -0700 (PDT)
+IronPort-SDR: 9neOkefBvAXssHe/EmKKbY55PZHNOohr7I1tyORgjP8FCX3FyI/QKPwSHnyGwsLs3mWqw+fsl4
+ CgcSbcCpiU5w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9684"; a="150928907"
 X-IronPort-AV: E=Sophos;i="5.75,362,1589266800";
-   d="scan'208";a="167682216"
+   d="scan'208";a="150928907"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:00 -0700
-IronPort-SDR: I2kPLSZY3sAJB+AtMjz54IDv5wzrL5svBf5Z2YmpNMJTlVEZtD0KsDT1urlyovYN6eDZ/bnV7t
- EEcE83OL6BIw==
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:02 -0700
+IronPort-SDR: T0X54Up0hzXrelQKBCFriABUplplx0wn+etZAwWtZeijUUT+2ZTs7WpOxrsRmfFkw7Z2Mqtz0B
+ LN5/HIH0BGQg==
 X-IronPort-AV: E=Sophos;i="5.75,362,1589266800";
-   d="scan'208";a="325362807"
+   d="scan'208";a="318690690"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:00 -0700
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:02 -0700
 From: ira.weiny@intel.com
 To: Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Andy Lutomirski <luto@kernel.org>,
 	Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH RFC V2 00/17] PKS: Add Protection Keys Supervisor (PKS) support
-Date: Fri, 17 Jul 2020 00:20:39 -0700
-Message-Id: <20200717072056.73134-1-ira.weiny@intel.com>
+Subject: [PATCH RFC V2 04/17] x86/pks: Preserve the PKRS MSR on context switch
+Date: Fri, 17 Jul 2020 00:20:43 -0700
+Message-Id: <20200717072056.73134-5-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
+In-Reply-To: <20200717072056.73134-1-ira.weiny@intel.com>
+References: <20200717072056.73134-1-ira.weiny@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: KGPANRQBJINXHDAL5JQCT5R5BPEUPUJQ
-X-Message-ID-Hash: KGPANRQBJINXHDAL5JQCT5R5BPEUPUJQ
+Message-ID-Hash: IEE3IME7WAKY2XWEAHWZ65RFIYK22FED
+X-Message-ID-Hash: IEE3IME7WAKY2XWEAHWZ65RFIYK22FED
 X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
+CC: Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KGPANRQBJINXHDAL5JQCT5R5BPEUPUJQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IEE3IME7WAKY2XWEAHWZ65RFIYK22FED/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -70,201 +73,215 @@ Content-Transfer-Encoding: 7bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-This RFC series has been reviewed by Dave Hansen.
+The PKRS MSR is defined as a per-logical-processor register.  This
+isolates memory access by CPU.  Unfortunately, the MSR is not managed
+by XSAVE.  Therefore, We must preserve the protections for individual
+tasks even if they are context switched out and placed on another cpu
+later.
 
-Changes from RFC:
-	Clean up commit messages based on Peter Zijlstra's and Dave Hansen's
-		feedback
-	Fix static branch anti-pattern
-	New patch:
-	(memremap: Convert devmap static branch to {inc,dec})
-		This was the code I used as a model for my static branch which
-		I believe is wrong now.
-	New Patch:
-	(x86/entry: Preserve PKRS MSR through exceptions)
-		This attempts to preserve the per-logical-processor MSR, and
-		reference counting during exceptions.  I'd really like feed
-		back on this because I _think_ it should work but I'm afraid
-		I'm missing something as my testing has shown a lot of spotty
-		crashes which don't make sense to me.
+Define a saved PKRS value in the task struct, as well as a cached
+per-logical-processor MSR value which mirrors the MSR value of the
+current CPU.  Initialize, all tasks with the default MSR value.  Then,
+on schedule in, check the saved task MSR vs the per-cpu value.  If
+different proceed to write the MSR.  If not we avoid the overhead of the
+MSR write and continue.
 
-This patch set introduces a new page protection mechanism for supervisor pages,
-Protection Key Supervisor (PKS) and an initial user of them, persistent memory,
-PMEM.
+Follow on patches will update the saved PKRS as well as the MSR if
+needed.
 
-PKS enables protections on 'domains' of supervisor pages to limit supervisor
-mode access to those pages beyond the normal paging protections.  They work in
-a similar fashion to user space pkeys.  Like User page pkeys (PKU), supervisor
-pkeys are checked in addition to normal paging protections and Access or Writes
-can be disabled via a MSR update without TLB flushes when permissions change.
-A page mapping is assigned to a domain by setting a pkey in the page table
-entry.
+Co-developed-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ arch/x86/include/asm/msr-index.h      |  1 +
+ arch/x86/include/asm/pkeys_internal.h | 20 +++++++++++++++
+ arch/x86/include/asm/processor.h      | 12 +++++++++
+ arch/x86/kernel/cpu/common.c          |  2 ++
+ arch/x86/kernel/process.c             | 35 +++++++++++++++++++++++++++
+ arch/x86/mm/pkeys.c                   | 13 ++++++++++
+ 6 files changed, 83 insertions(+)
 
-Unlike User pkeys no new instructions are added; rather WRMSR/RDMSR are used to
-update the PKRS register.
-
-XSAVE is not supported for the PKRS MSR.  To reduce software complexity the
-implementation saves/restores the MSR across context switches but not during
-irqs.  This is a compromise which results is a hardening of unwanted access
-without absolute restriction.
-
-For consistent behavior with current paging protections, pkey 0 is reserved and
-configured to allow full access via the pkey mechanism, thus preserving the
-default paging protections on mappings with the default pkey value of 0.
-
-Other keys, (1-15) are allocated by an allocator which prepares us for key
-contention from day one.  Kernel users should be prepared for the allocator to
-fail either because of key exhaustion or due to PKS not being supported on the
-arch and/or CPU instance.
-
-Protecting against stray writes is particularly important for PMEM because,
-unlike writes to anonymous memory, writes to PMEM persists across a reboot.
-Thus data corruption could result in permanent loss of data.
-
-The following attributes of PKS makes it perfect as a mechanism to protect PMEM
-from stray access within the kernel:
-
-   1) Fast switching of permissions
-   2) Prevents access without page table manipulations
-   3) Works on a per thread basis
-   4) No TLB flushes required
-
-The second half of this series thus uses the PKS mechanism to protect PMEM from
-stray access.
-
-PKS is available with 4 and 5 level paging.  Like PKRU is takes 4 bits from the
-PTE to store the pkey within the entry.
-
-
-Implementation details
-----------------------
-
-Modifications of task struct in patches:
-	(x86/pks: Preserve the PKRS MSR on context switch)
-	(memremap: Add zone device access protection)
-
-Because pkey access is per-thread 2 modifications are made to the task struct.
-The first is a saved copy of the MSR during context switches.  The second
-reference counts access to the device domain to correctly handle kmap nesting
-properly.
-
-
-Maintain PKS setting in a re-entrant manner in patch:
-	(memremap: Add zone device access protection)
-	(x86/entry: Preserve PKRS MSR through exceptions)
-
-Using local_irq_save() seems to be the safest and fastest way to maintain kmap
-as re-entrant.  But there may be a better way.  spin_lock_irq() and atomic
-counters were considered.  But atomic counters do not properly protect the pkey
-update and spin_lock_irq() would deadlock.  Suggestions are welcome.
-
-Also preserving the pks state requires the exception handling code to store the
-ref count during exception processing.  This seems like a layering violation
-but it works.
-
-
-The use of kmap in patch:
-	(kmap: Add stray write protection for device pages)
-
-To keep general access to PMEM pages general, we piggy back on the kmap()
-interface as there are many places in the kernel who do not have, nor should be
-required to have, a priori knowledge that a page is PMEM.  The modifications to
-the kmap code is careful to quickly determine which pages don't require special
-handling to reduce overhead for non PMEM pages.
-
-
-
-Breakdown of patches
---------------------
-
-Implement PKS within x86 arch:
-
-	x86/pkeys: Create pkeys_internal.h
-	x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
-	x86/pks: Enable Protection Keys Supervisor (PKS)
-	x86/pks: Preserve the PKRS MSR on context switch
-	x86/pks: Add PKS kernel API
-	x86/pks: Add a debugfs file for allocated PKS keys
-	Documentation/pkeys: Update documentation for kernel pkeys
-	x86/pks: Add PKS Test code
-
-pre-req bug fixes for dax:
-
-	fs/dax: Remove unused size parameter
-	drivers/dax: Expand lock scope to cover the use of addresses
-
-Add stray write protection to PMEM:
-
-	memremap: Add zone device access protection
-	kmap: Add stray write protection for device pages
-	dax: Stray write protection for dax_direct_access()
-	nvdimm/pmem: Stray write protection for pmem->virt_addr
-	[dax|pmem]: Enable stray write protection
-
-
-Fenghua Yu (4):
-  x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
-  x86/pks: Enable Protection Keys Supervisor (PKS)
-  x86/pks: Add PKS kernel API
-  x86/pks: Add a debugfs file for allocated PKS keys
-
-Ira Weiny (13):
-  x86/pkeys: Create pkeys_internal.h
-  x86/pks: Preserve the PKRS MSR on context switch
-  Documentation/pkeys: Update documentation for kernel pkeys
-  x86/pks: Add PKS Test code
-  memremap: Convert devmap static branch to {inc,dec}
-  fs/dax: Remove unused size parameter
-  drivers/dax: Expand lock scope to cover the use of addresses
-  memremap: Add zone device access protection
-  kmap: Add stray write protection for device pages
-  dax: Stray write protection for dax_direct_access()
-  nvdimm/pmem: Stray write protection for pmem->virt_addr
-  [dax|pmem]: Enable stray write protection
-  x86/entry: Preserve PKRS MSR across exceptions
-
- Documentation/core-api/protection-keys.rst  |  81 +++-
- arch/x86/Kconfig                            |   1 +
- arch/x86/entry/common.c                     |  78 +++-
- arch/x86/include/asm/cpufeatures.h          |   1 +
- arch/x86/include/asm/idtentry.h             |   2 +
- arch/x86/include/asm/msr-index.h            |   1 +
- arch/x86/include/asm/pgtable.h              |  13 +-
- arch/x86/include/asm/pgtable_types.h        |   4 +
- arch/x86/include/asm/pkeys.h                |  43 ++
- arch/x86/include/asm/pkeys_internal.h       |  36 ++
- arch/x86/include/asm/processor.h            |  13 +
- arch/x86/include/uapi/asm/processor-flags.h |   2 +
- arch/x86/kernel/cpu/common.c                |  17 +
- arch/x86/kernel/fpu/xstate.c                |  17 +-
- arch/x86/kernel/process.c                   |  34 ++
- arch/x86/mm/fault.c                         |  16 +-
- arch/x86/mm/pkeys.c                         | 174 +++++++-
- drivers/dax/device.c                        |   2 +
- drivers/dax/super.c                         |   5 +-
- drivers/nvdimm/pmem.c                       |   6 +
- fs/dax.c                                    |  13 +-
- include/linux/highmem.h                     |  32 +-
- include/linux/memremap.h                    |   1 +
- include/linux/mm.h                          |  33 ++
- include/linux/pkeys.h                       |  18 +
- include/linux/sched.h                       |   3 +
- init/init_task.c                            |   3 +
- kernel/fork.c                               |   3 +
- lib/Kconfig.debug                           |  12 +
- lib/Makefile                                |   3 +
- lib/pks/Makefile                            |   3 +
- lib/pks/pks_test.c                          | 452 ++++++++++++++++++++
- mm/Kconfig                                  |  15 +
- mm/memremap.c                               | 105 ++++-
- tools/testing/selftests/x86/Makefile        |   3 +-
- tools/testing/selftests/x86/test_pks.c      |  65 +++
- 36 files changed, 1243 insertions(+), 67 deletions(-)
- create mode 100644 arch/x86/include/asm/pkeys_internal.h
- create mode 100644 lib/pks/Makefile
- create mode 100644 lib/pks/pks_test.c
- create mode 100644 tools/testing/selftests/x86/test_pks.c
-
+diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
+index e8370e64a155..b6ffdfc3f388 100644
+--- a/arch/x86/include/asm/msr-index.h
++++ b/arch/x86/include/asm/msr-index.h
+@@ -727,6 +727,7 @@
+ 
+ #define MSR_IA32_TSC_DEADLINE		0x000006E0
+ 
++#define MSR_IA32_PKRS			0x000006E1
+ 
+ #define MSR_TSX_FORCE_ABORT		0x0000010F
+ 
+diff --git a/arch/x86/include/asm/pkeys_internal.h b/arch/x86/include/asm/pkeys_internal.h
+index a9f086f1e4b4..05257cdc7200 100644
+--- a/arch/x86/include/asm/pkeys_internal.h
++++ b/arch/x86/include/asm/pkeys_internal.h
+@@ -8,4 +8,24 @@
+ 
+ #define PKR_AD_KEY(pkey)	(PKR_AD_BIT << ((pkey) * PKR_BITS_PER_PKEY))
+ 
++/*
++ * Define a default PKRS value for each task.
++ *
++ * Key 0 has no restriction.  All other keys are set to the most restrictive
++ * value which is access disabled (AD=1).
++ *
++ * NOTE: This needs to be a macro to be used as part of the INIT_THREAD macro.
++ */
++#define INIT_PKRS_VALUE (PKR_AD_KEY(1) | PKR_AD_KEY(2) | PKR_AD_KEY(3) | \
++			 PKR_AD_KEY(4) | PKR_AD_KEY(5) | PKR_AD_KEY(6) | \
++			 PKR_AD_KEY(7) | PKR_AD_KEY(8) | PKR_AD_KEY(9) | \
++			 PKR_AD_KEY(10) | PKR_AD_KEY(11) | PKR_AD_KEY(12) | \
++			 PKR_AD_KEY(13) | PKR_AD_KEY(14) | PKR_AD_KEY(15))
++
++#ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++void write_pkrs(u32 pkrs_val);
++#else
++static inline void write_pkrs(u32 pkrs_val) { }
++#endif
++
+ #endif /*_ASM_X86_PKEYS_INTERNAL_H */
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index 7da9855b5068..704d9f28fd4e 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -545,6 +545,11 @@ struct thread_struct {
+ 
+ 	unsigned int		sig_on_uaccess_err:1;
+ 
++#ifdef	CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++	/* Saved Protection key register for supervisor mappings */
++	u32			saved_pkrs;
++#endif
++
+ 	/* Floating point and extended processor state */
+ 	struct fpu		fpu;
+ 	/*
+@@ -907,8 +912,15 @@ static inline void spin_lock_prefetch(const void *x)
+ #define STACK_TOP		TASK_SIZE_LOW
+ #define STACK_TOP_MAX		TASK_SIZE_MAX
+ 
++#ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++#define INIT_THREAD_PKRS	.saved_pkrs = INIT_PKRS_VALUE,
++#else
++#define INIT_THREAD_PKRS
++#endif
++
+ #define INIT_THREAD  {						\
+ 	.addr_limit		= KERNEL_DS,			\
++	INIT_THREAD_PKRS					\
+ }
+ 
+ extern unsigned long KSTK_ESP(struct task_struct *task);
+diff --git a/arch/x86/kernel/cpu/common.c b/arch/x86/kernel/cpu/common.c
+index f34bcefeda42..b8241936cbbf 100644
+--- a/arch/x86/kernel/cpu/common.c
++++ b/arch/x86/kernel/cpu/common.c
+@@ -56,6 +56,7 @@
+ #include <asm/intel-family.h>
+ #include <asm/cpu_device_id.h>
+ #include <asm/uv/uv.h>
++#include <asm/pkeys_internal.h>
+ 
+ #include "cpu.h"
+ 
+@@ -1442,6 +1443,7 @@ static void setup_pks(void)
+ 		return;
+ 
+ 	cr4_set_bits(X86_CR4_PKS);
++	write_pkrs(INIT_PKRS_VALUE);
+ }
+ 
+ /*
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index f362ce0d5ac0..d69250a7c1bf 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -42,6 +42,7 @@
+ #include <asm/spec-ctrl.h>
+ #include <asm/io_bitmap.h>
+ #include <asm/proto.h>
++#include <asm/pkeys_internal.h>
+ 
+ #include "process.h"
+ 
+@@ -184,6 +185,36 @@ int copy_thread_tls(unsigned long clone_flags, unsigned long sp,
+ 	return ret;
+ }
+ 
++/*
++ * NOTE: We wrap pks_init_task() and pks_sched_in() with
++ * CONFIG_ARCH_HAS_SUPERVISOR_PKEYS because using IS_ENABLED() fails
++ * due to the lack of task_struct->saved_pkrs in this configuration.
++ * Furthermore, we place them here because of the complexity introduced by
++ * header conflicts introduced to get the task_struct definition in the pkeys
++ * headers.
++ */
++#ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++DECLARE_PER_CPU(u32, pkrs_cache);
++static inline void pks_init_task(struct task_struct *tsk)
++{
++	/* New tasks get the most restrictive PKRS value */
++	tsk->thread.saved_pkrs = INIT_PKRS_VALUE;
++}
++static inline void pks_sched_in(void)
++{
++	u64 current_pkrs = current->thread.saved_pkrs;
++
++	/* Only update the MSR when current's pkrs is different from the MSR. */
++	if (this_cpu_read(pkrs_cache) == current_pkrs)
++		return;
++
++	write_pkrs(current_pkrs);
++}
++#else
++static inline void pks_init_task(struct task_struct *tsk) { }
++static inline void pks_sched_in(void) { }
++#endif
++
+ void flush_thread(void)
+ {
+ 	struct task_struct *tsk = current;
+@@ -192,6 +223,8 @@ void flush_thread(void)
+ 	memset(tsk->thread.tls_array, 0, sizeof(tsk->thread.tls_array));
+ 
+ 	fpu__clear_all(&tsk->thread.fpu);
++
++	pks_init_task(tsk);
+ }
+ 
+ void disable_TSC(void)
+@@ -655,6 +688,8 @@ void __switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p)
+ 
+ 	if ((tifp ^ tifn) & _TIF_SLD)
+ 		switch_to_sld(tifn);
++
++	pks_sched_in();
+ }
+ 
+ /*
+diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
+index a5c680d32930..0f86f2374bd7 100644
+--- a/arch/x86/mm/pkeys.c
++++ b/arch/x86/mm/pkeys.c
+@@ -236,3 +236,16 @@ u32 get_new_pkr(u32 old_pkr, int pkey, unsigned long init_val)
+ 	/* Return the old part along with the new part: */
+ 	return old_pkr | new_pkr_bits;
+ }
++
++DEFINE_PER_CPU(u32, pkrs_cache);
++
++/*
++ * Write the PKey Register Supervisor.  This must be run with preemption
++ * disabled as it does not guarantee the atomicity of updating the pkrs_cache
++ * and MSR on its own.
++ */
++void write_pkrs(u32 pkrs_val)
++{
++	this_cpu_write(pkrs_cache, pkrs_val);
++	wrmsrl(MSR_IA32_PKRS, pkrs_val);
++}
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
