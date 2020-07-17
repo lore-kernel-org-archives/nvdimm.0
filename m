@@ -1,88 +1,97 @@
-Return-Path: <SRS0=z2MS=A3=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=8S6p=A4=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A568C433E5
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 19:22:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 052F4C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 02:52:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C29EF207E8
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 16 Jul 2020 19:22:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C29EF207E8
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id A6FB02076A
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 02:52:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A6FB02076A
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 74C9A11571BF9;
-	Thu, 16 Jul 2020 12:22:36 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.31; helo=mga06.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+	by ml01.01.org (Postfix) with ESMTP id 7827F11DD49DB;
+	Thu, 16 Jul 2020 19:52:35 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9AE4211571BF6
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 12:22:33 -0700 (PDT)
-IronPort-SDR: 9FLoCY7Sjt/oIEg2oqmYw4+SBE7rILvFHg5dKUDcfx1IJI0Zaer9Aq+qHSYhqMusU5KAceFWCj
- zkyYxW1VpvtA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9684"; a="211019345"
-X-IronPort-AV: E=Sophos;i="5.75,360,1589266800";
-   d="scan'208";a="211019345"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2020 12:22:31 -0700
-IronPort-SDR: sgWxlqjo1o6M17PeT2mAk1npmR0Kl1zMweC45j6CMnKH9JT+PJF2Rv8sb2dKMXOqY+CIftrs+L
- 90QbTPTpNyHg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,360,1589266800";
-   d="scan'208";a="269337770"
-Received: from orsmsx103.amr.corp.intel.com ([10.22.225.130])
-  by fmsmga007.fm.intel.com with ESMTP; 16 Jul 2020 12:22:31 -0700
-Received: from orsmsx121.amr.corp.intel.com ([169.254.10.122]) by
- ORSMSX103.amr.corp.intel.com ([169.254.5.226]) with mapi id 14.03.0439.000;
- Thu, 16 Jul 2020 12:22:30 -0700
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "Kaneda, Erik"
-	<erik.kaneda@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 2/2] ACPICA: Preserve memory opregion mappings
-Thread-Topic: [PATCH v4 2/2] ACPICA: Preserve memory opregion mappings
-Thread-Index: AQHWTjNF6NPdlNtf4Ea9cCuLXaianakLJdUA
-Date: Thu, 16 Jul 2020 19:22:30 +0000
-Message-ID: <1738949fd49e9804722bf82d790e3022fc714677.camel@intel.com>
-References: <158889473309.2292982.18007035454673387731.stgit@dwillia2-desk3.amr.corp.intel.com>
-	 <2788992.3K7huLjdjL@kreacher> <1666722.UopIai5n7p@kreacher>
-	 <1794490.F2OrUDcHQn@kreacher>
-In-Reply-To: <1794490.F2OrUDcHQn@kreacher>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Evolution 3.32.5 (3.32.5-1.fc30) 
-x-originating-ip: [10.18.116.7]
-Content-ID: <1158D79CC86D694ABE0899C328498051@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id E97A111DC8C80
+	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 19:52:32 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id 0B461B17F;
+	Fri, 17 Jul 2020 02:52:35 +0000 (UTC)
+From: Coly Li <colyli@suse.de>
+Subject: [RESEND] [PATCH v2] dax: print error message by pr_info() in
+ __generic_fsdax_supported()
+To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
+Autocrypt: addr=colyli@suse.de; keydata=
+ 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
+Message-ID: <9e4e6445-9d57-3b7f-6a2a-ddad750ef11c@suse.de>
+Date: Fri, 17 Jul 2020 10:52:26 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
+ Gecko/20100101 Thunderbird/68.10.0
 MIME-Version: 1.0
-Message-ID-Hash: XRGQIBKUAEMTQC57NMEHQYNM7D5QOFNO
-X-Message-ID-Hash: XRGQIBKUAEMTQC57NMEHQYNM7D5QOFNO
-X-MailFrom: vishal.l.verma@intel.com
+Content-Language: en-US
+Message-ID-Hash: Z2DRQQ673ZZ3EMLFKKRI5N42TWLB34UH
+X-Message-ID-Hash: Z2DRQQ673ZZ3EMLFKKRI5N42TWLB34UH
+X-MailFrom: colyli@suse.de
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-	"james.morse@arm.com" <james.morse@arm.com>,
-	"lenb@kernel.org" <lenb@kernel.org>,
-	"andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>,
-	"bp@alien8.de" <bp@alien8.de>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"myron.stowe@redhat.com" <myron.stowe@redhat.com>,
-	"Wysocki, Rafael J" <rafael.j.wysocki@intel.com>,
-	"Moore,"@ml01.01.org, Robert@ml01.01.org,
-	" <robert.moore@intel.com>, "@ml01.01.org,
-	linux-acpi@vger.kernel.org, linux-acpi@vger.kernel.org
+CC: Coly Li <colyli@suse.de>, Michal Suchanek <msuchanek@suse.com>, Jan Kara <jack@suse.com>, Anthony Iliopoulos <ailiopoulos@suse.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XRGQIBKUAEMTQC57NMEHQYNM7D5QOFNO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Z2DRQQ673ZZ3EMLFKKRI5N42TWLB34UH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,62 +100,116 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, 2020-06-29 at 18:33 +0200, Rafael J. Wysocki wrote:
-> From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> 
-> The ACPICA's strategy with respect to the handling of memory mappings
-> associated with memory operation regions is to avoid mapping the
-> entire region at once which may be problematic at least in principle
-> (for example, it may lead to conflicts with overlapping mappings
-> having different attributes created by drivers).  It may also be
-> wasteful, because memory opregions on some systems take up vast
-> chunks of address space while the fields in those regions actually
-> accessed by AML are sparsely distributed.
-> 
-> For this reason, a one-page "window" is mapped for a given opregion
-> on the first memory access through it and if that "window" does not
-> cover an address range accessed through that opregion subsequently,
-> it is unmapped and a new "window" is mapped to replace it.  Next,
-> if the new "window" is not sufficient to acess memory through the
-> opregion in question in the future, it will be replaced with yet
-> another "window" and so on.  That may lead to a suboptimal sequence
-> of memory mapping and unmapping operations, for example if two fields
-> in one opregion separated from each other by a sufficiently wide
-> chunk of unused address space are accessed in an alternating pattern.
-> 
-> The situation may still be suboptimal if the deferred unmapping
-> introduced previously is supported by the OS layer.  For instance,
-> the alternating memory access pattern mentioned above may produce
-> a relatively long list of mappings to release with substantial
-> duplication among the entries in it, which could be avoided if
-> acpi_ex_system_memory_space_handler() did not release the mapping
-> used by it previously as soon as the current access was not covered
-> by it.
-> 
-> In order to improve that, modify acpi_ex_system_memory_space_handler()
-> to preserve all of the memory mappings created by it until the memory
-> regions associated with them go away.
-> 
-> Accordingly, update acpi_ev_system_memory_region_setup() to unmap all
-> memory associated with memory opregions that go away.
-> 
-> Reported-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/acpica/evrgnini.c | 14 ++++----
->  drivers/acpi/acpica/exregion.c | 65 ++++++++++++++++++++++++----------
->  include/acpi/actypes.h         | 12 +++++--
->  3 files changed, 64 insertions(+), 27 deletions(-)
-> 
+In struct dax_operations, the callback routine dax_supported() returns
+a bool type result. For false return value, the caller has no idea
+whether the device does not support dax at all, or it is just some mis-
+configuration issue.
 
-Hi Rafael,
+An example is formatting an Ext4 file system on pmem device on top of
+a NVDIMM namespace by,
+ # mkfs.ext4 /dev/pmem0
+If the fs block size does not match kernel space memory page size (which
+is possible on non-x86 platform), mount this Ext4 file system will fail,
+  # mount -o dax /dev/pmem0 /mnt
+  mount: /mnt: wrong fs type, bad option, bad superblock on /dev/pmem0,
+  missing codepage or helper program, or other error.
+And from the dmesg output there is only the following information,
+  [  307.853148] EXT4-fs (pmem0): DAX unsupported by block device.
 
-Picking up from Dan while he's out - I had these patches tested by the
-original reporter, and they work fine. I see you had them staged in the
-acpica-osl branch. Is that slated to go in during the 5.9 merge window?
+The above information is quite confusing. Because definiately the pmem0
+device supports dax operation, and the super block is consistent as how
+it was created by mkfs.ext4.
 
-You can add:
-Tested-by: Xiang Li <xiang.z.li@intel.com>
+Indeed the failure is from __generic_fsdax_supported() by the following
+code piece,
+        if (blocksize != PAGE_SIZE) {
+               pr_debug("%s: error: unsupported blocksize for dax\n",
+                                bdevname(bdev, buf));
+                return false;
+        }
+It is because the Ext4 block size is 4KB and kernel page size is 8KB or
+16KB.
+
+It is not simple to make dax_supported() from struct dax_operations
+or __generic_fsdax_supported() to return exact failure type right now.
+So the simplest fix is to use pr_info() to print all the error messages
+inside __generic_fsdax_supported(). Then users may find informative clue
+from the kernel message at least.
+
+Message printed by pr_debug() is very easy to be ignored by users. This
+patch prints error message by pr_info() in __generic_fsdax_supported(),
+when then mount fails, following lines can be found from dmesg output,
+ [ 2705.500885] pmem0: error: unsupported blocksize for dax
+ [ 2705.500888] EXT4-fs (pmem0): DAX unsupported by block device.
+Now the users may have idea the mount failure is from pmem driver for
+unsupported block size.
+
+Reported-by: Michal Suchanek <msuchanek@suse.com>
+Suggested-by: Jan Kara <jack@suse.com>
+Signed-off-by: Coly Li <colyli@suse.de>
+Reviewed-by: Jan Kara <jack@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Anthony Iliopoulos <ailiopoulos@suse.com>
+---
+Changelog:
+v2: Add reviewed-by from Jan Kara
+v1: initial version.
+
+ drivers/dax/super.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 8e32345be0f7..de0d02ec0347 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -80,14 +80,14 @@ bool __generic_fsdax_supported(struct dax_device
+*dax_dev,
+ 	int err, id;
+  	if (blocksize != PAGE_SIZE) {
+-		pr_debug("%s: error: unsupported blocksize for dax\n",
++		pr_info("%s: error: unsupported blocksize for dax\n",
+ 				bdevname(bdev, buf));
+ 		return false;
+ 	}
+  	err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
+ 	if (err) {
+-		pr_debug("%s: error: unaligned partition for dax\n",
++		pr_info("%s: error: unaligned partition for dax\n",
+ 				bdevname(bdev, buf));
+ 		return false;
+ 	}
+@@ -95,7 +95,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
+ 	last_page = PFN_DOWN((start + sectors - 1) * 512) * PAGE_SIZE / 512;
+ 	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
+ 	if (err) {
+-		pr_debug("%s: error: unaligned partition for dax\n",
++		pr_info("%s: error: unaligned partition for dax\n",
+ 				bdevname(bdev, buf));
+ 		return false;
+ 	}
+@@ -106,7 +106,7 @@ bool __generic_fsdax_supported(struct dax_device
+*dax_dev,
+ 	dax_read_unlock(id);
+  	if (len < 1 || len2 < 1) {
+-		pr_debug("%s: error: dax access failed (%ld)\n",
++		pr_info("%s: error: dax access failed (%ld)\n",
+ 				bdevname(bdev, buf), len < 1 ? len : len2);
+ 		return false;
+ 	}
+@@ -139,7 +139,7 @@ bool __generic_fsdax_supported(struct dax_device
+*dax_dev,
+ 	}
+  	if (!dax_enabled) {
+-		pr_debug("%s: error: dax support not enabled\n",
++		pr_info("%s: error: dax support not enabled\n",
+ 				bdevname(bdev, buf));
+ 		return false;
+ 	}
+-- 
+2.26.2
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
