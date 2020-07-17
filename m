@@ -7,62 +7,62 @@ X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96E3EC433E8
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9168FC433F1
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 77B4E2074B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 77B4E2074B
+	by mail.kernel.org (Postfix) with ESMTPS id 70E362074B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:12 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 70E362074B
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B9AD811EB8DF3;
-	Fri, 17 Jul 2020 00:21:06 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 2664311EDD960;
+	Fri, 17 Jul 2020 00:21:08 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
 Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E6DC911571BF6
-	for <linux-nvdimm@lists.01.org>; Fri, 17 Jul 2020 00:21:02 -0700 (PDT)
-IronPort-SDR: ATCqbaVWb51xLTUnyFY219XS7ZrXMw6jYPSY/pK3y+O8RBhnT1CAwWc79WwJDtUjJwrpxB60aU
- 613mQjYePkBA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9684"; a="129632992"
+	by ml01.01.org (Postfix) with ESMTPS id A6A9311EB8DE9
+	for <linux-nvdimm@lists.01.org>; Fri, 17 Jul 2020 00:21:04 -0700 (PDT)
+IronPort-SDR: HGoRM8Hwn6fTiqlShuk9zqf1/HP3l3O8c83Wk9iuanBzmGD6VWF3nxrbiM0lcPl5vc5mmlNbYD
+ 2AfpHd3VXsKg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9684"; a="129632996"
 X-IronPort-AV: E=Sophos;i="5.75,362,1589266800";
-   d="scan'208";a="129632992"
+   d="scan'208";a="129632996"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:02 -0700
-IronPort-SDR: 8i/TZE8qfmw3EhMgZhG/RVSFnd+u3sPC5jkD2v98KRJWRdSZ/qmdi+GKnE2LirhYp+nvpHB/Ax
- DUj5ubNB3hxw==
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:04 -0700
+IronPort-SDR: 4zwRcwamzur591b0APcoSq3hW8wylsw0cAqcpjKNMF8iH8HcKZLa37STEc1jY9FgE2B4hxhh1+
+ 0G1zRQBjWkzQ==
 X-IronPort-AV: E=Sophos;i="5.75,362,1589266800";
-   d="scan'208";a="300484565"
+   d="scan'208";a="361271089"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:01 -0700
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:03 -0700
 From: ira.weiny@intel.com
 To: Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Andy Lutomirski <luto@kernel.org>,
 	Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH RFC V2 02/17] x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
-Date: Fri, 17 Jul 2020 00:20:41 -0700
-Message-Id: <20200717072056.73134-3-ira.weiny@intel.com>
+Subject: [PATCH RFC V2 06/17] x86/pks: Add a debugfs file for allocated PKS keys
+Date: Fri, 17 Jul 2020 00:20:45 -0700
+Message-Id: <20200717072056.73134-7-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20200717072056.73134-1-ira.weiny@intel.com>
 References: <20200717072056.73134-1-ira.weiny@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: QHQP5P24K3MSW235DGCN7EMRMCXCHRIE
-X-Message-ID-Hash: QHQP5P24K3MSW235DGCN7EMRMCXCHRIE
+Message-ID-Hash: 6Z4PS2PQPKCFWG6MU245VAVX6TJ3OQTD
+X-Message-ID-Hash: 6Z4PS2PQPKCFWG6MU245VAVX6TJ3OQTD
 X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QHQP5P24K3MSW235DGCN7EMRMCXCHRIE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6Z4PS2PQPKCFWG6MU245VAVX6TJ3OQTD/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -73,105 +73,63 @@ Content-Transfer-Encoding: 7bit
 
 From: Fenghua Yu <fenghua.yu@intel.com>
 
-Define a helper, get_new_pkr(), which will be used to support both
-Protection Key User (PKU) and the new Protection Key for Supervisor
-(PKS) in subsequent patches.
+The sysadmin may need to know which PKS keys are currently being used.
 
-Co-developed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Add a debugfs file to show the allocated PKS keys and their names.
+
 Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 ---
- arch/x86/include/asm/pkeys.h |  2 ++
- arch/x86/kernel/fpu/xstate.c | 17 +++--------------
- arch/x86/mm/pkeys.c          | 28 ++++++++++++++++++++++++++++
- 3 files changed, 33 insertions(+), 14 deletions(-)
+ arch/x86/mm/pkeys.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-diff --git a/arch/x86/include/asm/pkeys.h b/arch/x86/include/asm/pkeys.h
-index be8b3e448f76..34cef29fed20 100644
---- a/arch/x86/include/asm/pkeys.h
-+++ b/arch/x86/include/asm/pkeys.h
-@@ -136,4 +136,6 @@ static inline int vma_pkey(struct vm_area_struct *vma)
- 	return (vma->vm_flags & vma_pkey_mask) >> VM_PKEY_SHIFT;
- }
- 
-+u32 get_new_pkr(u32 old_pkr, int pkey, unsigned long init_val);
-+
- #endif /*_ASM_X86_PKEYS_H */
-diff --git a/arch/x86/kernel/fpu/xstate.c b/arch/x86/kernel/fpu/xstate.c
-index fc1ec2986e03..1def71dc8105 100644
---- a/arch/x86/kernel/fpu/xstate.c
-+++ b/arch/x86/kernel/fpu/xstate.c
-@@ -954,9 +954,7 @@ const void *get_xsave_field_ptr(int xfeature_nr)
- int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
- 		unsigned long init_val)
- {
--	u32 old_pkru;
--	int pkey_shift = (pkey * PKR_BITS_PER_PKEY);
--	u32 new_pkru_bits = 0;
-+	u32 old_pkru, new_pkru;
- 
- 	/*
- 	 * This check implies XSAVE support.  OSPKE only gets
-@@ -972,21 +970,12 @@ int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
- 	 */
- 	WARN_ON_ONCE(pkey >= arch_max_pkey());
- 
--	/* Set the bits we need in PKRU:  */
--	if (init_val & PKEY_DISABLE_ACCESS)
--		new_pkru_bits |= PKR_AD_BIT;
--	if (init_val & PKEY_DISABLE_WRITE)
--		new_pkru_bits |= PKR_WD_BIT;
--
--	/* Shift the bits in to the correct place in PKRU for pkey: */
--	new_pkru_bits <<= pkey_shift;
--
- 	/* Get old PKRU and mask off any old bits in place: */
- 	old_pkru = read_pkru();
--	old_pkru &= ~((PKR_AD_BIT|PKR_WD_BIT) << pkey_shift);
-+	new_pkru = get_new_pkr(old_pkru, pkey, init_val);
- 
- 	/* Write old part along with new part: */
--	write_pkru(old_pkru | new_pkru_bits);
-+	write_pkru(new_pkru);
- 
- 	return 0;
- }
 diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
-index f5efb4007e74..a5c680d32930 100644
+index 16f735c12fcd..e565fadd74d7 100644
 --- a/arch/x86/mm/pkeys.c
 +++ b/arch/x86/mm/pkeys.c
-@@ -208,3 +208,31 @@ static __init int setup_init_pkru(char *opt)
- 	return 1;
+@@ -328,3 +328,43 @@ void pks_key_free(int pkey)
+ 	mutex_unlock(&pks_lock);
  }
- __setup("init_pkru=", setup_init_pkru);
+ EXPORT_SYMBOL_GPL(pks_key_free);
 +
-+/*
-+ * Get a new pkey register value from the user values specified.
-+ *
-+ * Kernel users use the same flags as user space:
-+ *     PKEY_DISABLE_ACCESS
-+ *     PKEY_DISABLE_WRITE
-+ */
-+u32 get_new_pkr(u32 old_pkr, int pkey, unsigned long init_val)
++static int pks_keys_allocated_show(struct seq_file *m, void *p)
 +{
-+	int pkey_shift = (pkey * PKR_BITS_PER_PKEY);
-+	u32 new_pkr_bits = 0;
++	int i;
 +
-+	/* Set the bits we need in the register:  */
-+	if (init_val & PKEY_DISABLE_ACCESS)
-+		new_pkr_bits |= PKR_AD_BIT;
-+	if (init_val & PKEY_DISABLE_WRITE)
-+		new_pkr_bits |= PKR_WD_BIT;
++	mutex_lock(&pks_lock);
++	for (i = PKS_KERN_DEFAULT_KEY; i < PKS_NUM_KEYS; i++) {
++		/* It is ok for pks_key_users[i] to be NULL */
++		if (test_bit(i, &pks_key_allocation_map))
++			seq_printf(m, "%d: %s\n", i, pks_key_users[i]);
++	}
++	mutex_unlock(&pks_lock);
 +
-+	/* Shift the bits in to the correct place: */
-+	new_pkr_bits <<= pkey_shift;
-+
-+	/* Mask off any old bits in place: */
-+	old_pkr &= ~((PKR_AD_BIT | PKR_WD_BIT) << pkey_shift);
-+
-+	/* Return the old part along with the new part: */
-+	return old_pkr | new_pkr_bits;
++	return 0;
 +}
++
++static int pks_keys_allocated_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pks_keys_allocated_show, NULL);
++}
++
++static const struct file_operations pks_keys_allocated_fops = {
++	.open		= pks_keys_allocated_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int __init pks_keys_initcall(void)
++{
++	if (cpu_feature_enabled(X86_FEATURE_PKS)) {
++		/* Create a debugfs file to show allocated PKS keys. */
++		debugfs_create_file("pks_keys_allocated", 0400,
++				    arch_debugfs_dir, NULL,
++				    &pks_keys_allocated_fops);
++	}
++
++	return 0;
++}
++late_initcall(pks_keys_initcall);
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
