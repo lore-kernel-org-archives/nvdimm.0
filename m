@@ -2,96 +2,64 @@ Return-Path: <SRS0=8S6p=A4=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 052F4C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 02:52:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF358C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:04 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A6FB02076A
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 02:52:35 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A6FB02076A
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
+	by mail.kernel.org (Postfix) with ESMTPS id BDA7020737
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 17 Jul 2020 07:21:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BDA7020737
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7827F11DD49DB;
-	Thu, 16 Jul 2020 19:52:35 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 6D52C11E9F634;
+	Fri, 17 Jul 2020 00:21:04 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E97A111DC8C80
-	for <linux-nvdimm@lists.01.org>; Thu, 16 Jul 2020 19:52:32 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 0B461B17F;
-	Fri, 17 Jul 2020 02:52:35 +0000 (UTC)
-From: Coly Li <colyli@suse.de>
-Subject: [RESEND] [PATCH v2] dax: print error message by pr_info() in
- __generic_fsdax_supported()
-To: dan.j.williams@intel.com, linux-nvdimm@lists.01.org
-Autocrypt: addr=colyli@suse.de; keydata=
- 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
-Message-ID: <9e4e6445-9d57-3b7f-6a2a-ddad750ef11c@suse.de>
-Date: Fri, 17 Jul 2020 10:52:26 +0800
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
- Gecko/20100101 Thunderbird/68.10.0
+	by ml01.01.org (Postfix) with ESMTPS id 38C0711571BF6
+	for <linux-nvdimm@lists.01.org>; Fri, 17 Jul 2020 00:21:01 -0700 (PDT)
+IronPort-SDR: O+TUmQfHCAaH/SISZxVmWGEO+narmskTWM2a0fP0Y9bwu1Cd8IFNJ3y2gYe+xW/VRZpaRanxwV
+ tcf5HuRt7Sjw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9684"; a="167682216"
+X-IronPort-AV: E=Sophos;i="5.75,362,1589266800";
+   d="scan'208";a="167682216"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:00 -0700
+IronPort-SDR: I2kPLSZY3sAJB+AtMjz54IDv5wzrL5svBf5Z2YmpNMJTlVEZtD0KsDT1urlyovYN6eDZ/bnV7t
+ EEcE83OL6BIw==
+X-IronPort-AV: E=Sophos;i="5.75,362,1589266800";
+   d="scan'208";a="325362807"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jul 2020 00:21:00 -0700
+From: ira.weiny@intel.com
+To: Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>
+Subject: [PATCH RFC V2 00/17] PKS: Add Protection Keys Supervisor (PKS) support
+Date: Fri, 17 Jul 2020 00:20:39 -0700
+Message-Id: <20200717072056.73134-1-ira.weiny@intel.com>
+X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 MIME-Version: 1.0
-Content-Language: en-US
-Message-ID-Hash: Z2DRQQ673ZZ3EMLFKKRI5N42TWLB34UH
-X-Message-ID-Hash: Z2DRQQ673ZZ3EMLFKKRI5N42TWLB34UH
-X-MailFrom: colyli@suse.de
+Message-ID-Hash: KGPANRQBJINXHDAL5JQCT5R5BPEUPUJQ
+X-Message-ID-Hash: KGPANRQBJINXHDAL5JQCT5R5BPEUPUJQ
+X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Coly Li <colyli@suse.de>, Michal Suchanek <msuchanek@suse.com>, Jan Kara <jack@suse.com>, Anthony Iliopoulos <ailiopoulos@suse.com>
+CC: x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Z2DRQQ673ZZ3EMLFKKRI5N42TWLB34UH/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KGPANRQBJINXHDAL5JQCT5R5BPEUPUJQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -100,116 +68,205 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In struct dax_operations, the callback routine dax_supported() returns
-a bool type result. For false return value, the caller has no idea
-whether the device does not support dax at all, or it is just some mis-
-configuration issue.
+From: Ira Weiny <ira.weiny@intel.com>
 
-An example is formatting an Ext4 file system on pmem device on top of
-a NVDIMM namespace by,
- # mkfs.ext4 /dev/pmem0
-If the fs block size does not match kernel space memory page size (which
-is possible on non-x86 platform), mount this Ext4 file system will fail,
-  # mount -o dax /dev/pmem0 /mnt
-  mount: /mnt: wrong fs type, bad option, bad superblock on /dev/pmem0,
-  missing codepage or helper program, or other error.
-And from the dmesg output there is only the following information,
-  [  307.853148] EXT4-fs (pmem0): DAX unsupported by block device.
+This RFC series has been reviewed by Dave Hansen.
 
-The above information is quite confusing. Because definiately the pmem0
-device supports dax operation, and the super block is consistent as how
-it was created by mkfs.ext4.
+Changes from RFC:
+	Clean up commit messages based on Peter Zijlstra's and Dave Hansen's
+		feedback
+	Fix static branch anti-pattern
+	New patch:
+	(memremap: Convert devmap static branch to {inc,dec})
+		This was the code I used as a model for my static branch which
+		I believe is wrong now.
+	New Patch:
+	(x86/entry: Preserve PKRS MSR through exceptions)
+		This attempts to preserve the per-logical-processor MSR, and
+		reference counting during exceptions.  I'd really like feed
+		back on this because I _think_ it should work but I'm afraid
+		I'm missing something as my testing has shown a lot of spotty
+		crashes which don't make sense to me.
 
-Indeed the failure is from __generic_fsdax_supported() by the following
-code piece,
-        if (blocksize != PAGE_SIZE) {
-               pr_debug("%s: error: unsupported blocksize for dax\n",
-                                bdevname(bdev, buf));
-                return false;
-        }
-It is because the Ext4 block size is 4KB and kernel page size is 8KB or
-16KB.
+This patch set introduces a new page protection mechanism for supervisor pages,
+Protection Key Supervisor (PKS) and an initial user of them, persistent memory,
+PMEM.
 
-It is not simple to make dax_supported() from struct dax_operations
-or __generic_fsdax_supported() to return exact failure type right now.
-So the simplest fix is to use pr_info() to print all the error messages
-inside __generic_fsdax_supported(). Then users may find informative clue
-from the kernel message at least.
+PKS enables protections on 'domains' of supervisor pages to limit supervisor
+mode access to those pages beyond the normal paging protections.  They work in
+a similar fashion to user space pkeys.  Like User page pkeys (PKU), supervisor
+pkeys are checked in addition to normal paging protections and Access or Writes
+can be disabled via a MSR update without TLB flushes when permissions change.
+A page mapping is assigned to a domain by setting a pkey in the page table
+entry.
 
-Message printed by pr_debug() is very easy to be ignored by users. This
-patch prints error message by pr_info() in __generic_fsdax_supported(),
-when then mount fails, following lines can be found from dmesg output,
- [ 2705.500885] pmem0: error: unsupported blocksize for dax
- [ 2705.500888] EXT4-fs (pmem0): DAX unsupported by block device.
-Now the users may have idea the mount failure is from pmem driver for
-unsupported block size.
+Unlike User pkeys no new instructions are added; rather WRMSR/RDMSR are used to
+update the PKRS register.
 
-Reported-by: Michal Suchanek <msuchanek@suse.com>
-Suggested-by: Jan Kara <jack@suse.com>
-Signed-off-by: Coly Li <colyli@suse.de>
-Reviewed-by: Jan Kara <jack@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Anthony Iliopoulos <ailiopoulos@suse.com>
----
-Changelog:
-v2: Add reviewed-by from Jan Kara
-v1: initial version.
+XSAVE is not supported for the PKRS MSR.  To reduce software complexity the
+implementation saves/restores the MSR across context switches but not during
+irqs.  This is a compromise which results is a hardening of unwanted access
+without absolute restriction.
 
- drivers/dax/super.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+For consistent behavior with current paging protections, pkey 0 is reserved and
+configured to allow full access via the pkey mechanism, thus preserving the
+default paging protections on mappings with the default pkey value of 0.
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 8e32345be0f7..de0d02ec0347 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -80,14 +80,14 @@ bool __generic_fsdax_supported(struct dax_device
-*dax_dev,
- 	int err, id;
-  	if (blocksize != PAGE_SIZE) {
--		pr_debug("%s: error: unsupported blocksize for dax\n",
-+		pr_info("%s: error: unsupported blocksize for dax\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
-  	err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
- 	if (err) {
--		pr_debug("%s: error: unaligned partition for dax\n",
-+		pr_info("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
-@@ -95,7 +95,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
- 	last_page = PFN_DOWN((start + sectors - 1) * 512) * PAGE_SIZE / 512;
- 	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
- 	if (err) {
--		pr_debug("%s: error: unaligned partition for dax\n",
-+		pr_info("%s: error: unaligned partition for dax\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
-@@ -106,7 +106,7 @@ bool __generic_fsdax_supported(struct dax_device
-*dax_dev,
- 	dax_read_unlock(id);
-  	if (len < 1 || len2 < 1) {
--		pr_debug("%s: error: dax access failed (%ld)\n",
-+		pr_info("%s: error: dax access failed (%ld)\n",
- 				bdevname(bdev, buf), len < 1 ? len : len2);
- 		return false;
- 	}
-@@ -139,7 +139,7 @@ bool __generic_fsdax_supported(struct dax_device
-*dax_dev,
- 	}
-  	if (!dax_enabled) {
--		pr_debug("%s: error: dax support not enabled\n",
-+		pr_info("%s: error: dax support not enabled\n",
- 				bdevname(bdev, buf));
- 		return false;
- 	}
+Other keys, (1-15) are allocated by an allocator which prepares us for key
+contention from day one.  Kernel users should be prepared for the allocator to
+fail either because of key exhaustion or due to PKS not being supported on the
+arch and/or CPU instance.
+
+Protecting against stray writes is particularly important for PMEM because,
+unlike writes to anonymous memory, writes to PMEM persists across a reboot.
+Thus data corruption could result in permanent loss of data.
+
+The following attributes of PKS makes it perfect as a mechanism to protect PMEM
+from stray access within the kernel:
+
+   1) Fast switching of permissions
+   2) Prevents access without page table manipulations
+   3) Works on a per thread basis
+   4) No TLB flushes required
+
+The second half of this series thus uses the PKS mechanism to protect PMEM from
+stray access.
+
+PKS is available with 4 and 5 level paging.  Like PKRU is takes 4 bits from the
+PTE to store the pkey within the entry.
+
+
+Implementation details
+----------------------
+
+Modifications of task struct in patches:
+	(x86/pks: Preserve the PKRS MSR on context switch)
+	(memremap: Add zone device access protection)
+
+Because pkey access is per-thread 2 modifications are made to the task struct.
+The first is a saved copy of the MSR during context switches.  The second
+reference counts access to the device domain to correctly handle kmap nesting
+properly.
+
+
+Maintain PKS setting in a re-entrant manner in patch:
+	(memremap: Add zone device access protection)
+	(x86/entry: Preserve PKRS MSR through exceptions)
+
+Using local_irq_save() seems to be the safest and fastest way to maintain kmap
+as re-entrant.  But there may be a better way.  spin_lock_irq() and atomic
+counters were considered.  But atomic counters do not properly protect the pkey
+update and spin_lock_irq() would deadlock.  Suggestions are welcome.
+
+Also preserving the pks state requires the exception handling code to store the
+ref count during exception processing.  This seems like a layering violation
+but it works.
+
+
+The use of kmap in patch:
+	(kmap: Add stray write protection for device pages)
+
+To keep general access to PMEM pages general, we piggy back on the kmap()
+interface as there are many places in the kernel who do not have, nor should be
+required to have, a priori knowledge that a page is PMEM.  The modifications to
+the kmap code is careful to quickly determine which pages don't require special
+handling to reduce overhead for non PMEM pages.
+
+
+
+Breakdown of patches
+--------------------
+
+Implement PKS within x86 arch:
+
+	x86/pkeys: Create pkeys_internal.h
+	x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
+	x86/pks: Enable Protection Keys Supervisor (PKS)
+	x86/pks: Preserve the PKRS MSR on context switch
+	x86/pks: Add PKS kernel API
+	x86/pks: Add a debugfs file for allocated PKS keys
+	Documentation/pkeys: Update documentation for kernel pkeys
+	x86/pks: Add PKS Test code
+
+pre-req bug fixes for dax:
+
+	fs/dax: Remove unused size parameter
+	drivers/dax: Expand lock scope to cover the use of addresses
+
+Add stray write protection to PMEM:
+
+	memremap: Add zone device access protection
+	kmap: Add stray write protection for device pages
+	dax: Stray write protection for dax_direct_access()
+	nvdimm/pmem: Stray write protection for pmem->virt_addr
+	[dax|pmem]: Enable stray write protection
+
+
+Fenghua Yu (4):
+  x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
+  x86/pks: Enable Protection Keys Supervisor (PKS)
+  x86/pks: Add PKS kernel API
+  x86/pks: Add a debugfs file for allocated PKS keys
+
+Ira Weiny (13):
+  x86/pkeys: Create pkeys_internal.h
+  x86/pks: Preserve the PKRS MSR on context switch
+  Documentation/pkeys: Update documentation for kernel pkeys
+  x86/pks: Add PKS Test code
+  memremap: Convert devmap static branch to {inc,dec}
+  fs/dax: Remove unused size parameter
+  drivers/dax: Expand lock scope to cover the use of addresses
+  memremap: Add zone device access protection
+  kmap: Add stray write protection for device pages
+  dax: Stray write protection for dax_direct_access()
+  nvdimm/pmem: Stray write protection for pmem->virt_addr
+  [dax|pmem]: Enable stray write protection
+  x86/entry: Preserve PKRS MSR across exceptions
+
+ Documentation/core-api/protection-keys.rst  |  81 +++-
+ arch/x86/Kconfig                            |   1 +
+ arch/x86/entry/common.c                     |  78 +++-
+ arch/x86/include/asm/cpufeatures.h          |   1 +
+ arch/x86/include/asm/idtentry.h             |   2 +
+ arch/x86/include/asm/msr-index.h            |   1 +
+ arch/x86/include/asm/pgtable.h              |  13 +-
+ arch/x86/include/asm/pgtable_types.h        |   4 +
+ arch/x86/include/asm/pkeys.h                |  43 ++
+ arch/x86/include/asm/pkeys_internal.h       |  36 ++
+ arch/x86/include/asm/processor.h            |  13 +
+ arch/x86/include/uapi/asm/processor-flags.h |   2 +
+ arch/x86/kernel/cpu/common.c                |  17 +
+ arch/x86/kernel/fpu/xstate.c                |  17 +-
+ arch/x86/kernel/process.c                   |  34 ++
+ arch/x86/mm/fault.c                         |  16 +-
+ arch/x86/mm/pkeys.c                         | 174 +++++++-
+ drivers/dax/device.c                        |   2 +
+ drivers/dax/super.c                         |   5 +-
+ drivers/nvdimm/pmem.c                       |   6 +
+ fs/dax.c                                    |  13 +-
+ include/linux/highmem.h                     |  32 +-
+ include/linux/memremap.h                    |   1 +
+ include/linux/mm.h                          |  33 ++
+ include/linux/pkeys.h                       |  18 +
+ include/linux/sched.h                       |   3 +
+ init/init_task.c                            |   3 +
+ kernel/fork.c                               |   3 +
+ lib/Kconfig.debug                           |  12 +
+ lib/Makefile                                |   3 +
+ lib/pks/Makefile                            |   3 +
+ lib/pks/pks_test.c                          | 452 ++++++++++++++++++++
+ mm/Kconfig                                  |  15 +
+ mm/memremap.c                               | 105 ++++-
+ tools/testing/selftests/x86/Makefile        |   3 +-
+ tools/testing/selftests/x86/test_pks.c      |  65 +++
+ 36 files changed, 1243 insertions(+), 67 deletions(-)
+ create mode 100644 arch/x86/include/asm/pkeys_internal.h
+ create mode 100644 lib/pks/Makefile
+ create mode 100644 lib/pks/pks_test.c
+ create mode 100644 tools/testing/selftests/x86/test_pks.c
+
 -- 
-2.26.2
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
