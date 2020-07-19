@@ -2,66 +2,78 @@ Return-Path: <SRS0=3q97=A6=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A437AC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 19 Jul 2020 04:55:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A17AC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 19 Jul 2020 17:02:29 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 70CAF20702
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 19 Jul 2020 04:55:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 70CAF20702
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4662E21741
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 19 Jul 2020 17:02:29 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AiibJWOS"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4662E21741
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 40CB5122BCDBD;
-	Sat, 18 Jul 2020 21:55:44 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 1A701123226C6;
+	Sun, 19 Jul 2020 10:02:29 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::d43; helo=mail-io1-xd43.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 75AC7122A8107
-	for <linux-nvdimm@lists.01.org>; Sat, 18 Jul 2020 21:55:41 -0700 (PDT)
-IronPort-SDR: NxD1F4SAqx2AUOJ+B9wESnlcFWT4sEVTHRho1nAXskkUYbTm30eTPn6CFN2jhyczLkEVk5LyaU
- NPQJwUIL/h9w==
-X-IronPort-AV: E=McAfee;i="6000,8403,9686"; a="234639219"
-X-IronPort-AV: E=Sophos;i="5.75,369,1589266800";
-   d="scan'208";a="234639219"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jul 2020 21:55:41 -0700
-IronPort-SDR: ttNzUQK53fn8Pq7YDs1euGFOHcaiohapj5wYuxeySgU8HDlKA+MUoY/1UWYxG14K/S2qzrRVe2
- OxNgxOQRqt+w==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,369,1589266800";
-   d="scan'208";a="325773429"
-Received: from iweiny-desk2.sc.intel.com ([10.3.52.147])
-  by FMSMGA003.fm.intel.com with ESMTP; 18 Jul 2020 21:55:41 -0700
-Date: Sat, 18 Jul 2020 21:55:40 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-To: Coly Li <colyli@suse.de>
-Subject: Re: [RESEND] [PATCH v2] dax: print error message by pr_info() in
- __generic_fsdax_supported()
-Message-ID: <20200719045540.GC478573@iweiny-DESK2.sc.intel.com>
-References: <9e4e6445-9d57-3b7f-6a2a-ddad750ef11c@suse.de>
+	by ml01.01.org (Postfix) with ESMTPS id C83AF123226C2
+	for <linux-nvdimm@lists.01.org>; Sun, 19 Jul 2020 10:02:26 -0700 (PDT)
+Received: by mail-io1-xd43.google.com with SMTP id a12so15207438ion.13
+        for <linux-nvdimm@lists.01.org>; Sun, 19 Jul 2020 10:02:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=CFK3UwaE42KGyP2Sj/KDZP66HrN27BuyK6YsPPWFya0=;
+        b=AiibJWOSwD/dYiJf3aNeBimDtzvUn5PHGdo3XB22I+DbmosUj2Eu8zmFyjWBZtpvTQ
+         sj+xpDaPSP6MW++zBUpYmXrjv7e6c12YUWbDAFYJe2oiX8++Rzd1aoDbSTbMRbErq+sL
+         BO4kgBZZPx0J2ZccGt6r/Jog4weFzjGc+Hh+pvdr1WW4o9ZDNxnI291l75EYhNrjOVhQ
+         qqEeR9RW4t/U5AkS75gMQ3N23w3YK/KXM/aPdiATNOycA51i10F4Tvwhajrr4mKY23JP
+         Lf0zneuGJwptdaBuganlxeaMy7emtxGXfdyYcsFt4G180auX1Ql13ULHROIvVFemiqkF
+         ijuw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=CFK3UwaE42KGyP2Sj/KDZP66HrN27BuyK6YsPPWFya0=;
+        b=CgJ9tQ6wockPP3zO4KXvAIy8nTDgH7gGXtwgI4DwEzBmOg/lRPsPP+5S18XFdJkKmu
+         jQ5HDpIoHeomC0eIRzQvTsmQ9fA0jpN/z21YIvIo1bGtDQh9ppXoTLNtRoIpC77MKcD2
+         IN/CqjrG0Ln8ZMfHevSZ4GbbdHG6ifVZ56BBd2kMVW/akTdsnrGHOiFF+iBsh+zCPdW7
+         3Qjo0Kl4TxJgkLwwDGPBQDoAnwYaqOhPfBPVEQfFxEFArYCUV5msz+LlSrDzMOcLdiRA
+         sKXKhyQHVyZj4E8MQQ9LDPJoeL9HmnfkXjmgSdBwTg0b0F6BnLo2ikz7b8gTLeaVpGGK
+         ZuOQ==
+X-Gm-Message-State: AOAM532maJSw2csDW/uEAi+lG2Ly7yk9eNQGxzSnQcwUSz7NbxH7BdcH
+	pVPMSFAmxq+zyoK1fPGJPLSyFSRmXJrjlwX0W94=
+X-Google-Smtp-Source: ABdhPJyHKB2QMyusNGZ4VMgZnDlkZDqzr9cDgBNQhyS1Fi0W+4WtwPHl6Kb6UvPVVucOYG7sedF7PhV2504OsJPoGDI=
+X-Received: by 2002:a6b:7c02:: with SMTP id m2mr19221018iok.49.1595178145663;
+ Sun, 19 Jul 2020 10:02:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
+References: <9e4e6445-9d57-3b7f-6a2a-ddad750ef11c@suse.de>
 In-Reply-To: <9e4e6445-9d57-3b7f-6a2a-ddad750ef11c@suse.de>
-User-Agent: Mutt/1.11.1 (2018-12-01)
-Message-ID-Hash: 6PVPCUS5N4V5P5JH4FZYCQ6L4ZPPQ66E
-X-Message-ID-Hash: 6PVPCUS5N4V5P5JH4FZYCQ6L4ZPPQ66E
-X-MailFrom: ira.weiny@intel.com
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Sun, 19 Jul 2020 19:02:14 +0200
+Message-ID: <CAM9Jb+i+XBfrX3_H_p6jXjRnMHHycUp_2owvJDR2-kQBdDFv8g@mail.gmail.com>
+Subject: Re: [RESEND] [PATCH v2] dax: print error message by pr_info() in __generic_fsdax_supported()
+To: Coly Li <colyli@suse.de>
+Message-ID-Hash: WFM2M3CUI4UGPUMJP7DH6ZDQUOLZMLW3
+X-Message-ID-Hash: WFM2M3CUI4UGPUMJP7DH6ZDQUOLZMLW3
+X-MailFrom: pankaj.gupta.linux@gmail.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org, Michal Suchanek <msuchanek@suse.com>, Jan Kara <jack@suse.com>, Anthony Iliopoulos <ailiopoulos@suse.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6PVPCUS5N4V5P5JH4FZYCQ6L4ZPPQ66E/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WFM2M3CUI4UGPUMJP7DH6ZDQUOLZMLW3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -70,12 +82,11 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 17, 2020 at 10:52:26AM +0800, Coly Li wrote:
 > In struct dax_operations, the callback routine dax_supported() returns
 > a bool type result. For false return value, the caller has no idea
 > whether the device does not support dax at all, or it is just some mis-
 > configuration issue.
-> 
+>
 > An example is formatting an Ext4 file system on pmem device on top of
 > a NVDIMM namespace by,
 >  # mkfs.ext4 /dev/pmem0
@@ -86,11 +97,12 @@ On Fri, Jul 17, 2020 at 10:52:26AM +0800, Coly Li wrote:
 >   missing codepage or helper program, or other error.
 > And from the dmesg output there is only the following information,
 >   [  307.853148] EXT4-fs (pmem0): DAX unsupported by block device.
-> 
+>
 > The above information is quite confusing. Because definiately the pmem0
+s/definiately/definitely
 > device supports dax operation, and the super block is consistent as how
 > it was created by mkfs.ext4.
-> 
+>
 > Indeed the failure is from __generic_fsdax_supported() by the following
 > code piece,
 >         if (blocksize != PAGE_SIZE) {
@@ -100,13 +112,13 @@ On Fri, Jul 17, 2020 at 10:52:26AM +0800, Coly Li wrote:
 >         }
 > It is because the Ext4 block size is 4KB and kernel page size is 8KB or
 > 16KB.
-> 
+>
 > It is not simple to make dax_supported() from struct dax_operations
 > or __generic_fsdax_supported() to return exact failure type right now.
 > So the simplest fix is to use pr_info() to print all the error messages
 > inside __generic_fsdax_supported(). Then users may find informative clue
 > from the kernel message at least.
-> 
+>
 > Message printed by pr_debug() is very easy to be ignored by users. This
 > patch prints error message by pr_info() in __generic_fsdax_supported(),
 > when then mount fails, following lines can be found from dmesg output,
@@ -114,81 +126,72 @@ On Fri, Jul 17, 2020 at 10:52:26AM +0800, Coly Li wrote:
 >  [ 2705.500888] EXT4-fs (pmem0): DAX unsupported by block device.
 > Now the users may have idea the mount failure is from pmem driver for
 > unsupported block size.
-> 
+>
 > Reported-by: Michal Suchanek <msuchanek@suse.com>
 > Suggested-by: Jan Kara <jack@suse.com>
 > Signed-off-by: Coly Li <colyli@suse.de>
 > Reviewed-by: Jan Kara <jack@suse.com>
-
-Yes this looks good to me as well.
-
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-
 > Cc: Dan Williams <dan.j.williams@intel.com>
 > Cc: Anthony Iliopoulos <ailiopoulos@suse.com>
 > ---
 > Changelog:
 > v2: Add reviewed-by from Jan Kara
 > v1: initial version.
-> 
+>
 >  drivers/dax/super.c | 10 +++++-----
 >  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
+>
 > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
 > index 8e32345be0f7..de0d02ec0347 100644
 > --- a/drivers/dax/super.c
 > +++ b/drivers/dax/super.c
 > @@ -80,14 +80,14 @@ bool __generic_fsdax_supported(struct dax_device
 > *dax_dev,
->  	int err, id;
->   	if (blocksize != PAGE_SIZE) {
-> -		pr_debug("%s: error: unsupported blocksize for dax\n",
-> +		pr_info("%s: error: unsupported blocksize for dax\n",
->  				bdevname(bdev, buf));
->  		return false;
->  	}
->   	err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
->  	if (err) {
-> -		pr_debug("%s: error: unaligned partition for dax\n",
-> +		pr_info("%s: error: unaligned partition for dax\n",
->  				bdevname(bdev, buf));
->  		return false;
->  	}
+>         int err, id;
+>         if (blocksize != PAGE_SIZE) {
+> -               pr_debug("%s: error: unsupported blocksize for dax\n",
+> +               pr_info("%s: error: unsupported blocksize for dax\n",
+>                                 bdevname(bdev, buf));
+>                 return false;
+>         }
+>         err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
+>         if (err) {
+> -               pr_debug("%s: error: unaligned partition for dax\n",
+> +               pr_info("%s: error: unaligned partition for dax\n",
+>                                 bdevname(bdev, buf));
+>                 return false;
+>         }
 > @@ -95,7 +95,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
->  	last_page = PFN_DOWN((start + sectors - 1) * 512) * PAGE_SIZE / 512;
->  	err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
->  	if (err) {
-> -		pr_debug("%s: error: unaligned partition for dax\n",
-> +		pr_info("%s: error: unaligned partition for dax\n",
->  				bdevname(bdev, buf));
->  		return false;
->  	}
+>         last_page = PFN_DOWN((start + sectors - 1) * 512) * PAGE_SIZE / 512;
+>         err = bdev_dax_pgoff(bdev, last_page, PAGE_SIZE, &pgoff_end);
+>         if (err) {
+> -               pr_debug("%s: error: unaligned partition for dax\n",
+> +               pr_info("%s: error: unaligned partition for dax\n",
+>                                 bdevname(bdev, buf));
+>                 return false;
+>         }
 > @@ -106,7 +106,7 @@ bool __generic_fsdax_supported(struct dax_device
 > *dax_dev,
->  	dax_read_unlock(id);
->   	if (len < 1 || len2 < 1) {
-> -		pr_debug("%s: error: dax access failed (%ld)\n",
-> +		pr_info("%s: error: dax access failed (%ld)\n",
->  				bdevname(bdev, buf), len < 1 ? len : len2);
->  		return false;
->  	}
+>         dax_read_unlock(id);
+>         if (len < 1 || len2 < 1) {
+> -               pr_debug("%s: error: dax access failed (%ld)\n",
+> +               pr_info("%s: error: dax access failed (%ld)\n",
+>                                 bdevname(bdev, buf), len < 1 ? len : len2);
+>                 return false;
+>         }
 > @@ -139,7 +139,7 @@ bool __generic_fsdax_supported(struct dax_device
 > *dax_dev,
->  	}
->   	if (!dax_enabled) {
-> -		pr_debug("%s: error: dax support not enabled\n",
-> +		pr_info("%s: error: dax support not enabled\n",
->  				bdevname(bdev, buf));
->  		return false;
->  	}
-> -- 
+>         }
+>         if (!dax_enabled) {
+> -               pr_debug("%s: error: dax support not enabled\n",
+> +               pr_info("%s: error: dax support not enabled\n",
+>                                 bdevname(bdev, buf));
+>                 return false;
+>         }
+> --
 > 2.26.2
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
