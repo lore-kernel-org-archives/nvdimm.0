@@ -2,63 +2,65 @@ Return-Path: <SRS0=HKnB=A7=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD593C433EB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Jul 2020 22:23:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3757C433F4
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Jul 2020 22:24:00 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9ABFE206E9
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Jul 2020 22:23:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9ABFE206E9
+	by mail.kernel.org (Postfix) with ESMTPS id CDC34206E9
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 20 Jul 2020 22:24:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CDC34206E9
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 84D92124059A8;
-	Mon, 20 Jul 2020 15:23:50 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.136; helo=mga12.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	by ml01.01.org (Postfix) with ESMTP id B1E9D124059A8;
+	Mon, 20 Jul 2020 15:24:00 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B5A1C100A6D47
-	for <linux-nvdimm@lists.01.org>; Mon, 20 Jul 2020 15:23:47 -0700 (PDT)
-IronPort-SDR: mePUxWer5QGI/nafOonrBQZwau0ZMQrMFGzSl6BasUy+Jw6Quz+fZ7Tt0wE19Hz71KOtnhYsul
- r69ZzvQg6RfQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9688"; a="129589096"
+	by ml01.01.org (Postfix) with ESMTPS id 2A571124059A7
+	for <linux-nvdimm@lists.01.org>; Mon, 20 Jul 2020 15:23:58 -0700 (PDT)
+IronPort-SDR: Gf3YXaRJNAsWIImL55QIi3fYK9I71JHmk/+HxPANY5vAp5peRkfwDTDIesb8cw383zrYmIjEF5
+ 3v3jtP6wFhmg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9688"; a="138115463"
 X-IronPort-AV: E=Sophos;i="5.75,375,1589266800";
-   d="scan'208";a="129589096"
+   d="scan'208";a="138115463"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2020 15:23:47 -0700
-IronPort-SDR: kmKn9RjYXaNn3nGZ+7bK90zmriF2zraooeBkrwvp4f0lz7ooTt+8zKETTtoXn8kbRB2lSzFNrf
- cbVhrgCWEBcg==
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2020 15:23:57 -0700
+IronPort-SDR: gUgl8CdMPAzmvW0P3laarhlCz0ttcyxj0/Rxs8+3RldK9t3HahFCVJuVDeRx9jn+21Vk2+tESd
+ PKUpjbE4IrSw==
 X-IronPort-AV: E=Sophos;i="5.75,375,1589266800";
-   d="scan'208";a="326188633"
+   d="scan'208";a="301412636"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2020 15:23:47 -0700
-Subject: [PATCH v3 01/11] libnvdimm: Validate command family indices
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jul 2020 15:23:57 -0700
+Subject: [PATCH v3 03/11] ACPI: NFIT: Define runtime firmware activation
+ commands
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-nvdimm@lists.01.org
-Date: Mon, 20 Jul 2020 15:07:30 -0700
-Message-ID: <159528284995.993790.5816012252622710464.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 20 Jul 2020 15:07:40 -0700
+Message-ID: <159528286075.993790.13810213944444344295.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <159528284411.993790.11733759435137949717.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <159528284411.993790.11733759435137949717.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: SCRGTBPUIOC63MHXQKQZ2WWNWGM4TYYU
-X-Message-ID-Hash: SCRGTBPUIOC63MHXQKQZ2WWNWGM4TYYU
+Message-ID-Hash: KG2YOJIBIGG42HXS6YD4AB6L2KLI75RH
+X-Message-ID-Hash: KG2YOJIBIGG42HXS6YD4AB6L2KLI75RH
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, stable@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SCRGTBPUIOC63MHXQKQZ2WWNWGM4TYYU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KG2YOJIBIGG42HXS6YD4AB6L2KLI75RH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,153 +69,367 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The ND_CMD_CALL format allows for a general passthrough of passlisted
-commands targeting a given command set. However there is no validation
-of the family index relative to what the bus supports.
+Platform reboots are expensive. Towards reducing downtime to apply
+firmware updates the Intel NVDIMM command definition is growing support
+for applying live firmware updates that only require temporarily
+suspending memory traffic instead of a full reboot.
 
-- Update the NFIT bus implementation (the only one that supports
-  ND_CMD_CALL passthrough) to also passlist the valid set of command
-  family indices.
-
-- Update the generic __nd_ioctl() path to validate that field on behalf
-  of all implementations.
+Follow-on commits add support for triggering firmware activation, this
+patch only defines the commands, adds probe support, and validates that
+they are blocked via the ioctl path. The ioctl-path block ensures that
+the OS is in charge since these commands have side effects only the OS
+can handle. Specifically firmware activation may cause the memory
+controller to be quiesced on the order of 100s of milliseconds. In that
+case Linux ensure the activation only takes place while the OS is in a
+suspend state.
 
 Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
-Fixes: 31eca76ba2fc ("nfit, libnvdimm: limited/whitelisted dimm command marshaling mechanism")
-Cc: <stable@vger.kernel.org>
+Link: https://pmem.io/documents/IntelOptanePMem_DSM_Interface-V2.0.pdf
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c   |   11 +++++++++--
- drivers/acpi/nfit/nfit.h   |    1 -
- drivers/nvdimm/bus.c       |   16 ++++++++++++++++
- include/linux/libnvdimm.h  |    2 ++
- include/uapi/linux/ndctl.h |    4 ++++
- 5 files changed, 31 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit/core.c   |   86 ++++++++++++++++++++++++++++++--------------
+ drivers/acpi/nfit/intel.h  |   53 +++++++++++++++++++++++++++
+ drivers/acpi/nfit/nfit.h   |   25 ++++++++++++-
+ include/uapi/linux/ndctl.h |    3 +-
+ 4 files changed, 137 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7c138a4edc03..1f72ce1a782b 100644
+index 9fdd655bdf0e..78cc9e2d2aa3 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -1823,6 +1823,7 @@ static void populate_shutdown_status(struct nfit_mem *nfit_mem)
- static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_mem *nfit_mem, u32 device_handle)
+@@ -73,6 +73,18 @@ const guid_t *to_nfit_uuid(enum nfit_uuids id)
+ }
+ EXPORT_SYMBOL(to_nfit_uuid);
+ 
++static const guid_t *to_nfit_bus_uuid(int family)
++{
++	if (WARN_ONCE(family == NVDIMM_BUS_FAMILY_NFIT,
++			"only secondary bus families can be translated\n"))
++		return NULL;
++	/*
++	 * The index of bus UUIDs starts immediately following the last
++	 * NVDIMM/leaf family.
++	 */
++	return to_nfit_uuid(family + NVDIMM_FAMILY_MAX);
++}
++
+ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
  {
-+	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
- 	struct acpi_device *adev, *adev_dimm;
- 	struct device *dev = acpi_desc->dev;
- 	unsigned long dsm_mask, label_mask;
-@@ -1834,6 +1835,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	/* nfit test assumes 1:1 relationship between commands and dsms */
- 	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
- 	nfit_mem->family = NVDIMM_FAMILY_INTEL;
-+	set_bit(NVDIMM_FAMILY_INTEL, &nd_desc->dimm_family_mask);
+ 	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
+@@ -362,24 +374,8 @@ static u8 nfit_dsm_revid(unsigned family, unsigned func)
+ {
+ 	static const u8 revid_table[NVDIMM_FAMILY_MAX+1][NVDIMM_CMD_MAX+1] = {
+ 		[NVDIMM_FAMILY_INTEL] = {
+-			[NVDIMM_INTEL_GET_MODES] = 2,
+-			[NVDIMM_INTEL_GET_FWINFO] = 2,
+-			[NVDIMM_INTEL_START_FWUPDATE] = 2,
+-			[NVDIMM_INTEL_SEND_FWUPDATE] = 2,
+-			[NVDIMM_INTEL_FINISH_FWUPDATE] = 2,
+-			[NVDIMM_INTEL_QUERY_FWUPDATE] = 2,
+-			[NVDIMM_INTEL_SET_THRESHOLD] = 2,
+-			[NVDIMM_INTEL_INJECT_ERROR] = 2,
+-			[NVDIMM_INTEL_GET_SECURITY_STATE] = 2,
+-			[NVDIMM_INTEL_SET_PASSPHRASE] = 2,
+-			[NVDIMM_INTEL_DISABLE_PASSPHRASE] = 2,
+-			[NVDIMM_INTEL_UNLOCK_UNIT] = 2,
+-			[NVDIMM_INTEL_FREEZE_LOCK] = 2,
+-			[NVDIMM_INTEL_SECURE_ERASE] = 2,
+-			[NVDIMM_INTEL_OVERWRITE] = 2,
+-			[NVDIMM_INTEL_QUERY_OVERWRITE] = 2,
+-			[NVDIMM_INTEL_SET_MASTER_PASSPHRASE] = 2,
+-			[NVDIMM_INTEL_MASTER_SECURE_ERASE] = 2,
++			[NVDIMM_INTEL_GET_MODES ...
++				NVDIMM_INTEL_FW_ACTIVATE_ARM] = 2,
+ 		},
+ 	};
+ 	u8 id;
+@@ -406,7 +402,7 @@ static bool payload_dumpable(struct nvdimm *nvdimm, unsigned int func)
+ }
  
- 	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
- 		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
-@@ -1886,10 +1888,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	 * Note, that checking for function0 (bit0) tells us if any commands
- 	 * are reachable through this GUID.
- 	 */
-+	clear_bit(NVDIMM_FAMILY_INTEL, &nd_desc->dimm_family_mask);
- 	for (i = 0; i <= NVDIMM_FAMILY_MAX; i++)
--		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
-+		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1)) {
-+			set_bit(i, &nd_desc->dimm_family_mask);
- 			if (family < 0 || i == default_dsm_family)
- 				family = i;
+ static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
+-		struct nd_cmd_pkg *call_pkg)
++		struct nd_cmd_pkg *call_pkg, int *family)
+ {
+ 	if (call_pkg) {
+ 		int i;
+@@ -417,6 +413,7 @@ static int cmd_to_func(struct nfit_mem *nfit_mem, unsigned int cmd,
+ 		for (i = 0; i < ARRAY_SIZE(call_pkg->nd_reserved2); i++)
+ 			if (call_pkg->nd_reserved2[i])
+ 				return -EINVAL;
++		*family = call_pkg->nd_family;
+ 		return call_pkg->nd_command;
+ 	}
+ 
+@@ -450,13 +447,14 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	acpi_handle handle;
+ 	const guid_t *guid;
+ 	int func, rc, i;
++	int family = 0;
+ 
+ 	if (cmd_rc)
+ 		*cmd_rc = -EINVAL;
+ 
+ 	if (cmd == ND_CMD_CALL)
+ 		call_pkg = buf;
+-	func = cmd_to_func(nfit_mem, cmd, call_pkg);
++	func = cmd_to_func(nfit_mem, cmd, call_pkg, &family);
+ 	if (func < 0)
+ 		return func;
+ 
+@@ -478,9 +476,17 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 
+ 		cmd_name = nvdimm_bus_cmd_name(cmd);
+ 		cmd_mask = nd_desc->cmd_mask;
+-		dsm_mask = acpi_desc->bus_dsm_mask;
++		if (cmd == ND_CMD_CALL && call_pkg->nd_family) {
++			family = call_pkg->nd_family;
++			if (!test_bit(family, &nd_desc->bus_family_mask))
++				return -EINVAL;
++			dsm_mask = acpi_desc->family_dsm_mask[family];
++			guid = to_nfit_bus_uuid(family);
++		} else {
++			dsm_mask = acpi_desc->bus_dsm_mask;
++			guid = to_nfit_uuid(NFIT_DEV_BUS);
 +		}
+ 		desc = nd_cmd_bus_desc(cmd);
+-		guid = to_nfit_uuid(NFIT_DEV_BUS);
+ 		handle = adev->handle;
+ 		dimm_name = "bus";
+ 	}
+@@ -516,8 +522,8 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		in_buf.buffer.length = call_pkg->nd_size_in;
+ 	}
  
- 	/* limit the supported commands to those that are publicly documented */
- 	nfit_mem->family = family;
-@@ -2153,6 +2158,9 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+-	dev_dbg(dev, "%s cmd: %d: func: %d input length: %d\n",
+-		dimm_name, cmd, func, in_buf.buffer.length);
++	dev_dbg(dev, "%s cmd: %d: family: %d func: %d input length: %d\n",
++		dimm_name, cmd, family, func, in_buf.buffer.length);
+ 	if (payload_dumpable(nvdimm, func))
+ 		print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
+ 				in_buf.buffer.pointer,
+@@ -2153,14 +2159,21 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
+ 	const guid_t *guid = to_nfit_uuid(NFIT_DEV_BUS);
++	unsigned long dsm_mask, *mask;
+ 	struct acpi_device *adev;
+-	unsigned long dsm_mask;
+ 	int i;
  
- 	nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
- 	nd_desc->bus_dsm_mask = acpi_desc->bus_nfit_cmd_force_en;
-+	set_bit(ND_CMD_CALL, &nd_desc->cmd_mask);
-+	set_bit(NVDIMM_BUS_FAMILY_NFIT, &nd_desc->bus_family_mask);
+-	nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
+ 	set_bit(ND_CMD_CALL, &nd_desc->cmd_mask);
+ 	set_bit(NVDIMM_BUS_FAMILY_NFIT, &nd_desc->bus_family_mask);
+ 
++	/* enable nfit_test to inject bus command emulation */
++	if (acpi_desc->bus_cmd_force_en) {
++		nd_desc->cmd_mask = acpi_desc->bus_cmd_force_en;
++		mask = &nd_desc->bus_family_mask;
++		if (acpi_desc->family_dsm_mask[NVDIMM_BUS_FAMILY_INTEL])
++			set_bit(NVDIMM_BUS_FAMILY_INTEL, mask);
++	}
 +
  	adev = to_acpi_dev(acpi_desc);
  	if (!adev)
  		return;
-@@ -2160,7 +2168,6 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
- 	for (i = ND_CMD_ARS_CAP; i <= ND_CMD_CLEAR_ERROR; i++)
+@@ -2181,6 +2194,14 @@ static void acpi_nfit_init_dsms(struct acpi_nfit_desc *acpi_desc)
+ 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
  		if (acpi_check_dsm(adev->handle, guid, 1, 1ULL << i))
- 			set_bit(i, &nd_desc->cmd_mask);
--	set_bit(ND_CMD_CALL, &nd_desc->cmd_mask);
+ 			set_bit(i, &acpi_desc->bus_dsm_mask);
++
++	/* Enumerate allowed NVDIMM_BUS_FAMILY_INTEL commands */
++	dsm_mask = NVDIMM_BUS_INTEL_FW_ACTIVATE_CMDMASK;
++	guid = to_nfit_bus_uuid(NVDIMM_BUS_FAMILY_INTEL);
++	mask = &acpi_desc->family_dsm_mask[NVDIMM_BUS_FAMILY_INTEL];
++	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
++		if (acpi_check_dsm(adev->handle, guid, 1, 1ULL << i))
++			set_bit(i, mask);
+ }
  
- 	dsm_mask =
- 		(1 << ND_CMD_ARS_CAP) |
+ static ssize_t range_index_show(struct device *dev,
+@@ -3492,7 +3513,10 @@ static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 	return 0;
+ }
+ 
+-/* prevent security commands from being issued via ioctl */
++/*
++ * Prevent security and firmware activate commands from being issued via
++ * ioctl.
++ */
+ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nvdimm *nvdimm, unsigned int cmd, void *buf)
+ {
+@@ -3503,10 +3527,15 @@ static int acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 			call_pkg->nd_family == NVDIMM_FAMILY_INTEL) {
+ 		func = call_pkg->nd_command;
+ 		if (func > NVDIMM_CMD_MAX ||
+-		    (1 << func) & NVDIMM_INTEL_SECURITY_CMDMASK)
++		    (1 << func) & NVDIMM_INTEL_DENY_CMDMASK)
+ 			return -EOPNOTSUPP;
+ 	}
+ 
++	/* block all non-nfit bus commands */
++	if (!nvdimm && cmd == ND_CMD_CALL &&
++			call_pkg->nd_family != NVDIMM_BUS_FAMILY_NFIT)
++		return -EOPNOTSUPP;
++
+ 	return __acpi_nfit_clear_to_send(nd_desc, nvdimm, cmd);
+ }
+ 
+@@ -3798,6 +3827,7 @@ static __init int nfit_init(void)
+ 	guid_parse(UUID_NFIT_DIMM_N_HPE2, &nfit_uuid[NFIT_DEV_DIMM_N_HPE2]);
+ 	guid_parse(UUID_NFIT_DIMM_N_MSFT, &nfit_uuid[NFIT_DEV_DIMM_N_MSFT]);
+ 	guid_parse(UUID_NFIT_DIMM_N_HYPERV, &nfit_uuid[NFIT_DEV_DIMM_N_HYPERV]);
++	guid_parse(UUID_INTEL_BUS, &nfit_uuid[NFIT_BUS_INTEL]);
+ 
+ 	nfit_wq = create_singlethread_workqueue("nfit");
+ 	if (!nfit_wq)
+diff --git a/drivers/acpi/nfit/intel.h b/drivers/acpi/nfit/intel.h
+index 0aca682ab9d7..868d073731cc 100644
+--- a/drivers/acpi/nfit/intel.h
++++ b/drivers/acpi/nfit/intel.h
+@@ -111,4 +111,57 @@ struct nd_intel_master_secure_erase {
+ 	u8 passphrase[ND_INTEL_PASSPHRASE_SIZE];
+ 	u32 status;
+ } __packed;
++
++#define ND_INTEL_FWA_IDLE 0
++#define ND_INTEL_FWA_ARMED 1
++#define ND_INTEL_FWA_BUSY 2
++
++#define ND_INTEL_DIMM_FWA_NONE 0
++#define ND_INTEL_DIMM_FWA_NOTSTAGED 1
++#define ND_INTEL_DIMM_FWA_SUCCESS 2
++#define ND_INTEL_DIMM_FWA_NEEDRESET 3
++#define ND_INTEL_DIMM_FWA_MEDIAFAILED 4
++#define ND_INTEL_DIMM_FWA_ABORT 5
++#define ND_INTEL_DIMM_FWA_NOTSUPP 6
++#define ND_INTEL_DIMM_FWA_ERROR 7
++
++struct nd_intel_fw_activate_dimminfo {
++	u32 status;
++	u16 result;
++	u8 state;
++	u8 reserved[7];
++} __packed;
++
++struct nd_intel_fw_activate_arm {
++	u8 activate_arm;
++	u32 status;
++} __packed;
++
++/* Root device command payloads */
++#define ND_INTEL_BUS_FWA_CAP_FWQUIESCE (1 << 0)
++#define ND_INTEL_BUS_FWA_CAP_OSQUIESCE (1 << 1)
++#define ND_INTEL_BUS_FWA_CAP_RESET     (1 << 2)
++
++struct nd_intel_bus_fw_activate_businfo {
++	u32 status;
++	u16 reserved;
++	u8 state;
++	u8 capability;
++	u64 activate_tmo;
++	u64 cpu_quiesce_tmo;
++	u64 io_quiesce_tmo;
++	u64 max_quiesce_tmo;
++} __packed;
++
++#define ND_INTEL_BUS_FWA_STATUS_NOARM  (6 | 1 << 16)
++#define ND_INTEL_BUS_FWA_STATUS_BUSY   (6 | 2 << 16)
++#define ND_INTEL_BUS_FWA_STATUS_NOFW   (6 | 3 << 16)
++#define ND_INTEL_BUS_FWA_STATUS_TMO    (6 | 4 << 16)
++#define ND_INTEL_BUS_FWA_STATUS_NOIDLE (6 | 5 << 16)
++#define ND_INTEL_BUS_FWA_STATUS_ABORT  (6 | 6 << 16)
++
++struct nd_intel_bus_fw_activate {
++	u8 iodev_state;
++	u32 status;
++} __packed;
+ #endif
 diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index f5525f8bb770..5c5e7ebba8dc 100644
+index da097149d94d..97c122628975 100644
 --- a/drivers/acpi/nfit/nfit.h
 +++ b/drivers/acpi/nfit/nfit.h
-@@ -33,7 +33,6 @@
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
+@@ -18,6 +18,7 @@
  
--#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_HYPERV
- #define NVDIMM_CMD_MAX 31
+ /* http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf */
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
++#define UUID_INTEL_BUS "c7d8acd4-2df8-4b82-9f65-a325335af149"
  
- #define NVDIMM_STANDARD_CMDMASK \
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 09087c38fabd..955265656b96 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -1037,9 +1037,25 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 		dimm_name = "bus";
- 	}
- 
-+	/* Validate command family support against bus declared support */
- 	if (cmd == ND_CMD_CALL) {
-+		unsigned long *mask;
+ /* https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/ */
+ #define UUID_NFIT_DIMM_N_HPE1 "9002c334-acf3-4c0e-9642-a235f0d53bc6"
+@@ -65,6 +66,13 @@ enum nvdimm_family_cmds {
+ 	NVDIMM_INTEL_QUERY_OVERWRITE = 26,
+ 	NVDIMM_INTEL_SET_MASTER_PASSPHRASE = 27,
+ 	NVDIMM_INTEL_MASTER_SECURE_ERASE = 28,
++	NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO = 29,
++	NVDIMM_INTEL_FW_ACTIVATE_ARM = 30,
++};
 +
- 		if (copy_from_user(&pkg, p, sizeof(pkg)))
- 			return -EFAULT;
-+
-+		if (nvdimm) {
-+			if (pkg.nd_family > NVDIMM_FAMILY_MAX)
-+				return -EINVAL;
-+			mask = &nd_desc->dimm_family_mask;
-+		} else {
-+			if (pkg.nd_family > NVDIMM_BUS_FAMILY_MAX)
-+				return -EINVAL;
-+			mask = &nd_desc->bus_family_mask;
-+		}
-+
-+		if (!test_bit(pkg.nd_family, mask))
-+			return -EINVAL;
- 	}
++enum nvdimm_bus_family_cmds {
++	NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO = 1,
++	NVDIMM_BUS_INTEL_FW_ACTIVATE = 2,
+ };
  
- 	if (!desc ||
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 18da4059be09..bd39a2cf7972 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -78,6 +78,8 @@ struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
+ #define NVDIMM_INTEL_SECURITY_CMDMASK \
+@@ -75,13 +83,22 @@ enum nvdimm_family_cmds {
+ | 1 << NVDIMM_INTEL_SET_MASTER_PASSPHRASE \
+ | 1 << NVDIMM_INTEL_MASTER_SECURE_ERASE)
+ 
++#define NVDIMM_INTEL_FW_ACTIVATE_CMDMASK \
++(1 << NVDIMM_INTEL_FW_ACTIVATE_DIMMINFO | 1 << NVDIMM_INTEL_FW_ACTIVATE_ARM)
++
++#define NVDIMM_BUS_INTEL_FW_ACTIVATE_CMDMASK \
++(1 << NVDIMM_BUS_INTEL_FW_ACTIVATE_BUSINFO | 1 << NVDIMM_BUS_INTEL_FW_ACTIVATE)
++
+ #define NVDIMM_INTEL_CMDMASK \
+ (NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
+  | 1 << NVDIMM_INTEL_GET_FWINFO | 1 << NVDIMM_INTEL_START_FWUPDATE \
+  | 1 << NVDIMM_INTEL_SEND_FWUPDATE | 1 << NVDIMM_INTEL_FINISH_FWUPDATE \
+  | 1 << NVDIMM_INTEL_QUERY_FWUPDATE | 1 << NVDIMM_INTEL_SET_THRESHOLD \
+  | 1 << NVDIMM_INTEL_INJECT_ERROR | 1 << NVDIMM_INTEL_LATCH_SHUTDOWN \
+- | NVDIMM_INTEL_SECURITY_CMDMASK)
++ | NVDIMM_INTEL_SECURITY_CMDMASK | NVDIMM_INTEL_FW_ACTIVATE_CMDMASK)
++
++#define NVDIMM_INTEL_DENY_CMDMASK \
++(NVDIMM_INTEL_SECURITY_CMDMASK | NVDIMM_INTEL_FW_ACTIVATE_CMDMASK)
+ 
+ enum nfit_uuids {
+ 	/* for simplicity alias the uuid index with the family id */
+@@ -90,6 +107,11 @@ enum nfit_uuids {
+ 	NFIT_DEV_DIMM_N_HPE2 = NVDIMM_FAMILY_HPE2,
+ 	NFIT_DEV_DIMM_N_MSFT = NVDIMM_FAMILY_MSFT,
+ 	NFIT_DEV_DIMM_N_HYPERV = NVDIMM_FAMILY_HYPERV,
++	/*
++	 * to_nfit_bus_uuid() expects to translate bus uuid family ids
++	 * to a UUID index using NVDIMM_FAMILY_MAX as an offset
++	 */
++	NFIT_BUS_INTEL = NVDIMM_FAMILY_MAX + NVDIMM_BUS_FAMILY_INTEL,
+ 	NFIT_SPA_VOLATILE,
+ 	NFIT_SPA_PM,
+ 	NFIT_SPA_DCR,
+@@ -238,6 +260,7 @@ struct acpi_nfit_desc {
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
  	unsigned long bus_dsm_mask;
- 	unsigned long cmd_mask;
-+	unsigned long dimm_family_mask;
-+	unsigned long bus_family_mask;
- 	struct module *module;
- 	char *provider_name;
- 	struct device_node *of_node;
++	unsigned long family_dsm_mask[NVDIMM_BUS_FAMILY_MAX + 1];
+ 	unsigned int platform_cap;
+ 	unsigned int scrub_tmo;
+ 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
 diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 0e09dc5cec19..e9468b9332bd 100644
+index e9468b9332bd..8cf1e4884fd5 100644
 --- a/include/uapi/linux/ndctl.h
 +++ b/include/uapi/linux/ndctl.h
-@@ -245,6 +245,10 @@ struct nd_cmd_pkg {
- #define NVDIMM_FAMILY_MSFT 3
- #define NVDIMM_FAMILY_HYPERV 4
- #define NVDIMM_FAMILY_PAPR 5
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_PAPR
-+
-+#define NVDIMM_BUS_FAMILY_NFIT 0
-+#define NVDIMM_BUS_FAMILY_MAX NVDIMM_BUS_FAMILY_NFIT
+@@ -248,7 +248,8 @@ struct nd_cmd_pkg {
+ #define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_PAPR
+ 
+ #define NVDIMM_BUS_FAMILY_NFIT 0
+-#define NVDIMM_BUS_FAMILY_MAX NVDIMM_BUS_FAMILY_NFIT
++#define NVDIMM_BUS_FAMILY_INTEL 1
++#define NVDIMM_BUS_FAMILY_MAX NVDIMM_BUS_FAMILY_INTEL
  
  #define ND_IOCTL_CALL			_IOWR(ND_IOCTL, ND_CMD_CALL,\
  					struct nd_cmd_pkg)
