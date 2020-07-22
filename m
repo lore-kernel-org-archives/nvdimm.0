@@ -2,68 +2,83 @@ Return-Path: <SRS0=NSLz=BB=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,FAKE_REPLY_C,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D34CC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 01:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7E46C433E2
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 02:00:04 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7747B20714
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 01:15:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7747B20714
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id B5463207BB
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 02:00:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B5463207BB
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6439E12460436;
-	Tue, 21 Jul 2020 18:15:27 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.65; helo=mga03.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	by ml01.01.org (Postfix) with ESMTP id 85D341245F40D;
+	Tue, 21 Jul 2020 19:00:04 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3186912460431;
-	Tue, 21 Jul 2020 18:15:24 -0700 (PDT)
-IronPort-SDR: gTSXy7Rd3ofkN2vVPk+b3nXFTXhivrLmsla5G1ztCg/V7fQBeKCsF8P7AO8qtpJtYQuIEqcuxJ
- vmBodLnbZmcw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9689"; a="150234135"
-X-IronPort-AV: E=Sophos;i="5.75,381,1589266800";
-   d="gz'50?scan'50,208,50";a="150234135"
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2020 18:15:23 -0700
-IronPort-SDR: jz+Gx1UaF7hMNR64NMQT8snhUZIqXk5atk0U/y4HrxmF/uIoO7gSzWM8ycvM50kuVurXmSKCC8
- emmYAegO00+A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,381,1589266800";
-   d="gz'50?scan'50,208,50";a="488282013"
-Received: from xsang-optiplex-9020.sh.intel.com (HELO xsang-OptiPlex-9020) ([10.239.159.140])
-  by fmsmga005.fm.intel.com with ESMTP; 21 Jul 2020 18:15:19 -0700
-Date: Wed, 22 Jul 2020 09:27:30 +0800
-From: kernel test robot <lkp@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Subject: Re: [PATCH v3 10/11] PM, libnvdimm: Add runtime firmware activation
- support
-Message-ID: <20200722012730.GA8345@xsang-OptiPlex-9020>
+	by ml01.01.org (Postfix) with ESMTPS id 626C911B961EA
+	for <linux-nvdimm@lists.01.org>; Tue, 21 Jul 2020 19:00:02 -0700 (PDT)
+Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06M1a6GY083849;
+	Tue, 21 Jul 2020 22:00:00 -0400
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 32e1xx08d9-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 21 Jul 2020 22:00:00 -0400
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+	by ppma03fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 06M1oKfF021883;
+	Wed, 22 Jul 2020 01:59:58 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+	by ppma03fra.de.ibm.com with ESMTP id 32brq82a97-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 22 Jul 2020 01:59:57 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 06M1xtMa19792188
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 22 Jul 2020 01:59:55 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C59C742047;
+	Wed, 22 Jul 2020 01:59:55 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 29D584203F;
+	Wed, 22 Jul 2020 01:59:53 +0000 (GMT)
+Received: from vajain21-in-ibm-com (unknown [9.85.89.254])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Wed, 22 Jul 2020 01:59:52 +0000 (GMT)
+Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Wed, 22 Jul 2020 07:29:51 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+Subject: Re: [ndctl PATCH] papr: Check for command type in papr_xlat_firmware_status()
+In-Reply-To: <3a1ed55273a2c901228f5f6bc1824707a70d6dcb.camel@intel.com>
+References: <20200721114326.305790-1-vaibhav@linux.ibm.com> <3a1ed55273a2c901228f5f6bc1824707a70d6dcb.camel@intel.com>
+Date: Wed, 22 Jul 2020 07:29:51 +0530
+Message-ID: <87pn8o48dk.fsf@linux.ibm.com>
 MIME-Version: 1.0
-In-Reply-To: <159528289856.993790.11787167534159675987.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: BHEU526TUP5QU3BXFZOI77YH4Y5OICCX
-X-Message-ID-Hash: BHEU526TUP5QU3BXFZOI77YH4Y5OICCX
-X-MailFrom: lkp@intel.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-07-22_01:2020-07-21,2020-07-21 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0
+ priorityscore=1501 bulkscore=0 mlxlogscore=999 clxscore=1015 phishscore=0
+ mlxscore=0 lowpriorityscore=0 suspectscore=1 impostorscore=0 adultscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2007220008
+Message-ID-Hash: 4I7QHLBTFZHTDRY5WFHY55K354VFDBMK
+X-Message-ID-Hash: 4I7QHLBTFZHTDRY5WFHY55K354VFDBMK
+X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-Content-Disposition: inline
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
-CC: kbuild-all@lists.01.org, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Jonathan Corbet <corbet@lwn.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BHEU526TUP5QU3BXFZOI77YH4Y5OICCX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4I7QHLBTFZHTDRY5WFHY55K354VFDBMK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,347 +87,38 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Dan,
+Vishal Verma <vishal.l.verma@intel.com> writes:
 
-I love your patch! Perhaps something to improve:
+<snip>
+>>  static int papr_xlat_firmware_status(struct ndctl_cmd *cmd)
+>>  {
+>> -	const struct nd_pkg_pdsm *pcmd = to_pdsm(cmd);
+>> -
+>> -	return pcmd->cmd_status;
+>> +	return (cmd->type == ND_CMD_CALL) ? to_pdsm(cmd)->cmd_status : 0;
+>
+> Is this correct? -- for non ND_CMD_CALL commands this will always return a 0,
+> and it seems like you will lose any error state for commands
+> like ND_CMD_SET_CONFIG_DATA.
+This behaviour is similar to what ndctl_cmd_xlat_firmware_status() does
+when corresponding dimm-ops are missing the 'xlat_firmware_status'
+callback.
 
-[auto build test WARNING on 48778464bb7d346b47157d21ffde2af6b2d39110]
+Also ndctl_cmd_submit_xlat() returns the rc from ndctl_cmd_submit()
+in case ndctl_cmd_xlat_firmware_status() returns '0', which corresponds
+to 'ndctl_cmd.status' field. So any error codes
+returned from ndctl_cmd_submit() are still returned back to the caller
+even though papr_xlat_firmware_status() returned '0'. 
+>
+>>  }
+>>  
+>>  /* Verify if the given command is supported and valid */
+>
+>
 
-url:    https://github.com/0day-ci/linux/commits/Dan-Williams/ACPI-NVDIMM-Runtime-Firmware-Activation/20200721-062902
-base:    48778464bb7d346b47157d21ffde2af6b2d39110
-:::::: branch date: 8 hours ago
-:::::: commit date: 8 hours ago
-config: x86_64-randconfig-s021-20200719 (attached as .config)
-compiler: gcc-9 (Debian 9.3.0-14) 9.3.0
-reproduce:
-        # apt-get install sparse
-        # sparse version: v0.6.2-49-g707c5017-dirty
-        # save the attached .config to linux build tree
-        make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' ARCH=x86_64 
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-
-sparse warnings: (new ones prefixed by >>)
-
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/bluetooth/btusb.c:2245:25: sparse: sparse: cast to restricted __le16
-   drivers/bluetooth/btusb.c:2254:25: sparse: sparse: cast to restricted __le16
-   drivers/bluetooth/btusb.c:2255:25: sparse: sparse: cast to restricted __le16
-   drivers/bluetooth/btusb.c:2256:25: sparse: sparse: cast to restricted __le16
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/cpufreq/cpufreq.c:471:17: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct notifier_block *nb @@     got struct notifier_block [noderef] __rcu *static [addressable] [toplevel] head @@
-   drivers/cpufreq/cpufreq.c:471:17: sparse:     expected struct notifier_block *nb
-   drivers/cpufreq/cpufreq.c:471:17: sparse:     got struct notifier_block [noderef] __rcu *static [addressable] [toplevel] head
-   drivers/cpufreq/cpufreq.c:471:65: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct notifier_block *nb @@     got struct notifier_block [noderef] __rcu *next @@
-   drivers/cpufreq/cpufreq.c:471:65: sparse:     expected struct notifier_block *nb
-   drivers/cpufreq/cpufreq.c:471:65: sparse:     got struct notifier_block [noderef] __rcu *next
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/regulator/internal.h:43:42: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:1627:56: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:1629:56: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:455:17: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:455:25: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:469:47: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:3347:65: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:3823:47: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:3965:65: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:5527:54: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/core.c:5528:54: sparse: sparse: restricted suspend_state_t degrades to integer
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/regulator/internal.h:43:42: sparse: sparse: restricted suspend_state_t degrades to integer
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/regulator/of_regulator.c:18:43: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/of_regulator.c:193:22: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/of_regulator.c:196:22: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/of_regulator.c:199:22: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/of_regulator.c:202:22: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/of_regulator.c:203:22: sparse: sparse: restricted suspend_state_t degrades to integer
-   drivers/regulator/of_regulator.c:252:26: sparse: sparse: restricted suspend_state_t degrades to integer
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/regulator/da9063-regulator.c:514:17: sparse: sparse: Initializer entry defined twice
-   drivers/regulator/da9063-regulator.c:515:18: sparse:   also defined here
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/tty/sysrq.c:148:13: sparse: sparse: context imbalance in 'sysrq_handle_crash' - unexpected unlock
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/base/firmware_loader/main.c:266:9: sparse: sparse: context imbalance in 'free_fw_priv' - wrong count at exit
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   init/do_mounts.c:408:30: sparse: sparse: incorrect type in argument 2 (different address spaces) @@     expected char const [noderef] __user * @@     got char * @@
-   init/do_mounts.c:408:30: sparse:     expected char const [noderef] __user *
-   init/do_mounts.c:408:30: sparse:     got char *
-   init/do_mounts.c:412:20: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected char const [noderef] __user *filename @@     got char * @@
-   init/do_mounts.c:412:20: sparse:     expected char const [noderef] __user *filename
-   init/do_mounts.c:412:20: sparse:     got char *
-   init/do_mounts.c:685:23: sparse: sparse: incorrect type in argument 2 (different address spaces) @@     expected char const [noderef] __user * @@     got char * @@
-   init/do_mounts.c:685:23: sparse:     expected char const [noderef] __user *
-   init/do_mounts.c:685:23: sparse:     got char *
-   init/do_mounts.c:686:21: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected char const [noderef] __user *filename @@     got char * @@
-   init/do_mounts.c:686:21: sparse:     expected char const [noderef] __user *filename
-   init/do_mounts.c:686:21: sparse:     got char *
-   init/do_mounts.h:19:21: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected char const [noderef] __user *pathname @@     got char *name @@
-   init/do_mounts.h:19:21: sparse:     expected char const [noderef] __user *pathname
-   init/do_mounts.h:19:21: sparse:     got char *name
-   init/do_mounts.h:20:27: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected char const [noderef] __user *filename @@     got char *name @@
-   init/do_mounts.h:20:27: sparse:     expected char const [noderef] __user *filename
-   init/do_mounts.h:20:27: sparse:     got char *name
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/umh.c:74:31: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   kernel/umh.c:74:31: sparse:     expected struct spinlock [usertype] *lock
-   kernel/umh.c:74:31: sparse:     got struct spinlock [noderef] __rcu *
-   kernel/umh.c:76:33: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   kernel/umh.c:76:33: sparse:     expected struct spinlock [usertype] *lock
-   kernel/umh.c:76:33: sparse:     got struct spinlock [noderef] __rcu *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sys.c:1878:19: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct file [noderef] __rcu *__ret @@     got struct file *[assigned] file @@
-   kernel/sys.c:1878:19: sparse:     expected struct file [noderef] __rcu *__ret
-   kernel/sys.c:1878:19: sparse:     got struct file *[assigned] file
-   kernel/sys.c:1878:17: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct file *old_exe @@     got struct file [noderef] __rcu *[assigned] __ret @@
-   kernel/sys.c:1878:17: sparse:     expected struct file *old_exe
-   kernel/sys.c:1878:17: sparse:     got struct file [noderef] __rcu *[assigned] __ret
-   kernel/sys.c:2240:16: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected void const volatile [noderef] __user * @@     got int [noderef] __user **tid_addr @@
-   kernel/sys.c:2240:16: sparse:     expected void const volatile [noderef] __user *
-   kernel/sys.c:2240:16: sparse:     got int [noderef] __user **tid_addr
-   kernel/sys.c:1049:32: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *p1 @@     got struct task_struct [noderef] __rcu *real_parent @@
-   kernel/sys.c:1049:32: sparse:     expected struct task_struct *p1
-   kernel/sys.c:1049:32: sparse:     got struct task_struct [noderef] __rcu *real_parent
-   include/linux/sched/signal.h:693:37: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   include/linux/sched/signal.h:693:37: sparse:     expected struct spinlock [usertype] *lock
-   include/linux/sched/signal.h:693:37: sparse:     got struct spinlock [noderef] __rcu *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/core.c:256:48: sparse: sparse: incorrect type in argument 2 (different address spaces) @@     expected struct task_struct *p @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:256:48: sparse:     expected struct task_struct *p
-   kernel/sched/core.c:256:48: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:512:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:512:38: sparse:     expected struct task_struct *curr
-   kernel/sched/core.c:512:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:1432:33: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *p @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:1432:33: sparse:     expected struct task_struct *p
-   kernel/sched/core.c:1432:33: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:1432:68: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *tsk @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:1432:68: sparse:     expected struct task_struct *tsk
-   kernel/sched/core.c:1432:68: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:3650:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:3650:38: sparse:     expected struct task_struct *curr
-   kernel/sched/core.c:3650:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:4083:14: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct task_struct *prev @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:4083:14: sparse:     expected struct task_struct *prev
-   kernel/sched/core.c:4083:14: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:4506:17: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/core.c:4506:17: sparse:    struct task_struct *
-   kernel/sched/core.c:4506:17: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/core.c:4705:22: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/core.c:4705:22: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/core.c:4705:22: sparse:    struct task_struct *
-   kernel/sched/core.c:8011:25: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *p @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/core.c:8011:25: sparse:     expected struct task_struct *p
-   kernel/sched/core.c:8011:25: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/core.c:256:11: sparse: sparse: dereference of noderef expression
-   kernel/sched/core.c:1415:33: sparse: sparse: dereference of noderef expression
-   kernel/sched/core.c:1416:19: sparse: sparse: dereference of noderef expression
-   kernel/sched/core.c:1419:40: sparse: sparse: dereference of noderef expression
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1809:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1809:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1809:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
-   kernel/sched/sched.h:1809:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1809:9: sparse:    struct task_struct *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/cputime.c:316:17: sparse: sparse: context imbalance in 'thread_group_cputime' - different lock contexts for basic block
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/fair.c:881:34: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct sched_entity *se @@     got struct sched_entity [noderef] __rcu * @@
-   kernel/sched/fair.c:881:34: sparse:     expected struct sched_entity *se
-   kernel/sched/fair.c:881:34: sparse:     got struct sched_entity [noderef] __rcu *
-   kernel/sched/fair.c:5386:38: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/fair.c:5386:38: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/fair.c:5386:38: sparse:    struct task_struct *
-   kernel/sched/fair.c:5401:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/fair.c:5401:38: sparse:     expected struct task_struct *curr
-   kernel/sched/fair.c:5401:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/fair.c:6880:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/fair.c:6880:38: sparse:     expected struct task_struct *curr
-   kernel/sched/fair.c:6880:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/fair.c:7131:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/fair.c:7131:38: sparse:     expected struct task_struct *curr
-   kernel/sched/fair.c:7131:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/fair.c:10692:22: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/fair.c:10692:22: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/fair.c:10692:22: sparse:    struct task_struct *
-   kernel/sched/fair.c:10825:30: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/fair.c:10825:30: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/fair.c:10825:30: sparse:    struct task_struct *
-   kernel/sched/fair.c:5330:35: sparse: sparse: marked inline, but without a definition
-   kernel/sched/sched.h:1803:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1803:9: sparse:    struct task_struct *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/rt.c:912:70: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/rt.c:912:70: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/rt.c:912:70: sparse:    struct task_struct *
-   kernel/sched/rt.c:529:54: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/rt.c:529:54: sparse:     expected struct task_struct *curr
-   kernel/sched/rt.c:529:54: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/rt.c:998:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/rt.c:998:38: sparse:     expected struct task_struct *curr
-   kernel/sched/rt.c:998:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/rt.c:1424:31: sparse: sparse: incorrect type in argument 2 (different address spaces) @@     expected struct task_struct *p @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/rt.c:1424:31: sparse:     expected struct task_struct *p
-   kernel/sched/rt.c:1424:31: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/rt.c:2300:46: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/rt.c:2300:46: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/rt.c:2300:46: sparse:    struct task_struct *
-   kernel/sched/rt.c:2320:22: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/rt.c:2320:22: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/rt.c:2320:22: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/deadline.c:1721:42: sparse: sparse: incorrect type in argument 2 (different address spaces) @@     expected struct sched_dl_entity *b @@     got struct sched_dl_entity [noderef] __rcu * @@
-   kernel/sched/deadline.c:1721:42: sparse:     expected struct sched_dl_entity *b
-   kernel/sched/deadline.c:1721:42: sparse:     got struct sched_dl_entity [noderef] __rcu *
-   kernel/sched/deadline.c:1054:23: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *p @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/deadline.c:1054:23: sparse:     expected struct task_struct *p
-   kernel/sched/deadline.c:1054:23: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/deadline.c:1183:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct task_struct *curr @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/deadline.c:1183:38: sparse:     expected struct task_struct *curr
-   kernel/sched/deadline.c:1183:38: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/deadline.c:2385:22: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/deadline.c:2385:22: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/deadline.c:2385:22: sparse:    struct task_struct *
-   kernel/sched/deadline.c:2404:46: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/deadline.c:2404:46: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/deadline.c:2404:46: sparse:    struct task_struct *
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   include/linux/sched/signal.h:693:37: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   include/linux/sched/signal.h:693:37: sparse:     expected struct spinlock [usertype] *lock
-   include/linux/sched/signal.h:693:37: sparse:     got struct spinlock [noderef] __rcu *
-   include/linux/sched/signal.h:693:37: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   include/linux/sched/signal.h:693:37: sparse:     expected struct spinlock [usertype] *lock
-   include/linux/sched/signal.h:693:37: sparse:     got struct spinlock [noderef] __rcu *
-   include/linux/sched/signal.h:693:37: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   include/linux/sched/signal.h:693:37: sparse:     expected struct spinlock [usertype] *lock
-   include/linux/sched/signal.h:693:37: sparse:     got struct spinlock [noderef] __rcu *
-   include/linux/sched/signal.h:693:37: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   include/linux/sched/signal.h:693:37: sparse:     expected struct spinlock [usertype] *lock
-   include/linux/sched/signal.h:693:37: sparse:     got struct spinlock [noderef] __rcu *
-   include/linux/sched/signal.h:693:37: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct spinlock [usertype] *lock @@     got struct spinlock [noderef] __rcu * @@
-   include/linux/sched/signal.h:693:37: sparse:     expected struct spinlock [usertype] *lock
-   include/linux/sched/signal.h:693:37: sparse:     got struct spinlock [noderef] __rcu *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/debug.c:435:22: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/debug.c:435:22: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/debug.c:435:22: sparse:    struct task_struct *
-   kernel/sched/debug.c:643:9: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *tsk @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/debug.c:643:9: sparse:     expected struct task_struct *tsk
-   kernel/sched/debug.c:643:9: sparse:     got struct task_struct [noderef] __rcu *curr
-   kernel/sched/debug.c:643:9: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct task_struct *tsk @@     got struct task_struct [noderef] __rcu *curr @@
-   kernel/sched/debug.c:643:9: sparse:     expected struct task_struct *tsk
-   kernel/sched/debug.c:643:9: sparse:     got struct task_struct [noderef] __rcu *curr
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   kernel/sched/psi.c:1205:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/psi.c:1205:9: sparse:    void [noderef] __rcu *
-   kernel/sched/psi.c:1205:9: sparse:    void *
-   kernel/sched/psi.c:734:30: sparse: sparse: dereference of noderef expression
-   kernel/sched/sched.h:1657:25: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct [noderef] __rcu *
-   kernel/sched/sched.h:1657:25: sparse:    struct task_struct *
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   include/linux/gfp.h:325:27: sparse: sparse: restricted gfp_t degrades to integer
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/ata/libata-scsi.c:1784:13: sparse: sparse: context imbalance in 'ata_scsi_rbuf_get' - wrong count at exit
-   drivers/ata/libata-scsi.c:1814:31: sparse: sparse: context imbalance in 'ata_scsi_rbuf_fill' - unexpected unlock
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/pci/pci-driver.c:494:42: sparse: sparse: restricted pci_power_t degrades to integer
-   drivers/pci/pci-driver.c:494:61: sparse: sparse: restricted pci_power_t degrades to integer
---
->> include/linux/suspend.h:470:15: sparse: sparse: 'hibernate_quiet_exec()' has implicit return type
-   drivers/acpi/bus.c:37:20: sparse: sparse: symbol 'acpi_root' was not declared. Should it be static?
-
-# https://github.com/0day-ci/linux/commit/d55d8fef1e62acab40273b953e45a9d58f7e73c9
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout d55d8fef1e62acab40273b953e45a9d58f7e73c9
-vim +470 include/linux/suspend.h
-
-d55d8fef1e62ac Dan Williams  2020-07-20  469  
-d55d8fef1e62ac Dan Williams  2020-07-20 @470  static inline hibernate_quiet_exec(int (*func)(void *data), void *data) {
-d55d8fef1e62ac Dan Williams  2020-07-20  471  	return -ENOTSUPP;
-d55d8fef1e62ac Dan Williams  2020-07-20  472  }
-fce2b111fae915 Cornelia Huck 2009-06-10  473  #endif /* CONFIG_HIBERNATION */
-fce2b111fae915 Cornelia Huck 2009-06-10  474  
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+-- 
+Cheers
+~ Vaibhav
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
