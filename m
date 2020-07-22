@@ -2,64 +2,74 @@ Return-Path: <SRS0=NSLz=BB=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F219EC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 05:29:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55498C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 09:49:17 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C6AC2207DD
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 05:29:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C6AC2207DD
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1971E20714
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 22 Jul 2020 09:49:16 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="OwoBHanU"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1971E20714
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A2F781247FDBA;
-	Tue, 21 Jul 2020 22:29:12 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id BECC011F31286;
+	Wed, 22 Jul 2020 02:49:16 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=peterz@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5B93D1247B8F8
-	for <linux-nvdimm@lists.01.org>; Tue, 21 Jul 2020 22:29:09 -0700 (PDT)
-IronPort-SDR: N+iAhLM1cRs59VG0UqPtH6Qzir9SfTBCt0gAmTxiCmZYoO2KmTai3xGFkkA3t4563k5f+N6dWu
- yFn6p6dsAyoQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9689"; a="235137308"
-X-IronPort-AV: E=Sophos;i="5.75,381,1589266800";
-   d="scan'208";a="235137308"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Jul 2020 22:29:08 -0700
-IronPort-SDR: ksH3EFs9n4OFlGYxloEeRwh6M9dy3bsIvSt6A8ZwWavVT7iOte54F0eudqq2ALW/NPGua1AEqF
- cSKFz/RjXczw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,381,1589266800";
-   d="scan'208";a="392573213"
-Received: from vverma7-mobl4.lm.intel.com (HELO localhost6.localdomain6) ([10.255.75.30])
-  by fmsmga001.fm.intel.com with ESMTP; 21 Jul 2020 22:29:08 -0700
-Message-ID: <e5887e208e958938f134591a53d02a7402d8b8a4.camel@intel.com>
-Subject: Re: [ndctl RESEND PATCH v2] monitor: Add epoll timeout for forcing
- a full dimm health check
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: Vaibhav Jain <vaibhav@linux.ibm.com>, linux-nvdimm@lists.01.org
-Date: Tue, 21 Jul 2020 23:29:08 -0600
-In-Reply-To: <20200722052455.339169-1-vaibhav@linux.ibm.com>
-References: <20200722052455.339169-1-vaibhav@linux.ibm.com>
-User-Agent: Evolution 3.36.3 (3.36.3-1.fc32) 
+	by ml01.01.org (Postfix) with ESMTPS id 8E44A11EDD99D
+	for <linux-nvdimm@lists.01.org>; Wed, 22 Jul 2020 02:49:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=CGWeeSRaUSkQ7fRpSaSxceYYgFD1vpes5EtqHWHdpSk=; b=OwoBHanUcjzURwMFxFtVsv9qfg
+	SeMEMy/1cgFq/6m+pzEEfSa6Xcdy/FeKvQkAYl0zjdjfLykOJ8qAC+63Dr3qdZ20GQbde7oDVD6Jq
+	uawCAOpyJ8G/qXsZEIrjKsaLLf88AFKEvhFUsMYXlAHU6X7PbtkQaQH4eOH9Rzuab+mB/XLsjUTUj
+	Kq3qmjssUzDiUOfEnSKuCfvCZsqxbJaT+qKDQHrOTeaZWbVIDB3rYawhHlO9mhq0FjoH+7nyqW6sR
+	xdC3UlwPbRuWnsgQBfnNEKRrKuyGQ8HVupyoL8IwxZ9p3A9+yamJ/NCAGw21N1yHcHM1pzHtYIn8N
+	VUj0Bt1w==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1jyBMw-0007bB-1x; Wed, 22 Jul 2020 09:48:59 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(Client did not present a certificate)
+	by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 93C513011C6;
+	Wed, 22 Jul 2020 11:48:53 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+	id D378821A7D50E; Wed, 22 Jul 2020 11:48:53 +0200 (CEST)
+Date: Wed, 22 Jul 2020 11:48:53 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH RFC V2 17/17] x86/entry: Preserve PKRS MSR across
+ exceptions
+Message-ID: <20200722094853.GM10769@hirez.programming.kicks-ass.net>
+References: <20200717072056.73134-1-ira.weiny@intel.com>
+ <20200717072056.73134-18-ira.weiny@intel.com>
+ <20200717100610.GH10769@hirez.programming.kicks-ass.net>
+ <20200722052709.GB478587@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: GGEY4EIESNAV4KK2DCI2DJJY4ISIENGI
-X-Message-ID-Hash: GGEY4EIESNAV4KK2DCI2DJJY4ISIENGI
-X-MailFrom: vishal.l.verma@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Content-Disposition: inline
+In-Reply-To: <20200722052709.GB478587@iweiny-DESK2.sc.intel.com>
+Message-ID-Hash: CFHP4IFHIHUQHY5G5HWQS4RNTKPED2FF
+X-Message-ID-Hash: CFHP4IFHIHUQHY5G5HWQS4RNTKPED2FF
+X-MailFrom: peterz@infradead.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GGEY4EIESNAV4KK2DCI2DJJY4ISIENGI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CFHP4IFHIHUQHY5G5HWQS4RNTKPED2FF/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,46 +78,55 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 2020-07-22 at 10:54 +0530, Vaibhav Jain wrote:
-> This patch adds a new command argument to the 'monitor' command namely
-> '--poll' that triggers a call to notify_dimm_event() at regular
-> intervals forcing a periodic check of status/events for the nvdimm
-> objects i.e. bus, dimms, regions or namespaces.
-> 
-> This behavior is useful for dimms that do not support event notifications
-> in case the health status of an nvdimm changes. This is especially
-> true in case of PAPR-SCM nvdimms as the PHYP hypervisor doesn't provide
-> any notifications to the guest kernel on a change in nvdimm health
-> status. In such case periodic polling of the is the only way to track
-> the health of a nvdimm.
-> 
-> The patch updates monitor_event() adding a timeout value to
-> epoll_wait() call. Also to prevent the possibility of a single dimm
-> generating enough events thereby preventing check for status of other
-> nvdimms objects, a 'fullpoll_ts' time-stamp is added to keep track of
-> when full check of all nvdimms objects happened. If after epoll_wait()
-> returns 'fullpoll_ts' time-stamp indicates last a full status check
-> for nvdimm objects happened beyond 'poll-interval' seconds then a full
-> status check is enforced.
-> 
-> Cc: QI Fuli <qi.fuli@jp.fujitsu.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
-> Changelog:
-> 
-> Resend
-> * None
-> 
-Hi Vaibhav,
+On Tue, Jul 21, 2020 at 10:27:09PM -0700, Ira Weiny wrote:
 
-I do have this queued up in my staging branch, I've just yet to push it out :)
+> I've been really digging into this today and I'm very concerned that I'm
+> completely missing something WRT idtentry_enter() and idtentry_exit().
+> 
+> I've instrumented idt_{save,restore}_pkrs(), and __dev_access_{en,dis}able()
+> with trace_printk()'s.
+> 
+> With this debug code, I have found an instance where it seems like
+> idtentry_enter() is called without a corresponding idtentry_exit().  This has
+> left the thread ref counter at 0 which results in very bad things happening
+> when __dev_access_disable() is called and the ref count goes negative.
+> 
+> Effectively this seems to be happening:
+> 
+> ...
+> 	// ref == 0
+> 	dev_access_enable()  // ref += 1 ==> disable protection
+> 		// exception  (which one I don't know)
+> 			idtentry_enter()
+> 				// ref = 0
+> 				_handler() // or whatever code...
+> 			// *_exit() not called [at least there is no trace_printk() output]...
+> 			// Regardless of trace output, the ref is left at 0
+> 	dev_access_disable() // ref -= 1 ==> -1 ==> does not enable protection
+> 	(Bad stuff is bound to happen now...)
+> ...
+> 
+> The ref count ends up completely messed up after this sequence...  and the PKRS
+> register gets out of sync as well.  This is starting to make some sense of how
+> I was getting what seemed like random crashes before.
+> 
+> Unfortunately I don't understand the idt entry/exit code well enough to see
+> clearly what is going on.  Is there any reason idtentry_exit() is not called
+> after idtentry_enter()?  Perhaps some NMI/MCE or 'not normal' exception code
+> path I'm not seeing?  In my searches I see a corresponding exit for every
+> enter.  But MCE is pretty hard to follow.
+> 
+> Also is there any chance that the process could be getting scheduled and that
+> is causing an issue?
 
-Thanks for the ping!
--Vishal
+Ooh, I think I see the problem. We also use idtentry_enter() for #PF,
+and #PF can schedule, exactly as you observed. Argh!
 
+This then means you need to go frob something in
+arch/x86/include/asm/idtentry.h, which is somewhat unfortunate.
 
+Thomas, would it make sense to add a type parameter to
+idtentry_{enter,exit}() ?
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
