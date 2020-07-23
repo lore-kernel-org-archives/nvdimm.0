@@ -2,73 +2,68 @@ Return-Path: <SRS0=Ht1H=BC=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CAE9C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 23 Jul 2020 05:58:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AC89C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 23 Jul 2020 16:18:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D24EA2080D
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 23 Jul 2020 05:58:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D24EA2080D
+	by mail.kernel.org (Postfix) with ESMTPS id 16E6022B47
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 23 Jul 2020 16:18:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 16E6022B47
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 73228124DA2EE;
-	Wed, 22 Jul 2020 22:58:00 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	by ml01.01.org (Postfix) with ESMTP id D63F41250EFCD;
+	Thu, 23 Jul 2020 09:18:21 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=fenghua.yu@intel.com; receiver=<UNKNOWN> 
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C21F9100A6D7A
-	for <linux-nvdimm@lists.01.org>; Wed, 22 Jul 2020 22:57:57 -0700 (PDT)
-IronPort-SDR: GYf1MOQBMdoi68rL3J6btfgu9imFlgLDDinsexsiVcBqwbhXdb3zK/hJRcabED7Zmx/ggXqjGn
- QAP95ehuTLbQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9690"; a="215086612"
-X-IronPort-AV: E=Sophos;i="5.75,385,1589266800";
-   d="scan'208";a="215086612"
+	by ml01.01.org (Postfix) with ESMTPS id BCC251250EFCB
+	for <linux-nvdimm@lists.01.org>; Thu, 23 Jul 2020 09:18:19 -0700 (PDT)
+IronPort-SDR: jRAu/bd+D0MbiXFR+mxyGq7QqTCzx7CGLV2vmRnAGX6SupdHBXCNq/LcrLf8cqUTR06nb/9W2m
+ RgMncc4Yy2vg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9691"; a="148058231"
+X-IronPort-AV: E=Sophos;i="5.75,387,1589266800";
+   d="scan'208";a="148058231"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jul 2020 22:57:57 -0700
-IronPort-SDR: o4AEnXvFEfx2+X2l8VlvBuzC+RuC4+M/5nafwMNRvEHxx3NqiXoxJ8LktP+xO/hvYGsvusYGYc
- w7PaKjo900Mg==
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jul 2020 09:18:19 -0700
+IronPort-SDR: kf2KWN7WI2p4vd74GFsxQMiXONFSvdTEj6bfjU/HaqJRxh3PGZm95T03EkTMNRYV+oRWiqE8bl
+ Q0ShhWAOk+TQ==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,385,1589266800";
-   d="scan'208";a="288529407"
-Received: from orsmsx110.amr.corp.intel.com ([10.22.240.8])
-  by orsmga006.jf.intel.com with ESMTP; 22 Jul 2020 22:57:57 -0700
-Received: from orsmsx121.amr.corp.intel.com ([169.254.10.122]) by
- ORSMSX110.amr.corp.intel.com ([169.254.10.107]) with mapi id 14.03.0439.000;
- Wed, 22 Jul 2020 22:57:57 -0700
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-CC: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [ANNOUNCE] ndctl v69
-Thread-Topic: [ANNOUNCE] ndctl v69
-Thread-Index: AQHWYLY2bA6BdwHxAkODEB2k577TFw==
-Date: Thu, 23 Jul 2020 05:57:56 +0000
-Message-ID: <4205dc57a8ebfef2698fa09c8029f32efed6c3dd.camel@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Evolution 3.32.5 (3.32.5-1.fc30) 
-x-originating-ip: [10.255.75.57]
-Content-ID: <701A0E7EBACD8A4A9B025F5E007C1374@intel.com>
+X-IronPort-AV: E=Sophos;i="5.75,387,1589266800";
+   d="scan'208";a="311087983"
+Received: from romley-ivt3.sc.intel.com ([172.25.110.60])
+  by fmsmga004.fm.intel.com with ESMTP; 23 Jul 2020 09:18:18 -0700
+Date: Thu, 23 Jul 2020 09:18:18 -0700
+From: Fenghua Yu <fenghua.yu@intel.com>
+To: Andy Lutomirski <luto@kernel.org>
+Subject: Re: [PATCH RFC V2 17/17] x86/entry: Preserve PKRS MSR across
+ exceptions
+Message-ID: <20200723161818.GA77434@romley-ivt3.sc.intel.com>
+References: <20200717072056.73134-1-ira.weiny@intel.com>
+ <20200717072056.73134-18-ira.weiny@intel.com>
+ <CALCETrVe1i5JdyzD_BcctxQJn+ZE3T38EFPgjxN1F577M36g+w@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID-Hash: IZOI5RXK2OXY6FUEVFGFVTYFJAQPJOWS
-X-Message-ID-Hash: IZOI5RXK2OXY6FUEVFGFVTYFJAQPJOWS
-X-MailFrom: vishal.l.verma@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Content-Disposition: inline
+In-Reply-To: <CALCETrVe1i5JdyzD_BcctxQJn+ZE3T38EFPgjxN1F577M36g+w@mail.gmail.com>
+User-Agent: Mutt/1.5.23 (2014-03-12)
+Message-ID-Hash: BL3AG6BMYBA7CF3WJSV5UO2YVFCPILWT
+X-Message-ID-Hash: BL3AG6BMYBA7CF3WJSV5UO2YVFCPILWT
+X-MailFrom: fenghua.yu@intel.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, X86 ML <x86@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IZOI5RXK2OXY6FUEVFGFVTYFJAQPJOWS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BL3AG6BMYBA7CF3WJSV5UO2YVFCPILWT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -77,46 +72,45 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-A new ndctl release is available[1].
+On Wed, Jul 22, 2020 at 09:21:43AM -0700, Andy Lutomirski wrote:
+> On Fri, Jul 17, 2020 at 12:21 AM <ira.weiny@intel.com> wrote:
+> >
+> > From: Ira Weiny <ira.weiny@intel.com>
+> >
+> > The PKRS MSR is not managed by XSAVE.  It is already preserved through a
+> > context switch but this support leaves exception handling code open to
+> > memory accesses which the interrupted process has allowed.
+> >
+> > Close this hole by preserve the current task's PKRS MSR, reset the PKRS
+> > MSR value on exception entry, and then restore the state on exception
+> > exit.
+> 
+> Should this live in pt_regs?
 
-Highlights include support for 'PAPR' NVDIMMs, a build fix for
-zero-length array warnings in GCC10, a new option for ndctl-monitor
-allowing for a timeout for epoll, and misc unit test and documentation
-fixes.
+The PKRS MSR has been preserved in thread_info during kernel entry. We
+don't need to preserve it in another place (i.e. idtentry_state).
 
-A shortlog is appended below.
+To avoid confusion, I think we need to change the above commit message to:
 
-[1]: https://github.com/pmem/ndctl/releases/tag/v69
+"Exception handling code is open to memory accesses which the interrupted
+process has allowed.
 
-Dan Williams (1):
-      ndctl/build: Fix zero-length array warnings
+Close this hole by reset the PKRS MSR value on exception entry and restore
+the state on exception exit. The MSR was preserved in thread_info."
 
-Michal Suchanek (1):
-      Documentation: use includes in more ndctl command pages.
+The patch needs to be changed accordingly, I think:
 
-Santosh Sivaraj (2):
-      Skip region filtering if numa_node attribute is not present
-      infoblock: Set the default alignment to the platform alignment
+1. No need to define "pks" in struct idtentry_state because the MSR is
+   already preserved in thread_info.
+2. idt_save_pkrs() could be renamed as idt_reset_pkrs() to reset
+   the MSR (no need to save it). "state.pkrs" can be replaced by
+   "current->thread_info.pkrs" now.
+3. The "pkrs_ref" could be defined in thread_info as well. But I'm not
+   sure if it's better than defined in idtentry_state.
 
-Steve Scargall (1):
-      ndctl/doc: Fix a typo in Documentation/daxctl/movable-options.txt
+Thanks.
 
-Vaibhav Jain (8):
-      libndctl: Refactor out add_dimm() to handle NFIT specific init
-      libncdtl: Add initial support for NVDIMM_FAMILY_PAPR nvdimm family
-      libndctl,papr_scm: Add definitions for PAPR nvdimm specific methods
-      papr: Add scaffolding to issue and handle PDSM requests
-      libndctl,papr_scm: Implement support for PAPR_PDSM_HEALTH
-      monitor: Add epoll timeout for forcing a full dimm health check
-      libndctl/papr_scm: Add support for reporting "life_used_percentage" metric
-      papr: Check for command type in papr_xlat_firmware_status()
-
-Vishal Verma (5):
-      ndctl/test: Fix region selection in align.sh
-      ndctl/test: fix align.sh to not expect initialized labels
-      ndctl/README: Add CONFIG_ENCRYPTED_KEYS to the config items list
-      ndctl/namespace: fix a resource leak in file_write_infoblock()
-      ndctl/lib: fix new symbol location in the symbol script
+-Fenghua
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
