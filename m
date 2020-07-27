@@ -1,88 +1,62 @@
 Return-Path: <SRS0=7ETp=BG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.4 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
-	FORGED_YAHOO_RCVD,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.2 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12437C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Jul 2020 06:31:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA14C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Jul 2020 09:57:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D1BAF20714
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Jul 2020 06:31:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D1BAF20714
-Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=yahoo.com
+	by mail.kernel.org (Postfix) with ESMTPS id 9083320786
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 27 Jul 2020 09:57:08 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9083320786
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 98CBE1216B404;
-	Sun, 26 Jul 2020 23:31:38 -0700 (PDT)
-Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6B570120956F5
-	for <linux-nvdimm@lists.01.org>; Sun, 26 Jul 2020 23:31:34 -0700 (PDT)
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Subject: =?utf-8?q?Is_online_best_essay_writing_service_fine_for_writing_academic?=
- =?utf-8?b?4oCZcyBlc3NheXM/?=
-From: lawrencesanchez1256@yahoo.com
+	by ml01.01.org (Postfix) with ESMTP id 598F11232DCC3;
+	Mon, 27 Jul 2020 02:57:08 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=37.49.224.50; helo=gmail.com; envelope-from=anisa.uclswift@gmail.com; receiver=<UNKNOWN> 
+Received: from gmail.com (unknown [37.49.224.50])
+	by ml01.01.org (Postfix) with ESMTP id 769C412214714
+	for <linux-nvdimm@lists.01.org>; Mon, 27 Jul 2020 02:57:02 -0700 (PDT)
+From: anisa.uclswift@gmail.com
 To: linux-nvdimm@lists.01.org
-Date: Mon, 27 Jul 2020 06:31:34 -0000
-Message-ID: <20200727063134.2837.13830@ml01.vlan13.01.org>
-User-Agent: HyperKitty on https://ml01.01.org/
-Message-ID-Hash: BSCJQMGYXMK5NYAGD7IEAQ6TAVLEZQJP
-X-Message-ID-Hash: BSCJQMGYXMK5NYAGD7IEAQ6TAVLEZQJP
-X-MailFrom: lawrencesanchez1256@yahoo.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Subject: Re: Pocketing order 1-3
+Date: 27 Jul 2020 11:56:56 +0200
+Message-ID: <20200727115655.28729A90728BF0A1@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_785FB9BE.31BA721B"
+Message-ID-Hash: FVN5NLXPS7FIZKZ4CMJDD4ULRKHIWOLN
+X-Message-ID-Hash: FVN5NLXPS7FIZKZ4CMJDD4ULRKHIWOLN
+X-MailFrom: anisa.uclswift@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BSCJQMGYXMK5NYAGD7IEAQ6TAVLEZQJP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FVN5NLXPS7FIZKZ4CMJDD4ULRKHIWOLN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Transfer-Encoding: base64
 
-RXNzYXkgd3JpdGluZyBpcyBhIHZlcnkgc2lnbmlmaWNhbnQgYW5kIGVzc2VudGlhbCB0YXNrIGZv
-ciBhY2FkZW1pY+KAmXMgaW50ZXJuYWwgZ3JhZGVzLiBUaGVyZWZvcmUgbm93YWRheXMgdGhlIGFj
-YWRlbWljIGVzc2F5IHdyaXRpbmcgdGFzayBpcyByaXNpbmcgaW4gYSB2ZXJ5IHR5cGljYWwgd2F5
-LiBUaGlzIHRhc2sgaW50ZW50aW9uIGlzIHRvIG1ha2Ugc3R1ZGVudHMgaW4gYSBkZWVwIHN0dWR5
-IG9uIHRoZWlyIGFjYWRlbWljIHRhc2tzIHRvIGdldCBtb3JlIGtub3dsZWRnZS4gVGhlIHRhc2sg
-aXMgYWxzbyBoZWxwaW5nIHRvIGdyb3cgcmVzZWFyY2hpbmcgY2FwYWNpdHkgb2Ygc3R1ZGVudHMg
-aW4gdGhlaXIgb3duIHN1YmplY3QgYW5kIGV2ZW4gdGhpcyB3aWxsIHN1cHBvcnQgc3R1ZGVudHMg
-dG8gZ2V0IGdvb2Qgd3JpdGluZyBza2lsbHMgZXZlbiBzcGVlZCBpbiB3cml0aW5nIHdvcmtzLiBJ
-ZiBhIHN0dWRlbnQgaGFzIGEgcGFzdCB3cml0dGVuIHByYWN0aWNlIHRoZW4gdGhleSBjYW4gZWFz
-aWx5IHdyaXRlIHRoZWlyIGZ1dHVyZSBlc3NheSB3b3JrcyBieSB0aGVtLiBUaGVuIHdobyBpcyBu
-b3QgZ29vZCBhdCB3cml0aW5nIHdvcmtzIHRoZXkgd2lsbCBhbHdheXMgdHJ5IHRvIGxvb2sgZm9y
-IHRoZSBiZXN0IG9ubGluZSBiZXN0IGVzc2F5IHdyaXRpbmcgc2VydmljZSBmb3IgZmluaXNoaW5n
-IHRoZWlyIGVzc2F5LiBCdXQgdGhlIGNvbmZ1c2lvbiBpcyB3aGlsZSBwaWNraW5nIHRoZSBiZXN0
-IHNlcnZpY2UgZnJvbSB0aGUgb25saW5lLiBUaGVyZSBhcmUgYSBmZXcgYmVzdCBlc3NheSB3cml0
-aW5nIHNlcnZpY2VzIHRoYXQgYXJlIGZpbmUgZm9yIGNvbXBsZXRpbmcgc3R1ZGVudOKAmXMgZXNz
-YXlzLiBTb21lIG9ubGluZSBzZXJ2aWNlIGludGVudGlvbiBpcyB0byBtYWtlIG1vbmV5IGZyb20g
-dGhlIHN0dWRlbnRzIGJ5IGNoZWF0aW5nIHRoZW0uDQoNCllvdSBjYW4gdW5kZXJzdGFuZCB0aGUg
-Y29tcGFuaWVzIGJ5IHVuZGVyc3RhbmRpbmcgdGhlaXIgYmVoYXZpb3IgYW5kIHJlbWVtYmVyIHRo
-YXQgdGhlIGJlc3QgZXNzYXkgd3JpdGluZyBzZXJ2aWNlIHdpbGwgYWx3YXlzIGtlZXAgYSBwbGVh
-c2FudCBhcHByb2FjaCB3aXRoIHRoZWlyIGN1c3RvbWVycyBmcm9tIHRoZSBvcmRlciBvZiBlc3Nh
-eSB0byBkZWxpdmVyaW5nIHRoZSBlc3NheSBodHRwczovL2NsYXp3b3JrLmNvbS8uIEV2ZW4geW91
-IGNhbiBzZWUgdGhhdCB0aGVpciBmZWVkYmFjayBzZWN0aW9uIGlzIGZpbGxlZCB3aXRoIHBvc2l0
-aXZlIHJldmlld3MuIFRoZXNlIHJldmlld3Mgd2lsbCBoZWxwIHlvdSB0byB1bmRlcnN0YW5kIHRo
-ZSBzZXJ2aWNlIGNvcnJlY3RseS4gVGhleSB3aWxsIGtlZXAgcHJvZmVzc2lvbmFsbHkgdGFsZW50
-ZWQgd3JpdGVycyB0byBjb21wbGV0ZSB5b3VyIG9yZGVycy4gVW5kZXJzdGFuZCB0aGVzZSBmcm9t
-IHlvdXIgc2VsZWN0ZWQgc2VydmljZS4gSGVyZSBhZ2Fpbiwgc2F5aW5nIHlvdSBob3cgdG8gZ2V0
-IGFuIGVzc2F5IHdyaXRpbmcgc2VydmljZSBmcm9tIHRoZSBvbmxpbmUuIEZpcnN0IG9mIGFsbCwg
-dHJ5IHRvIGRvIHRoZSBiZXN0IHN0dWR5IGluIHRoZWlyIHJldmlld3MuIFRyeSB0byB1bmRlcnN0
-YW5kIHRoZSB3ZWJzaXRlIHJldmlld3MgZnJvbSB0aGUgc2VsZWN0ZWQgc2l0ZSBiZWZvcmUgc3Vi
-bWl0dGluZyB5b3VyIG9yZGVycy4gRXZlcnkgcG9zaXRpdmUgYW5kIG5lZ2F0aXZlIHJldmlldyBh
-bmQgc3VnZ2VzdGlvbnMgYXJlIG1heSBub3QgYmUgdHJ1ZSBmb3IgZXZlcnkgc2l0ZS4gVGhlcmVm
-b3JlIGJlIHJlZmluZWQgYW5kIHZpZ2lsYW50IHRvIHNlbGVjdCB0aGUgcmlnaHQgZXNzYXkgd3Jp
-dGluZyBzZXJ2aWNlIGZvciB5b3VyIGVzc2F5cy4gRW5zdXJlIHRoYXQgdGhlIHNlbGVjdGVkIGVz
-c2F5IHdyaXRpbmcgc2VydmljZSBpcyBkaXN0cmlidXRpbmcgdGhlIGVzc2F5IG9uIHRoZWlyIGdp
-dmVuIGRlYWRsaW5lIHdpdGggYSBxdWFsaXR5IGVzc2F5LiBDaGVjayB5b3VyIGVzc2F5IHByb3Bl
-cmx5IGFmdGVyIHlvdSBnZXQgZnJvbSB0aGUgc2l0ZS4KX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51
-eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGlu
-dXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_785FB9BE.31BA721B
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_785FB9BE.31BA721B--
