@@ -1,60 +1,70 @@
-Return-Path: <SRS0=NTIu=BH=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=g18b=BI=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FCA0C433E3
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 28 Jul 2020 02:21:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78966C433E4
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 01:35:25 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2052E2075A
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 28 Jul 2020 02:21:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2052E2075A
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fromorbit.com
+	by mail.kernel.org (Postfix) with ESMTPS id 599332083B
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 01:35:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 599332083B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CF3711258E5EA;
-	Mon, 27 Jul 2020 19:21:07 -0700 (PDT)
-Received-SPF: Pass (helo) identity=helo; client-ip=211.29.132.249; helo=mail105.syd.optusnet.com.au; envelope-from=david@fromorbit.com; receiver=<UNKNOWN> 
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
-	by ml01.01.org (Postfix) with ESMTP id 1CA5B124D8C5D
-	for <linux-nvdimm@lists.01.org>; Mon, 27 Jul 2020 19:21:04 -0700 (PDT)
-Received: from dread.disaster.area (pa49-180-53-24.pa.nsw.optusnet.com.au [49.180.53.24])
-	by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id 84650372EE2;
-	Tue, 28 Jul 2020 12:21:01 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1k0FEh-0002IA-R0; Tue, 28 Jul 2020 12:20:59 +1000
-Date: Tue, 28 Jul 2020 12:20:59 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>
-Subject: Re: Can we change the S_DAX flag immediately on XFS without dropping
- caches?
-Message-ID: <20200728022059.GX2005@dread.disaster.area>
-References: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
+	by ml01.01.org (Postfix) with ESMTP id 36B57125B966B;
+	Tue, 28 Jul 2020 18:35:25 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id F0379125B9667
+	for <linux-nvdimm@lists.01.org>; Tue, 28 Jul 2020 18:35:22 -0700 (PDT)
+IronPort-SDR: efrsnXiLC9q4t+qJQCoT5Us+hnjpHrOPiyXpFg8JF9tnG5Ccbp0Fsr02HEjhMS/XnWL0EBy0nG
+ CcuM58s83j5w==
+X-IronPort-AV: E=McAfee;i="6000,8403,9696"; a="139362279"
+X-IronPort-AV: E=Sophos;i="5.75,408,1589266800";
+   d="scan'208";a="139362279"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Jul 2020 18:35:10 -0700
+IronPort-SDR: YNsFNSmhqfBBgmI35x/2O7/pNXoR+a/bwag1n6Mwd4MKRcnT4XpSjxN7jGO6jeRF7/XLdB/SmJ
+ NIW6+0gsiTZw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,408,1589266800";
+   d="scan'208";a="364700282"
+Received: from vverma7-mobl4.lm.intel.com (HELO localhost6.localdomain6) ([10.254.21.148])
+  by orsmga001.jf.intel.com with ESMTP; 28 Jul 2020 18:35:09 -0700
+Message-ID: <25cb1c0c35d2ea2aa233c1db726abd86dadc54c0.camel@intel.com>
+Subject: Re: [PATCH v3 10/11] PM, libnvdimm: Add runtime firmware activation
+ support
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Dan Williams
+	 <dan.j.williams@intel.com>
+Date: Tue, 28 Jul 2020 19:35:09 -0600
+In-Reply-To: <CAJZ5v0jb87PnwVXKuvgFeP=c-BGstc4YmANGpbOOnXi-b1oL8w@mail.gmail.com>
+References: 
+	<159528284411.993790.11733759435137949717.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <159528289856.993790.11787167534159675987.stgit@dwillia2-desk3.amr.corp.intel.com>
+	 <CAJZ5v0jb87PnwVXKuvgFeP=c-BGstc4YmANGpbOOnXi-b1oL8w@mail.gmail.com>
+User-Agent: Evolution 3.36.3 (3.36.3-1.fc32) 
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=QIgWuTDL c=1 sm=1 tr=0
-	a=moVtWZxmCkf3aAMJKIb/8g==:117 a=moVtWZxmCkf3aAMJKIb/8g==:17
-	a=kj9zAlcOel0A:10 a=_RQrkK6FrEwA:10 a=7-415B0cAAAA:8
-	a=6gdJAn9UP7HguOJFIc0A:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
-Message-ID-Hash: LRYMXKZHWAZA47M7CQJDBNSDGP4RE6Y6
-X-Message-ID-Hash: LRYMXKZHWAZA47M7CQJDBNSDGP4RE6Y6
-X-MailFrom: david@fromorbit.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Gotou, Yasunori" <y-goto@fujitsu.com>
+Message-ID-Hash: R2R4624BXK4YGFA4UUTSJG3OIZ6L7FFB
+X-Message-ID-Hash: R2R4624BXK4YGFA4UUTSJG3OIZ6L7FFB
+X-MailFrom: vishal.l.verma@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Jonathan Corbet <corbet@lwn.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LRYMXKZHWAZA47M7CQJDBNSDGP4RE6Y6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/R2R4624BXK4YGFA4UUTSJG3OIZ6L7FFB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -63,51 +73,86 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Jul 28, 2020 at 02:00:08AM +0000, Li, Hao wrote:
-> Hi,
+On Mon, 2020-07-27 at 14:37 +0200, Rafael J. Wysocki wrote:
+> On Tue, Jul 21, 2020 at 12:24 AM Dan Williams <dan.j.williams@intel.com> wrote:
+> > Abstract platform specific mechanics for nvdimm firmware activation
+> > behind a handful of generic ops. At the bus level ->activate_state()
+> > indicates the unified state (idle, busy, armed) of all DIMMs on the bus,
+> > and ->capability() indicates the system state expectations for activate.
+> > At the DIMM level ->activate_state() indicates the per-DIMM state,
+> > ->activate_result() indicates the outcome of the last activation
+> > attempt, and ->arm() attempts to transition the DIMM from 'idle' to
+> > 'armed'.
+> > 
+> > A new hibernate_quiet_exec() facility is added to support firmware
+> > activation in an OS defined system quiesce state. It leverages the fact
+> > that the hibernate-freeze state wants to assert that a memory
+> > hibernation snapshot can be taken. This is in contrast to a platform
+> > firmware defined quiesce state that may forcefully quiet the memory
+> > controller independent of whether an individual device-driver properly
+> > supports hibernate-freeze.
+> > 
+> > The libnvdimm sysfs interface is extended to support detection of a
+> > firmware activate capability. The mechanism supports enumeration and
+> > triggering of firmware activate, optionally in the
+> > hibernate_quiet_exec() context.
+> > 
+> > Cc: Pavel Machek <pavel@ucw.cz>
+> > Cc: Ira Weiny <ira.weiny@intel.com>
+> > Cc: Len Brown <len.brown@intel.com>
+> > Cc: Jonathan Corbet <corbet@lwn.net>
+> > Cc: Dave Jiang <dave.jiang@intel.com>
+> > Cc: Vishal Verma <vishal.l.verma@intel.com>
+> > [rafael: hibernate_quiet_exec() proposal]
+> > Co-developed-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 > 
-> I have noticed that we have to drop caches to make the changing of S_DAX
-> flag take effect after using chattr +x to turn on DAX for a existing
-> regular file. The related function is xfs_diflags_to_iflags, whose
-> second parameter determines whether we should set S_DAX immediately.
+> IMO it's better to change this to
+> 
+> Co-developed-by: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> 
+> and please to add
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> to it as per the development process documentation.
 
-Yup, as documented in Documentation/filesystems/dax.txt. Specifically:
+Thanks Rafael, I've fixed this up in the branch I've prepared for the pull
+request:
 
- 6. When changing the S_DAX policy via toggling the persistent FS_XFLAG_DAX flag,
-    the change in behaviour for existing regular files may not occur
-    immediately.  If the change must take effect immediately, the administrator
-    needs to:
+https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/log/?h=libnvdimm-for-next
 
-    a) stop the application so there are no active references to the data set
-       the policy change will affect
+> 
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  Documentation/ABI/testing/sysfs-bus-nvdimm         |    2
+> >  .../driver-api/nvdimm/firmware-activate.rst        |   86 ++++++++++++
+> >  drivers/nvdimm/core.c                              |  149 ++++++++++++++++++++
+> >  drivers/nvdimm/dimm_devs.c                         |  115 +++++++++++++++
+> >  drivers/nvdimm/nd-core.h                           |    1
+> >  include/linux/libnvdimm.h                          |   44 ++++++
+> >  include/linux/suspend.h                            |    6 +
+> >  kernel/power/hibernate.c                           |   97 +++++++++++++
+> >  8 files changed, 500 insertions(+)
+> >  create mode 100644 Documentation/ABI/testing/sysfs-bus-nvdimm
+> >  create mode 100644 Documentation/driver-api/nvdimm/firmware-activate.rst
+> > 
 
-    b) evict the data set from kernel caches so it will be re-instantiated when
-       the application is restarted. This can be achieved by:
+[..]
 
-       i. drop-caches
-       ii. a filesystem unmount and mount cycle
-       iii. a system reboot
+> > @@ -464,6 +466,10 @@ static inline void hibernation_set_ops(const struct platform_hibernation_ops *op
+> >  static inline int hibernate(void) { return -ENOSYS; }
+> >  static inline bool system_entering_hibernation(void) { return false; }
+> >  static inline bool hibernation_available(void) { return false; }
+> > +
+> > +static inline hibernate_quiet_exec(int (*func)(void *data), void *data) {
+> 
+> This needs to be "static inline int".
+> 
+Yep I got a build warning for this and also fixed it up.
 
-> I can't figure out why we do this. Is this because the page caches in
-> address_space->i_pages are hard to deal with?
+Thanks,
+-Vishal
 
-Because of unfixable races in the page fault path that prevent
-changing the caching behaviour of the inode while concurrent access
-is possible. The only way to guarantee races can't happen is to
-cycle the inode out of cache.
-
-> I also wonder what will
-> happen if we set S_DAX unconditionally. Thanks!
-
-As per the documentation, that's exactly what the dax=always mount
-option does.
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
