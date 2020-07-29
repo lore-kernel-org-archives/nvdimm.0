@@ -6,63 +6,57 @@ X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4E3AC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 16:10:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4771BC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 23:21:42 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A229920829
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 16:10:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A229920829
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 257B32074B
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 23:21:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 257B32074B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fromorbit.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6643A126D6C58;
-	Wed, 29 Jul 2020 09:10:47 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CF42E126A2F81
-	for <linux-nvdimm@lists.01.org>; Wed, 29 Jul 2020 09:10:45 -0700 (PDT)
-IronPort-SDR: QIcPm/GkCQTP09mE3tsVxsesMQiCXk+FkpHJ06N0hvGgCnSTvSLD+ZNSm8drPQSuf9EtDGwjol
- pDx71F28rdxw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9697"; a="148907552"
-X-IronPort-AV: E=Sophos;i="5.75,410,1589266800";
-   d="scan'208";a="148907552"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2020 09:10:41 -0700
-IronPort-SDR: i7X1v4Hd61tSPtOHwyapVU3DpUiuiiKjbknAuZyuu6ZTZld0mdwSsCKC4UI0xk0/Aw/dKSFeuh
- SD8kUQzhsvYg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,410,1589266800";
-   d="scan'208";a="290580949"
-Received: from iweiny-desk2.sc.intel.com ([10.3.52.147])
-  by orsmga006.jf.intel.com with ESMTP; 29 Jul 2020 09:10:40 -0700
-Date: Wed, 29 Jul 2020 09:10:40 -0700
-From: Ira Weiny <ira.weiny@intel.com>
+	by ml01.01.org (Postfix) with ESMTP id DA2B4126E5DC0;
+	Wed, 29 Jul 2020 16:21:41 -0700 (PDT)
+Received-SPF: Pass (helo) identity=helo; client-ip=211.29.132.80; helo=mail109.syd.optusnet.com.au; envelope-from=david@fromorbit.com; receiver=<UNKNOWN> 
+Received: from mail109.syd.optusnet.com.au (mail109.syd.optusnet.com.au [211.29.132.80])
+	by ml01.01.org (Postfix) with ESMTP id C6017126E24F1
+	for <linux-nvdimm@lists.01.org>; Wed, 29 Jul 2020 16:21:39 -0700 (PDT)
+Received: from dread.disaster.area (pa49-180-53-24.pa.nsw.optusnet.com.au [49.180.53.24])
+	by mail109.syd.optusnet.com.au (Postfix) with ESMTPS id 8AA5AD7F054;
+	Thu, 30 Jul 2020 09:21:35 +1000 (AEST)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+	(envelope-from <david@fromorbit.com>)
+	id 1k0vO7-0001KV-2E; Thu, 30 Jul 2020 09:21:31 +1000
+Date: Thu, 30 Jul 2020 09:21:31 +1000
+From: Dave Chinner <david@fromorbit.com>
 To: Yasunori Goto <y-goto@fujitsu.com>
 Subject: Re: Can we change the S_DAX flag immediately on XFS without dropping
  caches?
-Message-ID: <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
+Message-ID: <20200729232131.GC2005@dread.disaster.area>
 References: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
  <20200728022059.GX2005@dread.disaster.area>
  <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
 MIME-Version: 1.0
 Content-Disposition: inline
 In-Reply-To: <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
-Message-ID-Hash: SKQUQVQAEEOGFPJA5ZNJQSAYQ5TA3PHK
-X-Message-ID-Hash: SKQUQVQAEEOGFPJA5ZNJQSAYQ5TA3PHK
-X-MailFrom: ira.weiny@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Dave Chinner <david@fromorbit.com>, "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=LPwYv6e9 c=1 sm=1 tr=0
+	a=moVtWZxmCkf3aAMJKIb/8g==:117 a=moVtWZxmCkf3aAMJKIb/8g==:17
+	a=kj9zAlcOel0A:10 a=_RQrkK6FrEwA:10 a=7-415B0cAAAA:8
+	a=_fcLz_GkVchqeGo6EiQA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
+Message-ID-Hash: 5PVEGEOH3TCB2W6Y3IBZ4FHBWREAQ2ZQ
+X-Message-ID-Hash: 5PVEGEOH3TCB2W6Y3IBZ4FHBWREAQ2ZQ
+X-MailFrom: david@fromorbit.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SKQUQVQAEEOGFPJA5ZNJQSAYQ5TA3PHK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5PVEGEOH3TCB2W6Y3IBZ4FHBWREAQ2ZQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -110,36 +104,24 @@ On Wed, Jul 29, 2020 at 11:23:21AM +0900, Yasunori Goto wrote:
 > 
 > BTW, even normal user becomes to able to change DAX flag for an inode,
 > drop_cache operation still requires root permission, right?
-> 
+
+Step back for a minute and explain why you want to be able to change
+the DAX mode of a file -as a user-.
+
 > So, if kernel have a feature for normal user can operate drop cache for "a
 > inode" with
 > its permission, I think it improve the above limitation, and
 > we would like to try to implement it recently.
-> 
-> Do you have any opinion making such feature?
-> (Agree/opposition, or any other comment?)
 
-I would not be opposed but there were many hurdles to that implementation.
+No, drop_caches is not going to be made available to users. That
+makes it s trivial system wide DoS vector.
 
-What is the use case you are thinking of here?
+Cheers,
 
-The compromise of dropping caches was reached because we envisioned that many
-users would simply want to chose the file mode when a file was created and
-maintain that mode through the lifetime of the file.  To that end one can
-simply create directories which have the desired dax mode and any files created
-in that directory will inherit the dax mode immediately.  So there is no need
-to switch the file mode directly as a normal user.
-
-Would that work for your use case?
-
-Ira
-
-> 
-> Thanks,
-> 
-> -- 
-> Yasunori Goto
-> 
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
