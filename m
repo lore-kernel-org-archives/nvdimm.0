@@ -2,61 +2,80 @@ Return-Path: <SRS0=g18b=BI=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_40,
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5257C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 03:44:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11859C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 04:24:06 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7B5902075F
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 03:44:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7B5902075F
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id BCE412074B
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 04:24:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="W+17L/tn"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BCE412074B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 561C81268E95D;
-	Tue, 28 Jul 2020 20:44:50 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=lihao2018.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id B8B1511001AB9
-	for <linux-nvdimm@lists.01.org>; Tue, 28 Jul 2020 20:44:46 -0700 (PDT)
-X-IronPort-AV: E=Sophos;i="5.75,408,1589212800";
-   d="scan'208";a="97041138"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 29 Jul 2020 11:44:42 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 0B1834CE38CB;
-	Wed, 29 Jul 2020 11:44:38 +0800 (CST)
-Received: from G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Wed, 29 Jul 2020 11:44:37 +0800
-Received: from localhost.localdomain (10.167.225.206) by
- G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Wed, 29 Jul 2020 11:44:37 +0800
-From: Hao Li <lihao2018.fnst@cn.fujitsu.com>
-To: <viro@zeniv.linux.org.uk>
-Subject: [PATCH] dax: Fix wrong error-number passed into xas_set_err()
-Date: Wed, 29 Jul 2020 11:44:36 +0800
-Message-ID: <20200729034436.24267-1-lihao2018.fnst@cn.fujitsu.com>
-X-Mailer: git-send-email 2.28.0
+	by ml01.01.org (Postfix) with ESMTP id 7D94112696129;
+	Tue, 28 Jul 2020 21:24:05 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::142; helo=mail-il1-x142.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 50AC612696126
+	for <linux-nvdimm@lists.01.org>; Tue, 28 Jul 2020 21:24:03 -0700 (PDT)
+Received: by mail-il1-x142.google.com with SMTP id b18so13039601ilo.12
+        for <linux-nvdimm@lists.01.org>; Tue, 28 Jul 2020 21:24:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=y8Lj0n1Zd2rP8KePdAfKhAxfmGD5rDX2BZD1WGF8Fu0=;
+        b=W+17L/tn9AcYCDoirwPhQ8eIEtvNThehTozpBQ6dS80cvQzGUBUVrg8QZ+mfdqc/AU
+         BpVMkSG+zIX7W8SZdLXbg3uBgkFDVLxLW4OwLvKYWy/286zSbPtFPbrMmbnagFa8uRSd
+         xhGhU9LAJhkxE+ep54DWt+fwqQ09gXCN/Xc6C4aP5PpZdrs51DaK4RS+dB5UaFyuy0lI
+         JeAzdVCJzPTj3M4oj6fsrbhN0ypbULabB0gZ0XUCdGJ5kPXi8hqjwh6S3D5+25dn80R+
+         fVpY0kSR+HDqhu80Z5CDhQARcxUsQB8aFzmj2OSHRisO5awvlmwVkPAFiv7a8yE1ltAO
+         er5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=y8Lj0n1Zd2rP8KePdAfKhAxfmGD5rDX2BZD1WGF8Fu0=;
+        b=hLw9EiL0RQRzSNw9KUmyYC3oAPIqeQzOwp3i95VzoMQMK/O4Pqm+aGTO5n0F4i5jZu
+         PziQVv+ij+KEQq9hcBI2Fpyp+V6FOAVkfvBYbMgGF4MXujeMDPqrBnj+cKmUTUEjrNxX
+         Bc4t7t/OL3U+k7czmVqVbWYmiVMmGvwlrYcrfnfIvjw2Mu5sui0YQR+l4xz0mwlEYwrx
+         STu7DeVvde7gPR8Pxi8J3PR8Y5vOepFv8ICWR65CUmzNBZVpP4IUcYlzEvYNVF8cETfV
+         N2QehpcIhIrQZMtAypkBG8KNSp5+Lb3eorcG/5USuhCzIlVrsrB/Vko7XH8ruzJs68yM
+         cafA==
+X-Gm-Message-State: AOAM531rZRSoqJhBSsGHJaosLPB/FU2hI1BO0TWpVgJ5sTCBlw03tGvD
+	6Mo9FAPBWcny+b+IKbbIWzmMlPd/iGGjLrI0dKQ=
+X-Google-Smtp-Source: ABdhPJxW3H5yclx2oKUIoXO9DSr1UBZ/tAP2vU1PjFq98InH9JEPbNBjJHtVoe0/5nmJbQ3X+YpsJBGSK2uRF7lXTQY=
+X-Received: by 2002:a92:4a09:: with SMTP id m9mr33482608ilf.79.1595996642205;
+ Tue, 28 Jul 2020 21:24:02 -0700 (PDT)
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 0B1834CE38CB.A1DB9
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: lihao2018.fnst@cn.fujitsu.com
-Message-ID-Hash: 4E7FCQR37XXQPTQLAV2DHH6EPIJXPXFS
-X-Message-ID-Hash: 4E7FCQR37XXQPTQLAV2DHH6EPIJXPXFS
-X-MailFrom: lihao2018.fnst@cn.fujitsu.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: willy@infradead.org, jack@suse.cz, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, lihao2018.fnst@cn.fujitsu.com
+References: <20200729034436.24267-1-lihao2018.fnst@cn.fujitsu.com>
+In-Reply-To: <20200729034436.24267-1-lihao2018.fnst@cn.fujitsu.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Wed, 29 Jul 2020 06:23:51 +0200
+Message-ID: <CAM9Jb+gaf+mm2A_=hjYXpxAt1LZ6_nysi0CH0N6XxsbHjicoHA@mail.gmail.com>
+Subject: Re: [PATCH] dax: Fix wrong error-number passed into xas_set_err()
+To: Hao Li <lihao2018.fnst@cn.fujitsu.com>
+Message-ID-Hash: BDPBPJU67T7JHTBWEKQWS4VWOHZ4GW7F
+X-Message-ID-Hash: BDPBPJU67T7JHTBWEKQWS4VWOHZ4GW7F
+X-MailFrom: pankaj.gupta.linux@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: viro@zeniv.linux.org.uk, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, LKML <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4E7FCQR37XXQPTQLAV2DHH6EPIJXPXFS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BDPBPJU67T7JHTBWEKQWS4VWOHZ4GW7F/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,33 +84,37 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The error-number passed into xas_set_err() should be negative. Otherwise,
-the xas_error() will return 0, and grab_mapping_entry() will return the
-found entry instead of a SIGBUS error when the entry is not a value.
-And then, the subsequent code path would be wrong.
+> The error-number passed into xas_set_err() should be negative. Otherwise,
+> the xas_error() will return 0, and grab_mapping_entry() will return the
+> found entry instead of a SIGBUS error when the entry is not a value.
+> And then, the subsequent code path would be wrong.
+>
+> Signed-off-by: Hao Li <lihao2018.fnst@cn.fujitsu.com>
+> ---
+>  fs/dax.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 11b16729b86f..acac675fe7a6 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -488,7 +488,7 @@ static void *grab_mapping_entry(struct xa_state *xas,
+>                 if (dax_is_conflict(entry))
+>                         goto fallback;
+>                 if (!xa_is_value(entry)) {
+> -                       xas_set_err(xas, EIO);
+> +                       xas_set_err(xas, -EIO);
+>                         goto out_unlock;
+>                 }
+>
 
-Signed-off-by: Hao Li <lihao2018.fnst@cn.fujitsu.com>
----
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index 11b16729b86f..acac675fe7a6 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -488,7 +488,7 @@ static void *grab_mapping_entry(struct xa_state *xas,
- 		if (dax_is_conflict(entry))
- 			goto fallback;
- 		if (!xa_is_value(entry)) {
--			xas_set_err(xas, EIO);
-+			xas_set_err(xas, -EIO);
- 			goto out_unlock;
- 		}
- 
--- 
-2.28.0
+Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 
 
+> --
+> 2.28.0
+>
+>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
