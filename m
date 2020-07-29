@@ -2,94 +2,144 @@ Return-Path: <SRS0=g18b=BI=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64026C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 14:30:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4E3AC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 16:10:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2317720809
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 14:30:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=konnectglobalmarketing.com header.i=@konnectglobalmarketing.com header.b="Zr6Ki0Xq";
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=amazonses.com header.i=@amazonses.com header.b="gpKm6pro"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2317720809
-Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=konnectglobalmarketing.com
+	by mail.kernel.org (Postfix) with ESMTPS id A229920829
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 29 Jul 2020 16:10:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A229920829
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E9A08126CA4EA;
-	Wed, 29 Jul 2020 07:30:56 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=54.240.27.125; helo=a27-125.smtp-out.us-west-2.amazonses.com; envelope-from=010101739afbb321-07340dbd-d249-4568-b7c4-270e5c48a7e0-000000@us-west-2.amazonses.com; receiver=<UNKNOWN> 
-Received: from a27-125.smtp-out.us-west-2.amazonses.com (a27-125.smtp-out.us-west-2.amazonses.com [54.240.27.125])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 6643A126D6C58;
+	Wed, 29 Jul 2020 09:10:47 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D79AF126CA4D2
-	for <linux-nvdimm@lists.01.org>; Wed, 29 Jul 2020 07:30:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=sknkt525wmvsd5qrslvt4aisaznnhvir; d=konnectglobalmarketing.com;
-	t=1596033053;
-	h=Subject:From:To:Date:Mime-Version:Content-Type:References:Message-Id;
-	bh=FZzJH97scOHM8/b5TEbrT7YKC4ShVNoIL7VKzCiRytQ=;
-	b=Zr6Ki0XqZLe7l47C9rsy9sOWfWUrq+9Mopdt42yALHkKrt6Wg+yjpvbZ7DwQUTSE
-	HCKKCgX7T5tl8nH2qzikGnhRq58m1+Sr3KjMJPGDLqOUd0jUQ63fgIT6liEWtcISOrb
-	b8kWMVg1b+YG/XV9I9hOuYWsomo0XkPzIAZJry2k=
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
-	s=hsbnp7p3ensaochzwyq5wwmceodymuwv; d=amazonses.com; t=1596033053;
-	h=Subject:From:To:Date:Mime-Version:Content-Type:References:Message-Id:Feedback-ID;
-	bh=FZzJH97scOHM8/b5TEbrT7YKC4ShVNoIL7VKzCiRytQ=;
-	b=gpKm6proCgqKPqWs9SpP/pjoTLjOsG/Pq+Aux0EsD05w0iKDXzBTnfQqb3ZuUPPC
-	Y2sd/9N4rt7NocZozJ4eFY+orLAn+F05So693gcDdd0NhbuPlHdWOOuAzXSV4RD1QuB
-	4/tVcWZDD3ThqUraanL3CKZbIfd5NCXz07Rodfgc=
-Subject: Altium - Proposal
-From: =?UTF-8?Q?Kelsey_Cooper?= <kelsey@konnectglobalmarketing.com>
-To: =?UTF-8?Q?linux-nvdimm=40lists=2E01=2Eorg?= <linux-nvdimm@lists.01.org>
-Date: Wed, 29 Jul 2020 14:30:53 +0000
-Mime-Version: 1.0
-References: <mail.e9d03447-21e1-4234-ba12-11ff93eadb5f@storage.wm.amazon.com>
- <mail.e9d03447-21e1-4234-ba12-11ff93eadb5f@storage.wm.amazon.com>
-X-Priority: 3 (Normal)
-X-Mailer: Amazon WorkMail
-Thread-Index: AdZltM7vznOg6ggXSXm9m0/G60iiNg==
-Thread-Topic: Altium - Proposal
-X-Wm-Sent-Timestamp: 1596033052
-Message-ID: <010101739afbb321-07340dbd-d249-4568-b7c4-270e5c48a7e0-000000@us-west-2.amazonses.com>
-X-SES-Outgoing: 2020.07.29-54.240.27.125
-Feedback-ID: 1.us-west-2.An468LAV0jCjQDrDLvlZjeAthld7qrhZr+vow8irkvU=:AmazonSES
-Message-ID-Hash: C2UFVEXXSIDO5MKDHIXIMRKXMEIGH3U5
-X-Message-ID-Hash: C2UFVEXXSIDO5MKDHIXIMRKXMEIGH3U5
-X-MailFrom: 010101739afbb321-07340dbd-d249-4568-b7c4-270e5c48a7e0-000000@us-west-2.amazonses.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+	by ml01.01.org (Postfix) with ESMTPS id CF42E126A2F81
+	for <linux-nvdimm@lists.01.org>; Wed, 29 Jul 2020 09:10:45 -0700 (PDT)
+IronPort-SDR: QIcPm/GkCQTP09mE3tsVxsesMQiCXk+FkpHJ06N0hvGgCnSTvSLD+ZNSm8drPQSuf9EtDGwjol
+ pDx71F28rdxw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9697"; a="148907552"
+X-IronPort-AV: E=Sophos;i="5.75,410,1589266800";
+   d="scan'208";a="148907552"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Jul 2020 09:10:41 -0700
+IronPort-SDR: i7X1v4Hd61tSPtOHwyapVU3DpUiuiiKjbknAuZyuu6ZTZld0mdwSsCKC4UI0xk0/Aw/dKSFeuh
+ SD8kUQzhsvYg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,410,1589266800";
+   d="scan'208";a="290580949"
+Received: from iweiny-desk2.sc.intel.com ([10.3.52.147])
+  by orsmga006.jf.intel.com with ESMTP; 29 Jul 2020 09:10:40 -0700
+Date: Wed, 29 Jul 2020 09:10:40 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Yasunori Goto <y-goto@fujitsu.com>
+Subject: Re: Can we change the S_DAX flag immediately on XFS without dropping
+ caches?
+Message-ID: <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
+References: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
+ <20200728022059.GX2005@dread.disaster.area>
+ <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
+Message-ID-Hash: SKQUQVQAEEOGFPJA5ZNJQSAYQ5TA3PHK
+X-Message-ID-Hash: SKQUQVQAEEOGFPJA5ZNJQSAYQ5TA3PHK
+X-MailFrom: ira.weiny@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Dave Chinner <david@fromorbit.com>, "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C2UFVEXXSIDO5MKDHIXIMRKXMEIGH3U5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SKQUQVQAEEOGFPJA5ZNJQSAYQ5TA3PHK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-SGksDQoNCsKgDQpXb3VsZCB5b3UgbGlrZSB0byBzZW5kIGluIHlvdXIgQnVzaW5lc3MgUHJvcG9z
-YWxzL05ld3NsZXR0ZXIgdG8ga2V5IGRlY2lzaW9uIE1ha2VycyBmcm9tIGNvbXBhbmllcyBjdXJy
-ZW50bHkgdXNpbmcgQWx0aXVtIFNvZnR3YXJlPw0KDQrCoA0KVGl0bGVzIExpa2U6wqAgSVQgRGVj
-aXNpb24gTWFrZXJzLCBDLWxldmVsLCBNYW5hZ2VycyBhbmQgb3RoZXIgam9iIHRpdGxlcyBhcyBw
-ZXIgeW91ciByZXF1aXJlbWVudC4gDQoNCsKgDQpLaW5kbHkgbGV0IG1lIGtub3cgdGhlIEpvYiBU
-aXRsZXMgJiBHZW9ncmFwaHkgdGhhdCB5b3Ugd2lzaCB0byB0YXJnZXQsIHNvIHRoYXQgSSBjYW4g
-Z2V0IGJhY2sgd2l0aCB0aGUgc2FtcGxlcywgY291bnRzIGFuZCBtb3JlIGRldGFpbHMgZm9yIHlv
-dXIgcmV2aWV3LiANCg0KwqANCldlIGNhdGVyIG90aGVyIEluZHVzdHJ5IGNvbnRhY3RzIHN1Y2gg
-YXM6IE1hbnVmYWN0dXJpbmcswqBDb25zdHJ1Y3Rpb24swqBFZHVjYXRpb24swqBSZXRhaWwswqBI
-ZWFsdGhjYXJlLCBFbmVyZ3ksIFV0aWxpdGllcyAmIFdhc3RlIFRyZWF0bWVudCwgVHJhbnNwb3J0
-YXRpb24sIGV0Yy4gDQoNCsKgDQpMb29raW5nIGZvcndhcmQgdG8geW91ciByZXNwb25zZS4NCg0K
-wqANClJlZ2FyZHMsDQoNCktlbHNleSBDb29wZXIgLSBNYXJrZXRpbmcgRXhlY3V0aXZlDQoNCsKg
-DQpTdGF5IHNhZmUuDQoNClJlcGx5IGJhY2sg4oCcUGFzc+KAnSBmb3Igbm8gZnVydGhlciBlbWFp
-bHMuDQoNCsKgDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-VG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMu
-MDEub3JnCg==
+On Wed, Jul 29, 2020 at 11:23:21AM +0900, Yasunori Goto wrote:
+> Hi,
+> 
+> On 2020/07/28 11:20, Dave Chinner wrote:
+> > On Tue, Jul 28, 2020 at 02:00:08AM +0000, Li, Hao wrote:
+> > > Hi,
+> > > 
+> > > I have noticed that we have to drop caches to make the changing of S_DAX
+> > > flag take effect after using chattr +x to turn on DAX for a existing
+> > > regular file. The related function is xfs_diflags_to_iflags, whose
+> > > second parameter determines whether we should set S_DAX immediately.
+> > Yup, as documented in Documentation/filesystems/dax.txt. Specifically:
+> > 
+> >   6. When changing the S_DAX policy via toggling the persistent FS_XFLAG_DAX flag,
+> >      the change in behaviour for existing regular files may not occur
+> >      immediately.  If the change must take effect immediately, the administrator
+> >      needs to:
+> > 
+> >      a) stop the application so there are no active references to the data set
+> >         the policy change will affect
+> > 
+> >      b) evict the data set from kernel caches so it will be re-instantiated when
+> >         the application is restarted. This can be achieved by:
+> > 
+> >         i. drop-caches
+> >         ii. a filesystem unmount and mount cycle
+> >         iii. a system reboot
+> > 
+> > > I can't figure out why we do this. Is this because the page caches in
+> > > address_space->i_pages are hard to deal with?
+> > Because of unfixable races in the page fault path that prevent
+> > changing the caching behaviour of the inode while concurrent access
+> > is possible. The only way to guarantee races can't happen is to
+> > cycle the inode out of cache.
+> 
+> I understand why the drop_cache operation is necessary. Thanks.
+> 
+> BTW, even normal user becomes to able to change DAX flag for an inode,
+> drop_cache operation still requires root permission, right?
+> 
+> So, if kernel have a feature for normal user can operate drop cache for "a
+> inode" with
+> its permission, I think it improve the above limitation, and
+> we would like to try to implement it recently.
+> 
+> Do you have any opinion making such feature?
+> (Agree/opposition, or any other comment?)
+
+I would not be opposed but there were many hurdles to that implementation.
+
+What is the use case you are thinking of here?
+
+The compromise of dropping caches was reached because we envisioned that many
+users would simply want to chose the file mode when a file was created and
+maintain that mode through the lifetime of the file.  To that end one can
+simply create directories which have the desired dax mode and any files created
+in that directory will inherit the dax mode immediately.  So there is no need
+to switch the file mode directly as a normal user.
+
+Would that work for your use case?
+
+Ira
+
+> 
+> Thanks,
+> 
+> -- 
+> Yasunori Goto
+> 
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
