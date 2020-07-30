@@ -1,121 +1,62 @@
 Return-Path: <SRS0=HWW4=BJ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_20,DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.8 required=3.0 tests=BAYES_80,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FROM_MISSP_FREEMAIL,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F63C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jul 2020 04:33:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD8ABC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jul 2020 10:35:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2741820838
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jul 2020 04:33:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DWUKRxNk"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2741820838
+	by mail.kernel.org (Postfix) with ESMTPS id A9A34206F5
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 30 Jul 2020 10:35:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A9A34206F5
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E729912704B98;
-	Wed, 29 Jul 2020 21:33:28 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::142; helo=mail-il1-x142.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A709D126F7B93
-	for <linux-nvdimm@lists.01.org>; Wed, 29 Jul 2020 21:33:26 -0700 (PDT)
-Received: by mail-il1-x142.google.com with SMTP id y18so12958907ilp.10
-        for <linux-nvdimm@lists.01.org>; Wed, 29 Jul 2020 21:33:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=1/8RnS4x4W8m0YHiu5amCYbnx/T7Aru1VqlIWnTME70=;
-        b=DWUKRxNk7x7CVf6W7KRRGPgYHyL4Fi+wLI43Pf4GXCsitNmR19V6LCsj3wSEeYmm04
-         yOdGgWO7Vs30/d5rL2j/YCHSSGL/bdIuSibmPVrc/JKIj7ACup+d44DgJs8z9Ssp0h8r
-         Fa5DpPibIatS4BAqJ20YbIMA15uvOVKJHGxnK/Lcn7ULIv8uAYwbBnY4yKcZ0EDW+oTO
-         8+uwYB9KPaki9LAEswob9fGSs1PW5w+lh2VzeiLkJC8+bFNYYgG6i9TM3ii4fzpMC+bt
-         3pDKiONEKLv1FlJeVQmER4mWFGLJAH8kjYIxsifedvKQLxtteyHxepu65gfszGJk30Ip
-         6TtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=1/8RnS4x4W8m0YHiu5amCYbnx/T7Aru1VqlIWnTME70=;
-        b=OP8cuvieaeeCEcZznlBRizjJZVeY3BHUXY6F7AstOqrCJhp/NkP6KiB78+BIy5yybj
-         8uIPaTDcDywjDsEx88OQmiXp1PObSmPPNak0YdM3XNPnkDs1Ggh6XWYg8zvFNTwatXd1
-         lAWtB+TmQBmwR9GM9ZVJHztLwZwYRTUtjumOJatZbMpArP7mC/j7uVQkdBAzpDQoNj24
-         uQ8Onnc8o5in+m+7hXKXEleRfdRO/x/SPn91MkXJLrEMuDA5dtNBDOZVPDhHQ1EifqOu
-         dx/KcTRHMJDfKnpa4AO2UkWe4ywUdzGQJ/mOoWxHCcrhueMCP0da+MknHqwwss6eXGpC
-         XN0w==
-X-Gm-Message-State: AOAM532td+I1DVc2G7FcPlFb/9Y2l0FPqjIVRelGdGZxvlA0xsMrdaj9
-	Wxu2vrOGAbAnjBaxtGp+6RIr9jfO+Yd1kiZvJEc=
-X-Google-Smtp-Source: ABdhPJy/dmKUsQhl8cVEkWj79cLpTgDY5uGzmUwT/INw4PNci3ryYBF2MmFnSITitD5fVe1LdbZreYB99yu8k0/8bAo=
-X-Received: by 2002:a92:4a09:: with SMTP id m9mr38727451ilf.79.1596083605662;
- Wed, 29 Jul 2020 21:33:25 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 809761273DC6C;
+	Thu, 30 Jul 2020 03:35:40 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=37.49.224.50; helo=gmail.com; envelope-from=sheikhhumayoun500@gmail.com; receiver=<UNKNOWN> 
+Received: from gmail.com (unknown [37.49.224.50])
+	by ml01.01.org (Postfix) with ESMTP id 70C351273DC68
+	for <linux-nvdimm@lists.01.org>; Thu, 30 Jul 2020 03:35:34 -0700 (PDT)
+From: sheikh humayoun farid<sheikhhumayoun500@gmail.com>
+To: linux-nvdimm@lists.01.org
+Subject: RE:prove of payment 8-0578 H&M
+Date: 30 Jul 2020 12:35:33 +0200
+Message-ID: <20200730123533.22525A1029031C3B@gmail.com>
 MIME-Version: 1.0
-References: <20200729034436.24267-1-lihao2018.fnst@cn.fujitsu.com>
-In-Reply-To: <20200729034436.24267-1-lihao2018.fnst@cn.fujitsu.com>
-From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Date: Thu, 30 Jul 2020 06:33:14 +0200
-Message-ID: <CAM9Jb+hUk_e-Un3+9Jx8eKDtZ2A597bawQTJXQx77T0yG+PdnQ@mail.gmail.com>
-Subject: Re: [PATCH] dax: Fix wrong error-number passed into xas_set_err()
-To: Hao Li <lihao2018.fnst@cn.fujitsu.com>
-Message-ID-Hash: EMD234BR3MAFM7STXYCSXK7YBBXFVMWA
-X-Message-ID-Hash: EMD234BR3MAFM7STXYCSXK7YBBXFVMWA
-X-MailFrom: pankaj.gupta.linux@gmail.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: viro@zeniv.linux.org.uk, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_30920D1D.4E6645F4"
+Message-ID-Hash: Z32KXDRZXIFKO467ZT6QEWGQPBC3OHZX
+X-Message-ID-Hash: Z32KXDRZXIFKO467ZT6QEWGQPBC3OHZX
+X-MailFrom: sheikhhumayoun500@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EMD234BR3MAFM7STXYCSXK7YBBXFVMWA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Z32KXDRZXIFKO467ZT6QEWGQPBC3OHZX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_30920D1D.4E6645F4
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> The error-number passed into xas_set_err() should be negative. Otherwise,
-> the xas_error() will return 0, and grab_mapping_entry() will return the
-> found entry instead of a SIGBUS error when the entry is not a value.
-> And then, the subsequent code path would be wrong.
->
-> Signed-off-by: Hao Li <lihao2018.fnst@cn.fujitsu.com>
-> ---
->  fs/dax.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 11b16729b86f..acac675fe7a6 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -488,7 +488,7 @@ static void *grab_mapping_entry(struct xa_state *xas,
->                 if (dax_is_conflict(entry))
->                         goto fallback;
->                 if (!xa_is_value(entry)) {
-> -                       xas_set_err(xas, EIO);
-> +                       xas_set_err(xas, -EIO);
->                         goto out_unlock;
->                 }
->
-> --
-
-Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-
-> 2.28.0
->
->
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_30920D1D.4E6645F4--
