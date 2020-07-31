@@ -2,94 +2,68 @@ Return-Path: <SRS0=D8I2=BK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A36AC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 07:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE20BC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 09:12:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3690D20829
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 07:15:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3690D20829
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 8E47621883
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 09:12:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8E47621883
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 10EEC12871EA9;
-	Fri, 31 Jul 2020 00:15:05 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 595B71286FE09
-	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 00:15:03 -0700 (PDT)
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 06V72o0X073979;
-	Fri, 31 Jul 2020 03:14:58 -0400
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 32mdgk1vgt-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 31 Jul 2020 03:14:58 -0400
-Received: from m0098410.ppops.net (m0098410.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 06V758jv080194;
-	Fri, 31 Jul 2020 03:14:57 -0400
-Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 32mdgk1vgd-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 31 Jul 2020 03:14:57 -0400
-Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
-	by ppma02wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 06V75Of9010333;
-	Fri, 31 Jul 2020 07:14:56 GMT
-Received: from b01cxnp23034.gho.pok.ibm.com (b01cxnp23034.gho.pok.ibm.com [9.57.198.29])
-	by ppma02wdc.us.ibm.com with ESMTP id 32gcq1grff-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 31 Jul 2020 07:14:56 +0000
-Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
-	by b01cxnp23034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 06V7Etr737880086
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 31 Jul 2020 07:14:55 GMT
-Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A1AFE112063;
-	Fri, 31 Jul 2020 07:14:55 +0000 (GMT)
-Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C8B39112061;
-	Fri, 31 Jul 2020 07:14:52 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.85.75.5])
-	by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
-	Fri, 31 Jul 2020 07:14:52 +0000 (GMT)
-X-Mailer: emacs 27.0.91 (via feedmail 11-beta-1 I)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: Vaibhav Jain <vaibhav@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org,
-        linux-nvdimm@lists.01.org
-Subject: Re: [PATCH v4 2/2] powerpc/papr_scm: Add support for fetching
- nvdimm 'fuel-gauge' metric
-In-Reply-To: <20200731064153.182203-3-vaibhav@linux.ibm.com>
-References: <20200731064153.182203-1-vaibhav@linux.ibm.com>
- <20200731064153.182203-3-vaibhav@linux.ibm.com>
-Date: Fri, 31 Jul 2020 12:44:50 +0530
-Message-ID: <87ft98yx3p.fsf@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTP id 54892128AFA71;
+	Fri, 31 Jul 2020 02:12:47 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=lihao2018.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id C7185128AFA6F
+	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 02:12:44 -0700 (PDT)
+X-IronPort-AV: E=Sophos;i="5.75,417,1589212800";
+   d="scan'208";a="97212846"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 31 Jul 2020 17:12:42 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 0E4604CE4B09;
+	Fri, 31 Jul 2020 17:12:39 +0800 (CST)
+Received: from [10.167.225.206] (10.167.225.206) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Fri, 31 Jul 2020 17:12:40 +0800
+Subject: Re: Can we change the S_DAX flag immediately on XFS without dropping
+ caches?
+To: Ira Weiny <ira.weiny@intel.com>
+References: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
+ <20200728022059.GX2005@dread.disaster.area>
+ <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
+ <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
+From: "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>
+Message-ID: <5717e1e5-79fb-af3c-0859-eea3cd8d9626@cn.fujitsu.com>
+Date: Fri, 31 Jul 2020 17:12:38 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.0.1
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-07-31_02:2020-07-30,2020-07-31 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 suspectscore=2
- priorityscore=1501 mlxscore=0 clxscore=1015 phishscore=0 impostorscore=0
- spamscore=0 bulkscore=0 mlxlogscore=999 adultscore=0 lowpriorityscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2007310050
-Message-ID-Hash: JB7IYWURLFR3MVRNVRIBSCXCN5TJIZFR
-X-Message-ID-Hash: JB7IYWURLFR3MVRNVRIBSCXCN5TJIZFR
-X-MailFrom: aneesh.kumar@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
+In-Reply-To: <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
+Content-Language: en-US
+X-Originating-IP: [10.167.225.206]
+X-ClientProxiedBy: G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) To
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201)
+X-yoursite-MailScanner-ID: 0E4604CE4B09.AF3EC
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: lihao2018.fnst@cn.fujitsu.com
+Message-ID-Hash: 4CPDXDNXPEZGILODZHXNYVSMVAXOTX7E
+X-Message-ID-Hash: 4CPDXDNXPEZGILODZHXNYVSMVAXOTX7E
+X-MailFrom: lihao2018.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Dave Chinner <david@fromorbit.com>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, yangx.jy@cn.fujitsu.com, gujx@cn.fujitsu.com, Yasunori Goto <y-goto@fujitsu.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JB7IYWURLFR3MVRNVRIBSCXCN5TJIZFR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4CPDXDNXPEZGILODZHXNYVSMVAXOTX7E/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -98,160 +72,90 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+On 2020/7/30 0:10, Ira Weiny wrote:
 
-> We add support for reporting 'fuel-gauge' NVDIMM metric via
-> PAPR_PDSM_HEALTH pdsm payload. 'fuel-gauge' metric indicates the usage
-> life remaining of a papr-scm compatible NVDIMM. PHYP exposes this
-> metric via the H_SCM_PERFORMANCE_STATS.
+> On Wed, Jul 29, 2020 at 11:23:21AM +0900, Yasunori Goto wrote:
+>> Hi,
+>>
+>> On 2020/07/28 11:20, Dave Chinner wrote:
+>>> On Tue, Jul 28, 2020 at 02:00:08AM +0000, Li, Hao wrote:
+>>>> Hi,
+>>>>
+>>>> I have noticed that we have to drop caches to make the changing of S_DAX
+>>>> flag take effect after using chattr +x to turn on DAX for a existing
+>>>> regular file. The related function is xfs_diflags_to_iflags, whose
+>>>> second parameter determines whether we should set S_DAX immediately.
+>>> Yup, as documented in Documentation/filesystems/dax.txt. Specifically:
+>>>
+>>>   6. When changing the S_DAX policy via toggling the persistent FS_XFLAG_DAX flag,
+>>>      the change in behaviour for existing regular files may not occur
+>>>      immediately.  If the change must take effect immediately, the administrator
+>>>      needs to:
+>>>
+>>>      a) stop the application so there are no active references to the data set
+>>>         the policy change will affect
+>>>
+>>>      b) evict the data set from kernel caches so it will be re-instantiated when
+>>>         the application is restarted. This can be achieved by:
+>>>
+>>>         i. drop-caches
+>>>         ii. a filesystem unmount and mount cycle
+>>>         iii. a system reboot
+>>>
+>>>> I can't figure out why we do this. Is this because the page caches in
+>>>> address_space->i_pages are hard to deal with?
+>>> Because of unfixable races in the page fault path that prevent
+>>> changing the caching behaviour of the inode while concurrent access
+>>> is possible. The only way to guarantee races can't happen is to
+>>> cycle the inode out of cache.
+>> I understand why the drop_cache operation is necessary. Thanks.
+>>
+>> BTW, even normal user becomes to able to change DAX flag for an inode,
+>> drop_cache operation still requires root permission, right?
+>>
+>> So, if kernel have a feature for normal user can operate drop cache for "a
+>> inode" with
+>> its permission, I think it improve the above limitation, and
+>> we would like to try to implement it recently.
+>>
+>> Do you have any opinion making such feature?
+>> (Agree/opposition, or any other comment?)
+> I would not be opposed but there were many hurdles to that implementation.
 >
-> The metric value is returned from the pdsm by extending the return
-> payload 'struct nd_papr_pdsm_health' without breaking the ABI. A new
-> field 'dimm_fuel_gauge' to hold the metric value is introduced at the
-> end of the payload struct and its presence is indicated by by
-> extension flag PDSM_DIMM_HEALTH_RUN_GAUGE_VALID.
+> What is the use case you are thinking of here?
 >
-> The patch introduces a new function papr_pdsm_fuel_gauge() that is
-> called from papr_pdsm_health(). If fetching NVDIMM performance stats
-> is supported then 'papr_pdsm_fuel_gauge()' allocated an output buffer
-> large enough to hold the performance stat and passes it to
-> drc_pmem_query_stats() that issues the HCALL to PHYP. The return value
-> of the stat is then populated in the 'struct
-> nd_papr_pdsm_health.dimm_fuel_gauge' field with extension flag
-> 'PDSM_DIMM_HEALTH_RUN_GAUGE_VALID' set in 'struct
-> nd_papr_pdsm_health.extension_flags'
->
+> The compromise of dropping caches was reached because we envisioned that many
+> users would simply want to chose the file mode when a file was created and
+> maintain that mode through the lifetime of the file.  To that end one can
+> simply create directories which have the desired dax mode and any files created
+> in that directory will inherit the dax mode immediately.  
+Inheriting mechanism for DAX mode is reasonable but chattr&drop_caches
+makes things complicated.
+> So there is no need
+> to switch the file mode directly as a normal user.
 
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+The question is, the normal users can indeed use chattr to change the DAX
+mode for a regular file as long as they want. However, when they do this,
+they have no way to make the change take effect. I think this behavior is
+weird. We can say chattr executes successfully because XFS_DIFLAG2_DAX has
+been set onto xfs_inode->i_d.di_flags2, but we can also say chattr doesn't
+finish things completely because S_DAX is not set onto inode->i_flags.
+The user may be confused about why chattr +/-x doesn't work at all. Maybe
+we should find a way for the normal user to make chattr take effects
+without calling the administrator, or we can make the chattr +/x command
+request root permission now that if the user has root permission, he can
+make DAX changing take effect through echo 2 > /proc/sys/vm/drop_caches.
 
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
-> Changelog:
+
+Regards,
+
+Hao Li
+
 >
-> v4:
-> * Moved a hunk from this patch to previous patch in the series.
->   [ Aneesh ]
+> Would that work for your use case?
 >
-> v3:
-> * Updated papr_pdsm_fuel_guage() to use the updated
->   drc_pmem_query_stats() function.
->
-> Resend:
-> None
->
-> v2:
-> * Restructure code in papr_pdsm_fuel_gauge() to handle error case
-> first [ Ira ]
-> * Ignore the return value of papr_pdsm_fuel_gauge() in
-> papr_psdm_health() [ Ira ]
-> ---
->  arch/powerpc/include/uapi/asm/papr_pdsm.h |  9 +++++
->  arch/powerpc/platforms/pseries/papr_scm.c | 49 +++++++++++++++++++++++
->  2 files changed, 58 insertions(+)
->
-> diff --git a/arch/powerpc/include/uapi/asm/papr_pdsm.h b/arch/powerpc/include/uapi/asm/papr_pdsm.h
-> index 9ccecc1d6840..50ef95e2f5b1 100644
-> --- a/arch/powerpc/include/uapi/asm/papr_pdsm.h
-> +++ b/arch/powerpc/include/uapi/asm/papr_pdsm.h
-> @@ -72,6 +72,11 @@
->  #define PAPR_PDSM_DIMM_CRITICAL      2
->  #define PAPR_PDSM_DIMM_FATAL         3
->  
-> +/* struct nd_papr_pdsm_health.extension_flags field flags */
-> +
-> +/* Indicate that the 'dimm_fuel_gauge' field is valid */
-> +#define PDSM_DIMM_HEALTH_RUN_GAUGE_VALID 1
-> +
->  /*
->   * Struct exchanged between kernel & ndctl in for PAPR_PDSM_HEALTH
->   * Various flags indicate the health status of the dimm.
-> @@ -84,6 +89,7 @@
->   * dimm_locked		: Contents of the dimm cant be modified until CEC reboot
->   * dimm_encrypted	: Contents of dimm are encrypted.
->   * dimm_health		: Dimm health indicator. One of PAPR_PDSM_DIMM_XXXX
-> + * dimm_fuel_gauge	: Life remaining of DIMM as a percentage from 0-100
->   */
->  struct nd_papr_pdsm_health {
->  	union {
-> @@ -96,6 +102,9 @@ struct nd_papr_pdsm_health {
->  			__u8 dimm_locked;
->  			__u8 dimm_encrypted;
->  			__u16 dimm_health;
-> +
-> +			/* Extension flag PDSM_DIMM_HEALTH_RUN_GAUGE_VALID */
-> +			__u16 dimm_fuel_gauge;
->  		};
->  		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
->  	};
-> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> index f37f3f70007d..f439f0dfea7d 100644
-> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> @@ -518,6 +518,51 @@ static int is_cmd_valid(struct nvdimm *nvdimm, unsigned int cmd, void *buf,
->  	return 0;
->  }
->  
-> +static int papr_pdsm_fuel_gauge(struct papr_scm_priv *p,
-> +				union nd_pdsm_payload *payload)
-> +{
-> +	int rc, size;
-> +	u64 statval;
-> +	struct papr_scm_perf_stat *stat;
-> +	struct papr_scm_perf_stats *stats;
-> +
-> +	/* Silently fail if fetching performance metrics isn't  supported */
-> +	if (!p->stat_buffer_len)
-> +		return 0;
-> +
-> +	/* Allocate request buffer enough to hold single performance stat */
-> +	size = sizeof(struct papr_scm_perf_stats) +
-> +		sizeof(struct papr_scm_perf_stat);
-> +
-> +	stats = kzalloc(size, GFP_KERNEL);
-> +	if (!stats)
-> +		return -ENOMEM;
-> +
-> +	stat = &stats->scm_statistic[0];
-> +	memcpy(&stat->stat_id, "MemLife ", sizeof(stat->stat_id));
-> +	stat->stat_val = 0;
-> +
-> +	/* Fetch the fuel gauge and populate it in payload */
-> +	rc = drc_pmem_query_stats(p, stats, 1);
-> +	if (rc < 0) {
-> +		dev_dbg(&p->pdev->dev, "Err(%d) fetching fuel gauge\n", rc);
-> +		goto free_stats;
-> +	}
-> +
-> +	statval = be64_to_cpu(stat->stat_val);
-> +	dev_dbg(&p->pdev->dev,
-> +		"Fetched fuel-gauge %llu", statval);
-> +	payload->health.extension_flags |=
-> +		PDSM_DIMM_HEALTH_RUN_GAUGE_VALID;
-> +	payload->health.dimm_fuel_gauge = statval;
-> +
-> +	rc = sizeof(struct nd_papr_pdsm_health);
-> +
-> +free_stats:
-> +	kfree(stats);
-> +	return rc;
-> +}
-> +
->  /* Fetch the DIMM health info and populate it in provided package. */
->  static int papr_pdsm_health(struct papr_scm_priv *p,
->  			    union nd_pdsm_payload *payload)
-> @@ -558,6 +603,10 @@ static int papr_pdsm_health(struct papr_scm_priv *p,
->  
->  	/* struct populated hence can release the mutex now */
->  	mutex_unlock(&p->health_mutex);
-> +
-> +	/* Populate the fuel gauge meter in the payload */
-> +	papr_pdsm_fuel_gauge(p, payload);
-> +
->  	rc = sizeof(struct nd_papr_pdsm_health);
->  
->  out:
-> -- 
-> 2.26.2
+> Ira
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
