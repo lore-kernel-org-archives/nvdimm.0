@@ -2,149 +2,168 @@ Return-Path: <SRS0=D8I2=BK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.7 required=3.0 tests=BAYES_05,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBA56C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 10:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40DC9C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 14:10:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B5B472074B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 10:04:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B5B472074B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id 126552087C
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 14:10:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 126552087C
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=arm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7585F128B87EC;
-	Fri, 31 Jul 2020 03:04:14 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=211.128.242.43; helo=mgwym04.jp.fujitsu.com; envelope-from=y-goto@fujitsu.com; receiver=<UNKNOWN> 
-Received: from mgwym04.jp.fujitsu.com (mgwym04.jp.fujitsu.com [211.128.242.43])
+	by ml01.01.org (Postfix) with ESMTP id D807812905F80;
+	Fri, 31 Jul 2020 07:10:42 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=cmarinas@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7C128128A3AFD
-	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 03:04:12 -0700 (PDT)
-Received: from yt-mxq.gw.nic.fujitsu.com (unknown [192.168.229.66]) by mgwym04.jp.fujitsu.com with smtp
-	 id 7da6_a6a4_f0ffdad6_a412_405f_b599_65c18e95aa4f;
-	Fri, 31 Jul 2020 19:04:03 +0900
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com [10.134.21.209])
-	by yt-mxq.gw.nic.fujitsu.com (Postfix) with ESMTP id 93443AC00BA
-	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 19:04:03 +0900 (JST)
-Received: from [10.133.116.206] (VPC-Y08P0560552.g01.fujitsu.local [10.133.116.206])
-	by m3051.s.css.fujitsu.com (Postfix) with ESMTP id 8B1393D2;
-	Fri, 31 Jul 2020 19:04:03 +0900 (JST)
-Subject: Re: Can we change the S_DAX flag immediately on XFS without dropping
- caches?
-To: Ira Weiny <ira.weiny@intel.com>
-References: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
- <20200728022059.GX2005@dread.disaster.area>
- <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
- <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
-From: Yasunori Goto <y-goto@fujitsu.com>
-Message-ID: <49778894-154b-6403-f1d8-258136cbc20e@fujitsu.com>
-Date: Fri, 31 Jul 2020 19:04:03 +0900
-User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.1
+	by ml01.01.org (Postfix) with ESMTPS id 64F89128CBC2C
+	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 07:10:39 -0700 (PDT)
+Received: from gaia (unknown [95.146.230.158])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id 52369206DA;
+	Fri, 31 Jul 2020 14:10:34 +0000 (UTC)
+Date: Fri, 31 Jul 2020 15:10:31 +0100
+From: Catalin Marinas <catalin.marinas@arm.com>
+To: Mike Rapoport <rppt@kernel.org>
+Subject: Re: [PATCH v2 3/7] mm: introduce memfd_secret system call to create
+ "secret" memory areas
+Message-ID: <20200731141031.GD29569@gaia>
+References: <20200727162935.31714-1-rppt@kernel.org>
+ <20200727162935.31714-4-rppt@kernel.org>
+ <20200730162209.GB3128@gaia>
+ <20200730204409.GB534153@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
-Content-Language: en-US
-X-TM-AS-GCONF: 00
-Message-ID-Hash: O6Y6GKKXX47EMGGUUAQPREEP5V6SW6B7
-X-Message-ID-Hash: O6Y6GKKXX47EMGGUUAQPREEP5V6SW6B7
-X-MailFrom: y-goto@fujitsu.com
+Content-Disposition: inline
+In-Reply-To: <20200730204409.GB534153@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: B2VUHDWYETYTHAKHYSB6ZCGCWITPFWSH
+X-Message-ID-Hash: B2VUHDWYETYTHAKHYSB6ZCGCWITPFWSH
+X-MailFrom: cmarinas@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Dave Chinner <david@fromorbit.com>, "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+CC: linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.
+ org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/O6Y6GKKXX47EMGGUUAQPREEP5V6SW6B7/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/B2VUHDWYETYTHAKHYSB6ZCGCWITPFWSH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+On Thu, Jul 30, 2020 at 11:44:09PM +0300, Mike Rapoport wrote:
+> On Thu, Jul 30, 2020 at 05:22:10PM +0100, Catalin Marinas wrote:
+> > On Mon, Jul 27, 2020 at 07:29:31PM +0300, Mike Rapoport wrote:
+> > > For instance, the following example will create an uncached mapping (error
+> > > handling is omitted):
+> > > 
+> > > 	fd = memfd_secret(SECRETMEM_UNCACHED);
+> > > 	ftruncate(fd, MAP_SIZE);
+> > > 	ptr = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+[...]
+> > > +static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
+> > > +{
+> > > +	struct secretmem_ctx *ctx = file->private_data;
+> > > +	unsigned long mode = ctx->mode;
+> > > +	unsigned long len = vma->vm_end - vma->vm_start;
+> > > +
+> > > +	if (!mode)
+> > > +		return -EINVAL;
+> > > +
+> > > +	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
+> > > +		return -EINVAL;
+> > > +
+> > > +	if (mlock_future_check(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
+> > > +		return -EAGAIN;
+> > > +
+> > > +	switch (mode) {
+> > > +	case SECRETMEM_UNCACHED:
+> > > +		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> > > +		fallthrough;
+> > > +	case SECRETMEM_EXCLUSIVE:
+> > > +		vma->vm_ops = &secretmem_vm_ops;
+> > > +		break;
+> > > +	default:
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	vma->vm_flags |= VM_LOCKED;
+> > > +
+> > > +	return 0;
+> > > +}
+> > 
+> > I think the uncached mapping is not the right thing for arm/arm64. First
+> > of all, pgprot_noncached() gives us Strongly Ordered (Device memory)
+> > semantics together with not allowing unaligned accesses. I suspect the
+> > semantics are different on x86.
+>  
+> Hmm, on x86 it's also Strongly Ordered, but I didn't find any alignment
+> restrictions. Is there a mode for arm64 that can provide similar
+> semantics?
+> 
+> Would it make sence to use something like
+> 
+> #define pgprot_uncached(prot) \
+> 	__pgprot_modify(prot, PTE_ATTRINDX_MASK, \
+> 			PTE_ATTRINDX(MT_NORMAL_NC) | PTE_PXN)
+> 
+> or is it too weak?
 
+Reading Elena's email, that's about preventing speculative loads. While
+the arm64 Normal NC is non-cacheable (equivalent to write-combine), a
+CPU is allowed to speculatively read from it. A carefully crafted gadget
+could leave an imprint on a different part of the cache via speculative
+execution based on a value in the secret memory. So IIUC, we want memory
+that cannot be speculatively loaded from and that would be Device memory
+on arm64 (with the alignment restrictions).
 
-On 2020/07/30 1:10, Ira Weiny wrote:
-> On Wed, Jul 29, 2020 at 11:23:21AM +0900, Yasunori Goto wrote:
->> Hi,
->>
->> On 2020/07/28 11:20, Dave Chinner wrote:
->>> On Tue, Jul 28, 2020 at 02:00:08AM +0000, Li, Hao wrote:
->>>> Hi,
->>>>
->>>> I have noticed that we have to drop caches to make the changing of S_DAX
->>>> flag take effect after using chattr +x to turn on DAX for a existing
->>>> regular file. The related function is xfs_diflags_to_iflags, whose
->>>> second parameter determines whether we should set S_DAX immediately.
->>> Yup, as documented in Documentation/filesystems/dax.txt. Specifically:
->>>
->>>    6. When changing the S_DAX policy via toggling the persistent FS_XFLAG_DAX flag,
->>>       the change in behaviour for existing regular files may not occur
->>>       immediately.  If the change must take effect immediately, the administrator
->>>       needs to:
->>>
->>>       a) stop the application so there are no active references to the data set
->>>          the policy change will affect
->>>
->>>       b) evict the data set from kernel caches so it will be re-instantiated when
->>>          the application is restarted. This can be achieved by:
->>>
->>>          i. drop-caches
->>>          ii. a filesystem unmount and mount cycle
->>>          iii. a system reboot
->>>
->>>> I can't figure out why we do this. Is this because the page caches in
->>>> address_space->i_pages are hard to deal with?
->>> Because of unfixable races in the page fault path that prevent
->>> changing the caching behaviour of the inode while concurrent access
->>> is possible. The only way to guarantee races can't happen is to
->>> cycle the inode out of cache.
->> I understand why the drop_cache operation is necessary. Thanks.
->>
->> BTW, even normal user becomes to able to change DAX flag for an inode,
->> drop_cache operation still requires root permission, right?
->>
->> So, if kernel have a feature for normal user can operate drop cache for "a
->> inode" with
->> its permission, I think it improve the above limitation, and
->> we would like to try to implement it recently.
->>
->> Do you have any opinion making such feature?
->> (Agree/opposition, or any other comment?)
-> I would not be opposed but there were many hurdles to that implementation.
->
-> What is the use case you are thinking of here?
->
-> The compromise of dropping caches was reached because we envisioned that many
-> users would simply want to chose the file mode when a file was created and
-> maintain that mode through the lifetime of the file.  To that end one can
-> simply create directories which have the desired dax mode and any files created
-> in that directory will inherit the dax mode immediately.  So there is no need
-> to switch the file mode directly as a normal user.
->
-> Would that work for your use case?
-Though I wrote it on another mail, your information was very helpful for me.
-Thank you for your response.
+Now, I think we could relax this to Device_GRE. So maybe add a
+pgprot_nospec() and allow architectures to define whatever they find
+suitable. The exact semantics will be different between architectures.
 
-Bye,
+> > The second, more serious problem, is that I can't find any place where
+> > the caches are flushed for the page mapped on fault. When a page is
+> > allocated, assuming GFP_ZERO, only the caches are guaranteed to be
+> > zeroed. Exposing this subsequently to user space as uncached would allow
+> > the user to read stale data prior to zeroing. The arm64
+> > set_direct_map_default_noflush() doesn't do any cache maintenance.
+> 
+> Well, the idea of uncached mappings came from Elena [1] to prevent
+> possibility of side channels that leak user space memory. So I think
+> even without cache flushing after the allocation, user space is
+> protected as all its memory accesses bypass cache so even after the page
+> is freed there won't be stale data in the cache.
+> 
+> I think that it makes sense to limit SECRETMEM_UNCACHED only for
+> architectures that define an appropriate protection, e.g.
+> pgprot_uncahced(). For x86 it can be aliased to pgprot_noncached() and
+> other architecures can define their versions.
 
->
-> Ira
->
->> Thanks,
->>
->> -- 
->> Yasunori Goto
->>
+Indeed, though as I said above, maybe use a name that suggests no
+speculation since non-cacheable doesn't always guarantee that. Something
+like pgprot_nospec() and SECRETMEM_NOSPEC.
+
+However, your implementation still has the problem that such memory must
+have the caches flushed before being mapped in user-space, otherwise we
+leak other secrets via such pages to the caller. The only generic API we
+have in the kernel for such things is the DMA one. If hch doesn't mind,
+you could abuse it and call arch_dma_prep_coherent() prior to
+set_direct_map_invalid_noflush() (if the mapping is non-cacheable).
 
 -- 
-Yasunori Goto
+Catalin
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
