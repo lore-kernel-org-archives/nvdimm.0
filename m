@@ -1,60 +1,62 @@
-Return-Path: <SRS0=D8I2=BK=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=PDkt=BL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7CB1C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 16:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93FD6C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Sat,  1 Aug 2020 01:54:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 97D9222D04
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 31 Jul 2020 16:22:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 97D9222D04
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=arm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 729E12087C
+	for <linux-nvdimm@archiver.kernel.org>; Sat,  1 Aug 2020 01:54:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 729E12087C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6AF2A12918A66;
-	Fri, 31 Jul 2020 09:22:44 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=cmarinas@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 5497B12960B6D;
+	Fri, 31 Jul 2020 18:54:47 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8549612918A61
-	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 09:22:42 -0700 (PDT)
-Received: from gaia (unknown [95.146.230.158])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 1B0052177B;
-	Fri, 31 Jul 2020 16:22:36 +0000 (UTC)
-Date: Fri, 31 Jul 2020 17:22:34 +0100
-From: Catalin Marinas <catalin.marinas@arm.com>
-To: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v2 3/7] mm: introduce memfd_secret system call to create
- "secret" memory areas
-Message-ID: <20200731162234.GF29569@gaia>
-References: <20200727162935.31714-1-rppt@kernel.org>
- <20200727162935.31714-4-rppt@kernel.org>
- <20200730162209.GB3128@gaia>
- <20200731142905.GA67415@C02TD0UTHF1T.local>
+	by ml01.01.org (Postfix) with ESMTPS id 7C7811295AF95
+	for <linux-nvdimm@lists.01.org>; Fri, 31 Jul 2020 18:54:45 -0700 (PDT)
+IronPort-SDR: Bs44wjqO/3sTNIHlowEBVQ+7lCBQGMPi+DVvz/xnkg017vS6e94oxXx36CIhrjSKI2bE2YuCos
+ 6g27mkb+7gYA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9699"; a="236757665"
+X-IronPort-AV: E=Sophos;i="5.75,420,1589266800";
+   d="scan'208";a="236757665"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jul 2020 18:54:44 -0700
+IronPort-SDR: Tl5QQepecrA3auUMETKGZRd3DePmMCT48Exe5Rrc2ZUX0CUQ7Yt48pWQOyb224ITJeZGB3OiQY
+ rRv+gilspRhQ==
+X-IronPort-AV: E=Sophos;i="5.75,420,1589266800";
+   d="scan'208";a="331340904"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jul 2020 18:54:44 -0700
+Subject: [PATCH] ACPI: NFIT: Fix ARS zero-sized allocation
+From: Dan Williams <dan.j.williams@intel.com>
+To: vishal.l.verma@intel.com
+Date: Fri, 31 Jul 2020 18:38:26 -0700
+Message-ID: <159624590643.3037264.14157533719042907758.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200731142905.GA67415@C02TD0UTHF1T.local>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: MBGGTEVDAZ4KERO536EKRS4YWEKGTOV2
-X-Message-ID-Hash: MBGGTEVDAZ4KERO536EKRS4YWEKGTOV2
-X-MailFrom: cmarinas@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel
- @vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+Message-ID-Hash: SKBLPO6W2DGTZ63QJPYJP5UBZNXBGNLT
+X-Message-ID-Hash: SKBLPO6W2DGTZ63QJPYJP5UBZNXBGNLT
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MBGGTEVDAZ4KERO536EKRS4YWEKGTOV2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SKBLPO6W2DGTZ63QJPYJP5UBZNXBGNLT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -63,69 +65,82 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jul 31, 2020 at 03:29:05PM +0100, Mark Rutland wrote:
-> On Thu, Jul 30, 2020 at 05:22:10PM +0100, Catalin Marinas wrote:
-> > On Mon, Jul 27, 2020 at 07:29:31PM +0300, Mike Rapoport wrote:
-> > > +static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
-> > > +{
-> > > +	struct secretmem_ctx *ctx = file->private_data;
-> > > +	unsigned long mode = ctx->mode;
-> > > +	unsigned long len = vma->vm_end - vma->vm_start;
-> > > +
-> > > +	if (!mode)
-> > > +		return -EINVAL;
-> > > +
-> > > +	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
-> > > +		return -EINVAL;
-> > > +
-> > > +	if (mlock_future_check(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
-> > > +		return -EAGAIN;
-> > > +
-> > > +	switch (mode) {
-> > > +	case SECRETMEM_UNCACHED:
-> > > +		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-> > > +		fallthrough;
-> > > +	case SECRETMEM_EXCLUSIVE:
-> > > +		vma->vm_ops = &secretmem_vm_ops;
-> > > +		break;
-> > > +	default:
-> > > +		return -EINVAL;
-> > > +	}
-> > > +
-> > > +	vma->vm_flags |= VM_LOCKED;
-> > > +
-> > > +	return 0;
-> > > +}
-> > 
-> > I think the uncached mapping is not the right thing for arm/arm64. First
-> > of all, pgprot_noncached() gives us Strongly Ordered (Device memory)
-> > semantics together with not allowing unaligned accesses. I suspect the
-> > semantics are different on x86.
-> 
-> > The second, more serious problem, is that I can't find any place where
-> > the caches are flushed for the page mapped on fault. When a page is
-> > allocated, assuming GFP_ZERO, only the caches are guaranteed to be
-> > zeroed. Exposing this subsequently to user space as uncached would allow
-> > the user to read stale data prior to zeroing. The arm64
-> > set_direct_map_default_noflush() doesn't do any cache maintenance.
-> 
-> It's also worth noting that in a virtual machine this is liable to be
-> either broken (with a potential loss of coherency if the host has a
-> cacheable alias as existing KVM hosts have), or pointless (if the host
-> uses S2FWB to upgrade Stage-1 attribues to cacheable as existing KVM
-> hosts also have).
-> 
-> I think that trying to avoid the data caches creates many more problems
-> than it solves, and I don't think there's a strong justification for
-> trying to support that on arm64 to begin with, so I'd rather entirely
-> opt-out on supporting SECRETMEM_UNCACHED.
+Pending commit in -next "devres: handle zero size in devm_kmalloc()"
+triggers a boot regression due to the ARS implementation expecting NULL
+from a zero-sized allocation. Avoid the zero-sized allocation by
+skipping ARS, otherwise crashes with the following signature when
+de-referencing ZERO_SIZE_PTR.
 
-Good point, I forgot the virtualisation aspect. So unless there is a
-hypervisor API to unmap it from the host memory, the uncached option
-isn't of much use on arm64.
+     BUG: kernel NULL pointer dereference, address: 0000000000000018
+     #PF: supervisor read access in kernel mode
+     #PF: error_code(0x0000) - not-present page
+     RIP: 0010:__acpi_nfit_scrub+0x28a/0x350 [nfit]
+     [..]
+     Call Trace:
+       ? acpi_nfit_query_poison+0x6a/0x180 [nfit]
+       acpi_nfit_scrub+0x36/0xb0 [nfit]
+       process_one_work+0x23c/0x580
+       worker_thread+0x50/0x3b0
 
--- 
-Catalin
+Otherwise the implementation correctly aborts when NULL is returned from
+devm_kzalloc() in ars_status_alloc().
+
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index fb775b967c52..26dd208a0d63 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3334,7 +3334,7 @@ static void acpi_nfit_init_ars(struct acpi_nfit_desc *acpi_desc,
+ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_spa *nfit_spa;
+-	int rc;
++	int rc, do_sched_ars = 0;
+ 
+ 	set_bit(ARS_VALID, &acpi_desc->scrub_flags);
+ 	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+@@ -3346,7 +3346,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 		}
+ 	}
+ 
+-	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
++	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
+ 		switch (nfit_spa_type(nfit_spa->spa)) {
+ 		case NFIT_SPA_VOLATILE:
+ 		case NFIT_SPA_PM:
+@@ -3354,6 +3354,13 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 			rc = ars_register(acpi_desc, nfit_spa);
+ 			if (rc)
+ 				return rc;
++
++			/*
++			 * Kick off background ARS if at least one
++			 * region successfully registered ARS
++			 */
++			if (!test_bit(ARS_FAILED, &nfit_spa->ars_state))
++				do_sched_ars++;
+ 			break;
+ 		case NFIT_SPA_BDW:
+ 			/* nothing to register */
+@@ -3372,8 +3379,10 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 			/* don't register unknown regions */
+ 			break;
+ 		}
++	}
+ 
+-	sched_ars(acpi_desc);
++	if (do_sched_ars)
++		sched_ars(acpi_desc);
+ 	return 0;
+ }
+ 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
