@@ -2,189 +2,182 @@ Return-Path: <SRS0=vlz9=BN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,FORGED_MUA_MOZILLA,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2774FC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Aug 2020 05:20:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EF7EC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Aug 2020 07:14:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0308D20738
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Aug 2020 05:20:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0308D20738
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id CF2B8206F6
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Aug 2020 07:14:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CF2B8206F6
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7DE7B12A6D4D7;
-	Sun,  2 Aug 2020 22:20:51 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+	by ml01.01.org (Postfix) with ESMTP id 3FA6112A9D913;
+	Mon,  3 Aug 2020 00:14:14 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=riteshh@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BB8B312A6D4D0
-	for <linux-nvdimm@lists.01.org>; Sun,  2 Aug 2020 22:20:48 -0700 (PDT)
-IronPort-SDR: My+SUvWp+vAyAIM0ZfgO+bZKM1C4OTKCMErb/ExZFajYr3FAXd3cSMDPO8yC5+IyG185r4N86N
- 21eXzJiCfLMw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9701"; a="132105674"
-X-IronPort-AV: E=Sophos;i="5.75,429,1589266800";
-   d="scan'208";a="132105674"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:20:48 -0700
-IronPort-SDR: RpV/TarlfZtpGTxcGFV/YB86O42UoKDQBjZi2zZhGZ/aMAH3qwe80fGLnen8feyash85FU7j2F
- Dae5w7PzminA==
-X-IronPort-AV: E=Sophos;i="5.75,429,1589266800";
-   d="scan'208";a="273823070"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:20:48 -0700
-Subject: [PATCH v4 23/23] device-dax: Add a range mapping allocation
- attribute
-From: Dan Williams <dan.j.williams@intel.com>
-To: akpm@linux-foundation.org
-Date: Sun, 02 Aug 2020 22:04:29 -0700
-Message-ID: <159643106970.4062302.10402616567780784722.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by ml01.01.org (Postfix) with ESMTPS id 5539612A9D910
+	for <linux-nvdimm@lists.01.org>; Mon,  3 Aug 2020 00:14:12 -0700 (PDT)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 07371xNB126358;
+	Mon, 3 Aug 2020 03:14:10 -0400
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 32pakccrev-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 03 Aug 2020 03:14:10 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0737AIlx026036;
+	Mon, 3 Aug 2020 07:14:08 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+	by ppma03ams.nl.ibm.com with ESMTP id 32n0181vuq-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 03 Aug 2020 07:14:08 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0737E6he27591050
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 3 Aug 2020 07:14:06 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6367011C05B;
+	Mon,  3 Aug 2020 07:14:06 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 64C0711C058;
+	Mon,  3 Aug 2020 07:14:05 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.199.43.55])
+	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon,  3 Aug 2020 07:14:05 +0000 (GMT)
+Subject: Re: [RFC 1/1] pmem: Add cond_resched() in bio_for_each_segment loop
+ in pmem_make_request
+To: Dave Chinner <david@fromorbit.com>
+References: <0d96e2481f292de2cda8828b03d5121004308759.1596011292.git.riteshh@linux.ibm.com>
+ <20200802230148.GA2114@dread.disaster.area>
+From: Ritesh Harjani <riteshh@linux.ibm.com>
+Date: Mon, 3 Aug 2020 12:44:04 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.8.0
 MIME-Version: 1.0
-Message-ID-Hash: YH4DPGHGKQK6D7F3FEQ4KI4LBEXVGDPC
-X-Message-ID-Hash: YH4DPGHGKQK6D7F3FEQ4KI4LBEXVGDPC
-X-MailFrom: dan.j.williams@intel.com
+In-Reply-To: <20200802230148.GA2114@dread.disaster.area>
+Content-Language: en-US
+Message-Id: <20200803071405.64C0711C058@d06av25.portsmouth.uk.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-08-03_04:2020-07-31,2020-08-03 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0
+ lowpriorityscore=0 suspectscore=0 malwarescore=0 mlxscore=0 bulkscore=0
+ priorityscore=1501 adultscore=0 mlxlogscore=999 clxscore=1015
+ impostorscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2006250000 definitions=main-2008030046
+Message-ID-Hash: EARQCG4Y3C6KFNOSAUXHV3GEZEOZQKRB
+X-Message-ID-Hash: EARQCG4Y3C6KFNOSAUXHV3GEZEOZQKRB
+X-MailFrom: riteshh@linux.ibm.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: joao.m.martins@oracle.com, peterz@infradead.org, dave.hansen@linux.intel.com, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
+CC: linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YH4DPGHGKQK6D7F3FEQ4KI4LBEXVGDPC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EARQCG4Y3C6KFNOSAUXHV3GEZEOZQKRB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-From: Joao Martins <joao.m.martins@oracle.com>
 
-Add a sysfs attribute which denotes a range from the dax region
-to be allocated. It's an write only @mapping sysfs attribute in
-the format of '<start>-<end>' to allocate a range. @start and
-@end use hexadecimal values and the @pgoff is implicitly ordered
-wrt to previous writes to @mapping sysfs e.g. a write of a range
-of length 1G the pgoff is 0..1G(-4K), a second write will use
-@pgoff for 1G+4K..<size>.
 
-This range mapping interface is useful for:
+On 8/3/20 4:31 AM, Dave Chinner wrote:
+> On Wed, Jul 29, 2020 at 02:15:18PM +0530, Ritesh Harjani wrote:
+>> For systems which do not have CONFIG_PREEMPT set and
+>> if there is a heavy multi-threaded load/store operation happening
+>> on pmem + sometimes along with device latencies, softlockup warnings like
+>> this could trigger. This was seen on Power where pagesize is 64K.
+>>
+>> To avoid softlockup, this patch adds a cond_resched() in this path.
+>>
+>> <...>
+>> watchdog: BUG: soft lockup - CPU#31 stuck for 22s!
+>> <...>
+>> CPU: 31 PID: 15627 <..> 5.3.18-20
+>> <...>
+>> NIP memcpy_power7+0x43c/0x7e0
+>> LR memcpy_flushcache+0x28/0xa0
+>>
+>> Call Trace:
+>> memcpy_power7+0x274/0x7e0 (unreliable)
+>> memcpy_flushcache+0x28/0xa0
+>> write_pmem+0xa0/0x100 [nd_pmem]
+>> pmem_do_bvec+0x1f0/0x420 [nd_pmem]
+>> pmem_make_request+0x14c/0x370 [nd_pmem]
+>> generic_make_request+0x164/0x400
+>> submit_bio+0x134/0x2e0
+>> submit_bio_wait+0x70/0xc0
+>> blkdev_issue_zeroout+0xf4/0x2a0
+>> xfs_zero_extent+0x90/0xc0 [xfs]
+>> xfs_bmapi_convert_unwritten+0x198/0x230 [xfs]
+>> xfs_bmapi_write+0x284/0x630 [xfs]
+>> xfs_iomap_write_direct+0x1f0/0x3e0 [xfs]
+>> xfs_file_iomap_begin+0x344/0x690 [xfs]
+>> dax_iomap_pmd_fault+0x488/0xc10
+>> __xfs_filemap_fault+0x26c/0x2b0 [xfs]
+>> __handle_mm_fault+0x794/0x1af0
+>> handle_mm_fault+0x12c/0x220
+>> __do_page_fault+0x290/0xe40
+>> do_page_fault+0x38/0xc0
+>> handle_page_fault+0x10/0x30
+>>
+>> Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+>> Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
+>> ---
+>>   drivers/nvdimm/pmem.c | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+>> index 2df6994acf83..fcf7af13897e 100644
+>> --- a/drivers/nvdimm/pmem.c
+>> +++ b/drivers/nvdimm/pmem.c
+>> @@ -214,6 +214,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
+>>   			bio->bi_status = rc;
+>>   			break;
+>>   		}
+>> +		cond_resched();
+> 
+> There are already cond_resched() calls between submitted bios in
+> blkdev_issue_zeroout() via both __blkdev_issue_zero_pages() and
+> __blkdev_issue_write_zeroes(), so I'm kinda wondering where the
+> problem is coming from here.
 
- 1) Application which want to implement its own allocation logic,
- and thus pick the desired ranges from dax_region.
+This problem is coming from that bio call- submit_bio()
 
- 2) For use cases like VMM fast restart[0] where after kexec we
- want to the same gpa<->phys mappings (as originally created
- before kexec).
+> 
+> Just how big is the bio being issued here that it spins for 22s
+> trying to copy it?
 
-[0] https://static.sched.com/hosted_files/kvmforum2019/66/VMM-fast-restart_kvmforum2019.pdf
+It's 256 (due to BIO_MAX_PAGES) * 64KB (pagesize) = 16MB.
+So this is definitely not an easy trigger as per tester was mainly seen
+on a VM.
 
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Link: https://lore.kernel.org/r/20200716172913.19658-5-joao.m.martins@oracle.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/dax/bus.c |   64 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+Looking at the cond_resched() inside dax_writeback_mapping_range()
+in xas_for_each_marked() loop, I thought it should be good to have a
+cond_resched() in the above path as well.
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index b984213c315f..092112bba6ed 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -1040,6 +1040,67 @@ static ssize_t size_store(struct device *dev, struct device_attribute *attr,
- }
- static DEVICE_ATTR_RW(size);
- 
-+static ssize_t range_parse(const char *opt, size_t len, struct range *range)
-+{
-+	unsigned long long addr = 0;
-+	char *start, *end, *str;
-+	ssize_t rc = EINVAL;
-+
-+	str = kstrdup(opt, GFP_KERNEL);
-+	if (!str)
-+		return rc;
-+
-+	end = str;
-+	start = strsep(&end, "-");
-+	if (!start || !end)
-+		goto err;
-+
-+	rc = kstrtoull(start, 16, &addr);
-+	if (rc)
-+		goto err;
-+	range->start = addr;
-+
-+	rc = kstrtoull(end, 16, &addr);
-+	if (rc)
-+		goto err;
-+	range->end = addr;
-+
-+err:
-+	kfree(str);
-+	return rc;
-+}
-+
-+static ssize_t mapping_store(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t len)
-+{
-+	struct dev_dax *dev_dax = to_dev_dax(dev);
-+	struct dax_region *dax_region = dev_dax->region;
-+	size_t to_alloc;
-+	struct range r;
-+	ssize_t rc;
-+
-+	rc = range_parse(buf, len, &r);
-+	if (rc)
-+		return rc;
-+
-+	rc = -ENXIO;
-+	device_lock(dax_region->dev);
-+	if (!dax_region->dev->driver) {
-+		device_unlock(dax_region->dev);
-+		return rc;
-+	}
-+	device_lock(dev);
-+
-+	to_alloc = range_len(&r);
-+	if (alloc_is_aligned(dev_dax, to_alloc))
-+		rc = alloc_dev_dax_range(dev_dax, r.start, to_alloc);
-+	device_unlock(dev);
-+	device_unlock(dax_region->dev);
-+
-+	return rc == 0 ? len : rc;
-+}
-+static DEVICE_ATTR_WO(mapping);
-+
- static ssize_t align_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -1172,6 +1233,8 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- 		return 0;
- 	if (a == &dev_attr_numa_node.attr && !IS_ENABLED(CONFIG_NUMA))
- 		return 0;
-+	if (a == &dev_attr_mapping.attr && is_static(dax_region))
-+		return 0;
- 	if ((a == &dev_attr_align.attr ||
- 	     a == &dev_attr_size.attr) && is_static(dax_region))
- 		return 0444;
-@@ -1181,6 +1244,7 @@ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- static struct attribute *dev_dax_attributes[] = {
- 	&dev_attr_modalias.attr,
- 	&dev_attr_size.attr,
-+	&dev_attr_mapping.attr,
- 	&dev_attr_target_node.attr,
- 	&dev_attr_align.attr,
- 	&dev_attr_resource.attr,
+Hence an RFC for discussion.
+
+> 
+> And, really, if the system is that bound on cacheline bouncing that
+> it prevents memcpy() from making progress, I think we probably
+> should be issuing a soft lockup warning like this... >
+> Cheers,
+> 
+> Dave.
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
