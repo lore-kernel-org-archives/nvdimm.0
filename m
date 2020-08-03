@@ -1,61 +1,63 @@
-Return-Path: <SRS0=BPwo=BM=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=vlz9=BN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 663FFC433E1
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  2 Aug 2020 23:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05516C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Aug 2020 05:18:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 40BED20775
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  2 Aug 2020 23:01:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 40BED20775
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fromorbit.com
+	by mail.kernel.org (Postfix) with ESMTPS id DB429206D7
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  3 Aug 2020 05:18:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DB429206D7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4313B12A5F937;
-	Sun,  2 Aug 2020 16:01:56 -0700 (PDT)
-Received-SPF: Pass (helo) identity=helo; client-ip=211.29.132.97; helo=mail110.syd.optusnet.com.au; envelope-from=david@fromorbit.com; receiver=<UNKNOWN> 
-Received: from mail110.syd.optusnet.com.au (mail110.syd.optusnet.com.au [211.29.132.97])
-	by ml01.01.org (Postfix) with ESMTP id 9EFD7129765DB
-	for <linux-nvdimm@lists.01.org>; Sun,  2 Aug 2020 16:01:53 -0700 (PDT)
-Received: from dread.disaster.area (pa49-180-53-24.pa.nsw.optusnet.com.au [49.180.53.24])
-	by mail110.syd.optusnet.com.au (Postfix) with ESMTPS id 9F77B109820;
-	Mon,  3 Aug 2020 09:01:50 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1k2MzE-0000Mk-Pv; Mon, 03 Aug 2020 09:01:48 +1000
-Date: Mon, 3 Aug 2020 09:01:48 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: Ritesh Harjani <riteshh@linux.ibm.com>
-Subject: Re: [RFC 1/1] pmem: Add cond_resched() in bio_for_each_segment loop
- in pmem_make_request
-Message-ID: <20200802230148.GA2114@dread.disaster.area>
-References: <0d96e2481f292de2cda8828b03d5121004308759.1596011292.git.riteshh@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTP id 53A6C12A6D4C0;
+	Sun,  2 Aug 2020 22:18:47 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 7F7E012A6D4BD
+	for <linux-nvdimm@lists.01.org>; Sun,  2 Aug 2020 22:18:43 -0700 (PDT)
+IronPort-SDR: 4mxUkpX17eAKBfHCZhbhGdsGa9faTyFK4QKypSlGvOklnFYQ8nV5Zqfqze73CTgaYT2nmop11+
+ ZE8ZoXeylBdQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9701"; a="149487610"
+X-IronPort-AV: E=Sophos;i="5.75,429,1589266800";
+   d="scan'208";a="149487610"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:18:42 -0700
+IronPort-SDR: tm9LkYDyqhV6V4pL1WKMtw3wf8v+Is6yDzCmQMUlL5Qqvl/+x6Q9qb44wsebsqk1ZT8GgKO45l
+ P1v5Vq1qFkWg==
+X-IronPort-AV: E=Sophos;i="5.75,429,1589266800";
+   d="scan'208";a="395938115"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Aug 2020 22:18:41 -0700
+Subject: [PATCH v4 00/23] device-dax: Support sub-dividing soft-reserved
+ ranges
+From: Dan Williams <dan.j.williams@intel.com>
+To: akpm@linux-foundation.org
+Date: Sun, 02 Aug 2020 22:02:23 -0700
+Message-ID: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <0d96e2481f292de2cda8828b03d5121004308759.1596011292.git.riteshh@linux.ibm.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=QIgWuTDL c=1 sm=1 tr=0
-	a=moVtWZxmCkf3aAMJKIb/8g==:117 a=moVtWZxmCkf3aAMJKIb/8g==:17
-	a=kj9zAlcOel0A:10 a=y4yBn9ojGxQA:10 a=VnNF1IyMAAAA:8 a=7-415B0cAAAA:8
-	a=qczKg5P-FDsFxSpMrEAA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
-Message-ID-Hash: DYKLH5NNFJEGKE3DAIGPGS742LDAGZ4P
-X-Message-ID-Hash: DYKLH5NNFJEGKE3DAIGPGS742LDAGZ4P
-X-MailFrom: david@fromorbit.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Message-ID-Hash: NOONBJJ6BQHTM6MWSEAXSOVXVRLEKMR3
+X-Message-ID-Hash: NOONBJJ6BQHTM6MWSEAXSOVXVRLEKMR3
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: David Hildenbrand <david@redhat.com>, Ard Biesheuvel <ardb@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Borislav Petkov <bp@alien8.de>, David Airlie <airlied@linux.ie>, Will Deacon <will@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, joao.m.martins@oracle.com, Tom Lendacky <thomas.lendacky@amd.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Tatashin <pasha.tatashin@soleen.com>, Peter Zijlstra <peterz@infradead.org>, Ben Skeggs <bskeggs@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jason Gunthorpe <jgg@mellanox.com>, Jia He <justin.he@arm.com>, Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Paul Mackerras <paulus@ozlabs.org>, Brice Goglin <Brice.Goglin@inria.fr>, Michael Ellerman <mpe
+ @ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Daniel Vetter <daniel@ffwll.ch>, Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DYKLH5NNFJEGKE3DAIGPGS742LDAGZ4P/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NOONBJJ6BQHTM6MWSEAXSOVXVRLEKMR3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,79 +66,143 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jul 29, 2020 at 02:15:18PM +0530, Ritesh Harjani wrote:
-> For systems which do not have CONFIG_PREEMPT set and
-> if there is a heavy multi-threaded load/store operation happening
-> on pmem + sometimes along with device latencies, softlockup warnings like
-> this could trigger. This was seen on Power where pagesize is 64K.
-> 
-> To avoid softlockup, this patch adds a cond_resched() in this path.
-> 
-> <...>
-> watchdog: BUG: soft lockup - CPU#31 stuck for 22s!
-> <...>
-> CPU: 31 PID: 15627 <..> 5.3.18-20
-> <...>
-> NIP memcpy_power7+0x43c/0x7e0
-> LR memcpy_flushcache+0x28/0xa0
-> 
-> Call Trace:
-> memcpy_power7+0x274/0x7e0 (unreliable)
-> memcpy_flushcache+0x28/0xa0
-> write_pmem+0xa0/0x100 [nd_pmem]
-> pmem_do_bvec+0x1f0/0x420 [nd_pmem]
-> pmem_make_request+0x14c/0x370 [nd_pmem]
-> generic_make_request+0x164/0x400
-> submit_bio+0x134/0x2e0
-> submit_bio_wait+0x70/0xc0
-> blkdev_issue_zeroout+0xf4/0x2a0
-> xfs_zero_extent+0x90/0xc0 [xfs]
-> xfs_bmapi_convert_unwritten+0x198/0x230 [xfs]
-> xfs_bmapi_write+0x284/0x630 [xfs]
-> xfs_iomap_write_direct+0x1f0/0x3e0 [xfs]
-> xfs_file_iomap_begin+0x344/0x690 [xfs]
-> dax_iomap_pmd_fault+0x488/0xc10
-> __xfs_filemap_fault+0x26c/0x2b0 [xfs]
-> __handle_mm_fault+0x794/0x1af0
-> handle_mm_fault+0x12c/0x220
-> __do_page_fault+0x290/0xe40
-> do_page_fault+0x38/0xc0
-> handle_page_fault+0x10/0x30
-> 
-> Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
-> ---
->  drivers/nvdimm/pmem.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index 2df6994acf83..fcf7af13897e 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -214,6 +214,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
->  			bio->bi_status = rc;
->  			break;
->  		}
-> +		cond_resched();
+Changes since v3 [1]:
+- Update x86 boot options documentation for 'nohmat' (Randy)
 
-There are already cond_resched() calls between submitted bios in
-blkdev_issue_zeroout() via both __blkdev_issue_zero_pages() and
-__blkdev_issue_write_zeroes(), so I'm kinda wondering where the
-problem is coming from here.
+- Fixup a handful of kbuild robot reports, the most significant being
+  moving usage of PUD_SIZE and PMD_SIZE under
+  #ifdef CONFIG_TRANSPARENT_HUGEPAGE protection.
 
-Just how big is the bio being issued here that it spins for 22s
-trying to copy it?
+[1]: http://lore.kernel.org/r/159625229779.3040297.11363509688097221416.stgit@dwillia2-desk3.amr.corp.intel.com
 
-And, really, if the system is that bound on cacheline bouncing that
-it prevents memcpy() from making progress, I think we probably
-should be issuing a soft lockup warning like this...
+---
+Merge notes:
 
-Cheers,
+Well, no v5.8-rc8 to line this up for v5.9, so next best is early
+integration into -mm before other collisions develop.
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Chatted with Justin offline and it currently appears that the missing
+numa information is the fault of the platform firmware to populate all
+the necessary NUMA data in the NFIT.
+
+---
+Cover:
+
+The device-dax facility allows an address range to be directly mapped
+through a chardev, or optionally hotplugged to the core kernel page
+allocator as System-RAM. It is the mechanism for converting persistent
+memory (pmem) to be used as another volatile memory pool i.e. the
+current Memory Tiering hot topic on linux-mm.
+
+In the case of pmem the nvdimm-namespace-label mechanism can sub-divide
+it, but that labeling mechanism is not available / applicable to
+soft-reserved ("EFI specific purpose") memory [3]. This series provides
+a sysfs-mechanism for the daxctl utility to enable provisioning of
+volatile-soft-reserved memory ranges.
+
+The motivations for this facility are:
+
+1/ Allow performance differentiated memory ranges to be split between
+   kernel-managed and directly-accessed use cases.
+
+2/ Allow physical memory to be provisioned along performance relevant
+   address boundaries. For example, divide a memory-side cache [4] along
+   cache-color boundaries.
+
+3/ Parcel out soft-reserved memory to VMs using device-dax as a security
+   / permissions boundary [5]. Specifically I have seen people (ab)using
+   memmap=nn!ss (mark System-RAM as Persistent Memory) just to get the
+   device-dax interface on custom address ranges. A follow-on for the VM
+   use case is to teach device-dax to dynamically allocate 'struct page' at
+   runtime to reduce the duplication of 'struct page' space in both the
+   guest and the host kernel for the same physical pages.
+
+[2]: http://lore.kernel.org/r/20200713160837.13774-11-joao.m.martins@oracle.com
+[3]: http://lore.kernel.org/r/157309097008.1579826.12818463304589384434.stgit@dwillia2-desk3.amr.corp.intel.com
+[4]: http://lore.kernel.org/r/154899811738.3165233.12325692939590944259.stgit@dwillia2-desk3.amr.corp.intel.com
+[5]: http://lore.kernel.org/r/20200110190313.17144-1-joao.m.martins@oracle.com
+
+---
+
+Dan Williams (19):
+      x86/numa: Cleanup configuration dependent command-line options
+      x86/numa: Add 'nohmat' option
+      efi/fake_mem: Arrange for a resource entry per efi_fake_mem instance
+      ACPI: HMAT: Refactor hmat_register_target_device to hmem_register_device
+      resource: Report parent to walk_iomem_res_desc() callback
+      mm/memory_hotplug: Introduce default phys_to_target_node() implementation
+      ACPI: HMAT: Attach a device for each soft-reserved range
+      device-dax: Drop the dax_region.pfn_flags attribute
+      device-dax: Move instance creation parameters to 'struct dev_dax_data'
+      device-dax: Make pgmap optional for instance creation
+      device-dax: Kill dax_kmem_res
+      device-dax: Add an allocation interface for device-dax instances
+      device-dax: Introduce 'seed' devices
+      drivers/base: Make device_find_child_by_name() compatible with sysfs inputs
+      device-dax: Add resize support
+      mm/memremap_pages: Convert to 'struct range'
+      mm/memremap_pages: Support multiple ranges per invocation
+      device-dax: Add dis-contiguous resource support
+      device-dax: Introduce 'mapping' devices
+
+Joao Martins (4):
+      device-dax: Make align a per-device property
+      device-dax: Add an 'align' attribute
+      dax/hmem: Introduce dax_hmem.region_idle parameter
+      device-dax: Add a range mapping allocation attribute
+
+
+ Documentation/x86/x86_64/boot-options.rst |    4 
+ arch/powerpc/kvm/book3s_hv_uvmem.c        |   14 
+ arch/x86/include/asm/numa.h               |    8 
+ arch/x86/kernel/e820.c                    |   16 
+ arch/x86/mm/numa.c                        |   11 
+ arch/x86/mm/numa_emulation.c              |    3 
+ arch/x86/xen/enlighten_pv.c               |    2 
+ drivers/acpi/numa/hmat.c                  |   76 --
+ drivers/acpi/numa/srat.c                  |    9 
+ drivers/base/core.c                       |    2 
+ drivers/dax/Kconfig                       |    4 
+ drivers/dax/Makefile                      |    3 
+ drivers/dax/bus.c                         | 1046 +++++++++++++++++++++++++++--
+ drivers/dax/bus.h                         |   28 -
+ drivers/dax/dax-private.h                 |   60 +-
+ drivers/dax/device.c                      |  134 ++--
+ drivers/dax/hmem.c                        |   56 --
+ drivers/dax/hmem/Makefile                 |    6 
+ drivers/dax/hmem/device.c                 |  100 +++
+ drivers/dax/hmem/hmem.c                   |   65 ++
+ drivers/dax/kmem.c                        |  199 +++---
+ drivers/dax/pmem/compat.c                 |    2 
+ drivers/dax/pmem/core.c                   |   22 -
+ drivers/firmware/efi/x86_fake_mem.c       |   12 
+ drivers/gpu/drm/nouveau/nouveau_dmem.c    |   15 
+ drivers/nvdimm/badrange.c                 |   26 -
+ drivers/nvdimm/claim.c                    |   13 
+ drivers/nvdimm/nd.h                       |    3 
+ drivers/nvdimm/pfn_devs.c                 |   13 
+ drivers/nvdimm/pmem.c                     |   27 -
+ drivers/nvdimm/region.c                   |   21 -
+ drivers/pci/p2pdma.c                      |   12 
+ include/acpi/acpi_numa.h                  |   14 
+ include/linux/dax.h                       |    8 
+ include/linux/memory_hotplug.h            |    5 
+ include/linux/memremap.h                  |   11 
+ include/linux/numa.h                      |   11 
+ include/linux/range.h                     |    6 
+ kernel/resource.c                         |   11 
+ lib/test_hmm.c                            |   15 
+ mm/memory_hotplug.c                       |   10 
+ mm/memremap.c                             |  299 +++++---
+ tools/testing/nvdimm/dax-dev.c            |   22 -
+ tools/testing/nvdimm/test/iomap.c         |    2 
+ 44 files changed, 1825 insertions(+), 601 deletions(-)
+ delete mode 100644 drivers/dax/hmem.c
+ create mode 100644 drivers/dax/hmem/Makefile
+ create mode 100644 drivers/dax/hmem/device.c
+ create mode 100644 drivers/dax/hmem/hmem.c
+
+base-commit: 01830e6c042e8eb6eb202e05d7df8057135b4c26
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
