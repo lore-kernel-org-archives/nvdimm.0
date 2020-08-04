@@ -2,56 +2,54 @@ Return-Path: <SRS0=kajn=BO=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDA8C433E3
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  4 Aug 2020 16:18:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEE55C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  4 Aug 2020 16:18:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E4B112177B
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  4 Aug 2020 16:18:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 901012086A
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  4 Aug 2020 16:18:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="i6NSMYfR"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E4B112177B
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="mpVj2g/h"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 901012086A
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CF7021297655E;
-	Tue,  4 Aug 2020 09:18:06 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id EE52D12A17B38;
+	Tue,  4 Aug 2020 09:18:07 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0185012976553
+	by ml01.01.org (Postfix) with ESMTPS id 026F512976554
 	for <linux-nvdimm@lists.01.org>; Tue,  4 Aug 2020 09:18:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
-	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
-	Content-Type:Content-ID:Content-Description;
-	bh=fw3P6kp9M4/LmEF88EWSj+1JuY5UZSo/KVP/TRf78l8=; b=i6NSMYfRnEAOcV0wowy8TXs3Lh
-	RArlH0wUi1U4zuG2ICK2Ip9PCaDlBfRVCt6yTebj71YdXn2ht243CqIbJqrqyc4JEwbau7gkkh680
-	AKybdh0bWgb/mYQ/GoTwsmUy2ewOsU7r2ONx29i7nnmYpYuCV/hz5Cz840Un1+gItCQpOUYA7YyCY
-	yABsHxrNBv/tgP50buLIa1eBMsvbpwf8vPREWVMAt9VjxxbZ/xEMxXm/ClMX3dX6eudtNy239CHs1
-	6EWWokN+LR3WbdTqtUDuIvIcj5J3Tvu9uiPAyJ/Lxpi5lD39jhhhDR4/SLTzYvrwq9FGL6RANwWHw
-	0hT86cDw==;
+	Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=KiHlXYS4cF7DbYKmhvpQJucCJKOOEpy6PdUPrjFSFcU=; b=mpVj2g/h7OLKGHc/P8PtqZSCwY
+	JwFqnxG75JALlCY9NeAC3OGGbHXe4B5iN4snjrWt8zUx4pLU2uIOd/uuy0uU28ddRaQ8svacINH+z
+	zZVaSleGpmpBhP6PxeQb8NUaNIEXi/eU46KSlms0Hw05G1Fe8y2zJAmhCR7oRilU2DNX1fHgTkV3A
+	6Th/ybwF4TUC6PflViuoiuHdsy4lKnVlaKFL2qbeSEwnTJV+SJqGs2aS4zwMPV7yzpM2HLZ+Opn+J
+	3QvbOT9w6uccaH6iBfWzgLDUXIP2agGAM2/hw4lXUp2qXUM/vvlRXiwIwNvKf1yBa21ZexQ0csOd2
+	CH7DzTQg==;
 Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1k2zdW-0002eM-Ec; Tue, 04 Aug 2020 16:17:58 +0000
+	id 1k2zdV-0002dy-B6; Tue, 04 Aug 2020 16:17:57 +0000
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 To: linux-mm@kvack.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 4/4] mm: Remove nrexceptional from inode
-Date: Tue,  4 Aug 2020 17:17:55 +0100
-Message-Id: <20200804161755.10100-5-willy@infradead.org>
+Subject: [PATCH 0/4] Remove nrexceptional tracking
+Date: Tue,  4 Aug 2020 17:17:51 +0100
+Message-Id: <20200804161755.10100-1-willy@infradead.org>
 X-Mailer: git-send-email 2.21.3
-In-Reply-To: <20200804161755.10100-1-willy@infradead.org>
-References: <20200804161755.10100-1-willy@infradead.org>
 MIME-Version: 1.0
-Message-ID-Hash: J752WMNTBWO2KPGCZMNZ7I4IISBIGNCU
-X-Message-ID-Hash: J752WMNTBWO2KPGCZMNZ7I4IISBIGNCU
+Message-ID-Hash: OHZIDEJE2V4TKPTXCS6QA36XT4IY6ZPV
+X-Message-ID-Hash: OHZIDEJE2V4TKPTXCS6QA36XT4IY6ZPV
 X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -59,7 +57,7 @@ CC: "Matthew Wilcox (Oracle)" <willy@infradead.org>, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J752WMNTBWO2KPGCZMNZ7I4IISBIGNCU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OHZIDEJE2V4TKPTXCS6QA36XT4IY6ZPV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,48 +66,36 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We no longer track anything in nrexceptional, so remove it, saving 8
-bytes per inode.
+We actually use nrexceptional for very little these days.  It's a constant
+source of pain with the THP patches because we don't know how large a
+shadow entry is, so either we have to ask the xarray how many indices
+it covers, or store that information in the shadow entry (and reduce
+the amount of other information in the shadow entry proportionally).
+While tracking down the most recent case of "evict tells me I've got
+the accounting wrong again", I wondered if it might not be simpler to
+just remove it.  So here's a patch set to do just that.  I think each
+of these patches is an improvement in isolation, but the combination of
+all four is larger than the sum of its parts.
 
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
----
- fs/inode.c         | 2 +-
- include/linux/fs.h | 2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+I'm running xfstests on this patchset right now.  If one of the DAX
+people could try it out, that'd be fantastic.
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 72c4c347afb7..b5c4aff077b7 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -528,7 +528,7 @@ void clear_inode(struct inode *inode)
- 	 */
- 	xa_lock_irq(&inode->i_data.i_pages);
- 	BUG_ON(inode->i_data.nrpages);
--	BUG_ON(inode->i_data.nrexceptional);
-+	BUG_ON(!page_cache_empty(&inode->i_data));
- 	xa_unlock_irq(&inode->i_data.i_pages);
- 	BUG_ON(!list_empty(&inode->i_data.private_list));
- 	BUG_ON(!(inode->i_state & I_FREEING));
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index f5abba86107d..4fd8923cba43 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -436,7 +436,6 @@ int pagecache_write_end(struct file *, struct address_space *mapping,
-  * @i_mmap: Tree of private and shared mappings.
-  * @i_mmap_rwsem: Protects @i_mmap and @i_mmap_writable.
-  * @nrpages: Number of page entries, protected by the i_pages lock.
-- * @nrexceptional: Shadow or DAX entries, protected by the i_pages lock.
-  * @writeback_index: Writeback starts here.
-  * @a_ops: Methods.
-  * @flags: Error bits and flags (AS_*).
-@@ -457,7 +456,6 @@ struct address_space {
- 	struct rb_root_cached	i_mmap;
- 	struct rw_semaphore	i_mmap_rwsem;
- 	unsigned long		nrpages;
--	unsigned long		nrexceptional;
- 	pgoff_t			writeback_index;
- 	const struct address_space_operations *a_ops;
- 	unsigned long		flags;
+Matthew Wilcox (Oracle) (4):
+  mm: Introduce and use page_cache_empty
+  mm: Stop accounting shadow entries
+  dax: Account DAX entries as nrpages
+  mm: Remove nrexceptional from inode
+
+ fs/block_dev.c          |  2 +-
+ fs/dax.c                |  8 ++++----
+ fs/inode.c              |  2 +-
+ include/linux/fs.h      |  2 --
+ include/linux/pagemap.h |  5 +++++
+ mm/filemap.c            | 15 ---------------
+ mm/truncate.c           | 19 +++----------------
+ mm/workingset.c         |  1 -
+ 8 files changed, 14 insertions(+), 40 deletions(-)
+
 -- 
 2.27.0
 _______________________________________________
