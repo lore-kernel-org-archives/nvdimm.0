@@ -1,74 +1,168 @@
-Return-Path: <SRS0=kajn=BO=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=4vrS=BP=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.1 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,TVD_RCVD_SPACE_BRACKET,
-	UNPARSEABLE_RELAY,URIBL_ABUSE_SURBL,URIBL_DBL_SPAM,USER_AGENT_SANE_1
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49788C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  4 Aug 2020 23:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13987C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  5 Aug 2020 08:10:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C9C2322B42
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  4 Aug 2020 23:09:09 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C9C2322B42
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id A9E9722B40
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  5 Aug 2020 08:10:17 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A9E9722B40
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 604F612AEE651;
-	Tue,  4 Aug 2020 16:09:09 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=157.52.193.73; helo=gmail.com; envelope-from=aaronlittle895oioi@gmail.com; receiver=<UNKNOWN> 
-Received: from gmail.com (unknown [157.52.193.73])
-	by ml01.01.org (Postfix) with SMTP id 6C82B12AE7882
-	for <linux-nvdimm@lists.01.org>; Tue,  4 Aug 2020 16:09:06 -0700 (PDT)
-Received: from relay-x.misswldrs.com ([Wed, 05 Aug 2020 04:56:45 +0600])
-	by mxs.perenter.com with SMTP; Wed, 05 Aug 2020 04:56:45 +0600
-Message-ID: <C23BF94D.756C4AF4@gmail.com>
-Date: Wed, 05 Aug 2020 04:41:52 +0600
-From: "Lashunda Lucarelli" <aaronlittle895oioi@gmail.com>
-User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.0.10) Gecko/20070306 Thunderbird/1.5.0.10
+	by ml01.01.org (Postfix) with ESMTP id 438EC12866BD3;
+	Wed,  5 Aug 2020 01:10:17 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=lihao2018.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id DB37512866BCF
+	for <linux-nvdimm@lists.01.org>; Wed,  5 Aug 2020 01:10:14 -0700 (PDT)
+X-IronPort-AV: E=Sophos;i="5.75,436,1589212800";
+   d="scan'208";a="97639989"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 05 Aug 2020 16:10:10 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 5AB0B4CE34DE;
+	Wed,  5 Aug 2020 16:10:06 +0800 (CST)
+Received: from [10.167.225.206] (10.167.225.206) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Wed, 5 Aug 2020 16:10:06 +0800
+Subject: Re: Can we change the S_DAX flag immediately on XFS without dropping
+ caches?
+From: "Li, Hao" <lihao2018.fnst@cn.fujitsu.com>
+To: Ira Weiny <ira.weiny@intel.com>
+References: <9dc179147f6a47279d801445f3efeecc@G08CNEXMBPEKD04.g08.fujitsu.local>
+ <20200728022059.GX2005@dread.disaster.area>
+ <573feb69-bc38-8eb4-ee9b-7c49802eb737@fujitsu.com>
+ <20200729161040.GA1250504@iweiny-DESK2.sc.intel.com>
+ <5717e1e5-79fb-af3c-0859-eea3cd8d9626@cn.fujitsu.com>
+Message-ID: <ed4b2df4-086f-a384-3695-4ea721a70326@cn.fujitsu.com>
+Date: Wed, 5 Aug 2020 16:10:05 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.0.1
 MIME-Version: 1.0
-To: <linux-nvdimm@lists.01.org>
-Subject: Recover your ranks with a proper link clean up service
-X-Priority: 1
-Message-ID-Hash: CIJ6RIZKR3YZY5VPIXSJLFW5YIZKBVF7
-X-Message-ID-Hash: CIJ6RIZKR3YZY5VPIXSJLFW5YIZKBVF7
-X-MailFrom: aaronlittle895oioi@gmail.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+In-Reply-To: <5717e1e5-79fb-af3c-0859-eea3cd8d9626@cn.fujitsu.com>
+Content-Language: en-US
+X-Originating-IP: [10.167.225.206]
+X-ClientProxiedBy: G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) To
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201)
+X-yoursite-MailScanner-ID: 5AB0B4CE34DE.ACE7A
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: lihao2018.fnst@cn.fujitsu.com
+Message-ID-Hash: ITG7CY47FFPIQVRGOOJJ4HPMEXGBS2BY
+X-Message-ID-Hash: ITG7CY47FFPIQVRGOOJJ4HPMEXGBS2BY
+X-MailFrom: lihao2018.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Dave Chinner <david@fromorbit.com>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, yangx.jy@cn.fujitsu.com, gujx@cn.fujitsu.com, Yasunori Goto <y-goto@fujitsu.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CIJ6RIZKR3YZY5VPIXSJLFW5YIZKBVF7/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ITG7CY47FFPIQVRGOOJJ4HPMEXGBS2BY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Hi=20
+Hello,
 
-Clean up your linkbase with us today
-mgdots.co/detail.php?id=3D32
+Ping.
 
-
-thanks and regards
-Lashunda Lucarelli
+Thanks,
+Hao Li
 
 
-
-
-Wed, 05 Aug 2020 04:41:52 +0600 tr, 19:37 linux-nvdimm
-<linux-nvdimm@lists.01.org> ra=9Ae:
-Ok, send m@e the link.
-
-
+On 2020/7/31 17:12, Li, Hao wrote:
+> On 2020/7/30 0:10, Ira Weiny wrote:
+>
+>> On Wed, Jul 29, 2020 at 11:23:21AM +0900, Yasunori Goto wrote:
+>>> Hi,
+>>>
+>>> On 2020/07/28 11:20, Dave Chinner wrote:
+>>>> On Tue, Jul 28, 2020 at 02:00:08AM +0000, Li, Hao wrote:
+>>>>> Hi,
+>>>>>
+>>>>> I have noticed that we have to drop caches to make the changing of S_DAX
+>>>>> flag take effect after using chattr +x to turn on DAX for a existing
+>>>>> regular file. The related function is xfs_diflags_to_iflags, whose
+>>>>> second parameter determines whether we should set S_DAX immediately.
+>>>> Yup, as documented in Documentation/filesystems/dax.txt. Specifically:
+>>>>
+>>>>   6. When changing the S_DAX policy via toggling the persistent FS_XFLAG_DAX flag,
+>>>>      the change in behaviour for existing regular files may not occur
+>>>>      immediately.  If the change must take effect immediately, the administrator
+>>>>      needs to:
+>>>>
+>>>>      a) stop the application so there are no active references to the data set
+>>>>         the policy change will affect
+>>>>
+>>>>      b) evict the data set from kernel caches so it will be re-instantiated when
+>>>>         the application is restarted. This can be achieved by:
+>>>>
+>>>>         i. drop-caches
+>>>>         ii. a filesystem unmount and mount cycle
+>>>>         iii. a system reboot
+>>>>
+>>>>> I can't figure out why we do this. Is this because the page caches in
+>>>>> address_space->i_pages are hard to deal with?
+>>>> Because of unfixable races in the page fault path that prevent
+>>>> changing the caching behaviour of the inode while concurrent access
+>>>> is possible. The only way to guarantee races can't happen is to
+>>>> cycle the inode out of cache.
+>>> I understand why the drop_cache operation is necessary. Thanks.
+>>>
+>>> BTW, even normal user becomes to able to change DAX flag for an inode,
+>>> drop_cache operation still requires root permission, right?
+>>>
+>>> So, if kernel have a feature for normal user can operate drop cache for "a
+>>> inode" with
+>>> its permission, I think it improve the above limitation, and
+>>> we would like to try to implement it recently.
+>>>
+>>> Do you have any opinion making such feature?
+>>> (Agree/opposition, or any other comment?)
+>> I would not be opposed but there were many hurdles to that implementation.
+>>
+>> What is the use case you are thinking of here?
+>>
+>> The compromise of dropping caches was reached because we envisioned that many
+>> users would simply want to chose the file mode when a file was created and
+>> maintain that mode through the lifetime of the file.  To that end one can
+>> simply create directories which have the desired dax mode and any files created
+>> in that directory will inherit the dax mode immediately.  
+> Inheriting mechanism for DAX mode is reasonable but chattr&drop_caches
+> makes things complicated.
+>> So there is no need
+>> to switch the file mode directly as a normal user.
+> The question is, the normal users can indeed use chattr to change the DAX
+> mode for a regular file as long as they want. However, when they do this,
+> they have no way to make the change take effect. I think this behavior is
+> weird. We can say chattr executes successfully because XFS_DIFLAG2_DAX has
+> been set onto xfs_inode->i_d.di_flags2, but we can also say chattr doesn't
+> finish things completely because S_DAX is not set onto inode->i_flags.
+> The user may be confused about why chattr +/-x doesn't work at all. Maybe
+> we should find a way for the normal user to make chattr take effects
+> without calling the administrator, or we can make the chattr +/x command
+> request root permission now that if the user has root permission, he can
+> make DAX changing take effect through echo 2 > /proc/sys/vm/drop_caches.
+>
+>
+> Regards,
+>
+> Hao Li
+>
+>> Would that work for your use case?
+>>
+>> Ira
 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
