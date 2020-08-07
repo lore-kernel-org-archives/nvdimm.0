@@ -2,203 +2,139 @@ Return-Path: <SRS0=04Zv=BR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.4 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,FORGED_MUA_MOZILLA,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD752C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 09:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C1EC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 12:32:09 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 50DFA2177B
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 09:23:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id EDD7E2086A
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 12:32:08 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="FQ1PLt4h"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 50DFA2177B
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="AkubhqUE"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EDD7E2086A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1527D12C3E19B;
-	Fri,  7 Aug 2020 02:23:21 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=riteshh@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id B337012C9E7DB;
+	Fri,  7 Aug 2020 05:32:08 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 58E88118FCDD7
-	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 02:23:18 -0700 (PDT)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 07794hFE059704;
-	Fri, 7 Aug 2020 05:23:17 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
- references : from : date : mime-version : in-reply-to : content-type :
- content-transfer-encoding : message-id; s=pp1;
- bh=1g03ZrsAvU3imE8zwOJzFzX6Suq13FXKqdRyOgNIzuI=;
- b=FQ1PLt4hTiHEifRKRogJbBRU0tM++7lUxJhJhMy37d8wi5v2vJQGVWc5epptKaJAAKaf
- zFR0PfjkxG0sHFpDhgbLo8GzgHmBECLnvFRWLK8//U8yrG7a6DoXQ5ZPAwF+1oOusvtt
- oi/OfsdMBgiaWtTPFYvdjHE/5hfZmvZheldkYRajo0e+695gxhYSZBZK/4uf/T4xKGe6
- 3kXAgbf80M0BB6pn0layHneR7SWuuW26yt6zZWMMtCpkpGhrfX6p2N6UJ+xtcagIzsAP
- 6OTvE/hQNBGv8jQ2GvogUNB4RWAy189bTxa/wh5sxZdAu7aePV/hdXnbYelRSlY8DPB+ aA==
-Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 32rephmdet-1
+	by ml01.01.org (Postfix) with ESMTPS id 6AC7B12C428FD
+	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 05:32:06 -0700 (PDT)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 077CViBb089381;
+	Fri, 7 Aug 2020 08:31:57 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=pHk0rJ1y3W/KcscNfyKUHkE404icWevfwXAlqGGp9mM=;
+ b=AkubhqUEH9Amws2sjV81gh5Qhcr9bWxzT8RD26zYxE1upv8wcd3zlS+Etkg/6dCwdKVI
+ SDXluLdRAST+sQ+9meZK3qwVuJmTsEgVBGEL0HW8Fxeco68M6jxr56QEHofT3W5Tn3gq
+ AT6LRvAD/3faW1EJ9n9qadBIRNWdOxEgvz1Qe8GRvMNWmtI2PE1jds2zFvYq7a/9oBzb
+ u58fr7euZ0l81XEeAnFCGrtduwMyqT5MN9VNNTZJMsb3CLaRXojULAwtaDcoFDE039H9
+ vydMWxOf5SoAJo6cWE+UNHWtvu3VmJabWQ6cgNMlvm0kLJkpkKZO2HWwfPfXBfnkJZ6k dw==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 32rnu9v8j6-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2020 05:23:16 -0400
-Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
-	by ppma02fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0779F7Qc031564;
-	Fri, 7 Aug 2020 09:23:15 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma02fra.de.ibm.com with ESMTP id 32n018bykk-1
+	Fri, 07 Aug 2020 08:31:57 -0400
+Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 077CVuYI090184;
+	Fri, 7 Aug 2020 08:31:56 -0400
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 32rnu9v8hf-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2020 09:23:15 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0779Lk4p61276644
+	Fri, 07 Aug 2020 08:31:56 -0400
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+	by ppma04fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 077CFxPx013065;
+	Fri, 7 Aug 2020 12:31:54 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+	by ppma04fra.de.ibm.com with ESMTP id 32n018c2dt-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 07 Aug 2020 12:31:54 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 077CVpTP26280242
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 7 Aug 2020 09:21:46 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C61464C04E;
-	Fri,  7 Aug 2020 09:23:12 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B3CF64C046;
-	Fri,  7 Aug 2020 09:23:11 +0000 (GMT)
-Received: from localhost.localdomain (unknown [9.199.36.111])
-	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Fri,  7 Aug 2020 09:23:11 +0000 (GMT)
-Subject: Re: [RFC 1/1] pmem: Add cond_resched() in bio_for_each_segment loop
- in pmem_make_request
-To: Dave Chinner <david@fromorbit.com>
-References: <0d96e2481f292de2cda8828b03d5121004308759.1596011292.git.riteshh@linux.ibm.com>
- <20200802230148.GA2114@dread.disaster.area>
- <20200803071405.64C0711C058@d06av25.portsmouth.uk.ibm.com>
- <20200803215144.GB2114@dread.disaster.area>
-From: Ritesh Harjani <riteshh@linux.ibm.com>
-Date: Fri, 7 Aug 2020 14:53:10 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.8.0
+	Fri, 7 Aug 2020 12:31:51 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7D93FA404D;
+	Fri,  7 Aug 2020 12:31:51 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8A4FEA4040;
+	Fri,  7 Aug 2020 12:31:48 +0000 (GMT)
+Received: from vajain21-in-ibm-com (unknown [9.85.74.235])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Fri,  7 Aug 2020 12:31:48 +0000 (GMT)
+Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Fri, 07 Aug 2020 18:01:47 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
+Subject: [PATCH] powerpc/papr_scm: Make access mode of 'perf_stats' attribute file to '0400'
+Date: Fri,  7 Aug 2020 18:01:46 +0530
+Message-Id: <20200807123146.11037-1-vaibhav@linux.ibm.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-In-Reply-To: <20200803215144.GB2114@dread.disaster.area>
-Content-Language: en-US
-Message-Id: <20200807092311.B3CF64C046@d06av22.portsmouth.uk.ibm.com>
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-08-07_05:2020-08-06,2020-08-07 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 malwarescore=0
- priorityscore=1501 mlxscore=0 lowpriorityscore=0 suspectscore=0
- adultscore=0 mlxlogscore=999 clxscore=1015 phishscore=0 spamscore=0
- impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2008070064
-Message-ID-Hash: VPCWPRJXET55W472EL6EGLZSXMR3LWDJ
-X-Message-ID-Hash: VPCWPRJXET55W472EL6EGLZSXMR3LWDJ
-X-MailFrom: riteshh@linux.ibm.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, linux-kernel@vger.kernel.org, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+ definitions=2020-08-07_08:2020-08-06,2020-08-07 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
+ lowpriorityscore=0 clxscore=1015 malwarescore=0 mlxlogscore=999
+ impostorscore=0 adultscore=0 spamscore=0 priorityscore=1501 mlxscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2008070088
+Message-ID-Hash: EGKB45GQ7RWEN3PLLX2XJLTPEC4MMWLZ
+X-Message-ID-Hash: EGKB45GQ7RWEN3PLLX2XJLTPEC4MMWLZ
+X-MailFrom: vaibhav@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VPCWPRJXET55W472EL6EGLZSXMR3LWDJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EGKB45GQ7RWEN3PLLX2XJLTPEC4MMWLZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+The newly introduced 'perf_stats' attribute uses the default access
+mode of 0444 letting non-root users access performance stats of an
+nvdimm and potentially force the kernel into issuing large number of
+expensive HCALLs. Since the information exposed by this attribute
+cannot be cached hence its better to ward of access to this attribute
+from non-root users.
 
+Hence this patch updates the access-mode of 'perf_stats' sysfs
+attribute file to 0400 to make it only readable to root-users.
 
-On 8/4/20 3:21 AM, Dave Chinner wrote:
-> On Mon, Aug 03, 2020 at 12:44:04PM +0530, Ritesh Harjani wrote:
->>
->>
->> On 8/3/20 4:31 AM, Dave Chinner wrote:
->>> On Wed, Jul 29, 2020 at 02:15:18PM +0530, Ritesh Harjani wrote:
->>>> For systems which do not have CONFIG_PREEMPT set and
->>>> if there is a heavy multi-threaded load/store operation happening
->>>> on pmem + sometimes along with device latencies, softlockup warnings like
->>>> this could trigger. This was seen on Power where pagesize is 64K.
->>>>
->>>> To avoid softlockup, this patch adds a cond_resched() in this path.
->>>>
->>>> <...>
->>>> watchdog: BUG: soft lockup - CPU#31 stuck for 22s!
->>>> <...>
->>>> CPU: 31 PID: 15627 <..> 5.3.18-20
->>>> <...>
->>>> NIP memcpy_power7+0x43c/0x7e0
->>>> LR memcpy_flushcache+0x28/0xa0
->>>>
->>>> Call Trace:
->>>> memcpy_power7+0x274/0x7e0 (unreliable)
->>>> memcpy_flushcache+0x28/0xa0
->>>> write_pmem+0xa0/0x100 [nd_pmem]
->>>> pmem_do_bvec+0x1f0/0x420 [nd_pmem]
->>>> pmem_make_request+0x14c/0x370 [nd_pmem]
->>>> generic_make_request+0x164/0x400
->>>> submit_bio+0x134/0x2e0
->>>> submit_bio_wait+0x70/0xc0
->>>> blkdev_issue_zeroout+0xf4/0x2a0
->>>> xfs_zero_extent+0x90/0xc0 [xfs]
->>>> xfs_bmapi_convert_unwritten+0x198/0x230 [xfs]
->>>> xfs_bmapi_write+0x284/0x630 [xfs]
->>>> xfs_iomap_write_direct+0x1f0/0x3e0 [xfs]
->>>> xfs_file_iomap_begin+0x344/0x690 [xfs]
->>>> dax_iomap_pmd_fault+0x488/0xc10
->>>> __xfs_filemap_fault+0x26c/0x2b0 [xfs]
->>>> __handle_mm_fault+0x794/0x1af0
->>>> handle_mm_fault+0x12c/0x220
->>>> __do_page_fault+0x290/0xe40
->>>> do_page_fault+0x38/0xc0
->>>> handle_page_fault+0x10/0x30
->>>>
->>>> Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->>>> Signed-off-by: Ritesh Harjani <riteshh@linux.ibm.com>
->>>> ---
->>>>    drivers/nvdimm/pmem.c | 1 +
->>>>    1 file changed, 1 insertion(+)
->>>>
->>>> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
->>>> index 2df6994acf83..fcf7af13897e 100644
->>>> --- a/drivers/nvdimm/pmem.c
->>>> +++ b/drivers/nvdimm/pmem.c
->>>> @@ -214,6 +214,7 @@ static blk_qc_t pmem_make_request(struct request_queue *q, struct bio *bio)
->>>>    			bio->bi_status = rc;
->>>>    			break;
->>>>    		}
->>>> +		cond_resched();
->>>
->>> There are already cond_resched() calls between submitted bios in
->>> blkdev_issue_zeroout() via both __blkdev_issue_zero_pages() and
->>> __blkdev_issue_write_zeroes(), so I'm kinda wondering where the
->>> problem is coming from here.
->>
->> This problem is coming from that bio call- submit_bio()
->>
->>>
->>> Just how big is the bio being issued here that it spins for 22s
->>> trying to copy it?
->>
->> It's 256 (due to BIO_MAX_PAGES) * 64KB (pagesize) = 16MB.
->> So this is definitely not an easy trigger as per tester was mainly seen
->> on a VM.
-> 
-> Right, so a memcpy() of 16MB of data in a single bio is taking >22s?
-> 
-> If so, then you can't solve this problem with cond_resched() - if
-> something that should only take half a millisecond to run is taking
-> 22s of CPU time, there are bigger problems occurring that need
-> fixing.
-> 
-> i.e. if someone is running a workload that has effectively
-> livelocked the hardware cache coherency protocol across the entire
-> machine, then changing kernel code that requires memory bandwidth to
-> be available is not going to fix the problem. All is does is shoot
-> the messenger that tells you there is something going wrong.
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+ arch/powerpc/platforms/pseries/papr_scm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks Dave. Appreciate your inputs in this area.
-Yes, agreed on the fact that we should not shoot the messenger itself.
-Will look more into this.
-
--ritesh
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index f439f0dfea7d1..31864d167a2ce 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -822,7 +822,7 @@ static ssize_t perf_stats_show(struct device *dev,
+ 	kfree(stats);
+ 	return rc ? rc : seq_buf_used(&s);
+ }
+-DEVICE_ATTR_RO(perf_stats);
++DEVICE_ATTR(perf_stats, 0400, perf_stats_show, NULL);
+ 
+ static ssize_t flags_show(struct device *dev,
+ 			  struct device_attribute *attr, char *buf)
+-- 
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
