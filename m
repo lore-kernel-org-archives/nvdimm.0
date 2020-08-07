@@ -2,76 +2,66 @@ Return-Path: <SRS0=04Zv=BR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_20,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7304FC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 19:55:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D79BC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 20:05:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4471B2086A
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 19:55:54 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="KSVpAUoN"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4471B2086A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1A4572074D
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 20:05:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1A4572074D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3311812BC1AE5;
-	Fri,  7 Aug 2020 12:55:54 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id E484D12BC1B19;
+	Fri,  7 Aug 2020 13:05:42 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.136; helo=mga12.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CDD9612BC1AE0
-	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 12:55:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1596830150;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=L9RWbojIVQ2p7jm03k2G6KoVG69ya+D8xde31L+iPHE=;
-	b=KSVpAUoNmCDBdagy6HTVFcnIls55O1Rkinto4EuSOZQMJTS/zYXOABuQKqlkLyBd3nemKo
-	X2sptbY0sVPWr5XAIWpGVbYWEc3VELsj05zQh+aTwG8f+VEiOZdfXHia7rbGH8pxCh8ovd
-	PLrtLZOoJ8AMg92jcWlQ3KcsRtlsArw=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-78-gIhu-hKBPyyoar0_g8woZw-1; Fri, 07 Aug 2020 15:55:46 -0400
-X-MC-Unique: gIhu-hKBPyyoar0_g8woZw-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F333E57;
-	Fri,  7 Aug 2020 19:55:44 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-113-142.rdu2.redhat.com [10.10.113.142])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 2625710027AB;
-	Fri,  7 Aug 2020 19:55:39 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id A6969222E40; Fri,  7 Aug 2020 15:55:38 -0400 (EDT)
-From: Vivek Goyal <vgoyal@redhat.com>
-To: linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	virtio-fs@redhat.com
-Subject: [PATCH v2 01/20] dax: Modify bdev_dax_pgoff() to handle NULL bdev
-Date: Fri,  7 Aug 2020 15:55:07 -0400
-Message-Id: <20200807195526.426056-2-vgoyal@redhat.com>
-In-Reply-To: <20200807195526.426056-1-vgoyal@redhat.com>
-References: <20200807195526.426056-1-vgoyal@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id A296812BAA74A
+	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 13:05:38 -0700 (PDT)
+IronPort-SDR: ElajurXxYs4aPV2l+fix8OiSrtgdek5DiNqwQjYwhH7MlheUcd6oV3UJFt+JOUUlvEnNTo9L8O
+ xq8ugne427QA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9706"; a="132738286"
+X-IronPort-AV: E=Sophos;i="5.75,446,1589266800";
+   d="scan'208";a="132738286"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2020 13:05:38 -0700
+IronPort-SDR: iN9afJV0a8iKNGDrKwlY/zfIRTfZOsKW1t/FEpub7fHuyHY/ALiRqNmEgG/cOqSeiy78Jgvoay
+ show9POj62vg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.75,446,1589266800";
+   d="scan'208";a="275462904"
+Received: from iweiny-desk2.sc.intel.com ([10.3.52.147])
+  by fmsmga007.fm.intel.com with ESMTP; 07 Aug 2020 13:05:38 -0700
+Date: Fri, 7 Aug 2020 13:05:38 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [PATCH v3 33/38] virtio_pmem: convert to LE accessors
+Message-ID: <20200807200537.GD2467625@iweiny-DESK2.sc.intel.com>
+References: <20200805134226.1106164-1-mst@redhat.com>
+ <20200805134226.1106164-34-mst@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Message-ID-Hash: 2M7FHZT7TT2WRO33W3LOSD6N7GNCI2YA
-X-Message-ID-Hash: 2M7FHZT7TT2WRO33W3LOSD6N7GNCI2YA
-X-MailFrom: vgoyal@redhat.com
+Content-Disposition: inline
+In-Reply-To: <20200805134226.1106164-34-mst@redhat.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
+Message-ID-Hash: 7OFGOFFZB3Q5FYMYAIVA4WDWRRMGP55C
+X-Message-ID-Hash: 7OFGOFFZB3Q5FYMYAIVA4WDWRRMGP55C
+X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, Christoph Hellwig <hch@infradead.org>, linux-nvdimm@lists.01.org
+CC: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2M7FHZT7TT2WRO33W3LOSD6N7GNCI2YA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7OFGOFFZB3Q5FYMYAIVA4WDWRRMGP55C/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,56 +70,38 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-virtiofs does not have a block device but it has dax device.
-Modify bdev_dax_pgoff() to be able to handle that.
+On Wed, Aug 05, 2020 at 09:44:45AM -0400, Michael S. Tsirkin wrote:
+> Virtio pmem is modern-only. Use LE accessors for config space.
+> 
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> ---
+>  drivers/nvdimm/virtio_pmem.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> index 5e3d07b47e0c..726c7354d465 100644
+> --- a/drivers/nvdimm/virtio_pmem.c
+> +++ b/drivers/nvdimm/virtio_pmem.c
+> @@ -58,9 +58,9 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+>  		goto out_err;
+>  	}
+>  
+> -	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
+> +	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+>  			start, &vpmem->start);
+> -	virtio_cread(vpmem->vdev, struct virtio_pmem_config,
+> +	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+>  			size, &vpmem->size);
 
-If there is no bdev, that means dax offset is 0. (It can't be a partition
-block device starting at an offset in dax device).
+FWIW I think squashing patch 15/38 and this patch would have made more sense.
 
-This is little hackish. There have been discussions about getting rid
-of dax not supporting partitions.
+Acked-by: Ira Weiny <ira.weiny@intel.com>
 
-https://lore.kernel.org/linux-fsdevel/20200107125159.GA15745@infradead.org/
-
-IMHO, this path can easily break exisitng users. For example
-ioctl(BLKPG_ADD_PARTITION) will start breaking on block devices
-supporting DAX. Also, I personally find it very useful to be able to
-partition dax devices and still be able to use DAX.
-
-Alternatively, I tried to store offset into dax device information in iomap
-interface, but that got NACKed.
-
-https://lore.kernel.org/linux-fsdevel/20200217133117.GB20444@infradead.org/
-
-I can't think of a good path to solve this issue properly. So to make
-progress, it seems this patch is least bad option for now and I hope
-we can take it.
-
-Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
----
- drivers/dax/super.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 8e32345be0f7..c4bec437e88b 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -46,7 +46,8 @@ EXPORT_SYMBOL_GPL(dax_read_unlock);
- int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
- 		pgoff_t *pgoff)
- {
--	phys_addr_t phys_off = (get_start_sect(bdev) + sector) * 512;
-+	sector_t start_sect = bdev ? get_start_sect(bdev) : 0;
-+	phys_addr_t phys_off = (start_sect + sector) * 512;
- 
- 	if (pgoff)
- 		*pgoff = PHYS_PFN(phys_off);
--- 
-2.25.4
+>  
+>  	res.start = vpmem->start;
+> -- 
+> MST
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
