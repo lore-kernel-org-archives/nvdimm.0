@@ -2,100 +2,63 @@ Return-Path: <SRS0=04Zv=BR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C1EC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 12:32:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19377C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 13:13:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EDD7E2086A
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 12:32:08 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="AkubhqUE"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EDD7E2086A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id E5B4E221E2
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 13:13:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E5B4E221E2
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B337012C9E7DB;
-	Fri,  7 Aug 2020 05:32:08 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6AC7B12C428FD
-	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 05:32:06 -0700 (PDT)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 077CViBb089381;
-	Fri, 7 Aug 2020 08:31:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=pHk0rJ1y3W/KcscNfyKUHkE404icWevfwXAlqGGp9mM=;
- b=AkubhqUEH9Amws2sjV81gh5Qhcr9bWxzT8RD26zYxE1upv8wcd3zlS+Etkg/6dCwdKVI
- SDXluLdRAST+sQ+9meZK3qwVuJmTsEgVBGEL0HW8Fxeco68M6jxr56QEHofT3W5Tn3gq
- AT6LRvAD/3faW1EJ9n9qadBIRNWdOxEgvz1Qe8GRvMNWmtI2PE1jds2zFvYq7a/9oBzb
- u58fr7euZ0l81XEeAnFCGrtduwMyqT5MN9VNNTZJMsb3CLaRXojULAwtaDcoFDE039H9
- vydMWxOf5SoAJo6cWE+UNHWtvu3VmJabWQ6cgNMlvm0kLJkpkKZO2HWwfPfXBfnkJZ6k dw==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 32rnu9v8j6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2020 08:31:57 -0400
-Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 077CVuYI090184;
-	Fri, 7 Aug 2020 08:31:56 -0400
-Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 32rnu9v8hf-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2020 08:31:56 -0400
-Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
-	by ppma04fra.de.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 077CFxPx013065;
-	Fri, 7 Aug 2020 12:31:54 GMT
-Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
-	by ppma04fra.de.ibm.com with ESMTP id 32n018c2dt-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 07 Aug 2020 12:31:54 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 077CVpTP26280242
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 7 Aug 2020 12:31:51 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 7D93FA404D;
-	Fri,  7 Aug 2020 12:31:51 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8A4FEA4040;
-	Fri,  7 Aug 2020 12:31:48 +0000 (GMT)
-Received: from vajain21-in-ibm-com (unknown [9.85.74.235])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Fri,  7 Aug 2020 12:31:48 +0000 (GMT)
-Received: by vajain21-in-ibm-com (sSMTP sendmail emulation); Fri, 07 Aug 2020 18:01:47 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
-Subject: [PATCH] powerpc/papr_scm: Make access mode of 'perf_stats' attribute file to '0400'
-Date: Fri,  7 Aug 2020 18:01:46 +0530
-Message-Id: <20200807123146.11037-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.26.2
+	by ml01.01.org (Postfix) with ESMTP id BF22812C2F602;
+	Fri,  7 Aug 2020 06:13:46 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id 6203812C6067C
+	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 06:13:44 -0700 (PDT)
+X-IronPort-AV: E=Sophos;i="5.75,445,1589212800";
+   d="scan'208";a="97774910"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 07 Aug 2020 21:13:42 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 364964CE34EF;
+	Fri,  7 Aug 2020 21:13:37 +0800 (CST)
+Received: from G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Fri, 7 Aug 2020 21:13:39 +0800
+Received: from localhost.localdomain (10.167.225.141) by
+ G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.2 via Frontend Transport; Fri, 7 Aug 2020 21:13:37 +0800
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<linux-nvdimm@lists.01.org>
+Subject: [RFC PATCH 1/8] fs: introduce get_shared_files() for dax&reflink
+Date: Fri, 7 Aug 2020 21:13:29 +0800
+Message-ID: <20200807131336.318774-2-ruansy.fnst@cn.fujitsu.com>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20200807131336.318774-1-ruansy.fnst@cn.fujitsu.com>
+References: <20200807131336.318774-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-08-07_08:2020-08-06,2020-08-07 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
- lowpriorityscore=0 clxscore=1015 malwarescore=0 mlxlogscore=999
- impostorscore=0 adultscore=0 spamscore=0 priorityscore=1501 mlxscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2008070088
-Message-ID-Hash: EGKB45GQ7RWEN3PLLX2XJLTPEC4MMWLZ
-X-Message-ID-Hash: EGKB45GQ7RWEN3PLLX2XJLTPEC4MMWLZ
-X-MailFrom: vaibhav@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
+X-yoursite-MailScanner-ID: 364964CE34EF.ADD3D
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
+Message-ID-Hash: JSR2W7E4J3KPMR7IE4OBMJ3LJGX72J67
+X-Message-ID-Hash: JSR2W7E4J3KPMR7IE4OBMJ3LJGX72J67
+X-MailFrom: ruansy.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EGKB45GQ7RWEN3PLLX2XJLTPEC4MMWLZ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JSR2W7E4J3KPMR7IE4OBMJ3LJGX72J67/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -104,37 +67,149 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The newly introduced 'perf_stats' attribute uses the default access
-mode of 0444 letting non-root users access performance stats of an
-nvdimm and potentially force the kernel into issuing large number of
-expensive HCALLs. Since the information exposed by this attribute
-cannot be cached hence its better to ward of access to this attribute
-from non-root users.
+Under the mode of both dax and reflink on, one page may be shared by
+multiple files and offsets.  In order to track them in memory-failure or
+other cases, we introduce this function by finding out who is sharing
+this block(the page) in a filesystem.  It returns a list that contains
+all the owners, and the offset in each owner.
 
-Hence this patch updates the access-mode of 'perf_stats' sysfs
-attribute file to 0400 to make it only readable to root-users.
+For XFS, rmapbt is used to find out the owners of one block.  So, it
+should be turned on when we want to use dax&reflink feature together.
 
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- arch/powerpc/platforms/pseries/papr_scm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/xfs_super.c  | 67 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dax.h |  7 +++++
+ include/linux/fs.h  |  2 ++
+ 3 files changed, 76 insertions(+)
 
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index f439f0dfea7d1..31864d167a2ce 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -822,7 +822,7 @@ static ssize_t perf_stats_show(struct device *dev,
- 	kfree(stats);
- 	return rc ? rc : seq_buf_used(&s);
- }
--DEVICE_ATTR_RO(perf_stats);
-+DEVICE_ATTR(perf_stats, 0400, perf_stats_show, NULL);
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index 379cbff438bc..b71392219c91 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -35,6 +35,9 @@
+ #include "xfs_refcount_item.h"
+ #include "xfs_bmap_item.h"
+ #include "xfs_reflink.h"
++#include "xfs_alloc.h"
++#include "xfs_rmap.h"
++#include "xfs_rmap_btree.h"
  
- static ssize_t flags_show(struct device *dev,
- 			  struct device_attribute *attr, char *buf)
+ #include <linux/magic.h>
+ #include <linux/fs_context.h>
+@@ -1097,6 +1100,69 @@ xfs_fs_free_cached_objects(
+ 	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
+ }
+ 
++static int _get_shared_files_fn(
++	struct xfs_btree_cur	*cur,
++	struct xfs_rmap_irec	*rec,
++	void			*priv)
++{
++	struct list_head	*list = priv;
++	struct xfs_inode	*ip;
++	struct shared_files	*sfp;
++
++	/* Get files that incore, filter out others that are not in use. */
++	xfs_iget(cur->bc_mp, cur->bc_tp, rec->rm_owner, XFS_IGET_INCORE, 0, &ip);
++	if (ip && !ip->i_vnode.i_mapping)
++		return 0;
++
++	sfp = kmalloc(sizeof(*sfp), GFP_KERNEL);
++	sfp->mapping = ip->i_vnode.i_mapping;
++	sfp->index = rec->rm_offset;
++	list_add_tail(&sfp->list, list);
++
++	return 0;
++}
++
++static int
++xfs_fs_get_shared_files(
++	struct super_block	*sb,
++	pgoff_t			offset,
++	struct list_head	*list)
++{
++	struct xfs_mount	*mp = XFS_M(sb);
++	struct xfs_trans	*tp = NULL;
++	struct xfs_btree_cur	*cur = NULL;
++	struct xfs_rmap_irec	rmap_low = { 0 }, rmap_high = { 0 };
++	struct xfs_buf		*agf_bp = NULL;
++	xfs_agblock_t		bno = XFS_B_TO_FSB(mp, offset);
++	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, bno);
++	int			error = 0;
++
++	error = xfs_trans_alloc_empty(mp, &tp);
++	if (error)
++		return error;
++
++	error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
++	if (error)
++		return error;
++
++	cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agno);
++
++	memset(&cur->bc_rec, 0, sizeof(cur->bc_rec));
++	/* Construct the range for one rmap search */
++	memset(&rmap_low, 0, sizeof(rmap_low));
++	memset(&rmap_high, 0xFF, sizeof(rmap_high));
++	rmap_low.rm_startblock = rmap_high.rm_startblock = bno;
++
++	error = xfs_rmap_query_range(cur, &rmap_low, &rmap_high,
++				     _get_shared_files_fn, list);
++	if (error == -ECANCELED)
++		error = 0;
++
++	xfs_btree_del_cursor(cur, error);
++	xfs_trans_brelse(tp, agf_bp);
++	return error;
++}
++
+ static const struct super_operations xfs_super_operations = {
+ 	.alloc_inode		= xfs_fs_alloc_inode,
+ 	.destroy_inode		= xfs_fs_destroy_inode,
+@@ -1110,6 +1176,7 @@ static const struct super_operations xfs_super_operations = {
+ 	.show_options		= xfs_fs_show_options,
+ 	.nr_cached_objects	= xfs_fs_nr_cached_objects,
+ 	.free_cached_objects	= xfs_fs_free_cached_objects,
++	.get_shared_files	= xfs_fs_get_shared_files,
+ };
+ 
+ static int
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 6904d4e0b2e0..0a85e321d6b4 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -40,6 +40,13 @@ struct dax_operations {
+ 
+ extern struct attribute_group dax_attribute_group;
+ 
++struct shared_files {
++	struct list_head	list;
++	struct address_space	*mapping;
++	pgoff_t			index;
++	dax_entry_t		cookie;
++};
++
+ #if IS_ENABLED(CONFIG_DAX)
+ struct dax_device *dax_get_by_host(const char *host);
+ struct dax_device *alloc_dax(void *private, const char *host,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index f5abba86107d..81de3d2739b9 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1977,6 +1977,8 @@ struct super_operations {
+ 				  struct shrink_control *);
+ 	long (*free_cached_objects)(struct super_block *,
+ 				    struct shrink_control *);
++	int (*get_shared_files)(struct super_block *sb, pgoff_t offset,
++				struct list_head *list);
+ };
+ 
+ /*
 -- 
-2.26.2
+2.27.0
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
