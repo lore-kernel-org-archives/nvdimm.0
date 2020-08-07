@@ -2,63 +2,92 @@ Return-Path: <SRS0=04Zv=BR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A8FBC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 13:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FBA4C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 16:16:01 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 036C820866
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 13:39:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2B0AF2075D
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  7 Aug 2020 16:16:01 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="jooGZOBZ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 036C820866
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="mnQfNCSP"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2B0AF2075D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B58461270CEDD;
-	Fri,  7 Aug 2020 06:39:06 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id EADE712B8209E;
+	Fri,  7 Aug 2020 09:16:00 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=darrick.wong@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DE88F1270CED5
-	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 06:39:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=eNlt5+MOMqdMiipq56av3Q5dInH/0IZEcBwwhkePOhw=; b=jooGZOBZPN+/zhWloZREEQs9Qe
-	1Gm0HEqpmKTnkfVygGtCjNGPDIVzbn6Oy4iJaZzm2CfGsgeL8I6RGXh+QirerafkOCyyFLowQfn04
-	IChcKEfRifcIOwSxygkNiijBPFeNHpOZTqM6nCUYljV7yii6nwcVfTblozH6g8PM6Q312CvbDI25M
-	zjBglzIXAyMENEhkum19A1pCMt7D7s7lweM2Z4sd2VbM7V6c6Cd5CwISpe/CWHJm+3fcz7fTwgtvK
-	Rlxfs1dl7r8mlxzgjjjbi+UlFk1MHOgX7V6pvrUvfVUZV9ivnPN/+OOwdWfrzlX5EzJ1coyIw+I7X
-	K4lH3vDg==;
-Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1k42aH-0003o5-B8; Fri, 07 Aug 2020 13:38:57 +0000
-Date: Fri, 7 Aug 2020 14:38:57 +0100
-From: Matthew Wilcox <willy@infradead.org>
+	by ml01.01.org (Postfix) with ESMTPS id 58B131270CEB9
+	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 09:15:58 -0700 (PDT)
+Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
+	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 077GBQOS027293;
+	Fri, 7 Aug 2020 16:15:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
+ : subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=corp-2020-01-29;
+ bh=Iw9gSXOT177RL8c5e54Q3cyOdHO3XECC9NU+v/BWeOo=;
+ b=mnQfNCSPb2InFc+cNqgOSdQsDi0Eghe526jJr33AVNMBVINNJGfyNKaSmZv+25WlLG79
+ xcbZG4MGWLVG3iW31jyWub51ov3/uN1p907iOKuzm4WFYqN/YRr/5crg9FEPtUKrzi/U
+ q9y553uFmrD3JfDmAxNdZb7NJKSn7bU0d9DP2Gg7dT7aq2DfXlbf5ZumMLl82+6Df5j9
+ YKbImz/j0WX4ZkCREJarSjksa3k25DBhEyUwzvbnjV67Bj1LHfPD9IazhmOAr2/qMgBu
+ e+c9PgrDFHiqwsMBfiPQs357tfQTXVofqoTKI3ssXMQZMrTgYxXN3ewcJs068RUKrS7c Gg==
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by userp2130.oracle.com with ESMTP id 32r6gx1cwg-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Fri, 07 Aug 2020 16:15:33 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 077G80mw090947;
+	Fri, 7 Aug 2020 16:15:33 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+	by userp3030.oracle.com with ESMTP id 32r6cxya29-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 07 Aug 2020 16:15:32 +0000
+Received: from abhmp0002.oracle.com (abhmp0002.oracle.com [141.146.116.8])
+	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 077GFSgT003950;
+	Fri, 7 Aug 2020 16:15:28 GMT
+Received: from localhost (/67.169.218.210)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Fri, 07 Aug 2020 09:15:28 -0700
+Date: Fri, 7 Aug 2020 09:15:26 -0700
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
 To: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: Re: [RFC PATCH 0/8] fsdax: introduce FS query interface to support
- reflink
-Message-ID: <20200807133857.GC17456@casper.infradead.org>
+Subject: Re: [RFC PATCH 1/8] fs: introduce get_shared_files() for dax&reflink
+Message-ID: <20200807161526.GD6090@magnolia>
 References: <20200807131336.318774-1-ruansy.fnst@cn.fujitsu.com>
+ <20200807131336.318774-2-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20200807131336.318774-1-ruansy.fnst@cn.fujitsu.com>
-Message-ID-Hash: RMXVJIVOKJXBWOTR57CY3EZ3HB7BUK35
-X-Message-ID-Hash: RMXVJIVOKJXBWOTR57CY3EZ3HB7BUK35
-X-MailFrom: willy@infradead.org
+In-Reply-To: <20200807131336.318774-2-ruansy.fnst@cn.fujitsu.com>
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9706 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=5 mlxscore=0 bulkscore=0
+ spamscore=0 adultscore=0 mlxlogscore=999 phishscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2008070112
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9706 signatures=668679
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 bulkscore=0 spamscore=0
+ impostorscore=0 mlxscore=0 mlxlogscore=999 adultscore=0 priorityscore=1501
+ phishscore=0 clxscore=1011 suspectscore=5 lowpriorityscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
+ definitions=main-2008070112
+Message-ID-Hash: QRPVKNZG2S7DKB5HSVEUONBU4LGF35W7
+X-Message-ID-Hash: QRPVKNZG2S7DKB5HSVEUONBU4LGF35W7
+X-MailFrom: darrick.wong@oracle.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RMXVJIVOKJXBWOTR57CY3EZ3HB7BUK35/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QRPVKNZG2S7DKB5HSVEUONBU4LGF35W7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,23 +96,214 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Aug 07, 2020 at 09:13:28PM +0800, Shiyang Ruan wrote:
-> This patchset is a try to resolve the problem of tracking shared page
-> for fsdax.
+On Fri, Aug 07, 2020 at 09:13:29PM +0800, Shiyang Ruan wrote:
+> Under the mode of both dax and reflink on, one page may be shared by
+> multiple files and offsets.  In order to track them in memory-failure or
+> other cases, we introduce this function by finding out who is sharing
+> this block(the page) in a filesystem.  It returns a list that contains
+> all the owners, and the offset in each owner.
 > 
-> Instead of per-page tracking method, this patchset introduces a query
-> interface: get_shared_files(), which is implemented by each FS, to
-> obtain the owners of a shared page.  It returns an owner list of this
-> shared page.  Then, the memory-failure() iterates the list to be able
-> to notify each process using files that sharing this page.
+> For XFS, rmapbt is used to find out the owners of one block.  So, it
+> should be turned on when we want to use dax&reflink feature together.
 > 
-> The design of the tracking method is as follow:
-> 1. dax_assocaite_entry() associates the owner's info to this page
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+> ---
+>  fs/xfs/xfs_super.c  | 67 +++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dax.h |  7 +++++
+>  include/linux/fs.h  |  2 ++
+>  3 files changed, 76 insertions(+)
+> 
+> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> index 379cbff438bc..b71392219c91 100644
+> --- a/fs/xfs/xfs_super.c
+> +++ b/fs/xfs/xfs_super.c
+> @@ -35,6 +35,9 @@
+>  #include "xfs_refcount_item.h"
+>  #include "xfs_bmap_item.h"
+>  #include "xfs_reflink.h"
+> +#include "xfs_alloc.h"
+> +#include "xfs_rmap.h"
+> +#include "xfs_rmap_btree.h"
+>  
+>  #include <linux/magic.h>
+>  #include <linux/fs_context.h>
+> @@ -1097,6 +1100,69 @@ xfs_fs_free_cached_objects(
+>  	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
+>  }
+>  
+> +static int _get_shared_files_fn(
 
-I think that's the first problem with this design.  dax_associate_entry is
-a horrendous idea which needs to be ripped out, not made more important.
-It's all part of the general problem of trying to do something on a
-per-page basis instead of per-extent basis.
+Needs an xfs_ prefix...
+
+> +	struct xfs_btree_cur	*cur,
+> +	struct xfs_rmap_irec	*rec,
+> +	void			*priv)
+> +{
+> +	struct list_head	*list = priv;
+> +	struct xfs_inode	*ip;
+> +	struct shared_files	*sfp;
+> +
+> +	/* Get files that incore, filter out others that are not in use. */
+> +	xfs_iget(cur->bc_mp, cur->bc_tp, rec->rm_owner, XFS_IGET_INCORE, 0, &ip);
+
+No error checking at all?
+
+What if rm_owner refers to metadata?
+
+> +	if (ip && !ip->i_vnode.i_mapping)
+> +		return 0;
+
+When is the xfs_inode released?  We don't iput it here, and there's no
+way for dax_unlock_page (afaict the only consumer) to do it, so we
+leak the reference.
+
+> +
+> +	sfp = kmalloc(sizeof(*sfp), GFP_KERNEL);
+
+If there are millions of open files reflinked to this range of pmem this
+is going to allocate a /lot/ of memory.
+
+> +	sfp->mapping = ip->i_vnode.i_mapping;
+
+sfp->mapping = VFS_I(ip)->i_mapping;
+
+> +	sfp->index = rec->rm_offset;
+> +	list_add_tail(&sfp->list, list);
+
+Why do we leave ->cookie uninitialized?  What does it even do?
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int
+> +xfs_fs_get_shared_files(
+> +	struct super_block	*sb,
+> +	pgoff_t			offset,
+
+Which device does this offset refer to?  XFS supports multiple storage
+devices.
+
+Also, uh, is this really a pgoff_t?  If yes, you can't use it with
+XFS_B_TO_FSB below without first converting it to a loff_t.
+
+> +	struct list_head	*list)
+> +{
+> +	struct xfs_mount	*mp = XFS_M(sb);
+> +	struct xfs_trans	*tp = NULL;
+> +	struct xfs_btree_cur	*cur = NULL;
+> +	struct xfs_rmap_irec	rmap_low = { 0 }, rmap_high = { 0 };
+
+No need to memset(0) rmap_low later, or zero rmap_high just to memset it
+later.
+
+> +	struct xfs_buf		*agf_bp = NULL;
+> +	xfs_agblock_t		bno = XFS_B_TO_FSB(mp, offset);
+
+"FSB" refers to xfs_fsblock_t.  You just ripped the upper 32 bits off
+the fsblock number.
+
+> +	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, bno);
+> +	int			error = 0;
+> +
+> +	error = xfs_trans_alloc_empty(mp, &tp);
+> +	if (error)
+> +		return error;
+> +
+> +	error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
+> +	if (error)
+> +		return error;
+> +
+> +	cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agno);
+> +
+> +	memset(&cur->bc_rec, 0, sizeof(cur->bc_rec));
+
+Not necessary, bc_rec is zero in a freshly created cursor.
+
+> +	/* Construct the range for one rmap search */
+> +	memset(&rmap_low, 0, sizeof(rmap_low));
+> +	memset(&rmap_high, 0xFF, sizeof(rmap_high));
+> +	rmap_low.rm_startblock = rmap_high.rm_startblock = bno;
+> +
+> +	error = xfs_rmap_query_range(cur, &rmap_low, &rmap_high,
+> +				     _get_shared_files_fn, list);
+> +	if (error == -ECANCELED)
+> +		error = 0;
+> +
+> +	xfs_btree_del_cursor(cur, error);
+> +	xfs_trans_brelse(tp, agf_bp);
+> +	return error;
+> +}
+
+Looking at this, I don't think this is the right way to approach memory
+poisoning.  Rather than allocating a (potentially huge) linked list and
+passing it to the memory poison code to unmap pages, kill processes, and
+free the list, I think:
+
+1) "->get_shared_files" should be more targetted.  Call it ->storage_lost
+or something, so that it only has one purpose, which is to react to
+asynchronous notifications that storage has been lost.
+
+2) The inner _get_shared_files_fn should directly call back into the
+memory manager to remove a poisoned page from the mapping and signal
+whatever process might have it mapped.
+
+That way, _get_shared_files_fn can look in the xfs buffer cache to see
+if we have a copy in DRAM, and immediately write it back to pmem.
+
+Hmm and now that you've gotten me rambling about hwpoison, I wonder what
+happens if dram backing part of the xfs buffer cache goes bad...
+
+--D
+
+> +
+>  static const struct super_operations xfs_super_operations = {
+>  	.alloc_inode		= xfs_fs_alloc_inode,
+>  	.destroy_inode		= xfs_fs_destroy_inode,
+> @@ -1110,6 +1176,7 @@ static const struct super_operations xfs_super_operations = {
+>  	.show_options		= xfs_fs_show_options,
+>  	.nr_cached_objects	= xfs_fs_nr_cached_objects,
+>  	.free_cached_objects	= xfs_fs_free_cached_objects,
+> +	.get_shared_files	= xfs_fs_get_shared_files,
+>  };
+>  
+>  static int
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 6904d4e0b2e0..0a85e321d6b4 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -40,6 +40,13 @@ struct dax_operations {
+>  
+>  extern struct attribute_group dax_attribute_group;
+>  
+> +struct shared_files {
+> +	struct list_head	list;
+> +	struct address_space	*mapping;
+> +	pgoff_t			index;
+> +	dax_entry_t		cookie;
+> +};
+> +
+>  #if IS_ENABLED(CONFIG_DAX)
+>  struct dax_device *dax_get_by_host(const char *host);
+>  struct dax_device *alloc_dax(void *private, const char *host,
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index f5abba86107d..81de3d2739b9 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1977,6 +1977,8 @@ struct super_operations {
+>  				  struct shrink_control *);
+>  	long (*free_cached_objects)(struct super_block *,
+>  				    struct shrink_control *);
+> +	int (*get_shared_files)(struct super_block *sb, pgoff_t offset,
+> +				struct list_head *list);
+>  };
+>  
+>  /*
+> -- 
+> 2.27.0
+> 
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
