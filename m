@@ -7,37 +7,34 @@ X-Spam-Status: No, score=2.6 required=3.0 tests=BAYES_50,
 	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C96BC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  8 Aug 2020 00:44:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94551C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Sat,  8 Aug 2020 08:14:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1DFAE2177B
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  8 Aug 2020 00:44:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1DFAE2177B
+	by mail.kernel.org (Postfix) with ESMTPS id 219CE221E5
+	for <linux-nvdimm@archiver.kernel.org>; Sat,  8 Aug 2020 08:14:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 219CE221E5
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=rakuten.co.jp
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0316012CC8FE2;
-	Fri,  7 Aug 2020 17:44:23 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=150.95.221.196; helo=rakuten.co.jp; envelope-from=account-update@rakuten.co.jp; receiver=<UNKNOWN> 
-Received: from rakuten.co.jp (v150-95-221-196.ydvw.static.cnode.io [150.95.221.196])
-	by ml01.01.org (Postfix) with ESMTP id B341912CC8FDF
-	for <linux-nvdimm@lists.01.org>; Fri,  7 Aug 2020 17:44:19 -0700 (PDT)
-Received: from oio (unknown [171.99.243.195])
-	by rakuten.co.jp with SMTP id 50jkhfDXVczNKg8J.1
-	for <linux-nvdimm@lists.01.org>; Sat, 08 Aug 2020 09:44:19 +0900
+	by ml01.01.org (Postfix) with ESMTP id DF80912D0E087;
+	Sat,  8 Aug 2020 01:14:40 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=118.27.74.103; helo=rakuten.co.jp; envelope-from=account-update@rakuten.co.jp; receiver=<UNKNOWN> 
+Received: from rakuten.co.jp (v118-27-74-103.eqwx.static.cnode.io [118.27.74.103])
+	by ml01.01.org (Postfix) with ESMTP id F2A0A129FFB84
+	for <linux-nvdimm@lists.01.org>; Sat,  8 Aug 2020 01:14:37 -0700 (PDT)
 Sender: account-update@rakuten.co.jp
-Message-ID: <202008080944194647282@rakuten.co.jp>
+Message-ID: <202008081714387043475@rakuten.co.jp>
 From: "Rakuten" <account-update@rakuten.co.jp>
 To: <linux-nvdimm@lists.01.org>
 Subject: =?utf-8?B?5qW95aSp5a6J5YWo55Ww5bi4?=
-Date: Sat, 8 Aug 2020 09:44:07 +0900
+Date: Sat, 8 Aug 2020 17:14:27 +0900
 Mime-Version: 1.0
 X-Priority: 3
-X-Mailer: Rsn 0
-Message-ID-Hash: 5S4O7PIB4IDU24VUT2ECPV6TU4M4ZR3R
-X-Message-ID-Hash: 5S4O7PIB4IDU24VUT2ECPV6TU4M4ZR3R
+X-Mailer: Jgjdrjtdkia 2
+Message-ID-Hash: F3ZLJWNFMNQGIPFTKVBOG6KKA6U3VXWH
+X-Message-ID-Hash: F3ZLJWNFMNQGIPFTKVBOG6KKA6U3VXWH
 X-MailFrom: account-update@rakuten.co.jp
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -45,7 +42,7 @@ X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5S4O7PIB4IDU24VUT2ECPV6TU4M4ZR3R/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/F3ZLJWNFMNQGIPFTKVBOG6KKA6U3VXWH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
