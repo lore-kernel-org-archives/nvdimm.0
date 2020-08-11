@@ -2,252 +2,131 @@ Return-Path: <SRS0=leEO=BV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB81C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 11 Aug 2020 01:20:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31E47C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 11 Aug 2020 09:45:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1FA7F20716
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 11 Aug 2020 01:20:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id F3433205CB
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 11 Aug 2020 09:45:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="ByP4ZaAA"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1FA7F20716
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b="XPVyTsCI"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F3433205CB
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=citrix.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DF7AE12EDC537;
-	Mon, 10 Aug 2020 18:20:53 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	by ml01.01.org (Postfix) with ESMTP id 9E71012F10E76;
+	Tue, 11 Aug 2020 02:45:14 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.71.145.155; helo=esa3.hc3370-68.iphmx.com; envelope-from=roger.pau@citrix.com; receiver=<UNKNOWN> 
+Received: from esa3.hc3370-68.iphmx.com (esa3.hc3370-68.iphmx.com [216.71.145.155])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 31EA312EDC534
-	for <linux-nvdimm@lists.01.org>; Mon, 10 Aug 2020 18:20:51 -0700 (PDT)
-IronPort-SDR: h7p5/HrMfw7rHZyADWAEHXB14QrX6mNK7IX0f7EKtMaLFMCkKQMExLeS8N0+FBru97FZtTFbfK
- zLoRNeaRy6fQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9709"; a="217979731"
-X-IronPort-AV: E=Sophos;i="5.75,458,1589266800";
-   d="scan'208";a="217979731"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2020 18:20:51 -0700
-IronPort-SDR: sEOX4bI/r8aXHdgg/6lTaXEaCN3iQ8Df+2ZL5Xm9sg/v6x6vWXtlAep+wqNaH9zszGMKzK0O7M
- SA4hschtgq7A==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.75,458,1589266800";
-   d="scan'208";a="368806094"
-Received: from fmsmsx601-2.cps.intel.com (HELO fmsmsx601.amr.corp.intel.com) ([10.18.84.211])
-  by orsmga001.jf.intel.com with ESMTP; 10 Aug 2020 18:20:51 -0700
-Received: from fmsmsx601.amr.corp.intel.com (10.18.126.81) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1713.5; Mon, 10 Aug 2020 18:20:50 -0700
-Received: from FMSEDG002.ED.cps.intel.com (10.1.192.134) by
- fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.1713.5
- via Frontend Transport; Mon, 10 Aug 2020 18:20:50 -0700
-Received: from NAM02-BN1-obe.outbound.protection.outlook.com (104.47.51.47) by
- edgegateway.intel.com (192.55.55.69) with Microsoft SMTP Server (TLS) id
- 14.3.439.0; Mon, 10 Aug 2020 18:20:50 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=PucgYJvFcNFlr4PqT4G+I617NDAof4aC4/JPQqLS8QQ/DLx90p93i/BNCGja2AAjWCZP0UozwJc9CtdxO4NQ/GKPR6Xqq9hGXzk0CZQcJYspBNDoM1wMSh9Mo7BUgNm5EEZeJzB2prDLEcg0jKHnQGa+8fZMELT4b9wn+V/asJUkeuXEBhy/YSO07tqxvxHIdoQd9BMdlZqcCdvZM1A80TUT532e/I5fAbydWeWKbRXTsdOus1i/ixD00KPhBNqJ1aWbZJSKVeefULC9OiRXJ6Xg1NABoGN0sQChOYLN8mRZQq1QcIKhUFlwWZlaX1q0Lq6CotD5wvQhQTSUPxyX1Q==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5UUaGg+yWefPgS0cZWMbpZN6nC1PmtR8+jUm968UhMA=;
- b=QOLorHnzg/L7n94vW47DjlMOTx8j3NBMVNH8t2qZlLCTO3L17xz3e/Q8dIV2oALqiuopIHVmDAqNrluYJPoADOsFQkTJRYV4caukbOBxH70phLf/wu3Yh19ILLVKlcvTP0VVPM/l6pT5mGSdutO1t/AmsmJMGZQLLbzzhR7V3quxkZSk3XhW2Xv0PMqdYm1yFlHIwykb7X1mVvrPOX4uY68WGT6iutezjw2m7bW9hJoeWivqp0RBkgJf/wAaAEpUF+KvAbAHcz0Sj9QF0IoldQMLqErxnGq0SsC0NuaT+Bg6A4Gk9GsPwXNOQC0EOX7duKApQsDAtmVREvCQNCttgQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
- s=selector2-intel-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=5UUaGg+yWefPgS0cZWMbpZN6nC1PmtR8+jUm968UhMA=;
- b=ByP4ZaAAoSNge0VaAKAtJqrvAJm5nF99iZvQkjK/sSH9v99QBrb/fx7bMlXtNz7ZAQJsXLIWNa7SjmCppL8WwNIUe6hZ1rcirNFXF2RkKE1CuhLvXL3TLq122sem3/eg5PhCQXCNmrjh9UiExT0n0OtOldWUGbfYE54onSIYpag=
-Received: from BYAPR11MB3448.namprd11.prod.outlook.com (2603:10b6:a03:76::21)
- by BYAPR11MB3608.namprd11.prod.outlook.com (2603:10b6:a03:b1::24) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3261.15; Tue, 11 Aug
- 2020 01:20:48 +0000
-Received: from BYAPR11MB3448.namprd11.prod.outlook.com
- ([fe80::20c5:c870:d7c7:bfa0]) by BYAPR11MB3448.namprd11.prod.outlook.com
- ([fe80::20c5:c870:d7c7:bfa0%3]) with mapi id 15.20.3261.024; Tue, 11 Aug 2020
- 01:20:48 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Subject: [GIT PULL] libnvdimm for v5.9
-Thread-Topic: [GIT PULL] libnvdimm for v5.9
-Thread-Index: AQHWb32lEU1Cwshp8U6uHR2jAz+0zg==
-Date: Tue, 11 Aug 2020 01:20:48 +0000
-Message-ID: <f44b21c38313fa8e19a3e70eb285e0dd319eb421.camel@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Evolution 3.32.5 (3.32.5-1.fc30) 
-authentication-results: linux-foundation.org; dkim=none (message not signed)
- header.d=none;linux-foundation.org; dmarc=none action=none
- header.from=intel.com;
-x-originating-ip: [192.55.54.42]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: bb060faf-d3d6-4a58-abc4-08d83d94c7c8
-x-ms-traffictypediagnostic: BYAPR11MB3608:
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <BYAPR11MB360838569DE4116568823BFDC7450@BYAPR11MB3608.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:9508;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 4iavuQzqmd9n6DwjJV6IEgRHm6Lmud1emCy+q5Ft8KullPp3lr/hE26qGbL50Z42fWJyi2Sb3zQTeRDfkyzx/vfDhM6elkXlBCao6Wpc3GPo8+BJJ3TXECc2+Kn4rqn1czfsMaWiK01kKj85OEoa3/34rA+r++MOIk32xaK8pCDBHeRYVvKB6dO4VV7liOFGxGsYRusbx+oxbOvznmzvnfr2o6aKR4+cv/uee4pzv9iQbSpcjd8lMYZd8mr+pMdKigvEKdTDDn5x9JTYabK7bzYk3unfea6p9w9q7pSfnSPnA7ctwEEh+IeLmpIDRHU9ssPRZuL5pa2+V8yUosBQQNMCg9un81C4F28tLeZGIrMrGD+KyoAk8TsSruNALqvdlI0koLZsM1YdY2EEAa0BiQ==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR11MB3448.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFTY:;SFS:(4636009)(376002)(39860400002)(366004)(396003)(136003)(346002)(8936002)(2616005)(4326008)(54906003)(6512007)(6506007)(83380400001)(71200400001)(8676002)(66556008)(64756008)(66446008)(6916009)(76116006)(66476007)(5660300002)(66946007)(186003)(86362001)(316002)(966005)(478600001)(36756003)(26005)(2906002)(6486002);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata: xPbArv8okOddMfrC2TCNZqw2CEnIXthmI0Dhs7JyWrBxNPEgqMuDsFNKBo2eIcW3h/5TFch5BB1evKC4Lwd2oknSaUtpjpNSetEcl5dvd/Nw970Uknb49BS9gsKaMpfkXxhR1u7L3YWl6c5HMr7uTBcgMIjIv1Ju41QefGA8X9mP1ATj4m6hsxRftVVS6NmG8tMESWjTmE/iW+iu5IS0be+SKFpP3NKrG5i2hdHk+XnUKiOXioaeTUCCU86Md+6oXR8bEQHkCxlspaiJxm4QwbnegclNvJaJxjhjFCTrD1HC7/ZsToMVtp/NNOz9Fea3AyFF7XrJIUnJ/r2S33cXFQsMjFA5ho5SqaK9LKpvR5PUufS3HHUoEYSxvJL6skNlq79r/l06B6u6p/DL6zRFvqbRZMCkADt+Mrx+cDkffXZXe0/jZLX23rq/eUZnLnRm/iKemM57+Uclg7IFQ0aALGD0NRAsp3T/ZWOSeevKOlVq6rE7vnlpqtWSdzHykkAGRICplkI9xGSOXjeeyG5rUSnZvtN7F/CHGn+sCDf3aaMQN2+AWde7+fY8kICYdvNu3P6sf52yLXgpVeYJ26dOpvdWX1//sCllWv6NJbnc6UcvBbpRmwwhz6g+Eh3ykDipd8WD7xySoiUVahYhUeppAw==
-Content-ID: <903175290BBC314B898F91AA1CE7B528@namprd11.prod.outlook.com>
+	by ml01.01.org (Postfix) with ESMTPS id 17B8912F10D1C
+	for <linux-nvdimm@lists.01.org>; Tue, 11 Aug 2020 02:45:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=citrix.com; s=securemail; t=1597139113;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=21LnmuTUq2pHs9BEPTKLR7uvR8pjWH5GPd9gh/+wq5s=;
+  b=XPVyTsCIi7ERlJvK6jizi2Gwd6Jq7ranaauMOUbU3U6gkl69e9ibVj6s
+   SHxXHUEJmRrppjEj5gKoaYSi0euz5wGki48egFCVY1WaCjg3F8pFoeYc7
+   UQdOa0whIIrSWiSYnEZ2K/5mTPcC7uary52wI8JcsL9hHU3UKltzNLttc
+   s=;
+Authentication-Results: esa3.hc3370-68.iphmx.com; dkim=none (message not signed) header.i=none
+IronPort-SDR: VY5VVlCFQoEMbraTS/yrZS8UqVt0ps8DLejYExspGKQRXdGYHx6bGA2Os+p4H57m0KVTnf4ETo
+ A58Ud1v5xBKk0UreNYyFdq6SOXG5m2ohZ6VYo+8IFfkxaK9rYzAj92qOdySbmyuAGHFC6CHXLu
+ pXAvt/6qNEzVNM41g+QN7omxDcX9rY9EwY9KUczeMlcriiFjpFoZyR6P++og5Yj3lXRWZomi+9
+ 8ny1E/KACaSD//Ufem6d3bKnm3jAVxF0h5A6pbWvkWT6anOcvbn8mKJ39nPavZd99plNPTlG1/
+ IjQ=
+X-SBRS: 2.7
+X-MesageID: 24242470
+X-Ironport-Server: esa3.hc3370-68.iphmx.com
+X-Remote-IP: 162.221.158.21
+X-Policy: $RELAYED
+X-IronPort-AV: E=Sophos;i="5.75,460,1589256000";
+   d="scan'208";a="24242470"
+From: Roger Pau Monne <roger.pau@citrix.com>
+To: <linux-kernel@vger.kernel.org>
+Subject: [PATCH v4 1/2] memremap: rename MEMORY_DEVICE_DEVDAX to MEMORY_DEVICE_GENERIC
+Date: Tue, 11 Aug 2020 11:44:46 +0200
+Message-ID: <20200811094447.31208-2-roger.pau@citrix.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200811094447.31208-1-roger.pau@citrix.com>
+References: <20200811094447.31208-1-roger.pau@citrix.com>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR11MB3448.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: bb060faf-d3d6-4a58-abc4-08d83d94c7c8
-X-MS-Exchange-CrossTenant-originalarrivaltime: 11 Aug 2020 01:20:48.7407
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: oD34zEgJ0gQfVMJuGyPw7F4mw6udYAMkTUeJk532ymC4KpVEcBjQZv9A+5wlRKMmYAsmbDy5dIx7j3p7k6vMO6ucKayt1C8Iscc2Rg+gG4Y=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3608
-X-OriginatorOrg: intel.com
-Message-ID-Hash: UXOYDGWXLUVBKJDXIQABA7R6TDDWM5W3
-X-Message-ID-Hash: UXOYDGWXLUVBKJDXIQABA7R6TDDWM5W3
-X-MailFrom: vishal.l.verma@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Message-ID-Hash: 4GJSXVQJCAAKXCMMUCBEZQMRGPA3MX7M
+X-Message-ID-Hash: 4GJSXVQJCAAKXCMMUCBEZQMRGPA3MX7M
+X-MailFrom: roger.pau@citrix.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Roger Pau Monne <roger.pau@citrix.com>, "Dave Jiang  <dave.jiang@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Jason Gunthorpe" <jgg@ziepe.ca>, Logan Gunthorpe <logang@deltatee.com>, linux-nvdimm@lists.01.org, xen-devel@lists.xenproject.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UXOYDGWXLUVBKJDXIQABA7R6TDDWM5W3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4GJSXVQJCAAKXCMMUCBEZQMRGPA3MX7M/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-Hi Linus, please pull from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/
-tags/libnvdimm-for-5.9
-
-...to receive a new feature in libnvdimm - 'Runtime Firmware
-Activation', and a few small cleanups and fixes in libnvdimm and DAX.
-
-You'd normally receive this pull request from Dan Williams, but he's
-busy watching a newborn (Congrats Dan!), so I'm watching libnvdimm this
-cycle.
-
-I'd originally intended to make separate topic-based pull requests - one
-for libnvdimm, and one for DAX, but some of the DAX material fell out
-since it wasn't quite ready. I ended up merging the two branches into
-one, and hence a couple of 'internal' merges - I hope these are ok. If
-you prefer that I should've handled this differently please let me know!
-
-I was also expecting a potential conflict - I was assuming Greg had
-pulled in one of Dan's patches[1] through driver-core, but I don't see
-it in his tree, and a test merge with the current master went through
-cleanly.
-
-There were a small handful of late fixes, but everything has had at
-least a week of -next soak time without any reported issues. We've also
-received a positive build notification from 0-day.
-
-[1]: https://lore.kernel.org/linux-nvdimm/20200721104442.GF1676612@kroah.com/
-
----
-
-The following changes since commit 48778464bb7d346b47157d21ffde2af6b2d39110:
-
-  Linux 5.8-rc2 (2020-06-21 15:45:29 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/ tags/libnvdimm-for-5.9
-
-for you to fetch changes up to 7f674025d9f7321dea11b802cc0ab3f09cbe51c5:
-
-  libnvdimm/security: ensure sysfs poll thread woke up and fetch updated attr (2020-08-03 18:54:13 -0600)
-
-----------------------------------------------------------------
-libnvdimm for 5.9
-
-- Add 'Runtime Firmware Activation' support for NVDIMMs that advertise
-  the relevant capability
-- Misc libnvdimm and DAX cleanups
-
-----------------------------------------------------------------
-Coly Li (1):
-      dax: print error message by pr_info() in __generic_fsdax_supported()
-
-Dan Williams (12):
-      libnvdimm: Validate command family indices
-      ACPI: NFIT: Move bus_dsm_mask out of generic nvdimm_bus_descriptor
-      ACPI: NFIT: Define runtime firmware activation commands
-      tools/testing/nvdimm: Cleanup dimm index passing
-      tools/testing/nvdimm: Add command debug messages
-      tools/testing/nvdimm: Prepare nfit_ctl_test() for ND_CMD_CALL emulation
-      tools/testing/nvdimm: Emulate firmware activation commands
-      driver-core: Introduce DEVICE_ATTR_ADMIN_{RO,RW}
-      libnvdimm: Convert to DEVICE_ATTR_ADMIN_RO()
-      PM, libnvdimm: Add runtime firmware activation support
-      ACPI: NFIT: Add runtime firmware activate support
-      ACPI: NFIT: Fix ARS zero-sized allocation
-
-Hao Li (1):
-      dax: Fix incorrect argument passed to xas_set_err()
-
-Ira Weiny (2):
-      fs/dax: Remove unused size parameter
-      drivers/dax: Expand lock scope to cover the use of addresses
-
-Jane Chu (3):
-      libnvdimm/security: fix a typo
-      libnvdimm/security: the 'security' attr never show 'overwrite' state
-      libnvdimm/security: ensure sysfs poll thread woke up and fetch updated attr
-
-Vishal Verma (2):
-      Merge branch 'for-5.9/dax' into libnvdimm-for-next
-      Merge branch 'for-5.9/firmware-activate' into libnvdimm-for-next
-
- Documentation/ABI/testing/sysfs-bus-nfit           |  19 +
- Documentation/ABI/testing/sysfs-bus-nvdimm         |   2 +
- .../driver-api/nvdimm/firmware-activate.rst        |  86 +++++
- drivers/acpi/nfit/core.c                           | 157 ++++++---
- drivers/acpi/nfit/intel.c                          | 386 +++++++++++++++++++++
- drivers/acpi/nfit/intel.h                          |  61 ++++
- drivers/acpi/nfit/nfit.h                           |  38 +-
- drivers/dax/super.c                                |  13 +-
- drivers/nvdimm/bus.c                               |  16 +
- drivers/nvdimm/core.c                              | 149 ++++++++
- drivers/nvdimm/dimm_devs.c                         | 123 ++++++-
- drivers/nvdimm/namespace_devs.c                    |   2 +-
- drivers/nvdimm/nd-core.h                           |   1 +
- drivers/nvdimm/pfn_devs.c                          |   2 +-
- drivers/nvdimm/region_devs.c                       |   2 +-
- drivers/nvdimm/security.c                          |  13 +-
- fs/dax.c                                           |  15 +-
- include/linux/device.h                             |   4 +
- include/linux/libnvdimm.h                          |  52 ++-
- include/linux/suspend.h                            |   6 +
- include/linux/sysfs.h                              |   7 +
- include/uapi/linux/ndctl.h                         |   5 +
- kernel/power/hibernate.c                           |  97 ++++++
- tools/testing/nvdimm/test/nfit.c                   | 367 ++++++++++++++++----
- 24 files changed, 1486 insertions(+), 137 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-bus-nvdimm
- create mode 100644 Documentation/driver-api/nvdimm/firmware-activate.rst
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+VGhpcyBpcyBpbiBwcmVwYXJhdGlvbiBmb3IgdGhlIGxvZ2ljIGJlaGluZCBNRU1PUllfREVWSUNF
+X0RFVkRBWCBhbHNvDQpiZWluZyB1c2VkIGJ5IG5vbiBEQVggZGV2aWNlcy4NCg0KTm8gZnVuY3Rp
+b25hbCBjaGFuZ2UgaW50ZW5kZWQuDQoNClNpZ25lZC1vZmYtYnk6IFJvZ2VyIFBhdSBNb25uw6kg
+PHJvZ2VyLnBhdUBjaXRyaXguY29tPg0KLS0tDQpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxs
+aWFtc0BpbnRlbC5jb20+DQpDYzogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5j
+b20+DQpDYzogRGF2ZSBKaWFuZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+DQpDYzogQW5kcmV3IE1v
+cnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4NCkNjOiBKYXNvbiBHdW50aG9ycGUgPGpn
+Z0B6aWVwZS5jYT4NCkNjOiBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQpDYzogIkFu
+ZWVzaCBLdW1hciBLLlYiIDxhbmVlc2gua3VtYXJAbGludXguaWJtLmNvbT4NCkNjOiBKb2hhbm5l
+cyBUaHVtc2hpcm4gPGp0aHVtc2hpcm5Ac3VzZS5kZT4NCkNjOiBMb2dhbiBHdW50aG9ycGUgPGxv
+Z2FuZ0BkZWx0YXRlZS5jb20+DQpDYzogbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZw0KQ2M6IHhl
+bi1kZXZlbEBsaXN0cy54ZW5wcm9qZWN0Lm9yZw0KQ2M6IGxpbnV4LW1tQGt2YWNrLm9yZw0KLS0t
+DQogZHJpdmVycy9kYXgvZGV2aWNlLmMgICAgIHwgMiArLQ0KIGluY2x1ZGUvbGludXgvbWVtcmVt
+YXAuaCB8IDkgKysrKy0tLS0tDQogbW0vbWVtcmVtYXAuYyAgICAgICAgICAgIHwgMiArLQ0KIDMg
+ZmlsZXMgY2hhbmdlZCwgNiBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9kYXgvZGV2aWNlLmMgYi9kcml2ZXJzL2RheC9kZXZpY2UuYw0KaW5kZXgg
+NGMwYWYyZWI3ZTE5Li4xZTg5NTEzZjNjNTkgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2RheC9kZXZp
+Y2UuYw0KKysrIGIvZHJpdmVycy9kYXgvZGV2aWNlLmMNCkBAIC00MjksNyArNDI5LDcgQEAgaW50
+IGRldl9kYXhfcHJvYmUoc3RydWN0IGRldmljZSAqZGV2KQ0KIAkJcmV0dXJuIC1FQlVTWTsNCiAJ
+fQ0KIA0KLQlkZXZfZGF4LT5wZ21hcC50eXBlID0gTUVNT1JZX0RFVklDRV9ERVZEQVg7DQorCWRl
+dl9kYXgtPnBnbWFwLnR5cGUgPSBNRU1PUllfREVWSUNFX0dFTkVSSUM7DQogCWFkZHIgPSBkZXZt
+X21lbXJlbWFwX3BhZ2VzKGRldiwgJmRldl9kYXgtPnBnbWFwKTsNCiAJaWYgKElTX0VSUihhZGRy
+KSkNCiAJCXJldHVybiBQVFJfRVJSKGFkZHIpOw0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgv
+bWVtcmVtYXAuaCBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaA0KaW5kZXggNWY1YjJkZjA2ZTYx
+Li5lNTg2Mjc0Njc1MWIgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmgNCisr
+KyBiL2luY2x1ZGUvbGludXgvbWVtcmVtYXAuaA0KQEAgLTQ2LDExICs0NiwxMCBAQCBzdHJ1Y3Qg
+dm1lbV9hbHRtYXAgew0KICAqIHdha2V1cCBpcyB1c2VkIHRvIGNvb3JkaW5hdGUgcGh5c2ljYWwg
+YWRkcmVzcyBzcGFjZSBtYW5hZ2VtZW50IChleDoNCiAgKiBmcyB0cnVuY2F0ZS9ob2xlIHB1bmNo
+KSB2cyBwaW5uZWQgcGFnZXMgKGV4OiBkZXZpY2UgZG1hKS4NCiAgKg0KLSAqIE1FTU9SWV9ERVZJ
+Q0VfREVWREFYOg0KKyAqIE1FTU9SWV9ERVZJQ0VfR0VORVJJQzoNCiAgKiBIb3N0IG1lbW9yeSB0
+aGF0IGhhcyBzaW1pbGFyIGFjY2VzcyBzZW1hbnRpY3MgYXMgU3lzdGVtIFJBTSBpLmUuIERNQQ0K
+LSAqIGNvaGVyZW50IGFuZCBzdXBwb3J0cyBwYWdlIHBpbm5pbmcuIEluIGNvbnRyYXN0IHRvDQot
+ICogTUVNT1JZX0RFVklDRV9GU19EQVgsIHRoaXMgbWVtb3J5IGlzIGFjY2VzcyB2aWEgYSBkZXZp
+Y2UtZGF4DQotICogY2hhcmFjdGVyIGRldmljZS4NCisgKiBjb2hlcmVudCBhbmQgc3VwcG9ydHMg
+cGFnZSBwaW5uaW5nLiBUaGlzIGlzIGZvciBleGFtcGxlIHVzZWQgYnkgREFYIGRldmljZXMNCisg
+KiB0aGF0IGV4cG9zZSBtZW1vcnkgdXNpbmcgYSBjaGFyYWN0ZXIgZGV2aWNlLg0KICAqDQogICog
+TUVNT1JZX0RFVklDRV9QQ0lfUDJQRE1BOg0KICAqIERldmljZSBtZW1vcnkgcmVzaWRpbmcgaW4g
+YSBQQ0kgQkFSIGludGVuZGVkIGZvciB1c2Ugd2l0aCBQZWVyLXRvLVBlZXINCkBAIC02MCw3ICs1
+OSw3IEBAIGVudW0gbWVtb3J5X3R5cGUgew0KIAkvKiAwIGlzIHJlc2VydmVkIHRvIGNhdGNoIHVu
+aW5pdGlhbGl6ZWQgdHlwZSBmaWVsZHMgKi8NCiAJTUVNT1JZX0RFVklDRV9QUklWQVRFID0gMSwN
+CiAJTUVNT1JZX0RFVklDRV9GU19EQVgsDQotCU1FTU9SWV9ERVZJQ0VfREVWREFYLA0KKwlNRU1P
+UllfREVWSUNFX0dFTkVSSUMsDQogCU1FTU9SWV9ERVZJQ0VfUENJX1AyUERNQSwNCiB9Ow0KIA0K
+ZGlmZiAtLWdpdCBhL21tL21lbXJlbWFwLmMgYi9tbS9tZW1yZW1hcC5jDQppbmRleCAwM2UzOGI3
+YTM4ZjEuLjAwNmRhY2U2MGIxYSAxMDA2NDQNCi0tLSBhL21tL21lbXJlbWFwLmMNCisrKyBiL21t
+L21lbXJlbWFwLmMNCkBAIC0yMTYsNyArMjE2LDcgQEAgdm9pZCAqbWVtcmVtYXBfcGFnZXMoc3Ry
+dWN0IGRldl9wYWdlbWFwICpwZ21hcCwgaW50IG5pZCkNCiAJCQlyZXR1cm4gRVJSX1BUUigtRUlO
+VkFMKTsNCiAJCX0NCiAJCWJyZWFrOw0KLQljYXNlIE1FTU9SWV9ERVZJQ0VfREVWREFYOg0KKwlj
+YXNlIE1FTU9SWV9ERVZJQ0VfR0VORVJJQzoNCiAJCW5lZWRfZGV2bWFwX21hbmFnZWQgPSBmYWxz
+ZTsNCiAJCWJyZWFrOw0KIAljYXNlIE1FTU9SWV9ERVZJQ0VfUENJX1AyUERNQToNCi0tIA0KMi4y
+OC4wDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5z
+dWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3Jn
+Cg==
