@@ -2,65 +2,65 @@ Return-Path: <SRS0=YTbH=BY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_00,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F19CC433E3
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Aug 2020 15:29:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0578CC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Aug 2020 17:10:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id BC832207DA
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Aug 2020 15:29:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BC832207DA
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id D00A720829
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 14 Aug 2020 17:10:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D00A720829
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6739E1311C13E;
-	Fri, 14 Aug 2020 08:29:08 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.210.66; helo=mail-ot1-f66.google.com; envelope-from=rjwysocki@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-ot1-f66.google.com (mail-ot1-f66.google.com [209.85.210.66])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id A139A1313D5D9;
+	Fri, 14 Aug 2020 10:10:14 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0D2771311C13B
-	for <linux-nvdimm@lists.01.org>; Fri, 14 Aug 2020 08:29:05 -0700 (PDT)
-Received: by mail-ot1-f66.google.com with SMTP id q9so7855136oth.5
-        for <linux-nvdimm@lists.01.org>; Fri, 14 Aug 2020 08:29:05 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=vBVBMvKKxks/kGkJ4ndBszEEsQk9CsCHA7aFPfw0OnY=;
-        b=q3XWFgVkBAOBVF4ByZYkohyisvMTCZRXwmxWbfG9sYABzrk6Q5O12x2byx0bOM7M+v
-         LF6G4k422LVCXwICkpMSpRUdrxkdQpDQ6SCHjpxsNPwRUC20up4cS+jG31coQxt9RiiV
-         GdwhXtN+zfUIdRqZYN5ZHBVhkaOUZKbzoRPd+HfCABug606jw8kN3ylCHF5280aH2OHk
-         zwn700MLWrVaMo6mJ4ekTPBQu976MCTsj++YxqLTUj603Z4ldmNNzAMfCYYGHaZXRa2K
-         kuzoOK76yhOvUOuUu8udsxRw0oYjuQsPJhasc7eWAIRdYovww53ypsgD5h7zKmktI39l
-         urTQ==
-X-Gm-Message-State: AOAM530rUPguOVo/qxLrc4u1siApuE7PRr0xT8U8Hkoa+WDGFEXyhIaa
-	FJPpRO6v84NMiSh2yZXw8OqyK/WaAZ/VbBgB/Y0=
-X-Google-Smtp-Source: ABdhPJz1T4tJ8ofzUGM0XQjCNBZ6PvK5Zq6i4UC8Y+eAkenmq/nx3KmnaWGeq6j/7fuAaFaAt8U6C3Dv5bPtU6dw8Nw=
-X-Received: by 2002:a05:6830:1c74:: with SMTP id s20mr2165582otg.167.1597418944007;
- Fri, 14 Aug 2020 08:29:04 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 831811313D5D7
+	for <linux-nvdimm@lists.01.org>; Fri, 14 Aug 2020 10:10:12 -0700 (PDT)
+IronPort-SDR: qhzJ6F2ZyqoA5vrB9lMhpCCjXyMMmj+Z6WvM7wYKt8H2KXPSpCWwO1Wg3rAw47lJOf9H2HupML
+ 5Qvdy2IaSv5A==
+X-IronPort-AV: E=McAfee;i="6000,8403,9713"; a="134512823"
+X-IronPort-AV: E=Sophos;i="5.76,313,1592895600";
+   d="scan'208";a="134512823"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2020 10:10:06 -0700
+IronPort-SDR: Cp6itaVGonyNUKcEiO366ZJ9krA+qVT4np+ED814mQm5fM8nI4/GrFwV888bHjHAPPag9JjpXO
+ H74OosB/hqTQ==
+X-IronPort-AV: E=Sophos;i="5.76,313,1592895600";
+   d="scan'208";a="496239063"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Aug 2020 10:10:06 -0700
+Date: Fri, 14 Aug 2020 10:10:06 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>
+Subject: Re: [PATCH] libnvdimm: Add a NULL entry to
+ 'nvdimm_firmware_attributes'
+Message-ID: <20200814171005.GB3142014@iweiny-DESK2.sc.intel.com>
+References: <20200814150509.225615-1-vaibhav@linux.ibm.com>
 MIME-Version: 1.0
-References: <1597286952-5706-1-git-send-email-wangqing@vivo.com>
-In-Reply-To: <1597286952-5706-1-git-send-email-wangqing@vivo.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 14 Aug 2020 17:28:52 +0200
-Message-ID: <CAJZ5v0h=UmD33X_i80X3ww7nC=xQL7V8XaoNq2XvU_XcdQGfZQ@mail.gmail.com>
-Subject: Re: [PATCH] acpi/nfit: Use kobj_to_dev() instead
-To: Wang Qing <wangqing@vivo.com>, Dan Williams <dan.j.williams@intel.com>
-Message-ID-Hash: NDFTULT32OOQLNMXAVY4AM2QGDW2NGNE
-X-Message-ID-Hash: NDFTULT32OOQLNMXAVY4AM2QGDW2NGNE
-X-MailFrom: rjwysocki@gmail.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20200814150509.225615-1-vaibhav@linux.ibm.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
+Message-ID-Hash: FTCHIYRVKBJWB6TOFLRTV7VJZHY3ZCMS
+X-Message-ID-Hash: FTCHIYRVKBJWB6TOFLRTV7VJZHY3ZCMS
+X-MailFrom: ira.weiny@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, Sandipan Das <sandipan@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NDFTULT32OOQLNMXAVY4AM2QGDW2NGNE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FTCHIYRVKBJWB6TOFLRTV7VJZHY3ZCMS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,45 +69,57 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 13, 2020 at 4:54 AM Wang Qing <wangqing@vivo.com> wrote:
->
-> Use kobj_to_dev() instead of container_of()
->
-> Signed-off-by: Wang Qing <wangqing@vivo.com>
+On Fri, Aug 14, 2020 at 08:35:09PM +0530, Vaibhav Jain wrote:
+> We recently discovered a kernel oops with 'papr_scm' module while
+> booting ppc64 phyp guest with following back-trace:
+> 
+> BUG: Kernel NULL pointer dereference on write at 0x00000188
+> Faulting instruction address: 0xc0000000005d7084
+> Oops: Kernel access of bad area, sig: 11 [#1]
+> <snip>
+> Call Trace:
+>  internal_create_group+0x128/0x4c0 (unreliable)
+>  internal_create_groups.part.4+0x70/0x130
+>  device_add+0x458/0x9c0
+>  nd_async_device_register+0x28/0xa0 [libnvdimm]
+>  async_run_entry_fn+0x78/0x1f0
+>  process_one_work+0x2c0/0x5b0
+>  worker_thread+0x88/0x650
+>  kthread+0x1a8/0x1b0
+>  ret_from_kernel_thread+0x5c/0x6c
+> 
+> A bisect lead to the 'commit 48001ea50d17f ("PM, libnvdimm: Add runtime
+> firmware activation support")' and on investigation discovered that
+> the newly introduced 'struct attribute *nvdimm_firmware_attributes[]'
+> is missing a terminating NULL entry in the array. This causes a loop
+> in sysfs's 'create_files()' to read garbage beyond bounds of
+> 'nvdimm_firmware_attributes' and trigger the oops.
+> 
+> Fixes: 48001ea50d17f ("PM, libnvdimm: Add runtime firmware activation support")
+> Reported-by: Sandipan Das <sandipan@linux.ibm.com>
+> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 
-LGTM
-
-Dan, any objections?
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
 > ---
->  drivers/acpi/nfit/core.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index fa4500f..3bb350b
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1382,7 +1382,7 @@ static bool ars_supported(struct nvdimm_bus *nvdimm_bus)
->
->  static umode_t nfit_visible(struct kobject *kobj, struct attribute *a, int n)
->  {
-> -       struct device *dev = container_of(kobj, struct device, kobj);
-> +       struct device *dev = kobj_to_dev(kobj);
->         struct nvdimm_bus *nvdimm_bus = to_nvdimm_bus(dev);
->
->         if (a == &dev_attr_scrub.attr && !ars_supported(nvdimm_bus))
-> @@ -1667,7 +1667,7 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
->  static umode_t acpi_nfit_dimm_attr_visible(struct kobject *kobj,
->                 struct attribute *a, int n)
->  {
-> -       struct device *dev = container_of(kobj, struct device, kobj);
-> +       struct device *dev = kobj_to_dev(kobj);
->         struct nvdimm *nvdimm = to_nvdimm(dev);
->         struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
->
-> --
-> 2.7.4
->
+>  drivers/nvdimm/dimm_devs.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+> index 61374def51555..b59032e0859b7 100644
+> --- a/drivers/nvdimm/dimm_devs.c
+> +++ b/drivers/nvdimm/dimm_devs.c
+> @@ -529,6 +529,7 @@ static DEVICE_ATTR_ADMIN_RW(activate);
+>  static struct attribute *nvdimm_firmware_attributes[] = {
+>  	&dev_attr_activate.attr,
+>  	&dev_attr_result.attr,
+> +	NULL,
+>  };
+>  
+>  static umode_t nvdimm_firmware_visible(struct kobject *kobj, struct attribute *a, int n)
+> -- 
+> 2.26.2
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
