@@ -2,57 +2,58 @@ Return-Path: <SRS0=gmOD=B3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6743BC433E1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 07:00:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1831AC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 16:53:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EE9DE207FB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 07:00:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EE9DE207FB
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id A83C5206FA
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 16:53:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A83C5206FA
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B6609133DBA2B;
-	Mon, 17 Aug 2020 00:00:40 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	by ml01.01.org (Postfix) with ESMTP id 7175D132D7695;
+	Mon, 17 Aug 2020 09:53:45 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 4F08B133DBA27
-	for <linux-nvdimm@lists.01.org>; Mon, 17 Aug 2020 00:00:37 -0700 (PDT)
-Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
-	by Forcepoint Email with ESMTP id 6890FACFD3ACB203983A;
-	Mon, 17 Aug 2020 15:00:33 +0800 (CST)
-Received: from DESKTOP-C3MD9UG.china.huawei.com (10.174.177.253) by
- DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
- 14.3.487.0; Mon, 17 Aug 2020 15:00:25 +0800
-From: Zhen Lei <thunder.leizhen@huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Andrew Morton
-	<akpm@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
-Subject: [PATCH 1/1] device-dax: fix mismatches of request_mem_region()
-Date: Mon, 17 Aug 2020 14:59:26 +0800
-Message-ID: <20200817065926.2239-1-thunder.leizhen@huawei.com>
-X-Mailer: git-send-email 2.26.0.windows.1
+	by ml01.01.org (Postfix) with ESMTPS id AFCEC132D4C3D
+	for <linux-nvdimm@lists.01.org>; Mon, 17 Aug 2020 09:53:41 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id 07A5DAE25;
+	Mon, 17 Aug 2020 16:54:05 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+	id 86E271E12CB; Mon, 17 Aug 2020 18:53:39 +0200 (CEST)
+Date: Mon, 17 Aug 2020 18:53:39 +0200
+From: Jan Kara <jack@suse.cz>
+To: Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2 02/20] dax: Create a range version of
+ dax_layout_busy_page()
+Message-ID: <20200817165339.GA22500@quack2.suse.cz>
+References: <20200807195526.426056-1-vgoyal@redhat.com>
+ <20200807195526.426056-3-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Originating-IP: [10.174.177.253]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: AQKIDVJM3XJF3RT4WYYP46GRL3PLZXFW
-X-Message-ID-Hash: AQKIDVJM3XJF3RT4WYYP46GRL3PLZXFW
-X-MailFrom: thunder.leizhen@huawei.com
+Content-Disposition: inline
+In-Reply-To: <20200807195526.426056-3-vgoyal@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: 7PCTR643UE4XKYRSKJCB56VEPUDJBVBI
+X-Message-ID-Hash: 7PCTR643UE4XKYRSKJCB56VEPUDJBVBI
+X-MailFrom: jack@suse.cz
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Zhen Lei <thunder.leizhen@huawei.com>
+CC: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, virtio-fs@redhat.com, miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AQKIDVJM3XJF3RT4WYYP46GRL3PLZXFW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7PCTR643UE4XKYRSKJCB56VEPUDJBVBI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,41 +62,154 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The resources allocated by request_mem_region() is better to use
-release_mem_region() to free. These two functions are paired.
+On Fri 07-08-20 15:55:08, Vivek Goyal wrote:
+> virtiofs device has a range of memory which is mapped into file inodes
+> using dax. This memory is mapped in qemu on host and maps different
+> sections of real file on host. Size of this memory is limited
+> (determined by administrator) and depending on filesystem size, we will
+> soon reach a situation where all the memory is in use and we need to
+> reclaim some.
+> 
+> As part of reclaim process, we will need to make sure that there are
+> no active references to pages (taken by get_user_pages()) on the memory
+> range we are trying to reclaim. I am planning to use
+> dax_layout_busy_page() for this. But in current form this is per inode
+> and scans through all the pages of the inode.
+> 
+> We want to reclaim only a portion of memory (say 2MB page). So we want
+> to make sure that only that 2MB range of pages do not have any
+> references  (and don't want to unmap all the pages of inode).
+> 
+> Hence, create a range version of this function named
+> dax_layout_busy_page_range() which can be used to pass a range which
+> needs to be unmapped.
+> 
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: linux-nvdimm@lists.01.org
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
----
- drivers/dax/kmem.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+The API looks OK. Some comments WRT the implementation below.
 
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 275aa5f873991af..9e38f9c2b6d7f02 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -82,8 +82,7 @@ int dev_dax_kmem_probe(struct device *dev)
- 	rc = add_memory_driver_managed(numa_node, new_res->start,
- 				       resource_size(new_res), kmem_name);
- 	if (rc) {
--		release_resource(new_res);
--		kfree(new_res);
-+		release_mem_region(kmem_start, kmem_size);
- 		kfree(new_res_name);
- 		return rc;
- 	}
-@@ -118,8 +117,7 @@ static int dev_dax_kmem_remove(struct device *dev)
- 	}
- 
- 	/* Release and free dax resources */
--	release_resource(res);
--	kfree(res);
-+	release_mem_region(kmem_start, kmem_size);
- 	kfree(res_name);
- 	dev_dax->dax_kmem_res = NULL;
- 
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 11b16729b86f..0d51b0fbb489 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -558,27 +558,20 @@ static void *grab_mapping_entry(struct xa_state *xas,
+>  	return xa_mk_internal(VM_FAULT_FALLBACK);
+>  }
+>  
+> -/**
+> - * dax_layout_busy_page - find first pinned page in @mapping
+> - * @mapping: address space to scan for a page with ref count > 1
+> - *
+> - * DAX requires ZONE_DEVICE mapped pages. These pages are never
+> - * 'onlined' to the page allocator so they are considered idle when
+> - * page->count == 1. A filesystem uses this interface to determine if
+> - * any page in the mapping is busy, i.e. for DMA, or other
+> - * get_user_pages() usages.
+> - *
+> - * It is expected that the filesystem is holding locks to block the
+> - * establishment of new mappings in this address_space. I.e. it expects
+> - * to be able to run unmap_mapping_range() and subsequently not race
+> - * mapping_mapped() becoming true.
+> +/*
+> + * Partial pages are included. If end is LLONG_MAX, pages in the range from
+> + * start to end of the file are inluded.
+>   */
+
+I think the big kerneldoc comment should stay with
+dax_layout_busy_page_range() since dax_layout_busy_page() will be just a
+trivial wrapper around it..
+
+> -struct page *dax_layout_busy_page(struct address_space *mapping)
+> +struct page *dax_layout_busy_page_range(struct address_space *mapping,
+> +					loff_t start, loff_t end)
+>  {
+> -	XA_STATE(xas, &mapping->i_pages, 0);
+>  	void *entry;
+>  	unsigned int scanned = 0;
+>  	struct page *page = NULL;
+> +	pgoff_t start_idx = start >> PAGE_SHIFT;
+> +	pgoff_t end_idx = end >> PAGE_SHIFT;
+> +	XA_STATE(xas, &mapping->i_pages, start_idx);
+> +	loff_t len, lstart = round_down(start, PAGE_SIZE);
+>  
+>  	/*
+>  	 * In the 'limited' case get_user_pages() for dax is disabled.
+> @@ -589,6 +582,22 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+>  	if (!dax_mapping(mapping) || !mapping_mapped(mapping))
+>  		return NULL;
+>  
+> +	/* If end == LLONG_MAX, all pages from start to till end of file */
+> +	if (end == LLONG_MAX) {
+> +		end_idx = ULONG_MAX;
+> +		len = 0;
+> +	} else {
+> +		/* length is being calculated from lstart and not start.
+> +		 * This is due to behavior of unmap_mapping_range(). If
+> +		 * start is say 4094 and end is on 4096 then we want to
+> +		 * unamp two pages, idx 0 and 1. But unmap_mapping_range()
+> +		 * will unmap only page at idx 0. If we calculate len
+> +		 * from the rounded down start, this problem should not
+> +		 * happen.
+> +		 */
+> +		len = end - lstart + 1;
+> +	}
+
+Maybe it would be more understandable to use
+	unmap_mapping_pages(mapping, start_idx, end_idx - start_idx + 1);
+below and avoid all this rounding and special-casing.
+
+> +
+>  	/*
+>  	 * If we race get_user_pages_fast() here either we'll see the
+>  	 * elevated page count in the iteration and wait, or
+> @@ -601,10 +610,10 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+>  	 * guaranteed to either see new references or prevent new
+>  	 * references from being established.
+>  	 */
+> -	unmap_mapping_range(mapping, 0, 0, 0);
+> +	unmap_mapping_range(mapping, start, len, 0);
+>  
+>  	xas_lock_irq(&xas);
+> -	xas_for_each(&xas, entry, ULONG_MAX) {
+> +	xas_for_each(&xas, entry, end_idx) {
+>  		if (WARN_ON_ONCE(!xa_is_value(entry)))
+>  			continue;
+>  		if (unlikely(dax_is_locked(entry)))
+> @@ -625,6 +634,27 @@ struct page *dax_layout_busy_page(struct address_space *mapping)
+>  	xas_unlock_irq(&xas);
+>  	return page;
+>  }
+> +EXPORT_SYMBOL_GPL(dax_layout_busy_page_range);
+> +
+> +/**
+> + * dax_layout_busy_page - find first pinned page in @mapping
+> + * @mapping: address space to scan for a page with ref count > 1
+> + *
+> + * DAX requires ZONE_DEVICE mapped pages. These pages are never
+> + * 'onlined' to the page allocator so they are considered idle when
+> + * page->count == 1. A filesystem uses this interface to determine if
+> + * any page in the mapping is busy, i.e. for DMA, or other
+> + * get_user_pages() usages.
+> + *
+> + * It is expected that the filesystem is holding locks to block the
+> + * establishment of new mappings in this address_space. I.e. it expects
+> + * to be able to run unmap_mapping_range() and subsequently not race
+> + * mapping_mapped() becoming true.
+> + */
+> +struct page *dax_layout_busy_page(struct address_space *mapping)
+> +{
+> +	return dax_layout_busy_page_range(mapping, 0, 0);
+
+Should the 'end' rather be LLONG_MAX?
+
+Otherwise the patch looks good to me.
+
+								Honza
 -- 
-1.8.3
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
