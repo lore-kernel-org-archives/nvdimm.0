@@ -2,81 +2,57 @@ Return-Path: <SRS0=gmOD=B3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E47B0C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 05:22:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6743BC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 07:00:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A921B20758
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 05:22:44 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="z7A2Lnt+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A921B20758
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
+	by mail.kernel.org (Postfix) with ESMTPS id EE9DE207FB
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 17 Aug 2020 07:00:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EE9DE207FB
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 77921133D9481;
-	Sun, 16 Aug 2020 22:22:44 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::641; helo=mail-pl1-x641.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
-Received: from mail-pl1-x641.google.com (mail-pl1-x641.google.com [IPv6:2607:f8b0:4864:20::641])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id B6609133DBA2B;
+	Mon, 17 Aug 2020 00:00:40 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D4E19132AAB55
-	for <linux-nvdimm@lists.01.org>; Sun, 16 Aug 2020 22:22:42 -0700 (PDT)
-Received: by mail-pl1-x641.google.com with SMTP id r4so6935514pls.2
-        for <linux-nvdimm@lists.01.org>; Sun, 16 Aug 2020 22:22:42 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fossix-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=IQ1Zpg49+9AEa7gh2FbaHLnEAEU3G56cL4NjHPBajgY=;
-        b=z7A2Lnt+KNPZDYQzJHr74WfuUnei/Plq9xNSmmZcpwvKokAlcgKigHr0DUf/4gK4Zs
-         D/NMmvbaOTb8scTytO6zOXy5P8sa3zyINrx3ZIRcrpbHhBm17KnOi5FTchy6tyOQACAe
-         FIl46nOHfEiqJiDvoo5Huxl3j2894o9CiIFMJP2zr7M+OP96YMegnLM1HFCuImpzU8t/
-         PsHLRAjtn3BfqWrmPEGr5iHv0GdjJowVC6b+Qm8T6gcMpTFNgLkr5dgPRAEcOKdg1BHB
-         3sITmh/yXg4pZT0E39yQ/XuZxfxdev45wWDqVV4XjKPRzZRf799YSevTEchhBHuZ2EQJ
-         guyQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=IQ1Zpg49+9AEa7gh2FbaHLnEAEU3G56cL4NjHPBajgY=;
-        b=K2in0A2Gx9qiX+UKTJmV7uHKuIgWW8cTyOxcq5IeDy+H3B+TWGT475QBtgpDjK5hbp
-         4GgSXGqJ+ii9l1I4uUICdmnP44ifAs1XsOUg7Qe1YAjDrDORH0o1TwqSolAHTyM2glQX
-         gz6UbTyZdI5XndyYL/LN6s02QDYemaTXg1f7rEhvUGdBdon3l3wFYPQ7Sxp/Mdl5pRnH
-         AdDYwTd2jtaylLiEtt4pMdodqyH5vkNtrrLjekM3BzlDzKBehuCQMPEYaTDVc/pN81Wg
-         jGs9M006+OKgTTpLNZZ3uK1Cn3UkgWsrMGuo097rTTII93mzaazZy6gikg2Gft4BQIER
-         BcTA==
-X-Gm-Message-State: AOAM5329bkYsGWdwQQqZ1hgxzU9U2pmW1/wnxoOjBLIF9P3nlCNAhwbU
-	TsuxgQvLOoUyJSUrWJxKPpRTi7279i6rCg==
-X-Google-Smtp-Source: ABdhPJw19coO5U7nGt69KuQbQOUkpKggpH6s6Qhm9qhld98jvFycZaONMpKq+Lm2XIoOl1zv+XctkQ==
-X-Received: by 2002:a17:902:704b:: with SMTP id h11mr10119543plt.307.1597641761575;
-        Sun, 16 Aug 2020 22:22:41 -0700 (PDT)
-Received: from santosiv.in.ibm.com.com ([2401:4900:16ef:a7f1:9aa9:b61c:f8c8:81b2])
-        by smtp.gmail.com with ESMTPSA id go12sm15404105pjb.2.2020.08.16.22.22.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 16 Aug 2020 22:22:40 -0700 (PDT)
-From: Santosh Sivaraj <santosh@fossix.org>
-To: Linux NVDIMM <linux-nvdimm@lists.01.org>
-Subject: [PATCH] error-inject: Remove redundant has_nfit check
-Date: Mon, 17 Aug 2020 10:52:13 +0530
-Message-Id: <20200817052213.914076-1-santosh@fossix.org>
-X-Mailer: git-send-email 2.26.2
+	by ml01.01.org (Postfix) with ESMTPS id 4F08B133DBA27
+	for <linux-nvdimm@lists.01.org>; Mon, 17 Aug 2020 00:00:37 -0700 (PDT)
+Received: from DGGEMS410-HUB.china.huawei.com (unknown [172.30.72.58])
+	by Forcepoint Email with ESMTP id 6890FACFD3ACB203983A;
+	Mon, 17 Aug 2020 15:00:33 +0800 (CST)
+Received: from DESKTOP-C3MD9UG.china.huawei.com (10.174.177.253) by
+ DGGEMS410-HUB.china.huawei.com (10.3.19.210) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 17 Aug 2020 15:00:25 +0800
+From: Zhen Lei <thunder.leizhen@huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Andrew Morton
+	<akpm@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Subject: [PATCH 1/1] device-dax: fix mismatches of request_mem_region()
+Date: Mon, 17 Aug 2020 14:59:26 +0800
+Message-ID: <20200817065926.2239-1-thunder.leizhen@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
 MIME-Version: 1.0
-Message-ID-Hash: ERDQMLVZTVC3KIG57EH7P7K46JBT6PJK
-X-Message-ID-Hash: ERDQMLVZTVC3KIG57EH7P7K46JBT6PJK
-X-MailFrom: santosh@fossix.org
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Vaibhav Jain <vaibhav@linux.ibm.com>
+X-Originating-IP: [10.174.177.253]
+X-CFilter-Loop: Reflected
+Message-ID-Hash: AQKIDVJM3XJF3RT4WYYP46GRL3PLZXFW
+X-Message-ID-Hash: AQKIDVJM3XJF3RT4WYYP46GRL3PLZXFW
+X-MailFrom: thunder.leizhen@huawei.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Zhen Lei <thunder.leizhen@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ERDQMLVZTVC3KIG57EH7P7K46JBT6PJK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AQKIDVJM3XJF3RT4WYYP46GRL3PLZXFW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -85,118 +61,41 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-ndctl_bus_has_error_injection already has the ndctl_bus_has_nfit
-check. Remove the redundant checks.
+The resources allocated by request_mem_region() is better to use
+release_mem_region() to free. These two functions are paired.
 
-Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 ---
- ndctl/lib/inject.c | 73 +++++++++++++++++++++-------------------------
- 1 file changed, 33 insertions(+), 40 deletions(-)
+ drivers/dax/kmem.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/ndctl/lib/inject.c b/ndctl/lib/inject.c
-index ab0bee5..509ba27 100644
---- a/ndctl/lib/inject.c
-+++ b/ndctl/lib/inject.c
-@@ -190,8 +190,6 @@ NDCTL_EXPORT int ndctl_namespace_inject_error2(struct ndctl_namespace *ndns,
- 
- 	if (!ndctl_bus_has_error_injection(bus))
- 		return -EOPNOTSUPP;
--	if (!ndctl_bus_has_nfit(bus))
--		return -EOPNOTSUPP;
- 
- 	for (i = 0; i < count; i++) {
- 		rc = ndctl_namespace_inject_one_error(ndns, block + i, flags);
-@@ -268,8 +266,6 @@ NDCTL_EXPORT int ndctl_namespace_uninject_error2(struct ndctl_namespace *ndns,
- 
- 	if (!ndctl_bus_has_error_injection(bus))
- 		return -EOPNOTSUPP;
--	if (!ndctl_bus_has_nfit(bus))
--		return -EOPNOTSUPP;
- 
- 	for (i = 0; i < count; i++) {
- 		rc = ndctl_namespace_uninject_one_error(ndns, block + i,
-@@ -450,46 +446,43 @@ NDCTL_EXPORT int ndctl_namespace_injection_status(struct ndctl_namespace *ndns)
- 	if (!ndctl_bus_has_error_injection(bus))
- 		return -EOPNOTSUPP;
- 
--	if (ndctl_bus_has_nfit(bus)) {
--		rc = ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
--			&ns_size);
--		if (rc)
--			return rc;
-+	rc = ndctl_namespace_get_injection_bounds(ndns, &ns_offset,
-+						  &ns_size);
-+	if (rc)
-+		return rc;
- 
--		cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
--		rc = ndctl_cmd_submit(cmd);
--		if (rc < 0) {
--			dbg(ctx, "Error submitting ars_cap: %d\n", rc);
--			goto out;
--		}
--		buf_size = ndctl_cmd_ars_cap_get_size(cmd);
--		if (buf_size == 0) {
--			dbg(ctx, "Got an invalid max_ars_out from ars_cap\n");
--			rc = -EINVAL;
--			goto out;
--		}
--		ndctl_cmd_unref(cmd);
-+	cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc < 0) {
-+		dbg(ctx, "Error submitting ars_cap: %d\n", rc);
-+		goto out;
-+	}
-+	buf_size = ndctl_cmd_ars_cap_get_size(cmd);
-+	if (buf_size == 0) {
-+		dbg(ctx, "Got an invalid max_ars_out from ars_cap\n");
-+		rc = -EINVAL;
-+		goto out;
-+	}
-+	ndctl_cmd_unref(cmd);
- 
--		cmd = ndctl_bus_cmd_new_err_inj_stat(bus, buf_size);
--		if (!cmd)
--			return -ENOMEM;
-+	cmd = ndctl_bus_cmd_new_err_inj_stat(bus, buf_size);
-+	if (!cmd)
-+		return -ENOMEM;
- 
--		pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
--		err_inj_stat =
--			(struct nd_cmd_ars_err_inj_stat *)&pkg->nd_payload[0];
-+	pkg = (struct nd_cmd_pkg *)&cmd->cmd_buf[0];
-+	err_inj_stat =
-+		(struct nd_cmd_ars_err_inj_stat *)&pkg->nd_payload[0];
- 
--		rc = ndctl_cmd_submit(cmd);
--		if (rc < 0) {
--			dbg(ctx, "Error submitting command: %d\n", rc);
--			goto out;
--		}
--		rc = injection_status_to_bb(ndns, err_inj_stat,
--			ns_offset, ns_size);
--		if (rc) {
--			dbg(ctx, "Error converting status to badblocks: %d\n",
--				rc);
--			goto out;
--		}
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc < 0) {
-+		dbg(ctx, "Error submitting command: %d\n", rc);
-+		goto out;
-+	}
-+	rc = injection_status_to_bb(ndns, err_inj_stat,
-+				    ns_offset, ns_size);
-+	if (rc) {
-+		dbg(ctx, "Error converting status to badblocks: %d\n", rc);
-+		goto out;
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index 275aa5f873991af..9e38f9c2b6d7f02 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -82,8 +82,7 @@ int dev_dax_kmem_probe(struct device *dev)
+ 	rc = add_memory_driver_managed(numa_node, new_res->start,
+ 				       resource_size(new_res), kmem_name);
+ 	if (rc) {
+-		release_resource(new_res);
+-		kfree(new_res);
++		release_mem_region(kmem_start, kmem_size);
+ 		kfree(new_res_name);
+ 		return rc;
+ 	}
+@@ -118,8 +117,7 @@ static int dev_dax_kmem_remove(struct device *dev)
  	}
  
-  out:
+ 	/* Release and free dax resources */
+-	release_resource(res);
+-	kfree(res);
++	release_mem_region(kmem_start, kmem_size);
+ 	kfree(res_name);
+ 	dev_dax->dax_kmem_res = NULL;
+ 
 -- 
-2.26.2
+1.8.3
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
