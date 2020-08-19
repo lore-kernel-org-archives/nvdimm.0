@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_50,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65CEDC433E1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 02:05:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8832AC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 02:05:54 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 475772075E
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 02:05:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 475772075E
+	by mail.kernel.org (Postfix) with ESMTPS id 6A6622067C
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 02:05:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6A6622067C
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 73ADE134CA7FC;
-	Tue, 18 Aug 2020 19:05:51 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.32; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga06-in.huawei.com [45.249.212.32])
+	by ml01.01.org (Postfix) with ESMTP id 89554134CA7FF;
+	Tue, 18 Aug 2020 19:05:52 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9D5BE134CA7F3
+	by ml01.01.org (Postfix) with ESMTPS id F1C7F13093FC5
 	for <linux-nvdimm@lists.01.org>; Tue, 18 Aug 2020 19:05:47 -0700 (PDT)
-Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
-	by Forcepoint Email with ESMTP id A5B98752E57501560590;
-	Wed, 19 Aug 2020 10:05:44 +0800 (CST)
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+	by Forcepoint Email with ESMTP id A6539BF6B7B2A3CC8183;
+	Wed, 19 Aug 2020 10:05:45 +0800 (CST)
 Received: from DESKTOP-C3MD9UG.china.huawei.com (10.174.177.253) by
  DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 19 Aug 2020 10:05:33 +0800
+ 14.3.487.0; Wed, 19 Aug 2020 10:05:35 +0800
 From: Zhen Lei <thunder.leizhen@huawei.com>
 To: Oliver O'Halloran <oohall@gmail.com>, Dan Williams
 	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
  Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Markus
  Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>,
 	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2 1/4] libnvdimm: fix memmory leaks in of_pmem.c
-Date: Wed, 19 Aug 2020 10:05:00 +0800
-Message-ID: <20200819020503.3079-2-thunder.leizhen@huawei.com>
+Subject: [PATCH v2 4/4] libnvdimm/region: reduce an unnecessary if branch in nd_region_create()
+Date: Wed, 19 Aug 2020 10:05:03 +0800
+Message-ID: <20200819020503.3079-5-thunder.leizhen@huawei.com>
 X-Mailer: git-send-email 2.26.0.windows.1
 In-Reply-To: <20200819020503.3079-1-thunder.leizhen@huawei.com>
 References: <20200819020503.3079-1-thunder.leizhen@huawei.com>
 MIME-Version: 1.0
 X-Originating-IP: [10.174.177.253]
 X-CFilter-Loop: Reflected
-Message-ID-Hash: WLVF4XEPIQSOWZYXFURWAQ2BQG4YTCD3
-X-Message-ID-Hash: WLVF4XEPIQSOWZYXFURWAQ2BQG4YTCD3
+Message-ID-Hash: 5XTRYI6GGFSJRWWGCRSBSDY52GGR7SDY
+X-Message-ID-Hash: 5XTRYI6GGFSJRWWGCRSBSDY52GGR7SDY
 X-MailFrom: thunder.leizhen@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -56,7 +56,7 @@ CC: Zhen Lei <thunder.leizhen@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WLVF4XEPIQSOWZYXFURWAQ2BQG4YTCD3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5XTRYI6GGFSJRWWGCRSBSDY52GGR7SDY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,35 +65,33 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The memory priv->bus_desc.provider_name allocated by kstrdup() is not
-freed correctly.
+The "else" branch can only be entered when ndr_desc->flush is NULL. After
+replaced "NULL" with "ndr_desc->flush", we will find that the statements
+in "if..else.." are the same.
 
-Fixes: 49bddc73d15c ("libnvdimm/of_pmem: Provide a unique name for bus provider")
+No functional change.
+
 Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 ---
- drivers/nvdimm/of_pmem.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/nvdimm/region_devs.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-index 10dbdcdfb9ce913..1292ffca7b2ecc0 100644
---- a/drivers/nvdimm/of_pmem.c
-+++ b/drivers/nvdimm/of_pmem.c
-@@ -36,6 +36,7 @@ static int of_pmem_region_probe(struct platform_device *pdev)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index ef23119db574663..7cf9c7d857909ce 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -1131,10 +1131,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	nd_region->ndr_size = resource_size(ndr_desc->res);
+ 	nd_region->ndr_start = ndr_desc->res->start;
+ 	nd_region->align = default_align(nd_region);
+-	if (ndr_desc->flush)
+-		nd_region->flush = ndr_desc->flush;
+-	else
+-		nd_region->flush = NULL;
++	nd_region->flush = ndr_desc->flush;
  
- 	priv->bus = bus = nvdimm_bus_register(&pdev->dev, &priv->bus_desc);
- 	if (!bus) {
-+		kfree(priv->bus_desc.provider_name);
- 		kfree(priv);
- 		return -ENODEV;
- 	}
-@@ -83,6 +84,7 @@ static int of_pmem_region_remove(struct platform_device *pdev)
- 	struct of_pmem_private *priv = platform_get_drvdata(pdev);
+ 	nd_device_register(dev);
  
- 	nvdimm_bus_unregister(priv->bus);
-+	kfree(priv->bus_desc.provider_name);
- 	kfree(priv);
- 
- 	return 0;
 -- 
 1.8.3
 
