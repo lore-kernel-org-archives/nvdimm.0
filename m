@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D25F8C433E4
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57523C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A82AE2076E
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2483A20758
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Vn+u78w3"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A82AE2076E
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="U+sN7pgR"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2483A20758
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E8476134BE065;
-	Wed, 19 Aug 2020 15:21:12 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.205.24.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
+	by ml01.01.org (Postfix) with ESMTP id 1FA8C134BE06A;
+	Wed, 19 Aug 2020 15:21:13 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6A45F134BE048
+	by ml01.01.org (Postfix) with ESMTPS id 8EB58134BE04B
 	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 15:21:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1597875667;
@@ -34,45 +34,45 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=dhhImXPnKE/TEMGqzlPA1Cua+wWRIpTLBP1xil+eIs0=;
-	b=Vn+u78w34YE5/XhBbn+d5eCOw9PgZ0G7j0I52W0DKVs/nUtEaTsCmzcOTDUCnGIttGPaHp
-	1aOz4+4RxozFj81Kxttd0bTfBY5JobCq8WAJAGtQSSdz99T5luUWpJ326zWFU3x8P7R4+U
-	58dzWdxlTMGgTtYo/Eictett46PdFAk=
+	bh=GQQRLRSw4j8HkEfa+DKkvenAI5uYOUqQOX/jVMQ+gzs=;
+	b=U+sN7pgRbM0pDKCkUiIJafRfVKzotYYl0FoNn5jGueGf5dPWJeXlHStg3A8fOSZKW6fmpy
+	c+b/kqFrmTkWF+pvjhUPQxbNyV18hXWkHe3bumeY77s6ADFCk3Xk661M3li9lwtJH5qOUG
+	//szEvXSCLmhmLzmHNL0oPVfUGDi8a0=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-341-c85V9tnhNDOlX6ri_eHQOA-1; Wed, 19 Aug 2020 18:21:03 -0400
-X-MC-Unique: c85V9tnhNDOlX6ri_eHQOA-1
+ us-mta-274-9qBezfhxN2WzK8QymfmESA-1; Wed, 19 Aug 2020 18:21:03 -0400
+X-MC-Unique: 9qBezfhxN2WzK8QymfmESA-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5503F1885D84;
-	Wed, 19 Aug 2020 22:21:02 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 85F681007465;
+	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-115-197.rdu2.redhat.com [10.10.115.197])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 353F95C1DC;
-	Wed, 19 Aug 2020 22:21:02 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 61CA25C3E0;
+	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 427532256EF; Wed, 19 Aug 2020 18:20:54 -0400 (EDT)
+	id E25162256B5; Wed, 19 Aug 2020 18:20:53 -0400 (EDT)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	virtio-fs@redhat.com
-Subject: [PATCH v3 17/18] fuse,virtiofs: Maintain a list of busy elements
-Date: Wed, 19 Aug 2020 18:19:55 -0400
-Message-Id: <20200819221956.845195-18-vgoyal@redhat.com>
+Subject: [PATCH v3 05/18] virtio: Implement get_shm_region for MMIO transport
+Date: Wed, 19 Aug 2020 18:19:43 -0400
+Message-Id: <20200819221956.845195-6-vgoyal@redhat.com>
 In-Reply-To: <20200819221956.845195-1-vgoyal@redhat.com>
 References: <20200819221956.845195-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Message-ID-Hash: WBJDC3FOVCJCOEPHY7WV6KEWE6VP3NUP
-X-Message-ID-Hash: WBJDC3FOVCJCOEPHY7WV6KEWE6VP3NUP
+Message-ID-Hash: TLMOURX72QXMPXAN2QSSOYRQNIUJQJRQ
+X-Message-ID-Hash: TLMOURX72QXMPXAN2QSSOYRQNIUJQJRQ
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com
+CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, Sebastien Boeuf <sebastien.boeuf@intel.com>, kvm@vger.kernel.org, virtualization@lists.linux-foundation.org, "Michael S. Tsirkin" <mst@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WBJDC3FOVCJCOEPHY7WV6KEWE6VP3NUP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TLMOURX72QXMPXAN2QSSOYRQNIUJQJRQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,116 +81,90 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This list will be used selecting fuse_dax_mapping to free when number of
-free mappings drops below a threshold.
+From: Sebastien Boeuf <sebastien.boeuf@intel.com>
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+On MMIO a new set of registers is defined for finding SHM
+regions.  Add their definitions and use them to find the region.
+
+Signed-off-by: Sebastien Boeuf <sebastien.boeuf@intel.com>
+Cc: kvm@vger.kernel.org
+Cc: virtualization@lists.linux-foundation.org
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
 ---
- fs/fuse/file.c   | 22 ++++++++++++++++++++++
- fs/fuse/fuse_i.h |  7 +++++++
- fs/fuse/inode.c  |  4 ++++
- 3 files changed, 33 insertions(+)
+ drivers/virtio/virtio_mmio.c     | 31 +++++++++++++++++++++++++++++++
+ include/uapi/linux/virtio_mmio.h | 11 +++++++++++
+ 2 files changed, 42 insertions(+)
 
-diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index aaa57c625af7..723602813ad6 100644
---- a/fs/fuse/file.c
-+++ b/fs/fuse/file.c
-@@ -213,6 +213,23 @@ static struct fuse_dax_mapping *alloc_dax_mapping(struct fuse_conn *fc)
- 	return dmap;
+diff --git a/drivers/virtio/virtio_mmio.c b/drivers/virtio/virtio_mmio.c
+index 627ac0487494..238383ff1064 100644
+--- a/drivers/virtio/virtio_mmio.c
++++ b/drivers/virtio/virtio_mmio.c
+@@ -498,6 +498,36 @@ static const char *vm_bus_name(struct virtio_device *vdev)
+ 	return vm_dev->pdev->name;
  }
  
-+/* This assumes fc->lock is held */
-+static void __dmap_remove_busy_list(struct fuse_conn *fc,
-+				    struct fuse_dax_mapping *dmap)
++static bool vm_get_shm_region(struct virtio_device *vdev,
++			      struct virtio_shm_region *region, u8 id)
 +{
-+	list_del_init(&dmap->busy_list);
-+	WARN_ON(fc->nr_busy_ranges == 0);
-+	fc->nr_busy_ranges--;
++	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
++	u64 len, addr;
++
++	/* Select the region we're interested in */
++	writel(id, vm_dev->base + VIRTIO_MMIO_SHM_SEL);
++
++	/* Read the region size */
++	len = (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_LEN_LOW);
++	len |= (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_LEN_HIGH) << 32;
++
++	region->len = len;
++
++	/* Check if region length is -1. If that's the case, the shared memory
++	 * region does not exist and there is no need to proceed further.
++	 */
++	if (len == ~(u64)0)
++		return false;
++
++	/* Read the region base address */
++	addr = (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_BASE_LOW);
++	addr |= (u64) readl(vm_dev->base + VIRTIO_MMIO_SHM_BASE_HIGH) << 32;
++
++	region->addr = addr;
++
++	return true;
 +}
 +
-+static void dmap_remove_busy_list(struct fuse_conn *fc,
-+				  struct fuse_dax_mapping *dmap)
-+{
-+	spin_lock(&fc->lock);
-+	__dmap_remove_busy_list(fc, dmap);
-+	spin_unlock(&fc->lock);
-+}
+ static const struct virtio_config_ops virtio_mmio_config_ops = {
+ 	.get		= vm_get,
+ 	.set		= vm_set,
+@@ -510,6 +540,7 @@ static const struct virtio_config_ops virtio_mmio_config_ops = {
+ 	.get_features	= vm_get_features,
+ 	.finalize_features = vm_finalize_features,
+ 	.bus_name	= vm_bus_name,
++	.get_shm_region = vm_get_shm_region,
+ };
+ 
+ 
+diff --git a/include/uapi/linux/virtio_mmio.h b/include/uapi/linux/virtio_mmio.h
+index c4b09689ab64..0650f91bea6c 100644
+--- a/include/uapi/linux/virtio_mmio.h
++++ b/include/uapi/linux/virtio_mmio.h
+@@ -122,6 +122,17 @@
+ #define VIRTIO_MMIO_QUEUE_USED_LOW	0x0a0
+ #define VIRTIO_MMIO_QUEUE_USED_HIGH	0x0a4
+ 
++/* Shared memory region id */
++#define VIRTIO_MMIO_SHM_SEL             0x0ac
 +
- /* This assumes fc->lock is held */
- static void __dmap_add_to_free_pool(struct fuse_conn *fc,
- 				struct fuse_dax_mapping *dmap)
-@@ -266,6 +283,10 @@ static int fuse_setup_one_mapping(struct inode *inode, unsigned long start_idx,
- 		/* Protected by fi->i_dmap_sem */
- 		interval_tree_insert(&dmap->itn, &fi->dmap_tree);
- 		fi->nr_dmaps++;
-+		spin_lock(&fc->lock);
-+		list_add_tail(&dmap->busy_list, &fc->busy_ranges);
-+		fc->nr_busy_ranges++;
-+		spin_unlock(&fc->lock);
- 	}
- 	return 0;
- }
-@@ -335,6 +356,7 @@ static void dmap_reinit_add_to_free_pool(struct fuse_conn *fc,
- 	pr_debug("fuse: freeing memory range start_idx=0x%lx end_idx=0x%lx "
- 		 "window_offset=0x%llx length=0x%llx\n", dmap->itn.start,
- 		 dmap->itn.last, dmap->window_offset, dmap->length);
-+	__dmap_remove_busy_list(fc, dmap);
- 	dmap->itn.start = dmap->itn.last = 0;
- 	__dmap_add_to_free_pool(fc, dmap);
- }
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index e555c9a33359..400a19a464ca 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -80,6 +80,9 @@ struct fuse_dax_mapping {
- 	/* For interval tree in file/inode */
- 	struct interval_tree_node itn;
- 
-+	/* Will connect in fc->busy_ranges to keep track busy memory */
-+	struct list_head busy_list;
++/* Shared memory region length, 64 bits in two halves */
++#define VIRTIO_MMIO_SHM_LEN_LOW         0x0b0
++#define VIRTIO_MMIO_SHM_LEN_HIGH        0x0b4
 +
- 	/** Position in DAX window */
- 	u64 window_offset;
- 
-@@ -812,6 +815,10 @@ struct fuse_conn {
- 	/** DAX device, non-NULL if DAX is supported */
- 	struct dax_device *dax_dev;
- 
-+	/* List of memory ranges which are busy */
-+	unsigned long nr_busy_ranges;
-+	struct list_head busy_ranges;
++/* Shared memory region base address, 64 bits in two halves */
++#define VIRTIO_MMIO_SHM_BASE_LOW        0x0b8
++#define VIRTIO_MMIO_SHM_BASE_HIGH       0x0bc
 +
- 	/*
- 	 * DAX Window Free Ranges
- 	 */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 3735bc5fdfa2..671e84e3dd99 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -636,6 +636,8 @@ static void fuse_free_dax_mem_ranges(struct list_head *mem_list)
- 	/* Free All allocated elements */
- 	list_for_each_entry_safe(range, temp, mem_list, list) {
- 		list_del(&range->list);
-+		if (!list_empty(&range->busy_list))
-+			list_del(&range->busy_list);
- 		kfree(range);
- 	}
- }
-@@ -680,6 +682,7 @@ static int fuse_dax_mem_range_init(struct fuse_conn *fc,
- 		 */
- 		range->window_offset = i * FUSE_DAX_SZ;
- 		range->length = FUSE_DAX_SZ;
-+		INIT_LIST_HEAD(&range->busy_list);
- 		list_add_tail(&range->list, &mem_ranges);
- 	}
- 
-@@ -727,6 +730,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
- 	fc->user_ns = get_user_ns(user_ns);
- 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
- 	INIT_LIST_HEAD(&fc->free_ranges);
-+	INIT_LIST_HEAD(&fc->busy_ranges);
- }
- EXPORT_SYMBOL_GPL(fuse_conn_init);
+ /* Configuration atomicity value */
+ #define VIRTIO_MMIO_CONFIG_GENERATION	0x0fc
  
 -- 
 2.25.4
