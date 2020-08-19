@@ -7,72 +7,72 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADB51C433E8
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4CA0C433E3
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:27 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 837DB20758
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 9A69420758
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bqUzThJu"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 837DB20758
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bjsWxhzg"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9A69420758
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DEAEE134BE059;
-	Wed, 19 Aug 2020 15:21:16 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 060AE1350A3E0;
+	Wed, 19 Aug 2020 15:21:17 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [205.139.110.61])
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 93CE9134BE048
-	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 15:21:12 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 77240134BE06D
+	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 15:21:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1597875671;
+	s=mimecast20190719; t=1597875672;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=DMhOF+k1edyeR4oYNKlbfW2WPgxeeF4vZAc5IsohktU=;
-	b=bqUzThJu/s2u7AbQfBOwCuZ6t8JyXdi+9JC5tMM7V+ZTI8Cz1LHtcVql7Lt6gcqJhCtUEC
-	qwRZNaRRJvGTIpqC+sC/mUEyBzXaqDiFEtMOa2kGRyvW8MHbIRSc+lL8GZMvkvkRoNUuOz
-	gf1MBS8+ZZxgs42BkkXRSy9zGxTh+iQ=
+	bh=FE1t/TwDu4PMDFPS8TRkGpVdFOvXwiHJwlwFE0ieZjw=;
+	b=bjsWxhzgyPNJYwsKdNseDGQCh5dx/auH4dvDSDt5vdvxn16ooFuiiiixRR3cyZ9gNGmwgF
+	5rJDfM8ECECeQU8XJfweJlwtzkDd7jRxvOyxos/EYirwdWmQhtpKUQXNku8H0oJayuK0fX
+	O3PY+xfOBfkqjD5HeSYSkgtFs096oow=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-318-v5CBb6C2Ofygo78UxL75Zw-1; Wed, 19 Aug 2020 18:21:09 -0400
-X-MC-Unique: v5CBb6C2Ofygo78UxL75Zw-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+ us-mta-424-kvCFBVM0N6m5rIVDDpSkww-1; Wed, 19 Aug 2020 18:21:08 -0400
+X-MC-Unique: kvCFBVM0N6m5rIVDDpSkww-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5722B1014DFE;
-	Wed, 19 Aug 2020 22:21:08 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 75029425DB;
+	Wed, 19 Aug 2020 22:21:07 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-115-197.rdu2.redhat.com [10.10.115.197])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 752161001901;
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 7777A5D9D5;
 	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 073AC2256E8; Wed, 19 Aug 2020 18:20:54 -0400 (EDT)
+	id E76AC2256E4; Wed, 19 Aug 2020 18:20:53 -0400 (EDT)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	virtio-fs@redhat.com
-Subject: [PATCH v3 10/18] fuse,virtiofs: Keep a list of free dax memory ranges
-Date: Wed, 19 Aug 2020 18:19:48 -0400
-Message-Id: <20200819221956.845195-11-vgoyal@redhat.com>
+Subject: [PATCH v3 06/18] virtiofs: Provide a helper function for virtqueue initialization
+Date: Wed, 19 Aug 2020 18:19:44 -0400
+Message-Id: <20200819221956.845195-7-vgoyal@redhat.com>
 In-Reply-To: <20200819221956.845195-1-vgoyal@redhat.com>
 References: <20200819221956.845195-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Message-ID-Hash: LOSU7JPXRYFSLYMHUPUG3UUWSPCMKRZF
-X-Message-ID-Hash: LOSU7JPXRYFSLYMHUPUG3UUWSPCMKRZF
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Message-ID-Hash: 6434HULVAVTERMFANFONXM46CYTXPEIC
+X-Message-ID-Hash: 6434HULVAVTERMFANFONXM46CYTXPEIC
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, Peng Tao <tao.peng@linux.alibaba.com>
+CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LOSU7JPXRYFSLYMHUPUG3UUWSPCMKRZF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6434HULVAVTERMFANFONXM46CYTXPEIC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,218 +81,107 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Divide the dax memory range into fixed size ranges (2MB for now) and put
-them in a list. This will track free ranges. Once an inode requires a
-free range, we will take one from here and put it in interval-tree
-of ranges assigned to inode.
+This reduces code duplication and make it little easier to read code.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
 ---
- fs/fuse/fuse_i.h    | 23 ++++++++++++
- fs/fuse/inode.c     | 88 ++++++++++++++++++++++++++++++++++++++++++++-
- fs/fuse/virtio_fs.c |  2 ++
- 3 files changed, 112 insertions(+), 1 deletion(-)
+ fs/fuse/virtio_fs.c | 50 +++++++++++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 04fdd7c41bd1..478c940b05b4 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -47,6 +47,11 @@
- /** Number of dentries for each connection in the control filesystem */
- #define FUSE_CTL_NUM_DENTRIES 5
- 
-+/* Default memory range size, 2MB */
-+#define FUSE_DAX_SZ	(2*1024*1024)
-+#define FUSE_DAX_SHIFT	(21)
-+#define FUSE_DAX_PAGES	(FUSE_DAX_SZ/PAGE_SIZE)
-+
- /** List of active connections */
- extern struct list_head fuse_conn_list;
- 
-@@ -63,6 +68,18 @@ struct fuse_forget_link {
- 	struct fuse_forget_link *next;
- };
- 
-+/** Translation information for file offsets to DAX window offsets */
-+struct fuse_dax_mapping {
-+	/* Will connect in fc->free_ranges to keep track of free memory */
-+	struct list_head list;
-+
-+	/** Position in DAX window */
-+	u64 window_offset;
-+
-+	/** Length of mapping, in bytes */
-+	loff_t length;
-+};
-+
- /** FUSE inode */
- struct fuse_inode {
- 	/** Inode data */
-@@ -768,6 +785,12 @@ struct fuse_conn {
- 
- 	/** DAX device, non-NULL if DAX is supported */
- 	struct dax_device *dax_dev;
-+
-+	/*
-+	 * DAX Window Free Ranges
-+	 */
-+	long nr_free_ranges;
-+	struct list_head free_ranges;
- };
- 
- static inline struct fuse_conn *get_fuse_conn_super(struct super_block *sb)
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index beac337ccc10..b82eb61d63cc 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -23,6 +23,8 @@
- #include <linux/exportfs.h>
- #include <linux/posix_acl.h>
- #include <linux/pid_namespace.h>
-+#include <linux/dax.h>
-+#include <linux/pfn_t.h>
- 
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
- MODULE_DESCRIPTION("Filesystem in Userspace");
-@@ -620,6 +622,76 @@ static void fuse_pqueue_init(struct fuse_pqueue *fpq)
- 	fpq->connected = 1;
- }
- 
-+static void fuse_free_dax_mem_ranges(struct list_head *mem_list)
-+{
-+	struct fuse_dax_mapping *range, *temp;
-+
-+	/* Free All allocated elements */
-+	list_for_each_entry_safe(range, temp, mem_list, list) {
-+		list_del(&range->list);
-+		kfree(range);
-+	}
-+}
-+
-+#ifdef CONFIG_FS_DAX
-+static int fuse_dax_mem_range_init(struct fuse_conn *fc,
-+				   struct dax_device *dax_dev)
-+{
-+	long nr_pages, nr_ranges;
-+	void *kaddr;
-+	pfn_t pfn;
-+	struct fuse_dax_mapping *range;
-+	LIST_HEAD(mem_ranges);
-+	phys_addr_t phys_addr;
-+	int ret = 0, id;
-+	size_t dax_size = -1;
-+	unsigned long i;
-+
-+	id = dax_read_lock();
-+	nr_pages = dax_direct_access(dax_dev, 0, PHYS_PFN(dax_size), &kaddr,
-+					&pfn);
-+	dax_read_unlock(id);
-+	if (nr_pages < 0) {
-+		pr_debug("dax_direct_access() returned %ld\n", nr_pages);
-+		return nr_pages;
-+	}
-+
-+	phys_addr = pfn_t_to_phys(pfn);
-+	nr_ranges = nr_pages/FUSE_DAX_PAGES;
-+	printk("fuse_dax_mem_range_init(): dax mapped %ld pages. nr_ranges=%ld\n", nr_pages, nr_ranges);
-+
-+	for (i = 0; i < nr_ranges; i++) {
-+		range = kzalloc(sizeof(struct fuse_dax_mapping), GFP_KERNEL);
-+		if (!range) {
-+			pr_debug("memory allocation for mem_range failed.\n");
-+			ret = -ENOMEM;
-+			goto out_err;
-+		}
-+		/* TODO: This offset only works if virtio-fs driver is not
-+		 * having some memory hidden at the beginning. This needs
-+		 * better handling
-+		 */
-+		range->window_offset = i * FUSE_DAX_SZ;
-+		range->length = FUSE_DAX_SZ;
-+		list_add_tail(&range->list, &mem_ranges);
-+	}
-+
-+	list_replace_init(&mem_ranges, &fc->free_ranges);
-+	fc->nr_free_ranges = nr_ranges;
-+	return 0;
-+out_err:
-+	/* Free All allocated elements */
-+	fuse_free_dax_mem_ranges(&mem_ranges);
-+	return ret;
-+}
-+#else /* !CONFIG_FS_DAX */
-+static inline int fuse_dax_mem_range_init(struct fuse_conn *fc,
-+					  struct dax_device *dax_dev)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_FS_DAX */
-+
- void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
- 		    const struct fuse_iqueue_ops *fiq_ops, void *fiq_priv)
- {
-@@ -647,6 +719,7 @@ void fuse_conn_init(struct fuse_conn *fc, struct user_namespace *user_ns,
- 	fc->pid_ns = get_pid_ns(task_active_pid_ns(current));
- 	fc->user_ns = get_user_ns(user_ns);
- 	fc->max_pages = FUSE_DEFAULT_MAX_PAGES_PER_REQ;
-+	INIT_LIST_HEAD(&fc->free_ranges);
- }
- EXPORT_SYMBOL_GPL(fuse_conn_init);
- 
-@@ -655,6 +728,8 @@ void fuse_conn_put(struct fuse_conn *fc)
- 	if (refcount_dec_and_test(&fc->count)) {
- 		struct fuse_iqueue *fiq = &fc->iq;
- 
-+		if (fc->dax_dev)
-+			fuse_free_dax_mem_ranges(&fc->free_ranges);
- 		if (fiq->ops->release)
- 			fiq->ops->release(fiq);
- 		put_pid_ns(fc->pid_ns);
-@@ -1179,11 +1254,19 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
- 	if (sb->s_user_ns != &init_user_ns)
- 		sb->s_xattr = fuse_no_acl_xattr_handlers;
- 
-+	if (ctx->dax_dev) {
-+		err = fuse_dax_mem_range_init(fc, ctx->dax_dev);
-+		if (err) {
-+			pr_debug("fuse_dax_mem_range_init() returned %d\n", err);
-+			goto err_free_ranges;
-+		}
-+	}
-+
- 	if (ctx->fudptr) {
- 		err = -ENOMEM;
- 		fud = fuse_dev_alloc_install(fc);
- 		if (!fud)
--			goto err;
-+			goto err_free_ranges;
- 	}
- 
- 	fc->dev = sb->s_dev;
-@@ -1242,6 +1325,9 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
-  err_dev_free:
- 	if (fud)
- 		fuse_dev_free(fud);
-+ err_free_ranges:
-+	if (ctx->dax_dev)
-+		fuse_free_dax_mem_ranges(&fc->free_ranges);
-  err:
- 	return err;
- }
 diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
-index 741cad4abad8..fb31c9dbc0b8 100644
+index 104f35de5270..ed8da4825b70 100644
 --- a/fs/fuse/virtio_fs.c
 +++ b/fs/fuse/virtio_fs.c
-@@ -747,6 +747,8 @@ static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
- 	phys_addr_t offset = PFN_PHYS(pgoff);
- 	size_t max_nr_pages = fs->window_len/PAGE_SIZE - pgoff;
+@@ -24,6 +24,8 @@ enum {
+ 	VQ_REQUEST
+ };
  
-+	pr_debug("virtio_fs_direct_access(): called. nr_pages=%ld max_nr_pages=%zu\n", nr_pages, max_nr_pages);
++#define VQ_NAME_LEN	24
 +
- 	if (kaddr)
- 		*kaddr = fs->window_kaddr + offset;
- 	if (pfn)
+ /* Per-virtqueue state */
+ struct virtio_fs_vq {
+ 	spinlock_t lock;
+@@ -36,7 +38,7 @@ struct virtio_fs_vq {
+ 	bool connected;
+ 	long in_flight;
+ 	struct completion in_flight_zero; /* No inflight requests */
+-	char name[24];
++	char name[VQ_NAME_LEN];
+ } ____cacheline_aligned_in_smp;
+ 
+ /* A virtio-fs device instance */
+@@ -596,6 +598,26 @@ static void virtio_fs_vq_done(struct virtqueue *vq)
+ 	schedule_work(&fsvq->done_work);
+ }
+ 
++static void virtio_fs_init_vq(struct virtio_fs_vq *fsvq, char *name,
++			      int vq_type)
++{
++	strncpy(fsvq->name, name, VQ_NAME_LEN);
++	spin_lock_init(&fsvq->lock);
++	INIT_LIST_HEAD(&fsvq->queued_reqs);
++	INIT_LIST_HEAD(&fsvq->end_reqs);
++	init_completion(&fsvq->in_flight_zero);
++
++	if (vq_type == VQ_REQUEST) {
++		INIT_WORK(&fsvq->done_work, virtio_fs_requests_done_work);
++		INIT_DELAYED_WORK(&fsvq->dispatch_work,
++				  virtio_fs_request_dispatch_work);
++	} else {
++		INIT_WORK(&fsvq->done_work, virtio_fs_hiprio_done_work);
++		INIT_DELAYED_WORK(&fsvq->dispatch_work,
++				  virtio_fs_hiprio_dispatch_work);
++	}
++}
++
+ /* Initialize virtqueues */
+ static int virtio_fs_setup_vqs(struct virtio_device *vdev,
+ 			       struct virtio_fs *fs)
+@@ -611,7 +633,7 @@ static int virtio_fs_setup_vqs(struct virtio_device *vdev,
+ 	if (fs->num_request_queues == 0)
+ 		return -EINVAL;
+ 
+-	fs->nvqs = 1 + fs->num_request_queues;
++	fs->nvqs = VQ_REQUEST + fs->num_request_queues;
+ 	fs->vqs = kcalloc(fs->nvqs, sizeof(fs->vqs[VQ_HIPRIO]), GFP_KERNEL);
+ 	if (!fs->vqs)
+ 		return -ENOMEM;
+@@ -625,29 +647,17 @@ static int virtio_fs_setup_vqs(struct virtio_device *vdev,
+ 		goto out;
+ 	}
+ 
++	/* Initialize the hiprio/forget request virtqueue */
+ 	callbacks[VQ_HIPRIO] = virtio_fs_vq_done;
+-	snprintf(fs->vqs[VQ_HIPRIO].name, sizeof(fs->vqs[VQ_HIPRIO].name),
+-			"hiprio");
++	virtio_fs_init_vq(&fs->vqs[VQ_HIPRIO], "hiprio", VQ_HIPRIO);
+ 	names[VQ_HIPRIO] = fs->vqs[VQ_HIPRIO].name;
+-	INIT_WORK(&fs->vqs[VQ_HIPRIO].done_work, virtio_fs_hiprio_done_work);
+-	INIT_LIST_HEAD(&fs->vqs[VQ_HIPRIO].queued_reqs);
+-	INIT_LIST_HEAD(&fs->vqs[VQ_HIPRIO].end_reqs);
+-	INIT_DELAYED_WORK(&fs->vqs[VQ_HIPRIO].dispatch_work,
+-			virtio_fs_hiprio_dispatch_work);
+-	init_completion(&fs->vqs[VQ_HIPRIO].in_flight_zero);
+-	spin_lock_init(&fs->vqs[VQ_HIPRIO].lock);
+ 
+ 	/* Initialize the requests virtqueues */
+ 	for (i = VQ_REQUEST; i < fs->nvqs; i++) {
+-		spin_lock_init(&fs->vqs[i].lock);
+-		INIT_WORK(&fs->vqs[i].done_work, virtio_fs_requests_done_work);
+-		INIT_DELAYED_WORK(&fs->vqs[i].dispatch_work,
+-				  virtio_fs_request_dispatch_work);
+-		INIT_LIST_HEAD(&fs->vqs[i].queued_reqs);
+-		INIT_LIST_HEAD(&fs->vqs[i].end_reqs);
+-		init_completion(&fs->vqs[i].in_flight_zero);
+-		snprintf(fs->vqs[i].name, sizeof(fs->vqs[i].name),
+-			 "requests.%u", i - VQ_REQUEST);
++		char vq_name[VQ_NAME_LEN];
++
++		snprintf(vq_name, VQ_NAME_LEN, "requests.%u", i - VQ_REQUEST);
++		virtio_fs_init_vq(&fs->vqs[i], vq_name, VQ_REQUEST);
+ 		callbacks[i] = virtio_fs_vq_done;
+ 		names[i] = fs->vqs[i].name;
+ 	}
 -- 
 2.25.4
 _______________________________________________
