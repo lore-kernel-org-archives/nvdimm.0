@@ -2,64 +2,77 @@ Return-Path: <SRS0=7jdq=B5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.4 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE263C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 18:14:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AC50C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:09 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 81A9320658
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 18:14:02 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 81A9320658
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 0B7E020758
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:09 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XdidcrV6"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0B7E020758
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4813F134575E5;
-	Wed, 19 Aug 2020 11:14:02 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id F3872134BE051;
+	Wed, 19 Aug 2020 15:21:08 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 79307134575E3
-	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 11:13:59 -0700 (PDT)
-IronPort-SDR: xygtFzJY6Y8EiIBDpx2+s3RhlTWQurGnel1iGLI7aKetlPj0UAc031aXTEmibPpZGTLu0u9L9u
- CpgK2m6zfMNA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9718"; a="135243693"
-X-IronPort-AV: E=Sophos;i="5.76,332,1592895600";
-   d="scan'208";a="135243693"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2020 11:13:58 -0700
-IronPort-SDR: 3gzx1NcgRAUmsITkgLSlB1EGdnhF2dF2pEqyEcubPNvfoAjbD9EkYecFv0r6uHP5PuwAhjRKjT
- E8Ov1bSULQiA==
-X-IronPort-AV: E=Sophos;i="5.76,332,1592895600";
-   d="scan'208";a="497330358"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Aug 2020 11:13:58 -0700
-Date: Wed, 19 Aug 2020 11:13:58 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-To: Wang Qing <wangqing@vivo.com>
-Subject: Re: [PATCH] drivers/dax: Use kobj_to_dev() instead
-Message-ID: <20200819181357.GE3142014@iweiny-DESK2.sc.intel.com>
-References: <1597289224-19897-1-git-send-email-wangqing@vivo.com>
+	by ml01.01.org (Postfix) with ESMTPS id 82B0B1347A1B8
+	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 15:21:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1597875665;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=LwvnxdYE4Q9924qikGCGRQUHI2SjlODkfTA4brzxCQ0=;
+	b=XdidcrV6YNIUSmAPdnjMxNyOjIbB0mt80lGJ6VZU7d0Bhjgr0AqhQIPiCA5sl+tYxdxqZc
+	sbT+A1B4fzMbrkY7vBw7KPItkdB5ZagNmIc6ceWkdwPZKoF72LCZU/tDt6BZvwYK2AR/Ib
+	1sJa0/S1HUF5+8HqNhoAcUtPGxVBJOo=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-301--kR61mWVPDyFYK2752Nsxg-1; Wed, 19 Aug 2020 18:21:02 -0400
+X-MC-Unique: -kR61mWVPDyFYK2752Nsxg-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AD45F807330;
+	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-197.rdu2.redhat.com [10.10.115.197])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 7A3175C70C;
+	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id 0C0A72256E9; Wed, 19 Aug 2020 18:20:54 -0400 (EDT)
+From: Vivek Goyal <vgoyal@redhat.com>
+To: linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-nvdimm@lists.01.org,
+	virtio-fs@redhat.com
+Subject: [PATCH v3 11/18] fuse: implement FUSE_INIT map_alignment field
+Date: Wed, 19 Aug 2020 18:19:49 -0400
+Message-Id: <20200819221956.845195-12-vgoyal@redhat.com>
+In-Reply-To: <20200819221956.845195-1-vgoyal@redhat.com>
+References: <20200819221956.845195-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1597289224-19897-1-git-send-email-wangqing@vivo.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
-Message-ID-Hash: XA6M3ANKLFECHMKKUM3ZW6SBKQ7W4KET
-X-Message-ID-Hash: XA6M3ANKLFECHMKKUM3ZW6SBKQ7W4KET
-X-MailFrom: ira.weiny@intel.com
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Message-ID-Hash: OUNB2G7VZTYL65WSL4C6HWU56NV3BRT4
+X-Message-ID-Hash: OUNB2G7VZTYL65WSL4C6HWU56NV3BRT4
+X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XA6M3ANKLFECHMKKUM3ZW6SBKQ7W4KET/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OUNB2G7VZTYL65WSL4C6HWU56NV3BRT4/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,37 +81,112 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Aug 13, 2020 at 11:27:02AM +0800, Wang Qing wrote:
-> Use kobj_to_dev() instead of container_of()
-> 
-> Signed-off-by: Wang Qing <wangqing@vivo.com>
+The device communicates FUSE_SETUPMAPPING/FUSE_REMOVMAPPING alignment
+constraints via the FUST_INIT map_alignment field.  Parse this field and
+ensure our DAX mappings meet the alignment constraints.
 
-LTGM
+We don't actually align anything differently since our mappings are
+already 2MB aligned.  Just check the value when the connection is
+established.  If it becomes necessary to honor arbitrary alignments in
+the future we'll have to adjust how mappings are sized.
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+The upshot of this commit is that we can be confident that mappings will
+work even when emulating x86 on Power and similar combinations where the
+host page sizes are different.
 
-> ---
->  drivers/dax/bus.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index df238c8..24625d2
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -331,7 +331,7 @@ static DEVICE_ATTR_RO(numa_node);
->  
->  static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
->  {
-> -	struct device *dev = container_of(kobj, struct device, kobj);
-> +	struct device *dev = kobj_to_dev(kobj);
->  	struct dev_dax *dev_dax = to_dev_dax(dev);
->  
->  	if (a == &dev_attr_target_node.attr && dev_dax_target_node(dev_dax) < 0)
-> -- 
-> 2.7.4
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/fuse/fuse_i.h          |  5 ++++-
+ fs/fuse/inode.c           | 18 ++++++++++++++++--
+ include/uapi/linux/fuse.h |  4 +++-
+ 3 files changed, 23 insertions(+), 4 deletions(-)
+
+diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
+index 478c940b05b4..4a46e35222c7 100644
+--- a/fs/fuse/fuse_i.h
++++ b/fs/fuse/fuse_i.h
+@@ -47,7 +47,10 @@
+ /** Number of dentries for each connection in the control filesystem */
+ #define FUSE_CTL_NUM_DENTRIES 5
+ 
+-/* Default memory range size, 2MB */
++/*
++ * Default memory range size.  A power of 2 so it agrees with common FUSE_INIT
++ * map_alignment values 4KB and 64KB.
++ */
+ #define FUSE_DAX_SZ	(2*1024*1024)
+ #define FUSE_DAX_SHIFT	(21)
+ #define FUSE_DAX_PAGES	(FUSE_DAX_SZ/PAGE_SIZE)
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index b82eb61d63cc..947abdd776ca 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -980,9 +980,10 @@ static void process_init_reply(struct fuse_conn *fc, struct fuse_args *args,
+ {
+ 	struct fuse_init_args *ia = container_of(args, typeof(*ia), args);
+ 	struct fuse_init_out *arg = &ia->out;
++	bool ok = true;
+ 
+ 	if (error || arg->major != FUSE_KERNEL_VERSION)
+-		fc->conn_error = 1;
++		ok = false;
+ 	else {
+ 		unsigned long ra_pages;
+ 
+@@ -1045,6 +1046,13 @@ static void process_init_reply(struct fuse_conn *fc, struct fuse_args *args,
+ 					min_t(unsigned int, FUSE_MAX_MAX_PAGES,
+ 					max_t(unsigned int, arg->max_pages, 1));
+ 			}
++			if ((arg->flags & FUSE_MAP_ALIGNMENT) &&
++			    (FUSE_DAX_SZ % (1ul << arg->map_alignment))) {
++				pr_err("FUSE: map_alignment %u incompatible"
++				       " with dax mem range size %u\n",
++				       arg->map_alignment, FUSE_DAX_SZ);
++				ok = false;
++			}
+ 		} else {
+ 			ra_pages = fc->max_read / PAGE_SIZE;
+ 			fc->no_lock = 1;
+@@ -1060,6 +1068,11 @@ static void process_init_reply(struct fuse_conn *fc, struct fuse_args *args,
+ 	}
+ 	kfree(ia);
+ 
++	if (!ok) {
++		fc->conn_init = 0;
++		fc->conn_error = 1;
++	}
++
+ 	fuse_set_initialized(fc);
+ 	wake_up_all(&fc->blocked_waitq);
+ }
+@@ -1082,7 +1095,8 @@ void fuse_send_init(struct fuse_conn *fc)
+ 		FUSE_WRITEBACK_CACHE | FUSE_NO_OPEN_SUPPORT |
+ 		FUSE_PARALLEL_DIROPS | FUSE_HANDLE_KILLPRIV | FUSE_POSIX_ACL |
+ 		FUSE_ABORT_ERROR | FUSE_MAX_PAGES | FUSE_CACHE_SYMLINKS |
+-		FUSE_NO_OPENDIR_SUPPORT | FUSE_EXPLICIT_INVAL_DATA;
++		FUSE_NO_OPENDIR_SUPPORT | FUSE_EXPLICIT_INVAL_DATA |
++		FUSE_MAP_ALIGNMENT;
+ 	ia->args.opcode = FUSE_INIT;
+ 	ia->args.in_numargs = 1;
+ 	ia->args.in_args[0].size = sizeof(ia->in);
+diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+index 373cada89815..5b85819e045f 100644
+--- a/include/uapi/linux/fuse.h
++++ b/include/uapi/linux/fuse.h
+@@ -313,7 +313,9 @@ struct fuse_file_lock {
+  * FUSE_CACHE_SYMLINKS: cache READLINK responses
+  * FUSE_NO_OPENDIR_SUPPORT: kernel supports zero-message opendir
+  * FUSE_EXPLICIT_INVAL_DATA: only invalidate cached pages on explicit request
+- * FUSE_MAP_ALIGNMENT: map_alignment field is valid
++ * FUSE_MAP_ALIGNMENT: init_out.map_alignment contains log2(byte alignment) for
++ *		       foffset and moffset fields in struct
++ *		       fuse_setupmapping_out and fuse_removemapping_one.
+  */
+ #define FUSE_ASYNC_READ		(1 << 0)
+ #define FUSE_POSIX_LOCKS	(1 << 1)
+-- 
+2.25.4
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
