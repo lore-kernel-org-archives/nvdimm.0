@@ -7,26 +7,26 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4CA0C433E3
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0424EC433E8
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:29 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9A69420758
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id CDF8620758
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bjsWxhzg"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9A69420758
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="OV7Kyua9"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CDF8620758
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 060AE1350A3E0;
-	Wed, 19 Aug 2020 15:21:17 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-1.mimecast.com (us-smtp-2.mimecast.com [205.139.110.61])
+	by ml01.01.org (Postfix) with ESMTP id 1B7C7134BE05E;
+	Wed, 19 Aug 2020 15:21:18 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.81; helo=us-smtp-delivery-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [207.211.31.81])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 77240134BE06D
+	by ml01.01.org (Postfix) with ESMTPS id C4C4D134BE061
 	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 15:21:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1597875672;
@@ -34,45 +34,45 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=FE1t/TwDu4PMDFPS8TRkGpVdFOvXwiHJwlwFE0ieZjw=;
-	b=bjsWxhzgyPNJYwsKdNseDGQCh5dx/auH4dvDSDt5vdvxn16ooFuiiiixRR3cyZ9gNGmwgF
-	5rJDfM8ECECeQU8XJfweJlwtzkDd7jRxvOyxos/EYirwdWmQhtpKUQXNku8H0oJayuK0fX
-	O3PY+xfOBfkqjD5HeSYSkgtFs096oow=
+	bh=Mul6xYMxBSgZ+hw59Zt3uye6OAmruS4cZeubQ0rXxgM=;
+	b=OV7Kyua9NmYVT4IFZrSWji0DuMULCAHmnphFoO3qHuXbRRyBvJr4jaemYLM6GaXP9drSxf
+	RMPyEvvQ7SJ/dBaph0Cz+8ocmgkhhSNhEptBU1KybCJje7mBHiPbVb231SY+1Rj5tZAiIw
+	7YUXaMxVYP2fZkKZY/AtBxcOkYGv6Zg=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-424-kvCFBVM0N6m5rIVDDpSkww-1; Wed, 19 Aug 2020 18:21:08 -0400
-X-MC-Unique: kvCFBVM0N6m5rIVDDpSkww-1
+ us-mta-535-dmD4I7AnOHuEHQVyL9Tchw-1; Wed, 19 Aug 2020 18:21:08 -0400
+X-MC-Unique: dmD4I7AnOHuEHQVyL9Tchw-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 75029425DB;
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 72E668030B0;
 	Wed, 19 Aug 2020 22:21:07 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-115-197.rdu2.redhat.com [10.10.115.197])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 7777A5D9D5;
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 85FBD5D9E8;
 	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id E76AC2256E4; Wed, 19 Aug 2020 18:20:53 -0400 (EDT)
+	id 10D3E2256EA; Wed, 19 Aug 2020 18:20:54 -0400 (EDT)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	virtio-fs@redhat.com
-Subject: [PATCH v3 06/18] virtiofs: Provide a helper function for virtqueue initialization
-Date: Wed, 19 Aug 2020 18:19:44 -0400
-Message-Id: <20200819221956.845195-7-vgoyal@redhat.com>
+Subject: [PATCH v3 12/18] fuse: Introduce setupmapping/removemapping commands
+Date: Wed, 19 Aug 2020 18:19:50 -0400
+Message-Id: <20200819221956.845195-13-vgoyal@redhat.com>
 In-Reply-To: <20200819221956.845195-1-vgoyal@redhat.com>
 References: <20200819221956.845195-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-Message-ID-Hash: 6434HULVAVTERMFANFONXM46CYTXPEIC
-X-Message-ID-Hash: 6434HULVAVTERMFANFONXM46CYTXPEIC
+Message-ID-Hash: DYOY3AWEY7J4G7QMPIJ4KQNUX5RNB2GB
+X-Message-ID-Hash: DYOY3AWEY7J4G7QMPIJ4KQNUX5RNB2GB
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com
+CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, Peng Tao <tao.peng@linux.alibaba.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6434HULVAVTERMFANFONXM46CYTXPEIC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DYOY3AWEY7J4G7QMPIJ4KQNUX5RNB2GB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,107 +81,53 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This reduces code duplication and make it little easier to read code.
+Introduce two new fuse commands to setup/remove memory mappings. This
+will be used to setup/tear down file mapping in dax window.
 
 Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Peng Tao <tao.peng@linux.alibaba.com>
 ---
- fs/fuse/virtio_fs.c | 50 +++++++++++++++++++++++++++------------------
- 1 file changed, 30 insertions(+), 20 deletions(-)
+ include/uapi/linux/fuse.h | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
-index 104f35de5270..ed8da4825b70 100644
---- a/fs/fuse/virtio_fs.c
-+++ b/fs/fuse/virtio_fs.c
-@@ -24,6 +24,8 @@ enum {
- 	VQ_REQUEST
+diff --git a/include/uapi/linux/fuse.h b/include/uapi/linux/fuse.h
+index 5b85819e045f..60a7bfc787ce 100644
+--- a/include/uapi/linux/fuse.h
++++ b/include/uapi/linux/fuse.h
+@@ -894,4 +894,33 @@ struct fuse_copy_file_range_in {
+ 	uint64_t	flags;
  };
  
-+#define VQ_NAME_LEN	24
++#define FUSE_SETUPMAPPING_FLAG_WRITE (1ull << 0)
++struct fuse_setupmapping_in {
++	/* An already open handle */
++	uint64_t	fh;
++	/* Offset into the file to start the mapping */
++	uint64_t	foffset;
++	/* Length of mapping required */
++	uint64_t	len;
++	/* Flags, FUSE_SETUPMAPPING_FLAG_* */
++	uint64_t	flags;
++	/* Offset in Memory Window */
++	uint64_t	moffset;
++};
 +
- /* Per-virtqueue state */
- struct virtio_fs_vq {
- 	spinlock_t lock;
-@@ -36,7 +38,7 @@ struct virtio_fs_vq {
- 	bool connected;
- 	long in_flight;
- 	struct completion in_flight_zero; /* No inflight requests */
--	char name[24];
-+	char name[VQ_NAME_LEN];
- } ____cacheline_aligned_in_smp;
- 
- /* A virtio-fs device instance */
-@@ -596,6 +598,26 @@ static void virtio_fs_vq_done(struct virtqueue *vq)
- 	schedule_work(&fsvq->done_work);
- }
- 
-+static void virtio_fs_init_vq(struct virtio_fs_vq *fsvq, char *name,
-+			      int vq_type)
-+{
-+	strncpy(fsvq->name, name, VQ_NAME_LEN);
-+	spin_lock_init(&fsvq->lock);
-+	INIT_LIST_HEAD(&fsvq->queued_reqs);
-+	INIT_LIST_HEAD(&fsvq->end_reqs);
-+	init_completion(&fsvq->in_flight_zero);
++struct fuse_removemapping_in {
++	/* number of fuse_removemapping_one follows */
++	uint32_t        count;
++};
 +
-+	if (vq_type == VQ_REQUEST) {
-+		INIT_WORK(&fsvq->done_work, virtio_fs_requests_done_work);
-+		INIT_DELAYED_WORK(&fsvq->dispatch_work,
-+				  virtio_fs_request_dispatch_work);
-+	} else {
-+		INIT_WORK(&fsvq->done_work, virtio_fs_hiprio_done_work);
-+		INIT_DELAYED_WORK(&fsvq->dispatch_work,
-+				  virtio_fs_hiprio_dispatch_work);
-+	}
-+}
++struct fuse_removemapping_one {
++	/* Offset into the dax window start the unmapping */
++	uint64_t        moffset;
++	/* Length of mapping required */
++	uint64_t	len;
++};
 +
- /* Initialize virtqueues */
- static int virtio_fs_setup_vqs(struct virtio_device *vdev,
- 			       struct virtio_fs *fs)
-@@ -611,7 +633,7 @@ static int virtio_fs_setup_vqs(struct virtio_device *vdev,
- 	if (fs->num_request_queues == 0)
- 		return -EINVAL;
- 
--	fs->nvqs = 1 + fs->num_request_queues;
-+	fs->nvqs = VQ_REQUEST + fs->num_request_queues;
- 	fs->vqs = kcalloc(fs->nvqs, sizeof(fs->vqs[VQ_HIPRIO]), GFP_KERNEL);
- 	if (!fs->vqs)
- 		return -ENOMEM;
-@@ -625,29 +647,17 @@ static int virtio_fs_setup_vqs(struct virtio_device *vdev,
- 		goto out;
- 	}
- 
-+	/* Initialize the hiprio/forget request virtqueue */
- 	callbacks[VQ_HIPRIO] = virtio_fs_vq_done;
--	snprintf(fs->vqs[VQ_HIPRIO].name, sizeof(fs->vqs[VQ_HIPRIO].name),
--			"hiprio");
-+	virtio_fs_init_vq(&fs->vqs[VQ_HIPRIO], "hiprio", VQ_HIPRIO);
- 	names[VQ_HIPRIO] = fs->vqs[VQ_HIPRIO].name;
--	INIT_WORK(&fs->vqs[VQ_HIPRIO].done_work, virtio_fs_hiprio_done_work);
--	INIT_LIST_HEAD(&fs->vqs[VQ_HIPRIO].queued_reqs);
--	INIT_LIST_HEAD(&fs->vqs[VQ_HIPRIO].end_reqs);
--	INIT_DELAYED_WORK(&fs->vqs[VQ_HIPRIO].dispatch_work,
--			virtio_fs_hiprio_dispatch_work);
--	init_completion(&fs->vqs[VQ_HIPRIO].in_flight_zero);
--	spin_lock_init(&fs->vqs[VQ_HIPRIO].lock);
- 
- 	/* Initialize the requests virtqueues */
- 	for (i = VQ_REQUEST; i < fs->nvqs; i++) {
--		spin_lock_init(&fs->vqs[i].lock);
--		INIT_WORK(&fs->vqs[i].done_work, virtio_fs_requests_done_work);
--		INIT_DELAYED_WORK(&fs->vqs[i].dispatch_work,
--				  virtio_fs_request_dispatch_work);
--		INIT_LIST_HEAD(&fs->vqs[i].queued_reqs);
--		INIT_LIST_HEAD(&fs->vqs[i].end_reqs);
--		init_completion(&fs->vqs[i].in_flight_zero);
--		snprintf(fs->vqs[i].name, sizeof(fs->vqs[i].name),
--			 "requests.%u", i - VQ_REQUEST);
-+		char vq_name[VQ_NAME_LEN];
++#define FUSE_REMOVEMAPPING_MAX_ENTRY   \
++		(PAGE_SIZE / sizeof(struct fuse_removemapping_one))
 +
-+		snprintf(vq_name, VQ_NAME_LEN, "requests.%u", i - VQ_REQUEST);
-+		virtio_fs_init_vq(&fs->vqs[i], vq_name, VQ_REQUEST);
- 		callbacks[i] = virtio_fs_vq_done;
- 		names[i] = fs->vqs[i].name;
- 	}
+ #endif /* _LINUX_FUSE_H */
 -- 
 2.25.4
 _______________________________________________
