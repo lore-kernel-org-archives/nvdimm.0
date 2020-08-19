@@ -2,31 +2,31 @@ Return-Path: <SRS0=7jdq=B5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDC9DC433E1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D840EC433E3
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 92BF320758
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id AE1B82076E
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 22:21:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LCl+Y1h3"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 92BF320758
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="QJowQYhq"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AE1B82076E
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4F46F134BE057;
-	Wed, 19 Aug 2020 15:21:14 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
+	by ml01.01.org (Postfix) with ESMTP id 6AB4D134BE06F;
+	Wed, 19 Aug 2020 15:21:15 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=vgoyal@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 37C00134BE04F
+	by ml01.01.org (Postfix) with ESMTPS id A1134134BE050
 	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 15:21:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	s=mimecast20190719; t=1597875668;
@@ -34,45 +34,45 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=ES7VXWnJmxtNjv1SU4EOUCl97libFKKT2+jZq3jVEXw=;
-	b=LCl+Y1h3ONby1YLfmpkjdCYdiM6vHFyqh2ymZOAySwlvGaFi7eRYtAFPnbEwIoATizQGQp
-	PL87QGh0BRT3Va81K+G7wQ2805M3HGh0OuRX004uzQ5qzYsVmzXwYWDYVv+nrrUMo5Y0gb
-	Ry+5r6fO0/dSX+CJ8mlgoi9ANIcs9c8=
+	bh=3r9Ws0y/w/73f6Yi8dzj7Ayu3FnCAIQyynyIBB67ZrI=;
+	b=QJowQYhqiCXHLQ8zwPYJAFXdpzex1S7f4/TTLjtbCDTf4UH0rz/xaaO2A1hNs9d589P/Ja
+	GicOgjDfNl83/Zn41QEq4xY33csOT0QJ2WUVu+CdTKXlgMqMkMIn9XJmyHMms3y+Rn3gpo
+	//b7BZVHVHVg2OnPiU4RjLfyQBNfaMk=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-164-P3FaIpgoPSSevl-zTmxCwA-1; Wed, 19 Aug 2020 18:21:05 -0400
-X-MC-Unique: P3FaIpgoPSSevl-zTmxCwA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+ us-mta-50-GglbAcrKMWOfk_Pf1lgtbQ-1; Wed, 19 Aug 2020 18:21:06 -0400
+X-MC-Unique: GglbAcrKMWOfk_Pf1lgtbQ-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1B6451007471;
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 929921007475;
 	Wed, 19 Aug 2020 22:21:04 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-115-197.rdu2.redhat.com [10.10.115.197])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 29437756D4;
-	Wed, 19 Aug 2020 22:21:02 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id D4C575C70C;
+	Wed, 19 Aug 2020 22:21:01 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 38BB62256EE; Wed, 19 Aug 2020 18:20:54 -0400 (EDT)
+	id 1BEEC2256EC; Wed, 19 Aug 2020 18:20:54 -0400 (EDT)
 From: Vivek Goyal <vgoyal@redhat.com>
 To: linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	linux-nvdimm@lists.01.org,
 	virtio-fs@redhat.com
-Subject: [PATCH v3 16/18] fuse, dax: Serialize truncate/punch_hole and dax fault path
-Date: Wed, 19 Aug 2020 18:19:54 -0400
-Message-Id: <20200819221956.845195-17-vgoyal@redhat.com>
+Subject: [PATCH v3 14/18] fuse,dax: add DAX mmap support
+Date: Wed, 19 Aug 2020 18:19:52 -0400
+Message-Id: <20200819221956.845195-15-vgoyal@redhat.com>
 In-Reply-To: <20200819221956.845195-1-vgoyal@redhat.com>
 References: <20200819221956.845195-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-Message-ID-Hash: 4KZOWIFZZLEV3CBOU66OGFOWQ5ZKTPR2
-X-Message-ID-Hash: 4KZOWIFZZLEV3CBOU66OGFOWQ5ZKTPR2
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Message-ID-Hash: NHIRDPWH2EMSI2727UO7KLYEKJNH4IKB
+X-Message-ID-Hash: NHIRDPWH2EMSI2727UO7KLYEKJNH4IKB
 X-MailFrom: vgoyal@redhat.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com, Dave Chinner <david@fromorbit.com>
+CC: miklos@szeredi.hu, stefanha@redhat.com, dgilbert@redhat.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4KZOWIFZZLEV3CBOU66OGFOWQ5ZKTPR2/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NHIRDPWH2EMSI2727UO7KLYEKJNH4IKB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,331 +81,108 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Currently in fuse we don't seem have any lock which can serialize fault
-path with truncate/punch_hole path. With dax support I need one for
-following reasons.
+From: Stefan Hajnoczi <stefanha@redhat.com>
 
-1. Dax requirement
+Add DAX mmap() support.
 
-  DAX fault code relies on inode size being stable for the duration of
-  fault and want to serialize with truncate/punch_hole and they explicitly
-  mention it.
-
-  static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
-                               const struct iomap_ops *ops)
-        /*
-         * Check whether offset isn't beyond end of file now. Caller is
-         * supposed to hold locks serializing us with truncate / punch hole so
-         * this is a reliable test.
-         */
-        max_pgoff = DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE);
-
-2. Make sure there are no users of pages being truncated/punch_hole
-
-  get_user_pages() might take references to page and then do some DMA
-  to said pages. Filesystem might truncate those pages without knowing
-  that a DMA is in progress or some I/O is in progress. So use
-  dax_layout_busy_page() to make sure there are no such references
-  and I/O is not in progress on said pages before moving ahead with
-  truncation.
-
-3. Limitation of kvm page fault error reporting
-
-  If we are truncating file on host first and then removing mappings in
-  guest lateter (truncate page cache etc), then this could lead to a
-  problem with KVM. Say a mapping is in place in guest and truncation
-  happens on host. Now if guest accesses that mapping, then host will
-  take a fault and kvm will either exit to qemu or spin infinitely.
-
-  IOW, before we do truncation on host, we need to make sure that guest
-  inode does not have any mapping in that region or whole file.
-
-4. virtiofs memory range reclaim
-
- Soon I will introduce the notion of being able to reclaim dax memory
- ranges from a fuse dax inode. There also I need to make sure that
- no I/O or fault is going on in the reclaimed range and nobody is using
- it so that range can be reclaimed without issues.
-
-Currently if we take inode lock, that serializes read/write. But it does
-not do anything for faults. So I add another semaphore fuse_inode->i_mmap_sem
-for this purpose.  It can be used to serialize with faults.
-
-As of now, I am adding taking this semaphore only in dax fault path and
-not regular fault path because existing code does not have one. May
-be existing code can benefit from it as well to take care of some
-races, but that we can fix later if need be. For now, I am just focussing
-only on DAX path which is new path.
-
-Also added logic to take fuse_inode->i_mmap_sem in
-truncate/punch_hole/open(O_TRUNC) path to make sure file truncation and
-fuse dax fault are mutually exlusive and avoid all the above problems.
-
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Signed-off-by: Stefan Hajnoczi <stefanha@redhat.com>
 ---
- fs/fuse/dir.c    | 32 ++++++++++++++-----
- fs/fuse/file.c   | 81 +++++++++++++++++++++++++++++++++++++++++++++---
- fs/fuse/fuse_i.h |  9 ++++++
- fs/fuse/inode.c  |  1 +
- 4 files changed, 112 insertions(+), 11 deletions(-)
+ fs/fuse/file.c | 62 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 61 insertions(+), 1 deletion(-)
 
-diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
-index 26f028bc760b..4c7e29ba7c4c 100644
---- a/fs/fuse/dir.c
-+++ b/fs/fuse/dir.c
-@@ -1501,6 +1501,7 @@ int fuse_do_setattr(struct dentry *dentry, struct iattr *attr,
- 	loff_t oldsize;
- 	int err;
- 	bool trust_local_cmtime = is_wb && S_ISREG(inode->i_mode);
-+	bool fault_blocked = false;
- 
- 	if (!fc->default_permissions)
- 		attr->ia_valid |= ATTR_FORCE;
-@@ -1509,6 +1510,22 @@ int fuse_do_setattr(struct dentry *dentry, struct iattr *attr,
- 	if (err)
- 		return err;
- 
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		if (WARN_ON(!S_ISREG(inode->i_mode)))
-+			return -EIO;
-+		is_truncate = true;
-+	}
-+
-+	if (IS_DAX(inode) && is_truncate) {
-+		down_write(&fi->i_mmap_sem);
-+		fault_blocked = true;
-+		err = fuse_break_dax_layouts(inode, 0, 0);
-+		if (err) {
-+			up_write(&fi->i_mmap_sem);
-+			return err;
-+		}
-+	}
-+
- 	if (attr->ia_valid & ATTR_OPEN) {
- 		/* This is coming from open(..., ... | O_TRUNC); */
- 		WARN_ON(!(attr->ia_valid & ATTR_SIZE));
-@@ -1521,17 +1538,11 @@ int fuse_do_setattr(struct dentry *dentry, struct iattr *attr,
- 			 */
- 			i_size_write(inode, 0);
- 			truncate_pagecache(inode, 0);
--			return 0;
-+			goto out;
- 		}
- 		file = NULL;
- 	}
- 
--	if (attr->ia_valid & ATTR_SIZE) {
--		if (WARN_ON(!S_ISREG(inode->i_mode)))
--			return -EIO;
--		is_truncate = true;
--	}
--
- 	/* Flush dirty data/metadata before non-truncate SETATTR */
- 	if (is_wb && S_ISREG(inode->i_mode) &&
- 	    attr->ia_valid &
-@@ -1614,6 +1625,10 @@ int fuse_do_setattr(struct dentry *dentry, struct iattr *attr,
- 	}
- 
- 	clear_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
-+out:
-+	if (fault_blocked)
-+		up_write(&fi->i_mmap_sem);
-+
- 	return 0;
- 
- error:
-@@ -1621,6 +1636,9 @@ int fuse_do_setattr(struct dentry *dentry, struct iattr *attr,
- 		fuse_release_nowrite(inode);
- 
- 	clear_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
-+
-+	if (fault_blocked)
-+		up_write(&fi->i_mmap_sem);
- 	return err;
- }
- 
 diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 0eecb4097c14..aaa57c625af7 100644
+index 99457d0b14b9..f1ad8b95b546 100644
 --- a/fs/fuse/file.c
 +++ b/fs/fuse/file.c
-@@ -445,23 +445,35 @@ int fuse_open_common(struct inode *inode, struct file *file, bool isdir)
- 	int err;
- 	bool is_wb_truncate = (file->f_flags & O_TRUNC) &&
- 			  fc->atomic_o_trunc &&
--			  fc->writeback_cache;
-+			  (fc->writeback_cache);
-+	bool dax_truncate = (file->f_flags & O_TRUNC) &&
-+			  fc->atomic_o_trunc && IS_DAX(inode);
- 
- 	err = generic_file_open(inode, file);
- 	if (err)
- 		return err;
- 
--	if (is_wb_truncate) {
-+	if (is_wb_truncate || dax_truncate) {
- 		inode_lock(inode);
- 		fuse_set_nowrite(inode);
- 	}
- 
--	err = fuse_do_open(fc, get_node_id(inode), file, isdir);
-+	if (dax_truncate) {
-+		down_write(&get_fuse_inode(inode)->i_mmap_sem);
-+		err = fuse_break_dax_layouts(inode, 0, 0);
-+		if (err)
-+			goto out;
-+	}
- 
-+	err = fuse_do_open(fc, get_node_id(inode), file, isdir);
- 	if (!err)
- 		fuse_finish_open(inode, file);
- 
--	if (is_wb_truncate) {
-+out:
-+	if (dax_truncate)
-+		up_write(&get_fuse_inode(inode)->i_mmap_sem);
-+
-+	if (is_wb_truncate | dax_truncate) {
- 		fuse_release_nowrite(inode);
- 		inode_unlock(inode);
- 	}
-@@ -2011,6 +2023,47 @@ static const struct iomap_ops fuse_iomap_ops = {
- 	.iomap_end = fuse_iomap_end,
+@@ -2841,10 +2841,15 @@ static const struct vm_operations_struct fuse_file_vm_ops = {
+ 	.page_mkwrite	= fuse_page_mkwrite,
  };
  
-+static void fuse_wait_dax_page(struct inode *inode)
++static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma);
+ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct fuse_file *ff = file->private_data;
+ 
++	/* DAX mmap is superior to direct_io mmap */
++	if (IS_DAX(file_inode(file)))
++		return fuse_dax_mmap(file, vma);
++
+ 	if (ff->open_flags & FOPEN_DIRECT_IO) {
+ 		/* Can't provide the coherency needed for MAP_SHARED */
+ 		if (vma->vm_flags & VM_MAYSHARE)
+@@ -2863,9 +2868,63 @@ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return 0;
+ }
+ 
++static vm_fault_t __fuse_dax_fault(struct vm_fault *vmf,
++				   enum page_entry_size pe_size, bool write)
 +{
-+	struct fuse_inode *fi = get_fuse_inode(inode);
++	vm_fault_t ret;
++	struct inode *inode = file_inode(vmf->vma->vm_file);
++	struct super_block *sb = inode->i_sb;
++	pfn_t pfn;
 +
-+	up_write(&fi->i_mmap_sem);
-+	schedule();
-+	down_write(&fi->i_mmap_sem);
-+}
++	if (write)
++		sb_start_pagefault(sb);
 +
-+/* Should be called with fi->i_mmap_sem lock held exclusively */
-+static int __fuse_break_dax_layouts(struct inode *inode, bool *retry,
-+				    loff_t start, loff_t end)
-+{
-+	struct page *page;
++	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
 +
-+	page = dax_layout_busy_page_range(inode->i_mapping, start, end);
-+	if (!page)
-+		return 0;
++	if (ret & VM_FAULT_NEEDDSYNC)
++		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
 +
-+	*retry = true;
-+	return ___wait_var_event(&page->_refcount,
-+			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
-+			0, 0, fuse_wait_dax_page(inode));
-+}
-+
-+/* dmap_end == 0 leads to unmapping of whole file */
-+int fuse_break_dax_layouts(struct inode *inode, u64 dmap_start,
-+				  u64 dmap_end)
-+{
-+	bool	retry;
-+	int	ret;
-+
-+	do {
-+		retry = false;
-+		ret = __fuse_break_dax_layouts(inode, &retry, dmap_start,
-+					       dmap_end);
-+	} while (ret == 0 && retry);
++	if (write)
++		sb_end_pagefault(sb);
 +
 +	return ret;
 +}
 +
- static ssize_t fuse_dax_read_iter(struct kiocb *iocb, struct iov_iter *to)
++static vm_fault_t fuse_dax_fault(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE,
++				vmf->flags & FAULT_FLAG_WRITE);
++}
++
++static vm_fault_t fuse_dax_huge_fault(struct vm_fault *vmf,
++			       enum page_entry_size pe_size)
++{
++	return __fuse_dax_fault(vmf, pe_size, vmf->flags & FAULT_FLAG_WRITE);
++}
++
++static vm_fault_t fuse_dax_page_mkwrite(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
++}
++
++static vm_fault_t fuse_dax_pfn_mkwrite(struct vm_fault *vmf)
++{
++	return __fuse_dax_fault(vmf, PE_SIZE_PTE, true);
++}
++
++static const struct vm_operations_struct fuse_dax_vm_ops = {
++	.fault		= fuse_dax_fault,
++	.huge_fault	= fuse_dax_huge_fault,
++	.page_mkwrite	= fuse_dax_page_mkwrite,
++	.pfn_mkwrite	= fuse_dax_pfn_mkwrite,
++};
++
+ static int fuse_dax_mmap(struct file *file, struct vm_area_struct *vma)
  {
- 	struct inode *inode = file_inode(iocb->ki_filp);
-@@ -2889,10 +2942,18 @@ static vm_fault_t __fuse_dax_fault(struct vm_fault *vmf,
- 	if (write)
- 		sb_start_pagefault(sb);
- 
-+	/*
-+	 * We need to serialize against not only truncate but also against
-+	 * fuse dax memory range reclaim. While a range is being reclaimed,
-+	 * we do not want any read/write/mmap to make progress and try
-+	 * to populate page cache or access memory we are trying to free.
-+	 */
-+	down_read(&get_fuse_inode(inode)->i_mmap_sem);
- 	ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL, &fuse_iomap_ops);
- 
- 	if (ret & VM_FAULT_NEEDDSYNC)
- 		ret = dax_finish_sync_fault(vmf, pe_size, pfn);
-+	up_read(&get_fuse_inode(inode)->i_mmap_sem);
- 
- 	if (write)
- 		sb_end_pagefault(sb);
-@@ -3811,6 +3872,8 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
- 	bool lock_inode = !(mode & FALLOC_FL_KEEP_SIZE) ||
- 			   (mode & FALLOC_FL_PUNCH_HOLE);
- 
-+	bool block_faults = IS_DAX(inode) && lock_inode;
-+
- 	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE))
- 		return -EOPNOTSUPP;
- 
-@@ -3819,6 +3882,13 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
- 
- 	if (lock_inode) {
- 		inode_lock(inode);
-+		if (block_faults) {
-+			down_write(&fi->i_mmap_sem);
-+			err = fuse_break_dax_layouts(inode, 0, 0);
-+			if (err)
-+				goto out;
-+		}
-+
- 		if (mode & FALLOC_FL_PUNCH_HOLE) {
- 			loff_t endbyte = offset + length - 1;
- 
-@@ -3868,6 +3938,9 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
- 	if (!(mode & FALLOC_FL_KEEP_SIZE))
- 		clear_bit(FUSE_I_SIZE_UNSTABLE, &fi->state);
- 
-+	if (block_faults)
-+		up_write(&fi->i_mmap_sem);
-+
- 	if (lock_inode)
- 		inode_unlock(inode);
- 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 22fb01ba55fb..e555c9a33359 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -176,6 +176,13 @@ struct fuse_inode {
- 	/** Lock to protect write related fields */
- 	spinlock_t lock;
- 
-+	/**
-+	 * Can't take inode lock in fault path (leads to circular dependency).
-+	 * Introduce another semaphore which can be taken in fault path and
-+	 * then other filesystem paths can take this to block faults.
-+	 */
-+	struct rw_semaphore i_mmap_sem;
-+
- 	/*
- 	 * Semaphore to protect modifications to dmap_tree
- 	 */
-@@ -1158,4 +1165,6 @@ node_to_dmap(struct interval_tree_node *node)
- 	return container_of(node, struct fuse_dax_mapping, itn);
+-	return -EINVAL; /* TODO */
++	file_accessed(file);
++	vma->vm_ops = &fuse_dax_vm_ops;
++	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
++	return 0;
  }
  
-+int fuse_break_dax_layouts(struct inode *inode, u64 dmap_start, u64 dmap_end);
-+
- #endif /* _FS_FUSE_I_H */
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 8ea2d3ebcb36..3735bc5fdfa2 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -88,6 +88,7 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
- 	fi->state = 0;
- 	fi->nr_dmaps = 0;
- 	mutex_init(&fi->mutex);
-+	init_rwsem(&fi->i_mmap_sem);
- 	init_rwsem(&fi->i_dmap_sem);
- 	spin_lock_init(&fi->lock);
- 	fi->forget = fuse_alloc_forget();
+ static int convert_fuse_file_lock(struct fuse_conn *fc,
+@@ -3938,6 +3997,7 @@ static const struct file_operations fuse_file_operations = {
+ 	.release	= fuse_release,
+ 	.fsync		= fuse_fsync,
+ 	.lock		= fuse_file_lock,
++	.get_unmapped_area = thp_get_unmapped_area,
+ 	.flock		= fuse_file_flock,
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
 -- 
 2.25.4
 _______________________________________________
