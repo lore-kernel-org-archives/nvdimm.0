@@ -2,74 +2,102 @@ Return-Path: <SRS0=7jdq=B5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.3 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EADFC433E1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 01:08:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EDF3C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 02:05:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EA3ED20772
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 01:08:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EA3ED20772
+	by mail.kernel.org (Postfix) with ESMTPS id 3A4782067C
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 19 Aug 2020 02:05:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3A4782067C
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4D08A13093FEB;
-	Tue, 18 Aug 2020 18:08:08 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	by ml01.01.org (Postfix) with ESMTP id 126DA134CA7F2;
+	Tue, 18 Aug 2020 19:05:50 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.32; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D555613093FE8
-	for <linux-nvdimm@lists.01.org>; Tue, 18 Aug 2020 18:08:05 -0700 (PDT)
-Received: from DGGEMS411-HUB.china.huawei.com (unknown [172.30.72.60])
-	by Forcepoint Email with ESMTP id 55D2713F051FD3159F59;
-	Wed, 19 Aug 2020 09:08:01 +0800 (CST)
-Received: from [127.0.0.1] (10.174.177.253) by DGGEMS411-HUB.china.huawei.com
- (10.3.19.211) with Microsoft SMTP Server id 14.3.487.0; Wed, 19 Aug 2020
- 09:07:59 +0800
-Subject: Re: [PATCH 1/3] libnvdimm: Fix memory leaks in of_pmem.c
-To: Markus Elfring <Markus.Elfring@web.de>, <linux-nvdimm@lists.01.org>
-References: <5ca9f6e3-38d7-fc65-5010-22c992ecf851@web.de>
-From: "Leizhen (ThunderTown)" <thunder.leizhen@huawei.com>
-Message-ID: <fdbd9d2d-2e5d-8190-5d7c-eec5c4cdadbb@huawei.com>
-Date: Wed, 19 Aug 2020 09:07:59 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+	by ml01.01.org (Postfix) with ESMTPS id 9AAE313093FC5
+	for <linux-nvdimm@lists.01.org>; Tue, 18 Aug 2020 19:05:47 -0700 (PDT)
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.59])
+	by Forcepoint Email with ESMTP id A1E71CAB0D9349564C39;
+	Wed, 19 Aug 2020 10:05:44 +0800 (CST)
+Received: from DESKTOP-C3MD9UG.china.huawei.com (10.174.177.253) by
+ DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
+ 14.3.487.0; Wed, 19 Aug 2020 10:05:34 +0800
+From: Zhen Lei <thunder.leizhen@huawei.com>
+To: Oliver O'Halloran <oohall@gmail.com>, Dan Williams
+	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
+ Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Markus
+ Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Subject: [PATCH v2 3/4] libnvdimm/bus: simplify walk_to_nvdimm_bus()
+Date: Wed, 19 Aug 2020 10:05:02 +0800
+Message-ID: <20200819020503.3079-4-thunder.leizhen@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
+In-Reply-To: <20200819020503.3079-1-thunder.leizhen@huawei.com>
+References: <20200819020503.3079-1-thunder.leizhen@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <5ca9f6e3-38d7-fc65-5010-22c992ecf851@web.de>
-Content-Type: text/plain; charset="utf-8"
-Content-Language: en-US
 X-Originating-IP: [10.174.177.253]
 X-CFilter-Loop: Reflected
-Message-ID-Hash: DEHC4SLPZFSMI77AO26WVS4U2YHVFST3
-X-Message-ID-Hash: DEHC4SLPZFSMI77AO26WVS4U2YHVFST3
+Message-ID-Hash: YQT4QE6TDC6PEJOUYFGQ76L6524OH4OM
+X-Message-ID-Hash: YQT4QE6TDC6PEJOUYFGQ76L6524OH4OM
 X-MailFrom: thunder.leizhen@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, Oliver@ml01.01.org
+CC: Zhen Lei <thunder.leizhen@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DEHC4SLPZFSMI77AO26WVS4U2YHVFST3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YQT4QE6TDC6PEJOUYFGQ76L6524OH4OM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQoNCk9uIDgvMTkvMjAyMCAzOjAwIEFNLCBNYXJrdXMgRWxmcmluZyB3cm90ZToNCj4+IFRoZSBt
-ZW1vcnkgcHJpdi0+YnVzX2Rlc2MucHJvdmlkZXJfbmFtZSBhbGxvY2F0ZWQgYnkga3N0cmR1cCgp
-IHNob3VsZCBiZQ0KPj4gZnJlZWQuDQo+IA0KPiAqIFdvdWxkIGFuIGltcGVyYXRpdmUgd29yZGlu
-ZyBiZSBwcmVmZXJyZWQgZm9yIHRoZSBjaGFuZ2UgZGVzY3JpcHRpb24/DQo+IA0KPiAqIEkgcHJv
-cG9zZSB0byBhZGQgdGhlIHRhZyDigJxGaXhlc+KAnSB0byB0aGUgY29tbWl0IG1lc3NhZ2UuDQpU
-aGFua3MgZm9yIHlvdXIgc3VnZ2VzdGlvbiwgSSB3aWxsIGFkZCBpdCBpbiB2Mi4NCg0KRml4ZXM6
-IDQ5YmRkYzczZDE1YyAoImxpYm52ZGltbS9vZl9wbWVtOiBQcm92aWRlIGEgdW5pcXVlIG5hbWUg
-Zm9yIGJ1cyBwcm92aWRlciIpDQoNCg0KPiANCj4gUmVnYXJkcywNCj4gTWFya3VzDQo+IA0KPiAN
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
-ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNj
-cmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
+I first want to move dev_WARN_ONCE() after "if (dev)" branch, but further
+I find the "if (dev)" can only be true when is_nvdimm_bus(dev) successed.
+
+No functional change. In fact, the compiler can optimize it correctly. I
+run "size drivers/nvdimm/bus.o" and find nothing has changed. So it's
+just source code level optimization, make us can read it faster.
+
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+---
+ drivers/nvdimm/bus.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 955265656b96c73..1d89114cb6ab93e 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -316,10 +316,9 @@ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev)
+ 
+ 	for (dev = nd_dev; dev; dev = dev->parent)
+ 		if (is_nvdimm_bus(dev))
+-			break;
+-	dev_WARN_ONCE(nd_dev, !dev, "invalid dev, not on nd bus\n");
+-	if (dev)
+-		return to_nvdimm_bus(dev);
++			return to_nvdimm_bus(dev);
++
++	dev_WARN_ONCE(nd_dev, 1, "invalid dev, not on nd bus\n");
+ 	return NULL;
+ }
+ 
+-- 
+1.8.3
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
