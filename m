@@ -7,48 +7,48 @@ X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_50,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C078C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 02:17:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39553C433E4
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 02:17:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0FDCB2078B
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 02:17:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0FDCB2078B
+	by mail.kernel.org (Postfix) with ESMTPS id 0C3F5207DA
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 02:17:37 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0C3F5207DA
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0D7D913515B5C;
-	Wed, 19 Aug 2020 19:17:34 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 26E5C13515B5E;
+	Wed, 19 Aug 2020 19:17:35 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.191; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
 Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1715A13515B4D
+	by ml01.01.org (Postfix) with ESMTPS id 17ECA13515B4E
 	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 19:17:28 -0700 (PDT)
 Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.60])
-	by Forcepoint Email with ESMTP id 755E8A4661290D22C777;
+	by Forcepoint Email with ESMTP id 78F5EA4A5C7AB868251C;
 	Thu, 20 Aug 2020 10:17:25 +0800 (CST)
 Received: from DESKTOP-C3MD9UG.china.huawei.com (10.174.177.253) by
  DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 20 Aug 2020 10:17:17 +0800
+ 14.3.487.0; Thu, 20 Aug 2020 10:17:18 +0800
 From: Zhen Lei <thunder.leizhen@huawei.com>
 To: Oliver O'Halloran <oohall@gmail.com>, Dan Williams
 	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
  Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Markus
  Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>,
 	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 4/7] libnvdimm: reduce an unnecessary if branch in nd_region_create()
-Date: Thu, 20 Aug 2020 10:16:38 +0800
-Message-ID: <20200820021641.3188-5-thunder.leizhen@huawei.com>
+Subject: [PATCH v3 6/7] libnvdimm: make sure EXPORT_SYMBOL_GPL(nvdimm_flush) close to its function
+Date: Thu, 20 Aug 2020 10:16:40 +0800
+Message-ID: <20200820021641.3188-7-thunder.leizhen@huawei.com>
 X-Mailer: git-send-email 2.26.0.windows.1
 In-Reply-To: <20200820021641.3188-1-thunder.leizhen@huawei.com>
 References: <20200820021641.3188-1-thunder.leizhen@huawei.com>
 MIME-Version: 1.0
 X-Originating-IP: [10.174.177.253]
 X-CFilter-Loop: Reflected
-Message-ID-Hash: R7OQX67VPHUZFR2EUETX5OJLI5B3EUXY
-X-Message-ID-Hash: R7OQX67VPHUZFR2EUETX5OJLI5B3EUXY
+Message-ID-Hash: LWVPU6N5VFWWVTYZ2VWQ7TMBSSEXY4LB
+X-Message-ID-Hash: LWVPU6N5VFWWVTYZ2VWQ7TMBSSEXY4LB
 X-MailFrom: thunder.leizhen@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -56,7 +56,7 @@ CC: Zhen Lei <thunder.leizhen@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/R7OQX67VPHUZFR2EUETX5OJLI5B3EUXY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LWVPU6N5VFWWVTYZ2VWQ7TMBSSEXY4LB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,41 +65,35 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-if (ndr_desc->flush)
-1)	nd_region->flush = ndr_desc->flush;
-else
-2)	nd_region->flush = NULL;
-
-When entering the "else" branch, the value of ndr_desc->flush is NULL.
-After replaced "NULL" with "ndr_desc->flush" at 2), we will find that
-it becomes the same to 1).
-
-So the above code snippet can be reduced to one statement:
-nd_region->flush = ndr_desc->flush;
-
-No functional change.
+Move EXPORT_SYMBOL_GPL(nvdimm_flush) close to nvdimm_flush(), currently
+it's near to generic_nvdimm_flush().
 
 Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 ---
- drivers/nvdimm/region_devs.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/nvdimm/region_devs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index ef23119db574663..7cf9c7d857909ce 100644
+index 49be115c9189eff..909bf03edb132cf 100644
 --- a/drivers/nvdimm/region_devs.c
 +++ b/drivers/nvdimm/region_devs.c
-@@ -1131,10 +1131,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
- 	nd_region->ndr_size = resource_size(ndr_desc->res);
- 	nd_region->ndr_start = ndr_desc->res->start;
- 	nd_region->align = default_align(nd_region);
--	if (ndr_desc->flush)
--		nd_region->flush = ndr_desc->flush;
--	else
--		nd_region->flush = NULL;
-+	nd_region->flush = ndr_desc->flush;
+@@ -1183,6 +1183,8 @@ int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
  
- 	nd_device_register(dev);
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(nvdimm_flush);
++
+ /**
+  * nvdimm_flush - flush any posted write queues between the cpu and pmem media
+  * @nd_region: blk or interleaved pmem region
+@@ -1214,7 +1216,6 @@ int generic_nvdimm_flush(struct nd_region *nd_region)
  
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(nvdimm_flush);
+ 
+ /**
+  * nvdimm_has_flush - determine write flushing requirements
 -- 
 1.8.3
 
