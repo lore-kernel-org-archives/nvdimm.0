@@ -2,61 +2,80 @@ Return-Path: <SRS0=VNsK=B6=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_50,
+X-Spam-Status: No, score=-5.5 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C27BFC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 02:17:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DF21C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 11:05:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 94629207DA
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 02:17:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 94629207DA
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id 2F91A20758
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 11:05:46 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T4ll16vi"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2F91A20758
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 64A9A13515B55;
-	Wed, 19 Aug 2020 19:17:37 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga04-in.huawei.com [45.249.212.190])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id D54BB13510D08;
+	Thu, 20 Aug 2020 04:05:45 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::d44; helo=mail-io1-xd44.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 84CD713515B4D
-	for <linux-nvdimm@lists.01.org>; Wed, 19 Aug 2020 19:17:32 -0700 (PDT)
-Received: from DGGEMS401-HUB.china.huawei.com (unknown [172.30.72.59])
-	by Forcepoint Email with ESMTP id 970854FFC53A1C5449FA;
-	Thu, 20 Aug 2020 10:17:30 +0800 (CST)
-Received: from DESKTOP-C3MD9UG.china.huawei.com (10.174.177.253) by
- DGGEMS401-HUB.china.huawei.com (10.3.19.201) with Microsoft SMTP Server id
- 14.3.487.0; Thu, 20 Aug 2020 10:17:19 +0800
-From: Zhen Lei <thunder.leizhen@huawei.com>
-To: Oliver O'Halloran <oohall@gmail.com>, Dan Williams
-	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Markus
- Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH v3 7/7] libnvdimm: slightly simplify available_slots_show()
-Date: Thu, 20 Aug 2020 10:16:41 +0800
-Message-ID: <20200820021641.3188-8-thunder.leizhen@huawei.com>
-X-Mailer: git-send-email 2.26.0.windows.1
-In-Reply-To: <20200820021641.3188-1-thunder.leizhen@huawei.com>
-References: <20200820021641.3188-1-thunder.leizhen@huawei.com>
+	by ml01.01.org (Postfix) with ESMTPS id 89FBF13510D05
+	for <linux-nvdimm@lists.01.org>; Thu, 20 Aug 2020 04:05:29 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id s2so1750481ioo.2
+        for <linux-nvdimm@lists.01.org>; Thu, 20 Aug 2020 04:05:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ki1WQNTHcThUFIdfEkntkrGULJACUJ9yJz/bmSD9Zk4=;
+        b=T4ll16vitP366qklDX50f3YJzjIWVqhIPBxyHOXoytwEHnmw5TXRhyruxNl25YYGv1
+         drxoowiA08/SofODXLrxwlo+/T4BP9gCbFFq8vUQWigeMopmJM0JoaIrftZTItta8Lm0
+         AHhxpM4P9BvWA9b5Vo7U79Oqj82MezCBEnA7yMW4U728fP5/YxpZrTZAEk0PnEVhROOY
+         fAWSUnNgXFNn0mISMiB0CLB8ne+1yvt5Xf479kIDAZg+krVxehKGrtPndcD+hupW7h1W
+         kMox2AJibyI0Y6rc0JxsNTaiObDyh1TMZ1X1aAw2e0w4KqHM0bas/mAOXfjcvuVEchVK
+         OgQg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ki1WQNTHcThUFIdfEkntkrGULJACUJ9yJz/bmSD9Zk4=;
+        b=JLj1W75zIDNz4EYWMGugyfYj3e4aF4qHsse/h1Z+1W8HdTl7AAJd86FkP6gMi5H+sp
+         qqg3d0V4d7CXlTNQVKtOvCEcH48Ugz+tDD7q2bh/VEpELsxPOLTWqUWq6UjPtEEmG8x0
+         kZIC9Vzbidz5htMauIhzgrprwI2z4EfcExfaIE2g5+21BvpPkb3iRKZM4tPyFooWicxN
+         Co/4xshyDtB+xj4k18m1fxVzOziV6RZE0Lj54o8AuZw0iIL+MDWYnWygnTLa1hk5R8Vn
+         VpixSaDuuvoHZa8Kp6zdvYqVeFHMQRJEScvVS1qEiC6P0wR5lJ5jDJT3rs3Z/4EuxCb+
+         rwcQ==
+X-Gm-Message-State: AOAM531MiRlJjRb7JPN/iVpwTxinWc08gYXytJ5bboYtN9MagST+c8GE
+	09J37tdUqlyQ/3ZghI99dQfwO6+9TbbTpW2oDwk=
+X-Google-Smtp-Source: ABdhPJy8/B73Rwis0rcIrLcmnezpMOZs5TSkb/gxeBASX1Y68sIG9u8fggt3cVgCb7QgHUrLjqugAPGdHve9mLdVjAk=
+X-Received: by 2002:a05:6602:2409:: with SMTP id s9mr1985839ioa.98.1597921528654;
+ Thu, 20 Aug 2020 04:05:28 -0700 (PDT)
 MIME-Version: 1.0
-X-Originating-IP: [10.174.177.253]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: LT44XQR3KW457YXGOYD6D47GGXJEWF2M
-X-Message-ID-Hash: LT44XQR3KW457YXGOYD6D47GGXJEWF2M
-X-MailFrom: thunder.leizhen@huawei.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Zhen Lei <thunder.leizhen@huawei.com>
+References: <20200820021641.3188-1-thunder.leizhen@huawei.com> <20200820021641.3188-7-thunder.leizhen@huawei.com>
+In-Reply-To: <20200820021641.3188-7-thunder.leizhen@huawei.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Thu, 20 Aug 2020 13:05:17 +0200
+Message-ID: <CAM9Jb+jrzR3Q7JcYJKpjHr6_xXCrMUybRc3+hzM1zRd9dETmPA@mail.gmail.com>
+Subject: Re: [PATCH v3 6/7] libnvdimm: make sure EXPORT_SYMBOL_GPL(nvdimm_flush)
+ close to its function
+To: Zhen Lei <thunder.leizhen@huawei.com>
+Message-ID-Hash: O43S5EYFE6O5NV3HTEOG2UGU5N2OCVRH
+X-Message-ID-Hash: O43S5EYFE6O5NV3HTEOG2UGU5N2OCVRH
+X-MailFrom: pankaj.gupta.linux@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Markus Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-kernel <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LT44XQR3KW457YXGOYD6D47GGXJEWF2M/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/O43S5EYFE6O5NV3HTEOG2UGU5N2OCVRH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,35 +84,44 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The type of "nfree" is u32, so "nfree - 1" can only be overflowed when
-"nfree" is zero. Replace "if (nfree - 1 > nfree)" with "if (nfree == 0)"
-seems more clear. And remove the assignment "nfree = 0", no need for it.
+> Move EXPORT_SYMBOL_GPL(nvdimm_flush) close to nvdimm_flush(), currently
+> it's near to generic_nvdimm_flush().
+>
+> Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+> ---
+>  drivers/nvdimm/region_devs.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index 49be115c9189eff..909bf03edb132cf 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -1183,6 +1183,8 @@ int nvdimm_flush(struct nd_region *nd_region, struct bio *bio)
+>
+>         return rc;
+>  }
+> +EXPORT_SYMBOL_GPL(nvdimm_flush);
+> +
+>  /**
+>   * nvdimm_flush - flush any posted write queues between the cpu and pmem media
+>   * @nd_region: blk or interleaved pmem region
+> @@ -1214,7 +1216,6 @@ int generic_nvdimm_flush(struct nd_region *nd_region)
+>
+>         return 0;
+>  }
+> -EXPORT_SYMBOL_GPL(nvdimm_flush);
+>
+>  /**
+>   * nvdimm_has_flush - determine write flushing requirements
+> --
 
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
----
- drivers/nvdimm/dimm_devs.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Reviewed-by: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 61374def515552f..bf7d0cdc147cb39 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -347,10 +347,9 @@ static ssize_t available_slots_show(struct device *dev,
- 
- 	nvdimm_bus_lock(dev);
- 	nfree = nd_label_nfree(ndd);
--	if (nfree - 1 > nfree) {
-+	if (nfree == 0)
- 		dev_WARN_ONCE(dev, 1, "we ate our last label?\n");
--		nfree = 0;
--	} else
-+	else
- 		nfree--;
- 	rc = sprintf(buf, "%d\n", nfree);
- 	nvdimm_bus_unlock(dev);
--- 
-1.8.3
-
+> 1.8.3
+>
+> _______________________________________________
+> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
