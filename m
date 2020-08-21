@@ -1,71 +1,123 @@
-Return-Path: <SRS0=VNsK=B6=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=yZaU=B7=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05147C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 15:52:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE5EC433E5
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Aug 2020 10:06:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C0F0922D2C
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 20 Aug 2020 15:52:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id C19AB207DA
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 21 Aug 2020 10:06:55 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="rXdI/2i+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C0F0922D2C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Cd2Yg+5M"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C19AB207DA
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9D273134FDB7E;
-	Thu, 20 Aug 2020 08:52:57 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 6F3CD135507C0;
+	Fri, 21 Aug 2020 03:06:55 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.120; helo=us-smtp-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [205.139.110.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1B9A2134FDB79
-	for <linux-nvdimm@lists.01.org>; Thu, 20 Aug 2020 08:52:39 -0700 (PDT)
-Received: from kernel.org (unknown [87.70.91.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTPS id D013E135507BC
+	for <linux-nvdimm@lists.01.org>; Fri, 21 Aug 2020 03:06:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1598004410;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
+	bh=zdZamnckdNbt37JHYyUQS6PF6rFNL7QUKZrWQzXeUes=;
+	b=Cd2Yg+5MEwKuU67kzS3N0X4qzw1/hMEKPIvTzcbc6sZZK+yI4XpAV4T58QDX6XAwziDoUr
+	rXkUyw7dbQ5T66A8agWL9huteJooV9OQaXRngJKEePOVOdYEfGliCI2dSVBBBQZv3Di4Ko
+	T4eCKp9LzMSBJo7dj9y7HRY+/u9jfLc=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-102-jE53C10DM5GX5Q25Zgz-DA-1; Fri, 21 Aug 2020 06:06:47 -0400
+X-MC-Unique: jE53C10DM5GX5Q25Zgz-DA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 50D6F22D02;
-	Thu, 20 Aug 2020 15:52:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1597938759;
-	bh=olFkF8WbsFuHtZd9ChmwDnMhq4dAB75kWwSK+0maCo0=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=rXdI/2i+uTIyui9Dqky2lOsnOB5jHumUoz9vyCWVksi+jCX/cin2X0NAhZkvzzrrA
-	 kwB1mQk9tmImk5FV5Ln6HbAMWznc6VF7fXJ8iI6/UHeReZUV1SP7agq0ae+f8/MDDg
-	 S/yXBOXnLzIrn/7Y0W5T1dTvbgWrpaeScrKjGVKk=
-Date: Thu, 20 Aug 2020 18:52:28 +0300
-From: Mike Rapoport <rppt@kernel.org>
-To: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH v4 6/6] mm: secretmem: add ability to reserve memory at
- boot
-Message-ID: <20200820155228.GZ752365@kernel.org>
-References: <20200818141554.13945-1-rppt@kernel.org>
- <20200818141554.13945-7-rppt@kernel.org>
- <03ec586d-c00c-c57e-3118-7186acb7b823@redhat.com>
- <20200819115335.GU752365@kernel.org>
- <10bf57a9-c3c2-e13c-ca50-e872b7a2db0c@redhat.com>
- <20200819173347.GW752365@kernel.org>
- <6c8b30fb-1b6c-d446-0b09-255b79468f7c@redhat.com>
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C39C21005E74;
+	Fri, 21 Aug 2020 10:06:44 +0000 (UTC)
+Received: from [10.36.114.87] (ovpn-114-87.ams2.redhat.com [10.36.114.87])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id D831F7AEC2;
+	Fri, 21 Aug 2020 10:06:41 +0000 (UTC)
+Subject: Re: [PATCH v4 11/23] device-dax: Kill dax_kmem_res
+To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
+References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <159643100485.4062302.976628339798536960.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: David Hildenbrand <david@redhat.com>
+Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
+ 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
+ WNyWQQ==
+Organization: Red Hat GmbH
+Message-ID: <a3ad70a2-77a8-d50e-f372-731a8e27c03b@redhat.com>
+Date: Fri, 21 Aug 2020 12:06:40 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <6c8b30fb-1b6c-d446-0b09-255b79468f7c@redhat.com>
-Message-ID-Hash: OQBVR5JWYIPW3BI55RODYP63RO7JELQS
-X-Message-ID-Hash: OQBVR5JWYIPW3BI55RODYP63RO7JELQS
-X-MailFrom: rppt@kernel.org
+In-Reply-To: <159643100485.4062302.976628339798536960.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+Message-ID-Hash: NIZCZBKQOQHE3KMOQ65S4RQBXHTYSMR3
+X-Message-ID-Hash: NIZCZBKQOQHE3KMOQ65S4RQBXHTYSMR3
+X-MailFrom: david@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.o
- rg, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+CC: Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, peterz@infradead.org, ard.biesheuvel@linaro.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, joao.m.martins@oracle.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OQBVR5JWYIPW3BI55RODYP63RO7JELQS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NIZCZBKQOQHE3KMOQ65S4RQBXHTYSMR3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -74,86 +126,239 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 19, 2020 at 07:45:29PM +0200, David Hildenbrand wrote:
-> On 19.08.20 19:33, Mike Rapoport wrote:
-> > On Wed, Aug 19, 2020 at 02:10:43PM +0200, David Hildenbrand wrote:
-> >> On 19.08.20 13:53, Mike Rapoport wrote:
-> >>> On Wed, Aug 19, 2020 at 12:49:05PM +0200, David Hildenbrand wrote:
-> >>>> On 18.08.20 16:15, Mike Rapoport wrote:
-> >>>>> From: Mike Rapoport <rppt@linux.ibm.com>
-> >>>>>
-> >>>>> Taking pages out from the direct map and bringing them back may create
-> >>>>> undesired fragmentation and usage of the smaller pages in the direct
-> >>>>> mapping of the physical memory.
-> >>>>>
-> >>>>> This can be avoided if a significantly large area of the physical memory
-> >>>>> would be reserved for secretmem purposes at boot time.
-> >>>>>
-> >>>>> Add ability to reserve physical memory for secretmem at boot time using
-> >>>>> "secretmem" kernel parameter and then use that reserved memory as a global
-> >>>>> pool for secret memory needs.
-> >>>>
-> >>>> Wouldn't something like CMA be the better fit? Just wondering. Then, the
-> >>>> memory can actually be reused for something else while not needed.
-> >>>
-> >>> The memory allocated as secret is removed from the direct map and the
-> >>> boot time reservation is intended to reduce direct map fragmentatioan
-> >>> and to avoid splitting 1G pages there. So with CMA I'd still need to
-> >>> allocate 1G chunks for this and once 1G page is dropped from the direct
-> >>> map it still cannot be reused for anything else until it is freed.
-> >>>
-> >>> I could use CMA to do the boot time reservation, but doing the
-> >>> reservesion directly seemed simpler and more explicit to me.
-> >>
-> >> Well, using CMA would give you the possibility to let the memory be used
-> >> for other purposes until you decide it's the right time to take it +
-> >> remove the direct mapping etc.
-> > 
-> > I still can't say I follow you here. If I reseve a CMA area as a pool
-> > for secret memory 1G pages, it is still reserved and it still cannot be
-> > used for other purposes, right?
+On 03.08.20 07:03, Dan Williams wrote:
+> Several related issues around this unneeded attribute:
 > 
-> So, AFAIK, if you create a CMA pool it can be used for any MOVABLE
-> allocations (similar to ZONE_MOVABLE) until you actually allocate CMA
-> memory from that region. Other allocations on that are will then be
-> migrated away (using alloc_contig_range()).
+> - The dax_kmem_res property allows the kmem driver to stash the adjusted
+>   resource range that was used for the hotplug operation, but that can be
+>   recalculated from the original base range.
 > 
-> For example, if you have a 1~GiB CMA area, you could allocate 4~MB pages
-> from that CMA area on demand (removing the direct mapping, etc ..), and
-> free when no longer needed (instantiating the direct mapping). The free
-> memory in that area could used for MOVABLE allocations.
-
-The boot time resrvation is intended to avoid splitting 1G pages in the
-direct map. Without the boot time reservation, we maintain a pool of 2M
-pages so the 1G pages are split and 2M pages remain unsplit.
-
-If I scale your example to match the requirement to avoid splitting 1G
-pages in the direct map, that would mean creating a CMA area of several
-tens of gigabytes and then doing cma_alloc() of 1G each time we need to
-refill the secretmem pool. 
-
-It is quite probable that we won't be able to get 1G from CMA after the
-system worked for some time.
-
-With boot time reservation we won't need physcally contiguous 1G to
-satisfy smaller allocation requests for secretmem because we don't need
-to maintain 1G mappings in the secretmem pool.
-
-That said, I believe the addition of the boot time reservation, either
-direct or with CMA, can be added as an incrememntal patch after the
-"core" functionality is merged.
-
-> Please let me know if I am missing something important.
+> - kmem is using an open coded release_resource() + kfree() when an
+>   idiomatic release_mem_region() is sufficient.
 > 
-> -- 
-> Thanks,
+> - The driver managed resource need only manage the busy flag. Other flags
+>   are of no concern to the kmem driver. In fact if kmem inherits some
+>   memory range that add_memory_driver_managed() rejects that is a
+>   memory-hotplug-core policy that the driver is in no position to
+>   override.
 > 
-> David / dhildenb
+> - The implementation trusts that failed remove_memory() results in the
+>   entire resource range remaining pinned busy. The driver need not make
+>   that layering violation assumption and just maintain the busy state in
+>   its local resource.
 > 
+> - The "Hot-remove not yet implemented." comment is stale since hotremove
+>   support is now included.
+
+I think some of these changes could have been nicely split out to
+simplify reviewing. E.g., comment update, release_mem_region(),  &=
+~IORESOURCE_BUSY ...
+
+[...]
+
+> +
+>  int dev_dax_kmem_probe(struct device *dev)
+>  {
+>  	struct dev_dax *dev_dax = to_dev_dax(dev);
+> -	struct range *range = &dev_dax->range;
+> -	resource_size_t kmem_start;
+> -	resource_size_t kmem_size;
+> -	resource_size_t kmem_end;
+> -	struct resource *new_res;
+> -	const char *new_res_name;
+> -	int numa_node;
+> +	struct range range = dax_kmem_range(dev_dax);
+> +	int numa_node = dev_dax->target_node;
+> +	struct resource *res;
+> +	char *res_name;
+>  	int rc;
+>  
+>  	/*
+> @@ -37,109 +45,94 @@ int dev_dax_kmem_probe(struct device *dev)
+>  	 * could be mixed in a node with faster memory, causing
+>  	 * unavoidable performance issues.
+>  	 */
+> -	numa_node = dev_dax->target_node;
+>  	if (numa_node < 0) {
+>  		dev_warn(dev, "rejecting DAX region with invalid node: %d\n",
+>  				numa_node);
+>  		return -EINVAL;
+>  	}
+>  
+> -	/* Hotplug starting at the beginning of the next block: */
+> -	kmem_start = ALIGN(range->start, memory_block_size_bytes());
+> -
+> -	kmem_size = range_len(range);
+> -	/* Adjust the size down to compensate for moving up kmem_start: */
+> -	kmem_size -= kmem_start - range->start;
+> -	/* Align the size down to cover only complete blocks: */
+> -	kmem_size &= ~(memory_block_size_bytes() - 1);
+> -	kmem_end = kmem_start + kmem_size;
+> -
+> -	new_res_name = kstrdup(dev_name(dev), GFP_KERNEL);
+> -	if (!new_res_name)
+> +	res_name = kstrdup(dev_name(dev), GFP_KERNEL);
+> +	if (!res_name)
+>  		return -ENOMEM;
+>  
+> -	/* Region is permanently reserved if hotremove fails. */
+> -	new_res = request_mem_region(kmem_start, kmem_size, new_res_name);
+> -	if (!new_res) {
+> -		dev_warn(dev, "could not reserve region [%pa-%pa]\n",
+> -			 &kmem_start, &kmem_end);
+> -		kfree(new_res_name);
+> +	res = request_mem_region(range.start, range_len(&range), res_name);
+
+I think our range could be empty after aligning. I assume
+request_mem_region() would check that, but maybe we could report a
+better error/warning in that case.
+
+> +	if (!res) {
+> +		dev_warn(dev, "could not reserve region [%#llx-%#llx]\n",
+> +				range.start, range.end);
+> +		kfree(res_name);
+>  		return -EBUSY;
+>  	}
+>  
+>  	/*
+> -	 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
+> -	 * so that add_memory() can add a child resource.  Do not
+> -	 * inherit flags from the parent since it may set new flags
+> -	 * unknown to us that will break add_memory() below.
+> +	 * Temporarily clear busy to allow add_memory_driver_managed()
+> +	 * to claim it.
+>  	 */
+> -	new_res->flags = IORESOURCE_SYSTEM_RAM;
+> +	res->flags &= ~IORESOURCE_BUSY;
+
+Right, same approach is taken by virtio-mem.
+
+>  
+>  	/*
+>  	 * Ensure that future kexec'd kernels will not treat this as RAM
+>  	 * automatically.
+>  	 */
+> -	rc = add_memory_driver_managed(numa_node, new_res->start,
+> -				       resource_size(new_res), kmem_name);
+> +	rc = add_memory_driver_managed(numa_node, res->start,
+> +				       resource_size(res), kmem_name);
+> +
+> +	res->flags |= IORESOURCE_BUSY;
+
+Hm, I don't think that's correct. Any specific reason why to mark the
+not-added, unaligned parts BUSY? E.g., walk_system_ram_range() could
+suddenly stumble over it - and e.g., similarly kexec code when trying to
+find memory for placing kexec images. I think we should leave this
+!BUSY, just as it is right now.
+
+>  	if (rc) {
+> -		release_resource(new_res);
+> -		kfree(new_res);
+> -		kfree(new_res_name);
+> +		release_mem_region(range.start, range_len(&range));
+> +		kfree(res_name);
+>  		return rc;
+>  	}
+> -	dev_dax->dax_kmem_res = new_res;
+> +
+> +	dev_set_drvdata(dev, res_name);
+>  
+>  	return 0;
+>  }
+>  
+>  #ifdef CONFIG_MEMORY_HOTREMOVE
+> -static int dev_dax_kmem_remove(struct device *dev)
+> +static void dax_kmem_release(struct dev_dax *dev_dax)
+>  {
+> -	struct dev_dax *dev_dax = to_dev_dax(dev);
+> -	struct resource *res = dev_dax->dax_kmem_res;
+> -	resource_size_t kmem_start = res->start;
+> -	resource_size_t kmem_size = resource_size(res);
+> -	const char *res_name = res->name;
+>  	int rc;
+> +	struct device *dev = &dev_dax->dev;
+> +	const char *res_name = dev_get_drvdata(dev);
+> +	struct range range = dax_kmem_range(dev_dax);
+>  
+>  	/*
+>  	 * We have one shot for removing memory, if some memory blocks were not
+>  	 * offline prior to calling this function remove_memory() will fail, and
+>  	 * there is no way to hotremove this memory until reboot because device
+> -	 * unbind will succeed even if we return failure.
+> +	 * unbind will proceed regardless of the remove_memory result.
+>  	 */
+> -	rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
+> -	if (rc) {
+> -		any_hotremove_failed = true;
+> -		dev_err(dev,
+> -			"DAX region %pR cannot be hotremoved until the next reboot\n",
+> -			res);
+> -		return rc;
+> +	rc = remove_memory(dev_dax->target_node, range.start, range_len(&range));
+> +	if (rc == 0) {
+
+if (!rc) ?
+
+> +		release_mem_region(range.start, range_len(&range));
+
+remove_memory() does a release_mem_region_adjustable(). Don't you
+actually want to release the *unaligned* region you requested?
+
+> +		dev_set_drvdata(dev, NULL);
+> +		kfree(res_name);
+> +		return;
+>  	}
+
+Not sure if inverting the error handling improved the code / review here.
+>  
+> -	/* Release and free dax resources */
+> -	release_resource(res);
+> -	kfree(res);
+> -	kfree(res_name);
+> -	dev_dax->dax_kmem_res = NULL;
+> -
+> -	return 0;
+> +	any_hotremove_failed = true;
+> +	dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
+> +			range.start, range.end);
+>  }
+>  #else
+> -static int dev_dax_kmem_remove(struct device *dev)
+> +static void dax_kmem_release(struct dev_dax *dev_dax)
+>  {
+>  	/*
+> -	 * Without hotremove purposely leak the request_mem_region() for the
+> -	 * device-dax range and return '0' to ->remove() attempts. The removal
+> -	 * of the device from the driver always succeeds, but the region is
+> -	 * permanently pinned as reserved by the unreleased
+> -	 * request_mem_region().
+> +	 * Without hotremove purposely leak the request_mem_region() for
+> +	 * the device-dax range attempts. The removal of the device from
+> +	 * the driver always succeeds, but the region is permanently
+> +	 * pinned as reserved by the unreleased request_mem_region().
+>  	 */
+>  	any_hotremove_failed = true;
+> -	return 0;
+>  }
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
+>  
+> +static int dev_dax_kmem_remove(struct device *dev)
+> +{
+> +	dax_kmem_release(to_dev_dax(dev));
+> +	return 0;
+> +}
+> +
+>  static struct dax_device_driver device_dax_kmem_driver = {
+>  	.drv = {
+>  		.probe = dev_dax_kmem_probe,
+> 
+
+Maybe split some of these changes out. Would at least help me to review ;)
 
 -- 
-Sincerely yours,
-Mike.
+Thanks,
+
+David / dhildenb
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
