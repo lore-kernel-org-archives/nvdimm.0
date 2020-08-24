@@ -1,66 +1,65 @@
-Return-Path: <SRS0=yi8c=CA=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=/O8u=CC=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_40,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E566EC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 22 Aug 2020 02:32:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FCA9C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Aug 2020 14:55:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id AE14A20735
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 22 Aug 2020 02:32:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AE14A20735
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id EB9B6206B5
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Aug 2020 14:55:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="uxRmPdWX"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EB9B6206B5
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 66F2712A3AE36;
-	Fri, 21 Aug 2020 19:32:30 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.35; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga07-in.huawei.com [45.249.212.35])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 9E33913596B74;
+	Mon, 24 Aug 2020 07:55:22 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=90.155.50.34; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8C44412A3AE32
-	for <linux-nvdimm@lists.01.org>; Fri, 21 Aug 2020 19:32:22 -0700 (PDT)
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.60])
-	by Forcepoint Email with ESMTP id 08E845D8E658A6DDE47C;
-	Sat, 22 Aug 2020 10:32:19 +0800 (CST)
-Received: from [127.0.0.1] (10.174.177.253) by DGGEMS407-HUB.china.huawei.com
- (10.3.19.207) with Microsoft SMTP Server id 14.3.487.0; Sat, 22 Aug 2020
- 10:32:11 +0800
-Subject: Re: [PATCH v4 00/23] device-dax: Support sub-dividing soft-reserved
- ranges
-To: Andrew Morton <akpm@linux-foundation.org>, Dan Williams
-	<dan.j.williams@intel.com>
-References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
- <c59111f9-7c94-8b9e-2b8c-4cb96b9aa848@redhat.com>
- <CAPcyv4j8-5nWU5GPDBoFicwR84qM=hWRtd78DkcCg4PW-8i6Vg@mail.gmail.com>
- <20200821162134.97d551c6fe45b489992841a8@linux-foundation.org>
-From: "Leizhen (ThunderTown)" <thunder.leizhen@huawei.com>
-Message-ID: <a78c341d-db88-afd8-abfa-b997eb094b0e@huawei.com>
-Date: Sat, 22 Aug 2020 10:32:07 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+	by ml01.01.org (Postfix) with ESMTPS id 8DB9B13595DB2
+	for <linux-nvdimm@lists.01.org>; Mon, 24 Aug 2020 07:55:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=ubi2ubkSzmcUgKFA9Ty93Z77356b507gvbujH4zOh5I=; b=uxRmPdWXScdnVsVqrOytVE+3pX
+	AfNakxy/jXMIeQk1mrNaeGszT7gwlzKTJW4zKApginebWwL+8a3GK4DkxG6e3qtrAe6OrV/rKKFoW
+	WLNCWseG6+ZfPiG28STSAnIkkdgyq235kHqwtyi/vvSXY+y7bgCoAFnPzakWr6aGmDXahjy54ojPB
+	iKqWCmjjJVSdMq9U0v1TgmYdal24DeOA1OsPiilA1dB1RlJ6PO11/ekIBoyS6VDi9neoy4W6nvdUh
+	iLjbjh4KAsGEnlLZkShdZexS2paK0ywCcCD/CrO9rGrJhFXFnlTClKUaO0WHz77iQg6i2VilcP4LE
+	lDXtmWtg==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kADsP-0002m7-MX; Mon, 24 Aug 2020 14:55:14 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+To: linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH 4/9] iomap: Use bitmap ops to set uptodate bits
+Date: Mon, 24 Aug 2020 15:55:05 +0100
+Message-Id: <20200824145511.10500-5-willy@infradead.org>
+X-Mailer: git-send-email 2.21.3
+In-Reply-To: <20200824145511.10500-1-willy@infradead.org>
+References: <20200824145511.10500-1-willy@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <20200821162134.97d551c6fe45b489992841a8@linux-foundation.org>
-Content-Language: en-US
-X-Originating-IP: [10.174.177.253]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: LKHSS7YAWPC2WW5A7BLW4SD2LO5LW4AM
-X-Message-ID-Hash: LKHSS7YAWPC2WW5A7BLW4SD2LO5LW4AM
-X-MailFrom: thunder.leizhen@huawei.com
+Message-ID-Hash: TILNVG4YIMNQVBXBYEPZ6N2PG4JLPLZC
+X-Message-ID-Hash: TILNVG4YIMNQVBXBYEPZ6N2PG4JLPLZC
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: David Hildenbrand <david@redhat.com>, Ard Biesheuvel <ardb@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Borislav Petkov <bp@alien8.de>, David Airlie <airlied@linux.ie>, Will Deacon <will@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Joao Martins <joao.m.martins@oracle.com>, Tom Lendacky <thomas.lendacky@amd.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Pavel Tatashin <pasha.tatashin@soleen.com>, Peter Zijlstra <peterz@infradead.org>, Ben Skeggs <bskeggs@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jason Gunthorpe <jgg@mellanox.com>, Jia He <justin.he@arm.com>, Ingo Molnar <mingo@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Paul Mackerras <paulus@ozlabs.org>, "Brice Goglin  <Brice.Goglin@inria.
- fr>, Jeff Moyer <jmoyer@redhat.com>,  Michael Ellerman  <mpe@ellerman.id.au>,  Rafael J. Wysocki  <rjw@rjwysocki.net>, Daniel Vetter" <daniel@ffwll.ch>, Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki  <rafael@kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm" <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
+CC: "Matthew Wilcox (Oracle)" <willy@infradead.org>, "Darrick J . Wong" <darrick.wong@oracle.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LKHSS7YAWPC2WW5A7BLW4SD2LO5LW4AM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TILNVG4YIMNQVBXBYEPZ6N2PG4JLPLZC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,34 +68,43 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+Now that the bitmap is protected by a spinlock, we can use the
+more efficient bitmap ops instead of individual test/set bit ops.
 
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/iomap/buffered-io.c | 12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-On 8/22/2020 7:21 AM, Andrew Morton wrote:
-> On Wed, 19 Aug 2020 18:53:57 -0700 Dan Williams <dan.j.williams@intel.com> wrote:
-> 
->>> I think I am missing some important pieces. Bear with me.
->>
->> No worries, also bear with me, I'm going to be offline intermittently
->> until at least mid-September. Hopefully Joao and/or Vishal can jump in
->> on this discussion.
-> 
-> Ordinarily I'd prefer a refresh&resend for 2+ week-old series such as
-> this.
-> 
-> But given that v4 all applies OK and that Dan has pending outages, I'll
-> scoop up this version, even though at least one change has been suggested.
-> 
-> Also, this series has killed Zhen Lei's little cleanup
-> (http://lkml.kernel.org/r/20200817065926.2239-1-thunder.leizhen@huawei.com).
-> I don't think the affected code was moved elsewhere, so I'll drop that
-> patch.
-
-OK, this patch is really optional.
-
-> 
-> 
-> .
-> 
+diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+index 639d54a4177e..dbf9572dabe9 100644
+--- a/fs/iomap/buffered-io.c
++++ b/fs/iomap/buffered-io.c
+@@ -134,19 +134,11 @@ iomap_iop_set_range_uptodate(struct page *page, unsigned off, unsigned len)
+ 	struct inode *inode = page->mapping->host;
+ 	unsigned first = off >> inode->i_blkbits;
+ 	unsigned last = (off + len - 1) >> inode->i_blkbits;
+-	bool uptodate = true;
+ 	unsigned long flags;
+-	unsigned int i;
+ 
+ 	spin_lock_irqsave(&iop->uptodate_lock, flags);
+-	for (i = 0; i < i_blocks_per_page(inode, page); i++) {
+-		if (i >= first && i <= last)
+-			set_bit(i, iop->uptodate);
+-		else if (!test_bit(i, iop->uptodate))
+-			uptodate = false;
+-	}
+-
+-	if (uptodate)
++	bitmap_set(iop->uptodate, first, last - first + 1);
++	if (bitmap_full(iop->uptodate, i_blocks_per_page(inode, page)))
+ 		SetPageUptodate(page);
+ 	spin_unlock_irqrestore(&iop->uptodate_lock, flags);
+ }
+-- 
+2.28.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
