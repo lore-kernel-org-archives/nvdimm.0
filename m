@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E937C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Aug 2020 14:55:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EE32C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Aug 2020 14:55:33 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 20DF7206B5
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Aug 2020 14:55:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 31A76206B5
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 24 Aug 2020 14:55:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Cd1si9Xp"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 20DF7206B5
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Nk7dZB8P"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 31A76206B5
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 354A41359E201;
-	Mon, 24 Aug 2020 07:55:25 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 4C48D1359E205;
+	Mon, 24 Aug 2020 07:55:26 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=90.155.50.34; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 90B1A13596B73
+	by ml01.01.org (Postfix) with ESMTPS id 9277013596B75
 	for <linux-nvdimm@lists.01.org>; Mon, 24 Aug 2020 07:55:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=PHm5fMNB8ZZgdRcktW4dLlLzoT8t70NROW9gjEwt3r8=; b=Cd1si9Xppq69WitlxSU+3lK401
-	x5ocJ20OiXVPCUyr47XVUJE05GvIRgSpXShDd7Dx3dhVbkLPYWb+vXiJnWuR9JFvipXP+tVskYrtx
-	/AqUQwtxGaRbYBcS25tanxCTzqyBrvEl3SAm2qCEAiY/xohFdRgrHUESaKlTdy1jvoqQkEMb+hinH
-	SfbsHzJzKFEVeIdhw1HgGEKAe5YC+zFWGwnsjs3Pymeb/HgdSMbY068p1bX+a/HRJGB8yS4tDksJ3
-	OOOIaOnZPhoxc83JrfwKcoPVnkVI0pLbgwmjlecZTt4donrJQUj5hzr+ROleN6OWLObS/xuJqzoWG
-	SFHtlkDA==;
+	bh=Rhv5QEQPezgVV3tetynnY4/DOAHp31mkbEkGZ1QaUS4=; b=Nk7dZB8P6+HWX4yEqPImukdi8W
+	adMlOJv0YwCXJ4INpqzmJ4MxIHPccVUIVxVWAIDqvHwMuFAsEzGxKZEtDbQQW/6hBDJk8Niesx2nt
+	y2kYDHCDnrow1NxpMWcEQxStBAU1JVppPJ8RT0dQi8M/V5g8oFlCyE2f1WEFNHCH9vlWee5zcAVBr
+	HfpefY0ohKCeTFpSjIGKoVW9+9VtRulF+HEco0vWjt7cP4bM3sxcSLQBsxf6rvbyucO71xmG0dz8b
+	8Ne7rin749OibOzIMgN7qTrW6SltMEsxg8GZ0wrnZXCTLJRvuo8XzbROVJayJSvihIcZm9cgqx3Ai
+	icv5amrg==;
 Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kADsR-0002mX-4j; Mon, 24 Aug 2020 14:55:15 +0000
+	id 1kADsQ-0002mO-OI; Mon, 24 Aug 2020 14:55:14 +0000
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 To: linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 7/9] iomap: Convert write_count to byte count
-Date: Mon, 24 Aug 2020 15:55:08 +0100
-Message-Id: <20200824145511.10500-8-willy@infradead.org>
+Subject: [PATCH 6/9] iomap: Convert read_count to byte count
+Date: Mon, 24 Aug 2020 15:55:07 +0100
+Message-Id: <20200824145511.10500-7-willy@infradead.org>
 X-Mailer: git-send-email 2.21.3
 In-Reply-To: <20200824145511.10500-1-willy@infradead.org>
 References: <20200824145511.10500-1-willy@infradead.org>
 MIME-Version: 1.0
-Message-ID-Hash: KJ2TJ32B2NRLMLF43W4XDMCEVYZZ255U
-X-Message-ID-Hash: KJ2TJ32B2NRLMLF43W4XDMCEVYZZ255U
+Message-ID-Hash: ZECMN57DRPLQEX66JYISI6ESOJV2X464
+X-Message-ID-Hash: ZECMN57DRPLQEX66JYISI6ESOJV2X464
 X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -59,7 +59,7 @@ CC: "Matthew Wilcox (Oracle)" <willy@infradead.org>, "Darrick J . Wong" <darrick
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KJ2TJ32B2NRLMLF43W4XDMCEVYZZ255U/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZECMN57DRPLQEX66JYISI6ESOJV2X464/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -74,52 +74,66 @@ is, which is not necessarily clear once THPs are involved.
 
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 ---
- fs/iomap/buffered-io.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/iomap/buffered-io.c | 29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
 diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
-index c9b44f86d166..8c6187a6f34e 100644
+index 844e95cacea8..c9b44f86d166 100644
 --- a/fs/iomap/buffered-io.c
 +++ b/fs/iomap/buffered-io.c
-@@ -1050,7 +1050,7 @@ EXPORT_SYMBOL_GPL(iomap_page_mkwrite);
- 
- static void
- iomap_finish_page_writeback(struct inode *inode, struct page *page,
--		int error)
-+		int error, unsigned int len)
- {
- 	struct iomap_page *iop = to_iomap_page(page);
- 
-@@ -1062,7 +1062,7 @@ iomap_finish_page_writeback(struct inode *inode, struct page *page,
- 	WARN_ON_ONCE(i_blocks_per_page(inode, page) > 1 && !iop);
- 	WARN_ON_ONCE(iop && atomic_read(&iop->write_count) <= 0);
- 
--	if (!iop || atomic_dec_and_test(&iop->write_count))
-+	if (!iop || atomic_sub_and_test(len, &iop->write_count))
- 		end_page_writeback(page);
+@@ -161,13 +161,6 @@ iomap_set_range_uptodate(struct page *page, unsigned off, unsigned len)
+ 		SetPageUptodate(page);
  }
  
-@@ -1096,7 +1096,8 @@ iomap_finish_ioend(struct iomap_ioend *ioend, int error)
- 
- 		/* walk each page on bio, ending page IO on them */
- 		bio_for_each_segment_all(bv, bio, iter_all)
--			iomap_finish_page_writeback(inode, bv->bv_page, error);
-+			iomap_finish_page_writeback(inode, bv->bv_page, error,
-+					bv->bv_len);
- 		bio_put(bio);
+-static void
+-iomap_read_finish(struct iomap_page *iop, struct page *page)
+-{
+-	if (!iop || atomic_dec_and_test(&iop->read_count))
+-		unlock_page(page);
+-}
+-
+ static void
+ iomap_read_page_end_io(struct bio_vec *bvec, int error)
+ {
+@@ -181,7 +174,8 @@ iomap_read_page_end_io(struct bio_vec *bvec, int error)
+ 		iomap_set_range_uptodate(page, bvec->bv_offset, bvec->bv_len);
  	}
- 	/* The ioend has been freed by bio_put() */
-@@ -1312,8 +1313,8 @@ iomap_add_to_ioend(struct inode *inode, loff_t offset, struct page *page,
  
- 	merged = __bio_try_merge_page(wpc->ioend->io_bio, page, len, poff,
- 			&same_page);
--	if (iop && !same_page)
--		atomic_inc(&iop->write_count);
-+	if (iop)
-+		atomic_add(len, &iop->write_count);
+-	iomap_read_finish(iop, page);
++	if (!iop || atomic_sub_and_test(bvec->bv_len, &iop->read_count))
++		unlock_page(page);
+ }
  
- 	if (!merged) {
- 		if (bio_full(wpc->ioend->io_bio, len)) {
+ static void
+@@ -269,20 +263,17 @@ iomap_readpage_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 	if (ctx->bio && bio_end_sector(ctx->bio) == sector)
+ 		is_contig = true;
+ 
+-	if (is_contig &&
+-	    __bio_try_merge_page(ctx->bio, page, plen, poff, &same_page)) {
+-		if (!same_page && iop)
+-			atomic_inc(&iop->read_count);
+-		goto done;
+-	}
+-
+ 	/*
+-	 * If we start a new segment we need to increase the read count, and we
+-	 * need to do so before submitting any previous full bio to make sure
+-	 * that we don't prematurely unlock the page.
++	 * We need to increase the read count before submitting any
++	 * previous bio to make sure that we don't prematurely unlock
++	 * the page.
+ 	 */
+ 	if (iop)
+-		atomic_inc(&iop->read_count);
++		atomic_add(plen, &iop->read_count);
++
++	if (is_contig &&
++	    __bio_try_merge_page(ctx->bio, page, plen, poff, &same_page))
++		goto done;
+ 
+ 	if (!ctx->bio || !is_contig || bio_full(ctx->bio, plen)) {
+ 		gfp_t gfp = mapping_gfp_constraint(page->mapping, GFP_KERNEL);
 -- 
 2.28.0
 _______________________________________________
