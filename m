@@ -1,77 +1,86 @@
 Return-Path: <SRS0=TU+8=CE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.8 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.6 required=3.0 tests=BAYES_40,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9BF7C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 01:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FB71C433E4
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 02:26:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5C2BC2075E
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 01:16:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5C2BC2075E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=rakuten.co.jp
+	by mail.kernel.org (Postfix) with ESMTPS id 577A52074A
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 02:26:30 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ncJE4xT0"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 577A52074A
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8E0C811FC5CB8;
-	Tue, 25 Aug 2020 18:16:42 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=150.95.221.220; helo=rakuten.co.jp; envelope-from=account-update@rakuten.co.jp; receiver=<UNKNOWN> 
-Received: from rakuten.co.jp (v150-95-221-220.ydvw.static.cnode.io [150.95.221.220])
-	by ml01.01.org (Postfix) with ESMTP id 28F4611FC5CB5
-	for <linux-nvdimm@lists.01.org>; Tue, 25 Aug 2020 18:16:39 -0700 (PDT)
-Received: from duenyiejsl (unknown [162.210.233.162])
-	by rakuten.co.jp with SMTP id 4G2g1PMN98kKZLlc.1
-	for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 10:16:40 +0900
-Sender: account-update@rakuten.co.jp
-Message-ID: <202008261016405478758@rakuten.co.jp>
-From: "Rakuten" <account-update@rakuten.co.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?5qW95aSp5a6J5YWo55Ww5bi4?=
-Date: Wed, 26 Aug 2020 10:16:33 +0900
-Mime-Version: 1.0
-X-Priority: 3
-X-Mailer: Bnduyfqir 3
-Message-ID-Hash: CMRT6IWW6QHID347KG6L2IU3EXJ7HI3W
-X-Message-ID-Hash: CMRT6IWW6QHID347KG6L2IU3EXJ7HI3W
-X-MailFrom: account-update@rakuten.co.jp
+	by ml01.01.org (Postfix) with ESMTP id 2F45311FC44AF;
+	Tue, 25 Aug 2020 19:26:30 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id E4807111F31E2
+	for <linux-nvdimm@lists.01.org>; Tue, 25 Aug 2020 19:26:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=sxFvO/GLCLgBRfmkOAspDUyP4lpcTibuAN2MiSmiuaE=; b=ncJE4xT0RV0DL88DyjXY0ZZWNX
+	c5H0dGv17CatAlJxzga6RRk56Q8fwDpXIuW7EEgf7tICAzbPlgtNvK36sFxtwQvfroJ8qKcfn9ct+
+	v4xOejFU30Eo6Um3PIONALTAT6Ii6GySy9Kynet63yIETPr4X7Oj3m9vt0bUhKXato+jPPJgzIcmN
+	xCRFwAEBsbxCuWcC3955WsJF+6u+RN5YmHIZREM7WnjcBaZxITdzSi1qvAFtPV8idzN0tt+oTQK6S
+	sSkJThXGSEmeNs+teYiAx47mwssooc7xfO79kmW10tUeb6CG3YyCKJVsgR67CM/sfzG2kQmIpROjy
+	HXDE9yLQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kAl8p-0003AS-OR; Wed, 26 Aug 2020 02:26:23 +0000
+Date: Wed, 26 Aug 2020 03:26:23 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH 5/9] iomap: Support arbitrarily many blocks per page
+Message-ID: <20200826022623.GQ17456@casper.infradead.org>
+References: <20200824145511.10500-1-willy@infradead.org>
+ <20200824145511.10500-6-willy@infradead.org>
+ <20200825210203.GJ6096@magnolia>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20200825210203.GJ6096@magnolia>
+Message-ID-Hash: FBBZ3OIQ7PKPI433YMZP2IGNYJAXYVRV
+X-Message-ID-Hash: FBBZ3OIQ7PKPI433YMZP2IGNYJAXYVRV
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CMRT6IWW6QHID347KG6L2IU3EXJ7HI3W/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FBBZ3OIQ7PKPI433YMZP2IGNYJAXYVRV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-ICANCiAgDQogIFJha3V0ZW7jgYrlrqLmp5ggDQrmrovlv7XjgarjgYzjgonjgIHjgYLjgarjgZ/j
-ga7jgqLjgqvjgqbjg7Pjg4gg44KS5pu05paw44Gn44GN44G+44Gb44KT44Gn44GX44Gf44CC44GT
-44KM44Gv44CB44Kr44O844OJ44GM5pyf6ZmQ5YiH44KM44Gr44Gq44Gj44Gf44GL44CCDQroq4vm
-sYLlhYjkvY/miYDjgYzlpInmm7TjgZXjgozjgZ/jgarjganjgIHjgZXjgb7jgZbjgb7jgarnkIbn
-lLHjgafnmbrnlJ/jgZnjgovlj6/og73mgKfjgYzjgYLjgorjgb7jgZnjgIINCg0K5LuK44Ki44Kr
-44Km44Oz44OI44KS56K66KqN44Gn44GN44G+44GZ44CCDQoNCualveWkqeODreOCsOOCpOODsw0K
-44Gq44GK44CBMjTmmYLplpPku6XlhoXjgavjgZTnorroqo3jgYzjgarjgYTloLTlkIjjgIHoqqDj
-gavpgbrmhr7jgarjgYzjgonjgIHjgqLjgqvjgqbjg7Pjg4jjgpLjg63jg4Pjgq/jgZXjgZvjgabj
-gYTjgZ/jgaDjgY/jgZPjgajjgpLorablkYrjgYTjgZ/jgZfjgb7jgZnjgIIgDQrjg5Hjgrnjg6/j
-g7zjg4njgpLlpInmm7TjgZfjgZ/opprjgYjjgYzjgarjgYTloLTlkIjjga/jgIHoh7PmgKXvvIgw
-MSktNTAtNTgzMC02ODYw44G+44Gn44GK6Zu76Kmx44GP44Gg44GV44GE44CCIA0KICANCuOBiuef
-peOCieOBmzoNCsK3IOODkeOCueODr+ODvOODieOBr+iqsOOBq+OCguaVmeOBiOOBquOBhOOBp+OB
-j+OBoOOBleOBhOOAgiANCsK3IOWAi+S6uuaDheWgseOBqOmWouS/guOBjOOBquOBj+OAgeaOqOa4
-rOOBl+OBq+OBj+OBhOODkeOCueODr+ODvOODieOCkuS9nOaIkOOBl+OBpuOBj+OBoOOBleOBhOOA
-guWkp+aWh+Wtl+OBqOWwj+aWh+Wtl+OAgeaVsOWtl+OAgeOBiuOCiOOBs+iomOWPt+OCkuW/heOB
-muS9v+eUqOOBl+OBpuOBj+OBoOOBleOBhOOAgiANCsK3IOOCquODs+ODqeOCpOODs+OCouOCq+OC
-puODs+ODiOOBlOOBqOOBq+OAgeeVsOOBquOCi+ODkeOCueODr+ODvOODieOCkuS9v+eUqOOBl+OB
-puOBj+OBoOOBleOBhOOAgiANCg0KDQrjganjgYbjgZ7jgojjgo3jgZfjgY/jgYrpoZjjgYTjgYTj
-gZ/jgZfjgb7jgZnjgIIgDQpSYWt1dGVu77yMSW5jLg0KDQogIA0KDQogIApfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBl
-bWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+On Tue, Aug 25, 2020 at 02:02:03PM -0700, Darrick J. Wong wrote:
+> >  /*
+> > - * Structure allocated for each page when block size < PAGE_SIZE to track
+> > + * Structure allocated for each page when block size < page size to track
+> >   * sub-page uptodate status and I/O completions.
+> 
+> "for each regular page or head page of a huge page"?  Or whatever we're
+> calling them nowadays?
+
+Well, that's what I'm calling a "page" ;-)
+
+How about "for each page or THP"?  The fact that it's stored in the
+head page is incidental -- it's allocated for the THP.
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
