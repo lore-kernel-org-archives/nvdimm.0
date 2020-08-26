@@ -2,84 +2,52 @@ Return-Path: <SRS0=TU+8=CE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22DD1C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 12:19:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF54CC433E1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 13:51:18 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D47AC20838
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 12:19:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D47AC20838
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id C161121775
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 13:51:18 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C161121775
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 62E54123F3553;
-	Wed, 26 Aug 2020 05:19:01 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.191; helo=huawei.com; envelope-from=yuehaibing@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2C278123F0FE3
-	for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 05:18:59 -0700 (PDT)
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.58])
-	by Forcepoint Email with ESMTP id 6307F1CE024FDD78DF13;
-	Wed, 26 Aug 2020 20:18:55 +0800 (CST)
-Received: from localhost (10.174.179.108) by DGGEMS405-HUB.china.huawei.com
- (10.3.19.205) with Microsoft SMTP Server id 14.3.487.0; Wed, 26 Aug 2020
- 20:18:44 +0800
-From: YueHaibing <yuehaibing@huawei.com>
-To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <mingo@kernel.org>
-Subject: [PATCH] libnvdimm/e820: Fix build error without MEMORY_HOTPLUG
-Date: Wed, 26 Aug 2020 20:18:00 +0800
-Message-ID: <20200826121800.732-1-yuehaibing@huawei.com>
-X-Mailer: git-send-email 2.10.2.windows.1
+	by ml01.01.org (Postfix) with ESMTP id 8603C100780B0;
+	Wed, 26 Aug 2020 06:51:18 -0700 (PDT)
+Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 9E0671007B163
+	for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 06:51:16 -0700 (PDT)
 MIME-Version: 1.0
-X-Originating-IP: [10.174.179.108]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: E7Q7F3MRXOH5H2QSPSFJGIAKICCXJL5I
-X-Message-ID-Hash: E7Q7F3MRXOH5H2QSPSFJGIAKICCXJL5I
-X-MailFrom: yuehaibing@huawei.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+Subject: =?utf-8?q?11_Best_IVF_Centers_in_Hyderabad_=7C_IVF_=40_79k_-_Free_Consult?=
+ =?utf-8?b?YXRpb24gaW4gVG9wIElWRiBDZW50cmVz77iP77iP?=
+From: "Best IVF Centers" <bestivfcenters@gmail.com>
+To: linux-nvdimm@lists.01.org
+Date: Wed, 26 Aug 2020 13:51:16 -0000
+Message-ID: <20200826135116.2753.1933@ml01.vlan13.01.org>
+User-Agent: HyperKitty on https://lists.01.org/
+Message-ID-Hash: 26M6KD56IWY2QRWWZRMZS4UH322UJHZW
+X-Message-ID-Hash: 26M6KD56IWY2QRWWZRMZS4UH322UJHZW
+X-MailFrom: bestivfcenters@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/E7Q7F3MRXOH5H2QSPSFJGIAKICCXJL5I/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/26M6KD56IWY2QRWWZRMZS4UH322UJHZW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-SWYgTUVNT1JZX0hPVFBMVUcgaXMgbiwgYnVpbGQgZmFpbHM6DQoNCmRyaXZlcnMvbnZkaW1tL2U4
-MjAuYzogSW4gZnVuY3Rpb24g4oCYZTgyMF9yZWdpc3Rlcl9vbmXigJk6DQpkcml2ZXJzL252ZGlt
-bS9lODIwLmM6MjQ6MTI6IGVycm9yOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiDi
-gJhwaHlzX3RvX3RhcmdldF9ub2Rl4oCZOyBkaWQgeW91IG1lYW4g4oCYc2V0X3BhZ2Vfbm9kZeKA
-mT8gWy1XZXJyb3I9aW1wbGljaXQtZnVuY3Rpb24tZGVjbGFyYXRpb25dDQogIGludCBuaWQgPSBw
-aHlzX3RvX3RhcmdldF9ub2RlKHJlcy0+c3RhcnQpOw0KICAgICAgICAgICAgXn5+fn5+fn5+fn5+
-fn5+fn5+fg0KICAgICAgICAgICAgc2V0X3BhZ2Vfbm9kZQ0KDQpGaXhlczogN2IyN2E4NjIyZjgw
-ICgibGlibnZkaW1tL2U4MjA6IFJldHJpZXZlIGFuZCBwb3B1bGF0ZSBjb3JyZWN0ICd0YXJnZXRf
-bm9kZScgaW5mbyIpDQpTaWduZWQtb2ZmLWJ5OiBZdWVIYWliaW5nIDx5dWVoYWliaW5nQGh1YXdl
-aS5jb20+DQotLS0NCiBkcml2ZXJzL252ZGltbS9lODIwLmMgfCA3ICsrKysrKysNCiAxIGZpbGUg
-Y2hhbmdlZCwgNyBpbnNlcnRpb25zKCspDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9l
-ODIwLmMgYi9kcml2ZXJzL252ZGltbS9lODIwLmMNCmluZGV4IDRjZDE4YmU5ZDBlOS4uYzc0MWYw
-MjlmMjE1IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vZTgyMC5jDQorKysgYi9kcml2ZXJz
-L252ZGltbS9lODIwLmMNCkBAIC0xNyw2ICsxNywxMyBAQCBzdGF0aWMgaW50IGU4MjBfcG1lbV9y
-ZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikNCiAJcmV0dXJuIDA7DQogfQ0KIA0K
-KyNpZm5kZWYgQ09ORklHX01FTU9SWV9IT1RQTFVHDQorc3RhdGljIGlubGluZSBpbnQgcGh5c190
-b190YXJnZXRfbm9kZSh1NjQgc3RhcnQpDQorew0KKwlyZXR1cm4gMDsNCit9DQorI2VuZGlmDQor
-DQogc3RhdGljIGludCBlODIwX3JlZ2lzdGVyX29uZShzdHJ1Y3QgcmVzb3VyY2UgKnJlcywgdm9p
-ZCAqZGF0YSkNCiB7DQogCXN0cnVjdCBuZF9yZWdpb25fZGVzYyBuZHJfZGVzYzsNCi0tIA0KMi4x
-Ny4xDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxp
-bnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1
-bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5v
-cmcK
+Best IVF Centers in Hyderabad provide affordable IVF / Fertility Treatment Cost in Hyderabad. Book a FREE IVF CONSULTATION with Top 11 Fertility Centres & Doctors Near Your location. For more information visit us: https://bestivfcenters.com/hyderabad/best-ivf-centres/
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
