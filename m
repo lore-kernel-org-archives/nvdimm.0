@@ -1,145 +1,92 @@
-Return-Path: <SRS0=TU+8=CE=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=YNfM=CF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97A94C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 20:22:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81A85C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 27 Aug 2020 03:54:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 64161207DF
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 26 Aug 2020 20:22:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 64161207DF
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 6113020786
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 27 Aug 2020 03:54:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6113020786
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 51767123B96D3;
-	Wed, 26 Aug 2020 13:22:29 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=lkp@intel.com; receiver=<UNKNOWN> 
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	by ml01.01.org (Postfix) with ESMTP id 39A5612527FA6;
+	Wed, 26 Aug 2020 20:54:14 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.191; helo=huawei.com; envelope-from=yuehaibing@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E8FB21237CE35;
-	Wed, 26 Aug 2020 13:22:26 -0700 (PDT)
-IronPort-SDR: sDQQpiz5FkblXzxL+2Q9QQm0lWqy/1X+d1YxmaczwcztGXBKVdT95FXolLgMny+d7dKpOhy28Q
- k2st1ZuiPnGw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9725"; a="144141294"
-X-IronPort-AV: E=Sophos;i="5.76,356,1592895600";
-   d="gz'50?scan'50,208,50";a="144141294"
-X-Amp-Result: UNKNOWN
-X-Amp-Original-Verdict: FILE UNKNOWN
-X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2020 13:22:26 -0700
-IronPort-SDR: MpmsgelkE7IwBxBhV5yl/l0aIUybUotVhyljveY7l37ZtnjzhRsVgCVN5Z+Qk+xka742S1C/0d
- jQKJ/WkXfizA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.76,356,1592895600";
-   d="gz'50?scan'50,208,50";a="474905230"
-Received: from lkp-server01.sh.intel.com (HELO 4f455964fc6c) ([10.239.97.150])
-  by orsmga005.jf.intel.com with ESMTP; 26 Aug 2020 13:22:23 -0700
-Received: from kbuild by 4f455964fc6c with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1kB1w6-0001dy-G1; Wed, 26 Aug 2020 20:22:22 +0000
-Date: Thu, 27 Aug 2020 04:22:00 +0800
-From: kernel test robot <lkp@intel.com>
-To: YueHaibing <yuehaibing@huawei.com>, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com, dave.jiang@intel.com, ira.weiny@intel.com,
-	mingo@kernel.org
+	by ml01.01.org (Postfix) with ESMTPS id CA78C12527FA3
+	for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 20:54:11 -0700 (PDT)
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.60])
+	by Forcepoint Email with ESMTP id 55A1047872667942D41D;
+	Thu, 27 Aug 2020 11:54:08 +0800 (CST)
+Received: from [127.0.0.1] (10.174.179.108) by DGGEMS409-HUB.china.huawei.com
+ (10.3.19.209) with Microsoft SMTP Server id 14.3.487.0; Thu, 27 Aug 2020
+ 11:54:05 +0800
 Subject: Re: [PATCH] libnvdimm/e820: Fix build error without MEMORY_HOTPLUG
-Message-ID: <202008270417.2e1Gcd45%lkp@intel.com>
+To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <mingo@kernel.org>
 References: <20200826121800.732-1-yuehaibing@huawei.com>
+From: Yuehaibing <yuehaibing@huawei.com>
+Message-ID: <c1b6d720-513d-10de-364f-46c7f5b750fc@huawei.com>
+Date: Thu, 27 Aug 2020 11:54:05 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
+ Thunderbird/45.8.0
 MIME-Version: 1.0
 In-Reply-To: <20200826121800.732-1-yuehaibing@huawei.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: CV5NCA7WWOAZZ5TYFQYGHL4ZL5VQN2KK
-X-Message-ID-Hash: CV5NCA7WWOAZZ5TYFQYGHL4ZL5VQN2KK
-X-MailFrom: lkp@intel.com
+Content-Type: text/plain; charset="utf-8"
+X-Originating-IP: [10.174.179.108]
+X-CFilter-Loop: Reflected
+Message-ID-Hash: HKMQQGCVOCCZTG6BYOYCFOFVQ7YOLQYT
+X-Message-ID-Hash: HKMQQGCVOCCZTG6BYOYCFOFVQ7YOLQYT
+X-MailFrom: yuehaibing@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-Content-Disposition: inline
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
-CC: kbuild-all@lists.01.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+CC: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CV5NCA7WWOAZZ5TYFQYGHL4ZL5VQN2KK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HKMQQGCVOCCZTG6BYOYCFOFVQ7YOLQYT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 
-Hi YueHaibing,
-
-Thank you for the patch! Yet something to improve:
-
-[auto build test ERROR on linux-nvdimm/libnvdimm-for-next]
-[also build test ERROR on v5.9-rc2 next-20200826]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
-
-url:    https://github.com/0day-ci/linux/commits/YueHaibing/libnvdimm-e820-Fix-build-error-without-MEMORY_HOTPLUG/20200826-202043
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
-config: x86_64-randconfig-r014-20200826 (attached as .config)
-compiler: gcc-9 (Debian 9.3.0-15) 9.3.0
-reproduce (this is a W=1 build):
-        # save the attached .config to linux build tree
-        make W=1 ARCH=x86_64 
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
->> drivers/nvdimm/e820.c:21:19: error: static declaration of 'phys_to_target_node' follows non-static declaration
-      21 | static inline int phys_to_target_node(u64 start)
-         |                   ^~~~~~~~~~~~~~~~~~~
-   In file included from include/linux/nodemask.h:96,
-                    from arch/x86/include/asm/numa.h:5,
-                    from arch/x86/include/asm/acpi.h:11,
-                    from arch/x86/include/asm/fixmap.h:29,
-                    from arch/x86/include/asm/apic.h:11,
-                    from arch/x86/include/asm/smp.h:13,
-                    from include/linux/smp.h:82,
-                    from include/linux/percpu.h:7,
-                    from include/linux/hrtimer.h:19,
-                    from include/linux/sched.h:20,
-                    from include/linux/ratelimit.h:6,
-                    from include/linux/dev_printk.h:16,
-                    from include/linux/device.h:15,
-                    from include/linux/platform_device.h:13,
-                    from drivers/nvdimm/e820.c:6:
-   include/linux/numa.h:31:5: note: previous declaration of 'phys_to_target_node' was here
-      31 | int phys_to_target_node(phys_addr_t addr);
-         |     ^~~~~~~~~~~~~~~~~~~
-
-# https://github.com/0day-ci/linux/commit/4c003ae129dccea4445a55e9e2c61de5922fbd37
-git remote add linux-review https://github.com/0day-ci/linux
-git fetch --no-tags linux-review YueHaibing/libnvdimm-e820-Fix-build-error-without-MEMORY_HOTPLUG/20200826-202043
-git checkout 4c003ae129dccea4445a55e9e2c61de5922fbd37
-vim +/phys_to_target_node +21 drivers/nvdimm/e820.c
-
-    19	
-    20	#ifndef CONFIG_MEMORY_HOTPLUG
-  > 21	static inline int phys_to_target_node(u64 start)
-    22	{
-    23		return 0;
-    24	}
-    25	#endif
-    26	
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+UGxzIGlnbm9yZSB0aGlzDQoNCkl0IGhhcyBiZSBmaXhlZCBpbiBjb21taXQgZGJiODczM2FiYjFj
+ICgibW0tbWVtb3J5X2hvdHBsdWctaW50cm9kdWNlLWRlZmF1bHQtcGh5c190b190YXJnZXRfbm9k
+ZS1pbXBsZW1lbnRhdGlvbi1maXgiKQ0KDQpPbiAyMDIwLzgvMjYgMjA6MTgsIFl1ZUhhaWJpbmcg
+d3JvdGU6DQo+IElmIE1FTU9SWV9IT1RQTFVHIGlzIG4sIGJ1aWxkIGZhaWxzOg0KPiANCj4gZHJp
+dmVycy9udmRpbW0vZTgyMC5jOiBJbiBmdW5jdGlvbiDigJhlODIwX3JlZ2lzdGVyX29uZeKAmToN
+Cj4gZHJpdmVycy9udmRpbW0vZTgyMC5jOjI0OjEyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
+b24gb2YgZnVuY3Rpb24g4oCYcGh5c190b190YXJnZXRfbm9kZeKAmTsgZGlkIHlvdSBtZWFuIOKA
+mHNldF9wYWdlX25vZGXigJk/IFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9u
+XQ0KPiAgIGludCBuaWQgPSBwaHlzX3RvX3RhcmdldF9ub2RlKHJlcy0+c3RhcnQpOw0KPiAgICAg
+ICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+DQo+ICAgICAgICAgICAgIHNldF9wYWdlX25vZGUN
+Cj4gDQo+IEZpeGVzOiA3YjI3YTg2MjJmODAgKCJsaWJudmRpbW0vZTgyMDogUmV0cmlldmUgYW5k
+IHBvcHVsYXRlIGNvcnJlY3QgJ3RhcmdldF9ub2RlJyBpbmZvIikNCj4gU2lnbmVkLW9mZi1ieTog
+WXVlSGFpYmluZyA8eXVlaGFpYmluZ0BodWF3ZWkuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvbnZk
+aW1tL2U4MjAuYyB8IDcgKysrKysrKw0KPiAgMSBmaWxlIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygr
+KQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL2U4MjAuYyBiL2RyaXZlcnMvbnZk
+aW1tL2U4MjAuYw0KPiBpbmRleCA0Y2QxOGJlOWQwZTkuLmM3NDFmMDI5ZjIxNSAxMDA2NDQNCj4g
+LS0tIGEvZHJpdmVycy9udmRpbW0vZTgyMC5jDQo+ICsrKyBiL2RyaXZlcnMvbnZkaW1tL2U4MjAu
+Yw0KPiBAQCAtMTcsNiArMTcsMTMgQEAgc3RhdGljIGludCBlODIwX3BtZW1fcmVtb3ZlKHN0cnVj
+dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpDQo+ICAJcmV0dXJuIDA7DQo+ICB9DQo+ICANCj4gKyNp
+Zm5kZWYgQ09ORklHX01FTU9SWV9IT1RQTFVHDQo+ICtzdGF0aWMgaW5saW5lIGludCBwaHlzX3Rv
+X3RhcmdldF9ub2RlKHU2NCBzdGFydCkNCj4gK3sNCj4gKwlyZXR1cm4gMDsNCj4gK30NCj4gKyNl
+bmRpZg0KPiArDQo+ICBzdGF0aWMgaW50IGU4MjBfcmVnaXN0ZXJfb25lKHN0cnVjdCByZXNvdXJj
+ZSAqcmVzLCB2b2lkICpkYXRhKQ0KPiAgew0KPiAgCXN0cnVjdCBuZF9yZWdpb25fZGVzYyBuZHJf
+ZGVzYzsNCj4gDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
+VG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMu
+MDEub3JnCg==
