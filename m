@@ -2,91 +2,229 @@ Return-Path: <SRS0=YNfM=CF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81A85C433E1
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 27 Aug 2020 03:54:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A9E6C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 27 Aug 2020 05:40:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6113020786
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 27 Aug 2020 03:54:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6113020786
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id 40684207BC
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 27 Aug 2020 05:40:53 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="0BJA5jio"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 40684207BC
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 39A5612527FA6;
-	Wed, 26 Aug 2020 20:54:14 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.191; helo=huawei.com; envelope-from=yuehaibing@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id E09541252CA73;
+	Wed, 26 Aug 2020 22:40:52 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::442; helo=mail-pf1-x442.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pf1-x442.google.com (mail-pf1-x442.google.com [IPv6:2607:f8b0:4864:20::442])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CA78C12527FA3
-	for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 20:54:11 -0700 (PDT)
-Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.60])
-	by Forcepoint Email with ESMTP id 55A1047872667942D41D;
-	Thu, 27 Aug 2020 11:54:08 +0800 (CST)
-Received: from [127.0.0.1] (10.174.179.108) by DGGEMS409-HUB.china.huawei.com
- (10.3.19.209) with Microsoft SMTP Server id 14.3.487.0; Thu, 27 Aug 2020
- 11:54:05 +0800
-Subject: Re: [PATCH] libnvdimm/e820: Fix build error without MEMORY_HOTPLUG
-To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
-	<dave.jiang@intel.com>, <ira.weiny@intel.com>, <mingo@kernel.org>
-References: <20200826121800.732-1-yuehaibing@huawei.com>
-From: Yuehaibing <yuehaibing@huawei.com>
-Message-ID: <c1b6d720-513d-10de-364f-46c7f5b750fc@huawei.com>
-Date: Thu, 27 Aug 2020 11:54:05 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101
- Thunderbird/45.8.0
+	by ml01.01.org (Postfix) with ESMTPS id DC85F1252CA6F
+	for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 22:40:50 -0700 (PDT)
+Received: by mail-pf1-x442.google.com with SMTP id k1so2621276pfu.2
+        for <linux-nvdimm@lists.01.org>; Wed, 26 Aug 2020 22:40:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mdzET5yvTmbbtd4SlYxpwGhos/mC7IS5FoFiDgfZBCo=;
+        b=0BJA5jioUYSpg0sMEifcgJfw+GYmvFs4oFrVg1Ivl3yVyfa+nBtB+7SDfhgk1VjPoQ
+         wEobh8DPgSDkK8CdvyXpdREBht0T9hUPF2kYK1ALrZLirm1GIPD9WgS+NcA52z0rTEVy
+         BOLofFaCV6hrXq/AtGiAhRghfn8U+B9T46tuiPTPZpDRV+khIWJjrSRzRgNziaHOM+UP
+         daxAZ0YF8X9ho0ymP0kFmjyADna5DXwZ3Vx8ZkqJEwNXPxVh2G+xwJ23F71kJ115gHGe
+         IP9kPkF1qycAyD2JvFlVg/Gd0Sy/uNvttX2fLBWUy3GcPZlrd9TrOBT/G6WGggnyJ7kU
+         11dA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=mdzET5yvTmbbtd4SlYxpwGhos/mC7IS5FoFiDgfZBCo=;
+        b=t3v2Lk2NywtAG5RQQgUOL4fxNffUCuclIGrp7V4ad4eG1nxdJuz9kxUcZD9menYRAZ
+         MgNGB4zbpcbma2n8urJo0Kd2JncpJD81XCWCmLRgEbkBEJjkZUkmQzAIW2xHli0gqBBk
+         7xmGq+7rJA0T9E16fW/xGRKoCBLNlEgUwUEwXpMSYjamFYqMyGqr60xabZkZ+EOdv8Ut
+         QNpWb+8GOeuDqQO4zU5T1v8it1KGhpigPgJiOtFIQzTVly7u8Cfa8ZxNN9vqH239rcyx
+         1Nir+44in1qHbbTLSWUGKMx2wcGYL+pBEEXFhifD1yGcpHD+b+hnkynlNbK9idP7tL3w
+         4Bww==
+X-Gm-Message-State: AOAM532lxVioQ4/43qQbAUVvSYdw0gMPrZxG2pSVdsoC4NMJVEfIEgAp
+	D9guLzpnmVdvl+wJiIW3p0uhCJykVSB4Dw==
+X-Google-Smtp-Source: ABdhPJw/g1YOjnjPTELYM7Lqda0z/jIcpNdLT8mNDiRsThsQYl8uPKIuPZORhzUxzqOHHF637Df4JA==
+X-Received: by 2002:a17:902:7048:: with SMTP id h8mr14561957plt.225.1598506848588;
+        Wed, 26 Aug 2020 22:40:48 -0700 (PDT)
+Received: from santosiv.in.ibm.com.com ([203.223.190.240])
+        by smtp.gmail.com with ESMTPSA id b185sm1079990pfg.71.2020.08.26.22.40.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 26 Aug 2020 22:40:47 -0700 (PDT)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: Linux NVDIMM <linux-nvdimm@lists.01.org>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2] namespace-action: Don't act on any seed namespaces
+Date: Thu, 27 Aug 2020 11:10:16 +0530
+Message-Id: <20200827054016.214041-1-santosh@fossix.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-In-Reply-To: <20200826121800.732-1-yuehaibing@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-X-Originating-IP: [10.174.179.108]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: HKMQQGCVOCCZTG6BYOYCFOFVQ7YOLQYT
-X-Message-ID-Hash: HKMQQGCVOCCZTG6BYOYCFOFVQ7YOLQYT
-X-MailFrom: yuehaibing@huawei.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Message-ID-Hash: FZEEVH24YTV4G3X5QZIWZ2YZNX4KDZPT
+X-Message-ID-Hash: FZEEVH24YTV4G3X5QZIWZ2YZNX4KDZPT
+X-MailFrom: santosh@fossix.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Harish Sriram <harish@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HKMQQGCVOCCZTG6BYOYCFOFVQ7YOLQYT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FZEEVH24YTV4G3X5QZIWZ2YZNX4KDZPT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-UGxzIGlnbm9yZSB0aGlzDQoNCkl0IGhhcyBiZSBmaXhlZCBpbiBjb21taXQgZGJiODczM2FiYjFj
-ICgibW0tbWVtb3J5X2hvdHBsdWctaW50cm9kdWNlLWRlZmF1bHQtcGh5c190b190YXJnZXRfbm9k
-ZS1pbXBsZW1lbnRhdGlvbi1maXgiKQ0KDQpPbiAyMDIwLzgvMjYgMjA6MTgsIFl1ZUhhaWJpbmcg
-d3JvdGU6DQo+IElmIE1FTU9SWV9IT1RQTFVHIGlzIG4sIGJ1aWxkIGZhaWxzOg0KPiANCj4gZHJp
-dmVycy9udmRpbW0vZTgyMC5jOiBJbiBmdW5jdGlvbiDigJhlODIwX3JlZ2lzdGVyX29uZeKAmToN
-Cj4gZHJpdmVycy9udmRpbW0vZTgyMC5jOjI0OjEyOiBlcnJvcjogaW1wbGljaXQgZGVjbGFyYXRp
-b24gb2YgZnVuY3Rpb24g4oCYcGh5c190b190YXJnZXRfbm9kZeKAmTsgZGlkIHlvdSBtZWFuIOKA
-mHNldF9wYWdlX25vZGXigJk/IFstV2Vycm9yPWltcGxpY2l0LWZ1bmN0aW9uLWRlY2xhcmF0aW9u
-XQ0KPiAgIGludCBuaWQgPSBwaHlzX3RvX3RhcmdldF9ub2RlKHJlcy0+c3RhcnQpOw0KPiAgICAg
-ICAgICAgICBefn5+fn5+fn5+fn5+fn5+fn5+DQo+ICAgICAgICAgICAgIHNldF9wYWdlX25vZGUN
-Cj4gDQo+IEZpeGVzOiA3YjI3YTg2MjJmODAgKCJsaWJudmRpbW0vZTgyMDogUmV0cmlldmUgYW5k
-IHBvcHVsYXRlIGNvcnJlY3QgJ3RhcmdldF9ub2RlJyBpbmZvIikNCj4gU2lnbmVkLW9mZi1ieTog
-WXVlSGFpYmluZyA8eXVlaGFpYmluZ0BodWF3ZWkuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvbnZk
-aW1tL2U4MjAuYyB8IDcgKysrKysrKw0KPiAgMSBmaWxlIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygr
-KQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL2U4MjAuYyBiL2RyaXZlcnMvbnZk
-aW1tL2U4MjAuYw0KPiBpbmRleCA0Y2QxOGJlOWQwZTkuLmM3NDFmMDI5ZjIxNSAxMDA2NDQNCj4g
-LS0tIGEvZHJpdmVycy9udmRpbW0vZTgyMC5jDQo+ICsrKyBiL2RyaXZlcnMvbnZkaW1tL2U4MjAu
-Yw0KPiBAQCAtMTcsNiArMTcsMTMgQEAgc3RhdGljIGludCBlODIwX3BtZW1fcmVtb3ZlKHN0cnVj
-dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpDQo+ICAJcmV0dXJuIDA7DQo+ICB9DQo+ICANCj4gKyNp
-Zm5kZWYgQ09ORklHX01FTU9SWV9IT1RQTFVHDQo+ICtzdGF0aWMgaW5saW5lIGludCBwaHlzX3Rv
-X3RhcmdldF9ub2RlKHU2NCBzdGFydCkNCj4gK3sNCj4gKwlyZXR1cm4gMDsNCj4gK30NCj4gKyNl
-bmRpZg0KPiArDQo+ICBzdGF0aWMgaW50IGU4MjBfcmVnaXN0ZXJfb25lKHN0cnVjdCByZXNvdXJj
-ZSAqcmVzLCB2b2lkICpkYXRhKQ0KPiAgew0KPiAgCXN0cnVjdCBuZF9yZWdpb25fZGVzYyBuZHJf
-ZGVzYzsNCj4gDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-VG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMu
-MDEub3JnCg==
+Catch seed namespaces early on. This will prevent checking for sizes in enable,
+disable and destroy namespace code path, which in turn prevents the inconsistent
+reporting in count of enabled/disabled namespaces.
+
+Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+---
+ ndctl/lib/libndctl.c |  5 ----
+ ndctl/namespace.c    | 57 +++++++++++++++++++++-----------------------
+ 2 files changed, 27 insertions(+), 35 deletions(-)
+
+Changes from v2: Updated patch to return the proper error code. In V1, we return
+the default -ENXIO even if we had skipped all the namespaces (when there are
+only idle namespaces). In cases like that, we need to return zero, except when
+creating namespaces, which may fail due to insufficient space.
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index ee737cb..d0599f7 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -4130,16 +4130,11 @@ NDCTL_EXPORT int ndctl_namespace_enable(struct ndctl_namespace *ndns)
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+ 	struct ndctl_ctx *ctx = ndctl_namespace_get_ctx(ndns);
+ 	struct ndctl_region *region = ndns->region;
+-	unsigned long long size = ndctl_namespace_get_size(ndns);
+ 	int rc;
+ 
+ 	if (ndctl_namespace_is_enabled(ndns))
+ 		return 0;
+ 
+-	/* Don't try to enable idle namespace (no capacity allocated) */
+-	if (size == 0)
+-		return -ENXIO;
+-
+ 	rc = ndctl_bind(ctx, ndns->module, devname);
+ 
+ 	/*
+diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+index 0550580..ea540dd 100644
+--- a/ndctl/namespace.c
++++ b/ndctl/namespace.c
+@@ -1102,7 +1102,6 @@ static int namespace_destroy(struct ndctl_region *region,
+ 		struct ndctl_namespace *ndns)
+ {
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+-	unsigned long long size;
+ 	bool did_zero = false;
+ 	int rc;
+ 
+@@ -1147,19 +1146,9 @@ static int namespace_destroy(struct ndctl_region *region,
+ 		goto out;
+ 	}
+ 
+-	size = ndctl_namespace_get_size(ndns);
+-
+ 	rc = ndctl_namespace_delete(ndns);
+ 	if (rc)
+ 		debug("%s: failed to reclaim\n", devname);
+-
+-	/*
+-	 * Don't report a destroyed namespace when no capacity was
+-	 * allocated.
+-	 */
+-	if (size == 0 && rc == 0)
+-		rc = 1;
+-
+ out:
+ 	return rc;
+ }
+@@ -2128,8 +2117,9 @@ static int do_xaction_namespace(const char *namespace,
+ 			ndctl_namespace_foreach_safe(region, ndns, _n) {
+ 				ndns_name = ndctl_namespace_get_devname(ndns);
+ 
+-				if (strcmp(namespace, "all") != 0
++				if ((strcmp(namespace, "all") != 0
+ 						&& strcmp(namespace, ndns_name) != 0)
++				    || ndctl_namespace_get_size(ndns) == 0)
+ 					continue;
+ 				switch (action) {
+ 				case ACTION_DISABLE:
+@@ -2148,9 +2138,6 @@ static int do_xaction_namespace(const char *namespace,
+ 					rc = namespace_destroy(region, ndns);
+ 					if (rc == 0)
+ 						(*processed)++;
+-					/* return success if skipped */
+-					if (rc > 0)
+-						rc = 0;
+ 					break;
+ 				case ACTION_CHECK:
+ 					rc = namespace_check(ndns, verbose,
+@@ -2195,22 +2182,32 @@ static int do_xaction_namespace(const char *namespace,
+ 	if (ri_ctx.f_out && ri_ctx.f_out != stdout)
+ 		fclose(ri_ctx.f_out);
+ 
+-	if (action == ACTION_CREATE && rc == -EAGAIN) {
+-		/*
+-		 * Namespace creation searched through all candidate
+-		 * regions and all of them said "nope, I don't have
+-		 * enough capacity", so report -ENOSPC. Except during
+-		 * greedy namespace creation using --continue as we
+-		 * may have created some namespaces already, and the
+-		 * last one in the region search may preexist.
+-		 */
+-		if (param.greedy && (*processed) > 0)
+-			rc = 0;
+-		else
+-			rc = -ENOSPC;
++	if (action == ACTION_CREATE) {
++		if (rc == -EAGAIN) {
++			/*
++			 * Namespace creation searched through all candidate
++			 * regions and all of them said "nope, I don't have
++			 * enough capacity", so report -ENOSPC. Except during
++			 * greedy namespace creation using --continue as we
++			 * may have created some namespaces already, and the
++			 * last one in the region search may preexist.
++			 */
++			if (param.greedy && (*processed) > 0)
++				rc = 0;
++			else
++				rc = -ENOSPC;
++		}
++
++		if (saved_rc)
++			rc = saved_rc;
++
++		return rc;
+ 	}
+-	if (saved_rc)
+-		rc = saved_rc;
++
++	/* If there is nothing processed, and if we have only skipped idle
++	 * namespaces, there shouldn't be any error */
++	if (rc == -ENXIO && !*processed)
++		rc = 0;
+ 
+ 	return rc;
+ }
+-- 
+2.26.2
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
