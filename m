@@ -1,77 +1,181 @@
 Return-Path: <SRS0=2D2W=CG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.8 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_05,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 991B2C433E6
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Aug 2020 04:00:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B78BC433E2
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Aug 2020 08:39:19 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 50A3020738
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Aug 2020 04:00:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 50A3020738
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=rakuten.co.jp
+	by mail.kernel.org (Postfix) with ESMTPS id 22D3420791
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 28 Aug 2020 08:39:18 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="jqbBXhFa"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 22D3420791
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B63B6128421B9;
-	Thu, 27 Aug 2020 21:00:54 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=118.27.75.228; helo=rakuten.co.jp; envelope-from=account-update@rakuten.co.jp; receiver=<UNKNOWN> 
-Received: from rakuten.co.jp (v118-27-75-228.h9iy.static.cnode.io [118.27.75.228])
-	by ml01.01.org (Postfix) with ESMTP id 3C3E8128421B6
-	for <linux-nvdimm@lists.01.org>; Thu, 27 Aug 2020 21:00:52 -0700 (PDT)
-Received: from wn (unknown [122.186.170.245])
-	by rakuten.co.jp with SMTP id kglnlhuQDNLfV5ga.1
-	for <linux-nvdimm@lists.01.org>; Fri, 28 Aug 2020 13:00:53 +0900
-Sender: account-update@rakuten.co.jp
-Message-ID: <202008281300534356160@rakuten.co.jp>
-From: "Rakuten.co.jp" <account-update@rakuten.co.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?5qW95aSp5a6J5YWo55Ww5bi4?=
-Date: Fri, 28 Aug 2020 13:00:47 +0900
-Mime-Version: 1.0
-X-Priority: 3
-X-Mailer: Nfwouccatur 6
-Message-ID-Hash: DRJ6GBPH5FK5BDELOI3MQJPAXYZBQYWS
-X-Message-ID-Hash: DRJ6GBPH5FK5BDELOI3MQJPAXYZBQYWS
-X-MailFrom: account-update@rakuten.co.jp
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+	by ml01.01.org (Postfix) with ESMTP id CF64E128A7AC6;
+	Fri, 28 Aug 2020 01:39:18 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::541; helo=mail-pg1-x541.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pg1-x541.google.com (mail-pg1-x541.google.com [IPv6:2607:f8b0:4864:20::541])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 0A618128A7AC2
+	for <linux-nvdimm@lists.01.org>; Fri, 28 Aug 2020 01:39:16 -0700 (PDT)
+Received: by mail-pg1-x541.google.com with SMTP id o13so141626pgf.0
+        for <linux-nvdimm@lists.01.org>; Fri, 28 Aug 2020 01:39:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:in-reply-to:references:date:message-id
+         :mime-version;
+        bh=jpa4VFuD9jxmbmSoDNWkXSi1zk0s2ZQfzuNUi81OTl8=;
+        b=jqbBXhFaDlhW7CfKBh/tQe35/3prfBlz3ARgoCNk/z7iABXP+OfdQZxc3dUTVePnP9
+         WjXcPb7T+DNKNM6eBgu0BA+Rdev9femuAWlEtY4DaHIBX+mcU8QFeK29I43AlgfbnYws
+         fi9xKF0tm4dRWKaUoY2E6kD1LXEqvSxGWzA5NKNumw1Wl5uM+KhCM0yNgxqo1aP4pUli
+         L4XTzebYZI5jd0Q6tIRIsc9ExjIC0aMUGltMDYk/1iqEjXMxwxURSWGWvsW+Gdwdy1mN
+         1QW7yGYhfJ54EC41jmlUGHUWZYHYJrfex325qI1rXOZvFctvPmGozdPOaH1z12zhuTfs
+         E26w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
+         :message-id:mime-version;
+        bh=jpa4VFuD9jxmbmSoDNWkXSi1zk0s2ZQfzuNUi81OTl8=;
+        b=EyLTy+iXmYxY2x7sv/ewxga/8lTY2UBEEBUmH+ztwbPZ64KmGEvvi7iCv+HGqY/TUC
+         FEh05ezNV3BjU9yJLrWBLMi8zzdF36ArzBVwBQcfa2N8E/LpdmHkZG4evkBa/cUuos46
+         J4T95MkFmNvDKe/CnyfLDtnn+mWlQATjezKuJiwAi8FwSlrnyjneZeKjrpveOzYMcBGD
+         K+B1BUlQ3WzTinrF2dQ21Ji7P69SNfjJKW0jErDXpCTyLLcygCD5rwLrdOWl3hRIDRpe
+         /DPEddOqTwEiTleN9GD5v/Wbqut136qEYhlu+xnE7pBE4U9PgNw0tNXEWRUazTuA9V8S
+         6gRA==
+X-Gm-Message-State: AOAM530ixwX0xKum3fNPpB77sGAPkE5uAhQtggOWUSBCCiNbIdiiOlUO
+	CUd5N7bQ4Ca5UsIua69r1PaGZA==
+X-Google-Smtp-Source: ABdhPJz6Kmyi5acWEsFxJbNT/PkrDyHGoCR0W4ogg24e923q2bqTLkRFipgBfLc4b9gUVhCsACBVbQ==
+X-Received: by 2002:a62:2a83:: with SMTP id q125mr376018pfq.274.1598603955956;
+        Fri, 28 Aug 2020 01:39:15 -0700 (PDT)
+Received: from localhost ([203.223.190.240])
+        by smtp.gmail.com with ESMTPSA id 9sm805441pfv.22.2020.08.28.01.39.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 28 Aug 2020 01:39:15 -0700 (PDT)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: Michal Suchanek <msuchanek@suse.de>, linux-nvdimm@lists.01.org
+Subject: Re: [PATCH 2/2] ndctl/namespace: Suppress ENODEV when processing
+ all namespaces.
+In-Reply-To: <3905bc44eec1a7251ea67729aee9ecf4d6d33653.1595526596.git.msuchanek@suse.de>
+References: <ac216d4887a00c468acfb323920426135f6861dd.1595526596.git.msuchanek@suse.de>
+ <3905bc44eec1a7251ea67729aee9ecf4d6d33653.1595526596.git.msuchanek@suse.de>
+Date: Fri, 28 Aug 2020 14:09:12 +0530
+Message-ID: <87d03bcggf.fsf@santosiv.in.ibm.com>
+MIME-Version: 1.0
+Message-ID-Hash: AH4IWITMNGE6W6PCWYF7TUKHVT5I3RH6
+X-Message-ID-Hash: AH4IWITMNGE6W6PCWYF7TUKHVT5I3RH6
+X-MailFrom: santosh@fossix.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Michal Suchanek <msuchanek@suse.de>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DRJ6GBPH5FK5BDELOI3MQJPAXYZBQYWS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AH4IWITMNGE6W6PCWYF7TUKHVT5I3RH6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-ICANCiAgDQogIFJha3V0ZW7jgYrlrqLmp5ggDQrmrovlv7XjgarjgYzjgonjgIHjgYLjgarjgZ/j
-ga7jgqLjgqvjgqbjg7Pjg4gg44KS5pu05paw44Gn44GN44G+44Gb44KT44Gn44GX44Gf44CC44GT
-44KM44Gv44CB44Kr44O844OJ44GM5pyf6ZmQ5YiH44KM44Gr44Gq44Gj44Gf44GL44CCDQroq4vm
-sYLlhYjkvY/miYDjgYzlpInmm7TjgZXjgozjgZ/jgarjganjgIHjgZXjgb7jgZbjgb7jgarnkIbn
-lLHjgafnmbrnlJ/jgZnjgovlj6/og73mgKfjgYzjgYLjgorjgb7jgZnjgIINCg0K5LuK44Ki44Kr
-44Km44Oz44OI44KS56K66KqN44Gn44GN44G+44GZ44CCDQoNCualveWkqeODreOCsOOCpOODsw0K
-44Gq44GK44CBMjTmmYLplpPku6XlhoXjgavjgZTnorroqo3jgYzjgarjgYTloLTlkIjjgIHoqqDj
-gavpgbrmhr7jgarjgYzjgonjgIHjgqLjgqvjgqbjg7Pjg4jjgpLjg63jg4Pjgq/jgZXjgZvjgabj
-gYTjgZ/jgaDjgY/jgZPjgajjgpLorablkYrjgYTjgZ/jgZfjgb7jgZnjgIIgDQrjg5Hjgrnjg6/j
-g7zjg4njgpLlpInmm7TjgZfjgZ/opprjgYjjgYzjgarjgYTloLTlkIjjga/jgIHoh7PmgKXvvIgw
-MSktNTAtNTgzMC02ODYw44G+44Gn44GK6Zu76Kmx44GP44Gg44GV44GE44CCIA0KICANCuOBiuef
-peOCieOBmzoNCsK3IOODkeOCueODr+ODvOODieOBr+iqsOOBq+OCguaVmeOBiOOBquOBhOOBp+OB
-j+OBoOOBleOBhOOAgiANCsK3IOWAi+S6uuaDheWgseOBqOmWouS/guOBjOOBquOBj+OAgeaOqOa4
-rOOBl+OBq+OBj+OBhOODkeOCueODr+ODvOODieOCkuS9nOaIkOOBl+OBpuOBj+OBoOOBleOBhOOA
-guWkp+aWh+Wtl+OBqOWwj+aWh+Wtl+OAgeaVsOWtl+OAgeOBiuOCiOOBs+iomOWPt+OCkuW/heOB
-muS9v+eUqOOBl+OBpuOBj+OBoOOBleOBhOOAgiANCsK3IOOCquODs+ODqeOCpOODs+OCouOCq+OC
-puODs+ODiOOBlOOBqOOBq+OAgeeVsOOBquOCi+ODkeOCueODr+ODvOODieOCkuS9v+eUqOOBl+OB
-puOBj+OBoOOBleOBhOOAgiANCg0KDQrjganjgYbjgZ7jgojjgo3jgZfjgY/jgYrpoZjjgYTjgYTj
-gZ/jgZfjgb7jgZnjgIIgDQpSYWt1dGVu77yMSW5jLg0KDQogIA0KDQogIApfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBs
-aXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBl
-bWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+Michal Suchanek <msuchanek@suse.de> writes:
+
+> When processing all namespaces and no namespaces exist user gets the
+> default -ENOENT. Set default rc to 0 when processing all namespaces.
+> This avoids confusing error message printed in addition to the message
+> saying 0 namespaces were affected.
+>
+> Before:
+>
+>  # ndctl check-namespace all
+> namespace0.0: namespace_check: namespace0.0: check aborted, namespace online
+> error checking namespaces: Device or resource busy
+> checked 0 namespaces
+>  # ndctl disable-namespace all
+> disabled 1 namespace
+>  # ndctl check-namespace all
+> namespace0.0: namespace_check: Unable to recover any BTT info blocks
+> error checking namespaces: No such device or address
+> checked 0 namespaces
+>  # ndctl destroy-namespace all
+> destroyed 1 namespace
+>  # ndctl check-namespace all
+> error checking namespaces: No such device or address
+> checked 0 namespaces
+>  # ndctl destroy-namespace all
+> error destroying namespaces: No such device or address
+> destroyed 0 namespaces
+>
+> After:
+>
+>  # ndctl check-namespace all
+> namespace0.0: namespace_check: namespace0.0: check aborted, namespace online
+> error checking namespaces: Device or resource busy
+> checked 0 namespaces
+>  # ndctl disable-namespace namespace0.0
+> disabled 1 namespace
+>  # ndctl check-namespace all
+> namespace0.0: namespace_check: Unable to recover any BTT info blocks
+> error checking namespaces: No such device or address
+> checked 0 namespaces
+>  # ndctl destroy-namespace all
+> destroyed 1 namespace
+>  # ndctl check-namespace all
+> checked 0 namespaces
+>  # ndctl destroy-namespace all
+> destroyed 0 namespaces
+>  # ndctl destroy-namespace all
+> destroyed 0 namespaces
+>
+> Note: this does change the return value from -ENOENT to 0 in the cases
+> when no namespaces exist and processing all namespaces was requested.
+>
+> Signed-off-by: Michal Suchanek <msuchanek@suse.de>
+
+I missed this patch and had a different approach of solving this, fiddling
+around with processed and saved_rc in the end of the function. This is
+cleaner.
+
+Nit: The default return value is -ENXIO, if that matters in the commit message.
+
+Reviewed-by: Santosh S <santosh@fossix.org>
+
+Thanks,
+Santosh
+
+> ---
+>  ndctl/namespace.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
+> index 3fabe4799d75..835f4076008a 100644
+> --- a/ndctl/namespace.c
+> +++ b/ndctl/namespace.c
+> @@ -2112,6 +2112,9 @@ static int do_xaction_namespace(const char *namespace,
+>  	if (!namespace && action != ACTION_CREATE)
+>  		return rc;
+>  
+> +	if (namespace && (strcmp(namespace, "all") == 0))
+> +		rc = 0;
+> +
+>  	if (verbose)
+>  		ndctl_set_log_priority(ctx, LOG_DEBUG);
+>  
+> -- 
+> 2.26.2
+> _______________________________________________
+> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
