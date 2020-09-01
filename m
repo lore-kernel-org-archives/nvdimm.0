@@ -2,93 +2,61 @@ Return-Path: <SRS0=drqr=CK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.4 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9E1FC433E6
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 10:16:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10EB5C433E6
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 11:11:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 71673206FA
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 10:16:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=web.de header.i=@web.de header.b="ADMpk0oc"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 71673206FA
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=web.de
+	by mail.kernel.org (Postfix) with ESMTPS id AA0682137B
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 11:11:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AA0682137B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2A818139E51B3;
-	Tue,  1 Sep 2020 03:16:05 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=212.227.17.11; helo=mout.web.de; envelope-from=markus.elfring@web.de; receiver=<UNKNOWN> 
-Received: from mout.web.de (mout.web.de [212.227.17.11])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 7FFAD139E77F3;
+	Tue,  1 Sep 2020 04:11:20 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3F95F1383DA9F
-	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 03:16:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de;
-	s=dbaedf251592; t=1598955344;
-	bh=qv4Z6JnkawuqyBfR4IQjNIZNVlU1r0SgVqjymqZzG4I=;
-	h=X-UI-Sender-Class:Subject:To:References:Cc:From:Date:In-Reply-To;
-	b=ADMpk0ocDtitLLFyTqokXMTpnVJ9+AGkWGU3DNGAwAW1lFTbs1BmblmzSDdYm0BoA
-	 8vNHBppNZykkmbGvynGoM1nZLR3k84PIhpksaV3vPYgdDX8pdCzH+zPTInJlpKFFb3
-	 RN5YdcexfC2byHedRn/ImjBSauznYT7ZsFtoY9gk=
-X-UI-Sender-Class: c548c8c5-30a9-4db5-a2e7-cb6cb037b8f9
-Received: from [192.168.1.2] ([93.135.94.126]) by smtp.web.de (mrweb106
- [213.165.67.124]) with ESMTPSA (Nemesis) id 1Md6tt-1km6tf0o31-00Zvpd; Tue, 01
- Sep 2020 12:15:44 +0200
+	by ml01.01.org (Postfix) with ESMTPS id 5E9AF10077D17
+	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 04:11:18 -0700 (PDT)
+Received: from DGGEMS414-HUB.china.huawei.com (unknown [172.30.72.60])
+	by Forcepoint Email with ESMTP id B6C335C5C8A95CC4DC61;
+	Tue,  1 Sep 2020 19:11:15 +0800 (CST)
+Received: from [127.0.0.1] (10.174.177.253) by DGGEMS414-HUB.china.huawei.com
+ (10.3.19.214) with Microsoft SMTP Server id 14.3.487.0; Tue, 1 Sep 2020
+ 19:11:10 +0800
 Subject: Re: [PATCH v4 0/1] libnvdimm: fix memory leaks in of_pmem.c
-To: Zhen Lei <thunder.leizhen@huawei.com>,
- linux-nvdimm <linux-nvdimm@lists.01.org>,
- linux-kernel <linux-kernel@vger.kernel.org>
+To: Markus Elfring <Markus.Elfring@web.de>, linux-nvdimm
+	<linux-nvdimm@lists.01.org>, linux-kernel <linux-kernel@vger.kernel.org>
 References: <20200901081450.1969-1-thunder.leizhen@huawei.com>
-Cc: Oliver O'Halloran <oohall@gmail.com>,
- Dan Williams <dan.j.williams@intel.com>,
- Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Ira Weiny <ira.weiny@intel.com>
-From: Markus Elfring <Markus.Elfring@web.de>
-Message-ID: <9d82bd85-5d6c-b8fe-15c7-c87348aa7a3a@web.de>
-Date: Tue, 1 Sep 2020 12:14:32 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
+ <9d82bd85-5d6c-b8fe-15c7-c87348aa7a3a@web.de>
+From: "Leizhen (ThunderTown)" <thunder.leizhen@huawei.com>
+Message-ID: <6a9ec7f5-f822-dce5-0560-d49d3bacaf0b@huawei.com>
+Date: Tue, 1 Sep 2020 19:11:09 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.0
 MIME-Version: 1.0
-In-Reply-To: <20200901081450.1969-1-thunder.leizhen@huawei.com>
-Content-Language: en-GB
-X-Provags-ID: V03:K1:lpXKCuzjDyVPsW7iA39HUwuNL4TBAXldxm/UDMiYa8RpljqzH/X
- 1vblF597P+lJJ8AB282XEHSPi145EmKDpUMnHBv0BbLTz8DhtiDWgqlhOEcCEVo1EEu7f//
- Xt7oQqE/2ddAac7Bpq5qZd3Vb/muI7jK94mV5mB2sBSonDN00l9z1A3VJvB1+VaLxo5uaRF
- XeTbvy80jTE/DlLiEwgMA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:vt3Q8F2c3gY=:tWIQSHcI738xCPGcmV+Fsr
- oXjk4tVpxo7Im2UXuhuToIziHIsWS3GhhG71wEtLC8QHHO6b41JeB3lgcTHHw9bgi/lW6WNiX
- 7pCdiS7glvP9ccx2fNOGoK6zOqnwDub00kso9n03C2bv4dRNJYPvfaLN+fKMtQKqK4uXcNC8s
- KwS4UIos/D4uO0eYfQrSQUrlxwH6mX24YqzejOqP38oGwLf5LNj/RwEWO6Qg/u/dy+FfQsFIu
- ZTsZDTeM4rZGhbEchcAVdoOX7Zkpv+HqMtmNk3ZznIcPHQSMfh4pJ/ZdKF0XJvhDU00CLMslE
- 8sQiQSnSRzFEypzpHgTbOG1sfg8NqKf6Inig1DpBVz+Dap11tbWqJy9o/6epdVC/PuYMDdRao
- LomdRj+B8k8wRexwo9vBNSP7Rr8KTPLE7rRdUw4EbjEwjRIIOT/5drvIPfYDgtYKFPxfjY/nD
- Od2UkKVcy0gLI5QRzQ5RQk9rW8AE3ZJXHSb/FdaZmzpCpHpz6aA9n9ZjEWmc+jtabg9KucaAD
- xYvBIz6zAX0p7loAEADQeSA4veSRv5rPo1A+55t9/ccNM3nP3WB01o33Wyx/8E0S7EanVsmTy
- 4VJtWMmQh8HGcylri8yHEdIFB31fvpM+lbxKYRpoLs63PPbLDYfVYBnXTItliSxbR12KQa5iW
- 65TaPEupvnWM6Q57Sg/wABJNj3l8SbKNcqgOd3M5LP3xiMd7A+P3Uqw2LoUb0YAmm4kUWPp76
- RUoADpdNEIu6b4EJGut5M4I/CUvlTed1rzsVedwF1DaS8/r+4IKeK81J8K/Uyk38wu5MOYwEU
- Xr7m8k+o1LPOTRSGIGVMFJVG9p69Bp1lcmVEWKHMiRIxp2BWq7DWvdxrjYwkDyMD5TBcARoi+
- jS6ik76e+FXm9fpB9YRMgejMu/jPXlpXMwtMH7a+KJk4gjDpfZpGzaPnl4hwS+oe7PwZVIPgI
- IGCP5ohIjXexwM58fAope1thsdc0fUjj0hbHtl0rKHXuiyWutbihMEC58W4Lxa7D4YYXjjLk9
- WkCPNyk9HElXgSNaKxWe6cax8wWe92FN74cLixn/MIlDBsKP7+dTXd8bSHgjQnICSOoEqdKl2
- P+yXQzkPdUxzZiqOQyJYQLzPvWVlWUvBqC6A4PZMijKnrOACIe5HiuovnfX9JBStag/G3HgRZ
- E1NGAvamaV7/xx/PubTodCMian4BbitASRRisPPm5rfGOQSE4khOixvpqDB1xWn/FAIzWpZAq
- Qqwu2az9FhClx13igrpr3Z+4IdnQcY2MHfJjlEQ==
-Message-ID-Hash: VBR5P3TZMP4ZAMUOZVM6RI6BWRRJKHZQ
-X-Message-ID-Hash: VBR5P3TZMP4ZAMUOZVM6RI6BWRRJKHZQ
-X-MailFrom: Markus.Elfring@web.de
+In-Reply-To: <9d82bd85-5d6c-b8fe-15c7-c87348aa7a3a@web.de>
+Content-Language: en-US
+X-Originating-IP: [10.174.177.253]
+X-CFilter-Loop: Reflected
+Message-ID-Hash: AEDBEI6BN7WG4B73VY6ECW3XPQL4Z3OA
+X-Message-ID-Hash: AEDBEI6BN7WG4B73VY6ECW3XPQL4Z3OA
+X-MailFrom: thunder.leizhen@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Dave@ml01.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VBR5P3TZMP4ZAMUOZVM6RI6BWRRJKHZQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AEDBEI6BN7WG4B73VY6ECW3XPQL4Z3OA/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -97,13 +65,21 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-> v3 --> v4
-> 1. Merge patch 1 and 2 into one:
 
-How do you think about to omit a cover letter for a single patch?
 
-Regards,
-Markus
+On 2020/9/1 18:14, Markus Elfring wrote:
+>> v3 --> v4
+>> 1. Merge patch 1 and 2 into one:
+> 
+> How do you think about to omit a cover letter for a single patch?
+
+After all, the code hasn't changed except this merge.
+
+> 
+> Regards,
+> Markus
+> 
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
