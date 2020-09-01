@@ -2,116 +2,133 @@ Return-Path: <SRS0=drqr=CK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.2 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E6F2C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 08:15:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E12C433E2
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 08:33:42 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EBB8C2071B
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 08:15:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EBB8C2071B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id 5AAC22158C
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 08:33:42 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=citrix.com header.i=@citrix.com header.b="FUK+n5r1"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5AAC22158C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=citrix.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9B830139DE867;
-	Tue,  1 Sep 2020 01:15:42 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.191; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga05-in.huawei.com [45.249.212.191])
+	by ml01.01.org (Postfix) with ESMTP id 1CEC7139DE899;
+	Tue,  1 Sep 2020 01:33:42 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.71.145.142; helo=esa1.hc3370-68.iphmx.com; envelope-from=roger.pau@citrix.com; receiver=<UNKNOWN> 
+Received: from esa1.hc3370-68.iphmx.com (esa1.hc3370-68.iphmx.com [216.71.145.142])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 073C8139DE864
-	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 01:15:38 -0700 (PDT)
-Received: from DGGEMS405-HUB.china.huawei.com (unknown [172.30.72.60])
-	by Forcepoint Email with ESMTP id F25E4FE242909816455C;
-	Tue,  1 Sep 2020 16:15:33 +0800 (CST)
-Received: from thunder-town.china.huawei.com (10.174.177.253) by
- DGGEMS405-HUB.china.huawei.com (10.3.19.205) with Microsoft SMTP Server id
- 14.3.487.0; Tue, 1 Sep 2020 16:15:27 +0800
-From: Zhen Lei <thunder.leizhen@huawei.com>
-To: Oliver O'Halloran <oohall@gmail.com>, Dan Williams
-	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
- Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Markus
- Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH v4 1/1] libnvdimm: fix memory leaks in of_pmem.c
-Date: Tue, 1 Sep 2020 16:14:50 +0800
-Message-ID: <20200901081450.1969-2-thunder.leizhen@huawei.com>
-X-Mailer: git-send-email 2.26.0.windows.1
-In-Reply-To: <20200901081450.1969-1-thunder.leizhen@huawei.com>
-References: <20200901081450.1969-1-thunder.leizhen@huawei.com>
+	by ml01.01.org (Postfix) with ESMTPS id 419F1139DE897
+	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 01:33:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=citrix.com; s=securemail; t=1598949219;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=6iM96sKC3C3LFxia9GepOmTF8WrPh0TXy/mfmfh0JwA=;
+  b=FUK+n5r1lfcarAhLXc5VkjPV6a2jeqJalm9P/Rixhc2Qew1FmnzR9ot5
+   dfwwLiNSr/2A1zgwo0FcWiKIlrgABHRZPihEbxGV/tDh/1bYkzJI069xC
+   qoOy97oUGIgzDAQz5LHw66WXUaFnjo8LXMqsqC1VNrUMXPwbFern2o9m9
+   s=;
+Authentication-Results: esa1.hc3370-68.iphmx.com; dkim=none (message not signed) header.i=none
+IronPort-SDR: vRg+LZIhKqLHKOzIxg/UtuKM3UO+ewPtHYKtiaBQiVZ3/RbjmNoq9zMilEk72NCOOEj+tvMJS5
+ Vwf39QCUkFYl6ahM6kmVJWAMG3QbkTMv48Uvnuws2K1TqKJFtkz9qIE+VbhtvPWIhXmR46ozLx
+ 5SmQHK+oH6exmvf2mOPf9HxfaAZQTLcPzuoQPra/lFiQZ8biOLFvWA0yfokf4Wv+F9m2l2GuTD
+ jCtRqQdlxUxD+3BYmfTLPjwKMAU604YPHv95HoBkxmiYe7Rsnl5RCid02c07hWiYkpfvVZqmya
+ Ftw=
+X-SBRS: 2.7
+X-MesageID: 26050349
+X-Ironport-Server: esa1.hc3370-68.iphmx.com
+X-Remote-IP: 162.221.158.21
+X-Policy: $RELAYED
+X-IronPort-AV: E=Sophos;i="5.76,378,1592884800";
+   d="scan'208";a="26050349"
+From: Roger Pau Monne <roger.pau@citrix.com>
+To: <linux-kernel@vger.kernel.org>
+Subject: [PATCH v5 2/3] memremap: rename MEMORY_DEVICE_DEVDAX to MEMORY_DEVICE_GENERIC
+Date: Tue, 1 Sep 2020 10:33:25 +0200
+Message-ID: <20200901083326.21264-3-roger.pau@citrix.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200901083326.21264-1-roger.pau@citrix.com>
+References: <20200901083326.21264-1-roger.pau@citrix.com>
 MIME-Version: 1.0
-X-Originating-IP: [10.174.177.253]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: ORVJO4EJWFALQXMLUVTTG6MKJBGQLFPB
-X-Message-ID-Hash: ORVJO4EJWFALQXMLUVTTG6MKJBGQLFPB
-X-MailFrom: thunder.leizhen@huawei.com
+Message-ID-Hash: PREEEEEIZ3GYHVJDARRTRRLLLZWZ7DJY
+X-Message-ID-Hash: PREEEEEIZ3GYHVJDARRTRRLLLZWZ7DJY
+X-MailFrom: roger.pau@citrix.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Zhen Lei <thunder.leizhen@huawei.com>
+CC: Roger Pau Monne <roger.pau@citrix.com>, Andrew Morton <akpm@linux-foundation.org>, "Dave Jiang  <dave.jiang@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>,  Aneesh Kumar K.V  <aneesh.kumar@linux.ibm.com>, Johannes Thumshirn <jthumshirn@suse.de>, Logan Gunthorpe" <logang@deltatee.com>, Juergen Gross <jgross@suse.com>, linux-nvdimm@lists.01.org, xen-devel@lists.xenproject.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ORVJO4EJWFALQXMLUVTTG6MKJBGQLFPB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PREEEEEIZ3GYHVJDARRTRRLLLZWZ7DJY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-Currently, in the last error path of of_pmem_region_probe() and in
-of_pmem_region_remove(), free the memory allocated by kstrdup() is
-missing. Add kfree(priv->bus_desc.provider_name) to fix it.
-
-In addition, add a sanity check to kstrdup() to prevent a
-NULL-pointer dereference.
-
-Fixes: 49bddc73d15c ("libnvdimm/of_pmem: Provide a unique name for bus provider")
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Reviewed-by: Oliver O'Halloran <oohall@gmail.com>
----
- drivers/nvdimm/of_pmem.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-index 10dbdcdfb9ce913..13c4c274ca6ea88 100644
---- a/drivers/nvdimm/of_pmem.c
-+++ b/drivers/nvdimm/of_pmem.c
-@@ -31,11 +31,17 @@ static int of_pmem_region_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	priv->bus_desc.provider_name = kstrdup(pdev->name, GFP_KERNEL);
-+	if (!priv->bus_desc.provider_name) {
-+		kfree(priv);
-+		return -ENOMEM;
-+	}
-+
- 	priv->bus_desc.module = THIS_MODULE;
- 	priv->bus_desc.of_node = np;
- 
- 	priv->bus = bus = nvdimm_bus_register(&pdev->dev, &priv->bus_desc);
- 	if (!bus) {
-+		kfree(priv->bus_desc.provider_name);
- 		kfree(priv);
- 		return -ENODEV;
- 	}
-@@ -83,6 +89,7 @@ static int of_pmem_region_remove(struct platform_device *pdev)
- 	struct of_pmem_private *priv = platform_get_drvdata(pdev);
- 
- 	nvdimm_bus_unregister(priv->bus);
-+	kfree(priv->bus_desc.provider_name);
- 	kfree(priv);
- 
- 	return 0;
--- 
-1.8.3
-
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+VGhpcyBpcyBpbiBwcmVwYXJhdGlvbiBmb3IgdGhlIGxvZ2ljIGJlaGluZCBNRU1PUllfREVWSUNF
+X0RFVkRBWCBhbHNvDQpiZWluZyB1c2VkIGJ5IG5vbiBEQVggZGV2aWNlcy4NCg0KTm8gZnVuY3Rp
+b25hbCBjaGFuZ2UgaW50ZW5kZWQuDQoNClNpZ25lZC1vZmYtYnk6IFJvZ2VyIFBhdSBNb25uw6kg
+PHJvZ2VyLnBhdUBjaXRyaXguY29tPg0KUmV2aWV3ZWQtYnk6IElyYSBXZWlueSA8aXJhLndlaW55
+QGludGVsLmNvbT4NCkFja2VkLWJ5OiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRp
+b24ub3JnPg0KLS0tDQpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
+DQpDYzogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQpDYzogRGF2ZSBK
+aWFuZyA8ZGF2ZS5qaWFuZ0BpbnRlbC5jb20+DQpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51
+eC1mb3VuZGF0aW9uLm9yZz4NCkNjOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0B6aWVwZS5jYT4NCkNj
+OiBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQpDYzogIkFuZWVzaCBLdW1hciBLLlYi
+IDxhbmVlc2gua3VtYXJAbGludXguaWJtLmNvbT4NCkNjOiBKb2hhbm5lcyBUaHVtc2hpcm4gPGp0
+aHVtc2hpcm5Ac3VzZS5kZT4NCkNjOiBMb2dhbiBHdW50aG9ycGUgPGxvZ2FuZ0BkZWx0YXRlZS5j
+b20+DQpDYzogSnVlcmdlbiBHcm9zcyA8amdyb3NzQHN1c2UuY29tPg0KQ2M6IGxpbnV4LW52ZGlt
+bUBsaXN0cy4wMS5vcmcNCkNjOiB4ZW4tZGV2ZWxAbGlzdHMueGVucHJvamVjdC5vcmcNCkNjOiBs
+aW51eC1tbUBrdmFjay5vcmcNCi0tLQ0KIGRyaXZlcnMvZGF4L2RldmljZS5jICAgICB8IDIgKy0N
+CiBpbmNsdWRlL2xpbnV4L21lbXJlbWFwLmggfCA5ICsrKystLS0tLQ0KIG1tL21lbXJlbWFwLmMg
+ICAgICAgICAgICB8IDIgKy0NCiAzIGZpbGVzIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgNyBk
+ZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvZGF4L2RldmljZS5jIGIvZHJpdmVy
+cy9kYXgvZGV2aWNlLmMNCmluZGV4IDRjMGFmMmViN2UxOS4uMWU4OTUxM2YzYzU5IDEwMDY0NA0K
+LS0tIGEvZHJpdmVycy9kYXgvZGV2aWNlLmMNCisrKyBiL2RyaXZlcnMvZGF4L2RldmljZS5jDQpA
+QCAtNDI5LDcgKzQyOSw3IEBAIGludCBkZXZfZGF4X3Byb2JlKHN0cnVjdCBkZXZpY2UgKmRldikN
+CiAJCXJldHVybiAtRUJVU1k7DQogCX0NCiANCi0JZGV2X2RheC0+cGdtYXAudHlwZSA9IE1FTU9S
+WV9ERVZJQ0VfREVWREFYOw0KKwlkZXZfZGF4LT5wZ21hcC50eXBlID0gTUVNT1JZX0RFVklDRV9H
+RU5FUklDOw0KIAlhZGRyID0gZGV2bV9tZW1yZW1hcF9wYWdlcyhkZXYsICZkZXZfZGF4LT5wZ21h
+cCk7DQogCWlmIChJU19FUlIoYWRkcikpDQogCQlyZXR1cm4gUFRSX0VSUihhZGRyKTsNCmRpZmYg
+LS1naXQgYS9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmggYi9pbmNsdWRlL2xpbnV4L21lbXJlbWFw
+LmgNCmluZGV4IDVmNWIyZGYwNmU2MS4uZTU4NjI3NDY3NTFiIDEwMDY0NA0KLS0tIGEvaW5jbHVk
+ZS9saW51eC9tZW1yZW1hcC5oDQorKysgYi9pbmNsdWRlL2xpbnV4L21lbXJlbWFwLmgNCkBAIC00
+NiwxMSArNDYsMTAgQEAgc3RydWN0IHZtZW1fYWx0bWFwIHsNCiAgKiB3YWtldXAgaXMgdXNlZCB0
+byBjb29yZGluYXRlIHBoeXNpY2FsIGFkZHJlc3Mgc3BhY2UgbWFuYWdlbWVudCAoZXg6DQogICog
+ZnMgdHJ1bmNhdGUvaG9sZSBwdW5jaCkgdnMgcGlubmVkIHBhZ2VzIChleDogZGV2aWNlIGRtYSku
+DQogICoNCi0gKiBNRU1PUllfREVWSUNFX0RFVkRBWDoNCisgKiBNRU1PUllfREVWSUNFX0dFTkVS
+SUM6DQogICogSG9zdCBtZW1vcnkgdGhhdCBoYXMgc2ltaWxhciBhY2Nlc3Mgc2VtYW50aWNzIGFz
+IFN5c3RlbSBSQU0gaS5lLiBETUENCi0gKiBjb2hlcmVudCBhbmQgc3VwcG9ydHMgcGFnZSBwaW5u
+aW5nLiBJbiBjb250cmFzdCB0bw0KLSAqIE1FTU9SWV9ERVZJQ0VfRlNfREFYLCB0aGlzIG1lbW9y
+eSBpcyBhY2Nlc3MgdmlhIGEgZGV2aWNlLWRheA0KLSAqIGNoYXJhY3RlciBkZXZpY2UuDQorICog
+Y29oZXJlbnQgYW5kIHN1cHBvcnRzIHBhZ2UgcGlubmluZy4gVGhpcyBpcyBmb3IgZXhhbXBsZSB1
+c2VkIGJ5IERBWCBkZXZpY2VzDQorICogdGhhdCBleHBvc2UgbWVtb3J5IHVzaW5nIGEgY2hhcmFj
+dGVyIGRldmljZS4NCiAgKg0KICAqIE1FTU9SWV9ERVZJQ0VfUENJX1AyUERNQToNCiAgKiBEZXZp
+Y2UgbWVtb3J5IHJlc2lkaW5nIGluIGEgUENJIEJBUiBpbnRlbmRlZCBmb3IgdXNlIHdpdGggUGVl
+ci10by1QZWVyDQpAQCAtNjAsNyArNTksNyBAQCBlbnVtIG1lbW9yeV90eXBlIHsNCiAJLyogMCBp
+cyByZXNlcnZlZCB0byBjYXRjaCB1bmluaXRpYWxpemVkIHR5cGUgZmllbGRzICovDQogCU1FTU9S
+WV9ERVZJQ0VfUFJJVkFURSA9IDEsDQogCU1FTU9SWV9ERVZJQ0VfRlNfREFYLA0KLQlNRU1PUllf
+REVWSUNFX0RFVkRBWCwNCisJTUVNT1JZX0RFVklDRV9HRU5FUklDLA0KIAlNRU1PUllfREVWSUNF
+X1BDSV9QMlBETUEsDQogfTsNCiANCmRpZmYgLS1naXQgYS9tbS9tZW1yZW1hcC5jIGIvbW0vbWVt
+cmVtYXAuYw0KaW5kZXggMDNlMzhiN2EzOGYxLi4wMDZkYWNlNjBiMWEgMTAwNjQ0DQotLS0gYS9t
+bS9tZW1yZW1hcC5jDQorKysgYi9tbS9tZW1yZW1hcC5jDQpAQCAtMjE2LDcgKzIxNiw3IEBAIHZv
+aWQgKm1lbXJlbWFwX3BhZ2VzKHN0cnVjdCBkZXZfcGFnZW1hcCAqcGdtYXAsIGludCBuaWQpDQog
+CQkJcmV0dXJuIEVSUl9QVFIoLUVJTlZBTCk7DQogCQl9DQogCQlicmVhazsNCi0JY2FzZSBNRU1P
+UllfREVWSUNFX0RFVkRBWDoNCisJY2FzZSBNRU1PUllfREVWSUNFX0dFTkVSSUM6DQogCQluZWVk
+X2Rldm1hcF9tYW5hZ2VkID0gZmFsc2U7DQogCQlicmVhazsNCiAJY2FzZSBNRU1PUllfREVWSUNF
+X1BDSV9QMlBETUE6DQotLSANCjIuMjguMA0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRp
+bW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZk
+aW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
