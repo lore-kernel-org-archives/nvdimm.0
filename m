@@ -4,55 +4,55 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74097C28E83
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 15:58:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA9E4C433E7
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 15:58:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 473BF206EB
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 15:58:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id BF9FE206EB
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  1 Sep 2020 15:58:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="a3R6hLNA"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 473BF206EB
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="k2qZddWw"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BF9FE206EB
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3344D1396FC08;
-	Tue,  1 Sep 2020 08:58:17 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 502251396FC10;
+	Tue,  1 Sep 2020 08:58:18 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=batv+00d723da4443b0556009+6218+infradead.org+hch@casper.srs.infradead.org; receiver=<UNKNOWN> 
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B79CB1396FBF8
-	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 08:58:13 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 546F21396FC06
+	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 08:58:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=X/wfONNMX9AkocUJrvkgvfoHlYcJ3otMPBdPBvDFSjg=; b=a3R6hLNAfPXw6R8QRXbGznXJl/
-	XYw3Qcp5GUZVdLvYz3g7yZTdhLBPVHDMlSfggoOPLUZWWTlpi4VSyTLAeSxeaGxz4415i0HuxYlHn
-	Rrzp4jXd9c1wB6Wl3fp75EZkwMR2pMOu0V4GqphS42Sy5cwGMmFOYSTu0f0WbNwh1AsqMoTho9gFC
-	RdhXzlE/7Zkah6VP7mUGqtnJKwpPFotBogYpnKN+bSpdkd42Pcgek9fWuBUDFm0apHm4YOMPi1N2y
-	tFJ5Kmb07jMbKgTkS/gXIrjXeu0LFRibRlegC43oSpS4bZjr/7ucSGkobwgV+XWFLT35JhGnmQ+r9
-	HsMdIZtA==;
+	bh=nRA6JK+4aMp60Yu0KbqG4/pNdu09ibxhHSJ5/A99bDI=; b=k2qZddWw1U3EZJUTGVu0rHSLJs
+	W5NgwgDkMU4Tctn8sp6QDS8uXrMAVU8TzWoAL6ToIpC7KJoKBS+hR10VJaRx7HUlCrn23sdr2GXXV
+	PivvROx3tTElb1yMRSSSuseDaTpRWJpVWM5KD/wTw/IT+YTPLspEFsL9wpeIKfruOS68OSavOcO3b
+	eKoyZN9jt6fhjHPyiO1n+Ltd23usEmrStZ0nhKSCgpp0vMkbLWmtuxBHj1SB6Hdbonp7qcS/5sHw1
+	h6xT9GKSHXVkxt4Y/hHRE/O0vpV4ONoMUaFGKU12gPJqvqq6SOLh88NGCQe1kbJ3s68Vas9hCHfw2
+	AZ8ApNWw==;
 Received: from [2001:4bb8:18c:45ba:2f95:e5:ca6b:9b4a] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kD8fX-0004QE-CS; Tue, 01 Sep 2020 15:57:59 +0000
+	id 1kD8fa-0004R3-Ip; Tue, 01 Sep 2020 15:58:02 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>
-Subject: [PATCH 5/9] block: use revalidate_disk_size in set_capacity_revalidate_and_notify
-Date: Tue,  1 Sep 2020 17:57:44 +0200
-Message-Id: <20200901155748.2884-6-hch@lst.de>
+Subject: [PATCH 7/9] sd: open code revalidate_disk
+Date: Tue,  1 Sep 2020 17:57:46 +0200
+Message-Id: <20200901155748.2884-8-hch@lst.de>
 X-Mailer: git-send-email 2.28.0
 In-Reply-To: <20200901155748.2884-1-hch@lst.de>
 References: <20200901155748.2884-1-hch@lst.de>
 MIME-Version: 1.0
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
-Message-ID-Hash: GCD2ESIXUSI5U52LVMYNW5HPZVFVPMRQ
-X-Message-ID-Hash: GCD2ESIXUSI5U52LVMYNW5HPZVFVPMRQ
+Message-ID-Hash: IPLDS6UYYQAZHCDGQHBZKPAUWX3HB7EC
+X-Message-ID-Hash: IPLDS6UYYQAZHCDGQHBZKPAUWX3HB7EC
 X-MailFrom: BATV+00d723da4443b0556009+6218+infradead.org+hch@casper.srs.infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -60,7 +60,7 @@ CC: Josef Bacik <josef@toxicpanda.com>, dm-devel@redhat.com, linux-kernel@vger.k
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GCD2ESIXUSI5U52LVMYNW5HPZVFVPMRQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IPLDS6UYYQAZHCDGQHBZKPAUWX3HB7EC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,53 +69,39 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Only virtio_blk and xen-blkfront set the revalidate argument to true,
-and both do not implement the ->revalidate_disk method.  So switch
-to the helper that just updates the size instead.
+Instead of calling revalidate_disk just do the work directly by
+calling sd_revalidate_disk, and revalidate_disk_size where needed.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- block/genhd.c         | 7 +++----
- include/linux/genhd.h | 4 ++--
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/scsi/sd.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index a2c0ec694918e5..431d4081b50ec7 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -50,14 +50,13 @@ static void disk_release_events(struct gendisk *disk);
-  * zero and will not be set to zero
-  */
- void set_capacity_revalidate_and_notify(struct gendisk *disk, sector_t size,
--					bool revalidate)
-+					bool update_bdev)
+diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
+index 95018e650f2d0c..2bec8cd526164d 100644
+--- a/drivers/scsi/sd.c
++++ b/drivers/scsi/sd.c
+@@ -217,7 +217,7 @@ cache_type_store(struct device *dev, struct device_attribute *attr,
+ 			sd_print_sense_hdr(sdkp, &sshdr);
+ 		return -EINVAL;
+ 	}
+-	revalidate_disk(sdkp->disk);
++	sd_revalidate_disk(sdkp->disk);
+ 	return count;
+ }
+ 
+@@ -1706,8 +1706,10 @@ static int sd_sync_cache(struct scsi_disk *sdkp, struct scsi_sense_hdr *sshdr)
+ static void sd_rescan(struct device *dev)
  {
- 	sector_t capacity = get_capacity(disk);
+ 	struct scsi_disk *sdkp = dev_get_drvdata(dev);
++	int ret;
  
- 	set_capacity(disk, size);
--
--	if (revalidate)
--		revalidate_disk(disk);
-+	if (update_bdev)
-+		revalidate_disk_size(disk, true);
+-	revalidate_disk(sdkp->disk);
++	ret = sd_revalidate_disk(sdkp->disk);
++	revalidate_disk_size(sdkp->disk, ret == 0);
+ }
  
- 	if (capacity != size && capacity != 0 && size != 0) {
- 		char *envp[] = { "RESIZE=1", NULL };
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 8e9c9d3a493fae..c340b392452ce6 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -315,8 +315,8 @@ static inline int get_disk_ro(struct gendisk *disk)
- extern void disk_block_events(struct gendisk *disk);
- extern void disk_unblock_events(struct gendisk *disk);
- extern void disk_flush_events(struct gendisk *disk, unsigned int mask);
--extern void set_capacity_revalidate_and_notify(struct gendisk *disk,
--			sector_t size, bool revalidate);
-+void set_capacity_revalidate_and_notify(struct gendisk *disk, sector_t size,
-+		bool update_bdev);
- extern unsigned int disk_clear_events(struct gendisk *disk, unsigned int mask);
- 
- /* drivers/char/random.c */
+ static int sd_ioctl(struct block_device *bdev, fmode_t mode,
 -- 
 2.28.0
 _______________________________________________
