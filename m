@@ -1,83 +1,85 @@
 Return-Path: <SRS0=ZyOg=CL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.6 required=3.0 tests=BAYES_50,DKIM_ADSP_DISCARD,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UPPERCASE_50_75 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A05CFC433E2
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  2 Sep 2020 02:32:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52C92C433E6
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  2 Sep 2020 06:00:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6C0F4207EA
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  2 Sep 2020 02:32:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6C0F4207EA
-Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=amazon.co.jp
+	by mail.kernel.org (Postfix) with ESMTPS id 0E9C82075D
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  2 Sep 2020 06:00:07 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="0qJu9pLJ"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0E9C82075D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 23BC713A4CC43;
-	Tue,  1 Sep 2020 19:32:26 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=67.229.29.40; helo=ubg.amazon.co.jp; envelope-from=account-update@ubg.amazon.co.jp; receiver=<UNKNOWN> 
-Received: from UBg.amazon.co.jp (unknown [67.229.29.40])
-	by ml01.01.org (Postfix) with ESMTP id 0269E13A4CC41
-	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 19:32:22 -0700 (PDT)
-Received: from yvp (unknown [78.52.247.196])
-	by amazon.co.jp with SMTP id 4vYwWPecWEFiCHVL.1
-	for <linux-nvdimm@lists.01.org>; Wed, 02 Sep 2020 10:32:23 +0800
-Sender: account-update@UBg.amazon.co.jp
-Message-ID: <20200902103223284736@UBg.amazon.co.jp>
-From: "Amazon.co.jp" <account-update@amazon.co.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?QW1hem9u44Ki44Kr44Km44Oz44OI44KS5Yip55So5Yi26ZmQ44GX44Gm44GE44G+?=
-	=?utf-8?B?44GZ?=
-Date: Wed, 2 Sep 2020 10:32:12 +0800
+	by ml01.01.org (Postfix) with ESMTP id D210213A6429B;
+	Tue,  1 Sep 2020 23:00:07 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=song@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id EE67413A5DCFD
+	for <linux-nvdimm@lists.01.org>; Tue,  1 Sep 2020 23:00:05 -0700 (PDT)
+Received: from mail-lj1-f171.google.com (mail-lj1-f171.google.com [209.85.208.171])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id 592AD207EA
+	for <linux-nvdimm@lists.01.org>; Wed,  2 Sep 2020 06:00:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1599026405;
+	bh=qB+hJ64dFeZRc55gn05GV3vmMdd4XqXGRfV9RvpoPjM=;
+	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+	b=0qJu9pLJ4E1vrW1ZCOrx22K5hPkVXWi4ywQze2MMxFBe/K5cPfkOuOqBNt9LPwaDg
+	 ZLrPaLIh81y83xpORfZ+dCgHhd49hoeXv9J8ZgsfKcp/G5G2kRmTyYl1K895tjJKXX
+	 QjIDXFUXqjS0LTSdRPNSKdYJnpJZkVkN2EyBpTcg=
+Received: by mail-lj1-f171.google.com with SMTP id h19so4366602ljg.13
+        for <linux-nvdimm@lists.01.org>; Tue, 01 Sep 2020 23:00:05 -0700 (PDT)
+X-Gm-Message-State: AOAM531JG1byEq+aNev0CB5FdayQSZ/J9BVGn4pMJWQemYdAp5YowYw9
+	OBBbKGaLUfv4aR8OOiP/mC/zm1HoZgn9xTDcbaU=
+X-Google-Smtp-Source: ABdhPJwf3HULiufgbpwKVoPwmf+LkIKFmte7J3KnU2uOXqQt3v5M5F/QoyNcLdziLtm9PrTb/1L0NAY4kWOOlCFV810=
+X-Received: by 2002:a2e:8597:: with SMTP id b23mr2427127lji.41.1599026403505;
+ Tue, 01 Sep 2020 23:00:03 -0700 (PDT)
 MIME-Version: 1.0
-X-Priority: 1
-X-mailer: Wxmfrkqw 9
-Message-ID-Hash: 2IILQ2HHQQWO7KG62BUMUIIFV5VSOUAA
-X-Message-ID-Hash: 2IILQ2HHQQWO7KG62BUMUIIFV5VSOUAA
-X-MailFrom: account-update@UBg.amazon.co.jp
+References: <20200901155748.2884-1-hch@lst.de> <20200901155748.2884-10-hch@lst.de>
+In-Reply-To: <20200901155748.2884-10-hch@lst.de>
+From: Song Liu <song@kernel.org>
+Date: Tue, 1 Sep 2020 22:59:52 -0700
+X-Gmail-Original-Message-ID: <CAPhsuW7YKTHsWnqv22gq6VEz29=abYk7ADsxcQr9q3_kGZuiXw@mail.gmail.com>
+Message-ID: <CAPhsuW7YKTHsWnqv22gq6VEz29=abYk7ADsxcQr9q3_kGZuiXw@mail.gmail.com>
+Subject: Re: [PATCH 9/9] block: remove revalidate_disk()
+To: Christoph Hellwig <hch@lst.de>
+Message-ID-Hash: TWRRK4ARX7RR3FNJGK5M37JJVQ5PJBJJ
+X-Message-ID-Hash: TWRRK4ARX7RR3FNJGK5M37JJVQ5PJBJJ
+X-MailFrom: song@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: Jens Axboe <axboe@kernel.dk>, Josef Bacik <josef@toxicpanda.com>, dm-devel@redhat.com, open list <linux-kernel@vger.kernel.org>, linux-block@vger.kernel.org, nbd@other.debian.org, ceph-devel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-raid <linux-raid@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, Linux-Fsdevel <linux-fsdevel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2IILQ2HHQQWO7KG62BUMUIIFV5VSOUAA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TWRRK4ARX7RR3FNJGK5M37JJVQ5PJBJJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-IOOBguOBquOBn+OBruOCouOCq+OCpuODs+ODiOOBr+WBnOatouOBleOCjOOBvuOBl+OBnw0KDQog
-DQrmlrDjgZfjgYTjg4fjg5DjgqTjgrnjgYvjgonjgqLjgqvjgqbjg7Pjg4jjgrXjg7zjg5Pjgrnj
-gbjjga7jgrXjgqTjg7PjgqTjg7PjgYzmpJzlh7rjgZXjgozjgb7jgZfjgZ/jgIINCuiqsOOBi+OB
-jOOBguOBquOBn+OBrkFbUkFORF9MRVRURVItTE9XXzBdbWFbUkFORF9MRVRURVItTE9XXzBdem9u
-44Ki44Kr44Km44Oz44OI44Gn5LuW44Gu44OH44OQ44Kk44K544GL44KJ6LO85YWl44GX44KI44GG
-44Go44GX44G+44GX44Gf44CCQVtSQU5EX0xFVFRFUi1MT1dfMF1tYVtSQU5EX0xFVFRFUi1MT1df
-MF16b27jga7kv53orbfjgavjgYrjgZHjgovjgrvjgq3jg6Xjg6rjg4bjgqPjgajmlbTlkIjmgKfj
-ga7llY/poYzjgavjgojjgorjgIHjgrvjgq3jg6Xjg6rjg4bjgqPkuIrjga7nkIbnlLHjgYvjgonj
-gqLjgqvjgqbjg7Pjg4jjgYzjg63jg4Pjgq/jgZXjgozjgb7jgZnjgIINCuOCouOCq+OCpuODs+OD
-iOOCkuW8leOBjee2muOBjeS9v+eUqOOBmeOCi+OBq+OBr+OAgTI05pmC6ZaT5YmN44Gr5oOF5aCx
-44KS5pu05paw44GZ44KL44GT44Go44KS44GK5Yun44KB44GX44G+44GZ44CC44Gd44KM5Lul5aSW
-44Gu5aC05ZCI44CB44GC44Gq44Gf44Gu44Ki44Kr44Km44Oz44OI44Gv5rC45LmF44Ot44OD44Kv
-44CCIA0KDQoNCueiuuiqjeeUqOOCouOCq+OCpuODs+ODiCANCg0KDQoNCg0KwqkgMjAyMCBBW1JB
-TkRfTEVUVEVSLUxPV18wXW1hW1JBTkRfTEVUVEVSLUxPV18wXXpvbltSQU5EX0xFVFRFUi1MT1df
-MF0uY29tLCBJbmMuIG9yIGl0cyBhZmZpbGlhdGVzLiBBbGwgcmlnaHRzIHJlc2VydmVkLiBBW1JB
-TkRfTEVUVEVSLUxPV18wXW1hW1JBTkRfTEVUVEVSLUxPV18wXXpvbiwgQVtSQU5EX0xFVFRFUi1M
-T1dfMF1tYVtSQU5EX0xFVFRFUi1MT1dfMF16b25bUkFORF9MRVRURVItTE9XXzBdLmNvLmpwLCBB
-W1JBTkRfTEVUVEVSLUxPV18wXW1hW1JBTkRfTEVUVEVSLUxPV18wXXpvbltSQU5EX0xFVFRFUi1M
-T1dfMF0sIFByaW1lIOOBiuOCiOOBs0FbUkFORF9MRVRURVItTE9XXzBdbWFbUkFORF9MRVRURVIt
-TE9XXzBdem9uW1JBTkRfTEVUVEVSLUxPV18wXS5jby5qcCDjga7jg63jgrTjga8gQVtSQU5EX0xF
-VFRFUi1MT1dfMF1tYVtSQU5EX0xFVFRFUi1MT1dfMF16b25bUkFORF9MRVRURVItTE9XXzBdLmNv
-bSAsIEluYy7jgb7jgZ/jga/jgZ3jga7plqLpgKPkvJrnpL7jga7llYbmqJnjgafjgZnjgIIgQVtS
-QU5EX0xFVFRFUi1MT1dfMF1tYVtSQU5EX0xFVFRFUi1MT1dfMF16b25bUkFORF9MRVRURVItTE9X
-XzBdLmNvbSwgNDEwIFRlcnJ5IEF2ZW51ZSBOLiwgU2VhdHRsZSwgV0EgOTgxMDktNTIxMCAKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1t
-IG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJl
-IHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+On Tue, Sep 1, 2020 at 9:00 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> Remove the now unused helper.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+Acked-by: Song Liu <song@kernel.org>
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
