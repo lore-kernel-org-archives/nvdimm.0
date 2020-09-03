@@ -7,29 +7,30 @@ X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C694C433E7
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Sep 2020 05:05:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79B3FC433E2
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Sep 2020 05:20:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 08ACF207EA
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Sep 2020 05:05:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 08ACF207EA
+	by mail.kernel.org (Postfix) with ESMTPS id 54D6120716
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Sep 2020 05:20:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 54D6120716
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8186D13B80ED6;
-	Wed,  2 Sep 2020 22:05:23 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 0A21D13B8FF52;
+	Wed,  2 Sep 2020 22:20:24 -0700 (PDT)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9042C13B595D1
-	for <linux-nvdimm@lists.01.org>; Wed,  2 Sep 2020 22:05:20 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 42FB913B8FF4C
+	for <linux-nvdimm@lists.01.org>; Wed,  2 Sep 2020 22:20:21 -0700 (PDT)
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 1CD7BAC2B;
-	Thu,  3 Sep 2020 05:05:20 +0000 (UTC)
+	by mx2.suse.de (Postfix) with ESMTP id A09BEAC2F;
+	Thu,  3 Sep 2020 05:20:20 +0000 (UTC)
+From: Coly Li <colyli@suse.de>
 Subject: Re: flood of "dm-X: error: dax access failed" due to 5.9 commit
  231609785cbfb
 To: Mike Snitzer <snitzer@redhat.com>
@@ -38,7 +39,6 @@ References: <20200902160432.GA5513@redhat.com>
  <20200902164456.GA5928@redhat.com>
  <4968af50-663d-74cf-1be2-aaed48a380d5@suse.de>
  <20200902165101.GB5928@redhat.com>
-From: Coly Li <colyli@suse.de>
 Autocrypt: addr=colyli@suse.de; keydata=
  mQINBFYX6S8BEAC9VSamb2aiMTQREFXK4K/W7nGnAinca7MRuFUD4JqWMJ9FakNRd/E0v30F
  qvZ2YWpidPjaIxHwu3u9tmLKqS+2vnP0k7PRHXBYbtZEMpy3kCzseNfdrNqwJ54A430BHf2S
@@ -82,24 +82,24 @@ Autocrypt: addr=colyli@suse.de; keydata=
  K0Jx4CEZubakJe+894sX6pvNFiI7qUUdB882i5GR3v9ijVPhaMr8oGuJ3kvwBIA8lvRBGVGn
  9xvzkQ8Prpbqh30I4NMp8MjFdkwCN6znBKPHdjNTwE5PRZH0S9J0o67IEIvHfH0eAWAsgpTz
  +jwc7VKH7vkvgscUhq/v1/PEWCAqh9UHy7R/jiUxwzw/288OpgO+i+2l11Y=
-Message-ID: <d175dda1-d196-8283-d099-9e4db70f96aa@suse.de>
-Date: Thu, 3 Sep 2020 13:05:13 +0800
+Message-ID: <c6636009-0bb9-ab2e-d453-992a2a53c6ef@suse.de>
+Date: Thu, 3 Sep 2020 13:20:15 +0800
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
  Gecko/20100101 Thunderbird/68.12.0
 MIME-Version: 1.0
 In-Reply-To: <20200902165101.GB5928@redhat.com>
 Content-Type: multipart/mixed;
- boundary="------------0F92E39F92669280CF59FFE0"
+ boundary="------------49F89CBB99A7BCBCF3A718A4"
 Content-Language: en-US
-Message-ID-Hash: 4BTVBJEMGP6IULEI26NZPQR6Z4WKAOED
-X-Message-ID-Hash: 4BTVBJEMGP6IULEI26NZPQR6Z4WKAOED
+Message-ID-Hash: JOI322REBHQTGW3IK7WH7LE3K5GAROIL
+X-Message-ID-Hash: JOI322REBHQTGW3IK7WH7LE3K5GAROIL
 X-MailFrom: colyli@suse.de
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Jan Kara <jack@suse.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, linux-nvdimm@lists.01.org, dm-devel@redhat.com
+CC: Jan Kara <jack@suse.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, linux-nvdimm@lists.01.org, Adrian Huang12 <ahuang12@lenovo.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4BTVBJEMGP6IULEI26NZPQR6Z4WKAOED/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JOI322REBHQTGW3IK7WH7LE3K5GAROIL/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -107,7 +107,7 @@ List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 
 This is a multi-part message in MIME format.
---------------0F92E39F92669280CF59FFE0
+--------------49F89CBB99A7BCBCF3A718A4
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 
@@ -166,6 +166,10 @@ On 2020/9/3 00:51, Mike Snitzer wrote:
 > test devices.  So there is something about the brd device that shows
 > commit c2affe920b0e066 isn't enough :(
 
+[Resend and CC Adrian Huang]
+
+Hi Mike,
+
 Could you please apply and test this attached patch based on v5.9-rc3 ?
 
 It seems the pointer dax_dev of __generic_fsdax_supported() parameter is
@@ -180,7 +184,8 @@ Thanks.
 Coly Li
 
 
---------------0F92E39F92669280CF59FFE0
+
+--------------49F89CBB99A7BCBCF3A718A4
 Content-Type: text/plain; charset=UTF-8; x-mac-type="0"; x-mac-creator="0";
  name="0001-dax-fix-for-do-not-print-error-message-for-non-persi.patch"
 Content-Transfer-Encoding: base64
@@ -210,7 +215,7 @@ ZGV2X2RheF9zdXBwb3J0ZWQoYmRldiwgYmxvY2tzaXplKSk7CisJaWYgKCFkYXhfZGV2IHx8
 ICFiZGV2X2RheF9zdXBwb3J0ZWQoYmRldiwgYmxvY2tzaXplKSkgewogCQlwcl9kZWJ1Zygi
 JXM6IGVycm9yOiBkYXggdW5zdXBwb3J0ZWQgYnkgYmxvY2sgZGV2aWNlXG4iLAogCQkJCWJk
 ZXZuYW1lKGJkZXYsIGJ1ZikpOwogCQlyZXR1cm4gZmFsc2U7Ci0tIAoyLjI2LjIKCg==
---------------0F92E39F92669280CF59FFE0
+--------------49F89CBB99A7BCBCF3A718A4
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -220,4 +225,4 @@ _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 
---------------0F92E39F92669280CF59FFE0--
+--------------49F89CBB99A7BCBCF3A718A4--
