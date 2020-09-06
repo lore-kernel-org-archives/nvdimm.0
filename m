@@ -1,154 +1,73 @@
-Return-Path: <SRS0=e2tZ=CO=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=5Yw4=CP=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D23DC43461
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  5 Sep 2020 17:04:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90648C433E2
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  6 Sep 2020 12:53:45 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B31152078E
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  5 Sep 2020 17:04:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NFbwmKVH"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B31152078E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 073BD208B3
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  6 Sep 2020 12:53:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 073BD208B3
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5027F13A2317E;
-	Sat,  5 Sep 2020 10:04:57 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0732B13A2317B
-	for <linux-nvdimm@lists.01.org>; Sat,  5 Sep 2020 10:04:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1599325493;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=bBI7if0KCVvWvaBOwMDsnEtZiJjjihsjAtqSgtT6RaA=;
-	b=NFbwmKVH3vZGkrcPEeNcGfc0xURcGIWV0gwG5koE+UzlVLPKCRuE9J5BDCjhbWFcVvQYTj
-	ixnNLhuqIlL/2ZCA1yAyiwTKUdyDsUJBrcoMwybQXHfii/Se5BaRjILVxW5ESSASENjFsi
-	roFkSc75VKXV3BZsuroJ1MTgyVrFsfA=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-286-mgO_poxTNXWtVk_hTdv0qg-1; Sat, 05 Sep 2020 13:04:51 -0400
-X-MC-Unique: mgO_poxTNXWtVk_hTdv0qg-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 82964185A0F8;
-	Sat,  5 Sep 2020 17:04:49 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 5831F7ED60;
-	Sat,  5 Sep 2020 17:04:46 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 085H4jOV003056;
-	Sat, 5 Sep 2020 13:04:45 -0400
-Received: from localhost (mpatocka@localhost)
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 085H4jxR003052;
-	Sat, 5 Sep 2020 13:04:45 -0400
-X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
-Date: Sat, 5 Sep 2020 13:04:45 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: [PATCH 2/2 v2] xfs: don't update mtime on COW faults
-In-Reply-To: <CAHk-=wh=0V27kdRkBAOkCDXSeFYmB=VzC0hMQVbmaiFV_1ZaCA@mail.gmail.com>
-Message-ID: <alpine.LRH.2.02.2009051302400.542@file01.intranet.prod.int.rdu2.redhat.com>
-References: <alpine.LRH.2.02.2009031328040.6929@file01.intranet.prod.int.rdu2.redhat.com> <alpine.LRH.2.02.2009041200570.27312@file01.intranet.prod.int.rdu2.redhat.com> <alpine.LRH.2.02.2009050805250.12419@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009050812060.12419@file01.intranet.prod.int.rdu2.redhat.com> <CAHk-=wh=0V27kdRkBAOkCDXSeFYmB=VzC0hMQVbmaiFV_1ZaCA@mail.gmail.com>
-User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
+	by ml01.01.org (Postfix) with ESMTP id 8666411B4F376;
+	Sun,  6 Sep 2020 05:53:44 -0700 (PDT)
+Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 9F1A111B4F373
+	for <linux-nvdimm@lists.01.org>; Sun,  6 Sep 2020 05:53:42 -0700 (PDT)
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-Message-ID-Hash: X2BR5HG7LDNIAI4BNXWAXPKCOOFDTVNW
-X-Message-ID-Hash: X2BR5HG7LDNIAI4BNXWAXPKCOOFDTVNW
-X-MailFrom: mpatocka@redhat.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Dave Chinner <dchinner@redhat.com>, Jann Horn <jannh@google.com>, Christoph Hellwig <hch@lst.de>, Oleg Nesterov <oleg@redhat.com>, Kirill Shutemov <kirill@shutemov.name>, Theodore Ts'o <tytso@mit.edu>, Andrea Arcangeli <aarcange@redhat.com>, Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Linux-MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Ext4 Developers List <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>
+Subject: Using Repackaging To 'Go Big' About Your Online Biz
+From: runahead456@gmail.com
+To: linux-nvdimm@lists.01.org
+Date: Sun, 06 Sep 2020 12:53:42 -0000
+Message-ID: <20200906125342.2828.35258@ml01.vlan13.01.org>
+User-Agent: HyperKitty on https://lists.01.org/
+Message-ID-Hash: 2KQOBKSBECJWSN3WEZMNZDJKOKKXBBHT
+X-Message-ID-Hash: 2KQOBKSBECJWSN3WEZMNZDJKOKKXBBHT
+X-MailFrom: runahead456@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/X2BR5HG7LDNIAI4BNXWAXPKCOOFDTVNW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2KQOBKSBECJWSN3WEZMNZDJKOKKXBBHT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-When running in a dax mode, if the user maps a page with MAP_PRIVATE and
-PROT_WRITE, the xfs filesystem would incorrectly update ctime and mtime
-when the user hits a COW fault.
-
-This breaks building of the Linux kernel.
-How to reproduce:
-1. extract the Linux kernel tree on dax-mounted xfs filesystem
-2. run make clean
-3. run make -j12
-4. run make -j12
-- at step 4, make would incorrectly rebuild the whole kernel (although it
-  was already built in step 3).
-
-The reason for the breakage is that almost all object files depend on
-objtool. When we run objtool, it takes COW page fault on its .data
-section, and these faults will incorrectly update the timestamp of the
-objtool binary. The updated timestamp causes make to rebuild the whole
-tree.
-
-Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: stable@vger.kernel.org
-
----
- fs/xfs/xfs_file.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
-
-Index: linux-2.6/fs/xfs/xfs_file.c
-===================================================================
---- linux-2.6.orig/fs/xfs/xfs_file.c	2020-09-05 18:48:54.000000000 +0200
-+++ linux-2.6/fs/xfs/xfs_file.c	2020-09-05 18:56:48.000000000 +0200
-@@ -1223,14 +1223,21 @@ __xfs_filemap_fault(
- 	return ret;
- }
- 
-+static inline bool
-+xfs_is_shared_dax_write_fault(
-+	struct vm_fault		*vmf)
-+{
-+	return IS_DAX(file_inode(vmf->vma->vm_file)) &&
-+	       vmf->flags & FAULT_FLAG_WRITE && vmf->vma->vm_flags & VM_SHARED;
-+}
-+
- static vm_fault_t
- xfs_filemap_fault(
- 	struct vm_fault		*vmf)
- {
- 	/* DAX can shortcut the normal fault path on write faults! */
- 	return __xfs_filemap_fault(vmf, PE_SIZE_PTE,
--			IS_DAX(file_inode(vmf->vma->vm_file)) &&
--			(vmf->flags & FAULT_FLAG_WRITE));
-+			xfs_is_shared_dax_write_fault(vmf));
- }
- 
- static vm_fault_t
-@@ -1243,7 +1250,7 @@ xfs_filemap_huge_fault(
- 
- 	/* DAX can shortcut the normal fault path on write faults! */
- 	return __xfs_filemap_fault(vmf, pe_size,
--			(vmf->flags & FAULT_FLAG_WRITE));
-+			xfs_is_shared_dax_write_fault(vmf));
- }
- 
- static vm_fault_t
+Normally, when phone manufacturers release successors of popular models, there are design features that make the successors special. Take for example
+theGoogle Nexus S and the predecessor the Samsung Galaxy Nexus. There might be be several similarities. However, next generation handsets often sport
+revampeddesigns build them more unique. With regards to fertilizer to the iPhone 4 and the 4S, a genuine effort . no difference in terms of design.
+TripAdvisor Hotels Flights: Plan and have your perfect trip with TripAdvisor. Several 75 million candid reviews and opinions by travelers, TripAdvisor makes it
+simplallowsyou to find very good hotels, great restaurants, and fun things to do, anywhere you go. Our robust flight search helps uncover airfare deals, even
+busy.And booking options for hotels, restaurants, and airfare are only a tap over.
+And, an identical whatsapp gb stats hold true in case you contact someone you've noticed on and also. If you don't have a photo, don't be surprised if the
+responsesaren't too quick in coming back.
+Click with a Start menu and browse to C:\ drive from My Machine. Search for the Trojan virus' file using Windows Exploration. Type the name of the herpes
+simplexvirus file on the inside desired field and hit Enter. When the file appears in the search results, right choose it and select Rename to alter its name to
+somethingvirus_temp (you can name it that which you want). The renaming will weaken the Trojan viral. Now right click on virus_temp and select Delete to
+deletethe file. Repeat the process of all the infected registers.
+We don't all support the money to be able to paying plenty of phone fees every month whenever we decide to jet away on loved ones. It's just extremely hard.
+Sinceour staff members are giving a presentation about Whatsapp, let's verify how APK Rapido relates if you want to it. Instead - use Whatsapp messenger.
+Extendedas as you're connected for the internet you're able message people for gratis.
+yowhatsapp(https://apkrapido.com/yowhatsapp/) I know a couple that celebrated via cam. The boyfriend bought ordered a cake and blew out the candle for his girlfriend on Skype. So in the way,
+technologieshave made long-distance relationships a whole lot easier to bear.
+In case you possess problems in installation process you can click on the trouble shooting problem areas there at the end of the word wide web page. Android
+developershave made the installation simple as well as simple.
+P.S. I forgot to specifically talk to the cost. Do it yourself time is prejudicial . than money to began. Expect $8-$15 per month (maybe if you believe your ISP
+accountis a component of it you are looking at $40 thirty day period but most of us are already online.) The added cost will slight light. The benefits? I think
+youcan figure that out on your own.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
