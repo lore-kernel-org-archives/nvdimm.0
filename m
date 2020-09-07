@@ -2,59 +2,97 @@ Return-Path: <SRS0=w1LJ=CQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4A83C43461
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  7 Sep 2020 09:00:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB0FBC433E2
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  7 Sep 2020 11:06:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 771B4208C7
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  7 Sep 2020 09:00:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 771B4208C7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+	by mail.kernel.org (Postfix) with ESMTPS id 3A1B1216C4
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  7 Sep 2020 11:06:25 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="dNWjWkoD"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3A1B1216C4
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 38F9E13A5DD17;
-	Mon,  7 Sep 2020 02:00:42 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id A2B7013B6E51E;
+	Mon,  7 Sep 2020 04:06:25 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 77D0D139E64D8
-	for <linux-nvdimm@lists.01.org>; Mon,  7 Sep 2020 02:00:39 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id DC6C6AD56;
-	Mon,  7 Sep 2020 09:00:38 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-	id E3FFA1E12D1; Mon,  7 Sep 2020 11:00:37 +0200 (CEST)
-Date: Mon, 7 Sep 2020 11:00:37 +0200
-From: Jan Kara <jack@suse.cz>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Subject: Re: [PATCH 1/2] ext2: don't update mtime on COW faults
-Message-ID: <20200907090037.GB16559@quack2.suse.cz>
-References: <alpine.LRH.2.02.2009031328040.6929@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009041200570.27312@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009050805250.12419@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009050811200.12419@file01.intranet.prod.int.rdu2.redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1D62E13B6E51C
+	for <linux-nvdimm@lists.01.org>; Mon,  7 Sep 2020 04:06:21 -0700 (PDT)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 087B3ENm127493;
+	Mon, 7 Sep 2020 07:06:02 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=rN65u+chTUkSYWa8afoWVcviGtesLrEc2JSgSAn7lHc=;
+ b=dNWjWkoDXwEmXl4MiKBAsi1Wg7kIZtz7vgaaO3A/Gr7ioaGOZtsFrYXcRpXy7mShCyn+
+ zNKSwAvDuupJjVaAKD76dO7RmZ2ZsodiGEKs2jO12zqKCV2kj7KUTkEipiSlSdr77Sqf
+ PxxSFkNUCk42wv6Y9NUNdctKZpl0rqAqv/m7HwIdi00+JyeRXMl3QPs+I6Owc0QpUw3e
+ SceMmouOtVm0sBAmUdBj1X6pzAa4WiNvraBkxsCZV+MVdjt65M/1VPEGv+ZhV6MXCotO
+ 6Wf+ANhJqVhlVHGg5+fCxYIhszBRk07VpOAYCEGTfngdocHIG/FjxH6LFJpM186aIsbl Kg==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 33dk6vgwrj-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 07 Sep 2020 07:06:02 -0400
+Received: from m0098417.ppops.net (m0098417.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 087B3jma128969;
+	Mon, 7 Sep 2020 07:06:02 -0400
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 33dk6vgwqs-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 07 Sep 2020 07:06:02 -0400
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 087B1tCD020214;
+	Mon, 7 Sep 2020 11:06:00 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+	by ppma06ams.nl.ibm.com with ESMTP id 33cyq5128k-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 07 Sep 2020 11:06:00 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 087B5v3J33489292
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 7 Sep 2020 11:05:57 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6AF9952059;
+	Mon,  7 Sep 2020 11:05:57 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.85.81.124])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id D2B565204E;
+	Mon,  7 Sep 2020 11:05:53 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 07 Sep 2020 16:35:52 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
+Subject: [PATCH v2] powerpc/papr_scm: Limit the readability of 'perf_stats' sysfs attribute
+Date: Mon,  7 Sep 2020 16:35:40 +0530
+Message-Id: <20200907110540.21349-1-vaibhav@linux.ibm.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.02.2009050811200.12419@file01.intranet.prod.int.rdu2.redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: 773OWM2TGW5HJRRLBJNVDGH4HCBZWRGS
-X-Message-ID-Hash: 773OWM2TGW5HJRRLBJNVDGH4HCBZWRGS
-X-MailFrom: jack@suse.cz
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-09-07_04:2020-09-07,2020-09-07 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0
+ mlxlogscore=999 bulkscore=0 mlxscore=0 spamscore=0 priorityscore=1501
+ suspectscore=0 lowpriorityscore=0 impostorscore=0 phishscore=0
+ adultscore=0 clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2006250000 definitions=main-2009070104
+Message-ID-Hash: NRNFY53AJ5MIH7WBVNQOIMNOYKOIQQ2Z
+X-Message-ID-Hash: NRNFY53AJ5MIH7WBVNQOIMNOYKOIQQ2Z
+X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, "Darrick J. Wong" <darrick.wong@oracle.com>, Dave Chinner <dchinner@redhat.com>, Jann Horn <jannh@google.com>, Christoph Hellwig <hch@lst.de>, Oleg Nesterov <oleg@redhat.com>, Kirill Shutemov <kirill@shutemov.name>, Theodore Ts'o <tytso@mit.edu>, Andrea Arcangeli <aarcange@redhat.com>, Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org
+CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/773OWM2TGW5HJRRLBJNVDGH4HCBZWRGS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NRNFY53AJ5MIH7WBVNQOIMNOYKOIQQ2Z/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -63,68 +101,45 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Sat 05-09-20 08:12:01, Mikulas Patocka wrote:
-> When running in a dax mode, if the user maps a page with MAP_PRIVATE and
-> PROT_WRITE, the ext2 filesystem would incorrectly update ctime and mtime
-> when the user hits a COW fault.
-> 
-> This breaks building of the Linux kernel.
-> How to reproduce:
-> 1. extract the Linux kernel tree on dax-mounted ext2 filesystem
-> 2. run make clean
-> 3. run make -j12
-> 4. run make -j12
-> - at step 4, make would incorrectly rebuild the whole kernel (although it
->   was already built in step 3).
-> 
-> The reason for the breakage is that almost all object files depend on
-> objtool. When we run objtool, it takes COW page fault on its .data
-> section, and these faults will incorrectly update the timestamp of the
-> objtool binary. The updated timestamp causes make to rebuild the whole
-> tree.
-> 
-> Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-> Cc: stable@vger.kernel.org
+The newly introduced 'perf_stats' attribute uses the default access
+mode of 0444 letting non-root users access performance stats of an
+nvdimm and potentially force the kernel into issuing large number of
+expensive HCALLs. Since the information exposed by this attribute
+cannot be cached hence its better to ward of access to this attribute
+from users who don't need to access these performance statistics.
 
-Thanks. Good spotting! Linus has already merged this so nothing more to do
-here.
+Hence this patch updates access mode of 'perf_stats' attribute to
+be only readable by root users.
 
-								Honza
+Fixes: 2d02bf835e573 ('powerpc/papr_scm: Fetch nvdimm performance stats from PHYP')
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+Change-log:
 
-> 
-> ---
->  fs/ext2/file.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> Index: linux-2.6/fs/ext2/file.c
-> ===================================================================
-> --- linux-2.6.orig/fs/ext2/file.c	2020-09-05 10:01:41.000000000 +0200
-> +++ linux-2.6/fs/ext2/file.c	2020-09-05 13:09:50.000000000 +0200
-> @@ -93,8 +93,10 @@ static vm_fault_t ext2_dax_fault(struct
->  	struct inode *inode = file_inode(vmf->vma->vm_file);
->  	struct ext2_inode_info *ei = EXT2_I(inode);
->  	vm_fault_t ret;
-> +	bool write = (vmf->flags & FAULT_FLAG_WRITE) &&
-> +		(vmf->vma->vm_flags & VM_SHARED);
->  
-> -	if (vmf->flags & FAULT_FLAG_WRITE) {
-> +	if (write) {
->  		sb_start_pagefault(inode->i_sb);
->  		file_update_time(vmf->vma->vm_file);
->  	}
-> @@ -103,7 +105,7 @@ static vm_fault_t ext2_dax_fault(struct
->  	ret = dax_iomap_fault(vmf, PE_SIZE_PTE, NULL, NULL, &ext2_iomap_ops);
->  
->  	up_read(&ei->dax_sem);
-> -	if (vmf->flags & FAULT_FLAG_WRITE)
-> +	if (write)
->  		sb_end_pagefault(inode->i_sb);
->  	return ret;
->  }
-> 
+v2:
+* Instead of checking for perfmon_capable() inside show_perf_stats()
+  set the attribute as DEVICE_ATTR_ADMIN_RO [ Aneesh ]
+* Update patch description
+---
+ arch/powerpc/platforms/pseries/papr_scm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+index f439f0dfea7d1..a88a707a608aa 100644
+--- a/arch/powerpc/platforms/pseries/papr_scm.c
++++ b/arch/powerpc/platforms/pseries/papr_scm.c
+@@ -822,7 +822,7 @@ static ssize_t perf_stats_show(struct device *dev,
+ 	kfree(stats);
+ 	return rc ? rc : seq_buf_used(&s);
+ }
+-DEVICE_ATTR_RO(perf_stats);
++DEVICE_ATTR_ADMIN_RO(perf_stats);
+ 
+ static ssize_t flags_show(struct device *dev,
+ 			  struct device_attribute *attr, char *buf)
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
