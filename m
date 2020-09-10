@@ -7,69 +7,68 @@ X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 222B5C2D0A7
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 09:14:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23C11C2BB84
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 09:14:45 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B89E821556
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 09:14:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id C04D320872
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 09:14:44 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="O9fb89ey"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B89E821556
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JAyRWGLM"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C04D320872
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 50D641412ED9F;
-	Thu, 10 Sep 2020 02:14:36 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.205.24.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
+	by ml01.01.org (Postfix) with ESMTP id 764521414DD58;
+	Thu, 10 Sep 2020 02:14:44 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C18561412ED97
-	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 02:14:33 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id B60171412EDA1
+	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 02:14:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1599729272;
+	s=mimecast20190719; t=1599729281;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=bG9jcFZqt1ezDhzv7IvKf+DjV9LEx4e4KE6iRuRMdvg=;
-	b=O9fb89eyvIv2ZzFXi9nWIOYiZhu0SfB6Oe86/r04ZRPtZ4Wqu3ySCC1Q2fCtrfZM+tnjHM
-	gqYyOkf6IoB4ifYaQwYEYUns/UPI6ks4JFlxu0gNQcKYzjcguNG7/AiZTr2maaZ4GXqtet
-	LUGU+CjWf18/8u0GvKiKTJ9Hh3qtAss=
+	bh=UKbsrpgJcVk/I/seBIDa5mjqSR3CWWtNLQlSkA+xweM=;
+	b=JAyRWGLMk215v6zfyz47/3m4wXWwzhy6cE6SGXGIPfY4oGxlhifcBzo7+9Zbxoi0nwtLM9
+	vJD5N2hciPEMV0mYXUmfoDVeY6hakFXuKOmr27b2tI3szWxDypbPM61pthzePs1Y8MGKbz
+	Ndf3loCYbjtHYlDAe6zDDeyEJoDC6w8=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-85-ptkUy2LiMBG7-ccx0nM6Tg-1; Thu, 10 Sep 2020 05:14:30 -0400
-X-MC-Unique: ptkUy2LiMBG7-ccx0nM6Tg-1
+ us-mta-276-4Ir0pFWkOr2SyXBA0eB5IQ-1; Thu, 10 Sep 2020 05:14:39 -0400
+X-MC-Unique: 4Ir0pFWkOr2SyXBA0eB5IQ-1
 Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 796B71091061;
-	Thu, 10 Sep 2020 09:14:25 +0000 (UTC)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DEF4E18B9F11;
+	Thu, 10 Sep 2020 09:14:37 +0000 (UTC)
 Received: from t480s.redhat.com (ovpn-113-88.ams2.redhat.com [10.36.113.88])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 55A301A8EC;
-	Thu, 10 Sep 2020 09:14:14 +0000 (UTC)
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 9B8ED1A8EC;
+	Thu, 10 Sep 2020 09:14:34 +0000 (UTC)
 From: David Hildenbrand <david@redhat.com>
 To: linux-kernel@vger.kernel.org
-Subject: [PATCH v3 3/7] mm/memory_hotplug: prepare passing flags to add_memory() and friends
-Date: Thu, 10 Sep 2020 11:13:36 +0200
-Message-Id: <20200910091340.8654-4-david@redhat.com>
+Subject: [PATCH v3 5/7] virtio-mem: try to merge system ram resources
+Date: Thu, 10 Sep 2020 11:13:38 +0200
+Message-Id: <20200910091340.8654-6-david@redhat.com>
 In-Reply-To: <20200910091340.8654-1-david@redhat.com>
 References: <20200910091340.8654-1-david@redhat.com>
 MIME-Version: 1.0
 X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-Message-ID-Hash: HMNWVD6TH7KYPPIY2RLWL2VRRQFVWQRO
-X-Message-ID-Hash: HMNWVD6TH7KYPPIY2RLWL2VRRQFVWQRO
+Message-ID-Hash: KOFIQDSCHJFNMHN3GHAODXAUOWLX4KOO
+X-Message-ID-Hash: KOFIQDSCHJFNMHN3GHAODXAUOWLX4KOO
 X-MailFrom: david@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Wei Liu <wei.liu@kernel.org>, Juergen Gross <jgross@suse.com>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, "Michael S. Tsirk
- in" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stefano Stabellini <sstabellini@kernel.org>, Pingfan Liu <kernelfans@gmail.com>, Nathan Lynch <nathanl@linux.ibm.com>, Libor Pechacek <lpechacek@suse.cz>, Anton Blanchard <anton@ozlabs.org>, Leonardo Bras <leobras.c@gmail.com>, linuxppc-dev@lists.ozlabs.org
+CC: virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Michal Hocko <mhocko@suse.com>, "Michael S . Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HMNWVD6TH7KYPPIY2RLWL2VRRQFVWQRO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KOFIQDSCHJFNMHN3GHAODXAUOWLX4KOO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -78,287 +77,77 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-We soon want to pass flags, e.g., to mark added System RAM resources.
-mergeable. Prepare for that.
+virtio-mem adds memory in memory block granularity, to be able to
+remove it in the same granularity again later, and to grow slowly on
+demand. This, however, results in quite a lot of resources when
+adding a lot of memory. Resources are effectively stored in a list-based
+tree. Having a lot of resources not only wastes memory, it also makes
+traversing that tree more expensive, and makes /proc/iomem explode in
+size (e.g., requiring kexec-tools to manually merge resources later
+when e.g., trying to create a kdump header).
 
-This patch is based on a similar patch by Oscar Salvador:
+Before this patch, we get (/proc/iomem) when hotplugging 2G via virtio-mem
+on x86-64:
+        [...]
+        100000000-13fffffff : System RAM
+        140000000-33fffffff : virtio0
+          140000000-147ffffff : System RAM (virtio_mem)
+          148000000-14fffffff : System RAM (virtio_mem)
+          150000000-157ffffff : System RAM (virtio_mem)
+          158000000-15fffffff : System RAM (virtio_mem)
+          160000000-167ffffff : System RAM (virtio_mem)
+          168000000-16fffffff : System RAM (virtio_mem)
+          170000000-177ffffff : System RAM (virtio_mem)
+          178000000-17fffffff : System RAM (virtio_mem)
+          180000000-187ffffff : System RAM (virtio_mem)
+          188000000-18fffffff : System RAM (virtio_mem)
+          190000000-197ffffff : System RAM (virtio_mem)
+          198000000-19fffffff : System RAM (virtio_mem)
+          1a0000000-1a7ffffff : System RAM (virtio_mem)
+          1a8000000-1afffffff : System RAM (virtio_mem)
+          1b0000000-1b7ffffff : System RAM (virtio_mem)
+          1b8000000-1bfffffff : System RAM (virtio_mem)
+        3280000000-32ffffffff : PCI Bus 0000:00
 
-https://lkml.kernel.org/r/20190625075227.15193-3-osalvador@suse.de
+With this patch, we get (/proc/iomem):
+        [...]
+        fffc0000-ffffffff : Reserved
+        100000000-13fffffff : System RAM
+        140000000-33fffffff : virtio0
+          140000000-1bfffffff : System RAM (virtio_mem)
+        3280000000-32ffffffff : PCI Bus 0000:00
 
-Acked-by: Wei Liu <wei.liu@kernel.org>
-Reviewed-by: Juergen Gross <jgross@suse.com> # Xen related part
+Of course, with more hotplugged memory, it gets worse. When unplugging
+memory blocks again, try_remove_memory() (via
+offline_and_remove_memory()) will properly split the resource up again.
+
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
 Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Wei Yang <richardw.yang@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: "Oliver O'Halloran" <oohall@gmail.com>
-Cc: Pingfan Liu <kernelfans@gmail.com>
-Cc: Nathan Lynch <nathanl@linux.ibm.com>
-Cc: Libor Pechacek <lpechacek@suse.cz>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: Leonardo Bras <leobras.c@gmail.com>
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-hyperv@vger.kernel.org
-Cc: linux-s390@vger.kernel.org
-Cc: virtualization@lists.linux-foundation.org
-Cc: xen-devel@lists.xenproject.org
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- arch/powerpc/platforms/powernv/memtrace.c       |  2 +-
- arch/powerpc/platforms/pseries/hotplug-memory.c |  2 +-
- drivers/acpi/acpi_memhotplug.c                  |  3 ++-
- drivers/base/memory.c                           |  3 ++-
- drivers/dax/kmem.c                              |  2 +-
- drivers/hv/hv_balloon.c                         |  2 +-
- drivers/s390/char/sclp_cmd.c                    |  2 +-
- drivers/virtio/virtio_mem.c                     |  2 +-
- drivers/xen/balloon.c                           |  2 +-
- include/linux/memory_hotplug.h                  | 16 ++++++++++++----
- mm/memory_hotplug.c                             | 14 +++++++-------
- 11 files changed, 30 insertions(+), 20 deletions(-)
+ drivers/virtio/virtio_mem.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/powerpc/platforms/powernv/memtrace.c b/arch/powerpc/platforms/powernv/memtrace.c
-index 13b369d2cc454..6828108486f83 100644
---- a/arch/powerpc/platforms/powernv/memtrace.c
-+++ b/arch/powerpc/platforms/powernv/memtrace.c
-@@ -224,7 +224,7 @@ static int memtrace_online(void)
- 			ent->mem = 0;
- 		}
- 
--		if (add_memory(ent->nid, ent->start, ent->size)) {
-+		if (add_memory(ent->nid, ent->start, ent->size, MHP_NONE)) {
- 			pr_err("Failed to add trace memory to node %d\n",
- 				ent->nid);
- 			ret += 1;
-diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
-index 0ea976d1cac47..e1c9fa0d730f5 100644
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c
-+++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -615,7 +615,7 @@ static int dlpar_add_lmb(struct drmem_lmb *lmb)
- 	nid = memory_add_physaddr_to_nid(lmb->base_addr);
- 
- 	/* Add the memory */
--	rc = __add_memory(nid, lmb->base_addr, block_sz);
-+	rc = __add_memory(nid, lmb->base_addr, block_sz, MHP_NONE);
- 	if (rc) {
- 		invalidate_lmb_associativity_index(lmb);
- 		return rc;
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index e294f44a78504..2067c3bc55763 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -207,7 +207,8 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		if (node < 0)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
- 
--		result = __add_memory(node, info->start_addr, info->length);
-+		result = __add_memory(node, info->start_addr, info->length,
-+				      MHP_NONE);
- 
- 		/*
- 		 * If the memory block has been used by the kernel, add_memory()
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 4db3c660de831..b4c297dd04755 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -432,7 +432,8 @@ static ssize_t probe_store(struct device *dev, struct device_attribute *attr,
- 
- 	nid = memory_add_physaddr_to_nid(phys_addr);
- 	ret = __add_memory(nid, phys_addr,
--			   MIN_MEMORY_BLOCK_SIZE * sections_per_block);
-+			   MIN_MEMORY_BLOCK_SIZE * sections_per_block,
-+			   MHP_NONE);
- 
- 	if (ret)
- 		goto out;
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index 7dcb2902e9b1b..896cb9444e727 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -95,7 +95,7 @@ int dev_dax_kmem_probe(struct dev_dax *dev_dax)
- 		 * this as RAM automatically.
- 		 */
- 		rc = add_memory_driver_managed(numa_node, range.start,
--				range_len(&range), kmem_name);
-+				range_len(&range), kmem_name, MHP_NONE);
- 
- 		res->flags |= IORESOURCE_BUSY;
- 		if (rc) {
-diff --git a/drivers/hv/hv_balloon.c b/drivers/hv/hv_balloon.c
-index 32e3bc0aa665a..3c0d52e244520 100644
---- a/drivers/hv/hv_balloon.c
-+++ b/drivers/hv/hv_balloon.c
-@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long start, unsigned long size,
- 
- 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
- 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
--				(HA_CHUNK << PAGE_SHIFT));
-+				(HA_CHUNK << PAGE_SHIFT), MHP_NONE);
- 
- 		if (ret) {
- 			pr_err("hot_add memory failed error is %d\n", ret);
-diff --git a/drivers/s390/char/sclp_cmd.c b/drivers/s390/char/sclp_cmd.c
-index a864b21af602a..f6e97f0830f64 100644
---- a/drivers/s390/char/sclp_cmd.c
-+++ b/drivers/s390/char/sclp_cmd.c
-@@ -406,7 +406,7 @@ static void __init add_memory_merged(u16 rn)
- 	if (!size)
- 		goto skip_add;
- 	for (addr = start; addr < start + size; addr += block_size)
--		add_memory(0, addr, block_size);
-+		add_memory(0, addr, block_size, MHP_NONE);
- skip_add:
- 	first_rn = rn;
- 	num = 1;
 diff --git a/drivers/virtio/virtio_mem.c b/drivers/virtio/virtio_mem.c
-index 834b7c13ef3dc..ed99e43354010 100644
+index ed99e43354010..ba4de598f6636 100644
 --- a/drivers/virtio/virtio_mem.c
 +++ b/drivers/virtio/virtio_mem.c
-@@ -424,7 +424,7 @@ static int virtio_mem_mb_add(struct virtio_mem *vm, unsigned long mb_id)
+@@ -424,7 +424,8 @@ static int virtio_mem_mb_add(struct virtio_mem *vm, unsigned long mb_id)
  
  	dev_dbg(&vm->vdev->dev, "adding memory block: %lu\n", mb_id);
  	return add_memory_driver_managed(nid, addr, memory_block_size_bytes(),
--					 vm->resource_name);
-+					 vm->resource_name, MHP_NONE);
+-					 vm->resource_name, MHP_NONE);
++					 vm->resource_name,
++					 MEMHP_MERGE_RESOURCE);
  }
  
  /*
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index 51427c752b37b..9f40a294d398d 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -331,7 +331,7 @@ static enum bp_state reserve_additional_memory(void)
- 	mutex_unlock(&balloon_mutex);
- 	/* add_memory_resource() requires the device_hotplug lock */
- 	lock_device_hotplug();
--	rc = add_memory_resource(nid, resource);
-+	rc = add_memory_resource(nid, resource, MHP_NONE);
- 	unlock_device_hotplug();
- 	mutex_lock(&balloon_mutex);
- 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 51a877fec8da8..e53d1058f3443 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -57,6 +57,12 @@ enum {
- 	MMOP_ONLINE_MOVABLE,
- };
- 
-+/* Flags for add_memory() and friends to specify memory hotplug details. */
-+typedef int __bitwise mhp_t;
-+
-+/* No special request */
-+#define MHP_NONE		((__force mhp_t)0)
-+
- /*
-  * Extended parameters for memory hotplug:
-  * altmap: alternative allocator for memmap array (optional)
-@@ -345,11 +351,13 @@ extern void set_zone_contiguous(struct zone *zone);
- extern void clear_zone_contiguous(struct zone *zone);
- 
- extern void __ref free_area_init_core_hotplug(int nid);
--extern int __add_memory(int nid, u64 start, u64 size);
--extern int add_memory(int nid, u64 start, u64 size);
--extern int add_memory_resource(int nid, struct resource *resource);
-+extern int __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
-+extern int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags);
-+extern int add_memory_resource(int nid, struct resource *resource,
-+			       mhp_t mhp_flags);
- extern int add_memory_driver_managed(int nid, u64 start, u64 size,
--				     const char *resource_name);
-+				     const char *resource_name,
-+				     mhp_t mhp_flags);
- extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
- 				   unsigned long nr_pages,
- 				   struct vmem_altmap *altmap, int migratetype);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 8e1cd18b5cf14..8f0bd7c9a63a5 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1039,7 +1039,7 @@ static int online_memory_block(struct memory_block *mem, void *arg)
-  *
-  * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
-  */
--int __ref add_memory_resource(int nid, struct resource *res)
-+int __ref add_memory_resource(int nid, struct resource *res, mhp_t mhp_flags)
- {
- 	struct mhp_params params = { .pgprot = PAGE_KERNEL };
- 	u64 start, size;
-@@ -1118,7 +1118,7 @@ int __ref add_memory_resource(int nid, struct resource *res)
- }
- 
- /* requires device_hotplug_lock, see add_memory_resource() */
--int __ref __add_memory(int nid, u64 start, u64 size)
-+int __ref __add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
- {
- 	struct resource *res;
- 	int ret;
-@@ -1127,18 +1127,18 @@ int __ref __add_memory(int nid, u64 start, u64 size)
- 	if (IS_ERR(res))
- 		return PTR_ERR(res);
- 
--	ret = add_memory_resource(nid, res);
-+	ret = add_memory_resource(nid, res, mhp_flags);
- 	if (ret < 0)
- 		release_memory_resource(res);
- 	return ret;
- }
- 
--int add_memory(int nid, u64 start, u64 size)
-+int add_memory(int nid, u64 start, u64 size, mhp_t mhp_flags)
- {
- 	int rc;
- 
- 	lock_device_hotplug();
--	rc = __add_memory(nid, start, size);
-+	rc = __add_memory(nid, start, size, mhp_flags);
- 	unlock_device_hotplug();
- 
- 	return rc;
-@@ -1167,7 +1167,7 @@ EXPORT_SYMBOL_GPL(add_memory);
-  * "System RAM ($DRIVER)".
-  */
- int add_memory_driver_managed(int nid, u64 start, u64 size,
--			      const char *resource_name)
-+			      const char *resource_name, mhp_t mhp_flags)
- {
- 	struct resource *res;
- 	int rc;
-@@ -1185,7 +1185,7 @@ int add_memory_driver_managed(int nid, u64 start, u64 size,
- 		goto out_unlock;
- 	}
- 
--	rc = add_memory_resource(nid, res);
-+	rc = add_memory_resource(nid, res, mhp_flags);
- 	if (rc < 0)
- 		release_memory_resource(res);
- 
 -- 
 2.26.2
 _______________________________________________
