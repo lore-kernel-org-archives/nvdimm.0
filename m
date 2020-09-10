@@ -1,90 +1,154 @@
 Return-Path: <SRS0=0Kx6=CT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2259AC433E2
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 08:09:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61B5CC2D0A7
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 09:14:14 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 986F220731
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 08:09:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 986F220731
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=rakuten.co.jp
+	by mail.kernel.org (Postfix) with ESMTPS id 7880C20872
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 09:14:13 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="UUbpsuWs"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7880C20872
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 27B92140E0D63;
-	Thu, 10 Sep 2020 01:09:42 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=118.27.39.103; helo=kwawgof.cn; envelope-from=admin@moqingyuan.cn; receiver=<UNKNOWN> 
-Received: from kwawgof.cn (v118-27-39-103.al0z.static.cnode.io [118.27.39.103])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id DBC0B1410DB4E;
+	Thu, 10 Sep 2020 02:14:12 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=205.139.110.61; helo=us-smtp-delivery-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-1.mimecast.com (us-smtp-1.mimecast.com [205.139.110.61])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 30BE3140E0D61
-	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 01:09:40 -0700 (PDT)
-Received: from vqypdvku (unknown [112.121.165.186])
-	by kwawgof.cn (Postfix) with ESMTPA id 7D98524E8CE
-	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 15:59:19 +0800 (CST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 kwawgof.cn 7D98524E8CE
-From: Rakuten-update@rakuten.co.jp <Rakuten-update@rakuten.co.jp>
-To: linux-nvdimm <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?44GC44Gq44Gf44Gu44Ki44Kr44Km44Oz44OI44KS5pu05paw44Gn44GN44G+44Gb44KT44Gn44GX44Gf?=
-	=?utf-8?B?44CC44GT44KM44Gv44CB44Kr44O844OJ44GM5pyf6ZmQ5YiH44KM44Gr44Gq44Gj44Gf44GL44CC?=
-Date: Thu, 10 Sep 2020 15:59:14 +0800
-Message-ID: <00fd1435cb56$814c65d8$22307e69$@vqypdvku>
+	by ml01.01.org (Postfix) with ESMTPS id 76FFC13D98CF2
+	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 02:14:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1599729249;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=q+xRLYk6ElaQMFati+s8ZI/gmN1ETJt7O5tUW1WhghI=;
+	b=UUbpsuWspWBy64qJNqR0KQ6hXzfJ2U4HhrstGWZgatVuF/t/43EiKXD7Xt9Mx4x7gB2v95
+	iw6/6FftSqjpVYyN7RdluG9gNiCASQp7HsW5RO1htuBE+BbLimnoRe/L3eHaY3IbVi8hBu
+	Yfgv5V3T6J+CiY0lsqmu8y+db4MqiR0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-308-3iuqD9l8MNi4UpNNbX7W8g-1; Thu, 10 Sep 2020 05:14:07 -0400
+X-MC-Unique: 3iuqD9l8MNi4UpNNbX7W8g-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4996418B9F00;
+	Thu, 10 Sep 2020 09:14:01 +0000 (UTC)
+Received: from t480s.redhat.com (ovpn-113-88.ams2.redhat.com [10.36.113.88])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 2A880282CA;
+	Thu, 10 Sep 2020 09:13:41 +0000 (UTC)
+From: David Hildenbrand <david@redhat.com>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/7] mm/memory_hotplug: selective merging of system ram resources
+Date: Thu, 10 Sep 2020 11:13:33 +0200
+Message-Id: <20200910091340.8654-1-david@redhat.com>
 MIME-Version: 1.0
-X-Mailer: Microsoft Outlook 16.0
-Message-ID-Hash: VOHFMSQAVD7O2I5UDSCGJMOAN4AJ4E7L
-X-Message-ID-Hash: VOHFMSQAVD7O2I5UDSCGJMOAN4AJ4E7L
-X-MailFrom: admin@moqingyuan.cn
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Message-ID-Hash: O5EXQUAHBXLO44WSKHY4AS3VPQEWSDK6
+X-Message-ID-Hash: O5EXQUAHBXLO44WSKHY4AS3VPQEWSDK6
+X-MailFrom: david@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Andrew Morton <akpmt@linux-foundation.org>, Anton Blanchard <anton@ozlabs.org>, Ard Biesheuvel <ardb@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Eric Biederman <ebiederm@xmission.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Haiyang Zhang <haiyangz@microsoft.com>, Heiko Carstens <hca@linux.ibm.com>, Jason Gunthorpe <jgg@ziepe.ca>, Jason Wang <jasowang@redhat.com>, Juergen Gross <jgross@suse.com>, Julien Grall <julien@xen.org>, Kees Cook <keescook@chromium.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Len Brown <lenb@kernel.org>, Leonardo Bras <leo
+ bras.c@gmail.com>, Libor Pechacek <lpechacek@suse.cz>, Michael Ellerman <mpe@ellerman.id.au>, "Michael S. Tsirkin" <mst@redhat.com>, Michal Hocko <mhocko@suse.com>, Nathan Lynch <nathanl@linux.ibm.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Paul Mackerras <paulus@samba.org>, Pingfan Liu <kernelfans@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, =?UTF-8?q?Roger=20Pau=20Monn=C3=A9?= <roger.pau@citrix.com>, Stefano Stabellini <sstabellini@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, Thomas Gleixner <tglx@linutronix.de>, Vasily Gorbik <gor@linux.ibm.com>, Wei Liu <wei.liu@kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VOHFMSQAVD7O2I5UDSCGJMOAN4AJ4E7L/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/O5EXQUAHBXLO44WSKHY4AS3VPQEWSDK6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-5qW95aSp5a6J5YWo44K744Oz44K/44O8ICANCg0KDQoNCg0KDQoNClJha3V0ZW7jgYrlrqLmp5gg
-DQoNCuaui+W/teOBquOBjOOCieOAgeOBguOBquOBn+OBruOCouOCq+OCpuODs+ODiOOCkuabtOaW
-sOOBp+OBjeOBvuOBm+OCk+OBp+OBl+OBn+OAguOBk+OCjOOBr+OAgeOCq+ODvOODieOBjOacn+mZ
-kOWIh+OCjOOBq+OBquOBo+OBn+OBi+OAgg0K6KuL5rGC5YWI5L2P5omA44GM5aSJ5pu044GV44KM
-44Gf44Gq44Gp44CB44GV44G+44GW44G+44Gq55CG55Sx44Gn55m655Sf44GZ44KL5Y+v6IO95oCn
-44GM44GC44KK44G+44GZ44CCIA0KDQoNCg0K5LuK44Ki44Kr44Km44Oz44OI44KS56K66KqN44Gn
-44GN44G+44GZ44CCIA0KDQoNCualveWkqeODreOCsOOCpOODsw0KDQoNCg0KDQrjgarjgYrjgIEy
-NOaZgumWk+S7peWGheOBq+OBlOeiuuiqjeOBjOOBquOBhOWgtOWQiOOAgeiqoOOBq+mBuuaGvuOB
-quOBjOOCieOAgeOCouOCq+OCpuODs+ODiOOCkuODreODg+OCr+OBleOBm+OBpuOBhOOBn+OBoOOB
-j+OBk+OBqOOCkuitpuWRiuOBhOOBn+OBl+OBvuOBmeOAgiANCg0K44OR44K544Ov44O844OJ44KS
-5aSJ5pu044GX44Gf6Kaa44GI44GM44Gq44GE5aC05ZCI44Gv44CB6Iez5oCl77yIMDEpLTUwLTU4
-MzAtNjg2MOOBvuOBp+OBiumbu+ipseOBj+OBoOOBleOBhOOAgiANCg0KDQoNCuOBiuefpeOCieOB
-mzogDQroq4vmsYLlhYjkvY/miYDjgYzlpInmm7TjgZXjgozjgZ/jgarjganjgIHjgZXjgb7jgZbj
-gb7jgarnkIbnlLHjgafnmbrnlJ/jgZnjgovlj6/og73mgKfjgYzjgYLjgorjgb7jgZnjgIIgDQoN
-Cg0KDQrku4rjgqLjgqvjgqbjg7Pjg4jjgpLnorroqo3jgafjgY3jgb7jgZnjgIIgDQoNCg0K5qW9
-5aSp44Ot44Kw44Kk44OzDQoNCg0KDQoNCuOBquOBiuOAgTI05pmC6ZaT5Lul5YaF44Gr44GU56K6
-6KqN44GM44Gq44GE5aC05ZCI44CB6Kqg44Gr6YG65oa+44Gq44GM44KJ44CB44Ki44Kr44Km44Oz
-44OI44KS44Ot44OD44Kv44GV44Gb44Gm44GE44Gf44Gg44GP44GT44Go44KS6K2m5ZGK44GE44Gf
-44GX44G+44GZ44CCIA0KDQrjg5Hjgrnjg6/jg7zjg4njgpLlpInmm7TjgZfjgZ/opprjgYjjgYzj
-garjgYTloLTlkIjjga/jgIHoh7PmgKXvvIgwMSktNTAtNTgzMC02ODYw44G+44Gn44GK6Zu76Kmx
-44GP44Gg44GV44GE44CCIA0KDQrjgYrnn6XjgonjgZs6IA0KDQrCtyDjg5Hjgrnjg6/jg7zjg4nj
-ga/oqrDjgavjgoLmlZnjgYjjgarjgYTjgafjgY/jgaDjgZXjgYTjgIIgDQoNCsK3IOWAi+S6uuaD
-heWgseOBqOmWouS/guOBjOOBquOBj+OAgeaOqOa4rOOBl+OBq+OBj+OBhOODkeOCueODr+ODvOOD
-ieOCkuS9nOaIkOOBl+OBpuOBj+OBoOOBleOBhOOAguWkp+aWh+Wtl+OBqOWwj+aWh+Wtl+OAgeaV
-sOWtl+OAgeOBiuOCiOOBs+iomOWPt+OCkuW/heOBmuS9v+eUqOOBl+OBpuOBj+OBoOOBleOBhOOA
-giANCg0Kwrcg44Kq44Oz44Op44Kk44Oz44Ki44Kr44Km44Oz44OI44GU44Go44Gr44CB55Ww44Gq
-44KL44OR44K544Ov44O844OJ44KS5L2/55So44GX44Gm44GP44Gg44GV44GE44CCIA0KDQoNCg0K
-44Gp44GG44Ge44KI44KN44GX44GP44GK6aGY44GE44GE44Gf44GX44G+44GZ44CCIA0KUmFrdXRl
-bu+8jEluYy4gDQoNCg0KDQoNCg0KDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1t
-QGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGlt
-bS1sZWF2ZUBsaXN0cy4wMS5vcmcK
+Some add_memory*() users add memory in small, contiguous memory blocks.
+Examples include virtio-mem, hyper-v balloon, and the XEN balloon.
+
+This can quickly result in a lot of memory resources, whereby the actual
+resource boundaries are not of interest (e.g., it might be relevant for
+DIMMs, exposed via /proc/iomem to user space). We really want to merge
+added resources in this scenario where possible.
+
+Resources are effectively stored in a list-based tree. Having a lot of
+resources not only wastes memory, it also makes traversing that tree more
+expensive, and makes /proc/iomem explode in size (e.g., requiring
+kexec-tools to manually merge resources when creating a kdump header. The
+current kexec-tools resource count limit does not allow for more than
+~100GB of memory with a memory block size of 128MB on x86-64).
+
+Let's allow to selectively merge system ram resources by specifying a
+new flag for add_memory*(). Patch #5 contains a /proc/iomem example. Only
+tested with virtio-mem.
+
+v2 -> v3:
+- "mm/memory_hotplug: prepare passing flags to add_memory() and friends"
+-- Use proper __bitwise type for flags
+-- Use "MHP_NONE" for empty flags
+- Rebased to latest -next, added rb's
+
+v1 -> v2:
+- I had another look at v1 after vacation and didn't like it - it felt like
+  a hack. So I want forward and added a proper flag to add_memory*(), and
+  introduce a clean (non-racy) way to mark System RAM resources mergeable.
+- "kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED"
+-- Clean that flag up, felt wrong in the PnP section
+- "mm/memory_hotplug: prepare passing flags to add_memory() and friends"
+-- Previously sent in other context - decided to keep Wei's ack
+- "mm/memory_hotplug: MEMHP_MERGE_RESOURCE to specify merging of System
+   RAM resources"
+-- Cleaner approach to get the job done by using proper flags and only
+   merging the single, specified resource
+- "virtio-mem: try to merge system ram resources"
+  "xen/balloon: try to merge system ram resources"
+  "hv_balloon: try to merge system ram resources"
+-- Use the new flag MEMHP_MERGE_RESOURCE, much cleaner
+
+RFC -> v1:
+- Switch from rather generic "merge_child_mem_resources()" where a resource
+  name has to be specified to "merge_system_ram_resources().
+- Smaller comment/documentation/patch description changes/fixes
+
+David Hildenbrand (7):
+  kernel/resource: make release_mem_region_adjustable() never fail
+  kernel/resource: move and rename IORESOURCE_MEM_DRIVER_MANAGED
+  mm/memory_hotplug: prepare passing flags to add_memory() and friends
+  mm/memory_hotplug: MEMHP_MERGE_RESOURCE to specify merging of System
+    RAM resources
+  virtio-mem: try to merge system ram resources
+  xen/balloon: try to merge system ram resources
+  hv_balloon: try to merge system ram resources
+
+ arch/powerpc/platforms/powernv/memtrace.c     |   2 +-
+ .../platforms/pseries/hotplug-memory.c        |   2 +-
+ drivers/acpi/acpi_memhotplug.c                |   3 +-
+ drivers/base/memory.c                         |   3 +-
+ drivers/dax/kmem.c                            |   2 +-
+ drivers/hv/hv_balloon.c                       |   2 +-
+ drivers/s390/char/sclp_cmd.c                  |   2 +-
+ drivers/virtio/virtio_mem.c                   |   3 +-
+ drivers/xen/balloon.c                         |   2 +-
+ include/linux/ioport.h                        |  12 +-
+ include/linux/memory_hotplug.h                |  23 +++-
+ kernel/kexec_file.c                           |   2 +-
+ kernel/resource.c                             | 109 ++++++++++++++----
+ mm/memory_hotplug.c                           |  47 +++-----
+ 14 files changed, 146 insertions(+), 68 deletions(-)
+
+-- 
+2.26.2
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
