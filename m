@@ -2,89 +2,64 @@ Return-Path: <SRS0=0Kx6=CT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD325C43461
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 20:29:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93919C43461
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 23:47:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B46E1221E2
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 20:29:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 15031208E4
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 23:47:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JtxFbB/n"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B46E1221E2
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ucCJyhUZ"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 15031208E4
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 06A8D14263EAA;
-	Thu, 10 Sep 2020 13:29:23 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=jpittman@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 9D37013DCF66B;
+	Thu, 10 Sep 2020 16:47:19 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6340A13FCC906
-	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 13:29:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1599769758;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=IX9w0ZSjp7THQg9dmlFf36s3FmxJM6HIjwaAJlUDQm4=;
-	b=JtxFbB/ns1X4M98Jzdsa3CtIhVB3B1AXscRkM8yZRDsgC2XlivnwiLbo3Q029psLrDZ6aK
-	0KqlBnwqjHKFbstQ4oNYo6SIbeOH0ML1uHR7yVSQsMXVOTfdhzki8Ofq/oKrMqASxE4kJo
-	dlSJHkU9CQPxXO5o77FVLYcJlOQFAr0=
-Received: from mail-ot1-f70.google.com (mail-ot1-f70.google.com
- [209.85.210.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-583-rbri9uTbO2-d7Hp5R7g9ug-1; Thu, 10 Sep 2020 16:29:16 -0400
-X-MC-Unique: rbri9uTbO2-d7Hp5R7g9ug-1
-Received: by mail-ot1-f70.google.com with SMTP id z5so1753986oti.21
-        for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 13:29:16 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=IX9w0ZSjp7THQg9dmlFf36s3FmxJM6HIjwaAJlUDQm4=;
-        b=IZb7bIJ7gr4olWTaT1NZKBNcmIq3YTGpSIL7tz1Y45XQReRu2V/ylCgsvJO3Ie4A51
-         IesPLmLASOijXg8fXQUyZzcSAkCHNeDx4WzNLOqJ+WmsnplhwziBNi2zI4ybEyPICWeX
-         /suSGFuuIaDCZ52NIhhsUsmkxp8lZbHvM5JhBeFBMMmO2oHiIlObYhNUY+1aAjHjKqaJ
-         RU/vg+tvr9rjBunCUsNeShkZa2bF6PolcFGjmb/2rj2A9k6DRDWNCD77TuCDP8oTJx3Q
-         nirAXuwHepIaAXTk0vufcP0C9I1gg6gkwpMQ+KyM0xcjgcVRv/yA+sh5nqpwCrPmjdXD
-         fq4A==
-X-Gm-Message-State: AOAM531mwyq+/+5mqKhc5kAL437Uyc3mjxOzWC64sRIijHoupW9p1znV
-	S1FiCcnYfBm7JfQa/fDV2zQ5xgkoo0+neo8HoXK4a3YLIzZ0qwj6a5TU19cVsrBx9eF/+4/wbbl
-	uXrwQ1e7v+EmnTEJ+BmcnhoilCJD6ihzCECOC
-X-Received: by 2002:aca:f0d:: with SMTP id 13mr1138358oip.124.1599769755489;
-        Thu, 10 Sep 2020 13:29:15 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJzjagZZP1DlG8twkBZt8brPitsRQEPgllvGSumjuHvcGgaTG91J1VqlKvZW8YrM3QuHJBH7viGKbpl/JTn/L68=
-X-Received: by 2002:aca:f0d:: with SMTP id 13mr1138331oip.124.1599769754904;
- Thu, 10 Sep 2020 13:29:14 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id C209213DCF66B
+	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 16:47:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
+	Content-Type:Content-ID:Content-Description;
+	bh=WP2cPvRQ2Iyrw0S8nzMEBDANY5cJE6s8OG42laM1g3Q=; b=ucCJyhUZc4UdOxtdfOh3F4QKlR
+	9wU+/1rqSAIT5Y2i+inbPju4AHXD4BaUjHQk7pQQV83FGlzTAv/3PGaan7Z2A8+4AVhqgunyin2kD
+	r7G8gSO+kB+0uL4lrljEZv6dFpXfvnC2Ql2vJmiUf5WDjpRdm7VjvTZg3SnU9wHaBCgAVlJQZqiiA
+	xWNp2Vsiyu5nauMCoAe0XGWRL8d4HvN5+TmeC3jqnFn7ViNZ7R16wvHCj2MyZ6q0HXU1pYwXB5BW7
+	sbYiNNAXSkjypI9M2QjHzIgdlP/y4Y1a54lx4WMbjlxLzsS+jFV/M6vepPgNMVdKi81h1cLfqQ8Ne
+	q/L6symw==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kGWHY-0001T3-K0; Thu, 10 Sep 2020 23:47:12 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+To: linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org
+Subject: [PATCH v2 9/9] iomap: Change calling convention for zeroing
+Date: Fri, 11 Sep 2020 00:47:07 +0100
+Message-Id: <20200910234707.5504-10-willy@infradead.org>
+X-Mailer: git-send-email 2.21.3
+In-Reply-To: <20200910234707.5504-1-willy@infradead.org>
+References: <20200910234707.5504-1-willy@infradead.org>
 MIME-Version: 1.0
-References: <20200903115549.17845-1-colyli@suse.de> <20200903160608.GU878166@iweiny-DESK2.sc.intel.com>
- <c202e410-99af-3f15-0f76-def5fba7a83a@suse.de>
-In-Reply-To: <c202e410-99af-3f15-0f76-def5fba7a83a@suse.de>
-From: John Pittman <jpittman@redhat.com>
-Date: Thu, 10 Sep 2020 16:29:04 -0400
-Message-ID: <CA+RJvhxBHriCuJhm-D8NvJRe3h2MLM+ZMFgjeJjrRPerMRLvdg@mail.gmail.com>
-Subject: Re: [PATCH] dax: fix for do not print error message for
- non-persistent memory block device
-To: Coly Li <colyli@suse.de>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=jpittman@redhat.com
-X-Mimecast-Spam-Score: 0.003
-X-Mimecast-Originator: redhat.com
-Message-ID-Hash: SMQW2LY3QHPXOAW76RKNSCGG3QJFO7HT
-X-Message-ID-Hash: SMQW2LY3QHPXOAW76RKNSCGG3QJFO7HT
-X-MailFrom: jpittman@redhat.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm@lists.01.org, dm-devel@redhat.com, Adrian Huang <ahuang12@lenovo.com>, Jan Kara <jack@suse.com>, Mike Snitzer <snitzer@redhat.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Message-ID-Hash: RW5A2DOQVZ2RQIPS2RADYRHECDT24E4F
+X-Message-ID-Hash: RW5A2DOQVZ2RQIPS2RADYRHECDT24E4F
+X-MailFrom: willy@infradead.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: "Matthew Wilcox (Oracle)" <willy@infradead.org>, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SMQW2LY3QHPXOAW76RKNSCGG3QJFO7HT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RW5A2DOQVZ2RQIPS2RADYRHECDT24E4F/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -93,102 +68,150 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-But it should be moved prior to the two bdev_dax_pgoff() checks right?
- Else a misaligned partition on a dax unsupported block device can
-print the below messages.
+Pass the full length to iomap_zero() and dax_iomap_zero(), and have
+them return how many bytes they actually handled.  This is preparatory
+work for handling THP, although it looks like DAX could actually take
+advantage of it if there's a larger contiguous area.
 
-kernel: sda1: error: unaligned partition for dax
-kernel: sda2: error: unaligned partition for dax
-kernel: sda3: error: unaligned partition for dax
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+---
+ fs/dax.c               | 13 ++++++-------
+ fs/iomap/buffered-io.c | 33 +++++++++++++++------------------
+ include/linux/dax.h    |  3 +--
+ 3 files changed, 22 insertions(+), 27 deletions(-)
 
-Reviewed-by: John Pittman <jpittman@redhat.com>
-
-On Thu, Sep 3, 2020 at 12:12 PM Coly Li <colyli@suse.de> wrote:
->
-> On 2020/9/4 00:06, Ira Weiny wrote:
-> > On Thu, Sep 03, 2020 at 07:55:49PM +0800, Coly Li wrote:
-> >> When calling __generic_fsdax_supported(), a dax-unsupported device may
-> >> not have dax_dev as NULL, e.g. the dax related code block is not enabled
-> >> by Kconfig.
-> >>
-> >> Therefore in __generic_fsdax_supported(), to check whether a device
-> >> supports DAX or not, the following order should be performed,
-> >> - If dax_dev pointer is NULL, it means the device driver explicitly
-> >>   announce it doesn't support DAX. Then it is OK to directly return
-> >>   false from __generic_fsdax_supported().
-> >> - If dax_dev pointer is NOT NULL, it might be because the driver doesn't
-> >>   support DAX and not explicitly initialize related data structure. Then
-> >>   bdev_dax_supported() should be called for further check.
-> >>
-> >> IMHO if device driver desn't explicitly set its dax_dev pointer to NULL,
-> >> this is not a bug. Calling bdev_dax_supported() makes sure they can be
-> >> recognized as dax-unsupported eventually.
-> >>
-> >> This patch does the following change for the above purpose,
-> >>     -       if (!dax_dev && !bdev_dax_supported(bdev, blocksize)) {
-> >>     +       if (!dax_dev || !bdev_dax_supported(bdev, blocksize)) {
-> >>
-> >>
-> >> Fixes: c2affe920b0e ("dax: do not print error message for non-persistent memory block device")
-> >> Signed-off-by: Coly Li <colyli@suse.de>
-> >
-> > I hate to do this because I realize this is a bug which people really need
-> > fixed.
-> >
-> > However, shouldn't we also check (!dax_dev || !bdev_dax_supported()) as the
-> > _first_ check in __generic_fsdax_supported()?
-> >
-> > It seems like the other pr_info's could also be called when DAX is not
-> > supported and we probably don't want them to be?
-> >
-> > Perhaps that should be a follow on patch though.  So...
->
-> I am not author of c2affe920b0e, but I guess it was because
-> bdev_dax_supported() needed blocksize, so blocksize should pass previous
-> checks firstly to make sure bdev_dax_supported() has a correct blocksize
-> to check.
->
-> >
-> > As a direct fix to c2affe920b0e
-> >
-> > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
->
-> Thanks.
->
-> Coly Li
->
->
-> >
-> >> Cc: Adrian Huang <ahuang12@lenovo.com>
-> >> Cc: Ira Weiny <ira.weiny@intel.com>
-> >> Cc: Jan Kara <jack@suse.com>
-> >> Cc: Mike Snitzer <snitzer@redhat.com>
-> >> Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-> >> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> >> ---
-> >>  drivers/dax/super.c | 2 +-
-> >>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> >> index 32642634c1bb..e5767c83ea23 100644
-> >> --- a/drivers/dax/super.c
-> >> +++ b/drivers/dax/super.c
-> >> @@ -100,7 +100,7 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
-> >>              return false;
-> >>      }
-> >>
-> >> -    if (!dax_dev && !bdev_dax_supported(bdev, blocksize)) {
-> >> +    if (!dax_dev || !bdev_dax_supported(bdev, blocksize)) {
-> >>              pr_debug("%s: error: dax unsupported by block device\n",
-> >>                              bdevname(bdev, buf));
-> >>              return false;
-> >> --
-> >> 2.26.2
-> >>
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
->
+diff --git a/fs/dax.c b/fs/dax.c
+index 994ab66a9907..6ad346352a8c 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1037,18 +1037,18 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+ 	return ret;
+ }
+ 
+-int dax_iomap_zero(loff_t pos, unsigned offset, unsigned size,
+-		   struct iomap *iomap)
++s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
+ {
+ 	sector_t sector = iomap_sector(iomap, pos & PAGE_MASK);
+ 	pgoff_t pgoff;
+ 	long rc, id;
+ 	void *kaddr;
+ 	bool page_aligned = false;
+-
++	unsigned offset = offset_in_page(pos);
++	unsigned size = min_t(u64, PAGE_SIZE - offset, length);
+ 
+ 	if (IS_ALIGNED(sector << SECTOR_SHIFT, PAGE_SIZE) &&
+-	    IS_ALIGNED(size, PAGE_SIZE))
++	    (size == PAGE_SIZE))
+ 		page_aligned = true;
+ 
+ 	rc = bdev_dax_pgoff(iomap->bdev, sector, PAGE_SIZE, &pgoff);
+@@ -1058,8 +1058,7 @@ int dax_iomap_zero(loff_t pos, unsigned offset, unsigned size,
+ 	id = dax_read_lock();
+ 
+ 	if (page_aligned)
+-		rc = dax_zero_page_range(iomap->dax_dev, pgoff,
+-					 size >> PAGE_SHIFT);
++		rc = dax_zero_page_range(iomap->dax_dev, pgoff, 1);
+ 	else
+ 		rc = dax_direct_access(iomap->dax_dev, pgoff, 1, &kaddr, NULL);
+ 	if (rc < 0) {
+@@ -1072,7 +1071,7 @@ int dax_iomap_zero(loff_t pos, unsigned offset, unsigned size,
+ 		dax_flush(iomap->dax_dev, kaddr + offset, size);
+ 	}
+ 	dax_read_unlock(id);
+-	return 0;
++	return size;
+ }
+ 
+ static loff_t
+diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+index cb25a7b70401..3e1eb40a73fd 100644
+--- a/fs/iomap/buffered-io.c
++++ b/fs/iomap/buffered-io.c
+@@ -898,11 +898,13 @@ iomap_file_unshare(struct inode *inode, loff_t pos, loff_t len,
+ }
+ EXPORT_SYMBOL_GPL(iomap_file_unshare);
+ 
+-static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
+-		unsigned bytes, struct iomap *iomap, struct iomap *srcmap)
++static s64 iomap_zero(struct inode *inode, loff_t pos, u64 length,
++		struct iomap *iomap, struct iomap *srcmap)
+ {
+ 	struct page *page;
+ 	int status;
++	unsigned offset = offset_in_page(pos);
++	unsigned bytes = min_t(u64, PAGE_SIZE - offset, length);
+ 
+ 	status = iomap_write_begin(inode, pos, bytes, 0, &page, iomap, srcmap);
+ 	if (status)
+@@ -914,38 +916,33 @@ static int iomap_zero(struct inode *inode, loff_t pos, unsigned offset,
+ 	return iomap_write_end(inode, pos, bytes, bytes, page, iomap, srcmap);
+ }
+ 
+-static loff_t
+-iomap_zero_range_actor(struct inode *inode, loff_t pos, loff_t count,
+-		void *data, struct iomap *iomap, struct iomap *srcmap)
++static loff_t iomap_zero_range_actor(struct inode *inode, loff_t pos,
++		loff_t length, void *data, struct iomap *iomap,
++		struct iomap *srcmap)
+ {
+ 	bool *did_zero = data;
+ 	loff_t written = 0;
+-	int status;
+ 
+ 	/* already zeroed?  we're done. */
+ 	if (srcmap->type == IOMAP_HOLE || srcmap->type == IOMAP_UNWRITTEN)
+-		return count;
++		return length;
+ 
+ 	do {
+-		unsigned offset, bytes;
+-
+-		offset = offset_in_page(pos);
+-		bytes = min_t(loff_t, PAGE_SIZE - offset, count);
++		s64 bytes;
+ 
+ 		if (IS_DAX(inode))
+-			status = dax_iomap_zero(pos, offset, bytes, iomap);
++			bytes = dax_iomap_zero(pos, length, iomap);
+ 		else
+-			status = iomap_zero(inode, pos, offset, bytes, iomap,
+-					srcmap);
+-		if (status < 0)
+-			return status;
++			bytes = iomap_zero(inode, pos, length, iomap, srcmap);
++		if (bytes < 0)
++			return bytes;
+ 
+ 		pos += bytes;
+-		count -= bytes;
++		length -= bytes;
+ 		written += bytes;
+ 		if (did_zero)
+ 			*did_zero = true;
+-	} while (count > 0);
++	} while (length > 0);
+ 
+ 	return written;
+ }
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 6904d4e0b2e0..951a851a0481 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -214,8 +214,7 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 				      pgoff_t index);
+-int dax_iomap_zero(loff_t pos, unsigned offset, unsigned size,
+-			struct iomap *iomap);
++s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap);
+ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+-- 
+2.28.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
