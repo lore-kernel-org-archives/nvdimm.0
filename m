@@ -5,53 +5,53 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB239C2D0E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 23:47:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A106C43461
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 23:47:37 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 80FD521D92
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 23:47:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 45866208FE
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 10 Sep 2020 23:47:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="VV3H4J1N"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 80FD521D92
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Ic7UgdZE"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 45866208FE
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7912613DCF67A;
-	Thu, 10 Sep 2020 16:47:22 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id F2FF713DCF674;
+	Thu, 10 Sep 2020 16:47:19 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C2DCC13DCF66C
+	by ml01.01.org (Postfix) with ESMTPS id BF85D13DCF668
 	for <linux-nvdimm@lists.01.org>; Thu, 10 Sep 2020 16:47:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=HcWQtDNuseBKEWHIB6Uw1jNXoqcHNymiL5aD/zPafZk=; b=VV3H4J1NcWISSb8Gj9bpB7KZ6x
-	jROScpbYWM8FBiBkHpnbuW6RnoNokwGNMKvy8nG602I4Y/OSTEn+fVAF9EBYKK5wysZUkwIb1uRO/
-	w76Z1rEakOIjhRdyqHNLU3YrZPkgolm2QJYu+/DWWSF15DggGjDBYEYFoT3gjAxIfWq0nxPwDuXJd
-	ZWQym3yLmzApbBmpEXi8bRxJEvJbnPseeLZMtjGeuQZyaIWXCIk8SaT+JQvzBYf1e9xs4uTemj3qw
-	ntOYk5pnUGkaQgqW0Pz7agmge0QrN9xiMF4N7l3inJewKsVac6aN7lKma0B2xHtNooOGy4RCv5IVC
-	vezUor+g==;
+	bh=TvHq+ozrS3RU346WhpVscGddUaMK0kivrdCStwjOLJM=; b=Ic7UgdZEoZWANOhKnQsQypu4GU
+	F5Fj25TLedAt5hLgJ9IaNdYv29nhquBxUg2fU744YZ3vPgLo92GV9EdtbY2GclLq8zb2qWNHSrtn+
+	bGApUEGYpD0W7B9HOHkBQfrOBm10tLON9reFJJ8DEqoOn8lv0VpKCA5Sc/k/oS0202W56TxrsPxEb
+	wAPTNdCC1h/aHFt1kPgx/BefBbBTknuw0AP4ezYYYVdiu7GAoeQliLixzHGodnU5CBnyvrIyW21o/
+	0/ia8rMFipeonO1oghaByVlz5sbXS2ts+nD5LxvBSjiNXcAClD/vcl6iAXwzPM3nUjzIZT/zShekR
+	4gfrispQ==;
 Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kGWHW-0001Rm-E4; Thu, 10 Sep 2020 23:47:10 +0000
+	id 1kGWHV-0001Rd-DS; Thu, 10 Sep 2020 23:47:09 +0000
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 To: linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH v2 4/9] iomap: Use bitmap ops to set uptodate bits
-Date: Fri, 11 Sep 2020 00:47:02 +0100
-Message-Id: <20200910234707.5504-5-willy@infradead.org>
+Subject: [PATCH v2 2/9] fs: Introduce i_blocks_per_page
+Date: Fri, 11 Sep 2020 00:47:00 +0100
+Message-Id: <20200910234707.5504-3-willy@infradead.org>
 X-Mailer: git-send-email 2.21.3
 In-Reply-To: <20200910234707.5504-1-willy@infradead.org>
 References: <20200910234707.5504-1-willy@infradead.org>
 MIME-Version: 1.0
-Message-ID-Hash: I32SV2AUZLHTHOY75WP54UN6P47FODHD
-X-Message-ID-Hash: I32SV2AUZLHTHOY75WP54UN6P47FODHD
+Message-ID-Hash: SB66BKBMFLOHV6GHRYIIQ3RQQCF3IGXE
+X-Message-ID-Hash: SB66BKBMFLOHV6GHRYIIQ3RQQCF3IGXE
 X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -59,7 +59,7 @@ CC: "Matthew Wilcox (Oracle)" <willy@infradead.org>, "Darrick J . Wong" <darrick
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I32SV2AUZLHTHOY75WP54UN6P47FODHD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SB66BKBMFLOHV6GHRYIIQ3RQQCF3IGXE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,43 +68,112 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Now that the bitmap is protected by a spinlock, we can use the
-more efficient bitmap ops instead of individual test/set bit ops.
+This helper is useful for both THPs and for supporting block size larger
+than page size.  Convert all users that I could find (we have a few
+different ways of writing this idiom, and I may have missed some).
 
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Reviewed-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Dave Chinner <dchinner@redhat.com>
 Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 ---
- fs/iomap/buffered-io.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ fs/iomap/buffered-io.c  |  8 ++++----
+ fs/jfs/jfs_metapage.c   |  2 +-
+ fs/xfs/xfs_aops.c       |  2 +-
+ include/linux/pagemap.h | 16 ++++++++++++++++
+ 4 files changed, 22 insertions(+), 6 deletions(-)
 
 diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
-index 58a1fd83f2a4..7fc0e02d27b0 100644
+index d81a9a86c5aa..330f86b825d7 100644
 --- a/fs/iomap/buffered-io.c
 +++ b/fs/iomap/buffered-io.c
-@@ -134,19 +134,11 @@ iomap_iop_set_range_uptodate(struct page *page, unsigned off, unsigned len)
- 	struct inode *inode = page->mapping->host;
- 	unsigned first = off >> inode->i_blkbits;
- 	unsigned last = (off + len - 1) >> inode->i_blkbits;
--	bool uptodate = true;
- 	unsigned long flags;
--	unsigned int i;
+@@ -46,7 +46,7 @@ iomap_page_create(struct inode *inode, struct page *page)
+ {
+ 	struct iomap_page *iop = to_iomap_page(page);
+ 
+-	if (iop || i_blocksize(inode) == PAGE_SIZE)
++	if (iop || i_blocks_per_page(inode, page) <= 1)
+ 		return iop;
+ 
+ 	iop = kmalloc(sizeof(*iop), GFP_NOFS | __GFP_NOFAIL);
+@@ -147,7 +147,7 @@ iomap_iop_set_range_uptodate(struct page *page, unsigned off, unsigned len)
+ 	unsigned int i;
  
  	spin_lock_irqsave(&iop->uptodate_lock, flags);
--	for (i = 0; i < i_blocks_per_page(inode, page); i++) {
--		if (i >= first && i <= last)
--			set_bit(i, iop->uptodate);
--		else if (!test_bit(i, iop->uptodate))
--			uptodate = false;
--	}
--
--	if (uptodate)
-+	bitmap_set(iop->uptodate, first, last - first + 1);
-+	if (bitmap_full(iop->uptodate, i_blocks_per_page(inode, page)))
- 		SetPageUptodate(page);
- 	spin_unlock_irqrestore(&iop->uptodate_lock, flags);
+-	for (i = 0; i < PAGE_SIZE / i_blocksize(inode); i++) {
++	for (i = 0; i < i_blocks_per_page(inode, page); i++) {
+ 		if (i >= first && i <= last)
+ 			set_bit(i, iop->uptodate);
+ 		else if (!test_bit(i, iop->uptodate))
+@@ -1077,7 +1077,7 @@ iomap_finish_page_writeback(struct inode *inode, struct page *page,
+ 		mapping_set_error(inode->i_mapping, -EIO);
+ 	}
+ 
+-	WARN_ON_ONCE(i_blocksize(inode) < PAGE_SIZE && !iop);
++	WARN_ON_ONCE(i_blocks_per_page(inode, page) > 1 && !iop);
+ 	WARN_ON_ONCE(iop && atomic_read(&iop->write_count) <= 0);
+ 
+ 	if (!iop || atomic_dec_and_test(&iop->write_count))
+@@ -1373,7 +1373,7 @@ iomap_writepage_map(struct iomap_writepage_ctx *wpc,
+ 	int error = 0, count = 0, i;
+ 	LIST_HEAD(submit_list);
+ 
+-	WARN_ON_ONCE(i_blocksize(inode) < PAGE_SIZE && !iop);
++	WARN_ON_ONCE(i_blocks_per_page(inode, page) > 1 && !iop);
+ 	WARN_ON_ONCE(iop && atomic_read(&iop->write_count) != 0);
+ 
+ 	/*
+diff --git a/fs/jfs/jfs_metapage.c b/fs/jfs/jfs_metapage.c
+index a2f5338a5ea1..176580f54af9 100644
+--- a/fs/jfs/jfs_metapage.c
++++ b/fs/jfs/jfs_metapage.c
+@@ -473,7 +473,7 @@ static int metapage_readpage(struct file *fp, struct page *page)
+ 	struct inode *inode = page->mapping->host;
+ 	struct bio *bio = NULL;
+ 	int block_offset;
+-	int blocks_per_page = PAGE_SIZE >> inode->i_blkbits;
++	int blocks_per_page = i_blocks_per_page(inode, page);
+ 	sector_t page_start;	/* address of page in fs blocks */
+ 	sector_t pblock;
+ 	int xlen;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index b35611882ff9..55d126d4e096 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -544,7 +544,7 @@ xfs_discard_page(
+ 			page, ip->i_ino, offset);
+ 
+ 	error = xfs_bmap_punch_delalloc_range(ip, start_fsb,
+-			PAGE_SIZE / i_blocksize(inode));
++			i_blocks_per_page(inode, page));
+ 	if (error && !XFS_FORCED_SHUTDOWN(mp))
+ 		xfs_alert(mp, "page discard unable to remove delalloc mapping.");
+ out_invalidate:
+diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
+index 50d2c39b47ab..f7f602040913 100644
+--- a/include/linux/pagemap.h
++++ b/include/linux/pagemap.h
+@@ -975,4 +975,20 @@ static inline int page_mkwrite_check_truncate(struct page *page,
+ 	return offset;
  }
+ 
++/**
++ * i_blocks_per_page - How many blocks fit in this page.
++ * @inode: The inode which contains the blocks.
++ * @page: The page (head page if the page is a THP).
++ *
++ * If the block size is larger than the size of this page, return zero.
++ *
++ * Context: The caller should hold a refcount on the page to prevent it
++ * from being split.
++ * Return: The number of filesystem blocks covered by this page.
++ */
++static inline
++unsigned int i_blocks_per_page(struct inode *inode, struct page *page)
++{
++	return thp_size(page) >> inode->i_blkbits;
++}
+ #endif /* _LINUX_PAGEMAP_H */
 -- 
 2.28.0
 _______________________________________________
