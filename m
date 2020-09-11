@@ -2,115 +2,60 @@ Return-Path: <SRS0=naoF=CU=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0A2FC43461
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 11 Sep 2020 10:36:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 306C6C43461
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 11 Sep 2020 14:28:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5CD0A22204
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 11 Sep 2020 10:36:14 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WCJjup/g"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5CD0A22204
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 33E24222B8
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 11 Sep 2020 14:28:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 33E24222B8
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=longsailing.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 29999144CE3D5;
-	Fri, 11 Sep 2020 03:36:14 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E7E6B144CE3CF
-	for <linux-nvdimm@lists.01.org>; Fri, 11 Sep 2020 03:36:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1599820570;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YsfsAQ2XAkLrSeK5gDaCbmO+kEOKaYFgY1Wng1dGBy0=;
-	b=WCJjup/g4XMJhYHmlOHSzrGCsNzg7sqnGfw2C6J++ic7gJE2MG/90ElFxSHL6J+75ziRiu
-	vCjCgrWduwUOal7oIiHfXXliBOu0c6Ovc3Apx7r4ibWp3NyS3VU/GuxEejB4UWgBOBpIQu
-	ICk0gEuey9sSDGx93CwgESfhJCHN9gE=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-583-vEEKprzxPqCtphnzsAQlyw-1; Fri, 11 Sep 2020 06:36:07 -0400
-X-MC-Unique: vEEKprzxPqCtphnzsAQlyw-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 98CBD6408E;
-	Fri, 11 Sep 2020 10:36:04 +0000 (UTC)
-Received: from t480s.redhat.com (ovpn-113-186.ams2.redhat.com [10.36.113.186])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 444B481C46;
-	Fri, 11 Sep 2020 10:36:01 +0000 (UTC)
-From: David Hildenbrand <david@redhat.com>
-To: linux-kernel@vger.kernel.org
-Subject: [PATCH v4 8/8] hv_balloon: try to merge system ram resources
-Date: Fri, 11 Sep 2020 12:34:59 +0200
-Message-Id: <20200911103459.10306-9-david@redhat.com>
-In-Reply-To: <20200911103459.10306-1-david@redhat.com>
-References: <20200911103459.10306-1-david@redhat.com>
+	by ml01.01.org (Postfix) with ESMTP id 751CA13E1EE1A;
+	Fri, 11 Sep 2020 07:28:44 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=139.99.133.125; helo=longsailing.net; envelope-from=felix.chen@longsailing.net; receiver=<UNKNOWN> 
+Received: from longsailing.net (vps-e62a430c.vps.ovh.ca [139.99.133.125])
+	by ml01.01.org (Postfix) with ESMTP id 201A313DBACD3
+	for <linux-nvdimm@lists.01.org>; Fri, 11 Sep 2020 07:28:38 -0700 (PDT)
+From: =?UTF-8?B?6ZmI6ZGr?= <felix.chen@longsailing.net>
+To: linux-nvdimm@lists.01.org
+Subject: Re: Bulk Cargo Shipment for lists.01.org  =?UTF-8?B?Ly/pgpPpkqfmloc=?=
+Date: 11 Sep 2020 07:28:37 -0700
+Message-ID: <20200911072837.B521129612FB3242@longsailing.net>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-Message-ID-Hash: RP2QPHV5OCLUNCT7K7NMYSQJHXUCNJXU
-X-Message-ID-Hash: RP2QPHV5OCLUNCT7K7NMYSQJHXUCNJXU
-X-MailFrom: david@redhat.com
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_A012A964.814A1E56"
+Message-ID-Hash: IKMKIAK76GWJVZY7UMWU7P52OULPCO2H
+X-Message-ID-Hash: IKMKIAK76GWJVZY7UMWU7P52OULPCO2H
+X-MailFrom: felix.chen@longsailing.net
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Hildenbrand <david@redhat.com>, Wei Liu <wei.liu@kernel.org>, Michal Hocko <mhocko@suse.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RP2QPHV5OCLUNCT7K7NMYSQJHXUCNJXU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IKMKIAK76GWJVZY7UMWU7P52OULPCO2H/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_A012A964.814A1E56
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Let's try to merge system ram resources we add, to minimize the number
-of resources in /proc/iomem. We don't care about the boundaries of
-individual chunks we added.
-
-Reviewed-by: Wei Liu <wei.liu@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Wei Yang <richardw.yang@linux.intel.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- drivers/hv/hv_balloon.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/hv/hv_balloon.c b/drivers/hv/hv_balloon.c
-index 3c0d52e244520..b64d2efbefe71 100644
---- a/drivers/hv/hv_balloon.c
-+++ b/drivers/hv/hv_balloon.c
-@@ -726,7 +726,7 @@ static void hv_mem_hot_add(unsigned long start, unsigned long size,
- 
- 		nid = memory_add_physaddr_to_nid(PFN_PHYS(start_pfn));
- 		ret = add_memory(nid, PFN_PHYS((start_pfn)),
--				(HA_CHUNK << PAGE_SHIFT), MHP_NONE);
-+				(HA_CHUNK << PAGE_SHIFT), MEMHP_MERGE_RESOURCE);
- 
- 		if (ret) {
- 			pr_err("hot_add memory failed error is %d\n", ret);
--- 
-2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_A012A964.814A1E56--
