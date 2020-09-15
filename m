@@ -2,161 +2,97 @@ Return-Path: <SRS0=P5fg=CY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,HTML_MESSAGE,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E931DC43461
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 03:03:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 439FBC43461
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 07:05:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 63C52208DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 03:03:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 63C52208DB
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
+	by mail.kernel.org (Postfix) with ESMTPS id 960CC206A1
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 07:05:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 960CC206A1
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EBC6D14B2CD64;
-	Mon, 14 Sep 2020 20:03:40 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id D650B13D4EA23;
+	Tue, 15 Sep 2020 00:05:48 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.35; helo=huawei.com; envelope-from=jingxiangfeng@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga07-in.huawei.com [45.249.212.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 100B113D07012
-	for <linux-nvdimm@lists.01.org>; Mon, 14 Sep 2020 20:03:37 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id D6046AB9F;
-	Tue, 15 Sep 2020 03:03:51 +0000 (UTC)
-Date: Tue, 15 Sep 2020 11:03:29 +0800
-Subject: =?UTF-8?Q?=E5=9B=9E=E5=A4=8D=EF=BC=9Aregression_cau?=
- =?UTF-8?Q?sed_by_patch_6180bb?=
- =?UTF-8?Q?446ab624b9ab8bf201ed251ca87f07b413=0D=0A_("?=
- =?UTF-8?Q?dax:_fix_detection_of_dax_support_for?=
- =?UTF-8?Q?_non-persistent_memory_block=0D=0A_devices")?=
-X-Priority: 3
-Message-ID: <211sy17ij47lox90ncna7kwk-k7cl0b-ubtml5jg8ocd-r7lb68jgkncbq5ng3g-koqyd471rzfh-t231u5-sxwvexwht98i-b7in5pxxck0j-3b40lqlmuelf13q0uk-ye4ohhsbgodw-xuloz9wpp7tf.1600139009031@email.android.com>
-References: <alpine.LRH.2.02.2009141131220.30651@file01.intranet.prod.int.rdu2.redhat.com>
-From: "colyli@suse.de" <colyli@suse.de>
-To: Adrian Huang <ahuang12@lenovo.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1D8BC13D4EA20
+	for <linux-nvdimm@lists.01.org>; Tue, 15 Sep 2020 00:05:44 -0700 (PDT)
+Received: from DGGEMS408-HUB.china.huawei.com (unknown [172.30.72.60])
+	by Forcepoint Email with ESMTP id 984C68240D951E8B1533;
+	Tue, 15 Sep 2020 15:05:41 +0800 (CST)
+Received: from localhost.localdomain.localdomain (10.175.113.25) by
+ DGGEMS408-HUB.china.huawei.com (10.3.19.208) with Microsoft SMTP Server id
+ 14.3.487.0; Tue, 15 Sep 2020 15:05:31 +0800
+From: Jing Xiangfeng <jingxiangfeng@huawei.com>
+To: <dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>, <ira.weiny@intel.com>
+Subject: [PATCH] libnvdimm: Fix dereference of pointer ndns before it is null checked
+Date: Tue, 15 Sep 2020 15:06:09 +0800
+Message-ID: <20200915070609.123591-1-jingxiangfeng@huawei.com>
+X-Mailer: git-send-email 2.20.1
 MIME-Version: 1.0
-Message-ID-Hash: KDVBIVYAAOCADYQGTF5MSYNU6ZDUDQVL
-X-Message-ID-Hash: KDVBIVYAAOCADYQGTF5MSYNU6ZDUDQVL
-X-MailFrom: colyli@suse.de
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Jan Kara <jack@suse.com>, Mike Snitzer <snitzer@redhat.com>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Mikulas Patocka <mpatocka@redhat.com>
+X-Originating-IP: [10.175.113.25]
+X-CFilter-Loop: Reflected
+Message-ID-Hash: ZWONDC7EWIYLJGQMVUWIP3Y4OEH3RKZE
+X-Message-ID-Hash: ZWONDC7EWIYLJGQMVUWIP3Y4OEH3RKZE
+X-MailFrom: jingxiangfeng@huawei.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, jingxiangfeng@huawei.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KDVBIVYAAOCADYQGTF5MSYNU6ZDUDQVL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZWONDC7EWIYLJGQMVUWIP3Y4OEH3RKZE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: multipart/mixed; boundary="===============7457544542796121228=="
-
---===============7457544542796121228==
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: base64
-
-PGRpdiBkaXI9ImF1dG8iPkhpIEFuZHJpYW4sIDxkaXY+PGJyPjwvZGl2PjxkaXY+Q291bGQgeW91
-IHBsZWFzZSB0byB0YWtlIGEgbG9vaz8gSSBhbSBvZmZsaW5lIGluIHRoZSBuZXh0IHR3byB3ZWVr
-cy4gPC9kaXY+PGRpdj48YnI+PC9kaXY+PGRpdj5UaGFua3MgaW4gYWR2YW5jZS4gPC9kaXY+PGRp
-dj48YnI+PC9kaXY+PGRpdj5Db2x5ICBMaTxicj48L2Rpdj48ZGl2Pjxicj48L2Rpdj48L2Rpdj48
-ZGl2IHN0eWxlPSJsaW5lLWhlaWdodDoxLjUiPjxicj48YnI+LS0tLS0tLS0g5Y6f5aeL6YKu5Lu2
-IC0tLS0tLS0tPGJyPuWPkeS7tuS6uu+8miBNaWt1bGFzIFBhdG9ja2EgJmx0O21wYXRvY2thQHJl
-ZGhhdC5jb20mZ3Q7PGJyPuaXpeacn++8miAyMDIw5bm0OeaciDE05pel5ZGo5LiAIOWNiuWknDEx
-OjQ4PGJyPuaUtuS7tuS6uu+8miBDb2x5IExpICZsdDtjb2x5bGlAc3VzZS5kZSZndDssIERhbiBX
-aWxsaWFtcyAmbHQ7ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tJmd0OywgRGF2ZSBKaWFuZyAmbHQ7
-ZGF2ZS5qaWFuZ0BpbnRlbC5jb20mZ3Q7PGJyPuaKhOmAge+8miBKYW4gS2FyYSAmbHQ7amFja0Bz
-dXNlLmNvbSZndDssIFZpc2hhbCBWZXJtYSAmbHQ7dmlzaGFsLmwudmVybWFAaW50ZWwuY29tJmd0
-OywgQWRyaWFuIEh1YW5nICZsdDthaHVhbmcxMkBsZW5vdm8uY29tJmd0OywgSXJhIFdlaW55ICZs
-dDtpcmEud2VpbnlAaW50ZWwuY29tJmd0OywgTWlrZSBTbml0emVyICZsdDtzbml0emVyQHJlZGhh
-dC5jb20mZ3Q7LCBQYW5rYWogR3VwdGEgJmx0O3Bhbmthai5ndXB0YS5saW51eEBnbWFpbC5jb20m
-Z3Q7LCBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPGJyPuS4uyAgICDpopjvvJogcmVncmVzc2lv
-biBjYXVzZWQgYnkgcGF0Y2ggNjE4MGJiNDQ2YWI2MjRiOWFiOGJmMjAxZWQyNTFjYTg3ZjA3YjQx
-Mzxicj4gKCJkYXg6IGZpeCBkZXRlY3Rpb24gb2YgZGF4IHN1cHBvcnQgZm9yIG5vbi1wZXJzaXN0
-ZW50IG1lbW9yeSBibG9jazxicj4gZGV2aWNlcyIpPGJyPjxibG9ja3F1b3RlPkhpPGJyPjxicj5U
-aGUgcGF0Y2ggNjE4MGJiNDQ2YWI2MjRiOWFiOGJmMjAxZWQyNTFjYTg3ZjA3YjQxMyAoImRheDog
-Zml4IGRldGVjdGlvbiBvZiA8YnI+ZGF4IHN1cHBvcnQgZm9yIG5vbi1wZXJzaXN0ZW50IG1lbW9y
-eSBibG9jayBkZXZpY2VzIikgY2F1c2VzIGNyYXNoIHdoZW4gPGJyPmF0dGVtcHRpbmcgdG8gbW91
-bnQgdGhlIGV4dDQgZmlsZXN5c3RlbSBvbiAvZGV2L3BtZW0wICgibWtmcy5leHQ0IDxicj4vZGV2
-L3BtZW0wOyBtb3VudCAtdCBleHQ0IC9kZXYvcG1lbTAgL21udC90ZXN0IikuIFRoZSBkZXZpY2Ug
-L2Rldi9wbWVtMCBpcyA8YnI+ZW11bGF0ZWQgdXNpbmcgdGhlICJtZW1tYXAiIGtlcm5lbCBwYXJh
-bWV0ZXIuPGJyPjxicj5UaGUgcGF0Y2ggY2F1c2VzIGluZmluaXRlIHJlY3Vyc2lvbiBhbmQgZG91
-YmxlLWZhdWx0IGV4Y2VwdGlvbjo8YnI+PGJyPl9fZ2VuZXJpY19mc2RheF9zdXBwb3J0ZWQ8YnI+
-YmRldl9kYXhfc3VwcG9ydGVkPGJyPl9fYmRldl9kYXhfc3VwcG9ydGVkPGJyPmRheF9zdXBwb3J0
-ZWQ8YnI+ZGF4X2Rldi0mZ3Q7b3BzLSZndDtkYXhfc3VwcG9ydGVkPGJyPmdlbmVyaWNfZnNkYXhf
-c3VwcG9ydGVkPGJyPl9fZ2VuZXJpY19mc2RheF9zdXBwb3J0ZWQ8YnI+PGJyPk1pa3VsYXM8YnI+
-PGJyPjxicj48YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2MTldIHRyYXBzOiBQQU5JQzogZG91Ymxl
-IGZhdWx0LCBlcnJvcl9jb2RlOiAweDA8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2MTldIGRvdWJs
-ZSBmYXVsdDogMDAwMCBbIzFdIFBSRUVNUFQgU01QPGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjIw
-XSBDUFU6IDAgUElEOiAxMzI2IENvbW06IG1vdW50IE5vdCB0YWludGVkIDUuOS4wLXJjMS1iaXNl
-Y3QgIzEwPGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjIwXSBIYXJkd2FyZSBuYW1lOiBCb2NocyBC
-b2NocywgQklPUyBCb2NocyAwMS8wMS8yMDExPGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjIxXSBS
-SVA6IDAwMTA6X19nZW5lcmljX2ZzZGF4X3N1cHBvcnRlZCsweDZhLzB4NTAwPGJyPlsmbmJzcDsm
-bmJzcDsgMTcuNTAwNjIyXSBDb2RlOiBmZiBmZiBmZiBmZiBmZiA3ZiAwMCA0OCAyMSBmMyA0OCAw
-MSBjMyA0OCBjMSBlMyAwOSBmNiBjNyAwZSAwZiA4NSBmYSAwMSAwMCAwMCA0OCA4NSBmZiA0OSA4
-OSBmZCA3NCAxMSBiZSAwMCAxMCAwMCAwMCA0YyA4OSBlNyAmbHQ7ZTgmZ3Q7IGIxIGZlIGZmIGZm
-IDg0IGMwIDc1IDExIDMxIGMwIDQ4IDgzIGM0IDQ4IDViIDVkIDQxIDVjIDQxIDVkIDQxPGJyPlsm
-bmJzcDsmbmJzcDsgMTcuNTAwNjIzXSBSU1A6IDAwMTg6ZmZmZjg4OTQwYjRmZGZmOCBFRkxBR1M6
-IDAwMDEwMjg2PGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjI0XSBSQVg6IDAwMDAwMDAwMDAwMDAw
-MDAgUkJYOiAwMDAwMDAwN2ZmZmZmMDAwIFJDWDogMDAwMDAwMDAwMDAwMDAwMDxicj5bJm5ic3A7
-Jm5ic3A7IDE3LjUwMDYyNV0gUkRYOiAwMDAwMDAwMDAwMDAxMDAwIFJTSTogMDAwMDAwMDAwMDAw
-MTAwMCBSREk6IGZmZmY4ODk0MGIzNGMzMDA8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2MjVdIFJC
-UDogMDAwMDAwMDAwMDAwMDAwMCBSMDg6IDAwMDAwMDAwMDQwMDAwMDAgUjA5OiA4MDgwODA4MDgw
-ODA4MDgwPGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjI2XSBSMTA6IDAwMDAwMDAwMDAwMDAwMDAg
-UjExOiBmZWZlZmVmZWZlZmVmZWZmIFIxMjogZmZmZjg4OTQwYjM0YzMwMDxicj5bJm5ic3A7Jm5i
-c3A7IDE3LjUwMDYyNl0gUjEzOiBmZmZmODg5NDBiM2RjMDAwIFIxNDogZmZmZjg4OTQwYmFkZDAw
-MCBSMTU6IDAwMDAwMDAwMDAwMDAwMDE8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2MjddIEZTOiZu
-YnNwOyAwMDAwMDAwMGY3YzI1NzgwKDAwMDApIEdTOmZmZmY4ODk0MGZhMDAwMDAoMDAwMCkga25s
-R1M6MDAwMDAwMDAwMDAwMDAwMDxicj5bJm5ic3A7Jm5ic3A7IDE3LjUwMDYyOF0gQ1M6Jm5ic3A7
-IDAwMTAgRFM6IDAwMmIgRVM6IDAwMmIgQ1IwOiAwMDAwMDAwMDgwMDUwMDMzPGJyPlsmbmJzcDsm
-bmJzcDsgMTcuNTAwNjI4XSBDUjI6IGZmZmY4ODk0MGI0ZmRmZTggQ1IzOiAwMDAwMDAxNDBiZDE1
-MDAwIENSNDogMDAwMDAwMDAwMDAwMDZiMDxicj5bJm5ic3A7Jm5ic3A7IDE3LjUwMDYyOF0gQ2Fs
-bCBUcmFjZTo8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2MjldIE1vZHVsZXMgbGlua2VkIGluOiB1
-dmVzYWZiIGNmYmZpbGxyZWN0IGNmYmltZ2JsdCBjbiBjZmJjb3B5YXJlYSBmYiBmYmRldiBpcHY2
-IHR1biBhdXRvZnM0IGJpbmZtdF9taXNjIGNvbmZpZ2ZzIGFmX3BhY2tldCB2aXJ0aW9fcm5nIHJu
-Z19jb3JlIG1vdXNlZGV2IGV2ZGV2IHBjc3BrciB2aXJ0aW9fYmFsbG9vbiBidXR0b24gcmFpZDEw
-IHJhaWQ0NTYgYXN5bmNfcmFpZDZfcmVjb3YgYXN5bmNfbWVtY3B5IGFzeW5jX3BxIHJhaWQ2X3Bx
-IGFzeW5jX3hvciB4b3IgYXN5bmNfdHggbGliY3JjMzJjIHJhaWQxIHJhaWQwIG1kX21vZCBzZF9t
-b2QgdDEwX3BpIHZpcnRpb19zY3NpIHZpcnRpb19uZXQgbmV0X2ZhaWxvdmVyIHBzbW91c2Ugc2Nz
-aV9tb2QgZmFpbG92ZXI8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2MzhdIC0tLVsgZW5kIHRyYWNl
-IDNjODc3ZmNiNWI4NjU0NTkgXS0tLTxicj5bJm5ic3A7Jm5ic3A7IDE3LjUwMDYzOF0gUklQOiAw
-MDEwOl9fZ2VuZXJpY19mc2RheF9zdXBwb3J0ZWQrMHg2YS8weDUwMDxicj5bJm5ic3A7Jm5ic3A7
-IDE3LjUwMDYzOV0gQ29kZTogZmYgZmYgZmYgZmYgZmYgN2YgMDAgNDggMjEgZjMgNDggMDEgYzMg
-NDggYzEgZTMgMDkgZjYgYzcgMGUgMGYgODUgZmEgMDEgMDAgMDAgNDggODUgZmYgNDkgODkgZmQg
-NzQgMTEgYmUgMDAgMTAgMDAgMDAgNGMgODkgZTcgJmx0O2U4Jmd0OyBiMSBmZSBmZiBmZiA4NCBj
-MCA3NSAxMSAzMSBjMCA0OCA4MyBjNCA0OCA1YiA1ZCA0MSA1YyA0MSA1ZCA0MTxicj5bJm5ic3A7
-Jm5ic3A7IDE3LjUwMDY0MF0gUlNQOiAwMDE4OmZmZmY4ODk0MGI0ZmRmZjggRUZMQUdTOiAwMDAx
-MDI4Njxicj5bJm5ic3A7Jm5ic3A7IDE3LjUwMDY0MV0gUkFYOiAwMDAwMDAwMDAwMDAwMDAwIFJC
-WDogMDAwMDAwMDdmZmZmZjAwMCBSQ1g6IDAwMDAwMDAwMDAwMDAwMDA8YnI+WyZuYnNwOyZuYnNw
-OyAxNy41MDA2NDFdIFJEWDogMDAwMDAwMDAwMDAwMTAwMCBSU0k6IDAwMDAwMDAwMDAwMDEwMDAg
-UkRJOiBmZmZmODg5NDBiMzRjMzAwPGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjQyXSBSQlA6IDAw
-MDAwMDAwMDAwMDAwMDAgUjA4OiAwMDAwMDAwMDA0MDAwMDAwIFIwOTogODA4MDgwODA4MDgwODA4
-MDxicj5bJm5ic3A7Jm5ic3A7IDE3LjUwMDY0Ml0gUjEwOiAwMDAwMDAwMDAwMDAwMDAwIFIxMTog
-ZmVmZWZlZmVmZWZlZmVmZiBSMTI6IGZmZmY4ODk0MGIzNGMzMDA8YnI+WyZuYnNwOyZuYnNwOyAx
-Ny41MDA2NDNdIFIxMzogZmZmZjg4OTQwYjNkYzAwMCBSMTQ6IGZmZmY4ODk0MGJhZGQwMDAgUjE1
-OiAwMDAwMDAwMDAwMDAwMDAxPGJyPlsmbmJzcDsmbmJzcDsgMTcuNTAwNjQzXSBGUzombmJzcDsg
-MDAwMDAwMDBmN2MyNTc4MCgwMDAwKSBHUzpmZmZmODg5NDBmYTAwMDAwKDAwMDApIGtubEdTOjAw
-MDAwMDAwMDAwMDAwMDA8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2NDRdIENTOiZuYnNwOyAwMDEw
-IERTOiAwMDJiIEVTOiAwMDJiIENSMDogMDAwMDAwMDA4MDA1MDAzMzxicj5bJm5ic3A7Jm5ic3A7
-IDE3LjUwMDY0NF0gQ1IyOiBmZmZmODg5NDBiNGZkZmU4IENSMzogMDAwMDAwMTQwYmQxNTAwMCBD
-UjQ6IDAwMDAwMDAwMDAwMDA2YjA8YnI+WyZuYnNwOyZuYnNwOyAxNy41MDA2NDVdIEtlcm5lbCBw
-YW5pYyAtIG5vdCBzeW5jaW5nOiBGYXRhbCBleGNlcHRpb24gaW4gaW50ZXJydXB0PGJyPlsmbmJz
-cDsmbmJzcDsgMTcuNTAwOTQxXSBLZXJuZWwgT2Zmc2V0OiBkaXNhYmxlZDxicj48YnI+PC9ibG9j
-a3F1b3RlPjwvZGl2Pg==
-
---===============7457544542796121228==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+In current code, the pointer ndns is being dereferenced on the
+initialization of pointer parent_uuid before ndns is null check. This
+could lead to a potential null pointer dereference. Fix this by
+dereferencing ndns after ndns has been null pointer sanity checked.
+
+Signed-off-by: Jing Xiangfeng <jingxiangfeng@huawei.com>
+---
+ drivers/nvdimm/pfn_devs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index 3e11ef8d3f5b..c443994f81f3 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -452,7 +452,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	unsigned long align, start_pad;
+ 	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	const u8 *parent_uuid = nd_dev_to_uuid(&ndns->dev);
++	const u8 *parent_uuid;
+ 
+ 	if (!pfn_sb || !ndns)
+ 		return -ENODEV;
+@@ -472,6 +472,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 		return -ENODEV;
+ 	pfn_sb->checksum = cpu_to_le64(checksum);
+ 
++	parent_uuid = nd_dev_to_uuid(&ndns->dev);
+ 	if (memcmp(pfn_sb->parent_uuid, parent_uuid, 16) != 0)
+ 		return -ENODEV;
+ 
+-- 
+2.17.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
---===============7457544542796121228==--
