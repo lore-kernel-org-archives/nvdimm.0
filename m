@@ -2,59 +2,63 @@ Return-Path: <SRS0=P5fg=CY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37860C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 09:33:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C22BDC43461
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 10:13:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CCB0121D7B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 09:33:52 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CCB0121D7B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.alibaba.com
+	by mail.kernel.org (Postfix) with ESMTPS id 3D39021D7D
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 10:13:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3D39021D7D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 39F1C14C5594A;
-	Tue, 15 Sep 2020 02:33:52 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=115.124.30.56; helo=out30-56.freemail.mail.aliyun.com; envelope-from=richard.weiyang@linux.alibaba.com; receiver=<UNKNOWN> 
-Received: from out30-56.freemail.mail.aliyun.com (out30-56.freemail.mail.aliyun.com [115.124.30.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 85CE013D4EA31
-	for <linux-nvdimm@lists.01.org>; Tue, 15 Sep 2020 02:33:48 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R811e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=richard.weiyang@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0U90t1fN_1600162424;
-Received: from localhost(mailfrom:richard.weiyang@linux.alibaba.com fp:SMTPD_---0U90t1fN_1600162424)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 15 Sep 2020 17:33:45 +0800
-Date: Tue, 15 Sep 2020 17:33:44 +0800
-From: Wei Yang <richard.weiyang@linux.alibaba.com>
-To: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH v2 1/7] kernel/resource: make
- release_mem_region_adjustable() never fail
-Message-ID: <20200915093344.GA7324@L-31X9LVDL-1304.local>
-References: <20200908201012.44168-1-david@redhat.com>
- <20200908201012.44168-2-david@redhat.com>
- <20200915021012.GC2007@L-31X9LVDL-1304.local>
- <927904b1-1909-f11f-483e-8012bda8ad0c@redhat.com>
- <20200915090612.GA6936@L-31X9LVDL-1304.local>
- <bc324c26-3638-ffa6-ee01-68a659183adf@redhat.com>
+	by ml01.01.org (Postfix) with ESMTP id C0C6C1414DD5F;
+	Tue, 15 Sep 2020 03:13:22 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id 10E7B1412ED8A
+	for <linux-nvdimm@lists.01.org>; Tue, 15 Sep 2020 03:13:20 -0700 (PDT)
+X-IronPort-AV: E=Sophos;i="5.76,429,1592841600";
+   d="scan'208";a="99252002"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 15 Sep 2020 18:13:18 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+	by cn.fujitsu.com (Postfix) with ESMTP id 60C5548990ED;
+	Tue, 15 Sep 2020 18:13:17 +0800 (CST)
+Received: from G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) by
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Tue, 15 Sep 2020 18:13:15 +0800
+Received: from localhost.localdomain (10.167.225.141) by
+ G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.2 via Frontend Transport; Tue, 15 Sep 2020 18:13:15 +0800
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
+Subject: [RFC PATCH 2/4] pagemap: introduce ->memory_failure()
+Date: Tue, 15 Sep 2020 18:13:09 +0800
+Message-ID: <20200915101311.144269-3-ruansy.fnst@cn.fujitsu.com>
+X-Mailer: git-send-email 2.28.0
+In-Reply-To: <20200915101311.144269-1-ruansy.fnst@cn.fujitsu.com>
+References: <20200915101311.144269-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <bc324c26-3638-ffa6-ee01-68a659183adf@redhat.com>
-Message-ID-Hash: R6UDBX3ONV3ILJCBOUXB5N5DBNSZPHBS
-X-Message-ID-Hash: R6UDBX3ONV3ILJCBOUXB5N5DBNSZPHBS
-X-MailFrom: richard.weiyang@linux.alibaba.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Wei Yang <richard.weiyang@linux.alibaba.com>, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, Kees Cook <keescook@chromium.org>, Ard Biesheuvel <ardb@kernel.org>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>
+X-yoursite-MailScanner-ID: 60C5548990ED.AC46D
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
+Message-ID-Hash: 5VZRFNHQMZGXZRB2JMNH6XYUZIOLI7UI
+X-Message-ID-Hash: 5VZRFNHQMZGXZRB2JMNH6XYUZIOLI7UI
+X-MailFrom: ruansy.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: Wei Yang <richard.weiyang@linux.alibaba.com>
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/R6UDBX3ONV3ILJCBOUXB5N5DBNSZPHBS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5VZRFNHQMZGXZRB2JMNH6XYUZIOLI7UI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -63,53 +67,133 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 15, 2020 at 11:15:53AM +0200, David Hildenbrand wrote:
->On 15.09.20 11:06, Wei Yang wrote:
->> On Tue, Sep 15, 2020 at 09:35:30AM +0200, David Hildenbrand wrote:
->>>
->>>>> static int __ref try_remove_memory(int nid, u64 start, u64 size)
->>>>> {
->>>>> 	int rc = 0;
->>>>> @@ -1777,7 +1757,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
->>>>> 		memblock_remove(start, size);
->>>>> 	}
->>>>>
->>>>> -	__release_memory_resource(start, size);
->>>>> +	release_mem_region_adjustable(&iomem_resource, start, size);
->>>>>
->>>>
->>>> Seems the only user of release_mem_region_adjustable() is here, can we move
->>>> iomem_resource into the function body? Actually, we don't iterate the resource
->>>> tree from any level. We always start from the root.
->>>
->>> You mean, making iomem_resource implicit? I can spot that something
->>> similar was done for
->>>
->>> #define devm_release_mem_region(dev, start, n) \
->>> 	__devm_release_region(dev, &iomem_resource, (start), (n))
->>>
->> 
->> What I prefer is remove iomem_resource from the parameter list. Just use is in
->> the function body.
->> 
->> For the example you listed, __release_region() would have varies of *parent*,
->> which looks reasonable to keep it here.
->
->Yeah I got that ("making iomem_resource implicit"), as I said:
->
+When memory-failure occurs, we call this function which is implemented
+by each devices.  For fsdax, pmem device implements it.  Pmem device
+will find out the block device where the error page located in, gets the
+filesystem on this block device, and finally call ->storage_lost() to
+handle the error in filesystem layer.
 
-Thanks
+Normally, a pmem device may contain one or more partitions, each
+partition contains a block device, each block device contains a
+filesystem.  So we are able to find out the filesystem by one offset on
+this pmem device.  However, in other cases, such as mapped device, I
+didn't find a way to obtain the filesystem laying on it.  It is a
+problem need to be fixed.
 
->>> I'll send an addon patch for that, ok? - thanks.
->
->-- 
->Thanks,
->
->David / dhildenb
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+---
+ block/genhd.c            | 12 ++++++++++++
+ drivers/nvdimm/pmem.c    | 31 +++++++++++++++++++++++++++++++
+ include/linux/genhd.h    |  2 ++
+ include/linux/memremap.h |  3 +++
+ 4 files changed, 48 insertions(+)
 
+diff --git a/block/genhd.c b/block/genhd.c
+index 99c64641c314..e7442b60683e 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -1063,6 +1063,18 @@ struct block_device *bdget_disk(struct gendisk *disk, int partno)
+ }
+ EXPORT_SYMBOL(bdget_disk);
+ 
++struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector)
++{
++	struct block_device *bdev = NULL;
++	struct hd_struct *part = disk_map_sector_rcu(disk, sector);
++
++	if (part)
++		bdev = bdget(part_devt(part));
++
++	return bdev;
++}
++EXPORT_SYMBOL(bdget_disk_sector);
++
+ /*
+  * print a full list of all partitions - intended for places where the root
+  * filesystem can't be mounted and thus to give the victim some idea of what
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index fab29b514372..3ed96486c883 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -364,9 +364,40 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
+ }
+ 
++static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
++		struct mf_recover_controller *mfrc)
++{
++	struct pmem_device *pdev;
++	struct block_device *bdev;
++	sector_t disk_sector;
++	loff_t bdev_offset;
++
++	pdev = container_of(pgmap, struct pmem_device, pgmap);
++	if (!pdev->disk)
++		return -ENXIO;
++
++	disk_sector = (PFN_PHYS(mfrc->pfn) - pdev->phys_addr) >> SECTOR_SHIFT;
++	bdev = bdget_disk_sector(pdev->disk, disk_sector);
++	if (!bdev)
++		return -ENXIO;
++
++	// TODO what if block device contains a mapped device
++	if (!bdev->bd_super)
++		goto out;
++
++	bdev_offset = ((disk_sector - get_start_sect(bdev)) << SECTOR_SHIFT) -
++			pdev->data_offset;
++	bdev->bd_super->s_op->storage_lost(bdev->bd_super, bdev_offset, mfrc);
++
++out:
++	bdput(bdev);
++	return 0;
++}
++
+ static const struct dev_pagemap_ops fsdax_pagemap_ops = {
+ 	.kill			= pmem_pagemap_kill,
+ 	.cleanup		= pmem_pagemap_cleanup,
++	.memory_failure		= pmem_pagemap_memory_failure,
+ };
+ 
+ static int pmem_attach_disk(struct device *dev,
+diff --git a/include/linux/genhd.h b/include/linux/genhd.h
+index 4ab853461dff..16e9e13e0841 100644
+--- a/include/linux/genhd.h
++++ b/include/linux/genhd.h
+@@ -303,6 +303,8 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
+ extern void del_gendisk(struct gendisk *gp);
+ extern struct gendisk *get_gendisk(dev_t dev, int *partno);
+ extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
++extern struct block_device *bdget_disk_sector(struct gendisk *disk,
++			sector_t sector);
+ 
+ extern void set_device_ro(struct block_device *bdev, int flag);
+ extern void set_disk_ro(struct gendisk *disk, int flag);
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 5f5b2df06e61..efebefa70d00 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -6,6 +6,7 @@
+ 
+ struct resource;
+ struct device;
++struct mf_recover_controller;
+ 
+ /**
+  * struct vmem_altmap - pre-allocated storage for vmemmap_populate
+@@ -87,6 +88,8 @@ struct dev_pagemap_ops {
+ 	 * the page back to a CPU accessible page.
+ 	 */
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
++	int (*memory_failure)(struct dev_pagemap *pgmap,
++			      struct mf_recover_controller *mfrc);
+ };
+ 
+ #define PGMAP_ALTMAP_VALID	(1 << 0)
 -- 
-Wei Yang
-Help you, Help me
+2.28.0
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
