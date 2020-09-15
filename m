@@ -2,57 +2,57 @@ Return-Path: <SRS0=P5fg=CY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06B81C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 08:37:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EF38C433E2
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 09:06:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6236F21D24
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 08:37:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6236F21D24
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+	by mail.kernel.org (Postfix) with ESMTPS id 05C4B2076C
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Sep 2020 09:06:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 05C4B2076C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0671F141048F7;
-	Tue, 15 Sep 2020 01:37:21 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 881FD13D9A804;
+	Tue, 15 Sep 2020 02:06:20 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=115.124.30.131; helo=out30-131.freemail.mail.aliyun.com; envelope-from=richard.weiyang@linux.alibaba.com; receiver=<UNKNOWN> 
+Received: from out30-131.freemail.mail.aliyun.com (out30-131.freemail.mail.aliyun.com [115.124.30.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BFD70141048F4
-	for <linux-nvdimm@lists.01.org>; Tue, 15 Sep 2020 01:37:18 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id B4E16AFA9;
-	Tue, 15 Sep 2020 08:37:32 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-	id 025AB1E12EF; Tue, 15 Sep 2020 10:37:16 +0200 (CEST)
-Date: Tue, 15 Sep 2020 10:37:16 +0200
-From: Jan Kara <jack@suse.cz>
-To: Adrian Huang <adrianhuang0701@gmail.com>
-Subject: Re: [PATCH 1/1] dax: Fix stack overflow when mounting fsdax pmem
- device
-Message-ID: <20200915083716.GA29863@quack2.suse.cz>
-References: <20200915075729.12518-1-adrianhuang0701@gmail.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1635F13D9A801
+	for <linux-nvdimm@lists.01.org>; Tue, 15 Sep 2020 02:06:16 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R971e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=richard.weiyang@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0U90pcMF_1600160772;
+Received: from localhost(mailfrom:richard.weiyang@linux.alibaba.com fp:SMTPD_---0U90pcMF_1600160772)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 15 Sep 2020 17:06:12 +0800
+Date: Tue, 15 Sep 2020 17:06:12 +0800
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+To: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH v2 1/7] kernel/resource: make
+ release_mem_region_adjustable() never fail
+Message-ID: <20200915090612.GA6936@L-31X9LVDL-1304.local>
+References: <20200908201012.44168-1-david@redhat.com>
+ <20200908201012.44168-2-david@redhat.com>
+ <20200915021012.GC2007@L-31X9LVDL-1304.local>
+ <927904b1-1909-f11f-483e-8012bda8ad0c@redhat.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20200915075729.12518-1-adrianhuang0701@gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: P4SC5YWCLMJHM3M4WKTK6FJCNATJRGA7
-X-Message-ID-Hash: P4SC5YWCLMJHM3M4WKTK6FJCNATJRGA7
-X-MailFrom: jack@suse.cz
+In-Reply-To: <927904b1-1909-f11f-483e-8012bda8ad0c@redhat.com>
+Message-ID-Hash: 5BOE6CLHPXUUDLSZKW6466EOED3ZYVG3
+X-Message-ID-Hash: 5BOE6CLHPXUUDLSZKW6466EOED3ZYVG3
+X-MailFrom: richard.weiyang@linux.alibaba.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, Coly Li <colyli@suse.de>, Mikulas Patocka <mpatocka@redhat.com>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, Adrian Huang <ahuang12@lenovo.com>
+CC: Wei Yang <richard.weiyang@linux.alibaba.com>, linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, Kees Cook <keescook@chromium.org>, Ard Biesheuvel <ardb@kernel.org>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: Wei Yang <richard.weiyang@linux.alibaba.com>
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/P4SC5YWCLMJHM3M4WKTK6FJCNATJRGA7/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5BOE6CLHPXUUDLSZKW6466EOED3ZYVG3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -61,144 +61,46 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue 15-09-20 15:57:29, Adrian Huang wrote:
-> From: Adrian Huang <ahuang12@lenovo.com>
-> 
-> When mounting fsdax pmem device, commit 6180bb446ab6 ("dax: fix
-> detection of dax support for non-persistent memory block devices")
-> introduces the stack overflow [1][2]. Here is the call path for
-> mounting ext4 file system:
->   ext4_fill_super
->     bdev_dax_supported
->       __bdev_dax_supported
->         dax_supported
->           generic_fsdax_supported
->             __generic_fsdax_supported
->               bdev_dax_supported
-> 
-> The call path leads to the infinite calling loop, so we cannot
-> call bdev_dax_supported() in __generic_fsdax_supported(). The sanity
-> checking of the variable 'dax_dev' is moved prior to the two
-> bdev_dax_pgoff() checks [3][4].
-> 
-> To fix the issue triggered by lvm2-testsuite (the issue that the
-> above-mentioned commit wants to fix), this patch does not print the
-> "error: dax access failed" message if the physical disk does not
-> support DAX (dax_dev is NULL). The detail info is described as follows:
+On Tue, Sep 15, 2020 at 09:35:30AM +0200, David Hildenbrand wrote:
+>
+>>> static int __ref try_remove_memory(int nid, u64 start, u64 size)
+>>> {
+>>> 	int rc = 0;
+>>> @@ -1777,7 +1757,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
+>>> 		memblock_remove(start, size);
+>>> 	}
+>>>
+>>> -	__release_memory_resource(start, size);
+>>> +	release_mem_region_adjustable(&iomem_resource, start, size);
+>>>
+>> 
+>> Seems the only user of release_mem_region_adjustable() is here, can we move
+>> iomem_resource into the function body? Actually, we don't iterate the resource
+>> tree from any level. We always start from the root.
+>
+>You mean, making iomem_resource implicit? I can spot that something
+>similar was done for
+>
+>#define devm_release_mem_region(dev, start, n) \
+>	__devm_release_region(dev, &iomem_resource, (start), (n))
+>
 
-Thanks for looking into this!
+What I prefer is remove iomem_resource from the parameter list. Just use is in
+the function body.
 
-> 
->   1. The dax_dev of the dm devices (dm-0, dm-1..) is always allocated
->      in alloc_dev() [drivers/md/dm.c].
->   2. When calling __generic_fsdax_supported() with dm-0 device, the
->      call path is shown as follows (the physical disks of dm-0 do
->      not support DAX):
->         dax_direct_access (valid dax_dev with dm-0)
->           dax_dev->ops->direct_access
->             dm_dax_direct_access
->               ti->type->direct_access
->                 linear_dax_direct_access (assume the target is linear)
->                   dax_direct_access (dax_dev is NULLL with ram0, or sdaX)
+For the example you listed, __release_region() would have varies of *parent*,
+which looks reasonable to keep it here.
 
-I'm not sure how you can get __generic_fsdax_supported() called for dm-0?
-Possibly because there's another dm device stacked on top of it and
-dm_table_supports_dax() calls generic_fsdax_supported()? That actually
-seems to be a bug in dm_table_supports_dax() (device_supports_dax() in
-particular). I'd think it should be calling dax_supported() instead of
-generic_fsdax_supported() so that proper device callback gets called when
-determining whether a device supports DAX or not.
+>I'll send an addon patch for that, ok? - thanks.
+>
+>-- 
+>Thanks,
+>
+>David / dhildenb
 
->   3. The call 'dax_direct_access()' in __generic_fsdax_supported() gets
->      the returned value '-EOPNOTSUPP'.
-
-I don't think this should happen under any normal conditions after the
-above bug is fixed. -EOPNOTSUPP is returned when dax_dev is NULL and that
-should have been caught earlier... So at this poing I don't think your
-changes to printing errors after dax_direct_access() are needed.
-
-								Honza
-
->   4. However, the message 'dm-3: error: dax access failed (-5)' is still
->      printed for the dm target 'error' since io_err_dax_direct_access()
->      always returns the status '-EIO'. Cc' device mapper maintainers to
->      see if they have concerns.
-> 
-> [1] https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/thread/BULZHRILK7N2WS2JVISNF2QZNRQK6JU4/
-> [2] https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/thread/OOZGFY3RNQGTGJJCH52YXCSYIDXMOPXO/
-> [3] https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SMQW2LY3QHPXOAW76RKNSCGG3QJFO7HT/
-> [4] https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7E2X6UGX5RQ2ISGYNAF66VLY5BKBFI4M/
-> 
-> Fixes: 6180bb446ab6 ("dax: fix detection of dax support for non-persistent memory block devices")
-> Cc: Coly Li <colyli@suse.de>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: John Pittman <jpittman@redhat.com>
-> Cc: Mikulas Patocka <mpatocka@redhat.com>
-> Cc: Alasdair Kergon <agk@redhat.com>
-> Cc: Mike Snitzer <snitzer@redhat.com>
-> Signed-off-by: Adrian Huang <ahuang12@lenovo.com>
-> ---
->  drivers/dax/super.c | 23 ++++++++++++++++-------
->  1 file changed, 16 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index e5767c83ea23..fb151417ec10 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -85,6 +85,12 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
->  		return false;
->  	}
->  
-> +	if (!dax_dev) {
-> +		pr_debug("%s: error: dax unsupported by block device\n",
-> +				bdevname(bdev, buf));
-> +		return false;
-> +	}
-> +
->  	err = bdev_dax_pgoff(bdev, start, PAGE_SIZE, &pgoff);
->  	if (err) {
->  		pr_info("%s: error: unaligned partition for dax\n",
-> @@ -100,19 +106,22 @@ bool __generic_fsdax_supported(struct dax_device *dax_dev,
->  		return false;
->  	}
->  
-> -	if (!dax_dev || !bdev_dax_supported(bdev, blocksize)) {
-> -		pr_debug("%s: error: dax unsupported by block device\n",
-> -				bdevname(bdev, buf));
-> -		return false;
-> -	}
-> -
->  	id = dax_read_lock();
->  	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
->  	len2 = dax_direct_access(dax_dev, pgoff_end, 1, &end_kaddr, &end_pfn);
->  
->  	if (len < 1 || len2 < 1) {
-> -		pr_info("%s: error: dax access failed (%ld)\n",
-> +		/*
-> +		 * Only print the real error message: do not need to print
-> +		 * the message for the underlying raw disk (physical disk)
-> +		 * that does not support DAX (dax_dev = NULL). This case
-> +		 * is observed when physical disks are configured by
-> +		 * lvm2 (device mapper).
-> +		 */
-> +		if (len != -EOPNOTSUPP && len2 != -EOPNOTSUPP) {
-> +			pr_info("%s: error: dax access failed (%ld)\n",
->  				bdevname(bdev, buf), len < 1 ? len : len2);
-> +		}
->  		dax_read_unlock(id);
->  		return false;
->  	}
-> -- 
-> 2.17.1
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Wei Yang
+Help you, Help me
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
