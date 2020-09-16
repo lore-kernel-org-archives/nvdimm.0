@@ -2,193 +2,158 @@ Return-Path: <SRS0=d9u0=CZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDE56C433E2
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 09:17:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DE54C433E2
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 10:02:32 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 50CF82076C
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 09:17:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 50CF82076C
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+	by mail.kernel.org (Postfix) with ESMTPS id AF14A2076B
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 10:02:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AF14A2076B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.alibaba.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C0A20142636B9;
-	Wed, 16 Sep 2020 02:17:31 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 3E59C14413789;
+	Wed, 16 Sep 2020 03:02:31 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=115.124.30.133; helo=out30-133.freemail.mail.aliyun.com; envelope-from=richard.weiyang@linux.alibaba.com; receiver=<UNKNOWN> 
+Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2E57B142636B7
-	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 02:17:28 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 76D15ABF4;
-	Wed, 16 Sep 2020 09:17:42 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-	id C8B291E12E1; Wed, 16 Sep 2020 11:17:26 +0200 (CEST)
-Date: Wed, 16 Sep 2020 11:17:26 +0200
-From: Jan Kara <jack@suse.cz>
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: =?utf-8?B?5Zue5aSN77yacmVncmVzc2lvbiBj?=
- =?utf-8?Q?aused_by_patch_6180bb446ab624b9ab8bf201ed251ca87f07b413=3F=3F_?=
- =?utf-8?Q?=28=22dax=3A_fix_detectio?= =?utf-8?Q?n?= of dax support for
- non-persistent memory block?? devices")
-Message-ID: <20200916091726.GA3607@quack2.suse.cz>
-References: <alpine.LRH.2.02.2009141131220.30651@file01.intranet.prod.int.rdu2.redhat.com>
- <211sy17ij47lox90ncna7kwk-k7cl0b-ubtml5jg8ocd-r7lb68jgkncbq5ng3g-koqyd471rzfh-t231u5-sxwvexwht98i-b7in5pxxck0j-3b40lqlmuelf13q0uk-ye4ohhsbgodw-xuloz9wpp7tf.1600139009031@email.android.com>
- <20200915080106.GG4863@quack2.suse.cz>
- <a8898f972f427476b8accf41aee2b1e105bc56e5.camel@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id 222DE14413785
+	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 03:02:27 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R281e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04395;MF=richard.weiyang@linux.alibaba.com;NM=1;PH=DS;RN=18;SR=0;TI=SMTPD_---0U97.XS1_1600250543;
+Received: from localhost(mailfrom:richard.weiyang@linux.alibaba.com fp:SMTPD_---0U97.XS1_1600250543)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Wed, 16 Sep 2020 18:02:24 +0800
+Date: Wed, 16 Sep 2020 18:02:23 +0800
+From: Wei Yang <richard.weiyang@linux.alibaba.com>
+To: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH] kernel/resource: make iomem_resource implicit in
+ release_mem_region_adjustable()
+Message-ID: <20200916100223.GA46154@L-31X9LVDL-1304.local>
+References: <20200911103459.10306-1-david@redhat.com>
+ <20200916073041.10355-1-david@redhat.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <a8898f972f427476b8accf41aee2b1e105bc56e5.camel@intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: QIYOYQUPROAFXJ5QE6DUTL7OWRWVOFKG
-X-Message-ID-Hash: QIYOYQUPROAFXJ5QE6DUTL7OWRWVOFKG
-X-MailFrom: jack@suse.cz
+In-Reply-To: <20200916073041.10355-1-david@redhat.com>
+Message-ID-Hash: QFDBS7P3X7GOH73V3AKDGHCVTS5JLZQZ
+X-Message-ID-Hash: QFDBS7P3X7GOH73V3AKDGHCVTS5JLZQZ
+X-MailFrom: richard.weiyang@linux.alibaba.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "jack@suse.cz" <jack@suse.cz>, "colyli@suse.de" <colyli@suse.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jack@suse.com" <jack@suse.com>, "ahuang12@lenovo.com" <ahuang12@lenovo.com>, "pankaj.gupta.linux@gmail.com" <pankaj.gupta.linux@gmail.com>, "snitzer@redhat.com" <snitzer@redhat.com>, "mpatocka@redhat.com" <mpatocka@redhat.com>
+CC: linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Wei Yang <richard.weiyang@linux.alibaba.com>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, Kees Cook <keescook@chromium.org>, Ard Biesheuvel <ardb@kernel.org>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: Wei Yang <richard.weiyang@linux.alibaba.com>
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QIYOYQUPROAFXJ5QE6DUTL7OWRWVOFKG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QFDBS7P3X7GOH73V3AKDGHCVTS5JLZQZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gVHVlIDE1LTA5LTIwIDE1OjEyOjIxLCBWZXJtYSwgVmlzaGFsIEwgd3JvdGU6DQo+IE9uIFR1
-ZSwgMjAyMC0wOS0xNSBhdCAxMDowMSArMDIwMCwgSmFuIEthcmEgd3JvdGU6DQo+ID4gSGkhDQo+
-ID4gDQo+ID4gT24gVHVlIDE1LTA5LTIwIDExOjAzOjI5LCBjb2x5bGlAc3VzZS5kZSB3cm90ZToN
-Cj4gPiA+IENvdWxkIHlvdSBwbGVhc2UgdG8gdGFrZSBhIGxvb2s/IEkgYW0gb2ZmbGluZSBpbiB0
-aGUgbmV4dCB0d28gd2Vla3MuDQo+ID4gDQo+ID4gSSBqdXN0IGhhZCBhIGxvb2sgaW50byB0aGlz
-LiBJTUhPIHRoZSBqdXN0aWZpY2F0aW9uIGluIDYxODBiYjQ0NmEgImRheDogZml4DQo+ID4gZGV0
-ZWN0aW9uIG9mIGRheCBzdXBwb3J0IGZvciBub24tcGVyc2lzdGVudCBtZW1vcnkgYmxvY2sgZGV2
-aWNlcyIgaXMganVzdA0KPiA+IGJvZ3VzIGFuZCBwZW9wbGUgZ290IGNvbmZ1c2VkIGJ5IHRoZSBw
-cmV2aW91cyBjb25kaXRpb24NCj4gPiANCj4gPiBpZiAoIWRheF9kZXYgJiYgIWJkZXZfZGF4X3N1
-cHBvcnRlZChiZGV2LCBibG9ja3NpemUpKQ0KPiA+IA0KPiA+IHdoaWNoIHdhcyBib2d1cyBhcyB3
-ZWxsLiBiZGV2X2RheF9zdXBwb3J0ZWQoKSBhbHdheXMgcmV0dXJucyBmYWxzZSBmb3IgYmRldg0K
-PiA+IHRoYXQgZG9lc24ndCBoYXZlIGRheF9kZXYgKG5hdHVyYWxseSBzbykuIFNvIGluIHRoZSBv
-cmlnaW5hbCBjb25kaXRpb24NCj4gPiB0aGVyZSB3YXMgbm8gcG9pbnQgaW4gY2FsbGluZyBiZGV2
-X2RheF9zdXBwb3J0ZWQoKSBpZiB3ZSBrbm93IGRheF9kZXYgaXMNCj4gPiBOVUxMLg0KPiA+IA0K
-PiA+IFRoZW4gdGhpcyB3YXMgY2hhbmdlZCB0bzoNCj4gPiANCj4gPiBpZiAoIWRheF9kZXYgfHwg
-IWJkZXZfZGF4X3N1cHBvcnRlZChiZGV2LCBibG9ja3NpemUpKQ0KPiA+IA0KPiA+IHdoaWNoIGxv
-b2tzIG1vcmUgc2Vuc2libGUgYXQgdGhlIGZpcnN0IHNpZ2h0LiBCdXQgb25seSBhdCB0aGUgZmly
-c3Qgc2lnaHQgLQ0KPiA+IGlmIHlvdSBsb29rIGF0IHdpZGVyIGNvbnRleHQsIF9fZ2VuZXJpY19m
-c2RheF9zdXBwb3J0ZWQoKSBpcyB0aGUgYnVsayBvZg0KPiA+IGNvZGUgdGhhdCBkZWNpZGVzIHdo
-ZXRoZXIgYSBkZXZpY2Ugc3VwcG9ydHMgREFYIHNvIGNhbGxpbmcNCj4gPiBiZGV2X2RheF9zdXBw
-b3J0ZWQoKSBmcm9tIGl0IGluZGVlZCBkb2Vzbid0IGxvb2sgYXMgc3VjaCBhIGdyZWF0IGlkZWEu
-IFNvDQo+ID4gSU1PIHRoZSBjb25kaXRpb24gc2hvdWxkIGJlIGp1c3Q6DQo+ID4gDQo+ID4gaWYg
-KCFkYXhfZGV2KQ0KPiA+IA0KPiA+IEknbGwgc2VuZCBhIGZpeCBmb3IgdGhpcy4NCj4gPiANCj4g
-PiBBbHNvIHRoZXJlJ3MgdGhlIHByb2Nlc3MgcXVlc3Rpb24gaG93IHRoaXMgcGF0Y2ggY291bGQg
-Z2V0IHRvIExpbnVzIHdoZW4NCj4gPiBhbnkgYXR0ZW1wdCB0byB1c2UgREFYIHdvdWxkIGltbWVk
-aWF0ZWx5IGtpbGwgdGhlIG1hY2hpbmUgbGlrZSBNaWt1bGFzDQo+ID4gc3BvdHRlZC4gVGhpcyBz
-aG93cyB0aGUgdGhhdCBwYXRjaCB3YXMgdW50ZXN0ZWQgd2l0aCBEQVggYnkgYW55Ym9keSBvbiB0
-aGUNCj4gPiBwYXRoIGZyb20gdGhlIGRldmVsb3BlciB0byBMaW51cy4uLg0KPiANCj4gVGhpcyB3
-YXMgZW50aXJlbHkgbXkgZmF1bHQsIGFuZCBJIGFwb2xvZ2l6ZS4gSSBnb3QgY29uZnVzZWQgYXMg
-dG8gd2hhdA0KPiBzdGF0ZSBteSBicmFuY2hlcyB3ZXJlIGluLCBhbmQgSSB0aG91Z2h0IHRoaXMg
-aGFkIGNsZWFyZWQgb3VyIHVuaXQgdGVzdHMNCj4gZXRjLCB3aGVuIGl0IG9idmlvdXNseSBoYWRu
-J3QuIEknbSBnb2luZyB0byB0YWtlIGEgaGFyZGVyIGxvb2sgYXQgbXkNCj4gcGVyc29uYWwgYnJh
-bmNoL3BhdGNoIG1hbmFnZW1lbnQgcHJvY2VzcyB0byBtYWtlIHN1cmUgaXQgZG9lc24ndCBoYXBw
-ZW4NCj4gYWdhaW4hDQoNCk5vIHdvcnJpZXMuIEJ1Z3MgaGFwcGVuIGFuZCB0aGlzIHdhcyBzdGls
-bCBjYXVnaHQgcmF0aGVyIGVhcmx5IHdpdGhvdXQgcmVhbA0KaGFybSBjYXVzZWQuLi4gSSB3YXMg
-anVzdCByYW50aW5nIHRvIG1ha2Ugc3VyZSB0ZXN0aW5nIGRvZXMgaGFwcGVuIGluIHRoZQ0KZnV0
-dXJlIDopDQoNCgkJCQkJCQkJSG9uemENCg0KPiA+ID4gLS0tLS0tLS0g5Y6f5aeL6YKu5Lu2IC0t
-LS0tLS0tDQo+ID4gPiDlj5Hku7bkurrvvJogTWlrdWxhcyBQYXRvY2thIDxtcGF0b2NrYUByZWRo
-YXQuY29tPg0KPiA+ID4g5pel5pyf77yaIDIwMjDlubQ55pyIMTTml6XlkajkuIDljYrlpJwxMTo0
-OA0KPiA+ID4g5pS25Lu25Lq677yaIENvbHkgTGkgPGNvbHlsaUBzdXNlLmRlPiwgRGFuIFdpbGxp
-YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+LA0KPiA+ID4gRGF2ZSBKaWFuZyA8ZGF2ZS5q
-aWFuZ0BpbnRlbC5jb20+DQo+ID4gPiDmioTpgIHvvJogSmFuIEthcmEgPGphY2tAc3VzZS5jb20+
-LCBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4sDQo+ID4gPiBBZHJpYW4g
-SHVhbmcgPGFodWFuZzEyQGxlbm92by5jb20+LCBJcmEgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5j
-b20+LCBNaWtlDQo+ID4gPiBTbml0emVyIDxzbml0emVyQHJlZGhhdC5jb20+LCBQYW5rYWogR3Vw
-dGEgPHBhbmthai5ndXB0YS5saW51eEBnbWFpbC5jb20+LA0KPiA+ID4gbGludXgtbnZkaW1tQGxp
-c3RzLjAxLm9yZw0KPiA+ID4g5Li76aKY77yaIHJlZ3Jlc3Npb24gY2F1c2VkIGJ5IHBhdGNoIDYx
-ODBiYjQ0NmFiNjI0YjlhYjhiZjIwMWVkMjUxY2E4N2YwN2I0MTMNCj4gPiA+ICgiZGF4OiBmaXgg
-ZGV0ZWN0aW9uIG9mIGRheCBzdXBwb3J0IGZvciBub24tcGVyc2lzdGVudCBtZW1vcnkgYmxvY2sN
-Cj4gPiA+IGRldmljZXMiKQ0KPiA+ID4gDQo+ID4gPiAgICAgSGkNCj4gPiA+IA0KPiA+ID4gICAg
-IFRoZSBwYXRjaCA2MTgwYmI0NDZhYjYyNGI5YWI4YmYyMDFlZDI1MWNhODdmMDdiNDEzICgiZGF4
-OiBmaXggZGV0ZWN0aW9uIG9mDQo+ID4gPiAgICAgZGF4IHN1cHBvcnQgZm9yIG5vbi1wZXJzaXN0
-ZW50IG1lbW9yeSBibG9jayBkZXZpY2VzIikgY2F1c2VzIGNyYXNoIHdoZW4NCj4gPiA+ICAgICBh
-dHRlbXB0aW5nIHRvIG1vdW50IHRoZSBleHQ0IGZpbGVzeXN0ZW0gb24gL2Rldi9wbWVtMCAoIm1r
-ZnMuZXh0NA0KPiA+ID4gICAgIC9kZXYvcG1lbTA7IG1vdW50IC10IGV4dDQgL2Rldi9wbWVtMCAv
-bW50L3Rlc3QiKS4gVGhlIGRldmljZSAvZGV2L3BtZW0wIGlzDQo+ID4gPiAgICAgZW11bGF0ZWQg
-dXNpbmcgdGhlICJtZW1tYXAiIGtlcm5lbCBwYXJhbWV0ZXIuDQo+ID4gPiANCj4gPiA+ICAgICBU
-aGUgcGF0Y2ggY2F1c2VzIGluZmluaXRlIHJlY3Vyc2lvbiBhbmQgZG91YmxlLWZhdWx0IGV4Y2Vw
-dGlvbjoNCj4gPiA+IA0KPiA+ID4gICAgIF9fZ2VuZXJpY19mc2RheF9zdXBwb3J0ZWQNCj4gPiA+
-ICAgICBiZGV2X2RheF9zdXBwb3J0ZWQNCj4gPiA+ICAgICBfX2JkZXZfZGF4X3N1cHBvcnRlZA0K
-PiA+ID4gICAgIGRheF9zdXBwb3J0ZWQNCj4gPiA+ICAgICBkYXhfZGV2LT5vcHMtPmRheF9zdXBw
-b3J0ZWQNCj4gPiA+ICAgICBnZW5lcmljX2ZzZGF4X3N1cHBvcnRlZA0KPiA+ID4gICAgIF9fZ2Vu
-ZXJpY19mc2RheF9zdXBwb3J0ZWQNCj4gPiA+IA0KPiA+ID4gICAgIE1pa3VsYXMNCj4gPiA+IA0K
-PiA+ID4gDQo+ID4gPiANCj4gPiA+ICAgICBbICAgMTcuNTAwNjE5XSB0cmFwczogUEFOSUM6IGRv
-dWJsZSBmYXVsdCwgZXJyb3JfY29kZTogMHgwDQo+ID4gPiAgICAgWyAgIDE3LjUwMDYxOV0gZG91
-YmxlIGZhdWx0OiAwMDAwIFsjMV0gUFJFRU1QVCBTTVANCj4gPiA+ICAgICBbICAgMTcuNTAwNjIw
-XSBDUFU6IDAgUElEOiAxMzI2IENvbW06IG1vdW50IE5vdCB0YWludGVkIDUuOS4wLXJjMS1iaXNl
-Y3QgIw0KPiA+ID4gICAgIDEwDQo+ID4gPiAgICAgWyAgIDE3LjUwMDYyMF0gSGFyZHdhcmUgbmFt
-ZTogQm9jaHMgQm9jaHMsIEJJT1MgQm9jaHMgMDEvMDEvMjAxMQ0KPiA+ID4gICAgIFsgICAxNy41
-MDA2MjFdIFJJUDogMDAxMDpfX2dlbmVyaWNfZnNkYXhfc3VwcG9ydGVkKzB4NmEvMHg1MDANCj4g
-PiA+ICAgICBbICAgMTcuNTAwNjIyXSBDb2RlOiBmZiBmZiBmZiBmZiBmZiA3ZiAwMCA0OCAyMSBm
-MyA0OCAwMSBjMyA0OCBjMSBlMyAwOSBmNg0KPiA+ID4gICAgIGM3IDBlIDBmIDg1IGZhIDAxIDAw
-IDAwIDQ4IDg1IGZmIDQ5IDg5IGZkIDc0IDExIGJlIDAwIDEwIDAwIDAwIDRjIDg5IGU3DQo+ID4g
-PiAgICAgPGU4PiBiMSBmZSBmZiBmZiA4NCBjMCA3NSAxMSAzMSBjMCA0OCA4MyBjNCA0OCA1YiA1
-ZCA0MSA1YyA0MSA1ZCA0MQ0KPiA+ID4gICAgIFsgICAxNy41MDA2MjNdIFJTUDogMDAxODpmZmZm
-ODg5NDBiNGZkZmY4IEVGTEFHUzogMDAwMTAyODYNCj4gPiA+ICAgICBbICAgMTcuNTAwNjI0XSBS
-QVg6IDAwMDAwMDAwMDAwMDAwMDAgUkJYOiAwMDAwMDAwN2ZmZmZmMDAwIFJDWDoNCj4gPiA+ICAg
-ICAwMDAwMDAwMDAwMDAwMDAwDQo+ID4gPiAgICAgWyAgIDE3LjUwMDYyNV0gUkRYOiAwMDAwMDAw
-MDAwMDAxMDAwIFJTSTogMDAwMDAwMDAwMDAwMTAwMCBSREk6DQo+ID4gPiAgICAgZmZmZjg4OTQw
-YjM0YzMwMA0KPiA+ID4gICAgIFsgICAxNy41MDA2MjVdIFJCUDogMDAwMDAwMDAwMDAwMDAwMCBS
-MDg6IDAwMDAwMDAwMDQwMDAwMDAgUjA5Og0KPiA+ID4gICAgIDgwODA4MDgwODA4MDgwODANCj4g
-PiA+ICAgICBbICAgMTcuNTAwNjI2XSBSMTA6IDAwMDAwMDAwMDAwMDAwMDAgUjExOiBmZWZlZmVm
-ZWZlZmVmZWZmIFIxMjoNCj4gPiA+ICAgICBmZmZmODg5NDBiMzRjMzAwDQo+ID4gPiAgICAgWyAg
-IDE3LjUwMDYyNl0gUjEzOiBmZmZmODg5NDBiM2RjMDAwIFIxNDogZmZmZjg4OTQwYmFkZDAwMCBS
-MTU6DQo+ID4gPiAgICAgMDAwMDAwMDAwMDAwMDAwMQ0KPiA+ID4gICAgIFsgICAxNy41MDA2Mjdd
-IEZTOiAgMDAwMDAwMDBmN2MyNTc4MCgwMDAwKSBHUzpmZmZmODg5NDBmYTAwMDAwKDAwMDApDQo+
-ID4gPiAgICAga25sR1M6MDAwMDAwMDAwMDAwMDAwMA0KPiA+ID4gICAgIFsgICAxNy41MDA2Mjhd
-IENTOiAgMDAxMCBEUzogMDAyYiBFUzogMDAyYiBDUjA6IDAwMDAwMDAwODAwNTAwMzMNCj4gPiA+
-ICAgICBbICAgMTcuNTAwNjI4XSBDUjI6IGZmZmY4ODk0MGI0ZmRmZTggQ1IzOiAwMDAwMDAxNDBi
-ZDE1MDAwIENSNDoNCj4gPiA+ICAgICAwMDAwMDAwMDAwMDAwNmIwDQo+ID4gPiAgICAgWyAgIDE3
-LjUwMDYyOF0gQ2FsbCBUcmFjZToNCj4gPiA+ICAgICBbICAgMTcuNTAwNjI5XSBNb2R1bGVzIGxp
-bmtlZCBpbjogdXZlc2FmYiBjZmJmaWxscmVjdCBjZmJpbWdibHQgY24NCj4gPiA+ICAgICBjZmJj
-b3B5YXJlYSBmYiBmYmRldiBpcHY2IHR1biBhdXRvZnM0IGJpbmZtdF9taXNjIGNvbmZpZ2ZzIGFm
-X3BhY2tldA0KPiA+ID4gICAgIHZpcnRpb19ybmcgcm5nX2NvcmUgbW91c2VkZXYgZXZkZXYgcGNz
-cGtyIHZpcnRpb19iYWxsb29uIGJ1dHRvbiByYWlkMTANCj4gPiA+ICAgICByYWlkNDU2IGFzeW5j
-X3JhaWQ2X3JlY292IGFzeW5jX21lbWNweSBhc3luY19wcSByYWlkNl9wcSBhc3luY194b3IgeG9y
-DQo+ID4gPiAgICAgYXN5bmNfdHggbGliY3JjMzJjIHJhaWQxIHJhaWQwIG1kX21vZCBzZF9tb2Qg
-dDEwX3BpIHZpcnRpb19zY3NpIHZpcnRpb19uZXQNCj4gPiA+ICAgICBuZXRfZmFpbG92ZXIgcHNt
-b3VzZSBzY3NpX21vZCBmYWlsb3Zlcg0KPiA+ID4gICAgIFsgICAxNy41MDA2MzhdIC0tLVsgZW5k
-IHRyYWNlIDNjODc3ZmNiNWI4NjU0NTkgXS0tLQ0KPiA+ID4gICAgIFsgICAxNy41MDA2MzhdIFJJ
-UDogMDAxMDpfX2dlbmVyaWNfZnNkYXhfc3VwcG9ydGVkKzB4NmEvMHg1MDANCj4gPiA+ICAgICBb
-ICAgMTcuNTAwNjM5XSBDb2RlOiBmZiBmZiBmZiBmZiBmZiA3ZiAwMCA0OCAyMSBmMyA0OCAwMSBj
-MyA0OCBjMSBlMyAwOSBmNg0KPiA+ID4gICAgIGM3IDBlIDBmIDg1IGZhIDAxIDAwIDAwIDQ4IDg1
-IGZmIDQ5IDg5IGZkIDc0IDExIGJlIDAwIDEwIDAwIDAwIDRjIDg5IGU3DQo+ID4gPiAgICAgPGU4
-PiBiMSBmZSBmZiBmZiA4NCBjMCA3NSAxMSAzMSBjMCA0OCA4MyBjNCA0OCA1YiA1ZCA0MSA1YyA0
-MSA1ZCA0MQ0KPiA+ID4gICAgIFsgICAxNy41MDA2NDBdIFJTUDogMDAxODpmZmZmODg5NDBiNGZk
-ZmY4IEVGTEFHUzogMDAwMTAyODYNCj4gPiA+ICAgICBbICAgMTcuNTAwNjQxXSBSQVg6IDAwMDAw
-MDAwMDAwMDAwMDAgUkJYOiAwMDAwMDAwN2ZmZmZmMDAwIFJDWDoNCj4gPiA+ICAgICAwMDAwMDAw
-MDAwMDAwMDAwDQo+ID4gPiAgICAgWyAgIDE3LjUwMDY0MV0gUkRYOiAwMDAwMDAwMDAwMDAxMDAw
-IFJTSTogMDAwMDAwMDAwMDAwMTAwMCBSREk6DQo+ID4gPiAgICAgZmZmZjg4OTQwYjM0YzMwMA0K
-PiA+ID4gICAgIFsgICAxNy41MDA2NDJdIFJCUDogMDAwMDAwMDAwMDAwMDAwMCBSMDg6IDAwMDAw
-MDAwMDQwMDAwMDAgUjA5Og0KPiA+ID4gICAgIDgwODA4MDgwODA4MDgwODANCj4gPiA+ICAgICBb
-ICAgMTcuNTAwNjQyXSBSMTA6IDAwMDAwMDAwMDAwMDAwMDAgUjExOiBmZWZlZmVmZWZlZmVmZWZm
-IFIxMjoNCj4gPiA+ICAgICBmZmZmODg5NDBiMzRjMzAwDQo+ID4gPiAgICAgWyAgIDE3LjUwMDY0
-M10gUjEzOiBmZmZmODg5NDBiM2RjMDAwIFIxNDogZmZmZjg4OTQwYmFkZDAwMCBSMTU6DQo+ID4g
-PiAgICAgMDAwMDAwMDAwMDAwMDAwMQ0KPiA+ID4gICAgIFsgICAxNy41MDA2NDNdIEZTOiAgMDAw
-MDAwMDBmN2MyNTc4MCgwMDAwKSBHUzpmZmZmODg5NDBmYTAwMDAwKDAwMDApDQo+ID4gPiAgICAg
-a25sR1M6MDAwMDAwMDAwMDAwMDAwMA0KPiA+ID4gICAgIFsgICAxNy41MDA2NDRdIENTOiAgMDAx
-MCBEUzogMDAyYiBFUzogMDAyYiBDUjA6IDAwMDAwMDAwODAwNTAwMzMNCj4gPiA+ICAgICBbICAg
-MTcuNTAwNjQ0XSBDUjI6IGZmZmY4ODk0MGI0ZmRmZTggQ1IzOiAwMDAwMDAxNDBiZDE1MDAwIENS
-NDoNCj4gPiA+ICAgICAwMDAwMDAwMDAwMDAwNmIwDQo+ID4gPiAgICAgWyAgIDE3LjUwMDY0NV0g
-S2VybmVsIHBhbmljIC0gbm90IHN5bmNpbmc6IEZhdGFsIGV4Y2VwdGlvbiBpbiBpbnRlcnJ1cHQN
-Cj4gPiA+ICAgICBbICAgMTcuNTAwOTQxXSBLZXJuZWwgT2Zmc2V0OiBkaXNhYmxlZA0KPiA+ID4g
-DQo+ID4gPiANCj4gDQotLSANCkphbiBLYXJhIDxqYWNrQHN1c2UuY29tPg0KU1VTRSBMYWJzLCBD
-UgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
-dmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJz
-Y3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+On Wed, Sep 16, 2020 at 09:30:41AM +0200, David Hildenbrand wrote:
+>"mem" in the name already indicates the root, similar to
+>release_mem_region() and devm_request_mem_region(). Make it implicit.
+>The only single caller always passes iomem_resource, other parents are
+>not applicable.
+>
+
+Looks good to me.
+
+Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+
+>Suggested-by: Wei Yang <richard.weiyang@linux.alibaba.com>
+>Cc: Andrew Morton <akpm@linux-foundation.org>
+>Cc: Michal Hocko <mhocko@suse.com>
+>Cc: Dan Williams <dan.j.williams@intel.com>
+>Cc: Jason Gunthorpe <jgg@ziepe.ca>
+>Cc: Kees Cook <keescook@chromium.org>
+>Cc: Ard Biesheuvel <ardb@kernel.org>
+>Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+>Cc: Baoquan He <bhe@redhat.com>
+>Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+>Signed-off-by: David Hildenbrand <david@redhat.com>
+>---
+>
+>Based on next-20200915. Follow up on
+>	"[PATCH v4 0/8] selective merging of system ram resources" [1]
+>That's in next-20200915. As noted during review of v2 by Wei [2].
+>
+>[1] https://lkml.kernel.org/r/20200911103459.10306-1-david@redhat.com
+>[2] https://lkml.kernel.org/r/20200915021012.GC2007@L-31X9LVDL-1304.local
+>
+>---
+> include/linux/ioport.h | 3 +--
+> kernel/resource.c      | 5 ++---
+> mm/memory_hotplug.c    | 2 +-
+> 3 files changed, 4 insertions(+), 6 deletions(-)
+>
+>diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+>index 7e61389dcb01..5135d4b86cd6 100644
+>--- a/include/linux/ioport.h
+>+++ b/include/linux/ioport.h
+>@@ -251,8 +251,7 @@ extern struct resource * __request_region(struct resource *,
+> extern void __release_region(struct resource *, resource_size_t,
+> 				resource_size_t);
+> #ifdef CONFIG_MEMORY_HOTREMOVE
+>-extern void release_mem_region_adjustable(struct resource *, resource_size_t,
+>-					  resource_size_t);
+>+extern void release_mem_region_adjustable(resource_size_t, resource_size_t);
+> #endif
+> #ifdef CONFIG_MEMORY_HOTPLUG
+> extern void merge_system_ram_resource(struct resource *res);
+>diff --git a/kernel/resource.c b/kernel/resource.c
+>index 7a91b935f4c2..ca2a666e4317 100644
+>--- a/kernel/resource.c
+>+++ b/kernel/resource.c
+>@@ -1240,7 +1240,6 @@ EXPORT_SYMBOL(__release_region);
+> #ifdef CONFIG_MEMORY_HOTREMOVE
+> /**
+>  * release_mem_region_adjustable - release a previously reserved memory region
+>- * @parent: parent resource descriptor
+>  * @start: resource start address
+>  * @size: resource region size
+>  *
+>@@ -1258,9 +1257,9 @@ EXPORT_SYMBOL(__release_region);
+>  *   assumes that all children remain in the lower address entry for
+>  *   simplicity.  Enhance this logic when necessary.
+>  */
+>-void release_mem_region_adjustable(struct resource *parent,
+>-				   resource_size_t start, resource_size_t size)
+>+void release_mem_region_adjustable(resource_size_t start, resource_size_t size)
+> {
+>+	struct resource *parent = &iomem_resource;
+> 	struct resource *new_res = NULL;
+> 	bool alloc_nofail = false;
+> 	struct resource **p;
+>diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>index 553c718226b3..7c5e4744ac51 100644
+>--- a/mm/memory_hotplug.c
+>+++ b/mm/memory_hotplug.c
+>@@ -1764,7 +1764,7 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
+> 		memblock_remove(start, size);
+> 	}
+> 
+>-	release_mem_region_adjustable(&iomem_resource, start, size);
+>+	release_mem_region_adjustable(start, size);
+> 
+> 	try_offline_node(nid);
+> 
+>-- 
+>2.26.2
+
+-- 
+Wei Yang
+Help you, Help me
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
