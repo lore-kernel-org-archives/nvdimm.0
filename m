@@ -2,78 +2,69 @@ Return-Path: <SRS0=d9u0=CZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+	NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E32C43461
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 15:22:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5BBAC433E2
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 16:00:00 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6BEFF22453
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 15:22:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 19B25224B1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 16:00:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="IOdVATpa"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6BEFF22453
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="sha7upVR"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 19B25224B1
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C1E7214518B2E;
-	Wed, 16 Sep 2020 08:22:16 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=msnitzer@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 9CCAC14545470;
+	Wed, 16 Sep 2020 08:59:59 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2F60214518B2C
-	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 08:22:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1600269731;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=cjF2GTwA7gL/I5MK7tLcOog/hAPgLrIkOT7IjuYm6qc=;
-	b=IOdVATpa3VhZUzDoVOzj0VDK53uTLDeo7JkC4oBlifPAWua6wRiSv7KMv6u73sgy/+/UAb
-	6g7h32KIG9VNvK54xYvYtrmmf42BbHjY4guXJLBjBHb1KciHUG8bw0CwuLB833md2p5MXQ
-	YGXictn1FqZg3befLMRXK7DM0T/7GwY=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-44-eYS53MYtPuGnamtd7H2f7w-1; Wed, 16 Sep 2020 11:22:07 -0400
-X-MC-Unique: eYS53MYtPuGnamtd7H2f7w-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 302BB186DD2A;
-	Wed, 16 Sep 2020 15:22:06 +0000 (UTC)
-Received: from localhost (unknown [10.18.25.174])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id DB4B51002D60;
-	Wed, 16 Sep 2020 15:22:05 +0000 (UTC)
-Date: Wed, 16 Sep 2020 11:22:05 -0400
-From: Mike Snitzer <snitzer@redhat.com>
-To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>
-Subject: Re: dm: Call proper helper to determine dax support
-Message-ID: <20200916152204.GA29829@redhat.com>
-References: <20200916151445.450-1-jack@suse.cz>
+	by ml01.01.org (Postfix) with ESMTPS id 4C7A514409C87
+	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 08:59:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+	:Reply-To:Content-ID:Content-Description;
+	bh=2L8WeVvRo1osqjjhclSBTpn136Oyr6chq2WMPl65EcM=; b=sha7upVR0ozVlTJFDWdFS4KUrg
+	Dlh504xPkCjJ6bcnR0tgQmZYiIutQK/G0ONBD+iomCp+zVQ82oPYqYPfOa29q6UCwl36D+BB9FNFs
+	pSeTBdPEiVQz6llxOwpNLZRraxMD45Yt9agHPf8ceWEhufE5EkURg5LtEm+1DjoRnfjJ/WOFs5+4j
+	BadKgeBe/qwlbda6A6xYg/rSWFAOIGOJ/+qKGuMxZNBtCJ1ZUglDN7/DVuOWKZv/bNRIhqme65n0j
+	CV7jlQDHwCcs1yfZz07j2hPdh6zbICLmsA3R4X5f+JNoZnWPrhrt60ytieQyxK1LeEjJ519udtgbv
+	hAy+S0yQ==;
+Received: from [2601:1c0:6280:3f0::19c2]
+	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kIZqU-0000qm-87; Wed, 16 Sep 2020 15:59:46 +0000
+Subject: Re: [PATCH v5 3/5] mm: introduce memfd_secret system call to create
+ "secret" memory areas
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+References: <20200916073539.3552-1-rppt@kernel.org>
+ <20200916073539.3552-4-rppt@kernel.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <6319035d-73db-4b4d-3fa7-aaa11d3843a0@infradead.org>
+Date: Wed, 16 Sep 2020 08:59:37 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.12.0
 MIME-Version: 1.0
-In-Reply-To: <20200916151445.450-1-jack@suse.cz>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=msnitzer@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Disposition: inline
-Message-ID-Hash: PL6WJ3U2VTVVD7HOANRMQZNZX2GDJCOF
-X-Message-ID-Hash: PL6WJ3U2VTVVD7HOANRMQZNZX2GDJCOF
-X-MailFrom: msnitzer@redhat.com
+In-Reply-To: <20200916073539.3552-4-rppt@kernel.org>
+Content-Language: en-US
+Message-ID-Hash: JUUVOZYDK3MSIUAQAFI62TNXOKX3H5FP
+X-Message-ID-Hash: JUUVOZYDK3MSIUAQAFI62TNXOKX3H5FP
+X-MailFrom: rdunlap@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, Adrian Huang <adrianhuang0701@gmail.com>, Coly Li <colyli@suse.de>, Mikulas Patocka <mpatocka@redhat.com>, Alasdair Kergon <agk@redhat.com>
+CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, l
+ inux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PL6WJ3U2VTVVD7HOANRMQZNZX2GDJCOF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JUUVOZYDK3MSIUAQAFI62TNXOKX3H5FP/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,122 +73,70 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 16 2020 at 11:14am -0400,
-Jan Kara <jack@suse.cz> wrote:
+Hi Mike,
 
-> DM was calling generic_fsdax_supported() to determine whether a device
-> referenced in the DM table supports DAX. However this is a helper for "leaf" device drivers so that
-> they don't have to duplicate common generic checks. High level code
-> should call dax_supported() helper which that calls into appropriate
-> helper for the particular device. This problem manifested itself as
-> kernel messages:
+
+On 9/16/20 12:35 AM, Mike Rapoport wrote:
+> From: Mike Rapoport <rppt@linux.ibm.com>
 > 
-> dm-3: error: dax access failed (-95)
 > 
-> when lvm2-testsuite run in cases where a DM device was stacked on top of
-> another DM device.
-> 
-> Fixes: 7bf7eac8d648 ("dax: Arrange for dax_supported check to span multiple devices")
-> Tested-by: Adrian Huang <ahuang12@lenovo.com>
-> Signed-off-by: Jan Kara <jack@suse.cz>
-
-Looked good:
-
-Acked-by: Mike Snitzer <snitzer@redhat.com>
-
-This fix should Cc stable@ right?
-
+> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 > ---
->  drivers/dax/super.c   |  4 ++++
->  drivers/md/dm-table.c |  3 +--
->  include/linux/dax.h   | 11 +++++++++--
->  3 files changed, 14 insertions(+), 4 deletions(-)
+>  arch/Kconfig                   |   7 +
+>  arch/x86/Kconfig               |   1 +
+>  include/uapi/linux/magic.h     |   1 +
+>  include/uapi/linux/secretmem.h |   8 +
+>  kernel/sys_ni.c                |   2 +
+>  mm/Kconfig                     |   4 +
+>  mm/Makefile                    |   1 +
+>  mm/secretmem.c                 | 264 +++++++++++++++++++++++++++++++++
+>  8 files changed, 288 insertions(+)
+>  create mode 100644 include/uapi/linux/secretmem.h
+>  create mode 100644 mm/secretmem.c
 > 
-> This patch should go in together with Adrian's
-> https://lore.kernel.org/linux-nvdimm/20200916133923.31-1-adrianhuang0701@gmail.com
+> diff --git a/arch/Kconfig b/arch/Kconfig
+> index af14a567b493..8d161bd4142d 100644
+> --- a/arch/Kconfig
+> +++ b/arch/Kconfig
+> @@ -975,6 +975,13 @@ config HAVE_SPARSE_SYSCALL_NR
+>  config ARCH_HAS_VDSO_DATA
+>  	bool
+>  
+> +config HAVE_SECRETMEM_UNCACHED
+> +       bool
+> +       help
+> +          An architecture can select this if its semantics of non-cached
+> +          mappings can be used to prevent speculative loads and it is
+> +          useful for secret protection.
 
-Sure, but there really isn't a dependency right?
+Please use tabs instead of spaces for indentation.
 
-Dan, will you be picking these up to send to Linux for 5.9-rc?
-
-Thanks,
-Mike
-
-
-> 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index e5767c83ea23..b6284c5cae0a 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -325,11 +325,15 @@ EXPORT_SYMBOL_GPL(dax_direct_access);
->  bool dax_supported(struct dax_device *dax_dev, struct block_device *bdev,
->  		int blocksize, sector_t start, sector_t len)
->  {
-> +	if (!dax_dev)
-> +		return false;
 > +
->  	if (!dax_alive(dax_dev))
->  		return false;
+>  source "kernel/gcov/Kconfig"
 >  
->  	return dax_dev->ops->dax_supported(dax_dev, bdev, blocksize, start, len);
->  }
-> +EXPORT_SYMBOL_GPL(dax_supported);
+>  source "scripts/gcc-plugins/Kconfig"
+
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index 6c974888f86f..70cfc20d7caa 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -868,4 +868,8 @@ config ARCH_HAS_HUGEPD
+>  config MAPPING_DIRTY_HELPERS
+>          bool
 >  
->  size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
->  		size_t bytes, struct iov_iter *i)
-> diff --git a/drivers/md/dm-table.c b/drivers/md/dm-table.c
-> index 5edc3079e7c1..bed1ff0744ec 100644
-> --- a/drivers/md/dm-table.c
-> +++ b/drivers/md/dm-table.c
-> @@ -862,8 +862,7 @@ int device_supports_dax(struct dm_target *ti, struct dm_dev *dev,
->  {
->  	int blocksize = *(int *) data;
->  
-> -	return generic_fsdax_supported(dev->dax_dev, dev->bdev, blocksize,
-> -				       start, len);
-> +	return dax_supported(dev->dax_dev, dev->bdev, blocksize, start, len);
->  }
->  
->  /* Check devices support synchronous DAX */
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 6904d4e0b2e0..9f916326814a 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -130,6 +130,8 @@ static inline bool generic_fsdax_supported(struct dax_device *dax_dev,
->  	return __generic_fsdax_supported(dax_dev, bdev, blocksize, start,
->  			sectors);
->  }
-> +bool dax_supported(struct dax_device *dax_dev, struct block_device *bdev,
-> +		int blocksize, sector_t start, sector_t len);
->  
->  static inline void fs_put_dax(struct dax_device *dax_dev)
->  {
-> @@ -157,6 +159,13 @@ static inline bool generic_fsdax_supported(struct dax_device *dax_dev,
->  	return false;
->  }
->  
-> +static inline bool dax_supported(struct dax_device *dax_dev,
-> +		struct block_device *bdev, int blocksize, sector_t start,
-> +		sector_t len)
-> +{
-> +	return false;
-> +}
+> +config SECRETMEM
+> +        def_bool ARCH_HAS_SET_DIRECT_MAP && !EMBEDDED
+
+Use tab above for indentation.
+
+> +	select GENERIC_ALLOCATOR
 > +
->  static inline void fs_put_dax(struct dax_device *dax_dev)
->  {
->  }
-> @@ -195,8 +204,6 @@ bool dax_alive(struct dax_device *dax_dev);
->  void *dax_get_private(struct dax_device *dax_dev);
->  long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
->  		void **kaddr, pfn_t *pfn);
-> -bool dax_supported(struct dax_device *dax_dev, struct block_device *bdev,
-> -		int blocksize, sector_t start, sector_t len);
->  size_t dax_copy_from_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
->  		size_t bytes, struct iov_iter *i);
->  size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
-> -- 
-> 2.16.4
-> 
+>  endmenu
+
+
+thanks.
+-- 
+~Randy
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
