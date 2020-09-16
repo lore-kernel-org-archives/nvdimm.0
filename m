@@ -2,151 +2,170 @@ Return-Path: <SRS0=d9u0=CZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43036C43461
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 10:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB15FC43461
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 10:57:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EA07C2080C
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 10:03:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 5223A2080C
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 10:57:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="S6GzQECD"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EA07C2080C
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z1L8qVpr"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5223A2080C
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 63E9A14262AA9;
-	Wed, 16 Sep 2020 03:03:34 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.205.24.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
+	by ml01.01.org (Postfix) with ESMTP id D404313E17826;
+	Wed, 16 Sep 2020 03:57:23 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.211.31.120; helo=us-smtp-1.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-1.mimecast.com (us-smtp-delivery-1.mimecast.com [207.211.31.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 37EF614262AA7
-	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 03:03:32 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 307E913E17823
+	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 03:57:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1600250611;
+	s=mimecast20190719; t=1600253839;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=gwfofQixgZF5jYL1591dkmTkflD2RkM7KH/YvqDvyaE=;
-	b=S6GzQECDntSvNddeogPreo/JuNdzTFyaB6PKQAAFEjWymx77p7f1FGpyj7IkaJcDBAthPg
-	rknrVBaEBWpZbXh/Oj2LLzQ4JKALbS8Fq8/4gYQ8w4msa+PJxiTcrDaN0POQVaaMcuHaLs
-	bwVKvgGS20e4DI5KUuTnIlrqkR35cDo=
+	 in-reply-to:in-reply-to:references:references;
+	bh=4m/h+yY/PVAaaASlrExFZfjTuXa07+sxs0XLIUnFi6k=;
+	b=Z1L8qVpre+lnWQWgKPnyBuFEAG0jNHSY1YTHaWr/PXvu79P03ZyveMDu8VKihKLZAmoKQ6
+	cjxU0zJURLeXvk1RdVrmVZwIHwk9e5iukd2JcW58DV7SNpC6rc6TS4bWJCUEpKjP7EX1rg
+	I+7UHoZicK03ki4aRoP/Klo2Ztl6XII=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-57-yW5bBeRENJKpK_k5_jjeTg-1; Wed, 16 Sep 2020 06:03:27 -0400
-X-MC-Unique: yW5bBeRENJKpK_k5_jjeTg-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+ us-mta-485-JHbHg4c9NlaKwI5bE_0bzQ-1; Wed, 16 Sep 2020 06:57:15 -0400
+X-MC-Unique: JHbHg4c9NlaKwI5bE_0bzQ-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
 	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B2B661007477;
-	Wed, 16 Sep 2020 10:03:24 +0000 (UTC)
-Received: from [10.36.113.190] (ovpn-113-190.ams2.redhat.com [10.36.113.190])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 134F760BE5;
-	Wed, 16 Sep 2020 10:03:20 +0000 (UTC)
-Subject: Re: [PATCH] kernel/resource: make iomem_resource implicit in
- release_mem_region_adjustable()
-To: Wei Yang <richard.weiyang@linux.alibaba.com>
-References: <20200911103459.10306-1-david@redhat.com>
- <20200916073041.10355-1-david@redhat.com>
- <20200916100223.GA46154@L-31X9LVDL-1304.local>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat GmbH
-Message-ID: <d11eba75-71c0-4153-944b-56e22044e0eb@redhat.com>
-Date: Wed, 16 Sep 2020 12:03:20 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2C02D1006712;
+	Wed, 16 Sep 2020 10:57:13 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 9E3CC7880C;
+	Wed, 16 Sep 2020 10:57:12 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 08GAvCZm014220;
+	Wed, 16 Sep 2020 06:57:12 -0400
+Received: from localhost (mpatocka@localhost)
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 08GAvA4V014216;
+	Wed, 16 Sep 2020 06:57:10 -0400
+X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
+Date: Wed, 16 Sep 2020 06:57:10 -0400 (EDT)
+From: Mikulas Patocka <mpatocka@redhat.com>
+X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] pmem: export the symbols __copy_user_flushcache and
+ __copy_from_user_flushcache
+In-Reply-To: <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com>
+Message-ID: <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
+References: <alpine.LRH.2.02.2009140852030.22422@file01.intranet.prod.int.rdu2.redhat.com> <CAPcyv4gh=QaDB61_9_QTgtt-pZuTFdR6td0orE0VMH6=6SA2vw@mail.gmail.com> <alpine.LRH.2.02.2009151216050.16057@file01.intranet.prod.int.rdu2.redhat.com>
+ <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com>
+User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
 MIME-Version: 1.0
-In-Reply-To: <20200916100223.GA46154@L-31X9LVDL-1304.local>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
-Message-ID-Hash: 5VHN7ULPAOWGDYTNJKHE7DECTZ4OPOG7
-X-Message-ID-Hash: 5VHN7ULPAOWGDYTNJKHE7DECTZ4OPOG7
-X-MailFrom: david@redhat.com
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+Message-ID-Hash: ZJZHKUUMYN6YETQPHBSUCENUONIKQI7P
+X-Message-ID-Hash: ZJZHKUUMYN6YETQPHBSUCENUONIKQI7P
+X-MailFrom: mpatocka@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, linux-hyperv@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-s390@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>, Kees Cook <keescook@chromium.org>, Ard Biesheuvel <ardb@kernel.org>, Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Baoquan He <bhe@redhat.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5VHN7ULPAOWGDYTNJKHE7DECTZ4OPOG7/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZJZHKUUMYN6YETQPHBSUCENUONIKQI7P/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 16.09.20 12:02, Wei Yang wrote:
-> On Wed, Sep 16, 2020 at 09:30:41AM +0200, David Hildenbrand wrote:
->> "mem" in the name already indicates the root, similar to
->> release_mem_region() and devm_request_mem_region(). Make it implicit.
->> The only single caller always passes iomem_resource, other parents are
->> not applicable.
->>
+
+
+On Tue, 15 Sep 2020, Mikulas Patocka wrote:
+
 > 
-> Looks good to me.
 > 
-> Reviewed-by: Wei Yang <richard.weiyang@linux.alibaba.com>
->
+> On Tue, 15 Sep 2020, Mikulas Patocka wrote:
+> 
+> > > > - __copy_from_user_inatomic_nocache doesn't flush cache for leading and
+> > > > trailing bytes.
+> > > 
+> > > You want copy_user_flushcache(). See how fs/dax.c arranges for
+> > > dax_copy_from_iter() to route to pmem_copy_from_iter().
+> > 
+> > Is it something new for the kernel 5.10? I see only __copy_user_flushcache 
+> > that is implemented just for x86 and arm64.
+> > 
+> > There is __copy_from_user_flushcache implemented for x86, arm64 and power. 
+> > It is used in lib/iov_iter.c under
+> > #ifdef CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE - so should I use this?
+> > 
+> > Mikulas
+> 
+> ... and __copy_user_flushcache is not exported for modules. So, I am stuck 
+> with __copy_from_user_inatomic_nocache.
+> 
+> Mikulas
 
-Thanks for the review!
+I'm submitting this patch that adds the required exports (so that we could 
+use __copy_from_user_flushcache on x86, arm64 and powerpc). Please, queue 
+it for the next merge window.
 
--- 
-Thanks,
 
-David / dhildenb
+From: Mikulas Patocka <mpatocka@redhat.com>
+
+Export the symbols __copy_user_flushcache and __copy_from_user_flushcache,
+so that modules can use this functionality.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+
+---
+ arch/arm64/lib/uaccess_flushcache.c |    1 +
+ arch/powerpc/lib/pmem.c             |    1 +
+ arch/x86/lib/usercopy_64.c          |    1 +
+ 3 files changed, 3 insertions(+)
+
+Index: linux-2.6/arch/arm64/lib/uaccess_flushcache.c
+===================================================================
+--- linux-2.6.orig/arch/arm64/lib/uaccess_flushcache.c	2020-09-16 12:44:15.068038000 +0200
++++ linux-2.6/arch/arm64/lib/uaccess_flushcache.c	2020-09-16 12:44:15.068038000 +0200
+@@ -38,3 +38,4 @@ unsigned long __copy_user_flushcache(voi
+ 	__clean_dcache_area_pop(to, n - rc);
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(__copy_user_flushcache);
+Index: linux-2.6/arch/x86/lib/usercopy_64.c
+===================================================================
+--- linux-2.6.orig/arch/x86/lib/usercopy_64.c	2020-09-16 12:44:15.068038000 +0200
++++ linux-2.6/arch/x86/lib/usercopy_64.c	2020-09-16 12:44:15.068038000 +0200
+@@ -134,6 +134,7 @@ long __copy_user_flushcache(void *dst, c
+ 
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(__copy_user_flushcache);
+ 
+ void __memcpy_flushcache(void *_dst, const void *_src, size_t size)
+ {
+Index: linux-2.6/arch/powerpc/lib/pmem.c
+===================================================================
+--- linux-2.6.orig/arch/powerpc/lib/pmem.c	2020-09-16 12:44:15.068038000 +0200
++++ linux-2.6/arch/powerpc/lib/pmem.c	2020-09-16 12:44:15.068038000 +0200
+@@ -75,6 +75,7 @@ long __copy_from_user_flushcache(void *d
+ 
+ 	return copied;
+ }
++EXPORT_SYMBOL_GPL(__copy_from_user_flushcache);
+ 
+ void memcpy_flushcache(void *dest, const void *src, size_t size)
+ {
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
