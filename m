@@ -1,66 +1,83 @@
-Return-Path: <SRS0=d9u0=CZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=4eaP=C2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.3 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16DAFC2BB84
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 23:20:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69BC1C2BBD1
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Sep 2020 05:46:29 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8998122208
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 16 Sep 2020 23:20:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id BE271206C9
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Sep 2020 05:46:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="GGy3cWrY"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8998122208
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bbKl9UWP"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BE271206C9
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 160F314542DF8;
-	Wed, 16 Sep 2020 16:20:26 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=akpm@linux-foundation.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 583A3148165FC;
+	Wed, 16 Sep 2020 22:46:28 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::242; helo=mail-oi1-x242.google.com; envelope-from=mtk.manpages@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-oi1-x242.google.com (mail-oi1-x242.google.com [IPv6:2607:f8b0:4864:20::242])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3C1BB14542DF5
-	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 16:20:24 -0700 (PDT)
-Received: from X1 (unknown [67.22.170.76])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id AA81722205;
-	Wed, 16 Sep 2020 23:20:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1600298423;
-	bh=g39pvrmQ7hfk10VvG24PcSf7yUXQxh3QrCaIs2OFPxw=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=GGy3cWrY1KWygiIV+LN8jdTlPMczqnmnOowS6kdzNzT02rztNefpmWOud0sB5DuhW
-	 tYPB2wewkh27YeY5ELsjeG6otz7U7l9BXGGjwZ40yc/FJb39YCYRFP4SKYro0qWLdA
-	 08KKQW84Cld8I364URHf5f0fJMPvSvi2987Kgz9w=
-Date: Wed, 16 Sep 2020 16:20:20 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Mike Rapoport <rppt@kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 63C1B12716FE9
+	for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 22:46:25 -0700 (PDT)
+Received: by mail-oi1-x242.google.com with SMTP id y6so1139815oie.5
+        for <linux-nvdimm@lists.01.org>; Wed, 16 Sep 2020 22:46:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:reply-to:from:date:message-id
+         :subject:to:cc;
+        bh=03zgBdOmJo+1h1F3YVTbbY3y6xnSeDHzXEapmphTwIw=;
+        b=bbKl9UWPeRhmTphLackrhk80UEzUzcPTNe72QmMk7/fs5a/LxCxtV+mb6MSWQFVDmC
+         F22yt5hvhiNFb2j/gFnw8yxBQviOrz2mlbiqk83dwMA7AkjqITFQd1eVdq1X39tqelCL
+         VQYLiT8PHgFrLapRSXmMmT+MgfubVdogkhnR8iaU9CBQieW2dO0skkpZLwguhZi/JnBV
+         GroqbGpDUZEjnODXLPHpOPwc0N7/cjNeafIH1QgpKVpeU6uH1eY/RuZkMDyTnjr9U7fb
+         tviHseO3/70GTW4fSLc2vk/vqzCFhAHroNAVb0ANnf+lzN+TxeDA/upoZku1GEWDb8D1
+         7Ugg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:reply-to
+         :from:date:message-id:subject:to:cc;
+        bh=03zgBdOmJo+1h1F3YVTbbY3y6xnSeDHzXEapmphTwIw=;
+        b=DqbWoGPhaS+eEjCsD7wsNeH77KYsimZ9fcB7NNWJMYf9BqJpsRfwWDvJP9/jluhExi
+         uY+Z61P+R6Dy/Ex34+V3x7cPFFxv7H4jTpNuTlH1Imp4tnBKwFrQYWRqpFAyXLNM4f4h
+         qUZ4JG79I0DCJN8vNzA25+wYnwtqvFwQ0MuxT3gPq7Qbo4RQil1HXnoWfycRKvoikbkx
+         j5K12XA92sPrdTIfgz9FpY2OWQ2Nwgopafd7XDxUO1iDRisxOwyOKpsEAUaj1UXQs39r
+         rh2PHS6B8asiCmTW5fThLvxZIRtFGG42BCHhQK/+Z59XOHOkkSvFkPou55KscesJSdo8
+         rnsQ==
+X-Gm-Message-State: AOAM5316d3M6Ugla6JLc1h2C9MoGrklNY4tSDOw89lUZlLpyUls+50UM
+	CaPD8Jm/GDmxCIcyxDLajWDWPS51pKouuyF2l/M=
+X-Google-Smtp-Source: ABdhPJzQezUvckVK0wvtjtSXJuH78/qLicEZ94e9jzpjFRfX1+eKqEzksVrp0ORp5rdZVfo95r94sEe5o2dL6iEln5E=
+X-Received: by 2002:a54:458f:: with SMTP id z15mr3791761oib.148.1600321584018;
+ Wed, 16 Sep 2020 22:46:24 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200916073539.3552-1-rppt@kernel.org> <20200916162020.0d68c2bd6711024cfcaa8bd7@linux-foundation.org>
+In-Reply-To: <20200916162020.0d68c2bd6711024cfcaa8bd7@linux-foundation.org>
+From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Date: Thu, 17 Sep 2020 07:46:12 +0200
+Message-ID: <CAKgNAkiSRDoZWKkBLB03X_knOeoeKVTy2oLmMopZ5vK8UZSAPg@mail.gmail.com>
 Subject: Re: [PATCH v5 0/5] mm: introduce memfd_secret system call to create
  "secret" memory areas
-Message-Id: <20200916162020.0d68c2bd6711024cfcaa8bd7@linux-foundation.org>
-In-Reply-To: <20200916073539.3552-1-rppt@kernel.org>
-References: <20200916073539.3552-1-rppt@kernel.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Message-ID-Hash: DAALTM5KTSVB4INGCY2MZ5MP3Z7R2TAQ
-X-Message-ID-Hash: DAALTM5KTSVB4INGCY2MZ5MP3Z7R2TAQ
-X-MailFrom: akpm@linux-foundation.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Message-ID-Hash: OJIR62GGYFFQAARDDEQPRTYDKIBHAHAD
+X-Message-ID-Hash: OJIR62GGYFFQAARDDEQPRTYDKIBHAHAD
+X-MailFrom: mtk.manpages@gmail.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, l
- inux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+CC: Mike Rapoport <rppt@kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, Linux API <linux-api@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, linux-arm-kernel@lists.
+ infradead.org, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, lkml <linux-kernel@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: mtk.manpages@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DAALTM5KTSVB4INGCY2MZ5MP3Z7R2TAQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OJIR62GGYFFQAARDDEQPRTYDKIBHAHAD/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,20 +86,35 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 16 Sep 2020 10:35:34 +0300 Mike Rapoport <rppt@kernel.org> wrote:
+On Thu, 17 Sep 2020 at 01:20, Andrew Morton <akpm@linux-foundation.org> wrote:
+>
+> On Wed, 16 Sep 2020 10:35:34 +0300 Mike Rapoport <rppt@kernel.org> wrote:
+>
+> > This is an implementation of "secret" mappings backed by a file descriptor.
+> > I've dropped the boot time reservation patch for now as it is not strictly
+> > required for the basic usage and can be easily added later either with or
+> > without CMA.
+>
+> It seems early days for this, especially as regards reviewer buyin.
+> But I'll toss it in there to get it some additional testing.
+>
+> A test suite in tools/testging/selftests/ would be helpful, especially
+> for arch maintainers.
+>
+> I assume that user-facing manpage alterations are planned?
 
-> This is an implementation of "secret" mappings backed by a file descriptor. 
-> I've dropped the boot time reservation patch for now as it is not strictly
-> required for the basic usage and can be easily added later either with or
-> without CMA.
+I was just about to write a mail into this thread when I saw this :-).
 
-It seems early days for this, especially as regards reviewer buyin. 
-But I'll toss it in there to get it some additional testing.
+So far, I don't think I saw a manual page patch. Mike, how about it?
 
-A test suite in tools/testging/selftests/ would be helpful, especially
-for arch maintainers.
+Thanks,
 
-I assume that user-facing manpage alterations are planned?
+Michael
+
+-- 
+Michael Kerrisk
+Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
+Linux/UNIX System Programming Training: http://man7.org/training/
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
