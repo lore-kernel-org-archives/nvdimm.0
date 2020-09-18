@@ -1,95 +1,86 @@
-Return-Path: <SRS0=4eaP=C2=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=d6aC=C3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5F0DC43464
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Sep 2020 22:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A280C43463
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Sep 2020 01:53:58 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 464D920874
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Sep 2020 22:19:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 29F8520872
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Sep 2020 01:53:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="K3zvi+Ku"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 464D920874
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="0n1kgcoB"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 29F8520872
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 239E11356822D;
-	Thu, 17 Sep 2020 15:19:09 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=darrick.wong@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 7D2BD148ED497;
+	Thu, 17 Sep 2020 18:53:57 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::642; helo=mail-ej1-x642.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 056B71356822B
-	for <linux-nvdimm@lists.01.org>; Thu, 17 Sep 2020 15:19:05 -0700 (PDT)
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 08HMJ2VC131566;
-	Thu, 17 Sep 2020 22:19:02 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=RUEE1gdARxSd8TLKFRIs3ndOmPAr4ZKel97nw+RPwJM=;
- b=K3zvi+KuVfbFuBqN+Gfl8KU0HDG27V5ZTPOFdbX2O2b8q+JKQIj/tukic9oNphrt1hAb
- GAO8IgAh1dDpnKNKmf6qMzK12U8EnBzrvvyhKLVW4uCLDopCU/KXTI+UJb+UxiHvvOva
- 0M6RQrhk3HzsGCfi52OoQ3nKcB/EdhTMgfX31uTcjecFWCNCn5QNhoDlB/i3hFTxX0QQ
- vQX5nfPOblo+bpHgSEue0x2ZhhQZ0aIjtD95kbgR/06U/3p2RdLCC4xxFy+df3VagSQx
- 71Qx9lkLQS9aqd4xmu0CCNyJ/7vnTPDkFgKO1dzywKAFztPYDeS5fP8DdPoO85vD+OBe BA==
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by aserp2120.oracle.com with ESMTP id 33gp9mm15q-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 17 Sep 2020 22:19:02 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 08HM05kk102004;
-	Thu, 17 Sep 2020 22:19:01 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-	by aserp3030.oracle.com with ESMTP id 33khpnr2mf-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 17 Sep 2020 22:19:01 +0000
-Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
-	by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 08HMJ0kd019685;
-	Thu, 17 Sep 2020 22:19:00 GMT
-Received: from localhost (/10.159.155.161)
-	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 17 Sep 2020 22:18:59 +0000
-Date: Thu, 17 Sep 2020 15:18:58 -0700
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-To: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH v2 9/9] iomap: Change calling convention for zeroing
-Message-ID: <20200917221858.GH7964@magnolia>
-References: <20200910234707.5504-1-willy@infradead.org>
- <20200910234707.5504-10-willy@infradead.org>
- <20200917220500.GR7955@magnolia>
- <20200917221115.GY5449@casper.infradead.org>
+	by ml01.01.org (Postfix) with ESMTPS id D7E9A13568225
+	for <linux-nvdimm@lists.01.org>; Thu, 17 Sep 2020 18:53:55 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id j11so6001241ejk.0
+        for <linux-nvdimm@lists.01.org>; Thu, 17 Sep 2020 18:53:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=GC2uboF6NMZuC9/ZByaXp1KFBIoZjwLF73X8h59tMWs=;
+        b=0n1kgcoBcO/MRG9AAQs28nlby+4uxxdWNINGwW2Okw2teha+5tUcRRM1S51DHvxjbe
+         R8Cq+ItKHDbs5yC2r01vwPHgrzycwMkOBbRrsESuJbMdrF8xDKW+v6w7S1lQVw6CX4P9
+         M9/7dgueosqWOddYA7f6ndQv2GVxNDfUmiVHE9QYX1uxi2bJty6xyL5m9lsyI5Tr0Ip5
+         vxRKjnhcKMG6MwVZlo/19T+6Z8bhvWhZgkjv7bAiYeodgKLsWm9r4VxuokZiIFVcibHq
+         AM6HBNJxSr8ACewbKnPZO1qmqRKpaxVJT1GKpdKqb7WgNxAmeZKt4bXcW8QyoirezqiZ
+         fWug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=GC2uboF6NMZuC9/ZByaXp1KFBIoZjwLF73X8h59tMWs=;
+        b=uVH859xwSsd+AAzOxFfhpzD8uT6hnLu91Rj8MeW/5RlC2M79hcsKz7NXKVGqqNwIvE
+         RULyg8Ljy8Es5awzir7K+oXXcGZvstyWlJA+TXiNzLh8VdxQk0xN95UZEmlj7KAQIRLH
+         3R1twbCB11aYX2T+4VsY7wBwxux542fNwQlHPxZlyF8lRP3dMFahWZEZzs/1/4/OFkBu
+         FN2rsf5QEhWp0dMEO7U1ET65UyWjnrV46J8+WlNe3eoHnxtsIae89cC7RjpAKnO/gjzL
+         AIng8LlISbfQQ3wT0sDa+gWn1SJfuIeFwrRRymwHEtgeJ6kpWyPzMcbQwNvhoRb4+dBC
+         HDAA==
+X-Gm-Message-State: AOAM533S49kjPGVQsX7YGriZSgKnPQYpHuawgopHPCAAWR8ZWTsCRMpR
+	8lZaKfBs8IoqyTls3i4wAoO4NCr3LR6rFW4RQLCK5g==
+X-Google-Smtp-Source: ABdhPJy7DFdMdaS97xMoxRqS6WmXgsRrt5dbwajDW1OzguEa9uaz85Fv52jSvKPNcbb4yTlLVhfIEfhmycxKE179n6U=
+X-Received: by 2002:a17:906:8143:: with SMTP id z3mr33115785ejw.323.1600394032604;
+ Thu, 17 Sep 2020 18:53:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200917221115.GY5449@casper.infradead.org>
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9747 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 suspectscore=1
- mlxlogscore=999 phishscore=0 mlxscore=0 adultscore=0 spamscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2009170162
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9747 signatures=668679
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=999
- adultscore=0 malwarescore=0 clxscore=1015 lowpriorityscore=0 phishscore=0
- spamscore=0 priorityscore=1501 suspectscore=1 impostorscore=0 mlxscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2009170163
-Message-ID-Hash: NNCTLUTPXBQ4APTBMBO5YI36423V2RZD
-X-Message-ID-Hash: NNCTLUTPXBQ4APTBMBO5YI36423V2RZD
-X-MailFrom: darrick.wong@oracle.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net
+References: <alpine.LRH.2.02.2009140852030.22422@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4gh=QaDB61_9_QTgtt-pZuTFdR6td0orE0VMH6=6SA2vw@mail.gmail.com>
+ <alpine.LRH.2.02.2009151216050.16057@file01.intranet.prod.int.rdu2.redhat.com>
+ <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com>
+ <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4gW6AvR+RaShHdQzOaEPv9nrq5myXDmywuoCTYDZxk-hw@mail.gmail.com>
+ <alpine.LRH.2.02.2009161254400.745@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4gD0ZFkfajKTDnJhEEjf+5Av-GH+cHRFoyhzGe8bNEgAA@mail.gmail.com> <alpine.LRH.2.02.2009161451140.21915@file01.intranet.prod.int.rdu2.redhat.com>
+In-Reply-To: <alpine.LRH.2.02.2009161451140.21915@file01.intranet.prod.int.rdu2.redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 17 Sep 2020 18:53:41 -0700
+Message-ID: <CAPcyv4gFz6vBVVp_aiX4i2rL+8fps3gTQGj5cYw8QESCf7=DfQ@mail.gmail.com>
+Subject: Re: [PATCH] pmem: fix __copy_user_flushcache
+To: Mikulas Patocka <mpatocka@redhat.com>
+Message-ID-Hash: 7S2PZH5CIHFNKWBVYUCMOX7IVCIGX3I3
+X-Message-ID-Hash: 7S2PZH5CIHFNKWBVYUCMOX7IVCIGX3I3
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NNCTLUTPXBQ4APTBMBO5YI36423V2RZD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7S2PZH5CIHFNKWBVYUCMOX7IVCIGX3I3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -98,25 +89,75 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Sep 17, 2020 at 11:11:15PM +0100, Matthew Wilcox wrote:
-> On Thu, Sep 17, 2020 at 03:05:00PM -0700, Darrick J. Wong wrote:
-> > > -static loff_t
-> > > -iomap_zero_range_actor(struct inode *inode, loff_t pos, loff_t count,
-> > > -		void *data, struct iomap *iomap, struct iomap *srcmap)
-> > > +static loff_t iomap_zero_range_actor(struct inode *inode, loff_t pos,
-> > > +		loff_t length, void *data, struct iomap *iomap,
-> > 
-> > Any reason not to change @length and the return value to s64?
-> 
-> Because it's an actor, passed to iomap_apply, so its types have to match.
-> I can change that, but it'll be a separate patch series.
+On Wed, Sep 16, 2020 at 11:57 AM Mikulas Patocka <mpatocka@redhat.com> wrote:
+>
+>
+>
+> On Wed, 16 Sep 2020, Dan Williams wrote:
+>
+> > On Wed, Sep 16, 2020 at 10:24 AM Mikulas Patocka <mpatocka@redhat.com> wrote:
+> > >
+> > >
+> > >
+> > > On Wed, 16 Sep 2020, Dan Williams wrote:
+> > >
+> > > > On Wed, Sep 16, 2020 at 3:57 AM Mikulas Patocka <mpatocka@redhat.com> wrote:
+> > > > >
+> > > > >
+> > > > >
+> > > > > I'm submitting this patch that adds the required exports (so that we could
+> > > > > use __copy_from_user_flushcache on x86, arm64 and powerpc). Please, queue
+> > > > > it for the next merge window.
+> > > >
+> > > > Why? This should go with the first user, and it's not clear that it
+> > > > needs to be relative to the current dax_operations export scheme.
+> > >
+> > > Before nvfs gets included in the kernel, I need to distribute it as a
+> > > module. So, it would make my maintenance easier. But if you don't want to
+> > > export it now, no problem, I can just copy __copy_user_flushcache from the
+> > > kernel to the module.
+> >
+> > That sounds a better plan than exporting symbols with no in-kernel consumer.
+>
+> BTW, this function is buggy. Here I'm submitting the patch.
+>
+>
+>
+> From: Mikulas Patocka <mpatocka@redhat.com>
+>
+> If we copy less than 8 bytes and if the destination crosses a cache line,
+> __copy_user_flushcache would invalidate only the first cache line. This
+> patch makes it invalidate the second cache line as well.
 
-Ah, right.  I seemingly forgot that. :(
+Good catch.
 
-Carry on.
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
+> Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+> Cc: stable@vger.kernel.org
+>
+> ---
+>  arch/x86/lib/usercopy_64.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> Index: linux-2.6/arch/x86/lib/usercopy_64.c
+> ===================================================================
+> --- linux-2.6.orig/arch/x86/lib/usercopy_64.c   2020-09-05 10:01:27.000000000 +0200
+> +++ linux-2.6/arch/x86/lib/usercopy_64.c        2020-09-16 20:48:31.000000000 +0200
+> @@ -120,7 +120,7 @@ long __copy_user_flushcache(void *dst, c
+>          */
+>         if (size < 8) {
+>                 if (!IS_ALIGNED(dest, 4) || size != 4)
+> -                       clean_cache_range(dst, 1);
+> +                       clean_cache_range(dst, size);
+>         } else {
+>                 if (!IS_ALIGNED(dest, 8)) {
+>                         dest = ALIGN(dest, boot_cpu_data.x86_clflush_size);
+>
 
---D
+You can add:
+
+Fixes: 0aed55af8834 ("x86, uaccess: introduce
+copy_from_iter_flushcache for pmem / cache-bypass operations")
+Reviewed-by: Dan Williams <dan.j.wiilliams@intel.com>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
