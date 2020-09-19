@@ -4,51 +4,49 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4B01C43464
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 19 Sep 2020 10:47:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6275DC43465
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 19 Sep 2020 11:02:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 387952192A
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 19 Sep 2020 10:47:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 387952192A
+	by mail.kernel.org (Postfix) with ESMTPS id 92DAD208C3
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 19 Sep 2020 11:02:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 92DAD208C3
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 171C0152ACFA8;
-	Sat, 19 Sep 2020 03:47:08 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.35; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from huawei.com (szxga07-in.huawei.com [45.249.212.35])
+	by ml01.01.org (Postfix) with ESMTP id 5972E152B927C;
+	Sat, 19 Sep 2020 04:02:14 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.32; helo=huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 124B5152A3653
-	for <linux-nvdimm@lists.01.org>; Sat, 19 Sep 2020 03:46:53 -0700 (PDT)
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.60])
-	by Forcepoint Email with ESMTP id E36F54600D799DB3AC9E;
-	Sat, 19 Sep 2020 18:46:50 +0800 (CST)
+	by ml01.01.org (Postfix) with ESMTPS id 3895C152B9276
+	for <linux-nvdimm@lists.01.org>; Sat, 19 Sep 2020 04:02:02 -0700 (PDT)
+Received: from DGGEMS406-HUB.china.huawei.com (unknown [172.30.72.60])
+	by Forcepoint Email with ESMTP id 0B7B4FB3D20829E1D781;
+	Sat, 19 Sep 2020 19:02:00 +0800 (CST)
 Received: from thunder-town.china.huawei.com (10.174.177.253) by
- DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Sat, 19 Sep 2020 18:46:40 +0800
+ DGGEMS406-HUB.china.huawei.com (10.3.19.206) with Microsoft SMTP Server id
+ 14.3.487.0; Sat, 19 Sep 2020 19:01:53 +0800
 From: Zhen Lei <thunder.leizhen@huawei.com>
 To: Oliver O'Halloran <oohall@gmail.com>, Dan Williams
 	<dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, "Dave
  Jiang" <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Markus
  Elfring <Markus.Elfring@web.de>, linux-nvdimm <linux-nvdimm@lists.01.org>,
 	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH v2 1/2] libnvdimm/badrange: remove two redundant list_empty() branches
-Date: Sat, 19 Sep 2020 18:45:45 +0800
-Message-ID: <20200919104546.3848-2-thunder.leizhen@huawei.com>
+Subject: [PATCH v2 1/1] libnvdimm/namespace: avoid repeated judgment in nvdimm_namespace_disk_name()
+Date: Sat, 19 Sep 2020 19:01:46 +0800
+Message-ID: <20200919110146.3909-1-thunder.leizhen@huawei.com>
 X-Mailer: git-send-email 2.26.0.windows.1
-In-Reply-To: <20200919104546.3848-1-thunder.leizhen@huawei.com>
-References: <20200919104546.3848-1-thunder.leizhen@huawei.com>
 MIME-Version: 1.0
 X-Originating-IP: [10.174.177.253]
 X-CFilter-Loop: Reflected
-Message-ID-Hash: SI3NWJ4T5D3CDON6IPFL3CBBBB7TQWVW
-X-Message-ID-Hash: SI3NWJ4T5D3CDON6IPFL3CBBBB7TQWVW
+Message-ID-Hash: TAC7GQBIYXJCZHXPVV5XHDIRDUHEDIWH
+X-Message-ID-Hash: TAC7GQBIYXJCZHXPVV5XHDIRDUHEDIWH
 X-MailFrom: thunder.leizhen@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -56,7 +54,7 @@ CC: Zhen Lei <thunder.leizhen@huawei.com>, Libin <huawei.libin@huawei.com>, Kefe
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SI3NWJ4T5D3CDON6IPFL3CBBBB7TQWVW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TAC7GQBIYXJCZHXPVV5XHDIRDUHEDIWH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,59 +63,71 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In add_badrange() or badblocks_populate(), the list_empty() branch does
-the same things as the code after list_for_each_entry().
+The judgment (suffix ? suffix : "") appears three times, we do this just
+because the initial value of local variable "suffix" is NULL, should be
+replaced with empty string "" to avoid null pointer reference. It's easy
+to get rid of it as below:
+-	const char *suffix = NULL;
++	const char *suffix = "";
 
-The pseudo code is as follows:
-1)	if (list_empty()) {
-		do things-A
-		return Y;
-	}
+To avoid having rows that exceed 80 columns, add a new local variable
+"region_id".
 
-2)	list_for_each_entry()
-		do things-B	//can only be entered if !list_empty()
+No functional change, but it can reduce the code size.
+Before:
+   text    data     bss     dec     hex filename
+  41749    3697      16   45462    b196 drivers/nvdimm/namespace_devs.o
 
-3)	do things-A
-        return Y;
-
-It's very clear that, the processing result after deleting 1) is the same
-as that before deleting 1).
-
-So delete 1) to simplify code.
+After:
+   text    data     bss     dec     hex filename
+  41653    3697      16   45366    b136 drivers/nvdimm/namespace_devs.o
 
 Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 ---
- drivers/nvdimm/badrange.c | 10 ----------
- 1 file changed, 10 deletions(-)
+v1 --> v2:
+1. Only the title and description are modified.
 
-diff --git a/drivers/nvdimm/badrange.c b/drivers/nvdimm/badrange.c
-index b9eeefa27e3a507..9fdba8c43e8605e 100644
---- a/drivers/nvdimm/badrange.c
-+++ b/drivers/nvdimm/badrange.c
-@@ -53,13 +53,6 @@ static int add_badrange(struct badrange *badrange, u64 addr, u64 length)
- 	bre_new = kzalloc(sizeof(*bre_new), GFP_KERNEL);
- 	spin_lock(&badrange->lock);
- 
--	if (list_empty(&badrange->list)) {
--		if (!bre_new)
--			return -ENOMEM;
--		append_badrange_entry(badrange, bre_new, addr, length);
--		return 0;
--	}
--
- 	/*
- 	 * There is a chance this is a duplicate, check for those first.
- 	 * This will be the common case as ARS_STATUS returns all known
-@@ -215,9 +208,6 @@ static void badblocks_populate(struct badrange *badrange,
+v1:
+https://lore.kernel.org/patchwork/patch/1292584/
+
+ drivers/nvdimm/namespace_devs.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 6da67f4d641a27c..ef2800c5da4c99c 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -157,7 +157,8 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
+ 		char *name)
  {
- 	struct badrange_entry *bre;
+ 	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
+-	const char *suffix = NULL;
++	const char *suffix = "";
++	int region_id = nd_region->id;
  
--	if (list_empty(&badrange->list))
--		return;
--
- 	list_for_each_entry(bre, &badrange->list, list) {
- 		u64 bre_end = bre->start + bre->length - 1;
+ 	if (ndns->claim && is_nd_btt(ndns->claim))
+ 		suffix = "s";
+@@ -173,17 +174,14 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
+ 		}
  
+ 		if (nsidx)
+-			sprintf(name, "pmem%d.%d%s", nd_region->id, nsidx,
+-					suffix ? suffix : "");
++			sprintf(name, "pmem%d.%d%s", region_id, nsidx, suffix);
+ 		else
+-			sprintf(name, "pmem%d%s", nd_region->id,
+-					suffix ? suffix : "");
++			sprintf(name, "pmem%d%s", region_id, suffix);
+ 	} else if (is_namespace_blk(&ndns->dev)) {
+ 		struct nd_namespace_blk *nsblk;
+ 
+ 		nsblk = to_nd_namespace_blk(&ndns->dev);
+-		sprintf(name, "ndblk%d.%d%s", nd_region->id, nsblk->id,
+-				suffix ? suffix : "");
++		sprintf(name, "ndblk%d.%d%s", region_id, nsblk->id, suffix);
+ 	} else {
+ 		return NULL;
+ 	}
 -- 
 1.8.3
 
