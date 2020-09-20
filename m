@@ -2,74 +2,85 @@ Return-Path: <SRS0=jNg3=C5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PULL_REQUEST,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D944C43463
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Sep 2020 18:56:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E11EC43466
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Sep 2020 22:04:00 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DB4432073A
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Sep 2020 18:56:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2B32820829
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 20 Sep 2020 22:03:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="06+rJhdH"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DB4432073A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="ehY/ZfgB"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2B32820829
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 49B2114C226ED;
-	Sun, 20 Sep 2020 11:56:05 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::641; helo=mail-ej1-x641.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+	by ml01.01.org (Postfix) with ESMTP id 9652714CAF105;
+	Sun, 20 Sep 2020 15:03:59 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::144; helo=mail-lf1-x144.google.com; envelope-from=torvalds@linuxfoundation.org; receiver=<UNKNOWN> 
+Received: from mail-lf1-x144.google.com (mail-lf1-x144.google.com [IPv6:2a00:1450:4864:20::144])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B439D13FD9ED7
-	for <linux-nvdimm@lists.01.org>; Sun, 20 Sep 2020 11:56:02 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id q13so14737341ejo.9
-        for <linux-nvdimm@lists.01.org>; Sun, 20 Sep 2020 11:56:02 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 9A5F014CAF103
+	for <linux-nvdimm@lists.01.org>; Sun, 20 Sep 2020 15:03:57 -0700 (PDT)
+Received: by mail-lf1-x144.google.com with SMTP id 77so4573266lfj.0
+        for <linux-nvdimm@lists.01.org>; Sun, 20 Sep 2020 15:03:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=ndUrGHBk92F1HUk+uxxSKtBUDi6Sd7JPiTr1APxGa3w=;
-        b=06+rJhdHVsBikc7My0jVdVWkFb6ll1c13PfOBaXFzXenuTkKwBRq+WHycaid/goujl
-         vamZD6pIPUPBN2IevX0wGsoK1NY5XskGD4kP73Z/SRFMTvfT1BGRZy1p8HihAd1W9R4l
-         DSjRGcwIfknnzdONQaCLqDdXHdw1gKQu3qCry/JTCaqAcaWhya8UrzZ9Nac//COnDQZx
-         4uFTrCbGoL4RDWBCqiha51wc3/BcXxU59qX6LQtoYmJwkqBKGmAV7gUrysMGPfTxhM8e
-         +YWXlZhBuWN31arVAB1ix7QvtwiAMLjlIgSO9n/j/JedEUD8YUYp0qubfIPo6EPyI2Bb
-         uDgw==
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ri07SWB636BQu9HeTZXldjDnXsp6QhYO/5gj4FXNUIo=;
+        b=ehY/ZfgBKBZu+aLDoJAH14zbHNeQQ4gPKz81o3C3zMJoYWW+yWIZcVreq3Bx9P2Kbq
+         B4WYpqJ4sY4sPF0L4iVeGXgGQYf4oxxPGdpLAEYNYEBQrbTiD3o+Bh45zKmRlQcOmARx
+         jtQ+yhKP/y6+y2YXVRrsKT1ot1Q5AvF0e2b7o=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=ndUrGHBk92F1HUk+uxxSKtBUDi6Sd7JPiTr1APxGa3w=;
-        b=NXsXfrf715/jFZH3oXapzO593mSWaWl1dvQYMx98PcxkLAVsw4uY9Dre6eAQLtClWv
-         6TQK+wXPxDc5ODEOT/2wugrcTxh0mSfblGs5xQqRdpu5nsBWlhr7ErGDkUK4YGGPvKEG
-         3dMr6tIcx9xe1PSxJTSXLqPs46Rec7CWMFj8UV98JFec0vEhc1rF+lXui+u3Cjj+h7kZ
-         VT54n1wGJXwjIjE1nJ2GKIWYwMtXZ7TgPYQmgUArDICE3ovbaWkgOMzrCXCVsNHOSa10
-         gDFdaHIr0gz701Mwy49G2CKj6YHXaVEAY+v5d1eDKgFhMWTu+eNGjaXJUPsA7F6noize
-         4Q1g==
-X-Gm-Message-State: AOAM5310Cmn3+x0MVmbutTYe8pmIW/LpWPh1JRlwOTWvZFXe9l4UiRza
-	KUw6hNNce03OuqrNUWaSrf6HCqCXgz4SP89/M25lgg==
-X-Google-Smtp-Source: ABdhPJw5iohlXyCeLttrxkgBFQjc3U6GHH9QAJRXr6ebWx59BVm+Rbod9dk6PHIoy/8UAn87A2YkjANX8lc0r9162HY=
-X-Received: by 2002:a17:906:8289:: with SMTP id h9mr46107743ejx.45.1600628159425;
- Sun, 20 Sep 2020 11:55:59 -0700 (PDT)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ri07SWB636BQu9HeTZXldjDnXsp6QhYO/5gj4FXNUIo=;
+        b=ZtbRf5oGzcLfrtfsJXYKtcCPb2DePrpOpJ7IRfUDvnhAvYdDDsuF+0DdKD8rJ2o4NG
+         IYDEVpp1Idl+kEwaB/hAOrzC4azeS0jkLX82tk3Z3G30PLqDVGCanMrcDwQqBRIQpdPl
+         CR9gXU7UB47yAo6f3Zbq2qwgV9JNr1ci3RrxXwM8AfrDjxopFE7a8OTEhxqQc2BBK+/o
+         L3EYcR1s4c5XL8x1wTWSLldnt/bhus1RakOsk48+fsq20CAXngx1PwZLxo2QFCXkGUvI
+         fWxs/9jONr4x8iKR87AbKIedThmupYcJdKQJGLW86oI+JGl0twr3NANJUkIPLSDOR2s5
+         uNCA==
+X-Gm-Message-State: AOAM5300Dqo+NAB0AQW1GqpH4/c0f+5QauH91fQRwozCzF+sVkSniOWp
+	ZO54m4cna7sZDDukWuGPekgolMNUAsmvFA==
+X-Google-Smtp-Source: ABdhPJxGG2xPKbb4N5lYUoyv1l3aohmt5CDTFc/DHKy3JU3MDjs2NMLLQ2z9lCiqILXFGhErJcVx+A==
+X-Received: by 2002:a19:383:: with SMTP id 125mr15198269lfd.356.1600639434558;
+        Sun, 20 Sep 2020 15:03:54 -0700 (PDT)
+Received: from mail-lj1-f175.google.com (mail-lj1-f175.google.com. [209.85.208.175])
+        by smtp.gmail.com with ESMTPSA id x11sm2047651lfa.174.2020.09.20.15.03.52
+        for <linux-nvdimm@lists.01.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 20 Sep 2020 15:03:53 -0700 (PDT)
+Received: by mail-lj1-f175.google.com with SMTP id v23so9515489ljd.1
+        for <linux-nvdimm@lists.01.org>; Sun, 20 Sep 2020 15:03:52 -0700 (PDT)
+X-Received: by 2002:a05:651c:32e:: with SMTP id b14mr14128964ljp.314.1600639432685;
+ Sun, 20 Sep 2020 15:03:52 -0700 (PDT)
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sun, 20 Sep 2020 11:55:48 -0700
-Message-ID: <CAPcyv4h3oKM-2hoG=FWHJwzVqjptnpQV9C+W6txfp_qcBhd7yQ@mail.gmail.com>
-Subject: libnvdimm fixes 5.9-rc6
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID-Hash: YKOT5CTXLM6KZ2NUB45XTMFOTJGJKSHH
-X-Message-ID-Hash: YKOT5CTXLM6KZ2NUB45XTMFOTJGJKSHH
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+References: <CAPcyv4h3oKM-2hoG=FWHJwzVqjptnpQV9C+W6txfp_qcBhd7yQ@mail.gmail.com>
+In-Reply-To: <CAPcyv4h3oKM-2hoG=FWHJwzVqjptnpQV9C+W6txfp_qcBhd7yQ@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 20 Sep 2020 15:03:36 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whuR1ZHV4c6a7d3EmgRBFfQfYGckD2t1kQXDpwnf50ATA@mail.gmail.com>
+Message-ID: <CAHk-=whuR1ZHV4c6a7d3EmgRBFfQfYGckD2t1kQXDpwnf50ATA@mail.gmail.com>
+Subject: Re: libnvdimm fixes 5.9-rc6
+To: Dan Williams <dan.j.williams@intel.com>
+Message-ID-Hash: 5XIX2QSD3O3HYCATWB2DXZUNV32NSKR7
+X-Message-ID-Hash: 5XIX2QSD3O3HYCATWB2DXZUNV32NSKR7
+X-MailFrom: torvalds@linuxfoundation.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 CC: linux-nvdimm <linux-nvdimm@lists.01.org>, device-mapper development <dm-devel@redhat.com>, Jan Kara <jack@suse.cz>, Adrian Huang12 <ahuang12@lenovo.com>, Mike Snitzer <snitzer@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YKOT5CTXLM6KZ2NUB45XTMFOTJGJKSHH/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5XIX2QSD3O3HYCATWB2DXZUNV32NSKR7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -78,69 +89,16 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Linus, please pull from:
+On Sun, Sep 20, 2020 at 11:56 AM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+>    You will notice that this branch was rebased this
+> morning and it has not appeared in -next. I decided to cut short the
+> soak time because the infinite-recursion regression is currently
+> crashing anyone attempting to test filesystem-dax in 5.9-rc5+.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.9-rc6
+Thanks for the explanation, all looks fine.
 
-...to receive a handful of fixes to address a string of mistakes in
-the mechanism for device-mapper to determine if its component devices
-are dax capable. You will notice that this branch was rebased this
-morning and it has not appeared in -next. I decided to cut short the
-soak time because the infinite-recursion regression is currently
-crashing anyone attempting to test filesystem-dax in 5.9-rc5+. The
-most recent rebase folded in a compile fix reported by the kbuild
-robot for the uncommon CONFIG_DAX=m case. It should, "should",  be all
-good now.
-
----
-
-The following changes since commit 856deb866d16e29bd65952e0289066f6078af773:
-
-  Linux 5.9-rc5 (2020-09-13 16:06:00 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.9-rc6
-
-for you to fetch changes up to d4c5da5049ac27c6ef8f6f98548c3a1ade352d25:
-
-  dax: Fix stack overflow when mounting fsdax pmem device (2020-09-20
-08:57:36 -0700)
-
-----------------------------------------------------------------
-libnvdimm fixes for 5.9-rc6
-
-- Fix an original bug in device-mapper table reference counting when
-  interrogating dax capability in the component device. This bug was
-  hidden by the following bug.
-
-- Fix device-mapper to use the proper helper (dax_supported() instead of
-  the leaf helper generic_fsdax_supported()) to determine dax operation
-  of a stacked block device configuration. The original implementation
-  is only valid for one level of dax-capable block device stacking. This
-  bug was discovered while fixing the below regression.
-
-- Fix an infinite recursion regression introduced by broken attempts to
-  quiet the generic_fsdax_supported() path and make it bail out before
-  logging "dax capability not found" errors.
-
-----------------------------------------------------------------
-Adrian Huang (1):
-      dax: Fix stack overflow when mounting fsdax pmem device
-
-Dan Williams (1):
-      dm/dax: Fix table reference counts
-
-Jan Kara (1):
-      dm: Call proper helper to determine dax support
-
- drivers/dax/super.c   | 16 ++++++++++------
- drivers/md/dm-table.c | 10 +++++++---
- drivers/md/dm.c       |  5 +++--
- include/linux/dax.h   | 22 ++++++++++++++++++++--
- 4 files changed, 40 insertions(+), 13 deletions(-)
+             Linus
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
