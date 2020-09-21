@@ -2,77 +2,81 @@ Return-Path: <SRS0=qwCt=C6=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D345C35257
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 21 Sep 2020 18:47:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0B58C35257
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 21 Sep 2020 19:50:32 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C5CA420888
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 21 Sep 2020 18:47:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 632372223E
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 21 Sep 2020 19:50:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="IoHznwPz"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C5CA420888
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=google.com header.i=@google.com header.b="MzlFGtZx"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 632372223E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 71AA21462B0F2;
-	Mon, 21 Sep 2020 11:47:54 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::544; helo=mail-ed1-x544.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x544.google.com (mail-ed1-x544.google.com [IPv6:2a00:1450:4864:20::544])
+	by ml01.01.org (Postfix) with ESMTP id 0AD3A14E1A443;
+	Mon, 21 Sep 2020 12:50:32 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::444; helo=mail-pf1-x444.google.com; envelope-from=ndesaulniers@google.com; receiver=<UNKNOWN> 
+Received: from mail-pf1-x444.google.com (mail-pf1-x444.google.com [IPv6:2607:f8b0:4864:20::444])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DD0F01462B0F1
-	for <linux-nvdimm@lists.01.org>; Mon, 21 Sep 2020 11:47:51 -0700 (PDT)
-Received: by mail-ed1-x544.google.com with SMTP id ay8so13813245edb.8
-        for <linux-nvdimm@lists.01.org>; Mon, 21 Sep 2020 11:47:51 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 7D97D14E1A440
+	for <linux-nvdimm@lists.01.org>; Mon, 21 Sep 2020 12:50:29 -0700 (PDT)
+Received: by mail-pf1-x444.google.com with SMTP id w7so10210652pfi.4
+        for <linux-nvdimm@lists.01.org>; Mon, 21 Sep 2020 12:50:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=pyDbIcQAdvsX0pQDLSC3IzwQOFdxADNEZk7v/eXeHTc=;
-        b=IoHznwPzHOT1/HK/4KdjNbW3VhuKGXl+P/cFZ5oOS8j7l6omlNvRVY+IX6ljbCmS4u
-         Nm7ZCAXl8KTfXvYsSNmXHgC0uian9TgtQxLW+oi0tNX7fNWt89tv2IDtS3IssEV+OiAg
-         mDL8abQO6xKee3Gp++DudPOLquaQrWDV+eRi0yhkTY2YNC9KqOtUuvBwDkwQokWnobrA
-         ydVOgaXnbtflxVXc5lTvukwzoCJv7t73HFLvd0FWJP7GCnXVDWL4a3zlYb3vAavqu2CW
-         tIuGeZj73fNt3triaqANlSDGLTWXI+DgTY2SZXAWF4y1XUb6DBXx4kCdpGDxGZH/LwGh
-         4fLw==
+        bh=hfum0xk/RZI5/Ob/LotdK/fUqBVcECeLZPhlAXF7GSA=;
+        b=MzlFGtZxMRR3IzQFO78/27PAi9Tln8PEKmg4AWR1bn4Yo/X9UINdsoC9HczWeOPzK7
+         QNTmfcvvkJG792tUX68D4WrnSFP9CgJoYPCVFNR3GKZ+FyLm9t8ZFvvG1E2VbgZ5QAOS
+         +fB2gXbEHSaAuwNmKSv0Pd9zLHo+Oakazz/3+sTuhR7vJmpMwG3RSQFWLIHrAFmxsCGF
+         rqx+I3MNILJxZtgM/ON8s9FbFBrflmYiKAX23PoTz6WxO8eG+V87SwM9NqDKQlik6d31
+         oPGbYOdDpITjhl+sn2utDDkLbhUp7n/Am/HwVzM1DY93mI1ZfI1r1BvJTjtfivUMY2U6
+         ZKiA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=pyDbIcQAdvsX0pQDLSC3IzwQOFdxADNEZk7v/eXeHTc=;
-        b=jN4sLvFGJzmYksuYU2DHFzkcNS8GtiGmhXeZJ7D+J3o6BGKCp1qt2igKBPdH/RX7b2
-         DSxIlOUNOYM/UXP4t6zq29lVw3Iw8FZ+QT0quS0j9am7dV1vX+KF98s8maOFf+dfUGY9
-         3ireFGhOrydWoxQAjQ3UgoqMGUi51VJTt9bG9jR69fMthSZrJ8fqLZj/sDuagfzr7FV6
-         KhoAe/lwHtV1EcLwQlG0OzlzNf2AEosjDO8yvL3kGcCLT8ZeaShxnBqxhyMT6lldw0gA
-         mMCxelel5IG2tcveaxD5dqNGMi4mrMzdDa1s40dFsjurCDoLiq6Rh0HhDvyWPVHNWgJ7
-         Q36A==
-X-Gm-Message-State: AOAM5335BOgWfX1kycHX87CQQuQ7kYyuCAq9Nv+jNPss3BQ3TpobzBHe
-	xA6TD8K88AL0dWjkjNSam9rsAOj4hdvSPpq4/BXyTA==
-X-Google-Smtp-Source: ABdhPJyr3HoCDSaaSE6/nQdSCDm40TS19EV3SXSzVioIoKdk8F7Y7f0V8JbN08ev9d+bgVmhdVvRbDDZMn9JIW+Dx+I=
-X-Received: by 2002:aa7:d04d:: with SMTP id n13mr324028edo.354.1600714069342;
- Mon, 21 Sep 2020 11:47:49 -0700 (PDT)
+        bh=hfum0xk/RZI5/Ob/LotdK/fUqBVcECeLZPhlAXF7GSA=;
+        b=kuBAY4ewDRCLUulbLPJE3f5vfmshMc7P660F3lMEDvApbOhF0iCy3QkEO7cK4+0Za4
+         XRQi/MY+roZYbIqDa7f6lVwgjnhUbtjOIx0QHNK8Nt7DTd7iKf5pi6rjiImmTdZ6Q+Pz
+         4MGBK9pi03YsHsF98P0r/izxRC4+iZtvFnBAwLQPFQd1pNu3C6aRiY4BTRVCARuXioU9
+         uM3RHum8hX4KLSLNOsNMpIw8Nh9xG6E9NLDHywwKW9PnJFGuOSICjvrsBb7gpFrK6qzN
+         cJuRK+cmmPvA2wfaYC0biB/PeojPDnhjZYbMqVtqXSYg043TX92gNITTM6yaHHB6Rnvl
+         ReFQ==
+X-Gm-Message-State: AOAM532CAk8PBRZWRGxJ8e29ekIf9BJJwc1nwMOZVo2+kBKcBUK9HkZg
+	n878eCF3Wa5vgQ6Ka4rIpb2UCX754kWrVSYQdDgUCA==
+X-Google-Smtp-Source: ABdhPJz0K7J9Kcn11+9meMrf3vRxVrLQJR4W3Bic2SiC1mK4LkwttbXKUrEWzTmF/9m2Ua801TzhyzK2CS2WC7W1H4g=
+X-Received: by 2002:a62:5586:0:b029:13e:d13d:a108 with SMTP id
+ j128-20020a6255860000b029013ed13da108mr1208250pfb.36.1600717828686; Mon, 21
+ Sep 2020 12:50:28 -0700 (PDT)
 MIME-Version: 1.0
 References: <CAKwvOdkGd6mPw_OKHwmpVs_xxFW2oqAoXyr7M8hu3PCCwkqCEQ@mail.gmail.com>
-In-Reply-To: <CAKwvOdkGd6mPw_OKHwmpVs_xxFW2oqAoXyr7M8hu3PCCwkqCEQ@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 21 Sep 2020 11:47:38 -0700
-Message-ID: <CAPcyv4jZfbuS8zHZXBNqRTi_1HzHLUztkxDmsruMk5PGinGhPg@mail.gmail.com>
+ <CAPcyv4jZfbuS8zHZXBNqRTi_1HzHLUztkxDmsruMk5PGinGhPg@mail.gmail.com>
+In-Reply-To: <CAPcyv4jZfbuS8zHZXBNqRTi_1HzHLUztkxDmsruMk5PGinGhPg@mail.gmail.com>
+From: Nick Desaulniers <ndesaulniers@google.com>
+Date: Mon, 21 Sep 2020 12:50:17 -0700
+Message-ID: <CAKwvOdnVeAFu_Zb2KNuCUcVRWcqsX9r855uyKAMR4+FM8LTdoQ@mail.gmail.com>
 Subject: =?UTF-8?B?UmU6IGVycm9yOiByZWRlZmluaXRpb24gb2Yg4oCYZGF4X3N1cHBvcnRlZOKAmQ==?=
-To: Nick Desaulniers <ndesaulniers@google.com>
-Message-ID-Hash: OIJKH457TY726UJB32GVENGGDFHWYUJL
-X-Message-ID-Hash: OIJKH457TY726UJB32GVENGGDFHWYUJL
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+To: Dan Williams <dan.j.williams@intel.com>
+Message-ID-Hash: MD72TCLU5ZHK23XYJGMSFIBVSMIT75S6
+X-Message-ID-Hash: MD72TCLU5ZHK23XYJGMSFIBVSMIT75S6
+X-MailFrom: ndesaulniers@google.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 CC: linux-nvdimm <linux-nvdimm@lists.01.org>, LKML <linux-kernel@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, clang-built-linux <clang-built-linux@googlegroups.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "kernelci.org bot" <bot@kernelci.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OIJKH457TY726UJB32GVENGGDFHWYUJL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MD72TCLU5ZHK23XYJGMSFIBVSMIT75S6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -81,31 +85,42 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Sep 21, 2020 at 11:35 AM Nick Desaulniers
-<ndesaulniers@google.com> wrote:
+On Mon, Sep 21, 2020 at 11:47 AM Dan Williams <dan.j.williams@intel.com> wrote:
 >
-> Hello DAX maintainers,
-> I noticed our PPC64LE builds failing last night:
-> https://travis-ci.com/github/ClangBuiltLinux/continuous-integration/jobs/388047043
-> https://travis-ci.com/github/ClangBuiltLinux/continuous-integration/jobs/388047056
-> https://travis-ci.com/github/ClangBuiltLinux/continuous-integration/jobs/388047099
-> and looking on lore, I see a fresh report from KernelCI against arm:
-> https://lore.kernel.org/linux-next/?q=dax_supported
+> On Mon, Sep 21, 2020 at 11:35 AM Nick Desaulniers
+> <ndesaulniers@google.com> wrote:
+> >
+> > Hello DAX maintainers,
+> > I noticed our PPC64LE builds failing last night:
+> > https://travis-ci.com/github/ClangBuiltLinux/continuous-integration/jobs/388047043
+> > https://travis-ci.com/github/ClangBuiltLinux/continuous-integration/jobs/388047056
+> > https://travis-ci.com/github/ClangBuiltLinux/continuous-integration/jobs/388047099
+> > and looking on lore, I see a fresh report from KernelCI against arm:
+> > https://lore.kernel.org/linux-next/?q=dax_supported
+> >
+> > Can you all please take a look?  More concerning is that I see this
+> > failure on mainline.  It may be interesting to consider how this was
+> > not spotted on -next.
 >
-> Can you all please take a look?  More concerning is that I see this
-> failure on mainline.  It may be interesting to consider how this was
-> not spotted on -next.
+> The failure is fixed with commit 88b67edd7247 ("dax: Fix compilation
+> for CONFIG_DAX && !CONFIG_FS_DAX"). I rushed the fixes that led to
+> this regression with insufficient exposure because it was crashing all
+> users. I thought the 2 kbuild-robot reports I squashed covered all the
+> config combinations, but there was a straggling report after I sent my
+> -rc6 pull request.
+>
+> The baseline process escape for all of this was allowing a unit test
+> triggerable insta-crash upstream in the first instance necessitating
+> an urgent fix.
 
-The failure is fixed with commit 88b67edd7247 ("dax: Fix compilation
-for CONFIG_DAX && !CONFIG_FS_DAX"). I rushed the fixes that led to
-this regression with insufficient exposure because it was crashing all
-users. I thought the 2 kbuild-robot reports I squashed covered all the
-config combinations, but there was a straggling report after I sent my
--rc6 pull request.
-
-The baseline process escape for all of this was allowing a unit test
-triggerable insta-crash upstream in the first instance necessitating
-an urgent fix.
+No worries; just checking that failures are root-caused.  I see it on
+top of v5.9-rc6:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/log/.
+I don't see it on -next today, but assume it will be there tomorrow.
+Thanks for the info.
+-- 
+Thanks,
+~Nick Desaulniers
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
