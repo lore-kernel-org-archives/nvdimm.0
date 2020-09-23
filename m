@@ -2,200 +2,212 @@ Return-Path: <SRS0=jNTE=DA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3342C4727D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 17:19:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90B0AC4741F
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 18:59:55 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 06ECC21D7D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 17:19:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id BE1AE206FB
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 18:59:54 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="MtC5MxF/"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 06ECC21D7D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="cl5OSFuY"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BE1AE206FB
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5AC261530F0FB;
-	Wed, 23 Sep 2020 10:19:52 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 19952151FAB73;
+	Wed, 23 Sep 2020 11:59:54 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 14F19151D3498
-	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 10:19:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1600881588;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=ZAwjKYHLvX7CV9LXjpmU9CFTSk3gBA0Z/UIj2jnpmK8=;
-	b=MtC5MxF/ZCduDHq4M10ai9WkSMQMOB2McEHLngBPCLISwUmbVLm6C9cYBTE09okfr+YOej
-	0AfogfKhpqZqkETlFNBbmPqoaoZLXnpzuzyFes4rZd8Wp31p2ID8E0J8ppaYIdLTJin613
-	dZskjZyD8MRlECItnaHyL3YtbknanO0=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-124-1LsOWFgnOlmg5st1mkkATQ-1; Wed, 23 Sep 2020 13:19:46 -0400
-X-MC-Unique: 1LsOWFgnOlmg5st1mkkATQ-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 60228107464E;
-	Wed, 23 Sep 2020 17:19:44 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 1F1241972B;
-	Wed, 23 Sep 2020 17:19:44 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 08NHJhRP016496;
-	Wed, 23 Sep 2020 13:19:43 -0400
-Received: from localhost (mpatocka@localhost)
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 08NHJgdZ016492;
-	Wed, 23 Sep 2020 13:19:42 -0400
-X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
-Date: Wed, 23 Sep 2020 13:19:42 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
-To: Dave Chinner <david@fromorbit.com>
-Subject: Re: NVFS XFS metadata (was: [PATCH] pmem: export the symbols
- __copy_user_flushcache and __copy_from_user_flushcache)
-In-Reply-To: <20200923024528.GD12096@dread.disaster.area>
-Message-ID: <alpine.LRH.2.02.2009230445030.1800@file01.intranet.prod.int.rdu2.redhat.com>
-References: <alpine.LRH.2.02.2009151216050.16057@file01.intranet.prod.int.rdu2.redhat.com> <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com> <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gW6AvR+RaShHdQzOaEPv9nrq5myXDmywuoCTYDZxk-hw@mail.gmail.com> <alpine.LRH.2.02.2009161254400.745@file01.intranet.prod.int.rdu2.redhat.com> <CAPcyv4gD0ZFkfajKTDnJhEEjf+5Av-GH+cHRFoyhzGe8bNEgAA@mail.gmail.com> <alpine.LRH.2.02.2009161359540.20710@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009191336380.3478@file01.intranet.prod.int.rdu2.redhat.com> <20200922050314.GB12096@dread.disaster.area> <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com> <20200923024528.GD12096@dread.disaster.area>
-User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
+	by ml01.01.org (Postfix) with ESMTPS id 93561151FAB71
+	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 11:59:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=b12w9z8RoIzPGMOQMxwodI4Kd4EF2wwwEX9LyxbU+y4=; b=cl5OSFuYx3vieMBKbrWE/ACaAE
+	CBUeAT6PAykw9YYgMc5EI3LD/veQ7+97jrdN3dUfffrQwgBTnJMyg93d/S/QkOqn0VWhNJnyn5XLz
+	6LuISIjyFdzgpJ6Y5fzL+fGIcofF29n/0SLI89FOsPmp1YVMVH1yb8yRB90yvzctdfCEMlaMwrPST
+	8rSvKGxuuZqNcN065x5TQL0b5oyELV9bAM7JQXRFdoMQc9wlSOj1Tl5OWJfr0gi6yR4ojkNZKqQV7
+	tq35ZEsC4/bsabwdyIjIUhSJeCwL0cbLDkrNp7NRHqwr5xVWamY8DJ31/Pz3F4JsOwSUV6O4msNBn
+	6pdz+R/Q==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kL9zU-00052r-Kb; Wed, 23 Sep 2020 18:59:44 +0000
+Date: Wed, 23 Sep 2020 19:59:44 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: Re: [PATCH v2 5/9] iomap: Support arbitrarily many blocks per page
+Message-ID: <20200923185944.GQ32101@casper.infradead.org>
+References: <20200910234707.5504-1-willy@infradead.org>
+ <20200910234707.5504-6-willy@infradead.org>
+ <163f852ba12fd9de5dec7c4a2d6b6c7cdb379ebc.camel@redhat.com>
+ <20200922170526.GK32101@casper.infradead.org>
+ <95bd1230f2fcf01f690770eb77696862b8fb607b.camel@redhat.com>
+ <20200923024859.GM32101@casper.infradead.org>
+ <20200923050001.GE7949@magnolia>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-Message-ID-Hash: TMV6RE63DMTFLBXPDL2MTWUZABZZGUV5
-X-Message-ID-Hash: TMV6RE63DMTFLBXPDL2MTWUZABZZGUV5
-X-MailFrom: mpatocka@redhat.com
+Content-Disposition: inline
+In-Reply-To: <20200923050001.GE7949@magnolia>
+Message-ID-Hash: TY2FHJCFDLACG6TMY3BAJH6AT3NRK227
+X-Message-ID-Hash: TY2FHJCFDLACG6TMY3BAJH6AT3NRK227
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: Qian Cai <cai@redhat.com>, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Dave Chinner <dchinner@redhat.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TMV6RE63DMTFLBXPDL2MTWUZABZZGUV5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TY2FHJCFDLACG6TMY3BAJH6AT3NRK227/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-
-On Wed, 23 Sep 2020, Dave Chinner wrote:
-
-> > > dir-test /mnt/test/linux-2.6 63000 1048576
-> > > nvfs		6.6s
-> > > ext4 dax	8.4s
-> > > xfs dax		12.2s
+On Tue, Sep 22, 2020 at 10:00:01PM -0700, Darrick J. Wong wrote:
+> On Wed, Sep 23, 2020 at 03:48:59AM +0100, Matthew Wilcox wrote:
+> > On Tue, Sep 22, 2020 at 09:06:03PM -0400, Qian Cai wrote:
+> > > On Tue, 2020-09-22 at 18:05 +0100, Matthew Wilcox wrote:
+> > > > On Tue, Sep 22, 2020 at 12:23:45PM -0400, Qian Cai wrote:
+> > > > > On Fri, 2020-09-11 at 00:47 +0100, Matthew Wilcox (Oracle) wrote:
+> > > > > > Size the uptodate array dynamically to support larger pages in the
+> > > > > > page cache.  With a 64kB page, we're only saving 8 bytes per page today,
+> > > > > > but with a 2MB maximum page size, we'd have to allocate more than 4kB
+> > > > > > per page.  Add a few debugging assertions.
+> > > > > > 
+> > > > > > Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+> > > > > > Reviewed-by: Dave Chinner <dchinner@redhat.com>
+> > > > > 
+> > > > > Some syscall fuzzing will trigger this on powerpc:
+> > > > > 
+> > > > > .config: https://gitlab.com/cailca/linux-mm/-/blob/master/powerpc.config
+> > > > > 
+> > > > > [ 8805.895344][T445431] WARNING: CPU: 61 PID: 445431 at fs/iomap/buffered-
+> > > > > io.c:78 iomap_page_release+0x250/0x270
+> > > > 
+> > > > Well, I'm glad it triggered.  That warning is:
+> > > >         WARN_ON_ONCE(bitmap_full(iop->uptodate, nr_blocks) !=
+> > > >                         PageUptodate(page));
+> > > > so there was definitely a problem of some kind.
+> > > > 
+> > > > truncate_cleanup_page() calls
+> > > > do_invalidatepage() calls
+> > > > iomap_invalidatepage() calls
+> > > > iomap_page_release()
+> > > > 
+> > > > Is this the first warning?  I'm wondering if maybe there was an I/O error
+> > > > earlier which caused PageUptodate to get cleared again.  If it's easy to
+> > > > reproduce, perhaps you could try something like this?
+> > > > 
+> > > > +void dump_iomap_page(struct page *page, const char *reason)
+> > > > +{
+> > > > +       struct iomap_page *iop = to_iomap_page(page);
+> > > > +       unsigned int nr_blocks = i_blocks_per_page(page->mapping->host, page);
+> > > > +
+> > > > +       dump_page(page, reason);
+> > > > +       if (iop)
+> > > > +               printk("iop:reads %d writes %d uptodate %*pb\n",
+> > > > +                               atomic_read(&iop->read_bytes_pending),
+> > > > +                               atomic_read(&iop->write_bytes_pending),
+> > > > +                               nr_blocks, iop->uptodate);
+> > > > +       else
+> > > > +               printk("iop:none\n");
+> > > > +}
+> > > > 
+> > > > and then do something like:
+> > > > 
+> > > > 	if (bitmap_full(iop->uptodate, nr_blocks) != PageUptodate(page))
+> > > > 		dump_iomap_page(page, NULL);
 > > > 
+> > > This:
 > > > 
-> > > dir-test /mnt/test/linux-2.6 63000 1048576 link
-> > > nvfs		4.7s
-> > > ext4 dax	5.6s
-> > > xfs dax		7.8s
-> > > 
-> > > dir-test /mnt/test/linux-2.6 63000 1048576 dir
-> > > nvfs		8.2s
-> > > ext4 dax	15.1s
-> > > xfs dax		11.8s
-> > > 
-> > > Yes, nvfs is faster than both ext4 and XFS on DAX, but it's  not a
-> > > huge difference - it's not orders of magnitude faster.
+> > > [ 1683.158254][T164965] page:000000004a6c16cd refcount:2 mapcount:0 mapping:00000000ea017dc5 index:0x2 pfn:0xc365c
+> > > [ 1683.158311][T164965] aops:xfs_address_space_operations ino:417b7e7 dentry name:"trinity-testfile2"
+> > > [ 1683.158354][T164965] flags: 0x7fff8000000015(locked|uptodate|lru)
+> > > [ 1683.158392][T164965] raw: 007fff8000000015 c00c0000019c4b08 c00c0000019a53c8 c000201c8362c1e8
+> > > [ 1683.158430][T164965] raw: 0000000000000002 0000000000000000 00000002ffffffff c000201c54db4000
+> > > [ 1683.158470][T164965] page->mem_cgroup:c000201c54db4000
+> > > [ 1683.158506][T164965] iop:none
 > > 
-> > If I increase the size of the test directory, NVFS is order of magnitude 
-> > faster:
+> > Oh, I'm a fool.  This is after the call to detach_page_private() so
+> > page->private is NULL and we don't get the iop dumped.
 > > 
-> > time dir-test /mnt/test/ 2000000 2000000
-> > NVFS: 0m29,395s
-> > XFS:  1m59,523s
-> > EXT4: 1m14,176s
+> > Nevertheless, this is interesting.  Somehow, the page is marked Uptodate,
+> > but the bitmap is deemed not full.  There are three places where we set
+> > an iomap page Uptodate:
+> > 
+> > 1.      if (bitmap_full(iop->uptodate, i_blocks_per_page(inode, page)))
+> >                 SetPageUptodate(page);
+> > 
+> > 2.      if (page_has_private(page))
+> >                 iomap_iop_set_range_uptodate(page, off, len);
+> >         else
+> >                 SetPageUptodate(page);
+> > 
+> > 3.      BUG_ON(page->index);
+> > ...
+> >         SetPageUptodate(page);
+> > 
+> > It can't be #2 because the page has an iop.  It can't be #3 because the
+> > page->index is not 0.  So at some point in the past, the bitmap was full.
+> > 
+> > I don't think it's possible for inode->i_blksize to change, and you
+> > aren't running with THPs, so it's definitely not possible for thp_size()
+> > to change.  So i_blocks_per_page() isn't going to change.
+> > 
+> > We seem to have allocated enough memory for ->iop because that's also
+> > based on i_blocks_per_page().
+> > 
+> > I'm out of ideas.  Maybe I'll wake up with a better idea in the morning.
+> > I've been trying to reproduce this on x86 with a 1kB block size
+> > filesystem, and haven't been able to yet.  Maybe I'll try to setup a
+> > powerpc cross-compilation environment tomorrow.
 > 
-> What happened to NVFS there? The runtime went up by a factor of 5,
-> even though the number of ops performed only doubled.
-
-This test is from a different machine (K10 Opteron) than the above test 
-(Skylake Xeon). I borrowed the Xeon for a short time and I no longer have 
-access to it.
-
-> > time dir-test /mnt/test/ 8000000 8000000
-> > NVFS: 2m13,507s
-> > XFS: 14m31,261s
-> > EXT4: reports "file 1976882 can't be created: No space left on device", 
-> > 	(although there are free blocks and inodes)
-> > 	Is it a bug or expected behavior?
+> FWIW I managed to reproduce it with the following fstests configuration
+> on a 1k block size fs on a x86 machinE:
 > 
-> Exponential increase in runtime for a workload like this indicates
-> the XFS journal is too small to run large scale operations. I'm
-> guessing you're just testing on a small device?
+> SECTION      -- -no-sections-
+> FSTYP        -- xfs
+> MKFS_OPTIONS --  -m reflink=1,rmapbt=1 -i sparse=1 -b size=1024
+> MOUNT_OPTIONS --  -o usrquota,grpquota,prjquota
+> HOST_OPTIONS -- local.config
+> CHECK_OPTIONS -- -g auto
+> XFS_MKFS_OPTIONS -- -bsize=4096
+> TIME_FACTOR  -- 1
+> LOAD_FACTOR  -- 1
+> TEST_DIR     -- /mnt
+> TEST_DEV     -- /dev/sde
+> SCRATCH_DEV  -- /dev/sdd
+> SCRATCH_MNT  -- /opt
+> OVL_UPPER    -- ovl-upper
+> OVL_LOWER    -- ovl-lower
+> OVL_WORK     -- ovl-work
+> KERNEL       -- 5.9.0-rc4-djw
 
-In this test, the pmem device had 64GiB.
+It just survived another 3-hour run for me:
 
-I've created 1TiB ramdisk, formatted it with XFS and ran dir-test 8000000 
-on it, however it wasn't much better - it took 14m8,824s.
+FSTYP         -- xfs (debug)
+PLATFORM      -- Linux/x86_64 bobo-kvm 5.9.0-rc4 #40 SMP Tue Sep 22 14:18:21 EDT 2020
+MKFS_OPTIONS  -- -f -m reflink=1,rmapbt=1 -i sparse=1 -b size=1024 /dev/sdc
+MOUNT_OPTIONS -- /dev/sdc /mnt/scratch
 
-> In which case, you'd get a 16MB log for XFS, which is tiny and most
-> definitely will limit performance of any large scale metadta
-> operation. Performance should improve significantly for large scale
-> operations with a much larger log, and that should bring the XFS
-> runtimes down significantly.
+The only warning I hit was in generic/019:
 
-Is there some mkfs.xfs option that can increase log size?
+0172 WARNING: CPU: 1 PID: 6933 at fs/iomap/buffered-io.c:997 iomap_page_mkwrite_actor+0x72/0x80
 
-> > If you think that the lack of journaling is show-stopper, I can implement 
-> > it.
-> 
-> I did not say that. My comments are about the requirement for
-> atomicity of object changes, not journalling. Journalling is an
-> -implementation that can provide change atomicity-, it is not a
-> design constraint for metadata modification algorithms.
-> 
-> Really, you can chose how to do object update however you want. What
-> I want to review is the design documentation and a correctness proof
-> for whatever mechanism you choose to use. Without that information,
-> we have absolutely no chance of reviewing the filesystem
-> implementation for correctness. We don't need a proof for something
-> that uses journalling (because we all know how that works), but for
-> something that uses soft updates we most definitely need the proof
-> of correctness for the update algorithm before we can determine if
-> the implementation is good...
-> 
-> Cheers,
-> 
-> Dave.
-> -- 
-> Dave Chinner
-> david@fromorbit.com
-
-I am thinking about this: I can implement lightweight journaling that will 
-journal just a few writes - I'll allocate some small per-cpu intent log 
-for that.
-
-For example, in nvfs_rename, we call nvfs_delete_de and nvfs_finish_add - 
-these functions are very simple, both of them write just one word - so we 
-can add these two words to the intent log. The same for setattr requesting 
-simultaneous uid/gid/mode change - they are small, so they'll fit into the 
-intent log well.
-
-Regarding verifiability, I can do this - the writes to pmem are wrapped in 
-a macro nv_store. So, I can modify this macro so that it logs all 
-modifications. Then I take the log, cut it at random time, reorder the 
-entries (to simulate reordering in the CPU write-combining buffers), 
-replay it, run nvfsck on it and mount it. This way, we can verify that no 
-matter where the crash happened, either an old file or a new file is 
-present in a directory.
-
-Do you agree with that?
-
-Mikulas
+which is the:
+                WARN_ON_ONCE(!PageUptodate(page));
+that happens as a result of the ClearPageUptodate() in iomap_writepage_map()
+which has been happening approximately forever.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
