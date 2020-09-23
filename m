@@ -2,85 +2,60 @@ Return-Path: <SRS0=jNTE=DA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0087C4741F
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 16:55:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CE25C4741F
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 16:59:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 711B920936
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 16:55:12 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ELcMngBH"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 711B920936
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 5285F20BED
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 16:59:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5285F20BED
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 11522152E7A1A;
-	Wed, 23 Sep 2020 09:55:12 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=cai@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 70307153298B3;
+	Wed, 23 Sep 2020 09:59:51 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.115; helo=mga14.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8E497152E7A0E
-	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 09:55:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1600880109;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=FUSm6Jd9kppSRElqFCFSMQvc3MYe1vIAEmLYr4crmdc=;
-	b=ELcMngBHPT+lcEDaIAYbWY0KmSw4kNg9AhwRAwi6KeDqR3Hhd2ipo1yOf1hCa0CFDYrB6U
-	siLH4ZSDqFsLkqa0F9yTGT7ZAIDxDlwMSZTR2XS4m0DKSRAIiLrSNexDNieWL1C+6Za02P
-	ntl1szzFNwZ7zH2OCK+rQy7UywoN8gk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-136-F9xQiLQkO7iC0xbWG9znvg-1; Wed, 23 Sep 2020 12:55:05 -0400
-X-MC-Unique: F9xQiLQkO7iC0xbWG9znvg-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 003F4801F9A;
-	Wed, 23 Sep 2020 16:55:03 +0000 (UTC)
-Received: from ovpn-66-35.rdu2.redhat.com (unknown [10.10.67.35])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id A380E1002C04;
-	Wed, 23 Sep 2020 16:55:00 +0000 (UTC)
-Message-ID: <ff8f882fe320e53f5f429fc9a9d4ed85410d7972.camel@redhat.com>
-Subject: Re: [PATCH v2 5/9] iomap: Support arbitrarily many blocks per page
-From: Qian Cai <cai@redhat.com>
-To: Matthew Wilcox <willy@infradead.org>
-Date: Wed, 23 Sep 2020 12:55:00 -0400
-In-Reply-To: <20200923024859.GM32101@casper.infradead.org>
-References: <20200910234707.5504-1-willy@infradead.org>
-	 <20200910234707.5504-6-willy@infradead.org>
-	 <163f852ba12fd9de5dec7c4a2d6b6c7cdb379ebc.camel@redhat.com>
-	 <20200922170526.GK32101@casper.infradead.org>
-	 <95bd1230f2fcf01f690770eb77696862b8fb607b.camel@redhat.com>
-	 <20200923024859.GM32101@casper.infradead.org>
-Mime-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-Message-ID-Hash: ORB3QD2OYJ7XUI42X3H3CIGE24ETLM7T
-X-Message-ID-Hash: ORB3QD2OYJ7XUI42X3H3CIGE24ETLM7T
-X-MailFrom: cai@redhat.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"Darrick J ."@ml01.01.org, Wong@ml01.01.org,
-	" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, "@ml01.01.org,
-	linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
-	Dave Kleikamp <shaggy@kernel.org>,
-	jfs-discussion@lists.sourceforge.net,
-	Dave Chinner <dchinner@redhat.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
+	by ml01.01.org (Postfix) with ESMTPS id D1AB9151A0A49
+	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 09:59:48 -0700 (PDT)
+IronPort-SDR: x/B+sjE8cEV1+iu4g+g94HNAqNfzBUrt6cFJy2LrbNs0VIgQBwW8z5Ftj1n+qXlS8PJ1fLDY4Q
+ NhRcZ6lDNWMg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9753"; a="160237949"
+X-IronPort-AV: E=Sophos;i="5.77,293,1596524400";
+   d="scan'208";a="160237949"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2020 09:59:47 -0700
+IronPort-SDR: Uk3FpZWtjC6MxaY2DpATud/gCLigyWCbeA2NfdUXbwu2fTZl13//C7v+skd5M53i4aVDYwi05+
+ R65xu4Hv6T4Q==
+X-IronPort-AV: E=Sophos;i="5.77,293,1596524400";
+   d="scan'208";a="511067966"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.16])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Sep 2020 09:59:47 -0700
+Subject: [PATCH v9 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user, kernel}
+From: Dan Williams <dan.j.williams@intel.com>
+To: mingo@redhat.com
+Date: Wed, 23 Sep 2020 09:41:26 -0700
+Message-ID: <160087928642.3520.17063139768910633998.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Message-ID-Hash: BRBR47ZUXZWMGL674NBKCWXI3OQKHZ2P
+X-Message-ID-Hash: BRBR47ZUXZWMGL674NBKCWXI3OQKHZ2P
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@alien8.de>, stable@vger.kernel.org, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, tglx@linutronix.de, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, 0day robot <lkp@intel.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, jack@suse.cz
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ORB3QD2OYJ7XUI42X3H3CIGE24ETLM7T/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BRBR47ZUXZWMGL674NBKCWXI3OQKHZ2P/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -89,71 +64,96 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 2020-09-23 at 03:48 +0100, Matthew Wilcox wrote:
-> I'm out of ideas.  Maybe I'll wake up with a better idea in the morning.
-> I've been trying to reproduce this on x86 with a 1kB block size
-> filesystem, and haven't been able to yet.  Maybe I'll try to setup a
-> powerpc cross-compilation environment tomorrow.
+Changes since v8 [1]:
+- Rebase on v5.9-rc6
 
-Another data point is that this can be reproduced on both arm64 and powerpc
-(both have 64k-size pages) by running this LTP test case:
+- Fix a performance regression in the x86 copy_mc_to_user()
+  implementation that was duplicating copies in the "fragile" case.
 
-https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/syscalls/preadv2/preadv203.c
+- Refreshed the cover letter.
 
-[ 2397.723289] preadv203 (80525): drop_caches: 3
-[ 2400.796402] XFS (loop0): Unmounting Filesystem
-[ 2401.431293] ------------[ cut here ]------------
-[ 2401.431411] WARNING: CPU: 0 PID: 80501 at fs/iomap/buffered-io.c:78 iomap_page_release+0x250/0x270
-[ 2401.431435] Modules linked in: vfio_pci vfio_virqfd vfio_iommu_spapr_tce vfio vfio_spapr_eeh loop kvm_hv kvm ip_tables x_tables sd_mod bnx2x mdio ahci libahci tg3 libphy libata firmware_class dm_mirror dm_reg
-ion_hash dm_log dm_mod
-[ 2401.431534] CPU: 0 PID: 80501 Comm: preadv203 Not tainted 5.9.0-rc6-next-20200923+ #4
-[ 2401.431567] NIP:  c000000000473b30 LR: c0000000004739ec CTR: c000000000473e80
-[ 2401.431590] REGS: c0000011a7bbf7a0 TRAP: 0700   Not tainted  (5.9.0-rc6-next-20200923+)
-[ 2401.431613] MSR:  9000000000029033 <SF,HV,EE,ME,IR,DR,RI,LE>  CR: 44000244  XER: 20040000
-[ 2401.431655] CFAR: c000000000473a24 IRQMASK: 0 
-               GPR00: c00000000029b6a8 c0000011a7bbfa30 c000000007e87e00 0000000000000005 
-               GPR04: 0000000000000000 0000000000000005 0000000000000005 0000000000000000 
-               GPR08: c00c000806f1f587 087fff8000000037 0000000000000001 c00000000875e028 
-               GPR12: c000000000473e80 c00000000c180000 0000000000000000 0000000000000000 
-               GPR16: 0000000000000000 c0000011a7bbfbb0 c0000011a7bbfbc0 0000000000000000 
-               GPR20: c000000000a4aad8 0000000000000000 0000000000000000 000000000000000f 
-               GPR24: ffffffffffffffff c0000011a7bbfb38 c0000011a7bbfac0 0000000000000000 
-               GPR28: 0000000000000001 c000000ea4fe0a28 0000000000000000 c00c0008071b46c0 
-[ 2401.431856] NIP [c000000000473b30] iomap_page_release+0x250/0x270
-[ 2401.431878] LR [c0000000004739ec] iomap_page_release+0x10c/0x270
-[ 2401.431899] Call Trace:
-[ 2401.431926] [c0000011a7bbfa30] [c0000011a7bbfac0] 0xc0000011a7bbfac0 (unreliable)
-[ 2401.431962] [c0000011a7bbfa70] [c00000000029b6a8] truncate_cleanup_page+0x188/0x2e0
-[ 2401.431987] [c0000011a7bbfaa0] [c00000000029c62c] truncate_inode_pages_range+0x23c/0x9f0
-[ 2401.432023] [c0000011a7bbfcc0] [c0000000003d9588] evict+0x1e8/0x200
-[ 2401.432055] [c0000011a7bbfd00] [c0000000003c64b0] do_unlinkat+0x2d0/0x3a0
-[ 2401.432081] [c0000011a7bbfdc0] [c00000000002a458] system_call_exception+0xf8/0x1d0
-[ 2401.432097] [c0000011a7bbfe20] [c00000000000d0a8] system_call_common+0xe8/0x218
-[ 2401.432120] Instruction dump:
-[ 2401.432140] 3c82f8ba 388490b8 4be655b1 60000000 0fe00000 60000000 60000000 60000000 
-[ 2401.432176] 0fe00000 4bfffea8 60000000 60000000 <0fe00000> 4bfffef4 60000000 60000000 
-[ 2401.432213] CPU: 0 PID: 80501 Comm: preadv203 Not tainted 5.9.0-rc6-next-20200923+ #4
-[ 2401.432245] Call Trace:
-[ 2401.432255] [c0000011a7bbf590] [c000000000644778] dump_stack+0xec/0x144 (unreliable)
-[ 2401.432284] [c0000011a7bbf5d0] [c0000000000b0a24] __warn+0xc4/0x144
-[ 2401.432298] [c0000011a7bbf660] [c000000000643388] report_bug+0x108/0x1f0
-[ 2401.432331] [c0000011a7bbf700] [c000000000021714] program_check_exception+0x104/0x2e0
-[ 2401.432359] [c0000011a7bbf730] [c000000000009664] program_check_common_virt+0x2c4/0x310
-[ 2401.432385] --- interrupt: 700 at iomap_page_release+0x250/0x270
-                   LR = iomap_page_release+0x10c/0x270
-[ 2401.432420] [c0000011a7bbfa30] [c0000011a7bbfac0] 0xc0000011a7bbfac0 (unreliable)
-[ 2401.432446] [c0000011a7bbfa70] [c00000000029b6a8] truncate_cleanup_page+0x188/0x2e0
-[ 2401.432470] [c0000011a7bbfaa0] [c00000000029c62c] truncate_inode_pages_range+0x23c/0x9f0
-[ 2401.432505] [c0000011a7bbfcc0] [c0000000003d9588] evict+0x1e8/0x200
-[ 2401.432528] [c0000011a7bbfd00] [c0000000003c64b0] do_unlinkat+0x2d0/0x3a0
-[ 2401.432552] [c0000011a7bbfdc0] [c00000000002a458] system_call_exception+0xf8/0x1d0
-[ 2401.432576] [c0000011a7bbfe20] [c00000000000d0a8] system_call_common+0xe8/0x218
-[ 2401.432599] irq event stamp: 210662
-[ 2401.432619] hardirqs last  enabled at (210661): [<c0000000008d32bc>] _raw_spin_unlock_irq+0x3c/0x70
-[ 2401.432652] hardirqs last disabled at (210662): [<c00000000000965c>] program_check_common_virt+0x2bc/0x310
-[ 2401.432688] softirqs last  enabled at (210280): [<c000000000547de4>] xfs_buf_find.isra.31+0xb54/0x1060
-[ 2401.432722] softirqs last disabled at (210278): [<c0000000005476fc>] xfs_buf_find.isra.31+0x46c/0x1060
+[1]: http://lore.kernel.org/r/159630255616.3143511.18110575960499749012.stgit@dwillia2-desk3.amr.corp.intel.com
 
+---
+
+The motivations to go rework memcpy_mcsafe() are that the benefit of
+doing slow and careful copies is obviated on newer CPUs, and that the
+current opt-in list of cpus to instrument recovery is broken relative to
+those cpus.  There is no need to keep an opt-in list up to date on an
+ongoing basis if pmem/dax operations are instrumented for recovery by
+default. With recovery enabled by default the old "mcsafe_key" opt-in to
+careful copying can be made a "fragile" opt-out. Where the "fragile"
+list takes steps to not consume poison across cachelines.
+
+The discussion with Linus made clear that the current "_mcsafe" suffix
+was imprecise to a fault. The operations that are needed by pmem/dax are
+to copy from a source address that might throw #MC to a destination that
+may write-fault, if it is a user page. So copy_to_user_mcsafe() becomes
+copy_mc_to_user() to indicate the separate precautions taken on source
+and destination. copy_mc_to_kernel() is introduced as a version that
+does not expect write-faults on the destination, but is still prepared
+to abort with an error code upon taking #MC.
+
+These patches have received a kbuild-robot build success notification
+across 114 configs, the rebase to v5.9-rc6 did not encounter any
+conflicts, and the merge with tip/master is conflict-free.
+
+---
+
+Dan Williams (2):
+      x86, powerpc: Rename memcpy_mcsafe() to copy_mc_to_{user,kernel}()
+      x86/copy_mc: Introduce copy_mc_generic()
+
+
+ arch/powerpc/Kconfig                               |    2 
+ arch/powerpc/include/asm/string.h                  |    2 
+ arch/powerpc/include/asm/uaccess.h                 |   40 +++--
+ arch/powerpc/lib/Makefile                          |    2 
+ arch/powerpc/lib/copy_mc_64.S                      |    4 
+ arch/x86/Kconfig                                   |    2 
+ arch/x86/Kconfig.debug                             |    2 
+ arch/x86/include/asm/copy_mc_test.h                |   75 +++++++++
+ arch/x86/include/asm/mcsafe_test.h                 |   75 ---------
+ arch/x86/include/asm/string_64.h                   |   32 ----
+ arch/x86/include/asm/uaccess.h                     |   21 +++
+ arch/x86/include/asm/uaccess_64.h                  |   20 --
+ arch/x86/kernel/cpu/mce/core.c                     |    8 -
+ arch/x86/kernel/quirks.c                           |    9 -
+ arch/x86/lib/Makefile                              |    1 
+ arch/x86/lib/copy_mc.c                             |   65 ++++++++
+ arch/x86/lib/copy_mc_64.S                          |  165 ++++++++++++++++++++
+ arch/x86/lib/memcpy_64.S                           |  115 --------------
+ arch/x86/lib/usercopy_64.c                         |   21 ---
+ drivers/md/dm-writecache.c                         |   15 +-
+ drivers/nvdimm/claim.c                             |    2 
+ drivers/nvdimm/pmem.c                              |    6 -
+ include/linux/string.h                             |    9 -
+ include/linux/uaccess.h                            |    9 +
+ include/linux/uio.h                                |   10 +
+ lib/Kconfig                                        |    7 +
+ lib/iov_iter.c                                     |   43 +++--
+ tools/arch/x86/include/asm/mcsafe_test.h           |   13 --
+ tools/arch/x86/lib/memcpy_64.S                     |  115 --------------
+ tools/objtool/check.c                              |    5 -
+ tools/perf/bench/Build                             |    1 
+ tools/perf/bench/mem-memcpy-x86-64-lib.c           |   24 ---
+ tools/testing/nvdimm/test/nfit.c                   |   48 +++---
+ .../testing/selftests/powerpc/copyloops/.gitignore |    2 
+ tools/testing/selftests/powerpc/copyloops/Makefile |    6 -
+ .../selftests/powerpc/copyloops/copy_mc_64.S       |    1 
+ .../selftests/powerpc/copyloops/memcpy_mcsafe_64.S |    1 
+ 37 files changed, 452 insertions(+), 526 deletions(-)
+ rename arch/powerpc/lib/{memcpy_mcsafe_64.S => copy_mc_64.S} (98%)
+ create mode 100644 arch/x86/include/asm/copy_mc_test.h
+ delete mode 100644 arch/x86/include/asm/mcsafe_test.h
+ create mode 100644 arch/x86/lib/copy_mc.c
+ create mode 100644 arch/x86/lib/copy_mc_64.S
+ delete mode 100644 tools/arch/x86/include/asm/mcsafe_test.h
+ delete mode 100644 tools/perf/bench/mem-memcpy-x86-64-lib.c
+ create mode 120000 tools/testing/selftests/powerpc/copyloops/copy_mc_64.S
+ delete mode 120000 tools/testing/selftests/powerpc/copyloops/memcpy_mcsafe_64.S
+
+base-commit: ba4f184e126b751d1bffad5897f263108befc780
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
