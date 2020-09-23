@@ -1,73 +1,81 @@
-Return-Path: <SRS0=pmJe=C7=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=jNTE=DA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 510BAC2D0E2
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Sep 2020 17:26:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D24D7C4727F
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 00:26:59 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EA18322206
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Sep 2020 17:26:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 4FAC52085B
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 00:26:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="ZH2mCww+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EA18322206
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="egeCKs17"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4FAC52085B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9AB7E14DF65C5;
-	Tue, 22 Sep 2020 10:26:11 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 122B5148EAD18;
+	Tue, 22 Sep 2020 17:26:59 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::644; helo=mail-ej1-x644.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x644.google.com (mail-ej1-x644.google.com [IPv6:2a00:1450:4864:20::644])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E721D13C0B47F
-	for <linux-nvdimm@lists.01.org>; Tue, 22 Sep 2020 10:26:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=lklvbxT/+lmiuZzM9UhRSud1j9Tp1BSwOkSXZ0Mlr6g=; b=ZH2mCww+yHNuw6uGcZBhRRn+BG
-	u0b+/jHQ3vtwlEZSlDKWPZMX6ke8M+Bel+7KAIhyAyV0zLuAHiJd9ymZqzI1EZMmFB1s3PazG8m1N
-	68REu1pL5urV8P2rb8BIVClek7sl4Mm3EA0KJtQyIJlpODUmy/71d384NlTu1fRtW0s0q6wj1ke8n
-	yqPngSNxlq4qkbizNRbxg/oY+sChBT70qzmhOL58BXMhSo5VuW/qU1qR+xPhJ5qcQXTD7IMhL6YH2
-	g2QlEfazHCl4ZgSBJsrGEiql7u2YQ30QpTYlbONHPkKUQ6clgmDf7EeC/LOQtOW0LGSRwyxAQemEL
-	xqBT3RvQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kKm37-0003m3-FO; Tue, 22 Sep 2020 17:25:53 +0000
-Date: Tue, 22 Sep 2020 18:25:53 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Subject: Re: NVFS XFS metadata (was: [PATCH] pmem: export the symbols
- __copy_user_flushcache and __copy_from_user_flushcache)
-Message-ID: <20200922172553.GL32101@casper.infradead.org>
-References: <alpine.LRH.2.02.2009151216050.16057@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gW6AvR+RaShHdQzOaEPv9nrq5myXDmywuoCTYDZxk-hw@mail.gmail.com>
- <alpine.LRH.2.02.2009161254400.745@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gD0ZFkfajKTDnJhEEjf+5Av-GH+cHRFoyhzGe8bNEgAA@mail.gmail.com>
- <alpine.LRH.2.02.2009161359540.20710@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009191336380.3478@file01.intranet.prod.int.rdu2.redhat.com>
- <20200922050314.GB12096@dread.disaster.area>
- <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 4DD4A1486BC3B
+	for <linux-nvdimm@lists.01.org>; Tue, 22 Sep 2020 17:26:55 -0700 (PDT)
+Received: by mail-ej1-x644.google.com with SMTP id u21so25394947eja.2
+        for <linux-nvdimm@lists.01.org>; Tue, 22 Sep 2020 17:26:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=mVimv4F4pEyqaeD0LO4zdEDOLVsHvqmHuDl7JJ50ulQ=;
+        b=egeCKs17gt8CwPK7u6srOHG8/XtUaR57acvx0TxFQN4OgfTewTTwNVhJ3xelSuchN5
+         dH/v0TdAhVjm1OyK8YI/T1+nqHAvQGirk70/PXrjkrdJstF0zEVxO5EnN1TxNqfCZaIs
+         sVFUFHg41vJCFF8sHTLjyTKmBQc6j+DXLyARf1yKv3ipC/84wjQsbZkM+FPiwArDH8cJ
+         bKSG7LvIosF6KjiHPL5OTU7DIEfS5cCFKMjLfJ3X4RvlJz61N2TQQVaxEsdJ9C8UZ2Ss
+         6EcJmIO8EzYqFXjqs1VH/T6FFOBJAM/zJ/HxZwB4JnNx4mM4AmtxRYYLWa/cjUZee6+T
+         Cwfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=mVimv4F4pEyqaeD0LO4zdEDOLVsHvqmHuDl7JJ50ulQ=;
+        b=LG6bFGERkFp3kX5qQKK32E10XaiGrQXCwSocNc3lNZsju+vOeTJApE8huzy7TalegF
+         JKLV608XAocwZPBPN9Jv7Cah/LWqEL4YYuvrpWoQ9ni5TQZM8elTUNP0sBfqNQpzCM0h
+         PdGOJoOxog2AojZ+cUPOInT4yn1gRxrvqV0Lsx1idWDgApq/LfzQBfEnRjqecCxU1EVx
+         5dfbUWH7JEvbUEm7ZvUkZaCWZ0FFchZaT+0Zge85iOElWv4Sl5GppUhMAg2+1WelwFO4
+         wL1q4JitweIaZ4A2Xb+FEjkx2s5tP9ffKFbxQH1J7+r1+HpQZfJxFN/vsD6OeYte/fEB
+         ZK+w==
+X-Gm-Message-State: AOAM530rFpq41d5j9iZaencGZi8E4Bnloco9FZ6nqck9K5w2ykrqz2Dy
+	655Qydsx4hTAb3j3+/A4O8BgFDMuLlEdAgpeF3+kQw==
+X-Google-Smtp-Source: ABdhPJzMI1hBpS5IYBJf0bWw0qKhmM688XSDWbxykQZ6wRaR8yLKTmjvfdk/TFFeszIL860KBJljCLyAkyMM+SAS30U=
+X-Received: by 2002:a17:906:2354:: with SMTP id m20mr7460553eja.341.1600820812915;
+ Tue, 22 Sep 2020 17:26:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com>
-Message-ID-Hash: ADDK4QB2NKBN4FWQVYFJ37IOVHPIOSQC
-X-Message-ID-Hash: ADDK4QB2NKBN4FWQVYFJ37IOVHPIOSQC
-X-MailFrom: willy@infradead.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Dave Chinner <david@fromorbit.com>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+References: <159630256804.3143511.8894023468833792004.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20200803094257.GA23458@shao2-debian> <20200806133452.GA2077191@gmail.com>
+ <CAPcyv4hS7K0Arrd+C0LhjrFH=yGJf3g55_WkHOET4z58AcWrJw@mail.gmail.com> <20200806153500.GC2131635@gmail.com>
+In-Reply-To: <20200806153500.GC2131635@gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 22 Sep 2020 17:26:41 -0700
+Message-ID: <CAPcyv4jk8TRDSJVmN_sAbqkHAQa4gvE2_k4Vrg1aUOikX44yMA@mail.gmail.com>
+Subject: Re: [x86/copy_mc] a0ac629ebe: fio.read_iops -43.3% regression
+To: Ingo Molnar <mingo@kernel.org>
+Message-ID-Hash: 5FJO4ONT44IEXJ2M2XEF6HNOMZGRNPPK
+X-Message-ID-Hash: 5FJO4ONT44IEXJ2M2XEF6HNOMZGRNPPK
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: kernel test robot <rong.a.chen@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, X86 ML <x86@kernel.org>, stable <stable@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Tony Luck <tony.luck@intel.com>, Erwin Tsaur <erwin.tsaur@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, 0day robot <lkp@intel.com>, lkp@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ADDK4QB2NKBN4FWQVYFJ37IOVHPIOSQC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5FJO4ONT44IEXJ2M2XEF6HNOMZGRNPPK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -76,82 +84,64 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 22, 2020 at 12:46:05PM -0400, Mikulas Patocka wrote:
-> I agree that the b+tree were a good choice for XFS.
-> 
-> In RAM-based maps, red-black trees or avl trees are used often. In 
-> disk-based maps, btrees or b+trees are used. That's because in RAM, you 
-> are optimizing for the number of cache lines accessed, and on the disk, 
-> you are optimizing for the number of blocks accessed.
+On Thu, Aug 6, 2020 at 8:35 AM Ingo Molnar <mingo@kernel.org> wrote:
+>
+>
+> * Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> > On Thu, Aug 6, 2020 at 6:35 AM Ingo Molnar <mingo@kernel.org> wrote:
+> > >
+> > >
+> > > * kernel test robot <rong.a.chen@intel.com> wrote:
+> > >
+> > > > Greeting,
+> > > >
+> > > > FYI, we noticed a -43.3% regression of fio.read_iops due to commit:
+> > > >
+> > > >
+> > > > commit: a0ac629ebe7b3d248cb93807782a00d9142fdb98 ("x86/copy_mc: Introduce copy_mc_generic()")
+> > > > url: https://github.com/0day-ci/linux/commits/Dan-Williams/Renovate-memcpy_mcsafe-with-copy_mc_to_-user-kernel/20200802-014046
+> > > >
+> > > >
+> > > > in testcase: fio-basic
+> > > > on test machine: 96 threads Intel(R) Xeon(R) Gold 6252 CPU @ 2.10GHz with 256G memory
+> > > > with following parameters:
+> > >
+> > > So this performance regression, if it isn't a spurious result, looks
+> > > concerning. Is this expected?
+> >
+> > This is not expected and I think delays these patches until I'm back
+> > from leave in a few weeks. I know that we might lose some inlining
+> > effect due to replacing native memcpy, but I did not expect it would
+> > have an impact like this. In my testing I was seeing a performance
+> > improvement from replacing the careful / open-coded copy with rep;
+> > mov;, which increases the surprise of this result.
+>
+> It would be nice to double check this on the kernel-test-robot side as
+> well, to make sure it's not a false positive.
 
-That's because software hasn't yet caught up to modern hardware.  An
-in-memory btree outperforms an rbtree for several reasons:
+Circling back to this, I found the bug. This incremental patch nearly
+doubles the iops in the case when copy_mc_fragile() is enabled because
+it was turning around and redoing the copy with copy_mc_generic(). So
+this would have been a regression for existing systems that indicate
+that "carefu/fragilel" copying can avoid some PCC=1 machine checks. My
+performance checkout was comparing copy_mc_fragile() and
+copy_mc_generic() in isolation. Refreshed patches inbound.
 
- - rbtrees are taller; the average height of a b-tree with even just
-   8 pointers per level is about half of an rbtree.
- - Not all cachelines are created equal.  The subsequent cacheline
-   of this cacheline is probably already in cache.  If not, it's on its
-   way and will be here shortly.  So a forward scan of this node will be
-   quicker than finding another level of tree.  Our experiments have found
-   a performance improvement with 256-byte B-tree nodes over an rbtree.
- - btrees are (or can be) RCU-safe.  It's very hard to make an rbtree
-   RCU safe.  You can do a seqlock to get most of the benefit, but btrees
-   let you allocate a new node and copy into it, while rbtrees embed the
-   node in the object.
-
-The downside, of course, is that b-trees require external allocations
-while rbtrees embed the node in the object.  So you may need to do
-more allocations.  But filesystems love doing additional allocations;
-they make journalling so much easier.
-
-> BTW. How does XFS "predict" the file size? - so that it allocates extent 
-> of proper size without knowing how big the file will be?
-
-XFS does delayed allocation.  The page cache absorbs the writes and then
-at writeback time, XFS chooses where on storage to put it.  Some things
-break this like O_SYNC and, er, DAX, but it's very effective.
-
-> > The NVFS indirect block tree has a fan-out of 16,
-> 
-> No. The top level in the inode contains 16 blocks (11 direct and 5 
-> indirect). And each indirect block can have 512 pointers (4096/8). You can 
-> format the device with larger block size and this increases the fanout 
-> (the NVFS block size must be greater or equal than the system page size).
-> 
-> 2 levels can map 1GiB (4096*512^2), 3 levels can map 512 GiB, 4 levels can 
-> map 256 TiB and 5 levels can map 128 PiB.
-
-But compare to an unfragmented file ... you can map the entire thing with
-a single entry.  Even if you have to use a leaf node, you can get four
-extents in a single cacheline (and that's a fairly naive leaf node layout;
-I don't know exactly what XFS uses)
-
-> > Rename is another operation that has specific "operation has atomic
-> > behaviour" expectations. I haven't looked at how you've
-> > implementated that yet, but I suspect it also is extremely difficult
-> > to implement in an atomic manner using direct pmem updates to the
-> > directory structures.
-> 
-> There is a small window when renamed inode is neither in source nor in 
-> target directory. Fsck will reclaim such inode and add it to lost+found - 
-> just like on EXT2.
-
-... ouch.  If you have to choose, it'd be better to link it to the second
-directory then unlink it from the first one.  Then your fsck can detect
-it has the wrong count and fix up the count (ie link it into both
-directories rather than neither).
-
-> If you think that the lack of journaling is show-stopper, I can implement 
-> it. But then, I'll have something that has complexity of EXT4 and 
-> performance of EXT4. So that there will no longer be any reason why to use 
-> NVFS over EXT4. Without journaling, it will be faster than EXT4 and it may 
-> attract some users who want good performance and who don't care about GID 
-> and UID being updated atomically, etc.
-
-Well, what's your intent with nvfs?  Do you already have customers in mind
-who want to use this in production, or is this somewhere to play with and
-develop concepts that might make it into one of the longer-established
-filesystems?
+diff --git a/arch/x86/lib/copy_mc.c b/arch/x86/lib/copy_mc.c
+index 9e6fac1ab72e..afac844c8f45 100644
+--- a/arch/x86/lib/copy_mc.c
++++ b/arch/x86/lib/copy_mc.c
+@@ -58,7 +58,8 @@ copy_mc_to_user(void *to, const void *from, unsigned len)
+        __uaccess_begin();
+        if (static_branch_unlikely(&copy_mc_fragile_key))
+                ret = copy_mc_fragile(to, from, len);
+-       ret = copy_mc_generic(to, from, len);
++       else
++               ret = copy_mc_generic(to, from, len);
+        __uaccess_end();
+        return ret;
+ }
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
