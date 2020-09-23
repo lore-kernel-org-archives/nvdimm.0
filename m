@@ -2,72 +2,85 @@ Return-Path: <SRS0=jNTE=DA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=BAYES_40,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D07CC4363D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 15:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0087C4741F
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 16:55:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B7E8D21D7D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 15:04:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 711B920936
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 16:55:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="MkYEExTq"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B7E8D21D7D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ELcMngBH"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 711B920936
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2FBFA13E1160E;
-	Wed, 23 Sep 2020 08:04:49 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 11522152E7A1A;
+	Wed, 23 Sep 2020 09:55:12 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=cai@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C81B613E1160C
-	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 08:04:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=Ose8ctZCTv8oUOd9k3tTT76nITLXgVZlsCte1r4Sf9c=; b=MkYEExTq1+wkaz83zMuspp5RjA
-	Ql+JlgSLUtPgJQMk5ZRNIO+I2UvxTYWBAkIXlCxSLKN0kKXI86QBoGjW7A+yKUpkqMuuehrinsPuf
-	iwX4oT+QNjApAyJGa8cH3EwMkixriTNBrfTFPhwDoOaCloAwyeLBZpcBeXr6ULKd7x6mz/VU1mrTF
-	rjgPBXE/KVXkfXpLPhqrWyo99AM+ADFVOdaGRg6A3iJrv8o6ovKyridoI1mwkForkyoK8bF8rFGrw
-	fd8w+PRxzla1bKvhyrYdLqm3AOmAqwCzB8te5Y2Zk6g0lBF64zMFMDuAmKdoz1JjyoTd9K7oNNJHv
-	KnkoQvSQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kL6Jn-0005Kf-EE; Wed, 23 Sep 2020 15:04:27 +0000
-Date: Wed, 23 Sep 2020 16:04:27 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Subject: Re: NVFS XFS metadata (was: [PATCH] pmem: export the symbols
- __copy_user_flushcache and __copy_from_user_flushcache)
-Message-ID: <20200923150427.GP32101@casper.infradead.org>
-References: <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gW6AvR+RaShHdQzOaEPv9nrq5myXDmywuoCTYDZxk-hw@mail.gmail.com>
- <alpine.LRH.2.02.2009161254400.745@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gD0ZFkfajKTDnJhEEjf+5Av-GH+cHRFoyhzGe8bNEgAA@mail.gmail.com>
- <alpine.LRH.2.02.2009161359540.20710@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009191336380.3478@file01.intranet.prod.int.rdu2.redhat.com>
- <20200922050314.GB12096@dread.disaster.area>
- <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com>
- <20200923095739.GC6719@quack2.suse.cz>
- <alpine.LRH.2.02.2009230841110.1800@file01.intranet.prod.int.rdu2.redhat.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.02.2009230841110.1800@file01.intranet.prod.int.rdu2.redhat.com>
-Message-ID-Hash: ADGAV76VHTZWMI4ICG2IBCOVG3TVGKRL
-X-Message-ID-Hash: ADGAV76VHTZWMI4ICG2IBCOVG3TVGKRL
-X-MailFrom: willy@infradead.org
+	by ml01.01.org (Postfix) with ESMTPS id 8E497152E7A0E
+	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 09:55:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1600880109;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=FUSm6Jd9kppSRElqFCFSMQvc3MYe1vIAEmLYr4crmdc=;
+	b=ELcMngBHPT+lcEDaIAYbWY0KmSw4kNg9AhwRAwi6KeDqR3Hhd2ipo1yOf1hCa0CFDYrB6U
+	siLH4ZSDqFsLkqa0F9yTGT7ZAIDxDlwMSZTR2XS4m0DKSRAIiLrSNexDNieWL1C+6Za02P
+	ntl1szzFNwZ7zH2OCK+rQy7UywoN8gk=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-136-F9xQiLQkO7iC0xbWG9znvg-1; Wed, 23 Sep 2020 12:55:05 -0400
+X-MC-Unique: F9xQiLQkO7iC0xbWG9znvg-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 003F4801F9A;
+	Wed, 23 Sep 2020 16:55:03 +0000 (UTC)
+Received: from ovpn-66-35.rdu2.redhat.com (unknown [10.10.67.35])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id A380E1002C04;
+	Wed, 23 Sep 2020 16:55:00 +0000 (UTC)
+Message-ID: <ff8f882fe320e53f5f429fc9a9d4ed85410d7972.camel@redhat.com>
+Subject: Re: [PATCH v2 5/9] iomap: Support arbitrarily many blocks per page
+From: Qian Cai <cai@redhat.com>
+To: Matthew Wilcox <willy@infradead.org>
+Date: Wed, 23 Sep 2020 12:55:00 -0400
+In-Reply-To: <20200923024859.GM32101@casper.infradead.org>
+References: <20200910234707.5504-1-willy@infradead.org>
+	 <20200910234707.5504-6-willy@infradead.org>
+	 <163f852ba12fd9de5dec7c4a2d6b6c7cdb379ebc.camel@redhat.com>
+	 <20200922170526.GK32101@casper.infradead.org>
+	 <95bd1230f2fcf01f690770eb77696862b8fb607b.camel@redhat.com>
+	 <20200923024859.GM32101@casper.infradead.org>
+Mime-Version: 1.0
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Message-ID-Hash: ORB3QD2OYJ7XUI42X3H3CIGE24ETLM7T
+X-Message-ID-Hash: ORB3QD2OYJ7XUI42X3H3CIGE24ETLM7T
+X-MailFrom: cai@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"Darrick J ."@ml01.01.org, Wong@ml01.01.org,
+	" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, "@ml01.01.org,
+	linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org,
+	Dave Kleikamp <shaggy@kernel.org>,
+	jfs-discussion@lists.sourceforge.net,
+	Dave Chinner <dchinner@redhat.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ADGAV76VHTZWMI4ICG2IBCOVG3TVGKRL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ORB3QD2OYJ7XUI42X3H3CIGE24ETLM7T/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -76,20 +89,71 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 23, 2020 at 09:11:43AM -0400, Mikulas Patocka wrote:
-> I also don't know how to implement journling on persistent memory :) On 
-> EXT4 or XFS you can pin dirty buffers in memory until the journal is 
-> flushed. This is obviously impossible on persistent memory. So, I'm 
-> considering implementing only some lightweight journaling that will 
-> guarantee atomicity between just a few writes.
+On Wed, 2020-09-23 at 03:48 +0100, Matthew Wilcox wrote:
+> I'm out of ideas.  Maybe I'll wake up with a better idea in the morning.
+> I've been trying to reproduce this on x86 with a 1kB block size
+> filesystem, and haven't been able to yet.  Maybe I'll try to setup a
+> powerpc cross-compilation environment tomorrow.
 
-That's a bit disappointing considering people have been publishing
-papers on how to do umpteen different variations on persistent memory
-journalling for the last five years.
+Another data point is that this can be reproduced on both arm64 and powerpc
+(both have 64k-size pages) by running this LTP test case:
 
-https://www.google.com/search?q=intel+persistent+memory+atomic+updates
+https://github.com/linux-test-project/ltp/blob/master/testcases/kernel/syscalls/preadv2/preadv203.c
 
-for example
+[ 2397.723289] preadv203 (80525): drop_caches: 3
+[ 2400.796402] XFS (loop0): Unmounting Filesystem
+[ 2401.431293] ------------[ cut here ]------------
+[ 2401.431411] WARNING: CPU: 0 PID: 80501 at fs/iomap/buffered-io.c:78 iomap_page_release+0x250/0x270
+[ 2401.431435] Modules linked in: vfio_pci vfio_virqfd vfio_iommu_spapr_tce vfio vfio_spapr_eeh loop kvm_hv kvm ip_tables x_tables sd_mod bnx2x mdio ahci libahci tg3 libphy libata firmware_class dm_mirror dm_reg
+ion_hash dm_log dm_mod
+[ 2401.431534] CPU: 0 PID: 80501 Comm: preadv203 Not tainted 5.9.0-rc6-next-20200923+ #4
+[ 2401.431567] NIP:  c000000000473b30 LR: c0000000004739ec CTR: c000000000473e80
+[ 2401.431590] REGS: c0000011a7bbf7a0 TRAP: 0700   Not tainted  (5.9.0-rc6-next-20200923+)
+[ 2401.431613] MSR:  9000000000029033 <SF,HV,EE,ME,IR,DR,RI,LE>  CR: 44000244  XER: 20040000
+[ 2401.431655] CFAR: c000000000473a24 IRQMASK: 0 
+               GPR00: c00000000029b6a8 c0000011a7bbfa30 c000000007e87e00 0000000000000005 
+               GPR04: 0000000000000000 0000000000000005 0000000000000005 0000000000000000 
+               GPR08: c00c000806f1f587 087fff8000000037 0000000000000001 c00000000875e028 
+               GPR12: c000000000473e80 c00000000c180000 0000000000000000 0000000000000000 
+               GPR16: 0000000000000000 c0000011a7bbfbb0 c0000011a7bbfbc0 0000000000000000 
+               GPR20: c000000000a4aad8 0000000000000000 0000000000000000 000000000000000f 
+               GPR24: ffffffffffffffff c0000011a7bbfb38 c0000011a7bbfac0 0000000000000000 
+               GPR28: 0000000000000001 c000000ea4fe0a28 0000000000000000 c00c0008071b46c0 
+[ 2401.431856] NIP [c000000000473b30] iomap_page_release+0x250/0x270
+[ 2401.431878] LR [c0000000004739ec] iomap_page_release+0x10c/0x270
+[ 2401.431899] Call Trace:
+[ 2401.431926] [c0000011a7bbfa30] [c0000011a7bbfac0] 0xc0000011a7bbfac0 (unreliable)
+[ 2401.431962] [c0000011a7bbfa70] [c00000000029b6a8] truncate_cleanup_page+0x188/0x2e0
+[ 2401.431987] [c0000011a7bbfaa0] [c00000000029c62c] truncate_inode_pages_range+0x23c/0x9f0
+[ 2401.432023] [c0000011a7bbfcc0] [c0000000003d9588] evict+0x1e8/0x200
+[ 2401.432055] [c0000011a7bbfd00] [c0000000003c64b0] do_unlinkat+0x2d0/0x3a0
+[ 2401.432081] [c0000011a7bbfdc0] [c00000000002a458] system_call_exception+0xf8/0x1d0
+[ 2401.432097] [c0000011a7bbfe20] [c00000000000d0a8] system_call_common+0xe8/0x218
+[ 2401.432120] Instruction dump:
+[ 2401.432140] 3c82f8ba 388490b8 4be655b1 60000000 0fe00000 60000000 60000000 60000000 
+[ 2401.432176] 0fe00000 4bfffea8 60000000 60000000 <0fe00000> 4bfffef4 60000000 60000000 
+[ 2401.432213] CPU: 0 PID: 80501 Comm: preadv203 Not tainted 5.9.0-rc6-next-20200923+ #4
+[ 2401.432245] Call Trace:
+[ 2401.432255] [c0000011a7bbf590] [c000000000644778] dump_stack+0xec/0x144 (unreliable)
+[ 2401.432284] [c0000011a7bbf5d0] [c0000000000b0a24] __warn+0xc4/0x144
+[ 2401.432298] [c0000011a7bbf660] [c000000000643388] report_bug+0x108/0x1f0
+[ 2401.432331] [c0000011a7bbf700] [c000000000021714] program_check_exception+0x104/0x2e0
+[ 2401.432359] [c0000011a7bbf730] [c000000000009664] program_check_common_virt+0x2c4/0x310
+[ 2401.432385] --- interrupt: 700 at iomap_page_release+0x250/0x270
+                   LR = iomap_page_release+0x10c/0x270
+[ 2401.432420] [c0000011a7bbfa30] [c0000011a7bbfac0] 0xc0000011a7bbfac0 (unreliable)
+[ 2401.432446] [c0000011a7bbfa70] [c00000000029b6a8] truncate_cleanup_page+0x188/0x2e0
+[ 2401.432470] [c0000011a7bbfaa0] [c00000000029c62c] truncate_inode_pages_range+0x23c/0x9f0
+[ 2401.432505] [c0000011a7bbfcc0] [c0000000003d9588] evict+0x1e8/0x200
+[ 2401.432528] [c0000011a7bbfd00] [c0000000003c64b0] do_unlinkat+0x2d0/0x3a0
+[ 2401.432552] [c0000011a7bbfdc0] [c00000000002a458] system_call_exception+0xf8/0x1d0
+[ 2401.432576] [c0000011a7bbfe20] [c00000000000d0a8] system_call_common+0xe8/0x218
+[ 2401.432599] irq event stamp: 210662
+[ 2401.432619] hardirqs last  enabled at (210661): [<c0000000008d32bc>] _raw_spin_unlock_irq+0x3c/0x70
+[ 2401.432652] hardirqs last disabled at (210662): [<c00000000000965c>] program_check_common_virt+0x2bc/0x310
+[ 2401.432688] softirqs last  enabled at (210280): [<c000000000547de4>] xfs_buf_find.isra.31+0xb54/0x1060
+[ 2401.432722] softirqs last disabled at (210278): [<c0000000005476fc>] xfs_buf_find.isra.31+0x46c/0x1060
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
