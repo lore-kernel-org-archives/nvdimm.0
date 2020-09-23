@@ -2,65 +2,51 @@ Return-Path: <SRS0=jNTE=DA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6206FC4741F
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 09:57:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B349C2D0A8
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 12:59:11 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D119F2076A
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 09:57:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D119F2076A
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+	by mail.kernel.org (Postfix) with ESMTPS id 540C42145D
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 12:59:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 540C42145D
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=sent-via.netsuite.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6E185151267E7;
-	Wed, 23 Sep 2020 02:57:44 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A334415093C17
-	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 02:57:41 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 4DCB9AFFB;
-	Wed, 23 Sep 2020 09:58:17 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-	id 968EF1E12E3; Wed, 23 Sep 2020 11:57:39 +0200 (CEST)
-Date: Wed, 23 Sep 2020 11:57:39 +0200
-From: Jan Kara <jack@suse.cz>
-To: Mikulas Patocka <mpatocka@redhat.com>
-Subject: Re: NVFS XFS metadata (was: [PATCH] pmem: export the symbols
- __copy_user_flushcache and __copy_from_user_flushcache)
-Message-ID: <20200923095739.GC6719@quack2.suse.cz>
-References: <alpine.LRH.2.02.2009151216050.16057@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gW6AvR+RaShHdQzOaEPv9nrq5myXDmywuoCTYDZxk-hw@mail.gmail.com>
- <alpine.LRH.2.02.2009161254400.745@file01.intranet.prod.int.rdu2.redhat.com>
- <CAPcyv4gD0ZFkfajKTDnJhEEjf+5Av-GH+cHRFoyhzGe8bNEgAA@mail.gmail.com>
- <alpine.LRH.2.02.2009161359540.20710@file01.intranet.prod.int.rdu2.redhat.com>
- <alpine.LRH.2.02.2009191336380.3478@file01.intranet.prod.int.rdu2.redhat.com>
- <20200922050314.GB12096@dread.disaster.area>
- <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com>
+	by ml01.01.org (Postfix) with ESMTP id 6B0681515D397;
+	Wed, 23 Sep 2020 05:59:09 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=79.100.162.206; helo=79-100-162-206.ip.btc-net.bg; envelope-from=ladybugs@acct034.prod.chi.netledger.com; receiver=<UNKNOWN> 
+Received: from 79-100-162-206.ip.btc-net.bg (79-100-162-206.ip.btc-net.bg [79.100.162.206])
+	by ml01.01.org (Postfix) with ESMTP id 2224B150AE6CD
+	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 05:59:05 -0700 (PDT)
+Received: from  (
+ [57.32.185.153])        by 79-100-162-206.ip.btc-net.bg with SMTP id
+ D3q4XaVrDBaU3J.309; Wed, 23 Sep 2020 14:59:05 +0200
+Received: from [36.205.103.101] (account ticklishn5523@nmail001.na2.netsuite.com HELO fcei.fwmmwj.lu)
+	by 79-100-162-206.ip.btc-net.bg (Postfix)
+	with esmtpa id 0D4C444F9B4F for linux-nvdimm@lists.01.org; Wed, 23 Sep 2020 14:59:05 +0200
+To: linux-nvdimm@lists.01.org
+Subject: Invoice INV935439
+From: "Billing Support" <system@sent-via.netsuite.com>
+Date: Wed, 23 Sep 2020 14:59:05 +0200
+Thread-Index: vOnwhBmVgE5S2N80eFPun29FQoqmK==
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: 27L4K7CS2XBWBCQ5UYCOEKQN3ROFY233
-X-Message-ID-Hash: 27L4K7CS2XBWBCQ5UYCOEKQN3ROFY233
-X-MailFrom: jack@suse.cz
+Message-ID: <07cd01e045207f.295f6e@zec.acct034.prod.chi.netledger.com>
+Message-ID-Hash: BVYJCFUQ6E4KJCM66QWSI33FGGXDUNLK
+X-Message-ID-Hash: BVYJCFUQ6E4KJCM66QWSI33FGGXDUNLK
+X-MailFrom: ladybugs@acct034.prod.chi.netledger.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Dave Chinner <david@fromorbit.com>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Content-Disposition: inline
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/27L4K7CS2XBWBCQ5UYCOEKQN3ROFY233/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BVYJCFUQ6E4KJCM66QWSI33FGGXDUNLK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,59 +55,15 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue 22-09-20 12:46:05, Mikulas Patocka wrote:
-> > mapping 2^21 blocks requires a 5 level indirect tree. Which one if going 
-> > to be faster to truncate away - a single record or 2 million individual 
-> > blocks?
-> > 
-> > IOWs, we can take afford to take an extra cacheline miss or two on a
-> > tree block search, because we're accessing and managing orders of
-> > magnitude fewer records in the mapping tree than an indirect block
-> > tree.
-> > 
-> > PMEM doesn't change this: extents are more time and space efficient
-> > at scale for mapping trees than indirect block trees regardless
-> > of the storage medium in use.
-> 
-> PMEM doesn't have to be read linearly, so the attempts to allocate large 
-> linear space are not needed. They won't harm but they won't help either.
-> 
-> That's why NVFS has very simple block allocation alrogithm - it uses a 
-> per-cpu pointer and tries to allocate by a bit scan from this pointer. If 
-> the group is full, it tries a random group with above-average number of 
-> free blocks.
+We appreciate your prompt attention and payment of this invoice at your earliest convenience.
 
-I agree with Dave here. People are interested in 2MB or 1GB contiguous
-allocations for DAX so that files can be mapped at PMD or event PUD levels
-thus saving a lot of CPU time on page faults and TLB.
+Please find attached your invoice.
 
-> EXT4 uses bit scan for allocations and people haven't complained that it's 
-> inefficient, so it is probably OK.
+    Invoice Due Date:      09/23/2020
+    Invoice Total Amount:  $1,313.00
 
-Yes, it is more or less OK but once you get to 1TB filesystem size and
-larger, the number of block groups grows enough that it isn't that great
-anymore. We are actually considering new allocation schemes for ext4 for
-this large filesystems...
+Best Regards
 
-> If you think that the lack of journaling is show-stopper, I can implement 
-> it. But then, I'll have something that has complexity of EXT4 and 
-> performance of EXT4. So that there will no longer be any reason why to use 
-> NVFS over EXT4. Without journaling, it will be faster than EXT4 and it may 
-> attract some users who want good performance and who don't care about GID 
-> and UID being updated atomically, etc.
-
-I'd hope that your filesystem offers more performance benefits than just
-what you can get from a lack of journalling :). ext4 can be configured to
-run without a journal as well - mkfs.ext4 -O ^has_journal. And yes, it does
-significantly improve performance for some workloads but you have to have
-some way to recover from crashes so it's mostly used for scratch
-filesystems (e.g. in build systems, Google uses this feature a lot for some
-of their infrastructure as well).
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
