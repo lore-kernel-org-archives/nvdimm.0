@@ -2,126 +2,61 @@ Return-Path: <SRS0=b8rN=DB=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26BF1C4346E
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 07:26:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3EB7C4727D
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 13:29:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6FDA4235F7
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 07:26:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 8D75A23A52
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 13:29:22 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="N5n4zuOM"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6FDA4235F7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="XiiU0oQ0"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8D75A23A52
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BF46F15281517;
-	Thu, 24 Sep 2020 00:26:11 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 37B3913DB2C00;
+	Thu, 24 Sep 2020 06:29:22 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7F04115281513
-	for <linux-nvdimm@lists.01.org>; Thu, 24 Sep 2020 00:26:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1600932367;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=sfgIAySa/A08wWDXkoelNWjNVbM5AALzahJpdX5IxUs=;
-	b=N5n4zuOM5s+kbiHaOF+/BRwURB+LT9cwcrhThrQaPnKYkCNi+GYwTwTT2X1S2BEXr7ArGF
-	lj5YbeGjIOaE5KvTpxn7HEhxFP/3nEepJXvTZf05SFNMeKwtixnAgwXeQfn0B1OBtFb8v/
-	nqfQQDTJOmt397YHdaIJx78oDqgakbs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-310-zmkHPT1BP3STx7H0xp7Phw-1; Thu, 24 Sep 2020 03:26:03 -0400
-X-MC-Unique: zmkHPT1BP3STx7H0xp7Phw-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTPS id EFB231544908C
+	for <linux-nvdimm@lists.01.org>; Thu, 24 Sep 2020 06:29:19 -0700 (PDT)
+Received: from aquarius.haifa.ibm.com (nesher1.haifa.il.ibm.com [195.110.40.7])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8E0B2186DD28;
-	Thu, 24 Sep 2020 07:26:01 +0000 (UTC)
-Received: from [10.36.114.4] (ovpn-114-4.ams2.redhat.com [10.36.114.4])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 91BC578828;
-	Thu, 24 Sep 2020 07:25:58 +0000 (UTC)
-Subject: Re: [PATCH v4 11/23] device-dax: Kill dax_kmem_res
-To: Dan Williams <dan.j.williams@intel.com>
-References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159643100485.4062302.976628339798536960.stgit@dwillia2-desk3.amr.corp.intel.com>
- <a3ad70a2-77a8-d50e-f372-731a8e27c03b@redhat.com>
- <17686fcc-202e-0982-d0de-54d5349cfb5d@oracle.com>
- <9acc6148-72eb-7016-dba9-46fa87ded5a5@redhat.com>
- <CAPcyv4h5GGV3F-0rFY_pyv9Bj8LAkrwXruxGE=K2y9=dA8oDHw@mail.gmail.com>
-From: David Hildenbrand <david@redhat.com>
-Autocrypt: addr=david@redhat.com; prefer-encrypt=mutual; keydata=
- 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
- WNyWQQ==
-Organization: Red Hat GmbH
-Message-ID: <d160c05b-9caa-1ffb-9c01-5bb261c744b5@redhat.com>
-Date: Thu, 24 Sep 2020 09:25:57 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.11.0
+	by mail.kernel.org (Postfix) with ESMTPSA id E1A6D2076D;
+	Thu, 24 Sep 2020 13:29:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1600954159;
+	bh=oMnQkmIke2EbG8i1xZ6PRGZiyu34wgJzYF+0mpDqH74=;
+	h=From:To:Cc:Subject:Date:From;
+	b=XiiU0oQ0I8gxLMSVN9RQEEmvUcp2Am+QmdMIuSNpjeQAdhy185feEYovF6YTIr5Vz
+	 XME0HCGcvBadbdH3QboRSOdukRZWPL6DBjqVqMhMVhRbbRIWYSC0Vz9dbDs9577fXw
+	 x7MPVWPytFrdo94kQiywkxhotxdf1F9r1kNH1oBc=
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v6 0/6] mm: introduce memfd_secret system call to create "secret" memory areas
+Date: Thu, 24 Sep 2020 16:28:58 +0300
+Message-Id: <20200924132904.1391-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4h5GGV3F-0rFY_pyv9Bj8LAkrwXruxGE=K2y9=dA8oDHw@mail.gmail.com>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-Message-ID-Hash: KDVPHIMFPBUYNIUAA543WP7KSPCRWCCK
-X-Message-ID-Hash: KDVPHIMFPBUYNIUAA543WP7KSPCRWCCK
-X-MailFrom: david@redhat.com
+Message-ID-Hash: GB6RRT2VDIR47FRCZLZ6OAKMWCB3XS7L
+X-Message-ID-Hash: GB6RRT2VDIR47FRCZLZ6OAKMWCB3XS7L
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Joao Martins <joao.m.martins@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Peter Zijlstra <peterz@infradead.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
+CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Shuah Khan <shuah@kernel.org>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, lin
+ ux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KDVPHIMFPBUYNIUAA543WP7KSPCRWCCK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GB6RRT2VDIR47FRCZLZ6OAKMWCB3XS7L/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -130,221 +65,134 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 23.09.20 23:41, Dan Williams wrote:
-> On Wed, Sep 23, 2020 at 1:04 AM David Hildenbrand <david@redhat.com> wrote:
->>
->> On 08.09.20 17:33, Joao Martins wrote:
->>> [Sorry for the late response]
->>>
->>> On 8/21/20 11:06 AM, David Hildenbrand wrote:
->>>> On 03.08.20 07:03, Dan Williams wrote:
->>>>> @@ -37,109 +45,94 @@ int dev_dax_kmem_probe(struct device *dev)
->>>>>      * could be mixed in a node with faster memory, causing
->>>>>      * unavoidable performance issues.
->>>>>      */
->>>>> -   numa_node = dev_dax->target_node;
->>>>>     if (numa_node < 0) {
->>>>>             dev_warn(dev, "rejecting DAX region with invalid node: %d\n",
->>>>>                             numa_node);
->>>>>             return -EINVAL;
->>>>>     }
->>>>>
->>>>> -   /* Hotplug starting at the beginning of the next block: */
->>>>> -   kmem_start = ALIGN(range->start, memory_block_size_bytes());
->>>>> -
->>>>> -   kmem_size = range_len(range);
->>>>> -   /* Adjust the size down to compensate for moving up kmem_start: */
->>>>> -   kmem_size -= kmem_start - range->start;
->>>>> -   /* Align the size down to cover only complete blocks: */
->>>>> -   kmem_size &= ~(memory_block_size_bytes() - 1);
->>>>> -   kmem_end = kmem_start + kmem_size;
->>>>> -
->>>>> -   new_res_name = kstrdup(dev_name(dev), GFP_KERNEL);
->>>>> -   if (!new_res_name)
->>>>> +   res_name = kstrdup(dev_name(dev), GFP_KERNEL);
->>>>> +   if (!res_name)
->>>>>             return -ENOMEM;
->>>>>
->>>>> -   /* Region is permanently reserved if hotremove fails. */
->>>>> -   new_res = request_mem_region(kmem_start, kmem_size, new_res_name);
->>>>> -   if (!new_res) {
->>>>> -           dev_warn(dev, "could not reserve region [%pa-%pa]\n",
->>>>> -                    &kmem_start, &kmem_end);
->>>>> -           kfree(new_res_name);
->>>>> +   res = request_mem_region(range.start, range_len(&range), res_name);
->>>>
->>>> I think our range could be empty after aligning. I assume
->>>> request_mem_region() would check that, but maybe we could report a
->>>> better error/warning in that case.
->>>>
->>> dax_kmem_range() already returns a memory-block-aligned @range but
->>> IIUC request_mem_region() isn't checking for that. Having said that
->>> the returned @res wouldn't be different from the passed range.start.
->>>
->>>>>     /*
->>>>>      * Ensure that future kexec'd kernels will not treat this as RAM
->>>>>      * automatically.
->>>>>      */
->>>>> -   rc = add_memory_driver_managed(numa_node, new_res->start,
->>>>> -                                  resource_size(new_res), kmem_name);
->>>>> +   rc = add_memory_driver_managed(numa_node, res->start,
->>>>> +                                  resource_size(res), kmem_name);
->>>>> +
->>>>> +   res->flags |= IORESOURCE_BUSY;
->>>>
->>>> Hm, I don't think that's correct. Any specific reason why to mark the
->>>> not-added, unaligned parts BUSY? E.g., walk_system_ram_range() could
->>>> suddenly stumble over it - and e.g., similarly kexec code when trying to
->>>> find memory for placing kexec images. I think we should leave this
->>>> !BUSY, just as it is right now.
->>>>
->>> Agreed.
->>>
->>>>>     if (rc) {
->>>>> -           release_resource(new_res);
->>>>> -           kfree(new_res);
->>>>> -           kfree(new_res_name);
->>>>> +           release_mem_region(range.start, range_len(&range));
->>>>> +           kfree(res_name);
->>>>>             return rc;
->>>>>     }
->>>>> -   dev_dax->dax_kmem_res = new_res;
->>>>> +
->>>>> +   dev_set_drvdata(dev, res_name);
->>>>>
->>>>>     return 0;
->>>>>  }
->>>>>
->>>>>  #ifdef CONFIG_MEMORY_HOTREMOVE
->>>>> -static int dev_dax_kmem_remove(struct device *dev)
->>>>> +static void dax_kmem_release(struct dev_dax *dev_dax)
->>>>>  {
->>>>> -   struct dev_dax *dev_dax = to_dev_dax(dev);
->>>>> -   struct resource *res = dev_dax->dax_kmem_res;
->>>>> -   resource_size_t kmem_start = res->start;
->>>>> -   resource_size_t kmem_size = resource_size(res);
->>>>> -   const char *res_name = res->name;
->>>>>     int rc;
->>>>> +   struct device *dev = &dev_dax->dev;
->>>>> +   const char *res_name = dev_get_drvdata(dev);
->>>>> +   struct range range = dax_kmem_range(dev_dax);
->>>>>
->>>>>     /*
->>>>>      * We have one shot for removing memory, if some memory blocks were not
->>>>>      * offline prior to calling this function remove_memory() will fail, and
->>>>>      * there is no way to hotremove this memory until reboot because device
->>>>> -    * unbind will succeed even if we return failure.
->>>>> +    * unbind will proceed regardless of the remove_memory result.
->>>>>      */
->>>>> -   rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
->>>>> -   if (rc) {
->>>>> -           any_hotremove_failed = true;
->>>>> -           dev_err(dev,
->>>>> -                   "DAX region %pR cannot be hotremoved until the next reboot\n",
->>>>> -                   res);
->>>>> -           return rc;
->>>>> +   rc = remove_memory(dev_dax->target_node, range.start, range_len(&range));
->>>>> +   if (rc == 0) {
->>>>
->>>> if (!rc) ?
->>>>
->>> Better off would be to keep the old order:
->>>
->>>       if (rc) {
->>>               any_hotremove_failed = true;
->>>               dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
->>>                               range.start, range.end);
->>>               return;
->>>       }
->>>
->>>       release_mem_region(range.start, range_len(&range));
->>>       dev_set_drvdata(dev, NULL);
->>>       kfree(res_name);
->>>       return;
->>>
->>>
->>>>> +           release_mem_region(range.start, range_len(&range));
->>>>
->>>> remove_memory() does a release_mem_region_adjustable(). Don't you
->>>> actually want to release the *unaligned* region you requested?
->>>>
->>> Isn't it what we're doing here?
->>> (The release_mem_region_adjustable() is using the same
->>> dax_kmem-aligned range and there's no split/adjust)
->>>
->>> Meaning right now (+ parent marked as !BUSY), and if I am understanding
->>> this correctly:
->>>
->>> request_mem_region(range.start, range_len)
->>>    __request_region(iomem_res, range.start, range_len) -> alloc @parent
->>> add_memory_driver_managed(parent.start, resource_size(parent))
->>>    __request_region(parent.start, resource_size(parent)) -> alloc @child
->>>
->>> [...]
->>>
->>> remove_memory(range.start, range_len)
->>>  request_mem_region_adjustable(range.start, range_len)
->>>   __release_region(range.start, range_len) -> remove @child
->>>
->>> release_mem_region(range.start, range_len)
->>>   __release_region(range.start, range_len) -> doesn't remove @parent because !BUSY?
->>>
->>> The add/removal of this relies on !BUSY. But now I am wondering if the parent remaining
->>> unreleased is deliberate even on CONFIG_MEMORY_HOTREMOVE=y.
->>>
->>>       Joao
->>>
->>
->> Thinking about it, if we don't set the parent resource BUSY (which is
->> what I think is the right way of doing things), and don't want to store
->> the parent resource pointer, we could add something like
->> lookup_resource() - e.g., lookup_mem_resource() - , however, searching
->> properly in the whole hierarchy (instead of only the first level), and
->> traversing down to the last hierarchy. Then it would be as simple as
->>
->> remove_memory(range.start, range_len)
->> res = lookup_mem_resource(range.start);
->> release_resource(res);
-> 
-> Another thought... I notice that you've taught
-> register_memory_resource() a IORESOURCE_MEM_DRIVER_MANAGED special
-> case. Lets just make the assumption of add_memory_driver_managed()
-> that it is the driver's responsibility to mark the range busy before
-> calling, and the driver's responsibility to release the region. I.e.
-> validate (rather than request) that the range is busy in
-> register_memory_resource(), and teach release_memory_resource() to
-> skip releasing the region when the memory is marked driver managed.
-> That would let dax_kmem drop its manipulation of the 'busy' flag which
-> is a layering violation no matter how many comments we put around it.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-IIUC, that won't work for virtio-mem, whereby the parent resource spans
-multiple possible (future) add_memory_driver_managed() calls and is
-(just like for kmem) a pure indication to which device memory ranges belong.
+Hi,
 
-For example, when exposing 2GB via a virtio-mem device with max 4GB:
+This is an implementation of "secret" mappings backed by a file descriptor. 
+I've dropped the boot time reservation patch for now as it is not strictly
+required for the basic usage and can be easily added later either with or
+without CMA.
 
-(/proc/iomem)
-240000000-33fffffff : virtio0
-  240000000-2bfffffff : System RAM (virtio_mem)
+v6 changes:
+* Silence the warning about missing syscall, thanks to Qian Cai
+* Replace spaces with tabs in Kconfig additions, per Randy
+* Add a selftest. 
 
-And after hotplugging additional 2GB:
+v5 changes:
+* rebase on v5.9-rc5
+* drop boot time memory reservation patch
 
-240000000-33fffffff : virtio0
-  240000000-33fffffff : System RAM (virtio_mem)
+v4 changes:
+* rebase on v5.9-rc1
+* Do not redefine PMD_PAGE_ORDER in fs/dax.c, thanks Kirill
+* Make secret mappings exclusive by default and only require flags to
+  memfd_secret() system call for uncached mappings, thanks again Kirill :)
 
-So marking "virtio0" always BUSY (especially right from the start) would
-be wrong. The assumption is that anything that's IORESOURCE_SYSTEM_RAM
-and IORESOUCE_BUSY is currently added to the system as system RAM (e.g.,
-after add_memory() and friends, or during boot).
+v3 changes:
+* Squash kernel-parameters.txt update into the commit that added the
+  command line option.
+* Make uncached mode explicitly selectable by architectures. For now enable
+  it only on x86.
 
-I do agree that manually clearing the busy flag is ugly. What we most
-probably want is request_mem_region() that performs similar checks (no
-overlaps with existing BUSY resources), but doesn't set the region busy.
+v2 changes:
+* Follow Michael's suggestion and name the new system call 'memfd_secret'
+* Add kernel-parameters documentation about the boot option
+* Fix i386-tinyconfig regression reported by the kbuild bot.
+  CONFIG_SECRETMEM now depends on !EMBEDDED to disable it on small systems
+  from one side and still make it available unconditionally on
+  architectures that support SET_DIRECT_MAP.
+
+The file descriptor backing secret memory mappings is created using a
+dedicated memfd_secret system call The desired protection mode for the
+memory is configured using flags parameter of the system call. The mmap()
+of the file descriptor created with memfd_secret() will create a "secret"
+memory mapping. The pages in that mapping will be marked as not present in
+the direct map and will have desired protection bits set in the user page
+table. For instance, current implementation allows uncached mappings.
+
+Although normally Linux userspace mappings are protected from other users, 
+such secret mappings are useful for environments where a hostile tenant is
+trying to trick the kernel into giving them access to other tenants
+mappings.
+
+Additionally, the secret mappings may be used as a mean to protect guest
+memory in a virtual machine host.
+
+For demonstration of secret memory usage we've created a userspace library
+[1] that does two things: the first is act as a preloader for openssl to
+redirect all the OPENSSL_malloc calls to secret memory meaning any secret
+keys get automatically protected this way and the other thing it does is
+expose the API to the user who needs it. We anticipate that a lot of the
+use cases would be like the openssl one: many toolkits that deal with
+secret keys already have special handling for the memory to try to give
+them greater protection, so this would simply be pluggable into the
+toolkits without any need for user application modification.
+
+I've hesitated whether to continue to use new flags to memfd_create() or to
+add a new system call and I've decided to use a new system call after I've
+started to look into man pages update. There would have been two completely
+independent descriptions and I think it would have been very confusing.
+
+Hiding secret memory mappings behind an anonymous file allows (ab)use of
+the page cache for tracking pages allocated for the "secret" mappings as
+well as using address_space_operations for e.g. page migration callbacks.
+
+The anonymous file may be also used implicitly, like hugetlb files, to
+implement mmap(MAP_SECRET) and use the secret memory areas with "native" mm
+ABIs in the future.
+
+As the fragmentation of the direct map was one of the major concerns raised
+during the previous postings, I've added an amortizing cache of PMD-size
+pages to each file descriptor that is used as an allocation pool for the
+secret memory areas.
+
+v5: https://lore.kernel.org/lkml/20200916073539.3552-1-rppt@kernel.org
+v4: https://lore.kernel.org/lkml/20200818141554.13945-1-rppt@kernel.org
+v3: https://lore.kernel.org/lkml/20200804095035.18778-1-rppt@kernel.org
+v2: https://lore.kernel.org/lkml/20200727162935.31714-1-rppt@kernel.org
+v1: https://lore.kernel.org/lkml/20200720092435.17469-1-rppt@kernel.org
+
+Mike Rapoport (6):
+  mm: add definition of PMD_PAGE_ORDER
+  mmap: make mlock_future_check() global
+  mm: introduce memfd_secret system call to create "secret" memory areas
+  arch, mm: wire up memfd_secret system call were relevant
+  mm: secretmem: use PMD-size pages to amortize direct map fragmentation
+  secretmem: test: add basic selftest for memfd_secret(2)
+
+ arch/Kconfig                              |   7 +
+ arch/arm64/include/asm/unistd.h           |   2 +-
+ arch/arm64/include/asm/unistd32.h         |   2 +
+ arch/arm64/include/uapi/asm/unistd.h      |   1 +
+ arch/riscv/include/asm/unistd.h           |   1 +
+ arch/x86/Kconfig                          |   1 +
+ arch/x86/entry/syscalls/syscall_32.tbl    |   1 +
+ arch/x86/entry/syscalls/syscall_64.tbl    |   1 +
+ fs/dax.c                                  |  11 +-
+ include/linux/pgtable.h                   |   3 +
+ include/linux/syscalls.h                  |   1 +
+ include/uapi/asm-generic/unistd.h         |   7 +-
+ include/uapi/linux/magic.h                |   1 +
+ include/uapi/linux/secretmem.h            |   8 +
+ kernel/sys_ni.c                           |   2 +
+ mm/Kconfig                                |   4 +
+ mm/Makefile                               |   1 +
+ mm/internal.h                             |   3 +
+ mm/mmap.c                                 |   5 +-
+ mm/secretmem.c                            | 333 ++++++++++++++++++++++
+ scripts/checksyscalls.sh                  |   4 +
+ tools/testing/selftests/vm/.gitignore     |   1 +
+ tools/testing/selftests/vm/Makefile       |   3 +-
+ tools/testing/selftests/vm/memfd_secret.c | 296 +++++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests    |  17 ++
+ 25 files changed, 703 insertions(+), 13 deletions(-)
+ create mode 100644 include/uapi/linux/secretmem.h
+ create mode 100644 mm/secretmem.c
+ create mode 100644 tools/testing/selftests/vm/memfd_secret.c
 
 -- 
-Thanks,
-
-David / dhildenb
+2.28.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
