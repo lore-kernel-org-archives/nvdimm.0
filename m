@@ -1,81 +1,67 @@
-Return-Path: <SRS0=jNTE=DA=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=b8rN=DB=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D8E7C4363D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 21:42:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 968A1C2D0A8
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 01:07:38 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9F4F32311A
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Sep 2020 21:42:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 472652145D
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 01:07:38 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="JCni4lxa"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9F4F32311A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="wC6+TkHq"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 472652145D
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 16CF7152121DE;
-	Wed, 23 Sep 2020 14:42:04 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::641; helo=mail-ej1-x641.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id E423E1522C936;
+	Wed, 23 Sep 2020 18:07:37 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 82387152121D6
-	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 14:41:59 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id u21so1677944eja.2
-        for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 14:41:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4h/RkUUdwjIPqFz1gTT0y7JkCLow5mQtN0rQpacgcms=;
-        b=JCni4lxaiZYVrmErS1js3kV9RMqH+yMaUhmxSb2biXg+NxceGuRWwUcjOUYKvuk4EF
-         i7h8djcftPLdWtyW2ZCTbvztQ2QkGV6hyZuyfd+DrsvP0SavOfFcmzLqPgWjao/niJN8
-         xTPjeAdMq/cqzGM7k0A1RxUyzDcgH4Dl0C4KVxc3b7dANp170gJ0fxC5DutOMdDoe+nk
-         wbKwwsTK5gjqSxLEgy64cPvZzJgRmLx6s6uHvM2IFtebLaRY7B8kgLv0WAqOQj+ADboE
-         k/4GYgwXtFFHnQCLp+2XvzJUrtAsOR/+uhlobUfdAfpr9276v1bCYVoP8QbQQyb16alu
-         2x2g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4h/RkUUdwjIPqFz1gTT0y7JkCLow5mQtN0rQpacgcms=;
-        b=U27uif9yH7jcqKE+uCXlTN9xB7BDYPqgFV9+hr5Ud746lQJ19HruT2K6tGP/LQ35d6
-         +aCBDjZiLWc7v20FNCtlsJQasnY8MjYd0U+rfKX8DcEQGOWR8g1/ZE4hb4TCGHQpQn8M
-         ESNb7GF0hWPPOtGPv2W++b7t+XoPhU1Df/3ypUJKyVMZC9orYrD/vjkFEXM/XJ/fWIS9
-         jCjKOgsYUkaEKj/etahNvagenwWoq8s+1pew3COJZ9PLRcDnNvj6QZp/u6ZM3UHk1OJi
-         Cll2LwpNRADHYjbt9yX3D8MklY/nz8IlwkAzA7Dn6ODqZBVO9atnGW0bYy37BCCF6p/e
-         ferw==
-X-Gm-Message-State: AOAM531CdrGEP+DwZ5bFIo2OpR/KHsmICcmCWgifEYux3i9o1WMDXp6j
-	lmyOE39OImaaFYjPcaA4ek6B+EhlJOUjOjE2lWfgfw==
-X-Google-Smtp-Source: ABdhPJwhmaJTy+DwDRpY4gTDZ5tj7/qFfAQYU5pGD1zHam4Ng3Y7EU7X2pGbjv+OHeoNHevly5P95IKLkFku3R9OLDU=
-X-Received: by 2002:a17:906:8289:: with SMTP id h9mr1597984ejx.45.1600897317154;
- Wed, 23 Sep 2020 14:41:57 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 3FD9A1521585C
+	for <linux-nvdimm@lists.01.org>; Wed, 23 Sep 2020 18:07:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=CpRt9L3oSpo9XB/wJ4tlJ8BLy+Ga6XgFjsS66dr9R/g=; b=wC6+TkHqrGD3haqlkJx8wiylpt
+	OieNI52BAZTw2567ZzFYTGBthskGEQQUw+uqPH+4AqIqB6vJ79XAuZhXWhZeCTeeAKqgMTM8XSn85
+	HYyTGODlwKP8hCgVqZgicVfUJ3VkLIFimHr1Dih+ycnp3HzkwcxJWqhw/vxFrmc+9rlDcfz5rnvgW
+	5W7vt7CczMfqoovNsSSXln0UzWYqaitlwBC/WvhjD1QJZ93mMwQwzs1tS0KO5u5VHqTxw3bbIKo7h
+	PQ57lVkX8p4vRfaHvUjf9seoE7o6023/TX0nSweYVUHOiA+PA3WB9xLdwEZhT92DgVKGKR2xKE9kZ
+	y0oraI7Q==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kLFjN-0000zh-0A; Thu, 24 Sep 2020 01:07:29 +0000
+Date: Thu, 24 Sep 2020 02:07:28 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: Qian Cai <cai@redhat.com>
+Subject: Re: [PATCH v2 5/9] iomap: Support arbitrarily many blocks per page
+Message-ID: <20200924010728.GS32101@casper.infradead.org>
+References: <20200910234707.5504-1-willy@infradead.org>
+ <20200910234707.5504-6-willy@infradead.org>
+ <163f852ba12fd9de5dec7c4a2d6b6c7cdb379ebc.camel@redhat.com>
+ <20200922170526.GK32101@casper.infradead.org>
 MIME-Version: 1.0
-References: <159643094279.4062302.17779410714418721328.stgit@dwillia2-desk3.amr.corp.intel.com>
- <159643100485.4062302.976628339798536960.stgit@dwillia2-desk3.amr.corp.intel.com>
- <a3ad70a2-77a8-d50e-f372-731a8e27c03b@redhat.com> <17686fcc-202e-0982-d0de-54d5349cfb5d@oracle.com>
- <9acc6148-72eb-7016-dba9-46fa87ded5a5@redhat.com>
-In-Reply-To: <9acc6148-72eb-7016-dba9-46fa87ded5a5@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Sep 2020 14:41:45 -0700
-Message-ID: <CAPcyv4h5GGV3F-0rFY_pyv9Bj8LAkrwXruxGE=K2y9=dA8oDHw@mail.gmail.com>
-Subject: Re: [PATCH v4 11/23] device-dax: Kill dax_kmem_res
-To: David Hildenbrand <david@redhat.com>
-Message-ID-Hash: B7DUO2QMXKCG7CELLETYLDSKI5G5Z7F3
-X-Message-ID-Hash: B7DUO2QMXKCG7CELLETYLDSKI5G5Z7F3
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Joao Martins <joao.m.martins@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Peter Zijlstra <peterz@infradead.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20200922170526.GK32101@casper.infradead.org>
+Message-ID-Hash: WN6LPEM5EVOX2SKRFKWV6AALXB7PJU7A
+X-Message-ID-Hash: WN6LPEM5EVOX2SKRFKWV6AALXB7PJU7A
+X-MailFrom: willy@infradead.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, "Darrick J . Wong" <darrick.wong@oracle.com>, Christoph Hellwig <hch@infradead.org>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Dave Kleikamp <shaggy@kernel.org>, jfs-discussion@lists.sourceforge.net, Dave Chinner <dchinner@redhat.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/B7DUO2QMXKCG7CELLETYLDSKI5G5Z7F3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WN6LPEM5EVOX2SKRFKWV6AALXB7PJU7A/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -84,191 +70,36 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Sep 23, 2020 at 1:04 AM David Hildenbrand <david@redhat.com> wrote:
->
-> On 08.09.20 17:33, Joao Martins wrote:
-> > [Sorry for the late response]
-> >
-> > On 8/21/20 11:06 AM, David Hildenbrand wrote:
-> >> On 03.08.20 07:03, Dan Williams wrote:
-> >>> @@ -37,109 +45,94 @@ int dev_dax_kmem_probe(struct device *dev)
-> >>>      * could be mixed in a node with faster memory, causing
-> >>>      * unavoidable performance issues.
-> >>>      */
-> >>> -   numa_node = dev_dax->target_node;
-> >>>     if (numa_node < 0) {
-> >>>             dev_warn(dev, "rejecting DAX region with invalid node: %d\n",
-> >>>                             numa_node);
-> >>>             return -EINVAL;
-> >>>     }
-> >>>
-> >>> -   /* Hotplug starting at the beginning of the next block: */
-> >>> -   kmem_start = ALIGN(range->start, memory_block_size_bytes());
-> >>> -
-> >>> -   kmem_size = range_len(range);
-> >>> -   /* Adjust the size down to compensate for moving up kmem_start: */
-> >>> -   kmem_size -= kmem_start - range->start;
-> >>> -   /* Align the size down to cover only complete blocks: */
-> >>> -   kmem_size &= ~(memory_block_size_bytes() - 1);
-> >>> -   kmem_end = kmem_start + kmem_size;
-> >>> -
-> >>> -   new_res_name = kstrdup(dev_name(dev), GFP_KERNEL);
-> >>> -   if (!new_res_name)
-> >>> +   res_name = kstrdup(dev_name(dev), GFP_KERNEL);
-> >>> +   if (!res_name)
-> >>>             return -ENOMEM;
-> >>>
-> >>> -   /* Region is permanently reserved if hotremove fails. */
-> >>> -   new_res = request_mem_region(kmem_start, kmem_size, new_res_name);
-> >>> -   if (!new_res) {
-> >>> -           dev_warn(dev, "could not reserve region [%pa-%pa]\n",
-> >>> -                    &kmem_start, &kmem_end);
-> >>> -           kfree(new_res_name);
-> >>> +   res = request_mem_region(range.start, range_len(&range), res_name);
-> >>
-> >> I think our range could be empty after aligning. I assume
-> >> request_mem_region() would check that, but maybe we could report a
-> >> better error/warning in that case.
-> >>
-> > dax_kmem_range() already returns a memory-block-aligned @range but
-> > IIUC request_mem_region() isn't checking for that. Having said that
-> > the returned @res wouldn't be different from the passed range.start.
-> >
-> >>>     /*
-> >>>      * Ensure that future kexec'd kernels will not treat this as RAM
-> >>>      * automatically.
-> >>>      */
-> >>> -   rc = add_memory_driver_managed(numa_node, new_res->start,
-> >>> -                                  resource_size(new_res), kmem_name);
-> >>> +   rc = add_memory_driver_managed(numa_node, res->start,
-> >>> +                                  resource_size(res), kmem_name);
-> >>> +
-> >>> +   res->flags |= IORESOURCE_BUSY;
-> >>
-> >> Hm, I don't think that's correct. Any specific reason why to mark the
-> >> not-added, unaligned parts BUSY? E.g., walk_system_ram_range() could
-> >> suddenly stumble over it - and e.g., similarly kexec code when trying to
-> >> find memory for placing kexec images. I think we should leave this
-> >> !BUSY, just as it is right now.
-> >>
-> > Agreed.
-> >
-> >>>     if (rc) {
-> >>> -           release_resource(new_res);
-> >>> -           kfree(new_res);
-> >>> -           kfree(new_res_name);
-> >>> +           release_mem_region(range.start, range_len(&range));
-> >>> +           kfree(res_name);
-> >>>             return rc;
-> >>>     }
-> >>> -   dev_dax->dax_kmem_res = new_res;
-> >>> +
-> >>> +   dev_set_drvdata(dev, res_name);
-> >>>
-> >>>     return 0;
-> >>>  }
-> >>>
-> >>>  #ifdef CONFIG_MEMORY_HOTREMOVE
-> >>> -static int dev_dax_kmem_remove(struct device *dev)
-> >>> +static void dax_kmem_release(struct dev_dax *dev_dax)
-> >>>  {
-> >>> -   struct dev_dax *dev_dax = to_dev_dax(dev);
-> >>> -   struct resource *res = dev_dax->dax_kmem_res;
-> >>> -   resource_size_t kmem_start = res->start;
-> >>> -   resource_size_t kmem_size = resource_size(res);
-> >>> -   const char *res_name = res->name;
-> >>>     int rc;
-> >>> +   struct device *dev = &dev_dax->dev;
-> >>> +   const char *res_name = dev_get_drvdata(dev);
-> >>> +   struct range range = dax_kmem_range(dev_dax);
-> >>>
-> >>>     /*
-> >>>      * We have one shot for removing memory, if some memory blocks were not
-> >>>      * offline prior to calling this function remove_memory() will fail, and
-> >>>      * there is no way to hotremove this memory until reboot because device
-> >>> -    * unbind will succeed even if we return failure.
-> >>> +    * unbind will proceed regardless of the remove_memory result.
-> >>>      */
-> >>> -   rc = remove_memory(dev_dax->target_node, kmem_start, kmem_size);
-> >>> -   if (rc) {
-> >>> -           any_hotremove_failed = true;
-> >>> -           dev_err(dev,
-> >>> -                   "DAX region %pR cannot be hotremoved until the next reboot\n",
-> >>> -                   res);
-> >>> -           return rc;
-> >>> +   rc = remove_memory(dev_dax->target_node, range.start, range_len(&range));
-> >>> +   if (rc == 0) {
-> >>
-> >> if (!rc) ?
-> >>
-> > Better off would be to keep the old order:
-> >
-> >       if (rc) {
-> >               any_hotremove_failed = true;
-> >               dev_err(dev, "%#llx-%#llx cannot be hotremoved until the next reboot\n",
-> >                               range.start, range.end);
-> >               return;
-> >       }
-> >
-> >       release_mem_region(range.start, range_len(&range));
-> >       dev_set_drvdata(dev, NULL);
-> >       kfree(res_name);
-> >       return;
-> >
-> >
-> >>> +           release_mem_region(range.start, range_len(&range));
-> >>
-> >> remove_memory() does a release_mem_region_adjustable(). Don't you
-> >> actually want to release the *unaligned* region you requested?
-> >>
-> > Isn't it what we're doing here?
-> > (The release_mem_region_adjustable() is using the same
-> > dax_kmem-aligned range and there's no split/adjust)
-> >
-> > Meaning right now (+ parent marked as !BUSY), and if I am understanding
-> > this correctly:
-> >
-> > request_mem_region(range.start, range_len)
-> >    __request_region(iomem_res, range.start, range_len) -> alloc @parent
-> > add_memory_driver_managed(parent.start, resource_size(parent))
-> >    __request_region(parent.start, resource_size(parent)) -> alloc @child
-> >
-> > [...]
-> >
-> > remove_memory(range.start, range_len)
-> >  request_mem_region_adjustable(range.start, range_len)
-> >   __release_region(range.start, range_len) -> remove @child
-> >
-> > release_mem_region(range.start, range_len)
-> >   __release_region(range.start, range_len) -> doesn't remove @parent because !BUSY?
-> >
-> > The add/removal of this relies on !BUSY. But now I am wondering if the parent remaining
-> > unreleased is deliberate even on CONFIG_MEMORY_HOTREMOVE=y.
-> >
-> >       Joao
-> >
->
-> Thinking about it, if we don't set the parent resource BUSY (which is
-> what I think is the right way of doing things), and don't want to store
-> the parent resource pointer, we could add something like
-> lookup_resource() - e.g., lookup_mem_resource() - , however, searching
-> properly in the whole hierarchy (instead of only the first level), and
-> traversing down to the last hierarchy. Then it would be as simple as
->
-> remove_memory(range.start, range_len)
-> res = lookup_mem_resource(range.start);
-> release_resource(res);
+On Tue, Sep 22, 2020 at 06:05:26PM +0100, Matthew Wilcox wrote:
+> On Tue, Sep 22, 2020 at 12:23:45PM -0400, Qian Cai wrote:
+> > On Fri, 2020-09-11 at 00:47 +0100, Matthew Wilcox (Oracle) wrote:
+> > > Size the uptodate array dynamically to support larger pages in the
+> > > page cache.  With a 64kB page, we're only saving 8 bytes per page today,
+> > > but with a 2MB maximum page size, we'd have to allocate more than 4kB
+> > > per page.  Add a few debugging assertions.
+> > > 
+> > > Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+> > > Reviewed-by: Dave Chinner <dchinner@redhat.com>
+> > 
+> > Some syscall fuzzing will trigger this on powerpc:
+> > 
+> > .config: https://gitlab.com/cailca/linux-mm/-/blob/master/powerpc.config
+> > 
+> > [ 8805.895344][T445431] WARNING: CPU: 61 PID: 445431 at fs/iomap/buffered-io.c:78 iomap_page_release+0x250/0x270
+> 
+> Well, I'm glad it triggered.  That warning is:
+>         WARN_ON_ONCE(bitmap_full(iop->uptodate, nr_blocks) !=
+>                         PageUptodate(page));
+> so there was definitely a problem of some kind.
 
-Another thought... I notice that you've taught
-register_memory_resource() a IORESOURCE_MEM_DRIVER_MANAGED special
-case. Lets just make the assumption of add_memory_driver_managed()
-that it is the driver's responsibility to mark the range busy before
-calling, and the driver's responsibility to release the region. I.e.
-validate (rather than request) that the range is busy in
-register_memory_resource(), and teach release_memory_resource() to
-skip releasing the region when the memory is marked driver managed.
-That would let dax_kmem drop its manipulation of the 'busy' flag which
-is a layering violation no matter how many comments we put around it.
+OK, I'm pretty sure the problem predated this commit, and it's simply
+that I added a warning (looking for something else) that caught this.
+
+I have a tree completly gunked up with debugging code now to try to
+understand the problem better, but my guess is that if you put this
+warning into a previous version, you'd see the same problem occurring
+(and it is a real problem, because we skip writeback of parts of the
+page which are !uptodate).
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
