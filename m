@@ -1,125 +1,111 @@
-Return-Path: <SRS0=b8rN=DB=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=izVh=DC=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E70D2C4727E
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 21:50:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53127C4363D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 25 Sep 2020 02:34:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9A220239CF
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Sep 2020 21:50:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id D43D62137B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 25 Sep 2020 02:34:35 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="mpx4PkaU"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9A220239CF
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="t2Am+bOL"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D43D62137B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6833A154A11E7;
-	Thu, 24 Sep 2020 14:50:20 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::543; helo=mail-ed1-x543.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 8F59F13D0002B;
+	Thu, 24 Sep 2020 19:34:35 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=akpm@linux-foundation.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C919C154A11E5
-	for <linux-nvdimm@lists.01.org>; Thu, 24 Sep 2020 14:50:16 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id j2so418509eds.9
-        for <linux-nvdimm@lists.01.org>; Thu, 24 Sep 2020 14:50:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=VhJeuoj+rOPSJ4IEGV+fYVhmYT10xm972NsSejdMkBg=;
-        b=mpx4PkaUmFFwA1xtz/GJ0EVr677LvVWAywlSsSBXx0ShG6AZt57DEjUoyvLg2RGr7Z
-         XcGgHUDzZZ6KrvKq3epkk490qeNIFUZ7WVyzH3k2hV1MN72qalnnNSh1ZNSDRi2MLtBr
-         E72zTYmp0vKyrWmKXZxOsV3KnQVii0Sr3ANFsR+bCuFKdWlMgcIpCImgEkZKy8/R+I2s
-         sqwBTgWf3Vh9dt4g2rUdVd4/T2tJRyZNBbd2wGucpyMBqUgIUxJmtMstfGcJI553/ICm
-         BHqlmsbvM2Oar8F97gSEIPFqlW9TLbnrBzxk9NNJIwT7vjE1gUjc8bXNcqREFCuIjxEE
-         vIXA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=VhJeuoj+rOPSJ4IEGV+fYVhmYT10xm972NsSejdMkBg=;
-        b=qxlgg1jpeMzQBWsQ2eZ5rVfeGZbVaB2msZv9rNVKj0gFjJYWQRAo2nAKwh/SfL+xzw
-         QMIe6GjoxHCXrAgifzPlnc+zST4nwphjjPTPuVDPztGcMzUN2qe1A5TrCG8d3+Dm2p4Q
-         ft5e9Okfg2ryPPILzV0a3kXdV5DzErnT4fZxMxuA9kd5hKN0Hq1pcDt1VVNcurC/ZmEq
-         oCyAcO/npL0KyO36BX5hQUmgDXvOUSdq9yfuWmpvDflrgSr3wmcbswLlha3HpA/Z7crD
-         AYdiContbSsCTv0m2vIQhbGmqWpDyjpDP40Z3v+po7u/aZjpU+VY+ZkD2cqVo0+99QPK
-         U9NA==
-X-Gm-Message-State: AOAM531FL02OpgRjN5uCLK9ocN6ZtVSgzhB5TyOGlbBKkVxEETlDEAxW
-	f2DghQTaXlKqhLfvz2BdU7Ec4Q1fhTIrZbTZ23q+kw==
-X-Google-Smtp-Source: ABdhPJwxLNwMbKBfN2GZNfdh2odn88qLZ8Gba3MAPoetXp02KpOblT44U8/Ptt6lHHhBfbX75bgCKW+Q3RCxXi3Ppoc=
-X-Received: by 2002:aa7:c511:: with SMTP id o17mr884128edq.300.1600984214693;
- Thu, 24 Sep 2020 14:50:14 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAPcyv4iQ4VnXMU0+_7rfXwPowgcdoABSFUH4WO_3P9vHtWAzPg@mail.gmail.com>
- <79BEC711-C769-432B-9A50-63C6A3AEB0E3@redhat.com>
-In-Reply-To: <79BEC711-C769-432B-9A50-63C6A3AEB0E3@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 24 Sep 2020 14:50:03 -0700
-Message-ID: <CAPcyv4jsUiXTqDtnh_fnm_p4NaX2=c3rrjFe6Efa-oWPkTe-fA@mail.gmail.com>
-Subject: Re: [PATCH v4 11/23] device-dax: Kill dax_kmem_res
-To: David Hildenbrand <david@redhat.com>
-Message-ID-Hash: FLQI5BCYNJJHYIGOJVWS4FQLZYZJ6LCJ
-X-Message-ID-Hash: FLQI5BCYNJJHYIGOJVWS4FQLZYZJ6LCJ
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Joao Martins <joao.m.martins@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Peter Zijlstra <peterz@infradead.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>
+	by ml01.01.org (Postfix) with ESMTPS id 274F613D00022
+	for <linux-nvdimm@lists.01.org>; Thu, 24 Sep 2020 19:34:31 -0700 (PDT)
+Received: from X1 (unknown [104.245.68.101])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id 6CF7620888;
+	Fri, 25 Sep 2020 02:34:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1601001271;
+	bh=Smg4DQZKLT8m1LXboOjRbYbEEA4933QtuIJr9GOx1d4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=t2Am+bOL7aQc+oLElXbYFnp8Y1wlGgthaRTiSGvzkHwzblFnwyTLhHkGuKwh6cPPK
+	 dGNyh6ea1G8zhcYz+2jZ/HAlJJzZS2Hb5uMncrKXCFHO9WgB/ShnWeWBcyoD4aVexB
+	 fTMs8EfOHnI33GKShzqA790tDOYNu8QPGgMsLH84=
+Date: Thu, 24 Sep 2020 19:34:28 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Mike Rapoport <rppt@kernel.org>
+Subject: Re: [PATCH v6 0/6] mm: introduce memfd_secret system call to create
+ "secret" memory areas
+Message-Id: <20200924193428.6642e0cc3436bb67ddf8024a@linux-foundation.org>
+In-Reply-To: <20200924132904.1391-1-rppt@kernel.org>
+References: <20200924132904.1391-1-rppt@kernel.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Message-ID-Hash: NPWY54MZQJUOKS7NJJEFUHVATKLO5Q2E
+X-Message-ID-Hash: NPWY54MZQJUOKS7NJJEFUHVATKLO5Q2E
+X-MailFrom: akpm@linux-foundation.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Shuah Khan <shuah@kernel.org>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-ar
+ m-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FLQI5BCYNJJHYIGOJVWS4FQLZYZJ6LCJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NPWY54MZQJUOKS7NJJEFUHVATKLO5Q2E/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gVGh1LCBTZXAgMjQsIDIwMjAgYXQgMjo0MiBQTSBEYXZpZCBIaWxkZW5icmFuZCA8ZGF2aWRA
-cmVkaGF0LmNvbT4gd3JvdGU6DQo+DQo+DQo+DQo+ID4gQW0gMjQuMDkuMjAyMCB1bSAyMzoyNiBz
-Y2hyaWViIERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPjoNCj4gPg0KPiA+
-IO+7v1suLl0NCj4gPj4+IEknbSBub3Qgc3VnZ2VzdGluZyB0byBidXN5IHRoZSB3aG9sZSAidmly
-dGlvIiByYW5nZSwganVzdCB0aGUgcG9ydGlvbg0KPiA+Pj4gdGhhdCdzIGFib3V0IHRvIGJlIHBh
-c3NlZCB0byBhZGRfbWVtb3J5X2RyaXZlcl9tYW5hZ2VkKCkuDQo+ID4+DQo+ID4+IEknbSBhZnJh
-aWQgSSBkb24ndCBnZXQgeW91ciBwb2ludC4gRm9yIHZpcnRpby1tZW06DQo+ID4+DQo+ID4+IEJl
-Zm9yZToNCj4gPj4NCj4gPj4gMS4gQ3JlYXRlIHZpcnRpbzAgY29udGFpbmVyIHJlc291cmNlDQo+
-ID4+DQo+ID4+IDIuIChzb21ld2hlbiBpbiB0aGUgZnV0dXJlKSBhZGRfbWVtb3J5X2RyaXZlcl9t
-YW5hZ2VkKCkNCj4gPj4gLSBDcmVhdGUgcmVzb3VyY2UgKFN5c3RlbSBSQU0gKHZpcnRpb19tZW0p
-KSwgbWFya2luZyBpdCBidXN5L2RyaXZlcg0KPiA+PiAgIG1hbmFnZWQNCj4gPj4NCj4gPj4gQWZ0
-ZXI6DQo+ID4+DQo+ID4+IDEuIENyZWF0ZSB2aXJ0aW8wIGNvbnRhaW5lciByZXNvdXJjZQ0KPiA+
-Pg0KPiA+PiAyLiAoc29tZXdoZW4gaW4gdGhlIGZ1dHVyZSkgQ3JlYXRlIHJlc291cmNlIChTeXN0
-ZW0gUkFNICh2aXJ0aW9fbWVtKSksDQo+ID4+ICAgbWFya2luZyBpdCBidXN5L2RyaXZlciBtYW5h
-Z2VkDQo+ID4+IDMuIGFkZF9tZW1vcnlfZHJpdmVyX21hbmFnZWQoKQ0KPiA+Pg0KPiA+PiBOb3Qg
-aGVscGZ1bCBvciBzaW1wbGVyIElNSE8uDQo+ID4NCj4gPiBUaGUgY29uY2VybiBJJ20gdHJ5aW5n
-IHRvIGFkZHJlc3MgaXMgdGhlIHRoZW9yZXRpY2FsIHJhY2Ugd2luZG93IGFuZA0KPiA+IGxheWVy
-aW5nIHZpb2xhdGlvbiBpbiB0aGlzIHNlcXVlbmNlIGluIHRoZSBrbWVtIGRyaXZlcjoNCj4gPg0K
-PiA+IDEvIHJlcyA9IHJlcXVlc3RfbWVtX3JlZ2lvbiguLi4pOw0KPiA+IDIvIHJlcy0+ZmxhZ3Mg
-PSBJT1JFU09VUkNFX01FTTsNCj4gPiAzLyBhZGRfbWVtb3J5X2RyaXZlcl9tYW5hZ2VkKCk7DQo+
-ID4NCj4gPiBCZXR3ZWVuIDIvIGFuZCAzLyBzb21ldGhpbmcgY2FuIHJhY2UgYW5kIHRoaW5rIHRo
-YXQgaXQgb3ducyB0aGUNCj4gPiByZWdpb24uIERvIEkgdGhpbmsgaXQgd2lsbCBoYXBwZW4gaW4g
-cHJhY3RpY2UsIG5vLCBidXQgaXQncyBzdGlsbCBhDQo+ID4gcGF0dGVybiB0aGF0IGRlc2VydmVz
-IGNvbWUgY2xlYW51cC4NCj4NCj4gSSB0aGluayBpbiB0aGF0IHVubGlrZWx5IGV2ZW50IChyYXRo
-ZXIgaW1wb3NzaWJsZSksIGFkZF9tZW1vcnlfZHJpdmVyX21hbmFnZWQoKSBzaG91bGQgZmFpbCwg
-ZGV0ZWN0aW5nIGEgY29uZmxpY3RpbmcgKGJ1c3kpIHJlc291cmNlLiBOb3Qgc3VyZSB3aGF0IHdp
-bGwgaGFwcGVuIG5leHQgKCBhbmQgZGlkIG5vdCBkb3VibGUtY2hlY2spLg0KDQphZGRfbWVtb3J5
-X2RyaXZlcl9tYW5hZ2VkKCkgd2lsbCBmYWlsLCBidXQgdGhlIHJlbGVhc2VfbWVtX3JlZ2lvbigp
-IGluDQprbWVtIHRvIHVud2luZCBvbiB0aGUgZXJyb3IgcGF0aCB3aWxsIGRvIHRoZSB3cm9uZyB0
-aGluZyBiZWNhdXNlIHRoYXQNCm90aGVyIGRyaXZlciB0aGlua3MgaXQgZ290IG93bmVyc2hpcCBv
-ZiB0aGUgcmVnaW9uLg0KDQo+IEJ1dCB5ZWFoLCB0aGUgd2F5IHRoZSBCVVNZIGJpdCBpcyBjbGVh
-cmVkIGhlcmUgaXMgd3JvbmcgLSBzaW1wbHkgb3ZlcndyaXRpbmcgb3RoZXIgYml0cy4gQW5kIGl0
-IHdvdWxkIGJlIGV2ZW4gYmV0dGVyIGlmIHdlIGNvdWxkIGF2b2lkIG1hbnVhbGx5IG1lc3Npbmcg
-d2l0aCBmbGFncyBoZXJlLg0KDQpJJ20gb2sgdG8gbGVhdmUgaXQgYWxvbmUgZm9yIG5vdyAoaGFz
-bid0IGJlZW4gYW5kIGxpa2VseSBuZXZlciB3aWxsIGJlDQphIHByb2JsZW0gaW4gcHJhY3RpY2Up
-LCBidXQgSSB0aGluayBpdCB3YXMgc3RpbGwgd29ydGggZ3J1bWJsaW5nDQphYm91dC4gSSdsbCBs
-ZWF2ZSB0aGF0IHBhcnQgb2Yga21lbSBhbG9uZSBpbiB0aGUgdXBjb21pbmcgc3BsaXQgb2YNCmRh
-eF9rbWVtX3JlcyByZW1vdmFsLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVh
-dmVAbGlzdHMuMDEub3JnCg==
+On Thu, 24 Sep 2020 16:28:58 +0300 Mike Rapoport <rppt@kernel.org> wrote:
+
+> From: Mike Rapoport <rppt@linux.ibm.com>
+> 
+> Hi,
+> 
+> This is an implementation of "secret" mappings backed by a file descriptor. 
+> I've dropped the boot time reservation patch for now as it is not strictly
+> required for the basic usage and can be easily added later either with or
+> without CMA.
+> 
+> ...
+> 
+> The file descriptor backing secret memory mappings is created using a
+> dedicated memfd_secret system call The desired protection mode for the
+> memory is configured using flags parameter of the system call. The mmap()
+> of the file descriptor created with memfd_secret() will create a "secret"
+> memory mapping. The pages in that mapping will be marked as not present in
+> the direct map and will have desired protection bits set in the user page
+> table. For instance, current implementation allows uncached mappings.
+> 
+> Although normally Linux userspace mappings are protected from other users, 
+> such secret mappings are useful for environments where a hostile tenant is
+> trying to trick the kernel into giving them access to other tenants
+> mappings.
+> 
+> Additionally, the secret mappings may be used as a mean to protect guest
+> memory in a virtual machine host.
+> 
+> For demonstration of secret memory usage we've created a userspace library
+> [1] that does two things: the first is act as a preloader for openssl to
+
+I can find no [1].
+
+I'm not a fan of the enumerated footnote thing.  Why not inline the url
+right here so readers don't need to jump around?
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
