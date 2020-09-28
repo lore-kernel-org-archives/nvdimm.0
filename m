@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50613C47423
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 892DBC47427
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:34 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1296F2100A
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 4582D20717
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="dLVvuACU"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1296F2100A
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="pHIw/eSw"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4582D20717
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=micron.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A0E0A153A89F2;
+	by ml01.01.org (Postfix) with ESMTP id C5C6A153A89F4;
 	Mon, 28 Sep 2020 09:47:25 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.93.84; helo=nam10-dm6-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
-Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2084.outbound.protection.outlook.com [40.107.93.84])
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.223.66; helo=nam11-dm6-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2066.outbound.protection.outlook.com [40.107.223.66])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 79DE2153A89E0
-	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 09:47:19 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 548BB153A89E0
+	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 09:47:20 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=EtCC92ARPPfcpqR1dzlFGByVOWHkxuoNXnsnWIoeyNzM2znlf5NwOaW5sEMJMIpNxw3a8HrsodjdoBI0In+KnAf3fyiY6gYHW2RzpUShNvhFGd2bhs/JaHW61dolw5fLzYSNaXEhDgk2Gt2xU9QYaN16O0Lxw+elhhKy6RQkz/Urx6oKBCedmKhvVQ/9YlcBgdZz9qqUnuYrsDSWZbp8Aod8/Yk/5Jg/50D1UQl+NWNJ5FODKaEOPit8n8YBNPnriUC+P7sGo63oJM9nMI3qTcL+qS2C0+WEVXIAlMpYWeEFlnTByksykp2mfWGbSTHDiQCYifeAaAT3ZovknKYrfA==
+ b=H+siIJljZg/fMVmyzfezOWQl8MhO1d3iIHMNLgrVZGpVk4KtiKdS9OLQFAKP3GI+/S7yTLW/jWrDreKETmdECnbB+uFDGYSrpu/VkF3ahAF9VUfR9XAtyqJRtMJFEeTLsjckASLqRVTJLwFlJZfwKJnhrPmPm+J+XNV5Y4htLKwSSpkCUMymzCXaGPbHT3/e4QYEKU2cL/0DZLNDtr3y/Vt+3Mo+YScrFdzBBXpVBBvnY1KIQ856Z3gBw930OEPlQ6bXYFZ2SrUs2DetEPb7ezIYMxISU5ZN6ezLpumlHKrCfQLG7ap5+FJQDGQd9tCcrYubfoc1eO3yJbzU1dzI8g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QAKKfvORnGotFJyve2DtMFNoiL/gMzGI2rxg0no78qA=;
- b=IdO6fjgZowQtsC4XvtO3G20pZTV33hkgE+DbOZFcJttWA6rzfarIirG/Bs+5lBMgvaTJkiqSlG0k7MpSXfHsuFMGzk+sWx4EjFdrrYkseBD92Ja7fwpQrxcYUqHRSpZs2xs6v1uY93vaofvp2ID7jjpuEjFCJaQX+Q3zFggl4kCoGwk0sjXfsyED0+nyySp1sEt+BJOsFHWJ1zGK1mdJOWVr4MUwQQu5qct14XUF9ITelhDM2rQ9et0SjShcu+mk/MnjrrHraKQy1UxxlmVHkiD67HPbp5u2931xm8VkdtG2yiaCg4TYoMAZsnyC5YdO/WBPuouIkaPDliAqX9P9+Q==
+ bh=86IORjd/26ilwecTV8lee6Nun5AshsEYn0zs/AmoJQQ=;
+ b=UPdRn4X8VU9SxmUConocjihj1v77WEMWwyGlEQJqUvOQ5HLSvDg+UVlgJ/6bPOTfT7UJ3rrQg9G2R0TBHJAsGzc80yGkryBS5mBKTaTOuM+gSnTpw0OLeiA9mTxi/9SdUX3mns1WApQuGPBG2xKimeR5qqjTAo5oiXhHymJRfkGkeO2o+2FafXZVAbk0LKwkEjwF4PO4D2JT5UBDq0W1lVQ5IG/NALcDyfexpfv/oZbLrwYaLlhnFMMnnpLfDpaY/7502sPiJKqPVtKWyalQKa2lKTd9YkWMKZj27/Ln/tjkiv8qQIK0yVNiKSZeM+mQPlHSYXkXn88FT6DFoLZ+zA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  137.201.242.130) smtp.rcpttodomain=kvack.org smtp.mailfrom=micron.com;
  dmarc=pass (p=none sp=none pct=100) action=none header.from=micron.com;
@@ -42,18 +42,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=micron.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=QAKKfvORnGotFJyve2DtMFNoiL/gMzGI2rxg0no78qA=;
- b=dLVvuACUraQ6N73CVZJgsg/SG6Tavt6LtuNXOtNPw5mon2Nomc27y9Yt1Q9UeIj2KJImYd9nN6QP2+Gtb8vl4p1w8xfKq7imvwLc+C60/CtehjVZDOTynBE19mKTBecWGFinVZMTW2XvqxS9TDI4aSbrIGWCWQdnriinGgpMDHA=
-Received: from BN6PR17CA0049.namprd17.prod.outlook.com (2603:10b6:405:75::38)
- by BY5PR08MB6311.namprd08.prod.outlook.com (2603:10b6:a03:1e1::8) with
+ bh=86IORjd/26ilwecTV8lee6Nun5AshsEYn0zs/AmoJQQ=;
+ b=pHIw/eSwLkh0tqU+iOzhZeaOPpyHdGsMoy6iAu52H+hXPy69LmRBPcODFZtd1S/zw7RXKUVX1pp4bIdMofxwNG9bgNXOBBIvF8Vf8yv78jgYqqUYERr34stiNIyhGwczBLqDv2jY8a0/3qVbwPaZO9KpK1wWxFYkSR4a1KN+D5M=
+Received: from BN6PR13CA0045.namprd13.prod.outlook.com (2603:10b6:404:13e::31)
+ by DM6PR08MB6380.namprd08.prod.outlook.com (2603:10b6:5:1e7::12) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20; Mon, 28 Sep
- 2020 16:47:16 +0000
-Received: from BN3NAM01FT020.eop-nam01.prod.protection.outlook.com
- (2603:10b6:405:75:cafe::db) by BN6PR17CA0049.outlook.office365.com
- (2603:10b6:405:75::38) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.21 via Frontend
- Transport; Mon, 28 Sep 2020 16:47:16 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.22; Mon, 28 Sep
+ 2020 16:47:18 +0000
+Received: from BN3NAM01FT028.eop-nam01.prod.protection.outlook.com
+ (2603:10b6:404:13e:cafe::5c) by BN6PR13CA0045.outlook.office365.com
+ (2603:10b6:404:13e::31) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.17 via Frontend
+ Transport; Mon, 28 Sep 2020 16:47:18 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 137.201.242.130)
  smtp.mailfrom=micron.com; kvack.org; dkim=none (message not signed)
  header.d=none;kvack.org; dmarc=pass action=none header.from=micron.com;
@@ -61,19 +61,19 @@ Received-SPF: Pass (protection.outlook.com: domain of micron.com designates
  137.201.242.130 as permitted sender) receiver=protection.outlook.com;
  client-ip=137.201.242.130; helo=mail.micron.com;
 Received: from mail.micron.com (137.201.242.130) by
- BN3NAM01FT020.mail.protection.outlook.com (10.152.67.227) with Microsoft SMTP
+ BN3NAM01FT028.mail.protection.outlook.com (10.152.67.96) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.3412.21 via Frontend Transport; Mon, 28 Sep 2020 16:47:16 +0000
+ 15.20.3412.21 via Frontend Transport; Mon, 28 Sep 2020 16:47:17 +0000
 Received: from micron.com (10.114.5.55) by bowex17c.micron.com
  (137.201.21.211) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 28 Sep
- 2020 10:47:12 -0600
+ 2020 10:47:14 -0600
 From: <nmeeramohide@micron.com>
 To: <linux-kernel@vger.kernel.org>, <linux-block@vger.kernel.org>,
 	<linux-nvme@lists.infradead.org>, <linux-mm@kvack.org>,
 	<linux-nvdimm@lists.01.org>
-Subject: [PATCH 16/22] mpool: add mpool control plane utility routines
-Date: Mon, 28 Sep 2020 11:45:28 -0500
-Message-ID: <20200928164534.48203-17-nmeeramohide@micron.com>
+Subject: [PATCH 18/22] mpool: add object lifecycle management ioctls
+Date: Mon, 28 Sep 2020 11:45:30 -0500
+Message-ID: <20200928164534.48203-19-nmeeramohide@micron.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200928164534.48203-1-nmeeramohide@micron.com>
 References: <20200928164534.48203-1-nmeeramohide@micron.com>
@@ -81,47 +81,46 @@ MIME-Version: 1.0
 X-ClientProxiedBy: bowex17d.micron.com (137.201.21.212) To bowex17c.micron.com
  (137.201.21.211)
 X-TM-AS-Product-Ver: SMEX-12.0.0.1782-8.200.1013-24646.005
-X-TM-AS-Result: No--14.691100-0.000000-31
-X-TM-AS-MatchedID: 700076-703504-702422-704714-704926-701342-701478-703215-7
-	03967-704983-704929-701330-703027-701480-701809-703017-702395-188019-703812
-	-702914-704318-121224-702299-704477-300015-703140-703213-121336-701105-7046
-	73-702754-702617-702433-705022-703173-702298-105700-702876-703285-700863-12
-	1367-139504-703279-701270-704978-703904-703534-701919-704949-703932-700064-
-	702877-701510-703865-704239-117072-701750-700050-702853-106420-704960-70400
-	2-701964-703405-703160-700716-700714-700512-703532-703080-704061-701628-701
-	963-703357-702415-702490-704718-700069-703878-703347-701443-704397-704127-1
-	88199-702102-148004-148036-42000-42003
+X-TM-AS-Result: No--13.608500-0.000000-31
+X-TM-AS-MatchedID: 700076-703812-705244-701791-702732-701515-703408-704985-8
+	47298-703226-701579-703956-701480-702395-188019-704477-704926-703357-702914
+	-704318-700069-701475-703213-105630-105640-701342-704978-704397-703815-7019
+	64-702876-703953-702617-700025-705279-701104-704200-703215-139704-780058-70
+	3129-114012-700458-703958-700337-701343-700224-700002-703325-701893-851458-
+	704612-700737-704264-701270-703694-704401-847575-704418-300015-701750-70449
+	9-703080-700714-703347-703027-704060-702525-700946-148004-148036-20020-4200
+	0-42003
 X-TM-AS-User-Approved-Sender: Yes
 X-TM-AS-User-Blocked-Sender: No
 X-MT-Whitelisted: matched
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 506a84fc-6d57-4582-9d6e-08d863ce283b
-X-MS-TrafficTypeDiagnostic: BY5PR08MB6311:
+X-MS-Office365-Filtering-Correlation-Id: 6be04d05-05c4-4763-bbc7-08d863ce296b
+X-MS-TrafficTypeDiagnostic: DM6PR08MB6380:
 X-Microsoft-Antispam-PRVS: 
- <BY5PR08MB6311A752554229FD06F3F284B3350@BY5PR08MB6311.namprd08.prod.outlook.com>
+ <DM6PR08MB638093270EA00BB891D44DB1B3350@DM6PR08MB6380.namprd08.prod.outlook.com>
 X-MS-Exchange-Transport-Forked: True
 X-EXT-ByPass: 1
 X-MT-RULE-Whitelisted: Triggered
-X-MS-Oob-TLC-OOBClassifiers: OLM:348;
+X-MS-Oob-TLC-OOBClassifiers: OLM:108;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	HrycJmhehAkd3nEUNdHXtAxAIXWTbND7G/hGAUYYFDcCbv3BaPCPDZyGxAYqTQgrUpV+JGhSWrF6IDTVovMF5hNHGn0rxAg3rQvW2G059NrPJFIziXOZ7uuGuKOp9pKPZOAvJWs+NDJws4Fv51tic1k9W1eE6eHh8V8Z8MG60M+pO2vg81dbCqvyA3y7wMP/cEu5E2hvpZFMVhRR51dlGMNrRJuwsOdUFSDnuibKyZpRtTXKQI2VIaJVNHkgGICnYyvfc2f1hLxlPmtROBINZHzDPuc2sUM9c9evKLjeexHbutyBCcGbF0ZTiLcJMjn0eP69MmMUjGgjxjeAzO+OB2wt3Fuecoay2YCHPNia7Rap0DOiaLhzOo74pLW6zvpzwZB6ixlAjyVkfHNhWaAi6a87XzV6yA0HZXcTnNeEYll5m9AmS4B1iCXEdo26GJ55h2JMSO72/TmJ52cqM6IYR8Ky3HAWO47yYH4/Us2QS61VIvODf2R5er7eHLltXgiF
+	AKY6J5Qf1v5Cy4NVKenz1rlkQbr01xD8KfBkIEp3iCALGgBD5rbe/UDRTy8ULgpCIB3V3vft1AlBwah6wL7qOQ/eZAxJYvrqV1hCizVTMlsihUv/UVY+1YBXUxwgac9WJafMnw2etE4j6JgvXIm54TBhzYQJ/yuY5qcnyE4bcdN7gJCJD/wZ7DgU3+FP3LcA7DrLaiTI7uOwrVPOikzNLFv3aS5UVrUReKGzoCmmGl7Kfhg8DuMoYdheLkT0duueR371ylMNn1+V1pq7ZnZe89nexDIzBN8oIXPbA/1En3DlkY7sQqA//m0QNpMctBqRgcN65Roq9dUQXZowO3ZYwD9KOFWjKd6/rDqRAbrHFNNg6eBEq+r7jaboUDKOCwAvI94O/MbgdTv+Rh7jIRJVCtX9IQ0+1m6uLfffbJInP/zeOh3q6NZV6ev26wlHbayIUc4bSk4BYAP0Y14KYHFkxbHxXumIyIdS2bZ+exAU0Xfc6ZLaSMm13Zt17AjLDxsDMZLK5vXLtdghaa59nWRylt1bmTr6f6InimQe9SMP6gu8fN0heO4x8rPe7PhsbbR+x3TywW5Mn4lkvLw2sxeE2Etl1wMpDmjzwixXGlsa8/Y1a8iy6SlQKWfoI26MUmBw
 X-Forefront-Antispam-Report: 
-	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(376002)(346002)(396003)(39860400002)(136003)(46966005)(8676002)(478600001)(1076003)(54906003)(316002)(110136005)(6286002)(83380400001)(86362001)(356005)(33310700002)(7636003)(70586007)(70206006)(82310400003)(82740400003)(7696005)(36756003)(2616005)(6666004)(2876002)(4326008)(5660300002)(8936002)(2906002)(426003)(107886003)(26005)(186003)(55016002)(30864003)(336012)(47076004)(2101003);DIR:OUT;SFP:1101;
+	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(136003)(396003)(376002)(346002)(39860400002)(46966005)(33310700002)(26005)(356005)(1076003)(336012)(30864003)(478600001)(55016002)(426003)(7636003)(186003)(5660300002)(82740400003)(966005)(36756003)(70586007)(70206006)(82310400003)(2616005)(7696005)(83380400001)(47076004)(2906002)(6286002)(107886003)(2876002)(4326008)(110136005)(316002)(54906003)(86362001)(8936002)(8676002)(6666004)(71600200004)(2101003)(309714004);DIR:OUT;SFP:1101;
 X-OriginatorOrg: micron.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 16:47:16.0644
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 16:47:17.9985
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 506a84fc-6d57-4582-9d6e-08d863ce283b
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6be04d05-05c4-4763-bbc7-08d863ce296b
 X-MS-Exchange-CrossTenant-Id: f38a5ecd-2813-4862-b11b-ac1d563c806f
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f38a5ecd-2813-4862-b11b-ac1d563c806f;Ip=[137.201.242.130];Helo=[mail.micron.com]
-X-MS-Exchange-CrossTenant-AuthSource: BN3NAM01FT020.eop-nam01.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthSource: BN3NAM01FT028.eop-nam01.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR08MB6311
-Message-ID-Hash: J6OYDOUNG6MDCTDTXFUW7WSKGZUVSR4P
-X-Message-ID-Hash: J6OYDOUNG6MDCTDTXFUW7WSKGZUVSR4P
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM6PR08MB6380
+Message-ID-Hash: M7ZT7GVGLXNOADUDVYI3EURSV6VRSZAZ
+X-Message-ID-Hash: M7ZT7GVGLXNOADUDVYI3EURSV6VRSZAZ
 X-MailFrom: nmeeramohide@micron.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -129,7 +128,7 @@ CC: smoyer@micron.com, gbecker@micron.com, plabat@micron.com, jgroves@micron.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J6OYDOUNG6MDCTDTXFUW7WSKGZUVSR4P/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/M7ZT7GVGLXNOADUDVYI3EURSV6VRSZAZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -140,21 +139,18 @@ Content-Transfer-Encoding: 7bit
 
 From: Nabeel M Mohamed <nmeeramohide@micron.com>
 
-This adds the mpool control plane infrastructure to manage
-mpools.
+This adds the mblock and mlog management ioctls: alloc, commit,
+abort, destroy, read, write, fetch properties etc.
 
-There is a unit object instance for each device object
-created by the mpool driver. A minor number is reserved
-for each unit object.
+The mblock and mlog management ioctl handlers are thin wrappers
+around the core mblock/mlog lifecycle management and IO routines
+introduced in an earlier patch.
 
-The mpool control device (/dev/mpoolctl) gets a minor
-number of 0. An mpool device (/dev/mpool/<mpool_name>)
-gets a minor number > 0. Utility routines exist to lookup
-an mpool unit given its minor number or name.
-
-All units are born with a reference count of two -
-one for the caller and a birth reference that can be released
-only by either destroying the unit or unloading the module.
+The object read/write ioctl handlers utilizes vcache, which is a
+small cache of iovec objects and page pointers. This cache is
+used for large mblock/mlog IO. It acts as an emergency memory
+pool for handling IO requests under memory pressure thereby
+reducing tail latencies.
 
 Co-developed-by: Greg Becker <gbecker@micron.com>
 Signed-off-by: Greg Becker <gbecker@micron.com>
@@ -164,717 +160,747 @@ Co-developed-by: John Groves <jgroves@micron.com>
 Signed-off-by: John Groves <jgroves@micron.com>
 Signed-off-by: Nabeel M Mohamed <nmeeramohide@micron.com>
 ---
- drivers/mpool/init.c  |  20 ++
- drivers/mpool/init.h  |   3 +
- drivers/mpool/mpctl.c | 466 ++++++++++++++++++++++++++++++++++++++++++
- drivers/mpool/mpctl.h |  50 +++++
- drivers/mpool/sysfs.c |  48 +++++
- drivers/mpool/sysfs.h |  48 +++++
- 6 files changed, 635 insertions(+)
- create mode 100644 drivers/mpool/mpctl.c
- create mode 100644 drivers/mpool/mpctl.h
- create mode 100644 drivers/mpool/sysfs.c
- create mode 100644 drivers/mpool/sysfs.h
+ drivers/mpool/mpctl.c | 670 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 667 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mpool/init.c b/drivers/mpool/init.c
-index eb1217f63746..126c6c7142b5 100644
---- a/drivers/mpool/init.c
-+++ b/drivers/mpool/init.c
-@@ -12,10 +12,23 @@
- #include "smap.h"
- #include "pmd_obj.h"
- #include "sb.h"
-+#include "mpctl.h"
+diff --git a/drivers/mpool/mpctl.c b/drivers/mpool/mpctl.c
+index 002321c8689b..03cc0d3c293f 100644
+--- a/drivers/mpool/mpctl.c
++++ b/drivers/mpool/mpctl.c
+@@ -34,6 +34,7 @@
+ #include "assert.h"
  
- /*
-  * Module params...
-  */
-+unsigned int maxunits __read_mostly = 1024;
-+module_param(maxunits, uint, 0444);
-+MODULE_PARM_DESC(maxunits, " max mpools");
-+
-+unsigned int rwsz_max_mb __read_mostly = 32;
-+module_param(rwsz_max_mb, uint, 0444);
-+MODULE_PARM_DESC(rwsz_max_mb, " max mblock/mlog r/w size (mB)");
-+
-+unsigned int rwconc_max __read_mostly = 8;
-+module_param(rwconc_max, uint, 0444);
-+MODULE_PARM_DESC(rwconc_max, " max mblock/mlog large r/w concurrency");
-+
- unsigned int rsvd_bios_max __read_mostly = 16;
- module_param(rsvd_bios_max, uint, 0444);
- MODULE_PARM_DESC(rsvd_bios_max, "max reserved bios in mpool bioset");
-@@ -26,6 +39,7 @@ MODULE_PARM_DESC(chunk_size_kb, "Chunk size (in KiB) for device I/O");
+ #include "mpool_ioctl.h"
++#include "mblock.h"
+ #include "mlog.h"
+ #include "mp.h"
+ #include "mpctl.h"
+@@ -1302,7 +1303,6 @@ static int mpioc_mp_activate(struct mpc_unit *ctl, struct mpioc_mpool *mp,
+ 	mp->mp_params.mp_oidv[0] = cfg.mc_oid1;
+ 	mp->mp_params.mp_oidv[1] = cfg.mc_oid2;
+ 	mp->mp_params.mp_ra_pages_max = cfg.mc_ra_pages_max;
+-	mp->mp_params.mp_vma_size_max = cfg.mc_vma_size_max;
+ 	memcpy(&mp->mp_params.mp_utype, &cfg.mc_utype, sizeof(mp->mp_params.mp_utype));
+ 	strlcpy(mp->mp_params.mp_label, cfg.mc_label, sizeof(mp->mp_params.mp_label));
  
- static void mpool_exit_impl(void)
- {
-+	mpctl_exit();
- 	pmd_exit();
- 	smap_exit();
- 	sb_exit();
-@@ -68,6 +82,12 @@ static __init int mpool_init(void)
- 		goto errout;
- 	}
+@@ -1659,6 +1659,596 @@ static int mpioc_mp_add(struct mpc_unit *unit, struct mpioc_drive *drv)
+ 	return rc;
+ }
  
-+	rc = mpctl_init();
-+	if (rc) {
-+		errmsg = "mpctl init failed";
++
++/**
++ * struct vcache -  very-large-buffer cache...
++ */
++struct vcache {
++	spinlock_t  vc_lock;
++	void       *vc_head;
++	size_t      vc_size;
++} ____cacheline_aligned;
++
++static struct vcache mpc_physio_vcache;
++
++static void *mpc_vcache_alloc(struct vcache *vc, size_t sz)
++{
++	void *p;
++
++	if (!vc || sz > vc->vc_size)
++		return NULL;
++
++	spin_lock(&vc->vc_lock);
++	p = vc->vc_head;
++	if (p)
++		vc->vc_head = *(void **)p;
++	spin_unlock(&vc->vc_lock);
++
++	return p;
++}
++
++static void mpc_vcache_free(struct vcache *vc, void *p)
++{
++	if (!vc || !p)
++		return;
++
++	spin_lock(&vc->vc_lock);
++	*(void **)p = vc->vc_head;
++	vc->vc_head = p;
++	spin_unlock(&vc->vc_lock);
++}
++
++static int mpc_vcache_init(struct vcache *vc, size_t sz, size_t n)
++{
++	if (!vc || sz < PAGE_SIZE || n < 1)
++		return -EINVAL;
++
++	spin_lock_init(&vc->vc_lock);
++	vc->vc_head = NULL;
++	vc->vc_size = sz;
++
++	while (n-- > 0)
++		mpc_vcache_free(vc, vmalloc(sz));
++
++	return vc->vc_head ? 0 : -ENOMEM;
++}
++
++static void mpc_vcache_fini(struct vcache *vc)
++{
++	void *p;
++
++	while ((p = mpc_vcache_alloc(vc, PAGE_SIZE)))
++		vfree(p);
++}
++
++/**
++ * mpc_physio() - Generic raw device mblock read/write routine.
++ * @mpd:      mpool descriptor
++ * @desc:     mblock or mlog descriptor
++ * @uiov:     vector of iovecs that describe user-space segments
++ * @uioc:     count of elements in uiov[]
++ * @offset:   offset into the mblock at which to start reading
++ * @objtype:  mblock or mlog
++ * @rw:       READ or WRITE in regards to the media.
++ * @stkbuf:   caller provided scratch space
++ * @stkbufsz: size of stkbuf
++ *
++ * This function creates an array of iovec objects each of which
++ * map a portion of the user request into kernel space so that
++ * mpool can directly access the user data.  Note that this is
++ * a zero-copy operation.
++ *
++ * Requires that each user-space segment be page aligned and of an
++ * integral number of pages.
++ *
++ * See http://www.makelinux.net/ldd3/chp-15-sect-3 for more detail.
++ */
++static int mpc_physio(struct mpool_descriptor *mpd, void *desc, struct iovec *uiov,
++		      int uioc, off_t offset, enum mp_obj_type objtype, int rw,
++		      void *stkbuf, size_t stkbufsz)
++{
++	struct kvec *iov_base, *iov;
++	struct iov_iter iter;
++	struct page **pagesv;
++	size_t pagesvsz, pgbase, length;
++	int pagesc, niov, rc, i;
++	ssize_t cc;
++
++	iov = NULL;
++	niov = 0;
++	rc = 0;
++
++	length = iov_length(uiov, uioc);
++
++	if (length < PAGE_SIZE || !IS_ALIGNED(length, PAGE_SIZE))
++		return -EINVAL;
++
++	if (length > (rwsz_max_mb << 20))
++		return -EINVAL;
++
++	/*
++	 * Allocate an array of page pointers for iov_iter_get_pages()
++	 * and an array of iovecs for mblock_read() and mblock_write().
++	 *
++	 * Note: the only way we can calculate the number of required
++	 * iovecs in advance is to assume that we need one per page.
++	 */
++	pagesc = length / PAGE_SIZE;
++	pagesvsz = (sizeof(*pagesv) + sizeof(*iov)) * pagesc;
++
++	/*
++	 * pagesvsz may be big, and it will not be used as the iovec_list
++	 * for the block stack - pd will chunk it up to the underlying
++	 * devices (with another iovec list per pd).
++	 */
++	if (pagesvsz > stkbufsz) {
++		pagesv = NULL;
++
++		if (pagesvsz <= PAGE_SIZE * 2)
++			pagesv = kmalloc(pagesvsz, GFP_NOIO);
++
++		while (!pagesv) {
++			pagesv = mpc_vcache_alloc(&mpc_physio_vcache, pagesvsz);
++			if (!pagesv)
++				usleep_range(750, 1250);
++		}
++	} else {
++		pagesv = stkbuf;
++	}
++
++	if (!pagesv)
++		return -ENOMEM;
++
++	iov_base = (struct kvec *)((char *)pagesv + (sizeof(*pagesv) * pagesc));
++
++	iov_iter_init(&iter, rw, uiov, uioc, length);
++
++	for (i = 0, cc = 0; i < pagesc; i += (cc / PAGE_SIZE)) {
++
++		/* Get struct page vector for the user buffers. */
++		cc = iov_iter_get_pages(&iter, &pagesv[i], length - (i * PAGE_SIZE),
++					pagesc - i, &pgbase);
++		if (cc < 0) {
++			rc = cc;
++			pagesc = i;
++			goto errout;
++		}
++
++		/*
++		 * pgbase is the offset into the 1st iovec - our alignment
++		 * requirements force it to be 0
++		 */
++		if (cc < PAGE_SIZE || pgbase != 0) {
++			rc = -EINVAL;
++			pagesc = i + 1;
++			goto errout;
++		}
++
++		iov_iter_advance(&iter, cc);
++	}
++
++	/* Build an array of iovecs for mpool so that it can directly access the user data. */
++	for (i = 0, iov = iov_base; i < pagesc; ++i, ++iov, ++niov) {
++		iov->iov_len = PAGE_SIZE;
++		iov->iov_base = kmap(pagesv[i]);
++
++		if (!iov->iov_base) {
++			rc = -EINVAL;
++			pagesc = i + 1;
++			goto errout;
++		}
++	}
++
++	switch (objtype) {
++	case MP_OBJ_MBLOCK:
++		if (rw == WRITE)
++			rc = mblock_write(mpd, desc, iov_base, niov, pagesc << PAGE_SHIFT);
++		else
++			rc = mblock_read(mpd, desc, iov_base, niov, offset, pagesc << PAGE_SHIFT);
++		break;
++
++	case MP_OBJ_MLOG:
++		rc = mlog_rw_raw(mpd, desc, iov_base, niov, offset, rw);
++		break;
++
++	default:
++		rc = -EINVAL;
 +		goto errout;
 +	}
 +
- errout:
- 	if (rc) {
- 		mp_pr_err("%s", rc, errmsg);
-diff --git a/drivers/mpool/init.h b/drivers/mpool/init.h
-index e02a9672e727..3d8f809a5e45 100644
---- a/drivers/mpool/init.h
-+++ b/drivers/mpool/init.h
-@@ -6,6 +6,9 @@
- #ifndef MPOOL_INIT_H
- #define MPOOL_INIT_H
- 
-+extern unsigned int maxunits;
-+extern unsigned int rwsz_max_mb;
-+extern unsigned int rwconc_max;
- extern unsigned int rsvd_bios_max;
- extern int chunk_size_kb;
- 
-diff --git a/drivers/mpool/mpctl.c b/drivers/mpool/mpctl.c
-new file mode 100644
-index 000000000000..4f3600840ff0
---- /dev/null
-+++ b/drivers/mpool/mpctl.c
-@@ -0,0 +1,466 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/device.h>
-+#include <linux/cdev.h>
-+#include <linux/log2.h>
-+#include <linux/idr.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/blkdev.h>
-+#include <linux/vmalloc.h>
-+#include <linux/memcontrol.h>
-+#include <linux/pagemap.h>
-+#include <linux/kobject.h>
-+#include <linux/mm_inline.h>
-+#include <linux/version.h>
-+#include <linux/kref.h>
-+
-+#include <linux/backing-dev.h>
-+#include <linux/spinlock.h>
-+#include <linux/list.h>
-+#include <linux/rbtree.h>
-+#include <linux/migrate.h>
-+#include <linux/delay.h>
-+#include <linux/ctype.h>
-+#include <linux/uio.h>
-+#include <linux/prefetch.h>
-+
-+#include "mpool_printk.h"
-+#include "assert.h"
-+
-+#include "mpool_ioctl.h"
-+#include "mlog.h"
-+#include "mp.h"
-+#include "mpctl.h"
-+#include "sysfs.h"
-+#include "init.h"
-+
-+
-+#define NODEV               MKDEV(0, 0)    /* Non-existent device */
-+
-+/* mpc pseudo-driver instance data (i.e., all globals live here). */
-+struct mpc_softstate {
-+	struct mutex        ss_lock;        /* Protects ss_unitmap */
-+	struct idr          ss_unitmap;     /* minor-to-unit map */
-+
-+	____cacheline_aligned
-+	struct semaphore    ss_op_sema;     /* Serialize mgmt. ops */
-+	dev_t               ss_devno;       /* Control device devno */
-+	struct cdev         ss_cdev;
-+	struct class       *ss_class;
-+	bool                ss_inited;
-+};
-+
-+/* Unit-type specific information. */
-+struct mpc_uinfo {
-+	const char     *ui_typename;
-+	const char     *ui_subdirfmt;
-+};
-+
-+/* One mpc_mpool object per mpool. */
-+struct mpc_mpool {
-+	struct kref                 mp_ref;
-+	struct rw_semaphore         mp_lock;
-+	struct mpool_descriptor    *mp_desc;
-+	struct mp_mdc              *mp_mdc;
-+	uint                        mp_dpathc;
-+	char                      **mp_dpathv;
-+	char                        mp_name[];
-+};
-+
-+/* The following structures are initialized at the end of this file. */
-+static const struct file_operations mpc_fops_default;
-+
-+static struct mpc_softstate mpc_softstate;
-+
-+static unsigned int mpc_ctl_uid __read_mostly;
-+static unsigned int mpc_ctl_gid __read_mostly = 6;
-+static unsigned int mpc_ctl_mode __read_mostly = 0664;
-+
-+static const struct mpc_uinfo mpc_uinfo_ctl = {
-+	.ui_typename = "mpoolctl",
-+	.ui_subdirfmt = "%s",
-+};
-+
-+static const struct mpc_uinfo mpc_uinfo_mpool = {
-+	.ui_typename = "mpool",
-+	.ui_subdirfmt = "mpool/%s",
-+};
-+
-+static inline bool mpc_unit_isctldev(const struct mpc_unit *unit)
-+{
-+	return (unit->un_uinfo == &mpc_uinfo_ctl);
-+}
-+
-+static inline bool mpc_unit_ismpooldev(const struct mpc_unit *unit)
-+{
-+	return (unit->un_uinfo == &mpc_uinfo_mpool);
-+}
-+
-+static inline uid_t mpc_current_uid(void)
-+{
-+	return from_kuid(current_user_ns(), current_uid());
-+}
-+
-+static inline gid_t mpc_current_gid(void)
-+{
-+	return from_kgid(current_user_ns(), current_gid());
-+}
-+
-+/**
-+ * mpc_mpool_release() - release kref handler for mpc_mpool object
-+ * @refp:  kref pointer
-+ */
-+static void mpc_mpool_release(struct kref *refp)
-+{
-+	struct mpc_mpool *mpool = container_of(refp, struct mpc_mpool, mp_ref);
-+	int rc;
-+
-+	if (mpool->mp_desc) {
-+		rc = mpool_deactivate(mpool->mp_desc);
-+		if (rc)
-+			mp_pr_err("mpool %s deactivate failed", rc, mpool->mp_name);
++errout:
++	for (i = 0, iov = iov_base; i < pagesc; ++i, ++iov) {
++		if (i < niov)
++			kunmap(pagesv[i]);
++		put_page(pagesv[i]);
 +	}
 +
-+	kfree(mpool->mp_dpathv);
-+	kfree(mpool);
-+
-+	module_put(THIS_MODULE);
-+}
-+
-+static void mpc_mpool_put(struct mpc_mpool *mpool)
-+{
-+	kref_put(&mpool->mp_ref, mpc_mpool_release);
-+}
-+
-+/**
-+ * mpc_unit_create() - Create and install a unit object
-+ * @path:         device path under "/dev/" to create
-+ * @mpool:        mpool ptr
-+ * @unitp:        unit ptr
-+ *
-+ * Create a unit object and install a NULL ptr for it in the units map,
-+ * thereby reserving a minor number.  The unit cannot be found by any
-+ * of the lookup routines until the NULL ptr is replaced by the actual
-+ * ptr to the unit.
-+ *
-+ * A unit maps an mpool device (.e.g., /dev/mpool/foo)  to an mpool object
-+ * created by mpool_create().
-+ *
-+ * All units are born with two references, one for the caller and one that
-+ * can only be released by destroying the unit or unloading the module.
-+ *
-+ * Return:  Returns 0 if successful and sets *unitp.
-+ *          Returns -errno on error.
-+ */
-+static int mpc_unit_create(const char *name, struct mpc_mpool *mpool, struct mpc_unit **unitp)
-+{
-+	struct mpc_softstate *ss = &mpc_softstate;
-+	struct mpc_unit *unit;
-+	size_t unitsz;
-+	int minor;
-+
-+	if (!ss || !name || !unitp)
-+		return -EINVAL;
-+
-+	unitsz = sizeof(*unit) + strlen(name) + 1;
-+
-+	unit = kzalloc(unitsz, GFP_KERNEL);
-+	if (!unit)
-+		return -ENOMEM;
-+
-+	strcpy(unit->un_name, name);
-+
-+	sema_init(&unit->un_open_lock, 1);
-+	unit->un_open_excl = false;
-+	unit->un_open_cnt = 0;
-+	unit->un_devno = NODEV;
-+	kref_init(&unit->un_ref);
-+	unit->un_mpool = mpool;
-+
-+	mutex_lock(&ss->ss_lock);
-+	minor = idr_alloc(&ss->ss_unitmap, NULL, 0, -1, GFP_KERNEL);
-+	mutex_unlock(&ss->ss_lock);
-+
-+	if (minor < 0) {
-+		kfree(unit);
-+		return minor;
++	if (pagesvsz > stkbufsz) {
++		if (pagesvsz > PAGE_SIZE * 2)
++			mpc_vcache_free(&mpc_physio_vcache, pagesv);
++		else
++			kfree(pagesv);
 +	}
 +
-+	kref_get(&unit->un_ref); /* acquire additional ref for the caller */
-+
-+	unit->un_devno = MKDEV(MAJOR(ss->ss_cdev.dev), minor);
-+	*unitp = unit;
-+
-+	return 0;
++	return rc;
 +}
 +
 +/**
-+ * mpc_unit_release() - Destroy a unit object created by mpc_unit_create().
-+ * @unit:
++ * mpioc_mb_alloc() - Allocate an mblock object.
++ * @unit:   mpool unit ptr
++ * @mb:     mblock parameter block
++ *
++ * MPIOC_MB_ALLOC ioctl handler to allocate a single mblock.
++ *
++ * Return:  Returns 0 if successful, -errno otherwise...
 + */
-+static void mpc_unit_release(struct kref *refp)
++static int mpioc_mb_alloc(struct mpc_unit *unit, struct mpioc_mblock *mb)
 +{
-+	struct mpc_unit *unit = container_of(refp, struct mpc_unit, un_ref);
-+	struct mpc_softstate *ss = &mpc_softstate;
-+
-+	mutex_lock(&ss->ss_lock);
-+	idr_remove(&ss->ss_unitmap, MINOR(unit->un_devno));
-+	mutex_unlock(&ss->ss_lock);
-+
-+	if (unit->un_mpool)
-+		mpc_mpool_put(unit->un_mpool);
-+
-+	if (unit->un_device)
-+		device_destroy(ss->ss_class, unit->un_devno);
-+
-+	kfree(unit);
-+}
-+
-+static void mpc_unit_put(struct mpc_unit *unit)
-+{
-+	if (unit)
-+		kref_put(&unit->un_ref, mpc_unit_release);
-+}
-+
-+/**
-+ * mpc_unit_setup() - Create a device unit object and special file
-+ * @uinfo:
-+ * @name:
-+ * @cfg:
-+ * @mpool:
-+ * @unitp: unitp can be NULL. *unitp is updated only if unitp is not NULL
-+ *	and no error is returned.
-+ *
-+ * If successful, this function adopts mpool.  On failure, mpool
-+ * remains the responsibility of the caller.
-+ *
-+ * All units are born with two references, one for the caller and one
-+ * that can only be released by destroying the unit or unloading the
-+ * module. If the caller passes in nil for unitp then this function
-+ * will drop the caller's "caller reference" on his behalf.
-+ *
-+ * Return:  Returns 0 on success, -errno otherwise...
-+ */
-+static int mpc_unit_setup(const struct mpc_uinfo *uinfo, const char *name,
-+			  const struct mpool_config *cfg, struct mpc_mpool *mpool,
-+			  struct mpc_unit **unitp)
-+{
-+	struct mpc_softstate *ss = &mpc_softstate;
-+	struct mpc_unit *unit;
-+	struct device *device;
++	struct mblock_descriptor *mblock;
++	struct mpool_descriptor *mpool;
++	struct mblock_props props;
 +	int rc;
 +
-+	if (!ss || !uinfo || !name || !name[0] || !cfg || !unitp)
++	if (!unit || !mb || !unit->un_mpool)
 +		return -EINVAL;
 +
-+	if (cfg->mc_uid == -1 || cfg->mc_gid == -1 || cfg->mc_mode == -1)
-+		return -EINVAL;
++	mpool = unit->un_mpool->mp_desc;
 +
-+	if (!capable(CAP_MKNOD))
-+		return -EPERM;
-+
-+	if (cfg->mc_uid != mpc_current_uid() && !capable(CAP_CHOWN))
-+		return -EPERM;
-+
-+	if (cfg->mc_gid != mpc_current_gid() && !capable(CAP_CHOWN))
-+		return -EPERM;
-+
-+	if (mpool && strcmp(mpool->mp_name, name))
-+		return -EINVAL;
-+
-+	*unitp = NULL;
-+	unit = NULL;
-+
-+	/*
-+	 * Try to create a new unit object.  If successful, then all error
-+	 * handling beyond this point must route through the errout label
-+	 * to ensure the unit is fully destroyed.
-+	 */
-+	rc = mpc_unit_create(name, mpool, &unit);
++	rc = mblock_alloc(mpool, mb->mb_mclassp, mb->mb_spare, &mblock, &props);
 +	if (rc)
 +		return rc;
 +
-+	unit->un_uid = cfg->mc_uid;
-+	unit->un_gid = cfg->mc_gid;
-+	unit->un_mode = cfg->mc_mode;
++	mblock_get_props_ex(mpool, mblock, &mb->mb_props);
++	mblock_put(mblock);
 +
-+	unit->un_mdc_captgt = cfg->mc_captgt;
-+	memcpy(&unit->un_utype, &cfg->mc_utype, sizeof(unit->un_utype));
-+	strlcpy(unit->un_label, cfg->mc_label, sizeof(unit->un_label));
-+	unit->un_ds_oidv[0] = cfg->mc_oid1;
-+	unit->un_ds_oidv[1] = cfg->mc_oid2;
-+	unit->un_ra_pages_max = cfg->mc_ra_pages_max;
-+
-+	device = device_create(ss->ss_class, NULL, unit->un_devno, unit, uinfo->ui_subdirfmt, name);
-+	if (IS_ERR(device)) {
-+		rc = PTR_ERR(device);
-+		mp_pr_err("device_create %s failed", rc, name);
-+		goto errout;
-+	}
-+
-+	unit->un_device = device;
-+	unit->un_uinfo = uinfo;
-+
-+	dev_info(unit->un_device, "minor %u, uid %u, gid %u, mode 0%02o",
-+		 MINOR(unit->un_devno), cfg->mc_uid, cfg->mc_gid, cfg->mc_mode);
-+
-+	*unitp = unit;
-+
-+errout:
-+	if (rc) {
-+		/*
-+		 * Acquire an additional reference on mpool so that it is not
-+		 * errantly destroyed along with the unit, then release both
-+		 * the unit's birth and caller's references which should
-+		 * destroy the unit.
-+		 */
-+		kref_get(&mpool->mp_ref);
-+		mpc_unit_put(unit);
-+		mpc_unit_put(unit);
-+	}
-+
-+	return rc;
-+}
-+
-+/**
-+ * mpc_uevent() - Hook to intercept and modify uevents before they're posted to udev
-+ * @dev:    mpc driver device
-+ * @env:
-+ *
-+ * See man 7 udev for more info.
-+ */
-+static int mpc_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	struct mpc_unit *unit = dev_get_drvdata(dev);
-+
-+	if (unit) {
-+		add_uevent_var(env, "DEVMODE=%#o", unit->un_mode);
-+		add_uevent_var(env, "DEVUID=%u", unit->un_uid);
-+		add_uevent_var(env, "DEVGID=%u", unit->un_gid);
-+	}
++	mb->mb_objid  = props.mpr_objid;
++	mb->mb_offset = -1;
 +
 +	return 0;
 +}
 +
-+static int mpc_exit_unit(int minor, void *item, void *arg)
-+{
-+	mpc_unit_put(item);
-+
-+	return ITERCB_NEXT;
-+}
-+
 +/**
-+ * mpctl_exit() - Tear down and unload the mpool control module.
++ * mpioc_mb_find() - Find an mblock object by its objid
++ * @unit:   mpool unit ptr
++ * @mb:     mblock parameter block
++ *
++ * Return:  Returns 0 if successful, -errno otherwise...
 + */
-+void mpctl_exit(void)
++static int mpioc_mb_find(struct mpc_unit *unit, struct mpioc_mblock *mb)
 +{
-+	struct mpc_softstate *ss = &mpc_softstate;
-+
-+	if (ss->ss_inited) {
-+		idr_for_each(&ss->ss_unitmap, mpc_exit_unit, NULL);
-+		idr_destroy(&ss->ss_unitmap);
-+
-+		if (ss->ss_devno != NODEV) {
-+			if (ss->ss_class) {
-+				if (ss->ss_cdev.ops)
-+					cdev_del(&ss->ss_cdev);
-+				class_destroy(ss->ss_class);
-+			}
-+			unregister_chrdev_region(ss->ss_devno, maxunits);
-+		}
-+
-+		ss->ss_inited = false;
-+	}
-+}
-+
-+/**
-+ * mpctl_init() - Load and initialize the mpool control module.
-+ */
-+int mpctl_init(void)
-+{
-+	struct mpc_softstate *ss = &mpc_softstate;
-+	struct mpool_config *cfg = NULL;
-+	struct mpc_unit *ctlunit;
-+	const char *errmsg = NULL;
++	struct mblock_descriptor *mblock;
++	struct mpool_descriptor *mpool;
 +	int rc;
 +
-+	if (ss->ss_inited)
-+		return -EBUSY;
++	if (!unit || !mb || !unit->un_mpool)
++		return -EINVAL;
 +
-+	ctlunit = NULL;
++	if (!mblock_objid(mb->mb_objid))
++		return -EINVAL;
 +
-+	maxunits = clamp_t(uint, maxunits, 8, 8192);
++	mpool = unit->un_mpool->mp_desc;
 +
-+	cdev_init(&ss->ss_cdev, &mpc_fops_default);
-+	ss->ss_cdev.owner = THIS_MODULE;
++	rc = mblock_find_get(mpool, mb->mb_objid, 0, NULL, &mblock);
++	if (rc)
++		return rc;
 +
-+	mutex_init(&ss->ss_lock);
-+	idr_init(&ss->ss_unitmap);
-+	ss->ss_class = NULL;
-+	ss->ss_devno = NODEV;
-+	sema_init(&ss->ss_op_sema, 1);
-+	ss->ss_inited = true;
++	(void)mblock_get_props_ex(mpool, mblock, &mb->mb_props);
 +
-+	rc = alloc_chrdev_region(&ss->ss_devno, 0, maxunits, "mpool");
-+	if (rc) {
-+		errmsg = "cannot allocate control device major";
-+		ss->ss_devno = NODEV;
-+		goto errout;
++	mblock_put(mblock);
++
++	mb->mb_offset = -1;
++
++	return 0;
++}
++
++/**
++ * mpioc_mb_abcomdel() - Abort, commit, or delete an mblock.
++ * @unit:   mpool unit ptr
++ * @cmd     MPIOC_MB_ABORT, MPIOC_MB_COMMIT, or MPIOC_MB_DELETE
++ * @mi:     mblock parameter block
++ *
++ * MPIOC_MB_ACD ioctl handler to either abort, commit, or delete
++ * the specified mblock.
++ *
++ * Return:  Returns 0 if successful, -errno otherwise...
++ */
++static int mpioc_mb_abcomdel(struct mpc_unit *unit, uint cmd, struct mpioc_mblock_id *mi)
++{
++	struct mblock_descriptor *mblock;
++	struct mpool_descriptor *mpool;
++	int which, rc;
++	bool drop;
++
++	if (!unit || !mi || !unit->un_mpool)
++		return -EINVAL;
++
++	if (!mblock_objid(mi->mi_objid))
++		return -EINVAL;
++
++	which = (cmd == MPIOC_MB_DELETE) ? 1 : -1;
++	mpool = unit->un_mpool->mp_desc;
++	drop = true;
++
++	rc = mblock_find_get(mpool, mi->mi_objid, which, NULL, &mblock);
++	if (rc)
++		return rc;
++
++	switch (cmd) {
++	case MPIOC_MB_COMMIT:
++		rc = mblock_commit(mpool, mblock);
++		break;
++
++	case MPIOC_MB_ABORT:
++		rc = mblock_abort(mpool, mblock);
++		drop = !!rc;
++		break;
++
++	case MPIOC_MB_DELETE:
++		rc = mblock_delete(mpool, mblock);
++		drop = !!rc;
++		break;
++
++	default:
++		rc = -ENOTTY;
++		break;
 +	}
 +
-+	ss->ss_class = class_create(THIS_MODULE, module_name(THIS_MODULE));
-+	if (IS_ERR(ss->ss_class)) {
-+		errmsg = "class_create() failed";
-+		rc = PTR_ERR(ss->ss_class);
-+		ss->ss_class = NULL;
-+		goto errout;
-+	}
-+
-+	ss->ss_class->dev_uevent = mpc_uevent;
-+
-+	rc = cdev_add(&ss->ss_cdev, ss->ss_devno, maxunits);
-+	if (rc) {
-+		errmsg = "cdev_add() failed";
-+		ss->ss_cdev.ops = NULL;
-+		goto errout;
-+	}
-+
-+	cfg = kzalloc(sizeof(*cfg), GFP_KERNEL);
-+	if (!cfg) {
-+		errmsg = "cfg alloc failed";
-+		rc = -ENOMEM;
-+		goto errout;
-+	}
-+
-+	cfg->mc_uid = mpc_ctl_uid;
-+	cfg->mc_gid = mpc_ctl_gid;
-+	cfg->mc_mode = mpc_ctl_mode;
-+
-+	rc = mpc_unit_setup(&mpc_uinfo_ctl, MPC_DEV_CTLNAME, cfg, NULL, &ctlunit);
-+	if (rc) {
-+		errmsg = "cannot create control device";
-+		goto errout;
-+	}
-+
-+	mutex_lock(&ss->ss_lock);
-+	idr_replace(&ss->ss_unitmap, ctlunit, MINOR(ctlunit->un_devno));
-+	mutex_unlock(&ss->ss_lock);
-+
-+	mpc_unit_put(ctlunit);
-+
-+errout:
-+	if (rc) {
-+		mp_pr_err("%s", rc, errmsg);
-+		mpctl_exit();
-+	}
-+
-+	kfree(cfg);
++	if (drop)
++		mblock_put(mblock);
 +
 +	return rc;
 +}
-diff --git a/drivers/mpool/mpctl.h b/drivers/mpool/mpctl.h
-new file mode 100644
-index 000000000000..ff3ec9fc24a9
---- /dev/null
-+++ b/drivers/mpool/mpctl.h
-@@ -0,0 +1,50 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
++
++/**
++ * mpioc_mb_rw() - read/write mblock ioctl handler
++ * @unit:   mpool unit ptr
++ * @cmd:    MPIOC_MB_READ or MPIOC_MB_WRITE
++ * @mbiov:  mblock parameter block
 + */
-+
-+#ifndef MPOOL_MPCTL_H
-+#define MPOOL_MPCTL_H
-+
-+#include <linux/rbtree.h>
-+#include <linux/kref.h>
-+#include <linux/device.h>
-+#include <linux/semaphore.h>
-+
-+#define ITERCB_NEXT     (0)
-+#define ITERCB_DONE     (1)
-+
-+/* There is one unit object for each device object created by the driver. */
-+struct mpc_unit {
-+	struct kref                 un_ref;
-+	int                         un_open_cnt;    /* Unit open count */
-+	struct semaphore            un_open_lock;   /* Protects un_open_* */
-+	bool                        un_open_excl;   /* Unit exclusively open */
-+	uid_t                       un_uid;
-+	gid_t                       un_gid;
-+	mode_t                      un_mode;
-+	dev_t                       un_devno;
-+	const struct mpc_uinfo     *un_uinfo;
-+	struct mpc_mpool           *un_mpool;
-+	struct address_space       *un_mapping;
-+	struct device              *un_device;
-+	struct backing_dev_info    *un_saved_bdi;
-+	struct mpc_attr            *un_attr;
-+	uint                        un_rawio;       /* log2(max_mblock_size) */
-+	u64                         un_ds_oidv[2];
-+	u32                         un_ra_pages_max;
-+	u64                         un_mdc_captgt;
-+	uuid_le                     un_utype;
-+	u8                          un_label[MPOOL_LABELSZ_MAX];
-+	char                        un_name[];
-+};
-+
-+static inline struct mpc_unit *dev_to_unit(struct device *dev)
++static int mpioc_mb_rw(struct mpc_unit *unit, uint cmd, struct mpioc_mblock_rw *mbrw,
++		       void *stkbuf, size_t stkbufsz)
 +{
-+	return dev_get_drvdata(dev);
++	struct mblock_descriptor *mblock;
++	struct mpool_descriptor *mpool;
++	struct iovec *kiov;
++	bool xfree = false;
++	int which, rc;
++	size_t kiovsz;
++
++	if (!unit || !mbrw || !unit->un_mpool)
++		return -EINVAL;
++
++	if (!mblock_objid(mbrw->mb_objid))
++		return -EINVAL;
++
++	/*
++	 * For small iovec counts we simply copyin the array of iovecs
++	 * to local storage (stkbuf).  Otherwise, we must kmalloc a
++	 * buffer into which to perform the copyin.
++	 */
++	if (mbrw->mb_iov_cnt > MPIOC_KIOV_MAX)
++		return -EINVAL;
++
++	kiovsz = mbrw->mb_iov_cnt * sizeof(*kiov);
++
++	if (kiovsz > stkbufsz) {
++		kiov = kmalloc(kiovsz, GFP_KERNEL);
++		if (!kiov)
++			return -ENOMEM;
++
++		xfree = true;
++	} else {
++		kiov = stkbuf;
++		stkbuf += kiovsz;
++		stkbufsz -= kiovsz;
++	}
++
++	which = (cmd == MPIOC_MB_READ) ? 1 : -1;
++	mpool = unit->un_mpool->mp_desc;
++
++	rc = mblock_find_get(mpool, mbrw->mb_objid, which, NULL, &mblock);
++	if (rc)
++		goto errout;
++
++	if (copy_from_user(kiov, mbrw->mb_iov, kiovsz)) {
++		rc = -EFAULT;
++	} else {
++		rc = mpc_physio(mpool, mblock, kiov, mbrw->mb_iov_cnt, mbrw->mb_offset,
++				MP_OBJ_MBLOCK, (cmd == MPIOC_MB_READ) ? READ : WRITE,
++				stkbuf, stkbufsz);
++	}
++
++	mblock_put(mblock);
++
++errout:
++	if (xfree)
++		kfree(kiov);
++
++	return rc;
 +}
 +
-+int mpctl_init(void) __cold;
-+void mpctl_exit(void) __cold;
-+
-+#endif /* MPOOL_MPCTL_H */
-diff --git a/drivers/mpool/sysfs.c b/drivers/mpool/sysfs.c
-new file mode 100644
-index 000000000000..638106a77669
---- /dev/null
-+++ b/drivers/mpool/sysfs.c
-@@ -0,0 +1,48 @@
-+// SPDX-License-Identifier: GPL-2.0-only
 +/*
-+ * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
++ * Mpctl mlog ioctl handlers
 + */
-+
-+#include <linux/slab.h>
-+
-+#include "sysfs.h"
-+
-+struct mpc_attr *mpc_attr_create(struct device *dev, const char *name, int acnt)
++static int mpioc_mlog_alloc(struct mpc_unit *unit, struct mpioc_mlog *ml)
 +{
-+	struct mpc_attr *attr;
-+	int i;
++	struct mpool_descriptor *mpool;
++	struct mlog_descriptor *mlog;
++	struct mlog_props props;
++	int rc;
 +
-+	attr = kzalloc(sizeof(*attr) + acnt * sizeof(*attr->a_dattr) +
-+		       (acnt + 1) * sizeof(*attr->a_attrs), GFP_KERNEL);
-+	if (!attr)
-+		return NULL;
++	if (!unit || !unit->un_mpool || !ml)
++		return -EINVAL;
 +
-+	attr->a_kobj = &dev->kobj;
++	mpool = unit->un_mpool->mp_desc;
 +
-+	attr->a_dattr = (void *)(attr + 1);
++	rc = mlog_alloc(mpool, &ml->ml_cap, ml->ml_mclassp, &props, &mlog);
++	if (rc)
++		return rc;
 +
-+	attr->a_attrs = (void *)(attr->a_dattr + acnt);
-+	for (i = 0; i < acnt; i++)
-+		attr->a_attrs[i] = &attr->a_dattr[i].attr;
-+	attr->a_attrs[i] = NULL;
++	mlog_get_props_ex(mpool, mlog, &ml->ml_props);
++	mlog_put(mlog);
 +
-+	attr->a_group.attrs = attr->a_attrs;
-+	attr->a_group.name = name;
++	ml->ml_objid = props.lpr_objid;
 +
-+	return attr;
++	return 0;
 +}
 +
-+void mpc_attr_destroy(struct mpc_attr *attr)
++static int mpioc_mlog_find(struct mpc_unit *unit, struct mpioc_mlog *ml)
 +{
-+	kfree(attr);
++	struct mpool_descriptor    *mpool;
++	struct mlog_descriptor     *mlog;
++	int rc;
++
++	if (!unit || !unit->un_mpool || !ml || !mlog_objid(ml->ml_objid))
++		return -EINVAL;
++
++	mpool = unit->un_mpool->mp_desc;
++
++	rc = mlog_find_get(mpool, ml->ml_objid, 0, NULL, &mlog);
++	if (!rc) {
++		rc = mlog_get_props_ex(mpool, mlog, &ml->ml_props);
++		mlog_put(mlog);
++	}
++
++	return rc;
 +}
 +
-+int mpc_attr_group_create(struct mpc_attr *attr)
++static int mpioc_mlog_abcomdel(struct mpc_unit *unit, uint cmd, struct mpioc_mlog_id *mi)
 +{
-+	return sysfs_create_group(attr->a_kobj, &attr->a_group);
++	struct mpool_descriptor *mpool;
++	struct mlog_descriptor *mlog;
++	struct mlog_props_ex props;
++	int which, rc;
++	bool drop;
++
++	if (!unit || !unit->un_mpool || !mi || !mlog_objid(mi->mi_objid))
++		return -EINVAL;
++
++	which = (cmd == MPIOC_MLOG_DELETE) ? 1 : -1;
++	mpool = unit->un_mpool->mp_desc;
++	drop = true;
++
++	rc = mlog_find_get(mpool, mi->mi_objid, which, NULL, &mlog);
++	if (rc)
++		return rc;
++
++	switch (cmd) {
++	case MPIOC_MLOG_COMMIT:
++		rc = mlog_commit(mpool, mlog);
++		if (!rc) {
++			mlog_get_props_ex(mpool, mlog, &props);
++			mi->mi_gen   = props.lpx_props.lpr_gen;
++			mi->mi_state = props.lpx_state;
++		}
++		break;
++
++	case MPIOC_MLOG_ABORT:
++		rc = mlog_abort(mpool, mlog);
++		drop = !!rc;
++		break;
++
++	case MPIOC_MLOG_DELETE:
++		rc = mlog_delete(mpool, mlog);
++		drop = !!rc;
++		break;
++
++	default:
++		rc = -ENOTTY;
++		break;
++	}
++
++	if (drop)
++		mlog_put(mlog);
++
++	return rc;
 +}
 +
-+void mpc_attr_group_destroy(struct mpc_attr *attr)
++static int mpioc_mlog_rw(struct mpc_unit *unit, struct mpioc_mlog_io *mi,
++			 void *stkbuf, size_t stkbufsz)
 +{
-+	sysfs_remove_group(attr->a_kobj, &attr->a_group);
++	struct mpool_descriptor *mpool;
++	struct mlog_descriptor *mlog;
++	struct iovec *kiov;
++	bool xfree = false;
++	size_t kiovsz;
++	int rc;
++
++	if (!unit || !unit->un_mpool || !mi || !mlog_objid(mi->mi_objid))
++		return -EINVAL;
++
++	/*
++	 * For small iovec counts we simply copyin the array of iovecs
++	 * to the stack (kiov_buf). Otherwise, we must kmalloc a
++	 * buffer into which to perform the copyin.
++	 */
++	if (mi->mi_iovc > MPIOC_KIOV_MAX)
++		return -EINVAL;
++
++	kiovsz = mi->mi_iovc * sizeof(*kiov);
++
++	if (kiovsz > stkbufsz) {
++		kiov = kmalloc(kiovsz, GFP_KERNEL);
++		if (!kiov)
++			return -ENOMEM;
++
++		xfree = true;
++	} else {
++		kiov = stkbuf;
++		stkbuf += kiovsz;
++		stkbufsz -= kiovsz;
++	}
++
++	mpool = unit->un_mpool->mp_desc;
++
++	rc = mlog_find_get(mpool, mi->mi_objid, 1, NULL, &mlog);
++	if (rc)
++		goto errout;
++
++	if (copy_from_user(kiov, mi->mi_iov, kiovsz)) {
++		rc = -EFAULT;
++	} else {
++		rc = mpc_physio(mpool, mlog, kiov, mi->mi_iovc, mi->mi_off, MP_OBJ_MLOG,
++				(mi->mi_op == MPOOL_OP_READ) ? READ : WRITE, stkbuf, stkbufsz);
++	}
++
++	mlog_put(mlog);
++
++errout:
++	if (xfree)
++		kfree(kiov);
++
++	return rc;
 +}
-diff --git a/drivers/mpool/sysfs.h b/drivers/mpool/sysfs.h
-new file mode 100644
-index 000000000000..b161eceec75f
---- /dev/null
-+++ b/drivers/mpool/sysfs.h
-@@ -0,0 +1,48 @@
-+/* SPDX-License-Identifier: GPL-2.0-only */
-+/*
-+ * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
-+ */
 +
-+#ifndef MPOOL_SYSFS_H
-+#define MPOOL_SYSFS_H
++static int mpioc_mlog_erase(struct mpc_unit *unit, struct mpioc_mlog_id *mi)
++{
++	struct mpool_descriptor *mpool;
++	struct mlog_descriptor *mlog;
++	struct mlog_props_ex props;
++	int rc;
 +
-+#include <linux/device.h>
-+#include <linux/sysfs.h>
++	if (!unit || !unit->un_mpool || !mi || !mlog_objid(mi->mi_objid))
++		return -EINVAL;
 +
++	mpool = unit->un_mpool->mp_desc;
 +
-+#define MPC_ATTR(_da, _name, _mode)                \
-+	(_da)->attr.name = __stringify(_name);     \
-+	(_da)->attr.mode = (_mode);                \
-+	(_da)->show      = mpc_##_name##_show      \
++	rc = mlog_find_get(mpool, mi->mi_objid, 0, NULL, &mlog);
++	if (rc)
++		return rc;
 +
-+#define MPC_ATTR_RO(_dattr, _name)                 \
-+	do {                                       \
-+		__typeof(_dattr) da = (_dattr);    \
-+		MPC_ATTR(da, _name, 0444);         \
-+		da->store = NULL;                  \
-+	} while (0)
++	rc = mlog_erase(mpool, mlog, mi->mi_gen);
++	if (!rc) {
++		mlog_get_props_ex(mpool, mlog, &props);
++		mi->mi_gen   = props.lpx_props.lpr_gen;
++		mi->mi_state = props.lpx_state;
++	}
 +
-+#define MPC_ATTR_RW(_dattr, _name)                 \
-+	do {                                       \
-+		__typeof(_dattr) da = (_dattr);    \
-+		MPC_ATTR(da, _name, 0644);         \
-+		da->store = mpc_##_name##_store;   \
-+	} while (0)
++	mlog_put(mlog);
 +
++	return rc;
++}
 +
-+struct mpc_attr {
-+	struct attribute_group       a_group;
-+	struct kobject              *a_kobj;
-+	struct device_attribute     *a_dattr;
-+	struct attribute           **a_attrs;
-+};
+ static struct mpc_softstate *mpc_cdev2ss(struct cdev *cdev)
+ {
+ 	if (!cdev || cdev->owner != THIS_MODULE) {
+@@ -1846,8 +2436,8 @@ static long mpc_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ {
+ 	char argbuf[256] __aligned(16);
+ 	struct mpc_unit *unit;
+-	size_t argbufsz;
+-	void *argp;
++	size_t argbufsz, stkbufsz;
++	void *argp, *stkbuf;
+ 	ulong iosz;
+ 	int rc;
+ 
+@@ -1858,7 +2448,12 @@ static long mpc_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		switch (cmd) {
+ 		case MPIOC_PROP_GET:
+ 		case MPIOC_DEVPROPS_GET:
++		case MPIOC_MB_FIND:
++		case MPIOC_MB_READ:
+ 		case MPIOC_MP_MCLASS_GET:
++		case MPIOC_MLOG_FIND:
++		case MPIOC_MLOG_READ:
++		case MPIOC_MLOG_PROPS:
+ 			break;
+ 
+ 		default:
+@@ -1930,6 +2525,59 @@ static long mpc_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		rc = mpioc_devprops_get(unit, argp);
+ 		break;
+ 
++	case MPIOC_MB_ALLOC:
++		rc = mpioc_mb_alloc(unit, argp);
++		break;
 +
-+struct mpc_attr *mpc_attr_create(struct device *d, const char *name, int acnt);
++	case MPIOC_MB_FIND:
++		rc = mpioc_mb_find(unit, argp);
++		break;
 +
-+void mpc_attr_destroy(struct mpc_attr *attr);
++	case MPIOC_MB_COMMIT:
++	case MPIOC_MB_DELETE:
++	case MPIOC_MB_ABORT:
++		rc = mpioc_mb_abcomdel(unit, cmd, argp);
++		break;
 +
-+int mpc_attr_group_create(struct mpc_attr *attr);
++	case MPIOC_MB_READ:
++	case MPIOC_MB_WRITE:
++		ASSERT(roundup(iosz, 16) < argbufsz);
 +
-+void mpc_attr_group_destroy(struct mpc_attr *attr);
++		stkbufsz = argbufsz - roundup(iosz, 16);
++		stkbuf = argbuf + roundup(iosz, 16);
 +
-+#endif /* MPOOL_SYSFS_H */
++		rc = mpioc_mb_rw(unit, cmd, argp, stkbuf, stkbufsz);
++		break;
++
++	case MPIOC_MLOG_ALLOC:
++		rc = mpioc_mlog_alloc(unit, argp);
++		break;
++
++	case MPIOC_MLOG_FIND:
++	case MPIOC_MLOG_PROPS:
++		rc = mpioc_mlog_find(unit, argp);
++		break;
++
++	case MPIOC_MLOG_ABORT:
++	case MPIOC_MLOG_COMMIT:
++	case MPIOC_MLOG_DELETE:
++		rc = mpioc_mlog_abcomdel(unit, cmd, argp);
++		break;
++
++	case MPIOC_MLOG_READ:
++	case MPIOC_MLOG_WRITE:
++		ASSERT(roundup(iosz, 16) < argbufsz);
++
++		stkbufsz = argbufsz - roundup(iosz, 16);
++		stkbuf = argbuf + roundup(iosz, 16);
++
++		rc = mpioc_mlog_rw(unit, argp, stkbuf, stkbufsz);
++		break;
++
++	case MPIOC_MLOG_ERASE:
++		rc = mpioc_mlog_erase(unit, argp);
++		break;
++
+ 	default:
+ 		rc = -ENOTTY;
+ 		mp_pr_rl("invalid command %x: dir=%u type=%c nr=%u size=%u",
+@@ -1985,6 +2633,8 @@ void mpctl_exit(void)
+ 		ss->ss_inited = false;
+ 	}
+ 
++	mpc_vcache_fini(&mpc_physio_vcache);
++
+ 	mpc_bdi_teardown();
+ }
+ 
+@@ -1997,6 +2647,7 @@ int mpctl_init(void)
+ 	struct mpool_config *cfg = NULL;
+ 	struct mpc_unit *ctlunit;
+ 	const char *errmsg = NULL;
++	size_t sz;
+ 	int rc;
+ 
+ 	if (ss->ss_inited)
+@@ -2006,6 +2657,19 @@ int mpctl_init(void)
+ 
+ 	maxunits = clamp_t(uint, maxunits, 8, 8192);
+ 
++	rwsz_max_mb = clamp_t(ulong, rwsz_max_mb, 1, 128);
++	rwconc_max = clamp_t(ulong, rwconc_max, 1, 32);
++
++	/* Must be same as mpc_physio() pagesvsz calculation. */
++	sz = (rwsz_max_mb << 20) / PAGE_SIZE;
++	sz *= (sizeof(void *) + sizeof(struct iovec));
++
++	rc = mpc_vcache_init(&mpc_physio_vcache, sz, rwconc_max);
++	if (rc) {
++		errmsg = "vcache init failed";
++		goto errout;
++	}
++
+ 	cdev_init(&ss->ss_cdev, &mpc_fops_default);
+ 	ss->ss_cdev.owner = THIS_MODULE;
+ 
 -- 
 2.17.2
 _______________________________________________
