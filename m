@@ -5,36 +5,36 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CF1AC4742B
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B857DC47427
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:25 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3D2A720717
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 6EEC1214D8
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:25 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="HD798qHj"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3D2A720717
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="xApirjUP"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6EEC1214D8
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=micron.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 36CF1152EDBF8;
-	Mon, 28 Sep 2020 09:47:18 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.75.58; helo=nam02-bl2-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
-Received: from NAM02-BL2-obe.outbound.protection.outlook.com (mail-eopbgr750058.outbound.protection.outlook.com [40.107.75.58])
+	by ml01.01.org (Postfix) with ESMTP id A9953152EDBE7;
+	Mon, 28 Sep 2020 09:47:19 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.93.57; helo=nam10-dm6-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2057.outbound.protection.outlook.com [40.107.93.57])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 27EF0152EDBD8
+	by ml01.01.org (Postfix) with ESMTPS id F21F7152EDBD5
 	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 09:47:15 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ZQHYJ7FSW3iyhr7aG0J01pb1zH28LARaGo0UY3/t5Y0lh9++tJbhz4PmaNdwffCAvA6mjmyRuUMNJR73JZMyTrtuHYbDxEGz+5zpuSP4UxtQxCtFyBcMqyLG6QppZOXvlupZdEjzGaPGD8Mlg2FzUgxJ3UafS5CyHvHvkInB5B7pLxLJbiKDOHrtU+9OZPZF3zP6jnmxQyCXsRWn/Fafq07NywKGrfc6/MTMVQmsKGy/qpFV5HwylfOZijZRlwJL1n0vCCUkwCNu5Ty7HHOEi2IZSoRxF9zxkjT6V8o2+NnjuedFmQgVpBkG3iuzgkixejtAFLaJPk8BB9R8/gszew==
+ b=a3ZDzAMQAUz17bqpfmRRUGyOBEnvy4qGQxGP9aPaFU62xUSzuIpiYx27Lwv3tkkuDU8PM9BTuk3LIraRls9O4QjaBlz9Am5g3V/xZFcs5D7zlftBua5emZIJPZBaNELiKVIgZLZCD9mtLPlY2wxaxueTWgTtJWQgP0p59zOU1Tr0v/c0qZB9MHPDtNI6+nKoUk4V4DwCiCrlc14GxT5kp0drUhHuci5QDdhsd9D4MmvTrG4UWfhTNWDU8gnpRBPb82lCXNR3nJ0yf3bQh8+zS3K48dVnnsNIPyuTQlhdsoa2CrF1FP9aV4GYbpbBHQ0YCzNIQEK6ely6kSp8dcss0w==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=F9OfDyr3v2atnHy7S+JPtbkdED7iJUgCJPD/B/MC2Ho=;
- b=HvlFqB+JsA6JZqejlwHgV+cUazv96tElBsJuwcDxWn1IYuyiS0QkJI6TQlkgg7zyZeBmza/Jspy098FpBr5PwfBGhE8Wo3QsUE1eS0aXO3gPyEZSXWIE+2QYir+bfPZVgdvFvcOb2Oz5ZQ8qwbqTFaMUG2aiR5t55i9ZFcWoVr6bpGALiw45ewsLbrKjPMt1RBvblDvsb3Z/NQmA18Lpkxpr/w800irnAyV4IlP5G1E3+BPjpzq12uHwzJLwi+Pr9HqE4qnM5ZdPL/7KkDcYNA3wwLJRERfmbL5fHrWx4SNupewQq2iwmAk6KfJA4Rn4pAP7LK3YOWbbChYvte9KVQ==
+ bh=QsnrMjjVej++YSUQja2RgAUbzMwrMQOc+NIRO9RPUPQ=;
+ b=COrMXg6X8+5fW/Am4v6H1+KYJrErY8d24D8FtLnpSgyo9I+kooYDLzdIG5hKrCNO3dDMxDnb8b0T+yH0hjVeYPtaoXTFemuV8TP3uWXxAgB4jAYvrsuE037PKypR/Do+sqXmJslO2rLkyRgauxLHJSVtE0p6jE/Ro44Mmi45BLpaCOfcLNK8bvMqlgE4/dVlzGAfbkuVSGek+6KjuwCeltCz78ti30dPteZLvMfBoeLnNJVsM78TC1159zO3BHR6N/JPhQTEyVnvMT+ZxSYE6bkfD9B88fb9EXzoz5XRrPnPPosxdcri9KYvTGyruaDDKP3sCaWkSsjjcR8sIcyg5w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  137.201.242.130) smtp.rcpttodomain=kvack.org smtp.mailfrom=micron.com;
  dmarc=pass (p=none sp=none pct=100) action=none header.from=micron.com;
@@ -42,18 +42,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=micron.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=F9OfDyr3v2atnHy7S+JPtbkdED7iJUgCJPD/B/MC2Ho=;
- b=HD798qHjDcrAy2+8t2F+MWVmtlUsZcK3XkHrSL+PHcvUOWtT47Y+kwjO5nGGuMVsFNjZzHbeb46P14uR83V7mUiU2CeXtxgZ5yq2vbsScLUevuPBp6TZTyeJzPF5/eCtr+xVj2+W2vmhaYJIACFp1NkhRPRnIGUflksJbQLi9fM=
-Received: from BN6PR17CA0025.namprd17.prod.outlook.com (2603:10b6:405:75::14)
- by BN8PR08MB6225.namprd08.prod.outlook.com (2603:10b6:408:7b::12) with
+ bh=QsnrMjjVej++YSUQja2RgAUbzMwrMQOc+NIRO9RPUPQ=;
+ b=xApirjUPjbzNKlaPoPUCY3pxktJHoN1hVezeReqhtQ+abkvxeO3DQBgSyFuGQdirv0kjFM5w3vkDMCCgk9H3dW58oNZqWwiGiqhGgEw3kjVY8hNXcxQyY8E6zoqOkLX+BVabrTf/t9b7r4UJmNpOAn0Oeu/0nlYSju6Agxd4WzQ=
+Received: from BN6PR17CA0050.namprd17.prod.outlook.com (2603:10b6:405:75::39)
+ by BN6PR08MB2562.namprd08.prod.outlook.com (2603:10b6:404:be::20) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20; Mon, 28 Sep
- 2020 16:47:11 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.29; Mon, 28 Sep
+ 2020 16:47:13 +0000
 Received: from BN3NAM01FT020.eop-nam01.prod.protection.outlook.com
- (2603:10b6:405:75:cafe::9) by BN6PR17CA0025.outlook.office365.com
- (2603:10b6:405:75::14) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20 via Frontend
- Transport; Mon, 28 Sep 2020 16:47:11 +0000
+ (2603:10b6:405:75:cafe::c6) by BN6PR17CA0050.outlook.office365.com
+ (2603:10b6:405:75::39) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.22 via Frontend
+ Transport; Mon, 28 Sep 2020 16:47:13 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 137.201.242.130)
  smtp.mailfrom=micron.com; kvack.org; dkim=none (message not signed)
  header.d=none;kvack.org; dmarc=pass action=none header.from=micron.com;
@@ -63,17 +63,17 @@ Received-SPF: Pass (protection.outlook.com: domain of micron.com designates
 Received: from mail.micron.com (137.201.242.130) by
  BN3NAM01FT020.mail.protection.outlook.com (10.152.67.227) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.3412.21 via Frontend Transport; Mon, 28 Sep 2020 16:47:11 +0000
+ 15.20.3412.21 via Frontend Transport; Mon, 28 Sep 2020 16:47:13 +0000
 Received: from micron.com (10.114.5.55) by bowex17c.micron.com
  (137.201.21.211) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 28 Sep
- 2020 10:47:07 -0600
+ 2020 10:47:09 -0600
 From: <nmeeramohide@micron.com>
 To: <linux-kernel@vger.kernel.org>, <linux-block@vger.kernel.org>,
 	<linux-nvme@lists.infradead.org>, <linux-mm@kvack.org>,
 	<linux-nvdimm@lists.01.org>
-Subject: [PATCH 10/22] mpool: add mlog IO utility routines
-Date: Mon, 28 Sep 2020 11:45:22 -0500
-Message-ID: <20200928164534.48203-11-nmeeramohide@micron.com>
+Subject: [PATCH 12/22] mpool: add metadata container or mlog-pair framework
+Date: Mon, 28 Sep 2020 11:45:24 -0500
+Message-ID: <20200928164534.48203-13-nmeeramohide@micron.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200928164534.48203-1-nmeeramohide@micron.com>
 References: <20200928164534.48203-1-nmeeramohide@micron.com>
@@ -81,48 +81,45 @@ MIME-Version: 1.0
 X-ClientProxiedBy: bowex17d.micron.com (137.201.21.212) To bowex17c.micron.com
  (137.201.21.211)
 X-TM-AS-Product-Ver: SMEX-12.0.0.1782-8.200.1013-24646.005
-X-TM-AS-Result: No--14.161500-0.000000-31
-X-TM-AS-MatchedID: 700076-703226-701073-702783-704232-121104-702779-704183-7
-	04318-703851-704949-702346-703812-702299-702178-705161-702561-703357-701703
-	-701480-701809-703017-703140-702395-188019-703213-121336-701105-704673-7039
-	67-702754-704895-702688-701964-780039-701880-105250-705018-701744-703534-70
-	4002-704477-702619-704053-702700-702444-703563-703385-700069-704841-700926-
-	106420-701919-105630-704475-841839-188199-121367-701943-700714-704264-70479
-	2-703215-704184-702171-701750-702617-705244-703080-701933-701443-704978-704
-	397-704328-700737-703557-851458-700458-105700-704456-705279-700950-705154-7
-	03115-700512-300010-860560-701220-701628-703956-148004-148036-29997-42000-4
-	2003
+X-TM-AS-Result: No--10.571200-0.000000-31
+X-TM-AS-MatchedID: 701073-704502-702345-701246-703361-705153-700737-704959-7
+	03851-704949-704381-701847-700010-703853-702889-701480-701809-703017-703140
+	-702395-188019-703213-121336-701105-704673-703967-702754-704521-847575-7000
+	50-703812-704477-702433-702837-704328-700053-703904-851458-704318-703694-70
+	1586-701750-702617-703275-843010-703173-702779-105250-700069-700073-137717-
+	121665-702914-704579-703215-703080-704002-705244-704606-702888-148004-14803
+	6-42000-42003-190014
 X-TM-AS-User-Approved-Sender: Yes
 X-TM-AS-User-Blocked-Sender: No
 X-MT-Whitelisted: matched
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 52f1d5ea-f29e-482d-e14f-08d863ce2598
-X-MS-TrafficTypeDiagnostic: BN8PR08MB6225:
+X-MS-Office365-Filtering-Correlation-Id: 67862fc5-df0b-431e-4740-08d863ce2697
+X-MS-TrafficTypeDiagnostic: BN6PR08MB2562:
 X-Microsoft-Antispam-PRVS: 
- <BN8PR08MB622589CDCDF4259A0D8F07D3B3350@BN8PR08MB6225.namprd08.prod.outlook.com>
+ <BN6PR08MB256296571E245F560DF1EC83B3350@BN6PR08MB2562.namprd08.prod.outlook.com>
 X-MS-Exchange-Transport-Forked: True
 X-EXT-ByPass: 1
 X-MT-RULE-Whitelisted: Triggered
-X-MS-Oob-TLC-OOBClassifiers: OLM:3513;
+X-MS-Oob-TLC-OOBClassifiers: OLM:172;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	2m8TKkZ8F9kYJmHJ1/veb8jadBpT2XCwVhp+0XBqGwyc2epR7fs5jthwnsx5DTcfRlwJwZ2107DIZ9XMEmiFakaLc07a8bKgdHdZ7DgyVz/dJfr83lF0HzUP1Mm3exEn8fcdSbHm4pocqtj3iJCT+hGFhjbB24MX2O+yIECTfNNk8cJfcm46N/+zQp8SrzThPVYxCpKEWDRXQuV1HZB/vXWYmh/N0lwwEJHrxMT2sNkTkh922w9BBzieuEn57Y/tjDvI+rL4oTyu7V0amxr5GpX/FkFMAsxBSXzRAxi8G0B3NDmJLsfGHMnWybVHIyCijYoTdNU9Ik8/RpDQV+l2WZonvonpJs2MZVUGOIQerov+G3ytRhfVtghWkD2gAwbJ5Y+k/PfyyXxHLxiLHvRY2ursBc+JwM0XNTfyJJLRCUTbo1g05Vk9sPwiUuQvDosWDRcS59+8MEv1F0hrFwX5qd1eU5UggIVt7CItaMxrDHw/gD0bATSkMrhxWhsaLJkK
+	pZaAXVq02KNAIznycDpqLnU6rl+qF9CtT5OW9Vezxi7HCRHJHWGScWzALx4muJlvLR3gGi4mhqw4Yv75H/2otefVvZsk+vgXOG+KC2R32fSRzOs7Gt1KEuICoAmsPSDfkJL2BupeyxBiZG3YzjHJnHcdaK8woSnJQokwEy0kzT1yvwOq79DiBrmqIRD+am2AaXglmKCOuTCsBxdqhE55/qdB2nlYPmnFx5NqkUMX7GicANZ+KaTuMpzIuIqR9U1b7VX9suXm2pc+1MwRkHHRKxLmdUJsuH+6fJkhIWl6KbGBPNT/LkIgEmA3eULYJdFfSAi8ytYVHWkj9jgnyP+snVoTfHPwnaRL8OtKyYA8nSmJA86VxYLgZM0KkRXhWwpY6PoSp1j+z1kfeHBE/2NMggnaEuSeHuTayfxgXXU4qrHtEqGAIjz4crqucfo7kJiWNyfYZ7h2HWjgceWf2qTtFPXw06AK+Zn0JoM/DPEMfq/pkM06CEjMjUKE4b7MfGZH
 X-Forefront-Antispam-Report: 
-	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(376002)(346002)(396003)(39860400002)(136003)(46966005)(478600001)(8676002)(1076003)(54906003)(6286002)(110136005)(316002)(86362001)(356005)(33310700002)(7636003)(83380400001)(70586007)(70206006)(82310400003)(6666004)(82740400003)(7696005)(2876002)(36756003)(2616005)(4326008)(5660300002)(8936002)(2906002)(107886003)(426003)(26005)(55016002)(186003)(30864003)(47076004)(336012)(2101003)(579004);DIR:OUT;SFP:1101;
+	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(396003)(136003)(39860400002)(346002)(376002)(46966005)(36756003)(1076003)(7696005)(2876002)(186003)(86362001)(8676002)(6666004)(30864003)(26005)(5660300002)(336012)(2616005)(426003)(33310700002)(356005)(55016002)(82310400003)(478600001)(54906003)(110136005)(2906002)(316002)(70206006)(70586007)(47076004)(82740400003)(4326008)(6286002)(7636003)(8936002)(107886003)(83380400001)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: micron.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 16:47:11.6534
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 16:47:13.3179
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 52f1d5ea-f29e-482d-e14f-08d863ce2598
+X-MS-Exchange-CrossTenant-Network-Message-Id: 67862fc5-df0b-431e-4740-08d863ce2697
 X-MS-Exchange-CrossTenant-Id: f38a5ecd-2813-4862-b11b-ac1d563c806f
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f38a5ecd-2813-4862-b11b-ac1d563c806f;Ip=[137.201.242.130];Helo=[mail.micron.com]
 X-MS-Exchange-CrossTenant-AuthSource: BN3NAM01FT020.eop-nam01.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN8PR08MB6225
-Message-ID-Hash: JVZ3FSMV4LBAJA6XJGDLSSZKO46PV2FK
-X-Message-ID-Hash: JVZ3FSMV4LBAJA6XJGDLSSZKO46PV2FK
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BN6PR08MB2562
+Message-ID-Hash: VU6RL5RAJJ2VTJPLL46LU2VEYAZA2W4F
+X-Message-ID-Hash: VU6RL5RAJJ2VTJPLL46LU2VEYAZA2W4F
 X-MailFrom: nmeeramohide@micron.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -130,7 +127,7 @@ CC: smoyer@micron.com, gbecker@micron.com, plabat@micron.com, jgroves@micron.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JVZ3FSMV4LBAJA6XJGDLSSZKO46PV2FK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VU6RL5RAJJ2VTJPLL46LU2VEYAZA2W4F/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -141,35 +138,28 @@ Content-Transfer-Encoding: 7bit
 
 From: Nabeel M Mohamed <nmeeramohide@micron.com>
 
-Adds buffer management routines used by the mlog IO path.
+Metadata containers are used for storing and maintaining metadata.
 
-Mlog objects are containers for record logging. An mlog is
-structured as a series of consecutive log blocks where each
-log block is exactly one sector in size. Records of
-arbitrary size can be appended to an mlog until it's full.
+MDC APIs are implemented as helper functions built on a pair of
+mlogs per MDC. It embodies the concept of compaction to deal with
+one of the mlog pairs filling, what it means to compact is
+use-case dependent.
 
-Mlog uses a flush set algorithm for implementing multi-sector
-append and read buffers. A flush set is one or more sector-
-size memory buffers containing consecutive log block data
-with newly appended records written together in a single
-logical I/O. The flush set algorithm maintains flush set
-identifiers in the headers of the log blocks comprising the
-append buffer and handles failures when writing these log
-blocks.
+The MDC APIs make it easy for a client to:
 
-The flush set grows up to the append buffer size providing
-better throughput for async appends. Once the flush set is
-full or when the client issues a synchronous append or mlog
-flush, the flush set is written to media and the buffer pages
-are freed/prepared for the next append depending on the I/O
-outcome.
+- Append metadata update records to the active mlog of an MDC
+  until it is full (or exceeds some client-specific threshold)
+- Flag the start of a compaction which marks the other mlog of
+  the MDC as active
+- Re-serialize its metadata by appending it to the (newly)
+  active mlog of the MDC
+- Flag the end of the compaction
+- Continue appending metadata update records to the MDC until
+  the above process repeats
 
-The read buffer is also provisioned like the append buffer.
-The read buffer management is optimized for the expected use
-cases, which is open a log, read once to load persisted state
-into memory and thereafter only append while open. The log
-blocks are loaded into the read buffer up to but not including
-the offset of the first log block in the append buffer.
+The MDC API functions handle all failures, including crash
+recovery, by using special markers recognized by the mlog
+implementation.
 
 Co-developed-by: Greg Becker <gbecker@micron.com>
 Signed-off-by: Greg Becker <gbecker@micron.com>
@@ -179,1439 +169,616 @@ Co-developed-by: John Groves <jgroves@micron.com>
 Signed-off-by: John Groves <jgroves@micron.com>
 Signed-off-by: Nabeel M Mohamed <nmeeramohide@micron.com>
 ---
- drivers/mpool/mlog_utils.c | 1352 ++++++++++++++++++++++++++++++++++++
- drivers/mpool/mlog_utils.h |   63 ++
- 2 files changed, 1415 insertions(+)
- create mode 100644 drivers/mpool/mlog_utils.c
- create mode 100644 drivers/mpool/mlog_utils.h
+ drivers/mpool/mdc.c | 486 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/mpool/mdc.h | 106 ++++++++++
+ 2 files changed, 592 insertions(+)
+ create mode 100644 drivers/mpool/mdc.c
+ create mode 100644 drivers/mpool/mdc.h
 
-diff --git a/drivers/mpool/mlog_utils.c b/drivers/mpool/mlog_utils.c
+diff --git a/drivers/mpool/mdc.c b/drivers/mpool/mdc.c
 new file mode 100644
-index 000000000000..3fae46b5a1c3
+index 000000000000..1a8abd5f815e
 --- /dev/null
-+++ b/drivers/mpool/mlog_utils.c
-@@ -0,0 +1,1352 @@
++++ b/drivers/mpool/mdc.c
+@@ -0,0 +1,486 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
 + */
 +
-+#include <linux/mm.h>
-+#include <linux/log2.h>
-+#include <linux/blk_types.h>
-+#include <linux/rbtree.h>
 +#include <linux/slab.h>
-+#include <asm/page.h>
++#include <linux/string.h>
 +
-+#include "assert.h"
 +#include "mpool_printk.h"
-+
-+#include "pmd_obj.h"
++#include "mpool_ioctl.h"
 +#include "mpcore.h"
++#include "mp.h"
 +#include "mlog.h"
-+#include "mlog_utils.h"
++#include "mdc.h"
 +
-+#define mlpriv2layout(_ptr) \
-+	((struct pmd_layout *)((char *)(_ptr) - offsetof(struct pmd_layout, eld_priv)))
++#define mdc_logerr(_mpname, _msg, _mlh, _objid, _gen1, _gen2, _err)     \
++	mp_pr_err("mpool %s, mdc open, %s "			        \
++		  "mlog %p objid 0x%lx gen1 %lu gen2 %lu",		\
++		  (_err), (_mpname), (_msg),		                \
++		  (_mlh), (ulong)(_objid), (ulong)(_gen1),		\
++		  (ulong)(_gen2))					\
 +
-+bool mlog_objid(u64 objid)
-+{
-+	return objid && pmd_objid_type(objid) == OMF_OBJ_MLOG;
-+}
-+
-+/**
-+ * mlog2layout() - convert opaque mlog handle to pmd_layout
-+ *
-+ * This function converts the opaque handle (mlog_descriptor) used by
-+ * clients to the internal representation (pmd_layout).  The
-+ * conversion is a simple cast, followed by a sanity check to verify the
-+ * layout object is an mlog object.  If the validation fails, a NULL
-+ * pointer is returned.
-+ */
-+struct pmd_layout *mlog2layout(struct mlog_descriptor *mlh)
-+{
-+	struct pmd_layout *layout = (void *)mlh;
-+
-+	return mlog_objid(layout->eld_objid) ? layout : NULL;
-+}
++#define OP_COMMIT      0
++#define OP_DELETE      1
 +
 +/**
-+ * layout2mlog() - convert pmd_layout to opaque mlog_descriptor
-+ *
-+ * This function converts the internally used pmd_layout to
-+ * the externally used opaque mlog_descriptor.
++ * mdc_acquire() - Validate mdc handle and acquire mdc_lock
++ * @mlh: MDC handle
++ * @rw:  read/append?
 + */
-+struct mlog_descriptor *layout2mlog(struct pmd_layout *layout)
++static inline int mdc_acquire(struct mp_mdc *mdc, bool rw)
 +{
-+	return (struct mlog_descriptor *)layout;
-+}
++	if (!mdc || mdc->mdc_magic != MPC_MDC_MAGIC || !mdc->mdc_valid)
++		return -EINVAL;
 +
-+static struct pmd_layout_mlpriv *oml_layout_find(struct mpool_descriptor *mp, u64 key)
-+{
-+	struct pmd_layout_mlpriv *this;
-+	struct pmd_layout *layout;
-+	struct rb_node *node;
++	if (rw && (mdc->mdc_flags & MDC_OF_SKIP_SER))
++		return 0;
 +
-+	node = mp->pds_oml_root.rb_node;
-+	while (node) {
-+		this = rb_entry(node, typeof(*this), mlp_nodeoml);
-+		layout = mlpriv2layout(this);
++	mutex_lock(&mdc->mdc_lock);
 +
-+		if (key < layout->eld_objid)
-+			node = node->rb_left;
-+		else if (key > layout->eld_objid)
-+			node = node->rb_right;
-+		else
-+			return this;
++	/* Validate again after acquiring lock */
++	if (!mdc->mdc_valid) {
++		mutex_unlock(&mdc->mdc_lock);
++		return -EINVAL;
 +	}
 +
-+	return NULL;
-+}
-+
-+struct pmd_layout_mlpriv *oml_layout_insert(struct mpool_descriptor *mp,
-+					    struct pmd_layout_mlpriv *item)
-+{
-+	struct pmd_layout_mlpriv *this;
-+	struct pmd_layout *layout;
-+	struct rb_node **pos, *parent;
-+	struct rb_root *root;
-+	u64 key;
-+
-+	root = &mp->pds_oml_root;
-+	pos = &root->rb_node;
-+	parent = NULL;
-+
-+	key = mlpriv2layout(item)->eld_objid;
-+
-+	while (*pos) {
-+		this = rb_entry(*pos, typeof(*this), mlp_nodeoml);
-+		layout = mlpriv2layout(this);
-+
-+		parent = *pos;
-+		if (key < layout->eld_objid)
-+			pos = &(*pos)->rb_left;
-+		else if (key > layout->eld_objid)
-+			pos = &(*pos)->rb_right;
-+		else
-+			return this;
-+	}
-+
-+	/* Add new node and rebalance tree. */
-+	rb_link_node(&item->mlp_nodeoml, parent, pos);
-+	rb_insert_color(&item->mlp_nodeoml, root);
-+
-+	return NULL;
-+}
-+
-+struct pmd_layout_mlpriv *oml_layout_remove(struct mpool_descriptor *mp, u64 key)
-+{
-+	struct pmd_layout_mlpriv *found;
-+
-+	found = oml_layout_find(mp, key);
-+	if (found)
-+		rb_erase(&found->mlp_nodeoml, &mp->pds_oml_root);
-+
-+	return found;
++	return 0;
 +}
 +
 +/**
-+ * mlog_free_abuf() - Free log pages in the append buffer, range:[start, end].
-+ * @lstat: mlog_stat
-+ * @start: start log page index, inclusive
-+ * @end:   end log page index, inclusive
++ * mdc_release() - Release mdc_lock
++ * @mlh: MDC handle
++ * @rw:  read/append?
 + */
-+void mlog_free_abuf(struct mlog_stat *lstat, int start, int end)
++static inline void mdc_release(struct mp_mdc *mdc, bool rw)
 +{
-+	int i;
-+
-+	for (i = start; i <= end; i++) {
-+		if (lstat->lst_abuf[i]) {
-+			free_page((unsigned long)lstat->lst_abuf[i]);
-+			lstat->lst_abuf[i] = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * mlog_free_rbuf() - Free log pages in the read buffer, range:[start, end].
-+ * @lstat: mlog_stat
-+ * @start: start log page index, inclusive
-+ * @end:   end log page index, inclusive
-+ */
-+void mlog_free_rbuf(struct mlog_stat *lstat, int start, int end)
-+{
-+	int i;
-+
-+	for (i = start; i <= end; i++) {
-+		if (lstat->lst_rbuf[i]) {
-+			free_page((unsigned long)lstat->lst_rbuf[i]);
-+			lstat->lst_rbuf[i] = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * mlog_init_fsetparms() - Initialize frequently used mlog & flush set parameters.
-+ * @mp:     mpool descriptor
-+ * @layout: layout descriptor
-+ * @mfp:    fset parameters (output)
-+ */
-+static void mlog_init_fsetparms(struct mpool_descriptor *mp, struct mlog_descriptor *mlh,
-+				struct mlog_fsetparms *mfp)
-+{
-+	struct pmd_layout *layout;
-+	struct pd_prop *pdp;
-+	u8 secshift;
-+	u16 sectsz;
-+
-+	layout = mlog2layout(mlh);
-+	ASSERT(layout);
-+
-+	pdp = &mp->pds_pdv[layout->eld_ld.ol_pdh].pdi_prop;
-+	secshift = PD_SECTORSZ(pdp);
-+	mfp->mfp_totsec = pmd_layout_cap_get(mp, layout) >> secshift;
-+
-+	sectsz = 1 << secshift;
-+	ASSERT((sectsz == PAGE_SIZE) || (sectsz == 512));
-+
-+	mfp->mfp_sectsz  = sectsz;
-+	mfp->mfp_lpgsz   = PAGE_SIZE;
-+	mfp->mfp_secpga  = IS_ALIGNED(mfp->mfp_sectsz, mfp->mfp_lpgsz);
-+	mfp->mfp_nlpgmb  = MB >> PAGE_SHIFT;
-+	mfp->mfp_nsecmb  = MB >> secshift;
-+	mfp->mfp_nseclpg = mfp->mfp_lpgsz >> secshift;
-+}
-+
-+/**
-+ * mlog_extract_fsetparms() - Helper to extract flush set parameters.
-+ * @lstat:   mlog stat
-+ * @sectsz:  sector size
-+ * @totsec:  total number of sectors in the mlog
-+ * @nsecmb:  number of sectors in 1 MiB
-+ * @nseclpg: number of sectors in a log page
-+ */
-+void
-+mlog_extract_fsetparms(struct mlog_stat *lstat, u16 *sectsz, u32 *totsec, u16 *nsecmb, u16 *nseclpg)
-+{
-+	if (sectsz)
-+		*sectsz = MLOG_SECSZ(lstat);
-+	if (totsec)
-+		*totsec = MLOG_TOTSEC(lstat);
-+	if (nsecmb)
-+		*nsecmb = MLOG_NSECMB(lstat);
-+	if (nseclpg)
-+		*nseclpg = MLOG_NSECLPG(lstat);
-+}
-+
-+/**
-+ * mlog_stat_free() - Deallocate log stat struct for mlog layout (if any)
-+ */
-+void mlog_stat_free(struct pmd_layout *layout)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+
-+	if (!lstat->lst_abuf)
++	if (rw && (mdc->mdc_flags & MDC_OF_SKIP_SER))
 +		return;
 +
-+	mlog_free_rbuf(lstat, 0, MLOG_NLPGMB(lstat) - 1);
-+	mlog_free_abuf(lstat, 0, MLOG_NLPGMB(lstat) - 1);
-+
-+	kfree(lstat->lst_abuf);
-+	lstat->lst_abuf = NULL;
++	mutex_unlock(&mdc->mdc_lock);
 +}
 +
 +/**
-+ * mlog_read_iter_init() - Initialize read iterator
-+ *
-+ * @layout: mlog layout
-+ * @lstat:  mlog stat
-+ * @lri"    mlog read iterator
++ * mdc_invalidate() - Invalidates MDC handle by resetting the magic
++ * @mdc: MDC handle
 + */
-+void
-+mlog_read_iter_init(struct pmd_layout *layout, struct mlog_stat *lstat, struct mlog_read_iter *lri)
++static inline void mdc_invalidate(struct mp_mdc *mdc)
 +{
-+	lri->lri_layout = layout;
-+	lri->lri_gen    = layout->eld_gen;
-+	lri->lri_soff   = 0;
-+	lri->lri_roff   = 0;
-+	lri->lri_valid  = 1;
-+	lri->lri_rbidx  = 0;
-+	lri->lri_sidx   = 0;
-+
-+	lstat->lst_rsoff  = -1;
-+	lstat->lst_rseoff = -1;
++	mdc->mdc_magic = MPC_NO_MAGIC;
 +}
 +
 +/**
-+ * mlog_stat_init_common() - Initialize mlog_stat fields.
-+ * @layout:
-+ * @lstat: mlog_stat
-+ */
-+void mlog_stat_init_common(struct pmd_layout *layout, struct mlog_stat *lstat)
-+{
-+	struct mlog_read_iter *lri;
-+
-+	lstat->lst_pfsetid = 0;
-+	lstat->lst_cfsetid = 1;
-+	lstat->lst_abidx   = 0;
-+	lstat->lst_asoff   = -1;
-+	lstat->lst_cfssoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+	lstat->lst_aoff    = OMF_LOGBLOCK_HDR_PACKLEN;
-+	lstat->lst_abdirty = false;
-+	lstat->lst_wsoff   = 0;
-+	lstat->lst_cstart  = 0;
-+	lstat->lst_cend    = 0;
-+
-+	lri = &lstat->lst_citr;
-+	mlog_read_iter_init(layout, lstat, lri);
-+}
-+
-+/**
-+ * mlog_rw_raw() - Called by mpctl kernel for mlog IO.
++ * mdc_get_mpname() - Get mpool name from mpool descriptor
 + * @mp:     mpool descriptor
-+ * @mlh:    mlog descriptor
-+ * @iov:    iovec
-+ * @iovcnt: iov cnt
-+ * @boff:   IO offset
-+ * @rw:     MPOOL_OP_READ or MPOOL_OP_WRITE
-+ *
-+ * The scatter-gather buffer must contain
-+ * framed mlog data (this is done in user space for user space mlogs).
++ * @mpname: buffer to store the mpool name (output)
++ * @mplen:  buffer len
 + */
-+int mlog_rw_raw(struct mpool_descriptor *mp, struct mlog_descriptor *mlh,
-+		const struct kvec *iov, int iovcnt, u64 boff, u8 rw)
++static int mdc_get_mpname(struct mpool_descriptor *mp, char *mpname, size_t mplen)
 +{
-+	struct pmd_layout *layout;
-+	int flags;
-+	int rc;
-+
-+	layout = mlog2layout(mlh);
-+	if (!layout)
++	if (!mp || !mpname)
 +		return -EINVAL;
 +
-+	flags = (rw == MPOOL_OP_WRITE) ? REQ_FUA : 0;
-+
-+	pmd_obj_wrlock(layout);
-+	rc = pmd_layout_rw(mp, layout, iov, iovcnt, boff, flags, rw);
-+	pmd_obj_wrunlock(layout);
-+
-+	return rc;
++	return mpool_get_mpname(mp, mpname, mplen);
 +}
 +
 +/**
-+ * mlog_rw() -
-+ * @mp:       mpool descriptor
-+ * @mlh:      mlog descriptor
-+ * @iov:      iovec
-+ * @iovcnt:   iov cnt
-+ * @boff:     IO offset
-+ * @rw:       MPOOL_OP_READ or MPOOL_OP_WRITE
-+ * @skip_ser: client guarantees serialization
++ * mdc_find_get() - Wrapper around get for mlog pair.
 + */
-+static int mlog_rw(struct mpool_descriptor *mp, struct mlog_descriptor *mlh,
-+		   struct kvec *iov, int iovcnt, u64 boff, u8 rw, bool skip_ser)
++static void mdc_find_get(struct mpool_descriptor *mp, u64 *logid, bool do_put,
++			 struct mlog_props *props, struct mlog_descriptor **mlh, int *ferr)
 +{
-+	struct pmd_layout *layout;
++	int i;
 +
-+	layout = mlog2layout(mlh);
-+	if (!layout)
++	for (i = 0; i < 2; ++i)
++		ferr[i] = mlog_find_get(mp, logid[i], 0, &props[i], &mlh[i]);
++
++	if (do_put && ((ferr[0] && !ferr[1]) || (ferr[1] && !ferr[0]))) {
++		if (ferr[0])
++			mlog_put(mlh[1]);
++		else
++			mlog_put(mlh[0]);
++	}
++}
++
++/**
++ * mdc_put() - Wrapper around put for mlog pair.
++ */
++static void mdc_put(struct mlog_descriptor *mlh1, struct mlog_descriptor *mlh2)
++{
++	mlog_put(mlh1);
++	mlog_put(mlh2);
++}
++
++int mp_mdc_open(struct mpool_descriptor *mp, u64 logid1, u64 logid2, u8 flags,
++		struct mp_mdc **mdc_out)
++{
++	struct mlog_descriptor *mlh[2];
++	struct mlog_props *props = NULL;
++	struct mp_mdc *mdc;
++
++	int     err = 0, err1 = 0, err2 = 0;
++	int     ferr[2] = {0};
++	u64     gen1 = 0, gen2 = 0;
++	bool    empty = false;
++	u8      mlflags = 0;
++	u64     id[2];
++	char   *mpname;
++
++	if (!mp || !mdc_out)
 +		return -EINVAL;
 +
-+	if (!skip_ser) {
-+		int flags = (rw == MPOOL_OP_WRITE) ? REQ_FUA : 0;
-+
-+		return pmd_layout_rw(mp, layout, iov, iovcnt, boff, flags, rw);
-+	}
-+
-+	return mlog_rw_raw(mp, mlh, iov, iovcnt, boff, rw);
-+}
-+
-+/**
-+ * mlog_stat_init() - Allocate and init log stat struct for mlog layout.
-+ *
-+ * Returns: 0 if successful, -errno otherwise
-+ */
-+int mlog_stat_init(struct mpool_descriptor *mp, struct mlog_descriptor *mlh, bool csem)
-+{
-+	struct pmd_layout *layout = mlog2layout(mlh);
-+	struct mlog_fsetparms mfp;
-+	struct mlog_stat *lstat;
-+	size_t bufsz;
-+	int rc;
-+
-+	if (!layout)
-+		return -EINVAL;
-+
-+	lstat = &layout->eld_lstat;
-+
-+	mlog_stat_init_common(layout, lstat);
-+	mlog_init_fsetparms(mp, mlh, &mfp);
-+
-+	bufsz = mfp.mfp_nlpgmb * sizeof(char *) * 2;
-+
-+	lstat->lst_abuf = kzalloc(bufsz, GFP_KERNEL);
-+	if (!lstat->lst_abuf) {
-+		rc = -ENOMEM;
-+		mp_pr_err("mpool %s, allocating mlog 0x%lx status failed %zu",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, bufsz);
-+		return rc;
-+	}
-+
-+	lstat->lst_rbuf = lstat->lst_abuf + mfp.mfp_nlpgmb;
-+	lstat->lst_mfp  = mfp;
-+	lstat->lst_csem = csem;
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_setup_buf() - Build an iovec list to read into an mlog read buffer, or write from
-+ * an mlog append buffer.
-+ * @lstat:   mlog_stat
-+ * @riov:    iovec (output)
-+ * @iovcnt:  number of iovecs
-+ * @l_iolen: IO length for the last log page in the buffer
-+ * @op:      MPOOL_OP_READ or MPOOL_OP_WRITE
-+ *
-+ * In the read case, the read buffer pages will be allocated if not already populated.
-+ */
-+static int
-+mlog_setup_buf(struct mlog_stat *lstat, struct kvec **riov, u16 iovcnt, u32 l_iolen, u8 op)
-+{
-+	struct kvec *iov = *riov;
-+	u32 len = MLOG_LPGSZ(lstat);
-+	bool alloc_iov = false;
-+	u16 i;
-+	char *buf;
-+
-+	ASSERT(len == PAGE_SIZE);
-+	ASSERT(l_iolen <= PAGE_SIZE);
-+
-+	if (!iov) {
-+		ASSERT((iovcnt * sizeof(*iov)) <= PAGE_SIZE);
-+
-+		iov = kcalloc(iovcnt, sizeof(*iov), GFP_KERNEL);
-+		if (!iov)
-+			return -ENOMEM;
-+
-+		alloc_iov = true;
-+		*riov = iov;
-+	}
-+
-+	for (i = 0; i < iovcnt; i++, iov++) {
-+		buf = ((op == MPOOL_OP_READ) ? lstat->lst_rbuf[i] : lstat->lst_abuf[i]);
-+
-+		/* iov_len for the last log page in read/write buffer. */
-+		if (i == iovcnt - 1 && l_iolen != 0)
-+			len = l_iolen;
-+
-+		ASSERT(IS_ALIGNED(len, MLOG_SECSZ(lstat)));
-+
-+		if (op == MPOOL_OP_WRITE && buf) {
-+			iov->iov_base = buf;
-+			iov->iov_len  = len;
-+			continue;
-+		}
-+
-+		/*
-+		 * Pages for the append buffer are allocated in
-+		 * mlog_append_*(), so we shouldn't be here for MPOOL_OP_WRITE.
-+		 */
-+		ASSERT(op == MPOOL_OP_READ);
-+
-+		/*
-+		 * If the read buffer contains stale log pages from a prior
-+		 * iterator, reuse them. No need to zero these pages for
-+		 * the same reason provided in the following comment.
-+		 */
-+		if (buf) {
-+			iov->iov_base = buf;
-+			iov->iov_len  = len;
-+			continue;
-+		}
-+
-+		/*
-+		 * No need to zero the read buffer as we never read more than
-+		 * what's needed and do not consume beyond what's read.
-+		 */
-+		buf = (char *)__get_free_page(GFP_KERNEL);
-+		if (!buf) {
-+			mlog_free_rbuf(lstat, 0, i - 1);
-+			if (alloc_iov) {
-+				kfree(iov);
-+				*riov = NULL;
-+			}
-+
-+			return -ENOMEM;
-+		}
-+
-+		/*
-+		 * Must be a page-aligned buffer so that it can be used
-+		 * in bio_add_page().
-+		 */
-+		ASSERT(PAGE_ALIGNED(buf));
-+
-+		lstat->lst_rbuf[i] = iov->iov_base = buf;
-+		iov->iov_len = len;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_populate_abuf() - Makes append offset page-aligned and performs the
-+ * read operation in the read-modify-write cycle.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @soff:     sector/LB offset
-+ * @buf:      buffer to populate. Size of this buffer must be MLOG_LPGSZ(lstat).
-+ * @skip_ser: client guarantees serialization
-+ *
-+ * This is to ensure that IO-requests to the device are always 4K-aligned.
-+ * The read-modify-write cycle happens *only* if the first append post mlog
-+ * open lands on a non-page aligned sector offset. For any further appends,
-+ * read-modify-write cycle doesn't happen, as the 4k-aligned version of the
-+ * flush set algorithm ensures 4k-alignment of sector offsets at the start
-+ * of each log page.
-+ */
-+static int mlog_populate_abuf(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+			      off_t *soff, char *buf, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	struct kvec iov;
-+	u16 sectsz, iovcnt, leading;
-+	off_t off;
-+	u32 leadb;
-+	int rc;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+
-+	/* Find the leading number of sectors to make it page-aligned. */
-+	leading = ((*soff * sectsz) & ~PAGE_MASK) >> ilog2(sectsz);
-+	if (leading == 0)
-+		return 0; /* Nothing to do */
-+
-+	*soff = *soff - leading;
-+	leadb = leading * sectsz;
-+
-+	iovcnt       = 1;
-+	iov.iov_base = buf;
-+	iov.iov_len  = MLOG_LPGSZ(lstat);
-+
-+	off = *soff * sectsz;
-+	ASSERT(IS_ALIGNED(off, MLOG_LPGSZ(lstat)));
-+
-+	rc = mlog_rw(mp, layout2mlog(layout), &iov, iovcnt, off, MPOOL_OP_READ, skip_ser);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx, read IO failed, iovcnt: %u, off: 0x%lx",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, iovcnt, off);
-+		return rc;
-+	}
-+
-+	memset(&buf[leadb], 0, MLOG_LPGSZ(lstat) - leadb);
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_populate_rbuf() - Fill the read buffer after aligning the read offset to page boundary.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @nsec:     number of sectors to populate
-+ * @soff:     start sector/LB offset
-+ * @skip_ser: client guarantees serialization
-+ *
-+ * Having the read offsets page-aligned avoids unnecessary
-+ * complexity at the pd layer.
-+ *
-+ * In the worst case, for 512 byte sectors, we would end up reading 7
-+ * additional sectors, which is acceptable. There won't be any overhead for
-+ * 4 KiB sectors as they are naturally page-aligned.
-+ *
-+ * Caller must hold the write lock on the layout.
-+ */
-+int mlog_populate_rbuf(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+		       u16 *nsec, off_t *soff, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	struct kvec *iov = NULL;
-+	u16 maxsec, sectsz, iovcnt, nseclpg, leading;
-+	off_t off;
-+	u32 l_iolen;
-+	int rc;
-+
-+	mlog_extract_fsetparms(lstat, &sectsz, NULL, &maxsec, &nseclpg);
-+
-+	/* Find the leading number of sectors to make it page-aligned. */
-+	leading = ((*soff * sectsz) & ~PAGE_MASK) >> ilog2(sectsz);
-+	*soff   = *soff - leading;
-+	*nsec  += leading;
-+
-+	*nsec   = min_t(u32, maxsec, *nsec);
-+	iovcnt  = (*nsec + nseclpg - 1) / nseclpg;
-+	l_iolen = MLOG_LPGSZ(lstat);
-+
-+	rc = mlog_setup_buf(lstat, &iov, iovcnt, l_iolen, MPOOL_OP_READ);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx setup failed, iovcnt: %u, last iolen: %u",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, iovcnt, l_iolen);
-+		return rc;
-+	}
-+
-+	off = *soff * sectsz;
-+	ASSERT(IS_ALIGNED(off, MLOG_LPGSZ(lstat)));
-+
-+	rc = mlog_rw(mp, layout2mlog(layout), iov, iovcnt, off, MPOOL_OP_READ, skip_ser);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx populate rbuf, IO failed iovcnt: %u, off: 0x%lx",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, iovcnt, off);
-+
-+		mlog_free_rbuf(lstat, 0, MLOG_NLPGMB(lstat) - 1);
-+		kfree(iov);
-+		return rc;
-+	}
-+
-+	/*
-+	 * If there're any unused buffers beyond iovcnt, free it. This is
-+	 * likely to happen when there're multiple threads reading from
-+	 * the same mlog simultaneously, using their own iterator.
-+	 */
-+	mlog_free_rbuf(lstat, iovcnt, MLOG_NLPGMB(lstat) - 1);
-+
-+	kfree(iov);
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_alloc_abufpg() - Allocate a log page at append buffer index 'abidx'.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @abidx:    allocate log page at index 'abidx'.
-+ * @skip_ser: client guarantees serialization
-+ *
-+ * If the sector size is 512B AND 4K-alignment is forced AND the append offset
-+ * at buffer index '0' is not 4K-aligned, then call mlog_populate_abuf().
-+ */
-+static int mlog_alloc_abufpg(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+			     u16 abidx, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	char *abuf;
-+
-+	ASSERT(MLOG_LPGSZ(lstat) == PAGE_SIZE);
-+
-+	abuf = (char *)get_zeroed_page(GFP_KERNEL);
-+	if (!abuf)
++	mdc = kzalloc(sizeof(*mdc), GFP_KERNEL);
++	if (!mdc)
 +		return -ENOMEM;
 +
-+	lstat->lst_abuf[abidx] = abuf;
++	mdc->mdc_valid = 0;
++	mdc->mdc_mp    = mp;
++	mdc_get_mpname(mp, mdc->mdc_mpname, sizeof(mdc->mdc_mpname));
 +
-+	if (abidx == 0) {
-+		off_t asoff, wsoff;
-+		u16 aoff, sectsz;
-+		int rc;
++	mpname = mdc->mdc_mpname;
 +
-+		/* This path is taken *only* for the first append following an mlog_open(). */
-+		sectsz = MLOG_SECSZ(lstat);
-+		wsoff  = lstat->lst_wsoff;
-+		aoff   = lstat->lst_aoff;
-+
-+		if (IS_SECPGA(lstat) || (IS_ALIGNED(wsoff * sectsz, MLOG_LPGSZ(lstat)))) {
-+			/* This is the common path */
-+			lstat->lst_asoff = wsoff;
-+			return 0;
-+		}
-+
-+		/*
-+		 * This path is taken *only* if,
-+		 * - the log block size is 512B AND
-+		 * - lst_wsoff is non page-aligned, which is possible for the
-+		 *   first append post mlog_open.
-+		 */
-+		asoff = wsoff;
-+		rc = mlog_populate_abuf(mp, layout, &asoff, abuf, skip_ser);
-+		if (rc) {
-+			mp_pr_err("mpool %s, mlog 0x%lx, making write offset %ld 4K-aligned failed",
-+				  rc, mp->pds_name, (ulong)layout->eld_objid, wsoff);
-+			mlog_free_abuf(lstat, abidx, abidx);
-+			return rc;
-+		}
-+
-+		ASSERT(asoff <= wsoff);
-+		ASSERT(IS_ALIGNED(asoff * sectsz, MLOG_LPGSZ(lstat)));
-+
-+		lstat->lst_cfssoff = ((wsoff - asoff) * sectsz) + aoff;
-+		lstat->lst_asoff   = asoff;
++	if (logid1 == logid2) {
++		err = -EINVAL;
++		goto exit;
 +	}
 +
-+	return 0;
++	props = kcalloc(2, sizeof(*props), GFP_KERNEL);
++	if (!props) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	/*
++	 * This mdc_find_get can go away once mp_mdc_open is modified to
++	 * operate on handles.
++	 */
++	id[0] = logid1;
++	id[1] = logid2;
++	mdc_find_get(mp, id, true, props, mlh, ferr);
++	if (ferr[0] || ferr[1]) {
++		err = ferr[0] ? : ferr[1];
++		goto exit;
++	}
++	mdc->mdc_logh1 = mlh[0];
++	mdc->mdc_logh2 = mlh[1];
++
++	if (flags & MDC_OF_SKIP_SER)
++		mlflags |= MLOG_OF_SKIP_SER;
++
++	mlflags |= MLOG_OF_COMPACT_SEM;
++
++	err1 = mlog_open(mp, mdc->mdc_logh1, mlflags, &gen1);
++	err2 = mlog_open(mp, mdc->mdc_logh2, mlflags, &gen2);
++
++	if (err1 && err1 != -EMSGSIZE && err1 != -EBUSY) {
++		err = err1;
++	} else if (err2 && err2 != -EMSGSIZE && err2 != -EBUSY) {
++		err = err2;
++	} else if ((err1 && err2) || (!err1 && !err2 && gen1 && gen1 == gen2)) {
++
++		err = -EINVAL;
++
++		/* Bad pair; both have failed erases/compactions or equal non-0 gens. */
++		mp_pr_err("mpool %s, mdc open, bad mlog handle, mlog1 %p logid1 0x%lx errno %d gen1 %lu, mlog2 %p logid2 0x%lx errno %d gen2 %lu",
++			err, mpname, mdc->mdc_logh1, (ulong)logid1, err1, (ulong)gen1,
++			mdc->mdc_logh2, (ulong)logid2, err2, (ulong)gen2);
++	} else {
++		/* Active log is valid log with smallest gen */
++		if (err1 || (!err2 && gen2 < gen1)) {
++			mdc->mdc_alogh = mdc->mdc_logh2;
++			if (!err1) {
++				err = mlog_empty(mp, mdc->mdc_logh1, &empty);
++				if (err)
++					mdc_logerr(mpname, "mlog1 empty check failed",
++						   mdc->mdc_logh1, logid1, gen1, gen2, err);
++			}
++			if (!err && (err1 || !empty)) {
++				err = mlog_erase(mp, mdc->mdc_logh1, gen2 + 1);
++				if (!err) {
++					err = mlog_open(mp, mdc->mdc_logh1, mlflags, &gen1);
++					if (err)
++						mdc_logerr(mpname, "mlog1 open failed",
++							   mdc->mdc_logh1, logid1, gen1, gen2, err);
++				} else {
++					mdc_logerr(mpname, "mlog1 erase failed", mdc->mdc_logh1,
++						   logid1, gen1, gen2, err);
++				}
++			}
++		} else {
++			mdc->mdc_alogh = mdc->mdc_logh1;
++			if (!err2) {
++				err = mlog_empty(mp, mdc->mdc_logh2, &empty);
++				if (err)
++					mdc_logerr(mpname, "mlog2 empty check failed",
++						   mdc->mdc_logh2, logid2, gen1, gen2, err);
++			}
++			if (!err && (err2 || gen2 == gen1 || !empty)) {
++				err = mlog_erase(mp, mdc->mdc_logh2, gen1 + 1);
++				if (!err) {
++					err = mlog_open(mp, mdc->mdc_logh2, mlflags, &gen2);
++					if (err)
++						mdc_logerr(mpname, "mlog2 open failed",
++							   mdc->mdc_logh2, logid2, gen1, gen2, err);
++				} else {
++					mdc_logerr(mpname, "mlog2 erase failed", mdc->mdc_logh2,
++						   logid2, gen1, gen2, err);
++				}
++			}
++		}
++
++		if (!err) {
++			err = mlog_empty(mp, mdc->mdc_alogh, &empty);
++			if (!err && empty) {
++				/*
++				 * First use of log pair so need to add
++				 * cstart/cend recs; above handles case of
++				 * failure between adding cstart and cend
++				 */
++				err = mlog_append_cstart(mp, mdc->mdc_alogh);
++				if (!err) {
++					err = mlog_append_cend(mp, mdc->mdc_alogh);
++					if (err)
++						mdc_logerr(mpname,
++							   "adding cend to active mlog failed",
++							   mdc->mdc_alogh,
++							   mdc->mdc_alogh == mdc->mdc_logh1 ?
++							   logid1 : logid2, gen1, gen2, err);
++				} else {
++					mdc_logerr(mpname, "adding cstart to active mlog failed",
++						   mdc->mdc_alogh,
++						   mdc->mdc_alogh == mdc->mdc_logh1 ?
++						   logid1 : logid2, gen1, gen2, err);
++				}
++
++			} else if (err) {
++				mdc_logerr(mpname, "active mlog empty check failed",
++					   mdc->mdc_alogh, mdc->mdc_alogh == mdc->mdc_logh1 ?
++					   logid1 : logid2, gen1, gen2, err);
++			}
++		}
++	}
++
++	if (!err) {
++		/*
++		 * Inform pre-compaction of the size of the active
++		 * mlog and how much is used. This is applicable
++		 * only for mpool core's internal MDCs.
++		 */
++		mlog_precompact_alsz(mp, mdc->mdc_alogh);
++
++		mdc->mdc_valid = 1;
++		mdc->mdc_magic = MPC_MDC_MAGIC;
++		mdc->mdc_flags = flags;
++		mutex_init(&mdc->mdc_lock);
++
++		*mdc_out = mdc;
++	} else {
++		err1 = mlog_close(mp, mdc->mdc_logh1);
++		err2 = mlog_close(mp, mdc->mdc_logh2);
++
++		mdc_put(mdc->mdc_logh1, mdc->mdc_logh2);
++	}
++
++exit:
++	if (err)
++		kfree(mdc);
++
++	kfree(props);
++
++	return err;
 +}
 +
-+/**
-+ * mlog_flush_abuf() - Set up iovec and flush the append buffer to media.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @skip_ser: client guarantees serialization
-+ */
-+static int mlog_flush_abuf(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser)
++int mp_mdc_cstart(struct mp_mdc *mdc)
 +{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	struct kvec *iov = NULL;
-+	u16 abidx, sectsz, nseclpg;
-+	off_t off;
-+	u32 l_iolen;
++	struct mlog_descriptor *tgth = NULL;
++	struct mpool_descriptor *mp;
++	bool rw = false;
 +	int rc;
 +
-+	mlog_extract_fsetparms(lstat, &sectsz, NULL, NULL, &nseclpg);
++	if (!mdc)
++		return -EINVAL;
 +
-+	abidx   = lstat->lst_abidx;
-+	l_iolen = MLOG_LPGSZ(lstat);
-+
-+	rc = mlog_setup_buf(lstat, &iov, abidx + 1, l_iolen, MPOOL_OP_WRITE);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx flush, buf setup failed, iovcnt: %u, iolen: %u",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, abidx + 1, l_iolen);
-+		return rc;
-+	}
-+
-+	off = lstat->lst_asoff * sectsz;
-+
-+	ASSERT((IS_ALIGNED(off, MLOG_LPGSZ(lstat))) ||
-+		(IS_SECPGA(lstat) && IS_ALIGNED(off, MLOG_SECSZ(lstat))));
-+
-+	rc = mlog_rw(mp, layout2mlog(layout), iov, abidx + 1, off, MPOOL_OP_WRITE, skip_ser);
++	rc = mdc_acquire(mdc, rw);
 +	if (rc)
-+		mp_pr_err("mpool %s, mlog 0x%lx flush append buf, IO failed iovcnt %u, off 0x%lx",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, abidx + 1, off);
++		return rc;
 +
-+	kfree(iov);
++	mp = mdc->mdc_mp;
 +
-+	return rc;
-+}
++	if (mdc->mdc_alogh == mdc->mdc_logh1)
++		tgth = mdc->mdc_logh2;
++	else
++		tgth = mdc->mdc_logh1;
 +
-+/**
-+ * mlog_flush_posthdlr_4ka() - Handles both successful and failed flush for
-+ *                             512B sectors with 4K-Alignment.
-+ * @layout: layout descriptor
-+ * @fsucc:  flush status
-+ */
-+static void mlog_flush_posthdlr_4ka(struct pmd_layout *layout, bool fsucc)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 abidx, sectsz, asidx;
-+	off_t asoff, wsoff;
-+	char *abuf;
-+	u32 nsecwr;
++	rc = mlog_append_cstart(mp, tgth);
++	if (rc) {
++		mdc_release(mdc, rw);
 +
-+	sectsz = MLOG_SECSZ(lstat);
-+	abidx = lstat->lst_abidx;
-+	asoff = lstat->lst_asoff;
-+	wsoff = lstat->lst_wsoff;
++		mp_pr_err("mpool %s, mdc %p cstart failed, mlog %p",
++			  rc, mdc->mdc_mpname, mdc, tgth);
 +
-+	asidx  = wsoff - ((MLOG_NSECLPG(lstat) * abidx) + asoff);
++		(void)mp_mdc_close(mdc);
 +
-+	/* Set the current filling log page index to 0. */
-+	lstat->lst_abidx = 0;
-+	abuf = lstat->lst_abuf[0];
-+
-+	if (!fsucc) {
-+		u32 cfssoff;
-+
-+		/*
-+		 * Last CFS flush or header packing failed.
-+		 * Retain the pfsetid of the first log block.
-+		 */
-+		cfssoff = lstat->lst_cfssoff;
-+		memset(&abuf[cfssoff], 0, MLOG_LPGSZ(lstat) - cfssoff);
-+		asidx = (cfssoff >> ilog2(sectsz));
-+		lstat->lst_aoff  = cfssoff - (asidx * sectsz);
-+		lstat->lst_wsoff = asoff + asidx;
-+
-+		goto exit2;
++		return rc;
 +	}
 +
-+	/* Last CFS flush succeded. */
-+	if (abidx != 0) {
-+		/* Reorganize buffers if the active log page not at index 0. */
-+		abuf = lstat->lst_abuf[abidx];
-+		lstat->lst_abuf[abidx] = NULL;
-+	}
-+
-+	nsecwr = wsoff - (asoff + (lstat->lst_cfssoff >> ilog2(sectsz)));
-+	asoff  = wsoff - asidx;
-+
-+	/* The last logblock of the just-written CFS is not full. */
-+	if (sectsz - lstat->lst_aoff >= OMF_LOGREC_DESC_PACKLEN) {
-+		if (nsecwr != 0)
-+			/* Set pfsetid to the cfsetid of just-written CFS. */
-+			lstat->lst_pfsetid  = lstat->lst_cfsetid;
-+
-+		goto exit1;
-+	}
-+
-+	/* The last logblock of the just-written CFS is full. */
-+	lstat->lst_aoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+	++wsoff;
-+	if ((wsoff - asoff) == MLOG_NSECLPG(lstat)) {
-+		memset(&abuf[0], 0, MLOG_LPGSZ(lstat));
-+		asoff = wsoff;
-+	}
-+	/* Set pfsetid to the cfsetid of just-written CFS. */
-+	lstat->lst_pfsetid  = lstat->lst_cfsetid;
-+
-+exit1:
-+	asidx              = wsoff - asoff;
-+	lstat->lst_cfssoff = (asidx * sectsz) + lstat->lst_aoff;
-+	lstat->lst_asoff   = asoff;
-+	lstat->lst_wsoff   = wsoff;
-+
-+exit2:
-+	/* Increment cfsetid in all cases. */
-+	++lstat->lst_cfsetid;
-+
-+	lstat->lst_abuf[0] = abuf;
-+}
-+
-+/**
-+ * mlog_flush_posthdlr() - Handles both successful and failed flush for
-+ * 512B and 4K-sectors with native alignment, i.e., 512B and 4K resply.
-+ *
-+ * @layout: layout descriptor
-+ * @fsucc:  flush status
-+ */
-+static void mlog_flush_posthdlr(struct pmd_layout *layout, bool fsucc)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 abidx, sectsz, asidx;
-+	off_t asoff, lpgoff;
-+	char *abuf;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+	abidx  = lstat->lst_abidx;
-+	asoff  = lstat->lst_asoff;
-+
-+	asidx  = lstat->lst_wsoff - ((MLOG_NSECLPG(lstat) * abidx) + asoff);
-+	lpgoff = asidx * sectsz;
-+
-+	/* Set the current filling log page index to 0. */
-+	lstat->lst_abidx = 0;
-+	abuf = lstat->lst_abuf[0];
-+
-+	if (!fsucc) {
-+		u32 cfssoff;
-+
-+		/*
-+		 * Last CFS flush or header packing failed.
-+		 * Retain the pfsetid of the first log block.
-+		 */
-+		cfssoff = lstat->lst_cfssoff;
-+		memset(&abuf[cfssoff], 0, MLOG_LPGSZ(lstat) - cfssoff);
-+		lstat->lst_aoff  = cfssoff;
-+		lstat->lst_wsoff = asoff;
-+
-+		goto exit2;
-+	}
-+
-+	/* Last CFS flush succeded. */
-+	if (abidx != 0) {
-+		/* Reorganize buffers if the active log page not at index 0. */
-+		abuf = lstat->lst_abuf[abidx];
-+		lstat->lst_abuf[abidx] = NULL;
-+	}
-+
-+	/* The last logblock of the just-written CFS is not full. */
-+	if (sectsz - lstat->lst_aoff >= OMF_LOGREC_DESC_PACKLEN) {
-+		/*
-+		 * If the last logblock in the just-written CFS is
-+		 * first in the append buffer at abidx.
-+		 */
-+		if (lpgoff == 0) {
-+			if (abidx != 0)
-+				lstat->lst_pfsetid = lstat->lst_cfsetid;
-+
-+			goto exit1;
-+		}
-+
-+		memcpy(&abuf[0], &abuf[lpgoff], sectsz);
-+		memset(&abuf[sectsz], 0, lpgoff - sectsz + lstat->lst_aoff);
-+	} else { /* The last logblock of the just-written CFS is full. */
-+		memset(&abuf[0], 0, lpgoff + sectsz);
-+		lstat->lst_aoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+		++lstat->lst_wsoff;
-+	}
-+	/* Set pfsetid to the cfsetid of just-written CFS. */
-+	lstat->lst_pfsetid  = lstat->lst_cfsetid;
-+
-+exit1:
-+	lstat->lst_cfssoff = lstat->lst_aoff;
-+	lstat->lst_asoff   = lstat->lst_wsoff;
-+
-+exit2:
-+	/* Increment cfsetid in all cases. */
-+	++lstat->lst_cfsetid;
-+
-+	lstat->lst_abuf[0] = abuf;
-+}
-+
-+/**
-+ * mlog_logblocks_hdrpack() -  Pack log block header in all log blocks in the append buffer.
-+ * @layout: object layout
-+ *
-+ * Called prior to CFS flush
-+ */
-+static int mlog_logblocks_hdrpack(struct pmd_layout *layout)
-+{
-+	struct omf_logblock_header lbh;
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	off_t lpgoff;
-+	u32 pfsetid, cfsetid;
-+	u16 sectsz, nseclpg;
-+	u16 idx, abidx;
-+	u16 sec, start;
-+
-+	sectsz  = MLOG_SECSZ(lstat);
-+	nseclpg = MLOG_NSECLPG(lstat);
-+	abidx   = lstat->lst_abidx;
-+	pfsetid = lstat->lst_pfsetid;
-+	cfsetid = lstat->lst_cfsetid;
-+
-+	lbh.olh_vers = OMF_LOGBLOCK_VERS;
-+
-+	for (idx = 0; idx <= abidx; idx++) {
-+		start = 0;
-+
-+		if (!IS_SECPGA(lstat) && idx == 0)
-+			start = (lstat->lst_cfssoff >> ilog2(sectsz));
-+
-+		if (idx == abidx)
-+			nseclpg = lstat->lst_wsoff - (nseclpg * abidx + lstat->lst_asoff) + 1;
-+
-+		for (sec = start; sec < nseclpg; sec++) {
-+			int rc;
-+
-+			lbh.olh_pfsetid = pfsetid;
-+			lbh.olh_cfsetid = cfsetid;
-+			mpool_uuid_copy(&lbh.olh_magic, &layout->eld_uuid);
-+			lbh.olh_gen = layout->eld_gen;
-+			lpgoff = sec * sectsz;
-+
-+			/* Pack the log block header. */
-+			rc = omf_logblock_header_pack_htole(&lbh, &lstat->lst_abuf[idx][lpgoff]);
-+			if (rc) {
-+				mp_pr_err("mlog packing lbh failed, log pg idx %u, vers %u failed",
-+					  rc, idx, lbh.olh_vers);
-+
-+				return rc;
-+			}
-+
-+			/* If there's more than one sector to flush, pfsetid is set to cfsetid. */
-+			pfsetid = cfsetid;
-+		}
-+	}
++	mdc->mdc_alogh = tgth;
++	mdc_release(mdc, rw);
 +
 +	return 0;
 +}
 +
-+/**
-+ * mlog_logblocks_flush() - Flush CFS and handle both successful and failed flush.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @skip_ser: client guarantees serialization
-+ */
-+int mlog_logblocks_flush(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser)
++int mp_mdc_cend(struct mp_mdc *mdc)
 +{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	int start, end, rc;
-+	bool fsucc = true;
-+	u16 abidx;
-+
-+	abidx = lstat->lst_abidx;
-+
-+	/* Pack log block header in all the log blocks. */
-+	rc = mlog_logblocks_hdrpack(layout);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx packing header failed",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid);
-+
-+	} else {
-+		rc = mlog_flush_abuf(mp, layout, skip_ser);
-+		if (rc)
-+			mp_pr_err("mpool %s, mlog 0x%lx log block flush failed",
-+				  rc, mp->pds_name, (ulong)layout->eld_objid);
-+	}
-+
-+	if (rc) {
-+		/* If flush failed, free all log pages except the first one. */
-+		start = 1;
-+		end   = abidx;
-+		fsucc = false;
-+	} else {
-+		/* If flush succeeded, free all log pages except the last one.*/
-+		start = 0;
-+		end   = abidx - 1;
-+
-+		/*
-+		 * Inform pre-compaction of the size of the active mlog and
-+		 * how much is used.
-+		 */
-+		pmd_precompact_alsz(mp, layout->eld_objid, lstat->lst_wsoff * MLOG_SECSZ(lstat),
-+				    lstat->lst_mfp.mfp_totsec * MLOG_SECSZ(lstat));
-+	}
-+	mlog_free_abuf(lstat, start, end);
-+
-+	if (!IS_SECPGA(lstat))
-+		mlog_flush_posthdlr_4ka(layout, fsucc);
-+	else
-+		mlog_flush_posthdlr(layout, fsucc);
-+
-+	return rc;
-+}
-+
-+/**
-+ * mlog_append_dmax() -
-+ *
-+ * Max data record that can be appended to log in bytes; -1 if no room
-+ * for a 0 byte data record due to record descriptor length.
-+ */
-+s64 mlog_append_dmax(struct pmd_layout *layout)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u64 lbmax, lbrest;
-+	u32 sectsz, datalb;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+	datalb = MLOG_TOTSEC(lstat);
-+
-+	if (lstat->lst_wsoff >= datalb) {
-+		/* Mlog already full */
-+		return -1;
-+	}
-+
-+	lbmax  = (sectsz - OMF_LOGBLOCK_HDR_PACKLEN - OMF_LOGREC_DESC_PACKLEN);
-+	lbrest = (datalb - lstat->lst_wsoff - 1) * lbmax;
-+
-+	if ((sectsz - lstat->lst_aoff) < OMF_LOGREC_DESC_PACKLEN) {
-+		/* Current log block cannot hold even a record descriptor */
-+		if (lbrest)
-+			return lbrest;
-+
-+		return -1;
-+	}
-+
-+	/*
-+	 * Can start in current log block and spill over to others (if any)
-+	 */
-+	return sectsz - lstat->lst_aoff - OMF_LOGREC_DESC_PACKLEN + lbrest;
-+}
-+
-+/**
-+ * mlog_update_append_idx() - Check if active log block is full and update the append offsets
-+ *
-+ * Returns: 0 on success; -errno otherwise
-+ */
-+int mlog_update_append_idx(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 sectsz, nseclpg, abidx, asidx;
++	struct mlog_descriptor *srch = NULL;
++	struct mlog_descriptor *tgth = NULL;
++	struct mpool_descriptor *mp;
++	u64 gentgt = 0;
++	bool rw = false;
 +	int rc;
 +
-+	sectsz  = MLOG_SECSZ(lstat);
-+	nseclpg = MLOG_NSECLPG(lstat);
++	if (!mdc)
++		return -EINVAL;
 +
-+	if (sectsz - lstat->lst_aoff < OMF_LOGREC_DESC_PACKLEN) {
-+		/* If the log block is full, move to the next log block in the buffer. */
-+		abidx = lstat->lst_abidx;
-+		asidx = lstat->lst_wsoff - ((nseclpg * abidx) + lstat->lst_asoff);
-+		if (asidx == nseclpg - 1)
-+			++lstat->lst_abidx;
-+		++lstat->lst_wsoff;
-+		lstat->lst_aoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+	}
-+
-+	abidx = lstat->lst_abidx;
-+	if (!lstat->lst_abuf[abidx]) {
-+		/* Allocate a log page at 'abidx' */
-+		rc = mlog_alloc_abufpg(mp, layout, abidx, skip_ser);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_logblocks_load_media() - Read log blocks from media, upto a maximum of 1 MiB.
-+ * @mp:    mpool descriptor
-+ * @lri:   read iterator
-+ * @inbuf: buffer to into (output)
-+ */
-+static int mlog_logblocks_load_media(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+				     char **inbuf)
-+{
-+	struct pmd_layout *layout = lri->lri_layout;
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 maxsec, nsecs, sectsz;
-+	bool skip_ser = false;
-+	off_t rsoff;
-+	int remsec, rc;
-+
-+	mlog_extract_fsetparms(lstat, &sectsz, NULL, &maxsec, NULL);
-+
-+	/*
-+	 * The read and append buffer must never overlap. So, the read buffer
-+	 * can only hold sector offsets in the range [0, lstat->lst_asoff - 1].
-+	 */
-+	if (lstat->lst_asoff < 0)
-+		remsec = lstat->lst_wsoff;
-+	else
-+		remsec = lstat->lst_asoff;
-+
-+	if (remsec == 0) {
-+		rc = -ENOTRECOVERABLE;
-+		mp_pr_err("mpool %s, objid 0x%lx, mlog read cannot be served from read buffer",
-+			  rc, mp->pds_name, (ulong)lri->lri_layout->eld_objid);
++	rc = mdc_acquire(mdc, rw);
++	if (rc)
 +		return rc;
-+	}
 +
-+	lri->lri_rbidx = 0;
-+	lri->lri_sidx = 0;
++	mp = mdc->mdc_mp;
 +
-+	rsoff = lri->lri_soff;
-+	remsec -= rsoff;
-+	ASSERT(remsec > 0);
-+
-+	nsecs = min_t(u32, maxsec, remsec);
-+
-+	if (layout->eld_flags & MLOG_OF_SKIP_SER)
-+		skip_ser = true;
-+
-+	rc = mlog_populate_rbuf(mp, lri->lri_layout, &nsecs, &rsoff, skip_ser);
-+	if (rc) {
-+		mp_pr_err("mpool %s, objid 0x%lx, mlog read failed, nsecs: %u, rsoff: 0x%lx",
-+			  rc, mp->pds_name, (ulong)lri->lri_layout->eld_objid, nsecs, rsoff);
-+
-+		lstat->lst_rsoff = lstat->lst_rseoff = -1;
-+
-+		return rc;
-+	}
-+
-+	/*
-+	 * 'nsecs' and 'rsoff' can be changed by mlog_populate_rbuf, if the
-+	 * read offset is not page-aligned. Adjust lri_sidx and lst_rsoff
-+	 * accordingly.
-+	 */
-+	lri->lri_sidx     = lri->lri_soff - rsoff;
-+	lstat->lst_rsoff  = rsoff;
-+	lstat->lst_rseoff = rsoff + nsecs - 1;
-+
-+	*inbuf = lstat->lst_rbuf[lri->lri_rbidx];
-+	*inbuf += lri->lri_sidx * sectsz;
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_logblock_load_internal() - Read log blocks from either the read buffer or media.
-+ * @mp:    mpool descriptor
-+ * @lri:   read iterator
-+ * @inbuf: buffer to load into (output)
-+ */
-+static int mlog_logblock_load_internal(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+				       char **inbuf)
-+{
-+	struct mlog_stat *lstat;
-+	off_t rsoff, rseoff, soff;
-+	u16 nsecs, rbidx, rsidx;
-+	u16 nlpgs, nseclpg;
-+	int rc;
-+
-+	lstat = &lri->lri_layout->eld_lstat;
-+
-+	nseclpg = MLOG_NSECLPG(lstat);
-+	rbidx   = lri->lri_rbidx;
-+	rsidx   = lri->lri_sidx;
-+	soff    = lri->lri_soff;
-+	rsoff   = lstat->lst_rsoff;
-+	rseoff  = lstat->lst_rseoff;
-+
-+	if (rsoff < 0)
-+		goto media_read;
-+
-+	/*
-+	 * If the read offset doesn't fall within the read buffer range,
-+	 * then media read.
-+	 */
-+	if ((soff < rsoff) || (soff > rseoff))
-+		goto media_read;
-+
-+	do {
-+		/* If this is not the start of log block. */
-+		if (lri->lri_roff != 0)
-+			break;
-+
-+		/* Check if there's unconsumed data in rbuf. */
-+		nsecs = rseoff - rsoff + 1;
-+		nlpgs = (nsecs + nseclpg - 1) / nseclpg;
-+
-+		/* No. of sectors in the last log page. */
-+		if (rbidx == nlpgs - 1) {
-+			nseclpg = nsecs % nseclpg;
-+			nseclpg = nseclpg > 0 ? nseclpg : MLOG_NSECLPG(lstat);
-+		}
-+		/* Remaining sectors in the active log page? */
-+		if (rsidx < nseclpg - 1) {
-+			++rsidx;
-+			break;
-+		}
-+		/* Remaining log pages in the read buffer? */
-+		if (rbidx >= nlpgs - 1)
-+			goto media_read;
-+
-+		/* Free the active log page and move to next one. */
-+		mlog_free_rbuf(lstat, rbidx, rbidx);
-+		++rbidx;
-+		rsidx = 0;
-+
-+		break;
-+	} while (0);
-+
-+	/* Serve data from the read buffer. */
-+	*inbuf  = lstat->lst_rbuf[rbidx];
-+	*inbuf += rsidx * MLOG_SECSZ(lstat);
-+
-+	lri->lri_rbidx = rbidx;
-+	lri->lri_sidx  = rsidx;
-+
-+	return 0;
-+
-+media_read:
-+	rc = mlog_logblocks_load_media(mp, lri, inbuf);
-+	if (rc) {
-+		mp_pr_err("mpool %s, objid 0x%lx, mlog new read failed",
-+			  rc, mp->pds_name, (ulong)lri->lri_layout->eld_objid);
-+
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_loopback_load() - Load log block referenced by lri into lstat.
-+ *
-+ * Load log block referenced by lri into lstat, update lri if first read
-+ * from this log block, and return a pointer to the log block and a flag
-+ * indicating if lri references first record in log block.
-+ *
-+ * Note: lri can reference the log block currently accumulating in lstat
-+ *
-+ * Returns: 0 on success; -errno otherwise
-+ * One of the possible errno values:
-+ * -ENOMSG - if at end of log -- NB: requires an API change to signal without
-+ */
-+int mlog_logblock_load(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+		       char **buf, bool *first)
-+{
-+	struct mlog_stat *lstat = NULL;
-+	int lbhlen = 0;
-+	int rc = 0;
-+
-+	*buf = NULL;
-+	*first = false;
-+	lstat  = &lri->lri_layout->eld_lstat;
-+
-+	if (!lri->lri_valid || lri->lri_soff > lstat->lst_wsoff) {
-+		/* lri is invalid; prior checks should prevent this */
-+		rc = -EINVAL;
-+		mp_pr_err("mpool %s, invalid offset %u %ld %ld",
-+			  rc, mp->pds_name, lri->lri_valid, lri->lri_soff, lstat->lst_wsoff);
-+	} else if ((lri->lri_soff == lstat->lst_wsoff) || (lstat->lst_asoff > -1 &&
-+			lri->lri_soff >= lstat->lst_asoff &&
-+			lri->lri_soff <= lstat->lst_wsoff)) {
-+		u16 abidx, sectsz, asidx, nseclpg;
-+
-+		/*
-+		 * lri refers to the currently accumulating log block
-+		 * in lstat
-+		 */
-+		if (!lri->lri_roff)
-+			/* First read with handle from this log block. */
-+			lri->lri_roff = OMF_LOGBLOCK_HDR_PACKLEN;
-+
-+		if (lri->lri_soff == lstat->lst_wsoff && lri->lri_roff > lstat->lst_aoff) {
-+			/* lri is invalid; prior checks should prevent this */
-+			rc = -EINVAL;
-+			mp_pr_err("mpool %s, invalid next offset %u %u",
-+				  rc, mp->pds_name, lri->lri_roff, lstat->lst_aoff);
-+			goto out;
-+		} else if (lri->lri_soff == lstat->lst_wsoff && lri->lri_roff == lstat->lst_aoff) {
-+			/* Hit end of log */
-+			rc = -ENOMSG;
-+			goto out;
-+		} else if (lri->lri_roff == OMF_LOGBLOCK_HDR_PACKLEN)
-+			*first = true;
-+
-+		sectsz  = MLOG_SECSZ(lstat);
-+		nseclpg = MLOG_NSECLPG(lstat);
-+
-+		abidx = (lri->lri_soff - lstat->lst_asoff) / nseclpg;
-+		asidx = lri->lri_soff - ((nseclpg * abidx) + lstat->lst_asoff);
-+
-+		*buf = &lstat->lst_abuf[abidx][asidx * sectsz];
++	if (mdc->mdc_alogh == mdc->mdc_logh1) {
++		tgth = mdc->mdc_logh1;
++		srch = mdc->mdc_logh2;
 +	} else {
-+		/* lri refers to an existing log block; fetch it if not cached. */
-+		rc = mlog_logblock_load_internal(mp, lri, buf);
-+		if (!rc) {
-+			/*
-+			 * NOTE: log block header length must be based
-+			 * on version since not guaranteed to be the latest
-+			 */
-+			lbhlen = omf_logblock_header_len_le(*buf);
-+
-+			if (lbhlen < 0) {
-+				rc = -ENODATA;
-+				mp_pr_err("mpool %s, getting header length failed %ld",
-+					  rc, mp->pds_name, (long)lbhlen);
-+			} else {
-+				if (!lri->lri_roff)
-+					/* First read with handle from this log block. */
-+					lri->lri_roff = lbhlen;
-+
-+				if (lri->lri_roff == lbhlen)
-+					*first = true;
-+			}
-+		}
++		tgth = mdc->mdc_logh2;
++		srch = mdc->mdc_logh1;
 +	}
 +
-+out:
++	rc = mlog_append_cend(mp, tgth);
++	if (!rc) {
++		rc = mlog_gen(tgth, &gentgt);
++		if (!rc)
++			rc = mlog_erase(mp, srch, gentgt + 1);
++	}
++
 +	if (rc) {
-+		*buf = NULL;
-+		*first = false;
++		mdc_release(mdc, rw);
++
++		mp_pr_err("mpool %s, mdc %p cend failed, mlog %p",
++			  rc, mdc->mdc_mpname, mdc, tgth);
++
++		mp_mdc_close(mdc);
++
++		return rc;
 +	}
++
++	mdc_release(mdc, rw);
 +
 +	return rc;
 +}
 +
-+/**
-+ * mlogutil_closeall() - Close all open user (non-mdc) mlogs in mpool and release resources.
-+ *
-+ * This is an mpool deactivation utility and not part of the mlog user API.
-+ */
-+void mlogutil_closeall(struct mpool_descriptor *mp)
++int mp_mdc_close(struct mp_mdc *mdc)
 +{
-+	struct pmd_layout_mlpriv *this, *tmp;
-+	struct pmd_layout *layout;
++	struct mpool_descriptor *mp;
++	int rval = 0, rc;
++	bool rw = false;
 +
-+	oml_layout_lock(mp);
++	if (!mdc)
++		return -EINVAL;
 +
-+	rbtree_postorder_for_each_entry_safe(
-+		this, tmp, &mp->pds_oml_root, mlp_nodeoml) {
++	rc = mdc_acquire(mdc, rw);
++	if (rc)
++		return rc;
 +
-+		layout = mlpriv2layout(this);
++	mp = mdc->mdc_mp;
 +
-+		if (pmd_objid_type(layout->eld_objid) != OMF_OBJ_MLOG) {
-+			mp_pr_warn("mpool %s, non-mlog object 0x%lx in open mlog layout tree",
-+				   mp->pds_name, (ulong)layout->eld_objid);
-+			continue;
-+		}
++	mdc->mdc_valid = 0;
 +
-+		if (!pmd_objid_isuser(layout->eld_objid))
-+			continue;
-+
-+		/* Remove layout from open list and discard log data. */
-+		rb_erase(&this->mlp_nodeoml, &mp->pds_oml_root);
-+		mlog_stat_free(layout);
++	rc = mlog_close(mp, mdc->mdc_logh1);
++	if (rc) {
++		mp_pr_err("mpool %s, mdc %p close failed, mlog1 %p",
++			  rc, mdc->mdc_mpname, mdc, mdc->mdc_logh1);
++		rval = rc;
 +	}
 +
-+	oml_layout_unlock(mp);
++	rc = mlog_close(mp, mdc->mdc_logh2);
++	if (rc) {
++		mp_pr_err("mpool %s, mdc %p close failed, mlog2 %p",
++			  rc, mdc->mdc_mpname, mdc, mdc->mdc_logh2);
++		rval = rc;
++	}
++
++	mdc_put(mdc->mdc_logh1, mdc->mdc_logh2);
++
++	mdc_invalidate(mdc);
++	mdc_release(mdc, false);
++
++	kfree(mdc);
++
++	return rval;
 +}
 +
-+/**
-+ * mlog_getprops_cmn() - Retrieve basic mlog properties from layout.
-+ * @mp:
-+ * @layout:
-+ * @prop:
-+ */
-+void
-+mlog_getprops_cmn(struct mpool_descriptor *mp, struct pmd_layout *layout, struct mlog_props *prop)
++int mp_mdc_rewind(struct mp_mdc *mdc)
 +{
-+	memcpy(prop->lpr_uuid.b, layout->eld_uuid.uuid, MPOOL_UUID_SIZE);
-+	prop->lpr_objid       = layout->eld_objid;
-+	prop->lpr_alloc_cap   = pmd_layout_cap_get(mp, layout);
-+	prop->lpr_gen         = layout->eld_gen;
-+	prop->lpr_iscommitted = layout->eld_state & PMD_LYT_COMMITTED;
-+	prop->lpr_mclassp    = mp->pds_pdv[layout->eld_ld.ol_pdh].pdi_mclass;
++	bool rw = false;
++	int rc;
++
++	if (!mdc)
++		return -EINVAL;
++
++	rc = mdc_acquire(mdc, rw);
++	if (rc)
++		return rc;
++
++	rc = mlog_read_data_init(mdc->mdc_alogh);
++	if (rc)
++		mp_pr_err("mpool %s, mdc %p rewind failed, mlog %p",
++			  rc, mdc->mdc_mpname, mdc, mdc->mdc_alogh);
++
++	mdc_release(mdc, rw);
++
++	return rc;
 +}
-diff --git a/drivers/mpool/mlog_utils.h b/drivers/mpool/mlog_utils.h
++
++int mp_mdc_read(struct mp_mdc *mdc, void *data, size_t len, size_t *rdlen)
++{
++	bool rw = true;
++	int rc;
++
++	if (!mdc || !data)
++		return -EINVAL;
++
++	rc = mdc_acquire(mdc, rw);
++	if (rc)
++		return rc;
++
++	rc = mlog_read_data_next(mdc->mdc_mp, mdc->mdc_alogh, data, (u64)len, (u64 *)rdlen);
++	if (rc && rc != -EOVERFLOW)
++		mp_pr_err("mpool %s, mdc %p read failed, mlog %p len %lu",
++			  rc, mdc->mdc_mpname, mdc, mdc->mdc_alogh, len);
++
++	mdc_release(mdc, rw);
++
++	return rc;
++}
++
++int mp_mdc_append(struct mp_mdc *mdc, void *data, ssize_t len, bool sync)
++{
++	bool rw = true;
++	int rc;
++
++	if (!mdc || !data)
++		return -EINVAL;
++
++	rc = mdc_acquire(mdc, rw);
++	if (rc)
++		return rc;
++
++	rc = mlog_append_data(mdc->mdc_mp, mdc->mdc_alogh, data, (u64)len, sync);
++	if (rc)
++		mp_pr_rl("mpool %s, mdc %p append failed, mlog %p, len %lu sync %d",
++			 rc, mdc->mdc_mpname, mdc, mdc->mdc_alogh, len, sync);
++
++	mdc_release(mdc, rw);
++
++	return rc;
++}
+diff --git a/drivers/mpool/mdc.h b/drivers/mpool/mdc.h
 new file mode 100644
-index 000000000000..560548069c11
+index 000000000000..7ab1de261eff
 --- /dev/null
-+++ b/drivers/mpool/mlog_utils.h
-@@ -0,0 +1,63 @@
++++ b/drivers/mpool/mdc.h
+@@ -0,0 +1,106 @@
 +/* SPDX-License-Identifier: GPL-2.0-only */
 +/*
 + * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
 + */
-+/*
-+ * Defines functions for writing, reading, and managing the lifecycle of mlogs.
-+ */
 +
-+#ifndef MPOOL_MLOG_UTILS_H
-+#define MPOOL_MLOG_UTILS_H
++#ifndef MPOOL_MDC_PRIV_H
++#define MPOOL_MDC_PRIV_H
 +
-+#include <linux/uio.h>
 +#include <linux/mutex.h>
 +
-+struct pmd_layout;
-+struct pmd_layout_mlpriv;
++#define MPC_MDC_MAGIC           0xFEEDFEED
++#define MPC_NO_MAGIC            0xFADEFADE
++
 +struct mpool_descriptor;
 +struct mlog_descriptor;
-+struct mlog_read_iter;
-+struct mlog_stat;
-+struct mlog_props;
 +
-+/* "open mlog" rbtree operations... */
-+#define oml_layout_lock(_mp)        mutex_lock(&(_mp)->pds_oml_lock)
-+#define oml_layout_unlock(_mp)      mutex_unlock(&(_mp)->pds_oml_lock)
++/**
++ * struct mp_mdc - MDC handle
++ * @mdc_mp:     mpool handle
++ * @mdc_logh1:  mlog 1 handle
++ * @mdc_logh2:  mlog 2 handle
++ * @mdc_alogh:  active mlog handle
++ * @mdc_lock:   mdc mutex
++ * @mdc_mpname: mpool name
++ * @mdc_valid:  is the handle valid?
++ * @mdc_magic:  MDC handle magic
++ * @mdc_flags:	MDC flags
++ */
++struct mp_mdc {
++	struct mpool_descriptor    *mdc_mp;
++	struct mlog_descriptor     *mdc_logh1;
++	struct mlog_descriptor     *mdc_logh2;
++	struct mlog_descriptor     *mdc_alogh;
++	struct mutex                mdc_lock;
++	char                        mdc_mpname[MPOOL_NAMESZ_MAX];
++	int                         mdc_valid;
++	int                         mdc_magic;
++	u8                          mdc_flags;
++};
 +
-+struct pmd_layout_mlpriv *
-+oml_layout_insert(struct mpool_descriptor *mp, struct pmd_layout_mlpriv *item);
++/* MDC (Metadata Container) APIs */
 +
-+struct pmd_layout_mlpriv *oml_layout_remove(struct mpool_descriptor *mp, u64 key);
++/**
++ * mp_mdc_open() - Open MDC by OIDs
++ * @mp:       mpool handle
++ * @logid1:   Mlog ID 1
++ * @logid2:   Mlog ID 2
++ * @flags:    MDC Open flags (enum mdc_open_flags)
++ * @mdc_out:  MDC handle
++ */
++int
++mp_mdc_open(struct mpool_descriptor *mp, u64 logid1, u64 logid2, u8 flags, struct mp_mdc **mdc_out);
 +
-+void mlog_free_abuf(struct mlog_stat *lstat, int start, int end);
++/**
++ * mp_mdc_close() - Close MDC
++ * @mdc:      MDC handle
++ */
++int mp_mdc_close(struct mp_mdc *mdc);
 +
-+void mlog_free_rbuf(struct mlog_stat *lstat, int start, int end);
++/**
++ * mp_mdc_rewind() - Rewind MDC to first record
++ * @mdc:      MDC handle
++ */
++int mp_mdc_rewind(struct mp_mdc *mdc);
 +
-+void mlog_extract_fsetparms(struct mlog_stat *lstat, u16 *sectsz, u32 *totsec,
-+			    u16 *nsecmb, u16 *nseclpg);
++/**
++ * mp_mdc_read() - Read next record from MDC
++ * @mdc:      MDC handle
++ * @data:     buffer to receive data
++ * @len:      length of supplied buffer
++ * @rdlen:    number of bytes read
++ *
++ * Return:
++ *   If the return value is -EOVERFLOW, then the receive buffer "data"
++ *   is too small and must be resized according to the value returned
++ *   in "rdlen".
++ */
++int mp_mdc_read(struct mp_mdc *mdc, void *data, size_t len, size_t *rdlen);
 +
-+int mlog_stat_init(struct mpool_descriptor *mp, struct mlog_descriptor *mlh, bool csem);
++/**
++ * mp_mdc_append() - append record to MDC
++ * @mdc:      MDC handle
++ * @data:     data to write
++ * @len:      length of data
++ * @sync:     flag to defer return until IO is complete
++ */
++int mp_mdc_append(struct mp_mdc *mdc, void *data, ssize_t len, bool sync);
 +
-+void mlog_stat_free(struct pmd_layout *layout);
++/**
++ * mp_mdc_cstart() - Initiate MDC compaction
++ * @mdc:      MDC handle
++ *
++ * Swap active (ostensibly full) and inactive (empty) mlogs
++ * Append a compaction start marker to newly active mlog
++ */
++int mp_mdc_cstart(struct mp_mdc *mdc);
 +
-+void mlog_read_iter_init(struct pmd_layout *layout, struct mlog_stat *lstat,
-+			 struct mlog_read_iter *lri);
++/**
++ * mp_mdc_cend() - End MDC compactions
++ * @mdc:      MDC handle
++ *
++ * Append a compaction end marker to the active mlog
++ */
++int mp_mdc_cend(struct mp_mdc *mdc);
 +
-+void mlog_stat_init_common(struct pmd_layout *layout, struct mlog_stat *lstat);
-+
-+int mlog_populate_rbuf(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+		       u16 *nsec, off_t *soff, bool skip_ser);
-+
-+void mlog_getprops_cmn(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+		       struct mlog_props *prop);
-+
-+int mlog_logblocks_flush(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser);
-+
-+s64 mlog_append_dmax(struct pmd_layout *layout);
-+
-+int mlog_update_append_idx(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser);
-+
-+int mlog_logblock_load(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+		       char **buf, bool *first);
-+
-+#endif /* MPOOL_MLOG_UTILS_H */
++#endif /* MPOOL_MDC_PRIV_H */
 -- 
 2.17.2
 _______________________________________________
