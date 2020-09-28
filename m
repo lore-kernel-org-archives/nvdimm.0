@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98F45C4741F
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C43C4727E
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4F0A02100A
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id CC8CD2100A
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 16:47:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="15YEKTrb"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4F0A02100A
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="gltQyKoj"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC8CD2100A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=micron.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D526F152EDBE5;
-	Mon, 28 Sep 2020 09:47:17 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.75.52; helo=nam02-bl2-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
-Received: from NAM02-BL2-obe.outbound.protection.outlook.com (mail-eopbgr750052.outbound.protection.outlook.com [40.107.75.52])
+	by ml01.01.org (Postfix) with ESMTP id 163F0152EDBF4;
+	Mon, 28 Sep 2020 09:47:18 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.93.82; helo=nam10-dm6-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (mail-dm6nam10on2082.outbound.protection.outlook.com [40.107.93.82])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 96037152EDBDD
-	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 09:47:14 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 2A7C9152EDBDD
+	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 09:47:15 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ZOkkjsMCdueEP9UGg3zHc9YtydOQzV1+UYLKjsx7kr8ada5plZtCltniZZRKEvO0890ObFQCxt4O8UnOEs0GBIWl46za8w3dK11gUsm0cf6PE4tJbW0IEMNuo2vbfdo425uI4lJQbIoDzW1fqIFOpWRu1PY2Qfa0TYL9aYn1eRFyOG0fRLIewwR5cMJ3JekE2bvd13yqoTfltNvf+/WqHA+Z99tvK2rLojcDtWHYdDsju8zEjRJCdGCsW/DB4ZEeVH/OzGQr7lGshZDby8wNAimPh9oCA+H4CvvYxjibUYKDF1CRzPBYA/sCqHkUEWrONHnCzNb2I9rlzVg+VFg8ow==
+ b=jGqO1wZNTIb/KiUwZXhkyx7wcz2erio9gZ0B7e5H7avMgIKua/bZNgyLfZAy0Kw2KI2lLSL/vDQKmSRVyB227kobLAv//LNjSOw/4r04WaV6BXpxzZ0nDMMrnxXDQx/sPJ9vqiPVt7vCxRDVQXFuIKTHOww1Lr4BOfGZBH51Xd7gkRwK/1yB+8J0ISvT4H6f5s4iHLZnOCijb/prbgzLslq/F5YGP0NNW1rgRQdQYMh5HBUJwJzbJ8GQhannqs10TcnO9FBTGwaNFvzkl7EwyYV5DU3LRi8wpgsLfgQnxAtULerm1qlHuEb+8kbnX7eTpG4EWAULzpyNfa1nuLpW5g==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9eWXqB5vyreEDro5YAQZgNPyumKX2VXLJJMHuzOWPw8=;
- b=Z33hf2kzWRdcrZZbliYmO72+Agj3LihAwHsT7Pq46HofHUbH2gAd+Or+V6PFPs8/PTI5cw7/GSCLprW7rFKB+Kv21Cp6/FxpQ2Gz9aHQuNg67ZAv+h+b/XpdFXfsfdKGtL8LaeYWbEFVykUipFZTn8PkIoa+a5DvB92LXRCyN+OdEx0eYy+TA7p56lglyXLoYEStqpbulSE4+G1FGW2tQGMkz+87AjcimP3w8uPJIfxoAWArjki2v+sqaSnUJQCSWiIVEMjt99v6/LbSipVuoWQdbmNKA9sB83VPz2tKKE9r3td9pXGhVfdy4cn4rf63GeZbZ3Q/ztXNUOd6r9dH2Q==
+ bh=tIlBAETom3bLDm0FkXsU59NJb1/nq6FazhMqqkvWe/k=;
+ b=ehbzqd5De2z6jpCJCRbDoNVY6yYRzqxQzthZr3fCdGPhMSoVJt+brjmN4I+QEG3wR6sZxXErug0RciCxy+E50oJ2fB239k7QYJ4oYwATlWKnWg5+2NkG9SnOC649TNux0C3A+/R3B7UTV68w6MR7O9mTp17sM7mHiL/2jLl66hEojuwYa0u5AdanK2DbP7IltlsHou/91h0j+9lCGV3YGJzrJEnoGRXIeSALHWC0gVVAadeN42tkUuuwSnFuV5S/VABGqTjHuOb2ViQHu1+th9BYdePl36eSC0IXy51FCA42TXKOBlO053TPt3Wuuqn2EJYtTvZvrWZNmtpgI/SY6A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  137.201.242.130) smtp.rcpttodomain=kvack.org smtp.mailfrom=micron.com;
  dmarc=pass (p=none sp=none pct=100) action=none header.from=micron.com;
@@ -42,18 +42,17 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=micron.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=9eWXqB5vyreEDro5YAQZgNPyumKX2VXLJJMHuzOWPw8=;
- b=15YEKTrbbIe3yU85q/lIKi4inNg6OZPskGkQXVyG8jJqBSH5/QnqUVfm8wUoXcRHSUi7+0UnEuPjs9aBjY848x+vv9sLb8b189X0xBQpDbCqaKZF7qo2vZbq8yx7CKPm5FFnWJm4vMtOMOQpG1YRdtZzAZRbLvWwUiVlJvcMW6c=
+ bh=tIlBAETom3bLDm0FkXsU59NJb1/nq6FazhMqqkvWe/k=;
+ b=gltQyKojFEmi+i9bPh12ZBFcREU6tT1PKajLromxk2LBMrAVdkJ0sYqXg5jQxpAdSm9wlnCyHGS4Cex8WJ105ZopfxdjEHVfDB6U8xdRtpXWkg/FeK2NlezeQjt1B2dbtQcWMadsltQXAVeng1Y8y0xhjkGTdvkNTcFhjt/fOg8=
 Received: from BN6PR17CA0044.namprd17.prod.outlook.com (2603:10b6:405:75::33)
- by DM5PR08MB2924.namprd08.prod.outlook.com (2603:10b6:3:145::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20; Mon, 28 Sep
- 2020 16:47:10 +0000
+ by BYAPR08MB4245.namprd08.prod.outlook.com (2603:10b6:a03::15) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.3412.29; Mon, 28 Sep 2020 16:47:11 +0000
 Received: from BN3NAM01FT020.eop-nam01.prod.protection.outlook.com
  (2603:10b6:405:75:cafe::3b) by BN6PR17CA0044.outlook.office365.com
  (2603:10b6:405:75::33) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20 via Frontend
- Transport; Mon, 28 Sep 2020 16:47:09 +0000
+ Transport; Mon, 28 Sep 2020 16:47:11 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 137.201.242.130)
  smtp.mailfrom=micron.com; kvack.org; dkim=none (message not signed)
  header.d=none;kvack.org; dmarc=pass action=none header.from=micron.com;
@@ -63,17 +62,17 @@ Received-SPF: Pass (protection.outlook.com: domain of micron.com designates
 Received: from mail.micron.com (137.201.242.130) by
  BN3NAM01FT020.mail.protection.outlook.com (10.152.67.227) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.3412.21 via Frontend Transport; Mon, 28 Sep 2020 16:47:09 +0000
+ 15.20.3412.21 via Frontend Transport; Mon, 28 Sep 2020 16:47:10 +0000
 Received: from micron.com (10.114.5.55) by bowex17c.micron.com
  (137.201.21.211) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 28 Sep
- 2020 10:47:04 -0600
+ 2020 10:47:06 -0600
 From: <nmeeramohide@micron.com>
 To: <linux-kernel@vger.kernel.org>, <linux-block@vger.kernel.org>,
 	<linux-nvme@lists.infradead.org>, <linux-mm@kvack.org>,
 	<linux-nvdimm@lists.01.org>
-Subject: [PATCH 07/22] mpool: add superblock management routines
-Date: Mon, 28 Sep 2020 11:45:19 -0500
-Message-ID: <20200928164534.48203-8-nmeeramohide@micron.com>
+Subject: [PATCH 09/22] mpool: add mblock lifecycle management and IO routines
+Date: Mon, 28 Sep 2020 11:45:21 -0500
+Message-ID: <20200928164534.48203-10-nmeeramohide@micron.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20200928164534.48203-1-nmeeramohide@micron.com>
 References: <20200928164534.48203-1-nmeeramohide@micron.com>
@@ -81,47 +80,47 @@ MIME-Version: 1.0
 X-ClientProxiedBy: bowex17d.micron.com (137.201.21.212) To bowex17c.micron.com
  (137.201.21.211)
 X-TM-AS-Product-Ver: SMEX-12.0.0.1782-8.200.1013-24646.005
-X-TM-AS-Result: No--19.925700-0.000000-31
-X-TM-AS-MatchedID: 703713-704982-121367-703812-704959-700863-705063-701104-7
-	03853-701667-703958-705022-700809-701342-700717-700028-701969-703408-701480
-	-701809-703017-702395-188019-703027-704318-702299-704477-300015-703140-7032
-	13-121336-701105-704673-703967-701275-701475-702754-704961-704960-703115-70
-	5161-700488-704718-703231-701750-704481-851458-136523-701964-700950-700010-
-	704714-703117-702699-702935-701172-705244-703215-121665-702837-701703-70308
-	0-700026-701919-703815-105250-702525-702617-188199-703173-703192-704558-701
-	893-704183-703935-702852-700877-703561-704574-704381-704962-705279-701698-7
-	02398-701032-702415-703348-148004-148036-29997-42000-42003
+X-TM-AS-Result: No--14.586700-0.000000-31
+X-TM-AS-MatchedID: 702732-703812-705244-701073-702751-703115-704949-704585-7
+	01844-704318-701656-703966-704499-704397-700335-705161-113230-701480-701809
+	-703017-703140-702395-188019-703213-121336-701105-704673-703967-703027-7024
+	15-701275-703815-702754-704895-702688-701964-780039-701880-105250-705018-70
+	1744-703534-704002-704477-703694-700714-851458-700958-704401-700717-702779-
+	702960-702874-701919-704749-701847-847575-703080-703215-704714-700286-70281
+	2-702719-703286-703953-701723-825159-703357-702914-703958-705247-121270-704
+	264-703816-703954-700863-704418-701698-703904-704001-702525-700698-704718-7
+	03117-702558-701032-701724-148004-148036-42000-42003
 X-TM-AS-User-Approved-Sender: Yes
 X-TM-AS-User-Blocked-Sender: No
 X-MT-Whitelisted: matched
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: dcc678a0-c6fc-414d-feec-08d863ce2479
-X-MS-TrafficTypeDiagnostic: DM5PR08MB2924:
+X-MS-Office365-Filtering-Correlation-Id: 530afe5f-7fd9-4b46-230f-08d863ce2523
+X-MS-TrafficTypeDiagnostic: BYAPR08MB4245:
 X-Microsoft-Antispam-PRVS: 
- <DM5PR08MB292441C31071DAE82ABA132FB3350@DM5PR08MB2924.namprd08.prod.outlook.com>
+ <BYAPR08MB42457F50959E6E53CB4BA223B3350@BYAPR08MB4245.namprd08.prod.outlook.com>
 X-MS-Exchange-Transport-Forked: True
 X-EXT-ByPass: 1
 X-MT-RULE-Whitelisted: Triggered
-X-MS-Oob-TLC-OOBClassifiers: OLM:2449;
+X-MS-Oob-TLC-OOBClassifiers: OLM:104;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	pTc/8FCa4XWnk5Sj84zsrGbM4/mTkwJZCJkCvH1mLfAuWipbEUel3L9M+9ef02f7aoNQw9+HalQ8yviC0ZrNQnzGPjmi0Ksy7zFmN6hUCjfM5JNdnBmx+pGzDTXnUl/Dfvp1jOdWOIH1OkKc1sdkPu5c/6sArOuiCjD5c3TUHFms0iGtjgKQwm7vay8XOrpDtaJ7GSgG87zyb66OSNjru19eIGXkAsiYrUCXgVfA4cBw/dfa4RzUrZh+ZhhCRUYveM+8zVT7GCgPfkKbkQKCF5F5o7t3UWWmD1z3RrZCbcQAoW57+DfzrfH66BWzZFzJ5PFUUnOwpFx0Ci086pxPVhMCvqIxl0mfB/iMfgrKsltLTn5FubJcBX1cD2Bc1tJ4dyJpjXDpuicd3B0vbDad1tCxt6x2EtuK+pdUrKSFzOhv6gug5VNl14X8DZ/j38FkIA8zLOKHBucn8Ljwd2bCYZ1MA5vaQOoxX0jEZnjl9nDHJRzdji8TnhHLtKa0qk6M
+	lm7Rgw3g9SobWsydA3TOC5PsPqYMm3fnIVjHf1yW4c9blH6w406EX6eryNMyrCP9wRy7bBr3WZ/ZTLv6MUuYXpzOs23RVGeFGFh3GF/ieFczcUy6ndIMS4vIPXn/cVCTyb42KBCVI2iLyuXpbGl0XDYouL4UmTUcbbuCkL5xax9lNMYJ0z83Sb36F7N2PbmnDUolTVsy7qjjjvBNCQ2A3tU7Ua5MK0guW/2gLELD/cEBS0BO9jSGU9pNhCr/h5fnXZdL+plN4l9Iu+IfW3LZB0oXphK/OwuO3hmtvlQg5FnS2kj3iQipyd4b6s4oqXtfIt0V7xvJTxt1AADbUznfIpL05cizsXAwYbIIw+Nxxty9R4+0wBpLfS5Ex7HOxRiNERr28wEoG/VZredRxUbueZEFolkL4F8/p2Gx5YQ76gsa3Ce4alTpv8z57sav3tVLDBGHTl6ia1irMYZuX9VVTondzI3JgGoCSVS13Tvc3wWX0aEFvGPa/lukxp8TWAGY
 X-Forefront-Antispam-Report: 
-	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(396003)(39860400002)(346002)(376002)(136003)(46966005)(107886003)(8936002)(30864003)(1076003)(47076004)(70586007)(7696005)(2876002)(36756003)(86362001)(2906002)(6286002)(5660300002)(70206006)(55016002)(83380400001)(33310700002)(82310400003)(478600001)(6666004)(110136005)(4326008)(8676002)(336012)(426003)(26005)(2616005)(186003)(54906003)(316002)(356005)(82740400003)(7636003)(2101003);DIR:OUT;SFP:1101;
+	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(376002)(346002)(136003)(39860400002)(396003)(46966005)(2616005)(36756003)(7696005)(26005)(6666004)(186003)(8936002)(8676002)(316002)(110136005)(426003)(2906002)(54906003)(336012)(55016002)(2876002)(5660300002)(107886003)(82310400003)(86362001)(6286002)(70206006)(70586007)(1076003)(82740400003)(7636003)(478600001)(356005)(47076004)(83380400001)(4326008)(30864003)(33310700002)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: micron.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 16:47:09.7713
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 16:47:10.8798
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: dcc678a0-c6fc-414d-feec-08d863ce2479
+X-MS-Exchange-CrossTenant-Network-Message-Id: 530afe5f-7fd9-4b46-230f-08d863ce2523
 X-MS-Exchange-CrossTenant-Id: f38a5ecd-2813-4862-b11b-ac1d563c806f
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f38a5ecd-2813-4862-b11b-ac1d563c806f;Ip=[137.201.242.130];Helo=[mail.micron.com]
 X-MS-Exchange-CrossTenant-AuthSource: BN3NAM01FT020.eop-nam01.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR08MB2924
-Message-ID-Hash: QRFJ6W4UYO4XZPFLJQOALLNZSBPWXFUB
-X-Message-ID-Hash: QRFJ6W4UYO4XZPFLJQOALLNZSBPWXFUB
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR08MB4245
+Message-ID-Hash: E5YX4CIEFTIJENL4YRTGRKKGKP4DOGQ3
+X-Message-ID-Hash: E5YX4CIEFTIJENL4YRTGRKKGKP4DOGQ3
 X-MailFrom: nmeeramohide@micron.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -129,7 +128,7 @@ CC: smoyer@micron.com, gbecker@micron.com, plabat@micron.com, jgroves@micron.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QRFJ6W4UYO4XZPFLJQOALLNZSBPWXFUB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/E5YX4CIEFTIJENL4YRTGRKKGKP4DOGQ3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -140,20 +139,21 @@ Content-Transfer-Encoding: 7bit
 
 From: Nabeel M Mohamed <nmeeramohide@micron.com>
 
-Provides utilities to initialize, read, update, and erase mpool
-superblocks.
+Implements the mblock lifecycle management functions: allocate,
+commit, abort, read, write, destroy etc.
 
-Mpool stores two copies of superblocks, one at offset 0 and the
-other at offset 8K in zone 0 of each media class volume. SB0 is
-the authoritative copy and SB1 is used for recovery in the event
-of corruption.
+Mblocks are containers comprising a linear sequence of bytes that
+can be written exactly once, are immutable after writing, and can
+be read in whole or in part as needed until deleted.
 
-The superblock comprises the metadata required to uniquely identify
-a media class volume, the name and UUID of the mpool to which this
-volume belongs to, the superblock version, checksum and device
-properties. The superblock on the capacity media class volume also
-includes metadata for accessing the metadata container 0 (MDC-0).
-MDC-0 is introduced in a future patch.
+Mpool currently supports only fixed size mblocks whose size is the
+same as the zone size and is established at mpool create.
+
+Mblock API uses the metadata manager interface to reserve storage
+space at allocation time, store metadata for the mblock in its
+associated MDC-K when committing it, record end-of-life for the
+mblock in its associated MDC-K when deleting it and read/write
+mblock data.
 
 Co-developed-by: Greg Becker <gbecker@micron.com>
 Signed-off-by: Greg Becker <gbecker@micron.com>
@@ -163,675 +163,617 @@ Co-developed-by: John Groves <jgroves@micron.com>
 Signed-off-by: John Groves <jgroves@micron.com>
 Signed-off-by: Nabeel M Mohamed <nmeeramohide@micron.com>
 ---
- drivers/mpool/init.c |   8 +
- drivers/mpool/sb.c   | 625 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 633 insertions(+)
- create mode 100644 drivers/mpool/sb.c
+ drivers/mpool/mblock.c | 432 +++++++++++++++++++++++++++++++++++++++++
+ drivers/mpool/mblock.h | 161 +++++++++++++++
+ 2 files changed, 593 insertions(+)
+ create mode 100644 drivers/mpool/mblock.c
+ create mode 100644 drivers/mpool/mblock.h
 
-diff --git a/drivers/mpool/init.c b/drivers/mpool/init.c
-index 70f907ccc28a..261ce67e94dd 100644
---- a/drivers/mpool/init.c
-+++ b/drivers/mpool/init.c
-@@ -10,6 +10,7 @@
- #include "omf_if.h"
- #include "pd.h"
- #include "smap.h"
-+#include "sb.h"
- 
- /*
-  * Module params...
-@@ -25,6 +26,7 @@ MODULE_PARM_DESC(chunk_size_kb, "Chunk size (in KiB) for device I/O");
- static void mpool_exit_impl(void)
- {
- 	smap_exit();
-+	sb_exit();
- 	omf_exit();
- 	pd_exit();
- }
-@@ -46,6 +48,12 @@ static __init int mpool_init(void)
- 		goto errout;
- 	}
- 
-+	rc = sb_init();
-+	if (rc) {
-+		errmsg = "sb init failed";
-+		goto errout;
-+	}
-+
- 	rc = smap_init();
- 	if (rc) {
- 		errmsg = "smap init failed";
-diff --git a/drivers/mpool/sb.c b/drivers/mpool/sb.c
+diff --git a/drivers/mpool/mblock.c b/drivers/mpool/mblock.c
 new file mode 100644
-index 000000000000..c161eff2bc0d
+index 000000000000..10c47ec74ff6
 --- /dev/null
-+++ b/drivers/mpool/sb.c
-@@ -0,0 +1,625 @@
++++ b/drivers/mpool/mblock.c
+@@ -0,0 +1,432 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
 + */
++
 +/*
-+ * Superblock module.
++ * DOC: Module info.
 + *
-+ * Defines functions for managing per drive superblocks.
++ * Mblock module.
++ *
++ * Defines functions for writing, reading, and managing the lifecycle
++ * of mblocks.
 + *
 + */
 +
-+#include <linux/slab.h>
-+#include <linux/uio.h>
++#include <linux/vmalloc.h>
++#include <linux/blk_types.h>
++#include <linux/mm.h>
 +
 +#include "mpool_printk.h"
 +#include "assert.h"
 +
-+#include "mpool_ioctl.h"
 +#include "pd.h"
-+#include "omf_if.h"
-+#include "sb.h"
-+#include "mclass.h"
-+
-+/* Cleared out sb */
-+static struct omf_sb_descriptor SBCLEAR;
-+
-+/*
-+ * Drives have 2 superblocks.
-+ * + sb0 at byte offset 0
-+ * + sb1 at byte offset SB_AREA_SZ + MDC0MD_AREA_SZ
-+ *
-+ * Read: sb0 is the authoritative copy, other copies are not used.
-+ * Updates: sb0 is updated first; if successful sb1 is updated
-+ */
-+
-+/*
-+ * sb internal functions
-+ */
++#include "pmd_obj.h"
++#include "mpcore.h"
++#include "mblock.h"
 +
 +/**
-+ * sb_prop_valid() - Validate the PD properties needed to read the erase superblocks.
++ * mblock2layout() - convert opaque mblock handle to pmd_layout
 + *
-+ * When the superblocks are read, the zone parameters may not been known
-+ * yet. They may be obtained from the superblocks.
-+ *
-+ * Returns: true if we have enough to read the superblocks.
++ * This function converts the opaque handle (mblock_descriptor) used by
++ * clients to the internal representation (pmd_layout).  The
++ * conversion is a simple cast, followed by a sanity check to verify the
++ * layout object is an mblock object.  If the validation fails, a NULL
++ * pointer is returned.
 + */
-+static bool sb_prop_valid(struct pd_dev_parm *dparm)
++static struct pmd_layout *mblock2layout(struct mblock_descriptor *mbh)
 +{
-+	struct pd_prop *pd_prop = &dparm->dpr_prop;
++	struct pmd_layout *layout = (void *)mbh;
 +
-+	if (SB_AREA_SZ < OMF_SB_DESC_PACKLEN) {
++	if (!layout)
++		return NULL;
 +
-+		/* Guarantee that the SB area is large enough to hold an SB */
-+		mp_pr_err("sb(%s): structure too big %lu %lu",
-+			  -EINVAL, dparm->dpr_name, (ulong)SB_AREA_SZ, OMF_SB_DESC_PACKLEN);
-+		return false;
-+	}
++	ASSERT(layout->eld_objid > 0);
++	ASSERT(kref_read(&layout->eld_ref) >= 2);
 +
-+	if ((pd_prop->pdp_devtype != PD_DEV_TYPE_BLOCK_STD) &&
-+	    (pd_prop->pdp_devtype != PD_DEV_TYPE_BLOCK_NVDIMM) &&
-+	    (pd_prop->pdp_devtype != PD_DEV_TYPE_FILE)) {
-+		mp_pr_err("sb(%s): unknown device type %d",
-+			  -EINVAL, dparm->dpr_name, pd_prop->pdp_devtype);
-+		return false;
-+	}
++	return mblock_objid(layout->eld_objid) ? layout : NULL;
++}
 +
-+	if (PD_LEN(pd_prop) == 0) {
-+		mp_pr_err("sb(%s): unknown device size", -EINVAL, dparm->dpr_name);
-+		return false;
-+	}
-+
-+	return true;
-+};
-+
-+static u64 sb_idx2woff(u32 idx)
++static u32 mblock_optimal_iosz_get(struct mpool_descriptor *mp, struct pmd_layout *layout)
 +{
-+	return (u64)idx * (SB_AREA_SZ + MDC0MD_AREA_SZ);
++	struct mpool_dev_info *pd = pmd_layout_pd_get(mp, layout);
++
++	return pd->pdi_optiosz;
 +}
 +
 +/**
-+ * sb_parm_valid() - Validate parameters passed to an SB API function
-+ * @dparm: struct pd_dev_parm
++ * layout2mblock() - convert pmd_layout to opaque mblock_descriptor
 + *
-+ * When this function is called it is assumed that the zone parameters of the
-+ * PD are already known.
-+ *
-+ * Part of the validation is enforcing the rule from the comment above that
-+ * there needs to be at least one more zone than those consumed by the
-+ * (SB_SB_COUNT) superblocks.
-+ *
-+ * Returns: true if drive pd meets criteria for sb, false otherwise.
++ * This function converts the internally used pmd_layout to
++ * the externally used opaque mblock_descriptor.
 + */
-+static bool sb_parm_valid(struct pd_dev_parm *dparm)
++static struct mblock_descriptor *layout2mblock(struct pmd_layout *layout)
 +{
-+	struct pd_prop *pd_prop = &dparm->dpr_prop;
-+	u32 cnt;
++	return (struct mblock_descriptor *)layout;
++}
 +
-+	if (SB_AREA_SZ < OMF_SB_DESC_PACKLEN) {
-+		/* Guarantee that the SB area is large enough to hold an SB */
-+		return false;
-+	}
-+
-+	if (pd_prop->pdp_zparam.dvb_zonepg == 0) {
-+		/* Zone size can't be 0. */
-+		return false;
-+	}
-+
-+	cnt = sb_zones_for_sbs(pd_prop);
-+	if (cnt < 1) {
-+		/* At least one zone is needed to hold SB0 and SB1. */
-+		return false;
-+	}
-+
-+	if (dparm->dpr_zonetot < (cnt + 1)) {
-+		/* Guarantee that there is at least one zone not consumed by SBs. */
-+		return false;
-+	}
-+
-+	return true;
-+};
-+
-+/*
-+ * Write packed superblock in outbuf to sb copy number idx on drive pd.
-+ * Returns: 0 if successful; -errno otherwise...
-+ */
-+static int sb_write_sbx(struct pd_dev_parm *dparm, char *outbuf, u32 idx)
++static void mblock_getprops_cmn(struct mpool_descriptor *mp, struct pmd_layout *layout,
++				struct mblock_props *prop)
 +{
-+	const struct kvec iov = { outbuf, SB_AREA_SZ };
-+	u64 woff;
++	struct mpool_dev_info *pd;
++
++	pd = pmd_layout_pd_get(mp, layout);
++
++	prop->mpr_objid = layout->eld_objid;
++	prop->mpr_alloc_cap = pmd_layout_cap_get(mp, layout);
++	prop->mpr_write_len = layout->eld_mblen;
++	prop->mpr_optimal_wrsz = mblock_optimal_iosz_get(mp, layout);
++	prop->mpr_mclassp = pd->pdi_mclass;
++	prop->mpr_iscommitted = layout->eld_state & PMD_LYT_COMMITTED;
++}
++
++static int mblock_alloc_cmn(struct mpool_descriptor *mp, u64 objid,
++			    enum mp_media_classp mclassp, bool spare,
++			    struct mblock_props *prop, struct mblock_descriptor **mbh)
++{
++	struct pmd_obj_capacity ocap = { .moc_spare = spare };
++	struct pmd_layout *layout = NULL;
 +	int rc;
 +
-+	woff = sb_idx2woff(idx);
++	if (!mp)
++		return -EINVAL;
 +
-+	rc = pd_zone_pwritev_sync(dparm, &iov, 1, 0, woff);
-+	if (rc) {
-+		mp_pr_err("sb(%s, %d): write failed, woff %lu",
-+			  rc, dparm->dpr_name, idx, (ulong)woff);
-+		return rc;
-+	}
++	*mbh = NULL;
 +
-+	return 0;
-+}
-+
-+/*
-+ * Read packed superblock into inbuf from sb copy number idx.
-+ * Returns: 0 if successful; -errno otherwise...
-+ *
-+ */
-+static int sb_read_sbx(struct pd_dev_parm *dparm, char *inbuf, u32 idx)
-+{
-+	const struct kvec  iov = { inbuf, SB_AREA_SZ };
-+	u64 woff;
-+	int rc;
-+
-+	woff = sb_idx2woff(idx);
-+
-+	rc = pd_zone_preadv(dparm, &iov, 1, 0, woff);
-+	if (rc) {
-+		mp_pr_err("sb(%s, %d): read failed, woff %lu",
-+			  rc, dparm->dpr_name, idx, (ulong)woff);
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * sb API functions
-+ */
-+
-+_Static_assert(SB_AREA_SZ >= OMF_SB_DESC_PACKLEN, "sb_area_sz < omf_sb_desc_packlen");
-+
-+/*
-+ * Determine if the mpool magic value exists in at least one place where
-+ * expected on drive pd.  Does NOT imply drive has a valid superblock.
-+ *
-+ * Note: only pd.status and pd.parm must be set; no other pd fields accessed.
-+ *
-+ * Returns: 1 if found, 0 if not found, -(errno) if error reading
-+ *
-+ */
-+int sb_magic_check(struct pd_dev_parm *dparm)
-+{
-+	int rval = 0, i;
-+	char *inbuf;
-+	int rc;
-+
-+	if (!sb_prop_valid(dparm)) {
-+		rc = -EINVAL;
-+		mp_pr_err("sb(%s): invalid param, zonepg %u zonetot %u",
-+			  rc, dparm->dpr_name, dparm->dpr_zonepg, dparm->dpr_zonetot);
-+		return rc;
-+	}
-+
-+	inbuf = kmalloc_large(SB_AREA_SZ + 1, GFP_KERNEL);
-+	if (!inbuf) {
-+		rc = -ENOMEM;
-+		mp_pr_err("sb(%s) magic check: buffer alloc failed", rc, dparm->dpr_name);
-+		return rc;
-+	}
-+
-+	for (i = 0; i < SB_SB_COUNT; i++) {
-+		const struct kvec iov = { inbuf, SB_AREA_SZ };
-+		u64 woff = sb_idx2woff(i);
-+
-+		memset(inbuf, 0, SB_AREA_SZ);
-+
-+		rc = pd_zone_preadv(dparm, &iov, 1, 0, woff);
-+		if (rc) {
-+			rval = rc;
-+			mp_pr_err("sb(%s, %d) magic: read failed, woff %lu",
-+				  rc, dparm->dpr_name, i, (ulong)woff);
-+		} else if (omf_sb_has_magic_le(inbuf)) {
-+			kfree(inbuf);
-+			return 1;
-+		}
-+	}
-+
-+	kfree(inbuf);
-+	return rval;
-+}
-+
-+/*
-+ * Write superblock sb to new (non-pool) drive
-+ *
-+ * Note: only pd.status and pd.parm must be set; no other pd fields accessed.
-+ *
-+ * Returns: 0 if successful; -errno otherwise...
-+ *
-+ */
-+int sb_write_new(struct pd_dev_parm *dparm, struct omf_sb_descriptor *sb)
-+{
-+	char *outbuf;
-+	int rc, i;
-+
-+	if (!sb_parm_valid(dparm)) {
-+		rc = -EINVAL;
-+		mp_pr_err("sb(%s) invalid param, zonepg %u zonetot %u",
-+			  rc, dparm->dpr_name, dparm->dpr_zonepg, dparm->dpr_zonetot);
-+		return rc;
-+	}
-+
-+	outbuf = kmalloc_large(SB_AREA_SZ + 1, GFP_KERNEL);
-+	if (!outbuf)
-+		return -ENOMEM;
-+
-+	memset(outbuf, 0, SB_AREA_SZ);
-+
-+	rc = omf_sb_pack_htole(sb, outbuf);
-+	if (rc) {
-+		mp_pr_err("sb(%s) packing failed", rc, dparm->dpr_name);
-+		kfree(outbuf);
-+		return rc;
-+	}
-+
-+	/*
-+	 * since pd is not yet a pool member only succeed if write all sb
-+	 * copies.
-+	 */
-+	for (i = 0; i < SB_SB_COUNT; i++) {
-+		rc = sb_write_sbx(dparm, outbuf, i);
-+		if (rc) {
-+			mp_pr_err("sb(%s, %d): write sbx failed", rc, dparm->dpr_name, i);
-+			break;
-+		}
-+	}
-+
-+	kfree(outbuf);
-+	return rc;
-+}
-+
-+/*
-+ * Update superblock on pool drive
-+ *
-+ * Note: only pd.status and pd.parm must be set; no other pd fields accessed.
-+ *
-+ * Returns: 0 if successful; -errno otherwise..
-+ *
-+ */
-+int sb_write_update(struct pd_dev_parm *dparm, struct omf_sb_descriptor *sb)
-+{
-+	char *outbuf;
-+	int rc, i;
-+
-+	if (!sb_parm_valid(dparm)) {
-+		rc = -EINVAL;
-+		mp_pr_err("sb(%s) invalid param, zonepg %u zonetot %u partlen %lu",
-+			  rc, dparm->dpr_name, dparm->dpr_zonepg, dparm->dpr_zonetot,
-+			  (ulong)PD_LEN(&dparm->dpr_prop));
-+		return rc;
-+	}
-+
-+	outbuf = kmalloc_large(SB_AREA_SZ + 1, GFP_KERNEL);
-+	if (!outbuf)
-+		return -ENOMEM;
-+
-+	memset(outbuf, 0, SB_AREA_SZ);
-+
-+	rc = omf_sb_pack_htole(sb, outbuf);
-+	if (rc) {
-+		mp_pr_err("sb(%s) packing failed", rc, dparm->dpr_name);
-+		kfree(outbuf);
-+		return rc;
-+	}
-+
-+	/* Update sb0 first and then sb1 if that is successful */
-+	for (i = 0; i < SB_SB_COUNT; i++) {
-+		rc = sb_write_sbx(dparm, outbuf, i);
-+		if (rc) {
-+			mp_pr_err("sb(%s, %d) sbx write failed", rc, dparm->dpr_name, i);
-+			if (i == 0)
-+				break;
-+			rc = 0;
-+		}
-+	}
-+
-+	kfree(outbuf);
-+
-+	return rc;
-+}
-+
-+/*
-+ * Erase superblock on drive pd.
-+ *
-+ * Note: only pd properties must be set.
-+ *
-+ * Returns: 0 if successful; -errno otherwise...
-+ *
-+ */
-+int sb_erase(struct pd_dev_parm *dparm)
-+{
-+	int rc = 0, i;
-+	char *buf;
-+
-+	if (!sb_prop_valid(dparm)) {
-+		rc = -EINVAL;
-+		mp_pr_err("sb(%s) invalid param, zonepg %u zonetot %u", rc, dparm->dpr_name,
-+			  dparm->dpr_zonepg, dparm->dpr_zonetot);
-+		return rc;
-+	}
-+
-+	buf = kmalloc_large(SB_AREA_SZ + 1, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	memset(buf, 0, SB_AREA_SZ);
-+
-+	for (i = 0; i < SB_SB_COUNT; i++) {
-+		const struct kvec iov = { buf, SB_AREA_SZ };
-+		u64 woff = sb_idx2woff(i);
-+
-+		rc = pd_zone_pwritev_sync(dparm, &iov, 1, 0, woff);
++	if (!objid) {
++		rc = pmd_obj_alloc(mp, OMF_OBJ_MBLOCK, &ocap, mclassp, &layout);
 +		if (rc)
-+			mp_pr_err("sb(%s, %d): erase failed", rc, dparm->dpr_name, i);
++			return rc;
++	} else {
++		rc = pmd_obj_realloc(mp, objid, &ocap, mclassp, &layout);
++		if (rc) {
++			if (rc != -ENOENT)
++				mp_pr_err("mpool %s, re-allocating mblock 0x%lx failed",
++					  rc, mp->pds_name, (ulong)objid);
++			return rc;
++		}
 +	}
 +
-+	kfree(buf);
++	if (!layout)
++		return -ENOTRECOVERABLE;
 +
-+	return rc;
++	if (prop) {
++		pmd_obj_rdlock(layout);
++		mblock_getprops_cmn(mp, layout, prop);
++		pmd_obj_rdunlock(layout);
++	}
++
++	*mbh = layout2mblock(layout);
++
++	return 0;
 +}
 +
-+static int sb_reconcile(struct omf_sb_descriptor *sb, struct pd_dev_parm *dparm, bool force)
++int mblock_alloc(struct mpool_descriptor *mp, enum mp_media_classp mclassp, bool spare,
++		 struct mblock_descriptor **mbh, struct mblock_props *prop)
 +{
-+	struct omf_devparm_descriptor *sb_parm = &sb->osb_parm;
-+	struct pd_prop *pd_prop = &dparm->dpr_prop;
-+	struct mc_parms mc_parms;
++	return mblock_alloc_cmn(mp, 0, mclassp, spare, prop, mbh);
++}
++
++int mblock_find_get(struct mpool_descriptor *mp, u64 objid, int which,
++		    struct mblock_props *prop, struct mblock_descriptor **mbh)
++{
++	struct pmd_layout *layout;
++
++	*mbh = NULL;
++
++	if (!mblock_objid(objid))
++		return -EINVAL;
++
++	layout = pmd_obj_find_get(mp, objid, which);
++	if (!layout)
++		return -ENOENT;
++
++	if (prop) {
++		pmd_obj_rdlock(layout);
++		mblock_getprops_cmn(mp, layout, prop);
++		pmd_obj_rdunlock(layout);
++	}
++
++	*mbh = layout2mblock(layout);
++
++	return 0;
++}
++
++void mblock_put(struct mblock_descriptor *mbh)
++{
++	struct pmd_layout *layout;
++
++	layout = mblock2layout(mbh);
++	if (layout)
++		pmd_obj_put(layout);
++}
++
++/*
++ * Helper function to log a message that many functions need to log:
++ */
++#define mp_pr_layout_not_found(_mp, _mbh)				\
++do {									\
++	static unsigned long state;					\
++	uint dly = msecs_to_jiffies(1000);				\
++									\
++	if (printk_timed_ratelimit(&state, dly)) {			\
++		mp_pr_warn("mpool %s, layout not found: mbh %p",	\
++			   (_mp)->pds_name, (_mbh));			\
++		dump_stack();						\
++	}								\
++} while (0)
++
++int mblock_commit(struct mpool_descriptor *mp, struct mblock_descriptor *mbh)
++{
++	struct mpool_dev_info *pd;
++	struct pmd_layout *layout;
 +	int rc;
 +
-+	pd_prop->pdp_mclassp = sb_parm->odp_mclassp;
-+	pd_prop->pdp_zparam.dvb_zonepg = sb_parm->odp_zonepg;
-+	pd_prop->pdp_zparam.dvb_zonetot = sb_parm->odp_zonetot;
-+
-+	if (force)
-+		return 0;
-+
-+	if (pd_prop->pdp_devsz < sb_parm->odp_devsz) {
-+		rc = -EINVAL;
-+
-+		mp_pr_err("sb(%s): devsz(%lu) > discovered (%lu)",
-+			  rc, dparm->dpr_name, (ulong)sb_parm->odp_devsz,
-+			  (ulong)pd_prop->pdp_devsz);
-+		return rc;
++	layout = mblock2layout(mbh);
++	if (!layout) {
++		mp_pr_layout_not_found(mp, mbh);
++		return -EINVAL;
 +	}
 +
-+	if (PD_SECTORSZ(pd_prop) != sb_parm->odp_sectorsz) {
-+		rc = -EINVAL;
-+
-+		mp_pr_err("sb(%s) sector size(%u) mismatches discovered(%u)",
-+			  rc, dparm->dpr_name, sb_parm->odp_sectorsz, PD_SECTORSZ(pd_prop));
-+		return rc;
++	pd = pmd_layout_pd_get(mp, layout);
++	if (!pd->pdi_fua) {
++		rc = pd_dev_flush(&pd->pdi_parm);
++		if (rc)
++			return rc;
 +	}
 +
-+	if (pd_prop->pdp_devtype != sb_parm->odp_devtype) {
-+		rc = -EINVAL;
-+
-+		mp_pr_err("sb(%s), pd type(%u) mismatches discovered(%u)",
-+			  rc, dparm->dpr_name, sb_parm->odp_devtype, pd_prop->pdp_devtype);
-+		return rc;
-+	}
-+
-+	mc_pd_prop2mc_parms(pd_prop, &mc_parms);
-+	if (mc_parms.mcp_features != sb_parm->odp_features) {
-+		rc = -EINVAL;
-+
-+		mp_pr_err("sb(%s), pd features(%lu) mismatches discovered(%lu)",
-+			  rc, dparm->dpr_name, (ulong)sb_parm->odp_features,
-+			  (ulong)mc_parms.mcp_features);
++	/* Commit will fail with EBUSY if aborting flag set. */
++	rc = pmd_obj_commit(mp, layout);
++	if (rc) {
++		mp_pr_rl("mpool %s, committing mblock 0x%lx failed",
++			 rc, mp->pds_name, (ulong)layout->eld_objid);
 +		return rc;
 +	}
 +
 +	return 0;
 +}
 +
-+/*
-+ * Read superblock from drive pd.
-+ *
-+ * Note: only pd.status and pd.parm must be set; no other pd fields accessed.
-+ *
-+ * Returns: 0 if successful; -errno otherwise...
-+ *
-+ */
-+int sb_read(struct pd_dev_parm *dparm, struct omf_sb_descriptor *sb, u16 *omf_ver, bool force)
++int mblock_abort(struct mpool_descriptor *mp, struct mblock_descriptor *mbh)
 +{
-+	struct omf_sb_descriptor *sbtmp;
-+	int rc = 0, i;
-+	char *buf;
++	struct pmd_layout *layout;
++	int rc;
 +
-+	if (!sb_prop_valid(dparm)) {
-+		rc = -EINVAL;
-+		mp_pr_err("sb(%s) invalid parameter, zonepg %u zonetot %u",
-+			  rc, dparm->dpr_name, dparm->dpr_zonepg, dparm->dpr_zonetot);
++	layout = mblock2layout(mbh);
++	if (!layout) {
++		mp_pr_layout_not_found(mp, mbh);
++		return -EINVAL;
++	}
++
++	rc = pmd_obj_abort(mp, layout);
++	if (rc) {
++		mp_pr_err("mpool %s, aborting mblock 0x%lx failed",
++			  rc, mp->pds_name, (ulong)layout->eld_objid);
 +		return rc;
 +	}
 +
-+	sbtmp = kzalloc(sizeof(*sbtmp), GFP_KERNEL);
-+	if (!sbtmp)
-+		return -ENOMEM;
++	return 0;
++}
 +
-+	buf = kmalloc_large(SB_AREA_SZ + 1, GFP_KERNEL);
-+	if (!buf) {
-+		kfree(sbtmp);
-+		return -ENOMEM;
++int mblock_delete(struct mpool_descriptor *mp, struct mblock_descriptor *mbh)
++{
++	struct pmd_layout *layout;
++
++	layout = mblock2layout(mbh);
++	if (!layout) {
++		mp_pr_layout_not_found(mp, mbh);
++		return -EINVAL;
 +	}
 +
-+	/*
-+	 * In 1.0, voting + SB gen numbers across the drive SBs is not used.
-+	 * There is one authoritave replica that is SB0.
-+	 * SB1 only used for debugging.
-+	 */
-+	for (i = 0; i < SB_SB_COUNT; i++) {
-+		memset(buf, 0, SB_AREA_SZ);
-+
-+		rc = sb_read_sbx(dparm, buf, i);
-+		if (rc)
-+			mp_pr_err("sb(%s, %d) read sbx failed", rc, dparm->dpr_name, i);
-+		else {
-+			rc = omf_sb_unpack_letoh(sbtmp, buf, omf_ver);
-+			if (rc)
-+				mp_pr_err("sb(%s, %d) bad magic/version/cksum",
-+					  rc, dparm->dpr_name, i);
-+			else if (i == 0)
-+				/* Deep copy to main struct  */
-+				*sb = *sbtmp;
-+		}
-+		if (rc && (i == 0)) {
-+			/*
-+			 * SB0 has the authoritative replica of
-+			 * MDC0 metadata. We need it.
-+			 */
-+			goto exit;
-+		}
-+	}
-+
-+	/*
-+	 * Check that superblock SB0 is consistent and
-+	 * update the PD properties from it.
-+	 */
-+	rc = sb_reconcile(sb, dparm, force);
-+
-+exit:
-+	kfree(sbtmp);
-+	kfree(buf);
-+	return rc;
-+}
-+
-+/*
-+ * Clear (set to zeros) mdc0 portion of sb.
-+ */
-+void sbutil_mdc0_clear(struct omf_sb_descriptor *sb)
-+{
-+	sb->osb_mdc01gen = 0;
-+	sb->osb_mdc01desc.ol_zcnt = 0;
-+	mpool_uuid_clear(&sb->osb_mdc01uuid);
-+
-+	mpool_uuid_clear(&sb->osb_mdc01devid);
-+	sb->osb_mdc01desc.ol_zaddr = 0;
-+
-+	sb->osb_mdc02gen = 0;
-+	sb->osb_mdc02desc.ol_zcnt = 0;
-+	mpool_uuid_clear(&sb->osb_mdc02uuid);
-+
-+	mpool_uuid_clear(&sb->osb_mdc02devid);
-+	sb->osb_mdc02desc.ol_zaddr = 0;
-+
-+	mpool_uuid_clear(&sb->osb_mdc0dev.odp_devid);
-+	sb->osb_mdc0dev.odp_zonetot = 0;
-+	sb->osb_mdc0dev.odp_zonepg = 0;
-+	sb->osb_mdc0dev.odp_mclassp = 0;
-+	sb->osb_mdc0dev.odp_devtype = 0;
-+	sb->osb_mdc0dev.odp_sectorsz = 0;
-+	sb->osb_mdc0dev.odp_features = 0;
-+}
-+
-+/*
-+ * Copy mdc0 portion of srcsb to tgtsb.
-+ */
-+void sbutil_mdc0_copy(struct omf_sb_descriptor *tgtsb, struct omf_sb_descriptor *srcsb)
-+{
-+	tgtsb->osb_mdc01gen = srcsb->osb_mdc01gen;
-+	mpool_uuid_copy(&tgtsb->osb_mdc01uuid, &srcsb->osb_mdc01uuid);
-+	mpool_uuid_copy(&tgtsb->osb_mdc01devid, &srcsb->osb_mdc01devid);
-+	tgtsb->osb_mdc01desc.ol_zcnt = srcsb->osb_mdc01desc.ol_zcnt;
-+	tgtsb->osb_mdc01desc.ol_zaddr = srcsb->osb_mdc01desc.ol_zaddr;
-+
-+	tgtsb->osb_mdc02gen = srcsb->osb_mdc02gen;
-+	mpool_uuid_copy(&tgtsb->osb_mdc02uuid, &srcsb->osb_mdc02uuid);
-+	mpool_uuid_copy(&tgtsb->osb_mdc02devid, &srcsb->osb_mdc02devid);
-+	tgtsb->osb_mdc02desc.ol_zcnt = srcsb->osb_mdc02desc.ol_zcnt;
-+	tgtsb->osb_mdc02desc.ol_zaddr = srcsb->osb_mdc02desc.ol_zaddr;
-+
-+	mpool_uuid_copy(&tgtsb->osb_mdc0dev.odp_devid, &srcsb->osb_mdc0dev.odp_devid);
-+	tgtsb->osb_mdc0dev.odp_devsz    = srcsb->osb_mdc0dev.odp_devsz;
-+	tgtsb->osb_mdc0dev.odp_zonetot  = srcsb->osb_mdc0dev.odp_zonetot;
-+	tgtsb->osb_mdc0dev.odp_zonepg   = srcsb->osb_mdc0dev.odp_zonepg;
-+	tgtsb->osb_mdc0dev.odp_mclassp  = srcsb->osb_mdc0dev.odp_mclassp;
-+	tgtsb->osb_mdc0dev.odp_devtype  = srcsb->osb_mdc0dev.odp_devtype;
-+	tgtsb->osb_mdc0dev.odp_sectorsz = srcsb->osb_mdc0dev.odp_sectorsz;
-+	tgtsb->osb_mdc0dev.odp_features = srcsb->osb_mdc0dev.odp_features;
-+}
-+
-+/*
-+ * Compare mdc0 portions of sb1 and sb2.
-+ */
-+static int sbutil_mdc0_eq(struct omf_sb_descriptor *sb1, struct omf_sb_descriptor *sb2)
-+{
-+	if (sb1->osb_mdc01gen != sb2->osb_mdc01gen ||
-+	    sb1->osb_mdc01desc.ol_zcnt != sb2->osb_mdc01desc.ol_zcnt)
-+		return 0;
-+
-+	if (mpool_uuid_compare(&sb1->osb_mdc01devid, &sb2->osb_mdc01devid) ||
-+	    sb1->osb_mdc01desc.ol_zaddr != sb2->osb_mdc01desc.ol_zaddr)
-+		return 0;
-+
-+	if (sb1->osb_mdc02gen != sb2->osb_mdc02gen ||
-+	    sb1->osb_mdc02desc.ol_zcnt != sb2->osb_mdc02desc.ol_zcnt)
-+		return 0;
-+
-+	if (mpool_uuid_compare(&sb1->osb_mdc02devid, &sb2->osb_mdc02devid) ||
-+	    sb1->osb_mdc02desc.ol_zaddr != sb2->osb_mdc02desc.ol_zaddr)
-+		return 0;
-+
-+	if (mpool_uuid_compare(&sb1->osb_mdc0dev.odp_devid, &sb2->osb_mdc0dev.odp_devid) ||
-+	    sb1->osb_mdc0dev.odp_zonetot != sb2->osb_mdc0dev.odp_zonetot ||
-+	    mc_cmp_omf_devparm(&sb1->osb_mdc0dev, &sb2->osb_mdc0dev))
-+		return 0;
-+
-+	return 1;
++	return pmd_obj_delete(mp, layout);
 +}
 +
 +/**
-+ * sbutil_mdc0_isclear() - returns 1 if there is no MDC0 metadata in the
-+ *	                   mdc0 portion of the super block.
-+ * @sb:
++ * mblock_rw_argcheck() - Validate mblock_write() and mblock_read().
++ * @mp:      Mpool descriptor
++ * @layout:  Layout of the mblock
++ * @iov:     iovec array
++ * @iovcnt:  iovec count
++ * @boff:    Byte offset into the layout.  Must be equal to layout->eld_mblen for write
++ * @rw:      MPOOL_OP_READ or MPOOL_OP_WRITE
++ * @len:     number of bytes in iov list
 + *
-+ * Some fields in the MDC0 portion of "sb" may not be 0 even if there is no
-+ * MDC0 metadata present. It is due to metadata upgrade.
-+ * Metadata upgrade may have to place a specific (non zero) value in a field
-+ * that was not existing in a previous metadata version to indicate that
-+ * the value is invalid.
++ * Returns: 0 if successful, -errno otherwise
++ *
++ * Note: be aware that there are checks in this function that prevent illegal
++ * arguments in lower level functions (lower level functions should assert the
++ * requirements but not otherwise check them)
 + */
-+int sbutil_mdc0_isclear(struct omf_sb_descriptor *sb)
++static int mblock_rw_argcheck(struct mpool_descriptor *mp, struct pmd_layout *layout,
++			      loff_t boff, int rw, size_t len)
 +{
-+	return sbutil_mdc0_eq(&SBCLEAR, sb);
-+}
++	u64 opt_iosz;
++	u32 mblock_cap;
++	int rc;
 +
-+/*
-+ * Validate mdc0 portion of sb
-+ * Returns: 1 if valid; 0 otherwise.
-+ */
-+int sbutil_mdc0_isvalid(struct omf_sb_descriptor *sb)
-+{
-+	/* Basic consistency validation; can make more extensive as needed */
++	mblock_cap = pmd_layout_cap_get(mp, layout);
++	opt_iosz = mblock_optimal_iosz_get(mp, layout);
 +
-+	if (mpool_uuid_compare(&sb->osb_mdc01devid, &sb->osb_mdc02devid) ||
-+	    mpool_uuid_compare(&sb->osb_mdc01devid, &sb->osb_mdc0dev.odp_devid))
-+		return 0;
++	if (rw == MPOOL_OP_READ) {
++		/* boff must be a multiple of the OS page size */
++		if (!PAGE_ALIGNED(boff)) {
++			rc = -EINVAL;
++			mp_pr_err("mpool %s, read offset 0x%lx is not multiple of OS page size",
++				  rc, mp->pds_name, (ulong) boff);
++			return rc;
++		}
 +
-+	if (mpool_uuid_is_null(&sb->osb_mdc01devid))
-+		return 0;
++		/* Check that boff is not past end of mblock capacity. */
++		if (mblock_cap <= boff) {
++			rc = -EINVAL;
++			mp_pr_err("mpool %s, read offset 0x%lx >= mblock capacity 0x%x",
++				  rc, mp->pds_name, (ulong)boff, mblock_cap);
++			return rc;
++		}
 +
-+	if (mpool_uuid_is_null(&sb->osb_parm.odp_devid))
-+		return 0;
++		/*
++		 * Check that the request does not extend past the data
++		 * written.  Don't record an error if this appears to
++		 * be an mcache readahead request.
++		 *
++		 * TODO: Use (len != MCACHE_RA_PAGES_MAX)
++		 */
++		if (boff + len > layout->eld_mblen)
++			return -EINVAL;
++	} else {
++		/* Write boff required to match eld_mblen */
++		if (boff != layout->eld_mblen) {
++			rc = -EINVAL;
++			mp_pr_err("mpool %s write boff (%ld) != eld_mblen (%d)",
++				  rc, mp->pds_name, (ulong)boff, layout->eld_mblen);
++			return rc;
++		}
 +
-+	/* Confirm this drive is supposed to contain this mdc0 info */
-+	if (mpool_uuid_compare(&sb->osb_mdc01devid, &sb->osb_parm.odp_devid))
-+		return 0;
++		/* Writes must be optimal iosz aligned */
++		if (boff % opt_iosz) {
++			rc = -EINVAL;
++			mp_pr_err("mpool %s, write not optimal iosz aligned, offset 0x%lx",
++				  rc, mp->pds_name, (ulong)boff);
++			return rc;
++		}
 +
-+	/* Found this drive in mdc0 strip list; confirm param and ownership */
-+	if (mc_cmp_omf_devparm(&sb->osb_parm, &sb->osb_mdc0dev))
-+		return 0;
-+
-+	return (sb->osb_mdc01desc.ol_zcnt == sb->osb_mdc02desc.ol_zcnt);
-+}
-+
-+int sb_init(void)
-+{
-+	sbutil_mdc0_clear(&SBCLEAR);
++		/* Check for write past end of allocated space (!) */
++		if ((len + boff) > mblock_cap) {
++			rc = -EINVAL;
++			mp_pr_err("(write): len %lu + boff %lu > mblock_cap %lu",
++				  rc, (ulong)len, (ulong)boff, (ulong)mblock_cap);
++			return rc;
++		}
++	}
 +
 +	return 0;
 +}
 +
-+void sb_exit(void)
++int mblock_write(struct mpool_descriptor *mp, struct mblock_descriptor *mbh,
++		 const struct kvec *iov, int iovcnt, size_t len)
 +{
++	struct pmd_layout *layout;
++	loff_t boff;
++	u8 state;
++	int rc;
++
++	layout = mblock2layout(mbh);
++	if (!layout) {
++		mp_pr_layout_not_found(mp, mbh);
++		return -EINVAL;
++	}
++
++	rc = mblock_rw_argcheck(mp, layout, layout->eld_mblen, MPOOL_OP_WRITE, len);
++	if (rc) {
++		mp_pr_debug("mblock write argcheck failed ", rc);
++		return rc;
++	}
++
++	if (len == 0)
++		return 0;
++
++	boff = layout->eld_mblen;
++
++	ASSERT(PAGE_ALIGNED(len));
++	ASSERT(PAGE_ALIGNED(boff));
++	ASSERT(iovcnt == (len >> PAGE_SHIFT));
++
++	pmd_obj_wrlock(layout);
++	state = layout->eld_state;
++	if (!(state & PMD_LYT_COMMITTED)) {
++		struct mpool_dev_info *pd = pmd_layout_pd_get(mp, layout);
++		int flags = 0;
++
++		if (pd->pdi_fua)
++			flags = REQ_FUA;
++
++		rc = pmd_layout_rw(mp, layout, iov, iovcnt, boff, flags, MPOOL_OP_WRITE);
++		if (!rc)
++			layout->eld_mblen += len;
++	}
++	pmd_obj_wrunlock(layout);
++
++	return !(state & PMD_LYT_COMMITTED) ? rc : -EALREADY;
 +}
++
++int mblock_read(struct mpool_descriptor *mp, struct mblock_descriptor *mbh,
++		const struct kvec *iov, int iovcnt, loff_t boff, size_t len)
++{
++	struct pmd_layout *layout;
++	u8 state;
++	int rc;
++
++	layout = mblock2layout(mbh);
++	if (!layout) {
++		mp_pr_layout_not_found(mp, mbh);
++		return -EINVAL;
++	}
++
++	rc = mblock_rw_argcheck(mp, layout, boff, MPOOL_OP_READ, len);
++	if (rc) {
++		mp_pr_debug("mblock read argcheck failed ", rc);
++		return rc;
++	}
++
++	if (len == 0)
++		return 0;
++
++	ASSERT(PAGE_ALIGNED(len));
++	ASSERT(PAGE_ALIGNED(boff));
++	ASSERT(iovcnt == (len >> PAGE_SHIFT));
++
++	/*
++	 * Read lock the mblock layout; mblock reads can proceed concurrently;
++	 * Mblock writes are serialized but concurrent with reads
++	 */
++	pmd_obj_rdlock(layout);
++	state = layout->eld_state;
++	if (state & PMD_LYT_COMMITTED)
++		rc = pmd_layout_rw(mp, layout, iov, iovcnt, boff, 0, MPOOL_OP_READ);
++	pmd_obj_rdunlock(layout);
++
++	return (state & PMD_LYT_COMMITTED) ? rc : -EAGAIN;
++}
++
++int mblock_get_props_ex(struct mpool_descriptor *mp, struct mblock_descriptor *mbh,
++			struct mblock_props_ex *prop)
++{
++	struct pmd_layout *layout;
++
++	layout = mblock2layout(mbh);
++	if (!layout) {
++		mp_pr_layout_not_found(mp, mbh);
++		return -EINVAL;
++	}
++
++	pmd_obj_rdlock(layout);
++	prop->mbx_zonecnt = layout->eld_ld.ol_zcnt;
++	mblock_getprops_cmn(mp, layout, &prop->mbx_props);
++	pmd_obj_rdunlock(layout);
++
++	return 0;
++}
++
++bool mblock_objid(u64 objid)
++{
++	return objid && (pmd_objid_type(objid) == OMF_OBJ_MBLOCK);
++}
+diff --git a/drivers/mpool/mblock.h b/drivers/mpool/mblock.h
+new file mode 100644
+index 000000000000..2a5435875a92
+--- /dev/null
++++ b/drivers/mpool/mblock.h
+@@ -0,0 +1,161 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++/*
++ * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
++ */
++
++/*
++ * DOC: Module info.
++ *
++ * Defines functions for writing, reading, and managing the lifecycle of mlogs.
++ *
++ */
++
++#ifndef MPOOL_MBLOCK_H
++#define MPOOL_MBLOCK_H
++
++#include <linux/uio.h>
++
++#include "mpool_ioctl.h"
++/*
++ * Opaque handles for clients
++ */
++struct mpool_descriptor;
++struct mblock_descriptor;
++struct mpool_obj_layout;
++
++/*
++ * mblock API functions
++ */
++
++/**
++ * mblock_alloc() - Allocate an mblock.
++ * @mp:         mpool descriptor
++ * @capreq:     mblock capacity requested
++ * @mclassp:    media class
++ * @mbh:        mblock handle returned
++ * @prop:       mblock properties returned
++ *
++ * Allocate mblock with erasure code and capacity params as specified in
++ * ecparm and capreq on drives in a media class mclassp;
++ * if successful mbh is a handle for the mblock and prop contains its
++ * properties.
++ * Note: mblock is not persistent until committed; allocation can be aborted.
++ *
++ * Return: %0 if successful, -errno otherwise...
++ */
++int mblock_alloc(struct mpool_descriptor *mp, enum mp_media_classp mclassp, bool spare,
++		 struct mblock_descriptor **mbh, struct mblock_props *prop);
++
++/**
++ * mblock_find_get() - Get handle and properties for existing mblock with specified objid.
++ * @mp:
++ * @objid:
++ * @which:
++ * @prop:
++ * @mbh:
++ *
++ * If successful, the caller holds a ref on the mblock (which must be put eventually).
++ *
++ * Return: %0 if successful, -errno otherwise...
++ */
++int mblock_find_get(struct mpool_descriptor *mp, u64 objid, int which,
++		    struct mblock_props *prop, struct mblock_descriptor **mbh);
++
++/**
++ * mblock_put() - Put (release) a ref on an mblock
++ * @mbh:
++ *
++ * Put a ref on a known mblock.
++ *
++ * Return: %0 if successful, -errno otherwise...
++ */
++void mblock_put(struct mblock_descriptor *mbh);
++
++/**
++ * mblock_commit() - Make allocated mblock persistent
++ * @mp:
++ * @mbh:
++ *
++ * if fails mblock still exists in an
++ * uncommitted state so can retry commit or abort except as noted.
++ *
++ * Return: %0 if successful, -errno otherwise...
++ * EBUSY if must abort
++ */
++int mblock_commit(struct mpool_descriptor *mp, struct mblock_descriptor *mbh);
++
++/**
++ * mblock_abort() - Discard uncommitted mblock
++ * @mp:
++ * @mbh:
++ *
++ * If successful mbh is invalid after call.
++ *
++ * Return: %0 if successful, -errno otherwise...
++ *
++ */
++int mblock_abort(struct mpool_descriptor *mp, struct mblock_descriptor *mbh);
++
++/**
++ * mblock_delete() - Delete committed mblock
++ * @mp:
++ * @mbh:
++ *
++ * If successful mbh is invalid after call.
++ *
++ * Return: %0 if successful, -errno otherwise...
++ */
++int mblock_delete(struct mpool_descriptor *mp, struct mblock_descriptor *mbh);
++
++/**
++ * mblock_write() - Write iov to mblock
++ * @mp:
++ * @mbh:
++ * @iov:
++ * @iovcnt:
++ * @len:
++ *
++ * Mblocks can be written until they are committed, or
++ * until they are full.  If a caller needs to issue more than one write call
++ * to the same mblock, all but the last write call must be optimal write size aligned.
++ * The mpr_optimal_wrsz field in struct mblock_props gives the optimal write size.
++ *
++ * Return: %0 if success, -errno otherwise...
++ */
++int mblock_write(struct mpool_descriptor *mp, struct mblock_descriptor *mbh,
++		 const struct kvec *iov, int iovcnt, size_t len);
++
++/**
++ * mblock_read() - Read data from mblock mbnum in committed mblock into iov
++ * @mp:
++ * @mbh:
++ * @iov:
++ * @iovcnt:
++ * @boff:
++ * @len:
++ *
++ * Read data from mblock mbnum in committed mblock into iov starting at
++ * byte offset boff; boff and iov buffers must be a multiple of OS page
++ * size for the mblock.
++ *
++ * If fails can call mblock_get_props() to confirm mblock was written.
++ *
++ * Return: 0 if successful, -errno otherwise...
++ */
++int mblock_read(struct mpool_descriptor *mp, struct mblock_descriptor *mbh,
++		const struct kvec *iov, int iovcnt, loff_t boff, size_t len);
++
++/**
++ * mblock_get_props_ex() - Return extended mblock properties in prop
++ * @mp:
++ * @mbh:
++ * @prop:
++ *
++ * Return: %0 if successful, -errno otherwise...
++ */
++int mblock_get_props_ex(struct mpool_descriptor *mp, struct mblock_descriptor *mbh,
++			struct mblock_props_ex *prop);
++
++bool mblock_objid(u64 objid);
++
++#endif /* MPOOL_MBLOCK_H */
 -- 
 2.17.2
 _______________________________________________
