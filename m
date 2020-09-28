@@ -2,150 +2,120 @@ Return-Path: <SRS0=xlp5=DF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE96C2D0A8
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 13:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48B3BC4727E
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 15:22:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A93CE2074A
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 13:15:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 9CCFB21548
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 15:22:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="slaYfrxX"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A93CE2074A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bWKpSV84"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9CCFB21548
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4235B1509C07B;
-	Mon, 28 Sep 2020 06:15:12 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 24D27151FB5C4;
+	Mon, 28 Sep 2020 08:22:43 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 52FE31509C079
-	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 06:15:09 -0700 (PDT)
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 08SD1tpm165959;
-	Mon, 28 Sep 2020 09:15:01 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type; s=pp1; bh=bc+PZdnmwDaY+qg5gm8ZyGfTSYe0zIvR7oRiYTPQu2c=;
- b=slaYfrxXRVj28DX0/TdwvrWSF6imYUPec9dIFygFF9frRlD0Zd/cGOH14fqDLPC0wAIp
- 6by21wqsByylSt9aYhcoyAPK9Dgy6SFW0k6SANgnwqnoWKcPH715e74FzV/U6kpV4tKF
- iA0rUO+Q+2aKHcahtYYeoYzAHnSHjbhWdAGN1lSjSDBg8LPQFD70yzDKLm9CIXGzphW2
- fA7QLc58wkXbUdu/o2A2FgIHZ6VBWvCvazYDJxEU/izMAKE+/CXOUa5smff9KYBrqdW0
- ucclraWh4abVlh+uU9mmifYaHDxF/bC1Kq7xyDXduVZMUI/PD2rp18Qbbz7WOwoIUHK2 4w==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 33ufvy1j4f-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 28 Sep 2020 09:15:01 -0400
-Received: from m0098394.ppops.net (m0098394.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 08SD1tJs166016;
-	Mon, 28 Sep 2020 09:15:01 -0400
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 33ufvy1j37-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 28 Sep 2020 09:15:00 -0400
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 08SDCjfS006080;
-	Mon, 28 Sep 2020 13:14:58 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma04ams.nl.ibm.com with ESMTP id 33sw97t5we-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 28 Sep 2020 13:14:58 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 08SDEuiU33423642
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 28 Sep 2020 13:14:56 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6747752051;
-	Mon, 28 Sep 2020 13:14:56 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.85.68.227])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id 36C4B52050;
-	Mon, 28 Sep 2020 13:14:53 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 28 Sep 2020 18:44:52 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linuxppc-dev@lists.ozlabs.org, linux-nvdimm@lists.01.org
-Subject: Re: [PATCH] powerpc/papr_scm: Add PAPR command family to
- pass-through command-set
-In-Reply-To: <20200913211904.24472-1-vaibhav@linux.ibm.com>
-References: <20200913211904.24472-1-vaibhav@linux.ibm.com>
-Date: Mon, 28 Sep 2020 18:44:52 +0530
-Message-ID: <87pn662gc3.fsf@vajain21.in.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 40EE9151DCCF9
+	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 08:22:40 -0700 (PDT)
+Dkim-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1601306559;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=bGZWgwzuGIdAypUrofmdQnD4jfN7gEMGxpknQBWzkOA=;
+	b=bWKpSV84fCJoGfvh51gy/4AsCRlN09CVxudA/M84xu8xVsS5EWX1Josov29hrj5yMvKjzO
+	7izR/MkhGz1hFH6kjlwwqo4sI1+eRxUmX8gK2OKKCRKQhC/4HDjW+m9VrSIOjiMNPt7Xfw
+	KWiGz5udHKF3SZdOjxng0KdgjlbCD+A=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-326-X5AXtCc6OP6C_QKUxT9PQQ-1; Mon, 28 Sep 2020 11:22:34 -0400
+X-MC-Unique: X5AXtCc6OP6C_QKUxT9PQQ-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 22FF81868405;
+	Mon, 28 Sep 2020 15:22:32 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 6887D100238C;
+	Mon, 28 Sep 2020 15:22:31 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 08SFMUjU032257;
+	Mon, 28 Sep 2020 11:22:30 -0400
+Received: from localhost (mpatocka@localhost)
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 08SFMS8e032253;
+	Mon, 28 Sep 2020 11:22:29 -0400
+X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
+Date: Mon, 28 Sep 2020 11:22:28 -0400 (EDT)
+From: Mikulas Patocka <mpatocka@redhat.com>
+X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
+To: Matthew Wilcox <willy@infradead.org>
+Subject: Re: NVFS XFS metadata (was: [PATCH] pmem: export the symbols
+ __copy_user_flushcache and __copy_from_user_flushcache)
+In-Reply-To: <alpine.LRH.2.02.2009240853200.3485@file01.intranet.prod.int.rdu2.redhat.com>
+Message-ID: <alpine.LRH.2.02.2009281105200.27411@file01.intranet.prod.int.rdu2.redhat.com>
+References: <alpine.LRH.2.02.2009151216050.16057@file01.intranet.prod.int.rdu2.redhat.com> <alpine.LRH.2.02.2009151332280.3851@file01.intranet.prod.int.rdu2.redhat.com> <alpine.LRH.2.02.2009160649560.20720@file01.intranet.prod.int.rdu2.redhat.com>
+ <CAPcyv4gW6AvR+RaShHdQzOaEPv9nrq5myXDmywuoCTYDZxk-hw@mail.gmail.com> <alpine.LRH.2.02.2009161254400.745@file01.intranet.prod.int.rdu2.redhat.com> <CAPcyv4gD0ZFkfajKTDnJhEEjf+5Av-GH+cHRFoyhzGe8bNEgAA@mail.gmail.com> <alpine.LRH.2.02.2009161359540.20710@file01.intranet.prod.int.rdu2.redhat.com>
+ <alpine.LRH.2.02.2009191336380.3478@file01.intranet.prod.int.rdu2.redhat.com> <20200922050314.GB12096@dread.disaster.area> <alpine.LRH.2.02.2009220815420.16480@file01.intranet.prod.int.rdu2.redhat.com> <20200922172553.GL32101@casper.infradead.org>
+ <alpine.LRH.2.02.2009240853200.3485@file01.intranet.prod.int.rdu2.redhat.com>
+User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-09-28_11:2020-09-28,2020-09-28 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 impostorscore=0
- mlxscore=0 lowpriorityscore=0 clxscore=1011 adultscore=0 spamscore=0
- bulkscore=0 mlxlogscore=999 malwarescore=0 priorityscore=1501
- suspectscore=1 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2009280102
-Message-ID-Hash: V7X4GXCCAGFQMFGWRHLE2W23BSDQBQFI
-X-Message-ID-Hash: V7X4GXCCAGFQMFGWRHLE2W23BSDQBQFI
-X-MailFrom: vaibhav@linux.ibm.com
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+Message-ID-Hash: FW7MT4V4MI5DBOOHVNP3OFG5YCD4RXS3
+X-Message-ID-Hash: FW7MT4V4MI5DBOOHVNP3OFG5YCD4RXS3
+X-MailFrom: mpatocka@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
+CC: Dave Chinner <david@fromorbit.com>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, "Tadakamadla, Rajesh (DCIG/CDI/HPS Perf)" <rajesh.tadakamadla@hpe.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/V7X4GXCCAGFQMFGWRHLE2W23BSDQBQFI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FW7MT4V4MI5DBOOHVNP3OFG5YCD4RXS3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi Dan, Ira and Vishal,
 
-Can you please take a look at this patch. Without it the functionality
-to report nvdimm health via ndctl breaks on 5.9
 
-Thanks,
-~ Vaibhav
+On Thu, 24 Sep 2020, Mikulas Patocka wrote:
 
-Vaibhav Jain <vaibhav@linux.ibm.com> writes:
+> On Tue, 22 Sep 2020, Matthew Wilcox wrote:
+> 
+> > > There is a small window when renamed inode is neither in source nor in 
+> > > target directory. Fsck will reclaim such inode and add it to lost+found - 
+> > > just like on EXT2.
+> > 
+> > ... ouch.  If you have to choose, it'd be better to link it to the second
+> > directory then unlink it from the first one.  Then your fsck can detect
+> > it has the wrong count and fix up the count (ie link it into both
+> > directories rather than neither).
+> 
+> I admit that this is lame and I'll fix it. Rename is not so 
+> performance-critical, so I can add a small journal for this.
 
-> Add NVDIMM_FAMILY_PAPR to the list of valid 'dimm_family_mask'
-> acceptable by papr_scm. This is needed as since commit
-> 92fe2aa859f5 ("libnvdimm: Validate command family indices") libnvdimm
-> performs a validation of 'nd_cmd_pkg.nd_family' received as part of
-> ND_CMD_CALL processing to ensure only known command families can use
-> the general ND_CMD_CALL pass-through functionality.
->
-> Without this change the ND_CMD_CALL pass-through targeting
-> NVDIMM_FAMILY_PAPR error out with -EINVAL.
->
-> Fixes: 92fe2aa859f5 ("libnvdimm: Validate command family indices")
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
->  arch/powerpc/platforms/pseries/papr_scm.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> index 5493bc847bd08..27268370dee00 100644
-> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> @@ -898,6 +898,9 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
->  	p->bus_desc.of_node = p->pdev->dev.of_node;
->  	p->bus_desc.provider_name = kstrdup(p->pdev->name, GFP_KERNEL);
->  
-> +	/* Set the dimm command family mask to accept PDSMs */
-> +	set_bit(NVDIMM_FAMILY_PAPR, &p->bus_desc.dimm_family_mask);
-> +
->  	if (!p->bus_desc.provider_name)
->  		return -ENOMEM;
->  
-> -- 
-> 2.26.2
->
+Hi
+
+I have implmemented transactions in nvfs and I use them for rename, 
+setattr, atomic xattr replacement and for RENAME_EXCHANGE.
+
+You can download the current version here:
+git://leontynka.twibright.com/nvfs.git
+
+Mikulas
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
