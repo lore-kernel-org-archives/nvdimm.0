@@ -1,116 +1,85 @@
-Return-Path: <SRS0=OV++=DD=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=xlp5=DF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_05,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_05,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FE30C2D0A8
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 26 Sep 2020 06:54:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE288C4346E
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 01:15:17 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E4C30208B6
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 26 Sep 2020 06:54:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E4C30208B6
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=vivo.com
+	by mail.kernel.org (Postfix) with ESMTPS id 002EE23A34
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 28 Sep 2020 01:15:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 002EE23A34
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3C9131553AFD3;
-	Fri, 25 Sep 2020 23:54:39 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=59.111.176.18; helo=m17618.mail.qiye.163.com; envelope-from=wangqing@vivo.com; receiver=<UNKNOWN> 
-Received: from m17618.mail.qiye.163.com (m17618.mail.qiye.163.com [59.111.176.18])
+	by ml01.01.org (Postfix) with ESMTP id 37E2D13E2CA84;
+	Sun, 27 Sep 2020 18:15:16 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.32; helo=huawei.com; envelope-from=yanaijie@huawei.com; receiver=<UNKNOWN> 
+Received: from huawei.com (szxga06-in.huawei.com [45.249.212.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 258D11553AFCE
-	for <linux-nvdimm@lists.01.org>; Fri, 25 Sep 2020 23:54:33 -0700 (PDT)
-Received: from vivo-HP-ProDesk-680-G4-PCI-MT.vivo.xyz (unknown [58.251.74.231])
-	by m17618.mail.qiye.163.com (Hmail) with ESMTPA id 5B87B4E12DB;
-	Sat, 26 Sep 2020 14:54:27 +0800 (CST)
-From: Wang Qing <wangqing@vivo.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	linux-nvdimm@lists.01.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] nvdimm: Use kobj_to_dev() API
-Date: Sat, 26 Sep 2020 14:54:17 +0800
-Message-Id: <1601103260-10249-1-git-send-email-wangqing@vivo.com>
-X-Mailer: git-send-email 2.7.4
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSE83V1ktWUFJV1kPCR
-	oVCBIfWUFZT0gaSktMGEofTEwfVkpNS0pKS0hJTUxNQ0pVEwETFhoSFyQUDg9ZV1kWGg8SFR0UWU
-	FZT0tIVUpKS0hKTFVLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6Nk06HDo5ND8hCgEuS0kiGAIZ
-	DQgaCzlVSlVKTUtKSktISU1DS0NLVTMWGhIXVQwaFRwKEhUcOw0SDRRVGBQWRVlXWRILWUFZTkNV
-	SU5KVUxPVUlISllXWQgBWUFJTkJCNwY+
-X-HM-Tid: 0a74c93107179376kuws5b87b4e12db
-Message-ID-Hash: IFMJHVAPNNSHUT7GLA5MMY4OT2MHBAMC
-X-Message-ID-Hash: IFMJHVAPNNSHUT7GLA5MMY4OT2MHBAMC
-X-MailFrom: wangqing@vivo.com
+	by ml01.01.org (Postfix) with ESMTPS id 1C6C713E2CA81
+	for <linux-nvdimm@lists.01.org>; Sun, 27 Sep 2020 18:15:13 -0700 (PDT)
+Received: from DGGEMS409-HUB.china.huawei.com (unknown [172.30.72.58])
+	by Forcepoint Email with ESMTP id 15C96901B7B793B28AB4;
+	Mon, 28 Sep 2020 09:15:11 +0800 (CST)
+Received: from [10.174.179.92] (10.174.179.92) by
+ DGGEMS409-HUB.china.huawei.com (10.3.19.209) with Microsoft SMTP Server id
+ 14.3.487.0; Mon, 28 Sep 2020 09:15:02 +0800
+Subject: Re: [PATCH] device-dax: include bus.h in super.c
+To: Dan Williams <dan.j.williams@intel.com>
+References: <20200925091806.1860663-1-yanaijie@huawei.com>
+ <CAPcyv4jgCp4_rSWs2SipiR3Jhz2jbSGWuLjtPExGDdTOEztAXA@mail.gmail.com>
+From: Jason Yan <yanaijie@huawei.com>
+Message-ID: <306e724d-00f1-648c-9018-0ec1f3be9da4@huawei.com>
+Date: Mon, 28 Sep 2020 09:15:01 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101
+ Thunderbird/68.4.2
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4jgCp4_rSWs2SipiR3Jhz2jbSGWuLjtPExGDdTOEztAXA@mail.gmail.com>
+X-Originating-IP: [10.174.179.92]
+X-CFilter-Loop: Reflected
+Message-ID-Hash: KV4UP6KDMIEUVPYJGFETNYQ3LNQJJPIQ
+X-Message-ID-Hash: KV4UP6KDMIEUVPYJGFETNYQ3LNQJJPIQ
+X-MailFrom: yanaijie@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Wang Qing <wangqing@vivo.com>
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, Hulk Robot <hulkci@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IFMJHVAPNNSHUT7GLA5MMY4OT2MHBAMC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KV4UP6KDMIEUVPYJGFETNYQ3LNQJJPIQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: base64
 
-Use kobj_to_dev() instead of container_of().
-
-Signed-off-by: Wang Qing <wangqing@vivo.com>
----
- drivers/nvdimm/namespace_devs.c | 2 +-
- drivers/nvdimm/region_devs.c    | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 6da67f4..1d11ca7
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1623,7 +1623,7 @@ static struct attribute *nd_namespace_attributes[] = {
- static umode_t namespace_visible(struct kobject *kobj,
- 		struct attribute *a, int n)
- {
--	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct device *dev = kobj_to_dev(kobj);
- 
- 	if (a == &dev_attr_resource.attr && is_namespace_blk(dev))
- 		return 0;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index ef23119..92adfaf
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -644,7 +644,7 @@ static struct attribute *nd_region_attributes[] = {
- 
- static umode_t region_visible(struct kobject *kobj, struct attribute *a, int n)
- {
--	struct device *dev = container_of(kobj, typeof(*dev), kobj);
-+	struct device *dev = kobj_to_dev(kobj);
- 	struct nd_region *nd_region = to_nd_region(dev);
- 	struct nd_interleave_set *nd_set = nd_region->nd_set;
- 	int type = nd_region_to_nstype(nd_region);
-@@ -759,7 +759,7 @@ REGION_MAPPING(31);
- 
- static umode_t mapping_visible(struct kobject *kobj, struct attribute *a, int n)
- {
--	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct device *dev = kobj_to_dev(kobj);
- 	struct nd_region *nd_region = to_nd_region(dev);
- 
- 	if (n < nd_region->ndr_mappings)
--- 
-2.7.4
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+SGkgRGFu77yMDQoNCuWcqCAyMDIwLzkvMjYgMjoyNCwgRGFuIFdpbGxpYW1zIOWGmemBkzoNCj4g
+T24gRnJpLCBTZXAgMjUsIDIwMjAgYXQgMjoxNyBBTSBKYXNvbiBZYW4gPHlhbmFpamllQGh1YXdl
+aS5jb20+IHdyb3RlOg0KPj4NCj4+IFRoaXMgYWRkcmVzc2VzIHRoZSBmb2xsb3dpbmcgc3BhcnNl
+IHdhcm5pbmc6DQo+Pg0KPj4gZHJpdmVycy9kYXgvc3VwZXIuYzo0NTI6Njogd2FybmluZzogc3lt
+Ym9sICdydW5fZGF4JyB3YXMgbm90IGRlY2xhcmVkLg0KPj4gU2hvdWxkIGl0IGJlIHN0YXRpYz8N
+Cj4gDQo+IHJ1bl9kYXgoKSBpcyBhIGNvcmUgaGVscGVyIGRlZmluZWQgaW4gZHJpdmVycy9kYXgv
+c3VwZXIuYyB0aGF0IGlzDQo+IG1lYW50IHRvIGhpZGUgdGhlIGRlZmluaXRpb24gb2YgJ3N0cnVj
+dCBkYXhfZGV2aWNlJyBmcm9tIHRoZSB3aWRlcg0KPiBrZXJuZWwgdGhhdCBkb2VzIG5vdCBuZWVk
+IHRvIHBva2UgaW50byBpdHMgaW50ZXJuYWxzLiBUaGVyZSdzIGFsc28gbm8NCj4gbmVlZCBmb3Ig
+ZHJpdmVycy9kYXgvc3VwZXIuYyB0byBiZSBnaXZlbiBrbm93bGVkZ2Ugb2Ygb3RoZXIgY29yZQ0K
+PiBkZXRhaWxzIHRoYXQgYXJlIGNvbnRhaW5lZCB3aXRoaW4gYnVzLmguIFNvLCBJIHRoaW5rIHRo
+aXMgcGF0Y2gNCj4gcHJvdmlkZXMgbm8gdmFsdWUgYW5kIGdvZXMgYWdhaW5zdCB0aGUgcHJpbmNp
+cGxlIG9mIGxlYXN0IHByaXZpbGVnZQ0KPiAoaHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kv
+UHJpbmNpcGxlX29mX2xlYXN0X3ByaXZpbGVnZSkNCj4gDQoNClNvcnJ5IEkgZGlkIG5vdCBnZXQg
+d2hhdCB5b3UgbWVhbi4gSSBvbmx5IGluY2x1ZGVkIHRoZSBpbnRlcm5hbCBidXMuaA0Kd2hpY2gg
+aXMgZHJpdmVycy9kYXgvYnVzLmguIFdoeSBpcyB0aGlzIGFmZmVjdGluZyB0aGUgb3RoZXIgcGFy
+dCBvZiB0aGUNCmtlcm5lbD8NCg0KVGhhbmtzLA0KSmFzb24KX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBs
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8g
+bGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
