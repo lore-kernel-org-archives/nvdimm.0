@@ -1,45 +1,45 @@
 Return-Path: <SRS0=uEN6=DG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.7 required=3.0 tests=BAYES_80,
+X-Spam-Level: 
+X-Spam-Status: No, score=0.7 required=3.0 tests=BAYES_60,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	SUBJ_ALL_CAPS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97AEEC4346E
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 29 Sep 2020 06:49:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C241C4346E
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 29 Sep 2020 10:00:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 21CF520C09
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 29 Sep 2020 06:49:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 21CF520C09
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=hisaka.co.jp
+	by mail.kernel.org (Postfix) with ESMTPS id 25D5C20897
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 29 Sep 2020 10:00:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 25D5C20897
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=dhl.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8538B152376DC;
-	Mon, 28 Sep 2020 23:49:20 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=142.11.244.234; helo=hisaka.co.jp; envelope-from=dyeing@hisaka.co.jp; receiver=<UNKNOWN> 
-Received: from hisaka.co.jp (hwsrv-781182.hostwindsdns.com [142.11.244.234])
-	by ml01.01.org (Postfix) with ESMTP id E6210152376D5
-	for <linux-nvdimm@lists.01.org>; Mon, 28 Sep 2020 23:49:13 -0700 (PDT)
-From: Kyung-soo <dyeing@hisaka.co.jp>
+	by ml01.01.org (Postfix) with ESMTP id 5BDB71528720D;
+	Tue, 29 Sep 2020 03:00:23 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=142.11.244.234; helo=dhl.com; envelope-from=customersupport@dhl.com; receiver=<UNKNOWN> 
+Received: from dhl.com (hwsrv-781182.hostwindsdns.com [142.11.244.234])
+	by ml01.01.org (Postfix) with ESMTP id 888BC151E2975
+	for <linux-nvdimm@lists.01.org>; Tue, 29 Sep 2020 03:00:17 -0700 (PDT)
+From: =?UTF-8?B?REhMIEV4cHJlc3MgSU5Dwq4=?= <customersupport@dhl.com>
 To: linux-nvdimm@lists.01.org
-Subject: ORDER & KG5-3824
-Date: 29 Sep 2020 06:49:12 +0000
-Message-ID: <20200929064911.A30F3996B9595064@hisaka.co.jp>
+Subject: Shipment Arrival : You Have A Package With Us
+Date: 29 Sep 2020 10:00:16 +0000
+Message-ID: <20200929100015.CF4851F9360C22FE@dhl.com>
 MIME-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_71FF3AF9.4629855B"
-Message-ID-Hash: I4OHMFZL5Y6T5VLHP6N74PG6RFOMBFBY
-X-Message-ID-Hash: I4OHMFZL5Y6T5VLHP6N74PG6RFOMBFBY
-X-MailFrom: dyeing@hisaka.co.jp
+	boundary="----=_NextPart_000_0012_43E0A52A.E6A7A786"
+Message-ID-Hash: MIVTKX2HZO5KUHALCDWUA7KK2SFLH3CN
+X-Message-ID-Hash: MIVTKX2HZO5KUHALCDWUA7KK2SFLH3CN
+X-MailFrom: customersupport@dhl.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I4OHMFZL5Y6T5VLHP6N74PG6RFOMBFBY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MIVTKX2HZO5KUHALCDWUA7KK2SFLH3CN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -48,7 +48,7 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 
 This is a multi-part message in MIME format.
 
-------=_NextPart_000_0012_71FF3AF9.4629855B
+------=_NextPart_000_0012_43E0A52A.E6A7A786
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -58,4 +58,4 @@ _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 
-------=_NextPart_000_0012_71FF3AF9.4629855B--
+------=_NextPart_000_0012_43E0A52A.E6A7A786--
