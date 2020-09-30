@@ -2,78 +2,81 @@ Return-Path: <SRS0=8ITv=DH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79334C4727C
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 15:49:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D34AFC4727C
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 16:13:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C90C32087D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 15:49:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 3FB1A206F7
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 16:13:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="b3/eSZrx"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C90C32087D
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="PX1/Et52"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3FB1A206F7
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7CA72154C7B96;
-	Wed, 30 Sep 2020 08:49:57 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::f42; helo=mail-qv1-xf42.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-qv1-xf42.google.com (mail-qv1-xf42.google.com [IPv6:2607:f8b0:4864:20::f42])
+	by ml01.01.org (Postfix) with ESMTP id 9209915198644;
+	Wed, 30 Sep 2020 09:13:23 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::642; helo=mail-ej1-x642.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x642.google.com (mail-ej1-x642.google.com [IPv6:2a00:1450:4864:20::642])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 906C2154C7B95
-	for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 08:49:55 -0700 (PDT)
-Received: by mail-qv1-xf42.google.com with SMTP id f11so1129635qvw.3
-        for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 08:49:55 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 493511519863E
+	for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 09:13:21 -0700 (PDT)
+Received: by mail-ej1-x642.google.com with SMTP id z23so3608595ejr.13
+        for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 09:13:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=r8/IDDg3h30xL2yKxOXfAZ6SYDQxULsHhio1WiSzVoE=;
-        b=b3/eSZrxq9ZmquVDBHUWHZcW8jE3GZMuVJn04cLVnXRpAKQlax71RkHw+TItyAcXOf
-         D1/wbcVY1Tp22JA5trNf+ZAjp240f5Hp/IFo/bGRg5t96yAw73K+jPG6eeK7GgW9RdEC
-         ny3mkwjN6Jbxx0cHBrAXUvhnEjA9uZ2q77xjQDVhYp6ayW0dfk4vY+vvylLCH4n3iIou
-         EBVZoV1Mq2driC9DQmvoOR/tuiJl+S81PanPTc7I0Y30DOZRuJSte5ZddOgYWDDA+3Ku
-         d6XBGCk1g17KTfCR9ZIbDx02vyCkW9AKXbdcDIwXXfv6XZ3jt79qZ0dt4xkzIRLPTPkL
-         OZRQ==
+        bh=B68i/03gO6ZR0stPp/XuIiWcgy0nxB559p48BCd6ARw=;
+        b=PX1/Et52kin9Rxfq1UxAKtvLAZw8XEYjLfAunQK4XuD4V0feOzB3QEYw7v7ThbU3Mt
+         mAiv2K0rHxn933lpLwwCB0wtsyk/Vkj9iawLQ63G7s/YSV5r1kqfzoqoJBOpyjemnwbR
+         jPkFIZ+aCNen9BaOql/Q6UkMrcE1yeclcDXqo4pRtnReCRRV2KjdXlMJ2qcMYBn88j4a
+         hn54Pujx2xVaIZJ/7UDT4TJHflGOZyAVNefQWpY1GlZxlpT9OsE4bf8lH2/2XnHpOhIz
+         +oIvhB3mmC5yUm2M66+DuI52zIT9WH0bnVRAKm3+NziWfY9j9ACgASesmoLq29qnztc+
+         DZBA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=r8/IDDg3h30xL2yKxOXfAZ6SYDQxULsHhio1WiSzVoE=;
-        b=Ye7o/FWHVRYZ5cVTWqtzKbhynm+E1XbvJHbsy5lIDVcquj/tq/5dUNh2KtZTuCjL+Z
-         ZCM/BgSBRKWtpJ+D/Rt15+C98IKireM2IQmW42GGmAk/QAxUFEBgGF6rZa/MDfULNvr1
-         UttrpQTgmfodp+JO0gSEErPaxdcYqLFKwli6zUQt3MCaXbsbiQz5lIinHUURguOBo5JO
-         ewdociop/iBAvwJznMWdENhVJcKA53u9MUZ6GWwerBdA5HxcS6a3kaAmGdRX2ThGHILB
-         kza6PlKU/NymVmNp9lZDBt+F6HLR/iYKIEI+GBUTPFnALAnL0n2uyMRIuvp6pzJMtbG9
-         iQEg==
-X-Gm-Message-State: AOAM5304nG5s/Vu5j7Bck0aOaEKKC+vIbq4C6geZTZ4WWVYfKY4FwVyK
-	BghLO1unhV4aqeBouj0uxRZ+p+xKfwA/nHMhDDi2Sg==
-X-Google-Smtp-Source: ABdhPJz35tnMcZ3NgGf2cA0sbRzUPpGd/75eBd+InpyMs61ib5CN5zyPrAngEN4AeGJwKtjR6R96dAebjOvm9ebx2O0=
-X-Received: by 2002:ad4:4d52:: with SMTP id m18mr2946409qvm.55.1601480993835;
- Wed, 30 Sep 2020 08:49:53 -0700 (PDT)
+        bh=B68i/03gO6ZR0stPp/XuIiWcgy0nxB559p48BCd6ARw=;
+        b=l2AotiS4BuPknzE52NrpWaoOmuqPLz0AciJLn4bUB01g51GnZgDT4jYukIuoHj1NR9
+         zsSPvoP4YRH+4JQTD2RTZ5LHWnOMEpCxJoL+4q3USAh1qlPE0kO2rpKBLtEMkSoD4Xzd
+         F2Iw92foJFdi0bfyLsqkzUewsMWydHa636o2QYXAYQtsedNGlNVQBvXZnyRp8Pcz3+8K
+         XOhEoAOZFtWdEZau4CzSRxcxl6ikZcNwZr353ryRachHUwbO2MWL2s2ZI228F604IXqt
+         YK6MYN0lcmr40a/jD/o8ep3igyStP+wAauvhlqo3EuM28Q28L+HleZ/FwNPz1bspMeS5
+         eYpA==
+X-Gm-Message-State: AOAM532AvV2q43KwXYz1I5giD0mJKLYqmtFJ34xJlOvkLvYm5SIaLGN7
+	1vB4Th/oAnpRC5uiwTzDnv/7opWqHko8jEWFmNbkKA==
+X-Google-Smtp-Source: ABdhPJxdHnKyHDYoMQeMMwxf000I8c4hJxQEZEzPq5LxM9cPBizoMqr58gmvU91MpkM9iwpTHzULwq9SHDscdiTmefI=
+X-Received: by 2002:a17:906:8143:: with SMTP id z3mr3481181ejw.323.1601482399413;
+ Wed, 30 Sep 2020 09:13:19 -0700 (PDT)
 MIME-Version: 1.0
 References: <160087928642.3520.17063139768910633998.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAPcyv4iPuRWSv_do_h8stU0-SiWxtKkQWvzBEU+78fDE6VffmA@mail.gmail.com> <20200930050455.GA6810@zn.tnic>
-In-Reply-To: <20200930050455.GA6810@zn.tnic>
+ <160087929294.3520.12013578778066801369.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20200929102512.GB21110@zn.tnic>
+In-Reply-To: <20200929102512.GB21110@zn.tnic>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 30 Sep 2020 08:49:42 -0700
-Message-ID: <CAPcyv4j=eyVMbcnrGDGaPe4AVXy5pJwa6EapH3ePh+JdF6zxnQ@mail.gmail.com>
-Subject: Re: [PATCH v9 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user, kernel}
+Date: Wed, 30 Sep 2020 09:13:07 -0700
+Message-ID: <CAPcyv4jUYP3sWUUfL53Z6M7SpzXrrTTuzY8_EeN4O4bDVeL1EQ@mail.gmail.com>
+Subject: Re: [PATCH v9 1/2] x86, powerpc: Rename memcpy_mcsafe() to
+ copy_mc_to_{user, kernel}()
 To: Borislav Petkov <bp@alien8.de>
-Message-ID-Hash: BDQSHU3N4CXF2DFOLRLWNQ2DJI2LVDJW
-X-Message-ID-Hash: BDQSHU3N4CXF2DFOLRLWNQ2DJI2LVDJW
+Message-ID-Hash: 4XKYRJPZUNFLOSUX7DDY2JGZOSUENB7A
+X-Message-ID-Hash: 4XKYRJPZUNFLOSUX7DDY2JGZOSUENB7A
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Ingo Molnar <mingo@redhat.com>, Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, stable <stable@vger.kernel.org>, X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, 0day robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jan Kara <jack@suse.cz>
+CC: Ingo Molnar <mingo@redhat.com>, X86 ML <x86@kernel.org>, stable <stable@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, Mikulas Patocka <mpatocka@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Arnaldo Carvalho de Melo <acme@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tony Luck <tony.luck@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jan Kara <jack@suse.cz>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BDQSHU3N4CXF2DFOLRLWNQ2DJI2LVDJW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4XKYRJPZUNFLOSUX7DDY2JGZOSUENB7A/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,29 +85,91 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 29, 2020 at 10:05 PM Borislav Petkov <bp@alien8.de> wrote:
+On Tue, Sep 29, 2020 at 3:25 AM Borislav Petkov <bp@alien8.de> wrote:
 >
-> On Tue, Sep 29, 2020 at 03:32:07PM -0700, Dan Williams wrote:
-> > Given that Linus was the primary source of review feedback on these
-> > patches and a version of them have been soaking in -next with only a
-> > minor conflict report with vfs.git for the entirety of the v5.9-rc
-> > cycle (left there inadvertently while I was on leave), any concerns
-> > with me sending this to Linus directly during the merge window?
+> On Wed, Sep 23, 2020 at 09:41:33AM -0700, Dan Williams wrote:
+> > The rename replaces a single top-level memcpy_mcsafe() with either
+> > copy_mc_to_user(), or copy_mc_to_kernel().
 >
-> What's wrong with them going through tip?
+> What is "copy_mc" supposed to mean? Especially if it is called that on
+> two arches...
+>
+> > diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> > index 7101ac64bb20..e876b3a087f9 100644
+> > --- a/arch/x86/Kconfig
+> > +++ b/arch/x86/Kconfig
+> > @@ -75,7 +75,7 @@ config X86
+> >       select ARCH_HAS_PTE_DEVMAP              if X86_64
+> >       select ARCH_HAS_PTE_SPECIAL
+> >       select ARCH_HAS_UACCESS_FLUSHCACHE      if X86_64
+> > -     select ARCH_HAS_UACCESS_MCSAFE          if X86_64 && X86_MCE
+> > +     select ARCH_HAS_COPY_MC                 if X86_64
+>
+> X86_MCE is dropped here. So if I have a build which has
+>
+> # CONFIG_X86_MCE is not set
+>
+> One of those quirks like:
+>
+>         /*
+>          * CAPID0{7:6} indicate whether this is an advanced RAS SKU
+>          * CAPID5{8:5} indicate that various NVDIMM usage modes are
+>          * enabled, so memory machine check recovery is also enabled.
+>          */
+>         if ((capid0 & 0xc0) == 0xc0 || (capid5 & 0x1e0))
+>                 enable_copy_mc_fragile();
+>
+> will still call enable_copy_mc_fragile() and none of those platforms
+> need MCE functionality?
+>
+> But there's a hunk in here which sets it in the MCE code:
+>
+>         if (mca_cfg.recovery)
+>                 enable_copy_mc_fragile();
+>
+> So which is it? They need it or they don't?
+>
+> The comment over copy_mc_to_kernel() says:
+>
+>  * Call into the 'fragile' version on systems that have trouble
+>  * actually do machine check recovery
+>
+> If CONFIG_X86_MCE is not set, I'll say. :)
 
-There's been a paucity of response on these after converging on the
-feedback from Linus. They missed v5.9, and I started casting about for
-what could be done to make sure they did not also miss v5.10 if the
-quiet continued. The preference is still "through tip".
+True, without CONFIG_X86_MCE there's no point in attempting the
+fragile copy because the #MC will go unhandled. At the same time the
+point of the new copy_mc_generic() is that it is suitable to use
+without CONFIG_X86_MCE as it's just a typical fast string copy
+instrumented for exception handling. So, I still think
+CONFIG_ARCH_HAS_COPY_MC is independent of CONFIG_X86_MCE, but
+enable_copy_mc_fragile() should be stubbed out by CONFIG_X86_MCE=n,
+will re-spin.
 
-> But before that pls have a look at this question I have here:
 >
-> https://lkml.kernel.org/r/20200929102512.GB21110@zn.tnic
+> > +++ b/arch/x86/lib/copy_mc.c
+> > @@ -0,0 +1,66 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/* Copyright(c) 2016-2020 Intel Corporation. All rights reserved. */
+> > +
+> > +#include <linux/jump_label.h>
+> > +#include <linux/uaccess.h>
+> > +#include <linux/export.h>
+> > +#include <linux/string.h>
+> > +#include <linux/types.h>
+> > +
+> > +static DEFINE_STATIC_KEY_FALSE(copy_mc_fragile_key);
+> > +
+> > +void enable_copy_mc_fragile(void)
+> > +{
+> > +     static_branch_inc(&copy_mc_fragile_key);
+> > +}
+> > +
+> > +/**
+> > + * copy_mc_to_kernel - memory copy that that handles source exceptions
 >
-> Thx.
+> One "that" is enough.
 
-Thanks, Boris, will do.
+Yup.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
