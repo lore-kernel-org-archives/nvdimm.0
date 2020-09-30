@@ -2,107 +2,60 @@ Return-Path: <SRS0=8ITv=DH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.5 required=3.0 tests=BAYES_60,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6637BC4727E
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 10:44:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F6D5C4727F
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 14:35:35 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D81632074A
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 10:44:06 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="lmuRNBBJ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D81632074A
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	by mail.kernel.org (Postfix) with ESMTPS id 15AC0206D4
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 14:35:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 15AC0206D4
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=dhl.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4E596154A9ACD;
-	Wed, 30 Sep 2020 03:44:06 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1231::1; helo=merlin.infradead.org; envelope-from=peterz@infradead.org; receiver=<UNKNOWN> 
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 4EE69154A9ACB
-	for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 03:44:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=merlin.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=5qZQjs1EsA6boevvDA9SSd2z5d4qbdVT+hJQw1G/0sA=; b=lmuRNBBJk1jt8rrS9q/PkAhZuG
-	fIzl2JL+dfOhTfqi4qYpOXkOTWYgdR39HrKy+8qBSsHCzFUSr8Hbxvdnkpd6E31zUVmcvLq+NQQKR
-	Km30qLapukE1XiWNMZYMwvSGoygMffiap4x5lbx9lgZq4Hnrxnm6rchZSVISeJ59yIac7RQbn0luB
-	bmOV0s5w4LtQIfeHyEhfyrF1DZLlA2g81NZcHjR4G3OqgBHVZBs3y5vjhZl5424UOd073D6LaCNgz
-	68atLfVY8PEoJv37EsSaHNcu4ERIGnpJARBoGgq9+unozcIKEkW6uHN3Bt1Rs8lI0jogsaCMfl1qu
-	mpna8MXg==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-	by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kNZaJ-0002EU-BE; Wed, 30 Sep 2020 10:43:43 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(Client did not present a certificate)
-	by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id E04C5300446;
-	Wed, 30 Sep 2020 12:43:39 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-	id C7F922022B66B; Wed, 30 Sep 2020 12:43:39 +0200 (CEST)
-Date: Wed, 30 Sep 2020 12:43:39 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Mike Rapoport <rppt@kernel.org>
-Subject: Re: [PATCH v6 5/6] mm: secretmem: use PMD-size pages to amortize
- direct map fragmentation
-Message-ID: <20200930104339.GK2611@hirez.programming.kicks-ass.net>
-References: <20200924132904.1391-1-rppt@kernel.org>
- <20200924132904.1391-6-rppt@kernel.org>
- <20200925074125.GQ2628@hirez.programming.kicks-ass.net>
- <20200929130529.GE2142832@kernel.org>
- <20200929141216.GO2628@hirez.programming.kicks-ass.net>
- <20200930102031.GJ2142832@kernel.org>
+	by ml01.01.org (Postfix) with ESMTP id CFC48154B68B1;
+	Wed, 30 Sep 2020 07:35:34 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=142.11.244.234; helo=dhl.com; envelope-from=customersupport@dhl.com; receiver=<UNKNOWN> 
+Received: from dhl.com (hwsrv-781182.hostwindsdns.com [142.11.244.234])
+	by ml01.01.org (Postfix) with ESMTP id 8BB67154B1EB3
+	for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 07:35:30 -0700 (PDT)
+From: =?UTF-8?B?REhMIEV4cHJlc3MgSU5Dwq4=?= <customersupport@dhl.com>
+To: linux-nvdimm@lists.01.org
+Subject: DHL SHIPMENT : You Have A Package With Us
+Date: 30 Sep 2020 14:35:29 +0000
+Message-ID: <20200930143528.13B7FF9AF5FF0D95@dhl.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20200930102031.GJ2142832@kernel.org>
-Message-ID-Hash: FMS6RIX3UFWXBGOJ6S5FT7YIAZEM7DNO
-X-Message-ID-Hash: FMS6RIX3UFWXBGOJ6S5FT7YIAZEM7DNO
-X-MailFrom: peterz@infradead.org
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_310B08D7.85E11794"
+Message-ID-Hash: X4UGNA6EBGJ6RT5OOKBUFPQQRPDLZB26
+X-Message-ID-Hash: X4UGNA6EBGJ6RT5OOKBUFPQQRPDLZB26
+X-MailFrom: customersupport@dhl.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Shuah Khan <shuah@kernel.org>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linu
- x-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, songliubraving@fb.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FMS6RIX3UFWXBGOJ6S5FT7YIAZEM7DNO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/X4UGNA6EBGJ6RT5OOKBUFPQQRPDLZB26/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_310B08D7.85E11794
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Wed, Sep 30, 2020 at 01:20:31PM +0300, Mike Rapoport wrote:
-
-> I tried to dig the regression report in the mailing list, and the best I
-> could find is
-> 
-> https://lore.kernel.org/lkml/20190823052335.572133-1-songliubraving@fb.com/
-> 
-> which does not mention the actual performance regression but it only
-> complaints about kernel text mapping being split into 4K pages.
-> 
-> Any chance you have the regression report handy? 
-
-I think the saga started here:
-
- 20190820075128.2912224-1-songliubraving@fb.com
- 20190820202314.1083149-1-songliubraving@fb.com
- 20190823052335.572133-1-songliubraving@fb.com
-
-After that Thomas did the patch I referred to earlier and I endeavoured
-to rewrite x86-ftrace.
-
-I added Song to CC, maybe he can remember more.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_310B08D7.85E11794--
