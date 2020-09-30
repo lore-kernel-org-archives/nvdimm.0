@@ -2,69 +2,66 @@ Return-Path: <SRS0=8ITv=DH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2984EC4727C
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 00:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82268C4727F
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 05:05:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 20CDA2074B
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 00:13:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id C49512074A
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 05:05:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="HKVw5IB0"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 20CDA2074B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="bLBgSqlZ"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C49512074A
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=alien8.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 364B715347E58;
-	Tue, 29 Sep 2020 17:13:39 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4BB02154A9B0F;
+	Tue, 29 Sep 2020 22:05:09 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=5.9.137.197; helo=mail.skyhub.de; envelope-from=bp@alien8.de; receiver=<UNKNOWN> 
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7F9A9150C6C09
-	for <linux-nvdimm@lists.01.org>; Tue, 29 Sep 2020 17:13:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-	:Reply-To:Content-ID:Content-Description;
-	bh=TahisG6kUDutXipbSb0V03+wLD+q13trx54ypaJdagw=; b=HKVw5IB0hKYct1Uuw5lklIVCpV
-	xIZbt6VpLzXCuKp7AVdtX3indQiObrAjXZK2OA8P24B1NiVEZW/A/CW8G4xmiCSFCIEycEXrpEouN
-	GS+AB1Cvtoj7VsWfmOjT+KRdFl+s3HxVZIg3Ny93a9/ZezVvUVePIQz6ShtlqxRWhw9HdQHTCxaHC
-	WnUrWMAuzc91jJ+MwsUgE48yut+uFo9chQM+Kt4w8H4qaQaPyWn1RHEoamyd/j3qtSaqgvukDYnr1
-	vZDU2UeFKGWnuXF3hFi3G7/P6Bxhpyj558Ww/GKzSFZ1GQUuoh+irzDyWYnFTf5XArKfOGcgvQ0nF
-	KKG3rqIw==;
-Received: from [2601:1c0:6280:3f0:897c:6038:c71d:ecac]
-	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kNPkS-0000MO-Un; Wed, 30 Sep 2020 00:13:33 +0000
-Subject: Re: [PATCH 17/22] mpool: add mpool lifecycle management ioctls
-To: nmeeramohide@micron.com, linux-kernel@vger.kernel.org,
- linux-block@vger.kernel.org, linux-nvme@lists.infradead.org,
- linux-mm@kvack.org, linux-nvdimm@lists.01.org
-References: <20200928164534.48203-1-nmeeramohide@micron.com>
- <20200928164534.48203-18-nmeeramohide@micron.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <43f24e68-2625-36ce-1727-fcf981955b17@infradead.org>
-Date: Tue, 29 Sep 2020 17:13:28 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
+	by ml01.01.org (Postfix) with ESMTPS id A27E5154A75E5
+	for <linux-nvdimm@lists.01.org>; Tue, 29 Sep 2020 22:05:06 -0700 (PDT)
+Received: from zn.tnic (p200300ec2f092a003ee64aac7a8dc174.dip0.t-ipconnect.de [IPv6:2003:ec:2f09:2a00:3ee6:4aac:7a8d:c174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 36A3D1EC03D5;
+	Wed, 30 Sep 2020 07:05:04 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+	t=1601442304;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+	bh=n2nkxu4xTZZhZzy2McG9Zfzz9yulljqwC+oUwVYbXuw=;
+	b=bLBgSqlZAZjg/6IZuhzkE8BHpsAH5mJ25Fl0wXPymz3R8Iiowss8xSVi+BiZ9ck57j+EGU
+	IFHvRlGQiaArpROj2Q5VR4U27AlusQLRhCDHJLtKYLefaO5/YSzLcB4Y7pJ6X5vUW/QYMl
+	0+0rTy9poUtzo/YQjbVC4Aivf9qvARQ=
+Date: Wed, 30 Sep 2020 07:04:55 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v9 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user,
+ kernel}
+Message-ID: <20200930050455.GA6810@zn.tnic>
+References: <160087928642.3520.17063139768910633998.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CAPcyv4iPuRWSv_do_h8stU0-SiWxtKkQWvzBEU+78fDE6VffmA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20200928164534.48203-18-nmeeramohide@micron.com>
-Content-Language: en-US
-Message-ID-Hash: U4AMWG6JVPXR6BOL6LIV4YVGCFQ3BOLM
-X-Message-ID-Hash: U4AMWG6JVPXR6BOL6LIV4YVGCFQ3BOLM
-X-MailFrom: rdunlap@infradead.org
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iPuRWSv_do_h8stU0-SiWxtKkQWvzBEU+78fDE6VffmA@mail.gmail.com>
+Message-ID-Hash: 2GBVZ26R4DLPXPN26RRNFIGZGBYYJFVH
+X-Message-ID-Hash: 2GBVZ26R4DLPXPN26RRNFIGZGBYYJFVH
+X-MailFrom: bp@alien8.de
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: smoyer@micron.com, gbecker@micron.com, plabat@micron.com, jgroves@micron.com
+CC: Ingo Molnar <mingo@redhat.com>, Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, stable <stable@vger.kernel.org>, X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, 0day robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jan Kara <jack@suse.cz>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/U4AMWG6JVPXR6BOL6LIV4YVGCFQ3BOLM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2GBVZ26R4DLPXPN26RRNFIGZGBYYJFVH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -73,17 +70,26 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 9/28/20 9:45 AM, nmeeramohide@micron.com wrote:
-> +	if (_IOC_TYPE(cmd) != MPIOC_MAGIC)
-Hi,
+On Tue, Sep 29, 2020 at 03:32:07PM -0700, Dan Williams wrote:
+> Given that Linus was the primary source of review feedback on these
+> patches and a version of them have been soaking in -next with only a
+> minor conflict report with vfs.git for the entirety of the v5.9-rc
+> cycle (left there inadvertently while I was on leave), any concerns
+> with me sending this to Linus directly during the merge window?
 
-MPIOC_MAGIC is defined in patch 01/22.
-It should also be added to Documentation/userspace-api/ioctl/ioctl-number.rst.
+What's wrong with them going through tip?
 
+But before that pls have a look at this question I have here:
 
-thanks.
+https://lkml.kernel.org/r/20200929102512.GB21110@zn.tnic
+
+Thx.
+
 -- 
-~Randy
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
