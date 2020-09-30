@@ -2,66 +2,68 @@ Return-Path: <SRS0=8ITv=DH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82268C4727F
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 05:05:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 328D3C47426
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 10:20:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C49512074A
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 05:05:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id A823A20719
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Sep 2020 10:20:51 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=alien8.de header.i=@alien8.de header.b="bLBgSqlZ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C49512074A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=alien8.de
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="jcekzk5d"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A823A20719
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4BB02154A9B0F;
-	Tue, 29 Sep 2020 22:05:09 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=5.9.137.197; helo=mail.skyhub.de; envelope-from=bp@alien8.de; receiver=<UNKNOWN> 
-Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+	by ml01.01.org (Postfix) with ESMTP id 3DAE8153C0011;
+	Wed, 30 Sep 2020 03:20:51 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A27E5154A75E5
-	for <linux-nvdimm@lists.01.org>; Tue, 29 Sep 2020 22:05:06 -0700 (PDT)
-Received: from zn.tnic (p200300ec2f092a003ee64aac7a8dc174.dip0.t-ipconnect.de [IPv6:2003:ec:2f09:2a00:3ee6:4aac:7a8d:c174])
+	by ml01.01.org (Postfix) with ESMTPS id C4A01153C000E
+	for <linux-nvdimm@lists.01.org>; Wed, 30 Sep 2020 03:20:47 -0700 (PDT)
+Received: from kernel.org (unknown [87.71.73.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 36A3D1EC03D5;
-	Wed, 30 Sep 2020 07:05:04 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-	t=1601442304;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-	bh=n2nkxu4xTZZhZzy2McG9Zfzz9yulljqwC+oUwVYbXuw=;
-	b=bLBgSqlZAZjg/6IZuhzkE8BHpsAH5mJ25Fl0wXPymz3R8Iiowss8xSVi+BiZ9ck57j+EGU
-	IFHvRlGQiaArpROj2Q5VR4U27AlusQLRhCDHJLtKYLefaO5/YSzLcB4Y7pJ6X5vUW/QYMl
-	0+0rTy9poUtzo/YQjbVC4Aivf9qvARQ=
-Date: Wed, 30 Sep 2020 07:04:55 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v9 0/2] Renovate memcpy_mcsafe with copy_mc_to_{user,
- kernel}
-Message-ID: <20200930050455.GA6810@zn.tnic>
-References: <160087928642.3520.17063139768910633998.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAPcyv4iPuRWSv_do_h8stU0-SiWxtKkQWvzBEU+78fDE6VffmA@mail.gmail.com>
+	by mail.kernel.org (Postfix) with ESMTPSA id BD4B3205F4;
+	Wed, 30 Sep 2020 10:20:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1601461247;
+	bh=6oXQqyXoqD62Xsdx5psnVPQRRFcKJD7TzaHCNaM+cfo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=jcekzk5dBYwe2jH5pSJRmExmxQTx5Y/sk708kFA+J4dcQopXM92llD+OqjWCXgKuT
+	 dmrRBkYzNmmpQuJcEzNThsHaZcV+G7b6pQg9hev7AIEYe3G8ksdc6iTRWS4tzmiNvV
+	 tQmVGE7L8Bxs8vTgd7E6jHGnxc1rUFFqUOmdsY+s=
+Date: Wed, 30 Sep 2020 13:20:31 +0300
+From: Mike Rapoport <rppt@kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v6 5/6] mm: secretmem: use PMD-size pages to amortize
+ direct map fragmentation
+Message-ID: <20200930102031.GJ2142832@kernel.org>
+References: <20200924132904.1391-1-rppt@kernel.org>
+ <20200924132904.1391-6-rppt@kernel.org>
+ <20200925074125.GQ2628@hirez.programming.kicks-ass.net>
+ <20200929130529.GE2142832@kernel.org>
+ <20200929141216.GO2628@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4iPuRWSv_do_h8stU0-SiWxtKkQWvzBEU+78fDE6VffmA@mail.gmail.com>
-Message-ID-Hash: 2GBVZ26R4DLPXPN26RRNFIGZGBYYJFVH
-X-Message-ID-Hash: 2GBVZ26R4DLPXPN26RRNFIGZGBYYJFVH
-X-MailFrom: bp@alien8.de
+In-Reply-To: <20200929141216.GO2628@hirez.programming.kicks-ass.net>
+Message-ID-Hash: 36KJQEMGGZF6U62LXPIKMC6C7CGMEKL6
+X-Message-ID-Hash: 36KJQEMGGZF6U62LXPIKMC6C7CGMEKL6
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Ingo Molnar <mingo@redhat.com>, Tony Luck <tony.luck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, stable <stable@vger.kernel.org>, X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@kernel.org>, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Erwin Tsaur <erwin.tsaur@intel.com>, Michael Ellerman <mpe@ellerman.id.au>, Mikulas Patocka <mpatocka@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, 0day robot <lkp@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jan Kara <jack@suse.cz>
+CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Shuah Khan <shuah@kernel.org>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linu
+ x-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2GBVZ26R4DLPXPN26RRNFIGZGBYYJFVH/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/36KJQEMGGZF6U62LXPIKMC6C7CGMEKL6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -70,26 +72,110 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Sep 29, 2020 at 03:32:07PM -0700, Dan Williams wrote:
-> Given that Linus was the primary source of review feedback on these
-> patches and a version of them have been soaking in -next with only a
-> minor conflict report with vfs.git for the entirety of the v5.9-rc
-> cycle (left there inadvertently while I was on leave), any concerns
-> with me sending this to Linus directly during the merge window?
+On Tue, Sep 29, 2020 at 04:12:16PM +0200, Peter Zijlstra wrote:
+> On Tue, Sep 29, 2020 at 04:05:29PM +0300, Mike Rapoport wrote:
+> > On Fri, Sep 25, 2020 at 09:41:25AM +0200, Peter Zijlstra wrote:
+> > > On Thu, Sep 24, 2020 at 04:29:03PM +0300, Mike Rapoport wrote:
+> > > > From: Mike Rapoport <rppt@linux.ibm.com>
+> > > > 
+> > > > Removing a PAGE_SIZE page from the direct map every time such page is
+> > > > allocated for a secret memory mapping will cause severe fragmentation of
+> > > > the direct map. This fragmentation can be reduced by using PMD-size pages
+> > > > as a pool for small pages for secret memory mappings.
+> > > > 
+> > > > Add a gen_pool per secretmem inode and lazily populate this pool with
+> > > > PMD-size pages.
+> > > 
+> > > What's the actual efficacy of this? Since the pmd is per inode, all I
+> > > need is a lot of inodes and we're in business to destroy the directmap,
+> > > no?
+> > > 
+> > > Afaict there's no privs needed to use this, all a process needs is to
+> > > stay below the mlock limit, so a 'fork-bomb' that maps a single secret
+> > > page will utterly destroy the direct map.
+> > 
+> > This indeed will cause 1G pages in the direct map to be split into 2M
+> > chunks, but I disagree with 'destroy' term here. Citing the cover letter
+> > of an earlier version of this series:
+> 
+> It will drop them down to 4k pages. Given enough inodes, and allocating
+> only a single sekrit page per pmd, we'll shatter the directmap into 4k.
+> 
+> >   I've tried to find some numbers that show the benefit of using larger
+> >   pages in the direct map, but I couldn't find anything so I've run a
+> >   couple of benchmarks from phoronix-test-suite on my laptop (i7-8650U
+> >   with 32G RAM).
+> 
+> Existing benchmarks suck at this, but FB had a load that had a
 
-What's wrong with them going through tip?
+I tried to dig the regression report in the mailing list, and the best I
+could find is
 
-But before that pls have a look at this question I have here:
+https://lore.kernel.org/lkml/20190823052335.572133-1-songliubraving@fb.com/
 
-https://lkml.kernel.org/r/20200929102512.GB21110@zn.tnic
+which does not mention the actual performance regression but it only
+complaints about kernel text mapping being split into 4K pages.
 
-Thx.
+Any chance you have the regression report handy? 
+
+> deterministic enough performance regression to bisect to a directmap
+> issue, fixed by:
+> 
+>   7af0145067bc ("x86/mm/cpa: Prevent large page split when ftrace flips RW on kernel text")
+
+This commit talks about large page split for the text and mentions iTLB
+performance.
+Could it be that for data the behavoiur is different?
+
+> >   I've tested three variants: the default with 28G of the physical
+> >   memory covered with 1G pages, then I disabled 1G pages using
+> >   "nogbpages" in the kernel command line and at last I've forced the
+> >   entire direct map to use 4K pages using a simple patch to
+> >   arch/x86/mm/init.c.  I've made runs of the benchmarks with SSD and
+> >   tmpfs.
+> >   
+> >   Surprisingly, the results does not show huge advantage for large
+> >   pages. For instance, here the results for kernel build with
+> >   'make -j8', in seconds:
+> 
+> Your benchmark should stress the TLB of your uarch, such that additional
+> pressure added by the shattered directmap shows up.
+
+I understand that the benchmark should stress the TLB, but it's not that
+we can add something like random access to a large working set as a
+kernel module and insmod it. The userspace should do something that will
+cause the stress to the TLB so that entries corresponding to the direct
+map will be evicted frequently. And, frankly, 
+
+> And no, I don't have one either.
+> 
+> >                         |  1G    |  2M    |  4K
+> >   ----------------------+--------+--------+---------
+> >   ssd, mitigations=on	| 308.75 | 317.37 | 314.9
+> >   ssd, mitigations=off	| 305.25 | 295.32 | 304.92
+> >   ram, mitigations=on	| 301.58 | 322.49 | 306.54
+> >   ram, mitigations=off	| 299.32 | 288.44 | 310.65
+> 
+> These results lack error data, but assuming the reults are significant,
+> then this very much makes a case for 1G mappings. 5s on a kernel builds
+> is pretty good.
+
+The standard error for those are between 2.5 and 4.5 out of 3 runs for
+each variant. 
+
+For kernel build 1G mappings perform better, but here 5s is only 1.6% of
+300s and the direct map fragmentation was taken to the extreme here.
+I'm not saying that the direct map fragmentation comes with no cost, but
+the cost is not so big to dismiss features that cause the fragmentation
+out of hand.
+
+There were also benchmarks that actually performed better with 2M pages
+in the direct map, so I'm still not convinced that 1G pages in the
+direct map are the clear cut winner.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-https://people.kernel.org/tglx/notes-about-netiquette
+Sincerely yours,
+Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
