@@ -1,44 +1,54 @@
 Return-Path: <SRS0=DN+1=DI=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.3 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_ABUSE_SURBL,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B0C0C4727C
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Oct 2020 11:44:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7C8C4727C
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Oct 2020 15:08:09 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DD37A20B1F
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Oct 2020 11:44:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD37A20B1F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id 7C2D7207F7
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Oct 2020 15:08:09 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7C2D7207F7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=notification.intuit.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 84A6C15017127;
-	Thu,  1 Oct 2020 04:44:22 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=104.148.61.164; helo=gmail.com; envelope-from=watkinsmelanie58@gmail.com; receiver=<UNKNOWN> 
-Received: from gmail.com (unknown [104.148.61.164])
-	by ml01.01.org (Postfix) with SMTP id 0718F15017125
-	for <linux-nvdimm@lists.01.org>; Thu,  1 Oct 2020 04:44:19 -0700 (PDT)
-Message-ID: <05569771.2205CDCB@gmail.com>
-Date: Thu, 01 Oct 2020 09:24:45 -0200
-From: "Theron Schebler" <watkinsmelanie58@gmail.com>
+	by ml01.01.org (Postfix) with ESMTP id 7C2FE1545590D;
+	Thu,  1 Oct 2020 08:08:08 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=217.58.17.173; helo=host-217-58-17-173.business.telecomitalia.it; envelope-from=pinkies@o1.e.notification.intuit.com; receiver=<UNKNOWN> 
+Received: from host-217-58-17-173.business.telecomitalia.it (host-217-58-17-173.business.telecomitalia.it [217.58.17.173])
+	by ml01.01.org (Postfix) with ESMTP id 1123A1545590A
+	for <linux-nvdimm@lists.01.org>; Thu,  1 Oct 2020 08:08:04 -0700 (PDT)
+Received: from [97.43.93.64] (helo=VAGEDOS.SOTEQEG.tdg)
+	by host-217-58-17-173.business.telecomitalia.it with esmtpa (Exim 4.86)
+	(envelope-from manteswi4@o1.e.notification.intuit.com)
+	id uyAV6-0bWkcV-zb
+	for linux-nvdimm@lists.01.org; Thu, 1 Oct 2020 16:08:05 +0100
+Received: from [182.2.46.77] (helo=KOTESAKA.o1.e.notification.intuit.com)
+	by host-217-58-17-173.business.telecomitalia.it with ESMTPA
+	id FE208FD030
+	for linux-nvdimm@lists.01.org; Thu, 1 Oct 2020 16:08:05 +0100
+Date: Thu, 1 Oct 2020 16:08:05 +0100
+From: "Intuit Inc." <quickbooks@notification.intuit.com>
+To: linux-nvdimm@lists.01.org
+Subject: Invoice  468938
 MIME-Version: 1.0
-To: <linux-nvdimm@lists.01.org>
-Subject: re: boost ranks with organic traffic
-Message-ID-Hash: NCVDXIS7OGD4YDJLMDARMVSM56ZK75RL
-X-Message-ID-Hash: NCVDXIS7OGD4YDJLMDARMVSM56ZK75RL
-X-MailFrom: watkinsmelanie58@gmail.com
+Message-ID: <c8844f7d.88dcd49e.9d3d2f.b6d92869@vgtltizmiy.khseujbclsqgjm.com>
+Content-Language: us
+Message-ID-Hash: IQJVNHDUT4EJ3MT6XWQKTWAVW6E6JVS7
+X-Message-ID-Hash: IQJVNHDUT4EJ3MT6XWQKTWAVW6E6JVS7
+X-MailFrom: pinkies@o1.e.notification.intuit.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NCVDXIS7OGD4YDJLMDARMVSM56ZK75RL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IQJVNHDUT4EJ3MT6XWQKTWAVW6E6JVS7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -47,28 +57,21 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-Increase sales and ranks with our targeted traffic
-http://www.basedbusinesstraffic.co/
+Here's a copy your invoice! We appreciate your prompt payment.
 
 
-
-Regards
-Theron Schebler
+Thanks for your business
 
 
 
+------------------------   Invoice Summary  --------------------------
 
 
+Invoice Date: 01/10/2020
+Amount Due: $1,730.00
 
 
-
-
-
-
-
-Unsubscribe option is available on the footer of our website
-
+---------------------------------------------------------------------
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
