@@ -1,107 +1,88 @@
-Return-Path: <SRS0=yWnM=DK=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=7pHz=DL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+X-Spam-Level: **
+X-Spam-Status: No, score=2.8 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CEA5C41604
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  3 Oct 2020 09:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA024C4363C
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  4 Oct 2020 23:35:02 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C5897206CD
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  3 Oct 2020 09:32:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="i1gww9oL"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C5897206CD
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id 22DC2206B6
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  4 Oct 2020 23:35:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 22DC2206B6
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=rakuten.co.jp
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5DFBB15728195;
-	Sat,  3 Oct 2020 02:32:52 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::444; helo=mail-wr1-x444.google.com; envelope-from=colomar.6.4.3@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-wr1-x444.google.com (mail-wr1-x444.google.com [IPv6:2a00:1450:4864:20::444])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E39B515728192
-	for <linux-nvdimm@lists.01.org>; Sat,  3 Oct 2020 02:32:49 -0700 (PDT)
-Received: by mail-wr1-x444.google.com with SMTP id w5so4338422wrp.8
-        for <linux-nvdimm@lists.01.org>; Sat, 03 Oct 2020 02:32:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:from:to:cc:references:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=wmkJ9FxHCpTr+iWv6GHurEZpNNofEO+mT2y21utzFUs=;
-        b=i1gww9oLCuAl7ps5bghVOHqyGmypLPIhDKuBqotkCvdnqEFRaD36CeVYStIMsJFTUN
-         D6OtC9a5Pd3uni6o0V4KWqVjMy4G9aoHk65TQ0a3vqdwc8JJkyW9d2HuLnCONT5/aDfg
-         6/s3VQo5bRbDCwgHl10h4opIShPXPwp0jNEqEv/LXoy0m9KLmBLPzE2Ma/7RxYryfpvx
-         KDR4E1aW4hiJeLllUYcX3LaBX6pETHnRvDUFo4bDzUh+KpIuRoixv+Md31XOw1sV9Y0U
-         jfsAyXPOLfP0gNHv1chHDLJodyRwn8IOgMLUW4LseTUQ8ulmWGY0taiIppcuxmyOrSSX
-         QMJw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:from:to:cc:references:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=wmkJ9FxHCpTr+iWv6GHurEZpNNofEO+mT2y21utzFUs=;
-        b=jOsfjv4dmZzYvF8MqODW7ftboXh0jlKNXiLMS6Oe+Y0gU97rSctSQ+cMhhmQxMF3HZ
-         6tAesuCocDSyX7W7LTHxpaz/G1CEeDeZODozcwaapLZzvAyXS4J9opJtlJ7uHPYKUMCz
-         a9RMsCzNgV4DXEUzydk8mYUcX3oQFw3NxuB3sqeouw+zgCz+fq+H15C55NtUVp7XKfDl
-         cthCoQAsFJBDPXVsqYkY5XITOlclgEy5KFLMLC2RRNnXpyHDj93pyddFUptjmhXkhZe6
-         270VXt6j54C2sbvjGQ3jMfkJcaNX/6BYsUMPKVhvPq4lqF9wNFGpGdFSVGERXVZn8OMg
-         Tz7g==
-X-Gm-Message-State: AOAM532pWaPg7sCNFzFBQoaaqOYV9xx7vpxdp/2BjjPo2Pf/GYC1Myd/
-	ZgrsZiKF0Tm4u0TwkUJoxaw=
-X-Google-Smtp-Source: ABdhPJxF6OsanYU7MGuhJyTy3ufPHyRz/VHEz71PltEzIDMI5xb5/GcsYkMEQc6B2ut+ufvoU3MTDA==
-X-Received: by 2002:adf:e391:: with SMTP id e17mr7048859wrm.289.1601717566307;
-        Sat, 03 Oct 2020 02:32:46 -0700 (PDT)
-Received: from [192.168.1.143] ([170.253.60.68])
-        by smtp.gmail.com with ESMTPSA id i14sm4778140wml.24.2020.10.03.02.32.43
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 03 Oct 2020 02:32:45 -0700 (PDT)
-Subject: Re: [PATCH] man2: new page describing memfd_secret() system call
-From: Alejandro Colomar <colomar.6.4.3@gmail.com>
-To: rppt@kernel.org, mtk.manpages@gmail.com
-References: <20200924133513.1589-1-rppt@kernel.org>
- <efb6d051-2104-af26-bfb0-995f4716feb2@gmail.com>
-Message-ID: <94cf1b3a-e191-a896-a27d-cd7649cb2c59@gmail.com>
-Date: Sat, 3 Oct 2020 11:32:43 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.0
-MIME-Version: 1.0
-In-Reply-To: <efb6d051-2104-af26-bfb0-995f4716feb2@gmail.com>
-Content-Language: en-US
-Message-ID-Hash: PUD5577EONTPGZKFVRVIEVYB75RBXQUD
-X-Message-ID-Hash: PUD5577EONTPGZKFVRVIEVYB75RBXQUD
-X-MailFrom: colomar.6.4.3@gmail.com
+	by ml01.01.org (Postfix) with ESMTP id 841961545594C;
+	Sun,  4 Oct 2020 16:35:01 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=150.95.220.105; helo=rakuten.co.jp; envelope-from=cxbgqlf@rakuten.co.jp; receiver=<UNKNOWN> 
+Received: from rakuten.co.jp (v150-95-220-105.0tbu.static.cnode.io [150.95.220.105])
+	by ml01.01.org (Postfix) with ESMTP id 0D7E31545594A
+	for <linux-nvdimm@lists.01.org>; Sun,  4 Oct 2020 16:34:58 -0700 (PDT)
+Message-ID: <4FD32D3C62E5060C611A42373F853016@rakuten.co.jp>
+From: =?utf-8?B?5qW95aSp5biC5aC0?= <info@rakuten.co.jp>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?44CQ5qW95aSp5biC5aC044CR44GU5rOo5paH44GM44Kt44Oj44Oz44K744Or44Gr44Gq44KK44G+44GX?=
+	=?utf-8?B?44GfICAyMDIwLzEwLzA1IDg6MzQ6NQ==?=
+	=?utf-8?B?OA==?=
+Date: Mon, 5 Oct 2020 08:34:49 +0900
+Mime-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V10.0.14393.2007
+Message-ID-Hash: M5HF72IFMB5Y2U552YKIAELDYPYCRUEV
+X-Message-ID-Hash: M5HF72IFMB5Y2U552YKIAELDYPYCRUEV
+X-MailFrom: cxbgqlf@rakuten.co.jp
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com, dave.hansen@linux.intel.com, david@redhat.com, elena.reshetova@intel.com, hpa@zytor.com, idan.yaniv@ibm.com, jejb@linux.ibm.com, kirill@shutemov.name, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-man@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, luto@kernel.org, mark.rutland@arm.com, mingo@redhat.com, palmer@dabbelt.com, paul.walmsley@sifive.com, peterz@infradead.org, rppt@linux.ibm.com, shuah@kernel.org, tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk, will@kernel.org, willy@infradead.org, x86@kernel.org
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PUD5577EONTPGZKFVRVIEVYB75RBXQUD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/M5HF72IFMB5Y2U552YKIAELDYPYCRUEV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 
-SGkgTWlrZSBhbmQgTWljaGFlbCwNCg0KUGluZy4gOikNCg0KVGhhbmtzLA0KDQpBbGV4DQoNCk9u
-IDIwMjAtMDktMjQgMTY6NTUsIEFsZWphbmRybyBDb2xvbWFyIHdyb3RlOg0KPiAqIE1pa2UgUmFw
-b3BvcnQ6DQo+ICA+ICsuUFANCj4gID4gKy5JUiBOb3RlIDoNCj4gID4gK1RoZXJlIGlzIG5vIGds
-aWJjIHdyYXBwZXIgZm9yIHRoaXMgc3lzdGVtIGNhbGw7IHNlZSBOT1RFUy4NCj4gDQo+IFlvdSBh
-ZGRlZCBhIHJlZmVyZW5jZSB0byBOT1RFUywgYnV0IHRoZW4gaW4gbm90ZXMgdGhlcmUgaXMgbm90
-aGluZyBhYm91dCANCj4gaXQuwqAgSSBndWVzcyB5b3Ugd2FudGVkIHRvIGFkZCB0aGUgZm9sbG93
-aW5nIHRvIE5PVEVTICh0YWtlbiBmcm9tIA0KPiBtZW1iYXJyaWVyLjIpOg0KPiANCj4gLlBQDQo+
-IEdsaWJjIGRvZXMgbm90IHByb3ZpZGUgYSB3cmFwcGVyIGZvciB0aGlzIHN5c3RlbSBjYWxsOyBj
-YWxsIGl0IHVzaW5nDQo+IC5CUiBzeXNjYWxsICgyKS4NCj4gDQo+IENoZWVycywNCj4gDQo+IEFs
-ZXgKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgt
-bnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vi
-c2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+IA0KDQoNCg0K5pys44Oh44O844Or44Gv44GK5a6i5qeY44GU5rOo5paH44GM44Kt44Oj44Oz44K7
+44Or44Gr44Gq44KK44G+44GX44Gf44Gq5aC05ZCI44Gr44GK55+l44KJ44Gb44GZ44KLDQpsaW51
+eC1udmRpbW3mp5gNCiAg44GT44Gu5bqm44CBIEJUT+ODkeOCveOCs+ODs+WwgumWgOW6l+OBrlBD
+LU1BWCDjgafjga7jgZTms6jmlofjgYzjgq3jg6Pjg7Pjgrvjg6vjgajjgarjgorjgb7jgZfjgZ/j
+gIINCiAg44Kt44Oj44Oz44K744Or44Gu55CG55Sx44Gq44Gp44Gr6Zai44GZ44KL44GK5ZWP44GE
+5ZCI44Gb44Gv44CB5LiL6KiY44GuVVJM44KS44Kv44Oq44OD44Kv44GX44Gm44GP44Gg44GV44GE
+44CCDQrmpb3lpKnjg63jgrDjgqTjg7MgDQoNCg0KDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+DQpb5rOo5paHSURdIDQ1OTk2My0yMDIwMTAwNS0wNTkNClvos7zlhaXml6XmmYJdIDIwMjAvMTAv
+MDUgODozNDo1OA0KW+izvOWFpeWVhuWTgV0gU09OWSDjg4fjgrjjgr/jg6vjgqvjg6Hjg6kgRFND
+LVJYMTBNMyBGMi40LTQuMCAyNC02MDBtbSAyMDEw5LiH55S757SgIOODluODqeODg+OCryBDeWJl
+ci1zaG90IERTQy1SWDEwTTMNClvjgYrmlK/miZXjgYTmlrnms5VdIOOCr+ODrOOCuOODg+ODiOOC
+q+ODvOODieaxuua4iA0KW+WQiOioiOmHkemhjV05NSw4MDDlhoYNCi0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0NCuOBk+OBruODoeODvOODq+OBq+W/g+W9k+OBn+OCiuOBjOOBquOBhOWgtOWQiOOC
+hOS4jemDveWQiOetieeZuueUn+OBl+OBn+WgtOWQiOOBr+S7peS4i+OBruODoeODvOODq+OCouOD
+ieODrOOCueWum+OBq+OBlOaEj+imi+OBiuWvhOOBm+OBj+OBoOOBleOBhOOAgg0Kc3VwcG9ydEBy
+YWt1dGVuLmNvLmpwDQrkuIvoqJjpgKPntaHlhYjjgb7jgafjgYrpm7voqbHjgafjgZTpgKPntaHj
+gpLjgYTjgZ/jgaDjgY3jgb7jgZnjgojjgYbjgYrpoZjjgYTjgYTjgZ/jgZfjgb7jgZnjgIIgDQrv
+vJzjgZTpgKPntaHlhYjvvJ4NCualveWkqeOCq+ODvOODieagquW8j+S8muekvg0K5L+h55So566h
+55CG44Kw44Or44O844OX44CA44Oi44OL44K/44Oq44Oz44Kw44OB44O844OgIA0K6Zu76Kmx55Wq
+5Y+3IO+8miAwOTAtMzAzNC0xMDAwIO+8iOWPl+S7mOaZgumWk++8muaXpeacrOaZgumWkzk6MDAg
+LSAyMTowMO+8iQ0K4oC75rW35aSW44GL44KJ44Gu6YCj57Wh44Gu5aC05ZCIIO+8miANCjgx77yI
+5Zu944Kz44O844OJ77yJLTA5MC0zMDM0LTExMDANCuKAu+a1t+WkluOBi+OCieOCs+ODrOOCr+OD
+iOOCs+ODvOODq+OBp+OBrumAo+e1oeOBruWgtOWQiOOAgQ0K5rih6Iiq5YWI44Gn44Gu44Kz44Os
+44Kv44OI44Kz44O844Or5Y+X5LuY6Zu76Kmx55Wq5Y+344Gr44GU6YCj57Wh44GE44Gf44Gg44GE
+44Gf5b6MIO+8miANCjgx77yI5Zu944Kz44O844OJ77yJLTA5MC00NzQwLTMyNDANCualveWkqeag
+quW8j+S8muekvuOAgOOAgA0KaHR0cHM6Ly93d3cucmFrdXRlbi5jby5qcC8NCg0KDQoNCueZuuih
+jOWFg++8mualveWkqeOCq+ODvOODieagquW8j+S8muekvg0K44GT44GuReODoeODvOODq+OBr+as
+oeOBruOCouODieODrOOCueWum+OBq+mAgeS/oeOBleOCjOOBvuOBl+OBnzpsaW51eC1udmRpbW1A
+bGlzdHMuMDEub3JnCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
+ZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0
+cy4wMS5vcmcK
