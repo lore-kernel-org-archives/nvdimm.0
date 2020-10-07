@@ -2,89 +2,56 @@ Return-Path: <SRS0=DizB=DO=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E96F7C47095
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  7 Oct 2020 04:23:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AAE67C4727F
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  7 Oct 2020 08:25:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9DFD9208C7
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  7 Oct 2020 04:23:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=fossix-org.20150623.gappssmtp.com header.i=@fossix-org.20150623.gappssmtp.com header.b="sFQCMzl0"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9DFD9208C7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
+	by mail.kernel.org (Postfix) with ESMTPS id 3F04C214DB
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  7 Oct 2020 08:25:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3F04C214DB
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 585B5158BF822;
-	Tue,  6 Oct 2020 21:23:57 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::542; helo=mail-pg1-x542.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
-Received: from mail-pg1-x542.google.com (mail-pg1-x542.google.com [IPv6:2607:f8b0:4864:20::542])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id DB8CF158E44C2;
+	Wed,  7 Oct 2020 01:25:25 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 79D6D158AFE9B
-	for <linux-nvdimm@lists.01.org>; Tue,  6 Oct 2020 21:23:55 -0700 (PDT)
-Received: by mail-pg1-x542.google.com with SMTP id g29so592888pgl.2
-        for <linux-nvdimm@lists.01.org>; Tue, 06 Oct 2020 21:23:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fossix-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=3bBjJG1Za4q4rpNgdA+PRdQB5miMcFa2y8KC9DZk0Bo=;
-        b=sFQCMzl0Y58Dqw/ce4NmdAPGKS3pRHkuE+E/hzfO1+5yJ/prBCHHNSm6XyARgXQPWv
-         ZkK/Vc/wWmMY08MOWpHsq5pxQ4AfDp7D8v3oatip3Jpl6vfxUZ7DH5pb9j1YsLXEstV9
-         Q9HJuskqnH7YrWEO2kLhWWlgmXRIU6t4GnLoWVSppZtCbnkyaXNcX0/rC457aEaK2rDK
-         BOUkb+9edbCBEX5fB/gkndeA35wA+OWrjAC4U7C8oKuodHOCqd2FD736f6nfU4wBbEMQ
-         PHkCtPtqICS/PK7UJDWxuLAVkxqUE+5LAkk+42TtD1rbZomXrsFmmlHlz9W0p4eWArgy
-         Hipg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=3bBjJG1Za4q4rpNgdA+PRdQB5miMcFa2y8KC9DZk0Bo=;
-        b=b7JqD6rnah/xP/ZUW/fRPJjMD4EprBIZaxVnGv8XbhrNDu+Qi8Ss0c1pKS+DiOnqTA
-         c50cBtV3kVD4dpW7OKupUyHH3YE6TefBYDrAlBDcpjGYQ/oXRcaOytEbg7Q4q1b399II
-         wg3Jj/IgPSLq9ok8QcdtQ6VFoaZU8pLcT83SkhR+YvpuO7xuansfHsrZR0f9DJ0Z8FsZ
-         MBy8IkpLhK4/AO+Lbf7yUyJeVuZUqIy6Cc7WMK8M46vqEAC6MxVVVpUOMpfqLEsyN+DS
-         9V9XxQ0d3NP/cYLaRxvLiKoawZf+jJJ30LIw9qHcADMijNS/75NhXkBuyyBto1Xa9nYC
-         cmIg==
-X-Gm-Message-State: AOAM531cWl07v5fCIbTpOuWbo+W2GFAenw6drAk893WDH0xKsxYWDutP
-	FIIJxDaOWDY+x3sU3OtFkV2IKjFLLR/EHQ==
-X-Google-Smtp-Source: ABdhPJxLs7LVjUBAMCAxHtFs8obRDBdfJxEV6mcD3qqD3dopAi6LkO19lU3QBaIoFjnTDpSwwVuudg==
-X-Received: by 2002:aa7:9555:0:b029:152:4b0b:cca with SMTP id w21-20020aa795550000b02901524b0b0ccamr1230489pfq.16.1602044634862;
-        Tue, 06 Oct 2020 21:23:54 -0700 (PDT)
-Received: from santosiv.in.ibm.com.com ([103.21.79.4])
-        by smtp.gmail.com with ESMTPSA id t186sm844499pgc.49.2020.10.06.21.23.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 06 Oct 2020 21:23:54 -0700 (PDT)
-From: Santosh Sivaraj <santosh@fossix.org>
-To: Linux NVDIMM <linux-nvdimm@lists.01.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Vaibhav Jain <vaibhav@linux.ibm.com>,
-	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-	Harish Sriram <harish@linux.ibm.com>,
-	Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Cc: Santosh Sivaraj <santosh@fossix.org>
-Subject: [PATCH RFC ndctl 9/9] test: Disable paths which are possibly wrong
-Date: Wed,  7 Oct 2020 09:52:56 +0530
-Message-Id: <20201007042256.1110626-9-santosh@fossix.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201007042256.1110626-1-santosh@fossix.org>
-References: <20201006010013.848302-1-santosh@fossix.org>
- <20201007042256.1110626-1-santosh@fossix.org>
+	by ml01.01.org (Postfix) with ESMTPS id C3E91158D895F
+	for <linux-nvdimm@lists.01.org>; Wed,  7 Oct 2020 01:25:23 -0700 (PDT)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id 96FFBABD1;
+	Wed,  7 Oct 2020 08:25:21 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+	id E96721E1305; Wed,  7 Oct 2020 10:25:17 +0200 (CEST)
+Date: Wed, 7 Oct 2020 10:25:17 +0200
+From: Jan Kara <jack@suse.cz>
+To: Ralph Campbell <rcampbell@nvidia.com>
+Subject: Re: [PATCH] ext4/xfs: add page refcount helper
+Message-ID: <20201007082517.GC6984@quack2.suse.cz>
+References: <20201006230930.3908-1-rcampbell@nvidia.com>
 MIME-Version: 1.0
-Message-ID-Hash: QFLGUFFTAENLSFLR7LI5MFKURY2FOXOY
-X-Message-ID-Hash: QFLGUFFTAENLSFLR7LI5MFKURY2FOXOY
-X-MailFrom: santosh@fossix.org
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Content-Disposition: inline
+In-Reply-To: <20201006230930.3908-1-rcampbell@nvidia.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Message-ID-Hash: E2CVCP4Z45MH6DQXTPVO52HBKWDFKUQ6
+X-Message-ID-Hash: E2CVCP4Z45MH6DQXTPVO52HBKWDFKUQ6
+X-MailFrom: jack@suse.cz
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-mm@kvack.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-ext4@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Christoph Hellwig <hch@lst.de>, Andreas Dilger <adilger.kernel@dilger.ca>, "Darrick J. Wong" <darrick.wong@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QFLGUFFTAENLSFLR7LI5MFKURY2FOXOY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/E2CVCP4Z45MH6DQXTPVO52HBKWDFKUQ6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -93,64 +60,103 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
----
- test/dpa-alloc.c | 9 ++++++++-
- test/dsm-fail.c  | 8 +++++++-
- 2 files changed, 15 insertions(+), 2 deletions(-)
+On Tue 06-10-20 16:09:30, Ralph Campbell wrote:
+> There are several places where ZONE_DEVICE struct pages assume a reference
+> count == 1 means the page is idle and free. Instead of open coding this,
+> add a helper function to hide this detail.
+> 
+> Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
 
-diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
-index b757b9a..a933b54 100644
---- a/test/dpa-alloc.c
-+++ b/test/dpa-alloc.c
-@@ -277,11 +277,18 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 		return -ENXIO;
- 	}
- 
-+	/* FIXME: there should be a delete here, to remove the last namespace,
-+	 * otherwise the comparison should fail below (available vs
-+	 * default). But not sure why it isn't failing with the nfit code. What
-+	 * am I missing? */
-+#if 0
- 	available_slots = ndctl_dimm_get_available_labels(dimm);
- 	if (available_slots != default_available_slots - 1) {
--		fprintf(stderr, "mishandled slot count\n");
-+		fprintf(stderr, "mishandled slot count (available: %u, default: %u)\n",
-+			available_slots, default_available_slots - 1);
- 		return -ENXIO;
- 	}
-+#endif
- 
- 	ndctl_region_foreach(bus, region)
- 		ndctl_region_disable_invalidate(region);
-diff --git a/test/dsm-fail.c b/test/dsm-fail.c
-index b2c51db..f303f09 100644
---- a/test/dsm-fail.c
-+++ b/test/dsm-fail.c
-@@ -290,6 +290,12 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 		goto out;
- 
- 
-+	/* The below test will fail, when -EACCES is set for getting config
-+	 * size, how will the dimm be enabled? With the nfit driver, the dimm
-+	 * is enabled and then failed only with the return code, is that the
-+	 * right way?
-+	 */
-+#if 0
- 	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_SIZE, -EACCES,
- 			&log_ctx);
- 	if (rc)
-@@ -309,7 +315,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 	rc = dimms_disable(bus);
- 	if (rc)
- 		goto out;
--
-+#endif
- 	rc = set_dimm_response(DIMM_PATH, ND_CMD_GET_CONFIG_DATA, -EACCES,
- 			&log_ctx);
- 	if (rc)
+Looks as sane direction but if we are going to abstract checks when
+ZONE_DEVICE page is idle, we should also update e.g.
+mm/swap.c:put_devmap_managed_page() or
+mm/gup.c:__unpin_devmap_managed_user_page() (there may be more places like
+this but I found at least these two...). Maybe Dan has more thoughts about
+this.
+
+								Honza
+
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 5b47834f2e1b..85c63f735909 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -358,7 +358,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+>  	for_each_mapped_pfn(entry, pfn) {
+>  		struct page *page = pfn_to_page(pfn);
+>  
+> -		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+> +		WARN_ON_ONCE(trunc && !dax_layout_is_idle_page(page));
+>  		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+>  		page->mapping = NULL;
+>  		page->index = 0;
+> @@ -372,7 +372,7 @@ static struct page *dax_busy_page(void *entry)
+>  	for_each_mapped_pfn(entry, pfn) {
+>  		struct page *page = pfn_to_page(pfn);
+>  
+> -		if (page_ref_count(page) > 1)
+> +		if (!dax_layout_is_idle_page(page))
+>  			return page;
+>  	}
+>  	return NULL;
+> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+> index 771ed8b1fadb..132620cbfa13 100644
+> --- a/fs/ext4/inode.c
+> +++ b/fs/ext4/inode.c
+> @@ -3937,10 +3937,7 @@ int ext4_break_layouts(struct inode *inode)
+>  		if (!page)
+>  			return 0;
+>  
+> -		error = ___wait_var_event(&page->_refcount,
+> -				atomic_read(&page->_refcount) == 1,
+> -				TASK_INTERRUPTIBLE, 0, 0,
+> -				ext4_wait_dax_page(ei));
+> +		error = dax_wait_page(ei, page, ext4_wait_dax_page);
+>  	} while (error == 0);
+>  
+>  	return error;
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index 3d1b95124744..a5304aaeaa3a 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -749,9 +749,7 @@ xfs_break_dax_layouts(
+>  		return 0;
+>  
+>  	*retry = true;
+> -	return ___wait_var_event(&page->_refcount,
+> -			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
+> -			0, 0, xfs_wait_dax_page(inode));
+> +	return dax_wait_page(inode, page, xfs_wait_dax_page);
+>  }
+>  
+>  int
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index b52f084aa643..8909a91cd381 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -243,6 +243,16 @@ static inline bool dax_mapping(struct address_space *mapping)
+>  	return mapping->host && IS_DAX(mapping->host);
+>  }
+>  
+> +static inline bool dax_layout_is_idle_page(struct page *page)
+> +{
+> +	return page_ref_count(page) == 1;
+> +}
+> +
+> +#define dax_wait_page(_inode, _page, _wait_cb)				\
+> +	___wait_var_event(&(_page)->_refcount,				\
+> +		dax_layout_is_idle_page(_page),				\
+> +		TASK_INTERRUPTIBLE, 0, 0, _wait_cb(_inode))
+> +
+>  #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
+>  void hmem_register_device(int target_nid, struct resource *r);
+>  #else
+> -- 
+> 2.20.1
+> 
 -- 
-2.26.2
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
