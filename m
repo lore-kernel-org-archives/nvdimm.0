@@ -2,56 +2,65 @@ Return-Path: <SRS0=isdP=DP=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91BEDC43467
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  8 Oct 2020 09:01:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D53FC43457
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  8 Oct 2020 19:33:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E61972168B
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  8 Oct 2020 09:01:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E61972168B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+	by mail.kernel.org (Postfix) with ESMTPS id A7E00221FE
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  8 Oct 2020 19:33:14 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="WtKqtTYF"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A7E00221FE
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 35EAB15718FA2;
-	Thu,  8 Oct 2020 02:01:40 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=jack@suse.cz; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 19EB2153BFF7B;
+	Thu,  8 Oct 2020 12:33:14 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2E7DC15715D0E
-	for <linux-nvdimm@lists.01.org>; Thu,  8 Oct 2020 02:01:37 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 3232EAC3C;
-	Thu,  8 Oct 2020 09:01:36 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-	id BD5DA1E1305; Thu,  8 Oct 2020 11:01:35 +0200 (CEST)
-Date: Thu, 8 Oct 2020 11:01:35 +0200
-From: Jan Kara <jack@suse.cz>
-To: Ralph Campbell <rcampbell@nvidia.com>
-Subject: Re: [PATCH v2] ext4/xfs: add page refcount helper
-Message-ID: <20201008090135.GA3486@quack2.suse.cz>
-References: <20201007214925.11181-1-rcampbell@nvidia.com>
+	by ml01.01.org (Postfix) with ESMTPS id 390D0153BFF79
+	for <linux-nvdimm@lists.01.org>; Thu,  8 Oct 2020 12:33:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=BHYNWcWHIFZvVZFOrN5msKH7zebNjbiD4DhvwYAYv8g=; b=WtKqtTYFnWStgYMZ2Ii4ZkWL/J
+	5VcSFFsPi/0uUCZ3Bgy/wKp/PsALEneWOFem2MTRPmtdVymmgotP68cHfrWos4OuKduHZzIl2zIJQ
+	BOBnSQ4xy9IoePSftqZq5TxYBwXQMESJQV2wHwivsBCp2EbN9chVJcBPnDXfGN5RM6WDESexMEZxb
+	TXsk60h68uXyRkqnspvPQW+qo7o1BntcHL6TQunHEk3ssVMKe8dNpqK/lrfAp+s88E4IvchIrBr9H
+	YiMRHY+ZMGDBLQSMtL41gw2gCHd2dq1pk93L5VH8nbEUUgkGbIv9QpJSLfgsmkK8HPkgcMOyHVNw0
+	ovZZsPHw==;
+Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kQbev-0007bI-Rb; Thu, 08 Oct 2020 19:33:01 +0000
+Date: Thu, 8 Oct 2020 20:33:01 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH 0/4] Remove nrexceptional tracking
+Message-ID: <20201008193301.GN20115@casper.infradead.org>
+References: <20200804161755.10100-1-willy@infradead.org>
+ <898e058f12c7340703804ed9d05df5ead9ecb50d.camel@intel.com>
+ <ee26fdf05127b7aea69db9d025d6ba5e677479bb.camel@intel.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20201007214925.11181-1-rcampbell@nvidia.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-Message-ID-Hash: MNNZXUBNDARHMGDXZ3MPAF5HZDEXUZXM
-X-Message-ID-Hash: MNNZXUBNDARHMGDXZ3MPAF5HZDEXUZXM
-X-MailFrom: jack@suse.cz
+In-Reply-To: <ee26fdf05127b7aea69db9d025d6ba5e677479bb.camel@intel.com>
+Message-ID-Hash: 7VITH3BPDCIKEZOY434N7CDGNFBPKSAL
+X-Message-ID-Hash: 7VITH3BPDCIKEZOY434N7CDGNFBPKSAL
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-mm@kvack.org, linux-xfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-ext4@vger.kernel.org, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, Theodore Ts'o <tytso@mit.edu>, Christoph Hellwig <hch@lst.de>, Andreas Dilger <adilger.kernel@dilger.ca>, "Darrick J. Wong" <darrick.wong@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
+CC: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MNNZXUBNDARHMGDXZ3MPAF5HZDEXUZXM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7VITH3BPDCIKEZOY434N7CDGNFBPKSAL/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -60,145 +69,44 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed 07-10-20 14:49:25, Ralph Campbell wrote:
-> There are several places where ZONE_DEVICE struct pages assume a reference
-> count == 1 means the page is idle and free. Instead of open coding this,
-> add helper functions to hide this detail.
-> 
-> Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> Acked-by: Darrick J. Wong <darrick.wong@oracle.com>
-> Acked-by: Theodore Ts'o <tytso@mit.edu> # for fs/ext4/inode.c
+On Thu, Aug 06, 2020 at 08:16:02PM +0000, Verma, Vishal L wrote:
+> On Thu, 2020-08-06 at 19:44 +0000, Verma, Vishal L wrote:
+> > > 
+> > > I'm running xfstests on this patchset right now.  If one of the DAX
+> > > people could try it out, that'd be fantastic.
+> > > 
+> > > Matthew Wilcox (Oracle) (4):
+> > >   mm: Introduce and use page_cache_empty
+> > >   mm: Stop accounting shadow entries
+> > >   dax: Account DAX entries as nrpages
+> > >   mm: Remove nrexceptional from inode
+> > 
+> > Hi Matthew,
+> > 
+> > I applied these on top of 5.8 and ran them through the nvdimm unit test
+> > suite, and saw some test failures. The first failing test signature is:
+> > 
+> >   + umount test_dax_mnt
+> >   ./dax-ext4.sh: line 62: 15749 Segmentation fault      umount $MNT
+> >   FAIL dax-ext4.sh (exit status: 139)
 
-The patch looks good to me. Feel free to add:
+Thanks.  Fixed:
 
-Reviewed-by: Jan Kara <jack@suse.cz>
++++ b/fs/dax.c
+@@ -644,7 +644,7 @@ static int __dax_invalidate_entry(struct address_space *mapping,
+                goto out;
+        dax_disassociate_entry(entry, mapping, trunc);
+        xas_store(&xas, NULL);
+-       mapping->nrpages -= dax_entry_order(entry);
++       mapping->nrpages -= 1UL << dax_entry_order(entry);
+        ret = 1;
+ out:
+        put_unlocked_entry(&xas, entry);
 
-								Honza
+Updated git tree at
+https://git.infradead.org/users/willy/pagecache.git/
 
-> ---
-> 
-> Changes in v2:
-> I strongly resisted the idea of extending this patch but after Jan
-> Kara's comment about there being more places that could be cleaned
-> up, I felt compelled to make this one tensy wensy change to add
-> a dax_wakeup_page() to match the dax_wait_page().
-> I kept the Reviewed/Acked-bys since I don't think this substantially
-> changes the patch.
-> 
->  fs/dax.c            |  4 ++--
->  fs/ext4/inode.c     |  5 +----
->  fs/xfs/xfs_file.c   |  4 +---
->  include/linux/dax.h | 15 +++++++++++++++
->  mm/memremap.c       |  3 ++-
->  5 files changed, 21 insertions(+), 10 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 5b47834f2e1b..85c63f735909 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -358,7 +358,7 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
->  	for_each_mapped_pfn(entry, pfn) {
->  		struct page *page = pfn_to_page(pfn);
->  
-> -		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
-> +		WARN_ON_ONCE(trunc && !dax_layout_is_idle_page(page));
->  		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
->  		page->mapping = NULL;
->  		page->index = 0;
-> @@ -372,7 +372,7 @@ static struct page *dax_busy_page(void *entry)
->  	for_each_mapped_pfn(entry, pfn) {
->  		struct page *page = pfn_to_page(pfn);
->  
-> -		if (page_ref_count(page) > 1)
-> +		if (!dax_layout_is_idle_page(page))
->  			return page;
->  	}
->  	return NULL;
-> diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
-> index 771ed8b1fadb..132620cbfa13 100644
-> --- a/fs/ext4/inode.c
-> +++ b/fs/ext4/inode.c
-> @@ -3937,10 +3937,7 @@ int ext4_break_layouts(struct inode *inode)
->  		if (!page)
->  			return 0;
->  
-> -		error = ___wait_var_event(&page->_refcount,
-> -				atomic_read(&page->_refcount) == 1,
-> -				TASK_INTERRUPTIBLE, 0, 0,
-> -				ext4_wait_dax_page(ei));
-> +		error = dax_wait_page(ei, page, ext4_wait_dax_page);
->  	} while (error == 0);
->  
->  	return error;
-> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> index 3d1b95124744..a5304aaeaa3a 100644
-> --- a/fs/xfs/xfs_file.c
-> +++ b/fs/xfs/xfs_file.c
-> @@ -749,9 +749,7 @@ xfs_break_dax_layouts(
->  		return 0;
->  
->  	*retry = true;
-> -	return ___wait_var_event(&page->_refcount,
-> -			atomic_read(&page->_refcount) == 1, TASK_INTERRUPTIBLE,
-> -			0, 0, xfs_wait_dax_page(inode));
-> +	return dax_wait_page(inode, page, xfs_wait_dax_page);
->  }
->  
->  int
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index b52f084aa643..e2da78e87338 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -243,6 +243,21 @@ static inline bool dax_mapping(struct address_space *mapping)
->  	return mapping->host && IS_DAX(mapping->host);
->  }
->  
-> +static inline bool dax_layout_is_idle_page(struct page *page)
-> +{
-> +	return page_ref_count(page) == 1;
-> +}
-> +
-> +static inline void dax_wakeup_page(struct page *page)
-> +{
-> +	wake_up_var(&page->_refcount);
-> +}
-> +
-> +#define dax_wait_page(_inode, _page, _wait_cb)				\
-> +	___wait_var_event(&(_page)->_refcount,				\
-> +		dax_layout_is_idle_page(_page),				\
-> +		TASK_INTERRUPTIBLE, 0, 0, _wait_cb(_inode))
-> +
->  #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
->  void hmem_register_device(int target_nid, struct resource *r);
->  #else
-> diff --git a/mm/memremap.c b/mm/memremap.c
-> index 2bb276680837..504a10ff2edf 100644
-> --- a/mm/memremap.c
-> +++ b/mm/memremap.c
-> @@ -12,6 +12,7 @@
->  #include <linux/types.h>
->  #include <linux/wait_bit.h>
->  #include <linux/xarray.h>
-> +#include <linux/dax.h>
->  
->  static DEFINE_XARRAY(pgmap_array);
->  
-> @@ -508,7 +509,7 @@ void free_devmap_managed_page(struct page *page)
->  {
->  	/* notify page idle for dax */
->  	if (!is_device_private_page(page)) {
-> -		wake_up_var(&page->_refcount);
-> +		dax_wakeup_page(page);
->  		return;
->  	}
->  
-> -- 
-> 2.20.1
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+It survives an xfstests run on an fsdax namespace which supports 2MB pages.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
