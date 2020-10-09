@@ -4,43 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44E8EC64E7C
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF77C5DF9F
 	for <linux-nvdimm@archiver.kernel.org>; Fri,  9 Oct 2020 19:52:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0AE632242F
+	by mail.kernel.org (Postfix) with ESMTPS id 3A339223AE
 	for <linux-nvdimm@archiver.kernel.org>; Fri,  9 Oct 2020 19:52:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0AE632242F
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3A339223AE
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EB9B81594D311;
-	Fri,  9 Oct 2020 12:52:47 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+	by ml01.01.org (Postfix) with ESMTP id 24B0D1594D314;
+	Fri,  9 Oct 2020 12:52:48 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.115; helo=mga14.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C57BB1594D30B
+	by ml01.01.org (Postfix) with ESMTPS id 025ED1594D310
 	for <linux-nvdimm@lists.01.org>; Fri,  9 Oct 2020 12:52:45 -0700 (PDT)
-IronPort-SDR: X5zrNLRvCOkdx3VnMtDWD8Oc00sEy+su4CxHa55xfZMm/DL7aGxnuMc4yqJbXRP+8Kz6p7RM5n
- whTZ3C4moYlg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="165643121"
+IronPort-SDR: 9Td4NyL5HYxftGqXaKHlJY9XeG3SxkIGhaOS/h4XKRyAF+UIfcIUhm/BkczwY++10Jb3Pb3YbI
+ 0GFwaafvtJiw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9769"; a="164743956"
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400";
-   d="scan'208";a="165643121"
+   d="scan'208";a="164743956"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:30 -0700
-IronPort-SDR: R8dnd4Gi4VR6B2jqh++vX5H71gVtYpBk3ChyBwkq2ll0tg176OYljcvG78jHbXA7T9l0eBxuZS
- YLX/odwmLDNw==
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:45 -0700
+IronPort-SDR: A7QVfEYpWd+zukvvJSzSDlmpc6UtcI1VTl49mnWle7o9+shZWHPb4ayBrZUheEhKcyM4kHv/QX
+ ai2WmfcpOoFA==
 X-IronPort-AV: E=Sophos;i="5.77,355,1596524400";
-   d="scan'208";a="329006590"
+   d="scan'208";a="389237190"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:29 -0700
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Oct 2020 12:52:43 -0700
 From: ira.weiny@intel.com
 To: Andrew Morton <akpm@linux-foundation.org>,
 	Thomas Gleixner <tglx@linutronix.de>,
@@ -48,23 +48,23 @@ To: Andrew Morton <akpm@linux-foundation.org>,
 	Borislav Petkov <bp@alien8.de>,
 	Andy Lutomirski <luto@kernel.org>,
 	Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH RFC PKS/PMEM 28/58] fs/cachefiles: Utilize new kmap_thread()
-Date: Fri,  9 Oct 2020 12:50:03 -0700
-Message-Id: <20201009195033.3208459-29-ira.weiny@intel.com>
+Subject: [PATCH RFC PKS/PMEM 32/58] fs/hostfs: Utilize new kmap_thread()
+Date: Fri,  9 Oct 2020 12:50:07 -0700
+Message-Id: <20201009195033.3208459-33-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20201009195033.3208459-1-ira.weiny@intel.com>
 References: <20201009195033.3208459-1-ira.weiny@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: V5Q64CMO4TMP275RORGBOYNIMQVI3CPX
-X-Message-ID-Hash: V5Q64CMO4TMP275RORGBOYNIMQVI3CPX
+Message-ID-Hash: ZAWUI4WNANAKB2FTZ2JQ2UUFDUTXB7KB
+X-Message-ID-Hash: ZAWUI4WNANAKB2FTZ2JQ2UUFDUTXB7KB
 X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: David Howells <dhowells@redhat.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org, kexec@lists.infradead.org, linux-bcache@vger.kernel.org, linux-mtd@lists.infradead.org, devel@driverdev.osuosl.org, linux-efi@vger.kernel.org, linux-mmc@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-um@lists.infradead.org, linux-ntfs-dev@lists.sourceforge.net, reiserfs-devel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-nilfs@vger.kernel.org, cluster-devel@redhat.com, ecryptfs@vger.k
- ernel.org, linux-cifs@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-afs@lists.infradead.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, xen-devel@lists.xenproject.org, linux-cachefs@redhat.com, samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
+CC: Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org, kexec@lists.infradead.org, linux-bcache@vger.kernel.org, linux-mtd@lists.infradead.org, devel@driverdev.osuosl.org, linux-efi@vger.kernel.org, linux-mmc@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-um@lists.infradead.org, linux-ntfs-dev@lists.sourceforge.net, reiserfs-devel@vger.kernel.org, linux-f2fs-devel@lists.sourcefo
+ rge.net, linux-nilfs@vger.kernel.org, cluster-devel@redhat.com, ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-afs@lists.infradead.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, xen-devel@lists.xenproject.org, linux-cachefs@redhat.com, samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/V5Q64CMO4TMP275RORGBOYNIMQVI3CPX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZAWUI4WNANAKB2FTZ2JQ2UUFDUTXB7KB/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -78,28 +78,66 @@ From: Ira Weiny <ira.weiny@intel.com>
 The kmap() calls in this FS are localized to a single thread.  To avoid
 the over head of global PKRS updates use the new kmap_thread() call.
 
-Cc: David Howells <dhowells@redhat.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/cachefiles/rdwr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hostfs/hostfs_kern.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/fs/cachefiles/rdwr.c b/fs/cachefiles/rdwr.c
-index 3080cda9e824..2468e5c067ba 100644
---- a/fs/cachefiles/rdwr.c
-+++ b/fs/cachefiles/rdwr.c
-@@ -936,9 +936,9 @@ int cachefiles_write_page(struct fscache_storage *op, struct page *page)
- 		}
- 	}
+diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
+index c070c0d8e3e9..608efd0f83cb 100644
+--- a/fs/hostfs/hostfs_kern.c
++++ b/fs/hostfs/hostfs_kern.c
+@@ -409,7 +409,7 @@ static int hostfs_writepage(struct page *page, struct writeback_control *wbc)
+ 	if (page->index >= end_index)
+ 		count = inode->i_size & (PAGE_SIZE-1);
  
--	data = kmap(page);
-+	data = kmap_thread(page);
- 	ret = kernel_write(file, data, len, &pos);
+-	buffer = kmap(page);
++	buffer = kmap_thread(page);
+ 
+ 	err = write_file(HOSTFS_I(inode)->fd, &base, buffer, count);
+ 	if (err != count) {
+@@ -425,7 +425,7 @@ static int hostfs_writepage(struct page *page, struct writeback_control *wbc)
+ 	err = 0;
+ 
+  out:
 -	kunmap(page);
 +	kunmap_thread(page);
- 	fput(file);
- 	if (ret != len)
- 		goto error_eio;
+ 
+ 	unlock_page(page);
+ 	return err;
+@@ -437,7 +437,7 @@ static int hostfs_readpage(struct file *file, struct page *page)
+ 	loff_t start = page_offset(page);
+ 	int bytes_read, ret = 0;
+ 
+-	buffer = kmap(page);
++	buffer = kmap_thread(page);
+ 	bytes_read = read_file(FILE_HOSTFS_I(file)->fd, &start, buffer,
+ 			PAGE_SIZE);
+ 	if (bytes_read < 0) {
+@@ -454,7 +454,7 @@ static int hostfs_readpage(struct file *file, struct page *page)
+ 
+  out:
+ 	flush_dcache_page(page);
+-	kunmap(page);
++	kunmap_thread(page);
+ 	unlock_page(page);
+ 	return ret;
+ }
+@@ -480,9 +480,9 @@ static int hostfs_write_end(struct file *file, struct address_space *mapping,
+ 	unsigned from = pos & (PAGE_SIZE - 1);
+ 	int err;
+ 
+-	buffer = kmap(page);
++	buffer = kmap_thread(page);
+ 	err = write_file(FILE_HOSTFS_I(file)->fd, &pos, buffer + from, copied);
+-	kunmap(page);
++	kunmap_thread(page);
+ 
+ 	if (!PageUptodate(page) && err == PAGE_SIZE)
+ 		SetPageUptodate(page);
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
