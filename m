@@ -1,136 +1,75 @@
-Return-Path: <SRS0=isdP=DP=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=cB0/=DQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BAADC433E7
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  8 Oct 2020 19:53:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FEBEC433E7
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  9 Oct 2020 06:04:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8751522227
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  8 Oct 2020 19:53:16 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="l+BVAMIQ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8751522227
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1E73F22244
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  9 Oct 2020 06:04:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1E73F22244
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8ADFC1544614E;
-	Thu,  8 Oct 2020 12:53:15 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.79; helo=aserp2130.oracle.com; envelope-from=boris.ostrovsky@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id B4CE91597317F;
+	Thu,  8 Oct 2020 23:04:15 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2401:3900:2:1::2; helo=ozlabs.org; envelope-from=michael@ozlabs.org; receiver=<UNKNOWN> 
+Received: from ozlabs.org (ozlabs.org [IPv6:2401:3900:2:1::2])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0F90D1544614B
-	for <linux-nvdimm@lists.01.org>; Thu,  8 Oct 2020 12:53:12 -0700 (PDT)
-Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
-	by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 098JiY01121352;
-	Thu, 8 Oct 2020 19:52:51 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=TOXYoPq7dhn6DY/1xOASv8Mqfnor1vAExhw+DTAwaGY=;
- b=l+BVAMIQHQuI/buil576rcNVLNwOWWg9XHB8Kka1ny5c+3NiQAiu6yGmEmqdDyJrVkIa
- 9MgaV1Ri/GwGb3JkAvufPKriR7tEfbgnRq1qEn8Uur1iz3Q9CMdV9Juq76SSP3KcEbRz
- M4IHIZgsD0WhxSzmIfrEA4GW56W3qxW459Vhm0jZBHlKjsRN804PBm7PFqa/XKVRQJqi
- Z6mgNF4EiCMlZjqlRkVn0HVljEhu1zRDQaoJJDUst+C11z1U3UWxzunfjFTnIyIij/Go
- ZThcSZYBoht2G01MamvOOHUAdX+aAmQhyS9w/3NhLRXAeOImUCsJToZVvyr6AfIPhJEC ew==
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by aserp2130.oracle.com with ESMTP id 33xetb9vxn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Thu, 08 Oct 2020 19:52:50 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 098JkGT2068959;
-	Thu, 8 Oct 2020 19:52:50 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by userp3030.oracle.com with ESMTP id 33y381mmvk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 08 Oct 2020 19:52:50 +0000
-Received: from abhmp0006.oracle.com (abhmp0006.oracle.com [141.146.116.12])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 098JqXsO027511;
-	Thu, 8 Oct 2020 19:52:33 GMT
-Received: from [10.74.86.78] (/10.74.86.78)
-	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 08 Oct 2020 12:52:32 -0700
-Subject: Re: [PATCH v6 09/11] mm/memremap_pages: convert to 'struct range'
-To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
-References: <160196728453.2166475.12832711415715687418.stgit@dwillia2-desk3.amr.corp.intel.com>
- <160196733645.2166475.12840692906594512941.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: boris.ostrovsky@oracle.com
-Organization: Oracle Corporation
-Message-ID: <a2a740e2-424c-69ff-45a6-3d71feac5c50@oracle.com>
-Date: Thu, 8 Oct 2020 15:52:14 -0400
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
- Gecko/20100101 Thunderbird/78.3.1
-MIME-Version: 1.0
-In-Reply-To: <160196733645.2166475.12840692906594512941.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9768 signatures=668681
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0 spamscore=0
- mlxscore=0 malwarescore=0 suspectscore=0 adultscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2010080138
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9768 signatures=668681
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 spamscore=0 mlxscore=0
- clxscore=1015 priorityscore=1501 adultscore=0 mlxlogscore=999 phishscore=0
- impostorscore=0 malwarescore=0 suspectscore=0 lowpriorityscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2006250000
- definitions=main-2010080138
-Message-ID-Hash: YFQIIZI7PY4HEQIZCMRRGCVWM5PZJA3C
-X-Message-ID-Hash: YFQIIZI7PY4HEQIZCMRRGCVWM5PZJA3C
-X-MailFrom: boris.ostrovsky@oracle.com
+	by ml01.01.org (Postfix) with ESMTPS id A8D8E15973159
+	for <linux-nvdimm@lists.01.org>; Thu,  8 Oct 2020 23:04:13 -0700 (PDT)
+Received: by ozlabs.org (Postfix, from userid 1034)
+	id 4C6yFN3dBGz9sVl; Fri,  9 Oct 2020 17:04:07 +1100 (AEDT)
+From: Michael Ellerman <patch-notifications@ellerman.id.au>
+To: linux-nvdimm@lists.01.org, linuxppc-dev@lists.ozlabs.org, Vaibhav Jain <vaibhav@linux.ibm.com>
+In-Reply-To: <20200913211904.24472-1-vaibhav@linux.ibm.com>
+References: <20200913211904.24472-1-vaibhav@linux.ibm.com>
+Subject: Re: [PATCH] powerpc/papr_scm: Add PAPR command family to pass-through command-set
+Message-Id: <160222339640.867048.1720728622452479198.b4-ty@ellerman.id.au>
+Date: Fri,  9 Oct 2020 17:04:07 +1100 (AEDT)
+Message-ID-Hash: PK2AAUDMQEUSED4FDRMWLYZJIRTEWJRG
+X-Message-ID-Hash: PK2AAUDMQEUSED4FDRMWLYZJIRTEWJRG
+X-MailFrom: michael@ozlabs.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Paul Mackerras <paulus@ozlabs.org>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Bjorn Helgaas <bhelgaas@google.com>, Juergen Gross <jgross@suse.com>, Stefano Stabellini <sstabellini@kernel.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, dave.hansen@linux.intel.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, david@redhat.com, joao.m.martins@oracle.com
+CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YFQIIZI7PY4HEQIZCMRRGCVWM5PZJA3C/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PK2AAUDMQEUSED4FDRMWLYZJIRTEWJRG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQpPbiAxMC82LzIwIDI6NTUgQU0sIERhbiBXaWxsaWFtcyB3cm90ZToNCj4gVGhlICdzdHJ1Y3Qg
-cmVzb3VyY2UnIGluICdzdHJ1Y3QgZGV2X3BhZ2VtYXAnIGlzIG9ubHkgdXNlZCBmb3IgaG9sZGlu
-Zw0KPiByZXNvdXJjZSBzcGFuIGluZm9ybWF0aW9uLiAgVGhlIG90aGVyIGZpZWxkcywgJ25hbWUn
-LCAnZmxhZ3MnLCAnZGVzYycsDQo+ICdwYXJlbnQnLCAnc2libGluZycsIGFuZCAnY2hpbGQnIGFy
-ZSBhbGwgdW51c2VkIHdhc3RlZCBzcGFjZS4NCj4NCj4gVGhpcyBpcyBpbiBwcmVwYXJhdGlvbiBm
-b3IgaW50cm9kdWNpbmcgYSBtdWx0aS1yYW5nZSBleHRlbnNpb24gb2YNCj4gZGV2bV9tZW1yZW1h
-cF9wYWdlcygpLg0KPg0KPiBUaGUgYnVsayBvZiB0aGlzIGNoYW5nZSBpcyB1bndpbmRpbmcgYWxs
-IHRoZSBwbGFjZXMgaW50ZXJuYWwgdG8gbGlibnZkaW1tDQo+IHRoYXQgdXNlZCAnc3RydWN0IHJl
-c291cmNlJyB1bm5lY2Vzc2FyaWx5LCBhbmQgcmVwbGFjaW5nIGluc3RhbmNlcyBvZg0KPiAnc3Ry
-dWN0IGRldl9wYWdlbWFwJy5yZXMgd2l0aCAnc3RydWN0IGRldl9wYWdlbWFwJy5yYW5nZS4NCj4N
-Cj4gUDJQRE1BIGhhZCBhIG1pbm9yIHVzYWdlIG9mIHRoZSByZXNvdXJjZSBmbGFncyBmaWVsZCwg
-YnV0IG9ubHkgdG8gcmVwb3J0DQo+IGZhaWx1cmVzIHdpdGggIiVwUiIuICBUaGF0IGlzIHJlcGxh
-Y2VkIHdpdGggYW4gb3BlbiBjb2RlZCBwcmludCBvZiB0aGUNCj4gcmFuZ2UuDQo+DQo+IExpbms6
-IGh0dHBzOi8vbGttbC5rZXJuZWwub3JnL3IvMTU5NjQzMTAzMTczLjQwNjIzMDIuNzY4OTk4ODg1
-NjkxNzExNTMyLnN0Z2l0QGR3aWxsaWEyLWRlc2szLmFtci5jb3JwLmludGVsLmNvbQ0KPiBMaW5r
-OiBodHRwczovL2xrbWwua2VybmVsLm9yZy9yLzIwMjAwOTI2MTIxNDAyLkdBNzQ2N0BrYWRhbQ0K
-PiBDYzogUGF1bCBNYWNrZXJyYXMgPHBhdWx1c0BvemxhYnMub3JnPg0KPiBDYzogTWljaGFlbCBF
-bGxlcm1hbiA8bXBlQGVsbGVybWFuLmlkLmF1Pg0KPiBDYzogQmVuamFtaW4gSGVycmVuc2NobWlk
-dCA8YmVuaEBrZXJuZWwuY3Jhc2hpbmcub3JnPg0KPiBDYzogVmlzaGFsIFZlcm1hIDx2aXNoYWwu
-bC52ZXJtYUBpbnRlbC5jb20+DQo+IENjOiBWaXZlayBHb3lhbCA8dmdveWFsQHJlZGhhdC5jb20+
-DQo+IENjOiBEYXZlIEppYW5nIDxkYXZlLmppYW5nQGludGVsLmNvbT4NCj4gQ2M6IEJlbiBTa2Vn
-Z3MgPGJza2VnZ3NAcmVkaGF0LmNvbT4NCj4gQ2M6IERhdmlkIEFpcmxpZSA8YWlybGllZEBsaW51
-eC5pZT4NCj4gQ2M6IERhbmllbCBWZXR0ZXIgPGRhbmllbEBmZndsbC5jaD4NCj4gQ2M6IElyYSBX
-ZWlueSA8aXJhLndlaW55QGludGVsLmNvbT4NCj4gQ2M6IEJqb3JuIEhlbGdhYXMgPGJoZWxnYWFz
-QGdvb2dsZS5jb20+DQo+IENjOiBCb3JpcyBPc3Ryb3Zza3kgPGJvcmlzLm9zdHJvdnNreUBvcmFj
-bGUuY29tPg0KPiBDYzogSnVlcmdlbiBHcm9zcyA8amdyb3NzQHN1c2UuY29tPg0KPiBDYzogU3Rl
-ZmFubyBTdGFiZWxsaW5pIDxzc3RhYmVsbGluaUBrZXJuZWwub3JnPg0KPiBDYzogIkrDqXLDtG1l
-IEdsaXNzZSIgPGpnbGlzc2VAcmVkaGF0LmNvbT4NCj4gQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1A
-bGludXgtZm91bmRhdGlvbi5vcmc+DQo+IFJlcG9ydGVkLWJ5OiBEYW4gQ2FycGVudGVyIDxkYW4u
-Y2FycGVudGVyQG9yYWNsZS5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFtcyA8ZGFu
-Lmoud2lsbGlhbXNAaW50ZWwuY29tPg0KDQoNCkZvciBYZW4gYml0cw0KDQoNClJldmlld2VkLWJ5
-OiBCb3JpcyBPc3Ryb3Zza3kgPGJvcmlzLm9zdHJvdnNreUBvcmFjbGUuY29tPg0KX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxp
-bmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQg
-YW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+On Mon, 14 Sep 2020 02:49:04 +0530, Vaibhav Jain wrote:
+> Add NVDIMM_FAMILY_PAPR to the list of valid 'dimm_family_mask'
+> acceptable by papr_scm. This is needed as since commit
+> 92fe2aa859f5 ("libnvdimm: Validate command family indices") libnvdimm
+> performs a validation of 'nd_cmd_pkg.nd_family' received as part of
+> ND_CMD_CALL processing to ensure only known command families can use
+> the general ND_CMD_CALL pass-through functionality.
+> 
+> [...]
+
+Applied to powerpc/next.
+
+[1/1] powerpc/papr_scm: Add PAPR command family to pass-through command-set
+      https://git.kernel.org/powerpc/c/13135b461cf205941308984bd3271ec7d403dc40
+
+cheers
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
