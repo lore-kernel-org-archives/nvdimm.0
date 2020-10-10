@@ -2,68 +2,98 @@ Return-Path: <SRS0=L2eV=DR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCBB3C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 03:43:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C2CAC433E7
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 04:59:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7EC0C2222F
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 03:43:18 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7EC0C2222F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=xmission.com
+	by mail.kernel.org (Postfix) with ESMTPS id B5B3F2076E
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 04:59:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="m58YXQq6"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B5B3F2076E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id BC790157D3703;
-	Fri,  9 Oct 2020 20:43:17 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=166.70.13.231; helo=out01.mta.xmission.com; envelope-from=ebiederm@xmission.com; receiver=<UNKNOWN> 
-Received: from out01.mta.xmission.com (out01.mta.xmission.com [166.70.13.231])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 14B8815A6E228;
+	Fri,  9 Oct 2020 21:59:22 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9278815A4F95A
-	for <linux-nvdimm@lists.01.org>; Fri,  9 Oct 2020 20:43:15 -0700 (PDT)
-Received: from in02.mta.xmission.com ([166.70.13.52])
-	by out01.mta.xmission.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.93)
-	(envelope-from <ebiederm@xmission.com>)
-	id 1kR5ma-003qSe-1R; Fri, 09 Oct 2020 21:42:56 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
-	by in02.mta.xmission.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-	(Exim 4.87)
-	(envelope-from <ebiederm@xmission.com>)
-	id 1kR5mZ-0002tO-03; Fri, 09 Oct 2020 21:42:55 -0600
-From: ebiederm@xmission.com (Eric W. Biederman)
-To: ira.weiny@intel.com
-References: <20201009195033.3208459-1-ira.weiny@intel.com>
-	<20201009195033.3208459-52-ira.weiny@intel.com>
-Date: Fri, 09 Oct 2020 22:43:15 -0500
-In-Reply-To: <20201009195033.3208459-52-ira.weiny@intel.com> (ira weiny's
-	message of "Fri, 9 Oct 2020 12:50:26 -0700")
-Message-ID: <87k0vysq3w.fsf@x220.int.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+	by ml01.01.org (Postfix) with ESMTPS id 469D315A6E225
+	for <linux-nvdimm@lists.01.org>; Fri,  9 Oct 2020 21:59:19 -0700 (PDT)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 09A4oisw060035;
+	Sat, 10 Oct 2020 00:59:12 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=9UawxoC2HHKkBe2OryDbseGZLMitLfUQER1BZ0mp8bw=;
+ b=m58YXQq6jZJabTandgKrgZP9BTPiBzDQDdE8l7QfHnBWctH9xTMsPYX1A0xXWTwSXGFq
+ S28iUsMvNq0eQO1VWDw3zH8dGnvdylfX/YgFQz3CuQRk6bBuk5iA2bYJ6+0tetQ0rgmF
+ R5dsmYnSnjhUasqD07I/PMfeCPhG45Vga3EuoLNppd+eXJgGs7O76kgFrY7qyKkVHC2W
+ fyo8SekZxHKM+rEeT1f67GloUfJyOU0ULTfI1aD+YLuyQPPr91ZW9ztKMf9krc77iTgK
+ jZiyYLUuXao/gsI4qEvBR3RDM49qstjeO1A9LX+12Qx9goSVEpbij4m6F16DFnoJFn9r 2A==
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3435e911t5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 10 Oct 2020 00:59:12 -0400
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 09A4vwPI025703;
+	Sat, 10 Oct 2020 04:59:10 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma04ams.nl.ibm.com with ESMTP id 3434k7r26b-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 10 Oct 2020 04:59:10 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 09A4x8pQ25756064
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sat, 10 Oct 2020 04:59:08 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6B5F9A4051;
+	Sat, 10 Oct 2020 04:59:08 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DB41DA404D;
+	Sat, 10 Oct 2020 04:59:05 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.77.203.213])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Sat, 10 Oct 2020 04:59:05 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Sat, 10 Oct 2020 10:29:04 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+        "Verma, Vishal L"
+ <vishal.l.verma@intel.com>
+Subject: Re: [ndctl PATCH] libndctl: Fix probe of non-nfit nvdimms
+In-Reply-To: <CAPcyv4j89a_Nevq1y92UPGedm74VUYCunkf62T5S3UeXzW6vKg@mail.gmail.com>
+References: <20201009120009.243108-1-vaibhav@linux.ibm.com>
+ <145db3d86fa6bddf55c0e7c4aa149984676cd723.camel@intel.com>
+ <CAPcyv4j89a_Nevq1y92UPGedm74VUYCunkf62T5S3UeXzW6vKg@mail.gmail.com>
+Date: Sat, 10 Oct 2020 10:29:04 +0530
+Message-ID: <87pn5qy8vb.fsf@vajain21.in.ibm.com>
 MIME-Version: 1.0
-X-XM-SPF: eid=1kR5mZ-0002tO-03;;;mid=<87k0vysq3w.fsf@x220.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX1+M6Nwc1eevosTTnX6IxBw6BnHTGm05YjI=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [PATCH RFC PKS/PMEM 51/58] kernel: Utilize new kmap_thread()
-X-SA-Exim-Version: 4.2.1 (built Thu, 05 May 2016 13:38:54 -0600)
-X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
-Message-ID-Hash: SSKI2ZALFPTKQ2NBCZLTX55D6JU4H7LG
-X-Message-ID-Hash: SSKI2ZALFPTKQ2NBCZLTX55D6JU4H7LG
-X-MailFrom: ebiederm@xmission.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
+ definitions=2020-10-10_01:2020-10-09,2020-10-10 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0
+ priorityscore=1501 impostorscore=0 mlxscore=0 adultscore=0
+ lowpriorityscore=0 mlxlogscore=999 bulkscore=0 phishscore=0 spamscore=0
+ suspectscore=0 clxscore=1015 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2009150000 definitions=main-2010100042
+Message-ID-Hash: QDYHWTRGNN2VJ3B4YSRTQD32B4HLYM22
+X-Message-ID-Hash: QDYHWTRGNN2VJ3B4YSRTQD32B4HLYM22
+X-MailFrom: vaibhav@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org, kexec@lists.infradead.org, linux-bcache@vger.kernel.org, linux-mtd@lists.infradead.org, devel@driverdev.osuosl.org, linux-efi@vger.kernel.org, linux-mmc@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-erofs@lists.ozlabs.org, linux-um@lists.infradead.org
- , linux-ntfs-dev@lists.sourceforge.net, reiserfs-devel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-nilfs@vger.kernel.org, cluster-devel@redhat.com, ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-afs@lists.infradead.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, xen-devel@lists.xenproject.org, linux-cachefs@redhat.com, samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "aneesh.kumar@linux.ibm.com" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SSKI2ZALFPTKQ2NBCZLTX55D6JU4H7LG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QDYHWTRGNN2VJ3B4YSRTQD32B4HLYM22/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,62 +102,70 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-ira.weiny@intel.com writes:
+Hi Dan and Vishal,
 
-> From: Ira Weiny <ira.weiny@intel.com>
->
-> This kmap() call is localized to a single thread.  To avoid the over
-> head of global PKRS updates use the new kmap_thread() call.
+Thanks so much for quick turnaround on this.
 
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Dan Williams <dan.j.williams@intel.com> writes:
+
+> On Fri, Oct 9, 2020 at 11:36 AM Verma, Vishal L
+> <vishal.l.verma@intel.com> wrote:
+>>
+>> On Fri, 2020-10-09 at 17:30 +0530, Vaibhav Jain wrote:
+>> > commit 107a24ff429f ("ndctl/list: Add firmware activation
+>> > enumeration") introduced changes in add_dimm() to enumerate the status
+>> > of firmware activation. However a branch added in that commit broke
+>> > the probe for non-nfit nvdimms like one provided by papr-scm. This
+>> > cause an error reported when listing namespaces like below:
+>> >
+>> > $ sudo ndctl list
+>> > libndctl: add_dimm: nmem0: probe failed: No such device
+>> > libndctl: __sysfs_device_parse: nmem0: add_dev() failed
+>> >
+>> > Do a fix for this by removing the offending branch in the add_dimm()
+>> > patch. This continues the flow of add_dimm() probe even if the nfit is
+>> > not detected on the associated bus.
+>> >
+>> > Fixes: 107a24ff429fa("ndctl/list: Add firmware activation enumeration")
+>> > Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+>> > ---
+>> >  ndctl/lib/libndctl.c | 3 ---
+>> >  1 file changed, 3 deletions(-)
+>>
+>> Ah apologies - this snuck in when I reflowed Dan's patches on top of the
+>> papr work for v70.
+No worries :-)
+
+>>
+>> I expect you'd like a point release with this fix asap?
+Yes, that will be great. Thanks
+
+>>
+>> Is there a way for me to incorporate some papr unit tests into my
+>> release workflow so I can avoid breaking things like this again?
+>>
+>> I'll also try to do a better job of pushing things out to the pending
+>> branch more frequently so if you're monitoring that branch, hopefully
+>> things like this will get caught before a release happens :)
+
+Fully agree, if that happens we can incorporate it into our CI system to
+ensure that such regressions are caught early on before any release is
+tagged.
 
 >
-> Cc: Eric Biederman <ebiederm@xmission.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> ---
->  kernel/kexec_core.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/kernel/kexec_core.c b/kernel/kexec_core.c
-> index c19c0dad1ebe..272a9920c0d6 100644
-> --- a/kernel/kexec_core.c
-> +++ b/kernel/kexec_core.c
-> @@ -815,7 +815,7 @@ static int kimage_load_normal_segment(struct kimage *image,
->  		if (result < 0)
->  			goto out;
->  
-> -		ptr = kmap(page);
-> +		ptr = kmap_thread(page);
->  		/* Start with a clear page */
->  		clear_page(ptr);
->  		ptr += maddr & ~PAGE_MASK;
-> @@ -828,7 +828,7 @@ static int kimage_load_normal_segment(struct kimage *image,
->  			memcpy(ptr, kbuf, uchunk);
->  		else
->  			result = copy_from_user(ptr, buf, uchunk);
-> -		kunmap(page);
-> +		kunmap_thread(page);
->  		if (result) {
->  			result = -EFAULT;
->  			goto out;
-> @@ -879,7 +879,7 @@ static int kimage_load_crash_segment(struct kimage *image,
->  			goto out;
->  		}
->  		arch_kexec_post_alloc_pages(page_address(page), 1, 0);
-> -		ptr = kmap(page);
-> +		ptr = kmap_thread(page);
->  		ptr += maddr & ~PAGE_MASK;
->  		mchunk = min_t(size_t, mbytes,
->  				PAGE_SIZE - (maddr & ~PAGE_MASK));
-> @@ -895,7 +895,7 @@ static int kimage_load_crash_segment(struct kimage *image,
->  		else
->  			result = copy_from_user(ptr, buf, uchunk);
->  		kexec_flush_icache_page(page);
-> -		kunmap(page);
-> +		kunmap_thread(page);
->  		arch_kexec_pre_free_pages(page_address(page), 1);
->  		if (result) {
->  			result = -EFAULT;
+> Would be nice to have something like a papr_test next to nfit_test for
+> such regression testing. These kinds of mistakes are really only
+> avoidable with regression tests.
+Yes Agree, fortunatly Santosh  has recently posted an RFC patchset
+implementing such tests at [1]. Once that gets merged, can used to
+perform regression testing.
+
+[1] "testing/nvdimm: Add test module for non-nfit platforms"
+https://lore.kernel.org/linux-nvdimm/20201006010013.848302-1-santosh@fossix.org/
+
+-- 
+Cheers
+~ Vaibhav
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
