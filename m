@@ -1,132 +1,493 @@
 Return-Path: <SRS0=L2eV=DR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.8 required=3.0 tests=BAYES_50,DATE_IN_PAST_03_06,
-	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 043B7C433DF
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 19:15:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EDCC4363A
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 23:02:03 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 825E222258
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 19:15:35 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=chairmaneventsummit.info header.i=info@chairmaneventsummit.info header.b="cJY1a0iu"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 825E222258
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=chairmaneventsummit.info
+	by mail.kernel.org (Postfix) with ESMTPS id DE94B2067C
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Oct 2020 23:02:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DE94B2067C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 09ECB15B08714;
-	Sat, 10 Oct 2020 12:15:35 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=54.38.202.176; helo=cha1.chairmaneventsummit.info; envelope-from=info-linux+2dnvdimm=lists.01.org@chairmaneventsummit.info; receiver=<UNKNOWN> 
-Received: from cha1.chairmaneventsummit.info (ip176.ip-54-38-202.eu [54.38.202.176])
+	by ml01.01.org (Postfix) with ESMTP id 4B55A15B4C8CE;
+	Sat, 10 Oct 2020 16:02:02 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.136; helo=mga12.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D4A4D15B08711
-	for <linux-nvdimm@lists.01.org>; Sat, 10 Oct 2020 12:15:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=default; d=chairmaneventsummit.info;
- h=Date:To:From:Reply-To:Subject:Message-ID:List-Unsubscribe:List-Id:MIME-Version:Content-Type; i=info@chairmaneventsummit.info;
- bh=iKUSONvCMtk/6eCVMsefjjMrzO0=;
- b=cJY1a0iuwG1ukouH1zWVyS03IaHjxhSxtjuVfINEepyE/jDnV3d24dn5U3GjX4SckPcFfWRfUalb
-   LisgZrBKpFz1Rizus8WH1YqoX7dXDIxwJZYe+cYmsh/vL2Xd6yGy3abt11V4Wse632yFhvZHAaS6
-   TYkCnsKRCPIdrqzPlXuk12B8R60YZ3cqp6MyCuLwtTH31XAAtKy/z83wLxEQdbvTzhyw5remS7IH
-   6m+d/zxEdP85Bq3lswRLnAVgqywEWd06AomEtsoAQM5Exf3TtqKqLc/OZG7IBRywGG3AnfzhyYaJ
-   WrDoMMjrVDn9VjzMOfGyRgLPaXrsLgJ9uGcpFQ==
-DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=default; d=chairmaneventsummit.info;
- b=fe6/hQyriiIUbQLXq3TcHR5Ngrwo40F48Jwf4rPnL84Vcms7JwvdWL7sBI5G3rOAWyvo2pJba1kt
-   pQ/Sn7z2Zu+K8yZhLsAx/LoxGqnTi6eeGXbtLKVwDz1793RvE+AoaLICAGTln9y+usSsVmiIDIYE
-   f10izYjlRw9h84N+w9eMi93LQ4XQI/7Umwu4QegdX2lEzv4oVwgwiO0XAdPW9hzbQHdudM3PLGkp
-   UuvgfgPtPez2qH7KBB4gzt5BdX357Np8X//4RaNagBygi7SscNT9l5/UIBLN8xNgAmQeiRHkfKmG
-   nv13MyafPyUPWbvkuV7va97wfe1UAPtU8NBzMw==;
-Received: from chairmaneventsummit.info (51.83.131.67) by cha1.chairmaneventsummit.info id hg845bi19tkg for <linux-nvdimm@lists.01.org>; Sat, 10 Oct 2020 14:43:17 +0000 (envelope-from <info-linux+2Dnvdimm=lists.01.org@chairmaneventsummit.info>)
-Date: Sat, 10 Oct 2020 14:43:17 +0000
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-From: Emma Johnson <info@chairmaneventsummit.info>
-Subject: RE: did you get my email
-Message-ID: <64de4922b1759027593b3de78351c972@chairmaneventsummit.info>
-X-Trgm-Campaign-Uid: cg842sfn3f3b5
-X-Trgm-Subscriber-Uid: vh937tpo5w327
-X-Trgm-Customer-Uid: cl716wf5hl7c7
-X-Trgm-Customer-Gid: 0
-X-Trgm-Delivery-Sid: 1
-X-Trgm-Tracking-Did: 0
-X-Report-Abuse: Please report abuse for this campaign here: https://chairmaneventsummit.info/emm/index.php/campaigns/cg842sfn3f3b5/report-abuse/vh543dkxdr339/vh937tpo5w327
-Feedback-ID: cg842sfn3f3b5:vh937tpo5w327:vh543dkxdr339:cl716wf5hl7c7
-Precedence: bulk
-X-Trgm-EBS: https://chairmaneventsummit.info/emm/index.php/lists/block-address
-X-Sender: info@chairmaneventsummit.info
-X-Receiver: linux-nvdimm@lists.01.org
-X-Trgm-Mailer: PHPMailer - 5.2.21
+	by ml01.01.org (Postfix) with ESMTPS id 9116815B4C8CB
+	for <linux-nvdimm@lists.01.org>; Sat, 10 Oct 2020 16:01:59 -0700 (PDT)
+IronPort-SDR: Jm9+x0EBgOWAGgUaPwN54u+Vu9JM+NY55iMSIJrzWN8mgw0ELe8AeAJQy81lbFSb6nXL80EJ3p
+ bOnde1R6WhdQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9770"; a="144927023"
+X-IronPort-AV: E=Sophos;i="5.77,360,1596524400";
+   d="scan'208";a="144927023"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2020 16:01:58 -0700
+IronPort-SDR: u8hpYVeZMmLfNxJlrYKazUxwnAD4tdLG9jg9nK8c6q04PE64rSl1u0/Oby62JZ45YUl7qtSnq6
+ /O/xXGC90zkg==
+X-IronPort-AV: E=Sophos;i="5.77,360,1596524400";
+   d="scan'208";a="529414067"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Oct 2020 16:01:56 -0700
+Date: Sat, 10 Oct 2020 16:01:55 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	David Airlie <airlied@linux.ie>,
+	Patrik Jakobsson <patrik.r.jakobsson@gmail.com>, x86@kernel.org,
+	Dave Hansen <dave.hansen@linux.intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org,
+	linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+	linux-kselftest@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	kvm@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org,
+	kexec@lists.infradead.org, linux-bcache@vger.kernel.org,
+	linux-mtd@lists.infradead.org, devel@driverdev.osuosl.org,
+	linux-efi@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-scsi@vger.kernel.org, target-devel@vger.kernel.org,
+	linux-nfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+	linux-ext4@vger.kernel.org, linux-aio@kvack.org,
+	io-uring@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+	linux-um@lists.infradead.org, linux-ntfs-dev@lists.sourceforge.net,
+	reiserfs-devel@vger.kernel.org,
+	linux-f2fs-devel@lists.sourceforge.net, linux-nilfs@vger.kernel.org,
+	cluster-devel@redhat.com, ecryptfs@vger.kernel.org,
+	linux-cifs@vger.kernel.org, linux-btrfs@vger.kernel.org,
+	linux-afs@lists.infradead.org, linux-rdma@vger.kernel.org,
+	amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+	intel-gfx@lists.freedesktop.org, drbd-dev@lists.linbit.com,
+	linux-block@vger.kernel.org, xen-devel@lists.xenproject.org,
+	linux-cachefs@redhat.com, samba-technical@lists.samba.org,
+	intel-wired-lan@lists.osuosl.org
+Subject: Re: [PATCH RFC PKS/PMEM 09/58] drivers/gpu: Utilize new kmap_thread()
+Message-ID: <20201010230155.GX2046448@iweiny-DESK2.sc.intel.com>
+References: <20201009195033.3208459-1-ira.weiny@intel.com>
+ <20201009195033.3208459-10-ira.weiny@intel.com>
+ <20201009220349.GQ438822@phenom.ffwll.local>
 MIME-Version: 1.0
-Message-ID-Hash: L3LCM3FJIFZ7HAY2M6HJPUWAZDWEOHSX
-X-Message-ID-Hash: L3LCM3FJIFZ7HAY2M6HJPUWAZDWEOHSX
-X-MailFrom: info-linux+2Dnvdimm=lists.01.org@chairmaneventsummit.info
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+Content-Disposition: inline
+In-Reply-To: <20201009220349.GQ438822@phenom.ffwll.local>
+User-Agent: Mutt/1.11.1 (2018-12-01)
+Message-ID-Hash: I2JEXTVXWX4MX6CMOEKZF4XCIUHOKP6C
+X-Message-ID-Hash: I2JEXTVXWX4MX6CMOEKZF4XCIUHOKP6C
+X-MailFrom: ira.weiny@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
-Reply-To: Emma Johnson <emma@ceoeventsummit2020.info>
+Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/L3LCM3FJIFZ7HAY2M6HJPUWAZDWEOHSX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I2JEXTVXWX4MX6CMOEKZF4XCIUHOKP6C/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-QXQgJDQ5OSBhcmUgeW91IGludGVyZXN0ZWQgdG8gZG8gRW1haWwgTWFya2V0aW5nIENhbXBhaWdu
-IHdpdGgNCmFuYWx5dGljYWwgcmVwb3J0IHRvIGFueSBvZiB0aGUgZm9sbG93aW5nIGRhdGFiYXNl
-cz8NCiogQ0VPLCBvd25lciwgUHJlc2lkZW50IGFuZCBDT08gZW1haWwgbGlzdA0KKiBDRk8sIENv
-bnRyb2xsZXIsIFZQL0RpcmVjdG9yL01hbmFnZXIgb2YgRmluYW5jZSwgQWNjb3VudHMgUGF5YWJs
-ZSwNCkFjY291bnRzIFJlY2VpdmFibGUsIEF1ZGl0IGVtYWlsIGxpc3QNCiogUGh5c2ljaWFucywg
-RG9jdG9ycywgTnVyc2VzLCBEZW50aXN0cywgVGhlcmFwaXN0cyBlbWFpbCBsaXN0DQoqIENoaWVm
-IEh1bWFuIFJlc291cmNlcyBPZmZpY2VyLCBWUC9EaXJlY3Rvci9NYW5hZ2VyIG9mIEhSLCBFbXBs
-b3llZQ0KQmVuZWZpdHMsIEVtcGxveWVlIENvbW11bmljYXRpb25zLCBFbXBsb3llZSBDb21wZW5z
-YXRpb24sIEVtcGxveWVlDQpFbmdhZ2VtZW50LCBFbXBsb3llZSBFeHBlcmllbmNlIGFuZCBFbXBs
-b3llZSBSZWxhdGlvbnMsIFRhbGVudA0KQWNxdWlzaXRpb24sIFRhbGVudCBEZXZlbG9wbWVudCwg
-VGFsZW50IE1hbmFnZW1lbnQsIFJlY3J1aXRpbmcgZW1haWwNCmxpc3QNCiogQ0lPLENUTywgQ0lT
-TywgVlAvRGlyZWN0b3IvTWFuYWdlciBvZiBJVCwgSVQgQ29tcGxpYW5jZSwgSVQgUmlzaywNCkJJ
-LCBDbG91ZCwgRGF0YWJhc2UgYW5kIElUIFNlY3VyaXR5IGVtYWlsIGxpc3QNCiogQ01PLCBWUC9E
-aXJlY3Rvci9NYW5hZ2VyIG9mIE1hcmtldGluZywgc29jaWFsIG1lZGlhLCBTYWxlcywgZGVtYW5k
-DQpnZW5lcmF0aW9uLCBMZWFkIGdlbmVyYXRpb24sIGluc2lkZSBzYWxlcywgTWFya2V0aW5nIENv
-bW11bmljYXRpb25zDQplbWFpbCBsaXN0DQoqIENvbXBsaWFuY2UgYW5kIFJpc2sgTWFuYWdlbWVu
-dCBlbWFpbCBsaXN0DQoqIENQQSBhbmQgQm9va2tlZXBlcnMgZW1haWwgbGlzdA0KKiBEYXRhIEFu
-YWx5dGljcyBhbmQgRGF0YWJhc2UgQWRtaW5pc3RyYXRvcnMgZW1haWwgbGlzdA0KKiBEaXNhc3Rl
-ciBSZWNvdmVyeSBlbWFpbCBsaXN0DQoqIEUtY29tbWVyY2Ugb3Igb25saW5lIHJldGFpbGVycyBl
-bWFpbCBsaXN0DQoqIEVkdWNhdGlvbiBpbmR1c3RyeSBleGVjdXRpdmVzIGVtYWlsIGxpc3QgLSBQ
-cmluY2lwYWxzLCBEZWFuLA0KQWRtaW5zIGFuZCB0ZWFjaGVycyBmcm9tIFNjaG9vbHMsIENvbGxl
-Z2VzIGFuZCBVbml2ZXJzaXRpZXMNCiogRW5naW5lZXJzIGVtYWlsIGxpc3QNCiogRXZlbnQgYW5k
-IG1lZXRpbmcgcGxhbm5lcnMgZW1haWwgbGlzdA0KKiBGYWNpbGl0aWVzIGFuZCBvZmZpY2UgbWFu
-YWdlciBDb250YWN0cw0KKiBHZW5lcmFsIGFuZCBjb3Jwb3JhdGUgY291bnNlbCBhcyB3ZWxsIGxl
-Z2FsIHByb2Zlc3Npb25hbHMgZW1haWwNCmxpc3QNCiogR292ZXJubWVudCBjb250cmFjdG9ycyBl
-bWFpbCBsaXN0DQoqIEhlYWx0aCAmIFNhZmV0eSBlbWFpbCBsaXN0DQoqIEhpZ2ggbmV0IHdvcnRo
-IGluZGl2aWR1YWxzL2ludmVzdG9ycyBlbWFpbCBsaXN0DQoqIEhvc3BpdGFscywgY2xpbmljcywg
-cHJpdmF0ZSBwcmFjdGljZXMsIFBoYXJtYWNldXRpY2FsIGFuZA0KYmlvdGVjaG5vbG9neSBjb21w
-YW554oCZcyB0b3AgZGVjaXNpb24gbWFrZXJzIGVtYWlsIGxpc3QNCiogSHVtYW4gQ2FwaXRhbCBN
-YW5hZ2VtZW50IGVtYWlsIGxpc3QNCiogSW5kaXZpZHVhbCBpbnN1cmFuY2UgYWdlbnRzIGVtYWls
-IGxpc3QNCiogSVNWL1ZBUnMgZW1haWwgbGlzdA0KKiBBcmNoaXRlY3RzIGFuZCBpbnRlcmlvciBk
-ZXNpZ25lcnMgZW1haWwgbGlzdA0KKiBMZWFybmluZyAmIERldmVsb3BtZW50IGVtYWlsIGxpc3QN
-CiogTG9naXN0aWNzLCBzaGlwcGluZyBhbmQgc3VwcGx5IGNoYWluIG1hbmFnZXJzIGVtYWlsIGxp
-c3QNCiogTWFudWZhY3R1cmluZyBJbmR1c3RyeSBleGVjdXRpdmVzIGxpc3QNCiogTmV0d29yayBt
-YW5hZ2VyLCBTdXJ2ZWlsbGFuY2UsIFN5c3RlbSBBZG1pbmlzdHJhdG9yLCBUZWNobmljYWwNClN1
-cHBvcnQgZW1haWwgbGlzdA0KKiBOZXcgJiBVc2VkIENhciBEZWFsZXJzIGVtYWlsIGxpc3QNCiog
-T2lsLCBHYXMgYW5kIHV0aWxpdHkgaW5kdXN0cnkgZW1haWwgbGlzdA0KKiBQbGFudCBNYW5hZ2Vy
-IGVtYWlsIGxpc3QNCiogUHJvZHVjdCBhbmQgcHJvamVjdCBtYW5hZ2VtZW50IGVtYWlsIGxpc3QN
-CiogUHVyY2hhc2luZyBhbmQgUHJvY3VyZW1lbnQgZW1haWwgbGlzdA0KKiBTcGVjaWZpYyBFdmVu
-dCBhdHRlbmRlZXMgbGlzdA0KKiBUZWxlY29tIG1hbmFnZXJzLCBWT0lQIG1hbmFnZXJzLCBDbG91
-ZCBhcmNoaXRlY3QsIENsb3VkIG1hbmFnZXJzLA0KU3RvcmFnZSBtYW5hZ2VycyBlbWFpbCBsaXN0
-DQoqIFZQL0RpcmVjdG9yL01hbmFnZXIgb2YgQ3VzdG9tZXIgU2VydmljZSBhbmQgQ3VzdG9tZXIg
-U3VjY2VzcyBlbWFpbA0KbGlzdA0KVGhhbmtzIGFuZCBsZXQgbWUga25vdy4NCkVtbWEgSm9obnNv
-bg0KRGF0YWJhc2UgQ29uc3VsdGFudA0KNDJNaWwgQjJCIGFuZCAyMTBNaWwgQjJDIE9wdC1pbiBF
-bWFpbCBhbmQgcGhvbmUgbGlzdCB3aXRoIG90aGVyIGRhdGENCmZpZWxkcw0KaHR0cHM6Ly9jaGFp
-cm1hbmV2ZW50c3VtbWl0LmluZm8vZW1tL2luZGV4LnBocC9saXN0cy92aDU0M2RreGRyMzM5L3Vu
-c3Vic2NyaWJlL3ZoOTM3dHBvNXczMjcvY2c4NDJzZm4zZjNiNQ0KwqANCg0KX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4g
-ZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+On Sat, Oct 10, 2020 at 12:03:49AM +0200, Daniel Vetter wrote:
+> On Fri, Oct 09, 2020 at 12:49:44PM -0700, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > These kmap() calls in the gpu stack are localized to a single thread.
+> > To avoid the over head of global PKRS updates use the new kmap_thread()
+> > call.
+> > 
+> > Cc: David Airlie <airlied@linux.ie>
+> > Cc: Daniel Vetter <daniel@ffwll.ch>
+> > Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> 
+> I'm guessing the entire pile goes in through some other tree.
+>
+
+Apologies for not realizing there were multiple maintainers here.
+
+But, I was thinking it would land together through the mm tree once the core
+support lands.  I've tried to split these out in a way they can be easily
+reviewed/acked by the correct developers.
+
+> If so:
+> 
+> Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> 
+> If you want this to land through maintainer trees, then we need a
+> per-driver split (since aside from amdgpu and radeon they're all different
+> subtrees).
+
+It is just RFC for the moment.  I need to get the core support accepted first
+then this can land.
+
+> 
+> btw the two kmap calls in drm you highlight in the cover letter should
+> also be convertible to kmap_thread. We only hold vmalloc mappings for a
+> longer time (or it'd be quite a driver bug). So if you want maybe throw
+> those two as two additional patches on top, and we can do some careful
+> review & testing for them.
+
+Cool.  I'll add them in.
+
+Ira
+
+> -Daniel
+> 
+> > ---
+> >  drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c              | 12 ++++++------
+> >  drivers/gpu/drm/gma500/gma_display.c                 |  4 ++--
+> >  drivers/gpu/drm/gma500/mmu.c                         | 10 +++++-----
+> >  drivers/gpu/drm/i915/gem/i915_gem_shmem.c            |  4 ++--
+> >  .../gpu/drm/i915/gem/selftests/i915_gem_context.c    |  4 ++--
+> >  drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c   |  8 ++++----
+> >  drivers/gpu/drm/i915/gt/intel_ggtt_fencing.c         |  4 ++--
+> >  drivers/gpu/drm/i915/gt/intel_gtt.c                  |  4 ++--
+> >  drivers/gpu/drm/i915/gt/shmem_utils.c                |  4 ++--
+> >  drivers/gpu/drm/i915/i915_gem.c                      |  8 ++++----
+> >  drivers/gpu/drm/i915/i915_gpu_error.c                |  4 ++--
+> >  drivers/gpu/drm/i915/selftests/i915_perf.c           |  4 ++--
+> >  drivers/gpu/drm/radeon/radeon_ttm.c                  |  4 ++--
+> >  13 files changed, 37 insertions(+), 37 deletions(-)
+> > 
+> > diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+> > index 978bae731398..bd564bccb7a3 100644
+> > --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+> > +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+> > @@ -2437,11 +2437,11 @@ static ssize_t amdgpu_ttm_gtt_read(struct file *f, char __user *buf,
+> >  
+> >  		page = adev->gart.pages[p];
+> >  		if (page) {
+> > -			ptr = kmap(page);
+> > +			ptr = kmap_thread(page);
+> >  			ptr += off;
+> >  
+> >  			r = copy_to_user(buf, ptr, cur_size);
+> > -			kunmap(adev->gart.pages[p]);
+> > +			kunmap_thread(adev->gart.pages[p]);
+> >  		} else
+> >  			r = clear_user(buf, cur_size);
+> >  
+> > @@ -2507,9 +2507,9 @@ static ssize_t amdgpu_iomem_read(struct file *f, char __user *buf,
+> >  		if (p->mapping != adev->mman.bdev.dev_mapping)
+> >  			return -EPERM;
+> >  
+> > -		ptr = kmap(p);
+> > +		ptr = kmap_thread(p);
+> >  		r = copy_to_user(buf, ptr + off, bytes);
+> > -		kunmap(p);
+> > +		kunmap_thread(p);
+> >  		if (r)
+> >  			return -EFAULT;
+> >  
+> > @@ -2558,9 +2558,9 @@ static ssize_t amdgpu_iomem_write(struct file *f, const char __user *buf,
+> >  		if (p->mapping != adev->mman.bdev.dev_mapping)
+> >  			return -EPERM;
+> >  
+> > -		ptr = kmap(p);
+> > +		ptr = kmap_thread(p);
+> >  		r = copy_from_user(ptr + off, buf, bytes);
+> > -		kunmap(p);
+> > +		kunmap_thread(p);
+> >  		if (r)
+> >  			return -EFAULT;
+> >  
+> > diff --git a/drivers/gpu/drm/gma500/gma_display.c b/drivers/gpu/drm/gma500/gma_display.c
+> > index 3df6d6e850f5..35f4e55c941f 100644
+> > --- a/drivers/gpu/drm/gma500/gma_display.c
+> > +++ b/drivers/gpu/drm/gma500/gma_display.c
+> > @@ -400,9 +400,9 @@ int gma_crtc_cursor_set(struct drm_crtc *crtc,
+> >  		/* Copy the cursor to cursor mem */
+> >  		tmp_dst = dev_priv->vram_addr + cursor_gt->offset;
+> >  		for (i = 0; i < cursor_pages; i++) {
+> > -			tmp_src = kmap(gt->pages[i]);
+> > +			tmp_src = kmap_thread(gt->pages[i]);
+> >  			memcpy(tmp_dst, tmp_src, PAGE_SIZE);
+> > -			kunmap(gt->pages[i]);
+> > +			kunmap_thread(gt->pages[i]);
+> >  			tmp_dst += PAGE_SIZE;
+> >  		}
+> >  
+> > diff --git a/drivers/gpu/drm/gma500/mmu.c b/drivers/gpu/drm/gma500/mmu.c
+> > index 505044c9a673..fba7a3a461fd 100644
+> > --- a/drivers/gpu/drm/gma500/mmu.c
+> > +++ b/drivers/gpu/drm/gma500/mmu.c
+> > @@ -192,20 +192,20 @@ struct psb_mmu_pd *psb_mmu_alloc_pd(struct psb_mmu_driver *driver,
+> >  		pd->invalid_pte = 0;
+> >  	}
+> >  
+> > -	v = kmap(pd->dummy_pt);
+> > +	v = kmap_thread(pd->dummy_pt);
+> >  	for (i = 0; i < (PAGE_SIZE / sizeof(uint32_t)); ++i)
+> >  		v[i] = pd->invalid_pte;
+> >  
+> > -	kunmap(pd->dummy_pt);
+> > +	kunmap_thread(pd->dummy_pt);
+> >  
+> > -	v = kmap(pd->p);
+> > +	v = kmap_thread(pd->p);
+> >  	for (i = 0; i < (PAGE_SIZE / sizeof(uint32_t)); ++i)
+> >  		v[i] = pd->invalid_pde;
+> >  
+> > -	kunmap(pd->p);
+> > +	kunmap_thread(pd->p);
+> >  
+> >  	clear_page(kmap(pd->dummy_page));
+> > -	kunmap(pd->dummy_page);
+> > +	kunmap_thread(pd->dummy_page);
+> >  
+> >  	pd->tables = vmalloc_user(sizeof(struct psb_mmu_pt *) * 1024);
+> >  	if (!pd->tables)
+> > diff --git a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c b/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+> > index 38113d3c0138..274424795fb7 100644
+> > --- a/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+> > +++ b/drivers/gpu/drm/i915/gem/i915_gem_shmem.c
+> > @@ -566,9 +566,9 @@ i915_gem_object_create_shmem_from_data(struct drm_i915_private *dev_priv,
+> >  		if (err < 0)
+> >  			goto fail;
+> >  
+> > -		vaddr = kmap(page);
+> > +		vaddr = kmap_thread(page);
+> >  		memcpy(vaddr, data, len);
+> > -		kunmap(page);
+> > +		kunmap_thread(page);
+> >  
+> >  		err = pagecache_write_end(file, file->f_mapping,
+> >  					  offset, len, len,
+> > diff --git a/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c b/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c
+> > index 7ffc3c751432..b466c677d007 100644
+> > --- a/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c
+> > +++ b/drivers/gpu/drm/i915/gem/selftests/i915_gem_context.c
+> > @@ -1754,7 +1754,7 @@ static int check_scratch_page(struct i915_gem_context *ctx, u32 *out)
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > -	vaddr = kmap(page);
+> > +	vaddr = kmap_thread(page);
+> >  	if (!vaddr) {
+> >  		pr_err("No (mappable) scratch page!\n");
+> >  		return -EINVAL;
+> > @@ -1765,7 +1765,7 @@ static int check_scratch_page(struct i915_gem_context *ctx, u32 *out)
+> >  		pr_err("Inconsistent initial state of scratch page!\n");
+> >  		err = -EINVAL;
+> >  	}
+> > -	kunmap(page);
+> > +	kunmap_thread(page);
+> >  
+> >  	return err;
+> >  }
+> > diff --git a/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c b/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c
+> > index 9c7402ce5bf9..447df22e2e06 100644
+> > --- a/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c
+> > +++ b/drivers/gpu/drm/i915/gem/selftests/i915_gem_mman.c
+> > @@ -143,7 +143,7 @@ static int check_partial_mapping(struct drm_i915_gem_object *obj,
+> >  	intel_gt_flush_ggtt_writes(&to_i915(obj->base.dev)->gt);
+> >  
+> >  	p = i915_gem_object_get_page(obj, offset >> PAGE_SHIFT);
+> > -	cpu = kmap(p) + offset_in_page(offset);
+> > +	cpu = kmap_thread(p) + offset_in_page(offset);
+> >  	drm_clflush_virt_range(cpu, sizeof(*cpu));
+> >  	if (*cpu != (u32)page) {
+> >  		pr_err("Partial view for %lu [%u] (offset=%llu, size=%u [%llu, row size %u], fence=%d, tiling=%d, stride=%d) misalignment, expected write to page (%llu + %u [0x%llx]) of 0x%x, found 0x%x\n",
+> > @@ -161,7 +161,7 @@ static int check_partial_mapping(struct drm_i915_gem_object *obj,
+> >  	}
+> >  	*cpu = 0;
+> >  	drm_clflush_virt_range(cpu, sizeof(*cpu));
+> > -	kunmap(p);
+> > +	kunmap_thread(p);
+> >  
+> >  out:
+> >  	__i915_vma_put(vma);
+> > @@ -236,7 +236,7 @@ static int check_partial_mappings(struct drm_i915_gem_object *obj,
+> >  		intel_gt_flush_ggtt_writes(&to_i915(obj->base.dev)->gt);
+> >  
+> >  		p = i915_gem_object_get_page(obj, offset >> PAGE_SHIFT);
+> > -		cpu = kmap(p) + offset_in_page(offset);
+> > +		cpu = kmap_thread(p) + offset_in_page(offset);
+> >  		drm_clflush_virt_range(cpu, sizeof(*cpu));
+> >  		if (*cpu != (u32)page) {
+> >  			pr_err("Partial view for %lu [%u] (offset=%llu, size=%u [%llu, row size %u], fence=%d, tiling=%d, stride=%d) misalignment, expected write to page (%llu + %u [0x%llx]) of 0x%x, found 0x%x\n",
+> > @@ -254,7 +254,7 @@ static int check_partial_mappings(struct drm_i915_gem_object *obj,
+> >  		}
+> >  		*cpu = 0;
+> >  		drm_clflush_virt_range(cpu, sizeof(*cpu));
+> > -		kunmap(p);
+> > +		kunmap_thread(p);
+> >  		if (err)
+> >  			return err;
+> >  
+> > diff --git a/drivers/gpu/drm/i915/gt/intel_ggtt_fencing.c b/drivers/gpu/drm/i915/gt/intel_ggtt_fencing.c
+> > index 7fb36b12fe7a..38da348282f1 100644
+> > --- a/drivers/gpu/drm/i915/gt/intel_ggtt_fencing.c
+> > +++ b/drivers/gpu/drm/i915/gt/intel_ggtt_fencing.c
+> > @@ -731,7 +731,7 @@ static void swizzle_page(struct page *page)
+> >  	char *vaddr;
+> >  	int i;
+> >  
+> > -	vaddr = kmap(page);
+> > +	vaddr = kmap_thread(page);
+> >  
+> >  	for (i = 0; i < PAGE_SIZE; i += 128) {
+> >  		memcpy(temp, &vaddr[i], 64);
+> > @@ -739,7 +739,7 @@ static void swizzle_page(struct page *page)
+> >  		memcpy(&vaddr[i + 64], temp, 64);
+> >  	}
+> >  
+> > -	kunmap(page);
+> > +	kunmap_thread(page);
+> >  }
+> >  
+> >  /**
+> > diff --git a/drivers/gpu/drm/i915/gt/intel_gtt.c b/drivers/gpu/drm/i915/gt/intel_gtt.c
+> > index 2a72cce63fd9..4cfb24e9ed62 100644
+> > --- a/drivers/gpu/drm/i915/gt/intel_gtt.c
+> > +++ b/drivers/gpu/drm/i915/gt/intel_gtt.c
+> > @@ -312,9 +312,9 @@ static void poison_scratch_page(struct page *page, unsigned long size)
+> >  	do {
+> >  		void *vaddr;
+> >  
+> > -		vaddr = kmap(page);
+> > +		vaddr = kmap_thread(page);
+> >  		memset(vaddr, POISON_FREE, PAGE_SIZE);
+> > -		kunmap(page);
+> > +		kunmap_thread(page);
+> >  
+> >  		page = pfn_to_page(page_to_pfn(page) + 1);
+> >  		size -= PAGE_SIZE;
+> > diff --git a/drivers/gpu/drm/i915/gt/shmem_utils.c b/drivers/gpu/drm/i915/gt/shmem_utils.c
+> > index 43c7acbdc79d..a40d3130cebf 100644
+> > --- a/drivers/gpu/drm/i915/gt/shmem_utils.c
+> > +++ b/drivers/gpu/drm/i915/gt/shmem_utils.c
+> > @@ -142,12 +142,12 @@ static int __shmem_rw(struct file *file, loff_t off,
+> >  		if (IS_ERR(page))
+> >  			return PTR_ERR(page);
+> >  
+> > -		vaddr = kmap(page);
+> > +		vaddr = kmap_thread(page);
+> >  		if (write)
+> >  			memcpy(vaddr + offset_in_page(off), ptr, this);
+> >  		else
+> >  			memcpy(ptr, vaddr + offset_in_page(off), this);
+> > -		kunmap(page);
+> > +		kunmap_thread(page);
+> >  		put_page(page);
+> >  
+> >  		len -= this;
+> > diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+> > index 9aa3066cb75d..cae8300fd224 100644
+> > --- a/drivers/gpu/drm/i915/i915_gem.c
+> > +++ b/drivers/gpu/drm/i915/i915_gem.c
+> > @@ -312,14 +312,14 @@ shmem_pread(struct page *page, int offset, int len, char __user *user_data,
+> >  	char *vaddr;
+> >  	int ret;
+> >  
+> > -	vaddr = kmap(page);
+> > +	vaddr = kmap_thread(page);
+> >  
+> >  	if (needs_clflush)
+> >  		drm_clflush_virt_range(vaddr + offset, len);
+> >  
+> >  	ret = __copy_to_user(user_data, vaddr + offset, len);
+> >  
+> > -	kunmap(page);
+> > +	kunmap_thread(page);
+> >  
+> >  	return ret ? -EFAULT : 0;
+> >  }
+> > @@ -708,7 +708,7 @@ shmem_pwrite(struct page *page, int offset, int len, char __user *user_data,
+> >  	char *vaddr;
+> >  	int ret;
+> >  
+> > -	vaddr = kmap(page);
+> > +	vaddr = kmap_thread(page);
+> >  
+> >  	if (needs_clflush_before)
+> >  		drm_clflush_virt_range(vaddr + offset, len);
+> > @@ -717,7 +717,7 @@ shmem_pwrite(struct page *page, int offset, int len, char __user *user_data,
+> >  	if (!ret && needs_clflush_after)
+> >  		drm_clflush_virt_range(vaddr + offset, len);
+> >  
+> > -	kunmap(page);
+> > +	kunmap_thread(page);
+> >  
+> >  	return ret ? -EFAULT : 0;
+> >  }
+> > diff --git a/drivers/gpu/drm/i915/i915_gpu_error.c b/drivers/gpu/drm/i915/i915_gpu_error.c
+> > index 3e6cbb0d1150..aecd469b6b6e 100644
+> > --- a/drivers/gpu/drm/i915/i915_gpu_error.c
+> > +++ b/drivers/gpu/drm/i915/i915_gpu_error.c
+> > @@ -1058,9 +1058,9 @@ i915_vma_coredump_create(const struct intel_gt *gt,
+> >  
+> >  			drm_clflush_pages(&page, 1);
+> >  
+> > -			s = kmap(page);
+> > +			s = kmap_thread(page);
+> >  			ret = compress_page(compress, s, dst, false);
+> > -			kunmap(page);
+> > +			kunmap_thread(page);
+> >  
+> >  			drm_clflush_pages(&page, 1);
+> >  
+> > diff --git a/drivers/gpu/drm/i915/selftests/i915_perf.c b/drivers/gpu/drm/i915/selftests/i915_perf.c
+> > index c2d001d9c0ec..7f7ef2d056f4 100644
+> > --- a/drivers/gpu/drm/i915/selftests/i915_perf.c
+> > +++ b/drivers/gpu/drm/i915/selftests/i915_perf.c
+> > @@ -307,7 +307,7 @@ static int live_noa_gpr(void *arg)
+> >  	}
+> >  
+> >  	/* Poison the ce->vm so we detect writes not to the GGTT gt->scratch */
+> > -	scratch = kmap(ce->vm->scratch[0].base.page);
+> > +	scratch = kmap_thread(ce->vm->scratch[0].base.page);
+> >  	memset(scratch, POISON_FREE, PAGE_SIZE);
+> >  
+> >  	rq = intel_context_create_request(ce);
+> > @@ -405,7 +405,7 @@ static int live_noa_gpr(void *arg)
+> >  out_rq:
+> >  	i915_request_put(rq);
+> >  out_ce:
+> > -	kunmap(ce->vm->scratch[0].base.page);
+> > +	kunmap_thread(ce->vm->scratch[0].base.page);
+> >  	intel_context_put(ce);
+> >  out:
+> >  	stream_destroy(stream);
+> > diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+> > index 004344dce140..0aba0cac51e1 100644
+> > --- a/drivers/gpu/drm/radeon/radeon_ttm.c
+> > +++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+> > @@ -1013,11 +1013,11 @@ static ssize_t radeon_ttm_gtt_read(struct file *f, char __user *buf,
+> >  
+> >  		page = rdev->gart.pages[p];
+> >  		if (page) {
+> > -			ptr = kmap(page);
+> > +			ptr = kmap_thread(page);
+> >  			ptr += off;
+> >  
+> >  			r = copy_to_user(buf, ptr, cur_size);
+> > -			kunmap(rdev->gart.pages[p]);
+> > +			kunmap_thread(rdev->gart.pages[p]);
+> >  		} else
+> >  			r = clear_user(buf, cur_size);
+> >  
+> > -- 
+> > 2.28.0.rc0.12.gb6a658bd00c9
+> > 
+> 
+> -- 
+> Daniel Vetter
+> Software Engineer, Intel Corporation
+> http://blog.ffwll.ch
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
