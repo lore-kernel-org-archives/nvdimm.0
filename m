@@ -1,61 +1,104 @@
 Return-Path: <SRS0=VJky=DT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.2 required=3.0 tests=BAYES_80,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1292AC433DF
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 13:01:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54055C4363A
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 16:19:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DE12F2076E
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 13:01:06 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DE12F2076E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=irpc.co.th
+	by mail.kernel.org (Postfix) with ESMTPS id 044592087E
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 16:19:52 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="V7DSrccL"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 044592087E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5F5F415CB7399;
-	Mon, 12 Oct 2020 06:01:06 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=104.168.242.22; helo=irpc.co.th; envelope-from=thanai.j@irpc.co.th; receiver=<UNKNOWN> 
-Received: from irpc.co.th (hwsrv-787319.hostwindsdns.com [104.168.242.22])
-	by ml01.01.org (Postfix) with ESMTP id 353A015CB7394
-	for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 06:00:57 -0700 (PDT)
-From: Thanai Jitrthavonkul <thanai.j@irpc.co.th>
-To: linux-nvdimm@lists.01.org
-Subject: Wrong Iban Account Number
-Date: 12 Oct 2020 13:00:54 +0000
-Message-ID: <20201012130053.5A4DB5075692C0B5@irpc.co.th>
+	by ml01.01.org (Postfix) with ESMTP id 8F6F715AE2A30;
+	Mon, 12 Oct 2020 09:19:52 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=ebiggers@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 565AA14B2CCEC
+	for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 09:19:50 -0700 (PDT)
+Received: from sol.localdomain (172-10-235-113.lightspeed.sntcca.sbcglobal.net [172.10.235.113])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id 22B302080A;
+	Mon, 12 Oct 2020 16:19:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1602519589;
+	bh=FXrMfe87r7In01hy1fZxNUDLVXbtP/5TJ3+XTzWq1o4=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=V7DSrccLr5b4UIwMLihtwG0wHPpEpEeCdL4DEsryZDNbDbBe/031RRLLs/mkasjte
+	 GkozOXCGlriE75ewyNE/y/+1/YN0mvEXF3Fx+zkSk5bqABC19TCsH57zxXZt4yoDfc
+	 Gd/Q7Kn6Oc4wJMc886CZx9bFLur2svNEjPDcQyvk=
+Date: Mon, 12 Oct 2020 09:19:46 -0700
+From: Eric Biggers <ebiggers@kernel.org>
+To: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH RFC PKS/PMEM 22/58] fs/f2fs: Utilize new kmap_thread()
+Message-ID: <20201012161946.GA858@sol.localdomain>
+References: <20201009195033.3208459-1-ira.weiny@intel.com>
+ <20201009195033.3208459-23-ira.weiny@intel.com>
+ <20201009213434.GA839@sol.localdomain>
+ <20201010003954.GW20115@casper.infradead.org>
+ <20201010013036.GD1122@sol.localdomain>
+ <20201012065635.GB2046448@iweiny-DESK2.sc.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_761CAF53.50EAAADF"
-Message-ID-Hash: MLSGPBKQNMW674O4DUDULWLFGJKYCHR4
-X-Message-ID-Hash: MLSGPBKQNMW674O4DUDULWLFGJKYCHR4
-X-MailFrom: thanai.j@irpc.co.th
+Content-Disposition: inline
+In-Reply-To: <20201012065635.GB2046448@iweiny-DESK2.sc.intel.com>
+Message-ID-Hash: FZT2RC64VNDJPIVS6Q54YRSBLIJUBFET
+X-Message-ID-Hash: FZT2RC64VNDJPIVS6Q54YRSBLIJUBFET
+X-MailFrom: ebiggers@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-aio@kvack.org, linux-efi@vger.kernel.org, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-mmc@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, target-devel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kselftest@vger.kernel.org, samba-technical@lists.samba.org, ceph-devel@vger.kernel.org, drbd-dev@lists.linbit.com, devel@driverdev.osuosl.org, linux-cifs@vger.kernel.org, linux-nilfs@vger.kernel.org, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, linux-afs@lists.infradead.org, cluster-devel@redhat.com, linux-cachefs@redhat.com, intel-wired-lan@lists.osuosl.org, xen-
+ devel@lists.xenproject.org, linux-ext4@vger.kernel.org, Fenghua Yu <fenghua.yu@intel.com>, ecryptfs@vger.kernel.org, linux-um@lists.infradead.org, intel-gfx@lists.freedesktop.org, linux-erofs@lists.ozlabs.org, reiserfs-devel@vger.kernel.org, linux-block@vger.kernel.org, linux-bcache@vger.kernel.org, Jaegeuk Kim <jaegeuk@kernel.org>, io-uring@vger.kernel.org, linux-nfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net, netdev@vger.kernel.org, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-fsdevel@vger.kernel.org, bpf@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-btrfs@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MLSGPBKQNMW674O4DUDULWLFGJKYCHR4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FZT2RC64VNDJPIVS6Q54YRSBLIJUBFET/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0012_761CAF53.50EAAADF
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+On Sun, Oct 11, 2020 at 11:56:35PM -0700, Ira Weiny wrote:
+> > 
+> > And I still don't really understand.  After this patchset, there is still code
+> > nearly identical to the above (doing a temporary mapping just for a memcpy) that
+> > would still be using kmap_atomic().
+> 
+> I don't understand.  You mean there would be other call sites calling:
+> 
+> kmap_atomic()
+> memcpy()
+> kunmap_atomic()
+
+Yes, there are tons of places that do this.  Try 'git grep -A6 kmap_atomic'
+and look for memcpy().
+
+Hence why I'm asking what will be the "recommended" way to do this...
+kunmap_thread() or kmap_atomic()?
+
+> And since I don't know the call site details if there are kmap_thread() calls
+> which are better off as kmap_atomic() calls I think it is worth converting
+> them.  But I made the assumption that kmap users would already be calling
+> kmap_atomic() if they could (because it is more efficient).
+
+Not necessarily.  In cases where either one is correct, people might not have
+put much thought into which of kmap() and kmap_atomic() they are using.
+
+- Eric
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
-------=_NextPart_000_0012_761CAF53.50EAAADF--
