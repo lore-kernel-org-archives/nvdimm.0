@@ -1,50 +1,49 @@
-Return-Path: <SRS0=BuUN=DS=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=VJky=DT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: **
 X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCACDC433E7
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 11 Oct 2020 21:44:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 944B4C433E7
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 00:43:51 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 546EA20791
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 11 Oct 2020 21:44:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 546EA20791
+	by mail.kernel.org (Postfix) with ESMTPS id 2126820735
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 00:43:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2126820735
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=rakuten.co.jp
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C0A281587B93E;
-	Sun, 11 Oct 2020 14:44:46 -0700 (PDT)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=150.95.222.121; helo=rakuten.co.jp; envelope-from=xfmegnwreb@rakuten.co.jp; receiver=<UNKNOWN> 
-Received: from rakuten.co.jp (v150-95-222-121.15j2.static.cnode.io [150.95.222.121])
-	by ml01.01.org (Postfix) with ESMTP id 4E3251587B93A
-	for <linux-nvdimm@lists.01.org>; Sun, 11 Oct 2020 14:44:43 -0700 (PDT)
-Message-ID: <6EAC880766F2B131432303842FC8763D@rakuten.co.jp>
+	by ml01.01.org (Postfix) with ESMTP id A4A07158A0E3C;
+	Sun, 11 Oct 2020 17:43:50 -0700 (PDT)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=118.27.76.104; helo=rakuten.co.jp; envelope-from=rwehqj@rakuten.co.jp; receiver=<UNKNOWN> 
+Received: from rakuten.co.jp (v118-27-76-104.l3za.static.cnode.io [118.27.76.104])
+	by ml01.01.org (Postfix) with ESMTP id CC9EB158A0E37
+	for <linux-nvdimm@lists.01.org>; Sun, 11 Oct 2020 17:43:47 -0700 (PDT)
+Message-ID: <D46679AAA4A416810A655CE828D49B8C@rakuten.co.jp>
 From: =?utf-8?B?5qW95aSp5biC5aC0?= <order@rakuten.co.jp>
 To: <linux-nvdimm@lists.01.org>
 Subject: =?utf-8?B?44CQ5qW95aSp5biC5aC044CR5pSv5omV5oOF5aCx5LiA6Ie044GX44Gm44GE44G+44Gb44KTICA=?=
-	=?utf-8?B?MjAyMC8xMC8xMiA2OjQ0OjQz?=
-Date: Mon, 12 Oct 2020 06:44:34 +0900
+	=?utf-8?B?MjAyMC8xMC8xMiA5OjQzOjQ3?=
+Date: Mon, 12 Oct 2020 09:43:37 +0900
 Mime-Version: 1.0
 X-Priority: 3
 X-MSMail-Priority: Normal
 X-Mailer: Microsoft Outlook Express 6.00.2900.5512
 X-MimeOLE: Produced By Microsoft MimeOLE V10.0.14393.2007
-Message-ID-Hash: PZANYCVS5EDVTA3AI5IIX527GBFY7XBQ
-X-Message-ID-Hash: PZANYCVS5EDVTA3AI5IIX527GBFY7XBQ
-X-MailFrom: xfmegnwreb@rakuten.co.jp
+Message-ID-Hash: RBEB54BQBT355MS62QL7KUKPWF4PHJBN
+X-Message-ID-Hash: RBEB54BQBT355MS62QL7KUKPWF4PHJBN
+X-MailFrom: rwehqj@rakuten.co.jp
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PZANYCVS5EDVTA3AI5IIX527GBFY7XBQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RBEB54BQBT355MS62QL7KUKPWF4PHJBN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -63,8 +62,8 @@ bnV4LW52ZGltbeanmA0KICAg44GK5a6i5qeY44Gu5rOo5paH44Go5qW95aSp44Ki44Kr44Km44Oz
 44Gu5YGc5q2i54q25oWL44KS6Kej6Zmk44GX44Gm44GE44Gf44Gg44GR44G+44GZ44CCDQogIOS4
 i+iomOOBq+OBguOCi+OCv+ODluOCkuOCr+ODquODg+OCr+OBl+OBpuOBhOOBn+OBoOOBjeOAgeaz
 qOaWh+aDheWgseOCkuOBlOeiuuiqjeOBvuOBn+OBr+WkieabtOOAgg0KW+azqOaWh+eVquWPt10g
-NjY5Mzk1LTIwMjAxMDEyLTg5Mw0KW+W6l+iIl+WPl+S7mOaXpeaZgl0gMjAyMC8xMC8xMiA2OjQ0
-OjQzDQpb44GK5pSv5omV44GE5pa55rOVXSDjgq/jg6zjgrjjg4Pjg4jjgqvjg7zjg4nmsbrmuIgN
+NzczNDI4LTIwMjAxMDEyLTk2NQ0KW+W6l+iIl+WPl+S7mOaXpeaZgl0gMjAyMC8xMC8xMiA5OjQz
+OjQ3DQpb44GK5pSv5omV44GE5pa55rOVXSDjgq/jg6zjgrjjg4Pjg4jjgqvjg7zjg4nmsbrmuIgN
 CualveWkqeODreOCsOOCpOODsyDvvJ4NCg0KDQoNCg0KDQrigLvjgq/jg6zjgrjjg4Pjg4jjgqvj
 g7zjg4nnlarlj7fjg7vmnInlirnmnJ/pmZDjga7lhaXlipvjgavplpPpgZXjgYTjgYzjgarjgYTj
 gYvjgZTnorroqo3jgY/jgaDjgZXjgYTjgIINCuKAu+OCr+ODrOOCuOODg+ODiOOCq+ODvOODieOB
