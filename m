@@ -1,152 +1,132 @@
 Return-Path: <SRS0=VJky=DT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+X-Spam-Level: *
+X-Spam-Status: No, score=2.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLACK,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16C35C433E7
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 07:40:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA758C433E7
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 12:21:01 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A2DC62173E
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 07:40:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A2DC62173E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
+	by mail.kernel.org (Postfix) with ESMTPS id 86B622074F
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 12:21:01 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=chairmaneventsummit.info header.i=info@chairmaneventsummit.info header.b="GgZRZ7vA"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 86B622074F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=chairmaneventsummit.info
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2D345158B633B;
-	Mon, 12 Oct 2020 00:40:56 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 016EA158D88F8;
+	Mon, 12 Oct 2020 05:21:01 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=54.38.202.178; helo=cha4.chairmaneventsummit.info; envelope-from=info-linux+2dnvdimm=lists.01.org@chairmaneventsummit.info; receiver=<UNKNOWN> 
+Received: from cha4.chairmaneventsummit.info (ip178.ip-54-38-202.eu [54.38.202.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3D1E2158B6336
-	for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 00:40:54 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 3DEE1AC1D;
-	Mon, 12 Oct 2020 07:40:52 +0000 (UTC)
-Subject: Re: [PATCH RFC PKS/PMEM 48/58] drivers/md: Utilize new kmap_thread()
-To: Ira Weiny <ira.weiny@intel.com>
-References: <20201009195033.3208459-1-ira.weiny@intel.com>
- <20201009195033.3208459-49-ira.weiny@intel.com>
- <c802fbf4-f67a-b205-536d-9c71b440f9c8@suse.de>
- <20201012052817.GZ2046448@iweiny-DESK2.sc.intel.com>
-From: Coly Li <colyli@suse.de>
-Autocrypt: addr=colyli@suse.de; keydata=
- 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
-Message-ID: <026a7658-6c43-6510-a8b5-32f29de7b281@suse.de>
-Date: Mon, 12 Oct 2020 15:40:27 +0800
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
- Gecko/20100101 Thunderbird/68.12.1
+	by ml01.01.org (Postfix) with ESMTPS id 487BC158D88F5
+	for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 05:20:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=default; d=chairmaneventsummit.info;
+ h=Date:To:From:Reply-To:Subject:Message-ID:List-Unsubscribe:List-Id:MIME-Version:Content-Type; i=info@chairmaneventsummit.info;
+ bh=En0r8G412vEBaFU2cxvtMNxmtPs=;
+ b=GgZRZ7vAijVzeFkziIhrHkeRBFVA+Y8exNSw0X0w3+UaZtXvBzOgZdX3nMtc8nPxG96A3chaFKy+
+   w3FNDMqG4OB0nAXwoAVttF5lND1XfVuWibSTOJndBA6EiTqrQ+pFpDCevxuUlr/wbqc8VH4UoIyG
+   28D7Xfwi/clCyZRDwpvz8T52M5Qd/Hjl/LxYTVzLNf60oG2ExnIMSniYnuOUcs6o+LdZql6ybKJ1
+   GXluzQpW6OIsjDmFvEo8sI7ZMB8TcsDh0T5lwY6P0MqEyUKEiFrhw6lGEyCdsHrX/Fefxmm+HU47
+   +zmESiA025AyM2rhSgP19K+o4th/KtobZiRdyA==
+DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=default; d=chairmaneventsummit.info;
+ b=Oypvwx+2Cq12rr5kTUfzrTJXFmtCmcZ3yrFPHaUnes4qsw6YGs1CfxklPszIAPzjQzIb1EUb8FBj
+   vqWR6heSMD5v3G13tKkLDGKz57Q9DQWWnPEESDUNQ6iGPeUvYgg1FIri+VD/8pB/DLyb/NcWyAVm
+   tX2gv90likxNsu6qgDs4dXNZyMsj9Gd/DuGwM1cF1tyo11pVk2kTa8c1WsmDa3mD/CrkuMjVnSod
+   WOcOi8BxeEkYOpimfij8sxnTa6QWEFXvsL2G8yWXebq3CpA3r07Rj8YG6YZnHO8GjrsEM2fIXtvT
+   6kMN027y7lEQPbtx8Y252dbJswSkLCBeG4pnFA==;
+Received: from chairmaneventsummit.info (51.83.131.67) by cha1.chairmaneventsummit.info id hgh52li19tkh for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 12:20:52 +0000 (envelope-from <info-linux+2Dnvdimm=lists.01.org@chairmaneventsummit.info>)
+Date: Mon, 12 Oct 2020 12:20:52 +0000
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+From: Emma Johnson <info@chairmaneventsummit.info>
+Subject: RE: did you get my email
+Message-ID: <cea51631c3d5a3542c15b2fc805a207b@chairmaneventsummit.info>
+X-Trgm-Campaign-Uid: rm030nqmfta3e
+X-Trgm-Subscriber-Uid: vh937tpo5w327
+X-Trgm-Customer-Uid: cl716wf5hl7c7
+X-Trgm-Customer-Gid: 0
+X-Trgm-Delivery-Sid: 1
+X-Trgm-Tracking-Did: 0
+X-Report-Abuse: Please report abuse for this campaign here: https://chairmaneventsummit.info/emm/index.php/campaigns/rm030nqmfta3e/report-abuse/vh543dkxdr339/vh937tpo5w327
+Feedback-ID: rm030nqmfta3e:vh937tpo5w327:vh543dkxdr339:cl716wf5hl7c7
+Precedence: bulk
+X-Trgm-EBS: https://chairmaneventsummit.info/emm/index.php/lists/block-address
+X-Sender: info@chairmaneventsummit.info
+X-Receiver: linux-nvdimm@lists.01.org
+X-Trgm-Mailer: PHPMailer - 5.2.21
 MIME-Version: 1.0
-In-Reply-To: <20201012052817.GZ2046448@iweiny-DESK2.sc.intel.com>
-Content-Language: en-US
-Message-ID-Hash: OSEJCTO66QY3XY36HHCWCXWS3LGEZ6OY
-X-Message-ID-Hash: OSEJCTO66QY3XY36HHCWCXWS3LGEZ6OY
-X-MailFrom: colyli@suse.de
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Kent Overstreet <kent.overstreet@gmail.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, kvm@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org, kexec@lists.infradead.org, linux-bcache@vger.kernel.org, linux-mtd@lists.infradead.org, devel@driverdev.osuosl.org, linux-efi@vger.kernel.org, linux-mmc@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-nfs@vger.kernel.org, ceph-devel@vger.kernel.org, linux-ext4@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-erofs@l
- ists.ozlabs.org, linux-um@lists.infradead.org, linux-ntfs-dev@lists.sourceforge.net, reiserfs-devel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net, linux-nilfs@vger.kernel.org, cluster-devel@redhat.com, ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org, linux-btrfs@vger.kernel.org, linux-afs@lists.infradead.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, drbd-dev@lists.linbit.com, linux-block@vger.kernel.org, xen-devel@lists.xenproject.org, linux-cachefs@redhat.com, samba-technical@lists.samba.org, intel-wired-lan@lists.osuosl.org
+Message-ID-Hash: Q7WXCXYKNWAVQZMPR3VZTTZ4MAHBU63Y
+X-Message-ID-Hash: Q7WXCXYKNWAVQZMPR3VZTTZ4MAHBU63Y
+X-MailFrom: info-linux+2Dnvdimm=lists.01.org@chairmaneventsummit.info
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
-Precedence: list
+Reply-To: Emma Johnson <emma@ceoeventsummit2020.info>
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OSEJCTO66QY3XY36HHCWCXWS3LGEZ6OY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Q7WXCXYKNWAVQZMPR3VZTTZ4MAHBU63Y/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On 2020/10/12 13:28, Ira Weiny wrote:
-> On Sat, Oct 10, 2020 at 10:20:34AM +0800, Coly Li wrote:
->> On 2020/10/10 03:50, ira.weiny@intel.com wrote:
->>> From: Ira Weiny <ira.weiny@intel.com>
->>>
->>> These kmap() calls are localized to a single thread.  To avoid the over
->>> head of global PKRS updates use the new kmap_thread() call.
->>>
->>
->> Hi Ira,
->>
->> There were a number of options considered.
->>
->> 1) Attempt to change all the thread local kmap() calls to kmap_atomic()
->> 2) Introduce a flags parameter to kmap() to indicate if the mapping
->> should be global or not
->> 3) Change ~20-30 call sites to 'kmap_global()' to indicate that they
->> require a global mapping of the pages
->> 4) Change ~209 call sites to 'kmap_thread()' to indicate that the
->> mapping is to be used within that thread of execution only
->>
->>
->> I copied the above information from patch 00/58 to this message. The
->> idea behind kmap_thread() is fine to me, but as you said the new api is
->> very easy to be missed in new code (even for me). I would like to be
->> supportive to option 2) introduce a flag to kmap(), then we won't forget
->> the new thread-localized kmap method, and people won't ask why a
->> _thread() function is called but no kthread created.
-> 
-> Thanks for the feedback.
-> 
-> I'm going to hold off making any changes until others weigh in.  FWIW, I kind
-> of like option 2 as well.  But there is already kmap_atomic() so it seemed like
-> kmap_XXXX() was more in line with the current API.
-
-I understand it now, the idea is fine to me.
-
-Acked-by: Coly Li <colyli@suse.de>
-
-Thanks.
-
-Coly Li
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+QXQgJDQ5OSBhcmUgeW91IGludGVyZXN0ZWQgdG8gZG8gRW1haWwgTWFya2V0aW5nIENhbXBhaWdu
+IHdpdGgNCmFuYWx5dGljYWwgcmVwb3J0IHRvIGFueSBvZiB0aGUgZm9sbG93aW5nIGRhdGFiYXNl
+cz8NCiogQ0VPLCBvd25lciwgUHJlc2lkZW50IGFuZCBDT08gZW1haWwgbGlzdA0KKiBDRk8sIENv
+bnRyb2xsZXIsIFZQL0RpcmVjdG9yL01hbmFnZXIgb2YgRmluYW5jZSwgQWNjb3VudHMgUGF5YWJs
+ZSwNCkFjY291bnRzIFJlY2VpdmFibGUsIEF1ZGl0IGVtYWlsIGxpc3QNCiogUGh5c2ljaWFucywg
+RG9jdG9ycywgTnVyc2VzLCBEZW50aXN0cywgVGhlcmFwaXN0cyBlbWFpbCBsaXN0DQoqIENoaWVm
+IEh1bWFuIFJlc291cmNlcyBPZmZpY2VyLCBWUC9EaXJlY3Rvci9NYW5hZ2VyIG9mIEhSLCBFbXBs
+b3llZQ0KQmVuZWZpdHMsIEVtcGxveWVlIENvbW11bmljYXRpb25zLCBFbXBsb3llZSBDb21wZW5z
+YXRpb24sIEVtcGxveWVlDQpFbmdhZ2VtZW50LCBFbXBsb3llZSBFeHBlcmllbmNlIGFuZCBFbXBs
+b3llZSBSZWxhdGlvbnMsIFRhbGVudA0KQWNxdWlzaXRpb24sIFRhbGVudCBEZXZlbG9wbWVudCwg
+VGFsZW50IE1hbmFnZW1lbnQsIFJlY3J1aXRpbmcgZW1haWwNCmxpc3QNCiogQ0lPLENUTywgQ0lT
+TywgVlAvRGlyZWN0b3IvTWFuYWdlciBvZiBJVCwgSVQgQ29tcGxpYW5jZSwgSVQgUmlzaywNCkJJ
+LCBDbG91ZCwgRGF0YWJhc2UgYW5kIElUIFNlY3VyaXR5IGVtYWlsIGxpc3QNCiogQ01PLCBWUC9E
+aXJlY3Rvci9NYW5hZ2VyIG9mIE1hcmtldGluZywgc29jaWFsIG1lZGlhLCBTYWxlcywgZGVtYW5k
+DQpnZW5lcmF0aW9uLCBMZWFkIGdlbmVyYXRpb24sIGluc2lkZSBzYWxlcywgTWFya2V0aW5nIENv
+bW11bmljYXRpb25zDQplbWFpbCBsaXN0DQoqIENvbXBsaWFuY2UgYW5kIFJpc2sgTWFuYWdlbWVu
+dCBlbWFpbCBsaXN0DQoqIENQQSBhbmQgQm9va2tlZXBlcnMgZW1haWwgbGlzdA0KKiBEYXRhIEFu
+YWx5dGljcyBhbmQgRGF0YWJhc2UgQWRtaW5pc3RyYXRvcnMgZW1haWwgbGlzdA0KKiBEaXNhc3Rl
+ciBSZWNvdmVyeSBlbWFpbCBsaXN0DQoqIEUtY29tbWVyY2Ugb3Igb25saW5lIHJldGFpbGVycyBl
+bWFpbCBsaXN0DQoqIEVkdWNhdGlvbiBpbmR1c3RyeSBleGVjdXRpdmVzIGVtYWlsIGxpc3QgLSBQ
+cmluY2lwYWxzLCBEZWFuLA0KQWRtaW5zIGFuZCB0ZWFjaGVycyBmcm9tIFNjaG9vbHMsIENvbGxl
+Z2VzIGFuZCBVbml2ZXJzaXRpZXMNCiogRW5naW5lZXJzIGVtYWlsIGxpc3QNCiogRXZlbnQgYW5k
+IG1lZXRpbmcgcGxhbm5lcnMgZW1haWwgbGlzdA0KKiBGYWNpbGl0aWVzIGFuZCBvZmZpY2UgbWFu
+YWdlciBDb250YWN0cw0KKiBHZW5lcmFsIGFuZCBjb3Jwb3JhdGUgY291bnNlbCBhcyB3ZWxsIGxl
+Z2FsIHByb2Zlc3Npb25hbHMgZW1haWwNCmxpc3QNCiogR292ZXJubWVudCBjb250cmFjdG9ycyBl
+bWFpbCBsaXN0DQoqIEhlYWx0aCAmIFNhZmV0eSBlbWFpbCBsaXN0DQoqIEhpZ2ggbmV0IHdvcnRo
+IGluZGl2aWR1YWxzL2ludmVzdG9ycyBlbWFpbCBsaXN0DQoqIEhvc3BpdGFscywgY2xpbmljcywg
+cHJpdmF0ZSBwcmFjdGljZXMsIFBoYXJtYWNldXRpY2FsIGFuZA0KYmlvdGVjaG5vbG9neSBjb21w
+YW554oCZcyB0b3AgZGVjaXNpb24gbWFrZXJzIGVtYWlsIGxpc3QNCiogSHVtYW4gQ2FwaXRhbCBN
+YW5hZ2VtZW50IGVtYWlsIGxpc3QNCiogSW5kaXZpZHVhbCBpbnN1cmFuY2UgYWdlbnRzIGVtYWls
+IGxpc3QNCiogSVNWL1ZBUnMgZW1haWwgbGlzdA0KKiBBcmNoaXRlY3RzIGFuZCBpbnRlcmlvciBk
+ZXNpZ25lcnMgZW1haWwgbGlzdA0KKiBMZWFybmluZyAmIERldmVsb3BtZW50IGVtYWlsIGxpc3QN
+CiogTG9naXN0aWNzLCBzaGlwcGluZyBhbmQgc3VwcGx5IGNoYWluIG1hbmFnZXJzIGVtYWlsIGxp
+c3QNCiogTWFudWZhY3R1cmluZyBJbmR1c3RyeSBleGVjdXRpdmVzIGxpc3QNCiogTmV0d29yayBt
+YW5hZ2VyLCBTdXJ2ZWlsbGFuY2UsIFN5c3RlbSBBZG1pbmlzdHJhdG9yLCBUZWNobmljYWwNClN1
+cHBvcnQgZW1haWwgbGlzdA0KKiBOZXcgJiBVc2VkIENhciBEZWFsZXJzIGVtYWlsIGxpc3QNCiog
+T2lsLCBHYXMgYW5kIHV0aWxpdHkgaW5kdXN0cnkgZW1haWwgbGlzdA0KKiBQbGFudCBNYW5hZ2Vy
+IGVtYWlsIGxpc3QNCiogUHJvZHVjdCBhbmQgcHJvamVjdCBtYW5hZ2VtZW50IGVtYWlsIGxpc3QN
+CiogUHVyY2hhc2luZyBhbmQgUHJvY3VyZW1lbnQgZW1haWwgbGlzdA0KKiBTcGVjaWZpYyBFdmVu
+dCBhdHRlbmRlZXMgbGlzdA0KKiBUZWxlY29tIG1hbmFnZXJzLCBWT0lQIG1hbmFnZXJzLCBDbG91
+ZCBhcmNoaXRlY3QsIENsb3VkIG1hbmFnZXJzLA0KU3RvcmFnZSBtYW5hZ2VycyBlbWFpbCBsaXN0
+DQoqIFZQL0RpcmVjdG9yL01hbmFnZXIgb2YgQ3VzdG9tZXIgU2VydmljZSBhbmQgQ3VzdG9tZXIg
+U3VjY2VzcyBlbWFpbA0KbGlzdA0KVGhhbmtzIGFuZCBsZXQgbWUga25vdy4NCkVtbWEgSm9obnNv
+bg0KRGF0YWJhc2UgQ29uc3VsdGFudA0KNDJNaWwgQjJCIGFuZCAyMTBNaWwgQjJDIE9wdC1pbiBF
+bWFpbCBhbmQgcGhvbmUgbGlzdCB3aXRoIG90aGVyIGRhdGENCmZpZWxkcw0KaHR0cHM6Ly9jaGFp
+cm1hbmV2ZW50c3VtbWl0LmluZm8vZW1tL2luZGV4LnBocC9saXN0cy92aDU0M2RreGRyMzM5L3Vu
+c3Vic2NyaWJlL3ZoOTM3dHBvNXczMjcvcm0wMzBucW1mdGEzZQ0KwqANCg0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4g
+ZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
