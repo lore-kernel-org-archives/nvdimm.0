@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-12.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4193C35268
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 16:28:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2A00C352B8
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 16:28:42 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 584A6208B8
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 16:28:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 574AF20838
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Oct 2020 16:28:42 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="EwMGQqQP"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 584A6208B8
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=micron.com header.i=@micron.com header.b="caIHBZ99"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 574AF20838
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=micron.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8EAA615B7DEA4;
-	Mon, 12 Oct 2020 09:28:21 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.236.60; helo=nam11-bn8-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
-Received: from NAM11-BN8-obe.outbound.protection.outlook.com (mail-bn8nam11on2060.outbound.protection.outlook.com [40.107.236.60])
+	by ml01.01.org (Postfix) with ESMTP id 9FF8F15B7DEB0;
+	Mon, 12 Oct 2020 09:28:24 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=40.107.244.80; helo=nam12-mw2-obe.outbound.protection.outlook.com; envelope-from=nmeeramohide@micron.com; receiver=<UNKNOWN> 
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2080.outbound.protection.outlook.com [40.107.244.80])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8295715B409FB
-	for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 09:28:14 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 4C9E315B7DE82
+	for <linux-nvdimm@lists.01.org>; Mon, 12 Oct 2020 09:28:17 -0700 (PDT)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=O1/Rckgy1B9255fmMi06itP/Ubi5r8vb+DMhoKyYx7UuiS9Lz0qXnUox7Q28wKa3od+VChp/34L2X0t/qyz6uZCuSwM6Z/fCxmdF5++oajSV7baIQ0qtNg/VBSlB30VwBaxo6cK2vaDuJNtbuGXLHSgTsKNfvelm3BJG9qg4WJsxlYNf6ggmbTKvoXntqjjhidF1iCut1jInmrdDsWgoySILk0v5Vu99vLMunJRgYtLLBZumVEPbQbJC0RTWWemLgW63WfOMhyNtHRwiZ05OFkexbsriP2WRY9C4KXToftHkiD68qJOI3MWLbV0LQ4C3aQclqhmmcKfCvS6xf1cRcA==
+ b=JYVP6r4aTnfhNrdQRrKHzutBc52lMR7XCx9ETXqAUhGQasBWJKtZiD1FolNuT/lEK+SZylGTHh97JeMa+vCe9NTqx9xK2o22HeNflhtMYRcgnLzg4bLmCHGFz2I64IIG1k2L/wXZ2YAj8M0OqT1NfLFUQavPCq9OtAlH1peQ85qHVw1VbrAprehWpLpgJxUBqZpT+LoaXo9fILy6/4MiBL3b87euObgNQH3trfOGJ+dYMU/qq1XsVQGVYTpHQQ1uVSGV1RnSk19IIaxU08XZlol9cjWrXTX6MBzIRztvWPwFk4emxXQEedZEIx2mWjWnKHr4KNErxuhvUZbOGCTGAw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KWJFJtew2sYJIkI9pfwUacyzFHL/KSOsc/SFhXbS050=;
- b=avltao0Mq1snDWXKmX/tRb7REwYex9RdGTGj/g+C7JBdlC7q0oI5GyUK+ADMJwBUjgcKjbWGhDev7if5cvbQn4BcUCBpXVIi+PwITf0luqI7LpyQC9ErL+nlj+CqvZwp4wL8KVlc+N2C5k6X0bzRJbAbncyM2GWYnbOhahg6skUDnlJT9Prnh3XQfBVrRXtUcb6Eof6gd9arGo93kJ6PMnlfIBlu+7mw5+6fjOyRWIkgAxguU9GRSggF5dHNxiw3jaceOnqjMBKDnms37L9DMETeCsfWxPv7HGMh1TfrAi27Qp31RSVammeaNV4CQ31XegJH6ZO3UbW4vjgmdkxsYQ==
+ bh=OKDNuYWPvqW17HEfn2YlDnJSz6UClueobWWQ1euI3Io=;
+ b=T7ZvO/tOsojUyWvIcxhWGrYKf/eRmIlmiEghfMa4lgtdW+kWXaX5Jp4CwI0v7PCFB+2DHKIHvMTg/+pncgoIi6VdkD/1+7yYHrN9KAufDdXq9RniM3pzS5KVWHY+mxCE++Y5jWiRiVupb6DbaUipPlqpmQHH42wLh/NRBksGZ94QXb8s6FU+W38aevhjY9qfFp8u1OFQYTBBbUMlvkTN0QMHb3YgY96DBOPcqaVyUbf0xe+yShEUa8gYeyJS0Xz0Ktgcd5OMrpWMsRp44WnsJIM5qlVcWM5yuGxbc3VV1sbuwIxwAu08ihrjRtw6v0GGVU9CTMxX1C6jbhr+8KjWeg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
  137.201.242.130) smtp.rcpttodomain=kvack.org smtp.mailfrom=micron.com;
  dmarc=pass (p=none sp=none pct=100) action=none header.from=micron.com;
@@ -42,18 +42,18 @@ ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=micron.com;
  s=selector2;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=KWJFJtew2sYJIkI9pfwUacyzFHL/KSOsc/SFhXbS050=;
- b=EwMGQqQPCTBptYOfcHDM0So6BokWofpRbjGSPl8yeuX5ZN4E+hrtdEOkygEdyTS+I7cjsnqYqH0LtgpWQVnImFapZAqcvw8DIE9BWqkQK6Cw7pz0ldZj96IsUAK6tiUr3eC5101ZTQZac0T3W/40DLNZHVRfn7a2HyFKr8HK5W0=
-Received: from SN4PR0201CA0063.namprd02.prod.outlook.com
- (2603:10b6:803:20::25) by CY4PR0801MB3713.namprd08.prod.outlook.com
- (2603:10b6:910:8a::37) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.28; Mon, 12 Oct
- 2020 16:28:10 +0000
+ bh=OKDNuYWPvqW17HEfn2YlDnJSz6UClueobWWQ1euI3Io=;
+ b=caIHBZ994oA/1R9um+PUqctQpfaRzIT/OuFhsD3Jk/mxmuClkUnYP5156WyBifPhJ7VhaLQo8mNlIxpzEWev6fd3hddVidxVaa+4E5644UxqXYyEyDOydQbRupEcKEO9rCstigu2v9ldUmv1gjiNiZ05h3lXM5+dcg57gN6rnSI=
+Received: from SN4PR0201CA0056.namprd02.prod.outlook.com
+ (2603:10b6:803:20::18) by MWHPR08MB2478.namprd08.prod.outlook.com
+ (2603:10b6:300:d::18) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.23; Mon, 12 Oct
+ 2020 16:28:14 +0000
 Received: from SN1NAM01FT015.eop-nam01.prod.protection.outlook.com
- (2603:10b6:803:20:cafe::23) by SN4PR0201CA0063.outlook.office365.com
- (2603:10b6:803:20::25) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.23 via Frontend
- Transport; Mon, 12 Oct 2020 16:28:10 +0000
+ (2603:10b6:803:20:cafe::5a) by SN4PR0201CA0056.outlook.office365.com
+ (2603:10b6:803:20::18) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3455.22 via Frontend
+ Transport; Mon, 12 Oct 2020 16:28:14 +0000
 X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 137.201.242.130)
  smtp.mailfrom=micron.com; kvack.org; dkim=none (message not signed)
  header.d=none;kvack.org; dmarc=pass action=none header.from=micron.com;
@@ -63,17 +63,17 @@ Received-SPF: Pass (protection.outlook.com: domain of micron.com designates
 Received: from mail.micron.com (137.201.242.130) by
  SN1NAM01FT015.mail.protection.outlook.com (10.152.65.55) with Microsoft SMTP
  Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.20.3455.23 via Frontend Transport; Mon, 12 Oct 2020 16:28:09 +0000
+ 15.20.3455.23 via Frontend Transport; Mon, 12 Oct 2020 16:28:14 +0000
 Received: from micron.com (10.114.5.55) by bowex17c.micron.com
  (137.201.21.211) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 12 Oct
- 2020 10:28:02 -0600
+ 2020 10:28:11 -0600
 From: Nabeel M Mohamed <nmeeramohide@micron.com>
 To: <linux-kernel@vger.kernel.org>, <linux-block@vger.kernel.org>,
 	<linux-nvme@lists.infradead.org>, <linux-mm@kvack.org>,
 	<linux-nvdimm@lists.01.org>
-Subject: [PATCH v2 10/22] mpool: add mlog IO utility routines
-Date: Mon, 12 Oct 2020 11:27:24 -0500
-Message-ID: <20201012162736.65241-11-nmeeramohide@micron.com>
+Subject: [PATCH v2 19/22] mpool: add support to mmap arbitrary collection of mblocks
+Date: Mon, 12 Oct 2020 11:27:33 -0500
+Message-ID: <20201012162736.65241-20-nmeeramohide@micron.com>
 X-Mailer: git-send-email 2.17.2
 In-Reply-To: <20201012162736.65241-1-nmeeramohide@micron.com>
 References: <20201012162736.65241-1-nmeeramohide@micron.com>
@@ -81,48 +81,47 @@ MIME-Version: 1.0
 X-ClientProxiedBy: bowex17a.micron.com (137.201.21.209) To bowex17c.micron.com
  (137.201.21.211)
 X-TM-AS-Product-Ver: SMEX-12.0.0.1782-8.200.1013-24646.005
-X-TM-AS-Result: No--14.161500-0.000000-31
-X-TM-AS-MatchedID: 700076-703226-701073-702783-704232-121104-702779-704183-7
-	04318-703851-704949-702346-703812-702299-702178-705161-702561-703357-701703
-	-701480-701809-703017-703140-702395-188019-703213-121336-701105-704673-7039
-	67-702754-704895-702688-701964-780039-701880-105250-705018-701744-703534-70
-	4002-704477-702619-704053-702700-702444-703563-703385-700069-704841-700926-
-	106420-701919-105630-704475-841839-188199-121367-701943-700714-704264-70479
-	2-703215-704184-702171-701750-702617-705244-703080-701933-701443-704978-704
-	397-704328-700737-703557-851458-700458-105700-704456-705279-700950-705154-7
-	03115-700512-300010-860560-701220-701628-703956-148004-148036-29997-42000-4
-	2003
+X-TM-AS-Result: No--20.037900-0.000000-31
+X-TM-AS-MatchedID: 154075-701478-705247-702754-847298-700958-704718-703812-7
+	00400-704960-701162-702876-105040-704418-705041-704397-701724-704637-702877
+	-704318-703878-701270-703027-702914-705161-700328-186035-701342-704500-7049
+	26-703532-861243-702619-701592-780052-701590-703357-703956-704728-701480-70
+	1809-701280-703017-702395-188019-702299-704477-300015-703140-703213-121336-
+	701105-704673-703967-700698-703953-700076-701932-703173-700286-703958-70308
+	0-703624-700181-705220-121367-139504-703279-700351-704053-105630-703904-703
+	865-702298-704934-705279-702837-106420-703325-700069-703766-137717-702617-7
+	04001-702975-704338-701847-701750-705022-704264-148004-148036-42000-42003
 X-TM-AS-User-Approved-Sender: Yes
 X-TM-AS-User-Blocked-Sender: No
 X-MT-Whitelisted: matched
 X-EOPAttributedMessage: 0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 284d604b-b5bb-43f5-aead-08d86ecbce9d
-X-MS-TrafficTypeDiagnostic: CY4PR0801MB3713:
+X-MS-Office365-Filtering-Correlation-Id: 514fe41f-f74d-4277-37c2-08d86ecbd166
+X-MS-TrafficTypeDiagnostic: MWHPR08MB2478:
 X-Microsoft-Antispam-PRVS: 
- <CY4PR0801MB37138824B4EE7FD6EF50355EB3070@CY4PR0801MB3713.namprd08.prod.outlook.com>
+ <MWHPR08MB2478F97AD41A83C4E91D69F7B3070@MWHPR08MB2478.namprd08.prod.outlook.com>
 X-MS-Exchange-Transport-Forked: True
 X-EXT-ByPass: 1
 X-MT-RULE-Whitelisted: Triggered
-X-MS-Oob-TLC-OOBClassifiers: OLM:3513;
+X-MS-Oob-TLC-OOBClassifiers: OLM:9508;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	Qn/yBir86fWlbgt6H5Go7NtzIC1B0UB+a6Km48vWKK0XFmdTn7m8bMvSN6tnpDWzwZAWzTn2vF7gddn9wWlNBNEHAgf/dyVMecwjMDhSCOsnLSfMJKdPQG5q8LVwkEkYv2YHbC4Tn8l9YOP+21F1wJoXnOSYOwp2FcUcYVIHXwwp3aMXBkFvXIJRfRfYWUZio4BPSKq+sArKSNV5R3kwumVK9SXezWTwhLvpcDOOaYG5dJjv4N54XN8tfPcotHnzSneiXaTs9InjBdlShOaAcvhpe6hQdj7rcZqdBIUg2c9WTHFnijCLiRG3KqXHlq5op6RNcqVtBA12f/JkceK/ehix7A4Qe8pxBufqouunQXJBsyHLkN6feDkBdq46LLheB64PsikuSh5qXrKCh5sftE4+/S0BM9/ePltpXz5vhOATCR4vaxwMSHTcT3KAtTLE4uC8MbvheVKt52QaVQKkTQ==
+	+URp68n8QDRg2M29SGVQbrWj6m7dQOkJ0pWm6CC9PYJF7/Upt6UI2TIEIXB1A33Tp7n9Jrl80n7K1FLJ2gCkEYyJuTCF7iyaShJs7vEKRCUBcglC1io6lK0eMIkzfVZP0lDOGobqfkPxmPwUoMuBY/DyzIfbZN7nh9bl21pJ8blgEhK9MuN1SkFY3XPJArF8WblREJwfRNzLyvQMPWq5P1nUVQ7epO+IBwlvQnHhzVEA85Da6Pk1NWgf0rdyMXXRgxwM4J/JKKSscgLIJAAYighuoNy3a82HKhGEJY/pLCW85yuhStgmCF1uC1cRxX1e2olW3jJAeRYfvlkqGvHVFm3twZT0xaOwqHjt2DZ0QGRYXGdA5s1JpVbXMz6fQ16qaxYuXP2ZN0nBxwxuLwijyLyoBrDxS4b4MPU9HazFqm50AkAQC2U05pDoqCodI7hlBA5qMlKMGOoXy8aND1I2jg==
 X-Forefront-Antispam-Report: 
-	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(346002)(376002)(396003)(136003)(39860400002)(46966005)(7696005)(4326008)(107886003)(2906002)(478600001)(356005)(36756003)(86362001)(83380400001)(82310400003)(33310700002)(5660300002)(6286002)(55016002)(316002)(186003)(2616005)(7636003)(47076004)(6666004)(70206006)(70586007)(54906003)(26005)(110136005)(1076003)(30864003)(426003)(336012)(8936002)(82740400003)(8676002)(2101003)(579004);DIR:OUT;SFP:1101;
+	CIP:137.201.242.130;CTRY:US;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:mail.micron.com;PTR:masquerade.micron.com;CAT:NONE;SFS:(4636009)(39860400002)(396003)(136003)(346002)(376002)(46966005)(107886003)(47076004)(8936002)(8676002)(86362001)(1076003)(83380400001)(6286002)(33310700002)(4326008)(6666004)(478600001)(356005)(7636003)(36756003)(55016002)(110136005)(26005)(5660300002)(70206006)(70586007)(186003)(7696005)(82310400003)(336012)(82740400003)(426003)(316002)(2906002)(54906003)(2616005)(30864003)(2101003);DIR:OUT;SFP:1101;
 X-OriginatorOrg: micron.com
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Oct 2020 16:28:09.5082
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Oct 2020 16:28:14.1839
  (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 284d604b-b5bb-43f5-aead-08d86ecbce9d
+X-MS-Exchange-CrossTenant-Network-Message-Id: 514fe41f-f74d-4277-37c2-08d86ecbd166
 X-MS-Exchange-CrossTenant-Id: f38a5ecd-2813-4862-b11b-ac1d563c806f
 X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f38a5ecd-2813-4862-b11b-ac1d563c806f;Ip=[137.201.242.130];Helo=[mail.micron.com]
 X-MS-Exchange-CrossTenant-AuthSource: SN1NAM01FT015.eop-nam01.prod.protection.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Anonymous
 X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: CY4PR0801MB3713
-Message-ID-Hash: QLMZ2KCU2ESOT7ZKH2SJ3BBLVS5BTQ2C
-X-Message-ID-Hash: QLMZ2KCU2ESOT7ZKH2SJ3BBLVS5BTQ2C
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR08MB2478
+Message-ID-Hash: VWYKLEKFR7JJ2W53RQND4BHPMU4DHS7H
+X-Message-ID-Hash: VWYKLEKFR7JJ2W53RQND4BHPMU4DHS7H
 X-MailFrom: nmeeramohide@micron.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -130,7 +129,7 @@ CC: smoyer@micron.com, gbecker@micron.com, plabat@micron.com, jgroves@micron.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QLMZ2KCU2ESOT7ZKH2SJ3BBLVS5BTQ2C/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VWYKLEKFR7JJ2W53RQND4BHPMU4DHS7H/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -139,35 +138,41 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Adds buffer management routines used by the mlog IO path.
+This implements the mmap file operation for the mpool driver.
 
-Mlog objects are containers for record logging. An mlog is
-structured as a series of consecutive log blocks where each
-log block is exactly one sector in size. Records of
-arbitrary size can be appended to an mlog until it's full.
+Mblock and mlog writes avoid the Linux page cache. Mblocks are
+written, committed, and made immutable before they can be read
+either directly (avoiding the page cache) or memory-mapped.
+Mlogs are always read and updated directly and cannot be
+memory-mapped.
 
-Mlog uses a flush set algorithm for implementing multi-sector
-append and read buffers. A flush set is one or more sector-
-size memory buffers containing consecutive log block data
-with newly appended records written together in a single
-logical I/O. The flush set algorithm maintains flush set
-identifiers in the headers of the log blocks comprising the
-append buffer and handles failures when writing these log
-blocks.
+Mblocks are memory-mapped by creating an mcache map.
+The mcache map APIs allow an arbitrary collection of mblocks
+(specified as a vector of mblock OIDs) to be mapped linearly
+into the virtual address space of an mpool client.
 
-The flush set grows up to the append buffer size providing
-better throughput for async appends. Once the flush set is
-full or when the client issues a synchronous append or mlog
-flush, the flush set is written to media and the buffer pages
-are freed/prepared for the next append depending on the I/O
-outcome.
+An extended VMA instance (mpc_xvm) is created for each
+mcache map. The xvm takes a ref on all the mblocks it maps.
+The size of an xvm region is 1G by default and can be tuned
+using the module parameter 'xvm_size_max'. When an mcache
+map is created, its xvm instance is assigned with the next
+available device offset range. The device offset -> xvm
+mapping is inserted into a region map stored in the mpool's
+unit object.
 
-The read buffer is also provisioned like the append buffer.
-The read buffer management is optimized for the expected use
-cases, which is open a log, read once to load persisted state
-into memory and thereafter only append while open. The log
-blocks are loaded into the read buffer up to but not including
-the offset of the first log block in the append buffer.
+The mmap driver entry point uses the vma page offset to deduce
+the device offset of the corresponding mcache map. The xvm
+instance is looked up from the region map using device offset
+as the key. A reference to this xvm instance is stored in the
+vma private data, which enables the page fault handler to find
+the xvm for the faulting range in constant time. The offset into
+the mcache map can then be used to determine the mblock id and
+offset to be read for filling the page.
+
+Readahead is enabled for the mpool device by providing the
+fadvise file op and by initializing file_ra_state.ra_pages.
+Readahead requests are dispatched to one of the four
+readahead workqueues and served by the workqueue threads.
 
 Co-developed-by: Greg Becker <gbecker@micron.com>
 Signed-off-by: Greg Becker <gbecker@micron.com>
@@ -177,1439 +182,1388 @@ Co-developed-by: John Groves <jgroves@micron.com>
 Signed-off-by: John Groves <jgroves@micron.com>
 Signed-off-by: Nabeel M Mohamed <nmeeramohide@micron.com>
 ---
- drivers/mpool/mlog_utils.c | 1352 ++++++++++++++++++++++++++++++++++++
- drivers/mpool/mlog_utils.h |   63 ++
- 2 files changed, 1415 insertions(+)
- create mode 100644 drivers/mpool/mlog_utils.c
- create mode 100644 drivers/mpool/mlog_utils.h
+ drivers/mpool/init.c   |   16 +
+ drivers/mpool/init.h   |    2 +
+ drivers/mpool/mcache.c | 1029 ++++++++++++++++++++++++++++++++++++++++
+ drivers/mpool/mcache.h |   96 ++++
+ drivers/mpool/mpctl.c  |   45 +-
+ drivers/mpool/mpctl.h  |    3 +
+ 6 files changed, 1190 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/mpool/mcache.c
+ create mode 100644 drivers/mpool/mcache.h
 
-diff --git a/drivers/mpool/mlog_utils.c b/drivers/mpool/mlog_utils.c
+diff --git a/drivers/mpool/init.c b/drivers/mpool/init.c
+index 126c6c7142b5..b1fe3286773a 100644
+--- a/drivers/mpool/init.c
++++ b/drivers/mpool/init.c
+@@ -12,11 +12,20 @@
+ #include "smap.h"
+ #include "pmd_obj.h"
+ #include "sb.h"
++#include "mcache.h"
+ #include "mpctl.h"
+ 
+ /*
+  * Module params...
+  */
++unsigned int xvm_max __read_mostly = 1048576 * 128;
++module_param(xvm_max, uint, 0444);
++MODULE_PARM_DESC(xvm_max, " max extended VMA regions");
++
++unsigned int xvm_size_max __read_mostly = 30;
++module_param(xvm_size_max, uint, 0444);
++MODULE_PARM_DESC(xvm_size_max, " max extended VMA size log2");
++
+ unsigned int maxunits __read_mostly = 1024;
+ module_param(maxunits, uint, 0444);
+ MODULE_PARM_DESC(maxunits, " max mpools");
+@@ -40,6 +49,7 @@ MODULE_PARM_DESC(chunk_size_kb, "Chunk size (in KiB) for device I/O");
+ static void mpool_exit_impl(void)
+ {
+ 	mpctl_exit();
++	mcache_exit();
+ 	pmd_exit();
+ 	smap_exit();
+ 	sb_exit();
+@@ -82,6 +92,12 @@ static __init int mpool_init(void)
+ 		goto errout;
+ 	}
+ 
++	rc = mcache_init();
++	if (rc) {
++		errmsg = "mcache init failed";
++		goto errout;
++	}
++
+ 	rc = mpctl_init();
+ 	if (rc) {
+ 		errmsg = "mpctl init failed";
+diff --git a/drivers/mpool/init.h b/drivers/mpool/init.h
+index 3d8f809a5e45..507d43a55c01 100644
+--- a/drivers/mpool/init.h
++++ b/drivers/mpool/init.h
+@@ -6,6 +6,8 @@
+ #ifndef MPOOL_INIT_H
+ #define MPOOL_INIT_H
+ 
++extern unsigned int xvm_max;
++extern unsigned int xvm_size_max;
+ extern unsigned int maxunits;
+ extern unsigned int rwsz_max_mb;
+ extern unsigned int rwconc_max;
+diff --git a/drivers/mpool/mcache.c b/drivers/mpool/mcache.c
 new file mode 100644
-index 000000000000..3fae46b5a1c3
+index 000000000000..07c79615ecf1
 --- /dev/null
-+++ b/drivers/mpool/mlog_utils.c
-@@ -0,0 +1,1352 @@
++++ b/drivers/mpool/mcache.c
+@@ -0,0 +1,1029 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
 + */
 +
-+#include <linux/mm.h>
-+#include <linux/log2.h>
-+#include <linux/blk_types.h>
-+#include <linux/rbtree.h>
-+#include <linux/slab.h>
-+#include <asm/page.h>
++#include <linux/module.h>
++#include <linux/memcontrol.h>
++#include <linux/kref.h>
++#include <linux/migrate.h>
++#include <linux/delay.h>
++#include <linux/uio.h>
++#include <linux/fadvise.h>
++#include <linux/prefetch.h>
 +
-+#include "assert.h"
++#include "mpool_ioctl.h"
++
++#include "mp.h"
 +#include "mpool_printk.h"
++#include "assert.h"
 +
-+#include "pmd_obj.h"
-+#include "mpcore.h"
-+#include "mlog.h"
-+#include "mlog_utils.h"
++#include "mpctl.h"
 +
-+#define mlpriv2layout(_ptr) \
-+	((struct pmd_layout *)((char *)(_ptr) - offsetof(struct pmd_layout, eld_priv)))
++#ifndef lru_to_page
++#define lru_to_page(_head)  (list_entry((_head)->prev, struct page, lru))
++#endif
 +
-+bool mlog_objid(u64 objid)
-+{
-+	return objid && pmd_objid_type(objid) == OMF_OBJ_MLOG;
-+}
++/*
++ * MPC_RA_IOV_MAX - Max pages per call to mblock read by a readahead
++ * request.  Be careful about increasing this as it directly adds
++ * (n * 24) bytes to the stack frame of mpc_readpages_cb().
++ */
++#define MPC_RA_IOV_MAX      (8)
 +
-+/**
-+ * mlog2layout() - convert opaque mlog handle to pmd_layout
++#define NODEV               MKDEV(0, 0)    /* Non-existent device */
++
++/*
++ * Arguments required to initiate an asynchronous call to mblock_read()
++ * and which must also be preserved across that call.
 + *
-+ * This function converts the opaque handle (mlog_descriptor) used by
-+ * clients to the internal representation (pmd_layout).  The
-+ * conversion is a simple cast, followed by a sanity check to verify the
-+ * layout object is an mlog object.  If the validation fails, a NULL
-+ * pointer is returned.
++ * Note: We could make things more efficient by changing a_pagev[]
++ * to a struct kvec if mblock_read() would guarantee that it will
++ * not alter the given iovec.
 + */
-+struct pmd_layout *mlog2layout(struct mlog_descriptor *mlh)
-+{
-+	struct pmd_layout *layout = (void *)mlh;
++struct readpage_args {
++	void                       *a_xvm;
++	struct mblock_descriptor   *a_mbdesc;
++	u64                         a_mboffset;
++	int                         a_pagec;
++	struct page                *a_pagev[];
++};
 +
-+	return mlog_objid(layout->eld_objid) ? layout : NULL;
++struct readpage_work {
++	struct work_struct      w_work;
++	struct readpage_args    w_args;
++};
++
++static void mpc_xvm_put(struct mpc_xvm *xvm);
++
++static int mpc_readpage_impl(struct page *page, struct mpc_xvm *map);
++
++/* The following structures are initialized at the end of this file. */
++static const struct vm_operations_struct mpc_vops_default;
++const struct address_space_operations mpc_aops_default;
++
++static struct workqueue_struct *mpc_wq_trunc __read_mostly;
++static struct workqueue_struct *mpc_wq_rav[4] __read_mostly;
++
++static size_t mpc_xvm_cachesz[2] __read_mostly;
++static struct kmem_cache *mpc_xvm_cache[2] __read_mostly;
++
++static struct workqueue_struct *mpc_rgn2wq(uint rgn)
++{
++	return mpc_wq_rav[rgn % ARRAY_SIZE(mpc_wq_rav)];
 +}
 +
-+/**
-+ * layout2mlog() - convert pmd_layout to opaque mlog_descriptor
-+ *
-+ * This function converts the internally used pmd_layout to
-+ * the externally used opaque mlog_descriptor.
-+ */
-+struct mlog_descriptor *layout2mlog(struct pmd_layout *layout)
++static int mpc_rgnmap_isorphan(int rgn, void *item, void *data)
 +{
-+	return (struct mlog_descriptor *)layout;
-+}
++	struct mpc_xvm *xvm = item;
++	void **headp = data;
 +
-+static struct pmd_layout_mlpriv *oml_layout_find(struct mpool_descriptor *mp, u64 key)
-+{
-+	struct pmd_layout_mlpriv *this;
-+	struct pmd_layout *layout;
-+	struct rb_node *node;
-+
-+	node = mp->pds_oml_root.rb_node;
-+	while (node) {
-+		this = rb_entry(node, typeof(*this), mlp_nodeoml);
-+		layout = mlpriv2layout(this);
-+
-+		if (key < layout->eld_objid)
-+			node = node->rb_left;
-+		else if (key > layout->eld_objid)
-+			node = node->rb_right;
-+		else
-+			return this;
++	if (xvm && kref_read(&xvm->xvm_ref) == 1 && !atomic_read(&xvm->xvm_opened)) {
++		idr_replace(&xvm->xvm_rgnmap->rm_root, NULL, rgn);
++		xvm->xvm_next = *headp;
++		*headp = xvm;
 +	}
 +
-+	return NULL;
++	return ITERCB_NEXT;
 +}
 +
-+struct pmd_layout_mlpriv *oml_layout_insert(struct mpool_descriptor *mp,
-+					    struct pmd_layout_mlpriv *item)
++void mpc_rgnmap_flush(struct mpc_rgnmap *rm)
 +{
-+	struct pmd_layout_mlpriv *this;
-+	struct pmd_layout *layout;
-+	struct rb_node **pos, *parent;
-+	struct rb_root *root;
-+	u64 key;
++	struct mpc_xvm *head = NULL, *xvm;
 +
-+	root = &mp->pds_oml_root;
-+	pos = &root->rb_node;
-+	parent = NULL;
-+
-+	key = mlpriv2layout(item)->eld_objid;
-+
-+	while (*pos) {
-+		this = rb_entry(*pos, typeof(*this), mlp_nodeoml);
-+		layout = mlpriv2layout(this);
-+
-+		parent = *pos;
-+		if (key < layout->eld_objid)
-+			pos = &(*pos)->rb_left;
-+		else if (key > layout->eld_objid)
-+			pos = &(*pos)->rb_right;
-+		else
-+			return this;
-+	}
-+
-+	/* Add new node and rebalance tree. */
-+	rb_link_node(&item->mlp_nodeoml, parent, pos);
-+	rb_insert_color(&item->mlp_nodeoml, root);
-+
-+	return NULL;
-+}
-+
-+struct pmd_layout_mlpriv *oml_layout_remove(struct mpool_descriptor *mp, u64 key)
-+{
-+	struct pmd_layout_mlpriv *found;
-+
-+	found = oml_layout_find(mp, key);
-+	if (found)
-+		rb_erase(&found->mlp_nodeoml, &mp->pds_oml_root);
-+
-+	return found;
-+}
-+
-+/**
-+ * mlog_free_abuf() - Free log pages in the append buffer, range:[start, end].
-+ * @lstat: mlog_stat
-+ * @start: start log page index, inclusive
-+ * @end:   end log page index, inclusive
-+ */
-+void mlog_free_abuf(struct mlog_stat *lstat, int start, int end)
-+{
-+	int i;
-+
-+	for (i = start; i <= end; i++) {
-+		if (lstat->lst_abuf[i]) {
-+			free_page((unsigned long)lstat->lst_abuf[i]);
-+			lstat->lst_abuf[i] = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * mlog_free_rbuf() - Free log pages in the read buffer, range:[start, end].
-+ * @lstat: mlog_stat
-+ * @start: start log page index, inclusive
-+ * @end:   end log page index, inclusive
-+ */
-+void mlog_free_rbuf(struct mlog_stat *lstat, int start, int end)
-+{
-+	int i;
-+
-+	for (i = start; i <= end; i++) {
-+		if (lstat->lst_rbuf[i]) {
-+			free_page((unsigned long)lstat->lst_rbuf[i]);
-+			lstat->lst_rbuf[i] = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * mlog_init_fsetparms() - Initialize frequently used mlog & flush set parameters.
-+ * @mp:     mpool descriptor
-+ * @layout: layout descriptor
-+ * @mfp:    fset parameters (output)
-+ */
-+static void mlog_init_fsetparms(struct mpool_descriptor *mp, struct mlog_descriptor *mlh,
-+				struct mlog_fsetparms *mfp)
-+{
-+	struct pmd_layout *layout;
-+	struct pd_prop *pdp;
-+	u8 secshift;
-+	u16 sectsz;
-+
-+	layout = mlog2layout(mlh);
-+	ASSERT(layout);
-+
-+	pdp = &mp->pds_pdv[layout->eld_ld.ol_pdh].pdi_prop;
-+	secshift = PD_SECTORSZ(pdp);
-+	mfp->mfp_totsec = pmd_layout_cap_get(mp, layout) >> secshift;
-+
-+	sectsz = 1 << secshift;
-+	ASSERT((sectsz == PAGE_SIZE) || (sectsz == 512));
-+
-+	mfp->mfp_sectsz  = sectsz;
-+	mfp->mfp_lpgsz   = PAGE_SIZE;
-+	mfp->mfp_secpga  = IS_ALIGNED(mfp->mfp_sectsz, mfp->mfp_lpgsz);
-+	mfp->mfp_nlpgmb  = MB >> PAGE_SHIFT;
-+	mfp->mfp_nsecmb  = MB >> secshift;
-+	mfp->mfp_nseclpg = mfp->mfp_lpgsz >> secshift;
-+}
-+
-+/**
-+ * mlog_extract_fsetparms() - Helper to extract flush set parameters.
-+ * @lstat:   mlog stat
-+ * @sectsz:  sector size
-+ * @totsec:  total number of sectors in the mlog
-+ * @nsecmb:  number of sectors in 1 MiB
-+ * @nseclpg: number of sectors in a log page
-+ */
-+void
-+mlog_extract_fsetparms(struct mlog_stat *lstat, u16 *sectsz, u32 *totsec, u16 *nsecmb, u16 *nseclpg)
-+{
-+	if (sectsz)
-+		*sectsz = MLOG_SECSZ(lstat);
-+	if (totsec)
-+		*totsec = MLOG_TOTSEC(lstat);
-+	if (nsecmb)
-+		*nsecmb = MLOG_NSECMB(lstat);
-+	if (nseclpg)
-+		*nseclpg = MLOG_NSECLPG(lstat);
-+}
-+
-+/**
-+ * mlog_stat_free() - Deallocate log stat struct for mlog layout (if any)
-+ */
-+void mlog_stat_free(struct pmd_layout *layout)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+
-+	if (!lstat->lst_abuf)
++	if (!rm)
 +		return;
 +
-+	mlog_free_rbuf(lstat, 0, MLOG_NLPGMB(lstat) - 1);
-+	mlog_free_abuf(lstat, 0, MLOG_NLPGMB(lstat) - 1);
-+
-+	kfree(lstat->lst_abuf);
-+	lstat->lst_abuf = NULL;
-+}
-+
-+/**
-+ * mlog_read_iter_init() - Initialize read iterator
-+ *
-+ * @layout: mlog layout
-+ * @lstat:  mlog stat
-+ * @lri"    mlog read iterator
-+ */
-+void
-+mlog_read_iter_init(struct pmd_layout *layout, struct mlog_stat *lstat, struct mlog_read_iter *lri)
-+{
-+	lri->lri_layout = layout;
-+	lri->lri_gen    = layout->eld_gen;
-+	lri->lri_soff   = 0;
-+	lri->lri_roff   = 0;
-+	lri->lri_valid  = 1;
-+	lri->lri_rbidx  = 0;
-+	lri->lri_sidx   = 0;
-+
-+	lstat->lst_rsoff  = -1;
-+	lstat->lst_rseoff = -1;
-+}
-+
-+/**
-+ * mlog_stat_init_common() - Initialize mlog_stat fields.
-+ * @layout:
-+ * @lstat: mlog_stat
-+ */
-+void mlog_stat_init_common(struct pmd_layout *layout, struct mlog_stat *lstat)
-+{
-+	struct mlog_read_iter *lri;
-+
-+	lstat->lst_pfsetid = 0;
-+	lstat->lst_cfsetid = 1;
-+	lstat->lst_abidx   = 0;
-+	lstat->lst_asoff   = -1;
-+	lstat->lst_cfssoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+	lstat->lst_aoff    = OMF_LOGBLOCK_HDR_PACKLEN;
-+	lstat->lst_abdirty = false;
-+	lstat->lst_wsoff   = 0;
-+	lstat->lst_cstart  = 0;
-+	lstat->lst_cend    = 0;
-+
-+	lri = &lstat->lst_citr;
-+	mlog_read_iter_init(layout, lstat, lri);
-+}
-+
-+/**
-+ * mlog_rw_raw() - Called by mpctl kernel for mlog IO.
-+ * @mp:     mpool descriptor
-+ * @mlh:    mlog descriptor
-+ * @iov:    iovec
-+ * @iovcnt: iov cnt
-+ * @boff:   IO offset
-+ * @rw:     MPOOL_OP_READ or MPOOL_OP_WRITE
-+ *
-+ * The scatter-gather buffer must contain
-+ * framed mlog data (this is done in user space for user space mlogs).
-+ */
-+int mlog_rw_raw(struct mpool_descriptor *mp, struct mlog_descriptor *mlh,
-+		const struct kvec *iov, int iovcnt, u64 boff, u8 rw)
-+{
-+	struct pmd_layout *layout;
-+	int flags;
-+	int rc;
-+
-+	layout = mlog2layout(mlh);
-+	if (!layout)
-+		return -EINVAL;
-+
-+	flags = (rw == MPOOL_OP_WRITE) ? REQ_FUA : 0;
-+
-+	pmd_obj_wrlock(layout);
-+	rc = pmd_layout_rw(mp, layout, iov, iovcnt, boff, flags, rw);
-+	pmd_obj_wrunlock(layout);
-+
-+	return rc;
-+}
-+
-+/**
-+ * mlog_rw() -
-+ * @mp:       mpool descriptor
-+ * @mlh:      mlog descriptor
-+ * @iov:      iovec
-+ * @iovcnt:   iov cnt
-+ * @boff:     IO offset
-+ * @rw:       MPOOL_OP_READ or MPOOL_OP_WRITE
-+ * @skip_ser: client guarantees serialization
-+ */
-+static int mlog_rw(struct mpool_descriptor *mp, struct mlog_descriptor *mlh,
-+		   struct kvec *iov, int iovcnt, u64 boff, u8 rw, bool skip_ser)
-+{
-+	struct pmd_layout *layout;
-+
-+	layout = mlog2layout(mlh);
-+	if (!layout)
-+		return -EINVAL;
-+
-+	if (!skip_ser) {
-+		int flags = (rw == MPOOL_OP_WRITE) ? REQ_FUA : 0;
-+
-+		return pmd_layout_rw(mp, layout, iov, iovcnt, boff, flags, rw);
-+	}
-+
-+	return mlog_rw_raw(mp, mlh, iov, iovcnt, boff, rw);
-+}
-+
-+/**
-+ * mlog_stat_init() - Allocate and init log stat struct for mlog layout.
-+ *
-+ * Returns: 0 if successful, -errno otherwise
-+ */
-+int mlog_stat_init(struct mpool_descriptor *mp, struct mlog_descriptor *mlh, bool csem)
-+{
-+	struct pmd_layout *layout = mlog2layout(mlh);
-+	struct mlog_fsetparms mfp;
-+	struct mlog_stat *lstat;
-+	size_t bufsz;
-+	int rc;
-+
-+	if (!layout)
-+		return -EINVAL;
-+
-+	lstat = &layout->eld_lstat;
-+
-+	mlog_stat_init_common(layout, lstat);
-+	mlog_init_fsetparms(mp, mlh, &mfp);
-+
-+	bufsz = mfp.mfp_nlpgmb * sizeof(char *) * 2;
-+
-+	lstat->lst_abuf = kzalloc(bufsz, GFP_KERNEL);
-+	if (!lstat->lst_abuf) {
-+		rc = -ENOMEM;
-+		mp_pr_err("mpool %s, allocating mlog 0x%lx status failed %zu",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, bufsz);
-+		return rc;
-+	}
-+
-+	lstat->lst_rbuf = lstat->lst_abuf + mfp.mfp_nlpgmb;
-+	lstat->lst_mfp  = mfp;
-+	lstat->lst_csem = csem;
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_setup_buf() - Build an iovec list to read into an mlog read buffer, or write from
-+ * an mlog append buffer.
-+ * @lstat:   mlog_stat
-+ * @riov:    iovec (output)
-+ * @iovcnt:  number of iovecs
-+ * @l_iolen: IO length for the last log page in the buffer
-+ * @op:      MPOOL_OP_READ or MPOOL_OP_WRITE
-+ *
-+ * In the read case, the read buffer pages will be allocated if not already populated.
-+ */
-+static int
-+mlog_setup_buf(struct mlog_stat *lstat, struct kvec **riov, u16 iovcnt, u32 l_iolen, u8 op)
-+{
-+	struct kvec *iov = *riov;
-+	u32 len = MLOG_LPGSZ(lstat);
-+	bool alloc_iov = false;
-+	u16 i;
-+	char *buf;
-+
-+	ASSERT(len == PAGE_SIZE);
-+	ASSERT(l_iolen <= PAGE_SIZE);
-+
-+	if (!iov) {
-+		ASSERT((iovcnt * sizeof(*iov)) <= PAGE_SIZE);
-+
-+		iov = kcalloc(iovcnt, sizeof(*iov), GFP_KERNEL);
-+		if (!iov)
-+			return -ENOMEM;
-+
-+		alloc_iov = true;
-+		*riov = iov;
-+	}
-+
-+	for (i = 0; i < iovcnt; i++, iov++) {
-+		buf = ((op == MPOOL_OP_READ) ? lstat->lst_rbuf[i] : lstat->lst_abuf[i]);
-+
-+		/* iov_len for the last log page in read/write buffer. */
-+		if (i == iovcnt - 1 && l_iolen != 0)
-+			len = l_iolen;
-+
-+		ASSERT(IS_ALIGNED(len, MLOG_SECSZ(lstat)));
-+
-+		if (op == MPOOL_OP_WRITE && buf) {
-+			iov->iov_base = buf;
-+			iov->iov_len  = len;
-+			continue;
-+		}
-+
-+		/*
-+		 * Pages for the append buffer are allocated in
-+		 * mlog_append_*(), so we shouldn't be here for MPOOL_OP_WRITE.
-+		 */
-+		ASSERT(op == MPOOL_OP_READ);
-+
-+		/*
-+		 * If the read buffer contains stale log pages from a prior
-+		 * iterator, reuse them. No need to zero these pages for
-+		 * the same reason provided in the following comment.
-+		 */
-+		if (buf) {
-+			iov->iov_base = buf;
-+			iov->iov_len  = len;
-+			continue;
-+		}
-+
-+		/*
-+		 * No need to zero the read buffer as we never read more than
-+		 * what's needed and do not consume beyond what's read.
-+		 */
-+		buf = (char *)__get_free_page(GFP_KERNEL);
-+		if (!buf) {
-+			mlog_free_rbuf(lstat, 0, i - 1);
-+			if (alloc_iov) {
-+				kfree(iov);
-+				*riov = NULL;
-+			}
-+
-+			return -ENOMEM;
-+		}
-+
-+		/*
-+		 * Must be a page-aligned buffer so that it can be used
-+		 * in bio_add_page().
-+		 */
-+		ASSERT(PAGE_ALIGNED(buf));
-+
-+		lstat->lst_rbuf[i] = iov->iov_base = buf;
-+		iov->iov_len = len;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_populate_abuf() - Makes append offset page-aligned and performs the
-+ * read operation in the read-modify-write cycle.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @soff:     sector/LB offset
-+ * @buf:      buffer to populate. Size of this buffer must be MLOG_LPGSZ(lstat).
-+ * @skip_ser: client guarantees serialization
-+ *
-+ * This is to ensure that IO-requests to the device are always 4K-aligned.
-+ * The read-modify-write cycle happens *only* if the first append post mlog
-+ * open lands on a non-page aligned sector offset. For any further appends,
-+ * read-modify-write cycle doesn't happen, as the 4k-aligned version of the
-+ * flush set algorithm ensures 4k-alignment of sector offsets at the start
-+ * of each log page.
-+ */
-+static int mlog_populate_abuf(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+			      off_t *soff, char *buf, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	struct kvec iov;
-+	u16 sectsz, iovcnt, leading;
-+	off_t off;
-+	u32 leadb;
-+	int rc;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+
-+	/* Find the leading number of sectors to make it page-aligned. */
-+	leading = ((*soff * sectsz) & ~PAGE_MASK) >> ilog2(sectsz);
-+	if (leading == 0)
-+		return 0; /* Nothing to do */
-+
-+	*soff = *soff - leading;
-+	leadb = leading * sectsz;
-+
-+	iovcnt       = 1;
-+	iov.iov_base = buf;
-+	iov.iov_len  = MLOG_LPGSZ(lstat);
-+
-+	off = *soff * sectsz;
-+	ASSERT(IS_ALIGNED(off, MLOG_LPGSZ(lstat)));
-+
-+	rc = mlog_rw(mp, layout2mlog(layout), &iov, iovcnt, off, MPOOL_OP_READ, skip_ser);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx, read IO failed, iovcnt: %u, off: 0x%lx",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, iovcnt, off);
-+		return rc;
-+	}
-+
-+	memset(&buf[leadb], 0, MLOG_LPGSZ(lstat) - leadb);
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_populate_rbuf() - Fill the read buffer after aligning the read offset to page boundary.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @nsec:     number of sectors to populate
-+ * @soff:     start sector/LB offset
-+ * @skip_ser: client guarantees serialization
-+ *
-+ * Having the read offsets page-aligned avoids unnecessary
-+ * complexity at the pd layer.
-+ *
-+ * In the worst case, for 512 byte sectors, we would end up reading 7
-+ * additional sectors, which is acceptable. There won't be any overhead for
-+ * 4 KiB sectors as they are naturally page-aligned.
-+ *
-+ * Caller must hold the write lock on the layout.
-+ */
-+int mlog_populate_rbuf(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+		       u16 *nsec, off_t *soff, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	struct kvec *iov = NULL;
-+	u16 maxsec, sectsz, iovcnt, nseclpg, leading;
-+	off_t off;
-+	u32 l_iolen;
-+	int rc;
-+
-+	mlog_extract_fsetparms(lstat, &sectsz, NULL, &maxsec, &nseclpg);
-+
-+	/* Find the leading number of sectors to make it page-aligned. */
-+	leading = ((*soff * sectsz) & ~PAGE_MASK) >> ilog2(sectsz);
-+	*soff   = *soff - leading;
-+	*nsec  += leading;
-+
-+	*nsec   = min_t(u32, maxsec, *nsec);
-+	iovcnt  = (*nsec + nseclpg - 1) / nseclpg;
-+	l_iolen = MLOG_LPGSZ(lstat);
-+
-+	rc = mlog_setup_buf(lstat, &iov, iovcnt, l_iolen, MPOOL_OP_READ);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx setup failed, iovcnt: %u, last iolen: %u",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, iovcnt, l_iolen);
-+		return rc;
-+	}
-+
-+	off = *soff * sectsz;
-+	ASSERT(IS_ALIGNED(off, MLOG_LPGSZ(lstat)));
-+
-+	rc = mlog_rw(mp, layout2mlog(layout), iov, iovcnt, off, MPOOL_OP_READ, skip_ser);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx populate rbuf, IO failed iovcnt: %u, off: 0x%lx",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, iovcnt, off);
-+
-+		mlog_free_rbuf(lstat, 0, MLOG_NLPGMB(lstat) - 1);
-+		kfree(iov);
-+		return rc;
-+	}
++	/* Wait for all mpc_xvm_free_cb() callbacks to complete... */
++	flush_workqueue(mpc_wq_trunc);
 +
 +	/*
-+	 * If there're any unused buffers beyond iovcnt, free it. This is
-+	 * likely to happen when there're multiple threads reading from
-+	 * the same mlog simultaneously, using their own iterator.
++	 * Build a list of all orphaned XVMs and release their birth
++	 * references (i.e., XVMs that were created but never mmapped).
 +	 */
-+	mlog_free_rbuf(lstat, iovcnt, MLOG_NLPGMB(lstat) - 1);
++	mutex_lock(&rm->rm_lock);
++	idr_for_each(&rm->rm_root, mpc_rgnmap_isorphan, &head);
++	mutex_unlock(&rm->rm_lock);
 +
-+	kfree(iov);
-+
-+	return 0;
++	while ((xvm = head)) {
++		head = xvm->xvm_next;
++		mpc_xvm_put(xvm);
++	}
 +}
 +
-+/**
-+ * mlog_alloc_abufpg() - Allocate a log page at append buffer index 'abidx'.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @abidx:    allocate log page at index 'abidx'.
-+ * @skip_ser: client guarantees serialization
-+ *
-+ * If the sector size is 512B AND 4K-alignment is forced AND the append offset
-+ * at buffer index '0' is not 4K-aligned, then call mlog_populate_abuf().
-+ */
-+static int mlog_alloc_abufpg(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+			     u16 abidx, bool skip_ser)
++static struct mpc_xvm *mpc_xvm_lookup(struct mpc_rgnmap *rm, uint key)
 +{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	char *abuf;
++	struct mpc_xvm *xvm;
 +
-+	ASSERT(MLOG_LPGSZ(lstat) == PAGE_SIZE);
++	mutex_lock(&rm->rm_lock);
++	xvm = idr_find(&rm->rm_root, key);
++	if (xvm && !kref_get_unless_zero(&xvm->xvm_ref))
++		xvm = NULL;
++	mutex_unlock(&rm->rm_lock);
 +
-+	abuf = (char *)get_zeroed_page(GFP_KERNEL);
-+	if (!abuf)
++	return xvm;
++}
++
++void mpc_xvm_free(struct mpc_xvm *xvm)
++{
++	struct mpc_rgnmap *rm;
++
++	ASSERT((u32)(uintptr_t)xvm == xvm->xvm_magic);
++
++	rm = xvm->xvm_rgnmap;
++
++	mutex_lock(&rm->rm_lock);
++	idr_remove(&rm->rm_root, xvm->xvm_rgn);
++	mutex_unlock(&rm->rm_lock);
++
++	xvm->xvm_magic = 0xbadcafe;
++	xvm->xvm_rgn = -1;
++
++	kmem_cache_free(xvm->xvm_cache, xvm);
++
++	atomic_dec(&rm->rm_rgncnt);
++}
++
++static void mpc_xvm_free_cb(struct work_struct *work)
++{
++	struct mpc_xvm *xvm = container_of(work, typeof(*xvm), xvm_work);
++
++	mpc_xvm_free(xvm);
++}
++
++static void mpc_xvm_get(struct mpc_xvm *xvm)
++{
++	kref_get(&xvm->xvm_ref);
++}
++
++static void mpc_xvm_release(struct kref *kref)
++{
++	struct mpc_xvm *xvm = container_of(kref, struct mpc_xvm, xvm_ref);
++	struct mpc_rgnmap *rm = xvm->xvm_rgnmap;
++	int i;
++
++	ASSERT((u32)(uintptr_t)xvm == xvm->xvm_magic);
++
++	mutex_lock(&rm->rm_lock);
++	ASSERT(kref_read(kref) == 0);
++	idr_replace(&rm->rm_root, NULL, xvm->xvm_rgn);
++	mutex_unlock(&rm->rm_lock);
++
++	/*
++	 * Wait for all in-progress readaheads to complete
++	 * before we drop our mblock references.
++	 */
++	if (atomic_add_return(WQ_MAX_ACTIVE, &xvm->xvm_rabusy) > WQ_MAX_ACTIVE)
++		flush_workqueue(mpc_rgn2wq(xvm->xvm_rgn));
++
++	for (i = 0; i < xvm->xvm_mbinfoc; ++i)
++		mblock_put(xvm->xvm_mbinfov[i].mbdesc);
++
++	INIT_WORK(&xvm->xvm_work, mpc_xvm_free_cb);
++	queue_work(mpc_wq_trunc, &xvm->xvm_work);
++}
++
++static void mpc_xvm_put(struct mpc_xvm *xvm)
++{
++	kref_put(&xvm->xvm_ref, mpc_xvm_release);
++}
++
++/*
++ * VM operations
++ */
++
++static void mpc_vm_open(struct vm_area_struct *vma)
++{
++	mpc_xvm_get(vma->vm_private_data);
++}
++
++static void mpc_vm_close(struct vm_area_struct *vma)
++{
++	mpc_xvm_put(vma->vm_private_data);
++}
++
++static int mpc_alloc_and_readpage(struct vm_area_struct *vma, pgoff_t offset, gfp_t gfp)
++{
++	struct address_space *mapping;
++	struct file *file;
++	struct page *page;
++	int rc;
++
++	page = __page_cache_alloc(gfp | __GFP_NOWARN);
++	if (!page)
 +		return -ENOMEM;
 +
-+	lstat->lst_abuf[abidx] = abuf;
++	file    = vma->vm_file;
++	mapping = file->f_mapping;
 +
-+	if (abidx == 0) {
-+		off_t asoff, wsoff;
-+		u16 aoff, sectsz;
++	rc = add_to_page_cache_lru(page, mapping, offset, gfp & GFP_KERNEL);
++	if (rc == 0)
++		rc = mpc_readpage_impl(page, vma->vm_private_data);
++	else if (rc == -EEXIST)
++		rc = 0;
++
++	put_page(page);
++
++	return rc;
++}
++
++static bool mpc_lock_page_or_retry(struct page *page, struct mm_struct *mm, uint flags)
++{
++	might_sleep();
++
++	if (trylock_page(page))
++		return true;
++
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (flags & FAULT_FLAG_RETRY_NOWAIT)
++			return false;
++
++		mmap_read_unlock(mm);
++		/* _killable version is not exported by the kernel. */
++		wait_on_page_locked(page);
++		return false;
++	}
++
++	if (flags & FAULT_FLAG_KILLABLE) {
 +		int rc;
 +
-+		/* This path is taken *only* for the first append following an mlog_open(). */
-+		sectsz = MLOG_SECSZ(lstat);
-+		wsoff  = lstat->lst_wsoff;
-+		aoff   = lstat->lst_aoff;
-+
-+		if (IS_SECPGA(lstat) || (IS_ALIGNED(wsoff * sectsz, MLOG_LPGSZ(lstat)))) {
-+			/* This is the common path */
-+			lstat->lst_asoff = wsoff;
-+			return 0;
-+		}
-+
-+		/*
-+		 * This path is taken *only* if,
-+		 * - the log block size is 512B AND
-+		 * - lst_wsoff is non page-aligned, which is possible for the
-+		 *   first append post mlog_open.
-+		 */
-+		asoff = wsoff;
-+		rc = mlog_populate_abuf(mp, layout, &asoff, abuf, skip_ser);
++		rc = lock_page_killable(page);
 +		if (rc) {
-+			mp_pr_err("mpool %s, mlog 0x%lx, making write offset %ld 4K-aligned failed",
-+				  rc, mp->pds_name, (ulong)layout->eld_objid, wsoff);
-+			mlog_free_abuf(lstat, abidx, abidx);
-+			return rc;
++			mmap_read_unlock(mm);
++			return false;
 +		}
-+
-+		ASSERT(asoff <= wsoff);
-+		ASSERT(IS_ALIGNED(asoff * sectsz, MLOG_LPGSZ(lstat)));
-+
-+		lstat->lst_cfssoff = ((wsoff - asoff) * sectsz) + aoff;
-+		lstat->lst_asoff   = asoff;
++	} else {
++		lock_page(page);
 +	}
++
++	return true;
++}
++
++static int mpc_handle_page_error(struct page *page, struct vm_area_struct *vma)
++{
++	int rc;
++
++	ClearPageError(page);
++
++	rc = mpc_readpage_impl(page, vma->vm_private_data);
++	if (rc == 0) {
++		wait_on_page_locked(page);
++		if (!PageUptodate(page))
++			rc = -EIO;
++	}
++
++	put_page(page);
++
++	return rc;
++}
++
++static vm_fault_t mpc_vm_fault_impl(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	struct address_space *mapping;
++	struct inode *inode;
++	struct page *page;
++	vm_fault_t vmfrc;
++	pgoff_t offset;
++	loff_t size;
++
++	mapping = vma->vm_file->f_mapping;
++	inode   = mapping->host;
++	offset  = vmf->pgoff;
++	vmfrc   = 0;
++
++	size = round_up(i_size_read(inode), PAGE_SIZE);
++	if (offset >= (size >> PAGE_SHIFT))
++		return VM_FAULT_SIGBUS;
++
++retry_find:
++	page = find_get_page(mapping, offset);
++	if (!page) {
++		int rc = mpc_alloc_and_readpage(vma, offset, mapping_gfp_mask(mapping));
++
++		if (rc < 0)
++			return (rc == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS;
++
++		vmfrc = VM_FAULT_MAJOR;
++		goto retry_find;
++	}
++
++	/* At this point, page is not locked but has a ref. */
++	if (vmfrc == VM_FAULT_MAJOR)
++		count_vm_event(PGMAJFAULT);
++
++	if (!mpc_lock_page_or_retry(page, vma->vm_mm, vmf->flags)) {
++		put_page(page);
++		return vmfrc | VM_FAULT_RETRY;
++	}
++
++	/* At this point, page is locked with a ref. */
++	if (unlikely(page->mapping != mapping)) {
++		unlock_page(page);
++		put_page(page);
++		goto retry_find;
++	}
++
++	VM_BUG_ON_PAGE(page->index != offset, page);
++
++	if (unlikely(!PageUptodate(page))) {
++		int rc = mpc_handle_page_error(page, vma);
++
++		/* At this point, page is not locked and has no ref. */
++		if (rc)
++			return VM_FAULT_SIGBUS;
++		goto retry_find;
++	}
++
++	/* Page is locked with a ref. */
++	vmf->page = page;
++
++	return vmfrc | VM_FAULT_LOCKED;
++}
++
++static vm_fault_t mpc_vm_fault(struct vm_fault *vmf)
++{
++	return mpc_vm_fault_impl(vmf->vma, vmf);
++}
++
++/*
++ * MPCTL address-space operations.
++ */
++
++static int mpc_readpage_impl(struct page *page, struct mpc_xvm *xvm)
++{
++	struct mpc_mbinfo *mbinfo;
++	struct kvec iov[1];
++	off_t offset;
++	uint mbnum;
++	int rc;
++
++	offset  = page->index << PAGE_SHIFT;
++	offset %= (1ul << xvm_size_max);
++
++	mbnum = offset / xvm->xvm_bktsz;
++	if (mbnum >= xvm->xvm_mbinfoc) {
++		unlock_page(page);
++		return -EINVAL;
++	}
++
++	mbinfo = xvm->xvm_mbinfov + mbnum;
++	offset %= xvm->xvm_bktsz;
++
++	if (offset >= mbinfo->mblen) {
++		unlock_page(page);
++		return -EINVAL;
++	}
++
++	iov[0].iov_base = page_address(page);
++	iov[0].iov_len = PAGE_SIZE;
++
++	rc = mblock_read(xvm->xvm_mpdesc, mbinfo->mbdesc, iov, 1, offset, PAGE_SIZE);
++	if (rc) {
++		unlock_page(page);
++		return rc;
++	}
++
++	if (xvm->xvm_hcpagesp)
++		atomic64_inc(xvm->xvm_hcpagesp);
++	atomic64_inc(&xvm->xvm_nrpages);
++
++	SetPagePrivate(page);
++	set_page_private(page, (ulong)xvm);
++	SetPageUptodate(page);
++	unlock_page(page);
 +
 +	return 0;
 +}
 +
++#define MPC_RPARGSBUFSZ \
++	(sizeof(struct readpage_args) + MPC_RA_IOV_MAX * sizeof(void *))
++
 +/**
-+ * mlog_flush_abuf() - Set up iovec and flush the append buffer to media.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @skip_ser: client guarantees serialization
++ * mpc_readpages_cb() - mpc_readpages() callback
++ * @work:   w_work.work from struct readpage_work
++ *
++ * The incoming arguments are in the first page (a_pagev[0]) which
++ * we are about to overwrite, so we copy them to the stack.
 + */
-+static int mlog_flush_abuf(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser)
++static void mpc_readpages_cb(struct work_struct *work)
 +{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	struct kvec *iov = NULL;
-+	u16 abidx, sectsz, nseclpg;
-+	off_t off;
-+	u32 l_iolen;
-+	int rc;
++	struct kvec iovbuf[MPC_RA_IOV_MAX];
++	char argsbuf[MPC_RPARGSBUFSZ];
++	struct readpage_args *args = (void *)argsbuf;
++	struct readpage_work *w;
++	struct mpc_xvm *xvm;
++	struct kvec *iov = iovbuf;
++	size_t argssz;
++	int pagec, rc, i;
 +
-+	mlog_extract_fsetparms(lstat, &sectsz, NULL, NULL, &nseclpg);
++	w = container_of(work, struct readpage_work, w_work);
 +
-+	abidx   = lstat->lst_abidx;
-+	l_iolen = MLOG_LPGSZ(lstat);
++	pagec = w->w_args.a_pagec;
++	argssz = sizeof(*args) + sizeof(args->a_pagev[0]) * pagec;
 +
-+	rc = mlog_setup_buf(lstat, &iov, abidx + 1, l_iolen, MPOOL_OP_WRITE);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx flush, buf setup failed, iovcnt: %u, iolen: %u",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, abidx + 1, l_iolen);
-+		return rc;
++	ASSERT(pagec <= ARRAY_SIZE(iovbuf));
++	ASSERT(argssz <= sizeof(argsbuf));
++
++	memcpy(args, &w->w_args, argssz);
++	w = NULL; /* Do not touch! */
++
++	xvm = args->a_xvm;
++
++	/*
++	 * Synchronize with mpc_xvm_put() to prevent dropping our
++	 * mblock references while there are reads in progress.
++	 */
++	if (atomic_inc_return(&xvm->xvm_rabusy) > WQ_MAX_ACTIVE) {
++		rc = -ENXIO;
++		goto errout;
 +	}
 +
-+	off = lstat->lst_asoff * sectsz;
++	for (i = 0; i < pagec; ++i) {
++		iov[i].iov_base = page_address(args->a_pagev[i]);
++		iov[i].iov_len = PAGE_SIZE;
++	}
 +
-+	ASSERT((IS_ALIGNED(off, MLOG_LPGSZ(lstat))) ||
-+		(IS_SECPGA(lstat) && IS_ALIGNED(off, MLOG_SECSZ(lstat))));
-+
-+	rc = mlog_rw(mp, layout2mlog(layout), iov, abidx + 1, off, MPOOL_OP_WRITE, skip_ser);
++	rc = mblock_read(xvm->xvm_mpdesc, args->a_mbdesc, iov,
++			 pagec, args->a_mboffset, pagec << PAGE_SHIFT);
 +	if (rc)
-+		mp_pr_err("mpool %s, mlog 0x%lx flush append buf, IO failed iovcnt %u, off 0x%lx",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid, abidx + 1, off);
++		goto errout;
 +
-+	kfree(iov);
++	if (xvm->xvm_hcpagesp)
++		atomic64_add(pagec, xvm->xvm_hcpagesp);
++	atomic64_add(pagec, &xvm->xvm_nrpages);
++	atomic_dec(&xvm->xvm_rabusy);
 +
-+	return rc;
++	for (i = 0; i < pagec; ++i) {
++		struct page *page = args->a_pagev[i];
++
++		SetPagePrivate(page);
++		set_page_private(page, (ulong)xvm);
++		SetPageUptodate(page);
++
++		unlock_page(page);
++		put_page(page);
++	}
++
++	return;
++
++errout:
++	atomic_dec(&xvm->xvm_rabusy);
++
++	for (i = 0; i < pagec; ++i) {
++		unlock_page(args->a_pagev[i]);
++		put_page(args->a_pagev[i]);
++	}
 +}
 +
-+/**
-+ * mlog_flush_posthdlr_4ka() - Handles both successful and failed flush for
-+ *                             512B sectors with 4K-Alignment.
-+ * @layout: layout descriptor
-+ * @fsucc:  flush status
-+ */
-+static void mlog_flush_posthdlr_4ka(struct pmd_layout *layout, bool fsucc)
++static int mpc_readpages(struct file *file, struct address_space *mapping,
++			 struct list_head *pages, uint nr_pages)
 +{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 abidx, sectsz, asidx;
-+	off_t asoff, wsoff;
-+	char *abuf;
-+	u32 nsecwr;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+	abidx = lstat->lst_abidx;
-+	asoff = lstat->lst_asoff;
-+	wsoff = lstat->lst_wsoff;
-+
-+	asidx  = wsoff - ((MLOG_NSECLPG(lstat) * abidx) + asoff);
-+
-+	/* Set the current filling log page index to 0. */
-+	lstat->lst_abidx = 0;
-+	abuf = lstat->lst_abuf[0];
-+
-+	if (!fsucc) {
-+		u32 cfssoff;
-+
-+		/*
-+		 * Last CFS flush or header packing failed.
-+		 * Retain the pfsetid of the first log block.
-+		 */
-+		cfssoff = lstat->lst_cfssoff;
-+		memset(&abuf[cfssoff], 0, MLOG_LPGSZ(lstat) - cfssoff);
-+		asidx = (cfssoff >> ilog2(sectsz));
-+		lstat->lst_aoff  = cfssoff - (asidx * sectsz);
-+		lstat->lst_wsoff = asoff + asidx;
-+
-+		goto exit2;
-+	}
-+
-+	/* Last CFS flush succeded. */
-+	if (abidx != 0) {
-+		/* Reorganize buffers if the active log page not at index 0. */
-+		abuf = lstat->lst_abuf[abidx];
-+		lstat->lst_abuf[abidx] = NULL;
-+	}
-+
-+	nsecwr = wsoff - (asoff + (lstat->lst_cfssoff >> ilog2(sectsz)));
-+	asoff  = wsoff - asidx;
-+
-+	/* The last logblock of the just-written CFS is not full. */
-+	if (sectsz - lstat->lst_aoff >= OMF_LOGREC_DESC_PACKLEN) {
-+		if (nsecwr != 0)
-+			/* Set pfsetid to the cfsetid of just-written CFS. */
-+			lstat->lst_pfsetid  = lstat->lst_cfsetid;
-+
-+		goto exit1;
-+	}
-+
-+	/* The last logblock of the just-written CFS is full. */
-+	lstat->lst_aoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+	++wsoff;
-+	if ((wsoff - asoff) == MLOG_NSECLPG(lstat)) {
-+		memset(&abuf[0], 0, MLOG_LPGSZ(lstat));
-+		asoff = wsoff;
-+	}
-+	/* Set pfsetid to the cfsetid of just-written CFS. */
-+	lstat->lst_pfsetid  = lstat->lst_cfsetid;
-+
-+exit1:
-+	asidx              = wsoff - asoff;
-+	lstat->lst_cfssoff = (asidx * sectsz) + lstat->lst_aoff;
-+	lstat->lst_asoff   = asoff;
-+	lstat->lst_wsoff   = wsoff;
-+
-+exit2:
-+	/* Increment cfsetid in all cases. */
-+	++lstat->lst_cfsetid;
-+
-+	lstat->lst_abuf[0] = abuf;
-+}
-+
-+/**
-+ * mlog_flush_posthdlr() - Handles both successful and failed flush for
-+ * 512B and 4K-sectors with native alignment, i.e., 512B and 4K resply.
-+ *
-+ * @layout: layout descriptor
-+ * @fsucc:  flush status
-+ */
-+static void mlog_flush_posthdlr(struct pmd_layout *layout, bool fsucc)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 abidx, sectsz, asidx;
-+	off_t asoff, lpgoff;
-+	char *abuf;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+	abidx  = lstat->lst_abidx;
-+	asoff  = lstat->lst_asoff;
-+
-+	asidx  = lstat->lst_wsoff - ((MLOG_NSECLPG(lstat) * abidx) + asoff);
-+	lpgoff = asidx * sectsz;
-+
-+	/* Set the current filling log page index to 0. */
-+	lstat->lst_abidx = 0;
-+	abuf = lstat->lst_abuf[0];
-+
-+	if (!fsucc) {
-+		u32 cfssoff;
-+
-+		/*
-+		 * Last CFS flush or header packing failed.
-+		 * Retain the pfsetid of the first log block.
-+		 */
-+		cfssoff = lstat->lst_cfssoff;
-+		memset(&abuf[cfssoff], 0, MLOG_LPGSZ(lstat) - cfssoff);
-+		lstat->lst_aoff  = cfssoff;
-+		lstat->lst_wsoff = asoff;
-+
-+		goto exit2;
-+	}
-+
-+	/* Last CFS flush succeded. */
-+	if (abidx != 0) {
-+		/* Reorganize buffers if the active log page not at index 0. */
-+		abuf = lstat->lst_abuf[abidx];
-+		lstat->lst_abuf[abidx] = NULL;
-+	}
-+
-+	/* The last logblock of the just-written CFS is not full. */
-+	if (sectsz - lstat->lst_aoff >= OMF_LOGREC_DESC_PACKLEN) {
-+		/*
-+		 * If the last logblock in the just-written CFS is
-+		 * first in the append buffer at abidx.
-+		 */
-+		if (lpgoff == 0) {
-+			if (abidx != 0)
-+				lstat->lst_pfsetid = lstat->lst_cfsetid;
-+
-+			goto exit1;
-+		}
-+
-+		memcpy(&abuf[0], &abuf[lpgoff], sectsz);
-+		memset(&abuf[sectsz], 0, lpgoff - sectsz + lstat->lst_aoff);
-+	} else { /* The last logblock of the just-written CFS is full. */
-+		memset(&abuf[0], 0, lpgoff + sectsz);
-+		lstat->lst_aoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+		++lstat->lst_wsoff;
-+	}
-+	/* Set pfsetid to the cfsetid of just-written CFS. */
-+	lstat->lst_pfsetid  = lstat->lst_cfsetid;
-+
-+exit1:
-+	lstat->lst_cfssoff = lstat->lst_aoff;
-+	lstat->lst_asoff   = lstat->lst_wsoff;
-+
-+exit2:
-+	/* Increment cfsetid in all cases. */
-+	++lstat->lst_cfsetid;
-+
-+	lstat->lst_abuf[0] = abuf;
-+}
-+
-+/**
-+ * mlog_logblocks_hdrpack() -  Pack log block header in all log blocks in the append buffer.
-+ * @layout: object layout
-+ *
-+ * Called prior to CFS flush
-+ */
-+static int mlog_logblocks_hdrpack(struct pmd_layout *layout)
-+{
-+	struct omf_logblock_header lbh;
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	off_t lpgoff;
-+	u32 pfsetid, cfsetid;
-+	u16 sectsz, nseclpg;
-+	u16 idx, abidx;
-+	u16 sec, start;
-+
-+	sectsz  = MLOG_SECSZ(lstat);
-+	nseclpg = MLOG_NSECLPG(lstat);
-+	abidx   = lstat->lst_abidx;
-+	pfsetid = lstat->lst_pfsetid;
-+	cfsetid = lstat->lst_cfsetid;
-+
-+	lbh.olh_vers = OMF_LOGBLOCK_VERS;
-+
-+	for (idx = 0; idx <= abidx; idx++) {
-+		start = 0;
-+
-+		if (!IS_SECPGA(lstat) && idx == 0)
-+			start = (lstat->lst_cfssoff >> ilog2(sectsz));
-+
-+		if (idx == abidx)
-+			nseclpg = lstat->lst_wsoff - (nseclpg * abidx + lstat->lst_asoff) + 1;
-+
-+		for (sec = start; sec < nseclpg; sec++) {
-+			int rc;
-+
-+			lbh.olh_pfsetid = pfsetid;
-+			lbh.olh_cfsetid = cfsetid;
-+			mpool_uuid_copy(&lbh.olh_magic, &layout->eld_uuid);
-+			lbh.olh_gen = layout->eld_gen;
-+			lpgoff = sec * sectsz;
-+
-+			/* Pack the log block header. */
-+			rc = omf_logblock_header_pack_htole(&lbh, &lstat->lst_abuf[idx][lpgoff]);
-+			if (rc) {
-+				mp_pr_err("mlog packing lbh failed, log pg idx %u, vers %u failed",
-+					  rc, idx, lbh.olh_vers);
-+
-+				return rc;
-+			}
-+
-+			/* If there's more than one sector to flush, pfsetid is set to cfsetid. */
-+			pfsetid = cfsetid;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_logblocks_flush() - Flush CFS and handle both successful and failed flush.
-+ * @mp:       mpool descriptor
-+ * @layout:   layout descriptor
-+ * @skip_ser: client guarantees serialization
-+ */
-+int mlog_logblocks_flush(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	int start, end, rc;
-+	bool fsucc = true;
-+	u16 abidx;
-+
-+	abidx = lstat->lst_abidx;
-+
-+	/* Pack log block header in all the log blocks. */
-+	rc = mlog_logblocks_hdrpack(layout);
-+	if (rc) {
-+		mp_pr_err("mpool %s, mlog 0x%lx packing header failed",
-+			  rc, mp->pds_name, (ulong)layout->eld_objid);
-+
-+	} else {
-+		rc = mlog_flush_abuf(mp, layout, skip_ser);
-+		if (rc)
-+			mp_pr_err("mpool %s, mlog 0x%lx log block flush failed",
-+				  rc, mp->pds_name, (ulong)layout->eld_objid);
-+	}
-+
-+	if (rc) {
-+		/* If flush failed, free all log pages except the first one. */
-+		start = 1;
-+		end   = abidx;
-+		fsucc = false;
-+	} else {
-+		/* If flush succeeded, free all log pages except the last one.*/
-+		start = 0;
-+		end   = abidx - 1;
-+
-+		/*
-+		 * Inform pre-compaction of the size of the active mlog and
-+		 * how much is used.
-+		 */
-+		pmd_precompact_alsz(mp, layout->eld_objid, lstat->lst_wsoff * MLOG_SECSZ(lstat),
-+				    lstat->lst_mfp.mfp_totsec * MLOG_SECSZ(lstat));
-+	}
-+	mlog_free_abuf(lstat, start, end);
-+
-+	if (!IS_SECPGA(lstat))
-+		mlog_flush_posthdlr_4ka(layout, fsucc);
-+	else
-+		mlog_flush_posthdlr(layout, fsucc);
-+
-+	return rc;
-+}
-+
-+/**
-+ * mlog_append_dmax() -
-+ *
-+ * Max data record that can be appended to log in bytes; -1 if no room
-+ * for a 0 byte data record due to record descriptor length.
-+ */
-+s64 mlog_append_dmax(struct pmd_layout *layout)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u64 lbmax, lbrest;
-+	u32 sectsz, datalb;
-+
-+	sectsz = MLOG_SECSZ(lstat);
-+	datalb = MLOG_TOTSEC(lstat);
-+
-+	if (lstat->lst_wsoff >= datalb) {
-+		/* Mlog already full */
-+		return -1;
-+	}
-+
-+	lbmax  = (sectsz - OMF_LOGBLOCK_HDR_PACKLEN - OMF_LOGREC_DESC_PACKLEN);
-+	lbrest = (datalb - lstat->lst_wsoff - 1) * lbmax;
-+
-+	if ((sectsz - lstat->lst_aoff) < OMF_LOGREC_DESC_PACKLEN) {
-+		/* Current log block cannot hold even a record descriptor */
-+		if (lbrest)
-+			return lbrest;
-+
-+		return -1;
-+	}
-+
-+	/*
-+	 * Can start in current log block and spill over to others (if any)
-+	 */
-+	return sectsz - lstat->lst_aoff - OMF_LOGREC_DESC_PACKLEN + lbrest;
-+}
-+
-+/**
-+ * mlog_update_append_idx() - Check if active log block is full and update the append offsets
-+ *
-+ * Returns: 0 on success; -errno otherwise
-+ */
-+int mlog_update_append_idx(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser)
-+{
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 sectsz, nseclpg, abidx, asidx;
++	struct workqueue_struct *wq;
++	struct readpage_work *w;
++	struct work_struct *work;
++	struct mpc_mbinfo *mbinfo;
++	struct mpc_unit *unit;
++	struct mpc_xvm *xvm;
++	struct page *page;
++	off_t offset, mbend;
++	uint mbnum, iovmax, i;
++	uint ra_pages_max;
++	ulong index;
++	gfp_t gfp;
++	u32 key;
 +	int rc;
 +
-+	sectsz  = MLOG_SECSZ(lstat);
-+	nseclpg = MLOG_NSECLPG(lstat);
++	unit = file->private_data;
 +
-+	if (sectsz - lstat->lst_aoff < OMF_LOGREC_DESC_PACKLEN) {
-+		/* If the log block is full, move to the next log block in the buffer. */
-+		abidx = lstat->lst_abidx;
-+		asidx = lstat->lst_wsoff - ((nseclpg * abidx) + lstat->lst_asoff);
-+		if (asidx == nseclpg - 1)
-+			++lstat->lst_abidx;
-+		++lstat->lst_wsoff;
-+		lstat->lst_aoff = OMF_LOGBLOCK_HDR_PACKLEN;
-+	}
++	ra_pages_max = unit->un_ra_pages_max;
++	if (ra_pages_max < 1)
++		return 0;
 +
-+	abidx = lstat->lst_abidx;
-+	if (!lstat->lst_abuf[abidx]) {
-+		/* Allocate a log page at 'abidx' */
-+		rc = mlog_alloc_abufpg(mp, layout, abidx, skip_ser);
-+		if (rc)
-+			return rc;
-+	}
++	page   = lru_to_page(pages);
++	offset = page->index << PAGE_SHIFT;
++	index  = page->index;
++	work   = NULL;
++	w      = NULL;
 +
-+	return 0;
-+}
-+
-+/**
-+ * mlog_logblocks_load_media() - Read log blocks from media, upto a maximum of 1 MiB.
-+ * @mp:    mpool descriptor
-+ * @lri:   read iterator
-+ * @inbuf: buffer to into (output)
-+ */
-+static int mlog_logblocks_load_media(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+				     char **inbuf)
-+{
-+	struct pmd_layout *layout = lri->lri_layout;
-+	struct mlog_stat *lstat = &layout->eld_lstat;
-+	u16 maxsec, nsecs, sectsz;
-+	bool skip_ser = false;
-+	off_t rsoff;
-+	int remsec, rc;
-+
-+	mlog_extract_fsetparms(lstat, &sectsz, NULL, &maxsec, NULL);
++	key = offset >> xvm_size_max;
 +
 +	/*
-+	 * The read and append buffer must never overlap. So, the read buffer
-+	 * can only hold sector offsets in the range [0, lstat->lst_asoff - 1].
++	 * The idr value here (xvm) is pinned for the lifetime of the address map.
++	 * Therefore, we can exit the rcu read-side critsec without worry that xvm will be
++	 * destroyed before put_page() has been called on each and every page in the given
++	 * list of pages.
 +	 */
-+	if (lstat->lst_asoff < 0)
-+		remsec = lstat->lst_wsoff;
-+	else
-+		remsec = lstat->lst_asoff;
++	rcu_read_lock();
++	xvm = idr_find(&unit->un_rgnmap.rm_root, key);
++	rcu_read_unlock();
 +
-+	if (remsec == 0) {
-+		rc = -ENOTRECOVERABLE;
-+		mp_pr_err("mpool %s, objid 0x%lx, mlog read cannot be served from read buffer",
-+			  rc, mp->pds_name, (ulong)lri->lri_layout->eld_objid);
-+		return rc;
-+	}
++	if (!xvm)
++		return 0;
 +
-+	lri->lri_rbidx = 0;
-+	lri->lri_sidx = 0;
++	offset %= (1ul << xvm_size_max);
 +
-+	rsoff = lri->lri_soff;
-+	remsec -= rsoff;
-+	ASSERT(remsec > 0);
++	mbnum = offset / xvm->xvm_bktsz;
++	if (mbnum >= xvm->xvm_mbinfoc)
++		return 0;
 +
-+	nsecs = min_t(u32, maxsec, remsec);
++	mbinfo = xvm->xvm_mbinfov + mbnum;
 +
-+	if (layout->eld_flags & MLOG_OF_SKIP_SER)
-+		skip_ser = true;
++	mbend = mbnum * xvm->xvm_bktsz + mbinfo->mblen;
++	iovmax = MPC_RA_IOV_MAX;
 +
-+	rc = mlog_populate_rbuf(mp, lri->lri_layout, &nsecs, &rsoff, skip_ser);
-+	if (rc) {
-+		mp_pr_err("mpool %s, objid 0x%lx, mlog read failed, nsecs: %u, rsoff: 0x%lx",
-+			  rc, mp->pds_name, (ulong)lri->lri_layout->eld_objid, nsecs, rsoff);
++	gfp = mapping_gfp_mask(mapping) & GFP_KERNEL;
++	wq = mpc_rgn2wq(xvm->xvm_rgn);
 +
-+		lstat->lst_rsoff = lstat->lst_rseoff = -1;
++	nr_pages = min_t(uint, nr_pages, ra_pages_max);
 +
-+		return rc;
-+	}
++	for (i = 0; i < nr_pages; ++i) {
++		page    = lru_to_page(pages);
++		offset  = page->index << PAGE_SHIFT;
++		offset %= (1ul << xvm_size_max);
 +
-+	/*
-+	 * 'nsecs' and 'rsoff' can be changed by mlog_populate_rbuf, if the
-+	 * read offset is not page-aligned. Adjust lri_sidx and lst_rsoff
-+	 * accordingly.
-+	 */
-+	lri->lri_sidx     = lri->lri_soff - rsoff;
-+	lstat->lst_rsoff  = rsoff;
-+	lstat->lst_rseoff = rsoff + nsecs - 1;
-+
-+	*inbuf = lstat->lst_rbuf[lri->lri_rbidx];
-+	*inbuf += lri->lri_sidx * sectsz;
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_logblock_load_internal() - Read log blocks from either the read buffer or media.
-+ * @mp:    mpool descriptor
-+ * @lri:   read iterator
-+ * @inbuf: buffer to load into (output)
-+ */
-+static int mlog_logblock_load_internal(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+				       char **inbuf)
-+{
-+	struct mlog_stat *lstat;
-+	off_t rsoff, rseoff, soff;
-+	u16 nsecs, rbidx, rsidx;
-+	u16 nlpgs, nseclpg;
-+	int rc;
-+
-+	lstat = &lri->lri_layout->eld_lstat;
-+
-+	nseclpg = MLOG_NSECLPG(lstat);
-+	rbidx   = lri->lri_rbidx;
-+	rsidx   = lri->lri_sidx;
-+	soff    = lri->lri_soff;
-+	rsoff   = lstat->lst_rsoff;
-+	rseoff  = lstat->lst_rseoff;
-+
-+	if (rsoff < 0)
-+		goto media_read;
-+
-+	/*
-+	 * If the read offset doesn't fall within the read buffer range,
-+	 * then media read.
-+	 */
-+	if ((soff < rsoff) || (soff > rseoff))
-+		goto media_read;
-+
-+	do {
-+		/* If this is not the start of log block. */
-+		if (lri->lri_roff != 0)
++		/* Don't read past the end of the mblock. */
++		if (offset >= mbend)
 +			break;
 +
-+		/* Check if there's unconsumed data in rbuf. */
-+		nsecs = rseoff - rsoff + 1;
-+		nlpgs = (nsecs + nseclpg - 1) / nseclpg;
-+
-+		/* No. of sectors in the last log page. */
-+		if (rbidx == nlpgs - 1) {
-+			nseclpg = nsecs % nseclpg;
-+			nseclpg = nseclpg > 0 ? nseclpg : MLOG_NSECLPG(lstat);
++		/* mblock reads must be logically contiguous. */
++		if (page->index != index && work) {
++			queue_work(wq, work);
++			work = NULL;
 +		}
-+		/* Remaining sectors in the active log page? */
-+		if (rsidx < nseclpg - 1) {
-+			++rsidx;
-+			break;
-+		}
-+		/* Remaining log pages in the read buffer? */
-+		if (rbidx >= nlpgs - 1)
-+			goto media_read;
 +
-+		/* Free the active log page and move to next one. */
-+		mlog_free_rbuf(lstat, rbidx, rbidx);
-+		++rbidx;
-+		rsidx = 0;
++		index = page->index + 1; /* next expected page index */
 +
-+		break;
-+	} while (0);
++		prefetchw(&page->flags);
++		list_del(&page->lru);
 +
-+	/* Serve data from the read buffer. */
-+	*inbuf  = lstat->lst_rbuf[rbidx];
-+	*inbuf += rsidx * MLOG_SECSZ(lstat);
-+
-+	lri->lri_rbidx = rbidx;
-+	lri->lri_sidx  = rsidx;
-+
-+	return 0;
-+
-+media_read:
-+	rc = mlog_logblocks_load_media(mp, lri, inbuf);
-+	if (rc) {
-+		mp_pr_err("mpool %s, objid 0x%lx, mlog new read failed",
-+			  rc, mp->pds_name, (ulong)lri->lri_layout->eld_objid);
-+
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * mlog_loopback_load() - Load log block referenced by lri into lstat.
-+ *
-+ * Load log block referenced by lri into lstat, update lri if first read
-+ * from this log block, and return a pointer to the log block and a flag
-+ * indicating if lri references first record in log block.
-+ *
-+ * Note: lri can reference the log block currently accumulating in lstat
-+ *
-+ * Returns: 0 on success; -errno otherwise
-+ * One of the possible errno values:
-+ * -ENOMSG - if at end of log -- NB: requires an API change to signal without
-+ */
-+int mlog_logblock_load(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+		       char **buf, bool *first)
-+{
-+	struct mlog_stat *lstat = NULL;
-+	int lbhlen = 0;
-+	int rc = 0;
-+
-+	*buf = NULL;
-+	*first = false;
-+	lstat  = &lri->lri_layout->eld_lstat;
-+
-+	if (!lri->lri_valid || lri->lri_soff > lstat->lst_wsoff) {
-+		/* lri is invalid; prior checks should prevent this */
-+		rc = -EINVAL;
-+		mp_pr_err("mpool %s, invalid offset %u %ld %ld",
-+			  rc, mp->pds_name, lri->lri_valid, lri->lri_soff, lstat->lst_wsoff);
-+	} else if ((lri->lri_soff == lstat->lst_wsoff) || (lstat->lst_asoff > -1 &&
-+			lri->lri_soff >= lstat->lst_asoff &&
-+			lri->lri_soff <= lstat->lst_wsoff)) {
-+		u16 abidx, sectsz, asidx, nseclpg;
-+
-+		/*
-+		 * lri refers to the currently accumulating log block
-+		 * in lstat
-+		 */
-+		if (!lri->lri_roff)
-+			/* First read with handle from this log block. */
-+			lri->lri_roff = OMF_LOGBLOCK_HDR_PACKLEN;
-+
-+		if (lri->lri_soff == lstat->lst_wsoff && lri->lri_roff > lstat->lst_aoff) {
-+			/* lri is invalid; prior checks should prevent this */
-+			rc = -EINVAL;
-+			mp_pr_err("mpool %s, invalid next offset %u %u",
-+				  rc, mp->pds_name, lri->lri_roff, lstat->lst_aoff);
-+			goto out;
-+		} else if (lri->lri_soff == lstat->lst_wsoff && lri->lri_roff == lstat->lst_aoff) {
-+			/* Hit end of log */
-+			rc = -ENOMSG;
-+			goto out;
-+		} else if (lri->lri_roff == OMF_LOGBLOCK_HDR_PACKLEN)
-+			*first = true;
-+
-+		sectsz  = MLOG_SECSZ(lstat);
-+		nseclpg = MLOG_NSECLPG(lstat);
-+
-+		abidx = (lri->lri_soff - lstat->lst_asoff) / nseclpg;
-+		asidx = lri->lri_soff - ((nseclpg * abidx) + lstat->lst_asoff);
-+
-+		*buf = &lstat->lst_abuf[abidx][asidx * sectsz];
-+	} else {
-+		/* lri refers to an existing log block; fetch it if not cached. */
-+		rc = mlog_logblock_load_internal(mp, lri, buf);
-+		if (!rc) {
-+			/*
-+			 * NOTE: log block header length must be based
-+			 * on version since not guaranteed to be the latest
-+			 */
-+			lbhlen = omf_logblock_header_len_le(*buf);
-+
-+			if (lbhlen < 0) {
-+				rc = -ENODATA;
-+				mp_pr_err("mpool %s, getting header length failed %ld",
-+					  rc, mp->pds_name, (long)lbhlen);
-+			} else {
-+				if (!lri->lri_roff)
-+					/* First read with handle from this log block. */
-+					lri->lri_roff = lbhlen;
-+
-+				if (lri->lri_roff == lbhlen)
-+					*first = true;
++		rc = add_to_page_cache_lru(page, mapping, page->index, gfp);
++		if (rc) {
++			if (work) {
++				queue_work(wq, work);
++				work = NULL;
 +			}
-+		}
-+	}
-+
-+out:
-+	if (rc) {
-+		*buf = NULL;
-+		*first = false;
-+	}
-+
-+	return rc;
-+}
-+
-+/**
-+ * mlogutil_closeall() - Close all open user (non-mdc) mlogs in mpool and release resources.
-+ *
-+ * This is an mpool deactivation utility and not part of the mlog user API.
-+ */
-+void mlogutil_closeall(struct mpool_descriptor *mp)
-+{
-+	struct pmd_layout_mlpriv *this, *tmp;
-+	struct pmd_layout *layout;
-+
-+	oml_layout_lock(mp);
-+
-+	rbtree_postorder_for_each_entry_safe(
-+		this, tmp, &mp->pds_oml_root, mlp_nodeoml) {
-+
-+		layout = mlpriv2layout(this);
-+
-+		if (pmd_objid_type(layout->eld_objid) != OMF_OBJ_MLOG) {
-+			mp_pr_warn("mpool %s, non-mlog object 0x%lx in open mlog layout tree",
-+				   mp->pds_name, (ulong)layout->eld_objid);
++			put_page(page);
 +			continue;
 +		}
 +
-+		if (!pmd_objid_isuser(layout->eld_objid))
-+			continue;
++		if (!work) {
++			w = page_address(page);
++			INIT_WORK(&w->w_work, mpc_readpages_cb);
++			w->w_args.a_xvm = xvm;
++			w->w_args.a_mbdesc = mbinfo->mbdesc;
++			w->w_args.a_mboffset = offset % xvm->xvm_bktsz;
++			w->w_args.a_pagec = 0;
++			work = &w->w_work;
 +
-+		/* Remove layout from open list and discard log data. */
-+		rb_erase(&this->mlp_nodeoml, &mp->pds_oml_root);
-+		mlog_stat_free(layout);
++			iovmax = MPC_RA_IOV_MAX;
++			iovmax -= page->index % MPC_RA_IOV_MAX;
++		}
++
++		w->w_args.a_pagev[w->w_args.a_pagec++] = page;
++
++		/*
++		 * Restrict batch size to the number of struct kvecs
++		 * that will fit into a page (minus our header).
++		 */
++		if (w->w_args.a_pagec >= iovmax) {
++			queue_work(wq, work);
++			work = NULL;
++		}
 +	}
 +
-+	oml_layout_unlock(mp);
++	if (work)
++		queue_work(wq, work);
++
++	return 0;
 +}
 +
 +/**
-+ * mlog_getprops_cmn() - Retrieve basic mlog properties from layout.
-+ * @mp:
-+ * @layout:
-+ * @prop:
++ * mpc_releasepage() - Linux VM calls the release page when pages are released.
++ * @page:
++ * @gfp:
++ *
++ * The function is added as part of tracking incoming and outgoing pages.
 + */
-+void
-+mlog_getprops_cmn(struct mpool_descriptor *mp, struct pmd_layout *layout, struct mlog_props *prop)
++static int mpc_releasepage(struct page *page, gfp_t gfp)
 +{
-+	memcpy(prop->lpr_uuid.b, layout->eld_uuid.uuid, MPOOL_UUID_SIZE);
-+	prop->lpr_objid       = layout->eld_objid;
-+	prop->lpr_alloc_cap   = pmd_layout_cap_get(mp, layout);
-+	prop->lpr_gen         = layout->eld_gen;
-+	prop->lpr_iscommitted = layout->eld_state & PMD_LYT_COMMITTED;
-+	prop->lpr_mclassp    = mp->pds_pdv[layout->eld_ld.ol_pdh].pdi_mclass;
++	struct mpc_xvm *xvm;
++
++	if (!PagePrivate(page))
++		return 0;
++
++	xvm = (void *)page_private(page);
++	if (!xvm)
++		return 0;
++
++	ClearPagePrivate(page);
++	set_page_private(page, 0);
++
++	ASSERT((u32)(uintptr_t)xvm == xvm->xvm_magic);
++
++	if (xvm->xvm_hcpagesp)
++		atomic64_dec(xvm->xvm_hcpagesp);
++	atomic64_dec(&xvm->xvm_nrpages);
++
++	return 1;
 +}
-diff --git a/drivers/mpool/mlog_utils.h b/drivers/mpool/mlog_utils.h
++
++static void mpc_invalidatepage(struct page *page, uint offset, uint length)
++{
++	mpc_releasepage(page, 0);
++}
++
++/**
++ * mpc_migratepage() -  Callback for handling page migration.
++ * @mapping:
++ * @newpage:
++ * @page:
++ * @mode:
++ *
++ * The drivers having private pages are supplying this callback.
++ * Not sure the page migration releases or invalidates the page being migrated,
++ * or else the tracking of incoming and outgoing pages will be in trouble. The
++ * callback is added to deal with uncertainties around migration. The migration
++ * will be declined so long as the page is private and it belongs to mpctl.
++ */
++static int mpc_migratepage(struct address_space *mapping, struct page *newpage,
++			   struct page *page, enum migrate_mode mode)
++{
++	if (page_has_private(page) &&
++	    !try_to_release_page(page, GFP_KERNEL))
++		return -EAGAIN;
++
++	ASSERT(PageLocked(page));
++
++	return migrate_page(mapping, newpage, page, mode);
++}
++
++int mpc_mmap(struct file *fp, struct vm_area_struct *vma)
++{
++	struct mpc_unit *unit = fp->private_data;
++	struct mpc_xvm *xvm;
++	off_t off;
++	ulong len;
++	u32 key;
++
++	off = vma->vm_pgoff << PAGE_SHIFT;
++	len = vma->vm_end - vma->vm_start - 1;
++
++	/* Verify that the request does not cross an xvm region boundary. */
++	if ((off >> xvm_size_max) != ((off + len) >> xvm_size_max))
++		return -EINVAL;
++
++	/* Acquire a reference on the region map for this region. */
++	key = off >> xvm_size_max;
++
++	xvm = mpc_xvm_lookup(&unit->un_rgnmap, key);
++	if (!xvm)
++		return -EINVAL;
++
++	/*
++	 * Drop the birth ref on first open so that the final call
++	 * to mpc_vm_close() will cause the vma to be destroyed.
++	 */
++	if (atomic_inc_return(&xvm->xvm_opened) == 1)
++		mpc_xvm_put(xvm);
++
++	vma->vm_ops = &mpc_vops_default;
++
++	vma->vm_flags &= ~(VM_RAND_READ | VM_SEQ_READ);
++	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
++
++	vma->vm_flags = (VM_DONTEXPAND | VM_DONTDUMP | VM_NORESERVE);
++	vma->vm_flags |= VM_MAYREAD | VM_READ | VM_RAND_READ;
++
++	vma->vm_private_data = xvm;
++
++	fp->f_ra.ra_pages = unit->un_ra_pages_max;
++	fp->f_mode |= FMODE_RANDOM;
++
++	return 0;
++}
++
++/**
++ * mpc_fadvise() -
++ *
++ * mpc_fadvise() currently handles only POSIX_FADV_WILLNEED.
++ *
++ * The code path that leads here is: madvise_willneed() -> vfs_fadvise() -> mpc_fadvise()
++ */
++int mpc_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
++{
++	pgoff_t start, end;
++
++	if (!file)
++		return -EINVAL;
++
++	if (advice != POSIX_FADV_WILLNEED)
++		return -EOPNOTSUPP;
++
++	start = offset >> PAGE_SHIFT;
++	end = (offset + len - 1) >> PAGE_SHIFT;
++
++	if (end < start)
++		return -EINVAL;
++
++	/* To force page cache readahead */
++	spin_lock(&file->f_lock);
++	file->f_mode |= FMODE_RANDOM;
++	spin_unlock(&file->f_lock);
++
++	page_cache_sync_readahead(file->f_mapping, &file->f_ra, file, start, end - start + 1);
++
++	return 0;
++}
++
++/**
++ * mpioc_xvm_create() - create an extended VMA map (AKA mcache map)
++ * @unit:
++ * @arg:
++ */
++int mpioc_xvm_create(struct mpc_unit *unit, struct mpool_descriptor *mp, struct mpioc_vma *ioc)
++{
++	struct mpc_mbinfo *mbinfov;
++	struct kmem_cache *cache;
++	struct mpc_rgnmap *rm;
++	struct mpc_xvm *xvm;
++	size_t largest, sz;
++	uint mbidc, mult;
++	u64 *mbidv;
++	int rc, i;
++
++	if (!unit || !unit->un_mapping || !ioc)
++		return -EINVAL;
++
++	if (ioc->im_mbidc < 1)
++		return -EINVAL;
++
++	if (ioc->im_advice > MPC_VMA_PINNED)
++		return -EINVAL;
++
++	mult = 1;
++	if (ioc->im_advice == MPC_VMA_WARM)
++		mult = 10;
++	else if (ioc->im_advice == MPC_VMA_HOT)
++		mult = 100;
++
++	mbidc = ioc->im_mbidc;
++
++	sz = sizeof(*xvm) + sizeof(*mbinfov) * mbidc;
++	if (sz > mpc_xvm_cachesz[1])
++		return -EINVAL;
++	else if (sz > mpc_xvm_cachesz[0])
++		cache = mpc_xvm_cache[1];
++	else
++		cache = mpc_xvm_cache[0];
++
++	sz = mbidc * sizeof(mbidv[0]);
++
++	mbidv = kmalloc(sz, GFP_KERNEL);
++	if (!mbidv)
++		return -ENOMEM;
++
++	rc = copy_from_user(mbidv, ioc->im_mbidv, sz);
++	if (rc) {
++		kfree(mbidv);
++		return -EFAULT;
++	}
++
++	xvm = kmem_cache_zalloc(cache, GFP_KERNEL);
++	if (!xvm) {
++		kfree(mbidv);
++		return -ENOMEM;
++	}
++
++	xvm->xvm_magic = (u32)(uintptr_t)xvm;
++	xvm->xvm_mbinfoc = mbidc;
++	xvm->xvm_mpdesc = mp;
++
++	xvm->xvm_mapping = unit->un_mapping;
++	xvm->xvm_rgnmap = &unit->un_rgnmap;
++	xvm->xvm_advice = ioc->im_advice;
++	kref_init(&xvm->xvm_ref);
++	xvm->xvm_cache = cache;
++	atomic_set(&xvm->xvm_opened, 0);
++
++	atomic64_set(&xvm->xvm_nrpages, 0);
++	atomic_set(&xvm->xvm_rabusy, 0);
++
++	largest = 0;
++
++	mbinfov = xvm->xvm_mbinfov;
++
++	for (i = 0; i < mbidc; ++i) {
++		struct mpc_mbinfo *mbinfo = mbinfov + i;
++		struct mblock_props props;
++
++		rc = mblock_find_get(mp, mbidv[i], 1, &props, &mbinfo->mbdesc);
++		if (rc) {
++			mbidc = i;
++			goto errout;
++		}
++
++		mbinfo->mblen = ALIGN(props.mpr_write_len, PAGE_SIZE);
++		mbinfo->mbmult = mult;
++		atomic64_set(&mbinfo->mbatime, 0);
++
++		largest = max_t(size_t, largest, mbinfo->mblen);
++	}
++
++	xvm->xvm_bktsz = roundup_pow_of_two(largest);
++
++	if (xvm->xvm_bktsz * mbidc > (1ul << xvm_size_max)) {
++		rc = -E2BIG;
++		goto errout;
++	}
++
++	rm = &unit->un_rgnmap;
++
++	mutex_lock(&rm->rm_lock);
++	xvm->xvm_rgn = idr_alloc(&rm->rm_root, NULL, 1, -1, GFP_KERNEL);
++	if (xvm->xvm_rgn < 1) {
++		mutex_unlock(&rm->rm_lock);
++
++		rc = xvm->xvm_rgn ?: -EINVAL;
++		goto errout;
++	}
++
++	ioc->im_offset = (ulong)xvm->xvm_rgn << xvm_size_max;
++	ioc->im_bktsz = xvm->xvm_bktsz;
++	ioc->im_len = xvm->xvm_bktsz * mbidc;
++	ioc->im_len = ALIGN(ioc->im_len, (1ul << xvm_size_max));
++
++	atomic_inc(&rm->rm_rgncnt);
++
++	idr_replace(&rm->rm_root, xvm, xvm->xvm_rgn);
++	mutex_unlock(&rm->rm_lock);
++
++errout:
++	if (rc) {
++		for (i = 0; i < mbidc; ++i)
++			mblock_put(mbinfov[i].mbdesc);
++		kmem_cache_free(cache, xvm);
++	}
++
++	kfree(mbidv);
++
++	return rc;
++}
++
++/**
++ * mpioc_xvm_destroy() - destroy an extended VMA
++ * @unit:
++ * @arg:
++ */
++int mpioc_xvm_destroy(struct mpc_unit *unit, struct mpioc_vma *ioc)
++{
++	struct mpc_rgnmap *rm;
++	struct mpc_xvm *xvm;
++	u64 rgn;
++
++	if (!unit || !ioc)
++		return -EINVAL;
++
++	rgn = ioc->im_offset >> xvm_size_max;
++	rm = &unit->un_rgnmap;
++
++	mutex_lock(&rm->rm_lock);
++	xvm = idr_find(&rm->rm_root, rgn);
++	if (xvm && kref_read(&xvm->xvm_ref) == 1 && !atomic_read(&xvm->xvm_opened))
++		idr_remove(&rm->rm_root, rgn);
++	else
++		xvm = NULL;
++	mutex_unlock(&rm->rm_lock);
++
++	if (xvm)
++		mpc_xvm_put(xvm);
++
++	return 0;
++}
++
++int mpioc_xvm_purge(struct mpc_unit *unit, struct mpioc_vma *ioc)
++{
++	struct mpc_xvm *xvm;
++	u64 rgn;
++
++	if (!unit || !ioc)
++		return -EINVAL;
++
++	rgn = ioc->im_offset >> xvm_size_max;
++
++	xvm = mpc_xvm_lookup(&unit->un_rgnmap, rgn);
++	if (!xvm)
++		return -ENOENT;
++
++	mpc_xvm_put(xvm);
++
++	return 0;
++}
++
++int mpioc_xvm_vrss(struct mpc_unit *unit, struct mpioc_vma *ioc)
++{
++	struct mpc_xvm *xvm;
++	u64 rgn;
++
++	if (!unit || !ioc)
++		return -EINVAL;
++
++	rgn = ioc->im_offset >> xvm_size_max;
++
++	xvm = mpc_xvm_lookup(&unit->un_rgnmap, rgn);
++	if (!xvm)
++		return -ENOENT;
++
++	ioc->im_vssp = mpc_xvm_pglen(xvm);
++	ioc->im_rssp = atomic64_read(&xvm->xvm_nrpages);
++
++	mpc_xvm_put(xvm);
++
++	return 0;
++}
++
++int mcache_init(void)
++{
++	size_t sz;
++	int rc, i;
++
++	xvm_max = clamp_t(uint, xvm_max, 1024, 1u << 30);
++	xvm_size_max = clamp_t(ulong, xvm_size_max, 27, 32);
++
++	sz = sizeof(struct mpc_mbinfo) * 8;
++	mpc_xvm_cachesz[0] = sizeof(struct mpc_xvm) + sz;
++
++	mpc_xvm_cache[0] = kmem_cache_create("mpool_xvm_0", mpc_xvm_cachesz[0], 0,
++					     SLAB_HWCACHE_ALIGN | SLAB_POISON, NULL);
++	if (!mpc_xvm_cache[0]) {
++		rc = -ENOMEM;
++		mp_pr_err("mpc xvm cache 0 create failed", rc);
++		return rc;
++	}
++
++	sz = sizeof(struct mpc_mbinfo) * 32;
++	mpc_xvm_cachesz[1] = sizeof(struct mpc_xvm) + sz;
++
++	mpc_xvm_cache[1] = kmem_cache_create("mpool_xvm_1", mpc_xvm_cachesz[1], 0,
++					     SLAB_HWCACHE_ALIGN | SLAB_POISON, NULL);
++	if (!mpc_xvm_cache[1]) {
++		rc = -ENOMEM;
++		mp_pr_err("mpc xvm cache 1 create failed", rc);
++		goto errout;
++	}
++
++	mpc_wq_trunc = alloc_workqueue("mpc_wq_trunc", WQ_UNBOUND, 16);
++	if (!mpc_wq_trunc) {
++		rc = -ENOMEM;
++		mp_pr_err("trunc workqueue alloc failed", rc);
++		goto errout;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(mpc_wq_rav); ++i) {
++		int     maxactive = 16;
++		char    name[16];
++
++		snprintf(name, sizeof(name), "mpc_wq_ra%d", i);
++
++		mpc_wq_rav[i] = alloc_workqueue(name, 0, maxactive);
++		if (!mpc_wq_rav[i]) {
++			rc = -ENOMEM;
++			mp_pr_err("mpctl ra workqueue alloc failed", rc);
++			goto errout;
++		}
++	}
++
++	return 0;
++
++errout:
++	mcache_exit();
++	return rc;
++}
++
++void mcache_exit(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(mpc_wq_rav); ++i) {
++		if (mpc_wq_rav[i])
++			destroy_workqueue(mpc_wq_rav[i]);
++		mpc_wq_rav[i] = NULL;
++	}
++
++	if (mpc_wq_trunc)
++		destroy_workqueue(mpc_wq_trunc);
++	kmem_cache_destroy(mpc_xvm_cache[1]);
++	kmem_cache_destroy(mpc_xvm_cache[0]);
++}
++
++static const struct vm_operations_struct mpc_vops_default = {
++	.open           = mpc_vm_open,
++	.close          = mpc_vm_close,
++	.fault          = mpc_vm_fault,
++};
++
++const struct address_space_operations mpc_aops_default = {
++	.readpages      = mpc_readpages,
++	.releasepage    = mpc_releasepage,
++	.invalidatepage = mpc_invalidatepage,
++	.migratepage    = mpc_migratepage,
++};
+diff --git a/drivers/mpool/mcache.h b/drivers/mpool/mcache.h
 new file mode 100644
-index 000000000000..560548069c11
+index 000000000000..fe6f45a05494
 --- /dev/null
-+++ b/drivers/mpool/mlog_utils.h
-@@ -0,0 +1,63 @@
++++ b/drivers/mpool/mcache.h
+@@ -0,0 +1,96 @@
 +/* SPDX-License-Identifier: GPL-2.0-only */
 +/*
 + * Copyright (C) 2015-2020 Micron Technology, Inc.  All rights reserved.
 + */
-+/*
-+ * Defines functions for writing, reading, and managing the lifecycle of mlogs.
++
++#ifndef MPOOL_MCACHE_H
++#define MPOOL_MCACHE_H
++
++#include <linux/kref.h>
++
++#include "init.h"
++#include "mblock.h"
++
++struct mpc_unit;
++
++/**
++ * struct mpc_rgnmap - extended vma (xvm) region management
++ * @rm_lock:    protects rm_root
++ * @rm_root:    root of the region map
++ * @rm_rgncnt;  number of active regions
++ *
++ * Note that this is not a ref-counted object, its lifetime
++ * is tied to struct mpc_unit.
 + */
++struct mpc_rgnmap {
++	struct mutex    rm_lock;
++	struct idr      rm_root;
++	atomic_t        rm_rgncnt;
++} ____cacheline_aligned;
 +
-+#ifndef MPOOL_MLOG_UTILS_H
-+#define MPOOL_MLOG_UTILS_H
 +
-+#include <linux/uio.h>
-+#include <linux/mutex.h>
++struct mpc_mbinfo {
++	struct mblock_descriptor   *mbdesc;
++	u32                         mblen;
++	u32                         mbmult;
++	atomic64_t                  mbatime;
++} __aligned(32);
 +
-+struct pmd_layout;
-+struct pmd_layout_mlpriv;
-+struct mpool_descriptor;
-+struct mlog_descriptor;
-+struct mlog_read_iter;
-+struct mlog_stat;
-+struct mlog_props;
++struct mpc_xvm {
++	size_t                      xvm_bktsz;
++	uint                        xvm_mbinfoc;
++	uint                        xvm_rgn;
++	struct kref                 xvm_ref;
++	u32                         xvm_magic;
++	struct mpool_descriptor    *xvm_mpdesc;
 +
-+/* "open mlog" rbtree operations... */
-+#define oml_layout_lock(_mp)        mutex_lock(&(_mp)->pds_oml_lock)
-+#define oml_layout_unlock(_mp)      mutex_unlock(&(_mp)->pds_oml_lock)
++	atomic64_t                 *xvm_hcpagesp;
++	struct address_space       *xvm_mapping;
++	struct mpc_rgnmap          *xvm_rgnmap;
 +
-+struct pmd_layout_mlpriv *
-+oml_layout_insert(struct mpool_descriptor *mp, struct pmd_layout_mlpriv *item);
++	enum mpc_vma_advice         xvm_advice;
++	atomic_t                    xvm_opened;
++	struct kmem_cache          *xvm_cache;
++	struct mpc_xvm             *xvm_next;
 +
-+struct pmd_layout_mlpriv *oml_layout_remove(struct mpool_descriptor *mp, u64 key);
++	____cacheline_aligned
++	atomic64_t                  xvm_nrpages;
++	atomic_t                    xvm_rabusy;
++	struct work_struct          xvm_work;
 +
-+void mlog_free_abuf(struct mlog_stat *lstat, int start, int end);
++	____cacheline_aligned
++	struct mpc_mbinfo           xvm_mbinfov[];
++};
 +
-+void mlog_free_rbuf(struct mlog_stat *lstat, int start, int end);
++extern const struct address_space_operations mpc_aops_default;
 +
-+void mlog_extract_fsetparms(struct mlog_stat *lstat, u16 *sectsz, u32 *totsec,
-+			    u16 *nsecmb, u16 *nseclpg);
++void mpc_rgnmap_flush(struct mpc_rgnmap *rm);
 +
-+int mlog_stat_init(struct mpool_descriptor *mp, struct mlog_descriptor *mlh, bool csem);
++int mpc_mmap(struct file *fp, struct vm_area_struct *vma);
 +
-+void mlog_stat_free(struct pmd_layout *layout);
++int mpc_fadvise(struct file *file, loff_t offset, loff_t len, int advice);
 +
-+void mlog_read_iter_init(struct pmd_layout *layout, struct mlog_stat *lstat,
-+			 struct mlog_read_iter *lri);
++int mpioc_xvm_create(struct mpc_unit *unit, struct mpool_descriptor *mp, struct mpioc_vma *ioc);
 +
-+void mlog_stat_init_common(struct pmd_layout *layout, struct mlog_stat *lstat);
++int mpioc_xvm_destroy(struct mpc_unit *unit, struct mpioc_vma *ioc);
 +
-+int mlog_populate_rbuf(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+		       u16 *nsec, off_t *soff, bool skip_ser);
++int mpioc_xvm_purge(struct mpc_unit *unit, struct mpioc_vma *ioc);
 +
-+void mlog_getprops_cmn(struct mpool_descriptor *mp, struct pmd_layout *layout,
-+		       struct mlog_props *prop);
++int mpioc_xvm_vrss(struct mpc_unit *unit, struct mpioc_vma *ioc);
 +
-+int mlog_logblocks_flush(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser);
++void mpc_xvm_free(struct mpc_xvm *xvm);
 +
-+s64 mlog_append_dmax(struct pmd_layout *layout);
++int mcache_init(void) __cold;
++void mcache_exit(void) __cold;
 +
-+int mlog_update_append_idx(struct mpool_descriptor *mp, struct pmd_layout *layout, bool skip_ser);
++static inline pgoff_t mpc_xvm_pgoff(struct mpc_xvm *xvm)
++{
++	return ((ulong)xvm->xvm_rgn << xvm_size_max) >> PAGE_SHIFT;
++}
 +
-+int mlog_logblock_load(struct mpool_descriptor *mp, struct mlog_read_iter *lri,
-+		       char **buf, bool *first);
++static inline size_t mpc_xvm_pglen(struct mpc_xvm *xvm)
++{
++	return (xvm->xvm_bktsz * xvm->xvm_mbinfoc) >> PAGE_SHIFT;
++}
 +
-+#endif /* MPOOL_MLOG_UTILS_H */
++#endif /* MPOOL_MCACHE_H */
+diff --git a/drivers/mpool/mpctl.c b/drivers/mpool/mpctl.c
+index 3a231cf982b3..f11f522ec90c 100644
+--- a/drivers/mpool/mpctl.c
++++ b/drivers/mpool/mpctl.c
+@@ -142,6 +142,11 @@ static ssize_t mpc_label_show(struct device *dev, struct device_attribute *da, c
+ 	return scnprintf(buf, PAGE_SIZE, "%s\n", dev_to_unit(dev)->un_label);
+ }
+ 
++static ssize_t mpc_vma_show(struct device *dev, struct device_attribute *da, char *buf)
++{
++	return scnprintf(buf, PAGE_SIZE, "%u\n", xvm_size_max);
++}
++
+ static ssize_t mpc_type_show(struct device *dev, struct device_attribute *da, char *buf)
+ {
+ 	struct mpool_uuid  uuid;
+@@ -160,6 +165,7 @@ static void mpc_mpool_params_add(struct device_attribute *dattr)
+ 	MPC_ATTR_RO(dattr++, mode);
+ 	MPC_ATTR_RO(dattr++, ra);
+ 	MPC_ATTR_RO(dattr++, label);
++	MPC_ATTR_RO(dattr++, vma);
+ 	MPC_ATTR_RO(dattr,   type);
+ }
+ 
+@@ -243,6 +249,8 @@ static void mpool_params_merge_defaults(struct mpool_params *params)
+ 	if (params->mp_mode != -1)
+ 		params->mp_mode &= 0777;
+ 
++	params->mp_vma_size_max = xvm_size_max;
++
+ 	params->mp_rsvd0 = 0;
+ 	params->mp_rsvd1 = 0;
+ 	params->mp_rsvd2 = 0;
+@@ -382,6 +390,10 @@ static int mpc_unit_create(const char *name, struct mpc_mpool *mpool, struct mpc
+ 	kref_init(&unit->un_ref);
+ 	unit->un_mpool = mpool;
+ 
++	mutex_init(&unit->un_rgnmap.rm_lock);
++	idr_init(&unit->un_rgnmap.rm_root);
++	atomic_set(&unit->un_rgnmap.rm_rgncnt, 0);
++
+ 	mutex_lock(&ss->ss_lock);
+ 	minor = idr_alloc(&ss->ss_unitmap, NULL, 0, -1, GFP_KERNEL);
+ 	mutex_unlock(&ss->ss_lock);
+@@ -421,6 +433,8 @@ static void mpc_unit_release(struct kref *refp)
+ 	if (unit->un_device)
+ 		device_destroy(ss->ss_class, unit->un_devno);
+ 
++	idr_destroy(&unit->un_rgnmap.rm_root);
++
+ 	kfree(unit);
+ }
+ 
+@@ -633,6 +647,7 @@ static int mpc_cf_journal(struct mpc_unit *unit)
+ 	cfg.mc_oid2 = unit->un_ds_oidv[1];
+ 	cfg.mc_captgt = unit->un_mdc_captgt;
+ 	cfg.mc_ra_pages_max = unit->un_ra_pages_max;
++	cfg.mc_vma_size_max = xvm_size_max;
+ 	memcpy(&cfg.mc_utype, &unit->un_utype, sizeof(cfg.mc_utype));
+ 	strlcpy(cfg.mc_label, unit->un_label, sizeof(cfg.mc_label));
+ 
+@@ -742,6 +757,7 @@ static int mpioc_params_get(struct mpc_unit *unit, struct mpioc_params *get)
+ 	params->mp_oidv[0] = unit->un_ds_oidv[0];
+ 	params->mp_oidv[1] = unit->un_ds_oidv[1];
+ 	params->mp_ra_pages_max = unit->un_ra_pages_max;
++	params->mp_vma_size_max = xvm_size_max;
+ 	memcpy(&params->mp_utype, &unit->un_utype, sizeof(params->mp_utype));
+ 	strlcpy(params->mp_label, unit->un_label, sizeof(params->mp_label));
+ 	strlcpy(params->mp_name, unit->un_name, sizeof(params->mp_name));
+@@ -785,6 +801,8 @@ static int mpioc_params_set(struct mpc_unit *unit, struct mpioc_params *set)
+ 
+ 	params = &set->mps_params;
+ 
++	params->mp_vma_size_max = xvm_size_max;
++
+ 	mutex_lock(&ss->ss_lock);
+ 	if (params->mp_uid != -1 || params->mp_gid != -1 || params->mp_mode != -1) {
+ 		err = mpc_mp_chown(unit, params);
+@@ -919,6 +937,7 @@ static void mpioc_prop_get(struct mpc_unit *unit, struct mpioc_prop *kprop)
+ 	params->mp_oidv[0] = unit->un_ds_oidv[0];
+ 	params->mp_oidv[1] = unit->un_ds_oidv[1];
+ 	params->mp_ra_pages_max = unit->un_ra_pages_max;
++	params->mp_vma_size_max = xvm_size_max;
+ 	memcpy(&params->mp_utype, &unit->un_utype, sizeof(params->mp_utype));
+ 	strlcpy(params->mp_label, unit->un_label, sizeof(params->mp_label));
+ 	strlcpy(params->mp_name, unit->un_name, sizeof(params->mp_name));
+@@ -1171,6 +1190,7 @@ static int mpioc_mp_create(struct mpc_unit *ctl, struct mpioc_mpool *mp,
+ 	cfg.mc_rsvd0 = mp->mp_params.mp_rsvd0;
+ 	cfg.mc_captgt = MPOOL_ROOT_LOG_CAP;
+ 	cfg.mc_ra_pages_max = mp->mp_params.mp_ra_pages_max;
++	cfg.mc_vma_size_max = mp->mp_params.mp_vma_size_max;
+ 	cfg.mc_rsvd1 = mp->mp_params.mp_rsvd1;
+ 	cfg.mc_rsvd2 = mp->mp_params.mp_rsvd2;
+ 	cfg.mc_rsvd3 = mp->mp_params.mp_rsvd3;
+@@ -1300,6 +1320,7 @@ static int mpioc_mp_activate(struct mpc_unit *ctl, struct mpioc_mpool *mp,
+ 	mp->mp_params.mp_oidv[0] = cfg.mc_oid1;
+ 	mp->mp_params.mp_oidv[1] = cfg.mc_oid2;
+ 	mp->mp_params.mp_ra_pages_max = cfg.mc_ra_pages_max;
++	mp->mp_params.mp_vma_size_max = cfg.mc_vma_size_max;
+ 	memcpy(&mp->mp_params.mp_utype, &cfg.mc_utype, sizeof(mp->mp_params.mp_utype));
+ 	strlcpy(mp->mp_params.mp_label, cfg.mc_label, sizeof(mp->mp_params.mp_label));
+ 
+@@ -2313,6 +2334,7 @@ static int mpc_open(struct inode *ip, struct file *fp)
+ 	}
+ 
+ 	fp->f_op = &mpc_fops_default;
++	fp->f_mapping->a_ops = &mpc_aops_default;
+ 
+ 	unit->un_mapping = fp->f_mapping;
+ 
+@@ -2361,8 +2383,11 @@ static int mpc_release(struct inode *ip, struct file *fp)
+ 	if (!lastclose)
+ 		goto errout;
+ 
+-	if (mpc_unit_ismpooldev(unit))
++	if (mpc_unit_ismpooldev(unit)) {
++		mpc_rgnmap_flush(&unit->un_rgnmap);
++
+ 		unit->un_mapping = NULL;
++	}
+ 
+ 	unit->un_open_excl = false;
+ 
+@@ -2530,6 +2555,22 @@ static long mpc_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
+ 		rc = mpioc_mlog_erase(unit, argp);
+ 		break;
+ 
++	case MPIOC_VMA_CREATE:
++		rc = mpioc_xvm_create(unit, unit->un_mpool->mp_desc, argp);
++		break;
++
++	case MPIOC_VMA_DESTROY:
++		rc = mpioc_xvm_destroy(unit, argp);
++		break;
++
++	case MPIOC_VMA_PURGE:
++		rc = mpioc_xvm_purge(unit, argp);
++		break;
++
++	case MPIOC_VMA_VRSS:
++		rc = mpioc_xvm_vrss(unit, argp);
++		break;
++
+ 	default:
+ 		rc = -ENOTTY;
+ 		mp_pr_rl("invalid command %x: dir=%u type=%c nr=%u size=%u",
+@@ -2553,6 +2594,8 @@ static const struct file_operations mpc_fops_default = {
+ 	.open		= mpc_open,
+ 	.release	= mpc_release,
+ 	.unlocked_ioctl	= mpc_ioctl,
++	.mmap           = mpc_mmap,
++	.fadvise        = mpc_fadvise,
+ };
+ 
+ static int mpc_exit_unit(int minor, void *item, void *arg)
+diff --git a/drivers/mpool/mpctl.h b/drivers/mpool/mpctl.h
+index 412a6a491c15..b93e44248f03 100644
+--- a/drivers/mpool/mpctl.h
++++ b/drivers/mpool/mpctl.h
+@@ -11,6 +11,8 @@
+ #include <linux/device.h>
+ #include <linux/semaphore.h>
+ 
++#include "mcache.h"
++
+ #define ITERCB_NEXT     (0)
+ #define ITERCB_DONE     (1)
+ 
+@@ -23,6 +25,7 @@ struct mpc_unit {
+ 	uid_t                       un_uid;
+ 	gid_t                       un_gid;
+ 	mode_t                      un_mode;
++	struct mpc_rgnmap           un_rgnmap;
+ 	dev_t                       un_devno;
+ 	const struct mpc_uinfo     *un_uinfo;
+ 	struct mpc_mpool           *un_mpool;
 -- 
 2.17.2
 _______________________________________________
