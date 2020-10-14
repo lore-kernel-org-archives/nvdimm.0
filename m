@@ -6,36 +6,40 @@ X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	TVD_SPACE_RATIO,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01852C433E7
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 14 Oct 2020 14:30:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B45CBC433DF
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 14 Oct 2020 15:31:28 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6029522201
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 14 Oct 2020 14:30:48 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6029522201
+	by mail.kernel.org (Postfix) with ESMTPS id 48FBE2222A
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 14 Oct 2020 15:31:28 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 48FBE2222A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=notification.intuit.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B88E1159AE403;
-	Wed, 14 Oct 2020 07:30:47 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=186.249.213.255; helo=ip-static-186-249-213-255.iblnet.com.br; envelope-from=ignoredtf94@o4.e.notification.intuit.com; receiver=<UNKNOWN> 
-Received: from ip-static-186-249-213-255.iblnet.com.br (unknown [186.249.213.255])
-	by ml01.01.org (Postfix) with ESMTP id CF31F159AE400;
-	Wed, 14 Oct 2020 07:30:39 -0700 (PDT)
-Received: from adsizh.ikzzzoe.se (adsizh.ikzzzoe.se [28.163.85.28])
-        by adsizh.ikzzzoe.se with ESMTP
- id 93e7D9AF; Wed, 14 Oct 2020 11:30:43 -0300
+	by ml01.01.org (Postfix) with ESMTP id BF3F8159A475B;
+	Wed, 14 Oct 2020 08:31:27 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=14.186.208.199; helo=static.vnpt.vn; envelope-from=litigateduj7@o2.e.notification.intuit.com; receiver=<UNKNOWN> 
+Received: from static.vnpt.vn (unknown [14.186.208.199])
+	by ml01.01.org (Postfix) with ESMTP id DDAC415204994
+	for <linux-nvdimm@lists.01.org>; Wed, 14 Oct 2020 08:31:23 -0700 (PDT)
+Received: from [80.120.97.154] (account showinessrr0@o4.e.notification.intuit.com HELO EEZEJOP.biz)
+	by static.vnpt.vn (Postfix)
+	with ESMTPA id AAA11E23495E for linux-nvdimm@lists.01.org; Wed, 14 Oct 2020 22:31:23 +0700
+Received: from  (
+ [58.54.127.105])        by static.vnpt.vn with SMTP id
+ 120B78E070; Wed, 14 Oct 2020 22:31:23 +0700
 To: linux-nvdimm@lists.01.org
-Subject: Invoice 56057
+Subject: Invoice 90790
 From: "\"Intuit E-Commerce Service\"" <quickbooks@notification.intuit.com>
-Date: Wed, 14 Oct 2020 11:30:43 -0300
-MIME-Version: 1.0
-Message-ID: <ce35f30d-0f3864829-4df4-dce472a38571@adsizh.ikzzzoe.se>
+Date: Wed, 14 Oct 2020 22:31:23 +0700
 X-Priority: 3
-Message-ID-Hash: ERXKKNAB6TBHNHXM5B27HRKUPD74NKED
-X-Message-ID-Hash: ERXKKNAB6TBHNHXM5B27HRKUPD74NKED
-X-MailFrom: ignoredtf94@o4.e.notification.intuit.com
+Thread-Index: oAKcxoxGlfVNxYeb2QoL2ULg2Ybog==
+MIME-Version: 1.0
+Message-ID: <bf9c05b8cacd6-dfea0c5b-8d02-7adf-7ff3-46c9a49e-37@QAFAHYWU.o2.e.notification.intuit.com>
+Message-ID-Hash: LMZRWN7UEGRMCHCJ266D3GMJCF6KWS2P
+X-Message-ID-Hash: LMZRWN7UEGRMCHCJ266D3GMJCF6KWS2P
+X-MailFrom: litigateduj7@o2.e.notification.intuit.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 Content-Disposition: inline
@@ -43,7 +47,7 @@ X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ERXKKNAB6TBHNHXM5B27HRKUPD74NKED/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LMZRWN7UEGRMCHCJ266D3GMJCF6KWS2P/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
