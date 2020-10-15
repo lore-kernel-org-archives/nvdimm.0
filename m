@@ -2,60 +2,63 @@ Return-Path: <SRS0=M7Jl=DW=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.8 required=3.0 tests=BAYES_20,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17288C433E7
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Oct 2020 01:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00608C433E7
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Oct 2020 01:00:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C18E522258
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Oct 2020 01:00:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C18E522258
+	by mail.kernel.org (Postfix) with ESMTPS id 78ABC22257
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Oct 2020 01:00:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 78ABC22257
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0D41715989D28;
-	Wed, 14 Oct 2020 18:00:37 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	by ml01.01.org (Postfix) with ESMTP id 23A5015989D2B;
+	Wed, 14 Oct 2020 18:00:42 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7515B15943AEA
-	for <linux-nvdimm@lists.01.org>; Wed, 14 Oct 2020 18:00:34 -0700 (PDT)
-IronPort-SDR: NkL1nBy0vdhiacdauCfIg+OSDr0Ny5UQuBZz4JdqXVLBicFdx67r3wdYLQeM5Go+wcjU2888VF
- 5GOuZVvQM1Lw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9774"; a="230411664"
+	by ml01.01.org (Postfix) with ESMTPS id BBB0E15989D29
+	for <linux-nvdimm@lists.01.org>; Wed, 14 Oct 2020 18:00:39 -0700 (PDT)
+IronPort-SDR: biqlos6dCr/8kv3ZQtVOLRLEHUmZXTU2KanRyAOyLPYQQZVND2cMQzdxIZTNL8wrk2vz23unaV
+ qGYWFT2bGkHQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9774"; a="153165811"
 X-IronPort-AV: E=Sophos;i="5.77,376,1596524400";
-   d="scan'208";a="230411664"
+   d="scan'208";a="153165811"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2020 18:00:33 -0700
-IronPort-SDR: KS3Q2MPMmR4hzA6BX3wFA5W4ZTgE4BVgWBtN9d6K0JraXbAetqre2n+FMuEAQ3xYV6F7MwO/RB
- ken2QsQHin7A==
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2020 18:00:39 -0700
+IronPort-SDR: +GanhSOzVZlWa2eF4YEC17nMwSUu/4Nio4x/byPlczB6DLh+lElcwDVvtvX2fqdpq8R32Ouhil
+ KS5M8ZHJU1+g==
 X-IronPort-AV: E=Sophos;i="5.77,376,1596524400";
-   d="scan'208";a="531053664"
+   d="scan'208";a="464089569"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2020 18:00:33 -0700
-Subject: [PATCH 0/2] device-dax subdivision v5 to v6 fixups
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2020 18:00:38 -0700
+Subject: [PATCH 1/2] device-dax/kmem: Fix resource release
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-kernel@vger.kernel.org
-Date: Wed, 14 Oct 2020 17:42:04 -0700
-Message-ID: <160272252400.3136502.13635752844548960833.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 14 Oct 2020 17:42:09 -0700
+Message-ID: <160272252925.3136502.17220638073995895400.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <160272252400.3136502.13635752844548960833.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <160272252400.3136502.13635752844548960833.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: CHPSDMM7PA5R3IPG35PIOUFVKMOQYTH4
-X-Message-ID-Hash: CHPSDMM7PA5R3IPG35PIOUFVKMOQYTH4
+Message-ID-Hash: XVRQMNMZQR2GHPTZWVWGSQN7ZM3Z6DWO
+X-Message-ID-Hash: XVRQMNMZQR2GHPTZWVWGSQN7ZM3Z6DWO
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: David Hildenbrand <david@redhat.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Brice Goglin <Brice.Goglin@inria.fr>, Stefano Stabellini <sstabellini@kernel.org>, xen-devel@lists.xenproject.org, Jia He <justin.he@arm.com>, akpm@linux-foundation.org, Dave Hansen <dave.hansen@linux.intel.com>, Juergen Gross <jgross@suse.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Joao Martins <joao.m.martins@oracle.com>, linux-nvdimm@lists.01.org, linux-mm@kvack.org
+CC: David Hildenbrand <david@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Pavel Tatashin <pasha.tatashin@soleen.com>, Brice Goglin <Brice.Goglin@inria.fr>, Jia He <justin.he@arm.com>, Joao Martins <joao.m.martins@oracle.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, akpm@linux-foundation.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CHPSDMM7PA5R3IPG35PIOUFVKMOQYTH4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XVRQMNMZQR2GHPTZWVWGSQN7ZM3Z6DWO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,31 +67,157 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi,
+The conversion to request_mem_region() is broken because it assumes that
+the range is marked busy prior to release. However, due to the way that
+the kmem driver manipulates the IORESOURCE_BUSY flag (clears it to
+let {add,remove}_memory() handle busy) it requires a manual
+release_resource() to perform cleanup.
 
-The v5 series of the device-dax-subdivision series landed upstream which
-missed some of the late breaking fixups in v6 [1]. The Xen one is
-cosmetic, the kmem one is a functional problem. I will handle the kmem
-in a device-dax follow-on pull request post-rc1. The Xen one can go
-through the Xen tree at its own pace.
+Given that the actual 'struct resource *' needs to be recalled, not just
+the range, add that tracking to the kmem driver-data.
 
-My thanks to Andrew for wrangling the thrash up to v5, and my apologies
-to Andrew et al for not highlighting this gap sooner.
-
-[1]: http://lore.kernel.org/r/160196728453.2166475.12832711415715687418.stgit@dwillia2-desk3.amr.corp.intel.com
-
+Reported-by: David Hildenbrand <david@redhat.com>
+Fixes: 0513bd5bb114 ("device-dax/kmem: replace release_resource() with release_mem_region()")
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Brice Goglin <Brice.Goglin@inria.fr>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/dax/kmem.c |   48 ++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 34 insertions(+), 14 deletions(-)
 
-Dan Williams (2):
-      device-dax/kmem: Fix resource release
-      xen/unpopulated-alloc: Consolidate pgmap manipulation
-
-
- drivers/dax/kmem.c              |   48 ++++++++++++++++++++++++++++-----------
- drivers/xen/unpopulated-alloc.c |   14 ++++++-----
- 2 files changed, 41 insertions(+), 21 deletions(-)
-
-base-commit: 4da9af0014b51c8b015ed8c622440ef28912efe6
+diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
+index 6c933f2b604e..af04b6d1d263 100644
+--- a/drivers/dax/kmem.c
++++ b/drivers/dax/kmem.c
+@@ -35,11 +35,17 @@ static int dax_kmem_range(struct dev_dax *dev_dax, int i, struct range *r)
+ 	return 0;
+ }
+ 
++struct dax_kmem_data {
++	const char *res_name;
++	struct resource *res[];
++};
++
+ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ {
+ 	struct device *dev = &dev_dax->dev;
++	struct dax_kmem_data *data;
++	int rc = -ENOMEM;
+ 	int i, mapped = 0;
+-	char *res_name;
+ 	int numa_node;
+ 
+ 	/*
+@@ -55,14 +61,17 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 		return -EINVAL;
+ 	}
+ 
+-	res_name = kstrdup(dev_name(dev), GFP_KERNEL);
+-	if (!res_name)
++	data = kzalloc(sizeof(*data) + sizeof(struct resource *) * dev_dax->nr_range, GFP_KERNEL);
++	if (!data)
+ 		return -ENOMEM;
+ 
++	data->res_name = kstrdup(dev_name(dev), GFP_KERNEL);
++	if (!data->res_name)
++		goto err_res_name;
++
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		struct resource *res;
+ 		struct range range;
+-		int rc;
+ 
+ 		rc = dax_kmem_range(dev_dax, i, &range);
+ 		if (rc) {
+@@ -72,7 +81,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 		}
+ 
+ 		/* Region is permanently reserved if hotremove fails. */
+-		res = request_mem_region(range.start, range_len(&range), res_name);
++		res = request_mem_region(range.start, range_len(&range), data->res_name);
+ 		if (!res) {
+ 			dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve region\n",
+ 					i, range.start, range.end);
+@@ -82,9 +91,10 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 			 */
+ 			if (mapped)
+ 				continue;
+-			kfree(res_name);
+-			return -EBUSY;
++			rc = -EBUSY;
++			goto err_request_mem;
+ 		}
++		data->res[i] = res;
+ 
+ 		/*
+ 		 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
+@@ -104,18 +114,25 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
+ 		if (rc) {
+ 			dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
+ 					i, range.start, range.end);
+-			release_mem_region(range.start, range_len(&range));
++			release_resource(res);
++			kfree(res);
++			data->res[i] = NULL;
+ 			if (mapped)
+ 				continue;
+-			kfree(res_name);
+-			return rc;
++			goto err_request_mem;
+ 		}
+ 		mapped++;
+ 	}
+ 
+-	dev_set_drvdata(dev, res_name);
++	dev_set_drvdata(dev, data);
+ 
+ 	return 0;
++
++err_request_mem:
++	kfree(data->res_name);
++err_res_name:
++	kfree(data);
++	return rc;
+ }
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+@@ -123,7 +140,7 @@ static int dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ {
+ 	int i, success = 0;
+ 	struct device *dev = &dev_dax->dev;
+-	const char *res_name = dev_get_drvdata(dev);
++	struct dax_kmem_data *data = dev_get_drvdata(dev);
+ 
+ 	/*
+ 	 * We have one shot for removing memory, if some memory blocks were not
+@@ -142,7 +159,9 @@ static int dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ 		rc = remove_memory(dev_dax->target_node, range.start,
+ 				range_len(&range));
+ 		if (rc == 0) {
+-			release_mem_region(range.start, range_len(&range));
++			release_resource(data->res[i]);
++			kfree(data->res[i]);
++			data->res[i] = NULL;
+ 			success++;
+ 			continue;
+ 		}
+@@ -153,7 +172,8 @@ static int dev_dax_kmem_remove(struct dev_dax *dev_dax)
+ 	}
+ 
+ 	if (success >= dev_dax->nr_range) {
+-		kfree(res_name);
++		kfree(data->res_name);
++		kfree(data);
+ 		dev_set_drvdata(dev, NULL);
+ 	}
+ 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
