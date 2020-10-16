@@ -2,78 +2,73 @@ Return-Path: <SRS0=jOyn=DX=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D7AC433E7
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 16 Oct 2020 07:20:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4059EC43467
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 16 Oct 2020 10:58:05 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7BA312073A
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 16 Oct 2020 07:20:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 509E320878
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 16 Oct 2020 10:58:04 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="vg/WLflj"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7BA312073A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="s3sqnnAy"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 509E320878
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C0A721606AEAE;
-	Fri, 16 Oct 2020 00:20:04 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::641; helo=mail-ej1-x641.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 938B415C325BE;
+	Fri, 16 Oct 2020 03:58:03 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=peterz@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9800E16061123
-	for <linux-nvdimm@lists.01.org>; Fri, 16 Oct 2020 00:20:02 -0700 (PDT)
-Received: by mail-ej1-x641.google.com with SMTP id ce10so1683565ejc.5
-        for <linux-nvdimm@lists.01.org>; Fri, 16 Oct 2020 00:20:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4+iSrMtFmHg3O+4hlshnuS7Wz4B1TlsOgXx5v5XjsoE=;
-        b=vg/WLfljNwT3yKOv24xrjqtBiu8lH/dpD84sxLvDLdiCRZ4CZoVic/nofgZfwYfuz/
-         3PxBi033iTuyi2wbzvTNBfGE/6ilHVLQn6xvFq6O1Obbh1GY7Kj6BwyOVSJ/mUxovVBn
-         eODmPnH3VGICg5PyF8lmoaes/o8FQ0F9nkzAOIu0qXU+kMW6c2w4QZ15kAnKb4YwpnRD
-         Naip5szpL9zOlHX6BTa5WYJU2ZRG6E3UQnwcTEqOgiG2Ehat9KdTf/MX7OIIJ4zog1Lu
-         YkGd4Ct7nCbT00A8S+DwnRzN2qVT+Y4G1Q1RIT6urFSzG8UKZbpJqDvLEFoVQ28NsJzh
-         5qTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4+iSrMtFmHg3O+4hlshnuS7Wz4B1TlsOgXx5v5XjsoE=;
-        b=c7oMnumXv+CnDE4Jum7QrFLN5pgh51JUCkIoNQxZrRoafcAD9GgzfPaH7/DmG4Fiwz
-         g/xJaWImxcO9IjLDhl5dT4BVwL5NAFr0bmSa2gIXmZjr+Suuk+INfbVX+pSlmEhwlxWC
-         scx2kXNLd8lyyE00Yf3WNbnw7GeyEfu57C6PupxInnybIEJb68xyZyvuWvncklARCVA9
-         Nx79Qdd4iwEyMDWQ/MD10RdHHKUnkbbJ/yjv/y9af4ChYxRM+mFoWvRSP80cBJz45lS/
-         zfCgMq7Xo/fKUlldXl3NRcAxFx7k9e34ohJ9t2omjO6qzb5/kjuebCzgF7Yxaz+PqN19
-         whkQ==
-X-Gm-Message-State: AOAM531LWiOJifs2D56GKFOu8u9VJmTI/PEncSRayDkWWdv9qK/a4584
-	xeQFMqkXFx46lsHTE1a5wmBhUHCZAZll/U19D4G/RQ==
-X-Google-Smtp-Source: ABdhPJwsZKRUlEtaH2jW4zm6+ObdYyma4WzjAY6/gqrvL7MJ0zdVlvrDX7hH6dJ9+oZOkdOi9rdrMaiO6R5Dtfp138I=
-X-Received: by 2002:a17:906:7e47:: with SMTP id z7mr2250318ejr.418.1602832799499;
- Fri, 16 Oct 2020 00:19:59 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 62B0D15C2C27E
+	for <linux-nvdimm@lists.01.org>; Fri, 16 Oct 2020 03:58:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=vZekZ76KW1BiiwMFIl0NBOsPALzv6fOefXANoYwORjo=; b=s3sqnnAyqvzeCqqogltPaUvZEd
+	hgR7KOV9Fp54001uE9QNgg1AMWqHaFF5JgVauukBLqaKmERhe7h6OZuPB8JURXapZrfZATGcuctAT
+	2FHdhg5BHGWOxaGlMWilCHjdNkV1JkDDKEFiz9cDDj1n639XOPcv4wIOP4l6A/t1XTyTxIHPEzsW7
+	Fef+mSxOUoXwOKB4I2tTW7KtkIGOa86LcD9Sf4h2XhNC3QBU9iWQKu2iTqZKYXqS0uZ9fZ1a+hiUH
+	CA8hoABSndA1QINh/XC8/+hqZfNTqSO4Q80FrZoJwaVoy8PnFxFbI89lyknHaXGnX/yMRVUIBm0iW
+	DSJ6YZ5Q==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kTNQf-00024m-1i; Fri, 16 Oct 2020 10:57:45 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(Client did not present a certificate)
+	by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 787DB3011E6;
+	Fri, 16 Oct 2020 12:57:43 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+	id 651BE203C7039; Fri, 16 Oct 2020 12:57:43 +0200 (CEST)
+Date: Fri, 16 Oct 2020 12:57:43 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: ira.weiny@intel.com
+Subject: Re: [PATCH RFC V3 2/9] x86/fpu: Refactor arch_set_user_pkey_access()
+ for PKS support
+Message-ID: <20201016105743.GK2611@hirez.programming.kicks-ass.net>
+References: <20201009194258.3207172-1-ira.weiny@intel.com>
+ <20201009194258.3207172-3-ira.weiny@intel.com>
 MIME-Version: 1.0
-References: <160281074218.3146890.3209259735282870612.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20201016065901.GA10448@infradead.org>
-In-Reply-To: <20201016065901.GA10448@infradead.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 16 Oct 2020 00:19:49 -0700
-Message-ID: <CAPcyv4iYj6U=Ww5e5W+c_1_SDq2fP3iPa4fYXF++bV3g-Cs8pg@mail.gmail.com>
-Subject: Re: [ndctl PATCH] Clarify COPYING
-To: Christoph Hellwig <hch@infradead.org>
-Message-ID-Hash: WNJNWPD73V5KORRMV3IKGAJ2C5QW2L6H
-X-Message-ID-Hash: WNJNWPD73V5KORRMV3IKGAJ2C5QW2L6H
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>
+Content-Disposition: inline
+In-Reply-To: <20201009194258.3207172-3-ira.weiny@intel.com>
+Message-ID-Hash: VFJ7RB5DFIWMFTC536HTAVOILJ53Q6CN
+X-Message-ID-Hash: VFJ7RB5DFIWMFTC536HTAVOILJ53Q6CN
+X-MailFrom: peterz@infradead.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WNJNWPD73V5KORRMV3IKGAJ2C5QW2L6H/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VFJ7RB5DFIWMFTC536HTAVOILJ53Q6CN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,19 +77,60 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Oct 15, 2020 at 11:59 PM Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Thu, Oct 15, 2020 at 06:12:22PM -0700, Dan Williams wrote:
-> > The tools and the libraries this project produces are licensed under the
-> > GPLv2 and LGPLv2.1 licenses respectively. Add a COPYING file that
-> > highlights this arrangement and fixup files in */lib that mistakenly had
-> > a GPLv2 header applied.
->
-> Maybe it is time to move to formal SPDX annotations and the LICENSES/
-> infrastructure from the kernel?
+On Fri, Oct 09, 2020 at 12:42:51PM -0700, ira.weiny@intel.com wrote:
+> From: Fenghua Yu <fenghua.yu@intel.com>
+> 
+> Define a helper, update_pkey_val(), which will be used to support both
+> Protection Key User (PKU) and the new Protection Key for Supervisor
+> (PKS) in subsequent patches.
+> 
+> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+> ---
+>  arch/x86/include/asm/pkeys.h |  2 ++
+>  arch/x86/kernel/fpu/xstate.c | 22 ++++------------------
+>  arch/x86/mm/pkeys.c          | 21 +++++++++++++++++++++
+>  3 files changed, 27 insertions(+), 18 deletions(-)
 
-Ah yes, I hadn't noticed the LICENSES/ style. That's a better fit.
-I'll go that route and do the SPDX conversion as well.
+This is not from Fenghua.
+
+  https://lkml.kernel.org/r/20200717085442.GX10769@hirez.programming.kicks-ass.net
+
+This is your patch based on the code I wrote.
+
+> diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
+> index f5efb4007e74..3cf8f775f36d 100644
+> --- a/arch/x86/mm/pkeys.c
+> +++ b/arch/x86/mm/pkeys.c
+> @@ -208,3 +208,24 @@ static __init int setup_init_pkru(char *opt)
+>  	return 1;
+>  }
+>  __setup("init_pkru=", setup_init_pkru);
+> +
+> +/*
+> + * Update the pk_reg value and return it.
+> + *
+> + * Kernel users use the same flags as user space:
+> + *     PKEY_DISABLE_ACCESS
+> + *     PKEY_DISABLE_WRITE
+> + */
+> +u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags)
+> +{
+> +	int pkey_shift = pkey * PKR_BITS_PER_PKEY;
+> +
+> +	pk_reg &= ~(((1 << PKR_BITS_PER_PKEY) - 1) << pkey_shift);
+> +
+> +	if (flags & PKEY_DISABLE_ACCESS)
+> +		pk_reg |= PKR_AD_BIT << pkey_shift;
+> +	if (flags & PKEY_DISABLE_WRITE)
+> +		pk_reg |= PKR_WD_BIT << pkey_shift;
+> +
+> +	return pk_reg;
+> +}
+> -- 
+> 2.28.0.rc0.12.gb6a658bd00c9
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
