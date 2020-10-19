@@ -2,105 +2,101 @@ Return-Path: <SRS0=ZwrK=D2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=BAYES_20,DKIM_INVALID,
+X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E32DEC433E7
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Oct 2020 09:37:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9445C433DF
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Oct 2020 17:22:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4B17822243
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Oct 2020 09:37:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 320CE22282
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Oct 2020 17:22:43 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="UjWOH0rq"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4B17822243
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=edmsysevent.info header.i=info@edmsysevent.info header.b="YvG8bIqf"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 320CE22282
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=edmsysevent.info
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9ABE315ED4552;
-	Mon, 19 Oct 2020 02:37:38 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=peterz@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9D7AA15E1587D
-	for <linux-nvdimm@lists.01.org>; Mon, 19 Oct 2020 02:37:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=O3B5SDSSGOQ/+MQUdt0Hy/pyKJ8BUU2Uw0eRUC0gQJw=; b=UjWOH0rqHpfO2evvAot8XfZPhm
-	Ujz8nN5NXFhX2X4ST7K3yr0FRVocJcnYRDv/x7ri2cofoF0tNd4LH43/uNrRKlRuD7TzTxbBiCxfy
-	f08AUp6A/Do8cyTspB4hlKZPrmm2mETomhSipdZAEa6fN7de/Z1evQijJAVE/MGG/DxVM2iU4Qn1q
-	FUGEOKLtigWd+T+4WYYGb9bKOVXkDEghzmKrV64OZSbp3a8dondpd2YaqnxT8BjrOR+snVk2sP+AP
-	w4nUUDdb7ykKA7E8PI1XyPVgSG1NlxEHDdKwSNLo4JS+pBVzA5E8S9e3uLAZUr0QXqTZzSQjS9Nvy
-	WFDYp1rg==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kURbQ-0003ky-22; Mon, 19 Oct 2020 09:37:16 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+	by ml01.01.org (Postfix) with ESMTP id 60E8615E63D91;
+	Mon, 19 Oct 2020 10:22:43 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=51.83.174.127; helo=edm3.edmsysevent.info; envelope-from=info-linux+2dnvdimm=lists.01.org@edmsysevent.info; receiver=<UNKNOWN> 
+Received: from edm3.edmsysevent.info (ip127.ip-51-83-174.eu [51.83.174.127])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(Client did not present a certificate)
-	by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id B242E3012C3;
-	Mon, 19 Oct 2020 11:37:14 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-	id A127821447780; Mon, 19 Oct 2020 11:37:14 +0200 (CEST)
-Date: Mon, 19 Oct 2020 11:37:14 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH RFC V3 4/9] x86/pks: Preserve the PKRS MSR on context
- switch
-Message-ID: <20201019093714.GI2628@hirez.programming.kicks-ass.net>
-References: <20201009194258.3207172-1-ira.weiny@intel.com>
- <20201009194258.3207172-5-ira.weiny@intel.com>
- <429789d3-ab5b-49c3-65c3-f0fc30a12516@intel.com>
- <20201016111226.GN2611@hirez.programming.kicks-ass.net>
- <20201017051410.GW2046448@iweiny-DESK2.sc.intel.com>
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id A25D1159A7473
+	for <linux-nvdimm@lists.01.org>; Mon, 19 Oct 2020 10:22:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=default; d=edmsysevent.info;
+ h=Date:To:From:Reply-To:Subject:Message-ID:List-Unsubscribe:List-Id:MIME-Version:Content-Type; i=info@edmsysevent.info;
+ bh=RLecyI6+VDVKzc/mZLPTegSpXyc=;
+ b=YvG8bIqfOeUYc715SeF8x6ZefODKBvx4dKgywKJHjBkJqj3Wjfugq2pxk2Kldvx0+WjRHPVoTO/a
+   nzQrq3aoXV5KlWIawq7UTFmmeX67FgxTFkb3OIyjrh5BEClVZ3UdxPz0fKdujKoO+L+zN3wFmCNO
+   vWLln55+G8TEYJF7uwro5YRq5ZFvQN6hoKFqloVYIQcHGumCOfuD7U4HM9tkD+DAcLh2OBvM2ODH
+   VqGL5EKGOiV9nEhH2l0Ghq3YvObRXIrrVifd0i6f+FA1G5j5M8Jpqcg3sQSLQbpMRbwj22lLvyGQ
+   sd8ccPvDt1dYGQNGLrxN2CYCzoI7oxy39ZS2bw==
+DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=default; d=edmsysevent.info;
+ b=D/P6YqcGxZPYmZp4PpTWdnLEYlEikVaFmc3uV00X78a+NILV2d4Nkenc9Pajd4LYFYg3ki29ijno
+   QGS30uiAXB/6AvYoXJeVhk+jjq2GSNwb1PobzAU+4KnJlQ7hiSgGZ2T/78Od8K7yvWLXl5LShGSR
+   lODLD6Bk4mHVzQTyR1Xj01yXTKryiRG4gFYhCpbYE9Em2mc4jPxgTDZFEvv39d6VCsb+ukcH346k
+   RKMEf8He0PKwE+x6HtiI+QiHDpYv3TicK7u1Tb2WtFmjv7o/oPE3d0KMRital/OIkHqUCBeJd9+S
+   PwSLX67r+8nZA0lSozRETve4KXKaV8rBmOKPtQ==;
+Received: from edmsysevent.info (127.0.0.1) by edm1.edmsysevent.info id hhn5m1i19tkm for <linux-nvdimm@lists.01.org>; Mon, 19 Oct 2020 17:19:40 +0000 (envelope-from <info-linux+2Dnvdimm=lists.01.org@edmsysevent.info>)
+Date: Mon, 19 Oct 2020 17:19:40 +0000
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+From: KIMBERLY RODRIGUEZ <info@edmsysevent.info>
+Subject: RE: Conference call request
+Message-ID: <940d7690e67b1fe269cec9791f28ef3e@edmsysevent.info>
+X-Npfn-Campaign-Uid: gg6771m5xb9f3
+X-Npfn-Subscriber-Uid: qp99044h6ac81
+X-Npfn-Customer-Uid: xy379q9k4f7b3
+X-Npfn-Customer-Gid: 0
+X-Npfn-Delivery-Sid: 1
+X-Npfn-Tracking-Did: 0
+X-Report-Abuse: Please report abuse for this campaign here: https://edmsysevent.info/ecm/index.php/campaigns/gg6771m5xb9f3/report-abuse/tx143bon723c4/qp99044h6ac81
+Feedback-ID: gg6771m5xb9f3:qp99044h6ac81:tx143bon723c4:xy379q9k4f7b3
+Precedence: bulk
+X-Npfn-EBS: https://edmsysevent.info/ecm/index.php/lists/block-address
+X-Sender: info@edmsysevent.info
+X-Receiver: linux-nvdimm@lists.01.org
+X-Npfn-Mailer: PHPMailer - 5.2.21
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20201017051410.GW2046448@iweiny-DESK2.sc.intel.com>
-Message-ID-Hash: P7VYK6DC5I25RZYIEEWSXXCAKUGNSAEN
-X-Message-ID-Hash: P7VYK6DC5I25RZYIEEWSXXCAKUGNSAEN
-X-MailFrom: peterz@infradead.org
+Message-ID-Hash: MWUL547CGZLZJIWDP27WOMEKM73ABI7F
+X-Message-ID-Hash: MWUL547CGZLZJIWDP27WOMEKM73ABI7F
+X-MailFrom: info-linux+2Dnvdimm=lists.01.org@edmsysevent.info
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Dave Hansen <dave.hansen@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
-Precedence: list
+Reply-To: KIMBERLY RODRIGUEZ <KIMBERLY@eventattendsummits.info>
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/P7VYK6DC5I25RZYIEEWSXXCAKUGNSAEN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MWUL547CGZLZJIWDP27WOMEKM73ABI7F/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Fri, Oct 16, 2020 at 10:14:10PM -0700, Ira Weiny wrote:
-> > so it either needs to
-> > explicitly do so, or have an assertion that preemption is indeed
-> > disabled.
-> 
-> However, I don't think I understand clearly.  Doesn't [get|put]_cpu_ptr()
-> handle the preempt_disable() for us? 
-
-It does.
-
-> Is it not sufficient to rely on that?
-
-It is.
-
-> Dave's comment seems to be the opposite where we need to eliminate preempt
-> disable before calling write_pkrs().
-> 
-> FWIW I think I'm mistaken in my response to Dave regarding the
-> preempt_disable() in pks_update_protection().
-
-Dave's concern is that we're calling with with preemption already
-disabled so disabling it again is superfluous.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+SSBob3BlIGFsbCBpcyB3ZWxsIHdpdGggeW91LCB5b3VyIGZhbWlseSwgZnJpZW5kcyBhbmQgY29s
+bGVhZ3Vlcy4NCkF0IDUwJSBjb3N0IHdvdWxkIHlvdSBsaWtlIHRvIG1pZ3JhdGUgdG8gUHVibGlj
+IENsb3VkcyAoQVdTLCBBenVyZSwNCkdDUCBvciBTYWxlc2ZvcmNlKT8NCldlIGhhdmUgcHJvdmVu
+IGV4cGVydGlzZSBpbiBldmVyeSBhc3BlY3Qgb2YgQ2xvdWQgRW5naW5lZXJpbmcgYW5kDQpNaWdy
+YXRpb24NCk91ciBjbGllbnRzIGluY2x1ZGUgU2lsaWNvbiBWYWxsZXkgTGVhZGVycywgRm9ydHVu
+ZSAxMDAgY3VzdG9tZXJzIGFuZA0KbWlkLW1hcmtldCBjbGllbnRzLiBXZSBoZWxwIG91ciBjbGll
+bnRzIGFjaGlldmUgdGhlIG1pZ3JhdGlvbiBpbiBhDQpUaW1lIEJveGVkLCBCdWRnZXQgQm94ZWQs
+IFJpc2stbWl0aWdhdGVkIGFwcHJvYWNoLg0KV2UgYXJlIGZsZXhpYmxlIGluIG91ciBidXNpbmVz
+cyBhcHByb2FjaCDigJMgd2UgY2FuIGRvIEZpeGVkIFByaWNlDQpjb250cmFjdHMgb3IgZG8gVGlt
+ZSBhbmQgTWF0ZXJpYWxzDQpXZSBhcmUgcHJvZHVjdCBhZ25vc3RpYy4gV2UgYXJlIHZlcnkgZmFt
+aWxpYXIgd2l0aCB0aGUgYmVzdCBpbiBjbGFzcw0KdG9vbHMgdG8gaGVscCB5b3UgaW4geW91ciBj
+bG91ZCBqb3VybmV5DQpJZiB0aGlzIG1pZ2h0IGJlIG9mIGludGVyZXN0IHRvIHlvdSzCoGNhbiB5
+b3Ugc3VnZ2VzdCBhIDEwIG1pbiBzbG90DQp0aGF0IHdpbGwgd29yayBmb3IgeW91Pw0KQmVzdCB3
+aXNoZXMgdG8geW91IGFuZCB5b3VyIGZhbWlseSBmb3IgaGVhbHRoIGFuZCB3ZWxsbmVzcy4NClJl
+Z2FyZHMsIFRoYW5rIHlvdS4NCktJTUJFUkxZIFJPRFJJR1VFWg0KQ2xvdWQgTWlncmF0aW9uICYg
+QnVzaW5lc3MgRGV2ZWxvcG1lbnQNCig2NzgpIDc0NS04Mzg1DQpVbnN1YnNjcmliZQ0KaHR0cHM6
+Ly9lZG1zeXNldmVudC5pbmZvL2VjbS9pbmRleC5waHAvbGlzdHMvdHgxNDNib243MjNjNC91bnN1
+YnNjcmliZS9xcDk5MDQ0aDZhYzgxL2dnNjc3MW01eGI5ZjMNCg0KX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAt
+LSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwg
+dG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
