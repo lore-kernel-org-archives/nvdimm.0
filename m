@@ -4,65 +4,65 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E319C6369E
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 22 Oct 2020 22:27:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E238BC6379F
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 22 Oct 2020 22:27:27 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 61EDD208C3
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 22 Oct 2020 22:27:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 61EDD208C3
+	by mail.kernel.org (Postfix) with ESMTPS id 968F3207C4
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 22 Oct 2020 22:27:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 968F3207C4
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CB8B816276A59;
-	Thu, 22 Oct 2020 15:27:20 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+	by ml01.01.org (Postfix) with ESMTP id 89DE8162B8804;
+	Thu, 22 Oct 2020 15:27:26 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.31; helo=mga06.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 813FB16271500
-	for <linux-nvdimm@lists.01.org>; Thu, 22 Oct 2020 15:27:14 -0700 (PDT)
-IronPort-SDR: OcRs+uDAeEs8vqOZ95v9m1+7rkbJvhPKWyrlQ9Nkv7vjnZ3JSwtj8DU8gcjgCFynxv3Hr9kuko
- nAISQVl4J5Cw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9782"; a="167725381"
+	by ml01.01.org (Postfix) with ESMTPS id 7D950162B8808
+	for <linux-nvdimm@lists.01.org>; Thu, 22 Oct 2020 15:27:24 -0700 (PDT)
+IronPort-SDR: k3L3IDiPu9LqCQFThz6w8nRY1zBjCmBFTtbxRF+MdRooQScQjhNHb0yo0VHZesbYUY1Fx+DwuX
+ oMG97qt3ElnQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9782"; a="229236888"
 X-IronPort-AV: E=Sophos;i="5.77,404,1596524400";
-   d="scan'208";a="167725381"
+   d="scan'208";a="229236888"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 15:27:13 -0700
-IronPort-SDR: PgEON2dSDjhDgwJHX+QIzzPzwQILf6lmaeDrRVmCBuAgdJLZXquxiF992pN86zPkmZ3YD0ncVk
- vrUzZfm9e8uQ==
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 15:27:24 -0700
+IronPort-SDR: zzp2rD61QGyfjeDsKHhr1Y0CtB2pHKjvZffE36opsMWQ0czVk9vX81PjpVrNy2jPgelwZ19JKE
+ G2K66b1zAoOw==
 X-IronPort-AV: E=Sophos;i="5.77,404,1596524400";
-   d="scan'208";a="524442538"
+   d="scan'208";a="360004350"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 15:27:13 -0700
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Oct 2020 15:27:23 -0700
 From: ira.weiny@intel.com
 To: Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Andy Lutomirski <luto@kernel.org>,
 	Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH 02/10] x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
-Date: Thu, 22 Oct 2020 15:26:53 -0700
-Message-Id: <20201022222701.887660-3-ira.weiny@intel.com>
+Subject: [PATCH 08/10] x86/entry: Preserve PKRS MSR across exceptions
+Date: Thu, 22 Oct 2020 15:26:59 -0700
+Message-Id: <20201022222701.887660-9-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20201022222701.887660-1-ira.weiny@intel.com>
 References: <20201022222701.887660-1-ira.weiny@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: GYDNIA6JMCVI4GAERUL6AON57X22YAUY
-X-Message-ID-Hash: GYDNIA6JMCVI4GAERUL6AON57X22YAUY
+Message-ID-Hash: Z5KVJVVQSD6VSJHZHO4WFEFSNHZAL4R6
+X-Message-ID-Hash: Z5KVJVVQSD6VSJHZHO4WFEFSNHZAL4R6
 X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
+CC: Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GYDNIA6JMCVI4GAERUL6AON57X22YAUY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Z5KVJVVQSD6VSJHZHO4WFEFSNHZAL4R6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -73,108 +73,225 @@ Content-Transfer-Encoding: 7bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-Define a helper, update_pkey_val(), which will be used to support both
-Protection Key User (PKU) and the new Protection Key for Supervisor
-(PKS) in subsequent patches.
+The PKRS MSR is not managed by XSAVE.  It is preserved through a context
+switch but this support leaves exception handling code open to memory
+accesses during exceptions.
 
-Co-developed-by: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+2 possible places for preserving this state were considered,
+irqentry_state_t or pt_regs.[1]  pt_regs was much more complicated and
+was potentially fraught with unintended consequences.[2]
+irqentry_state_t was already an object being used in the exception
+handling and is straightforward.  It is also easy for any number of
+nested states to be tracked and eventually can be enhanced to store the
+reference counting required to support PKS through kmap reentry
+
+Preserve the current task's PKRS values in irqentry_state_t on exception
+entry and restoring them on exception exit.
+
+Each nested exception is further saved allowing for any number of levels
+of exception handling.
+
+Peter and Thomas both suggested parts of the patch, IDT and NMI respectively.
+
+[1] https://lore.kernel.org/lkml/CALCETrVe1i5JdyzD_BcctxQJn+ZE3T38EFPgjxN1F577M36g+w@mail.gmail.com/
+[2] https://lore.kernel.org/lkml/874kpxx4jf.fsf@nanos.tec.linutronix.de/#t
+
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Suggested-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
-Changes from RFC V3:
+Changes from RFC V3
+	Standardize on 'irq_state' variable name
 	Per Dave Hansen
-		Update and add comments per Dave's review
-	Per Peter
-		Correct attribution
+		irq_save_pkrs() -> irq_save_set_pkrs()
+	Rebased based on clean up patch by Thomas Gleixner
+		This includes moving irq_[save_set|restore]_pkrs() to
+		the core as well.
 ---
- arch/x86/include/asm/pkeys.h |  2 ++
- arch/x86/kernel/fpu/xstate.c | 22 ++++------------------
- arch/x86/mm/pkeys.c          | 23 +++++++++++++++++++++++
- 3 files changed, 29 insertions(+), 18 deletions(-)
+ arch/x86/entry/common.c             | 39 +++++++++++++++++++++++++++++
+ arch/x86/include/asm/pkeys_common.h |  5 ++--
+ arch/x86/mm/pkeys.c                 |  2 +-
+ include/linux/entry-common.h        | 12 +++++++++
+ kernel/entry/common.c               | 14 +++++++++--
+ 5 files changed, 67 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/include/asm/pkeys.h b/arch/x86/include/asm/pkeys.h
-index f9feba80894b..4526245b03e5 100644
---- a/arch/x86/include/asm/pkeys.h
-+++ b/arch/x86/include/asm/pkeys.h
-@@ -136,4 +136,6 @@ static inline int vma_pkey(struct vm_area_struct *vma)
- 	return (vma->vm_flags & vma_pkey_mask) >> VM_PKEY_SHIFT;
+diff --git a/arch/x86/entry/common.c b/arch/x86/entry/common.c
+index 87dea56a15d2..c047ea57bb8c 100644
+--- a/arch/x86/entry/common.c
++++ b/arch/x86/entry/common.c
+@@ -19,6 +19,7 @@
+ #include <linux/nospec.h>
+ #include <linux/syscalls.h>
+ #include <linux/uaccess.h>
++#include <linux/pkeys.h>
+ 
+ #ifdef CONFIG_XEN_PV
+ #include <xen/xen-ops.h>
+@@ -209,6 +210,42 @@ SYSCALL_DEFINE0(ni_syscall)
+ 	return -ENOSYS;
  }
  
-+u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags);
++#ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++/*
++ * PKRS is a per-logical-processor MSR which overlays additional protection for
++ * pages which have been mapped with a protection key.
++ *
++ * The register is not maintained with XSAVE so we have to maintain the MSR
++ * value in software during context switch and exception handling.
++ *
++ * Context switches save the MSR in the task struct thus taking that value to
++ * other processors if necessary.
++ *
++ * To protect against exceptions having access to this memory we save the
++ * current running value and set the PKRS value for the duration of the
++ * exception.  Thus preventing exception handlers from having the elevated
++ * access of the interrupted task.
++ */
++noinstr void irq_save_set_pkrs(irqentry_state_t *irq_state, u32 val)
++{
++	if (!cpu_feature_enabled(X86_FEATURE_PKS))
++		return;
 +
- #endif /*_ASM_X86_PKEYS_H */
-diff --git a/arch/x86/kernel/fpu/xstate.c b/arch/x86/kernel/fpu/xstate.c
-index a99afc70cc0a..a3bca3211eba 100644
---- a/arch/x86/kernel/fpu/xstate.c
-+++ b/arch/x86/kernel/fpu/xstate.c
-@@ -994,9 +994,7 @@ const void *get_xsave_field_ptr(int xfeature_nr)
- int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
- 		unsigned long init_val)
- {
--	u32 old_pkru;
--	int pkey_shift = (pkey * PKR_BITS_PER_PKEY);
--	u32 new_pkru_bits = 0;
-+	u32 pkru;
++	irq_state->thread_pkrs = current->thread.saved_pkrs;
++	irq_state->pkrs = this_cpu_read(pkrs_cache);
++	write_pkrs(INIT_PKRS_VALUE);
++}
++
++noinstr void irq_restore_pkrs(irqentry_state_t *irq_state)
++{
++	if (!cpu_feature_enabled(X86_FEATURE_PKS))
++		return;
++
++	write_pkrs(irq_state->pkrs);
++	current->thread.saved_pkrs = irq_state->thread_pkrs;
++}
++#endif /* CONFIG_ARCH_HAS_SUPERVISOR_PKEYS */
++
+ #ifdef CONFIG_XEN_PV
+ #ifndef CONFIG_PREEMPTION
+ /*
+@@ -272,6 +309,8 @@ __visible noinstr void xen_pv_evtchn_do_upcall(struct pt_regs *regs)
  
- 	/*
- 	 * This check implies XSAVE support.  OSPKE only gets
-@@ -1012,21 +1010,9 @@ int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
- 	 */
- 	WARN_ON_ONCE(pkey >= arch_max_pkey());
+ 	inhcall = get_and_clear_inhcall();
+ 	if (inhcall && !WARN_ON_ONCE(irq_state.exit_rcu)) {
++		/* Normally called by irqentry_exit, we must restore pkrs here */
++		irq_restore_pkrs(&irq_state);
+ 		instrumentation_begin();
+ 		irqentry_exit_cond_resched();
+ 		instrumentation_end();
+diff --git a/arch/x86/include/asm/pkeys_common.h b/arch/x86/include/asm/pkeys_common.h
+index cd492c23b28c..f921c58793f9 100644
+--- a/arch/x86/include/asm/pkeys_common.h
++++ b/arch/x86/include/asm/pkeys_common.h
+@@ -31,9 +31,10 @@
+ #define        PKS_NUM_KEYS            16
  
--	/* Set the bits we need in PKRU:  */
--	if (init_val & PKEY_DISABLE_ACCESS)
--		new_pkru_bits |= PKR_AD_BIT;
--	if (init_val & PKEY_DISABLE_WRITE)
--		new_pkru_bits |= PKR_WD_BIT;
--
--	/* Shift the bits in to the correct place in PKRU for pkey: */
--	new_pkru_bits <<= pkey_shift;
--
--	/* Get old PKRU and mask off any old bits in place: */
--	old_pkru = read_pkru();
--	old_pkru &= ~((PKR_AD_BIT|PKR_WD_BIT) << pkey_shift);
--
--	/* Write old part along with new part: */
--	write_pkru(old_pkru | new_pkru_bits);
-+	pkru = read_pkru();
-+	pkru = update_pkey_val(pkru, pkey, init_val);
-+	write_pkru(pkru);
+ #ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
+-void write_pkrs(u32 new_pkrs);
++DECLARE_PER_CPU(u32, pkrs_cache);
++noinstr void write_pkrs(u32 new_pkrs);
+ #else
+-static inline void write_pkrs(u32 new_pkrs) { }
++static __always_inline void write_pkrs(u32 new_pkrs) { }
+ #endif
  
- 	return 0;
- }
+ #endif /*_ASM_X86_PKEYS_INTERNAL_H */
 diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
-index f5efb4007e74..d1dfe743e79f 100644
+index fd5c4d34c3a5..a05f4edf2f80 100644
 --- a/arch/x86/mm/pkeys.c
 +++ b/arch/x86/mm/pkeys.c
-@@ -208,3 +208,26 @@ static __init int setup_init_pkru(char *opt)
- 	return 1;
+@@ -252,7 +252,7 @@ DEFINE_PER_CPU(u32, pkrs_cache);
+  *     until all prior executions of WRPKRU have completed execution
+  *     and updated the PKRU register.
+  */
+-void write_pkrs(u32 new_pkrs)
++noinstr void write_pkrs(u32 new_pkrs)
+ {
+ 	u32 *pkrs;
+ 
+diff --git a/include/linux/entry-common.h b/include/linux/entry-common.h
+index b79704af744f..3395931d55d0 100644
+--- a/include/linux/entry-common.h
++++ b/include/linux/entry-common.h
+@@ -342,6 +342,10 @@ void irqentry_exit_to_user_mode(struct pt_regs *regs);
+ 
+ #ifndef irqentry_state
+ typedef struct irqentry_state {
++#ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++	u32 pkrs;
++	u32 thread_pkrs;
++#endif
+ 	union {
+ 		bool	exit_rcu;
+ 		bool	lockdep;
+@@ -349,6 +353,14 @@ typedef struct irqentry_state {
+ } irqentry_state_t;
+ #endif
+ 
++#ifdef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
++noinstr void irq_save_set_pkrs(irqentry_state_t *irq_state, u32 val);
++noinstr void irq_restore_pkrs(irqentry_state_t *irq_state);
++#else
++static __always_inline void irq_save_set_pkrs(irqentry_state_t *irq_state, u32 val) { }
++static __always_inline void irq_restore_pkrs(irqentry_state_t *irq_state) { }
++#endif
++
+ /**
+  * irqentry_enter - Handle state tracking on ordinary interrupt entries
+  * @regs:	Pointer to pt_regs of interrupted context
+diff --git a/kernel/entry/common.c b/kernel/entry/common.c
+index e4f745b3a229..1d3df88e1657 100644
+--- a/kernel/entry/common.c
++++ b/kernel/entry/common.c
+@@ -327,7 +327,7 @@ noinstr void irqentry_enter(struct pt_regs *regs, irqentry_state_t *irq_state)
+ 		instrumentation_end();
+ 
+ 		irq_state->exit_rcu = true;
+-		return;
++		goto done;
+ 	}
+ 
+ 	/*
+@@ -341,6 +341,9 @@ noinstr void irqentry_enter(struct pt_regs *regs, irqentry_state_t *irq_state)
+ 	/* Use the combo lockdep/tracing function */
+ 	trace_hardirqs_off();
+ 	instrumentation_end();
++
++done:
++	irq_save_set_pkrs(irq_state, INIT_PKRS_VALUE);
  }
- __setup("init_pkru=", setup_init_pkru);
+ 
+ void irqentry_exit_cond_resched(void)
+@@ -362,7 +365,12 @@ noinstr void irqentry_exit(struct pt_regs *regs, irqentry_state_t *irq_state)
+ 	/* Check whether this returns to user mode */
+ 	if (user_mode(regs)) {
+ 		irqentry_exit_to_user_mode(regs);
+-	} else if (!regs_irqs_disabled(regs)) {
++		return;
++	}
 +
-+/*
-+ * Replace disable bits for @pkey with values from @flags
-+ *
-+ * Kernel users use the same flags as user space:
-+ *     PKEY_DISABLE_ACCESS
-+ *     PKEY_DISABLE_WRITE
-+ */
-+u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags)
-+{
-+	int pkey_shift = pkey * PKR_BITS_PER_PKEY;
++	irq_restore_pkrs(irq_state);
 +
-+	/*  Mask out old bit values */
-+	pk_reg &= ~(((1 << PKR_BITS_PER_PKEY) - 1) << pkey_shift);
-+
-+	/*  Or in new values */
-+	if (flags & PKEY_DISABLE_ACCESS)
-+		pk_reg |= PKR_AD_BIT << pkey_shift;
-+	if (flags & PKEY_DISABLE_WRITE)
-+		pk_reg |= PKR_WD_BIT << pkey_shift;
-+
-+	return pk_reg;
-+}
++	if (!regs_irqs_disabled(regs)) {
+ 		/*
+ 		 * If RCU was not watching on entry this needs to be done
+ 		 * carefully and needs the same ordering of lockdep/tracing
+@@ -408,10 +416,12 @@ void noinstr irqentry_nmi_enter(struct pt_regs *regs, irqentry_state_t *irq_stat
+ 	trace_hardirqs_off_finish();
+ 	ftrace_nmi_enter();
+ 	instrumentation_end();
++	irq_save_set_pkrs(irq_state, INIT_PKRS_VALUE);
+ }
+ 
+ void noinstr irqentry_nmi_exit(struct pt_regs *regs, irqentry_state_t *irq_state)
+ {
++	irq_restore_pkrs(irq_state);
+ 	instrumentation_begin();
+ 	ftrace_nmi_exit();
+ 	if (irq_state->lockdep) {
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
