@@ -1,80 +1,45 @@
-Return-Path: <SRS0=d0Fg=D4=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=Iv2d=D5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BD9C4363A
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 21 Oct 2020 18:18:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBDDC388F7
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 22 Oct 2020 03:52:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9273C22384
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 21 Oct 2020 18:18:20 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="XAOo5Jq2"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9273C22384
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 44A8222267
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 22 Oct 2020 03:52:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 44A8222267
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 003F115F384F4;
-	Wed, 21 Oct 2020 11:18:20 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::543; helo=mail-ed1-x543.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x543.google.com (mail-ed1-x543.google.com [IPv6:2a00:1450:4864:20::543])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7839915F384EF
-	for <linux-nvdimm@lists.01.org>; Wed, 21 Oct 2020 11:18:16 -0700 (PDT)
-Received: by mail-ed1-x543.google.com with SMTP id t20so3506699edr.11
-        for <linux-nvdimm@lists.01.org>; Wed, 21 Oct 2020 11:18:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=NBAipX6TcsGHUUwoOb+GAqip7teUB0SGQSkyDxyC1gs=;
-        b=XAOo5Jq2jx+pjinIp6W/j4WMIppRlBls2T2UtaNWf6C6rxdXwNqnvvCfeujW+bAm8R
-         lo0Pu6r0hPW8KHlfWj9zZxa9aW8L68TMkpmBu9LjAgb0/WgdOlKmiaFdgb8zpc9swRa/
-         tCRuriK0IOv3JLGjCAMgDPvu9Q6LKkkYYx+gxi+t+tEkhglXhAwqHR0liPIDAoGoiGmC
-         kc4Edw/gMXzwlV+ojHq8kZMyYnUBzIUwqLfy4+PWAe/mEIUimMtWlAJDdC4ouPfmIALW
-         QvjC6dJTdWdbum1QbvBiJtkUb3yiYusV40EH18iDzBcSH/pmyMZYXKXVYHpS8wZR7g1p
-         w1/A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=NBAipX6TcsGHUUwoOb+GAqip7teUB0SGQSkyDxyC1gs=;
-        b=c4isMH0sk1j5mL47WZqfHZfXK6emPbmZFi34URZPWXupPT4vrvclgOuPD9fuZKXGkF
-         1d4aynWEffyuLXVFwpY2A9hKaoeNmCkMzyCiH5Lz9MCwlT2G6V3pD/mz3nEdoDz8+P6U
-         zBo2pt1Ki8bOCiPjXR3KhNPUSppsvX/w755bLH5j3v0TmjhdeZmwDOfy3IRPlXngLpEY
-         k1rbQLKMHh8Brz+kvfijKp2QWA4VOTfPkkszW0DMYRTX2RQ/x1UmLKgHMOlkquhBoqAy
-         eRATi4mCJRNnu3jYHLtVkLAP44ANnNOY6VqhIhhOGT4Y39pCggmFAwd3I8M5QgM02R0u
-         0pKw==
-X-Gm-Message-State: AOAM531/xa8u/dnZTv7iBB2QxXPBBL2SaS+fFXeGyDEVM3HcLMKifCWf
-	PkScgbAMhPfwpktl3t1tjwY+1IjifWgRR5tK67jheA==
-X-Google-Smtp-Source: ABdhPJwFv1vEpgBjqYY0mUD82Q7IPIdLR5dvMyvYhC1peIW682ciZIrOUy8jSAINdGc+hq2w+U3i5AaFLr9SS8798tg=
-X-Received: by 2002:a50:f404:: with SMTP id r4mr4510255edm.354.1603304293186;
- Wed, 21 Oct 2020 11:18:13 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 86DF4160E92AA;
+	Wed, 21 Oct 2020 20:52:49 -0700 (PDT)
+Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
+	by ml01.01.org (Postfix) with ESMTP id 4663715D2985B
+	for <linux-nvdimm@lists.01.org>; Wed, 21 Oct 2020 20:52:46 -0700 (PDT)
 MIME-Version: 1.0
-References: <160321640031.3386448.4879860972349220888.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20201021174252.GB165907@iweiny-DESK2.sc.intel.com>
-In-Reply-To: <20201021174252.GB165907@iweiny-DESK2.sc.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 21 Oct 2020 11:18:02 -0700
-Message-ID: <CAPcyv4gd+ywfS7gRsGtr5Wzazh3n5wZqcA_dcd99w=xGP8Ct_Q@mail.gmail.com>
-Subject: Re: [ndctl PATCH] Rework license identification
-To: Ira Weiny <ira.weiny@intel.com>
-Message-ID-Hash: BDNTKMJNVYLEZ2BNP4FOHPL5ADMZRNSW
-X-Message-ID-Hash: BDNTKMJNVYLEZ2BNP4FOHPL5ADMZRNSW
-X-MailFrom: dan.j.williams@intel.com
+Subject: Re: Understanding Any Piece Of Music By Ear
+From: laelialucasta@gmail.com
+To: linux-nvdimm@lists.01.org
+Date: Thu, 22 Oct 2020 03:52:46 -0000
+Message-ID: <20201022035246.2796.16560@ml01.vlan13.01.org>
+User-Agent: HyperKitty on https://lists.01.org/
+References: <20201021094702.2812.59164@ml01.vlan13.01.org>
+In-Reply-To: <20201021094702.2812.59164@ml01.vlan13.01.org>
+Message-ID-Hash: VZVRCYSYJ2B6MLOT24YWB2JI5AK72KIH
+X-Message-ID-Hash: VZVRCYSYJ2B6MLOT24YWB2JI5AK72KIH
+X-MailFrom: laelialucasta@gmail.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Christoph Hellwig <hch@infradead.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BDNTKMJNVYLEZ2BNP4FOHPL5ADMZRNSW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VZVRCYSYJ2B6MLOT24YWB2JI5AK72KIH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,76 +48,7 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Oct 21, 2020 at 10:43 AM Ira Weiny <ira.weiny@intel.com> wrote:
->
-> On Tue, Oct 20, 2020 at 10:53:20AM -0700, Dan Williams wrote:
-> > Convert to the LICENSES/ directory format for COPYING from the Linux
-> > kernel, and switch all remaining files over to SPDX annotations.
-> >
-> > Reported-by: Christoph Hellwig <hch@infradead.org>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > ---
->
-> [snip]
->
-> > diff --git a/ndctl/lib/hpe1.h b/ndctl/lib/hpe1.h
-> > index 1afa54f127a6..acf82af7bb87 100644
-> > --- a/ndctl/lib/hpe1.h
-> > +++ b/ndctl/lib/hpe1.h
-> > @@ -1,16 +1,5 @@
-> > -/*
-> > - * Copyright (C) 2016 Hewlett Packard Enterprise Development LP
-> > - * Copyright (c) 2014-2015, Intel Corporation.
-> > - *
-> > - * This program is free software; you can redistribute it and/or modify it
-> > - * under the terms and conditions of the GNU Lesser General Public License,
-> > - * version 2.1, as published by the Free Software Foundation.
-> > - *
-> > - * This program is distributed in the hope it will be useful, but WITHOUT ANY
-> > - * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-> > - * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-> > - * more details.
-> > - */
-> > +// Copyright (C) 2016 Hewlett Packard Enterprise Development LP
-> > +// SPDX-License-Identifier: LGPL-2.1
->
-> Why drop the Intel copyright here but not elsewhere?
-
-Oversight, good catch.
-
->
-> >  #ifndef __NDCTL_HPE1_H__
-> >  #define __NDCTL_HPE1_H__
-> >
-> > diff --git a/ndctl/lib/inject.c b/ndctl/lib/inject.c
-> > index 815f254308c6..00ef0a4d1d28 100644
-> > --- a/ndctl/lib/inject.c
-> > +++ b/ndctl/lib/inject.c
-> > @@ -1,15 +1,5 @@
-> > -/*
-> > - * Copyright (c) 2014-2017, Intel Corporation.
-> > - *
-> > - * This program is free software; you can redistribute it and/or modify it
-> > - * under the terms and conditions of the GNU Lesser General Public License,
-> > - * version 2.1, as published by the Free Software Foundation.
-> > - *
-> > - * This program is distributed in the hope it will be useful, but WITHOUT ANY
-> > - * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-> > - * FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for
-> > - * more details.
-> > - */
-> > +// Copyright (c) 2014-2017, Intel Corporation. All rights reserved.
-> > +// SPDX-License-Identifier: LGPL-2.1
->
-> And I'm not sure why some of the copyrights are extended to 2020 while others
-> are not.  I would think they would all be?  But this is more of a curious
-> questions.
-
-The intent was to update all Intel copyright dates to 2020 on the
-files I touched. So, another good catch, thanks Ira!
-
-I'll leave it to other copyright holders to update their dates when
-they touch the files.
+Facebook has become the largest social network today. Facebook messaging is also a gradual replacement for mobile networks. So let's turn Facebook messages into something more vivid, I used [url=https://zigtone.com/]ringtones[/url] for Facebook messages and I found them pretty cool. Some people change colors and images. As for me, I often change my ringtone.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
