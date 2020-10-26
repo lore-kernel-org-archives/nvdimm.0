@@ -5,52 +5,52 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0E44C2D0A3
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 26 Oct 2020 15:19:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 961FCC56201
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 26 Oct 2020 15:19:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 88A78223AB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 26 Oct 2020 15:19:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 3989E238E6
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 26 Oct 2020 15:19:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="dKfgeZnL"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 88A78223AB
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="RdNpb2of"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3989E238E6
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E5383161A7F3A;
-	Mon, 26 Oct 2020 08:19:02 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 2973F161A7F3C;
+	Mon, 26 Oct 2020 08:19:09 -0700 (PDT)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 21125161A7F35
-	for <linux-nvdimm@lists.01.org>; Mon, 26 Oct 2020 08:19:01 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 39572161A7F3B
+	for <linux-nvdimm@lists.01.org>; Mon, 26 Oct 2020 08:19:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=u2Fe6BQ/u/f2UXO9kqkzvT+VV4hRg/ENhBrvFiLbe5s=; b=dKfgeZnLltsNCRY492u0UBMfel
-	qg1TKqVaKjRSiA5LR5yaiie/d407qBVpsV/DMwBnPi87sFCUef+TqazMuJleIECxD61YLex96ipOa
-	QTTbRCQtS4NuyhobrZ/ObBrWRP1Nee5CdhDaxbBu+XRCKbRW8GSswQ98veAxERha0vYWm8hMYngp+
-	akFQvO9VITfMKwWo3f/rl5F85fMSViaSj7l47Of6t65SMs/DdZRvRIgTqtdi5mGKcLqWOmeltGajp
-	HUTYVEVo1g6RPdHuJaF17nqGpIk7+aOrGmlac/6JoAGGwd7WddEbmymrBwXMoLm2dkwogJWehs28Y
-	bs7IGdLg==;
+	bh=l8eCDk2firTz0w0YHGNH9yZTukM9hhkaynyp0Z0Fr5Q=; b=RdNpb2ofnqEQYli7iiyAR7snql
+	nI1qAJzygAsPyp9whDhrRoJqzbsCVGSqGr55s9ro/Mbmh+C6j3CX7M3QgCUCS2rCHbHCVYh2HA4aH
+	QRGC+/Xle28dXU87GEvAYgVdd89Vsg6KgtcCdFIwV//r9EyFaR7a6ZZrJLUhCPc8Den0VzBg++QQF
+	rwNR+PCgBFpK2X517VvCODxl/58Kp4LXzDiVnPZVcubslaGei6XNkaPPOp1ZLeSwarg89cweV0AMH
+	1ehzqcEFaSJn1N8r9dw236lSFzgj0i6EsNFtQNPMKqkaBGhrTOVC8cEuif/IJp7HFeZreu8KA3PiY
+	CePYkWgA==;
 Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kX4Gp-0006Jw-DX; Mon, 26 Oct 2020 15:18:51 +0000
+	id 1kX4Gp-0006K4-Ol; Mon, 26 Oct 2020 15:18:51 +0000
 From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
 To: linux-mm@kvack.org
-Subject: [PATCH v2 1/4] mm: Introduce and use mapping_empty
-Date: Mon, 26 Oct 2020 15:18:46 +0000
-Message-Id: <20201026151849.24232-2-willy@infradead.org>
+Subject: [PATCH v2 3/4] dax: Account DAX entries as nrpages
+Date: Mon, 26 Oct 2020 15:18:48 +0000
+Message-Id: <20201026151849.24232-4-willy@infradead.org>
 X-Mailer: git-send-email 2.21.3
 In-Reply-To: <20201026151849.24232-1-willy@infradead.org>
 References: <20201026151849.24232-1-willy@infradead.org>
 MIME-Version: 1.0
-Message-ID-Hash: IHAAIFCO6HG3UZCMA2XL7UGKSJ3UUUX6
-X-Message-ID-Hash: IHAAIFCO6HG3UZCMA2XL7UGKSJ3UUUX6
+Message-ID-Hash: UPKGNDAJPRFRJ3OCRZKCBMPRMKURTA4T
+X-Message-ID-Hash: UPKGNDAJPRFRJ3OCRZKCBMPRMKURTA4T
 X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -58,7 +58,7 @@ CC: "Matthew Wilcox (Oracle)" <willy@infradead.org>, linux-fsdevel@vger.kernel.o
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IHAAIFCO6HG3UZCMA2XL7UGKSJ3UUUX6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UPKGNDAJPRFRJ3OCRZKCBMPRMKURTA4T/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,125 +67,61 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Instead of checking the two counters (nrpages and nrexceptional), we
-can just check whether i_pages is empty.
+Simplify mapping_needs_writeback() by accounting DAX entries as
+pages instead of exceptional entries.
 
 Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
 Tested-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- fs/block_dev.c          |  2 +-
- fs/dax.c                |  2 +-
- fs/gfs2/glock.c         |  3 +--
- include/linux/pagemap.h |  5 +++++
- mm/truncate.c           | 18 +++---------------
- 5 files changed, 11 insertions(+), 19 deletions(-)
+ fs/dax.c     | 6 +++---
+ mm/filemap.c | 3 ---
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/fs/block_dev.c b/fs/block_dev.c
-index 9e84b1928b94..34105f66e12f 100644
---- a/fs/block_dev.c
-+++ b/fs/block_dev.c
-@@ -79,7 +79,7 @@ static void kill_bdev(struct block_device *bdev)
- {
- 	struct address_space *mapping = bdev->bd_inode->i_mapping;
- 
--	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+	if (mapping_empty(mapping))
- 		return;
- 
- 	invalidate_bh_lrus();
 diff --git a/fs/dax.c b/fs/dax.c
-index 5b47834f2e1b..53ed0ab8c958 100644
+index 53ed0ab8c958..a20f2342a9e4 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -965,7 +965,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
- 		return -EIO;
- 
--	if (!mapping->nrexceptional || wbc->sync_mode != WB_SYNC_ALL)
-+	if (mapping_empty(mapping) || wbc->sync_mode != WB_SYNC_ALL)
- 		return 0;
- 
- 	trace_dax_writeback_range(inode, xas.xa_index, end_index);
-diff --git a/fs/gfs2/glock.c b/fs/gfs2/glock.c
-index 5441c17562c5..bfad01ce096d 100644
---- a/fs/gfs2/glock.c
-+++ b/fs/gfs2/glock.c
-@@ -273,8 +273,7 @@ static void __gfs2_glock_put(struct gfs2_glock *gl)
- 	if (mapping) {
- 		truncate_inode_pages_final(mapping);
- 		if (!gfs2_withdrawn(sdp))
--			GLOCK_BUG_ON(gl, mapping->nrpages ||
--				     mapping->nrexceptional);
-+			GLOCK_BUG_ON(gl, !mapping_empty(mapping));
+@@ -525,7 +525,7 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 		dax_disassociate_entry(entry, mapping, false);
+ 		xas_store(xas, NULL);	/* undo the PMD join */
+ 		dax_wake_entry(xas, entry, true);
+-		mapping->nrexceptional--;
++		mapping->nrpages -= PG_PMD_NR;
+ 		entry = NULL;
+ 		xas_set(xas, index);
  	}
- 	trace_gfs2_glock_put(gl);
- 	sdp->sd_lockstruct.ls_ops->lm_put_lock(gl);
-diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
-index dc3390e6ee3e..86143d36d028 100644
---- a/include/linux/pagemap.h
-+++ b/include/linux/pagemap.h
-@@ -18,6 +18,11 @@
+@@ -541,7 +541,7 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 		dax_lock_entry(xas, entry);
+ 		if (xas_error(xas))
+ 			goto out_unlock;
+-		mapping->nrexceptional++;
++		mapping->nrpages += 1UL << order;
+ 	}
  
- struct pagevec;
- 
-+static inline bool mapping_empty(struct address_space *mapping)
-+{
-+	return xa_empty(&mapping->i_pages);
-+}
-+
- /*
-  * Bits in mapping->flags.
-  */
-diff --git a/mm/truncate.c b/mm/truncate.c
-index 11ef90d7e3af..58524aaf67e2 100644
---- a/mm/truncate.c
-+++ b/mm/truncate.c
-@@ -342,7 +342,7 @@ void truncate_inode_pages_range(struct address_space *mapping,
- 	struct page *	page;
- 	bool partial_end;
- 
--	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+	if (mapping_empty(mapping))
+ out_unlock:
+@@ -661,7 +661,7 @@ static int __dax_invalidate_entry(struct address_space *mapping,
  		goto out;
- 
- 	/*
-@@ -470,9 +470,6 @@ EXPORT_SYMBOL(truncate_inode_pages);
-  */
- void truncate_inode_pages_final(struct address_space *mapping)
+ 	dax_disassociate_entry(entry, mapping, trunc);
+ 	xas_store(&xas, NULL);
+-	mapping->nrexceptional--;
++	mapping->nrpages -= 1UL << dax_entry_order(entry);
+ 	ret = 1;
+ out:
+ 	put_unlocked_entry(&xas, entry);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 2e68116be4b0..2214a2c48dd1 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -616,9 +616,6 @@ EXPORT_SYMBOL(filemap_fdatawait_keep_errors);
+ /* Returns true if writeback might be needed or already in progress. */
+ static bool mapping_needs_writeback(struct address_space *mapping)
  {
--	unsigned long nrexceptional;
--	unsigned long nrpages;
+-	if (dax_mapping(mapping))
+-		return mapping->nrexceptional;
 -
- 	/*
- 	 * Page reclaim can not participate in regular inode lifetime
- 	 * management (can't call iput()) and thus can race with the
-@@ -482,16 +479,7 @@ void truncate_inode_pages_final(struct address_space *mapping)
- 	 */
- 	mapping_set_exiting(mapping);
+ 	return mapping->nrpages;
+ }
  
--	/*
--	 * When reclaim installs eviction entries, it increases
--	 * nrexceptional first, then decreases nrpages.  Make sure we see
--	 * this in the right order or we might miss an entry.
--	 */
--	nrpages = mapping->nrpages;
--	smp_rmb();
--	nrexceptional = mapping->nrexceptional;
--
--	if (nrpages || nrexceptional) {
-+	if (!mapping_empty(mapping)) {
- 		/*
- 		 * As truncation uses a lockless tree lookup, cycle
- 		 * the tree lock to make sure any ongoing tree
-@@ -657,7 +645,7 @@ int invalidate_inode_pages2_range(struct address_space *mapping,
- 	int ret2 = 0;
- 	int did_range_unmap = 0;
- 
--	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
-+	if (mapping_empty(mapping))
- 		goto out;
- 
- 	pagevec_init(&pvec);
 -- 
 2.28.0
 _______________________________________________
