@@ -2,69 +2,142 @@ Return-Path: <SRS0=lZYl=EC=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A644C5517A
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 14:18:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBB97C55178
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 17:07:34 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B533F206FA
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 14:18:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 812F820809
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 17:07:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="4caFk+lC";
-	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="lTRRlHFY"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B533F206FA
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linutronix.de
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=intel.onmicrosoft.com header.i=@intel.onmicrosoft.com header.b="C5YZsI+n"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 812F820809
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 73C481624968C;
-	Tue, 27 Oct 2020 07:18:55 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=193.142.43.55; helo=galois.linutronix.de; envelope-from=tglx@linutronix.de; receiver=<UNKNOWN> 
-Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 3389B1620BFC5;
+	Tue, 27 Oct 2020 10:07:34 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.115; helo=mga14.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2186916249688
-	for <linux-nvdimm@lists.01.org>; Tue, 27 Oct 2020 07:18:52 -0700 (PDT)
-From: Thomas Gleixner <tglx@linutronix.de>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020; t=1603808330;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=bp5AhnmI6jiWnr53CzwF3Og28djxSNnmYmmHL2UuOt8=;
-	b=4caFk+lCP6PVdjBxaNFbTnShKMIwXnD+J+z7qE1HQdjW6s3bBKNN3Bs6728AGd9MPL0sTq
-	cYISE15GvnXPm9FGyuLiMR+CXo90PPIGeKy4DIMtc3s1N8yEU+cp0JemmMnvP0tmsvjdLD
-	Dgt9qUFlO4cIdf888uV1s5K3Wq1JXAGPw04msakKd7SPj/5U5SEsoekRKEZfOjEP+ikZ0v
-	roYhgpyqP6twzv+qYS4VFH5HHtA9R8ZukptrIJi9OkB7HMo5cY7HJ0fR8aK5O+PQSYaZkP
-	N7NhwIvmvA2WYXJ0FhoK7NEbPHOL9li9UV0eZaQcxedHi6C0wLyEmpV5NFsQmg==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-	s=2020e; t=1603808330;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=bp5AhnmI6jiWnr53CzwF3Og28djxSNnmYmmHL2UuOt8=;
-	b=lTRRlHFYQ0djlr+fFdTRbzmeeMFyKa1T2J8cQAjJqIC+Llz0DlhTmFB4EFQ6PWRoIWCjfH
-	dmJid13IGhNMJAAA==
-To: Ira Weiny <ira.weiny@intel.com>, "Paul E. McKenney" <paulmck@kernel.org>
-Subject: Re: [PATCH 06/10] x86/entry: Move nmi entry/exit into common code
-In-Reply-To: <20201027070750.GM534324@iweiny-DESK2.sc.intel.com>
-References: <20201022222701.887660-1-ira.weiny@intel.com> <20201022222701.887660-7-ira.weiny@intel.com> <874kmk6298.fsf@nanos.tec.linutronix.de> <20201027070750.GM534324@iweiny-DESK2.sc.intel.com>
-Date: Tue, 27 Oct 2020 15:18:50 +0100
-Message-ID: <87pn5321md.fsf@nanos.tec.linutronix.de>
+	by ml01.01.org (Postfix) with ESMTPS id 4D83A1620BFC2
+	for <linux-nvdimm@lists.01.org>; Tue, 27 Oct 2020 10:07:31 -0700 (PDT)
+IronPort-SDR: bjDkc0UzjnaHlahvD1NkRqww0qS7N0TCzrZ0z8EZtq2odPWIdi4xSo+fjiWxRt2ixp2fMGyqyp
+ kOotoFa22maQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9787"; a="167343856"
+X-IronPort-AV: E=Sophos;i="5.77,424,1596524400";
+   d="scan'208";a="167343856"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2020 10:07:31 -0700
+IronPort-SDR: /Rj8gb+qVDyOI1eZcKW0lD2blNmINcLe83fdJ/JocH9q/bGuDB/A+4OrwGDaNDLf09ObcF+1yp
+ 5b5z0vTpzxdQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.77,424,1596524400";
+   d="scan'208";a="424473618"
+Received: from fmsmsx606.amr.corp.intel.com ([10.18.126.86])
+  by fmsmga001.fm.intel.com with ESMTP; 27 Oct 2020 10:07:30 -0700
+Received: from fmsmsx609.amr.corp.intel.com (10.18.126.89) by
+ fmsmsx606.amr.corp.intel.com (10.18.126.86) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Tue, 27 Oct 2020 10:07:30 -0700
+Received: from fmsmsx603.amr.corp.intel.com (10.18.126.83) by
+ fmsmsx609.amr.corp.intel.com (10.18.126.89) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1713.5; Tue, 27 Oct 2020 10:07:30 -0700
+Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
+ fmsmsx603.amr.corp.intel.com (10.18.126.83) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1713.5
+ via Frontend Transport; Tue, 27 Oct 2020 10:07:30 -0700
+Received: from NAM02-SN1-obe.outbound.protection.outlook.com (104.47.36.58) by
+ edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.1713.5; Tue, 27 Oct 2020 10:07:26 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=aysxvlFEdkMAzfmchtd1y/63Fuuw1oIp/voyvc+i5JF4zNDjA54beo+6GP8rV8ylp6ulbQWLB+bFmmcOgKPmiGTLAdknN5kmATVClda5st3bJn9H/XvArGmQ9i5SdMmBJ9cYiczqmq/GTCVrXEs6q/odUQt180/ZogfX0wp5HDQrINvSO+nGMqRT8yNwLk1jNVwWLBVeD3CfYYoEFpkX7NsgeuK8kqktLzm3AOGODsvxNd6gbB3lABvYXMkaj+M4HW35uY8Gk5ND1DFhbfkK6jwWqVPTp0veW1UV/pv50XRCVLoOw/RM0QAw1C0up7S9wUwVHMAght5gg0pFRQa7Nw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9wx8hG6vOOptnTTL1oOxCDWPoJmGq0QXmLlBpWbQ9hQ=;
+ b=DLtSAsNYUMu+wbuK1JF2LAkyyZ5YhrqQ00wDmzslFt4Bc3+b6hd0gGLdvlyNIKWtZustY/dXzjnRCpe4L5qACXO/8wBbNmQSSeQe/nSBq/jrjQ0GmlzOqjC12pjW7IDN4xAwLAGaSPnG8ER+ej4A0+43XBDtvFhswN39S4Qy6nrae+o7Wto7C42J5SbnMsMFYDHzrwYHVIfFIVjAe4iW0oTYXUQIOsgFbRH5pgKn+KlZRyNVXQfxu/EEAcdgQJ+sYA5Iwbbo4I96xa2d378qBMzzHNAL6nRB7BXtek8/Y3u2cbB4hZBV4bjDVprFvHoOMKTN5zwTc7iQD9F1FVyWfw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9wx8hG6vOOptnTTL1oOxCDWPoJmGq0QXmLlBpWbQ9hQ=;
+ b=C5YZsI+n6oQQNUSzWUObDDgTPJYPgx9HkRWnQyWTETYnYfHHUcGwKh96edU5P/pMZ20taJYL5T7xrOYHgWVMY8CqDGOQkTORmpjt/E4t6SSTUSbiSY2AlCmlofhj4mfL2OeLwU0aN42QVpAl1z9z01gmxKbq37JzAsuesleplMo=
+Received: from BYAPR11MB3448.namprd11.prod.outlook.com (2603:10b6:a03:76::21)
+ by BYAPR11MB3477.namprd11.prod.outlook.com (2603:10b6:a03:7c::28) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3477.21; Tue, 27 Oct
+ 2020 17:07:22 +0000
+Received: from BYAPR11MB3448.namprd11.prod.outlook.com
+ ([fe80::ecd4:8f8f:fa3d:f63d]) by BYAPR11MB3448.namprd11.prod.outlook.com
+ ([fe80::ecd4:8f8f:fa3d:f63d%7]) with mapi id 15.20.3499.018; Tue, 27 Oct 2020
+ 17:07:21 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "zhangqilong3@huawei.com" <zhangqilong3@huawei.com>, "Williams, Dan J"
+	<dan.j.williams@intel.com>, "Jiang, Dave" <dave.jiang@intel.com>,
+	"lenb@kernel.org" <lenb@kernel.org>, "Weiny, Ira" <ira.weiny@intel.com>,
+	"rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Subject: Re: [PATCH -next] ACPI: NFIT: Fix judgment of rc is '-ENXIO'
+Thread-Topic: [PATCH -next] ACPI: NFIT: Fix judgment of rc is '-ENXIO'
+Thread-Index: AQHWrGZ8H45w4kaXzUO4aq8lvusVLqmrrnSA
+Date: Tue, 27 Oct 2020 17:07:21 +0000
+Message-ID: <36878b3b8ad11e4139e5b8b8d1e8c9c42a221521.camel@intel.com>
+References: <20201027134901.65045-1-zhangqilong3@huawei.com>
+In-Reply-To: <20201027134901.65045-1-zhangqilong3@huawei.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Evolution 3.36.5 (3.36.5-1.fc32) 
+authentication-results: huawei.com; dkim=none (message not signed)
+ header.d=none;huawei.com; dmarc=none action=none header.from=intel.com;
+x-originating-ip: [134.134.137.77]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 5cf0036e-3cca-477c-8ec8-08d87a9ac4e5
+x-ms-traffictypediagnostic: BYAPR11MB3477:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <BYAPR11MB347700390E65EFD21C1804DCC7160@BYAPR11MB3477.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:3173;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 3tUgafHiVce1H989LPuHXLe2/NNSdOyYg+xV/5PSVLKfzTqO7HrIzLYN46KQO2f4nsR/cEYuJgdHwSRBdSYLoz0W14g8fwD3ioRvgzGh93qki/z9c8gtjOdwkm5mRk5HdTIGAMaEzzl8CIOlPVcgBRlGf3+tlzT/xeYlrZCwS/8zQOTW57EkGmw2IXAoeQj9rPDGMgizIYloeAjog/BuwO8eHD8k1ss0DvObVHOG2QeEvWdHQSQ30NUF5E01ddexoCf0h3uOK6rGIz7BNBIv6GJQuduNtQiH//Ds7BSxFXzq7kALTxpbLRQnS2YvjFJ1
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR11MB3448.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(366004)(39860400002)(396003)(346002)(376002)(8676002)(4326008)(66446008)(5660300002)(4001150100001)(478600001)(91956017)(66556008)(2906002)(54906003)(76116006)(6486002)(66476007)(6512007)(83380400001)(110136005)(26005)(2616005)(66946007)(316002)(6506007)(86362001)(8936002)(4744005)(71200400001)(186003)(36756003)(64756008);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata: yz+tSmGmEat0oWYZSGC2++fzU3fmyhQVmLZWG8P5fLe6KrvRHL8FBN46fGzFIb2K4Q7NP6xqEwfpR2FKWqWOVisYr8TGYzH2qZN36Inqiqx+rVV/kvejdFoavBlvq08Em9XjSpKOK9OQ/sz+pMTmiK+dLyNdNJpN7B5yBluVEKhA1EfgjpfV0YGhl/Y53lisrhPEDT1n4NhpNv/qRaF2FbmzBlxLs7+bpgQ0FkdOFOC2+AGJjXL2kbAhqJBTaZwgeMmCCLXHIC88FpAlTb8PJD7MN2QRdlrRUY8lINT/ZEf7W6JWInN/lL01xcZ32h/P65Z/cTUVVNv+EsGVRPy6wC+wBy+B+kwvtsdp79k3hK2zJ/SOv/8tGUG/ZiMSXpQbT8tEQ85CwS2InbhJhkBZcKq7HShP8K4V0/vzrss73Y1LgLOZkZZ95oQpf+QlXLn21NDS6WLs1KT2wZusfP830K3HATuild4sEQR4ZtzK5noSavFeU2U0xcdTuHqWMGvElkizSH7gf9NT+wBmC6HduUBmgDd3QvOlWT+xiRRqDEwZn70jEgijid3u3jyLgl0miFTnlFBFG1LwUgIOa9iARge3RJWmwlc5x0JV/NwP2udZ30XG8C+cx770x7hStSxSG+wRU7cW/NwMQtTU2ckjxg==
+Content-ID: <E75A7414F932FA428C81498A80A389C9@namprd11.prod.outlook.com>
 MIME-Version: 1.0
-Message-ID-Hash: ANWHQXBCQW5RKHIFEO2TMDPR5KMYVZXC
-X-Message-ID-Hash: ANWHQXBCQW5RKHIFEO2TMDPR5KMYVZXC
-X-MailFrom: tglx@linutronix.de
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: BYAPR11MB3448.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 5cf0036e-3cca-477c-8ec8-08d87a9ac4e5
+X-MS-Exchange-CrossTenant-originalarrivaltime: 27 Oct 2020 17:07:21.8107
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: bGdyxBUDB1J7awHSifxa8zXDUzvZk85eeonLdzt94ujO8Xhv/iDUHPYtq99KDplEmYYN5awmPjtXTXmIEu435fsqLrxNazbxpnGvjQUPxQI=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3477
+X-OriginatorOrg: intel.com
+Message-ID-Hash: 6FNAQXBYY324DYVYTBDXFV6U3NAVQBZK
+X-Message-ID-Hash: 6FNAQXBYY324DYVYTBDXFV6U3NAVQBZK
+X-MailFrom: vishal.l.verma@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ANWHQXBCQW5RKHIFEO2TMDPR5KMYVZXC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6FNAQXBYY324DYVYTBDXFV6U3NAVQBZK/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -73,123 +146,33 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 27 2020 at 00:07, Ira Weiny wrote:
-> On Fri, Oct 23, 2020 at 11:50:11PM +0200, Thomas Gleixner wrote:
->> >  #ifndef irqentry_state
->> >  typedef struct irqentry_state {
->> > -	bool	exit_rcu;
->> > +	union {
->> > +		bool	exit_rcu;
->> > +		bool	lockdep;
->> > +	};
->> >  } irqentry_state_t;
->> >  #endif
->> 
->>   -E_NO_KERNELDOC
->
-> Adding: Paul McKenney
->
-> I'm happy to write something but I'm very unfamiliar with this code.  So I'm
-> getting confused what exactly exit_rcu is flagging.
->
-> I can see that exit_rcu is a bad name for the state used in
-> irqentry_nmi_[enter|exit]().  Furthermore, I see why 'lockdep' is a better
-> name.  But similar lockdep handling is used in irqentry_exit() if exit_rcu is
-> true...
+On Tue, 2020-10-27 at 21:49 +0800, Zhang Qilong wrote:
+> Initial value of rc is '-ENXIO', and we should
+> use the initial value to check it.
+> 
+> Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
+> ---
+>  drivers/acpi/nfit/core.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-No, it's not similar at all. Lockdep state vs. interrupts and regular
-exceptions is always consistent.
+Looks good,
+Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-In the NMI case, that's not guaranteed because of
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 756227837b3b..3a3c209ed3d3 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1564,7 +1564,7 @@ static ssize_t format1_show(struct device *dev,
+>  					le16_to_cpu(nfit_dcr->dcr->code));
+>  			break;
+>  		}
+> -		if (rc != ENXIO)
+> +		if (rc != -ENXIO)
+>  			break;
+>  	}
+>  	mutex_unlock(&acpi_desc->init_mutex);
 
-       local_irq_disable()
-         arch_local_irq_disable()
-                                        <- NMI race window
-         trace_hardirqs_off()
-
-same the other way round
-
-       local_irq_enable()
-         trace_hardirqs_on()
-                                        <- NMI race window
-         arch_local_irq_enable()
-
-IOW, the hardware state and the lockdep state are not consistent.
-
-> /**
->  * struct irqentry_state - Opaque object for exception state storage
->  * @exit_rcu: Used exclusively in the irqentry_*() calls; tracks if the
->  *            exception hit the idle task which requires special handling,
->  *            including calling rcu_irq_exit(), when the exception
->  exits.
-
-calls; signals whether the exit path has to invoke rcu_irq_exit().
-
->  * @lockdep: Used exclusively in the irqentry_nmi_*() calls; ensures lockdep
->  *           tracking is maintained if hardirqs were already enabled
-
-   ensures that lockdep state is restored correctly on exit from nmi.
-
->  *
->  * This opaque object is filled in by the irqentry_*_enter() functions and
->  * should be passed back into the corresponding irqentry_*_exit()
->  functions
-
-s/should/must/
-
->  * when the exception is complete.
->  *
->  * Callers of irqentry_*_[enter|exit]() should consider this structure
->  opaque
-
-s/should/must/
-
->  * and all members private.  Descriptions of the members are provided to aid in
->  * the maintenance of the irqentry_*() functions.
->  */
->
-> Perhaps Paul can enlighten me on how exit_rcu is used beyond just flagging a
-> call to rcu_irq_exit()?
-
-I can do that as well :) The only purpose is to invoke rcu_irq_exit()
-conditionally.
-
-> Why do we call lockdep_hardirqs_off() only when in the idle task?  That implies
-> that regs_irqs_disabled() can only be false if we were in the idle task to
-> match up the lockdep on/off calls.
-
-You're reading the code slightly wrong.
-
-> This does not make sense to me because why do we need the extra check
-> for exit_rcu?  I'm still trying to understand when regs_irqs_disabled() is false.
-
-It's false when the interrupted context had interrupts enabled.
-
-So we have the following scenarios:
-
- Usermode   Idletask   irqs enabled  RCU entry  RCU exit
-   Y           N           Y		Y          Y
-
-   N           N           Y            N          N 
-   N           N           N            N          N
-   N           Y           Y            Y          Y
-   N           Y           N            Y          Y                       
-
-Now you might wonder about irqs enabled/disabled. This code is not only
-used for interrupts (device, ipi, local timer...) where interrupts are
-obviously enabled, it's also used for exception entry/exit. You can have
-e.g. pagefaults in interrupt disabled regions.
-
-> Also, the comment in irqentry_enter() refers to irq_enter_from_user_mode() which
-> does not seem to exist anymore.  So I'm not sure what careful sequence it is
-> referring to.
-
-That was renamed to irqentry_enter_from_user_mode() and the comment was
-not updated. Sorry for leaving this hard to solve puzzle around.
-
-Thanks,
-
-        tglx
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
