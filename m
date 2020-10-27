@@ -1,185 +1,121 @@
-Return-Path: <SRS0=UOT5=D6=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=lZYl=EC=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 015D9C388F9
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 23 Oct 2020 17:29:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9506DC55179
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 09:49:03 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7C05821527
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 23 Oct 2020 17:29:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 232DA21D24
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 09:49:02 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=nvidia.com header.i=@nvidia.com header.b="i4hqGAM3"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7C05821527
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=nvidia.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="li/s39XF"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 232DA21D24
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2D1031632F9F3;
-	Fri, 23 Oct 2020 10:29:51 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.228.121.64; helo=hqnvemgate25.nvidia.com; envelope-from=rcampbell@nvidia.com; receiver=<UNKNOWN> 
-Received: from hqnvemgate25.nvidia.com (hqnvemgate25.nvidia.com [216.228.121.64])
+	by ml01.01.org (Postfix) with ESMTP id 9346F16411159;
+	Tue, 27 Oct 2020 02:49:02 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DFF701632F9F1
-	for <linux-nvdimm@lists.01.org>; Fri, 23 Oct 2020 10:29:46 -0700 (PDT)
-Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate25.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
-	id <B5f9313100000>; Fri, 23 Oct 2020 10:29:52 -0700
-Received: from rcampbell-dev.nvidia.com (172.20.13.39) by HQMAIL107.nvidia.com
- (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Fri, 23 Oct
- 2020 17:29:36 +0000
-Subject: Re: [PATCH] mm/mremap_pages: Fix static key devmap_managed_key
- updates
-To: Christoph Hellwig <hch@infradead.org>
-References: <20201022060753.21173-1-aneesh.kumar@linux.ibm.com>
- <20201022154124.GA537138@iweiny-DESK2.sc.intel.com>
- <d7540264-48f1-9fdc-0769-de68fdfc1c7b@nvidia.com>
- <20201023064610.GA22405@infradead.org>
-X-Nvconfidentiality: public
-From: Ralph Campbell <rcampbell@nvidia.com>
-Message-ID: <c08980a1-db70-d37d-9ab4-4fd2ebd5f4aa@nvidia.com>
-Date: Fri, 23 Oct 2020 10:29:35 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+	by ml01.01.org (Postfix) with ESMTPS id 361AD161C5249
+	for <linux-nvdimm@lists.01.org>; Tue, 27 Oct 2020 02:49:01 -0700 (PDT)
+Received: from kernel.org (unknown [87.70.96.83])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id C7CAF20759;
+	Tue, 27 Oct 2020 09:48:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1603792140;
+	bh=wcj6sqvr10YA2nIxp8QFswfSebjeDskPYpJl+9Hjv5I=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=li/s39XFgB24jJSUCjqf8zNKcx6M9bh+uU6phnSX6LJCJRBegjZ0SOdTEugjflO1e
+	 WgquGhsCXXsZ3V2YD7JRAQc2nfgUEjBNCSoKoM6GZx5SGcpgMkSqE8zAapjDeCrodZ
+	 Fc2zbcZd41+mXwuTSqYXiceoEMKXjGqiG53f7j/s=
+Date: Tue, 27 Oct 2020 11:48:45 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH v7 3/7] set_memory: allow set_direct_map_*_noflush() for
+ multiple pages
+Message-ID: <20201027094845.GJ1154158@kernel.org>
+References: <20201026083752.13267-1-rppt@kernel.org>
+ <20201026083752.13267-4-rppt@kernel.org>
+ <e754ae3873e02e398e58091d586fe57e105803db.camel@intel.com>
+ <9202c4c1-9f1f-175f-0a85-fc8c30bc5e3b@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20201023064610.GA22405@infradead.org>
-Content-Language: en-US
-X-Originating-IP: [172.20.13.39]
-X-ClientProxiedBy: HQMAIL107.nvidia.com (172.20.187.13) To
- HQMAIL107.nvidia.com (172.20.187.13)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
-	t=1603474192; bh=YyKQoCN1wnU7okhj6LDaueejqYWF4Ww+dZnQEYDI7FU=;
-	h=Subject:To:CC:References:X-Nvconfidentiality:From:Message-ID:Date:
-	 User-Agent:MIME-Version:In-Reply-To:Content-Type:Content-Language:
-	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
-	b=i4hqGAM3uBnsXS2G1O8qT7iA6eQW47llgBWKgIEDDQWpPNJvsHh9/qJPPQIUbO4lt
-	 Ob3BUjLwnu6G6MuyKQJYl8nABl1hrGBRGFrD7+JoF4D4UI3MaB754PfSKa2N2ftVFn
-	 /2N8C8SdJTQ5GdDrUEf+Qd2xmyf4uaaQB7esRXfJWgV20Gpe8CF9UOMdxG4bS5O02t
-	 S9PS317sSp1CxG4nYIWLduoLmm/2XKvppjFg1iBRvIORzh3cmWpabZVxXeQNV6WlV4
-	 88L75tlC7jUaQtlj2YLaV+54zPJE5p7pleBEfs5LyZRaEepJiCSySBz6pTLyYYcRrO
-	 Q6CnBm7NNUwcw==
-Message-ID-Hash: KWWTDG24O3MYEFWVQAIMQK5WDYSLVTED
-X-Message-ID-Hash: KWWTDG24O3MYEFWVQAIMQK5WDYSLVTED
-X-MailFrom: rcampbell@nvidia.com
+Content-Disposition: inline
+In-Reply-To: <9202c4c1-9f1f-175f-0a85-fc8c30bc5e3b@redhat.com>
+Message-ID-Hash: PZXDW5K5O3D47MAGXOJNM7PLFCH2VY64
+X-Message-ID-Hash: PZXDW5K5O3D47MAGXOJNM7PLFCH2VY64
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-	linux-mm@kvack.org, akpm@linux-foundation.org, Sachin@ml01.01.org
+CC: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tycho@tycho.ws" <tycho@tycho.ws>, "cl@linux.com" <cl@linux.com>, "hpa@zytor.com" <hpa@zytor.com>, "peterz@infradead.org" <peterz@infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "will@kernel.org" <will@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "kirill@shutemov.name" <kirill@shutemov.name>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "bp@alien8.de" <bp@alien8.de>, "willy@infradead.org" <willy@infradead.org>, "luto@kernel.org" <luto@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "shuah@kernel.org" <shuah@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.
+ 01.org>, "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>, "x86@kernel.org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "Reshetova, Elena" <elena.reshetova@intel.com>, "palmer@dabbelt.com" <palmer@dabbelt.com>, "mingo@redhat.com" <mingo@redhat.com>, "mtk.manpages@gmail.com" <mtk.manpages@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>, "jejb@linux.ibm.com" <jejb@linux.ibm.com>, "paul.walmsley@sifive.com" <paul.walmsley@sifive.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KWWTDG24O3MYEFWVQAIMQK5WDYSLVTED/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PZXDW5K5O3D47MAGXOJNM7PLFCH2VY64/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-
-On 10/22/20 11:46 PM, Christoph Hellwig wrote:
-> On Thu, Oct 22, 2020 at 11:19:43AM -0700, Ralph Campbell wrote:
->>
->> On 10/22/20 8:41 AM, Ira Weiny wrote:
->>> On Thu, Oct 22, 2020 at 11:37:53AM +0530, Aneesh Kumar K.V wrote:
->>>> commit 6f42193fd86e ("memremap: don't use a separate devm action for
->>>> devmap_managed_enable_get") changed the static key updates such that we
->>>> now call devmap_managed_enable_put() without doing the equivalent
->>>> devmap_managed_enable_get().
->>>>
->>>> devmap_managed_enable_get() is only called for MEMORY_DEVICE_PRIVATE and
->>>> MEMORY_DEVICE_FS_DAX, But memunmap_pages() get called for other pgmap
->>>> types too. This results in the below warning when switching between
->>>> system-ram and devdax mode for devdax namespace.
->>>>
->>>>    jump label: negative count!
->>>>    WARNING: CPU: 52 PID: 1335 at kernel/jump_label.c:235 static_key_slow_try_dec+0x88/0xa0
->>>>    Modules linked in:
->>>>    ....
->>>>
->>>>    NIP [c000000000433318] static_key_slow_try_dec+0x88/0xa0
->>>>    LR [c000000000433314] static_key_slow_try_dec+0x84/0xa0
->>>>    Call Trace:
->>>>    [c000000025c1f660] [c000000000433314] static_key_slow_try_dec+0x84/0xa0 (unreliable)
->>>>    [c000000025c1f6d0] [c000000000433664] __static_key_slow_dec_cpuslocked+0x34/0xd0
->>>>    [c000000025c1f700] [c0000000004337a4] static_key_slow_dec+0x54/0xf0
->>>>    [c000000025c1f770] [c00000000059c49c] memunmap_pages+0x36c/0x500
->>>>    [c000000025c1f820] [c000000000d91d10] devm_action_release+0x30/0x50
->>>>    [c000000025c1f840] [c000000000d92e34] release_nodes+0x2f4/0x3e0
->>>>    [c000000025c1f8f0] [c000000000d8b15c] device_release_driver_internal+0x17c/0x280
->>>>    [c000000025c1f930] [c000000000d883a4] bus_remove_device+0x124/0x210
->>>>    [c000000025c1f9b0] [c000000000d80ef4] device_del+0x1d4/0x530
->>>>    [c000000025c1fa70] [c000000000e341e8] unregister_dev_dax+0x48/0xe0
->>>>    [c000000025c1fae0] [c000000000d91d10] devm_action_release+0x30/0x50
->>>>    [c000000025c1fb00] [c000000000d92e34] release_nodes+0x2f4/0x3e0
->>>>    [c000000025c1fbb0] [c000000000d8b15c] device_release_driver_internal+0x17c/0x280
->>>>    [c000000025c1fbf0] [c000000000d87000] unbind_store+0x130/0x170
->>>>    [c000000025c1fc30] [c000000000d862a0] drv_attr_store+0x40/0x60
->>>>    [c000000025c1fc50] [c0000000006d316c] sysfs_kf_write+0x6c/0xb0
->>>>    [c000000025c1fc90] [c0000000006d2328] kernfs_fop_write+0x118/0x280
->>>>    [c000000025c1fce0] [c0000000005a79f8] vfs_write+0xe8/0x2a0
->>>>    [c000000025c1fd30] [c0000000005a7d94] ksys_write+0x84/0x140
->>>>    [c000000025c1fd80] [c00000000003a430] system_call_exception+0x120/0x270
->>>>    [c000000025c1fe20] [c00000000000c540] system_call_common+0xf0/0x27c
->>>>
->>>> Cc: Christoph Hellwig <hch@infradead.org>
->>>> Cc: Dan Williams <dan.j.williams@intel.com>
->>>> Cc: Sachin Sant <sachinp@linux.vnet.ibm.com>
->>>> Cc: linux-nvdimm@lists.01.org
->>>> Cc: Ira Weiny <ira.weiny@intel.com>
->>>> Cc: Jason Gunthorpe <jgg@mellanox.com>
->>>> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->>>> ---
->>>>    mm/memremap.c | 19 +++++++++++++++----
->>>>    1 file changed, 15 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/mm/memremap.c b/mm/memremap.c
->>>> index 73a206d0f645..d4402ff3e467 100644
->>>> --- a/mm/memremap.c
->>>> +++ b/mm/memremap.c
->>>> @@ -158,6 +158,16 @@ void memunmap_pages(struct dev_pagemap *pgmap)
->>>>    {
->>>>    	unsigned long pfn;
->>>>    	int i;
->>>> +	bool need_devmap_managed = false;
->>>> +
->>>> +	switch (pgmap->type) {
->>>> +	case MEMORY_DEVICE_PRIVATE:
->>>> +	case MEMORY_DEVICE_FS_DAX:
->>>> +		need_devmap_managed = true;
->>>> +		break;
->>>> +	default:
->>>> +		break;
->>>> +	}
->>>
->>> Is it overkill to avoid duplicating this switch logic in
->>> page_is_devmap_managed() by creating another call which can be used here?
->>
->> Perhaps. I can imagine a helper defined in include/linux/mm.h which
->> page_is_devmap_managed() could also call but that would impact a lot of
->> places that include mm.h. Since memremap.c already has to have intimate
->> knowledge of the pgmap->type, I think limiting the change to just what
->> is needed is better for now. So the patch looks OK to me.
->>
->> Looking at this some more, I would suggest changing devmap_managed_enable_get()
->> and devmap_managed_enable_put() to do the special case checking instead of
->> doing it in memremap_pages() and memunmap_pages().
->> Then devmap_managed_enable_get() doesn't need to return an error if
->> CONFIG_DEV_PAGEMAP_OPS isn't defined. I have only compile tested the
->> following.
->>
->> Signed-off-by: Ralph Campbell <rcampbell@nvidia.com>
+On Tue, Oct 27, 2020 at 09:12:23AM +0100, David Hildenbrand wrote:
+> On 26.10.20 20:01, Edgecombe, Rick P wrote:
+> > On Mon, 2020-10-26 at 10:37 +0200, Mike Rapoport wrote:
+> >> +++ b/arch/x86/mm/pat/set_memory.c
+> >> @@ -2184,14 +2184,14 @@ static int __set_pages_np(struct page *page,
+> >> int numpages)
+> >>         return __change_page_attr_set_clr(&cpa, 0);
+> >>  }
+> >>  
+> >> -int set_direct_map_invalid_noflush(struct page *page)
+> >> +int set_direct_map_invalid_noflush(struct page *page, int numpages)
+> >>  {
+> >> -       return __set_pages_np(page, 1);
+> >> +       return __set_pages_np(page, numpages);
+> >>  }
+> >>  
+> >> -int set_direct_map_default_noflush(struct page *page)
+> >> +int set_direct_map_default_noflush(struct page *page, int numpages)
+> >>  {
+> >> -       return __set_pages_p(page, 1);
+> >> +       return __set_pages_p(page, numpages);
+> >>  }
+> > 
+> > Somewhat related to your other series, this could result in large NP
+> > pages and trip up hibernate.
+> > 
 > 
-> This looks ok as well.  Can you submit it as a proper standalone patch?
+> It feels somewhat desirable to disable hibernation once secretmem is
+> enabled, right? Otherwise you'll be writing out your secrets to swap,
+> where they will remain even after booting up again ...
+> 
+> Skipping secretmem pages when hibernating is the wrong approach I guess ...
+
+Completely agree.
+I'll look into preventing hibernation from touching secretmem.
+
+> -- 
+> Thanks,
+> 
+> David / dhildenb
 > 
 
-Yes. I was just about to ask whether I should do that and you beat me to it.
+-- 
+Sincerely yours,
+Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
