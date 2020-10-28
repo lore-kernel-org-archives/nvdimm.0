@@ -1,66 +1,53 @@
-Return-Path: <SRS0=lZYl=EC=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=CUdZ=ED=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.0 required=3.0 tests=BAYES_40,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.9 required=3.0 tests=BAYES_50,DKIM_ADSP_ALL,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84E63C4363A
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 18:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34C91C388F7
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 28 Oct 2020 11:28:35 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2C97D20724
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 18:36:47 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2C97D20724
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 55A5E246C1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 28 Oct 2020 11:28:34 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 55A5E246C1
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=amazon.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9BD49163D0221;
-	Tue, 27 Oct 2020 11:36:46 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.167.195; helo=mail-oi1-f195.google.com; envelope-from=rjwysocki@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-oi1-f195.google.com (mail-oi1-f195.google.com [209.85.167.195])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id EDC6115CEE863
-	for <linux-nvdimm@lists.01.org>; Tue, 27 Oct 2020 11:36:42 -0700 (PDT)
-Received: by mail-oi1-f195.google.com with SMTP id f7so2317990oib.4
-        for <linux-nvdimm@lists.01.org>; Tue, 27 Oct 2020 11:36:42 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fWdnhay9ksmoARjhatTo1pVZzo/6EFH15ny3nNorPU8=;
-        b=gNVOvcgHX+VHl+LzoQISZpt7ufggwPKH0fbptI5ukIEGpaQz9ckmc4POABJSYXFf2v
-         8YptcQ1j+3/rcIXlA6qebnGNHvQKROgPWqJMo9FAzPPDwrS4GGw/wdCQcUC0zU0M+Iuh
-         bvkPB2mOP9lSx3sIXUcSD32kKKrzcI1HEGe5D0nJaB4vMTntySBm295Xh4ghtpvWdEJx
-         kN4sbIE5A2TzXC3SXaOA5qgnGrW7i38pG+zWpdHWDAW6m5bswVRsdIg18e6vT5tkD53o
-         EwLbkw1wx+fonl8tJxHcmYCdaA9AN8KFaiipVsDtbioMVy8SDxVE7lhUDv8FHPQJccr7
-         Aw8A==
-X-Gm-Message-State: AOAM533V4Uv96YkoP+VaRZZlLuiSXJD/HnzRBKAbThqwqArKbzOTHdhd
-	ok582K1nLuFWIq77EXNwz3poVp3zXGrVRIO1TMM=
-X-Google-Smtp-Source: ABdhPJxMshyIWwUFtCfpHhd0rCICdS32Siqi1C1V11Yq4I6sSvbYKxzM8LKTPfweSPljLTEYrlA5UEbMvMd0aFCpA48=
-X-Received: by 2002:aca:4c86:: with SMTP id z128mr2484538oia.71.1603823801932;
- Tue, 27 Oct 2020 11:36:41 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id E46BE162EA06A;
+	Wed, 28 Oct 2020 04:28:33 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=79.43.3.251; helo=host-79-43-3-251.retail.telecomitalia.it; envelope-from=countrified64@o1.e.notification.intuit.com; receiver=<UNKNOWN> 
+Received: from host-79-43-3-251.retail.telecomitalia.it (host-79-43-3-251.retail.telecomitalia.it [79.43.3.251])
+	by ml01.01.org (Postfix) with ESMTP id E3738162CDC2A
+	for <linux-nvdimm@lists.01.org>; Wed, 28 Oct 2020 04:28:28 -0700 (PDT)
+Received: from [49.3.9.88] (helo=lgnq.vzaolt.o1.e.notification.intuit.com)
+	by host-79-43-3-251.retail.telecomitalia.it with esmtpa
+	(envelope-from piedl0@o4.e.notification.intuit.com)
+	id NRC1aHeUMYoijJ.017
+	for linux-nvdimm@lists.01.org; Wed, 28 Oct 2020 12:28:30 +0100
+Received: from [178.55.203.178] (account piedl0@o4.e.notification.intuit.com HELO TOBIFYH.REGUSYL.cc)
+	by host-79-43-3-251.retail.telecomitalia.it (Postfix)
+	with esmtpa (Exim 4.86) id BA42DC6D42 for linux-nvdimm@lists.01.org; Wed, 28 Oct 2020 12:28:30 +0100
+To: linux-nvdimm@lists.01.org
+From: "Amazon.com" <fba-noreply@amazon.com>
+Subject: FBA Inbound Shipment Bill of Lading Ready (FBA126044ETA)
+Message-ID: <519546.20201028122830@dmucmybei.kfnaxjq.o1.e.notification.intuit.com>
+Date: Wed, 28 Oct 2020 12:28:30 +0100
 MIME-Version: 1.0
-References: <20201027134901.65045-1-zhangqilong3@huawei.com>
-In-Reply-To: <20201027134901.65045-1-zhangqilong3@huawei.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Tue, 27 Oct 2020 19:36:30 +0100
-Message-ID: <CAJZ5v0iNTV5p3UF+wXL8bTpb0C+hV4iQ1XiM_p_R+C=c6dKcYw@mail.gmail.com>
-Subject: Re: [PATCH -next] ACPI: NFIT: Fix judgment of rc is '-ENXIO'
-To: Zhang Qilong <zhangqilong3@huawei.com>
-Message-ID-Hash: JYJU6V3YJX75IWK6CERQURQSNAEZMH3G
-X-Message-ID-Hash: JYJU6V3YJX75IWK6CERQURQSNAEZMH3G
-X-MailFrom: rjwysocki@gmail.com
+Message-ID-Hash: YGNHT4BKNLAFQMZDPKMJVHOAYOBMLDAX
+X-Message-ID-Hash: YGNHT4BKNLAFQMZDPKMJVHOAYOBMLDAX
+X-MailFrom: countrified64@o1.e.notification.intuit.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: "Amazon.com" <fba-noreply@amazon.com>
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JYJU6V3YJX75IWK6CERQURQSNAEZMH3G/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YGNHT4BKNLAFQMZDPKMJVHOAYOBMLDAX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,32 +56,32 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 27, 2020 at 2:38 PM Zhang Qilong <zhangqilong3@huawei.com> wrote:
->
-> Initial value of rc is '-ENXIO', and we should
-> use the initial value to check it.
->
-> Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
-> ---
->  drivers/acpi/nfit/core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 756227837b3b..3a3c209ed3d3 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1564,7 +1564,7 @@ static ssize_t format1_show(struct device *dev,
->                                         le16_to_cpu(nfit_dcr->dcr->code));
->                         break;
->                 }
-> -               if (rc != ENXIO)
-> +               if (rc != -ENXIO)
->                         break;
->         }
->         mutex_unlock(&acpi_desc->init_mutex);
-> --
+Greetings from Amazon.com
 
-Applied as 5.10-rc material with a subject edit, thanks!
+The Bill of Lading document on your inbound shipment (FBA126044ETA)
+
+For your convenience, we have also attached a copy of the initial Bill of Lading to this email.
+
+Your carrier contact information:
+CENTRAL TRANSPORT INTERNATIONAL INC
+
+
+
+You can track the status of all inbound shipments, online by visiting Seller Central at:
+https://sellercentral.amazon.com/gp/ssof/shipping-queue.html
+
+If you've examined your shipment, but still need assistance,
+please contact Seller Support.
+
+Thank you for using Fulfillment by Amazon.
+
+Sincerely, 
+Amazon Services
+
+--------------------------------------------------------------------------
+This email was sent from a notification-only address that
+cannot accept incoming email. Please do not reply to this message.
+--------------------------------------------------------------------------
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
