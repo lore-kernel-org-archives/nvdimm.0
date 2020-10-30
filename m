@@ -2,185 +2,114 @@ Return-Path: <SRS0=oic9=EF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.8 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 553F1C4363A
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 11:34:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC25C55178
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 15:49:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C15572076D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 11:34:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 152E72151B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 15:49:09 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="FShVL5L/"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C15572076D
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ss6NVvvS"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 152E72151B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4748F165780EF;
-	Fri, 30 Oct 2020 04:34:41 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.205.24.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 80EBE164FC4D0;
+	Fri, 30 Oct 2020 08:49:09 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::846; helo=mail-qt1-x846.google.com; envelope-from=38twcxxejdna2wxd407f3a8wevmnm28w47.ya8749gj-9hz48874efe.mn.ad2@trix.bounces.google.com; receiver=<UNKNOWN> 
+Received: from mail-qt1-x846.google.com (mail-qt1-x846.google.com [IPv6:2607:f8b0:4864:20::846])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A68E216572509
-	for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 04:34:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1604057676;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=YZZiFHkCJ4oPedcp68fkUsKmumK9JIlBRCeMmx6sJP4=;
-	b=FShVL5L/eHZ+4sPOJQ4TamBr0fKTfvzWgsBihTV8QFWaseeO9x1hWZ+TYpmXu+49U0AeHG
-	ZUoP5Rv/qipwQhEaxMatgE938Fuqtgyo77bzeswwJPTbYgTqVqLxJaextxvQbdj3Zk/8Vg
-	th3+m+pe4D10XlA1dwO/OpU2jeAFfZY=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-225-EEeP5EFhOW2VXK5Rky8MpA-1; Fri, 30 Oct 2020 07:34:32 -0400
-X-MC-Unique: EEeP5EFhOW2VXK5Rky8MpA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 67EDD107B784;
-	Fri, 30 Oct 2020 11:34:30 +0000 (UTC)
-Received: from [10.36.112.97] (ovpn-112-97.ams2.redhat.com [10.36.112.97])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 5420160F96;
-	Fri, 30 Oct 2020 11:34:27 +0000 (UTC)
-Subject: Re: [PATCH] x86/mm: Fix phys_to_target_node() export
-To: Dan Williams <dan.j.williams@intel.com>, akpm@linux-foundation.org
-References: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat GmbH
-Message-ID: <708658b8-fc77-1503-5c98-c05b50c92b90@redhat.com>
-Date: Fri, 30 Oct 2020 12:34:27 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	by ml01.01.org (Postfix) with ESMTPS id 1A253164FC4CE
+	for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 08:49:06 -0700 (PDT)
+Received: by mail-qt1-x846.google.com with SMTP id d6so4248451qtp.2
+        for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 08:49:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:reply-to:message-id:date:subject:from:to;
+        bh=upBallN9p2EMXqbXVKfQ7Iw18NmeaHyPq73hkSMMbac=;
+        b=ss6NVvvSpBvi3jEZe4MxVTqEi/Dz/2iVrEYjJwEzZua4aFoXsSfpHHDAap6P2nBdbT
+         D14uLkxfuH34eZLv7u2M2LZMjYxSG2hyNepKTf9QE4hIe/LYLP6tpSbOj8qcWZPmVCvA
+         ho96epMF9iS4u8RbSYiyKOIG2wLNfOXgZMNhBy8CHVEUmUrUQNugZyAbU+q9oEIMp3WS
+         4GsZ4s4kpIRkoyP2soGus870obmHUmwjyvuKSQKSvmH+kyZp3rGiV6sW9Qb3BuncRA9l
+         KVH/HOf3DKM7NaOEvFMzzXhYcSdmzSixm+z7AOP1YXBmzOWlNf2ZXFtVK/3ws+3z6nTS
+         4A6g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:reply-to:message-id:date:subject
+         :from:to;
+        bh=upBallN9p2EMXqbXVKfQ7Iw18NmeaHyPq73hkSMMbac=;
+        b=W+hnM5L+mdrWw/CuZYiJIcvtK9yPeWqI1PNvtHvMG9mq0Ansi1kF865cw6YQfZuJLJ
+         oq1gvFEEWuAPXbJMDHk8reEPnRIX92AF4wdxhYVaNSqN9fJ9HGWzFv0sUazxhgplLhYD
+         B4TNYPHJCPTZd/Anai/Gjijfp+G3wX32k0t+vmmJAs3hlltB+KDBKB6eNT3FpOHGGa4d
+         mrJBvYlbG1t9Hfq/CY5QFlRuZZpYQ1stj9jnYFcBTj2MWTIqNb6Rkdx22BQxxGDi6ljL
+         Pa7tnnk1Qsc0ALlfhQlSRBBRHydmxlmWGJ16o63/2FwbxcoKtLaf+nlaiqVbph1FEjyE
+         DCAw==
+X-Gm-Message-State: AOAM530edeePwYoh1jIdJGYopd1GZXsU++iLF7o9h67c/UZyAkZD6oK6
+	ad8Miqgd7JeZm1BfSI18/jUszK92X8S+3MXbRvvb
 MIME-Version: 1.0
-In-Reply-To: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=david@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Language: en-US
-Message-ID-Hash: VRBS2OPXU4VG3IBXE2HSPHX7AWP2VUQR
-X-Message-ID-Hash: VRBS2OPXU4VG3IBXE2HSPHX7AWP2VUQR
-X-MailFrom: david@redhat.com
+X-Received: by 2002:ac8:1401:: with SMTP id k1mt2862152qtj.227.1604072945166;
+ Fri, 30 Oct 2020 08:49:05 -0700 (PDT)
+X-No-Auto-Attachment: 1
+Message-ID: <00000000000017368605b2e55606@google.com>
+Date: Fri, 30 Oct 2020 15:49:05 +0000
+Subject: Hi;
+From: gabrielthomas9010@gmail.com
+To: linux-nvdimm@lists.01.org
+Message-ID-Hash: V73JRHX73WMYMM547SRNH6KPC4DT6ZXD
+X-Message-ID-Hash: V73JRHX73WMYMM547SRNH6KPC4DT6ZXD
+X-MailFrom: 38TWcXxEJDNA2wxD407F3A8wEVMNM28w47.yA8749GJ-9Hz48874EFE.MN.AD2@trix.bounces.google.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Randy Dunlap <rdunlap@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, kernel test robot <lkp@intel.com>, Joao Martins <joao.m.martins@oracle.com>, x86@kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: gabrielthomas9010@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VRBS2OPXU4VG3IBXE2HSPHX7AWP2VUQR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/V73JRHX73WMYMM547SRNH6KPC4DT6ZXD/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"; delsp="yes"
 Content-Transfer-Encoding: 7bit
 
-On 30.10.20 03:29, Dan Williams wrote:
-> The core-mm has a default __weak implementation of phys_to_target_node()
-> when the architecture does not override it. That symbol is exported
-> for modules. However, while the export in mm/memory_hotplug.c exported
-> the symbol in the configuration cases of:
-> 
-> 	CONFIG_NUMA_KEEP_MEMINFO=y
-> 	CONFIG_MEMORY_HOTPLUG=y
-> 
-> ...and:
-> 
-> 	CONFIG_NUMA_KEEP_MEMINFO=n
-> 	CONFIG_MEMORY_HOTPLUG=y
-> 
-> ...it failed to export the symbol in the case of:
-> 
-> 	CONFIG_NUMA_KEEP_MEMINFO=y
-> 	CONFIG_MEMORY_HOTPLUG=n
-> 
-> Always export the symbol from the CONFIG_NUMA_KEEP_MEMINFO section of
-> arch/x86/mm/numa.c, and teach mm/memory_hotplug.c to optionally export
-> in case arch/x86/mm/numa.c has already performed the export.
-> 
-> The dependency on NUMA_KEEP_MEMINFO for DEV_DAX_HMEM_DEVICES is invalid
-> now that the symbol is properly exported in all combinations of
-> CONFIG_NUMA_KEEP_MEMINFO and CONFIG_MEMORY_HOTPLUG. Note that in the
-> CONFIG_NUMA=n case no export is needed since their is a dummy static
-> inline implementation of phys_to_target_node() in that case.
-> 
-> Reported-by: Randy Dunlap <rdunlap@infradead.org>
-> Reported-by: Thomas Gleixner <tglx@linutronix.de>
-> Reported-by: kernel test robot <lkp@intel.com>
-> Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
-> Cc: Joao Martins <joao.m.martins@oracle.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: x86@kernel.org
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->   arch/x86/mm/numa.c  |    1 +
->   drivers/dax/Kconfig |    1 -
->   mm/memory_hotplug.c |    5 +++++
->   3 files changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-> index 44148691d78b..e025947f19e0 100644
-> --- a/arch/x86/mm/numa.c
-> +++ b/arch/x86/mm/numa.c
-> @@ -938,6 +938,7 @@ int phys_to_target_node(phys_addr_t start)
->   
->   	return meminfo_to_nid(&numa_reserved_meminfo, start);
->   }
-> +EXPORT_SYMBOL_GPL(phys_to_target_node);
->   
->   int memory_add_physaddr_to_nid(u64 start)
->   {
-> diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
-> index 567428e10b7b..d2834c2cfa10 100644
-> --- a/drivers/dax/Kconfig
-> +++ b/drivers/dax/Kconfig
-> @@ -50,7 +50,6 @@ config DEV_DAX_HMEM
->   	  Say M if unsure.
->   
->   config DEV_DAX_HMEM_DEVICES
-> -	depends on NUMA_KEEP_MEMINFO # for phys_to_target_node()
->   	depends on DEV_DAX_HMEM && DAX=y
->   	def_bool y
->   
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index b44d4c7ba73b..ed326b489674 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -365,9 +365,14 @@ int __weak phys_to_target_node(u64 start)
->   			start);
->   	return 0;
->   }
-> +
-> +/* If the arch did not export a strong symbol, export the weak one. */
-> +#ifndef CONFIG_NUMA_KEEP_MEMINFO
->   EXPORT_SYMBOL_GPL(phys_to_target_node);
->   #endif
->   
-> +#endif
-> +
->   /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
->   static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
->   				     unsigned long start_pfn,
-> 
-> 
+I've invited you to fill out the following form:
+Untitled form
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
+To fill it out, visit:
+https://docs.google.com/forms/d/e/1FAIpQLScuNN46De4NTNDuI_3Rm2L6CNABd5Ra0TyGG6ZxgVbAw2h7Ug/viewform?vc=0&amp;c=0&amp;w=1&amp;flr=0&amp;usp=mail_form_link
 
--- 
-Thanks,
+  Hi,
+Hope I am not intruding on your space here.
+If you are interested in equity or loan financing,
+I would be glad to assist.
+We are a private financial firm that acquires well established small and  
+lower
+middle market businesses with predictable revenue and cash flow;
+typically partnering with industry professionals
+to operate them.
+We also have a Capital Formation Division that assists companies at
+all levels of development raise
+capital through hedge funds. We charge %1 commission at the successful
+closing of any deal.
+Additionally, we also fund
+secured as well as unsecured lines of credit and term loans.
+Would that be something of interest to you and your group?
+Please let me know your thoughts.
+Sorry if you get this message in your spam box, poor network
+connection may be responsible for such.
+Best regards...... Gennadiy Medovoy.
 
-David / dhildenb
+Google Forms: Create and analyze surveys.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
