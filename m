@@ -1,119 +1,156 @@
-Return-Path: <SRS0=pk2l=EE=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=oic9=EF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.8 required=3.0 tests=ADVANCE_FEE_5_NEW_MONEY,
-	BAYES_50,DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FREEMAIL_REPLYTO_END_DIGIT,
-	HEADER_FROM_DIFFERENT_DOMAINS,LOTS_OF_MONEY,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,T_MONEY_PERCENT,URIBL_BLOCKED autolearn=no autolearn_force=no
+X-Spam-Level: 
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CCD7C4363A
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 29 Oct 2020 16:49:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 440F8C4363A
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 02:29:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CC99420EDD
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 29 Oct 2020 16:49:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D904btzJ"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC99420EDD
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id A233B20782
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 02:29:51 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A233B20782
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6069616535441;
-	Thu, 29 Oct 2020 09:49:05 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::745; helo=mail-qk1-x745.google.com; envelope-from=3fpkaxxijdm80vw3z88z.ev1c9nlms17v36.x97638fi-8gy37763ded.lm.9c1@trix.bounces.google.com; receiver=<UNKNOWN> 
-Received: from mail-qk1-x745.google.com (mail-qk1-x745.google.com [IPv6:2607:f8b0:4864:20::745])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 039BC16268DC8;
+	Thu, 29 Oct 2020 19:29:51 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 06FAC1651CDCF
-	for <linux-nvdimm@lists.01.org>; Thu, 29 Oct 2020 09:49:03 -0700 (PDT)
-Received: by mail-qk1-x745.google.com with SMTP id d124so2158416qke.4
-        for <linux-nvdimm@lists.01.org>; Thu, 29 Oct 2020 09:49:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:reply-to:message-id:date:subject:from:to;
-        bh=h5nuN6UqmMB/sXH60ZjUngIZ5jKexaPAEGSB90KjT0c=;
-        b=D904btzJIrvg/Opj7JCJ8zQSodJxJ1QfOD3WFLNtjqlhDXoBqhihJBYZOO8WdmnFdj
-         5fPjjrGctQClVpJTaz5r3OGgLkmogTgaZO6MjfGjdE8JUQIfH+9xV8Eav09ioXOb1pgW
-         XJ9CkLRtczGVgGizSnaPQPd8jVBEQxb0wlEIAi06cVg+wUZGD7vsLUth93Q63YpkA/oO
-         XsLoxqMu+e3qC3laYuMRMobynj5BJYlIk95Oaf+cHIeuJ7aValfi/qCKuSvQgES9a333
-         sD4YeT0BraLotmPtrH8olHBv+3PQ/f6e8DXCqq8AEG71iQxlh5sT3OwjQ9R4zoX2io5v
-         kFRw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:reply-to:message-id:date:subject
-         :from:to;
-        bh=h5nuN6UqmMB/sXH60ZjUngIZ5jKexaPAEGSB90KjT0c=;
-        b=A8mW1XqQgiaiE2pVTeZE2DxdAgzWn2Bz933sTYACIoG8FQnGLEoNS7p8FX/N+j2AcT
-         FBX/Lbi+SzEuaUwBuIdRbUHTkccDbxLGBJoWHUYOeYU9khfTvjEH6f57uJN11z84TuFD
-         Qs1M/VfzI5FPZCQclz+VJf7uSSgRbvPUyE+kqSibSstse9Y56IM1x2i0Sl1czTwNrv2m
-         kRYAlYZ7BUZS/KcX+i0qcY8BWPZUGE0FYdO9TT7BEH/ggacvmwIaFV9INRyqSYL0/pjP
-         8hLMXaV8K1eTtdSNF8N0/nyfVxRIidmVuAVO7cfj3MNmOA1PRI2GDjsOi6f14PMFprsk
-         Osaw==
-X-Gm-Message-State: AOAM533JYGBIg57hDWX2/J7RELMxf9hxTHqE7J54twwtZK7WDnQxm6pN
-	LFLKc3mt4krwQZaWQXV9esxJTCG2ttKaXbnX4vTC
+	by ml01.01.org (Postfix) with ESMTPS id CEB20159BE226
+	for <linux-nvdimm@lists.01.org>; Thu, 29 Oct 2020 19:29:46 -0700 (PDT)
+IronPort-SDR: 6QvmBF04H+h0+1NYMbBfX7qlTsilyCtguFSYtJt1vmuNbuBp5sc0MKM++81CRYBlrMVpLVef8U
+ tljK9Xf3ifAw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9789"; a="253256297"
+X-IronPort-AV: E=Sophos;i="5.77,431,1596524400";
+   d="scan'208";a="253256297"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2020 19:29:46 -0700
+IronPort-SDR: 0m9zSQ8Ulvc9GCrW6m5p/5A7Eo0WvOT6RcYkfymBIH3tsBgCJGtLsWEZfarcpK8N3kCHMJXU50
+ K+XkQwr1gaqg==
+X-IronPort-AV: E=Sophos;i="5.77,431,1596524400";
+   d="scan'208";a="319177425"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 29 Oct 2020 19:29:45 -0700
+Subject: [PATCH] x86/mm: Fix phys_to_target_node() export
+From: Dan Williams <dan.j.williams@intel.com>
+To: akpm@linux-foundation.org
+Date: Thu, 29 Oct 2020 19:29:45 -0700
+Message-ID: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-X-Received: by 2002:ac8:6953:: with SMTP id n19mt4312370qtr.315.1603990140181;
- Thu, 29 Oct 2020 09:49:00 -0700 (PDT)
-X-No-Auto-Attachment: 1
-Message-ID: <000000000000876a0e05b2d20e4f@google.com>
-Date: Thu, 29 Oct 2020 16:49:01 +0000
-Subject: Could you help me in this transaction?
-From: fabienne.tagro2017@gmail.com
-To: linux-nvdimm@lists.01.org
-Message-ID-Hash: ZKWUSRE7UUO5FR267W55VQ3OQDC6XNYN
-X-Message-ID-Hash: ZKWUSRE7UUO5FR267W55VQ3OQDC6XNYN
-X-MailFrom: 3fPKaXxIJDM80vw3z88z.Ev1C9NLMS17v36.x97638FI-8Gy37763DED.LM.9C1@trix.bounces.google.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+Message-ID-Hash: E2CQYIAIDLUCP6CFCG3PLXORSYXUNKZ2
+X-Message-ID-Hash: E2CQYIAIDLUCP6CFCG3PLXORSYXUNKZ2
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Randy Dunlap <rdunlap@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, kernel test robot <lkp@intel.com>, Joao Martins <joao.m.martins@oracle.com>, x86@kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: fabienne.tagro2017@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZKWUSRE7UUO5FR267W55VQ3OQDC6XNYN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/E2CQYIAIDLUCP6CFCG3PLXORSYXUNKZ2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"; delsp="yes"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I've invited you to fill out the following form:
-Untitled form
+The core-mm has a default __weak implementation of phys_to_target_node()
+when the architecture does not override it. That symbol is exported
+for modules. However, while the export in mm/memory_hotplug.c exported
+the symbol in the configuration cases of:
 
-To fill it out, visit:
-https://docs.google.com/forms/d/e/1FAIpQLSe1wBhXSQ5Skw4YywgnRWiOLeNuYO0dbmnMnsDvN4YAMDRi3A/viewform?vc=0&amp;c=0&amp;w=1&amp;flr=0&amp;usp=mail_form_link
+	CONFIG_NUMA_KEEP_MEMINFO=y
+	CONFIG_MEMORY_HOTPLUG=y
 
-Hello Dear,
+...and:
 
-I am very sorry that my letter may come as a surprise to you since we have  
-never met each other before. I am Miss Nidal Aoussa. I am the only daughter  
-of Cheikh Ag Aoussa, the President of (HCUA) in Mali who was assasinated on  
-the octobre 2016.
+	CONFIG_NUMA_KEEP_MEMINFO=n
+	CONFIG_MEMORY_HOTPLUG=y
 
-https://www.jeuneafrique.com/365432/politique/mali-sait-on-mort-de-cheikh-ag-aoussa/
-https://fr.wikipedia.org/wiki/Cheikh_Ag_Aoussa
+...it failed to export the symbol in the case of:
 
-I have a business transaction which i solicit your help. It is all about a  
-fund to be transferred in your country for urgent investment on important  
-projects. I want you to guide me and invest this money in your country.  
-This fund amount to Eleven Millions Five Hundred Thousand United States  
-dollars which i inherited from my late dad.. If you are capable of handling  
-or participate in this transaction, kindly respond quickly through my  
-private emails to enable me give you more details about this fund and how  
-this project shall be carried out. I will accord you 20% of the total fund  
-for your kind assistance. Respond through this my private emails addresses  
-below.
+	CONFIG_NUMA_KEEP_MEMINFO=y
+	CONFIG_MEMORY_HOTPLUG=n
 
-Miss Nidal Aoussa
-Email: ( nidal.kong1998@gmail.com )
+Always export the symbol from the CONFIG_NUMA_KEEP_MEMINFO section of
+arch/x86/mm/numa.c, and teach mm/memory_hotplug.c to optionally export
+in case arch/x86/mm/numa.c has already performed the export.
 
-Google Forms: Create and analyze surveys.
+The dependency on NUMA_KEEP_MEMINFO for DEV_DAX_HMEM_DEVICES is invalid
+now that the symbol is properly exported in all combinations of
+CONFIG_NUMA_KEEP_MEMINFO and CONFIG_MEMORY_HOTPLUG. Note that in the
+CONFIG_NUMA=n case no export is needed since their is a dummy static
+inline implementation of phys_to_target_node() in that case.
+
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
+Reported-by: kernel test robot <lkp@intel.com>
+Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
+Cc: Joao Martins <joao.m.martins@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: x86@kernel.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ arch/x86/mm/numa.c  |    1 +
+ drivers/dax/Kconfig |    1 -
+ mm/memory_hotplug.c |    5 +++++
+ 3 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 44148691d78b..e025947f19e0 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -938,6 +938,7 @@ int phys_to_target_node(phys_addr_t start)
+ 
+ 	return meminfo_to_nid(&numa_reserved_meminfo, start);
+ }
++EXPORT_SYMBOL_GPL(phys_to_target_node);
+ 
+ int memory_add_physaddr_to_nid(u64 start)
+ {
+diff --git a/drivers/dax/Kconfig b/drivers/dax/Kconfig
+index 567428e10b7b..d2834c2cfa10 100644
+--- a/drivers/dax/Kconfig
++++ b/drivers/dax/Kconfig
+@@ -50,7 +50,6 @@ config DEV_DAX_HMEM
+ 	  Say M if unsure.
+ 
+ config DEV_DAX_HMEM_DEVICES
+-	depends on NUMA_KEEP_MEMINFO # for phys_to_target_node()
+ 	depends on DEV_DAX_HMEM && DAX=y
+ 	def_bool y
+ 
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index b44d4c7ba73b..ed326b489674 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -365,9 +365,14 @@ int __weak phys_to_target_node(u64 start)
+ 			start);
+ 	return 0;
+ }
++
++/* If the arch did not export a strong symbol, export the weak one. */
++#ifndef CONFIG_NUMA_KEEP_MEMINFO
+ EXPORT_SYMBOL_GPL(phys_to_target_node);
+ #endif
+ 
++#endif
++
+ /* find the smallest valid pfn in the range [start_pfn, end_pfn) */
+ static unsigned long find_smallest_section_pfn(int nid, struct zone *zone,
+ 				     unsigned long start_pfn,
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
