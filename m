@@ -1,115 +1,130 @@
-Return-Path: <SRS0=oic9=EF=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=AGg4=EG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.8 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFC25C55178
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 15:49:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C729C388F9
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 31 Oct 2020 01:54:57 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 152E72151B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 30 Oct 2020 15:49:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2084C208B6
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 31 Oct 2020 01:54:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ss6NVvvS"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 152E72151B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="xMgBvat1"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2084C208B6
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 80EBE164FC4D0;
-	Fri, 30 Oct 2020 08:49:09 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::846; helo=mail-qt1-x846.google.com; envelope-from=38twcxxejdna2wxd407f3a8wevmnm28w47.ya8749gj-9hz48874efe.mn.ad2@trix.bounces.google.com; receiver=<UNKNOWN> 
-Received: from mail-qt1-x846.google.com (mail-qt1-x846.google.com [IPv6:2607:f8b0:4864:20::846])
+	by ml01.01.org (Postfix) with ESMTP id 87E43165A98E0;
+	Fri, 30 Oct 2020 18:54:56 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::641; helo=mail-ej1-x641.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1A253164FC4CE
-	for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 08:49:06 -0700 (PDT)
-Received: by mail-qt1-x846.google.com with SMTP id d6so4248451qtp.2
-        for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 08:49:06 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 2EDAC165A98D2
+	for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 18:54:52 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id p9so11134593eji.4
+        for <linux-nvdimm@lists.01.org>; Fri, 30 Oct 2020 18:54:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:reply-to:message-id:date:subject:from:to;
-        bh=upBallN9p2EMXqbXVKfQ7Iw18NmeaHyPq73hkSMMbac=;
-        b=ss6NVvvSpBvi3jEZe4MxVTqEi/Dz/2iVrEYjJwEzZua4aFoXsSfpHHDAap6P2nBdbT
-         D14uLkxfuH34eZLv7u2M2LZMjYxSG2hyNepKTf9QE4hIe/LYLP6tpSbOj8qcWZPmVCvA
-         ho96epMF9iS4u8RbSYiyKOIG2wLNfOXgZMNhBy8CHVEUmUrUQNugZyAbU+q9oEIMp3WS
-         4GsZ4s4kpIRkoyP2soGus870obmHUmwjyvuKSQKSvmH+kyZp3rGiV6sW9Qb3BuncRA9l
-         KVH/HOf3DKM7NaOEvFMzzXhYcSdmzSixm+z7AOP1YXBmzOWlNf2ZXFtVK/3ws+3z6nTS
-         4A6g==
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vpps4QHXRxAMWPFAR6czMYTEeayKSB9a8gYwfl7iFEI=;
+        b=xMgBvat1GLEvW0fGY01bhphopLs3WOKfAtrbUsY+cIPkQa45srH0eqnAFGv+z08azC
+         kLefbpLW4GHeuhi4n9L8s0a7Hp1yRDuYfCE5eqONmCQYvqOZNspfKmeYiNuqLRRx/U2/
+         ai0YXm9lzf6GW4Z0HeXsoMYwnli+NS/cskD5riX/1B5U75T/v4TJmHSaTn0nN+trNjpo
+         GtZbPEuUCosr3tosa7RcWprdV0O/9YYkSMYac0jc00VaI0E2OGVqIeokbrJJCHgb8xPe
+         lH0V2nUPonZ5QoXAxaOC263dFHbuAz81zEhNMK+h9JQGygXyPtMBvipltnVwIj+qCkDt
+         8yBQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:reply-to:message-id:date:subject
-         :from:to;
-        bh=upBallN9p2EMXqbXVKfQ7Iw18NmeaHyPq73hkSMMbac=;
-        b=W+hnM5L+mdrWw/CuZYiJIcvtK9yPeWqI1PNvtHvMG9mq0Ansi1kF865cw6YQfZuJLJ
-         oq1gvFEEWuAPXbJMDHk8reEPnRIX92AF4wdxhYVaNSqN9fJ9HGWzFv0sUazxhgplLhYD
-         B4TNYPHJCPTZd/Anai/Gjijfp+G3wX32k0t+vmmJAs3hlltB+KDBKB6eNT3FpOHGGa4d
-         mrJBvYlbG1t9Hfq/CY5QFlRuZZpYQ1stj9jnYFcBTj2MWTIqNb6Rkdx22BQxxGDi6ljL
-         Pa7tnnk1Qsc0ALlfhQlSRBBRHydmxlmWGJ16o63/2FwbxcoKtLaf+nlaiqVbph1FEjyE
-         DCAw==
-X-Gm-Message-State: AOAM530edeePwYoh1jIdJGYopd1GZXsU++iLF7o9h67c/UZyAkZD6oK6
-	ad8Miqgd7JeZm1BfSI18/jUszK92X8S+3MXbRvvb
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vpps4QHXRxAMWPFAR6czMYTEeayKSB9a8gYwfl7iFEI=;
+        b=bzk1Ckq4SbdfLy8nkfmL9iEyTPs5zbVlY/esWGhuPViS4cXU9x5xc/dtcrc5i6Wcpq
+         f9dsFH5MOdv/N/roBbykRCQijP1WlVhy3BypMllNRDyodylvk20G23mg31iBEIchvQ4d
+         nrTemO7Mq2wfdEKvp4YG5sdH6o309wvfxHXCozSb/0vHVXIvqUXLr4soswx2uGAF38CK
+         r+B+c6HMmcLTPYjOyzoxQwIFF2Rtr9j0uSbWRxlusOg7SrQgxLYEUHVZLzd+yH4J88yL
+         RdM//36jybN9TgLzH+Im3xwxBOaJ1+AeyeqLp6LZA81Ji3EXXtjvQWwZaZm+tFom1cQZ
+         10CA==
+X-Gm-Message-State: AOAM5312hwiM25mLwDxCUTk/FRcNrBvmCCNP7tK0aJsl4SHfZu5qqO3H
+	oS7VyoKGVOCh0qxFP8L/bC80BsztHtX+JcWIUWyOyQ==
+X-Google-Smtp-Source: ABdhPJwE7ZPoBTwgrT+kma8o/mNUUfsoxmBQwgeIO/t7I9Hk1RYtvCMijglyFYF+OEPZDKqXOEuytkR6bSX2Ogh4528=
+X-Received: by 2002:a17:906:d92c:: with SMTP id rn12mr2910812ejb.472.1604109290015;
+ Fri, 30 Oct 2020 18:54:50 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:ac8:1401:: with SMTP id k1mt2862152qtj.227.1604072945166;
- Fri, 30 Oct 2020 08:49:05 -0700 (PDT)
-X-No-Auto-Attachment: 1
-Message-ID: <00000000000017368605b2e55606@google.com>
-Date: Fri, 30 Oct 2020 15:49:05 +0000
-Subject: Hi;
-From: gabrielthomas9010@gmail.com
-To: linux-nvdimm@lists.01.org
-Message-ID-Hash: V73JRHX73WMYMM547SRNH6KPC4DT6ZXD
-X-Message-ID-Hash: V73JRHX73WMYMM547SRNH6KPC4DT6ZXD
-X-MailFrom: 38TWcXxEJDNA2wxD407F3A8wEVMNM28w47.yA8749GJ-9Hz48874EFE.MN.AD2@trix.bounces.google.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+References: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 30 Oct 2020 18:54:35 -0700
+Message-ID: <CAPcyv4iw_ZuHdhrGHUPh+iBYuO7sN_omEGb8RMmOKVzSCpbT0g@mail.gmail.com>
+Subject: Re: [PATCH] x86/mm: Fix phys_to_target_node() export
+To: Andrew Morton <akpm@linux-foundation.org>
+Message-ID-Hash: D3DFBT6MYNMLSUZCRHNPKAWTGR5TEOTV
+X-Message-ID-Hash: D3DFBT6MYNMLSUZCRHNPKAWTGR5TEOTV
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Randy Dunlap <rdunlap@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, kernel test robot <lkp@intel.com>, Joao Martins <joao.m.martins@oracle.com>, X86 ML <x86@kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: gabrielthomas9010@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/V73JRHX73WMYMM547SRNH6KPC4DT6ZXD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/D3DFBT6MYNMLSUZCRHNPKAWTGR5TEOTV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"; delsp="yes"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-I've invited you to fill out the following form:
-Untitled form
+On Thu, Oct 29, 2020 at 7:29 PM Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> The core-mm has a default __weak implementation of phys_to_target_node()
+> when the architecture does not override it. That symbol is exported
+> for modules. However, while the export in mm/memory_hotplug.c exported
+> the symbol in the configuration cases of:
+>
+>         CONFIG_NUMA_KEEP_MEMINFO=y
+>         CONFIG_MEMORY_HOTPLUG=y
+>
+> ...and:
+>
+>         CONFIG_NUMA_KEEP_MEMINFO=n
+>         CONFIG_MEMORY_HOTPLUG=y
+>
+> ...it failed to export the symbol in the case of:
+>
+>         CONFIG_NUMA_KEEP_MEMINFO=y
+>         CONFIG_MEMORY_HOTPLUG=n
+>
+> Always export the symbol from the CONFIG_NUMA_KEEP_MEMINFO section of
+> arch/x86/mm/numa.c, and teach mm/memory_hotplug.c to optionally export
+> in case arch/x86/mm/numa.c has already performed the export.
+>
+> The dependency on NUMA_KEEP_MEMINFO for DEV_DAX_HMEM_DEVICES is invalid
+> now that the symbol is properly exported in all combinations of
+> CONFIG_NUMA_KEEP_MEMINFO and CONFIG_MEMORY_HOTPLUG. Note that in the
+> CONFIG_NUMA=n case no export is needed since their is a dummy static
+> inline implementation of phys_to_target_node() in that case.
+>
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Reported-by: Thomas Gleixner <tglx@linutronix.de>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Fixes: a035b6bf863e ("mm/memory_hotplug: introduce default phys_to_target_node() implementation")
+> Cc: Joao Martins <joao.m.martins@oracle.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: x86@kernel.org
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-To fill it out, visit:
-https://docs.google.com/forms/d/e/1FAIpQLScuNN46De4NTNDuI_3Rm2L6CNABd5Ra0TyGG6ZxgVbAw2h7Ug/viewform?vc=0&amp;c=0&amp;w=1&amp;flr=0&amp;usp=mail_form_link
-
-  Hi,
-Hope I am not intruding on your space here.
-If you are interested in equity or loan financing,
-I would be glad to assist.
-We are a private financial firm that acquires well established small and  
-lower
-middle market businesses with predictable revenue and cash flow;
-typically partnering with industry professionals
-to operate them.
-We also have a Capital Formation Division that assists companies at
-all levels of development raise
-capital through hedge funds. We charge %1 commission at the successful
-closing of any deal.
-Additionally, we also fund
-secured as well as unsecured lines of credit and term loans.
-Would that be something of interest to you and your group?
-Please let me know your thoughts.
-Sorry if you get this message in your spam box, poor network
-connection may be responsible for such.
-Best regards...... Gennadiy Medovoy.
-
-Google Forms: Create and analyze surveys.
+Thomas, do you want to ack this so Andrew can pick it up, or I can
+take it through as a device-dax update, but either way the diffstat
+warrants x86 + mm acks.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
