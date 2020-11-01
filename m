@@ -1,98 +1,103 @@
-Return-Path: <SRS0=AGg4=EG=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=guF4=EH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81E50C388F7
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 31 Oct 2020 09:10:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B625C2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  1 Nov 2020 09:59:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A64972076E
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 31 Oct 2020 09:10:29 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="TsLV0qIe"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A64972076E
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	by mail.kernel.org (Postfix) with ESMTPS id DBD412076E
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  1 Nov 2020 09:59:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DBD412076E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=tr.mufg.jp
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 61B9E163B1EF3;
-	Sat, 31 Oct 2020 02:10:29 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=batv+e1c4655336593cdcfc57+6278+infradead.org+hch@casper.srs.infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A437E163B1EF0
-	for <linux-nvdimm@lists.01.org>; Sat, 31 Oct 2020 02:10:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=oPEIdviMxitzL+S1gMzK4Ov2/vXRQ0CoB5foU9ASBJI=; b=TsLV0qIeRD7+WPLBsTtpeiXcC2
-	jrIyXcEejkSHMIGI8nJCJRTopjHXb750mavvwffuq+2acbkDNzOI3LciYC4Qra2/TjS0NGEyFdhP6
-	+c4dSHl9ustxjNP4YxcmIqjODenVNwRdm49PsHLFyR8aqEGXLecNXlp93mjsfEI5yBuAF956QGHkT
-	unDaIKhDayBEeANzWX6J0Gr5RCsZAGb6d7DVWcMTT2mvh1rsSp/sQ84Mu61CVM1xfp5lFu2A2pvIU
-	BvMp1haBWtYUkXDVB9BAha59F+IfIg0TEjPTzxsrsaAd3rViQpuznsu7bIlpb2XcC1nW86wxTE8Qv
-	DJ1Vaz4A==;
-Received: from hch by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kYmto-0007Vn-Jp; Sat, 31 Oct 2020 09:10:12 +0000
-Date: Sat, 31 Oct 2020 09:10:12 +0000
-From: Christoph Hellwig <hch@infradead.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] x86/mm: Fix phys_to_target_node() export
-Message-ID: <20201031091012.GA27844@infradead.org>
-References: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
-Message-ID-Hash: J6I3RGVFATCQXXLVAUEQUM65EFNQVPPZ
-X-Message-ID-Hash: J6I3RGVFATCQXXLVAUEQUM65EFNQVPPZ
-X-MailFrom: BATV+e1c4655336593cdcfc57+6278+infradead.org+hch@casper.srs.infradead.org
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: akpm@linux-foundation.org, Randy Dunlap <rdunlap@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, kernel test robot <lkp@intel.com>, Joao Martins <joao.m.martins@oracle.com>, x86@kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org
+	by ml01.01.org (Postfix) with ESMTP id 2AA9115F31E33;
+	Sun,  1 Nov 2020 01:59:52 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=45.192.178.252; helo=aolikldhps.com; envelope-from=ksixkpfz@aolikldhps.com; receiver=<UNKNOWN> 
+Received: from aolikldhps.com (unknown [45.192.178.252])
+	by ml01.01.org (Postfix) with ESMTP id 739B815DBE275
+	for <linux-nvdimm@lists.01.org>; Sun,  1 Nov 2020 01:59:49 -0800 (PST)
+Message-ID: <92CD9DFD1A1283D680E034994443E4AA@aolikldhps.com>
+From: =?utf-8?B?5LiJ6I+xVUZK6YqA6KGM?= <account_post@tr.mufg.jp>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?44CQ5LiJ6I+x77y177ym77yq6YqA6KGM44CR6YeN6KaB77ya5b+F44Ga44GK6Kqt44G/44GP44Gg44GV?=
+	=?utf-8?B?44GE?=
+Date: Sun, 1 Nov 2020 17:59:35 +0800
+Mime-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V6.3.9600.19846
+Message-ID-Hash: MPMEQ7ZIYFTKHQDWTV2L62BQZM7G5WXW
+X-Message-ID-Hash: MPMEQ7ZIYFTKHQDWTV2L62BQZM7G5WXW
+X-MailFrom: ksixkpfz@aolikldhps.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J6I3RGVFATCQXXLVAUEQUM65EFNQVPPZ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MPMEQ7ZIYFTKHQDWTV2L62BQZM7G5WXW/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Thu, Oct 29, 2020 at 07:29:45PM -0700, Dan Williams wrote:
-> The core-mm has a default __weak implementation of phys_to_target_node()
-> when the architecture does not override it. That symbol is exported
-> for modules. However, while the export in mm/memory_hotplug.c exported
-> the symbol in the configuration cases of:
-
-Which just means that we should never export weak symbols.  So instead
-of hacking around this introduce a symbol that indicates that the
-architecture impements phys_to_target_node, and don't defined it at all
-in common code for that case.
-
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -365,9 +365,14 @@ int __weak phys_to_target_node(u64 start)
->  			start);
->  	return 0;
->  }
-> +
-> +/* If the arch did not export a strong symbol, export the weak one. */
-> +#ifndef CONFIG_NUMA_KEEP_MEMINFO
->  EXPORT_SYMBOL_GPL(phys_to_target_node);
->  #endif
->  
-> +#endif
-
-i.e. move the ifdef to include the actual phys_to_target_node
-definition, and remove the __weak from it here.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+5LiJ6I+x77y177ym77yq44OL44Kz44K56YqA6KGM44O844OJV0VC44K144O844OT44K544GU55m7
+6Yyy56K66KqNDQog44GE44Gk44KCIE1VRkfjgqvjg7zjg4lXRULjgrXjg7zjg5PjgrnjgpLjgZTl
+iKnnlKjjgYTjgZ/jgaDjgY3jgIHjgYLjgorjgYzjgajjgYbjgZTjgZbjgYTjgb7jgZnjgIINCuOB
+k+OBruOBn+OBs+OAgeOBlOacrOS6uuanmOOBruOBlOWIqeeUqOOBi+OBqeOBhuOBi+OCkueiuuiq
+jeOBleOBm+OBpuOBhOOBn+OBoOOBjeOBn+OBhOOBiuWPluW8leOBjOOBguOCiuOBvuOBl+OBn+OB
+ruOBp+OAgeiqoOOBq+WLneaJi+OBquOBjOOCieOAgeOCq+ODvOODieOBruOBlOWIqeeUqOOCkuS4
+gOmDqOWItumZkOOBleOBm+OBpuOBhOOBn+OBoOOBjeOAgeOBlOmAo+e1oeOBleOBm+OBpuOBhOOB
+n+OBoOOBjeOBvuOBl+OBn+OAgg0K44Gk44GN44G+44GX44Gm44Gv44CB5Lul5LiL44G444Ki44Kv
+44K744K544Gu5LiK44CB44Kr44O844OJ44Gu44GU5Yip55So56K66KqN44Gr44GU5Y2U5Yqb44KS
+44GK6aGY44GE6Ie044GX44G+44GZ44CCDQog44GK5a6i5qeY44Gr44Gv44GU6L+35oOR44CB44GU
+5b+D6YWN44KS44GK5o6b44GR44GX44CB6Kqg44Gr55Sz44GX6Kiz44GU44GW44GE44G+44Gb44KT
+44CCDQrkvZXljZLjgZTnkIbop6PjgYTjgZ/jgaDjgY3jgZ/jgY/jgYrpoZjjgYTnlLPjgZfjgYLj
+gZLjgb7jgZnjgIINCuOBlOWbnuetlOOCkuOBhOOBn+OBoOOBkeOBquOBhOWgtOWQiOOAgeOCq+OD
+vOODieOBruOBlOWIqeeUqOWItumZkOOBjOe2mee2muOBleOCjOOCi+OBk+OBqOOCguOBlOOBluOB
+hOOBvuOBmeOBruOBp+OAgeS6iOOCgeOBlOS6huaJv+S4i+OBleOBhOOAgg0K4pag44GU5Yip55So
+56K66KqN44Gv44GT44Gh44KJDQpodHRwOi8vd3d3LmNyLm11ZmcueWV4aWV0ei5jb20vDQrlvIrn
+pL7jga/jgIHjgqTjg7Pjgr/jg7zjg43jg4Pjg4jkuIrjga7kuI3mraPooYzngrrjga7pmLLmraLj
+g7vmipHliLbjga7oprPngrnjgYvjgonjgrXjgqTjg4jjgajjgZfjgabjga7kv6HpoLzmgKfjg7vm
+raPlvZPmgKfjgpLpq5jjgoHjgovjgZ/jgoHjgIENCuWkp+WkieOBiuaJi+aVsOOBp+OBr+OBlOOB
+luOBhOOBvuOBmeOBjOOAgeS4i+iomO+8te+8su+8rOOBi+OCieODreOCsOOCpOODs+OBhOOBn+OB
+oOOBjeOAgQ0KaHR0cDovL3d3dy5jci5tdWZnLnlleGlldHouY29tLw0K44GU5LiN5L6/44Go44GU
+5b+D6YWN44KS44GK44GL44GR44GX44G+44GX44Gm6Kqg44Gr55Sz44GX6Kiz44GU44GW44GE44G+
+44Gb44KT44GM44CBDQrkvZXjgajjgZ7jgZTnkIbop6Pos5zjgorjgZ/jgY/jgYrpoZjjgYTnlLPj
+gZfjgYLjgZLjgb7jgZnjgIINCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+IOKWoOe3qOmbhuODu+eZuuihjDrm
+oKrlvI/kvJrnpL7kuInoj7FVRkrpioDooYwNCj4g5p2x5Lqs6YO95Y2D5Luj55Sw5Yy65Li444Gu
+5YaFMi03LTENCj4gW+eZu+mMsumHkeiejeapn+mWol3plqLmnbHosqHli5nlsYDplbco55m76YeR
+KeesrDXlj7cNCj4gW+WKoOWFpeWNlOS8ml3ml6XmnKzoqLzliLjmpa3ljZTkvJoNCj4g5LiA6Iis
+56S+5Zuj5rOV5Lq644CA6YeR6J6N5YWI54mp5Y+W5byV5qWt5Y2U5LyaDQo+IOS4gOiIrOekvuWb
+o+azleS6uuOAgOesrOS6jOeorumHkeiejeWVhuWTgeWPluW8lealreWNlOS8mg0KPiANCj4g4pag
+44GU55m76Yyy44Gr44GK5b+D44GC44Gf44KK44Gu44Gq44GE5aC05ZCI44KE6Zu75a2Q572y5ZCN
+44Gr44Gk44GE44Gm44Gu44GK5ZWP44GE5ZCI44KP44GbDQo+IDzjgqTjg7Pjgr/jg7zjg43jg4Pj
+g4jjg5Djg7Pjgq3jg7PjgrDjg5jjg6vjg5fjg4fjgrnjgq8+DQo+IDAxMjAtNTQzLTU1NSjjgb7j
+gZ/jga8wNDItMzExLTcwMDAo6YCa6Kmx5paZ5pyJ5paZKSkNCj4g5Y+X5LuY5pmC6ZaTL+avjuaX
+peOAgDk6MDDvvZ4yMTowMA0KPiANCj4g4pag6YWN5L+h5YGc5q2i44O7ReODoeODvOODq+OCouOD
+ieODrOOCueWkieabtOOBr+OBk+OBoeOCieOBi+OCieOBiuaJi+e2muOBjeOBj+OBoOOBleOBhOOA
+gg0KPiBodHRwOi8vd3d3LmNyLm11ZmcueWV4aWV0ei5jb20vDQo+IA0KPiDilqDlgIvkurrmg4Xl
+oLHkv53orbfmlrnph53jgavjgaTjgYTjgaYNCj4g5LiJ6I+xVUZK6YqA6KGM44Gn44Gv44CB44GK
+5a6i44GV44G+44Gu5YCL5Lq65oOF5aCx44KS6YGp5YiH44Gr5L+d6K2344GZ44KL44Gf44KB44CB
+44Gd44Gu5Y+W44KK5omx44GE44Gr44Gk44GN44G+44GX44Gm44Gv57Sw5b+D44Gu5rOo5oSP44KS
+5omV44Gj44Gm44GE44G+44GZ44CCDQo+IGh0dHA6Ly93d3cuY3IubXVmZy55ZXhpZXR6LmNvbS8N
+Cj4gDQo+IOKWoOacrOODoeODvOODq+OBrumAgeS/oeOCouODieODrOOCueOBr+mAgeS/oeWwgueU
+qOOBqOOBquOBo+OBpuOBiuOCiuOBvuOBmeOAgui/lOS/oeODoeODvOODq+OBp+OBruOBiuWVj+OB
+hOWQiOOCj+OBm+OBr+aJv+OCiuOBi+OBreOBvuOBmeOBruOBp+OAgeOBguOCieOBi+OBmOOCgeOB
+lOS6huaJv+mhmOOBhOOBvuOBmeOAgigyMzY3MSkNCj4gDQo+IOKAleKAlUNvcHlyaWdodChDKSBN
+VUZHIEJhbmssTHRkLkFsbCByaWdodHMgcmVzZXJ2ZWQu4oCV4oCVCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3Qg
+LS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWls
+IHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
