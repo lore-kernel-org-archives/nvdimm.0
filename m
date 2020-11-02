@@ -2,144 +2,233 @@ Return-Path: <SRS0=qUAO=EI=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7923C56202
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Nov 2020 17:51:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44D24C00A89
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Nov 2020 20:53:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5B89822265
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Nov 2020 17:51:31 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EKQezKoE"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5B89822265
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id B99F1206E5
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Nov 2020 20:53:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B99F1206E5
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7B6C61630E0A4;
-	Mon,  2 Nov 2020 09:51:30 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.205.24.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 1AA93163330B2;
+	Mon,  2 Nov 2020 12:53:29 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1B3181630E0A1
-	for <linux-nvdimm@lists.01.org>; Mon,  2 Nov 2020 09:51:27 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1604339486;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=lp/prYQuMgVXccCGCiV61cLz4v5q5/mm6tHCPraHIqM=;
-	b=EKQezKoEaQPVX0E/k1X4C/PLH+ukdpxJSN79mCzwzIu+B7Qv7oLCnGtx9+Sip+GlK1bsQJ
-	CAf2b8g9yEqtQduC91gEuPv8Nzmr3RHL6XE2kbyRYhxXK+84na4K4NZJcF9DdLXj5yAeEV
-	oA7Qf/09Hr525GSyHeWOYiePRs9Ql0w=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-593-JugxVAtvMxar3jfSZTXWbg-1; Mon, 02 Nov 2020 12:51:22 -0500
-X-MC-Unique: JugxVAtvMxar3jfSZTXWbg-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1873F879512;
-	Mon,  2 Nov 2020 17:51:18 +0000 (UTC)
-Received: from [10.36.113.163] (ovpn-113-163.ams2.redhat.com [10.36.113.163])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id EA9C15B4A9;
-	Mon,  2 Nov 2020 17:51:10 +0000 (UTC)
-Subject: Re: [PATCH v6 0/6] mm: introduce memfd_secret system call to create
- "secret" memory areas
-To: Mike Rapoport <rppt@kernel.org>
-References: <20200924132904.1391-1-rppt@kernel.org>
- <9c38ac3b-c677-6a87-ce82-ec53b69eaf71@redhat.com>
- <20201102174308.GF4879@kernel.org>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat GmbH
-Message-ID: <d4cb2c87-4744-3929-cedd-2be78625a741@redhat.com>
-Date: Mon, 2 Nov 2020 18:51:09 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.6.0
+	by ml01.01.org (Postfix) with ESMTPS id 47D7E163330AD
+	for <linux-nvdimm@lists.01.org>; Mon,  2 Nov 2020 12:53:27 -0800 (PST)
+IronPort-SDR: zd1RuxaDLo2hZF+qqGlCGKbEkoMUpE8wnMRIx7BXMwhL3bp/s85mJu12m3heDHoYttZk8d89AK
+ 3Tnv0LcsQoRQ==
+X-IronPort-AV: E=McAfee;i="6000,8403,9793"; a="186790450"
+X-IronPort-AV: E=Sophos;i="5.77,445,1596524400";
+   d="scan'208";a="186790450"
+X-Amp-Result: SKIPPED(no attachment in message)
+X-Amp-File-Uploaded: False
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2020 12:53:26 -0800
+IronPort-SDR: eruNOjlfVsT+d2xNmKeCN+wdpmM7mqC5KYx6km3g5kJ42UeIdR4MSsgP0ql6/hnCLDIR4njc9h
+ tNYZRr8Q7pRw==
+X-IronPort-AV: E=Sophos;i="5.77,445,1596524400";
+   d="scan'208";a="538165889"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Nov 2020 12:53:25 -0800
+From: ira.weiny@intel.com
+To: Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Andy Lutomirski <luto@kernel.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Dave Hansen <dave.hansen@linux.intel.com>
+Subject: [PATCH V2 00/10] PKS: Add Protection Keys Supervisor (PKS) support
+Date: Mon,  2 Nov 2020 12:53:10 -0800
+Message-Id: <20201102205320.1458656-1-ira.weiny@intel.com>
+X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 MIME-Version: 1.0
-In-Reply-To: <20201102174308.GF4879@kernel.org>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
-Message-ID-Hash: WZKCL5O65JVAPULYC5DV2C3FP6NJ67Z6
-X-Message-ID-Hash: WZKCL5O65JVAPULYC5DV2C3FP6NJ67Z6
-X-MailFrom: david@redhat.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Idan Yaniv <idan.yaniv@ibm.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Shuah Khan <shuah@kernel.org>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, lin
- ux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+Message-ID-Hash: 6ARYGLGUA7S5VUXS72JLX4MNQ7U7IQNF
+X-Message-ID-Hash: 6ARYGLGUA7S5VUXS72JLX4MNQ7U7IQNF
+X-MailFrom: ira.weiny@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WZKCL5O65JVAPULYC5DV2C3FP6NJ67Z6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6ARYGLGUA7S5VUXS72JLX4MNQ7U7IQNF/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
->> Assume you have a system with quite some ZONE_MOVABLE memory (esp. in
->> virtualized environments), eating up a significant amount of !ZONE_MOVABLE
->> memory dynamically at runtime can lead to non-obvious issues. It looks like
->> you have plenty of free memory, but the kernel might still OOM when trying
->> to do kernel allocations e.g., for pagetables. With CMA we at least know
->> what we're dealing with - it behaves like ZONE_MOVABLE except for the owner
->> that can place unmovable pages there. We can use it to compute statically
->> the amount of ZONE_MOVABLE memory we can have in the system without doing
->> harm to the system.
-> 
-> Why would you say that secretmem allocates from !ZONE_MOVABLE?
-> If we put boot time reservations aside, the memory allocation for
-> secretmem follows the same rules as the memory allocations for any file
-> descriptor. That means we allocate memory with GFP_HIGHUSER_MOVABLE.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Oh, okay - I missed that! I had the impression that pages are unmovable 
-and allocating from ZONE_MOVABLE would be a violation of that?
+Changes from V1
+	Rebase to TIP master; resolve conflicts and test
+	Clean up some kernel docs updates missed in V1
+	Add irqentry_state_t kernel doc for PKRS field
+	Removed redundant irq_state->pkrs
+		This is only needed when we add the global state and somehow
+		ended up in this patch series.  That will come back when we add
+		the global functionality in.
+	From Thomas Gleixner
+		Update commit messages
+		Add kernel doc for struct irqentry_state_t
+	From Dave Hansen add flags to pks_key_alloc()
 
-> After the allocation the memory indeed becomes unmovable but it's not
-> like we are eating memory from other zones here.
+Changes from RFC V3[3]
+	Rebase to TIP master
+	Update test error output
+	Standardize on 'irq_state' for state variables
+	From Dave Hansen
+		Update commit messages
+		Add/clean up comments
+		Add X86_FEATURE_PKS to disabled-features.h and remove some
+			explicit CONFIG checks
+		Move saved_pkrs member of thread_struct
+		Remove superfluous preempt_disable()
+		s/irq_save_pks/irq_save_set_pks/
+		Ensure PKRS is not seen in faults if not configured or not
+			supported
+		s/pks_mknoaccess/pks_mk_noaccess/
+		s/pks_mkread/pks_mk_readonly/
+		s/pks_mkrdwr/pks_mk_readwrite/
+		Change pks_key_alloc return to -EOPNOTSUPP when not supported
+	From Peter Zijlstra
+		Clean up Attribution
+		Remove superfluous preempt_disable()
+		Add union to differentiate exit_rcu/lockdep use in
+			irqentry_state_t
+	From Thomas Gleixner
+		Add preliminary clean up patch and adjust series as needed
 
-... and here you have your problem. That's a no-no. We only allow it in 
-very special cases where it can't be avoided - e.g., vfio having to pin 
-guest memory when passing through memory to VMs.
 
-Hotplug memory, online it to ZONE_MOVABLE. Allocate secretmem. Try to 
-unplug the memory again -> endless loop in offline_pages().
+Introduce a new page protection mechanism for supervisor pages, Protection Key
+Supervisor (PKS).
 
-Or have a CMA area that gets used with GFP_HIGHUSER_MOVABLE. Allocate 
-secretmem. The owner of the area tries to allocate memory - always 
-fails. Purpose of CMA destroyed.
+2 use cases for PKS are being developed, trusted keys and PMEM.  Trusted keys
+is a newer use case which is still being explored.  PMEM was submitted as part
+of the RFC (v2) series[1].  However, since then it was found that some callers
+of kmap() require a global implementation of PKS.  Specifically some users of
+kmap() expect mappings to be available to all kernel threads.  While global use
+of PKS is rare it needs to be included for correctness.  Unfortunately the
+kmap() updates required a large patch series to make the needed changes at the
+various kmap() call sites so that patch set has been split out.  Because the
+global PKS feature is only required for that use case it will be deferred to
+that set as well.[2]  This patch set is being submitted as a precursor to both
+of the use cases.
 
-> 
->> Ideally, we would want to support page migration/compaction and allow for
->> allocation from ZONE_MOVABLE as well. Would involve temporarily mapping,
->> copying, unmapping. Sounds feasible, but not sure which roadblocks we would
->> find on the way.
-> 
-> We can support migration/compaction with temporary mapping. The first
-> roadblock I've hit there was that migration allocates 4K destination
-> page and if we use it in secret map we are back to scrambling the direct
-> map into 4K pieces. It still sounds feasible but not as trivial :)
+For an overview of the entire PKS ecosystem, a git tree including this series
+and 2 proposed use cases can be found here:
 
-That sounds like the proper way for me to do it then.
+	https://lore.kernel.org/lkml/20201009195033.3208459-1-ira.weiny@intel.com/
+	https://lore.kernel.org/lkml/20201009201410.3209180-1-ira.weiny@intel.com/
 
-> 
-> But again, there is nothing in the current form of secretmem that
-> prevents allocation from ZONE_MOVABLE.
 
-Oh, there is something: That the pages are not movable.
+PKS enables protections on 'domains' of supervisor pages to limit supervisor
+mode access to those pages beyond the normal paging protections.  PKS works in
+a similar fashion to user space pkeys, PKU.  As with PKU, supervisor pkeys are
+checked in addition to normal paging protections and Access or Writes can be
+disabled via a MSR update without TLB flushes when permissions change.  Also
+like PKU, a page mapping is assigned to a domain by setting pkey bits in the
+page table entry for that mapping.
+
+Access is controlled through a PKRS register which is updated via WRMSR/RDMSR.
+
+XSAVE is not supported for the PKRS MSR.  Therefore the implementation
+saves/restores the MSR across context switches and during exceptions.  Nested
+exceptions are supported by each exception getting a new PKS state.
+
+For consistent behavior with current paging protections, pkey 0 is reserved and
+configured to allow full access via the pkey mechanism, thus preserving the
+default paging protections on mappings with the default pkey value of 0.
+
+Other keys, (1-15) are allocated by an allocator which prepares us for key
+contention from day one.  Kernel users should be prepared for the allocator to
+fail either because of key exhaustion or due to PKS not being supported on the
+arch and/or CPU instance.
+
+The following are key attributes of PKS.
+
+   1) Fast switching of permissions
+	1a) Prevents access without page table manipulations
+	1b) No TLB flushes required
+   2) Works on a per thread basis
+
+PKS is available with 4 and 5 level paging.  Like PKRU it consumes 4 bits from
+the PTE to store the pkey within the entry.
+
+
+[1] https://lore.kernel.org/lkml/20200717072056.73134-1-ira.weiny@intel.com/
+[2] https://lore.kernel.org/lkml/20201009195033.3208459-2-ira.weiny@intel.com/
+[3] https://lore.kernel.org/lkml/20201009194258.3207172-1-ira.weiny@intel.com/
+
+
+Fenghua Yu (2):
+  x86/pks: Enable Protection Keys Supervisor (PKS)
+  x86/pks: Add PKS kernel API
+
+Ira Weiny (7):
+  x86/pkeys: Create pkeys_common.h
+  x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
+  x86/pks: Preserve the PKRS MSR on context switch
+  x86/entry: Pass irqentry_state_t by reference
+  x86/entry: Preserve PKRS MSR across exceptions
+  x86/fault: Report the PKRS state on fault
+  x86/pks: Add PKS test code
+
+Thomas Gleixner (1):
+  x86/entry: Move nmi entry/exit into common code
+
+ Documentation/core-api/protection-keys.rst  | 103 ++-
+ arch/x86/Kconfig                            |   1 +
+ arch/x86/entry/common.c                     |  64 +-
+ arch/x86/include/asm/cpufeatures.h          |   1 +
+ arch/x86/include/asm/disabled-features.h    |   8 +-
+ arch/x86/include/asm/idtentry.h             |  28 +-
+ arch/x86/include/asm/msr-index.h            |   1 +
+ arch/x86/include/asm/pgtable.h              |  13 +-
+ arch/x86/include/asm/pgtable_types.h        |  12 +
+ arch/x86/include/asm/pkeys.h                |  15 +
+ arch/x86/include/asm/pkeys_common.h         |  40 ++
+ arch/x86/include/asm/processor.h            |  18 +-
+ arch/x86/include/uapi/asm/processor-flags.h |   2 +
+ arch/x86/kernel/cpu/common.c                |  15 +
+ arch/x86/kernel/cpu/mce/core.c              |   6 +-
+ arch/x86/kernel/fpu/xstate.c                |  22 +-
+ arch/x86/kernel/kvm.c                       |   6 +-
+ arch/x86/kernel/nmi.c                       |   6 +-
+ arch/x86/kernel/process.c                   |  26 +
+ arch/x86/kernel/traps.c                     |  24 +-
+ arch/x86/mm/fault.c                         |  87 ++-
+ arch/x86/mm/pkeys.c                         | 194 +++++-
+ include/linux/entry-common.h                |  64 +-
+ include/linux/pgtable.h                     |   4 +
+ include/linux/pkeys.h                       |  24 +
+ kernel/entry/common.c                       |  62 +-
+ lib/Kconfig.debug                           |  12 +
+ lib/Makefile                                |   3 +
+ lib/pks/Makefile                            |   3 +
+ lib/pks/pks_test.c                          | 691 ++++++++++++++++++++
+ mm/Kconfig                                  |   2 +
+ tools/testing/selftests/x86/Makefile        |   3 +-
+ tools/testing/selftests/x86/test_pks.c      |  66 ++
+ 33 files changed, 1465 insertions(+), 161 deletions(-)
+ create mode 100644 arch/x86/include/asm/pkeys_common.h
+ create mode 100644 lib/pks/Makefile
+ create mode 100644 lib/pks/pks_test.c
+ create mode 100644 tools/testing/selftests/x86/test_pks.c
 
 -- 
-Thanks,
-
-David / dhildenb
+2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
