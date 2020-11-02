@@ -1,68 +1,70 @@
-Return-Path: <SRS0=lZYl=EC=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=qUAO=EI=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9506DC55179
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 09:49:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7192C2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Nov 2020 23:36:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 232DA21D24
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 27 Oct 2020 09:49:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 5264820756
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  2 Nov 2020 23:36:24 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="li/s39XF"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 232DA21D24
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="WO4xZRYl";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="bDzdY9iY"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5264820756
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linutronix.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9346F16411159;
-	Tue, 27 Oct 2020 02:49:02 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id E180F1636102C;
+	Mon,  2 Nov 2020 15:36:23 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a0a:51c0:0:12e:550::1; helo=galois.linutronix.de; envelope-from=tglx@linutronix.de; receiver=<UNKNOWN> 
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 361AD161C5249
-	for <linux-nvdimm@lists.01.org>; Tue, 27 Oct 2020 02:49:01 -0700 (PDT)
-Received: from kernel.org (unknown [87.70.96.83])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id C7CAF20759;
-	Tue, 27 Oct 2020 09:48:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=default; t=1603792140;
-	bh=wcj6sqvr10YA2nIxp8QFswfSebjeDskPYpJl+9Hjv5I=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=li/s39XFgB24jJSUCjqf8zNKcx6M9bh+uU6phnSX6LJCJRBegjZ0SOdTEugjflO1e
-	 WgquGhsCXXsZ3V2YD7JRAQc2nfgUEjBNCSoKoM6GZx5SGcpgMkSqE8zAapjDeCrodZ
-	 Fc2zbcZd41+mXwuTSqYXiceoEMKXjGqiG53f7j/s=
-Date: Tue, 27 Oct 2020 11:48:45 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH v7 3/7] set_memory: allow set_direct_map_*_noflush() for
- multiple pages
-Message-ID: <20201027094845.GJ1154158@kernel.org>
-References: <20201026083752.13267-1-rppt@kernel.org>
- <20201026083752.13267-4-rppt@kernel.org>
- <e754ae3873e02e398e58091d586fe57e105803db.camel@intel.com>
- <9202c4c1-9f1f-175f-0a85-fc8c30bc5e3b@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id D2F8716313628
+	for <linux-nvdimm@lists.01.org>; Mon,  2 Nov 2020 15:36:20 -0800 (PST)
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1604360177;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kn1MrKipST+qlcwJ1zIgvlMXZ9bQBl36MnESiK2hrlI=;
+	b=WO4xZRYluSA07JQGA2x48KKqtKPj2AWnFhCX4J0d8fVYBAG/4KfuMoZaJM3qbomnboDi2z
+	CNoPbn8hgmPj4tBAxx2T73ZlDljs9QXge+xSx3bZ+PcwOR5lyCNU9REeAlg9L0b+LqMlOJ
+	M+nbdv2UCJEEKxD3Vo67CqeXb6qvIcZzQJrF9+2il5iGZKzN+3o8X2F0Gk/EoJjsAsRUR+
+	Lt0wWGitJ3ETEGTmjWfa5e52sdgqUPh7KLMFsyHVdGhHUOuP7R2zhChRleod61fGgukIXx
+	i4TTKKT/QElFLXZav/sLONz5cABtcUlL8x6e++SDwGhZ6EqbgQJC25ccEH8AkQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1604360177;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=kn1MrKipST+qlcwJ1zIgvlMXZ9bQBl36MnESiK2hrlI=;
+	b=bDzdY9iY6ze7qjRQmBLq0m9WmLMx8uKsr4lxx48nJ3PFoOuoYOrQ6mJCbDTbxc7miMSovu
+	UMAas1KFWr29U4Dw==
+To: ira.weiny@intel.com, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>
+Subject: Re: [PATCH V2 00/10] PKS: Add Protection Keys Supervisor (PKS) support
+In-Reply-To: <20201102205320.1458656-1-ira.weiny@intel.com>
+References: <20201102205320.1458656-1-ira.weiny@intel.com>
+Date: Tue, 03 Nov 2020 00:36:16 +0100
+Message-ID: <871rhb8h73.fsf@nanos.tec.linutronix.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <9202c4c1-9f1f-175f-0a85-fc8c30bc5e3b@redhat.com>
-Message-ID-Hash: PZXDW5K5O3D47MAGXOJNM7PLFCH2VY64
-X-Message-ID-Hash: PZXDW5K5O3D47MAGXOJNM7PLFCH2VY64
-X-MailFrom: rppt@kernel.org
+Message-ID-Hash: UFIA2BEXYDXQV37SHNGHM6AMZ2XKLM35
+X-Message-ID-Hash: UFIA2BEXYDXQV37SHNGHM6AMZ2XKLM35
+X-MailFrom: tglx@linutronix.de
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tycho@tycho.ws" <tycho@tycho.ws>, "cl@linux.com" <cl@linux.com>, "hpa@zytor.com" <hpa@zytor.com>, "peterz@infradead.org" <peterz@infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "will@kernel.org" <will@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "kirill@shutemov.name" <kirill@shutemov.name>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "bp@alien8.de" <bp@alien8.de>, "willy@infradead.org" <willy@infradead.org>, "luto@kernel.org" <luto@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "shuah@kernel.org" <shuah@kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.
- 01.org>, "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>, "x86@kernel.org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "Reshetova, Elena" <elena.reshetova@intel.com>, "palmer@dabbelt.com" <palmer@dabbelt.com>, "mingo@redhat.com" <mingo@redhat.com>, "mtk.manpages@gmail.com" <mtk.manpages@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>, "jejb@linux.ibm.com" <jejb@linux.ibm.com>, "paul.walmsley@sifive.com" <paul.walmsley@sifive.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>
+CC: x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PZXDW5K5O3D47MAGXOJNM7PLFCH2VY64/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UFIA2BEXYDXQV37SHNGHM6AMZ2XKLM35/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -71,51 +73,65 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Oct 27, 2020 at 09:12:23AM +0100, David Hildenbrand wrote:
-> On 26.10.20 20:01, Edgecombe, Rick P wrote:
-> > On Mon, 2020-10-26 at 10:37 +0200, Mike Rapoport wrote:
-> >> +++ b/arch/x86/mm/pat/set_memory.c
-> >> @@ -2184,14 +2184,14 @@ static int __set_pages_np(struct page *page,
-> >> int numpages)
-> >>         return __change_page_attr_set_clr(&cpa, 0);
-> >>  }
-> >>  
-> >> -int set_direct_map_invalid_noflush(struct page *page)
-> >> +int set_direct_map_invalid_noflush(struct page *page, int numpages)
-> >>  {
-> >> -       return __set_pages_np(page, 1);
-> >> +       return __set_pages_np(page, numpages);
-> >>  }
-> >>  
-> >> -int set_direct_map_default_noflush(struct page *page)
-> >> +int set_direct_map_default_noflush(struct page *page, int numpages)
-> >>  {
-> >> -       return __set_pages_p(page, 1);
-> >> +       return __set_pages_p(page, numpages);
-> >>  }
-> > 
-> > Somewhat related to your other series, this could result in large NP
-> > pages and trip up hibernate.
-> > 
-> 
-> It feels somewhat desirable to disable hibernation once secretmem is
-> enabled, right? Otherwise you'll be writing out your secrets to swap,
-> where they will remain even after booting up again ...
-> 
-> Skipping secretmem pages when hibernating is the wrong approach I guess ...
+On Mon, Nov 02 2020 at 12:53, ira weiny wrote:
+> Fenghua Yu (2):
+>   x86/pks: Enable Protection Keys Supervisor (PKS)
+>   x86/pks: Add PKS kernel API
+>
+> Ira Weiny (7):
+>   x86/pkeys: Create pkeys_common.h
+>   x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
+>   x86/pks: Preserve the PKRS MSR on context switch
+>   x86/entry: Pass irqentry_state_t by reference
+>   x86/entry: Preserve PKRS MSR across exceptions
+>   x86/fault: Report the PKRS state on fault
+>   x86/pks: Add PKS test code
+>
+> Thomas Gleixner (1):
+>   x86/entry: Move nmi entry/exit into common code
 
-Completely agree.
-I'll look into preventing hibernation from touching secretmem.
+So the actual patch ordering is:
 
-> -- 
-> Thanks,
-> 
-> David / dhildenb
-> 
+   x86/pkeys: Create pkeys_common.h
+   x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
+   x86/pks: Enable Protection Keys Supervisor (PKS)
+   x86/pks: Preserve the PKRS MSR on context switch
+   x86/pks: Add PKS kernel API
 
--- 
-Sincerely yours,
-Mike.
+   x86/entry: Move nmi entry/exit into common code
+   x86/entry: Pass irqentry_state_t by reference
+
+   x86/entry: Preserve PKRS MSR across exceptions
+   x86/fault: Report the PKRS state on fault
+   x86/pks: Add PKS test code
+
+This is the wrong ordering, really.
+
+     x86/entry: Move nmi entry/exit into common code
+
+is a general cleanup and has absolutely nothing to do with PKRS.So this
+wants to go first.
+
+Also:
+
+    x86/entry: Move nmi entry/exit into common code
+
+is a prerequisite for the rest. So why is it in the middle of the
+series?
+
+And then you enable all that muck _before_ it is usable:
+
+   Patch 3/N: x86/pks: Enable Protection Keys Supervisor (PKS)
+
+Bisectability is overrrated, right?
+
+Once again: Read an understand Documentation/process/*
+
+Aside of that using a spell checker is not optional.
+
+Thanks,
+
+        tglx
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
