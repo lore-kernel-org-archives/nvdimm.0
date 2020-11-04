@@ -1,69 +1,66 @@
-Return-Path: <SRS0=F+2v=EJ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=OyRv=EK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87FBCC388F7
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Nov 2020 18:42:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CEECC4742C
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Nov 2020 01:38:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0763820786
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  3 Nov 2020 18:42:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0763820786
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 08E772242B
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Nov 2020 01:38:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="soYuRujH"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 08E772242B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B4DB0100A01B3;
-	Tue,  3 Nov 2020 10:42:21 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+	by ml01.01.org (Postfix) with ESMTP id A92B2165643C6;
+	Tue,  3 Nov 2020 17:38:20 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=akpm@linux-foundation.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8C678100A01AF
-	for <linux-nvdimm@lists.01.org>; Tue,  3 Nov 2020 10:42:19 -0800 (PST)
-IronPort-SDR: GfJj+vya/iJdz8xqeE3E3lKSSu8p7hnju9AY6TpLpU+IkgaYpLKDpBbArV19hEU5VGwAdBZXMU
- oLIl63PPn11A==
-X-IronPort-AV: E=McAfee;i="6000,8403,9794"; a="166517121"
-X-IronPort-AV: E=Sophos;i="5.77,448,1596524400";
-   d="scan'208";a="166517121"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 10:42:19 -0800
-IronPort-SDR: NHUhhr4Ld0+ktxaexVqc9ly5ziPRS5Y+EjthlhRuorVcxAnBGj8aOQJlCSYv9leRTjjDuriVDY
- sxTjbk20XkgQ==
-X-IronPort-AV: E=Sophos;i="5.77,448,1596524400";
-   d="scan'208";a="528593430"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2020 10:42:19 -0800
-Date: Tue, 3 Nov 2020 10:42:18 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH V2 05/10] x86/pks: Add PKS kernel API
-Message-ID: <20201103184218.GB1531489@iweiny-DESK2.sc.intel.com>
-References: <20201102205320.1458656-1-ira.weiny@intel.com>
- <20201102205320.1458656-6-ira.weiny@intel.com>
- <20201103065024.GC75930@kroah.com>
- <20201103175335.GA1531489@iweiny-DESK2.sc.intel.com>
- <20201103181407.GA83845@kroah.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20201103181407.GA83845@kroah.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
-Message-ID-Hash: 5ILJKFZ5W4CCGQFOWDI54ZFUSWLWITTX
-X-Message-ID-Hash: 5ILJKFZ5W4CCGQFOWDI54ZFUSWLWITTX
-X-MailFrom: ira.weiny@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
+	by ml01.01.org (Postfix) with ESMTPS id 4599016541970
+	for <linux-nvdimm@lists.01.org>; Tue,  3 Nov 2020 17:38:18 -0800 (PST)
+Received: from X1 (unknown [208.106.6.120])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id 43934223C7;
+	Wed,  4 Nov 2020 01:38:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1604453897;
+	bh=QyiDZsk9eykgAFwsDR70lNLbTMk7+4qieJ3z3HbDed0=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+	b=soYuRujHI95NxVLMA67ECMy9QyCT33nM81wjPdCFPbhjqyfhehGo1geHhmaSyodsI
+	 ZaTUoobKYRHJNvsJMN4be+VIxNda6UiEU47HC3gHGdWIlFTMI0rN+3jEWRJpDBAr8E
+	 QeiO35qJE/2EKTkUmXg08JoEkFL4SibDLDS1hlNE=
+Date: Tue, 3 Nov 2020 17:38:16 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] x86/mm: Fix phys_to_target_node() export
+Message-Id: <20201103173816.8f80920621fe08012deacfcc@linux-foundation.org>
+In-Reply-To: <CAPcyv4gj9ibFuBY1yt79CdKRgYAftdveXT1Ow4QvyRxri4jBRA@mail.gmail.com>
+References: <160402498564.4173389.2743697400148832021.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20201031091012.GA27844@infradead.org>
+	<CAPcyv4gj9ibFuBY1yt79CdKRgYAftdveXT1Ow4QvyRxri4jBRA@mail.gmail.com>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Message-ID-Hash: J5ADOWI74TNVORCWDMPFKEBT4RW2NW7D
+X-Message-ID-Hash: J5ADOWI74TNVORCWDMPFKEBT4RW2NW7D
+X-MailFrom: akpm@linux-foundation.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Christoph Hellwig <hch@infradead.org>, Randy Dunlap <rdunlap@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, kernel test robot <lkp@intel.com>, Joao Martins <joao.m.martins@oracle.com>, X86 ML <x86@kernel.org>, Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/5ILJKFZ5W4CCGQFOWDI54ZFUSWLWITTX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J5ADOWI74TNVORCWDMPFKEBT4RW2NW7D/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,58 +69,13 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 03, 2020 at 07:14:07PM +0100, Greg KH wrote:
-> On Tue, Nov 03, 2020 at 09:53:36AM -0800, Ira Weiny wrote:
-> > On Tue, Nov 03, 2020 at 07:50:24AM +0100, Greg KH wrote:
-> > > On Mon, Nov 02, 2020 at 12:53:15PM -0800, ira.weiny@intel.com wrote:
-> > > > From: Fenghua Yu <fenghua.yu@intel.com>
-> > > > 
-> > 
-> > [snip]
-> > 
-> > > > diff --git a/include/linux/pkeys.h b/include/linux/pkeys.h
-> > > > index 2955ba976048..0959a4c0ca64 100644
-> > > > --- a/include/linux/pkeys.h
-> > > > +++ b/include/linux/pkeys.h
-> > > > @@ -50,4 +50,28 @@ static inline void copy_init_pkru_to_fpregs(void)
-> > > >  
-> > > >  #endif /* ! CONFIG_ARCH_HAS_PKEYS */
-> > > >  
-> > > > +#define PKS_FLAG_EXCLUSIVE 0x00
-> > > > +
-> > > > +#ifndef CONFIG_ARCH_HAS_SUPERVISOR_PKEYS
-> > > > +static inline int pks_key_alloc(const char * const pkey_user, int flags)
-> > > > +{
-> > > > +	return -EOPNOTSUPP;
-> > > > +}
-> > > > +static inline void pks_key_free(int pkey)
-> > > > +{
-> > > > +}
-> > > > +static inline void pks_mk_noaccess(int pkey)
-> > > > +{
-> > > > +	WARN_ON_ONCE(1);
-> > > 
-> > > So for panic-on-warn systems, this is ok to reboot the box?
-> > 
-> > I would not expect this to reboot the box no.  But it is a violation of the API
-> > contract.  If pky_key_alloc() returns an error calling any of the other
-> > functions is an error.
-> > 
-> > > 
-> > > Are you sure, that feels odd...
-> > 
-> > It does feel odd and downright wrong...  But there are a lot of WARN_ON_ONCE's
-> > out there to catch this type of internal programming error.  Is panic-on-warn
-> > commonly used?
-> 
-> Yes it is, and we are trying to recover from that as it is something
-> that you should recover from.  Properly handle the error and move on.
+On Mon, 2 Nov 2020 15:52:39 -0800 Dan Williams <dan.j.williams@intel.com> wrote:
 
-Sorry, I did not know that...  Ok I'll look at the series because I probably
-have others I need to change.
+> The attached patch is going through some kbuild-robot exposure to make
+> sure I did not break anything else.
 
-Thanks,
-Ira
+I'll duck this for now - please send it along formally if/when testing
+is successful.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
