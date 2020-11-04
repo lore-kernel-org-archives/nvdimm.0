@@ -2,65 +2,69 @@ Return-Path: <SRS0=OyRv=EK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.6 required=3.0 tests=BAYES_20,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E47DC2D0A3
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Nov 2020 17:46:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 568DBC2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Nov 2020 22:00:12 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8AD33205CA
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Nov 2020 17:46:55 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8AD33205CA
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id A128C20795
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  4 Nov 2020 22:00:11 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="uWGK10Qu";
+	dkim=permerror (0-bit key) header.d=linutronix.de header.i=@linutronix.de header.b="4RHQiyW6"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A128C20795
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linutronix.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1DDD81650AF5F;
-	Wed,  4 Nov 2020 09:46:55 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id D484A160A4CD6;
+	Wed,  4 Nov 2020 14:00:10 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a0a:51c0:0:12e:550::1; helo=galois.linutronix.de; envelope-from=tglx@linutronix.de; receiver=<UNKNOWN> 
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B78191626E0E9
-	for <linux-nvdimm@lists.01.org>; Wed,  4 Nov 2020 09:46:52 -0800 (PST)
-IronPort-SDR: h8b6ZldEszCuy6twIJUkf23NCnokqyzZ1o/1oi1Y+tvHwieDRgsZWryfZpHVr34i78bR+elc4V
- 5Z8gKq7MvtDg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9795"; a="169403352"
-X-IronPort-AV: E=Sophos;i="5.77,451,1596524400";
-   d="scan'208";a="169403352"
-X-Amp-Result: SKIPPED(no attachment in message)
-X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2020 09:46:46 -0800
-IronPort-SDR: Q9Bmv6A8hLY7c8TvyszzEw9vj0W25YTLM3HEfYG4mwCufaGsYgJuK+k0r2131jolfBeCTxgYes
- GJ1Yb9QiFgjQ==
-X-IronPort-AV: E=Sophos;i="5.77,451,1596524400";
-   d="scan'208";a="471304692"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Nov 2020 09:46:44 -0800
-Date: Wed, 4 Nov 2020 09:46:44 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH V2 00/10] PKS: Add Protection Keys Supervisor (PKS)
- support
-Message-ID: <20201104174643.GC1531489@iweiny-DESK2.sc.intel.com>
-References: <20201102205320.1458656-1-ira.weiny@intel.com>
- <871rhb8h73.fsf@nanos.tec.linutronix.de>
+	by ml01.01.org (Postfix) with ESMTPS id D4A86100A01CC
+	for <linux-nvdimm@lists.01.org>; Wed,  4 Nov 2020 14:00:08 -0800 (PST)
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1604527204;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=AcDsYZoZ0HQ8m/eP7LfmBFx38dKfFr6Bky2Op7UAmTc=;
+	b=uWGK10QusV8XBgAEcXVFwB1s7DNqNR5bL2JxVVUikjP6JCw35Az+lH5kDWr/WVmnsV5f1a
+	v9VKhuFzImQ6xYFX7YxIzcIJ8YdpvepoHsQWKeEDjnDCubBPSFXYO8t/8LEmfdY1e0a1LQ
+	zW4GmgphvtE89rP0MbRj0SVvzfkZIg3CNxaDvYoK0I/s21xPkV1Yp9dLyQ5pB8PaIUff08
+	VcFY0hmUO0WpT6iFhQYDoHl8KvFDJbuIcKAgCcldgqvZIvkM8szgbdWQ3TGu/eRovgBYXP
+	cx196hdriOCOBkZ0zIsChUhB5+Elt6carE/r29w1GPSqqLChVCIne7K15cElzw==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1604527204;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=AcDsYZoZ0HQ8m/eP7LfmBFx38dKfFr6Bky2Op7UAmTc=;
+	b=4RHQiyW6VNGm/O/DAJIaIeOw+XnqzvzEWcSqFGUfKYoL99s98K8xSO9iHJpE1NVxJhZwIu
+	pTGKWcex2mU6TyAg==
+To: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH V2 00/10] PKS: Add Protection Keys Supervisor (PKS) support
+In-Reply-To: <20201104174643.GC1531489@iweiny-DESK2.sc.intel.com>
+References: <20201102205320.1458656-1-ira.weiny@intel.com> <871rhb8h73.fsf@nanos.tec.linutronix.de> <20201104174643.GC1531489@iweiny-DESK2.sc.intel.com>
+Date: Wed, 04 Nov 2020 23:00:04 +0100
+Message-ID: <87k0v0lr4r.fsf@nanos.tec.linutronix.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <871rhb8h73.fsf@nanos.tec.linutronix.de>
-User-Agent: Mutt/1.11.1 (2018-12-01)
-Message-ID-Hash: Q664PGZCMOAWZGU6STN7QR4XLYZ27URN
-X-Message-ID-Hash: Q664PGZCMOAWZGU6STN7QR4XLYZ27URN
-X-MailFrom: ira.weiny@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Message-ID-Hash: Q5XEVWGHETGJEUCGREWNSWWNSGM2GFK7
+X-Message-ID-Hash: Q5XEVWGHETGJEUCGREWNSWWNSGM2GFK7
+X-MailFrom: tglx@linutronix.de
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 CC: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Q664PGZCMOAWZGU6STN7QR4XLYZ27URN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Q5XEVWGHETGJEUCGREWNSWWNSGM2GFK7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -69,97 +73,23 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 03, 2020 at 12:36:16AM +0100, Thomas Gleixner wrote:
-> On Mon, Nov 02 2020 at 12:53, ira weiny wrote:
-> > Fenghua Yu (2):
-> >   x86/pks: Enable Protection Keys Supervisor (PKS)
-> >   x86/pks: Add PKS kernel API
-> >
-> > Ira Weiny (7):
-> >   x86/pkeys: Create pkeys_common.h
-> >   x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
-> >   x86/pks: Preserve the PKRS MSR on context switch
-> >   x86/entry: Pass irqentry_state_t by reference
-> >   x86/entry: Preserve PKRS MSR across exceptions
-> >   x86/fault: Report the PKRS state on fault
-> >   x86/pks: Add PKS test code
-> >
-> > Thomas Gleixner (1):
-> >   x86/entry: Move nmi entry/exit into common code
-> 
-> So the actual patch ordering is:
-> 
->    x86/pkeys: Create pkeys_common.h
->    x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
->    x86/pks: Enable Protection Keys Supervisor (PKS)
->    x86/pks: Preserve the PKRS MSR on context switch
->    x86/pks: Add PKS kernel API
-> 
->    x86/entry: Move nmi entry/exit into common code
->    x86/entry: Pass irqentry_state_t by reference
-> 
->    x86/entry: Preserve PKRS MSR across exceptions
->    x86/fault: Report the PKRS state on fault
->    x86/pks: Add PKS test code
-> 
-> This is the wrong ordering, really.
-> 
->      x86/entry: Move nmi entry/exit into common code
-> 
-> is a general cleanup and has absolutely nothing to do with PKRS.So this
-> wants to go first.
-> 
+On Wed, Nov 04 2020 at 09:46, Ira Weiny wrote:
+> On Tue, Nov 03, 2020 at 12:36:16AM +0100, Thomas Gleixner wrote:
+>> This is the wrong ordering, really.
+>> 
+>>      x86/entry: Move nmi entry/exit into common code
+>> 
+>> is a general cleanup and has absolutely nothing to do with PKRS.So this
+>> wants to go first.
+>
+> Sorry, yes this should be a pre-patch.
 
-Sorry, yes this should be a pre-patch.
-
-> Also:
-> 
->     x86/entry: Move nmi entry/exit into common code
-> [from other email]
->    >      x86/entry: Pass irqentry_state_t by reference
->    >      > 
->    >      >
-> 
-> is a prerequisite for the rest. So why is it in the middle of the
-> series?
-
-It is in the middle because passing by reference is not needed until additional
-information is added to irqentry_state_t which is done immediately after this
-patch by:
-
-    x86/entry: Preserve PKRS MSR across exceptions
-
-I debated squashing the 2 but it made review harder IMO.  But I thought keeping
-them in order together made a lot of sense.
-
-> 
-> And then you enable all that muck _before_ it is usable:
-> 
-
-Strictly speaking you are correct, sorry.  I will reorder the series.
-
-> 
-> Bisectability is overrrated, right?
-
-Agreed, bisectability is important.  I thought I had it covered but I was
-wrong.
-
-> 
-> Once again: Read an understand Documentation/process/*
-> 
-> Aside of that using a spell checker is not optional.
-
-Agreed.
-
-In looking closer at the entry code I've found a couple of other instances I'll
-add another precursor patch.
-
-I've also found other errors with the series which I should have caught.  My
-apologies I made some last minute changes which I should have checked more
-thoroughly.
+I picked it out of the series and applied it to tip core/entry as I have
+other stuff coming up in that area. 
 
 Thanks,
-Ira
+
+        tglx
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
