@@ -7,37 +7,37 @@ X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C68ABC2D0A3
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 10:40:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66105C2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 20:24:33 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 31A3020720
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 10:40:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 31A3020720
+	by mail.kernel.org (Postfix) with ESMTPS id DFA7120B80
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 20:24:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DFA7120B80
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5D7AC1675FAA5;
-	Fri,  6 Nov 2020 02:40:41 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 64B61166C60F6;
+	Fri,  6 Nov 2020 12:24:32 -0800 (PST)
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 161531675FAA2
-	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 02:40:39 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 19BBB166C60F1
+	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 12:24:28 -0800 (PST)
 MIME-Version: 1.0
-Subject: Want to Know How to Activate Cash App Card? Explore for 5 Min. Guide
-From: "cari rose" <mycashappcontact@gmail.com>
+Subject: Maria Garcia
+From: "Maria Garcia" <mg3914697@gmail.com>
 To: linux-nvdimm@lists.01.org
-Date: Fri, 06 Nov 2020 10:40:39 -0000
-Message-ID: <20201106104039.2796.40652@ml01.vlan13.01.org>
-User-Agent: HyperKitty on https://lists.syncevolution.org/
-Message-ID-Hash: ZKFX4VEBHYU6F6KSN3VGQKT6YRP5D4PU
-X-Message-ID-Hash: ZKFX4VEBHYU6F6KSN3VGQKT6YRP5D4PU
-X-MailFrom: mycashappcontact@gmail.com
+Date: Fri, 06 Nov 2020 20:24:28 -0000
+Message-ID: <20201106202428.2796.90100@ml01.vlan13.01.org>
+User-Agent: HyperKitty on https://lists.01.org/
+Message-ID-Hash: I4KMCV7RTFSUCWZJCXIDIJCIYVSN2APH
+X-Message-ID-Hash: I4KMCV7RTFSUCWZJCXIDIJCIYVSN2APH
+X-MailFrom: mg3914697@gmail.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZKFX4VEBHYU6F6KSN3VGQKT6YRP5D4PU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I4KMCV7RTFSUCWZJCXIDIJCIYVSN2APH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -46,7 +46,7 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Read steps to activate the cash app card without wasting any time. Know how to activate a cash app card without QR code and with QR code or vist https://www.mycashappcontact.com
+I am a Microsoft Office expert and has been working in the technical industry since 2013. visit my site https://quickproductactivate.com/ , https://retailcard-activation.com/ .
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
