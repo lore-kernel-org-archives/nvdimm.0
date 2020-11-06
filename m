@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 790B6C2D0A3
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 09:26:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B668C2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 09:27:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 16E40208B3
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 09:26:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 16E40208B3
+	by mail.kernel.org (Postfix) with ESMTPS id 1698220936
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 09:27:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1698220936
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9D9771674C0F1;
-	Fri,  6 Nov 2020 01:26:53 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.191; helo=szxga05-in.huawei.com; envelope-from=liuzhiqiang26@huawei.com; receiver=<UNKNOWN> 
-Received: from szxga05-in.huawei.com (szxga05-in.huawei.com [45.249.212.191])
+	by ml01.01.org (Postfix) with ESMTP id BB6151674C0FD;
+	Fri,  6 Nov 2020 01:27:22 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=szxga04-in.huawei.com; envelope-from=liuzhiqiang26@huawei.com; receiver=<UNKNOWN> 
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3ACDA1674C0EF
-	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 01:26:50 -0800 (PST)
-Received: from DGGEMS404-HUB.china.huawei.com (unknown [172.30.72.60])
-	by szxga05-in.huawei.com (SkyGuard) with ESMTP id 4CSFQ942QbzLtmq
-	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 17:26:41 +0800 (CST)
-Received: from [127.0.0.1] (10.174.176.238) by DGGEMS404-HUB.china.huawei.com
- (10.3.19.204) with Microsoft SMTP Server id 14.3.487.0; Fri, 6 Nov 2020
- 17:26:39 +0800
-Subject: [ndctl PATCH 5/8] util/help: check whether strdup returns NULL in
- exec_man_konqueror
+	by ml01.01.org (Postfix) with ESMTPS id C16811674C0FA
+	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 01:27:20 -0800 (PST)
+Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CSFQl3vVWzkfw1
+	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 17:27:11 +0800 (CST)
+Received: from [127.0.0.1] (10.174.176.238) by DGGEMS412-HUB.china.huawei.com
+ (10.3.19.212) with Microsoft SMTP Server id 14.3.487.0; Fri, 6 Nov 2020
+ 17:27:10 +0800
+Subject: [ndctl PATCH 6/8] lib/inject: check whether cmd is created
+ successfully
 To: <vishal.l.verma@intel.com>
 References: <bed3b3b3-1f30-6751-c0bf-15ecf70192f9@huawei.com>
 From: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-Message-ID: <889d3dc7-2532-9f91-b0d8-5eeab45d6bb7@huawei.com>
-Date: Fri, 6 Nov 2020 17:26:38 +0800
+Message-ID: <8e8a88ee-a792-dc86-0fa7-b2609588fc88@huawei.com>
+Date: Fri, 6 Nov 2020 17:27:09 +0800
 User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
  Thunderbird/68.2.2
 MIME-Version: 1.0
@@ -46,15 +46,15 @@ In-Reply-To: <bed3b3b3-1f30-6751-c0bf-15ecf70192f9@huawei.com>
 Content-Language: en-US
 X-Originating-IP: [10.174.176.238]
 X-CFilter-Loop: Reflected
-Message-ID-Hash: MS2AGY5AN4V7EAP275FP4TAMFWM6GOBG
-X-Message-ID-Hash: MS2AGY5AN4V7EAP275FP4TAMFWM6GOBG
+Message-ID-Hash: 6ERQK2FU6K4XDAT36YP4DPO3FCHRMTGA
+X-Message-ID-Hash: 6ERQK2FU6K4XDAT36YP4DPO3FCHRMTGA
 X-MailFrom: liuzhiqiang26@huawei.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org, linfeilong <linfeilong@huawei.com>, liuzhiqiang26@huawei.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MS2AGY5AN4V7EAP275FP4TAMFWM6GOBG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6ERQK2FU6K4XDAT36YP4DPO3FCHRMTGA/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,35 +64,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
 
-In exec_man_konqueror(), new is allocated by calling strdup(),
-which may return NULL. We should check whether new is NULL before
-using it.
+ndctl_bus_cmd_new_ars_cp() is called to create cmd,
+which may return NULL. We need to check whether it
+is NULL in callers, such as ndctl_namespace_get_clear_uint
+and ndctl_namespace_injection_status.
 
 Signed-off-by: Zhiqiang Liu <liuzhiqiang26@huawei.com>
 ---
- util/help.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ ndctl/lib/inject.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/util/help.c b/util/help.c
-index 2d57fa1..f867944 100644
---- a/util/help.c
-+++ b/util/help.c
-@@ -44,8 +44,14 @@ static void exec_man_konqueror(const char *path, const char *page)
- 		if (path) {
- 			const char *file = strrchr(path, '/');
- 			if (file && !strcmp(file + 1, "konqueror")) {
-+				char *dest;
- 				char *new = strdup(path);
--				char *dest = strrchr(new, '/');
-+				if (!new) {
-+					pr_err("strdup(path) fails.\n");
-+					exit(1);
-+				}
-+
-+				dest = strrchr(new, '/');
+diff --git a/ndctl/lib/inject.c b/ndctl/lib/inject.c
+index 815f254..b543fc7 100644
+--- a/ndctl/lib/inject.c
++++ b/ndctl/lib/inject.c
+@@ -114,6 +114,10 @@ static int ndctl_namespace_get_clear_unit(struct ndctl_namespace *ndns)
+ 	if (rc)
+ 		return rc;
+ 	cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
++	if (!cmd) {
++		err(ctx, "bus: %s failed to create cmd\n", ndctl_bus_get_provider(bus));
++		return -ENOTTY;
++	}
+ 	rc = ndctl_cmd_submit(cmd);
+ 	if (rc < 0) {
+ 		dbg(ctx, "Error submitting ars_cap: %d\n", rc);
+@@ -457,6 +461,10 @@ NDCTL_EXPORT int ndctl_namespace_injection_status(struct ndctl_namespace *ndns)
+ 			return rc;
 
- 				/* strlen("konqueror") == strlen("kfmclient") */
- 				strcpy(dest + 1, "kfmclient");
+ 		cmd = ndctl_bus_cmd_new_ars_cap(bus, ns_offset, ns_size);
++		if (!cmd) {
++			err(ctx, "bus: %s failed to create cmd\n", ndctl_bus_get_provider(bus));
++			return -ENOTTY;
++		}
+ 		rc = ndctl_cmd_submit(cmd);
+ 		if (rc < 0) {
+ 			dbg(ctx, "Error submitting ars_cap: %d\n", rc);
 -- 
 1.8.3.1
 
