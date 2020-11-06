@@ -2,44 +2,45 @@ Return-Path: <SRS0=MGD/=EM=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A240DC55ABD
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 23:29:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 816FCC5DF9D
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 23:29:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 36FCB21707
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 23:29:24 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 36FCB21707
+	by mail.kernel.org (Postfix) with ESMTPS id 3675D206CB
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  6 Nov 2020 23:29:30 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3675D206CB
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9B6FE166D2535;
-	Fri,  6 Nov 2020 15:29:24 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	by ml01.01.org (Postfix) with ESMTP id 16B9D1646674C;
+	Fri,  6 Nov 2020 15:29:30 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.126; helo=mga18.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7DEB4166D2533
-	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 15:29:20 -0800 (PST)
-IronPort-SDR: G9cYEJUgI75SUnkZwngsJS/xkfKYcG+G1dLNNdhI+OmQyYmQaKdfinZZ8Q8FeBZKLBa8UugTJK
- l7y14g4WlIDw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9797"; a="156614101"
+	by ml01.01.org (Postfix) with ESMTPS id 0A5B616466748
+	for <linux-nvdimm@lists.01.org>; Fri,  6 Nov 2020 15:29:27 -0800 (PST)
+IronPort-SDR: eU/MMhyAwDXNEq6psJ+jXWViFIrWgtPatrDw2L0GmuSPY9qxlvq9Unp6D20I5Z4mXji0esWEsm
+ ULmX+AYhKkRg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9797"; a="157393065"
 X-IronPort-AV: E=Sophos;i="5.77,457,1596524400";
-   d="scan'208";a="156614101"
+   d="scan'208";a="157393065"
 X-Amp-Result: SKIPPED(no attachment in message)
 X-Amp-File-Uploaded: False
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 15:29:20 -0800
-IronPort-SDR: zaDqMGB9XRpHk6wfRNgLNPM/Xi4LQeFdyZDX5uZQoH9ZqsuvtcMF4rAzvTsyJwz6BP18N5GIAc
- CIqkU8VVcFhA==
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 15:29:27 -0800
+IronPort-SDR: DRILZ/fMinr2M+FX6GZSgQpGx/ViwIRcnkY/P46CPHhkkCRrf66RpDIg2SkbtVupXclOyDcXEo
+ R0QrGaQOkY4g==
 X-IronPort-AV: E=Sophos;i="5.77,457,1596524400";
-   d="scan'208";a="472236412"
+   d="scan'208";a="326572884"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 15:29:20 -0800
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2020 15:29:27 -0800
 From: ira.weiny@intel.com
 To: Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
@@ -47,20 +48,22 @@ To: Thomas Gleixner <tglx@linutronix.de>,
 	Andy Lutomirski <luto@kernel.org>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Dave Hansen <dave.hansen@linux.intel.com>
-Subject: [PATCH V3 00/10] PKS: Add Protection Keys Supervisor (PKS) support V3
-Date: Fri,  6 Nov 2020 15:28:58 -0800
-Message-Id: <20201106232908.364581-1-ira.weiny@intel.com>
+Subject: [PATCH V3 03/10] x86/pks: Add PKS defines and Kconfig options
+Date: Fri,  6 Nov 2020 15:29:01 -0800
+Message-Id: <20201106232908.364581-4-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
+In-Reply-To: <20201106232908.364581-1-ira.weiny@intel.com>
+References: <20201106232908.364581-1-ira.weiny@intel.com>
 MIME-Version: 1.0
-Message-ID-Hash: 7A6UK4CDVKWVT2DJCJXKTBHM3BYCK3JA
-X-Message-ID-Hash: 7A6UK4CDVKWVT2DJCJXKTBHM3BYCK3JA
+Message-ID-Hash: XEXYNZ7SWCACRMNCPSWPZ7ZTTHMKMRBM
+X-Message-ID-Hash: XEXYNZ7SWCACRMNCPSWPZ7ZTTHMKMRBM
 X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: x86@kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, linux-doc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
+CC: Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7A6UK4CDVKWVT2DJCJXKTBHM3BYCK3JA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XEXYNZ7SWCACRMNCPSWPZ7ZTTHMKMRBM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -71,174 +74,111 @@ Content-Transfer-Encoding: 7bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-Changes from V2 [4]
-	Rebased on tip-tree/core/entry
-	From Thomas Gleixner
-		Address bisectability
-		Drop Patch:
-			x86/entry: Move nmi entry/exit into common code
-	From Greg KH
-		Remove WARN_ON's
-	From Dan Williams
-		Add __must_check to pks_key_alloc()
-	New patch: x86/pks: Add PKS defines and config options
-		Split from Enable patch to build on through the series
-	Fix compile errors
+Protection Keys for Supervisor pages (PKS) enables fast, hardware thread
+specific, manipulation of permission restrictions on supervisor page
+mappings.  It uses the same mechanism of Protection Keys as those on
+User mappings but applies that mechanism to supervisor mappings using a
+supervisor specific MSR.
 
-Changes from V1
-	Rebase to TIP master; resolve conflicts and test
-	Clean up some kernel docs updates missed in V1
-	Add irqentry_state_t kernel doc for PKRS field
-	Removed redundant irq_state->pkrs
-		This is only needed when we add the global state and somehow
-		ended up in this patch series.  That will come back when we add
-		the global functionality in.
-	From Thomas Gleixner
-		Update commit messages
-		Add kernel doc for struct irqentry_state_t
-	From Dave Hansen add flags to pks_key_alloc()
+Kernel users can thus defines 'domains' of page mappings which have an
+extra level of protection beyond those specified in the supervisor page
+table entries.
 
-Changes from RFC V3[3]
-	Rebase to TIP master
-	Update test error output
-	Standardize on 'irq_state' for state variables
-	From Dave Hansen
-		Update commit messages
-		Add/clean up comments
-		Add X86_FEATURE_PKS to disabled-features.h and remove some
-			explicit CONFIG checks
-		Move saved_pkrs member of thread_struct
-		Remove superfluous preempt_disable()
-		s/irq_save_pks/irq_save_set_pks/
-		Ensure PKRS is not seen in faults if not configured or not
-			supported
-		s/pks_mknoaccess/pks_mk_noaccess/
-		s/pks_mkread/pks_mk_readonly/
-		s/pks_mkrdwr/pks_mk_readwrite/
-		Change pks_key_alloc return to -EOPNOTSUPP when not supported
-	From Peter Zijlstra
-		Clean up Attribution
-		Remove superfluous preempt_disable()
-		Add union to differentiate exit_rcu/lockdep use in
-			irqentry_state_t
-	From Thomas Gleixner
-		Add preliminary clean up patch and adjust series as needed
+Add the Kconfig ARCH_HAS_SUPERVISOR_PKEYS to indicate to core code that
+an architecture support pkeys.  Select it for x86.
 
+Define the CPU features bit needed but leave DISABLE_PKS set to disable
+the feature until the implementation can be completed and enabled in a
+final patch.
 
-Introduce a new page protection mechanism for supervisor pages, Protection Key
-Supervisor (PKS).
+Co-developed-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-2 use cases for PKS are being developed, trusted keys and PMEM.  Trusted keys
-is a newer use case which is still being explored.  PMEM was submitted as part
-of the RFC (v2) series[1].  However, since then it was found that some callers
-of kmap() require a global implementation of PKS.  Specifically some users of
-kmap() expect mappings to be available to all kernel threads.  While global use
-of PKS is rare it needs to be included for correctness.  Unfortunately the
-kmap() updates required a large patch series to make the needed changes at the
-various kmap() call sites so that patch set has been split out.  Because the
-global PKS feature is only required for that use case it will be deferred to
-that set as well.[2]  This patch set is being submitted as a precursor to both
-of the use cases.
+---
+Changes from V2
+	New patch for V3:  Split this off from the enable patch to be
+	able to create cleaner bisectability
+---
+ arch/x86/Kconfig                            | 1 +
+ arch/x86/include/asm/cpufeatures.h          | 1 +
+ arch/x86/include/asm/disabled-features.h    | 4 +++-
+ arch/x86/include/uapi/asm/processor-flags.h | 2 ++
+ mm/Kconfig                                  | 2 ++
+ 5 files changed, 9 insertions(+), 1 deletion(-)
 
-For an overview of the entire PKS ecosystem, a git tree including this series
-and 2 proposed use cases can be found here:
-
-	https://lore.kernel.org/lkml/20201009195033.3208459-1-ira.weiny@intel.com/
-	https://lore.kernel.org/lkml/20201009201410.3209180-1-ira.weiny@intel.com/
-
-
-PKS enables protections on 'domains' of supervisor pages to limit supervisor
-mode access to those pages beyond the normal paging protections.  PKS works in
-a similar fashion to user space pkeys, PKU.  As with PKU, supervisor pkeys are
-checked in addition to normal paging protections and Access or Writes can be
-disabled via a MSR update without TLB flushes when permissions change.  Also
-like PKU, a page mapping is assigned to a domain by setting pkey bits in the
-page table entry for that mapping.
-
-Access is controlled through a PKRS register which is updated via WRMSR/RDMSR.
-
-XSAVE is not supported for the PKRS MSR.  Therefore the implementation
-saves/restores the MSR across context switches and during exceptions.  Nested
-exceptions are supported by each exception getting a new PKS state.
-
-For consistent behavior with current paging protections, pkey 0 is reserved and
-configured to allow full access via the pkey mechanism, thus preserving the
-default paging protections on mappings with the default pkey value of 0.
-
-Other keys, (1-15) are allocated by an allocator which prepares us for key
-contention from day one.  Kernel users should be prepared for the allocator to
-fail either because of key exhaustion or due to PKS not being supported on the
-arch and/or CPU instance.
-
-The following are key attributes of PKS.
-
-   1) Fast switching of permissions
-	1a) Prevents access without page table manipulations
-	1b) No TLB flushes required
-   2) Works on a per thread basis
-
-PKS is available with 4 and 5 level paging.  Like PKRU it consumes 4 bits from
-the PTE to store the pkey within the entry.
-
-
-[1] https://lore.kernel.org/lkml/20200717072056.73134-1-ira.weiny@intel.com/
-[2] https://lore.kernel.org/lkml/20201009195033.3208459-2-ira.weiny@intel.com/
-[3] https://lore.kernel.org/lkml/20201009194258.3207172-1-ira.weiny@intel.com/
-[4] https://lore.kernel.org/lkml/20201102205320.1458656-1-ira.weiny@intel.com/
-
-Fenghua Yu (2):
-  x86/pks: Add PKS kernel API
-  x86/pks: Enable Protection Keys Supervisor (PKS)
-
-Ira Weiny (8):
-  x86/pkeys: Create pkeys_common.h
-  x86/fpu: Refactor arch_set_user_pkey_access() for PKS support
-  x86/pks: Add PKS defines and Kconfig options
-  x86/pks: Preserve the PKRS MSR on context switch
-  x86/entry: Pass irqentry_state_t by reference
-  x86/entry: Preserve PKRS MSR across exceptions
-  x86/fault: Report the PKRS state on fault
-  x86/pks: Add PKS test code
-
- Documentation/core-api/protection-keys.rst  | 103 ++-
- arch/x86/Kconfig                            |   1 +
- arch/x86/entry/common.c                     |  46 +-
- arch/x86/include/asm/cpufeatures.h          |   1 +
- arch/x86/include/asm/disabled-features.h    |   8 +-
- arch/x86/include/asm/idtentry.h             |  25 +-
- arch/x86/include/asm/msr-index.h            |   1 +
- arch/x86/include/asm/pgtable.h              |  13 +-
- arch/x86/include/asm/pgtable_types.h        |  12 +
- arch/x86/include/asm/pkeys.h                |  15 +
- arch/x86/include/asm/pkeys_common.h         |  40 ++
- arch/x86/include/asm/processor.h            |  18 +-
- arch/x86/include/uapi/asm/processor-flags.h |   2 +
- arch/x86/kernel/cpu/common.c                |  15 +
- arch/x86/kernel/cpu/mce/core.c              |   4 +-
- arch/x86/kernel/fpu/xstate.c                |  22 +-
- arch/x86/kernel/kvm.c                       |   6 +-
- arch/x86/kernel/nmi.c                       |   4 +-
- arch/x86/kernel/process.c                   |  26 +
- arch/x86/kernel/traps.c                     |  21 +-
- arch/x86/mm/fault.c                         |  87 ++-
- arch/x86/mm/pkeys.c                         | 196 +++++-
- include/linux/entry-common.h                |  31 +-
- include/linux/pgtable.h                     |   4 +
- include/linux/pkeys.h                       |  24 +
- kernel/entry/common.c                       |  44 +-
- lib/Kconfig.debug                           |  12 +
- lib/Makefile                                |   3 +
- lib/pks/Makefile                            |   3 +
- lib/pks/pks_test.c                          | 692 ++++++++++++++++++++
- mm/Kconfig                                  |   2 +
- tools/testing/selftests/x86/Makefile        |   3 +-
- tools/testing/selftests/x86/test_pks.c      |  66 ++
- 33 files changed, 1410 insertions(+), 140 deletions(-)
- create mode 100644 arch/x86/include/asm/pkeys_common.h
- create mode 100644 lib/pks/Makefile
- create mode 100644 lib/pks/pks_test.c
- create mode 100644 tools/testing/selftests/x86/test_pks.c
-
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index f6946b81f74a..78c4c749c6a9 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1876,6 +1876,7 @@ config X86_INTEL_MEMORY_PROTECTION_KEYS
+ 	depends on X86_64 && (CPU_SUP_INTEL || CPU_SUP_AMD)
+ 	select ARCH_USES_HIGH_VMA_FLAGS
+ 	select ARCH_HAS_PKEYS
++	select ARCH_HAS_SUPERVISOR_PKEYS
+ 	help
+ 	  Memory Protection Keys provides a mechanism for enforcing
+ 	  page-based protections, but without requiring modification of the
+diff --git a/arch/x86/include/asm/cpufeatures.h b/arch/x86/include/asm/cpufeatures.h
+index dad350d42ecf..4deb580324e8 100644
+--- a/arch/x86/include/asm/cpufeatures.h
++++ b/arch/x86/include/asm/cpufeatures.h
+@@ -356,6 +356,7 @@
+ #define X86_FEATURE_MOVDIRI		(16*32+27) /* MOVDIRI instruction */
+ #define X86_FEATURE_MOVDIR64B		(16*32+28) /* MOVDIR64B instruction */
+ #define X86_FEATURE_ENQCMD		(16*32+29) /* ENQCMD and ENQCMDS instructions */
++#define X86_FEATURE_PKS			(16*32+31) /* Protection Keys for Supervisor pages */
+ 
+ /* AMD-defined CPU features, CPUID level 0x80000007 (EBX), word 17 */
+ #define X86_FEATURE_OVERFLOW_RECOV	(17*32+ 0) /* MCA overflow recovery support */
+diff --git a/arch/x86/include/asm/disabled-features.h b/arch/x86/include/asm/disabled-features.h
+index 5861d34f9771..164587177152 100644
+--- a/arch/x86/include/asm/disabled-features.h
++++ b/arch/x86/include/asm/disabled-features.h
+@@ -44,6 +44,8 @@
+ # define DISABLE_OSPKE		(1<<(X86_FEATURE_OSPKE & 31))
+ #endif /* CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS */
+ 
++#define DISABLE_PKS           (1<<(X86_FEATURE_PKS & 31))
++
+ #ifdef CONFIG_X86_5LEVEL
+ # define DISABLE_LA57	0
+ #else
+@@ -82,7 +84,7 @@
+ #define DISABLED_MASK14	0
+ #define DISABLED_MASK15	0
+ #define DISABLED_MASK16	(DISABLE_PKU|DISABLE_OSPKE|DISABLE_LA57|DISABLE_UMIP| \
+-			 DISABLE_ENQCMD)
++			 DISABLE_ENQCMD|DISABLE_PKS)
+ #define DISABLED_MASK17	0
+ #define DISABLED_MASK18	0
+ #define DISABLED_MASK_CHECK BUILD_BUG_ON_ZERO(NCAPINTS != 19)
+diff --git a/arch/x86/include/uapi/asm/processor-flags.h b/arch/x86/include/uapi/asm/processor-flags.h
+index bcba3c643e63..191c574b2390 100644
+--- a/arch/x86/include/uapi/asm/processor-flags.h
++++ b/arch/x86/include/uapi/asm/processor-flags.h
+@@ -130,6 +130,8 @@
+ #define X86_CR4_SMAP		_BITUL(X86_CR4_SMAP_BIT)
+ #define X86_CR4_PKE_BIT		22 /* enable Protection Keys support */
+ #define X86_CR4_PKE		_BITUL(X86_CR4_PKE_BIT)
++#define X86_CR4_PKS_BIT		24 /* enable Protection Keys for Supervisor */
++#define X86_CR4_PKS		_BITUL(X86_CR4_PKS_BIT)
+ 
+ /*
+  * x86-64 Task Priority Register, CR8
+diff --git a/mm/Kconfig b/mm/Kconfig
+index d42423f884a7..fc9ce7f65683 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -826,6 +826,8 @@ config ARCH_USES_HIGH_VMA_FLAGS
+ 	bool
+ config ARCH_HAS_PKEYS
+ 	bool
++config ARCH_HAS_SUPERVISOR_PKEYS
++	bool
+ 
+ config PERCPU_STATS
+ 	bool "Collect percpu memory statistics"
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 _______________________________________________
