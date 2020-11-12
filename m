@@ -1,65 +1,77 @@
-Return-Path: <SRS0=uw/X=ER=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=/BNo=ES=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=1.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NAME_EMAIL_DIFF,
-	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 035E4C388F9
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Nov 2020 20:48:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1473EC2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Nov 2020 08:22:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 76A1920797
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 11 Nov 2020 20:48:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 638EC20825
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Nov 2020 08:22:14 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=indusdrills.org header.i=@indusdrills.org header.b="uquBtViw"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 76A1920797
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=indusdrills.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=almuhajir.sd header.i=@almuhajir.sd header.b="olRF/jfu"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 638EC20825
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=baliyev.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0D57D169BB477;
-	Wed, 11 Nov 2020 12:48:48 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=50.31.38.73; helo=o1.ptr2397.indusdrills.org; envelope-from=bounces+19272268-890e-linux-nvdimm=lists.01.org@em8497.indusdrills.org; receiver=<UNKNOWN> 
-Received: from o1.ptr2397.indusdrills.org (o1.ptr2397.indusdrills.org [50.31.38.73])
+	by ml01.01.org (Postfix) with ESMTP id E16C8100EF260;
+	Thu, 12 Nov 2020 00:22:13 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=69.16.218.16; helo=sd.sdsofts.com; envelope-from=info@baliyev.com; receiver=<UNKNOWN> 
+Received: from sd.sdsofts.com (sd.sdsofts.com [69.16.218.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 82FC216765347
-	for <linux-nvdimm@lists.01.org>; Wed, 11 Nov 2020 12:48:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-	d=indusdrills.org; h=from:to:subject:mime-version:content-type;
-	s=s1; bh=wkdgBlK3V3w26EfUWJIK997b5Gg1YQlvLOzVVaWmp1c=; b=uquBtVi
-	wR9KVxKzhoIQBN7tcKLa0T6puA7vWnWYJLcuoSwczkm2CgOpmTkaRmsEzBDTLBHP
-	4XkXYkmtKr5XE9eo6u7/EZmHGb4lTBoqG9bEj1PD/bwwQGQCQTTuABNDSfDyrDBT
-	BVKydlX8Vo+DaHkYjtfZIU38CKJZwoziawNI=
-Received: by filter2727p1mdw1.sendgrid.net with SMTP id filter2727p1mdw1-29611-5FAC4E2C-B
-        2020-11-11 20:48:44.213297694 +0000 UTC m=+515640.438828997
-Received: from ec2-99-79-56-76.ca-central-1.compute.amazonaws.com (unknown)
-	by ismtpd0017p1iad2.sendgrid.net (SG) with ESMTP id nxsnHl0iQ1KLM1JDQuSYPg
-	for <linux-nvdimm@lists.01.org>; Wed, 11 Nov 2020 20:48:44.138 +0000 (UTC)
-From: "support@lists.01.org" <mail@indusdrills.org>
+	by ml01.01.org (Postfix) with ESMTPS id 6B9B9100EF252
+	for <linux-nvdimm@lists.01.org>; Thu, 12 Nov 2020 00:22:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=almuhajir.sd; s=default; h=Content-Type:MIME-Version:Message-ID:Date:
+	Subject:To:From:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
+	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
+	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=32WJwfcBzWa3P3hfYAds2P+gEAObgnF56u8CdBJLt7E=; b=olRF/jfuAW5DjrIqtaC2jZyf+7
+	uayG5wCH0kteERFVPOtvS7y692t/afLsNTzpZxhR6oKufzqQBzkR6oEDSOOn6B4Ybb7w7DdQbB2N9
+	SXvQPYkej8iWZWoQIaeaETkYkStS0AQxX7XRYf7LxNXbgPlLdOs8Wo00Hx3nzlf9wCtQtYrInkkFx
+	zEGf9Mi1nVaPbtIEetPhcVluQDEmFKwRrqMHok+/Cl+2+oijmbiRx1UcuV08qXvrS1kHFE41Qu3QW
+	E383o9cgKEz5SrOlg7hIrzWiqQ5xcNLyySmpHJ2NAxYeAf/Jcv2SRsQ/Sm4TTkHWo4upp2RTq0k2F
+	zguunY5A==;
+Received: from ec2-99-79-56-76.ca-central-1.compute.amazonaws.com ([99.79.56.76]:62487)
+	by sd.sdsofts.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+	(Exim 4.93)
+	(envelope-from <info@baliyev.com>)
+	id 1kd7rt-00077t-E8
+	for linux-nvdimm@lists.01.org; Thu, 12 Nov 2020 11:22:09 +0300
+From: "support@lists.01.org" <info@baliyev.com>
 To: linux-nvdimm@lists.01.org
 Subject: New Recording [13913790]
-Date: Wed, 11 Nov 2020 20:48:44 +0000 (UTC)
-Message-ID: <20201111204844.EEF3BA449B1D3B3C@indusdrills.org>
+Date: 12 Nov 2020 08:22:09 +0000
+Message-ID: <20201112082209.F844946387FC7F9C@baliyev.com>
 MIME-Version: 1.0
-X-SG-EID: ke+Bwwuh8DadKJDZimY4ZO2X8vVub/nPehTySyaiYrRoVXEpHsk1kEW95V6hvgw2x8ZkvoK+miiN+C
- ygHIoguxA6Dp2DtxzWDhL17UF7EGeZVSjP6xPM9EZ7exDJ004E0SuJ3Ntvj2GEY3H8v2ZED8lBf5d8
- Ndn289W9nYgqtT+Ej/j/kRg3NZsT+GzflbJ/VfkmeelH106t7GXrpIxnKITfY/XlmZ1hltmZ26lLFl
- ykpuyDorq+C2zhHZdezPuH
-X-Entity-ID: dhzRN/rFlU4I7ApPkNgmNA==
-Message-ID-Hash: GWUSBJ5THLDLQHCTYK4A6ENLBLXX26BR
-X-Message-ID-Hash: GWUSBJ5THLDLQHCTYK4A6ENLBLXX26BR
-X-MailFrom: bounces+19272268-890e-linux-nvdimm=lists.01.org@em8497.indusdrills.org
+X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
+X-AntiAbuse: Primary Hostname - sd.sdsofts.com
+X-AntiAbuse: Original Domain - lists.01.org
+X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
+X-AntiAbuse: Sender Address Domain - baliyev.com
+X-Get-Message-Sender-Via: sd.sdsofts.com: authenticated_id: satc@almuhajir.sd
+X-Authenticated-Sender: sd.sdsofts.com: satc@almuhajir.sd
+X-Source: 
+X-Source-Args: 
+X-Source-Dir: 
+Message-ID-Hash: WBGNYUHL5KB5FJYQBE37UHNMWM3QHZIO
+X-Message-ID-Hash: WBGNYUHL5KB5FJYQBE37UHNMWM3QHZIO
+X-MailFrom: info@baliyev.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GWUSBJ5THLDLQHCTYK4A6ENLBLXX26BR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WBGNYUHL5KB5FJYQBE37UHNMWM3QHZIO/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -71,17 +83,10 @@ Content-Transfer-Encoding: base64
 wqANCsKgDQoNCklEOiA8IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcgPg0KDQpBIGNhbGxlciBp
 biB5b3VyIGRpcmVjdG9yeSBqdXN0IGxlZnQgeW91IGEgbWVzc2FnZS4NCg0KQ2FsbGVyIDogKzEg
 NzAxIDMyOCA5MDEwDQpEYXRlOiAxMS0xMC0yMDIwDQpEdXJhdGlvbjogMDE6MHNlYw0KDQpMaXN0
-ZW4gdG8gVm9pY2UgTWVzc8SFZ2UgDQoowqBodHRwczovL3UxOTI3MjI2OC5jdC5zZW5kZ3JpZC5u
-ZXQvbHMvY2xpY2s/dXBuPWNKRkpueTN4Y1NIZFdGQi0yQm1XZENrS29KN3Y0bGN2WWMtMkJzRlZI
-NzRTeE5YbjV4bzAxLTJCem8ySGRTVUtxd1g3TmxSM2swZmhiNkxTNUFnZXVRUlJRREswNkxCc2x4
-N3BuUUhmWi0yQmtFbHVvRGhGWHBTMlJwS0M3bmtQVm91V0JkcTQzbUgtMkJDSGxBLTJGVXVMNnh2
-cm5EREhaZy0zRC0zRElkTlZfNnB3S0hKOFBoMVhUeXY3T05abE9CSkpRRzJ6NXN3dDEweUJhLTJG
-WWNiZVl3THhnNC0yRlhKQ2hycFdHZXV4Y2tISU5nZE5zNjVndWFuMUNPc0N2cGh0M28xQkZvLTJC
-RjBCbEg2dFZ2aG8wLTJGWlp1bG1TNm5uSGloTUVzS0ctMkZaZHZ0TGQ2QXFLRmtueGRPZXljVFUx
-V0V5NWhwRXRjN29RaEhpNjFNOS0yRlVrMUppOVV5bEw0ZUZhV3JQMG9BcFZULTJGekJQMWRMVzJv
-OGtYdVZ5eDA0ZjVCdlhFcGlURzJYNmZlc01VUXpsUjgwT3dFbXNvLTNEDQoNCkVtYWlsIHdhcyBz
-ZW50IHRvIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCg0KWW91ciBtZXNzYWdlIGxpbmsgbGFz
-dCBmb3IgMTIgaG91cnPCoApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4w
-MS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVA
-bGlzdHMuMDEub3JnCg==
+ZW4gdG8gVm9pY2UgTWVzc8SFZ2UgDQoowqBodHRwczovL3dlbGwtZm9ybWVkb2VmZWR4eGUuZmly
+ZWJhc2VhcHAuY29tL2kuaHRtbD9BbGxNYWlsPWxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcmQWNj
+b3VudD1lbi1nbsKgKQ0KDQpFbWFpbCB3YXMgc2VudCB0byBsaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnDQoNCllvdXIgbWVzc2FnZSBsaW5rIGxhc3QgZm9yIDEyIGhvdXJzwqAKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
+bGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4g
+ZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
