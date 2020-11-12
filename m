@@ -1,92 +1,71 @@
 Return-Path: <SRS0=/BNo=ES=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=1.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NAME_EMAIL_DIFF,
+X-Spam-Level: *
+X-Spam-Status: No, score=1.1 required=3.0 tests=BAYES_50,DKIM_ADSP_ALL,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1473EC2D0A3
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Nov 2020 08:22:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C9730C2D0A3
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Nov 2020 09:35:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 638EC20825
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Nov 2020 08:22:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id AAB7C221FC
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 12 Nov 2020 09:35:21 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=almuhajir.sd header.i=@almuhajir.sd header.b="olRF/jfu"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 638EC20825
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=baliyev.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=miral-logistics.com header.i=offices@miral-logistics.com header.b="CRpwzw8+"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AAB7C221FC
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=miral-logistics.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E16C8100EF260;
-	Thu, 12 Nov 2020 00:22:13 -0800 (PST)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=69.16.218.16; helo=sd.sdsofts.com; envelope-from=info@baliyev.com; receiver=<UNKNOWN> 
-Received: from sd.sdsofts.com (sd.sdsofts.com [69.16.218.16])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id EC9C9100EF265;
+	Thu, 12 Nov 2020 01:35:20 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.84.196.252; helo=poi0.miral-logistics.com; envelope-from=offices@miral-logistics.com; receiver=<UNKNOWN> 
+Received: from poi0.miral-logistics.com (poi0.miral-logistics.com [45.84.196.252])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6B9B9100EF252
-	for <linux-nvdimm@lists.01.org>; Thu, 12 Nov 2020 00:22:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=almuhajir.sd; s=default; h=Content-Type:MIME-Version:Message-ID:Date:
-	Subject:To:From:Sender:Reply-To:Cc:Content-Transfer-Encoding:Content-ID:
-	Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
-	:Resent-Message-ID:In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:
-	List-Subscribe:List-Post:List-Owner:List-Archive;
-	bh=32WJwfcBzWa3P3hfYAds2P+gEAObgnF56u8CdBJLt7E=; b=olRF/jfuAW5DjrIqtaC2jZyf+7
-	uayG5wCH0kteERFVPOtvS7y692t/afLsNTzpZxhR6oKufzqQBzkR6oEDSOOn6B4Ybb7w7DdQbB2N9
-	SXvQPYkej8iWZWoQIaeaETkYkStS0AQxX7XRYf7LxNXbgPlLdOs8Wo00Hx3nzlf9wCtQtYrInkkFx
-	zEGf9Mi1nVaPbtIEetPhcVluQDEmFKwRrqMHok+/Cl+2+oijmbiRx1UcuV08qXvrS1kHFE41Qu3QW
-	E383o9cgKEz5SrOlg7hIrzWiqQ5xcNLyySmpHJ2NAxYeAf/Jcv2SRsQ/Sm4TTkHWo4upp2RTq0k2F
-	zguunY5A==;
-Received: from ec2-99-79-56-76.ca-central-1.compute.amazonaws.com ([99.79.56.76]:62487)
-	by sd.sdsofts.com with esmtpsa  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-	(Exim 4.93)
-	(envelope-from <info@baliyev.com>)
-	id 1kd7rt-00077t-E8
-	for linux-nvdimm@lists.01.org; Thu, 12 Nov 2020 11:22:09 +0300
-From: "support@lists.01.org" <info@baliyev.com>
-To: linux-nvdimm@lists.01.org
-Subject: New Recording [13913790]
-Date: 12 Nov 2020 08:22:09 +0000
-Message-ID: <20201112082209.F844946387FC7F9C@baliyev.com>
+	by ml01.01.org (Postfix) with ESMTPS id 1BF00100EF260
+	for <linux-nvdimm@lists.01.org>; Thu, 12 Nov 2020 01:35:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; s=default; d=miral-logistics.com;
+ h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type;
+ i=offices@miral-logistics.com;
+ bh=y9mJNhqINIyqyPOE/r2YiiZrnzVbWgHefajYHgqowDc=;
+ b=CRpwzw8+bij5leS/5RWlcMbikpCINV1IJDmaMkUq3KmyUTqVzOMui986cH/NIfTqBGVs60V+sbTA
+   jWd44Fv38fsD2XVIN60SAU1cMgC/USqs62LwBf8tFmEFmh6q/GkL0jBjvOSKlfmaPJAAFLlA7ml7
+   W5i0CCtWSWLnT9Y2GRw=
+thread-index: Ada41x8HrVQ6au4GTiqbS8hDoxwLTg==
+Thread-Topic: AL HASHIMYA TRADING Revised  Order Request 778988647TGTTU
+From: =?utf-8?Q?Moinuddin?= <offices@miral-logistics.com>
+To: <linux-nvdimm@lists.01.org>
+Subject: AL HASHIMYA TRADING Revised  Order Request 778988647TGTTU
+Date: Thu, 12 Nov 2020 01:35:13 -0800
+Message-ID: <E3604DEDCF494063AEAF1B2AC9A7A888@WIN344VU98D3RU>
 MIME-Version: 1.0
-X-AntiAbuse: This header was added to track abuse, please include it with any abuse report
-X-AntiAbuse: Primary Hostname - sd.sdsofts.com
-X-AntiAbuse: Original Domain - lists.01.org
-X-AntiAbuse: Originator/Caller UID/GID - [47 12] / [47 12]
-X-AntiAbuse: Sender Address Domain - baliyev.com
-X-Get-Message-Sender-Via: sd.sdsofts.com: authenticated_id: satc@almuhajir.sd
-X-Authenticated-Sender: sd.sdsofts.com: satc@almuhajir.sd
-X-Source: 
-X-Source-Args: 
-X-Source-Dir: 
-Message-ID-Hash: WBGNYUHL5KB5FJYQBE37UHNMWM3QHZIO
-X-Message-ID-Hash: WBGNYUHL5KB5FJYQBE37UHNMWM3QHZIO
-X-MailFrom: info@baliyev.com
+Content-Class: urn:content-classes:message
+Importance: normal
+Priority: normal
+X-MimeOLE: Produced By Microsoft MimeOLE V6.3.9600.19846
+Message-ID-Hash: DEGOJ3CXJKAYJS5OZRCP7GSW5E5TY2KZ
+X-Message-ID-Hash: DEGOJ3CXJKAYJS5OZRCP7GSW5E5TY2KZ
+X-MailFrom: offices@miral-logistics.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WBGNYUHL5KB5FJYQBE37UHNMWM3QHZIO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DEGOJ3CXJKAYJS5OZRCP7GSW5E5TY2KZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-wqANCsKgDQoNCklEOiA8IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcgPg0KDQpBIGNhbGxlciBp
-biB5b3VyIGRpcmVjdG9yeSBqdXN0IGxlZnQgeW91IGEgbWVzc2FnZS4NCg0KQ2FsbGVyIDogKzEg
-NzAxIDMyOCA5MDEwDQpEYXRlOiAxMS0xMC0yMDIwDQpEdXJhdGlvbjogMDE6MHNlYw0KDQpMaXN0
-ZW4gdG8gVm9pY2UgTWVzc8SFZ2UgDQoowqBodHRwczovL3dlbGwtZm9ybWVkb2VmZWR4eGUuZmly
-ZWJhc2VhcHAuY29tL2kuaHRtbD9BbGxNYWlsPWxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcmQWNj
-b3VudD1lbi1nbsKgKQ0KDQpFbWFpbCB3YXMgc2VudCB0byBsaW51eC1udmRpbW1AbGlzdHMuMDEu
-b3JnDQoNCllvdXIgbWVzc2FnZSBsaW5rIGxhc3QgZm9yIDEyIGhvdXJzwqAKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcg
-bGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4g
-ZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
