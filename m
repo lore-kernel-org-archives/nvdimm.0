@@ -2,66 +2,91 @@ Return-Path: <SRS0=TDng=ET=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-9.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04825C61DD8
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Nov 2020 14:07:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92815C55ABD
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Nov 2020 18:09:39 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8CB8522240
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Nov 2020 14:07:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 3421222201
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 13 Nov 2020 18:09:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="F3wGcH2+"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8CB8522240
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=oracle.com header.i=@oracle.com header.b="K/BgZbJG"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3421222201
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 17126100EB82C;
-	Fri, 13 Nov 2020 06:07:27 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id C4A72100EB331;
+	Fri, 13 Nov 2020 10:09:38 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D25BB100EB82A
-	for <linux-nvdimm@lists.01.org>; Fri, 13 Nov 2020 06:07:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=+fKDCln/nBGjUzwLbQBUvaWLGmW87HSfyAiVdE6n6pQ=; b=F3wGcH2+WzEOBEsfLnS9KvpGrs
-	I7JCuKymtkiidDWDOnPKC8seMalZGlDcRkSxSFmHqZzJD6AZpg/sjT0fErSJtoHYBkeNEnB2MdCr9
-	/ZdHg5BQJC+dz8ajMkzL20wh1oGOnN7fWN5Gr82pC/sZS6ICj71RLXccLWQMwxSwW6QuAQWh/Apq+
-	WXjqzFZlPYSZrqoKkdlXdrGmObHwlfeTz+CPiQOOzf1thAD2O85uurxLTHGvue+NVqeqs2WkY2Wpk
-	1GENl5ScDna9J1/jUVLdTHNj0b4/rSrIVslnz2d3y0kMG33JcIJZYdib38q4UVyJfOico1Qkug6hy
-	yVtg6ydA==;
-Received: from willy by casper.infradead.org with local (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kdZj6-00047y-EC; Fri, 13 Nov 2020 14:06:56 +0000
-Date: Fri, 13 Nov 2020 14:06:56 +0000
-From: Matthew Wilcox <willy@infradead.org>
-To: Mike Rapoport <rppt@kernel.org>
-Subject: Re: [PATCH v8 4/9] mm: introduce memfd_secret system call to create
- "secret" memory areas
-Message-ID: <20201113140656.GG17076@casper.infradead.org>
-References: <20201110151444.20662-1-rppt@kernel.org>
- <20201110151444.20662-5-rppt@kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 69C76100EB32C
+	for <linux-nvdimm@lists.01.org>; Fri, 13 Nov 2020 10:09:36 -0800 (PST)
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0ADI5P5T057506;
+	Fri, 13 Nov 2020 18:09:21 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to :
+ references : cc : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=w30kjF3IvkMYC9EGxmwpXY7JR+ZtHECE1tYUqy4Z33w=;
+ b=K/BgZbJGJZATy1tm0rq4TdjSSzuHjewexRbk411OHkBALNxoQKuz0Mx8xPxBM+xOnGtM
+ T00+R6nHxZND4b8Eb3Lo8F49KA7/173Gq7MXePL4qg3MNBDjr1MRaiI1Z033I7t242dI
+ /2xtVXgBNqVL25D4ovuywWiz3k2X99f1OIV7ZToHWeOLEADGswQ09X5X9YTAQzZV6tpO
+ wzC/G446ry67Wdq+0ha4OrWw3NUIi70/+iJv3v1ppBpyZG0t3+Nw0hE488CfXY2+AV9F
+ jEsEvu+TeR9wi1OISyyt30cdCO2kfpV5JXYf/r5rBfAvy3RCWf4feq8mCsHjkFU+l5L7 SQ==
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by userp2120.oracle.com with ESMTP id 34p72f1t5y-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Fri, 13 Nov 2020 18:09:21 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0ADI5OBm140700;
+	Fri, 13 Nov 2020 18:07:21 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+	by userp3020.oracle.com with ESMTP id 34rt589q39-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 13 Nov 2020 18:07:21 +0000
+Received: from abhmp0004.oracle.com (abhmp0004.oracle.com [141.146.116.10])
+	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 0ADI7G0J030581;
+	Fri, 13 Nov 2020 18:07:17 GMT
+Received: from [10.175.169.218] (/10.175.169.218)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Fri, 13 Nov 2020 10:07:16 -0800
+Subject: Re: [PATCH -next] device-dax: change error code from postive to
+ negative in range_parse
+To: Zhang Qilong <zhangqilong3@huawei.com>
+References: <20201026110425.136629-1-zhangqilong3@huawei.com>
+From: Joao Martins <joao.m.martins@oracle.com>
+Message-ID: <0753306a-bac9-0b47-b21e-1831bbf9904f@oracle.com>
+Date: Fri, 13 Nov 2020 18:07:12 +0000
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20201110151444.20662-5-rppt@kernel.org>
-Message-ID-Hash: DSZXMA6LCWD7JH33ILT5AGJBPDTR5YKA
-X-Message-ID-Hash: DSZXMA6LCWD7JH33ILT5AGJBPDTR5YKA
-X-MailFrom: willy@infradead.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.ker
- nel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>
+In-Reply-To: <20201026110425.136629-1-zhangqilong3@huawei.com>
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9804 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 bulkscore=0 mlxscore=0
+ mlxlogscore=999 suspectscore=1 adultscore=0 phishscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2011130117
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9804 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxlogscore=999 mlxscore=0
+ malwarescore=0 suspectscore=1 lowpriorityscore=0 adultscore=0 phishscore=0
+ priorityscore=1501 spamscore=0 impostorscore=0 clxscore=1011
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2011130117
+Message-ID-Hash: MIPSEMU6HU3NI2MIFJIINAKZCUQJMXEE
+X-Message-ID-Hash: MIPSEMU6HU3NI2MIFJIINAKZCUQJMXEE
+X-MailFrom: joao.m.martins@oracle.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DSZXMA6LCWD7JH33ILT5AGJBPDTR5YKA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MIPSEMU6HU3NI2MIFJIINAKZCUQJMXEE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -70,19 +95,38 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Nov 10, 2020 at 05:14:39PM +0200, Mike Rapoport wrote:
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index c89c5444924b..d8d170fa5210 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -884,4 +884,7 @@ config ARCH_HAS_HUGEPD
->  config MAPPING_DIRTY_HELPERS
->          bool
->  
-> +config SECRETMEM
-> +	def_bool ARCH_HAS_SET_DIRECT_MAP && !EMBEDDED
+On 10/26/20 11:04 AM, Zhang Qilong wrote:
+> call trace:
+> 	-> mapping_store()
+> 		-> range_parse()
+> 		......
+> 		rc = -ENXIO;
+> 
+> According to context, the error return value of
+> range_parse should be negative.
+> 
+> Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
 
-So I now have to build this in, whether I want it or not?
+Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
+
+> ---
+>  drivers/dax/bus.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 27513d311242..e15a1a7c2853 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1047,7 +1047,7 @@ static ssize_t range_parse(const char *opt, size_t len, struct range *range)
+>  {
+>  	unsigned long long addr = 0;
+>  	char *start, *end, *str;
+> -	ssize_t rc = EINVAL;
+> +	ssize_t rc = -EINVAL;
+>  
+>  	str = kstrdup(opt, GFP_KERNEL);
+>  	if (!str)
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
