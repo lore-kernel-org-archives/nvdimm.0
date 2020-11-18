@@ -2,59 +2,78 @@ Return-Path: <SRS0=2dSd=EY=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.7 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21BA9C6369E
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Nov 2020 07:36:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E2A5C56202
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Nov 2020 08:08:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 868A0221E9
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Nov 2020 07:36:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 868A0221E9
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id DA15A223C7
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 18 Nov 2020 08:08:20 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="xCWG2WDk"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DA15A223C7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EEFAD100EBBC0;
-	Tue, 17 Nov 2020 23:36:31 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=szxga04-in.huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 5941C100EBBCA;
+	Wed, 18 Nov 2020 00:08:20 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::541; helo=mail-ed1-x541.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0AB3C100EC1D5
-	for <linux-nvdimm@lists.01.org>; Tue, 17 Nov 2020 23:36:28 -0800 (PST)
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.59])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CbZP56gTbz15MsB;
-	Wed, 18 Nov 2020 15:36:09 +0800 (CST)
-Received: from thunder-town.china.huawei.com (10.174.176.144) by
- DGGEMS412-HUB.china.huawei.com (10.3.19.212) with Microsoft SMTP Server id
- 14.3.487.0; Wed, 18 Nov 2020 15:36:13 +0800
-From: Zhen Lei <thunder.leizhen@huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, Ira Weiny
-	<ira.weiny@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown
-	<lenb@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-acpi
-	<linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH 1/1] ACPI/nfit: avoid accessing uninitialized memory in acpi_nfit_ctl()
-Date: Wed, 18 Nov 2020 15:35:17 +0800
-Message-ID: <20201118073517.1884-1-thunder.leizhen@huawei.com>
-X-Mailer: git-send-email 2.26.0.windows.1
+	by ml01.01.org (Postfix) with ESMTPS id 881B2100EBBC7
+	for <linux-nvdimm@lists.01.org>; Wed, 18 Nov 2020 00:08:17 -0800 (PST)
+Received: by mail-ed1-x541.google.com with SMTP id q16so983906edv.10
+        for <linux-nvdimm@lists.01.org>; Wed, 18 Nov 2020 00:08:17 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=MYkzksRNaGbOMgyJtFrKrhjpOwtjgLuKKLI9H1meENs=;
+        b=xCWG2WDkXGUHEmmvlIEXs8mX9u3sb6FB0q9LFul6OKzhcg+CIPpbHyWVJyUIcZ6U0c
+         CxzCSvsRY1fmsdf7hUe3PrzVMR4XzcBUH5/oDkRiRzgCDh1l3MGg9f7qpopJPDhA/Osf
+         naXIzRtC+tCcAsimW4BCW/g1+nTYFw7Px93SotOJsq6n0lSPMi1qM3+8nb320uD64Ba8
+         gLMznJOGDpF+y5CXx6brPuOqhhmOYYTNKbiw7OmMCngWtim6jtwlUlja+b94KEBDE01Z
+         cClj/K8TpXVCCPjufmUZeja80w0hx/6KOG/M8vvoGE9/WY1lxBvSZ/eKf0rV7Sw9spuE
+         MEzA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=MYkzksRNaGbOMgyJtFrKrhjpOwtjgLuKKLI9H1meENs=;
+        b=eRn2K12mdwSjEaqMvD5eENaCvKm+4CXGv+BrdIm/6tzbd6nsID3IssbDViSsKiV43/
+         zuzGpfMk7HNLoWAQFzIC0Jjqk4whiXJAYl0HbwkRDSGXjVuBnLgL8Kx0ZKoZpf+xsVlk
+         Myn13ii01UUZgs/dFe/gyoecGhd7W7f0UCjhl2UoJ9aBXYB1rpKk4XN+TCR5dB0GKsES
+         rDOzXlnxk3UJKknm0ykIixOYph5woMRBIvSt1juXM/DE66BlN5RmlIjvPJpO43sniprs
+         r0ZGx9BhKzrtoEvjfS3rUBmDSQCsNBEaFu9n0bZlRgTwV6tjwbEZHx10O4UqBPM79O4p
+         og4g==
+X-Gm-Message-State: AOAM532knsDzXPIodVfQ0++jaZ+xw7plbEKjoScCSdiXMY+Beho/tg0W
+	SaUrNqj4kA8DKXMjr5lHlfMc9C+nTMSWF6I6K/pTKA==
+X-Google-Smtp-Source: ABdhPJyIpjJgJazX4fTSFDsxCZTxH/xxyf4fTir1+gkSOwPp8hbM6quT/hXeCY699yN511XwzGCCUFGquOJ6Buwje7k=
+X-Received: by 2002:a05:6402:144f:: with SMTP id d15mr25196770edx.300.1605686895096;
+ Wed, 18 Nov 2020 00:08:15 -0800 (PST)
 MIME-Version: 1.0
-X-Originating-IP: [10.174.176.144]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: LUU3R4CN6W7VKJQO4T7QBJZJG76XKFAY
-X-Message-ID-Hash: LUU3R4CN6W7VKJQO4T7QBJZJG76XKFAY
-X-MailFrom: thunder.leizhen@huawei.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Zhen Lei <thunder.leizhen@huawei.com>
+References: <20201118073517.1884-1-thunder.leizhen@huawei.com>
+In-Reply-To: <20201118073517.1884-1-thunder.leizhen@huawei.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 18 Nov 2020 00:08:03 -0800
+Message-ID: <CAPcyv4iECY-XoJ=jhARDDqjv-j8fnOUiKxB9Z+M5J+kMoeeWhA@mail.gmail.com>
+Subject: Re: [PATCH 1/1] ACPI/nfit: avoid accessing uninitialized memory in acpi_nfit_ctl()
+To: Zhen Lei <thunder.leizhen@huawei.com>
+Message-ID-Hash: TIPN7UF5HCWDKWWVFNYPLQTHOAPIFGQ2
+X-Message-ID-Hash: TIPN7UF5HCWDKWWVFNYPLQTHOAPIFGQ2
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LUU3R4CN6W7VKJQO4T7QBJZJG76XKFAY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TIPN7UF5HCWDKWWVFNYPLQTHOAPIFGQ2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -63,46 +82,19 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The ACPI_ALLOCATE() does not zero the "buf", so when the condition
-"integer->type != ACPI_TYPE_INTEGER" in int_to_buf() is met, the result
-is unpredictable in acpi_nfit_ctl().
+On Tue, Nov 17, 2020 at 11:36 PM Zhen Lei <thunder.leizhen@huawei.com> wrote:
+>
+> The ACPI_ALLOCATE() does not zero the "buf", so when the condition
+> "integer->type != ACPI_TYPE_INTEGER" in int_to_buf() is met, the result
+> is unpredictable in acpi_nfit_ctl().
+>
+> Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
----
- drivers/acpi/nfit/core.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+Looks good to me.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 442608220b5c..cda7b6c52504 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -282,18 +282,19 @@ static union acpi_object *pkg_to_buf(union acpi_object *pkg)
- 
- static union acpi_object *int_to_buf(union acpi_object *integer)
- {
--	union acpi_object *buf = ACPI_ALLOCATE(sizeof(*buf) + 4);
-+	union acpi_object *buf = NULL;
- 	void *dst = NULL;
- 
--	if (!buf)
--		goto err;
--
- 	if (integer->type != ACPI_TYPE_INTEGER) {
- 		WARN_ONCE(1, "BIOS bug, unexpected element type: %d\n",
- 				integer->type);
- 		goto err;
- 	}
- 
-+	buf = ACPI_ALLOCATE(sizeof(*buf) + 4);
-+	if (!buf)
-+		goto err;
-+
- 	dst = buf + 1;
- 	buf->type = ACPI_TYPE_BUFFER;
- 	buf->buffer.length = 4;
--- 
-2.26.0.106.g9fadedd
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
+I'll pick this up.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
