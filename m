@@ -1,83 +1,60 @@
 Return-Path: <SRS0=OD74=EZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
+X-Spam-Level: 
+X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98E2AC2D0E4
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 10:58:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4D41C63697
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 13:18:30 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CC8F5246B0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 10:58:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC8F5246B0
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=vpass.ne.jp
+	by mail.kernel.org (Postfix) with ESMTPS id F230322255
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 13:18:29 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F230322255
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=ups.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0FC97100EBB87;
-	Thu, 19 Nov 2020 02:58:41 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=165.84.180.110; helo=fjdigihfdg.monster; envelope-from=xwsebdbtf@fjdigihfdg.monster; receiver=<UNKNOWN> 
-Received: from fjdigihfdg.monster (165084180110.ctinets.com [165.84.180.110])
-	by ml01.01.org (Postfix) with ESMTP id 2E53E100EC1C4
-	for <linux-nvdimm@lists.01.org>; Thu, 19 Nov 2020 02:58:37 -0800 (PST)
-Sender: xwsebdbtf@fjdigihfdg.monster
-Message-ID: <6008E871D87EA5FE9CEA41F21F2FE15B@fjdigihfdg.monster>
-From: =?utf-8?B?5LiJ5LqV5L2P5Y+L44Kr44O844OJ?= <thankyou@vpass.ne.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?44CQ6YeN6KaB44CR77yc5LiJ5LqV5L2P5Y+L44Kr44O844OJ77ye44GU5Yip55So56K66KqN44Gu44GK?=
-	=?utf-8?B?6aGY44GE?=
-Date: Thu, 19 Nov 2020 18:58:33 +0800
-Mime-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2900.5512
-X-MimeOLE: Produced By Microsoft MimeOLE V6.3.9600.19867
-Message-ID-Hash: 7RJNCIDU74GIUDTVJAH4NCI3N3OOW2WI
-X-Message-ID-Hash: 7RJNCIDU74GIUDTVJAH4NCI3N3OOW2WI
-X-MailFrom: xwsebdbtf@fjdigihfdg.monster
+	by ml01.01.org (Postfix) with ESMTP id 5334B100EBB8B;
+	Thu, 19 Nov 2020 05:18:29 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=37.73.82.41; helo=[37.73.82.41]; envelope-from=correspondencedr1@njrarlpapp001cc.linux.us.ups.com; receiver=<UNKNOWN> 
+Received: from [37.73.82.41] (unknown [37.73.82.41])
+	by ml01.01.org (Postfix) with ESMTP id A17A5100EBBB6
+	for <linux-nvdimm@lists.01.org>; Thu, 19 Nov 2020 05:18:20 -0800 (PST)
+Received: from  (
+ [200.201.101.173])        by  with SMTP id
+ fcEF0515; Thu, 19 Nov 2020 15:18:19 +0200
+Received: from  (
+ [150.146.81.145])        by  with SMTP id
+ F42F5A6F36; Thu, 19 Nov 2020 15:18:19 +0200
+To: linux-nvdimm@lists.01.org
+From: upsbillingcenter@ups.com
+Subject: Your UPS Invoice is Ready
+Message-ID: <fc40b251-2916-5682-0985-@runvvzbs.nnapwvvtr.njrarlpapp001cc.linux.us.ups.com>
+Date: Thu, 19 Nov 2020 15:18:19 +0200
+MIME-Version: 1.0
+Message-ID-Hash: 6T4SL2F6BHOZJUET53P4LEWUZ7AINGJX
+X-Message-ID-Hash: 6T4SL2F6BHOZJUET53P4LEWUZ7AINGJX
+X-MailFrom: correspondencedr1@njrarlpapp001cc.linux.us.ups.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: upsbillingcenter@ups.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7RJNCIDU74GIUDTVJAH4NCI3N3OOW2WI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6T4SL2F6BHOZJUET53P4LEWUZ7AINGJX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQogDQoNCg0K5pys44Oh44O844Or44Gv44OJ44Oh44Kk44Oz44Gu6YGL55So77yI44Oh44O844Or
-6YCB5Y+X5L+h44KE44Ob44O844Og44Oa44O844K444Gu6KGo56S677yJ44Gr6Zai44KP44KLDQrp
-h43opoHjgarpgJrnn6Xjgajjgarjgorjgb7jgZnjgIINCg0K44GE44Gk44KC5byK56S+44Kr44O8
-44OJ44KS44GU5Yip55So44GE44Gf44Gg44GN44GC44KK44GM44Go44GG44GU44GW44GE44G+44GZ
-44CCDQoNCg0K5pio5LuK44Gu56ys5LiJ6ICF5LiN5q2j5Yip55So44Gu5oCl5aKX44Gr5Ly044GE
-44CB5byK56S+44Gn44Gv44CM5LiN5q2j5Yip55So55uj6KaW44K344K544OG44Og44CN44KS5bCO
-5YWl44GX44CBMjTmmYLplpMzNjXml6XkvZPliLbjgafjgqvjg7zjg4njga7jgZTliKnnlKjjgavl
-r77jgZnjgovjg6Ljg4vjgr/jg6rjg7PjgrDjgpLooYzjgaPjgabjgYrjgorjgb7jgZnjgIINCg0K
-44GT44Gu44Gf44Gz44CB44GU5pys5Lq65qeY44Gu44GU5Yip55So44GL44Gp44GG44GL44KS56K6
-6KqN44GV44Gb44Gm44GE44Gf44Gg44GN44Gf44GE44GK5Y+W5byV44GM44GC44KK44G+44GX44Gf
-44Gu44Gn44CB6Kqg44Gr5Yud5omL44Gq44GM44KJ44CB44Kr44O844OJ44Gu44GU5Yip55So44KS
-5LiA6YOo5Yi26ZmQ44GV44Gb44Gm44GE44Gf44Gg44GN44CB44GU6YCj57Wh44GV44Gb44Gm44GE
-44Gf44Gg44GN44G+44GX44Gf44CCDQoNCg0K44Gk44GN44G+44GX44Gm44Gv44CB5Lul5LiL44G4
-44Ki44Kv44K744K544Gu5LiK44CB44Kr44O844OJ44Gu44GU5Yip55So56K66KqN44Gr44GU5Y2U
-5Yqb44KS44GK6aGY44GE6Ie044GX44G+44GZ44CCDQrjgZTlm57nrZTjgpLjgYTjgZ/jgaDjgZHj
-garjgYTloLTlkIjjgIHjgqvjg7zjg4njga7jgZTliKnnlKjliLbpmZDjgYzntpnntprjgZXjgozj
-govjgZPjgajjgoLjgZTjgZbjgYTjgb7jgZnjga7jgafjgIHkuojjgoHjgZTkuobmib/kuIvjgZXj
-gYTjgIINCg0KDQrilqDjgZTliKnnlKjnorroqo3jga/jgZPjgaHjgonilqANCg0K44CAIA0KDQoN
-CuiHs+aApeOAgVMgTSBCIEPjgqvjg7zjg4nkvJrlk6HjgrXjg7zjg5Pjgrnjgavmg4XloLHjgpLl
-ho3nmbvpjLLjgZfjgabjgY/jgaDjgZXjgYQNCg0KDQrilqDnmbrooYzogIXilqANCuS4ieS6leS9
-j+WPi+OCq+ODvOODieagquW8j+S8muekvg0K44CAaHR0cHM6Ly93d3cuc21iYy1jYXJkLmNvbS8N
-CuOAkjEwNS04MDExIOadseS6rOmDvea4r+WMuua1t+WyuDHkuIHnm64y55WqMjDlj7cg5rGQ55WZ
-44OT44Or44OH44Kj44Oz44KwDQoNCg0KDQoNCuOAgA0KQ29weXJpZ2h0IChDKSAyMDIwIFN1bWl0
-b21vIE1pdHN1aSBDYXJkIENvLiwgTHRkLg0KIApfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52
-ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1u
-dmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
