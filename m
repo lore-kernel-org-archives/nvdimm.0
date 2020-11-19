@@ -1,115 +1,83 @@
 Return-Path: <SRS0=OD74=EZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-0.6 required=3.0 tests=BAYES_40,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A67D2C5519F
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 02:06:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98E2AC2D0E4
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 10:58:42 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 23DFD241A6
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 02:06:52 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=intel-com.20150623.gappssmtp.com header.i=@intel-com.20150623.gappssmtp.com header.b="rDU5+I6p"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 23DFD241A6
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id CC8F5246B0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 19 Nov 2020 10:58:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CC8F5246B0
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=vpass.ne.jp
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C8059100EBB7E;
-	Wed, 18 Nov 2020 18:06:51 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::f43; helo=mail-qv1-xf43.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-qv1-xf43.google.com (mail-qv1-xf43.google.com [IPv6:2607:f8b0:4864:20::f43])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A1B11100EBB7B
-	for <linux-nvdimm@lists.01.org>; Wed, 18 Nov 2020 18:06:42 -0800 (PST)
-Received: by mail-qv1-xf43.google.com with SMTP id v20so2141247qvx.4
-        for <linux-nvdimm@lists.01.org>; Wed, 18 Nov 2020 18:06:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ccKfW56H4PWGLSjC0LsiNJcR0/vxH+yLXhxLYv0fM10=;
-        b=rDU5+I6pfV/cpFPoCHYruTKxc1OUpArWLHBTpwX44EnsntWdNP7pLL/ebBoZsoVGbY
-         GyztbDlk2ndtd0rZMuLsmToFvj8GlD22ytPS6vj0lUmZzKsMBJmtQtkDkgX6dSgJy4WS
-         xuLb/McJwAMWVFy49HaLh43LP4vJsl+12KJR4uOPU77WJ7+I5lzrIyPfoKtYBwuot25v
-         NsSO+Sobt2TJqCTfzPXEXOxcpUHp9wIuVbBzCDm/yA6mG+rHPriYmof9pH6e8F2g3N3S
-         wymqm+Og5mCuxNOU9X7ZohZ0mPgRSMnjnsvcovxrsUGR2Q1yxgwujG+wfwT4EDxIjqPo
-         WoKQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ccKfW56H4PWGLSjC0LsiNJcR0/vxH+yLXhxLYv0fM10=;
-        b=OSfTb/f2Jnav8y6lWU2SbAgYPz5qr70uKI9I5sXeRLhbBJfpUZSDIGEieBaANhAQxO
-         vXt4NUmbNlw28OVpWN8ile8WjDguLm3gZpn0RDymHWNgm7/3Vvz6pyp6O8MJSiMsso8o
-         Kex0E/RXH0/DcLObahkrrvtpBMSw+a4OA3HIzu9cKsFPs3CcQaJt7ez+U2caF6ir40ff
-         HcU5EcqwAj8JoyFkX59MbZ/iUuJ21BWh0eRKQ6DcQOAbvajUswwTd6MYX2AwAUAn5+Jp
-         ulPcBCgjAH/1j4tMKscehW6/d2FGnDoe21AafzaV7BlA2JBf679D1alFfNgYIlzCNvst
-         Fmbg==
-X-Gm-Message-State: AOAM532QDuHAo3Sfc4NXPbkl0LTsYj80LjcyaqcqbJuk4CjgZmQ+Ztac
-	4p6tLA+79OsX2g6RYfInQfc7FQbooEJN9dRINUSmwQ==
-X-Google-Smtp-Source: ABdhPJydAOOGYkEH//Rv4uY6EQ0za+qOAE0menANWzPkoy7vb2aGs+AHfwWpmp2vsHVsLEFb3E3oYqrsw6jHynE16DU=
-X-Received: by 2002:a0c:e8c8:: with SMTP id m8mr8228752qvo.41.1605751601185;
- Wed, 18 Nov 2020 18:06:41 -0800 (PST)
-MIME-Version: 1.0
-References: <20201118084117.1937-1-thunder.leizhen@huawei.com>
- <9b8310ed-e93f-e708-eefa-520701e6d044@huawei.com> <CAPcyv4hc0bw=+HQ-Zj0AWfB2-xMEEC--64zNxBkyapkiQRVVdg@mail.gmail.com>
- <390a0fb5-5feb-527c-b90e-1c7b6ea65d5f@huawei.com>
-In-Reply-To: <390a0fb5-5feb-527c-b90e-1c7b6ea65d5f@huawei.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 18 Nov 2020 18:06:30 -0800
-Message-ID: <CAPcyv4h0To2N1QrofE6qddeuQPBH3Umh9e+emBv-Nej4gS4V+g@mail.gmail.com>
-Subject: Re: [PATCH 1/1] ACPI/nfit: correct the badrange to be reported in nfit_handle_mce()
-To: "Leizhen (ThunderTown)" <thunder.leizhen@huawei.com>
-Message-ID-Hash: XNG2BB4D5V473UK2VJRAKU4C2T4NYSVT
-X-Message-ID-Hash: XNG2BB4D5V473UK2VJRAKU4C2T4NYSVT
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
+	by ml01.01.org (Postfix) with ESMTP id 0FC97100EBB87;
+	Thu, 19 Nov 2020 02:58:41 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=165.84.180.110; helo=fjdigihfdg.monster; envelope-from=xwsebdbtf@fjdigihfdg.monster; receiver=<UNKNOWN> 
+Received: from fjdigihfdg.monster (165084180110.ctinets.com [165.84.180.110])
+	by ml01.01.org (Postfix) with ESMTP id 2E53E100EC1C4
+	for <linux-nvdimm@lists.01.org>; Thu, 19 Nov 2020 02:58:37 -0800 (PST)
+Sender: xwsebdbtf@fjdigihfdg.monster
+Message-ID: <6008E871D87EA5FE9CEA41F21F2FE15B@fjdigihfdg.monster>
+From: =?utf-8?B?5LiJ5LqV5L2P5Y+L44Kr44O844OJ?= <thankyou@vpass.ne.jp>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?44CQ6YeN6KaB44CR77yc5LiJ5LqV5L2P5Y+L44Kr44O844OJ77ye44GU5Yip55So56K66KqN44Gu44GK?=
+	=?utf-8?B?6aGY44GE?=
+Date: Thu, 19 Nov 2020 18:58:33 +0800
+Mime-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V6.3.9600.19867
+Message-ID-Hash: 7RJNCIDU74GIUDTVJAH4NCI3N3OOW2WI
+X-Message-ID-Hash: 7RJNCIDU74GIUDTVJAH4NCI3N3OOW2WI
+X-MailFrom: xwsebdbtf@fjdigihfdg.monster
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XNG2BB4D5V473UK2VJRAKU4C2T4NYSVT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7RJNCIDU74GIUDTVJAH4NCI3N3OOW2WI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Wed, Nov 18, 2020 at 5:53 PM Leizhen (ThunderTown)
-<thunder.leizhen@huawei.com> wrote:
->
->
->
-> On 2020/11/19 3:16, Dan Williams wrote:
-> > On Wed, Nov 18, 2020 at 12:55 AM Leizhen (ThunderTown)
-> > <thunder.leizhen@huawei.com> wrote:
-> >>
-> >>
-> >>
-> >> On 2020/11/18 16:41, Zhen Lei wrote:
-> >>> The badrange to be reported should always cover mce->addr.
-> >> Maybe I should change this description to:
-> >> Make sure the badrange to be reported can always cover mce->addr.
-> >
-> > Yes, I like that better. Can you also say a bit more about how you
-> > found this bug? As far as I can see this looks like -stable material.
->
-> I found it when I was learning the code. I'm looking at it carefully.
-
-Ok, good eye.
-
-The impact of this one is somewhat mitigated by the fact that errors
-are expanded to 512 byte blast radius, and error consumption maps 4k
-around errors. I suspect few are trying to use the badblock list to do
-fine grained recovery so this bug went unnoticed.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+DQogDQoNCg0K5pys44Oh44O844Or44Gv44OJ44Oh44Kk44Oz44Gu6YGL55So77yI44Oh44O844Or
+6YCB5Y+X5L+h44KE44Ob44O844Og44Oa44O844K444Gu6KGo56S677yJ44Gr6Zai44KP44KLDQrp
+h43opoHjgarpgJrnn6Xjgajjgarjgorjgb7jgZnjgIINCg0K44GE44Gk44KC5byK56S+44Kr44O8
+44OJ44KS44GU5Yip55So44GE44Gf44Gg44GN44GC44KK44GM44Go44GG44GU44GW44GE44G+44GZ
+44CCDQoNCg0K5pio5LuK44Gu56ys5LiJ6ICF5LiN5q2j5Yip55So44Gu5oCl5aKX44Gr5Ly044GE
+44CB5byK56S+44Gn44Gv44CM5LiN5q2j5Yip55So55uj6KaW44K344K544OG44Og44CN44KS5bCO
+5YWl44GX44CBMjTmmYLplpMzNjXml6XkvZPliLbjgafjgqvjg7zjg4njga7jgZTliKnnlKjjgavl
+r77jgZnjgovjg6Ljg4vjgr/jg6rjg7PjgrDjgpLooYzjgaPjgabjgYrjgorjgb7jgZnjgIINCg0K
+44GT44Gu44Gf44Gz44CB44GU5pys5Lq65qeY44Gu44GU5Yip55So44GL44Gp44GG44GL44KS56K6
+6KqN44GV44Gb44Gm44GE44Gf44Gg44GN44Gf44GE44GK5Y+W5byV44GM44GC44KK44G+44GX44Gf
+44Gu44Gn44CB6Kqg44Gr5Yud5omL44Gq44GM44KJ44CB44Kr44O844OJ44Gu44GU5Yip55So44KS
+5LiA6YOo5Yi26ZmQ44GV44Gb44Gm44GE44Gf44Gg44GN44CB44GU6YCj57Wh44GV44Gb44Gm44GE
+44Gf44Gg44GN44G+44GX44Gf44CCDQoNCg0K44Gk44GN44G+44GX44Gm44Gv44CB5Lul5LiL44G4
+44Ki44Kv44K744K544Gu5LiK44CB44Kr44O844OJ44Gu44GU5Yip55So56K66KqN44Gr44GU5Y2U
+5Yqb44KS44GK6aGY44GE6Ie044GX44G+44GZ44CCDQrjgZTlm57nrZTjgpLjgYTjgZ/jgaDjgZHj
+garjgYTloLTlkIjjgIHjgqvjg7zjg4njga7jgZTliKnnlKjliLbpmZDjgYzntpnntprjgZXjgozj
+govjgZPjgajjgoLjgZTjgZbjgYTjgb7jgZnjga7jgafjgIHkuojjgoHjgZTkuobmib/kuIvjgZXj
+gYTjgIINCg0KDQrilqDjgZTliKnnlKjnorroqo3jga/jgZPjgaHjgonilqANCg0K44CAIA0KDQoN
+CuiHs+aApeOAgVMgTSBCIEPjgqvjg7zjg4nkvJrlk6HjgrXjg7zjg5Pjgrnjgavmg4XloLHjgpLl
+ho3nmbvpjLLjgZfjgabjgY/jgaDjgZXjgYQNCg0KDQrilqDnmbrooYzogIXilqANCuS4ieS6leS9
+j+WPi+OCq+ODvOODieagquW8j+S8muekvg0K44CAaHR0cHM6Ly93d3cuc21iYy1jYXJkLmNvbS8N
+CuOAkjEwNS04MDExIOadseS6rOmDvea4r+WMuua1t+WyuDHkuIHnm64y55WqMjDlj7cg5rGQ55WZ
+44OT44Or44OH44Kj44Oz44KwDQoNCg0KDQoNCuOAgA0KQ29weXJpZ2h0IChDKSAyMDIwIFN1bWl0
+b21vIE1pdHN1aSBDYXJkIENvLiwgTHRkLg0KIApfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52
+ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1u
+dmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
