@@ -2,61 +2,57 @@ Return-Path: <SRS0=wSbi=E2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84339C388F9
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Nov 2020 03:01:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE68FC63777
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Nov 2020 09:21:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 31C272222F
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Nov 2020 03:01:38 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 31C272222F
+	by mail.kernel.org (Postfix) with ESMTPS id 673F8222BA
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 20 Nov 2020 09:21:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 673F8222BA
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C81C3100EC1C3;
-	Thu, 19 Nov 2020 19:01:37 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=szxga04-in.huawei.com; envelope-from=liuzhiqiang26@huawei.com; receiver=<UNKNOWN> 
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	by ml01.01.org (Postfix) with ESMTP id B62F0100EC1F5;
+	Fri, 20 Nov 2020 01:21:39 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.35; helo=szxga07-in.huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
+Received: from szxga07-in.huawei.com (szxga07-in.huawei.com [45.249.212.35])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A0C71100EF261
-	for <linux-nvdimm@lists.01.org>; Thu, 19 Nov 2020 19:01:35 -0800 (PST)
-Received: from DGGEMS407-HUB.china.huawei.com (unknown [172.30.72.58])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4CchC01WFgz15PQb
-	for <linux-nvdimm@lists.01.org>; Fri, 20 Nov 2020 11:01:16 +0800 (CST)
-Received: from [127.0.0.1] (10.174.176.238) by DGGEMS407-HUB.china.huawei.com
- (10.3.19.207) with Microsoft SMTP Server id 14.3.487.0; Fri, 20 Nov 2020
- 11:01:22 +0800
-Subject: Re: [ndctl PATCH 0/8] fix serverl issues reported by Coverity
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Scargall, Steve"
-	<steve.scargall@intel.com>
-References: <bed3b3b3-1f30-6751-c0bf-15ecf70192f9@huawei.com>
- <5a9465d5-b933-3b74-bd74-7e18e48a7467@huawei.com>
- <d79aa3a155fb2373e96f00b7b796d3d7ab5022b5.camel@intel.com>
-From: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-Message-ID: <a2a55e5b-e615-86e4-4424-2c200e330db9@huawei.com>
-Date: Fri, 20 Nov 2020 11:01:21 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+	by ml01.01.org (Postfix) with ESMTPS id 9B3DE100EF26F
+	for <linux-nvdimm@lists.01.org>; Fri, 20 Nov 2020 01:21:37 -0800 (PST)
+Received: from DGGEMS402-HUB.china.huawei.com (unknown [172.30.72.58])
+	by szxga07-in.huawei.com (SkyGuard) with ESMTP id 4CcrdS5SW4z70n0;
+	Fri, 20 Nov 2020 17:21:16 +0800 (CST)
+Received: from thunder-town.china.huawei.com (10.174.176.144) by
+ DGGEMS402-HUB.china.huawei.com (10.3.19.202) with Microsoft SMTP Server id
+ 14.3.487.0; Fri, 20 Nov 2020 17:21:25 +0800
+From: Zhen Lei <thunder.leizhen@huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm
+	<linux-nvdimm@lists.01.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Subject: [PATCH 1/1] device-dax: delete a redundancy check in dev_dax_validate_align()
+Date: Fri, 20 Nov 2020 17:20:57 +0800
+Message-ID: <20201120092057.2144-1-thunder.leizhen@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
 MIME-Version: 1.0
-In-Reply-To: <d79aa3a155fb2373e96f00b7b796d3d7ab5022b5.camel@intel.com>
-Content-Language: en-US
-X-Originating-IP: [10.174.176.238]
+X-Originating-IP: [10.174.176.144]
 X-CFilter-Loop: Reflected
-Message-ID-Hash: NBMSJXY7NIEQO5ONBDG5IGJMPILAAFE3
-X-Message-ID-Hash: NBMSJXY7NIEQO5ONBDG5IGJMPILAAFE3
-X-MailFrom: liuzhiqiang26@huawei.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linfeilong@huawei.com" <linfeilong@huawei.com>
+Message-ID-Hash: 4H6TIP53E3VOBW4YXXUGX7ZBSALCQKAC
+X-Message-ID-Hash: 4H6TIP53E3VOBW4YXXUGX7ZBSALCQKAC
+X-MailFrom: thunder.leizhen@huawei.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Zhen Lei <thunder.leizhen@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NBMSJXY7NIEQO5ONBDG5IGJMPILAAFE3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4H6TIP53E3VOBW4YXXUGX7ZBSALCQKAC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,72 +61,39 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+After we have done the alignment check for the length of each range, the
+alignment check for dev_dax_size(dev_dax) is no longer needed, because it
+get the sum of the length of each range.
 
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+---
+ drivers/dax/bus.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-On 2020/11/20 10:47, Verma, Vishal L wrote:
-> On Fri, 2020-11-20 at 10:45 +0800, Zhiqiang Liu wrote:
->> Friendly ping...
->>
->> I just wonder if this kind of patches will not be reviewed
->> and processed.
->>
->> I`d be very happy to receive any feedback.
-> 
-> Hi Zhiqiang,
-> 
-> These are definitely on my list to look at, I've just not had the time
-> to do so yet. I'm hoping to clear up my ndctl backlog in the next couple
-> of weeks though and get a v71 release out.
-> 
-> Thanks for the patience!
-> 
-> -Vishal
-> 
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 1efae11d947a..35f9238c0139 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -1109,16 +1109,9 @@ static ssize_t align_show(struct device *dev,
+ 
+ static ssize_t dev_dax_validate_align(struct dev_dax *dev_dax)
+ {
+-	resource_size_t dev_size = dev_dax_size(dev_dax);
+ 	struct device *dev = &dev_dax->dev;
+ 	int i;
+ 
+-	if (dev_size > 0 && !alloc_is_aligned(dev_dax, dev_size)) {
+-		dev_dbg(dev, "%s: align %u invalid for size %pa\n",
+-			__func__, dev_dax->align, &dev_size);
+-		return -EINVAL;
+-	}
+-
+ 	for (i = 0; i < dev_dax->nr_range; i++) {
+ 		size_t len = range_len(&dev_dax->ranges[i].range);
+ 
+-- 
+2.26.0.106.g9fadedd
 
-Thanks for your reply.
-Looking forward to the new release.
-
-Thank you again.
-
--Zhiqiang Liu
-
->>
->> On 2020/11/6 17:23, Zhiqiang Liu wrote:
->>> Recently, we use Coverity to analysis the ndctl package.
->>> Several issues should be resolved to make Coverity happy.
->>>
->>> lihaotian9 (8):
->>>   namespace: check whether pfn|dax|btt is NULL in setup_namespace
->>>   lib/libndctl: fix memory leakage problem in add_bus
->>>   libdaxctl: fix memory leakage in add_dax_region()
->>>   dimm: fix potential fd leakage in dimm_action()
->>>   util/help: check whether strdup returns NULL in exec_man_konqueror
->>>   lib/inject: check whether cmd is created successfully
->>>   libndctl: check whether ndctl_btt_get_namespace returns NULL in
->>>     callers
->>>   namespace: check whether seed is NULL in validate_namespace_options
->>>
->>>  daxctl/lib/libdaxctl.c |  3 +++
->>>  ndctl/dimm.c           | 12 +++++++-----
->>>  ndctl/lib/inject.c     |  8 ++++++++
->>>  ndctl/lib/libndctl.c   |  1 +
->>>  ndctl/namespace.c      | 23 ++++++++++++++++++-----
->>>  test/libndctl.c        | 16 +++++++++++-----
->>>  test/parent-uuid.c     |  2 +-
->>>  util/help.c            |  8 +++++++-
->>>  util/json.c            |  3 +++
->>>  9 files changed, 59 insertions(+), 17 deletions(-)
->>>
->> _______________________________________________
->> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
->> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-> 
-> .
-> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
