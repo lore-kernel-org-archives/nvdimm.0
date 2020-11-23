@@ -7,51 +7,51 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F4C6C64EBC
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 12:32:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9998C2D0E4
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 12:37:45 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 446A620781
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 12:32:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 72D7721D93
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 12:37:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="AEnQ8s0D"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 446A620781
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="PbYyFxYx"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 72D7721D93
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linuxfoundation.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 04B2A100EBBAC;
-	Mon, 23 Nov 2020 04:32:42 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id F3538100EBBB2;
+	Mon, 23 Nov 2020 04:37:44 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 540D6100EBBA1
-	for <linux-nvdimm@lists.01.org>; Mon, 23 Nov 2020 04:32:38 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id BA97C100EBBA2
+	for <linux-nvdimm@lists.01.org>; Mon, 23 Nov 2020 04:37:43 -0800 (PST)
 Received: from localhost (83-86-74-64.cable.dynamic.v4.ziggo.nl [83.86.74.64])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPSA id 5D45220781;
-	Mon, 23 Nov 2020 12:32:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPSA id B62BC22203;
+	Mon, 23 Nov 2020 12:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1606134757;
-	bh=frCVka9YuGqxr2RrDANFnW8tkhiq/VbNt2PTcU9GSGs=;
+	s=korg; t=1606135063;
+	bh=CNiP+4Hj3vw6UmF5OummcB34I0ZbFbNNqimg2SA/Qck=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=AEnQ8s0DclkmafjqjkMrlvXR0eN8FJgAA2dvRwg/is+5+XYMnommutoit+Cnam4c7
-	 /WNcy+PfvOj17AWcXFhTYMXpEZgDP8K4lvbfzl4s1+VwKxDghZlPAISepE5/nIKGTS
-	 OXthZJGXgV6CxH+XgoXkYeKca9N7HUYSMwDjGIes=
+	b=PbYyFxYx9zsF9B7BazhOEw5ZmzNUEg4LHSgHjn/D/1zs2tg84HMNVKljwA+Pxvi7F
+	 uuK1nnGcUBLz8TeSK30E2PfHXdFGXQq4dH8EEq9qAX20/8lO/Hj/lpJdAFSLx0DPVp
+	 Frg3dgdHs0n6cV+wsvdbInhJ6MK49xAQ5ADobgTA=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: linux-kernel@vger.kernel.org
-Subject: [PATCH 4.19 41/91] MIPS: export has_transparent_hugepage() for modules
-Date: Mon, 23 Nov 2020 13:22:01 +0100
-Message-Id: <20201123121811.308455172@linuxfoundation.org>
+Subject: [PATCH 5.4 061/158] MIPS: export has_transparent_hugepage() for modules
+Date: Mon, 23 Nov 2020 13:21:29 +0100
+Message-Id: <20201123121822.882979950@linuxfoundation.org>
 X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201123121809.285416732@linuxfoundation.org>
-References: <20201123121809.285416732@linuxfoundation.org>
+In-Reply-To: <20201123121819.943135899@linuxfoundation.org>
+References: <20201123121819.943135899@linuxfoundation.org>
 User-Agent: quilt/0.66
 MIME-Version: 1.0
-Message-ID-Hash: 33FPAZBSKWV6XBEVPCNS52E6SDUZNJ7O
-X-Message-ID-Hash: 33FPAZBSKWV6XBEVPCNS52E6SDUZNJ7O
+Message-ID-Hash: KXQ62RVOPCABCMMB26PJRJQ2GCUQ7J2Y
+X-Message-ID-Hash: KXQ62RVOPCABCMMB26PJRJQ2GCUQ7J2Y
 X-MailFrom: gregkh@linuxfoundation.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -59,7 +59,7 @@ CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, ker
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/33FPAZBSKWV6XBEVPCNS52E6SDUZNJ7O/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KXQ62RVOPCABCMMB26PJRJQ2GCUQ7J2Y/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -96,10 +96,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/mips/mm/tlb-r4k.c b/arch/mips/mm/tlb-r4k.c
-index 0596505770dba..11985399c4695 100644
+index c13e46ced4252..60046445122b3 100644
 --- a/arch/mips/mm/tlb-r4k.c
 +++ b/arch/mips/mm/tlb-r4k.c
-@@ -424,6 +424,7 @@ int has_transparent_hugepage(void)
+@@ -437,6 +437,7 @@ int has_transparent_hugepage(void)
  	}
  	return mask == PM_HUGE_MASK;
  }
