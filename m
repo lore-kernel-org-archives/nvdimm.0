@@ -2,165 +2,213 @@ Return-Path: <SRS0=IQ1B=E5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B2B5C2D0E4
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 07:21:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1804C63777
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 09:54:58 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6DA8420731
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 07:21:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTPS id 2AA6D212CC
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 23 Nov 2020 09:54:57 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="W7CUOpxx"
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6DA8420731
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	dkim=fail reason="signature verification failed" (1024-bit key) header.d=kernel.org header.i=@kernel.org header.b="bgTuwoVK"
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2AA6D212CC
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D4EE0100EC1C8;
-	Sun, 22 Nov 2020 23:21:46 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	by ml01.01.org (Postfix) with ESMTP id 9ABB1100EC1D5;
+	Mon, 23 Nov 2020 01:54:57 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3B5D6100EC1C6
-	for <linux-nvdimm@lists.01.org>; Sun, 22 Nov 2020 23:21:44 -0800 (PST)
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 0AN747Fe061284;
-	Mon, 23 Nov 2020 02:21:42 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=iwQ+Pdy7E4CWNLoPiFkc31rAtVYVOThkt1k/ajJpLJA=;
- b=W7CUOpxx1jWuEvnmREmc2RAL3WB2CYTp07502XP3SDrVx/eZVXYdmOGBmlQR9Cc7O7vQ
- VHrR2iILZQtTYJbxIEnceXbSlgpojjroJn4ow64o42jMNTd/JiDmVgD0F7w+LnsfVsN8
- MunVpWaa2k35tu5/sePHURqM0HUn+L1LkFr4pUKqFBSdrUa0R4nSOEO1jy3jvdiwpbZr
- 2QhIAMJH/eZIEKrkYiniTtK3iHEXGgzUJ17J00RYun3gm/0+tGXZhMDY5/18CMax8d8T
- 3Lk4YgU3qzq9Q/o2pCWjvu9pJ/yu4JIN7k1rNTKREoQjNwTtgFtLM6zGiMTD8D94DssK Qg==
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 34yvnrd1c9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 23 Nov 2020 02:21:41 -0500
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 0AN7IYFB014591;
-	Mon, 23 Nov 2020 07:21:39 GMT
-Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
-	by ppma06ams.nl.ibm.com with ESMTP id 34xt5ha7ph-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 23 Nov 2020 07:21:39 +0000
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 0AN7LbLr30409210
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 23 Nov 2020 07:21:37 GMT
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 4EFB6A4054;
-	Mon, 23 Nov 2020 07:21:37 +0000 (GMT)
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8EF9CA405F;
-	Mon, 23 Nov 2020 07:21:34 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.85.107.136])
-	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Mon, 23 Nov 2020 07:21:34 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 23 Nov 2020 12:51:33 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-        Michal =?utf-8?Q?Such=C3=A1ne?=
- =?utf-8?Q?k?=
- <msuchanek@suse.de>
-Subject: Re: Feedback requested: Exposing NVDIMM performance statistics in a
- generic way
-In-Reply-To: <CAPcyv4hTYQ8upuDd0RqUzBtSqjBr4rJz0eaceUmr4b=XeXqs-A@mail.gmail.com>
-References: <87r1v3lwcn.fsf@linux.ibm.com>
- <20201023192829.3ee3c1a7@naga.suse.cz>
- <CAPcyv4hTYQ8upuDd0RqUzBtSqjBr4rJz0eaceUmr4b=XeXqs-A@mail.gmail.com>
-Date: Mon, 23 Nov 2020 12:51:33 +0530
-Message-ID: <87k0ucfshu.fsf@vajain21.in.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 150CC100EC1D4
+	for <linux-nvdimm@lists.01.org>; Mon, 23 Nov 2020 01:54:54 -0800 (PST)
+Received: from aquarius.haifa.ibm.com (nesher1.haifa.il.ibm.com [195.110.40.7])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by mail.kernel.org (Postfix) with ESMTPSA id D7CBA20639;
+	Mon, 23 Nov 2020 09:54:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=default; t=1606125293;
+	bh=l1UjkAfnNyh98N6sVhXyjWVNCPQSh1Uyco6l02Ql/jg=;
+	h=From:To:Cc:Subject:Date:From;
+	b=bgTuwoVK7hlJ5tHwSZMnIqlj7XWEpPuUuHTgxap440Ax2AVXU38rvp9PcK/jVVArt
+	 tLbnq1rqSaOYQRNwXYibXvU+TzqevKQgsG2+deH95KCtyicXmdl32HTOpIAdOVOLCE
+	 UqyvVlS5KaRbanBFN6Nwe3OwZ4laWY0MBwv4Wf4I=
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v10 0/9] mm: introduce memfd_secret system call to create "secret" memory areas
+Date: Mon, 23 Nov 2020 11:54:23 +0200
+Message-Id: <20201123095432.5860-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.312,18.0.737
- definitions=2020-11-23_02:2020-11-20,2020-11-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 impostorscore=0
- mlxlogscore=999 spamscore=0 suspectscore=0 priorityscore=1501
- malwarescore=0 mlxscore=0 bulkscore=0 lowpriorityscore=0 phishscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2011230048
-Message-ID-Hash: HSMMB5IVLL6GC2J33ZN25ZCXDF2Z42KB
-X-Message-ID-Hash: HSMMB5IVLL6GC2J33ZN25ZCXDF2Z42KB
-X-MailFrom: vaibhav@linux.ibm.com
+Message-ID-Hash: HWEIUUXKDQMHNZ65EPJTUUJU74CO5GZS
+X-Message-ID-Hash: HWEIUUXKDQMHNZ65EPJTUUJU74CO5GZS
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Alastair D'Silva <alastair@d-silva.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-nvdimm <linux-nvdimm@lists.01.org>
+CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@k
+ ernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HSMMB5IVLL6GC2J33ZN25ZCXDF2Z42KB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HWEIUUXKDQMHNZ65EPJTUUJU74CO5GZS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-SGkgRGFuIGFuZCBNaWNoYWwsDQoNCkkgaGF2ZSBwb3N0ZWQgYW4gUkZDIHBhdGNoIHRvIGltcGxt
-ZW50IHRoZSBrZXJuZWwgc2lkZSBpbnRlcmZhY2UgZm9yDQp0aGlzIGluIGxpYm52ZGltbSB3aXRo
-IGFuIGltcGxlbWVudGF0aW9uIGluIHBhcHItc2NtIGRyaXZlciBtb2R1bGUgYXQgWzFdLiBDYW4N
-CnlvdSBwbGVhc2UgdGFrZSBhIGxvb2sgYXQgdGhlIHBhdGNoIHNlcmllZCBhbmQgcHJvdmlkZSB5
-b3VyIGlucHV0cy4NCg0KWzFdIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2xpbnV4LW52ZGltbS8y
-MDIwMTEwODIxMTU0OS4xMjIwMTgtMS12YWliaGF2QGxpbnV4LmlibS5jb20vDQoNClRoYW5rcywN
-Cn4gVmFpYmhhdg0KDQpEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4gd3Jp
-dGVzOg0KDQo+IE9uIEZyaSwgT2N0IDIzLCAyMDIwIGF0IDEwOjI4IEFNIE1pY2hhbCBTdWNow6Fu
-ZWsgPG1zdWNoYW5la0BzdXNlLmRlPiB3cm90ZToNCj4+DQo+PiBIZWxsbywNCj4+DQo+PiBPbiBU
-aHUsIE1heSAyOCwgMjAyMCBhdCAxMTo1OSBBTSBWYWliaGF2IEphaW4gPHZhaWJoYXZAbGludXgu
-aWJtLmNvbT4gd3JvdGU6DQo+PiA+DQo+PiA+IFRoYW5rcyBmb3IgdGhpcyB0YWtpbmcgdGltZSB0
-byBsb29rIGludG8gdGhpcyBEYW4sDQo+PiA+DQo+PiA+IEFncmVlIHdpdGggdGhlIHBvaW50cyB5
-b3UgaGF2ZSBtYWRlIGVhcmxpZXIgdGhhdCBJIGFtIHN1bW1hcml6aW5nIGJlbG93Og0KPj4gPg0K
-Pj4gPiAqIFRoaXMgaXMgYmV0dGVyIGRvbmUgaW4gbmRjdGwgcmF0aGVyIHRoYW4gaXBtY3RsLg0K
-Pj4gPiAqIFNob3VsZCBvbmx5IGV4cG9zZSBnZW5lcmFsIHBlcmZvcm1hbmNlIG1ldHJpY3MgYW5k
-IG5vdCBwZXJmb3JtYW5jZQ0KPj4gPiAgIGNvdW50ZXJzLiBQZXJmb3JtYW5jZSBjb3VudGVyIHNo
-b3VsZCBiZSBleHBvc2VkIHZpYSBwZXJmDQo+PiA+ICogVmVuZG9yIHNwZWNpZmljIG1ldHJpY3Mg
-dG8gYmUgc2VwYXJhdGVkIGZyb20gZ2VuZXJpYyBwZXJmb3JtYW5jZQ0KPj4gPiAgIG1ldHJpY3Mu
-DQo+PiA+DQo+PiA+IE9uZSB3YXkgdG8gc3BsaXQgZ2VuZXJpYyBhbmQgdmVuZG9yIHNwZWNpZmlj
-IG1ldHJpY3MgbWlnaHQgYmUgdG8gcmVwb3J0DQo+PiA+IGdlbmVyaWMgcGVyZm9ybWFuY2UgbWV0
-cmljcyB0b2dldGhlciB3aXRoIGRpbW0gaGVhbHRoIG1ldHJpY3Mgc3VjaCBhcw0KPj4gPiAidGVt
-cHJhdHVyZV9jZWxzaXVzIiBvciAic3BhcmVzX3BlcmNlbnRhZ2UiIHRoYXQgYXJlIGFscmVhZHkg
-cmVwb3J0ZWQgaW4NCj4+ID4gYnkgZGltbSBoZWFsdGggb3V0cHV0Lg0KPj4gPg0KPj4gPiBWZW5k
-b3Igc3BlY2lmaWMgcGVyZm9ybWFuY2UgbWV0cmljcyBjYW4gYmUgcmVwb3J0ZWQgYXMgYSBzZXBl
-cmF0ZSBvYmplY3QNCj4+ID4gaW4gdGhlIGpzb24gb3V0cHV0LiBTb21ldGhpbmcgc2ltaWxhciB0
-byBvdXRwdXQgYmVsb3c6DQo+PiA+DQo+PiA+ICMgbmRjdGwgbGlzdCAtREggLS1zdGF0cyAtLXZl
-bmRvci1zdGF0cw0KPj4gPiBbDQo+PiA+ICAgew0KPj4gPiAgICAgImRldiI6Im5tZW0wIiwNCj4+
-ID4gICAgICJoZWFsdGgiOnsNCj4+ID4gICAgICAgImhlYWx0aF9zdGF0ZSI6Im9rIiwNCj4+ID4g
-ICAgICAgInNodXRkb3duX3N0YXRlIjoiY2xlYW4iLA0KPj4gPiAgICAgICAidGVtcGVyYXR1cmVf
-Y2Vsc2l1cyI6NDguMDAsDQo+PiA+ICAgICAgICJzcGFyZXNfcGVyY2VudGFnZSI6MTAsDQo+PiA+
-DQo+PiA+ICAgICAgIC8qIEdlbmVyaWMgcGVyZm9ybWFuY2UgbWV0cmljcy9zdGF0cyAqLw0KPj4g
-PiAgICAgICAiVG90YWxNZWRpYVJlYWRzIjogMTg5MjksDQo+PiA+ICAgICAgICJUb3RhbE1lZGlh
-V3JpdGVzIjogMCwNCj4+ID4gICAgICAgLi4uLg0KPj4gPiAgICAgfQ0KPj4gPg0KPj4gPiAgICAg
-LyogVmVuZG9yIHNwZWNpZmljIHN0YXRzIGZvciB0aGUgZGltbSAqLw0KPj4gPiAgICAgInZlbmRv
-ci1zdGF0cyI6IHsNCj4+ID4gICAgICJDb250cm9sbGVyIFJlc2V0IENvdW50IjoxMA0KPj4gPiAg
-ICAgIkNvbnRyb2xsZXIgUmVzZXQgRWxhcHNlZCBUaW1lIjogMzYwMA0KPj4gPiAgICAgIlBvd2Vy
-LW9uIFNlY29uZHMiOiAzNjAwDQo+Pg0KPj4gSG93IGRvIHlvdSB0ZWxsIGdlbmVyaWMgZnJvbSB2
-ZW5kb3Itc3BlY2lmaWMgc3RhdHMsIHRob3VnaD8NCj4+DQo+PiBDb250cm9sbGVyIHJlc2V0IGNv
-dW50IGFuZCBwb3dlci1vbiB0aW1lIG1heSBub3QgYmUgcmVwb3J0ZWQgYnkgc29tZQ0KPj4gY29u
-dHJvbGxlcnMgYnV0IHNvdW5kIHByZXR0eSBnZW5lcmljLg0KPj4NCj4+IEV2ZW4gaWYgeW91IGRl
-Y2xhcmUgdGhhdCB0aGUgc3RhdHMgcmVwb3J0ZWQgYnkgYWxsIGNvbnRyb2xsZXJzDQo+PiBhdmFp
-bGFibGUgYXQgdGhpcyBtb21lbnQgYXJlIGdlbmVyaWMgYSBsYXRlciBvbmUgbWF5IG5vdCByZXBv
-cnQgc29tZSBvZg0KPj4gdGhlc2UgJ2dlbmVyaWMnIHN0YXRpc3RpY3MsIG9yIHJlcG9ydCB0aGVt
-IGluIGRpZmZlcmVudCB3YXkvdW5pdHMsIG9yDQo+PiBtYXkgc2ltcGx5IG5vdCByZXBvcnQgYW55
-dGhpbmcgYXQgYWxsIGZvciBzb21lIHRlY2huaWNhbCByZWFzb24uDQo+Pg0KPj4gS2VybmVscyB0
-aGF0IGRvIG5vdCBoYXZlIHRoaXMgZmVhdHVyZSB3aWxsIG5vdCByZXBvcnQgYW55dGhpbmcgYXQg
-YWxsDQo+PiBlaXRoZXIuDQo+DQo+IE15IGV4cGVjdGF0aW9uIGlzIHRoYXQgZm9yIGEgZ2l2ZW4g
-anNvbiBhdHRyaWJ1dGUgbmFtZSBhbnkgdmVuZG9yDQo+IGJhY2tlbmQgdGhhdCBzdXBwb3J0cyBp
-dCBtdXN0IGNvbnZleSBpdCBpbiBhIGNvbXBhdGlibGUgd2F5LiBJZiBhDQo+IGdpdmVuIGF0dHJp
-YnV0ZSBkb2VzIG5vdCBtYWtlIHNlbnNlIGZvciBhIGdpdmVuIHZlbmRvciwgb3IgaXMgbm90IHll
-dA0KPiBpbXBsZW1lbnRlZCB0aGVuIGxlYXZpbmcgaXQgdW5wb3B1bGF0ZWQgaXMgaW5kZWVkIHRo
-ZSBleHBlY3RhdGlvbi4NCj4NCj4gVGhlIGdvYWwgaXMgdG8gYm90aCBtaW5pbWl6ZSB2ZW5kb3Ig
-c3BlY2lmaWMgbG9naWMgaW4gaW5mcmFzdHJ1Y3R1cmUNCj4gdGhhdCBjb25zdW1lcyB0aGUgbmRj
-dGwganNvbiB3aGlsZSBhdCB0aGUgc2FtZSB0aW1lIGJhbGFuY2UgdmVuZG9yDQo+IG5lZWRzLiBJ
-biBvdGhlciB3b3JkcyBhdm9pZCAibmVlZGxlc3MiIGRpZmZlcmVudGlhdGlvbiBhcyBtdWNoIGFz
-DQo+IHBvc3NpYmxlIHdpdGggc21hbGwgYW1vdW50IG9mIGNvbXBhdCB3b3JrIGFjcm9zcyB2ZW5k
-b3JzLg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVu
-c3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9y
-Zwo=
+From: Mike Rapoport <rppt@linux.ibm.com>
+
+Hi,
+
+This is an implementation of "secret" mappings backed by a file descriptor.
+
+The file descriptor backing secret memory mappings is created using a
+dedicated memfd_secret system call The desired protection mode for the
+memory is configured using flags parameter of the system call. The mmap()
+of the file descriptor created with memfd_secret() will create a "secret"
+memory mapping. The pages in that mapping will be marked as not present in
+the direct map and will have desired protection bits set in the user page
+table. For instance, current implementation allows uncached mappings.
+
+Although normally Linux userspace mappings are protected from other users,
+such secret mappings are useful for environments where a hostile tenant is
+trying to trick the kernel into giving them access to other tenants
+mappings.
+
+Additionally, in the future the secret mappings may be used as a mean to
+protect guest memory in a virtual machine host.
+
+For demonstration of secret memory usage we've created a userspace library
+
+https://git.kernel.org/pub/scm/linux/kernel/git/jejb/secret-memory-preloader.git
+
+that does two things: the first is act as a preloader for openssl to
+redirect all the OPENSSL_malloc calls to secret memory meaning any secret
+keys get automatically protected this way and the other thing it does is
+expose the API to the user who needs it. We anticipate that a lot of the
+use cases would be like the openssl one: many toolkits that deal with
+secret keys already have special handling for the memory to try to give
+them greater protection, so this would simply be pluggable into the
+toolkits without any need for user application modification.
+
+Hiding secret memory mappings behind an anonymous file allows (ab)use of
+the page cache for tracking pages allocated for the "secret" mappings as
+well as using address_space_operations for e.g. page migration callbacks.
+
+The anonymous file may be also used implicitly, like hugetlb files, to
+implement mmap(MAP_SECRET) and use the secret memory areas with "native" mm
+ABIs in the future.
+
+To limit fragmentation of the direct map to splitting only PUD-size pages,
+I've added an amortizing cache of PMD-size pages to each file descriptor
+that is used as an allocation pool for the secret memory areas.
+
+As the memory allocated by secretmem becomes unmovable, we use CMA to back
+large page caches so that page allocator won't be surprised by failing attempt
+to migrate these pages.
+
+v10:
+* Drop changes to arm64 compatibility layer
+* Add Roman's Ack for memcg accounting
+
+v9: https://lore.kernel.org/lkml/20201117162932.13649-1-rppt@kernel.org
+* Fix build with and without CONFIG_MEMCG
+* Update memcg accounting to avoid copying memcg_data, per Roman comments
+* Fix issues in secretmem_fault(), thanks Matthew
+* Do not wire up syscall in arm64 compatibility layer
+
+v8: https://lore.kernel.org/lkml/20201110151444.20662-1-rppt@kernel.org
+* Use CMA for all secretmem allocations as David suggested
+* Update memcg accounting after transtion to CMA
+* Prevent hibernation when there are active secretmem users
+* Add zeroing of the memory before releasing it back to cma/page allocator
+* Rebase on v5.10-rc2-mmotm-2020-11-07-21-40
+
+v7: https://lore.kernel.org/lkml/20201026083752.13267-1-rppt@kernel.org
+* Use set_direct_map() instead of __kernel_map_pages() to ensure error
+  handling in case the direct map update fails
+* Add accounting of large pages used to reduce the direct map fragmentation
+* Teach get_user_pages() and frieds to refuse get/pin secretmem pages
+
+v6: https://lore.kernel.org/lkml/20200924132904.1391-1-rppt@kernel.org
+* Silence the warning about missing syscall, thanks to Qian Cai
+* Replace spaces with tabs in Kconfig additions, per Randy
+* Add a selftest.
+
+Older history:
+v5: https://lore.kernel.org/lkml/20200916073539.3552-1-rppt@kernel.org
+v4: https://lore.kernel.org/lkml/20200818141554.13945-1-rppt@kernel.org
+v3: https://lore.kernel.org/lkml/20200804095035.18778-1-rppt@kernel.org
+v2: https://lore.kernel.org/lkml/20200727162935.31714-1-rppt@kernel.org
+v1: https://lore.kernel.org/lkml/20200720092435.17469-1-rppt@kernel.org
+
+Mike Rapoport (9):
+  mm: add definition of PMD_PAGE_ORDER
+  mmap: make mlock_future_check() global
+  set_memory: allow set_direct_map_*_noflush() for multiple pages
+  mm: introduce memfd_secret system call to create "secret" memory areas
+  secretmem: use PMD-size pages to amortize direct map fragmentation
+  secretmem: add memcg accounting
+  PM: hibernate: disable when there are active secretmem users
+  arch, mm: wire up memfd_secret system call were relevant
+  secretmem: test: add basic selftest for memfd_secret(2)
+
+ arch/Kconfig                              |   7 +
+ arch/arm64/include/asm/cacheflush.h       |   4 +-
+ arch/arm64/include/uapi/asm/unistd.h      |   1 +
+ arch/arm64/mm/pageattr.c                  |  10 +-
+ arch/riscv/include/asm/set_memory.h       |   4 +-
+ arch/riscv/include/asm/unistd.h           |   1 +
+ arch/riscv/mm/pageattr.c                  |   8 +-
+ arch/x86/Kconfig                          |   1 +
+ arch/x86/entry/syscalls/syscall_32.tbl    |   1 +
+ arch/x86/entry/syscalls/syscall_64.tbl    |   1 +
+ arch/x86/include/asm/set_memory.h         |   4 +-
+ arch/x86/mm/pat/set_memory.c              |   8 +-
+ fs/dax.c                                  |  11 +-
+ include/linux/pgtable.h                   |   3 +
+ include/linux/secretmem.h                 |  30 ++
+ include/linux/set_memory.h                |   4 +-
+ include/linux/syscalls.h                  |   1 +
+ include/uapi/asm-generic/unistd.h         |   6 +-
+ include/uapi/linux/magic.h                |   1 +
+ include/uapi/linux/secretmem.h            |   8 +
+ kernel/power/hibernate.c                  |   5 +-
+ kernel/power/snapshot.c                   |   4 +-
+ kernel/sys_ni.c                           |   2 +
+ mm/Kconfig                                |   5 +
+ mm/Makefile                               |   1 +
+ mm/filemap.c                              |   3 +-
+ mm/gup.c                                  |  10 +
+ mm/internal.h                             |   3 +
+ mm/mmap.c                                 |   5 +-
+ mm/secretmem.c                            | 446 ++++++++++++++++++++++
+ mm/vmalloc.c                              |   5 +-
+ scripts/checksyscalls.sh                  |   4 +
+ tools/testing/selftests/vm/.gitignore     |   1 +
+ tools/testing/selftests/vm/Makefile       |   3 +-
+ tools/testing/selftests/vm/memfd_secret.c | 298 +++++++++++++++
+ tools/testing/selftests/vm/run_vmtests    |  17 +
+ 36 files changed, 888 insertions(+), 38 deletions(-)
+ create mode 100644 include/linux/secretmem.h
+ create mode 100644 include/uapi/linux/secretmem.h
+ create mode 100644 mm/secretmem.c
+ create mode 100644 tools/testing/selftests/vm/memfd_secret.c
+
+
+base-commit: 9f8ce377d420db12b19d6a4f636fecbd88a725a5
+-- 
+2.28.0
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
