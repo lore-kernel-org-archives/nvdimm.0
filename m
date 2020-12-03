@@ -2,68 +2,78 @@ Return-Path: <SRS0=+Bl2=FH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24DE8C63777
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Dec 2020 10:54:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99E7FC4361B
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Dec 2020 15:47:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 32A09208FE
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Dec 2020 10:54:23 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 32A09208FE
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	by mail.kernel.org (Postfix) with ESMTPS id 25445207A3
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  3 Dec 2020 15:47:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 25445207A3
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 48FC7100ED499;
-	Thu,  3 Dec 2020 02:54:23 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=peterz@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 69C51100ED4BB;
+	Thu,  3 Dec 2020 07:47:23 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::242; helo=mail-lj1-x242.google.com; envelope-from=shakeelb@google.com; receiver=<UNKNOWN> 
+Received: from mail-lj1-x242.google.com (mail-lj1-x242.google.com [IPv6:2a00:1450:4864:20::242])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1BE9A100ED497
-	for <linux-nvdimm@lists.01.org>; Thu,  3 Dec 2020 02:54:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=9XAdOW0NAX0z97TKLA8+FaheS9mZEC++RheCYzCJiC0=; b=KKTMVrk2lo1kupWYSi6GnJ50BP
-	bbFlrFd213SadLnGexgRgxCz6XGnrCowFQbZYP0Ek8+TnQmvse7dy5OKwmn3pXSROdY1BzfrmJGB7
-	WW45gsa7uqgVDk/WxaN9QYY8s+hVcAKPMCMPVFg2fu9KPvvCsD0GvKgR/MmFKuTbob/dBDcKLVx5B
-	P4sgOAspA60qV3ACg3l+Xcm5i655Z8KcWvX8nWRsfPX46HdLgl5RGBnPSVO5i2BEUZohg7qg0CNNo
-	nWKWXZKL375ibiXy3GHDnLyLwKh1LD+IWnvr+atfzHA8HHC/BA61aXGhVhSOPkC/SH6irn6M9BAc8
-	ZESKvs0w==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1kkmFV-0001La-1V; Thu, 03 Dec 2020 10:54:09 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(Client did not present a certificate)
-	by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 3C29D305C11;
-	Thu,  3 Dec 2020 11:54:07 +0100 (CET)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-	id 26E2820C22F92; Thu,  3 Dec 2020 11:54:07 +0100 (CET)
-Date: Thu, 3 Dec 2020 11:54:07 +0100
-From: Peter Zijlstra <peterz@infradead.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH] x86/mm: Fix leak of pmd ptlock
-Message-ID: <20201203105407.GL2414@hirez.programming.kicks-ass.net>
-References: <160697689204.605323.17629854984697045602.stgit@dwillia2-desk3.amr.corp.intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id 0697C100ED4B7
+	for <linux-nvdimm@lists.01.org>; Thu,  3 Dec 2020 07:47:21 -0800 (PST)
+Received: by mail-lj1-x242.google.com with SMTP id s9so3001564ljo.11
+        for <linux-nvdimm@lists.01.org>; Thu, 03 Dec 2020 07:47:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/ayfcs9PdWYm7lbPtI7skq4RBm0f2Hr2bSO79nAHtFc=;
+        b=qeNyZ8YsBRIcSSEnxPslZwdaQzbHNHWQrVBr58zRszE0F8P9QlO9s+F6Eup0AC7FxW
+         QCI9RwkC5r87S1DcMFuQ0LGorDW6hc5tvP0HfgHeOOAQ4yRiIDrmcnabMErr46z25doA
+         KuS+R05984StHPoMfsXc6p3fX8UtHh/OTtoHz+R5rvw8+PEVFCbi/ODbvauIcTOeBy/l
+         LjY8bfJMs0j0jbctFehRcbnTYB5vfU33O6FRUX3G3dJeEzqE4yjZP8cwtzrXBtIu4V9x
+         qG8OhxlOwT0sXfEVrrlcH+U1SXqjVUNsoLXauBwPRBppDacfBHal0+6hTivZDoWfPiUF
+         I5fQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/ayfcs9PdWYm7lbPtI7skq4RBm0f2Hr2bSO79nAHtFc=;
+        b=itEm8++/QzxhWWH3CEdwOV31Tc9XKgt2S3K1+CymHwMfFhIl1IV0DfEdgoTY8IFek6
+         nWUD3lKlhsrllLqboAUA9CFTzc7uVx7x/cHLchB2uxnObCdeDZWlGAlRuLDYgNsEYDCf
+         cGlAzcmPRDoo34CgRiE7q0Pr+JPhA37OhWH1rhYrah/qA8flD7a58UG6v0AQ3mOE90jG
+         H3ox6hhoJEHCfDU/tQ4axAFHQjrYVAqAlpCW82WsiCvg4ko0zm/yF2+4yOFzYeVWEZRK
+         iazO/SimCFfBvoDMqQIljW6w7Eenp8LQ0q1QnL93MktmGP4GALMamOcGNF4OOG9WNztp
+         9k1w==
+X-Gm-Message-State: AOAM530kPs0hwg7ZBT7e5ftTkEBBhgKkOx2UsABFWsxpR6ENffz3VPq9
+	0YNBUp++iTqInC1k96lgQOQAWrffpH20zELvRhRh+w==
+X-Google-Smtp-Source: ABdhPJwIWQzmwxHBiRB8EE+s5XaHTO5aY/OfRodwgESsla0us6E0o0PYvgEf52SU6B5EtE5PNDOv6vNy/ZwtEjOqjbg=
+X-Received: by 2002:a2e:3c12:: with SMTP id j18mr1526064lja.192.1607010439133;
+ Thu, 03 Dec 2020 07:47:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <160697689204.605323.17629854984697045602.stgit@dwillia2-desk3.amr.corp.intel.com>
-Message-ID-Hash: TNODC4BNNBISNME5CPSHA6HA5PQBJVAW
-X-Message-ID-Hash: TNODC4BNNBISNME5CPSHA6HA5PQBJVAW
-X-MailFrom: peterz@infradead.org
+References: <20201203062949.5484-1-rppt@kernel.org> <20201203062949.5484-8-rppt@kernel.org>
+In-Reply-To: <20201203062949.5484-8-rppt@kernel.org>
+From: Shakeel Butt <shakeelb@google.com>
+Date: Thu, 3 Dec 2020 07:47:07 -0800
+Message-ID: <CALvZod5-r+TmuAYS7ErpSPdF0RKN_F_CbNMoXQdqONbhPxunTg@mail.gmail.com>
+Subject: Re: [PATCH v14 07/10] secretmem: add memcg accounting
+To: Mike Rapoport <rppt@kernel.org>
+Message-ID-Hash: DFX4NEELB4KHRU2LTOCDGCWYPY4C6L7D
+X-Message-ID-Hash: DFX4NEELB4KHRU2LTOCDGCWYPY4C6L7D
+X-MailFrom: shakeelb@google.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, stable@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Yi Zhang <yi.zhang@redhat.com>, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, willy@infradead.org
+CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deac
+ on <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TNODC4BNNBISNME5CPSHA6HA5PQBJVAW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DFX4NEELB4KHRU2LTOCDGCWYPY4C6L7D/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,11 +82,17 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Dec 02, 2020 at 10:28:12PM -0800, Dan Williams wrote:
-> pmd_free() is close, but it is a messy fit due to requiring an @mm arg.
+On Wed, Dec 2, 2020 at 10:31 PM Mike Rapoport <rppt@kernel.org> wrote:
+>
+> From: Mike Rapoport <rppt@linux.ibm.com>
+>
+> Account memory consumed by secretmem to memcg. The accounting is updated
+> when the memory is actually allocated and freed.
+>
+> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+> Acked-by: Roman Gushchin <guro@fb.com>
 
-Hurpm, only parisc and s390 actually use that argument. And s390
-_really_ needs it, because they're doing runtime folding per mm.
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
