@@ -7,81 +7,81 @@ X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13E7CC4167B
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42E82C1B0D8
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 9E4BB23AFD
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9E4BB23AFD
+	by mail.kernel.org (Postfix) with ESMTPS id 0F87423B1A
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:50 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0F87423B1A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 86CDB100EB82B;
-	Tue,  8 Dec 2020 09:30:41 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
+	by ml01.01.org (Postfix) with ESMTP id EFB5B100EB835;
+	Tue,  8 Dec 2020 09:30:49 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.79; helo=aserp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 181E2100EB824
-	for <linux-nvdimm@lists.01.org>; Tue,  8 Dec 2020 09:30:39 -0800 (PST)
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HPJGv071146;
-	Tue, 8 Dec 2020 17:30:27 GMT
+	by ml01.01.org (Postfix) with ESMTPS id DB567100EB827
+	for <linux-nvdimm@lists.01.org>; Tue,  8 Dec 2020 09:30:47 -0800 (PST)
+Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
+	by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HPdL3083242;
+	Tue, 8 Dec 2020 17:30:40 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=Bf0H8+1g681aJKDQDVv1pLRfSYGx+OJmLGnIVAZhDVs=;
- b=qIJEWKbVS9VEgPtIFLmUjJARzDDpPJLwN2LmUNdaUUX0/F0WZgJ/CmLlhEJN2bORg/1k
- lxx91sUyyBk1EP6HZ3qrQ/Ga9QBtgVGVbTnYNF7w0i/OXzmYDRxs3cru+/k2Tt5M8Dji
- IhV7Zs6uZl01cvvhGv66oFf30EFoPKHT+sG8WLoIGk/n9hO43dQjjw1W5iiAI8CzK8v7
- VtHMbLppXMZnm+a1iktp62jSGr7sFnntZVBz1scEpLDunXl21hvTnifdhI7SnVS5MrI3
- XF1w9WuCfr+cCloxrkknStJxKv1/3aboKnae2nZ64QsOyrhXrwu7mmmMJd832ngVUUnE Ug==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by aserp2120.oracle.com with ESMTP id 35825m41jj-1
+ bh=IPG6ZsD2a9Vym4C7OJ7uGrMcb9WiYMai81wXH8Ceros=;
+ b=ItJYq/GAYBlTpQ2+u9W58j+n1sLVJfQUncmsCa4l8a5JA0XzRIhI91E2xhIKrsyojKxy
+ CoBIhDGix1VWOQD/F7/Pcj9gM9Y8Sje0ivYHftqDj9mK6SF0O+Jbw24qppTJEQLZx+hQ
+ htvuqA9Z79Y3pQCaZqlGbbjVi6P5/1XErtwUfRI1MEz1Gu705eXUlaRGfJRIgbv3QM1o
+ 1HExNkS3AqgDDNdifWbX0rr/AFbEpFn26VmTVt+XWosGj+EBoYHDFpAmhiIu5I9CQfAA
+ BSRj90dpG6f2Vs7mf53V9h948yc6j5fPt4VTClvygM747y9KeJfwsExaA/ieQNLEubOM tw==
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by aserp2130.oracle.com with ESMTP id 357yqbv4eb-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 08 Dec 2020 17:30:27 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HOV52195372;
-	Tue, 8 Dec 2020 17:30:27 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-	by aserp3020.oracle.com with ESMTP id 358m3y2f72-1
+	Tue, 08 Dec 2020 17:30:39 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HPhk3032074;
+	Tue, 8 Dec 2020 17:30:39 GMT
+Received: from userv0122.oracle.com (userv0122.oracle.com [156.151.31.75])
+	by userp3030.oracle.com with ESMTP id 358m4y6sv9-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 08 Dec 2020 17:30:27 +0000
+	Tue, 08 Dec 2020 17:30:39 +0000
 Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
-	by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0B8HUPhV026020;
-	Tue, 8 Dec 2020 17:30:25 GMT
+	by userv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 0B8HUcsQ031614;
+	Tue, 8 Dec 2020 17:30:38 GMT
 Received: from paddy.uk.oracle.com (/10.175.194.215)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Tue, 08 Dec 2020 09:30:25 -0800
+	with ESMTP ; Tue, 08 Dec 2020 09:30:37 -0800
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-mm@kvack.org
-Subject: [PATCH RFC 3/9] sparse-vmemmap: Reuse vmemmap areas for a given mhp_params::align
-Date: Tue,  8 Dec 2020 17:28:54 +0000
-Message-Id: <20201208172901.17384-4-joao.m.martins@oracle.com>
+Subject: [PATCH RFC 6/9] mm/gup: Grab head page refcount once for group of subpages
+Date: Tue,  8 Dec 2020 17:28:58 +0000
+Message-Id: <20201208172901.17384-8-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20201208172901.17384-1-joao.m.martins@oracle.com>
 References: <20201208172901.17384-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9829 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 malwarescore=0 adultscore=0
- bulkscore=0 phishscore=0 suspectscore=1 mlxscore=0 mlxlogscore=999
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 spamscore=0 suspectscore=1
+ bulkscore=0 malwarescore=0 phishscore=0 adultscore=0 mlxlogscore=904
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
  definitions=main-2012080107
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9829 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 adultscore=0 bulkscore=0
- phishscore=0 mlxlogscore=999 clxscore=1015 priorityscore=1501 mlxscore=0
- spamscore=0 lowpriorityscore=0 malwarescore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2012080107
-Message-ID-Hash: GD64C2LZCIQFRLETYZSBGNH7424F6OLK
-X-Message-ID-Hash: GD64C2LZCIQFRLETYZSBGNH7424F6OLK
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 mlxlogscore=930
+ clxscore=1015 malwarescore=0 bulkscore=0 phishscore=0 adultscore=0
+ spamscore=0 priorityscore=1501 mlxscore=0 lowpriorityscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2012080107
+Message-ID-Hash: EBMRSZF764T2VXMYXD64NZUWT2BFWXNV
+X-Message-ID-Hash: EBMRSZF764T2VXMYXD64NZUWT2BFWXNV
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org, Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Joao Martins <joao.m.martins@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GD64C2LZCIQFRLETYZSBGNH7424F6OLK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EBMRSZF764T2VXMYXD64NZUWT2BFWXNV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,283 +91,137 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Introduce a new flag, MEMHP_REUSE_VMEMMAP, which signals that that
-struct pages are onlined with a given alignment, and should reuse the
-tail pages vmemmap areas. On that circunstamce we reuse the PFN backing
-only the tail pages subsections, while letting the head page PFN remain
-different. This presumes that the backing page structs are compound
-pages, such as the case for compound pagemaps (i.e. ZONE_DEVICE with
-PGMAP_COMPOUND set)
+Much like hugetlbfs or THPs, we treat device pagemaps with
+compound pages like the rest of GUP handling of compound pages.
 
-On 2M compound pagemaps, it lets us save 6 pages out of the 8 necessary
-PFNs necessary to describe the subsection's 32K struct pages we are
-onlining. On a 1G compound pagemap it let us save 4096 pages.
+Rather than incrementing the refcount every 4K, we record
+all sub pages and increment by @refs amount *once*.
 
-Sections are 128M (or bigger/smaller), and such when initializing a
-compound memory map where we are initializing compound struct pages, we
-need to preserve the tail page to be reused across the rest of the areas
-for pagesizes which bigger than a section.
+Performance measured by gup_benchmark improves considerably
+get_user_pages_fast() and pin_user_pages_fast():
+
+ $ gup_benchmark -f /dev/dax0.2 -m 16384 -r 10 -S [-u,-a] -n 512 -w
+
+(get_user_pages_fast 2M pages) ~75k us -> ~3.6k us
+(pin_user_pages_fast 2M pages) ~125k us -> ~3.8k us
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
-I wonder, rather than separating vmem_context and mhp_params, that
-one would just pick the latter. Albeit  semantically the ctx aren't
-necessarily paramters, context passed from multiple sections onlining
-(i.e. multiple calls to populate_section_memmap). Also provided that
-this is internal state, which isn't passed to external modules, except
- @align and @flags for page size and requesting whether to reuse tail
-page areas.
----
- include/linux/memory_hotplug.h | 10 ++++
- include/linux/mm.h             |  2 +-
- mm/memory_hotplug.c            | 12 ++++-
- mm/memremap.c                  |  3 ++
- mm/sparse-vmemmap.c            | 93 ++++++++++++++++++++++++++++------
- 5 files changed, 103 insertions(+), 17 deletions(-)
+ mm/gup.c | 67 ++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 51 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 73f8bcbb58a4..e15bb82805a3 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -70,6 +70,10 @@ typedef int __bitwise mhp_t;
-  */
- #define MEMHP_MERGE_RESOURCE	((__force mhp_t)BIT(0))
- 
-+/*
-+ */
-+#define MEMHP_REUSE_VMEMMAP	((__force mhp_t)BIT(1))
-+
- /*
-  * Extended parameters for memory hotplug:
-  * altmap: alternative allocator for memmap array (optional)
-@@ -79,10 +83,16 @@ typedef int __bitwise mhp_t;
- struct mhp_params {
- 	struct vmem_altmap *altmap;
- 	pgprot_t pgprot;
-+	unsigned int align;
-+	mhp_t flags;
- };
- 
- struct vmem_context {
- 	struct vmem_altmap *altmap;
-+	mhp_t flags;
-+	unsigned int align;
-+	void *block;
-+	unsigned long block_page;
- };
- 
- /*
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 2eb44318bb2d..8b0155441835 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -3006,7 +3006,7 @@ p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
- pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
- pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--			    struct vmem_altmap *altmap);
-+			    struct vmem_altmap *altmap, void *block);
- void *vmemmap_alloc_block(unsigned long size, int node);
- struct vmem_altmap;
- void *vmemmap_alloc_block_buf(unsigned long size, int node,
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index f8870c53fe5e..56121dfcc44b 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -300,6 +300,14 @@ static int check_hotplug_memory_addressable(unsigned long pfn,
- 	return 0;
+diff --git a/mm/gup.c b/mm/gup.c
+index 98eb8e6d2609..194e6981eb03 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2250,22 +2250,68 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
  }
+ #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
  
-+static void vmem_context_init(struct vmem_context *ctx, struct mhp_params *params)
++
++static int record_subpages(struct page *page, unsigned long addr,
++			   unsigned long end, struct page **pages)
 +{
-+	memset(ctx, 0, sizeof(*ctx));
-+	ctx->align = params->align;
-+	ctx->altmap = params->altmap;
-+	ctx->flags = params->flags;
++	int nr;
++
++	for (nr = 0; addr != end; addr += PAGE_SIZE)
++		pages[nr++] = page++;
++
++	return nr;
 +}
 +
- /*
-  * Reasonably generic function for adding memory.  It is
-  * expected that archs that support memory hotplug will
-@@ -313,7 +321,7 @@ int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
- 	unsigned long cur_nr_pages;
- 	int err;
- 	struct vmem_altmap *altmap = params->altmap;
--	struct vmem_context ctx = { .altmap = params->altmap };
-+	struct vmem_context ctx;
- 
- 	if (WARN_ON_ONCE(!params->pgprot.pgprot))
- 		return -EINVAL;
-@@ -338,6 +346,8 @@ int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
- 	if (err)
- 		return err;
- 
-+	vmem_context_init(&ctx, params);
+ #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+-			     unsigned long end, unsigned int flags,
+-			     struct page **pages, int *nr)
++static int __gup_device_compound_huge(struct dev_pagemap *pgmap,
++				      struct page *head, unsigned long sz,
++				      unsigned long addr, unsigned long end,
++				      unsigned int flags, struct page **pages)
++{
++	struct page *page;
++	int refs;
 +
- 	for (; pfn < end_pfn; pfn += cur_nr_pages) {
- 		/* Select all remaining pages up to the next section boundary */
- 		cur_nr_pages = min(end_pfn - pfn,
-diff --git a/mm/memremap.c b/mm/memremap.c
-index 287a24b7a65a..ecfa74848ac6 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -253,6 +253,9 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
- 			goto err_kasan;
++	if (!(pgmap->flags & PGMAP_COMPOUND))
++		return -1;
++
++	page = head + ((addr & (sz-1)) >> PAGE_SHIFT);
++	refs = record_subpages(page, addr, end, pages);
++
++	SetPageReferenced(page);
++	head = try_grab_compound_head(head, refs, flags);
++	if (!head) {
++		ClearPageReferenced(page);
++		return 0;
++	}
++
++	return refs;
++}
++
++static int __gup_device_huge(unsigned long pfn, unsigned long sz,
++			     unsigned long addr, unsigned long end,
++			     unsigned int flags, struct page **pages, int *nr)
+ {
+ 	int nr_start = *nr;
+ 	struct dev_pagemap *pgmap = NULL;
+ 
+ 	do {
+ 		struct page *page = pfn_to_page(pfn);
++		int refs;
+ 
+ 		pgmap = get_dev_pagemap(pfn, pgmap);
+ 		if (unlikely(!pgmap)) {
+ 			undo_dev_pagemap(nr, nr_start, flags, pages);
+ 			return 0;
  		}
- 
-+		if (pgmap->flags & PGMAP_COMPOUND)
-+			params->align = pgmap->align;
 +
- 		error = arch_add_memory(nid, range->start, range_len(range),
- 					params);
- 	}
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index bcda68ba1381..1679f36473ac 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -141,16 +141,20 @@ void __meminit vmemmap_verify(pte_t *pte, int node,
- }
++		refs = __gup_device_compound_huge(pgmap, page, sz, addr, end,
++						  flags, pages + *nr);
++		if (refs >= 0) {
++			*nr += refs;
++			put_dev_pagemap(pgmap);
++			return refs ? 1 : 0;
++		}
++
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		if (unlikely(!try_grab_page(page, flags))) {
+@@ -2289,7 +2335,7 @@ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+ 	int nr_start = *nr;
  
- pte_t * __meminit vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
--				       struct vmem_altmap *altmap)
-+				       struct vmem_altmap *altmap, void *block)
- {
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	if (pte_none(*pte)) {
- 		pte_t entry;
--		void *p;
+ 	fault_pfn = pmd_pfn(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
++	if (!__gup_device_huge(fault_pfn, PMD_SHIFT, addr, end, flags, pages, nr))
+ 		return 0;
+ 
+ 	if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
+@@ -2307,7 +2353,7 @@ static int __gup_device_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
+ 	int nr_start = *nr;
+ 
+ 	fault_pfn = pud_pfn(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	if (!__gup_device_huge(fault_pfn, addr, end, flags, pages, nr))
++	if (!__gup_device_huge(fault_pfn, PUD_SHIFT, addr, end, flags, pages, nr))
+ 		return 0;
+ 
+ 	if (unlikely(pud_val(orig) != pud_val(*pudp))) {
+@@ -2334,17 +2380,6 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
+ }
+ #endif
+ 
+-static int record_subpages(struct page *page, unsigned long addr,
+-			   unsigned long end, struct page **pages)
+-{
+-	int nr;
 -
--		p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
--		if (!p)
--			return NULL;
-+		void *p = block;
-+
-+		if (!block) {
-+			p = vmemmap_alloc_block_buf(PAGE_SIZE, node, altmap);
-+			if (!p)
-+				return NULL;
-+		} else {
-+			get_page(virt_to_page(block));
-+		}
- 		entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
- 		set_pte_at(&init_mm, addr, pte, entry);
- 	}
-@@ -216,8 +220,10 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- 	return pgd;
- }
- 
--int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
--					 int node, struct vmem_altmap *altmap)
-+static void *__meminit __vmemmap_populate_basepages(unsigned long start,
-+					   unsigned long end, int node,
-+					   struct vmem_altmap *altmap,
-+					   void *block)
- {
- 	unsigned long addr = start;
- 	pgd_t *pgd;
-@@ -229,38 +235,95 @@ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 	for (; addr < end; addr += PAGE_SIZE) {
- 		pgd = vmemmap_pgd_populate(addr, node);
- 		if (!pgd)
--			return -ENOMEM;
-+			return NULL;
- 		p4d = vmemmap_p4d_populate(pgd, addr, node);
- 		if (!p4d)
--			return -ENOMEM;
-+			return NULL;
- 		pud = vmemmap_pud_populate(p4d, addr, node);
- 		if (!pud)
--			return -ENOMEM;
-+			return NULL;
- 		pmd = vmemmap_pmd_populate(pud, addr, node);
- 		if (!pmd)
--			return -ENOMEM;
--		pte = vmemmap_pte_populate(pmd, addr, node, altmap);
-+			return NULL;
-+		pte = vmemmap_pte_populate(pmd, addr, node, altmap, block);
- 		if (!pte)
--			return -ENOMEM;
-+			return NULL;
- 		vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
- 	}
- 
-+	return __va(__pfn_to_phys(pte_pfn(*pte)));
-+}
-+
-+int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
-+					 int node, struct vmem_altmap *altmap)
-+{
-+	if (!__vmemmap_populate_basepages(start, end, node, altmap, NULL))
-+		return -ENOMEM;
- 	return 0;
- }
- 
-+static struct page * __meminit vmemmap_populate_reuse(unsigned long start,
-+					unsigned long end, int node,
-+					struct vmem_context *ctx)
-+{
-+	unsigned long size, addr = start;
-+	unsigned long psize = PHYS_PFN(ctx->align) * sizeof(struct page);
-+
-+	size = min(psize, end - start);
-+
-+	for (; addr < end; addr += size) {
-+		unsigned long head = addr + PAGE_SIZE;
-+		unsigned long tail = addr;
-+		unsigned long last = addr + size;
-+		void *area;
-+
-+		if (ctx->block_page &&
-+		    IS_ALIGNED((addr - ctx->block_page), psize))
-+			ctx->block = NULL;
-+
-+		area  = ctx->block;
-+		if (!area) {
-+			if (!__vmemmap_populate_basepages(addr, head, node,
-+							  ctx->altmap, NULL))
-+				return NULL;
-+
-+			tail = head + PAGE_SIZE;
-+			area = __vmemmap_populate_basepages(head, tail, node,
-+							    ctx->altmap, NULL);
-+			if (!area)
-+				return NULL;
-+
-+			ctx->block = area;
-+			ctx->block_page = addr;
-+		}
-+
-+		if (!__vmemmap_populate_basepages(tail, last, node,
-+						  ctx->altmap, area))
-+			return NULL;
-+	}
-+
-+	return (struct page*) start;
-+}
-+
- struct page * __meminit __populate_section_memmap(unsigned long pfn,
- 		unsigned long nr_pages, int nid, struct vmem_context *ctx)
- {
- 	unsigned long start = (unsigned long) pfn_to_page(pfn);
- 	unsigned long end = start + nr_pages * sizeof(struct page);
- 	struct vmem_altmap *altmap = NULL;
-+	int flags = 0;
- 
- 	if (WARN_ON_ONCE(!IS_ALIGNED(pfn, PAGES_PER_SUBSECTION) ||
- 		!IS_ALIGNED(nr_pages, PAGES_PER_SUBSECTION)))
- 		return NULL;
- 
--	if (ctx)
-+	if (ctx) {
- 		altmap = ctx->altmap;
-+		flags = ctx->flags;
-+	}
-+
-+	if (flags & MEMHP_REUSE_VMEMMAP)
-+		return vmemmap_populate_reuse(start, end, nid, ctx);
- 
- 	if (vmemmap_populate(start, end, nid, altmap))
- 		return NULL;
+-	for (nr = 0; addr != end; addr += PAGE_SIZE)
+-		pages[nr++] = page++;
+-
+-	return nr;
+-}
+-
+ #ifdef CONFIG_ARCH_HAS_HUGEPD
+ static unsigned long hugepte_addr_end(unsigned long addr, unsigned long end,
+ 				      unsigned long sz)
 -- 
 2.17.1
 _______________________________________________
