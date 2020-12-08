@@ -5,83 +5,83 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39455C19437
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B5F0C4361B
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E3C9A23AFD
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:49 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E3C9A23AFD
+	by mail.kernel.org (Postfix) with ESMTPS id 3B49323B05
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:30:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3B49323B05
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CE190100EB831;
-	Tue,  8 Dec 2020 09:30:49 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	by ml01.01.org (Postfix) with ESMTP id 21101100EB82A;
+	Tue,  8 Dec 2020 09:30:53 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.79; helo=aserp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id EF093100EB82B
-	for <linux-nvdimm@lists.01.org>; Tue,  8 Dec 2020 09:30:46 -0800 (PST)
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HNtKb191639;
-	Tue, 8 Dec 2020 17:30:36 GMT
+	by ml01.01.org (Postfix) with ESMTPS id 05252100EB838
+	for <linux-nvdimm@lists.01.org>; Tue,  8 Dec 2020 09:30:49 -0800 (PST)
+Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
+	by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HPa5v083230;
+	Tue, 8 Dec 2020 17:30:42 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=g6swsjDZvzJC7QAazYa+f++QasgrbynEkAanWwTCzP4=;
- b=G8frdM5XIvg9XNJYzwKy9DT8AVDtQLnRWPKHtTS1ysuB8J6wjUoZ48J6Ah6k2K08fCYN
- gayysIbwvSAGqQ+2rsmuUyvbcfD65SUtXoOveitYVRNSHxkzsQi2Kido21OcUpobyErC
- BkFrxaUds/KwXQUfH435n3AxCugDcn6NAO7bAynllz+8CIDrY8zg5rYN/cfhCw5paFhV
- Yh5LCbrwqB+9kZBZ/XqsDmLdl/qaWuXjzfKRqxZeeLh5xIRyJicrZAEdK/9bv4vgo4LB
- 924C1ySZJbXDduABBaU9lMizWtDsya5BR6n44HWzrkGn7x9N8vfgGDuPJZlkmGUTVzI1 0Q==
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by userp2130.oracle.com with ESMTP id 3581mqv00b-1
+ bh=LBzwQ398iHST3UKT538bsLuEEbD/c3Ows2/jGL1jAIY=;
+ b=oXpLirFM6Qlbdf+Mtkrd46GYq4i7ZSwkEHsawSs3Mzpn+CvtLEqAs7ysR1mnC4EgUlb3
+ q4FSO5XVJJp24q8JVnR0RllKAc77C7t8gXPg4cDOhwMrWOc9RtCRgN4hrJ7HapqBKy6U
+ 7iVEnu0d1MHDfPWsSsK5a4d1aL6YnAnVNjZwPHFLxgg0bxHEFdvBys6Xs7cQAwe6/Dc1
+ nlRBu2lGlWvjw+yj1NNcCeDwL9sMZZHjmWldpWNoVK1iJvtns0bX7EeBz8iP0vkjLIkH
+ IopzYpqxZGFPYWYjuLhh1MNkUG0lM24ygQv/2Dbt+ayjCQPZM4Nlc0ACYTe18caiABJs ww==
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by aserp2130.oracle.com with ESMTP id 357yqbv4ej-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 08 Dec 2020 17:30:36 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HPjfh032498;
-	Tue, 8 Dec 2020 17:30:36 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by userp3030.oracle.com with ESMTP id 358m4y6ssv-1
+	Tue, 08 Dec 2020 17:30:42 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HOVs7195377;
+	Tue, 8 Dec 2020 17:30:41 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3020.oracle.com with ESMTP id 358m3y2fgw-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 08 Dec 2020 17:30:36 +0000
+	Tue, 08 Dec 2020 17:30:41 +0000
 Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0B8HUZH2004555;
-	Tue, 8 Dec 2020 17:30:35 GMT
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 0B8HUfXr012449;
+	Tue, 8 Dec 2020 17:30:41 GMT
 Received: from paddy.uk.oracle.com (/10.175.194.215)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Tue, 08 Dec 2020 09:30:34 -0800
+	with ESMTP ; Tue, 08 Dec 2020 09:30:40 -0800
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-mm@kvack.org
-Subject: [PATCH RFC 5/9] device-dax: Compound pagemap support
-Date: Tue,  8 Dec 2020 17:28:57 +0000
-Message-Id: <20201208172901.17384-7-joao.m.martins@oracle.com>
+Subject: [PATCH RFC 7/9] mm/gup: Decrement head page once for group of subpages
+Date: Tue,  8 Dec 2020 17:28:59 +0000
+Message-Id: <20201208172901.17384-9-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20201208172901.17384-1-joao.m.martins@oracle.com>
 References: <20201208172901.17384-1-joao.m.martins@oracle.com>
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9829 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 spamscore=0 suspectscore=1
- bulkscore=0 malwarescore=0 phishscore=0 adultscore=0 mlxlogscore=999
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 malwarescore=0 adultscore=0
+ bulkscore=0 phishscore=0 suspectscore=1 mlxscore=0 mlxlogscore=999
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
  definitions=main-2012080107
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9829 signatures=668683
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=1 mlxlogscore=999
- clxscore=1015 malwarescore=0 priorityscore=1501 adultscore=0
- lowpriorityscore=0 phishscore=0 spamscore=0 impostorscore=0 mlxscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ clxscore=1015 malwarescore=0 bulkscore=0 phishscore=0 adultscore=0
+ spamscore=0 priorityscore=1501 mlxscore=0 lowpriorityscore=0
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2009150000 definitions=main-2012080107
-Message-ID-Hash: J5X5FCSJUULVGUS2IO3QDPNP6HYA7CG3
-X-Message-ID-Hash: J5X5FCSJUULVGUS2IO3QDPNP6HYA7CG3
+Message-ID-Hash: NUQFE2TBJC3KH2MTXQQYJ4E4MEIP4H6N
+X-Message-ID-Hash: NUQFE2TBJC3KH2MTXQQYJ4E4MEIP4H6N
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org, Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Joao Martins <joao.m.martins@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/J5X5FCSJUULVGUS2IO3QDPNP6HYA7CG3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NUQFE2TBJC3KH2MTXQQYJ4E4MEIP4H6N/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,115 +91,124 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-dax devices are created with a fixed @align (huge page size) which
-is enforced through as well at mmap() of the device. Faults,
-consequently happen too at the specified @align specified at the
-creation, and those don't change through out dax device lifetime.
-MCEs poisons a whole dax huge page, as well as splits occurring at
-at the configured page size.
-
-As such, use the newly added compound pagemap facility which onlines
-the assigned dax ranges as compound pages. Currently, this means,
-that region/namespace bootstrap would take considerably less, given
-that you would initialize considerably less pages.
-
-On emulated NVDIMM guests this can be easily seen, e.g. on a setup
-with an emulated NVDIMM with 128G in size seeing improvements from ~750ms
-to ~190ms with 2M pages, and to less than a 1msec with 1G pages.
+Rather than decrementing the ref count one by one, we
+walk the page array and checking which belong to the same
+compound_head. Later on we decrement the calculated amount
+of references in a single write to the head page.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
-Probably deserves its own sysfs attribute for enabling PGMAP_COMPOUND?
----
- drivers/dax/device.c | 54 +++++++++++++++++++++++++++++++++-----------
- 1 file changed, 41 insertions(+), 13 deletions(-)
+ mm/gup.c | 41 ++++++++++++++++++++++++++++++++---------
+ 1 file changed, 32 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 25e0b84a4296..9daec6e08efe 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -192,6 +192,39 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+diff --git a/mm/gup.c b/mm/gup.c
+index 194e6981eb03..3a9a7229f418 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -212,6 +212,18 @@ static bool __unpin_devmap_managed_user_page(struct page *page)
  }
- #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #endif /* CONFIG_DEV_PAGEMAP_OPS */
  
-+static void set_page_mapping(struct vm_fault *vmf, pfn_t pfn,
-+			     unsigned int fault_size,
-+			     struct address_space *f_mapping)
++static int record_refs(struct page **pages, int npages)
 +{
-+	unsigned long i;
-+	pgoff_t pgoff;
++	struct page *head = compound_head(pages[0]);
++	int refs = 1, index;
 +
-+	pgoff = linear_page_index(vmf->vma, vmf->address
-+			& ~(fault_size - 1));
++	for (index = 1; index < npages; index++, refs++)
++		if (compound_head(pages[index]) != head)
++			break;
 +
-+	for (i = 0; i < fault_size / PAGE_SIZE; i++) {
-+		struct page *page;
-+
-+		page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
-+		if (page->mapping)
-+			continue;
-+		page->mapping = f_mapping;
-+		page->index = pgoff + i;
-+	}
++	return refs;
 +}
 +
-+static void set_compound_mapping(struct vm_fault *vmf, pfn_t pfn,
-+				 unsigned int fault_size,
-+				 struct address_space *f_mapping)
-+{
-+	struct page *head;
-+
-+	head = pfn_to_page(pfn_t_to_pfn(pfn));
-+	head->mapping = f_mapping;
-+	head->index = linear_page_index(vmf->vma, vmf->address
-+			& ~(fault_size - 1));
-+}
-+
- static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
+ /**
+  * unpin_user_page() - release a dma-pinned page
+  * @page:            pointer to page to be released
+@@ -221,9 +233,9 @@ static bool __unpin_devmap_managed_user_page(struct page *page)
+  * that such pages can be separately tracked and uniquely handled. In
+  * particular, interactions with RDMA and filesystems need special handling.
+  */
+-void unpin_user_page(struct page *page)
++static void __unpin_user_page(struct page *page, int refs)
  {
-@@ -225,8 +258,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 	}
+-	int refs = 1;
++	int orig_refs = refs;
  
- 	if (rc == VM_FAULT_NOPAGE) {
--		unsigned long i;
--		pgoff_t pgoff;
-+		struct dev_pagemap *pgmap = pfn_t_to_page(pfn)->pgmap;
+ 	page = compound_head(page);
  
- 		/*
- 		 * In the device-dax case the only possibility for a
-@@ -234,17 +266,10 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		 * mapped. No need to consider the zero page, or racing
- 		 * conflicting mappings.
- 		 */
--		pgoff = linear_page_index(vmf->vma, vmf->address
--				& ~(fault_size - 1));
--		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
--			struct page *page;
--
--			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
--			if (page->mapping)
--				continue;
--			page->mapping = filp->f_mapping;
--			page->index = pgoff + i;
--		}
-+		if (pgmap->flags & PGMAP_COMPOUND)
-+			set_compound_mapping(vmf, pfn, fault_size, filp->f_mapping);
-+		else
-+			set_page_mapping(vmf, pfn, fault_size, filp->f_mapping);
- 	}
- 	dax_read_unlock(id);
+@@ -237,14 +249,19 @@ void unpin_user_page(struct page *page)
+ 		return;
  
-@@ -426,6 +451,9 @@ int dev_dax_probe(struct dev_dax *dev_dax)
- 	}
+ 	if (hpage_pincount_available(page))
+-		hpage_pincount_sub(page, 1);
++		hpage_pincount_sub(page, refs);
+ 	else
+-		refs = GUP_PIN_COUNTING_BIAS;
++		refs *= GUP_PIN_COUNTING_BIAS;
  
- 	pgmap->type = MEMORY_DEVICE_GENERIC;
-+	pgmap->flags = PGMAP_COMPOUND;
-+	pgmap->align = dev_dax->align;
+ 	if (page_ref_sub_and_test(page, refs))
+ 		__put_page(page);
+ 
+-	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, 1);
++	mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_RELEASED, orig_refs);
++}
 +
- 	addr = devm_memremap_pages(dev, pgmap);
- 	if (IS_ERR(addr))
- 		return PTR_ERR(addr);
++void unpin_user_page(struct page *page)
++{
++	__unpin_user_page(page, 1);
+ }
+ EXPORT_SYMBOL(unpin_user_page);
+ 
+@@ -274,6 +291,7 @@ void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
+ 				 bool make_dirty)
+ {
+ 	unsigned long index;
++	int refs = 1;
+ 
+ 	/*
+ 	 * TODO: this can be optimized for huge pages: if a series of pages is
+@@ -286,8 +304,9 @@ void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
+ 		return;
+ 	}
+ 
+-	for (index = 0; index < npages; index++) {
++	for (index = 0; index < npages; index += refs) {
+ 		struct page *page = compound_head(pages[index]);
++
+ 		/*
+ 		 * Checking PageDirty at this point may race with
+ 		 * clear_page_dirty_for_io(), but that's OK. Two key
+@@ -310,7 +329,8 @@ void unpin_user_pages_dirty_lock(struct page **pages, unsigned long npages,
+ 		 */
+ 		if (!PageDirty(page))
+ 			set_page_dirty_lock(page);
+-		unpin_user_page(page);
++		refs = record_refs(pages + index, npages - index);
++		__unpin_user_page(page, refs);
+ 	}
+ }
+ EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
+@@ -327,6 +347,7 @@ EXPORT_SYMBOL(unpin_user_pages_dirty_lock);
+ void unpin_user_pages(struct page **pages, unsigned long npages)
+ {
+ 	unsigned long index;
++	int refs = 1;
+ 
+ 	/*
+ 	 * If this WARN_ON() fires, then the system *might* be leaking pages (by
+@@ -340,8 +361,10 @@ void unpin_user_pages(struct page **pages, unsigned long npages)
+ 	 * physically contiguous and part of the same compound page, then a
+ 	 * single operation to the head page should suffice.
+ 	 */
+-	for (index = 0; index < npages; index++)
+-		unpin_user_page(pages[index]);
++	for (index = 0; index < npages; index += refs) {
++		refs = record_refs(pages + index, npages - index);
++		__unpin_user_page(pages[index], refs);
++	}
+ }
+ EXPORT_SYMBOL(unpin_user_pages);
+ 
 -- 
 2.17.1
 _______________________________________________
