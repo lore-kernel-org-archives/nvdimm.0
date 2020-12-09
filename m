@@ -1,124 +1,188 @@
-Return-Path: <SRS0=xduE=FM=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=+foX=FN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59B13C4361B
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:40:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAA7BC1B0D9
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  9 Dec 2020 00:20:25 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DD75A23B3E
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  8 Dec 2020 17:40:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD75A23B3E
+	by mail.kernel.org (Postfix) with ESMTPS id 4A63723B54
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  9 Dec 2020 00:20:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4A63723B54
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B0446100EB839;
-	Tue,  8 Dec 2020 09:40:46 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+	by ml01.01.org (Postfix) with ESMTP id 89CE0100EC1E1;
+	Tue,  8 Dec 2020 16:20:24 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=jane.chu@oracle.com; receiver=<UNKNOWN> 
 Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CE555100EB82E
-	for <linux-nvdimm@lists.01.org>; Tue,  8 Dec 2020 09:40:44 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 7D8F2100ED4BB
+	for <linux-nvdimm@lists.01.org>; Tue,  8 Dec 2020 16:20:19 -0800 (PST)
 Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8Hdshc028754;
-	Tue, 8 Dec 2020 17:40:37 GMT
+	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B90K9s1089528;
+	Wed, 9 Dec 2020 00:20:09 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
  references : from : message-id : date : mime-version : in-reply-to :
  content-type : content-transfer-encoding; s=corp-2020-01-29;
- bh=2h/jbAMZdG4bZiUM0MvKFhVrphOCNaDgfXC+uprxVV4=;
- b=cAhWN4g5Qcw59uPWcR+uvmJjxgnJK4keGBTFoaJRuwzvCkZPL1jBkl9pj4fP3EXD0kCT
- 0IW/0IgjLkcr6lt/V9D5sJEsWWyFKGiC/S8jFCaRYrccRNhZ8D1lOqt6MeqCHeSB9dy8
- UxoKp9AeCtpnucdQGMKvRdbPtJCFC2Lo4fs3F2nWRFDkKXmfxc87UMG27aIskY7kOQ32
- 0Pd6RzqRlFTXipBfbQcVC6KDA9B7k2/FMkKWOAp9q4nChnQ2q5ytV+FN+n3Ubqcs0mVc
- VUoD8WXgQc0j9m7rWid5QAmG8gx8ZBHzNTq55t2wYkdKe6T0clfxUARnf+Kght7XQgOz Jg==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by userp2130.oracle.com with ESMTP id 3581mqv1fg-1
+ bh=j9tnf+gfvO0ufEAxyR2ChrMzeMfCfvBzgaDibcY+CaU=;
+ b=V59sG+JuU9qhlZGI4BrF+NZFGTuf2DN/TCwM+V9zgfZquAwj/dXwdVc1g/sa0VmKlCFx
+ FKcaB67peR6VHvJWPQLtRU0tzMmU6+/QTC+CkgLY6PQL8tErdV/9r7obH4URwYvEgLAT
+ LaBup94W+8KIr478PcpKv8np6/ljmh8hkwi8WgtMs7kywWTO4/9aE2HB9Jmhzh/X89+T
+ 4X2TbJKlZYMZF+JG3SySr92Q0uPSjjtsbiKzipjLV82uZUs9l7AhSKAS47okcj/nr7gd
+ qb2BDReOFYaGpiPf5kNOMq4tKTf4ZjvJwIqz3JoNc9hSWhSWKSoix50Xkk29HfID3EBV aQ==
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by userp2130.oracle.com with ESMTP id 3581mqwmft-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Tue, 08 Dec 2020 17:40:37 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B8HaVmH036915;
-	Tue, 8 Dec 2020 17:38:36 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by aserp3020.oracle.com with ESMTP id 358m3y2r0w-1
+	Wed, 09 Dec 2020 00:20:09 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0B90Atqn053706;
+	Wed, 9 Dec 2020 00:20:09 GMT
+Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
+	by userp3020.oracle.com with ESMTP id 358kytquy8-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 08 Dec 2020 17:38:36 +0000
-Received: from abhmp0015.oracle.com (abhmp0015.oracle.com [141.146.116.21])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0B8HcZSo009086;
-	Tue, 8 Dec 2020 17:38:35 GMT
-Received: from [192.168.1.67] (/94.61.1.144)
+	Wed, 09 Dec 2020 00:20:09 +0000
+Received: from abhmp0009.oracle.com (abhmp0009.oracle.com [141.146.116.15])
+	by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0B90K86n021037;
+	Wed, 9 Dec 2020 00:20:08 GMT
+Received: from [10.159.230.58] (/10.159.230.58)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Tue, 08 Dec 2020 09:38:35 -0800
-Subject: Re: [PATCH RFC 3/9] sparse-vmemmap: Reuse vmemmap areas for a given
- mhp_params::align
-To: linux-mm@kvack.org
-References: <20201208172901.17384-1-joao.m.martins@oracle.com>
- <20201208172901.17384-4-joao.m.martins@oracle.com>
-From: Joao Martins <joao.m.martins@oracle.com>
-Message-ID: <a91eb22b-c060-ad1b-8e04-5d44b6f5e3a9@oracle.com>
-Date: Tue, 8 Dec 2020 17:38:31 +0000
+	with ESMTP ; Tue, 08 Dec 2020 16:20:08 -0800
+Subject: Re: [ndctl PATCH V2 0/8] fix serverl issues reported by Coverity
+To: Zhiqiang Liu <liuzhiqiang26@huawei.com>,
+        "Verma, Vishal L" <vishal.l.verma@intel.com>
+References: <3211fe8a-33fb-37ca-e192-ad1f116f4acd@huawei.com>
+From: Jane Chu <jane.chu@oracle.com>
+Organization: Oracle Corporation
+Message-ID: <c8a8a260-34c6-dbfc-1f19-25c23d01cb45@oracle.com>
+Date: Tue, 8 Dec 2020 16:20:06 -0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-In-Reply-To: <20201208172901.17384-4-joao.m.martins@oracle.com>
+In-Reply-To: <3211fe8a-33fb-37ca-e192-ad1f116f4acd@huawei.com>
 Content-Language: en-US
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9829 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 malwarescore=0 adultscore=0
- bulkscore=0 phishscore=0 suspectscore=3 mlxscore=0 mlxlogscore=999
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 mlxscore=0
+ malwarescore=0 suspectscore=0 mlxlogscore=999 bulkscore=0 phishscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2012080108
+ definitions=main-2012080152
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9829 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=3 mlxlogscore=999
- clxscore=1015 malwarescore=0 priorityscore=1501 adultscore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxlogscore=999
+ clxscore=1011 malwarescore=0 priorityscore=1501 adultscore=0
  lowpriorityscore=0 phishscore=0 spamscore=0 impostorscore=0 mlxscore=0
  bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2012080109
-Message-ID-Hash: UI336WE4DNNYKM6F3RFNGS4UMU5KG42T
-X-Message-ID-Hash: UI336WE4DNNYKM6F3RFNGS4UMU5KG42T
-X-MailFrom: joao.m.martins@oracle.com
+ engine=8.12.0-2009150000 definitions=main-2012090000
+Message-ID-Hash: JHZCNMYRGL3KLF75UJEML7ZPKJCJSCSX
+X-Message-ID-Hash: JHZCNMYRGL3KLF75UJEML7ZPKJCJSCSX
+X-MailFrom: jane.chu@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm@lists.01.org, Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linfeilong <linfeilong@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UI336WE4DNNYKM6F3RFNGS4UMU5KG42T/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JHZCNMYRGL3KLF75UJEML7ZPKJCJSCSX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-On 12/8/20 5:28 PM, Joao Martins wrote:
-> Introduce a new flag, MEMHP_REUSE_VMEMMAP, which signals that that
-> struct pages are onlined with a given alignment, and should reuse the
-> tail pages vmemmap areas. On that circunstamce we reuse the PFN backing
-> only the tail pages subsections, while letting the head page PFN remain
-> different. This presumes that the backing page structs are compound
-> pages, such as the case for compound pagemaps (i.e. ZONE_DEVICE with
-> PGMAP_COMPOUND set)
-> 
-> On 2M compound pagemaps, it lets us save 6 pages out of the 8 necessary
-> PFNs necessary to describe the subsection's 32K struct pages we are
-> onlining. On a 1G compound pagemap it let us save 4096 pages.
-> 
-> Sections are 128M (or bigger/smaller), and such when initializing a
-> compound memory map where we are initializing compound struct pages, we
-> need to preserve the tail page to be reused across the rest of the areas
-> for pagesizes which bigger than a section.
-> 
-> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Hi,
 
-Sigh, ignore this one.
+I actually just ran into the NULL deref issue that is fixed here.
 
-I mistakenly had stashed an old version of this patch, and wrongly send it up.
+Bu I have a question for the experts:
+what might cause libndctl to run into the NULL deref like below ?
 
-	Joao
+Program terminated with signal 11, Segmentation fault.
+#0  ndctl_pfn_get_bus (pfn=pfn@entry=0x0) at libndctl.c:5540
+5540            return pfn->region->bus;
+
+(gdb) print pfn
+$1 = (struct ndctl_pfn *) 0x0
+(gdb) frame 4
+#4  0x000000000040ca70 in setup_namespace (region=region@entry=0x109d910,
+     ndns=ndns@entry=0x10a7d40, p=p@entry=0x7ffd8ff73b90) at namespace.c:570
+570                     try(ndctl_dax, set_uuid, dax, uuid);
+(gdb) info locals
+__rc = <optimized out>
+dax = 0x0
+
+What I did was to let 2 threads run "create-namespace all" in a tight 
+loop, and 2 other threads run "destroy-namespace all" in a tight loop,
+while chasing an year old issue that randomly resurfaces -
+"nd_region region1: allocation underrun: 0x0 of 0x40000000 bytes"
+
+In addition, there are kmemleaks,
+# cat /sys/kernel/debug/kmemleak
+[..]
+unreferenced object 0xffff976bd46f6240 (size 64):
+   comm "ndctl", pid 23556, jiffies 4299514316 (age 5406.733s)
+   hex dump (first 32 bytes):
+     00 00 00 00 00 00 00 00 00 00 20 c3 37 00 00 00  .......... .7...
+     ff ff ff 7f 38 00 00 00 00 00 00 00 00 00 00 00  ....8...........
+   backtrace:
+     [<00000000064003cf>] __kmalloc_track_caller+0x136/0x379
+     [<00000000d85e3c52>] krealloc+0x67/0x92
+     [<00000000d7d3ba8a>] __alloc_dev_dax_range+0x73/0x25c
+     [<0000000027d58626>] devm_create_dev_dax+0x27d/0x416
+     [<00000000434abd43>] __dax_pmem_probe+0x1c9/0x1000 [dax_pmem_core]
+     [<0000000083726c1c>] dax_pmem_probe+0x10/0x1f [dax_pmem]
+     [<00000000b5f2319c>] nvdimm_bus_probe+0x9d/0x340 [libnvdimm]
+     [<00000000c055e544>] really_probe+0x230/0x48d
+     [<000000006cabd38e>] driver_probe_device+0x122/0x13b
+     [<0000000029c7b95a>] device_driver_attach+0x5b/0x60
+     [<0000000053e5659b>] bind_store+0xb7/0xc3
+     [<00000000d3bdaadc>] drv_attr_store+0x27/0x31
+     [<00000000949069c5>] sysfs_kf_write+0x4a/0x57
+     [<000000004a8b5adf>] kernfs_fop_write+0x150/0x1e5
+     [<00000000bded60f0>] __vfs_write+0x1b/0x34
+     [<00000000b92900f0>] vfs_write+0xd8/0x1d1
+
+
+thanks,
+-jane
+
+
+On 11/24/2020 5:00 PM, Zhiqiang Liu wrote:
+> Changes: V1->V2
+> - add one empty line in 1/8 patch as suggested by Jeff Moyer <jmoyer@redhat.com>.
+> 
+> 
+> Recently, we use Coverity to analysis the ndctl package.
+> Several issues should be resolved to make Coverity happy.
+> 
+> Zhiqiang Liu (8):
+>    namespace: check whether pfn|dax|btt is NULL in setup_namespace
+>    lib/libndctl: fix memory leakage problem in add_bus
+>    libdaxctl: fix memory leakage in add_dax_region()
+>    dimm: fix potential fd leakage in dimm_action()
+>    util/help: check whether strdup returns NULL in exec_man_konqueror
+>    lib/inject: check whether cmd is created successfully
+>    libndctl: check whether ndctl_btt_get_namespace returns NULL in
+>      callers
+>    namespace: check whether seed is NULL in validate_namespace_options
+> 
+>   daxctl/lib/libdaxctl.c |  3 +++
+>   ndctl/dimm.c           | 12 +++++++-----
+>   ndctl/lib/inject.c     |  8 ++++++++
+>   ndctl/lib/libndctl.c   |  1 +
+>   ndctl/namespace.c      | 23 ++++++++++++++++++-----
+>   test/libndctl.c        | 16 +++++++++++-----
+>   test/parent-uuid.c     |  2 +-
+>   util/help.c            |  8 +++++++-
+>   util/json.c            |  3 +++
+>   9 files changed, 59 insertions(+), 17 deletions(-)
+> 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
