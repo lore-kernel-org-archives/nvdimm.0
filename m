@@ -1,159 +1,134 @@
-Return-Path: <SRS0=9crK=FP=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=V3BF=FQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=BAYES_05,DKIM_INVALID,
-	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5435C4361B
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 11 Dec 2020 22:14:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8808DC4361B
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 12 Dec 2020 06:16:32 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EB86F23EF1
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 11 Dec 2020 22:14:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EB86F23EF1
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 2F44223333
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 12 Dec 2020 06:16:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2F44223333
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=nvidia.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4F420100EB32F;
-	Fri, 11 Dec 2020 14:14:45 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=luto@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id BB9BF100EB332;
+	Fri, 11 Dec 2020 22:16:31 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=216.228.121.143; helo=hqnvemgate24.nvidia.com; envelope-from=jhubbard@nvidia.com; receiver=<UNKNOWN> 
+Received: from hqnvemgate24.nvidia.com (hqnvemgate24.nvidia.com [216.228.121.143])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 22F15100EB323
-	for <linux-nvdimm@lists.01.org>; Fri, 11 Dec 2020 14:14:43 -0800 (PST)
-X-Gm-Message-State: AOAM5335SICCXXS6xt91J+dA+jeyJ1zVR7leyEBCPlk1ZgnOdPVud/g2
-	c3Darz0f86UUcV9gIj9Kg9rhmSSOd/E0zHFV1fUNqQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1607724882;
-	bh=70LTUMehFh83IHad/vkXff9wd8DJwarU76xfxtWTpbY=;
-	h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-	b=jPAdTjcAVpZyDFTaPihJOsnveXonsw5iOC6B7KbDZDjzqZNwbm7CsmLDH3yR0AMID
-	 SNfPGfnjQ3iWvMryER3GLaa8smv8iVvQy2GhAyVriM92szYovmcCUtjEsGsqB+wLEu
-	 7R/8evzBvMtqXX/2o39B34SfiJoMfQ9d2yPn0icWzRf3+6zFxZ2pNb/c6qokJB+How
-	 9HXBSycFcdAQzwnvNh3IDX4+qV7Qgi8aIYQK+QaOB/Jj0HXGnIYfXkI3qp+mFM3IOV
-	 v2A5PmGBQtslguW0eYDMFhwLH/Gqey8aJRD7LMfwaHCIDkWMKrpYuCoQlC3FRomXfL
-	 wiJq08Nve+OvA==
-X-Google-Smtp-Source: ABdhPJwyiUgo4QSzbgQvODMi2EdGDgMycwa95HkgOC2v3m4y50nPJcH7R/4+bPCwIYyM+uNouuOpofy5wtqF2/93N+Q=
-X-Received: by 2002:a5d:4905:: with SMTP id x5mr825454wrq.75.1607724880704;
- Fri, 11 Dec 2020 14:14:40 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id E4246100EC1EC
+	for <linux-nvdimm@lists.01.org>; Fri, 11 Dec 2020 22:16:29 -0800 (PST)
+Received: from hqmail.nvidia.com (Not Verified[216.228.121.13]) by hqnvemgate24.nvidia.com (using TLS: TLSv1.2, AES256-SHA)
+	id <B5fd4603d0000>; Fri, 11 Dec 2020 22:16:29 -0800
+Received: from [10.2.58.108] (172.20.145.6) by HQMAIL107.nvidia.com
+ (172.20.187.13) with Microsoft SMTP Server (TLS) id 15.0.1473.3; Sat, 12 Dec
+ 2020 06:16:23 +0000
+Subject: Re: [PATCH v14 10/10] secretmem: test: add basic selftest for
+ memfd_secret(2)
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+References: <20201203062949.5484-1-rppt@kernel.org>
+ <20201203062949.5484-11-rppt@kernel.org>
+From: John Hubbard <jhubbard@nvidia.com>
+Message-ID: <248f928b-1383-48ea-8584-ec10146e60c9@nvidia.com>
+Date: Fri, 11 Dec 2020 22:16:23 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:84.0) Gecko/20100101
+ Thunderbird/84.0
 MIME-Version: 1.0
-References: <20201106232908.364581-6-ira.weiny@intel.com> <20201124060956.1405768-1-ira.weiny@intel.com>
-In-Reply-To: <20201124060956.1405768-1-ira.weiny@intel.com>
-From: Andy Lutomirski <luto@kernel.org>
-Date: Fri, 11 Dec 2020 14:14:28 -0800
-X-Gmail-Original-Message-ID: <CALCETrUHwZPic89oExMMe-WyDY8-O3W68NcZvse3=PGW+iW5=w@mail.gmail.com>
-Message-ID: <CALCETrUHwZPic89oExMMe-WyDY8-O3W68NcZvse3=PGW+iW5=w@mail.gmail.com>
-Subject: Re: [PATCH V3.1] entry: Pass irqentry_state_t by reference
-To: Weiny Ira <ira.weiny@intel.com>
-Message-ID-Hash: RFSSFYZ4376ZTMCEPVWDT4JMI5A5OZQJ
-X-Message-ID-Hash: RFSSFYZ4376ZTMCEPVWDT4JMI5A5OZQJ
-X-MailFrom: luto@kernel.org
+In-Reply-To: <20201203062949.5484-11-rppt@kernel.org>
+Content-Language: en-US
+X-Originating-IP: [172.20.145.6]
+X-ClientProxiedBy: HQMAIL101.nvidia.com (172.20.187.10) To
+ HQMAIL107.nvidia.com (172.20.187.13)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nvidia.com; s=n1;
+	t=1607753789; bh=ofgMBZd16EADbvAo0gykil1HQ3WXinWEQXFsF7eWzJ0=;
+	h=Subject:To:CC:References:From:Message-ID:Date:User-Agent:
+	 MIME-Version:In-Reply-To:Content-Type:Content-Language:
+	 Content-Transfer-Encoding:X-Originating-IP:X-ClientProxiedBy;
+	b=nHiMzIuFi9yGg9dtEXBRDsgSZmIDOiTwrsl4IkhMy6fFmjAA+d/AS9GK73/GrEl8c
+	 L2wFofk2X8mSJW/vLEAbgA9QPMoBNfjJd8BWsCI0rrp+bj6/xYZKQSgViVMLkLSYK1
+	 k66ZGlnQfrIIuas55l4diL4Iaoyoywisz15vCenxZUMAMyAtm2LyPLwxbz991YbWg8
+	 nRt0uF/HuZ34WhsfN3HMzjfJx7L8KMpuqwwkCn0Y66dd5OlXb+xyLmZkRBWZVKoHt4
+	 QQtiTloYRW+10TrH/r0jzw36mCIbK7syoQlFnk7px83Aq1dj4ALMG1TaKaeUNQMmQk
+	 OnZsyXYjTgO+g==
+Message-ID-Hash: MDIJ5FFI7NCCBXGQWJU32MNK5YJGFCGH
+X-Message-ID-Hash: MDIJ5FFI7NCCBXGQWJU32MNK5YJGFCGH
+X-MailFrom: jhubbard@nvidia.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux-MM <linux-mm@kvack.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>
+CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, "Christopher Lameter  <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen" <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, "Elena Reshetova  <elena.reshetova@intel.com>,  H. Peter Anvin  <hpa@zytor.com>, Ingo Molnar" <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov  <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland" <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, "Peter Zijlstra  <peterz@infradead.org>, Rick Edgecombe" <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
+ , Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RFSSFYZ4376ZTMCEPVWDT4JMI5A5OZQJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MDIJ5FFI7NCCBXGQWJU32MNK5YJGFCGH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Nov 23, 2020 at 10:10 PM <ira.weiny@intel.com> wrote:
->
-> From: Ira Weiny <ira.weiny@intel.com>
->
-> Currently struct irqentry_state_t only contains a single bool value
-> which makes passing it by value is reasonable.  However, future patches
-> add information to this struct.  This includes the PKRS thread state,
-> included in this series, as well as information to store kmap reference
-> tracking and PKS global state outside this series.  In total, we
-> anticipate 2 new 32 bit fields and an integer field to be added to the
-> struct beyond the existing bool value.
->
-> Adding information to irqentry_state_t makes passing by value less
-> efficient.  Therefore, change the entry/exit calls to pass irq_state by
-> reference in preparation for the changes which follow.
->
-> While at it, make the code easier to follow by changing all the usage
-> sites to consistently use the variable name 'irq_state'.
-
-After contemplating this for a bit, I think this isn't really the
-right approach.  It *works*, but we've mostly just created a bit of an
-unfortunate situation.  Our stack, on a (possibly nested) entry looks
-like:
-
-previous frame (or empty if we came from usermode)
----
-SS
-RSP
-FLAGS
-CS
-RIP
-rest of pt_regs
-
-C frame
-
-irqentry_state_t (maybe -- the compiler is within its rights to play
-almost arbitrary games here)
-
-more C stuff
-
-
-So what we've accomplished is having two distinct arch register
-regions, one called pt_regs and the other stuck in irqentry_state_t.
-This is annoying because it means that, if we want to access this
-thing without passing a pointer around or access it at all from outer
-frames, we need to do something terrible with the unwinder, and we
-don't want to go there.
-
-So I propose a somewhat different solution: lay out the stack like this.
-
-SS
-RSP
-FLAGS
-CS
-RIP
-rest of pt_regs
-PKS
-^^^^^^^^ extended_pt_regs points here
-
-C frame
-more C stuff
+On 12/2/20 10:29 PM, Mike Rapoport wrote:
+> From: Mike Rapoport <rppt@linux.ibm.com>
 ...
+> +#include "../kselftest.h"
+> +
+> +#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
+> +#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
+> +#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
+> +
+> +#ifdef __NR_memfd_secret
+> +
+> +#include <linux/secretmem.h>
 
-IOW we have:
+Hi Mike,
 
-struct extended_pt_regs {
-  bool rcu_whatever;
-  other generic fields here;
-  struct arch_extended_pt_regs arch_regs;
-  struct pt_regs regs;
-};
+Say, when I tried this out from today's linux-next, I had to delete the
+above line. In other words, the following was required in order to build:
 
-and arch_extended_pt_regs has unsigned long pks;
+diff --git a/tools/testing/selftests/vm/memfd_secret.c b/tools/testing/selftests/vm/memfd_secret.c
+index 79578dfd13e6..c878c2b841fc 100644
+--- a/tools/testing/selftests/vm/memfd_secret.c
++++ b/tools/testing/selftests/vm/memfd_secret.c
+@@ -29,8 +29,6 @@
 
-and instead of passing a pointer to irqentry_state_t to the generic
-entry/exit code, we just pass a pt_regs pointer.  And we have a little
-accessor like:
+  #ifdef __NR_memfd_secret
 
-struct extended_pt_regs *extended_regs(struct pt_regs *) { return
-container_of(...); }
+-#include <linux/secretmem.h>
+-
+  #define PATTERN        0x55
 
-And we tell eBPF that extended_pt_regs is NOT ABI, and we will change
-it whenever we feel like just to keep you on your toes, thank you very
-much.
+  static const int prot = PROT_READ | PROT_WRITE;
 
-Does this seem reasonable?  You get to drop patch 7 and instead modify
-the show_regs() stuff to just display one extra register.
+
+...and that makes sense to me, because:
+
+a) secretmem.h is not in the uapi, which this selftests/vm build system
+    expects (it runs "make headers_install" for us, which is *not* going
+    to pick up items in the kernel include dirs), and
+
+b) There is nothing in secretmem.h that this test uses, anyway! Just these:
+
+bool vma_is_secretmem(struct vm_area_struct *vma);
+bool page_is_secretmem(struct page *page);
+bool secretmem_active(void);
+
+
+...or am I just Doing It Wrong? :)
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
