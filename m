@@ -6,40 +6,40 @@ X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76BD5C4361B
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 14 Dec 2020 17:13:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA153C4361B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 14 Dec 2020 17:33:00 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C7E3C22512
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 14 Dec 2020 17:13:14 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C7E3C22512
+	by mail.kernel.org (Postfix) with ESMTPS id A7BBC2312D
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 14 Dec 2020 17:33:00 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A7BBC2312D
 Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=freightquote.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 56E95100EC1C4;
-	Mon, 14 Dec 2020 09:13:14 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=27.71.120.181; helo=localhost; envelope-from=miniaturization8@mailgw8.chrobinson.com; receiver=<UNKNOWN> 
-Received: from localhost (unknown [27.71.120.181])
-	by ml01.01.org (Postfix) with ESMTP id 9D64B100EC1C7;
-	Mon, 14 Dec 2020 09:13:10 -0800 (PST)
-Received: from [212.197.74.109] (helo=KEDODOD.ho)
-	by localhost with esmtpa (Exim 4.86)
-	(envelope-from )
-	id 1Nb9WHkZVbZTlx.816
-	for linux-nvdimm@lists.01.org; Tue, 15 Dec 2020 00:13:09 +0700
+	by ml01.01.org (Postfix) with ESMTP id 4A93E100EC1C9;
+	Mon, 14 Dec 2020 09:33:00 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2.41.9.83; helo=mob-2-41-9-83.net.vodafone.it; envelope-from=pigeonail7@mailgw8.chrobinson.com; receiver=<UNKNOWN> 
+Received: from mob-2-41-9-83.net.vodafone.it (mob-2-41-9-83.net.vodafone.it [2.41.9.83])
+	by ml01.01.org (Postfix) with ESMTP id E0CF2100ED48A
+	for <linux-nvdimm@lists.01.org>; Mon, 14 Dec 2020 09:32:55 -0800 (PST)
 Received: from  (
- [142.124.205.42])        by localhost with SMTP id
- z8lL-pscOu0-NQ; Tue, 15 Dec 2020 00:13:09 +0700
+ [223.77.217.215])        by mob-2-41-9-83.net.vodafone.it with SMTP id
+ VjzLFJmzdHgoH.105; Mon, 14 Dec 2020 18:32:54 +0100
+Received: from [193.7.125.84] (helo=bktj.coxn.com)
+	by mob-2-41-9-83.net.vodafone.it with esmtpa (Exim 4.86)
+	(envelope-from skid26@CHR1PR1EX71.chrobinson.com)
+	id 144EC79830
+	for linux-nvdimm@lists.01.org; Mon, 14 Dec 2020 18:32:54 +0100
 To: linux-nvdimm@lists.01.org
 From: <customerservice@freightquote.com>
-Subject: New Invoice(s) for C8326148 are Available to be Viewed
-Message-ID: <556944.e61043dbb05939@vsz.mailgw8.chrobinson.com>
-Date: Tue, 15 Dec 2020 00:13:09 +0700
+Subject: New Invoice(s) for C0335383 are Available to be Viewed
+Message-ID: <700892.731834.d5445d5@uhqoutsltvnjg.rnjgo.it>
+Date: Mon, 14 Dec 2020 18:32:54 +0100
 MIME-Version: 1.0
-Message-ID-Hash: RU746QLTT6EXVZ56BZU2QLHEPF7N3SWX
-X-Message-ID-Hash: RU746QLTT6EXVZ56BZU2QLHEPF7N3SWX
-X-MailFrom: miniaturization8@mailgw8.chrobinson.com
+Message-ID-Hash: 7SUFEE5S4IJB7EU5QS6CWQSRHMKOY3LX
+X-Message-ID-Hash: 7SUFEE5S4IJB7EU5QS6CWQSRHMKOY3LX
+X-MailFrom: pigeonail7@mailgw8.chrobinson.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Content-Filtered-By: Mailman/MimeDel 3.1.1
@@ -47,7 +47,7 @@ X-Mailman-Version: 3.1.1
 Precedence: list
 Reply-To: customerservice@freightquote.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RU746QLTT6EXVZ56BZU2QLHEPF7N3SWX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7SUFEE5S4IJB7EU5QS6CWQSRHMKOY3LX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -58,7 +58,7 @@ Content-Transfer-Encoding: quoted-printable
 
 Your new Invoice(s) are available to be viewed.The Attachments include the =
 following Invoice(s): Invoice Number  CHR Load Number=20
-6510418427380744550
+6144786780361404703
 Thank you for your business, if there are any issues with your Invoice(s) p=
 lease contact your 1st Sales Rep ******************************************=
 ***************************************************************************=
