@@ -1,63 +1,86 @@
-Return-Path: <SRS0=V3BF=FQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=BDGy=FS=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_20,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D33F8C433FE
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 12 Dec 2020 14:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07A03C4361B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 14 Dec 2020 10:39:28 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 28AB1224D1
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 12 Dec 2020 14:00:01 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 28AB1224D1
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 7B28722AAA
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 14 Dec 2020 10:39:27 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7B28722AAA
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8D003100EBBDC;
-	Sat, 12 Dec 2020 06:00:01 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id E9F0E100EF265;
+	Mon, 14 Dec 2020 02:39:26 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::633; helo=mail-pl1-x633.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pl1-x633.google.com (mail-pl1-x633.google.com [IPv6:2607:f8b0:4864:20::633])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 39FAF100ED490
-	for <linux-nvdimm@lists.01.org>; Sat, 12 Dec 2020 05:59:59 -0800 (PST)
-Date: Sat, 12 Dec 2020 15:59:40 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1607781598;
-	bh=W+S3uDjo9SUaklycr1VwLEkb3P+e5VKfy1opxSFjfP4=;
-	h=From:To:Cc:Subject:References:In-Reply-To:From;
-	b=flXIgTj5QPdmF322uyfveGkWCvdiCUBTDqJEmaQAdBMU+9OnpTfe38HJDNJgc0lH8
-	 G3M3nYjTvl4Jk0YTIcL5XhPPhChBAc7qxqYwpPq+/oyL9pin060A7R+FLePp8EI92r
-	 GwnqdckCsl6axBY1CL4fx8yH/moiz2Z+oLa3jsxNsEo1pT2EOLhqIregvSKc55N4Zj
-	 WuUAHrJAd8PgEDWlSYMQSNKmu4qJ1V3ZA+z2Yx8VyWB6hblUmlV0BHoIXeUaszFyMu
-	 HjV36aGN0+weJj3fLUwesb3uBHEoXTzG37NgAFnxayD4MEFDMvTjDeUmf4Kr35XObN
-	 Un6GIU6DTV1SA==
-From: Mike Rapoport <rppt@kernel.org>
-To: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v14 10/10] secretmem: test: add basic selftest for
- memfd_secret(2)
-Message-ID: <20201212135940.GD8946@kernel.org>
-References: <20201203062949.5484-1-rppt@kernel.org>
- <20201203062949.5484-11-rppt@kernel.org>
- <248f928b-1383-48ea-8584-ec10146e60c9@nvidia.com>
+	by ml01.01.org (Postfix) with ESMTPS id 27FC0100EF24F
+	for <linux-nvdimm@lists.01.org>; Mon, 14 Dec 2020 02:39:24 -0800 (PST)
+Received: by mail-pl1-x633.google.com with SMTP id bj5so8422450plb.4
+        for <linux-nvdimm@lists.01.org>; Mon, 14 Dec 2020 02:39:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=DQB/PleexOKrdVCSi3B8OPHhpneIwhJ61de0qzJ96N8=;
+        b=bACoKyJGXoi1vamsFPLNbZYqKi/IFz6DXprG2qZLD9muT3JROLrpUmedNnmV3NCk/S
+         Smde+DO3YlDJp2h04pcP0oQJ+0eYEMVFXBz+3g44i6nX+xJTNSrXo1ebieVaggTcBge9
+         lz8qN23bEHsma7sXO2V8BXSB3fLkwj7S9QyRXv+KaM5ZLrnvwTq/oHrvp8yVFxTQ/s22
+         g47suYKpzKWogZIuTHVxWgyohx4hkf/NDCfMRe8NVHlQM21SM5NSU0oI/CFrgJ0XM/Z3
+         LUXtYQo3kREn4NzUjB5kr2TmQ8c0reXTre7KCA8pzsipaTU2VTsQ4SisxhHWfQE3J7OY
+         yhhg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=DQB/PleexOKrdVCSi3B8OPHhpneIwhJ61de0qzJ96N8=;
+        b=Y1c9lCK5eM3kRNXXeFu3GKuEJ6kBoUnVvtO86aNV7WnhwELkMAwq06n+qBgoWdGQMJ
+         aCGDizfYjj/QfyBAOZ2DvMHxbTQrJLlho4c0DCn2HluOKb7JqGKjOtHURsPHZSfO9DbF
+         fc/ugl4bCCdcmmLeSTuvhJRE/CYAsfAJ5zmaOMRXlODBR0DWXC3Sy+QA+ZtOPUguIj0m
+         hfD68Z83D+lxR3aqje3hWOWjDte5PvbD4fMYqMdWe2Br7D0J18Tn43hnmGoBqIf6YSdt
+         D20vKb+/dLbu0uR3yHCDyp3InVmDYXnPHhy5X+lnHGWQwp8CPzWkdGSvxq7zFowM2Go7
+         O94g==
+X-Gm-Message-State: AOAM532ZOMzF0qzcUftZfT80JksA8HqDynxJUR+ApW1pSw/U+ek8hZjn
+	aCaV6xIhEF5v6SSwep7r2kKtX6g6zoHhJQ==
+X-Google-Smtp-Source: ABdhPJwqLCjo2AHOfrCqX4zwIs87LZxQ2M8EUzH8zoWsa9F73iaSYtrLhNwQzhGF96t61pjOz95EnQ==
+X-Received: by 2002:a17:90a:1b29:: with SMTP id q38mr24664856pjq.223.1607942362419;
+        Mon, 14 Dec 2020 02:39:22 -0800 (PST)
+Received: from santosiv.in.ibm.com.com ([103.21.79.4])
+        by smtp.gmail.com with ESMTPSA id p1sm20735926pfb.208.2020.12.14.02.39.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 14 Dec 2020 02:39:21 -0800 (PST)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: Linux NVDIMM <linux-nvdimm@lists.01.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+	Vaibhav Jain <vaibhav@linux.ibm.com>,
+	Shivaprasad G Bhat <sbhat@linux.ibm.com>,
+	Harish Sriram <harish@linux.ibm.com>,
+	Dan Williams <dan.j.williams@intel.com>
+Cc: Santosh Sivaraj <santosh@fossix.org>
+Subject: [RFC v5 0/7] PMEM device emulation without nfit depenency
+Date: Mon, 14 Dec 2020 16:08:52 +0530
+Message-Id: <20201214103859.2409175-1-santosh@fossix.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <248f928b-1383-48ea-8584-ec10146e60c9@nvidia.com>
-Message-ID-Hash: ZJSOAJXB2KFC2NJV43O33A23UP3IB4O4
-X-Message-ID-Hash: ZJSOAJXB2KFC2NJV43O33A23UP3IB4O4
-X-MailFrom: rppt@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho 
- Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+Message-ID-Hash: VYLZABI4M4XGXJEAKYMY475EXSW43FTA
+X-Message-ID-Hash: VYLZABI4M4XGXJEAKYMY475EXSW43FTA
+X-MailFrom: santosh@fossix.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZJSOAJXB2KFC2NJV43O33A23UP3IB4O4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VYLZABI4M4XGXJEAKYMY475EXSW43FTA/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -66,70 +89,121 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi John,
+The current test module cannot be used for testing platforms (make check)
+that do not have support for NFIT. In order to get the ndctl tests working,
+we need a module which can emulate NVDIMM devices without relying on
+ACPI/NFIT.
 
-On Fri, Dec 11, 2020 at 10:16:23PM -0800, John Hubbard wrote:
-> On 12/2/20 10:29 PM, Mike Rapoport wrote:
-> > From: Mike Rapoport <rppt@linux.ibm.com>
-> ...
-> > +#include "../kselftest.h"
-> > +
-> > +#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
-> > +#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
-> > +#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
-> > +
-> > +#ifdef __NR_memfd_secret
-> > +
-> > +#include <linux/secretmem.h>
-> 
-> Hi Mike,
-> 
-> Say, when I tried this out from today's linux-next, I had to delete the
-> above line. In other words, the following was required in order to build:
-> 
-> diff --git a/tools/testing/selftests/vm/memfd_secret.c b/tools/testing/selftests/vm/memfd_secret.c
-> index 79578dfd13e6..c878c2b841fc 100644
-> --- a/tools/testing/selftests/vm/memfd_secret.c
-> +++ b/tools/testing/selftests/vm/memfd_secret.c
-> @@ -29,8 +29,6 @@
-> 
->  #ifdef __NR_memfd_secret
-> 
-> -#include <linux/secretmem.h>
-> -
->  #define PATTERN        0x55
-> 
->  static const int prot = PROT_READ | PROT_WRITE;
-> 
-> 
-> ...and that makes sense to me, because:
-> 
-> a) secretmem.h is not in the uapi, which this selftests/vm build system
->    expects (it runs "make headers_install" for us, which is *not* going
->    to pick up items in the kernel include dirs), and
-> 
-> b) There is nothing in secretmem.h that this test uses, anyway! Just these:
-> 
-> bool vma_is_secretmem(struct vm_area_struct *vma);
-> bool page_is_secretmem(struct page *page);
-> bool secretmem_active(void);
-> 
-> 
-> ...or am I just Doing It Wrong? :)
+The emulated PMEM device is made part of the PAPR family.
 
-You are perfectly right, I had a stale header in uapi from the prevoius
-versions, the include in the test remained from then.
+Corresponding changes for ndctl is also required, to add attributes needed
+for the test, which will be sent as a reply to this patch.
 
-@Andrew, can you please add the hunk above as a fixup?
+The following is the test result, run on a x86 guest:
 
-> thanks,
-> -- 
-> John Hubbard
-> NVIDIA
+PASS: libndctl                                                                         
+PASS: dsm-fail                                                                         
+PASS: dpa-alloc                                                                        
+PASS: parent-uuid                                                                      
+PASS: multi-pmem                                                                       
+PASS: create.sh                                                                        
+FAIL: clear.sh                                                                         
+FAIL: pmem-errors.sh                                                                   
+FAIL: daxdev-errors.sh                                                                 
+PASS: multi-dax.sh                                                                     
+PASS: btt-check.sh                                                                     
+FAIL: label-compat.sh                      
+PASS: blk-exhaust.sh                       
+PASS: sector-mode.sh                       
+FAIL: inject-error.sh                      
+SKIP: btt-errors.sh                        
+PASS: hugetlb                              
+PASS: btt-pad-compat.sh                                                                
+SKIP: firmware-update.sh                                                               
+FAIL: ack-shutdown-count-set                                                           
+PASS: rescan-partitions.sh                                                             
+FAIL: inject-smart.sh                      
+FAIL: monitor.sh                           
+PASS: max_available_extent_ns.sh                                                       
+FAIL: pfn-meta-errors.sh                                                               
+PASS: track-uuid.sh                        
+============================================================================
+Testsuite summary for ndctl 70.10.g7ecd11c                                              
+============================================================================
+# TOTAL: 26                                
+# PASS:  15                                
+# SKIP:  2                                 
+# XFAIL: 0                                 
+# FAIL:  9                                 
+# XPASS: 0                                 
+# ERROR: 0
+
+The following is the test result from a PowerPC 64 guest.
+
+PASS: libndctl
+PASS: dsm-fail
+PASS: dpa-alloc
+PASS: parent-uuid
+PASS: multi-pmem
+PASS: create.sh
+FAIL: clear.sh
+FAIL: pmem-errors.sh
+FAIL: daxdev-errors.sh
+PASS: multi-dax.sh
+PASS: btt-check.sh
+FAIL: label-compat.sh
+PASS: blk-exhaust.sh
+PASS: sector-mode.sh
+FAIL: inject-error.sh                       
+SKIP: btt-errors.sh
+SKIP: hugetlb
+PASS: btt-pad-compat.sh
+SKIP: firmware-update.sh
+FAIL: ack-shutdown-count-set
+PASS: rescan-partitions.sh
+FAIL: inject-smart.sh
+FAIL: monitor.sh
+PASS: max_available_extent_ns.sh
+FAIL: pfn-meta-errors.sh
+PASS: track-uuid.sh
+============================================================================  
+Testsuite summary for ndctl 70.git94a00679
+============================================================================
+# TOTAL: 26
+# PASS:  14
+# SKIP:  3
+# XFAIL: 0
+# FAIL:  9
+# XPASS: 0                                  
+# ERROR: 0
+
+Error injection tests and SMART are not yet implemented.
+
+Changes from V4:
+- Split the driver patches into smaller chunks for ease of review
+- [ndctl] Adding dimm attributes for nfit and papr, make it into one function [Dan]
+- [ndctl] If nfit modules are missing, check for acpi support before failing, slightly
+  different approach   than what Dan commented.
+
+Santosh Sivaraj (7):
+  testing/nvdimm: Add test module for non-nfit platforms
+  ndtest: Add compatability string to treat it as PAPR family
+  ndtest: Add dimms to the two buses
+  ndtest: Add dimm attributes
+  ndtest: Add regions and mappings to the test buses
+  ndtest: Add nvdimm control functions
+  ndtest: Add papr health related flags
+
+ tools/testing/nvdimm/config_check.c |    3 +-
+ tools/testing/nvdimm/test/Kbuild    |    6 +-
+ tools/testing/nvdimm/test/ndtest.c  | 1138 +++++++++++++++++++++++++++
+ tools/testing/nvdimm/test/ndtest.h  |  109 +++
+ 4 files changed, 1254 insertions(+), 2 deletions(-)
+ create mode 100644 tools/testing/nvdimm/test/ndtest.c
+ create mode 100644 tools/testing/nvdimm/test/ndtest.h
 
 -- 
-Sincerely yours,
-Mike.
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
