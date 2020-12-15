@@ -4,245 +4,132 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA7F9C4361B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBC9DC4361B
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 16:35:39 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A283022475
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:15:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A283022475
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id 881ED2255F
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 16:35:39 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 881ED2255F
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=metux.net
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6C1A8100EBBD5;
-	Tue, 15 Dec 2020 04:15:13 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id CCFA8100EBBCC
-	for <linux-nvdimm@lists.01.org>; Tue, 15 Dec 2020 04:15:07 -0800 (PST)
-X-IronPort-AV: E=Sophos;i="5.78,420,1599494400";
-   d="scan'208";a="102420208"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 15 Dec 2020 20:15:06 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id C54234CE5CCA;
-	Tue, 15 Dec 2020 20:15:00 +0800 (CST)
-Received: from G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Tue, 15 Dec 2020 20:15:00 +0800
-Received: from localhost.localdomain (10.167.225.141) by
- G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Tue, 15 Dec 2020 20:14:59 +0800
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
-Subject: [RFC PATCH v3 9/9] xfs: Implement ->corrupted_range() for XFS
-Date: Tue, 15 Dec 2020 20:14:14 +0800
-Message-ID: <20201215121414.253660-10-ruansy.fnst@cn.fujitsu.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
-References: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
-MIME-Version: 1.0
-X-yoursite-MailScanner-ID: C54234CE5CCA.AAF1D
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: DPJLQM3BQ7VF3XUIUXWJZPZOIBQJZHYK
-X-Message-ID-Hash: DPJLQM3BQ7VF3XUIUXWJZPZOIBQJZHYK
-X-MailFrom: ruansy.fnst@cn.fujitsu.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+	by ml01.01.org (Postfix) with ESMTP id F1F82100EBB67;
+	Tue, 15 Dec 2020 08:35:38 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=212.227.126.135; helo=mout.kundenserver.de; envelope-from=info@metux.net; receiver=<UNKNOWN> 
+Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.135])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 69267100EBB62
+	for <linux-nvdimm@lists.01.org>; Tue, 15 Dec 2020 08:35:36 -0800 (PST)
+Received: from orion.localdomain ([95.118.67.37]) by mrelayeu.kundenserver.de
+ (mreue010 [212.227.15.167]) with ESMTPSA (Nemesis) id
+ 1MV5nC-1khxUR2Pry-00S7g0; Tue, 15 Dec 2020 17:35:33 +0100
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers: nvdimm: cleanup include of badblocks.h
+Date: Tue, 15 Dec 2020 17:35:31 +0100
+Message-Id: <20201215163531.21446-1-info@metux.net>
+X-Mailer: git-send-email 2.11.0
+X-Provags-ID: V03:K1:C7RdFBnjmFHqPsYMQnbYptqJnihqF3lM+F8c1Rj8u97izGMi06n
+ LPO+64P+SWA9AjJr6dNZEo1Exm8xE6N94RnT5Dk6YBU/Zs9iTATeYIgv35EDKx0OIdZmcRn
+ Oth+iFy+vKqCOU5cqJtTUWN4jtjlXoHqXjGZ94JJohm+GD0G51T6cUEp7drVXSWnce7HzgM
+ 5oVUJCfsHcUlUz+vY9s+A==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:LBv0BIoXoD0=:PQ5hFaHcfARRGdd5FulSAm
+ C0YGQBk+HNECc0gAWzkQEFCBtEi5dnsO1W+diHjQgOBEpec/cVnNuSSwSDXDfwL81RC7xbJBg
+ v6S1iQvws2b7X+V3uCDLQa+h+evDX7n3g/HCMvSiAEJZRchY+e66ZLW9mkRclHT2P1GB9fobh
+ rsRjOYrmeOIMY3brz0z05NvkZyw7R3WDL0orl27wTSOS/bC1Rn6DIAHQgkaggE4HlA26Zza8Q
+ clic7+H17ilkD4uRNUXMZFtxxVzCLVBui/nxni+j8b7FJAf3wR9HJ2GtLcPOU1adhWQyvQe+b
+ oU4ghdYekMmq85WdNz90nMFJc/cb5dWdt0QQm9CTDejrXkJxtzfIl1yfuGF+gt16SKt4UHT0O
+ TLWQKuMPFn78j3RMZQjE7CDgvAXI1/zB0HdyxTUtbxBGeJNh1ZHIACpJscUD+
+Message-ID-Hash: XDN4SSYG77YB4HSZGQ4P7YN6KUVBE4R2
+X-Message-ID-Hash: XDN4SSYG77YB4HSZGQ4P7YN6KUVBE4R2
+X-MailFrom: info@metux.net
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DPJLQM3BQ7VF3XUIUXWJZPZOIBQJZHYK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XDN4SSYG77YB4HSZGQ4P7YN6KUVBE4R2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This function is used to handle errors which may cause data lost in
-filesystem.  Such as memory failure in fsdax mode.
+* drivers/nvdimm/core.c doesn't use anything from badblocks.h on its own,
+  thus including it isn't needed. There's indeed indirect use, via funcs
+  in nd.h, but this one already includes badblocks.h.
 
-In XFS, it requires "rmapbt" feature in order to query for files or
-metadata which associated to the corrupted data.  Then we could call fs
-recover functions to try to repair the corrupted data.(did not
-implemented in this patchset)
+* drivers/nvdimm/claim.c calls stuff from badblocks.h and therefore should
+  include it on its own (instead of relying any other header doing that)
 
-After that, the memory failure also needs to notify the processes who
-are using those files.
+* drivers/nvdimm/btt.h doesn't really need anything from badblocks.h and
+  can easily live with a forward declaration of struct badblocks (just having
+  pointers to it, but not dereferencing it anywhere)
 
-Only support data device.  Realtime device is not supported for now.
-
-Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- fs/xfs/xfs_fsops.c | 10 +++++
- fs/xfs/xfs_mount.h |  2 +
- fs/xfs/xfs_super.c | 93 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 105 insertions(+)
+ drivers/nvdimm/btt.h   | 3 ++-
+ drivers/nvdimm/claim.c | 1 +
+ drivers/nvdimm/core.c  | 1 -
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
-index ef1d5bb88b93..0ec1b44bfe88 100644
---- a/fs/xfs/xfs_fsops.c
-+++ b/fs/xfs/xfs_fsops.c
-@@ -501,6 +501,16 @@ xfs_do_force_shutdown(
- "Corruption of in-memory data detected.  Shutting down filesystem");
- 		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
- 			xfs_stack_trace();
-+	} else if (flags & SHUTDOWN_CORRUPT_META) {
-+		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-+"Corruption of on-disk metadata detected.  Shutting down filesystem");
-+		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
-+			xfs_stack_trace();
-+	} else if (flags & SHUTDOWN_CORRUPT_DATA) {
-+		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-+"Corruption of on-disk file data detected.  Shutting down filesystem");
-+		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
-+			xfs_stack_trace();
- 	} else if (logerror) {
- 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_LOGERROR,
- 			"Log I/O Error Detected. Shutting down filesystem");
-diff --git a/fs/xfs/xfs_mount.h b/fs/xfs/xfs_mount.h
-index dfa429b77ee2..e36c07553486 100644
---- a/fs/xfs/xfs_mount.h
-+++ b/fs/xfs/xfs_mount.h
-@@ -274,6 +274,8 @@ void xfs_do_force_shutdown(struct xfs_mount *mp, int flags, char *fname,
- #define SHUTDOWN_LOG_IO_ERROR	0x0002	/* write attempt to the log failed */
- #define SHUTDOWN_FORCE_UMOUNT	0x0004	/* shutdown from a forced unmount */
- #define SHUTDOWN_CORRUPT_INCORE	0x0008	/* corrupt in-memory data structures */
-+#define SHUTDOWN_CORRUPT_META	0x0010  /* corrupt metadata on device */
-+#define SHUTDOWN_CORRUPT_DATA	0x0020  /* corrupt file data on device */
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+index 2e258bee7db2..aa53e0b769bd 100644
+--- a/drivers/nvdimm/btt.h
++++ b/drivers/nvdimm/btt.h
+@@ -7,7 +7,6 @@
+ #ifndef _LINUX_BTT_H
+ #define _LINUX_BTT_H
  
- /*
-  * Flags for xfs_mountfs
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index e3e229e52512..30202de7e89d 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -35,6 +35,11 @@
- #include "xfs_refcount_item.h"
- #include "xfs_bmap_item.h"
- #include "xfs_reflink.h"
-+#include "xfs_alloc.h"
-+#include "xfs_rmap.h"
-+#include "xfs_rmap_btree.h"
-+#include "xfs_rtalloc.h"
-+#include "xfs_bit.h"
+-#include <linux/badblocks.h>
+ #include <linux/types.h>
  
- #include <linux/magic.h>
- #include <linux/fs_context.h>
-@@ -1103,6 +1108,93 @@ xfs_fs_free_cached_objects(
- 	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
- }
- 
-+static int
-+xfs_corrupt_helper(
-+	struct xfs_btree_cur		*cur,
-+	struct xfs_rmap_irec		*rec,
-+	void				*data)
-+{
-+	struct xfs_inode		*ip;
-+	int				rc = 0;
-+	int				*flags = data;
-+
-+	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner)) {
-+		// TODO check and try to fix metadata
-+		rc = -EFSCORRUPTED;
-+	} else {
-+		/*
-+		 * Get files that incore, filter out others that are not in use.
-+		 */
-+		rc = xfs_iget(cur->bc_mp, cur->bc_tp, rec->rm_owner,
-+			      XFS_IGET_INCORE, 0, &ip);
-+		if (rc || !ip)
-+			return rc;
-+		if (!VFS_I(ip)->i_mapping)
-+			goto out;
-+
-+		if (IS_DAX(VFS_I(ip)))
-+			rc = mf_dax_mapping_kill_procs(VFS_I(ip)->i_mapping,
-+						       rec->rm_offset, *flags);
-+
-+		// TODO try to fix data
-+out:
-+		xfs_irele(ip);
-+	}
-+
-+	return rc;
-+}
-+
-+static int
-+xfs_fs_corrupted_range(
-+	struct super_block	*sb,
-+	struct block_device	*bdev,
-+	loff_t			offset,
-+	size_t			len,
-+	void			*data)
-+{
-+	struct xfs_mount	*mp = XFS_M(sb);
-+	struct xfs_trans	*tp = NULL;
-+	struct xfs_btree_cur	*cur = NULL;
-+	struct xfs_rmap_irec	rmap_low, rmap_high;
-+	struct xfs_buf		*agf_bp = NULL;
-+	xfs_fsblock_t		fsbno = XFS_B_TO_FSB(mp, offset);
-+	xfs_filblks_t		bc = XFS_B_TO_FSB(mp, len);
-+	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
-+	xfs_agblock_t		agbno = XFS_FSB_TO_AGBNO(mp, fsbno);
-+	int			rc = 0;
-+
-+	if (mp->m_rtdev_targp && mp->m_rtdev_targp->bt_bdev == bdev) {
-+		xfs_warn(mp, "storage lost support not available for realtime device!");
-+		return 0;
-+	}
-+
-+	rc = xfs_trans_alloc_empty(mp, &tp);
-+	if (rc)
-+		return rc;
-+
-+	rc = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
-+	if (rc)
-+		return rc;
-+
-+	cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agno);
-+
-+	/* Construct a range for rmap query */
-+	memset(&rmap_low, 0, sizeof(rmap_low));
-+	memset(&rmap_high, 0xFF, sizeof(rmap_high));
-+	rmap_low.rm_startblock = rmap_high.rm_startblock = agbno;
-+	rmap_low.rm_blockcount = rmap_high.rm_blockcount = bc;
-+
-+	rc = xfs_rmap_query_range(cur, &rmap_low, &rmap_high, xfs_corrupt_helper, data);
-+	if (rc == -ECANCELED)
-+		rc = 0;
-+	if (rc == -EFSCORRUPTED)
-+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_META);
-+
-+	xfs_btree_del_cursor(cur, rc);
-+	xfs_trans_brelse(tp, agf_bp);
-+	return rc;
-+}
-+
- static const struct super_operations xfs_super_operations = {
- 	.alloc_inode		= xfs_fs_alloc_inode,
- 	.destroy_inode		= xfs_fs_destroy_inode,
-@@ -1116,6 +1208,7 @@ static const struct super_operations xfs_super_operations = {
- 	.show_options		= xfs_fs_show_options,
- 	.nr_cached_objects	= xfs_fs_nr_cached_objects,
- 	.free_cached_objects	= xfs_fs_free_cached_objects,
-+	.corrupted_range	= xfs_fs_corrupted_range,
+ #define BTT_SIG_LEN 16
+@@ -197,6 +196,8 @@ struct arena_info {
+ 	int log_index[2];
  };
  
- static int
++struct badblocks;
++
+ /**
+  * struct btt - handle for a BTT instance
+  * @btt_disk:		Pointer to the gendisk for BTT device
+diff --git a/drivers/nvdimm/claim.c b/drivers/nvdimm/claim.c
+index 5a7c80053c62..030dbde6b088 100644
+--- a/drivers/nvdimm/claim.c
++++ b/drivers/nvdimm/claim.c
+@@ -4,6 +4,7 @@
+  */
+ #include <linux/device.h>
+ #include <linux/sizes.h>
++#include <linux/badblocks.h>
+ #include "nd-core.h"
+ #include "pmem.h"
+ #include "pfn.h"
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index c21ba0602029..7de592d7eff4 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -3,7 +3,6 @@
+  * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
+  */
+ #include <linux/libnvdimm.h>
+-#include <linux/badblocks.h>
+ #include <linux/suspend.h>
+ #include <linux/export.h>
+ #include <linux/module.h>
 -- 
-2.29.2
-
-
+2.11.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
