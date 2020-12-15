@@ -7,58 +7,58 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FE02C4361B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:14:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 761C0C2BB48
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:15:06 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D7C0622475
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:14:41 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D7C0622475
+	by mail.kernel.org (Postfix) with ESMTPS id 27615222BB
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:15:05 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 27615222BB
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A1A60100EBBCC;
-	Tue, 15 Dec 2020 04:14:41 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id C2921100EBBC2;
+	Tue, 15 Dec 2020 04:15:05 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 1CFAE100EBBC2
-	for <linux-nvdimm@lists.01.org>; Tue, 15 Dec 2020 04:14:37 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id BCB88100EBBBF
+	for <linux-nvdimm@lists.01.org>; Tue, 15 Dec 2020 04:15:01 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.78,420,1599494400";
-   d="scan'208";a="102420180"
+   d="scan'208";a="102420200"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 15 Dec 2020 20:14:36 +0800
+  by heian.cn.fujitsu.com with ESMTP; 15 Dec 2020 20:15:00 +0800
 Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id B204E4CE5CCA;
-	Tue, 15 Dec 2020 20:14:31 +0800 (CST)
+	by cn.fujitsu.com (Postfix) with ESMTP id 5EFE84CE600E;
+	Tue, 15 Dec 2020 20:14:57 +0800 (CST)
 Received: from G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) by
  G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Tue, 15 Dec 2020 20:14:30 +0800
+ (TLS) id 15.0.1497.2; Tue, 15 Dec 2020 20:14:56 +0800
 Received: from localhost.localdomain (10.167.225.141) by
  G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Tue, 15 Dec 2020 20:14:30 +0800
+ id 15.0.1497.2 via Frontend Transport; Tue, 15 Dec 2020 20:14:56 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
-Subject: [RFC PATCH v3 2/9] blk: Introduce ->corrupted_range() for block device
-Date: Tue, 15 Dec 2020 20:14:07 +0800
-Message-ID: <20201215121414.253660-3-ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH v3 6/9] pmem: Implement ->corrupted_range() for pmem driver
+Date: Tue, 15 Dec 2020 20:14:11 +0800
+Message-ID: <20201215121414.253660-7-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
 References: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: B204E4CE5CCA.ADEE6
+X-yoursite-MailScanner-ID: 5EFE84CE600E.AEF68
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: 2H42DW3OVBY42GXDRDOUDTGRNMGXFQ4R
-X-Message-ID-Hash: 2H42DW3OVBY42GXDRDOUDTGRNMGXFQ4R
+Message-ID-Hash: CKYBIQC6YNIPERYOEGUGP2CXA3X5X3TV
+X-Message-ID-Hash: CKYBIQC6YNIPERYOEGUGP2CXA3X5X3TV
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2H42DW3OVBY42GXDRDOUDTGRNMGXFQ4R/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CKYBIQC6YNIPERYOEGUGP2CXA3X5X3TV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,28 +67,93 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In fsdax mode, the memory failure happens on block device.  So, it is
-needed to introduce an interface for block devices.  Each kind of block
-device can handle the memory failure in ther own ways.
+Obtain the superblock of a pmem disk, and call filesystem's
+->corrupted_range() to handle the corrupted data.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- include/linux/blkdev.h | 2 ++
- 1 file changed, 2 insertions(+)
+ block/genhd.c         | 12 ++++++++++++
+ drivers/nvdimm/pmem.c | 24 ++++++++++++++++++++++++
+ include/linux/genhd.h |  1 +
+ 3 files changed, 37 insertions(+)
 
-diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
-index 033eb5f73b65..45256fe84fa7 100644
---- a/include/linux/blkdev.h
-+++ b/include/linux/blkdev.h
-@@ -1858,6 +1858,8 @@ struct block_device_operations {
- 	int (*report_zones)(struct gendisk *, sector_t sector,
- 			unsigned int nr_zones, report_zones_cb cb, void *data);
- 	char *(*devnode)(struct gendisk *disk, umode_t *mode);
-+	int (*corrupted_range)(struct gendisk *disk, struct block_device *bdev,
-+			       loff_t offset, size_t len, void *data);
- 	struct module *owner;
- 	const struct pr_ops *pr_ops;
+diff --git a/block/genhd.c b/block/genhd.c
+index 9387f050c248..436adce123b2 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -1058,6 +1058,18 @@ struct block_device *bdget_disk(struct gendisk *disk, int partno)
+ }
+ EXPORT_SYMBOL(bdget_disk);
+ 
++struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector)
++{
++	struct block_device *bdev = NULL;
++	struct hd_struct *part = disk_map_sector_rcu(disk, sector);
++
++	if (part)
++		bdev = bdget_part(part);
++
++	return bdev;
++}
++EXPORT_SYMBOL(bdget_disk_sector);
++
+ /*
+  * print a full list of all partitions - intended for places where the root
+  * filesystem can't be mounted and thus to give the victim some idea of what
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 4a114937c43b..4688bff19c20 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -253,6 +253,29 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return blk_status_to_errno(rc);
+ }
+ 
++static int pmem_corrupted_range(struct gendisk *disk, struct block_device *bdev,
++				loff_t disk_offset, size_t len, void *data)
++{
++	struct super_block *sb;
++	loff_t bdev_offset;
++	sector_t disk_sector = disk_offset >> SECTOR_SHIFT;
++	int rc = 0;
++
++	bdev = bdget_disk_sector(disk, disk_sector);
++	if (!bdev)
++		return -ENODEV;
++
++	bdev_offset = (disk_sector - get_start_sect(bdev)) << SECTOR_SHIFT;
++	sb = get_super(bdev);
++	if (sb && sb->s_op->corrupted_range) {
++		rc = sb->s_op->corrupted_range(sb, bdev, bdev_offset, len, data);
++		drop_super(sb);
++	}
++
++	bdput(bdev);
++	return rc;
++}
++
+ /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
+ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn)
+@@ -281,6 +304,7 @@ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.submit_bio =		pmem_submit_bio,
+ 	.rw_page =		pmem_rw_page,
++	.corrupted_range =	pmem_corrupted_range,
  };
+ 
+ static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+diff --git a/include/linux/genhd.h b/include/linux/genhd.h
+index 03da3f603d30..ed06209008b8 100644
+--- a/include/linux/genhd.h
++++ b/include/linux/genhd.h
+@@ -303,6 +303,7 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
+ extern void del_gendisk(struct gendisk *gp);
+ extern struct gendisk *get_gendisk(dev_t dev, int *partno);
+ extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
++extern struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector);
+ 
+ extern void set_device_ro(struct block_device *bdev, int flag);
+ extern void set_disk_ro(struct gendisk *disk, int flag);
 -- 
 2.29.2
 
