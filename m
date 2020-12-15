@@ -7,58 +7,61 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A80BBC2BBCD
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53848C4361B
 	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:15:07 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 634CB222BB
+	by mail.kernel.org (Postfix) with ESMTPS id 0823B222BB
 	for <linux-nvdimm@archiver.kernel.org>; Tue, 15 Dec 2020 12:15:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 634CB222BB
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0823B222BB
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0AB4C100EBBD0;
-	Tue, 15 Dec 2020 04:15:07 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id DE2E3100EBBCB;
+	Tue, 15 Dec 2020 04:15:06 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 30336100EBBBF
+	by ml01.01.org (Postfix) with ESMTP id 90C6E100EBBBF
 	for <linux-nvdimm@lists.01.org>; Tue, 15 Dec 2020 04:15:02 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.78,420,1599494400";
-   d="scan'208";a="102420202"
+   d="scan'208";a="102420204"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 15 Dec 2020 20:15:00 +0800
 Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id 7F9924CE6011;
-	Tue, 15 Dec 2020 20:14:58 +0800 (CST)
-Received: from G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) by
+	by cn.fujitsu.com (Postfix) with ESMTP id B6B804CE5CCA;
+	Tue, 15 Dec 2020 20:14:56 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
  G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Tue, 15 Dec 2020 20:14:57 +0800
+ (TLS) id 15.0.1497.2; Tue, 15 Dec 2020 20:14:56 +0800
+Received: from G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.203) by
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Tue, 15 Dec 2020 20:14:55 +0800
 Received: from localhost.localdomain (10.167.225.141) by
  G08CNEXCHPEKD05.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Tue, 15 Dec 2020 20:14:57 +0800
+ id 15.0.1497.2 via Frontend Transport; Tue, 15 Dec 2020 20:14:54 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
-Subject: [RFC PATCH v3 7/9] dm: Introduce ->rmap() to find bdev offset
-Date: Tue, 15 Dec 2020 20:14:12 +0800
-Message-ID: <20201215121414.253660-8-ruansy.fnst@cn.fujitsu.com>
+Subject: [RFC PATCH v3 5/9] mm, pmem: Implement ->memory_failure() in pmem driver
+Date: Tue, 15 Dec 2020 20:14:10 +0800
+Message-ID: <20201215121414.253660-6-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
 References: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 7F9924CE6011.AB196
+X-yoursite-MailScanner-ID: B6B804CE5CCA.AFD4B
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: WGL7ZLS2UD7IMOWP5JYK5GLH4PWZ2MEK
-X-Message-ID-Hash: WGL7ZLS2UD7IMOWP5JYK5GLH4PWZ2MEK
+Message-ID-Hash: HP5HAFUU3ANJZGQ3BMB6OVOSVVYXZH5X
+X-Message-ID-Hash: HP5HAFUU3ANJZGQ3BMB6OVOSVVYXZH5X
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WGL7ZLS2UD7IMOWP5JYK5GLH4PWZ2MEK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HP5HAFUU3ANJZGQ3BMB6OVOSVVYXZH5X/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,66 +70,142 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Pmem device could be a target of mapped device.  In order to obtain
-superblock on the mapped device, we introduce this to translate offset
-from target device to md device.
-
-Currently, we implement it on linear target, which is easy to do the
-translation.  Other targets will be supported in the future.  However,
-some targets may not support it because of the non-linear mapping.
+Call the ->memory_failure() which is implemented by pmem driver, in
+order to finally notify filesystem to handle the corrupted data.  The
+old collecting and killing processes are moved into
+mf_dax_mapping_kill_procs(), which will be called by filesystem.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- drivers/md/dm-linear.c        | 8 ++++++++
- include/linux/device-mapper.h | 2 ++
- 2 files changed, 10 insertions(+)
+ drivers/nvdimm/pmem.c | 24 +++++++++++++++++
+ mm/memory-failure.c   | 62 +++++++------------------------------------
+ 2 files changed, 34 insertions(+), 52 deletions(-)
 
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 00774b5d7668..7a7719e9958d 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -119,6 +119,13 @@ static void linear_status(struct dm_target *ti, status_type_t type,
- 	}
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 875076b0ea6c..4a114937c43b 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -363,9 +363,33 @@ static void pmem_release_disk(void *__pmem)
+ 	put_disk(pmem->disk);
  }
  
-+static sector_t linear_rmap(struct dm_target *ti, sector_t offset)
++static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
++		unsigned long pfn, int flags)
 +{
-+	struct linear_c *lc = (struct linear_c *) ti->private;
++	struct pmem_device *pdev;
++	struct gendisk *disk;
++	loff_t disk_offset;
++	int rc = 0;
++	unsigned long size = page_size(pfn_to_page(pfn));
 +
-+	return offset - dm_target_offset(ti, lc->start);
++	pdev = container_of(pgmap, struct pmem_device, pgmap);
++	disk = pdev->disk;
++	if (!disk)
++		return -ENXIO;
++
++	disk_offset = PFN_PHYS(pfn) - pdev->phys_addr - pdev->data_offset;
++	if (disk->fops->corrupted_range) {
++		rc = disk->fops->corrupted_range(disk, NULL, disk_offset, size, &flags);
++		if (rc == -ENODEV)
++			rc = -ENXIO;
++	}
++	return rc;
 +}
 +
- static int linear_prepare_ioctl(struct dm_target *ti, struct block_device **bdev)
+ static const struct dev_pagemap_ops fsdax_pagemap_ops = {
+ 	.kill			= pmem_pagemap_kill,
+ 	.cleanup		= pmem_pagemap_cleanup,
++	.memory_failure		= pmem_pagemap_memory_failure,
+ };
+ 
+ static int pmem_attach_disk(struct device *dev,
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 03a4f4c1b803..10b39b14b4d7 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1278,38 +1278,19 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
  {
- 	struct linear_c *lc = (struct linear_c *) ti->private;
-@@ -238,6 +245,7 @@ static struct target_type linear_target = {
- 	.ctr    = linear_ctr,
- 	.dtr    = linear_dtr,
- 	.map    = linear_map,
-+	.rmap   = linear_rmap,
- 	.status = linear_status,
- 	.prepare_ioctl = linear_prepare_ioctl,
- 	.iterate_devices = linear_iterate_devices,
-diff --git a/include/linux/device-mapper.h b/include/linux/device-mapper.h
-index 61a66fb8ebb3..4a2afff6937e 100644
---- a/include/linux/device-mapper.h
-+++ b/include/linux/device-mapper.h
-@@ -58,6 +58,7 @@ typedef void (*dm_dtr_fn) (struct dm_target *ti);
-  * = 2: The target wants to push back the io
-  */
- typedef int (*dm_map_fn) (struct dm_target *ti, struct bio *bio);
-+typedef sector_t (*dm_rmap_fn) (struct dm_target *ti, sector_t offset);
- typedef int (*dm_clone_and_map_request_fn) (struct dm_target *ti,
- 					    struct request *rq,
- 					    union map_info *map_context,
-@@ -175,6 +176,7 @@ struct target_type {
- 	dm_ctr_fn ctr;
- 	dm_dtr_fn dtr;
- 	dm_map_fn map;
-+	dm_rmap_fn rmap;
- 	dm_clone_and_map_request_fn clone_and_map_rq;
- 	dm_release_clone_request_fn release_clone_rq;
- 	dm_endio_fn end_io;
+ 	struct page *page = pfn_to_page(pfn);
+-	struct address_space *mapping = page->mapping;
+-	pgoff_t index = page->index;
+-	const bool unmap_success = true;
+-	unsigned long size = 0, dummy_pfn;
+-	struct to_kill *tk;
+-	LIST_HEAD(to_kill);
+-	int rc = -EBUSY;
+-	loff_t start;
+-	dax_entry_t cookie;
+-
+-	/*
+-	 * Prevent the inode from being freed while we are interrogating
+-	 * the address_space, typically this would be handled by
+-	 * lock_page(), but dax pages do not use the page lock. This
+-	 * also prevents changes to the mapping of this pfn until
+-	 * poison signaling is complete.
+-	 */
+-	cookie = dax_lock(mapping, index, &dummy_pfn);
+-	if (!cookie)
+-		goto out;
+-
+-	if (hwpoison_filter(page)) {
+-		rc = 0;
+-		goto unlock;
+-	}
++	int rc;
+ 
+ 	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
+ 		/*
+ 		 * TODO: Handle HMM pages which may need coordination
+ 		 * with device-side memory.
+ 		 */
+-		goto unlock;
++		goto out;
++	}
++
++	if (hwpoison_filter(page)) {
++		rc = 0;
++		goto out;
+ 	}
+ 
+ 	/*
+@@ -1318,33 +1299,10 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 	 */
+ 	SetPageHWPoison(page);
+ 
+-	/*
+-	 * Unlike System-RAM there is no possibility to swap in a
+-	 * different physical page at a given virtual address, so all
+-	 * userspace consumption of ZONE_DEVICE memory necessitates
+-	 * SIGBUS (i.e. MF_MUST_KILL)
+-	 */
+-	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+-	collect_procs_file(page, mapping, index, &to_kill,
+-			   flags & MF_ACTION_REQUIRED);
++	/* call driver to handle the memory failure */
++	if (pgmap->ops->memory_failure)
++		rc = pgmap->ops->memory_failure(pgmap, pfn, flags);
+ 
+-	list_for_each_entry(tk, &to_kill, nd)
+-		if (tk->size_shift)
+-			size = max(size, 1UL << tk->size_shift);
+-	if (size) {
+-		/*
+-		 * Unmap the largest mapping to avoid breaking up
+-		 * device-dax mappings which are constant size. The
+-		 * actual size of the mapping being torn down is
+-		 * communicated in siginfo, see kill_proc()
+-		 */
+-		start = (index << PAGE_SHIFT) & ~(size - 1);
+-		unmap_mapping_range(mapping, start, start + size, 0);
+-	}
+-	kill_procs(&to_kill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
+-	rc = 0;
+-unlock:
+-	dax_unlock(mapping, index, cookie);
+ out:
+ 	/* drop pgmap ref acquired in caller */
+ 	put_dev_pagemap(pgmap);
 -- 
 2.29.2
 
