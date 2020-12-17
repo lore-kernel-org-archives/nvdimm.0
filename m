@@ -2,75 +2,95 @@ Return-Path: <SRS0=M8eZ=FV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EF8EC4361B
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Dec 2020 08:18:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDECC4361B
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Dec 2020 11:23:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0DB0A2376F
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Dec 2020 08:18:26 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0DB0A2376F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 6106A2389E
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 17 Dec 2020 11:23:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6106A2389E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6782B100EB82B;
-	Thu, 17 Dec 2020 00:18:26 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::52f; helo=mail-ed1-x52f.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id CA352100EB827;
+	Thu, 17 Dec 2020 03:23:21 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 73158100EBBBB
-	for <linux-nvdimm@lists.01.org>; Thu, 17 Dec 2020 00:18:22 -0800 (PST)
-Received: by mail-ed1-x52f.google.com with SMTP id p22so27646932edu.11
-        for <linux-nvdimm@lists.01.org>; Thu, 17 Dec 2020 00:18:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=CYGS8pWyE8q2JUKHyneJ8EPZ/SE2JIJ/gm+Of5ZmpdA=;
-        b=KnYEVX+VktLSlpv0q2Ihl4osG3Y16MDlg9Wuw+38riJa0bmrqz24zHlZVm7pCJUb4n
-         EdZ7sbmpHpFiW2ByuV/4hjFuLV3+UgC7lANMn/tZyqm4ugy/pwd81uPs2WWpwN9b+8ag
-         NDWCYTsqf7nsgvIOLwSBWZ6frS7ccW6T0FFuZ2UV2DBX2gN4ctCrHlNCL7/cK/VHZIzH
-         FDgkmnPa1k7Q3C9pRYMSQ3yZv576a+SatTPX7GubMKMi7uvGyAriXjAYgyEMOCYOiH5E
-         YDpUM1Gk9bcjQrtpXgzvI6V6OeZkSaqia77r6Xcmj01NGq5ugHc39uA0XWabYsKxProu
-         fK1A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=CYGS8pWyE8q2JUKHyneJ8EPZ/SE2JIJ/gm+Of5ZmpdA=;
-        b=Z9Uz5Q1BEZGoADEK7+7UpoP6fV0Jgq3J6nN9XvKX+O/6zG+hhoK3Rixl+qCbORmham
-         cAKwHMb/0XbWSxN1zkhzg5j9a+qW/TaQoMLm7y2u/hQ0ODMLyam/MqdzB36htgIpQBIU
-         j9TT1iPBnCadAH22gHJhoomGyuNXpDJKFdi2TM2MPCISdeOTOt7u8or5SbIv7OvQrW8d
-         +tNNry227xKjdzQCOxYCPv2sGggjyK1JBzMPbFvdFz/3sXyJ7ijMeuN7/+Ok7rHJrYRD
-         m3ySv2esb0DOimtavjJApeCbXjXiVsx+QGnAfJeBQsnGmoIebUqqc8e1YcN6twGihyGC
-         W6FQ==
-X-Gm-Message-State: AOAM5303o2XvjDf/KIvpbUVrxTGxWgR4aJpUzM0K7TC4z74ztXEr4xYp
-	0mkSKy4v5FgH6KzZ6M+aGprmClTVIu3qzcoWXHuiwg==
-X-Google-Smtp-Source: ABdhPJyGioclYMHY6ezf9R4xao0pTrcrXwdZI225qUl/0lIJZmchrLhbZcwl+CwTmxPFWz0CHulgo5bWPHS/wHFh7Eg=
-X-Received: by 2002:aa7:c2d8:: with SMTP id m24mr22619527edp.300.1608193100666;
- Thu, 17 Dec 2020 00:18:20 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 97609100EC1DF
+	for <linux-nvdimm@lists.01.org>; Thu, 17 Dec 2020 03:23:19 -0800 (PST)
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BHBE007172232;
+	Thu, 17 Dec 2020 11:23:17 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=weaZy1FcO9tF2Pm3aiLwFbJg+XAMtIro1xUwACdzvFY=;
+ b=oifhuml+L19ahPy32ymAN7Re3lfxd3OxY1Km9ZsAA99/zsftA9ueyUiZDZ1FfxtQTO18
+ ai2MC7roZ7B4hvGeLNZSgJyPSwnEo/sRsCszUjYF7NySQMOwFvUEvg/xtZdU5mHEU6BX
+ fLDQAUe1hJS7KnS8xz35IJmvx+NK5fgfKfeJUmNgQ3c3JG5Kfueu/Wa96q7RufiXO9IZ
+ 8VHXHdVL411MOm5WiZPQwNTTs0pk26fvN8iQH+gLiWTiu4B1g76igGxNW7YJ4NqXuCoA
+ qRVivyJVCyG+FivMNLrwa+I0TVJRkbGw987kFVKF2DOrQOWY6DeoQoEHC6RXlTqFRVE+ cw==
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by aserp2120.oracle.com with ESMTP id 35cntmcv59-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Thu, 17 Dec 2020 11:23:17 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BHBGFOn055221;
+	Thu, 17 Dec 2020 11:23:16 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by userp3030.oracle.com with ESMTP id 35d7t06e8m-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 17 Dec 2020 11:23:16 +0000
+Received: from abhmp0004.oracle.com (abhmp0004.oracle.com [141.146.116.10])
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 0BHBNF9E001857;
+	Thu, 17 Dec 2020 11:23:15 GMT
+Received: from [192.168.1.188] (/83.132.24.54)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Thu, 17 Dec 2020 03:23:15 -0800
+Subject: Re: [PATCH ndctl v1 0/8] daxctl: Add device align and range mapping
+ allocation
+To: Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>
+References: <20200716184707.23018-1-joao.m.martins@oracle.com>
+ <988f8189-b20c-d569-91f0-cf31033cf9d7@oracle.com>
+ <9db17315af1440b805c4fed2338969e7fe3155ec.camel@intel.com>
+ <1ba4fc06-a13a-ce2b-2f53-95a913ac3a8e@oracle.com>
+ <CAPcyv4jiS07bGi+YRsMjAt37DCNwioTd8cd=LXKxOg-ARTM87g@mail.gmail.com>
+ <01b3c6f8-901e-c9c8-6e98-88366d4ecbdd@oracle.com>
+ <CAPcyv4jQ9ee-o3t_Wy_4K-Nm5Lj6wJKv1pdjvtYQG6eJ3ejUrQ@mail.gmail.com>
+From: Joao Martins <joao.m.martins@oracle.com>
+Message-ID: <b5a6577f-0384-8cbf-d3c7-2512f0f5d22c@oracle.com>
+Date: Thu, 17 Dec 2020 11:23:10 +0000
 MIME-Version: 1.0
-References: <3211fe8a-33fb-37ca-e192-ad1f116f4acd@huawei.com> <c8a8a260-34c6-dbfc-1f19-25c23d01cb45@oracle.com>
-In-Reply-To: <c8a8a260-34c6-dbfc-1f19-25c23d01cb45@oracle.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 17 Dec 2020 00:18:08 -0800
-Message-ID: <CAPcyv4i1rY53QeAm2nhwv9_yP1hhw33qBTrMdrepxcVQOrDDqg@mail.gmail.com>
-Subject: Re: [ndctl PATCH V2 0/8] fix serverl issues reported by Coverity
-To: Jane Chu <jane.chu@oracle.com>
-Message-ID-Hash: JCLYSH37I672C2TSYZZDCJ4DZ7M55U2E
-X-Message-ID-Hash: JCLYSH37I672C2TSYZZDCJ4DZ7M55U2E
-X-MailFrom: dan.j.williams@intel.com
+In-Reply-To: <CAPcyv4jQ9ee-o3t_Wy_4K-Nm5Lj6wJKv1pdjvtYQG6eJ3ejUrQ@mail.gmail.com>
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9837 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 bulkscore=0
+ mlxlogscore=999 spamscore=0 mlxscore=0 suspectscore=0 malwarescore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2012170082
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9837 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 phishscore=0 mlxscore=0
+ lowpriorityscore=0 spamscore=0 adultscore=0 malwarescore=0 suspectscore=0
+ mlxlogscore=999 impostorscore=0 priorityscore=1501 clxscore=1015
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2012170082
+Message-ID-Hash: RNIQNBRDMAVODHF3FLFVCZUZIBIBURFJ
+X-Message-ID-Hash: RNIQNBRDMAVODHF3FLFVCZUZIBIBURFJ
+X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Zhiqiang Liu <liuzhiqiang26@huawei.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linfeilong <linfeilong@huawei.com>
+CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JCLYSH37I672C2TSYZZDCJ4DZ7M55U2E/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RNIQNBRDMAVODHF3FLFVCZUZIBIBURFJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -79,103 +99,110 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 8, 2020 at 4:20 PM Jane Chu <jane.chu@oracle.com> wrote:
->
-> Hi,
->
-> I actually just ran into the NULL deref issue that is fixed here.
->
-> Bu I have a question for the experts:
-> what might cause libndctl to run into the NULL deref like below ?
->
-> Program terminated with signal 11, Segmentation fault.
-> #0  ndctl_pfn_get_bus (pfn=pfn@entry=0x0) at libndctl.c:5540
-> 5540            return pfn->region->bus;
->
-> (gdb) print pfn
-> $1 = (struct ndctl_pfn *) 0x0
-> (gdb) frame 4
-> #4  0x000000000040ca70 in setup_namespace (region=region@entry=0x109d910,
->      ndns=ndns@entry=0x10a7d40, p=p@entry=0x7ffd8ff73b90) at namespace.c:570
-> 570                     try(ndctl_dax, set_uuid, dax, uuid);
-> (gdb) info locals
-> __rc = <optimized out>
-> dax = 0x0
->
-> What I did was to let 2 threads run "create-namespace all" in a tight
-> loop, and 2 other threads run "destroy-namespace all" in a tight loop,
+On 12/16/20 11:42 PM, Dan Williams wrote:
+> On Wed, Dec 16, 2020 at 2:54 PM Joao Martins <joao.m.martins@oracle.com> wrote:
+>> On 12/16/20 10:31 PM, Dan Williams wrote:
+>>> On Wed, Dec 16, 2020 at 1:51 PM Joao Martins <joao.m.martins@oracle.com> wrote:
+>>>> On 12/16/20 6:42 PM, Verma, Vishal L wrote:
+>>>>> On Wed, 2020-12-16 at 11:39 +0000, Joao Martins wrote:
+>>>>>> On 7/16/20 7:46 PM, Joao Martins wrote:
+>>>>>>> Hey,
+>>>>>>>
+>>>>>>> This series builds on top of this one[0] and does the following improvements
+>>>>>>> to the Soft-Reserved subdivision:
+>>>>>>>
+>>>>>>>  1) Support for {create,reconfigure}-device for selecting @align (hugepage size).
+>>>>>>>  Here we add a '-a|--align 4K|2M|1G' option to the existing commands;
+>>>>>>>
+>>>>>>>  2) Listing improvements for device alignment and mappings;
+>>>>>>>  Note: Perhaps it is better to hide the mappings by default, and only
+>>>>>>>        print with -v|--verbose. This would align with ndctl, as the mappings
+>>>>>>>        info can be quite large.
+>>>>>>>
+>>>>>>>  3) Allow creating devices from selecting ranges. This allows to keep the
+>>>>>>>    same GPA->HPA mapping as before we kexec the hypervisor with running guests:
+>>>>>>>
+>>>>>>>    daxctl list -d dax0.1 > /var/log/dax0.1.json
+>>>>>>>    kexec -d -l bzImage
+>>>>>>>    systemctl kexec
+>>>>>>>    daxctl create -u --restore /var/log/dax0.1.json
+>>>>>>>
+>>>>>>>    The JSON was what I though it would be easier for an user, given that it is
+>>>>>>>    the data format daxctl outputs. Alternatives could be adding multiple:
+>>>>>>>     --mapping <pgoff>:<start>-<end>
+>>>>>>>
+>>>>>>>    But that could end up in a gigantic line and a little more
+>>>>>>>    unmanageable I think.
+>>>>>>>
+>>>>>>> This series requires this series[0] on top of Dan's patches[1]:
+>>>>>>>
+>>>>>>>  [0] https://lore.kernel.org/linux-nvdimm/20200716172913.19658-1-joao.m.martins@oracle.com/
+>>>>>>>  [1] https://lore.kernel.org/linux-nvdimm/159457116473.754248.7879464730875147365.stgit@dwillia2-desk3.amr.corp.intel.com/
+>>>>>>>
+>>>>>>> The only TODO here is docs and improving tests to validate mappings, and test
+>>>>>>> the restore path.
+>>>>>>>
+>>>>>>> Suggestions/comments are welcome.
+>>>>>>>
+>>>>>> There's a couple of issues in this series regarding daxctl-reconfigure options and
+>>>>>> breakage of ndctl with kernels (<5.10) that do not supply a device @align upon testing
+>>>>>> with NVDIMMs. Plus it is missing daxctl-create.sh unit test for @align.
+>>>>>>
+>>>>>> I will fix those and respin, and probably take out the last patch as it's more RFC-ish and
+>>>>>> in need of feedback.
+>>>>>
+>>>>> Sounds good. Any objections to releasing v70 with the initial support,
+>>>>> and then adding this series on for the next one? I'm thinking I'll do a
+>>>>> much quicker v72 release say in early January with this and anything
+>>>>> else that missed v71.
+>>>>
+>>>> If we're able to wait until tomorrow, I could respin these first four patches with the
+>>>> fixes and include the align support in the initial set. Otherwise, I am also good if you
+>>>> prefer defering it to v72.
+>>>
+>>> Does this change the JSON output? Might be nice to keep that all in
+>>> one update rather than invalidate some testing with the old format
+>>> betweem v71 and v72.
+>>>
+>> Ugh, sent the v2 too early before seeing this.
+>>
+>> The only change to the output is on daxctl when listing devices for 5.10+.
+>> It starts displaying an "align" key/value.
+> 
+> No worries. Vishal and I chatted and it looks to me like your
+> improvements to the provisioning flow are worthwhile to sneak into the
+> v71 release if you want to include those changes as well.
 
-This will definitely cause libndctl to get confused the expectation is
-that only one ndctl instance is operating on one region at a time.
-What likely happened is TOCTOU in ndctl_region_get_pfn_seed() where
-the seed device name is destroyed by the time it tries to convert it
-to an ndctl object. The reason libndctl does not perform its own
-locking is to keep the library stateless and allow locking to imposed
-from a higher level. Two ndctl instances must not be allowed to
-operate in the same region otherwise the 2 libndctl instances will get
-out of sync.
+The provisioning flow additions has some questions open about the daxctl
+user interface. To summarize:
 
-This is no different than 2 fdisk processes running at the same time,
-they are going to invalidate each other's view of the cached partition
-state. The fix is not for fdisk to implement locking internally
-instead it requires the admin to arrange for only one fdisk to run
-against one disk at a time.
+1) Should we always list mappings, or only list them with a -v option? Or
+maybe instead of -v to use instead a new -M option which enables the
+listing of mappings?
 
-> while chasing an year old issue that randomly resurfaces -
-> "nd_region region1: allocation underrun: 0x0 of 0x40000000 bytes"
+The reason being that it can get quite verbose with a device picks a lot
+of mappings, hence I would imagine this info isn't necessary for the casual
+daxctl listing.
 
-It would be interesting to get more data on the sequence of
-allocations that lead up to this event, and a dump of the resource
-tree when this happens:
+2) Does the '--restore <file.json>' should instead be called it
+instead '--device'? I feel the name '--restore' is too tied to one specific
+way of using it when the feature can be used by a tool which wants to manage
+its own range mappings. Additionally, I was thinking that if one wants to
+manually add/fixup ranges more easily that we would add
+a --mapping <pgoff>:<start>-<end> sort of syntax. But I suppose this could
+be added later if its really desired.
 
-for (i = 0; i < nd_region->ndr_mappings; i++)
-    ndd = to_ndd(&nd_region->mapping[i]);
-    for_each_dpa_resource(...)
-        nd_dbg_dpa(...)
+And with these clarified, I could respin it over. Oh and I'm missing a
+mappings test as well.
 
+It's worth mentioning that kexec will need fixing, as dax_hmem regions
+created with HMAT or manually assigned with efi_fake_mem= get lost on
+kexec because we do not pass the EFI_MEMMAP conventional memory ranges
+to the second kernel (only runtime code/boot services). I have a
+RFC patch for x86 efi handling, but should get that conversation started
+after holidays.
 
->
-> In addition, there are kmemleaks,
-> # cat /sys/kernel/debug/kmemleak
-> [..]
-> unreferenced object 0xffff976bd46f6240 (size 64):
->    comm "ndctl", pid 23556, jiffies 4299514316 (age 5406.733s)
->    hex dump (first 32 bytes):
->      00 00 00 00 00 00 00 00 00 00 20 c3 37 00 00 00  .......... .7...
->      ff ff ff 7f 38 00 00 00 00 00 00 00 00 00 00 00  ....8...........
->    backtrace:
->      [<00000000064003cf>] __kmalloc_track_caller+0x136/0x379
->      [<00000000d85e3c52>] krealloc+0x67/0x92
->      [<00000000d7d3ba8a>] __alloc_dev_dax_range+0x73/0x25c
->      [<0000000027d58626>] devm_create_dev_dax+0x27d/0x416
->      [<00000000434abd43>] __dax_pmem_probe+0x1c9/0x1000 [dax_pmem_core]
->      [<0000000083726c1c>] dax_pmem_probe+0x10/0x1f [dax_pmem]
->      [<00000000b5f2319c>] nvdimm_bus_probe+0x9d/0x340 [libnvdimm]
->      [<00000000c055e544>] really_probe+0x230/0x48d
->      [<000000006cabd38e>] driver_probe_device+0x122/0x13b
->      [<0000000029c7b95a>] device_driver_attach+0x5b/0x60
->      [<0000000053e5659b>] bind_store+0xb7/0xc3
->      [<00000000d3bdaadc>] drv_attr_store+0x27/0x31
->      [<00000000949069c5>] sysfs_kf_write+0x4a/0x57
->      [<000000004a8b5adf>] kernfs_fop_write+0x150/0x1e5
->      [<00000000bded60f0>] __vfs_write+0x1b/0x34
->      [<00000000b92900f0>] vfs_write+0xd8/0x1d1
-
-Hmm... maybe this?
-
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 27513d311242..506549235e03 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -1393,6 +1393,7 @@ struct dev_dax *devm_create_dev_dax(struct
-dev_dax_data *data)
- err_pgmap:
-        free_dev_dax_ranges(dev_dax);
- err_range:
-+       kfree(dev_dax->ranges);
-        free_dev_dax_id(dev_dax);
- err_id:
-        kfree(dev_dax);
+	Joao
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
