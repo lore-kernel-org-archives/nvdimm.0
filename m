@@ -7,58 +7,58 @@ X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E83C2BBCD
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 02:15:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BEC4C4361B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 02:17:07 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4DBE823A5D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 02:15:11 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4DBE823A5D
+	by mail.kernel.org (Postfix) with ESMTPS id AFF0D23A5D
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 02:17:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AFF0D23A5D
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2A205100EB85F;
-	Thu, 17 Dec 2020 18:15:11 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
+	by ml01.01.org (Postfix) with ESMTP id 7E482100EB321;
+	Thu, 17 Dec 2020 18:17:06 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 594F3100EB85D
-	for <linux-nvdimm@lists.01.org>; Thu, 17 Dec 2020 18:15:08 -0800 (PST)
-Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BI2EeT3110085;
-	Fri, 18 Dec 2020 02:15:07 GMT
+	by ml01.01.org (Postfix) with ESMTPS id A3710100EB84D
+	for <linux-nvdimm@lists.01.org>; Thu, 17 Dec 2020 18:17:03 -0800 (PST)
+Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
+	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BI2G5JC014056;
+	Fri, 18 Dec 2020 02:17:01 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references; s=corp-2020-01-29;
- bh=QSAlX6peOVryBnEhb24N/QLanHIAnoP2De/C9296E54=;
- b=iQNDy0v7ghwJkxFRbNaZtHBfFBVC3a/MzJ22NHrtmkOASC6amIMBK6yBwIxTymTMy0/m
- oLF8Z6bE/pkqyPsT3b5B7gO5HInKZivz5S4+9umXsDpUo+x7LK9H0wW1ltXqhjZelVGo
- 27vLg9yH6kcKE0KLRWhROlpVy2GT+Lcuu0LZzSC2cgoL+HVuFMy2eZD20y276r2oDxq9
- KY8NZ2SZ4dLzsxATGhiyyDEjOzwW7kExnkiNis+gu3P0mMVcerYD1HTAdQt9f/E2u2ON
- WD0HfeQXIUcwNI2qJrGX3JDv2hmTbCuAkg0cQCIv1JiVcDLMvrNFAZTX58uCwdOjb4Pj TQ==
+ bh=sYgGLcTcsQaq4OWP+USSdocYF/Hqfy6hUH9SkjvBDzs=;
+ b=Q5TMI+fo/HWdVuWSbH/5b4arfA2zFRGDHXJWsQFKeV3A+ddWVwUhzw3S77fF+GbOiJjj
+ eIGC7FXPZEG5TKpyJ1csOvodvYj/4DJ7c+c9e+BYvxawDTetwLDon/W1lqdzBf+o7PpN
+ GBzIsgAiwnueaGkTaD9h4Nk/yRexmOrsY8yMz7UgHFsm/M9ORfWpw3ro7Gq5WUAPIHHN
+ 89ucd9dcishlnKgSYk+68WDrgszAGEt6rhQHROwVfhP2qLsfwYPjQzZlXBZmY6bSJyC/
+ E338vYt2H/wQURCYLeyQDdg29dNMq+fQkUiTChPcz8Qu3fo+8DDUXA5FBGrQMEZGqJHU 5w==
 Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by userp2130.oracle.com with ESMTP id 35cn9rrb04-1
+	by aserp2120.oracle.com with ESMTP id 35cntmg9bq-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Fri, 18 Dec 2020 02:15:07 +0000
+	Fri, 18 Dec 2020 02:17:01 +0000
 Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BI25Jg4101608;
-	Fri, 18 Dec 2020 02:15:06 GMT
-Received: from userv0121.oracle.com (userv0121.oracle.com [156.151.31.72])
-	by aserp3020.oracle.com with ESMTP id 35e6eu4b2j-1
+	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 0BI25Iwa101402;
+	Fri, 18 Dec 2020 02:15:01 GMT
+Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
+	by aserp3020.oracle.com with ESMTP id 35e6eu4aw6-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 18 Dec 2020 02:15:06 +0000
+	Fri, 18 Dec 2020 02:15:01 +0000
 Received: from abhmp0017.oracle.com (abhmp0017.oracle.com [141.146.116.23])
-	by userv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0BI2F5VK014367;
-	Fri, 18 Dec 2020 02:15:05 GMT
+	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 0BI2F0JT026939;
+	Fri, 18 Dec 2020 02:15:00 GMT
 Received: from paddy.uk.oracle.com (/10.175.180.204)
 	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Thu, 17 Dec 2020 18:15:04 -0800
+	with ESMTP ; Thu, 17 Dec 2020 18:15:00 -0800
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-nvdimm@lists.01.org
-Subject: [PATCH daxctl v2 5/5] daxctl/test: add a test for daxctl-create with input file
-Date: Fri, 18 Dec 2020 02:14:38 +0000
-Message-Id: <20201218021438.8926-6-joao.m.martins@oracle.com>
+Subject: [PATCH daxctl v2 3/5] libdaxctl: add daxctl_dev_set_mapping()
+Date: Fri, 18 Dec 2020 02:14:36 +0000
+Message-Id: <20201218021438.8926-4-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20201218021438.8926-1-joao.m.martins@oracle.com>
 References: <20201218021438.8926-1-joao.m.martins@oracle.com>
@@ -68,20 +68,20 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxs
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
  definitions=main-2012180012
 X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9838 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxlogscore=999
- impostorscore=0 lowpriorityscore=0 clxscore=1015 spamscore=0
- malwarescore=0 priorityscore=1501 phishscore=0 mlxscore=0 bulkscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2012180013
-Message-ID-Hash: LJMZU6D5YYIIAVJQ2ZRPJFBNB3AH7XDI
-X-Message-ID-Hash: LJMZU6D5YYIIAVJQ2ZRPJFBNB3AH7XDI
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 phishscore=0 mlxscore=0
+ lowpriorityscore=0 spamscore=0 adultscore=0 malwarescore=0 suspectscore=0
+ mlxlogscore=999 impostorscore=0 priorityscore=1501 clxscore=1015
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2012180013
+Message-ID-Hash: MUG6NKKW6T2KOUI3FNL5WBBGOWT4KQNM
+X-Message-ID-Hash: MUG6NKKW6T2KOUI3FNL5WBBGOWT4KQNM
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: Joao Martins <joao.m.martins@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LJMZU6D5YYIIAVJQ2ZRPJFBNB3AH7XDI/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MUG6NKKW6T2KOUI3FNL5WBBGOWT4KQNM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -91,84 +91,81 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The test creates a multi-range device (4 mappings) using the
-same setup as one of the tests. Afterwards we validate that
-the size/nr-mappings are the same as the original test.
+This API adds the ability to manually pick a range within the region
+device.  Such routine allows for a admin to restore the mappings of a
+device after kexec. This is specially useful for hmem dynamic devdax
+which do not persistent ranges allocation through say a e.g. namespace
+label storage area. It also allows an userspace application to pick
+it's own ranges, should it want to avoid relying on kernel's policy.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- test/daxctl-create.sh | 31 ++++++++++++++++++++++++++++++-
- 1 file changed, 30 insertions(+), 1 deletion(-)
+ daxctl/lib/libdaxctl.c   | 27 +++++++++++++++++++++++++++
+ daxctl/lib/libdaxctl.sym |  1 +
+ daxctl/libdaxctl.h       |  2 ++
+ 3 files changed, 30 insertions(+)
 
-diff --git a/test/daxctl-create.sh b/test/daxctl-create.sh
-index 41d5ba5888f7..e1d733916851 100755
---- a/test/daxctl-create.sh
-+++ b/test/daxctl-create.sh
-@@ -199,6 +199,7 @@ daxctl_test_multi()
- daxctl_test_multi_reconfig()
- {
- 	local ncfgs=$1
-+	local dump=$2
- 	local daxdev
- 
- 	size=$((available / ncfgs))
-@@ -226,6 +227,10 @@ daxctl_test_multi_reconfig()
- 	test "$(daxctl_get_nr_mappings "$testdev")" -eq $((ncfgs / 2))
- 	test "$(daxctl_get_nr_mappings "$daxdev_1")" -eq $((ncfgs / 2))
- 
-+	if [[ $dump ]]; then
-+		"$DAXCTL" list -M -d "$daxdev_1" | jq -er '.[]' > $dump
-+	fi
-+
- 	fail_if_available
- 
- 	"$DAXCTL" disable-device "$daxdev_1" && "$DAXCTL" destroy-device "$daxdev_1"
-@@ -328,7 +333,7 @@ daxctl_test3()
- # pick at the end of the region
- daxctl_test4()
- {
--	daxctl_test_multi_reconfig 8
-+	daxctl_test_multi_reconfig 8 ""
- 	clear_dev
- 	test_pass
- }
-@@ -371,6 +376,29 @@ daxctl_test6()
- 	test_pass
+diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
+index 3781e9ed27d5..59fe84fee409 100644
+--- a/daxctl/lib/libdaxctl.c
++++ b/daxctl/lib/libdaxctl.c
+@@ -1123,6 +1123,33 @@ DAXCTL_EXPORT int daxctl_dev_set_align(struct daxctl_dev *dev, unsigned long ali
+ 	return 0;
  }
  
-+# Test 7: input device
-+# Successfully creates a device with an input file from the multi-range
-+# device test, and checking that we have the same number of mappings/size.
-+daxctl_test7()
++DAXCTL_EXPORT int daxctl_dev_set_mapping(struct daxctl_dev *dev,
++					unsigned long long start,
++					unsigned long long end)
 +{
-+	daxctl_test_multi_reconfig 8 "input.json"
++	struct daxctl_ctx *ctx = daxctl_dev_get_ctx(dev);
++	unsigned long long size = end - start + 1;
++	char buf[SYSFS_ATTR_SIZE];
++	char *path = dev->dev_buf;
++	int len = dev->buf_len;
 +
-+	# The parameter should parse the region_id from the chardev entry
-+	# therefore using the same region_id as test4
-+	daxdev_1=$("$DAXCTL" create-device --input input.json | jq -er '.[].chardev')
++	if (snprintf(path, len, "%s/mapping", dev->dev_path) >= len) {
++		err(ctx, "%s: buffer too small!\n",
++				daxctl_dev_get_devname(dev));
++		return -ENXIO;
++	}
 +
-+	# Validate if it's the same mappings as done by test4
-+	# It also validates the size computed from the mappings
-+	# A zero value means it failed, and four mappings is what's
-+	# created by daxctl_test4
-+	test "$(daxctl_get_nr_mappings "$daxdev_1")" -eq 4
++	sprintf(buf, "%#llx-%#llx\n", start, end);
++	if (sysfs_write_attr(ctx, path, buf) < 0) {
++		err(ctx, "%s: failed to set mapping\n",
++				daxctl_dev_get_devname(dev));
++		return -ENXIO;
++	}
++	dev->size += size;
 +
-+	"$DAXCTL" disable-device "$daxdev_1" && "$DAXCTL" destroy-device "$daxdev_1"
-+
-+	clear_dev
-+	test_pass
++	return 0;
 +}
 +
- find_testdev
- rc=1
- setup_dev
-@@ -381,5 +409,6 @@ daxctl_test3
- daxctl_test4
- daxctl_test5
- daxctl_test6
-+daxctl_test7
- reset_dev
- exit 0
+ DAXCTL_EXPORT int daxctl_dev_get_target_node(struct daxctl_dev *dev)
+ {
+ 	return dev->target_node;
+diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
+index 08362b683678..a4e16848494b 100644
+--- a/daxctl/lib/libdaxctl.sym
++++ b/daxctl/lib/libdaxctl.sym
+@@ -89,4 +89,5 @@ global:
+ 	daxctl_mapping_get_end;
+ 	daxctl_mapping_get_offset;
+ 	daxctl_mapping_get_size;
++	daxctl_dev_set_mapping;
+ } LIBDAXCTL_7;
+diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
+index f94a72fed85b..09439c16d6df 100644
+--- a/daxctl/libdaxctl.h
++++ b/daxctl/libdaxctl.h
+@@ -73,6 +73,8 @@ unsigned long long daxctl_dev_get_size(struct daxctl_dev *dev);
+ int daxctl_dev_set_size(struct daxctl_dev *dev, unsigned long long size);
+ unsigned long daxctl_dev_get_align(struct daxctl_dev *dev);
+ int daxctl_dev_set_align(struct daxctl_dev *dev, unsigned long align);
++int daxctl_dev_set_mapping(struct daxctl_dev *dev, unsigned long long start,
++			unsigned long long end);
+ struct daxctl_ctx *daxctl_dev_get_ctx(struct daxctl_dev *dev);
+ int daxctl_dev_is_enabled(struct daxctl_dev *dev);
+ int daxctl_dev_disable(struct daxctl_dev *dev);
 -- 
 1.8.3.1
 _______________________________________________
