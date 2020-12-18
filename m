@@ -6,72 +6,73 @@ X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E876DC2D0E4
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 16:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EE61C4361B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 19:21:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 90B3723B53
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 16:59:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 90B3723B53
+	by mail.kernel.org (Postfix) with ESMTPS id B32B223B84
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 19:21:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B32B223B84
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3A25D100EB33D;
-	Fri, 18 Dec 2020 08:59:31 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::535; helo=mail-ed1-x535.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x535.google.com (mail-ed1-x535.google.com [IPv6:2a00:1450:4864:20::535])
+	by ml01.01.org (Postfix) with ESMTP id 2EB16100EB344;
+	Fri, 18 Dec 2020 11:21:25 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::62d; helo=mail-ej1-x62d.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 07A61100EB33A
-	for <linux-nvdimm@lists.01.org>; Fri, 18 Dec 2020 08:59:28 -0800 (PST)
-Received: by mail-ed1-x535.google.com with SMTP id u19so3067961edx.2
-        for <linux-nvdimm@lists.01.org>; Fri, 18 Dec 2020 08:59:28 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 514C5100EB342
+	for <linux-nvdimm@lists.01.org>; Fri, 18 Dec 2020 11:20:57 -0800 (PST)
+Received: by mail-ej1-x62d.google.com with SMTP id qw4so4740520ejb.12
+        for <linux-nvdimm@lists.01.org>; Fri, 18 Dec 2020 11:20:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=l2IQ6TE/rhYWCk2P0BT6shtYVSJjLwqOvjZqkUrg3hg=;
-        b=x0bdaXnT2B4JXcqIt4PJy6h+bXPGtd8toCsOgNdWIJa1nPBCH5WTS5rerVO30HHHv+
-         0mEXFdRjcKh4IwU/rzCLurT6prPOAZRgSMIqzb+6RHbn47F53bE4mnZw4nfnwKqzLt9O
-         y2s6lpJCJeivzJE/dzH1mAeUqmd6PsLFZpksfWbC5s5r/QUjZboSHmr84aZIE5P0LJzo
-         X7gN+dmAo5f5vnJ+NP5gpsL6toXTlaOai1neElJ2mwb0KuuQoEZyD/SwUgY9jIhveiWf
-         ANrkYt1dOrFDv6aPQb04TGSt5QVD0JKHk4L6JLZ7vVZPZsgr5RluZpOmVL9LdFpgPmDm
-         3uJw==
+        bh=2HEr0MPReqXsQ4qjOEHDWj7dDqEmzb7cQ1SBc7J5+dw=;
+        b=0gUyIB6kwj5RKOw851fk6tIuNDG4efEdNNdTwLooyi3Ofm0EJNVeG9KuAjSj3aMg6f
+         Nwg+eoJoWVdwLtTY3Y8taw8Fef0vS6Q+iXd/8DHKpkBDllC+QxxTWM+tmflFQ56pKF9B
+         r2XxuUfLtlwWmeTgBIAJmw9ETjSzKJTBTFdP2PkwnVqnR01L9FpICe97GYFCb2DWdW5K
+         seQ68bOOeWzb3UjT1JmBfrvoBnu9/DfF7C6IExaFWhrhWglsaMg1lwmZ33uUG9d1/Sb+
+         XYVWsgUrBCaZCqgbA6uAiGkasFBAenXSTwAqf6Hsd5Vrz7GPCAPk7LmnxkGUwVTkpXZL
+         KpAw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=l2IQ6TE/rhYWCk2P0BT6shtYVSJjLwqOvjZqkUrg3hg=;
-        b=MovYdCwzUXa2TT5fDRNJGL5ipg9n3dEVapyV6Y743kdMBIP+O0cbJQ7Tdwhk4sWiaM
-         UVgarA6injuAAFVLAWHQ0sxCkIM78r4KKGrt3cG0MYByA4cYnOEW0fZ3ZLH7w2BXlmOD
-         aYgv7+K2aBTrJeDoOi8hdi1+O10iqi71F69mm2tI5S0K7qWxtH2MtwdtFNAfIqEzts8r
-         rN9YWK6Sx6WBgTyMMY0iZ58k9Bs6jHPCWLf+Kg/1O+pw+HILuQp/Vj8oLWlomQdnBmbG
-         r6rQPrB4dnp29JBTvdiJ1aGAAvXGm9TPDLkKG+Wwgwj76hr+FCijdYxI+Whzr27XxxMl
-         1Tgw==
-X-Gm-Message-State: AOAM5328XDc6XpNjjTPHJG+Y/X5NxVKARszVHVaGW85WxT+RbFENsVEf
-	du9EZBR8P3fBrvFk4toZJPiEO0x5BIxjl8UbQvUYRA==
-X-Google-Smtp-Source: ABdhPJzi8p93x3vt5BPfkyWakXSFrE3q9YiaTjtJjD9XWTCVmH/VzLNltbu680O+caKH/UqiktjQd9bnfrMv9AkR1X4=
-X-Received: by 2002:aa7:c3cd:: with SMTP id l13mr5242794edr.97.1608310766755;
- Fri, 18 Dec 2020 08:59:26 -0800 (PST)
+        bh=2HEr0MPReqXsQ4qjOEHDWj7dDqEmzb7cQ1SBc7J5+dw=;
+        b=FMEcFFUlrKcNr2biEAZ/1mnoeCL5G995+ceiGRXGJd/Sdg6lCz1IGpH3+evb8wr7gj
+         +VQAgEaNlpel95AJqVXC7GiK2zh0/vQHvNwJAQ0acyZry++g8hO2HFpKWWJ5qtVcGDov
+         l7QXXVzbhrF3bGRthgrIznhTKQk8af//qXy4OmBffgHwep+N4BskjDknjXy7TXeXufDH
+         H+Wc/A7hEwxcQ7wkEIa+eCr2xM5rFxiIcW5TWlr8Gleuz0fx3cO3rZKMp8FQeGNnnBW4
+         kLhCBfTq9IJL3AOGYaGu9ldNs6mR1jtqi8adCfxwCErAhq8HXfKFXRJrrPWeYZtGc2vv
+         XMoQ==
+X-Gm-Message-State: AOAM532vJjcHq/Cru1CRPWFPsFrw7y0Ja9TCf/F/mxFsMIQhSl2ijNw8
+	LeKXhEyqbBACn11+AWPzDrMWtNESOxwAiyPvpEMluA==
+X-Google-Smtp-Source: ABdhPJxz1FpFcD9v7zRsD1EJK/j02c+zOqLAfDerue66a4zrExXDdPTJUW4Jq8q7kbLcuvcZiWDBKJ5jeXELTUS5XC8=
+X-Received: by 2002:a17:906:4146:: with SMTP id l6mr5459331ejk.341.1608319255787;
+ Fri, 18 Dec 2020 11:20:55 -0800 (PST)
 MIME-Version: 1.0
-References: <20201106232908.364581-1-ira.weiny@intel.com> <20201106232908.364581-11-ira.weiny@intel.com>
- <570ead2a-ff41-e730-d61d-0f59c67b1903@intel.com> <20201218040509.GD1563847@iweiny-DESK2.sc.intel.com>
-In-Reply-To: <20201218040509.GD1563847@iweiny-DESK2.sc.intel.com>
+References: <20201106232908.364581-1-ira.weiny@intel.com> <20201106232908.364581-5-ira.weiny@intel.com>
+ <871rfoscz4.fsf@nanos.tec.linutronix.de> <87mtycqcjf.fsf@nanos.tec.linutronix.de>
+ <878s9vqkrk.fsf@nanos.tec.linutronix.de>
+In-Reply-To: <878s9vqkrk.fsf@nanos.tec.linutronix.de>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 18 Dec 2020 08:59:16 -0800
-Message-ID: <CAPcyv4hixbKqkkh4DsRgAF7fARH2n2zzHnqQa1cNrXDrH9PekA@mail.gmail.com>
-Subject: Re: [PATCH V3 10/10] x86/pks: Add PKS test code
-To: Ira Weiny <ira.weiny@intel.com>
-Message-ID-Hash: LQ2FKURJGI77TNQ47YTKE7T7777VA3WR
-X-Message-ID-Hash: LQ2FKURJGI77TNQ47YTKE7T7777VA3WR
+Date: Fri, 18 Dec 2020 11:20:45 -0800
+Message-ID: <CAPcyv4h2MvybBi==3uzAjGeW0R7azHYSKwmvzMXq9eM8NzMLEg@mail.gmail.com>
+Subject: Re: [PATCH V3 04/10] x86/pks: Preserve the PKRS MSR on context switch
+To: Thomas Gleixner <tglx@linutronix.de>
+Message-ID-Hash: CDYR2DCS77MWZAKMIUSKS6DZ6NJQ5OBX
+X-Message-ID-Hash: CDYR2DCS77MWZAKMIUSKS6DZ6NJQ5OBX
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Dave Hansen <dave.hansen@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, X86 ML <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, linux-kselftest@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
+CC: Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Fenghua Yu <fenghua.yu@intel.com>, X86 ML <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Doc Mailing List <linux-doc@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, linux-kselftest@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LQ2FKURJGI77TNQ47YTKE7T7777VA3WR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CDYR2DCS77MWZAKMIUSKS6DZ6NJQ5OBX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,68 +81,37 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Dec 17, 2020 at 8:05 PM Ira Weiny <ira.weiny@intel.com> wrote:
+On Fri, Dec 18, 2020 at 5:58 AM Thomas Gleixner <tglx@linutronix.de> wrote:
+[..]
+>   5) The DAX case which you made "work" with dev_access_enable() and
+>      dev_access_disable(), i.e. with yet another lazy approach of
+>      avoiding to change a handful of usage sites.
 >
-> On Thu, Dec 17, 2020 at 12:55:39PM -0800, Dave Hansen wrote:
-> > On 11/6/20 3:29 PM, ira.weiny@intel.com wrote:
-> > > +           /* Arm for context switch test */
-> > > +           write(fd, "1", 1);
-> > > +
-> > > +           /* Context switch out... */
-> > > +           sleep(4);
-> > > +
-> > > +           /* Check msr restored */
-> > > +           write(fd, "2", 1);
-> >
-> > These are always tricky.  What you ideally want here is:
-> >
-> > 1. Switch away from this task to a non-PKS task, or
-> > 2. Switch from this task to a PKS-using task, but one which has a
-> >    different PKS value
+>      The use cases are strictly context local which means the global
+>      magic is not used at all. Why does it exist in the first place?
 >
-> Or both...
+>      Aside of that this global thing would never work at all because the
+>      refcounting is per thread and not global.
 >
-> >
-> > then, switch back to this task and make sure PKS maintained its value.
-> >
-> > *But*, there's no absolute guarantee that another task will run.  It
-> > would not be totally unreasonable to have the kernel just sit in a loop
-> > without context switching here if no other tasks can run.
-> >
-> > The only way you *know* there is a context switch is by having two tasks
-> > bound to the same logical CPU and make sure they run one after another.
+>      So that DAX use case is just a matter of:
 >
-> Ah...  We do that.
+>         grant/revoke_access(DEV_PKS_KEY, READ/WRITE)
 >
-> ...
-> +       CPU_ZERO(&cpuset);
-> +       CPU_SET(0, &cpuset);
-> +       /* Two processes run on CPU 0 so that they go through context switch.  */
-> +       sched_setaffinity(getpid(), sizeof(cpu_set_t), &cpuset);
-> ...
->
-> I think this should be ensuring that both the parent and the child are
-> running on CPU 0.  At least according to the man page they should be.
->
-> <man>
->         A child created via fork(2) inherits its parent's CPU affinity mask.
-> </man>
->
-> Perhaps a better method would be to synchronize the 2 threads more to ensure
-> that we are really running at the 'same time' and forcing the context switch.
->
-> >  This just gets itself into a state where it *CAN* context switch and
-> > prays that one will happen.
->
-> Not sure what you mean by 'This'?  Do you mean that running on the same CPU
-> will sometimes not force a context switch?  Or do you mean that the sleeps
-> could be badly timed and the 2 threads could run 1 after the other on the same
-> CPU?  The latter is AFAICT the most likely case.
->
+>      which is effective for the current execution context and really
+>      wants to be a distinct READ/WRITE protection and not the magic
+>      global thing which just has on/off. All usage sites know whether
+>      they want to read or write.
 
-One way to guarantee that both threads run is to just pass a message
-between them over a pipe and wait for the submitter to receive an ack
-from the other end.
+I was tracking and nodding until this point. Yes, kill the global /
+kmap() support, but if grant/revoke_access is not integrated behind
+kmap_{local,atomic}() then it's not a "handful" of sites that need to
+be instrumented it's 100s. Are you suggesting that "relaxed" mode
+enforcement is a way to distribute the work of teaching driver writers
+that they need to incorporate explicit grant/revoke-read/write in
+addition to kmap? The entire reason PTE_DEVMAP exists was to allow
+get_user_pages() for PMEM and not require every downstream-GUP code
+path to specifically consider whether it was talking to PMEM or RAM
+pages, and certainly not whether they were reading or writing to it.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
