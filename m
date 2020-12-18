@@ -2,139 +2,113 @@ Return-Path: <SRS0=e0cu=FW=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 378C6C2BBCF
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 06:09:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26255C4361B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 09:15:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C7BE123131
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 06:09:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C7BE123131
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id 37D0823A7B
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 18 Dec 2020 09:15:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 37D0823A7B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5951F100EB32C;
-	Thu, 17 Dec 2020 22:09:32 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=szxga04-in.huawei.com; envelope-from=thunder.leizhen@huawei.com; receiver=<UNKNOWN> 
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 13B4C100EB327
-	for <linux-nvdimm@lists.01.org>; Thu, 17 Dec 2020 22:09:21 -0800 (PST)
-Received: from DGGEMS412-HUB.china.huawei.com (unknown [172.30.72.58])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4Cxz236Fl7zksDZ;
-	Fri, 18 Dec 2020 14:08:27 +0800 (CST)
-Received: from [127.0.0.1] (10.174.177.9) by DGGEMS412-HUB.china.huawei.com
- (10.3.19.212) with Microsoft SMTP Server id 14.3.498.0; Fri, 18 Dec 2020
- 14:09:16 +0800
-Subject: Re: [PATCH 1/1] device-dax: avoid an unnecessary check in
- alloc_dev_dax_range()
-To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
-	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, linux-nvdimm
-	<linux-nvdimm@lists.01.org>, linux-kernel <linux-kernel@vger.kernel.org>
-References: <20201120092251.2197-1-thunder.leizhen@huawei.com>
-From: "Leizhen (ThunderTown)" <thunder.leizhen@huawei.com>
-Message-ID: <55970773-35ff-1afb-940b-8342b09aea9a@huawei.com>
-Date: Fri, 18 Dec 2020 14:09:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101
- Thunderbird/60.7.0
+	by ml01.01.org (Postfix) with ESMTP id 8A194100EC1CE;
+	Fri, 18 Dec 2020 01:15:21 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id 5F656100EE8C6
+	for <linux-nvdimm@lists.01.org>; Fri, 18 Dec 2020 01:15:19 -0800 (PST)
+X-IronPort-AV: E=Sophos;i="5.78,430,1599494400";
+   d="scan'208";a="102711642"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 18 Dec 2020 17:15:17 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 61E5048990D2;
+	Fri, 18 Dec 2020 17:15:15 +0800 (CST)
+Received: from irides.mr (10.167.225.141) by G08CNEXMBPEKD05.g08.fujitsu.local
+ (10.167.33.204) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Fri, 18 Dec
+ 2020 17:15:15 +0800
+Subject: Re: [RFC PATCH v3 0/9] fsdax: introduce fs query to support reflink
+To: "Darrick J. Wong" <darrick.wong@oracle.com>
+References: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
+ <7fc7ba7c-f138-4944-dcc7-ce4b3f097528@oracle.com>
+ <a57c44dd-127a-3bd2-fcb3-f1373572de27@cn.fujitsu.com>
+ <20201218034907.GG6918@magnolia>
+From: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
+Message-ID: <16ac8000-2892-7491-26a0-84de4301f168@cn.fujitsu.com>
+Date: Fri, 18 Dec 2020 17:13:23 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.5.1
 MIME-Version: 1.0
-In-Reply-To: <20201120092251.2197-1-thunder.leizhen@huawei.com>
+In-Reply-To: <20201218034907.GG6918@magnolia>
 Content-Language: en-US
-X-Originating-IP: [10.174.177.9]
-X-CFilter-Loop: Reflected
-Message-ID-Hash: X7ICA6NXPWZ5LZAIPZ4IUE6E22N5RPPU
-X-Message-ID-Hash: X7ICA6NXPWZ5LZAIPZ4IUE6E22N5RPPU
-X-MailFrom: thunder.leizhen@huawei.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) To
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204)
+X-yoursite-MailScanner-ID: 61E5048990D2.AA872
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
+Message-ID-Hash: VODWHXKZUGBYMXKUQJ3OBJKNESVMUHMD
+X-Message-ID-Hash: VODWHXKZUGBYMXKUQJ3OBJKNESVMUHMD
+X-MailFrom: ruansy.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/X7ICA6NXPWZ5LZAIPZ4IUE6E22N5RPPU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VODWHXKZUGBYMXKUQJ3OBJKNESVMUHMD/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: base64
 
-
-
-On 2020/11/20 17:22, Zhen Lei wrote:
-> Swap the calling sequence of krealloc() and __request_region(), call the
-> latter first. In this way, the value of dev_dax->nr_range does not need to
-> be considered when __request_region() failed.
-> 
-> Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-> ---
->  drivers/dax/bus.c | 29 ++++++++++++-----------------
->  1 file changed, 12 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 27513d311242..1efae11d947a 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -763,23 +763,15 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
->  		return 0;
->  	}
->  
-> -	ranges = krealloc(dev_dax->ranges, sizeof(*ranges)
-> -			* (dev_dax->nr_range + 1), GFP_KERNEL);
-> -	if (!ranges)
-> -		return -ENOMEM;
-> -
->  	alloc = __request_region(res, start, size, dev_name(dev), 0);
-> -	if (!alloc) {
-> -		/*
-> -		 * If this was an empty set of ranges nothing else
-> -		 * will release @ranges, so do it now.
-> -		 */
-> -		if (!dev_dax->nr_range) {
-> -			kfree(ranges);
-> -			ranges = NULL;
-> -		}
-> -		dev_dax->ranges = ranges;
-> +	if (!alloc)
->  		return -ENOMEM;
-> +
-> +	ranges = krealloc(dev_dax->ranges, sizeof(*ranges)
-> +			* (dev_dax->nr_range + 1), GFP_KERNEL);
-> +	if (!ranges) {
-> +		rc = -ENOMEM;
-> +		goto err;
-
-Hi, Dan Williams:
-In fact, after adding the new helper dev_dax_trim_range(), we can
-directly call __release_region() and return error code at here. Replace goto.
-
->  	}
->  
->  	for (i = 0; i < dev_dax->nr_range; i++)
-> @@ -808,11 +800,14 @@ static int alloc_dev_dax_range(struct dev_dax *dev_dax, u64 start,
->  		dev_dbg(dev, "delete range[%d]: %pa:%pa\n", dev_dax->nr_range - 1,
->  				&alloc->start, &alloc->end);
->  		dev_dax->nr_range--;
-> -		__release_region(res, alloc->start, resource_size(alloc));
-> -		return rc;
-> +		goto err;
->  	}
->  
->  	return 0;
-> +
-> +err:
-> +	__release_region(res, alloc->start, resource_size(alloc));
-> +	return rc;
->  }
->  
->  static int adjust_dev_dax_range(struct dev_dax *dev_dax, struct resource *res, resource_size_t size)
-> 
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+DQoNCk9uIDIwMjAvMTIvMTgg5LiK5Y2IMTE6NDksIERhcnJpY2sgSi4gV29uZyB3cm90ZToNCj4g
+T24gRnJpLCBEZWMgMTgsIDIwMjAgYXQgMTA6NDQ6MjZBTSArMDgwMCwgUnVhbiBTaGl5YW5nIHdy
+b3RlOg0KPj4NCj4+DQo+PiBPbiAyMDIwLzEyLzE3IOS4iuWNiDQ6NTUsIEphbmUgQ2h1IHdyb3Rl
+Og0KPj4+IEhpLCBTaGl5YW5nLA0KPj4+DQo+Pj4gT24gMTIvMTUvMjAyMCA0OjE0IEFNLCBTaGl5
+YW5nIFJ1YW4gd3JvdGU6DQo+Pj4+IFRoZSBjYWxsIHRyYWNlIGlzIGxpa2UgdGhpczoNCj4+Pj4g
+bWVtb3J5X2ZhaWx1cmUoKQ0KPj4+PiAgwqAgcGdtYXAtPm9wcy0+bWVtb3J5X2ZhaWx1cmUoKcKg
+wqDCoMKgwqAgPT4gcG1lbV9wZ21hcF9tZW1vcnlfZmFpbHVyZSgpDQo+Pj4+ICDCoMKgIGdlbmRp
+c2stPmZvcHMtPmNvcnJ1cHRlZF9yYW5nZSgpID0+IC0gcG1lbV9jb3JydXB0ZWRfcmFuZ2UoKQ0K
+Pj4+PiAgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAtIG1kX2Jsa19jb3JydXB0ZWRfcmFuZ2UoKQ0KPj4+
+PiAgwqDCoMKgIHNiLT5zX29wcy0+Y3VycnVwdGVkX3JhbmdlKCnCoMKgwqAgPT4geGZzX2ZzX2Nv
+cnJ1cHRlZF9yYW5nZSgpDQo+Pj4+ICDCoMKgwqDCoCB4ZnNfcm1hcF9xdWVyeV9yYW5nZSgpDQo+
+Pj4+ICDCoMKgwqDCoMKgIHhmc19jdXJydXB0X2hlbHBlcigpDQo+Pj4+ICDCoMKgwqDCoMKgwqAg
+KiBjb3JydXB0ZWQgb24gbWV0YWRhdGENCj4+Pj4gIMKgwqDCoMKgwqDCoMKgwqDCoMKgIHRyeSB0
+byByZWNvdmVyIGRhdGEsIGNhbGwgeGZzX2ZvcmNlX3NodXRkb3duKCkNCj4+Pj4gIMKgwqDCoMKg
+wqDCoCAqIGNvcnJ1cHRlZCBvbiBmaWxlIGRhdGENCj4+Pj4gIMKgwqDCoMKgwqDCoMKgwqDCoMKg
+IHRyeSB0byByZWNvdmVyIGRhdGEsIGNhbGwgbWZfZGF4X21hcHBpbmdfa2lsbF9wcm9jcygpDQo+
+Pj4+DQo+Pj4+IFRoZSBmc2RheCAmIHJlZmxpbmsgc3VwcG9ydCBmb3IgWEZTIGlzIG5vdCBjb250
+YWluZWQgaW4gdGhpcyBwYXRjaHNldC4NCj4+Pj4NCj4+Pj4gKFJlYmFzZWQgb24gdjUuMTApDQo+
+Pj4NCj4+PiBTbyBJIHRyaWVkIHRoZSBwYXRjaHNldCB3aXRoIHBtZW0gZXJyb3IgaW5qZWN0aW9u
+LCB0aGUgU0lHQlVTIHBheWxvYWQNCj4+PiBkb2VzIG5vdCBsb29rIHJpZ2h0IC0NCj4+Pg0KPj4+
+ICoqIFNJR0JVUyg3KTogKioNCj4+PiAqKiBzaV9hZGRyKDB4KG5pbCkpLCBzaV9sc2IoMHhDKSwg
+c2lfY29kZSgweDQsIEJVU19NQ0VFUlJfQVIpICoqDQo+Pj4NCj4+PiBJIGV4cGVjdCB0aGUgcGF5
+bG9hZCBsb29rcyBsaWtlDQo+Pj4NCj4+PiAqKiBzaV9hZGRyKDB4N2YzNjcyZTAwMDAwKSwgc2lf
+bHNiKDB4MTUpLCBzaV9jb2RlKDB4NCwgQlVTX01DRUVSUl9BUikgKioNCj4+DQo+PiBUaGFua3Mg
+Zm9yIHRlc3RpbmcuICBJIHRlc3QgdGhlIFNJR0JVUyBieSB3cml0aW5nIGEgcHJvZ3JhbSB3aGlj
+aCBjYWxscw0KPj4gbWFkdmlzZSguLi4gLE1BRFZfSFdQT0lTT04pIHRvIGluamVjdCBtZW1vcnkt
+ZmFpbHVyZS4gIEl0IGp1c3Qgc2hvd3MgdGhhdA0KPj4gdGhlIHByb2dyYW0gaXMga2lsbGVkIGJ5
+IFNJR0JVUy4gIEkgY2Fubm90IGdldCBhbnkgZGV0YWlsIGZyb20gaXQuICBTbywNCj4+IGNvdWxk
+IHlvdSBwbGVhc2Ugc2hvdyBtZSB0aGUgcmlnaHQgd2F5KHRlc3QgdG9vbHMpIHRvIHRlc3QgaXQ/
+DQo+IA0KPiBJJ20gYXNzdW1pbmcgdGhhdCBKYW5lIGlzIHVzaW5nIGEgcHJvZ3JhbSB0aGF0IGNh
+bGxzIHNpZ2FjdGlvbiB0bw0KPiBpbnN0YWxsIGEgU0lHQlVTIGhhbmRsZXIsIGFuZCBkdW1wcyB0
+aGUgZW50aXJlIHNpZ2luZm9fdCBzdHJ1Y3R1cmUNCj4gd2hlbmV2ZXIgaXQgcmVjZWl2ZXMgb25l
+Li4uDQoNCk9LLiAgTGV0IG1lIHRyeSBpdCBhbmQgZmlndXJlIG91dCB3aGF0J3Mgd3JvbmcgaW4g
+aXQuDQoNCg0KLS0NClRoYW5rcywNClJ1YW4gU2hpeWFuZy4NCg0KPiANCj4gLS1EDQo+IA0KPj4N
+Cj4+IC0tDQo+PiBUaGFua3MsDQo+PiBSdWFuIFNoaXlhbmcuDQo+Pg0KPj4+DQo+Pj4gdGhhbmtz
+LA0KPj4+IC1qYW5lDQo+Pj4NCj4+Pg0KPj4+DQo+Pj4NCj4+Pg0KPj4+DQo+Pg0KPj4NCj4gDQo+
+IA0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5z
+dWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3Jn
+Cg==
