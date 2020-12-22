@@ -2,60 +2,85 @@ Return-Path: <SRS0=AX0L=F2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A857C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 01:11:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1B7BC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 04:23:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7883522B2B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 01:11:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7883522B2B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 351E322D03
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 04:23:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 351E322D03
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1C407100EBBD0;
-	Mon, 21 Dec 2020 17:11:58 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.93; helo=mga11.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id C459F100EBBC6;
+	Mon, 21 Dec 2020 20:23:21 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::42b; helo=mail-pf1-x42b.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8C216100EBBC7
-	for <linux-nvdimm@lists.01.org>; Mon, 21 Dec 2020 17:11:55 -0800 (PST)
-IronPort-SDR: PkLd4PkDBRc3+2/yHNEb3xhv6AyliKHF3n42y1nQ14QO18DFe6ApUhOr3X6Hth3CvirNx1gLEF
- sKgFh+2jrTUA==
-X-IronPort-AV: E=McAfee;i="6000,8403,9842"; a="172294824"
-X-IronPort-AV: E=Sophos;i="5.78,437,1599548400";
-   d="scan'208";a="172294824"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Dec 2020 17:11:54 -0800
-IronPort-SDR: /MrlZxna5gNHtNK5j3wb3+ekK0phHebZOjoFgVgtseMnE/N0BG3evDBSZMKw2CNTBt6U4ZgxIl
- eZuJOmSRcE0w==
-X-IronPort-AV: E=Sophos;i="5.78,437,1599548400";
-   d="scan'208";a="372981768"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Dec 2020 17:11:54 -0800
-Subject: [ndctl PATCH] ndctl/dimm: Attempt an abort upon
- firmware-update-busy status
-From: Dan Williams <dan.j.williams@intel.com>
-To: vishal.l.verma@intel.com
-Date: Mon, 21 Dec 2020 17:11:54 -0800
-Message-ID: <160859948599.1811202.6750689494442813307.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by ml01.01.org (Postfix) with ESMTPS id 46A5A100EBBC0
+	for <linux-nvdimm@lists.01.org>; Mon, 21 Dec 2020 20:23:19 -0800 (PST)
+Received: by mail-pf1-x42b.google.com with SMTP id 11so7721231pfu.4
+        for <linux-nvdimm@lists.01.org>; Mon, 21 Dec 2020 20:23:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=spLOBfaiHmHB1N7T7E12nEZUR0a7/HkW3UyWm2NitGw=;
+        b=vtX3rLd+EGk9zJ1zNbz2vuRlNauhQMH+OC4JGRSKyU6VaYCqolOVu/mkhqGIgjZilS
+         jNtw1GLgQ/Vc1sNxgDr2xQtGESuSlBp2HG7YFDvgJR0JVihvB6D7nB5/NkZECA57Tzfl
+         QN0Wj8aHIDFYFoVF3MiC0fKI4XztvgbtX5Xv7exi4mWipGWZCkscSZYBISvcgQo9V+UG
+         aM7Gm+9/YtUAv6Lqse2IcM2A8FOT5wPHwZhJT1g1HItbb9nRxM8NulqTPX3nBPeSTMY1
+         CJBcW1SP/JIEx1ioE1b2VdM/UbJwlU22Bs1PCjY4I/2+biDb9+9XlfqdIkadsiBBKP40
+         aWpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=spLOBfaiHmHB1N7T7E12nEZUR0a7/HkW3UyWm2NitGw=;
+        b=N3oSWEvSLQjP9pFp7/VFR4yA2+KptYT/WWYAOFI3orRyJizWE2o9Hn/TbDZIYb+gBh
+         ziN74kMm9FklzwlTWtyJePocOw8oSoQjywATocQASAZE2er2dC2O0De6mdmp+iWK9+OH
+         FQHVUNH98sfSmSW3mnM4T716wh4B9LCSPbwYIuCG0HPNhCtY8MeFuXqD7e/cImWzBBnu
+         OsyRiCiifb3mSBi7ORxKqjM6uF0JM8H2fkGTW0LQfKOwu8xOlxbOoOyMOV6koknXBRdm
+         GIQlaujEbUv+GHKuI5uNUpQPbLllx62pGhd63yMvwk2thNH1yc8M3kJL1clFblmFIO/k
+         b4nQ==
+X-Gm-Message-State: AOAM530h/P2lhjO7pariNxMvOsLsFDp9Dq2vYCKjfqs+2HsrViATR3qv
+	V5Q94jKzHvsnXDLqnDmTGJW259CrUBC/wQ==
+X-Google-Smtp-Source: ABdhPJzQ4sCbbu/GQ2ubburSqtJV4Jb+HSR0TVAfecYzb5WzKF+sgQOeCfmOsAPnwly/VyxujF30Ow==
+X-Received: by 2002:a63:fe41:: with SMTP id x1mr18127749pgj.254.1608610998237;
+        Mon, 21 Dec 2020 20:23:18 -0800 (PST)
+Received: from santosiv.in.ibm.com.com ([103.21.79.4])
+        by smtp.gmail.com with ESMTPSA id s5sm17909498pfh.5.2020.12.21.20.23.15
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 21 Dec 2020 20:23:17 -0800 (PST)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: Linux NVDIMM <linux-nvdimm@lists.01.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+	Vaibhav Jain <vaibhav@linux.ibm.com>,
+	Shivaprasad G Bhat <sbhat@linux.ibm.com>,
+	Harish Sriram <harish@linux.ibm.com>,
+	Dan Williams <dan.j.williams@intel.com>
+Cc: Santosh Sivaraj <santosh@fossix.org>
+Subject: [0/7] PMEM device emulation without nfit depenency
+Date: Tue, 22 Dec 2020 09:52:33 +0530
+Message-Id: <20201222042240.2983755-1-santosh@fossix.org>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Message-ID-Hash: SAAG7FWFUOUVPTJZE2LLKPAI2GM2BRZP
-X-Message-ID-Hash: SAAG7FWFUOUVPTJZE2LLKPAI2GM2BRZP
-X-MailFrom: dan.j.williams@intel.com
+Message-ID-Hash: 7ZZX3RKQFW3ET757O7SHX72I3FZ4SHAT
+X-Message-ID-Hash: 7ZZX3RKQFW3ET757O7SHX72I3FZ4SHAT
+X-MailFrom: santosh@fossix.org
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Mark Baker <mark.a.baker@oracle.com>, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SAAG7FWFUOUVPTJZE2LLKPAI2GM2BRZP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7ZZX3RKQFW3ET757O7SHX72I3FZ4SHAT/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,195 +89,38 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Mark reports that if a previous firmware update is blocked due to a
-background ARS then ndctl fails to start another firmware-udpate
-request until the platform is rebooted.
+The current test module cannot be used for testing platforms (make check)
+that do not have support for NFIT. In order to get the ndctl tests working,
+we need a module which can emulate NVDIMM devices without relying on
+ACPI/NFIT.
 
-Teach 'ndctl update-firmware' to abort previous firmware-update sessions
-when '--force' is specified.
+The emulated PMEM device is made part of the PAPR family.
 
-Link: https://github.com/pmem/ndctl/issues/155
-Link: http://lore.kernel.org/r/20201222005704.2355076-1-jane.chu@oracle.com
-Reported-by: Mark Baker <mark.a.baker@oracle.com>
-Tested-by: Mark Baker <mark.a.baker@oracle.com>
-Tested-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
+Corresponding changes for ndctl is also required, to add attributes needed
+for the test, which will be sent as a reply to this patch.
 
-Needs the fix from Jane mentioned in the link above, but with that
-included Jane and Mark report this works.
+None of tests passed on PAPR before, now there are 16 test that pass. Error
+injection tests and SMART are not yet implemented.
 
- ndctl/dimm.c |  109 ++++++++++++++++++++++++++++++++++++----------------------
- 1 file changed, 67 insertions(+), 42 deletions(-)
+Santosh Sivaraj (7):
+  testing/nvdimm: Add test module for non-nfit platforms
+  ndtest: Add compatability string to treat it as PAPR family
+  ndtest: Add dimms to the two buses
+  ndtest: Add dimm attributes
+  ndtest: Add regions and mappings to the test buses
+  ndtest: Add nvdimm control functions
+  ndtest: Add papr health related flags
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 8e85d692afd3..167c3f1bc7c7 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -504,6 +504,36 @@ out:
- 	return rc;
- }
- 
-+static int submit_abort_firmware(struct ndctl_dimm *dimm,
-+		struct action_context *actx)
-+{
-+	struct update_context *uctx = &actx->update;
-+	struct ndctl_cmd *cmd;
-+	int rc;
-+	enum ND_FW_STATUS status;
-+
-+	cmd = ndctl_dimm_cmd_new_fw_abort(uctx->start);
-+	if (!cmd)
-+		return -ENXIO;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if (rc < 0)
-+		goto out;
-+
-+	status = ndctl_cmd_fw_xlat_firmware_status(cmd);
-+	if (!(status & ND_CMD_STATUS_FIN_ABORTED)) {
-+		fprintf(stderr,
-+			"Firmware update abort on DIMM %s failed: %#x\n",
-+			ndctl_dimm_get_devname(dimm), status);
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+out:
-+	ndctl_cmd_unref(cmd);
-+	return rc;
-+}
-+
- static int submit_start_firmware_upload(struct ndctl_dimm *dimm,
- 		struct action_context *actx)
- {
-@@ -511,8 +541,8 @@ static int submit_start_firmware_upload(struct ndctl_dimm *dimm,
- 	struct update_context *uctx = &actx->update;
- 	struct fw_info *fw = &uctx->dimm_fw;
- 	struct ndctl_cmd *cmd;
--	int rc;
- 	enum ND_FW_STATUS status;
-+	int rc;
- 
- 	cmd = ndctl_dimm_cmd_new_fw_start_update(dimm);
- 	if (!cmd)
-@@ -520,27 +550,46 @@ static int submit_start_firmware_upload(struct ndctl_dimm *dimm,
- 
- 	rc = ndctl_cmd_submit(cmd);
- 	if (rc < 0)
--		return rc;
-+		goto err;
- 
-+	uctx->start = cmd;
- 	status = ndctl_cmd_fw_xlat_firmware_status(cmd);
- 	if (status == FW_EBUSY) {
--		err("%s: busy with another firmware update", devname);
--		return -EBUSY;
-+		if (param.force) {
-+			rc = submit_abort_firmware(dimm, actx);
-+			if (rc < 0) {
-+				err("%s: busy with another firmware update, "
-+				    "abort failed", devname);
-+				rc = -EBUSY;
-+				goto err;
-+			}
-+			rc = -EAGAIN;
-+			goto err;
-+		} else {
-+			err("%s: busy with another firmware update", devname);
-+			rc = -EBUSY;
-+			goto err;
-+		}
- 	}
- 	if (status != FW_SUCCESS) {
- 		err("%s: failed to create start context", devname);
--		return -ENXIO;
-+		rc = -ENXIO;
-+		goto err;
- 	}
- 
- 	fw->context = ndctl_cmd_fw_start_get_context(cmd);
- 	if (fw->context == UINT_MAX) {
- 		err("%s: failed to retrieve start context", devname);
--		return -ENXIO;
-+		rc = -ENXIO;
-+		goto err;
- 	}
- 
--	uctx->start = cmd;
--
- 	return 0;
-+
-+err:
-+	uctx->start = NULL;
-+	ndctl_cmd_unref(cmd);
-+	return rc;
- }
- 
- static int get_fw_data_from_file(FILE *file, void *buf, uint32_t len)
-@@ -659,36 +708,6 @@ out:
- 	return rc;
- }
- 
--static int submit_abort_firmware(struct ndctl_dimm *dimm,
--		struct action_context *actx)
--{
--	struct update_context *uctx = &actx->update;
--	struct ndctl_cmd *cmd;
--	int rc;
--	enum ND_FW_STATUS status;
--
--	cmd = ndctl_dimm_cmd_new_fw_abort(uctx->start);
--	if (!cmd)
--		return -ENXIO;
--
--	rc = ndctl_cmd_submit(cmd);
--	if (rc < 0)
--		goto out;
--
--	status = ndctl_cmd_fw_xlat_firmware_status(cmd);
--	if (!(status & ND_CMD_STATUS_FIN_ABORTED)) {
--		fprintf(stderr,
--			"Firmware update abort on DIMM %s failed: %#x\n",
--			ndctl_dimm_get_devname(dimm), status);
--		rc = -ENXIO;
--		goto out;
--	}
--
--out:
--	ndctl_cmd_unref(cmd);
--	return rc;
--}
--
- static enum ndctl_fwa_state fw_update_arm(struct ndctl_dimm *dimm)
- {
- 	struct ndctl_bus *bus = ndctl_dimm_get_bus(dimm);
-@@ -856,15 +875,21 @@ static int update_firmware(struct ndctl_dimm *dimm,
- 		struct action_context *actx)
- {
- 	const char *devname = ndctl_dimm_get_devname(dimm);
--	int rc;
-+	int rc, i;
- 
- 	rc = submit_get_firmware_info(dimm, actx);
- 	if (rc < 0)
- 		return rc;
- 
--	rc = submit_start_firmware_upload(dimm, actx);
--	if (rc < 0)
--		return rc;
-+	/* try a few times in the --force and state busy case */
-+	for (i = 0; i < 3; i++) {
-+		rc = submit_start_firmware_upload(dimm, actx);
-+		if (rc == -EAGAIN)
-+			continue;
-+		if (rc < 0)
-+			return rc;
-+		break;
-+	}
- 
- 	if (param.verbose)
- 		fprintf(stderr, "%s: uploading firmware\n", devname);
+ tools/testing/nvdimm/config_check.c |    3 +-
+ tools/testing/nvdimm/test/Kbuild    |    6 +-
+ tools/testing/nvdimm/test/ndtest.c  | 1138 +++++++++++++++++++++++++++
+ tools/testing/nvdimm/test/ndtest.h  |  109 +++
+ 4 files changed, 1254 insertions(+), 2 deletions(-)
+ create mode 100644 tools/testing/nvdimm/test/ndtest.c
+ create mode 100644 tools/testing/nvdimm/test/ndtest.h
+
+-- 
+2.26.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
