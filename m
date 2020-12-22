@@ -2,231 +2,85 @@ Return-Path: <SRS0=AX0L=F2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.0 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9B4EC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 04:25:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9873FC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 11:12:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 78B0E2311B
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 04:25:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 78B0E2311B
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
+	by mail.kernel.org (Postfix) with ESMTPS id CDE8C22516
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 22 Dec 2020 11:12:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CDE8C22516
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=youngman.org.uk
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5E51F100EBB75;
-	Mon, 21 Dec 2020 20:25:46 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::102e; helo=mail-pj1-x102e.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
-Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 7E3DF100EBB7B;
+	Tue, 22 Dec 2020 03:12:21 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=85.233.160.19; helo=smtp.hosts.co.uk; envelope-from=antlists@youngman.org.uk; receiver=<UNKNOWN> 
+Received: from smtp.hosts.co.uk (smtp.hosts.co.uk [85.233.160.19])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7BC58100EBB71
-	for <linux-nvdimm@lists.01.org>; Mon, 21 Dec 2020 20:25:44 -0800 (PST)
-Received: by mail-pj1-x102e.google.com with SMTP id n3so786138pjm.1
-        for <linux-nvdimm@lists.01.org>; Mon, 21 Dec 2020 20:25:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fossix-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=tu/4IZTp6wVpU5RB39dXr+g65F3ltY5fG4LRxOlPyM0=;
-        b=WNMPJ7qhnI6pj4iC5m4IG1+B9+2G0B2ES9SqskDt3zebQEZS/GG3TssxcUFZ3c5o0y
-         9RpWRe1lBlBXcVqnCHBtIIMvP8Ho4bt594T8/sM2Tj58MRutcpLSpTBbqsM9VXWqQxaD
-         +Wqhxj6E/CE7IMZIEN6EZ9yRIHLkqKp2Bvocp15CXIHmZDxLBccN8zMBD67wjQPzymH7
-         DO8k48T3UdrbfgKLIBsLhpG6hWt1PcMbSn4Rx2iMfyqCJVXR+fHJtjyeLUzilHXzXzh9
-         SjXkslakaZbAxXuumTebC3wK7Q/QrWHgUez+tbOPaRmHuKfzd03O7lJ2mE1Cvl7A3JDy
-         i8FQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=tu/4IZTp6wVpU5RB39dXr+g65F3ltY5fG4LRxOlPyM0=;
-        b=jMzj8NlvaL5Wl6aQenlPDyMFqzPs57FM0r0oB0K+gT++54hjYyStFVeZEMCrCzAHJq
-         5W9Kn8ds+eXaR1MhFTOZj0KUtTCFjuPAelRpqRKJ/qZA40U+bm8Gw/AkyqYfo+KEiwXG
-         2TpJmvVx61BZiDHeHa83R+DbAN7rtXWfbq4A7ukzECOSx9iRAvPxQ3PM5yHDtByJ/bHp
-         cbsGoOYLj0jxcboCbM/i7i9Rt5+Pmonz5zax4j61OrIkRGhrpJ15QGI2peLRp05x5PhG
-         bgBFdQ1WlLJNNkSmMPtuuGu8kR2ZEZM5/e5/4uWu6L9zOaxyk4PN1V1ZAzq2Vy797ZHs
-         UfDA==
-X-Gm-Message-State: AOAM531tg7sPE2i4LZmneBDRuomf+mFJ8X/xcZ1ZLrx/j1jx/3HMjeRR
-	TZYGdm1sQH/ktsjnHVeBWbHD+tjJUkqbHw==
-X-Google-Smtp-Source: ABdhPJyj4/GsQ0Hb4C6A9/KcPUtX8lOfDvm2EaNiE1h+qbZgSlAs5Rurjrb1rHftTObn4dBC4aYtTA==
-X-Received: by 2002:a17:90a:77c2:: with SMTP id e2mr19843055pjs.224.1608611143906;
-        Mon, 21 Dec 2020 20:25:43 -0800 (PST)
-Received: from santosiv.in.ibm.com.com ([103.21.79.4])
-        by smtp.gmail.com with ESMTPSA id z13sm17765992pjt.45.2020.12.21.20.25.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Dec 2020 20:25:43 -0800 (PST)
-From: Santosh Sivaraj <santosh@fossix.org>
-To: Linux NVDIMM <linux-nvdimm@lists.01.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-	Vaibhav Jain <vaibhav@linux.ibm.com>,
-	Shivaprasad G Bhat <sbhat@linux.ibm.com>,
-	Harish Sriram <harish@linux.ibm.com>
-Cc: Santosh Sivaraj <santosh@fossix.org>
-Subject: [ndctl 5/5] Use page size as alignment value
-Date: Tue, 22 Dec 2020 09:55:16 +0530
-Message-Id: <20201222042516.2984348-5-santosh@fossix.org>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201222042516.2984348-1-santosh@fossix.org>
-References: <20201222042240.2983755-1-santosh@fossix.org>
- <20201222042516.2984348-1-santosh@fossix.org>
+	by ml01.01.org (Postfix) with ESMTPS id B37D9100EC1E7
+	for <linux-nvdimm@lists.01.org>; Tue, 22 Dec 2020 03:12:17 -0800 (PST)
+Received: from host86-149-69-253.range86-149.btcentralplus.com ([86.149.69.253] helo=[192.168.1.65])
+	by smtp.hosts.co.uk with esmtpa (Exim)
+	(envelope-from <antlists@youngman.org.uk>)
+	id 1krfaQ-000BhF-5h; Tue, 22 Dec 2020 11:12:14 +0000
+Subject: Re: [RFC PATCH] badblocks: Improvement badblocks_set() for handling
+ multiple ranges
+To: Coly Li <colyli@suse.de>, axboe@kernel.dk, dan.j.williams@intel.com,
+ vishal.l.verma@intel.com
+References: <20201203171535.67715-1-colyli@suse.de>
+ <3f4bf4c4-1f1f-b1a6-5d91-2dbe02f61e67@youngman.org.uk>
+ <c50e7c65-d7bf-e957-d8eb-efed6c24f089@suse.de>
+From: antlists <antlists@youngman.org.uk>
+Message-ID: <3233b821-4674-b45a-cad4-4943401eff3d@youngman.org.uk>
+Date: Tue, 22 Dec 2020 11:12:14 +0000
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
 MIME-Version: 1.0
-Message-ID-Hash: QCQ7OUHILME5Y6EQO4DE7O4FMQPVWJCE
-X-Message-ID-Hash: QCQ7OUHILME5Y6EQO4DE7O4FMQPVWJCE
-X-MailFrom: santosh@fossix.org
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+In-Reply-To: <c50e7c65-d7bf-e957-d8eb-efed6c24f089@suse.de>
+Content-Language: en-GB
+Message-ID-Hash: C4QJSFCVTMXPIULAKBRAAJMJCV5MCD2Q
+X-Message-ID-Hash: C4QJSFCVTMXPIULAKBRAAJMJCV5MCD2Q
+X-MailFrom: antlists@youngman.org.uk
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-block@vger.kernel.org, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QCQ7OUHILME5Y6EQO4DE7O4FMQPVWJCE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C4QJSFCVTMXPIULAKBRAAJMJCV5MCD2Q/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-The alignment sizes passed to ndctl in the tests are all hardcoded to 4k,
-the default page size on x86. Change those to the default page size on that
-architecture (sysconf/getconf). No functional changes otherwise.
+On 20/12/2020 09:46, Coly Li wrote:
+> Currently blocks/badblocks.c is used by md raid and nvdimm code, and the
+> badblocks table is irrelevant to any of these two subsystems.
 
-Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
----
- test/dpa-alloc.c    | 23 ++++++++++++++---------
- test/multi-dax.sh   |  6 ++++--
- test/sector-mode.sh |  4 +++-
- 3 files changed, 21 insertions(+), 12 deletions(-)
+Good to know.
+> 
+> If there will be better code for similar or better functionality, it
+> should be cool. For me, if the reporting bug is fixed, no difference in
+> my view:-)
+> 
+Hopefully that will improve the badblocks handling in md. Sounds like 
+that could in part be the problems we've been seeing.
 
-diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
-index 10af189..ff6143e 100644
---- a/test/dpa-alloc.c
-+++ b/test/dpa-alloc.c
-@@ -48,12 +48,13 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 	struct ndctl_region *region, *blk_region = NULL;
- 	struct ndctl_namespace *ndns;
- 	struct ndctl_dimm *dimm;
--	unsigned long size;
-+	unsigned long size, page_size;
- 	struct ndctl_bus *bus;
- 	char uuid_str[40];
- 	int round;
- 	int rc;
- 
-+	page_size = sysconf(_SC_PAGESIZE);
- 	/* disable nfit_test.1, not used in this test */
- 	bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER1);
- 	if (!bus)
-@@ -134,11 +135,11 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 			return rc;
- 		}
- 		ndctl_namespace_disable_invalidate(ndns);
--		rc = ndctl_namespace_set_size(ndns, SZ_4K);
-+		rc = ndctl_namespace_set_size(ndns, page_size);
- 		if (rc) {
--			fprintf(stderr, "failed to init %s to size: %d\n",
-+			fprintf(stderr, "failed to init %s to size: %lu\n",
- 					ndctl_namespace_get_devname(ndns),
--					SZ_4K);
-+					page_size);
- 			return rc;
- 		}
- 		namespaces[i].ndns = ndns;
-@@ -160,7 +161,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 		ndns = namespaces[i % ARRAY_SIZE(namespaces)].ndns;
- 		if (i % ARRAY_SIZE(namespaces) == 0)
- 			round++;
--		size = SZ_4K * round;
-+		size = page_size * round;
- 		rc = ndctl_namespace_set_size(ndns, size);
- 		if (rc) {
- 			fprintf(stderr, "%s: set_size: %lx failed: %d\n",
-@@ -176,7 +177,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 	i--;
- 	round++;
- 	ndns = namespaces[i % ARRAY_SIZE(namespaces)].ndns;
--	size = SZ_4K * round;
-+	size = page_size * round;
- 	rc = ndctl_namespace_set_size(ndns, size);
- 	if (rc) {
- 		fprintf(stderr, "%s failed to update while labels full\n",
-@@ -185,7 +186,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 	}
- 
- 	round--;
--	size = SZ_4K * round;
-+	size = page_size * round;
- 	rc = ndctl_namespace_set_size(ndns, size);
- 	if (rc) {
- 		fprintf(stderr, "%s failed to reduce size while labels full\n",
-@@ -279,8 +280,12 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
- 
- 	available_slots = ndctl_dimm_get_available_labels(dimm);
- 	if (available_slots != default_available_slots - 1) {
--		fprintf(stderr, "mishandled slot count\n");
--		return -ENXIO;
-+		fprintf(stderr, "mishandled slot count (%u, %u)\n",
-+			available_slots, default_available_slots - 1);
-+
-+		/* TODO: fix it on non-acpi platforms */
-+		if (ndctl_bus_has_nfit(bus))
-+			return -ENXIO;
- 	}
- 
- 	ndctl_region_foreach(bus, region)
-diff --git a/test/multi-dax.sh b/test/multi-dax.sh
-index 110ba3d..8250128 100755
---- a/test/multi-dax.sh
-+++ b/test/multi-dax.sh
-@@ -21,6 +21,8 @@ check_min_kver "4.13" || do_skip "may lack multi-dax support"
- 
- trap 'err $LINENO' ERR
- 
-+ALIGN_SIZE=`getconf PAGESIZE`
-+
- # setup (reset nfit_test dimms)
- modprobe nfit_test
- $NDCTL disable-region -b $NFIT_TEST_BUS0 all
-@@ -31,9 +33,9 @@ rc=1
- query=". | sort_by(.available_size) | reverse | .[0].dev"
- region=$($NDCTL list -b $NFIT_TEST_BUS0 -t pmem -Ri | jq -r "$query")
- 
--json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -r $region -t pmem -m devdax -a 4096 -s 16M)
-+json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -r $region -t pmem -m devdax -a $ALIGN_SIZE -s 16M)
- chardev1=$(echo $json | jq ". | select(.mode == \"devdax\") | .daxregion.devices[0].chardev")
--json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -r $region -t pmem -m devdax -a 4096 -s 16M)
-+json=$($NDCTL create-namespace -b $NFIT_TEST_BUS0 -r $region -t pmem -m devdax -a $ALIGN_SIZE -s 16M)
- chardev2=$(echo $json | jq ". | select(.mode == \"devdax\") | .daxregion.devices[0].chardev")
- 
- _cleanup
-diff --git a/test/sector-mode.sh b/test/sector-mode.sh
-index eef8dc6..cee0313 100755
---- a/test/sector-mode.sh
-+++ b/test/sector-mode.sh
-@@ -18,6 +18,8 @@ rc=77
- set -e
- trap 'err $LINENO' ERR
- 
-+ALIGN_SIZE=`getconf PAGESIZE`
-+
- # setup (reset nfit_test dimms)
- modprobe nfit_test
- $NDCTL disable-region -b $NFIT_TEST_BUS0 all
-@@ -34,7 +36,7 @@ NAMESPACE=$($NDCTL list -b $NFIT_TEST_BUS1 -N | jq -r "$query")
- REGION=$($NDCTL list -R --namespace=$NAMESPACE | jq -r "(.[]) | .dev")
- echo 0 > /sys/bus/nd/devices/$REGION/read_only
- $NDCTL create-namespace --no-autolabel -e $NAMESPACE -m sector -f -l 4K
--$NDCTL create-namespace --no-autolabel -e $NAMESPACE -m dax -f -a 4K
-+$NDCTL create-namespace --no-autolabel -e $NAMESPACE -m dax -f -a $ALIGN_SIZE
- $NDCTL create-namespace --no-autolabel -e $NAMESPACE -m sector -f -l 4K
- 
- _cleanup
--- 
-2.26.2
+If I integrate dm-integrity into md, badblocks should be mutually 
+exclusive with it, but because dm-integrity is both a performance and 
+disk-space hit, people might well not want to enable it.
+
+Cheers,
+Wol
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
