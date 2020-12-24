@@ -1,69 +1,76 @@
-Return-Path: <SRS0=iqFv=F3=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=fnpI=F4=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EEC27C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Dec 2020 20:39:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0090C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Dec 2020 18:04:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 27957223E4
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 23 Dec 2020 20:39:34 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 27957223E4
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+	by mail.kernel.org (Postfix) with ESMTPS id 5C88022288
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 24 Dec 2020 18:04:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5C88022288
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id AE94F100ED4BE;
-	Wed, 23 Dec 2020 12:39:34 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1231::1; helo=merlin.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
-Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id E72D7100EC1E6;
+	Thu, 24 Dec 2020 10:04:40 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::634; helo=mail-ej1-x634.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 01062100ED4B7
-	for <linux-nvdimm@lists.01.org>; Wed, 23 Dec 2020 12:39:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
-	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
-	:Reply-To:Content-ID:Content-Description;
-	bh=mYnRVo2UaFr9zFPBGbjYJ7pTSAghDBkk6o+o1KQqW4w=; b=cjqdwDP8RqHsTe+zifoiAzBU0d
-	Ky2JbKMUtKBrHLrjNU1VXOaev6TvR5D6fwmKI6QJWvZ4hbyql+HVBJj/vkD0+kzodZisZgvoz8GVG
-	YofQpVLSqy11/eIe1zff3Jk6LiYz+yKWDVXNhRDHrz9v33W/kOAyPtypLf/39FPtSA2qg/I7yONil
-	uHJmMMwsbxdXhjxUm54wv5MgbJ84o+NNUrAy58nzfedugeu3QE5VrjIymodu+jOQHiSb8EOpoJ565
-	cRV4FlWyEcnmZNFe48iCIuSTFtBZBcojTMkv98L96ls/Wb/84p6a/lMGfhN9WZxpoQesY8wB23Op4
-	NtWjnlyQ==;
-Received: from [2601:1c0:6280:3f0::64ea]
-	by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
-	id 1ksAun-0000oa-A7; Wed, 23 Dec 2020 20:39:21 +0000
-Subject: Re: [PATCH V3 08/10] x86/pks: Add PKS kernel API
-To: ira.weiny@intel.com, Thomas Gleixner <tglx@linutronix.de>,
- Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
- Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>,
- Dave Hansen <dave.hansen@linux.intel.com>
-References: <20201106232908.364581-1-ira.weiny@intel.com>
- <20201106232908.364581-9-ira.weiny@intel.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <092ec873-b023-4cd1-6301-30a2bcd3b54a@infradead.org>
-Date: Wed, 23 Dec 2020 12:39:12 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.4.0
+	by ml01.01.org (Postfix) with ESMTPS id 3F40E100EC1E1
+	for <linux-nvdimm@lists.01.org>; Thu, 24 Dec 2020 10:04:38 -0800 (PST)
+Received: by mail-ej1-x634.google.com with SMTP id 6so4149528ejz.5
+        for <linux-nvdimm@lists.01.org>; Thu, 24 Dec 2020 10:04:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=t3tVfLCza2sZXYqfDT7M/Kfwfd+ScNfUAL29TNNsMNs=;
+        b=LZohmurxAg+IIXFTcRxyeLuEyJRrBYtdc5Y6L9d983RXMlqUL6locmiKcKI2AiHQBL
+         Dt3ulsAPNUcmpqTZb0ZJRbC2fSKWNSpZaJxNWzckjY1AD4lii4ZCXFbPxSGXi+FQ1nvI
+         yf/1lsfNNHM9eJhTmLX1MCVbHhX1ZdOTuW4UEfOXHINYM83nqxL995kxIypB75+r6d8z
+         QdGkAg0/p2TW5L+IQ7yUR+YyLmkgvXzwNrb7zzH5xXG2XnXGNQwLobiAB6bXy+KfFoSJ
+         KwWqryiT2PpuLu5WJwbQc+0KoRp+HRqJIfhcqj+4o6KMtUF+QuyVOZAD+TIa4auC/AJQ
+         qubQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=t3tVfLCza2sZXYqfDT7M/Kfwfd+ScNfUAL29TNNsMNs=;
+        b=t+pY/awbqisMM4abzLFPNDjL4/d5pUzpxskkk+f3GDoqv1PfHNxy/sQrHqPauS9Rut
+         fhK6oqDF5JfL+kxumK7cQlZqfkjewGdEhC4ZmN4e50dNOaFIP5GT6RsOfBEbJiWQgaDv
+         3WweF916nYNLAcTXniP2iqcxCgS7pABzBdhT4/sVbZci5Pva6e7nJlAUKTd6CtzDlL//
+         YJE6X0kh+2D/LJQ2ikqjdrTkb7wp98Dls1sLp7ioKLiY+vlYKMPFDoReBaRR9+KgobL4
+         0WmHez5Bb6o0At55cBdaAT0NaLV/N42DN7xS77Hd3/ssMbns7K7Er7fckKsAJ2Qz/V43
+         cGyg==
+X-Gm-Message-State: AOAM533PXYZJMEWpev0bHZAvt/BZbb03Cbpvan+7uH38tlzfl54TYJ6Y
+	1cZmzoKrKnHVO7BGvu2aiowH/LoTc2qzuwonk0itVg==
+X-Google-Smtp-Source: ABdhPJw7dpI2Wim5ePR6UmRCUFYbtYaIWjkZLzIn+BRbeLkvP2NmOGdJ6B1LMC0L4FaasfzIQ0cJuTlriijfHPwORzA=
+X-Received: by 2002:a17:906:a29a:: with SMTP id i26mr28662478ejz.45.1608833075889;
+ Thu, 24 Dec 2020 10:04:35 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20201106232908.364581-9-ira.weiny@intel.com>
-Content-Language: en-US
-Message-ID-Hash: EEQL5NSNBUD5UAZ3KAJDP65WNJZQR3V3
-X-Message-ID-Hash: EEQL5NSNBUD5UAZ3KAJDP65WNJZQR3V3
-X-MailFrom: rdunlap@infradead.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Fenghua Yu <fenghua.yu@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-doc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>
+References: <1608514782-19193-1-git-send-email-tiantao6@hisilicon.com>
+In-Reply-To: <1608514782-19193-1-git-send-email-tiantao6@hisilicon.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 24 Dec 2020 10:04:25 -0800
+Message-ID: <CAPcyv4h6Pn6Y86P_TeSTqpPeRy6nhQaZPGuggUMT8Ww6TT-Eig@mail.gmail.com>
+Subject: Re: [PATCH] libnvdimm: Switch to using the new API kobj_to_dev()
+To: Tian Tao <tiantao6@hisilicon.com>
+Message-ID-Hash: 6XDR7S73IBO5BG43KBTTKYKQAVMGO3MY
+X-Message-ID-Hash: 6XDR7S73IBO5BG43KBTTKYKQAVMGO3MY
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EEQL5NSNBUD5UAZ3KAJDP65WNJZQR3V3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6XDR7S73IBO5BG43KBTTKYKQAVMGO3MY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,189 +79,31 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 11/6/20 3:29 PM, ira.weiny@intel.com wrote:
-> From: Fenghua Yu <fenghua.yu@intel.com>
-> 
-> PKS allows kernel users to define domains of page mappings which have
-> additional protections beyond the paging protections.
-> 
-> Add an API to allocate, use, and free a protection key which identifies
-> such a domain.  Export 5 new symbols pks_key_alloc(), pks_mknoaccess(),
-> pks_mkread(), pks_mkrdwr(), and pks_key_free().  Add 2 new macros;
-> PAGE_KERNEL_PKEY(key) and _PAGE_PKEY(pkey).
-> 
-> Update the protection key documentation to cover pkeys on supervisor
-> pages.
-> 
-> Co-developed-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-> 
-> ---
-> ---
->  Documentation/core-api/protection-keys.rst | 102 +++++++++++++---
->  arch/x86/include/asm/pgtable_types.h       |  12 ++
->  arch/x86/include/asm/pkeys.h               |  11 ++
->  arch/x86/include/asm/pkeys_common.h        |   4 +
->  arch/x86/mm/pkeys.c                        | 128 +++++++++++++++++++++
->  include/linux/pgtable.h                    |   4 +
->  include/linux/pkeys.h                      |  24 ++++
->  7 files changed, 267 insertions(+), 18 deletions(-)
-> 
-> diff --git a/Documentation/core-api/protection-keys.rst b/Documentation/core-api/protection-keys.rst
-> index ec575e72d0b2..c4e6c480562f 100644
-> --- a/Documentation/core-api/protection-keys.rst
-> +++ b/Documentation/core-api/protection-keys.rst
-> @@ -4,25 +4,33 @@
->  Memory Protection Keys
->  ======================
->  
-> -Memory Protection Keys for Userspace (PKU aka PKEYs) is a feature
-> -which is found on Intel's Skylake (and later) "Scalable Processor"
-> -Server CPUs. It will be available in future non-server Intel parts
-> -and future AMD processors.
-> -
-> -For anyone wishing to test or use this feature, it is available in
-> -Amazon's EC2 C5 instances and is known to work there using an Ubuntu
-> -17.04 image.
-> -
->  Memory Protection Keys provides a mechanism for enforcing page-based
+On Sun, Dec 20, 2020 at 5:40 PM Tian Tao <tiantao6@hisilicon.com> wrote:
+>
+> fixed the following coccicheck:
+> drivers/nvdimm/region_devs.c:762:60-61: WARNING opportunity for
+> kobj_to_dev().
+>
 
-                          provide
+Thanks for this, but you missed a few:
 
->  protections, but without requiring modification of the page tables
-> -when an application changes protection domains.  It works by
-> -dedicating 4 previously ignored bits in each page table entry to a
-> -"protection key", giving 16 possible keys.
-> +when an application changes protection domains.
-> +
-> +PKeys Userspace (PKU) is a feature which is found on Intel's Skylake "Scalable
-> +Processor" Server CPUs and later.  And It will be available in future
+drivers/nvdimm/bus.c:716:       struct device *dev =
+container_of(kobj, typeof(*dev), kobj);
+drivers/nvdimm/core.c:506:      struct device *dev =
+container_of(kobj, typeof(*dev), kobj);
+drivers/nvdimm/dimm_devs.c:421: struct device *dev =
+container_of(kobj, typeof(*dev), kobj);
+drivers/nvdimm/dimm_devs.c:537: struct device *dev =
+container_of(kobj, typeof(*dev), kobj);
+drivers/nvdimm/namespace_devs.c:1626:   struct device *dev =
+container_of(kobj, struct device, kobj);
+drivers/nvdimm/region_devs.c:647:       struct device *dev =
+container_of(kobj, typeof(*dev), kobj);
+drivers/nvdimm/region_devs.c:762:       struct device *dev =
+container_of(kobj, struct device, kobj);
 
-                                          it
-
-> +non-server Intel parts and future AMD processors.
-> +
-> +Future Intel processors will support Protection Keys for Supervisor pages
-> +(PKS).
-> +
-> +For anyone wishing to test or use user space pkeys, it is available in Amazon's
-> +EC2 C5 instances and is known to work there using an Ubuntu 17.04 image.
-> +
-> +pkeys work by dedicating 4 previously Reserved bits in each page table entry to
-> +a "protection key", giving 16 possible keys.  User and Supervisor pages are
-> +treated separately.
-> +
-> +Protections for each page are controlled with per CPU registers for each type
-
-                                                 per-CPU
- 
-> +of page User and Supervisor.  Each of these 32 bit register stores two separate
-
-                                               32-bit registers
-
-
-> +bits (Access Disable and Write Disable) for each key.
->  
-> -There is also a new user-accessible register (PKRU) with two separate
-> -bits (Access Disable and Write Disable) for each key.  Being a CPU
-> -register, PKRU is inherently thread-local, potentially giving each
-> -thread a different set of protections from every other thread.
-> +For Userspace the register is user-accessible (rdpkru/wrpkru).  For
-> +Supervisor, the register (MSR_IA32_PKRS) is accessible only to the kernel.
-> +
-> +Being a CPU register, pkeys are inherently thread-local, potentially giving
-> +each thread an independent set of protections from every other thread.
->  
->  There are two new instructions (RDPKRU/WRPKRU) for reading and writing
->  to the new register.  The feature is only available in 64-bit mode,
-> @@ -30,8 +38,11 @@ even though there is theoretically space in the PAE PTEs.  These
->  permissions are enforced on data access only and have no effect on
->  instruction fetches.
->  
-> -Syscalls
-> -========
-> +For kernel space rdmsr/wrmsr are used to access the kernel MSRs.
-> +
-> +
-> +Syscalls for user space keys
-> +============================
->  
->  There are 3 system calls which directly interact with pkeys::
->  
-> @@ -98,3 +109,58 @@ with a read()::
->  The kernel will send a SIGSEGV in both cases, but si_code will be set
->  to SEGV_PKERR when violating protection keys versus SEGV_ACCERR when
->  the plain mprotect() permissions are violated.
-> +
-> +
-> +Kernel API for PKS support
-> +==========================
-> +
-> +The following interface is used to allocate, use, and free a pkey which defines
-> +a 'protection domain' within the kernel.  Setting a pkey value in a supervisor
-> +mapping adds that mapping to the protection domain.
-> +
-> +        int pks_key_alloc(const char * const pkey_user, int flags);
-> +        #define PAGE_KERNEL_PKEY(pkey)
-> +        #define _PAGE_KEY(pkey)
-> +        void pks_mk_noaccess(int pkey);
-> +        void pks_mk_readonly(int pkey);
-> +        void pks_mk_readwrite(int pkey);
-> +        void pks_key_free(int pkey);
-> +
-> +pks_key_alloc() allocates keys dynamically to allow better use of the limited
-> +key space.  'flags' alter the allocation based on the users need.  Currently
-
-                                                         user's
-or maybe                                                 users'
-
-> +they can request an exclusive key.
-> +
-> +Callers of pks_key_alloc() _must_ be prepared for it to fail and take
-> +appropriate action.  This is due mainly to the fact that PKS may not be
-> +available on all arch's.  Failure to check the return of pks_key_alloc() and
-> +using any of the rest of the API is undefined.
-> +
-> +Kernel users must set the PTE permissions in the page table entries for the
-> +mappings they want to protect.  This can be done with PAGE_KERNEL_PKEY() or
-> +_PAGE_KEY().
-> +
-> +The pks_mk*() family of calls allows kernel users the ability to change the
-> +protections for the domain identified by the pkey specified.  3 states are
-> +available pks_mk_noaccess(), pks_mk_readonly(), and pks_mk_readwrite() which
-
-   available:
-
-> +set the access to none, read, and read/write respectively.
-> +
-> +Finally, pks_key_free() allows a user to return the key to the allocator for
-> +use by others.
-> +
-> +The interface maintains pks_mk_noaccess() (Access Disabled (AD=1)) for all keys
-> +not currently allocated.  Therefore, the user can depend on access being
-> +disabled when pks_key_alloc() returns a key and the user should remove mappings
-> +from the domain (remove the pkey from the PTE) prior to calling pks_key_free().
-> +
-> +It should be noted that the underlying WRMSR(MSR_IA32_PKRS) is not serializing
-> +but still maintains ordering properties similar to WRPKRU.  Thus it is safe to
-> +immediately use a mapping when the pks_mk*() functions returns.
-
-                                                          return.
-
-> +
-> +The current SDM section on PKRS needs updating but should be the same as that
-> +of WRPKRU.  So to quote from the WRPKRU text:
-> +
-> +	WRPKRU will never execute transiently. Memory accesses
-> +	affected by PKRU register will not execute (even transiently)
-> +	until all prior executions of WRPKRU have completed execution
-> +	and updated the PKRU register.
-> +
-
-
--- 
-~Randy
+Care to resend with those included?
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
