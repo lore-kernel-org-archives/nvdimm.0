@@ -7,58 +7,58 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0469C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Dec 2020 16:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DCFFC433E9
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Dec 2020 16:58:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8D26922227
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Dec 2020 16:58:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8D26922227
+	by mail.kernel.org (Postfix) with ESMTPS id 052A822227
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Dec 2020 16:58:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 052A822227
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 5000F100EC1E1;
+	by ml01.01.org (Postfix) with ESMTP id 68D42100EBBAF;
 	Wed, 30 Dec 2020 08:58:51 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 72381100EC1E8
-	for <linux-nvdimm@lists.01.org>; Wed, 30 Dec 2020 08:58:47 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 175C3100EC1E3
+	for <linux-nvdimm@lists.01.org>; Wed, 30 Dec 2020 08:58:46 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.78,461,1599494400";
-   d="scan'208";a="103085839"
+   d="scan'208";a="103085837"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 31 Dec 2020 00:58:45 +0800
 Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id 57F5C4CE6023;
-	Thu, 31 Dec 2020 00:58:43 +0800 (CST)
+	by cn.fujitsu.com (Postfix) with ESMTP id 04B1F4CE601E;
+	Thu, 31 Dec 2020 00:58:40 +0800 (CST)
 Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
  G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Thu, 31 Dec 2020 00:58:43 +0800
+ (TLS) id 15.0.1497.2; Thu, 31 Dec 2020 00:58:40 +0800
 Received: from irides.mr (10.167.225.141) by G08CNEXCHPEKD04.g08.fujitsu.local
  (10.167.33.209) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Thu, 31 Dec 2020 00:58:42 +0800
+ Transport; Thu, 31 Dec 2020 00:58:39 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
-Subject: [PATCH 09/10] xfs: Implement ->corrupted_range() for XFS
-Date: Thu, 31 Dec 2020 00:56:00 +0800
-Message-ID: <20201230165601.845024-10-ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH 06/10] pmem: Implement ->corrupted_range() for pmem driver
+Date: Thu, 31 Dec 2020 00:55:57 +0800
+Message-ID: <20201230165601.845024-7-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com>
 References: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 57F5C4CE6023.ABDE7
+X-yoursite-MailScanner-ID: 04B1F4CE601E.AFEA7
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: 7DMLNLDOYA275OW4T4PA737AOCFXLJPV
-X-Message-ID-Hash: 7DMLNLDOYA275OW4T4PA737AOCFXLJPV
+Message-ID-Hash: XTUJYIGHZDQXA452D6U4R6V3V53ZWUTC
+X-Message-ID-Hash: XTUJYIGHZDQXA452D6U4R6V3V53ZWUTC
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7DMLNLDOYA275OW4T4PA737AOCFXLJPV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XTUJYIGHZDQXA452D6U4R6V3V53ZWUTC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,186 +67,93 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This function is used to handle errors which may cause data lost in
-filesystem.  Such as memory failure in fsdax mode.
-
-In XFS, it requires "rmapbt" feature in order to query for files or
-metadata which associated to the corrupted data.  Then we could call fs
-recover functions to try to repair the corrupted data.(did not
-implemented in this patchset)
-
-After that, the memory failure also needs to notify the processes who
-are using those files.
-
-Only support data device.  Realtime device is not supported for now.
+Obtain the superblock of a pmem disk, and call filesystem's
+->corrupted_range() to handle the corrupted data.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- fs/xfs/xfs_fsops.c |   5 +++
- fs/xfs/xfs_mount.h |   1 +
- fs/xfs/xfs_super.c | 107 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 113 insertions(+)
+ block/genhd.c         | 12 ++++++++++++
+ drivers/nvdimm/pmem.c | 24 ++++++++++++++++++++++++
+ include/linux/genhd.h |  1 +
+ 3 files changed, 37 insertions(+)
 
-diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
-index ef1d5bb88b93..0a2038875d32 100644
---- a/fs/xfs/xfs_fsops.c
-+++ b/fs/xfs/xfs_fsops.c
-@@ -501,6 +501,11 @@ xfs_do_force_shutdown(
- "Corruption of in-memory data detected.  Shutting down filesystem");
- 		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
- 			xfs_stack_trace();
-+	} else if (flags & SHUTDOWN_CORRUPT_META) {
-+		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-+"Corruption of on-disk metadata detected.  Shutting down filesystem");
-+		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
-+			xfs_stack_trace();
- 	} else if (logerror) {
- 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_LOGERROR,
- 			"Log I/O Error Detected. Shutting down filesystem");
-diff --git a/fs/xfs/xfs_mount.h b/fs/xfs/xfs_mount.h
-index dfa429b77ee2..8f0df67ffcc1 100644
---- a/fs/xfs/xfs_mount.h
-+++ b/fs/xfs/xfs_mount.h
-@@ -274,6 +274,7 @@ void xfs_do_force_shutdown(struct xfs_mount *mp, int flags, char *fname,
- #define SHUTDOWN_LOG_IO_ERROR	0x0002	/* write attempt to the log failed */
- #define SHUTDOWN_FORCE_UMOUNT	0x0004	/* shutdown from a forced unmount */
- #define SHUTDOWN_CORRUPT_INCORE	0x0008	/* corrupt in-memory data structures */
-+#define SHUTDOWN_CORRUPT_META	0x0010  /* corrupt metadata on device */
+diff --git a/block/genhd.c b/block/genhd.c
+index 9387f050c248..436adce123b2 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -1058,6 +1058,18 @@ struct block_device *bdget_disk(struct gendisk *disk, int partno)
+ }
+ EXPORT_SYMBOL(bdget_disk);
  
++struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector)
++{
++	struct block_device *bdev = NULL;
++	struct hd_struct *part = disk_map_sector_rcu(disk, sector);
++
++	if (part)
++		bdev = bdget_part(part);
++
++	return bdev;
++}
++EXPORT_SYMBOL(bdget_disk_sector);
++
  /*
-  * Flags for xfs_mountfs
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index e3e229e52512..cbcad419bb9e 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -35,6 +35,11 @@
- #include "xfs_refcount_item.h"
- #include "xfs_bmap_item.h"
- #include "xfs_reflink.h"
-+#include "xfs_alloc.h"
-+#include "xfs_rmap.h"
-+#include "xfs_rmap_btree.h"
-+#include "xfs_rtalloc.h"
-+#include "xfs_bit.h"
- 
- #include <linux/magic.h>
- #include <linux/fs_context.h>
-@@ -1103,6 +1108,107 @@ xfs_fs_free_cached_objects(
- 	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
+  * print a full list of all partitions - intended for places where the root
+  * filesystem can't be mounted and thus to give the victim some idea of what
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 4a114937c43b..4688bff19c20 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -253,6 +253,29 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return blk_status_to_errno(rc);
  }
  
-+static int
-+xfs_corrupt_helper(
-+	struct xfs_btree_cur		*cur,
-+	struct xfs_rmap_irec		*rec,
-+	void				*data)
++static int pmem_corrupted_range(struct gendisk *disk, struct block_device *bdev,
++				loff_t disk_offset, size_t len, void *data)
 +{
-+	struct xfs_inode		*ip;
-+	struct address_space		*mapping;
-+	int				rc = 0;
-+	int				*flags = data;
++	struct super_block *sb;
++	loff_t bdev_offset;
++	sector_t disk_sector = disk_offset >> SECTOR_SHIFT;
++	int rc = 0;
 +
-+	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
-+	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
-+		// TODO check and try to fix metadata
-+		rc = -EFSCORRUPTED;
-+	} else {
-+		/*
-+		 * Get files that incore, filter out others that are not in use.
-+		 */
-+		rc = xfs_iget(cur->bc_mp, cur->bc_tp, rec->rm_owner,
-+			      XFS_IGET_INCORE, 0, &ip);
-+		if (rc || !ip)
-+			return rc;
-+		if (!VFS_I(ip)->i_mapping)
-+			goto out;
++	bdev = bdget_disk_sector(disk, disk_sector);
++	if (!bdev)
++		return -ENODEV;
 +
-+		mapping = VFS_I(ip)->i_mapping;
-+		if (IS_DAX(VFS_I(ip)))
-+			rc = mf_dax_mapping_kill_procs(mapping, rec->rm_offset,
-+						       *flags);
-+		else
-+			mapping_set_error(mapping, -EFSCORRUPTED);
-+
-+		// TODO try to fix data
-+out:
-+		xfs_irele(ip);
++	bdev_offset = (disk_sector - get_start_sect(bdev)) << SECTOR_SHIFT;
++	sb = get_super(bdev);
++	if (sb && sb->s_op->corrupted_range) {
++		rc = sb->s_op->corrupted_range(sb, bdev, bdev_offset, len, data);
++		drop_super(sb);
 +	}
 +
++	bdput(bdev);
 +	return rc;
 +}
 +
-+static int
-+xfs_fs_corrupted_range(
-+	struct super_block	*sb,
-+	struct block_device	*bdev,
-+	loff_t			offset,
-+	size_t			len,
-+	void			*data)
-+{
-+	struct xfs_mount	*mp = XFS_M(sb);
-+	struct xfs_trans	*tp = NULL;
-+	struct xfs_btree_cur	*cur = NULL;
-+	struct xfs_rmap_irec	rmap_low, rmap_high;
-+	struct xfs_buf		*agf_bp = NULL;
-+	xfs_fsblock_t		fsbno = XFS_B_TO_FSB(mp, offset);
-+	xfs_filblks_t		bcnt = XFS_B_TO_FSB(mp, len);
-+	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
-+	xfs_agblock_t		agbno = XFS_FSB_TO_AGBNO(mp, fsbno);
-+	int			error = 0;
-+
-+	if (mp->m_rtdev_targp && mp->m_rtdev_targp->bt_bdev == bdev) {
-+		xfs_warn(mp, "corrupted_range support not available for realtime device!");
-+		return 0;
-+	}
-+	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_bdev == bdev &&
-+	    mp->m_logdev_targp != mp->m_ddev_targp) {
-+		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
-+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_META);
-+		return 0;
-+	}
-+
-+	if (!xfs_sb_version_hasrmapbt(&mp->m_sb)) {
-+		xfs_warn(mp, "corrupted_range needs rmapbt enabled!");
-+		return 0;
-+	}
-+
-+	error = xfs_trans_alloc_empty(mp, &tp);
-+	if (error)
-+		return error;
-+
-+	error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
-+	if (error)
-+		return error;
-+
-+	cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agno);
-+
-+	/* Construct a range for rmap query */
-+	memset(&rmap_low, 0, sizeof(rmap_low));
-+	memset(&rmap_high, 0xFF, sizeof(rmap_high));
-+	rmap_low.rm_startblock = rmap_high.rm_startblock = agbno;
-+	rmap_low.rm_blockcount = rmap_high.rm_blockcount = bcnt;
-+
-+	error = xfs_rmap_query_range(cur, &rmap_low, &rmap_high, xfs_corrupt_helper, data);
-+	if (error == -EFSCORRUPTED)
-+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_META);
-+
-+	xfs_btree_del_cursor(cur, error);
-+	xfs_trans_brelse(tp, agf_bp);
-+	return error;
-+}
-+
- static const struct super_operations xfs_super_operations = {
- 	.alloc_inode		= xfs_fs_alloc_inode,
- 	.destroy_inode		= xfs_fs_destroy_inode,
-@@ -1116,6 +1222,7 @@ static const struct super_operations xfs_super_operations = {
- 	.show_options		= xfs_fs_show_options,
- 	.nr_cached_objects	= xfs_fs_nr_cached_objects,
- 	.free_cached_objects	= xfs_fs_free_cached_objects,
-+	.corrupted_range	= xfs_fs_corrupted_range,
+ /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
+ __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
+ 		long nr_pages, void **kaddr, pfn_t *pfn)
+@@ -281,6 +304,7 @@ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.submit_bio =		pmem_submit_bio,
+ 	.rw_page =		pmem_rw_page,
++	.corrupted_range =	pmem_corrupted_range,
  };
  
- static int
+ static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+diff --git a/include/linux/genhd.h b/include/linux/genhd.h
+index 03da3f603d30..ed06209008b8 100644
+--- a/include/linux/genhd.h
++++ b/include/linux/genhd.h
+@@ -303,6 +303,7 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
+ extern void del_gendisk(struct gendisk *gp);
+ extern struct gendisk *get_gendisk(dev_t dev, int *partno);
+ extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
++extern struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector);
+ 
+ extern void set_device_ro(struct block_device *bdev, int flag);
+ extern void set_disk_ro(struct gendisk *disk, int flag);
 -- 
 2.29.2
 
