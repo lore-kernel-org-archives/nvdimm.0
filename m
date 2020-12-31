@@ -1,64 +1,59 @@
-Return-Path: <SRS0=BojM=GC=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=3ClU=GD=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
 X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38511C4332B
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Dec 2020 16:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5A75C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 31 Dec 2020 06:17:58 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EA27222227
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 30 Dec 2020 16:58:58 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EA27222227
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id 407A02075E
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 31 Dec 2020 06:17:57 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 407A02075E
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 95089100EBBBD;
-	Wed, 30 Dec 2020 08:58:52 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 2E33C100EC1FA
-	for <linux-nvdimm@lists.01.org>; Wed, 30 Dec 2020 08:58:48 -0800 (PST)
-X-IronPort-AV: E=Sophos;i="5.78,461,1599494400";
-   d="scan'208";a="103085840"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 31 Dec 2020 00:58:45 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 896D04CE6027;
-	Thu, 31 Dec 2020 00:58:44 +0800 (CST)
-Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Thu, 31 Dec 2020 00:58:44 +0800
-Received: from irides.mr (10.167.225.141) by G08CNEXCHPEKD04.g08.fujitsu.local
- (10.167.33.209) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Thu, 31 Dec 2020 00:58:43 +0800
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
-Subject: [PATCH 10/10] fs/dax: remove useless functions
-Date: Thu, 31 Dec 2020 00:56:01 +0800
-Message-ID: <20201230165601.845024-11-ruansy.fnst@cn.fujitsu.com>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com>
-References: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com>
+	by ml01.01.org (Postfix) with ESMTP id A7CB0100EBBCE;
+	Wed, 30 Dec 2020 22:17:57 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=45.249.212.190; helo=szxga04-in.huawei.com; envelope-from=zhuling8@huawei.com; receiver=<UNKNOWN> 
+Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id A327B100EBBBD
+	for <linux-nvdimm@lists.01.org>; Wed, 30 Dec 2020 22:17:54 -0800 (PST)
+Received: from DGGEMS413-HUB.china.huawei.com (unknown [172.30.72.60])
+	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4D5ybw3pc4z15lVf;
+	Thu, 31 Dec 2020 14:17:00 +0800 (CST)
+Received: from huawei.com (10.44.142.101) by DGGEMS413-HUB.china.huawei.com
+ (10.3.19.213) with Microsoft SMTP Server id 14.3.498.0; Thu, 31 Dec 2020
+ 14:17:42 +0800
+From: Zhuling <zhuling8@huawei.com>
+To: <linux-kernel@vger.kernel.org>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>, <will@kernel.org>,
+	<dan.j.williams@intel.com>, <vishal.l.verma@intel.com>,
+	<dave.jiang@intel.com>
+Subject: [PATCH] arm64: add pmem module for kernel update
+Date: Thu, 31 Dec 2020 13:31:56 +0800
+Message-ID: <20201231053156.24276-1-zhuling8@huawei.com>
+X-Mailer: git-send-email 2.9.5
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 896D04CE6027.ABF58
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: JLBLRBYVWBPJUADNNKVNODNCLUOF42IS
-X-Message-ID-Hash: JLBLRBYVWBPJUADNNKVNODNCLUOF42IS
-X-MailFrom: ruansy.fnst@cn.fujitsu.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+X-Originating-IP: [10.44.142.101]
+X-CFilter-Loop: Reflected
+Message-ID-Hash: 2LYRAMDBXW2VPOYEYW344PGYS3JAD2FS
+X-Message-ID-Hash: 2LYRAMDBXW2VPOYEYW344PGYS3JAD2FS
+X-MailFrom: zhuling8@huawei.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: luanjianhai@huawei.com, luchunhua@huawei.com, sangyan@huawei.com, zhuling8@huawei.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JLBLRBYVWBPJUADNNKVNODNCLUOF42IS/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2LYRAMDBXW2VPOYEYW344PGYS3JAD2FS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,183 +62,358 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Since owner tarcking is triggerred by pmem device, these functions are
-useless.  So remove it.
+Category: feature
+Bugzilla: NA
+CVE: NA
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Use reserved memory to create a pmem device to store the
+processes information that dumped before kernel update.
+When you want to use this feature you need to declare by
+"pmemmem=pmem_size:pmem_phystart" in cmdline.
+(exp: pmemmem=100M:0x202000000000)
+
+Signed-off-by: Zhuling <zhuling8@huawei.com>
 ---
- fs/dax.c            | 112 --------------------------------------------
- include/linux/dax.h |   2 -
- 2 files changed, 114 deletions(-)
+ arch/arm64/kernel/setup.c |   5 +++
+ arch/arm64/mm/init.c      |  90 +++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/Kconfig    |  11 +++++
+ drivers/nvdimm/Makefile   |   3 ++
+ drivers/nvdimm/kup_pmem.c | 106 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/ioport.h    |   1 +
+ include/linux/mm.h        |   4 ++
+ lib/Kconfig               |   6 +++
+ 8 files changed, 226 insertions(+)
+ create mode 100644 drivers/nvdimm/kup_pmem.c
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 799210cfa687..4267de360d79 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -323,48 +323,6 @@ static unsigned long dax_end_pfn(void *entry)
- 	for (pfn = dax_to_pfn(entry); \
- 			pfn < dax_end_pfn(entry); pfn++)
- 
--/*
-- * TODO: for reflink+dax we need a way to associate a single page with
-- * multiple address_space instances at different linear_page_index()
-- * offsets.
-- */
--static void dax_associate_entry(void *entry, struct address_space *mapping,
--		struct vm_area_struct *vma, unsigned long address)
--{
--	unsigned long size = dax_entry_size(entry), pfn, index;
--	int i = 0;
--
--	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
--		return;
--
--	index = linear_page_index(vma, address & ~(size - 1));
--	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
--
--		WARN_ON_ONCE(page->mapping);
--		page->mapping = mapping;
--		page->index = index + i++;
--	}
--}
--
--static void dax_disassociate_entry(void *entry, struct address_space *mapping,
--		bool trunc)
--{
--	unsigned long pfn;
--
--	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
--		return;
--
--	for_each_mapped_pfn(entry, pfn) {
--		struct page *page = pfn_to_page(pfn);
--
--		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
--		page->mapping = NULL;
--		page->index = 0;
--	}
--}
--
- static struct page *dax_busy_page(void *entry)
- {
- 	unsigned long pfn;
-@@ -399,72 +357,6 @@ unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index)
- 	return pfn;
- }
- 
--/*
-- * dax_lock_mapping_entry - Lock the DAX entry corresponding to a page
-- * @page: The page whose entry we want to lock
-- *
-- * Context: Process context.
-- * Return: A cookie to pass to dax_unlock_page() or 0 if the entry could
-- * not be locked.
-- */
--dax_entry_t dax_lock_page(struct page *page)
--{
--	XA_STATE(xas, NULL, 0);
--	void *entry;
--
--	/* Ensure page->mapping isn't freed while we look at it */
--	rcu_read_lock();
--	for (;;) {
--		struct address_space *mapping = READ_ONCE(page->mapping);
--
--		entry = NULL;
--		if (!mapping || !dax_mapping(mapping))
--			break;
--
--		/*
--		 * In the device-dax case there's no need to lock, a
--		 * struct dev_pagemap pin is sufficient to keep the
--		 * inode alive, and we assume we have dev_pagemap pin
--		 * otherwise we would not have a valid pfn_to_page()
--		 * translation.
--		 */
--		entry = (void *)~0UL;
--		if (S_ISCHR(mapping->host->i_mode))
--			break;
--
--		xas.xa = &mapping->i_pages;
--		xas_lock_irq(&xas);
--		if (mapping != page->mapping) {
--			xas_unlock_irq(&xas);
--			continue;
--		}
--		xas_set(&xas, page->index);
--		entry = xas_load(&xas);
--		if (dax_is_locked(entry)) {
--			rcu_read_unlock();
--			wait_entry_unlocked(&xas, entry);
--			rcu_read_lock();
--			continue;
--		}
--		dax_lock_entry(&xas, entry);
--		xas_unlock_irq(&xas);
--		break;
--	}
--	rcu_read_unlock();
--	return (dax_entry_t)entry;
--}
--
--void dax_unlock_page(struct page *page, dax_entry_t cookie)
--{
--	struct address_space *mapping = page->mapping;
--	XA_STATE(xas, &mapping->i_pages, page->index);
--
--	if (S_ISCHR(mapping->host->i_mode))
--		return;
--
--	dax_unlock_entry(&xas, (void *)cookie);
--}
--
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 133257f..0bd9429 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -237,6 +237,11 @@ static void __init request_standard_resources(void)
+ 		if (kernel_data.start >= res->start &&
+ 		    kernel_data.end <= res->end)
+ 			request_resource(res, &kernel_data);
++#ifdef CONFIG_KUP_PMEM_MEMORY
++	if (pmem_res.end)
++		insert_resource(&iomem_resource, &pmem_res);
++#endif
++
+ #ifdef CONFIG_KEXEC_CORE
+ 		/* Userspace will find "Crash kernel" region in /proc/iomem. */
+ 		if (crashk_res.end && crashk_res.start >= res->start &&
+diff --git a/arch/arm64/mm/init.c b/arch/arm64/mm/init.c
+index 0955406..9d1395e 100644
+--- a/arch/arm64/mm/init.c
++++ b/arch/arm64/mm/init.c
+@@ -62,6 +62,18 @@ EXPORT_SYMBOL(memstart_addr);
+ phys_addr_t arm64_dma_phys_limit __ro_after_init;
+ static phys_addr_t arm64_dma32_phys_limit __ro_after_init;
+
++#ifdef CONFIG_KUP_PMEM_MEMORY
++static unsigned long long pmem_size, pmem_phystart;
++
++struct resource pmem_res = {
++	.name = "Kpmem Dev",
++	.start = 0,
++	.end = 0,
++	.flags = IORESOURCE_MEM,
++	.desc = IORES_DESC_KPMEM_DEV
++};
++#endif
++
+ #ifdef CONFIG_KEXEC_CORE
  /*
-  * Find page cache entry at given index. If it is a DAX entry, return it
-  * with the entry locked. If the page cache doesn't contain an entry at
-@@ -543,7 +435,6 @@ static void *grab_mapping_entry(struct xa_state *xas,
- 			xas_lock_irq(xas);
- 		}
- 
--		dax_disassociate_entry(entry, mapping, false);
- 		xas_store(xas, NULL);	/* undo the PMD join */
- 		dax_wake_entry(xas, entry, true);
- 		mapping->nrexceptional--;
-@@ -680,7 +571,6 @@ static int __dax_invalidate_entry(struct address_space *mapping,
- 	    (xas_get_mark(&xas, PAGECACHE_TAG_DIRTY) ||
- 	     xas_get_mark(&xas, PAGECACHE_TAG_TOWRITE)))
- 		goto out;
--	dax_disassociate_entry(entry, mapping, trunc);
- 	xas_store(&xas, NULL);
- 	mapping->nrexceptional--;
- 	ret = 1;
-@@ -774,8 +664,6 @@ static void *dax_insert_entry(struct xa_state *xas,
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		void *old;
- 
--		dax_disassociate_entry(entry, mapping, false);
--		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 89e56ceeffc7..c6b8dc094b26 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -151,8 +151,6 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- struct page *dax_layout_busy_page(struct address_space *mapping);
- struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
- unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index);
--dax_entry_t dax_lock_page(struct page *page);
--void dax_unlock_page(struct page *page, dax_entry_t cookie);
- #else
- static inline bool bdev_dax_supported(struct block_device *bdev,
- 		int blocksize)
--- 
-2.29.2
+  * reserve_crashkernel() - reserves memory for crash kernel
+@@ -123,6 +135,80 @@ static void __init reserve_crashkernel(void)
+ }
+ #endif /* CONFIG_KEXEC_CORE */
 
++#ifdef CONFIG_KUP_PMEM_MEMORY
++/*
++ * reserve_pmem() - reserves memory for pmem
++ *
++ * This function reserves memory area given in "pmemmem=" kernel command
++ * line parameter. The memory reserved is used by pmem restore progress
++ * when kernel update.
++ */
++static int __init parse_pmem(char *par)
++{
++	char *cur = par;
++
++	if (!par)
++		return 0;
++
++	pmem_size = 0;
++	pmem_phystart = 0;
++
++	pmem_size = memparse(par, &cur);
++	if (par == cur) {
++		pr_warn("pmem: memory value expected\n");
++		return -EINVAL;
++	}
++
++	if (*cur == ':')
++		pmem_phystart = memparse(cur+1, &cur);
++	else if (*cur != ' ' && *cur != '\0') {
++		pr_warn("pmem: unrecognized char %c\n", *cur);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++early_param("pmemmem", parse_pmem);
++
++static void __init reserve_pmem(void)
++{
++	if (!pmem_size || !pmem_phystart) {
++		return;
++	}
++
++	pmem_size = PAGE_ALIGN(pmem_size);
++
++	if (!memblock_is_region_memory(pmem_phystart, pmem_size)) {
++		pr_warn("cannot reserve pmem: region is not memory!\n");
++		return;
++	}
++
++	if (memblock_is_region_reserved(pmem_phystart, pmem_size)) {
++		pr_warn("cannot reserve pmem: region overlaps reserved memory!\n");
++		return;
++	}
++
++	if (!IS_ALIGNED(pmem_phystart, SZ_2M)) {
++		pr_warn("cannot reserve pmem: base address is not 2MB aligned\n");
++		return;
++	}
++	memblock_reserve(pmem_phystart, pmem_size);
++	memblock_remove(pmem_phystart, pmem_size);
++	pr_info("pmem reserved: 0x%016llx - 0x%016llx (%lld MB)\n",
++		    pmem_phystart, pmem_phystart + pmem_size, pmem_size >> 20);
++
++	pmem_res.start = pmem_phystart;
++	pmem_res.end = pmem_phystart + pmem_size - 1;
++}
++#else
++static void __init reserve_pmem(void)
++{
++}
++static void __init reserve_pmem_pages(void)
++{
++}
++#endif /*CONFIG_KUP_PMEM_MEMORY*/
++
+ #ifdef CONFIG_CRASH_DUMP
+ static int __init early_init_dt_scan_elfcorehdr(unsigned long node,
+ 		const char *uname, int depth, void *data)
+@@ -390,6 +476,10 @@ void __init arm64_memblock_init(void)
 
+ 	reserve_elfcorehdr();
+
++#ifdef CONFIG_KUP_PMEM_MEMORY
++	reserve_pmem();
++#endif
++
+ 	high_memory = __va(memblock_end_of_DRAM() - 1) + 1;
+
+ 	dma_contiguous_reserve(arm64_dma32_phys_limit);
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index b7d1eb3..7f5fa22 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -119,6 +119,17 @@ config NVDIMM_KEYS
+ 	depends on ENCRYPTED_KEYS
+ 	depends on (LIBNVDIMM=ENCRYPTED_KEYS) || LIBNVDIMM=m
+
++config KUP_PMEM
++	tristate "Persistent memory for kernel update"
++	depends on LIBNVDIMM
++	depends on KUP_PMEM_MEMORY
++	default LIBNVDIMM
++	help
++	  Allows regions of persistent memory to be described in the
++	  device-tree.
++
++	  Select Y if unsure.
++
+ config NVDIMM_TEST_BUILD
+ 	tristate "Build the unit test core"
+ 	depends on m
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index 29203f3..39fabc3 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -6,6 +6,7 @@ obj-$(CONFIG_ND_BLK) += nd_blk.o
+ obj-$(CONFIG_X86_PMEM_LEGACY) += nd_e820.o
+ obj-$(CONFIG_OF_PMEM) += of_pmem.o
+ obj-$(CONFIG_VIRTIO_PMEM) += virtio_pmem.o nd_virtio.o
++obj-$(CONFIG_KUP_PMEM) += nd_kup_pmem.o
+
+ nd_pmem-y := pmem.o
+
+@@ -15,6 +16,8 @@ nd_blk-y := blk.o
+
+ nd_e820-y := e820.o
+
++nd_kup_pmem-y := kup_pmem.o
++
+ libnvdimm-y := core.o
+ libnvdimm-y += bus.o
+ libnvdimm-y += dimm_devs.o
+diff --git a/drivers/nvdimm/kup_pmem.c b/drivers/nvdimm/kup_pmem.c
+new file mode 100644
+index 0000000..eadf95a
+--- /dev/null
++++ b/drivers/nvdimm/kup_pmem.c
+@@ -0,0 +1,106 @@
++/*
++ * Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
++ *
++ * This source code is licensed under the GNU General Public License,
++ * Version 2.  See the file COPYING for more details.
++ *
++ * kup_pmem.c - kernel update support code.
++ *   create a pmem device to store the processes information that is dumped
++ *   when we want to kernel update.
++ */
++
++#include <linux/platform_device.h>
++#include <linux/memory_hotplug.h>
++#include <linux/libnvdimm.h>
++#include <linux/module.h>
++#include <asm/io.h>
++
++static const struct attribute_group *kup_pmem_attribute_groups[] = {
++	&nvdimm_bus_attribute_group,
++	NULL,
++};
++
++static const struct attribute_group *kup_pmem_region_attribute_groups[] = {
++	&nd_region_attribute_group,
++	&nd_device_attribute_group,
++	NULL,
++};
++
++static int kup_pmem_remove(struct platform_device *pdev)
++{
++	struct nvdimm_bus *nvdimm_bus = platform_get_drvdata(pdev);
++
++	nvdimm_bus_unregister(nvdimm_bus);
++
++	return 0;
++}
++
++static int kup_register_one(struct resource *res, void *data)
++{
++	struct nd_region_desc ndr_desc;
++	struct nvdimm_bus *nvdimm_bus = data;
++
++	memset(&ndr_desc, 0, sizeof(ndr_desc));
++	ndr_desc.res = res;
++	ndr_desc.attr_groups = kup_pmem_region_attribute_groups;
++	ndr_desc.numa_node = NUMA_NO_NODE;
++	set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
++	if (!nvdimm_pmem_region_create(nvdimm_bus, &ndr_desc))
++		return -ENXIO;
++	return 0;
++}
++
++static int kup_pmem_probe(struct platform_device *pdev)
++{
++	static struct nvdimm_bus_descriptor nd_desc;
++	struct device *dev = &pdev->dev;
++	struct nvdimm_bus *nvdimm_bus;
++	int rc = -ENXIO;
++
++	nd_desc.attr_groups = kup_pmem_attribute_groups;
++	nd_desc.provider_name = "kup_pmem";
++	nd_desc.module = THIS_MODULE;
++	nvdimm_bus = nvdimm_bus_register(dev, &nd_desc);
++	if (!nvdimm_bus)
++		goto err;
++	platform_set_drvdata(pdev, nvdimm_bus);
++
++	rc = walk_iomem_res_desc(IORES_DESC_KPMEM_DEV,
++			IORESOURCE_MEM, 0, -1, nvdimm_bus, kup_register_one);
++	if (rc)
++		goto err;
++
++	return 0;
++err:
++	nvdimm_bus_unregister(nvdimm_bus);
++	dev_err(dev, "kup_pmem: failed to register legacy persistent memory ranges\n");
++	return rc;
++}
++
++static struct platform_driver kup_pmem_driver = {
++	.probe = kup_pmem_probe,
++	.remove = kup_pmem_remove,
++	.driver = {
++		.name = "kup_pmem",
++	},
++};
++static struct platform_device *pdev;
++
++static __init int register_kup_pmem(void)
++{
++	platform_driver_register(&kup_pmem_driver);
++	pdev = platform_device_alloc("kup_pmem", -1);
++
++	return platform_device_add(pdev);
++}
++
++static __exit void unregister_kup_pmem(void)
++{
++	platform_device_del(pdev);
++	platform_driver_unregister(&kup_pmem_driver);
++}
++
++module_init(register_kup_pmem);
++module_exit(unregister_kup_pmem);
++MODULE_ALIAS("platform:kup_pmem*");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 5135d4b..bba36f2 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -139,6 +139,7 @@ enum {
+ 	IORES_DESC_DEVICE_PRIVATE_MEMORY	= 6,
+ 	IORES_DESC_RESERVED			= 7,
+ 	IORES_DESC_SOFT_RESERVED		= 8,
++	IORES_DESC_KPMEM_DEV			= 9,
+ };
+
+ /*
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index db6ae4d..2b2a94c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -45,6 +45,10 @@ extern int sysctl_page_lock_unfairness;
+
+ void init_mm_internals(void);
+
++#ifdef CONFIG_KUP_PMEM_MEMORY
++extern struct resource pmem_res;
++#endif
++
+ #ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
+ extern unsigned long max_mapnr;
+
+diff --git a/lib/Kconfig b/lib/Kconfig
+index b46a9fd..ff5677c 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -689,3 +689,9 @@ config GENERIC_LIB_UCMPDI2
+ config PLDMFW
+ 	bool
+ 	default n
++
++config KUP_PMEM_MEMORY
++	bool "reserve memory for kup pmem to store image"
++	default y
++	help
++	  Say y here to enable this feature
+--
+2.9.5
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
