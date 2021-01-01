@@ -1,73 +1,61 @@
-Return-Path: <SRS0=3ClU=GD=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=IMMJ=GE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28663C433E6
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 31 Dec 2020 15:36:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94C5DC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Jan 2021 04:29:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B948520798
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 31 Dec 2020 15:36:12 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B948520798
-Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=careerkarma.co
+	by mail.kernel.org (Postfix) with ESMTPS id 5B675221EC
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  1 Jan 2021 04:29:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5B675221EC
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 45F2A100EC1F2;
-	Thu, 31 Dec 2020 07:36:12 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::b2b; helo=mail-yb1-xb2b.google.com; envelope-from=meyster.artur@careerkarma.co; receiver=<UNKNOWN> 
-Received: from mail-yb1-xb2b.google.com (mail-yb1-xb2b.google.com [IPv6:2607:f8b0:4864:20::b2b])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id ADFB8100EC1D5;
+	Thu, 31 Dec 2020 20:29:38 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1231::1; helo=merlin.infradead.org; envelope-from=rdunlap@infradead.org; receiver=<UNKNOWN> 
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1231::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5978F100EF265
-	for <linux-nvdimm@lists.01.org>; Thu, 31 Dec 2020 07:36:09 -0800 (PST)
-Received: by mail-yb1-xb2b.google.com with SMTP id k78so17625951ybf.12
-        for <linux-nvdimm@lists.01.org>; Thu, 31 Dec 2020 07:36:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=careerkarma.co; s=google;
-        h=from:mime-version:date:message-id:subject:to;
-        bh=aK08k/UWu4qZ7ZAlEApSqMUwzLpOqO/KUJy2TDxoVq0=;
-        b=UxXDlQW9FKkaEDr9LGK/iChAFraPLoTUDykhZWB6zBeEyWMcBBv1bzosawVC075kpB
-         DYUMW5S1hhop7H5f+ntY+eT9EKyL2oTs/U+6NHlQVSh32Zyk81fde50E6t0N7j2Wz4tt
-         JjTr/BsLvy/tcECw8SXSpKODYO46Qai7uhjdY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:mime-version:date:message-id:subject:to;
-        bh=aK08k/UWu4qZ7ZAlEApSqMUwzLpOqO/KUJy2TDxoVq0=;
-        b=jfRUL3Mf50Ei6WI8QTPU146y2vJzw7995hA5dPpWs8BM4ENjhJZN6aQaHHdlP4hUiY
-         UAdYMPgzjnjHwMmaZJr0oeS9/J0QE4DQLODiq7HjrRnV/J5L7ixJmCQKI5sg9Jub2NOZ
-         61TMtUuk9AMdB4aUzgBMeDoxIJ151qG+UWkTguDNSXebobY/KJJ+ClLd0zU8MNpJnlOk
-         i7NKGh8JI3i1DY4mxS8tBkdw12uK6ncTwlvdX7d3woapEnb/5m2IJraI5g/lt9fm6/yp
-         dNYgAAkn1kfFS4FvYw8CcG8gL7IGADG4lPZlzhDpWEKlGXq7Jg4djbXnLfOTkCrGjURd
-         7q3w==
-X-Gm-Message-State: AOAM533o5SnTAuAJz4FgBxsCTiF2be1yi2LcQ0ZAxbsEjvH1aBV9q6Li
-	3eY2V92aOt2YLq1MBjRGtJJ/IssokRM+fKKHoQE8MPAHKT0=
-X-Google-Smtp-Source: ABdhPJwRK02AyFdMexxqR34yMJepQdxHX9gWp6eZrXFU5+OSaQ+Ps450SsPpDcImzzOZuuLXaf4q7NvaLQGzERddS5Q=
-X-Received: by 2002:a5b:d11:: with SMTP id y17mr7713361ybp.414.1609428967908;
- Thu, 31 Dec 2020 07:36:07 -0800 (PST)
-Received: from 1036669786545 named unknown by gmailapi.google.com with
- HTTPREST; Thu, 31 Dec 2020 07:36:07 -0800
-From: Artur Meyster <meyster.artur@careerkarma.co>
-Mime-Version: 1.0
-Date: Thu, 31 Dec 2020 07:36:07 -0800
-Message-ID: <CADo9yaAMBy93Syq0csWiO9eyb4LnOOQuk4Whna9vq_byd-xr-g@mail.gmail.com>
-Subject: Are You Open to Collaborating on Content?
-To: linux-nvdimm@lists.01.org
-Message-ID-Hash: DXP6ZTI2AEMVBFALPF6T3VY7BLMMVBWU
-X-Message-ID-Hash: DXP6ZTI2AEMVBFALPF6T3VY7BLMMVBWU
-X-MailFrom: meyster.artur@careerkarma.co
+	by ml01.01.org (Postfix) with ESMTPS id F3155100ED4A5
+	for <linux-nvdimm@lists.01.org>; Thu, 31 Dec 2020 20:29:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=03MHVj7uFca2pur9ftrcvmwDErnMJojp89WXgKNO4AA=; b=ulXhILNkO4Vn79Fz0WFS5QtaVf
+	qFVb6mSuOHgqmfqc1tMBC67fYnpVzBFFXg3A4KfH4e8wRzR55lj+uaovFmy4DxEmleKrSjZ2LdGbQ
+	ac7wa5VoRQUnjiBgRnbVQWRzf+hGu+NG1PQyfbh3wrjL5bHHzEEx1Ps0vVzBbjNC1KRlsMaYiEQtE
+	S0WcdNbWWEbIvEBHdnKLZWUqsXVgFNXvgRWbsh7EcrPb1WPDe2yvILSvE3WKeDBEn6e5kpJ/5lbqr
+	eA+tcvY7ADwkPGBS/IS5raxViLjPSg3TI2JwcGA/8KrnyVI8vj0kKe6Ek0zxYU6WWZLOOHKajeUkL
+	8ZUS163Q==;
+Received: from [2601:1c0:6280:3f0::2c43] (helo=smtpauth.infradead.org)
+	by merlin.infradead.org with esmtpsa (Exim 4.92.3 #3 (Red Hat Linux))
+	id 1kvC41-0006xy-6o; Fri, 01 Jan 2021 04:29:21 +0000
+From: Randy Dunlap <rdunlap@infradead.org>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH v2] fs/dax: include <asm/page.h> to fix build error on ARC
+Date: Thu, 31 Dec 2020 20:29:14 -0800
+Message-Id: <20210101042914.5313-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.26.2
+MIME-Version: 1.0
+Message-ID-Hash: O732654IICSCC4523ZNSVEH5RN7HRY6Q
+X-Message-ID-Hash: O732654IICSCC4523ZNSVEH5RN7HRY6Q
+X-MailFrom: rdunlap@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: Randy Dunlap <rdunlap@infradead.org>, kernel test robot <lkp@intel.com>, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Vineet Gupta <vgupts@synopsys.com>, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DXP6ZTI2AEMVBFALPF6T3VY7BLMMVBWU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/O732654IICSCC4523ZNSVEH5RN7HRY6Q/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -76,47 +64,54 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi - I was surfing lists.01.org and I really liked your content strategy.
+fs/dax.c uses copy_user_page() but ARC does not provide that interface,
+resulting in a build error.
 
-I'm the founder of BootcampRankings and Career Karma, where we are
-passionate about helping people switch careers and learn new skills. I
-think this is especially relevant now with thousands of people losing their
-jobs due to COVID.
+Provide copy_user_page() in <asm/page.h> (beside copy_page()) and
+add <asm/page.h> to fs/dax.c to fix the build error.
 
-I was wondering if I can submit a high-quality original blog post (no
-cost), that's never been published anywhere else, to be featured on your
-site?
+../fs/dax.c: In function 'copy_cow_page_dax':
+../fs/dax.c:702:2: error: implicit declaration of function 'copy_user_page'; did you mean 'copy_to_user_page'? [-Werror=implicit-function-declaration]
 
-*Here's a list of possible topics:*
-1) How remote work is changing tech salaries in the era of coronavirus
-2) How to Know if your current career isn't right for you
-3) What to do if you lost your job because of COVID-19
-4) The future of work: are your skills up to date?
-5) How new technologies are disrupting incumbent industries
-6) The most resilient jobs during COVID-19
-7) How to hire and retain tech talents
-8) How COVID is impacting the education industry
-9) What are the future trends for the education industry
+Fixes: cccbce671582 ("filesystem-dax: convert to dax_direct_access()")
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: linux-snps-arc@lists.infradead.org
+Cc: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Vineet Gupta <vgupts@synopsys.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
+---
+v2: rebase, add more Cc:
 
-(Or you can share a topic or field you are interested in.)
+ arch/arc/include/asm/page.h |    1 +
+ fs/dax.c                    |    1 +
+ 2 files changed, 2 insertions(+)
 
-*And here are a few of our recent posts:*
-https://www.aithority.com/guest-authors/how-regular-people-are-breaking-into-tech-from-non-tech-jobs/
-https://thefintechtimes.com/how-elon-musks-neuralink-could-reshape-entire-economies/
-https://inkbotdesign.com/artificial-intelligence-in-design/
-
-Again, really love your work.
-
-
-Warmly,
-
-Artur Meyster
-Founder
-<https://careerkarma.com/>LinkedIn <https://www.linkedin.com/in/meyster>
-
-Click here
-<https://h1.mltrk.io/unsubscribe/bEdReVdMblVOYThhc0ZFUzlaaG45NHdPUlp0bWFZVUpnb0ttN3VSc1licytySHRjNkIrVEh0Uk9sZEwralh3MzNjeEtGcmpZNGlMcXhNVG84OU5tWXpDUzB0eXVoWVR3NFBOVVM5S3pqS3RyVzJLMzVuUURIa2FEMlJLMHg4cVEtLTVqMlIvWmN2VjZWbDBuRDd2RmR1OUE9PQ==--745ea3b7edc5d9463837c3d05647ae528e3aeff5>
-if you don't want to hear from me again.
+--- lnx-511-rc1.orig/fs/dax.c
++++ lnx-511-rc1/fs/dax.c
+@@ -25,6 +25,7 @@
+ #include <linux/sizes.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/iomap.h>
++#include <asm/page.h>
+ #include <asm/pgalloc.h>
+ 
+ #define CREATE_TRACE_POINTS
+--- lnx-511-rc1.orig/arch/arc/include/asm/page.h
++++ lnx-511-rc1/arch/arc/include/asm/page.h
+@@ -10,6 +10,7 @@
+ #ifndef __ASSEMBLY__
+ 
+ #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
++#define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ #define copy_page(to, from)		memcpy((to), (from), PAGE_SIZE)
+ 
+ struct vm_area_struct;
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
