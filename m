@@ -2,75 +2,63 @@ Return-Path: <SRS0=p1Gl=GH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.5 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB34BC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  4 Jan 2021 21:16:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3DEDC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  4 Jan 2021 22:19:02 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4C80820776
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  4 Jan 2021 21:16:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4C80820776
+	by mail.kernel.org (Postfix) with ESMTPS id A076F22513
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  4 Jan 2021 22:19:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A076F22513
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 80692100EC1DD;
-	Mon,  4 Jan 2021 13:16:43 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::532; helo=mail-ed1-x532.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 12901100EC1DA;
+	Mon,  4 Jan 2021 14:19:02 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=ira.weiny@intel.com; receiver=<UNKNOWN> 
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id AE089100EF24E
-	for <linux-nvdimm@lists.01.org>; Mon,  4 Jan 2021 13:16:40 -0800 (PST)
-Received: by mail-ed1-x532.google.com with SMTP id j16so28865840edr.0
-        for <linux-nvdimm@lists.01.org>; Mon, 04 Jan 2021 13:16:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=mnKfDoOx66q+e0Lit8qASXnCRcAau0LZz1jjX0h1mMI=;
-        b=x0BSXLxek3pk4fU9rjITIby4RDN/i8u1yc0iV63Y5fN9t7XNJXFugUhQOZvRBa3/fT
-         NnzRZk70xlC+v0AS8i8Q8U1oM1Q4jUN1WaIXy0yVxUmr8CigRBuTYiYiD77cw7XnRYNg
-         AQKYFOj0t8fBVjqhQiRJQ46xXdZ5qccMBRQJc6lQ2lfc8JxFlw8kWo41PnUbzJXKgKQJ
-         LMaDkFKRqU8+zMd6ddthox1+O1Z4gr702uksqYFDObKideo8vx80vIc2wbO5d9qyuZX0
-         +oXmDJyRQTooHxJc8tIjRllxlq96HkSdCfB+lJxuM8LjKp/spy01Y2gJSSlL4Xkg7pIJ
-         ni0w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=mnKfDoOx66q+e0Lit8qASXnCRcAau0LZz1jjX0h1mMI=;
-        b=GenW4s5KOMd/PyHwIXkLT9sqImvnuv5gaI8it7mpLNbDABCPx4MdzoHyoq9tsGfE0X
-         vXH9yvY5018VDU3T+fhMJh0n3kpvzL1O1Xjj+Vkj1Ik2KUuZpfp2GpfpIFNjYVR8P4MM
-         +EIDl8TMwl61CduQ4Ljhh2fhu9liimSDFGFZKRs9WtVfgQDiNgQUKIcWlohzZh5tp5b/
-         ov5VLNsA0LUx+VP1EtawXWv19n5VUOwbXrkhpS1AwsNJ9DHf6issc8LFMr8OGOdpgjQH
-         tAEqb8V+iDoydNFtk0dbzXLT/tg/NrcGdIRG8LlpThx+KmswOvSdmPXHTBmUZbd8d6gM
-         VBYg==
-X-Gm-Message-State: AOAM533D1G5tEPr3MglxefHRlM/rdGpLaha8Q4jW03rbuy/u5JiL/u0x
-	5lw1K5OeYQhcAzPiMd4y/5+E71NNs773A4bG/rQRcA==
-X-Google-Smtp-Source: ABdhPJzSFrzuW35He0bT4+4PgVeyKK9P6is8Ha/LA4Q6+q+RoJA0p/dFoXCcETkeECxmCu8v4jPf+Zd92V0ZF9ZMODI=
-X-Received: by 2002:aa7:cdc3:: with SMTP id h3mr17778068edw.52.1609794998256;
- Mon, 04 Jan 2021 13:16:38 -0800 (PST)
-MIME-Version: 1.0
-References: <20201225013546.300116-1-jianpeng.ma@intel.com> <20201228171758.GO1563847@iweiny-DESK2.sc.intel.com>
-In-Reply-To: <20201228171758.GO1563847@iweiny-DESK2.sc.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 4 Jan 2021 13:16:32 -0800
-Message-ID: <CAPcyv4gm-CnOAYqNYL29TUCQF04f9uCQOgF1ndRpu=_7e6T_kQ@mail.gmail.com>
+	by ml01.01.org (Postfix) with ESMTPS id B9FB5100ED48C
+	for <linux-nvdimm@lists.01.org>; Mon,  4 Jan 2021 14:18:59 -0800 (PST)
+IronPort-SDR: g1qnv8ug0O6TqtjCMZNtr4gGj67Rj6kAA5fi6RBm5t4/n2g4Ejl2Dau6i0dK0aum22Fe0hAtks
+ bkpSfXRFuJMw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9854"; a="177170738"
+X-IronPort-AV: E=Sophos;i="5.78,475,1599548400";
+   d="scan'208";a="177170738"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2021 14:18:59 -0800
+IronPort-SDR: nsWuVBcoKLnH3qTuPH39slarwvE8UmYB+ri0uGRknka3dUHxgK3Oj8N3oTGFN90vdgX8l0CpD/
+ QqMEHuQ9Ki+g==
+X-IronPort-AV: E=Sophos;i="5.78,475,1599548400";
+   d="scan'208";a="421530751"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2021 14:18:58 -0800
+Date: Mon, 4 Jan 2021 14:18:58 -0800
+From: Ira Weiny <ira.weiny@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: [PATCH] libnvdimm/pmem: remove unused header.
-To: Ira Weiny <ira.weiny@intel.com>
-Message-ID-Hash: BQU6BS2KWU6LUBHQBENCLGNMECH27SVK
-X-Message-ID-Hash: BQU6BS2KWU6LUBHQBENCLGNMECH27SVK
-X-MailFrom: dan.j.williams@intel.com
+Message-ID: <20210104221858.GJ3097896@iweiny-DESK2.sc.intel.com>
+References: <20201225013546.300116-1-jianpeng.ma@intel.com>
+ <20201228171758.GO1563847@iweiny-DESK2.sc.intel.com>
+ <CAPcyv4gm-CnOAYqNYL29TUCQF04f9uCQOgF1ndRpu=_7e6T_kQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gm-CnOAYqNYL29TUCQF04f9uCQOgF1ndRpu=_7e6T_kQ@mail.gmail.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
+Message-ID-Hash: UO5C7RL7FRNNKUDVFZN2ZAWOM3JM5JHV
+X-Message-ID-Hash: UO5C7RL7FRNNKUDVFZN2ZAWOM3JM5JHV
+X-MailFrom: ira.weiny@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: Jianpeng Ma <jianpeng.ma@intel.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Christoph Hellwig <hch@lst.de>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BQU6BS2KWU6LUBHQBENCLGNMECH27SVK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UO5C7RL7FRNNKUDVFZN2ZAWOM3JM5JHV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -79,16 +67,32 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Mon, Dec 28, 2020 at 9:18 AM Ira Weiny <ira.weiny@intel.com> wrote:
->
-> On Fri, Dec 25, 2020 at 09:35:46AM +0800, Jianpeng Ma wrote:
-> > 'commit a8b456d01cd6 ("bdi: remove BDI_CAP_SYNCHRONOUS_IO")' forgot
->
-> This information should be part of a fixes tag.
+On Mon, Jan 04, 2021 at 01:16:32PM -0800, Dan Williams wrote:
+> On Mon, Dec 28, 2020 at 9:18 AM Ira Weiny <ira.weiny@intel.com> wrote:
+> >
+> > On Fri, Dec 25, 2020 at 09:35:46AM +0800, Jianpeng Ma wrote:
+> > > 'commit a8b456d01cd6 ("bdi: remove BDI_CAP_SYNCHRONOUS_IO")' forgot
+> >
+> > This information should be part of a fixes tag.
+> 
+> Oh, I was just about to comment "don't provide a Fixes tag for pure
+> cleanups". Fixes is for functional issues that a backporter should
+> consider.
 
-Oh, I was just about to comment "don't provide a Fixes tag for pure
-cleanups". Fixes is for functional issues that a backporter should
-consider.
+I thought this was discussed recently and it was concluded that 'fixes' does
+not indicate something should be backported?
+
+...
+
+https://lore.kernel.org/lkml/X8flmVAwl0158872@kroah.com/
+
+At least that is what Greg KH said.  But Dave C. was not happy with this...
+
+:-/
+
+Sorry...
+
+Ira
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
