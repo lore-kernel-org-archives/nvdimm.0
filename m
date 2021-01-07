@@ -2,148 +2,106 @@ Return-Path: <SRS0=Y46I=GK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1CB4C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Jan 2021 13:15:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A00AFC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Jan 2021 15:14:47 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 72CCE223C8
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Jan 2021 13:15:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 72CCE223C8
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 65978233F6
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  7 Jan 2021 15:14:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 65978233F6
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id ECF06100EAB4C;
-	Thu,  7 Jan 2021 05:15:53 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 396C1100EAB50;
+	Thu,  7 Jan 2021 07:14:47 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=90.155.50.34; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 475E2100EB84E
-	for <linux-nvdimm@lists.01.org>; Thu,  7 Jan 2021 05:15:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1610025349;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-	bh=WcMTwxKBmFx0TTx3051cBL+gyEZFsErFP3TOaLoFIRY=;
-	b=gRUxBBj+3QKi/NOiPtM0k1GcAF428e5+a2C4+YsO26c0dIx6cVYsHy5Jy8hM36UYGomR+v
-	Z3cVo3vE6srn2feskIlren4SKImvdouUJ14AQxqiNta0FWNVzvaFC8max7JePX6Or2CiJT
-	sLpVRJRex0RYSGJWzmgGLnvoaTR5f4A=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-322-7Tu4ndmSM82TvyuEKUjd5g-1; Thu, 07 Jan 2021 08:15:45 -0500
-X-MC-Unique: 7Tu4ndmSM82TvyuEKUjd5g-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 51628196632C;
-	Thu,  7 Jan 2021 13:15:43 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 00A695B6AF;
-	Thu,  7 Jan 2021 13:15:42 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 107DFgOT026586;
-	Thu, 7 Jan 2021 08:15:42 -0500
-Received: from localhost (mpatocka@localhost)
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 107DFfsK026582;
-	Thu, 7 Jan 2021 08:15:41 -0500
-X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
-Date: Thu, 7 Jan 2021 08:15:41 -0500 (EST)
-From: Mikulas Patocka <mpatocka@redhat.com>
-X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
-To: Andrew Morton <akpm@linux-foundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Steven Whitehouse <swhiteho@redhat.com>,
-        Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>,
-        "Theodore Ts'o" <tytso@mit.edu>,
-        Wang Jianchao <jianchao.wan9@gmail.com>,
-        "Kani, Toshi" <toshi.kani@hpe.com>,
-        "Norton, Scott J" <scott.norton@hpe.com>,
-        "Tadakamadla, Rajesh" <rajesh.tadakamadla@hpe.com>
-Subject: [RFC v2] nvfs: a filesystem for persistent memory
-Message-ID: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com>
-User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
+	by ml01.01.org (Postfix) with ESMTPS id D625D100EAB4F
+	for <linux-nvdimm@lists.01.org>; Thu,  7 Jan 2021 07:14:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=0BDgIONn6TjjQMsa9yNHOZnzgJZxqty6jQ95csWbZak=; b=VqtzpDEUiHiNIlsNu1O/yx6KxX
+	LbBd4nXTprs9jRxCfiLT8qrfTU68eKVlHiCFzq3vgfnIntYgs9WeDxbYsFpYFzp0TYe1z/UrbyqnX
+	Z+gprP/3UA3U+ecTAdgGFDt+6i/tGrbEzWXSu3VHz+sIZHQGE8S00RLosjrGr3KyKHbJeRL8kYZ1E
+	v53WctRMSqqioV0Vp+ylJrjmE1x19psmquRxI3q+noZne4ZljZHRSqcweQd5i3S+lPqkoH3ZN+lf+
+	ovW9vu3XH/DUFguJG2ZgT6hIJS8d2VvA7jxwPdBG2YtE4jjL13TWA+qgbZ/1XObAeenKM4TNPvlJx
+	VEfhfjXQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+	id 1kxWwf-000A25-U4; Thu, 07 Jan 2021 15:12:09 +0000
+Date: Thu, 7 Jan 2021 15:11:25 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Mikulas Patocka <mpatocka@redhat.com>
+Subject: Expense of read_iter
+Message-ID: <20210107151125.GB5270@casper.infradead.org>
+References: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
-Message-ID-Hash: UIUDMGNNCFN5YY47M76WPSRFBBRXJY7A
-X-Message-ID-Hash: UIUDMGNNCFN5YY47M76WPSRFBBRXJY7A
-X-MailFrom: mpatocka@redhat.com
+Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com>
+Message-ID-Hash: CN7M36VX74RL3MZVWGNQTQGTVT6CRYIJ
+X-Message-ID-Hash: CN7M36VX74RL3MZVWGNQTQGTVT6CRYIJ
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+CC: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Steven Whitehouse <swhiteho@redhat.com>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Wang Jianchao <jianchao.wan9@gmail.com>, "Tadakamadla, Rajesh" <rajesh.tadakamadla@hpe.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UIUDMGNNCFN5YY47M76WPSRFBBRXJY7A/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CN7M36VX74RL3MZVWGNQTQGTVT6CRYIJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hi
+On Thu, Jan 07, 2021 at 08:15:41AM -0500, Mikulas Patocka wrote:
+> I'd like to ask about this piece of code in __kernel_read:
+> 	if (unlikely(!file->f_op->read_iter || file->f_op->read))
+> 		return warn_unsupported...
+> and __kernel_write:
+> 	if (unlikely(!file->f_op->write_iter || file->f_op->write))
+> 		return warn_unsupported...
+> 
+> - It exits with an error if both read_iter and read or write_iter and 
+> write are present.
+> 
+> I found out that on NVFS, reading a file with the read method has 10% 
+> better performance than the read_iter method. The benchmark just reads the 
+> same 4k page over and over again - and the cost of creating and parsing 
+> the kiocb and iov_iter structures is just that high.
 
-I announce a new version of NVFS - a filesystem for persistent memory.
-	http://people.redhat.com/~mpatocka/nvfs/
-	git://leontynka.twibright.com/nvfs.git
+Which part of it is so expensive?  Is it worth, eg adding an iov_iter
+type that points to a single buffer instead of a single-member iov?
 
-Changes since the last release:
++++ b/include/linux/uio.h
+@@ -19,6 +19,7 @@ struct kvec {
+ 
+ enum iter_type {
+        /* iter types */
++       ITER_UBUF = 2,
+        ITER_IOVEC = 4,
+        ITER_KVEC = 8,
+        ITER_BVEC = 16,
+@@ -36,6 +36,7 @@ struct iov_iter {
+        size_t iov_offset;
+        size_t count;
+        union {
++               void __user *buf;
+                const struct iovec *iov;
+                const struct kvec *kvec;
+                const struct bio_vec *bvec;
 
-* I added a microjournal to the filesystem, it can hold up to 16 entries. 
-  Each CPU has it's own journal, so that there is no lock contention. The 
-  journal is used to provide atomicity of reaname() and extended attribute 
-  replace.
-  (note that file creation or deletion doesn't use the journal, because 
-  these operations can be deterministically cleaned up by fsck)
-
-* I created a framework that can be used to verify the filesystem driver. 
-  It logs all writes and memory barriers to a file, the entries in the 
-  file are randomly reordered (to simulate reordering in the CPU 
-  write-combining buffers), the sequence is cut at a random point (to 
-  simulate a system crash) and the result is replayed on a filesystem 
-  image.
-  With this framework, we can for example check that if a crash happens 
-  during rename(), either old file or new file will be present in a 
-  directory.
-  This framework helped to find a few bugs in sequencing the writes.
-
-* If we map an executable image, we turn off the DAX flag on the inode 
-  (because executables run 4% slower from persistent memory). There is 
-  also a switch that can turn DAX always off or always on.
-
-
-
-
-I'd like to ask about this piece of code in __kernel_read:
-	if (unlikely(!file->f_op->read_iter || file->f_op->read))
-		return warn_unsupported...
-and __kernel_write:
-	if (unlikely(!file->f_op->write_iter || file->f_op->write))
-		return warn_unsupported...
-
-- It exits with an error if both read_iter and read or write_iter and 
-write are present.
-
-I found out that on NVFS, reading a file with the read method has 10% 
-better performance than the read_iter method. The benchmark just reads the 
-same 4k page over and over again - and the cost of creating and parsing 
-the kiocb and iov_iter structures is just that high.
-
-So, I'd like to have both read and read_iter methods. Could the above 
-conditions be changed, so that they don't fail with an error if the "read" 
-or "write" method is present?
-
-Mikulas
+and then doing all the appropriate changes to make that work.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
