@@ -2,85 +2,124 @@ Return-Path: <SRS0=g2U4=GL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_40,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5AFDC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 09:56:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEA94C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 18:15:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 51EDF2368A
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 09:56:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 51EDF2368A
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
+	by mail.kernel.org (Postfix) with ESMTPS id 29B4B23A6A
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 18:15:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 29B4B23A6A
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 82920100EA2AE;
-	Fri,  8 Jan 2021 01:56:19 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=213.95.11.211; helo=verein.lst.de; envelope-from=hch@lst.de; receiver=<UNKNOWN> 
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+	by ml01.01.org (Postfix) with ESMTP id A5CA9100EAAE5;
+	Fri,  8 Jan 2021 10:15:25 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.79; helo=aserp2130.oracle.com; envelope-from=jane.chu@oracle.com; receiver=<UNKNOWN> 
+Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 18206100EA2AA
-	for <linux-nvdimm@lists.01.org>; Fri,  8 Jan 2021 01:56:17 -0800 (PST)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 0C03967373; Fri,  8 Jan 2021 10:56:15 +0100 (CET)
-Date: Fri, 8 Jan 2021 10:56:14 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH 03/10] fs: Introduce ->corrupted_range() for superblock
-Message-ID: <20210108095614.GB5647@lst.de>
-References: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com> <20201230165601.845024-4-ruansy.fnst@cn.fujitsu.com>
+	by ml01.01.org (Postfix) with ESMTPS id 3E270100EC1D5
+	for <linux-nvdimm@lists.01.org>; Fri,  8 Jan 2021 10:15:22 -0800 (PST)
+Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
+	by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 108HwwOY004690;
+	Fri, 8 Jan 2021 18:15:09 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=corp-2020-01-29;
+ bh=KiTw25sQnwXSQX+0iRD1HBB4uXxJXhd7Tk5XQ9JUJTE=;
+ b=gTJvSGLjyueTzS8vgNsV+rpKJmQFk8fY+zb3p5ZDQqfAWD0TXtxr0+zcwpk/Z5f9BG5e
+ VwNDwsqFMNUcseD6IEwkpfpSHYOITZNUp5dTFJF3GZJlV0Qbvj5cXNFfUWQ4mhZbb6Kh
+ 7t601GM0mXU18dnI2cVo1qytEC2sUIBJA6/fu4DmcG+wxp0PxPmrBAwkqYTHm9KeCfXv
+ FqcIB4Ec7M+DYaIHNVo1oCCjPzOaZ1lgAMjgQF/f8urKsNVcjV12MvAhvgmFwrWXDi2x
+ SFEINWClUGqtHlOWAU9dapkOdg1gHd2jiFKW+9gf1IC+ZJpceqxWihAQYrpFIpewNTLj zg==
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+	by aserp2130.oracle.com with ESMTP id 35wcuy2pbg-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
+	Fri, 08 Jan 2021 18:15:08 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 108I0wFn081682;
+	Fri, 8 Jan 2021 18:15:08 GMT
+Received: from aserv0122.oracle.com (aserv0122.oracle.com [141.146.126.236])
+	by aserp3020.oracle.com with ESMTP id 35v1fcvpaa-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 08 Jan 2021 18:15:08 +0000
+Received: from abhmp0016.oracle.com (abhmp0016.oracle.com [141.146.116.22])
+	by aserv0122.oracle.com (8.14.4/8.14.4) with ESMTP id 108IF6J1019818;
+	Fri, 8 Jan 2021 18:15:06 GMT
+Received: from [10.159.230.21] (/10.159.230.21)
+	by default (Oracle Beehive Gateway v4.0)
+	with ESMTP ; Fri, 08 Jan 2021 18:15:05 +0000
+Subject: Re: [RFC PATCH v3 0/9] fsdax: introduce fs query to support reflink
+To: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>
+References: <20201215121414.253660-1-ruansy.fnst@cn.fujitsu.com>
+ <7fc7ba7c-f138-4944-dcc7-ce4b3f097528@oracle.com>
+ <a57c44dd-127a-3bd2-fcb3-f1373572de27@cn.fujitsu.com>
+ <20201218034907.GG6918@magnolia>
+ <16ac8000-2892-7491-26a0-84de4301f168@cn.fujitsu.com>
+From: Jane Chu <jane.chu@oracle.com>
+Organization: Oracle Corporation
+Message-ID: <f3f93809-ba68-521f-70d8-27f1ba5d0036@oracle.com>
+Date: Fri, 8 Jan 2021 10:14:58 -0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20201230165601.845024-4-ruansy.fnst@cn.fujitsu.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
-Message-ID-Hash: IE2XBEAL27PFJFITJHWUCIUC5R2MTM7X
-X-Message-ID-Hash: IE2XBEAL27PFJFITJHWUCIUC5R2MTM7X
-X-MailFrom: hch@lst.de
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+In-Reply-To: <16ac8000-2892-7491-26a0-84de4301f168@cn.fujitsu.com>
+Content-Language: en-US
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9858 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 phishscore=0
+ suspectscore=0 spamscore=0 bulkscore=0 adultscore=0 mlxscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2101080099
+X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9858 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 bulkscore=0
+ clxscore=1011 spamscore=0 impostorscore=0 priorityscore=1501 mlxscore=0
+ adultscore=0 mlxlogscore=999 lowpriorityscore=0 phishscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2101080099
+Message-ID-Hash: I5FQHH2UP544IXIANDM2NKNQKQCLEIYC
+X-Message-ID-Hash: I5FQHH2UP544IXIANDM2NKNQKQCLEIYC
+X-MailFrom: jane.chu@oracle.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IE2XBEAL27PFJFITJHWUCIUC5R2MTM7X/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I5FQHH2UP544IXIANDM2NKNQKQCLEIYC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: base64
 
-On Thu, Dec 31, 2020 at 12:55:54AM +0800, Shiyang Ruan wrote:
-> Memory failure occurs in fsdax mode will finally be handled in
-> filesystem.  We introduce this interface to find out files or metadata
-> affected by the corrupted range, and try to recover the corrupted data
-> if possiable.
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-> ---
->  include/linux/fs.h | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 8667d0cdc71e..282e2139b23e 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -1965,6 +1965,8 @@ struct super_operations {
->  				  struct shrink_control *);
->  	long (*free_cached_objects)(struct super_block *,
->  				    struct shrink_control *);
-> +	int (*corrupted_range)(struct super_block *sb, struct block_device *bdev,
-
-This adds an overly long line.  But more importantly it must work on
-the dax device and not the block device.  I'd also structure the callback
-so that it is called on the dax device only, with the file system storing
-the super block in a private data member.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+SGksIFNoaXlhbmcsDQoNCk9uIDEyLzE4LzIwMjAgMToxMyBBTSwgUnVhbiBTaGl5YW5nIHdyb3Rl
+Og0KPj4+Pg0KPj4+PiBTbyBJIHRyaWVkIHRoZSBwYXRjaHNldCB3aXRoIHBtZW0gZXJyb3IgaW5q
+ZWN0aW9uLCB0aGUgU0lHQlVTIHBheWxvYWQNCj4+Pj4gZG9lcyBub3QgbG9vayByaWdodCAtDQo+
+Pj4+DQo+Pj4+ICoqIFNJR0JVUyg3KTogKioNCj4+Pj4gKiogc2lfYWRkcigweChuaWwpKSwgc2lf
+bHNiKDB4QyksIHNpX2NvZGUoMHg0LCBCVVNfTUNFRVJSX0FSKSAqKg0KPj4+Pg0KPj4+PiBJIGV4
+cGVjdCB0aGUgcGF5bG9hZCBsb29rcyBsaWtlDQo+Pj4+DQo+Pj4+ICoqIHNpX2FkZHIoMHg3ZjM2
+NzJlMDAwMDApLCBzaV9sc2IoMHgxNSksIHNpX2NvZGUoMHg0LCANCj4+Pj4gQlVTX01DRUVSUl9B
+UikgKioNCj4+Pg0KPj4+IFRoYW5rcyBmb3IgdGVzdGluZy7CoCBJIHRlc3QgdGhlIFNJR0JVUyBi
+eSB3cml0aW5nIGEgcHJvZ3JhbSB3aGljaCBjYWxscw0KPj4+IG1hZHZpc2UoLi4uICxNQURWX0hX
+UE9JU09OKSB0byBpbmplY3QgbWVtb3J5LWZhaWx1cmUuwqAgSXQganVzdCBzaG93cyANCj4+PiB0
+aGF0DQo+Pj4gdGhlIHByb2dyYW0gaXMga2lsbGVkIGJ5IFNJR0JVUy7CoCBJIGNhbm5vdCBnZXQg
+YW55IGRldGFpbCBmcm9tIGl0LsKgIFNvLA0KPj4+IGNvdWxkIHlvdSBwbGVhc2Ugc2hvdyBtZSB0
+aGUgcmlnaHQgd2F5KHRlc3QgdG9vbHMpIHRvIHRlc3QgaXQ/DQo+Pg0KPj4gSSdtIGFzc3VtaW5n
+IHRoYXQgSmFuZSBpcyB1c2luZyBhIHByb2dyYW0gdGhhdCBjYWxscyBzaWdhY3Rpb24gdG8NCj4+
+IGluc3RhbGwgYSBTSUdCVVMgaGFuZGxlciwgYW5kIGR1bXBzIHRoZSBlbnRpcmUgc2lnaW5mb190
+IHN0cnVjdHVyZQ0KPj4gd2hlbmV2ZXIgaXQgcmVjZWl2ZXMgb25lLi4uDQoNClllcywgdGhhbmtz
+IERhcnJpY2suDQoNCj4gDQo+IE9LLsKgIExldCBtZSB0cnkgaXQgYW5kIGZpZ3VyZSBvdXQgd2hh
+dCdzIHdyb25nIGluIGl0Lg0KDQpJIGluamVjdGVkIHBvaXNvbiB2aWEgIm5kY3RsIGluamVjdC1l
+cnJvciIsICBub3QgZXhwZWN0aW5nIGl0IG1hZGUgYW55IA0KZGlmZmVyZW5jZSB0aG91Z2guDQoN
+CkFueSBsdWNrPw0KDQp0aGFua3MsDQotamFuZQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1u
+dmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgt
+bnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
