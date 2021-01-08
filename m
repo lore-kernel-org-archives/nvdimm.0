@@ -1,109 +1,119 @@
 Return-Path: <SRS0=g2U4=GL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	TRACKER_ID,UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5554EC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 19:09:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0860C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 23:55:39 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E9D3223877
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 19:09:28 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E9D3223877
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1EF2A23998
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  8 Jan 2021 23:55:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1EF2A23998
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=otichearing.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 83843100EA939;
-	Fri,  8 Jan 2021 11:09:28 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.79; helo=aserp2130.oracle.com; envelope-from=darrick.wong@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
+	by ml01.01.org (Postfix) with ESMTP id B6F83100EA2BB;
+	Fri,  8 Jan 2021 15:55:38 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=202.181.196.249; helo=vm.otichearing.com; envelope-from=support@otichearing.com; receiver=<UNKNOWN> 
+Received: from vm.otichearing.com (mail.otichearing.com [202.181.196.249])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BFF7A100F225A
-	for <linux-nvdimm@lists.01.org>; Fri,  8 Jan 2021 11:09:25 -0800 (PST)
-Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
-	by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 108J52fv008954;
-	Fri, 8 Jan 2021 19:09:14 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : mime-version : content-type :
- in-reply-to; s=corp-2020-01-29;
- bh=mM6AT4VIgyY77kqNzTjiuApzWT+pAy7YDdIiGpktXDY=;
- b=NUGl9vvCjI+srkXa647I47YdrcKV2Ohfi8KN8TwzR3PkJyYM8+ogxpVnJ2Vb3puq6ggm
- IZuQSXVkttwfPd+9bwh0Ip5NzH4c3cVtIEGb39a3Djzt9bSTJOt3iIJnUKq8+oFPC6NA
- 0rIlcKB4tUTvuZhsNhdRiEQqW3LksF1gGN8M7ZW8Iu5gvQn9bHJZCNPvYSzcfJKGntqH
- 9Vxu01RchOtrRygQDQFoyBP30dNwcqJKCHjPr8JfbiAaYDT9jlkKf8PYAEYPn9ZIlNZL
- 6IEHavuS77KAZU4aMx20TZu/QV9eP4l7wl+DAMCD44jJr5H/85TCcjCu+nm7cT1fGmZ1 Aw==
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by aserp2130.oracle.com with ESMTP id 35wcuy2ve2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=FAIL);
-	Fri, 08 Jan 2021 19:09:14 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 108J4Xsu055993;
-	Fri, 8 Jan 2021 19:09:14 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-	by userp3020.oracle.com with ESMTP id 35w3qvtm49-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 08 Jan 2021 19:09:13 +0000
-Received: from abhmp0014.oracle.com (abhmp0014.oracle.com [141.146.116.20])
-	by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 108J9C96013451;
-	Fri, 8 Jan 2021 19:09:12 GMT
-Received: from localhost (/67.169.218.210)
-	by default (Oracle Beehive Gateway v4.0)
-	with ESMTP ; Fri, 08 Jan 2021 19:09:12 +0000
-Date: Fri, 8 Jan 2021 11:09:10 -0800
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-To: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 02/10] blk: Introduce ->corrupted_range() for block device
-Message-ID: <20210108190910.GR6918@magnolia>
-References: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com>
- <20201230165601.845024-3-ruansy.fnst@cn.fujitsu.com>
- <20210108095500.GA5647@lst.de>
+	by ml01.01.org (Postfix) with ESMTPS id 4424D100EA93B
+	for <linux-nvdimm@lists.01.org>; Fri,  8 Jan 2021 15:55:35 -0800 (PST)
+Received: by vm.otichearing.com (Postfix, from userid 5004)
+	id 74679748492F; Sat,  9 Jan 2021 06:58:54 +0800 (HKT)
+To: linux-nvdimm@lists.01.org
+Subject: ESP
+X-PHP-Originating-Script: 5004:kbfcxuydnh.php
+Date: Fri, 8 Jan 2021 22:58:53 +0000
+From: El_Gordo_Primitiva <support@otichearing.com>
+Message-ID: <eee6dd5d17e0ecd167357430c52b9c1d@www.otichearing.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20210108095500.GA5647@lst.de>
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9858 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 malwarescore=0 mlxscore=0
- spamscore=0 mlxlogscore=999 phishscore=0 bulkscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2101080102
-X-Proofpoint-Virus-Version: vendor=nai engine=6000 definitions=9858 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 bulkscore=0
- clxscore=1015 spamscore=0 impostorscore=0 priorityscore=1501 mlxscore=0
- adultscore=0 mlxlogscore=999 lowpriorityscore=0 phishscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2101080102
-Message-ID-Hash: I2J3QCQL6TMF2AXIXILZT2NSWYGLVM4M
-X-Message-ID-Hash: I2J3QCQL6TMF2AXIXILZT2NSWYGLVM4M
-X-MailFrom: darrick.wong@oracle.com
+Message-ID-Hash: KG2B5S46GKRMR53T4OTIGZO4J5M2MSML
+X-Message-ID-Hash: KG2B5S46GKRMR53T4OTIGZO4J5M2MSML
+X-MailFrom: support@otichearing.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, david@fromorbit.com, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: DrEnriqueBlanco@mail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/I2J3QCQL6TMF2AXIXILZT2NSWYGLVM4M/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KG2B5S46GKRMR53T4OTIGZO4J5M2MSML/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Fri, Jan 08, 2021 at 10:55:00AM +0100, Christoph Hellwig wrote:
-> It happens on a dax_device.  We should not interwind dax and block_device
-> even more after a lot of good work has happened to detangle them.
-
-I agree that the dax device should not be implied from the block device,
-but what happens if regular block device drivers grow the ability to
-(say) perform a background integrity scan and want to ->corrupted_range?
-
---D
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+DQoNCg0KDQrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBFbF9Hb3Jkb19QcmltaXRpdmENCg0KY2FsbGUgZXN0
+YWJlbiBjb2xsYW50ZXMgMTINCg0KMjgwMTcgTWFkcmlkIFNwYWluDQoNClRlbGwgMzQgOTExIDIz
+MSAxMTcgZmF4LCAzNCA5MTIgOTE2IDMxMy4NCg0KT2ZmaXppZWxsZSBtaXR0ZWlsdW5nDQoNCkRl
+cyBwcsOkc2lkZW50ZW4gZGVyIGludGVybmF0aW9uYWxlbg0KDQpQcm9tb3Rpb24tZ2V3aW5uenV0
+ZWlsdW5nDQoNClJlZmVyZW56bnVtbWVyOkVzcC8xNTI4NjExNA0KDQpCZWFyYmVpdHVuZ3NudW1t
+ZXI6NjY1MDAyDQoNCkVtYWlsLmJpbGJhb2dyb3Vwb0BnbWFpbC5jb20NCg0KwqANCg0KR3V0ZW4g
+VGFnLA0KDQrCoA0KDQrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqAgT2ZmaXppZWxsZSBHZXdpbm5iZW5hY2hyaXRpZ3VuZw0KDQogV2lyIHNpbmQgZXJmcmV1
+dCBJaG5lbiBtaXR0ZWlsZW4genUga8O2bm5lbiwgZGFzIGRpZSBHZXdpbm5saXN0ZSBMb3R0bw0K
+DQpQcm9ncmFtbSBhbSAxOS8xMi8yMDIwLiBlcnNjaGllbmVuIGlzdC4gRGllIG9mZml6aWVsbGUg
+TGlzdGUgZGVyIEdld2lubmVyDQoNCmVyc2NoaWVuIGFtIDA4LzAxLzIwMjEuIElociBOYW1lIHd1
+cmRlIGF1ZiBkZW0gTG9zIG1pdCBkZXIgTnVtbWVyOiAwMjUuDQoNCjExNDY0OSAuNzUwIHVuZCBt
+aXQgZGVyIFNlcmllbm51bW1lcjogNzkxMDI2LTU3IHJlZ2lzdHJpZXJ0LiBEaWUNCg0KR2zDvGNr
+c251bW1lcjogNC02LTktMTEtMTktMjMgKiAxMCBoYXQgaW4gZGVyIDQuIEthdGVnb3JpZSBnZXdv
+bm5lbi4NCg0KwqANCg0KIFNpZSBzaW5kIGRhbWl0IEdld2lubmVyIHZvbjogOTM1LjQ3MCwwMCDi
+gqwgKE5ldW4gSHVuZGVydCBGw7xuZnVuZGRyZWlzc2lnDQoNClRhdXNlbmQgVmllcmh1bmRlcnQg
+VW5kIFNpZWJ6aWcgRXVybykuIERpZSBTdW1tZSBlcmdpYnQgc2ljaCBhdXMgZWluZXINCg0KR2V3
+aW5uYXVzc2Now7x0dHVuZyB2b24gRVVSTzogMTYuNjI2Ljg3MCwwMCAoU2VjaHplaG4gTWlsbGlv
+bmVuIFNlY2hzaHVuZGVydA0KDQpTZWNoc3VuZHp3YW56aWcgVGF1c2VuZCBBY2h0aHVuZGVydCBV
+bmQgU2llYnppZyBFdXJvKS4gRGllIFN1bW1lIHd1cmRlIGR1cmNoDQoNCjE3IEdld2lubmVyIGF1
+cyBkZXIgZ2xlaWNoZW4gS2F0ZWdvcmllIGdldGVpbHQuIEhlcnpsaWNoZW4gR2zDvGNrd3Vuc2No
+IQ0KDQpEZXIgR2V3aW5uIGlzdCBiZWkgZWluZXIgU2ljaGVyaGVpdHNmaXJtYSBoaW50ZXJsZWd0
+IHVuZCBpbiBpaHJlbSBOYW1lbg0KDQp2ZXJzaWNoZXJ0LiBVbSBrZWluZSBLb21wbGlrYXRpb25l
+biBiZWkgZGVyIEFid2lja2x1bmcgZGVyIEF1c3phaGx1bmcgenUNCg0KdmVydXJzYWNoZW4gYml0
+dGVuIHdpciBTaWUgZGllc2Ugb2ZmaXppZWxsZSBNaXR0ZWlsdW5nIGRpc2tyZXQgenUgYmVoYW5k
+ZWxuLA0KDQpzaWUgaXN0IFRlaWwgdW5zZXJlcyBTaWNoZXJoZWl0c3Byb3Rva29sbHMgdW5kIGdh
+cmFudGllcnQgSWhuZW4gZWluZW4NCg0KcmVpYnVuZ2xvc2VuIEFibGF1Zi4NCg0KIEVpbm1hbCBp
+bSBKYWhyIHZlcmFuc3RhbHRlbiB3aXIgZWluZSBBdXNsb3N1bmcsIGluIGRlciBkaWUgR2V3aW5u
+ZXIgdm9uDQoNCnVuc2VyZW0gQ29tcHV0ZXIsIGF1cyA0NS4wMDAgTmFtZW4gYXVzIEFzaWVuLCBF
+dXJvcGEsIEF1c3RyYWxpZW4gdW5kIEFtZXJpa2EsDQoNCmdlem9nZW4gd2VyZGVuLg0KDQpCaXR0
+ZSBrb250YWt0aWVyZW4gU2llIHVuc2VyZW4gQXVzbGFuZHNzYWNoYmVhcmJlaXRlciBEcixFbnJp
+cXVlIEJsYW5jbyBiZWkNCg0KZGVyIFNpY2hlcmhlaXRmaXJtYSBHUlVQTyBCSUxCQU8gUy5MLiBU
+ZWw6IDAwMzQgNjg1IDA5MSAyMjQuIEVtYWlsOg0KDQpFbnJpcXVlQmxhbmNvQHBvc3QuY29tDQoN
+Ci5CaXR0ZSBkZW5rZW4gU2llIGRhcmFuLCBqZWRlciBHZXdpbm5hbnNwcnVjaCBtdXNzIGJpcyB6
+dW0gMjkvMDEvMjAyMS4NCg0KQW5nZW1lbGRldGUgc2Vpbi4gSmVkZXIgbmljaHQgYW5nZW1lbGRl
+dCBHZXdpbm5hbnNwcnVjaCB2ZXJmw6RsbHQgdW5kIGdlaHQNCg0KenVyw7xjayBhbiBkYXMgTUlO
+SVNURVJJTyBERSBFQ09OT01JQSBZIEhBQ0lFTkRBLiBCaXR0ZSBkZW5rZW4gc2llIGF1Y2ggZGFy
+YW4NCg0KZGFzIDEwJSBJaHJlcyBnZXdpbm5lcyBhbiBkaWUgU2ljaGVyaGVpdHNmaXJtYSBHUlVQ
+TyBCSUxCQU8gUy5MLiBnZWh0LiBOYW1lbg0KDQp2ZXJzaWNoZXJ0IGlzdC4NCg0KIFdJQ0hUSUc6
+IFVtIFZlcnrDtmdlcnVuZ2VuIHVuZCBLb21wbGlrYXRpb25lbiB6dSB2ZXJtZWlkZW4sIGdlYmVu
+IFNpZSBiaXR0ZQ0KDQppbW1lciBkaWUgUmVmZXJlbnotIHVuZCBCZWFyYmVpdHVuZ3NudW1tZXIg
+YW4uIEFkcmVzc8OkbmRlcnVuZ2VuIHRlaWxlbiBTaWUNCg0KdW5zIGJpdHRlIHVtZ2VoZW5kIG1p
+dC4gQW5iZWkgZWluIEFubWVsZGVmb3JtdWxhciwgYml0dGUgYXVzZsO8bGxlbiB1bmQgcGVyDQoN
+CkVtYWlsIGFuIGRpZSBTaWNoZXJoZWl0c2Zpcm1hIEdSVVBPIEJJTEJBTyBTLkwub24gRW1haWw6
+DQoNCmFsdmFyb3NhbmNoZXpAZW1haWwuY29tDQoNCnNjaGlja2VuLg0KDQpCaXR0ZSBGw7xsbGVu
+IFNpZSBEaWUgVW50ZW4gQW5nZWdlYmVuZW4gRGF0ZW4gQXVzOg0KDQooMSkgRnJhdSBPZGVyIEhl
+cnI6X19fX19fX19fX19fX19fX19fXyAoMilOYW1lOl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXw0KDQooMykgVm9ybmFtZTpfX19fX19fX19fX19fX19fX19fX19fX19fXyAoNClBZHJlc3Nl
+Ol9fX19fX19fX19fX19fX19fX19fX19fX19fXw0KDQooNSkgUGx6Ol9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXyAoNilTdGFkdDpfX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KDQoo
+NykgR2VidXJ0c2RhdHVtOl9fX19fX19fX19fX19fX19fX19fXyAoOClOYXRpb25hbGl0w6R0Ol9f
+X19fX19fX19fX19fX19fX19fX18NCg0KKDkpIFRlbGVmb246X19fX19fX19fX19fX19fX19fX19f
+X19fX18gKDEwKU1vYmlsOl9fX19fX19fX19fX19fX19fX19fX19fX19fX18NCg0KKDExKSBGYXg6
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18gKDEyKUVtYWlsOl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX18NCg0KKDEzKSBCZXJ1ZjpfX19fX19fX19fX19fX19fX19fX19fX19fX18gKDE0
+KVNwcmFjaGUvUzpfX19fX19fX19fX19fX19fX19fX19fX18NCg0KIERpZSBvYmVuIGdlbmFubnRl
+biwgQW5mb3JkZXJ1bmdlbiBzaW5kIGVyZm9yZGVybGljaC4gSGVyemxpY2hlDQoNCkdsw7xja3fD
+vG5zY2hlIG5vY2ggZWlubWFsLg0KDQpDYXJsIEZyYW5jaXNjbyBMZW9uDQoNClBSw4RTSURFTlQu
+DQoNCg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
+dXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVu
+c3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9y
+Zwo=
