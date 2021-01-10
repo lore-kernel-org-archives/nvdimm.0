@@ -1,63 +1,63 @@
-Return-Path: <SRS0=A0fy=GM=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=HjUT=GN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BD08C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  9 Jan 2021 17:37:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C1CC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 10 Jan 2021 06:14:11 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 62ABD22E03
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  9 Jan 2021 17:37:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 62ABD22E03
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id ADE6522E02
+	for <linux-nvdimm@archiver.kernel.org>; Sun, 10 Jan 2021 06:14:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ADE6522E02
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D3FDE100ED4AE;
-	Sat,  9 Jan 2021 09:37:41 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=redhairer.li@intel.com; receiver=<UNKNOWN> 
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 2534C100EF270;
+	Sat,  9 Jan 2021 22:14:10 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id B3BE4100EF25B
-	for <linux-nvdimm@lists.01.org>; Sat,  9 Jan 2021 09:37:38 -0800 (PST)
-IronPort-SDR: ivQ/2HcOtHaggoGAZXB4PORzO2vXZeCsXIIM/skKC+G5efUitfTIAp287KBo7fZ02p7CHhhPnt
- Q45Fa7RWZCQQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9859"; a="157496709"
-X-IronPort-AV: E=Sophos;i="5.79,334,1602572400";
-   d="scan'208";a="157496709"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2021 09:37:37 -0800
-IronPort-SDR: Tm/o7rmA51qWe6JfIz2EBxK2aHl9TQ1n/tGyfSdXrDkXQ+2URPiGCM5rmBdRnZf9GwNkyyQKAd
- dYv6no4piiHg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.79,334,1602572400";
-   d="scan'208";a="347676254"
-Received: from unknown (HELO localhost.itwn.intel.com) ([10.5.250.7])
-  by orsmga003.jf.intel.com with ESMTP; 09 Jan 2021 09:37:36 -0800
-From: redhairer <redhairer.li@intel.com>
-To: linux-nvdimm@lists.01.org,
-	dan.j.williams@intel.com
-Subject: [PATCH 1/1] msft: Add xlat_firmware_status for JEDEC Byte Addressable Energy Backed DSM
-Date: Sat,  9 Jan 2021 23:36:33 +0800
-Message-Id: <20210109153633.8493-1-redhairer.li@intel.com>
-X-Mailer: git-send-email 2.20.1
+	by ml01.01.org (Postfix) with ESMTPS id B4BB3100EF260
+	for <linux-nvdimm@lists.01.org>; Sat,  9 Jan 2021 22:14:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=GNdziTbQbEJ9mo4mjqBaEUuZozMS1eNM8r/cJMJoprY=; b=SsfT8KjpTJHHhQ8OIYtxfv9/Ii
+	TdZoUe768+SB0A2U8voTxFHiKC7KjTFx9AElQatAVXunYvC6bM4WdH9g1fq3IbWOmbO6SK/GDSBAk
+	Beznn47owEO/xpUe5dBBTOY2zElJZrLyLh5THB9hoN+QcO0POI2/FeW4TCKpfnl2t/TIjyx8LjG2R
+	pLCEf4RZMXyipHT+QZ8x3k8mma4VCk8BbYfYLAKvsb+9sMs1JWPyjA5/ZB8fl42iyEis5CWJ/tSnz
+	5EtHLksnUq35W5uGAi0IhRNu2CulCK4X0XwCg8eGv3HZdIVBVVKyCTBkTcNHVIDaSWAr6FEAb8JSD
+	/oCMRNhQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+	id 1kyTyb-001Rl1-QK; Sun, 10 Jan 2021 06:13:24 +0000
+Date: Sun, 10 Jan 2021 06:13:21 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Mikulas Patocka <mpatocka@redhat.com>
+Subject: Re: Expense of read_iter
+Message-ID: <20210110061321.GC35215@casper.infradead.org>
+References: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com>
+ <20210107151125.GB5270@casper.infradead.org>
+ <alpine.LRH.2.02.2101071110080.30654@file01.intranet.prod.int.rdu2.redhat.com>
 MIME-Version: 1.0
-Message-ID-Hash: QKOU44YYSH5LRH37VJFZYX2J3DMG5UNT
-X-Message-ID-Hash: QKOU44YYSH5LRH37VJFZYX2J3DMG5UNT
-X-MailFrom: redhairer.li@intel.com
+Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.02.2101071110080.30654@file01.intranet.prod.int.rdu2.redhat.com>
+Message-ID-Hash: Y47Z2YZ2BS2A7IFPXHFK5AOXYMANC3WY
+X-Message-ID-Hash: Y47Z2YZ2BS2A7IFPXHFK5AOXYMANC3WY
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Redhairer Li <redhairer.li@intel.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Steven Whitehouse <swhiteho@redhat.com>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Wang Jianchao <jianchao.wan9@gmail.com>, "Tadakamadla, Rajesh" <rajesh.tadakamadla@hpe.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QKOU44YYSH5LRH37VJFZYX2J3DMG5UNT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Y47Z2YZ2BS2A7IFPXHFK5AOXYMANC3WY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -66,71 +66,109 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Redhairer Li <redhairer.li@intel.com>
+On Thu, Jan 07, 2021 at 01:59:01PM -0500, Mikulas Patocka wrote:
+> On Thu, 7 Jan 2021, Matthew Wilcox wrote:
+> > On Thu, Jan 07, 2021 at 08:15:41AM -0500, Mikulas Patocka wrote:
+> > > I'd like to ask about this piece of code in __kernel_read:
+> > > 	if (unlikely(!file->f_op->read_iter || file->f_op->read))
+> > > 		return warn_unsupported...
+> > > and __kernel_write:
+> > > 	if (unlikely(!file->f_op->write_iter || file->f_op->write))
+> > > 		return warn_unsupported...
+> > > 
+> > > - It exits with an error if both read_iter and read or write_iter and 
+> > > write are present.
+> > > 
+> > > I found out that on NVFS, reading a file with the read method has 10% 
+> > > better performance than the read_iter method. The benchmark just reads the 
+> > > same 4k page over and over again - and the cost of creating and parsing 
+> > > the kiocb and iov_iter structures is just that high.
+> > 
+> > Which part of it is so expensive?
+> 
+> The read_iter path is much bigger:
+> vfs_read		- 0x160 bytes
+> new_sync_read		- 0x160 bytes
+> nvfs_rw_iter		- 0x100 bytes
+> nvfs_rw_iter_locked	- 0x4a0 bytes
+> iov_iter_advance	- 0x300 bytes
 
-Translate the status codes of the result of JEDEC Byte Addressable Energy Backed
-DSM to generic errno style error codes.
+Number of bytes in a function isn't really correlated with how expensive
+a particular function is.  That said, looking at new_sync_read() shows
+one part that's particularly bad, init_sync_kiocb():
 
-Signed-off-by: Li Redhairer <redhairer.li@intel.com>
----
- ndctl/lib/msft.c | 22 ++++++++++++++++++++++
- ndctl/lib/msft.h |  6 ++++++
- 2 files changed, 28 insertions(+)
+static inline int iocb_flags(struct file *file)
+{
+        int res = 0;
+        if (file->f_flags & O_APPEND)
+                res |= IOCB_APPEND;
+     7ec:       8b 57 40                mov    0x40(%rdi),%edx
+     7ef:       48 89 75 80             mov    %rsi,-0x80(%rbp)
+        if (file->f_flags & O_DIRECT)
+     7f3:       89 d0                   mov    %edx,%eax
+     7f5:       c1 e8 06                shr    $0x6,%eax
+     7f8:       83 e0 10                and    $0x10,%eax
+                res |= IOCB_DIRECT;
+        if ((file->f_flags & O_DSYNC) || IS_SYNC(file->f_mapping->host))
+     7fb:       89 c1                   mov    %eax,%ecx
+     7fd:       81 c9 00 00 02 00       or     $0x20000,%ecx
+     803:       f6 c6 40                test   $0x40,%dh
+     806:       0f 45 c1                cmovne %ecx,%eax
+                res |= IOCB_DSYNC;
+     809:       f6 c6 10                test   $0x10,%dh
+     80c:       75 18                   jne    826 <new_sync_read+0x66>
+     80e:       48 8b 8f d8 00 00 00    mov    0xd8(%rdi),%rcx
+     815:       48 8b 09                mov    (%rcx),%rcx
+     818:       48 8b 71 28             mov    0x28(%rcx),%rsi
+     81c:       f6 46 50 10             testb  $0x10,0x50(%rsi)
+     820:       0f 84 e2 00 00 00       je     908 <new_sync_read+0x148>
+        if (file->f_flags & __O_SYNC)
+     826:       83 c8 02                or     $0x2,%eax
+                res |= IOCB_SYNC;
+        return res;
+     829:       89 c1                   mov    %eax,%ecx
+     82b:       83 c9 04                or     $0x4,%ecx
+     82e:       81 e2 00 00 10 00       and    $0x100000,%edx
 
-diff --git a/ndctl/lib/msft.c b/ndctl/lib/msft.c
-index 145872c..3112799 100644
---- a/ndctl/lib/msft.c
-+++ b/ndctl/lib/msft.c
-@@ -149,10 +149,32 @@ static unsigned int msft_cmd_smart_get_life_used(struct ndctl_cmd *cmd)
- 	return 100 - CMD_MSFT_SMART(cmd)->nvm_lifetime;
- }
- 
-+static int msft_cmd_xlat_firmware_status(struct ndctl_cmd *cmd)
-+{
-+	unsigned int status;
-+
-+	status = cmd->get_firmware_status(cmd) & NDN_MSFT_STATUS_MASK;
-+
-+	/* Common statuses */
-+	switch (status) {
-+	case NDN_MSFT_STATUS_SUCCESS:
-+		return 0;
-+	case NDN_MSFT_STATUS_NOTSUPP:
-+		return -EOPNOTSUPP;
-+	case NDN_MSFT_STATUS_INVALPARM:
-+		return -EINVAL;
-+	case NDN_MSFT_STATUS_I2CERR:
-+		return -EIO;
-+	}
-+
-+	return -ENOMSG;
-+}
-+
- struct ndctl_dimm_ops * const msft_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.new_smart = msft_dimm_cmd_new_smart,
- 	.smart_get_flags = msft_cmd_smart_get_flags,
- 	.smart_get_health = msft_cmd_smart_get_health,
- 	.smart_get_media_temperature = msft_cmd_smart_get_media_temperature,
- 	.smart_get_life_used = msft_cmd_smart_get_life_used,
-+	.xlat_firmware_status = msft_cmd_xlat_firmware_status,
- };
-diff --git a/ndctl/lib/msft.h b/ndctl/lib/msft.h
-index 7cfd26f..978cc11 100644
---- a/ndctl/lib/msft.h
-+++ b/ndctl/lib/msft.h
-@@ -50,4 +50,10 @@ struct ndn_pkg_msft {
- 	union ndn_msft_cmd	u;
- } __attribute__((packed));
- 
-+#define NDN_MSFT_STATUS_MASK		0xffff
-+#define NDN_MSFT_STATUS_SUCCESS	0
-+#define NDN_MSFT_STATUS_NOTSUPP	1
-+#define NDN_MSFT_STATUS_INVALPARM	2
-+#define NDN_MSFT_STATUS_I2CERR		3
-+
- #endif /* __NDCTL_MSFT_H__ */
--- 
-2.27.0.windows.1
+We could optimise this by, eg, checking for (__O_SYNC | O_DIRECT |
+O_APPEND) and returning 0 if none of them are set, since they're all
+pretty rare.  It might be better to maintain an f_iocb_flags in the
+struct file and just copy that unconditionally.  We'd need to remember
+to update it in fcntl(F_SETFL), but I think that's the only place.
+
+
+> If we go with the "read" method, there's just:
+> vfs_read		- 0x160 bytes
+> nvfs_read		- 0x200 bytes
+> 
+> > Is it worth, eg adding an iov_iter
+> > type that points to a single buffer instead of a single-member iov?
+
+>      6.57%  pread    [nvfs]            [k] nvfs_rw_iter_locked
+>      2.31%  pread    [kernel.vmlinux]  [k] new_sync_read
+>      1.89%  pread    [kernel.vmlinux]  [k] iov_iter_advance
+>      1.24%  pread    [nvfs]            [k] nvfs_rw_iter
+>      0.29%  pread    [kernel.vmlinux]  [k] iov_iter_init
+
+>      2.71%  pread    [nvfs]            [k] nvfs_read
+
+> Note that if we sum the percentage of nvfs_iter_locked, new_sync_read, 
+> iov_iter_advance, nvfs_rw_iter, we get 12.01%. On the other hand, in the 
+> second trace, nvfs_read consumes just 2.71% - and it replaces 
+> functionality of all these functions.
+> 
+> That is the reason for that 10% degradation with read_iter.
+
+You seem to be focusing on your argument for "let's just permit
+filesystems to implement both ->read and ->read_iter".  My suggestion
+is that we need to optimise the ->read_iter path, but to do that we need
+to know what's expensive.
+
+nvfs_rw_iter_locked() looks very complicated.  I suspect it can
+be simplified.  Of course new_sync_read() needs to be improved too,
+as do the other functions here, but fully a third of the difference
+between read() and read_iter() is the difference between nvfs_read()
+and nvfs_rw_iter_locked().
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
