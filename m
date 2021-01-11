@@ -2,158 +2,233 @@ Return-Path: <SRS0=G2TN=GO=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9F39C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 11 Jan 2021 10:29:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E5ECC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 11 Jan 2021 11:41:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 57962224DE
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 11 Jan 2021 10:29:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 57962224DE
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=ACULAB.COM
+	by mail.kernel.org (Postfix) with ESMTPS id 58AF020735
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 11 Jan 2021 11:41:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 58AF020735
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E25F2100EBBBE;
-	Mon, 11 Jan 2021 02:29:35 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=185.58.85.151; helo=eu-smtp-delivery-151.mimecast.com; envelope-from=david.laight@aculab.com; receiver=<UNKNOWN> 
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
+	by ml01.01.org (Postfix) with ESMTP id F24D5100ED4BC;
+	Mon, 11 Jan 2021 03:41:55 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3D1AF100EBBB4
-	for <linux-nvdimm@lists.01.org>; Mon, 11 Jan 2021 02:29:33 -0800 (PST)
-Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-34-7ibnZ-d1Oea7y-_CqhqRwQ-1; Mon, 11 Jan 2021 10:29:29 +0000
-X-MC-Unique: 7ibnZ-d1Oea7y-_CqhqRwQ-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
- Server (TLS) id 15.0.1347.2; Mon, 11 Jan 2021 10:29:28 +0000
-Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
- AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
- Mon, 11 Jan 2021 10:29:28 +0000
-From: David Laight <David.Laight@ACULAB.COM>
-To: 'Al Viro' <viro@zeniv.linux.org.uk>, Mikulas Patocka <mpatocka@redhat.com>
-Subject: RE: [RFC v2] nvfs: a filesystem for persistent memory
-Thread-Topic: [RFC v2] nvfs: a filesystem for persistent memory
-Thread-Index: AQHW52zcFLyucqAcQUmnqwhwPozPcaoiOfvQ
-Date: Mon, 11 Jan 2021 10:29:28 +0000
-Message-ID: <c26db2b0ea1a4891a7cbd0363de856d3@AcuMS.aculab.com>
-References: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com>
- <20210110162008.GV3579531@ZenIV.linux.org.uk>
-In-Reply-To: <20210110162008.GV3579531@ZenIV.linux.org.uk>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+	by ml01.01.org (Postfix) with ESMTPS id 583D3100EF24E
+	for <linux-nvdimm@lists.01.org>; Mon, 11 Jan 2021 03:41:50 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1610365309;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=USNadpbrdLIlMpKxyyoTuXb3BT0mvznhCnwwd+cN4dQ=;
+	b=N/rCzTFuK6FstRgSUibN/m9wqSdCGeAhS6ucLgwiLl1MovLBXbqhVivx9RXsOmHuC4bWuk
+	cxLJgFbV88zee85A0hY4MfEsuL7Jn3O9aGz33r55WRPdygZP7jL4vSLF/jX29j7PfinlWf
+	Vcdx5zteEAM1oko9RHRlpZ5igmVKKf0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-570-vztTchXGMEScV9qKBHrPyg-1; Mon, 11 Jan 2021 06:41:45 -0500
+X-MC-Unique: vztTchXGMEScV9qKBHrPyg-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9FE3A801AC3;
+	Mon, 11 Jan 2021 11:41:42 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id D0DB35D720;
+	Mon, 11 Jan 2021 11:41:38 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 10BBfcfv004873;
+	Mon, 11 Jan 2021 06:41:38 -0500
+Received: from localhost (mpatocka@localhost)
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 10BBfaB8004867;
+	Mon, 11 Jan 2021 06:41:36 -0500
+X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
+Date: Mon, 11 Jan 2021 06:41:36 -0500 (EST)
+From: Mikulas Patocka <mpatocka@redhat.com>
+X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
+To: Al Viro <viro@zeniv.linux.org.uk>
+Subject: Re: [RFC v2] nvfs: a filesystem for persistent memory
+In-Reply-To: <20210110234042.GX3579531@ZenIV.linux.org.uk>
+Message-ID: <alpine.LRH.2.02.2101110631330.4356@file01.intranet.prod.int.rdu2.redhat.com>
+References: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com> <20210110162008.GV3579531@ZenIV.linux.org.uk> <alpine.LRH.2.02.2101101410230.7245@file01.intranet.prod.int.rdu2.redhat.com>
+ <20210110234042.GX3579531@ZenIV.linux.org.uk>
+User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Message-ID-Hash: Z7PLQ5H3WZGAZFF6Y5F2M7QPEUQUB2GP
-X-Message-ID-Hash: Z7PLQ5H3WZGAZFF6Y5F2M7QPEUQUB2GP
-X-MailFrom: david.laight@aculab.com
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+Message-ID-Hash: FJUTB6H3FJX2GL2SOXCCVRHBJQ5PBVP3
+X-Message-ID-Hash: FJUTB6H3FJX2GL2SOXCCVRHBJQ5PBVP3
+X-MailFrom: mpatocka@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	"Dave Jiang  <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,  Matthew Wilcox  <willy@infradead.org>, Jan Kara <jack@suse.cz>, Steven Whitehouse" <swhiteho@redhat.com>,
-	Eric Sandeen <esandeen@redhat.com>,
-	Dave Chinner <dchinner@redhat.com>, Theodore Ts'o <tytso@mit.edu>,
-	Wang Jianchao <jianchao.wan9@gmail.com>, Norton@ml01.01.org,
-	Scott@ml01.01.org, Rajesh <rajesh.tadakamadla@hpe.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+CC: Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Steven Whitehouse <swhiteho@redhat.com>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Wang Jianchao <jianchao.wan9@gmail.com>, "Tadakamadla, Rajesh" <rajesh.tadakamadla@hpe.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Z7PLQ5H3WZGAZFF6Y5F2M7QPEUQUB2GP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FJUTB6H3FJX2GL2SOXCCVRHBJQ5PBVP3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Al Viro <viro@ftp.linux.org.uk> On Behalf Of Al Viro
-> Sent: 10 January 2021 16:20
-> 
-> On Thu, Jan 07, 2021 at 08:15:41AM -0500, Mikulas Patocka wrote:
-> > Hi
-> >
-> > I announce a new version of NVFS - a filesystem for persistent memory.
-> > 	http://people.redhat.com/~mpatocka/nvfs/
-> Utilities, AFAICS
-> 
-> > 	git://leontynka.twibright.com/nvfs.git
-> Seems to hang on git pull at the moment...  Do you have it anywhere else?
-> 
-> > I found out that on NVFS, reading a file with the read method has 10%
-> > better performance than the read_iter method. The benchmark just reads the
-> > same 4k page over and over again - and the cost of creating and parsing
-> > the kiocb and iov_iter structures is just that high.
-> 
-> Apples and oranges...  What happens if you take
-> 
-> ssize_t read_iter_locked(struct file *file, struct iov_iter *to, loff_t *ppos)
-> {
-> 	struct inode *inode = file_inode(file);
-> 	struct nvfs_memory_inode *nmi = i_to_nmi(inode);
-> 	struct nvfs_superblock *nvs = inode->i_sb->s_fs_info;
-> 	ssize_t total = 0;
-> 	loff_t pos = *ppos;
-> 	int r;
-> 	int shift = nvs->log2_page_size;
-> 	size_t i_size;
-> 
-> 	i_size = inode->i_size;
-> 	if (pos >= i_size)
-> 		return 0;
-> 	iov_iter_truncate(to, i_size - pos);
-> 
-> 	while (iov_iter_count(to)) {
-> 		void *blk, *ptr;
-> 		size_t page_mask = (1UL << shift) - 1;
-> 		unsigned page_offset = pos & page_mask;
-> 		unsigned prealloc = (iov_iter_count(to) + page_mask) >> shift;
-> 		unsigned size;
-> 
-> 		blk = nvfs_bmap(nmi, pos >> shift, &prealloc, NULL, NULL, NULL);
-> 		if (unlikely(IS_ERR(blk))) {
-> 			r = PTR_ERR(blk);
-> 			goto ret_r;
-> 		}
-> 		size = ((size_t)prealloc << shift) - page_offset;
-> 		ptr = blk + page_offset;
-> 		if (unlikely(!blk)) {
-> 			size = min(size, (unsigned)PAGE_SIZE);
-> 			ptr = empty_zero_page;
-> 		}
-> 		size = copy_to_iter(to, ptr, size);
-> 		if (unlikely(!size)) {
-> 			r = -EFAULT;
-> 			goto ret_r;
-> 		}
-> 
-> 		pos += size;
-> 		total += size;
-> 	} while (iov_iter_count(to));
 
-That isn't the best formed loop!
 
-	David
+On Sun, 10 Jan 2021, Al Viro wrote:
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+> On Sun, Jan 10, 2021 at 04:14:55PM -0500, Mikulas Patocka wrote:
+> 
+> > That's a good point. I split nvfs_rw_iter to separate functions 
+> > nvfs_read_iter and nvfs_write_iter - and inlined nvfs_rw_iter_locked into 
+> > both of them. It improved performance by 1.3%.
+> > 
+> > > Not that it had been more useful on the write side, really,
+> > > but that's another story (nvfs_write_pages() handling of
+> > > copyin is... interesting).  Let's figure out what's going
+> > > on with the read overhead first...
+> > > 
+> > > lib/iov_iter.c primitives certainly could use massage for
+> > > better code generation, but let's find out how much of the
+> > > PITA is due to those and how much comes from you fighing
+> > > the damn thing instead of using it sanely...
+> > 
+> > The results are:
+> > 
+> > read:                                           6.744s
+> > read_iter:                                      7.417s
+> > read_iter - separate read and write path:       7.321s
+> > Al's read_iter:                                 7.182s
+> > Al's read_iter with _copy_to_iter:              7.181s
+> 
+> So
+> 	* overhead of hardening stuff is noise here
+> 	* switching to more straightforward ->read_iter() cuts
+> the overhead by about 1/3.
+> 
+> 	Interesting...  I wonder how much of that is spent in
+> iterate_and_advance() glue inside copy_to_iter() here.  There's
+> certainly quite a bit of optimizations possible in those
+> primitives and your usecase makes a decent test for that...
+> 
+> 	Could you profile that and see where is it spending
+> the time, on instruction level?
+
+This is the read method profile:
+
+time	9.056s
+    52.69%  pread    [kernel.vmlinux]  [k] copy_user_generic_string
+     6.24%  pread    [kernel.vmlinux]  [k] current_time
+     6.22%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64
+     4.88%  pread    libc-2.31.so      [.] __libc_pread
+     3.75%  pread    [kernel.vmlinux]  [k] syscall_return_via_sysret
+     3.63%  pread    [nvfs]            [k] nvfs_read
+     2.83%  pread    [nvfs]            [k] nvfs_bmap
+     2.81%  pread    [kernel.vmlinux]  [k] vfs_read
+     2.63%  pread    [kernel.vmlinux]  [k] __x64_sys_pread64
+     2.27%  pread    [kernel.vmlinux]  [k] __fsnotify_parent
+     2.19%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64_after_hwframe
+     1.55%  pread    [kernel.vmlinux]  [k] atime_needs_update
+     1.17%  pread    [kernel.vmlinux]  [k] syscall_enter_from_user_mode
+     1.15%  pread    [kernel.vmlinux]  [k] touch_atime
+     0.84%  pread    [kernel.vmlinux]  [k] down_read
+     0.82%  pread    [kernel.vmlinux]  [k] syscall_exit_to_user_mode
+     0.71%  pread    [kernel.vmlinux]  [k] do_syscall_64
+     0.68%  pread    [kernel.vmlinux]  [k] ktime_get_coarse_real_ts64
+     0.66%  pread    [kernel.vmlinux]  [k] __fget_light
+     0.53%  pread    [kernel.vmlinux]  [k] exit_to_user_mode_prepare
+     0.45%  pread    [kernel.vmlinux]  [k] up_read
+     0.44%  pread    pread             [.] main
+     0.44%  pread    [kernel.vmlinux]  [k] syscall_exit_to_user_mode_prepare
+     0.26%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64_safe_stack
+     0.12%  pread    pread             [.] pread@plt
+     0.07%  pread    [kernel.vmlinux]  [k] __fdget
+     0.00%  perf     [kernel.vmlinux]  [k] x86_pmu_enable_all
+
+
+This is profile of "read_iter - separate read and write path":
+
+time	10.058s
+    53.05%  pread    [kernel.vmlinux]  [k] copy_user_generic_string
+     6.82%  pread    [kernel.vmlinux]  [k] current_time
+     6.27%  pread    [nvfs]            [k] nvfs_read_iter
+     4.70%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64
+     3.20%  pread    libc-2.31.so      [.] __libc_pread
+     2.77%  pread    [kernel.vmlinux]  [k] syscall_return_via_sysret
+     2.31%  pread    [kernel.vmlinux]  [k] vfs_read
+     2.15%  pread    [kernel.vmlinux]  [k] new_sync_read
+     2.06%  pread    [kernel.vmlinux]  [k] __fsnotify_parent
+     2.02%  pread    [nvfs]            [k] nvfs_bmap
+     1.87%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64_after_hwframe
+     1.86%  pread    [kernel.vmlinux]  [k] iov_iter_advance
+     1.62%  pread    [kernel.vmlinux]  [k] __x64_sys_pread64
+     1.40%  pread    [kernel.vmlinux]  [k] atime_needs_update
+     0.99%  pread    [kernel.vmlinux]  [k] syscall_enter_from_user_mode
+     0.85%  pread    [kernel.vmlinux]  [k] touch_atime
+     0.85%  pread    [kernel.vmlinux]  [k] down_read
+     0.84%  pread    [kernel.vmlinux]  [k] syscall_exit_to_user_mode
+     0.78%  pread    [kernel.vmlinux]  [k] ktime_get_coarse_real_ts64
+     0.65%  pread    [kernel.vmlinux]  [k] __fget_light
+     0.57%  pread    [kernel.vmlinux]  [k] exit_to_user_mode_prepare
+     0.53%  pread    [kernel.vmlinux]  [k] syscall_exit_to_user_mode_prepare
+     0.45%  pread    pread             [.] main
+     0.43%  pread    [kernel.vmlinux]  [k] up_read
+     0.43%  pread    [kernel.vmlinux]  [k] do_syscall_64
+     0.28%  pread    [kernel.vmlinux]  [k] iov_iter_init
+     0.16%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64_safe_stack
+     0.09%  pread    pread             [.] pread@plt
+     0.03%  pread    [kernel.vmlinux]  [k] __fdget
+     0.00%  pread    [kernel.vmlinux]  [k] update_rt_rq_load_avg
+     0.00%  perf     [kernel.vmlinux]  [k] x86_pmu_enable_all
+
+
+This is your read_iter_locked profile (read_iter_locked is inlined to 
+nvfs_read_iter):
+
+time	10.056s
+    50.71%  pread    [kernel.vmlinux]  [k] copy_user_generic_string
+     6.95%  pread    [kernel.vmlinux]  [k] current_time
+     5.22%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64
+     4.29%  pread    libc-2.31.so      [.] __libc_pread
+     4.17%  pread    [nvfs]            [k] nvfs_read_iter
+     3.20%  pread    [kernel.vmlinux]  [k] syscall_return_via_sysret
+     2.66%  pread    [kernel.vmlinux]  [k] _copy_to_iter
+     2.44%  pread    [kernel.vmlinux]  [k] __x64_sys_pread64
+     2.38%  pread    [kernel.vmlinux]  [k] new_sync_read
+     2.37%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64_after_hwframe
+     2.26%  pread    [kernel.vmlinux]  [k] vfs_read
+     2.02%  pread    [nvfs]            [k] nvfs_bmap
+     1.88%  pread    [kernel.vmlinux]  [k] __fsnotify_parent
+     1.46%  pread    [kernel.vmlinux]  [k] atime_needs_update
+     1.08%  pread    [kernel.vmlinux]  [k] touch_atime
+     0.83%  pread    [kernel.vmlinux]  [k] syscall_exit_to_user_mode
+     0.82%  pread    [kernel.vmlinux]  [k] syscall_enter_from_user_mode
+     0.75%  pread    [kernel.vmlinux]  [k] syscall_exit_to_user_mode_prepare
+     0.73%  pread    [kernel.vmlinux]  [k] __fget_light
+     0.65%  pread    [kernel.vmlinux]  [k] down_read
+     0.58%  pread    pread             [.] main
+     0.58%  pread    [kernel.vmlinux]  [k] exit_to_user_mode_prepare
+     0.52%  pread    [kernel.vmlinux]  [k] ktime_get_coarse_real_ts64
+     0.48%  pread    [kernel.vmlinux]  [k] up_read
+     0.42%  pread    [kernel.vmlinux]  [k] do_syscall_64
+     0.28%  pread    [kernel.vmlinux]  [k] iov_iter_init
+     0.13%  pread    [kernel.vmlinux]  [k] __fdget
+     0.12%  pread    [kernel.vmlinux]  [k] entry_SYSCALL_64_safe_stack
+     0.03%  pread    pread             [.] pread@plt
+     0.00%  perf     [kernel.vmlinux]  [k] x86_pmu_enable_all
+
+Mikulas
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
