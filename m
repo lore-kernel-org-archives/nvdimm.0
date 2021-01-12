@@ -2,64 +2,74 @@ Return-Path: <SRS0=Nr1R=GP=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EBA0C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Jan 2021 12:58:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACA5FC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Jan 2021 14:07:03 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3D5BD23134
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Jan 2021 12:58:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3D5BD23134
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 5090D22CE3
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Jan 2021 14:07:03 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5090D22CE3
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=ACULAB.COM
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EC76D100EB834;
-	Tue, 12 Jan 2021 04:58:32 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=sashal@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id E26A1100EB83E;
+	Tue, 12 Jan 2021 06:07:02 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=207.82.80.151; helo=eu-smtp-delivery-151.mimecast.com; envelope-from=david.laight@aculab.com; receiver=<UNKNOWN> 
+Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [207.82.80.151])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9C197100EB832
-	for <linux-nvdimm@lists.01.org>; Tue, 12 Jan 2021 04:58:30 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D35C22312F;
-	Tue, 12 Jan 2021 12:58:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1610456310;
-	bh=0xLiq19uuF+LFA0yw7Rwauxqd1irVWHtnuE67K59/lY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=b8O+IFZDV1mhk5XsTsWbLrW1xzrSVYxvK5blw0fJPWOYpStCe3DCIq7EXWLyLxolN
-	 TLMwQfBVojPJMLN9JxABbmBux71bYXWiqRGUpVBKyaKjN3hBfImirfcsTX4oH+j2ru
-	 NjHhomzM0c8ys/od7truSD0S2+6XeKJDbsnP5x000hT9HFGAVLJgzYU/CLFIieWddh
-	 cF9uNR0cr8ARsiFzmgcVojEDTN8GkQ6qGGVIMtUaW9OAcXLdoF/mm5w9+Eul9btKCh
-	 DvWDBUQcBKH18yRPmjz5KQMwz+CMKgkHCylmUjpUG9h+5SMHgh9mAuDaslVTUGVmFq
-	 W1kWy89IcdHiQ==
-From: Sasha Levin <sashal@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 4/8] arch/arc: add copy_user_page() to <asm/page.h> to fix build error on ARC
-Date: Tue, 12 Jan 2021 07:58:19 -0500
-Message-Id: <20210112125823.71463-4-sashal@kernel.org>
-X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20210112125823.71463-1-sashal@kernel.org>
-References: <20210112125823.71463-1-sashal@kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 45D47100EB83C
+	for <linux-nvdimm@lists.01.org>; Tue, 12 Jan 2021 06:06:59 -0800 (PST)
+Received: from AcuMS.aculab.com (156.67.243.126 [156.67.243.126]) (Using
+ TLS) by relay.mimecast.com with ESMTP id
+ uk-mta-190-LrEcQ_I1My-Flm7q2b_3Gw-1; Tue, 12 Jan 2021 14:06:55 +0000
+X-MC-Unique: LrEcQ_I1My-Flm7q2b_3Gw-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:43c:695e:880f:8750) with Microsoft SMTP
+ Server (TLS) id 15.0.1347.2; Tue, 12 Jan 2021 14:06:54 +0000
+Received: from AcuMS.Aculab.com ([fe80::43c:695e:880f:8750]) by
+ AcuMS.aculab.com ([fe80::43c:695e:880f:8750%12]) with mapi id 15.00.1347.000;
+ Tue, 12 Jan 2021 14:06:54 +0000
+From: David Laight <David.Laight@ACULAB.COM>
+To: 'Zhongwei Cai' <sunrise_l@sjtu.edu.cn>, Mingkai Dong
+	<mingkaidong@gmail.com>, Matthew Wilcox <willy@infradead.org>,
+	"viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>
+Subject: RE: Expense of read_iter
+Thread-Topic: Expense of read_iter
+Thread-Index: Adbo7C52XXt2HSHdSaqZSwQZFrXi9Q==
+Date: Tue, 12 Jan 2021 14:06:53 +0000
+Message-ID: <68567cb68fec4d79be79a655301effe1@AcuMS.aculab.com>
+References: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com>
+ <20210107151125.GB5270@casper.infradead.org>
+ <17045315-CC1F-4165-B8E3-BA55DD16D46B@gmail.com>
+ <2041983017.5681521.1610459100858.JavaMail.zimbra@sjtu.edu.cn>
+In-Reply-To: <2041983017.5681521.1610459100858.JavaMail.zimbra@sjtu.edu.cn>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Message-ID-Hash: OFTAAYDDR7DVWMK3UUZLE72G6DAY4KKM
-X-Message-ID-Hash: OFTAAYDDR7DVWMK3UUZLE72G6DAY4KKM
-X-MailFrom: sashal@kernel.org
+Authentication-Results: relay.mimecast.com;
+	auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Message-ID-Hash: NGFCOWKCMLL3UXPWKZWHK5ETQDIVRF4V
+X-Message-ID-Hash: NGFCOWKCMLL3UXPWKZWHK5ETQDIVRF4V
+X-MailFrom: david.laight@aculab.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Randy Dunlap <rdunlap@infradead.org>, kernel test robot <lkp@intel.com>, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Sasha Levin <sashal@kernel.org>
+CC: Mikulas Patocka <mpatocka@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Steven Whitehouse <swhiteho@redhat.com>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Wang Jianchao <jianchao.wan9@gmail.com>, "Tadakamadla, Rajesh" <rajesh.tadakamadla@hpe.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OFTAAYDDR7DVWMK3UUZLE72G6DAY4KKM/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NGFCOWKCMLL3UXPWKZWHK5ETQDIVRF4V/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,50 +78,37 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Randy Dunlap <rdunlap@infradead.org>
+From: Zhongwei Cai
+> Sent: 12 January 2021 13:45
+..
+> The overhead mainly consists of two parts. The first is constructing
+> struct iov_iter and iterating it (i.e., new_sync, _copy_mc_to_iter and
+> iov_iter_init). The second is the dax io mechanism provided by VFS (i.e.,
+> dax_iomap_rw, iomap_apply and ext4_iomap_begin).
 
-[ Upstream commit 8a48c0a3360bf2bf4f40c980d0ec216e770e58ee ]
+Setting up an iov_iter with a single buffer ought to be relatively
+cheap - compared to a file system read.
 
-fs/dax.c uses copy_user_page() but ARC does not provide that interface,
-resulting in a build error.
+The iteration should be over the total length
+calling copy_from/to_iter() for 'chunks' that don't
+depend on the size of the iov[] fragments.
 
-Provide copy_user_page() in <asm/page.h>.
+So copy_to/from_iter() should directly replace the copy_to/from_user()
+calls in the 'read' method.
+For a single buffer this really ought to be noise as well.
 
-../fs/dax.c: In function 'copy_cow_page_dax':
-../fs/dax.c:702:2: error: implicit declaration of function 'copy_user_page'; did you mean 'copy_to_user_page'? [-Werror=implicit-function-declaration]
+Clearly is the iov[] has a lot of short fragments the copy
+will be more expensive.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: linux-snps-arc@lists.infradead.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-#Acked-by: Vineet Gupta <vgupta@synopsys.com> # v1
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
-#Reviewed-by: Ira Weiny <ira.weiny@intel.com> # v2
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arc/include/asm/page.h | 1 +
- 1 file changed, 1 insertion(+)
+Access to /dev/null and /dev/zero are much more likely to show
+the additional costs of the iov_iter code than fs code.
 
-diff --git a/arch/arc/include/asm/page.h b/arch/arc/include/asm/page.h
-index 8f1145ed0046f..fd2c88ef2e2b8 100644
---- a/arch/arc/include/asm/page.h
-+++ b/arch/arc/include/asm/page.h
-@@ -17,6 +17,7 @@
- #define free_user_page(page, addr)	free_page(addr)
- 
- #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
-+#define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- #define copy_page(to, from)		memcpy((to), (from), PAGE_SIZE)
- 
- struct vm_area_struct;
--- 
-2.27.0
+
+	David
+
+-
+Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+Registration No: 1397386 (Wales)
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
