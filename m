@@ -1,163 +1,294 @@
-Return-Path: <SRS0=G2TN=GO=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=Nr1R=GP=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F1C3C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 11 Jan 2021 21:10:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DBF9C43381
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Jan 2021 00:34:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C333B207B6
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 11 Jan 2021 21:10:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C333B207B6
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id C269022CF7
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 12 Jan 2021 00:34:23 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C269022CF7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 82608100EBB96;
-	Mon, 11 Jan 2021 13:10:29 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 11B8C100EB825;
+	Mon, 11 Jan 2021 16:34:23 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.115; helo=mga14.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9E5C5100EBB91
-	for <linux-nvdimm@lists.01.org>; Mon, 11 Jan 2021 13:10:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1610399425;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=yvIgB4nrBqYWTewh1VPtMYxcnrmKC+gvynDYScYKR+g=;
-	b=DhazSDSwSesyXygRABQGcW08MQ3NuHETZMgwKH/j1c3tLBvVFin2CDfDxvove8Gi5e+yxN
-	Vezlyv5kUydWDIyIbH96PHSmLcQk2Nsa1Nb6gaEHLzh88dbPhwf8dzeStYNwa62nVqt/2K
-	w+IR2ws/ikFDhvCqTwy48i8c30lxdjU=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-222-U2w2WC-kMpaizlOjw3acGA-1; Mon, 11 Jan 2021 16:10:18 -0500
-X-MC-Unique: U2w2WC-kMpaizlOjw3acGA-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 799BFB8118;
-	Mon, 11 Jan 2021 21:10:15 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 086155D9DB;
-	Mon, 11 Jan 2021 21:10:13 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 10BLADAJ028070;
-	Mon, 11 Jan 2021 16:10:13 -0500
-Received: from localhost (mpatocka@localhost)
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 10BLABk6028066;
-	Mon, 11 Jan 2021 16:10:12 -0500
-X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
-Date: Mon, 11 Jan 2021 16:10:11 -0500 (EST)
-From: Mikulas Patocka <mpatocka@redhat.com>
-X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
-To: Matthew Wilcox <willy@infradead.org>
-Subject: Re: Expense of read_iter
-In-Reply-To: <20210111001805.GD35215@casper.infradead.org>
-Message-ID: <alpine.LRH.2.02.2101111126150.31017@file01.intranet.prod.int.rdu2.redhat.com>
-References: <alpine.LRH.2.02.2101061245100.30542@file01.intranet.prod.int.rdu2.redhat.com> <20210107151125.GB5270@casper.infradead.org> <alpine.LRH.2.02.2101071110080.30654@file01.intranet.prod.int.rdu2.redhat.com> <20210110061321.GC35215@casper.infradead.org>
- <alpine.LRH.2.02.2101101458420.7366@file01.intranet.prod.int.rdu2.redhat.com> <20210111001805.GD35215@casper.infradead.org>
-User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
+	by ml01.01.org (Postfix) with ESMTPS id 8A043100EBBBD
+	for <linux-nvdimm@lists.01.org>; Mon, 11 Jan 2021 16:34:20 -0800 (PST)
+IronPort-SDR: EumktWAFRXX94oXpJJPHjtFlDtvIr4VgbUNI9dkByyY+HDjyzU2pDip6SQa6bcWWXTl9d6qBlc
+ dG/HRqrMQpAw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9861"; a="177185572"
+X-IronPort-AV: E=Sophos;i="5.79,339,1602572400";
+   d="scan'208";a="177185572"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 16:34:20 -0800
+IronPort-SDR: ql/yuCwS3FAteOBB2nyODDcqJjqo7iodAveGCbJhTJEzqt694AkYACLZ1+hALhd8RFMbgN9HDJ
+ QkE0PngE+iOQ==
+X-IronPort-AV: E=Sophos;i="5.79,339,1602572400";
+   d="scan'208";a="381212090"
+Received: from ecbackus-mobl1.amr.corp.intel.com (HELO omniknight.intel.com) ([10.212.212.82])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jan 2021 16:34:19 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <linux-cxl@vger.kernel.org>
+Subject: [ndctl RFC PATCH 2/5] cxl: add a local copy of the cxl_mem UAPI header
+Date: Mon, 11 Jan 2021 17:34:00 -0700
+Message-Id: <20210112003403.2944568-3-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210112003403.2944568-1-vishal.l.verma@intel.com>
+References: <20210112003403.2944568-1-vishal.l.verma@intel.com>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-Message-ID-Hash: MCX2DHEDAIRK7DSX2YAETOED2LOGZY67
-X-Message-ID-Hash: MCX2DHEDAIRK7DSX2YAETOED2LOGZY67
-X-MailFrom: mpatocka@redhat.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Al Viro <viro@zeniv.linux.org.uk>, Mingkai Dong <mingkaidong@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Steven Whitehouse <swhiteho@redhat.com>, Eric Sandeen <esandeen@redhat.com>, Dave Chinner <dchinner@redhat.com>, Theodore Ts'o <tytso@mit.edu>, Wang Jianchao <jianchao.wan9@gmail.com>, "Tadakamadla, Rajesh" <rajesh.tadakamadla@hpe.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
+Message-ID-Hash: EEKU77OICJ5LOWGYUQWSLFA4G5QSEM3Z
+X-Message-ID-Hash: EEKU77OICJ5LOWGYUQWSLFA4G5QSEM3Z
+X-MailFrom: vishal.l.verma@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org, Ben Widawsky <ben.widawsky@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MCX2DHEDAIRK7DSX2YAETOED2LOGZY67/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EEKU77OICJ5LOWGYUQWSLFA4G5QSEM3Z/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
+While CXL functionality is under development, it is useful to have a
+local copy of the UAPI header for cxl_mem definitions. This allows
+building cxl and libcxl on systems where the appropriate kernel headers
+are not installed in the usual locations.
 
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ Makefile.am.in      |   1 +
+ cxl/cxl_mem.h       | 176 ++++++++++++++++++++++++++++++++++++++++++++
+ cxl/lib/Makefile.am |   2 +-
+ 3 files changed, 178 insertions(+), 1 deletion(-)
+ create mode 100644 cxl/cxl_mem.h
 
-On Mon, 11 Jan 2021, Matthew Wilcox wrote:
-
-> On Sun, Jan 10, 2021 at 04:19:15PM -0500, Mikulas Patocka wrote:
-> > I put counters into vfs_read and vfs_readv.
-> > 
-> > After a fresh boot of the virtual machine, the counters show "13385 4". 
-> > After a kernel compilation they show "4475220 8".
-> > 
-> > So, the readv path is almost unused.
-> > 
-> > My reasoning was that we should optimize for the "read" path and glue the 
-> > "readv" path on the top of that. Currently, the kernel is doing the 
-> > opposite - optimizing for "readv" and glueing "read" on the top of it.
-> 
-> But it's not about optimising for read vs readv.  read_iter handles
-> a host of other cases, such as pread(), preadv(), AIO reads, splice,
-> and reads to in-kernel buffers.
-
-These things are used rarely compared to "read" and "pread". (BTW. "pread" 
-could be handled by the read method too).
-
-What's the reason why do you think that the "read" syscall should use the 
-"read_iter" code path? Is it because duplicating the logic is discouraged? 
-Or because of code size? Or something else?
-
-> Some device drivers abused read() vs readv() to actually return different 
-> information, depending which you called.  That's why there's now a
-> prohibition against both.
-> 
-> So let's figure out how to make iter_read() perform well for sys_read().
-
-I've got another idea - in nvfs_read_iter, test if the iovec contains just 
-one entry and call nvfs_read_locked if it does.
-
-diff --git a/file.c b/file.c
-index f4b8a1a..e4d87b2 100644
---- a/file.c
-+++ b/file.c
-@@ -460,6 +460,10 @@ static ssize_t nvfs_read_iter(struct kiocb *iocb, struct iov_iter *iov)
- 	if (!IS_DAX(&nmi->vfs_inode)) {
- 		r = generic_file_read_iter(iocb, iov);
- 	} else {
-+		if (likely(iter_is_iovec(iov)) && likely(!iov->iov_offset) && likely(iov->nr_segs == 1)) {
-+			r = nvfs_read_locked(nmi, iocb->ki_filp, iov->iov->iov_base, iov->count, true, &iocb->ki_pos);
-+			goto unlock_ret;
-+		}
- #if 1
- 		r = nvfs_rw_iter_locked(iocb, iov, false);
- #else
-@@ -467,6 +471,7 @@ static ssize_t nvfs_read_iter(struct kiocb *iocb, struct iov_iter *iov)
- #endif
- 	}
+diff --git a/Makefile.am.in b/Makefile.am.in
+index 6931d8c..e476bce 100644
+--- a/Makefile.am.in
++++ b/Makefile.am.in
+@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
+ 	-DNDCTL_MAN_PATH=\""$(mandir)"\" \
+ 	-I${top_srcdir}/ndctl/lib \
+ 	-I${top_srcdir}/ndctl \
++	-I${top_srcdir}/cxl \
+ 	-I${top_srcdir}/ \
+ 	$(KMOD_CFLAGS) \
+ 	$(UDEV_CFLAGS) \
+diff --git a/cxl/cxl_mem.h b/cxl/cxl_mem.h
+new file mode 100644
+index 0000000..ce309e9
+--- /dev/null
++++ b/cxl/cxl_mem.h
+@@ -0,0 +1,176 @@
++/* SPDX-License-Identifier: LGPL-2.1 */
++/* Copyright (C) 2020-2021, Intel Corporation. All rights reserved. */
++/*
++ * CXL IOCTLs for Memory Devices
++ */
++
++#ifndef _UAPI_CXL_MEM_H_
++#define _UAPI_CXL_MEM_H_
++
++#if defined(__cplusplus)
++extern "C" {
++#endif
++
++#include <linux/types.h>
++#include <sys/user.h>
++#include <unistd.h>
++
++#define __user
++
++/**
++ * DOC: UAPI
++ *
++ * CXL memory devices expose UAPI to have a standard user interface.
++ * Userspace can refer to these structure definitions and UAPI formats
++ * to communicate to driver. The commands themselves are somewhat obfuscated
++ * with macro magic. They have the form CXL_MEM_COMMAND_ID_<name>.
++ *
++ * For example "CXL_MEM_COMMAND_ID_INVALID"
++ *
++ * Not all of all commands that the driver supports are always available for use
++ * by userspace. Userspace must check the results from the QUERY command in
++ * order to determine the live set of commands.
++ */
++
++#define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
++#define CXL_MEM_SEND_COMMAND _IOWR(0xCE, 2, struct cxl_send_command)
++
++#undef CMDS
++#define CMDS                                                                   \
++	C(INVALID,	"Invalid Command"),                                    \
++	C(IDENTIFY,	"Identify Command"),                                   \
++	C(RAW,		"Raw device command"),                                 \
++	C(GET_SUPPORTED_LOGS,		"Get Supported Logs"),                 \
++	C(GET_LOG,	"Get Log"),                                            \
++	C(MAX,		"Last command")
++
++#undef C
++#define C(a, b) CXL_MEM_COMMAND_ID_##a
++
++enum { CMDS };
++
++/**
++ * struct cxl_command_info - Command information returned from a query.
++ * @id: ID number for the command.
++ * @flags: Flags that specify command behavior.
++ *
++ *  * %CXL_MEM_COMMAND_FLAG_KERNEL: This command is reserved for exclusive
++ *    kernel use.
++ *  * %CXL_MEM_COMMAND_FLAG_MUTEX: This command may require coordination with
++ *    the kernel in order to complete successfully.
++ *
++ * @size_in: Expected input size, or -1 if variable length.
++ * @size_out: Expected output size, or -1 if variable length.
++ *
++ * Represents a single command that is supported by both the driver and the
++ * hardware. The is returned as part of an array from the query ioctl. The
++ * following would be a command named "foobar" that takes a variable length
++ * input and returns 0 bytes of output.
++ *
++ *  - @id = 10
++ *  - @flags = CXL_MEM_COMMAND_FLAG_MUTEX
++ *  - @size_in = -1
++ *  - @size_out = 0
++ *
++ * See struct cxl_mem_query_commands.
++ */
++struct cxl_command_info {
++	__u32 id;
++
++	__u32 flags;
++#define CXL_MEM_COMMAND_FLAG_NONE 0
++#define CXL_MEM_COMMAND_FLAG_KERNEL BIT(0)
++#define CXL_MEM_COMMAND_FLAG_MUTEX BIT(1)
++#define CXL_MEM_COMMAND_FLAG_MASK GENMASK(31, 2)
++
++	__s32 size_in;
++	__s32 size_out;
++};
++
++/**
++ * struct cxl_mem_query_commands - Query supported commands.
++ * @n_commands: In/out parameter. When @n_commands is > 0, the driver will
++ *		return min(num_support_commands, n_commands). When @n_commands
++ *		is 0, driver will return the number of total supported commands.
++ * @rsvd: Reserved for future use.
++ * @commands: Output array of supported commands. This array must be allocated
++ *            by userspace to be at least min(num_support_commands, @n_commands)
++ *
++ * Allow userspace to query the available commands supported by both the driver,
++ * and the hardware. Commands that aren't supported by either the driver, or the
++ * hardware are not returned in the query.
++ *
++ * Examples:
++ *
++ *  - { .n_commands = 0 } // Get number of supported commands
++ *  - { .n_commands = 15, .commands = buf } // Return first 15 (or less)
++ *    supported commands
++ *
++ *  See struct cxl_command_info.
++ */
++struct cxl_mem_query_commands {
++	/*
++	 * Input: Number of commands to return (space allocated by user)
++	 * Output: Number of commands supported by the driver/hardware
++	 *
++	 * If n_commands is 0, kernel will only return number of commands and
++	 * not try to populate commands[], thus allowing userspace to know how
++	 * much space to allocate
++	 */
++	__u32 n_commands;
++	__u32 rsvd;
++
++	struct cxl_command_info __user commands[]; /* out: supported commands */
++};
++
++/**
++ * struct cxl_send_command - Send a command to a memory device.
++ * @id: The command to send to the memory device. This must be one of the
++ *	commands returned by the query command.
++ * @flags: Flags for the command (input).
++ * @raw: Special fields for raw commands
++ * @raw.opcode: Opcode passed to hardware when using the RAW command.
++ * @raw.rsvd: Must be zero.
++ * @rsvd: Must be zero.
++ * @retval: Return value from the memory device (output).
++ * @size_in: Size of the payload to provide to the device (input).
++ * @size_out: Size of the payload received from the device (input/output). This
++ *	      field is filled in by userspace to let the driver know how much
++ *	      space was allocated for output. It is populated by the driver to
++ *	      let userspace know how large the output payload actually was.
++ * @in_payload: Pointer to memory for payload input (little endian order).
++ * @out_payload: Pointer to memory for payload output (little endian order).
++ *
++ * Mechanism for userspace to send a command to the hardware for processing. The
++ * driver will do basic validation on the command sizes, but the payload input
++ * and output are not introspected. Userspace is required to allocate large
++ * enough buffers for max(size_in, size_out).
++ */
++struct cxl_send_command {
++	__u32 id;
++	__u32 flags;
++	union {
++		struct {
++			__u16 opcode;
++			__u16 rsvd;
++		} raw;
++		__u32 rsvd;
++	};
++	__u32 retval;
++
++	struct {
++		__s32 size_in;
++		__u64 in_payload;
++	};
++
++	struct {
++		__s32 size_out;
++		__u64 out_payload;
++	};
++};
++
++#if defined(__cplusplus)
++}
++#endif
++
++#endif
+diff --git a/cxl/lib/Makefile.am b/cxl/lib/Makefile.am
+index 01adf9f..dfd2784 100644
+--- a/cxl/lib/Makefile.am
++++ b/cxl/lib/Makefile.am
+@@ -3,7 +3,7 @@ include $(top_srcdir)/Makefile.am.in
+ %.pc: %.pc.in Makefile
+ 	$(SED_PROCESS)
  
-+unlock_ret:
- 	inode_unlock_shared(&nmi->vfs_inode);
+-pkginclude_HEADERS = ../libcxl.h
++pkginclude_HEADERS = ../libcxl.h ../cxl_mem.h
+ lib_LTLIBRARIES = libcxl.la
  
- 	return r;
-
-
-
-The result is:
-
-nvfs_read_iter			- 7.307s
-Al Viro's read_iter_locked	- 7.147s
-test for just one entry		- 7.010s
-the read method			- 6.782s
-
-So far, this is the best way how to do it, but it's still 3.3% worse than 
-the read method. There's not anything more that could be optimized on the 
-filesystem level - the rest of optimizations must be done in the VFS.
-
-Mikulas
+ libcxl_la_SOURCES =\
+-- 
+2.29.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
