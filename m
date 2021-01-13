@@ -2,61 +2,61 @@ Return-Path: <SRS0=F1Ul=GQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.0 required=3.0 tests=BAYES_50,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3455BC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Jan 2021 07:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65BFAC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Jan 2021 07:15:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C14D623134
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Jan 2021 07:15:04 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C14D623134
+	by mail.kernel.org (Postfix) with ESMTPS id F12AD23136
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Jan 2021 07:15:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F12AD23136
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 82205100EB324;
-	Tue, 12 Jan 2021 23:15:02 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.126; helo=mga18.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+	by ml01.01.org (Postfix) with ESMTP id B1225100EB325;
+	Tue, 12 Jan 2021 23:15:07 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.43; helo=mga05.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 6CF67100EB323
-	for <linux-nvdimm@lists.01.org>; Tue, 12 Jan 2021 23:15:00 -0800 (PST)
-IronPort-SDR: K1DsPY5PsOIdqkyQz5Ue1vpC+/+nwV6394f38qeo9zZXSVNtc/9HBCqqh7yixNcysY26PE6wjA
- 0THCJcERNi1w==
-X-IronPort-AV: E=McAfee;i="6000,8403,9862"; a="165838245"
+	by ml01.01.org (Postfix) with ESMTPS id B905D100EB325
+	for <linux-nvdimm@lists.01.org>; Tue, 12 Jan 2021 23:15:04 -0800 (PST)
+IronPort-SDR: FEIjnLEZEYMyJsN3N69PC3mk0oOA6GEAvFJDCcxDy+kyaZp8qEbv87RL/OLB6KsMbpSR16/3yB
+ makwWH6lmoAw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9862"; a="262948693"
 X-IronPort-AV: E=Sophos;i="5.79,343,1602572400";
-   d="scan'208";a="165838245"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2021 23:14:59 -0800
-IronPort-SDR: /bSuLbuqQuIqUVQI5dXxDNBvf9XoJRR1ktwkR9QVhy59N6TPj5wYnucTKLbkW2CeflQpXHACn+
- bZeUOC19HXWA==
+   d="scan'208";a="262948693"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2021 23:15:04 -0800
+IronPort-SDR: z8IAgj2FemypgMdubKPcxYH8GD1GiTM8GaTdlmc7+eOL6rKG3b4GRRZ71id9NxDqVCfHyr45aw
+ gzUI75W95IOg==
 X-IronPort-AV: E=Sophos;i="5.79,343,1602572400";
-   d="scan'208";a="345446680"
+   d="scan'208";a="569336683"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2021 23:14:58 -0800
-Subject: [ndctl PATCH 1/4] ndctl/test: Fix btt expect table compile warning
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2021 23:15:04 -0800
+Subject: [ndctl PATCH 2/4] ndctl/test: Cleanup unnecessary out label
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
-Date: Tue, 12 Jan 2021 23:14:58 -0800
-Message-ID: <161052209839.1804207.11951679046842122849.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 12 Jan 2021 23:15:03 -0800
+Message-ID: <161052210395.1804207.7318263492906073721.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <161052209289.1804207.11599120961607513911.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <161052209289.1804207.11599120961607513911.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 MIME-Version: 1.0
-Message-ID-Hash: AC6Q3F3Z4FSASXCGETQPKSPQIU3UYMRX
-X-Message-ID-Hash: AC6Q3F3Z4FSASXCGETQPKSPQIU3UYMRX
+Message-ID-Hash: W5WVD47DKXFI3HJUF2JP4FEWNRPOIG4D
+X-Message-ID-Hash: W5WVD47DKXFI3HJUF2JP4FEWNRPOIG4D
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AC6Q3F3Z4FSASXCGETQPKSPQIU3UYMRX/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/W5WVD47DKXFI3HJUF2JP4FEWNRPOIG4D/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,47 +65,53 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-../test/libndctl.c:989:2: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
-  989 |  unsigned long long expect_table[][2] = {
-      |  ^~~~~~~~
-
-...just move the declaration a few lines up.
+There are no cleanup actions to take in test_dax_remap(), and it is already
+inconsistent for having a single return point, so remove the out label.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/libndctl.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ test/dax-pmd.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 24d72b382239..fc651499cc86 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -980,12 +980,6 @@ static int check_btt_size(struct ndctl_btt *btt)
- 	struct ndctl_ctx *ctx = ndctl_btt_get_ctx(btt);
- 	struct ndctl_test *test = ndctl_get_private_data(ctx);
- 	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
--
--	if (!ndns)
--		return -ENXIO;
--
--	ns_size = ndctl_namespace_get_size(ndns);
--	sect_size = ndctl_btt_get_sector_size(btt);
- 	unsigned long long expect_table[][2] = {
- 		[0] = {
- 			[0] = 0x11b5400,
-@@ -1001,6 +995,12 @@ static int check_btt_size(struct ndctl_btt *btt)
- 		},
- 	};
+diff --git a/test/dax-pmd.c b/test/dax-pmd.c
+index 401826d02d69..b1251db63041 100644
+--- a/test/dax-pmd.c
++++ b/test/dax-pmd.c
+@@ -83,20 +83,18 @@ int test_dax_remap(struct ndctl_test *test, int dax_fd, unsigned long align, voi
+ 	act.sa_flags = SA_SIGINFO;
+ 	if (sigaction(SIGBUS, &act, 0)) {
+ 		perror("sigaction");
+-		rc = EXIT_FAILURE;
+-		goto out;
++		return EXIT_FAILURE;
+ 	}
  
-+	if (!ndns)
-+		return -ENXIO;
-+
-+	ns_size = ndctl_namespace_get_size(ndns);
-+	sect_size = ndctl_btt_get_sector_size(btt);
-+
- 	if (sect_size >= SZ_4K)
- 		sect_select = 1;
- 	else if (sect_size >= 512)
+ 	/* test fault after device-dax instance disabled */
+ 	if (sigsetjmp(sj_env, 1)) {
+ 		if (!fsdax && align > SZ_4K) {
+ 			fprintf(stderr, "got expected SIGBUS after mremap() of device-dax\n");
+-			rc = 0;
++			return 0;
+ 		} else {
+ 			fprintf(stderr, "unpexpected SIGBUS after mremap()\n");
+-			rc = -EIO;
++			return -EIO;
+ 		}
+-		goto out;
+ 	}
+ 
+ 	*(int *) anon = 0xAA;
+@@ -107,9 +105,7 @@ int test_dax_remap(struct ndctl_test *test, int dax_fd, unsigned long align, voi
+ 		return -ENXIO;
+ 	}
+ 
+-	rc = 0;
+-out:
+-	return rc;
++	return 0;
+ }
+ 
+ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t offset)
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
