@@ -1,80 +1,60 @@
-Return-Path: <SRS0=F1Ul=GQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=TOes=GR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AC60C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Jan 2021 21:52:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66312C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 Jan 2021 00:43:16 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1C2652339D
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 13 Jan 2021 21:52:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1C2652339D
+	by mail.kernel.org (Postfix) with ESMTPS id CD70023382
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 Jan 2021 00:43:15 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CD70023382
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6A4DE100F2244;
-	Wed, 13 Jan 2021 13:52:27 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::529; helo=mail-ed1-x529.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 57FAA100F2254;
+	Wed, 13 Jan 2021 16:43:15 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.151; helo=mga17.intel.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 29A18100F2242
-	for <linux-nvdimm@lists.01.org>; Wed, 13 Jan 2021 13:52:25 -0800 (PST)
-Received: by mail-ed1-x529.google.com with SMTP id p22so3552932edu.11
-        for <linux-nvdimm@lists.01.org>; Wed, 13 Jan 2021 13:52:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=tkCEm6n1O2YDsdNDXJh8BIEgy3kecFF0HQkrvLtX2UM=;
-        b=SRVHAUkpjdzGINze2D0SPtwgt3b82Lz/3p99J6k6sZtsuYKAjn5691k8Rp8b7FUCS9
-         6Rl0wbuf5DR1iOh0Bu8H2VEZHjnIko2IpIeXpeyK7UoEOQcvVEg5ATgpU7ILN8FvrLOJ
-         tU3S5Kbj9+NbosbQygaXJCjPhAON9p+WjNYl7vNEwbEZCP9WYe8jbt/lceuyN/JtZNF5
-         +lFs1SUeHRZFbP1fqinWUwwE0BMOo8UJwXrlPxyWIiOOAWjRy+q03pNsCcP6kNzLLcBO
-         RuItbDUV2Wl4/PPqfv0rryUy9n2oc//db/8GySCvN+q/K5oHMfeMYIBqGtgHAkGv+XnY
-         d9Pw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=tkCEm6n1O2YDsdNDXJh8BIEgy3kecFF0HQkrvLtX2UM=;
-        b=gBAba0eFkdoTLUwo19/KOeYzrzh8pCg0qBHaObhuvLmBUbo5WBOdXqRgRINYzSW3qC
-         c512muzdpdnf4AWyymd9HtM3yuTeE8BnVgHHmH//Lvvpe6TxErkXe0w1ysKr7VWbkXBg
-         AW8DvFMJyBX1WF30UhwnErTI4KJN95Vk8jD4/v6wm5UhaGOW77BPLScorB2zLQpgX+y+
-         r2TWRWxq90R3BpfaZ7t2SpshReNHQqmewwe+/IAXj7UuvkjcNXpWwfSGWUI5c0NEyi0e
-         XFAGvC+4MYs0F6sqtFg9h1mdU+h8yq+LrNR4+95D5KnERuFUSYiiwPbSqU2uY6C0jJLp
-         CG9Q==
-X-Gm-Message-State: AOAM530Vna89vuNoknx/GfJzTjZ9cPe03SLr8XcMeldNp0VI49N4Zpof
-	30h3OxDE2yy4NKxWW21+Aqry1WFMZBhmwAGXp6sbjA==
-X-Google-Smtp-Source: ABdhPJzSD6+Rzk4Z+duLWEpDKBIxKbqxC88SAUZRbhvaMudyDSDTALy3KwUquixL/d2ZtGuR3ksAPlHMa75yFMUJrmM=
-X-Received: by 2002:aa7:c3cd:: with SMTP id l13mr3362518edr.97.1610574743900;
- Wed, 13 Jan 2021 13:52:23 -0800 (PST)
-MIME-Version: 1.0
-References: <161052331545.1805594.2356512831689786960.stgit@dwillia2-desk3.amr.corp.intel.com>
- <161052332755.1805594.9846390935351758277.stgit@dwillia2-desk3.amr.corp.intel.com>
- <230efa36-9192-fe52-b8b6-16b2feafb70b@redhat.com>
-In-Reply-To: <230efa36-9192-fe52-b8b6-16b2feafb70b@redhat.com>
+	by ml01.01.org (Postfix) with ESMTPS id 6D23B100EC1D4
+	for <linux-nvdimm@lists.01.org>; Wed, 13 Jan 2021 16:43:13 -0800 (PST)
+IronPort-SDR: VqEDU3R4OhepHMax1lWg3bhDjyvXq/GDxuv5lSU6Jv1TcjGIIcn6pv+zXPODy8MAYoJu2zMCAN
+ OlbuTVeN3Lcg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9863"; a="158064367"
+X-IronPort-AV: E=Sophos;i="5.79,345,1602572400";
+   d="scan'208";a="158064367"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2021 16:43:11 -0800
+IronPort-SDR: wzoTb6hc9d6sqSJukVWSRq9IMAjmL767ApWlY5EtFShw7qgNK9ZWF4BfFWxVMzbhr+x2kbIecu
+ b0GJ+8ILSuOg==
+X-IronPort-AV: E=Sophos;i="5.79,345,1602572400";
+   d="scan'208";a="465080679"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jan 2021 16:43:10 -0800
+Subject: [PATCH v4 0/5] mm: Fix pfn_to_online_page() with respect to
+ ZONE_DEVICE
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 13 Jan 2021 13:52:14 -0800
-Message-ID: <CAPcyv4i4yGjsMf2SyixLicDjzRGes97vaSa+mF4=Y9Uagk_0jg@mail.gmail.com>
-Subject: Re: [PATCH v3 2/6] mm: Teach pfn_to_online_page() to consider
- subsection validity
-To: David Hildenbrand <david@redhat.com>
-Message-ID-Hash: Y2TUYZPHB4OEKZX3BDS6OGWEQ23EUTQE
-X-Message-ID-Hash: Y2TUYZPHB4OEKZX3BDS6OGWEQ23EUTQE
+To: akpm@linux-foundation.org
+Date: Wed, 13 Jan 2021 16:43:10 -0800
+Message-ID: <161058499000.1840162.702316708443239771.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
+MIME-Version: 1.0
+Message-ID-Hash: NQAFXWCMY5QECNVJXULUL5MRT3VR3SCQ
+X-Message-ID-Hash: NQAFXWCMY5QECNVJXULUL5MRT3VR3SCQ
 X-MailFrom: dan.j.williams@intel.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Linux MM <linux-mm@kvack.org>, Qian Cai <cai@lca.pw>, Michal Hocko <mhocko@suse.com>, Oscar Salvador <osalvador@suse.de>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+CC: David Hildenbrand <david@redhat.com>, stable@vger.kernel.org, Naoya Horiguchi <nao.horiguchi@gmail.com>, Qian Cai <cai@lca.pw>, Michal Hocko <mhocko@kernel.org>, Oscar Salvador <osalvador@suse.de>, Michal Hocko <mhocko@suse.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Y2TUYZPHB4OEKZX3BDS6OGWEQ23EUTQE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NQAFXWCMY5QECNVJXULUL5MRT3VR3SCQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,56 +63,71 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 13, 2021 at 12:29 AM David Hildenbrand <david@redhat.com> wrote:
->
-> On 13.01.21 08:35, Dan Williams wrote:
-> > pfn_section_valid() determines pfn validity on subsection granularity
-> > where pfn_valid() may be limited to coarse section granularity.
-> > Explicitly validate subsections after pfn_valid() succeeds.
-> >
-> > Fixes: b13bc35193d9 ("mm/hotplug: invalid PFNs from pfn_to_online_page()")
-> > Cc: Qian Cai <cai@lca.pw>
-> > Cc: Michal Hocko <mhocko@suse.com>
-> > Cc: Oscar Salvador <osalvador@suse.de>
-> > Reported-by: David Hildenbrand <david@redhat.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > ---
-> >  mm/memory_hotplug.c |   24 ++++++++++++++++++++----
-> >  1 file changed, 20 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> > index 55a69d4396e7..9f37f8a68da4 100644
-> > --- a/mm/memory_hotplug.c
-> > +++ b/mm/memory_hotplug.c
-> > @@ -308,11 +308,27 @@ static int check_hotplug_memory_addressable(unsigned long pfn,
-> >  struct page *pfn_to_online_page(unsigned long pfn)
-> >  {
-> >       unsigned long nr = pfn_to_section_nr(pfn);
-> > +     struct mem_section *ms;
-> > +
-> > +     if (nr >= NR_MEM_SECTIONS)
-> > +             return NULL;
-> > +
-> > +     ms = __nr_to_section(nr);
-> > +     if (!online_section(ms))
-> > +             return NULL;
-> > +
-> > +     /*
-> > +      * Save some code text when online_section() +
-> > +      * pfn_section_valid() are sufficient.
-> > +      */
-> > +     if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID))
-> > +             if (!pfn_valid(pfn))
-> > +                     return NULL;
->
-> Nit:
->
-> if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) &&
->     !pfn_valid(pfn))
->
+Changes since v3 [1]:
+- Switch to "if (IS_ENABLED(CONFIG_HAVE_ARCH_PFN_VALID) &&
+  !pfn_valid(pfn))" (David)
+- Finish collecting reviewed-bys across all patches in the series
+- Drop the libnvdimm fixup, to be merged through nvdimm.git not -mm
 
-Ok... I'll do a final resend "To: akpm" after the kbuild robot
-finishes chewing on this series.
+[1]: http://lore.kernel.org/r/161052331545.1805594.2356512831689786960.stgit@dwillia2-desk3.amr.corp.intel.com
+
+---
+
+Andrew,
+
+All patches in this series have been reviewed and the kbuild-robot
+reports a build-success over 172 configs. They pass an updated version
+of the nvdimm unit tests to exercise corner cases of
+pfn_to_online_page() and get_dev_pagemap() [2], and apply cleanly to
+current -next.
+
+Please apply, thanks.
+
+[2]: http://lore.kernel.org/r/161052209289.1804207.11599120961607513911.stgit@dwillia2-desk3.amr.corp.intel.com
+
+---
+
+Michal reminds that the discussion about how to ensure pfn-walkers do
+not get confused by ZONE_DEVICE pages never resolved. A pfn-walker that
+uses pfn_to_online_page() may inadvertently translate a pfn as online
+and in the page allocator, when it is offline managed by a ZONE_DEVICE
+mapping (details in Patch 3: ("mm: Teach pfn_to_online_page() about
+ZONE_DEVICE section collisions")).
+
+The 2 proposals under consideration are teach pfn_to_online_page() to be
+precise in the presence of mixed-zone sections, or teach the memory-add
+code to drop the System RAM associated with ZONE_DEVICE collisions. In
+order to not regress memory capacity by a few 10s to 100s of MiB the
+approach taken in this set is to add precision to pfn_to_online_page().
+
+In the course of validating pfn_to_online_page() a couple other fixes
+fell out:
+
+1/ soft_offline_page() fails to drop the reference taken in the
+   madvise(..., MADV_SOFT_OFFLINE) case.
+
+2/ memory_failure() uses get_dev_pagemap() to lookup ZONE_DEVICE pages,
+   however that mapping may contain data pages and metadata raw pfns.
+   Introduce pgmap_pfn_valid() to delineate the 2 types and fail the
+   handling of raw metadata pfns.
+
+---
+
+Dan Williams (5):
+      mm: Move pfn_to_online_page() out of line
+      mm: Teach pfn_to_online_page() to consider subsection validity
+      mm: Teach pfn_to_online_page() about ZONE_DEVICE section collisions
+      mm: Fix page reference leak in soft_offline_page()
+      mm: Fix memory_failure() handling of dax-namespace metadata
+
+
+ include/linux/memory_hotplug.h |   17 +---------
+ include/linux/memremap.h       |    6 +++
+ include/linux/mmzone.h         |   22 +++++++++----
+ mm/memory-failure.c            |   26 +++++++++++++--
+ mm/memory_hotplug.c            |   69 ++++++++++++++++++++++++++++++++++++++++
+ mm/memremap.c                  |   15 +++++++++
+ 6 files changed, 128 insertions(+), 27 deletions(-)
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
