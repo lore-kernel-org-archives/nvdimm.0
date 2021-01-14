@@ -2,260 +2,171 @@ Return-Path: <SRS0=TOes=GR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C2ECC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 Jan 2021 17:20:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF7B6C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 Jan 2021 20:38:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E751923B52
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 Jan 2021 17:20:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E751923B52
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 9E01623A34
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 14 Jan 2021 20:38:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9E01623A34
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 40640100EB357;
-	Thu, 14 Jan 2021 09:20:22 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=djwong@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 18BFF100EBBDC;
+	Thu, 14 Jan 2021 12:38:46 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::532; helo=mail-ed1-x532.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2246E100EB34D
-	for <linux-nvdimm@lists.01.org>; Thu, 14 Jan 2021 09:20:20 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E15E23B40;
-	Thu, 14 Jan 2021 17:20:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1610644819;
-	bh=EXEnEyfrCTN4jcEZWerLll4giavU5clJRT6dCZzDHCA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GVeXaOthgIZOKxCv7F+b46TPkftBwC5bV446IekhtxRZLhEx7swp/lUBa7+DhSA5V
-	 MQvYC5e4TRQqTDd+DxRN7/LSB9RaxJ+fdDFCSs/YueQmRro1YJM9S+fm1LgGuS0ZRF
-	 Xwo1OitruNLkLk4MVMknBBxCZRAP0BvLI3zEZf2Ya42+0z2TSUjDSt96+i9LQJm14g
-	 5pnyQKnWo/3d4+7KgazxfEzwl2/0qzYvkSX0cRb/FSrrrFRDyI770iMSBIsVlINQ2z
-	 C67YwS0dBC04X8Hdq1lnU5gqGHwRwtSWdTxhl6/ef+y/ECEKyiNbz6QEdYKzMsOjWY
-	 6j6heUhkhjv4Q==
-Date: Thu, 14 Jan 2021 09:20:18 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: zhong jiang <zhongjiang-ali@linux.alibaba.com>
-Subject: Re: [PATCH 04/10] mm, fsdax: Refactor memory-failure handler for dax
- mapping
-Message-ID: <20210114172018.GZ1164246@magnolia>
-References: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com>
- <20201230165601.845024-5-ruansy.fnst@cn.fujitsu.com>
- <20210106154132.GC29271@quack2.suse.cz>
- <75164044-bfdf-b2d6-dff0-d6a8d56d1f62@cn.fujitsu.com>
- <781f276b-afdd-091c-3dba-048e415431ab@linux.alibaba.com>
- <ef29ba5c-96d7-d0bb-e405-c7472a518b32@cn.fujitsu.com>
- <e2f7ad16-8162-4933-9091-72e690e9877e@linux.alibaba.com>
- <4f184987-3cc2-c72d-0774-5d20ea2e1d49@cn.fujitsu.com>
- <53ecb7e2-8f59-d1a5-df75-4780620ce91f@linux.alibaba.com>
+	by ml01.01.org (Postfix) with ESMTPS id 49A7B100ED4A5
+	for <linux-nvdimm@lists.01.org>; Thu, 14 Jan 2021 12:38:43 -0800 (PST)
+Received: by mail-ed1-x532.google.com with SMTP id h16so7170116edt.7
+        for <linux-nvdimm@lists.01.org>; Thu, 14 Jan 2021 12:38:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=HW2Gy+bmbScdrUiihPvmqmOfoBoJ371Y9lVdMFUmq+Y=;
+        b=yGOdyQNILINypQm/2jqXO6AfJMafn21XGw8EuGb3Op3CFg1tTZMSAR0rEasGJ1fNOS
+         yLllo/9Y8iS/xZYU6AxccWxMPTpSMM8D6QvzzM4jMSGwEs9hnHIlBnLno7KTxzdYF3Kp
+         KwtNyxup1uOWxXyQrcBBAo2o9U51ITkYAiriKkt2QNr2JX6HrELaFQgxFhhCA8zYidBs
+         k7aOmIV3u5QzjG0umzVAbcSHGi2o9GzSnc7gS6T59a8K4b8xbNr8QhTa7Jy5EYUITqET
+         o40thjAjGnsgi1R5vPAh+U9Vvz+toY/DwyAl8fonbO5ueCyy/1GYAeVF73/Ndh+roNVD
+         9VQg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=HW2Gy+bmbScdrUiihPvmqmOfoBoJ371Y9lVdMFUmq+Y=;
+        b=cc1Tp70hoIpUAxXho0vUn09K4AcRNNXeLL79XtBaVrRyCUV5jI37VH1oNcX2AQa484
+         t9KiZyHe/FnoPIBApGBbU5uEkY/kwRhrxAHXFf9kEQF4YN/QbWkrUYWwzCHqAkwc6DI/
+         DIH9sntLXoF/VCPR/ds/WZPe9vb2csYfbZ6vyElEJm5PzzR3oNi4ikrttc4B/bpISyjG
+         P7eNjBwHInuDcU2t95gxadpcmyDHyYCrKpw/cEMqs/m6b2hU8GKN9BAsMqc/Yd9NxSEo
+         l0vhuDmwOKVJ4rOpQmqyqpd59Gr3L6opJvqIdCyw16cbs5OT/2RHDyuSsZlXrO1zzDSo
+         0POA==
+X-Gm-Message-State: AOAM533GD+RcmU2aAFCq3prfJiUlN0AuoQUW6rlZ8+Rb/Dzg5df9Iigq
+	JBJ/wVo9Vh/v+x77SxGHGPjvOwxcf79dxg0ZwRojSw==
+X-Google-Smtp-Source: ABdhPJw/UE18mcptuTTaq48ZA3l/slnXhk/5uHJysnrWQLOxkXl0WkGF7VK5q6iTBMceXPuJ8xY9V/7LnANIuvkLoIM=
+X-Received: by 2002:a50:b282:: with SMTP id p2mr7358432edd.210.1610656721518;
+ Thu, 14 Jan 2021 12:38:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <53ecb7e2-8f59-d1a5-df75-4780620ce91f@linux.alibaba.com>
-Message-ID-Hash: S2GV47HI6ORVV3SZ35EEMTNG62P3VMU5
-X-Message-ID-Hash: S2GV47HI6ORVV3SZ35EEMTNG62P3VMU5
-X-MailFrom: djwong@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Jan Kara <jack@suse.cz>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+References: <20201230165601.845024-1-ruansy.fnst@cn.fujitsu.com> <20201230165601.845024-5-ruansy.fnst@cn.fujitsu.com>
+In-Reply-To: <20201230165601.845024-5-ruansy.fnst@cn.fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Jan 2021 12:38:30 -0800
+Message-ID: <CAPcyv4hD1aeVGQ33j54o8jKi41qtAVkAhTgrx64C=WPZ0SvNQg@mail.gmail.com>
+Subject: Re: [PATCH 04/10] mm, fsdax: Refactor memory-failure handler for dax mapping
+To: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+Message-ID-Hash: THENKHXX7CX35XR3SQLJF5QWXKNDPQYX
+X-Message-ID-Hash: THENKHXX7CX35XR3SQLJF5QWXKNDPQYX
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-raid <linux-raid@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, song@kernel.org, Goldwyn Rodrigues <rgoldwyn@suse.de>, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/S2GV47HI6ORVV3SZ35EEMTNG62P3VMU5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/THENKHXX7CX35XR3SQLJF5QWXKNDPQYX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gVGh1LCBKYW4gMTQsIDIwMjEgYXQgMDU6Mzg6MzNQTSArMDgwMCwgemhvbmcgamlhbmcgd3Jv
-dGU6DQo+IA0KPiBPbiAyMDIxLzEvMTQgMTE6NTIg5LiK5Y2ILCBSdWFuIFNoaXlhbmcgd3JvdGU6
-DQo+ID4gDQo+ID4gDQo+ID4gT24gMjAyMS8xLzE0IOS4iuWNiDExOjI2LCB6aG9uZyBqaWFuZyB3
-cm90ZToNCj4gPiA+IA0KPiA+ID4gT24gMjAyMS8xLzE0IDk6NDQg5LiK5Y2ILCBSdWFuIFNoaXlh
-bmcgd3JvdGU6DQo+ID4gPiA+IA0KPiA+ID4gPiANCj4gPiA+ID4gT24gMjAyMS8xLzEzIOS4i+WN
-iDY6MDQsIHpob25nIGppYW5nIHdyb3RlOg0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+IE9uIDIwMjEv
-MS8xMiAxMDo1NSDkuIrljYgsIFJ1YW4gU2hpeWFuZyB3cm90ZToNCj4gPiA+ID4gPiA+IA0KPiA+
-ID4gPiA+ID4gDQo+ID4gPiA+ID4gPiBPbiAyMDIxLzEvNiDkuIvljYgxMTo0MSwgSmFuIEthcmEg
-d3JvdGU6DQo+ID4gPiA+ID4gPiA+IE9uIFRodSAzMS0xMi0yMCAwMDo1NTo1NSwgU2hpeWFuZyBS
-dWFuIHdyb3RlOg0KPiA+ID4gPiA+ID4gPiA+IFRoZSBjdXJyZW50IG1lbW9yeV9mYWlsdXJlX2Rl
-dl9wYWdlbWFwKCkgY2FuDQo+ID4gPiA+ID4gPiA+ID4gb25seSBoYW5kbGUgc2luZ2xlLW1hcHBl
-ZA0KPiA+ID4gPiA+ID4gPiA+IGRheCBwYWdlIGZvciBmc2RheCBtb2RlLsKgIFRoZSBkYXggcGFn
-ZSBjb3VsZCBiZQ0KPiA+ID4gPiA+ID4gPiA+IG1hcHBlZCBieSBtdWx0aXBsZSBmaWxlcw0KPiA+
-ID4gPiA+ID4gPiA+IGFuZCBvZmZzZXRzIGlmIHdlIGxldCByZWZsaW5rIGZlYXR1cmUgJiBmc2Rh
-eA0KPiA+ID4gPiA+ID4gPiA+IG1vZGUgd29yayB0b2dldGhlci4gU28sDQo+ID4gPiA+ID4gPiA+
-ID4gd2UgcmVmYWN0b3IgY3VycmVudCBpbXBsZW1lbnRhdGlvbiB0byBzdXBwb3J0DQo+ID4gPiA+
-ID4gPiA+ID4gaGFuZGxlIG1lbW9yeSBmYWlsdXJlIG9uDQo+ID4gPiA+ID4gPiA+ID4gZWFjaCBm
-aWxlIGFuZCBvZmZzZXQuDQo+ID4gPiA+ID4gPiA+ID4gDQo+ID4gPiA+ID4gPiA+ID4gU2lnbmVk
-LW9mZi1ieTogU2hpeWFuZyBSdWFuIDxydWFuc3kuZm5zdEBjbi5mdWppdHN1LmNvbT4NCj4gPiA+
-ID4gPiA+ID4gDQo+ID4gPiA+ID4gPiA+IE92ZXJhbGwgdGhpcyBsb29rcyBPSyB0byBtZSwgYSBm
-ZXcgY29tbWVudHMgYmVsb3cuDQo+ID4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gPiA+IC0tLQ0K
-PiA+ID4gPiA+ID4gPiA+IMKgIGZzL2RheC5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB8IDIxICsr
-KysrKysrKysrDQo+ID4gPiA+ID4gPiA+ID4gwqAgaW5jbHVkZS9saW51eC9kYXguaCB8wqAgMSAr
-DQo+ID4gPiA+ID4gPiA+ID4gwqAgaW5jbHVkZS9saW51eC9tbS5owqAgfMKgIDkgKysrKysNCj4g
-PiA+ID4gPiA+ID4gPiDCoCBtbS9tZW1vcnktZmFpbHVyZS5jIHwgOTENCj4gPiA+ID4gPiA+ID4g
-PiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0NCj4gPiA+ID4g
-PiA+ID4gPiDCoCA0IGZpbGVzIGNoYW5nZWQsIDEwMCBpbnNlcnRpb25zKCspLCAyMiBkZWxldGlv
-bnMoLSkNCj4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gLi4uDQo+ID4gPiA+ID4gPiANCj4gPiA+
-ID4gPiA+ID4gPiDCoCBAQCAtMzQ1LDkgKzM0OCwxMiBAQCBzdGF0aWMgdm9pZA0KPiA+ID4gPiA+
-ID4gPiA+IGFkZF90b19raWxsKHN0cnVjdCB0YXNrX3N0cnVjdCAqdHNrLCBzdHJ1Y3QgcGFnZQ0K
-PiA+ID4gPiA+ID4gPiA+ICpwLA0KPiA+ID4gPiA+ID4gPiA+IMKgwqDCoMKgwqAgfQ0KPiA+ID4g
-PiA+ID4gPiA+IMKgIMKgwqDCoMKgwqAgdGstPmFkZHIgPSBwYWdlX2FkZHJlc3NfaW5fdm1hKHAs
-IHZtYSk7DQo+ID4gPiA+ID4gPiA+ID4gLcKgwqDCoCBpZiAoaXNfem9uZV9kZXZpY2VfcGFnZShw
-KSkNCj4gPiA+ID4gPiA+ID4gPiAtwqDCoMKgwqDCoMKgwqAgdGstPnNpemVfc2hpZnQgPSBkZXZf
-cGFnZW1hcF9tYXBwaW5nX3NoaWZ0KHAsIHZtYSk7DQo+ID4gPiA+ID4gPiA+ID4gLcKgwqDCoCBl
-bHNlDQo+ID4gPiA+ID4gPiA+ID4gK8KgwqDCoCBpZiAoaXNfem9uZV9kZXZpY2VfcGFnZShwKSkg
-ew0KPiA+ID4gPiA+ID4gPiA+ICvCoMKgwqDCoMKgwqDCoCBpZiAoaXNfZGV2aWNlX2ZzZGF4X3Bh
-Z2UocCkpDQo+ID4gPiA+ID4gPiA+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqAgdGstPmFkZHIg
-PSB2bWEtPnZtX3N0YXJ0ICsNCj4gPiA+ID4gPiA+ID4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqAgKChwZ29mZiAtIHZtYS0+dm1fcGdvZmYpIDw8IFBBR0VfU0hJRlQp
-Ow0KPiA+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiA+ID4gSXQgc2VlbXMgc3RyYW5nZSB0byB1c2Ug
-J3Bnb2ZmJyBmb3IgZGF4IHBhZ2VzIGFuZA0KPiA+ID4gPiA+ID4gPiBub3QgZm9yIGFueSBvdGhl
-ciBwYWdlLg0KPiA+ID4gPiA+ID4gPiBXaHk/IEknZCByYXRoZXIgcGFzcyBjb3JyZWN0IHBnb2Zm
-IGZyb20gYWxsIGNhbGxlcnMNCj4gPiA+ID4gPiA+ID4gb2YgYWRkX3RvX2tpbGwoKSBhbmQNCj4g
-PiA+ID4gPiA+ID4gYXZvaWQgdGhpcyBzcGVjaWFsIGNhc2luZy4uLg0KPiA+ID4gPiA+ID4gDQo+
-ID4gPiA+ID4gPiBCZWNhdXNlIG9uZSBmc2RheCBwYWdlIGNhbiBiZSBzaGFyZWQgYnkgbXVsdGlw
-bGUgcGdvZmZzLg0KPiA+ID4gPiA+ID4gSSBoYXZlIHRvIHBhc3MgZWFjaCBwZ29mZiBpbiBlYWNo
-IGl0ZXJhdGlvbiB0byBjYWxjdWxhdGUNCj4gPiA+ID4gPiA+IHRoZSBhZGRyZXNzIGluIHZtYSAo
-Zm9yIHRrLT5hZGRyKS7CoCBPdGhlciBraW5kcyBvZiBwYWdlcw0KPiA+ID4gPiA+ID4gZG9uJ3Qg
-bmVlZCB0aGlzLiBUaGV5IGNhbiBnZXQgdGhlaXIgdW5pcXVlIGFkZHJlc3MgYnkNCj4gPiA+ID4g
-PiA+IGNhbGxpbmcgInBhZ2VfYWRkcmVzc19pbl92bWEoKSIuDQo+ID4gPiA+ID4gPiANCj4gPiA+
-ID4gPiBJTU8swqDCoCBhbiBmc2RheCBwYWdlIGNhbiBiZSBzaGFyZWQgYnkgbXVsdGlwbGUgZmls
-ZXMgcmF0aGVyDQo+ID4gPiA+ID4gdGhhbiBtdWx0aXBsZSBwZ29mZnMgaWYgZnMgcXVlcnkgc3Vw
-cG9ydCByZWZsaW5rLsKgwqAgQmVjYXVzZQ0KPiA+ID4gPiA+IGFuIHBhZ2Ugb25seSBsb2NhdGVk
-IGluIGFuIG1hcHBpbmcocGFnZS0+bWFwcGluZyBpcw0KPiA+ID4gPiA+IGV4Y2x1c2l2ZSksIGhl
-bmNlIGl0wqAgb25seSBoYXMgYW4gcGdvZmYgb3IgaW5kZXggcG9pbnRpbmcgYXQNCj4gPiA+ID4g
-PiB0aGUgbm9kZS4NCj4gPiA+ID4gPiANCj4gPiA+ID4gPiDCoMKgb3LCoCBJIG1pc3Mgc29tZXRo
-aW5nIGZvciB0aGUgZmVhdHVyZSA/wqAgdGhhbmtzLA0KPiA+ID4gPiANCj4gPiA+ID4gWWVzLCBh
-IGZzZGF4IHBhZ2UgaXMgc2hhcmVkIGJ5IG11bHRpcGxlIGZpbGVzIGJlY2F1c2Ugb2YNCj4gPiA+
-ID4gcmVmbGluay4gSSB0aGluayBteSBkZXNjcmlwdGlvbiBvZiAncGdvZmYnIGhlcmUgaXMgbm90
-IGNvcnJlY3QuwqANCj4gPiA+ID4gVGhpcyAncGdvZmYnIG1lYW5zIHRoZSBvZmZzZXQgd2l0aGlu
-IHRoZSBhIGZpbGUuIChXZSB1c2Ugcm1hcCB0bw0KPiA+ID4gPiBmaW5kIG91dCBhbGwgdGhlIHNo
-YXJpbmcgZmlsZXMgYW5kIHRoZWlyIG9mZnNldHMuKcKgIFNvLCBJIHNhaWQNCj4gPiA+ID4gdGhh
-dCAiY2FuIGJlIHNoYXJlZCBieSBtdWx0aXBsZSBwZ29mZnMiLsKgIEl0J3MgbXkgYmFkLg0KPiA+
-ID4gPiANCj4gPiA+ID4gSSB0aGluayBJIHNob3VsZCBuYW1lIGl0IGFub3RoZXIgd29yZCB0byBh
-dm9pZCBtaXN1bmRlcnN0YW5kaW5ncy4NCj4gPiA+ID4gDQo+ID4gPiBJTU8swqAgQWxsIHRoZSBz
-aGFyaW5nIGZpbGVzIHNob3VsZCBiZSB0aGUgc2FtZSBvZmZzZXQgdG8gc2hhcmUgdGhlDQo+ID4g
-PiBmc2RheCBwYWdlLsKgIHdoeSBub3QgdGhhdCA/DQo+ID4gDQo+ID4gVGhlIGRlZHVwZSBvcGVy
-YXRpb24gY2FuIGxldCBkaWZmZXJlbnQgZmlsZXMgc2hhcmUgdGhlaXIgc2FtZSBkYXRhDQo+ID4g
-ZXh0ZW50LCB0aG91Z2ggb2Zmc2V0cyBhcmUgbm90IHNhbWUuwqAgU28sIGZpbGVzIGNhbiBzaGFy
-ZSBvbmUgZnNkYXggcGFnZQ0KPiA+IGF0IGRpZmZlcmVudCBvZmZzZXQuDQo+IE9rLMKgIEdldCBp
-dC4NCj4gPiANCj4gPiA+IEFzIHlvdSBoYXMgc2FpZCzCoCBhIHNoYXJlZCBmYWRheCBwYWdlIHNo
-b3VsZCBiZSBpbnNlcnRlZCB0bw0KPiA+ID4gZGlmZmVyZW50IG1hcHBpbmcgZmlsZXMuwqAgYnV0
-IHBhZ2UtPmluZGV4IGFuZCBwYWdlLT5tYXBwaW5nIGlzDQo+ID4gPiBleGNsdXNpdmUuwqAgaGVu
-Y2UgYW4gcGFnZSBvbmx5IHNob3VsZCBiZSBwbGFjZWQgaW4gYW4gbWFwcGluZyB0cmVlLg0KPiA+
-IA0KPiA+IFdlIGNhbid0IHVzZSBwYWdlLT5tYXBwaW5nIGFuZCBwYWdlLT5pbmRleCBoZXJlIGZv
-ciByZWZsaW5rICYgZnNkYXguIEFuZA0KPiA+IHRoYXQncyB0aGlzIHBhdGNoc2V0IGFpbXMgdG8g
-c29sdmUuwqAgSSBpbnRyb2R1Y2VkIGEgc2VyaWVzIG9mDQo+ID4gLT5jb3JydXB0ZWRfcmFuZ2Uo
-KSwgZnJvbSBtbSB0byBwbWVtIGRyaXZlciB0byBibG9jayBkZXZpY2UgYW5kIGZpbmFsbHkNCj4g
-PiB0byBmaWxlc3lzdGVtLCB0byB1c2Ugcm1hcCBmZWF0dXJlIG9mIGZpbGVzeXN0ZW0gdG8gZmlu
-ZCBvdXQgYWxsIGZpbGVzDQo+ID4gc2hhcmluZyBzYW1lIGRhdGEgZXh0ZW50IChmc2RheCBwYWdl
-KS4NCj4gDQo+IEZyb20gdGhpcyBwYXRjaCzCoCBlYWNoIGZpbGUgaGFzIG1hcHBpbmcgdHJlZSzC
-oCB0aGUgc2hhcmVkIHBhZ2Ugd2lsbCBiZQ0KPiBpbnNlcnRlZCBpbnRvIG11bHRpcGxlIGZpbGUg
-bWFwcGluZyB0cmVlLsKgIHRoZW4gZmlsZXN5c3RlbSB1c2UgZmlsZSBhbmQNCj4gb2Zmc2V0IHRv
-IGdldCB0aGUga2lsbGVkIHByb2Nlc3MuwqDCoCBJcyBpdCBjb3JyZWN0Pw0KDQpGV0lXIEkgdGhv
-dWdodCB0aGUgcHVycG9zZSBvZiB0aGlzIHBhdGNoc2V0IGlzIHRvIHJlbW92ZSB0aGUgKGRheCkN
-Cm1lbW9yeSBwb2lzb24gY29kZSdzIHJlbGlhbmNlIG9uIHRoZSBwYWdlY2FjaGUgbWFwcGluZyBz
-dHJ1Y3R1cmUgYnkNCnB1c2hpbmcgcG9pc29uIG5vdGlmaWNhdGlvbnMgZGlyZWN0bHkgaW50byB0
-aGUgZmlsZXN5c3RlbSBhbmQgbGV0dGluZw0KdGhlIGZpbGVzeXN0ZW0gcGVyZm9ybSByZXZlcnNl
-IGxvb2t1cCBvcGVyYXRpb25zIHRvIGZpZ3VyZSBvdXQgd2hpY2gNCmZpbGUocykgaGF2ZSBnb25l
-IGJhZCwgYW5kIHVzaW5nIHRoZSBmaWxlIGxpc3QgdG8gY2FsbCBiYWNrIGludG8gdGhlIG1tDQp0
-byBraWxsIHByb2Nlc3Nlcy4NCg0KT25jZSB0aGF0J3MgZG9uZSwgSSB0aGluayg/KSB0aGF0IHB1
-dHMgdXMgc2lnbmlmaWNhbnRseSBjbG9zZXIgdG8gYmVpbmcNCmFibGUgdG8gc2hhcmUgcG1lbSBi
-ZXR3ZWVuIGZpbGVzIGluIGRheCBtb2RlIHdpdGhvdXQgaGF2aW5nIHRvIHJld3JpdGUNCnRoZSBl
-bnRpcmUgbWVtb3J5IG1hbmFnZXIncyBtYXBwaW5nIGFuZCBybWFwcGluZyBjb2RlIHRvIHN1cHBv
-cnQNCnNoYXJpbmcuDQoNCi0tRA0KDQo+IFRoYW5rcywNCj4gDQo+ID4gDQo+ID4gDQo+ID4gLS0g
-DQo+ID4gVGhhbmtzLA0KPiA+IFJ1YW4gU2hpeWFuZy4NCj4gPiANCj4gPiA+IA0KPiA+ID4gQW5k
-IEluIHRoZSBjdXJyZW50IHBhdGNoLMKgIHdlIGZhaWxlZCB0byBmb3VuZCBvdXQgdGhhdCBhbGwg
-cHJvY2Vzcw0KPiA+ID4gdXNlIHRoZSBmc2RheCBwYWdlIHNoYXJlZCBieSBtdWx0aXBsZSBmaWxl
-cyBhbmQga2lsbCB0aGVtLg0KPiA+ID4gDQo+ID4gPiANCj4gPiA+IFRoYW5rcywNCj4gPiA+IA0K
-PiA+ID4gPiAtLSANCj4gPiA+ID4gVGhhbmtzLA0KPiA+ID4gPiBSdWFuIFNoaXlhbmcuDQo+ID4g
-PiA+IA0KPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gU28sIEkgYWRkZWQgdGhpcyBmc2RheCBjYXNl
-IGhlcmUuIFRoaXMgcGF0Y2hzZXQgb25seQ0KPiA+ID4gPiA+ID4gaW1wbGVtZW50ZWQgdGhlIGZz
-ZGF4IGNhc2UsIG90aGVyIGNhc2VzIGFsc28gbmVlZCB0byBiZQ0KPiA+ID4gPiA+ID4gYWRkZWQg
-aGVyZSBpZiB0byBiZSBpbXBsZW1lbnRlZC4NCj4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gDQo+
-ID4gPiA+ID4gPiAtLSANCj4gPiA+ID4gPiA+IFRoYW5rcywNCj4gPiA+ID4gPiA+IFJ1YW4gU2hp
-eWFuZy4NCj4gPiA+ID4gPiA+IA0KPiA+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiA+ID4gPiArwqDC
-oMKgwqDCoMKgwqAgdGstPnNpemVfc2hpZnQgPQ0KPiA+ID4gPiA+ID4gPiA+IGRldl9wYWdlbWFw
-X21hcHBpbmdfc2hpZnQocCwgdm1hLCB0ay0+YWRkcik7DQo+ID4gPiA+ID4gPiA+ID4gK8KgwqDC
-oCB9IGVsc2UNCj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDCoMKgwqDCoMKgwqAgdGstPnNpemVfc2hp
-ZnQgPSBwYWdlX3NoaWZ0KGNvbXBvdW5kX2hlYWQocCkpOw0KPiA+ID4gPiA+ID4gPiA+IMKgIMKg
-wqDCoMKgwqAgLyoNCj4gPiA+ID4gPiA+ID4gPiBAQCAtNDk1LDcgKzUwMSw3IEBAIHN0YXRpYyB2
-b2lkDQo+ID4gPiA+ID4gPiA+ID4gY29sbGVjdF9wcm9jc19hbm9uKHN0cnVjdCBwYWdlICpwYWdl
-LCBzdHJ1Y3QNCj4gPiA+ID4gPiA+ID4gPiBsaXN0X2hlYWQgKnRvX2tpbGwsDQo+ID4gPiA+ID4g
-PiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgaWYgKCFwYWdlX21hcHBlZF9pbl92bWEo
-cGFnZSwgdm1hKSkNCj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgIGNvbnRpbnVlOw0KPiA+ID4gPiA+ID4gPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgIGlmICh2bWEtPnZtX21tID09IHQtPm1tKQ0KPiA+ID4gPiA+ID4gPiA+IC3CoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgYWRkX3RvX2tpbGwodCwgcGFnZSwgdm1hLCB0b19raWxsKTsN
-Cj4gPiA+ID4gPiA+ID4gPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGFkZF90b19r
-aWxsKHQsIHBhZ2UsIE5VTEwsIDAsIHZtYSwgdG9fa2lsbCk7DQo+ID4gPiA+ID4gPiA+ID4gwqDC
-oMKgwqDCoMKgwqDCoMKgIH0NCj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDCoMKgIH0NCj4gPiA+ID4g
-PiA+ID4gPiDCoMKgwqDCoMKgIHJlYWRfdW5sb2NrKCZ0YXNrbGlzdF9sb2NrKTsNCj4gPiA+ID4g
-PiA+ID4gPiBAQCAtNTA1LDI0ICs1MTEsMTkgQEAgc3RhdGljIHZvaWQNCj4gPiA+ID4gPiA+ID4g
-PiBjb2xsZWN0X3Byb2NzX2Fub24oc3RydWN0IHBhZ2UgKnBhZ2UsIHN0cnVjdA0KPiA+ID4gPiA+
-ID4gPiA+IGxpc3RfaGVhZCAqdG9fa2lsbCwNCj4gPiA+ID4gPiA+ID4gPiDCoCAvKg0KPiA+ID4g
-PiA+ID4gPiA+IMKgwqAgKiBDb2xsZWN0IHByb2Nlc3NlcyB3aGVuIHRoZSBlcnJvciBoaXQgYSBm
-aWxlIG1hcHBlZCBwYWdlLg0KPiA+ID4gPiA+ID4gPiA+IMKgwqAgKi8NCj4gPiA+ID4gPiA+ID4g
-PiAtc3RhdGljIHZvaWQgY29sbGVjdF9wcm9jc19maWxlKHN0cnVjdCBwYWdlDQo+ID4gPiA+ID4g
-PiA+ID4gKnBhZ2UsIHN0cnVjdCBsaXN0X2hlYWQgKnRvX2tpbGwsDQo+ID4gPiA+ID4gPiA+ID4g
-LcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpbnQgZm9yY2VfZWFybHkpDQo+ID4gPiA+
-ID4gPiA+ID4gK3N0YXRpYyB2b2lkIGNvbGxlY3RfcHJvY3NfZmlsZShzdHJ1Y3QgcGFnZQ0KPiA+
-ID4gPiA+ID4gPiA+ICpwYWdlLCBzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZywNCj4gPiA+
-ID4gPiA+ID4gPiArwqDCoMKgwqDCoMKgwqAgcGdvZmZfdCBwZ29mZiwgc3RydWN0IGxpc3RfaGVh
-ZCAqdG9fa2lsbCwgaW50IGZvcmNlX2Vhcmx5KQ0KPiA+ID4gPiA+ID4gPiA+IMKgIHsNCj4gPiA+
-ID4gPiA+ID4gPiDCoMKgwqDCoMKgIHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hOw0KPiA+ID4g
-PiA+ID4gPiA+IMKgwqDCoMKgwqAgc3RydWN0IHRhc2tfc3RydWN0ICp0c2s7DQo+ID4gPiA+ID4g
-PiA+ID4gLcKgwqDCoCBzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGluZyA9IHBhZ2UtPm1hcHBp
-bmc7DQo+ID4gPiA+ID4gPiA+ID4gLcKgwqDCoCBwZ29mZl90IHBnb2ZmOw0KPiA+ID4gPiA+ID4g
-PiA+IMKgIMKgwqDCoMKgwqAgaV9tbWFwX2xvY2tfcmVhZChtYXBwaW5nKTsNCj4gPiA+ID4gPiA+
-ID4gPiDCoMKgwqDCoMKgIHJlYWRfbG9jaygmdGFza2xpc3RfbG9jayk7DQo+ID4gPiA+ID4gPiA+
-ID4gLcKgwqDCoCBwZ29mZiA9IHBhZ2VfdG9fcGdvZmYocGFnZSk7DQo+ID4gPiA+ID4gPiA+ID4g
-wqDCoMKgwqDCoCBmb3JfZWFjaF9wcm9jZXNzKHRzaykgew0KPiA+ID4gPiA+ID4gPiA+IMKgwqDC
-oMKgwqDCoMKgwqDCoCBzdHJ1Y3QgdGFza19zdHJ1Y3QgKnQgPQ0KPiA+ID4gPiA+ID4gPiA+IHRh
-c2tfZWFybHlfa2lsbCh0c2ssIGZvcmNlX2Vhcmx5KTsNCj4gPiA+ID4gPiA+ID4gPiAtDQo+ID4g
-PiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKgIGlmICghdCkNCj4gPiA+ID4gPiA+ID4gPiDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBjb250aW51ZTsNCj4gPiA+ID4gPiA+ID4gPiAtwqDC
-oMKgwqDCoMKgwqAgdm1hX2ludGVydmFsX3RyZWVfZm9yZWFjaCh2bWEsICZtYXBwaW5nLT5pX21t
-YXAsIHBnb2ZmLA0KPiA+ID4gPiA+ID4gPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqAgcGdvZmYpIHsNCj4gPiA+ID4gPiA+ID4gPiArwqDCoMKgwqDCoMKgwqAg
-dm1hX2ludGVydmFsX3RyZWVfZm9yZWFjaCh2bWEsDQo+ID4gPiA+ID4gPiA+ID4gJm1hcHBpbmct
-PmlfbW1hcCwgcGdvZmYsIHBnb2ZmKSB7DQo+ID4gPiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqAgLyoNCj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgICogU2VuZCBlYXJseSBraWxsIHNpZ25hbCB0byB0YXNrcyB3aGVyZSBhIHZtYSBjb3ZlcnMN
-Cj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICogdGhlIHBhZ2Ug
-YnV0IHRoZSBjb3JydXB0ZWQgcGFnZSBpcyBub3QgbmVjZXNzYXJpbHkNCj4gPiA+ID4gPiA+ID4g
-PiBAQCAtNTMxLDcgKzUzMiw3IEBAIHN0YXRpYyB2b2lkDQo+ID4gPiA+ID4gPiA+ID4gY29sbGVj
-dF9wcm9jc19maWxlKHN0cnVjdCBwYWdlICpwYWdlLCBzdHJ1Y3QNCj4gPiA+ID4gPiA+ID4gPiBs
-aXN0X2hlYWQgKnRvX2tpbGwsDQo+ID4gPiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoCAqIHRvIGJlIGluZm9ybWVkIG9mIGFsbCBzdWNoIGRhdGEgY29ycnVwdGlvbnMuDQo+
-ID4gPiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAqLw0KPiA+ID4gPiA+
-ID4gPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGlmICh2bWEtPnZtX21tID09IHQtPm1t
-KQ0KPiA+ID4gPiA+ID4gPiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgYWRkX3Rv
-X2tpbGwodCwgcGFnZSwgdm1hLCB0b19raWxsKTsNCj4gPiA+ID4gPiA+ID4gPiArwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgIGFkZF90b19raWxsKHQsIHBhZ2UsIG1hcHBpbmcsDQo+ID4g
-PiA+ID4gPiA+ID4gcGdvZmYsIHZtYSwgdG9fa2lsbCk7DQo+ID4gPiA+ID4gPiA+ID4gwqDCoMKg
-wqDCoMKgwqDCoMKgIH0NCj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDCoMKgIH0NCj4gPiA+ID4gPiA+
-ID4gPiDCoMKgwqDCoMKgIHJlYWRfdW5sb2NrKCZ0YXNrbGlzdF9sb2NrKTsNCj4gPiA+ID4gPiA+
-ID4gPiBAQCAtNTUwLDcgKzU1MSw4IEBAIHN0YXRpYyB2b2lkDQo+ID4gPiA+ID4gPiA+ID4gY29s
-bGVjdF9wcm9jcyhzdHJ1Y3QgcGFnZSAqcGFnZSwgc3RydWN0DQo+ID4gPiA+ID4gPiA+ID4gbGlz
-dF9oZWFkICp0b2tpbGwsDQo+ID4gPiA+ID4gPiA+ID4gwqDCoMKgwqDCoCBpZiAoUGFnZUFub24o
-cGFnZSkpDQo+ID4gPiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKgIGNvbGxlY3RfcHJvY3Nf
-YW5vbihwYWdlLCB0b2tpbGwsIGZvcmNlX2Vhcmx5KTsNCj4gPiA+ID4gPiA+ID4gPiDCoMKgwqDC
-oMKgIGVsc2UNCj4gPiA+ID4gPiA+ID4gPiAtwqDCoMKgwqDCoMKgwqAgY29sbGVjdF9wcm9jc19m
-aWxlKHBhZ2UsIHRva2lsbCwgZm9yY2VfZWFybHkpOw0KPiA+ID4gPiA+ID4gPiA+ICvCoMKgwqDC
-oMKgwqDCoCBjb2xsZWN0X3Byb2NzX2ZpbGUocGFnZSwgcGFnZS0+bWFwcGluZywNCj4gPiA+ID4g
-PiA+ID4gPiBwYWdlX3RvX3Bnb2ZmKHBhZ2UpLA0KPiA+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiA+
-ID4gV2h5IG5vdCB1c2UgcGFnZV9tYXBwaW5nKCkgaGVscGVyIGhlcmU/IEl0IHdvdWxkIGJlDQo+
-ID4gPiA+ID4gPiA+IHNhZmVyIGZvciBUSFBzIGlmIHRoZXkNCj4gPiA+ID4gPiA+ID4gZXZlciBn
-ZXQgaGVyZS4uLg0KPiA+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiA+ID4gwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgSG9uemENCj4g
-PiA+ID4gPiA+ID4gDQo+ID4gPiA+ID4gPiANCj4gPiA+ID4gPiANCj4gPiA+ID4gPiANCj4gPiA+
-ID4gDQo+ID4gPiANCj4gPiA+IA0KPiA+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGlt
-bUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRp
-bW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+On Wed, Dec 30, 2020 at 8:59 AM Shiyang Ruan <ruansy.fnst@cn.fujitsu.com> wrote:
+>
+> The current memory_failure_dev_pagemap() can only handle single-mapped
+> dax page for fsdax mode.  The dax page could be mapped by multiple files
+> and offsets if we let reflink feature & fsdax mode work together.  So,
+> we refactor current implementation to support handle memory failure on
+> each file and offset.
+>
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+> ---
+>  fs/dax.c            | 21 +++++++++++
+>  include/linux/dax.h |  1 +
+>  include/linux/mm.h  |  9 +++++
+>  mm/memory-failure.c | 91 ++++++++++++++++++++++++++++++++++-----------
+>  4 files changed, 100 insertions(+), 22 deletions(-)
+>
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 5b47834f2e1b..799210cfa687 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -378,6 +378,27 @@ static struct page *dax_busy_page(void *entry)
+>         return NULL;
+>  }
+>
+> +/*
+> + * dax_load_pfn - Load pfn of the DAX entry corresponding to a page
+> + * @mapping: The file whose entry we want to load
+> + * @index:   The offset where the DAX entry located in
+> + *
+> + * Return:   pfn of the DAX entry
+> + */
+> +unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index)
+> +{
+> +       XA_STATE(xas, &mapping->i_pages, index);
+> +       void *entry;
+> +       unsigned long pfn;
+> +
+> +       xas_lock_irq(&xas);
+> +       entry = xas_load(&xas);
+> +       pfn = dax_to_pfn(entry);
+> +       xas_unlock_irq(&xas);
+> +
+> +       return pfn;
+> +}
+> +
+>  /*
+>   * dax_lock_mapping_entry - Lock the DAX entry corresponding to a page
+>   * @page: The page whose entry we want to lock
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index b52f084aa643..89e56ceeffc7 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -150,6 +150,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+>
+>  struct page *dax_layout_busy_page(struct address_space *mapping);
+>  struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
+> +unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index);
+>  dax_entry_t dax_lock_page(struct page *page);
+>  void dax_unlock_page(struct page *page, dax_entry_t cookie);
+>  #else
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index db6ae4d3fb4e..db3059a1853e 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1141,6 +1141,14 @@ static inline bool is_device_private_page(const struct page *page)
+>                 page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+>  }
+>
+> +static inline bool is_device_fsdax_page(const struct page *page)
+> +{
+> +       return IS_ENABLED(CONFIG_DEV_PAGEMAP_OPS) &&
+> +               IS_ENABLED(CONFIG_DEVICE_PRIVATE) &&
+> +               is_zone_device_page(page) &&
+> +               page->pgmap->type == MEMORY_DEVICE_FS_DAX;
+> +}
+> +
+
+Have a look at the recent fixes to pfn_to_online_page() vs DAX pages [1].
+
+This above page type check is racy given that the pfn could stop being
+pfn_valid() while this check is running. I think hwpoison_filter()
+needs an explicit check for whether the page is already referenced or
+not. For example the current call to hwpoison_filter() from
+memory_failure_dev_pagemap() is safe because the page has already been
+validated as ZONE_DEVICE and is safe to de-reference page->pgmap.
+
+[1]: http://lore.kernel.org/r/161058499000.1840162.702316708443239771.stgit@dwillia2-desk3.amr.corp.intel.com
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
