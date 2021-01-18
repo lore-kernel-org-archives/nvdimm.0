@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D10BC43381
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Jan 2021 11:37:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62215C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Jan 2021 11:38:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D74F522CF6
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Jan 2021 11:37:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D74F522CF6
+	by mail.kernel.org (Postfix) with ESMTPS id 0C8832253A
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Jan 2021 11:38:42 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0C8832253A
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linuxfoundation.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6E5C7100EC1F9;
-	Mon, 18 Jan 2021 03:37:20 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id A1029100EC1FC;
+	Mon, 18 Jan 2021 03:38:42 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 15D9B100EC1E8
-	for <linux-nvdimm@lists.01.org>; Mon, 18 Jan 2021 03:37:18 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 243EB22CA1;
-	Mon, 18 Jan 2021 11:37:18 +0000 (UTC)
+	by ml01.01.org (Postfix) with ESMTPS id 3F00F100EC1EC
+	for <linux-nvdimm@lists.01.org>; Mon, 18 Jan 2021 03:38:40 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 22E982245C;
+	Mon, 18 Jan 2021 11:38:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1610969838;
-	bh=sssGw7VAmhQ9zYNCAgQ46mvt8+d/n+n3c7UnO0Lb+nc=;
+	s=korg; t=1610969919;
+	bh=ZoM5RNyuCE09IxKK+DH0s/aeaGT914MTeZfuuKJGd+U=;
 	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=o0Dt5EbA3PfM95yOWXBZUXnHMBJXZ0zluXuA0/+qOWQYomQbKls79cXkt2yDbFEOx
-	 MZxRxZG9uQhGnVlxZGZl1+2+7oLnFahamXKywNV33lybLGOq+XVPL55hoQqTZOqOEP
-	 qceZwrg7MtC2WNDl/nP38Ner88U1TO3lRbBszxjg=
+	b=meNBAL7MHYykikYXALONKV/4Glc54BVdR5igTKCS/WtsQ2vom+FNr8ioMIwI7D3+w
+	 VHhGVeGQey+yKWuyfsnj+MQB6OIjrKLn5Yxx0eWA4GkHvzz/V3V/P36EGCMvpBcYU1
+	 sKIeA0vGIcCtWeHv73tf5vLLDFHQ1Bawdj8CDZPw=
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 To: linux-kernel@vger.kernel.org
-Subject: [PATCH 4.19 19/43] arch/arc: add copy_user_page() to <asm/page.h> to fix build error on ARC
-Date: Mon, 18 Jan 2021 12:34:42 +0100
-Message-Id: <20210118113335.870787462@linuxfoundation.org>
+Subject: [PATCH 5.4 38/76] arch/arc: add copy_user_page() to <asm/page.h> to fix build error on ARC
+Date: Mon, 18 Jan 2021 12:34:38 +0100
+Message-Id: <20210118113342.809375376@linuxfoundation.org>
 X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210118113334.966227881@linuxfoundation.org>
-References: <20210118113334.966227881@linuxfoundation.org>
+In-Reply-To: <20210118113340.984217512@linuxfoundation.org>
+References: <20210118113340.984217512@linuxfoundation.org>
 User-Agent: quilt/0.66
 MIME-Version: 1.0
-Message-ID-Hash: Y63STY7OYNDPFJLMCZEQR2OHNXQTPWRB
-X-Message-ID-Hash: Y63STY7OYNDPFJLMCZEQR2OHNXQTPWRB
+Message-ID-Hash: TZCZERL4MTEVX3MFPL5O7O33FGI362GQ
+X-Message-ID-Hash: TZCZERL4MTEVX3MFPL5O7O33FGI362GQ
 X-MailFrom: gregkh@linuxfoundation.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -54,7 +54,7 @@ CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, ker
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/Y63STY7OYNDPFJLMCZEQR2OHNXQTPWRB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TZCZERL4MTEVX3MFPL5O7O33FGI362GQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -94,10 +94,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/arch/arc/include/asm/page.h b/arch/arc/include/asm/page.h
-index 09ddddf71cc50..a70fef79c4055 100644
+index 0a32e8cfd074d..bcd1920ae75a3 100644
 --- a/arch/arc/include/asm/page.h
 +++ b/arch/arc/include/asm/page.h
-@@ -13,6 +13,7 @@
+@@ -10,6 +10,7 @@
  #ifndef __ASSEMBLY__
  
  #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
