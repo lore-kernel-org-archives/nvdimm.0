@@ -1,113 +1,150 @@
-Return-Path: <SRS0=hvZn=GV=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=roTM=GW=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04434C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Jan 2021 11:43:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 91D35C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 19 Jan 2021 07:13:02 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8FB4422CA1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 18 Jan 2021 11:43:27 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8FB4422CA1
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linuxfoundation.org
+	by mail.kernel.org (Postfix) with ESMTPS id 26FF922AAA
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 19 Jan 2021 07:13:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 26FF922AAA
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 15EF3100EBBA0;
-	Mon, 18 Jan 2021 03:43:27 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 9DC2F100EBB63;
+	Mon, 18 Jan 2021 23:13:01 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=sbhat@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 57161100EC1F9
-	for <linux-nvdimm@lists.01.org>; Mon, 18 Jan 2021 03:43:24 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 036412223E;
-	Mon, 18 Jan 2021 11:43:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1610970203;
-	bh=ZfRNyTieOsoVNKe8Y2oI4EMd7ks971g+wnjHRo7dt18=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=LFz1164frJv8sVQS81iD6X+cJ2/nCG9T7f2pfGCe7nTgvcehmiRPaLOXpqWnmKI/E
-	 3ViuIsTAXNvBOrWQINEfl5DcyCt1VWGElV5d3fiAOXe7Cc9blb78mHmQpdaoqruN2m
-	 /GdSOHNHAJlwbj6QSSL1W9vJr5zqtS6+8T5VJQE4=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: linux-kernel@vger.kernel.org
-Subject: [PATCH 5.10 081/152] arch/arc: add copy_user_page() to <asm/page.h> to fix build error on ARC
-Date: Mon, 18 Jan 2021 12:34:16 +0100
-Message-Id: <20210118113356.647896767@linuxfoundation.org>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210118113352.764293297@linuxfoundation.org>
-References: <20210118113352.764293297@linuxfoundation.org>
-User-Agent: quilt/0.66
+	by ml01.01.org (Postfix) with ESMTPS id 7D3C7100EBBDB
+	for <linux-nvdimm@lists.01.org>; Mon, 18 Jan 2021 23:12:59 -0800 (PST)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 10J73fDp141028;
+	Tue, 19 Jan 2021 02:12:53 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=TjgaFPFDJH1Zmk+EzMNJQgevie8By4s9zWMwEvR//Lo=;
+ b=gPRGb6lXM+mGqGH+seThTFc3N3rUpsS8X8QVKzuHcMRFuHUURfThfsB8YZCKmPHnB2Ne
+ 9NgJHgddYYhJCrpEr1Da9CdIsheLpF2jyKTcVrNeS69FICG67Fa1GM6Yn7KAeiuISurp
+ 4FIBtP259ujP5O1ikYGsfQEaYUu5S+26fylmtBL02CtD9HcKwBTLYNKCvBIhmQVPxkgq
+ KyODj0p26OUxl0XixLgn2FX2WB5vDsz460HgHpuPjZRHx2pa4nuK93XWrw0QqrRoj79r
+ RUMq/kreWzc+uAJnf4cW5i5VvPknivmpbmDexXhmfQTlAXARQTk4KyO09NVFwveJ0IcG jQ==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 365sm19mf5-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 19 Jan 2021 02:12:52 -0500
+Received: from m0098410.ppops.net (m0098410.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 10J75AUW003059;
+	Tue, 19 Jan 2021 02:12:52 -0500
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 365sm19mej-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 19 Jan 2021 02:12:52 -0500
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 10J7032Q025006;
+	Tue, 19 Jan 2021 07:12:50 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma06ams.nl.ibm.com with ESMTP id 363qdhat4d-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 19 Jan 2021 07:12:49 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 10J7Cl1r40763666
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 19 Jan 2021 07:12:47 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id BA9C3A4051;
+	Tue, 19 Jan 2021 07:12:47 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 97971A4040;
+	Tue, 19 Jan 2021 07:12:44 +0000 (GMT)
+Received: from [9.77.206.253] (unknown [9.77.206.253])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue, 19 Jan 2021 07:12:44 +0000 (GMT)
+Subject: Re: [RFC Qemu PATCH v2 1/2] spapr: drc: Add support for async hcalls
+ at the drc level
+To: David Gibson <david@gibson.dropbear.id.au>, Greg Kurz <groug@kaod.org>
+References: <160674929554.2492771.17651548703390170573.stgit@lep8c.aus.stglabs.ibm.com>
+ <160674938210.2492771.1728601884822491679.stgit@lep8c.aus.stglabs.ibm.com>
+ <20201221130853.15c8ddfd@bahia.lan> <20201228083800.GN6952@yekko.fritz.box>
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Message-ID: <3b47312a-217f-8df5-0bfd-1a653598abad@linux.ibm.com>
+Date: Tue, 19 Jan 2021 12:40:31 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-Message-ID-Hash: NGLHCA72G4MJ2AZ6D6UZB3CCNMWM46PW
-X-Message-ID-Hash: NGLHCA72G4MJ2AZ6D6UZB3CCNMWM46PW
-X-MailFrom: gregkh@linuxfoundation.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, kernel test robot <lkp@intel.com>, Randy Dunlap <rdunlap@infradead.org>, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Sasha Levin <sashal@kernel.org>
+In-Reply-To: <20201228083800.GN6952@yekko.fritz.box>
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.343,18.0.737
+ definitions=2021-01-19_01:2021-01-18,2021-01-19 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 bulkscore=0
+ spamscore=0 suspectscore=0 clxscore=1011 mlxlogscore=999 phishscore=0
+ adultscore=0 priorityscore=1501 lowpriorityscore=0 impostorscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2101190041
+Message-ID-Hash: S2KV7OIX53UDJEKF3ANJBXDQAAB4LKG5
+X-Message-ID-Hash: S2KV7OIX53UDJEKF3ANJBXDQAAB4LKG5
+X-MailFrom: sbhat@linux.ibm.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: xiaoguangrong.eric@gmail.com, mst@redhat.com, imammedo@redhat.com, qemu-devel@nongnu.org, qemu-ppc@nongnu.org, linux-nvdimm@lists.01.org, aneesh.kumar@linux.ibm.com, kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com, bharata@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NGLHCA72G4MJ2AZ6D6UZB3CCNMWM46PW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/S2KV7OIX53UDJEKF3ANJBXDQAAB4LKG5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Thanks for the comments!
 
-[ Upstream commit 8a48c0a3360bf2bf4f40c980d0ec216e770e58ee ]
 
-fs/dax.c uses copy_user_page() but ARC does not provide that interface,
-resulting in a build error.
+On 12/28/20 2:08 PM, David Gibson wrote:
 
-Provide copy_user_page() in <asm/page.h>.
+> On Mon, Dec 21, 2020 at 01:08:53PM +0100, Greg Kurz wrote:
+...
+>> The overall idea looks good but I think you should consider using
+>> a thread pool to implement it. See below.
+> I am not convinced, however.  Specifically, attaching this to the DRC
+> doesn't make sense to me.  We're adding exactly one DRC related async
+> hcall, and I can't really see much call for another one.  We could
+> have other async hcalls - indeed we already have one for HPT resizing
+> - but attaching this to DRCs doesn't help for those.
 
-../fs/dax.c: In function 'copy_cow_page_dax':
-../fs/dax.c:702:2: error: implicit declaration of function 'copy_user_page'; did you mean 'copy_to_user_page'? [-Werror=implicit-function-declaration]
+The semantics of the hcall made me think, if this is going to be
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: linux-snps-arc@lists.infradead.org
-Cc: Dan Williams <dan.j.williams@intel.com>
-#Acked-by: Vineet Gupta <vgupta@synopsys.com> # v1
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-nvdimm@lists.01.org
-#Reviewed-by: Ira Weiny <ira.weiny@intel.com> # v2
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/arc/include/asm/page.h | 1 +
- 1 file changed, 1 insertion(+)
+re-usable for future if implemented at DRC level. Other option
 
-diff --git a/arch/arc/include/asm/page.h b/arch/arc/include/asm/page.h
-index b0dfed0f12be0..d9c264dc25fcb 100644
---- a/arch/arc/include/asm/page.h
-+++ b/arch/arc/include/asm/page.h
-@@ -10,6 +10,7 @@
- #ifndef __ASSEMBLY__
- 
- #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
-+#define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
- #define copy_page(to, from)		memcpy((to), (from), PAGE_SIZE)
- 
- struct vm_area_struct;
--- 
-2.27.0
+is to move the async-hcall-state/list into the NVDIMMState structure
 
+in include/hw/mem/nvdimm.h and handle it with machine->nvdimms_state
+
+at a global level.
+
+
+Hope you are okay with using the pool based approach that Greg
+
+suggested.
+
+
+Please let me know.
+
+
+Thanks,
+
+Shivaprasad
 
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
