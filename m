@@ -1,61 +1,60 @@
-Return-Path: <SRS0=dbx4=GY=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=rIz0=GZ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43DDEC433E6
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 21 Jan 2021 22:18:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76DFBC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 22 Jan 2021 14:09:10 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id F18FC23A5D
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 21 Jan 2021 22:18:32 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F18FC23A5D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+	by mail.kernel.org (Postfix) with ESMTPS id 2EAE623A60
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 22 Jan 2021 14:09:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2EAE623A60
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linuxfoundation.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9CDE8100F2264;
-	Thu, 21 Jan 2021 14:18:32 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=akpm@linux-foundation.org; receiver=<UNKNOWN> 
+	by ml01.01.org (Postfix) with ESMTP id DA088100ED4A6;
+	Fri, 22 Jan 2021 06:09:09 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=gregkh@linuxfoundation.org; receiver=<UNKNOWN> 
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DE006100F2262
-	for <linux-nvdimm@lists.01.org>; Thu, 21 Jan 2021 14:18:29 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D0758221E5;
-	Thu, 21 Jan 2021 22:18:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-	s=korg; t=1611267509;
-	bh=C4dNckswBVNDyf2CcklXwX5nrVZ+eQe+hIEyF3+YQjk=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-	b=wclvfHCCnk3OQn3T9dNFgIqWJA2vvE7RYSj7NeWYJEKVz1L0iiylb1mOqI2b9AvuI
-	 K1JzZ0X26tTsjYx4KuOOb2TTAsAkOewOabuejMeC/A1Q8o0XKeQzHcJW4SRX29gzfx
-	 qcSKSeI4H0IyI5So7BuOgFoGnIj4CN15OjvLZIJs=
-Date: Thu, 21 Jan 2021 14:18:24 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Mike Rapoport <rppt@kernel.org>
-Subject: Re: [PATCH v16 00/11] mm: introduce memfd_secret system call to
- create "secret" memory areas
-Message-Id: <20210121141824.787013e7f39d168a5e945183@linux-foundation.org>
-In-Reply-To: <20210121122723.3446-1-rppt@kernel.org>
-References: <20210121122723.3446-1-rppt@kernel.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Message-ID-Hash: 2HZWUG6T5MVILTI2FIP47CRL26EHTFQU
-X-Message-ID-Hash: 2HZWUG6T5MVILTI2FIP47CRL26EHTFQU
-X-MailFrom: akpm@linux-foundation.org
+	by ml01.01.org (Postfix) with ESMTPS id DFF32100EF264
+	for <linux-nvdimm@lists.01.org>; Fri, 22 Jan 2021 06:09:07 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CB78A23A5E;
+	Fri, 22 Jan 2021 14:09:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1611324547;
+	bh=0xLiq19uuF+LFA0yw7Rwauxqd1irVWHtnuE67K59/lY=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=z133FksUKLkAoNSRUMI/UME1nI7iFHxqwaceIJSFVkQNlXP6WReYp3Nqp2ym+DQzL
+	 eWdDSRVtUPji/XyBkFB5e9BQU7gDPuMdc9BjwgHcPXV1ADUqVtE4n/m3xMNxLTd7Jv
+	 dGRNXxa7P5ygDjAWjMQxD2820or/OxSxdrIH/c7o=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: linux-kernel@vger.kernel.org
+Subject: [PATCH 4.4 07/31] arch/arc: add copy_user_page() to <asm/page.h> to fix build error on ARC
+Date: Fri, 22 Jan 2021 15:08:21 +0100
+Message-Id: <20210122135732.165180021@linuxfoundation.org>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210122135731.873346566@linuxfoundation.org>
+References: <20210122135731.873346566@linuxfoundation.org>
+User-Agent: quilt/0.66
+MIME-Version: 1.0
+Message-ID-Hash: ZOLSFK7JUM4DTUHV7HQ6BSOEHM4FGUJE
+X-Message-ID-Hash: ZOLSFK7JUM4DTUHV7HQ6BSOEHM4FGUJE
+X-MailFrom: gregkh@linuxfoundation.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <wil
- l@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, kernel test robot <lkp@intel.com>, Randy Dunlap <rdunlap@infradead.org>, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Andrew Morton <akpm@linux-foundation.org>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, Sasha Levin <sashal@kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2HZWUG6T5MVILTI2FIP47CRL26EHTFQU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZOLSFK7JUM4DTUHV7HQ6BSOEHM4FGUJE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -64,14 +63,52 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, 21 Jan 2021 14:27:12 +0200 Mike Rapoport <rppt@kernel.org> wrote:
+From: Randy Dunlap <rdunlap@infradead.org>
 
-> @Andrew, this is based on v5.11-rc4-mmots-2021-01-19-13-54 with secretmem
-> patches dropped from there, I can rebase whatever way you prefer.
+[ Upstream commit 8a48c0a3360bf2bf4f40c980d0ec216e770e58ee ]
 
-Thanks.  I merged this version.
+fs/dax.c uses copy_user_page() but ARC does not provide that interface,
+resulting in a build error.
 
-Silently, to avoid spraying out all those emails again ;)
+Provide copy_user_page() in <asm/page.h>.
+
+../fs/dax.c: In function 'copy_cow_page_dax':
+../fs/dax.c:702:2: error: implicit declaration of function 'copy_user_page'; did you mean 'copy_to_user_page'? [-Werror=implicit-function-declaration]
+
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: linux-snps-arc@lists.infradead.org
+Cc: Dan Williams <dan.j.williams@intel.com>
+#Acked-by: Vineet Gupta <vgupta@synopsys.com> # v1
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-nvdimm@lists.01.org
+#Reviewed-by: Ira Weiny <ira.weiny@intel.com> # v2
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arc/include/asm/page.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arc/include/asm/page.h b/arch/arc/include/asm/page.h
+index 8f1145ed0046f..fd2c88ef2e2b8 100644
+--- a/arch/arc/include/asm/page.h
++++ b/arch/arc/include/asm/page.h
+@@ -17,6 +17,7 @@
+ #define free_user_page(page, addr)	free_page(addr)
+ 
+ #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
++#define copy_user_page(to, from, vaddr, pg)	copy_page(to, from)
+ #define copy_page(to, from)		memcpy((to), (from), PAGE_SIZE)
+ 
+ struct vm_area_struct;
+-- 
+2.27.0
+
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
