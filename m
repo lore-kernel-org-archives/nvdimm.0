@@ -1,122 +1,62 @@
-Return-Path: <SRS0=9LqB=G2=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=b/QW=G4=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Level: *
+X-Spam-Status: No, score=1.8 required=3.0 tests=BAYES_80,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	SUBJ_ALL_CAPS,TVD_SPACE_RATIO,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFDB3C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 23 Jan 2021 11:01:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3393C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Jan 2021 15:02:33 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4915223428
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 23 Jan 2021 11:01:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4915223428
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 2848F225A9
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Jan 2021 15:02:32 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2848F225A9
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=manshu.in
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id EFE3B100F225E;
-	Sat, 23 Jan 2021 03:01:06 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 89AB7100ED480
-	for <linux-nvdimm@lists.01.org>; Sat, 23 Jan 2021 03:01:04 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C54F233FC;
-	Sat, 23 Jan 2021 11:00:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1611399663;
-	bh=HKE6o3YvB1B4tteaWRG6KFCwQvpwQVukHCQUNVVJeeY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=HKYTq7yJigGOEK8nATV4Dx0NmxniF8qJvpM8DaATKPfSpcwbXynIkCA3n3qe4gShc
-	 P58WaSyJhlAC3agVkClm43lT0PT5xZ4J7SJtjlWxMDPo7Z7TJ5vikccGijHyX6Qk3T
-	 csEAYzaE2dNiGaDYQSUa2ZRjDbWeimlY9AxOUezkEDzB+tFxoT4KWyZ3/mHJ42y/5p
-	 pqq7kjj0H57u727QxLS0KIbNm35ZWU+0trHV9uXECzkWMwPCcm0Vf+ufzHv9e+UsoG
-	 s6KF8VZU223mQTNtDCDxNRjB/Glv/5nT7EoghwQyPT8tKfrFHn5E34OlgLb+jD+RQt
-	 FTlyibQtHA2wA==
-Date: Sat, 23 Jan 2021 13:00:41 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: Palmer Dabbelt <palmer@dabbelt.com>
-Subject: Re: [PATCH v15 03/11] riscv/Kconfig: make direct map manipulation
- options depend on MMU
-Message-ID: <20210123110041.GE6332@kernel.org>
-References: <20210120180612.1058-4-rppt@kernel.org>
- <mhng-5cbc9b30-ac9a-4748-bf12-8f0de4c89f79@palmerdabbelt-glaptop>
+	by ml01.01.org (Postfix) with ESMTP id A749B100EC1E9;
+	Mon, 25 Jan 2021 07:02:32 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=37.49.225.143; helo=manshu.in; envelope-from=mahendra@manshu.in; receiver=<UNKNOWN> 
+Received: from manshu.in (unknown [37.49.225.143])
+	by ml01.01.org (Postfix) with ESMTP id EAFE7100EC1E6
+	for <linux-nvdimm@lists.01.org>; Mon, 25 Jan 2021 07:02:27 -0800 (PST)
+From: "VENNIE CHONG" <mahendra@manshu.in>
+To: linux-nvdimm@lists.01.org
+Subject: INQUIRY  PBMS 15528/STR-REG/19.
+Date: 25 Jan 2021 16:02:26 +0100
+Message-ID: <20210125160226.9E9897262F8EB1AF@manshu.in>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <mhng-5cbc9b30-ac9a-4748-bf12-8f0de4c89f79@palmerdabbelt-glaptop>
-Message-ID-Hash: TGPOQJAZFD4CIQ47QYU6NXO5TIGFX5DR
-X-Message-ID-Hash: TGPOQJAZFD4CIQ47QYU6NXO5TIGFX5DR
-X-MailFrom: rppt@kernel.org
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_1E54AE68.49ADB6A6"
+Message-ID-Hash: RF4UV725QI6UNI5KPY6OUDDO6U6ZGPJU
+X-Message-ID-Hash: RF4UV725QI6UNI5KPY6OUDDO6U6ZGPJU
+X-MailFrom: mahendra@manshu.in
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: akpm@linux-foundation.org, viro@zeniv.linux.org.uk, luto@kernel.org, Arnd Bergmann <arnd@arndb.de>, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com, dave.hansen@linux.intel.com, david@redhat.com, elena.reshetova@intel.com, hpa@zytor.com, mingo@redhat.com, jejb@linux.ibm.com, kirill@shutemov.name, willy@infradead.org, mark.rutland@arm.com, rppt@linux.ibm.com, mtk.manpages@gmail.com, Paul Walmsley <paul.walmsley@sifive.com>, peterz@infradead.org, rick.p.edgecombe@intel.com, guro@fb.com, shakeelb@google.com, shuah@kernel.org, tglx@linutronix.de, tycho@tycho.ws, will@kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, lkp@intel.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TGPOQJAZFD4CIQ47QYU6NXO5TIGFX5DR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RF4UV725QI6UNI5KPY6OUDDO6U6ZGPJU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_1E54AE68.49ADB6A6
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Fri, Jan 22, 2021 at 08:12:30PM -0800, Palmer Dabbelt wrote:
-> On Wed, 20 Jan 2021 10:06:04 PST (-0800), rppt@kernel.org wrote:
-> > From: Mike Rapoport <rppt@linux.ibm.com>
-> > 
-> > ARCH_HAS_SET_DIRECT_MAP and ARCH_HAS_SET_MEMORY configuration options have
-> > no meaning when CONFIG_MMU is disabled and there is no point to enable them
-> > for the nommu case.
-> > 
-> > Add an explicit dependency on MMU for these options.
-> > 
-> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> > Reported-by: kernel test robot <lkp@intel.com>
-> > ---
-> >  arch/riscv/Kconfig | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-> > index d82303dcc6b6..d35ce19ab1fa 100644
-> > --- a/arch/riscv/Kconfig
-> > +++ b/arch/riscv/Kconfig
-> > @@ -25,8 +25,8 @@ config RISCV
-> >  	select ARCH_HAS_KCOV
-> >  	select ARCH_HAS_MMIOWB
-> >  	select ARCH_HAS_PTE_SPECIAL
-> > -	select ARCH_HAS_SET_DIRECT_MAP
-> > -	select ARCH_HAS_SET_MEMORY
-> > +	select ARCH_HAS_SET_DIRECT_MAP if MMU
-> > +	select ARCH_HAS_SET_MEMORY if MMU
-> >  	select ARCH_HAS_STRICT_KERNEL_RWX if MMU
-> >  	select ARCH_OPTIONAL_KERNEL_RWX if ARCH_HAS_STRICT_KERNEL_RWX
-> >  	select ARCH_OPTIONAL_KERNEL_RWX_DEFAULT
-> 
-> Reviewed-by: Palmer Dabbelt <palmerdabbelt@google.com>
-> Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
-> 
-> LMK if you want this to go in via the RISC-V tree, otherwise I'm going to
-> assume it's going in along with the rest of these.  FWIW I see these in other
-> architectures without the MMU guard.
-
-Except arm, they all always have MMU=y and arm selects only
-ARCH_HAS_SET_MEMORY and has empty stubs for those when MMU=n.
-
-Indeed I might have been over zealous adding ARCH_HAS_SET_MEMORY dependency
-on MMU, as riscv also has these stubs, but I thought that making this
-explicit is a nice thing.
- 
-> Thanks!
-
--- 
-Sincerely yours,
-Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_1E54AE68.49ADB6A6--
