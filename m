@@ -7,58 +7,61 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD023C433E9
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Jan 2021 22:55:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A474C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Jan 2021 22:55:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 51BB3221EB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Jan 2021 22:55:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 51BB3221EB
+	by mail.kernel.org (Postfix) with ESMTPS id D6A4822460
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 25 Jan 2021 22:55:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D6A4822460
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id F3E88100EBB63;
-	Mon, 25 Jan 2021 14:55:43 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 4262F100EBB6F;
+	Mon, 25 Jan 2021 14:55:44 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id B972E100EBBDB
-	for <linux-nvdimm@lists.01.org>; Mon, 25 Jan 2021 14:55:40 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 64A01100EBBDB
+	for <linux-nvdimm@lists.01.org>; Mon, 25 Jan 2021 14:55:41 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.79,374,1602518400";
-   d="scan'208";a="103820575"
+   d="scan'208";a="103820572"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 26 Jan 2021 06:55:38 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id 7F0044CE6782;
-	Tue, 26 Jan 2021 06:55:37 +0800 (CST)
-Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id D0E804CE6014;
+	Tue, 26 Jan 2021 06:55:35 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
  (TLS) id 15.0.1497.2; Tue, 26 Jan 2021 06:55:37 +0800
+Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Tue, 26 Jan 2021 06:55:34 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Tue, 26 Jan 2021 06:55:35 +0800
+ id 15.0.1497.2 via Frontend Transport; Tue, 26 Jan 2021 06:55:33 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>
-Subject: [PATCH v2 06/10] pmem: Implement ->corrupted_range() for pmem driver
-Date: Tue, 26 Jan 2021 06:55:22 +0800
-Message-ID: <20210125225526.1048877-7-ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH v2 04/10] mm, fsdax: Refactor memory-failure handler for dax mapping
+Date: Tue, 26 Jan 2021 06:55:20 +0800
+Message-ID: <20210125225526.1048877-5-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210125225526.1048877-1-ruansy.fnst@cn.fujitsu.com>
 References: <20210125225526.1048877-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 7F0044CE6782.AAEB5
+X-yoursite-MailScanner-ID: D0E804CE6014.AC670
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: SUGPHK253N3ATSVHJYZFUBDDNFRKA7PC
-X-Message-ID-Hash: SUGPHK253N3ATSVHJYZFUBDDNFRKA7PC
+Message-ID-Hash: UVGG3WYE3OBLD4H3V7Y4KOFYF3I5BM4Q
+X-Message-ID-Hash: UVGG3WYE3OBLD4H3V7Y4KOFYF3I5BM4Q
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-fsdevel@vger.kernel.org, linux-raid@vger.kernel.org, darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, song@kernel.org, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SUGPHK253N3ATSVHJYZFUBDDNFRKA7PC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UVGG3WYE3OBLD4H3V7Y4KOFYF3I5BM4Q/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,87 +70,296 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Obtain the superblock of a pmem disk, and call filesystem's
-->corrupted_range() to handle the corrupted data.
+The current memory_failure_dev_pagemap() can only handle single-mapped
+dax page for fsdax mode.  The dax page could be mapped by multiple files
+and offsets if we let reflink feature & fsdax mode work together.  So,
+we refactor current implementation to support handle memory failure on
+each file and offset.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- block/genhd.c         |  6 ++++++
- drivers/nvdimm/pmem.c | 24 ++++++++++++++++++++++++
- include/linux/genhd.h |  1 +
- 3 files changed, 31 insertions(+)
+ fs/dax.c            | 21 ++++++++++
+ include/linux/dax.h |  1 +
+ include/linux/mm.h  |  9 +++++
+ mm/memory-failure.c | 98 ++++++++++++++++++++++++++++++++++-----------
+ 4 files changed, 105 insertions(+), 24 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index 419548e92d82..fd7cf03b65a8 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -936,6 +936,12 @@ struct block_device *bdget_disk(struct gendisk *disk, int partno)
- 	return bdev;
+diff --git a/fs/dax.c b/fs/dax.c
+index 26d5dcd2d69e..c64c3a0e76a6 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -378,6 +378,27 @@ static struct page *dax_busy_page(void *entry)
+ 	return NULL;
  }
  
-+struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector)
++/*
++ * dax_load_pfn - Load pfn of the DAX entry corresponding to a page
++ * @mapping: The file whose entry we want to load
++ * @index:   The offset where the DAX entry located in
++ *
++ * Return:   pfn of the DAX entry
++ */
++unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index)
 +{
-+	return disk_map_sector_rcu(disk, sector);
++	XA_STATE(xas, &mapping->i_pages, index);
++	void *entry;
++	unsigned long pfn;
++
++	xas_lock_irq(&xas);
++	entry = xas_load(&xas);
++	pfn = dax_to_pfn(entry);
++	xas_unlock_irq(&xas);
++
++	return pfn;
 +}
-+EXPORT_SYMBOL(bdget_disk_sector);
 +
  /*
-  * print a full list of all partitions - intended for places where the root
-  * filesystem can't be mounted and thus to give the victim some idea of what
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c9e4fb38f94a..501959947d48 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -253,6 +253,29 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	return blk_status_to_errno(rc);
+  * dax_lock_mapping_entry - Lock the DAX entry corresponding to a page
+  * @page: The page whose entry we want to lock
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b52f084aa643..89e56ceeffc7 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -150,6 +150,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 
+ struct page *dax_layout_busy_page(struct address_space *mapping);
+ struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
++unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
+ #else
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ecdf8a8cd6ae..ab52bc633d84 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1157,6 +1157,14 @@ static inline bool is_device_private_page(const struct page *page)
+ 		page->pgmap->type == MEMORY_DEVICE_PRIVATE;
  }
  
-+static int pmem_corrupted_range(struct gendisk *disk, struct block_device *bdev,
-+				loff_t disk_offset, size_t len, void *data)
++static inline bool is_device_fsdax_page(const struct page *page)
 +{
-+	struct super_block *sb;
-+	loff_t bdev_offset;
-+	sector_t disk_sector = disk_offset >> SECTOR_SHIFT;
-+	int rc = 0;
-+
-+	bdev = bdget_disk_sector(disk, disk_sector);
-+	if (!bdev)
-+		return -ENODEV;
-+
-+	bdev_offset = (disk_sector - get_start_sect(bdev)) << SECTOR_SHIFT;
-+	sb = get_super(bdev);
-+	if (sb && sb->s_op->corrupted_range) {
-+		rc = sb->s_op->corrupted_range(sb, bdev, bdev_offset, len, data);
-+		drop_super(sb);
-+	}
-+
-+	bdput(bdev);
-+	return rc;
++	return IS_ENABLED(CONFIG_DEV_PAGEMAP_OPS) &&
++		IS_ENABLED(CONFIG_FS_DAX) &&
++		is_zone_device_page(page) &&
++		page->pgmap->type == MEMORY_DEVICE_FS_DAX;
 +}
 +
- /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
- __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
-@@ -281,6 +304,7 @@ static const struct block_device_operations pmem_fops = {
- 	.owner =		THIS_MODULE,
- 	.submit_bio =		pmem_submit_bio,
- 	.rw_page =		pmem_rw_page,
-+	.corrupted_range =	pmem_corrupted_range,
+ static inline bool is_pci_p2pdma_page(const struct page *page)
+ {
+ 	return IS_ENABLED(CONFIG_DEV_PAGEMAP_OPS) &&
+@@ -3045,6 +3053,7 @@ enum mf_flags {
+ 	MF_MUST_KILL = 1 << 2,
+ 	MF_SOFT_OFFLINE = 1 << 3,
  };
++extern int mf_dax_mapping_kill_procs(struct address_space *mapping, pgoff_t index, int flags);
+ extern int memory_failure(unsigned long pfn, int flags);
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern void memory_failure_queue_kick(int cpu);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index e9481632fcd1..158fe0c8e602 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -56,6 +56,7 @@
+ #include <linux/kfifo.h>
+ #include <linux/ratelimit.h>
+ #include <linux/page-isolation.h>
++#include <linux/dax.h>
+ #include "internal.h"
+ #include "ras/ras_event.h"
  
- static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 809aaa32d53c..4da480798955 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -248,6 +248,7 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
+@@ -120,6 +121,13 @@ static int hwpoison_filter_dev(struct page *p)
+ 	if (PageSlab(p))
+ 		return -EINVAL;
  
- extern void del_gendisk(struct gendisk *gp);
- extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
-+extern struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector);
++	if (pfn_valid(page_to_pfn(p))) {
++		if (is_device_fsdax_page(p))
++			return 0;
++		else
++			return -EINVAL;
++	}
++
+ 	mapping = page_mapping(p);
+ 	if (mapping == NULL || mapping->host == NULL)
+ 		return -EINVAL;
+@@ -286,10 +294,9 @@ void shake_page(struct page *p, int access)
+ }
+ EXPORT_SYMBOL_GPL(shake_page);
  
- extern void set_disk_ro(struct gendisk *disk, int flag);
+-static unsigned long dev_pagemap_mapping_shift(struct page *page,
+-		struct vm_area_struct *vma)
++static unsigned long dev_pagemap_mapping_shift(struct vm_area_struct *vma,
++					       unsigned long address)
+ {
+-	unsigned long address = vma_address(page, vma);
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+@@ -329,9 +336,8 @@ static unsigned long dev_pagemap_mapping_shift(struct page *page,
+  * Schedule a process for later kill.
+  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
+  */
+-static void add_to_kill(struct task_struct *tsk, struct page *p,
+-		       struct vm_area_struct *vma,
+-		       struct list_head *to_kill)
++static void add_to_kill(struct task_struct *tsk, struct page *p, pgoff_t pgoff,
++			struct vm_area_struct *vma, struct list_head *to_kill)
+ {
+ 	struct to_kill *tk;
  
+@@ -342,9 +348,12 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+ 	}
+ 
+ 	tk->addr = page_address_in_vma(p, vma);
+-	if (is_zone_device_page(p))
+-		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
+-	else
++	if (is_zone_device_page(p)) {
++		if (is_device_fsdax_page(p))
++			tk->addr = vma->vm_start +
++					((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++		tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
++	} else
+ 		tk->size_shift = page_shift(compound_head(p));
+ 
+ 	/*
+@@ -492,7 +501,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+ 			if (!page_mapped_in_vma(page, vma))
+ 				continue;
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, vma, to_kill);
++				add_to_kill(t, page, 0, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -502,24 +511,19 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+ /*
+  * Collect processes when the error hit a file mapped page.
+  */
+-static void collect_procs_file(struct page *page, struct list_head *to_kill,
+-				int force_early)
++static void collect_procs_file(struct page *page, struct address_space *mapping,
++		pgoff_t pgoff, struct list_head *to_kill, int force_early)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct task_struct *tsk;
+-	struct address_space *mapping = page->mapping;
+-	pgoff_t pgoff;
+ 
+ 	i_mmap_lock_read(mapping);
+ 	read_lock(&tasklist_lock);
+-	pgoff = page_to_pgoff(page);
+ 	for_each_process(tsk) {
+ 		struct task_struct *t = task_early_kill(tsk, force_early);
+-
+ 		if (!t)
+ 			continue;
+-		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
+-				      pgoff) {
++		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 			/*
+ 			 * Send early kill signal to tasks where a vma covers
+ 			 * the page but the corrupted page is not necessarily
+@@ -528,7 +532,7 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+ 			 * to be informed of all such data corruptions.
+ 			 */
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, vma, to_kill);
++				add_to_kill(t, page, pgoff, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -547,7 +551,8 @@ static void collect_procs(struct page *page, struct list_head *tokill,
+ 	if (PageAnon(page))
+ 		collect_procs_anon(page, tokill, force_early);
+ 	else
+-		collect_procs_file(page, tokill, force_early);
++		collect_procs_file(page, page_mapping(page), page_to_pgoff(page),
++				   tokill, force_early);
+ }
+ 
+ static const char *action_name[] = {
+@@ -1214,6 +1219,50 @@ static int try_to_split_thp_page(struct page *page, const char *msg)
+ 	return 0;
+ }
+ 
++int mf_dax_mapping_kill_procs(struct address_space *mapping, pgoff_t index, int flags)
++{
++	const bool unmap_success = true;
++	unsigned long pfn, size = 0;
++	struct to_kill *tk;
++	LIST_HEAD(to_kill);
++	int rc = -EBUSY;
++	loff_t start;
++
++	/* load the pfn of the dax mapping file */
++	pfn = dax_load_pfn(mapping, index);
++	if (!pfn)
++		return rc;
++	/*
++	 * Unlike System-RAM there is no possibility to swap in a
++	 * different physical page at a given virtual address, so all
++	 * userspace consumption of ZONE_DEVICE memory necessitates
++	 * SIGBUS (i.e. MF_MUST_KILL)
++	 */
++	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++	collect_procs_file(pfn_to_page(pfn), mapping, index, &to_kill,
++			   flags & MF_ACTION_REQUIRED);
++
++	list_for_each_entry(tk, &to_kill, nd)
++		if (tk->size_shift)
++			size = max(size, 1UL << tk->size_shift);
++	if (size) {
++		/*
++		 * Unmap the largest mapping to avoid breaking up
++		 * device-dax mappings which are constant size. The
++		 * actual size of the mapping being torn down is
++		 * communicated in siginfo, see kill_proc()
++		 */
++		start = (index << PAGE_SHIFT) & ~(size - 1);
++		unmap_mapping_range(mapping, start, start + size, 0);
++	}
++
++	kill_procs(&to_kill, flags & MF_MUST_KILL, !unmap_success,
++		   pfn, flags);
++	rc = 0;
++	return rc;
++}
++EXPORT_SYMBOL_GPL(mf_dax_mapping_kill_procs);
++
+ static int memory_failure_hugetlb(unsigned long pfn, int flags)
+ {
+ 	struct page *p = pfn_to_page(pfn);
+@@ -1297,7 +1346,7 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 	const bool unmap_success = true;
+ 	unsigned long size = 0;
+ 	struct to_kill *tk;
+-	LIST_HEAD(tokill);
++	LIST_HEAD(to_kill);
+ 	int rc = -EBUSY;
+ 	loff_t start;
+ 	dax_entry_t cookie;
+@@ -1345,9 +1394,10 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 	 * SIGBUS (i.e. MF_MUST_KILL)
+ 	 */
+ 	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+-	collect_procs(page, &tokill, flags & MF_ACTION_REQUIRED);
++	collect_procs_file(page, page->mapping, page->index, &to_kill,
++			   flags & MF_ACTION_REQUIRED);
+ 
+-	list_for_each_entry(tk, &tokill, nd)
++	list_for_each_entry(tk, &to_kill, nd)
+ 		if (tk->size_shift)
+ 			size = max(size, 1UL << tk->size_shift);
+ 	if (size) {
+@@ -1360,7 +1410,7 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+ 		unmap_mapping_range(page->mapping, start, start + size, 0);
+ 	}
+-	kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
++	kill_procs(&to_kill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
+ 	rc = 0;
+ unlock:
+ 	dax_unlock_page(page, cookie);
 -- 
 2.30.0
 
