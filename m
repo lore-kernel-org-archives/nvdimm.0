@@ -2,47 +2,47 @@ Return-Path: <SRS0=XL0L=G5=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43E0BC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 26 Jan 2021 09:20:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28B7DC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 26 Jan 2021 09:20:32 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E5F9F23110
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 26 Jan 2021 09:20:29 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E5F9F23110
-Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=suse.com
+	by mail.kernel.org (Postfix) with ESMTPS id B12D923109
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 26 Jan 2021 09:20:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B12D923109
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 66529100EBB91;
-	Tue, 26 Jan 2021 01:20:29 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=mhocko@suse.com; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	by ml01.01.org (Postfix) with ESMTP id 82DAE100EBB95;
+	Tue, 26 Jan 2021 01:20:31 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9DFD5100EBB8F
-	for <linux-nvdimm@lists.01.org>; Tue, 26 Jan 2021 01:20:26 -0800 (PST)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-	t=1611652825; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=7Fkh8i4u2Ds7suNHQy8ffJkc7y8JY+c/ULxceSUkTds=;
-	b=bqWhNQD/hZoyEpF0cNuKXozUxgro+R+IfdOU/BS2HiMG0+8sw32ccg9JoavrsQIkP6dpVh
-	K1iIWCeUmEMm4VHXkiZqSBFZqfHjVghsxokwQGllYDgcYi1VKxKpTZai9iq1zdfPF7t7A3
-	/qszOeSUVbFlKJZaNJgfQ/OCqYtH1GU=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id C9DAAB291;
-	Tue, 26 Jan 2021 09:20:24 +0000 (UTC)
-Date: Tue, 26 Jan 2021 10:20:23 +0100
-From: Michal Hocko <mhocko@suse.com>
-To: Mike Rapoport <rppt@kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 7250D100EBB94
+	for <linux-nvdimm@lists.01.org>; Tue, 26 Jan 2021 01:20:29 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E799F23104;
+	Tue, 26 Jan 2021 09:20:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1611652828;
+	bh=bRC3SR9LJ18SWaWmVRerAdHAiKyQlnV1tKBjwhOnPS8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=aMudgeWS8EFR4uZOodLooioJQHSO0U8pMo3JByI0WkzeCLds2rL8dDBKPdMIET6wU
+	 NikHEJLu6mMPo3tSd4JLNAkh4YqDqIqAawEF4n7/5E0DpJcUj6JlJzfXjlARC2mrq+
+	 CruSYC+Gj4FeoDXNsygqJGE7OxywyVzS/Nn8h+qL2ObhBOyIjfhuWkMbt9RXhvqlR9
+	 sIvn3CEW/XJ7CY9dZPZIilb4D2ZP3U4aA+EJ7+3rtsmP4/R1ZB/lnI26RwNUiGucdL
+	 kTLxonDh/eLTOLxPU2kPm5Hg1de9FuFM6fyMMsw0V869lvcbyEy9tpZfl7U/HLU3MC
+	 6HV9bZva2SpZg==
+Date: Tue, 26 Jan 2021 11:20:11 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: Michal Hocko <mhocko@suse.com>
 Subject: Re: [PATCH v16 06/11] mm: introduce memfd_secret system call to
  create "secret" memory areas
-Message-ID: <20210126092023.GH827@dhcp22.suse.cz>
+Message-ID: <20210126092011.GP6332@kernel.org>
 References: <20210121122723.3446-1-rppt@kernel.org>
  <20210121122723.3446-7-rppt@kernel.org>
  <20210125170122.GU827@dhcp22.suse.cz>
@@ -53,9 +53,9 @@ References: <20210121122723.3446-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Disposition: inline
 In-Reply-To: <20210126090013.GF827@dhcp22.suse.cz>
-Message-ID-Hash: XHFDMWWYMM446NTOJM7ZQ3GIBG4CYFTD
-X-Message-ID-Hash: XHFDMWWYMM446NTOJM7ZQ3GIBG4CYFTD
-X-MailFrom: mhocko@suse.com
+Message-ID-Hash: 2TA6WM3YDYQGXXWUOHLJCTMTYQQSSG3K
+X-Message-ID-Hash: 2TA6WM3YDYQGXXWUOHLJCTMTYQQSSG3K
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho 
@@ -63,7 +63,7 @@ CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XHFDMWWYMM446NTOJM7ZQ3GIBG4CYFTD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2TA6WM3YDYQGXXWUOHLJCTMTYQQSSG3K/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,7 +72,7 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Tue 26-01-21 10:00:14, Michal Hocko wrote:
+On Tue, Jan 26, 2021 at 10:00:13AM +0100, Michal Hocko wrote:
 > On Tue 26-01-21 10:33:11, Mike Rapoport wrote:
 > > On Tue, Jan 26, 2021 at 08:16:14AM +0100, Michal Hocko wrote:
 > > > On Mon 25-01-21 23:36:18, Mike Rapoport wrote:
@@ -128,14 +128,21 @@ On Tue 26-01-21 10:00:14, Michal Hocko wrote:
 > Because appart from the reclaim aspect it fragments the direct mapping
 > IIUC. That might have an impact on all others, right?
 
-Also forgot to mention that you rely on a contiguous allocations and
-that can become a very scarce resource so what does prevent one abuser
-from using it all and deny the access to others. And unless I am missing
-something allocation failure would lead to OOM which cannot really help
-because the oom killer cannot compensate for the CMA reservation.
+It does fragment the direct map, but first it only splits 1G pages to 2M
+pages and as was discussed several times already it's not that clear which
+page size in the direct map is the best and this is very much workload
+dependent.
+
+These are the results of the benchmarks I've run with the default direct
+mapping covered with 1G pages, with disabled 1G pages using "nogbpages" in
+the kernel command line and with the entire direct map forced to use 4K
+pages using a simple patch to arch/x86/mm/init.c.
+
+https://docs.google.com/spreadsheets/d/1tdD-cu8e93vnfGsTFxZ5YdaEfs2E1GELlvWNOGkJV2U/edit?usp=sharing
+
 -- 
-Michal Hocko
-SUSE Labs
+Sincerely yours,
+Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
