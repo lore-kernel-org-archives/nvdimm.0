@@ -2,79 +2,66 @@ Return-Path: <SRS0=BnL6=G7=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A40AC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Jan 2021 08:47:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95818C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Jan 2021 09:23:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id BC9276024A
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Jan 2021 08:47:36 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org BC9276024A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id F1BBC64DD8
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 28 Jan 2021 09:23:20 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F1BBC64DD8
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DBFA9100F2274;
-	Thu, 28 Jan 2021 00:47:35 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::530; helo=mail-ed1-x530.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id A6051100F227A;
+	Thu, 28 Jan 2021 01:23:20 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 0CE7A100F226E
-	for <linux-nvdimm@lists.01.org>; Thu, 28 Jan 2021 00:47:32 -0800 (PST)
-Received: by mail-ed1-x530.google.com with SMTP id c6so5708701ede.0
-        for <linux-nvdimm@lists.01.org>; Thu, 28 Jan 2021 00:47:32 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JHJTDgwtj8/gOzkx5b10unw8uv7UPa0RC8lalBdkj0k=;
-        b=Sl4ljO2YmtxOzHjtc9IIJvu0XfftRThhJ3oo19azvPRompBAJVtJcmNF4o1rdNvMks
-         yM9DBJtfSPiWFE3jJTocHhmwkBq9OMKH955WsNgP4dCEADuNjUkRUkV2LiGKaOjMdoec
-         wtFZsKIpZez1nAjiagGhzS0ADiZOB0M8eiMpOYPH7OY/OJkkIFqe4Nr8vLz25B4GdDFq
-         p85zqTzGOJVD6V/P5VaP68ojkLy3iMwaEO6eenkEZE6EnE6VHR7NOwCEh+jSR+3jiErh
-         8MhbaUME6UrurP0/GDr1VbiiQ2mFxeXAd/f4w+7XPyWz4Y47n+/3sM5QbOgJC6J0C2Be
-         wYlg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JHJTDgwtj8/gOzkx5b10unw8uv7UPa0RC8lalBdkj0k=;
-        b=crj0vij5TrZ8IO1bxoF7Nh9/59e1MGEYCSWNJt/DtDydjWeAg7NDJ7TtBUQtLdHl73
-         rxdYo9h/KgjN7GF6iETk4+KZewiT+j8ltEGKlS7i89eqAUtHLTyjyc3cQUt9EWqDnYFP
-         +R8x2gHKH8toLLeLdhKpuphojcuZgO9ZBfbk6GKVo2EqFzmIBQb7Vm/23fVwdLeYR5y0
-         FST9pFJ22zEDiH9gh8ylTi+RTqwAvaT3biqBSGGdCIonOOixGQLB8E5Jpd6rAZLVCDuE
-         zhDKQi0nSHxpFBvHy8nYZRGkdysA+T6gMb8tCxa0jOga/3PwB44Pqy1aKcPHCkCXuZL1
-         8tpw==
-X-Gm-Message-State: AOAM530ZwcTMNz6TKoXtrH9I1IXzfT/4sEfjKtqSs6Ektju3H0fKmzMB
-	hkR2KCEzWjjJNrMzAoEp+M70bPVDcDH0Mg/KfbsDFA==
-X-Google-Smtp-Source: ABdhPJwW2jdQJcrigwATW48r59SPc1Olx87ks6Ahk1hwbyLjri48wLTugoNI4XhrFAZ6y70W3y660aoG8D8Q0nzoq0Y=
-X-Received: by 2002:a05:6402:5107:: with SMTP id m7mr12766424edd.52.1611823650968;
- Thu, 28 Jan 2021 00:47:30 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id C4EA5100EF265
+	for <linux-nvdimm@lists.01.org>; Thu, 28 Jan 2021 01:23:18 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDB2664DBD;
+	Thu, 28 Jan 2021 09:23:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1611825798;
+	bh=wFG5EhdlVFCwH+afpQDALNPmvIOm44hDKteic5pytDI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=rxsJaJjU3sN48PyjZmsBwjDAMzpV1mSDumbq6Vyhy1ylEqh17Y4BWGasGmEKM8wGb
+	 FFiXgqi9YKa2UW585N4J/UJUUiMSsvRqdthQ8lWnluP+x5F7LzK94JTif6Q9PlN4Qp
+	 0vTd4DdZTyxQs/VSO/swnV8HFYZgo19Bwx/Pip182+f3Fb3AxlbTFLjCdj8TdrjWSX
+	 h/qZFSgYAfnmiXoEsb6t5X8uFqRtKIMlLzCTMEcmb/dlZipJDPSJ67u+u2XAzNKw+U
+	 FwH99yq1Pt4VruScF6VwyzEABEVF5UHEXyz20348tQsQVXLyUoh3LOrNAXJp3tqz74
+	 76PCZTZpxL6Hg==
+Date: Thu, 28 Jan 2021 11:22:59 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: Michal Hocko <mhocko@suse.com>
+Subject: Re: [PATCH v16 07/11] secretmem: use PMD-size pages to amortize
+ direct map fragmentation
+Message-ID: <20210128092259.GB242749@kernel.org>
+References: <20210121122723.3446-1-rppt@kernel.org>
+ <20210121122723.3446-8-rppt@kernel.org>
+ <20210126114657.GL827@dhcp22.suse.cz>
+ <303f348d-e494-e386-d1f5-14505b5da254@redhat.com>
+ <20210126120823.GM827@dhcp22.suse.cz>
 MIME-Version: 1.0
-References: <20200426095232.27524-1-redhairer.li@intel.com>
- <CAPcyv4gLKSMa4bN446MnRtjdfGaM-Hjy+dcYm316=4EP43G1wg@mail.gmail.com>
- <BL0PR11MB3281CBD1CC9B64389731ECE492AC0@BL0PR11MB3281.namprd11.prod.outlook.com>
- <CAPcyv4gupvktDG2PdCL6SyO4gwC1WoP8PKmPv1gP6pp8i10esQ@mail.gmail.com> <MWHPR11MB13753C37B1394CFFE124A30892A70@MWHPR11MB1375.namprd11.prod.outlook.com>
-In-Reply-To: <MWHPR11MB13753C37B1394CFFE124A30892A70@MWHPR11MB1375.namprd11.prod.outlook.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 28 Jan 2021 00:47:28 -0800
-Message-ID: <CAPcyv4iG9XMfrhKn+vSmU2RjyeaHtiF2pprGJ6t-56uOtPNSJg@mail.gmail.com>
-Subject: Re: [PATCH 1/1] ndctl/namespace: Fix disable-namespace accounting
- relative to seed devices
-To: "Li, Redhairer" <redhairer.li@intel.com>
-Message-ID-Hash: YJVASYIUAG23VJFRLQ7MSZIWIFW4XEHH
-X-Message-ID-Hash: YJVASYIUAG23VJFRLQ7MSZIWIFW4XEHH
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm <linux-nvdimm@lists.01.org>
+Content-Disposition: inline
+In-Reply-To: <20210126120823.GM827@dhcp22.suse.cz>
+Message-ID-Hash: E4ACABJZET4PZV4HSUZYT7DZ4EOQCOO2
+X-Message-ID-Hash: E4ACABJZET4PZV4HSUZYT7DZ4EOQCOO2
+X-MailFrom: rppt@kernel.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho 
+ Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YJVASYIUAG23VJFRLQ7MSZIWIFW4XEHH/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/E4ACABJZET4PZV4HSUZYT7DZ4EOQCOO2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -83,55 +70,150 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 15, 2021 at 9:22 AM Li, Redhairer <redhairer.li@intel.com> wrote:
->
-> Hi Dan,
->
-> Your comment is make sense.
-> ndctl_namespace_disable_safe will return 1 if namespace size is 0.
-> I send a new patch out for review.
+On Tue, Jan 26, 2021 at 01:08:23PM +0100, Michal Hocko wrote:
+> On Tue 26-01-21 12:56:48, David Hildenbrand wrote:
+> > On 26.01.21 12:46, Michal Hocko wrote:
+> > > On Thu 21-01-21 14:27:19, Mike Rapoport wrote:
+> > > > From: Mike Rapoport <rppt@linux.ibm.com>
+> > > > 
+> > > > Removing a PAGE_SIZE page from the direct map every time such page is
+> > > > allocated for a secret memory mapping will cause severe fragmentation of
+> > > > the direct map. This fragmentation can be reduced by using PMD-size pages
+> > > > as a pool for small pages for secret memory mappings.
+> > > > 
+> > > > Add a gen_pool per secretmem inode and lazily populate this pool with
+> > > > PMD-size pages.
+> > > > 
+> > > > As pages allocated by secretmem become unmovable, use CMA to back large
+> > > > page caches so that page allocator won't be surprised by failing attempt to
+> > > > migrate these pages.
+> > > > 
+> > > > The CMA area used by secretmem is controlled by the "secretmem=" kernel
+> > > > parameter. This allows explicit control over the memory available for
+> > > > secretmem and provides upper hard limit for secretmem consumption.
+> > > 
+> > > OK, so I have finally had a look at this closer and this is really not
+> > > acceptable. I have already mentioned that in a response to other patch
+> > > but any task is able to deprive access to secret memory to other tasks
+> > > and cause OOM killer which wouldn't really recover ever and potentially
+> > > panic the system. Now you could be less drastic and only make SIGBUS on
+> > > fault but that would be still quite terrible. There is a very good
+> > > reason why hugetlb implements is non-trivial reservation system to avoid
+> > > exactly these problems.
 
-It looks ok but it does not apply to the current tip of tree now v71.1
-can you resend?
+So, if I understand your concerns correct this implementation has two
+issues:
+1) allocation failure at page fault that causes unrecoverable OOM and
+2) a possibility for an unprivileged user to deplete secretmem pool and
+cause (1) to others
 
->
-> But I am not sure what do you mean for 2nd patch.
-> In cmd_disable_namespace, it already print error if rc<0.
->         rc = do_xaction_namespace(namespace, ACTION_DISABLE, ctx, &disabled);
->         if (rc < 0 && !err_count)
->                 fprintf(stderr, "error disabling namespaces: %s\n",
->                                 strerror(-rc));
+I'm not really familiar with OOM internals, but when I simulated an
+allocation failure in my testing only the allocating process and it's
+parent were OOM-killed and then the system continued normally. 
 
-Hmm, you're right, once you change to the positive error code the
-report will just work. Did you give it a try does it fix the
-accounting problem with just your first patch?
+You are right, it would be better if we SIGBUS instead of OOM but I don't
+agree SIGBUS is terrible. As we started to draw parallels with hugetlbfs
+even despite it's complex reservation system, hugetlb_fault() may fail to
+allocate pages from CMA and this still will cause SIGBUS.
 
->
-> my patch is based on v70 due to latest one will see "FAIL: create.sh" when make check even not include my change.
+And hugetlb pools may be also depleted by anybody by calling
+mmap(MAP_HUGETLB) and there is no any limiting knob for this, while
+secretmem has RLIMIT_MEMLOCK.
 
-I know of at least one create.sh failure that was fixed by:
+That said, simply replacing VM_FAULT_OOM with VM_FAULT_SIGBUS makes
+secretmem at least as controllable and robust than hugeltbfs even without
+complex reservation at mmap() time.
 
-Kernel commit:
+> > > So unless I am really misreading the code
+> > > Nacked-by: Michal Hocko <mhocko@suse.com>
+> > > 
+> > > That doesn't mean I reject the whole idea. There are some details to
+> > > sort out as mentioned elsewhere but you cannot really depend on
+> > > pre-allocated pool which can fail at a fault time like that.
+> > 
+> > So, to do it similar to hugetlbfs (e.g., with CMA), there would have to be a
+> > mechanism to actually try pre-reserving (e.g., from the CMA area), at which
+> > point in time the pages would get moved to the secretmem pool, and a
+> > mechanism for mmap() etc. to "reserve" from these secretmem pool, such that
+> > there are guarantees at fault time?
+> 
+> yes, reserve at mmap time and use during the fault. But this all sounds
+> like a self inflicted problem to me. Sure you can have a pre-allocated
+> or more dynamic pool to reduce the direct mapping fragmentation but you
+> can always fall back to regular allocatios. In other ways have the pool
+> as an optimization rather than a hard requirement. With a careful access
+> control this sounds like a manageable solution to me.
 
-2dd2a1740ee1 libnvdimm/namespace: Fix reaping of invalidated
-block-window-namespace labels
+I'd really wish we had this discussion for earlier spins of this series,
+but since this didn't happen let's refresh the history a bit.
 
-...which is now in v5.11-rc1 and backported to v5.10-rc4. However,
-that bug only started triggering after ndctl changed to reconfigure
-namespaces in place with commit:
+One of the major pushbacks on the first RFC [1] of the concept was about
+the direct map fragmentation. I tried really hard to find data that shows
+what is the performance difference with different page sizes in the direct
+map and I didn't find anything.
 
-d4bc247faeda ndctl/namespace: Reconfigure in-place
+So presuming that large pages do provide advantage the first implementation
+of secretmem used PMD_ORDER allocations to amortise the effect of the
+direct map fragmentation and then handed out 4k pages at each fault. In
+addition there was an option to reserve a finite pool at boot time and
+limit secretmem allocations only to that pool.
 
-..which was only merged into ndctl in v71.
+At some point David suggested to use CMA to improve overall flexibility
+[3], so I switched secretmem to use CMA.
 
-Another kernel change that may be causing your failures is:
+Now, with the data we have at hand (my benchmarks and Intel's report David
+mentioned) I'm even not sure this whole pooling even required.
 
-d1c5246e08eb x86/mm: Fix leak of pmd ptlock
+I like the idea to have a pool as an optimization rather than a hard
+requirement but I don't see why would it need a careful access control. As
+the direct map fragmentation is not necessarily degrades the performance
+(and even sometimes it actually improves it) and even then the degradation
+is small, trying a PMD_ORDER allocation for a pool and then falling back to
+4K page may be just fine.
 
-...which was merged for v5.11-rc3 and backported to v5.10.7.
+I think we could have something like this (error handling is mostly
+omitted):
 
-Can you run latest kernel and ndctl and see if you still see the
-create.sh failure?
+static int secretmem_pool_increase(struct secretmem_ctx *ctx, gfp_t gfp)
+{
+	struct page *page = alloc_pages(gfp, PMD_PAGE_ORDER);
+
+	if (!page)
+		return -ENOMEM;
+
+	/* add large page to pool */
+	
+	return 0;
+}
+
+static struct page *secretmem_alloc_page(struct secretmem_ctx *ctx,
+					 gfp_t gfp)
+{
+	struct page *page;
+	...
+
+	if (gen_pool_avail(pool) < PAGE_SIZE) {
+		err = secretmem_pool_increase(ctx, gfp);
+		if (!err) {
+			addr = gen_pool_alloc(pool, PAGE_SIZE);
+			if (addr)
+				page = virt_to_page(addr);
+		}
+	}
+
+	if (!page)
+		page = alloc_page(gfp);
+
+	return page;	
+}
+
+[1] https://lore.kernel.org/lkml/1572171452-7958-1-git-send-email-rppt@kernel.org/
+[2] https://lore.kernel.org/lkml/20200720092435.17469-1-rppt@kernel.org/
+[3] https://lore.kernel.org/lkml/03ec586d-c00c-c57e-3118-7186acb7b823@redhat.com/#t
+
+-- 
+Sincerely yours,
+Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
