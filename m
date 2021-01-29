@@ -2,47 +2,47 @@ Return-Path: <SRS0=Pirs=HA=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB50BC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Jan 2021 07:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED832C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Jan 2021 07:54:06 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5E32564E05
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Jan 2021 07:21:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5E32564E05
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 7097B64E03
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 29 Jan 2021 07:54:06 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7097B64E03
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D90FB100EAAF2;
-	Thu, 28 Jan 2021 23:21:49 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id CB439100EAAFC;
+	Thu, 28 Jan 2021 23:54:05 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=mhocko@suse.com; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 563CA100EAB7B
-	for <linux-nvdimm@lists.01.org>; Thu, 28 Jan 2021 23:21:47 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFF4764DFF;
-	Fri, 29 Jan 2021 07:21:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1611904906;
-	bh=NGPVE0T2yDfzE3jsleZ51uyBOURj43/DKZo4DEUYgL4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=a64cCYp6LVDN9rc75p+01u8IW5fw/bN2EdsNx+IABYTwj1i4JOBtzJvRknWyJc/J7
-	 T52AuZy7pyjPKZ7QZu+wKtBfqCmigfwc/Dvz3QN7mz43ePh5UhCDDbWOD1E5YGhGzV
-	 wPbtwiDgaLzyUeLcdUi+JOYIp31MvzVMMRWuhINnli/F66n9915eRLn0EOIFyB4ZO8
-	 wlmLxu9iLOV8KiftxFouX4rgVx232aCXqGGzNxLKwDd9wpXTDoFGFkXI0knbjgu+Ij
-	 uSrdbgHPpUkaQkJEWC9FddlNhYIa66q3F5imgc1LAIfa+9f41PojeHOXz2yia5DWYQ
-	 0OIfdJEzC+XGA==
-Date: Fri, 29 Jan 2021 09:21:28 +0200
-From: Mike Rapoport <rppt@kernel.org>
-To: Michal Hocko <mhocko@suse.com>
+	by ml01.01.org (Postfix) with ESMTPS id DA19C100EAAF9
+	for <linux-nvdimm@lists.01.org>; Thu, 28 Jan 2021 23:54:02 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+	t=1611906841; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=Qq/LTzApf3bN0KeQhA5voHbd39mSTuwpVJHWgFqS7tI=;
+	b=VeS+erlQ/D0mICcn4h1apyKupa7vysv7jPuADT7gGBStXgvb2Mh94pxpNtxq3ZHFM6eVx2
+	AzZTdG6HodXjhRfYzr8XnVmsRMMpIlEG/g/WmygtSF5VOOokvXwPyg8PvtC3BvdtYDoTuK
+	+Ynl/lAwL00OK4XFtLs9b+94Viv/g4c=
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id AFFA7AC55;
+	Fri, 29 Jan 2021 07:54:00 +0000 (UTC)
+Date: Fri, 29 Jan 2021 08:53:59 +0100
+From: Michal Hocko <mhocko@suse.com>
+To: James Bottomley <jejb@linux.ibm.com>
 Subject: Re: [PATCH v16 07/11] secretmem: use PMD-size pages to amortize
  direct map fragmentation
-Message-ID: <20210129072128.GD242749@kernel.org>
+Message-ID: <YBO/F6zlyaAhVwcm@dhcp22.suse.cz>
 References: <20210121122723.3446-1-rppt@kernel.org>
  <20210121122723.3446-8-rppt@kernel.org>
  <20210126114657.GL827@dhcp22.suse.cz>
@@ -50,20 +50,21 @@ References: <20210121122723.3446-1-rppt@kernel.org>
  <20210126120823.GM827@dhcp22.suse.cz>
  <20210128092259.GB242749@kernel.org>
  <YBK1kqL7JA7NePBQ@dhcp22.suse.cz>
+ <73738cda43236b5ac2714e228af362b67a712f5d.camel@linux.ibm.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <YBK1kqL7JA7NePBQ@dhcp22.suse.cz>
-Message-ID-Hash: UP4E32BLUIUNVDJGU6SWSN37NMSQPREU
-X-Message-ID-Hash: UP4E32BLUIUNVDJGU6SWSN37NMSQPREU
-X-MailFrom: rppt@kernel.org
+In-Reply-To: <73738cda43236b5ac2714e228af362b67a712f5d.camel@linux.ibm.com>
+Message-ID-Hash: KEERCSZ536ABQI7KH7XZCGUQBSOBU6ED
+X-Message-ID-Hash: KEERCSZ536ABQI7KH7XZCGUQBSOBU6ED
+X-MailFrom: mhocko@suse.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho 
- Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
+CC: Mike Rapoport <rppt@kernel.org>, David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Ander
+ sen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UP4E32BLUIUNVDJGU6SWSN37NMSQPREU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KEERCSZ536ABQI7KH7XZCGUQBSOBU6ED/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -72,115 +73,28 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Jan 28, 2021 at 02:01:06PM +0100, Michal Hocko wrote:
-> On Thu 28-01-21 11:22:59, Mike Rapoport wrote:
+On Thu 28-01-21 13:05:02, James Bottomley wrote:
+> On Thu, 2021-01-28 at 14:01 +0100, Michal Hocko wrote:
+[...]
+> > I am also still not sure why this whole thing is not just a
+> > ramdisk/ramfs which happens to unmap its pages from the direct
+> > map. Wouldn't that be a much more easier model to work with? You
+> > would get an access control for free as well.
 > 
-> > And hugetlb pools may be also depleted by anybody by calling
-> > mmap(MAP_HUGETLB) and there is no any limiting knob for this, while
-> > secretmem has RLIMIT_MEMLOCK.
-> 
-> Yes it can fail. But it would fail at the mmap time when the reservation
-> fails. Not during the #PF time which can be at any time.
+> The original API was a memfd which does have this access control as
+> well.  However, the decision was made after much discussion to go with
+> a new system call instead.
 
-It may fail at $PF time as well:
+It would be really great to summarize reasoning behind that decision.
+Not only for those who were not part of those discussion but also for
+anybody who will be reading git log and want to try to understand that
+reasoning. Go and read 15 versions of patchset to find that out is
+certainly not great use of time.
 
-hugetlb_fault()
-        hugeltb_no_page()
-                ...
-                alloc_huge_page()
-                        alloc_gigantic_page()
-                                cma_alloc()
-                                        -ENOMEM; 
-
- 
-> > That said, simply replacing VM_FAULT_OOM with VM_FAULT_SIGBUS makes
-> > secretmem at least as controllable and robust than hugeltbfs even without
-> > complex reservation at mmap() time.
-> 
-> Still sucks huge!
- 
-Any #PF can get -ENOMEM for whatever reason. Sucks huge indeed.
-
-> > > > > So unless I am really misreading the code
-> > > > > Nacked-by: Michal Hocko <mhocko@suse.com>
-> > > > > 
-> > > > > That doesn't mean I reject the whole idea. There are some details to
-> > > > > sort out as mentioned elsewhere but you cannot really depend on
-> > > > > pre-allocated pool which can fail at a fault time like that.
-> > > > 
-> > > > So, to do it similar to hugetlbfs (e.g., with CMA), there would have to be a
-> > > > mechanism to actually try pre-reserving (e.g., from the CMA area), at which
-> > > > point in time the pages would get moved to the secretmem pool, and a
-> > > > mechanism for mmap() etc. to "reserve" from these secretmem pool, such that
-> > > > there are guarantees at fault time?
-> > > 
-> > > yes, reserve at mmap time and use during the fault. But this all sounds
-> > > like a self inflicted problem to me. Sure you can have a pre-allocated
-> > > or more dynamic pool to reduce the direct mapping fragmentation but you
-> > > can always fall back to regular allocatios. In other ways have the pool
-> > > as an optimization rather than a hard requirement. With a careful access
-> > > control this sounds like a manageable solution to me.
-> > 
-> > I'd really wish we had this discussion for earlier spins of this series,
-> > but since this didn't happen let's refresh the history a bit.
-> 
-> I am sorry but I am really fighting to find time to watch for all the
-> moving targets...
-> 
-> > One of the major pushbacks on the first RFC [1] of the concept was about
-> > the direct map fragmentation. I tried really hard to find data that shows
-> > what is the performance difference with different page sizes in the direct
-> > map and I didn't find anything.
-> > 
-> > So presuming that large pages do provide advantage the first implementation
-> > of secretmem used PMD_ORDER allocations to amortise the effect of the
-> > direct map fragmentation and then handed out 4k pages at each fault. In
-> > addition there was an option to reserve a finite pool at boot time and
-> > limit secretmem allocations only to that pool.
-> > 
-> > At some point David suggested to use CMA to improve overall flexibility
-> > [3], so I switched secretmem to use CMA.
-> > 
-> > Now, with the data we have at hand (my benchmarks and Intel's report David
-> > mentioned) I'm even not sure this whole pooling even required.
-> 
-> I would still like to understand whether that data is actually
-> representative. With some underlying reasoning rather than I have run
-> these XYZ benchmarks and numbers do not look terrible.
-
-I would also very much like to see, for example, reasoning to enabling 1GB
-pages in the direct map beyond "because we can" (commits 00d1c5e05736
-("x86: add gbpages switches") and ef9257668e31 ("x86: do kernel direct
-mapping at boot using GB pages")).
-
-The original Kconfig text for CONFIG_DIRECT_GBPAGES said
-
-          Enable gigabyte pages support (if the CPU supports it). This can
-          improve the kernel's performance a tiny bit by reducing TLB
-          pressure.
-
-So it is very interesting how tiny that bit was.
- 
-> > I like the idea to have a pool as an optimization rather than a hard
-> > requirement but I don't see why would it need a careful access control. As
-> > the direct map fragmentation is not necessarily degrades the performance
-> > (and even sometimes it actually improves it) and even then the degradation
-> > is small, trying a PMD_ORDER allocation for a pool and then falling back to
-> > 4K page may be just fine.
-> 
-> Well, as soon as this is a scarce resource then an access control seems
-> like a first thing to think of. Maybe it is not really necessary but
-> then this should be really justified.
-
-And what being a scarce resource here? If we consider lack of the direct
-map fragmentation as this resource, there enough measures secretmem
-implements to limit user ability to fragment the direct map, as was already
-discussed several times. Global limit, memcg and rlimit provide enough
-access control already.
-
+Thanks!
 -- 
-Sincerely yours,
-Mike.
+Michal Hocko
+SUSE Labs
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
