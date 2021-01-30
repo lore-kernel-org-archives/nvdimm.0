@@ -1,76 +1,46 @@
 Return-Path: <SRS0=2mfB=HB=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,DKIM_ADSP_ALL,
+	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,TVD_SPACE_RATIO,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B7C2C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 30 Jan 2021 01:59:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72498C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 30 Jan 2021 08:56:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id F25C764DDF
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 30 Jan 2021 01:59:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org F25C764DDF
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id D857A64E26
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 30 Jan 2021 08:56:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D857A64E26
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=hobbyiobby.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 70948100EC1DA;
-	Fri, 29 Jan 2021 17:59:33 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::633; helo=mail-ej1-x633.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A9130100ED48C
-	for <linux-nvdimm@lists.01.org>; Fri, 29 Jan 2021 17:59:28 -0800 (PST)
-Received: by mail-ej1-x633.google.com with SMTP id hs11so15656231ejc.1
-        for <linux-nvdimm@lists.01.org>; Fri, 29 Jan 2021 17:59:28 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=EWo4KjlIrzjbnoyurSSBVNGq8JCtPRxkHzDKnUW80j0=;
-        b=P858ojYjTMLet0tza2ROjVLugxIkJKWKScHcI99wlUNAmdxT/q0A+8k3B4mv69C6zW
-         pZ3i9rKjIGm6RktXcFu6kGETkt4+Jprl742+JAq4QxjvLpmTtFhN3miGluA4/V/VKeJv
-         9nZml1zipllmwJKOv8oSAuBaFNUHz9Rl4zI9JcuPjIHxoW3Bl2UIz3T7v/Mhw5V6YC6F
-         XVFOnWy13TgIeKZ9JZEcevyMlunFbyxb2gWPKmVAZuGq6Nh186yBr2KUEe4zNweU597Q
-         J2WEvdpkdziTYPjCr6ZlwS9Ei/JRG+DNDI+wOaCr7qodi4DudmJQBCv2t/yAQ5R6U3fT
-         df+w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=EWo4KjlIrzjbnoyurSSBVNGq8JCtPRxkHzDKnUW80j0=;
-        b=BuOVB9RrGrVbqC16FvEWnfod5CihmKt6s8EfFEay776MGfpzrdHMhRP0NXPi/JCFHE
-         0fCjwcJNE0qGysJPljsv4sxA4Ew7Qg/Tw3lyHpLWjSVNQBRXRNUsJuOQLW/yv8IfAHb/
-         gXfTtZdDp2w8K3+9M5tkKRWDTMsC3dl6XVaTXfNW1jqtSONQ2pUpyIOHfVN8DvaAADyc
-         oRzmgmr+vPuUVkJRy3twYGmSuMSEvoLKYeR2s2yjwH06GknNSgxjIS+lKDRu9l/AoYfC
-         TFdFTTwRlzzM4eIWDRKp9fZPpKa06HUW4TuZlUqvSNnoR1PEXmtNHWMsVC0ROR93mNPi
-         36vw==
-X-Gm-Message-State: AOAM5338sNFparwo2NHozoo+Zmes/Yd4y0OYtUJL9SKwLKoXd2f5GnPB
-	iLsQiMOlirH/4/C+vkIYG+JJCMkk11Ou2epz5M1IKw==
-X-Google-Smtp-Source: ABdhPJyteHUAK6EjHEtc9xneY7O6pvnG4P0dUDapv2YrqKHQ9TTcKg3Asw/O8AVJSbRScvPOSKnGqXrPFZiktJtSdM8=
-X-Received: by 2002:a17:906:f919:: with SMTP id lc25mr7315521ejb.323.1611971966715;
- Fri, 29 Jan 2021 17:59:26 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 473E9100EBB9E;
+	Sat, 30 Jan 2021 00:56:07 -0800 (PST)
+Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=185.222.57.189; helo=hobbyiobby.com; envelope-from=server@hobbyiobby.com; receiver=<UNKNOWN> 
+Received: from hobbyiobby.com (unknown [185.222.57.189])
+	by ml01.01.org (Postfix) with ESMTP id 893DF100ED4A4
+	for <linux-nvdimm@lists.01.org>; Sat, 30 Jan 2021 00:56:04 -0800 (PST)
+From: Rev Azra Mehmet Ates<server@hobbyiobby.com>
+To: linux-nvdimm@lists.01.org
+Subject: remain blessed
+Date: 30 Jan 2021 00:56:03 -0800
+Message-ID: <20210130005602.D5B117F00EF405AD@hobbyiobby.com>
 MIME-Version: 1.0
-References: <161117153248.2853729.2452425259045172318.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <161117153248.2853729.2452425259045172318.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 29 Jan 2021 17:59:24 -0800
-Message-ID: <CAPcyv4jEYPsyh0bhbtKGRbK3bgp=_+=2rjx4X0gLi5-25VvDyg@mail.gmail.com>
-Subject: Re: [PATCH 0/3] cdev: Generic shutdown handling
-To: Greg KH <gregkh@linuxfoundation.org>
-Message-ID-Hash: 6RKXJZMBAG7QLTV27WSPJIWWO5VQKVWW
-X-Message-ID-Hash: 6RKXJZMBAG7QLTV27WSPJIWWO5VQKVWW
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Alexandre Belloni <alexandre.belloni@free-electrons.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Logan Gunthorpe <logang@deltatee.com>, Hans Verkuil <hans.verkuil@cisco.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
+Message-ID-Hash: DR2ZNMA7XAVAYIK6TGXFWK5RTFFS6ASI
+X-Message-ID-Hash: DR2ZNMA7XAVAYIK6TGXFWK5RTFFS6ASI
+X-MailFrom: server@hobbyiobby.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: atetes2020@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6RKXJZMBAG7QLTV27WSPJIWWO5VQKVWW/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DR2ZNMA7XAVAYIK6TGXFWK5RTFFS6ASI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -79,67 +49,7 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 20, 2021 at 11:38 AM Dan Williams <dan.j.williams@intel.com> wrote:
->
-> After reviewing driver submissions with new cdev + ioctl usages one
-> common stumbling block is coordinating the shutdown of the ioctl path,
-> or other file operations, at driver ->remove() time. While cdev_del()
-> guarantees that no new file descriptors will be established, operations
-> on existing file descriptors can proceed indefinitely.
->
-> Given the observation that the kernel spends the resources for a percpu_ref
-> per request_queue shared with all block_devices on a gendisk, do the
-> same for all the cdev instances that share the same
-> cdev_add()-to-cdev_del() lifetime.
->
-> With this in place cdev_del() not only guarantees 'no new opens', but it
-> also guarantees 'no new operations invocations' and 'all threads running
-> in an operation handler have exited that handler'.
-
-Prompted by the reaction I realized that this is pushing an incomplete
-story about why this is needed, and the "queued" concept is way off
-base. The problem this is trying to solve is situations like this:
-
-long xyz_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-{
-        xyz_ioctl_dev = file->private_data;
-        xyz_driver_context = xyz_ioctl_dev->context;
-        ...
-}
-
-int xyz_probe(struct device *dev)
-{
-        xyz_driver_context = devm_kzalloc(...);
-        ...
-        xyz_ioctl_dev = kmalloc(...);
-        device_initialize(&xyz_ioctl_dev->dev);
-        xyz_ioctl_dev->context = xyz_driver_context;
-      ...
-        cdev_device_add(&xyz_ioctl_dev->cdev, xyz_ioctl_dev->dev);
-}
-
-...where a parent driver allocates context tied to the lifetime of the
-parent device driver-bind-lifetime, and that context ends up getting
-used in the ioctl path. I interpret Greg's assertion "if you do this
-right you don't have this problem" as "don't reference anything with a
-lifetime shorter than the xyz_ioctl_dev lifetime in your ioctl
-handler". That is true, but it can be awkward to constraint
-xyz_driver_context to a sub-device, and it constrains some of the
-convenience of devm. So the goal is to have a cdev api that accounts
-for all the common lifetimes when devm is in use. So I'm now thinking
-of an api like:
-
-    devm_cdev_device_add(struct device *host, struct cdev *cdev,
-struct device *dev)
-
-...where @host bounds the lifetime of data used by the cdev
-file_operations, and @dev is the typical containing structure for
-@cdev. Internally I would refactor the debugfs mechanism for flushing
-in-flight file_operations so that is shared by the cdev
-implementation. Either adopt the debugfs method for file_operations
-syncing, or switch debugfs to percpu_ref (leaning towards the former).
-
-Does this clarify the raised concerns?
+Dear, linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
