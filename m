@@ -7,136 +7,136 @@ X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60623C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Feb 2021 18:20:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B626C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Feb 2021 18:26:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 10D8F64DE1
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Feb 2021 18:20:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 10D8F64DE1
+	by mail.kernel.org (Postfix) with ESMTPS id D30D564DB1
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  1 Feb 2021 18:26:25 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D30D564DB1
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C35D1100EB325;
-	Mon,  1 Feb 2021 10:20:22 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 7C799100EB329;
+	Mon,  1 Feb 2021 10:26:25 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.86; helo=userp2130.oracle.com; envelope-from=konrad.wilk@oracle.com; receiver=<UNKNOWN> 
 Received: from userp2130.oracle.com (userp2130.oracle.com [156.151.31.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CDADD100EB325
-	for <linux-nvdimm@lists.01.org>; Mon,  1 Feb 2021 10:20:20 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 86963100EBB8F
+	for <linux-nvdimm@lists.01.org>; Mon,  1 Feb 2021 10:26:23 -0800 (PST)
 Received: from pps.filterd (userp2130.oracle.com [127.0.0.1])
-	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 111IESci139830;
-	Mon, 1 Feb 2021 18:18:53 GMT
+	by userp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 111IEFD8139697;
+	Mon, 1 Feb 2021 18:24:10 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
  : subject : message-id : references : content-type : in-reply-to :
  mime-version; s=corp-2020-01-29;
- bh=laeAtUecp3TIKpKhO/1Rnd7cQcHwnEo4AXdo+IXkIXs=;
- b=nW/kPVt8FqBDyn4pUJ+TXuIXtW0atdkwUXpp0Mwh1oh0pujoRdpZzIpAIbcDQZJLzPVP
- W744lzFHxtuSqxsLW+kQgTi8hIh45oS3PeGzN+EOYiAFfC5rUNJZyfOhI4M21srkP5on
- vRPWDFs1fO3O41w8jKXpEXccUHqmBMMVmjgvrui3Q941miERKBYuui+rNnDKfgVZx8TY
- 2u9XNlT67tfepainB/1/8SBsvdTGeuUZiq83wEceNRMMNOmAkf5ck0z5SsaBvRhBwzap
- y1Do+8SsXCshgQhMz4jmZQyfZabqwGNCc+wBACxxpsicZePFio2a6e6zJUhmkbGCBoVh Wg==
+ bh=l60f08n2UUQ9F7F3myeI2FXfLaXXPiQ5alJJSKZvH80=;
+ b=LBCr0/3WVhQl444e1NQPWB3C0vU5e53WYhZXU+RZn4XLfkaVJFz3cjWm8jzWvGvRIhT5
+ 75nvBupyd0qJmU3vLmnrrwFKr22kPkua9pK1b4NGc3XX26rKzkL3TI42x/8E6M4QF/7P
+ ZkavPwbTu3rAxLJnADX9DH2y2Q6HuL+oZEscgHb8fHF+LSO1NzUuT2DiQyatfch6XW0I
+ MBHD6IGZJ4cMl2u9SouVDi6oxCPm9cB4Lzq9hQEZ+u+UnZdOxvU30DGNLPvUJadTea24
+ vaPEobGG2a/rNZ1CAaqV8POXTxAqQeHxOjjb65T3UbFCT75wyBgd5NVPuI1S3TU3L/MP bQ==
 Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2130.oracle.com with ESMTP id 36cxvqxseu-1
+	by userp2130.oracle.com with ESMTP id 36cxvqxt7e-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 01 Feb 2021 18:18:53 +0000
+	Mon, 01 Feb 2021 18:24:09 +0000
 Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 111IFRKV057559;
-	Mon, 1 Feb 2021 18:18:52 GMT
-Received: from nam04-bn3-obe.outbound.protection.outlook.com (mail-bn3nam04lp2055.outbound.protection.outlook.com [104.47.46.55])
-	by aserp3030.oracle.com with ESMTP id 36dh1ms450-1
+	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 111IFRRP057545;
+	Mon, 1 Feb 2021 18:24:08 GMT
+Received: from nam12-mw2-obe.outbound.protection.outlook.com (mail-mw2nam12lp2046.outbound.protection.outlook.com [104.47.66.46])
+	by aserp3030.oracle.com with ESMTP id 36dh1msbuy-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 01 Feb 2021 18:18:52 +0000
+	Mon, 01 Feb 2021 18:24:08 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Je9q5Qvvt9rDw0CQ961EcImWruWeVFfx2t3ZPL9Q/D1TwxZr5jqAfUaEpavLaRKD1dNNG6rKmO43cX8a3fFRhPeaZzfNOLVgF7xNBAV9yGWFaWWF54pamxCaq4O2qNpT8aFxt+AEDo5Ta8vud6ZvatGYdxeaaK925fG1sqRZ32WPBK0KqO7t8weWFV86k2a/mTPigtEQ2a9bMtGcmDTiFmO6GXwIqj6gCkjK1qv8jGMf02/YRXrjLpF3XiTtzXJO4VifnSHRGyTHnnZb3IpjDFs+q/tIAD1yf/SqpbCW7Klu6J79c3PpIHY3E1G0YctZLFcPewMtqVgd6PR8zJxaVg==
+ b=fWkqEZtd3OIeluG+4X4rhE54rgfIb06tXmSzdTThvnJBGeq2AHfFYbf6RJyy6yD8K+e2DHcDIVytPTPQZYcLHDO4/IpFlYSwYl30a/bQma/Li4m8QrYqFQUwWLry62OE7wcdgHOZgedG+8z7zV6QcjpeZcCy5IQyL8rSSeSIoJsX6G8/pHN1SMYRHqHQYwMrvNVd8ZY/FMo/R9A9OBg09C/2TyhrKbEHWlbs5fi/49XrP1rH0SXFqjxQTDrV+D3I8Y4DPnPI2C5jumD71KRqSTP1rrzRcN3jPmosIBLdCiW2Un6aQPQA+NFT72QDIotYjRtS4NjBPVAwyTptIWb9Hw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=laeAtUecp3TIKpKhO/1Rnd7cQcHwnEo4AXdo+IXkIXs=;
- b=J0qlFkvdOiPi+kDC5EtCzhgoweffblxsbULlH8DsKBFZYYCcPEF5F9bS29prQTr9TzbJ99YP8RrxZIS436f2bfev7VejeWMyCHqy60pj21AP6udonDT+hsNClcUbr95JFcTu/khdJG2vM10zLalv8XL8miboPKy25rwoXPZ6xcQe/5FAtQtp4oZnhL7uaZxsi2NIj0e1czdLr1BIaN5xQXB1DtmdRlFRBgzpEawiKMYqN0YYu7KMxsZ9YMGR5IJSQ3XFtrzFgdnRmtrfIwt5j5BI48Op6OTHss8vYOoxeUgUz2CFzg9I8gDbVPiaJKloLSCk8ZyaC3wjxKlamOduxg==
+ bh=l60f08n2UUQ9F7F3myeI2FXfLaXXPiQ5alJJSKZvH80=;
+ b=F9ON7cEsf1087McSMSkMUR3qbCpU4fvsmHLCunfgRoHHW+TJoSuERM1ACi6Yuhy/BUvRQJICLxhpzBODY5Wk+imuMPHSVfSQ1M9be/pxnkFMUwaF8awLuWCh/SXU5fOGvcaNB1sriksSxZX2ZGThlKaek+sDqn319oYI1cOB8uOoHSb6JeweLVuJveU7SUJJX2KaLRlOfqzs0ipmXaYqodPho9l5oc8xbClTD5/SyM1w4jyqUuW6+0unh0AY1V/pSiLQIG13mVc8n/qrhoik+bFtOb7+0xf7Q7qIh0prhTmuCzqRmk8OPt1/Ifl9pbpvmIS0d/Nrp455O9BLsvlUkQ==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=laeAtUecp3TIKpKhO/1Rnd7cQcHwnEo4AXdo+IXkIXs=;
- b=j5gZNJk2MNh0rsoRxfeRn1DJR0/xRbz9/MshbBzQAJw1T/1t4UswBFnBtZb0r/wzOv1Mt6JVu2xRMqQQ1Dd9r+2qLuTvARcgZzjaqnx46czAkpf1caohxfZCJY1yW0P+Z2mkgGYCaP7tObSS+BTNyIgL3R2zM2qFUNAvjxzRbPc=
+ bh=l60f08n2UUQ9F7F3myeI2FXfLaXXPiQ5alJJSKZvH80=;
+ b=SPA0d3qXkIMDwOb3ocqYLU6EFcdhPUUld6p87yD1GvhXJtlxb5GkhXtefCCikPa3voceSIEXTkvfH4zraQk5HqaOGJ2LjWMX01hmWM9fuL8p3HS/8rCtsoc/xyB+lox91pNwk2TfxWVs+dQA1WCN5XP4aoUJbxLAuaQ5NPpXEjs=
 Authentication-Results: intel.com; dkim=none (message not signed)
  header.d=none;intel.com; dmarc=none action=none header.from=oracle.com;
 Received: from BYAPR10MB2999.namprd10.prod.outlook.com (2603:10b6:a03:85::27)
- by BYAPR10MB2663.namprd10.prod.outlook.com (2603:10b6:a02:a9::20) with
+ by BYAPR10MB3592.namprd10.prod.outlook.com (2603:10b6:a03:11f::31) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.25; Mon, 1 Feb
- 2021 18:18:50 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.17; Mon, 1 Feb
+ 2021 18:24:05 +0000
 Received: from BYAPR10MB2999.namprd10.prod.outlook.com
  ([fe80::e180:1ba2:d87:456]) by BYAPR10MB2999.namprd10.prod.outlook.com
  ([fe80::e180:1ba2:d87:456%4]) with mapi id 15.20.3784.019; Mon, 1 Feb 2021
- 18:18:50 +0000
-Date: Mon, 1 Feb 2021 13:18:45 -0500
+ 18:24:05 +0000
+Date: Mon, 1 Feb 2021 13:24:00 -0500
 From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 To: Ben Widawsky <ben.widawsky@intel.com>
-Subject: Re: [PATCH 08/14] taint: add taint for direct hardware access
-Message-ID: <20210201181845.GJ197521@fedora>
+Subject: Re: [PATCH 09/14] cxl/mem: Add a "RAW" send command
+Message-ID: <20210201182400.GK197521@fedora>
 References: <20210130002438.1872527-1-ben.widawsky@intel.com>
- <20210130002438.1872527-9-ben.widawsky@intel.com>
+ <20210130002438.1872527-10-ben.widawsky@intel.com>
 Content-Disposition: inline
-In-Reply-To: <20210130002438.1872527-9-ben.widawsky@intel.com>
+In-Reply-To: <20210130002438.1872527-10-ben.widawsky@intel.com>
 X-Originating-IP: [209.6.208.110]
-X-ClientProxiedBy: MN2PR14CA0004.namprd14.prod.outlook.com
- (2603:10b6:208:23e::9) To BYAPR10MB2999.namprd10.prod.outlook.com
+X-ClientProxiedBy: MN2PR22CA0010.namprd22.prod.outlook.com
+ (2603:10b6:208:238::15) To BYAPR10MB2999.namprd10.prod.outlook.com
  (2603:10b6:a03:85::27)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from fedora (209.6.208.110) by MN2PR14CA0004.namprd14.prod.outlook.com (2603:10b6:208:23e::9) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.16 via Frontend Transport; Mon, 1 Feb 2021 18:18:47 +0000
+Received: from fedora (209.6.208.110) by MN2PR22CA0010.namprd22.prod.outlook.com (2603:10b6:208:238::15) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3805.17 via Frontend Transport; Mon, 1 Feb 2021 18:24:02 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 98a708ff-7bd1-4674-a84c-08d8c6ddd2d4
-X-MS-TrafficTypeDiagnostic: BYAPR10MB2663:
+X-MS-Office365-Filtering-Correlation-Id: 9d461fed-002c-49e3-9ac4-08d8c6de8e80
+X-MS-TrafficTypeDiagnostic: BYAPR10MB3592:
 X-Microsoft-Antispam-PRVS: 
-	<BYAPR10MB26639C450004DE90F39F068C89B69@BYAPR10MB2663.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:6430;
+	<BYAPR10MB35929DAA0162FB50D3D0B66589B69@BYAPR10MB3592.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:517;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	ZLuBjSotqmSvUCvhvCj4thzhgV8C2co1iX1KL3DHY/nXpqmiMURV+BrP2zghIZp1Y0fzB6Hr+3C4fPOIQYWfDon1I+u20UUXdvo557dvWYvL/eh+Q2Qmfl5/sWpkzKpv7wVZYYJp9YM5V9ZzmSQezZ2PKpmDNBDEbew7lrb42vnPKdGEFf9JKIGq0Dx3Fb71Zpos1iHYmrYxAKx3CfzAZ+XwNLlPM9ftZg+mb/Cz4fWvTmncWJvaFgGOS14q+ikYPHKhYuBFOScWwZEmAhpLCmsmpiJP7MFMlJXIMI4RpxmXfiK31+bgIYOmYjd+ln24UE9ZWMMNaisbxzrIdsDupxW3sjwOn+4G60TJ8W0sJQoTu41GLsNISGcgKmnQM6saIpNHftuPkhLJV/I4Vmh6rZ18uRyw3XCSvR/W4FNgVKy5yxeduzNN7eg71oBUzgeoD9VKlW3G4WUwea6LUE4uCzYpQ1J2KGlSH5Vetrsu9IVkJjfsWqJj/s4aA328PdJEp4okGVqCTaJpHncleQjt4g==
+	8fYLKQYRUI1hSIiCIiAi9zeWolG5+hrEaxbHatdmIhbu/FLOP/KgePAgoeBtdlyZZXxoJTWQFvNfvpEexpqacdnz/PKbT3dmTfT5bzOvaUXLvmhKJdtPHNv9hjsIectS5pTmlVMMhJOeKdmhVGTJgzCtUChDV99m3xzlguPJe1fLSWbhD0ku+rqIWQmxuIvVW9Jn2G3mJBvvw5mxAYKY+FjeL1IhmWzmSOCfzWaggdTAc8NO4Wf6UvOJSl2TiLmzow59xpc3s2XfJw+MpOlhO96F75rNlQtab1QOI0OrSQUbkMcbjg5JD0KaNn0LaifnVQSAjqPZP/HQ0oiZDZjgYVXxjyZ+cASg0IRatAdRnYmAWB9P50MQ3mD606f5G1mbKByFP7MkTX3ndYchhNoItn8am0fyYs/6G0qslLtLe9ltKZC9xmQh/FCAT0AGxRkBCN98/zB9FQH+YGddJR/kAL50zXoeFKfe38g0WzrRjYan2/IBSBwf6MLCw+Q0QKaMA3Ngoz1uy3Fq5I+ApvXTuw==
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB2999.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(376002)(396003)(346002)(136003)(366004)(39860400002)(478600001)(26005)(83380400001)(6496006)(4326008)(9576002)(316002)(66946007)(5660300002)(2906002)(66556008)(54906003)(66476007)(956004)(33656002)(186003)(9686003)(52116002)(16526019)(55016002)(1076003)(86362001)(7416002)(33716001)(8936002)(6916009)(8676002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB2999.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(396003)(39860400002)(136003)(346002)(376002)(366004)(186003)(16526019)(52116002)(956004)(6496006)(7416002)(54906003)(4326008)(33716001)(316002)(86362001)(8936002)(66946007)(66556008)(55016002)(66476007)(6916009)(5660300002)(9686003)(9576002)(83380400001)(1076003)(478600001)(2906002)(26005)(8676002)(33656002);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData: 
-	=?us-ascii?Q?SWHmi8qChy6WQUszWVRdSEpJrj0NAn1ft+20AnirfM4HIKevbLZCtEPQHYQA?=
- =?us-ascii?Q?U0hwhqOUNZAgpWngO+qV2aRNphtMsR3lmZv4rM2elgc9Y4M1qwuBxTs4VWr1?=
- =?us-ascii?Q?gYXs1EvbCfAfxpFOeToer97jRjBQHxqfaZ+4JH/+A2h67/DaCxwvUSpluJS8?=
- =?us-ascii?Q?oATmTUf02Ns+xuIWKkKdcH0RDoTFzdzjt5pRAYqmkSLhXZfOWNLjFZa2UmFi?=
- =?us-ascii?Q?1pY+PJIxkmJVm7T7qQkGotr6UUJVBHegwb3my2GxC7NUUI7AYdebPXffaIPb?=
- =?us-ascii?Q?8i0Ae7EUC/bC673pyjrGUDtkuToFL5hUU4BoCsGYgFLE/KPvYIIJeB0gXfxX?=
- =?us-ascii?Q?/VJzPdai/WGcz94PlanSYX3ApJRh5UvijpqoBI6GPRroACiTwe2OFoNqGa8i?=
- =?us-ascii?Q?aYQoQnKt9EEnolapo5LChwmADAgnutvi27friqDOFZeOHc9qBBUbP7FlQQz6?=
- =?us-ascii?Q?R+sj8qqZEmPRDS/jMR3Yso8b3xMBYzVD1dRB2evKALBwJirEwhCp/p74DCU0?=
- =?us-ascii?Q?gi7Pl8ZZTuTC93u4dujwMYiHOLha6Z8Papm8l7Xi3PmBR2OCp7CFSVRWBo4b?=
- =?us-ascii?Q?2OFS2Ch3pUF5ZLmlPr7x/JtFsySXvUGyGwfVsKdnawpAx8wJKDuyc8fJ/Jph?=
- =?us-ascii?Q?55nMqx4UcwQ3FaiWnT9EzmKFaVNXcfVtvj0YoqxOpLJblLgzTqqpyLIlrZ0d?=
- =?us-ascii?Q?QYwRTJH+PX+EJnOFqaQ6Eq5RU+QB84xnSoNuvtt5rz7IzlYpxXQ3g9ZjmpsH?=
- =?us-ascii?Q?hN2KzlANDYieLOkTmR63IZJ3SkQQ1U17FVyujUVXMahCbh2+sOiPieqhVAwD?=
- =?us-ascii?Q?cmNYkHZ5LgrwivdzI+ay2l3gtdN+WdLKfBTi29UAy0X0lOb68E1PtM9CG1CN?=
- =?us-ascii?Q?m3MvlJVCc3X/QB0Z+2KKiFRvgaB8ZSSA6ez41dKY7vhkV3id7qPlvQ+3M7jb?=
- =?us-ascii?Q?VhZ354CPO6ZYpl71Dr7Bl437VVKSIT0QENKE4PLSUUoU14Af3l+U/surm7hU?=
- =?us-ascii?Q?5jGiDOLEbcady5zD+7qvq58Ru13CaejsEziXXgN/CDwzLteeVPGuAUJEIvDn?=
- =?us-ascii?Q?RNPbXr/w?=
+	=?us-ascii?Q?knjkINRLpew+T2+ghIBAvf0NYHVEWFS/xsS/K2MaUxyHLYkAlHqQy1mU5ITo?=
+ =?us-ascii?Q?rf3RS/aQYn9GJRA4+H6LQbuu9SQRQNASVFue9S6N/Unyq4KO1YLhAqPZzj4Y?=
+ =?us-ascii?Q?htDLMXKhTcklg0bpGmgO8svp72YWiQ36HLW4L8QJPQm/G5piYG8Plwkn7J5v?=
+ =?us-ascii?Q?rTAuo10ADs/nXuNnYbWVC5nV5MIUgBUnjPzNJwGfef/py9q1fr1Fmg6rnhH5?=
+ =?us-ascii?Q?mE2yxy/kzDHCxOG1rjoHTZpt4VhOHCxsS8QUuM6iQLFcAzjW2RTLm6ZcxyN0?=
+ =?us-ascii?Q?7ANhc4zaXE7cc/SuTLzXLALRpn1EMdSnyoJQjbXdgtD3W/60qqLd4ys6bAe5?=
+ =?us-ascii?Q?mSMGTRLE8x7csKe41kt4DEeZM9AubqEqC+d8ydZ0R3Rnh20TgOVemSgH9KY1?=
+ =?us-ascii?Q?dXQpAW4ptxCGdxkjHSmTfoD56zKj5equI0WrkIea24ZIipnI9fGAN4D1RTTU?=
+ =?us-ascii?Q?E8BsIuaWxvbmjWzoOOrLcIwzxqqy1Xio6UgjwJK+tCZAuI74aY2jFJ/whLrO?=
+ =?us-ascii?Q?8ZzlYNgwdhrivtBtX9kQsb2n0S0s+CzFM0TcXXx0jxjqX/MNOG8cM0O1CCyB?=
+ =?us-ascii?Q?sLYONj93/XBxsx5cuIPQXTQA9rF8e1DPu+K+/bfgUsiT7NsFJ4JPk2KFWQXh?=
+ =?us-ascii?Q?r3Fz7pxqmAHZ/mBPR/IvVsMbKmDl+ZR4kEfeX+LTRV9KekugFgGR4QibLPfi?=
+ =?us-ascii?Q?DdcNB31ZZAqhhz5tuNoi1TwMbUJT8jzxGUf8abFhS7G8Hr43UUUEaLFRd3O8?=
+ =?us-ascii?Q?0b+NiE5A7ey7DDGElFoZ795vDSgge3HTN4EJnn2UC5txsDHQnlayUwh1agdE?=
+ =?us-ascii?Q?5NRFZ9GzE2Ojm3Z97b5+oxSmwAXNaiK7V2fbMEClJTkOl1SG7C6lRJp9ZFhK?=
+ =?us-ascii?Q?F7WwCDF6aeqoFzcycJzHCDWVr+OaDzbF9ixH935RbfJIAwBZPEUUf36cb0q/?=
+ =?us-ascii?Q?g0p4Lz4i0i8ZZX5+eWw8vRqcQT+2c0LGP4BGoqNnMBakugg6q20AAe1Goce3?=
+ =?us-ascii?Q?Y8oTnyhlCw0KsDCM5v3Lfin9+7IQpBHvDqymVBrQ70NaHPx1s3rPM7ckERbd?=
+ =?us-ascii?Q?u29oMIme?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 98a708ff-7bd1-4674-a84c-08d8c6ddd2d4
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9d461fed-002c-49e3-9ac4-08d8c6de8e80
 X-MS-Exchange-CrossTenant-AuthSource: BYAPR10MB2999.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Feb 2021 18:18:50.1698
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Feb 2021 18:24:05.0306
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: RRIcKceMbTWksFfPgSQS1+uBSv8t/s8tgqoMSE35hIZgoNmicn9A7eFkDeunLAz6Fwpf/uJwDXKRIy+CDQmBNg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB2663
+X-MS-Exchange-CrossTenant-UserPrincipalName: GcK29ybDpcmjYVgqwbtQzSnSoxajqTbxpYMTfCZHDg92TTRoXk68DT7E+Ou+CmU2yIgyuj6n4brpx49YiBmmoQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB3592
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9882 signatures=668683
 X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0 phishscore=0
- suspectscore=0 mlxlogscore=862 bulkscore=0 mlxscore=0 malwarescore=0
+ suspectscore=0 mlxlogscore=999 bulkscore=0 mlxscore=0 malwarescore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
  definitions=main-2102010095
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9882 signatures=668683
@@ -145,8 +145,8 @@ X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 ml
  suspectscore=0 lowpriorityscore=0 phishscore=0 adultscore=0 bulkscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
  definitions=main-2102010095
-Message-ID-Hash: ZBHGF76SEVG3IRJLAWEARXAGX545334J
-X-Message-ID-Hash: ZBHGF76SEVG3IRJLAWEARXAGX545334J
+Message-ID-Hash: JS5PRISA75CSP4J5ZPVJ2RAEM25EKV2Z
+X-Message-ID-Hash: JS5PRISA75CSP4J5ZPVJ2RAEM25EKV2Z
 X-MailFrom: konrad.wilk@oracle.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -154,7 +154,7 @@ CC: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.ker
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZBHGF76SEVG3IRJLAWEARXAGX545334J/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JS5PRISA75CSP4J5ZPVJ2RAEM25EKV2Z/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -163,32 +163,44 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Jan 29, 2021 at 04:24:32PM -0800, Ben Widawsky wrote:
-> For drivers that moderate access to the underlying hardware it is
-> sometimes desirable to allow userspace to bypass restrictions. Once
-> userspace has done this, the driver can no longer guarantee the sanctity
-> of either the OS or the hardware. When in this state, it is helpful for
-> kernel developers to be made aware (via this taint flag) of this fact
-> for subsequent bug reports.
+On Fri, Jan 29, 2021 at 04:24:33PM -0800, Ben Widawsky wrote:
+> The CXL memory device send interface will have a number of supported
+> commands. The raw command is not such a command. Raw commands allow
+> userspace to send a specified opcode to the underlying hardware and
+> bypass all driver checks on the command. This is useful for a couple of
+> usecases, mainly:
+> 1. Undocumented vendor specific hardware commands
+> 2. Prototyping new hardware commands not yet supported by the driver
+
+This sounds like a recipe for ..
+
+In case you really really want this may I recommend you do two things:
+
+- Wrap this whole thing with #ifdef
+  CONFIG_CXL_DEBUG_THIS_WILL_DESTROY_YOUR_LIFE
+
+ (or something equivalant to make it clear this should never be
+  enabled in production kernels).
+
+ - Add a nice big fat printk in dmesg telling the user that they
+   are creating a unstable parallel universe that will lead to their
+   blood pressure going sky-high, or perhaps something more professional
+   sounding.
+
+- Rethink this. Do you really really want to encourage vendors
+  to use this raw API instead of them using the proper APIs?
+
 > 
-> Example usage:
-> - Hardware xyzzy accepts 2 commands, waldo and fred.
-> - The xyzzy driver provides an interface for using waldo, but not fred.
-> - quux is convinced they really need the fred command.
-> - xyzzy driver allows quux to frob hardware to initiate fred.
+> While this all sounds very powerful it comes with a couple of caveats:
+> 1. Bug reports using raw commands will not get the same level of
+>    attention as bug reports using supported commands (via taint).
+> 2. Supported commands will be rejected by the RAW command.
+> 
+> With this comes new debugfs knob to allow full access to your toes with
+> your weapon of choice.
 
-Would it not be easier to _not_ frob the hardware for fred-operation?
-Aka not implement it or just disallow in the first place?
-
-
->   - kernel gets tainted.
-> - turns out fred command is borked, and scribbles over memory.
-> - developers laugh while closing quux's subsequent bug report.
-
-Yeah good luck with that theory in-the-field. The customer won't
-care about this and will demand a solution for doing fred-operation.
-
-Just easier to not do fred-operation in the first place,no?
+Problem is that debugfs is no longer "debug" but is enabled in
+production kernel.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
