@@ -1,61 +1,55 @@
 Return-Path: <SRS0=J6SA=HE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.3 required=3.0 tests=BAYES_60,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	SUBJ_ALL_CAPS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: **
+X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,DKIM_ADSP_ALL,
+	FREEMAIL_REPLYTO_END_DIGIT,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,TVD_SPACE_RATIO,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1EF9C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 03:42:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E65CEC433E9
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 08:35:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 30B1464DA8
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 03:42:15 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 30B1464DA8
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=balaiworld.com
+	by mail.kernel.org (Postfix) with ESMTPS id 5973864F06
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 08:35:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5973864F06
+Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=hobbyiobby.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B5894100EA93D;
-	Mon,  1 Feb 2021 19:42:15 -0800 (PST)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=23.106.223.229; helo=balaiworld.com; envelope-from=export@balaiworld.com; receiver=<UNKNOWN> 
-Received: from balaiworld.com (unknown [23.106.223.229])
-	by ml01.01.org (Postfix) with ESMTP id C3B7A100EA937
-	for <linux-nvdimm@lists.01.org>; Mon,  1 Feb 2021 19:42:10 -0800 (PST)
-From: "RAJENDRA BALAI ACCOUNT"  <export@balaiworld.com>
+	by ml01.01.org (Postfix) with ESMTP id E842A100F2264;
+	Tue,  2 Feb 2021 00:35:40 -0800 (PST)
+Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=185.222.57.189; helo=hobbyiobby.com; envelope-from=server@hobbyiobby.com; receiver=<UNKNOWN> 
+Received: from hobbyiobby.com (unknown [185.222.57.189])
+	by ml01.01.org (Postfix) with ESMTP id 68826100EBBD8
+	for <linux-nvdimm@lists.01.org>; Tue,  2 Feb 2021 00:35:37 -0800 (PST)
+From: Rev Azra Mehmet Ates<server@hobbyiobby.com>
 To: linux-nvdimm@lists.01.org
-Subject: PERT ENTERPRISES SWIFT - JAN. 29, 2021 PAYMENTS MADE BY RUSTAN'S
-Date: 01 Feb 2021 19:42:10 -0800
-Message-ID: <20210201194210.93E92E537031187F@balaiworld.com>
+Subject: remain blessed
+Date: 2 Feb 2021 00:35:36 -0800
+Message-ID: <20210202003536.0E28753312A6F5E5@hobbyiobby.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_0012_8B128331.BC467AF8"
-Message-ID-Hash: ZDHT4EPAFOUTSHPZ7NRY4G4MEL3GHIJD
-X-Message-ID-Hash: ZDHT4EPAFOUTSHPZ7NRY4G4MEL3GHIJD
-X-MailFrom: export@balaiworld.com
+Message-ID-Hash: 6SRJDTCINWRLUHL4DRPCENSLQ4I3G2TH
+X-Message-ID-Hash: 6SRJDTCINWRLUHL4DRPCENSLQ4I3G2TH
+X-MailFrom: server@hobbyiobby.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: atetes2020@gmail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZDHT4EPAFOUTSHPZ7NRY4G4MEL3GHIJD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6SRJDTCINWRLUHL4DRPCENSLQ4I3G2TH/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0012_8B128331.BC467AF8
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
+Dear, linux-nvdimm
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
-
-------=_NextPart_000_0012_8B128331.BC467AF8--
