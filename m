@@ -1,130 +1,115 @@
 Return-Path: <SRS0=J6SA=HE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.5 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,RAND_MKTG_HEADER,
-	SPF_HELO_NONE,SPF_PASS,URIBL_ABUSE_SURBL,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24C4AC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 21:22:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 004A6C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 22:50:07 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id AD22564E51
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 21:22:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AD22564E51
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=appendleadedm.info
+	by mail.kernel.org (Postfix) with ESMTPS id 83CE164F68
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 22:50:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 83CE164F68
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3C509100EB357;
-	Tue,  2 Feb 2021 13:22:54 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=51.83.191.220; helo=app1.appendleadedm.info; envelope-from=contact-linux+2dnvdimm=lists.01.org@appendleadedm.info; receiver=<UNKNOWN> 
-Received: from app1.appendleadedm.info (ip220.ip-51-83-191.eu [51.83.191.220])
+	by ml01.01.org (Postfix) with ESMTP id 41BF4100F2268;
+	Tue,  2 Feb 2021 14:50:07 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.136; helo=mga12.intel.com; envelope-from=ben.widawsky@intel.com; receiver=<UNKNOWN> 
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 729DE100EB342
-	for <linux-nvdimm@lists.01.org>; Tue,  2 Feb 2021 13:22:50 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=default; d=appendleadedm.info;
- h=Date:To:From:Reply-To:Subject:Message-ID:List-Unsubscribe:List-Id:MIME-Version:Content-Type; i=contact@appendleadedm.info;
- bh=lLpF42ASyBQyu1/zt5FTz6QYcpE=;
- b=ct1QPKrm6v6rj6xKXxMHlWJ0obZSuHVLSSGxHydEbF3jKTdfJKvOJ1cZ3OpgHmu5JrL7DwKcU0c8
-   iBejNGSuWM88JnfrwOLBLBIubYtShLJnigd+nSNP6ArG4zcIJuIK8UGObRl26nFgB1uzRXtUh+rN
-   CYi7gT03bDFL3qILB/5AQxmA8JzXPElurhlREXED6mlBqdPQIsGpWPAvddkGWEfgI0Hs5/+LxvhS
-   TmfJA/2r6imGETmt0lqBrfZlgJAPwGVAlAAARCU2Ub9x5wykMI3NrWmu+OLNA6CHAC29aqc/ytl3
-   Y6N0cq3Akp8tYLMRihguO2kd+FGqLOBNP8J85w==
-DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=default; d=appendleadedm.info;
- b=LlUwsnKVOk/f+oLOdo0pDjGBimME7f0leXbdPIzV6cjRg+Pcpn6xADTCkjcZKa0Hm42oBVHY2+eX
-   DIY7u3cTMeFvbEOs+DWrsfeH8RMxJvR6AnQd5RzL4fXd6pXKIUDlCwHgOVL6PPkt3GakZoyjCWz8
-   OiCnK3iQAe1CQA0zg6m+DTjNWvfrQReXX++H9lRm3xo/PFZZWvSpiNppyNHFD9iSgnSkV9G5X4n9
-   wjNTzU2nod9btatDrooSWXE6RC7kE1jJiBrQLYV4fHAew0uemFYf8hP9LSRbAi9tQG3pr5Fmxm1y
-   p1yUYJc0g9fAyJy7SoyWdm8+rj3I5VxIQAhc+g==;
-Received: from appendleadedm.info (127.0.0.1) by app1.appendleadedm.info id h371ani19tkq for <linux-nvdimm@lists.01.org>; Tue, 2 Feb 2021 21:15:53 +0000 (envelope-from <contact-linux+2Dnvdimm=lists.01.org@appendleadedm.info>)
-Date: Tue, 2 Feb 2021 21:15:53 +0000
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-From: Susan Taylor <contact@appendleadedm.info>
-Subject: RE: Conference call
-Message-ID: <04d4897633ce40a995c47b182c2a9afc@appendleadedm.info>
-X-Ooqx-Campaign-Uid: pm05337we6e03
-X-Ooqx-Subscriber-Uid: al733opd9n292
-X-Ooqx-Customer-Uid: fv107j3jh8cf0
-X-Ooqx-Customer-Gid: 0
-X-Ooqx-Delivery-Sid: 1
-X-Ooqx-Tracking-Did: 0
-X-Report-Abuse: Please report abuse for this campaign here: http://appendleadedm.info/emm/index.php/campaigns/pm05337we6e03/report-abuse/tm309l31m36a2/al733opd9n292
-Feedback-ID: pm05337we6e03:al733opd9n292:tm309l31m36a2:fv107j3jh8cf0
-Precedence: bulk
-X-Ooqx-EBS: http://appendleadedm.info/emm/index.php/lists/block-address
-X-Sender: contact@appendleadedm.info
-X-Receiver: linux-nvdimm@lists.01.org
-X-Ooqx-Mailer: PHPMailer - 5.2.21
+	by ml01.01.org (Postfix) with ESMTPS id E43B3100EBB72
+	for <linux-nvdimm@lists.01.org>; Tue,  2 Feb 2021 14:50:04 -0800 (PST)
+IronPort-SDR: DVKVkoPs0QCMSVvIgJqu+gpWRc+MrM76kvAZwfBxhHx15Itsf5MXPSKWvy5YofYUzb1QSJIL2L
+ 4g2CLoYc3wJA==
+X-IronPort-AV: E=McAfee;i="6000,8403,9883"; a="160112464"
+X-IronPort-AV: E=Sophos;i="5.79,396,1602572400";
+   d="scan'208";a="160112464"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2021 14:50:04 -0800
+IronPort-SDR: EtegBuP+CZTsw6EElKMgS1btKjGjw5XViFBdsBaf35t1H+QRu8YiUxA5MWiNlkXSKxdt+SiD/P
+ 22BjzP3Qndjw==
+X-IronPort-AV: E=Sophos;i="5.79,396,1602572400";
+   d="scan'208";a="370992203"
+Received: from aisallax-mobl2.amr.corp.intel.com (HELO intel.com) ([10.252.131.184])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2021 14:50:02 -0800
+Date: Tue, 2 Feb 2021 14:50:01 -0800
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH 04/14] cxl/mem: Implement polled mode mailbox
+Message-ID: <20210202225001.qgzwz53b2uhkseto@intel.com>
+References: <20210130002438.1872527-1-ben.widawsky@intel.com>
+ <20210130002438.1872527-5-ben.widawsky@intel.com>
+ <5986abe5-1248-30b2-5f53-fa7013baafad@google.com>
 MIME-Version: 1.0
-Message-ID-Hash: DKJW6YAWUQT6XLWMDRMQJUAXDIIT5WVQ
-X-Message-ID-Hash: DKJW6YAWUQT6XLWMDRMQJUAXDIIT5WVQ
-X-MailFrom: contact-linux+2Dnvdimm=lists.01.org@appendleadedm.info
+Content-Disposition: inline
+In-Reply-To: <5986abe5-1248-30b2-5f53-fa7013baafad@google.com>
+Message-ID-Hash: 4OPDZ2OODSHEOKLCKA6PPQULFPRW6AQE
+X-Message-ID-Hash: 4OPDZ2OODSHEOKLCKA6PPQULFPRW6AQE
+X-MailFrom: ben.widawsky@intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, daniel.lll@alibaba-inc.com, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
 X-Mailman-Version: 3.1.1
-Reply-To: Susan Taylor <susan.taylordata@gmail.com>
+Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DKJW6YAWUQT6XLWMDRMQJUAXDIIT5WVQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4OPDZ2OODSHEOKLCKA6PPQULFPRW6AQE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-QXJlIHlvdSBsb29raW5nIGZvciBhbnkgb2YgdGhlIGZvbGxvd2luZyBFbWFpbCBhbmQgcGhvbmUg
-bGlzdCBnYXRoZXJlZA0KZnJvbSBMaW5rZWRJbiwgRXZlbnRzIGFuZCBtYXJrZXQgcmVzZWFyY2g/
-IFBsZWFzZSBzcGVjaWZ5IHlvdXIgdGFyZ2V0DQphdWRpZW5jZSBzbyB0aGF0IHdlIGNhbiBzaGFy
-ZSBhIHNhbXBsZSB3aXRoIHlvdS4NCiogQXJjaGl0ZWN0cyBhbmQgaW50ZXJpb3IgZGVzaWduZXJz
-IGVtYWlsIGxpc3QNCiogQ0VPLCBvd25lciwgUHJlc2lkZW50IGFuZCBDT08gY29udGFjdHMNCiog
-Q0ZPLCBDb250cm9sbGVyLCBWUC9EaXJlY3Rvci9NYW5hZ2VyIG9mIEZpbmFuY2UsIEFjY291bnRz
-IFBheWFibGUsDQpBY2NvdW50cyBSZWNlaXZhYmxlLCBBdWRpdCBDb250YWN0cw0KKiBDaGllZiBI
-dW1hbiBSZXNvdXJjZXMgT2ZmaWNlciwgVlAvRGlyZWN0b3IvTWFuYWdlciBvZiBIUiwgRW1wbG95
-ZWUNCkJlbmVmaXRzLCBFbXBsb3llZSBDb21tdW5pY2F0aW9ucywgRW1wbG95ZWUgQ29tcGVuc2F0
-aW9uLCBFbXBsb3llZQ0KRW5nYWdlbWVudCwgRW1wbG95ZWUgRXhwZXJpZW5jZSBhbmQgRW1wbG95
-ZWUgUmVsYXRpb25zLCBUYWxlbnQNCkFjcXVpc2l0aW9uLCBUYWxlbnQgRGV2ZWxvcG1lbnQsIFRh
-bGVudCBNYW5hZ2VtZW50LCBSZWNydWl0aW5nDQpDb250YWN0cw0KKiBDSU8sQ1RPLCBDSVNPLCBW
-UC9EaXJlY3Rvci9NYW5hZ2VyIG9mIElULCBJVCBDb21wbGlhbmNlLCBJVCBSaXNrLA0KQkksIENs
-b3VkLCBEYXRhYmFzZSBhbmQgSVQgU2VjdXJpdHkgQ29udGFjdHMNCiogQ01PLCBWUC9EaXJlY3Rv
-ci9NYW5hZ2VyIG9mIE1hcmtldGluZywgc29jaWFsIG1lZGlhLCBTYWxlcywgZGVtYW5kDQpnZW5l
-cmF0aW9uLCBMZWFkIGdlbmVyYXRpb24sIGluc2lkZSBzYWxlcywgTWFya2V0aW5nIENvbW11bmlj
-YXRpb25zDQpjb250YWN0cyBldGMuDQoqIENvbXBsaWFuY2UgYW5kIFJpc2sgTWFuYWdlbWVudCBD
-b250YWN0cw0KKiBDUEEgYW5kIEJvb2trZWVwZXJzIGVtYWlsIGxpc3QNCiogRGF0YSBBbmFseXRp
-Y3MgYW5kIERhdGFiYXNlIEFkbWluaXN0cmF0b3JzIGNvbnRhY3RzDQoqIERpc2FzdGVyIFJlY292
-ZXJ5IENvbnRhY3RzDQoqIEUtY29tbWVyY2Ugb3Igb25saW5lIHJldGFpbGVycyBlbWFpbCBsaXN0
-DQoqIEVkdWNhdGlvbiBpbmR1c3RyeSBleGVjdXRpdmVzIGVtYWlsIGxpc3QgLSBQcmluY2lwYWxz
-LCBEZWFuLA0KQWRtaW5zIGFuZCB0ZWFjaGVycyBmcm9tIFNjaG9vbHMsIENvbGxlZ2VzIGFuZCBV
-bml2ZXJzaXRpZXMNCiogRW5naW5lZXJzIGVtYWlsIGxpc3QNCiogRXZlbnQgYW5kIG1lZXRpbmcg
-cGxhbm5lcnMgZW1haWwgbGlzdA0KKiBGYWNpbGl0aWVzIGFuZCBvZmZpY2UgbWFuYWdlciBDb250
-YWN0cw0KKiBHZW5lcmFsIGFuZCBjb3Jwb3JhdGUgY291bnNlbCBhcyB3ZWxsIGxlZ2FsIHByb2Zl
-c3Npb25hbHMgbGlzdA0KKiBHb3Zlcm5tZW50IGNvbnRyYWN0b3JzIGVtYWlsIGxpc3QNCiogSGVh
-bHRoICYgU2FmZXR5IENvbnRhY3RzDQoqIEhpZ2ggbmV0IHdvcnRoIGluZGl2aWR1YWxzL2ludmVz
-dG9ycyBlbWFpbCBsaXN0DQoqIEhvc3BpdGFscywgY2xpbmljcywgcHJpdmF0ZSBwcmFjdGljZXMs
-IFBoYXJtYWNldXRpY2FsIGFuZA0KYmlvdGVjaG5vbG9neSBjb21wYW554oCZcyB0b3AgZGVjaXNp
-b24gbWFrZXJzIGVtYWlsIGxpc3QNCiogSHVtYW4gQ2FwaXRhbCBNYW5hZ2VtZW50IENvbnRhY3Rz
-DQoqIEluZGl2aWR1YWwgaW5zdXJhbmNlIGFnZW50cyBsaXN0DQoqIElTVi9WQVJzIGxpc3QNCiog
-TGVhcm5pbmcgJiBEZXZlbG9wbWVudCBDb250YWN0cw0KKiBMb2dpc3RpY3MsIHNoaXBwaW5nIGFu
-ZCBzdXBwbHkgY2hhaW4gbWFuYWdlcnMgZW1haWwgbGlzdA0KKiBNYW51ZmFjdHVyaW5nIEluZHVz
-dHJ5IGV4ZWN1dGl2ZXMgbGlzdA0KKiBOZXR3b3JrIG1hbmFnZXIsIFN1cnZlaWxsYW5jZSwgU3lz
-dGVtIEFkbWluaXN0cmF0b3IsIFRlY2huaWNhbA0KU3VwcG9ydCBDb250YWN0cw0KKiBOZXcgJiBV
-c2VkIENhciBEZWFsZXJzIGVtYWlsIGxpc3QNCiogT2lsLCBHYXMgYW5kIHV0aWxpdHkgaW5kdXN0
-cnkgY29udGFjdHMNCiogUGh5c2ljaWFucywgRG9jdG9ycywgTnVyc2VzLCBEZW50aXN0cywgVGhl
-cmFwaXN0cyBlbWFpbCBsaXN0DQoqIFBsYW50IE1hbmFnZXIgQ29udGFjdHMNCiogUHJvZHVjdCBh
-bmQgcHJvamVjdCBtYW5hZ2VtZW50IGxpc3QNCiogUHVyY2hhc2luZyBhbmQgUHJvY3VyZW1lbnQg
-Q29udGFjdHMNCiogU3BlY2lmaWMgRXZlbnQgYXR0ZW5kZWVzIGxpc3QNCiogVGVsZWNvbSBtYW5h
-Z2VycywgVk9JUCBtYW5hZ2VycywgQ2xvdWQgYXJjaGl0ZWN0LCBDbG91ZCBtYW5hZ2VycywNClN0
-b3JhZ2UgbWFuYWdlcnMgZW1haWwgbGlzdA0KKiBWUC9EaXJlY3Rvci9NYW5hZ2VyIG9mIEN1c3Rv
-bWVyIFNlcnZpY2UgYW5kIEN1c3RvbWVyIFN1Y2Nlc3MNClN1c2FuIFRheWxvcg0KRGF0YWJhc2Ug
-Q29uc3VsdGFudA0KNDJNaWwgQjJCIGFuZCAyMTBNaWwgQjJDIE9wdC1pbiBFbWFpbCBhbmQgcGhv
-bmUgbGlzdCB3aXRoIG90aGVyIGRhdGENCmZpZWxkcw0KVW5zdWJzY3JpYmUNCmh0dHA6Ly9hcHBl
-bmRsZWFkZWRtLmluZm8vZW1tL2luZGV4LnBocC9saXN0cy90bTMwOWwzMW0zNmEyL3Vuc3Vic2Ny
-aWJlL2FsNzMzb3BkOW4yOTIvcG0wNTMzN3dlNmUwMw0KDQpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxp
-bnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBs
-aW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
+On 21-01-30 15:51:57, David Rientjes wrote:
+> On Fri, 29 Jan 2021, Ben Widawsky wrote:
+> 
+
+[snip]
+
+> > +/**
+> > + * cxl_mem_mbox_send_cmd() - Send a mailbox command to a memory device.
+> > + * @cxlm: The CXL memory device to communicate with.
+> > + * @mbox_cmd: Command to send to the memory device.
+> > + *
+> > + * Context: Any context. Expects mbox_lock to be held.
+> > + * Return: -ETIMEDOUT if timeout occurred waiting for completion. 0 on success.
+> > + *         Caller should check the return code in @mbox_cmd to make sure it
+> > + *         succeeded.
+> > + *
+> > + * This is a generic form of the CXL mailbox send command, thus the only I/O
+> > + * operations used are cxl_read_mbox_reg(). Memory devices, and perhaps other
+> > + * types of CXL devices may have further information available upon error
+> > + * conditions.
+> > + *
+> > + * The CXL spec allows for up to two mailboxes. The intention is for the primary
+> > + * mailbox to be OS controlled and the secondary mailbox to be used by system
+> > + * firmware. This allows the OS and firmware to communicate with the device and
+> > + * not need to coordinate with each other. The driver only uses the primary
+> > + * mailbox.
+> > + */
+> > +static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
+> > +				 struct mbox_cmd *mbox_cmd)
+> > +{
+> > +	void __iomem *payload = cxlm->mbox.regs + CXLDEV_MB_PAYLOAD_OFFSET;
+> 
+> Do you need to verify the payload is non-empty per 8.2.8.4?
+> 
+
+What do you mean exactly? Emptiness or lack thereof is what determines the size
+parameter of the mailbox interface (if we want to input data, we need to write
+size, if we got output data, we have to read size bytes out of the payload
+registers).
+
+Perhaps I miss the point though, could you elaborate?
+
+[snip]
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
