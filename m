@@ -2,63 +2,111 @@ Return-Path: <SRS0=J6SA=HE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55FD8C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 18:33:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 266A5C433E6
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 18:56:34 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 0383C64F7E
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 18:33:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0383C64F7E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 80C3E64DA5
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Feb 2021 18:56:33 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 80C3E64DA5
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C53F2100EA2CB;
-	Tue,  2 Feb 2021 10:33:30 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.31; helo=mga06.intel.com; envelope-from=ben.widawsky@intel.com; receiver=<UNKNOWN> 
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+	by ml01.01.org (Postfix) with ESMTP id 1950E100EA2BD;
+	Tue,  2 Feb 2021 10:56:33 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=jejb@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 1F2E8100EAB46
-	for <linux-nvdimm@lists.01.org>; Tue,  2 Feb 2021 10:33:29 -0800 (PST)
-IronPort-SDR: 8SRGcIiFHivwT46E564xIroEZ26wDop2l9YhVpQlXMoiw1XmhPoD0vQ/67g8OAHOr0VPQVJvDw
- b+xscdWDD5Wg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9883"; a="242421455"
-X-IronPort-AV: E=Sophos;i="5.79,396,1602572400";
-   d="scan'208";a="242421455"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2021 10:33:28 -0800
-IronPort-SDR: o0BhQQsQFexfvQyPOkPHDvxmcu9hxi3ywGSD4mrPrneLs4gP1togqGK+AONy7stmmIWpDROh81
- OpG9MSEPKy+Q==
-X-IronPort-AV: E=Sophos;i="5.79,396,1602572400";
-   d="scan'208";a="582136028"
-Received: from joship1x-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.131.202])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Feb 2021 10:33:26 -0800
-Date: Tue, 2 Feb 2021 10:33:25 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 06/14] cxl/mem: Add basic IOCTL interface
-Message-ID: <20210202183325.ls7o54zza4obw6df@intel.com>
-References: <20210130002438.1872527-1-ben.widawsky@intel.com>
- <20210130002438.1872527-7-ben.widawsky@intel.com>
- <20210202181505.GF3708021@infradead.org>
+	by ml01.01.org (Postfix) with ESMTPS id AAC3D100EBB62
+	for <linux-nvdimm@lists.01.org>; Tue,  2 Feb 2021 10:56:30 -0800 (PST)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 112Iqm6i191657;
+	Tue, 2 Feb 2021 13:55:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : reply-to : to : cc : date : in-reply-to : references : content-type
+ : mime-version : content-transfer-encoding; s=pp1;
+ bh=f9zxCUw4M03BQ4ynBUOKWIG13PioNXDzHmOyFa7Yr50=;
+ b=tGajUAV7nYMnOgvJ5XNDB+HPM04G6aJ4uyjJERBKE6JseyoiPK4ybLmz+xUMeF8A3ZvV
+ 9CfgO1s4p/sWRTklZ/KBtXbyyaPSzcfHlGVLfsiesYbCjVINSb+2+ZSghFuAtlP+5PYP
+ 1tDcLnZhDFH4d67b0vpQDKhAQj5nPXzfzvVe2pWz6p1vmBP5dlo0H/g8bmWucwiktluQ
+ 4dF2nFgI9gYwGl5wdHr2aEN9XgChXUJmOhGJKG7TPXfSW1tejjZNletMaQBAMopJusM2
+ WhMHFRJU7YZhPmNPJYYNTpO+11nR6aUDaj7QMRSQAP9T67mCdO2bXla32F4Zi+GZHxSP dg==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 36fcd60231-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 02 Feb 2021 13:55:51 -0500
+Received: from m0098416.ppops.net (m0098416.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.36/8.16.0.36) with SMTP id 112Ir8MT196513;
+	Tue, 2 Feb 2021 13:55:51 -0500
+Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 36fcd6022n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 02 Feb 2021 13:55:50 -0500
+Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
+	by ppma01wdc.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 112IkXHS016248;
+	Tue, 2 Feb 2021 18:55:50 GMT
+Received: from b03cxnp08026.gho.boulder.ibm.com (b03cxnp08026.gho.boulder.ibm.com [9.17.130.18])
+	by ppma01wdc.us.ibm.com with ESMTP id 36eyucmt0m-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 02 Feb 2021 18:55:49 +0000
+Received: from b03ledav004.gho.boulder.ibm.com (b03ledav004.gho.boulder.ibm.com [9.17.130.235])
+	by b03cxnp08026.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 112ItlXY24641948
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 2 Feb 2021 18:55:48 GMT
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E42A67805C;
+	Tue,  2 Feb 2021 18:55:47 +0000 (GMT)
+Received: from b03ledav004.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 6E0857805E;
+	Tue,  2 Feb 2021 18:55:41 +0000 (GMT)
+Received: from jarvis.int.hansenpartnership.com (unknown [9.85.153.205])
+	by b03ledav004.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Tue,  2 Feb 2021 18:55:41 +0000 (GMT)
+Message-ID: <f26a17366194880d58e67d10cb5d7d7fdf2f3c19.camel@linux.ibm.com>
+Subject: Re: [PATCH v16 07/11] secretmem: use PMD-size pages to amortize
+ direct map fragmentation
+From: James Bottomley <jejb@linux.ibm.com>
+To: Mike Rapoport <rppt@kernel.org>, David Hildenbrand <david@redhat.com>
+Date: Tue, 02 Feb 2021 10:55:40 -0800
+In-Reply-To: <20210202181546.GO242749@kernel.org>
+References: <6de6b9f9c2d28eecc494e7db6ffbedc262317e11.camel@linux.ibm.com>
+	 <YBkcyQsky2scjEcP@dhcp22.suse.cz> <20210202124857.GN242749@kernel.org>
+	 <6653288a-dd02-f9de-ef6a-e8d567d71d53@redhat.com>
+	 <YBlUXdwV93xMIff6@dhcp22.suse.cz>
+	 <211f0214-1868-a5be-9428-7acfc3b73993@redhat.com>
+	 <YBlgCl8MQuuII22w@dhcp22.suse.cz>
+	 <d4fe580a-ef0e-e13f-9ee4-16fb8b6d65dd@redhat.com>
+	 <YBlicIupOyPF9f3D@dhcp22.suse.cz>
+	 <95625b83-f7e2-b27a-2b99-d231338047fb@redhat.com>
+	 <20210202181546.GO242749@kernel.org>
+User-Agent: Evolution 3.34.4 
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20210202181505.GF3708021@infradead.org>
-Message-ID-Hash: KCPDQKF66CVJZBBS5J62Z627QMF2QGC5
-X-Message-ID-Hash: KCPDQKF66CVJZBBS5J62Z627QMF2QGC5
-X-MailFrom: ben.widawsky@intel.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
+ definitions=2021-02-02_09:2021-02-02,2021-02-02 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 malwarescore=0
+ bulkscore=0 spamscore=0 phishscore=0 adultscore=0 mlxlogscore=530
+ clxscore=1015 suspectscore=0 lowpriorityscore=0 priorityscore=1501
+ impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2102020118
+Message-ID-Hash: XMJMDCY3JYSOCVHMA73ZK2GIN5DMRMZR
+X-Message-ID-Hash: XMJMDCY3JYSOCVHMA73ZK2GIN5DMRMZR
+X-MailFrom: jejb@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-cxl@vger.kernel.org, kernel test robot <lkp@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, daniel.lll@alibaba-inc.com, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
+CC: Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will
+ @kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
+Reply-To: jejb@linux.ibm.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KCPDQKF66CVJZBBS5J62Z627QMF2QGC5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XMJMDCY3JYSOCVHMA73ZK2GIN5DMRMZR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,15 +115,72 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 21-02-02 18:15:05, Christoph Hellwig wrote:
-> > +#if defined(__cplusplus)
-> > +extern "C" {
-> > +#endif
+On Tue, 2021-02-02 at 20:15 +0200, Mike Rapoport wrote:
+> On Tue, Feb 02, 2021 at 03:34:29PM +0100, David Hildenbrand wrote:
+> > On 02.02.21 15:32, Michal Hocko wrote:
+> > > On Tue 02-02-21 15:26:20, David Hildenbrand wrote:
+> > > > On 02.02.21 15:22, Michal Hocko wrote:
+> > > > > On Tue 02-02-21 15:12:21, David Hildenbrand wrote:
+> > > > > [...]
+> > > > > > I think secretmem behaves much more like longterm GUP right
+> > > > > > now
+> > > > > > ("unmigratable", "lifetime controlled by user space",
+> > > > > > "cannot go on
+> > > > > > CMA/ZONE_MOVABLE"). I'd either want to reasonably well
+> > > > > > control/limit it or
+> > > > > > make it behave more like mlocked pages.
+> > > > > 
+> > > > > I thought I have already asked but I must have forgotten. Is
+> > > > > there any
+> > > > > actual reason why the memory is not movable? Timing attacks?
+> > > > 
+> > > > I think the reason is simple: no direct map, no copying of
+> > > > memory.
+> > > 
+> > > This is an implementation detail though and not something
+> > > terribly hard
+> > > to add on top later on. I was more worried there would be really
+> > > fundamental reason why this is not possible. E.g. security
+> > > implications.
+> > 
+> > I don't remember all the details. Let's see what Mike thinks
+> > regarding
+> > migration (e.g., security concerns).
 > 
-> This has no business in a kernel header.
+> Thanks for considering me a security expert :-)
+> 
+> Yet, I cannot estimate how dangerous is the temporal exposure of
+> this data to the kernel via the direct map in the simple
+> map/copy/unmap
+> sequence.
 
-This was copypasta from DRM headers (which as you're probably aware wasn't
-always part of the kernel)... It's my mistake and I will get rid of it.
+Well the safest security statement is that we never expose the data to
+the kernel because it's a very clean security statement and easy to
+enforce.  It's also the easiest threat model to analyse.   Once we do
+start exposing the secret to the kernel it alters the threat profile
+and the analysis and obviously potentially provides the ROP gadget to
+an attacker to do the same.  Instinct tells me that the loss of
+security doesn't really make up for the ability to swap or migrate but
+if there were a case for doing the latter, it would have to be a
+security policy of the user (i.e. a user should be able to decide their
+data is too sensitive to expose to the kernel).
+
+> More secure way would be to map source and destination in a different
+> page table rather than in the direct map, similarly to the way
+> text_poke() on x86 does.
+
+I think doing this would have much less of an impact on the security
+posture because it's already theoretically possible to have kmap
+restore access to the kernel.
+
+James
+
+
+> I've left the migration callback empty for now because it can be
+> added on top and its implementation would depend on the way we do (or
+> do not do) pooling.
+> 
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
