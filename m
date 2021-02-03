@@ -2,67 +2,63 @@ Return-Path: <SRS0=zs8b=HF=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3FE0C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  3 Feb 2021 13:21:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57069C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  3 Feb 2021 17:12:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 418E664E38
-	for <linux-nvdimm@archiver.kernel.org>; Wed,  3 Feb 2021 13:21:30 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 418E664E38
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id CB4C364F84
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  3 Feb 2021 17:12:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CB4C364F84
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C8756100EAB7B;
-	Wed,  3 Feb 2021 05:21:29 -0800 (PST)
-Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=139.138.61.252; helo=esa7.hc1455-7.c3s2.iphmx.com; envelope-from=qi.fuli@fujitsu.com; receiver=<UNKNOWN> 
-Received: from esa7.hc1455-7.c3s2.iphmx.com (esa7.hc1455-7.c3s2.iphmx.com [139.138.61.252])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 3FAB3100EAB7F;
+	Wed,  3 Feb 2021 09:12:40 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=batv+f06b10cfe9d4f1643769+6373+infradead.org+hch@casper.srs.infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D8FF0100F2274
-	for <linux-nvdimm@lists.01.org>; Wed,  3 Feb 2021 05:21:26 -0800 (PST)
-IronPort-SDR: swwhVgFn9bV35gKRNapmG16CXqn4vpg042aNO/LQpG/O+rPSSTexx3PLFYx+8OXDnpA+vkTLUs
- XMTFLFZwtNWkPPvQK3ihEPf8gvRjuV6B0uSG8/oLvpymB3wAb+ysNqg8JN7TnkojfoWhpA0qwQ
- WZK27RyK0jHxlH47K2lyhBqPNwvUu1NamWTNVFwSt+Gl7uZQfKrUIJAJJu0F9KH0dcPlWVcge2
- kcI2JJMQGN5G37sDaeEeO76n2cig63/gTGruZ3Lq2tEP0X2RK2qDPv0II+2CVqZjecspFcTIgZ
- vKQ=
-X-IronPort-AV: E=McAfee;i="6000,8403,9883"; a="5878553"
-X-IronPort-AV: E=Sophos;i="5.79,398,1602514800";
-   d="scan'208";a="5878553"
-Received: from unknown (HELO yto-r2.gw.nic.fujitsu.com) ([218.44.52.218])
-  by esa7.hc1455-7.c3s2.iphmx.com with ESMTP; 03 Feb 2021 22:21:23 +0900
-Received: from yto-m3.gw.nic.fujitsu.com (yto-nat-yto-m3.gw.nic.fujitsu.com [192.168.83.66])
-	by yto-r2.gw.nic.fujitsu.com (Postfix) with ESMTP id F1826DE515
-	for <linux-nvdimm@lists.01.org>; Wed,  3 Feb 2021 22:21:22 +0900 (JST)
-Received: from m3051.s.css.fujitsu.com (m3051.s.css.fujitsu.com [10.134.21.209])
-	by yto-m3.gw.nic.fujitsu.com (Postfix) with ESMTP id 54E9515599
-	for <linux-nvdimm@lists.01.org>; Wed,  3 Feb 2021 22:21:22 +0900 (JST)
-Received: from localhost.localdomain (unknown [10.19.3.106])
-	by m3051.s.css.fujitsu.com (Postfix) with ESMTP id 4250D2DF;
-	Wed,  3 Feb 2021 22:21:22 +0900 (JST)
-From: QI Fuli <qi.fuli@fujitsu.com>
-To: linux-nvdimm@lists.01.org
-Subject: [ndctl PATCH] ndctl/test: add checking the presence of jq command ahead
-Date: Wed,  3 Feb 2021 22:21:08 +0900
-Message-Id: <20210203132108.6246-1-qi.fuli@fujitsu.com>
-X-Mailer: git-send-email 2.21.3
+	by ml01.01.org (Postfix) with ESMTPS id 4303F100EAB7D
+	for <linux-nvdimm@lists.01.org>; Wed,  3 Feb 2021 09:12:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=TOHrz9rJRmT1MZjmRcdSp7+GuY9P+OtZtUJvbJgCulo=; b=QlTPVhm61sGQuTcf3P0iNWT8ED
+	Bi2gkvv6DDeJQwV2HZj+zq53XZjee6QmF+jgW/E4anVOGeBwLE0OhGlE/INHWoFljCKhZx4kLuKFi
+	vBpPlOiPaIYrUSdcPkchYs5y8EocLYDkgBQi5zK2utgiNqo1gFusaNMlddnGX4lCKct1oIiIfQN0x
+	4FZFsAcm9c0hrwdS+WY55lmm+xjte1BQs5jszrftBaCW8zuTfPkpbQPL1wxnyHoTRZuCOgTwdKSQC
+	PmSjukh2Zy50HgX10fdq7MOFixROv7xKlGJkbVoqgE9rz6+csO3TxasqOuAu242s0FMgsIu5s/vvZ
+	pnxR5IZg==;
+Received: from hch by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+	id 1l7LhT-00HEZu-Qm; Wed, 03 Feb 2021 17:12:20 +0000
+Date: Wed, 3 Feb 2021 17:12:19 +0000
+From: Christoph Hellwig <hch@infradead.org>
+To: Ben Widawsky <ben.widawsky@intel.com>
+Subject: Re: [PATCH 02/14] cxl/mem: Map memory device registers
+Message-ID: <20210203171219.GA4104698@infradead.org>
+References: <20210130002438.1872527-1-ben.widawsky@intel.com>
+ <20210130002438.1872527-3-ben.widawsky@intel.com>
+ <20210202180441.GC3708021@infradead.org>
+ <20210202183151.7kwruvip7nshqsc4@intel.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-Message-ID-Hash: WHMK45PP4FMQLHE5BI5VXIKQAJDG35TT
-X-Message-ID-Hash: WHMK45PP4FMQLHE5BI5VXIKQAJDG35TT
-X-MailFrom: qi.fuli@fujitsu.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: QI Fuli <qi.fuli@fujitsu.com>
+Content-Disposition: inline
+In-Reply-To: <20210202183151.7kwruvip7nshqsc4@intel.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Message-ID-Hash: SSPBPRJ673JOTQEGX2YZWEZFVX375FC7
+X-Message-ID-Hash: SSPBPRJ673JOTQEGX2YZWEZFVX375FC7
+X-MailFrom: BATV+f06b10cfe9d4f1643769+6373+infradead.org+hch@casper.srs.infradead.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Christoph Hellwig <hch@infradead.org>, linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, daniel.lll@alibaba-inc.com, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WHMK45PP4FMQLHE5BI5VXIKQAJDG35TT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SSPBPRJ673JOTQEGX2YZWEZFVX375FC7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -71,124 +67,29 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Due to the lack of jq command, the result of the test will be 'fail'.
-This patch adds checking the presence of jq commmand ahead.
-If there is no jq command in the system, the test will be marked as 'skip'.
+On Tue, Feb 02, 2021 at 10:31:51AM -0800, Ben Widawsky wrote:
+> > > +		if (reg_type == CXL_REGLOC_RBI_MEMDEV) {
+> > > +			rc = 0;
+> > > +			cxlm = cxl_mem_create(pdev, reg_lo, reg_hi);
+> > > +			if (!cxlm)
+> > > +				rc = -ENODEV;
+> > > +			break;
+> > 
+> > And given that we're going to grow more types eventually, why not start
+> > out with a switch here?  Also why return the structure when nothing
+> > uses it?
+> 
+>  We've (Intel) already started working on the libnvdimm integration which does
+>  change this around a bit. In order to go with what's best tested though, I've
+>  chosen to use this as is for merge. Many different people not just in Intel
+>  have tested these codepaths. The resulting code moves the check on register
+>  type out of this function entirely.
+> 
+>  If you'd like me to make it a switch, I can, but it's going to be extracted
+>  later anyway.
 
-Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
-Link: https://github.com/pmem/ndctl/issues/141
----
- test/daxdev-errors.sh           | 1 +
- test/inject-error.sh            | 2 ++
- test/inject-smart.sh            | 1 +
- test/label-compat.sh            | 1 +
- test/max_available_extent_ns.sh | 1 +
- test/monitor.sh                 | 2 ++
- test/multi-dax.sh               | 1 +
- test/sector-mode.sh             | 2 ++
- 8 files changed, 11 insertions(+)
-
-diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
-index 6281f32..9547d78 100755
---- a/test/daxdev-errors.sh
-+++ b/test/daxdev-errors.sh
-@@ -9,6 +9,7 @@ rc=77
- . $(dirname $0)/common
-
- check_min_kver "4.12" || do_skip "lacks dax dev error handling"
-+check_prereq "jq"
-
- trap 'err $LINENO' ERR
-
-diff --git a/test/inject-error.sh b/test/inject-error.sh
-index c636033..7d0b826 100755
---- a/test/inject-error.sh
-+++ b/test/inject-error.sh
-@@ -11,6 +11,8 @@ err_count=8
-
- . $(dirname $0)/common
-
-+check_prereq "jq"
-+
- trap 'err $LINENO' ERR
-
- # sample json:
-diff --git a/test/inject-smart.sh b/test/inject-smart.sh
-index 94705df..4ca83b8 100755
---- a/test/inject-smart.sh
-+++ b/test/inject-smart.sh
-@@ -166,6 +166,7 @@ do_tests()
- }
-
- check_min_kver "4.19" || do_skip "kernel $KVER may not support smart (un)injection"
-+check_prereq "jq"
- modprobe nfit_test
- rc=1
-
-diff --git a/test/label-compat.sh b/test/label-compat.sh
-index 340b93d..8ab2858 100755
---- a/test/label-compat.sh
-+++ b/test/label-compat.sh
-@@ -10,6 +10,7 @@ BASE=$(dirname $0)
- . $BASE/common
-
- check_min_kver "4.11" || do_skip "may not provide reliable isetcookie values"
-+check_prereq "jq"
-
- trap 'err $LINENO' ERR
-
-diff --git a/test/max_available_extent_ns.sh b/test/max_available_extent_ns.sh
-index 14d741d..343f3c9 100755
---- a/test/max_available_extent_ns.sh
-+++ b/test/max_available_extent_ns.sh
-@@ -9,6 +9,7 @@ rc=77
- trap 'err $LINENO' ERR
-
- check_min_kver "4.19" || do_skip "kernel $KVER may not support max_available_size"
-+check_prereq "jq"
-
- init()
- {
-diff --git a/test/monitor.sh b/test/monitor.sh
-index cdab5e1..28c5541 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -13,6 +13,8 @@ smart_supported_bus=""
-
- . $(dirname $0)/common
-
-+check_prereq "jq"
-+
- trap 'err $LINENO' ERR
-
- check_min_kver "4.15" || do_skip "kernel $KVER may not support monitor service"
-diff --git a/test/multi-dax.sh b/test/multi-dax.sh
-index e932569..8496619 100755
---- a/test/multi-dax.sh
-+++ b/test/multi-dax.sh
-@@ -9,6 +9,7 @@ rc=77
- . $(dirname $0)/common
-
- check_min_kver "4.13" || do_skip "may lack multi-dax support"
-+check_prereq "jq"
-
- trap 'err $LINENO' ERR
-
-diff --git a/test/sector-mode.sh b/test/sector-mode.sh
-index dd7013e..54fa806 100755
---- a/test/sector-mode.sh
-+++ b/test/sector-mode.sh
-@@ -6,6 +6,8 @@ rc=77
-
- . $(dirname $0)/common
-
-+check_prereq "jq"
-+
- set -e
- trap 'err $LINENO' ERR
-
---
-2.29.2
+This was just a suggestion.  No hard feelings, it's just that the code
+looks a little odd to me.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
