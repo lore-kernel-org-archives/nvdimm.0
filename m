@@ -1,44 +1,67 @@
 Return-Path: <SRS0=REOI=HG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.6 required=3.0 tests=ADVANCE_FEE_4_NEW,BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 36425C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Feb 2021 00:11:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADCEAC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Feb 2021 07:17:03 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DCF7164F64
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Feb 2021 00:11:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DCF7164F64
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=gnpcfc.com
+	by mail.kernel.org (Postfix) with ESMTPS id E99E364E16
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Feb 2021 07:17:02 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E99E364E16
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B1D33100EB335;
-	Wed,  3 Feb 2021 16:11:46 -0800 (PST)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=193.56.29.103; helo=[193.56.29.103]; envelope-from=josephdabantu@gnpcfc.com; receiver=<UNKNOWN> 
-Received: from [193.56.29.103] (unknown [193.56.29.103])
-	by ml01.01.org (Postfix) with ESMTP id 0D838100EC1CD
-	for <linux-nvdimm@lists.01.org>; Wed,  3 Feb 2021 16:11:42 -0800 (PST)
-From: josephdabantu@gnpcfc.com
-To: linux-nvdimm@lists.01.org
-Subject: Waiting for your response
-Date: 3 Feb 2021 16:11:41 -0800
-Message-ID: <20210203161140.C7A512A2C49B7673@gnpcfc.com>
+	by ml01.01.org (Postfix) with ESMTP id 9332E100EAB02;
+	Wed,  3 Feb 2021 23:17:02 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=batv+5218da1eca3c543fccff+6374+infradead.org+hch@casper.srs.infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id A9D75100EAB5F
+	for <linux-nvdimm@lists.01.org>; Wed,  3 Feb 2021 23:16:59 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=QgfWxu4yt82JE/xIZ7oOgqgnaPHBT7dbTPo6JkGjbSA=; b=lwT7az+6ZMRVD6pMMGQeUxcGkz
+	3sALDZXQnzoZAsV22q0sZB+6S/aKedsLuXCbgPrJ755mQQeczFZ3/OkCvIZaNAN1CpijxKmBvg872
+	5+Dzv3/TXvRgYoYNI0fwjsd4wWwnvgiaKGwtH43/d+PMeW2C+pFw4V1KjDNnustdp1/7uD2knEK1p
+	2ZqTmGENdZcvywP7ZnZSFdo+Azf3/Gieg5+M1xCdPooxSra5JG9Qe7BFX4IkCr0LbJeKyz0MJpxrd
+	+rtljPjDSwGZkFQlZuyQQvP7Q0B3B0RBBv9nwpXRaHVzScnSqM6y4b/tUsWT6n88kcKSdYQvEM7nk
+	s5pqCAlg==;
+Received: from hch by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+	id 1l7Ysg-000W3O-9s; Thu, 04 Feb 2021 07:16:46 +0000
+Date: Thu, 4 Feb 2021 07:16:46 +0000
+From: Christoph Hellwig <hch@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 03/14] cxl/mem: Find device capabilities
+Message-ID: <20210204071646.GA122880@infradead.org>
+References: <20210130002438.1872527-1-ben.widawsky@intel.com>
+ <20210130002438.1872527-4-ben.widawsky@intel.com>
+ <20210202181016.GD3708021@infradead.org>
+ <20210202182418.3wyxnm6rqeoeclu2@intel.com>
+ <20210203171534.GB4104698@infradead.org>
+ <20210203172342.fpn5vm4xj2xwh6fq@intel.com>
+ <CAPcyv4hvFjs=QqmUYqPipuaLoFiZ-dr6qVhqbDupWuKTw3QDkg@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID-Hash: UEOFAG57ORCDNHKO7FWWD2SVFFKOB2TC
-X-Message-ID-Hash: UEOFAG57ORCDNHKO7FWWD2SVFFKOB2TC
-X-MailFrom: josephdabantu@gnpcfc.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hvFjs=QqmUYqPipuaLoFiZ-dr6qVhqbDupWuKTw3QDkg@mail.gmail.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+Message-ID-Hash: GWZ4EWSWCNS6VLTZ3K3TYGP5HNLEVTG5
+X-Message-ID-Hash: GWZ4EWSWCNS6VLTZ3K3TYGP5HNLEVTG5
+X-MailFrom: BATV+5218da1eca3c543fccff+6374+infradead.org+hch@casper.srs.infradead.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Ben Widawsky <ben.widawsky@intel.com>, Christoph Hellwig <hch@infradead.org>, linux-cxl@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, daniel.lll@alibaba-inc.com, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: drjdabantu@gnpcfc.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UEOFAG57ORCDNHKO7FWWD2SVFFKOB2TC/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GWZ4EWSWCNS6VLTZ3K3TYGP5HNLEVTG5/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -47,29 +70,22 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Hello,
+On Wed, Feb 03, 2021 at 01:23:31PM -0800, Dan Williams wrote:
+> > I'd prefer to keep the helpers for now as I do find them helpful, and so far
+> > nobody else who has touched the code has complained. If you feel strongly, I
+> > will change it.
+> 
+> After seeing the options, I think I'd prefer to not have to worry what
+> extra magic is happening with cxl_read_mbox_reg32()
+> 
+> cxl_read_mbox_reg32(cxlm, CXLDEV_MB_CAPS_OFFSET);
+> 
+> readl(cxlm->mbox_regs + CXLDEV_MB_CAPS_OFFSET);
+> 
+> The latter is both shorter and more idiomatic.
 
-Good day, please accept my apology for sending you this sensitive 
-information without per informing you. This is due to the urgency 
-of the information. I am a Project director at Ghana  National 
-Petroleum Corporation (GNPC) and a member of Contract Tenders 
-Board of the Ministry of Mineral Resources in Ghana. I need your 
-service in a confidential matter regarding money transfer from an 
-over-invoiced contract sum. This requires a private arrangement 
-though the details of the transaction will be furnished to you if 
-you indicate your interest in this proposal. We have all the 
-legal documents to back up the transaction, besides we have 
-worked out the modalities to ensure smooth conclusion of this 
-fund transfer. We  are willing to offer you 25% and there is not 
-risk involved in the transaction.
-
-I am expecting to hear from you, if you have interest in the 
-business. In which case, correspondence in the course of the 
-transaction will be conducted by email presently.
-
-Thanks,
-Yours Faithfully,
-Dr. Joseph Dabantu
+Same here.  That being said I know some driver maintainers like
+wrappers, my real main irk was the macro magic to generate them.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
