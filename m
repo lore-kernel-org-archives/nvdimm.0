@@ -1,116 +1,183 @@
-Return-Path: <SRS0=REOI=HG=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=3g58=HH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73CEEC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Feb 2021 22:24:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C8FBC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  5 Feb 2021 02:40:22 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DF83D64FAD
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Feb 2021 22:24:31 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DF83D64FAD
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 81BD664FA7
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  5 Feb 2021 02:40:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 81BD664FA7
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 70EB6100EAB1E;
-	Thu,  4 Feb 2021 14:24:31 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=ben.widawsky@intel.com; receiver=<UNKNOWN> 
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	by ml01.01.org (Postfix) with ESMTP id 1B3C2100EAB05;
+	Thu,  4 Feb 2021 18:40:21 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BC661100EAB17
-	for <linux-nvdimm@lists.01.org>; Thu,  4 Feb 2021 14:24:28 -0800 (PST)
-IronPort-SDR: pIxQExgNjKvdHIFwaT7/Wgv1ZMPaFECIQChPOYfaSFdymFfiJRcpJfxwYMHZ5ZNEGQ8xfITFri
- NmHbN1QCHvdg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9885"; a="200333769"
-X-IronPort-AV: E=Sophos;i="5.81,153,1610438400";
-   d="scan'208";a="200333769"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2021 14:24:27 -0800
-IronPort-SDR: y/7S/VUBRnji49Z9RcM7MCK9m9bPc9F2qnjPMyRowJSljxxzoccj0mjoNWsOJdTYwHZYVCzA52
- cylVr2edM40A==
-X-IronPort-AV: E=Sophos;i="5.81,153,1610438400";
-   d="scan'208";a="576429167"
-Received: from jguillor-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.133.14])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Feb 2021 14:24:26 -0800
-Date: Thu, 4 Feb 2021 14:24:25 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: "John Groves (jgroves)" <jgroves@micron.com>
-Subject: Re: [EXT] Re: [PATCH 04/14] cxl/mem: Implement polled mode mailbox
-Message-ID: <20210204222425.5vlulgaip7stal3z@intel.com>
-References: <20210130002438.1872527-1-ben.widawsky@intel.com>
- <20210130002438.1872527-5-ben.widawsky@intel.com>
- <20210201175400.GG197521@fedora>
- <20210201191316.e3kkkwqbx5fujp6y@intel.com>
- <CAPcyv4hP6AOV1OQKbohCqczM1RUPQHQ07+7MuNJ1_p6+opLSQQ@mail.gmail.com>
- <SN6PR08MB46052FE9BC20A747CACD8F50D1B39@SN6PR08MB4605.namprd08.prod.outlook.com>
+	by ml01.01.org (Postfix) with ESMTPS id E0E1B100EAAE3
+	for <linux-nvdimm@lists.01.org>; Thu,  4 Feb 2021 18:40:18 -0800 (PST)
+Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 1152WCAr085383;
+	Thu, 4 Feb 2021 21:40:15 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=ZiRm4Mrwiruj8mZh6Z1HK5K5UhjVumOmWXRKUYoLkOQ=;
+ b=KU16l9Y3KqA/qdLe3WavxJGeYVALQ5NvDQ0zHUarZ4ewIdCi5ArGPxYLzTAjlRHSmoy9
+ lO1GovmNJO7NT4GxfPLiVwGqLmAk1VRBh4ya9rfjAEBhVNNwjtysdf5q01ovlSvxkRjq
+ BYe4ueq4OzjhuEptC41ecLz2gkW1fedqTLQpl1QcCStn6XEn0Whz8HLGIzDhdp3yAXMz
+ /7hVMoAd0Sd/SxPRLBvLwn98RuI4KjAfyb56ZdA9NtFrTc9xAfLe3Vf/sINpTI+25fx/
+ FsjJWxCfjx3wlk4RJrvsghmV135+mAyf/GChS2hSeQDyfmGI/GJEcQtU20mI29T84tk4 XA==
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 36gv5f1gn2-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 04 Feb 2021 21:40:15 -0500
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+	by ppma04dal.us.ibm.com (8.16.0.42/8.16.0.42) with SMTP id 1152cSdx023921;
+	Fri, 5 Feb 2021 02:40:14 GMT
+Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
+	by ppma04dal.us.ibm.com with ESMTP id 36ex3pe5k4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 05 Feb 2021 02:40:14 +0000
+Received: from b03ledav002.gho.boulder.ibm.com (b03ledav002.gho.boulder.ibm.com [9.17.130.233])
+	by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1152eDG913697580
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 5 Feb 2021 02:40:13 GMT
+Received: from b03ledav002.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 155DE136051;
+	Fri,  5 Feb 2021 02:40:13 +0000 (GMT)
+Received: from b03ledav002.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 44253136055;
+	Fri,  5 Feb 2021 02:40:09 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.102.1.215])
+	by b03ledav002.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Fri,  5 Feb 2021 02:40:08 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: linux-nvdimm@lists.01.org, dan.j.williams@intel.com,
+        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
+        Jan Kara <jack@suse.cz>
+Subject: [PATCH] mm/pmem: Avoid inserting hugepage PTE entry with fsdax if hugepage support is disabled
+Date: Fri,  5 Feb 2021 08:09:56 +0530
+Message-Id: <20210205023956.417587-1-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <SN6PR08MB46052FE9BC20A747CACD8F50D1B39@SN6PR08MB4605.namprd08.prod.outlook.com>
-Message-ID-Hash: EMPUULXO7V2HG26RYJXVLKVNCVBN2EHQ
-X-Message-ID-Hash: EMPUULXO7V2HG26RYJXVLKVNCVBN2EHQ
-X-MailFrom: ben.widawsky@intel.com
+X-TM-AS-GCONF: 00
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.737
+ definitions=2021-02-04_13:2021-02-04,2021-02-04 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 suspectscore=0
+ phishscore=0 mlxscore=0 mlxlogscore=999 bulkscore=0 lowpriorityscore=0
+ adultscore=0 impostorscore=0 spamscore=0 priorityscore=1501 clxscore=1011
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
+ definitions=main-2102050011
+Message-ID-Hash: DVOQA3IHEY42BRVVLBRVCO57GEANKJMR
+X-Message-ID-Hash: DVOQA3IHEY42BRVVLBRVCO57GEANKJMR
+X-MailFrom: aneesh.kumar@linux.ibm.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, "daniel.lll@alibaba-inc.com" <daniel.lll@alibaba-inc.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>, David Rientjes <rientjes@google.com>
+CC: linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EMPUULXO7V2HG26RYJXVLKVNCVBN2EHQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DVOQA3IHEY42BRVVLBRVCO57GEANKJMR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gMjEtMDItMDQgMjE6NTM6MjksIEpvaG4gR3JvdmVzIChqZ3JvdmVzKSB3cm90ZToNCj4gICAg
-TWljcm9uIENvbmZpZGVudGlhbA0KPiANCj4gDQo+IA0KPiAgICBGcm9tOiBEYW4gV2lsbGlhbXMg
-PGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gICAgRGF0ZTogTW9uZGF5LCBGZWJydWFyeSAx
-LCAyMDIxIGF0IDE6MjggUE0NCj4gICAgVG86IEJlbiBXaWRhd3NreSA8YmVuLndpZGF3c2t5QGlu
-dGVsLmNvbT4NCj4gICAgQ2M6IEtvbnJhZCBSemVzenV0ZWsgV2lsayA8a29ucmFkLndpbGtAb3Jh
-Y2xlLmNvbT4sDQo+ICAgIGxpbnV4LWN4bEB2Z2VyLmtlcm5lbC5vcmcgPGxpbnV4LWN4bEB2Z2Vy
-Lmtlcm5lbC5vcmc+LCBMaW51eCBBQ1BJDQo+ICAgIDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9y
-Zz4sIExpbnV4IEtlcm5lbCBNYWlsaW5nIExpc3QNCj4gICAgPGxpbnV4LWtlcm5lbEB2Z2VyLmtl
-cm5lbC5vcmc+LCBsaW51eC1udmRpbW0NCj4gICAgPGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmc+
-LCBMaW51eCBQQ0kgPGxpbnV4LXBjaUB2Z2VyLmtlcm5lbC5vcmc+LA0KPiAgICBCam9ybiBIZWxn
-YWFzIDxoZWxnYWFzQGtlcm5lbC5vcmc+LCBDaHJpcyBCcm93eQ0KPiAgICA8Y2Jyb3d5QGF2ZXJ5
-LWRlc2lnbi5jb20+LCBDaHJpc3RvcGggSGVsbHdpZyA8aGNoQGluZnJhZGVhZC5vcmc+LCBJcmEN
-Cj4gICAgV2VpbnkgPGlyYS53ZWlueUBpbnRlbC5jb20+LCBKb24gTWFzdGVycyA8amNtQGpvbm1h
-c3RlcnMub3JnPiwgSm9uYXRoYW4NCj4gICAgQ2FtZXJvbiA8Sm9uYXRoYW4uQ2FtZXJvbkBodWF3
-ZWkuY29tPiwgUmFmYWVsIFd5c29ja2kNCj4gICAgPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29t
-PiwgUmFuZHkgRHVubGFwIDxyZHVubGFwQGluZnJhZGVhZC5vcmc+LA0KPiAgICBWaXNoYWwgVmVy
-bWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4sIGRhbmllbC5sbGxAYWxpYmFiYS1pbmMuY29t
-DQo+ICAgIDxkYW5pZWwubGxsQGFsaWJhYmEtaW5jLmNvbT4sIEpvaG4gR3JvdmVzIChqZ3JvdmVz
-KQ0KPiAgICA8amdyb3Zlc0BtaWNyb24uY29tPiwgS2VsbGV5LCBTZWFuIFYgPHNlYW4udi5rZWxs
-ZXlAaW50ZWwuY29tPg0KPiAgICBTdWJqZWN0OiBbRVhUXSBSZTogW1BBVENIIDA0LzE0XSBjeGwv
-bWVtOiBJbXBsZW1lbnQgcG9sbGVkIG1vZGUgbWFpbGJveA0KPiANCj4gICAgQ0FVVElPTjogRVhU
-RVJOQUwgRU1BSUwuIERvIG5vdCBjbGljayBsaW5rcyBvciBvcGVuIGF0dGFjaG1lbnRzIHVubGVz
-cw0KPiAgICB5b3UgcmVjb2duaXplIHRoZSBzZW5kZXIgYW5kIHdlcmUgZXhwZWN0aW5nIHRoaXMg
-bWVzc2FnZS4NCj4gICAgT24gTW9uLCBGZWIgMSwgMjAyMSBhdCAxMToxMyBBTSBCZW4gV2lkYXdz
-a3kgPGJlbi53aWRhd3NreUBpbnRlbC5jb20+DQo+ICAgIHdyb3RlOg0KPiAgICA+DQo+ICAgID4g
-T24gMjEtMDItMDEgMTI6NTQ6MDAsIEtvbnJhZCBSemVzenV0ZWsgV2lsayB3cm90ZToNCj4gICAg
-PiA+ID4gKyNkZWZpbmUNCj4gICAgY3hsX2Rvb3JiZWxsX2J1c3koY3hsbSkNCj4gICAgXA0KPiAg
-ICA+ID4gPiArICAgKGN4bF9yZWFkX21ib3hfcmVnMzIoY3hsbSwgQ1hMREVWX01CX0NUUkxfT0ZG
-U0VUKQ0KPiAgICAmICAgICAgICAgICAgICAgICAgICBcDQo+ICAgID4gPiA+ICsgICAgQ1hMREVW
-X01CX0NUUkxfRE9PUkJFTEwpDQo+ICAgID4gPiA+ICsNCj4gICAgPiA+ID4gKyNkZWZpbmUgQ1hM
-X01BSUxCT1hfVElNRU9VVF9VUyAyMDAwDQo+ICAgID4gPg0KPiAgICA+ID4gWW91IGJlZW4gdXNp
-bmcgdGhlIHNwZWMgZm9yIHRoZSB2YWx1ZXMuIElzIHRoYXQgbnVtYmVyIGFsc28gZnJvbSBpdA0K
-PiAgICA/DQo+ICAgID4gPg0KPiAgICA+DQo+ICAgID4gWWVzIGl0IGlzLiBJJ2xsIGFkZCBhIGNv
-bW1lbnQgd2l0aCB0aGUgc3BlYyByZWZlcmVuY2UuDQo+IA0KPiANCj4gDQo+ICAgIEZyb20gc2Vj
-dGlvbiA4LjIuOC40IGluIHRoZSBDWEwgMi4wIHNwZWM6IOKAnFRoZSBtYWlsYm94IGNvbW1hbmQg
-dGltZW91dA0KPiAgICBpcyAyIHNlY29uZHMu4oCdICBTbyB0aGlzIHNob3VsZCBiZToNCj4gDQo+
-IA0KPiAgICAjZGVmaW5lIENYTF9NQUlMQk9YX1RJTUVPVVRfVVMgMjAwMDAwMA0KPiANCj4gDQo+
-ICAgIOKApnJpZ2h0PyAyMDAwdXMgaXMgMm1z4oCmDQo+IA0KPiANCg0KVGhhbmtzLiBUaGlzIHdh
-cyBjYXVnaHQgYWxyZWFkeSBpbiBlYXJsaWVyIHJldmlldyBieSBEYXZpZCBSaWVudGplcw0KPHJp
-ZW50amVzQGdvb2dsZS5jb20+DQoNCkl0J3MgcmVuYW1lZCBDWExfTUFJTEJPWF9USU1FT1VUX01T
-IDIwMDAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGlu
-dXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVu
-c3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9y
-Zwo=
+Differentiate between hardware not supporting hugepages and user disabling THP
+via 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
+
+For the devdax namespace, the kernel handles the above via the
+supported_alignment attribute and failing to initialize the namespace
+if the namespace align value is not supported on the platform.
+
+For the fsdax namespace, the kernel will continue to initialize
+the namespace. This can result in the kernel creating a huge pte
+entry even though the hardware don't support the same.
+
+We do want hugepage support with pmem even if the end-user disabled THP
+via sysfs file (/sys/kernel/mm/transparent_hugepage/enabled). Hence
+differentiate between hardware/firmware lacking support vs user-controlled
+disable of THP and prevent a huge fault if the hardware lacks hugepage
+support.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ include/linux/huge_mm.h | 15 +++++++++------
+ mm/huge_memory.c        |  6 +++++-
+ 2 files changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+index 6a19f35f836b..ba973efcd369 100644
+--- a/include/linux/huge_mm.h
++++ b/include/linux/huge_mm.h
+@@ -78,6 +78,7 @@ static inline vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn,
+ }
+ 
+ enum transparent_hugepage_flag {
++	TRANSPARENT_HUGEPAGE_NEVER_DAX,
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+ 	TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
+@@ -123,6 +124,13 @@ extern unsigned long transparent_hugepage_flags;
+  */
+ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+ {
++
++	/*
++	 * If the hardware/firmware marked hugepage support disabled.
++	 */
++	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_NEVER_DAX))
++		return false;
++
+ 	if (vma->vm_flags & VM_NOHUGEPAGE)
+ 		return false;
+ 
+@@ -134,12 +142,7 @@ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+ 
+ 	if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+ 		return true;
+-	/*
+-	 * For dax vmas, try to always use hugepage mappings. If the kernel does
+-	 * not support hugepages, fsdax mappings will fallback to PAGE_SIZE
+-	 * mappings, and device-dax namespaces, that try to guarantee a given
+-	 * mapping size, will fail to enable
+-	 */
++
+ 	if (vma_is_dax(vma))
+ 		return true;
+ 
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 9237976abe72..d698b7e27447 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -386,7 +386,11 @@ static int __init hugepage_init(void)
+ 	struct kobject *hugepage_kobj;
+ 
+ 	if (!has_transparent_hugepage()) {
+-		transparent_hugepage_flags = 0;
++		/*
++		 * Hardware doesn't support hugepages, hence disable
++		 * DAX PMD support.
++		 */
++		transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_NEVER_DAX;
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+2.29.2
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
