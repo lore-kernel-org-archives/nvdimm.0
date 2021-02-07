@@ -2,63 +2,63 @@ Return-Path: <SRS0=ihID=HJ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDF6EC433E6
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Feb 2021 17:09:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 055A7C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Feb 2021 17:09:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8324264DB2
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Feb 2021 17:09:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8324264DB2
+	by mail.kernel.org (Postfix) with ESMTPS id A7AC964DB2
+	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Feb 2021 17:09:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A7AC964DB2
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6B629100EB827;
-	Sun,  7 Feb 2021 09:09:44 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 95D79100EB82A;
+	Sun,  7 Feb 2021 09:09:49 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 35A33100EBB94
-	for <linux-nvdimm@lists.01.org>; Sun,  7 Feb 2021 09:09:40 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id B5E38100EB829
+	for <linux-nvdimm@lists.01.org>; Sun,  7 Feb 2021 09:09:46 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.81,160,1610380800";
-   d="scan'208";a="104299372"
+   d="scan'208";a="104299378"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 01:09:38 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id EE5B64CE6033;
-	Mon,  8 Feb 2021 01:09:33 +0800 (CST)
+  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 01:09:44 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id A63F74CE6F74;
+	Mon,  8 Feb 2021 01:09:38 +0800 (CST)
 Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 01:09:36 +0800
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 01:09:38 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 01:09:35 +0800
+ id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 01:09:37 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-fsdevel@vger.kernel.org>
-Subject: [PATCH 5/7] fsdax: Dedup file range to use a compare function
-Date: Mon, 8 Feb 2021 01:09:22 +0800
-Message-ID: <20210207170924.2933035-6-ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH 7/7] fs/xfs: Add dedupe support for fsdax
+Date: Mon, 8 Feb 2021 01:09:24 +0800
+Message-ID: <20210207170924.2933035-8-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210207170924.2933035-1-ruansy.fnst@cn.fujitsu.com>
 References: <20210207170924.2933035-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: EE5B64CE6033.AF9D0
+X-yoursite-MailScanner-ID: A63F74CE6F74.AE72D
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: QLS4QKYWA6CACQP6ZG37JLEAVDQI2ZXF
-X-Message-ID-Hash: QLS4QKYWA6CACQP6ZG37JLEAVDQI2ZXF
+Message-ID-Hash: IB3B5HACIFG6RORNHNOXQU4V666WSJXZ
+X-Message-ID-Hash: IB3B5HACIFG6RORNHNOXQU4V666WSJXZ
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+CC: darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QLS4QKYWA6CACQP6ZG37JLEAVDQI2ZXF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IB3B5HACIFG6RORNHNOXQU4V666WSJXZ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -67,233 +67,143 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-With dax we cannot deal with readpage() etc. So, we create a
-funciton callback to perform the file data comparison and pass
-it to generic_remap_file_range_prep() so it can use iomap-based
-functions.
+Add xfs_break_two_dax_layouts() to break layout for tow dax files.  Then
+call compare range function only when files are both DAX or not.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- fs/btrfs/reflink.c   |  3 +-
- fs/dax.c             | 67 ++++++++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/file.c      |  2 +-
- fs/remap_range.c     | 14 +++++----
- fs/xfs/xfs_reflink.c |  2 +-
- include/linux/dax.h  |  5 ++++
- include/linux/fs.h   |  9 +++++-
- 7 files changed, 92 insertions(+), 10 deletions(-)
+ fs/xfs/xfs_file.c    | 20 ++++++++++++++++++++
+ fs/xfs/xfs_inode.c   |  8 +++++++-
+ fs/xfs/xfs_inode.h   |  1 +
+ fs/xfs/xfs_reflink.c | 21 ++++++++++++++++++---
+ 4 files changed, 46 insertions(+), 4 deletions(-)
 
-diff --git a/fs/btrfs/reflink.c b/fs/btrfs/reflink.c
-index 99aa87c08912..efe094f7f748 100644
---- a/fs/btrfs/reflink.c
-+++ b/fs/btrfs/reflink.c
-@@ -783,7 +783,8 @@ static int btrfs_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 		return ret;
- 
- 	return generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--					    len, remap_flags);
-+					    len, remap_flags,
-+					    vfs_dedupe_file_range_compare);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index ab738641a3f4..64ded96b43c8 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -791,6 +791,26 @@ xfs_break_dax_layouts(
+ 			0, 0, xfs_wait_dax_page(inode));
  }
  
- loff_t btrfs_remap_file_range(struct file *src_file, loff_t off,
-diff --git a/fs/dax.c b/fs/dax.c
-index 29698a3d2e37..6e9391845057 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -30,6 +30,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/fs_dax.h>
- 
-+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-+
- static inline unsigned int pe_order(enum page_entry_size pe_size)
- {
- 	if (pe_size == PE_SIZE_PTE)
-@@ -1827,3 +1829,68 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- 	return dax_insert_pfn_mkwrite(vmf, pfn, order);
- }
- EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
-+
-+int dax_file_range_compare(struct inode *src, loff_t srcoff, struct inode *dest,
-+		loff_t destoff, loff_t len, bool *is_same,
-+		const struct iomap_ops *ops)
++int
++xfs_break_two_dax_layouts(
++	struct inode		*src,
++	struct inode		*dest)
 +{
-+	void *saddr, *daddr;
-+	struct iomap smap = { 0 };
-+	struct iomap dmap = { 0 };
-+	bool same = false;
-+	loff_t cmp_len;
-+	int id, ret = 0;
++	int			error;
++	bool			retry = false;
 +
-+	id = dax_read_lock();
-+	while (len) {
-+		ret = ops->iomap_begin(src, srcoff, len, 0, &smap, NULL);
-+		if (ret < 0)
-+			goto out_src;
-+		cmp_len = MIN(len, smap.offset + smap.length - srcoff);
++retry:
++	error = xfs_break_dax_layouts(src, &retry);
++	if (error || retry)
++		goto retry;
 +
-+		ret = ops->iomap_begin(dest, destoff, cmp_len, 0, &dmap, NULL);
-+		if (ret < 0)
-+			goto out_dest;
-+		cmp_len = MIN(cmp_len, dmap.offset + dmap.length - destoff);
++	error = xfs_break_dax_layouts(dest, &retry);
++	if (error || retry)
++		goto retry;
 +
-+		if (smap.type == IOMAP_HOLE && dmap.type == IOMAP_HOLE)
-+			goto next;
-+
-+		if (smap.type == IOMAP_HOLE || dmap.type == IOMAP_HOLE) {
-+			same = false;
-+			goto next;
-+		}
-+
-+		ret = dax_iomap_direct_access(&smap, srcoff,
-+			  ALIGN(srcoff + cmp_len, PAGE_SIZE), &saddr, NULL);
-+		if (ret < 0)
-+			goto out_dest;
-+
-+		ret = dax_iomap_direct_access(&dmap, destoff,
-+			  ALIGN(destoff + cmp_len, PAGE_SIZE), &daddr, NULL);
-+		if (ret < 0)
-+			goto out_dest;
-+
-+		same = !memcmp(saddr, daddr, cmp_len);
-+		if (!same)
-+			break;
-+next:
-+		len -= cmp_len;
-+		srcoff += cmp_len;
-+		destoff += cmp_len;
-+out_dest:
-+		if (ops->iomap_end)
-+			ops->iomap_end(dest, destoff, cmp_len, 0, 0, &dmap);
-+out_src:
-+		if (ops->iomap_end)
-+			ops->iomap_end(src, srcoff, len, 0, 0, &smap);
-+
-+		if (ret < 0)
-+			goto out;
-+	}
-+	*is_same = same;
-+out:
-+	dax_read_unlock(id);
-+	return ret;
++	return error;
 +}
-+EXPORT_SYMBOL_GPL(dax_file_range_compare);
-diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
-index 85979e2214b3..9d101f129d16 100644
---- a/fs/ocfs2/file.c
-+++ b/fs/ocfs2/file.c
-@@ -2591,7 +2591,7 @@ static loff_t ocfs2_remap_file_range(struct file *file_in, loff_t pos_in,
- 		goto out_unlock;
- 
- 	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--			&len, remap_flags);
-+			&len, remap_flags, vfs_dedupe_file_range_compare);
- 	if (ret < 0 || len == 0)
- 		goto out_unlock;
- 
-diff --git a/fs/remap_range.c b/fs/remap_range.c
-index e6099beefa97..fc64f7e2af5a 100644
---- a/fs/remap_range.c
-+++ b/fs/remap_range.c
-@@ -199,9 +199,9 @@ static void vfs_unlock_two_pages(struct page *page1, struct page *page2)
-  * Compare extents of two files to see if they are the same.
-  * Caller must have locked both inodes to prevent write races.
-  */
--static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
--					 struct inode *dest, loff_t destoff,
--					 loff_t len, bool *is_same)
-+int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+				  struct inode *dest, loff_t destoff,
-+				  loff_t len, bool *is_same)
++
+ int
+ xfs_break_layouts(
+ 	struct inode		*inode,
+diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
+index 2bfbcf28b1bd..6483dbaa4d57 100644
+--- a/fs/xfs/xfs_inode.c
++++ b/fs/xfs/xfs_inode.c
+@@ -3786,8 +3786,10 @@ xfs_ilock2_io_mmap(
+ 	struct xfs_inode	*ip2)
  {
- 	loff_t src_poff;
- 	loff_t dest_poff;
-@@ -280,6 +280,7 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
- out_error:
- 	return error;
+ 	int			ret;
++	struct inode		*inode1 = VFS_I(ip1);
++	struct inode		*inode2 = VFS_I(ip2);
+ 
+-	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
++	ret = xfs_iolock_two_inodes_and_break_layout(inode1, inode2);
+ 	if (ret)
+ 		return ret;
+ 	if (ip1 == ip2)
+@@ -3795,6 +3797,10 @@ xfs_ilock2_io_mmap(
+ 	else
+ 		xfs_lock_two_inodes(ip1, XFS_MMAPLOCK_EXCL,
+ 				    ip2, XFS_MMAPLOCK_EXCL);
++
++	if (IS_DAX(inode1) && IS_DAX(inode2))
++		ret = xfs_break_two_dax_layouts(inode1, inode2);
++
+ 	return 0;
  }
-+EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
  
- /*
-  * Check that the two inodes are eligible for cloning, the ranges make
-@@ -291,7 +292,8 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-  */
- int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 				  struct file *file_out, loff_t pos_out,
--				  loff_t *len, unsigned int remap_flags)
-+				  loff_t *len, unsigned int remap_flags,
-+				  compare_range_t compare_range_fn)
- {
- 	struct inode *inode_in = file_inode(file_in);
- 	struct inode *inode_out = file_inode(file_out);
-@@ -351,8 +353,8 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	if (remap_flags & REMAP_FILE_DEDUP) {
- 		bool		is_same = false;
+diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+index 751a3d1d7d84..462b61bea691 100644
+--- a/fs/xfs/xfs_inode.h
++++ b/fs/xfs/xfs_inode.h
+@@ -431,6 +431,7 @@ enum xfs_prealloc_flags {
  
--		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
--				inode_out, pos_out, *len, &is_same);
-+		ret = compare_range_fn(inode_in, pos_in, inode_out, pos_out,
-+				       *len, &is_same);
- 		if (ret)
- 			return ret;
- 		if (!is_same)
+ int	xfs_update_prealloc_flags(struct xfs_inode *ip,
+ 				  enum xfs_prealloc_flags flags);
++int	xfs_break_two_dax_layouts(struct inode *inode1, struct inode *inode2);
+ int	xfs_break_layouts(struct inode *inode, uint *iolock,
+ 		enum layout_break_reason reason);
+ 
 diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 6fa05fb78189..26708c01fd78 100644
+index 38bde16cdb39..bdb9a07e703f 100644
 --- a/fs/xfs/xfs_reflink.c
 +++ b/fs/xfs/xfs_reflink.c
-@@ -1309,7 +1309,7 @@ xfs_reflink_remap_prep(
+@@ -29,6 +29,7 @@
+ #include "xfs_iomap.h"
+ #include "xfs_sb.h"
+ #include "xfs_ag_resv.h"
++#include <linux/dax.h>
+ 
+ /*
+  * Copy on Write of Shared Blocks
+@@ -1251,6 +1252,14 @@ xfs_reflink_zero_posteof(
+ 			&xfs_buffered_write_iomap_ops);
+ }
+ 
++int xfs_reflink_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
++					  struct inode *dest, loff_t destoff,
++					  loff_t len, bool *is_same)
++{
++	return dax_file_range_compare(src, srcoff, dest, destoff, len, is_same,
++				      &xfs_read_iomap_ops);
++}
++
+ /*
+  * Prepare two files for range cloning.  Upon a successful return both inodes
+  * will have the iolock and mmaplock held, the page cache of the out file will
+@@ -1293,6 +1302,7 @@ xfs_reflink_remap_prep(
+ 	struct xfs_inode	*src = XFS_I(inode_in);
+ 	struct inode		*inode_out = file_inode(file_out);
+ 	struct xfs_inode	*dest = XFS_I(inode_out);
++	compare_range_t		compare_range_fn;
+ 	int			ret;
+ 
+ 	/* Lock both files against IO */
+@@ -1306,12 +1316,17 @@ xfs_reflink_remap_prep(
+ 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
  		goto out_unlock;
  
+-	/* Don't share DAX file data for now. */
+-	if (IS_DAX(inode_in) || IS_DAX(inode_out))
++	/* Don't share DAX file data with non-DAX file. */
++	if (IS_DAX(inode_in) != IS_DAX(inode_out))
+ 		goto out_unlock;
+ 
++	if (IS_DAX(inode_in))
++		compare_range_fn = xfs_reflink_dedupe_file_range_compare;
++	else
++		compare_range_fn = vfs_dedupe_file_range_compare;
++
  	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--			len, remap_flags);
-+			len, remap_flags, vfs_dedupe_file_range_compare);
+-			len, remap_flags, vfs_dedupe_file_range_compare);
++			len, remap_flags, compare_range_fn);
  	if (ret || *len == 0)
  		goto out_unlock;
  
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index b52f084aa643..183e084c2ac7 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -238,6 +238,11 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
- s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap);
-+int dax_file_range_compare(struct inode *src, loff_t srcoff,
-+			   struct inode *dest, loff_t destoff,
-+			   loff_t len, bool *is_same,
-+			   const struct iomap_ops *ops);
-+
- static inline bool dax_mapping(struct address_space *mapping)
- {
- 	return mapping->host && IS_DAX(mapping->host);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 8667d0cdc71e..159ec755e47b 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1912,13 +1912,20 @@ extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
- extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
- extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
- 				   loff_t, size_t, unsigned int);
-+extern int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+					 struct inode *dest, loff_t destoff,
-+					 loff_t len, bool *is_same);
-+typedef int (*compare_range_t)(struct inode *src, loff_t srcpos,
-+			       struct inode *dest, loff_t destpos,
-+			       loff_t len, bool *is_same);
- extern ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
- 				       struct file *file_out, loff_t pos_out,
- 				       size_t len, unsigned int flags);
- extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 					 struct file *file_out, loff_t pos_out,
- 					 loff_t *count,
--					 unsigned int remap_flags);
-+					 unsigned int remap_flags,
-+					 compare_range_t compare_range_fn);
- extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
- 				  struct file *file_out, loff_t pos_out,
- 				  loff_t len, unsigned int remap_flags);
 -- 
 2.30.0
 
