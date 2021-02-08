@@ -2,62 +2,67 @@ Return-Path: <SRS0=Mf6P=HK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACE83C433E6
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF77DC433E6
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1E12764E7A
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1E12764E7A
+	by mail.kernel.org (Postfix) with ESMTPS id 44C2464E7A
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:44 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 44C2464E7A
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C4D8E100EB320;
-	Mon,  8 Feb 2021 02:55:38 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 01C21100EB325;
+	Mon,  8 Feb 2021 02:55:44 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 0CBB2100EB856
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:55:35 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id C17BD100EB321
+	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:55:40 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.81,161,1610380800";
-   d="scan'208";a="104328056"
+   d="scan'208";a="104328063"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 18:55:34 +0800
+  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 18:55:40 +0800
 Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id 869654CE6F7F;
-	Mon,  8 Feb 2021 18:55:32 +0800 (CST)
-Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
+	by cn.fujitsu.com (Postfix) with ESMTP id 98C044CE6F81;
+	Mon,  8 Feb 2021 18:55:36 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
  G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 18:55:33 +0800
+ (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 18:55:37 +0800
+Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 18:55:38 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 18:55:34 +0800
+ id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 18:55:38 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>, <dm-devel@redhat.com>
-Subject: [PATCH v3 00/11] fsdax: introduce fs query to support reflink
-Date: Mon, 8 Feb 2021 18:55:19 +0800
-Message-ID: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH v3 03/11] fs: Introduce ->corrupted_range() for superblock
+Date: Mon, 8 Feb 2021 18:55:22 +0800
+Message-ID: <20210208105530.3072869-4-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
+References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 869654CE6F7F.ACD1D
+X-yoursite-MailScanner-ID: 98C044CE6F81.ACE69
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: YJ62S3DCR3ITTEXXJ5Q6VC3SF4SMLJZZ
-X-Message-ID-Hash: YJ62S3DCR3ITTEXXJ5Q6VC3SF4SMLJZZ
+Message-ID-Hash: LFYSQ43X4CMFK7VOQEOY4Z2ZGSCRCJ3K
+X-Message-ID-Hash: LFYSQ43X4CMFK7VOQEOY4Z2ZGSCRCJ3K
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, agk@redhat.com, snitzer@redhat.com, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YJ62S3DCR3ITTEXXJ5Q6VC3SF4SMLJZZ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LFYSQ43X4CMFK7VOQEOY4Z2ZGSCRCJ3K/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -66,79 +71,29 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patchset is aimed to support shared pages tracking for fsdax.
+Memory failure occurs in fsdax mode will finally be handled in
+filesystem.  We introduce this interface to find out files or metadata
+affected by the corrupted range, and try to recover the corrupted data
+if possiable.
 
-Change from V2:
-  - Split 8th patch into other related to make it easy to review
-  - Other small fixes
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+---
+ include/linux/fs.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Change from V1:
-  - Add the old memory-failure handler back for rolling back
-  - Add callback in MD's ->rmap() to support multiple mapping of dm device
-  - Add judgement for CONFIG_SYSFS
-  - Add pfn_valid() judgement in hwpoison_filter()
-  - Rebased to v5.11-rc5
-
-This patchset moves owner tracking from dax_assocaite_entry() to pmem
-device driver, by introducing an interface ->memory_failure() of struct
-pagemap.  This interface is called by memory_failure() in mm, and
-implemented by pmem device.  Then pmem device calls its ->corrupted_range()
-to find the filesystem which the corrupted data located in, and call
-filesystem handler to track files or metadata assocaited with this page.
-Finally we are able to try to fix the corrupted data in filesystem and do
-other necessary processing, such as killing processes who are using the
-files affected.
-
-The call trace is like this:
-memory_failure()
- pgmap->ops->memory_failure()      => pmem_pgmap_memory_failure()
-  gendisk->fops->corrupted_range() => - pmem_corrupted_range()
-                                      - md_blk_corrupted_range()
-   sb->s_ops->currupted_range()    => xfs_fs_corrupted_range()
-    xfs_rmap_query_range()
-     xfs_currupt_helper()
-      * corrupted on metadata
-          try to recover data, call xfs_force_shutdown()
-      * corrupted on file data 
-          try to recover data, call mf_dax_mapping_kill_procs()
-
-The fsdax & reflink support for XFS is not contained in this patchset.
-
-(Rebased on v5.11-rc5)
-==
-
-Shiyang Ruan (11):
-  pagemap: Introduce ->memory_failure()
-  blk: Introduce ->corrupted_range() for block device
-  fs: Introduce ->corrupted_range() for superblock
-  block_dev: Introduce bd_corrupted_range()
-  mm, fsdax: Refactor memory-failure handler for dax mapping
-  mm, pmem: Implement ->memory_failure() in pmem driver
-  pmem: Implement ->corrupted_range() for pmem driver
-  dm: Introduce ->rmap() to find bdev offset
-  md: Implement ->corrupted_range()
-  xfs: Implement ->corrupted_range() for XFS
-  fs/dax: Remove useless functions
-
- block/genhd.c                 |   6 ++
- drivers/md/dm-linear.c        |  20 ++++
- drivers/md/dm.c               |  61 +++++++++++
- drivers/nvdimm/pmem.c         |  45 ++++++++
- fs/block_dev.c                |  47 ++++++++-
- fs/dax.c                      |  63 ++++-------
- fs/xfs/xfs_fsops.c            |   5 +
- fs/xfs/xfs_mount.h            |   1 +
- fs/xfs/xfs_super.c            | 112 ++++++++++++++++++++
- include/linux/blkdev.h        |   2 +
- include/linux/dax.h           |   1 +
- include/linux/device-mapper.h |   5 +
- include/linux/fs.h            |   2 +
- include/linux/genhd.h         |   3 +
- include/linux/memremap.h      |   8 ++
- include/linux/mm.h            |   9 ++
- mm/memory-failure.c           | 190 +++++++++++++++++++++++-----------
- 17 files changed, 475 insertions(+), 105 deletions(-)
-
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index fd47deea7c17..4cc9ff9caa87 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1963,6 +1963,8 @@ struct super_operations {
+ 				  struct shrink_control *);
+ 	long (*free_cached_objects)(struct super_block *,
+ 				    struct shrink_control *);
++	int (*corrupted_range)(struct super_block *sb, struct block_device *bdev,
++			       loff_t offset, size_t len, void *data);
+ };
+ 
+ /*
 -- 
 2.30.0
 
