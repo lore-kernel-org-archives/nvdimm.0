@@ -7,59 +7,59 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9D56C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C24DC43381
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 440B064E7C
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:51 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 440B064E7C
+	by mail.kernel.org (Postfix) with ESMTPS id 3583064E7B
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3583064E7B
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C5622100EB337;
-	Mon,  8 Feb 2021 02:55:50 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id E0E40100EB33D;
+	Mon,  8 Feb 2021 02:55:51 -0800 (PST)
 Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 48F61100EB333
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:55:48 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 75D07100EB337
+	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:55:47 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.81,161,1610380800";
-   d="scan'208";a="104328073"
+   d="scan'208";a="104328074"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 18:55:47 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 2C8424CE6F81;
-	Mon,  8 Feb 2021 18:55:41 +0800 (CST)
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 39E964CE6F87;
+	Mon,  8 Feb 2021 18:55:46 +0800 (CST)
 Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 18:55:43 +0800
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 18:55:48 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 18:55:42 +0800
+ id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 18:55:47 +0800
 From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>, <dm-devel@redhat.com>
-Subject: [PATCH v3 07/11] pmem: Implement ->corrupted_range() for pmem driver
-Date: Mon, 8 Feb 2021 18:55:26 +0800
-Message-ID: <20210208105530.3072869-8-ruansy.fnst@cn.fujitsu.com>
+Subject: [PATCH v3 11/11] fs/dax: Remove useless functions
+Date: Mon, 8 Feb 2021 18:55:30 +0800
+Message-ID: <20210208105530.3072869-12-ruansy.fnst@cn.fujitsu.com>
 X-Mailer: git-send-email 2.30.0
 In-Reply-To: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
 References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 2C8424CE6F81.ABF51
+X-yoursite-MailScanner-ID: 39E964CE6F87.AE17F
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: FFK33C6RM3P6MK7SA2K7LO24PE4BZ6NZ
-X-Message-ID-Hash: FFK33C6RM3P6MK7SA2K7LO24PE4BZ6NZ
+Message-ID-Hash: AFYFVCNYEQWTNMNGUG4QDHVUZF4URJMV
+X-Message-ID-Hash: AFYFVCNYEQWTNMNGUG4QDHVUZF4URJMV
 X-MailFrom: ruansy.fnst@cn.fujitsu.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, agk@redhat.com, snitzer@redhat.com, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FFK33C6RM3P6MK7SA2K7LO24PE4BZ6NZ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/AFYFVCNYEQWTNMNGUG4QDHVUZF4URJMV/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,82 +68,92 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Obtain the superblock of a pmem disk, and call filesystem's
-->corrupted_range() to handle the corrupted data.
+Since owner tarcking is triggerred by pmem device, these functions are
+useless.  So remove them.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
 ---
- block/genhd.c         |  6 ++++++
- drivers/nvdimm/pmem.c | 19 +++++++++++++++++++
- include/linux/genhd.h |  1 +
- 3 files changed, 26 insertions(+)
+ fs/dax.c | 46 ----------------------------------------------
+ 1 file changed, 46 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index 419548e92d82..fd7cf03b65a8 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -936,6 +936,12 @@ struct block_device *bdget_disk(struct gendisk *disk, int partno)
- 	return bdev;
- }
+diff --git a/fs/dax.c b/fs/dax.c
+index c64c3a0e76a6..e20a5df03eec 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -323,48 +323,6 @@ static unsigned long dax_end_pfn(void *entry)
+ 	for (pfn = dax_to_pfn(entry); \
+ 			pfn < dax_end_pfn(entry); pfn++)
  
-+struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector)
-+{
-+	return disk_map_sector_rcu(disk, sector);
-+}
-+EXPORT_SYMBOL(bdget_disk_sector);
-+
- /*
-  * print a full list of all partitions - intended for places where the root
-  * filesystem can't be mounted and thus to give the victim some idea of what
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index c77c80e3d155..e38b9f9c7d97 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -253,6 +253,24 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
- 	return blk_status_to_errno(rc);
- }
+-/*
+- * TODO: for reflink+dax we need a way to associate a single page with
+- * multiple address_space instances at different linear_page_index()
+- * offsets.
+- */
+-static void dax_associate_entry(void *entry, struct address_space *mapping,
+-		struct vm_area_struct *vma, unsigned long address)
+-{
+-	unsigned long size = dax_entry_size(entry), pfn, index;
+-	int i = 0;
+-
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return;
+-
+-	index = linear_page_index(vma, address & ~(size - 1));
+-	for_each_mapped_pfn(entry, pfn) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		WARN_ON_ONCE(page->mapping);
+-		page->mapping = mapping;
+-		page->index = index + i++;
+-	}
+-}
+-
+-static void dax_disassociate_entry(void *entry, struct address_space *mapping,
+-		bool trunc)
+-{
+-	unsigned long pfn;
+-
+-	if (IS_ENABLED(CONFIG_FS_DAX_LIMITED))
+-		return;
+-
+-	for_each_mapped_pfn(entry, pfn) {
+-		struct page *page = pfn_to_page(pfn);
+-
+-		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
+-		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
+-		page->mapping = NULL;
+-		page->index = 0;
+-	}
+-}
+-
+ static struct page *dax_busy_page(void *entry)
+ {
+ 	unsigned long pfn;
+@@ -543,7 +501,6 @@ static void *grab_mapping_entry(struct xa_state *xas,
+ 			xas_lock_irq(xas);
+ 		}
  
-+static int pmem_corrupted_range(struct gendisk *disk, struct block_device *bdev,
-+				loff_t disk_offset, size_t len, void *data)
-+{
-+	loff_t bdev_offset;
-+	sector_t disk_sector = disk_offset >> SECTOR_SHIFT;
-+	int rc = -ENODEV;
-+
-+	bdev = bdget_disk_sector(disk, disk_sector);
-+	if (!bdev)
-+		return rc;
-+
-+	bdev_offset = (disk_sector - get_start_sect(bdev)) << SECTOR_SHIFT;
-+	rc = bd_corrupted_range(bdev, bdev_offset, bdev_offset, len, data);
-+
-+	bdput(bdev);
-+	return rc;
-+}
-+
- /* see "strong" declaration in tools/testing/nvdimm/pmem-dax.c */
- __weak long __pmem_direct_access(struct pmem_device *pmem, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
-@@ -281,6 +299,7 @@ static const struct block_device_operations pmem_fops = {
- 	.owner =		THIS_MODULE,
- 	.submit_bio =		pmem_submit_bio,
- 	.rw_page =		pmem_rw_page,
-+	.corrupted_range =	pmem_corrupted_range,
- };
+-		dax_disassociate_entry(entry, mapping, false);
+ 		xas_store(xas, NULL);	/* undo the PMD join */
+ 		dax_wake_entry(xas, entry, true);
+ 		mapping->nrexceptional--;
+@@ -680,7 +637,6 @@ static int __dax_invalidate_entry(struct address_space *mapping,
+ 	    (xas_get_mark(&xas, PAGECACHE_TAG_DIRTY) ||
+ 	     xas_get_mark(&xas, PAGECACHE_TAG_TOWRITE)))
+ 		goto out;
+-	dax_disassociate_entry(entry, mapping, trunc);
+ 	xas_store(&xas, NULL);
+ 	mapping->nrexceptional--;
+ 	ret = 1;
+@@ -774,8 +730,6 @@ static void *dax_insert_entry(struct xa_state *xas,
+ 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+ 		void *old;
  
- static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index 751cbd559bba..996f91b08d48 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -248,6 +248,7 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
- 
- extern void del_gendisk(struct gendisk *gp);
- extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
-+extern struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector);
- 
- extern void set_disk_ro(struct gendisk *disk, int flag);
- 
+-		dax_disassociate_entry(entry, mapping, false);
+-		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
+ 		/*
+ 		 * Only swap our new entry into the page cache if the current
+ 		 * entry is a zero page or an empty entry.  If a normal PTE or
 -- 
 2.30.0
 
