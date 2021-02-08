@@ -2,167 +2,88 @@ Return-Path: <SRS0=Mf6P=HK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E699C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 09:27:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB1E4C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:18:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A728164E7B
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 09:27:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A728164E7B
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 465B664E05
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:18:46 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 465B664E05
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=suse.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 4E64D100EB84D;
-	Mon,  8 Feb 2021 01:27:40 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 69701100EC1F2;
+	Mon,  8 Feb 2021 02:18:45 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=mhocko@suse.com; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id DB62B100EB84B
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 01:27:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1612776456;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
+	by ml01.01.org (Postfix) with ESMTPS id 56F94100EF275
+	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:18:42 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+	t=1612779520; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=dgUd+2G1OxW5XPBZGlc3z4gNM80hK8Gpg3YPMpWSREs=;
-	b=WOE/LplJn/hGVf7nGElyOmmsYJpBXmZQ1+/wrQ8XGnxccHhjkbtP5DOQKV7kWZKXvrtm9S
-	bB20+qMKqE3o1Doz+gyjxINBHi0qWGLc0Bdoh6s/f8AzpxR+tJq8X7z/C+CoNJ2duYGJVK
-	Hjdy7zRduKgEjcqYndWddzyU9Z8OY/A=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-304-wOalByIhNImBr91I-hxz5g-1; Mon, 08 Feb 2021 04:27:32 -0500
-X-MC-Unique: wOalByIhNImBr91I-hxz5g-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9EAF41934101;
-	Mon,  8 Feb 2021 09:27:27 +0000 (UTC)
-Received: from [10.36.113.240] (ovpn-113-240.ams2.redhat.com [10.36.113.240])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 80D2660C05;
-	Mon,  8 Feb 2021 09:27:19 +0000 (UTC)
-Subject: Re: [PATCH v17 00/10] mm: introduce memfd_secret system call to
- create "secret" memory areas
-To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+	bh=FUp0sifzo5QTEnzB7ndOii0XZdyCiwTOujlpEkca5cM=;
+	b=Qbcw7jgSXKtAlANhPWc3Z7/0P5cS0SLsNfxe79dJAeSLS9zxSZIOgKQ4yx4VXh5YB1FVB+
+	55fvFklw7TEoDwyW+2lRw/2LHy5r5yY1UMZg1l8F3aOG1GEwyEbsXAG9lTduRQH97GtReJ
+	rWtcW7iHCW8MI13TZHpHq96oAWB7ik8=
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id 6C932AD62;
+	Mon,  8 Feb 2021 10:18:40 +0000 (UTC)
+Date: Mon, 8 Feb 2021 11:18:37 +0100
+From: Michal Hocko <mhocko@suse.com>
+To: Mike Rapoport <rppt@kernel.org>
+Subject: Re: [PATCH v17 08/10] PM: hibernate: disable when there are active
+ secretmem users
+Message-ID: <YCEP/bmqm0DsvCYN@dhcp22.suse.cz>
 References: <20210208084920.2884-1-rppt@kernel.org>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat GmbH
-Message-ID: <4996348d-5710-d77d-bb14-d84e370b4a5c@redhat.com>
-Date: Mon, 8 Feb 2021 10:27:18 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.5.0
+ <20210208084920.2884-9-rppt@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20210208084920.2884-1-rppt@kernel.org>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
-Message-ID-Hash: 257DBJAGBBRD2L32FOVRPXMRPDE24IVL
-X-Message-ID-Hash: 257DBJAGBBRD2L32FOVRPXMRPDE24IVL
-X-MailFrom: david@redhat.com
+Content-Disposition: inline
+In-Reply-To: <20210208084920.2884-9-rppt@kernel.org>
+Message-ID-Hash: 3OTWDOQXUVZNM6HBMT2JC2HOUJSR6RDL
+X-Message-ID-Hash: 3OTWDOQXUVZNM6HBMT2JC2HOUJSR6RDL
+X-MailFrom: mhocko@suse.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Michal Hocko <mhocko@suse.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kern
- el.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org
+CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho 
+ Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/257DBJAGBBRD2L32FOVRPXMRPDE24IVL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3OTWDOQXUVZNM6HBMT2JC2HOUJSR6RDL/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 08.02.21 09:49, Mike Rapoport wrote:
+On Mon 08-02-21 10:49:18, Mike Rapoport wrote:
 > From: Mike Rapoport <rppt@linux.ibm.com>
 > 
-> Hi,
+> It is unsafe to allow saving of secretmem areas to the hibernation
+> snapshot as they would be visible after the resume and this essentially
+> will defeat the purpose of secret memory mappings.
 > 
-> @Andrew, this is based on v5.11-rc5-mmotm-2021-01-27-23-30, with secretmem
-> and related patches dropped from there, I can rebase whatever way you
-> prefer.
-> 
-> This is an implementation of "secret" mappings backed by a file descriptor.
-> 
-> The file descriptor backing secret memory mappings is created using a
-> dedicated memfd_secret system call The desired protection mode for the
-> memory is configured using flags parameter of the system call. The mmap()
-> of the file descriptor created with memfd_secret() will create a "secret"
-> memory mapping. The pages in that mapping will be marked as not present in
-> the direct map and will be present only in the page table of the owning mm.
-> 
-> Although normally Linux userspace mappings are protected from other users,
-> such secret mappings are useful for environments where a hostile tenant is
-> trying to trick the kernel into giving them access to other tenants
-> mappings.
-> 
-> Additionally, in the future the secret mappings may be used as a mean to
-> protect guest memory in a virtual machine host.
-> 
-> For demonstration of secret memory usage we've created a userspace library
-> 
-> https://git.kernel.org/pub/scm/linux/kernel/git/jejb/secret-memory-preloader.git
-> 
-> that does two things: the first is act as a preloader for openssl to
-> redirect all the OPENSSL_malloc calls to secret memory meaning any secret
-> keys get automatically protected this way and the other thing it does is
-> expose the API to the user who needs it. We anticipate that a lot of the
-> use cases would be like the openssl one: many toolkits that deal with
-> secret keys already have special handling for the memory to try to give
-> them greater protection, so this would simply be pluggable into the
-> toolkits without any need for user application modification.
-> 
-> Hiding secret memory mappings behind an anonymous file allows usage of
-> the page cache for tracking pages allocated for the "secret" mappings as
-> well as using address_space_operations for e.g. page migration callbacks.
-> 
-> The anonymous file may be also used implicitly, like hugetlb files, to
-> implement mmap(MAP_SECRET) and use the secret memory areas with "native" mm
-> ABIs in the future.
-> 
-> Removing of the pages from the direct map may cause its fragmentation on
-> architectures that use large pages to map the physical memory which affects
-> the system performance. However, the original Kconfig text for
-> CONFIG_DIRECT_GBPAGES said that gigabyte pages in the direct map "... can
-> improve the kernel's performance a tiny bit ..." (commit 00d1c5e05736
-> ("x86: add gbpages switches")) and the recent report [1] showed that "...
-> although 1G mappings are a good default choice, there is no compelling
-> evidence that it must be the only choice". Hence, it is sufficient to have
-> secretmem disabled by default with the ability of a system administrator to
-> enable it at boot time.
-> 
-> In addition, there is also a long term goal to improve management of the
-> direct map.
+> Prevent hibernation whenever there are active secret memory users.
 
-Some questions (and request to document the answers) as we now allow to 
-have unmovable allocations all over the place and I don't see a single 
-comment regarding that in the cover letter:
-
-1. How will the issue of plenty of unmovable allocations for user space 
-be tackled in the future?
-
-2. How has this issue been documented? E.g., interaction with 
-ZONE_MOVABLE and CMA, alloc_conig_range()/alloc_contig_pages?.
-
-3. How are the plans to support migration in the future and which 
-interface changes will be required? (Michal mentioned some good points 
-to make this configurable via the interface, we should plan ahead and 
-document)
-
-Thanks!
+Does this feature need any special handling? As it is effectivelly
+unevictable memory then it should behave the same as other mlock, ramfs
+which should already disable hibernation as those cannot be swapped out,
+no?
 
 -- 
-Thanks,
-
-David / dhildenb
+Michal Hocko
+SUSE Labs
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
