@@ -1,87 +1,88 @@
-Return-Path: <SRS0=ihID=HJ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=Mf6P=HK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E37CC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Feb 2021 19:23:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 737E3C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 05:49:46 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EF83864E3C
-	for <linux-nvdimm@archiver.kernel.org>; Sun,  7 Feb 2021 19:23:13 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EF83864E3C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id EF9E264E27
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 05:49:45 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EF9E264E27
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CA6B8100EBB7D;
-	Sun,  7 Feb 2021 11:23:13 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=pr-tracker-bot@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 155EB100EBB62
-	for <linux-nvdimm@lists.01.org>; Sun,  7 Feb 2021 11:23:10 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPS id AC23D64E3A;
-	Sun,  7 Feb 2021 19:23:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1612725789;
-	bh=IeP1OvJ/k8x8gikOH5SEUORTPYx4qLXqVQVQFSsRFhs=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=Jok/F8hus0w+lI/pk6NY5unYbH9BETlJf84sibD7pwN2m3bUi08GWmqBrYet4Dlig
-	 3o9AINusWTpxCCP5P9xkqNL0wURU0d2CghEdYDTZ5Sgl/OOSpIikT8EMkRgvFXl6Dr
-	 4TjBFlsqPk89OOm5nQ9L0HqeOyNo/PSwa0xmTWNBKt8D8anSnyVIIlUx4YfyDjrWzH
-	 Jc7qhVfpdUezfZmWoyva3SehDSSAFJnlh5K1edtdBVb0NNIYh8HmMXRau2vM2VZIYQ
-	 6sYdV83Fwr9L//u0pZ17zuZPX7Wlbbx2+Cb2P2XzF2rS0yzm7IeTSnDB4YBB+9smS2
-	 jackFgYAhYuuQ==
-Subject: Re: [GIT PULL] libnvdimm fixes for v5.11-rc7
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAPcyv4j++J_ra8zWkvVovmwmYCERp8vKsVSZn9x4PYGoJa-XOA@mail.gmail.com>
-References: <CAPcyv4j++J_ra8zWkvVovmwmYCERp8vKsVSZn9x4PYGoJa-XOA@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAPcyv4j++J_ra8zWkvVovmwmYCERp8vKsVSZn9x4PYGoJa-XOA@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-5.11-rc7
-X-PR-Tracked-Commit-Id: 7018c897c2f243d4b5f1b94bc6b4831a7eab80fb
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: b75dba7f472ca6c2dd0b8ee41f5a4b5a45539306
-Message-Id: <161272578963.18997.13576347206696291411.pr-tracker-bot@kernel.org>
-Date: Sun, 07 Feb 2021 19:23:09 +0000
-To: Dan Williams <dan.j.williams@intel.com>
-Message-ID-Hash: IX77IEAOUSMB2CS6H5ZAUXXTSFBNKOTE
-X-Message-ID-Hash: IX77IEAOUSMB2CS6H5ZAUXXTSFBNKOTE
-X-MailFrom: pr-tracker-bot@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+	by ml01.01.org (Postfix) with ESMTP id 3E356100EC1D9;
+	Sun,  7 Feb 2021 21:49:45 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id AAD63100EF276
+	for <linux-nvdimm@lists.01.org>; Sun,  7 Feb 2021 21:49:42 -0800 (PST)
+X-IronPort-AV: E=Sophos;i="5.81,161,1610380800";
+   d="scan'208";a="104316295"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 13:49:40 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id B970C4CE6F74;
+	Mon,  8 Feb 2021 13:49:37 +0800 (CST)
+Received: from irides.mr (10.167.225.141) by G08CNEXMBPEKD05.g08.fujitsu.local
+ (10.167.33.204) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 8 Feb
+ 2021 13:49:40 +0800
+Subject: Re: [PATCH] dax: fix default return code of range_parse()
+From: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
+To: <linux-nvdimm@lists.01.org>, <dan.j.williams@intel.com>,
+	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>
+References: <20210126021331.1059933-1-ruansy.fnst@cn.fujitsu.com>
+Message-ID: <49788459-f42d-5173-c77a-f0a33558a58e@cn.fujitsu.com>
+Date: Mon, 8 Feb 2021 13:49:38 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.0
+MIME-Version: 1.0
+In-Reply-To: <20210126021331.1059933-1-ruansy.fnst@cn.fujitsu.com>
+Content-Language: en-US
+X-Originating-IP: [10.167.225.141]
+X-ClientProxiedBy: G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) To
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204)
+X-yoursite-MailScanner-ID: B970C4CE6F74.AAECC
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
+Message-ID-Hash: IRHU5DJOBZX5XMCW2ZQIYKS5IJ46KHVG
+X-Message-ID-Hash: IRHU5DJOBZX5XMCW2ZQIYKS5IJ46KHVG
+X-MailFrom: ruansy.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IX77IEAOUSMB2CS6H5ZAUXXTSFBNKOTE/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IRHU5DJOBZX5XMCW2ZQIYKS5IJ46KHVG/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: base64
 
-The pull request you sent on Sun, 7 Feb 2021 09:37:21 -0800:
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-fixes-5.11-rc7
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/b75dba7f472ca6c2dd0b8ee41f5a4b5a45539306
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+cGluZw0KDQpPbiAyMDIxLzEvMjYg5LiK5Y2IMTA6MTMsIFNoaXlhbmcgUnVhbiB3cm90ZToNCj4g
+VGhlIHJldHVybiB2YWx1ZSBvZiByYW5nZV9wYXJzZSgpIGluZGljYXRlcyB0aGUgc2l6ZSB3aGVu
+IGl0IGlzDQo+IHBvc2l0aXZlLiAgVGhlIGVycm9yIGNvZGUgc2hvdWxkIGJlIG5lZ2F0aXZlLg0K
+PiANCj4gU2lnbmVkLW9mZi1ieTogU2hpeWFuZyBSdWFuIDxydWFuc3kuZm5zdEBjbi5mdWppdHN1
+LmNvbT4NCj4gLS0tDQo+ICAgZHJpdmVycy9kYXgvYnVzLmMgfCAyICstDQo+ICAgMSBmaWxlIGNo
+YW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9kYXgvYnVzLmMgYi9kcml2ZXJzL2RheC9idXMuYw0KPiBpbmRleCA3MzdiMjA3Yzll
+MzAuLjMwMDM1NThjMWE4YiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9kYXgvYnVzLmMNCj4gKysr
+IGIvZHJpdmVycy9kYXgvYnVzLmMNCj4gQEAgLTEwMzgsNyArMTAzOCw3IEBAIHN0YXRpYyBzc2l6
+ZV90IHJhbmdlX3BhcnNlKGNvbnN0IGNoYXIgKm9wdCwgc2l6ZV90IGxlbiwgc3RydWN0IHJhbmdl
+ICpyYW5nZSkNCj4gICB7DQo+ICAgCXVuc2lnbmVkIGxvbmcgbG9uZyBhZGRyID0gMDsNCj4gICAJ
+Y2hhciAqc3RhcnQsICplbmQsICpzdHI7DQo+IC0Jc3NpemVfdCByYyA9IEVJTlZBTDsNCj4gKwlz
+c2l6ZV90IHJjID0gLUVJTlZBTDsNCj4gICANCj4gICAJc3RyID0ga3N0cmR1cChvcHQsIEdGUF9L
+RVJORUwpOw0KPiAgIAlpZiAoIXN0cikNCj4gDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgt
+bnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4
+LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
