@@ -2,87 +2,158 @@ Return-Path: <SRS0=Mf6P=HK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 737E3C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 05:49:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A22CFC43381
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 06:30:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id EF9E264E27
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 05:49:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EF9E264E27
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id C7CFB64E66
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 06:30:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C7CFB64E66
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=gibson.dropbear.id.au
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 3E356100EC1D9;
-	Sun,  7 Feb 2021 21:49:45 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id AAD63100EF276
-	for <linux-nvdimm@lists.01.org>; Sun,  7 Feb 2021 21:49:42 -0800 (PST)
-X-IronPort-AV: E=Sophos;i="5.81,161,1610380800";
-   d="scan'208";a="104316295"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 13:49:40 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id B970C4CE6F74;
-	Mon,  8 Feb 2021 13:49:37 +0800 (CST)
-Received: from irides.mr (10.167.225.141) by G08CNEXMBPEKD05.g08.fujitsu.local
- (10.167.33.204) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 8 Feb
- 2021 13:49:40 +0800
-Subject: Re: [PATCH] dax: fix default return code of range_parse()
-From: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
-To: <linux-nvdimm@lists.01.org>, <dan.j.williams@intel.com>,
-	<vishal.l.verma@intel.com>, <dave.jiang@intel.com>
-References: <20210126021331.1059933-1-ruansy.fnst@cn.fujitsu.com>
-Message-ID: <49788459-f42d-5173-c77a-f0a33558a58e@cn.fujitsu.com>
-Date: Mon, 8 Feb 2021 13:49:38 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.0
+	by ml01.01.org (Postfix) with ESMTP id 73234100EBB95;
+	Sun,  7 Feb 2021 22:30:35 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2401:3900:2:1::2; helo=ozlabs.org; envelope-from=dgibson@ozlabs.org; receiver=<UNKNOWN> 
+Received: from ozlabs.org (bilbo.ozlabs.org [IPv6:2401:3900:2:1::2])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id D50BC100EBBAC
+	for <linux-nvdimm@lists.01.org>; Sun,  7 Feb 2021 22:30:32 -0800 (PST)
+Received: by ozlabs.org (Postfix, from userid 1007)
+	id 4DYx3S5zWgz9sVR; Mon,  8 Feb 2021 17:30:28 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=gibson.dropbear.id.au; s=201602; t=1612765828;
+	bh=3z5T9UJRaU02SEuUWnxCg67jwmlHvzlscr5ZKg9Xvvw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=JALvtq4wKY9GQURpsQywClnqBMnItqdZ5nKUoA1PupUYb+7sKNBAwO2Eavnjek5Nn
+	 BnMZm0Jq9L+ElDEHAMSG/C/Ykuj6bsjNuPTv2S90ULVJUjnj5TZxk1X18hhewH4eLX
+	 0rCQqnyDuhYjtgjWCVcHb1fUK/j04CgjOvQO22NA=
+Date: Mon, 8 Feb 2021 17:21:22 +1100
+From: David Gibson <david@gibson.dropbear.id.au>
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [RFC Qemu PATCH v2 1/2] spapr: drc: Add support for async hcalls
+ at the drc level
+Message-ID: <20210208062122.GA40668@yekko.fritz.box>
+References: <160674929554.2492771.17651548703390170573.stgit@lep8c.aus.stglabs.ibm.com>
+ <160674938210.2492771.1728601884822491679.stgit@lep8c.aus.stglabs.ibm.com>
+ <20201221130853.15c8ddfd@bahia.lan>
+ <20201228083800.GN6952@yekko.fritz.box>
+ <3b47312a-217f-8df5-0bfd-1a653598abad@linux.ibm.com>
 MIME-Version: 1.0
-In-Reply-To: <20210126021331.1059933-1-ruansy.fnst@cn.fujitsu.com>
-Content-Language: en-US
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) To
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204)
-X-yoursite-MailScanner-ID: B970C4CE6F74.AAECC
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: IRHU5DJOBZX5XMCW2ZQIYKS5IJ46KHVG
-X-Message-ID-Hash: IRHU5DJOBZX5XMCW2ZQIYKS5IJ46KHVG
-X-MailFrom: ruansy.fnst@cn.fujitsu.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-kernel@vger.kernel.org
+In-Reply-To: <3b47312a-217f-8df5-0bfd-1a653598abad@linux.ibm.com>
+Message-ID-Hash: GMRZBBVZBR2VRUY4BFYMBM2E7BAR2NP4
+X-Message-ID-Hash: GMRZBBVZBR2VRUY4BFYMBM2E7BAR2NP4
+X-MailFrom: dgibson@ozlabs.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Greg Kurz <groug@kaod.org>, xiaoguangrong.eric@gmail.com, mst@redhat.com, imammedo@redhat.com, qemu-devel@nongnu.org, qemu-ppc@nongnu.org, linux-nvdimm@lists.01.org, aneesh.kumar@linux.ibm.com, kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com, bharata@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IRHU5DJOBZX5XMCW2ZQIYKS5IJ46KHVG/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GMRZBBVZBR2VRUY4BFYMBM2E7BAR2NP4/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============6159715550605346815=="
 
-cGluZw0KDQpPbiAyMDIxLzEvMjYg5LiK5Y2IMTA6MTMsIFNoaXlhbmcgUnVhbiB3cm90ZToNCj4g
-VGhlIHJldHVybiB2YWx1ZSBvZiByYW5nZV9wYXJzZSgpIGluZGljYXRlcyB0aGUgc2l6ZSB3aGVu
-IGl0IGlzDQo+IHBvc2l0aXZlLiAgVGhlIGVycm9yIGNvZGUgc2hvdWxkIGJlIG5lZ2F0aXZlLg0K
-PiANCj4gU2lnbmVkLW9mZi1ieTogU2hpeWFuZyBSdWFuIDxydWFuc3kuZm5zdEBjbi5mdWppdHN1
-LmNvbT4NCj4gLS0tDQo+ICAgZHJpdmVycy9kYXgvYnVzLmMgfCAyICstDQo+ICAgMSBmaWxlIGNo
-YW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9kYXgvYnVzLmMgYi9kcml2ZXJzL2RheC9idXMuYw0KPiBpbmRleCA3MzdiMjA3Yzll
-MzAuLjMwMDM1NThjMWE4YiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9kYXgvYnVzLmMNCj4gKysr
-IGIvZHJpdmVycy9kYXgvYnVzLmMNCj4gQEAgLTEwMzgsNyArMTAzOCw3IEBAIHN0YXRpYyBzc2l6
-ZV90IHJhbmdlX3BhcnNlKGNvbnN0IGNoYXIgKm9wdCwgc2l6ZV90IGxlbiwgc3RydWN0IHJhbmdl
-ICpyYW5nZSkNCj4gICB7DQo+ICAgCXVuc2lnbmVkIGxvbmcgbG9uZyBhZGRyID0gMDsNCj4gICAJ
-Y2hhciAqc3RhcnQsICplbmQsICpzdHI7DQo+IC0Jc3NpemVfdCByYyA9IEVJTlZBTDsNCj4gKwlz
-c2l6ZV90IHJjID0gLUVJTlZBTDsNCj4gICANCj4gICAJc3RyID0ga3N0cmR1cChvcHQsIEdGUF9L
-RVJORUwpOw0KPiAgIAlpZiAoIXN0cikNCj4gDQoNCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgt
-bnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4
-LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
+
+--===============6159715550605346815==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
+Content-Disposition: inline
+
+
+--fdj2RfSjLxBAspz7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jan 19, 2021 at 12:40:31PM +0530, Shivaprasad G Bhat wrote:
+> Thanks for the comments!
+>=20
+>=20
+> On 12/28/20 2:08 PM, David Gibson wrote:
+>=20
+> > On Mon, Dec 21, 2020 at 01:08:53PM +0100, Greg Kurz wrote:
+> ...
+> > > The overall idea looks good but I think you should consider using
+> > > a thread pool to implement it. See below.
+> > I am not convinced, however.  Specifically, attaching this to the DRC
+> > doesn't make sense to me.  We're adding exactly one DRC related async
+> > hcall, and I can't really see much call for another one.  We could
+> > have other async hcalls - indeed we already have one for HPT resizing
+> > - but attaching this to DRCs doesn't help for those.
+>=20
+> The semantics of the hcall made me think, if this is going to be
+> re-usable for future if implemented at DRC level.
+
+It would only be re-usable for operations that are actually connected
+to DRCs.  It doesn't seem to me particularly likely that we'll ever
+have more asynchronous hcalls that are also associated with DRCs.
+
+> Other option
+> is to move the async-hcall-state/list into the NVDIMMState structure
+> in include/hw/mem/nvdimm.h and handle it with machine->nvdimms_state
+> at a global level.
+
+I'm ok with either of two options:
+
+A) Implement this ad-hoc for this specific case, making whatever
+simplifications you can based on this specific case.
+
+B) Implement a general mechanism for async hcalls that is *not* tied
+to DRCs.  Then use that for the existing H_RESIZE_HPT_PREPARE call as
+well as this new one.
+
+> Hope you are okay with using the pool based approach that Greg
+
+Honestly a thread pool seems like it might be overkill for this
+application.
+
+--=20
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
+
+--fdj2RfSjLxBAspz7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEdfRlhq5hpmzETofcbDjKyiDZs5IFAmAg2F8ACgkQbDjKyiDZ
+s5IHuA/9HyiCaZs3cWwZpR/QYIuwRGbtPEcvZlPwFFGfHwTmhbLPngp5pYbuO+tJ
+Z9D61MwH1qNT1Q2XV8rW9moj+hTuJVjJZqFe05UApHqh2yq/OtHaZRUvZXYjtO9q
+lF7sE9RnfPKs6eG9zWrqETIXyDq96SPoW1WZ6aryOUpfammRweNsl0YrXhWKv8Th
+zJUczQMU3CuO/uANcw5hkVjH4amiKsGHXJnXqqeh7IQBx7WxVb3PN5jllxUOjI5b
+Y6wxPllbvqf0n4I0NPYsY4juaaiLWXdO3PfMefvLVmx0NalyKyNiidTd3sVY0/UP
+Thgc3PTuAij6v+PJbEcalHyEGuemE1QyGRCO7LDcVaw9N0Fr1NwtMpIkqtSyzhgO
+U2fdn0Hi4OIuBac3CvEjXfbludNGbqIlsVQPvdtaBLJYgo1xvnWqKxUYv2YPF/kt
+SDEehG2LvVk/5igzJ9sESyn8yROzXWJ3OfKJc2ivm6CcG/EMPGN87PqvjwRCmmoX
+3IR2V5DLuIVNaPyIZSQuC60UJmOo52xGuGxtYH6cFQU2yFgiymFiQ9uHct4lZKrT
+nv2YZL4JHX2rNZgk/mZtPoany4ilhWkbvpLWhDmFoOgfLOp7t3CqsD7XAu8u9FSH
+pMaLTbLKIlrSSKsm+XiecWtFU7Zt1lhYHm7QIw73PLmw47jntos=
+=gnLb
+-----END PGP SIGNATURE-----
+
+--fdj2RfSjLxBAspz7--
+
+--===============6159715550605346815==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+--===============6159715550605346815==--
