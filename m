@@ -2,120 +2,107 @@ Return-Path: <SRS0=Mf6P=HK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1C5CC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:54:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CD0EC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:38 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 102F564E7C
-	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:54:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 102F564E7C
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1AC7364E45
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Feb 2021 10:55:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1AC7364E45
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7CEAD100EB858;
-	Mon,  8 Feb 2021 02:54:19 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=david@redhat.com; receiver=<UNKNOWN> 
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E4103100EB855
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:54:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1612781655;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=IunSUa46r+GP3FYouMvaCEPySjJrYeeUPt7PmYPR+8g=;
-	b=TZbwc0RLMWV4ZhPQR1uw/L4D+gfZUpZ2pzIAlsPMHt8jR7dN/9qwWFZvcr9ZXWVtfnchGo
-	gs0Wyb/FJUK+qFZG9JHdhHAlXATJ7aBURUe+2nd3ekwJSN2xnCT9bEcAsRt+tvukY2zeqP
-	yL0s+ktLiPjXOx/ENE/HgmQdtgexXu0=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-148-Lv4C8j0qObOwhL8hIdcnfA-1; Mon, 08 Feb 2021 05:54:11 -0500
-X-MC-Unique: Lv4C8j0qObOwhL8hIdcnfA-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id A0119CC62A;
-	Mon,  8 Feb 2021 10:54:06 +0000 (UTC)
-Received: from [10.36.113.240] (ovpn-113-240.ams2.redhat.com [10.36.113.240])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id EB0CB57;
-	Mon,  8 Feb 2021 10:53:58 +0000 (UTC)
-Subject: Re: [PATCH v17 08/10] PM: hibernate: disable when there are active
- secretmem users
-To: Michal Hocko <mhocko@suse.com>
-References: <20210208084920.2884-1-rppt@kernel.org>
- <20210208084920.2884-9-rppt@kernel.org> <YCEP/bmqm0DsvCYN@dhcp22.suse.cz>
- <38c0cad4-ac55-28e4-81c6-4e0414f0620a@redhat.com>
- <YCEXwUYepeQvEWTf@dhcp22.suse.cz>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat GmbH
-Message-ID: <a488a0bb-def5-0249-99e2-4643787cef69@redhat.com>
-Date: Mon, 8 Feb 2021 11:53:58 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.5.0
+	by ml01.01.org (Postfix) with ESMTP id ACD0D100EB85C;
+	Mon,  8 Feb 2021 02:55:37 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id 36FDA100EB856
+	for <linux-nvdimm@lists.01.org>; Mon,  8 Feb 2021 02:55:35 -0800 (PST)
+X-IronPort-AV: E=Sophos;i="5.81,161,1610380800";
+   d="scan'208";a="104328057"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 08 Feb 2021 18:55:34 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id AA6394CE6F81;
+	Mon,  8 Feb 2021 18:55:33 +0800 (CST)
+Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 8 Feb 2021 18:55:36 +0800
+Received: from irides.mr.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.2 via Frontend Transport; Mon, 8 Feb 2021 18:55:35 +0800
+From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<linux-nvdimm@lists.01.org>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <dm-devel@redhat.com>
+Subject: [PATCH v3 01/11] pagemap: Introduce ->memory_failure()
+Date: Mon, 8 Feb 2021 18:55:20 +0800
+Message-ID: <20210208105530.3072869-2-ruansy.fnst@cn.fujitsu.com>
+X-Mailer: git-send-email 2.30.0
+In-Reply-To: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
+References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
-In-Reply-To: <YCEXwUYepeQvEWTf@dhcp22.suse.cz>
-Content-Language: en-US
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
-Message-ID-Hash: MQ7WL7YWE2TCWRDPAZJF5JDI37NBNONK
-X-Message-ID-Hash: MQ7WL7YWE2TCWRDPAZJF5JDI37NBNONK
-X-MailFrom: david@redhat.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Ander
- sen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
+X-yoursite-MailScanner-ID: AA6394CE6F81.ADF8A
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
+Message-ID-Hash: RPD7EMY4Y52CY2LRIG4X43ONJCCLRQG2
+X-Message-ID-Hash: RPD7EMY4Y52CY2LRIG4X43ONJCCLRQG2
+X-MailFrom: ruansy.fnst@cn.fujitsu.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: darrick.wong@oracle.com, david@fromorbit.com, hch@lst.de, agk@redhat.com, snitzer@redhat.com, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MQ7WL7YWE2TCWRDPAZJF5JDI37NBNONK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RPD7EMY4Y52CY2LRIG4X43ONJCCLRQG2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 08.02.21 11:51, Michal Hocko wrote:
-> On Mon 08-02-21 11:32:11, David Hildenbrand wrote:
->> On 08.02.21 11:18, Michal Hocko wrote:
->>> On Mon 08-02-21 10:49:18, Mike Rapoport wrote:
->>>> From: Mike Rapoport <rppt@linux.ibm.com>
->>>>
->>>> It is unsafe to allow saving of secretmem areas to the hibernation
->>>> snapshot as they would be visible after the resume and this essentially
->>>> will defeat the purpose of secret memory mappings.
->>>>
->>>> Prevent hibernation whenever there are active secret memory users.
->>>
->>> Does this feature need any special handling? As it is effectivelly
->>> unevictable memory then it should behave the same as other mlock, ramfs
->>> which should already disable hibernation as those cannot be swapped out,
->>> no?
->>>
->>
->> Why should unevictable memory not go to swap when hibernating? We're merely
->> dumping all of our system RAM (including any unmovable allocations) to swap
->> storage and the system is essentially completely halted.
->>
-> My understanding is that mlock is never really made visible via swap
-> storage.
+When memory-failure occurs, we call this function which is implemented
+by each kind of devices.  For the fsdax case, pmem device driver
+implements it.  Pmem device driver will find out the block device where
+the error page locates in, and try to get the filesystem on this block
+device.  And finally call filesystem handler to deal with the error.
+The filesystem will try to recover the corrupted data if possiable.
 
-"Using swap storage for hibernation" and "swapping at runtime" are two 
-different things. I might be wrong, though.
+Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+---
+ include/linux/memremap.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 79c49e7f5c30..0bcf2b1e20bd 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -87,6 +87,14 @@ struct dev_pagemap_ops {
+ 	 * the page back to a CPU accessible page.
+ 	 */
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
++
++	/*
++	 * Handle the memory failure happens on one page.  Notify the processes
++	 * who are using this page, and try to recover the data on this page
++	 * if necessary.
++	 */
++	int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
++			      int flags);
+ };
+ 
+ #define PGMAP_ALTMAP_VALID	(1 << 0)
 -- 
-Thanks,
+2.30.0
 
-David / dhildenb
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
