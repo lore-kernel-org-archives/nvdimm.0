@@ -2,62 +2,78 @@ Return-Path: <SRS0=q8t/=HM=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
+	DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97DA8C433E6
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 00:03:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D648C433E6
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 05:18:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 61C3E64E40
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 00:03:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 61C3E64E40
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1831064E4B
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 05:18:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1831064E4B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 68EA4100EAB16;
-	Tue,  9 Feb 2021 16:03:33 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.88; helo=mga01.intel.com; envelope-from=ben.widawsky@intel.com; receiver=<UNKNOWN> 
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id D4A2D100F2265;
+	Tue,  9 Feb 2021 21:18:25 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::d30; helo=mail-io1-xd30.google.com; envelope-from=pankaj.gupta.linux@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-io1-xd30.google.com (mail-io1-xd30.google.com [IPv6:2607:f8b0:4864:20::d30])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D1C6A100EAAEA
-	for <linux-nvdimm@lists.01.org>; Tue,  9 Feb 2021 16:03:27 -0800 (PST)
-IronPort-SDR: UW6FDPH77xSkih8WivaN/Zs0l0wReBDLUTRI7xDEmQtOKuFo5AK4Fh8l9tmty4vppRvSLDKtJQ
- +2mTsjWRAVQg==
-X-IronPort-AV: E=McAfee;i="6000,8403,9890"; a="201079169"
-X-IronPort-AV: E=Sophos;i="5.81,166,1610438400";
-   d="scan'208";a="201079169"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2021 16:03:19 -0800
-IronPort-SDR: RgDAq7rbdWEJyPimPAB/eix2qjwkUU2IkUZVZMfnXtB8PpeQi/gdZ86YE17/u5Sxkvk544yYzr
- mjPiZKJ1IK8Q==
-X-IronPort-AV: E=Sophos;i="5.81,166,1610438400";
-   d="scan'208";a="419865880"
-Received: from sitira7x-mobl1.gar.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.134.68])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Feb 2021 16:03:18 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: linux-cxl@vger.kernel.org
-Subject: [PATCH v2 8/8] MAINTAINERS: Add maintainers of the CXL driver
-Date: Tue,  9 Feb 2021 16:02:59 -0800
-Message-Id: <20210210000259.635748-9-ben.widawsky@intel.com>
-X-Mailer: git-send-email 2.30.0
-In-Reply-To: <20210210000259.635748-1-ben.widawsky@intel.com>
-References: <20210210000259.635748-1-ben.widawsky@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id A4DB7100F2248
+	for <linux-nvdimm@lists.01.org>; Tue,  9 Feb 2021 21:18:23 -0800 (PST)
+Received: by mail-io1-xd30.google.com with SMTP id e24so676911ioc.1
+        for <linux-nvdimm@lists.01.org>; Tue, 09 Feb 2021 21:18:23 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=1QyQ76yM+DRGQIWWpBtZtC+km5KE0GD76W/nCu9/S+0=;
+        b=rKd/EBgjCCDOJ6y0MmK+J+IIhH+emTDln0WBMqk5Ga+nP9hQuEJXy30zORZMmvO6CC
+         slRGUxFBDg6G3ijaR+YblWEtMn4zINr0uRsTQrLjZ6zD+XFog4ktVfaozxrVRgPjzZ6A
+         6EscNGkb+hZt9b8pB6T5eowKbVqVThgCTR3Is0XV1Hq/KfIc+AtYbbHszi+5PIHuhzle
+         R/ka2jLiwTfrrnldXoi2GGYZn4MKf/C5p0PioeOJl+P6EAekwSWZcXI5xMnrKB4pN4vd
+         CDKeSz+4/kLoQfDLJzwtPt2XvaHWJ2uz5eVHzNxE93pPxNYRiRjLBHHjEu2ZiLw3RaIE
+         er7w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=1QyQ76yM+DRGQIWWpBtZtC+km5KE0GD76W/nCu9/S+0=;
+        b=Cv+7iFV/ZmdmgoI9gx4KzmeXEYCIdaW7cJrQ6G8TZCqwIOzuL0Xq4Hk5JCr14zpTy5
+         EGxFeVbwEIwA1EWclGLc3jd9YRiBN6O83lMFHL+BNhRPRzIurrQIJJZWk9SSvmVkk5bh
+         VvxwEXbn6X/GxWnzbQ8MQsvSoPxdeNRfJ9QzkyBUw2AscPC9SrouK5sLEY2EGzq5qyi+
+         lr5qkdcZ/yDJwNmHgobWA9YOy2eFCRYZpuSpeMCNgxtZa6rJfWDykLcT9tFq+XkxVQbx
+         kiZ4DubCBR8LP8iRl1OAdtcAJwJ3gc1SE53J4ZeLvUz3fb88+a/Iz9rvhQ6toDIzskP5
+         kJmg==
+X-Gm-Message-State: AOAM531/zkauI4nlJCVDvfjU9dULfDhL9lllr+Nqw1CYjmzZbiEXfx9u
+	zfghEc53TawCltJV8cx8CoILoElmkjh28lBLafw=
+X-Google-Smtp-Source: ABdhPJx0u/s2yMDJCXGg5GpW8Icb6Q+HLJYgJm+ywZibSvppqJS6F1A6PXlRgWFuBlu6qleS949cAy5jAjahVQkOyd4=
+X-Received: by 2002:a6b:c8d0:: with SMTP id y199mr1085841iof.162.1612934302741;
+ Tue, 09 Feb 2021 21:18:22 -0800 (PST)
 MIME-Version: 1.0
-Message-ID-Hash: CECXODF4H6IWAJ5E3YWDBXCAZSEB3UCN
-X-Message-ID-Hash: CECXODF4H6IWAJ5E3YWDBXCAZSEB3UCN
-X-MailFrom: ben.widawsky@intel.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Ben Widawsky <ben.widawsky@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, David Hildenbrand <david@redhat.com>, David Rientjes <rientjes@google.com>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@Huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>, Alison Schofield <alison.schofield@intel.com>
+References: <20210205023956.417587-1-aneesh.kumar@linux.ibm.com>
+In-Reply-To: <20210205023956.417587-1-aneesh.kumar@linux.ibm.com>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Wed, 10 Feb 2021 06:18:11 +0100
+Message-ID: <CAM9Jb+gS22vbRrSLfTG=9VhJfrMOGvm4r8HB1nBMS4RK9W06FQ@mail.gmail.com>
+Subject: Re: [PATCH] mm/pmem: Avoid inserting hugepage PTE entry with fsdax if
+ hugepage support is disabled
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Message-ID-Hash: ZWEXZEKFOOLGBKDR76JEHVVC5HZM4XST
+X-Message-ID-Hash: ZWEXZEKFOOLGBKDR76JEHVVC5HZM4XST
+X-MailFrom: pankaj.gupta.linux@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Jan Kara <jack@suse.cz>, Linux MM <linux-mm@kvack.org>, linuxppc-dev@lists.ozlabs.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CECXODF4H6IWAJ5E3YWDBXCAZSEB3UCN/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZWEXZEKFOOLGBKDR76JEHVVC5HZM4XST/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -66,39 +82,87 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
----
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+> Differentiate between hardware not supporting hugepages and user disabling THP
+> via 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
+>
+> For the devdax namespace, the kernel handles the above via the
+> supported_alignment attribute and failing to initialize the namespace
+> if the namespace align value is not supported on the platform.
+>
+> For the fsdax namespace, the kernel will continue to initialize
+> the namespace. This can result in the kernel creating a huge pte
+> entry even though the hardware don't support the same.
+>
+> We do want hugepage support with pmem even if the end-user disabled THP
+> via sysfs file (/sys/kernel/mm/transparent_hugepage/enabled). Hence
+> differentiate between hardware/firmware lacking support vs user-controlled
+> disable of THP and prevent a huge fault if the hardware lacks hugepage
+> support.
+>
+> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> ---
+>  include/linux/huge_mm.h | 15 +++++++++------
+>  mm/huge_memory.c        |  6 +++++-
+>  2 files changed, 14 insertions(+), 7 deletions(-)
+>
+> diff --git a/include/linux/huge_mm.h b/include/linux/huge_mm.h
+> index 6a19f35f836b..ba973efcd369 100644
+> --- a/include/linux/huge_mm.h
+> +++ b/include/linux/huge_mm.h
+> @@ -78,6 +78,7 @@ static inline vm_fault_t vmf_insert_pfn_pud(struct vm_fault *vmf, pfn_t pfn,
+>  }
+>
+>  enum transparent_hugepage_flag {
+> +       TRANSPARENT_HUGEPAGE_NEVER_DAX,
+>         TRANSPARENT_HUGEPAGE_FLAG,
+>         TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
+>         TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG,
+> @@ -123,6 +124,13 @@ extern unsigned long transparent_hugepage_flags;
+>   */
+>  static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+>  {
+> +
+> +       /*
+> +        * If the hardware/firmware marked hugepage support disabled.
+> +        */
+> +       if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_NEVER_DAX))
+> +               return false;
+> +
+>         if (vma->vm_flags & VM_NOHUGEPAGE)
+>                 return false;
+>
+> @@ -134,12 +142,7 @@ static inline bool __transparent_hugepage_enabled(struct vm_area_struct *vma)
+>
+>         if (transparent_hugepage_flags & (1 << TRANSPARENT_HUGEPAGE_FLAG))
+>                 return true;
+> -       /*
+> -        * For dax vmas, try to always use hugepage mappings. If the kernel does
+> -        * not support hugepages, fsdax mappings will fallback to PAGE_SIZE
+> -        * mappings, and device-dax namespaces, that try to guarantee a given
+> -        * mapping size, will fail to enable
+> -        */
+> +
+>         if (vma_is_dax(vma))
+>                 return true;
+>
+> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+> index 9237976abe72..d698b7e27447 100644
+> --- a/mm/huge_memory.c
+> +++ b/mm/huge_memory.c
+> @@ -386,7 +386,11 @@ static int __init hugepage_init(void)
+>         struct kobject *hugepage_kobj;
+>
+>         if (!has_transparent_hugepage()) {
+> -               transparent_hugepage_flags = 0;
+> +               /*
+> +                * Hardware doesn't support hugepages, hence disable
+> +                * DAX PMD support.
+> +                */
+> +               transparent_hugepage_flags = 1 << TRANSPARENT_HUGEPAGE_NEVER_DAX;
+>                 return -EINVAL;
+>         }
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 6eff4f720c72..93c8694a8f04 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4444,6 +4444,17 @@ M:	Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
- S:	Maintained
- F:	include/linux/compiler_attributes.h
- 
-+COMPUTE EXPRESS LINK (CXL)
-+M:	Alison Schofield <alison.schofield@intel.com>
-+M:	Vishal Verma <vishal.l.verma@intel.com>
-+M:	Ira Weiny <ira.weiny@intel.com>
-+M:	Ben Widawsky <ben.widawsky@intel.com>
-+M:	Dan Williams <dan.j.williams@intel.com>
-+L:	linux-cxl@vger.kernel.org
-+S:	Maintained
-+F:	drivers/cxl/
-+F:	include/uapi/linux/cxl_mem.h
-+
- CONEXANT ACCESSRUNNER USB DRIVER
- L:	accessrunner-general@lists.sourceforge.net
- S:	Orphan
--- 
-2.30.0
+ Reviewed-by: Pankaj Gupta <pankaj.gupta@cloud.ionos.com>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
