@@ -2,168 +2,167 @@ Return-Path: <SRS0=q8t/=HM=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FBBFC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 18:18:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60A80C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 18:46:11 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1F8C764ED7
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 18:18:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1F8C764ED7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	by mail.kernel.org (Postfix) with ESMTPS id 0EE4564E26
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 10 Feb 2021 18:46:10 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0EE4564E26
+Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=microchip.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 08ABD100EA918;
-	Wed, 10 Feb 2021 10:18:53 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
+	by ml01.01.org (Postfix) with ESMTP id 97F3A100EBB6B;
+	Wed, 10 Feb 2021 10:46:10 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=68.232.154.123; helo=esa.microchip.iphmx.com; envelope-from=ariel.sibley@microchip.com; receiver=<UNKNOWN> 
+Received: from esa.microchip.iphmx.com (esa.microchip.iphmx.com [68.232.154.123])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 38A09100EA915
-	for <linux-nvdimm@lists.01.org>; Wed, 10 Feb 2021 10:18:50 -0800 (PST)
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11AIDkVP116969;
-	Wed, 10 Feb 2021 18:18:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2020-01-29;
- bh=ohGq6eEJX7JYWdlL17KxdXJ6R7Tq81Q8fQjrlmt+/ec=;
- b=vFF60VYe+4GQWSIel+3D/5ndJmpcK+GR+nWqp8RcCHu7i3cjRqyvX2Yzv4RyyhU+vACe
- De5mP7CYLLqlsaLf6HQHKGX/062DxbDWIbT4/xv7iumYG1H+JvYjpTU+JWuyG8qzuv46
- HLpz1cR5c0aWGv4Fbvp4HazZYris4ILSZ0fv2JSCN0I2TUm8rloP9XhHCOG+5LeLFfib
- uGLRiNEZ4vXb8qvI87CTstqELvcBJyVNFUd6BfzcnR24vRiVAxe0YjyHq+cxGEHzjPF4
- MXyu3rzlFTS+0wcquHTDpVbqH5eoZ+JqXRc4a5AUmG4e24g4/Y3KD9wPjzpZjmcNk4Z/ aQ==
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-	by userp2120.oracle.com with ESMTP id 36hkrn4fu8-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 10 Feb 2021 18:18:45 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 11AIA00f074633;
-	Wed, 10 Feb 2021 18:18:44 GMT
-Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2102.outbound.protection.outlook.com [104.47.58.102])
-	by aserp3030.oracle.com with ESMTP id 36j4pqgd1t-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 10 Feb 2021 18:18:44 +0000
+	by ml01.01.org (Postfix) with ESMTPS id 4144F100ED487
+	for <linux-nvdimm@lists.01.org>; Wed, 10 Feb 2021 10:46:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=microchip.com; i=@microchip.com; q=dns/txt; s=mchp;
+  t=1612982768; x=1644518768;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=agSHP5eqmrGYAyrVlJBqoo/gs+tN+2FmOmsyUO38Fd0=;
+  b=oS20SqMBJcKAxZaMwLTYyCaKJQ2jjZ+Ig4Z3FkGsX3DKHvPbaeHG9MYV
+   wPPtC7F73RlQtSqYZpH6i+NVQF/TX/nfYhj13Q1uIWcSSrTPy1wuITD97
+   KhJj1Ilf3vsYthBlOF+N/Ho4xrpwvJPVgWx5i7c6bc5XBD5++eSFvvZA+
+   djiiik8HlBrWTGGi0LZzksb1ao0PN/mCM97p/nis6/N3ARqiYFR/mtTMt
+   T6vRbAWICaRz/ANDon8RJRCY7c/3Fth5MqBHvYRB3ZmtgjDkACbdhxWNH
+   DAjQjsanxGRkom5stciLJ95k7ByxjizWYPUeTgAOr2rJEKaMkDu382rE+
+   w==;
+IronPort-SDR: VTy0UQK9ytXF+eiYwo02MZBFynCiYU0HtguTzQDW3EMC1nRkSSfitQfBcihpsy5Lc2h8msIAmT
+ GZxeGqWzmHG5v9j4XlrJ8utrjMhQwqB2urtZ1uaNEiw7TN22L8CoFbJxPWbxsQqBsS19yTffVX
+ WMQfqhf1Ub/ThjI2R/HG0MoAZn2TyC8JJ2bNM3GPoOco9dS71v0uIVf+ut51l5NAEB50jgz66I
+ Ycj6mGcYOU0h34aGhk0EIPmyp3Uhbi9UURi4QcW6jEjaVituZUe7ix24xez+gsdz7CWSGlLPu7
+ lnw=
+X-IronPort-AV: E=Sophos;i="5.81,169,1610434800";
+   d="scan'208";a="43670818"
+Received: from smtpout.microchip.com (HELO email.microchip.com) ([198.175.253.82])
+  by esa6.microchip.iphmx.com with ESMTP/TLS/AES256-SHA256; 10 Feb 2021 11:46:06 -0700
+Received: from chn-vm-ex01.mchp-main.com (10.10.85.143) by
+ chn-vm-ex02.mchp-main.com (10.10.85.144) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.1979.3; Wed, 10 Feb 2021 11:46:06 -0700
+Received: from NAM10-DM6-obe.outbound.protection.outlook.com (10.10.215.89) by
+ email.microchip.com (10.10.87.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.1979.3 via Frontend
+ Transport; Wed, 10 Feb 2021 11:46:06 -0700
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=W0kwjX5HKrP8K71qGx0b3alIymgDWzCDnkA4jUkeapvRFETMDdosghArKVf3odbrEeFQ8wGjxo2jMRl++gUtchTcXcApHWCv0O5tZY1rkqs/5n2cAr0KC4k2mrTyqOZJSUVn7oPxLHbd1epf2qRp39gt0nl34poDsAShxbKU68gAg/6KmRHQM3rtrJ0PiIoiCT72UG2BNCEM1Z0OZt0NhL3QbZrxhNn+m5rRH806CzlkrWRz2QK1MoaowV9iPLrfR9Hsyx9WgvdD3Ou0V+v/E6Aj2JbHLaZ7To3ZsYtKF7L9jiauky2ZC/zDFiShZ6PLn3FXwJIcW6ySoq4nOoZ2nQ==
+ b=cONziAq+VUv1n8zljF0VAkX3jt2R/GczrSd10h+EafoGsgl3h37JPEBjS1y7sKPOD4rxL+JhXN6TYwx5Qj4E08sUPMsb1rXQFcMqohUtPnATLoLuo2Ro2lxI4yVxA9Yvsw+48XGenZ6lXs1IccpP5EvDpv6I1DVoBA5xy1rbCQB1+DfxBaB3k7qkcV5pCrWVYv9z16kF/LoJ7/1CydM4l8h5bOHn1WsAy3wLYjNOj5Y5HszKoKCuZbVjHM/QzExXDZBl4aG2ONaOR5vrgGH100IRSmlRBIhFyKvSSVGQcod8of8mo/IWXyR0hOQTlOB0Ux2HWG6389JYO/Lw376XQw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ohGq6eEJX7JYWdlL17KxdXJ6R7Tq81Q8fQjrlmt+/ec=;
- b=mQ537keoIrLtJm8rP/TZPrCn22U3yUcAJpz8nFZ10vItnbaBG5BTmR1zkhmRjDA2vD3QN/n8m7mA6NtT5EhuFpCc2ry1k6bpnWfJyL0dD2R3kkXMSoR7Q4gJs7tNU2G087Z+dXnr7lCt4ADOLWqshQmwxb6p+zrp7fgjjIwn7GbpZAUXQgWhDus19yznX6LkWaJwg0i9NxZANoSOmUzjZOVED0/Lg+ZWzC6qWviNAKG7NA6HNFNxqbsThTEPr+V9RZRyZ8unV5fdhFZ0wgvc/h8bLEukw4WChOVZ5DDW1SUeD5ci4wTlldjujgqjhVN2jp8g8M3X5tIvjog2q21+hg==
+ bh=agSHP5eqmrGYAyrVlJBqoo/gs+tN+2FmOmsyUO38Fd0=;
+ b=KY6vwSCF2kpdxeMpVpGoKqac0VO//g3u/2cSveCLDu4wcAPC83Bob2G0bdvY0Gr4JA+UW9dKcIJ4cp6hMVcuR/Tk5e28GlHJZLPKJ9Yeq3kd0AZPVWZ0yweyng3y/CY/bGtqfU22UZf338JFemsCbcwafSWo1JQSeDfeDI0IxbwwsOFUr0K/e2y3+aF4UEfO9kfPz3/imeJeXn70MXa2/WqfM4IRDSbT+tDPsK5oMzKFawKTcAW+iwB9hVuWuHaaGxi/m/qmGF5dYvHaB0MzLdyxnSM++N6qKJ5JKzR08MxVdq2TE6Q5mUri6ZUK+3YvkmzMHpo8bmXu5R9poM7SIw==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
+ smtp.mailfrom=microchip.com; dmarc=pass action=none
+ header.from=microchip.com; dkim=pass header.d=microchip.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ d=microchiptechnology.onmicrosoft.com;
+ s=selector2-microchiptechnology-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=ohGq6eEJX7JYWdlL17KxdXJ6R7Tq81Q8fQjrlmt+/ec=;
- b=c0vjFfRGX+MHPJuoabKiwUsnpJxk2JBq/7QVYqlnrEb5596pswPwq7sZXhfaysPaMof7jwmzQFjYv27mCr65boqUNZ8eRnnN8SwKwLPV0Xf27hvCS6Z/Z6LlPFAlRZn2lGUXolmduoKfGzL2CVETYRcnvMs5sTwMCc3vebyDnis=
-Authentication-Results: intel.com; dkim=none (message not signed)
- header.d=none;intel.com; dmarc=none action=none header.from=oracle.com;
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com (2603:10b6:a03:8c::12)
- by BYAPR10MB3349.namprd10.prod.outlook.com (2603:10b6:a03:155::19) with
+ bh=agSHP5eqmrGYAyrVlJBqoo/gs+tN+2FmOmsyUO38Fd0=;
+ b=ugtD4DMnqJcP7QqU4HmtPrpw4jjeqqJRaHStYd+opN1SHOdCCXQOfMQkuRMjPMsiJmNcYsvNDaeoNU7ligO8ZYclaI0YVgKHVZkuOZBeLyGlG9IoRctdLoXillpPpeAF/2DD0V0Bf9nvFnt+xS69dl+cJoHcy8Hbsm4Ljoh4BME=
+Received: from MN2PR11MB3645.namprd11.prod.outlook.com (2603:10b6:208:f8::13)
+ by MN2PR11MB3968.namprd11.prod.outlook.com (2603:10b6:208:151::18) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.29; Wed, 10 Feb
- 2021 18:18:42 +0000
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::74a8:8649:e20b:d571]) by BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::74a8:8649:e20b:d571%7]) with mapi id 15.20.3825.030; Wed, 10 Feb 2021
- 18:18:42 +0000
-Subject: Re: [PATCH] dax: fix default return code of range_parse()
-To: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-References: <20210126021331.1059933-1-ruansy.fnst@cn.fujitsu.com>
-From: Joao Martins <joao.m.martins@oracle.com>
-Message-ID: <b685493f-98f5-9717-f88a-308e96440dcd@oracle.com>
-Date: Wed, 10 Feb 2021 18:18:35 +0000
-In-Reply-To: <20210126021331.1059933-1-ruansy.fnst@cn.fujitsu.com>
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3846.25; Wed, 10 Feb
+ 2021 18:46:04 +0000
+Received: from MN2PR11MB3645.namprd11.prod.outlook.com
+ ([fe80::51c7:31cf:308f:4c30]) by MN2PR11MB3645.namprd11.prod.outlook.com
+ ([fe80::51c7:31cf:308f:4c30%5]) with mapi id 15.20.3825.030; Wed, 10 Feb 2021
+ 18:46:04 +0000
+From: <Ariel.Sibley@microchip.com>
+To: <ben.widawsky@intel.com>
+Subject: RE: [PATCH v2 5/8] cxl/mem: Add a "RAW" send command
+Thread-Topic: [PATCH v2 5/8] cxl/mem: Add a "RAW" send command
+Thread-Index: AQHW/0AqZCOVul459UanKz+acVTCvapRfUwQgAAdewCAAAx2IIAACrSAgAAD9bA=
+Date: Wed, 10 Feb 2021 18:46:04 +0000
+Message-ID: <MN2PR11MB364513777E713224B3BB7D74888D9@MN2PR11MB3645.namprd11.prod.outlook.com>
+References: <20210210000259.635748-1-ben.widawsky@intel.com>
+ <20210210000259.635748-6-ben.widawsky@intel.com>
+ <MN2PR11MB36455574E25237635D3F9CC0888D9@MN2PR11MB3645.namprd11.prod.outlook.com>
+ <20210210164904.lfhtfvlyeypfpjhe@intel.com>
+ <MN2PR11MB36450EFC1729D9A4CDB2FB27888D9@MN2PR11MB3645.namprd11.prod.outlook.com>
+ <20210210181159.opwjsjovzsom7rky@intel.com>
+In-Reply-To: <20210210181159.opwjsjovzsom7rky@intel.com>
+Accept-Language: en-US
 Content-Language: en-US
-X-Originating-IP: [94.61.1.144]
-X-ClientProxiedBy: LO4P123CA0212.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:1a5::19) To BYAPR10MB3077.namprd10.prod.outlook.com
- (2603:10b6:a03:8c::12)
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+authentication-results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=microchip.com;
+x-originating-ip: [142.134.145.175]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: efcc3bec-aa47-4507-6402-08d8cdf41ec2
+x-ms-traffictypediagnostic: MN2PR11MB3968:
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <MN2PR11MB396835F90A48449061CBD858888D9@MN2PR11MB3968.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: ZBlewjiUkBa9A2GES5n59KAEsrUyGYx7WdL49WReJyHNqqWT2Gb2H1hFA5KFtOKeL3hzCUmy+34lbcSkEIFGDmnTBzKnwDkHVlfe0/PsFzHuPyryz6NBCvLePuoZ3BtEEiY2Yv3805g66MZM6wd31iroDBE++IBHTiRf3w/Unbx7nYSBbuZbT/CpwYSGzMK2dUSb4CV5vGJZuY0VWpdoj2RM2YXisfCM18vVTbZZiilGg7nScdGqZJKojxHsH0hDRUxJZK8xaPfsR7a11SBHb8D2uz0osVzQErqWCJ/lT03rRcsVFsosAPRNHdMrAaI9rXn3xmZqV9odCowlS3y72NINOFheEOt39DaAwwZxMEdToruu8gq91JSTIhlwrk6wzydUp/KyY/1Gv2LQMUuA2R7Fecr5Zu8H5EyxZQLBO+dIAEhgDgmpHgUmA7CGUriTkr+eCP1Dypb7f2juLQ1m+vs0lsQEqHfKR6KWA2hZpV4O6B9En4ulTOMof/jDOy8hZY0tmlfCET2Z7McymudpIBMrvXBgM44IhRtmk6Y4bLWw+vup41sZq5ierWWKsXfC
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3645.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(366004)(376002)(346002)(136003)(396003)(8936002)(6506007)(7696005)(478600001)(54906003)(6916009)(186003)(26005)(4326008)(316002)(71200400001)(8676002)(107886003)(5660300002)(9686003)(7416002)(64756008)(66476007)(66556008)(66446008)(55016002)(52536014)(76116006)(66946007)(2906002)(86362001)(83380400001)(33656002)(21314003);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata: =?utf-8?B?N0plc1lMY3BpcW9SRFgxU3VVS0ZXZmNWd2hDMmd3NlNMb1hOK0V5aVUxNHpj?=
+ =?utf-8?B?aDdxcTZibExnTTlDVklpY0JFZ0J5enVZYjR4d25VeDZsbjZNd1JlUjRaRE02?=
+ =?utf-8?B?WnBqNVlIQ2c3L0pEQnllRWhjcU43YkRESTZMdW5DQnZ6TGhwTFE0VjhxSVhT?=
+ =?utf-8?B?dk1ONUtsRVZmZkNIM0JFODlCTjZjVmJzbW5YeXNJL0ZqZi9KWkdjejUzbGdS?=
+ =?utf-8?B?b0Zvdk9LUWowRDB6Z1JaeVR2Z3M3S0EzVkd4cjBaRGY5VDQ0T20zSUpFcDV4?=
+ =?utf-8?B?SGFmaG9DLzNLNGJlQ29YSHVjbkduT3BTL21Gc3JlYjBTbWxoZDJlamdtNTln?=
+ =?utf-8?B?MUJEd1AvdEhDY0Z5VUx6UGlPTjEzQXdlaFdYNEdmQjdIQ2Q5RmR0eEdTN3E0?=
+ =?utf-8?B?SHEvV0lTTU9UMDRHNDlwWmdkVkEwV3VMMVg2QU5ud3NpNmJWN3JZWDFSeHpk?=
+ =?utf-8?B?Q1RPWTc3cG0vRE5iLytMdUxjWGJ1Z0RNaWVFb3JlRG5sWkJhdWRQMUpmdTVR?=
+ =?utf-8?B?NWdJTHRhTGQ4dmhBMUtCTjJRT09tVFpoaUNqNGVUc01XeUY2MGVRTlRyMGZK?=
+ =?utf-8?B?eW5IdWVFR2FlY0ZJTkU5UHorbzl1dmQvMjI0SlIrKzFXYm1tR0FUK21CRkpl?=
+ =?utf-8?B?N0FiVlAyTHpKZTI0d3QwcVZCN1h0eXhienl1blhUb2VWdDFaeEsrNndBUVoz?=
+ =?utf-8?B?Y0FXd29rZE80VFo0aGRRNWlqd2IzZFIwRTREeCtHMkdWWmtWR3JtbzUvdWl4?=
+ =?utf-8?B?Qk00bENIeWJYSXN6VXRWOEZ0NTRMWXJpQ0loYjhtZkZ6ek1FY0hvanBoaXl3?=
+ =?utf-8?B?dW8wZSt4Y2g1YzFHUEVtRFprZVZpS1czRHNIeWIzM0ZCWFhDUWZ4TDhUQzl2?=
+ =?utf-8?B?cWwzSUhNN3V5OFp0Y1g3WmRUVTlrVUdSSHlUN2hTME5lUDdZMnpVRW4zVFJN?=
+ =?utf-8?B?VnFJSS93OENFK044T3hlZXJJYVE4U2wydEFoUWczTXZndGwxWm9Sd1lNd0ZZ?=
+ =?utf-8?B?ODlyMDY3aXRvYkVhTHVsUGtrUXJiOW54a1hmRXordXBCQUQ1Y1EzUUYveUpL?=
+ =?utf-8?B?OGpSa0ttbHJWYWRDTEUxOVFpZEkxS0N0c1BwM1RrZzM0cVFkYnVZMHQ2ZXor?=
+ =?utf-8?B?d3hKRkV4WGpKYkg4Z0ZRS1E0T2dMQm5Ga3gzV2UrNUpMY0Q4enU3cE5WVWdN?=
+ =?utf-8?B?VTZWdUdaMTh5V0VOekxtMkI5UWZ2NlRQR1dEMlpmUUhrUm50UTAyaG5vZ0tM?=
+ =?utf-8?B?SmNoM2VneXUyR0pXWnEzTzg3cjl0d3YrNm11OE14Q0xVVXA5ZjVDTUxrZzdQ?=
+ =?utf-8?B?T2g4Ky9NRXphczVKNnNpejVoUWNNQXF0NjJyM3A1WE9FdlhBUGc2NmdVWDEv?=
+ =?utf-8?B?aUdRTVJTOWZHM2VrU0ZUR2JGb3NadXBvcVlVQlR4S3cwdDdBQU5YcmdCc3pD?=
+ =?utf-8?B?LzBFYTdUMmxZVUVJaitVTmlTb1lnWlFTYytOSEJaajRMUGhUdFZnQWVvRzJs?=
+ =?utf-8?B?VitZWEF6NVAvSHVpeldWLzBtVm0vZnNCTENtRGxzVmx5NGhjRVBCR0cwWFdU?=
+ =?utf-8?B?UnhiaGxsUVZtSDJDUjNKUjkvRU1GUFRhSGRuRm0zUWU0Q2Q4TDZkZFg0WnRk?=
+ =?utf-8?B?Y3g2ZVV2UFJtRTVHNE5kRFVUUzV6S09mV1diOEUzOGU1VkdSclNtNFkrMTl6?=
+ =?utf-8?B?WEhhUVRuYjRYRHBVczRmUFlpU0xxUEpyR3RiNlRYVEpaM2Y0V3VwOGhESXQr?=
+ =?utf-8?Q?RVII1Oty9MYgU+LmvrrdxrEmb4YH2Xy71JEBEBO?=
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [192.168.1.67] (94.61.1.144) by LO4P123CA0212.GBRP123.PROD.OUTLOOK.COM (2603:10a6:600:1a5::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3825.20 via Frontend Transport; Wed, 10 Feb 2021 18:18:40 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b2378be1-550b-44be-69f9-08d8cdf04be9
-X-MS-TrafficTypeDiagnostic: BYAPR10MB3349:
-X-Microsoft-Antispam-PRVS: 
-	<BYAPR10MB3349ADC749C396A7532A05ABBB8D9@BYAPR10MB3349.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2958;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	NjPQiefl9QYKQrjICU/AFUFprBe3EAogREPfuAaCYUH5HIg9bibCtDq+vZt1PNYQHAA1NSDWmwyg4+8OQgUp8X3gRnaZgueflmKziQlLiPPSQnG9UzcEyqRQM846ZSB46jdC/rZ+Ku8eZ079BaN1po+u+oV8+Yg6h08uLLSAjFHreInW3QuJT+g6St16uLpThPoR7sLOfxnfgxWjQb3inRvxmzhVf/UevjBLCUBZg042MEDLiwYOCenEmGPFy2oOE090V8Yu1Ax39y/IoSFbUFPg09Wax0/jM3JR9FqMlrEllENg4Z2XF3hOoObBf5csT90AsEbMsqzJNayFMS3O+LynfGmCCtdHBXGNMQFIoZC1DKGiddd19CU2Ngrzaaeo4JE582GZRXLQcgTcGkKhcLAZwNWlq1U6zHWy+YTNbu2uHNAk2LtWmkJU3oZAtLJUb3vrgWqS9BKUiYnQpmfvaPcClfkXFuLP7TB2uWgYWODXeNQ/+KRotV0s7fWNON3BG7VKta8RK/oJW2Y1urW+9yHQzmb70/OZ0Fu2ic283mnhiSqJC7zjaaHi82C0rQQRWbcNtJ9tsCeElVWCpVPyPOZ0z/Bng5DEQoQkpQfVASGO9y8+JnuVK5QR9Ds7YIaY7mD8nTnRxjvzSEVNNaNJ+56WSVh+NnAZpOGMqULsctI=
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB3077.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(396003)(346002)(366004)(376002)(136003)(86362001)(36756003)(31686004)(478600001)(66946007)(66476007)(66556008)(83380400001)(31696002)(956004)(2616005)(53546011)(8936002)(16526019)(186003)(8676002)(26005)(16576012)(316002)(4744005)(6916009)(2906002)(4326008)(5660300002)(6666004)(966005)(6486002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: 
-	=?utf-8?B?UXErV2lnTmVJaGVGRm1WUW5WTlNMM2NQK2t3MDFLckZaTjlSMDVsNDRTM0xy?=
- =?utf-8?B?SjNOdUs2ejl4dHhNVGJQU204QXJ2L1NqbCszdnRRdVEzM0ZWZk9KMlRzSklq?=
- =?utf-8?B?TDFZZDFuSGRrcklZdjY0WXNyNE5aK21KQzNIVU5OWHp6MHVmcG1RYW1uZkww?=
- =?utf-8?B?aU9BZ29ETHYxVDhBK2NyNVVjaHczWFRKVHNneEZaMUFaTjM0UXJ4NE1KL3NR?=
- =?utf-8?B?elE2MDhDTmFEaENySitLbVEvYzVRUHhITUZMek93bDcwYXh4SEZuU05seUZC?=
- =?utf-8?B?Vm9qZW9Ma3NML0YvaTd4NW44VkVWeTN1R3EyZUhBMGtJbXBCdURxcUtGWjM2?=
- =?utf-8?B?UnFvUG1BKy8raVR2RjJsU1dpMXZub2wxTmFnOFhvWElPVUdVS3puSVVuYjFo?=
- =?utf-8?B?ZlBUc09wRkZlRGhaUTkvQkhvNXBXVmVzRDl0TDJtN2tiV2lJOXNNZ2gyZlNx?=
- =?utf-8?B?aEFRS1h5SmRCWUJaR1NSeDkweWU3clNpRlJOQ3lvcm9zN1RKOFhEQStvcDI0?=
- =?utf-8?B?VmJQeHNkclhYMW9pM2dZYVVTVVM2alN1R09xWFpaVkZTNHpFWnlJZ1BTYUtt?=
- =?utf-8?B?NDJSVjA4WnM1WmdKM2Q4Z2ZDRDFnTGZhdHFRY1VJN1lMTEVZbXFBZDZ4cUJI?=
- =?utf-8?B?VndwRW5sVkZqZEFTWjNjL2dqTUVOMzk0ektEZ0k2UTMzWjVoclB5WUgvb2RZ?=
- =?utf-8?B?WkZhdmQ4QWRxOUdoZ3Ayd25sVEpDdE5aaTRJaHk4Y24xSDZaNnZMcmFPTXVZ?=
- =?utf-8?B?OUlXa3JuelczQWN5UFQ2amVQbUFUZElOeGpCVlBuSXdZWXYxRVltL3pUNXdJ?=
- =?utf-8?B?OUVucTUvRTRmb0hCOTBXbWFETXREbktUZUMwbktudHBOVW1JM0pQQmhHdExV?=
- =?utf-8?B?cVNzR2EzZDAwMFpzdmluVjJNQ3FCdU13Wi9hS0gwbmRxdTJacWJiQzA3V2NR?=
- =?utf-8?B?cnN1RVhwcHJxaFFpMzNCWU9LRFF5ZlNSUnZCUStpdVluREtNOWZFY2NNRWxu?=
- =?utf-8?B?TC9XZzV2S1VSOWFPa0U1T2IzeTBUZGhVZ3U1VzdDYi93ZlVqUUFtQk9GZmdo?=
- =?utf-8?B?TFJ5cHNZYzBhd0lxLzNyQlE2V3FZVXRXQUthdlYzME9UYXdkZXI5KzB3Njg3?=
- =?utf-8?B?VmRCeVJwbzVVMHVNeFduR2c3eUI5Y2RXc1FialNCcGUzd2ZxUlRxVjdXT0hl?=
- =?utf-8?B?cmc3TGxtNmVycGN2ejlSQTRVYWNETS9TeHgvVnU5NTFZbjFrN3Yrc29xS0hE?=
- =?utf-8?B?aGZ6MFdvRUxZZlRPZGNENzRDMHR4WjREbHFGdjlCNDBzMGluYUV0TythSU55?=
- =?utf-8?B?eDlESEFpdExFallkN1lzRU84Y09UZUppaXY4TUk4dFA1TXp6N0FXSjJNYldZ?=
- =?utf-8?B?Z24vLzZtak5UaCs0aDhyaVJDcHlrYjVjK0ptVkxLcTBWdmV4RklSMnIwdWNY?=
- =?utf-8?B?b2VTYTNWYk10dFh2ZDN2dWs4RjE4OXA1T1E5WFBKUjR5WFRxbVhlampJR0Zq?=
- =?utf-8?B?b2tLaWJMbng4S3ZpQmNrUFNuaTl3eXJJdEFQK2E4R1V4RlBCbnR2SUZOMlEx?=
- =?utf-8?B?TnBERjBWUVlaZGF5MWZWWnI5ZTV6VVVKanY3MjdSS3g2bkpCWklSTTJ0amVR?=
- =?utf-8?B?cDZaSkdETlVpZXUxdFpobThmMVBwaFllS3NxTkRXbHAyeWloV1dkMmdOSUVX?=
- =?utf-8?B?T2tEZTZUL2UxZEJXVFpxTlhDempIakFwVGJvcnVvUmZEVmhYTWJ4dnNHeG9k?=
- =?utf-8?Q?ZdI45X0n45hc3mpli17qbVb0AlcO0uCV4eAvdGw?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b2378be1-550b-44be-69f9-08d8cdf04be9
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR10MB3077.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Feb 2021 18:18:42.4407
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3645.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: efcc3bec-aa47-4507-6402-08d8cdf41ec2
+X-MS-Exchange-CrossTenant-originalarrivaltime: 10 Feb 2021 18:46:04.3106
  (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: xvwnhhh8qmoVDHMGHRKNVwVcYTaNrXkvtqnbmfg6nEtT+0cQ8qwjSh2s9K+JeCA0FnnUM5+8RrSthmQdC25Keq3JL88QoGbzTG8cRaJe8aI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB3349
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9891 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 adultscore=0
- mlxlogscore=999 malwarescore=0 bulkscore=0 phishscore=0 spamscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2102100166
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9891 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 malwarescore=0
- priorityscore=1501 bulkscore=0 spamscore=0 impostorscore=0 mlxscore=0
- suspectscore=0 mlxlogscore=999 adultscore=0 clxscore=1011
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2102100166
-Message-ID-Hash: SYRBTAH7CIXLDCY5J6GRXO6LILATYHKK
-X-Message-ID-Hash: SYRBTAH7CIXLDCY5J6GRXO6LILATYHKK
-X-MailFrom: joao.m.martins@oracle.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 3f4057f3-b418-4d4e-ba84-d55b4e897d88
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: HuY4O9nYodlhY2jIco6YQd1srUxmMkZXvz11zb7LG+0wbTX7aRRHZVA1Nov+GJur2g5+FddpHPWne67/0+7UzeHQnncGXyHUeDg6x/aKi6E=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB3968
+Message-ID-Hash: E7D5RF6OHVRELVZPZ3ODGPBGTDPVI4JU
+X-Message-ID-Hash: E7D5RF6OHVRELVZPZ3ODGPBGTDPVI4JU
+X-MailFrom: Ariel.Sibley@microchip.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, helgaas@kernel.org, cbrowy@avery-design.com, hch@infradead.org, david@redhat.com, rientjes@google.com, jcm@jonmasters.org, Jonathan.Cameron@huawei.com, rafael.j.wysocki@intel.com, rdunlap@infradead.org, jgroves@micron.com, sean.v.kelley@intel.com, Ahmad.Danesh@microchip.com, Varada.Dighe@microchip.com, Kirthi.Shenoy@microchip.com, Sanjay.Goyal@microchip.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SYRBTAH7CIXLDCY5J6GRXO6LILATYHKK/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/E7D5RF6OHVRELVZPZ3ODGPBGTDPVI4JU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -172,37 +171,135 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 1/26/21 2:13 AM, Shiyang Ruan wrote:
-> The return value of range_parse() indicates the size when it is
-> positive.  The error code should be negative.
+> > > > > diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+> > > > > index c4ba3aa0a05d..08eaa8e52083 100644
+> > > > > --- a/drivers/cxl/Kconfig
+> > > > > +++ b/drivers/cxl/Kconfig
+> > > > > @@ -33,6 +33,24 @@ config CXL_MEM
+> > > > >
+> > > > >           If unsure say 'm'.
+> > > > >
+> > > > > +config CXL_MEM_RAW_COMMANDS
+> > > > > +       bool "RAW Command Interface for Memory Devices"
+> > > > > +       depends on CXL_MEM
+> > > > > +       help
+> > > > > +         Enable CXL RAW command interface.
+> > > > > +
+> > > > > +         The CXL driver ioctl interface may assign a kernel ioctl command
+> > > > > +         number for each specification defined opcode. At any given point in
+> > > > > +         time the number of opcodes that the specification defines and a device
+> > > > > +         may implement may exceed the kernel's set of associated ioctl function
+> > > > > +         numbers. The mismatch is either by omission, specification is too new,
+> > > > > +         or by design. When prototyping new hardware, or developing /
+> > > > > debugging
+> > > > > +         the driver it is useful to be able to submit any possible command to
+> > > > > +         the hardware, even commands that may crash the kernel due to their
+> > > > > +         potential impact to memory currently in use by the kernel.
+> > > > > +
+> > > > > +         If developing CXL hardware or the driver say Y, otherwise say N.
+> > > >
+> > > > Blocking RAW commands by default will prevent vendors from developing user
+> > > > space tools that utilize vendor specific commands. Vendors of CXL.mem devices
+> > > > should take ownership of ensuring any vendor defined commands that could cause
+> > > > user data to be exposed or corrupted are disabled at the device level for
+> > > > shipping configurations.
+> > >
+> > > Thanks for brining this up Ariel. If there is a recommendation on how to codify
+> > > this, I would certainly like to know because the explanation will be long.
+> > >
+> > > ---
+> > >
+> > > The background:
+> > >
+> > > The enabling/disabling of the Kconfig option is driven by the distribution
+> > > and/or system integrator. Even if we made the default 'y', nothing stops them
+> > > from changing that. if you are using this driver in production and insist on
+> > > using RAW commands, you are free to carry around a small patch to get rid of the
+> > > WARN (it is a one-liner).
+> > >
+> > > To recap why this is in place - the driver owns the sanctity of the device and
+> > > therefore a [large] part of the whole system. What we can do as driver writers
+> > > is figure out the set of commands that are "safe" and allow those. Aside from
+> > > being able to validate them, we're able to mediate them with other parallel
+> > > operations that might conflict. We gain the ability to squint extra hard at bug
+> > > reports. We provide a reason to try to use a well defined part of the spec.
+> > > Realizing that only allowing that small set of commands in a rapidly growing
+> > > ecosystem is not a welcoming API; we decided on RAW.
+> > >
+> > > Vendor commands can be one of two types:
+> > > 1. Some functionality probably most vendors want.
+> > > 2. Functionality that is really single vendor specific.
+> > >
+> > > Hopefully we can agree that the path for case #1 is to work with the consortium
+> > > to standardize a command that does what is needed and that can eventually become
+> > > part of UAPI. The situation is unfortunate, but temporary. If you won't be able
+> > > to upgrade your kernel, patch out the WARN as above.
+> > >
+> > > The second situation is interesting and does need some more thought and
+> > > discussion.
+> > >
+> > > ---
+> > >
+> > > I see 3 realistic options for truly vendor specific commands.
+> > > 1. Tough noogies. Vendors aren't special and they shouldn't do that.
+> > > 2. modparam to disable the WARN for specific devices (let the sysadmin decide)
+> > > 3. Try to make them part of UAPI.
+> > >
+> > > The right answer to me is #1, but I also realize I live in the real world.
+> > >
+> > > #2 provides too much flexibility. Vendors will just do what they please and
+> > > distros and/or integrators will be seen as hostile if they don't accommodate.
+> > >
+> > > I like #3, but I have a feeling not everyone will agree. My proposal for vendor
+> > > specific commands is, if it's clear it's truly a unique command, allow adding it
+> > > as part of UAPI (moving it out of RAW). I expect like 5 of these, ever. If we
+> > > start getting multiple per vendor, we've failed. The infrastructure is already
+> > > in place to allow doing this pretty easily. I think we'd have to draw up some
+> > > guidelines (like adding test cases for the command) to allow these to come in.
+> > > Anything with command effects is going to need extra scrutiny.
+> >
+> > This would necessitate adding specific opcode values in the range C000h-FFFFh
+> > to UAPI, and those would then be allowed for all CXL.mem devices, correct?  If
+> > so, I do not think this is the right approach, as opcodes in this range are by
+> > definition vendor defined.  A given opcode value will have totally different
+> > effects depending on the vendor.
 > 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-
-Reviewed-by: Joao Martins <joao.m.martins@oracle.com>
-
-Although, FWIW, there was another patch exactly like this a couple
-months ago, albeit it didn't get pulled for some reason:
-
-https://lore.kernel.org/linux-nvdimm/20201026110425.136629-1-zhangqilong3@huawei.com/
-
-> ---
->  drivers/dax/bus.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Perhaps I didn't explain well enough. The UAPI would define the command ID to
+> opcode mapping, for example 0xC000. There would be a validation step in the
+> driver where it determines if it's actually the correct hardware to execute on.
+> So it would be entirely possible to have multiple vendor commands with the same
+> opcode.
 > 
-> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-> index 737b207c9e30..3003558c1a8b 100644
-> --- a/drivers/dax/bus.c
-> +++ b/drivers/dax/bus.c
-> @@ -1038,7 +1038,7 @@ static ssize_t range_parse(const char *opt, size_t len, struct range *range)
->  {
->  	unsigned long long addr = 0;
->  	char *start, *end, *str;
-> -	ssize_t rc = EINVAL;
-> +	ssize_t rc = -EINVAL;
->  
->  	str = kstrdup(opt, GFP_KERNEL);
->  	if (!str)
+> So UAPI might be this:
+>         ___C(GET_HEALTH_INFO, "Get Health Info"),                         \
+>         ___C(GET_LOG, "Get Log"),                                         \
+>         ___C(VENDOR_FOO_XXX, "FOO"),                                      \
+>         ___C(VENDOR_BAR_XXX, "BAR"),                                      \
 > 
+> User space just picks the command they want, FOO/BAR. If they use VENDOR_BAR_XXX
+> on VENDOR_FOO's hardware, they will get an error return value.
+
+Would the driver be doing this enforcement of vendor ID / opcode compatibility, or would the error return value mentioned here be from the device?  My concern is where the same opcode has two meanings for different vendors.  For example, for Vendor A opcode 0xC000 might report some form of status information, but for Vendor B it might have data side effects.  There may not have been any UAPI intention to expose 0xC000 for Vendor B devices, but the existence of 0xC000 in UAPI for Vendor A results in the data corrupting version of 0xC000 for Vendor B being allowed.  It would seem to me that even if the commands are in UAPI, the driver would still need to rely on the contents of the CEL to determine if the command should be allowed.
+ 
+> > I think you may be on to something with the command effects.  But rather than
+> > "extra scrutiny" for opcodes that have command effects, would it make sense to
+> > allow vendor defined opcodes that have Bit[5:0] in the Command Effect field of
+> > the CEL Entry Structure (Table 173) set to 0?  In conjunction, those bits
+> > represent any change to the configuration or data within the device.  For
+> > commands that have no such effects, is there harm to allowing them?  Of
+> > course, this approach relies on the vendor to not misrepresent the command
+> > effects.
+> >
+> 
+> That last sentence is what worries me :-)
+
+One must also rely on the vendor to not simply corrupt data at random. :) IMO the contents of the CEL should be believed by the driver, rather than the driver treating the device as a hostile actor.
+
+> 
+> 
+> > >
+> > > In my opinion, as maintainers of the driver, we do owe the community an answer
+> > > as to our direction for this. Dan, what is your thought?
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
