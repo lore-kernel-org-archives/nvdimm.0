@@ -2,67 +2,70 @@ Return-Path: <SRS0=OHp2=HN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23E31C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 10:18:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92362C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 11:20:31 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7450664E38
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 10:18:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7450664E38
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=Huawei.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4770264DD5
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 11:20:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4770264DD5
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 273C1100EA937;
-	Thu, 11 Feb 2021 02:18:53 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=185.176.79.56; helo=frasgout.his.huawei.com; envelope-from=jonathan.cameron@huawei.com; receiver=<UNKNOWN> 
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+	by ml01.01.org (Postfix) with ESMTP id 0EBB1100EA93A;
+	Thu, 11 Feb 2021 03:20:31 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9A74B100EA935
-	for <linux-nvdimm@lists.01.org>; Thu, 11 Feb 2021 02:18:50 -0800 (PST)
-Received: from fraeml737-chm.china.huawei.com (unknown [172.18.147.206])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Dbsqs4v78z67mM4;
-	Thu, 11 Feb 2021 18:12:09 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml737-chm.china.huawei.com (10.206.15.218) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Thu, 11 Feb 2021 11:18:47 +0100
-Received: from localhost (10.47.31.44) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2106.2; Thu, 11 Feb
- 2021 10:18:46 +0000
-Date: Thu, 11 Feb 2021 10:17:46 +0000
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Ben Widawsky <ben.widawsky@intel.com>
-Subject: Re: [PATCH v2 3/8] cxl/mem: Register CXL memX devices
-Message-ID: <20210211101746.00005e8c@Huawei.com>
-In-Reply-To: <20210210181725.00007865@Huawei.com>
-References: <20210210000259.635748-1-ben.widawsky@intel.com>
-	<20210210000259.635748-4-ben.widawsky@intel.com>
-	<20210210181725.00007865@Huawei.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
+	by ml01.01.org (Postfix) with ESMTPS id 76EC2100EA938
+	for <linux-nvdimm@lists.01.org>; Thu, 11 Feb 2021 03:20:28 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 14FAC64DCF;
+	Thu, 11 Feb 2021 11:20:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1613042428;
+	bh=rXRK0H6A/K2Wb0tbxmc7ZILxeVB76yptr2cmsMFQE74=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=t3VWHvs0bXUxcCXOc97N7vSXyLqVUcEV92kaL6OdVxecAKxAQ7ns6LLG+vegpOVde
+	 U9dBh6sezDjn5D92Ll5noX1Vr+yCYEIk5R0rIUlhKrjSS7aOZ0i+PaR/+DQIweUHh6
+	 8FzOzWyaxJsUOVv2GFc6tXB0iA4Kh3UCZBlISlSmmeVmiew2dh6clqSD3WkV3s59X7
+	 15MQmJD2s7JLI/6iNb4Cojk2vx4RU0Y7gohP8KiCudLNjAvDZFFfG0p33iCbt4dNcP
+	 wEYFcHPp1StbE/lV4MGjTaz8WVMajl7z6z/1pA+KZbglGlxEBvUgFNkTEZP1OvrqS8
+	 dLaGA+Ls37rug==
+Date: Thu, 11 Feb 2021 13:20:08 +0200
+From: Mike Rapoport <rppt@kernel.org>
+To: Michal Hocko <mhocko@suse.com>
+Subject: Re: [PATCH v17 07/10] mm: introduce memfd_secret system call to
+ create "secret" memory areas
+Message-ID: <20210211112008.GH242749@kernel.org>
+References: <20210208084920.2884-1-rppt@kernel.org>
+ <20210208084920.2884-8-rppt@kernel.org>
+ <YCEXMgXItY7xMbIS@dhcp22.suse.cz>
+ <20210208212605.GX242749@kernel.org>
+ <YCJMDBss8Qhha7g9@dhcp22.suse.cz>
+ <20210209090938.GP299309@linux.ibm.com>
+ <YCKLVzBR62+NtvyF@dhcp22.suse.cz>
+ <20210211071319.GF242749@kernel.org>
+ <YCTtSrCEvuBug2ap@dhcp22.suse.cz>
 MIME-Version: 1.0
-X-Originating-IP: [10.47.31.44]
-X-ClientProxiedBy: lhreml709-chm.china.huawei.com (10.201.108.58) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
-Message-ID-Hash: YQMDSCBTWT6ALWNMF3XHEEEFADW3Z6IB
-X-Message-ID-Hash: YQMDSCBTWT6ALWNMF3XHEEEFADW3Z6IB
-X-MailFrom: jonathan.cameron@huawei.com
+Content-Disposition: inline
+In-Reply-To: <YCTtSrCEvuBug2ap@dhcp22.suse.cz>
+Message-ID-Hash: C7IAPF7YC6TEXBI4Y3XWFM4ELU4OJ6DJ
+X-Message-ID-Hash: C7IAPF7YC6TEXBI4Y3XWFM4ELU4OJ6DJ
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, "Chris Browy  <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>,  Dan Williams  <dan.j.williams@intel.com>, David Hildenbrand <david@redhat.com>, David Rientjes" <rientjes@google.com>, "Jon Masters  <jcm@jonmasters.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap" <rdunlap@infradead.org>, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
+CC: Mike Rapoport <rppt@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho 
+ Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YQMDSCBTWT6ALWNMF3XHEEEFADW3Z6IB/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/C7IAPF7YC6TEXBI4Y3XWFM4ELU4OJ6DJ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -71,208 +74,85 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 10 Feb 2021 18:17:25 +0000
-Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
+On Thu, Feb 11, 2021 at 09:39:38AM +0100, Michal Hocko wrote:
+> On Thu 11-02-21 09:13:19, Mike Rapoport wrote:
+> > On Tue, Feb 09, 2021 at 02:17:11PM +0100, Michal Hocko wrote:
+> > > On Tue 09-02-21 11:09:38, Mike Rapoport wrote:
+> [...]
+> > > > Citing my older email:
+> > > > 
+> > > >     I've hesitated whether to continue to use new flags to memfd_create() or to
+> > > >     add a new system call and I've decided to use a new system call after I've
+> > > >     started to look into man pages update. There would have been two completely
+> > > >     independent descriptions and I think it would have been very confusing.
+> > > 
+> > > Could you elaborate? Unmapping from the kernel address space can work
+> > > both for sealed or hugetlb memfds, no? Those features are completely
+> > > orthogonal AFAICS. With a dedicated syscall you will need to introduce
+> > > this functionality on top if that is required. Have you considered that?
+> > > I mean hugetlb pages are used to back guest memory very often. Is this
+> > > something that will be a secret memory usecase?
+> > > 
+> > > Please be really specific when giving arguments to back a new syscall
+> > > decision.
+> > 
+> > Isn't "syscalls have completely independent description" specific enough?
+> 
+> No, it's not as you can see from questions I've had above. More on that
+> below.
+> 
+> > We are talking about API here, not the implementation details whether
+> > secretmem supports large pages or not.
+> > 
+> > The purpose of memfd_create() is to create a file-like access to memory.
+> > The purpose of memfd_secret() is to create a way to access memory hidden
+> > from the kernel.
+> > 
+> > I don't think overloading memfd_create() with the secretmem flags because
+> > they happen to return a file descriptor will be better for users, but
+> > rather will be more confusing.
+> 
+> This is quite a subjective conclusion. I could very well argue that it
+> would be much better to have a single syscall to get a fd backed memory
+> with spedific requirements (sealing, unmapping from the kernel address
+> space). 
 
-> On Tue, 9 Feb 2021 16:02:54 -0800
-> Ben Widawsky <ben.widawsky@intel.com> wrote:
-> 
-> > From: Dan Williams <dan.j.williams@intel.com>
-> > 
-> > Create the /sys/bus/cxl hierarchy to enumerate:
-> > 
-> > * Memory Devices (per-endpoint control devices)
-> > 
-> > * Memory Address Space Devices (platform address ranges with
-> >   interleaving, performance, and persistence attributes)
-> > 
-> > * Memory Regions (active provisioned memory from an address space device
-> >   that is in use as System RAM or delegated to libnvdimm as Persistent
-> >   Memory regions).
-> > 
-> > For now, only the per-endpoint control devices are registered on the
-> > 'cxl' bus. However, going forward it will provide a mechanism to
-> > coordinate cross-device interleave.
-> > 
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>  
-> 
-> One stray header, and a request for a tiny bit of reordering to
-> make it easier to chase through creation and destruction.
-> 
-> Either way with the header move to earlier patch I'm fine with this one.
-> 
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> Neither of us would be clearly right or wrong.
 
-Actually thinking more on this, what is the justification for the
-complexity + overhead of a percpu_refcount vs a refcount
+100% agree :)
 
-I don't think this is a high enough performance path for it to matter.
-Perhaps I'm missing a usecase where it does?
+> A more important point is a future extensibility and usability, though.
+> So let's just think of few usecases I have outlined above. Is it
+> unrealistic to expect that secret memory should be sealable? What about
+> hugetlb? Because if the answer is no then a new API is a clear win as the
+> combination of flags would never work and then we would just suffer from
+> the syscall multiplexing without much gain. On the other hand if
+> combination of the functionality is to be expected then you will have to
+> jam it into memfd_create and copy the interface likely causing more
+> confusion. See what I mean?
 
-Jonathan
+I see your point, but I think that overloading memfd_create definitely gets
+us into syscall multiplexing from day one and support for seals and huge
+pages in the secretmem will not make it less of a multiplexer.
 
-> 
-> > ---
-> >  Documentation/ABI/testing/sysfs-bus-cxl       |  26 ++
-> >  .../driver-api/cxl/memory-devices.rst         |  17 +
-> >  drivers/cxl/Makefile                          |   3 +
-> >  drivers/cxl/bus.c                             |  29 ++
-> >  drivers/cxl/cxl.h                             |   4 +
-> >  drivers/cxl/mem.c                             | 301 +++++++++++++++++-
-> >  6 files changed, 378 insertions(+), 2 deletions(-)
-> >  create mode 100644 Documentation/ABI/testing/sysfs-bus-cxl
-> >  create mode 100644 drivers/cxl/bus.c
-> >   
-> 
-> 
-> > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> > index 745f5e0bfce3..b3c56fa6e126 100644
-> > --- a/drivers/cxl/cxl.h
-> > +++ b/drivers/cxl/cxl.h
-> > @@ -3,6 +3,7 @@
-> >  
-> >  #ifndef __CXL_H__
-> >  #define __CXL_H__
-> > +#include <linux/range.h>  
-> 
-> Why is this coming in now? Feels like it should have been in earlier
-> patch that started using struct range
-> 
-> >  
-> >  #include <linux/bitfield.h>
-> >  #include <linux/bitops.h>
-> > @@ -55,6 +56,7 @@
-> >  	(FIELD_GET(CXLMDEV_RESET_NEEDED_MASK, status) !=                       \
-> >  	 CXLMDEV_RESET_NEEDED_NOT)
-> >  
-> > +struct cxl_memdev;
-> >  /**
-> >   * struct cxl_mem - A CXL memory device
-> >   * @pdev: The PCI device associated with this CXL device.
-> > @@ -72,6 +74,7 @@
-> >  struct cxl_mem {
-> >  	struct pci_dev *pdev;
-> >  	void __iomem *regs;
-> > +	struct cxl_memdev *cxlmd;
-> >  
-> >  	void __iomem *status_regs;
-> >  	void __iomem *mbox_regs;
-> > @@ -90,4 +93,5 @@ struct cxl_mem {
-> >  	} ram;
-> >  };
-> >  
-> > +extern struct bus_type cxl_bus_type;
-> >  #endif /* __CXL_H__ */
-> > diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-> > index 0a868a15badc..8bbd2495e237 100644
-> > --- a/drivers/cxl/mem.c
-> > +++ b/drivers/cxl/mem.c
-> > @@ -1,11 +1,36 @@
-> >  
-> 
-> > +
-> > +static void cxl_memdev_release(struct device *dev)
-> > +{
-> > +	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-> > +
-> > +	percpu_ref_exit(&cxlmd->ops_active);
-> > +	ida_free(&cxl_memdev_ida, cxlmd->id);
-> > +	kfree(cxlmd);
-> > +}
-> > +  
-> ...
-> 
-> > +static int cxl_mem_add_memdev(struct cxl_mem *cxlm)
-> > +{
-> > +	struct pci_dev *pdev = cxlm->pdev;
-> > +	struct cxl_memdev *cxlmd;
-> > +	struct device *dev;
-> > +	struct cdev *cdev;
-> > +	int rc;
-> > +
-> > +	cxlmd = kzalloc(sizeof(*cxlmd), GFP_KERNEL);
-> > +	if (!cxlmd)
-> > +		return -ENOMEM;
-> > +	init_completion(&cxlmd->ops_dead);
-> > +
-> > +	/*
-> > +	 * @cxlm is deallocated when the driver unbinds so operations
-> > +	 * that are using it need to hold a live reference.
-> > +	 */
-> > +	cxlmd->cxlm = cxlm;
-> > +	rc = percpu_ref_init(&cxlmd->ops_active, cxlmdev_ops_active_release, 0,
-> > +			     GFP_KERNEL);
-> > +	if (rc)
-> > +		goto err_ref;
-> > +
-> > +	rc = ida_alloc_range(&cxl_memdev_ida, 0, CXL_MEM_MAX_DEVS, GFP_KERNEL);
-> > +	if (rc < 0)
-> > +		goto err_id;
-> > +	cxlmd->id = rc;
-> > +
-> > +	dev = &cxlmd->dev;
-> > +	device_initialize(dev);
-> > +	dev->parent = &pdev->dev;
-> > +	dev->bus = &cxl_bus_type;
-> > +	dev->devt = MKDEV(cxl_mem_major, cxlmd->id);
-> > +	dev->type = &cxl_memdev_type;
-> > +	dev_set_name(dev, "mem%d", cxlmd->id);
-> > +
-> > +	cdev = &cxlmd->cdev;
-> > +	cdev_init(cdev, &cxl_memdev_fops);
-> > +
-> > +	rc = cdev_device_add(cdev, dev);
-> > +	if (rc)
-> > +		goto err_add;
-> > +
-> > +	return devm_add_action_or_reset(dev->parent, cxlmdev_unregister, cxlmd);  
-> 
-> This had me scratching my head. The cxlmdev_unregister() if called normally
-> or in the _or_reset() results in
-> 
-> 	percpu_ref_kill(&cxlmd->ops_active);
-> 	cdev_device_del(&cxlmd->cdev, dev);
-> 	wait_for_completion(&cxlmd->ops_dead);
-> 	cxlmd->cxlm = NULL;
-> 	put_device(dev);
-> 	/* If last ref this will result in */
-> 		percpu_ref_exit(&cxlmd->ops_active);
-> 		ida_free(&cxl_memdev_ida, cxlmd->id);
-> 		kfree(cxlmd);
-> 
-> So it's doing all the correct things but not necessarily
-> in the obvious order.
-> 
-> For simplicity of review perhaps it's worth reordering probe a bit
-> to get the ida immediately after the cxlmd alloc and
-> for the cxlmdev_unregister() perhaps reorder the cdev_device_del()
-> before the percpu_ref_kill().
-> 
-> Trivial obvious as the ordering has no affect but makes it
-> easy for reviewers to tick off setup vs tear down parts.
-> 
-> > +
-> > +err_add:
-> > +	ida_free(&cxl_memdev_ida, cxlmd->id);
-> > +err_id:
-> > +	/*
-> > +	 * Theoretically userspace could have already entered the fops,
-> > +	 * so flush ops_active.
-> > +	 */
-> > +	percpu_ref_kill(&cxlmd->ops_active);
-> > +	wait_for_completion(&cxlmd->ops_dead);
-> > +	percpu_ref_exit(&cxlmd->ops_active);
-> > +err_ref:
-> > +	kfree(cxlmd);
-> > +
-> > +	return rc;
-> > +}
-> > +  
-> 
-> 
-> 
-> 
+Sealing is anyway controlled via fcntl() and I don't think
+MFD_ALLOW_SEALING makes much sense for the secretmem because it is there to
+prevent rogue file sealing in tmpfs/hugetlbfs.
+
+As for the huge pages, I'm not sure at all that supporting huge pages in
+secretmem will involve hugetlbfs. And even if yes, adding SECRETMEM_HUGE
+flag seems to me less confusing than saying "from kernel x.y you can use
+MFD_CREATE | MFD_SECRET | MFD_HUGE" etc for all possible combinations.
+ 
+> I by no means do not insist one way or the other but from what I have
+> seen so far I have a feeling that the interface hasn't been thought
+> through enough.
+
+It has been, but we have different thoughts about it ;-)
+
+-- 
+Sincerely yours,
+Mike.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
