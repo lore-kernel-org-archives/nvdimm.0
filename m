@@ -2,52 +2,50 @@ Return-Path: <SRS0=OHp2=HN=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C3F2C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 10:02:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0100C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 10:07:54 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D27F864E92
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 10:02:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D27F864E92
+	by mail.kernel.org (Postfix) with ESMTPS id 7FE2B64E38
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 11 Feb 2021 10:07:54 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7FE2B64E38
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=Huawei.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 992F1100EA92D;
-	Thu, 11 Feb 2021 02:02:57 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 36B11100EA932;
+	Thu, 11 Feb 2021 02:07:54 -0800 (PST)
 Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=185.176.79.56; helo=frasgout.his.huawei.com; envelope-from=jonathan.cameron@huawei.com; receiver=<UNKNOWN> 
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 9B349100EBB6A
-	for <linux-nvdimm@lists.01.org>; Thu, 11 Feb 2021 02:02:55 -0800 (PST)
-Received: from fraeml743-chm.china.huawei.com (unknown [172.18.147.206])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4DbsWS2GH8z67mBT;
-	Thu, 11 Feb 2021 17:57:56 +0800 (CST)
+	by ml01.01.org (Postfix) with ESMTPS id 4B92C100EA929
+	for <linux-nvdimm@lists.01.org>; Thu, 11 Feb 2021 02:07:51 -0800 (PST)
+Received: from fraeml715-chm.china.huawei.com (unknown [172.18.147.226])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4Dbsd6739dz67mrk;
+	Thu, 11 Feb 2021 18:02:50 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml743-chm.china.huawei.com (10.206.15.224) with Microsoft SMTP Server
+ fraeml715-chm.china.huawei.com (10.206.15.34) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Thu, 11 Feb 2021 11:02:53 +0100
+ 15.1.2106.2; Thu, 11 Feb 2021 11:07:48 +0100
 Received: from localhost (10.47.31.44) by lhreml710-chm.china.huawei.com
  (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2106.2; Thu, 11 Feb
- 2021 10:02:52 +0000
-Date: Thu, 11 Feb 2021 10:01:52 +0000
+ 2021 10:07:47 +0000
+Date: Thu, 11 Feb 2021 10:06:46 +0000
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 2/8] cxl/mem: Find device capabilities
-Message-ID: <20210211100152.00000667@Huawei.com>
-In-Reply-To: <CAPcyv4i4_6HLNpw7p-1PD9cePuMuPkvUfx0ROT8M0Y7ftxzYfg@mail.gmail.com>
+Subject: Re: [PATCH v2 4/8] cxl/mem: Add basic IOCTL interface
+Message-ID: <20210211100646.00007dcc@Huawei.com>
+In-Reply-To: <CAPcyv4hRUB3jxdCV06y0kYMbKbGroEW6F9yOQ4KB_z6YgWBZ4Q@mail.gmail.com>
 References: <20210210000259.635748-1-ben.widawsky@intel.com>
-	<20210210000259.635748-3-ben.widawsky@intel.com>
-	<20210210174104.0000710a@Huawei.com>
-	<20210210185319.chharluce2ly4cne@intel.com>
-	<CAPcyv4i4_6HLNpw7p-1PD9cePuMuPkvUfx0ROT8M0Y7ftxzYfg@mail.gmail.com>
+	<20210210000259.635748-5-ben.widawsky@intel.com>
+	<20210210184540.00007536@Huawei.com>
+	<CAPcyv4hRUB3jxdCV06y0kYMbKbGroEW6F9yOQ4KB_z6YgWBZ4Q@mail.gmail.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 3.17.4 (GTK+ 2.24.32; i686-w64-mingw32)
 MIME-Version: 1.0
@@ -55,16 +53,26 @@ X-Originating-IP: [10.47.31.44]
 X-ClientProxiedBy: lhreml709-chm.china.huawei.com (10.201.108.58) To
  lhreml710-chm.china.huawei.com (10.201.108.61)
 X-CFilter-Loop: Reflected
-Message-ID-Hash: KGDBUQ4JG6NCUWH7PWN4AFUQCL6U5QDH
-X-Message-ID-Hash: KGDBUQ4JG6NCUWH7PWN4AFUQCL6U5QDH
+Message-ID-Hash: X6MJWO54UMDO6FSYOGCIKQNQM47XNCHY
+X-Message-ID-Hash: X6MJWO54UMDO6FSYOGCIKQNQM47XNCHY
 X-MailFrom: jonathan.cameron@huawei.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Ben Widawsky <ben.widawsky@intel.com>, linux-cxl@vger.kernel.org, "Linux ACPI  <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, David Hildenbrand <david@redhat.com>, David Rientjes <rientjes@google.com>, Jon Masters <jcm@jonmasters.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
+CC: Ben Widawsky <ben.widawsky@intel.com>, linux-cxl@vger.kernel.org,
+	"Linux ACPI  <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
+	linux-nvdimm <linux-nvdimm@lists.01.org>,
+	Linux PCI <linux-pci@vger.kernel.org>,
+	Bjorn Helgaas <helgaas@kernel.org>,
+	"Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig" <hch@infradead.org>,
+	David Hildenbrand <david@redhat.com>,
+	"David Rientjes  <rientjes@google.com>,  Jon Masters" <jcm@jonmasters.org>,
+	Rafael Wysocki <rafael.j.wysocki@intel.com>,
+	"Randy Dunlap  <rdunlap@infradead.org>,  John Groves  (jgroves)" <jgroves@micron.com>,
+	"Kelley, Sean V" <sean.v.kelley@intel.com>, kernel@ml01.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KGDBUQ4JG6NCUWH7PWN4AFUQCL6U5QDH/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/X6MJWO54UMDO6FSYOGCIKQNQM47XNCHY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -73,74 +81,63 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 10 Feb 2021 11:54:29 -0800
+On Wed, 10 Feb 2021 20:40:52 -0800
 Dan Williams <dan.j.williams@intel.com> wrote:
 
-> > > ...
-> > >  
-> > > > +static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
-> > > > +                            struct mbox_cmd *mbox_cmd)
-> > > > +{
-> > > > +   struct device *dev = &cxlm->pdev->dev;
-> > > > +
-> > > > +   dev_dbg(dev, "Mailbox command (opcode: %#x size: %zub) timed out\n",
-> > > > +           mbox_cmd->opcode, mbox_cmd->size_in);
-> > > > +
-> > > > +   if (IS_ENABLED(CONFIG_CXL_MEM_INSECURE_DEBUG)) {  
-> > >
-> > > Hmm.  Whilst I can see the advantage of this for debug, I'm not sure we want
-> > > it upstream even under a rather evil looking CONFIG variable.
-> > >
-> > > Is there a bigger lock we can use to avoid chance of accidental enablement?  
-> >
-> > Any suggestions? I'm told this functionality was extremely valuable for NVDIMM,
-> > though I haven't personally experienced it.  
-> 
-> Yeah, there was no problem with the identical mechanism in LIBNVDIMM
-> land. However, I notice that the useful feature for LIBNVDIMM is the
-> option to dump all payloads. This one only fires on timeouts which is
-> less useful. So I'd say fix it to dump all payloads on the argument
-> that the safety mechanism was proven with the LIBNVDIMM precedent, or
-> delete it altogether to maintain v5.12 momentum. Payload dumping can
-> be added later.
-
-I think I'd drop it for now - feels like a topic that needs more discussion.
-
-Also, dumping this data to the kernel log isn't exactly elegant - particularly
-if we dump a lot more of it.  Perhaps tracepoints?
-
-> 
+> On Wed, Feb 10, 2021 at 10:47 AM Jonathan Cameron
+> <Jonathan.Cameron@huawei.com> wrote:
 > [..]
-> > > > diff --git a/include/uapi/linux/pci_regs.h b/include/uapi/linux/pci_regs.h
-> > > > index e709ae8235e7..6267ca9ae683 100644
-> > > > --- a/include/uapi/linux/pci_regs.h
-> > > > +++ b/include/uapi/linux/pci_regs.h
-> > > > @@ -1080,6 +1080,7 @@
-> > > >
-> > > >  /* Designated Vendor-Specific (DVSEC, PCI_EXT_CAP_ID_DVSEC) */
-> > > >  #define PCI_DVSEC_HEADER1          0x4 /* Designated Vendor-Specific Header1 */
-> > > > +#define PCI_DVSEC_HEADER1_LENGTH_MASK      0xFFF00000  
-> > >
-> > > Seems sensible to add the revision mask as well.
-> > > The vendor id currently read using a word read rather than dword, but perhaps
-> > > neater to add that as well for completeness?
-> > >
-> > > Having said that, given Bjorn's comment on clashes and the fact he'd rather see
-> > > this stuff defined in drivers and combined later (see review patch 1 and follow
-> > > the link) perhaps this series should not touch this header at all.  
+> > > +#define CXL_CMDS                                                          \
+> > > +     ___C(INVALID, "Invalid Command"),                                 \
+> > > +     ___C(IDENTIFY, "Identify Command"),                               \
+> > > +     ___C(MAX, "Last command")
+> > > +
+> > > +#define ___C(a, b) CXL_MEM_COMMAND_ID_##a
+> > > +enum { CXL_CMDS };
+> > > +
+> > > +#undef ___C
+> > > +#define ___C(a, b) { b }
+> > > +static const struct {
+> > > +     const char *name;
+> > > +} cxl_command_names[] = { CXL_CMDS };
+> > > +#undef ___C  
 > >
-> > I'm fine to move it back.  
+> > Unless there are going to be a lot of these, I'd just write them out long hand
+> > as much more readable than the macro magic.  
 > 
-> Yeah, we're playing tennis now between Bjorn's and Christoph's
-> comments, but I like Bjorn's suggestion of "deduplicate post merge"
-> given the bloom of DVSEC infrastructure landing at the same time.
-I guess it may depend on timing of this.  Personally I think 5.12 may be too aggressive.
+> This macro magic isn't new to Linux it was introduced with ftrace:
+> 
+> See "cpp tricks and treats": https://lwn.net/Articles/383362/
 
-As long as Bjorn can take a DVSEC deduplication as an immutable branch then perhaps
-during 5.13 this tree can sit on top of that.
+Yeah. I've dealt with that one a few times. It's very cleaver and compact
+but a PITA to debug build errors related to it.
+
+> 
+> >
+> > enum {
+> >         CXL_MEM_COMMAND_ID_INVALID,
+> >         CXL_MEM_COMMAND_ID_IDENTIFY,
+> >         CXL_MEM_COMMAND_ID_MAX
+> > };
+> >
+> > static const struct {
+> >         const char *name;
+> > } cxl_command_names[] = {
+> >         [CXL_MEM_COMMAND_ID_INVALID] = { "Invalid Command" },
+> >         [CXL_MEM_COMMAND_ID_IDENTIFY] = { "Identify Comamnd" },
+> >         /* I hope you never need the Last command to exist in here as that sounds like a bug */
+> > };
+> >
+> > That's assuming I actually figured the macro fun out correctly.
+> > To my mind it's worth doing this stuff for 'lots' no so much for 3.  
+> 
+> The list will continue to expand, and it eliminates the "did you
+> remember to update cxl_command_names" review burden permanently.
+
+How about a compromise.  Add a comment giving how the first entry expands to
+avoid people (me at least :) having to think their way through it every time?
 
 Jonathan
-
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
