@@ -2,341 +2,168 @@ Return-Path: <SRS0=mp96=HO=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB190C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Feb 2021 15:54:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 235CFC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Feb 2021 17:11:05 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3E5E264E02
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Feb 2021 15:54:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3E5E264E02
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id B2A4164E02
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Feb 2021 17:11:04 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B2A4164E02
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=pengutronix.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id F2D3B100EA2B2;
-	Fri, 12 Feb 2021 07:54:43 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.100; helo=mga07.intel.com; envelope-from=ben.widawsky@intel.com; receiver=<UNKNOWN> 
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 721F0100EA100;
+	Fri, 12 Feb 2021 09:11:04 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2001:67c:670:201:290:27ff:fe1d:cc33; helo=metis.ext.pengutronix.de; envelope-from=ukl@pengutronix.de; receiver=<UNKNOWN> 
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 240F5100EBBBB
-	for <linux-nvdimm@lists.01.org>; Fri, 12 Feb 2021 07:54:40 -0800 (PST)
-IronPort-SDR: AOSMEo5rIYV55Cwu+oKZVxrkyz4iDfJqosi5G7o4wRv104vHL6OpyW3WlYGXLwHCjuUO0k3MNu
- jS//3g6ajmng==
-X-IronPort-AV: E=McAfee;i="6000,8403,9893"; a="246497975"
-X-IronPort-AV: E=Sophos;i="5.81,174,1610438400";
-   d="scan'208";a="246497975"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2021 07:54:38 -0800
-IronPort-SDR: ua5ODGCeCiIyd188xVcwJvXjmN0ucGTZtobnydEpeFsnW38CpSKttJz/zUEdqu62gGlHsWL+cn
- GNLoQHgHV0hA==
-X-IronPort-AV: E=Sophos;i="5.81,174,1610438400";
-   d="scan'208";a="381488777"
-Received: from smandal1-mobl2.amr.corp.intel.com (HELO intel.com) ([10.252.133.121])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Feb 2021 07:54:36 -0800
-Date: Fri, 12 Feb 2021 07:54:35 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Subject: Re: [PATCH v2 2/8] cxl/mem: Find device capabilities
-Message-ID: <20210212155435.wwmsuqom4qyymdq6@intel.com>
-References: <20210210000259.635748-1-ben.widawsky@intel.com>
- <20210210000259.635748-3-ben.widawsky@intel.com>
- <20210210133252.000047af@Huawei.com>
- <20210210150759.00005684@Huawei.com>
- <20210210165557.7fuqbyr7e7zjoxaa@intel.com>
- <20210210181605.ecbl3m5ep4rszpqs@intel.com>
- <20210211095548.00000da7@Huawei.com>
- <20210211155529.agul56lcb33cta5s@intel.com>
- <20210212132706.00006edc@Huawei.com>
+	by ml01.01.org (Postfix) with ESMTPS id 84816100EA2D8
+	for <linux-nvdimm@lists.01.org>; Fri, 12 Feb 2021 09:11:01 -0800 (PST)
+Received: from ptx.hi.pengutronix.de ([2001:67c:670:100:1d::c0])
+	by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1lAbxy-0005xW-5E; Fri, 12 Feb 2021 18:10:50 +0100
+Received: from ukl by ptx.hi.pengutronix.de with local (Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1lAbxx-0000X0-Qc; Fri, 12 Feb 2021 18:10:49 +0100
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>
+Subject: [PATCH 2/2] libnvdimm: Make remove callback return void
+Date: Fri, 12 Feb 2021 18:10:43 +0100
+Message-Id: <20210212171043.2136580-2-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20210212171043.2136580-1-u.kleine-koenig@pengutronix.de>
+References: <20210212171043.2136580-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20210212132706.00006edc@Huawei.com>
-Message-ID-Hash: T4GWC5C4WTRV4YFDMGIMVW47DAIA26ML
-X-Message-ID-Hash: T4GWC5C4WTRV4YFDMGIMVW47DAIA26ML
-X-MailFrom: ben.widawsky@intel.com
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c0
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: linux-nvdimm@lists.01.org
+Message-ID-Hash: YREIVUPE6TZENI2GMFLPM72TY3KCNEZM
+X-Message-ID-Hash: YREIVUPE6TZENI2GMFLPM72TY3KCNEZM
+X-MailFrom: ukl@pengutronix.de
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, David Hildenbrand <david@redhat.com>, David Rientjes <rientjes@google.com>, Jon Masters <jcm@jonmasters.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pengutronix.de, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/T4GWC5C4WTRV4YFDMGIMVW47DAIA26ML/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YREIVUPE6TZENI2GMFLPM72TY3KCNEZM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On 21-02-12 13:27:06, Jonathan Cameron wrote:
-> On Thu, 11 Feb 2021 07:55:29 -0800
-> Ben Widawsky <ben.widawsky@intel.com> wrote:
-> 
-> > On 21-02-11 09:55:48, Jonathan Cameron wrote:
-> > > On Wed, 10 Feb 2021 10:16:05 -0800
-> > > Ben Widawsky <ben.widawsky@intel.com> wrote:
-> > >   
-> > > > On 21-02-10 08:55:57, Ben Widawsky wrote:  
-> > > > > On 21-02-10 15:07:59, Jonathan Cameron wrote:    
-> > > > > > On Wed, 10 Feb 2021 13:32:52 +0000
-> > > > > > Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
-> > > > > >     
-> > > > > > > On Tue, 9 Feb 2021 16:02:53 -0800
-> > > > > > > Ben Widawsky <ben.widawsky@intel.com> wrote:
-> > > > > > >     
-> > > > > > > > Provide enough functionality to utilize the mailbox of a memory device.
-> > > > > > > > The mailbox is used to interact with the firmware running on the memory
-> > > > > > > > device. The flow is proven with one implemented command, "identify".
-> > > > > > > > Because the class code has already told the driver this is a memory
-> > > > > > > > device and the identify command is mandatory.
-> > > > > > > > 
-> > > > > > > > CXL devices contain an array of capabilities that describe the
-> > > > > > > > interactions software can have with the device or firmware running on
-> > > > > > > > the device. A CXL compliant device must implement the device status and
-> > > > > > > > the mailbox capability. Additionally, a CXL compliant memory device must
-> > > > > > > > implement the memory device capability. Each of the capabilities can
-> > > > > > > > [will] provide an offset within the MMIO region for interacting with the
-> > > > > > > > CXL device.
-> > > > > > > > 
-> > > > > > > > The capabilities tell the driver how to find and map the register space
-> > > > > > > > for CXL Memory Devices. The registers are required to utilize the CXL
-> > > > > > > > spec defined mailbox interface. The spec outlines two mailboxes, primary
-> > > > > > > > and secondary. The secondary mailbox is earmarked for system firmware,
-> > > > > > > > and not handled in this driver.
-> > > > > > > > 
-> > > > > > > > Primary mailboxes are capable of generating an interrupt when submitting
-> > > > > > > > a background command. That implementation is saved for a later time.
-> > > > > > > > 
-> > > > > > > > Link: https://www.computeexpresslink.org/download-the-specification
-> > > > > > > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> > > > > > > > Reviewed-by: Dan Williams <dan.j.williams@intel.com>      
-> > > > > > > 
-> > > > > > > Hi Ben,
-> > > > > > > 
-> > > > > > >     
-> > > > > > > > +/**
-> > > > > > > > + * cxl_mem_mbox_send_cmd() - Send a mailbox command to a memory device.
-> > > > > > > > + * @cxlm: The CXL memory device to communicate with.
-> > > > > > > > + * @mbox_cmd: Command to send to the memory device.
-> > > > > > > > + *
-> > > > > > > > + * Context: Any context. Expects mbox_lock to be held.
-> > > > > > > > + * Return: -ETIMEDOUT if timeout occurred waiting for completion. 0 on success.
-> > > > > > > > + *         Caller should check the return code in @mbox_cmd to make sure it
-> > > > > > > > + *         succeeded.      
-> > > > > > > 
-> > > > > > > cxl_xfer_log() doesn't check mbox_cmd->return_code and for my test it currently
-> > > > > > > enters an infinite loop as a result.    
-> > > > > 
-> > > > > I meant to fix that.
-> > > > >     
-> > > > > > > 
-> > > > > > > I haven't checked other paths, but to my mind it is not a good idea to require
-> > > > > > > two levels of error checking - the example here proves how easy it is to forget
-> > > > > > > one.    
-> > > > > 
-> > > > > Demonstrably, you're correct. I think it would be good to have a kernel only
-> > > > > mbox command that does the error checking though. Let me type something up and
-> > > > > see how it looks.    
-> > > > 
-> > > > Hi Jonathan. What do you think of this? The bit I'm on the fence about is if I
-> > > > should validate output size too. I like the simplicity as it is, but it requires
-> > > > every caller to possibly check output size, which is kind of the same problem
-> > > > you're originally pointing out.  
-> > > 
-> > > The simplicity is good and this is pretty much what I expected you would end up with
-> > > (always reassuring)
-> > > 
-> > > For the output, perhaps just add another parameter to the wrapper for minimum
-> > > output length expected?
-> > > 
-> > > Now you mention the length question.  It does rather feel like there should also
-> > > be some protection on memcpy_fromio() copying too much data if the hardware
-> > > happens to return an unexpectedly long length.  Should never happen, but
-> > > the hardening is worth adding anyway given it's easy to do.
-> > > 
-> > > Jonathan  
-> > 
-> > Some background because I forget what I've said previously... It's unfortunate
-> > that the spec maxes at 1M mailbox size but has enough bits in the length field
-> > to support 2M-1. I've made some requests to have this fixed, so maybe 3.0 won't
-> > be awkward like this.
-> 
-> Agreed spec should be tighter here, but I'd argue over 1M indicates buggy hardware.
-> 
-> > 
-> > I think it makes sense to do as you suggested. One question though, do you have
-> > an opinion on we return to the caller as the output payload size, do we cap it
-> > at 1M also, or are we honest?
-> > 
-> > -       if (out_len && mbox_cmd->payload_out)
-> > -               memcpy_fromio(mbox_cmd->payload_out, payload, out_len);
-> > +       if (out_len && mbox_cmd->payload_out) {
-> > +               size_t n = min_t(size_t, cxlm->payload_size, out_len);
-> > +               memcpy_fromio(mbox_cmd->payload_out, payload, n);
-> > +       }
-> 
-> Ah, I read emails in wrong order.  What you have is what I expected and got
-> confused about in your other email.
-> 
-> > 
-> > So...
-> > mbox_cmd->size_out = out_len;
-> > mbox_cmd->size_out = n;
-> 
-> Good question.  My gut says the second one.
-> Maybe it's worth a warning print to let us know something
-> unexpected happened.
-> 
-
-I also prefer 'n', It's unfortunate though if userspace hits this condition, it
-would have to scrape kernel logs to find out. Perhaps though userspace wouldn't
-ever really care.
-
-> > 
-> > 
-> > > 
-> > >   
-> > > > 
-> > > > diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-> > > > index 55c5f5a6023f..ad7b2077ab28 100644
-> > > > --- a/drivers/cxl/mem.c
-> > > > +++ b/drivers/cxl/mem.c
-> > > > @@ -284,7 +284,7 @@ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
-> > > >  }
-> > > >  
-> > > >  /**
-> > > > - * cxl_mem_mbox_send_cmd() - Send a mailbox command to a memory device.
-> > > > + * __cxl_mem_mbox_send_cmd() - Execute a mailbox command
-> > > >   * @cxlm: The CXL memory device to communicate with.
-> > > >   * @mbox_cmd: Command to send to the memory device.
-> > > >   *
-> > > > @@ -296,7 +296,8 @@ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
-> > > >   * This is a generic form of the CXL mailbox send command, thus the only I/O
-> > > >   * operations used are cxl_read_mbox_reg(). Memory devices, and perhaps other
-> > > >   * types of CXL devices may have further information available upon error
-> > > > - * conditions.
-> > > > + * conditions. Driver facilities wishing to send mailbox commands should use the
-> > > > + * wrapper command.
-> > > >   *
-> > > >   * The CXL spec allows for up to two mailboxes. The intention is for the primary
-> > > >   * mailbox to be OS controlled and the secondary mailbox to be used by system
-> > > > @@ -304,8 +305,8 @@ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
-> > > >   * not need to coordinate with each other. The driver only uses the primary
-> > > >   * mailbox.
-> > > >   */
-> > > > -static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
-> > > > -				 struct mbox_cmd *mbox_cmd)
-> > > > +static int __cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
-> > > > +				   struct mbox_cmd *mbox_cmd)
-> > > >  {
-> > > >  	void __iomem *payload = cxlm->mbox_regs + CXLDEV_MBOX_PAYLOAD_OFFSET;
-> > > >  	u64 cmd_reg, status_reg;
-> > > > @@ -469,6 +470,54 @@ static void cxl_mem_mbox_put(struct cxl_mem *cxlm)
-> > > >  	mutex_unlock(&cxlm->mbox_mutex);
-> > > >  }
-> > > >  
-> > > > +/**
-> > > > + * cxl_mem_mbox_send_cmd() - Send a mailbox command to a memory device.
-> > > > + * @cxlm: The CXL memory device to communicate with.
-> > > > + * @opcode: Opcode for the mailbox command.
-> > > > + * @in: The input payload for the mailbox command.
-> > > > + * @in_size: The length of the input payload
-> > > > + * @out: Caller allocated buffer for the output.
-> > > > + *
-> > > > + * Context: Any context. Will acquire and release mbox_mutex.
-> > > > + * Return:
-> > > > + *  * %>=0	- Number of bytes returned in @out.
-> > > > + *  * %-EBUSY	- Couldn't acquire exclusive mailbox access.
-> > > > + *  * %-EFAULT	- Hardware error occurred.
-> > > > + *  * %-ENXIO	- Command completed, but device reported an error.
-> > > > + *
-> > > > + * Mailbox commands may execute successfully yet the device itself reported an
-> > > > + * error. While this distinction can be useful for commands from userspace, the
-> > > > + * kernel will often only care when both are successful.
-> > > > + *
-> > > > + * See __cxl_mem_mbox_send_cmd()
-> > > > + */
-> > > > +static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, u16 opcode, u8 *in,
-> > > > +				 size_t in_size, u8 *out)
-> > > > +{
-> > > > +	struct mbox_cmd mbox_cmd = {
-> > > > +		.opcode = opcode,
-> > > > +		.payload_in = in,
-> > > > +		.size_in = in_size,
-> > > > +		.payload_out = out,
-> > > > +	};
-> > > > +	int rc;
-> > > > +
-> > > > +	rc = cxl_mem_mbox_get(cxlm);
-> > > > +	if (rc)
-> > > > +		return rc;
-> > > > +
-> > > > +	rc = __cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
-> > > > +	cxl_mem_mbox_put(cxlm);
-> > > > +	if (rc)
-> > > > +		return rc;
-> > > > +
-> > > > +	/* TODO: Map return code to proper kernel style errno */
-> > > > +	if (mbox_cmd.return_code != CXL_MBOX_SUCCESS)
-> > > > +		return -ENXIO;
-> > > > +
-> > > > +	return mbox_cmd.size_out;
-> > > > +}
-> > > > +
-> > > >  /**
-> > > >   * handle_mailbox_cmd_from_user() - Dispatch a mailbox command.
-> > > >   * @cxlmd: The CXL memory device to communicate with.
-> > > > @@ -1380,33 +1429,18 @@ static int cxl_mem_identify(struct cxl_mem *cxlm)
-> > > >  		u8 poison_caps;
-> > > >  		u8 qos_telemetry_caps;
-> > > >  	} __packed id;
-> > > > -	struct mbox_cmd mbox_cmd = {
-> > > > -		.opcode = CXL_MBOX_OP_IDENTIFY,
-> > > > -		.payload_out = &id,
-> > > > -		.size_in = 0,
-> > > > -	};
-> > > >  	int rc;
-> > > >  
-> > > > -	/* Retrieve initial device memory map */
-> > > > -	rc = cxl_mem_mbox_get(cxlm);
-> > > > -	if (rc)
-> > > > -		return rc;
-> > > > -
-> > > > -	rc = cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
-> > > > -	cxl_mem_mbox_put(cxlm);
-> > > > -	if (rc)
-> > > > +	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_IDENTIFY, NULL, 0,
-> > > > +				   (u8 *)&id);
-> > > > +	if (rc < 0)
-> > > >  		return rc;
-> > > >  
-> > > > -	/* TODO: Handle retry or reset responses from firmware. */
-> > > > -	if (mbox_cmd.return_code != CXL_MBOX_SUCCESS) {
-> > > > -		dev_err(&cxlm->pdev->dev, "Mailbox command failed (%d)\n",
-> > > > -			mbox_cmd.return_code);
-> > > > +	if (rc < sizeof(id)) {
-> > > > +		dev_err(&cxlm->pdev->dev, "Short identify data\n",
-> > > >  		return -ENXIO;
-> > > >  	}
-> > > >  
-> > > > -	if (mbox_cmd.size_out != sizeof(id))
-> > > > -		return -ENXIO;
-> > > > -
-> > > >  	/*
-> > > >  	 * TODO: enumerate DPA map, as 'ram' and 'pmem' do not alias.
-> > > >  	 * For now, only the capacity is exported in sysfs
-> > > > 
-> > > > 
-> > > > [snip]
-> > > >   
-> > >   
-> 
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+QWxsIGRyaXZlcnMgcmV0dXJuIDAgaW4gdGhlaXIgcmVtb3ZlIGNhbGxiYWNrIGFuZCB0aGUgZHJp
+dmVyIGNvcmUgaWdub3Jlcw0KdGhlIHJldHVybiB2YWx1ZSBvZiBudmRpbW1fYnVzX3JlbW92ZSgp
+IGFueWhvdy4gU28gc2ltcGxpZnkgYnkgY2hhbmdpbmcNCnRoZSBkcml2ZXIgcmVtb3ZlIGNhbGxi
+YWNrIHRvIHJldHVybiB2b2lkIGFuZCByZXR1cm4gMCB1bmNvbmRpdGlvbmFsbHkNCnRvIHRoZSB1
+cHBlciBsYXllci4NCg0KU2lnbmVkLW9mZi1ieTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5l
+LWtvZW5pZ0BwZW5ndXRyb25peC5kZT4NCi0tLQ0KIGRyaXZlcnMvZGF4L3BtZW0vY29tcGF0LmMg
+fCAgMyArLS0NCiBkcml2ZXJzL252ZGltbS9ibGsuYyAgICAgIHwgIDMgKy0tDQogZHJpdmVycy9u
+dmRpbW0vYnVzLmMgICAgICB8IDEzICsrKysrLS0tLS0tLS0NCiBkcml2ZXJzL252ZGltbS9kaW1t
+LmMgICAgIHwgIDQgKy0tLQ0KIGRyaXZlcnMvbnZkaW1tL3BtZW0uYyAgICAgfCAgNCArLS0tDQog
+ZHJpdmVycy9udmRpbW0vcmVnaW9uLmMgICB8ICA0ICstLS0NCiBpbmNsdWRlL2xpbnV4L25kLmgg
+ICAgICAgIHwgIDIgKy0NCiA3IGZpbGVzIGNoYW5nZWQsIDExIGluc2VydGlvbnMoKyksIDIyIGRl
+bGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kYXgvcG1lbS9jb21wYXQuYyBiL2Ry
+aXZlcnMvZGF4L3BtZW0vY29tcGF0LmMNCmluZGV4IDg2M2MxMTRmZDg4Yy4uZDgxZGMzNWZkNjVk
+IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9kYXgvcG1lbS9jb21wYXQuYw0KKysrIGIvZHJpdmVycy9k
+YXgvcG1lbS9jb21wYXQuYw0KQEAgLTQxLDEwICs0MSw5IEBAIHN0YXRpYyBpbnQgZGF4X3BtZW1f
+Y29tcGF0X3JlbGVhc2Uoc3RydWN0IGRldmljZSAqZGV2LCB2b2lkICpkYXRhKQ0KIAlyZXR1cm4g
+MDsNCiB9DQogDQotc3RhdGljIGludCBkYXhfcG1lbV9jb21wYXRfcmVtb3ZlKHN0cnVjdCBkZXZp
+Y2UgKmRldikNCitzdGF0aWMgdm9pZCBkYXhfcG1lbV9jb21wYXRfcmVtb3ZlKHN0cnVjdCBkZXZp
+Y2UgKmRldikNCiB7DQogCWRldmljZV9mb3JfZWFjaF9jaGlsZChkZXYsIE5VTEwsIGRheF9wbWVt
+X2NvbXBhdF9yZWxlYXNlKTsNCi0JcmV0dXJuIDA7DQogfQ0KIA0KIHN0YXRpYyBzdHJ1Y3QgbmRf
+ZGV2aWNlX2RyaXZlciBkYXhfcG1lbV9jb21wYXRfZHJpdmVyID0gew0KZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvbnZkaW1tL2Jsay5jIGIvZHJpdmVycy9udmRpbW0vYmxrLmMNCmluZGV4IDIyZTU2MTdi
+MmNlYS4uOGE1MzcyOGUxM2U2IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vYmxrLmMNCisr
+KyBiL2RyaXZlcnMvbnZkaW1tL2Jsay5jDQpAQCAtMzEwLDExICszMTAsMTAgQEAgc3RhdGljIGlu
+dCBuZF9ibGtfcHJvYmUoc3RydWN0IGRldmljZSAqZGV2KQ0KIAkJcmV0dXJuIG5zYmxrX2F0dGFj
+aF9kaXNrKG5zYmxrKTsNCiB9DQogDQotc3RhdGljIGludCBuZF9ibGtfcmVtb3ZlKHN0cnVjdCBk
+ZXZpY2UgKmRldikNCitzdGF0aWMgdm9pZCBuZF9ibGtfcmVtb3ZlKHN0cnVjdCBkZXZpY2UgKmRl
+dikNCiB7DQogCWlmIChpc19uZF9idHQoZGV2KSkNCiAJCW52ZGltbV9uYW1lc3BhY2VfZGV0YWNo
+X2J0dCh0b19uZF9idHQoZGV2KSk7DQotCXJldHVybiAwOw0KIH0NCiANCiBzdGF0aWMgc3RydWN0
+IG5kX2RldmljZV9kcml2ZXIgbmRfYmxrX2RyaXZlciA9IHsNCmRpZmYgLS1naXQgYS9kcml2ZXJz
+L252ZGltbS9idXMuYyBiL2RyaXZlcnMvbnZkaW1tL2J1cy5jDQppbmRleCAyMzA0YzYxODM4MjIu
+LjQ4ZjA5ODVjYThhMCAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvbnZkaW1tL2J1cy5jDQorKysgYi9k
+cml2ZXJzL252ZGltbS9idXMuYw0KQEAgLTExMywxOCArMTEzLDE3IEBAIHN0YXRpYyBpbnQgbnZk
+aW1tX2J1c19yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQ0KIAlzdHJ1Y3QgbmRfZGV2aWNlX2Ry
+aXZlciAqbmRfZHJ2ID0gdG9fbmRfZGV2aWNlX2RyaXZlcihkZXYtPmRyaXZlcik7DQogCXN0cnVj
+dCBtb2R1bGUgKnByb3ZpZGVyID0gdG9fYnVzX3Byb3ZpZGVyKGRldik7DQogCXN0cnVjdCBudmRp
+bW1fYnVzICpudmRpbW1fYnVzID0gd2Fsa190b19udmRpbW1fYnVzKGRldik7DQotCWludCByYyA9
+IDA7DQogDQogCWlmIChuZF9kcnYtPnJlbW92ZSkgew0KIAkJZGVidWdfbnZkaW1tX2xvY2soZGV2
+KTsNCi0JCXJjID0gbmRfZHJ2LT5yZW1vdmUoZGV2KTsNCisJCW5kX2Rydi0+cmVtb3ZlKGRldik7
+DQogCQlkZWJ1Z19udmRpbW1fdW5sb2NrKGRldik7DQogCX0NCiANCi0JZGV2X2RiZygmbnZkaW1t
+X2J1cy0+ZGV2LCAiJXMucmVtb3ZlKCVzKSA9ICVkXG4iLCBkZXYtPmRyaXZlci0+bmFtZSwNCi0J
+CQlkZXZfbmFtZShkZXYpLCByYyk7DQorCWRldl9kYmcoJm52ZGltbV9idXMtPmRldiwgIiVzLnJl
+bW92ZSglcylcbiIsIGRldi0+ZHJpdmVyLT5uYW1lLA0KKwkJCWRldl9uYW1lKGRldikpOw0KIAlt
+b2R1bGVfcHV0KHByb3ZpZGVyKTsNCi0JcmV0dXJuIHJjOw0KKwlyZXR1cm4gMDsNCiB9DQogDQog
+c3RhdGljIHZvaWQgbnZkaW1tX2J1c19zaHV0ZG93bihzdHJ1Y3QgZGV2aWNlICpkZXYpDQpAQCAt
+NDI3LDcgKzQyNiw3IEBAIHN0YXRpYyB2b2lkIGZyZWVfYmFkcmFuZ2VfbGlzdChzdHJ1Y3QgbGlz
+dF9oZWFkICpiYWRyYW5nZV9saXN0KQ0KIAlsaXN0X2RlbF9pbml0KGJhZHJhbmdlX2xpc3QpOw0K
+IH0NCiANCi1zdGF0aWMgaW50IG5kX2J1c19yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQ0KK3N0
+YXRpYyB2b2lkIG5kX2J1c19yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQ0KIHsNCiAJc3RydWN0
+IG52ZGltbV9idXMgKm52ZGltbV9idXMgPSB0b19udmRpbW1fYnVzKGRldik7DQogDQpAQCAtNDQ2
+LDggKzQ0NSw2IEBAIHN0YXRpYyBpbnQgbmRfYnVzX3JlbW92ZShzdHJ1Y3QgZGV2aWNlICpkZXYp
+DQogCXNwaW5fdW5sb2NrKCZudmRpbW1fYnVzLT5iYWRyYW5nZS5sb2NrKTsNCiANCiAJbnZkaW1t
+X2J1c19kZXN0cm95X25kY3RsKG52ZGltbV9idXMpOw0KLQ0KLQlyZXR1cm4gMDsNCiB9DQogDQog
+c3RhdGljIGludCBuZF9idXNfcHJvYmUoc3RydWN0IGRldmljZSAqZGV2KQ0KZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvbnZkaW1tL2RpbW0uYyBiL2RyaXZlcnMvbnZkaW1tL2RpbW0uYw0KaW5kZXggOTRi
+ZTNhZTFkMjlmLi45MWQ5MTYzZWUzMDMgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL252ZGltbS9kaW1t
+LmMNCisrKyBiL2RyaXZlcnMvbnZkaW1tL2RpbW0uYw0KQEAgLTExMyw3ICsxMTMsNyBAQCBzdGF0
+aWMgaW50IG52ZGltbV9wcm9iZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQogCXJldHVybiByYzsNCiB9
+DQogDQotc3RhdGljIGludCBudmRpbW1fcmVtb3ZlKHN0cnVjdCBkZXZpY2UgKmRldikNCitzdGF0
+aWMgdm9pZCBudmRpbW1fcmVtb3ZlKHN0cnVjdCBkZXZpY2UgKmRldikNCiB7DQogCXN0cnVjdCBu
+dmRpbW1fZHJ2ZGF0YSAqbmRkID0gZGV2X2dldF9kcnZkYXRhKGRldik7DQogDQpAQCAtMTIxLDgg
+KzEyMSw2IEBAIHN0YXRpYyBpbnQgbnZkaW1tX3JlbW92ZShzdHJ1Y3QgZGV2aWNlICpkZXYpDQog
+CWRldl9zZXRfZHJ2ZGF0YShkZXYsIE5VTEwpOw0KIAludmRpbW1fYnVzX3VubG9jayhkZXYpOw0K
+IAlwdXRfbmRkKG5kZCk7DQotDQotCXJldHVybiAwOw0KIH0NCiANCiBzdGF0aWMgc3RydWN0IG5k
+X2RldmljZV9kcml2ZXIgbnZkaW1tX2RyaXZlciA9IHsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL252
+ZGltbS9wbWVtLmMgYi9kcml2ZXJzL252ZGltbS9wbWVtLmMNCmluZGV4IDg3NTA3NmIwZWE2Yy4u
+MDYyZjBmMjJiYWM5IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jDQorKysgYi9k
+cml2ZXJzL252ZGltbS9wbWVtLmMNCkBAIC01NjQsNyArNTY0LDcgQEAgc3RhdGljIGludCBuZF9w
+bWVtX3Byb2JlKHN0cnVjdCBkZXZpY2UgKmRldikNCiAJcmV0dXJuIHBtZW1fYXR0YWNoX2Rpc2so
+ZGV2LCBuZG5zKTsNCiB9DQogDQotc3RhdGljIGludCBuZF9wbWVtX3JlbW92ZShzdHJ1Y3QgZGV2
+aWNlICpkZXYpDQorc3RhdGljIHZvaWQgbmRfcG1lbV9yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2
+KQ0KIHsNCiAJc3RydWN0IHBtZW1fZGV2aWNlICpwbWVtID0gZGV2X2dldF9kcnZkYXRhKGRldik7
+DQogDQpAQCAtNTc5LDggKzU3OSw2IEBAIHN0YXRpYyBpbnQgbmRfcG1lbV9yZW1vdmUoc3RydWN0
+IGRldmljZSAqZGV2KQ0KIAkJcG1lbS0+YmJfc3RhdGUgPSBOVUxMOw0KIAl9DQogCW52ZGltbV9m
+bHVzaCh0b19uZF9yZWdpb24oZGV2LT5wYXJlbnQpLCBOVUxMKTsNCi0NCi0JcmV0dXJuIDA7DQog
+fQ0KIA0KIHN0YXRpYyB2b2lkIG5kX3BtZW1fc2h1dGRvd24oc3RydWN0IGRldmljZSAqZGV2KQ0K
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbi5jIGIvZHJpdmVycy9udmRpbW0vcmVn
+aW9uLmMNCmluZGV4IGJmY2U4N2VkNzJhYi4uZTBjMzQxMjBkZjM3IDEwMDY0NA0KLS0tIGEvZHJp
+dmVycy9udmRpbW0vcmVnaW9uLmMNCisrKyBiL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbi5jDQpAQCAt
+ODcsNyArODcsNyBAQCBzdGF0aWMgaW50IGNoaWxkX3VucmVnaXN0ZXIoc3RydWN0IGRldmljZSAq
+ZGV2LCB2b2lkICpkYXRhKQ0KIAlyZXR1cm4gMDsNCiB9DQogDQotc3RhdGljIGludCBuZF9yZWdp
+b25fcmVtb3ZlKHN0cnVjdCBkZXZpY2UgKmRldikNCitzdGF0aWMgdm9pZCBuZF9yZWdpb25fcmVt
+b3ZlKHN0cnVjdCBkZXZpY2UgKmRldikNCiB7DQogCXN0cnVjdCBuZF9yZWdpb24gKm5kX3JlZ2lv
+biA9IHRvX25kX3JlZ2lvbihkZXYpOw0KIA0KQEAgLTEwOCw4ICsxMDgsNiBAQCBzdGF0aWMgaW50
+IG5kX3JlZ2lvbl9yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQ0KIAkgKi8NCiAJc3lzZnNfcHV0
+KG5kX3JlZ2lvbi0+YmJfc3RhdGUpOw0KIAluZF9yZWdpb24tPmJiX3N0YXRlID0gTlVMTDsNCi0N
+Ci0JcmV0dXJuIDA7DQogfQ0KIA0KIHN0YXRpYyBpbnQgY2hpbGRfbm90aWZ5KHN0cnVjdCBkZXZp
+Y2UgKmRldiwgdm9pZCAqZGF0YSkNCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L25kLmggYi9p
+bmNsdWRlL2xpbnV4L25kLmgNCmluZGV4IDU1YzczNTk5NzgwNS4uY2VjNTI2YzgwNDNkIDEwMDY0
+NA0KLS0tIGEvaW5jbHVkZS9saW51eC9uZC5oDQorKysgYi9pbmNsdWRlL2xpbnV4L25kLmgNCkBA
+IC0yNiw3ICsyNiw3IEBAIHN0cnVjdCBuZF9kZXZpY2VfZHJpdmVyIHsNCiAJc3RydWN0IGRldmlj
+ZV9kcml2ZXIgZHJ2Ow0KIAl1bnNpZ25lZCBsb25nIHR5cGU7DQogCWludCAoKnByb2JlKShzdHJ1
+Y3QgZGV2aWNlICpkZXYpOw0KLQlpbnQgKCpyZW1vdmUpKHN0cnVjdCBkZXZpY2UgKmRldik7DQor
+CXZvaWQgKCpyZW1vdmUpKHN0cnVjdCBkZXZpY2UgKmRldik7DQogCXZvaWQgKCpzaHV0ZG93biko
+c3RydWN0IGRldmljZSAqZGV2KTsNCiAJdm9pZCAoKm5vdGlmeSkoc3RydWN0IGRldmljZSAqZGV2
+LCBlbnVtIG52ZGltbV9ldmVudCBldmVudCk7DQogfTsNCi0tIA0KMi4yOS4yDQpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGlu
+ZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBh
+biBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVhdmVAbGlzdHMuMDEub3JnCg==
