@@ -2,85 +2,77 @@ Return-Path: <SRS0=eyIe=HR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.6 required=3.0 tests=BAYES_40,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC6C4C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 16:30:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAE29C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 18:14:58 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 347A264DFF
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 16:30:20 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 347A264DFF
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=roeck-us.net
+	by mail.kernel.org (Postfix) with ESMTPS id 3796864DFF
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 18:14:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3796864DFF
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E69DF100EB325;
-	Mon, 15 Feb 2021 08:30:19 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::c33; helo=mail-oo1-xc33.google.com; envelope-from=groeck7@gmail.com; receiver=<UNKNOWN> 
-Received: from mail-oo1-xc33.google.com (mail-oo1-xc33.google.com [IPv6:2607:f8b0:4864:20::c33])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id D5022100EBB72;
+	Mon, 15 Feb 2021 10:14:57 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=jmoyer@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 021A7100EB82A
-	for <linux-nvdimm@lists.01.org>; Mon, 15 Feb 2021 08:30:16 -0800 (PST)
-Received: by mail-oo1-xc33.google.com with SMTP id h38so1645234ooi.8
-        for <linux-nvdimm@lists.01.org>; Mon, 15 Feb 2021 08:30:16 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=sender:date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=xZjHpynkO+jEqpoKJ7WUe4G5S6bqtxbRdwfSHl/HMrc=;
-        b=jFo/wSwluSwMjlgb2z0JQRyhDpb3qIx8XNZ8qwfCj6NbhGG1ZoZO/yFSb3g3yGhis0
-         5AReuZqH6EfN/tfoCx32nOFo7Ig9SCuPm2MtrLbfPjvh2KMpDLuajyIvdOWnVVfkhXrY
-         XjwbovzeG4Mv96pwlYJ5AbIcAByssG1DRoO3CXM3zhprfBHdaOfBqu+hKinQAT7TxfBA
-         bkhJNH6aEVGgs2F9y8QtbTnYy0QLgPY5rrAdzUTpbcTNvRpXCdiuwY7njJfwsAOAfSg9
-         OoIjvVGnuZM5vxGZoIeW4W9rSz4TqN8/0nFKFCoHU8i94rRrFKn5I7f2X1bC5CDLbgqM
-         go6g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
-         :references:mime-version:content-disposition:in-reply-to:user-agent;
-        bh=xZjHpynkO+jEqpoKJ7WUe4G5S6bqtxbRdwfSHl/HMrc=;
-        b=nEQhXDEDMJg/FkZ8A3K0hXQFp9UzipKTjaOLzpEZnwI/uSvR20DRermEcJFbFXmJgX
-         59v50tGtNxGNvfMuqMW5fDbjcTMWjsvC/bZjZ+1Bl5SoPQPBImmGE5/C9t/E7XaFdGcT
-         izf3idoMxm1Vw+aMpJL4zEMvkW9e1zau1cxy2vH1FJB1FDjud+/D9OHi3zVyMW7iKqJW
-         qeaCifwDJfNKDITKpKSMJf4tzTFlYWIuBKA3Dg4d08xXcfLC1t1OqJ+zMbcTwCMh39uV
-         ZrQm76BwiV9jg2wG8j+7wT3/yioyU4mu4zWWePUZUuMkGCfiKPViyri7ZllGw2V1Mw+N
-         H3Ng==
-X-Gm-Message-State: AOAM533fyoxNflmSutXUNcaRAeNBxnbDP2vgyQfglLPeorVo4A/BD2eL
-	PG7r41s68fUB20OB2JG4rZA=
-X-Google-Smtp-Source: ABdhPJxFxNxXETq3ks4F+XSxZSd8J7B6SpNWE+i6QDVDnydfjooydiKQhpY7tRCSKEA/Q+tkXCXvtg==
-X-Received: by 2002:a4a:a105:: with SMTP id i5mr11372483ool.54.1613406615929;
-        Mon, 15 Feb 2021 08:30:15 -0800 (PST)
-Received: from localhost ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
-        by smtp.gmail.com with ESMTPSA id f76sm2183491oig.52.2021.02.15.08.30.14
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 15 Feb 2021 08:30:15 -0800 (PST)
-Sender: Guenter Roeck <groeck7@gmail.com>
-Date: Mon, 15 Feb 2021 08:30:14 -0800
-From: Guenter Roeck <linux@roeck-us.net>
-To: Ben Widawsky <ben.widawsky@intel.com>
-Subject: Re: [PATCH v3 3/9] cxl/mem: Register CXL memX devices
-Message-ID: <20210215163014.GA116265@roeck-us.net>
-References: <20210212222541.2123505-1-ben.widawsky@intel.com>
- <20210212222541.2123505-4-ben.widawsky@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id B3275100EC1EE
+	for <linux-nvdimm@lists.01.org>; Mon, 15 Feb 2021 10:14:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1613412894;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=jdxZgnRtW/dPS1rQNcZoXborknSPSs2HnDCVjOoAe5A=;
+	b=geVY2GXz7CcX4+VVbuAWTLT/fpqgjUaoWuLBaNttkpJtUG+rteX7S2qolcLzC9/9ENBHTl
+	4JyDm893zMk9DyU5wrMbwBofLPW4ZGUw51QO0TTyYHYlV0CLpVYq1rq2HviJAj5afZ7u/m
+	7lPGpsEivJtmfZxljXml/ljMCPm545M=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-256-PHB8bNgONTeE-BMduNi7AA-1; Mon, 15 Feb 2021 13:14:51 -0500
+X-MC-Unique: PHB8bNgONTeE-BMduNi7AA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id EAC2B107ACF9;
+	Mon, 15 Feb 2021 18:14:49 +0000 (UTC)
+Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 53E0D2CD34;
+	Mon, 15 Feb 2021 18:14:49 +0000 (UTC)
+From: Jeff Moyer <jmoyer@redhat.com>
+To: Michal Suchanek <msuchanek@suse.de>
+Subject: Re: [PATCH ndctl] dimm: re-fix potential fd leakage in dimm_action()
+References: <20210106144343.22099-1-msuchanek@suse.de>
+X-PGP-KeyID: 1F78E1B4
+X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
+Date: Mon, 15 Feb 2021 13:15:28 -0500
+In-Reply-To: <20210106144343.22099-1-msuchanek@suse.de> (Michal Suchanek's
+	message of "Wed, 6 Jan 2021 15:43:43 +0100")
+Message-ID: <x49pn11ci4f.fsf@segfault.boston.devel.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20210212222541.2123505-4-ben.widawsky@intel.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-Message-ID-Hash: 4ZXUUIO36BYFXC63SFFU7K2GS2VSTEXL
-X-Message-ID-Hash: 4ZXUUIO36BYFXC63SFFU7K2GS2VSTEXL
-X-MailFrom: groeck7@gmail.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-cxl@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, David Hildenbrand <david@redhat.com>, David Rientjes <rientjes@google.com>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@Huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Authentication-Results: relay.mimecast.com;
+	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=jmoyer@redhat.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Message-ID-Hash: L7X3RO4NND4IN2YQGCGBDMZYRKNYAQWE
+X-Message-ID-Hash: L7X3RO4NND4IN2YQGCGBDMZYRKNYAQWE
+X-MailFrom: jmoyer@redhat.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org, Zhiqiang Liu <liuzhiqiang26@huawei.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4ZXUUIO36BYFXC63SFFU7K2GS2VSTEXL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/L7X3RO4NND4IN2YQGCGBDMZYRKNYAQWE/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -89,40 +81,46 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Fri, Feb 12, 2021 at 02:25:35PM -0800, Ben Widawsky wrote:
-> From: Dan Williams <dan.j.williams@intel.com>
-> 
-> Create the /sys/bus/cxl hierarchy to enumerate:
-> 
-> * Memory Devices (per-endpoint control devices)
-> 
-> * Memory Address Space Devices (platform address ranges with
->   interleaving, performance, and persistence attributes)
-> 
-> * Memory Regions (active provisioned memory from an address space device
->   that is in use as System RAM or delegated to libnvdimm as Persistent
->   Memory regions).
-> 
-> For now, only the per-endpoint control devices are registered on the
-> 'cxl' bus. However, going forward it will provide a mechanism to
-> coordinate cross-device interleave.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com> (v2)
+Michal Suchanek <msuchanek@suse.de> writes:
 
-arm:allmodconfig, i386:allyesconfig, mips:allmodconfig:
+> There are cases not covered by the original fix and cases added by the
+> latter patch.
+>
+> Also there is one case of usage added without returning from the
+> function.
+>
+> Fixes: ff434d87ccbd ("dimm: fix potential fd leakage in dimm_action()")
+> Fixes: 41a7e24af5db ("ndctl/dimm: Auto-arm firmware activation")
+>
+> Signed-off-by: Michal Suchanek <msuchanek@suse.de>
+> ---
+>  ndctl/dimm.c | 14 ++++++++++----
+>  1 file changed, 10 insertions(+), 4 deletions(-)
+>
+> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+> index 09ce49e1d2ca..1c177b5494ec 100644
+> --- a/ndctl/dimm.c
+> +++ b/ndctl/dimm.c
+> @@ -1333,12 +1333,15 @@ static int dimm_action(int argc, const char **argv, struct ndctl_ctx *ctx,
+>  	if (param.arm_set && param.disarm_set) {
+>  		fprintf(stderr, "set either --arm, or --disarm, not both\n");
+>  		usage_with_options(u, options);
+> +		rc = -EINVAL;
+> +		goto out_close_fout;
 
-drivers/cxl/mem.c:335:2: error: implicit declaration of function 'writeq'; did you mean 'writel'? [-Werror=implicit-function-declaration]
-  335 |  writeq(cmd_reg, cxlm->mbox_regs + CXLDEV_MBOX_CMD_OFFSET);
+usage_with_options calls exit():
 
-In file included from <command-line>:
-drivers/cxl/mem.c: In function '__cxl_mem_mbox_send_cmd':
-include/linux/compiler_types.h:320:38: error: call to '__compiletime_assert_266' declared with attribute error: FIELD_GET: mask is zero
+void usage_with_options(const char * const *usagestr,
+                        const struct option *opts)
+{
+        usage_with_options_internal(usagestr, opts, 0);
+        exit(129);
+}
 
-and many similar errors.
+So I don't think this patch is necessary.
 
-Guenter
+Cheers,
+Jeff
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
