@@ -2,109 +2,120 @@ Return-Path: <SRS0=eyIe=HR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA1C9C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 09:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FD26C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 15:04:13 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 413CA64E51
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 09:13:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 413CA64E51
-Authentication-Results: mail.kernel.org; dmarc=fail (p=quarantine dis=none) header.from=suse.com
+	by mail.kernel.org (Postfix) with ESMTPS id 2325F64D9F
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 15 Feb 2021 15:04:13 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2325F64D9F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=redhat.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9AE02100EB84B;
-	Mon, 15 Feb 2021 01:13:56 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=mhocko@suse.com; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id BA16A100EB321;
+	Mon, 15 Feb 2021 07:04:12 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=63.128.21.124; helo=us-smtp-delivery-124.mimecast.com; envelope-from=mpatocka@redhat.com; receiver=<UNKNOWN> 
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [63.128.21.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BCFC6100EB847
-	for <linux-nvdimm@lists.01.org>; Mon, 15 Feb 2021 01:13:53 -0800 (PST)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-	t=1613380431; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=miCNDkPWZZBRVJ8Jtr1LFzD24yWA9N0KNTV3BkO+MBs=;
-	b=TETHPiEq8kl7uQEKm1Aff4L3NsQE0DM02/lfPkpKudaCI6/5lNvCven/uHuRT24qzIXWlb
-	R5BxAqdLhSywOBM2nG5lWN1rFZRScNEvDlYO6zf3OlgEc7VuRTl3HqG4uIymDgc/8zHABu
-	C6iAKZCoFVJI6hxssRHEbP17I8dvFo0=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 9278BAD19;
-	Mon, 15 Feb 2021 09:13:51 +0000 (UTC)
-Date: Mon, 15 Feb 2021 10:13:50 +0100
-From: Michal Hocko <mhocko@suse.com>
-To: James Bottomley <jejb@linux.ibm.com>
-Subject: Re: [PATCH v17 07/10] mm: introduce memfd_secret system call to
- create "secret" memory areas
-Message-ID: <YCo7TqUnBdgJGkwN@dhcp22.suse.cz>
-References: <20210214091954.GM242749@kernel.org>
- <052DACE9-986B-424C-AF8E-D6A4277DE635@redhat.com>
- <244f86cba227fa49ca30cd595c4e5538fe2f7c2b.camel@linux.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 22882100EB85F
+	for <linux-nvdimm@lists.01.org>; Mon, 15 Feb 2021 07:04:09 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1613401449;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+	bh=v6KSsVad5fz+13MYpeONrGVE/Pn0gqQPvShBbeX2sbc=;
+	b=XxwBwQc8pJddrVYT0eIsnNXWaVhT3+TWQuq+Y5encdSht6wYxMNpzlD2xuI6hDf/WWWpsr
+	7v7yt8EOBDDa+CH3cLf9mQowTCg4x3yjMgZLloz+i6nxAf25wTw6Y4VPgShKQlYkMTDMFr
+	oTDsh+D/k1Oct4rFpdcTj+N93eJAFig=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-580-Shh2TTTbOAqew6VmOkYRtw-1; Mon, 15 Feb 2021 10:04:05 -0500
+X-MC-Unique: Shh2TTTbOAqew6VmOkYRtw-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B770610CE782;
+	Mon, 15 Feb 2021 15:04:02 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 1A9F560C0F;
+	Mon, 15 Feb 2021 15:04:00 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 11FF3xbh008633;
+	Mon, 15 Feb 2021 10:03:59 -0500
+Received: from localhost (mpatocka@localhost)
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 11FF3sVY008629;
+	Mon, 15 Feb 2021 10:03:55 -0500
+X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
+Date: Mon, 15 Feb 2021 10:03:54 -0500 (EST)
+From: Mikulas Patocka <mpatocka@redhat.com>
+X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
+To: Alexander Viro <viro@zeniv.linux.org.uk>,
+        Matthew Wilcox <willy@infradead.org>,
+        Zhongwei Cai <sunrise_l@sjtu.edu.cn>,
+        Mingkai Dong <mingkaidong@gmail.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>
+Subject: [RFC v3] nvfs: a filesystem for persistent memory
+Message-ID: <alpine.LRH.2.02.2102021307370.4109@file01.intranet.prod.int.rdu2.redhat.com>
+User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <244f86cba227fa49ca30cd595c4e5538fe2f7c2b.camel@linux.ibm.com>
-Message-ID-Hash: MLWU66AEAKJNHBX4F6M6HRMRNNEKGCAL
-X-Message-ID-Hash: MLWU66AEAKJNHBX4F6M6HRMRNNEKGCAL
-X-MailFrom: mhocko@suse.com
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Message-ID-Hash: WTTFOZEQRRSCZTZWRA7DHA6WMF7DGDY3
+X-Message-ID-Hash: WTTFOZEQRRSCZTZWRA7DHA6WMF7DGDY3
+X-MailFrom: mpatocka@redhat.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: David Hildenbrand <david@redhat.com>, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Mark Rutland <mark.rutland@arm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Ander
- sen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, Hagen Paul Pfeifer <hagen@jauu.net>, Palmer Dabbelt <palmerdabbelt@google.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Theodore Ts'o <tytso@mit.edu>, David Laight <David.Laight@aculab.com>, Steven Whitehouse <swhiteho@redhat.com>, Eric Sandeen <esandeen@redhat.com>, Wang Jianchao <jianchao.wan9@gmail.com>, Rajesh Tadakamadla <rajesh.tadakamadla@hpe.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MLWU66AEAKJNHBX4F6M6HRMRNNEKGCAL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WTTFOZEQRRSCZTZWRA7DHA6WMF7DGDY3/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gU3VuIDE0LTAyLTIxIDExOjIxOjAyLCBKYW1lcyBCb3R0b21sZXkgd3JvdGU6DQo+IE9uIFN1
-biwgMjAyMS0wMi0xNCBhdCAxMDo1OCArMDEwMCwgRGF2aWQgSGlsZGVuYnJhbmQgd3JvdGU6DQo+
-IFsuLi5dDQo+ID4gPiBBbmQgaGVyZSB3ZSBjb21lIHRvIHRoZSBxdWVzdGlvbiAid2hhdCBhcmUg
-dGhlIGRpZmZlcmVuY2VzIHRoYXQNCj4gPiA+IGp1c3RpZnkgYSBuZXcgc3lzdGVtIGNhbGw/IiBh
-bmQgdGhlIGFuc3dlciB0byB0aGlzIGlzIHZlcnkNCj4gPiA+IHN1YmplY3RpdmUuIEFuZCBhcyBz
-dWNoIHdlIGNhbiBjb250aW51ZSBiaWtlc2hlZGRpbmcgZm9yZXZlci4NCj4gPiANCj4gPiBJIHRo
-aW5rIHRoaXMgZml0cyBpbnRvIHRoZSBleGlzdGluZyBtZW1mZF9jcmVhdGUoKSBzeXNjYWxsIGp1
-c3QgZmluZSwNCj4gPiBhbmQgSSBoZWFyZCBubyBjb21wZWxsaW5nIGFyZ3VtZW50IHdoeSBpdCBz
-aG91bGRu4oCYdC4gVGhhdOKAmHMgYWxsIEkgY2FuDQo+ID4gc2F5Lg0KPiANCj4gT0ssIHNvIGxl
-dCdzIHJldmlldyBoaXN0b3J5LiAgSW4gdGhlIGZpcnN0IHR3byBpbmNhcm5hdGlvbnMgb2YgdGhl
-DQo+IHBhdGNoLCBpdCB3YXMgYW4gZXh0ZW5zaW9uIG9mIG1lbWZkX2NyZWF0ZSgpLiAgVGhlIHNw
-ZWNpZmljIG9iamVjdGlvbg0KPiBieSBLaXJpbGwgU2h1dGVtb3Ygd2FzIHRoYXQgaXQgZG9lc24n
-dCBzaGFyZSBhbnkgY29kZSBpbiBjb21tb24gd2l0aA0KPiBtZW1mZCBhbmQgc28gc2hvdWxkIGJl
-IGEgc2VwYXJhdGUgc3lzdGVtIGNhbGw6DQo+IA0KPiBodHRwczovL2xvcmUua2VybmVsLm9yZy9s
-aW51eC1hcGkvMjAyMDA3MTMxMDU4MTIuZG53dGRoc3V5ajN4Ymg0ZkBib3gvDQoNClRoYW5rcyBm
-b3IgdGhlIHBvaW50ZXIuIEJ1dCB0aGlzIGFyZ3VtZW50IGhhc24ndCBiZWVuIGNoYWxsZW5nZWQg
-YXQgYWxsLg0KSXQgaGFzbid0IGJlZW4gYnJvdWdodCB1cCB0aGF0IHRoZSBvdmVybGFwIHdvdWxk
-IGJlIGNvbnNpZGVyYWJsZSBoaWdoZXINCmJ5IHRoZSBodWdldGxiL3NlYWxpbmcgc3VwcG9ydC4g
-QW5kIHNvIGZhciBub2JvZHkgaGFzIGNsYWltZWQgdGhvc2UNCmNvbWJpbmF0aW9ucyBhcyB1bnZp
-YWJsZS4NCg0KPiBUaGUgb3RoZXIgb2JqZWN0aW9uIHJhaXNlZCBvZmZsaXN0IGlzIHRoYXQgaWYg
-d2UgZG8gdXNlIG1lbWZkX2NyZWF0ZSwNCj4gdGhlbiB3ZSBoYXZlIHRvIGFkZCBhbGwgdGhlIHNl
-Y3JldCBtZW1vcnkgZmxhZ3MgYXMgYW4gYWRkaXRpb25hbCBpb2N0bCwNCj4gd2hlcmVhcyB0aGV5
-IGNhbiBiZSBzcGVjaWZpZWQgb24gb3BlbiBpZiB3ZSBkbyBhIHNlcGFyYXRlIHN5c3RlbSBjYWxs
-LiANCj4gVGhlIGNvbnRhaW5lciBwZW9wbGUgdmlvbGVudGx5IG9iamVjdGVkIHRvIHRoZSBpb2N0
-bCBiZWNhdXNlIGl0IGNhbid0DQo+IGJlIHByb3Blcmx5IGFuYWx5c2VkIGJ5IHNlY2NvbXAgYW5k
-IG11Y2ggcHJlZmVycmVkIHRoZSBzeXNjYWxsIHZlcnNpb24uDQo+IA0KPiBTaW5jZSB3ZSdyZSBk
-dW1waW5nIHRoZSB1bmNhY2hlZCB2YXJpYW50LCB0aGUgaW9jdGwgcHJvYmxlbSBkaXNhcHBlYXJz
-DQo+IGJ1dCBzbyBkb2VzIHRoZSBwb3NzaWJpbGl0eSBvZiBldmVyIGFkZGluZyBpdCBiYWNrIGlm
-IHdlIHRha2Ugb24gdGhlDQo+IGNvbnRhaW5lciBwZW9wbGVzJyBvYmplY3Rpb24uICBUaGlzIGFy
-Z3VlcyBmb3IgYSBzZXBhcmF0ZSBzeXNjYWxsDQo+IGJlY2F1c2Ugd2UgY2FuIGFkZCBhZGRpdGlv
-bmFsIGZlYXR1cmVzIGFuZCBleHRlbmQgdGhlIEFQSSB3aXRoIGZsYWdzDQo+IHdpdGhvdXQgY2F1
-c2luZyBhbnRpLWlvY3RsIHJpb3RzLg0KDQpJIGFtIHNvcnJ5IGJ1dCBJIGRvIG5vdCB1bmRlcnN0
-YW5kIHRoaXMgYXJndW1lbnQuIFdoYXQga2luZCBvZiBmbGFncyBhcmUNCndlIHRhbGtpbmcgYWJv
-dXQgYW5kIHdoeSB3b3VsZCB0aGF0IGJlIGEgcHJvYmxlbSB3aXRoIG1lbWZkX2NyZWF0ZQ0KaW50
-ZXJmYWNlPyBDb3VsZCB5b3UgYmUgbW9yZSBzcGVjaWZpYyBwbGVhc2U/DQotLSANCk1pY2hhbCBI
-b2Nrbw0KU1VTRSBMYWJzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBs
-aXN0cy4wMS5vcmcK
+Hi
+
+I announce a new version of NVFS - a filesystem for persistent memory.
+        http://people.redhat.com/~mpatocka/nvfs/
+        git://leontynka.twibright.com/nvfs.git
+
+Changes since the last release:
+
+I reworked file read/write handling:
+
+* the functions nvfs_read and nvfs_write were deleted beacause it's 
+  unlikely that the upstream kernel will allow them.
+
+* the functions nvfs_read_iter and nvfs_write_iter have a fast path if 
+  there is just one segment in iov_iter - they will call nvfs_read_locked 
+  and nvfs_write_locked directly. This improves performance by 3% on the 
+  read path and 1% on the write path.
+
+* read_iter_locked uses copy_to_iter as suggested by Al Viro.
+
+* write_iter_locked doesn't use copy_from_iter_flushcache, because we need 
+  copy that doesn't advance the iter (the "copy" and "advance" must be two 
+  separate operations). So, I added new operations "iov_iter_map" and 
+  "iov_iter_unmap" - iov_iter_map will map the first segment of iov and 
+  iov_iter_unmap will unmap it.
+
+Do you think that introducing "iov_iter_map" and "iov_iter_unmap" is 
+appropriate? Do you have some other idea how to handle it?
+
+Mikukas
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
