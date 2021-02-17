@@ -2,130 +2,146 @@ Return-Path: <SRS0=baXv=HT=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.5 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D45C433E6
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Feb 2021 04:10:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 097A4C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Feb 2021 06:39:23 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C5E8060238
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Feb 2021 04:10:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C5E8060238
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id DD69064DBD
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Feb 2021 06:39:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DD69064DBD
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=kleine-koenig.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 12378100EAB7C;
-	Tue, 16 Feb 2021 20:10:22 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.20; helo=mga02.intel.com; envelope-from=ben.widawsky@intel.com; receiver=<UNKNOWN> 
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 36EE5100EAB7E;
+	Tue, 16 Feb 2021 22:39:21 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=94.130.110.236; helo=antares.kleine-koenig.org; envelope-from=uwe@kleine-koenig.org; receiver=<UNKNOWN> 
+Received: from antares.kleine-koenig.org (antares.kleine-koenig.org [94.130.110.236])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 97E3B100EAB72
-	for <linux-nvdimm@lists.01.org>; Tue, 16 Feb 2021 20:10:18 -0800 (PST)
-IronPort-SDR: //Ko6DuuYjQ4aU9jIv288Xoe9iywFhqXZ+DVYmza9N1y48h3u1pyxRoJos/j4ALGAm7XDKRNF5
- 4crY0mC3WfMw==
-X-IronPort-AV: E=McAfee;i="6000,8403,9897"; a="170229454"
-X-IronPort-AV: E=Sophos;i="5.81,184,1610438400";
-   d="scan'208";a="170229454"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Feb 2021 20:10:18 -0800
-IronPort-SDR: Mug5PkrodM8Rl1xWiYxq98sDIf0X3SSeMjlZa9yQ7TA5gumGj0U/nmFtBL6W2PpAlt1kXP8boS
- FlOqJ5QddABA==
-X-IronPort-AV: E=Sophos;i="5.81,184,1610438400";
-   d="scan'208";a="384948885"
-Received: from yxie-mobl.amr.corp.intel.com (HELO bwidawsk-mobl5.local) ([10.252.134.141])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Feb 2021 20:10:16 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: linux-cxl@vger.kernel.org
-Subject: [RFC PATCH v5 9/9] cxl/mem: Add payload dumping for debug
-Date: Tue, 16 Feb 2021 20:09:58 -0800
-Message-Id: <20210217040958.1354670-10-ben.widawsky@intel.com>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210217040958.1354670-1-ben.widawsky@intel.com>
-References: <20210217040958.1354670-1-ben.widawsky@intel.com>
+	by ml01.01.org (Postfix) with ESMTPS id 04CA3100F2243
+	for <linux-nvdimm@lists.01.org>; Tue, 16 Feb 2021 22:39:17 -0800 (PST)
+Received: from antares.kleine-koenig.org (localhost [127.0.0.1])
+	by antares.kleine-koenig.org (Postfix) with ESMTP id B7D5FB03DF5;
+	Wed, 17 Feb 2021 07:39:14 +0100 (CET)
+Received: from antares.kleine-koenig.org ([94.130.110.236])
+	by antares.kleine-koenig.org (antares.kleine-koenig.org [94.130.110.236]) (amavisd-new, port 10024)
+	with ESMTP id S8ReJb4Xkcck; Wed, 17 Feb 2021 07:39:13 +0100 (CET)
+Received: from taurus.defre.kleine-koenig.org (unknown [IPv6:2a02:8071:b5ad:2000:7867:997:4a55:eb43])
+	by antares.kleine-koenig.org (Postfix) with ESMTPSA;
+	Wed, 17 Feb 2021 07:39:13 +0100 (CET)
+Subject: Re: [PATCH v2 0/5] dax-device: Some cleanups
+To: Dan Williams <dan.j.williams@intel.com>
+References: <20210205222842.34896-1-uwe@kleine-koenig.org>
+ <CAPcyv4gMg7ksLS6vWR3Ya=bZd5wBiRLtSGxf6mc3yqf+3rA_TQ@mail.gmail.com>
+ <CAPcyv4jq_8as=qUL8LJnNcM2UsrqEJqjc7+EHjs8XwuWCVZKPw@mail.gmail.com>
+From: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <uwe@kleine-koenig.org>
+Message-ID: <d1891be1-9345-9d2b-edcc-2a5ce2ac9360@kleine-koenig.org>
+Date: Wed, 17 Feb 2021 07:39:02 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-Message-ID-Hash: XYLXSSCEKESR5F6SJCPPHHDPZWPIZBU3
-X-Message-ID-Hash: XYLXSSCEKESR5F6SJCPPHHDPZWPIZBU3
-X-MailFrom: ben.widawsky@intel.com
+In-Reply-To: <CAPcyv4jq_8as=qUL8LJnNcM2UsrqEJqjc7+EHjs8XwuWCVZKPw@mail.gmail.com>
+Message-ID-Hash: RYMCZFDTSFL7BMTR27DEMDTNFB5OOXVC
+X-Message-ID-Hash: RYMCZFDTSFL7BMTR27DEMDTNFB5OOXVC
+X-MailFrom: uwe@kleine-koenig.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Ben Widawsky <ben.widawsky@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-pci@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Chris Browy <cbrowy@avery-design.com>, Christoph Hellwig <hch@infradead.org>, David Hildenbrand <david@redhat.com>, David Rientjes <rientjes@google.com>, Jon Masters <jcm@jonmasters.org>, Jonathan Cameron <Jonathan.Cameron@Huawei.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Randy Dunlap <rdunlap@infradead.org>, "John Groves (jgroves)" <jgroves@micron.com>, "Kelley, Sean V" <sean.v.kelley@intel.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XYLXSSCEKESR5F6SJCPPHHDPZWPIZBU3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/RYMCZFDTSFL7BMTR27DEMDTNFB5OOXVC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+Content-Type: multipart/mixed; boundary="===============3442369609691983668=="
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--===============3442369609691983668==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="NVYrnRlgCQ2dWcNf6WA1OxAcEomB67SXn"
+
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--NVYrnRlgCQ2dWcNf6WA1OxAcEomB67SXn
+Content-Type: multipart/mixed; boundary="hBBVWP2Xum3ONlVJRDp4uyuSeD8Sa6qHy";
+ protected-headers="v1"
+From: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <uwe@kleine-koenig.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
+ <dave.jiang@intel.com>, Andrew Morton <akpm@linux-foundation.org>,
+ linux-nvdimm <linux-nvdimm@lists.01.org>,
+ Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Message-ID: <d1891be1-9345-9d2b-edcc-2a5ce2ac9360@kleine-koenig.org>
+Subject: Re: [PATCH v2 0/5] dax-device: Some cleanups
+References: <20210205222842.34896-1-uwe@kleine-koenig.org>
+ <CAPcyv4gMg7ksLS6vWR3Ya=bZd5wBiRLtSGxf6mc3yqf+3rA_TQ@mail.gmail.com>
+ <CAPcyv4jq_8as=qUL8LJnNcM2UsrqEJqjc7+EHjs8XwuWCVZKPw@mail.gmail.com>
+In-Reply-To: <CAPcyv4jq_8as=qUL8LJnNcM2UsrqEJqjc7+EHjs8XwuWCVZKPw@mail.gmail.com>
+
+--hBBVWP2Xum3ONlVJRDp4uyuSeD8Sa6qHy
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+
+Hello Dan,
+
+On 2/17/21 4:55 AM, Dan Williams wrote:
+>> One small comment on patch5, otherwise looks good.
+>=20
+> I take it back, patch5 looks good. I was going to ask about the return
+> value removal for dax_bus_remove(), but that would need struct
+> bus_type to change prototypes.
+
+Changing struct bus_type::remove to return void is the eventual plan. To =
+
+make this a pretty and easily reviewable patch I currently go through=20
+all buses and make sure that for the prototype change I only have to do=20
+one s/int/void/ and drop a "return 0" per bus.
+
+> All merged to the nvdimm tree.
+
+Great, thanks
+Uwe
+
+
+--hBBVWP2Xum3ONlVJRDp4uyuSeD8Sa6qHy--
+
+--NVYrnRlgCQ2dWcNf6WA1OxAcEomB67SXn
+Content-Type: application/pgp-signature; name="OpenPGP_signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="OpenPGP_signature"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEEfnIqFpAYrP8+dKQLwfwUeK3K7AkFAmAsugYACgkQwfwUeK3K
+7Anipwf+MQUO3Q+0QPOYdHW2iyztwa/+y2PBB7JgXTg7BWm3X0WiJ7B2ZUj9NKSx
+2Z1oyu79E1w/mNFeXeVKJ/9HGEsClUCaag1AA2om/gKvSJmVFU48N4STJAZ5LAX/
+tL6lLx4HDn1/mLXgIhsk3bdLQg959Q2BaBYmXFA/DOM+wRRYrnzI734WS/Vwst4b
+50SijYxZSheaEJWVOT9cpK35C2qMifgs8dB9MyC2LmmD5P1rGL0BtztcmQSC3KSh
+U5AvMnCnS9F+PAHWIbiAJKZxevIxDuOAMv7TyV7S2AY+KGW5wQS2isMHy8KhFRYm
+1x8qvSbWvETF2H/4rzKM3s9yWg1S5w==
+=lL31
+-----END PGP SIGNATURE-----
+
+--NVYrnRlgCQ2dWcNf6WA1OxAcEomB67SXn--
+
+--===============3442369609691983668==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-It's often useful in debug scenarios to see what the hardware has dumped
-out. As it stands today, any device error will result in the payload not
-being copied out, so there is no way to triage commands which weren't
-expected to fail (and sometimes the payload may have that information).
-
-The functionality is protected by normal kernel security mechanisms as
-well as a CONFIG option in the CXL driver.
-
-This was extracted from the original version of the CXL enabling patch
-series.
-
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
----
- drivers/cxl/Kconfig | 13 +++++++++++++
- drivers/cxl/mem.c   |  8 ++++++++
- 2 files changed, 21 insertions(+)
-
-diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
-index 97dc4d751651..3eec9276e586 100644
---- a/drivers/cxl/Kconfig
-+++ b/drivers/cxl/Kconfig
-@@ -50,4 +50,17 @@ config CXL_MEM_RAW_COMMANDS
- 	  potential impact to memory currently in use by the kernel.
- 
- 	  If developing CXL hardware or the driver say Y, otherwise say N.
-+
-+config CXL_MEM_INSECURE_DEBUG
-+	bool "CXL.mem debugging"
-+	depends on CXL_MEM
-+	help
-+	  Enable debug of all CXL command payloads.
-+
-+	  Some CXL devices and controllers support encryption and other
-+	  security features. The payloads for the commands that enable
-+	  those features may contain sensitive clear-text security
-+	  material. Disable debug of those command payloads by default.
-+	  If you are a kernel developer actively working on CXL
-+	  security enabling say Y, otherwise say N.
- endif
-diff --git a/drivers/cxl/mem.c b/drivers/cxl/mem.c
-index 6d7d3870b5da..d63c8eaf23c7 100644
---- a/drivers/cxl/mem.c
-+++ b/drivers/cxl/mem.c
-@@ -346,6 +346,14 @@ static int __cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
- 
- 	/* #5 */
- 	rc = cxl_mem_wait_for_doorbell(cxlm);
-+
-+	if (!cxl_is_security_command(mbox_cmd->opcode) ||
-+	    IS_ENABLED(CONFIG_CXL_MEM_INSECURE_DEBUG)) {
-+		print_hex_dump_debug("Payload ", DUMP_PREFIX_OFFSET, 16, 1,
-+				     mbox_cmd->payload_in, mbox_cmd->size_in,
-+				     true);
-+	}
-+
- 	if (rc == -ETIMEDOUT) {
- 		cxl_mem_mbox_timeout(cxlm, mbox_cmd);
- 		return rc;
--- 
-2.30.1
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+--===============3442369609691983668==--
