@@ -2,91 +2,113 @@ Return-Path: <SRS0=tGdH=HU=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.3 required=3.0 tests=BAYES_05,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE77AC433E6
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Feb 2021 09:00:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29C0CC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Feb 2021 16:20:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 180CD60238
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Feb 2021 09:00:08 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 180CD60238
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cn.fujitsu.com
+	by mail.kernel.org (Postfix) with ESMTPS id 436DF64E6F
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Feb 2021 16:20:22 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 436DF64E6F
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id A153D100EBB6C;
-	Thu, 18 Feb 2021 01:00:08 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@cn.fujitsu.com; receiver=<UNKNOWN> 
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id B0FBB100EBBC4
-	for <linux-nvdimm@lists.01.org>; Thu, 18 Feb 2021 01:00:05 -0800 (PST)
-X-IronPort-AV: E=Sophos;i="5.81,186,1610380800";
-   d="scan'208";a="104601999"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 18 Feb 2021 17:00:03 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 2F5E34CE72E3;
-	Thu, 18 Feb 2021 16:59:58 +0800 (CST)
-Received: from irides.mr (10.167.225.141) by G08CNEXMBPEKD05.g08.fujitsu.local
- (10.167.33.204) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Thu, 18 Feb
- 2021 16:59:57 +0800
-Subject: Re: [PATCH v3 05/11] mm, fsdax: Refactor memory-failure handler for
- dax mapping
-To: Christoph Hellwig <hch@lst.de>
-References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
- <20210208105530.3072869-6-ruansy.fnst@cn.fujitsu.com>
- <20210210133347.GD30109@lst.de>
- <45a20d88-63ee-d678-ad86-6ccd8cdf7453@cn.fujitsu.com>
- <20210218083230.GA17913@lst.de>
-From: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
-Message-ID: <9edffa8e-faf8-3d29-6ec0-69ad512e7bb7@cn.fujitsu.com>
-Date: Thu, 18 Feb 2021 16:59:56 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.7.1
+	by ml01.01.org (Postfix) with ESMTP id E7284100EBB9D;
+	Thu, 18 Feb 2021 08:20:20 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=djwong@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 07692100EBB96
+	for <linux-nvdimm@lists.01.org>; Thu, 18 Feb 2021 08:20:19 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 51A6C61606;
+	Thu, 18 Feb 2021 16:20:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1613665218;
+	bh=GHp96I/gVd4EmUFAptDHDpHWkNykmmfyndnECL0NAbA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Eyayc5+YfPPtm0uaK+Eoc1D452WYMv+Gsf/tSxdxcgIBxZ47Sz4L0Yy8hVK/SLqx6
+	 XO/kXCl8dDL5C/rADkEKSc8s4mF1h1M9xk6GJieFChIq611ekNwu520by4ngKi9Uby
+	 5Jkkh9IZ/FM3Dq6PiiUBUQDvkRQFGFJxeYPu2GzlIm2GGGkbYOaTBSbmp/Zu7sH8M+
+	 5zJuAWQtKw0mt4Qm5XdwLhrzBFUZmIYmx0gUxsOEJi3AAUQYJnPjqP3SmvfrudqHl3
+	 DcnpOpt/ULK5VHeAqy8g9d6NbAjYHgry/RNbogkUYu6b26kGS+4zN6U7HzRiK/aCtQ
+	 vcPx7EI2hpCkA==
+Date: Thu, 18 Feb 2021 08:20:18 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH 5/7] fsdax: Dedup file range to use a compare function
+Message-ID: <20210218162018.GT7193@magnolia>
+References: <20210207170924.2933035-1-ruansy.fnst@cn.fujitsu.com>
+ <20210207170924.2933035-6-ruansy.fnst@cn.fujitsu.com>
+ <20210208151920.GE12872@lst.de>
+ <9193e305-22a1-3928-0675-af1cecd28942@cn.fujitsu.com>
+ <20210209093438.GA630@lst.de>
+ <79b0d65c-95dd-4821-e412-ab27c8cb6942@cn.fujitsu.com>
+ <20210210131928.GA30109@lst.de>
+ <b00cfda5-464c-6161-77c6-6a25b1cc7a77@cn.fujitsu.com>
 MIME-Version: 1.0
-In-Reply-To: <20210218083230.GA17913@lst.de>
-Content-Language: en-US
-X-Originating-IP: [10.167.225.141]
-X-ClientProxiedBy: G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) To
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204)
-X-yoursite-MailScanner-ID: 2F5E34CE72E3.AE2D0
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@cn.fujitsu.com
-Message-ID-Hash: UVUK55GBIXOPG7OFW3U6ZEODYS77733T
-X-Message-ID-Hash: UVUK55GBIXOPG7OFW3U6ZEODYS77733T
-X-MailFrom: ruansy.fnst@cn.fujitsu.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, dm-devel@redhat.com, darrick.wong@oracle.com, david@fromorbit.com, agk@redhat.com, snitzer@redhat.com, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
+Content-Disposition: inline
+In-Reply-To: <b00cfda5-464c-6161-77c6-6a25b1cc7a77@cn.fujitsu.com>
+Message-ID-Hash: 7PF3FIYWPNDS7VEDHC5NL52YLNZC7SIQ
+X-Message-ID-Hash: 7PF3FIYWPNDS7VEDHC5NL52YLNZC7SIQ
+X-MailFrom: djwong@kernel.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, rgoldwyn@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UVUK55GBIXOPG7OFW3U6ZEODYS77733T/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7PF3FIYWPNDS7VEDHC5NL52YLNZC7SIQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 
-DQoNCk9uIDIwMjEvMi8xOCDkuIvljYg0OjMyLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90ZToNCj4g
-T24gV2VkLCBGZWIgMTcsIDIwMjEgYXQgMTA6NTY6MTFBTSArMDgwMCwgUnVhbiBTaGl5YW5nIHdy
-b3RlOg0KPj4gSSdkIGxpa2UgdG8gY29uZmlybSBvbmUgdGhpbmcuLi4gIEkgaGF2ZSBjaGVja2Vk
-IGFsbCBvZiB0aGlzIHBhdGNoc2V0IGJ5DQo+PiBjaGVja3BhdGNoLnBsIGFuZCBpdCBkaWQgbm90
-IHJlcG9ydCB0aGUgb3Zlcmx5IGxvbmcgbGluZSB3YXJuaW5nLiAgU28sIEkNCj4+IHNob3VsZCBz
-dGlsbCBvYmV5IHRoZSBydWxlIG9mIDgwIGNoYXJzIG9uZSBsaW5lPw0KPiANCj4gY2hlY2twYXRj
-aC5wbCBpcyBjb21wbGV0ZWx5IGJyb2tlbiwgSSB3b3VsZCBub3QgcmVseSBvbiBpdC4NCj4gDQo+
-IEhlcmUgaXMgdGhlIHF1b3RlIGZyb20gdGhlIGNvZGluZyBzdHlsZSBkb2N1bWVudDoNCj4gDQo+
-ICJUaGUgcHJlZmVycmVkIGxpbWl0IG9uIHRoZSBsZW5ndGggb2YgYSBzaW5nbGUgbGluZSBpcyA4
-MCBjb2x1bW5zLg0KPiANCj4gU3RhdGVtZW50cyBsb25nZXIgdGhhbiA4MCBjb2x1bW5zIHNob3Vs
-ZCBiZSBicm9rZW4gaW50byBzZW5zaWJsZSBjaHVua3MsDQo+IHVubGVzcyBleGNlZWRpbmcgODAg
-Y29sdW1ucyBzaWduaWZpY2FudGx5IGluY3JlYXNlcyByZWFkYWJpbGl0eSBhbmQgZG9lcw0KPiBu
-b3QgaGlkZSBpbmZvcm1hdGlvbi4iDQo+IA0KDQpPSy4gIEdvdCBpdC4gIFRoYW5rIHlvdS4NCg0K
-DQotLQ0KUnVhbiBTaGl5YW5nLg0KPiANCg0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRp
-bW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZk
-aW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+T24gV2VkLCBGZWIgMTcsIDIwMjEgYXQgMTE6MjQ6MThBTSArMDgwMCwgUnVhbiBTaGl5YW5nIHdy
+b3RlOg0KPiANCj4gDQo+IE9uIDIwMjEvMi8xMCDkuIvljYg5OjE5LCBDaHJpc3RvcGggSGVsbHdp
+ZyB3cm90ZToNCj4gPiBPbiBUdWUsIEZlYiAwOSwgMjAyMSBhdCAwNTo0NjoxM1BNICswODAwLCBS
+dWFuIFNoaXlhbmcgd3JvdGU6DQo+ID4gPiANCj4gPiA+IA0KPiA+ID4gT24gMjAyMS8yLzkg5LiL
+5Y2INTozNCwgQ2hyaXN0b3BoIEhlbGx3aWcgd3JvdGU6DQo+ID4gPiA+IE9uIFR1ZSwgRmViIDA5
+LCAyMDIxIGF0IDA1OjE1OjEzUE0gKzA4MDAsIFJ1YW4gU2hpeWFuZyB3cm90ZToNCj4gPiA+ID4g
+PiBUaGUgZGF4IGRlZHVwZSBjb21wYXJpc29uIG5lZWQgdGhlIGlvbWFwX29wcyBwb2ludGVyIGFz
+IGFyZ3VtZW50LCBzbyBteQ0KPiA+ID4gPiA+IHVuZGVyc3RhbmRpbmcgaXMgdGhhdCB3ZSBkb24n
+dCBtb2RpZnkgdGhlIGFyZ3VtZW50IGxpc3Qgb2YNCj4gPiA+ID4gPiBnZW5lcmljX3JlbWFwX2Zp
+bGVfcmFuZ2VfcHJlcCgpLCBidXQgbW92ZSBpdHMgY29kZSBpbnRvDQo+ID4gPiA+ID4gX19nZW5l
+cmljX3JlbWFwX2ZpbGVfcmFuZ2VfcHJlcCgpIHdob3NlIGFyZ3VtZW50IGxpc3QgY2FuIGJlIG1v
+ZGlmaWVkIHRvDQo+ID4gPiA+ID4gYWNjZXB0cyB0aGUgaW9tYXBfb3BzIHBvaW50ZXIuICBUaGVu
+IGl0IGxvb2tzIGxpa2UgdGhpczoNCj4gPiA+ID4gDQo+ID4gPiA+IEknZCBzYXkganVzdCBhZGQg
+dGhlIGlvbWFwX29wcyBwb2ludGVyIHRvDQo+ID4gPiA+IGdlbmVyaWNfcmVtYXBfZmlsZV9yYW5n
+ZV9wcmVwIGFuZCBkbyBhd2F5IHdpdGggdGhlIGV4dHJhIHdyYXBwZXJzLiAgV2UNCj4gPiA+ID4g
+b25seSBoYXZlIHRocmVlIGNhbGxlcnMgYW55d2F5Lg0KPiA+ID4gDQo+ID4gPiBPSy4NCj4gPiAN
+Cj4gPiBTbyBsb29raW5nIGF0IHRoaXMgYWdhaW4gSSB0aGluayB5b3VyIHByb3Bvc2FsIGFjdGF1
+bGx5IGlzIGJldHRlciwNCj4gPiBnaXZlbiB0aGF0IHRoZSBpb21hcCB2YXJpYW50IGlzIHN0aWxs
+IERBWCBzcGVjaWZpYy4gIFNvcnJ5IGZvcg0KPiA+IHRoZSBub2lzZS4NCj4gPiANCj4gPiBBbHNv
+IEkgdGhpbmsgZGF4X2ZpbGVfcmFuZ2VfY29tcGFyZSBzaG91bGQgdXNlIGlvbWFwX2FwcGx5IGlu
+c3RlYWQNCj4gPiBvZiBvcGVuIGNvZGluZyBpdC4NCj4gPiANCj4gDQo+IFRoZXJlIGFyZSB0d28g
+ZmlsZXMsIHdoaWNoIGFyZSBub3QgcmVmbGlua2VkLCBuZWVkIHRvIGJlIGRpcmVjdF9hY2Nlc3Mo
+KQ0KPiBoZXJlLiAgVGhlIGlvbWFwX2FwcGx5KCkgY2FuIGhhbmRsZSBvbmUgZmlsZSBlYWNoIHRp
+bWUuICBTbywgaXQgc2VlbXMgdGhhdA0KPiBpb21hcF9hcHBseSgpIGlzIG5vdCBzdWl0YWJsZSBm
+b3IgdGhpcyBjYXNlLi4uDQo+IA0KPiANCj4gVGhlIHBzZXVkbyBjb2RlIG9mIHRoaXMgcHJvY2Vz
+cyBpcyBhcyBmb2xsb3dzOg0KPiANCj4gICBzcmNsZW4gPSBvcHMtPmJlZ2luKCZzcmNtYXApDQo+
+ICAgZGVzdGxlbiA9IG9wcy0+YmVnaW4oJmRlc3RtYXApDQo+IA0KPiAgIGRpcmVjdF9hY2Nlc3Mo
+JnNyY21hcCwgJnNhZGRyKQ0KPiAgIGRpcmVjdF9hY2Nlc3MoJmRlc3RtYXAsICZkYWRkcikNCj4g
+DQo+ICAgc2FtZSA9IG1lbWNweShzYWRkciwgZGFkZHIsIG1pbihzcmNsZW4sZGVzdGxlbikpDQo+
+IA0KPiAgIG9wcy0+ZW5kKCZkZXN0bWFwKQ0KPiAgIG9wcy0+ZW5kKCZzcmNtYXApDQo+IA0KPiBJ
+IHRoaW5rIGEgbmVzdGVkIGNhbGwgbGlrZSB0aGlzIGlzIG5lY2Vzc2FyeS4gIFRoYXQncyB3aHkg
+SSB1c2UgdGhlIG9wZW4NCj4gY29kZSB3YXkuDQoNClRoaXMgbWlnaHQgYmUgYSBnb29kIHBsYWNl
+IHRvIGltcGxlbWVudCBhbiBpb21hcF9hcHBseTIoKSBsb29wIHRoYXQNCmFjdHVhbGx5IC9kb2Vz
+LyB3YWxrIGFsbCB0aGUgZXh0ZW50cyBvZiBmaWxlMSBhbmQgZmlsZTIuICBUaGVyZSdzIG5vdw0K
+dHdvIHVzZXJzIG9mIHRoaXMgaWRpb20uDQoNCihQb3NzaWJseSBzdHJ1Y3R1cmVkIGFzIGEgImdl
+dCBuZXh0IG1hcHBpbmdzIGZyb20gYm90aCIgZ2VuZXJhdG9yDQpmdW5jdGlvbiBsaWtlIE1hdHRo
+ZXcgV2lsY294IGtlZXBzIGFza2luZyBmb3IuIDopKQ0KDQotLUQNCg0KPiANCj4gLS0NCj4gVGhh
+bmtzLA0KPiBSdWFuIFNoaXlhbmcuDQo+ID4gDQo+IA0KPiAKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBs
+aW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8g
+bGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
