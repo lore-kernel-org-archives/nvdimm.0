@@ -1,114 +1,213 @@
-Return-Path: <SRS0=tGdH=HU=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=NL4R=HV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.3 required=3.0 tests=BAYES_05,DKIM_INVALID,
-	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29C0CC433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Feb 2021 16:20:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EB54C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Feb 2021 02:03:54 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 436DF64E6F
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Feb 2021 16:20:22 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 436DF64E6F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 91A2464ECF
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Feb 2021 02:03:53 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 91A2464ECF
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E7284100EBB9D;
-	Thu, 18 Feb 2021 08:20:20 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=djwong@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 3CFD6100EB358;
+	Thu, 18 Feb 2021 18:03:53 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=192.55.52.120; helo=mga04.intel.com; envelope-from=vishal.l.verma@intel.com; receiver=<UNKNOWN> 
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 07692100EBB96
-	for <linux-nvdimm@lists.01.org>; Thu, 18 Feb 2021 08:20:19 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 51A6C61606;
-	Thu, 18 Feb 2021 16:20:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1613665218;
-	bh=GHp96I/gVd4EmUFAptDHDpHWkNykmmfyndnECL0NAbA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Eyayc5+YfPPtm0uaK+Eoc1D452WYMv+Gsf/tSxdxcgIBxZ47Sz4L0Yy8hVK/SLqx6
-	 XO/kXCl8dDL5C/rADkEKSc8s4mF1h1M9xk6GJieFChIq611ekNwu520by4ngKi9Uby
-	 5Jkkh9IZ/FM3Dq6PiiUBUQDvkRQFGFJxeYPu2GzlIm2GGGkbYOaTBSbmp/Zu7sH8M+
-	 5zJuAWQtKw0mt4Qm5XdwLhrzBFUZmIYmx0gUxsOEJi3AAUQYJnPjqP3SmvfrudqHl3
-	 DcnpOpt/ULK5VHeAqy8g9d6NbAjYHgry/RNbogkUYu6b26kGS+4zN6U7HzRiK/aCtQ
-	 vcPx7EI2hpCkA==
-Date: Thu, 18 Feb 2021 08:20:18 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Ruan Shiyang <ruansy.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH 5/7] fsdax: Dedup file range to use a compare function
-Message-ID: <20210218162018.GT7193@magnolia>
-References: <20210207170924.2933035-1-ruansy.fnst@cn.fujitsu.com>
- <20210207170924.2933035-6-ruansy.fnst@cn.fujitsu.com>
- <20210208151920.GE12872@lst.de>
- <9193e305-22a1-3928-0675-af1cecd28942@cn.fujitsu.com>
- <20210209093438.GA630@lst.de>
- <79b0d65c-95dd-4821-e412-ab27c8cb6942@cn.fujitsu.com>
- <20210210131928.GA30109@lst.de>
- <b00cfda5-464c-6161-77c6-6a25b1cc7a77@cn.fujitsu.com>
+	by ml01.01.org (Postfix) with ESMTPS id B9943100EBBD7
+	for <linux-nvdimm@lists.01.org>; Thu, 18 Feb 2021 18:03:49 -0800 (PST)
+IronPort-SDR: lWKQ7YNoUlo/8KtOZbUn9aMPWyIbS+1bafsKFmb+mTCAG+Pn19Atwt6Y5Pgt5pPA3I/FxO9uD5
+ IgV+PHLyv8tw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9899"; a="181151476"
+X-IronPort-AV: E=Sophos;i="5.81,187,1610438400";
+   d="scan'208";a="181151476"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2021 18:03:49 -0800
+IronPort-SDR: icwyjkcBes/KDSQFVVPO65Z8ivBtF6STSuT3ljN7urYHfddxUrwgNiYLKfqgk3pVeAlMrYMbmu
+ a78cPll0CPgw==
+X-IronPort-AV: E=Sophos;i="5.81,187,1610438400";
+   d="scan'208";a="513509615"
+Received: from jnavar1-mobl4.amr.corp.intel.com (HELO omniknight.intel.com) ([10.213.167.18])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Feb 2021 18:03:48 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <linux-cxl@vger.kernel.org>
+Subject: [ndctl PATCH v2 00/13] Initial CXL support
+Date: Thu, 18 Feb 2021 19:03:18 -0700
+Message-Id: <20210219020331.725687-1-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <b00cfda5-464c-6161-77c6-6a25b1cc7a77@cn.fujitsu.com>
-Message-ID-Hash: 7PF3FIYWPNDS7VEDHC5NL52YLNZC7SIQ
-X-Message-ID-Hash: 7PF3FIYWPNDS7VEDHC5NL52YLNZC7SIQ
-X-MailFrom: djwong@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, rgoldwyn@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Message-ID-Hash: JEULJP7PUYZ3M62MFK25UXIQMFAQZAF2
+X-Message-ID-Hash: JEULJP7PUYZ3M62MFK25UXIQMFAQZAF2
+X-MailFrom: vishal.l.verma@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-nvdimm@lists.01.org, Ben Widawsky <ben.widawsky@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7PF3FIYWPNDS7VEDHC5NL52YLNZC7SIQ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JEULJP7PUYZ3M62MFK25UXIQMFAQZAF2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-T24gV2VkLCBGZWIgMTcsIDIwMjEgYXQgMTE6MjQ6MThBTSArMDgwMCwgUnVhbiBTaGl5YW5nIHdy
-b3RlOg0KPiANCj4gDQo+IE9uIDIwMjEvMi8xMCDkuIvljYg5OjE5LCBDaHJpc3RvcGggSGVsbHdp
-ZyB3cm90ZToNCj4gPiBPbiBUdWUsIEZlYiAwOSwgMjAyMSBhdCAwNTo0NjoxM1BNICswODAwLCBS
-dWFuIFNoaXlhbmcgd3JvdGU6DQo+ID4gPiANCj4gPiA+IA0KPiA+ID4gT24gMjAyMS8yLzkg5LiL
-5Y2INTozNCwgQ2hyaXN0b3BoIEhlbGx3aWcgd3JvdGU6DQo+ID4gPiA+IE9uIFR1ZSwgRmViIDA5
-LCAyMDIxIGF0IDA1OjE1OjEzUE0gKzA4MDAsIFJ1YW4gU2hpeWFuZyB3cm90ZToNCj4gPiA+ID4g
-PiBUaGUgZGF4IGRlZHVwZSBjb21wYXJpc29uIG5lZWQgdGhlIGlvbWFwX29wcyBwb2ludGVyIGFz
-IGFyZ3VtZW50LCBzbyBteQ0KPiA+ID4gPiA+IHVuZGVyc3RhbmRpbmcgaXMgdGhhdCB3ZSBkb24n
-dCBtb2RpZnkgdGhlIGFyZ3VtZW50IGxpc3Qgb2YNCj4gPiA+ID4gPiBnZW5lcmljX3JlbWFwX2Zp
-bGVfcmFuZ2VfcHJlcCgpLCBidXQgbW92ZSBpdHMgY29kZSBpbnRvDQo+ID4gPiA+ID4gX19nZW5l
-cmljX3JlbWFwX2ZpbGVfcmFuZ2VfcHJlcCgpIHdob3NlIGFyZ3VtZW50IGxpc3QgY2FuIGJlIG1v
-ZGlmaWVkIHRvDQo+ID4gPiA+ID4gYWNjZXB0cyB0aGUgaW9tYXBfb3BzIHBvaW50ZXIuICBUaGVu
-IGl0IGxvb2tzIGxpa2UgdGhpczoNCj4gPiA+ID4gDQo+ID4gPiA+IEknZCBzYXkganVzdCBhZGQg
-dGhlIGlvbWFwX29wcyBwb2ludGVyIHRvDQo+ID4gPiA+IGdlbmVyaWNfcmVtYXBfZmlsZV9yYW5n
-ZV9wcmVwIGFuZCBkbyBhd2F5IHdpdGggdGhlIGV4dHJhIHdyYXBwZXJzLiAgV2UNCj4gPiA+ID4g
-b25seSBoYXZlIHRocmVlIGNhbGxlcnMgYW55d2F5Lg0KPiA+ID4gDQo+ID4gPiBPSy4NCj4gPiAN
-Cj4gPiBTbyBsb29raW5nIGF0IHRoaXMgYWdhaW4gSSB0aGluayB5b3VyIHByb3Bvc2FsIGFjdGF1
-bGx5IGlzIGJldHRlciwNCj4gPiBnaXZlbiB0aGF0IHRoZSBpb21hcCB2YXJpYW50IGlzIHN0aWxs
-IERBWCBzcGVjaWZpYy4gIFNvcnJ5IGZvcg0KPiA+IHRoZSBub2lzZS4NCj4gPiANCj4gPiBBbHNv
-IEkgdGhpbmsgZGF4X2ZpbGVfcmFuZ2VfY29tcGFyZSBzaG91bGQgdXNlIGlvbWFwX2FwcGx5IGlu
-c3RlYWQNCj4gPiBvZiBvcGVuIGNvZGluZyBpdC4NCj4gPiANCj4gDQo+IFRoZXJlIGFyZSB0d28g
-ZmlsZXMsIHdoaWNoIGFyZSBub3QgcmVmbGlua2VkLCBuZWVkIHRvIGJlIGRpcmVjdF9hY2Nlc3Mo
-KQ0KPiBoZXJlLiAgVGhlIGlvbWFwX2FwcGx5KCkgY2FuIGhhbmRsZSBvbmUgZmlsZSBlYWNoIHRp
-bWUuICBTbywgaXQgc2VlbXMgdGhhdA0KPiBpb21hcF9hcHBseSgpIGlzIG5vdCBzdWl0YWJsZSBm
-b3IgdGhpcyBjYXNlLi4uDQo+IA0KPiANCj4gVGhlIHBzZXVkbyBjb2RlIG9mIHRoaXMgcHJvY2Vz
-cyBpcyBhcyBmb2xsb3dzOg0KPiANCj4gICBzcmNsZW4gPSBvcHMtPmJlZ2luKCZzcmNtYXApDQo+
-ICAgZGVzdGxlbiA9IG9wcy0+YmVnaW4oJmRlc3RtYXApDQo+IA0KPiAgIGRpcmVjdF9hY2Nlc3Mo
-JnNyY21hcCwgJnNhZGRyKQ0KPiAgIGRpcmVjdF9hY2Nlc3MoJmRlc3RtYXAsICZkYWRkcikNCj4g
-DQo+ICAgc2FtZSA9IG1lbWNweShzYWRkciwgZGFkZHIsIG1pbihzcmNsZW4sZGVzdGxlbikpDQo+
-IA0KPiAgIG9wcy0+ZW5kKCZkZXN0bWFwKQ0KPiAgIG9wcy0+ZW5kKCZzcmNtYXApDQo+IA0KPiBJ
-IHRoaW5rIGEgbmVzdGVkIGNhbGwgbGlrZSB0aGlzIGlzIG5lY2Vzc2FyeS4gIFRoYXQncyB3aHkg
-SSB1c2UgdGhlIG9wZW4NCj4gY29kZSB3YXkuDQoNClRoaXMgbWlnaHQgYmUgYSBnb29kIHBsYWNl
-IHRvIGltcGxlbWVudCBhbiBpb21hcF9hcHBseTIoKSBsb29wIHRoYXQNCmFjdHVhbGx5IC9kb2Vz
-LyB3YWxrIGFsbCB0aGUgZXh0ZW50cyBvZiBmaWxlMSBhbmQgZmlsZTIuICBUaGVyZSdzIG5vdw0K
-dHdvIHVzZXJzIG9mIHRoaXMgaWRpb20uDQoNCihQb3NzaWJseSBzdHJ1Y3R1cmVkIGFzIGEgImdl
-dCBuZXh0IG1hcHBpbmdzIGZyb20gYm90aCIgZ2VuZXJhdG9yDQpmdW5jdGlvbiBsaWtlIE1hdHRo
-ZXcgV2lsY294IGtlZXBzIGFza2luZyBmb3IuIDopKQ0KDQotLUQNCg0KPiANCj4gLS0NCj4gVGhh
-bmtzLA0KPiBSdWFuIFNoaXlhbmcuDQo+ID4gDQo+IA0KPiAKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBs
-aW51eC1udmRpbW1AbGlzdHMuMDEub3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8g
-bGludXgtbnZkaW1tLWxlYXZlQGxpc3RzLjAxLm9yZwo=
+Changes since v1[1]:
+
+- Add 'firmware_version' retrieval for memdevs via sysfs attribute
+- Add private data storage and accessors for libcxl
+- Add a local copy of the UAPI header (cxl_mem.h)
+- Refactor 'Identify' command support into a single patch
+- Add libcxl APIs for get_lsa
+- Add libcxl APIs for get_health_info
+- Add libcxl APIs for firmware_status and out.size from cmd response
+- Refactor common test helpers to make them more generic
+- Add a hexdump helper in util/
+- Add a new unit test, test/libcxl which tests:
+  - Basic sanity tests
+  - Module unload/load
+  - identify device command
+  - set_lsa (via RAW mode) command
+  - get_lsa command
+  - fuzzes command input/output payload sizes
+- Fix install location of cxl headers
+- Add section 3 man pages for libcxl API documentation (only two pages
+  added so far).
+
+[1]: https://lore.kernel.org/linux-cxl/20210112003403.2944568-1-vishal.l.verma@intel.com/
+
+---
+
+Add a new utility and library to support CXL devices. This comprehends
+the kernel's sysfs layout for CXL devices, and implements a command
+submission harness for CXL mailbox commands via ioctl()s defined by the
+cxl_mem driver.
+
+A 'cxl-list' command is added which uses some of the libcxl APIs to
+display a listing of CXL devices that includes attributes obtained via
+sysfs.
+
+Additionally, a new unit test is added to test the library and kernel
+(ioctl) interfaces. This includes basic functionality tests for a subset
+of the mailbox commands, as well as some negative tests to validate
+graceful handling of malformed commands with unexpected buffer sizing
+for payloads.
+
+The unit tests are tied to the QEMU implementation[2] of CXL devices.
+
+The latest kernel patches can be found at [3].
+An ndctl branch with these patches is also available at [4]
+
+[2]: https://lore.kernel.org/linux-cxl/20210202005948.241655-1-ben.widawsky@intel.com
+[3]: https://lore.kernel.org/linux-cxl/20210217040958.1354670-1-ben.widawsky@intel.com
+[4]: https://github.com/pmem/ndctl/tree/cxl-2.0v2
+
+
+Vishal Verma (13):
+  cxl: add a cxl utility and libcxl library
+  cxl: add a local copy of the cxl_mem UAPI header
+  libcxl: add support for command query and submission
+  libcxl: add support for the 'Identify Device' command
+  test: rename 'ndctl_test' to 'test_ctx'
+  test: rename 'ndctl_test_*' helpers to 'test_*'
+  test: introduce a libcxl unit test
+  libcxl: add GET_HEALTH_INFO mailbox command and accessors
+  libcxl: add support for the 'GET_LSA' command
+  util/hexdump: Add a util helper to print a buffer in hex
+  test/libcxl: add a test for {set, get}_lsa commands
+  Documentation/cxl: add library API documentation
+  test/libcxl: introduce a command size fuzzing test
+
+ Documentation/cxl/cxl-list.txt       |  65 ++
+ Documentation/cxl/cxl.txt            |  34 ++
+ Documentation/cxl/human-option.txt   |   8 +
+ Documentation/cxl/lib/cxl_new.txt    |  43 ++
+ Documentation/cxl/lib/libcxl.txt     |  56 ++
+ Documentation/cxl/verbose-option.txt |   5 +
+ configure.ac                         |   4 +
+ Makefile.am                          |  10 +-
+ Makefile.am.in                       |   5 +
+ cxl/lib/private.h                    |  97 +++
+ cxl/lib/libcxl.c                     | 879 +++++++++++++++++++++++++++
+ cxl/builtin.h                        |   8 +
+ cxl/cxl_mem.h                        | 181 ++++++
+ cxl/libcxl.h                         |  82 +++
+ test.h                               |  40 +-
+ test/libcxl-expect.h                 |  13 +
+ util/filter.h                        |   2 +
+ util/hexdump.h                       |   8 +
+ util/json.h                          |   3 +
+ util/main.h                          |   3 +
+ cxl/cxl.c                            |  95 +++
+ cxl/list.c                           | 113 ++++
+ ndctl/bat.c                          |   8 +-
+ ndctl/test.c                         |   8 +-
+ test/ack-shutdown-count-set.c        |  16 +-
+ test/blk_namespaces.c                |  14 +-
+ test/core.c                          |  32 +-
+ test/dax-dev.c                       |  10 +-
+ test/dax-pmd.c                       |  13 +-
+ test/dax-poison.c                    |   6 +-
+ test/daxdev-errors.c                 |   2 +-
+ test/device-dax.c                    |  24 +-
+ test/dpa-alloc.c                     |  14 +-
+ test/dsm-fail.c                      |  14 +-
+ test/libcxl.c                        | 514 ++++++++++++++++
+ test/libndctl.c                      |  84 +--
+ test/multi-pmem.c                    |  23 +-
+ test/parent-uuid.c                   |  13 +-
+ test/pmem_namespaces.c               |  14 +-
+ test/revoke-devmem.c                 |  12 +-
+ util/filter.c                        |  20 +
+ util/hexdump.c                       |  53 ++
+ util/json.c                          |  26 +
+ .gitignore                           |   5 +
+ Documentation/cxl/Makefile.am        |  58 ++
+ Documentation/cxl/lib/Makefile.am    |  58 ++
+ README.md                            |   2 +-
+ cxl/Makefile.am                      |  21 +
+ cxl/lib/Makefile.am                  |  32 +
+ cxl/lib/libcxl.pc.in                 |  11 +
+ cxl/lib/libcxl.sym                   |  57 ++
+ test/Makefile.am                     |  15 +-
+ 52 files changed, 2754 insertions(+), 179 deletions(-)
+ create mode 100644 Documentation/cxl/cxl-list.txt
+ create mode 100644 Documentation/cxl/cxl.txt
+ create mode 100644 Documentation/cxl/human-option.txt
+ create mode 100644 Documentation/cxl/lib/cxl_new.txt
+ create mode 100644 Documentation/cxl/lib/libcxl.txt
+ create mode 100644 Documentation/cxl/verbose-option.txt
+ create mode 100644 cxl/lib/private.h
+ create mode 100644 cxl/lib/libcxl.c
+ create mode 100644 cxl/builtin.h
+ create mode 100644 cxl/cxl_mem.h
+ create mode 100644 cxl/libcxl.h
+ create mode 100644 test/libcxl-expect.h
+ create mode 100644 util/hexdump.h
+ create mode 100644 cxl/cxl.c
+ create mode 100644 cxl/list.c
+ create mode 100644 test/libcxl.c
+ create mode 100644 util/hexdump.c
+ create mode 100644 Documentation/cxl/Makefile.am
+ create mode 100644 Documentation/cxl/lib/Makefile.am
+ create mode 100644 cxl/Makefile.am
+ create mode 100644 cxl/lib/Makefile.am
+ create mode 100644 cxl/lib/libcxl.pc.in
+ create mode 100644 cxl/lib/libcxl.sym
+
+-- 
+2.29.2
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
