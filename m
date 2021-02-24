@@ -2,86 +2,130 @@ Return-Path: <SRS0=xJ+U=H2=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6305C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Feb 2021 18:46:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDD15C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Feb 2021 23:48:33 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 729E764F10
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Feb 2021 18:46:37 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 729E764F10
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 10DB364E05
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Feb 2021 23:48:31 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 10DB364E05
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 362C5100EC1D9;
-	Wed, 24 Feb 2021 10:46:37 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=pr-tracker-bot@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	by ml01.01.org (Postfix) with ESMTP id 4F00A100F2241;
+	Wed, 24 Feb 2021 15:48:31 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=134.134.136.24; helo=mga09.intel.com; envelope-from=erwin.tsaur@intel.com; receiver=<UNKNOWN> 
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id E3A07100EC1D4
-	for <linux-nvdimm@lists.01.org>; Wed, 24 Feb 2021 10:46:34 -0800 (PST)
-Received: by mail.kernel.org (Postfix) with ESMTPS id 8701064F0F;
-	Wed, 24 Feb 2021 18:46:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1614192394;
-	bh=tFeyr5rkGKHjhfGoWYcCEuWrrPaOmpfGpUdPujLiX0g=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=cIY94Hjv1SBv0MPrfpJOqdnnoFKrAWVYQ/T448oJtRgdjffCOBTuZsad2y/+SBSXL
-	 cr4AUZlrJ0AxmRnYQbYtT/QlcUAH55C8hM2zB28tQq7uxpCyKoXMEVqccqSA/guyx2
-	 TFuOm4UJrjBiPYn0BpN9+HbElTI+0syE0bX3Ye0gur0VQPRIbbc3JIk1OZiejy832S
-	 Ca25xWygjK+mAaVS2uHGQDfAtLv533fx9NXTu5U3b9ZAerUo2Z09HNqf7I9xaOMnND
-	 z6obTvSSB2Xmkhar1HMK0GhJPqnKEgCY+m6XtNwWEDV7/FSYzaI8uGsz63iKiH5sZB
-	 QMvPgzkpB6gfQ==
-Subject: Re: [GIT PULL] libnvdimm + device-dax for v5.12-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <CAPcyv4i1-mwp8B0Y_hR44rGh9qUPuDiZeiUFJ_TJzvPoENa-pQ@mail.gmail.com>
-References: <CAPcyv4i1-mwp8B0Y_hR44rGh9qUPuDiZeiUFJ_TJzvPoENa-pQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAPcyv4i1-mwp8B0Y_hR44rGh9qUPuDiZeiUFJ_TJzvPoENa-pQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.12
-X-PR-Tracked-Commit-Id: 64ffe84320745ea836555ad207ebfb0e896b6167
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: fb9f08548873b4ffa9f1b3f96c37fd85b9a2f8db
-Message-Id: <161419239453.20610.6936263777642654365.pr-tracker-bot@kernel.org>
-Date: Wed, 24 Feb 2021 18:46:34 +0000
-To: Dan Williams <dan.j.williams@intel.com>
-Message-ID-Hash: HFFS7TGAIS4I5RGO3CBMPAR7MPZIA5NA
-X-Message-ID-Hash: HFFS7TGAIS4I5RGO3CBMPAR7MPZIA5NA
-X-MailFrom: pr-tracker-bot@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Linus Torvalds <torvalds@linux-foundation.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+	by ml01.01.org (Postfix) with ESMTPS id 94C04100EC1D5
+	for <linux-nvdimm@lists.01.org>; Wed, 24 Feb 2021 15:48:29 -0800 (PST)
+IronPort-SDR: VtT3alBYpKHn1pXR1Jo4QboGPCwHDYvJrPZEIn9E6ApfACSxMrAGll7SoACLTcnzQr7vIV/zhs
+ vptQZRwnSJZg==
+X-IronPort-AV: E=McAfee;i="6000,8403,9905"; a="185464392"
+X-IronPort-AV: E=Sophos;i="5.81,203,1610438400";
+   d="scan'208";a="185464392"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Feb 2021 15:48:28 -0800
+IronPort-SDR: o86VkoNu65+aHA2VHimRvgdxJ+cQ9ddgscMGXQ0mwxtpJYQ+1jACpfx/Y7oHU9S58iJbgPoDz6
+ NlDVC/a0xy2Q==
+X-IronPort-AV: E=Sophos;i="5.81,203,1610438400";
+   d="scan'208";a="391821210"
+Received: from etsaur-mobl1.amr.corp.intel.com ([10.209.131.141])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Feb 2021 15:48:28 -0800
+From: "Tsaur, Erwin" <erwin.tsaur@intel.com>
+To: linux-nvdimm@lists.01.org
+Subject: [ndctl PATCH] Expose ndctl_bus_nfit_translate_spa as a public function.
+Date: Wed, 24 Feb 2021 15:48:14 -0800
+Message-Id: <20210224234814.1021-1-erwin.tsaur@intel.com>
+X-Mailer: git-send-email 2.30.0
+MIME-Version: 1.0
+Message-ID-Hash: MHUJEUXEYESGKAWYQWI2JKWI3RJU4ZNS
+X-Message-ID-Hash: MHUJEUXEYESGKAWYQWI2JKWI3RJU4ZNS
+X-MailFrom: erwin.tsaur@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: "Tsaur, Erwin" <erwin.tsaur@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/HFFS7TGAIS4I5RGO3CBMPAR7MPZIA5NA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MHUJEUXEYESGKAWYQWI2JKWI3RJU4ZNS/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-The pull request you sent on Tue, 23 Feb 2021 18:47:38 -0800:
+The motivation is to allow access to ACPI defined NVDIMM Root Device _DSM Function Index 5(Translate SPA).  The rest of the _DSM functions, which are mostly ARS related, are already public.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.12
+Basically move ndctl_bus_nfit_translate_spa declaration from private.h to libndctl.h.
+---
+ ndctl/lib/libndctl.sym | 4 ++++
+ ndctl/lib/nfit.c       | 2 +-
+ ndctl/lib/private.h    | 2 --
+ ndctl/libndctl.h       | 2 ++
+ 4 files changed, 7 insertions(+), 3 deletions(-)
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/fb9f08548873b4ffa9f1b3f96c37fd85b9a2f8db
-
-Thank you!
-
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 0a82616..58afb74 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -451,3 +451,7 @@ LIBNDCTL_25 {
+ 	ndctl_bus_clear_fw_activate_nosuspend;
+ 	ndctl_bus_activate_firmware;
+ } LIBNDCTL_24;
++
++LIBNDCTL_26 {
++	ndctl_bus_nfit_translate_spa;
++} LIBNDCTL_25;
+diff --git a/ndctl/lib/nfit.c b/ndctl/lib/nfit.c
+index 6f68fcf..d85682f 100644
+--- a/ndctl/lib/nfit.c
++++ b/ndctl/lib/nfit.c
+@@ -114,7 +114,7 @@ static int is_valid_spa(struct ndctl_bus *bus, unsigned long long spa)
+  *
+  * If success, returns zero, store dimm's @handle, and @dpa.
+  */
+-int ndctl_bus_nfit_translate_spa(struct ndctl_bus *bus,
++NDCTL_EXPORT int ndctl_bus_nfit_translate_spa(struct ndctl_bus *bus,
+ 	unsigned long long address, unsigned int *handle, unsigned long long *dpa)
+ {
+ 
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index ede1300..8f4510e 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -370,8 +370,6 @@ static inline int check_kmod(struct kmod_ctx *kmod_ctx)
+ 	return kmod_ctx ? 0 : -ENXIO;
+ }
+ 
+-int ndctl_bus_nfit_translate_spa(struct ndctl_bus *bus, unsigned long long addr,
+-		unsigned int *handle, unsigned long long *dpa);
+ struct ndctl_cmd *ndctl_bus_cmd_new_err_inj(struct ndctl_bus *bus);
+ struct ndctl_cmd *ndctl_bus_cmd_new_err_inj_clr(struct ndctl_bus *bus);
+ struct ndctl_cmd *ndctl_bus_cmd_new_err_inj_stat(struct ndctl_bus *bus,
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 60e1288..ee517a7 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -237,6 +237,8 @@ unsigned long long ndctl_cmd_clear_error_get_cleared(
+ 		struct ndctl_cmd *clear_err);
+ unsigned int ndctl_cmd_ars_cap_get_clear_unit(struct ndctl_cmd *ars_cap);
+ int ndctl_cmd_ars_stat_get_flag_overflow(struct ndctl_cmd *ars_stat);
++int ndctl_bus_nfit_translate_spa(struct ndctl_bus *bus, unsigned long long addr,
++		unsigned int *handle, unsigned long long *dpa);
+ 
+ /*
+  * Note: ndctl_cmd_smart_get_temperature is an alias for
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.30.0
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
