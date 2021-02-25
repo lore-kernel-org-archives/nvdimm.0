@@ -1,88 +1,70 @@
 Return-Path: <SRS0=Y2MR=H3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: *
-X-Spam-Status: No, score=1.6 required=3.0 tests=BAYES_50,DATE_IN_PAST_06_12,
+X-Spam-Level: **
+X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A1E7C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 19:01:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 238E4C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 22:16:44 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D701A60201
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 19:01:00 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D701A60201
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mindysmusikids.com
+	by mail.kernel.org (Postfix) with ESMTPS id 6EF6364E6B
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 22:16:43 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6EF6364E6B
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=vpass.ne.jp
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9C27B100EAB4D;
-	Thu, 25 Feb 2021 11:01:00 -0800 (PST)
-Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=188.72.187.219; helo=minif56.com; envelope-from=yuimedyleniox@mindysmusikids.com; receiver=<UNKNOWN> 
-Received: from minif56.com (unknown [188.72.187.219])
-	by ml01.01.org (Postfix) with ESMTP id 1C987100EAB44
-	for <linux-nvdimm@lists.01.org>; Thu, 25 Feb 2021 11:00:55 -0800 (PST)
-To: linux-nvdimm@lists.01.org
-Subject: photo shooting for your products
-Message-ID: <062ba1f683bfe6381a007a554e3ac216@rentmyphotobooth.com>
-Date: Thu, 25 Feb 2021 11:26:54 +0100
-From: "Jason" <yuimeyfleniox@mindysmusikids.com>
-MIME-Version: 1.0
-X-Mailer-Sent-By: 1
-Message-ID-Hash: MWYALOP7MVWXYU6BO5IT66OMR4GBOJMD
-X-Message-ID-Hash: MWYALOP7MVWXYU6BO5IT66OMR4GBOJMD
-X-MailFrom: yuimedyleniox@mindysmusikids.com
+	by ml01.01.org (Postfix) with ESMTP id 3927A100EC1EE;
+	Thu, 25 Feb 2021 14:16:43 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=118.27.77.95; helo=vpass.ne.jp; envelope-from=zk@vpass.ne.jp; receiver=<UNKNOWN> 
+Received: from vpass.ne.jp (v118-27-77-95.wj1b.static.cnode.io [118.27.77.95])
+	by ml01.01.org (Postfix) with ESMTP id 79A7F100EF265
+	for <linux-nvdimm@lists.01.org>; Thu, 25 Feb 2021 14:16:39 -0800 (PST)
+Message-ID: <DD0F8FD375FECCD6B75777629F916E4C@vpass.ne.jp>
+From: =?utf-8?B?5LiJ5LqV5L2P5Y+L44Kr44O844OJ?= <zk@vpass.ne.jp>
+To: <linux-nvdimm@lists.01.org>
+Subject: =?utf-8?B?44CQ5LiJ5LqV5L2P5Y+L44Kr44O844OJ44CR44Kr44O844OJ55m76Yyy5oOF5aCx44KS6KiC5q2j44GX?=
+	=?utf-8?B?44Gm44GP44Gg44GV44GE?=
+Date: Fri, 26 Feb 2021 07:16:30 +0900
+Mime-Version: 1.0
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Mailer: Microsoft Outlook Express 6.00.2900.5512
+X-MimeOLE: Produced By Microsoft MimeOLE V10.0.17763.1
+Message-ID-Hash: VQXQGRVEFJTVOJ2BEUJ7TBKNSFC457JY
+X-Message-ID-Hash: VQXQGRVEFJTVOJ2BEUJ7TBKNSFC457JY
+X-MailFrom: zk@vpass.ne.jp
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: wouredichedep@aliyun.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MWYALOP7MVWXYU6BO5IT66OMR4GBOJMD/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VQXQGRVEFJTVOJ2BEUJ7TBKNSFC457JY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; format="flowed"; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-Hi,
-
-Hope all is well.
-I am reaching you to check if you have photo shooting needs for your
-products.
-
-Our product photography studio is specially designed and outfitted with
-professional cameras, lighting, reflectors, diffusers, soft boxes, props,
-and all the tools needed to allow our team to take the product photos.
-
-When our ecommerce photography studio is combined with the experience and
-passion
-of our product photographers, and post production team we have everything
-needed to make your product looks good.
-
-Our studio utilizes the latest in photographic and digital technology.
-Our fully streamlined process allows us to produce a high quality product
-in a streamlined process, which in turn allows us to pass on the savings to
-you.
-Our post production editing process is state of the art.
-
-We use professional-grade displays and calibrate our monitors regularly
-using
-the very latest in advanced color calibration tools. Our photo studio is
-setup to provide highly accurate color reproduction which is essential for
-creating the product pictures.
-
-Our product shoot photographers have extensive experience with all types of
-products, to deliver
-high quality product photos.
-
-Looking forward to start cooperation with your company.
-
-Thanks and Regards,
-Jason Miller
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+IA0KDQogDQogDQoNCiANCg0KIA0KIA0KDQogDQoNCiANCg0KDQoNCiAg44GE44Gk44KC5byK56S+
+44Kr44O844OJ44KS44GU5Yip55So44GE44Gf44Gg44GN44GC44KK44GM44Go44GG44GU44GW44GE
+44G+44GZ44CCDQoNCiAg44GK5a6i5qeY44Gu55m76Yyy5oOF5aCx44GM6ZaT6YGV44Gj44Gm44GE
+44KL44Gf44KB44CB44Kr44O844OJ44KS5L2/55So44Gn44GN44G+44Gb44KT44CC44Ot44Kw44Kk
+44Oz44GX44Gm5L+u5q2j44GX44Gm44GP44Gg44GV44GE44CCDQoNCiANCuKUgeKUgeKUgeKUgeKU
+geKUgeKUgQ0K44GU5aSJ5pu044Gv44GT44Gh44KJ44GL44KJDQrilIHilIHilIHilIHilIHilIHi
+lIENCg0KDQoNCuOBiumbu+ipseOBp+OBruOBiuaJi+e2muOBjQ0K57Sb5aSx55uX6Zuj44OH44K5
+44Kv44CAMDEyMC05MTktNDU244CA77yI5Y+X5LuY5pmC6ZaT77yPMjTmmYLplpPjg7vlubTkuK3n
+hKHkvJHvvIkNCg0KDQoNCuS4ieS6leS9j+WPi+OCq+ODvOODieagquW8j+S8muekvg0K44CSMTA1
+LTgwMTEg5p2x5Lqs6YO95riv5Yy65rW35bK4MeS4geebrjLnlaoyMOWPtyDmsZDnlZnjg5Pjg6vj
+g4fjgqPjg7PjgrANCg0KDQoNCiANCkNvcHlyaWdodCAoQykgMjAyMSBTdW1pdG9tbyBNaXRzdWkg
+Q2FyZCBDby4sIEx0ZC4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KTGludXgtbnZkaW1tIG1haWxpbmcgbGlzdCAtLSBsaW51eC1udmRpbW1AbGlzdHMuMDEu
+b3JnClRvIHVuc3Vic2NyaWJlIHNlbmQgYW4gZW1haWwgdG8gbGludXgtbnZkaW1tLWxlYXZlQGxp
+c3RzLjAxLm9yZwo=
