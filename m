@@ -2,51 +2,81 @@ Return-Path: <SRS0=Y2MR=H3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-1.4 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 413F7C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 07:35:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6841BC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 09:45:17 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 68BC864EF5
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 07:35:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 68BC864EF5
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=lst.de
+	by mail.kernel.org (Postfix) with ESMTPS id A7BE664EC3
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Feb 2021 09:45:16 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A7BE664EC3
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 12409100F2243;
-	Wed, 24 Feb 2021 23:35:33 -0800 (PST)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=213.95.11.211; helo=verein.lst.de; envelope-from=hch@lst.de; receiver=<UNKNOWN> 
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4148C100F2271;
+	Thu, 25 Feb 2021 01:45:16 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::436; helo=mail-pf1-x436.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pf1-x436.google.com (mail-pf1-x436.google.com [IPv6:2607:f8b0:4864:20::436])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 2227A100EC1CE
-	for <linux-nvdimm@lists.01.org>; Wed, 24 Feb 2021 23:35:29 -0800 (PST)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id D893868B05; Thu, 25 Feb 2021 08:35:25 +0100 (CET)
-Date: Thu, 25 Feb 2021 08:35:25 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Subject: Re: [PATCH 5/7] fsdax: Dedup file range to use a compare function
-Message-ID: <20210225073525.GA3448@lst.de>
-References: <20210207170924.2933035-1-ruansy.fnst@cn.fujitsu.com> <20210207170924.2933035-6-ruansy.fnst@cn.fujitsu.com> <20210208151920.GE12872@lst.de> <9193e305-22a1-3928-0675-af1cecd28942@cn.fujitsu.com> <20210209093438.GA630@lst.de> <79b0d65c-95dd-4821-e412-ab27c8cb6942@cn.fujitsu.com> <20210210131928.GA30109@lst.de> <b00cfda5-464c-6161-77c6-6a25b1cc7a77@cn.fujitsu.com> <20210218162018.GT7193@magnolia>
+	by ml01.01.org (Postfix) with ESMTPS id 22AFD100F226D
+	for <linux-nvdimm@lists.01.org>; Thu, 25 Feb 2021 01:45:13 -0800 (PST)
+Received: by mail-pf1-x436.google.com with SMTP id z5so3261072pfe.3
+        for <linux-nvdimm@lists.01.org>; Thu, 25 Feb 2021 01:45:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:cc:subject:in-reply-to:references:date:message-id
+         :mime-version;
+        bh=hk9GCi+OwDFM8NtbnJNJU2KSnU6fknD2DtC3zfb/KO4=;
+        b=qXetonuLtD/XT9xnPPwtJnoitVE+Z1O5WbHZbLifSuPttZgkkSs3BboYJPf25TROxi
+         BSJ0vZCgtUZMCJas2cnYrUOoS+p9sa3hGMNFK3dLQ4k2tZEmA1DB7Bp4TislymfIRdra
+         8ZjzACO0FhMtJz7yXrcsO2KTXjrfIYnh9wytPCfWz+5Me1cBht3T9GkOKCvJByJ/DCb1
+         ieJ4n6qrTUAx0zt1KX0hnbMu/7poGFOYUaUpITiiV1XCEFwBcRP78cLr9VPi8lxSixgb
+         Y5XwGr5zEQr/G15P4IKDocncKy/nhkYvDSziaqEMn5ADqzDYn7PgQFUzz/FuvCxyJni0
+         aAHQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:in-reply-to:references:date
+         :message-id:mime-version;
+        bh=hk9GCi+OwDFM8NtbnJNJU2KSnU6fknD2DtC3zfb/KO4=;
+        b=MlKlwF0JUl065AJg4bG1kpd+/w/MrxGxe0zUMhy6N4VsUesNHraVS7StEATzvqkwAj
+         Dm9km/HjrwDtBCwhRMNjX3K9qU015litTW62IWHROy8GNAg8k8AMnRYfKm0rZSIXnPt5
+         9UxBc9fKLj/tS7j6GOUM6rLuyq18qXYXokJ1VbQxkWIxmh9bUBrKBZ7ZbwL4cuhG+zGj
+         cblOcK03VmBeRkYvyhD4YmjIuvh47J0fD5KYg2ymQzHMjIQ8/ogR60fp0pn6zue10WMv
+         A54NBqmcTInQt2sXq9K9A1x/KxtCHGdZdtJFDXwpsJjwzXWsO/rZR+c7KJtbCDK6ykFp
+         3qSw==
+X-Gm-Message-State: AOAM5305H/dUFHM5IU0Blx48CSpIntz0PtZcLN+9HCMBeZVnxccB1m4h
+	G5+In8zr4Q3qXt0z5B5PDBPYqg==
+X-Google-Smtp-Source: ABdhPJxtp9aYVthuPv0wI4cM7/pqTEdRBLyiZICfT3IGitk/1ylaT9B9/ShOC9P/maO0itI/mH/veA==
+X-Received: by 2002:a63:789:: with SMTP id 131mr2312141pgh.182.1614246313301;
+        Thu, 25 Feb 2021 01:45:13 -0800 (PST)
+Received: from localhost ([103.21.79.4])
+        by smtp.gmail.com with ESMTPSA id v16sm5160432pfu.76.2021.02.25.01.45.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 25 Feb 2021 01:45:11 -0800 (PST)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: QI Fuli <qi.fuli@fujitsu.com>, linux-nvdimm@lists.01.org
+Subject: Re: [ndctl PATCH] ndctl/test: add checking the presence of jq
+ command ahead
+In-Reply-To: <20210203132108.6246-1-qi.fuli@fujitsu.com>
+References: <20210203132108.6246-1-qi.fuli@fujitsu.com>
+Date: Thu, 25 Feb 2021 15:15:08 +0530
+Message-ID: <87ft1keb17.fsf@santosiv.in.ibm.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20210218162018.GT7193@magnolia>
-User-Agent: Mutt/1.5.17 (2007-11-01)
-Message-ID-Hash: 2T6GY7MCCZ6LGCJSZ53H2MU3SPBPM6R4
-X-Message-ID-Hash: 2T6GY7MCCZ6LGCJSZ53H2MU3SPBPM6R4
-X-MailFrom: hch@lst.de
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Christoph Hellwig <hch@lst.de>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, rgoldwyn@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
+Message-ID-Hash: BRCEUJRSEP23VHWNGLCX2R7GJAZAFIXQ
+X-Message-ID-Hash: BRCEUJRSEP23VHWNGLCX2R7GJAZAFIXQ
+X-MailFrom: santosh@fossix.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: QI Fuli <qi.fuli@fujitsu.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2T6GY7MCCZ6LGCJSZ53H2MU3SPBPM6R4/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BRCEUJRSEP23VHWNGLCX2R7GJAZAFIXQ/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -55,20 +85,156 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Thu, Feb 18, 2021 at 08:20:18AM -0800, Darrick J. Wong wrote:
-> > I think a nested call like this is necessary.  That's why I use the open
-> > code way.
-> 
-> This might be a good place to implement an iomap_apply2() loop that
-> actually /does/ walk all the extents of file1 and file2.  There's now
-> two users of this idiom.
 
-Why do we need a special helper for that?
+Hi QI,
 
-> (Possibly structured as a "get next mappings from both" generator
-> function like Matthew Wilcox keeps asking for. :))
+QI Fuli <qi.fuli@fujitsu.com> writes:
 
-OTOH this might be a good first use for that.
+> Due to the lack of jq command, the result of the test will be 'fail'.
+> This patch adds checking the presence of jq commmand ahead.
+> If there is no jq command in the system, the test will be marked as 'skip'.
+>
+> Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
+> Link: https://github.com/pmem/ndctl/issues/141
+
+Could this dependency be made part of configure.ac? Something like
+
+diff --git a/configure.ac b/configure.ac
+index 5ec8d2f..0f2c6c1 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -65,6 +65,13 @@ fi
+ AC_SUBST([XMLTO])
+ fi
+ 
++AC_CHECK_PROG(JQ, [jq], [$(which jq)], [missing])
++if test "x$JQ" = xmissing; then
++       AC_MSG_ERROR([jq needed to validate tests])
++fi
++AC_SUBST([JQ])
++
++
+ AC_C_TYPEOF
+ AC_DEFINE([HAVE_STATEMENT_EXPR], 1, [Define to 1 if you have statement expressions.])
+
+Thanks,
+Santosh
+
+> ---
+>  test/daxdev-errors.sh           | 1 +
+>  test/inject-error.sh            | 2 ++
+>  test/inject-smart.sh            | 1 +
+>  test/label-compat.sh            | 1 +
+>  test/max_available_extent_ns.sh | 1 +
+>  test/monitor.sh                 | 2 ++
+>  test/multi-dax.sh               | 1 +
+>  test/sector-mode.sh             | 2 ++
+>  8 files changed, 11 insertions(+)
+>
+> diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
+> index 6281f32..9547d78 100755
+> --- a/test/daxdev-errors.sh
+> +++ b/test/daxdev-errors.sh
+> @@ -9,6 +9,7 @@ rc=77
+>  . $(dirname $0)/common
+>
+>  check_min_kver "4.12" || do_skip "lacks dax dev error handling"
+> +check_prereq "jq"
+>
+>  trap 'err $LINENO' ERR
+>
+> diff --git a/test/inject-error.sh b/test/inject-error.sh
+> index c636033..7d0b826 100755
+> --- a/test/inject-error.sh
+> +++ b/test/inject-error.sh
+> @@ -11,6 +11,8 @@ err_count=8
+>
+>  . $(dirname $0)/common
+>
+> +check_prereq "jq"
+> +
+>  trap 'err $LINENO' ERR
+>
+>  # sample json:
+> diff --git a/test/inject-smart.sh b/test/inject-smart.sh
+> index 94705df..4ca83b8 100755
+> --- a/test/inject-smart.sh
+> +++ b/test/inject-smart.sh
+> @@ -166,6 +166,7 @@ do_tests()
+>  }
+>
+>  check_min_kver "4.19" || do_skip "kernel $KVER may not support smart (un)injection"
+> +check_prereq "jq"
+>  modprobe nfit_test
+>  rc=1
+>
+> diff --git a/test/label-compat.sh b/test/label-compat.sh
+> index 340b93d..8ab2858 100755
+> --- a/test/label-compat.sh
+> +++ b/test/label-compat.sh
+> @@ -10,6 +10,7 @@ BASE=$(dirname $0)
+>  . $BASE/common
+>
+>  check_min_kver "4.11" || do_skip "may not provide reliable isetcookie values"
+> +check_prereq "jq"
+>
+>  trap 'err $LINENO' ERR
+>
+> diff --git a/test/max_available_extent_ns.sh b/test/max_available_extent_ns.sh
+> index 14d741d..343f3c9 100755
+> --- a/test/max_available_extent_ns.sh
+> +++ b/test/max_available_extent_ns.sh
+> @@ -9,6 +9,7 @@ rc=77
+>  trap 'err $LINENO' ERR
+>
+>  check_min_kver "4.19" || do_skip "kernel $KVER may not support max_available_size"
+> +check_prereq "jq"
+>
+>  init()
+>  {
+> diff --git a/test/monitor.sh b/test/monitor.sh
+> index cdab5e1..28c5541 100755
+> --- a/test/monitor.sh
+> +++ b/test/monitor.sh
+> @@ -13,6 +13,8 @@ smart_supported_bus=""
+>
+>  . $(dirname $0)/common
+>
+> +check_prereq "jq"
+> +
+>  trap 'err $LINENO' ERR
+>
+>  check_min_kver "4.15" || do_skip "kernel $KVER may not support monitor service"
+> diff --git a/test/multi-dax.sh b/test/multi-dax.sh
+> index e932569..8496619 100755
+> --- a/test/multi-dax.sh
+> +++ b/test/multi-dax.sh
+> @@ -9,6 +9,7 @@ rc=77
+>  . $(dirname $0)/common
+>
+>  check_min_kver "4.13" || do_skip "may lack multi-dax support"
+> +check_prereq "jq"
+>
+>  trap 'err $LINENO' ERR
+>
+> diff --git a/test/sector-mode.sh b/test/sector-mode.sh
+> index dd7013e..54fa806 100755
+> --- a/test/sector-mode.sh
+> +++ b/test/sector-mode.sh
+> @@ -6,6 +6,8 @@ rc=77
+>
+>  . $(dirname $0)/common
+>
+> +check_prereq "jq"
+> +
+>  set -e
+>  trap 'err $LINENO' ERR
+>
+> --
+> 2.29.2
+> _______________________________________________
+> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
