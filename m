@@ -6,40 +6,40 @@ X-Spam-Status: No, score=0.1 required=3.0 tests=BAYES_50,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C7B2C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 15:30:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F60CC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 17:46:36 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id C41FC64F0D
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 15:29:59 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org C41FC64F0D
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mitmagazin.com
+	by mail.kernel.org (Postfix) with ESMTPS id A8F3264F1F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 17:46:35 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A8F3264F1F
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mmafightland.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 13F3A100EBBA0;
-	Fri, 26 Feb 2021 07:29:59 -0800 (PST)
-Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=173.254.228.69; helo=mmawarfare.com; envelope-from=hsameaysonmoi@mitmagazin.com; receiver=<UNKNOWN> 
+	by ml01.01.org (Postfix) with ESMTP id 035B1100EAAE1;
+	Fri, 26 Feb 2021 09:46:35 -0800 (PST)
+Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=173.254.228.69; helo=mmawarfare.com; envelope-from=hsamseysonmoi@mmafightland.com; receiver=<UNKNOWN> 
 Received: from mmawarfare.com (unknown [173.254.228.69])
-	by ml01.01.org (Postfix) with ESMTP id 280C5100EC1C6
-	for <linux-nvdimm@lists.01.org>; Fri, 26 Feb 2021 07:29:56 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id E98DF100F225D
+	for <linux-nvdimm@lists.01.org>; Fri, 26 Feb 2021 09:46:32 -0800 (PST)
 To: linux-nvdimm@lists.01.org
-Subject: Remote control distance: about 1000m
-Message-ID: <7e0ed53b1b57babdd752724cc1debde0@dronesgator.com>
-Date: Fri, 26 Feb 2021 16:02:50 +0100
-From: "Jan Wilson" <hsamseysonmoi@mitmagazin.com>
+Subject: check again this smart drone
+Message-ID: <d5e67ed5a8d340041a8460ea2960f0fe@dronesgator.com>
+Date: Fri, 26 Feb 2021 16:31:41 +0100
+From: "Jan Wilson" <hsameyfsonmoi@mmafightland.com>
 MIME-Version: 1.0
 X-Mailer-Sent-By: 1
-Message-ID-Hash: LOG5FFRMUC5D7CA6BGSWAQK3RY3NU5G5
-X-Message-ID-Hash: LOG5FFRMUC5D7CA6BGSWAQK3RY3NU5G5
-X-MailFrom: hsameaysonmoi@mitmagazin.com
+Message-ID-Hash: D46S53PWDMZSQCCGIYTLXEEMORIHOVFY
+X-Message-ID-Hash: D46S53PWDMZSQCCGIYTLXEEMORIHOVFY
+X-MailFrom: hsamseysonmoi@mmafightland.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 Reply-To: jindongshper@aliyun.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LOG5FFRMUC5D7CA6BGSWAQK3RY3NU5G5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/D46S53PWDMZSQCCGIYTLXEEMORIHOVFY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
