@@ -2,56 +2,56 @@ Return-Path: <SRS0=R0py=H4=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.9 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3954C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 00:21:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15014C433E6
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 00:21:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A0B4064F21
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 00:21:39 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A0B4064F21
+	by mail.kernel.org (Postfix) with ESMTPS id B88A1601FA
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 26 Feb 2021 00:21:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B88A1601FA
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 8500C100EAAE4;
-	Thu, 25 Feb 2021 16:21:39 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id 9C782100EAAE2;
+	Thu, 25 Feb 2021 16:21:40 -0800 (PST)
 Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 57583100EAAE0
+	by ml01.01.org (Postfix) with ESMTP id 1B148100EAAE0
 	for <linux-nvdimm@lists.01.org>; Thu, 25 Feb 2021 16:21:37 -0800 (PST)
 X-IronPort-AV: E=Sophos;i="5.81,207,1610380800";
-   d="scan'208";a="104882848"
+   d="scan'208";a="104882847"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 26 Feb 2021 08:21:36 +0800
 Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 5D38D4CE76EF;
-	Fri, 26 Feb 2021 08:21:32 +0800 (CST)
+	by cn.fujitsu.com (Postfix) with ESMTP id 359364CE6D8A;
+	Fri, 26 Feb 2021 08:21:31 +0800 (CST)
 Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
  G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Fri, 26 Feb 2021 08:21:33 +0800
+ (TLS) id 15.0.1497.2; Fri, 26 Feb 2021 08:21:31 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Fri, 26 Feb 2021 08:21:32 +0800
+ id 15.0.1497.2 via Frontend Transport; Fri, 26 Feb 2021 08:21:31 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-fsdevel@vger.kernel.org>
-Subject: [PATCH v2 10/10] fs/xfs: Add dedupe support for fsdax
-Date: Fri, 26 Feb 2021 08:20:30 +0800
-Message-ID: <20210226002030.653855-11-ruansy.fnst@fujitsu.com>
+Subject: [PATCH v2 09/10] fs/xfs: Handle CoW for fsdax write() path
+Date: Fri, 26 Feb 2021 08:20:29 +0800
+Message-ID: <20210226002030.653855-10-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210226002030.653855-1-ruansy.fnst@fujitsu.com>
 References: <20210226002030.653855-1-ruansy.fnst@fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 5D38D4CE76EF.A5A74
+X-yoursite-MailScanner-ID: 359364CE6D8A.A44C2
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-Message-ID-Hash: 73Z5USDNKJS4THFJ4GLXTPLPFRY4EZIR
-X-Message-ID-Hash: 73Z5USDNKJS4THFJ4GLXTPLPFRY4EZIR
+Message-ID-Hash: IAQ5JIINACWV4PXWBI5C3KC2G2P6CJVI
+X-Message-ID-Hash: IAQ5JIINACWV4PXWBI5C3KC2G2P6CJVI
 X-MailFrom: ruansy.fnst@fujitsu.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -59,7 +59,7 @@ CC: darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/73Z5USDNKJS4THFJ4GLXTPLPFRY4EZIR/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/IAQ5JIINACWV4PXWBI5C3KC2G2P6CJVI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -68,110 +68,173 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Add xfs_break_two_dax_layouts() to break layout for tow dax files.  Then
-call compare range function only when files are both DAX or not.
+In fsdax mode, WRITE and ZERO on a shared extent need CoW performed. After
+CoW, new allocated extents needs to be remapped to the file.  So, add an
+iomap_end for dax write ops to do the remapping work.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 ---
- fs/xfs/xfs_file.c    | 20 ++++++++++++++++++++
- fs/xfs/xfs_inode.c   |  8 +++++++-
- fs/xfs/xfs_inode.h   |  1 +
- fs/xfs/xfs_reflink.c |  5 +++--
- 4 files changed, 31 insertions(+), 3 deletions(-)
+ fs/xfs/xfs_bmap_util.c |  3 ++-
+ fs/xfs/xfs_file.c      |  9 +++------
+ fs/xfs/xfs_iomap.c     | 30 +++++++++++++++++++++++++++++-
+ fs/xfs/xfs_iomap.h     |  1 +
+ fs/xfs/xfs_iops.c      | 11 ++++++++---
+ fs/xfs/xfs_reflink.c   |  2 ++
+ 6 files changed, 45 insertions(+), 11 deletions(-)
 
+diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+index 7371a7f7c652..65a8782b6378 100644
+--- a/fs/xfs/xfs_bmap_util.c
++++ b/fs/xfs/xfs_bmap_util.c
+@@ -977,7 +977,8 @@ xfs_free_file_space(
+ 	if (offset + len > XFS_ISIZE(ip))
+ 		len = XFS_ISIZE(ip) - offset;
+ 	error = iomap_zero_range(VFS_I(ip), offset, len, NULL,
+-			&xfs_buffered_write_iomap_ops);
++		  IS_DAX(VFS_I(ip)) ?
++		  &xfs_dax_write_iomap_ops : &xfs_buffered_write_iomap_ops);
+ 	if (error)
+ 		return error;
+ 
 diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 1987d15eab61..82467d08e3ce 100644
+index 5b0f93f73837..1987d15eab61 100644
 --- a/fs/xfs/xfs_file.c
 +++ b/fs/xfs/xfs_file.c
-@@ -784,6 +784,26 @@ xfs_break_dax_layouts(
- 			0, 0, xfs_wait_dax_page(inode));
- }
+@@ -623,11 +623,8 @@ xfs_file_dax_write(
+ 	count = iov_iter_count(from);
  
-+int
-+xfs_break_two_dax_layouts(
-+	struct inode		*src,
-+	struct inode		*dest)
+ 	trace_xfs_file_dax_write(ip, count, pos);
+-	ret = dax_iomap_rw(iocb, from, &xfs_direct_write_iomap_ops);
+-	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
+-		i_size_write(inode, iocb->ki_pos);
+-		error = xfs_setfilesize(ip, pos, ret);
+-	}
++	ret = dax_iomap_rw(iocb, from, &xfs_dax_write_iomap_ops);
++
+ out:
+ 	xfs_iunlock(ip, iolock);
+ 	if (error)
+@@ -1250,7 +1247,7 @@ __xfs_filemap_fault(
+ 
+ 		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL,
+ 				(write_fault && !vmf->cow_page) ?
+-				 &xfs_direct_write_iomap_ops :
++				 &xfs_dax_write_iomap_ops :
+ 				 &xfs_read_iomap_ops);
+ 		if (ret & VM_FAULT_NEEDDSYNC)
+ 			ret = dax_finish_sync_fault(vmf, pe_size, pfn);
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index 7b9ff824e82d..23c6f8c97047 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -771,7 +771,8 @@ xfs_direct_write_iomap_begin(
+ 
+ 		/* may drop and re-acquire the ilock */
+ 		error = xfs_reflink_allocate_cow(ip, &imap, &cmap, &shared,
+-				&lockmode, flags & IOMAP_DIRECT);
++				&lockmode,
++				flags & IOMAP_DIRECT || IS_DAX(inode));
+ 		if (error)
+ 			goto out_unlock;
+ 		if (shared)
+@@ -850,6 +851,33 @@ const struct iomap_ops xfs_direct_write_iomap_ops = {
+ 	.iomap_begin		= xfs_direct_write_iomap_begin,
+ };
+ 
++static int
++xfs_dax_write_iomap_end(
++	struct inode		*inode,
++	loff_t			pos,
++	loff_t			length,
++	ssize_t			written,
++	unsigned int		flags,
++	struct iomap		*iomap)
 +{
-+	int			error;
-+	bool			retry = false;
++	int			error = 0;
++	xfs_inode_t		*ip = XFS_I(inode);
 +
-+retry:
-+	error = xfs_break_dax_layouts(src, &retry);
-+	if (error || retry)
-+		goto retry;
-+
-+	error = xfs_break_dax_layouts(dest, &retry);
-+	if (error || retry)
-+		goto retry;
++	if (pos + written > i_size_read(inode)) {
++		i_size_write(inode, pos + written);
++		error = xfs_setfilesize(ip, pos, written);
++	}
++	if (xfs_is_cow_inode(ip))
++		error = xfs_reflink_end_cow(ip, pos, written);
 +
 +	return error;
 +}
 +
- int
- xfs_break_layouts(
++const struct iomap_ops xfs_dax_write_iomap_ops = {
++	.iomap_begin		= xfs_direct_write_iomap_begin,
++	.iomap_end		= xfs_dax_write_iomap_end,
++};
++
+ static int
+ xfs_buffered_write_iomap_begin(
  	struct inode		*inode,
-diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
-index b7352bc4c815..c11b11e59a83 100644
---- a/fs/xfs/xfs_inode.c
-+++ b/fs/xfs/xfs_inode.c
-@@ -3651,8 +3651,10 @@ xfs_ilock2_io_mmap(
- 	struct xfs_inode	*ip2)
- {
- 	int			ret;
-+	struct inode		*inode1 = VFS_I(ip1);
-+	struct inode		*inode2 = VFS_I(ip2);
+diff --git a/fs/xfs/xfs_iomap.h b/fs/xfs/xfs_iomap.h
+index 7d3703556d0e..a361c2f27cf3 100644
+--- a/fs/xfs/xfs_iomap.h
++++ b/fs/xfs/xfs_iomap.h
+@@ -42,6 +42,7 @@ xfs_aligned_fsb_count(
  
--	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
-+	ret = xfs_iolock_two_inodes_and_break_layout(inode1, inode2);
- 	if (ret)
- 		return ret;
- 	if (ip1 == ip2)
-@@ -3660,6 +3662,10 @@ xfs_ilock2_io_mmap(
- 	else
- 		xfs_lock_two_inodes(ip1, XFS_MMAPLOCK_EXCL,
- 				    ip2, XFS_MMAPLOCK_EXCL);
+ extern const struct iomap_ops xfs_buffered_write_iomap_ops;
+ extern const struct iomap_ops xfs_direct_write_iomap_ops;
++extern const struct iomap_ops xfs_dax_write_iomap_ops;
+ extern const struct iomap_ops xfs_read_iomap_ops;
+ extern const struct iomap_ops xfs_seek_iomap_ops;
+ extern const struct iomap_ops xfs_xattr_iomap_ops;
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index 67c8dc9de8aa..adf4467ab862 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -841,6 +841,7 @@ xfs_setattr_size(
+ 	int			error;
+ 	uint			lock_flags = 0;
+ 	bool			did_zeroing = false;
++	const struct iomap_ops	*ops;
+ 
+ 	ASSERT(xfs_isilocked(ip, XFS_IOLOCK_EXCL));
+ 	ASSERT(xfs_isilocked(ip, XFS_MMAPLOCK_EXCL));
+@@ -887,10 +888,15 @@ xfs_setattr_size(
+ 	 * extension, or zeroing out the rest of the block on a downward
+ 	 * truncate.
+ 	 */
++	if (IS_DAX(inode))
++		ops = &xfs_direct_write_iomap_ops;
++	else
++		ops = &xfs_buffered_write_iomap_ops;
 +
-+	if (IS_DAX(inode1) && IS_DAX(inode2))
-+		ret = xfs_break_two_dax_layouts(inode1, inode2);
-+
- 	return 0;
- }
+ 	if (newsize > oldsize) {
+ 		trace_xfs_zero_eof(ip, oldsize, newsize - oldsize);
+ 		error = iomap_zero_range(inode, oldsize, newsize - oldsize,
+-				&did_zeroing, &xfs_buffered_write_iomap_ops);
++				&did_zeroing, ops);
+ 	} else {
+ 		/*
+ 		 * iomap won't detect a dirty page over an unwritten block (or a
+@@ -902,8 +908,7 @@ xfs_setattr_size(
+ 						     newsize);
+ 		if (error)
+ 			return error;
+-		error = iomap_truncate_page(inode, newsize, &did_zeroing,
+-				&xfs_buffered_write_iomap_ops);
++		error = iomap_truncate_page(inode, newsize, &did_zeroing, ops);
+ 	}
  
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index eca333f5f715..9ed7a2895602 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -431,6 +431,7 @@ enum xfs_prealloc_flags {
- 
- int	xfs_update_prealloc_flags(struct xfs_inode *ip,
- 				  enum xfs_prealloc_flags flags);
-+int	xfs_break_two_dax_layouts(struct inode *inode1, struct inode *inode2);
- int	xfs_break_layouts(struct inode *inode, uint *iolock,
- 		enum layout_break_reason reason);
- 
+ 	if (error)
 diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index dfe4e1912ff9..9a6374550560 100644
+index f5b3a3da36b7..dfe4e1912ff9 100644
 --- a/fs/xfs/xfs_reflink.c
 +++ b/fs/xfs/xfs_reflink.c
-@@ -29,6 +29,7 @@
- #include "xfs_iomap.h"
- #include "xfs_sb.h"
- #include "xfs_ag_resv.h"
-+#include <linux/dax.h>
+@@ -1246,6 +1246,8 @@ xfs_reflink_zero_posteof(
  
- /*
-  * Copy on Write of Shared Blocks
-@@ -1306,8 +1307,8 @@ xfs_reflink_remap_prep(
- 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
- 		goto out_unlock;
+ 	trace_xfs_zero_eof(ip, isize, pos - isize);
+ 	return iomap_zero_range(VFS_I(ip), isize, pos - isize, NULL,
++			IS_DAX(VFS_I(ip)) ?
++			&xfs_dax_write_iomap_ops :
+ 			&xfs_buffered_write_iomap_ops);
+ }
  
--	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	/* Don't share DAX file data with non-DAX file. */
-+	if (IS_DAX(inode_in) != IS_DAX(inode_out))
- 		goto out_unlock;
- 
- 	if (IS_DAX(inode_in))
 -- 
 2.30.1
 
