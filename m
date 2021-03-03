@@ -1,296 +1,102 @@
-Return-Path: <SRS0=5iuj=IA=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=QkFa=IB=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31ADDC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Mar 2021 17:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9396EC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  3 Mar 2021 08:20:24 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id B7D7D64F1A
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  2 Mar 2021 17:49:44 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org B7D7D64F1A
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 227C164E4A
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  3 Mar 2021 08:20:24 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 227C164E4A
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7C222100EB844;
-	Tue,  2 Mar 2021 09:49:44 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::531; helo=mail-ed1-x531.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id AAEF7100EB84C;
+	Wed,  3 Mar 2021 00:20:23 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=hare@suse.de; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 83387100ED49F
-	for <linux-nvdimm@lists.01.org>; Tue,  2 Mar 2021 09:49:41 -0800 (PST)
-Received: by mail-ed1-x531.google.com with SMTP id c6so26383551ede.0
-        for <linux-nvdimm@lists.01.org>; Tue, 02 Mar 2021 09:49:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=G1jNIbHrSTxAMgQLW8j2zNIaeCqH8C/pWqqPUiSjxU0=;
-        b=z61wMQoD4obDZYrGr5vzM7cXLqWh158yp1rO2r0bNbmecFgzWwYJLjBdFB+KZOzB/8
-         4l34RMuywLH3KvcaP8Y/94oUTRXpstJEB0MTvzKYApokwl6q+Scj/RH95PCwNcHlgfuO
-         4uMWFu2Az6g5yrcShaejYitRijoF64SIhA8j7cwSxFbm8qsSHEe6WYw3wB/Fvcy+NtiO
-         v89FFOds+2gWhrH698lt1JMZq0hbFy15fBUQLWBrTggXeb5CdojCkJBcEFU5QxJCSDV3
-         MwsSCQcRY8x14ZDzII/LSQ77Ge870b5ERbOKp3H0hJjXRS1rkW+tHCghwrP8tP0AvTHI
-         N7uQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=G1jNIbHrSTxAMgQLW8j2zNIaeCqH8C/pWqqPUiSjxU0=;
-        b=c80yvSrBkgtOZFrsKI9jJRGe2t8uvlEB9wiSxnkVnKa5Tm96MBURiNAh16Y5/Tk/ll
-         kS8nE3rdHPAFtW78O7+PSzKfiBP7ybM/Gdl2zwZhqz3SzJ3NvC2f2Njp2QVJbCNnGDHt
-         GfZAPgYQmX58US2CmjqRt7ah5otrbuRX29pa8lauHb6xGZ3wSc/e9IxfwzkINJb+tDZ8
-         VTrX6QSsxCfb5CODGFlAiqDupCl3a24XN2KGG2HF1+HChcXaEjJkqgfd2pOtsMSYQGzd
-         zVBtE1jcpAhuCJYlj0k0HyqZ7hlHDmuWvqI/bzemG4uDrkUvDbkTS6rNBzJFs3xatKGV
-         TdUg==
-X-Gm-Message-State: AOAM530kc9mM7I82CKOhb4eDoDj9a5Ey6O/9cGnZ2s7718i2WMrEvOY+
-	2a6wdnZ8BVqbug5y6hYUXiNQdt81vnECT8Ivp7S1Dw==
-X-Google-Smtp-Source: ABdhPJw52xU2AAVDUM7fXxo6dph71Kc7Vf7xblc+YtWfct1Obn+c8f0OfGJHsyuuxwfVWHPK34k5EGOt8jCZ2PZVdvs=
-X-Received: by 2002:a05:6402:b1c:: with SMTP id bm28mr22090543edb.354.1614707379707;
- Tue, 02 Mar 2021 09:49:39 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTPS id 08D6C100EBBCD
+	for <linux-nvdimm@lists.01.org>; Wed,  3 Mar 2021 00:20:19 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id 2075AAD57;
+	Wed,  3 Mar 2021 08:20:18 +0000 (UTC)
+Subject: Re: [RFC PATCH v1 1/6] badblocks: add more helper structure and
+ routines in badblocks.h
+To: Coly Li <colyli@suse.de>, linux-block@vger.kernel.org, axboe@kernel.dk,
+ dan.j.williams@intel.com, vishal.l.verma@intel.com, neilb@suse.de
+References: <20210302040252.103720-1-colyli@suse.de>
+ <20210302040252.103720-2-colyli@suse.de>
+From: Hannes Reinecke <hare@suse.de>
+Message-ID: <96a899a9-151e-ff8c-c61c-900df1122357@suse.de>
+Date: Wed, 3 Mar 2021 09:20:17 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-References: <20210226205126.GX4662@dread.disaster.area> <CAPcyv4iDefA3Y0wUW=p080SYAsM_2TPJba-V-sxdK_BeJMkmsw@mail.gmail.com>
- <20210226212748.GY4662@dread.disaster.area> <CAPcyv4jryJ32R5vOwwEdoU3V8C0B7zu_pCt=7f6A3Gk-9h6Dfg@mail.gmail.com>
- <20210227223611.GZ4662@dread.disaster.area> <CAPcyv4h7XA3Jorcy_J+t9scw0A4KdT2WEwAhE-Nbjc=C2qmkMw@mail.gmail.com>
- <20210228223846.GA4662@dread.disaster.area> <CAPcyv4jzV2RUij2BEvDJLLiK_67Nf1v3M6-jRLKf32x4iOzqng@mail.gmail.com>
- <20210302032805.GM7272@magnolia> <CAPcyv4jXH0F+aii6ZtYQ3=Rx-mOWM7NFHC9wVxacW-b1o_s20g@mail.gmail.com>
- <20210302075736.GJ4662@dread.disaster.area>
-In-Reply-To: <20210302075736.GJ4662@dread.disaster.area>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 2 Mar 2021 09:49:30 -0800
-Message-ID: <CAPcyv4iyTHVW51xocmLO7F6ATgq0rJtQ1nShB=rAmDfzx83EyA@mail.gmail.com>
-Subject: Re: Question about the "EXPERIMENTAL" tag for dax in XFS
-To: Dave Chinner <david@fromorbit.com>
-Message-ID-Hash: 7BNN3NUGXJURPFNM5BGMAZZV6LZEOB5F
-X-Message-ID-Hash: 7BNN3NUGXJURPFNM5BGMAZZV6LZEOB5F
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: "Darrick J. Wong" <djwong@kernel.org>, "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "darrick.wong@oracle.com" <darrick.wong@oracle.com>, "willy@infradead.org" <willy@infradead.org>, "jack@suse.cz" <jack@suse.cz>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-btrfs@vger.kernel.org" <linux-btrfs@vger.kernel.org>, "ocfs2-devel@oss.oracle.com" <ocfs2-devel@oss.oracle.com>, "hch@lst.de" <hch@lst.de>, "rgoldwyn@suse.de" <rgoldwyn@suse.de>, "y-goto@fujitsu.com" <y-goto@fujitsu.com>, "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>, "fnstml-iaas@cn.fujitsu.com" <fnstml-iaas@cn.fujitsu.com>
+In-Reply-To: <20210302040252.103720-2-colyli@suse.de>
+Content-Language: en-US
+Message-ID-Hash: WU7AWXI7U2FDOCP67SEJSISPMD56NYMY
+X-Message-ID-Hash: WU7AWXI7U2FDOCP67SEJSISPMD56NYMY
+X-MailFrom: hare@suse.de
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: antlists@youngman.org.uk, linux-kernel@vger.kernel.org, linux-raid@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/7BNN3NUGXJURPFNM5BGMAZZV6LZEOB5F/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WU7AWXI7U2FDOCP67SEJSISPMD56NYMY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Mon, Mar 1, 2021 at 11:57 PM Dave Chinner <david@fromorbit.com> wrote:
->
-> On Mon, Mar 01, 2021 at 09:41:02PM -0800, Dan Williams wrote:
-> > On Mon, Mar 1, 2021 at 7:28 PM Darrick J. Wong <djwong@kernel.org> wrote:
-> > > > > I really don't see you seem to be telling us that invalidation is an
-> > > > > either/or choice. There's more ways to convert physical block
-> > > > > address -> inode file offset and mapping index than brute force
-> > > > > inode cache walks....
-> > > >
-> > > > Yes, but I was trying to map it to an existing mechanism and the
-> > > > internals of drop_pagecache_sb() are, in coarse terms, close to what
-> > > > needs to happen here.
-> > >
-> > > Yes.  XFS (with rmap enabled) can do all the iteration and walking in
-> > > that function except for the invalidate_mapping_* call itself.  The goal
-> > > of this series is first to wire up a callback within both the block and
-> > > pmem subsystems so that they can take notifications and reverse-map them
-> > > through the storage stack until they reach an fs superblock.
-> >
-> > I'm chuckling because this "reverse map all the way up the block
-> > layer" is the opposite of what Dave said at the first reaction to my
-> > proposal, "can't the mm map pfns to fs inode  address_spaces?".
->
-> Ah, no, I never said that the filesystem can't do reverse maps. I
-> was asking if the mm could directly (brute-force) invalidate PTEs
-> pointing at physical pmem ranges without needing walk the inode
-> mappings. That would be far more efficient if it could be done....
->
-> > Today whenever the pmem driver receives new corrupted range
-> > notification from the lower level nvdimm
-> > infrastructure(nd_pmem_notify) it updates the 'badblocks' instance
-> > associated with the pmem gendisk and then notifies userspace that
-> > there are new badblocks. This seems a perfect place to signal an upper
-> > level stacked block device that may also be watching disk->bb. Then
-> > each gendisk in a stacked topology is responsible for watching the
-> > badblock notifications of the next level and storing a remapped
-> > instance of those blocks until ultimately the filesystem mounted on
-> > the top-level block device is responsible for registering for those
-> > top-level disk->bb events.
-> >
-> > The device gone notification does not map cleanly onto 'struct badblocks'.
->
-> Filesystems are not allowed to interact with the gendisk
-> infrastructure - that's for supporting the device side of a block
-> device. It's a layering violation, and many a filesytem developer
-> has been shouted at for trying to do this. At most we can peek
-> through it to query functionality support from the request queue,
-> but otherwise filesystems do not interact with anything under
-> bdev->bd_disk.
-
-So lets add an api that allows the querying of badblocks by bdev and
-let the block core handle the bd_disk interaction. I see other block
-functionality like blk-integrity reaching through gendisk. The fs need
-not interact with the gendisk directly.
-
->
-> As it is, badblocks are used by devices to manage internal state.
-> e.g. md for recording stripes that need recovery if the system
-> crashes while they are being written out.
-
-I know, I was there when it was invented which is why it was
-top-of-mind when pmem had a need to communicate badblocks. Other block
-drivers have threatened to use it for badblocks tracking, but none of
-those have carried through on that initial interest.
-
->
-> > If an upper level agent really cared about knowing about ->remove()
-> > events before they happened it could maybe do something like:
-> >
-> > dev = disk_to_dev(bdev->bd_disk)->parent;
-> > bus_register_notifier(dev->bus. &disk_host_device_notifier_block)
->
-> Yeah, that's exactly the sort of thing that filesystems have been
-> aggressively discouraged from doing for years.
-
-Yup, it's a layering violation.
-
-> Part of the reason for this is that gendisk based mechanisms are not
-> very good for stacked device error reporting. Part of the problem
-> here is that every layer of the stacked device has to hook the
-> notifier of the block devices underneath it, then translate the
-> event to match the upper block device map, then regenerate the
-> notification for the next layer up. This isn't an efficient way to
-> pass a notification through a series of stacked devices and it is
-> messy and cumbersome to maintain.
-
-It's been messy and cumbersome to route new infrastructure through DM
-every time a new dax_operation arrives. The corrupted_range() routing
-has the same burden. The advantage of badblocks over corrupted_range()
-is that it solves the "what If I miss a notification" problem. Each
-layer of the stack maintains its sector translation of the next level
-errors.
-.
-> It can be effective for getting notifications to userspace about
-> something that happens to a specific block device.
-
-No, it's not block device specific, it's stuck at the disk level. The
-user notification aspect was added for pmem at the disk layer because
-IIRC it was NAKd to add it to the block_device itself.
-
->
-> But The userspace
-> still ends up having to solve the "what does this error resolve to"
-> problem. i.e. Userspace still needs to map that notification to a
-> filesystem, and for data loss events map it to objects within the
-> filesystem, which can be extremely expensive to do from userspace.
-
-Expensive and vulnerable to TOCTOU, this has been the motivation for
-filesystem native awareness of these errors from the beginning.
-
-> This is exactly the sort of userspace error reporting mess that
-> various projects have asked us to try to fix. Plumbing errors
-> internally through the kernel up to the filesystem where the
-> filesytem can point directly to the user data that is affected is a
-> simple, effective solution to the problem. Especially if we then
-> have a generic error notification mechanism for filesystems to emit
-> errors to registered userspace watchers...
-
-Agree, that's the dream worth pursuing.
-
->
-> > I still don't think that solves the need for a separate mechanism for
-> > global dax_device pte invalidation.
->
-> It's just another type of media error because.....
->
-> > I think that global dax_device invalidation needs new kernel
-> > infrastructure to allow internal users, like dm-writecache and future
-> > filesystems using dax for metadata, to take a fault when pmem is
-> > offlined.
->
-> .... if userspace has directly mapped into the cache, and the cache
-> storage goes away, the userspace app has to be killed because we
-> have no idea if the device going away has caused data loss or not.
-> IOWs, if userspace writes direct to the cache device and it hasn't
-> been written back to other storage when it gets yanked, we have just
-> caused data corruption to occur.
-
-If userspace has it direct mapped dirty in the cache when the remove
-fires, there is no opportunity to flush the cache. Just as there is no
-opportunity today with non-DAX and the page cache. The block-queue
-will be invalidated and any dirty in page cache is stranded.
-
-> At minimum, we now have to tell the filesystem that the dirty data
-> in the cache is now bad, and direct map applications that map those
-> dirty ranges need to be killed because their backing store is no
-> longer valid nor does the backup copy contain the data they last
-> wrote. Nor is it acessible by direct access, which is going to be
-> interesting because dynamically changing dax to non-dax access can't
-> be done without forcibly kicking the inode out of the cache. That
-> requires all references to the inode to go away. And that means the
-> event really has to go up to the filesystem.
->
-> But I think the biggest piece of the puzzle that you haven't grokked
-> here is that the dm cache device isn't a linear map - it's made up of
-> random ranges from the underlying devices. Hence the "remove" of a dm
-> cache device turns into a huge number of small, sparse corrupt
-> ranges, not a single linear device remove event.
-
-I am aware that DM is non-linear. The other non-linearity is sector-to-pfn.
-
-> IOWs, device unplug/remove events are not just simple "pass it on"
-> events in a stacked storage setup. There can be non-trivial mappings
-> through the layers, and device disappearance may in fact manifest to
-> the user as data corruption rather than causing data to be
-> inaccessible.
-
-Even MD does not rely on component device notifications for failure
-notifications, it waits for write-errors, and yes losing a component
-of a raid0 is more than a data offline event.
-
-> Hence "remove" notifications just don't work in the storage stack.
-> They need to be translated to block ranges going bad (i.e.  media
-> errors), and reported to higher layers as bad ranges, not as device
-> removal.
-
-Yes, the generic top-level remove event is pretty much useless for
-both the dax pte invalidation and lba range offline notification. I'm
-distinguishing that from knock on events that fire in response to
-->remove() triggering on the disk driver which seems to be where you
-are at as well with the idea to trigger ->corrupted_range(0, EOD) from
-->remove().
-
-There's 2 ways to view the "filesystems have wanted proactive
-notification of remove events from storage for a long time". There's
-either enough pent up demand to convince all parties to come to the
-table and get something done, or there's too much momentum with the
-status quo to overcome.
-
-I do not think it is fair to ask Ruan to solve a problem with brand
-new plumbing that the Linux storage community has not seen fit to
-address for a decade. Not when disk->bb is already plumbed without
-anyone complaining about it.
-
-> The same goes for DAX devices. The moment they can be placed in
-> storage stacks in non-trivial configurations and/or used as cache
-> devices that can be directly accessed over tranditional block
-> devices, we end up with error conditions that can only be mapped as
-> ranges of blocks that have gone bad.
-
-I see plumbing corrupted_range() and using it to communicate removal
-in addition to badblocks in addition to bad pfns as a revolutionary
-change. A reuse of disk->bb for communicating poison sector discovery
-events up the stack and a separate facility to invalidate dax devices
-as evolutionary. The evolutionary change does not preclude the
-eventual revolutionary change, but it has a better chance of making
-forward progress in the near term.
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+T24gMy8yLzIxIDU6MDIgQU0sIENvbHkgTGkgd3JvdGU6DQo+IFRoaXMgcGF0Y2ggYWRkcyB0aGUg
+Zm9sbG93aW5nIGhlbHBlciBzdHJ1Y3R1cmUgYW5kIHJvdXRpbmVzIGludG8NCj4gYmFkYmxvY2tz
+LmgsDQo+IC0gc3RydWN0IGJhZF9jb250ZXh0DQo+ICAgVGhpcyBzdHJ1Y3R1cmUgaXMgdXNlZCBp
+biBpbXByb3ZlZCBiYWRibG9ja3MgY29kZSBmb3IgYmFkIHRhYmxlDQo+ICAgaXRlcmF0aW9uLg0K
+PiAtIEJCX0VORCgpDQo+ICAgVGhlIG1hY3JvIHRvIGN1bGN1bGF0ZSBlbmQgTEJBIG9mIGEgYmFk
+IHJhbmdlIHJlY29yZCBmcm9tIGJhZA0KPiAgIHRhYmxlLg0KPiAtIGJhZGJsb2Nrc19mdWxsKCkg
+YW5kIGJhZGJsb2Nrc19lbXB0eSgpDQo+ICAgVGhlIGlubGluZSByb3V0aW5lcyB0byBjaGVjayB3
+aGV0aGVyIGJhZCB0YWJsZSBpcyBmdWxsIG9yIGVtcHR5Lg0KPiAtIHNldF9jaGFuZ2VkKCkgYW5k
+IGNsZWFyX2NoYW5nZWQoKQ0KPiAgIFRoZSBpbmxpbmUgcm91dGluZXMgdG8gc2V0IGFuZCBjbGVh
+ciAnY2hhbmdlZCcgdGFnIGZyb20gc3RydWN0DQo+ICAgYmFkYmxvY2tzLg0KPiANCj4gVGhlc2Ug
+bmV3IGhlbHBlciBzdHJ1Y3R1cmUgYW5kIHJvdXRpbmVzIGNhbiBoZWxwIHRvIG1ha2UgdGhlIGNv
+ZGUgbW9yZQ0KPiBjbGVhciwgdGhleSB3aWxsIGJlIHVzZWQgaW4gdGhlIGltcHJvdmVkIGJhZGJs
+b2NrcyBjb2RlIGluIGZvbGxvd2luZw0KPiBwYXRjaGVzLg0KPiANCj4gU2lnbmVkLW9mZi1ieTog
+Q29seSBMaSA8Y29seWxpQHN1c2UuZGU+DQo+IC0tLQ0KPiAgaW5jbHVkZS9saW51eC9iYWRibG9j
+a3MuaCB8IDMyICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ICAxIGZpbGUgY2hh
+bmdlZCwgMzIgaW5zZXJ0aW9ucygrKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgv
+YmFkYmxvY2tzLmggYi9pbmNsdWRlL2xpbnV4L2JhZGJsb2Nrcy5oDQo+IGluZGV4IDI0MjYyNzZi
+OWJkMy4uMTY2MTYxODQyZDFmIDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2JhZGJsb2Nr
+cy5oDQo+ICsrKyBiL2luY2x1ZGUvbGludXgvYmFkYmxvY2tzLmgNCj4gQEAgLTE1LDYgKzE1LDcg
+QEANCj4gICNkZWZpbmUgQkJfT0ZGU0VUKHgpCSgoKHgpICYgQkJfT0ZGU0VUX01BU0spID4+IDkp
+DQo+ICAjZGVmaW5lIEJCX0xFTih4KQkoKCh4KSAmIEJCX0xFTl9NQVNLKSArIDEpDQo+ICAjZGVm
+aW5lIEJCX0FDSyh4KQkoISEoKHgpICYgQkJfQUNLX01BU0spKQ0KPiArI2RlZmluZSBCQl9FTkQo
+eCkJKEJCX09GRlNFVCh4KSArIEJCX0xFTih4KSkNCj4gICNkZWZpbmUgQkJfTUFLRShhLCBsLCBh
+Y2spICgoKGEpPDw5KSB8ICgobCktMSkgfCAoKHU2NCkoISEoYWNrKSkgPDwgNjMpKQ0KPiAgDQo+
+ICAvKiBCYWQgYmxvY2sgbnVtYmVycyBhcmUgc3RvcmVkIHNvcnRlZCBpbiBhIHNpbmdsZSBwYWdl
+Lg0KPiBAQCAtNDEsNiArNDIsMTQgQEAgc3RydWN0IGJhZGJsb2NrcyB7DQo+ICAJc2VjdG9yX3Qg
+c2l6ZTsJCS8qIGluIHNlY3RvcnMgKi8NCj4gIH07DQo+ICANCj4gK3N0cnVjdCBiYWRfY29udGV4
+dCB7DQo+ICsJc2VjdG9yX3QJc3RhcnQ7DQo+ICsJc2VjdG9yX3QJbGVuOw0KPiArCWludAkJYWNr
+Ow0KPiArCXNlY3Rvcl90CW9yaWdfc3RhcnQ7DQo+ICsJc2VjdG9yX3QJb3JpZ19sZW47DQo+ICt9
+Ow0KPiArDQpNYXliZSByZW5hbWUgaXQgdG8gJ2JhZGJsb2Nrc19jb250ZXh0Jy4NCkl0J3Mgbm90
+IHRoZSBjb250ZXh0IHdoaWNoIGlzIGJhZCAuLi4NCg0KQ2hlZXJzLA0KDQpIYW5uZXMNCi0tIA0K
+RHIuIEhhbm5lcyBSZWluZWNrZQkJICAgICAgICAgICBLZXJuZWwgU3RvcmFnZSBBcmNoaXRlY3QN
+CmhhcmVAc3VzZS5kZQkJCSAgICAgICAgICAgICAgICAgICs0OSA5MTEgNzQwNTMgNjg4DQpTVVNF
+IFNvZnR3YXJlIFNvbHV0aW9ucyBHZXJtYW55IEdtYkgsIE1heGZlbGRzdHIuIDUsIDkwNDA5IE7D
+vHJuYmVyZw0KSFJCIDM2ODA5IChBRyBOw7xybmJlcmcpLCBHRjogRmVsaXggSW1lbmTDtnJmZmVy
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52
+ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNj
+cmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
