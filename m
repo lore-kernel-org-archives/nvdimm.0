@@ -1,72 +1,116 @@
 Return-Path: <SRS0=MSTB=IC=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-0.8 required=3.0 tests=BAYES_40,DKIM_INVALID,
+	DKIM_SIGNED,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B1D6C433E0
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Mar 2021 10:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 628B7C4332B
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Mar 2021 22:42:57 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id CB30664EF6
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Mar 2021 10:07:46 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CB30664EF6
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=vpass.ne.jp
+	by mail.kernel.org (Postfix) with ESMTPS id 0046664FEB
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  4 Mar 2021 22:42:56 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0046664FEB
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 39709100EB34F;
-	Thu,  4 Mar 2021 02:07:46 -0800 (PST)
-Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=160.251.1.254; helo=vpass.ne.jp; envelope-from=zm@vpass.ne.jp; receiver=<UNKNOWN> 
-Received: from vpass.ne.jp (v160-251-1-254.wcb6.static.cnode.io [160.251.1.254])
-	by ml01.01.org (Postfix) with ESMTP id 25DA4100EF27B
-	for <linux-nvdimm@lists.01.org>; Thu,  4 Mar 2021 02:07:42 -0800 (PST)
-Message-ID: <C71D9936B9ED3920B428F0E359DEBC41@vpass.ne.jp>
-From: =?utf-8?B?5LiJ5LqV5L2P5Y+L44Kr44O844OJ?= <zm@vpass.ne.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?44CQ5LiJ5LqV5L2P5Y+L44Kr44O844OJ44CRVnBhc3PjgYzplbfmnJ/plpPlpInmm7Q=?=
-	=?utf-8?B?44GV44KM44Gm44GE44G+44Gb44KT?=
-Date: Thu, 4 Mar 2021 19:07:34 +0900
-Mime-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2900.5512
-X-MimeOLE: Produced By Microsoft MimeOLE V10.0.17763.1
-Message-ID-Hash: M5SFYXFB47OBQAH4I7V33G67MQGSQINF
-X-Message-ID-Hash: M5SFYXFB47OBQAH4I7V33G67MQGSQINF
-X-MailFrom: zm@vpass.ne.jp
+	by ml01.01.org (Postfix) with ESMTP id BAFBC100EB345;
+	Thu,  4 Mar 2021 14:42:56 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=djwong@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id 76C44100EF271
+	for <linux-nvdimm@lists.01.org>; Thu,  4 Mar 2021 14:42:53 -0800 (PST)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EF7D764FF4;
+	Thu,  4 Mar 2021 22:42:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1614897773;
+	bh=qnYCVH7kx24HUZZshVhHK698ZWbn+eQJdMYwdeGcWq0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=eYsnshJoXNs+g8S9T7aTiyRoV0yR8Ehs3mX5Q6zzwfnNBAJYRW6kKqPw3gRtYTjMk
+	 jyEFsMVzPFKMm3Xedx1PcOQ7h8IYUSN07FvNXZ6taEoSdNtbZbfzoFUARiVa0bVjgC
+	 VSbUSwfKmshPg+4n/d3zrWObdOG05ZEHw74lZUa2sAxIs5JMcY1VrqGFhtT7/cXVOE
+	 aAHmLHHQCDsF2bL252guTmnUemMWkbBTfvb5hX73TyyIyTbTNrHsFQeSIWDon7v693
+	 lGyQfLIvsQTV6PzG0VCZnHkzkQXXuiG5O/zRiZhgetPvnOMXfdxsmp0WpeJzQyTQrv
+	 NFFwjzKElG5iw==
+Date: Thu, 4 Mar 2021 14:42:50 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v3 02/11] blk: Introduce ->corrupted_range() for block
+ device
+Message-ID: <20210304224250.GF3419940@magnolia>
+References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
+ <20210208105530.3072869-3-ruansy.fnst@cn.fujitsu.com>
+ <20210210132139.GC30109@lst.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20210210132139.GC30109@lst.de>
+Message-ID-Hash: WNWEJAWSFC46NNQCD6CXI7WAI6YCGQP6
+X-Message-ID-Hash: WNWEJAWSFC46NNQCD6CXI7WAI6YCGQP6
+X-MailFrom: djwong@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, dm-devel@redhat.com, darrick.wong@oracle.com, david@fromorbit.com, agk@redhat.com, snitzer@redhat.com, rgoldwyn@suse.de, qi.fuli@fujitsu.com, y-goto@fujitsu.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/M5SFYXFB47OBQAH4I7V33G67MQGSQINF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WNWEJAWSFC46NNQCD6CXI7WAI6YCGQP6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-IA0KDQogDQogDQoNCiANCg0KIA0KIA0KDQogDQoNCiANCg0KDQoNCiAg44GE44Gk44KC5byK56S+
-44Kr44O844OJ44KS44GU5Yip55So44GE44Gf44Gg44GN44GC44KK44GM44Go44GG44GU44GW44GE
-44G+44GZ44CCDQoNCiAgVnBhc3Pjga7nmbvpjLLmg4XloLHjga9WcGFzc+OBuOOBruODreOCsOOC
-pOODs+OBruOBv+OBquOCieOBmuOAgeOCpOODs+OCv+ODvOODjeODg+ODiOOCt+ODp+ODg+ODlOOD
-s+OCsOOBrumam+OBq+OAgeOBlOacrOS6uuOCkueiuuiqjeOBmeOCi+mHjeimgeOBquaDheWgseOB
-p+OBmeOBruOBp+OAgeWumuacn+eahOOBquOBlOWkieabtOOCkuOBiumhmOOBhOOBhOOBn+OBl+OB
-vuOBmeOAgg0KDQrnj77lnKjjg63jgrDjgqTjg7PjgZXjgozjgabjgYTjgosNClZwYXNz44OR44K5
-44Ov44O844OJ5pyA57WC5aSJ5pu05pelMjAyMOW5tDjmnIg15pelDQoNCg0KDQogDQrmrKHjgbjp
-gLLjgoANCg0KDQrjgYrpm7voqbHjgafjga7jgYrmiYvntprjgY0NCue0m+Wkseebl+mbo+ODh+OC
-ueOCr+OAgDAxMjAtOTE5LTQ1NuOAgO+8iOWPl+S7mOaZgumWk++8jzI05pmC6ZaT44O75bm05Lit
-54Sh5LyR77yJDQoNCg0KDQrkuInkupXkvY/lj4vjgqvjg7zjg4nmoKrlvI/kvJrnpL4NCuOAkjEw
-NS04MDExIOadseS6rOmDvea4r+WMuua1t+WyuDHkuIHnm64y55WqMjDlj7cg5rGQ55WZ44OT44Or
-44OH44Kj44Oz44KwDQoNCg0KDQogDQpDb3B5cmlnaHQgKEMpIDIwMjEgU3VtaXRvbW8gTWl0c3Vp
-IENhcmQgQ28uLCBMdGQuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAx
-Lm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBs
-aXN0cy4wMS5vcmcK
+On Wed, Feb 10, 2021 at 02:21:39PM +0100, Christoph Hellwig wrote:
+> On Mon, Feb 08, 2021 at 06:55:21PM +0800, Shiyang Ruan wrote:
+> > In fsdax mode, the memory failure happens on block device.  So, it is
+> > needed to introduce an interface for block devices.  Each kind of block
+> > device can handle the memory failure in ther own ways.
+> 
+> As told before: DAX operations please do not add anything to the block
+> device.  We've been working very hard to decouple DAX from the block
+> device, and while we're not done regressing the split should not happen.
+
+I agree with you (Christoph) that (strictly speaking) within the scope of
+the DAX work this isn't needed; xfs should be able to consume the
+->memory_failure events directly and DTRT.
+
+My vision here, however, is to establish upcalls for /both/ types of
+stroage.
+
+Regular block devices can use ->corrupted_range to push error
+notifications upwards through the block stack to a filesystem, and we
+can finally do a teensy bit more with scsi sense data about media
+errors, or thinp wanting to warn the filesystem that it's getting low on
+space and maybe this would be an agreeable time to self-FITRIM, or raid
+noticing that a mirror is inconsistent and can the fs do something to
+resolve the dispute, etc.  Maybe we can use this mechanism to warn a
+filesystem that someone did "echo 1 > /sys/block/sda/device/delete" and
+we had better persist everything while we still can.
+
+Memory devices will use ->memory_failure to tell us about ADR errors,
+and I guess upcoming and past hotremove events.  For fsdax you'd
+probably have to send the announcement and invalidate the current ptes
+to force filesystem pagefaults and the like.
+
+Either way, I think this piece is fine, but I would change the dax
+side to send the ->memory_failure events directly to xfs.
+
+A gap here is that xfs can attach to rt/log devices but we don't
+currently plumb in enough information that get_active_super can find
+the correct filesystem.
+
+I dunno, maybe we should add this to the thread here[1]?
+
+[1] https://lore.kernel.org/linux-xfs/CAPcyv4g3ZwbdLFx8bqMcNvXyrob8y6sBXXu=xPTmTY0VSk5HCw@mail.gmail.com/T/#m55a5c67153d0d10f3ff05a69d7e502914d97ac9d
+
+--D
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
