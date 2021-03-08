@@ -1,126 +1,61 @@
-Return-Path: <SRS0=AQCW=IE=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=v1JN=IG=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=BAYES_20,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A8CCC433E6
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  6 Mar 2021 20:36:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E48F2C433E0
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Mar 2021 01:32:21 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2571B650AE
-	for <linux-nvdimm@archiver.kernel.org>; Sat,  6 Mar 2021 20:36:50 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2571B650AE
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4526665142
+	for <linux-nvdimm@archiver.kernel.org>; Mon,  8 Mar 2021 01:32:21 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4526665142
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=emotioncy.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B9F8D100EBBAC;
-	Sat,  6 Mar 2021 12:36:49 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::629; helo=mail-ej1-x629.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8757A100ED48C
-	for <linux-nvdimm@lists.01.org>; Sat,  6 Mar 2021 12:36:46 -0800 (PST)
-Received: by mail-ej1-x629.google.com with SMTP id hs11so11558614ejc.1
-        for <linux-nvdimm@lists.01.org>; Sat, 06 Mar 2021 12:36:46 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=bVBJNOetXrqKceA6PQT3AoaWCMo1uBzTwNd40e3p5Mg=;
-        b=DUH2TaJDmYKl3P+nqyQnZD/L+UUehgvGZ+JdR6f29HgDHqUZMlDctwBIl8mYEmOyr0
-         N4JfiYpVnsK20wsamLI2lVHA89Wfq08BTq5pazwlWEnowiN+pvdoMlOFkXMkezTctVU6
-         yLVLH/j9zqqOc1XXIzlPNblcwaWBnvPKoE+8ygaflWqyueqL8GQUxJqDZ0IOPsbLAq4D
-         ClAITvBD9MRRxeIdqI+0cvIdl865zgrrN5mPPgRQlFQTjJcqKYMYzsPzMflqD2WkyucY
-         yYqxvUtScFD3cWQ3k6qWXggCW2IBUYcSUf7R3K/wcLL0Zz3r5yXY54vMvwFWm819EQIv
-         72nA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=bVBJNOetXrqKceA6PQT3AoaWCMo1uBzTwNd40e3p5Mg=;
-        b=rneEszRWWQlPg0YtFytY3si8arTOd9BWLBeOZuw68BYT8Y2cxDkDA2UTofCnG5yZC7
-         KdrOy53s4HlMzSQARER9x1NMk+KpsDd2Jn9vkmixwEvtZdE4uWlmEPs93sa+pkEbkVxd
-         5F4OzTfXd9BYX4RkCNOoDeN9ZruBZFVh9KV/MO6fVZU45lWuf6Vb4zlzsHHMpP0XR0RS
-         PqXwHi80i8rSNJyqHBTiaHF9kUHbfSXoVeydU4wgCh6Ay36M9S6RaPacrRemoR/PLzvR
-         Mgc0OH1XQlnbEVSU25fSA96EMABA5rxKByyLjIl6YY2YOS4gUcN0tPgBuRVneSPOezjo
-         YIjA==
-X-Gm-Message-State: AOAM530Q7YDUZ5ibNkYROwnqJlkySMCw454EQwI9rh8o2bao/UmMR9fK
-	/q/ZINC1YGHYdW8+X4lIBa5MlmfzKqLTatKfEVuumw==
-X-Google-Smtp-Source: ABdhPJwWg5JZfa53VPl0WuQEKYMbCdynjlz48fz7pdzLNK+5tXI6itu2L3u8T4IRUn3/J6V3gGOhtuytQtomfVZ9FIo=
-X-Received: by 2002:a17:906:2818:: with SMTP id r24mr8202331ejc.472.1615063004125;
- Sat, 06 Mar 2021 12:36:44 -0800 (PST)
+	by ml01.01.org (Postfix) with ESMTP id CD8B5100EBBC0;
+	Sun,  7 Mar 2021 17:32:20 -0800 (PST)
+Received-SPF: Softfail (mailfrom) identity=mailfrom; client-ip=77.247.110.159; helo=umistamping.com; envelope-from=inquiry@umistamping.com; receiver=<UNKNOWN> 
+Received: from umistamping.com (unknown [77.247.110.159])
+	by ml01.01.org (Postfix) with ESMTP id 589C3100ED49F
+	for <linux-nvdimm@lists.01.org>; Sun,  7 Mar 2021 17:32:16 -0800 (PST)
+From: "Dutco Construction Co." <info@emotioncy.com>
+To: linux-nvdimm@lists.01.org
+Subject: Amended PO- 15115
+Date: 08 Mar 2021 02:32:15 +0100
+Message-ID: <20210308023215.10D6D26C6A4773B6@emotioncy.com>
 MIME-Version: 1.0
-References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com> <20210208105530.3072869-2-ruansy.fnst@cn.fujitsu.com>
-In-Reply-To: <20210208105530.3072869-2-ruansy.fnst@cn.fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 6 Mar 2021 12:36:39 -0800
-Message-ID: <CAPcyv4jqEdPoF5YM+jSYJd74KqRTwbbEum7=moa3=Wyn6UyU9g@mail.gmail.com>
-Subject: Re: [PATCH v3 01/11] pagemap: Introduce ->memory_failure()
-To: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-Message-ID-Hash: TEGINT2B2UVJGWAOP4LE474EN7FY3FR7
-X-Message-ID-Hash: TEGINT2B2UVJGWAOP4LE474EN7FY3FR7
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, device-mapper development <dm-devel@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>, qi.fuli@fujitsu.com, Yasunori Goto <y-goto@fujitsu.com>
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0012_78A32237.A459DE09"
+Message-ID-Hash: CV2U4GBH5WLKAPEAAXH2WMXKVXWYF6NN
+X-Message-ID-Hash: CV2U4GBH5WLKAPEAAXH2WMXKVXWYF6NN
+X-MailFrom: inquiry@umistamping.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/TEGINT2B2UVJGWAOP4LE474EN7FY3FR7/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/CV2U4GBH5WLKAPEAAXH2WMXKVXWYF6NN/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0012_78A32237.A459DE09
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Mon, Feb 8, 2021 at 2:55 AM Shiyang Ruan <ruansy.fnst@cn.fujitsu.com> wrote:
->
-> When memory-failure occurs, we call this function which is implemented
-> by each kind of devices.  For the fsdax case, pmem device driver
-> implements it.  Pmem device driver will find out the block device where
-> the error page locates in, and try to get the filesystem on this block
-> device.  And finally call filesystem handler to deal with the error.
-> The filesystem will try to recover the corrupted data if possiable.
->
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
-> ---
->  include/linux/memremap.h | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-> index 79c49e7f5c30..0bcf2b1e20bd 100644
-> --- a/include/linux/memremap.h
-> +++ b/include/linux/memremap.h
-> @@ -87,6 +87,14 @@ struct dev_pagemap_ops {
->          * the page back to a CPU accessible page.
->          */
->         vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
-> +
-> +       /*
-> +        * Handle the memory failure happens on one page.  Notify the processes
-> +        * who are using this page, and try to recover the data on this page
-> +        * if necessary.
-> +        */
-> +       int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
-> +                             int flags);
->  };
-
-After the conversation with Dave I don't see the point of this. If
-there is a memory_failure() on a page, why not just call
-memory_failure()? That already knows how to find the inode and the
-filesystem can be notified from there.
-
-Although memory_failure() is inefficient for large range failures, I'm
-not seeing a better option, so I'm going to test calling
-memory_failure() over a large range whenever an in-use dax-device is
-hot-removed.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+------=_NextPart_000_0012_78A32237.A459DE09--
