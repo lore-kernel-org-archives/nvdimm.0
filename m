@@ -2,57 +2,81 @@ Return-Path: <SRS0=9ZnK=IH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.7 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A942C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  9 Mar 2021 07:55:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49258C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  9 Mar 2021 16:18:53 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 52F1364F0F
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  9 Mar 2021 07:55:10 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 52F1364F0F
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
+	by mail.kernel.org (Postfix) with ESMTPS id 9DFC16518C
+	for <linux-nvdimm@archiver.kernel.org>; Tue,  9 Mar 2021 16:18:52 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9DFC16518C
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 30BF4100EB823;
-	Mon,  8 Mar 2021 23:55:10 -0800 (PST)
-Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 2EB23100EBB63
-	for <linux-nvdimm@lists.01.org>; Mon,  8 Mar 2021 23:55:07 -0800 (PST)
-Content-Type: text/plain; charset="utf-8"
+	by ml01.01.org (Postfix) with ESMTP id 67ED4100EB834;
+	Tue,  9 Mar 2021 08:18:52 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=rgoldwyn@suse.de; receiver=<UNKNOWN> 
+Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id C724C100ED497
+	for <linux-nvdimm@lists.01.org>; Tue,  9 Mar 2021 08:18:49 -0800 (PST)
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+	by mx2.suse.de (Postfix) with ESMTP id D8065AF0C;
+	Tue,  9 Mar 2021 16:18:47 +0000 (UTC)
+Date: Tue, 9 Mar 2021 10:19:06 -0600
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: Re: [PATCH v2 00/10] fsdax,xfs: Add reflink&dedupe support for fsdax
+Message-ID: <20210309161906.jjd7iw2y6hcst5c3@fiona>
+References: <20210226002030.653855-1-ruansy.fnst@fujitsu.com>
 MIME-Version: 1.0
-Subject: Learn how to proceed for Cash App Card Activation from the techies
-From: "sophia smith" <sophia444smith@gmail.com>
-To: linux-nvdimm@lists.01.org
-Date: Tue, 09 Mar 2021 07:55:07 -0000
-Message-ID: <20210309075507.2868.87989@ml01.vlan13.01.org>
-User-Agent: HyperKitty on https://lists.ofono.org/
-Message-ID-Hash: VHO4RQV2SNVOVMXOQVO4UL4N5QSAIBMJ
-X-Message-ID-Hash: VHO4RQV2SNVOVMXOQVO4UL4N5QSAIBMJ
-X-MailFrom: sophia444smith@gmail.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+Content-Disposition: inline
+In-Reply-To: <20210226002030.653855-1-ruansy.fnst@fujitsu.com>
+Message-ID-Hash: 4WOWNNP5JXA4Q7YV3E6AAP7S7BQCSKJX
+X-Message-ID-Hash: 4WOWNNP5JXA4Q7YV3E6AAP7S7BQCSKJX
+X-MailFrom: rgoldwyn@suse.de
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/VHO4RQV2SNVOVMXOQVO4UL4N5QSAIBMJ/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/4WOWNNP5JXA4Q7YV3E6AAP7S7BQCSKJX/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-RG9u4oCZdCB5b3Uga25vdyBhYm91dCBDYXNoIEFwcCBDYXJkIEFjdGl2YXRpb24/DQpXYW50IHNv
-bWUgdGVjaG5pY2FsIGhlbHAgZm9yIGFjdGl2YXRpb24/DQpJZiB5ZXMgdGhlbiBkb27igJl0IGdl
-dCB0cm91YmxlZCBhcyBjYXNoIGFwcCB0ZWNobmljYWwgdGVhbSBpcyBhdmFpbGFibGUgYXJvdW5k
-IHRoZSBjbG9jayBmb3IgeW91LiBPdXIgY2FzaCBhcHAgZXhwZXJ0cyB3aWxsIGhlbHAgeW91IHRv
-IGlkZW50aWZ5IGFuZCByZWN0aWZ5IHRoZSBwcm9ibGVtcyB3aXRoIGV4YWN0IHNvbHV0aW9ucy4N
-Cmh0dHBzOi8vd3d3LmFwcGxlLXN1cHBvcnRwaG9uZW51bWJlci5jb20vYmxvZy9hY3RpdmF0ZS1j
-YXNoLWFwcC1jYXJkCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9y
-ZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0
-cy4wMS5vcmcK
+Hi Shiang,
+
+Thanks for picking up this work.
+
+On  8:20 26/02, Shiyang Ruan wrote:
+> This patchset is attempt to add CoW support for fsdax, and take XFS,
+> which has both reflink and fsdax feature, as an example.
+
+How does this work for read sequence for two different files
+mapped to the same extent, both residing in DAX?
+
+If two different files read the same shared extent, which file
+would resultant page->mapping->host point to?
+
+This problem is listed as a TODO over dax_associate_entry() and is
+still not fixed.
+
+<snip>
+
+-- 
+Goldwyn
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
