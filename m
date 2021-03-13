@@ -2,58 +2,80 @@ Return-Path: <SRS0=dRnh=IL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-0.5 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
+	DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7DD1C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 13 Mar 2021 13:11:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 577AAC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 13 Mar 2021 16:24:41 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4BC2964F17
-	for <linux-nvdimm@archiver.kernel.org>; Sat, 13 Mar 2021 13:11:42 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4BC2964F17
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=angband.pl
+	by mail.kernel.org (Postfix) with ESMTPS id 9E43864F19
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 13 Mar 2021 16:24:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 9E43864F19
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 9144B100EF27E;
-	Sat, 13 Mar 2021 05:11:41 -0800 (PST)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=51.83.246.204; helo=tartarus.angband.pl; envelope-from=kilobyte@angband.pl; receiver=<UNKNOWN> 
-Received: from tartarus.angband.pl (tartarus.angband.pl [51.83.246.204])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id D6000100ED48A;
+	Sat, 13 Mar 2021 08:24:39 -0800 (PST)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::b33; helo=mail-yb1-xb33.google.com; envelope-from=ngompa13@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7BDB8100EF270
-	for <linux-nvdimm@lists.01.org>; Sat, 13 Mar 2021 05:11:36 -0800 (PST)
-Received: from kilobyte by tartarus.angband.pl with local (Exim 4.94)
-	(envelope-from <kilobyte@angband.pl>)
-	id 1lL3yz-00GJp4-Ak; Sat, 13 Mar 2021 14:07:05 +0100
-Date: Sat, 13 Mar 2021 14:07:05 +0100
-From: Adam Borowski <kilobyte@angband.pl>
-To: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH v2 00/10] fsdax,xfs: Add reflink&dedupe support for fsdax
-Message-ID: <YEy4+SPUvQkL44PQ@angband.pl>
+	by ml01.01.org (Postfix) with ESMTPS id DA498100EF250
+	for <linux-nvdimm@lists.01.org>; Sat, 13 Mar 2021 08:24:37 -0800 (PST)
+Received: by mail-yb1-xb33.google.com with SMTP id u75so28670400ybi.10
+        for <linux-nvdimm@lists.01.org>; Sat, 13 Mar 2021 08:24:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=aXi6zxmykvKGGuEUIknBGQuu/CrpF+OFk8aqg1g8+Js=;
+        b=Hv71HUzmf0Lv3L07Y9vPI88fr2tkUa/1JbFZGy51jjbh9n4cRQ+P6rLbvPAhZMLbg5
+         ixsUkRYdDUhei4YCiRy0287CIkP8b3Jg9TpHICyCGV2xDgcQFoYiRrPDp0LcPbNyPobt
+         e2mB8WjIyZJjUgnIK3eEg9rREEgBthIupmC5k7TJkMd1BdMNglR5MTBljFc4WnZL0Tv/
+         2A5yFWAf2SP7q2tspr8wPFHgGP1dhWKjLEJrKe1jxyEujMO/6QhrAuiX6efY9Q0tZhFG
+         jbv3PaYMyafnqAK7BZW4C9hHl2HDt27Z0jCW48yq0cRe9cKlFDPeNt9KBY4Z6kTHjtIk
+         4+5Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=aXi6zxmykvKGGuEUIknBGQuu/CrpF+OFk8aqg1g8+Js=;
+        b=peSl/wT3DNTuPUWddx/wGQotSwtjpdncQacVH5gcTLNNbMCGEwcLcOrHjsHGHQTuWK
+         ZL/pcG/brKeQEKrEmmaURXvnIvHJhiZhFy4AlOU2SVQYa6MyymSUZoFjQgPXEqY7GnPh
+         VKHyzl4z7ajWmRLScbdgue0Dp3791pSGXrK9JZsTmuqahBsnpBiZdhX/S/6vd9YhhuFs
+         E9uRpKon+Ekiz9xeqeREW7+qYxVO0bcXQnDlQsueO5RzQsPgTpUR/LJMh85YolfypA80
+         J93638hfsGwYK03NAwthSd/4Vy2ZVmNRgT77XHPukOiCiRKir+7zeUDzBM9Np1aSH36O
+         tSbA==
+X-Gm-Message-State: AOAM5313wKY3XT9eWLhSaBt8ZLPwVQkMKKN2kWOLrtDoJI5QXh1qjoNl
+	zGazSiQ2/L2vTO+6WYnafEMiZwfc1/Z/qClz4HI=
+X-Google-Smtp-Source: ABdhPJwtKc3ckDh1wM2gREfAQUcazj9bOTqT8gJ/CC1jACL5d+N8mbIM5sD/vFtR/QEb1ipgGC33qgcC6cjdF7XgPjg=
+X-Received: by 2002:a25:424f:: with SMTP id p76mr27228411yba.109.1615652676401;
+ Sat, 13 Mar 2021 08:24:36 -0800 (PST)
+MIME-Version: 1.0
 References: <20210226002030.653855-1-ruansy.fnst@fujitsu.com>
  <CAEg-Je-OLidbfzHCJvY55x+-cOfiUxX8CJ1AeN8VxXAVuVyxKQ@mail.gmail.com>
- <20210310130227.GN3479805@casper.infradead.org>
- <20210310142159.kudk7q2ogp4yqn36@fiona>
- <20210310142643.GQ3479805@casper.infradead.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20210310142643.GQ3479805@casper.infradead.org>
-X-Junkbait: aaron@angband.pl, zzyx@angband.pl
-X-SA-Exim-Connect-IP: <locally generated>
-X-SA-Exim-Mail-From: kilobyte@angband.pl
-X-SA-Exim-Scanned: No (on tartarus.angband.pl); SAEximRunCond expanded to false
-Message-ID-Hash: 2ZS2WQJOFQPG3CPLF5ELK5WMLMTN6QQV
-X-Message-ID-Hash: 2ZS2WQJOFQPG3CPLF5ELK5WMLMTN6QQV
-X-MailFrom: kilobyte@angband.pl
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Goldwyn Rodrigues <rgoldwyn@suse.de>, Neal Gompa <ngompa13@gmail.com>, Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, darrick.wong@oracle.com, jack@suse.cz, viro@zeniv.linux.org.uk, Btrfs BTRFS <linux-btrfs@vger.kernel.org>, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de
+ <20210310130227.GN3479805@casper.infradead.org> <20210310142159.kudk7q2ogp4yqn36@fiona>
+ <20210310142643.GQ3479805@casper.infradead.org> <YEy4+SPUvQkL44PQ@angband.pl>
+In-Reply-To: <YEy4+SPUvQkL44PQ@angband.pl>
+From: Neal Gompa <ngompa13@gmail.com>
+Date: Sat, 13 Mar 2021 11:24:00 -0500
+Message-ID: <CAEg-Je-JCW5xa6w5Z9n7+UNnLju251SmqnXiReA2v41fFaXAtw@mail.gmail.com>
+Subject: Re: [PATCH v2 00/10] fsdax,xfs: Add reflink&dedupe support for fsdax
+To: Adam Borowski <kilobyte@angband.pl>
+Message-ID-Hash: FMDI5AYB3FZAMFNAZGD6LSAFSHTS763W
+X-Message-ID-Hash: FMDI5AYB3FZAMFNAZGD6LSAFSHTS763W
+X-MailFrom: ngompa13@gmail.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: Matthew Wilcox <willy@infradead.org>, Goldwyn Rodrigues <rgoldwyn@suse.de>, Shiyang Ruan <ruansy.fnst@fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <darrick.wong@oracle.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, Btrfs BTRFS <linux-btrfs@vger.kernel.org>, ocfs2-devel@oss.oracle.com, david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2ZS2WQJOFQPG3CPLF5ELK5WMLMTN6QQV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FMDI5AYB3FZAMFNAZGD6LSAFSHTS763W/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -62,19 +84,19 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 
-T24gV2VkLCBNYXIgMTAsIDIwMjEgYXQgMDI6MjY6NDNQTSArMDAwMCwgTWF0dGhldyBXaWxjb3gg
-d3JvdGU6DQo+IE9uIFdlZCwgTWFyIDEwLCAyMDIxIGF0IDA4OjIxOjU5QU0gLTA2MDAsIEdvbGR3
-eW4gUm9kcmlndWVzIHdyb3RlOg0KPiA+IERBWCBvbiBidHJmcyBoYXMgYmVlbiBhdHRlbXB0ZWRb
-MV0uIE9mIGNvdXJzZSwgd2UgY291bGQgbm90DQo+IA0KPiBCdXQgd2h5PyAgQSBjb21wbGV0ZW5l
-c3MgZmV0aXNoPyAgSSBkb24ndCB1bmRlcnN0YW5kIHdoeSB5b3UgZGVjaWRlZA0KPiB0byBkbyB0
-aGlzIHdvcmsuDQoNCiogeGZzIGNhbiBzaGFwc2hvdCBvbmx5IHNpbmdsZSBmaWxlcywgYnRyZnMg
-ZW50aXJlIHN1YnZvbHVtZXMNCiogYnRyZnMtc2VuZHxyZWNlaXZlDQoqIGVudW1lcmF0aW9uIG9m
-IGNoYW5nZWQgcGFydHMgb2YgYSBmaWxlDQoNCg0KTWVvdyENCi0tIA0K4qKA4qO04qC+4qC74qK2
-4qOm4qCAIEkndmUgcmVhZCBhbiBhcnRpY2xlIGFib3V0IGhvdyBsaXZlbHkgaGFwcHkgbXVzaWMg
-Ym9vc3RzDQrio77ioIHioqDioJLioIDio7/ioYEgcHJvZHVjdGl2aXR5LiAgWW91IGNhbiByZWFk
-IGl0LCB0b28sIHlvdSBqdXN0IG5lZWQgdGhlDQrior/ioYTioJjioLfioJrioIvioIAgcmlnaHQg
-bXVzaWMgd2hpbGUgZG9pbmcgc28uICBJIHJlY29tbWVuZCBTa2VwdGljaXNtDQrioIjioLPio4Ti
-oIDioIDioIDioIAgKGZ1bmVyYWwgZG9vbSBtZXRhbCkuCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxp
-bnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
+T24gU2F0LCBNYXIgMTMsIDIwMjEgYXQgODowOSBBTSBBZGFtIEJvcm93c2tpIDxraWxvYnl0ZUBh
+bmdiYW5kLnBsPiB3cm90ZToNCj4NCj4gT24gV2VkLCBNYXIgMTAsIDIwMjEgYXQgMDI6MjY6NDNQ
+TSArMDAwMCwgTWF0dGhldyBXaWxjb3ggd3JvdGU6DQo+ID4gT24gV2VkLCBNYXIgMTAsIDIwMjEg
+YXQgMDg6MjE6NTlBTSAtMDYwMCwgR29sZHd5biBSb2RyaWd1ZXMgd3JvdGU6DQo+ID4gPiBEQVgg
+b24gYnRyZnMgaGFzIGJlZW4gYXR0ZW1wdGVkWzFdLiBPZiBjb3Vyc2UsIHdlIGNvdWxkIG5vdA0K
+PiA+DQo+ID4gQnV0IHdoeT8gIEEgY29tcGxldGVuZXNzIGZldGlzaD8gIEkgZG9uJ3QgdW5kZXJz
+dGFuZCB3aHkgeW91IGRlY2lkZWQNCj4gPiB0byBkbyB0aGlzIHdvcmsuDQo+DQo+ICogeGZzIGNh
+biBzaGFwc2hvdCBvbmx5IHNpbmdsZSBmaWxlcywgYnRyZnMgZW50aXJlIHN1YnZvbHVtZXMNCj4g
+KiBidHJmcy1zZW5kfHJlY2VpdmUNCj4gKiBlbnVtZXJhdGlvbiBvZiBjaGFuZ2VkIHBhcnRzIG9m
+IGEgZmlsZQ0KPg0KDQpYRlMgY2Fubm90IGRvIHNuYXBzaG90cyBzaW5jZSBpdCBsYWNrcyBtZXRh
+ZGF0YSBDT1cuIFhGUyByZWZsaW5raW5nIGlzDQpwcmltYXJpbHkgZm9yIHNwYWNlIGVmZmljaWVu
+Y3kuDQoNCg0KDQotLSANCuecn+Wun+OBr+OBhOOBpOOCguS4gOOBpO+8gS8gQWx3YXlzLCB0aGVy
+ZSdzIG9ubHkgb25lIHRydXRoIQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0IC0tIGxpbnV4LW52ZGltbUBsaXN0
+cy4wMS5vcmcKVG8gdW5zdWJzY3JpYmUgc2VuZCBhbiBlbWFpbCB0byBsaW51eC1udmRpbW0tbGVh
+dmVAbGlzdHMuMDEub3JnCg==
