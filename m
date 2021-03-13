@@ -1,143 +1,110 @@
-Return-Path: <SRS0=UiaJ=IK=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=dRnh=IL=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=0.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,HK_LOTTO,LOTS_OF_MONEY,MAILING_LIST_MULTI,
-	MONEY_FREEMAIL_REPTO,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E12B0C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Mar 2021 20:04:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF8EC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 13 Mar 2021 02:35:42 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id DC71D64F86
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 12 Mar 2021 20:04:05 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DC71D64F86
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=cooperatic.fr
+	by mail.kernel.org (Postfix) with ESMTPS id DADF064F48
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 13 Mar 2021 02:35:41 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org DADF064F48
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B2781100EC1C6;
-	Fri, 12 Mar 2021 12:04:05 -0800 (PST)
-Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=2001:bc8:6006:2025:aa1e:84ff:fef2:9f51; helo=cooperatic.fr; envelope-from=support@cooperatic.fr; receiver=<UNKNOWN> 
-Received: from cooperatic.fr (unknown [IPv6:2001:bc8:6006:2025:aa1e:84ff:fef2:9f51])
+	by ml01.01.org (Postfix) with ESMTP id 6C6DB100EC1E7;
+	Fri, 12 Mar 2021 18:35:41 -0800 (PST)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 3C5A8100ED49E
-	for <linux-nvdimm@lists.01.org>; Fri, 12 Mar 2021 12:04:00 -0800 (PST)
-To: linux-nvdimm@lists.01.org
-Subject: Hallo und Guten Tag,
-Date: Fri, 12 Mar 2021 20:03:57 +0000
-From: El Gordo de la primitiva  lotterie spanien <support@cooperatic.fr>
-Message-ID: <eaa9eb8843749cbd319c1a1de4b1294d@cooperatic.fr>
+	by ml01.01.org (Postfix) with ESMTPS id 9D51C100EC1CD
+	for <linux-nvdimm@lists.01.org>; Fri, 12 Mar 2021 18:35:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=4QdtxG0hSq/IIvCfi+gr9son1T9syNKPmuqqjfe6uS4=; b=Xs2F87UU5qSNJGluefg+EQlHCw
+	VWctJEFYCDH8CIeeIgqkkiIOhBJI5tXiz5SC/ROPvop9funPRzNVhpJJZcK4FZ3vXwNJECHfwEbu3
+	2diC4nMy+htV6IyCHy7InnsVjMM2+TNvGchkxksN7rYYw5vPXImSi7MD0HmCl86nXG50gon+pjhUz
+	MPL/dgf4Uj2YEAIbk9EMNyur2pEyKUnuE4JE+WB4yHzDWxmOjx6d87XalDgI31DfGCW71Z4Z1Y8jf
+	9Zgvf5YievILvzY03SaeIvCZbGCPfOd+7cZUOAeWTS7RpBjezGvuU6mAIYiSToQ5JtarJyDRQ/0ti
+	PJLxnvDg==;
+Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+	id 1lKu7d-00CctL-AK; Sat, 13 Mar 2021 02:35:25 +0000
+Date: Sat, 13 Mar 2021 02:35:21 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
+Subject: Re: [PATCH v2 0/4] Remove nrexceptional tracking
+Message-ID: <20210313023521.GG2577561@casper.infradead.org>
+References: <20201026151849.24232-1-willy@infradead.org>
+ <20210121184334.GA4127393@casper.infradead.org>
 MIME-Version: 1.0
-Message-ID-Hash: JOHEAKU4APVPULI3VDKRX36GY7XYR7T3
-X-Message-ID-Hash: JOHEAKU4APVPULI3VDKRX36GY7XYR7T3
-X-MailFrom: support@cooperatic.fr
+Content-Disposition: inline
+In-Reply-To: <20210121184334.GA4127393@casper.infradead.org>
+Message-ID-Hash: ZG6UBVZC2KOHHJFOVQNU4Q7EWHJQLQW2
+X-Message-ID-Hash: ZG6UBVZC2KOHHJFOVQNU4Q7EWHJQLQW2
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
-Reply-To: europromo.es.spain@europemail.com
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/JOHEAKU4APVPULI3VDKRX36GY7XYR7T3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZG6UBVZC2KOHHJFOVQNU4Q7EWHJQLQW2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-RWwgR29yZG8gZGUgbGEgcHJpbWl0aXZhICBsb3R0ZXJpZSBzcGFuaWVuICAgICAgICAgICAgICAg
-ICAgICAgICAgDQpBZHJlc3NlOkNhbGxlIGRlbCBQcsOtbmNpcGUgZGUgVmVyZ2FyYSwgMzgsIDI4
-MDAxDQpNYWRyaWQgRXNwYcOxYV0gICAgDQpLb250YWt0IGF1Zm5laG1lbiB1bnRlcjpdIDM0NjAy
-IDgxMCAxODUgZmF4IDM0OTM1NDU3NDkwXQ0KRS1tYWlsOl1hbnNwcnVjaGdld2lubi5tbXQuZXNA
-c3BhaW5tYWlsLmNvbV0NCg0KQWt0ZW56ZWljaGVuOl1QMDkvMDEvMDIvMjAyMS5dDQpMb3NudW1t
-ZXI6XSBFU1AgNDQ0Ny8xMTQ2NDExODgwMjAxXQ0KRGF0dW06IDA2LzAzLzIwMjFdDQoNCkhhbGxv
-LCAgICAgICAgDQogICAgICAgICAgICAgICAgICANCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBPRkZJWklFTExFIE1JVFRFSUxVTkcsDQpEaWVzZSBFbCBHb3JkbyBkZSBsYSBQcmltaXRpdmEg
-Qm9uYW56YSAgTG90dGVyaWUgd3VyZGUgdW5kIE1pbmlzdGVyaW8gZGUgSW5kdXN0cmlhLCBDb21l
-cmNpbyB5IFR1cmlzbW8gIGdlc3BvbnNlcnQgdW0gVG91cmlzbXVzIGluIFNwYW5pZW4gIHp1IGbD
-tnJkZXJuLg0KDQpXaXIgc2luZCBlcmZyZXV0IElobmVuIG1pdCB6dSB0ZWlsZW4sIGRhc3MgZGll
-IEdld2lubmVyIGRlcyBTb25kZXIgU3BhbmlzaCBUb3VyaXNtdXMgUHJvbW90aW9uYWwgRHJhdyBi
-ZWthbm50IGdlZ2ViZW4gd29yZGVuIHNpbmQuIERpZSBvZmZpemllbGxlIExpc3RlIGRlciBHZXdp
-bm5lciAgZXJzY2hpZW4gYW0gIFNhbXN0YWcgZGVyIDI3LzAxLzIwMjEuIA0KDQpJaHJlIGVtYWls
-IGFkcmVzc2UgIG1pdCBkZXIgYW5ow6RuZ2VuZGVuIExvc251bW1lcjogRVNQIDQ0NDcvMTE0NjQx
-MTg4MDIwMSAgdW5kIG1pdCBkZXIgU2VyaWVubnVtbWVyOiBFU1AvMDE4ODExLTIwMjAgem9nIGRp
-ZSBHbMO8Y2tzbnVtbWVyOiA2LjE2LjE4LjMzLjQ3LjUxIEJvbnU6MjksRWwgR29yZG8gZGUgbGEg
-UHJpbWl0aXZhICBMb3R0ZXJpZSAgNiAvNDkgaW4gZGVyIDMuIEthdGVnb3JpZS4NCg0KU2llIHNp
-bmQgZGFtaXQgZ2V3aW5uZXIgdm9uOiDigqw5OTEsMDAwLjAwIEV1cm8uIERpZSBTdW1tZSBlcmdp
-YnQgc2ljaCBhdXMgZWluZXIgR2V3aW5uYXVzc2Now7x0dHVuZyB2b246IOKCrDY5MzcsMDAwLjAw
-IEV1cm8sIGRpZSBkdXJjaCBkaWUgZXJzdGVuIHNpZWJlbiAoNykgR2V3aW5uZXIgYXVzIGRlciBn
-bGVpY2hlbiBLYXRlZ29yaWUgZ2V0ZWlsdCB3dXJkZS4gIERpciBnZXdpbm4gaXN0IGJlaSBlaW5l
-ciBzaWNoZXJoZWl0c2Zpcm1hIGhpbnRlcmxlZ3QgdW5kIGluIGlocmVuIG5hbWVuL2VtYWlsICB2
-ZXJzaWNoZXJ0LiB1bSBrZWluZSBrb21wbGlrYXRpb25lbiBiZWkgZGVyIGFid2lja2x1bmcgZGVy
-IHphaGx1bmcgenUgdmVydXJzYWNoZW4gYml0dGVuIHdpciBzaWUgZGllc2Ugb2ZmaXppZWxsZSBt
-aXR0ZWlsdW5nICwgZGlza3JldCB6dSBiZWhhbmRlbG4uLGVzIGlzdCBlaW4gdGVpbCB1bnNlcmVz
-IHNpY2hlcmhlaXRzcHJvdG9rb2xscyB1bmQgZ2FyYW50aWVydCBpaG5lbiBlaW5lbiByZWlidW5n
-c2xvc2VuIEFibGF1Zi4NCg0KQWxsZSBnZXdpbm5lciB3dXJkZW4gcGVyIGNvbXB1dGVyIGF1cyBV
-cmxhdWJzaG90ZWxzLCBGbHVnZ2VzZWxsc2NoYWZ0ZW4gdW5kIFJlaXNlYsO8cm9zIG1haWxlbiBE
-YXRlbiB2b24gZsO8bmYgTWlsbGlvbmVuICg1MDAwMDAwKSBFbWFpbCBhZHJlc3NlbiBhdXNnZXfD
-pGhsdCwgYWxzIHRlaWwgdW5zZXJlciBJbnRlcm5hdGlvbmFsZW4gdG91cmlzbXVzIHByb21vdGlv
-biBwcm9ncmFtbXMsIHdlbGNoZXMgd2lyIGVpbm1hbCBpbSBqYWhyIHZlcmFuc3RhbHRlbiB1bSBU
-b3VyaXNtdXMgaW4gU3BhbmllbiB6dSBmw7ZyZGVybi4NCg0KQml0dGUga29udGFrdGllcmVuIHNp
-ZSB1bnNlcmVuIGF1c2xhbmRzIHNhY2hiZWFyYmVpdGVyIEhlcnIgR2FicmllbCAgYmVpIGRlciBz
-aWNoZXJoZWl0c2Zpcm1hIFNhbnRhbHVjaWEgU2ljaGVyaGVpdHNmaXJtYTpQZXIgRW1haWwgYW46
-ZXVyb3Byb21vLmVzLnNwYWluQGV1cm9wZW1haWwuY29tIG9kZXIgYW5ydWZlbjogMzQgNjAyIDgx
-MCAxODUgJiBGYXg6ICAzNCA5MzEgNzAgMjEyMCwgdW0gSWhyIEdlbGQgc2NobmVsbCB6dSBiZWtv
-bW1lbi4NCg0KRGVua2VuIFNpZSBkYXJhbiwgamVkZXIgZ2V3aW5uYW5zcHJ1Y2ggbXVzcyBiaXMg
-enVtIDMxLzAzLzIwMjEgQW5nZW1lbGRldGUgc2Vpbi4gSmVkZXIgbmljaHQgYW5nZW1lbGRldCBH
-ZXdpbm5hbnNwcnVjaCB2ZXJmw6RsbHQgdW5kIGdlaHQgenVydWNrIGFuIGRhcyBTcGFuaXNjaGUg
-U3RhYXRza2Fzc2UuDQogIA0KV0lDSFRJRzogdW0gdmVyesO2Z2VydW5nZW4gdW5kIGtvbXBsaWth
-dGlvbmVuIHp1IHZlcm1laWRlbiwgYml0dGUgaW1tZXIgQWt0ZW56ZWljaGVuIGFuZ2ViZW4uICBB
-bmJlaSBlaW4gYW5tZWxkZWZvcm11bGFyLCBiaXR0ZSBhdXNmw7xsbGVuIHVuZCB6dXLDvGNrIFBl
-ciBlbWFpbCBhbjpldXJvcHJvbW8uZXMuc3BhaW5AZXVyb3BlbWFpbC5jb20gb2RlciBhbnJ1ZmVu
-OiAgMzQgNjAyIDgxMDE4NSAmIEZheDogIDM0IDkzMSA3MCAyMTIwIGRpZSBzaWNoZXJoZWl0c2Zp
-cm1hIFNhbnRhbHVjaWEgU2ljaGVyaGVpdHNmaXJtYS4NCg0KSEVSWkxJQ0hFTiBHTFVDS1dVTlND
-SOKApiENCk1pdCBmcmV1bmRsaWNoZW4gR3LDvMOfZW4NCk1BUklBIEhJREFMR08NClZJWkVQUsOE
-U0lERU5USU4NCg0KQsOcUk8sU0FOVEFMVUNJQSBTRUdVUk9TIFMuQSBFc3Bhw7FhIA0KUGxhemEg
-RXNwYcOxYSwgMTUgLSAtMTYgICAgICAgICAgICAgICAgICAgICAgICAgICAgDQpNYWRyaWQsIDI4
-MDA4IEVzcGHDsWENCiAgICAgICAgICAgICAgICAgICAgICAgICAgDQoNCkFOTUVMREVGT1JNVUxB
-UiBaVVIgR0VXSU5OQU5TUFJVQ0hTDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18gDQpCaXR0ZSBmw7xsbGVuIFNpZSBkYXMgRm9ybXVsYXIgc29yZ2bDpGx0aWcg
-YXVzIHVuZCBzZW5kZW4gZXMgcGVyIGUgbWFpbDpzYW50YWx1Y2lhLnNnLmVzQHNwYWlubWFpbC5j
-b20gYW4gZGVyIFNhbnRhbHVjaWEgU2ljaGVyaGVpdHNmaXJtYSBtaXQgS29waWUgSWhyZXMgUGVy
-c29uYWxhdXN3ZWlzZXMgb2RlciBSZWlzZXBhc3Nlcy4NCg0KDQpHRVdJTk5CRVRSQUcqX19fX19f
-X19fX0FLVEVOWkVJQ0hFTjoqRVNQMDkvMDEvMDIvMjAyMQ0KTkFNRToqX19fX19fX19fX19fX19f
-X19fX19WT1JOQU1FOipfX19fX19fX19fX19fX19fX19fX19fXw0KR0VCVVJUU0RBVFVNOipfX19f
-X19fX19fX19fX19fXypOQVRJT05BTEk6Kl9fX19fX19fX19fX19fX18NCkxPU05VTU1FUipfX19f
-X19fX19fX19fX19fX19fX19fKkdMVUNLU1pBSExFTjoqX19fX19fX19fX19fDQpTVFJBU1NFKl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX18qTlVNTUVSOipfX19fX19fX19fX19fX18NCldPSE5P
-UlQqX19fX19fX19fX19fX19fX1BPU1RMRUlUWkFIKl9fX19fX19fX18qTEFORCpfX19fX19fXw0K
-VEVMRUZPTipfX19fX19fX19fX19IQU5EWSpfX19fX19fX19fX19fRkFYKl9fX19fX19fX19fX19f
-X19fDQpCRUZVRipfX19fX19fX19fRkFNSUVMSUVOU1RBTkQqX19fX19fX19fX19fX19fKiAoR0VT
-Q0hMRUNIVCkNCkVNQUlMKl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18q
-VW50ZXJzY2hyaWZ0Kl8NCiAgDQoNCldFTENIRSBaQUhMVU5HU0ZPUk0gQkVWT1JaVUdFTiBTSUU/
-ICAoQSkgQkFOS8OcQkVSV0VJU1VORzogIChCKSBCQVJTQ0hFQ0sgIA0KQkFOS0RBVEVOIFNJTkQg
-TlVSIE5PVFdFTkRJRyBXRU5OIFNJRSBTSUNIIEbDnFIgRUlORSBCQU5Lw5xCRVJXRUlTVU5HIEVO
-VFNDSElFREVOIEhBQkVOLg0KDQpOQU1FIERFUyBHRUxESU5TVElUVVRTOipfX19fX19fX19fX19f
-X19fX19fX19fX19fXw0KS09OVE9OVU1NRVI6Kl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18NClNXSUZUIENPREU6Kl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fDQpCQU5LIEFERFJFU1M6Kl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0K
-VEVMRUZPTk5VTU1FUjoqX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCkZBWDog
-TlVNTUVSOipfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fDQoNCg0KICAgIEVS
-S0zDhFJVTkcgREVTIEJFR8OcTlNUSUdURU4NCklDSCBfX19fX19fX19fX19fX19fX19fX19fX19f
-X19CRVNUw4RUSUdFIEhJRVJNSVQsIERBU1MgQUxMRSBJTkZPUk1BVElPTkVOLCBLT1JSRUtUIFNJ
-TkQsIFVORCBESUUgVkVSQU5TVEFMVEVSIERFUiBFbCBTUEFOSVNIIExPVFRFUlkgLyBTQU5UQUxV
-Q0lBIFNJQ0hFUkhFSVRTRklSTUEgTklDSFQgVkVSQU5UV09SVExJQ0ggR0VNQUNIVCBXRVJERU4s
-IFdFTk4gRVMgWlUgRUlORVIgVU5CRVJFQ0hUSUdURU4gWkFITFVORyBEVVJDSCBVTkdFTkFVRSBJ
-TkZPUk1BVElPTkVOLCBESUUgSUNIIElOIERJRVNFTSBGT1JNVUxBUiBBTkdFQkUgS09NTVQuREFT
-UyAxMCUgUFJPVklTSU9OIERFUiBTQU5UQSBMVUNJQSBTRUNVUklUWSBDT01QQU5ZIEdFSD9SRU4s
-IFNPQkFMRCBTSUUgSUhSRU4gR0VXSU5OIEZPTkRTIEVSSEFMVEVOLiBESUVTRSBaRUhOIFBST1pF
-TlQgV0VSREVOIElITkVOIFNPRk9SVCBaVVLDnENLR0VHRUJFTiwgU0lFIEVSSEFMVEVOIElIUkVO
-IEdFV0lOTiBBVUYgSUhSRU0gS09OVE8uIChBQ0hUVU5HIFdpciBiaXR0ZW4gU2llLCBhdWYgZGll
-c2UgRS1NYWlsLUFkcmVzc2UgenUgYW50d29ydGVuKHNhbnRhbHVjaWEuc2cuZXNAc3BhaW5tYWls
-LmNvbSkgQsOcUk8tS09OVE9JTkZPUk1BVElPTkVOLUlCQU4gRVMxNyAyMTAwIDU2MjQgMTEwMiAw
-MDExIDc3MTkgU1dJRlQgQ09ERTogQ0FJWEVTQkJYWFguICBLT05UT05BTUUsTEEgUExBQ0lUQSBE
-RUwgTUlSQURPUiBTLkwgU1BBSU4uDQpVcmhlYmVycmVjaHTCqSAyMDIwLTIwMjEgTXVsdGktU3Rh
-YXQgTG90dGVyaWUgVmVyYmFuZC4gQWxsZSBSZWNodGUNCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGlu
-dXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxp
-bnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
+Ping?
+
+On Thu, Jan 21, 2021 at 06:43:34PM +0000, Matthew Wilcox wrote:
+> Ping?  These patches still apply to next-20210121.
+> 
+> On Mon, Oct 26, 2020 at 03:18:45PM +0000, Matthew Wilcox (Oracle) wrote:
+> > We actually use nrexceptional for very little these days.  It's a minor
+> > pain to keep in sync with nrpages, but the pain becomes much bigger
+> > with the THP patches because we don't know how many indices a shadow
+> > entry occupies.  It's easier to just remove it than keep it accurate.
+> > 
+> > Also, we save 8 bytes per inode which is nothing to sneeze at; on my
+> > laptop, it would improve shmem_inode_cache from 22 to 23 objects per
+> > 16kB, and inode_cache from 26 to 27 objects.  Combined, that saves
+> > a megabyte of memory from a combined usage of 25MB for both caches.
+> > Unfortunately, ext4 doesn't cross a magic boundary, so it doesn't save
+> > any memory for ext4.
+> > 
+> > Matthew Wilcox (Oracle) (4):
+> >   mm: Introduce and use mapping_empty
+> >   mm: Stop accounting shadow entries
+> >   dax: Account DAX entries as nrpages
+> >   mm: Remove nrexceptional from inode
+> > 
+> >  fs/block_dev.c          |  2 +-
+> >  fs/dax.c                |  8 ++++----
+> >  fs/gfs2/glock.c         |  3 +--
+> >  fs/inode.c              |  2 +-
+> >  include/linux/fs.h      |  2 --
+> >  include/linux/pagemap.h |  5 +++++
+> >  mm/filemap.c            | 16 ----------------
+> >  mm/swap_state.c         |  4 ----
+> >  mm/truncate.c           | 19 +++----------------
+> >  mm/workingset.c         |  1 -
+> >  10 files changed, 15 insertions(+), 47 deletions(-)
+> > 
+> > -- 
+> > 2.28.0
+> > 
+> 
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
