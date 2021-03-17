@@ -2,103 +2,163 @@ Return-Path: <SRS0=NQ6u=IP=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2E91C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Mar 2021 09:37:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06CACC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Mar 2021 12:32:15 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 5384464F41
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Mar 2021 09:37:03 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5384464F41
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=126.com
+	by mail.kernel.org (Postfix) with ESMTPS id 44C7664F73
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 17 Mar 2021 12:32:14 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 44C7664F73
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=conference21.biz
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 1A3EE100EB82D;
-	Wed, 17 Mar 2021 02:37:03 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=123.126.96.3; helo=mail-m963.mail.126.com; envelope-from=wangyingjie55@126.com; receiver=<UNKNOWN> 
-Received: from mail-m963.mail.126.com (mail-m963.mail.126.com [123.126.96.3])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 69A61100EB83F;
+	Wed, 17 Mar 2021 05:32:13 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=208.91.198.48; helo=us2-ob4-3.mailhostbox.com; envelope-from=kevin.rob@conference21.biz; receiver=<UNKNOWN> 
+Received: from us2-ob4-3.mailhostbox.com (us2-ob4-3.mailhostbox.com [208.91.198.48])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 085A1100EB829
-	for <linux-nvdimm@lists.01.org>; Wed, 17 Mar 2021 02:36:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-	s=s110527; h=From:Subject:Date:Message-Id; bh=6myTYJ/6oXihRxGonF
-	RwbGYMjlu+sduVYchFyN3kgEE=; b=FroKIg9E10IEsfVhExlbkntjUINapaat5x
-	KmtHqtGmSyhSMwaMi9YsmULg6/DQO9fypijWXYcwbepEVEtVdNsuAIBWkgUeteP5
-	nUJlRSslv5OKz3KgjRSz2qMfVwrVel0aMPPkEaXuIUWj1NtsESyYHOfo0/MZJyZ8
-	xi1mrmqeQ=
-Received: from localhost.localdomain (unknown [116.162.2.6])
-	by smtp8 (Coremail) with SMTP id NORpCgDHqWiyzVFgW2EYFw--.6516S2;
-	Wed, 17 Mar 2021 17:36:51 +0800 (CST)
-From: wangyingjie55@126.com
-To: dan.j.williams@intel.com,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	ira.weiny@intel.com
-Subject: [PATCH v1] libnvdimm, dax: Fix a missing check in nd_dax_probe()
-Date: Wed, 17 Mar 2021 02:36:39 -0700
-Message-Id: <1615973799-16077-1-git-send-email-wangyingjie55@126.com>
-X-Mailer: git-send-email 2.7.4
-X-CM-TRANSID: NORpCgDHqWiyzVFgW2EYFw--.6516S2
-X-Coremail-Antispam: 1Uf129KBjvdXoWrtFykKr4rJFyxArykKFy5XFb_yoWfKFbEkF
-	y7Zr929Fy0krnayr42vr1fu34vyrn29r1kur4jgw13Ar4j9r13GrWkur9Ikrsagr4xZr1D
-	urnFqFnxuF15ujkaLaAFLSUrUUUUbb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
-	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUj-J57UUUUU==
-X-Originating-IP: [116.162.2.6]
-X-CM-SenderInfo: 5zdqw5xlqjyxrhvvqiyswou0bp/1tbiWBRYp11w5leZjgABs5
-Message-ID-Hash: W3CXPK26TVE7CHZOGZMUGSXAK62RRUHA
-X-Message-ID-Hash: W3CXPK26TVE7CHZOGZMUGSXAK62RRUHA
-X-MailFrom: wangyingjie55@126.com
+	by ml01.01.org (Postfix) with ESMTPS id 90F6D100EB82C
+	for <linux-nvdimm@lists.01.org>; Wed, 17 Mar 2021 05:32:11 -0700 (PDT)
+Received: from DESKTOPCGVGNKH (unknown [223.227.15.22])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: kevin.rob@conference21.biz)
+	by us2.outbound.mailhostbox.com (Postfix) with ESMTPSA id A23661C3334
+	for <linux-nvdimm@lists.01.org>; Wed, 17 Mar 2021 12:32:09 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=conference21.biz;
+	s=20210115; t=1615984330;
+	bh=tnwq3sHqj27FbKNMqXE1nFipMmUxSvl8EfiL6W4PVqM=;
+	h=From:To:References:In-Reply-To:Subject:Date;
+	b=GJxSirpzkXaL5rsLeh+1lsToDcrzbVDtxr5W4aAP+PG/X7PdPmuFjONnzlVp5Wsib
+	 nQJeoACi5V0CbQrMfX3ciajoFY2ZTAbQ/SlY7Jgb6I95hwj72DcRt6VQ3LaFgyPMp+
+	 TQ4TgOwHa/F606iAV0paiSzvRVFmxNEal9u1SnN4=
+From: "Kevin Rob" <kevin.rob@conference21.biz>
+To: <linux-nvdimm@lists.01.org>
+References: 
+In-Reply-To: 
+Subject: RE: Fintech Virtual 2021 Visitors List
+Date: Wed, 17 Mar 2021 05:32:09 -0700
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAF8oXq68u+5AqDS4CeiUm9HCgAAAEAAAALcYlG2/2Q1Dkjdr+2H1CvUBAAAAAA==@conference21.biz>
+MIME-Version: 1.0
+X-Mailer: Microsoft Outlook 15.0
+Thread-Index: AdcamkKhWD2cecwtREqh+OZs3uo51AAj0kAw
+Content-Language: en-us
+X-CMAE-Score: 0
+X-CMAE-Analysis: v=2.3 cv=YrZxuLQX c=1 sm=1 tr=0
+	a=F/FS2XEt5SaLkGBkHVSNRg==:117 a=F/FS2XEt5SaLkGBkHVSNRg==:17
+	a=DAwyPP_o2Byb1YXLmDAA:9 a=-RN80VgdNlxNoMGuDE4A:9 a=CjuIK1q_8ugA:10
+	a=_ajgJpvrfEgA:10 a=_3bfvKhMzPvVXjhBZysA:9 a=klLd5ro7plrRsHmZ:21
+	a=gKO2Hq4RSVkA:10 a=UiCQ7L4-1S4A:10 a=hTZeC7Yk6K0A:10 a=frz4AuCg-hUA:10
+	a=pHzHmUro8NiASowvMSCR:22 a=nt3jZW36AmriUCFCBwmW:22
+Message-ID-Hash: FLUTZYWHS5UXL5PH2A64IOLZHTLLS4B2
+X-Message-ID-Hash: FLUTZYWHS5UXL5PH2A64IOLZHTLLS4B2
+X-MailFrom: kevin.rob@conference21.biz
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: wangyingjie55@126.com, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/W3CXPK26TVE7CHZOGZMUGSXAK62RRUHA/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FLUTZYWHS5UXL5PH2A64IOLZHTLLS4B2/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Yingjie Wang <wangyingjie55@126.com>
+Hi,
 
-In nd_dax_probe(), 'nd_dax' is allocated by nd_dax_alloc().
-nd_dax_alloc() may fail and return NULL, so we should better check
-it's return value to avoid a NULL pointer dereference
-a bit later in the code.
-
-Fixes: c5ed9268643c ("libnvdimm, dax: autodetect support")
-Signed-off-by: Yingjie Wang <wangyingjie55@126.com>
----
- drivers/nvdimm/dax_devs.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
-index 99965077bac4..b1426ac03f01 100644
---- a/drivers/nvdimm/dax_devs.c
-+++ b/drivers/nvdimm/dax_devs.c
-@@ -106,6 +106,8 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
  
- 	nvdimm_bus_lock(&ndns->dev);
- 	nd_dax = nd_dax_alloc(nd_region);
-+	if (!nd_dax)
-+		return -ENOMEM;
- 	nd_pfn = &nd_dax->nd_pfn;
- 	dax_dev = nd_pfn_devinit(nd_pfn, ndns);
- 	nvdimm_bus_unlock(&ndns->dev);
--- 
-2.7.4
+
+Hope you're doing great there!!
+
+ 
+
+Did you had a chance to review my below mail and have any update for me..?
+
+ 
+
+Anticipating a prompt response.
+
+ 
+
+Regards,
+
+Kevin
+
+ 
+
+From: Kevin Rob [mailto:kevin.rob@conference21.biz] 
+Sent: Tuesday, March 16, 2021 12:27 PM
+To: 'linux-nvdimm@lists.01.org'
+Subject: Fintech Virtual 2021 Visitors List
+
+ 
+
+ 
+
+ 
+
+Dear Exhibitor,
+
+ 
+
+Would you be interested in obtaining the Fintech Virtual 2021 Pre-registered
+Attendees List?
+
+ 
+
+With All contacts are permission pass and provided with complete contact
+information including direct business email address on an excel
+spread-sheet.
+
+ 
+
+We Have The Following Database:
+
+ 
+
+*  Industry Experts
+
+*  Key Decision Makers      
+
+ 
+
+Information fields include: First Name, Last Name, Title, Company, Contact
+Number, Website, Mailing address and contact person verified business email
+address etc.
+
+ 
+
+Kindly let me know your interest so that I can get back to you with Counts
+and Pricing for attendees list.
+
+ 
+
+Thank you and I Look forward to hearing from you.
+
+ 
+
+Regards,
+
+Kevin Rob
+
+Fintech Virtual 2021 - Manager of Sales & Marketing
+
+ 
+
+If you do not wish to receive future emails from us, reply as 'opt-out'.
+
+ 
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
