@@ -1,79 +1,70 @@
-Return-Path: <SRS0=EDyl=IQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=81Ut=IR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3C12C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Mar 2021 19:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E910AC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Mar 2021 01:52:55 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 8C25064F30
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 18 Mar 2021 19:26:45 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8C25064F30
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 4CCB864E3F
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Mar 2021 01:52:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4CCB864E3F
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 52300100F2250;
-	Thu, 18 Mar 2021 12:26:45 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::534; helo=mail-ed1-x534.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id A0749100F224E
-	for <linux-nvdimm@lists.01.org>; Thu, 18 Mar 2021 12:26:43 -0700 (PDT)
-Received: by mail-ed1-x534.google.com with SMTP id w18so8134646edc.0
-        for <linux-nvdimm@lists.01.org>; Thu, 18 Mar 2021 12:26:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Ojz/3uf5HF3SEbIgxigKCyeQ0aWt/yeGZzxK8vBfVh8=;
-        b=Dt5gbZ6kubgx1MI0I1+ejg/A0rY2p3QEgViPEMSsGCp2e/YDytetIx2ljos9bachdX
-         BfOQGxkBiQSM5ptthHefpmvjhfsP4Dd464/k4ohaTMaIb2futpGY1gTQCzhK9XCN1JNv
-         OVtSn+yuXLC5+hya2ByGcb50LqQqwUyY3J4xwVKv73TZSh43nmidR8ZnacsNT3qaHW+G
-         1thO3yE76eCYC9eVGfvm/kq3KgzNYCo7bPYJZF0AcyE/cjj0EhZX9ca2dyYijrfO8o/3
-         U0gMvczbYoCMgKq42KT4lKDCSQ7y+pBS+nnW62MtYOB4zkBJk+9itUn1DFk13y+e6hVF
-         doUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Ojz/3uf5HF3SEbIgxigKCyeQ0aWt/yeGZzxK8vBfVh8=;
-        b=YQO8SLOzL8aXjTDYYSoqJyPi4Fm3IUm415OhA+ROzweXBZkcz9pFaR8rgFhCc2RVir
-         kJ7tOGtu3DSX2CmSwe2drVNlOsawbYZHQjuZwb0JUfU9K7qbWvZvV1uYdcv/X0yok1Td
-         /Exqo1DA6jrxgtfW2Ke0unBOTZS9IAGlPlLUcH1a0ldYsBrfEuiFBr2rV9m9GmuFHbJc
-         CQyNgbvIX9k0gdh44ub2V0rB8NrG6wtpp7RzDteb1MWGohMCsND3ib/KyXb1oKVO53du
-         iji8qw+6E4ZD2Tex7watxphjHU8rBCgfE2ffiGoSQx6lufDVXheegV8KqTEirgebfVG8
-         qPpQ==
-X-Gm-Message-State: AOAM531y5ZBlHgr2jKAvNEsIGrWN7gBMmLJlplnpZ1TzEtafewQXfUeX
-	GNDHI4T89ORzY2KbvxpQg2Zq+TfDT3bAfnq1yTfQpQ==
-X-Google-Smtp-Source: ABdhPJyYkLmqVnab6Td5yVaMl1GKF61CF7owS6SxfD3KjLZnKwKsOM/TtUya98DeyNEsxyo3cAsgeHFdVrap2o3VqXI=
-X-Received: by 2002:aa7:cd0e:: with SMTP id b14mr5726622edw.354.1616095601868;
- Thu, 18 Mar 2021 12:26:41 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id 8282E100EB35F;
+	Thu, 18 Mar 2021 18:52:54 -0700 (PDT)
+Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@fujitsu.com; receiver=<UNKNOWN> 
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by ml01.01.org (Postfix) with ESMTP id 37AF6100EB352
+	for <linux-nvdimm@lists.01.org>; Thu, 18 Mar 2021 18:52:49 -0700 (PDT)
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A+G2RhqPfqYtoz8BcTiGjsMiAIKoaSvp033AA?=
+ =?us-ascii?q?0UdtRRtJNvGJjszGpoV+6TbYqhY0HEshl9eJJbWaTRrnmKJdzIENMd6ZMjXOl2?=
+ =?us-ascii?q?elIYpr54mn4xCIIUfD38FH06MISclDIfnRKXQ/ssrg+gm/FL8bsby62YSln/3X?=
+ =?us-ascii?q?wXsobSwCUdAC0y5DBgyWElJ7SWB9bPJXKLOn+sFFqzC8EE5nDPiTO39tZYj+ju?=
+ =?us-ascii?q?yOvJfnTDpDPBQ/9TSJ5AnC1JfKVzSewTcSOgki/Ysf?=
+X-IronPort-AV: E=Sophos;i="5.81,259,1610380800";
+   d="scan'208";a="105876647"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 19 Mar 2021 09:52:49 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id A28264CEB2A3;
+	Fri, 19 Mar 2021 09:52:46 +0800 (CST)
+Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Fri, 19 Mar 2021 09:52:46 +0800
+Received: from irides.mr.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.2 via Frontend Transport; Fri, 19 Mar 2021 09:52:46 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<linux-nvdimm@lists.01.org>, <linux-fsdevel@vger.kernel.org>
+Subject: [PATCH v3 01/10] fsdax: Factor helpers to simplify dax fault code
+Date: Fri, 19 Mar 2021 09:52:28 +0800
+Message-ID: <20210319015237.993880-2-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+References: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
 MIME-Version: 1.0
-References: <161604048257.1463742.1374527716381197629.stgit@dwillia2-desk3.amr.corp.intel.com>
- <161604050314.1463742.14151665140035795571.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210318044515.GC22094@magnolia>
-In-Reply-To: <20210318044515.GC22094@magnolia>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 18 Mar 2021 12:26:36 -0700
-Message-ID: <CAPcyv4jHeY+VdPS1KFWU1McSJUau0qSQV01DAksPwX1GgkzYbw@mail.gmail.com>
-Subject: Re: [PATCH 2/3] mm, dax, pmem: Introduce dev_pagemap_failure()
-To: "Darrick J. Wong" <djwong@kernel.org>
-Message-ID-Hash: SZMQMSOEUPZIJUBQYAWXYEPJW2ZL2POV
-X-Message-ID-Hash: SZMQMSOEUPZIJUBQYAWXYEPJW2ZL2POV
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Linux MM <linux-mm@kvack.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Chinner <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Shiyang Ruan <ruansy.fnst@fujitsu.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Naoya Horiguchi <naoya.horiguchi@nec.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+X-yoursite-MailScanner-ID: A28264CEB2A3.A2A18
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+Message-ID-Hash: MGS7R3QOV3TQVWD5LC5SZQOOLEA57N2E
+X-Message-ID-Hash: MGS7R3QOV3TQVWD5LC5SZQOOLEA57N2E
+X-MailFrom: ruansy.fnst@fujitsu.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/SZMQMSOEUPZIJUBQYAWXYEPJW2ZL2POV/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MGS7R3QOV3TQVWD5LC5SZQOOLEA57N2E/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -82,289 +73,233 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Mar 17, 2021 at 9:45 PM Darrick J. Wong <djwong@kernel.org> wrote:
->
-> On Wed, Mar 17, 2021 at 09:08:23PM -0700, Dan Williams wrote:
-> > Jason wondered why the get_user_pages_fast() path takes references on a
-> > @pgmap object. The rationale was to protect against accessing a 'struct
-> > page' that might be in the process of being removed by the driver, but
-> > he rightly points out that should be solved the same way all gup-fast
-> > synchronization is solved which is invalidate the mapping and let the
-> > gup slow path do @pgmap synchronization [1].
-> >
-> > To achieve that it means that new user mappings need to stop being
-> > created and all existing user mappings need to be invalidated.
-> >
-> > For device-dax this is already the case as kill_dax() prevents future
-> > faults from installing a pte, and the single device-dax inode
-> > address_space can be trivially unmapped.
-> >
-> > The situation is different for filesystem-dax where device pages could
-> > be mapped by any number of inode address_space instances. An initial
-> > thought was to treat the device removal event like a drop_pagecache_sb()
-> > event that walks superblocks and unmaps all inodes. However, Dave points
-> > out that it is not just the filesystem user-mappings that need to react
-> > to global DAX page-unmap events, it is also filesystem metadata
-> > (proposed DAX metadata access), and other drivers (upstream
-> > DM-writecache) that need to react to this event [2].
-> >
-> > The only kernel facility that is meant to globally broadcast the loss of
-> > a page (via corruption or surprise remove) is memory_failure(). The
-> > downside of memory_failure() is that it is a pfn-at-a-time interface.
-> > However, the events that would trigger the need to call memory_failure()
-> > over a full PMEM device should be rare. Remove should always be
-> > coordinated by the administrator with the filesystem. If someone force
-> > removes a device from underneath a mounted filesystem the driver assumes
-> > they have a good reason, or otherwise get to keep the pieces. Since
-> > ->remove() callbacks can not fail the only option is to trigger the mass
-> > memory_failure().
-> >
-> > The mechanism to determine whether memory_failure() triggers at
-> > pmem->remove() time is whether the associated dax_device has an elevated
-> > reference at @pgmap ->kill() time.
-> >
-> > With this in place the get_user_pages_fast() path can drop its
-> > half-measure synchronization with an @pgmap reference.
-> >
-> > Link: http://lore.kernel.org/r/20210224010017.GQ2643399@ziepe.ca [1]
-> > Link: http://lore.kernel.org/r/20210302075736.GJ4662@dread.disaster.area [2]
-> > Reported-by: Jason Gunthorpe <jgg@ziepe.ca>
-> > Cc: Dave Chinner <david@fromorbit.com>
-> > Cc: Christoph Hellwig <hch@lst.de>
-> > Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > Cc: Vishal Verma <vishal.l.verma@intel.com>
-> > Cc: Dave Jiang <dave.jiang@intel.com>
-> > Cc: Ira Weiny <ira.weiny@intel.com>
-> > Cc: Matthew Wilcox <willy@infradead.org>
-> > Cc: Jan Kara <jack@suse.cz>
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-> > Cc: "Darrick J. Wong" <djwong@kernel.org>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > ---
-> >  drivers/dax/super.c      |   15 +++++++++++++++
-> >  drivers/nvdimm/pmem.c    |   10 +++++++++-
-> >  drivers/nvdimm/pmem.h    |    1 +
-> >  include/linux/dax.h      |    5 +++++
-> >  include/linux/memremap.h |    5 +++++
-> >  include/linux/mm.h       |    3 +++
-> >  mm/memory-failure.c      |   11 +++++++++--
-> >  mm/memremap.c            |   11 +++++++++++
-> >  8 files changed, 58 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> > index 5fa6ae9dbc8b..5ebcedf4a68c 100644
-> > --- a/drivers/dax/super.c
-> > +++ b/drivers/dax/super.c
-> > @@ -624,6 +624,21 @@ void put_dax(struct dax_device *dax_dev)
-> >  }
-> >  EXPORT_SYMBOL_GPL(put_dax);
-> >
-> > +bool dax_is_idle(struct dax_device *dax_dev)
-> > +{
-> > +     struct inode *inode;
-> > +
-> > +     if (!dax_dev)
-> > +             return true;
-> > +
-> > +     WARN_ONCE(test_bit(DAXDEV_ALIVE, &dax_dev->flags),
-> > +               "dax idle check on live device.\n");
-> > +
-> > +     inode = &dax_dev->inode;
-> > +     return atomic_read(&inode->i_count) < 2;
-> > +}
-> > +EXPORT_SYMBOL_GPL(dax_is_idle);
-> > +
-> >  /**
-> >   * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
-> >   * @host: alternate name for the device registered by a dax driver
-> > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> > index b8a85bfb2e95..e8822c9262ee 100644
-> > --- a/drivers/nvdimm/pmem.c
-> > +++ b/drivers/nvdimm/pmem.c
-> > @@ -348,15 +348,21 @@ static void pmem_pagemap_kill(struct dev_pagemap *pgmap)
-> >  {
-> >       struct request_queue *q =
-> >               container_of(pgmap->ref, struct request_queue, q_usage_counter);
-> > +     struct pmem_device *pmem = q->queuedata;
-> >
-> >       blk_freeze_queue_start(q);
-> > +     kill_dax(pmem->dax_dev);
-> > +     if (!dax_is_idle(pmem->dax_dev)) {
-> > +             dev_warn(pmem->dev,
-> > +                      "DAX active at remove, trigger mass memory failure\n");
-> > +             dev_pagemap_failure(pgmap);
-> > +     }
-> >  }
-> >
-> >  static void pmem_release_disk(void *__pmem)
-> >  {
-> >       struct pmem_device *pmem = __pmem;
-> >
-> > -     kill_dax(pmem->dax_dev);
-> >       put_dax(pmem->dax_dev);
-> >       del_gendisk(pmem->disk);
-> >       put_disk(pmem->disk);
-> > @@ -406,6 +412,7 @@ static int pmem_attach_disk(struct device *dev,
-> >       devm_namespace_disable(dev, ndns);
-> >
-> >       dev_set_drvdata(dev, pmem);
-> > +     pmem->dev = dev;
-> >       pmem->phys_addr = res->start;
-> >       pmem->size = resource_size(res);
-> >       fua = nvdimm_has_flush(nd_region);
-> > @@ -467,6 +474,7 @@ static int pmem_attach_disk(struct device *dev,
-> >       blk_queue_flag_set(QUEUE_FLAG_NONROT, q);
-> >       if (pmem->pfn_flags & PFN_MAP)
-> >               blk_queue_flag_set(QUEUE_FLAG_DAX, q);
-> > +     q->queuedata = pmem;
-> >
-> >       disk = alloc_disk_node(0, nid);
-> >       if (!disk)
-> > diff --git a/drivers/nvdimm/pmem.h b/drivers/nvdimm/pmem.h
-> > index 59cfe13ea8a8..1222088a569a 100644
-> > --- a/drivers/nvdimm/pmem.h
-> > +++ b/drivers/nvdimm/pmem.h
-> > @@ -23,6 +23,7 @@ struct pmem_device {
-> >       struct badblocks        bb;
-> >       struct dax_device       *dax_dev;
-> >       struct gendisk          *disk;
-> > +     struct device           *dev;
-> >       struct dev_pagemap      pgmap;
-> >  };
-> >
-> > diff --git a/include/linux/dax.h b/include/linux/dax.h
-> > index b52f084aa643..015f1d9a8232 100644
-> > --- a/include/linux/dax.h
-> > +++ b/include/linux/dax.h
-> > @@ -46,6 +46,7 @@ struct dax_device *alloc_dax(void *private, const char *host,
-> >               const struct dax_operations *ops, unsigned long flags);
-> >  void put_dax(struct dax_device *dax_dev);
-> >  void kill_dax(struct dax_device *dax_dev);
-> > +bool dax_is_idle(struct dax_device *dax_dev);
-> >  void dax_write_cache(struct dax_device *dax_dev, bool wc);
-> >  bool dax_write_cache_enabled(struct dax_device *dax_dev);
-> >  bool __dax_synchronous(struct dax_device *dax_dev);
-> > @@ -92,6 +93,10 @@ static inline void put_dax(struct dax_device *dax_dev)
-> >  static inline void kill_dax(struct dax_device *dax_dev)
-> >  {
-> >  }
-> > +static inline bool dax_is_idle(struct dax_device *dax_dev)
-> > +{
-> > +     return true;
-> > +}
-> >  static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
-> >  {
-> >  }
-> > diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-> > index f5b464daeeca..d52cdc6c5313 100644
-> > --- a/include/linux/memremap.h
-> > +++ b/include/linux/memremap.h
-> > @@ -137,6 +137,7 @@ void *devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap);
-> >  void devm_memunmap_pages(struct device *dev, struct dev_pagemap *pgmap);
-> >  struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
-> >               struct dev_pagemap *pgmap);
-> > +void dev_pagemap_failure(struct dev_pagemap *pgmap);
-> >  bool pgmap_pfn_valid(struct dev_pagemap *pgmap, unsigned long pfn);
-> >
-> >  unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
-> > @@ -160,6 +161,10 @@ static inline void devm_memunmap_pages(struct device *dev,
-> >  {
-> >  }
-> >
-> > +static inline void dev_pagemap_failure(struct dev_pagemap *pgmap)
-> > +{
-> > +}
-> > +
-> >  static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
-> >               struct dev_pagemap *pgmap)
-> >  {
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index 77e64e3eac80..95f79f457bab 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> > @@ -3002,8 +3002,11 @@ enum mf_flags {
-> >       MF_ACTION_REQUIRED = 1 << 1,
-> >       MF_MUST_KILL = 1 << 2,
-> >       MF_SOFT_OFFLINE = 1 << 3,
-> > +     MF_MEM_REMOVE = 1 << 4,
-> >  };
-> >  extern int memory_failure(unsigned long pfn, int flags);
-> > +extern int memory_failure_dev_pagemap(unsigned long pfn, int flags,
-> > +                                   struct dev_pagemap *pgmap);
-> >  extern void memory_failure_queue(unsigned long pfn, int flags);
-> >  extern void memory_failure_queue_kick(int cpu);
-> >  extern int unpoison_memory(unsigned long pfn);
-> > diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> > index 43ba4307c526..8f557beb19ee 100644
-> > --- a/mm/memory-failure.c
-> > +++ b/mm/memory-failure.c
-> > @@ -1296,8 +1296,8 @@ static int memory_failure_hugetlb(unsigned long pfn, int flags)
-> >       return res;
-> >  }
-> >
-> > -static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
-> > -             struct dev_pagemap *pgmap)
-> > +int memory_failure_dev_pagemap(unsigned long pfn, int flags,
-> > +                            struct dev_pagemap *pgmap)
-> >  {
-> >       struct page *page = pfn_to_page(pfn);
-> >       const bool unmap_success = true;
-> > @@ -1377,6 +1377,13 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
-> >  unlock:
-> >       dax_unlock_page(page, cookie);
-> >  out:
-> > +     /*
-> > +      * In the removal case, given unmap is always successful, and
-> > +      * the driver is responsible for the direct map the recovery is
-> > +      * always successful
-> > +      */
-> > +     if (flags & MF_MEM_REMOVE)
-> > +             rc = 0;
-> >       action_result(pfn, MF_MSG_DAX, rc ? MF_FAILED : MF_RECOVERED);
-> >       return rc;
-> >  }
-> > diff --git a/mm/memremap.c b/mm/memremap.c
-> > index 7aa7d6e80ee5..f34da1e14b52 100644
-> > --- a/mm/memremap.c
-> > +++ b/mm/memremap.c
-> > @@ -165,6 +165,17 @@ static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
-> >       pgmap_array_delete(range);
-> >  }
-> >
-> > +void dev_pagemap_failure(struct dev_pagemap *pgmap)
-> > +{
-> > +     unsigned long pfn;
-> > +     int i;
-> > +
-> > +     for (i = 0; i < pgmap->nr_range; i++)
-> > +             for_each_device_pfn(pfn, pgmap, i)
-> > +                     memory_failure_dev_pagemap(pfn, MF_MEM_REMOVE, pgmap);
->
-> So my 6TB memory chassis falls off the desk and we have to call
-> memory_failure_dev_pagemap for 1.6 billion PFNs?
->
+The dax page fault code is too long and a bit difficult to read. And it
+is hard to understand when we trying to add new features. Some of the
+PTE/PMD codes have similar logic. So, factor them as helper functions to
+simplify the code.
 
-In some respects it's a "doctor it hurts when I remove my devices
-without umounting the filesytem first" type situation.
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/dax.c | 152 ++++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 84 insertions(+), 68 deletions(-)
 
-> Honestly if you're going offline the /entire/ device then just tell us
-> sb->memory_failure(dev, 0, -1ULL) and we'll just kill everything all at
-> once.  That was where I was trying to push Shiyang's patchset, and I had
-> nearly succeeded when you NAKd the whole thing.
+diff --git a/fs/dax.c b/fs/dax.c
+index 26d5dcd2d69e..7031e4302b13 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1243,6 +1243,52 @@ static bool dax_fault_is_synchronous(unsigned long flags,
+ 		&& (iomap->flags & IOMAP_F_DIRTY);
+ }
+ 
++/*
++ * If we are doing synchronous page fault and inode needs fsync, we can insert
++ * PTE/PMD into page tables only after that happens. Skip insertion for now and
++ * return the pfn so that caller can insert it after fsync is done.
++ */
++static vm_fault_t dax_fault_synchronous_pfnp(pfn_t *pfnp, pfn_t pfn)
++{
++	if (WARN_ON_ONCE(!pfnp))
++		return VM_FAULT_SIGBUS;
++
++	*pfnp = pfn;
++	return VM_FAULT_NEEDDSYNC;
++}
++
++static int dax_fault_cow_page(struct vm_fault *vmf, struct iomap *iomap,
++		loff_t pos, vm_fault_t *ret)
++{
++	int error = 0;
++	unsigned long vaddr = vmf->address;
++	sector_t sector = dax_iomap_sector(iomap, pos);
++
++	switch (iomap->type) {
++	case IOMAP_HOLE:
++	case IOMAP_UNWRITTEN:
++		clear_user_highpage(vmf->cow_page, vaddr);
++		break;
++	case IOMAP_MAPPED:
++		error = copy_cow_page_dax(iomap->bdev, iomap->dax_dev,
++						sector, vmf->cow_page, vaddr);
++		break;
++	default:
++		WARN_ON_ONCE(1);
++		error = -EIO;
++		break;
++	}
++
++	if (error)
++		return error;
++
++	__SetPageUptodate(vmf->cow_page);
++	*ret = finish_fault(vmf);
++	if (!*ret)
++		*ret = VM_FAULT_DONE_COW;
++	return 0;
++}
++
+ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 			       int *iomap_errp, const struct iomap_ops *ops)
+ {
+@@ -1311,30 +1357,9 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	}
+ 
+ 	if (vmf->cow_page) {
+-		sector_t sector = dax_iomap_sector(&iomap, pos);
+-
+-		switch (iomap.type) {
+-		case IOMAP_HOLE:
+-		case IOMAP_UNWRITTEN:
+-			clear_user_highpage(vmf->cow_page, vaddr);
+-			break;
+-		case IOMAP_MAPPED:
+-			error = copy_cow_page_dax(iomap.bdev, iomap.dax_dev,
+-						  sector, vmf->cow_page, vaddr);
+-			break;
+-		default:
+-			WARN_ON_ONCE(1);
+-			error = -EIO;
+-			break;
+-		}
+-
++		error = dax_fault_cow_page(vmf, &iomap, pos, &ret);
+ 		if (error)
+-			goto error_finish_iomap;
+-
+-		__SetPageUptodate(vmf->cow_page);
+-		ret = finish_fault(vmf);
+-		if (!ret)
+-			ret = VM_FAULT_DONE_COW;
++			ret = dax_fault_return(error);
+ 		goto finish_iomap;
+ 	}
+ 
+@@ -1354,19 +1379,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+ 						 0, write && !sync);
+ 
+-		/*
+-		 * If we are doing synchronous page fault and inode needs fsync,
+-		 * we can insert PTE into page tables only after that happens.
+-		 * Skip insertion for now and return the pfn so that caller can
+-		 * insert it after fsync is done.
+-		 */
+ 		if (sync) {
+-			if (WARN_ON_ONCE(!pfnp)) {
+-				error = -EIO;
+-				goto error_finish_iomap;
+-			}
+-			*pfnp = pfn;
+-			ret = VM_FAULT_NEEDDSYNC | major;
++			ret = dax_fault_synchronous_pfnp(pfnp, pfn);
+ 			goto finish_iomap;
+ 		}
+ 		trace_dax_insert_mapping(inode, vmf, entry);
+@@ -1465,13 +1479,45 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+ 	return VM_FAULT_FALLBACK;
+ }
+ 
++static bool dax_fault_check_fallback(struct vm_fault *vmf, struct xa_state *xas,
++		pgoff_t max_pgoff)
++{
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
++
++	/*
++	 * Make sure that the faulting address's PMD offset (color) matches
++	 * the PMD offset from the start of the file.  This is necessary so
++	 * that a PMD range in the page table overlaps exactly with a PMD
++	 * range in the page cache.
++	 */
++	if ((vmf->pgoff & PG_PMD_COLOUR) !=
++	    ((vmf->address >> PAGE_SHIFT) & PG_PMD_COLOUR))
++		return true;
++
++	/* Fall back to PTEs if we're going to COW */
++	if (write && !(vmf->vma->vm_flags & VM_SHARED))
++		return true;
++
++	/* If the PMD would extend outside the VMA */
++	if (pmd_addr < vmf->vma->vm_start)
++		return true;
++	if ((pmd_addr + PMD_SIZE) > vmf->vma->vm_end)
++		return true;
++
++	/* If the PMD would extend beyond the file size */
++	if ((xas->xa_index | PG_PMD_COLOUR) >= max_pgoff)
++		return true;
++
++	return false;
++}
++
+ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 			       const struct iomap_ops *ops)
+ {
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, PMD_ORDER);
+-	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+ 	bool sync;
+ 	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
+@@ -1494,33 +1540,12 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 
+ 	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+ 
+-	/*
+-	 * Make sure that the faulting address's PMD offset (color) matches
+-	 * the PMD offset from the start of the file.  This is necessary so
+-	 * that a PMD range in the page table overlaps exactly with a PMD
+-	 * range in the page cache.
+-	 */
+-	if ((vmf->pgoff & PG_PMD_COLOUR) !=
+-	    ((vmf->address >> PAGE_SHIFT) & PG_PMD_COLOUR))
+-		goto fallback;
+-
+-	/* Fall back to PTEs if we're going to COW */
+-	if (write && !(vma->vm_flags & VM_SHARED))
+-		goto fallback;
+-
+-	/* If the PMD would extend outside the VMA */
+-	if (pmd_addr < vma->vm_start)
+-		goto fallback;
+-	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
+-		goto fallback;
+-
+ 	if (xas.xa_index >= max_pgoff) {
+ 		result = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
+ 
+-	/* If the PMD would extend beyond the file size */
+-	if ((xas.xa_index | PG_PMD_COLOUR) >= max_pgoff)
++	if (dax_fault_check_fallback(vmf, &xas, max_pgoff))
+ 		goto fallback;
+ 
+ 	/*
+@@ -1572,17 +1597,8 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+ 						DAX_PMD, write && !sync);
+ 
+-		/*
+-		 * If we are doing synchronous page fault and inode needs fsync,
+-		 * we can insert PMD into page tables only after that happens.
+-		 * Skip insertion for now and return the pfn so that caller can
+-		 * insert it after fsync is done.
+-		 */
+ 		if (sync) {
+-			if (WARN_ON_ONCE(!pfnp))
+-				goto finish_iomap;
+-			*pfnp = pfn;
+-			result = VM_FAULT_NEEDDSYNC;
++			result = dax_fault_synchronous_pfnp(pfnp, pfn);
+ 			goto finish_iomap;
+ 		}
+ 
+-- 
+2.30.1
 
-I think we're closer. As I said to Dave in the other thread what if we
-just flipped this around to allow the FS to takeover memory_failure()
-rather than hoping that the device-driver can do the right up-calls at
-the right time.
 
->
-> In the meantime, I estimate that there are ~45 months worth of deferred
-> XFS patch review that I can make progress on, so that's where I'm going
-> to focus.
-
-I do feel bad for not engaging sooner on this. Usually there's a
-forcing function like Plumbers, or LSF to clear out the backlog.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
