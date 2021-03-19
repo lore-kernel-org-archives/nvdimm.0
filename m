@@ -2,62 +2,61 @@ Return-Path: <SRS0=81Ut=IR=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF6EC43381
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Mar 2021 01:52:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98E1EC433E0
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Mar 2021 01:53:02 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4CCEA64E98
-	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Mar 2021 01:52:54 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4CCEA64E98
+	by mail.kernel.org (Postfix) with ESMTPS id 13B2E64E98
+	for <linux-nvdimm@archiver.kernel.org>; Fri, 19 Mar 2021 01:53:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 13B2E64E98
 Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fujitsu.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 6B234100EB353;
-	Thu, 18 Mar 2021 18:52:54 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTP id BA6A8100F2240;
+	Thu, 18 Mar 2021 18:53:01 -0700 (PDT)
 Received-SPF: Neutral (mailfrom) identity=mailfrom; client-ip=183.91.158.132; helo=heian.cn.fujitsu.com; envelope-from=ruansy.fnst@fujitsu.com; receiver=<UNKNOWN> 
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by ml01.01.org (Postfix) with ESMTP id 36721100EB349
-	for <linux-nvdimm@lists.01.org>; Thu, 18 Mar 2021 18:52:49 -0700 (PDT)
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AARB8MK8Ih9lumEGjpUVuk+A4I+orLtY04lQ7?=
- =?us-ascii?q?vn1ZYxpTb8CeioSSjO0WvCWE7Ao5dVMBvZS7OKeGSW7B7pId2+QsFJqrQQWOgg?=
- =?us-ascii?q?WVBa5v4YboyzfjXw3Sn9Q26Y5OaK57YeeQMXFfreLXpDa1CMwhxt7vytHMuc77?=
- =?us-ascii?q?w212RQ9nL4FMhj0JaTqzKUF9SAlYCZdRLvP1ifZvnSaqengcc62Adxs4dtXEzu?=
- =?us-ascii?q?eqqLvWJTYCBzMCrDKFlC6U7tfBeCSw71MzVCxuzN4ZnVT4rw=3D=3D?=
+	by ml01.01.org (Postfix) with ESMTP id CA6E5100F2240
+	for <linux-nvdimm@lists.01.org>; Thu, 18 Mar 2021 18:52:56 -0700 (PDT)
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AJZLcc63gENSHbs7H5SXv2wqjBFIkLtp033Aq?=
+ =?us-ascii?q?2lEZdDV+dMuEm8ey2MkKzBOcskd0ZFgMu/ClfJOBT3TV6IJv7eAqUIuKcQH6tA?=
+ =?us-ascii?q?KTQr1KwofvzjbpES+71sM1781dWodkDtmYNzlHpOLbxCX9LNo62tmA98mT9ILj?=
+ =?us-ascii?q?5lNgVxtjZa0lzyoRMHf5LmRMSANLBYU0GfOnj6IpmxObZX8VYs6nb0N1PdTrmt?=
+ =?us-ascii?q?ujrvLbSC9DLxsmxS3Ltjmw9YP9eiLy4j4uFx9J3pcumFKorzDE?=
 X-IronPort-AV: E=Sophos;i="5.81,259,1610380800";
-   d="scan'208";a="105876646"
+   d="scan'208";a="105876651"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 19 Mar 2021 09:52:46 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 122074CEB2A3;
-	Fri, 19 Mar 2021 09:52:46 +0800 (CST)
-Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Fri, 19 Mar 2021 09:52:46 +0800
+  by heian.cn.fujitsu.com with ESMTP; 19 Mar 2021 09:52:55 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 78EEC4CEA875;
+	Fri, 19 Mar 2021 09:52:53 +0800 (CST)
 Received: from G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.200) by
- G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Fri, 19 Mar 2021 09:52:42 +0800
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Fri, 19 Mar 2021 09:52:48 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD04.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Fri, 19 Mar 2021 09:52:41 +0800
+ id 15.0.1497.2 via Frontend Transport; Fri, 19 Mar 2021 09:52:47 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<linux-nvdimm@lists.01.org>, <linux-fsdevel@vger.kernel.org>
-Subject: [PATCH v3 00/10] fsdax,xfs: Add reflink&dedupe support for fsdax
-Date: Fri, 19 Mar 2021 09:52:27 +0800
-Message-ID: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+Subject: [PATCH v3 02/10] fsdax: Factor helper: dax_fault_actor()
+Date: Fri, 19 Mar 2021 09:52:29 +0800
+Message-ID: <20210319015237.993880-3-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.30.1
+In-Reply-To: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+References: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
 MIME-Version: 1.0
-X-yoursite-MailScanner-ID: 122074CEB2A3.A4D15
+X-yoursite-MailScanner-ID: 78EEC4CEA875.A6113
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-Message-ID-Hash: GCEZG4QCHWK7YBOKWMUUKKPUQCIWSFRL
-X-Message-ID-Hash: GCEZG4QCHWK7YBOKWMUUKKPUQCIWSFRL
+Message-ID-Hash: QN5PD6TGPYPM5EY6PT55UN5WY5OI2YVC
+X-Message-ID-Hash: QN5PD6TGPYPM5EY6PT55UN5WY5OI2YVC
 X-MailFrom: ruansy.fnst@fujitsu.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
@@ -65,7 +64,7 @@ CC: darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/GCEZG4QCHWK7YBOKWMUUKKPUQCIWSFRL/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QN5PD6TGPYPM5EY6PT55UN5WY5OI2YVC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -74,71 +73,436 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+The core logic in the two dax page fault functions is similar. So, move
+the logic into a common helper function. Also, to facilitate the
+addition of new features, such as CoW, switch-case is no longer used to
+handle different iomap types.
 
-This patchset is attempt to add CoW support for fsdax, and take XFS,
-which has both reflink and fsdax feature, as an example.
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ fs/dax.c | 291 +++++++++++++++++++++++++++----------------------------
+ 1 file changed, 145 insertions(+), 146 deletions(-)
 
-Changes from V2:
- - Fix the mistake in iomap_apply2() and dax_dedupe_file_range_compare()
- - Add CoW judgement in dax_iomap_zero()
- - Fix other code style problems and mistakes
-
-Changes from V1:
- - Factor some helper functions to simplify dax fault code
- - Introduce iomap_apply2() for dax_dedupe_file_range_compare()
- - Fix mistakes and other problems
- - Rebased on v5.11
-
-One of the key mechanism need to be implemented in fsdax is CoW.  Copy
-the data from srcmap before we actually write data to the destance
-iomap.  And we just copy range in which data won't be changed.
-
-Another mechanism is range comparison.  In page cache case, readpage()
-is used to load data on disk to page cache in order to be able to
-compare data.  In fsdax case, readpage() does not work.  So, we need
-another compare data with direct access support.
-
-With the two mechanism implemented in fsdax, we are able to make reflink
-and fsdax work together in XFS.
-
-
-Some of the patches are picked up from Goldwyn's patchset.  I made some
-changes to adapt to this patchset.
-
-(Rebased on v5.11)
-==
-
-Shiyang Ruan (10):
-  fsdax: Factor helpers to simplify dax fault code
-  fsdax: Factor helper: dax_fault_actor()
-  fsdax: Output address in dax_iomap_pfn() and rename it
-  fsdax: Introduce dax_iomap_cow_copy()
-  fsdax: Replace mmap entry in case of CoW
-  fsdax: Add dax_iomap_cow_copy() for dax_iomap_zero
-  iomap: Introduce iomap_apply2() for operations on two files
-  fsdax: Dedup file range to use a compare function
-  fs/xfs: Handle CoW for fsdax write() path
-  fs/xfs: Add dedupe support for fsdax
-
- fs/dax.c               | 596 ++++++++++++++++++++++++++---------------
- fs/iomap/apply.c       |  56 ++++
- fs/iomap/buffered-io.c |   2 +-
- fs/remap_range.c       |  45 +++-
- fs/xfs/xfs_bmap_util.c |   3 +-
- fs/xfs/xfs_file.c      |  29 +-
- fs/xfs/xfs_inode.c     |   8 +-
- fs/xfs/xfs_inode.h     |   1 +
- fs/xfs/xfs_iomap.c     |  58 +++-
- fs/xfs/xfs_iomap.h     |   4 +
- fs/xfs/xfs_iops.c      |   7 +-
- fs/xfs/xfs_reflink.c   |  17 +-
- include/linux/dax.h    |   7 +-
- include/linux/fs.h     |  15 +-
- include/linux/iomap.h  |   7 +-
- 15 files changed, 602 insertions(+), 253 deletions(-)
-
---
+diff --git a/fs/dax.c b/fs/dax.c
+index 7031e4302b13..33ddad0f3091 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1053,6 +1053,66 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_FS_DAX_PMD
++static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
++		struct iomap *iomap, void **entry)
++{
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	unsigned long pmd_addr = vmf->address & PMD_MASK;
++	struct vm_area_struct *vma = vmf->vma;
++	struct inode *inode = mapping->host;
++	pgtable_t pgtable = NULL;
++	struct page *zero_page;
++	spinlock_t *ptl;
++	pmd_t pmd_entry;
++	pfn_t pfn;
++
++	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
++
++	if (unlikely(!zero_page))
++		goto fallback;
++
++	pfn = page_to_pfn_t(zero_page);
++	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
++			DAX_PMD | DAX_ZERO_PAGE, false);
++
++	if (arch_needs_pgtable_deposit()) {
++		pgtable = pte_alloc_one(vma->vm_mm);
++		if (!pgtable)
++			return VM_FAULT_OOM;
++	}
++
++	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
++	if (!pmd_none(*(vmf->pmd))) {
++		spin_unlock(ptl);
++		goto fallback;
++	}
++
++	if (pgtable) {
++		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
++		mm_inc_nr_ptes(vma->vm_mm);
++	}
++	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
++	pmd_entry = pmd_mkhuge(pmd_entry);
++	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
++	spin_unlock(ptl);
++	trace_dax_pmd_load_hole(inode, vmf, zero_page, *entry);
++	return VM_FAULT_NOPAGE;
++
++fallback:
++	if (pgtable)
++		pte_free(vma->vm_mm, pgtable);
++	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, *entry);
++	return VM_FAULT_FALLBACK;
++}
++#else
++static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
++		struct iomap *iomap, void **entry)
++{
++	return VM_FAULT_FALLBACK;
++}
++#endif /* CONFIG_FS_DAX_PMD */
++
+ s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
+ {
+ 	sector_t sector = iomap_sector(iomap, pos & PAGE_MASK);
+@@ -1289,6 +1349,61 @@ static int dax_fault_cow_page(struct vm_fault *vmf, struct iomap *iomap,
+ 	return 0;
+ }
+ 
++/**
++ * dax_fault_actor - Common actor to handle pfn insertion in PTE/PMD fault.
++ * @vmf:	vm fault instance
++ * @pfnp:	pfn to be returned
++ * @xas:	the dax mapping tree of a file
++ * @entry:	an unlocked dax entry to be inserted
++ * @pmd:	distinguish whether it is a pmd fault
++ * @flags:	iomap flags
++ * @iomap:	from iomap_begin()
++ * @srcmap:	from iomap_begin(), not equal to iomap if it is a CoW
++ */
++static vm_fault_t dax_fault_actor(struct vm_fault *vmf, pfn_t *pfnp,
++		struct xa_state *xas, void *entry, bool pmd, unsigned int flags,
++		struct iomap *iomap, struct iomap *srcmap)
++{
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	size_t size = pmd ? PMD_SIZE : PAGE_SIZE;
++	loff_t pos = (loff_t)xas->xa_offset << PAGE_SHIFT;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	bool sync = dax_fault_is_synchronous(flags, vmf->vma, iomap);
++	int err = 0;
++	pfn_t pfn;
++
++	/* if we are reading UNWRITTEN and HOLE, return a hole. */
++	if (!write &&
++	    (iomap->type == IOMAP_UNWRITTEN || iomap->type == IOMAP_HOLE)) {
++		if (!pmd)
++			return dax_load_hole(xas, mapping, &entry, vmf);
++		else
++			return dax_pmd_load_hole(xas, vmf, iomap, &entry);
++	}
++
++	if (iomap->type != IOMAP_MAPPED) {
++		WARN_ON_ONCE(1);
++		return VM_FAULT_SIGBUS;
++	}
++
++	err = dax_iomap_pfn(iomap, pos, size, &pfn);
++	if (err)
++		return dax_fault_return(err);
++
++	entry = dax_insert_entry(xas, mapping, vmf, entry, pfn, 0,
++				 write && !sync);
++
++	if (sync)
++		return dax_fault_synchronous_pfnp(pfnp, pfn);
++
++	if (pmd)
++		return vmf_insert_pfn_pmd(vmf, pfn, write);
++	if (write)
++		return vmf_insert_mixed_mkwrite(vmf->vma, vmf->address, pfn);
++	else
++		return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
++}
++
+ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 			       int *iomap_errp, const struct iomap_ops *ops)
+ {
+@@ -1296,17 +1411,14 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	XA_STATE(xas, &mapping->i_pages, vmf->pgoff);
+ 	struct inode *inode = mapping->host;
+-	unsigned long vaddr = vmf->address;
+ 	loff_t pos = (loff_t)vmf->pgoff << PAGE_SHIFT;
+ 	struct iomap iomap = { .type = IOMAP_HOLE };
+ 	struct iomap srcmap = { .type = IOMAP_HOLE };
+ 	unsigned flags = IOMAP_FAULT;
+ 	int error, major = 0;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+-	bool sync;
+ 	vm_fault_t ret = 0;
+ 	void *entry;
+-	pfn_t pfn;
+ 
+ 	trace_dax_pte_fault(inode, vmf, ret);
+ 	/*
+@@ -1352,8 +1464,8 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		goto unlock_entry;
+ 	}
+ 	if (WARN_ON_ONCE(iomap.offset + iomap.length < pos + PAGE_SIZE)) {
+-		error = -EIO;	/* fs corruption? */
+-		goto error_finish_iomap;
++		ret = VM_FAULT_SIGBUS;	/* fs corruption? */
++		goto finish_iomap;
+ 	}
+ 
+ 	if (vmf->cow_page) {
+@@ -1363,49 +1475,19 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		goto finish_iomap;
+ 	}
+ 
+-	sync = dax_fault_is_synchronous(flags, vma, &iomap);
+-
+-	switch (iomap.type) {
+-	case IOMAP_MAPPED:
+-		if (iomap.flags & IOMAP_F_NEW) {
+-			count_vm_event(PGMAJFAULT);
+-			count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
+-			major = VM_FAULT_MAJOR;
+-		}
+-		error = dax_iomap_pfn(&iomap, pos, PAGE_SIZE, &pfn);
+-		if (error < 0)
+-			goto error_finish_iomap;
+-
+-		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+-						 0, write && !sync);
+-
+-		if (sync) {
+-			ret = dax_fault_synchronous_pfnp(pfnp, pfn);
+-			goto finish_iomap;
+-		}
+-		trace_dax_insert_mapping(inode, vmf, entry);
+-		if (write)
+-			ret = vmf_insert_mixed_mkwrite(vma, vaddr, pfn);
+-		else
+-			ret = vmf_insert_mixed(vma, vaddr, pfn);
+-
++	ret = dax_fault_actor(vmf, pfnp, &xas, entry, false, flags,
++			      &iomap, &srcmap);
++	if (ret == VM_FAULT_SIGBUS)
+ 		goto finish_iomap;
+-	case IOMAP_UNWRITTEN:
+-	case IOMAP_HOLE:
+-		if (!write) {
+-			ret = dax_load_hole(&xas, mapping, &entry, vmf);
+-			goto finish_iomap;
+-		}
+-		fallthrough;
+-	default:
+-		WARN_ON_ONCE(1);
+-		error = -EIO;
+-		break;
++
++	/* read/write MAPPED, CoW UNWRITTEN */
++	if (iomap.flags & IOMAP_F_NEW) {
++		count_vm_event(PGMAJFAULT);
++		count_memcg_event_mm(vma->vm_mm, PGMAJFAULT);
++		major = VM_FAULT_MAJOR;
+ 	}
+ 
+- error_finish_iomap:
+-	ret = dax_fault_return(error);
+- finish_iomap:
++finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PAGE_SIZE;
+ 
+@@ -1419,66 +1501,14 @@ static vm_fault_t dax_iomap_pte_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		 */
+ 		ops->iomap_end(inode, pos, PAGE_SIZE, copied, flags, &iomap);
+ 	}
+- unlock_entry:
++unlock_entry:
+ 	dax_unlock_entry(&xas, entry);
+- out:
++out:
+ 	trace_dax_pte_fault_done(inode, vmf, ret);
+ 	return ret | major;
+ }
+ 
+ #ifdef CONFIG_FS_DAX_PMD
+-static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+-		struct iomap *iomap, void **entry)
+-{
+-	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+-	unsigned long pmd_addr = vmf->address & PMD_MASK;
+-	struct vm_area_struct *vma = vmf->vma;
+-	struct inode *inode = mapping->host;
+-	pgtable_t pgtable = NULL;
+-	struct page *zero_page;
+-	spinlock_t *ptl;
+-	pmd_t pmd_entry;
+-	pfn_t pfn;
+-
+-	zero_page = mm_get_huge_zero_page(vmf->vma->vm_mm);
+-
+-	if (unlikely(!zero_page))
+-		goto fallback;
+-
+-	pfn = page_to_pfn_t(zero_page);
+-	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
+-			DAX_PMD | DAX_ZERO_PAGE, false);
+-
+-	if (arch_needs_pgtable_deposit()) {
+-		pgtable = pte_alloc_one(vma->vm_mm);
+-		if (!pgtable)
+-			return VM_FAULT_OOM;
+-	}
+-
+-	ptl = pmd_lock(vmf->vma->vm_mm, vmf->pmd);
+-	if (!pmd_none(*(vmf->pmd))) {
+-		spin_unlock(ptl);
+-		goto fallback;
+-	}
+-
+-	if (pgtable) {
+-		pgtable_trans_huge_deposit(vma->vm_mm, vmf->pmd, pgtable);
+-		mm_inc_nr_ptes(vma->vm_mm);
+-	}
+-	pmd_entry = mk_pmd(zero_page, vmf->vma->vm_page_prot);
+-	pmd_entry = pmd_mkhuge(pmd_entry);
+-	set_pmd_at(vmf->vma->vm_mm, pmd_addr, vmf->pmd, pmd_entry);
+-	spin_unlock(ptl);
+-	trace_dax_pmd_load_hole(inode, vmf, zero_page, *entry);
+-	return VM_FAULT_NOPAGE;
+-
+-fallback:
+-	if (pgtable)
+-		pte_free(vma->vm_mm, pgtable);
+-	trace_dax_pmd_load_hole_fallback(inode, vmf, zero_page, *entry);
+-	return VM_FAULT_FALLBACK;
+-}
+-
+ static bool dax_fault_check_fallback(struct vm_fault *vmf, struct xa_state *xas,
+ 		pgoff_t max_pgoff)
+ {
+@@ -1519,17 +1549,15 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	struct address_space *mapping = vma->vm_file->f_mapping;
+ 	XA_STATE_ORDER(xas, &mapping->i_pages, vmf->pgoff, PMD_ORDER);
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+-	bool sync;
+-	unsigned int iomap_flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
++	unsigned int flags = (write ? IOMAP_WRITE : 0) | IOMAP_FAULT;
+ 	struct inode *inode = mapping->host;
+-	vm_fault_t result = VM_FAULT_FALLBACK;
++	vm_fault_t ret = VM_FAULT_FALLBACK;
+ 	struct iomap iomap = { .type = IOMAP_HOLE };
+ 	struct iomap srcmap = { .type = IOMAP_HOLE };
+ 	pgoff_t max_pgoff;
+ 	void *entry;
+ 	loff_t pos;
+ 	int error;
+-	pfn_t pfn;
+ 
+ 	/*
+ 	 * Check whether offset isn't beyond end of file now. Caller is
+@@ -1541,7 +1569,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	trace_dax_pmd_fault(inode, vmf, max_pgoff, 0);
+ 
+ 	if (xas.xa_index >= max_pgoff) {
+-		result = VM_FAULT_SIGBUS;
++		ret = VM_FAULT_SIGBUS;
+ 		goto out;
+ 	}
+ 
+@@ -1556,7 +1584,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	 */
+ 	entry = grab_mapping_entry(&xas, mapping, PMD_ORDER);
+ 	if (xa_is_internal(entry)) {
+-		result = xa_to_internal(entry);
++		ret = xa_to_internal(entry);
+ 		goto fallback;
+ 	}
+ 
+@@ -1568,7 +1596,7 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	 */
+ 	if (!pmd_none(*vmf->pmd) && !pmd_trans_huge(*vmf->pmd) &&
+ 			!pmd_devmap(*vmf->pmd)) {
+-		result = 0;
++		ret = 0;
+ 		goto unlock_entry;
+ 	}
+ 
+@@ -1578,49 +1606,21 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 	 * to look up our filesystem block.
+ 	 */
+ 	pos = (loff_t)xas.xa_index << PAGE_SHIFT;
+-	error = ops->iomap_begin(inode, pos, PMD_SIZE, iomap_flags, &iomap,
+-			&srcmap);
++	error = ops->iomap_begin(inode, pos, PMD_SIZE, flags, &iomap, &srcmap);
+ 	if (error)
+ 		goto unlock_entry;
+ 
+ 	if (iomap.offset + iomap.length < pos + PMD_SIZE)
+ 		goto finish_iomap;
+ 
+-	sync = dax_fault_is_synchronous(iomap_flags, vma, &iomap);
+-
+-	switch (iomap.type) {
+-	case IOMAP_MAPPED:
+-		error = dax_iomap_pfn(&iomap, pos, PMD_SIZE, &pfn);
+-		if (error < 0)
+-			goto finish_iomap;
++	ret = dax_fault_actor(vmf, pfnp, &xas, entry, true, flags,
++			      &iomap, &srcmap);
+ 
+-		entry = dax_insert_entry(&xas, mapping, vmf, entry, pfn,
+-						DAX_PMD, write && !sync);
+-
+-		if (sync) {
+-			result = dax_fault_synchronous_pfnp(pfnp, pfn);
+-			goto finish_iomap;
+-		}
+-
+-		trace_dax_pmd_insert_mapping(inode, vmf, PMD_SIZE, pfn, entry);
+-		result = vmf_insert_pfn_pmd(vmf, pfn, write);
+-		break;
+-	case IOMAP_UNWRITTEN:
+-	case IOMAP_HOLE:
+-		if (WARN_ON_ONCE(write))
+-			break;
+-		result = dax_pmd_load_hole(&xas, vmf, &iomap, &entry);
+-		break;
+-	default:
+-		WARN_ON_ONCE(1);
+-		break;
+-	}
+-
+- finish_iomap:
++finish_iomap:
+ 	if (ops->iomap_end) {
+ 		int copied = PMD_SIZE;
+ 
+-		if (result == VM_FAULT_FALLBACK)
++		if (ret == VM_FAULT_FALLBACK)
+ 			copied = 0;
+ 		/*
+ 		 * The fault is done by now and there's no way back (other
+@@ -1628,19 +1628,18 @@ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+ 		 * Just ignore error from ->iomap_end since we cannot do much
+ 		 * with it.
+ 		 */
+-		ops->iomap_end(inode, pos, PMD_SIZE, copied, iomap_flags,
+-				&iomap);
++		ops->iomap_end(inode, pos, PMD_SIZE, copied, flags, &iomap);
+ 	}
+- unlock_entry:
++unlock_entry:
+ 	dax_unlock_entry(&xas, entry);
+- fallback:
+-	if (result == VM_FAULT_FALLBACK) {
++fallback:
++	if (ret == VM_FAULT_FALLBACK) {
+ 		split_huge_pmd(vma, vmf->pmd, vmf->address);
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 	}
+ out:
+-	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, result);
+-	return result;
++	trace_dax_pmd_fault_done(inode, vmf, max_pgoff, ret);
++	return ret;
+ }
+ #else
+ static vm_fault_t dax_iomap_pmd_fault(struct vm_fault *vmf, pfn_t *pfnp,
+-- 
 2.30.1
 
 
