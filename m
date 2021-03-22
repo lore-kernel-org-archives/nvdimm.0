@@ -2,61 +2,75 @@ Return-Path: <SRS0=0Q+M=IU=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.0 required=3.0 tests=BAYES_50,DKIM_INVALID,
-	DKIM_SIGNED,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13C7BC433C1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 22 Mar 2021 11:45:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA79AC433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 22 Mar 2021 16:21:01 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id ACE1A6198E
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 22 Mar 2021 11:45:21 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org ACE1A6198E
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
+	by mail.kernel.org (Postfix) with ESMTPS id 6D98F6192B
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 22 Mar 2021 16:21:01 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6D98F6192B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 64785100EBB71;
-	Mon, 22 Mar 2021 04:45:21 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=arnd@kernel.org; receiver=<UNKNOWN> 
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 33468100EBB98;
+	Mon, 22 Mar 2021 09:21:01 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::62c; helo=mail-ej1-x62c.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id BC9DC100EBB6C
-	for <linux-nvdimm@lists.01.org>; Mon, 22 Mar 2021 04:45:19 -0700 (PDT)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 945126198D;
-	Mon, 22 Mar 2021 11:45:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1616413518;
-	bh=liwkJr++xOmGVh9TPdenTt5K01dJM4oOTKgZCRao8aE=;
-	h=From:To:Cc:Subject:Date:From;
-	b=kbYalYvBeuLzPrVLtbx44T1v/8Z+M7nARJqzUOvEZS21sWRUC+xT2rbuhnUHSyV/h
-	 G7NJO4+Wut5U+8JT8eTSvosRajsGXhrJ/vlWqESbNQSIn8qVFXebo9AwV3LLlaE5J6
-	 4/ebt+CABMqJJmpigDR20TD5DnkL1Nuvg9UqlUTV9ji3n4rC5fU7IXesHPBhvK2rN9
-	 zl2IIWE5DEV6+pwzMsrRMm1Xg1yIjiAfvlVdnuo/uTZGRDq5dUUNUiGFVxlcICymrO
-	 Pys3xfKwfKBTuyy/6Ra8mqke1DWkKRVQqP3V0Bni0wlL6sOi/0izhgbF8kjWPdFebC
-	 USNdtP74Gsd0A==
-From: Arnd Bergmann <arnd@kernel.org>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>
-Subject: [PATCH] dax: avoid -Wempty-body warnings
-Date: Mon, 22 Mar 2021 12:44:58 +0100
-Message-Id: <20210322114514.3490752-1-arnd@kernel.org>
-X-Mailer: git-send-email 2.29.2
+	by ml01.01.org (Postfix) with ESMTPS id DC6B0100EBB96
+	for <linux-nvdimm@lists.01.org>; Mon, 22 Mar 2021 09:20:57 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id kt15so12773655ejb.12
+        for <linux-nvdimm@lists.01.org>; Mon, 22 Mar 2021 09:20:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Cjec9CU03x97pBWfqnenhXim56P82KU3lpH+bXIIngU=;
+        b=uW585N9tLgE5B2WscxSJyqPB8Wa7F1ez7t7R2yQfyouZAKUjKxJbVjmw8lj/nTeR+c
+         NZBm90AeugRrYaCpipmWR48L35EETcdgm1bUzoy2waews42AVGmWUI/vJfcWNW7/MZeM
+         7m4HZ+O0NhRYrWJuXnOadQUZcep8MAsHc/FHog94Qu1yKgxnSDjwCLzTYA4pref9TGsI
+         bxz+kx7W7hGSDIVZnvHxQnZVeMt0ZWgwyeMm7cTimSJIvsEzhtvQbD7DEqRTJvvAPN1J
+         Ji1RVVrYhwsgpL4RVt2uyV6IPUaGBcIfKaWgDrjXsusa6Eo4sgph079yunvFyPZ/sgax
+         1PEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Cjec9CU03x97pBWfqnenhXim56P82KU3lpH+bXIIngU=;
+        b=NVKNJNr8oNArL/j2LLNbcinVp5KFhiFl318jL9CtCDgmXSw+8bttJ3soCRLBkCASx+
+         Mn7hqm0xVtLz6M4mfV2ikQHT0I81pOjNFaDyHuSSHqjB8+KLY4fLnvIVI/yGio+bp62v
+         jEnE7c289wey7yW6l/9duTZ4FTIsU6Fh+5gondlYsle5tsJAyEPsdIlYDF6Q7WEaOAGL
+         WiZg2p9+tasjLCIpQrhXlkiC3j83AVACPZY0aIxegvln41v0khMZX7M+NzavW5S8MB2z
+         XqJe+E62/NFfJNRnu1dmjOPYddH+ZQWpq0/exCOqQt0YtLzcuQHRjjbcuXYAnLJE/as0
+         5oyg==
+X-Gm-Message-State: AOAM532kDRBnBAxfwO8cX+Fse7n/DqYMWLXOuW70MTc2VMaauQlK/Fpr
+	puzTfNbS6CgyL7/4PrFYgh+sk2hdkUTeRU9A8sPwgw==
+X-Google-Smtp-Source: ABdhPJxGRfI9FizVaqpi19V7UON819iIb7eUF5/21wIJRBeAMg48q8Cs8n87NEkDgVkpyN9EJ0yIOVNpO3Unb29+w6w=
+X-Received: by 2002:a17:906:8447:: with SMTP id e7mr544109ejy.523.1616430055727;
+ Mon, 22 Mar 2021 09:20:55 -0700 (PDT)
 MIME-Version: 1.0
-Message-ID-Hash: 6S5CWQGIRMIZ7IJ4NZEOFDM4BSKIPTC3
-X-Message-ID-Hash: 6S5CWQGIRMIZ7IJ4NZEOFDM4BSKIPTC3
-X-MailFrom: arnd@kernel.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, Joao Martins <joao.m.martins@oracle.com>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <uwe@kleine-koenig.org>, Zhen Lei <thunder.leizhen@huawei.com>, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+References: <20210322114514.3490752-1-arnd@kernel.org>
+In-Reply-To: <20210322114514.3490752-1-arnd@kernel.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 22 Mar 2021 09:20:46 -0700
+Message-ID: <CAPcyv4h-FS96xxnX0GLOfQ7G0arNL_f4=fpP1ag3GrfLn-Mt-g@mail.gmail.com>
+Subject: Re: [PATCH] dax: avoid -Wempty-body warnings
+To: Arnd Bergmann <arnd@kernel.org>
+Message-ID-Hash: WXO44CBW5KTKVWEKGJTJWGSGKTANLLOR
+X-Message-ID-Hash: WXO44CBW5KTKVWEKGJTJWGSGKTANLLOR
+X-MailFrom: dan.j.williams@intel.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, Joao Martins <joao.m.martins@oracle.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <uwe@kleine-koenig.org>, Zhen Lei <thunder.leizhen@huawei.com>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/6S5CWQGIRMIZ7IJ4NZEOFDM4BSKIPTC3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WXO44CBW5KTKVWEKGJTJWGSGKTANLLOR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -65,50 +79,26 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-From: Arnd Bergmann <arnd@arndb.de>
+On Mon, Mar 22, 2021 at 4:45 AM Arnd Bergmann <arnd@kernel.org> wrote:
+>
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> gcc warns about an empty body in an else statement:
+>
+> drivers/dax/bus.c: In function 'do_id_store':
+> drivers/dax/bus.c:94:48: error: suggest braces around empty body in an 'else' statement [-Werror=empty-body]
+>    94 |                         /* nothing to remove */;
+>       |                                                ^
+> drivers/dax/bus.c:99:43: error: suggest braces around empty body in an 'else' statement [-Werror=empty-body]
+>    99 |                 /* dax_id already added */;
+>       |                                           ^
+>
+> In both of these cases, the 'else' exists only to have a place to
+> add a comment, but that comment doesn't really explain that much
+> either, so the easiest way to shut up that warning is to just
+> remove the else.
 
-gcc warns about an empty body in an else statement:
-
-drivers/dax/bus.c: In function 'do_id_store':
-drivers/dax/bus.c:94:48: error: suggest braces around empty body in an 'else' statement [-Werror=empty-body]
-   94 |                         /* nothing to remove */;
-      |                                                ^
-drivers/dax/bus.c:99:43: error: suggest braces around empty body in an 'else' statement [-Werror=empty-body]
-   99 |                 /* dax_id already added */;
-      |                                           ^
-
-In both of these cases, the 'else' exists only to have a place to
-add a comment, but that comment doesn't really explain that much
-either, so the easiest way to shut up that warning is to just
-remove the else.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/dax/bus.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 452e85ae87a8..5aee26e1bbd6 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -90,13 +90,11 @@ static ssize_t do_id_store(struct device_driver *drv, const char *buf,
- 				list_add(&dax_id->list, &dax_drv->ids);
- 			} else
- 				rc = -ENOMEM;
--		} else
--			/* nothing to remove */;
-+		}
- 	} else if (action == ID_REMOVE) {
- 		list_del(&dax_id->list);
- 		kfree(dax_id);
--	} else
--		/* dax_id already added */;
-+	}
- 	mutex_unlock(&dax_bus_lock);
- 
- 	if (rc < 0)
--- 
-2.29.2
+Ok, applied, thanks.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
