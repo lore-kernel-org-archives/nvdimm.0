@@ -2,249 +2,124 @@ Return-Path: <SRS0=R3Y6=IV=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CF0DC433DB
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 23 Mar 2021 13:48:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50A11C433E1
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 23 Mar 2021 15:28:27 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id D4938619B3
-	for <linux-nvdimm@archiver.kernel.org>; Tue, 23 Mar 2021 13:48:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org D4938619B3
+	by mail.kernel.org (Postfix) with ESMTPS id A58F1619CA
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 23 Mar 2021 15:28:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A58F1619CA
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 7EBBB100EB829;
-	Tue, 23 Mar 2021 06:48:16 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=sbhat@linux.ibm.com; receiver=<UNKNOWN> 
+	by ml01.01.org (Postfix) with ESMTP id 7D5B4100EF27B;
+	Tue, 23 Mar 2021 08:28:26 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=riteshh@linux.ibm.com; receiver=<UNKNOWN> 
 Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5E620100EB823
-	for <linux-nvdimm@lists.01.org>; Tue, 23 Mar 2021 06:48:14 -0700 (PDT)
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 12NDXhp7080988;
-	Tue, 23 Mar 2021 09:48:03 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
- : date : message-id : in-reply-to : references : mime-version :
+	by ml01.01.org (Postfix) with ESMTPS id 28327100EF264
+	for <linux-nvdimm@lists.01.org>; Tue, 23 Mar 2021 08:28:23 -0700 (PDT)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 12NFGQtq158809;
+	Tue, 23 Mar 2021 11:27:59 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
  content-type : content-transfer-encoding; s=pp1;
- bh=YR5oXTauCntOPFXgynv2SbWapbfvARpYlf4FQYCPQ1A=;
- b=Shdxa6JQ1GUjRYb+vNwTF6BpReH5tkqr9nFKxehcnE8nskru1JdXLAsEfIWj0ENjgFXf
- t687vzpOe326fSpV40deuMBxzA+KJ5KJGDcFkEyWnX2XIXUX8OkKRASWvSXElSCXP/xA
- V7Wu7cKV+z6myUOVwbgwDInXk/SxZsq7vqPsELHp9sUaGfjf1n2jx6Ap5IkqMOio8Eym
- J6CjygavwpCcQnYsyQgPj0EgWiiAiBbJXwVEx75ltm3yz6vZnVnoEAL8292d566lHNPs
- q6RW4hV5mBd3CssAWibGlD9lOTohbgUX3DXcvMYLCspJmcR6I199MSzN1al/VFNyhUME DQ==
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 37fb36b56j-1
+ bh=HEgPNmOQ2fGg+4o6ggG+TNuvsojvFlxy9dBHlBe6Svc=;
+ b=j6Axg86BIT6TdVpK3dBy599D+sEsSqA4nMaJjCiiop2oShxkrUfHnnN/Xd3h/Swxo7aa
+ 5NKOVTNS1xlKE0pRfPk80TITeQTTiyDX19Dnq2BY0H3i2iy8EC2JnSL5ccfLWBgv394m
+ ab5x/brQxo90AIXLxqy2cFVgak4tCpENma9XCPf+ub+FBQ1D7d2OKK2ItTEFC/J6xGI2
+ 1xzVmwJQR9UAg+rnRwKM2mZ5SzMiZk7aJ6Yj+jPpon/fTZk3u/DB6Vfmq8jCRG2CeNxl
+ jpZEhKAeKLRcD3BG+t2CpzLz6jFlUKn0Cj93iuW7UNljsWf/qS7i2lfaigmROHE9DZ5Q MA==
+Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 37fjth8dmw-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 23 Mar 2021 09:48:03 -0400
-Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 12NDY8TS082289;
-	Tue, 23 Mar 2021 09:48:03 -0400
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 37fb36b55p-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 23 Mar 2021 09:48:02 -0400
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 12NDkqa7025032;
-	Tue, 23 Mar 2021 13:48:01 GMT
+	Tue, 23 Mar 2021 11:27:59 -0400
+Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
+	by ppma01fra.de.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 12NFLY4H007748;
+	Tue, 23 Mar 2021 15:27:57 GMT
 Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
-	by ppma05fra.de.ibm.com with ESMTP id 37d9a6hrqy-1
+	by ppma01fra.de.ibm.com with ESMTP id 37d99xhtu1-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 23 Mar 2021 13:48:00 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 12NDlwn833620434
+	Tue, 23 Mar 2021 15:27:57 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 12NFRs1e30146828
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 23 Mar 2021 13:47:58 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9CB7AAE055;
-	Tue, 23 Mar 2021 13:47:58 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id A6899AE051;
-	Tue, 23 Mar 2021 13:47:56 +0000 (GMT)
-Received: from [172.17.0.2] (unknown [9.40.192.207])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue, 23 Mar 2021 13:47:56 +0000 (GMT)
-Subject: [PATCH v3 3/3] spapr: nvdimm: Enable sync-dax device property for
- nvdimm
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-To: sbhat@linux.vnet.ibm.com, david@gibson.dropbear.id.au, groug@kaod.org,
-        qemu-ppc@nongnu.org, ehabkost@redhat.com, marcel.apfelbaum@gmail.com,
-        mst@redhat.com, imammedo@redhat.com, xiaoguangrong.eric@gmail.com
-Date: Tue, 23 Mar 2021 09:47:55 -0400
-Message-ID: <161650726635.2959.677683611241665210.stgit@6532096d84d3>
-In-Reply-To: <161650723087.2959.8703728357980727008.stgit@6532096d84d3>
-References: <161650723087.2959.8703728357980727008.stgit@6532096d84d3>
-User-Agent: StGit/0.21
+	Tue, 23 Mar 2021 15:27:54 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id B779A52052;
+	Tue, 23 Mar 2021 15:27:54 +0000 (GMT)
+Received: from [9.199.34.65] (unknown [9.199.34.65])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 280B65205A;
+	Tue, 23 Mar 2021 15:27:52 +0000 (GMT)
+Subject: Re: [PATCH v3 00/10] fsdax,xfs: Add reflink&dedupe support for fsdax
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
+        linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org,
+        linux-fsdevel@vger.kernel.org
+References: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+From: Ritesh Harjani <riteshh@linux.ibm.com>
+Message-ID: <7f9d5477-b156-e084-9412-307dd67149b1@linux.ibm.com>
+Date: Tue, 23 Mar 2021 20:57:50 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.6.0
 MIME-Version: 1.0
+In-Reply-To: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+Content-Language: en-US
 X-TM-AS-GCONF: 00
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
  definitions=2021-03-23_06:2021-03-22,2021-03-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- mlxlogscore=999 mlxscore=0 clxscore=1015 priorityscore=1501 malwarescore=0
- adultscore=0 phishscore=0 spamscore=0 lowpriorityscore=0 bulkscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2009150000 definitions=main-2103230100
-Message-ID-Hash: QBGVLL5JYD7RSHSSBAN75G7JG6AXLGF3
-X-Message-ID-Hash: QBGVLL5JYD7RSHSSBAN75G7JG6AXLGF3
-X-MailFrom: sbhat@linux.ibm.com
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 malwarescore=0
+ impostorscore=0 bulkscore=0 suspectscore=0 mlxscore=0 mlxlogscore=999
+ adultscore=0 spamscore=0 clxscore=1011 lowpriorityscore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2009150000 definitions=main-2103230112
+Message-ID-Hash: WGOAGNGWQNUWIR7SI6U5RB7O2OXDVFBU
+X-Message-ID-Hash: WGOAGNGWQNUWIR7SI6U5RB7O2OXDVFBU
+X-MailFrom: riteshh@linux.ibm.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com, linux-nvdimm@lists.01.org, kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com, bharata@linux.vnet.ibm.com
+CC: darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QBGVLL5JYD7RSHSSBAN75G7JG6AXLGF3/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/WGOAGNGWQNUWIR7SI6U5RB7O2OXDVFBU/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
-The patch adds the 'sync-dax' property to the nvdimm device.
 
-When the sync-dax is 'off', the device tree property
-"hcall-flush-required" is added to the nvdimm node which makes the
-guest to issue H_SCM_FLUSH hcalls to request for flushes explicitly.
-This would be the default behaviour without sync-dax property set
-for the nvdimm device.
 
-The sync-dax="on" would mean the guest need not make flush requests
-to the qemu. On previous machine versions the sync-dax is set to be
-"on" by default using the hw_compat magic.
+On 3/19/21 7:22 AM, Shiyang Ruan wrote:
+> From: Shiyang Ruan <ruansy.fnst@cn.fujitsu.com>
+> 
+> This patchset is attempt to add CoW support for fsdax, and take XFS,
+> which has both reflink and fsdax feature, as an example.
 
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
----
- hw/core/machine.c       |    1 +
- hw/mem/nvdimm.c         |    1 +
- hw/ppc/spapr_nvdimm.c   |   17 +++++++++++++++++
- include/hw/mem/nvdimm.h |   10 ++++++++++
- include/hw/ppc/spapr.h  |    1 +
- 5 files changed, 30 insertions(+)
 
-diff --git a/hw/core/machine.c b/hw/core/machine.c
-index 257a664ea2..f843643574 100644
---- a/hw/core/machine.c
-+++ b/hw/core/machine.c
-@@ -41,6 +41,7 @@ GlobalProperty hw_compat_5_2[] = {
-     { "PIIX4_PM", "smm-compat", "on"},
-     { "virtio-blk-device", "report-discard-granularity", "off" },
-     { "virtio-net-pci", "vectors", "3"},
-+    { "nvdimm", "sync-dax", "on" },
- };
- const size_t hw_compat_5_2_len = G_N_ELEMENTS(hw_compat_5_2);
- 
-diff --git a/hw/mem/nvdimm.c b/hw/mem/nvdimm.c
-index 7397b67156..8f0e29b191 100644
---- a/hw/mem/nvdimm.c
-+++ b/hw/mem/nvdimm.c
-@@ -229,6 +229,7 @@ static void nvdimm_write_label_data(NVDIMMDevice *nvdimm, const void *buf,
- 
- static Property nvdimm_properties[] = {
-     DEFINE_PROP_BOOL(NVDIMM_UNARMED_PROP, NVDIMMDevice, unarmed, false),
-+    DEFINE_PROP_BOOL(NVDIMM_SYNC_DAX_PROP, NVDIMMDevice, sync_dax, false),
-     DEFINE_PROP_END_OF_LIST(),
- };
- 
-diff --git a/hw/ppc/spapr_nvdimm.c b/hw/ppc/spapr_nvdimm.c
-index 883317c1ed..dd1c90251b 100644
---- a/hw/ppc/spapr_nvdimm.c
-+++ b/hw/ppc/spapr_nvdimm.c
-@@ -125,6 +125,9 @@ static int spapr_dt_nvdimm(SpaprMachineState *spapr, void *fdt,
-     uint64_t lsize = nvdimm->label_size;
-     uint64_t size = object_property_get_int(OBJECT(nvdimm), PC_DIMM_SIZE_PROP,
-                                             NULL);
-+    bool sync_dax = object_property_get_bool(OBJECT(nvdimm),
-+                                             NVDIMM_SYNC_DAX_PROP,
-+                                             &error_abort);
- 
-     drc = spapr_drc_by_id(TYPE_SPAPR_DRC_PMEM, slot);
-     g_assert(drc);
-@@ -159,6 +162,11 @@ static int spapr_dt_nvdimm(SpaprMachineState *spapr, void *fdt,
-                              "operating-system")));
-     _FDT(fdt_setprop(fdt, child_offset, "ibm,cache-flush-required", NULL, 0));
- 
-+    if (!sync_dax) {
-+        _FDT(fdt_setprop(fdt, child_offset, "ibm,hcall-flush-required",
-+                         NULL, 0));
-+    }
-+
-     return child_offset;
- }
- 
-@@ -567,10 +575,12 @@ static target_ulong h_scm_flush(PowerPCCPU *cpu, SpaprMachineState *spapr,
-                                       target_ulong opcode, target_ulong *args)
- {
-     int ret;
-+    bool sync_dax;
-     uint32_t drc_index = args[0];
-     uint64_t continue_token = args[1];
-     SpaprDrc *drc = spapr_drc_by_index(drc_index);
-     PCDIMMDevice *dimm;
-+    NVDIMMDevice *nvdimm;
-     HostMemoryBackend *backend = NULL;
-     SpaprNVDIMMDeviceFlushState *state;
-     ThreadPool *pool = aio_get_thread_pool(qemu_get_aio_context());
-@@ -580,6 +590,13 @@ static target_ulong h_scm_flush(PowerPCCPU *cpu, SpaprMachineState *spapr,
-         return H_PARAMETER;
-     }
- 
-+    nvdimm = NVDIMM(drc->dev);
-+    sync_dax = object_property_get_bool(OBJECT(nvdimm), NVDIMM_SYNC_DAX_PROP,
-+                                        &error_abort);
-+    if (sync_dax) {
-+        return H_UNSUPPORTED;
-+    }
-+
-     if (continue_token != 0) {
-         ret = spapr_nvdimm_get_flush_status(continue_token);
-         if (H_IS_LONG_BUSY(ret)) {
-diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
-index bcf62f825c..f82979cf2f 100644
---- a/include/hw/mem/nvdimm.h
-+++ b/include/hw/mem/nvdimm.h
-@@ -51,6 +51,7 @@ OBJECT_DECLARE_TYPE(NVDIMMDevice, NVDIMMClass, NVDIMM)
- #define NVDIMM_LABEL_SIZE_PROP "label-size"
- #define NVDIMM_UUID_PROP       "uuid"
- #define NVDIMM_UNARMED_PROP    "unarmed"
-+#define NVDIMM_SYNC_DAX_PROP   "sync-dax"
- 
- struct NVDIMMDevice {
-     /* private */
-@@ -85,6 +86,15 @@ struct NVDIMMDevice {
-      */
-     bool unarmed;
- 
-+    /*
-+     * On PPC64,
-+     * The 'off' value results in the hcall-flush-required property set
-+     * in the device tree for pseries machines. When 'off', the guest
-+     * initiates explicit flush requests to the backend device ensuring
-+     * write persistence.
-+     */
-+    bool sync_dax;
-+
-     /*
-      * The PPC64 - spapr requires each nvdimm device have a uuid.
-      */
-diff --git a/include/hw/ppc/spapr.h b/include/hw/ppc/spapr.h
-index 7c27fb3e2d..51c35488a4 100644
---- a/include/hw/ppc/spapr.h
-+++ b/include/hw/ppc/spapr.h
-@@ -333,6 +333,7 @@ struct SpaprMachineState {
- #define H_P7              -60
- #define H_P8              -61
- #define H_P9              -62
-+#define H_UNSUPPORTED     -67
- #define H_OVERLAP         -68
- #define H_UNSUPPORTED_FLAG -256
- #define H_MULTI_THREADS_ACTIVE -9005
+Thanks for the patchset. I have tried reviewing the series from logical
+correctness and to some extent functional correctness.
+Since I am not well versed with the core functionality of COW operation,
+so I may have requested for some clarifications where I could not get
+the code 100% on what it is doing.
 
+
+> 
+> (Rebased on v5.11)
+> ==
+> 
+Thanks. Yes, I see some conflicts when tried to apply on latest kernel.
+
+-ritesh
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
