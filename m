@@ -2,226 +2,274 @@ Return-Path: <SRS0=a6/1=IW=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E150C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Mar 2021 02:19:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0ECFAC433C1
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Mar 2021 03:09:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3B0F8619CB
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Mar 2021 02:19:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3B0F8619CB
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id 2545E619D5
+	for <linux-nvdimm@archiver.kernel.org>; Wed, 24 Mar 2021 03:09:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2545E619D5
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=gibson.dropbear.id.au
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C67A8100EB337;
-	Tue, 23 Mar 2021 19:19:42 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a00:1450:4864:20::633; helo=mail-ej1-x633.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id EDEA2100EB33C;
+	Tue, 23 Mar 2021 20:09:46 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=203.11.71.1; helo=ozlabs.org; envelope-from=dgibson@ozlabs.org; receiver=<UNKNOWN> 
+Received: from ozlabs.org (bilbo.ozlabs.org [203.11.71.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7EFEC100EB84F
-	for <linux-nvdimm@lists.01.org>; Tue, 23 Mar 2021 19:19:39 -0700 (PDT)
-Received: by mail-ej1-x633.google.com with SMTP id k10so30352431ejg.0
-        for <linux-nvdimm@lists.01.org>; Tue, 23 Mar 2021 19:19:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=O6pYt7i3ZfjZRsHKNRy9TSnJLBhdXZsjApsl7qVrkWA=;
-        b=RsVkB/Y0CZH9XZzn82erHDDP8QMmPgtgAa2wOWWwpxmakMZJgHzNO7I/+g4m4adiEA
-         /AuXJMSkwTq4YjUQhLPhFDbNlzE2s0z/XuQk4Yg9oVyPlFKtUWFGXz9b0FcDyGFf1ZSx
-         gkTTKLNlXDSjsuh3nOejNfxEfpMWeohC44aSax0AJ/HiZfzuvt5xWllMplzX3LmiyS9+
-         HFcxDA7Y913vpd56MDpHtmf02XWLCE3WdLeUSj4zP1CKL4A7JEBAF9uR9Tj6+4exlzq/
-         /21DNknGe39jAd9gmA5iOuCZzGMbd3mXM7qmNlmeF/yAv6uShf/XV5CbiPngHl/r30am
-         JXMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=O6pYt7i3ZfjZRsHKNRy9TSnJLBhdXZsjApsl7qVrkWA=;
-        b=uH5izVIe2y5tI/QH/Eo8d1ztVOZBdt32Gbz2Ch/Q0yszfVxz+OKABLJU3qfOplgg50
-         JEc+RvvCGrpgs6ZEM1OsRpYNRGcMT7ZMNVEpf089K2+m1dtZE41RozEg9LbKDSKPpE8A
-         Ki8f/+gkA0cAl7vweErNseXFbCDlTwK4zecTXBDxHwf6AR8VMsPw0TrVovbdROPxPZWA
-         snRY3aKs4k3LSmvzZ4AW18YNLMed4ypATxE5dsanOCbnthuStn/Bstb5No74Sui2GOIz
-         wA/ZGvpWZnHzn7d2gLVKF0P2gitpSi+EIs9wlle0v0PaUyqPiHYxvW0Y2KwWM0GktoYZ
-         v6YA==
-X-Gm-Message-State: AOAM532Hj1khEAx5xGLpCXMMZ0f0Blkpw5aon44cPFll9QO3knspJ6/r
-	Iuy77W+p7Jzcrtm/zRNZBQ6iOm/gygbxFroBVbE9Kg==
-X-Google-Smtp-Source: ABdhPJxD4PFaqvtvK1VRDwzCV3Hl7JUGp0Ljr770gbmSGeQf+7GIop0/MoqaotWJPaQPZgD8nzvxH/6snKVhCi2Z0VU=
-X-Received: by 2002:a17:906:2ac1:: with SMTP id m1mr1187750eje.472.1616552376639;
- Tue, 23 Mar 2021 19:19:36 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 5BA70100EB33A
+	for <linux-nvdimm@lists.01.org>; Tue, 23 Mar 2021 20:09:43 -0700 (PDT)
+Received: by ozlabs.org (Postfix, from userid 1007)
+	id 4F4tWT1F9mz9sWf; Wed, 24 Mar 2021 14:09:41 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=gibson.dropbear.id.au; s=201602; t=1616555381;
+	bh=VpEzj9rOBlbpm8ECwAx8a75XorGR0+faxne+7Vj1nxo=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=i29CT5EAcXkU+BGsd9+Tc/+NVepUZvfABCO3QC7ziPRHBpJmffWDZPcFIbcmKGoL+
+	 IsPcJhhLP4yBKed3T4iai5dGyA1nkA/BqtP/y2vXndHgbhMNvueFvinAJIWUKLkN1G
+	 /q5MnoRHgvqRl7ig9mRmVnLs/7vbxvMtekR/uehU=
+Date: Wed, 24 Mar 2021 14:09:26 +1100
+From: David Gibson <david@gibson.dropbear.id.au>
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [PATCH v3 3/3] spapr: nvdimm: Enable sync-dax device property
+ for nvdimm
+Message-ID: <YFqtZv6Bt/oiAF6C@yekko.fritz.box>
+References: <161650723087.2959.8703728357980727008.stgit@6532096d84d3>
+ <161650726635.2959.677683611241665210.stgit@6532096d84d3>
 MIME-Version: 1.0
-References: <20210208105530.3072869-1-ruansy.fnst@cn.fujitsu.com>
- <20210208105530.3072869-2-ruansy.fnst@cn.fujitsu.com> <CAPcyv4jqEdPoF5YM+jSYJd74KqRTwbbEum7=moa3=Wyn6UyU9g@mail.gmail.com>
- <OSBPR01MB29207A1C06968705C2FEBACFF4939@OSBPR01MB2920.jpnprd01.prod.outlook.com>
- <CAPcyv4iBnWbG0FYw6-K0MaH--rq62s7RY_yoT9rOYWMa94Yakw@mail.gmail.com>
- <OSBPR01MB29203F891F9584CC53616FB8F4939@OSBPR01MB2920.jpnprd01.prod.outlook.com>
- <CAPcyv4gn_AvT6BA7g4jLKRFODSpt7_ORowVd3KgyWxyaFG0k9g@mail.gmail.com>
- <OSBPR01MB2920E46CBE4816CDF711E004F46F9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
- <OSBPR01MB29208779955B49F84D857F80F4689@OSBPR01MB2920.jpnprd01.prod.outlook.com>
-In-Reply-To: <OSBPR01MB29208779955B49F84D857F80F4689@OSBPR01MB2920.jpnprd01.prod.outlook.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 23 Mar 2021 19:19:28 -0700
-Message-ID: <CAPcyv4jhUU3NVD8HLZnJzir+SugB6LnnrgJZ-jP45BZrbJ1dJQ@mail.gmail.com>
-Subject: Re: [PATCH v3 01/11] pagemap: Introduce ->memory_failure()
-To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Message-ID-Hash: 3H7FZG6GMPWCIT7WYEABNEW6D6GRRZMF
-X-Message-ID-Hash: 3H7FZG6GMPWCIT7WYEABNEW6D6GRRZMF
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, device-mapper development <dm-devel@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>, "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>, "y-goto@fujitsu.com" <y-goto@fujitsu.com>
+In-Reply-To: <161650726635.2959.677683611241665210.stgit@6532096d84d3>
+Message-ID-Hash: ZO437NNQBKVIBS3XFXYR5FRMBHYXTHPI
+X-Message-ID-Hash: ZO437NNQBKVIBS3XFXYR5FRMBHYXTHPI
+X-MailFrom: dgibson@ozlabs.org
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: sbhat@linux.vnet.ibm.com, groug@kaod.org, qemu-ppc@nongnu.org, ehabkost@redhat.com, marcel.apfelbaum@gmail.com, mst@redhat.com, imammedo@redhat.com, xiaoguangrong.eric@gmail.com, qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com, linux-nvdimm@lists.01.org, kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com, bharata@linux.vnet.ibm.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/3H7FZG6GMPWCIT7WYEABNEW6D6GRRZMF/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ZO437NNQBKVIBS3XFXYR5FRMBHYXTHPI/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+Content-Type: multipart/mixed; boundary="===============6349414831572935187=="
+
+
+--===============6349414831572935187==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="QQAdSkgBj1kGtrk3"
+Content-Disposition: inline
+
+
+--QQAdSkgBj1kGtrk3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Mar 23, 2021 at 09:47:55AM -0400, Shivaprasad G Bhat wrote:
+> The patch adds the 'sync-dax' property to the nvdimm device.
+>=20
+> When the sync-dax is 'off', the device tree property
+> "hcall-flush-required" is added to the nvdimm node which makes the
+> guest to issue H_SCM_FLUSH hcalls to request for flushes explicitly.
+> This would be the default behaviour without sync-dax property set
+> for the nvdimm device.
+>=20
+> The sync-dax=3D"on" would mean the guest need not make flush requests
+> to the qemu. On previous machine versions the sync-dax is set to be
+> "on" by default using the hw_compat magic.
+>=20
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+> ---
+>  hw/core/machine.c       |    1 +
+>  hw/mem/nvdimm.c         |    1 +
+>  hw/ppc/spapr_nvdimm.c   |   17 +++++++++++++++++
+>  include/hw/mem/nvdimm.h |   10 ++++++++++
+>  include/hw/ppc/spapr.h  |    1 +
+>  5 files changed, 30 insertions(+)
+>=20
+> diff --git a/hw/core/machine.c b/hw/core/machine.c
+> index 257a664ea2..f843643574 100644
+> --- a/hw/core/machine.c
+> +++ b/hw/core/machine.c
+> @@ -41,6 +41,7 @@ GlobalProperty hw_compat_5_2[] =3D {
+>      { "PIIX4_PM", "smm-compat", "on"},
+>      { "virtio-blk-device", "report-discard-granularity", "off" },
+>      { "virtio-net-pci", "vectors", "3"},
+> +    { "nvdimm", "sync-dax", "on" },
+>  };
+>  const size_t hw_compat_5_2_len =3D G_N_ELEMENTS(hw_compat_5_2);
+> =20
+> diff --git a/hw/mem/nvdimm.c b/hw/mem/nvdimm.c
+> index 7397b67156..8f0e29b191 100644
+> --- a/hw/mem/nvdimm.c
+> +++ b/hw/mem/nvdimm.c
+> @@ -229,6 +229,7 @@ static void nvdimm_write_label_data(NVDIMMDevice *nvd=
+imm, const void *buf,
+> =20
+>  static Property nvdimm_properties[] =3D {
+>      DEFINE_PROP_BOOL(NVDIMM_UNARMED_PROP, NVDIMMDevice, unarmed, false),
+> +    DEFINE_PROP_BOOL(NVDIMM_SYNC_DAX_PROP, NVDIMMDevice, sync_dax, false=
+),
+
+I'm a bit uncomfortable adding this base NVDIMM property without at
+least some logic about how it's handled on non-PAPR platforms.
+
+>      DEFINE_PROP_END_OF_LIST(),
+>  };
+> =20
+> diff --git a/hw/ppc/spapr_nvdimm.c b/hw/ppc/spapr_nvdimm.c
+> index 883317c1ed..dd1c90251b 100644
+> --- a/hw/ppc/spapr_nvdimm.c
+> +++ b/hw/ppc/spapr_nvdimm.c
+> @@ -125,6 +125,9 @@ static int spapr_dt_nvdimm(SpaprMachineState *spapr, =
+void *fdt,
+>      uint64_t lsize =3D nvdimm->label_size;
+>      uint64_t size =3D object_property_get_int(OBJECT(nvdimm), PC_DIMM_SI=
+ZE_PROP,
+>                                              NULL);
+> +    bool sync_dax =3D object_property_get_bool(OBJECT(nvdimm),
+> +                                             NVDIMM_SYNC_DAX_PROP,
+> +                                             &error_abort);
+> =20
+>      drc =3D spapr_drc_by_id(TYPE_SPAPR_DRC_PMEM, slot);
+>      g_assert(drc);
+> @@ -159,6 +162,11 @@ static int spapr_dt_nvdimm(SpaprMachineState *spapr,=
+ void *fdt,
+>                               "operating-system")));
+>      _FDT(fdt_setprop(fdt, child_offset, "ibm,cache-flush-required", NULL=
+, 0));
+> =20
+> +    if (!sync_dax) {
+> +        _FDT(fdt_setprop(fdt, child_offset, "ibm,hcall-flush-required",
+> +                         NULL, 0));
+> +    }
+> +
+>      return child_offset;
+>  }
+> =20
+> @@ -567,10 +575,12 @@ static target_ulong h_scm_flush(PowerPCCPU *cpu, Sp=
+aprMachineState *spapr,
+>                                        target_ulong opcode, target_ulong =
+*args)
+>  {
+>      int ret;
+> +    bool sync_dax;
+>      uint32_t drc_index =3D args[0];
+>      uint64_t continue_token =3D args[1];
+>      SpaprDrc *drc =3D spapr_drc_by_index(drc_index);
+>      PCDIMMDevice *dimm;
+> +    NVDIMMDevice *nvdimm;
+>      HostMemoryBackend *backend =3D NULL;
+>      SpaprNVDIMMDeviceFlushState *state;
+>      ThreadPool *pool =3D aio_get_thread_pool(qemu_get_aio_context());
+> @@ -580,6 +590,13 @@ static target_ulong h_scm_flush(PowerPCCPU *cpu, Spa=
+prMachineState *spapr,
+>          return H_PARAMETER;
+>      }
+> =20
+> +    nvdimm =3D NVDIMM(drc->dev);
+> +    sync_dax =3D object_property_get_bool(OBJECT(nvdimm), NVDIMM_SYNC_DA=
+X_PROP,
+> +                                        &error_abort);
+> +    if (sync_dax) {
+> +        return H_UNSUPPORTED;
+
+Do you want to return UNSUPPORTED here, or just H_SUCCESS, since the
+flush should be a no-op in this case.
+
+> +    }
+> +
+>      if (continue_token !=3D 0) {
+>          ret =3D spapr_nvdimm_get_flush_status(continue_token);
+>          if (H_IS_LONG_BUSY(ret)) {
+> diff --git a/include/hw/mem/nvdimm.h b/include/hw/mem/nvdimm.h
+> index bcf62f825c..f82979cf2f 100644
+> --- a/include/hw/mem/nvdimm.h
+> +++ b/include/hw/mem/nvdimm.h
+> @@ -51,6 +51,7 @@ OBJECT_DECLARE_TYPE(NVDIMMDevice, NVDIMMClass, NVDIMM)
+>  #define NVDIMM_LABEL_SIZE_PROP "label-size"
+>  #define NVDIMM_UUID_PROP       "uuid"
+>  #define NVDIMM_UNARMED_PROP    "unarmed"
+> +#define NVDIMM_SYNC_DAX_PROP   "sync-dax"
+> =20
+>  struct NVDIMMDevice {
+>      /* private */
+> @@ -85,6 +86,15 @@ struct NVDIMMDevice {
+>       */
+>      bool unarmed;
+> =20
+> +    /*
+> +     * On PPC64,
+> +     * The 'off' value results in the hcall-flush-required property set
+> +     * in the device tree for pseries machines. When 'off', the guest
+> +     * initiates explicit flush requests to the backend device ensuring
+> +     * write persistence.
+> +     */
+> +    bool sync_dax;
+> +
+>      /*
+>       * The PPC64 - spapr requires each nvdimm device have a uuid.
+>       */
+> diff --git a/include/hw/ppc/spapr.h b/include/hw/ppc/spapr.h
+> index 7c27fb3e2d..51c35488a4 100644
+> --- a/include/hw/ppc/spapr.h
+> +++ b/include/hw/ppc/spapr.h
+> @@ -333,6 +333,7 @@ struct SpaprMachineState {
+>  #define H_P7              -60
+>  #define H_P8              -61
+>  #define H_P9              -62
+> +#define H_UNSUPPORTED     -67
+>  #define H_OVERLAP         -68
+>  #define H_UNSUPPORTED_FLAG -256
+>  #define H_MULTI_THREADS_ACTIVE -9005
+>=20
+>=20
+
+--=20
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
+
+--QQAdSkgBj1kGtrk3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEdfRlhq5hpmzETofcbDjKyiDZs5IFAmBarWUACgkQbDjKyiDZ
+s5JklBAAjkXmV4PWsruusz8tubkLrm+nIr6wGV7mcqSJ4z8PxQf6xcP8uO4HCG/3
+6wV0wdEP0sgofMCwLlpXQ+IrF8kjuO8rZwSIjzIT/uiTt8FGYwB4CVFRzOqzYCLH
+KwR4FsBEcji2hYiCQc31cKndeH85ioAPXwH4FKi5sWMFAv4h90T0Rx67D3cMCX25
+0BUmZWq0wjE037NRsh3NmmfU4FDNd4c0ZqJWsYLGW5nZN1Gm96GRSIFOTJVrBMtf
+WvV/60eOdLNYVu0z5hnoUHOzkZ4J1/vWeCFwnzzKkz56bHv/3rLsLDkPGcGGGP4G
+ayF4AwJrxjV3pkXBMC8AlSpJbu96WWmm9iqfRB6KT08jaHzoVyd69NbZ09X5Ibto
+uVh4Hz2u6+xCTkJIbVPUGGTqY1P0vAcG3t7vPxDwj6EUfAgcz9pPaB+yqdTmu9sO
+TM+/rCfmIDHyY/pAVPSy3CD1crdwyK9ZP1OsHYMa5rGgcbRlr62N1oOJLlilu6rO
+2jVoyb7NsME2pHrCwQQv7HrOkobPgol9SjIx7fbeDeqwdP/6qHr6XKZNoN+eEiOt
+ENIPdE+A7OIwIVXl966OlnonA05VxSht8MGCPt38r+ulCXOulPPQEqqM1cy5SJ44
+hTZ9OwPgK2EiOGvXAv1iPGTRARchqFPn+65fmBqXr2W4N+eqQ+w=
+=2pOw
+-----END PGP SIGNATURE-----
+
+--QQAdSkgBj1kGtrk3--
+
+--===============6349414831572935187==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Thu, Mar 18, 2021 at 7:18 PM ruansy.fnst@fujitsu.com
-<ruansy.fnst@fujitsu.com> wrote:
->
->
->
-> > -----Original Message-----
-> > From: ruansy.fnst@fujitsu.com <ruansy.fnst@fujitsu.com>
-> > Subject: RE: [PATCH v3 01/11] pagemap: Introduce ->memory_failure()
-> > > > > > >
-> > > > > > > After the conversation with Dave I don't see the point of this.
-> > > > > > > If there is a memory_failure() on a page, why not just call
-> > > > > > > memory_failure()? That already knows how to find the inode and
-> > > > > > > the filesystem can be notified from there.
-> > > > > >
-> > > > > > We want memory_failure() supports reflinked files.  In this
-> > > > > > case, we are not able to track multiple files from a page(this
-> > > > > > broken
-> > > > > > page) because
-> > > > > > page->mapping,page->index can only track one file.  Thus, I
-> > > > > > page->introduce this
-> > > > > > ->memory_failure() implemented in pmem driver, to call
-> > > > > > ->->corrupted_range()
-> > > > > > upper level to upper level, and finally find out files who are
-> > > > > > using(mmapping) this page.
-> > > > > >
-> > > > >
-> > > > > I know the motivation, but this implementation seems backwards.
-> > > > > It's already the case that memory_failure() looks up the
-> > > > > address_space associated with a mapping. From there I would expect
-> > > > > a new 'struct address_space_operations' op to let the fs handle
-> > > > > the case when there are multiple address_spaces associated with a given
-> > file.
-> > > > >
-> > > >
-> > > > Let me think about it.  In this way, we
-> > > >     1. associate file mapping with dax page in dax page fault;
-> > >
-> > > I think this needs to be a new type of association that proxies the
-> > > representation of the reflink across all involved address_spaces.
-> > >
-> > > >     2. iterate files reflinked to notify `kill processes signal` by the
-> > > >           new address_space_operation;
-> > > >     3. re-associate to another reflinked file mapping when unmmaping
-> > > >         (rmap qeury in filesystem to get the another file).
-> > >
-> > > Perhaps the proxy object is reference counted per-ref-link. It seems
-> > > error prone to keep changing the association of the pfn while the reflink is
-> > in-tact.
-> > Hi, Dan
-> >
-> > I think my early rfc patchset was implemented in this way:
-> >  - Create a per-page 'dax-rmap tree' to store each reflinked file's (mapping,
-> > offset) when causing dax page fault.
-> >  - Mount this tree on page->zone_device_data which is not used in fsdax, so
-> > that we can iterate reflinked file mappings in memory_failure() easily.
-> > In my understanding, the dax-rmap tree is the proxy object you mentioned.  If
-> > so, I have to say, this method was rejected. Because this will cause huge
-> > overhead in some case that every dax page have one dax-rmap tree.
-> >
->
-> Hi, Dan
->
-> How do you think about this?  I am still confused.  Could you give me some advice?
-
-So I think the primary driver of this functionality is dax-devices and
-the architectural model for memory failure where several architectures
-and error handlers know how to route pfn failure to the
-memory_failure() frontend.
-
-Compare that to block-devices where sector failure has no similar
-framework, and despite some initial interest about reusing 'struct
-badblocks' for this type of scenario there has been no real uptake to
-expand 'struct badblocks' outside of the pmem driver.
-
-I think the work you have done for ->corrupted_range() just needs to
-be repurposed away from a block-device operation to dax-device
-infrastructure. Christoph's pushback on extending
-block_device_operations makes sense to me because there is likely no
-other user of this facility than the pmem driver, and the pmem driver
-only needs it for the vestigial reason that filesystems mount on
-block-devices and not dax-devices.
-
-Recently Dave drove home the point that a filesystem can't do anything
-with pfns, it needs LBAs. A dax-device does not have LBA's, but it
-does operate on the concept of device-relative offsets. The filesystem
-is allowed to assume that dax-device:PFN[device_byte_offset >>
-PAGE_SHIFT] aliases the same data as the associated
-block-device:LBA[device_byte_offset >> SECTOR_SHIFT]. He also
-reiterated that this interface should be range based, which you
-already had, but I did not include in my attempt to communicate the
-mass failure of an entire surprise-removed device.
-
-So I think the path forward is:
-
-- teach memory_failure() to allow for ranged failures
-
-- let interested drivers register for memory failure events via a
-blocking_notifier_head
-
-- teach memory_failure() to optionally let the notifier chain claim
-the event vs its current default of walking page->mapping
-
-- teach the pmem driver to register for memory_failure() events and
-filter the ones that apply to pfns that the driver owns
-
-- drop the nfit driver's usage of the mce notifier chain since
-memory_failure() is a superset of what the mce notifier communicates
-
-- augment the pmem driver's view of badblocks that it gets from
-address range scrub with one's it gets from memory_failure() events
-
-- when pmem handles a memory_failure() event or an address range scrub
-event fire a new event on a new per-dax-device blocking_notifier_head
-indicating the dax-relative offset ranges of the translated PFNs. This
-notification can optionally indicate failure, offline (for removal),
-and online (for repaired ranges).
-
-- teach dm to receive dax-device notifier events from its leaf devices
-and then translate them into dax-device notifications relative to the
-dm-device offset. This would seem to be a straightforward conversion
-of what you have done with ->corrupted_range()
-
-- teach filesystems to register for dax-device notifiers
-
-With all of that in place an interested filesystem can take ownership
-of a memory failure that impacts a range of pfns it is responsible for
-via a dax-device, but it also allows a not interested filesystem to
-default to standard single-pfn-at-a-time error handling and
-assumptions about page->mapping only referring to a single address
-space.
-
-This obviously does not solve Dave's desire to get this type of error
-reporting on block_devices, but I think there's nothing stopping a
-parallel notifier chain from being created for block-devices, but
-that's orthogonal to requirements and capabilities provided by
-dax-devices.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+
+--===============6349414831572935187==--
