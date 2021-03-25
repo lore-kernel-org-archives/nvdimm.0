@@ -5,81 +5,81 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D5F6C433C1
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7254C433E3
 	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Mar 2021 23:10:43 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1B84261A0F
+	by mail.kernel.org (Postfix) with ESMTPS id 945EE61A14
 	for <linux-nvdimm@archiver.kernel.org>; Thu, 25 Mar 2021 23:10:43 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1B84261A0F
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 945EE61A14
 Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 0CDB9100EAB52;
-	Thu, 25 Mar 2021 16:10:39 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.79; helo=aserp2130.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2130.oracle.com (aserp2130.oracle.com [141.146.126.79])
+	by ml01.01.org (Postfix) with ESMTP id 2C36D100EAB56;
+	Thu, 25 Mar 2021 16:10:40 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=156.151.31.85; helo=userp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
+Received: from userp2120.oracle.com (userp2120.oracle.com [156.151.31.85])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 7C26A100F2243
+	by ml01.01.org (Postfix) with ESMTPS id 8E933100F225C
 	for <linux-nvdimm@lists.01.org>; Thu, 25 Mar 2021 16:10:33 -0700 (PDT)
-Received: from pps.filterd (aserp2130.oracle.com [127.0.0.1])
-	by aserp2130.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 12PNAKeT143162;
-	Thu, 25 Mar 2021 23:10:20 GMT
+Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
+	by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 12PNAHj5136830;
+	Thu, 25 Mar 2021 23:10:25 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2020-01-29;
- bh=210uT+K2DSFz/dK2BBxVr5ZahPOQRm22NW+bo9aavM0=;
- b=kdPu/YrepQSQaqj0HIQGx7iFW2Baoe21XnhNSMNf1EF1WTSiOqASQabzsN2D8dZOa+Yd
- hRAP8PUaI3GVCbWcPKohEEhd7un5eN2qYYbXj4lAYEYNTykJ9No1/6XASDpOjqwOY87g
- nqGfvAHeeM5xOARoRwF7GIIIFvYttvHKw6yO6oM7JZkDG7a6qHGshcAMIwMVJkywwwRc
- 7Z6QpisA5f6u2IA02tFJUSC1vW1AjqogDiljCGoUHLNXpho/otmQIB6Zc9rS++WNeXQM
- W5mWLILNJKyoLW6W0DlnL3E/h1qJhn79dB7ldV4/m2SrC+9vbEI3ELSwvipY0q1p4XRr fg==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by aserp2130.oracle.com with ESMTP id 37h13hrdws-1
+ bh=IYSeFT3PKOSLK03Sr/oxNuTZOq3HJR8yrGxzOY6hTwI=;
+ b=GEN96YFXtN/4IlQoktWOMyZoFCCRu1E2UVbMfcajqTgoDDKKTfPFo9nEpb/qMUDaXyrI
+ 4F+USNKKaLsRESYdOyl8zFAFNKIwl7e7zyzTW/rK07kjiCsUqbgWXW/jvNbLnK50N18O
+ EIccLjRRwHdF3h7PyNSvru7zcQpxNxmEWr8IRq9/eVtbzbgJCG+vmKdJ8NhO3NmEPMle
+ Lt0ZH8VgOsj609pHjOF5C0+vz4w1UIN1TjGxvyiYSLkBIZRRf6l1WFzoNhr7HykbFFVD
+ FsffFDBjvxVBxbOjxEIhE+3En88bxWJHh2qr27akljYcyIUkxkI2KlPCzR4KcrBxkxiA wg==
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+	by userp2120.oracle.com with ESMTP id 37h13e8dxn-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 25 Mar 2021 23:10:20 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 12PN0WTp105695;
-	Thu, 25 Mar 2021 23:10:19 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2103.outbound.protection.outlook.com [104.47.70.103])
-	by aserp3020.oracle.com with ESMTP id 37h14mdkgb-1
+	Thu, 25 Mar 2021 23:10:25 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 12PN1Ko7002948;
+	Thu, 25 Mar 2021 23:10:24 GMT
+Received: from nam11-co1-obe.outbound.protection.outlook.com (mail-co1nam11lp2177.outbound.protection.outlook.com [104.47.56.177])
+	by aserp3030.oracle.com with ESMTP id 37h140nhh8-2
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 25 Mar 2021 23:10:19 +0000
+	Thu, 25 Mar 2021 23:10:24 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=S4EwmHl84jEPCq3dd1n0Jswyr9GAeesF4ZZ3KEMIx1TtZrLsiuzeCbHBJ0anGr5WZE1PCbWH/AEV9yB69FQlj07U1eTjFGGH0XcJCpotdCI6Z/Zp79KMY9Kvvlu/jPex9MNoGM7HUySZUwgvuw4VlJOsJ3b/3/osB+51SDj0molqCCs5RjnbrSRm/ke6emS3/0FGJYmXthih/zUPXutkfklJmDmLDzWJ2hm3+iXOzUUxmg5qD9RsNC/W1+2Z3iOl4pMfatXCbDhQCyyUJRkvxZNG7FIQQq6uy5nbH8P3FAIh07rnejXiCu91XlDvBE37pw6F3B3s4exFdQgf12EiDQ==
+ b=etm+xDll18SMSsVBEfeinS5EOTQ50wTmCvmaxnIe2sVKUHgGjP6NhioZYetCnq0TTUbkRyxSRRMOo3MeLwnHcObKwkpZW7hH5EVgPgJ9Ubiqgfq6MGRkQD/TVO+Nfb/4HYAu7dGxRTdfJ8UIb1uEiOYYi0+J0xMjr2haUe3RXKPYNUeROfLbWdIOuSUvw06A6GFL5JYPK1pbblD1elhZZjp4bkB/fr3rr7rQxeJ2JU7Adis/cDmiltDhraweziZ2ayH5+XlfMOJ2r/iYo8SuTKOQDovfVmsL4mMuWuTVHrjNfFh1Hi0o9MGbhEE8J9Bh+u2pR1ukRrypCSlVHG055Q==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=210uT+K2DSFz/dK2BBxVr5ZahPOQRm22NW+bo9aavM0=;
- b=TL0n3jnRMxix5ASyH+WWoW5l7H5rUl1yE5bJIUYH7CJndpB/ztOEIap2zlL0tmQk6fi54Uv2nKXJ/7bXdCujcIlR8uDIhRS4fHTThdRlD4inRvVAkNAUGBVABIl1ghcNWB4ZKFO24QAj9ixttdx1X/GERSweVgcZKGGxptSIpfcuOY/vt/3MROz6ZcANAOCyfABqcMsgHBmhG6hj6npHogbKgpUZjiW0Jne1RjZfnqLAM6ZG+7gDd56e0BGFUgUgQSo2CRkCdSgHl/z9NPpyADTPDatup66yRRp9m/0/anqprRWxG68yvlw3WLqhlv7Slvjlc3JoYUnsT0LgQi0qvA==
+ bh=IYSeFT3PKOSLK03Sr/oxNuTZOq3HJR8yrGxzOY6hTwI=;
+ b=T85ZBa0Gz3qbf752pOT4FOu0vCkMUOvtqe/EcKYfCuj96JceLxvAhDcg+wUAeTZoTqI0AYe3GrUrT0FNvDxjD0y69bzHtC2IO+2QAsIozfOWaV75ZnRZKR2N6/trdGgSzp6fsANFx3c/ynwWwfNKgTX2AEedcxR6O5eJ1hHkfsfeZds0qm/QFcSVly9CJtTXbGQm4K/lchkd6dJ2DjocVbSUpHwZWWA+lwsVuEWnPmJj8vAcNvwMoTF0yL4vkVqP3nRBF3p/0oLC6AkrZNh6423HtHkSKaB8BGrLFMuA8Rg7sKB9JYIi0bxaSuWuSmYe9DCqvZ0zBHekOxWnfEuv6w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=210uT+K2DSFz/dK2BBxVr5ZahPOQRm22NW+bo9aavM0=;
- b=uXpeRyXQ6DO3S2sBVSxBnc4/Yurn8PP/1Tgm7CCjz+tkihXQla3WScVk/QhtY9vccAbkxne8urZy7m7Zw0YJtAjtFNESb0fbKHDpqPIfwbn610cQIPMlG9rEbxhng124+etUUtSZTbsDZi+lGQ48EUpS+k98TCd2an1fYErz0qY=
+ bh=IYSeFT3PKOSLK03Sr/oxNuTZOq3HJR8yrGxzOY6hTwI=;
+ b=YcwpZyuV2XyzZD+zkOO0EkfWtcSfTodB6hlDcCWRfAykzGswLlWpBLByihKP+nIqk6Iae2eufYjmdgBbGifqJjL2rIBI958XsWo35iWorU49D1KUXShkSCT6Yj271pyGvT6nLsym9E8owW2pwsmToLhOI2G7N7mFJakYQ0xHIxc=
 Authentication-Results: kvack.org; dkim=none (message not signed)
  header.d=none;kvack.org; dmarc=none action=none header.from=oracle.com;
 Received: from BYAPR10MB3077.namprd10.prod.outlook.com (2603:10b6:a03:8c::12)
- by BY5PR10MB4371.namprd10.prod.outlook.com (2603:10b6:a03:210::10) with
+ by BYAPR10MB2853.namprd10.prod.outlook.com (2603:10b6:a03:92::23) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.25; Thu, 25 Mar
- 2021 23:10:17 +0000
+ 2021 23:10:23 +0000
 Received: from BYAPR10MB3077.namprd10.prod.outlook.com
  ([fe80::507f:a466:3318:65db]) by BYAPR10MB3077.namprd10.prod.outlook.com
  ([fe80::507f:a466:3318:65db%7]) with mapi id 15.20.3955.027; Thu, 25 Mar 2021
- 23:10:17 +0000
+ 23:10:23 +0000
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-mm@kvack.org
-Subject: [PATCH v1 08/11] mm/sparse-vmemmap: use hugepages for PUD compound pagemaps
-Date: Thu, 25 Mar 2021 23:09:35 +0000
-Message-Id: <20210325230938.30752-9-joao.m.martins@oracle.com>
+Subject: [PATCH v1 10/11] device-dax: compound pagemap support
+Date: Thu, 25 Mar 2021 23:09:37 +0000
+Message-Id: <20210325230938.30752-11-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20210325230938.30752-1-joao.m.martins@oracle.com>
 References: <20210325230938.30752-1-joao.m.martins@oracle.com>
@@ -89,77 +89,77 @@ X-ClientProxiedBy: LO2P265CA0082.GBRP265.PROD.OUTLOOK.COM
  (2603:10b6:a03:8c::12)
 MIME-Version: 1.0
 X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from paddy.uk.oracle.com (94.61.1.144) by LO2P265CA0082.GBRP265.PROD.OUTLOOK.COM (2603:10a6:600:8::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.3955.24 via Frontend Transport; Thu, 25 Mar 2021 23:10:13 +0000
+Received: from paddy.uk.oracle.com (94.61.1.144) by LO2P265CA0082.GBRP265.PROD.OUTLOOK.COM (2603:10a6:600:8::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.3955.24 via Frontend Transport; Thu, 25 Mar 2021 23:10:20 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b4f9bed1-1e3c-45aa-eae0-08d8efe326ed
-X-MS-TrafficTypeDiagnostic: BY5PR10MB4371:
+X-MS-Office365-Filtering-Correlation-Id: b525738f-d968-4734-015d-08d8efe32b25
+X-MS-TrafficTypeDiagnostic: BYAPR10MB2853:
 X-MS-Exchange-Transport-Forked: True
 X-Microsoft-Antispam-PRVS: 
-	<BY5PR10MB4371C361E8A6ED661E6F0E76BB629@BY5PR10MB4371.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:4941;
+	<BYAPR10MB28530476AE76C01C34F40B2CBB629@BYAPR10MB2853.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:2733;
 X-MS-Exchange-SenderADCheck: 1
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	djcUSWEml1yOso3W5Th50VtJhm+hJyt1lbzaL6HiZKMhFn71uf6yiou6ArV/pWL37718YVhOR0PrmA9mAhFXhzuqBT+9xDnjitbEl4zXcSaNAxx9onkwBGvdwjO7skC8Znj/2ysCNlhuuqOjTXaovVeojh/gfyTlG7KK/WQygewmed8cylWISkryxISKMo9B57ogTwHtgPHiheM/+gEejRLqx1eHr1Uw0WrJWHdxVxKVzn7LKI67uA2K9NQ2/xRGJntc0/qBS4TW1fBOaLs5Crz6MovDqeIgk6w4btxb6v+ncNGrAP9ntpqxqFWUk5HrHtL/sn9xpVQe4oln4HJZPHUo3TQ8ptANEDUsggvEzpOkeF6+ac8D9vpt+Bw/PjjfhUc3vkYgVuS6xH6Ho0B/vsZqIaPcfEKddTCvB2XV/n5B9i2SG1o7r4MFkn0NJi+8JakFAn/b9RRzDRxpzRA29tgRf7FIOQcCddj9qUvNeBhRHnAnjDmBBjzb5y8aFakumyqGhPJcmPULaf5yIk14fKfJaAgb+xyBlQmvNGEaCzx4SzoR0ftDwiJDOtbKMW0rUk1MWnywWzk+nN3z+pbV0lu03k+xa50bRSlRN9Jrml56R2xq3lDeZY7KjIri05SJMFQDRHRZrwHtUftprtQySw==
+	ybcPQ6fIy+mt9RcJtx0XBBAcpAvkrl4AbMoC/yLkVIKUg7+E4bMlBmf/Yc3+aKTgvMPYEuS9xtZnlY8OIiwmXY1EJtLuiAi2Kr3ld/Qq8R2K0gwPfYVz5Rjj1lphB5uqmTowrqFNrikzqiQLdh+e3N4vBaWSldy7SSQ3skdv4xK5NFMvXQBCdkvFWWqx3Tg62E7sipbErbsY+a/pu9U44BvGufQdEW/DjN5U9VcZYPAZY9BFD3Xqo7sTYskBN+MISzozLl42C8titX2I9FGvkJbgX/t6kMoYf+oPjPH38qBkMWnbhOb0eFutkFzcUwMmLUhSdjffU14zAKpsmwogbjxXdYBKu7d8RFfRHEI9CD31uytD8I/+2sRXbnnjNjRQusGIj7egWxv3scIKcWVK3GnZLioXMjhskTvAA4OPaGg/NPNATzWffnqQdQsfdfGNOEoF/A4V9wcawijRJP5OlJNRbUfANk+5M/FWU6C3AS3u72SkjQ7TYi1zHE9vVXOXx67ALHYts/PkT1b5DbEUepVKpm5LgRMuaOHowhDilcA84jv18YPXoIY7X/idVdtL6nFsQTUKAs0jUvgFHNgxHrExq9V+0F98dCl71BSctn4JNTLfuma0w+QgEOKzwbvPDWk99ssSYexkzTb8JbWX4Pv5DvxGeu8X2daIhm7A15w=
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB3077.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(376002)(346002)(366004)(396003)(136003)(186003)(26005)(16526019)(7696005)(316002)(38100700001)(54906003)(103116003)(478600001)(6486002)(2906002)(52116002)(83380400001)(6916009)(66946007)(86362001)(66556008)(8936002)(4326008)(6666004)(5660300002)(36756003)(2616005)(1076003)(956004)(66476007)(107886003)(8676002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB3077.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(346002)(39860400002)(376002)(396003)(366004)(136003)(38100700001)(4326008)(8676002)(1076003)(2616005)(8936002)(956004)(6666004)(6916009)(107886003)(66476007)(478600001)(103116003)(86362001)(186003)(83380400001)(7696005)(5660300002)(52116002)(316002)(66556008)(6486002)(36756003)(16526019)(2906002)(26005)(54906003)(66946007);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData: 
-	=?us-ascii?Q?FQPG9J9y7QJJWqXCZxiRR5Ll5DO9Tlwqktt32JHEjVMSCQH3AqP/8U4WB64I?=
- =?us-ascii?Q?arQAwOvKSA5qWIj5FA4ZVmftmfYAPz+UhAKLrqcWymVcj940f1ZYL2aPfUGk?=
- =?us-ascii?Q?bhALXqy1OOwFj2Wg7h4ZnxpVKiWC1VVSZV31AMeq7O8EWD8U3Pt4Ju9houHK?=
- =?us-ascii?Q?SnltLPG1Ig5lYh+y+Pma54Jt8K39sHi6MSkMRA/4ZgX+V0D92RpDShNUSvzV?=
- =?us-ascii?Q?T8ooSbj55nrUncmBFoesZGVTo7z/cXRqN72ww0IyEfeww3Iw41XRYj+NBTNo?=
- =?us-ascii?Q?c3MIuFWoMtI2kwpHD6ROGXgDlz669lZOWwUjgLrGriPYHCenYEdi6BKFpGej?=
- =?us-ascii?Q?feSvK9uoXYDvX3eMrIfZZjsRMl9G1cRYlECMkUtWcQiuGxePkI6DnzCF5VHJ?=
- =?us-ascii?Q?Q4gfwBnSyxvoVRAJIAbKZQcBWYakSKDs4w4jowJa97vCOiZNU/wKTqGAtLdZ?=
- =?us-ascii?Q?FVe5u+CpSj7iScgzT+oR0pSGNk1CcON2i6WL2B8/0lfl4vqJIbCaW0uC9FCw?=
- =?us-ascii?Q?MDYpYbub1+8KiOPblgpUIwzzmYQV5v6M28D6dhu0gtWd/cMD+Hxdukz0hShM?=
- =?us-ascii?Q?1tT9sM1bkXKr9sUKTlgRMnj63EJXWgGsfgRfRX3nWuKQ+PIS8FGye8PiyQSd?=
- =?us-ascii?Q?LDdo7PS6rmR5iWtdyZe9lrx1FsOBgW1d3kAEB6cFuhoilca/X92boMQ/WxyA?=
- =?us-ascii?Q?q/+NMeAnscnTRZePgYz9gOl21SNsinN4VYR/fYuF1Tr8Lz4zCHrsNqb/unL5?=
- =?us-ascii?Q?JpGu8ySp1sApc0G0Cdb4P9ONGAmx1gOD1Q2t154LR4gfile/d3HdAaLcOi8e?=
- =?us-ascii?Q?0FPjC3T1xGk04CNtk53Rk2tU1tZR9XGIBu70yykJfLcnOmkLAPIDkkC7cO7E?=
- =?us-ascii?Q?JqbI4URuF0Vd3R6YqItrr1EVFbpM9jfCbI0T61XyhJMxcIeXvYH5bUITXC5M?=
- =?us-ascii?Q?I+PqhBz8FuAx/KB3acvAiAuAssXDhIK0db9JyvL1zvofZcr0SC++LFWXsSMt?=
- =?us-ascii?Q?A5K5iC5R0g/9GCS9xbDomiX41aE+MxQIJRTmJMrKiAwD5sT+9w8GosVZWYv2?=
- =?us-ascii?Q?uALPojzIUt7+70ZAX0wci3pmdMLFe2RxaOLyonQmgq1WzXAzDr/rw3X9bhYx?=
- =?us-ascii?Q?48sX9jmujSFOY+JXgDXhagY94JYzPOz9u6Fexh0d2zcCgGLDwVgRQHy8b0hk?=
- =?us-ascii?Q?gmIZ1K5PDKgBSqHL41ySd3rbeJBhpK8mqcoE2VHZuBPfmh4wB2gG1dgnxWnO?=
- =?us-ascii?Q?s3pD2Z+enIsAg2LJu5ahrJcTnGbmtfKBvRkkxJH/4OkvSdEtKdUPCUV/cESY?=
- =?us-ascii?Q?PA9HnPKrpta8APu3+/A8sQqc?=
+	=?us-ascii?Q?OtgS/otz953nXBf8nYoWlr2cJWomyvpNjI2tsPyduyDTawTaducu1Yar0d1R?=
+ =?us-ascii?Q?OLCSJUC0SRkymJY6KHcZ2KvIbQVSebAB6TzcSdAqEwvliz0PIU/Cdm6m7dT8?=
+ =?us-ascii?Q?nnnms2GE5lEHn5OpaTCclx7e8kMnkrcM6kNcPMjdnyTee96WBQ6zreMIzo5W?=
+ =?us-ascii?Q?WPpPn+tSuoC9yx7TB1Utu+7iGfMfvmrifHbCVOcPcMEP3EGCLpA/el3JRlNX?=
+ =?us-ascii?Q?gJfdmQxjGX3Xm39KrXW2t/NBMcs9adCLMESDhuSFKz1NgPz01nMJF8GWI00L?=
+ =?us-ascii?Q?4PExa2jPVJ0/De8sGdQ2Kc6MtvtZz8cYeE4LNO+DCHXXvN6M837pAWrn5pfu?=
+ =?us-ascii?Q?6C52yL0WvBqArzBypCmwt3Ba1pXJaqznLA8C4Fbc6sTkoTsqYZi+kIRqoHtC?=
+ =?us-ascii?Q?qAfNzKyd+BZiFTFwRsGJhaayM4Gy3FPJfK1FLFM/aNppgf1YS6yH/YO/LvBf?=
+ =?us-ascii?Q?nfQfgLr38M6tFAB/3pwkTvEk2ks9MkceXh0S8AQCVj/wBDbn0Z6quAMUPq24?=
+ =?us-ascii?Q?tzI6PpLWIb/fZ9a3XMPttEO39LFsvIc6xH1HWBHar/p65wKmOeHtexnXprkh?=
+ =?us-ascii?Q?1GI/A/bhfbOQoEYkUaAsqzUX5uBR5kIVW2BToJJFNzyxghHm8u+vfEa4E5hc?=
+ =?us-ascii?Q?9EckMlSTzW+ogMstfb6x2Dc+OCI4bqgSdQz8u/FehkN5Iqy/2FC1p55WFEFk?=
+ =?us-ascii?Q?y9i6qqSYJuDhm+JYH/QocvFzkNpLJvoXq6kOozSS1a7+cxle192ET3xRh5dl?=
+ =?us-ascii?Q?yWReTmXA/O90gN5jG6fJ2clYfxRlDIVPdghwXd8nOdgSL7Ql3moKdLJ/J7GP?=
+ =?us-ascii?Q?qizcbasxAIFwWJd5DLUd6TgPhMhDYVU1tr7G1X/Lh8ex37wmU/v1Yf+MIyWa?=
+ =?us-ascii?Q?kMsDaefQ3Qq4+IG0nei+AE6pmSxlBODtgLZyJllCS327Cef6jYsoniPWVyyO?=
+ =?us-ascii?Q?3GbuAFjifaLbjk6cnVcvfEAR4Tv0Xj+R72Dlf6MhodzdgC5zy636e2aoP3B2?=
+ =?us-ascii?Q?Cmss+68R/CH7QLmFfwsJQXbzHmPv5VAqMMD5n3bK0L9vZ0XkA2PGaDFODXjJ?=
+ =?us-ascii?Q?HHqhq+F0EniI1lkLarW+sneeUy6Qo74V1rNi5SDPlC/7TnkpRY4FCELOwfKi?=
+ =?us-ascii?Q?bXMvgpVUfJk7fnOIopdXZ+wKudOBTgsU5EUtp6EJDrJe5UcOotIn1aUII5lk?=
+ =?us-ascii?Q?1nnyxxhB5HLikjFhI5kPO5YMrIUInexatpNbsGqHypQuQP2PxvnLlckflGn9?=
+ =?us-ascii?Q?gdD0A8SgCvrllbe36HTiVLpfJ8CrwZhRRl9pHdWpBZvYHBKpKa8roHxfjEqg?=
+ =?us-ascii?Q?ZPsc7M34eUmNmPNrNlNCyogM?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: b4f9bed1-1e3c-45aa-eae0-08d8efe326ed
+X-MS-Exchange-CrossTenant-Network-Message-Id: b525738f-d968-4734-015d-08d8efe32b25
 X-MS-Exchange-CrossTenant-AuthSource: BYAPR10MB3077.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Mar 2021 23:10:17.1081
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Mar 2021 23:10:23.5753
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: UiulKvIbBb+B7+f+HtLl6XtCm8azBpeb3Uo3lxOk8uzKfF83sULDvvsmP0pPXtPzACGJ0wTrMq7LJ/WmWklizvfX4Is9oAVeOsuIRUhHUbg=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR10MB4371
+X-MS-Exchange-CrossTenant-UserPrincipalName: /t2V/bTRWG92xMai7Tdg4ewVrfHPUrAL9vBp2nLXV6BWP9YiruPBxPuWfQLdCcSYXpLPHWqIzrnQhTcKX1NpJjHNowQSuPq52QrNEh873ZY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB2853
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9934 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 suspectscore=0
- mlxlogscore=999 spamscore=0 adultscore=0 malwarescore=0 mlxscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2103250000 definitions=main-2103250170
-X-Proofpoint-GUID: HRpf4phBP-1AKrMwMP5g_gznjuJfHVdy
-X-Proofpoint-ORIG-GUID: HRpf4phBP-1AKrMwMP5g_gznjuJfHVdy
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 malwarescore=0 mlxscore=0
+ spamscore=0 mlxlogscore=999 adultscore=0 phishscore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2103250000
+ definitions=main-2103250170
+X-Proofpoint-ORIG-GUID: tuYdsBbc0DzjLg-8akuONTWhRb81AwUa
+X-Proofpoint-GUID: tuYdsBbc0DzjLg-8akuONTWhRb81AwUa
 X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9934 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 priorityscore=1501 mlxscore=0
- spamscore=0 impostorscore=0 malwarescore=0 lowpriorityscore=0
- suspectscore=0 clxscore=1015 adultscore=0 phishscore=0 mlxlogscore=999
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 clxscore=1015 lowpriorityscore=0
+ bulkscore=0 malwarescore=0 priorityscore=1501 suspectscore=0
+ impostorscore=0 phishscore=0 mlxscore=0 mlxlogscore=999 adultscore=0
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2103250000 definitions=main-2103250171
-Message-ID-Hash: OXGOMIUGNEZQP2YYBAML5C6SXMNIF2RT
-X-Message-ID-Hash: OXGOMIUGNEZQP2YYBAML5C6SXMNIF2RT
+Message-ID-Hash: KOTCI2GR4TKMEMUR32ZA4MCAIQW272TA
+X-Message-ID-Hash: KOTCI2GR4TKMEMUR32ZA4MCAIQW272TA
 X-MailFrom: joao.m.martins@oracle.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 CC: linux-nvdimm@lists.01.org, Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Joao Martins <joao.m.martins@oracle.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/OXGOMIUGNEZQP2YYBAML5C6SXMNIF2RT/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/KOTCI2GR4TKMEMUR32ZA4MCAIQW272TA/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -168,197 +168,118 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Right now basepages are used to populate the PUD tail pages, and it
-picks the address of the previous page of the subsection that preceeds
-the memmap we are initializing.  This is done when a given memmap
-address isn't aligned to the pgmap @align (which is safe to do because
-@ranges are guaranteed to be aligned to @align).
+dax devices are created with a fixed @align (huge page size) which
+is enforced through as well at mmap() of the device. Faults,
+consequently happen too at the specified @align specified at the
+creation, and those don't change through out dax device lifetime.
+MCEs poisons a whole dax huge page, as well as splits occurring at
+at the configured page size.
 
-For pagemaps with an align which spans various sections, this means
-that PMD pages are unnecessarily allocated for reusing the same tail
-pages.  Effectively, on x86 a PUD can span 8 sections (depending on
-config), and a page is being  allocated a page for the PMD to reuse
-the tail vmemmap across the rest of the PTEs. In short effecitvely the
-PMD cover the tail vmemmap areas all contain the same PFN. So instead
-of doing this way, populate a new PMD on the second section of the
-compound page (tail vmemmap PMD), and then the following sections
-utilize the preceding PMD we previously populated which only contain
-tail pages).
+Use the newly added compound pagemap facility which maps the
+assigned dax ranges as compound pages at a page size of @align.
+Currently, this means, that region/namespace bootstrap would take
+considerably less, given that you would initialize considerably less
+pages.
 
-After this scheme for an 1GB pagemap aligned area, the first PMD
-(section) would contain head page and 32767 tail pages, where the
-second PMD contains the full 32768 tail pages.  The latter page gets
-its PMD reused across future section mapping of the same pagemap.
-
-Besides fewer pagetable entries allocated, keeping parity with
-hugepages in the directmap (as done by vmemmap_populate_hugepages()),
-this further increases savings per compound page. For each PUD-aligned
-pagemap we go from 40960 bytes down to 16384 bytes. Rather than
-requiring 8 PMD page allocations we only need 2 (plus two base pages
-allocated for head and tail areas for the first PMD). 2M pages still
-require using base pages, though.
+On setups with 128G NVDIMMs the initialization with DRAM stored struct pages
+improves from ~268-358 ms to ~78-100 ms with 2M pages, and to less than
+a 1msec with 1G pages.
 
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- include/linux/mm.h  |  3 +-
- mm/sparse-vmemmap.c | 79 ++++++++++++++++++++++++++++++++++-----------
- 2 files changed, 63 insertions(+), 19 deletions(-)
+ drivers/dax/device.c | 58 ++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 45 insertions(+), 13 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 49d717ae40ae..9c1a676d6b95 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -3038,7 +3038,8 @@ struct page * __populate_section_memmap(unsigned long pfn,
- pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
- p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
- pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
--pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
-+pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node,
-+			    void *block);
- pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
- 			    struct vmem_altmap *altmap, void *block);
- void *vmemmap_alloc_block(unsigned long size, int node);
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index f57c5eada099..291a8a32480a 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -172,13 +172,20 @@ static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
- 	return p;
+diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+index db92573c94e8..e3dcc4ad1727 100644
+--- a/drivers/dax/device.c
++++ b/drivers/dax/device.c
+@@ -192,6 +192,43 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
  }
+ #endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
  
--pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
-+pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node,
-+				       void *block)
- {
- 	pmd_t *pmd = pmd_offset(pud, addr);
- 	if (pmd_none(*pmd)) {
--		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
--		if (!p)
--			return NULL;
-+		void *p = block;
-+
-+		if (!block) {
-+			p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
-+			if (!p)
-+				return NULL;
-+		} else {
-+			get_page(virt_to_page(block));
-+		}
- 		pmd_populate_kernel(&init_mm, pmd, p);
- 	}
- 	return pmd;
-@@ -220,15 +227,14 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- 	return pgd;
- }
- 
--static int __meminit vmemmap_populate_address(unsigned long addr, int node,
--					      struct vmem_altmap *altmap,
--					      void *page, void **ptr)
-+static int __meminit vmemmap_populate_pmd_address(unsigned long addr, int node,
-+						  struct vmem_altmap *altmap,
-+						  void *page, pmd_t **ptr)
- {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
--	pte_t *pte;
- 
- 	pgd = vmemmap_pgd_populate(addr, node);
- 	if (!pgd)
-@@ -239,9 +245,24 @@ static int __meminit vmemmap_populate_address(unsigned long addr, int node,
- 	pud = vmemmap_pud_populate(p4d, addr, node);
- 	if (!pud)
- 		return -ENOMEM;
--	pmd = vmemmap_pmd_populate(pud, addr, node);
-+	pmd = vmemmap_pmd_populate(pud, addr, node, page);
- 	if (!pmd)
- 		return -ENOMEM;
-+	if (ptr)
-+		*ptr = pmd;
-+	return 0;
-+}
-+
-+static int __meminit vmemmap_populate_address(unsigned long addr, int node,
-+					      struct vmem_altmap *altmap,
-+					      void *page, void **ptr)
++static void set_page_mapping(struct vm_fault *vmf, pfn_t pfn,
++			     unsigned long fault_size,
++			     struct address_space *f_mapping)
 +{
-+	pmd_t *pmd;
-+	pte_t *pte;
++	unsigned long i;
++	pgoff_t pgoff;
 +
-+	if (vmemmap_populate_pmd_address(addr, node, altmap, NULL, &pmd))
-+		return -ENOMEM;
++	pgoff = linear_page_index(vmf->vma, vmf->address
++			& ~(fault_size - 1));
 +
- 	pte = vmemmap_pte_populate(pmd, addr, node, altmap, page);
- 	if (!pte)
- 		return -ENOMEM;
-@@ -285,13 +306,26 @@ static inline int __meminit vmemmap_populate_page(unsigned long addr, int node,
- 	return vmemmap_populate_address(addr, node, NULL, NULL, ptr);
- }
- 
--static pte_t * __meminit vmemmap_lookup_address(unsigned long addr)
-+static int __meminit vmemmap_populate_pmd_range(unsigned long start,
-+						unsigned long end,
-+						int node, void *page)
-+{
-+	unsigned long addr = start;
++	for (i = 0; i < fault_size / PAGE_SIZE; i++) {
++		struct page *page;
 +
-+	for (; addr < end; addr += PMD_SIZE) {
-+		if (vmemmap_populate_pmd_address(addr, node, NULL, page, NULL))
-+			return -ENOMEM;
++		page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
++		if (page->mapping)
++			continue;
++		page->mapping = f_mapping;
++		page->index = pgoff + i;
 +	}
-+
-+	return 0;
 +}
 +
-+static pmd_t * __meminit vmemmap_lookup_address(unsigned long addr)
++static void set_compound_mapping(struct vm_fault *vmf, pfn_t pfn,
++				 unsigned long fault_size,
++				 struct address_space *f_mapping)
++{
++	struct page *head;
++
++	head = pfn_to_page(pfn_t_to_pfn(pfn));
++	head = compound_head(head);
++	if (head->mapping)
++		return;
++
++	head->mapping = f_mapping;
++	head->index = linear_page_index(vmf->vma, vmf->address
++			& ~(fault_size - 1));
++}
++
+ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		enum page_entry_size pe_size)
  {
- 	pgd_t *pgd;
- 	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
--	pte_t *pte;
+@@ -225,8 +262,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 	}
  
- 	pgd = pgd_offset_k(addr);
- 	if (pgd_none(*pgd))
-@@ -309,11 +343,7 @@ static pte_t * __meminit vmemmap_lookup_address(unsigned long addr)
- 	if (pmd_none(*pmd))
- 		return NULL;
+ 	if (rc == VM_FAULT_NOPAGE) {
+-		unsigned long i;
+-		pgoff_t pgoff;
++		struct dev_pagemap *pgmap = pfn_t_to_page(pfn)->pgmap;
  
--	pte = pte_offset_kernel(pmd, addr);
--	if (pte_none(*pte))
--		return NULL;
+ 		/*
+ 		 * In the device-dax case the only possibility for a
+@@ -234,17 +270,10 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+ 		 * mapped. No need to consider the zero page, or racing
+ 		 * conflicting mappings.
+ 		 */
+-		pgoff = linear_page_index(vmf->vma, vmf->address
+-				& ~(fault_size - 1));
+-		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
+-			struct page *page;
 -
--	return pte;
-+	return pmd;
- }
+-			page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
+-			if (page->mapping)
+-				continue;
+-			page->mapping = filp->f_mapping;
+-			page->index = pgoff + i;
+-		}
++		if (pgmap->align > PAGE_SIZE)
++			set_compound_mapping(vmf, pfn, fault_size, filp->f_mapping);
++		else
++			set_page_mapping(vmf, pfn, fault_size, filp->f_mapping);
+ 	}
+ 	dax_read_unlock(id);
  
- static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
-@@ -335,9 +365,22 @@ static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
- 	offset = PFN_PHYS(start_pfn) - pgmap->ranges[pgmap->nr_range].start;
- 	if (!IS_ALIGNED(offset, pgmap_align(pgmap)) &&
- 	    pgmap_align(pgmap) > SUBSECTION_SIZE) {
--		pte_t *ptep = vmemmap_lookup_address(start - PAGE_SIZE);
-+		pmd_t *pmdp;
-+		pte_t *ptep;
+@@ -426,6 +455,9 @@ int dev_dax_probe(struct dev_dax *dev_dax)
+ 	}
+ 
+ 	pgmap->type = MEMORY_DEVICE_GENERIC;
++	if (dev_dax->align > PAGE_SIZE)
++		pgmap->align = dev_dax->align;
 +
-+		addr = start - PAGE_SIZE;
-+		pmdp = vmemmap_lookup_address(addr);
-+		if (!pmdp)
-+			return -ENOMEM;
-+
-+		/* Reuse the tail pages vmemmap pmd page */
-+		if (offset % pgmap->align > PFN_PHYS(PAGES_PER_SECTION))
-+			return vmemmap_populate_pmd_range(start, end, node,
-+						page_to_virt(pmd_page(*pmdp)));
- 
--		if (!ptep)
-+		/* Populate the tail pages vmemmap pmd page */
-+		ptep = pte_offset_kernel(pmdp, addr);
-+		if (pte_none(*ptep))
- 			return -ENOMEM;
- 
- 		return vmemmap_populate_range(start, end, node,
+ 	addr = devm_memremap_pages(dev, pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
 -- 
 2.17.1
 _______________________________________________
