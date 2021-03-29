@@ -1,307 +1,307 @@
-Return-Path: <SRS0=x1El=I2=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=aERG=I3=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNWANTED_LANGUAGE_BODY,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB4C0C433DB
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 28 Mar 2021 02:15:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 052F7C433DB
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Mar 2021 09:24:08 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 6C4226197C
-	for <linux-nvdimm@archiver.kernel.org>; Sun, 28 Mar 2021 02:15:33 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6C4226197C
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
+	by mail.kernel.org (Postfix) with ESMTPS id 6A39C6192E
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 29 Mar 2021 09:24:07 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6A39C6192E
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 51DEF100EBBCE;
-	Sat, 27 Mar 2021 19:15:33 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::435; helo=mail-pf1-x435.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
-Received: from mail-pf1-x435.google.com (mail-pf1-x435.google.com [IPv6:2607:f8b0:4864:20::435])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id E11C7100EBBBA;
+	Mon, 29 Mar 2021 02:24:06 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0b-001b2d01.pphosted.com; envelope-from=sbhat@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D0F39100EC1C6
-	for <linux-nvdimm@lists.01.org>; Sat, 27 Mar 2021 19:15:31 -0700 (PDT)
-Received: by mail-pf1-x435.google.com with SMTP id v10so2163964pfn.5
-        for <linux-nvdimm@lists.01.org>; Sat, 27 Mar 2021 19:15:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fossix-org.20150623.gappssmtp.com; s=20150623;
-        h=from:to:subject:in-reply-to:references:date:message-id:mime-version;
-        bh=5X4DLkbk75Y7TnE/zHc9xJYh/vp/IewD43ignqL4EVo=;
-        b=qAEuDjGAJQITQ4pAwvBPuKJNALvKhJX8t1J6J7h6FIphAW7Z4VS7rlpRgRMlyVGTiI
-         SbL1jCzvkVaFAfCjT3MKf53kCd0O5TwyXYCJ35HBXI58tnVDnUJEnkC5RZyx1R3N80by
-         KdRvd0IYA/rZdKjJEYMlSLJm363rkiI4MDKJaxtjKusbsszrYmsqRn0XJfIFDXQqxr7H
-         Zm/yJ1aS7fqksyTbGU2ON442Gk6vtwg5IQym2ghQOEtd4DULf7Nru0rjkctvmaXYdOqx
-         5azeiUyzYunVoDuHyMM0Wa/TXwR/wQxRaipmACnEss57OH1lj/9M0CUADH9M+oasccZ/
-         WhOQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:subject:in-reply-to:references:date
-         :message-id:mime-version;
-        bh=5X4DLkbk75Y7TnE/zHc9xJYh/vp/IewD43ignqL4EVo=;
-        b=XhaokyGC1igxiduFp5xoXJQNmvudU4TIoIF5ccy20JvjBGH+Oe72zrLuIAW2Ihb7OF
-         EQyFaMQs/UgGHFvHAIwfvMu18bXpJMOixDRsqBLsc5X+q/DHd+UGYo6bCrAUCYDmGLvT
-         dMx9Um2htQ381vtYjW9iZsQh3yx0WLyvZGNVHhvBKjc1utlVwAqyNNMpK1FtbfA7sBHR
-         nQxBWqW6iDfjD5VSAFqHpHZEthMkz1hVe6tkRjso0Yy8x1H0co+f6GNcgAkqpWwvUojw
-         hVqkVQG2DpcV1PYIUeyv4ZgGgTCQleSAov+ijEJsyHmc+cmb6hqQMc8rEx8T1CLvD05/
-         mDmQ==
-X-Gm-Message-State: AOAM533fWT4rEi1x+n8Lc8sGDTu7r5BSeZkTTbqjcSuVJ6f9NefDNvXG
-	ZPJfTesapNLH0gxU5N/PntOmrUwFQAKmoQ==
-X-Google-Smtp-Source: ABdhPJzVdGUO+zEmeDtiAmRNCuxUTlz/U5ErHRl3Mo8m7ZrSSbKmmEbieBl/YU3eHQssdPl47xKxGQ==
-X-Received: by 2002:a62:6202:0:b029:208:f11c:2143 with SMTP id w2-20020a6262020000b0290208f11c2143mr19676108pfb.32.1616897731089;
-        Sat, 27 Mar 2021 19:15:31 -0700 (PDT)
-Received: from localhost ([103.21.79.4])
-        by smtp.gmail.com with ESMTPSA id t19sm13587951pfg.38.2021.03.27.19.15.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 27 Mar 2021 19:15:30 -0700 (PDT)
-From: Santosh Sivaraj <santosh@fossix.org>
-To: Linux NVDIMM <linux-nvdimm@lists.01.org>, Vishal Verma
- <vishal.l.verma@intel.com>, Vaibhav Jain <vaibhav@linux.ibm.com>,
- Shivaprasad G Bhat <sbhat@linux.ibm.com>, Harish Sriram
- <harish@linux.ibm.com>, Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 1/4] libndctl: Unify adding dimms for papr and nfit
- families
-In-Reply-To: <20210328021001.2340251-1-santosh@fossix.org>
-References: <20210328021001.2340251-1-santosh@fossix.org>
-Date: Sun, 28 Mar 2021 07:45:28 +0530
-Message-ID: <87eeg010sf.fsf@santosiv.in.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 9F98A100EBBB3
+	for <linux-nvdimm@lists.01.org>; Mon, 29 Mar 2021 02:24:04 -0700 (PDT)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 12T948ek069464;
+	Mon, 29 Mar 2021 05:23:57 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : subject : to : cc
+ : references : message-id : date : mime-version : in-reply-to :
+ content-type; s=pp1; bh=KtR2gtZBTXynmFoaIQUPB36jR2X+bDje79BXt0/UUWw=;
+ b=b8w3T3KWNheWIZh4niYFTydZOLvibUPD0IMZO521FmxkzMCXNE7D0xIpE24LREg9cYe2
+ sIdbPYL3H9+0ZwOQI+9JYEMyku/SxcfkBUKfHVgHlYPYRK/6K2vyaOYGEafAhXz3WQIN
+ fcr31FBMzlaeYKUGLQachGpFZWmcmktMRs/Dg7YmgG1jHUMrZDypIJkOUfT3nNqz8cg0
+ KPDVBUcPZMaw3AzuVmAwKWaiT3sKEfyKUxcvBfnXMONlLjsvOvm8urqLBq364NuicBZa
+ Kf+GMYHa5kbzok1YGQpqiA6KNMKuo13c/7wuJiVpIgVhukK0eXVh4z2xWL67qNmsixBc Jg==
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 37jj98s60r-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 29 Mar 2021 05:23:56 -0400
+Received: from m0098417.ppops.net (m0098417.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 12T96E8Y078138;
+	Mon, 29 Mar 2021 05:23:56 -0400
+Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 37jj98s5yy-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 29 Mar 2021 05:23:55 -0400
+Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
+	by ppma02fra.de.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 12T9DVnh022350;
+	Mon, 29 Mar 2021 09:23:53 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+	by ppma02fra.de.ibm.com with ESMTP id 37hvb88v71-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 29 Mar 2021 09:23:53 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 12T9Np5l41812284
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 29 Mar 2021 09:23:51 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 69AEA52050;
+	Mon, 29 Mar 2021 09:23:51 +0000 (GMT)
+Received: from [9.77.196.188] (unknown [9.77.196.188])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id 4A32D52054;
+	Mon, 29 Mar 2021 09:23:48 +0000 (GMT)
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [PATCH v3 2/3] spapr: nvdimm: Implement H_SCM_FLUSH hcall
+To: David Gibson <david@gibson.dropbear.id.au>
+References: <161650723087.2959.8703728357980727008.stgit@6532096d84d3>
+ <161650725183.2959.12071056430236337803.stgit@6532096d84d3>
+ <YFqs8M1dHAFhdCL6@yekko.fritz.box>
+Message-ID: <13744465-ca7a-0aaf-5abb-43a70a39c167@linux.ibm.com>
+Date: Mon, 29 Mar 2021 14:53:47 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.4.0
 MIME-Version: 1.0
-Message-ID-Hash: 2QNSSODXL2LMFLTDOA7ZOG6H5776ZEAY
-X-Message-ID-Hash: 2QNSSODXL2LMFLTDOA7ZOG6H5776ZEAY
-X-MailFrom: santosh@fossix.org
+In-Reply-To: <YFqs8M1dHAFhdCL6@yekko.fritz.box>
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: iiRzvzgBGYE802w29iw-3XBvPv0QF6wC
+X-Proofpoint-ORIG-GUID: JxrHrep7tjmAYwbA_6UUN4owRKHr0f_w
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
+ definitions=2021-03-29_04:2021-03-26,2021-03-29 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 clxscore=1015
+ adultscore=0 impostorscore=0 suspectscore=0 lowpriorityscore=0
+ priorityscore=1501 mlxscore=0 malwarescore=0 phishscore=0 spamscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2103250000 definitions=main-2103290071
+Message-ID-Hash: XIE66AJ3SUEON2CXRWOMMMUCFHKKMKO7
+X-Message-ID-Hash: XIE66AJ3SUEON2CXRWOMMMUCFHKKMKO7
+X-MailFrom: sbhat@linux.ibm.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: sbhat@linux.vnet.ibm.com, groug@kaod.org, qemu-ppc@nongnu.org, ehabkost@redhat.com, marcel.apfelbaum@gmail.com, mst@redhat.com, imammedo@redhat.com, xiaoguangrong.eric@gmail.com, qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com, linux-nvdimm@lists.01.org, kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com, bharata@linux.vnet.ibm.com
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/2QNSSODXL2LMFLTDOA7ZOG6H5776ZEAY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/XIE66AJ3SUEON2CXRWOMMMUCFHKKMKO7/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; format="flowed"
 Content-Transfer-Encoding: 7bit
 
 
-Sorry, I missed to provide the version in the subject, this is v4 of the series.
+On 3/24/21 8:37 AM, David Gibson wrote:
+> On Tue, Mar 23, 2021 at 09:47:38AM -0400, Shivaprasad G Bhat wrote:
+>> machine vmstate.
+>>
+>> Signed-off-by: Shivaprasad G Bhat<sbhat@linux.ibm.com>
+> An overal question: surely the same issue must arise on x86 with
+> file-backed NVDIMMs.  How do they handle this case?
 
-Santosh Sivaraj <santosh@fossix.org> writes:
+Discussed in other threads..
 
-> In preparation for enabling tests on non-nfit devices, unify both, already very
-> similar, functions into one. This will help in adding all attributes needed for
-> the unit tests. Since the function doesn't fail if some of the dimm attributes
-> are missing, this will work fine on PAPR platforms though only part of the DIMM
-> attributes are provided (This doesn't mean that all of the DIMM attributes can
-> be missing).
+....
+
+>>   };
+>> @@ -2997,6 +3000,9 @@ static void spapr_machine_init(MachineState *machine)
+>>       }
+>>   
+>>       qemu_cond_init(&spapr->fwnmi_machine_check_interlock_cond);
+>> +    qemu_mutex_init(&spapr->spapr_nvdimm_flush_states_lock);
+> Do you actually need an extra mutex, or can you rely on the BQL?
+
+I verified BQL is held at all places where it matters in the context of 
+this patch.
+
+Safe to get rid of this extra mutex.
+
+...
+
 >
-> Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
-> ---
->  ndctl/lib/libndctl.c | 103 ++++++++++++++++---------------------------
->  1 file changed, 38 insertions(+), 65 deletions(-)
->
-> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-> index 36fb6fe..26b9317 100644
-> --- a/ndctl/lib/libndctl.c
-> +++ b/ndctl/lib/libndctl.c
-> @@ -1646,41 +1646,9 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
->  static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
->  static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
->  
-> -static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
-> -{
-> -	int rc = -ENODEV;
-> -	char buf[SYSFS_ATTR_SIZE];
-> -	struct ndctl_ctx *ctx = dimm->bus->ctx;
-> -	char *path = calloc(1, strlen(dimm_base) + 100);
-> -	const char * const devname = ndctl_dimm_get_devname(dimm);
-> -
-> -	dbg(ctx, "%s: Probing of_pmem dimm at %s\n", devname, dimm_base);
-> -
-> -	if (!path)
-> -		return -ENOMEM;
-> -
-> -	/* construct path to the papr compatible dimm flags file */
-> -	sprintf(path, "%s/papr/flags", dimm_base);
-> -
-> -	if (ndctl_bus_is_papr_scm(dimm->bus) &&
-> -	    sysfs_read_attr(ctx, path, buf) == 0) {
-> -
-> -		dbg(ctx, "%s: Adding papr-scm dimm flags:\"%s\"\n", devname, buf);
-> -		dimm->cmd_family = NVDIMM_FAMILY_PAPR;
-> -
-> -		/* Parse dimm flags */
-> -		parse_papr_flags(dimm, buf);
-> -
-> -		/* Allocate monitor mode fd */
-> -		dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
-> -		rc = 0;
-> -	}
-> -
-> -	free(path);
-> -	return rc;
-> -}
-> -
-> -static int add_nfit_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
-> +static int populate_dimm_attributes(struct ndctl_dimm *dimm,
-> +				    const char *dimm_base,
-> +				    const char *bus_prefix)
->  {
->  	int i, rc = -1;
->  	char buf[SYSFS_ATTR_SIZE];
-> @@ -1694,7 +1662,7 @@ static int add_nfit_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
->  	 * 'unique_id' may not be available on older kernels, so don't
->  	 * fail if the read fails.
->  	 */
-> -	sprintf(path, "%s/nfit/id", dimm_base);
-> +	sprintf(path, "%s/%s/id", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0) {
->  		unsigned int b[9];
->  
-> @@ -1709,68 +1677,74 @@ static int add_nfit_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
->  		}
->  	}
->  
-> -	sprintf(path, "%s/nfit/handle", dimm_base);
-> +	sprintf(path, "%s/%s/handle", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) < 0)
->  		goto err_read;
->  	dimm->handle = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/phys_id", dimm_base);
-> +	sprintf(path, "%s/%s/phys_id", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) < 0)
->  		goto err_read;
->  	dimm->phys_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/serial", dimm_base);
-> +	sprintf(path, "%s/%s/serial", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->serial = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/vendor", dimm_base);
-> +	sprintf(path, "%s/%s/vendor", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->vendor_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/device", dimm_base);
-> +	sprintf(path, "%s/%s/device", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->device_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/rev_id", dimm_base);
-> +	sprintf(path, "%s/%s/rev_id", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->revision_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/dirty_shutdown", dimm_base);
-> +	sprintf(path, "%s/%s/dirty_shutdown", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->dirty_shutdown = strtoll(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/subsystem_vendor", dimm_base);
-> +	sprintf(path, "%s/%s/subsystem_vendor", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->subsystem_vendor_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/subsystem_device", dimm_base);
-> +	sprintf(path, "%s/%s/subsystem_device", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->subsystem_device_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/subsystem_rev_id", dimm_base);
-> +	sprintf(path, "%s/%s/subsystem_rev_id", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->subsystem_revision_id = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/family", dimm_base);
-> +	sprintf(path, "%s/%s/family", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->cmd_family = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/dsm_mask", dimm_base);
-> +	sprintf(path, "%s/%s/dsm_mask", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->nfit_dsm_mask = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/format", dimm_base);
-> +	sprintf(path, "%s/%s/format", dimm_base, bus_prefix);
->  	if (sysfs_read_attr(ctx, path, buf) == 0)
->  		dimm->format[0] = strtoul(buf, NULL, 0);
->  	for (i = 1; i < dimm->formats; i++) {
-> -		sprintf(path, "%s/nfit/format%d", dimm_base, i);
-> +		sprintf(path, "%s/%s/format%d", dimm_base, bus_prefix, i);
->  		if (sysfs_read_attr(ctx, path, buf) == 0)
->  			dimm->format[i] = strtoul(buf, NULL, 0);
->  	}
->  
-> -	sprintf(path, "%s/nfit/flags", dimm_base);
-> -	if (sysfs_read_attr(ctx, path, buf) == 0)
-> -		parse_nfit_mem_flags(dimm, buf);
-> +	sprintf(path, "%s/%s/flags", dimm_base, bus_prefix);
-> +	if (sysfs_read_attr(ctx, path, buf) == 0) {
-> +		if (ndctl_bus_has_nfit(dimm->bus))
-> +			parse_nfit_mem_flags(dimm, buf);
-> +		else if (ndctl_bus_is_papr_scm(dimm->bus)) {
-> +			dimm->cmd_family = NVDIMM_FAMILY_PAPR;
-> +			parse_papr_flags(dimm, buf);
-> +		}
-> +	}
->  
->  	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
->  	rc = 0;
-> @@ -1792,7 +1766,8 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
->  	if (!path)
->  		return NULL;
->  
-> -	sprintf(path, "%s/nfit/formats", dimm_base);
-> +	sprintf(path, "%s/%s/formats", dimm_base,
-> +		ndctl_bus_has_nfit(bus) ? "nfit" : "papr");
->  	if (sysfs_read_attr(ctx, path, buf) < 0)
->  		formats = 1;
->  	else
-> @@ -1866,13 +1841,12 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
->  	else
->  		dimm->fwa_result = fwa_result_to_result(buf);
->  
-> +	dimm->formats = formats;
->  	/* Check if the given dimm supports nfit */
->  	if (ndctl_bus_has_nfit(bus)) {
-> -		dimm->formats = formats;
-> -		rc = add_nfit_dimm(dimm, dimm_base);
-> -	} else if (ndctl_bus_has_of_node(bus)) {
-> -		rc = add_papr_dimm(dimm, dimm_base);
-> -	}
-> +		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
-> +	} else if (ndctl_bus_has_of_node(bus))
-> +		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
->  
->  	if (rc == -ENODEV) {
->  		/* Unprobed dimm with no family */
-> @@ -2531,13 +2505,12 @@ static void *add_region(void *parent, int id, const char *region_base)
->  		goto err_read;
->  	region->num_mappings = strtoul(buf, NULL, 0);
->  
-> -	sprintf(path, "%s/nfit/range_index", region_base);
-> -	if (ndctl_bus_has_nfit(bus)) {
-> -		if (sysfs_read_attr(ctx, path, buf) < 0)
-> -			goto err_read;
-> -		region->range_index = strtoul(buf, NULL, 0);
-> -	} else
-> +	sprintf(path, "%s/%s/range_index", region_base,
-> +		ndctl_bus_has_nfit(bus) ? "nfit": "papr");
-> +	if (sysfs_read_attr(ctx, path, buf) < 0)
->  		region->range_index = -1;
-> +	else
-> +		region->range_index = strtoul(buf, NULL, 0);
->  
->  	sprintf(path, "%s/read_only", region_base);
->  	if (sysfs_read_attr(ctx, path, buf) < 0)
-> -- 
-> 2.30.2
+>> +{
+>> +     SpaprMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
+>> +
+>> +     return (!QLIST_EMPTY(&spapr->pending_flush_states) ||
+>> +             !QLIST_EMPTY(&spapr->completed_flush_states));
+>> +}
+>> +
+>> +static int spapr_nvdimm_pre_save(void *opaque)
+>> +{
+>> +    SpaprMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
+>> +
+>> +    while (!QLIST_EMPTY(&spapr->pending_flush_states)) {
+>> +        aio_poll(qemu_get_aio_context(), true);
+> Hmm... how long could waiting for all the pending flushes to complete
+> take?  This could add substanially to the guest's migration downtime,
+> couldn't it?
+
+
+The time taken depends on the number of dirtied pages and the disk io 
+write speed. The number of dirty pages on host is configureable with 
+tunables vm.dirty_background_ratio (10% default on Fedora 32, Ubuntu 
+20.04), vm.dirty_ratio(20%) of host memory and|or 
+vm.dirty_expire_centisecs(30 seconds). So, the host itself would be 
+flushing the mmaped file on its own from time to time. For guests using 
+the nvdimms with filesystem, the flushes would have come frequently and 
+the number of dirty pages might be less. The pmem applications can use 
+the nvdimms without a filesystem. And for such guests, the chances that 
+a flush request can come from pmem applications at the time of migration 
+is less or is random. But, the host would have flushed the pagecache on 
+its own when vm.dirty_background_ratio is crossed or 
+vm.dirty_expire_centisecs expired. So, the worst case would stands at 
+disk io latency for writing the dirtied pages in the last 
+vm.dirty_expire_centisecs on host OR latency for writing maximum 
+vm.dirty_background_ratio(10%) of host RAM. If you want me to calibrate 
+any particular size, scenario and get the numbers please let me know.
+
+...
+>> +
+>> +/*
+>> + * Acquire a unique token and reserve it for the new flush state.
+>> + */
+>> +static SpaprNVDIMMDeviceFlushState *spapr_nvdimm_init_new_flush_state(void)
+>> +{
+>> +    Error *err = NULL;
+>> +    uint64_t token;
+>> +    SpaprMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
+>> +    SpaprNVDIMMDeviceFlushState *tmp, *next, *state;
+>> +
+>> +    state = g_malloc0(sizeof(*state));
+>> +
+>> +    qemu_mutex_lock(&spapr->spapr_nvdimm_flush_states_lock);
+>> +retry:
+>> +    if (qemu_guest_getrandom(&token, sizeof(token), &err) < 0) {
+> Using getrandom seems like overkill, why not just use a counter?
+
+I didnt want a spurious guest to abuse by consuming the return value 
+providing
+
+a valid "guess-able" counter and the real driver failing subsequently. 
+Also, across
+
+guest migrations carrying the global counter to destination is another 
+thing to ponder.
+
+
+Let me know if you want me to reconsider using counter.
+
+...
+
+>> mm_flush_states_lock);
+>> +
+>> +    return state;
+>> +}
+>> +
+>> +/*
+>> + * spapr_nvdimm_finish_flushes
+>> + *      Waits for all pending flush requests to complete
+>> + *      their execution and free the states
+>> + */
+>> +void spapr_nvdimm_finish_flushes(void)
+>> +{
+>> +    SpaprNVDIMMDeviceFlushState *state, *next;
+>> +    SpaprMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
+> The caller has natural access to the machine, so pass it in rather
+> than using the global.
+
+okay
+
+...
+
+>> +
+>> +/*
+>> + * spapr_nvdimm_get_hcall_status
+>> + *      Fetches the status of the hcall worker and returns H_BUSY
+>> + *      if the worker is still running.
+>> + */
+>> +static int spapr_nvdimm_get_flush_status(uint64_t token)
+>> +{
+>> +    int ret = H_LONG_BUSY_ORDER_10_MSEC;
+>> +    SpaprMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
+> The callers have natural access to spapr, so pass it in rather than
+> using the global.
+
+Okay
+
+...
+
+>> +
+>> +/*
+>> + * H_SCM_FLUSH
+>> + * Input: drc_index, continue-token
+>> + * Out: continue-token
+>> + * Return Value: H_SUCCESS, H_Parameter, H_P2, H_BUSY
+>> + *
+>> + * Given a DRC Index Flush the data to backend NVDIMM device.
+>> + * The hcall returns H_BUSY when the flush takes longer time and the hcall
+> It returns one of the H_LONG_BUSY values, not actual H_BUSY, doesn't
+> it?
+
+Yes. I thought its okay to call it just H_BUSY in a generic way. Will 
+fix it.
+
+
+>> + * needs to be issued multiple times in order to be completely serviced.
+>> +        }
+>> +
+>> +        return ret;
+>> +    }
+>> +
+>> +    dimm = PC_DIMM(drc->dev);
+>> +    backend = MEMORY_BACKEND(dimm->hostmem);
+>> +
+>> +    state = spapr_nvdimm_init_new_flush_state();
+>> +    if (!state) {
+>> +        return H_P2;
+> AFAICT the only way init_new_flush_state() fails is a failure in the
+> RNG, which definitely isn't a parameter problem.
+
+Will change it to H_HARDWARE.
+
+
+>> +    }
+>> +
+>> +    state->backend_fd = memory_region_get_fd(&backend->mr);
+> Is this guaranteed to return a usable fd in all configurations?
+
+Right, for memory-backend-ram this wont work. I think we should
+
+not set the hcall-flush-required too for memory-backend-ram. Will fix this.
+
+>> +    thread_pool_submit_aio(pool, flush_worker_cb, state,
+>> +                           spapr_nvdimm_flush_completion_cb, state);
+>> +
+>> +    ret = spapr_nvdimm_get_flush_status(state->continue_token);
+>> +    if (H_IS_LONG_BUSY(ret)) {
+>> +        args[0] = state->continue_token;
+>> +    }
+>> +
+>> +    return ret;
+> I believe you can rearrange this so the get_flush_status / check /
+> return is shared between the args[0] == 0 and args[0] == token paths.
+okay.
+
+Thanks,
+
+Shiva
+
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
