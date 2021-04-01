@@ -2,172 +2,84 @@ Return-Path: <SRS0=1mFQ=I6=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MSGID_FROM_MTA_HEADER,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
+	DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E09CCC433B4
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Apr 2021 09:38:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6ECC433ED
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Apr 2021 11:12:26 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4E7C061057
-	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Apr 2021 09:38:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4E7C061057
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=oracle.com
+	by mail.kernel.org (Postfix) with ESMTPS id 1B7B561057
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Apr 2021 11:12:26 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1B7B561057
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id E5E0A100F225C;
-	Thu,  1 Apr 2021 02:38:55 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=141.146.126.78; helo=aserp2120.oracle.com; envelope-from=joao.m.martins@oracle.com; receiver=<UNKNOWN> 
-Received: from aserp2120.oracle.com (aserp2120.oracle.com [141.146.126.78])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id BA8A4100F2275;
+	Thu,  1 Apr 2021 04:12:25 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.216.48; helo=mail-pj1-f48.google.com; envelope-from=ritesh.list@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id D34E7100F2257
-	for <linux-nvdimm@lists.01.org>; Thu,  1 Apr 2021 02:38:52 -0700 (PDT)
-Received: from pps.filterd (aserp2120.oracle.com [127.0.0.1])
-	by aserp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 1319O0rP180055;
-	Thu, 1 Apr 2021 09:38:14 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2020-01-29;
- bh=lAiNRusdnNB5lzKYgehVZ9jhX0/5oAv9OVSs0oicKg0=;
- b=ubmh55AqpiIijxZadVI8cp2MEkqsqilXBy+Ej1KDTYcDAGaFZWyL3+lkD2kCp4Yt+Pwq
- nI5ow2wa7TnRDYiRgcz/1kKYfULf6o+r+gIvsrt8INZaqwuX3kMUCpFQO4sQivBKlzRY
- jEtVH5CqZuBc0rTZNmVrblgsOEROjgWLTv6sO5NQUbcy5GlqrrVxNWnX3jizS+cBfwpo
- cfZMe/RG3WE+I5fkcbwL1vRNS9e1ZTF2tJgC7rTKAmO71S6/R2adrfBB4M85sdzfebAO
- sw+PqDzvT8qBCuvRkBlCgtLKVdgVVkAUYsbtXMRWp1dfgERth2zD326OFPPEYXN8Spqq xw==
-Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
-	by aserp2120.oracle.com with ESMTP id 37n2akh6vg-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 01 Apr 2021 09:38:14 +0000
-Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
-	by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 1319Oto4048617;
-	Thu, 1 Apr 2021 09:38:14 GMT
-Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2107.outbound.protection.outlook.com [104.47.58.107])
-	by aserp3020.oracle.com with ESMTP id 37n2ab0pq6-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 01 Apr 2021 09:38:14 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VRET/oHq+hEqTSHI0nLAHHnHDhV91fq4XDsnJdl+41tc3X6vh4JVlpJg4JGSmpfGzDK4p/9XhwwebNgO+xSNQ8KkXMCv05duZTvUjYtccO4Z1k19/dC/6oER2Pe1i5ztDj2osZhEDx6MOyxD2j0eqxwb1O/oGzA56Mu6s8un6VITHEUVKI0ye1hAeqLdO+S/nfXUv+/GICgq5amnrmeG9otJUd6j2qNA0tkyIOCaNL2lJEp/E1ytFxgIfZe+hCCN8GJZkVzf2zv90g4NqXU5mlA3giXFwqbOWMGDkBKGe8e0/4GXWLlv8vpmwHzIJm4ZLZfrWGte5ueYjuN2nhjdzg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lAiNRusdnNB5lzKYgehVZ9jhX0/5oAv9OVSs0oicKg0=;
- b=S3FBWgmNQEz8OHAt6YMFZb2QsAYzwHONt1qOyYfX/8Qs1fBC5LbDTYxWwBKE+P+Oc3m59ey4+c6+h2XjZBRfpWlEbHqJIAWbgRpVwUqviKG9yXvXnWN9hii/BfgeXqu+wzzPphlqANxeVIc2HpsujDSBszQMSgOQ1AjL4sJc2mFIxKADOCUhUDHSjuMhsfZ+zwmTWPzN9uRKewyAUg+u+hjtwoMjKqOajEypiJThpkB29QrwDaKiIHNHzjVeM/BvWHTwcPnZa+vRb9qwtDIwj9PNk4rm9hP8WC+xSMRqN5HIKQzT1Ft2eKNh2DLVhFNy7CVZxSaMyJajcqVbIXyLxA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
+	by ml01.01.org (Postfix) with ESMTPS id 27EEF100F225A
+	for <linux-nvdimm@lists.01.org>; Thu,  1 Apr 2021 04:12:23 -0700 (PDT)
+Received: by mail-pj1-f48.google.com with SMTP id kk2-20020a17090b4a02b02900c777aa746fso835210pjb.3
+        for <linux-nvdimm@lists.01.org>; Thu, 01 Apr 2021 04:12:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=lAiNRusdnNB5lzKYgehVZ9jhX0/5oAv9OVSs0oicKg0=;
- b=K2qOddZCFZFdAyrd2bwKtRDCq5axqU0rnd0TrBFmEXZIy2rGpOErtJGABSNduWQ5rhUih+5bzoDG4jyHo77NOks5MV+5/1RSxduK5lPTwhG9kLg2mYiaSWcdo4YHNTV60SC5uYOMiIs+Jwq6MtCwY7TcP+Epv2o4b3hg4vGncOk=
-Authentication-Results: linux-foundation.org; dkim=none (message not signed)
- header.d=none;linux-foundation.org; dmarc=none action=none
- header.from=oracle.com;
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com (2603:10b6:a03:8c::12)
- by BY5PR10MB4355.namprd10.prod.outlook.com (2603:10b6:a03:20a::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.24; Thu, 1 Apr
- 2021 09:38:12 +0000
-Received: from BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::507f:a466:3318:65db]) by BYAPR10MB3077.namprd10.prod.outlook.com
- ([fe80::507f:a466:3318:65db%7]) with mapi id 15.20.3999.026; Thu, 1 Apr 2021
- 09:38:12 +0000
-Subject: Re: [PATCH v1 00/11] mm, sparse-vmemmap: Introduce compound pagemaps
-To: linux-mm@kvack.org
-References: <20210325230938.30752-1-joao.m.martins@oracle.com>
-From: Joao Martins <joao.m.martins@oracle.com>
-Message-ID: <a2b7dc3a-3f1d-b8e1-4770-e261055f2b17@oracle.com>
-Date: Thu, 1 Apr 2021 10:38:04 +0100
-In-Reply-To: <20210325230938.30752-1-joao.m.martins@oracle.com>
-Content-Language: en-US
-X-Originating-IP: [94.61.1.144]
-X-ClientProxiedBy: LO4P123CA0115.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:192::12) To BYAPR10MB3077.namprd10.prod.outlook.com
- (2603:10b6:a03:8c::12)
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=f3T62p65u2S83DXPwAJqrEpWMg9bqfngCOlwnISjfa0=;
+        b=eqtNX+K/AXfThYAWzIPSF04zWuglu7DegIYqhI4iy34Pgv9XdqKgK3Ip6LFcfzQPuI
+         94U33DHmHTnhkRSXD+k8BHy1RmpBIXCGvZPvnYI3Wv9wgIIv/Abo6TOmEbKpcdr2rCtM
+         ipMaDHz7nt/xPuHi30tEAgbmOVpKA+F8IV8j9EL/TOBXKT4pwgEThKLzoIEIm2NFAbmA
+         FBfRfgZLE3X6O9hKvkARuSg3inrBlAYTrp/U/qIOTh2crZMRKyDW2/adyv4JEuhx4nAe
+         y7xHqJ+vbdyGP8n1vYnbswnY0bfP/FJdEdJHUvRlr8p8/ylVZsGdTG+Cc+Eoeg2DP6Uu
+         NMrQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=f3T62p65u2S83DXPwAJqrEpWMg9bqfngCOlwnISjfa0=;
+        b=A7ZBJzqAI/0qbU2fGaixlnsYaAhChYw8pKXo8p3wuDacxSccHCcvfVUrAKYMVLnAYc
+         eUd5Y/fiJHmTuun3red/WQbc3Gl+z80UGquRnVQRf5GHdEhMUAOPqShO98kEQ6L+0brF
+         No/QXmnr1AHp77OVVWVtRvWgkNGBdIIptkh3U2zVYylI85g99X/yGm3RSlvqF+OHClyR
+         BK7hj1RI18GjrUszodKE4HqRvHB4o1XMsMoFSzarHOhxEQ5XKiArL+v7aaa4zrs6Izjl
+         6BigU9jWJQditjZDGxuL/rcUD6T5ZdQdsL7DMfVQwaPz7jZXDHva3OuTc3DitaN4YtDS
+         xTZw==
+X-Gm-Message-State: AOAM531f15XiEuEwTdSBYwYsoXpUQ/7WhuU72IZYL9k6ytD368VYJIUI
+	HwzOWrwB7OGHNxVjHqLMK9k=
+X-Google-Smtp-Source: ABdhPJwd87RNzh+BfrCBf8eX/5dIR9xk4EAMKPeLjoBbOazcoZ79gljc2I3DoR3sYnn2r/fomTvxIg==
+X-Received: by 2002:a17:90b:38f:: with SMTP id ga15mr8213179pjb.149.1617275482546;
+        Thu, 01 Apr 2021 04:11:22 -0700 (PDT)
+Received: from localhost ([122.182.250.63])
+        by smtp.gmail.com with ESMTPSA id y15sm6499629pgi.31.2021.04.01.04.11.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 01 Apr 2021 04:11:22 -0700 (PDT)
+Date: Thu, 1 Apr 2021 16:41:20 +0530
+From: Ritesh Harjani <ritesh.list@gmail.com>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: Re: [PATCH v3 08/10] fsdax: Dedup file range to use a compare
+ function
+Message-ID: <20210401111120.2ukog26aoyvyysyz@riteshh-domain>
+References: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+ <20210319015237.993880-9-ruansy.fnst@fujitsu.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [192.168.1.67] (94.61.1.144) by LO4P123CA0115.GBRP123.PROD.OUTLOOK.COM (2603:10a6:600:192::12) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.31 via Frontend Transport; Thu, 1 Apr 2021 09:38:09 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 6599921b-77de-4507-fcd9-08d8f4f1dde9
-X-MS-TrafficTypeDiagnostic: BY5PR10MB4355:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: 
-	<BY5PR10MB435522A45E8588F908348889BB7B9@BY5PR10MB4355.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2803;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	S8TaQztkaa+/rUn92asiEHp0MQ+6R+MidC8liTnME8LQwc2N/jhCbeOuaLytq/uJXJPdVUQOYGUNsnMCJot+8VzkJBk+7beOsnaf+oekZms2C4y9vubrDEkr7fJzF8WqcBRtno9KBab7OTES5lWMjuY/GW0UllBQKyff8tteDLqzJ1iOYVAqddjGG1hYUP4aHOh0qWDgOvGXqBncy+vgTfkKRJnrzIXGoS0w2slA5z7Db0/Xfbu+Pjv5SL58864thEyKrIFpwT+jsp8SEK7t7eZRkXotBPueRTVqtwgJIrKtiLF/EwoXJxwzHki4oaUsUdbPo2QMzA/c4oS/5jz2nyas0AUlY9NNoBTCwTT1+N0dk2WeOSsoaTlVz99/4AAHmuQFByvYgRqANZRzz7BE9XJYLFPGirB1BzIjmdqBPu61hYFOayhGd1A8cztvXwzNuGkJOp8B7qX1MMxpRAztLZPWT3fBPv17oRYjOL63GptfB9cOgYJL9kTuWxe8ybB30nsuT8txQ/B+732BYV1JRQ0ymQ4wn5xqkTNuxpMtdfF8YOCagOPHesOtP8Y8Dz9CtAbDAKQnTQWPkB6+n3flcuHRQL+wMXG/WWMNnRNKueVMN/431NfXKRzTBdffbXRMc0wFz4z4qJClHuYKwJizGhf6KFupHVJ4x5EqpH3TLlhYC70cAWLexBBDGcaBD4HL4aBlA2lVPzw7NKU1GaZneWEn218wcErcKYnq9EkWUIXO/WEKvbspUptbsErZK5XBKeA+8zSWEtE0qvwN0nk1Tg==
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR10MB3077.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(136003)(366004)(376002)(39860400002)(346002)(396003)(316002)(6666004)(186003)(5660300002)(16576012)(66556008)(66476007)(36756003)(54906003)(53546011)(6486002)(956004)(16526019)(26005)(2616005)(31686004)(66946007)(31696002)(8676002)(6916009)(86362001)(83380400001)(38100700001)(2906002)(4326008)(8936002)(478600001)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData: 
-	=?utf-8?B?UDlwb1hRWURoaWcxVklNcXlOU2VDdkFLVUJUTzZNYXhmallIU2lLZ3piTWww?=
- =?utf-8?B?L0RCTUZBOHZHbjJEblpuaE9GeTF2TWczYVBPdTFPbmVrdTBhUnY4WjgxbkN5?=
- =?utf-8?B?MExXQi9tUnkwSnFBNmM4L1ZuaXBpK2pYNE1ZUVVGMnpTbUxFaU1xSTBoelVU?=
- =?utf-8?B?cDZHUFVYdGdldDJGSkVha0lNcGpUSHVVczF5R3JFYmRIaDE3ZVdhU0piUXln?=
- =?utf-8?B?VzdKaWJYRW80eXJmL0VzME9rc0NmdHNEOFVSNWpDbjJyMFZkam5ZQUZuSWtQ?=
- =?utf-8?B?RGJnTkpCeXdWamVobHMxNWMrSzBpQXF0ci9FWW5IbHVmQm5hL0pub3NSNzZa?=
- =?utf-8?B?TDc2bHh6NzRKa1RPWlhGUE1JMjVRTUxsRk5ObXN3MjlWZG5qU0VWSnJockxk?=
- =?utf-8?B?MmtxQ3FVRHBmQWNYS1h4VlNSZEYyTU5kRGt6TWpNOVM4SDJIVytIVFI2dUlT?=
- =?utf-8?B?dTY1c3dBUEhsUWc4WmZVL3IrcTZqWEdhT1VmazdUcTVzR001TE9VUlZUSjhU?=
- =?utf-8?B?N0YwOVlXejRYbWRsWnUyVGxrS1pPMzFPeW92TWl5Zk1Rb3V5bWxLb0dTUmYx?=
- =?utf-8?B?ckljSG51YmI1UkdFWEFkRStzRW9EM1FuR1VkZDUvaEk5K0wrdUZtZXRpTFhH?=
- =?utf-8?B?Yzk4TUhpNkZnanFiQnBlVEprZnBQUTBjeGM2enR6NUNycERVTXpMNHJJOVV4?=
- =?utf-8?B?bE5WRitrenB0d3ljdUFnVzZoTjg5a0EraE1QTDR5RG9KVTBLNXBjWm45K2Fw?=
- =?utf-8?B?UER6Q1JiYUFCaUlqSzdyUzE5dGU2VjZpcVZPVWNsaTc4MEdlSlhaSGRicFBl?=
- =?utf-8?B?eVRnR0ZFdWhYRFEzL0NleDNPNnpQSW9NR2lJeTRQYnJUQm03YnFnbVNrcGth?=
- =?utf-8?B?YWZLSC9CMjRHWDAvY3QwcWZoQlMyb0VjQVVhQVJ6cDlVZVZIdmEvcm1mQ3R6?=
- =?utf-8?B?WXkwaHBIa2tNVCtBa1Q4OHFaYTR6ZFFrQjhsMVJWNFJ5YU0yaVhEUzJ6bjd0?=
- =?utf-8?B?WDNvK3pTRU5MZnRLeVBaWUJ4akw1SHl3SVprY3B6cWZSU3Z4NkxydzgzSXdP?=
- =?utf-8?B?ZVltMWpNenk3WVJOYlVmWW9JV2NKK1JxUjZ5OXMyTG1zM0FSRFBzYU1HNTE1?=
- =?utf-8?B?cy91SHI3WjBEMy9Pc1ZuSHkzL1g5eTBYL1gwUGhTbFFlT2VDZ0lPTDhnVjkr?=
- =?utf-8?B?TnhtbVJhMHRJTitaKzJiWG5CZmZYclVDcHRkU1JBZXlRRGxjQ0c2R1pwKytq?=
- =?utf-8?B?SnpjS0FEb09BY1BlNzdnZGl2d1hYK1ZSOXFIWVQzQlhMSVpXTE91WTcxM3p1?=
- =?utf-8?B?eDBSSHBuQUdQNTFJRW5VbDR6UmxCdkRnZUNxZkpPQmNiTlRHM2dDUDBTVENn?=
- =?utf-8?B?c0FPeXBKWDlnOGpBT29xOHNFM085TmljS1YwdVBKdGVGaGp5WjNsWU9HT0hG?=
- =?utf-8?B?YXl4YmVmMVV3MXFkdDU1NFJjSnk4citYQk81a3hEdUh6dFdIdVhMY3JZNDVM?=
- =?utf-8?B?TlRRL2JYRUo1VTQrRVhneU9KMm9WNjNYVUUzakthc1doY3Q3bkJxNVNHZndo?=
- =?utf-8?B?V3BUcEZaM2dFUHhNT3lUUXNQV1JyNjQwM0EzK1BRcWo2aFFLU3oxUzIybW1X?=
- =?utf-8?B?dnliVGtYejhqcE5OSUROK0taby9rdXJxVkVkMnZvNmRtUk5LaTd0SjNpbTBC?=
- =?utf-8?B?NkpyOGhDR2NlYmNYVXRBNllkbXc4MllLZWtOMWZoQzZrZmtDa0pRQnZGSU5C?=
- =?utf-8?Q?1DNoe1O1OhkYbvD3MIq5qIsSYIhNfn8uUlKBrlh?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6599921b-77de-4507-fcd9-08d8f4f1dde9
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR10MB3077.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 01 Apr 2021 09:38:12.1999
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 5j2mUUcHsg9hLU3Ybs2jPaV6amu8j6WmmosC01euzX48gBgp6Uo7IB2/HlMTImLwsXRMmM/luqFSDL+ZpJNfV7GcTcVcAxMBPgsbvJePg7w=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR10MB4355
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9940 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 bulkscore=0
- suspectscore=0 phishscore=0 malwarescore=0 mlxlogscore=999 spamscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2103310000
- definitions=main-2104010066
-X-Proofpoint-ORIG-GUID: TSjTtvrHyGvoaR7gxNvE2ItuYwr-Cugh
-X-Proofpoint-GUID: TSjTtvrHyGvoaR7gxNvE2ItuYwr-Cugh
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9940 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 impostorscore=0 phishscore=0
- bulkscore=0 adultscore=0 clxscore=1015 malwarescore=0 priorityscore=1501
- suspectscore=0 spamscore=0 mlxlogscore=999 lowpriorityscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2103310000
- definitions=main-2104010066
-Message-ID-Hash: YAFHLC2ZE5UJY6RR56FGLZB7ML3E472B
-X-Message-ID-Hash: YAFHLC2ZE5UJY6RR56FGLZB7ML3E472B
-X-MailFrom: joao.m.martins@oracle.com
+Content-Disposition: inline
+In-Reply-To: <20210319015237.993880-9-ruansy.fnst@fujitsu.com>
+Message-ID-Hash: LPXU5FCD2NS4BS75ZAO2LFSWMHTSKPPY
+X-Message-ID-Hash: LPXU5FCD2NS4BS75ZAO2LFSWMHTSKPPY
+X-MailFrom: ritesh.list@gmail.com
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-nvdimm@lists.01.org, Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>, Ritesh Harjani <ritesh.list@gmail.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YAFHLC2ZE5UJY6RR56FGLZB7ML3E472B/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LPXU5FCD2NS4BS75ZAO2LFSWMHTSKPPY/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -176,106 +88,271 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 3/25/21 11:09 PM, Joao Martins wrote:
+On 21/03/19 09:52AM, Shiyang Ruan wrote:
+> With dax we cannot deal with readpage() etc. So, we create a dax
+> comparison funciton which is similar with
+> vfs_dedupe_file_range_compare().
+> And introduce dax_remap_file_range_prep() for filesystem use.
+>
+> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> ---
+>  fs/dax.c             | 56 ++++++++++++++++++++++++++++++++++++++++++++
+>  fs/remap_range.c     | 45 ++++++++++++++++++++++++++++-------
+>  fs/xfs/xfs_reflink.c |  9 +++++--
+>  include/linux/dax.h  |  4 ++++
+>  include/linux/fs.h   | 15 ++++++++----
+>  5 files changed, 115 insertions(+), 14 deletions(-)
+>
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 348297b38f76..76f81f1d76ec 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -1833,3 +1833,59 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+>  	return dax_insert_pfn_mkwrite(vmf, pfn, order);
+>  }
+>  EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
+> +
+> +static loff_t dax_range_compare_actor(struct inode *ino1, loff_t pos1,
+> +		struct inode *ino2, loff_t pos2, loff_t len, void *data,
+> +		struct iomap *smap, struct iomap *dmap)
+> +{
+> +	void *saddr, *daddr;
+> +	bool *same = data;
+> +	int ret;
+> +
+> +	if (smap->type == IOMAP_HOLE && dmap->type == IOMAP_HOLE) {
+> +		*same = true;
+> +		return len;
+> +	}
+> +
+> +	if (smap->type == IOMAP_HOLE || dmap->type == IOMAP_HOLE) {
+> +		*same = false;
+> +		return 0;
+> +	}
+> +
+> +	ret = dax_iomap_direct_access(smap, pos1, ALIGN(pos1 + len, PAGE_SIZE),
+> +				      &saddr, NULL);
 
-[...]
+shouldn't it take len as the second argument?
 
-> Patch 11: Optimize grabbing page refcount changes given that we
-> are working with compound pages i.e. we do 1 increment to the head
-> page for a given set of N subpages compared as opposed to N individual writes.
-> {get,pin}_user_pages_fast() for zone_device with compound pagemap consequently
-> improves considerably with DRAM stored struct pages. It also *greatly*
-> improves pinning with altmap. Results with gup_test:
-> 
->                                                    before     after
->     (16G get_user_pages_fast 2M page size)         ~59 ms -> ~6.1 ms
->     (16G pin_user_pages_fast 2M page size)         ~87 ms -> ~6.2 ms
->     (16G get_user_pages_fast altmap 2M page size) ~494 ms -> ~9 ms
->     (16G pin_user_pages_fast altmap 2M page size) ~494 ms -> ~10 ms
-> 
->     altmap performance gets specially interesting when pinning a pmem dimm:
-> 
->                                                    before     after
->     (128G get_user_pages_fast 2M page size)         ~492 ms -> ~49 ms
->     (128G pin_user_pages_fast 2M page size)         ~493 ms -> ~50 ms
->     (128G get_user_pages_fast altmap 2M page size)  ~3.91 ms -> ~70 ms
->     (128G pin_user_pages_fast altmap 2M page size)  ~3.97 ms -> ~74 ms
-> 
+> +	if (ret < 0)
+> +		return -EIO;
+> +
+> +	ret = dax_iomap_direct_access(dmap, pos2, ALIGN(pos2 + len, PAGE_SIZE),
+> +				      &daddr, NULL);
 
-Quick correction: These last two 3.91 and 3.97 on the left column are in *seconds* not
-milliseconds. By mistake I added an extra 'm'. Sorry about that.
+ditto.
+> +	if (ret < 0)
+> +		return -EIO;
+> +
+> +	*same = !memcmp(saddr, daddr, len);
+> +	return len;
+> +}
+> +
+> +int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> +		struct inode *dest, loff_t destoff, loff_t len, bool *is_same,
+> +		const struct iomap_ops *ops)
+> +{
+> +	int id, ret = 0;
+> +
+> +	id = dax_read_lock();
+> +	while (len) {
+> +		ret = iomap_apply2(src, srcoff, dest, destoff, len, 0, ops,
+> +				   is_same, dax_range_compare_actor);
+> +		if (ret < 0 || !*is_same)
+> +			goto out;
+> +
+> +		len -= ret;
+> +		srcoff += ret;
+> +		destoff += ret;
+> +	}
+> +	ret = 0;
+> +out:
+> +	dax_read_unlock(id);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(dax_dedupe_file_range_compare);
+> diff --git a/fs/remap_range.c b/fs/remap_range.c
+> index 77dba3a49e65..9079390edaf3 100644
+> --- a/fs/remap_range.c
+> +++ b/fs/remap_range.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/compat.h>
+>  #include <linux/mount.h>
+>  #include <linux/fs.h>
+> +#include <linux/dax.h>
+>  #include "internal.h"
+>
+>  #include <linux/uaccess.h>
+> @@ -199,9 +200,9 @@ static void vfs_unlock_two_pages(struct page *page1, struct page *page2)
+>   * Compare extents of two files to see if they are the same.
+>   * Caller must have locked both inodes to prevent write races.
+>   */
+> -static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> -					 struct inode *dest, loff_t destoff,
+> -					 loff_t len, bool *is_same)
+> +int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> +				  struct inode *dest, loff_t destoff,
+> +				  loff_t len, bool *is_same)
+>  {
+>  	loff_t src_poff;
+>  	loff_t dest_poff;
+> @@ -280,6 +281,7 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>  out_error:
+>  	return error;
+>  }
+> +EXPORT_SYMBOL(vfs_dedupe_file_range_compare);
+>
+>  /*
+>   * Check that the two inodes are eligible for cloning, the ranges make
+> @@ -289,9 +291,11 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+>   * If there's an error, then the usual negative error code is returned.
+>   * Otherwise returns 0 with *len set to the request length.
+>   */
+> -int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> -				  struct file *file_out, loff_t pos_out,
+> -				  loff_t *len, unsigned int remap_flags)
+> +static int
+> +__generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> +				struct file *file_out, loff_t pos_out,
+> +				loff_t *len, unsigned int remap_flags,
+> +				const struct iomap_ops *ops)
+>  {
+>  	struct inode *inode_in = file_inode(file_in);
+>  	struct inode *inode_out = file_inode(file_out);
+> @@ -351,8 +355,15 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>  	if (remap_flags & REMAP_FILE_DEDUP) {
+>  		bool		is_same = false;
+>
+> -		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
+> -				inode_out, pos_out, *len, &is_same);
+> +		if (!IS_DAX(inode_in) && !IS_DAX(inode_out))
+> +			ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
+> +					inode_out, pos_out, *len, &is_same);
+> +		else if (IS_DAX(inode_in) && IS_DAX(inode_out) && ops)
+> +			ret = dax_dedupe_file_range_compare(inode_in, pos_in,
+> +					inode_out, pos_out, *len, &is_same,
+> +					ops);
+> +		else
+> +			return -EINVAL;
+>  		if (ret)
+>  			return ret;
+>  		if (!is_same)
 
-> The unpinning improvement patches are in mmotm/linux-next so removed from this
-> series.
-> 
-> I have deferred the __get_user_pages() patch to outside this series
-> (https://lore.kernel.org/linux-mm/20201208172901.17384-11-joao.m.martins@oracle.com/),
-> as I found an simpler way to address it and that is also applicable to
-> THP. But will submit that as a follow up of this.
-> 
-> Patches apply on top of linux-next tag next-20210325 (commit b4f20b70784a).
-> 
-> Comments and suggestions very much appreciated!
-> 
-> Changelog,
-> 
->  RFC -> v1:
->  (New patches 1-3, 5-8 but the diffstat is that different)
->  * Fix hwpoisoning of devmap pages reported by Jane (Patch 1 is new in v1)
->  * Fix/Massage commit messages to be more clear and remove the 'we' occurences (Dan, John, Matthew)
+should we consider to check !is_same check b4?
+you should maybe relook at this error handling side of code.
+we still return len from actor function but is_same is set to false.
+So we are essentially returning ret (positive value), instead should be
+returning -EBADE because of !memcmp
 
-I just noticed that I haven't fully removed the 'we' occurrences. Patches 7 and 8 had
-their commit messages rewritten and I mistakenly re-introduced remnants of 'we'. I will
-have it fixed for (v2) albeit I'll still wait for comments on this series before following up.
+> @@ -370,6 +381,24 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+>
+>  	return ret;
+>  }
+> +
+> +int dax_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> +			      struct file *file_out, loff_t pos_out,
+> +			      loff_t *len, unsigned int remap_flags,
+> +			      const struct iomap_ops *ops)
+> +{
+> +	return __generic_remap_file_range_prep(file_in, pos_in, file_out,
+> +					       pos_out, len, remap_flags, ops);
+> +}
+> +EXPORT_SYMBOL(dax_remap_file_range_prep);
+> +
+> +int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> +				  struct file *file_out, loff_t pos_out,
+> +				  loff_t *len, unsigned int remap_flags)
+> +{
+> +	return __generic_remap_file_range_prep(file_in, pos_in, file_out,
+> +					       pos_out, len, remap_flags, NULL);
+> +}
+>  EXPORT_SYMBOL(generic_remap_file_range_prep);
+>
+>  loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+> diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+> index 6fa05fb78189..f5b3a3da36b7 100644
+> --- a/fs/xfs/xfs_reflink.c
+> +++ b/fs/xfs/xfs_reflink.c
+> @@ -1308,8 +1308,13 @@ xfs_reflink_remap_prep(
+>  	if (IS_DAX(inode_in) || IS_DAX(inode_out))
+>  		goto out_unlock;
+>
+> -	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
+> -			len, remap_flags);
+> +	if (IS_DAX(inode_in))
 
->  * Use pfn_align to be clear it's nr of pages for @align value (John, Dan)
->  * Add two helpers pgmap_align() and pgmap_pfn_align() as accessors of pgmap->align;
->  * Remove the gup_device_compound_huge special path and have the same code
->    work both ways while special casing when devmap page is compound (Jason, John)
->  * Avoid usage of vmemmap_populate_basepages() and introduce a first class
->    loop that doesn't care about passing an altmap for memmap reuse. (Dan)
->  * Completely rework the vmemmap_populate_compound() to avoid the sparse_add_section
->    hack into passing block across sparse_add_section calls. It's a lot easier to
->    follow and more explicit in what it does.
->  * Replace the vmemmap refactoring with adding a @pgmap argument and moving
->    parts of the vmemmap_populate_base_pages(). (Patch 5 and 6 are new as a result)
->  * Add PMD tail page vmemmap area reuse for 1GB pages. (Patch 8 is new)
->  * Improve memmap_init_zone_device() to initialize compound pages when
->    struct pages are cache warm. That lead to a even further speed up further
->    from RFC series from 190ms -> 80-120ms. Patches 2 and 3 are the new ones
->    as a result (Dan)
->  * Remove PGMAP_COMPOUND and use @align as the property to detect whether
->    or not to reuse vmemmap areas (Dan)
-> 
-> Thanks,
-> 	Joao
-> 
-> Joao Martins (11):
->   memory-failure: fetch compound_head after pgmap_pfn_valid()
->   mm/page_alloc: split prep_compound_page into head and tail subparts
->   mm/page_alloc: refactor memmap_init_zone_device() page init
->   mm/memremap: add ZONE_DEVICE support for compound pages
->   mm/sparse-vmemmap: add a pgmap argument to section activation
->   mm/sparse-vmemmap: refactor vmemmap_populate_basepages()
->   mm/sparse-vmemmap: populate compound pagemaps
->   mm/sparse-vmemmap: use hugepages for PUD compound pagemaps
->   mm/page_alloc: reuse tail struct pages for compound pagemaps
->   device-dax: compound pagemap support
->   mm/gup: grab head page refcount once for group of subpages
-> 
->  drivers/dax/device.c           |  58 +++++++--
->  include/linux/memory_hotplug.h |   5 +-
->  include/linux/memremap.h       |  13 ++
->  include/linux/mm.h             |   8 +-
->  mm/gup.c                       |  52 +++++---
->  mm/memory-failure.c            |   2 +
->  mm/memory_hotplug.c            |   3 +-
->  mm/memremap.c                  |   9 +-
->  mm/page_alloc.c                | 126 +++++++++++++------
->  mm/sparse-vmemmap.c            | 221 +++++++++++++++++++++++++++++----
->  mm/sparse.c                    |  24 ++--
->  11 files changed, 406 insertions(+), 115 deletions(-)
-> 
+if (!IS_DAX(inode_in)) no?
+
+> +		ret = generic_remap_file_range_prep(file_in, pos_in, file_out,
+> +						    pos_out, len, remap_flags);
+> +	else
+> +		ret = dax_remap_file_range_prep(file_in, pos_in, file_out,
+> +						pos_out, len, remap_flags,
+> +						&xfs_read_iomap_ops);
+>  	if (ret || *len == 0)
+>  		goto out_unlock;
+>
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 3275e01ed33d..32e1c34349f2 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -239,6 +239,10 @@ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+>  				      pgoff_t index);
+>  s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap,
+>  		struct iomap *srcmap);
+> +int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
+> +				  struct inode *dest, loff_t destoff,
+> +				  loff_t len, bool *is_same,
+> +				  const struct iomap_ops *ops);
+>  static inline bool dax_mapping(struct address_space *mapping)
+>  {
+>  	return mapping->host && IS_DAX(mapping->host);
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index fd47deea7c17..2e6ec5bdf82a 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -68,6 +68,7 @@ struct fsverity_info;
+>  struct fsverity_operations;
+>  struct fs_context;
+>  struct fs_parameter_spec;
+> +struct iomap_ops;
+>
+>  extern void __init inode_init(void);
+>  extern void __init inode_init_early(void);
+> @@ -1910,13 +1911,19 @@ extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
+>  extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
+>  extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
+>  				   loff_t, size_t, unsigned int);
+> +typedef int (*compare_range_t)(struct inode *src, loff_t srcpos,
+> +			       struct inode *dest, loff_t destpos,
+> +			       loff_t len, bool *is_same);
+
+Is this used anywhere?
+
+>  extern ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
+>  				       struct file *file_out, loff_t pos_out,
+>  				       size_t len, unsigned int flags);
+> -extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> -					 struct file *file_out, loff_t pos_out,
+> -					 loff_t *count,
+> -					 unsigned int remap_flags);
+> +int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> +				  struct file *file_out, loff_t pos_out,
+> +				  loff_t *count, unsigned int remap_flags);
+> +int dax_remap_file_range_prep(struct file *file_in, loff_t pos_in,
+> +			      struct file *file_out, loff_t pos_out,
+> +			      loff_t *len, unsigned int remap_flags,
+> +			      const struct iomap_ops *ops);
+>  extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
+>  				  struct file *file_out, loff_t pos_out,
+>  				  loff_t len, unsigned int remap_flags);
+> --
+> 2.30.1
+>
+>
+>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
