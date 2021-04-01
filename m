@@ -1,236 +1,238 @@
-Return-Path: <SRS0=xeJQ=I5=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=1mFQ=I6=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_00,DKIM_ADSP_CUSTOM_MED,
-	DKIM_INVALID,DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
+	DKIM_ADSP_CUSTOM_MED,DKIM_INVALID,DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,
+	FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0389C43460
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 31 Mar 2021 21:58:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB9B1C433B4
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Apr 2021 06:39:38 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 4496C601FD
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 31 Mar 2021 21:58:19 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 4496C601FD
-Authentication-Results: mail.kernel.org; dmarc=fail (p=reject dis=none) header.from=google.com
+	by mail.kernel.org (Postfix) with ESMTPS id 6980560FE6
+	for <linux-nvdimm@archiver.kernel.org>; Thu,  1 Apr 2021 06:39:38 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 6980560FE6
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=gmail.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id F3355100EB35B;
-	Wed, 31 Mar 2021 14:58:18 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::f29; helo=mail-qv1-xf29.google.com; envelope-from=hughd@google.com; receiver=<UNKNOWN> 
-Received: from mail-qv1-xf29.google.com (mail-qv1-xf29.google.com [IPv6:2607:f8b0:4864:20::f29])
+	by ml01.01.org (Postfix) with ESMTP id 3F8C6100EB84D;
+	Wed, 31 Mar 2021 23:39:38 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2607:f8b0:4864:20::62f; helo=mail-pl1-x62f.google.com; envelope-from=ritesh.list@gmail.com; receiver=<UNKNOWN> 
+Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 8FE8E100EB83D
-	for <linux-nvdimm@lists.01.org>; Wed, 31 Mar 2021 14:58:16 -0700 (PDT)
-Received: by mail-qv1-xf29.google.com with SMTP id 30so69009qva.9
-        for <linux-nvdimm@lists.01.org>; Wed, 31 Mar 2021 14:58:16 -0700 (PDT)
+	by ml01.01.org (Postfix) with ESMTPS id 3B0E8100EBBAF
+	for <linux-nvdimm@lists.01.org>; Wed, 31 Mar 2021 23:39:36 -0700 (PDT)
+Received: by mail-pl1-x62f.google.com with SMTP id h8so515503plt.7
+        for <linux-nvdimm@lists.01.org>; Wed, 31 Mar 2021 23:39:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:from:to:cc:subject:in-reply-to:message-id:references
-         :user-agent:mime-version;
-        bh=PFMaPm0ZSKNHLe7uWDZGAg0DS2vqUyt9JRPEDLOP+MU=;
-        b=gPPf9GodbpejQiqyyWmjZBzoVUjf/cKgxfZTCeRQ7+0QXc9+O5xW0rNZpAYYi1EgUM
-         yOHzSMY3N7QY9Q33Jj2ktxeHP/HgxuSCaInqtDmsJkiYjaPpJJtsGC3XeUbJUf4Bs8Ze
-         SS/3o2J7tVzgNkj8PBghVrA9AIskldO/j5vbvEblbZCLZxeFMzO7eiIRu5GfTFUK8ROC
-         zoiYi5ls7SMKT4SIGYRr4gt86ahg6MBPG1TYFvuzPptUD46itr64I/9cP4C9hhRMmNy0
-         uposNkQoouRsSaetCJp/KcgzuPrgxQMHkjpPFvafYEaMw0G1bTxOdo7Xllgl7qK061Ng
-         3g4g==
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Cdhn3hlT1LofiWiq9NSsZXRFtnuTmpkFOIZBKIG5BiA=;
+        b=UTL5B1kymvtzLNP/91qrZli7L9K/RRc+t3YUJywMQyXnYDuvkYCGKiqHl2oJcMHHoy
+         UGaOiavWcQuvbtsY1AjPK18htFJRFjqk3J5JdwTUPpjlDB0xyn5dXDyWUmP05ep0zZd3
+         /PasjavPWANRdOiP9OF2XgmhE9kIQIp8A01zzEzf9Th+GbR4RZ3V8I8HEFY87DA13dkG
+         txGDPNpeNWXZC+RFFqxjEarVoUhbMJnYh/2oHqJq6Qh6NIAaDiKc9Or3dcxwhb/yJSfj
+         VqvUFcWPRWPOFWq4prpgIgVuKKW4b/yRynE+dhn2QPX62tiJcvfvYUdyKCX/c2u8m8US
+         VzLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:in-reply-to:message-id
-         :references:user-agent:mime-version;
-        bh=PFMaPm0ZSKNHLe7uWDZGAg0DS2vqUyt9JRPEDLOP+MU=;
-        b=LTDbzDa9PDnjPCx6CJnrF4wqHlerYIToVO93ORLL5kxTxQ2IVIyYXP3m+0mUDZZMUC
-         CZlbz7ltkALKSLFbEZOFLMVvh+IVujKghy30QnL1D6i4gOBFzl9zTKjErGD727HhiKFa
-         wQgy/XSOMB5jbhlDjqugw8UEhc7T1CVvyWMDhCkmkwuvswrMR6sxYD1Z74tUaQDw2xy9
-         UWd3xdcIKJCUYhWoqjCxb+iTdCy3TwofC0YiIGKk/6kGc0lUe/D787zsi7NuEDnc6o/L
-         Hv98IJDuUZhmgiPu6qjyrhPFV8rSsIU8RHsDY0+CruSY26Muyjakq0vBnHy9Z7BMo5MK
-         xT9Q==
-X-Gm-Message-State: AOAM530XNrstIktIgWNkutLeXDwleZplqBU32VkHQOkklI1539Rd2Ano
-	dJgEDU0ziW1zM5q1/xSRX8gP4g==
-X-Google-Smtp-Source: ABdhPJyMeWQk1SNAy+WGG9FZXOQlYhXupuR6DDyh4pyG64dL5jvkK68dDxCXdh/+SxT35eoCgqrhbA==
-X-Received: by 2002:ad4:4b0a:: with SMTP id r10mr5231949qvw.31.1617227894438;
-        Wed, 31 Mar 2021 14:58:14 -0700 (PDT)
-Received: from eggly.attlocal.net (172-10-233-147.lightspeed.sntcca.sbcglobal.net. [172.10.233.147])
-        by smtp.gmail.com with ESMTPSA id s13sm2487446qkg.17.2021.03.31.14.58.13
-        (version=TLS1 cipher=ECDHE-ECDSA-AES128-SHA bits=128/128);
-        Wed, 31 Mar 2021 14:58:14 -0700 (PDT)
-Date: Wed, 31 Mar 2021 14:58:12 -0700 (PDT)
-From: Hugh Dickins <hughd@google.com>
-X-X-Sender: hugh@eggly.anvils
-To: Matthew Wilcox <willy@infradead.org>
-Subject: Re: BUG_ON(!mapping_empty(&inode->i_data))
-In-Reply-To: <20210331024913.GS351017@casper.infradead.org>
-Message-ID: <alpine.LSU.2.11.2103311413560.1201@eggly.anvils>
-References: <alpine.LSU.2.11.2103301654520.2648@eggly.anvils> <20210331024913.GS351017@casper.infradead.org>
-User-Agent: Alpine 2.11 (LSU 23 2013-08-11)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=Cdhn3hlT1LofiWiq9NSsZXRFtnuTmpkFOIZBKIG5BiA=;
+        b=X1PHoxDpFVhDNR0I5Uf25FkmTqfry14pGlecVLrzpgMRXpEW0pyZZfRg83WG49SmoG
+         rIhwh9g11T2gzUXbwlOOF0PXktrIbiJd27buzVZcF6MPsUydEv7y4TNbHPD5K47e1dfw
+         MKITGVMRFRyDcI2n2dhKKgC3TagDMHtKbPL3U08yuyHnllzQqh4BE0pj9fgPXX57KJk5
+         cpAKEB4mIGo0TF0zb9cIzadSioWGd/85OgzcSmUG0cMrgpxPh79pme4dUkpEBbkxJvWi
+         rIwbPwcOcXN25nt0/FyT0vMqc6XJ/GRRJPlnXx8fkSQDR6La4c32cby8zAI43WcHw/26
+         hL7g==
+X-Gm-Message-State: AOAM530RvGHlwZFZriqdAROWKmVh2cZyztkIIg4/yUQSvJpg15CPt5p6
+	3uDM2E6gHSIDroEjFkFLv7A=
+X-Google-Smtp-Source: ABdhPJxV7qnJmiKTK7vMsVhFFpLWa9nVg5l0P/yHHXGvs45jJWGW4/3YJNYe6mcpuHqq0YLrqeBnjw==
+X-Received: by 2002:a17:90a:990a:: with SMTP id b10mr7368818pjp.178.1617259175255;
+        Wed, 31 Mar 2021 23:39:35 -0700 (PDT)
+Received: from localhost ([122.182.250.63])
+        by smtp.gmail.com with ESMTPSA id w26sm4326195pfj.58.2021.03.31.23.39.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 31 Mar 2021 23:39:34 -0700 (PDT)
+Date: Thu, 1 Apr 2021 12:09:32 +0530
+From: Ritesh Harjani <ritesh.list@gmail.com>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Subject: Re: [PATCH v3 05/10] fsdax: Replace mmap entry in case of CoW
+Message-ID: <20210401063932.tro7a4hhy25zdmho@riteshh-domain>
+References: <20210319015237.993880-1-ruansy.fnst@fujitsu.com>
+ <20210319015237.993880-6-ruansy.fnst@fujitsu.com>
 MIME-Version: 1.0
-Message-ID-Hash: DT6U2WXBVF2OQ5LHHRAHANVD3USIUEEY
-X-Message-ID-Hash: DT6U2WXBVF2OQ5LHHRAHANVD3USIUEEY
-X-MailFrom: hughd@google.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Hugh Dickins <hughd@google.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Content-Disposition: inline
+In-Reply-To: <20210319015237.993880-6-ruansy.fnst@fujitsu.com>
+Message-ID-Hash: B73RXOSVO4PA2NBAEQ7KQSAULHT3HCPM
+X-Message-ID-Hash: B73RXOSVO4PA2NBAEQ7KQSAULHT3HCPM
+X-MailFrom: ritesh.list@gmail.com
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
+CC: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, linux-nvdimm@lists.01.org, linux-fsdevel@vger.kernel.org, darrick.wong@oracle.com, willy@infradead.org, jack@suse.cz, viro@zeniv.linux.org.uk, linux-btrfs@vger.kernel.org, ocfs2-devel@oss.oracle.com, david@fromorbit.com, hch@lst.de, rgoldwyn@suse.de, Goldwyn Rodrigues <rgoldwyn@suse.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/DT6U2WXBVF2OQ5LHHRAHANVD3USIUEEY/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/B73RXOSVO4PA2NBAEQ7KQSAULHT3HCPM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: TEXT/PLAIN; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, 31 Mar 2021, Matthew Wilcox wrote:
-> On Tue, Mar 30, 2021 at 06:30:22PM -0700, Hugh Dickins wrote:
-> > Running my usual tmpfs kernel builds swapping load, on Sunday's rc4-mm1
-> > mmotm (I never got to try rc3-mm1 but presume it behaved the same way),
-> > I hit clear_inode()'s BUG_ON(!mapping_empty(&inode->i_data)); on two
-> > machines, within an hour or few, repeatably though not to order.
-> > 
-> > The stack backtrace has always been clear_inode < ext4_clear_inode <
-> > ext4_evict_inode < evict < dispose_list < prune_icache_sb <
-> > super_cache_scan < do_shrink_slab < shrink_slab_memcg < shrink_slab <
-> > shrink_node_memgs < shrink_node < balance_pgdat < kswapd.
-> > 
-> > ext4 is the disk filesystem I read the source to build from, and also
-> > the filesystem I use on a loop device on a tmpfs file: I have not tried
-> > with other filesystems, nor checked whether perhaps it happens always on
-> > the loop one or always on the disk one.  I have not seen it happen with
-> > tmpfs - probably because its inodes cannot be evicted by the shrinker
-> > anyway; I have not seen it happen when "rm -rf" evicts ext4 or tmpfs
-> > inodes (but suspect that may be down to timing, or less pressure).
-> > I doubt it's a matter of filesystem: think it's an XArray thing.
-> > 
-> > Whenever I've looked at the XArray nodes involved, the root node
-> > (shift 6) contained one or three (adjacent) pointers to empty shift
-> > 0 nodes, which each had offset and parent and array correctly set.
-> > Is there some way in which empty nodes can get left behind, and so
-> > fail eviction's mapping_empty() check?
-> 
-> There isn't _supposed_ to be.  The XArray is supposed to delete nodes
-> whenever the ->count reaches zero.  It might give me a clue if you could
-> share a dump of the tree, if you still have that handy.
+On 21/03/19 09:52AM, Shiyang Ruan wrote:
+> We replace the existing entry to the newly allocated one in case of CoW.
+> Also, we mark the entry as PAGECACHE_TAG_TOWRITE so writeback marks this
+> entry as writeprotected.  This helps us snapshots so new write
+> pagefaults after snapshots trigger a CoW.
+>
 
-Very useful suggestion: the xa_dump() may not give you more of a clue,
-but just running again last night to gather that info has revealed more.
+Please correct me here. So the flow is like this.
+1. In case of CoW or a reflinked file, on an mmaped file if write is attempted,
+   Then in DAX fault handler code, ->iomap_begin() on a given filesystem will
+   populate iomap and srcmap. srcmap being from where the read needs to be
+   attempted from and iomap on where the new write should go to.
+2. So the dax_insert_entry() code as part of the fault handling will take care
+   of removing the old entry and inserting the new pfn entry to xas and mark
+   it with PAGECACHE_TAG_TOWRITE so that dax writeback can mark the entry as
+   write protected.
+Is my above understanding correct?
 
-> 
-> > I did wonder whether some might get left behind if xas_alloc() fails
-> > (though probably the tree here is too shallow to show that).  Printks
-> > showed that occasionally xas_alloc() did fail while testing (maybe at
-> > memcg limit), but there was no correlation with the BUG_ONs.
-> 
-> This is a problem inherited from the radix tree, and I really want to
-> justify fixing it ... I think I may have enough infrastructure in place
-> to do it now (as part of the xas_split() commit we can now allocate
-> multiple xa_nodes in xas->xa_alloc).  But you're right; if we allocated
-> all the way down to an order-0 node, then this isn't the bug.
-> 
-> Were you using the ALLOW_ERROR_INJECTION feature on
-> __add_to_page_cache_locked()?  I haven't looked into how that works,
-> and maybe that could leave us in an inconsistent state.
+> Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  fs/dax.c | 37 ++++++++++++++++++++++++++-----------
+>  1 file changed, 26 insertions(+), 11 deletions(-)
+>
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 181aad97136a..cfe513eb111e 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -722,6 +722,9 @@ static int copy_cow_page_dax(struct block_device *bdev, struct dax_device *dax_d
+>  	return 0;
+>  }
+>
+> +#define DAX_IF_DIRTY		(1 << 0)
+> +#define DAX_IF_COW		(1 << 1)
+> +
+>
+small comment expalining this means DAX insert flags used in dax_insert_entry()
 
-No, no error injection: not something I've ever looked at either.
+>
+>  /*
+>   * By this point grab_mapping_entry() has ensured that we have a locked entry
+>   * of the appropriate size so we don't have to worry about downgrading PMDs to
+> @@ -729,16 +732,19 @@ static int copy_cow_page_dax(struct block_device *bdev, struct dax_device *dax_d
+>   * already in the tree, we will skip the insertion and just dirty the PMD as
+>   * appropriate.
+>   */
+> -static void *dax_insert_entry(struct xa_state *xas,
+> -		struct address_space *mapping, struct vm_fault *vmf,
+> -		void *entry, pfn_t pfn, unsigned long flags, bool dirty)
+> +static void *dax_insert_entry(struct xa_state *xas, struct vm_fault *vmf,
+> +		void *entry, pfn_t pfn, unsigned long flags,
+> +		unsigned int insert_flags)
+>  {
+> +	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
+>  	void *new_entry = dax_make_entry(pfn, flags);
+> +	bool dirty = insert_flags & DAX_IF_DIRTY;
+> +	bool cow = insert_flags & DAX_IF_COW;
+>
+>  	if (dirty)
+>  		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+>
+> -	if (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE)) {
+> +	if (cow || (dax_is_zero_entry(entry) && !(flags & DAX_ZERO_PAGE))) {
+>  		unsigned long index = xas->xa_index;
+>  		/* we are replacing a zero page with block mapping */
+>  		if (dax_is_pmd_entry(entry))
+> @@ -750,7 +756,7 @@ static void *dax_insert_entry(struct xa_state *xas,
+>
+>  	xas_reset(xas);
+>  	xas_lock_irq(xas);
+> -	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+> +	if (cow || dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
+>  		void *old;
+>
+>  		dax_disassociate_entry(entry, mapping, false);
+> @@ -774,6 +780,9 @@ static void *dax_insert_entry(struct xa_state *xas,
+>  	if (dirty)
+>  		xas_set_mark(xas, PAGECACHE_TAG_DIRTY);
+>
+> +	if (cow)
+> +		xas_set_mark(xas, PAGECACHE_TAG_TOWRITE);
+> +
+>  	xas_unlock_irq(xas);
+>  	return entry;
+>  }
+> @@ -1098,8 +1107,7 @@ static vm_fault_t dax_load_hole(struct xa_state *xas,
+>  	pfn_t pfn = pfn_to_pfn_t(my_zero_pfn(vaddr));
+>  	vm_fault_t ret;
+>
+> -	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
+> -			DAX_ZERO_PAGE, false);
+> +	*entry = dax_insert_entry(xas, vmf, *entry, pfn, DAX_ZERO_PAGE, 0);
+>
+>  	ret = vmf_insert_mixed(vmf->vma, vaddr, pfn);
+>  	trace_dax_load_hole(inode, vmf, ret);
+> @@ -1126,8 +1134,8 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
+>  		goto fallback;
+>
+>  	pfn = page_to_pfn_t(zero_page);
+> -	*entry = dax_insert_entry(xas, mapping, vmf, *entry, pfn,
+> -			DAX_PMD | DAX_ZERO_PAGE, false);
+> +	*entry = dax_insert_entry(xas, vmf, *entry, pfn,
+> +				  DAX_PMD | DAX_ZERO_PAGE, 0);
+>
+>  	if (arch_needs_pgtable_deposit()) {
+>  		pgtable = pte_alloc_one(vma->vm_mm);
+> @@ -1431,6 +1439,7 @@ static vm_fault_t dax_fault_actor(struct vm_fault *vmf, pfn_t *pfnp,
+>  	loff_t pos = (loff_t)xas->xa_offset << PAGE_SHIFT;
+>  	bool write = vmf->flags & FAULT_FLAG_WRITE;
+>  	bool sync = dax_fault_is_synchronous(flags, vmf->vma, iomap);
+> +	unsigned int insert_flags = 0;
+>  	int err = 0;
+>  	pfn_t pfn;
+>  	void *kaddr;
+> @@ -1453,8 +1462,14 @@ static vm_fault_t dax_fault_actor(struct vm_fault *vmf, pfn_t *pfnp,
+>  	if (err)
+>  		return dax_fault_return(err);
+>
+> -	entry = dax_insert_entry(xas, mapping, vmf, entry, pfn, 0,
+> -				 write && !sync);
+> +	if (write) {
+> +		if (!sync)
+> +			insert_flags |= DAX_IF_DIRTY;
+> +		if (iomap->flags & IOMAP_F_SHARED)
+> +			insert_flags |= DAX_IF_COW;
+> +	}
+> +
+> +	entry = dax_insert_entry(xas, vmf, entry, pfn, 0, insert_flags);
+>
+>  	if (write && srcmap->addr != iomap->addr) {
+>  		err = dax_iomap_cow_copy(pos, size, size, srcmap, kaddr, false);
+>
 
-> 
-> > I did wonder whether this is a long-standing issue, which your new
-> > BUG_ON is the first to detect: so tried 5.12-rc5 clear_inode() with
-> > a BUG_ON(!xa_empty(&inode->i_data.i_pages)) after its nrpages and
-> > nrexceptional BUG_ONs.  The result there surprised me: I expected
-> > it to behave the same way, but it hits that BUG_ON in a minute or
-> > so, instead of an hour or so.  Was there a fix you made somewhere,
-> > to avoid the BUG_ON(!mapping_empty) most of the time? but needs
-> > more work. I looked around a little, but didn't find any.
-> 
-> I didn't make a fix for this issue; indeed I haven't observed it myself.
+Rest looks good to me. Please feel free to add
+Reviewed-by: Ritesh Harjani <riteshh@gmail.com>
 
-That was interesting to me last night, but not so interesting now
-we have more info (below).
+sorry about changing my email in between of this code review.
+I am planning to use above gmail id as primary account for all upstream work
+from now.
 
-> It seems like cgroups are a good way to induce allocation failures, so
-> I should play around with that a bit.  The userspace test-suite has a
-> relatively malicious allocator that will fail every allocation not marked
-> as GFP_KERNEL, so it always exercises the fallback path for GFP_NOWAIT,
-> but then it will always succeed eventually.
-> 
-> > I had hoped to work this out myself, and save us both some writing:
-> > but better hand over to you, in the hope that you'll quickly guess
-> > what's up, then I can try patches. I do like the no-nrexceptionals
-> > series, but there's something still to be fixed.
-> 
-> Agreed.  It seems like it's unmasking a bug that already existed, so
-> it's not an argument for dropping the series, but we should fix the bug
-> so we don't crash people's machines.
-> 
-> Arguably, the condition being checked for is not serious enough for a
-> BUG_ON.  A WARN_ON, yes, and dump the tree for later perusal, but it's
-> just a memory leak, and not (I think?) likely to lead to later memory
-> corruption.  The nodes don't contain any pages, so there's nothing to
-> point to the mapping.
-
-Good suggestion, yes, use a WARN_ON instead of a BUG_ON.  And even when
-this immediate bug is fixed, will still be necessary for so long as the
-radix-tree -ENOMEM might leave intermediate nodes behind.  (An easy way
-to fix that might be just to add a cleanup pass when !mapping_empty().)
-
-I followed your suggestion and used WARN_ON instead of BUG_ON in last
-night's runs (when you make that change, do remember to do what I
-forgot at first - reset i_pages to NULL - otherwise anyone who inherits
-that struct inode thereafter inherits these nodes - I got lots of
-warnings on tiny files!).
-
-And also printed out s_dev i_ino i_size: in the hope that they might
-shed some more light.  Hope fulfilled: *every* instance, on every
-machine, has been /usr/bin/ld.bfd.
-
-My kernels are built with CONFIG_READ_ONLY_THP_FOR_FS=y.  And checking
-old /var/log/messages from last summer, when I was first playing around
-with that, I see the temporary debug messages I had added for it:
-"collapse_file(/usr/bin/ld.bfd, 0)" meaning that it was making a THP
-at offset 0.  (Other executables too, notably cc1; but maybe ld.bfd
-is the one most likely to get evicted.)
-
-I suspect there's a bug in the XArray handling in collapse_file(),
-which sometimes leaves empty nodes behind.
-
-Here's the xa_dump() info from one of the machines:
-
-[  348.026010] xarray: ffff88800f01eb98 head ffff88800855f2a2 flags 21 marks 0 0 0
-[  348.028101] 0-4095: node ffff88800855f2a0 max 0 parent 0000000000000000 shift 6 count 1 values 0 array ffff88800f01eb98 list ffff88800855f2b8 ffff88800855f2b8 marks 0 0 0
-[  348.030335] 960-1023: node ffff888023dbd890 offset 15 parent ffff88800855f2a0 shift 0 count 0 values 0 array ffff88800f01eb98 list ffff888023dbd8a8 ffff888023dbd8a8 marks 0 0 0
-[  348.032736] s_dev 259:5 i_ino 935588 i_size 9112288
-
-[ 4521.543662] xarray: ffff888003e8f898 head ffff88801256963a flags 21 marks 0 0 0
-[ 4521.545683] 0-4095: node ffff888012569638 max 0 parent 0000000000000000 shift 6 count 1 values 0 array ffff888003e8f898 list ffff888012569650 ffff888012569650 marks 0 0 0
-[ 4521.547889] 384-447: node ffff8880215b2088 offset 6 parent ffff888012569638 shift 0 count 0 values 0 array ffff888003e8f898 list ffff8880215b20a0 ffff8880215b20a0 marks 0 0 0
-[ 4521.550151] s_dev 259:5 i_ino 935588 i_size 9112288
-
-[17526.162821] xarray: ffff88800f09a998 head ffff88801610808a flags 21 marks 0 0 0
-[17526.163936] 0-4095: node ffff888016108088 max 0 parent 0000000000000000 shift 6 count 2 values 0 array ffff88800f09a998 list ffff8880161080a0 ffff8880161080a0 marks 0 0 0
-[17526.165176] 384-447: node ffff888022a5fc00 offset 6 parent ffff888016108088 shift 0 count 0 values 0 array ffff88800f09a998 list ffff888022a5fc18 ffff888022a5fc18 marks 0 0 0
-[17526.167012] 960-1023: node ffff888008656188 offset 15 parent ffff888016108088 shift 0 count 0 values 0 array ffff88800f09a998 list ffff8880086561a0 ffff8880086561a0 marks 0 0 0
-[17526.168225] s_dev 259:5 i_ino 935588 i_size 9112288
-
-[27201.416553] xarray: ffff888026638a98 head ffff8880241fd14a flags 21 marks 0 0 0
-[27201.418724] 0-4095: node ffff8880241fd148 max 0 parent 0000000000000000 shift 6 count 1 values 0 array ffff888026638a98 list ffff8880241fd160 ffff8880241fd160 marks 0 0 0
-[27201.421067] 384-447: node ffff888026471aa8 offset 6 parent ffff8880241fd148 shift 0 count 0 values 0 array ffff888026638a98 list ffff888026471ac0 ffff888026471ac0 marks 0 0 0
-[27201.423353] s_dev 259:5 i_ino 935588 i_size 9112288
-
-[28189.092410] xarray: ffff888022468858 head ffff888016358262 flags 21 marks 0 0 0
-[28189.094548] 0-4095: node ffff888016358260 max 0 parent 0000000000000000 shift 6 count 1 values 0 array ffff888022468858 list ffff888016358278 ffff888016358278 marks 0 0 0
-[28189.096821] 384-447: node ffff8880124455f8 offset 6 parent ffff888016358260 shift 0 count 0 values 0 array ffff888022468858 list ffff888012445610 ffff888012445610 marks 0 0 0
-[28189.099217] s_dev 259:5 i_ino 935588 i_size 9112288
-
-935588 -rwxr-xr-x 1 root root 9112288 Dec  7 14:28 /usr/bin/ld.bfd
-
-Hugh
+> --
+> 2.30.1
+>
+>
+>
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
