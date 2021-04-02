@@ -2,91 +2,64 @@ Return-Path: <SRS0=K2gx=I7=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.2 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3600C433B4
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  2 Apr 2021 09:26:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ED3BC433ED
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  2 Apr 2021 13:27:50 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 2B78961105
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  2 Apr 2021 09:26:16 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 2B78961105
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id EF21F6112E
+	for <linux-nvdimm@archiver.kernel.org>; Fri,  2 Apr 2021 13:27:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EF21F6112E
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id DA14B100EBBDD;
-	Fri,  2 Apr 2021 02:26:15 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.156.1; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 951DE100EAB54;
+	Fri,  2 Apr 2021 06:27:49 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id ABDF5100EBBD7
-	for <linux-nvdimm@lists.01.org>; Fri,  2 Apr 2021 02:26:13 -0700 (PDT)
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 13292bRf100430;
-	Fri, 2 Apr 2021 05:26:08 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : content-transfer-encoding : mime-version; s=pp1;
- bh=gk5VRd0UP5wkB56A9IIwNXM7D5qVdTdkNCdkJduRJzM=;
- b=mVdZcSyEC6xGBl3m88qqGIGZRCr3maQ0XHSeX68u/leAuu7286+dfacbVBn9s6fUKrAq
- Q7LNSTJwMJ5NdLOs5bOnQ/DkCmw4Y+YjR3SfObPy6i6P6S1fezfLQsXnOx+sdPcVJqpF
- sf53ViMnIqEf7mzXt3JKjBtQQz8bNkqZ3AePYRRWidDmBP48Oec/DTGa6+m3HxTYUj0z
- Bvw/0dyVLK1y9qvVHoFqYfDsM6+eEEn2DJQt57Xakw+K8b5LcwqB3LjXarfhPUR6geiA
- 8Zq2wWh/BanaRdb5GgnQywxPMypMIUEcyLXWBuI9dGm1XTu3zCcEC+E9sRJL1gc3cRoe Og==
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 37n9mx9mfb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 02 Apr 2021 05:26:07 -0400
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 1329DAEw014402;
-	Fri, 2 Apr 2021 09:26:05 GMT
-Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
-	by ppma04ams.nl.ibm.com with ESMTP id 37n28ts61r-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 02 Apr 2021 09:26:05 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1329Q2rH32571878
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 2 Apr 2021 09:26:02 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B367E52050;
-	Fri,  2 Apr 2021 09:26:02 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.102.3.66])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id 932015204E;
-	Fri,  2 Apr 2021 09:25:59 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Fri, 02 Apr 2021 14:55:58 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linux-nvdimm@lists.01.org
-Subject: [PATCH] libnvdimm/region: Update nvdimm_has_flush() to handle ND_REGION_ASYNC
-Date: Fri,  2 Apr 2021 14:55:55 +0530
-Message-Id: <20210402092555.208590-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.30.2
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: q3RCJ023Zyhscs0G4uWEKZjF46bisUm-
-X-Proofpoint-ORIG-GUID: q3RCJ023Zyhscs0G4uWEKZjF46bisUm-
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by ml01.01.org (Postfix) with ESMTPS id 0351A100ED4BA
+	for <linux-nvdimm@lists.01.org>; Fri,  2 Apr 2021 06:27:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=Quv+d5ruToqASsYHkDYyM+RNKRKLkPKY2MzE/OEcBCc=; b=Hn4p16U0Xxhq5upbBRvlz8n2ox
+	zWm3vcPITR6WIgIRjEtrgfbpywR54mfRiOw1cS0cS9diYxrum7asLMiUvNEtR/bUQa9suts9rquNt
+	6h5DAKJQR8mxrMOT6YRTTRA2o9i73/i4wO3P43uXwZ/0kXaIRnEjeWSgQwXrfi/N/LUHpJalqporl
+	HfQAdmqsnJh/m1SlQtGsDDjmv81jNN5D6vhUhWLtxaZyNq1MxY3XN5tDgMXYqNBQBTO9ljSjUqaFY
+	pP5P053z76nhNadrx0wLL6GPQXV/dEzbk9NmQ68ylZ8oFQW2QYwjZRVpLURl9rRZnVeP4iXMTBLn+
+	cRrcvYcA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
+	id 1lSJpM-007gLj-Br; Fri, 02 Apr 2021 13:27:14 +0000
+Date: Fri, 2 Apr 2021 14:27:08 +0100
+From: Matthew Wilcox <willy@infradead.org>
+To: Hugh Dickins <hughd@google.com>
+Subject: Re: BUG_ON(!mapping_empty(&inode->i_data))
+Message-ID: <20210402132708.GM351017@casper.infradead.org>
+References: <alpine.LSU.2.11.2103301654520.2648@eggly.anvils>
+ <20210331024913.GS351017@casper.infradead.org>
+ <alpine.LSU.2.11.2103311413560.1201@eggly.anvils>
+ <20210401170615.GH351017@casper.infradead.org>
+ <20210402031305.GK351017@casper.infradead.org>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
- definitions=2021-04-02_06:2021-04-01,2021-04-02 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- adultscore=0 clxscore=1011 suspectscore=0 bulkscore=0 mlxlogscore=924
- malwarescore=0 impostorscore=0 phishscore=0 spamscore=0 lowpriorityscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2103310000 definitions=main-2104020065
-Message-ID-Hash: UXXZHGB5R7GQ35DB26WGU6NDWRSNZAHO
-X-Message-ID-Hash: UXXZHGB5R7GQ35DB26WGU6NDWRSNZAHO
-X-MailFrom: vaibhav@linux.ibm.com
+Content-Disposition: inline
+In-Reply-To: <20210402031305.GK351017@casper.infradead.org>
+Message-ID-Hash: EPNTRALRZSMGCTR5NRHN5SM2UQPPO57T
+X-Message-ID-Hash: EPNTRALRZSMGCTR5NRHN5SM2UQPPO57T
+X-MailFrom: willy@infradead.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Vaibhav Jain <vaibhav@linux.ibm.com>, "Aneesh Kumar K . V Ira Weiny" <"aneesh.kumar@linux.ibm.comira.weiny"@intel.com>, mpe@ellerman.id.au, Shivaprasad G Bhat <sbhat@linux.ibm.com>
+CC: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/UXXZHGB5R7GQ35DB26WGU6NDWRSNZAHO/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/EPNTRALRZSMGCTR5NRHN5SM2UQPPO57T/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -95,56 +68,26 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-In case a platform doesn't provide explicit flush-hints but provides an
-explicit flush callback via ND_REGION_ASYNC region flag, then
-nvdimm_has_flush() still returns '0' indicating that writes do not
-require flushing. This happens on PPC64 with patch at [1] applied,
-where 'deep_flush' of a region was denied even though an explicit
-flush function was provided.
+On Fri, Apr 02, 2021 at 04:13:05AM +0100, Matthew Wilcox wrote:
+> +	for (;;) {
+> +		xas_load(xas);
+> +		if (!xas_is_node(xas))
+> +			break;
+> +		xas_delete_node(xas);
+> +		xas->xa_index -= XA_CHUNK_SIZE;
+> +		if (xas->xa_index < index)
+> +			break;
 
-Fix this by adding a condition to nvdimm_has_flush() to test for the
-ND_REGION_ASYNC flag on the region and see if a 'region->flush'
-callback is assigned.
+That's a bug.  index can be 0, so the condition would never be true.
+It should be:
 
-References:
-[1] "powerpc/papr_scm: Implement support for H_SCM_FLUSH hcall"
-https://lore.kernel.org/linux-nvdimm/161703936121.36.7260632399	582101498.stgit@e1fbed493c87
+		if (xas->xa_index <= (index | XA_CHUNK_MASK))
+			break;
+		xas->xa_index -= XA_CHUNK_SIZE;
 
-Reported-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
----
- drivers/nvdimm/region_devs.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index ef23119db574..e05cc9f8a9fd 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -1239,6 +1239,11 @@ int nvdimm_has_flush(struct nd_region *nd_region)
- 			|| !IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API))
- 		return -ENXIO;
- 
-+	/* Test if an explicit flush function is defined */
-+	if (test_bit(ND_REGION_ASYNC, &nd_region->flags) && nd_region->flush)
-+		return 1;
-+
-+	/* Test if any flush hints for the region are available */
- 	for (i = 0; i < nd_region->ndr_mappings; i++) {
- 		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
- 		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-@@ -1249,8 +1254,8 @@ int nvdimm_has_flush(struct nd_region *nd_region)
- 	}
- 
- 	/*
--	 * The platform defines dimm devices without hints, assume
--	 * platform persistence mechanism like ADR
-+	 * The platform defines dimm devices without hints nor explicit flush,
-+	 * assume platform persistence mechanism like ADR
- 	 */
- 	return 0;
- }
--- 
-2.30.2
+The test doesn't notice this bug because the tree is otherwise empty,
+and the !xas_is_node(xas) condition is hit first.  The next test will
+notice this.
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
