@@ -1,150 +1,319 @@
-Return-Path: <SRS0=BC0j=JD=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=Oj3b=JE=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DCE0C433ED
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  6 Apr 2021 12:05:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C980FC433B4
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  7 Apr 2021 05:10:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id A2C8A613C2
-	for <linux-nvdimm@archiver.kernel.org>; Tue,  6 Apr 2021 12:05:56 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org A2C8A613C2
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 5BE7F6113E
+	for <linux-nvdimm@archiver.kernel.org>; Wed,  7 Apr 2021 05:10:48 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 5BE7F6113E
+Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=fossix.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 63F71100EB855;
-	Tue,  6 Apr 2021 05:05:56 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=aneesh.kumar@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id ED3BF100EC1CC;
+	Tue,  6 Apr 2021 22:10:47 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=209.85.216.51; helo=mail-pj1-f51.google.com; envelope-from=santosh@fossix.org; receiver=<UNKNOWN> 
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 21D3E100EB84D
-	for <linux-nvdimm@lists.01.org>; Tue,  6 Apr 2021 05:05:54 -0700 (PDT)
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 136C4tvE168627;
-	Tue, 6 Apr 2021 08:05:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=SRb8fRuRg+pcdNraxXF8tQx5ilSUBAgqzQiletW5yOc=;
- b=UjqW0vfpAHf6ZafpwZF5mQe46dh9iLhRNoYGdrpl45nltDlu4HAUIfZnsx5s1w0DketD
- jVYAOJpC4PGm9hxRq54/JVmce6JitFVjI1RHPxKIohVdiQivv8zB6vaKiPCfXglue0xg
- YCc1puu9DvHB+H2ZCFNInMOu0FQtVNARFeSOYnsuH81R7qCNvUImqhT6fcXxw17U90zf
- 0HnH/IKnNHS6N8kWjgVb3H+B2UNgC2YN0Ajyt0kPtOWpDQV15rVlOro+SmvHf/vRLKf2
- NJEzYmz2Eig1NCQ+TDFrX1x5Y60XSSuFeMDP0qdWY6tFf9FX4wbsxCl+KDNFnfmH0Jz6 kQ==
-Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 37q5pb0pb5-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 06 Apr 2021 08:05:49 -0400
-Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
-	by ppma04ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 136C2skp012531;
-	Tue, 6 Apr 2021 12:05:48 GMT
-Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
-	by ppma04ams.nl.ibm.com with ESMTP id 37q2n2t4mc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 06 Apr 2021 12:05:47 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 136C5Owc22675728
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 6 Apr 2021 12:05:24 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BAAEEAE04D;
-	Tue,  6 Apr 2021 12:05:44 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 971C7AE056;
-	Tue,  6 Apr 2021 12:05:43 +0000 (GMT)
-Received: from [9.102.1.249] (unknown [9.102.1.249])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue,  6 Apr 2021 12:05:43 +0000 (GMT)
-Subject: Re: [PATCH v2] libnvdimm/region: Update nvdimm_has_flush() to handle
- ND_REGION_ASYNC
-To: Vaibhav Jain <vaibhav@linux.ibm.com>, linux-nvdimm@lists.01.org
-References: <20210406032233.490596-1-vaibhav@linux.ibm.com>
- <874kgk6lnn.fsf@linux.ibm.com> <87wntfhcdr.fsf@vajain21.in.ibm.com>
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Message-ID: <5e64778d-bf48-9f10-7d3d-5e530e5db590@linux.ibm.com>
-Date: Tue, 6 Apr 2021 17:35:42 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.0
+	by ml01.01.org (Postfix) with ESMTPS id A3D93100EF276
+	for <linux-nvdimm@lists.01.org>; Tue,  6 Apr 2021 22:10:45 -0700 (PDT)
+Received: by mail-pj1-f51.google.com with SMTP id x21-20020a17090a5315b029012c4a622e4aso667133pjh.2
+        for <linux-nvdimm@lists.01.org>; Tue, 06 Apr 2021 22:10:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fossix-org.20150623.gappssmtp.com; s=20150623;
+        h=from:to:subject:in-reply-to:references:date:message-id:mime-version;
+        bh=28Y6QISowK8t0Ned/4dFEDUu09YRSJtamLGp+wNbhbQ=;
+        b=1LnCJKAuimF7pooah7PUy5C1ECw1U60126l3qgupBToxFB9Xf+2FFN1X1XiNo/2SD3
+         kNvKjshINcgNfCvPH6epyJ91vSuZDGNdvd7G55Z/YtzyeaxgOJsW+rfAiFWPl08ZXa64
+         9l9yIPGcHtrpiiaJ+uc/l14nrCrB2GR6q1ME5Z9LHgEZZcS/qWpTv+xnXH/2NIqZmEyE
+         lgRxk8g3e8fFHLL+hIY6dC/zGEr6jfGiILrAhxHPNxd4k4cfXHK+zmjV6GOM+EVspRfB
+         jKsSdupDpDIGmtTiQB+fViYqC9tLOSSvQNFodzXiWH8RTYOHk5osAxuuGqsQsG65TrMo
+         iYUg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:subject:in-reply-to:references:date
+         :message-id:mime-version;
+        bh=28Y6QISowK8t0Ned/4dFEDUu09YRSJtamLGp+wNbhbQ=;
+        b=hvo1ACXyn9kVvvj09b3lh2GH2MX0PdsO/Rc3vejCI9IrnFTfCyB+BzYUuORr9OpSJO
+         B7D/TwFgIHRm5A6+4ETKp/CGl9T4UehWuNthqWdE0VHt2GOm35/n//BvxpBsgn8z+q5A
+         1Zfbtx0SLA6uvGQWH9qFHIn0W/YLk+M6bRRJ2FmO+bYRpP7xf7MfE9M7Nyca0ynG02gS
+         A84Ic5wRFvNiqd/EAqKkgOopp8tv2und8SluhAldDoQnuYgO0dtNASIqS2acJQ6uPkvE
+         RHnFF6YDoY6s8efIfQkxgG9URkBAowuONjvc4gnjMCeM6DUp4RohTMhnszOxEmYRB0v5
+         9P2g==
+X-Gm-Message-State: AOAM530KfWAdH8UbwxAtSUNoKiZQwnQ3cWzAsRocF1GS/sX6ybTK+Z2T
+	MTz+3pQXkF4Ph8nat+NN41odug==
+X-Google-Smtp-Source: ABdhPJxOLT8tY/xVyHDKU37GWl7vxiOK1N39scYIbKEow7rH5JOKRu+1Tcb+tlBZqQcuiL/C0aztfA==
+X-Received: by 2002:a17:90b:3704:: with SMTP id mg4mr1574474pjb.156.1617772185072;
+        Tue, 06 Apr 2021 22:09:45 -0700 (PDT)
+Received: from localhost ([103.21.79.4])
+        by smtp.gmail.com with ESMTPSA id q10sm19854066pgs.44.2021.04.06.22.09.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 06 Apr 2021 22:09:44 -0700 (PDT)
+From: Santosh Sivaraj <santosh@fossix.org>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Linux NVDIMM
+ <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>,
+ Vaibhav Jain <vaibhav@linux.ibm.com>, Shivaprasad G Bhat
+ <sbhat@linux.ibm.com>, Harish Sriram <harish@linux.ibm.com>, Dan Williams
+ <dan.j.williams@intel.com>
+Subject: Re: [PATCH 2/4] test: Don't skip tests if nfit modules are missing
+In-Reply-To: <877dlg7was.fsf@linux.ibm.com>
+References: <20210328021001.2340251-1-santosh@fossix.org>
+ <20210328021001.2340251-2-santosh@fossix.org>
+ <877dlg7was.fsf@linux.ibm.com>
+Date: Wed, 07 Apr 2021 10:39:36 +0530
+Message-ID: <87czv67ka7.fsf@fossix.org>
 MIME-Version: 1.0
-In-Reply-To: <87wntfhcdr.fsf@vajain21.in.ibm.com>
-Content-Language: en-US
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: nXSn_XzIUabCrdAZOSrwrXY3zWEy-49P
-X-Proofpoint-GUID: nXSn_XzIUabCrdAZOSrwrXY3zWEy-49P
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.369,18.0.761
- definitions=2021-04-06_03:2021-04-01,2021-04-06 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
- priorityscore=1501 adultscore=0 mlxscore=0 spamscore=0 lowpriorityscore=0
- malwarescore=0 phishscore=0 mlxlogscore=999 bulkscore=0 impostorscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104030000 definitions=main-2104060080
-Message-ID-Hash: ABQUJ6FKCSUMAKYAA4X7T4ICFRYPVDQ6
-X-Message-ID-Hash: ABQUJ6FKCSUMAKYAA4X7T4ICFRYPVDQ6
-X-MailFrom: aneesh.kumar@linux.ibm.com
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Michael Ellerman <mpe@ellerman.id.au>, Shivaprasad G Bhat <sbhat@linux.ibm.com>, stable@vger.kernel.org
+Message-ID-Hash: BGZC2LI7WZO2UVPG5IV6GMOPT4QYGS2X
+X-Message-ID-Hash: BGZC2LI7WZO2UVPG5IV6GMOPT4QYGS2X
+X-MailFrom: santosh@fossix.org
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/ABQUJ6FKCSUMAKYAA4X7T4ICFRYPVDQ6/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/BGZC2LI7WZO2UVPG5IV6GMOPT4QYGS2X/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"; format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On 4/6/21 5:07 PM, Vaibhav Jain wrote:
-> Hi Aneesh,
-> Thanks for looking into this patch.
-> 
-> "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
-> 
->> Vaibhav Jain <vaibhav@linux.ibm.com> writes:
->>
->>> In case a platform doesn't provide explicit flush-hints but provides an
->>> explicit flush callback via ND_REGION_ASYNC region flag, then
->>> nvdimm_has_flush() still returns '0' indicating that writes do not
->>> require flushing. This happens on PPC64 with patch at [1] applied,
->>> where 'deep_flush' of a region was denied even though an explicit
->>> flush function was provided.
->>>
->>> Similar problem is also seen with virtio-pmem where the 'deep_flush'
->>> sysfs attribute is not visible as in absence of any registered nvdimm,
->>> 'nd_region->ndr_mappings == 0'.
->>>
->>> Fix this by updating nvdimm_has_flush() adding a condition to
->>> nvdimm_has_flush() testing for ND_REGION_ASYNC flag on the region
->>> and see if a 'region->flush' callback is assigned. Also remove
->>> explicit test for 'nd_region->ndr_mapping' since regions can be marked
->>> 'ND_REGION_SYNC' without any explicit mappings as in case of
->>> virtio-pmem.
->>
->> Do we need to check for ND_REGION_ASYNC? What if the backend wants to
->> provide a synchronous dax region but with different deep flush semantic
->> than writing to wpq flush address?
->> ie,
-> 
-> For a synchronous dax region, writes arent expected to require any
-> flushing (or deep-flush) so this function should ideally return '0' in
-> such a case. Hence I had added the test for ND_REGION_ASYNC region flag.
-> 
+"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
 
-that is not correct. For example, we could ideally move the wpq flush as 
-an nd_region->flush callback for acpi or we could implement a deep flush 
-for a synchronous dax region exposed by papr_scm driver that ensures 
-stores indeed reached the media managed by the hypervisor.
+> Santosh Sivaraj <santosh@fossix.org> writes:
+>
+>> For NFIT to be available ACPI is a must, so don't fail when nfit modules
+>> are missing on a platform that doesn't support ACPI.
+>>
+>> Signed-off-by: Santosh Sivaraj <santosh@fossix.org>
+>> ---
+>>  test.h                        |  2 +-
+>>  test/ack-shutdown-count-set.c |  2 +-
+>>  test/blk_namespaces.c         |  2 +-
+>>  test/core.c                   | 30 ++++++++++++++++++++++++++++--
+>>  test/dpa-alloc.c              |  2 +-
+>>  test/dsm-fail.c               |  2 +-
+>>  test/libndctl.c               |  2 +-
+>>  test/multi-pmem.c             |  2 +-
+>>  test/parent-uuid.c            |  2 +-
+>>  test/pmem_namespaces.c        |  2 +-
+>>  10 files changed, 37 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/test.h b/test.h
+>> index cba8d41..7de13fe 100644
+>> --- a/test.h
+>> +++ b/test.h
+>> @@ -20,7 +20,7 @@ void builtin_xaction_namespace_reset(void);
+>>  
+>>  struct kmod_ctx;
+>>  struct kmod_module;
+>> -int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>> +int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>>  		struct ndctl_ctx *nd_ctx, int log_level,
+>>  		struct ndctl_test *test);
+>>  
+>> diff --git a/test/ack-shutdown-count-set.c b/test/ack-shutdown-count-set.c
+>> index fb1d82b..c561ff3 100644
+>> --- a/test/ack-shutdown-count-set.c
+>> +++ b/test/ack-shutdown-count-set.c
+>> @@ -99,7 +99,7 @@ static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
+>>  	int result = EXIT_FAILURE, err;
+>>  
+>>  	ndctl_set_log_priority(ctx, loglevel);
+>> -	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>> +	err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>>  	if (err < 0) {
+>>  		result = 77;
+>>  		ndctl_test_skip(test);
+>> diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
+>> index d7f00cb..f076e85 100644
+>> --- a/test/blk_namespaces.c
+>> +++ b/test/blk_namespaces.c
+>> @@ -228,7 +228,7 @@ int test_blk_namespaces(int log_level, struct ndctl_test *test,
+>>  
+>>  	if (!bus) {
+>>  		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+>> -		rc = nfit_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+>> +		rc = ndctl_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+>>  		ndctl_invalidate(ctx);
+>>  		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+>>  		if (rc < 0 || !bus) {
+>> diff --git a/test/core.c b/test/core.c
+>> index cc7d8d9..44cb277 100644
+>> --- a/test/core.c
+>> +++ b/test/core.c
+>> @@ -11,6 +11,7 @@
+>>  #include <util/log.h>
+>>  #include <util/sysfs.h>
+>>  #include <ndctl/libndctl.h>
+>> +#include <ndctl/ndctl.h>
+>>  #include <ccan/array_size/array_size.h>
+>>  
+>>  #define KVER_STRLEN 20
+>> @@ -106,11 +107,11 @@ int ndctl_test_get_skipped(struct ndctl_test *test)
+>>  	return test->skip;
+>>  }
+>>  
+>> -int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>> +int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>>  		struct ndctl_ctx *nd_ctx, int log_level,
+>>  		struct ndctl_test *test)
+>>  {
+>> -	int rc;
+>> +	int rc, family = -1;
+>>  	unsigned int i;
+>>  	const char *name;
+>>  	struct ndctl_bus *bus;
+>> @@ -127,10 +128,30 @@ int nfit_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>>  		"nd_e820",
+>>  		"nd_pmem",
+>>  	};
+>> +	char *test_env;
+>>  
+>>  	log_init(&log_ctx, "test/init", "NDCTL_TEST");
+>>  	log_ctx.log_priority = log_level;
+>>  
+>> +	/*
+>> +	 * The following two checks determine the platform family. For
+>> +	 * Intel/platforms which support ACPI, check sysfs; for other platforms
+>> +	 * determine from the environment variable NVDIMM_TEST_FAMILY
+>> +	 */
+>> +	if (access("/sys/bus/acpi", F_OK) == 0) {
+>> +		if (errno == ENOENT)
+>> +			family = NVDIMM_FAMILY_INTEL;
+>> +	}
+>> +
+>> +	test_env = getenv("NDCTL_TEST_FAMILY");
+>> +	if (test_env && strcmp(test_env, "PAPR") == 0)
+>> +		family = NVDIMM_FAMILY_PAPR;
+>
+> I am wondering whether it is confusing to call this as
+> NVDIMM_FAMILY_PAPR. If you are looking at a platform agnoistic family we
+> should probably name it accordingly. Maybe NVDIMM_FAMILY_TEST ?
 
--aneesh
+This is intentional, so that we can reuse PAPR code for SMART, health and error
+injection tests. Otherwise we will end up copying major parts of the code. Also
+I am not sure that we should create a separate family for tests.
+
+Thanks,
+Santosh
+
+>
+>
+>> +
+>> +	if (family == -1) {
+>> +		log_err(&log_ctx, "Cannot determine NVDIMM family\n");
+>> +		return -ENOTSUP;
+>> +	}
+>> +
+>>  	*ctx = kmod_new(NULL, NULL);
+>>  	if (!*ctx)
+>>  		return -ENXIO;
+>> @@ -185,6 +206,11 @@ retry:
+>>  
+>>  		path = kmod_module_get_path(*mod);
+>>  		if (!path) {
+>> +			if (family != NVDIMM_FAMILY_INTEL &&
+>> +			    (strcmp(name, "nfit") == 0 ||
+>> +			     strcmp(name, "nd_e820") == 0))
+>> +				continue;
+>> +
+>>  			log_err(&log_ctx, "%s.ko: failed to get path\n", name);
+>>  			break;
+>>  		}
+>> diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
+>> index e922009..0b3bb7a 100644
+>> --- a/test/dpa-alloc.c
+>> +++ b/test/dpa-alloc.c
+>> @@ -289,7 +289,7 @@ int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+>>  		return 77;
+>>  
+>>  	ndctl_set_log_priority(ctx, loglevel);
+>> -	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>> +	err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>>  	if (err < 0) {
+>>  		ndctl_test_skip(test);
+>>  		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>> diff --git a/test/dsm-fail.c b/test/dsm-fail.c
+>> index 9dfd8b0..0a6383d 100644
+>> --- a/test/dsm-fail.c
+>> +++ b/test/dsm-fail.c
+>> @@ -346,7 +346,7 @@ int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+>>  	int result = EXIT_FAILURE, err;
+>>  
+>>  	ndctl_set_log_priority(ctx, loglevel);
+>> -	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>> +	err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>>  	if (err < 0) {
+>>  		result = 77;
+>>  		ndctl_test_skip(test);
+>> diff --git a/test/libndctl.c b/test/libndctl.c
+>> index 24d72b3..0e88fce 100644
+>> --- a/test/libndctl.c
+>> +++ b/test/libndctl.c
+>> @@ -2692,7 +2692,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+>>  	daxctl_set_log_priority(daxctl_ctx, loglevel);
+>>  	ndctl_set_private_data(ctx, test);
+>>  
+>> -	err = nfit_test_init(&kmod_ctx, &mod, ctx, loglevel, test);
+>> +	err = ndctl_test_init(&kmod_ctx, &mod, ctx, loglevel, test);
+>>  	if (err < 0) {
+>>  		ndctl_test_skip(test);
+>>  		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>> diff --git a/test/multi-pmem.c b/test/multi-pmem.c
+>> index 3d10952..3ea08cc 100644
+>> --- a/test/multi-pmem.c
+>> +++ b/test/multi-pmem.c
+>> @@ -249,7 +249,7 @@ int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx
+>>  
+>>  	ndctl_set_log_priority(ctx, loglevel);
+>>  
+>> -	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>> +	err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>>  	if (err < 0) {
+>>  		result = 77;
+>>  		ndctl_test_skip(test);
+>> diff --git a/test/parent-uuid.c b/test/parent-uuid.c
+>> index 6424e9f..bded33a 100644
+>> --- a/test/parent-uuid.c
+>> +++ b/test/parent-uuid.c
+>> @@ -218,7 +218,7 @@ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ct
+>>  		return 77;
+>>  
+>>  	ndctl_set_log_priority(ctx, loglevel);
+>> -	err = nfit_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>> +	err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>>  	if (err < 0) {
+>>  		ndctl_test_skip(test);
+>>  		fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>> diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+>> index f0f2edd..a4db1ae 100644
+>> --- a/test/pmem_namespaces.c
+>> +++ b/test/pmem_namespaces.c
+>> @@ -191,7 +191,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+>>  
+>>  	if (!bus) {
+>>  		fprintf(stderr, "ACPI.NFIT unavailable falling back to nfit_test\n");
+>> -		rc = nfit_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+>> +		rc = ndctl_test_init(&kmod_ctx, &mod, NULL, log_level, test);
+>>  		ndctl_invalidate(ctx);
+>>  		bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+>>  		if (rc < 0 || !bus) {
+>> -- 
+>> 2.30.2
+>> _______________________________________________
+>> Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+>> To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
