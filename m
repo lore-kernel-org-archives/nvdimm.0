@@ -1,112 +1,104 @@
-Return-Path: <SRS0=8Swp=JG=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=kyPS=JH=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_50,DKIM_INVALID,
+	DKIM_SIGNED,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 248A6C433ED
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  9 Apr 2021 16:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C3A5C433ED
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Apr 2021 00:33:48 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id E20FA610A7
-	for <linux-nvdimm@archiver.kernel.org>; Fri,  9 Apr 2021 16:45:53 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org E20FA610A7
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=suse.de
+	by mail.kernel.org (Postfix) with ESMTPS id CB57161108
+	for <linux-nvdimm@archiver.kernel.org>; Sat, 10 Apr 2021 00:33:47 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org CB57161108
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=126.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id CF65F100EA903;
-	Fri,  9 Apr 2021 09:45:53 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=195.135.220.15; helo=mx2.suse.de; envelope-from=colyli@suse.de; receiver=<UNKNOWN> 
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id A4310100EAB7B;
+	Fri,  9 Apr 2021 17:33:47 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=220.181.15.112; helo=m15112.mail.126.com; envelope-from=wangyingjie55@126.com; receiver=<UNKNOWN> 
+Received: from m15112.mail.126.com (m15112.mail.126.com [220.181.15.112])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 5D621100EAB1F
-	for <linux-nvdimm@lists.01.org>; Fri,  9 Apr 2021 09:45:51 -0700 (PDT)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id E91D4B120;
-	Fri,  9 Apr 2021 16:45:49 +0000 (UTC)
-From: Coly Li <colyli@suse.de>
-To: linux-bcache@vger.kernel.org
-Subject: [PATCH v7 16/16] bcache: more fix for compiling error when BCACHE_NVM_PAGES disabled
-Date: Sat, 10 Apr 2021 00:43:43 +0800
-Message-Id: <20210409164343.56828-17-colyli@suse.de>
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20210409164343.56828-1-colyli@suse.de>
-References: <20210409164343.56828-1-colyli@suse.de>
-MIME-Version: 1.0
-Message-ID-Hash: NNQGJUVCISBNWUM2BOSH6X3HSNKO5ZWU
-X-Message-ID-Hash: NNQGJUVCISBNWUM2BOSH6X3HSNKO5ZWU
-X-MailFrom: colyli@suse.de
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linux-block@vger.kernel.org, linux-nvdimm@lists.01.org, axboe@kernel.dk, jianpeng.ma@intel.com, qiaowei.ren@intel.com, hare@suse.com, jack@suse.cz, Coly Li <colyli@suse.de>
+	by ml01.01.org (Postfix) with ESMTPS id 24F1A100EF265
+	for <linux-nvdimm@lists.01.org>; Fri,  9 Apr 2021 17:33:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+	s=s110527; h=From:Subject:Date:Message-Id; bh=YjzmIwerweOGbfblgC
+	/Ly+OrKlNwezN7iggMM3swgJM=; b=MJHaL0orm8TvdDuB7Ke+swd6jhy8BrifMI
+	+AmmCaqyYsUXYS/mlvoGVJkb5MVHH8OlYONPAzTbVhf15OK1JCiodjpjbSWlC8pq
+	Es3/zLe6WynvMoDcLRKBGHs0EpyF02SeZdbgyiAoQipLo2pQbY/zcpPjNl9+LSR6
+	7yGPEDbrc=
+Received: from localhost.localdomain (unknown [106.17.213.220])
+	by smtp2 (Coremail) with SMTP id DMmowAA3nwNa8nBgdqQBAQ--.18230S2;
+	Sat, 10 Apr 2021 08:33:32 +0800 (CST)
+From: wangyingjie55@126.com
+To: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com,
+	linux-nvdimm@lists.01.org
+Subject: [PATCH v1] libnvdimm, dax: Fix a missing check in nd_dax_probe()
+Date: Fri,  9 Apr 2021 17:33:23 -0700
+Message-Id: <1618014803-17231-1-git-send-email-wangyingjie55@126.com>
+X-Mailer: git-send-email 2.7.4
+X-CM-TRANSID: DMmowAA3nwNa8nBgdqQBAQ--.18230S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrtrW3XF15XF15Gw4rtry5urg_yoWfArXEkr
+	17Zr929Fy0kwnayr4aqr1fWryvyrs29r18ur4jgw13Ar4Y9r13GFykur9xtrsagr48urnr
+	ur1DXFnxZF15GjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUjeyI5UUUUU==
+X-Originating-IP: [106.17.213.220]
+X-CM-SenderInfo: 5zdqw5xlqjyxrhvvqiyswou0bp/1tbiJRxwp13WGyhjMQAAsE
+Message-ID-Hash: LIJUL3B6IINDKLE6QOYHIDKUDBUXTWWR
+X-Message-ID-Hash: LIJUL3B6IINDKLE6QOYHIDKUDBUXTWWR
+X-MailFrom: wangyingjie55@126.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: wangyingjie55@126.com, linux-kernel@vger.kernel.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/NNQGJUVCISBNWUM2BOSH6X3HSNKO5ZWU/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LIJUL3B6IINDKLE6QOYHIDKUDBUXTWWR/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-This patch fixes the compiling error when BCACHE_NVM_PAGES is disabled.
-The change could be added into previous nvm-pages patches, so that this
-patch can be dropped in next nvm-pages series.
+From: Yingjie Wang <wangyingjie55@126.com>
 
-Signed-off-by: Coly Li <colyli@suse.de>
-Cc: Jianpeng Ma <jianpeng.ma@intel.com>
-Cc: Qiaowei Ren <qiaowei.ren@intel.com>
+In nd_dax_probe(), nd_dax_alloc() may fail and return NULL.
+Check for NULL before attempting to
+use nd_dax to avoid a NULL pointer dereference.
+
+Fixes: c5ed9268643c ("libnvdimm, dax: autodetect support")
+Signed-off-by: Yingjie Wang <wangyingjie55@126.com>
 ---
- drivers/md/bcache/nvm-pages.c | 4 ++--
- drivers/md/bcache/nvm-pages.h | 2 ++
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/nvdimm/dax_devs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/md/bcache/nvm-pages.c b/drivers/md/bcache/nvm-pages.c
-index 19597ae7ef3e..b32f162bf728 100644
---- a/drivers/md/bcache/nvm-pages.c
-+++ b/drivers/md/bcache/nvm-pages.c
-@@ -7,6 +7,8 @@
-  * Copyright (c) 2021, Jianpeng Ma <jianpeng.ma@intel.com>.
-  */
+diff --git a/drivers/nvdimm/dax_devs.c b/drivers/nvdimm/dax_devs.c
+index 99965077bac4..b1426ac03f01 100644
+--- a/drivers/nvdimm/dax_devs.c
++++ b/drivers/nvdimm/dax_devs.c
+@@ -106,6 +106,8 @@ int nd_dax_probe(struct device *dev, struct nd_namespace_common *ndns)
  
-+#ifdef CONFIG_BCACHE_NVM_PAGES
-+
- #include "bcache.h"
- #include "nvm-pages.h"
- 
-@@ -23,8 +25,6 @@
- #include <linux/blkdev.h>
- #include <linux/bcache-nvm.h>
- 
--#ifdef CONFIG_BCACHE_NVM_PAGES
--
- struct bch_nvm_set *only_set;
- 
- static void release_nvm_namespaces(struct bch_nvm_set *nvm_set)
-diff --git a/drivers/md/bcache/nvm-pages.h b/drivers/md/bcache/nvm-pages.h
-index 1c4cbad0209f..f9e0cd7ca3dd 100644
---- a/drivers/md/bcache/nvm-pages.h
-+++ b/drivers/md/bcache/nvm-pages.h
-@@ -3,8 +3,10 @@
- #ifndef _BCACHE_NVM_PAGES_H
- #define _BCACHE_NVM_PAGES_H
- 
-+#ifdef CONFIG_BCACHE_NVM_PAGES
- #include <linux/bcache-nvm.h>
- #include <linux/libnvdimm.h>
-+#endif /* CONFIG_BCACHE_NVM_PAGES */
- 
- /*
-  * Bcache NVDIMM in memory data structures
+ 	nvdimm_bus_lock(&ndns->dev);
+ 	nd_dax = nd_dax_alloc(nd_region);
++	if (!nd_dax)
++		return -ENOMEM;
+ 	nd_pfn = &nd_dax->nd_pfn;
+ 	dax_dev = nd_pfn_devinit(nd_pfn, ndns);
+ 	nvdimm_bus_unlock(&ndns->dev);
 -- 
-2.26.2
+2.7.4
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
