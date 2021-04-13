@@ -1,88 +1,103 @@
-Return-Path: <SRS0=o7EX=JJ=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=nxeM=JK=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: **
-X-Spam-Status: No, score=2.9 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNWANTED_LANGUAGE_BODY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Level: 
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0980DC433B4
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Apr 2021 15:40:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE4E7C43460
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 13 Apr 2021 11:01:52 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 7A0FC61249
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 12 Apr 2021 15:40:40 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 7A0FC61249
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=mail.uccard.co.jp
+	by mail.kernel.org (Postfix) with ESMTPS id EE17E61249
+	for <linux-nvdimm@archiver.kernel.org>; Tue, 13 Apr 2021 11:01:49 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org EE17E61249
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=alien8.de
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id C77E4100EBBDD;
-	Mon, 12 Apr 2021 08:40:39 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=118.27.120.183; helo=reorlec.net.cn; envelope-from=sfp@reorlec.net.cn; receiver=<UNKNOWN> 
-Received: from reorlec.net.cn (v118-27-120-183.jke1.static.cnode.io [118.27.120.183])
-	by ml01.01.org (Postfix) with ESMTP id 0B7E3100EC1C6
-	for <linux-nvdimm@lists.01.org>; Mon, 12 Apr 2021 08:40:26 -0700 (PDT)
-Message-ID: <7CCDFA06307178BEB9393050BCA83042@reorlec.net.cn>
-From: =?utf-8?B?VUPjgqvjg7zjg4njg4jjg4Pjg5c=?= <atu@mail.uccard.co.jp>
-To: <linux-nvdimm@lists.01.org>
-Subject: =?utf-8?B?44Ki44OD44OI44Om44O844ON44OD44OI44GL44KJ44Gu44GK55+l44KJ44Gb?=
-Date: Tue, 13 Apr 2021 00:40:20 +0900
-Mime-Version: 1.0
-X-Priority: 3
-X-MSMail-Priority: Normal
-X-Mailer: Microsoft Outlook Express 6.00.2900.5512
-X-MimeOLE: Produced By Microsoft MimeOLE V10.0.17763.1
-Message-ID-Hash: MJBK6KMTOVVXVJRSPRY3ROK2UB7EE3S5
-X-Message-ID-Hash: MJBK6KMTOVVXVJRSPRY3ROK2UB7EE3S5
-X-MailFrom: sfp@reorlec.net.cn
+	by ml01.01.org (Postfix) with ESMTP id 600EA100EB82E;
+	Tue, 13 Apr 2021 04:01:49 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=2a01:4f8:190:11c2::b:1457; helo=mail.skyhub.de; envelope-from=bp@alien8.de; receiver=<UNKNOWN> 
+Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by ml01.01.org (Postfix) with ESMTPS id B5E16100EF267
+	for <linux-nvdimm@lists.01.org>; Tue, 13 Apr 2021 04:01:46 -0700 (PDT)
+Received: from zn.tnic (p200300ec2f0b840069f7e8348dd41416.dip0.t-ipconnect.de [IPv6:2003:ec:2f0b:8400:69f7:e834:8dd4:1416])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 054E31EC032C;
+	Tue, 13 Apr 2021 13:01:39 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+	t=1618311700;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+	bh=EapHv6oFwJH3m5E8yzDZ3r7waNuPmjlteZ0NxRRuJyI=;
+	b=GrYWMUG/t9s1mlCo560HOgrajeQxxIgGSNEJch83ZwT3mM/8rK82Jtcer/mQlHTWjEm4GO
+	3DT5AQecd1CmxvaulFNGQqJ/aK5u8v7UZzBI2x/FZXSzRWLAPMgWKJs//+jsrgutWVi3gE
+	h3yW+K0CzdqH7wpcFoPzZtWhSaW8qwQ=
+Date: Tue, 13 Apr 2021 13:01:37 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Kemeng Shi <shikemeng@huawei.com>
+Subject: Re: [PATCH] x86: Accelerate copy_page with non-temporal in X86
+Message-ID: <20210413110137.GD16519@zn.tnic>
+References: <3f28adee-8214-fa8e-b368-eaf8b193469e@huawei.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <3f28adee-8214-fa8e-b368-eaf8b193469e@huawei.com>
+Message-ID-Hash: YVFBXXMDW7J4EQOVVDFMR24DZUY7TQXC
+X-Message-ID-Hash: YVFBXXMDW7J4EQOVVDFMR24DZUY7TQXC
+X-MailFrom: bp@alien8.de
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-X-Content-Filtered-By: Mailman/MimeDel 3.1.1
+CC: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MJBK6KMTOVVXVJRSPRY3ROK2UB7EE3S5/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/YVFBXXMDW7J4EQOVVDFMR24DZUY7TQXC/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-DQrjgqLjg4Pjg4jjg6bjg7zjg43jg4Pjg4jjgpLjgZTliKnnlKjjgYTjgZ/jgaDjgY3jgYLjgorj
-gYzjgajjgYbjgZTjgZbjgYTjgb7jgZnjgIINCuOBk+OBruOBn+OBs+OAgeOBlOacrOS6uuanmOOB
-ruOBlOWIqeeUqOOBi+OBqeOBhuOBi+OCkueiuuiqjeOBleOBm+OBpuOBhOOBn+OBoOOBjeOBn+OB
-hOOBiuWPluW8leOBjOOBguOCiuOBvuOBl+OBn+OBruOBp+OAgeiqoOOBq+WLneaJi+OBquOBjOOC
-ieOAgeOCq+ODvOODieOBruOBlOWIqeeUqOOCkuS4gOmDqOWItumZkOOBleOBm+OBpuOBhOOBn+OB
-oOOBjeOAgeOBlOmAo+e1oeOBleOBm+OBpuOBhOOBn+OBoOOBjeOBvuOBl+OBn+OAgg0K44Gk44GN
-44G+44GX44Gm44Gv44CB5Lul5LiL44G444Ki44Kv44K744K544Gu5LiK44CB44Kr44O844OJ44Gu
-44GU5Yip55So56K66KqN44Gr44GU5Y2U5Yqb44KS44GK6aGY44GE6Ie044GX44G+44GZ44CCDQog
-44GK5a6i5qeY44Gr44Gv44GU6L+35oOR44CB44GU5b+D6YWN44KS44GK5o6b44GR44GX44CB6Kqg
-44Gr55Sz44GX6Kiz44GU44GW44GE44G+44Gb44KT44CCDQrkvZXljZLjgZTnkIbop6PjgYTjgZ/j
-gaDjgY3jgZ/jgY/jgYrpoZjjgYTnlLPjgZfjgYLjgZLjgb7jgZnjgIINCuOBlOWbnuetlOOCkuOB
-hOOBn+OBoOOBkeOBquOBhOWgtOWQiOOAgeOCq+ODvOODieOBruOBlOWIqeeUqOWItumZkOOBjOe2
-mee2muOBleOCjOOCi+OBk+OBqOOCguOBlOOBluOBhOOBvuOBmeOBruOBp+OAgeS6iOOCgeOBlOS6
-huaJv+S4i+OBleOBhOOAgg0K4oC744GU5Yip55So56K66KqN44Gv44GT44Gh44KJDQogICAgaHR0
-cHM6Ly93d3cyLnVjY2F0ZC5jby5qcC5tc2stYmFvZ3Vhbi5jb20vDQrlvIrnpL7jga/jgIHjgqTj
-g7Pjgr/jg7zjg43jg4Pjg4jkuIrjga7kuI3mraPooYzngrrjga7pmLLmraLjg7vmipHliLbjga7o
-prPngrnjgYvjgonjgrXjgqTjg4jjgajjgZfjgabjga7kv6HpoLzmgKfjg7vmraPlvZPmgKfjgpLp
-q5jjgoHjgovjgZ/jgoHjgIENCiAgICDlpKflpInjgYrmiYvmlbDjgafjga/jgZTjgZbjgYTjgb7j
-gZnjgYzjgIHkuIvoqJjvvLXvvLLvvKzjgYvjgonjg63jgrDjgqTjg7PjgYTjgZ/jgaDjgY3jgIEN
-CiAgIGh0dHBzOi8vd3d3Mi51Y2NhdGQuY28uanAubXNrLWJhb2d1YW4uY29tLw0KDQrigLvjgZPj
-ga7jg6Hjg7zjg6vjga/jgIzjgqLjg4Pjg4jjg6bjg7zjg43jg4Pjg4jvvIHjgI3jgYvjgonoh6rl
-i5XphY3kv6HjgZfjgabjgYrjgorjgb7jgZnjgIINCg0K4oC75pys44Oh44O844Or44Gr44GU6L+U
-5L+h44GE44Gf44Gg44GN44G+44GX44Gm44KC44CB44GU6LOq5ZWP44O744GU5L6d6aC844Gq44Gp
-44GrDQoNCuOAgOOBiuetlOOBiOOBp+OBjeOBvuOBm+OCk+OBruOBp+OAgeOBguOCieOBi+OBmOOC
-geOBlOS6huaJv+OBj+OBoOOBleOBhOOAgg0KDQrigLvjg6Hjg7zjg6vjgavplqLjgZnjgovlkITn
-qK7jgYrmiYvntprjgY3mlrnms5XjgavjgaTjgY3jgb7jgZfjgabjga/jgIENCg0K44CA5Lul5LiL
-44KS44GU56K66KqN44GP44Gg44GV44GE44CCDQoNCuOAgGh0dHBzOi8vd3d3Mi51Y2NhdGQuY28u
-anAubXNrLWJhb2d1YW4uY29tLw0KDQrvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXv
-vaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXv
-vaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXv
-vaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXvvaXv
-vaXvvaXvvaXvvaXvvaXvvaXvvaUNCg0K44Ki44OD44OI44Om44O844ON44OD44OICl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWls
-aW5nIGxpc3QgLS0gbGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5k
-IGFuIGVtYWlsIHRvIGxpbnV4LW52ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
++ linux-nvdimm
+
+Original mail at https://lkml.kernel.org/r/3f28adee-8214-fa8e-b368-eaf8b193469e@huawei.com
+
+On Tue, Apr 13, 2021 at 02:25:58PM +0800, Kemeng Shi wrote:
+> I'm using AEP with dax_kmem drvier, and AEP is export as a NUMA node in
+
+What is AEP?
+
+> my system. I will move cold pages from DRAM node to AEP node with
+> move_pages system call. With old "rep movsq', it costs 2030ms to move
+> 1 GB pages. With "movnti", it only cost about 890ms to move 1GB pages.
+
+So there's __copy_user_nocache() which does NT stores.
+
+> -	ALTERNATIVE "jmp copy_page_regs", "", X86_FEATURE_REP_GOOD
+> +	ALTERNATIVE_2 "jmp copy_page_regs", "", X86_FEATURE_REP_GOOD, \
+> +                      "jmp copy_page_nt", X86_FEATURE_XMM2
+
+This makes every machine which has sse2 do NT stores now. Which means
+*every* machine practically.
+
+The folks on linux-nvdimm@ should be able to give you a better idea what
+to do.
+
+HTH.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
+_______________________________________________
+Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
+To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
