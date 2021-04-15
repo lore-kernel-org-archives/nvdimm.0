@@ -1,77 +1,97 @@
-Return-Path: <SRS0=bkw6=JL=lists.01.org=linux-nvdimm-bounces@kernel.org>
+Return-Path: <SRS0=paa7=JM=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.6 required=3.0 tests=BAYES_20,DKIM_INVALID,
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72CF2C433B4
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 14 Apr 2021 21:33:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C95BC433ED
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Apr 2021 11:43:56 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 1557660FD7
-	for <linux-nvdimm@archiver.kernel.org>; Wed, 14 Apr 2021 21:33:57 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 1557660FD7
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=intel.com
+	by mail.kernel.org (Postfix) with ESMTPS id AEE076124B
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Apr 2021 11:43:55 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org AEE076124B
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D75FA100EB34F;
-	Wed, 14 Apr 2021 14:33:56 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=209.85.208.50; helo=mail-ed1-f50.google.com; envelope-from=dan.j.williams@intel.com; receiver=<UNKNOWN> 
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
-	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits))
+	by ml01.01.org (Postfix) with ESMTP id 4DC52100EB352;
+	Thu, 15 Apr 2021 04:43:55 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id CDA2C100EB32F
-	for <linux-nvdimm@lists.01.org>; Wed, 14 Apr 2021 14:33:53 -0700 (PDT)
-Received: by mail-ed1-f50.google.com with SMTP id w23so25462116edx.7
-        for <linux-nvdimm@lists.01.org>; Wed, 14 Apr 2021 14:33:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9+EL53n0yuorpfM8ie1VXCwkfxK+pJPw69S7mTIt8DE=;
-        b=0tr5XttJwbvea5EmEXKETAgihhgArhValkDY6QV52Pgie1fo8twOPe56FbMI5H9QUp
-         ZkL2JpeyHdxVyvBu10a3ikiauCGmNxyBmo1qx8fY879eH4giNDCFrdUi+KxI1qcREw9m
-         zNtext8+fcYXOvqY/Mtq/zET9XWIrHLB9FRqBVYnHzaOpN5h1g85xPRZ+RfbjdBhvQ3M
-         aZy+ZL0NmvyHYkZMn+FQDCQQbuLXBjQHNphYtIo1ibtKLuTGM5L75QdnBYt2iWtiCIbq
-         uChl4ul+z4qvQnMxGGYPMdPcZXz5jQtVQg1SmMBLWm4TTaBXmRGL4LSWCUV87y7oPAdS
-         7gbg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9+EL53n0yuorpfM8ie1VXCwkfxK+pJPw69S7mTIt8DE=;
-        b=K1OjOzaeJhjvXBzf67fGXMIwYn9Kdfs82pKqQaELDYNm2M070IUx0JJGbNKI48V4pP
-         HNAcTpnK4qItym0NObao7szFgCJMHzwdA3KshPew/Fm4aK+u7X1gD2xQG+mGOBJKjVkW
-         wQngId0GH1IMid0o+1uLaswL9u0+G7PJj4CWzA1EMhzPDg3lQYjvS80UUwdsocttQWa0
-         OWWcfDn87ufI3c/knfHehbdpn/vJ3oxbQCfPfXxchRsusHAe509+8EQEJ0bEcrwzG4JN
-         ni5vG8dKuwu+jV3haz2mr0ypc81DbUg1zhyv6PogXUxDLDv63SSUDJaBDRmlCjiBm2NP
-         R+Tg==
-X-Gm-Message-State: AOAM533fCpOIu1aHykNX2CsoH+hqGZVz9fSm4msl2rH/iPAererfJioP
-	xX3aii5EslsgDDIvfly2eKh31c8YlGPaNbB+8xywmQ==
-X-Google-Smtp-Source: ABdhPJx2m8GLYdi4bgKhHMXOir3vZoU1jwxM4yQbbNjzw7AislrWHIKadhfbXeg9srvTbLQFSv4rr7zEZV+rj12WwME=
-X-Received: by 2002:aa7:cd7b:: with SMTP id ca27mr298423edb.354.1618435971843;
- Wed, 14 Apr 2021 14:32:51 -0700 (PDT)
-MIME-Version: 1.0
+	by ml01.01.org (Postfix) with ESMTPS id DDFD8100EB330
+	for <linux-nvdimm@lists.01.org>; Thu, 15 Apr 2021 04:43:52 -0700 (PDT)
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 13FBYGUV066917;
+	Thu, 15 Apr 2021 07:43:49 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=iJ7JfO5XxFZ1N4E09oPPf+Z09702teorkZzT7+YZ9Mo=;
+ b=ZmQRKg0nzVhpvKLiEn6uoiq7nkAPNcdwH1aaJBVDvd2AH5H1iFUSxIq9nq5QG3Q29wko
+ DGYI+PbaDAcXFtfYYKmWdwUCS73BTqoywu2+11wt4gbS92+56u0cCw+vMw5lyn2p7SIB
+ FHHtkaVSRXgfMVcHzLEipTi3AktGjPdJR9vi/pw2YmICznvzjkwEVXKeRqh4s9yRRDnC
+ gYopijDKj+Gy4GUMdUcnPP4Dmj7av2Wo39Z7W9ofM3O1AcUi60RDGcWJPITk3629GWWp
+ r+xlzIw622+nHzvd3oKRPkhIVEBW0unoXRDbfzlLP8h9mbSBgYeBoUX1J3p/shKjfG95 vA==
+Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 37xbqk5h49-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 15 Apr 2021 07:43:49 -0400
+Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
+	by ppma05fra.de.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 13FBgojb020753;
+	Thu, 15 Apr 2021 11:43:47 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+	by ppma05fra.de.ibm.com with ESMTP id 37u3n8a2q4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 15 Apr 2021 11:43:47 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
+	by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 13FBhjG920775168
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 15 Apr 2021 11:43:45 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DD8B74203F;
+	Thu, 15 Apr 2021 11:43:44 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7DAB742042;
+	Thu, 15 Apr 2021 11:43:42 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.199.63.240])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Thu, 15 Apr 2021 11:43:42 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Thu, 15 Apr 2021 17:13:41 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] powerpc/papr_scm: Reduce error severity if nvdimm stats
+ inaccessible
+In-Reply-To: <CAPcyv4iU3cmjRsDevDJmJc72xo-QffUu3SGCwvRh5bitG-facw@mail.gmail.com>
 References: <20210414124026.332472-1-vaibhav@linux.ibm.com>
-In-Reply-To: <20210414124026.332472-1-vaibhav@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Apr 2021 14:32:40 -0700
-Message-ID: <CAPcyv4iU3cmjRsDevDJmJc72xo-QffUu3SGCwvRh5bitG-facw@mail.gmail.com>
-Subject: Re: [PATCH] powerpc/papr_scm: Reduce error severity if nvdimm stats inaccessible
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-Message-ID-Hash: LOFBNY3D2TB2OA3KFPHD6LWDIXINMPBP
-X-Message-ID-Hash: LOFBNY3D2TB2OA3KFPHD6LWDIXINMPBP
-X-MailFrom: dan.j.williams@intel.com
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation; nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size; news-moderation; no-subject; suspicious-header
-CC: linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>
+ <CAPcyv4iU3cmjRsDevDJmJc72xo-QffUu3SGCwvRh5bitG-facw@mail.gmail.com>
+Date: Thu, 15 Apr 2021 17:13:41 +0530
+Message-ID: <87k0p3lqmq.fsf@vajain21.in.ibm.com>
+MIME-Version: 1.0
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: iQBgl5K8NCzoTIPBHw0bbDpRO78xDHOG
+X-Proofpoint-ORIG-GUID: iQBgl5K8NCzoTIPBHw0bbDpRO78xDHOG
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-04-15_04:2021-04-15,2021-04-15 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
+ priorityscore=1501 spamscore=0 suspectscore=0 phishscore=0
+ lowpriorityscore=0 adultscore=0 mlxlogscore=999 bulkscore=0 malwarescore=0
+ impostorscore=0 mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104060000 definitions=main-2104150077
+Message-ID-Hash: FCJS77LOXYKSECU6CGPK3EZKC7AMO5Z6
+X-Message-ID-Hash: FCJS77LOXYKSECU6CGPK3EZKC7AMO5Z6
+X-MailFrom: vaibhav@linux.ibm.com
+X-Mailman-Rule-Hits: nonmember-moderation
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
+CC: linux-nvdimm <linux-nvdimm@lists.01.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/LOFBNY3D2TB2OA3KFPHD6LWDIXINMPBP/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FCJS77LOXYKSECU6CGPK3EZKC7AMO5Z6/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -80,42 +100,61 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-On Wed, Apr 14, 2021 at 5:40 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->
-> Currently drc_pmem_qeury_stats() generates a dev_err in case
-> "Enable Performance Information Collection" feature is disabled from
-> HMC. The error is of the form below:
->
-> papr_scm ibm,persistent-memory:ibm,pmemory@44104001: Failed to query
->          performance stats, Err:-10
->
-> This error message confuses users as it implies a possible problem
-> with the nvdimm even though its due to a disabled feature.
->
-> So we fix this by explicitly handling the H_AUTHORITY error from the
-> H_SCM_PERFORMANCE_STATS hcall and generating a warning instead of an
-> error, saying that "Performance stats in-accessible".
->
-> Fixes: 2d02bf835e57('powerpc/papr_scm: Fetch nvdimm performance stats from PHYP')
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> ---
->  arch/powerpc/platforms/pseries/papr_scm.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-> index 835163f54244..9216424f8be3 100644
-> --- a/arch/powerpc/platforms/pseries/papr_scm.c
-> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
-> @@ -277,6 +277,9 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
->                 dev_err(&p->pdev->dev,
->                         "Unknown performance stats, Err:0x%016lX\n", ret[0]);
->                 return -ENOENT;
-> +       } else if (rc == H_AUTHORITY) {
-> +               dev_warn(&p->pdev->dev, "Performance stats in-accessible");
-> +               return -EPERM;
+Thanks for looking into this Dan,
 
-So userspace can spam the kernel log? Why is kernel log message needed
-at all? EPERM told the caller what happened.
+Dan Williams <dan.j.williams@intel.com> writes:
+
+> On Wed, Apr 14, 2021 at 5:40 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
+>>
+>> Currently drc_pmem_qeury_stats() generates a dev_err in case
+>> "Enable Performance Information Collection" feature is disabled from
+>> HMC. The error is of the form below:
+>>
+>> papr_scm ibm,persistent-memory:ibm,pmemory@44104001: Failed to query
+>>          performance stats, Err:-10
+>>
+>> This error message confuses users as it implies a possible problem
+>> with the nvdimm even though its due to a disabled feature.
+>>
+>> So we fix this by explicitly handling the H_AUTHORITY error from the
+>> H_SCM_PERFORMANCE_STATS hcall and generating a warning instead of an
+>> error, saying that "Performance stats in-accessible".
+>>
+>> Fixes: 2d02bf835e57('powerpc/papr_scm: Fetch nvdimm performance stats from PHYP')
+>> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+>> ---
+>>  arch/powerpc/platforms/pseries/papr_scm.c | 3 +++
+>>  1 file changed, 3 insertions(+)
+>>
+>> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+>> index 835163f54244..9216424f8be3 100644
+>> --- a/arch/powerpc/platforms/pseries/papr_scm.c
+>> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
+>> @@ -277,6 +277,9 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
+>>                 dev_err(&p->pdev->dev,
+>>                         "Unknown performance stats, Err:0x%016lX\n", ret[0]);
+>>                 return -ENOENT;
+>> +       } else if (rc == H_AUTHORITY) {
+>> +               dev_warn(&p->pdev->dev, "Performance stats in-accessible");
+>> +               return -EPERM;
+>
+> So userspace can spam the kernel log? Why is kernel log message needed
+> at all? EPERM told the caller what happened.
+Currently this error message is only reported during probe of the
+nvdimm. So userspace cannot directly spam kernel log.
+
+The callsite for this function in papr_scm_nvdimm_init() doesnt handle
+specific error codes. Instead in case of an error it only reports that
+"Dimm performance stats are unavailable". The log message just
+preceeding that mentions the real cause of failure. Thats why just
+returning -EPERM wont be usefui.
+
+Alternatively I can update papr_scm_nvdimm_init() to report the error
+code returned from drc_pmem_query_stats().
+
+-- 
+Cheers
+~ Vaibhav
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
