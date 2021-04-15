@@ -2,98 +2,66 @@ Return-Path: <SRS0=paa7=JM=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.9 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F2BC433ED
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Apr 2021 11:48:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1EDDC43461
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Apr 2021 13:58:58 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 3832561132
-	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Apr 2021 11:48:25 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 3832561132
-Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.ibm.com
+	by mail.kernel.org (Postfix) with ESMTPS id 0E3246115C
+	for <linux-nvdimm@archiver.kernel.org>; Thu, 15 Apr 2021 13:58:58 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 0E3246115C
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=linux.intel.com
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id B3B52100EAB44;
-	Thu, 15 Apr 2021 04:48:24 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=148.163.158.5; helo=mx0a-001b2d01.pphosted.com; envelope-from=vaibhav@linux.ibm.com; receiver=<UNKNOWN> 
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	by ml01.01.org (Postfix) with ESMTP id D0052100EAB5C;
+	Thu, 15 Apr 2021 06:58:57 -0700 (PDT)
+Received-SPF: None (mailfrom) identity=mailfrom; client-ip=192.55.52.93; helo=mga11.intel.com; envelope-from=andriy.shevchenko@linux.intel.com; receiver=<UNKNOWN> 
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 4349E100EB34D
-	for <linux-nvdimm@lists.01.org>; Thu, 15 Apr 2021 04:48:21 -0700 (PDT)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 13FBXNb1014060;
-	Thu, 15 Apr 2021 07:48:18 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type; s=pp1; bh=nhDo38sLs1O5ShCsvwF3ShXi2pGmqVt3AKbjKnDc2+g=;
- b=CCBDA+ZecJ2C0n0U79lNoiHnrQVxClu99j9UdzLbq1IbdgC9budR4BEYvjL9BMUl8XHZ
- ph0ehTLCMn1zsHefhGKHlQoSlxuZOnB27mn7V7rUN5ciZb/g6L98Q/3BMNHh3b9gERVY
- huH9f+0HTFahYM4Bawq9AmRfqWsoyv0yX47rxsbN1foTTS1yS+E/p9pZk4HK5d1sCPaN
- Vi2eHaFkhsGBXUqNpziMtdckFnzzX0luwoMqYyfKSaTSU+n5uzWJAVYpWtV8CqeqFO77
- lbR00qaalVkN/eUHWH3zt+VPWMEKVlFaCkV3OvHcJyJDY64BO0ZxSky9qXqkf/olGDDe /Q==
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 37x46xr908-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 15 Apr 2021 07:48:18 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 13FBlSoj024330;
-	Thu, 15 Apr 2021 11:48:16 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma03ams.nl.ibm.com with ESMTP id 37u3n8bupg-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 15 Apr 2021 11:48:16 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 13FBmEcp27787652
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 15 Apr 2021 11:48:14 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 456A3A4051;
-	Thu, 15 Apr 2021 11:48:14 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E92C0A404D;
-	Thu, 15 Apr 2021 11:48:11 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.199.63.240])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Thu, 15 Apr 2021 11:48:11 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Thu, 15 Apr 2021 17:18:11 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH] powerpc/papr_scm: Reduce error severity if nvdimm stats
- inaccessible
-In-Reply-To: <20210414212417.GC1904484@iweiny-DESK2.sc.intel.com>
-References: <20210414124026.332472-1-vaibhav@linux.ibm.com>
- <20210414153625.GB1904484@iweiny-DESK2.sc.intel.com>
- <87lf9kkfaj.fsf@vajain21.in.ibm.com>
- <20210414212417.GC1904484@iweiny-DESK2.sc.intel.com>
-Date: Thu, 15 Apr 2021 17:18:11 +0530
-Message-ID: <87h7k7lqf8.fsf@vajain21.in.ibm.com>
+	by ml01.01.org (Postfix) with ESMTPS id 9FA6C100EAB58
+	for <linux-nvdimm@lists.01.org>; Thu, 15 Apr 2021 06:58:54 -0700 (PDT)
+IronPort-SDR: znVKVLoLzUznXg9iEQO8v9AEpOytZKCaxQ6/vO52oGf3FKN51SI0tacpDEuRyCYY6KVYYuU3ix
+ yr03DwdVeN5A==
+X-IronPort-AV: E=McAfee;i="6200,9189,9955"; a="191665867"
+X-IronPort-AV: E=Sophos;i="5.82,225,1613462400";
+   d="scan'208";a="191665867"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Apr 2021 06:58:53 -0700
+IronPort-SDR: 1Ero4IpCmY7zN/BTHjiLpTX2bZF4Yh00EOPhGr04YRY+PryaHh50jCkmxU7H3tJHVBvXgIoVkE
+ ovqkuIFI+rDQ==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.82,225,1613462400";
+   d="scan'208";a="425186820"
+Received: from black.fi.intel.com ([10.237.72.28])
+  by orsmga008.jf.intel.com with ESMTP; 15 Apr 2021 06:58:49 -0700
+Received: by black.fi.intel.com (Postfix, from userid 1003)
+	id 7C258BA; Thu, 15 Apr 2021 16:59:05 +0300 (EEST)
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	linux-nvdimm@lists.01.org,
+	linux-acpi@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v1 1/1] ACPI: NFIT: Import GUID before use
+Date: Thu, 15 Apr 2021 16:59:01 +0300
+Message-Id: <20210415135901.47131-1-andriy.shevchenko@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: TBxIlHlNE0-7ksVEhjqEBERNMT24RdsE
-X-Proofpoint-ORIG-GUID: TBxIlHlNE0-7ksVEhjqEBERNMT24RdsE
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
- definitions=2021-04-15_04:2021-04-15,2021-04-15 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- malwarescore=0 mlxscore=0 impostorscore=0 adultscore=0 clxscore=1015
- lowpriorityscore=0 bulkscore=0 mlxlogscore=999 suspectscore=0 spamscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104060000 definitions=main-2104150077
-Message-ID-Hash: MMW5VQAVIQOUEB5L5WU2MRKQWZZYCD7T
-X-Message-ID-Hash: MMW5VQAVIQOUEB5L5WU2MRKQWZZYCD7T
-X-MailFrom: vaibhav@linux.ibm.com
+Message-ID-Hash: FOJVVCAJX6HFC2MMKER75JUDW5ECR233
+X-Message-ID-Hash: FOJVVCAJX6HFC2MMKER75JUDW5ECR233
+X-MailFrom: andriy.shevchenko@linux.intel.com
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: linux-nvdimm@lists.01.org, linuxppc-dev@lists.ozlabs.org
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/MMW5VQAVIQOUEB5L5WU2MRKQWZZYCD7T/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/FOJVVCAJX6HFC2MMKER75JUDW5ECR233/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
@@ -102,73 +70,35 @@ List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 
-Ira Weiny <ira.weiny@intel.com> writes:
+Strictly speaking the comparison between guid_t and raw buffer
+is not correct. Import GUID to variable of guid_t type and then
+compare.
 
-> On Wed, Apr 14, 2021 at 09:51:40PM +0530, Vaibhav Jain wrote:
->> Thanks for looking into this patch Ira,
->> 
->> Ira Weiny <ira.weiny@intel.com> writes:
->> 
->> > On Wed, Apr 14, 2021 at 06:10:26PM +0530, Vaibhav Jain wrote:
->> >> Currently drc_pmem_qeury_stats() generates a dev_err in case
->> >> "Enable Performance Information Collection" feature is disabled from
->> >> HMC. The error is of the form below:
->> >> 
->> >> papr_scm ibm,persistent-memory:ibm,pmemory@44104001: Failed to query
->> >> 	 performance stats, Err:-10
->> >> 
->> >> This error message confuses users as it implies a possible problem
->> >> with the nvdimm even though its due to a disabled feature.
->> >> 
->> >> So we fix this by explicitly handling the H_AUTHORITY error from the
->> >> H_SCM_PERFORMANCE_STATS hcall and generating a warning instead of an
->> >> error, saying that "Performance stats in-accessible".
->> >> 
->> >> Fixes: 2d02bf835e57('powerpc/papr_scm: Fetch nvdimm performance stats from PHYP')
->> >> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
->> >> ---
->> >>  arch/powerpc/platforms/pseries/papr_scm.c | 3 +++
->> >>  1 file changed, 3 insertions(+)
->> >> 
->> >> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
->> >> index 835163f54244..9216424f8be3 100644
->> >> --- a/arch/powerpc/platforms/pseries/papr_scm.c
->> >> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
->> >> @@ -277,6 +277,9 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
->> >>  		dev_err(&p->pdev->dev,
->> >>  			"Unknown performance stats, Err:0x%016lX\n", ret[0]);
->> >>  		return -ENOENT;
->> >> +	} else if (rc == H_AUTHORITY) {
->> >> +		dev_warn(&p->pdev->dev, "Performance stats in-accessible");
->> >> +		return -EPERM;
->> >
->> > Is this because of a disabled feature or because of permissions?
->> 
->> Its because of a disabled feature that revokes permission for a guest to
->> retrieve performance statistics.
->> 
->> The feature is called "Enable Performance Information Collection" and
->> once disabled the hcall H_SCM_PERFORMANCE_STATS returns an error
->> H_AUTHORITY indicating that the guest doesn't have permission to retrieve
->> performance statistics.
->
-> In that case would it be appropriate to have the error message indicate a
-> permission issue?
->
-> Something like 'permission denied'?
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/nfit/core.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Yes, Something like "Permission denied while accessing performance
-stats" might be more clear and intuitive.
-
-Will update the warn message in v2.
-
->
-> Ira
->
-
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 958aaac869e8..6d8a1a93636a 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -678,10 +678,12 @@ static const char *spa_type_name(u16 type)
+ 
+ int nfit_spa_type(struct acpi_nfit_system_address *spa)
+ {
++	guid_t guid;
+ 	int i;
+ 
++	import_guid(&guid, spa->range_guid);
+ 	for (i = 0; i < NFIT_UUID_MAX; i++)
+-		if (guid_equal(to_nfit_uuid(i), (guid_t *)&spa->range_guid))
++		if (guid_equal(to_nfit_uuid(i), &guid))
+ 			return i;
+ 	return -1;
+ }
 -- 
-Cheers
-~ Vaibhav
+2.30.2
 _______________________________________________
 Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
 To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
