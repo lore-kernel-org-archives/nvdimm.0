@@ -1,116 +1,51 @@
-Return-Path: <SRS0=VsMk=JQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
-X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
-	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39523C43460
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Apr 2021 12:25:18 +0000 (UTC)
-Received: from ml01.01.org (ml01.01.org [198.145.21.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 92345613B4
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Apr 2021 12:25:17 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 92345613B4
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
-Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
-Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id 677E1100ED4BF;
-	Mon, 19 Apr 2021 05:25:17 -0700 (PDT)
-Received-SPF: None (mailfrom) identity=mailfrom; client-ip=2001:8b0:10b:1236::1; helo=casper.infradead.org; envelope-from=willy@infradead.org; receiver=<UNKNOWN> 
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
-	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id 53190100ED49E
-	for <linux-nvdimm@lists.01.org>; Mon, 19 Apr 2021 05:25:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=CpUXgyXNu2L6aDoABWkfEW3c8xEi9KV0vjBOP+ZePLk=; b=iQPnFaPBrCivR61heeMKYPHCvt
-	pCkxUp9NhouUvSBFQbKd7Fhrz1AZsx3Q2HZw+IDT8EHnokduaSFYutUpfRsDIS9zau7bYybxvA1ff
-	pFuhFl2IUQxSd7XRlYtlj+FFgppBw6LQsud2DK1DXCxjC27lUaR1zxXyZRCerN1ljbP11kgtjJLqD
-	N3p32/8yEAIzdAsbm2eTCBPbMAghI+Qr4ApaAjdCTvfikAf7G0xc6BI0IOM72rhvFT7X+pD+yabkm
-	HNtjrKvSh/m2oRc0ljDrhGv2UnUnfK5uxuGIjbM8MIST4BHLYve7TzvctYq/QernMV8JatSft25WL
-	KBRcr6Lg==;
-Received: from willy by casper.infradead.org with local (Exim 4.94 #2 (Red Hat Linux))
-	id 1lYSua-00Diet-6d; Mon, 19 Apr 2021 12:22:16 +0000
-Date: Mon, 19 Apr 2021 13:21:56 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Mike Rapoport <rppt@kernel.org>
-Subject: Re: [PATCH] secretmem: optimize page_is_secretmem()
-Message-ID: <20210419122156.GZ2531743@casper.infradead.org>
-References: <20210419084218.7466-1-rppt@kernel.org>
- <20210419112302.GX2531743@casper.infradead.org>
- <YH1v4XVzfXC1dYND@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 782E62F9A
+	for <nvdimm@lists.linux.dev>; Mon, 19 Apr 2021 14:52:32 +0000 (UTC)
+Received: by mail-qt1-f177.google.com with SMTP id a18so2487041qtj.10
+        for <nvdimm@lists.linux.dev>; Mon, 19 Apr 2021 07:52:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linuxfoundation.org; s=google;
+        h=date:from:to:subject:message-id:mime-version:content-disposition;
+        bh=KhvcKc7QjNaMzzoP2DqaAQ2DswGh4Up75U0SY/CDE1M=;
+        b=SWzSxgL1qc13byCL4YERb3vGC+KqYgE6dg+5x1p9J6Qi61Pa7c46fcr1tHmvjdCFzg
+         N/iS9Vxpzat+nU4c+gW+NBkVjbnZVJvWovsWSOfd+63cOK6CaCdTFuCph1K7WOQybL6S
+         u3NWRb1FCRWZXIxYdFt3AHA9TARfvfWj8daOk=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:subject:message-id:mime-version
+         :content-disposition;
+        bh=KhvcKc7QjNaMzzoP2DqaAQ2DswGh4Up75U0SY/CDE1M=;
+        b=Hb8kmgC4jGJaTj983gqJ3/o9c+dCTmdkdrEMDfq+HN41JWkWZhmUGz/OdH8WKKsHRl
+         J24W5xC+npsEalkWDn7V/6RMwD4H3KSjKYNAUXUeAhsm4nxGOCh6MMp5nVvL5mhnbnZe
+         PrgmTpTidweTkOT9ZNtPP2e4nbKEP7/jWhrJSWhdn5oBcyhS4s2EAbsBTADWtpCw6khp
+         gYhSHYm87A4VBgRSIYVn9Vt21uAEYsn5sBmCjY0oV0/cGI3EHDx/erla1Pm4VeH6urI9
+         e+imwrfyBsRkT1afJQGBTOOIZfrHOJjz1cwruLfE1ba68YABDKGpLkmlHf5UlJcU+9ut
+         pZww==
+X-Gm-Message-State: AOAM531MZeKAL6j5PNng95X8rEHO5gQ3m8I8h3Or22PBruKO/FNbDUnN
+	48+zgYznN0LUo5gw9KmET0p49Nw8qN02zxJN178=
+X-Google-Smtp-Source: ABdhPJxorU8pc8nfeWWfQKS42g9iTv8IM7iHS7BwZQ1aUeU7ImZa8BotmsNkaZRZpylT8S3f0m+xlA==
+X-Received: by 2002:a05:622a:1793:: with SMTP id s19mr12369460qtk.132.1618843951226;
+        Mon, 19 Apr 2021 07:52:31 -0700 (PDT)
+Received: from nitro.local ([89.36.78.230])
+        by smtp.gmail.com with ESMTPSA id k126sm9762333qkb.4.2021.04.19.07.52.30
+        for <nvdimm@lists.linux.dev>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 19 Apr 2021 07:52:30 -0700 (PDT)
+Date: Mon, 19 Apr 2021 10:52:29 -0400
+From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
+To: nvdimm@lists.linux.dev
+Subject: Test delivery to new list address
+Message-ID: <20210419145229.ohoqnpu36sex6gjx@nitro.local>
+X-Mailing-List: nvdimm@lists.linux.dev
+List-Id: <nvdimm.lists.linux.dev>
+List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
+List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <YH1v4XVzfXC1dYND@kernel.org>
-Message-ID-Hash: K7DWUPWZI6Q3FUKSWGU676ICS66HBFOA
-X-Message-ID-Hash: K7DWUPWZI6Q3FUKSWGU676ICS66HBFOA
-X-MailFrom: willy@infradead.org
-X-Mailman-Rule-Hits: nonmember-moderation
-X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Garrett <mjg59@srcf.ucam.org>, Mark Rutland <mark.rutland@arm.com>, Michal Hocko <mhocko@suse.com>, Mike Rapoport <rppt@linux.ibm.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel Butt <shakeelb@google.com>, S
- huah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, Yury Norov <yury.norov@gmail.com>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, kernel test robot <oliver.sang@intel.com>
-X-Mailman-Version: 3.1.1
-Precedence: list
-List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/K7DWUPWZI6Q3FUKSWGU676ICS66HBFOA/>
-List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
-List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
-List-Post: <mailto:linux-nvdimm@lists.01.org>
-List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
-List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 
-On Mon, Apr 19, 2021 at 02:56:17PM +0300, Mike Rapoport wrote:
-> On Mon, Apr 19, 2021 at 12:23:02PM +0100, Matthew Wilcox wrote:
-> > So you're calling page_is_secretmem() on a struct page without having
-> > a refcount on it.  That is definitely not allowed.  secretmem seems to
-> > be full of these kinds of races; I know this isn't the first one I've
-> > seen in it.  I don't think this patchset is ready for this merge window.
-> 
-> There were races in the older version that did caching of large pages and
-> those were fixed then, but this is anyway irrelevant because all that code
-> was dropped in the latest respins.
-> 
-> I don't think that the fix of the race in gup_pte_range is that significant
-> to wait 3 more months because of it.
+Testing delivery to new archive, please ignore.
 
-I have no particular interest in secretmem, but it seems that every time
-I come across it while looking at something else, I see these kinds of
-major mistakes in it.  That says to me it's not ready and hasn't seen
-enough review.
-
-> > With that fixed, you'll have a head page that you can use for testing,
-> > which means you don't need to test PageCompound() (because you know the
-> > page isn't PageTail), you can just test PageHead().
-> 
-> I can't say I follow you here. page_is_secretmem() is intended to be a
-> generic test, so I don't see how it will get PageHead() if it is called
-> from other places.
-
-static inline bool head_is_secretmem(struct page *head)
-{
-	if (PageHead(head))
-		return false;
-	...
-}
-
-static inline bool page_is_secretmem(struct page *page)
-{
-	if (PageTail(page))
-		return false;
-	return head_is_secretmem(page);
-}
-
-(yes, calling it head is a misnomer, because it's not necessarily a head,
-it might be a base page, but until we have a name for pages which might
-be a head page or a base page, it'll have to do ...)
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+-K
