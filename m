@@ -2,94 +2,126 @@ Return-Path: <SRS0=VsMk=JQ=lists.01.org=linux-nvdimm-bounces@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.0 required=3.0 tests=BAYES_50,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 528BCC433ED
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Apr 2021 04:05:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAC47C433ED
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Apr 2021 08:42:40 +0000 (UTC)
 Received: from ml01.01.org (ml01.01.org [198.145.21.10])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.kernel.org (Postfix) with ESMTPS id 01789610A1
-	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Apr 2021 04:05:07 +0000 (UTC)
-DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 01789610A1
-Authentication-Results: mail.kernel.org; dmarc=none (p=none dis=none) header.from=ellerman.id.au
+	by mail.kernel.org (Postfix) with ESMTPS id 8772A61151
+	for <linux-nvdimm@archiver.kernel.org>; Mon, 19 Apr 2021 08:42:40 +0000 (UTC)
+DMARC-Filter: OpenDMARC Filter v1.3.2 mail.kernel.org 8772A61151
+Authentication-Results: mail.kernel.org; dmarc=fail (p=none dis=none) header.from=kernel.org
 Authentication-Results: mail.kernel.org; spf=none smtp.mailfrom=linux-nvdimm-bounces@lists.01.org
 Received: from ml01.vlan13.01.org (localhost [IPv6:::1])
-	by ml01.01.org (Postfix) with ESMTP id D797F100EBB6B;
-	Sun, 18 Apr 2021 21:05:07 -0700 (PDT)
-Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=203.11.71.1; helo=ozlabs.org; envelope-from=michael@ozlabs.org; receiver=<UNKNOWN> 
-Received: from ozlabs.org (bilbo.ozlabs.org [203.11.71.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits))
+	by ml01.01.org (Postfix) with ESMTP id 26B8B100EBB80;
+	Mon, 19 Apr 2021 01:42:40 -0700 (PDT)
+Received-SPF: Pass (mailfrom) identity=mailfrom; client-ip=198.145.29.99; helo=mail.kernel.org; envelope-from=rppt@kernel.org; receiver=<UNKNOWN> 
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by ml01.01.org (Postfix) with ESMTPS id C7F98100EBB62
-	for <linux-nvdimm@lists.01.org>; Sun, 18 Apr 2021 21:05:04 -0700 (PDT)
-Received: by ozlabs.org (Postfix, from userid 1034)
-	id 4FNtVv4RKdz9vHq; Mon, 19 Apr 2021 14:04:39 +1000 (AEST)
-From: Michael Ellerman <patch-notifications@ellerman.id.au>
-To: Vaibhav Jain <vaibhav@linux.ibm.com>, linux-nvdimm@lists.01.org, linuxppc-dev@lists.ozlabs.org
-In-Reply-To: <20210404163148.321346-1-vaibhav@linux.ibm.com>
-References: <20210404163148.321346-1-vaibhav@linux.ibm.com>
-Subject: Re: [PATCH v2] powerpc/mm: Add cond_resched() while removing hpte mappings
-Message-Id: <161880478898.1398509.10526534460384650101.b4-ty@ellerman.id.au>
-Date: Mon, 19 Apr 2021 13:59:48 +1000
+	by ml01.01.org (Postfix) with ESMTPS id 22BDF100EBB6A
+	for <linux-nvdimm@lists.01.org>; Mon, 19 Apr 2021 01:42:37 -0700 (PDT)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 31DCF60FF1;
+	Mon, 19 Apr 2021 08:42:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1618821755;
+	bh=ZF11+tf8Vhkw2CEEFwa77xqf5VWgUkXxrjvgn6XQs/g=;
+	h=From:To:Cc:Subject:Date:From;
+	b=nahTyurCdGGs/pKCEP8Ak/lpVtsi3V/pYxzKOzhHQVRrgd+HwSBHMp1c9VUvrUitZ
+	 lJO9E6YcRd6HfnllMc4TARUDu7xLHMaT5wCrC0xq5KCkq7QPScpBbwGhtKL2cUnlca
+	 S/XmN2p6Y5UiygqA4Iw/VW3Ovb/Tm7XMV2dSuU0Vx5JbaHgjAcQZGedyYpI5bGdNUN
+	 Swxd/sv5Pgcqe5q+W3CHtA8D5LIhwcS+NCKcymUNnFpMQPAS39WzvUsgIx4yz1H69k
+	 n9/rwnGjwqls7iqtmMKQ0KOPa18PvcYsCiO1B+OHgixQZ6x49EO1+/4Ba+tjGA33KC
+	 ROLb1q5BZJDGA==
+From: Mike Rapoport <rppt@kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] secretmem: optimize page_is_secretmem()
+Date: Mon, 19 Apr 2021 11:42:18 +0300
+Message-Id: <20210419084218.7466-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Message-ID-Hash: PRWA67HN5Z4YDYJ4NCGUZ5YH4FPOHT37
-X-Message-ID-Hash: PRWA67HN5Z4YDYJ4NCGUZ5YH4FPOHT37
-X-MailFrom: michael@ozlabs.org
+Message-ID-Hash: QFLOTFBZGPN6JXQZBXMV2TFRAZ3KJ4UM
+X-Message-ID-Hash: QFLOTFBZGPN6JXQZBXMV2TFRAZ3KJ4UM
+X-MailFrom: rppt@kernel.org
 X-Mailman-Rule-Hits: nonmember-moderation
 X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency; loop; banned-address; member-moderation
-CC: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, Michael Ellerman <mpe@ellerman.id.au>
+CC: Alexander Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christopher Lameter <cl@linux.com>, Dave Hansen <dave.hansen@linux.intel.com>, David Hildenbrand <david@redhat.com>, Elena Reshetova <elena.reshetova@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, James Bottomley <jejb@linux.ibm.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Matthew Wilcox <willy@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Mark Rutland <mark.rutland@arm.com>, Michal Hocko <mhocko@suse.com>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Michael Kerrisk <mtk.manpages@gmail.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rick Edgecombe <rick.p.edgecombe@intel.com>, Roman Gushchin <guro@fb.com>, Shakeel B
+ utt <shakeelb@google.com>, Shuah Khan <shuah@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tycho Andersen <tycho@tycho.ws>, Will Deacon <will@kernel.org>, Yury Norov <yury.norov@gmail.com>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-nvdimm@lists.01.org, linux-riscv@lists.infradead.org, x86@kernel.org, kernel test robot <oliver.sang@intel.com>
 X-Mailman-Version: 3.1.1
 Precedence: list
 List-Id: "Linux-nvdimm developer list." <linux-nvdimm.lists.01.org>
-Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/PRWA67HN5Z4YDYJ4NCGUZ5YH4FPOHT37/>
+Archived-At: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/message/QFLOTFBZGPN6JXQZBXMV2TFRAZ3KJ4UM/>
 List-Archive: <https://lists.01.org/hyperkitty/list/linux-nvdimm@lists.01.org/>
 List-Help: <mailto:linux-nvdimm-request@lists.01.org?subject=help>
 List-Post: <mailto:linux-nvdimm@lists.01.org>
 List-Subscribe: <mailto:linux-nvdimm-join@lists.01.org>
 List-Unsubscribe: <mailto:linux-nvdimm-leave@lists.01.org>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 
-On Sun, 4 Apr 2021 22:01:48 +0530, Vaibhav Jain wrote:
-> While removing large number of mappings from hash page tables for
-> large memory systems as soft-lockup is reported because of the time
-> spent inside htap_remove_mapping() like one below:
-> 
->  watchdog: BUG: soft lockup - CPU#8 stuck for 23s!
->  <snip>
->  NIP plpar_hcall+0x38/0x58
->  LR  pSeries_lpar_hpte_invalidate+0x68/0xb0
->  Call Trace:
->   0x1fffffffffff000 (unreliable)
->   pSeries_lpar_hpte_removebolted+0x9c/0x230
->   hash__remove_section_mapping+0xec/0x1c0
->   remove_section_mapping+0x28/0x3c
->   arch_remove_memory+0xfc/0x150
->   devm_memremap_pages_release+0x180/0x2f0
->   devm_action_release+0x30/0x50
->   release_nodes+0x28c/0x300
->   device_release_driver_internal+0x16c/0x280
->   unbind_store+0x124/0x170
->   drv_attr_store+0x44/0x60
->   sysfs_kf_write+0x64/0x90
->   kernfs_fop_write+0x1b0/0x290
->   __vfs_write+0x3c/0x70
->   vfs_write+0xd4/0x270
->   ksys_write+0xdc/0x130
->   system_call+0x5c/0x70
-> 
-> [...]
-
-Applied to powerpc/next.
-
-[1/1] powerpc/mm: Add cond_resched() while removing hpte mappings
-      https://git.kernel.org/powerpc/c/a5d6a3e73acbd619dd5b7b831762b755f9e2db80
-
-cheers
-_______________________________________________
-Linux-nvdimm mailing list -- linux-nvdimm@lists.01.org
-To unsubscribe send an email to linux-nvdimm-leave@lists.01.org
+RnJvbTogTWlrZSBSYXBvcG9ydCA8cnBwdEBsaW51eC5pYm0uY29tPg0KDQpLZXJuZWwgdGVzdCBy
+b2JvdCByZXBvcnRlZCAtNC4yJSByZWdyZXNzaW9uIG9mIHdpbGwtaXQtc2NhbGUucGVyX3RocmVh
+ZF9vcHMNCmR1ZSB0byBjb21taXQgIm1tOiBpbnRyb2R1Y2UgbWVtZmRfc2VjcmV0IHN5c3RlbSBj
+YWxsIHRvIGNyZWF0ZSAic2VjcmV0Ig0KbWVtb3J5IGFyZWFzIi4NCg0KVGhlIHBlcmYgcHJvZmls
+ZSBvZiB0aGUgdGVzdCBpbmRpY2F0ZWQgdGhhdCB0aGUgcmVncmVzc2lvbiBpcyBjYXVzZWQgYnkN
+CnBhZ2VfaXNfc2VjcmV0bWVtKCkgY2FsbGVkIGZyb20gZ3VwX3B0ZV9yYW5nZSgpIChpbmxpbmVk
+IGJ5IGd1cF9wZ2RfcmFuZ2UpOg0KDQogMjcuNzYgICsyLjUgIDMwLjIzICAgICAgIHBlcmYtcHJv
+ZmlsZS5jaGlsZHJlbi5jeWNsZXMtcHAuZ3VwX3BnZF9yYW5nZQ0KICAwLjAwICArMy4yICAgMy4x
+OSDCsSAyJSAgcGVyZi1wcm9maWxlLmNoaWxkcmVuLmN5Y2xlcy1wcC5wYWdlX21hcHBpbmcNCiAg
+MC4wMCAgKzMuNyAgIDMuNjYgwrEgMiUgIHBlcmYtcHJvZmlsZS5jaGlsZHJlbi5jeWNsZXMtcHAu
+cGFnZV9pc19zZWNyZXRtZW0NCg0KRnVydGhlciBhbmFseXNpcyBzaG93ZWQgdGhhdCB0aGUgc2xv
+dyBkb3duIGhhcHBlbnMgYmVjYXVzZSBuZWl0aGVyDQpwYWdlX2lzX3NlY3JldG1lbSgpIG5vciBw
+YWdlX21hcHBpbmcoKSBhcmUgbm90IGlubGluZSBhbmQgbW9yZW92ZXIsDQptdWx0aXBsZSBwYWdl
+IGZsYWdzIGNoZWNrcyBpbiBwYWdlX21hcHBpbmcoKSBpbnZvbHZlIGNhbGxpbmcNCmNvbXBvdW5k
+X2hlYWQoKSBzZXZlcmFsIHRpbWVzIGZvciB0aGUgc2FtZSBwYWdlLg0KDQpNYWtlIHBhZ2VfaXNf
+c2VjcmV0bWVtKCkgaW5saW5lIGFuZCByZXBsYWNlIHBhZ2VfbWFwcGluZygpIHdpdGggcGFnZSBm
+bGFnDQpjaGVja3MgdGhhdCBkbyBub3QgaW1wbHkgcGFnZS10by1oZWFkIGNvbnZlcnNpb24uDQoN
+ClJlcG9ydGVkLWJ5OiBrZXJuZWwgdGVzdCByb2JvdCA8b2xpdmVyLnNhbmdAaW50ZWwuY29tPg0K
+U2lnbmVkLW9mZi1ieTogTWlrZSBSYXBvcG9ydCA8cnBwdEBsaW51eC5pYm0uY29tPg0KLS0tDQoN
+CkBBbmRyZXcsDQpUaGUgcGF0Y2ggaXMgdnMgdjUuMTItcmM3LW1tb3RzLTIwMjEtMDQtMTUtMTYt
+MjgsIEknZCBhcHByZWNpYXRlIGlmIGl0IHdvdWxkDQpiZSBhZGRlZCBhcyBhIGZpeHVwIHRvIHRo
+ZSBtZW1mZF9zZWNyZXQgc2VyaWVzLg0KDQogaW5jbHVkZS9saW51eC9zZWNyZXRtZW0uaCB8IDI2
+ICsrKysrKysrKysrKysrKysrKysrKysrKystDQogbW0vc2VjcmV0bWVtLmMgICAgICAgICAgICB8
+IDEyICstLS0tLS0tLS0tLQ0KIDIgZmlsZXMgY2hhbmdlZCwgMjYgaW5zZXJ0aW9ucygrKSwgMTIg
+ZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3NlY3JldG1lbS5oIGIv
+aW5jbHVkZS9saW51eC9zZWNyZXRtZW0uaA0KaW5kZXggOTA3YTY3MzQwNTljLi5iODQyYjM4Y2Jl
+YjEgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L3NlY3JldG1lbS5oDQorKysgYi9pbmNsdWRl
+L2xpbnV4L3NlY3JldG1lbS5oDQpAQCAtNCw4ICs0LDMyIEBADQogDQogI2lmZGVmIENPTkZJR19T
+RUNSRVRNRU0NCiANCitleHRlcm4gY29uc3Qgc3RydWN0IGFkZHJlc3Nfc3BhY2Vfb3BlcmF0aW9u
+cyBzZWNyZXRtZW1fYW9wczsNCisNCitzdGF0aWMgaW5saW5lIGJvb2wgcGFnZV9pc19zZWNyZXRt
+ZW0oc3RydWN0IHBhZ2UgKnBhZ2UpDQorew0KKwlzdHJ1Y3QgYWRkcmVzc19zcGFjZSAqbWFwcGlu
+ZzsNCisNCisJLyoNCisJICogVXNpbmcgcGFnZV9tYXBwaW5nKCkgaXMgcXVpdGUgc2xvdyBiZWNh
+dXNlIG9mIHRoZSBhY3R1YWwgY2FsbA0KKwkgKiBpbnN0cnVjdGlvbiBhbmQgcmVwZWF0ZWQgY29t
+cG91bmRfaGVhZChwYWdlKSBpbnNpZGUgdGhlDQorCSAqIHBhZ2VfbWFwcGluZygpIGZ1bmN0aW9u
+Lg0KKwkgKiBXZSBrbm93IHRoYXQgc2VjcmV0bWVtIHBhZ2VzIGFyZSBub3QgY29tcG91bmQgYW5k
+IExSVSBzbyB3ZSBjYW4NCisJICogc2F2ZSBhIGNvdXBsZSBvZiBjeWNsZXMgaGVyZS4NCisJICov
+DQorCWlmIChQYWdlQ29tcG91bmQocGFnZSkgfHwgIVBhZ2VMUlUocGFnZSkpDQorCQlyZXR1cm4g
+ZmFsc2U7DQorDQorCW1hcHBpbmcgPSAoc3RydWN0IGFkZHJlc3Nfc3BhY2UgKikNCisJCSgodW5z
+aWduZWQgbG9uZylwYWdlLT5tYXBwaW5nICYgflBBR0VfTUFQUElOR19GTEFHUyk7DQorDQorCWlm
+IChtYXBwaW5nICE9IHBhZ2UtPm1hcHBpbmcpDQorCQlyZXR1cm4gZmFsc2U7DQorDQorCXJldHVy
+biBwYWdlLT5tYXBwaW5nLT5hX29wcyA9PSAmc2VjcmV0bWVtX2FvcHM7DQorfQ0KKw0KIGJvb2wg
+dm1hX2lzX3NlY3JldG1lbShzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZtYSk7DQotYm9vbCBwYWdl
+X2lzX3NlY3JldG1lbShzdHJ1Y3QgcGFnZSAqcGFnZSk7DQogYm9vbCBzZWNyZXRtZW1fYWN0aXZl
+KHZvaWQpOw0KIA0KICNlbHNlDQpkaWZmIC0tZ2l0IGEvbW0vc2VjcmV0bWVtLmMgYi9tbS9zZWNy
+ZXRtZW0uYw0KaW5kZXggM2IxYmEzOTkxOTY0Li4wYmNkMTVlMWI1NDkgMTAwNjQ0DQotLS0gYS9t
+bS9zZWNyZXRtZW0uYw0KKysrIGIvbW0vc2VjcmV0bWVtLmMNCkBAIC0xNTEsMjIgKzE1MSwxMiBA
+QCBzdGF0aWMgdm9pZCBzZWNyZXRtZW1fZnJlZXBhZ2Uoc3RydWN0IHBhZ2UgKnBhZ2UpDQogCWNs
+ZWFyX2hpZ2hwYWdlKHBhZ2UpOw0KIH0NCiANCi1zdGF0aWMgY29uc3Qgc3RydWN0IGFkZHJlc3Nf
+c3BhY2Vfb3BlcmF0aW9ucyBzZWNyZXRtZW1fYW9wcyA9IHsNCitjb25zdCBzdHJ1Y3QgYWRkcmVz
+c19zcGFjZV9vcGVyYXRpb25zIHNlY3JldG1lbV9hb3BzID0gew0KIAkuZnJlZXBhZ2UJPSBzZWNy
+ZXRtZW1fZnJlZXBhZ2UsDQogCS5taWdyYXRlcGFnZQk9IHNlY3JldG1lbV9taWdyYXRlcGFnZSwN
+CiAJLmlzb2xhdGVfcGFnZQk9IHNlY3JldG1lbV9pc29sYXRlX3BhZ2UsDQogfTsNCiANCi1ib29s
+IHBhZ2VfaXNfc2VjcmV0bWVtKHN0cnVjdCBwYWdlICpwYWdlKQ0KLXsNCi0Jc3RydWN0IGFkZHJl
+c3Nfc3BhY2UgKm1hcHBpbmcgPSBwYWdlX21hcHBpbmcocGFnZSk7DQotDQotCWlmICghbWFwcGlu
+ZykNCi0JCXJldHVybiBmYWxzZTsNCi0NCi0JcmV0dXJuIG1hcHBpbmctPmFfb3BzID09ICZzZWNy
+ZXRtZW1fYW9wczsNCi19DQotDQogc3RhdGljIHN0cnVjdCB2ZnNtb3VudCAqc2VjcmV0bWVtX21u
+dDsNCiANCiBzdGF0aWMgc3RydWN0IGZpbGUgKnNlY3JldG1lbV9maWxlX2NyZWF0ZSh1bnNpZ25l
+ZCBsb25nIGZsYWdzKQ0KLS0gDQoyLjI4LjANCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QgLS0gbGludXgtbnZk
+aW1tQGxpc3RzLjAxLm9yZwpUbyB1bnN1YnNjcmliZSBzZW5kIGFuIGVtYWlsIHRvIGxpbnV4LW52
+ZGltbS1sZWF2ZUBsaXN0cy4wMS5vcmcK
