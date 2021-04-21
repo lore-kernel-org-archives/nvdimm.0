@@ -1,51 +1,374 @@
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 782E62F9A
-	for <nvdimm@lists.linux.dev>; Mon, 19 Apr 2021 14:52:32 +0000 (UTC)
-Received: by mail-qt1-f177.google.com with SMTP id a18so2487041qtj.10
-        for <nvdimm@lists.linux.dev>; Mon, 19 Apr 2021 07:52:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=date:from:to:subject:message-id:mime-version:content-disposition;
-        bh=KhvcKc7QjNaMzzoP2DqaAQ2DswGh4Up75U0SY/CDE1M=;
-        b=SWzSxgL1qc13byCL4YERb3vGC+KqYgE6dg+5x1p9J6Qi61Pa7c46fcr1tHmvjdCFzg
-         N/iS9Vxpzat+nU4c+gW+NBkVjbnZVJvWovsWSOfd+63cOK6CaCdTFuCph1K7WOQybL6S
-         u3NWRb1FCRWZXIxYdFt3AHA9TARfvfWj8daOk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:subject:message-id:mime-version
-         :content-disposition;
-        bh=KhvcKc7QjNaMzzoP2DqaAQ2DswGh4Up75U0SY/CDE1M=;
-        b=Hb8kmgC4jGJaTj983gqJ3/o9c+dCTmdkdrEMDfq+HN41JWkWZhmUGz/OdH8WKKsHRl
-         J24W5xC+npsEalkWDn7V/6RMwD4H3KSjKYNAUXUeAhsm4nxGOCh6MMp5nVvL5mhnbnZe
-         PrgmTpTidweTkOT9ZNtPP2e4nbKEP7/jWhrJSWhdn5oBcyhS4s2EAbsBTADWtpCw6khp
-         gYhSHYm87A4VBgRSIYVn9Vt21uAEYsn5sBmCjY0oV0/cGI3EHDx/erla1Pm4VeH6urI9
-         e+imwrfyBsRkT1afJQGBTOOIZfrHOJjz1cwruLfE1ba68YABDKGpLkmlHf5UlJcU+9ut
-         pZww==
-X-Gm-Message-State: AOAM531MZeKAL6j5PNng95X8rEHO5gQ3m8I8h3Or22PBruKO/FNbDUnN
-	48+zgYznN0LUo5gw9KmET0p49Nw8qN02zxJN178=
-X-Google-Smtp-Source: ABdhPJxorU8pc8nfeWWfQKS42g9iTv8IM7iHS7BwZQ1aUeU7ImZa8BotmsNkaZRZpylT8S3f0m+xlA==
-X-Received: by 2002:a05:622a:1793:: with SMTP id s19mr12369460qtk.132.1618843951226;
-        Mon, 19 Apr 2021 07:52:31 -0700 (PDT)
-Received: from nitro.local ([89.36.78.230])
-        by smtp.gmail.com with ESMTPSA id k126sm9762333qkb.4.2021.04.19.07.52.30
-        for <nvdimm@lists.linux.dev>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Apr 2021 07:52:30 -0700 (PDT)
-Date: Mon, 19 Apr 2021 10:52:29 -0400
-From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-To: nvdimm@lists.linux.dev
-Subject: Test delivery to new list address
-Message-ID: <20210419145229.ohoqnpu36sex6gjx@nitro.local>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED44D2F9B
+	for <nvdimm@lists.linux.dev>; Wed, 21 Apr 2021 07:05:29 +0000 (UTC)
+IronPort-SDR: eFsnc56mTwf/JtCmlVNbjfRHPae0wA/Tm4lTUsD3NWGpU6agngmV13uzl7E63aSn9Dw2vUoRmx
+ KDUF6hn9R6aw==
+X-IronPort-AV: E=McAfee;i="6200,9189,9960"; a="216287040"
+X-IronPort-AV: E=Sophos;i="5.82,238,1613462400"; 
+   d="scan'208";a="216287040"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2021 00:05:29 -0700
+IronPort-SDR: WUI6B6A2c1385Mjp3QwBr7DCDjFLPz6hbPrJAmTtPnqqn7pKBakBTUI7ilMc/lUVEP/zYlaiMi
+ II+qu07Imt7Q==
+X-IronPort-AV: E=Sophos;i="5.82,238,1613462400"; 
+   d="scan'208";a="463482473"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Apr 2021 00:05:28 -0700
+Subject: [PATCH] MAINTAINERS: Move nvdimm mailing list
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-nvdimm@lists.01.org
+Cc: Ira Weiny <ira.weiny@intel.com>, Oliver O'Halloran <oohall@gmail.com>,
+ Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+ Jonathan Corbet <corbet@lwn.net>, Dave Jiang <dave.jiang@intel.com>,
+ Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
+ linux-kernel@vger.kernel.org
+Date: Wed, 21 Apr 2021 00:05:28 -0700
+Message-ID: <161898872871.3406469.4054282559340528393.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-Testing delivery to new archive, please ignore.
+After seeing some users have subscription management trouble, more spam
+than other Linux development lists, and considering some of the benefits
+of kernel.org hosted lists, nvdimm and persistent memory development is
+moving to nvdimm@lists.linux.dev.
 
--K
+The old list will remain up until v5.14-rc1 and shutdown thereafter.
+
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Oliver O'Halloran <oohall@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ Documentation/ABI/obsolete/sysfs-class-dax    |    2 +
+ Documentation/ABI/removed/sysfs-bus-nfit      |    2 +
+ Documentation/ABI/testing/sysfs-bus-nfit      |   40 +++++++++++++------------
+ Documentation/ABI/testing/sysfs-bus-papr-pmem |    4 +--
+ Documentation/driver-api/nvdimm/nvdimm.rst    |    2 +
+ MAINTAINERS                                   |   14 ++++-----
+ 6 files changed, 32 insertions(+), 32 deletions(-)
+
+diff --git a/Documentation/ABI/obsolete/sysfs-class-dax b/Documentation/ABI/obsolete/sysfs-class-dax
+index 0faf1354cd05..5bcce27458e3 100644
+--- a/Documentation/ABI/obsolete/sysfs-class-dax
++++ b/Documentation/ABI/obsolete/sysfs-class-dax
+@@ -1,7 +1,7 @@
+ What:           /sys/class/dax/
+ Date:           May, 2016
+ KernelVersion:  v4.7
+-Contact:        linux-nvdimm@lists.01.org
++Contact:        nvdimm@lists.linux.dev
+ Description:	Device DAX is the device-centric analogue of Filesystem
+ 		DAX (CONFIG_FS_DAX).  It allows memory ranges to be
+ 		allocated and mapped without need of an intervening file
+diff --git a/Documentation/ABI/removed/sysfs-bus-nfit b/Documentation/ABI/removed/sysfs-bus-nfit
+index ae8c1ca53828..277437005def 100644
+--- a/Documentation/ABI/removed/sysfs-bus-nfit
++++ b/Documentation/ABI/removed/sysfs-bus-nfit
+@@ -1,7 +1,7 @@
+ What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
+ Date:		Aug, 2017
+ KernelVersion:	v4.14 (Removed v4.18)
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Size of a write request to a DIMM that will not incur a
+ 		read-modify-write cycle at the memory controller.
+diff --git a/Documentation/ABI/testing/sysfs-bus-nfit b/Documentation/ABI/testing/sysfs-bus-nfit
+index 63ef0b9ecce7..e7282d184a74 100644
+--- a/Documentation/ABI/testing/sysfs-bus-nfit
++++ b/Documentation/ABI/testing/sysfs-bus-nfit
+@@ -5,7 +5,7 @@ Interface Table (NFIT)' section in the ACPI specification
+ What:		/sys/bus/nd/devices/nmemX/nfit/serial
+ Date:		Jun, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Serial number of the NVDIMM (non-volatile dual in-line
+ 		memory module), assigned by the module vendor.
+@@ -14,7 +14,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/handle
+ Date:		Apr, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) The address (given by the _ADR object) of the device on its
+ 		parent bus of the NVDIMM device containing the NVDIMM region.
+@@ -23,7 +23,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/device
+ Date:		Apr, 2015
+ KernelVersion:	v4.1
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Device id for the NVDIMM, assigned by the module vendor.
+ 
+@@ -31,7 +31,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/rev_id
+ Date:		Jun, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Revision of the NVDIMM, assigned by the module vendor.
+ 
+@@ -39,7 +39,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/phys_id
+ Date:		Apr, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Handle (i.e., instance number) for the SMBIOS (system
+ 		management BIOS) Memory Device structure describing the NVDIMM
+@@ -49,7 +49,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/flags
+ Date:		Jun, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) The flags in the NFIT memory device sub-structure indicate
+ 		the state of the data on the nvdimm relative to its energy
+@@ -68,7 +68,7 @@ What:		/sys/bus/nd/devices/nmemX/nfit/format1
+ What:		/sys/bus/nd/devices/nmemX/nfit/formats
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) The interface codes indicate support for persistent memory
+ 		mapped directly into system physical address space and / or a
+@@ -84,7 +84,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/vendor
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Vendor id of the NVDIMM.
+ 
+@@ -92,7 +92,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/dsm_mask
+ Date:		May, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) The bitmask indicates the supported device specific control
+ 		functions relative to the NVDIMM command family supported by the
+@@ -102,7 +102,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/family
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Displays the NVDIMM family command sets. Values
+ 		0, 1, 2 and 3 correspond to NVDIMM_FAMILY_INTEL,
+@@ -118,7 +118,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/id
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) ACPI specification 6.2 section 5.2.25.9, defines an
+ 		identifier for an NVDIMM, which refelects the id attribute.
+@@ -127,7 +127,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_vendor
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Sub-system vendor id of the NVDIMM non-volatile memory
+ 		subsystem controller.
+@@ -136,7 +136,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_rev_id
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Sub-system revision id of the NVDIMM non-volatile memory subsystem
+ 		controller, assigned by the non-volatile memory subsystem
+@@ -146,7 +146,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_device
+ Date:		Apr, 2016
+ KernelVersion:	v4.7
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) Sub-system device id for the NVDIMM non-volatile memory
+ 		subsystem controller, assigned by the non-volatile memory
+@@ -156,7 +156,7 @@ Description:
+ What:		/sys/bus/nd/devices/ndbusX/nfit/revision
+ Date:		Jun, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) ACPI NFIT table revision number.
+ 
+@@ -164,7 +164,7 @@ Description:
+ What:		/sys/bus/nd/devices/ndbusX/nfit/scrub
+ Date:		Sep, 2016
+ KernelVersion:	v4.9
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RW) This shows the number of full Address Range Scrubs (ARS)
+ 		that have been completed since driver load time. Userspace can
+@@ -177,7 +177,7 @@ Description:
+ What:		/sys/bus/nd/devices/ndbusX/nfit/hw_error_scrub
+ Date:		Sep, 2016
+ KernelVersion:	v4.9
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RW) Provides a way to toggle the behavior between just adding
+ 		the address (cache line) where the MCE happened to the poison
+@@ -196,7 +196,7 @@ Description:
+ What:		/sys/bus/nd/devices/ndbusX/nfit/dsm_mask
+ Date:		Jun, 2017
+ KernelVersion:	v4.13
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) The bitmask indicates the supported bus specific control
+ 		functions. See the section named 'NVDIMM Root Device _DSMs' in
+@@ -205,7 +205,7 @@ Description:
+ What:		/sys/bus/nd/devices/ndbusX/nfit/firmware_activate_noidle
+ Date:		Apr, 2020
+ KernelVersion:	v5.8
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RW) The Intel platform implementation of firmware activate
+ 		support exposes an option let the platform force idle devices in
+@@ -225,7 +225,7 @@ Description:
+ What:		/sys/bus/nd/devices/regionX/nfit/range_index
+ Date:		Jun, 2015
+ KernelVersion:	v4.2
+-Contact:	linux-nvdimm@lists.01.org
++Contact:	nvdimm@lists.linux.dev
+ Description:
+ 		(RO) A unique number provided by the BIOS to identify an address
+ 		range. Used by NVDIMM Region Mapping Structure to uniquely refer
+diff --git a/Documentation/ABI/testing/sysfs-bus-papr-pmem b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+index 8316c33862a0..92e2db0e2d3d 100644
+--- a/Documentation/ABI/testing/sysfs-bus-papr-pmem
++++ b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+@@ -1,7 +1,7 @@
+ What:		/sys/bus/nd/devices/nmemX/papr/flags
+ Date:		Apr, 2020
+ KernelVersion:	v5.8
+-Contact:	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm@lists.01.org,
++Contact:	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+ Description:
+ 		(RO) Report flags indicating various states of a
+ 		papr-pmem NVDIMM device. Each flag maps to a one or
+@@ -36,7 +36,7 @@ Description:
+ What:		/sys/bus/nd/devices/nmemX/papr/perf_stats
+ Date:		May, 2020
+ KernelVersion:	v5.9
+-Contact:	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-nvdimm@lists.01.org,
++Contact:	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+ Description:
+ 		(RO) Report various performance stats related to papr-scm NVDIMM
+ 		device.  Each stat is reported on a new line with each line
+diff --git a/Documentation/driver-api/nvdimm/nvdimm.rst b/Documentation/driver-api/nvdimm/nvdimm.rst
+index ef6d59e0978e..1d8302b89bd4 100644
+--- a/Documentation/driver-api/nvdimm/nvdimm.rst
++++ b/Documentation/driver-api/nvdimm/nvdimm.rst
+@@ -4,7 +4,7 @@ LIBNVDIMM: Non-Volatile Devices
+ 
+ libnvdimm - kernel / libndctl - userspace helper library
+ 
+-linux-nvdimm@lists.01.org
++nvdimm@lists.linux.dev
+ 
+ Version 13
+ 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9450e052f1b1..4d18fa67f71b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5146,7 +5146,7 @@ DEVICE DIRECT ACCESS (DAX)
+ M:	Dan Williams <dan.j.williams@intel.com>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ F:	drivers/dax/
+ 
+@@ -6887,7 +6887,7 @@ M:	Dan Williams <dan.j.williams@intel.com>
+ R:	Matthew Wilcox <willy@infradead.org>
+ R:	Jan Kara <jack@suse.cz>
+ L:	linux-fsdevel@vger.kernel.org
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ F:	fs/dax.c
+ F:	include/linux/dax.h
+@@ -10146,7 +10146,7 @@ LIBNVDIMM BLK: MMIO-APERTURE DRIVER
+ M:	Dan Williams <dan.j.williams@intel.com>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ P:	Documentation/nvdimm/maintainer-entry-profile.rst
+@@ -10157,7 +10157,7 @@ LIBNVDIMM BTT: BLOCK TRANSLATION TABLE
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dan Williams <dan.j.williams@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ P:	Documentation/nvdimm/maintainer-entry-profile.rst
+@@ -10167,7 +10167,7 @@ LIBNVDIMM PMEM: PERSISTENT MEMORY DRIVER
+ M:	Dan Williams <dan.j.williams@intel.com>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ P:	Documentation/nvdimm/maintainer-entry-profile.rst
+@@ -10175,7 +10175,7 @@ F:	drivers/nvdimm/pmem*
+ 
+ LIBNVDIMM: DEVICETREE BINDINGS
+ M:	Oliver O'Halloran <oohall@gmail.com>
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ F:	Documentation/devicetree/bindings/pmem/pmem-region.txt
+@@ -10186,7 +10186,7 @@ M:	Dan Williams <dan.j.williams@intel.com>
+ M:	Vishal Verma <vishal.l.verma@intel.com>
+ M:	Dave Jiang <dave.jiang@intel.com>
+ M:	Ira Weiny <ira.weiny@intel.com>
+-L:	linux-nvdimm@lists.01.org
++L:	nvdimm@lists.linux.dev
+ S:	Supported
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
+ P:	Documentation/nvdimm/maintainer-entry-profile.rst
+
