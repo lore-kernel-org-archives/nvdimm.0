@@ -1,179 +1,139 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AD0CD72
-	for <nvdimm@lists.linux.dev>; Mon, 17 May 2021 15:48:43 +0000 (UTC)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14HFXWo6141715;
-	Mon, 17 May 2021 11:48:36 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=yVqtnu7wKs0805mmyAQgAIbU3CZFKrC48wzioRW8sTQ=;
- b=dXZsAs30C5PK6204HrtBpcXE/0JU9RB3bq34IemddRz+Tehy1rj2onXvYgf0b99DFqqE
- 1jWNvITgP1MLgle/z1pOvRrj9gnFDm/4WoBlz25SOI9VMZseZ03k5YiskuvhVTWx1ykL
- FFSN50ADKPkuUHbzoDZEcOPpNLyQX7bKnXZnDaqtlysJaJ1qClO6BcYuaPfS3U/mX71K
- bQefwJym2Rf6IbYgJ4D5YJL79Cq3ui/7/CLQVcMcKduwC7hxAN5qWbVGtI7cMkHCX0pz
- ZDh5WMSA35VlHxPFOHsaOGYYztoFwXd1XV7S2THAmyo28xLPyCvkASLTiMEjRzpuka1S 9w== 
-Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 38ks6n55td-1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 602BF70
+	for <nvdimm@lists.linux.dev>; Tue, 18 May 2021 12:03:35 +0000 (UTC)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14IBYEiK104389;
+	Tue, 18 May 2021 08:03:25 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
+ : date : message-id : in-reply-to : references : mime-version :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=iSut7xRvZfAlQOJAA+XZUTJUgJQg/f/h+8z4WoIk6o0=;
+ b=YHBjpBkKg6yFeksdlRGzq1G/on1shfFZDxkkMMfQLaQb/eE1lBJK1PBDsfLSKLjgQhDX
+ JjCG9tdBdp7m5UDwhgIsoctYzNoA/VHVkYuRyTdLZ8dnoeAUMXN2wNLDoK+qQRYdhLyt
+ n1Br97W7BoqlqQNo/tVEmRVFjcx2z/Xx9xt/XIVdhuhBxt5VrLCNL9MHNRZBEuvqtrq8
+ +EWx7yst2A92O/1uwYlgfOjd/+L+6ZLCDMOXULn8Fiarzy45W8kos6YLF76+VIKTKr/n
+ MafvYL7LGd8HH9PbxhtiFs/s9IwSroXEA65CcI0XECtdPYf8qy8I4oqjNF95Xl5zJBIt WA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 38mc3nhxvj-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 17 May 2021 11:48:36 -0400
-Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
-	by ppma05fra.de.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 14HFl650031449;
-	Mon, 17 May 2021 15:48:34 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma05fra.de.ibm.com with ESMTP id 38j5x8gh4d-1
+	Tue, 18 May 2021 08:03:25 -0400
+Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 14IBYI4B104617;
+	Tue, 18 May 2021 08:03:24 -0400
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 38mc3nhxug-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 17 May 2021 15:48:34 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 14HFm4bc22151534
+	Tue, 18 May 2021 08:03:24 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 14IC21Ra027399;
+	Tue, 18 May 2021 12:03:22 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma03ams.nl.ibm.com with ESMTP id 38j5x7sd9x-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 18 May 2021 12:03:21 +0000
+Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 14IC3J3O34275754
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 17 May 2021 15:48:04 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9A61E52051;
-	Mon, 17 May 2021 15:48:31 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.79.218.122])
-	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id D63D95204F;
-	Mon, 17 May 2021 15:48:28 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 17 May 2021 21:18:27 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linux-nvdimm@lists.01.org, nvdimm@lists.linux.dev
-Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Ira Weiny <ira.weiny@intel.com>, Santosh Sivaraj <santosh@fossix.org>
-Subject: [ndctl PATCH] libndctl/papr: Fix probe for papr-scm compatible nvdimms
-Date: Mon, 17 May 2021 21:18:24 +0530
-Message-Id: <20210517154824.142237-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.31.1
+	Tue, 18 May 2021 12:03:19 GMT
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id ADD0D11C05C;
+	Tue, 18 May 2021 12:03:19 +0000 (GMT)
+Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 69FAB11C05B;
+	Tue, 18 May 2021 12:03:18 +0000 (GMT)
+Received: from [172.17.0.2] (unknown [9.40.192.207])
+	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue, 18 May 2021 12:03:18 +0000 (GMT)
+Subject: [PATCH v5 1/3] spapr: nvdimm: Forward declare and move the
+ definitions
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: david@gibson.dropbear.id.au, groug@kaod.org, qemu-ppc@nongnu.org
+Cc: qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com, nvdimm@lists.linux.dev,
+        kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com,
+        bharata@linux.vnet.ibm.com
+Date: Tue, 18 May 2021 08:03:17 -0400
+Message-ID: <162133925415.610.11584121797866216417.stgit@4f1e6f2bd33e>
+In-Reply-To: <162133924680.610.15121309741756314238.stgit@4f1e6f2bd33e>
+References: <162133924680.610.15121309741756314238.stgit@4f1e6f2bd33e>
+User-Agent: StGit/0.21
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: _ec60BWsjYQdJxQ2RuG9udN6T5dyCZXw
-X-Proofpoint-ORIG-GUID: _ec60BWsjYQdJxQ2RuG9udN6T5dyCZXw
+X-Proofpoint-ORIG-GUID: nURJiGFtWx-SUv85OPPVr5mM34Y0Snz1
+X-Proofpoint-GUID: 05m0VebSloDSZmxGHl_7u3Juqh8TlDdb
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
- definitions=2021-05-17_06:2021-05-17,2021-05-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 phishscore=0
- suspectscore=0 lowpriorityscore=0 bulkscore=0 spamscore=0 malwarescore=0
- impostorscore=0 mlxlogscore=999 clxscore=1011 priorityscore=1501
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2105170108
+ definitions=2021-05-18_04:2021-05-18,2021-05-18 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 spamscore=0
+ priorityscore=1501 impostorscore=0 malwarescore=0 mlxscore=0
+ suspectscore=0 bulkscore=0 mlxlogscore=999 lowpriorityscore=0 adultscore=0
+ clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2105180082
 
-With recent changes introduced for unification of PAPR and NFIT
-families the probe for papr-scm nvdimms is broken since they don't
-expose 'handle' or 'phys_id' sysfs attributes. These attributes are
-only exposed by NFIT and 'nvdimm_test' nvdimms. Since 'unable to read'
-these sysfs attributes is a non-recoverable error hence this prevents
-probing of 'PAPR-SCM' nvdimms and ndctl reports following error:
+The subsequent patches add definitions which tend to get
+the compilation to cyclic dependency. So, prepare with
+forward declarations, move the definitions and clean up.
 
-$ sudo NDCTL_LOG=debug ndctl list -DH
-libndctl: ndctl_new: ctx 0x10015342c70 created
-libndctl: add_dimm: nmem1: probe failed: Operation not permitted
-libndctl: __sysfs_device_parse: nmem1: add_dev() failed
-libndctl: add_dimm: nmem0: probe failed: Operation not permitted
-libndctl: __sysfs_device_parse: nmem0: add_dev() failed
-
-Fixing this bug is complicated by the fact these attributes are needed
-for by the 'nvdimm_test' nvdimms which also uses the
-NVDIMM_FAMILY_PAPR. Adding a two way comparison for these two
-attributes in populate_dimm_attributes() to distinguish between
-'nvdimm_test' and papr-scm nvdimms will be clunky and make future
-updates to populate_dimm_attributes() error prone.
-
-So, this patch proposes to fix the issue by re-introducing
-add_papr_dimm() to probe both papr-scm and 'nvdimm_test' nvdimms. The
-'compatible' sysfs attribute associated with the PAPR device is used
-to distinguish between the two nvdimm types and in case an
-'nvdimm_test' device is detected then forward its probe to
-populate_dimm_attributes().
-
-Fixes: daef3a386a9c("libndctl: Unify adding dimms for papr and nfit
-families")
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 ---
- ndctl/lib/libndctl.c | 57 ++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 55 insertions(+), 2 deletions(-)
+ hw/ppc/spapr_nvdimm.c         |   12 ++++++++++++
+ include/hw/ppc/spapr_nvdimm.h |   14 ++------------
+ 2 files changed, 14 insertions(+), 12 deletions(-)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index bf0968cce93f..0417720ccd7e 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -1757,6 +1757,58 @@ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
- 	return rc;
- }
+diff --git a/hw/ppc/spapr_nvdimm.c b/hw/ppc/spapr_nvdimm.c
+index 252204e25f..3f57a8b6fa 100644
+--- a/hw/ppc/spapr_nvdimm.c
++++ b/hw/ppc/spapr_nvdimm.c
+@@ -35,6 +35,18 @@
+ /* SCM device is unable to persist memory contents */
+ #define PAPR_PMEM_UNARMED PPC_BIT(0)
  
-+static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
-+{
-+	int rc = -ENODEV;
-+	char buf[SYSFS_ATTR_SIZE];
-+	struct ndctl_ctx *ctx = dimm->bus->ctx;
-+	char *path = calloc(1, strlen(dimm_base) + 100);
-+	const char * const devname = ndctl_dimm_get_devname(dimm);
++/*
++ * The nvdimm size should be aligned to SCM block size.
++ * The SCM block size should be aligned to SPAPR_MEMORY_BLOCK_SIZE
++ * in order to have SCM regions not to overlap with dimm memory regions.
++ * The SCM devices can have variable block sizes. For now, fixing the
++ * block size to the minimum value.
++ */
++#define SPAPR_MINIMUM_SCM_BLOCK_SIZE SPAPR_MEMORY_BLOCK_SIZE
 +
-+	dbg(ctx, "%s: Probing of_pmem dimm at %s\n", devname, dimm_base);
++/* Have an explicit check for alignment */
++QEMU_BUILD_BUG_ON(SPAPR_MINIMUM_SCM_BLOCK_SIZE % SPAPR_MEMORY_BLOCK_SIZE);
 +
-+	if (!path)
-+		return -ENOMEM;
-+
-+	/* Check the compatibility of the probed nvdimm */
-+	sprintf(path, "%s/../of_node/compatible", dimm_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0) {
-+		dbg(ctx, "%s: Unable to read compatible field\n", devname);
-+		rc =  -ENODEV;
-+		goto out;
-+	}
-+
-+	dbg(ctx, "%s:Compatible of_pmem = '%s'\n", devname, buf);
-+
-+	/* Probe for papr-scm memory */
-+	if (strcmp(buf, "ibm,pmemory") == 0) {
-+		/* Read the dimm flags file */
-+		sprintf(path, "%s/papr/flags", dimm_base);
-+		if (sysfs_read_attr(ctx, path, buf) < 0) {
-+			rc = -errno;
-+			err(ctx, "%s: Unable to read dimm-flags\n", devname);
-+			goto out;
-+		}
-+
-+		dbg(ctx, "%s: Adding papr-scm dimm flags:\"%s\"\n", devname, buf);
-+		dimm->cmd_family = NVDIMM_FAMILY_PAPR;
-+
-+		/* Parse dimm flags */
-+		parse_papr_flags(dimm, buf);
-+
-+		/* Allocate monitor mode fd */
-+		dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
-+		rc = 0;
-+
-+	} else if (strcmp(buf, "nvdimm_test") == 0) {
-+		/* probe via common populate_dimm_attributes() */
-+		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
-+	}
-+out:
-+	free(path);
-+	return rc;
-+}
-+
- static void *add_dimm(void *parent, int id, const char *dimm_base)
+ bool spapr_nvdimm_validate(HotplugHandler *hotplug_dev, NVDIMMDevice *nvdimm,
+                            uint64_t size, Error **errp)
  {
- 	int formats, i, rc = -ENODEV;
-@@ -1848,8 +1900,9 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
- 	/* Check if the given dimm supports nfit */
- 	if (ndctl_bus_has_nfit(bus)) {
- 		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
--	} else if (ndctl_bus_has_of_node(bus))
--		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
-+	} else if (ndctl_bus_has_of_node(bus)) {
-+		rc = add_papr_dimm(dimm, dimm_base);
-+	}
+diff --git a/include/hw/ppc/spapr_nvdimm.h b/include/hw/ppc/spapr_nvdimm.h
+index 73be250e2a..764f999f54 100644
+--- a/include/hw/ppc/spapr_nvdimm.h
++++ b/include/hw/ppc/spapr_nvdimm.h
+@@ -11,19 +11,9 @@
+ #define HW_SPAPR_NVDIMM_H
  
- 	if (rc == -ENODEV) {
- 		/* Unprobed dimm with no family */
--- 
-2.31.1
+ #include "hw/mem/nvdimm.h"
+-#include "hw/ppc/spapr.h"
+ 
+-/*
+- * The nvdimm size should be aligned to SCM block size.
+- * The SCM block size should be aligned to SPAPR_MEMORY_BLOCK_SIZE
+- * inorder to have SCM regions not to overlap with dimm memory regions.
+- * The SCM devices can have variable block sizes. For now, fixing the
+- * block size to the minimum value.
+- */
+-#define SPAPR_MINIMUM_SCM_BLOCK_SIZE SPAPR_MEMORY_BLOCK_SIZE
+-
+-/* Have an explicit check for alignment */
+-QEMU_BUILD_BUG_ON(SPAPR_MINIMUM_SCM_BLOCK_SIZE % SPAPR_MEMORY_BLOCK_SIZE);
++typedef struct SpaprDrc SpaprDrc;
++typedef struct SpaprMachineState SpaprMachineState;
+ 
+ int spapr_pmem_dt_populate(SpaprDrc *drc, SpaprMachineState *spapr,
+                            void *fdt, int *fdt_start_offset, Error **errp);
+
 
