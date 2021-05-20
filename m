@@ -1,58 +1,56 @@
-Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ACD092FB6
-	for <nvdimm@lists.linux.dev>; Tue, 18 May 2021 22:42:27 +0000 (UTC)
-Received: by mail-ed1-f43.google.com with SMTP id t3so13073082edc.7
-        for <nvdimm@lists.linux.dev>; Tue, 18 May 2021 15:42:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Zu5GK23yJ6L2kBBaFGsagM6qn5wup77XOxyPy2gcO30=;
-        b=K2swg+0EwseRLo3YyioxVuLG8XPm9IOxG27qagUePeT89zLlH37Uy42oTxb1aJDqIa
-         5ioIxJX+I8oNwuN9b9gqg4y8fXOc8iBjc21MC/JWyi9KvE9Y+J9oFe3LJAHKcHDU65Wz
-         6idsEByWRi1JyWyHAQ+ejXOb/ZHFuLwR2Qc9y8l8QUIoq9g+UJIClAUwl3Vau95oSkEm
-         NdjcK9M6sbHZcm96FiE19Oo+uBgBru9/YD1zJweNaK+pPm8BB8Pn2ruMgdgetMpMtskR
-         1hcSlC4yk3xESxBUwjbQ62cN7wqRMHAVpBHeLYu6bqIHNkJpn5+bhAlBqbm9D9H1ir3f
-         9TwA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Zu5GK23yJ6L2kBBaFGsagM6qn5wup77XOxyPy2gcO30=;
-        b=pO1md6O4TZ3SrQhjB1CNO0oXaYH/zTQrFPjfXH+BDxfixgaVrKBm2s3GqKCfN4QWqN
-         OioVT7DVz033hdxOJqHQ7A8fgqBH4DRZgVvV/U6AgvzXmDHUtMzU0wI5AXiMokwoodJN
-         mn30MQbnLFfgMvWj/tJYE7GbYphih+W7+mzvt7kDPxsB0zfyVMwfmt6IddUlKIbRaQw1
-         WN2QtyJAk364WNzgjPV9T+2BwIr9pn+9kPCwEJpTDCUt3HGcQpWMLHZqLvC+EJCMs2dX
-         40PlsDQhS2aaj2nLNX0kuwx7h3lKyq+Nwf537b/SHbsZF07Y6ZRTIz/HPuCtaL3bIgRR
-         dvaw==
-X-Gm-Message-State: AOAM533uaKcmeMtp/1LV2vfiB+4O7CIno+sVM7M0/leBUMWGgwymSWEd
-	s0rTx1hXKCy67WOeC5RCAb/8FUcXlEL6APupE5MMPb0OqQE=
-X-Google-Smtp-Source: ABdhPJwSMNlakbf8hXUcE8GgwcgbPtYipaMyEu+Yx5fwcdC5pngMIqdnrYpBXKZ7FXVntdj1wiDkYqaQmcCmCpyno9w=
-X-Received: by 2002:a50:fe8e:: with SMTP id d14mr9583314edt.97.1621377746185;
- Tue, 18 May 2021 15:42:26 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F90270
+	for <nvdimm@lists.linux.dev>; Thu, 20 May 2021 22:43:19 +0000 (UTC)
+IronPort-SDR: fznzU/tcU8X1Ba3yLkTobq26ZAIMND6IQ+Hg/FHlvbs00ouOVcCwjBU3Jsm6xzr4BWL9h1x35Q
+ 0tjzCzjTUZ1A==
+X-IronPort-AV: E=McAfee;i="6200,9189,9990"; a="222455737"
+X-IronPort-AV: E=Sophos;i="5.82,313,1613462400"; 
+   d="scan'208";a="222455737"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2021 15:43:19 -0700
+IronPort-SDR: mMQMSYd1yfKI2Urg85Ue4TbDfYhMGP5jGTkcroBhIy9OQRNQRldysunxHPyq954QC8M0OJPUqF
+ Atp9Ezmu8wSQ==
+X-IronPort-AV: E=Sophos;i="5.82,313,1613462400"; 
+   d="scan'208";a="475424089"
+Received: from rtiwar1x-mobl1.gar.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.33.53])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 May 2021 15:43:19 -0700
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: nvdimm@lists.linux.dev,
+	linux-nvdimm@lists.01.org,
+	Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>,
+	"Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Subject: Re: [ndctl PATCH] libndctl/papr: Fix probe for papr-scm compatible nvdimms
+Date: Thu, 20 May 2021 16:42:50 -0600
+Message-Id: <162155047909.1258632.4026902377973863905.b4-ty@intel.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210517154824.142237-1-vaibhav@linux.ibm.com>
+References: <20210517154824.142237-1-vaibhav@linux.ibm.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210518222527.550730-1-vishal.l.verma@intel.com>
-In-Reply-To: <20210518222527.550730-1-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 18 May 2021 15:42:14 -0700
-Message-ID: <CAPcyv4hfZBgtEW8iaJ1yu=E758hzErxiAre2Tk4cw7Fb0E=R=Q@mail.gmail.com>
-Subject: Re: [ndctl PATCH] ndctl: Update nvdimm mailing list address
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: nvdimm@lists.linux.dev, linux-nvdimm <linux-nvdimm@lists.01.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 
-On Tue, May 18, 2021 at 3:26 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> The 'nvdimm' mailing list has moved from lists.01.org to
-> lists.linux.dev. Update CONTRIBUTING.md and configure.ac to reflect
-> this.
+On Mon, 17 May 2021 21:18:24 +0530, Vaibhav Jain wrote:
+> With recent changes introduced for unification of PAPR and NFIT
+> families the probe for papr-scm nvdimms is broken since they don't
+> expose 'handle' or 'phys_id' sysfs attributes. These attributes are
+> only exposed by NFIT and 'nvdimm_test' nvdimms. Since 'unable to read'
+> these sysfs attributes is a non-recoverable error hence this prevents
+> probing of 'PAPR-SCM' nvdimms and ndctl reports following error:
+> 
+> [...]
 
-LGTM
+Applied, thanks!
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+[1/1] libndctl/papr: Fix probe for papr-scm compatible nvdimms
+      commit: e086106b4d81a2079141c848db7695451c04e877
+
+Best regards,
+-- 
+Vishal Verma <vishal.l.verma@intel.com>
