@@ -1,21 +1,21 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7247C2BD0
-	for <nvdimm@lists.linux.dev>; Fri, 21 May 2021 05:52:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D257C2BCF
+	for <nvdimm@lists.linux.dev>; Fri, 21 May 2021 05:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=KHHZw3fJkb5lyIBH/y6U6F8KkPbsCmVPB+g7PKF3Z6o=; b=NaUBiOvZ1MiDe2/hyhzsLhJYY2
-	cwExPApTCPwU6iWE8GCK+lMo2qgBs9hT/ZNqSqjMa6S6QQeqGTsGjDc9wY94PATlgDfoA6GxwuhY+
-	S/v0G7SydFsc6gjF+rymV3/sYmu3GbVhenVRTlaNyLcezNDOcvwl38gxEVk7qzYPSqPlJ9a4AXnYI
-	v6e9yGZeCYldwLFqKXmb/iHJFJJTntW1nCFh6XT3cMndCj3swRnYosPplAJ1CCzERBqCd69/niB/x
-	3awnmhYkCsMQKpyRu46wJM3MId9bJi5KkWqP5K4nXAs94dRvmvDNz6Y5Y2kzKArkRCv5GgAKfLUxn
-	qkj6SXRg==;
+	bh=ZAV8JJrVAUnXoR6OurR4mkqtEg3WMlk+fF6tHo9g/7A=; b=RQ5YIAs+5mbK/6S6SBFGzZCoIL
+	klS1hFKw/i99aVf05vtzIoxFkY9Pr4PV68y0ey4X1pxQeLS1H2oxzRVBvyxMkzTmtQ8Tjd+4x9Khu
+	K6yj+9nam8JNpySJVCeLpQQSqwCFPjU4PCDX/OdiMX4O3i7h4UdjcJoKBF+x5YUvGod3RZR/ri1u2
+	BqvyxGfPsXvxjbaujNo64BgtrBXZUF8OftT5Zr2U7XTw//ip/+RAmDe/baxIm9bt/TI8qX8nkYqhH
+	q1Vso2McvdCTWgsaaG1voMKJyWtCve2lkdzuSMfNcr5tHawk3RWp5284MWXyV/KmX6NvgUxNrY5hk
+	1N9pV/6A==;
 Received: from [2001:4bb8:180:5add:4fd7:4137:d2f2:46e6] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-	id 1ljy54-00Gq9J-Po; Fri, 21 May 2021 05:52:19 +0000
+	id 1ljy58-00GqAV-Tf; Fri, 21 May 2021 05:52:23 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -53,9 +53,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-nvme@lists.infradead.org,
 	linux-s390@vger.kernel.org
-Subject: [PATCH 19/26] nfblock: convert to blk_alloc_disk/blk_cleanup_disk
-Date: Fri, 21 May 2021 07:51:09 +0200
-Message-Id: <20210521055116.1053587-20-hch@lst.de>
+Subject: [PATCH 20/26] simdisk: convert to blk_alloc_disk/blk_cleanup_disk
+Date: Fri, 21 May 2021 07:51:10 +0200
+Message-Id: <20210521055116.1053587-21-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210521055116.1053587-1-hch@lst.de>
 References: <20210521055116.1053587-1-hch@lst.de>
@@ -67,73 +67,79 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Convert the nfblock driver to use the blk_alloc_disk and blk_cleanup_disk
+Convert the simdisk driver to use the blk_alloc_disk and blk_cleanup_disk
 helpers to simplify gendisk and request_queue allocation.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/m68k/emu/nfblock.c | 20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ arch/xtensa/platforms/iss/simdisk.c | 29 +++++++----------------------
+ 1 file changed, 7 insertions(+), 22 deletions(-)
 
-diff --git a/arch/m68k/emu/nfblock.c b/arch/m68k/emu/nfblock.c
-index ba808543161a..9a8394e96388 100644
---- a/arch/m68k/emu/nfblock.c
-+++ b/arch/m68k/emu/nfblock.c
-@@ -55,7 +55,6 @@ struct nfhd_device {
- 	int id;
- 	u32 blocks, bsize;
- 	int bshift;
+diff --git a/arch/xtensa/platforms/iss/simdisk.c b/arch/xtensa/platforms/iss/simdisk.c
+index fc09be7b1347..3cdfa00738e0 100644
+--- a/arch/xtensa/platforms/iss/simdisk.c
++++ b/arch/xtensa/platforms/iss/simdisk.c
+@@ -27,7 +27,6 @@
+ struct simdisk {
+ 	const char *filename;
+ 	spinlock_t lock;
 -	struct request_queue *queue;
- 	struct gendisk *disk;
- };
- 
-@@ -119,32 +118,24 @@ static int __init nfhd_init_one(int id, u32 blocks, u32 bsize)
- 	dev->bsize = bsize;
- 	dev->bshift = ffs(bsize) - 10;
+ 	struct gendisk *gd;
+ 	struct proc_dir_entry *procfile;
+ 	int users;
+@@ -266,21 +265,13 @@ static int __init simdisk_setup(struct simdisk *dev, int which,
+ 	spin_lock_init(&dev->lock);
+ 	dev->users = 0;
  
 -	dev->queue = blk_alloc_queue(NUMA_NO_NODE);
--	if (dev->queue == NULL)
--		goto free_dev;
+-	if (dev->queue == NULL) {
+-		pr_err("blk_alloc_queue failed\n");
+-		goto out_alloc_queue;
+-	}
 -
--	blk_queue_logical_block_size(dev->queue, bsize);
--
--	dev->disk = alloc_disk(16);
-+	dev->disk = blk_alloc_disk(NUMA_NO_NODE);
- 	if (!dev->disk)
--		goto free_queue;
-+		goto free_dev;
+-	dev->gd = alloc_disk(SIMDISK_MINORS);
+-	if (dev->gd == NULL) {
+-		pr_err("alloc_disk failed\n");
+-		goto out_alloc_disk;
+-	}
++	dev->gd = blk_alloc_disk(NUMA_NO_NODE);
++	if (!dev->gd)
++		return -ENOMEM;
+ 	dev->gd->major = simdisk_major;
+ 	dev->gd->first_minor = which;
++	dev->gd->minors = SIMDISK_MINORS;
+ 	dev->gd->fops = &simdisk_ops;
+-	dev->gd->queue = dev->queue;
+ 	dev->gd->private_data = dev;
+ 	snprintf(dev->gd->disk_name, 32, "simdisk%d", which);
+ 	set_capacity(dev->gd, 0);
+@@ -288,12 +279,6 @@ static int __init simdisk_setup(struct simdisk *dev, int which,
  
- 	dev->disk->major = major_num;
- 	dev->disk->first_minor = dev_id * 16;
-+	dev->disk->minors = 16;
- 	dev->disk->fops = &nfhd_ops;
- 	dev->disk->private_data = dev;
- 	sprintf(dev->disk->disk_name, "nfhd%u", dev_id);
- 	set_capacity(dev->disk, (sector_t)blocks * (bsize / 512));
--	dev->disk->queue = dev->queue;
--
-+	blk_queue_logical_block_size(dev->disk->queue, bsize);
- 	add_disk(dev->disk);
- 
- 	list_add_tail(&dev->list, &nfhd_list);
- 
+ 	dev->procfile = proc_create_data(tmp, 0644, procdir, &simdisk_proc_ops, dev);
  	return 0;
- 
--free_queue:
+-
+-out_alloc_disk:
 -	blk_cleanup_queue(dev->queue);
- free_dev:
- 	kfree(dev);
- out:
-@@ -186,8 +177,7 @@ static void __exit nfhd_exit(void)
- 	list_for_each_entry_safe(dev, next, &nfhd_list, list) {
- 		list_del(&dev->list);
- 		del_gendisk(dev->disk);
--		put_disk(dev->disk);
+-	dev->queue = NULL;
+-out_alloc_queue:
+-	return -ENOMEM;
+ }
+ 
+ static int __init simdisk_init(void)
+@@ -343,10 +328,10 @@ static void simdisk_teardown(struct simdisk *dev, int which,
+ 	char tmp[2] = { '0' + which, 0 };
+ 
+ 	simdisk_detach(dev);
+-	if (dev->gd)
++	if (dev->gd) {
+ 		del_gendisk(dev->gd);
+-	if (dev->queue)
 -		blk_cleanup_queue(dev->queue);
-+		blk_cleanup_disk(dev->disk);
- 		kfree(dev);
- 	}
- 	unregister_blkdev(major_num, "nfhd");
++		blk_cleanup_disk(dev->gd);
++	}
+ 	remove_proc_entry(tmp, procdir);
+ }
+ 
 -- 
 2.30.2
 
