@@ -1,21 +1,21 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A4422FBF
-	for <nvdimm@lists.linux.dev>; Fri, 21 May 2021 05:51:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BBB46D00
+	for <nvdimm@lists.linux.dev>; Fri, 21 May 2021 05:51:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=1uf84BS8Q7NSBXg1yQR5EC+qaCg2ZgLYmuXoDkaPjCQ=; b=qYec4TV3LzKaP2n3ES94XtwLuN
-	Rl9ETp00pxgXHWMiVaqU1NEHjsNwBCAops8oVhfDa5QRHrJNSDaCyti+sJNn9rvf1uYQ4GA3DB0Ay
-	esSC0cXIU4CdBCqSiNTamsYa4lzWuaGSed8x/wHvY7MdpjXgBIZn9QNf9s12VopHptNQ1EM12ISrT
-	hM1YZI/vDanDsnHTFFMGFC3HnZQJPaZqKiEjRjgXepy1pmMTbEztkloYN/Ou7kNDoHST4Fhsl9hNE
-	VGbBjm4DHc6wZjNzBVhkjnxdDik0YPHERe6nTK4ik7Pt9SDxqpIkw+czTDWp9qLqL4XzR0WKvEHUH
-	XEcT4yBA==;
+	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
+	:Reply-To:Content-Type:Content-ID:Content-Description;
+	bh=1KdYzfXqf/AERVzTv9z5UW/YMYv05Ana4DxpCQVjBTA=; b=xq9A9Z8erGEHVAGm0y4W1ssW4B
+	bb/K9MUHbMuoVGNlfX9cJCB14iacwKSwXk7TdvCpIx2RxxICboV5tmPE4X/N9SZq5B4dzwR/5N/Fy
+	N8DTXkQ+12tJv83iu+WgSF6sZJFAldFQ0/6VETpIPNgv5mQuK/C7Ku8InIiAIj86nkVr5QzS88P3O
+	QfkTjhwZz9jT+G8mbiPnuWamP+iJ2j1NKF53nRqZ/I/4rjpt2kep8q5iwHsBl3rPvXHX0RZCEq31O
+	2aH4CE8oZZ+ivSh8MVwEJEMnmnARX7PDrb47eGLTaD7dDzvMN71vZxbD8VJkcoTnpS1yrvC7YAnxS
+	9MpO4XSg==;
 Received: from [2001:4bb8:180:5add:4fd7:4137:d2f2:46e6] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-	id 1ljy47-00Gpwf-GU; Fri, 21 May 2021 05:51:19 +0000
+	id 1ljy4K-00Gpxo-3Z; Fri, 21 May 2021 05:51:32 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -53,10 +53,12 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-nvme@lists.infradead.org,
 	linux-s390@vger.kernel.org
-Subject: simplify gendisk and request_queue allocation for bio based drivers
-Date: Fri, 21 May 2021 07:50:50 +0200
-Message-Id: <20210521055116.1053587-1-hch@lst.de>
+Subject: [PATCH 04/26] block: add a flag to make put_disk on partially initalized disks safer
+Date: Fri, 21 May 2021 07:50:54 +0200
+Message-Id: <20210521055116.1053587-5-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210521055116.1053587-1-hch@lst.de>
+References: <20210521055116.1053587-1-hch@lst.de>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
@@ -65,45 +67,54 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Hi all,
+Add a flag to indicate that __device_add_disk did grab a queue reference
+so that disk_release only drops it if we actually had it.  This sort
+out one of the major pitfals with partially initialized gendisk that
+a lot of drivers did get wrong or still do.
 
-this series is the first part of cleaning up lifetimes and allocation of
-the gendisk and request_queue structure.  It adds a new interface to
-allocate the disk and queue together for bio based drivers, and a helper
-for cleanup/free them when a driver is unloaded or a device is removed.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ block/genhd.c         | 7 +++++--
+ include/linux/genhd.h | 1 +
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-Together this removes the need to treat the gendisk and request_queue
-as separate entities for bio based drivers.
+diff --git a/block/genhd.c b/block/genhd.c
+index eec266c9318d..e4974af3d729 100644
+--- a/block/genhd.c
++++ b/block/genhd.c
+@@ -541,7 +541,10 @@ static void __device_add_disk(struct device *parent, struct gendisk *disk,
+ 	 * Take an extra ref on queue which will be put on disk_release()
+ 	 * so that it sticks around as long as @disk is there.
+ 	 */
+-	WARN_ON_ONCE(!blk_get_queue(disk->queue));
++	if (blk_get_queue(disk->queue))
++		set_bit(GD_QUEUE_REF, &disk->state);
++	else
++		WARN_ON_ONCE(1);
+ 
+ 	disk_add_events(disk);
+ 	blk_integrity_add(disk);
+@@ -1116,7 +1119,7 @@ static void disk_release(struct device *dev)
+ 	kfree(disk->random);
+ 	xa_destroy(&disk->part_tbl);
+ 	bdput(disk->part0);
+-	if (disk->queue)
++	if (test_bit(GD_QUEUE_REF, &disk->state) && disk->queue)
+ 		blk_put_queue(disk->queue);
+ 	kfree(disk);
+ }
+diff --git a/include/linux/genhd.h b/include/linux/genhd.h
+index 7e9660ea967d..a5443f0b139d 100644
+--- a/include/linux/genhd.h
++++ b/include/linux/genhd.h
+@@ -153,6 +153,7 @@ struct gendisk {
+ 	unsigned long state;
+ #define GD_NEED_PART_SCAN		0
+ #define GD_READ_ONLY			1
++#define GD_QUEUE_REF			2
+ 	struct kobject *slave_dir;
+ 
+ 	struct timer_rand_state *random;
+-- 
+2.30.2
 
-Diffstat:
- arch/m68k/emu/nfblock.c             |   20 +---
- arch/xtensa/platforms/iss/simdisk.c |   29 +------
- block/blk-core.c                    |    1 
- block/blk.h                         |    6 -
- block/genhd.c                       |  149 +++++++++++++++++++-----------------
- block/partitions/core.c             |   19 ++--
- drivers/block/brd.c                 |   94 +++++++---------------
- drivers/block/drbd/drbd_main.c      |   23 +----
- drivers/block/n64cart.c             |    8 -
- drivers/block/null_blk/main.c       |   38 ++++-----
- drivers/block/pktcdvd.c             |   11 --
- drivers/block/ps3vram.c             |   31 +------
- drivers/block/rsxx/dev.c            |   39 +++------
- drivers/block/rsxx/rsxx_priv.h      |    1 
- drivers/block/zram/zram_drv.c       |   19 ----
- drivers/lightnvm/core.c             |   24 +----
- drivers/md/bcache/super.c           |   15 ---
- drivers/md/dm.c                     |   16 +--
- drivers/md/md.c                     |   25 ++----
- drivers/memstick/core/ms_block.c    |    1 
- drivers/nvdimm/blk.c                |   27 +-----
- drivers/nvdimm/btt.c                |   25 +-----
- drivers/nvdimm/btt.h                |    2 
- drivers/nvdimm/pmem.c               |   17 +---
- drivers/nvme/host/core.c            |    1 
- drivers/nvme/host/multipath.c       |   46 +++--------
- drivers/s390/block/dcssblk.c        |   26 +-----
- drivers/s390/block/xpram.c          |   26 ++----
- include/linux/blkdev.h              |    1 
- include/linux/genhd.h               |   23 +++++
- 30 files changed, 297 insertions(+), 466 deletions(-)
