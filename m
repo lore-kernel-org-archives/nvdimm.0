@@ -1,21 +1,21 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2C2876D1A
-	for <nvdimm@lists.linux.dev>; Fri, 21 May 2021 05:51:57 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9B91E6D0F
+	for <nvdimm@lists.linux.dev>; Fri, 21 May 2021 05:52:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
 	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=9gxzUTksSCPmzNu3uikLvND31EJ5aydX0p4jRS3yWUM=; b=hQ935sAL5428xOK5g3d57WQyEz
-	nh68qg6eMmErNuHz/MRa0ELXgEszKLPVM31ef3SugWspRAaNYnPTPGax6lAf9hW5umji1yI9L0r9q
-	zqB9wajpkl4QOrF5LKPCE5QHEs3C8NFjfTJoLe1kqUzFDFr5Wkf1bzleebN141ybNQ7ct85qIw46U
-	SZWrAsyFjKaGWQagXOdQM2MsN5rkD0C9nKWtwK8XCfXJh6IfaHEW/ltD4Rgh6KNlYzOMlOn3j1x0U
-	I4AtrUAheMMI1zVQMhZG72WLBfzFTPQS89jlunzjjceu3/rS5fqmFLNZ2NCs6uRTOpVd4bqw95DTy
-	QjJuMyyA==;
+	bh=qpSY+0TMV+kLNfssm5yqW5PXw6929uJMh10yjO4G3Hg=; b=REjOcyfEWJqr1F+Dz0zsnHHh7k
+	CFJeufNc2XQCjxry2qXhzZcdWYuKNubSk6Ip0JRyepquClMzNvAK1cwJDGCf7oQlZfmL2qmubz3Sa
+	3DS30OGdWJUke42YryY7PJUac6hEA6fOmzKf888kUppNbcbMZRyxliw8ExySUjM7T7qES1PNURchG
+	reZQ76l2KTyWSLrn2iS6wGvfjP71UejnKYwqy0z6+V+6dIp/TcXKf9XTO9kurus/aP68avlCAbWUZ
+	kJXtJCv/AW2mNI38UTxbXLtzWToT1Nvc1Clan2W2Jj7CAv5tM3mqun3CXzgQQNlyk64rufwa6Er2D
+	cLuVZfGw==;
 Received: from [2001:4bb8:180:5add:4fd7:4137:d2f2:46e6] (helo=localhost)
 	by bombadil.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-	id 1ljy4N-00Gpy6-5p; Fri, 21 May 2021 05:51:35 +0000
+	id 1ljy4T-00Gpyh-Dv; Fri, 21 May 2021 05:51:41 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Jens Axboe <axboe@kernel.dk>,
 	Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -53,9 +53,9 @@ Cc: linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-nvme@lists.infradead.org,
 	linux-s390@vger.kernel.org
-Subject: [PATCH 05/26] block: add blk_alloc_disk and blk_cleanup_disk APIs
-Date: Fri, 21 May 2021 07:50:55 +0200
-Message-Id: <20210521055116.1053587-6-hch@lst.de>
+Subject: [PATCH 07/26] drbd: convert to blk_alloc_disk/blk_cleanup_disk
+Date: Fri, 21 May 2021 07:50:57 +0200
+Message-Id: <20210521055116.1053587-8-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210521055116.1053587-1-hch@lst.de>
 References: <20210521055116.1053587-1-hch@lst.de>
@@ -67,102 +67,84 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Add two new APIs to allocate and free a gendisk including the
-request_queue for use with BIO based drivers.  This is to avoid
-boilerplate code in drivers.
+Convert the drbd driver to use the blk_alloc_disk and blk_cleanup_disk
+helpers to simplify gendisk and request_queue allocation.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- block/genhd.c         | 35 +++++++++++++++++++++++++++++++++++
- include/linux/genhd.h | 22 ++++++++++++++++++++++
- 2 files changed, 57 insertions(+)
+ drivers/block/drbd/drbd_main.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
 
-diff --git a/block/genhd.c b/block/genhd.c
-index e4974af3d729..6d4ce962866d 100644
---- a/block/genhd.c
-+++ b/block/genhd.c
-@@ -1302,6 +1302,25 @@ struct gendisk *__alloc_disk_node(int minors, int node_id)
- }
- EXPORT_SYMBOL(__alloc_disk_node);
+diff --git a/drivers/block/drbd/drbd_main.c b/drivers/block/drbd/drbd_main.c
+index de463773b530..55234a558e98 100644
+--- a/drivers/block/drbd/drbd_main.c
++++ b/drivers/block/drbd/drbd_main.c
+@@ -2231,8 +2231,7 @@ void drbd_destroy_device(struct kref *kref)
+ 	if (device->bitmap) /* should no longer be there. */
+ 		drbd_bm_cleanup(device);
+ 	__free_page(device->md_io.page);
+-	put_disk(device->vdisk);
+-	blk_cleanup_queue(device->rq_queue);
++	blk_cleanup_disk(device->vdisk);
+ 	kfree(device->rs_plan_s);
  
-+struct gendisk *__blk_alloc_disk(int node)
-+{
-+	struct request_queue *q;
-+	struct gendisk *disk;
-+
-+	q = blk_alloc_queue(node);
-+	if (!q)
-+		return NULL;
-+
-+	disk = __alloc_disk_node(0, node);
-+	if (!disk) {
-+		blk_cleanup_queue(q);
-+		return NULL;
-+	}
-+	disk->queue = q;
-+	return disk;
-+}
-+EXPORT_SYMBOL(__blk_alloc_disk);
-+
- /**
-  * put_disk - decrements the gendisk refcount
-  * @disk: the struct gendisk to decrement the refcount for
-@@ -1319,6 +1338,22 @@ void put_disk(struct gendisk *disk)
- }
- EXPORT_SYMBOL(put_disk);
+ 	/* not for_each_connection(connection, resource):
+@@ -2701,7 +2700,6 @@ enum drbd_ret_code drbd_create_device(struct drbd_config_context *adm_ctx, unsig
+ 	struct drbd_device *device;
+ 	struct drbd_peer_device *peer_device, *tmp_peer_device;
+ 	struct gendisk *disk;
+-	struct request_queue *q;
+ 	int id;
+ 	int vnr = adm_ctx->volume;
+ 	enum drbd_ret_code err = ERR_NOMEM;
+@@ -2723,29 +2721,26 @@ enum drbd_ret_code drbd_create_device(struct drbd_config_context *adm_ctx, unsig
  
-+/**
-+ * blk_cleanup_disk - shutdown a gendisk allocated by blk_alloc_disk
-+ * @disk: gendisk to shutdown
-+ *
-+ * Mark the queue hanging off @disk DYING, drain all pending requests, then mark
-+ * the queue DEAD, destroy and put it and the gendisk structure.
-+ *
-+ * Context: can sleep
-+ */
-+void blk_cleanup_disk(struct gendisk *disk)
-+{
-+	blk_cleanup_queue(disk->queue);
-+	put_disk(disk);
-+}
-+EXPORT_SYMBOL(blk_cleanup_disk);
-+
- static void set_disk_ro_uevent(struct gendisk *gd, int ro)
- {
- 	char event[] = "DISK_RO=1";
-diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-index a5443f0b139d..03aa12730634 100644
---- a/include/linux/genhd.h
-+++ b/include/linux/genhd.h
-@@ -278,6 +278,28 @@ extern void put_disk(struct gendisk *disk);
+ 	drbd_init_set_defaults(device);
  
- #define alloc_disk(minors) alloc_disk_node(minors, NUMA_NO_NODE)
- 
-+/**
-+ * blk_alloc_disk - allocate a gendisk structure
-+ * @node_id: numa node to allocate on
-+ *
-+ * Allocate and pre-initialize a gendisk structure for use with BIO based
-+ * drivers.
-+ *
-+ * Context: can sleep
-+ */
-+#define blk_alloc_disk(node_id)						\
-+({									\
-+	struct gendisk *__disk = __blk_alloc_disk(node_id);		\
-+	static struct lock_class_key __key;				\
-+									\
-+	if (__disk)							\
-+		lockdep_init_map(&__disk->lockdep_map,			\
-+			"(bio completion)", &__key, 0);			\
-+	__disk;								\
-+})
-+struct gendisk *__blk_alloc_disk(int node);
-+void blk_cleanup_disk(struct gendisk *disk);
+-	q = blk_alloc_queue(NUMA_NO_NODE);
+-	if (!q)
+-		goto out_no_q;
+-	device->rq_queue = q;
+-
+-	disk = alloc_disk(1);
++	disk = blk_alloc_disk(NUMA_NO_NODE);
+ 	if (!disk)
+ 		goto out_no_disk;
 +
- int __register_blkdev(unsigned int major, const char *name,
- 		void (*probe)(dev_t devt));
- #define register_blkdev(major, name) \
+ 	device->vdisk = disk;
++	device->rq_queue = disk->queue;
+ 
+ 	set_disk_ro(disk, true);
+ 
+-	disk->queue = q;
+ 	disk->major = DRBD_MAJOR;
+ 	disk->first_minor = minor;
++	disk->minors = 1;
+ 	disk->fops = &drbd_ops;
+ 	sprintf(disk->disk_name, "drbd%d", minor);
+ 	disk->private_data = device;
+ 
+-	blk_queue_write_cache(q, true, true);
++	blk_queue_write_cache(disk->queue, true, true);
+ 	/* Setting the max_hw_sectors to an odd value of 8kibyte here
+ 	   This triggers a max_bio_size message upon first attach or connect */
+-	blk_queue_max_hw_sectors(q, DRBD_MAX_BIO_SIZE_SAFE >> 8);
++	blk_queue_max_hw_sectors(disk->queue, DRBD_MAX_BIO_SIZE_SAFE >> 8);
+ 
+ 	device->md_io.page = alloc_page(GFP_KERNEL);
+ 	if (!device->md_io.page)
+@@ -2834,10 +2829,8 @@ enum drbd_ret_code drbd_create_device(struct drbd_config_context *adm_ctx, unsig
+ out_no_bitmap:
+ 	__free_page(device->md_io.page);
+ out_no_io_page:
+-	put_disk(disk);
++	blk_cleanup_disk(disk);
+ out_no_disk:
+-	blk_cleanup_queue(q);
+-out_no_q:
+ 	kref_put(&resource->kref, drbd_destroy_resource);
+ 	kfree(device);
+ 	return err;
 -- 
 2.30.2
 
