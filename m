@@ -1,31 +1,31 @@
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88DFE6D00
-	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 08:22:40 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B21CE6D00
+	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 08:23:19 +0000 (UTC)
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1621758159; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1621758198; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=S1y74Yz8aRDmaEpP4USMBwGPpMEghkmdz7uUjWMk06s=;
-	b=gVo/Rp9xVv3RM0rK56RgaIrVdgQ5+xPUCaCJ9huA7R098TWdnoGhVqlpNeh3f2fc//8Bqt
-	MhOjYgIPBG43WD6PMu/5H//gtao1z/x53ygH/nndaqazp3rBIVxgJQteyG8eL+vGEMn0D6
-	M8na4uHWh+OLKyfMTLmux77AU5bhKrs=
+	bh=9jwS/vkbCN5vOWP4EANDCdKphD4tk6xHJdwjoTDA0xc=;
+	b=0kZjDo15MPwMXAHcV37JmEeMrdfIuPc5Oxc+FXlRkFBsX1P/xjjC+hx0CSLm0PfvQY9ym/
+	4RHZB51nSaUpLJGulDzp9MOAd9AGBPc3tvBFxosIjJalmb7F+5Y2xWJ0U2YaI8UeYckZfe
+	qL9Fq3UunZWBOpBeUoKffGNKTTzqTRA=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1621758159;
+	s=susede2_ed25519; t=1621758198;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=S1y74Yz8aRDmaEpP4USMBwGPpMEghkmdz7uUjWMk06s=;
-	b=XR8EkU8yWIajZjsc2/yz6GRtH/oBvAI4XOjK022mKTC6szMsfZgk34MSoeHVzdzJATjoIt
-	H7rfc2a0rjG3FvDg==
+	bh=9jwS/vkbCN5vOWP4EANDCdKphD4tk6xHJdwjoTDA0xc=;
+	b=Qs0htuXDjPXHTRVOMwIH+9nVO37H0E0QGTk/giUWB+YggXtCQvDsiGAsJYlZ6CdgkKOlPv
+	3E4LCPtjszo7eTDQ==
 Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 21638AB7C;
-	Sun, 23 May 2021 08:22:39 +0000 (UTC)
-Subject: Re: [PATCH 21/26] n64cart: convert to blk_alloc_disk
+	by mx2.suse.de (Postfix) with ESMTP id 2D478ABB1;
+	Sun, 23 May 2021 08:23:18 +0000 (UTC)
+Subject: Re: [PATCH 22/26] ps3vram: convert to blk_alloc_disk/blk_cleanup_disk
 To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
  Geert Uytterhoeven <geert@linux-m68k.org>, Chris Zankel <chris@zankel.net>,
  Max Filippov <jcmvbkbc@gmail.com>,
@@ -47,10 +47,10 @@ Cc: linux-block@vger.kernel.org, dm-devel@redhat.com,
  linux-mmc@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org
 References: <20210521055116.1053587-1-hch@lst.de>
- <20210521055116.1053587-22-hch@lst.de>
+ <20210521055116.1053587-23-hch@lst.de>
 From: Hannes Reinecke <hare@suse.de>
-Message-ID: <d1935d23-a45c-af53-e60c-cdc3b2ca0dc9@suse.de>
-Date: Sun, 23 May 2021 10:22:37 +0200
+Message-ID: <1217e1d9-ac91-f01c-1912-5b3607dcef17@suse.de>
+Date: Sun, 23 May 2021 10:23:17 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.10.0
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -58,21 +58,20 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210521055116.1053587-22-hch@lst.de>
+In-Reply-To: <20210521055116.1053587-23-hch@lst.de>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 
 On 5/21/21 7:51 AM, Christoph Hellwig wrote:
-> Convert the n64cart driver to use the blk_alloc_disk helper to simplify
-> gendisk and request_queue allocation.
+> Convert the ps3vram driver to use the blk_alloc_disk and blk_cleanup_disk
+> helpers to simplify gendisk and request_queue allocation.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->   drivers/block/n64cart.c | 6 +-----
->   1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-Reviewed-by: Hannes Reinecke <hare@suse.de>
+>   drivers/block/ps3vram.c | 31 ++++++++-----------------------
+>   1 file changed, 8 insertions(+), 23 deletions(-)
+> Reviewed-by: Hannes Reinecke <hare@suse.de>
 
 Cheers,
 
