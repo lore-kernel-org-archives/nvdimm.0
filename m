@@ -1,31 +1,31 @@
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B86B6D00
-	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 08:14:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 614E26D00
+	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 08:14:55 +0000 (UTC)
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1621757655; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1621757694; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=qndw/8cRfR4n5MxN573Up92okpro6jHBBSJUlmT8TIg=;
-	b=BboH4k8Cgtr8ut3UnJS7S2lcjUSVsG7bLs55qAKpnYW7W6yzl7lrzmSCJs8gJAAyQHkPls
-	Cqzncpt6NU6MBbTplNLSwznQQLj0oej9F0hTcII+iaq2eB+edEZrKejx/CEg/1vJmgEse1
-	Xb/WD7COir2jUA6PLoQQx1M9hQilQc4=
+	bh=iQPRzKjB4xva4+SK85NTZOXtLYZkg6+smT8caLjWiBo=;
+	b=zHRg3CEkCs4UPFiSCZzL9X8UHByi7GdvjDMNWh3sDZqrWj1b6XYuByWPJzIfGtICQeDyvH
+	+3TcovTfro2tBd93aQ9BToglg+idpWoweEDSWnwHJRQnMZDWcMZE3LJRLX4BUV/iGhyQkL
+	eyF28uOb6canVKP29vI/TTKIuDAlgGw=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1621757655;
+	s=susede2_ed25519; t=1621757694;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=qndw/8cRfR4n5MxN573Up92okpro6jHBBSJUlmT8TIg=;
-	b=ZWkRqzGdCAwcqXvet4aJDvklif5PL9OFvnqYcpjg1x2JORSYO/pj7EFixuKPkE9QN8Zw/p
-	ddjCgprrATKXjMCw==
+	bh=iQPRzKjB4xva4+SK85NTZOXtLYZkg6+smT8caLjWiBo=;
+	b=CfjMTT+DJ/B8ONHrCjGeGamwew3zqFGE+H+4AP7yxNahpMXyxmQHUxmWhZDlraA/3Qin9X
+	MiYCHFZ3ojkcnxDA==
 Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id B877DAAFD;
-	Sun, 23 May 2021 08:14:15 +0000 (UTC)
-Subject: Re: [PATCH 16/26] nvdimm-btt: convert to
+	by mx2.suse.de (Postfix) with ESMTP id DDC4EAAFD;
+	Sun, 23 May 2021 08:14:53 +0000 (UTC)
+Subject: Re: [PATCH 17/26] nvdimm-pmem: convert to
  blk_alloc_disk/blk_cleanup_disk
 To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
  Geert Uytterhoeven <geert@linux-m68k.org>, Chris Zankel <chris@zankel.net>,
@@ -48,10 +48,10 @@ Cc: linux-block@vger.kernel.org, dm-devel@redhat.com,
  linux-mmc@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org
 References: <20210521055116.1053587-1-hch@lst.de>
- <20210521055116.1053587-17-hch@lst.de>
+ <20210521055116.1053587-18-hch@lst.de>
 From: Hannes Reinecke <hare@suse.de>
-Message-ID: <7c4aa44c-5cd7-5ff5-4641-052f337067ab@suse.de>
-Date: Sun, 23 May 2021 10:14:14 +0200
+Message-ID: <64085232-b5f6-eb31-5b41-9d1ebe07c45e@suse.de>
+Date: Sun, 23 May 2021 10:14:52 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.10.0
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -59,23 +59,21 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210521055116.1053587-17-hch@lst.de>
+In-Reply-To: <20210521055116.1053587-18-hch@lst.de>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 
 On 5/21/21 7:51 AM, Christoph Hellwig wrote:
-> Convert the nvdimm-btt driver to use the blk_alloc_disk and
+> Convert the nvdimm-pmem driver to use the blk_alloc_disk and
 > blk_cleanup_disk helpers to simplify gendisk and request_queue
 > allocation.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->   drivers/nvdimm/btt.c | 24 +++++++-----------------
->   drivers/nvdimm/btt.h |  2 --
->   2 files changed, 7 insertions(+), 19 deletions(-)
-> 
-Reviewed-by: Hannes Reinecke <hare@suse.de>
+>   drivers/nvdimm/pmem.c | 15 +++++----------
+>   1 file changed, 5 insertions(+), 10 deletions(-)
+> Reviewed-by: Hannes Reinecke <hare@suse.de>
 
 Cheers,
 
