@@ -1,36 +1,37 @@
 Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57AD6D00
-	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 08:01:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 833CE6D00
+	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 08:01:41 +0000 (UTC)
 X-Virus-Scanned: by amavisd-new at test-mx.suse.de
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1621756871; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1621756900; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=dQcMiRwWPAv5WvyB96FHXfbWmipHEObf8DbZE1kuJz0=;
-	b=YsNBTEtY9zUxIRB0nUCYFE0p4Phyu9JIogvxQ6dQp1JmxSsh6383URErsOOjvKUrWdjG3i
-	G4WR5KIID9YfhoyqFncNw5BCBg4OUx0j3IL7e2LyT9hva2QjzxoHd5fG/CjvbfsLxkv0Kl
-	OdHSHAyubg/VQopYp4fidcOC44h0b7c=
+	bh=x6ZpqsTUUgr32tKx3Ytc5DdC5hUPJbQ4Mxr4iFxQG38=;
+	b=qwc0fzuqFIjfY1sfpfY1Riafja02H7Rjmlumr5fh4od7MV5PvHD70I9BcfkldeIOufhJce
+	GT5E1Z97kRvhXIdXg0rCyZW6W9Mwqn2k6+c/QzP21oiE8ZZGjGhlH23TOjgtOZJqGH4EMG
+	z81n4EbDHXBXFg0mV32jNT7GarsyV6s=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1621756871;
+	s=susede2_ed25519; t=1621756900;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=dQcMiRwWPAv5WvyB96FHXfbWmipHEObf8DbZE1kuJz0=;
-	b=xr4HC9LhCyK7b72CQ19QM/IvZBzWs7uhLBP4TCi+BAuVEojUA0LNKTWF+60+IbZ98/p90X
-	c54NH1ujLvjQm6AA==
+	bh=x6ZpqsTUUgr32tKx3Ytc5DdC5hUPJbQ4Mxr4iFxQG38=;
+	b=SrmqLzXeA4LgAjfu65ogEluvanrl1ROlxVMxFDblVG0Ps3ZAAQdZETqoxVm/TMNXpM/4Hi
+	fXWYXavPI9Y9jEBw==
 Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id 5B95FAC8B;
-	Sun, 23 May 2021 08:01:11 +0000 (UTC)
-Subject: Re: [PATCH 09/26] rsxx: convert to blk_alloc_disk/blk_cleanup_disk
+	by mx2.suse.de (Postfix) with ESMTP id 01ED6AC8B;
+	Sun, 23 May 2021 08:01:40 +0000 (UTC)
+Subject: Re: [PATCH 10/26] zram: convert to blk_alloc_disk/blk_cleanup_disk
 To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
  Geert Uytterhoeven <geert@linux-m68k.org>, Chris Zankel <chris@zankel.net>,
  Max Filippov <jcmvbkbc@gmail.com>,
  Philipp Reisner <philipp.reisner@linbit.com>,
  Lars Ellenberg <lars.ellenberg@linbit.com>, Jim Paris <jim@jtan.com>,
+ Joshua Morris <josh.h.morris@us.ibm.com>,
  Philip Kelleher <pjk1939@linux.ibm.com>, Minchan Kim <minchan@kernel.org>,
  Nitin Gupta <ngupta@vflare.org>, Matias Bjorling <mb@lightnvm.io>,
  Coly Li <colyli@suse.de>, Mike Snitzer <snitzer@redhat.com>,
@@ -47,10 +48,10 @@ Cc: linux-block@vger.kernel.org, dm-devel@redhat.com,
  linux-mmc@vger.kernel.org, nvdimm@lists.linux.dev,
  linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org
 References: <20210521055116.1053587-1-hch@lst.de>
- <20210521055116.1053587-10-hch@lst.de>
+ <20210521055116.1053587-11-hch@lst.de>
 From: Hannes Reinecke <hare@suse.de>
-Message-ID: <989097c8-0716-abbb-3cf1-907eeb221fb5@suse.de>
-Date: Sun, 23 May 2021 10:01:09 +0200
+Message-ID: <e03c8c60-7ee7-6ec4-5c96-9577eb2e376d@suse.de>
+Date: Sun, 23 May 2021 10:01:38 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.10.0
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -58,20 +59,19 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210521055116.1053587-10-hch@lst.de>
+In-Reply-To: <20210521055116.1053587-11-hch@lst.de>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 
-On 5/21/21 7:50 AM, Christoph Hellwig wrote:
-> Convert the rsxx driver to use the blk_alloc_disk and blk_cleanup_disk
+On 5/21/21 7:51 AM, Christoph Hellwig wrote:
+> Convert the zram driver to use the blk_alloc_disk and blk_cleanup_disk
 > helpers to simplify gendisk and request_queue allocation.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->   drivers/block/rsxx/dev.c       | 39 +++++++++++++---------------------
->   drivers/block/rsxx/rsxx_priv.h |  1 -
->   2 files changed, 15 insertions(+), 25 deletions(-)
+>   drivers/block/zram/zram_drv.c | 19 ++++---------------
+>   1 file changed, 4 insertions(+), 15 deletions(-)
 > Reviewed-by: Hannes Reinecke <hare@suse.de>
 
 Cheers,
