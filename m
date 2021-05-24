@@ -1,130 +1,140 @@
-Received: from mx2.suse.de (mx2.suse.de [195.135.220.15])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ozlabs.org (bilbo.ozlabs.org [203.11.71.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9840817F
-	for <nvdimm@lists.linux.dev>; Sun, 23 May 2021 16:20:46 +0000 (UTC)
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1621786845; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iFkWHMko4nu73I8bffz46LtF778hJacVhJlqbZzQwF8=;
-	b=xIMCLEuwtEJ3ZYLVT1jAFLSlmekHbIbar2TdYds2f7pJgux+ASXt64k09tx/I3VzYVSQbd
-	jYbEua8uhBBK1QtJJhgUBirelGonk+/REbn1EZdyuTOztWNmc/243wGZRrn0BpiSJnEF/k
-	3o6nC8QrS3eMOcehdY1jqcN3GUtqNzU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1621786845;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=iFkWHMko4nu73I8bffz46LtF778hJacVhJlqbZzQwF8=;
-	b=OjWXQORh1AHg1yI5pLimYhJCE0/GNAVfRs6jLZKfmf7Vpd71K+gfdYi9LvcDAJhupXh6Tf
-	ZrcrurNwYt+dptBg==
-Received: from relay2.suse.de (unknown [195.135.221.27])
-	by mx2.suse.de (Postfix) with ESMTP id DA2BFAAFD;
-	Sun, 23 May 2021 16:20:44 +0000 (UTC)
-Subject: Re: [PATCH 12/26] bcache: convert to blk_alloc_disk/blk_cleanup_disk
-To: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>,
- Geert Uytterhoeven <geert@linux-m68k.org>, Chris Zankel <chris@zankel.net>,
- Max Filippov <jcmvbkbc@gmail.com>,
- Philipp Reisner <philipp.reisner@linbit.com>,
- Lars Ellenberg <lars.ellenberg@linbit.com>, Jim Paris <jim@jtan.com>,
- Joshua Morris <josh.h.morris@us.ibm.com>,
- Philip Kelleher <pjk1939@linux.ibm.com>, Minchan Kim <minchan@kernel.org>,
- Nitin Gupta <ngupta@vflare.org>, Matias Bjorling <mb@lightnvm.io>,
- Mike Snitzer <snitzer@redhat.com>, Song Liu <song@kernel.org>,
- Maxim Levitsky <maximlevitsky@gmail.com>, Alex Dubov <oakad@yahoo.com>,
- Ulf Hansson <ulf.hansson@linaro.org>, Dan Williams
- <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>,
- Dave Jiang <dave.jiang@intel.com>, Heiko Carstens <hca@linux.ibm.com>,
- Vasily Gorbik <gor@linux.ibm.com>,
- Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: linux-block@vger.kernel.org, dm-devel@redhat.com,
- linux-m68k@lists.linux-m68k.org, linux-xtensa@linux-xtensa.org,
- drbd-dev@lists.linbit.com, linuxppc-dev@lists.ozlabs.org,
- linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org,
- linux-mmc@vger.kernel.org, nvdimm@lists.linux.dev,
- linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org
-References: <20210521055116.1053587-1-hch@lst.de>
- <20210521055116.1053587-13-hch@lst.de>
-From: Coly Li <colyli@suse.de>
-Message-ID: <19e05358-abc2-a577-d3bd-d4ae89f6316e@suse.de>
-Date: Mon, 24 May 2021 00:20:34 +0800
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
- Gecko/20100101 Thunderbird/78.10.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64C1C2F80
+	for <nvdimm@lists.linux.dev>; Mon, 24 May 2021 04:55:08 +0000 (UTC)
+Received: by ozlabs.org (Postfix, from userid 1007)
+	id 4FpPrP3lfSz9sPf; Mon, 24 May 2021 14:49:25 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+	d=gibson.dropbear.id.au; s=201602; t=1621831765;
+	bh=TYSEoVvepypGulY3hx66YvaoKLjvj6EpNj205Et0BrE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=C5BBSvbKkjdjKcjNCzkLOgwE2O14skIo1hPWsGpJBIGTAm1udS2qHyuXcd+ODNs2X
+	 rH9O2z0xwiv5cAjsnAGHlGg3b/dIytfNdghlqvAUjzrvzORztGcQI5H/QcKVbCPXke
+	 Jx5QPHmzGqImbqvsrCcYt7pEdx5IJ+Lbh5D78Kbc=
+Date: Mon, 24 May 2021 14:45:23 +1000
+From: David Gibson <david@gibson.dropbear.id.au>
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Cc: groug@kaod.org, qemu-ppc@nongnu.org, qemu-devel@nongnu.org,
+	aneesh.kumar@linux.ibm.com, nvdimm@lists.linux.dev,
+	kvm-ppc@vger.kernel.org, shivaprasadbhat@gmail.com,
+	bharata@linux.vnet.ibm.com
+Subject: Re: [PATCH v5 1/3] spapr: nvdimm: Forward declare and move the
+ definitions
+Message-ID: <YKsvY5h837sbO3UB@yekko>
+References: <162133924680.610.15121309741756314238.stgit@4f1e6f2bd33e>
+ <162133925415.610.11584121797866216417.stgit@4f1e6f2bd33e>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210521055116.1053587-13-hch@lst.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-
-On 5/21/21 1:51 PM, Christoph Hellwig wrote:
-> Convert the bcache driver to use the blk_alloc_disk and blk_cleanup_disk
-> helpers to simplify gendisk and request_queue allocation.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-
-Acked-by: Coly Li <colyli@suse.de>
-
-Thanks.
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="FRUbPektJYbiNupX"
+Content-Disposition: inline
+In-Reply-To: <162133925415.610.11584121797866216417.stgit@4f1e6f2bd33e>
 
 
-Coly Li
+--FRUbPektJYbiNupX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, May 18, 2021 at 08:03:17AM -0400, Shivaprasad G Bhat wrote:
+> The subsequent patches add definitions which tend to get
+> the compilation to cyclic dependency. So, prepare with
+> forward declarations, move the definitions and clean up.
+>=20
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+
+This is a reasonable cleanup regardless of the rest of the series, so
+I've applied this to ppc-for-6.1.
 
 > ---
->  drivers/md/bcache/super.c | 15 ++++-----------
->  1 file changed, 4 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/md/bcache/super.c b/drivers/md/bcache/super.c
-> index bea8c4429ae8..185246a0d855 100644
-> --- a/drivers/md/bcache/super.c
-> +++ b/drivers/md/bcache/super.c
-> @@ -890,13 +890,9 @@ static void bcache_device_free(struct bcache_device *d)
->  		if (disk_added)
->  			del_gendisk(disk);
->  
-> -		if (disk->queue)
-> -			blk_cleanup_queue(disk->queue);
+>  hw/ppc/spapr_nvdimm.c         |   12 ++++++++++++
+>  include/hw/ppc/spapr_nvdimm.h |   14 ++------------
+>  2 files changed, 14 insertions(+), 12 deletions(-)
+>=20
+> diff --git a/hw/ppc/spapr_nvdimm.c b/hw/ppc/spapr_nvdimm.c
+> index 252204e25f..3f57a8b6fa 100644
+> --- a/hw/ppc/spapr_nvdimm.c
+> +++ b/hw/ppc/spapr_nvdimm.c
+> @@ -35,6 +35,18 @@
+>  /* SCM device is unable to persist memory contents */
+>  #define PAPR_PMEM_UNARMED PPC_BIT(0)
+> =20
+> +/*
+> + * The nvdimm size should be aligned to SCM block size.
+> + * The SCM block size should be aligned to SPAPR_MEMORY_BLOCK_SIZE
+> + * in order to have SCM regions not to overlap with dimm memory regions.
+> + * The SCM devices can have variable block sizes. For now, fixing the
+> + * block size to the minimum value.
+> + */
+> +#define SPAPR_MINIMUM_SCM_BLOCK_SIZE SPAPR_MEMORY_BLOCK_SIZE
+> +
+> +/* Have an explicit check for alignment */
+> +QEMU_BUILD_BUG_ON(SPAPR_MINIMUM_SCM_BLOCK_SIZE % SPAPR_MEMORY_BLOCK_SIZE=
+);
+> +
+>  bool spapr_nvdimm_validate(HotplugHandler *hotplug_dev, NVDIMMDevice *nv=
+dimm,
+>                             uint64_t size, Error **errp)
+>  {
+> diff --git a/include/hw/ppc/spapr_nvdimm.h b/include/hw/ppc/spapr_nvdimm.h
+> index 73be250e2a..764f999f54 100644
+> --- a/include/hw/ppc/spapr_nvdimm.h
+> +++ b/include/hw/ppc/spapr_nvdimm.h
+> @@ -11,19 +11,9 @@
+>  #define HW_SPAPR_NVDIMM_H
+> =20
+>  #include "hw/mem/nvdimm.h"
+> -#include "hw/ppc/spapr.h"
+> =20
+> -/*
+> - * The nvdimm size should be aligned to SCM block size.
+> - * The SCM block size should be aligned to SPAPR_MEMORY_BLOCK_SIZE
+> - * inorder to have SCM regions not to overlap with dimm memory regions.
+> - * The SCM devices can have variable block sizes. For now, fixing the
+> - * block size to the minimum value.
+> - */
+> -#define SPAPR_MINIMUM_SCM_BLOCK_SIZE SPAPR_MEMORY_BLOCK_SIZE
 > -
-> +		blk_cleanup_disk(disk);
->  		ida_simple_remove(&bcache_device_idx,
->  				  first_minor_to_idx(disk->first_minor));
-> -		if (disk_added)
-> -			put_disk(disk);
->  	}
->  
->  	bioset_exit(&d->bio_split);
-> @@ -946,7 +942,7 @@ static int bcache_device_init(struct bcache_device *d, unsigned int block_size,
->  			BIOSET_NEED_BVECS|BIOSET_NEED_RESCUER))
->  		goto err;
->  
-> -	d->disk = alloc_disk(BCACHE_MINORS);
-> +	d->disk = blk_alloc_disk(NUMA_NO_NODE);
->  	if (!d->disk)
->  		goto err;
->  
-> @@ -955,14 +951,11 @@ static int bcache_device_init(struct bcache_device *d, unsigned int block_size,
->  
->  	d->disk->major		= bcache_major;
->  	d->disk->first_minor	= idx_to_first_minor(idx);
-> +	d->disk->minors		= BCACHE_MINORS;
->  	d->disk->fops		= ops;
->  	d->disk->private_data	= d;
->  
-> -	q = blk_alloc_queue(NUMA_NO_NODE);
-> -	if (!q)
-> -		return -ENOMEM;
-> -
-> -	d->disk->queue			= q;
-> +	q = d->disk->queue;
->  	q->limits.max_hw_sectors	= UINT_MAX;
->  	q->limits.max_sectors		= UINT_MAX;
->  	q->limits.max_segment_size	= UINT_MAX;
-> 
+> -/* Have an explicit check for alignment */
+> -QEMU_BUILD_BUG_ON(SPAPR_MINIMUM_SCM_BLOCK_SIZE % SPAPR_MEMORY_BLOCK_SIZE=
+);
+> +typedef struct SpaprDrc SpaprDrc;
+> +typedef struct SpaprMachineState SpaprMachineState;
+> =20
+>  int spapr_pmem_dt_populate(SpaprDrc *drc, SpaprMachineState *spapr,
+>                             void *fdt, int *fdt_start_offset, Error **err=
+p);
+>=20
+>=20
 
+--=20
+David Gibson			| I'll have my music baroque, and my code
+david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
+				| _way_ _around_!
+http://www.ozlabs.org/~dgibson
+
+--FRUbPektJYbiNupX
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEdfRlhq5hpmzETofcbDjKyiDZs5IFAmCrL2MACgkQbDjKyiDZ
+s5J9Rw//V1W1q5wDmubYAkWlySjaEe2fY+4Fzxr0Ic+qh4oJP1Y3JZCIw7sKCZoC
+lcIHfI/hBVHp/xBMo2oa5RmL6CJa8iAf5toE/HDNsOAInKmGbhJ3OTR71HFLj0wh
+EK9MlbsIxLhIL73/XIzsAYd+C1wz8tp0/UGstvHMk7VJMoPAIkDhHki+WOt1gonK
+ZySnrL4orrr5cDUVKiDHYc/PClQl3KLp0Foog6G2/fD2dn+lElIVM1uEbgxPJf2V
+TgCoaNX+CNIkMaJzYbe4bQ5toidOrBrfh5fPLhT/DMD295EIzLk38nns7j8h2Wn1
+4i4MF8Dj+2+fjuHd0TJvuq98m6HwJE3H2SngIBvQkCmA/imla9GfjNTxQFKsOjXZ
+JtVkVIQlCXJOaWCbVKE47msphsYZ6p0YH000bmBUkq8ADeqB6FpbwLP9W5+pjTuq
+SNQ0MLLX01ZrpcsFCpAbKpVU6It2p9MC4mfZjNTQU30/RGljtBL8rUNxkBsQYYTa
+CD6I0LL5f8yNlIoTqyVFzwKA31QmRh+YSDvwsHvZ5f5Dhxh0DMrfmBVVE+jZH8nr
+RcqNGGGuoJVZ0z+lzfyV4xKWkSzLDpCpXlBZ0BO2BlUHr3mFAJd9momQU5JzgYVj
+8EES1xs3FbzTvR/YjeLlNvjFUi0WIZnew829KC/RzTdgoyk5ic0=
+=Ptw/
+-----END PGP SIGNATURE-----
+
+--FRUbPektJYbiNupX--
