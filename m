@@ -1,99 +1,100 @@
-Received: from mail-ua1-f42.google.com (mail-ua1-f42.google.com [209.85.222.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 10C3417F
-	for <nvdimm@lists.linux.dev>; Wed, 26 May 2021 08:08:08 +0000 (UTC)
-Received: by mail-ua1-f42.google.com with SMTP id 105so294426uak.8
-        for <nvdimm@lists.linux.dev>; Wed, 26 May 2021 01:08:08 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=GrfL+UvsoUYJEVH3FOBXMPqeLzeAwHNpUWgDzMspWKw=;
-        b=woqt8BnxKZukeBLeJd4w4lKnQ3cKCzoRk7QnVN0RWefRH0Lak2HbQbLhx/frNziCrW
-         vzOd63E9Idh6uhMeJbijddzANEGlwhq2a94sp+UT6X33w/HJrP0R4Xxsur3qtd3UJ9V3
-         RXhO2WmDqsPWGOOFe4Z1vXtU3Ajlf9H69hO1WGEkh2/q7XWi3knfCY64J+SzmkNKOe36
-         kp6uvOs+ndgfRymDdtUOUv9NQPYP8RiXXMABsN8MVSRmmehasPQ8UDsDcWRSt1e77qBG
-         1jHw1+BN8mfEhYZIvRTg/wyYkLYEyw3TBricpiOdb+JF5bZQWiaQ0RSSDpINkEteioTM
-         z8Uw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=GrfL+UvsoUYJEVH3FOBXMPqeLzeAwHNpUWgDzMspWKw=;
-        b=RKFnBFBQYfl/mvXUctdARbi6vVgsBqO8kc5F2fWEB6e08vaQrAD9BowrNo/SrdrY5U
-         jh533zpZJdhz4MUCQn+qX0EHChkEPwuCAjmzxN7ybFYAJvXrtmU1FeZrerp0NkxvSXlK
-         DwhgOEHJQ/hOsLiYU6YVATYA9f40HjYf8BpauN6a5z3z/kcfzT2n6WB2MCBtpxcHBcsw
-         IjuRLBZNDCxMI0pcxLJwWjXqdY/A/RmkYDpxPStvEEXAZJVFnsWLGUt2GF3eNLCmDuJV
-         8zIOQmoG9cvoLpH4wQaRLgtZdO4U0V3a8Kj7qBTNjGMAOf2QKCsUvP0ClCRS2VZ8YpK4
-         aOMA==
-X-Gm-Message-State: AOAM5311de3NLuV+JFNGChgTtYSEXrdpywzAjrl7PA9B8LQELxZFSZLE
-	fVs1G3m5QAAJt5LGk6panOH9IwmD95wIofxB4mSvXw==
-X-Google-Smtp-Source: ABdhPJxEKZ+yyN+wbXXVH9CKQ94TxTUrIX6SVT7ztQ9Bwftr62IUqVIB3GNBh5QlN3mdzVdDkjsC7QK+8McmDny5XO0=
-X-Received: by 2002:ab0:3351:: with SMTP id h17mr31776765uap.15.1622016487939;
- Wed, 26 May 2021 01:08:07 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8155770
+	for <nvdimm@lists.linux.dev>; Wed, 26 May 2021 15:27:42 +0000 (UTC)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14QF4GKv124325;
+	Wed, 26 May 2021 11:27:22 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
+ : date : message-id : mime-version : content-type :
+ content-transfer-encoding; s=pp1;
+ bh=CWkSzCTP7KHishIlWZEHZbVXHEKF0RcJj82EkBvgvQs=;
+ b=Qw1AY/V3IpicJBXqCC0z8JXppWdx1HMTgKnQPTLSMk2InyJzQrrLa0ic4INQliP0Ps3l
+ FMAwPu/youaz1Sg8VJnJYHCKXIgClTFT7ipbhYswdePFYuV2UCjSJjnX1u8GZ3gTT/YN
+ 7H0dD2yxhMTGGObyVcq4f1CSH3fTsQSlh7qwOc+whNyPdhWsfhyGCL3RBnDYQG0r/uTw
+ rTEpatBhhplUtOufPmEMplWFWM2ngdrgDVbH4zbvKD1MvWTBxYnnXI2aQZkMtgliZv+L
+ S6mYLalZebfssYlWRijVsJnc/8GhShYruk1sbrrT6QRHyvjsDdo4/0bC6OhkNs9eAlmE Ew== 
+Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 38spv8my4q-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 26 May 2021 11:27:22 -0400
+Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
+	by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 14QFD0Ii009344;
+	Wed, 26 May 2021 15:27:20 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma05fra.de.ibm.com with ESMTP id 38s1r50cwk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 26 May 2021 15:27:19 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 14QFQlZf21954992
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 26 May 2021 15:26:47 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 22C6B42042;
+	Wed, 26 May 2021 15:27:17 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4143742041;
+	Wed, 26 May 2021 15:27:16 +0000 (GMT)
+Received: from [172.17.0.4] (unknown [9.40.192.207])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Wed, 26 May 2021 15:27:16 +0000 (GMT)
+Subject: [PATCH] spapr: nvdimm: Fix the persistent-memory root node name in
+ device tree
+From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+To: david@gibson.dropbear.id.au, groug@kaod.org, qemu-ppc@nongnu.org
+Cc: qemu-devel@nongnu.org, aneesh.kumar@linux.ibm.com, nvdimm@lists.linux.dev
+Date: Wed, 26 May 2021 11:27:15 -0400
+Message-ID: <162204278956.219.9061511386011411578.stgit@cc493db1e665>
+User-Agent: StGit/0.21
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210521055116.1053587-1-hch@lst.de> <CAPDyKFpqdSYeA+Zg=9Ewi46CmSWNpXQbju6HQo7aviCcRzyAAg@mail.gmail.com>
- <20210526044943.GA28551@lst.de>
-In-Reply-To: <20210526044943.GA28551@lst.de>
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Date: Wed, 26 May 2021 10:07:31 +0200
-Message-ID: <CAPDyKFpR0maO_Dj6bxWSLvh_jcGnrcZ=na42atXfNdkmMkmdig@mail.gmail.com>
-Subject: Re: simplify gendisk and request_queue allocation for bio based drivers
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Geert Uytterhoeven <geert@linux-m68k.org>, 
-	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
-	Philipp Reisner <philipp.reisner@linbit.com>, Lars Ellenberg <lars.ellenberg@linbit.com>, 
-	Jim Paris <jim@jtan.com>, Joshua Morris <josh.h.morris@us.ibm.com>, 
-	Philip Kelleher <pjk1939@linux.ibm.com>, Minchan Kim <minchan@kernel.org>, 
-	Nitin Gupta <ngupta@vflare.org>, Matias Bjorling <mb@lightnvm.io>, Coly Li <colyli@suse.de>, 
-	Mike Snitzer <snitzer@redhat.com>, Song Liu <song@kernel.org>, 
-	Maxim Levitsky <maximlevitsky@gmail.com>, Alex Dubov <oakad@yahoo.com>, 
-	Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, 
-	linux-block <linux-block@vger.kernel.org>, dm-devel@redhat.com, 
-	linux-m68k@lists.linux-m68k.org, linux-xtensa@linux-xtensa.org, 
-	drbd-dev@lists.linbit.com, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
-	linux-bcache@vger.kernel.org, linux-raid@vger.kernel.org, 
-	linux-mmc <linux-mmc@vger.kernel.org>, nvdimm@lists.linux.dev, 
-	linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: csjGxA3AkIXG2GNhbhRDYYLZmxKDHanm
+X-Proofpoint-ORIG-GUID: csjGxA3AkIXG2GNhbhRDYYLZmxKDHanm
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-05-26_09:2021-05-26,2021-05-26 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 mlxlogscore=999
+ suspectscore=0 bulkscore=0 mlxscore=0 phishscore=0 lowpriorityscore=0
+ spamscore=0 priorityscore=1501 malwarescore=0 impostorscore=0
+ clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2105260102
 
-On Wed, 26 May 2021 at 06:49, Christoph Hellwig <hch@lst.de> wrote:
->
-> On Wed, May 26, 2021 at 12:41:37AM +0200, Ulf Hansson wrote:
-> > On Fri, 21 May 2021 at 07:51, Christoph Hellwig <hch@lst.de> wrote:
-> > >
-> > > Hi all,
-> > >
-> > > this series is the first part of cleaning up lifetimes and allocation of
-> > > the gendisk and request_queue structure.  It adds a new interface to
-> > > allocate the disk and queue together for bio based drivers, and a helper
-> > > for cleanup/free them when a driver is unloaded or a device is removed.
-> >
-> > May I ask what else you have in the pipe for the next steps?
-> >
-> > The reason why I ask is that I am looking into some issues related to
-> > lifecycle problems of gendisk/mmc, typically triggered at SD/MMC card
-> > removal.
->
-> In the short run not much more than superficial cleanups.  Eventually
-> I want bio based drivers to not require a separate request_queue, leaving
-> that purely as a data structure for blk-mq based drivers.  But it will
-> take a while until we get there, so it should not block any fixes.
+The FDT code is adding the pmem root node by name "persistent-memory"
+which should have been "ibm,persistent-memory".
 
-Alright, thanks for clarifying.
+The linux fetches the device tree nodes by type and it has been working
+correctly as the type is correct. If someone searches by its intended
+name it would fail, so fix that.
 
->
-> For hot unplug handling it might be worth to take a look at nvme, as it
-> is tested a lot for that case.
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+---
+ hw/ppc/spapr_nvdimm.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Okay, thanks for the hint.
+diff --git a/hw/ppc/spapr_nvdimm.c b/hw/ppc/spapr_nvdimm.c
+index 252204e25f..d7a4a0a051 100644
+--- a/hw/ppc/spapr_nvdimm.c
++++ b/hw/ppc/spapr_nvdimm.c
+@@ -163,11 +163,11 @@ int spapr_pmem_dt_populate(SpaprDrc *drc, SpaprMachineState *spapr,
+ 
+ void spapr_dt_persistent_memory(SpaprMachineState *spapr, void *fdt)
+ {
+-    int offset = fdt_subnode_offset(fdt, 0, "persistent-memory");
++    int offset = fdt_subnode_offset(fdt, 0, "ibm,persistent-memory");
+     GSList *iter, *nvdimms = nvdimm_get_device_list();
+ 
+     if (offset < 0) {
+-        offset = fdt_add_subnode(fdt, 0, "persistent-memory");
++        offset = fdt_add_subnode(fdt, 0, "ibm,persistent-memory");
+         _FDT(offset);
+         _FDT((fdt_setprop_cell(fdt, offset, "#address-cells", 0x1)));
+         _FDT((fdt_setprop_cell(fdt, offset, "#size-cells", 0x0)));
 
-Kind regards
-Uffe
+
