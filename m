@@ -1,156 +1,93 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5829B70
-	for <nvdimm@lists.linux.dev>; Wed,  2 Jun 2021 12:28:50 +0000 (UTC)
-IronPort-SDR: 96nmgKzlZtdSZeXaJwh+z553VWG/n3qRenoppVSaTgta8IDRtXZlr3rVkyQpHGoBQVLodrOlc9
- zplvkJn0hc1A==
-X-IronPort-AV: E=McAfee;i="6200,9189,10002"; a="203587091"
-X-IronPort-AV: E=Sophos;i="5.83,242,1616482800"; 
-   d="scan'208";a="203587091"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 05:28:49 -0700
-IronPort-SDR: 7ZjeHQ8TFwnSLQ+HYcpou62waENhZCHA3U/6e88uwEGUwF/h2jOMFBBRWvgb6DXhMURqQcSUUN
- EQDN8POCmZjA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,242,1616482800"; 
-   d="scan'208";a="479690617"
-Received: from icx-hcc-jingqi.sh.intel.com ([10.239.48.31])
-  by orsmga001.jf.intel.com with ESMTP; 02 Jun 2021 05:28:47 -0700
-From: Jingqi Liu <jingqi.liu@intel.com>
-To: dan.j.williams@intel.com,
-	nvdimm@lists.linux.dev
-Cc: Jingqi Liu <jingqi.liu@intel.com>
-Subject: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
-Date: Wed,  2 Jun 2021 20:18:40 +0800
-Message-Id: <20210602121840.72324-1-jingqi.liu@intel.com>
-X-Mailer: git-send-email 2.21.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6698870
+	for <nvdimm@lists.linux.dev>; Wed,  2 Jun 2021 16:47:11 +0000 (UTC)
+Received: by mail-pg1-f176.google.com with SMTP id r1so2718752pgk.8
+        for <nvdimm@lists.linux.dev>; Wed, 02 Jun 2021 09:47:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=XirRttjcG39/qkr+GuwPNTRMUYyhbdVM15E9hG08o18=;
+        b=mJsJG0mdnSHaBDfV6OV5/53+KdPoIIBr440OyD2NZxLXTSoRSoIIKMPGZ2FK6iMNCW
+         J+AwOk6Pl4i3bbRBxM/JzhSnKljc2LRivoEsD/mT+XCOqDDHYD2qQP3G1hL0f1PoDfNh
+         SJzHJfbhz8rWoj+V2ulZ5EoO1tNuw+QmFN/7aCJEvS+5t6w+p/e3tfLLODsN1jCwoswB
+         sOFgFrFeGeNtvvuJUqTZZ4f5Es6b1nIO6Uk5STvRdEx8BV785PDAmC1gOyDEHfn6VAcL
+         cCpd88UJkL7s2n9zrg2DIyp8Omkt7E1rGWtUI1g33BgR/6fZ99pfVNet87vLI0e/dA7E
+         O3Ug==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=XirRttjcG39/qkr+GuwPNTRMUYyhbdVM15E9hG08o18=;
+        b=b3mfuisjDr0ppHCt+EHMvbtKx2UJaT/LKuJLUum2rbmJy5IvKwABUbwaTkzhtgPeDK
+         7MxrVIcGrpkJGY5PGybXjMINtE9///+HiadsBcaq0Y82PhwFydqTMAwA3iPnSf22nRP4
+         Uux8kPMaDSqEcUtW0PsZBVhebicRPwuY0nydMv1q8GiGRsUqv1jNCUmGbeVZtAd8w/k3
+         loehJzwcTlOH9t0BoAZSHDA1qzUhx0K0gNKM0hy9tSV3Ig+lu/LlCbL87Lc2Oxv0KzLG
+         qCEWeXA5Lrb19cMJJNyAqInBFv3+QeTAZAO6nGbjWRYCuVwPIvo9XOKShAWRs80wG/Cq
+         /TfQ==
+X-Gm-Message-State: AOAM530FfGkKHQgZFWvJqZV4q2+nm+xMrnB+X217Ia6XOqnGD1Shaw+m
+	f/Iex4nVlDNFodmkZ3K6V704BKRJMJeHTLXUvIg+WQ==
+X-Google-Smtp-Source: ABdhPJytI8Euvl8f2ipgLESNac2gjSRplyjSdYO0BIzw4s4rcoQN7gbyhyFWqZ+EMEjcGUI26zvR/vnEzLlgbJIqi1E=
+X-Received: by 2002:a05:6a00:234f:b029:2c4:b8d6:843 with SMTP id
+ j15-20020a056a00234fb02902c4b8d60843mr27769991pfj.71.1622652430785; Wed, 02
+ Jun 2021 09:47:10 -0700 (PDT)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20210516231427.64162-1-qi.fuli@fujitsu.com> <0e2b6f25a3ba8d20604f8c3aa4d8854ade0835c4.camel@intel.com>
+In-Reply-To: <0e2b6f25a3ba8d20604f8c3aa4d8854ade0835c4.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 2 Jun 2021 09:47:00 -0700
+Message-ID: <CAPcyv4inknvApE1xZOiK8u2xPLejuqixf_XKbS05fPKvno+Yyg@mail.gmail.com>
+Subject: Re: [RFC ndctl PATCH 0/3] Rename monitor.conf to ndctl.conf as a
+ ndctl global config file
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "fukuri.sai@gmail.com" <fukuri.sai@gmail.com>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
+	"qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"
 
-The following bug is caused by setting the size of Label Index Block
-to a fixed 256 bytes.
+On Tue, Jun 1, 2021 at 10:31 PM Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+> [switching to the new mailing list]
+>
+> On Mon, 2021-05-17 at 08:14 +0900, QI Fuli wrote:
+> > From: QI Fuli <qi.fuli@fujitsu.com>
+> >
+> > This patch set is to rename monitor.conf to ndctl.conf, and make it a
+> > global ndctl configuration file that all ndctl commands can refer to.
+> >
+> > As this patch set has been pending until now, I would like to know if
+> > current idea works or not. If yes, I will finish the documents and test.
+> >
+> > Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
+>
+> Hi Qi,
+>
+> Thanks for picking up on this! The approach generally looks good to me,
+> I think we can definitely move forward with this direction.
+>
+> One thing that stands out is - I don't think we can simply rename the
+> existing monitor.conf. We have to keep supporting the 'legacy'
+> monitor.conf so that we don't break any deployments. I'd suggest
+> keeping the old monitor.conf as is, and continuing to parse it as is,
+> but also adding a new ndctl.conf as you have done.
+>
+> We can indicate that 'monitor.conf' is legacy, and any new features
+> will only get added to the new global config to encourage migration to
+> the new config. Perhaps we can even provide a helper script to migrate
+> the old config to new - but I think it needs to be a user triggered
+> action.
+>
+> This is timely as I also need to go add some config related
+> functionality to daxctl, and basing it on this would be perfect, so I'd
+> love to get this series merged in soon.
 
-Use the following Qemu command to start a Guest with 2MB label-size:
--object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
--device nvdimm,memdev=mem1,id=nv1,label-size=2M
-
-There is a namespace in the Guest as follows:
-[
-  {
-    "dev":"namespace0.0",
-    "mode":"devdax",
-    "map":"dev",
-    "size":14780727296,
-    "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
-    "chardev":"dax0.0",
-    "align":2097152,
-    "name":"namespace0.0"
-  }
-]
-
-Fail to read labels. The result is as follows:
-[
-]
-read 0 nmem
-
-If using the following Qemu command to start the Guest with 128K
-label-size, this label can be read correctly.
--object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
--device nvdimm,memdev=mem1,id=nv1,label-size=128K
-
-The size of a Label Index Block depends on how many label slots fit into
-the label storage area. The minimum size of an index block is 256 bytes
-and the size must be a multiple of 256 bytes. For a storage area of 128KB,
-the corresponding Label Index Block size is 256 bytes. But if the label
-storage area is not 128KB, the Label Index Block size should not be 256 bytes.
-
-Namespace Label Index Block appears twice at the top of the label storage area.
-Following the two index blocks, an array for storing labels takes up the
-remainder of the label storage area.
-
-When reading namespace index and labels, we should read the field of 'mysize'
-in the Label Index Block. Then we can correctly calculate the starting offset
-of another Label Index Block and the following namespace labels.
-
-Signed-off-by: Jingqi Liu <jingqi.liu@intel.com>
----
- ndctl/dimm.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
-
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 09ce49e..e05dcc2 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -94,13 +94,25 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
- 	struct json_object *jarray = json_object_new_array();
- 	struct json_object *jlabel = NULL;
- 	struct namespace_label nslabel;
-+	struct namespace_index nsindex;
-+	ssize_t nsindex_len = min_t(ssize_t, sizeof(nsindex), size);
-+	ssize_t nsindex_mysize;
- 	unsigned int slot = -1;
- 	ssize_t offset;
- 
- 	if (!jarray)
- 		return NULL;
- 
--	for (offset = NSINDEX_ALIGN * 2; offset < size;
-+	nsindex_len = ndctl_cmd_cfg_read_get_data(cmd_read, &nsindex, nsindex_len, 0);
-+	if (nsindex_len < 0)
-+		return NULL;
-+
-+	nsindex_mysize = le64_to_cpu(nsindex.mysize);
-+	if ((nsindex_mysize > size)
-+			|| !IS_ALIGNED(nsindex_mysize, NSINDEX_ALIGN))
-+		return NULL;
-+
-+	for (offset = nsindex_mysize * 2; offset < size;
- 			offset += ndctl_dimm_sizeof_namespace_label(dimm)) {
- 		ssize_t len = min_t(ssize_t,
- 				ndctl_dimm_sizeof_namespace_label(dimm),
-@@ -210,13 +222,15 @@ static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t s
- 	struct json_object *jindex = NULL;
- 	struct namespace_index nsindex;
- 	ssize_t offset;
-+	int i;
- 
- 	if (!jarray)
- 		return NULL;
- 
--	for (offset = 0; offset < NSINDEX_ALIGN * 2; offset += NSINDEX_ALIGN) {
-+	for (i = 0, offset = 0; i < 2 ; i++) {
- 		ssize_t len = min_t(ssize_t, sizeof(nsindex), size - offset);
- 		struct json_object *jobj;
-+		ssize_t nsindex_mysize;
- 
- 		jindex = json_object_new_object();
- 		if (!jindex)
-@@ -229,6 +243,11 @@ static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t s
- 		if (len < 0)
- 			break;
- 
-+		nsindex_mysize = le64_to_cpu(nsindex.mysize);
-+		if ((nsindex_mysize > size)
-+				|| !IS_ALIGNED(nsindex_mysize, NSINDEX_ALIGN))
-+			break;
-+
- 		nsindex.sig[NSINDEX_SIG_LEN - 1] = 0;
- 		jobj = json_object_new_string(nsindex.sig);
- 		if (!jobj)
-@@ -261,6 +280,8 @@ static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t s
- 		json_object_object_add(jindex, "nslot", jobj);
- 
- 		json_object_array_add(jarray, jindex);
-+
-+		offset += nsindex_mysize;
- 	}
- 
- 	if (json_object_array_length(jarray) < 1) {
--- 
-2.21.3
-
+I wonder if ndctl should treat /etc/ndctl like a conf.d directory of
+which all files with the .conf suffix are concatenated into one
+combined configuration file. I.e. something that maintains legacy, but
+also allows for config fragments to be deployed individually.
