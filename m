@@ -1,158 +1,92 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F99A70
-	for <nvdimm@lists.linux.dev>; Thu,  3 Jun 2021 01:36:11 +0000 (UTC)
-IronPort-SDR: kr6Vd6mt9XhIKhyQyAafhFoDMTucjL4n4GA8FhP7U0hlsehiYu1eZhbuZUIEXHR0QbvoHoa2EW
- +FhkqGf4li9w==
-X-IronPort-AV: E=McAfee;i="6200,9189,10003"; a="202082616"
-X-IronPort-AV: E=Sophos;i="5.83,244,1616482800"; 
-   d="scan'208";a="202082616"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jun 2021 18:36:09 -0700
-IronPort-SDR: zLNTuaj+YtknhRv1sGNp45S+JT3aoHgEi3Af9Rrbl9hjQq6BUC652UdaRfjQretyHu/23sSkXw
- EMRiFm9vsdnw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.83,244,1616482800"; 
-   d="scan'208";a="483266081"
-Received: from icx-hcc-jingqi.sh.intel.com ([10.239.48.31])
-  by fmsmga002.fm.intel.com with ESMTP; 02 Jun 2021 18:36:08 -0700
-From: Jingqi Liu <jingqi.liu@intel.com>
-To: dan.j.williams@intel.com,
-	nvdimm@lists.linux.dev
-Cc: Jingqi Liu <jingqi.liu@intel.com>
-Subject: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
-Date: Thu,  3 Jun 2021 09:25:56 +0800
-Message-Id: <20210603012556.77451-1-jingqi.liu@intel.com>
-X-Mailer: git-send-email 2.21.3
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F42570
+	for <nvdimm@lists.linux.dev>; Thu,  3 Jun 2021 09:28:48 +0000 (UTC)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4FwgVY65cZz6trs;
+	Thu,  3 Jun 2021 17:25:41 +0800 (CST)
+Received: from dggpemm500006.china.huawei.com (7.185.36.236) by
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Thu, 3 Jun 2021 17:28:36 +0800
+Received: from thunder-town.china.huawei.com (10.174.177.72) by
+ dggpemm500006.china.huawei.com (7.185.36.236) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2176.2; Thu, 3 Jun 2021 17:28:36 +0800
+From: Zhen Lei <thunder.leizhen@huawei.com>
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma
+	<vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, nvdimm
+	<nvdimm@lists.linux.dev>, linux-kernel <linux-kernel@vger.kernel.org>
+CC: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: [PATCH 1/1] device-dax: use DEVICE_ATTR_ADMIN_RO() helper macro
+Date: Thu, 3 Jun 2021 17:24:05 +0800
+Message-ID: <20210603092405.11824-1-thunder.leizhen@huawei.com>
+X-Mailer: git-send-email 2.26.0.windows.1
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.174.177.72]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggpemm500006.china.huawei.com (7.185.36.236)
+X-CFilter-Loop: Reflected
 
-The following bug is caused by setting the size of Label Index Block
-to a fixed 256 bytes.
+Use DEVICE_ATTR_ADMIN_RO() helper macro instead of plain DEVICE_ATTR(),
+which makes the code a bit shorter and easier to read.
 
-Use the following Qemu command to start a Guest with 2MB label-size:
-	-object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
-	-device nvdimm,memdev=mem1,id=nv1,label-size=2M
-
-There is a namespace in the Guest as follows:
-	$ ndctl list
-	[
-	  {
-	    "dev":"namespace0.0",
-	    "mode":"devdax",
-	    "map":"dev",
-	    "size":14780727296,
-	    "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
-	    "chardev":"dax0.0",
-	    "align":2097152,
-	    "name":"namespace0.0"
-	  }
-	]
-
-Fail to read labels. The result is as follows:
-	$ ndctl read-labels -u nmem0
-	[
-	]
-	read 0 nmem
-
-If using the following Qemu command to start the Guest with 128K
-label-size, this label can be read correctly.
-	-object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
-	-device nvdimm,memdev=mem1,id=nv1,label-size=128K
-
-The size of a Label Index Block depends on how many label slots fit into
-the label storage area. The minimum size of an index block is 256 bytes
-and the size must be a multiple of 256 bytes. For a storage area of 128KB,
-the corresponding Label Index Block size is 256 bytes. But if the label
-storage area is not 128KB, the Label Index Block size should not be 256 bytes.
-
-Namespace Label Index Block appears twice at the top of the label storage area.
-Following the two index blocks, an array for storing labels takes up the
-remainder of the label storage area.
-
-When reading namespace index and labels, we should read the field of 'mysize'
-in the Label Index Block. Then we can correctly calculate the starting offset
-of another Label Index Block and the following namespace labels.
-
-Signed-off-by: Jingqi Liu <jingqi.liu@intel.com>
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
 ---
- ndctl/dimm.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ drivers/dax/bus.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 09ce49e..e05dcc2 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -94,13 +94,25 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
- 	struct json_object *jarray = json_object_new_array();
- 	struct json_object *jlabel = NULL;
- 	struct namespace_label nslabel;
-+	struct namespace_index nsindex;
-+	ssize_t nsindex_len = min_t(ssize_t, sizeof(nsindex), size);
-+	ssize_t nsindex_mysize;
- 	unsigned int slot = -1;
- 	ssize_t offset;
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 5aee26e1bbd6dba..a8a26398a313cd9 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -655,7 +655,7 @@ static ssize_t start_show(struct device *dev,
  
- 	if (!jarray)
- 		return NULL;
+ 	return rc;
+ }
+-static DEVICE_ATTR(start, 0400, start_show, NULL);
++static DEVICE_ATTR_ADMIN_RO(start);
  
--	for (offset = NSINDEX_ALIGN * 2; offset < size;
-+	nsindex_len = ndctl_cmd_cfg_read_get_data(cmd_read, &nsindex, nsindex_len, 0);
-+	if (nsindex_len < 0)
-+		return NULL;
-+
-+	nsindex_mysize = le64_to_cpu(nsindex.mysize);
-+	if ((nsindex_mysize > size)
-+			|| !IS_ALIGNED(nsindex_mysize, NSINDEX_ALIGN))
-+		return NULL;
-+
-+	for (offset = nsindex_mysize * 2; offset < size;
- 			offset += ndctl_dimm_sizeof_namespace_label(dimm)) {
- 		ssize_t len = min_t(ssize_t,
- 				ndctl_dimm_sizeof_namespace_label(dimm),
-@@ -210,13 +222,15 @@ static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t s
- 	struct json_object *jindex = NULL;
- 	struct namespace_index nsindex;
- 	ssize_t offset;
-+	int i;
+ static ssize_t end_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+@@ -671,9 +671,9 @@ static ssize_t end_show(struct device *dev,
  
- 	if (!jarray)
- 		return NULL;
+ 	return rc;
+ }
+-static DEVICE_ATTR(end, 0400, end_show, NULL);
++static DEVICE_ATTR_ADMIN_RO(end);
  
--	for (offset = 0; offset < NSINDEX_ALIGN * 2; offset += NSINDEX_ALIGN) {
-+	for (i = 0, offset = 0; i < 2 ; i++) {
- 		ssize_t len = min_t(ssize_t, sizeof(nsindex), size - offset);
- 		struct json_object *jobj;
-+		ssize_t nsindex_mysize;
+-static ssize_t pgoff_show(struct device *dev,
++static ssize_t page_offset_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct dev_dax_range *dax_range;
+@@ -687,7 +687,7 @@ static ssize_t pgoff_show(struct device *dev,
  
- 		jindex = json_object_new_object();
- 		if (!jindex)
-@@ -229,6 +243,11 @@ static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t s
- 		if (len < 0)
- 			break;
+ 	return rc;
+ }
+-static DEVICE_ATTR(page_offset, 0400, pgoff_show, NULL);
++static DEVICE_ATTR_ADMIN_RO(page_offset);
  
-+		nsindex_mysize = le64_to_cpu(nsindex.mysize);
-+		if ((nsindex_mysize > size)
-+				|| !IS_ALIGNED(nsindex_mysize, NSINDEX_ALIGN))
-+			break;
-+
- 		nsindex.sig[NSINDEX_SIG_LEN - 1] = 0;
- 		jobj = json_object_new_string(nsindex.sig);
- 		if (!jobj)
-@@ -261,6 +280,8 @@ static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t s
- 		json_object_object_add(jindex, "nslot", jobj);
+ static struct attribute *dax_mapping_attributes[] = {
+ 	&dev_attr_start.attr,
+@@ -1191,7 +1191,7 @@ static ssize_t resource_show(struct device *dev,
  
- 		json_object_array_add(jarray, jindex);
-+
-+		offset += nsindex_mysize;
- 	}
+ 	return sprintf(buf, "%#llx\n", start);
+ }
+-static DEVICE_ATTR(resource, 0400, resource_show, NULL);
++static DEVICE_ATTR_ADMIN_RO(resource);
  
- 	if (json_object_array_length(jarray) < 1) {
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
 -- 
-2.21.3
+2.26.0.106.g9fadedd
+
 
