@@ -1,332 +1,125 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EF2C29CA
-	for <nvdimm@lists.linux.dev>; Mon,  7 Jun 2021 19:55:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1623095734;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Fc+iKS9+ANFB6y1dZFMDW1G21rBUMRkywsva5h/mmrk=;
-	b=d2jqychICLXwfmhIlNdPGjQttvwL1EG8jcDWA1D9NBklbXzDup1kfiBXKCqr2THcEGTYcq
-	CNS68F/ML6KzkbzdxLb/7cI2TrWD+bKukL6OuFDKuYOwsouM3tjh00EhiwbuJPnWrgShOX
-	KAUJxWXNZ4rmi8M+d0WjU2qVVXKuzDY=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-270-lI1-N8yyPdK7mZjPkzUA4A-1; Mon, 07 Jun 2021 15:55:30 -0400
-X-MC-Unique: lI1-N8yyPdK7mZjPkzUA4A-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B4B8810074A6;
-	Mon,  7 Jun 2021 19:55:26 +0000 (UTC)
-Received: from t480s.redhat.com (ovpn-112-9.ams2.redhat.com [10.36.112.9])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 6C7381002D71;
-	Mon,  7 Jun 2021 19:55:14 +0000 (UTC)
-From: David Hildenbrand <david@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: David Hildenbrand <david@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Vitaly Kuznetsov <vkuznets@redhat.com>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Jason Wang <jasowang@redhat.com>,
-	Marek Kedzierski <mkedzier@redhat.com>,
-	Hui Zhu <teawater@gmail.com>,
-	Pankaj Gupta <pankaj.gupta.linux@gmail.com>,
-	Wei Yang <richard.weiyang@linux.alibaba.com>,
-	Oscar Salvador <osalvador@suse.de>,
-	Michal Hocko <mhocko@kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Anshuman Khandual <anshuman.khandual@arm.com>,
-	Dave Hansen <dave.hansen@linux.intel.com>,
-	Vlastimil Babka <vbabka@suse.cz>,
-	Mike Rapoport <rppt@kernel.org>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Len Brown <lenb@kernel.org>,
-	Pavel Tatashin <pasha.tatashin@soleen.com>,
-	virtualization@lists.linux-foundation.org,
-	linux-mm@kvack.org,
-	linux-acpi@vger.kernel.org,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Paul Mackerras <paulus@samba.org>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Nathan Lynch <nathanl@linux.ibm.com>,
-	Laurent Dufour <ldufour@linux.ibm.com>,
-	"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
-	Scott Cheloha <cheloha@linux.ibm.com>,
-	Anton Blanchard <anton@ozlabs.org>,
-	linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev
-Subject: [PATCH v1 05/12] mm/memory_hotplug: remove nid parameter from remove_memory() and friends
-Date: Mon,  7 Jun 2021 21:54:23 +0200
-Message-Id: <20210607195430.48228-6-david@redhat.com>
-In-Reply-To: <20210607195430.48228-1-david@redhat.com>
-References: <20210607195430.48228-1-david@redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 44A3829CA
+	for <nvdimm@lists.linux.dev>; Mon,  7 Jun 2021 20:03:27 +0000 (UTC)
+Received: by mail-pj1-f48.google.com with SMTP id b15-20020a17090a550fb029015dad75163dso787741pji.0
+        for <nvdimm@lists.linux.dev>; Mon, 07 Jun 2021 13:03:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=8eiTN2SecL+L9tmp2tiWhKD5FFj8ndrnsfT62HKaYR8=;
+        b=ERV6uOsqzoUh3OU7qtH2WJUGZXDoAOulyCHDm7lWOO41S29GKJxw1tIJPrKvQvhpQ1
+         3vVB9py4oKc9c6Nm2Z0Owa2u3y2wlSYBhtp2RUvIZKmDxqyBanFM0fMiaNkwPKalBIWq
+         rQXwrParZm2evbwGzEPLG6Zmu/PSaikwxK1dxjkj5E5VfN2/F23qVZo6nmfaY6V+7mSw
+         Olo0u3EKQ/fOqlgT/PoBgdavN3ai70+e3zzN6zWLqviZYOZn7aq1z0gb7/lRUYyLWozv
+         Ksnc00c3iVpb6BrQBpanazWtpnFZ2uXVYt2UbcXcFAoOgC5howWWmo7+pwgRklOjExsB
+         vCxg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=8eiTN2SecL+L9tmp2tiWhKD5FFj8ndrnsfT62HKaYR8=;
+        b=LsHZYksaK8ZV8SyMd/PdQkf7M6gu79j3nqegu/mP0CQguqgjrrUt8y3ZriaHNHlXDn
+         ow7cXD1E/1gVRUsWo8kbp79EbtK8uV2+MwrcQveRYr2WKV7PVv2G69fJbUAhnv//RPzK
+         l8qHozFtFohMX96HM2tYekcvCUGP3jOureHchfbhK4rN7wK+tmG38jiSz/KrbdKuqERy
+         UsVdpKm2eQZt4Zsv8Q7AR49NuyGvuETiRSna2VwHs1xYcyzI9K4g1VJrNufnRkWw80mr
+         nd25W9HQOG8jX2imklz8isn/4S7dQXE/Is/VNBpt4NgHaDKbpT8Sy/oZQr6VF3Ptm9DO
+         bPyQ==
+X-Gm-Message-State: AOAM531gB3zZXbX8woS2AoYE4wz0JjOdH9DoAKTpCGkRFBo2CE853mLO
+	I7HXi6NQcgJBZ4cGTWfbwbJer4nRY6y0lD74r18yJRXIAmBQQA==
+X-Google-Smtp-Source: ABdhPJzsbK0fcIwttRwYMa9cGTjf1DZsvVmcawERgRvLrdGsMrmhZ+5bx+QanBedU7ftnVFx3tQyhFU/5C98pbjk3Mc=
+X-Received: by 2002:a17:90a:fc88:: with SMTP id ci8mr852302pjb.13.1623096206522;
+ Mon, 07 Jun 2021 13:03:26 -0700 (PDT)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
-
-There is only a single user remaining. We can simply try to offline all
-online nodes - which is fast, because we usually span pages and can skip
-such nodes right away.
-
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nathan Lynch <nathanl@linux.ibm.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-acpi@vger.kernel.org
+References: <20210603012556.77451-1-jingqi.liu@intel.com>
+In-Reply-To: <20210603012556.77451-1-jingqi.liu@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 7 Jun 2021 13:03:15 -0700
+Message-ID: <CAPcyv4hzS93k5PYXE_bVp6SQ8WwPw09B+SyJC0xPKE20simwuQ@mail.gmail.com>
+Subject: Re: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
+To: Jingqi Liu <jingqi.liu@intel.com>
 Cc: nvdimm@lists.linux.dev
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- .../platforms/pseries/hotplug-memory.c        |  9 ++++-----
- drivers/acpi/acpi_memhotplug.c                |  7 +------
- drivers/dax/kmem.c                            |  3 +--
- drivers/virtio/virtio_mem.c                   |  4 ++--
- include/linux/memory_hotplug.h                | 10 +++++-----
- mm/memory_hotplug.c                           | 20 +++++++++----------
- 6 files changed, 23 insertions(+), 30 deletions(-)
+Content-Type: text/plain; charset="UTF-8"
 
-diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
-index 8377f1f7c78e..4a9232ddbefe 100644
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c
-+++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -286,7 +286,7 @@ static int pseries_remove_memblock(unsigned long base, unsigned long memblock_si
- {
- 	unsigned long block_sz, start_pfn;
- 	int sections_per_block;
--	int i, nid;
-+	int i;
- 
- 	start_pfn = base >> PAGE_SHIFT;
- 
-@@ -297,10 +297,9 @@ static int pseries_remove_memblock(unsigned long base, unsigned long memblock_si
- 
- 	block_sz = pseries_memory_block_size();
- 	sections_per_block = block_sz / MIN_MEMORY_BLOCK_SIZE;
--	nid = memory_add_physaddr_to_nid(base);
- 
- 	for (i = 0; i < sections_per_block; i++) {
--		__remove_memory(nid, base, MIN_MEMORY_BLOCK_SIZE);
-+		__remove_memory(base, MIN_MEMORY_BLOCK_SIZE);
- 		base += MIN_MEMORY_BLOCK_SIZE;
- 	}
- 
-@@ -386,7 +385,7 @@ static int dlpar_remove_lmb(struct drmem_lmb *lmb)
- 
- 	block_sz = pseries_memory_block_size();
- 
--	__remove_memory(mem_block->nid, lmb->base_addr, block_sz);
-+	__remove_memory(lmb->base_addr, block_sz);
- 	put_device(&mem_block->dev);
- 
- 	/* Update memory regions for memory remove */
-@@ -638,7 +637,7 @@ static int dlpar_add_lmb(struct drmem_lmb *lmb)
- 
- 	rc = dlpar_online_lmb(lmb);
- 	if (rc) {
--		__remove_memory(nid, lmb->base_addr, block_sz);
-+		__remove_memory(lmb->base_addr, block_sz);
- 		invalidate_lmb_associativity_index(lmb);
- 	} else {
- 		lmb->flags |= DRCONF_MEM_ASSIGNED;
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 8cc195c4c861..1d01d9414c40 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -239,19 +239,14 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 
- static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
- {
--	acpi_handle handle = mem_device->device->handle;
- 	struct acpi_memory_info *info, *n;
--	int nid = acpi_get_node(handle);
- 
- 	list_for_each_entry_safe(info, n, &mem_device->res_list, list) {
- 		if (!info->enabled)
- 			continue;
- 
--		if (nid == NUMA_NO_NODE)
--			nid = memory_add_physaddr_to_nid(info->start_addr);
--
- 		acpi_unbind_memory_blocks(info);
--		__remove_memory(nid, info->start_addr, info->length);
-+		__remove_memory(info->start_addr, info->length);
- 		list_del(&info->list);
- 		kfree(info);
- 	}
-diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-index ac231cc36359..99e0f60c4c26 100644
---- a/drivers/dax/kmem.c
-+++ b/drivers/dax/kmem.c
-@@ -156,8 +156,7 @@ static void dev_dax_kmem_remove(struct dev_dax *dev_dax)
- 		if (rc)
- 			continue;
- 
--		rc = remove_memory(dev_dax->target_node, range.start,
--				range_len(&range));
-+		rc = remove_memory(range.start, range_len(&range));
- 		if (rc == 0) {
- 			release_resource(data->res[i]);
- 			kfree(data->res[i]);
-diff --git a/drivers/virtio/virtio_mem.c b/drivers/virtio/virtio_mem.c
-index 10ec60d81e84..e327fb878143 100644
---- a/drivers/virtio/virtio_mem.c
-+++ b/drivers/virtio/virtio_mem.c
-@@ -673,7 +673,7 @@ static int virtio_mem_remove_memory(struct virtio_mem *vm, uint64_t addr,
- 
- 	dev_dbg(&vm->vdev->dev, "removing memory: 0x%llx - 0x%llx\n", addr,
- 		addr + size - 1);
--	rc = remove_memory(vm->nid, addr, size);
-+	rc = remove_memory(addr, size);
- 	if (!rc) {
- 		atomic64_sub(size, &vm->offline_size);
- 		/*
-@@ -728,7 +728,7 @@ static int virtio_mem_offline_and_remove_memory(struct virtio_mem *vm,
- 		"offlining and removing memory: 0x%llx - 0x%llx\n", addr,
- 		addr + size - 1);
- 
--	rc = offline_and_remove_memory(vm->nid, addr, size);
-+	rc = offline_and_remove_memory(addr, size);
- 	if (!rc) {
- 		atomic64_sub(size, &vm->offline_size);
- 		/*
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 1d8d09c029c9..84f05435e2ae 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -319,9 +319,9 @@ static inline void pgdat_resize_init(struct pglist_data *pgdat) {}
- 
- extern void try_offline_node(int nid);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
--extern int remove_memory(int nid, u64 start, u64 size);
--extern void __remove_memory(int nid, u64 start, u64 size);
--extern int offline_and_remove_memory(int nid, u64 start, u64 size);
-+extern int remove_memory(u64 start, u64 size);
-+extern void __remove_memory(u64 start, u64 size);
-+extern int offline_and_remove_memory(u64 start, u64 size);
- 
- #else
- static inline void try_offline_node(int nid) {}
-@@ -331,12 +331,12 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- 	return -EINVAL;
- }
- 
--static inline int remove_memory(int nid, u64 start, u64 size)
-+static inline int remove_memory(u64 start, u64 size)
- {
- 	return -EBUSY;
- }
- 
--static inline void __remove_memory(int nid, u64 start, u64 size) {}
-+static inline void __remove_memory(u64 start, u64 size) {}
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- extern void set_zone_contiguous(struct zone *zone);
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index f9be66bbd847..9cae42636f3e 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -2157,9 +2157,9 @@ void try_offline_node(int nid)
- }
- EXPORT_SYMBOL(try_offline_node);
- 
--static int __ref try_remove_memory(int nid, u64 start, u64 size)
-+static int __ref try_remove_memory(u64 start, u64 size)
- {
--	int rc = 0;
-+	int rc = 0, nid;
- 	struct vmem_altmap mhp_altmap = {};
- 	struct vmem_altmap *altmap = NULL;
- 	unsigned long nr_vmemmap_pages;
-@@ -2220,7 +2220,8 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
- 
- 	release_mem_region_adjustable(start, size);
- 
--	try_offline_node(nid);
-+	for_each_online_node(nid)
-+		try_offline_node(nid);
- 
- 	mem_hotplug_done();
- 	return 0;
-@@ -2228,7 +2229,6 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
- 
- /**
-  * remove_memory
-- * @nid: the node ID
-  * @start: physical address of the region to remove
-  * @size: size of the region to remove
-  *
-@@ -2236,14 +2236,14 @@ static int __ref try_remove_memory(int nid, u64 start, u64 size)
-  * and online/offline operations before this call, as required by
-  * try_offline_node().
-  */
--void __remove_memory(int nid, u64 start, u64 size)
-+void __remove_memory(u64 start, u64 size)
- {
- 
- 	/*
- 	 * trigger BUG() if some memory is not offlined prior to calling this
- 	 * function
- 	 */
--	if (try_remove_memory(nid, start, size))
-+	if (try_remove_memory(start, size))
- 		BUG();
- }
- 
-@@ -2251,12 +2251,12 @@ void __remove_memory(int nid, u64 start, u64 size)
-  * Remove memory if every memory block is offline, otherwise return -EBUSY is
-  * some memory is not offline
-  */
--int remove_memory(int nid, u64 start, u64 size)
-+int remove_memory(u64 start, u64 size)
- {
- 	int rc;
- 
- 	lock_device_hotplug();
--	rc  = try_remove_memory(nid, start, size);
-+	rc = try_remove_memory(start, size);
- 	unlock_device_hotplug();
- 
- 	return rc;
-@@ -2316,7 +2316,7 @@ static int try_reonline_memory_block(struct memory_block *mem, void *arg)
-  * unplugged all memory (so it's no longer in use) and want to offline + remove
-  * that memory.
-  */
--int offline_and_remove_memory(int nid, u64 start, u64 size)
-+int offline_and_remove_memory(u64 start, u64 size)
- {
- 	const unsigned long mb_count = size / memory_block_size_bytes();
- 	uint8_t *online_types, *tmp;
-@@ -2352,7 +2352,7 @@ int offline_and_remove_memory(int nid, u64 start, u64 size)
- 	 * This cannot fail as it cannot get onlined in the meantime.
- 	 */
- 	if (!rc) {
--		rc = try_remove_memory(nid, start, size);
-+		rc = try_remove_memory(start, size);
- 		if (rc)
- 			pr_err("%s: Failed to remove memory: %d", __func__, rc);
- 	}
--- 
-2.31.1
+On Wed, Jun 2, 2021 at 6:36 PM Jingqi Liu <jingqi.liu@intel.com> wrote:
+>
+> The following bug is caused by setting the size of Label Index Block
+> to a fixed 256 bytes.
+>
+> Use the following Qemu command to start a Guest with 2MB label-size:
+>         -object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
+>         -device nvdimm,memdev=mem1,id=nv1,label-size=2M
+>
+> There is a namespace in the Guest as follows:
+>         $ ndctl list
+>         [
+>           {
+>             "dev":"namespace0.0",
+>             "mode":"devdax",
+>             "map":"dev",
+>             "size":14780727296,
+>             "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
+>             "chardev":"dax0.0",
+>             "align":2097152,
+>             "name":"namespace0.0"
+>           }
+>         ]
+>
+> Fail to read labels. The result is as follows:
+>         $ ndctl read-labels -u nmem0
+>         [
+>         ]
+>         read 0 nmem
+>
+> If using the following Qemu command to start the Guest with 128K
+> label-size, this label can be read correctly.
+>         -object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
+>         -device nvdimm,memdev=mem1,id=nv1,label-size=128K
+>
+> The size of a Label Index Block depends on how many label slots fit into
+> the label storage area. The minimum size of an index block is 256 bytes
+> and the size must be a multiple of 256 bytes. For a storage area of 128KB,
+> the corresponding Label Index Block size is 256 bytes. But if the label
+> storage area is not 128KB, the Label Index Block size should not be 256 bytes.
+>
+> Namespace Label Index Block appears twice at the top of the label storage area.
+> Following the two index blocks, an array for storing labels takes up the
+> remainder of the label storage area.
+>
+> When reading namespace index and labels, we should read the field of 'mysize'
+> in the Label Index Block. Then we can correctly calculate the starting offset
+> of another Label Index Block and the following namespace labels.
 
+Good find! I agree this is broken, but I'm not sure this is the way to
+fix it. The ndctl enabling is meant to support dumping index blocks
+that might be corrupt, so I don't want to rely on index block data for
+this value. It should copy the kernel which has this definition for
+determining sizeof_namespace_index():
+
+size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
+{
+        u32 nslot, space, size;
+
+        /*
+         * Per UEFI 2.7, the minimum size of the Label Storage Area is large
+         * enough to hold 2 index blocks and 2 labels.  The minimum index
+         * block size is 256 bytes. The label size is 128 for namespaces
+         * prior to version 1.2 and at minimum 256 for version 1.2 and later.
+         */
+        nslot = nvdimm_num_label_slots(ndd);
+        space = ndd->nsarea.config_size - nslot * sizeof_namespace_label(ndd);
+        size = __sizeof_namespace_index(nslot) * 2;
+        if (size <= space && nslot >= 2)
+                return size / 2;
+
+        dev_err(ndd->dev, "label area (%d) too small to host (%d byte)
+labels\n",
+                        ndd->nsarea.config_size, sizeof_namespace_label(ndd));
+        return 0;
+}
