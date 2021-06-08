@@ -1,153 +1,197 @@
-Received: from ozlabs.org (ozlabs.org [203.11.71.1])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19F4272
-	for <nvdimm@lists.linux.dev>; Tue,  8 Jun 2021 11:20:12 +0000 (UTC)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mail.ozlabs.org (Postfix) with ESMTPSA id 4Fznct061wz9sW7;
-	Tue,  8 Jun 2021 21:11:57 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ellerman.id.au;
-	s=201909; t=1623150723;
-	bh=h1pjcx14WED8GV61yyvX+o5nh/QO2vDigglGzaBUaPo=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=qaYxKhntxn9domJfTp/b7vZheGgvSG04qAi3oPZszcrG9xJ8L8BtLeFBDdkNbhfRZ
-	 X8AJHokX7Us9uk+OIikdyp8VwCVfcmpt0jHbXBsbfQ+HEwfgLRBxW3k7uXH4jT5QAg
-	 8xQpuppzCCGEv/fkG3Q1MEqEdqwDa3GgrXCwBwQ3bGGeK2M1OuWRxuc0qtkEr1keBz
-	 fDJQZ6qLeVUxjcpDY8AtdZZU3JvH1MC5Y3w/lLqHwiFCGx13AS18HU2Ir33OkNpg2k
-	 8GyFRxa0K5NYJybxWne97z3ZMcKKDCCW4J0WeaoO69Q+XrReDs4uvXduZSTclQX4ku
-	 hnEBus8PGkG1w==
-From: Michael Ellerman <mpe@ellerman.id.au>
-To: David Hildenbrand <david@redhat.com>, linux-kernel@vger.kernel.org
-Cc: David Hildenbrand <david@redhat.com>, Andrew Morton
- <akpm@linux-foundation.org>, Vitaly Kuznetsov <vkuznets@redhat.com>,
- "Michael S. Tsirkin" <mst@redhat.com>, Jason Wang <jasowang@redhat.com>,
- Marek Kedzierski <mkedzier@redhat.com>, Hui Zhu <teawater@gmail.com>,
- Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Wei Yang
- <richard.weiyang@linux.alibaba.com>, Oscar Salvador <osalvador@suse.de>,
- Michal Hocko <mhocko@kernel.org>, Dan Williams <dan.j.williams@intel.com>,
- Anshuman Khandual <anshuman.khandual@arm.com>, Dave Hansen
- <dave.hansen@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Mike
- Rapoport <rppt@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len
- Brown <lenb@kernel.org>, Pavel Tatashin <pasha.tatashin@soleen.com>,
- virtualization@lists.linux-foundation.org, linux-mm@kvack.org,
- linux-acpi@vger.kernel.org, Benjamin Herrenschmidt
- <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Vishal
- Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
- Nathan Lynch <nathanl@linux.ibm.com>, Laurent Dufour
- <ldufour@linux.ibm.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
- Scott Cheloha <cheloha@linux.ibm.com>, Anton Blanchard <anton@ozlabs.org>,
- linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev
-Subject: Re: [PATCH v1 05/12] mm/memory_hotplug: remove nid parameter from
- remove_memory() and friends
-In-Reply-To: <20210607195430.48228-6-david@redhat.com>
-References: <20210607195430.48228-1-david@redhat.com>
- <20210607195430.48228-6-david@redhat.com>
-Date: Tue, 08 Jun 2021 21:11:57 +1000
-Message-ID: <87y2bkehky.fsf@mpe.ellerman.id.au>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ABF6A72
+	for <nvdimm@lists.linux.dev>; Tue,  8 Jun 2021 11:58:07 +0000 (UTC)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 158Bj8kV127608;
+	Tue, 8 Jun 2021 07:57:38 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=s7779BGF1RwzQdzaBMMzm+zqsP2uZ91w1g6TrDmS+dk=;
+ b=pKxKBKCnnqIrlBIQu8z3N8bL9hpzWLaSkPe0PMFHrddvkjoxoy3gwWjTdBK1FMpTmqxP
+ cvT+iOQjvxiSYC51uVf+Z3nsVreqICJCW467QspE1Oya/Pm53bGddixpRWHF2ryFu4jB
+ l+7sSDj0mbflo4j5x8M+gWBnRSu5y02pXB1YnvV8SleElb8aehHr/RlKIWmBNmvch/XQ
+ OB3xrOzN47cKBf1zzr1obFzI3HakzKad1RHIr77WV5aiDkdNZjGpf3WqARuEs0FkytsX
+ h7c87uGk0vx827AmLT1FPPEA+pKMn6zg9o6dnz5nDLLU31vBxThdIGlfnN7Foa1Tddx7 Jw== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3927xrrb8d-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 08 Jun 2021 07:57:38 -0400
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 158BqwFr002331;
+	Tue, 8 Jun 2021 11:57:36 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma04ams.nl.ibm.com with ESMTP id 3900w89g6v-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 08 Jun 2021 11:57:36 +0000
+Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 158BvXwb33882582
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 8 Jun 2021 11:57:33 GMT
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 366424C046;
+	Tue,  8 Jun 2021 11:57:33 +0000 (GMT)
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 284CA4C040;
+	Tue,  8 Jun 2021 11:57:14 +0000 (GMT)
+Received: from localhost.localdomain.com (unknown [9.199.43.72])
+	by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue,  8 Jun 2021 11:57:13 +0000 (GMT)
+From: Kajol Jain <kjain@linux.ibm.com>
+To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, peterz@infradead.org
+Cc: maddy@linux.vnet.ibm.com, santosh@fossix.org, aneesh.kumar@linux.ibm.com,
+        vaibhav@linux.ibm.com, dan.j.williams@intel.com, ira.weiny@intel.com,
+        atrajeev@linux.vnet.ibm.com, tglx@linutronix.de, kjain@linux.ibm.com,
+        rnsastry@linux.ibm.com
+Subject: [PATCH 0/4] Add perf interface to expose nvdimm
+Date: Tue,  8 Jun 2021 17:26:56 +0530
+Message-Id: <20210608115700.85933-1-kjain@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 1-w3_azq6HHOTW6Honi2Hi3E_BHIK41C
+X-Proofpoint-ORIG-GUID: 1-w3_azq6HHOTW6Honi2Hi3E_BHIK41C
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-06-08_09:2021-06-04,2021-06-08 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 mlxscore=0
+ phishscore=0 adultscore=0 malwarescore=0 priorityscore=1501
+ mlxlogscore=999 lowpriorityscore=0 suspectscore=0 clxscore=1015
+ spamscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2106080077
 
-David Hildenbrand <david@redhat.com> writes:
-> There is only a single user remaining. We can simply try to offline all
-> online nodes - which is fast, because we usually span pages and can skip
-> such nodes right away.
+Patchset adds performance stats reporting support for nvdimm.
+Added interface includes support for pmu register/unregister
+functions. A structure is added called nvdimm_pmu to be used for
+adding arch/platform specific data such as supported events, cpumask
+pmu event functions like event_init/add/read/del.
+User could use the standard perf tool to access perf
+events exposed via pmu.
 
-That makes me slightly nervous, because our big powerpc boxes tend to
-trip on these scaling issues before others.
+Added implementation to expose IBM pseries platform nmem*
+device performance stats using this interface.
 
-But the spanned pages check is just:
+Result from power9 pseries lpar with 2 nvdimm device:
+command:# perf list nmem
+  nmem0/cchrhcnt/                                    [Kernel PMU event]
+  nmem0/cchwhcnt/                                    [Kernel PMU event]
+  nmem0/critrscu/                                    [Kernel PMU event]
+  nmem0/ctlresct/                                    [Kernel PMU event]
+  nmem0/ctlrestm/                                    [Kernel PMU event]
+  nmem0/fastwcnt/                                    [Kernel PMU event]
+  nmem0/hostlcnt/                                    [Kernel PMU event]
+  nmem0/hostldur/                                    [Kernel PMU event]
+  nmem0/hostscnt/                                    [Kernel PMU event]
+  nmem0/hostsdur/                                    [Kernel PMU event]
+  nmem0/medrcnt/                                     [Kernel PMU event]
+  nmem0/medrdur/                                     [Kernel PMU event]
+  nmem0/medwcnt/                                     [Kernel PMU event]
+  nmem0/medwdur/                                     [Kernel PMU event]
+  nmem0/memlife/                                     [Kernel PMU event]
+  nmem0/noopstat/                                    [Kernel PMU event]
+  nmem0/ponsecs/                                     [Kernel PMU event]
+  nmem1/cchrhcnt/                                    [Kernel PMU event]
+  nmem1/cchwhcnt/                                    [Kernel PMU event]
+  nmem1/critrscu/                                    [Kernel PMU event]
+  ...
+  nmem1/noopstat/                                    [Kernel PMU event]
+  nmem1/ponsecs/                                     [Kernel PMU event]
 
-void try_offline_node(int nid)
-{
-	pg_data_t *pgdat = NODE_DATA(nid);
-        ...
-	if (pgdat->node_spanned_pages)
-		return;
+Patch1:
+        Introduces the nvdimm_pmu structure
+Patch2:
+	Adds common interface to add arch/platform specific data
+	includes supported events, pmu event functions. It also
+	adds code for cpu hotplug support.
+Patch3:
+        Add code in arch/powerpc/platform/pseries/papr_scm.c to expose
+        nmem* pmu. It fills in the nvdimm_pmu structure with event attrs
+        cpumask andevent functions and then registers the pmu by adding
+        callbacks to register_nvdimm_pmu.
+Patch4:
+        Sysfs documentation patch
 
-So I guess that's pretty cheap, and it's only O(nodes), which should
-never get that big.
+Changelog
+---
+RFC v3 -> PATCH
+- Link to the RFC v3 patchset : https://lkml.org/lkml/2021/5/29/28
 
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Cc: Dave Jiang <dave.jiang@intel.com>
-> Cc: "Michael S. Tsirkin" <mst@redhat.com>
-> Cc: Jason Wang <jasowang@redhat.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Nathan Lynch <nathanl@linux.ibm.com>
-> Cc: Laurent Dufour <ldufour@linux.ibm.com>
-> Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-> Cc: Scott Cheloha <cheloha@linux.ibm.com>
-> Cc: Anton Blanchard <anton@ozlabs.org>
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-acpi@vger.kernel.org
-> Cc: nvdimm@lists.linux.dev
-> Signed-off-by: David Hildenbrand <david@redhat.com>
-> ---
->  .../platforms/pseries/hotplug-memory.c        |  9 ++++-----
->  drivers/acpi/acpi_memhotplug.c                |  7 +------
->  drivers/dax/kmem.c                            |  3 +--
->  drivers/virtio/virtio_mem.c                   |  4 ++--
->  include/linux/memory_hotplug.h                | 10 +++++-----
->  mm/memory_hotplug.c                           | 20 +++++++++----------
->  6 files changed, 23 insertions(+), 30 deletions(-)
->
-> diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
-> index 8377f1f7c78e..4a9232ddbefe 100644
-> --- a/arch/powerpc/platforms/pseries/hotplug-memory.c
-> +++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
-> @@ -286,7 +286,7 @@ static int pseries_remove_memblock(unsigned long base, unsigned long memblock_si
->  {
->  	unsigned long block_sz, start_pfn;
->  	int sections_per_block;
-> -	int i, nid;
-> +	int i;
->  
->  	start_pfn = base >> PAGE_SHIFT;
->  
-> @@ -297,10 +297,9 @@ static int pseries_remove_memblock(unsigned long base, unsigned long memblock_si
->  
->  	block_sz = pseries_memory_block_size();
->  	sections_per_block = block_sz / MIN_MEMORY_BLOCK_SIZE;
-> -	nid = memory_add_physaddr_to_nid(base);
->  
->  	for (i = 0; i < sections_per_block; i++) {
-> -		__remove_memory(nid, base, MIN_MEMORY_BLOCK_SIZE);
-> +		__remove_memory(base, MIN_MEMORY_BLOCK_SIZE);
->  		base += MIN_MEMORY_BLOCK_SIZE;
->  	}
->  
-> @@ -386,7 +385,7 @@ static int dlpar_remove_lmb(struct drmem_lmb *lmb)
->  
->  	block_sz = pseries_memory_block_size();
->  
-> -	__remove_memory(mem_block->nid, lmb->base_addr, block_sz);
-> +	__remove_memory(lmb->base_addr, block_sz);
->  	put_device(&mem_block->dev);
->  
->  	/* Update memory regions for memory remove */
-> @@ -638,7 +637,7 @@ static int dlpar_add_lmb(struct drmem_lmb *lmb)
->  
->  	rc = dlpar_online_lmb(lmb);
->  	if (rc) {
-> -		__remove_memory(nid, lmb->base_addr, block_sz);
-> +		__remove_memory(lmb->base_addr, block_sz);
->  		invalidate_lmb_associativity_index(lmb);
->  	} else {
->  		lmb->flags |= DRCONF_MEM_ASSIGNED;
+- Remove RFC tag.
 
+- Add nvdimm_pmu_cpu_online function.
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+- A new variable 'arch_cpumask' is added to the struct nvdimm_pmu
+  which can be used to provide cpumask by the arch specific code.
+  It will used incase cpu hotplug is not handled by arch code.
+  Now common interface first check for any active cpu in arch_cpumask
+  to designate cpu to collect counter data and incase we dont have any
+  active cpu in that mask, it will look into cpumask of the device
+  numa node.
 
-cheers
+-Add code in papr_scm to fill arch_cpumask variable with required
+ cpumask.
+
+- Some optimizations/fixes from previous RFC code
+
+v2 -> v3
+- Link to the RFC v2 patchset : https://lkml.org/lkml/2021/5/25/591
+
+- Moved hotplug code changes from papr_scm code to generic interface
+  with required functionality as suggested by Peter Zijlstra
+
+- Changed function parameter of unregister_nvdimm_pmu function from
+  struct pmu to struct nvdimm_pmu.
+
+- Now cpumask will get updated based on numa node of corresponding nvdimm
+  device as suggested by Peter Zijlstra.
+
+v1 -> v2
+- Link to the RFC v1 patchset : https://lkml.org/lkml/2021/5/12/2747
+
+- Removed intermediate functions nvdimm_pmu_read/nvdimm_pmu_add/
+  nvdimm_pmu_del/nvdimm_pmu_event_init and directly assigned
+  platfrom specific routines. Also add check for any NULL functions.
+  Suggested by: Peter Zijlstra
+
+- Add macros for event attribute array index which can be used to
+  assign dynamically allocated attr_groups.
+
+- New function 'nvdimm_pmu_mem_free' is added to free dynamic
+  memory allocated for attr_groups in papr_scm.c
+
+- PMU register call moved from papr_scm_nvdimm_init() to papr_scm_probe()
+
+- Move addition of cpu/node/cpuhp_state attributes in struct nvdimm_pmu
+  to patch 4 where cpu hotplug code added
+
+- Removed device attribute from the attribute list of
+  add/del/read/event_init functions in nvdimm_pmu structure
+  as we need to assign them directly to pmu structure.
+
+---
+
+Kajol Jain (4):
+  drivers/nvdimm: Add nvdimm pmu structure
+  drivers/nvdimm: Add perf interface to expose nvdimm performance stats
+  powerpc/papr_scm: Add perf interface support
+  powerpc/papr_scm: Document papr_scm sysfs event format entries
+
+ Documentation/ABI/testing/sysfs-bus-papr-pmem |  31 ++
+ arch/powerpc/include/asm/device.h             |   5 +
+ arch/powerpc/platforms/pseries/papr_scm.c     | 365 ++++++++++++++++++
+ drivers/nvdimm/Makefile                       |   1 +
+ drivers/nvdimm/nd_perf.c                      | 230 +++++++++++
+ include/linux/nd.h                            |  46 +++
+ 6 files changed, 678 insertions(+)
+ create mode 100644 drivers/nvdimm/nd_perf.c
+
+-- 
+2.27.0
+
