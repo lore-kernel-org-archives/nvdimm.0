@@ -1,145 +1,87 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3B0152F80
-	for <nvdimm@lists.linux.dev>; Tue,  8 Jun 2021 17:37:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=gtYgNf1MMJu3408XeDLJzRxVXgNres0dscNvmSwjebA=; b=E/68k0xfCirgm0okM86kOWTy5n
-	koZf2UVhOUTgD0SnkOnbhncTMRa5FWzW9XLyVfCjB1bDN+Qeh+cmLZM8zYPFbrHjh+E+1W+bjQ7ht
-	QunrXmYGUyepZs0Z0U20eZOcUUeVOKQ0td6bp5ivBwX0VTU3yL+unMZv8TN9KvAQ+AlRATI03isY2
-	k+JH0MFpFSgr29GMAaflEY2T5fIbO2K8fKp/+ghOm7STw2xdHavvmTBI4If7AF6zswD1zSKO8Up4w
-	jef4ADh3v2xi/lmGByM99g0PSsDm3m0JUAhlqGvkVaX53aQY574hCWX5AUVTRdwM9sQUQsmroJsZ8
-	mD8D4RtA==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-	by casper.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-	id 1lqfeb-00HDKO-Eo; Tue, 08 Jun 2021 17:36:48 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits))
-	(Client did not present a certificate)
-	by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 8139430018A;
-	Tue,  8 Jun 2021 19:36:37 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-	id 008B72D754400; Tue,  8 Jun 2021 19:36:36 +0200 (CEST)
-Date: Tue, 8 Jun 2021 19:36:36 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Kajol Jain <kjain@linux.ibm.com>
-Cc: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org,
-	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-	maddy@linux.vnet.ibm.com, santosh@fossix.org,
-	aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com,
-	dan.j.williams@intel.com, ira.weiny@intel.com,
-	atrajeev@linux.vnet.ibm.com, tglx@linutronix.de,
-	rnsastry@linux.ibm.com
-Subject: Re: [PATCH 2/4] drivers/nvdimm: Add perf interface to expose nvdimm
- performance stats
-Message-ID: <YL+qpL/+ReGfqXce@hirez.programming.kicks-ass.net>
-References: <20210608115700.85933-1-kjain@linux.ibm.com>
- <20210608115700.85933-3-kjain@linux.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BAB229CA
+	for <nvdimm@lists.linux.dev>; Tue,  8 Jun 2021 21:26:32 +0000 (UTC)
+Received: by mail-pj1-f42.google.com with SMTP id mp5-20020a17090b1905b029016dd057935fso131731pjb.5
+        for <nvdimm@lists.linux.dev>; Tue, 08 Jun 2021 14:26:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=kernel-dk.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=kNN1i0jrT7egcOu3/Gg1Kx3fRixlSMvnvYZBcIOdB0k=;
+        b=r6G1vcNcZMXWXE6oDi0tLTFoeRKb4dnpyBZqrrJbmJwhBrCDaD1I7nyzN9J+47Zcb4
+         9BF+Aq+xjvhTtlyr21YeXS6lD2Tbf6jDVsiwBnaP++TOlcPVHx2vFMzTrqQU+p9LTzZ0
+         rvwrXYvPKkN7RFyyhxX57RGgHaG6v67wzF+cwyK+/OpOvNiXio42o1IuJEIjHzGMnKmx
+         yDdIpf/30EykF5NoLqd/ESrGLwpjySkztMTAyEem8PU41Z6XgFncxxtj1l2xBlDLp5pI
+         jZok4B0WsCatTx0KTbO/e9/Ev2SxFjLF6/PFL5q5w/ivFUBkq8dJ8Q311zak2hiPFXrT
+         l1tg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=kNN1i0jrT7egcOu3/Gg1Kx3fRixlSMvnvYZBcIOdB0k=;
+        b=EA37zeeqtGY2k0CCzzkD7SV+ANbtF1gG2tKn1HxUwN1SbHN4KNK/oZm32YX6Qu07YF
+         PQRwjCs5f9AdgT6ODs/NcfuY9r1rREd8yLQv2f6XNUM9kqF36uMLEjFy1aRPm8TcibKH
+         dnxxwb2QpegGkviThbSlGiQY2e/G1Oc+Dr7rlsMJ/rlxwrqQjezLJupq8uU9QDUGi3PX
+         ECxvslQe5cs2w3LZx1a/lWd5XLdTtWeKdVBBYNsu9uf/13G7OUvGAVOG3p2W2obqW46o
+         cnKvdu8EPrOpvXKjQ1ipt70PDgt9eC0Ek4YuSn0g9Em8lh5VZY/+DN9ADMCPIeLNagTR
+         F3Hg==
+X-Gm-Message-State: AOAM532pgjNCPu6XyI0LBzaLvHlLMLtP9oK9Rzp/1LyXJdHGxINzwvLP
+	LklO2PiVB3yQDjxR7hZt8ju5Cw==
+X-Google-Smtp-Source: ABdhPJyTM1saT9p8ZYGVelfuMPmeTYV1q7Z3qAgPiVEANKFqHtJZduf+t/dNGiht2a5I2zxw/1RELQ==
+X-Received: by 2002:a17:902:8d92:b029:113:91e7:89d6 with SMTP id v18-20020a1709028d92b029011391e789d6mr1700511plo.85.1623187591661;
+        Tue, 08 Jun 2021 14:26:31 -0700 (PDT)
+Received: from [192.168.4.41] (cpe-72-132-29-68.dc.res.rr.com. [72.132.29.68])
+        by smtp.gmail.com with ESMTPSA id h8sm5800635pgr.43.2021.06.08.14.26.30
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 08 Jun 2021 14:26:31 -0700 (PDT)
+Subject: Re: [PATCH v2] libnvdimm/pmem: Fix blk_cleanup_disk() usage
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Sachin Sant <sachinp@linux.vnet.ibm.com>, Christoph Hellwig <hch@lst.de>,
+ Ulf Hansson <ulf.hansson@linaro.org>, nvdimm@lists.linux.dev,
+ linux-block@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+References: <162310861219.1571453.6561642225122047071.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <162310994435.1571616.334551212901820961.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Jens Axboe <axboe@kernel.dk>
+Message-ID: <1b2082fc-be01-ad2f-9dd5-aa66b1c0ce85@kernel.dk>
+Date: Tue, 8 Jun 2021 15:26:50 -0600
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210608115700.85933-3-kjain@linux.ibm.com>
+In-Reply-To: <162310994435.1571616.334551212901820961.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jun 08, 2021 at 05:26:58PM +0530, Kajol Jain wrote:
-> +static int nvdimm_pmu_cpu_offline(unsigned int cpu, struct hlist_node *node)
-> +{
-> +	struct nvdimm_pmu *nd_pmu;
-> +	u32 target;
-> +	int nodeid;
-> +	const struct cpumask *cpumask;
-> +
-> +	nd_pmu = hlist_entry_safe(node, struct nvdimm_pmu, node);
-> +
-> +	/* Clear it, incase given cpu is set in nd_pmu->arch_cpumask */
-> +	cpumask_test_and_clear_cpu(cpu, &nd_pmu->arch_cpumask);
-> +
-> +	/*
-> +	 * If given cpu is not same as current designated cpu for
-> +	 * counter access, just return.
-> +	 */
-> +	if (cpu != nd_pmu->cpu)
-> +		return 0;
-> +
-> +	/* Check for any active cpu in nd_pmu->arch_cpumask */
-> +	target = cpumask_any(&nd_pmu->arch_cpumask);
-> +	nd_pmu->cpu = target;
-> +
-> +	/*
-> +	 * Incase we don't have any active cpu in nd_pmu->arch_cpumask,
-> +	 * check in given cpu's numa node list.
-> +	 */
-> +	if (target >= nr_cpu_ids) {
-> +		nodeid = cpu_to_node(cpu);
-> +		cpumask = cpumask_of_node(nodeid);
-> +		target = cpumask_any_but(cpumask, cpu);
-> +		nd_pmu->cpu = target;
-> +
-> +		if (target >= nr_cpu_ids)
-> +			return -1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int nvdimm_pmu_cpu_online(unsigned int cpu, struct hlist_node *node)
-> +{
-> +	struct nvdimm_pmu *nd_pmu;
-> +
-> +	nd_pmu = hlist_entry_safe(node, struct nvdimm_pmu, node);
-> +
-> +	if (nd_pmu->cpu >= nr_cpu_ids)
-> +		nd_pmu->cpu = cpu;
-> +
-> +	return 0;
-> +}
+On 6/7/21 5:52 PM, Dan Williams wrote:
+> The queue_to_disk() helper can not be used after del_gendisk()
+> communicate @disk via the pgmap->owner.
+> 
+> Otherwise, queue_to_disk() returns NULL resulting in the splat below.
+> 
+>  Kernel attempted to read user page (330) - exploit attempt? (uid: 0)
+>  BUG: Kernel NULL pointer dereference on read at 0x00000330
+>  Faulting instruction address: 0xc000000000906344
+>  Oops: Kernel access of bad area, sig: 11 [#1]
+>  [..]
+>  NIP [c000000000906344] pmem_pagemap_cleanup+0x24/0x40
+>  LR [c0000000004701d4] memunmap_pages+0x1b4/0x4b0
+>  Call Trace:
+>  [c000000022cbb9c0] [c0000000009063c8] pmem_pagemap_kill+0x28/0x40 (unreliable)
+>  [c000000022cbb9e0] [c0000000004701d4] memunmap_pages+0x1b4/0x4b0
+>  [c000000022cbba90] [c0000000008b28a0] devm_action_release+0x30/0x50
+>  [c000000022cbbab0] [c0000000008b39c8] release_nodes+0x2f8/0x3e0
+>  [c000000022cbbb60] [c0000000008ac440] device_release_driver_internal+0x190/0x2b0
+>  [c000000022cbbba0] [c0000000008a8450] unbind_store+0x130/0x170
 
-> +static int nvdimm_pmu_cpu_hotplug_init(struct nvdimm_pmu *nd_pmu)
-> +{
-> +	int nodeid, rc;
-> +	const struct cpumask *cpumask;
-> +
-> +	/*
-> +	 * Incase cpu hotplug is not handled by arch specific code
-> +	 * they can still provide required cpumask which can be used
-> +	 * to get designatd cpu for counter access.
-> +	 * Check for any active cpu in nd_pmu->arch_cpumask.
-> +	 */
-> +	if (!cpumask_empty(&nd_pmu->arch_cpumask)) {
-> +		nd_pmu->cpu = cpumask_any(&nd_pmu->arch_cpumask);
-> +	} else {
-> +		/* pick active cpu from the cpumask of device numa node. */
-> +		nodeid = dev_to_node(nd_pmu->dev);
-> +		cpumask = cpumask_of_node(nodeid);
-> +		nd_pmu->cpu = cpumask_any(cpumask);
-> +	}
-> +
-> +	rc = cpuhp_setup_state_multi(CPUHP_AP_ONLINE_DYN, "perf/nvdimm:online",
-> +				     nvdimm_pmu_cpu_online, nvdimm_pmu_cpu_offline);
-> +
+Applied, thanks.
 
-Did you actually test this hotplug stuff?
-
-That is, create a counter, unplug the CPU the counter was on, and
-continue counting? "perf stat -I" is a good option for this, concurrent
-with a hotplug.
-
-Because I don't think it's actually correct. The thing is perf core is
-strictly per-cpu, and it will place the event on a specific CPU context.
-If you then unplug that CPU, nothing will touch the events on that CPU
-anymore.
-
-What drivers that span CPUs need to do is call
-perf_pmu_migrate_context() whenever the CPU they were assigned to goes
-away. Please have a look at arch/x86/events/rapl.c or
-arch/x86/events/amd/power.c for relatively simple drivers that have this
-property.
-
+-- 
+Jens Axboe
 
