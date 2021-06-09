@@ -1,122 +1,194 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA7852F80
-	for <nvdimm@lists.linux.dev>; Wed,  9 Jun 2021 01:27:22 +0000 (UTC)
-IronPort-SDR: thE6vPrzp5TKSjpFTAzAgogG3rpb/TQi84WMF55L3b87tbYq8KlwZKc8EhSs3gRsEFuKyYP0LT
- K8Ix3Mv8j2pA==
-X-IronPort-AV: E=McAfee;i="6200,9189,10009"; a="203127561"
-X-IronPort-AV: E=Sophos;i="5.83,259,1616482800"; 
-   d="scan'208";a="203127561"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9FED72
+	for <nvdimm@lists.linux.dev>; Wed,  9 Jun 2021 03:16:38 +0000 (UTC)
+IronPort-SDR: riLBMr0eOeDl3TqDAhAueQ0DJhopjLoEOFBWD6kj4Qg+Tm06WeHrtQpnY27cjPcA1+WbabWvgV
+ UHrnVXqWjhKg==
+X-IronPort-AV: E=McAfee;i="6200,9189,10009"; a="184681010"
+X-IronPort-AV: E=Sophos;i="5.83,260,1616482800"; 
+   d="scan'208";a="184681010"
 Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2021 18:27:20 -0700
-IronPort-SDR: EY//goGmVT8zFoLzwM+a/wrOzL23krQqSznNl2egAWKMChD9tFfbr33OulW30VDRYep7vOQUJo
- 2ZiiukjYpz/w==
-X-IronPort-AV: E=Sophos;i="5.83,259,1616482800"; 
-   d="scan'208";a="482194703"
-Received: from jingqili-mobl.ccr.corp.intel.com (HELO [10.238.4.189]) ([10.238.4.189])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2021 18:27:19 -0700
-Subject: Re: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: nvdimm@lists.linux.dev
-References: <20210603012556.77451-1-jingqi.liu@intel.com>
- <CAPcyv4hzS93k5PYXE_bVp6SQ8WwPw09B+SyJC0xPKE20simwuQ@mail.gmail.com>
-From: "Liu, Jingqi" <jingqi.liu@intel.com>
-Message-ID: <5e4349ec-18d9-ce11-c5cd-f1918404ff91@intel.com>
-Date: Wed, 9 Jun 2021 09:27:16 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.12.1
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jun 2021 20:16:37 -0700
+IronPort-SDR: Z5S+KSCbrAmVPqCIUZR0clDDz+wkXB/ikEf2ZEghmNwG7mLzt8tqqEZCi3/OLfpJy5VwCtsLO4
+ j9s3n1EuNcCA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,260,1616482800"; 
+   d="scan'208";a="482222595"
+Received: from icx-hcc-jingqi.sh.intel.com ([10.239.48.31])
+  by orsmga001.jf.intel.com with ESMTP; 08 Jun 2021 20:16:35 -0700
+From: Jingqi Liu <jingqi.liu@intel.com>
+To: dan.j.williams@intel.com,
+	nvdimm@lists.linux.dev
+Cc: Jingqi Liu <jingqi.liu@intel.com>
+Subject: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
+Date: Wed,  9 Jun 2021 11:06:42 +0800
+Message-Id: <20210609030642.66204-1-jingqi.liu@intel.com>
+X-Mailer: git-send-email 2.21.3
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4hzS93k5PYXE_bVp6SQ8WwPw09B+SyJC0xPKE20simwuQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 
-Hi Dan,
+The following bug is caused by setting the size of Label Index Block
+to a fixed 256 bytes.
 
-On 6/8/2021 4:03 AM, Dan Williams wrote:
-> On Wed, Jun 2, 2021 at 6:36 PM Jingqi Liu <jingqi.liu@intel.com> wrote:
->>
->> The following bug is caused by setting the size of Label Index Block
->> to a fixed 256 bytes.
->>
->> Use the following Qemu command to start a Guest with 2MB label-size:
->>          -object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
->>          -device nvdimm,memdev=mem1,id=nv1,label-size=2M
->>
->> There is a namespace in the Guest as follows:
->>          $ ndctl list
->>          [
->>            {
->>              "dev":"namespace0.0",
->>              "mode":"devdax",
->>              "map":"dev",
->>              "size":14780727296,
->>              "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
->>              "chardev":"dax0.0",
->>              "align":2097152,
->>              "name":"namespace0.0"
->>            }
->>          ]
->>
->> Fail to read labels. The result is as follows:
->>          $ ndctl read-labels -u nmem0
->>          [
->>          ]
->>          read 0 nmem
->>
->> If using the following Qemu command to start the Guest with 128K
->> label-size, this label can be read correctly.
->>          -object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
->>          -device nvdimm,memdev=mem1,id=nv1,label-size=128K
->>
->> The size of a Label Index Block depends on how many label slots fit into
->> the label storage area. The minimum size of an index block is 256 bytes
->> and the size must be a multiple of 256 bytes. For a storage area of 128KB,
->> the corresponding Label Index Block size is 256 bytes. But if the label
->> storage area is not 128KB, the Label Index Block size should not be 256 bytes.
->>
->> Namespace Label Index Block appears twice at the top of the label storage area.
->> Following the two index blocks, an array for storing labels takes up the
->> remainder of the label storage area.
->>
->> When reading namespace index and labels, we should read the field of 'mysize'
->> in the Label Index Block. Then we can correctly calculate the starting offset
->> of another Label Index Block and the following namespace labels.
-> 
-> Good find! I agree this is broken, but I'm not sure this is the way to
-> fix it. The ndctl enabling is meant to support dumping index blocks
-> that might be corrupt, so I don't want to rely on index block data for
-> this value. It should copy the kernel which has this definition for
-> determining sizeof_namespace_index():
-> 
-> size_t sizeof_namespace_index(struct nvdimm_drvdata *ndd)
-> {
->          u32 nslot, space, size;
-> 
->          /*
->           * Per UEFI 2.7, the minimum size of the Label Storage Area is large
->           * enough to hold 2 index blocks and 2 labels.  The minimum index
->           * block size is 256 bytes. The label size is 128 for namespaces
->           * prior to version 1.2 and at minimum 256 for version 1.2 and later.
->           */
->          nslot = nvdimm_num_label_slots(ndd);
->          space = ndd->nsarea.config_size - nslot * sizeof_namespace_label(ndd);
->          size = __sizeof_namespace_index(nslot) * 2;
->          if (size <= space && nslot >= 2)
->                  return size / 2;
-> 
->          dev_err(ndd->dev, "label area (%d) too small to host (%d byte)
-> labels\n",
->                          ndd->nsarea.config_size, sizeof_namespace_label(ndd));
->          return 0;
-> }
-> 
-Good point. Thanks for your comment.
-I'll send a patch based on your suggestion soon.
+Use the following Qemu command to start a Guest with 2MB label-size:
+	-object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
+	-device nvdimm,memdev=mem1,id=nv1,label-size=2M
 
-Thanks,
-Jingqi
+There is a namespace in the Guest as follows:
+	$ ndctl list
+	[
+	  {
+	    "dev":"namespace0.0",
+	    "mode":"devdax",
+	    "map":"dev",
+	    "size":14780727296,
+	    "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
+	    "chardev":"dax0.0",
+	    "align":2097152,
+	    "name":"namespace0.0"
+	  }
+	]
+
+Fail to read labels. The result is as follows:
+	$ ndctl read-labels -u nmem0
+	[
+	]
+	read 0 nmem
+
+If using the following Qemu command to start the Guest with 128K
+label-size, this label can be read correctly.
+	-object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
+	-device nvdimm,memdev=mem1,id=nv1,label-size=128K
+
+The size of a Label Index Block depends on how many label slots fit into
+the label storage area. The minimum size of an index block is 256 bytes
+and the size must be a multiple of 256 bytes. For a storage area of 128KB,
+the corresponding Label Index Block size is 256 bytes. But if the label
+storage area is not 128KB, the Label Index Block size should not be 256 bytes.
+
+Namespace Label Index Block appears twice at the top of the label storage area.
+Following the two index blocks, an array for storing labels takes up the
+remainder of the label storage area.
+
+For obtaining the size of Namespace Index Block, we also cannot rely on
+the field of 'mysize' in this index block since it might be corrupted.
+Similar to the linux kernel, we use sizeof_namespace_index() to get the size
+of Namespace Index Block. Then we can also correctly calculate the starting
+offset of the following namespace labels.
+
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jingqi Liu <jingqi.liu@intel.com>
+---
+ ndctl/dimm.c           | 19 +++++++++++++++----
+ ndctl/lib/dimm.c       |  5 +++++
+ ndctl/lib/libndctl.sym |  1 +
+ ndctl/libndctl.h       |  1 +
+ 4 files changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/ndctl/dimm.c b/ndctl/dimm.c
+index 09ce49e..1d2d9a2 100644
+--- a/ndctl/dimm.c
++++ b/ndctl/dimm.c
+@@ -94,13 +94,18 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
+ 	struct json_object *jarray = json_object_new_array();
+ 	struct json_object *jlabel = NULL;
+ 	struct namespace_label nslabel;
++	unsigned int nsindex_size;
+ 	unsigned int slot = -1;
+ 	ssize_t offset;
+ 
+ 	if (!jarray)
+ 		return NULL;
+ 
+-	for (offset = NSINDEX_ALIGN * 2; offset < size;
++	nsindex_size = ndctl_dimm_sizeof_namespace_index(dimm);
++	if (nsindex_size == 0)
++		return NULL;
++
++	for (offset = nsindex_size * 2; offset < size;
+ 			offset += ndctl_dimm_sizeof_namespace_label(dimm)) {
+ 		ssize_t len = min_t(ssize_t,
+ 				ndctl_dimm_sizeof_namespace_label(dimm),
+@@ -204,17 +209,23 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
+ 	return jarray;
+ }
+ 
+-static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t size)
++static struct json_object *dump_index_json(struct ndctl_dimm *dimm,
++		struct ndctl_cmd *cmd_read, ssize_t size)
+ {
+ 	struct json_object *jarray = json_object_new_array();
+ 	struct json_object *jindex = NULL;
+ 	struct namespace_index nsindex;
++	unsigned int nsindex_size;
+ 	ssize_t offset;
+ 
+ 	if (!jarray)
+ 		return NULL;
+ 
+-	for (offset = 0; offset < NSINDEX_ALIGN * 2; offset += NSINDEX_ALIGN) {
++	nsindex_size = ndctl_dimm_sizeof_namespace_index(dimm);
++	if (nsindex_size == 0)
++		return NULL;
++
++	for (offset = 0; offset < nsindex_size * 2; offset += nsindex_size) {
+ 		ssize_t len = min_t(ssize_t, sizeof(nsindex), size - offset);
+ 		struct json_object *jobj;
+ 
+@@ -288,7 +299,7 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
+ 		goto err;
+ 	json_object_object_add(jdimm, "dev", jobj);
+ 
+-	jindex = dump_index_json(cmd_read, size);
++	jindex = dump_index_json(dimm, cmd_read, size);
+ 	if (!jindex)
+ 		goto err;
+ 	json_object_object_add(jdimm, "index", jindex);
+diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
+index c045cbe..9e36e28 100644
+--- a/ndctl/lib/dimm.c
++++ b/ndctl/lib/dimm.c
+@@ -256,6 +256,11 @@ static int __label_validate(struct nvdimm_data *ndd)
+ 	return -EINVAL;
+ }
+ 
++NDCTL_EXPORT unsigned int ndctl_dimm_sizeof_namespace_index(struct ndctl_dimm *dimm)
++{
++	return sizeof_namespace_index(&dimm->ndd);
++}
++
+ /*
+  * If the dimm labels have not been previously validated this routine
+  * will make up a default size. Otherwise, it will pick the size based
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 0a82616..0ce2bb9 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -290,6 +290,7 @@ global:
+ 	ndctl_dimm_validate_labels;
+ 	ndctl_dimm_init_labels;
+ 	ndctl_dimm_sizeof_namespace_label;
++	ndctl_dimm_sizeof_namespace_index;
+ 	ndctl_mapping_get_position;
+ 	ndctl_namespace_set_enforce_mode;
+ 	ndctl_namespace_get_enforce_mode;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 60e1288..9a1a799 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -335,6 +335,7 @@ int ndctl_dimm_init_labels(struct ndctl_dimm *dimm,
+ 		enum ndctl_namespace_version v);
+ unsigned long ndctl_dimm_get_available_labels(struct ndctl_dimm *dimm);
+ unsigned int ndctl_dimm_sizeof_namespace_label(struct ndctl_dimm *dimm);
++unsigned int ndctl_dimm_sizeof_namespace_index(struct ndctl_dimm *dimm);
+ unsigned int ndctl_cmd_cfg_size_get_size(struct ndctl_cmd *cfg_size);
+ ssize_t ndctl_cmd_cfg_read_get_data(struct ndctl_cmd *cfg_read, void *buf,
+ 		unsigned int len, unsigned int offset);
+-- 
+2.21.3
+
