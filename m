@@ -1,123 +1,202 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E71562F80
-	for <nvdimm@lists.linux.dev>; Fri, 11 Jun 2021 13:00:01 +0000 (UTC)
-Received: from fraeml739-chm.china.huawei.com (unknown [172.18.147.201])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4G1gkK36kDz6K5mg;
-	Fri, 11 Jun 2021 20:53:13 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml739-chm.china.huawei.com (10.206.15.220) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2176.2; Fri, 11 Jun 2021 14:59:59 +0200
-Received: from localhost (10.52.120.251) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2176.2; Fri, 11 Jun
- 2021 13:59:58 +0100
-Date: Fri, 11 Jun 2021 13:59:55 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 685122FB8
+	for <nvdimm@lists.linux.dev>; Fri, 11 Jun 2021 17:47:40 +0000 (UTC)
+IronPort-SDR: shliRt2C42BBw1dx/gJvHn19sc7YZJr0x3oX9EoBEJbZain4S6jJ18m/c2bvvEQ24faOUUmp1u
+ W3iKtce59NEA==
+X-IronPort-AV: E=McAfee;i="6200,9189,10012"; a="192684034"
+X-IronPort-AV: E=Sophos;i="5.83,267,1616482800"; 
+   d="scan'208";a="192684034"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2021 10:47:38 -0700
+IronPort-SDR: 0mTW6WPCqIp7pjzfsIK+utzJm2IXyzBYiCc2/K75E7sZZvJF489+kp3pRpM88R+1Bl6MsBRfnA
+ 8xkABb+u/fHg==
+X-IronPort-AV: E=Sophos;i="5.83,267,1616482800"; 
+   d="scan'208";a="552756908"
+Received: from chtanaka-mobl2.amr.corp.intel.com (HELO intel.com) ([10.252.138.239])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Jun 2021 10:47:38 -0700
+Date: Fri, 11 Jun 2021 10:47:36 -0700
+From: Ben Widawsky <ben.widawsky@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<ben.widawsky@intel.com>, <alison.schofield@intel.com>,
-	<vishal.l.verma@intel.com>, <ira.weiny@intel.com>,
-	<linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 0/5] cxl/pmem: Add core infrastructure for PMEM support
-Message-ID: <20210611135955.00004d58@Huawei.com>
-In-Reply-To: <162336395765.2462439.11368504490069925374.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
+	alison.schofield@intel.com, vishal.l.verma@intel.com,
+	ira.weiny@intel.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/5] cxl/core: Add cxl-bus driver infrastructure
+Message-ID: <20210611174736.ttzpk5uniyoyd4vw@intel.com>
 References: <162336395765.2462439.11368504490069925374.stgit@dwillia2-desk3.amr.corp.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
+ <162336396329.2462439.16556923116284874437.stgit@dwillia2-desk3.amr.corp.intel.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.52.120.251]
-X-ClientProxiedBy: lhreml742-chm.china.huawei.com (10.201.108.192) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <162336396329.2462439.16556923116284874437.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-On Thu, 10 Jun 2021 15:25:57 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
-
-> CXL Memory Expander devices (CXL 2.0 Type-3) support persistent memory
-> in addition to volatile memory expansion. The most significant changes
-> this requires of the existing LIBNVDIMM infrastructure, compared to what
-> was needed to support ACPI NFIT defined PMEM, is the ability to
-> dynamically provision regions in addition to namespaces, and a formal
-> model for hotplug.
+On 21-06-10 15:26:03, Dan Williams wrote:
+> Enable devices on the 'cxl' bus to be attached to drivers. The initial
+> user of this functionality is a driver for an 'nvdimm-bridge' device
+> that anchors a libnvdimm hierarchy attached to CXL persistent memory
+> resources. Other device types that will leverage this include:
 > 
-> Before region provisioning can be added the CXL enabling needs to
-> enumerate "nvdimm" devices on a CXL nvdimm-bus. This is modeled as a
-> CXL-nvdimm-bridge device (bridging CXL to nvdimm) and an associated
-> driver to activate and deactivate that bus-bridge. Once the bridge is
-> registered it scans for CXL nvdimm devices registered by endpoints.  The
-> CXL core bus is used as a rendezvous for nvdimm bridges and endpoints
-> allowing them to be registered and enabled in any order.
-> 
-> At the end of this series the ndctl utility can see CXL nvdimm resources
-> just like any other nvdimm bus.
-> 
->     # ndctl list -BDiu -b CXL
->     {
->       "provider":"CXL",
->       "dev":"ndbus1",
->       "dimms":[
->         { 
->           "dev":"nmem1",
->           "state":"disabled"
->         },
->         { 
->           "dev":"nmem0",
->           "state":"disabled"
->         }
->       ]
->     }
-> 
-> Follow-on patches extend the nvdimm core label support for CXL region
-> and namespace labels. For now just add the machinery to register the
-> bus and nvdimm base objects.
+> cxl_port: map and use component register functionality (HDM Decoders)
 
-Hi Dan,
+Since I'm looking at this now, perhaps I can open the discussion here. Have you
+thought about how this works yet? Right now I'm thinking there are two "drivers":
+cxl_port: Switches (and ACPI0016)
+cxl_mem: The memory device's HDM decoders
 
-Nice set. I won't claim to know all that much about the nvdimm
-side of things. With that in mind and the fact all my comments
-were trivial stuff you can clean up without me reading it again.
+For port, probe() will figure out that the thing is an upstream port, call
+cxl_probe_component_regs and then call devm_cxl_add_port(). I think that's
+straight forward.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+For the memory device we've already probed the thing via class code so there is
+no need to use this driver registration, however, I think it would be nice to do
+so. Is there a clean way to do that?
 
-for whole set.
-
-Thanks,
-
-Jonathan
+Also, I'd like to make sure we're on the same page about struct cxl_decoder.
+Right now they are only created for active HDM decoders. Going forward, we can
+either maintain a count of unused decoders on the given CXL component, or we can
+instantiate a struct cxl_decoder that isn't active, ie. no interleave ways
+granularit, base, etc. What's your thinking there?
 
 > 
+> cxl_nvdimm: translate CXL memory expander endpoints to libnvdimm
+> 	    'nvdimm' objects
+> 
+> cxl_region: translate CXL interleave sets to libnvdimm 'region' objects
+> 
+> The pairing of devices to drivers is handled through the cxl_device_id()
+> matching to cxl_driver.id values. A cxl_device_id() of '0' indicates no
+> driver support.
+> 
+> In addition to ->match(), ->probe(), and ->remove() support for the
+> 'cxl' bus introduce MODULE_ALIAS_CXL() to autoload modules containing
+> cxl-drivers. Drivers are added in follow-on changes.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
+>  drivers/cxl/core.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/cxl/cxl.h  |   22 ++++++++++++++++
+>  2 files changed, 95 insertions(+)
 > 
-> Dan Williams (5):
->       cxl/core: Add cxl-bus driver infrastructure
->       cxl/pmem: Add initial infrastructure for pmem support
->       libnvdimm: Export nvdimm shutdown helper, nvdimm_delete()
->       libnvdimm: Drop unused device power management support
->       cxl/pmem: Register 'pmem' / cxl_nvdimm  devices
+> diff --git a/drivers/cxl/core.c b/drivers/cxl/core.c
+> index 1b9ee0b08384..959cecc1f6bf 100644
+> --- a/drivers/cxl/core.c
+> +++ b/drivers/cxl/core.c
+> @@ -767,8 +767,81 @@ int cxl_map_device_regs(struct pci_dev *pdev,
+>  }
+>  EXPORT_SYMBOL_GPL(cxl_map_device_regs);
+>  
+> +/**
+> + * __cxl_driver_register - register a driver for the cxl bus
+> + * @cxl_drv: cxl driver structure to attach
+> + * @owner: owning module/driver
+> + * @modname: KBUILD_MODNAME for parent driver
+> + */
+> +int __cxl_driver_register(struct cxl_driver *cxl_drv, struct module *owner,
+> +			  const char *modname)
+> +{
+> +	if (!cxl_drv->probe) {
+> +		pr_debug("%s ->probe() must be specified\n", modname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!cxl_drv->name) {
+> +		pr_debug("%s ->name must be specified\n", modname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (!cxl_drv->id) {
+> +		pr_debug("%s ->id must be specified\n", modname);
+> +		return -EINVAL;
+> +	}
+> +
+> +	cxl_drv->drv.bus = &cxl_bus_type;
+> +	cxl_drv->drv.owner = owner;
+> +	cxl_drv->drv.mod_name = modname;
+> +	cxl_drv->drv.name = cxl_drv->name;
+> +
+> +	return driver_register(&cxl_drv->drv);
+> +}
+> +EXPORT_SYMBOL_GPL(__cxl_driver_register);
+> +
+> +void cxl_driver_unregister(struct cxl_driver *cxl_drv)
+> +{
+> +	driver_unregister(&cxl_drv->drv);
+> +}
+> +EXPORT_SYMBOL_GPL(cxl_driver_unregister);
+> +
+> +static int cxl_device_id(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int cxl_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
+> +{
+> +	return add_uevent_var(env, "MODALIAS=" CXL_MODALIAS_FMT,
+> +			      cxl_device_id(dev));
+> +}
+> +
+> +static int cxl_bus_match(struct device *dev, struct device_driver *drv)
+> +{
+> +	return cxl_device_id(dev) == to_cxl_drv(drv)->id;
+> +}
+> +
+> +static int cxl_bus_probe(struct device *dev)
+> +{
+> +	return to_cxl_drv(dev->driver)->probe(dev);
+> +}
+> +
+> +static int cxl_bus_remove(struct device *dev)
+> +{
+> +	struct cxl_driver *cxl_drv = to_cxl_drv(dev->driver);
+> +
+> +	if (cxl_drv->remove)
+> +		cxl_drv->remove(dev);
+> +	return 0;
+> +}
+> +
+>  struct bus_type cxl_bus_type = {
+>  	.name = "cxl",
+> +	.uevent = cxl_bus_uevent,
+> +	.match = cxl_bus_match,
+> +	.probe = cxl_bus_probe,
+> +	.remove = cxl_bus_remove,
+>  };
+>  EXPORT_SYMBOL_GPL(cxl_bus_type);
+>  
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index b988ea288f53..af2237d1c761 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -261,4 +261,26 @@ devm_cxl_add_passthrough_decoder(struct device *host, struct cxl_port *port)
+>  }
+>  
+>  extern struct bus_type cxl_bus_type;
+> +
+> +struct cxl_driver {
+> +	const char *name;
+> +	int (*probe)(struct device *dev);
+> +	void (*remove)(struct device *dev);
+> +	struct device_driver drv;
+> +	int id;
+> +};
+> +
+> +static inline struct cxl_driver *to_cxl_drv(struct device_driver *drv)
+> +{
+> +	return container_of(drv, struct cxl_driver, drv);
+> +}
+> +
+> +int __cxl_driver_register(struct cxl_driver *cxl_drv, struct module *owner,
+> +			  const char *modname);
+> +#define cxl_driver_register(x) __cxl_driver_register(x, THIS_MODULE, KBUILD_MODNAME)
+> +void cxl_driver_unregister(struct cxl_driver *cxl_drv);
+> +
+> +#define MODULE_ALIAS_CXL(type) MODULE_ALIAS("cxl:t" __stringify(type) "*")
+> +#define CXL_MODALIAS_FMT "cxl:t%d"
+> +
+>  #endif /* __CXL_H__ */
 > 
-> 
->  drivers/cxl/Kconfig        |   13 ++
->  drivers/cxl/Makefile       |    2 
->  drivers/cxl/acpi.c         |   37 +++++-
->  drivers/cxl/core.c         |  281 ++++++++++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxl.h          |   57 +++++++++
->  drivers/cxl/mem.h          |    2 
->  drivers/cxl/pci.c          |   23 +++-
->  drivers/cxl/pmem.c         |  230 ++++++++++++++++++++++++++++++++++++
->  drivers/nvdimm/bus.c       |   64 ++++++----
->  drivers/nvdimm/dimm_devs.c |   18 +++
->  include/linux/libnvdimm.h  |    1 
->  11 files changed, 697 insertions(+), 31 deletions(-)
->  create mode 100644 drivers/cxl/pmem.c
-> 
-> base-commit: 40ba17afdfabb01688c61565dbe02a916241bc05
-
