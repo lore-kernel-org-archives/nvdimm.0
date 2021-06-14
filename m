@@ -1,158 +1,97 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4FF170
-	for <nvdimm@lists.linux.dev>; Mon, 14 Jun 2021 21:40:30 +0000 (UTC)
-IronPort-SDR: igfDR7l74lbVKtEIz25DGV2cgv6Of5no1FYoSwqcDH1Y9/WE/N3Ap3oTS8q/ECfZGAodoq6KZB
- ifUCbapWme0A==
-X-IronPort-AV: E=McAfee;i="6200,9189,10015"; a="185576704"
-X-IronPort-AV: E=Sophos;i="5.83,273,1616482800"; 
-   d="scan'208";a="185576704"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jun 2021 14:40:30 -0700
-IronPort-SDR: TDuw5AqFWVR0OV4f0sLfsrZpTqQJ5qfJAmELlMtTDw2pwt3mumeKcim3AimxYEXCNKepo+hPyr
- Zxc0Bw7zIEbA==
-X-IronPort-AV: E=Sophos;i="5.83,273,1616482800"; 
-   d="scan'208";a="484220411"
-Received: from smothe-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.143.124])
-  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Jun 2021 14:40:29 -0700
-Date: Mon, 14 Jun 2021 14:40:28 -0700
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
-	"Schofield, Alison" <alison.schofield@intel.com>,
-	Vishal L Verma <vishal.l.verma@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/5] cxl/core: Add cxl-bus driver infrastructure
-Message-ID: <20210614214028.5ts7qvox2rmqrvrz@intel.com>
-References: <162336395765.2462439.11368504490069925374.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162336396329.2462439.16556923116284874437.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210611174736.ttzpk5uniyoyd4vw@intel.com>
- <CAPcyv4i7_RhfiYMX=QP2Ts4ye1Q2e0=_aBCP4rsuopo=0HWKVw@mail.gmail.com>
- <20210611192829.bwdj322uwlsbdrjs@intel.com>
- <CAPcyv4gwUiQLfPGe9kKi7JJdbSk-aaSywo29x=kFKdeEROdMcQ@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C74632FB2
+	for <nvdimm@lists.linux.dev>; Mon, 14 Jun 2021 23:07:48 +0000 (UTC)
+Received: by mail-pj1-f49.google.com with SMTP id g24so10655859pji.4
+        for <nvdimm@lists.linux.dev>; Mon, 14 Jun 2021 16:07:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=d34POHKKhyaLMu0FO3W3g/xVgLokZvIMWmd2dthb3bw=;
+        b=lLlmi4tC13F1TK45l2XTdQeNZ8/hL8EOzQ7ZBIzYU+7Vqf7wRYUhN+8vihBfpZhddp
+         Ko2y8bGBk8EnS8suRS3z19vLz6IsjFTUStnKTmT3tD3H+EnnKMRilwnvpdHdWcyrlkrB
+         mS+9OjzphYSEotypDl01bsuMjmoFIv3uzEJFbQKdjd4cr21EY6fXjLOoLIpemO2N96ZA
+         A/i4IzMeRUaARe+dRpXrGQKynRnO5oquomKOvayiTCU4yhARB5TDzl7DBbczNW9uygR2
+         ijuXdjBIFnSUtTJVBp2D0F8MCiO3T+0oz9YG6JtZLZjiGFlMNSJi5rGl48sYlRTE6Ot6
+         JBFA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=d34POHKKhyaLMu0FO3W3g/xVgLokZvIMWmd2dthb3bw=;
+        b=j5izAmHtfL0baPR58gBRp0//TQYGcyqWMxzF58+sUoqL/65+Hp+UPEnBAvFlNtzD8B
+         ZPf4POxbdL+iHcn9r9nKnF4FGOgZHyUBLtWkY+PwM8DiQ9RykkkRqjOzJRCTNYBUPw+j
+         c043/1HqckocTZ23ebfZBr07cDLHKu/r6GZakkzXMSMA313pnu1c+h67blRRlLq+KlzN
+         DOjHHiNu1KU8XemQBTSXyAwvb/3Ltuizf8GCIMdAyEGyp7TccL0ehOsK1a+LOaJ5vIJx
+         IKbVUDETcR5a9yOx4SFnPinI5jLsPbpVzOxZyEOUdaiIrtZPfG3MPln5ToPUr2Wo5yIr
+         H1lw==
+X-Gm-Message-State: AOAM5302c2tP+doO5wtlV92oJv/YVLl8GLqRLACYJcNDXq/adgtqvV56
+	utyoo6R1x//Y/ns8bfEsqgU7LgkUA9Qw1MxNVl2o+w==
+X-Google-Smtp-Source: ABdhPJye2JFs2r7cRXUYh1/xlrBndOcwMtVHEgzynnDM5vubY5fSvn4OJLEvPnFlctR1jXG5IvrBQrcEdckMP6zUzVo=
+X-Received: by 2002:a17:90a:ea8c:: with SMTP id h12mr1496149pjz.149.1623712068139;
+ Mon, 14 Jun 2021 16:07:48 -0700 (PDT)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gwUiQLfPGe9kKi7JJdbSk-aaSywo29x=kFKdeEROdMcQ@mail.gmail.com>
+References: <20210325230938.30752-1-joao.m.martins@oracle.com>
+ <20210325230938.30752-10-joao.m.martins@oracle.com> <CAPcyv4gtSqfmuAaX9cs63OvLkf-h4B_5fPiEnM9p9cqLZztXpg@mail.gmail.com>
+ <840290bd-55cc-e77a-b13d-05c6fd361865@oracle.com> <CAPcyv4hJtqVGoA3ppCMfVQ4ZnWUa7jKtp=Huxu9mcSk4huq_7Q@mail.gmail.com>
+ <0c6a4dab-296d-94b2-f885-2371292f9e0d@oracle.com>
+In-Reply-To: <0c6a4dab-296d-94b2-f885-2371292f9e0d@oracle.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 14 Jun 2021 16:07:36 -0700
+Message-ID: <CAPcyv4jdNWW447-cu_eZE+UPMSRgv1GPQADJzxGtzC7Jxjg8Mg@mail.gmail.com>
+Subject: Re: [PATCH v1 09/11] mm/page_alloc: reuse tail struct pages for
+ compound pagemaps
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux MM <linux-mm@kvack.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Ira Weiny <ira.weiny@intel.com>, Matthew Wilcox <willy@infradead.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, Jane Chu <jane.chu@oracle.com>, 
+	Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, 
+	Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On 21-06-11 16:25:05, Dan Williams wrote:
-> On Fri, Jun 11, 2021 at 12:28 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
+On Mon, Jun 14, 2021 at 11:42 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+>
+>
+> On 6/7/21 8:32 PM, Dan Williams wrote:
+> > On Mon, Jun 7, 2021 at 6:49 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+> > [..]
+> >>> Given all of the above I'm wondering if there should be a new
+> >>> "compound specific" flavor of this routine rather than trying to
+> >>> cleverly inter mingle the old path with the new. This is easier
+> >>> because you have already done the work in previous patches to break
+> >>> this into helpers. So just have memmap_init_zone_device() do it the
+> >>> "old" way and memmap_init_compound() handle all the tail page init +
+> >>> optimizations.
+> >>>
+> >> I can separate it out, should be easier to follow.
+> >>
+> >> Albeit just a note, I think memmap_init_compound() should be the new normal as metadata
+> >> more accurately represents what goes on the page tables. That's regardless of
+> >> vmemmap-based gains, and hence why my train of thought was to not separate it.
+> >>
+> >> After this series, all devmap pages where @geometry matches @align will have compound
+> >> pages be used instead. And we enable that in device-dax as first user (in the next patch).
+> >> altmap or not so far just differentiates on the uniqueness of struct pages as the former
+> >> doesn't reuse base pages that only contain tail pages and consequently makes us initialize
+> >> all tail struct pages.
 > >
-> > On 21-06-11 11:55:39, Dan Williams wrote:
-> > > On Fri, Jun 11, 2021 at 10:47 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
-> > > >
-> > > > On 21-06-10 15:26:03, Dan Williams wrote:
-> > > > > Enable devices on the 'cxl' bus to be attached to drivers. The initial
-> > > > > user of this functionality is a driver for an 'nvdimm-bridge' device
-> > > > > that anchors a libnvdimm hierarchy attached to CXL persistent memory
-> > > > > resources. Other device types that will leverage this include:
-> > > > >
-> > > > > cxl_port: map and use component register functionality (HDM Decoders)
-> > > >
-> > > > Since I'm looking at this now, perhaps I can open the discussion here. Have you
-> > > > thought about how this works yet? Right now I'm thinking there are two "drivers":
-> > > > cxl_port: Switches (and ACPI0016)
-> > > > cxl_mem: The memory device's HDM decoders
-> > > >
-> > > > For port, probe() will figure out that the thing is an upstream port, call
-> > > > cxl_probe_component_regs and then call devm_cxl_add_port(). I think that's
-> > > > straight forward.
-> > >
-> > > I was expecting cxl_port_driver.probe() comes *after* port discovery.
-> > > Think of it like PCI discovery. Some agent does the hardware topology
-> > > scan to add devices, in this case devm_cxl_add_port(), and that
-> > > triggers cxl_port_driver to load. So the initial enumeration done by
-> > > the cxl_acpi driver will populate the first two levels of the port
-> > > hierarchy with port objects and populate their component register
-> > > physical base addresses. For any other port deeper in the hierarchy I
-> > > was expecting that to be scanned after the discovery of a cxl_memdev
-> > > that is not attached to the current hierarchy. So, for example imagine
-> > > a config like:
-> > >
-> > > Platform --> Host Bridge --> Switch --> Endpoint
-> > >
-> > > ...where in sysfs that's modeled as:
-> > >
-> > > root0 --> port1 --> port2 --> port3
-> > >
-> > > Where port3 is assuming that the CXL core models the device's
-> > > connection to the topology as yet another cxl_port. At the beginning
-> > > of time after cxl_acpi has loaded but before cxl_pci has discovered
-> > > the endpoint the topology is:
-> > >
-> > > root0 --> port1
-> > >
-> > > Upon the detection of the endpoint the CXL core can assume that all
-> > > intermediary switches between the root and this device have been
-> > > registered as PCI devices. So, it follows that endpoint device arrival
-> > > triggers "cxl_bus_rescan()" that goes and enumerates all the CXL
-> > > resources in the topology to produce:
-> > >
-> > > root0 --> port1 --> port2 --> port3
-> > >
+> > I think combining the cases into a common central routine makes the
+> > code that much harder to maintain. A small duplication cost is worth
+> > it in my opinion to help readability / maintainability.
 > >
-> > Ah, I had written about scan/rescan in an earlier version of my email but
-> > dropped it. I was actually going to suggest it being a sysfs attr, but I'm fine
-> > with it being implicit so long as...
-> >
-> > How do we assert that cxl_pci doesn't run before cxl_acpi has done anything?
-> 
-> I don't think we need to, or it's broken if the driver load order
-> matters. The nvdimm enabling code is an example of how to handle this.
-> The cxl_nvdimm object can be registered before the cxl_nvdimm_bridge,
-> or after, does not matter. If the cxl_nvdimm comes first it will
-> trigger the cxl_nvdimm_driver to load. The cxl_nvdimm_driver.probe()
-> routine finds no bridge present and probe() returns with a failure.
-> When the bridge arrives it does a rescan  of the cxl_bus_type device
-> list and if it finds a cxl_nvdimm it re-triggers
-> cxl_nvdimm_driver.probe(). This time through cxl_nvdimm_driver.probe()
-> finds the bridge and registers the real nvdimm on the nvdimm_bus.
-> 
-> > I
-> > like the idea that the endpoint device can simply ask cxl_acpi to rescan, I just
-> > don't see how it works. I suppose we can queue up the requests to rescan in
-> > cxl_acpi if the ordering can't be guaranteed.
-> 
-> I think this means that the devm_cxl_add_port() would be triggered by
-> cxl_memdev_driver.probe() if and only if the parent pci_device of the
-> CXL endpoint is listed as a dport. If the cxl_memdev is registered
-> first the search it will search for the CXL root port on the
-> cxl_bus_type device list. If that fails then cxl_memdev_driver.probe()
-> fails. If that succeeds it asks the root to scan to the CXL endpoint
-> parent pci_device and return the confirmation that it is registered as
-> a dport. If that fails then the device is plugged into a pure PCIe
-> slot.
-> 
-> When cxl_acpi loads it retriggers all cxl_memdev_driver.probe() to
-> reconsider all cxl_memdev instances that failed to probe previously.
-> 
-> >
-> > > > For the memory device we've already probed the thing via class code so there is
-> > > > no need to use this driver registration, however, I think it would be nice to do
-> > > > so. Is there a clean way to do that?
-> > >
-> > > The PCI device associated with the endpoint is already probed, but the
-> > > cxl_memdev itself can have a driver on the CXL bus. So I think the
-> > > cxl_memdev driver should try to register a cxl_port after telling
-> > > cxl_acpi to rescan. If a check like "is_cxl_dport(pdev->dev.parent)"
-> > > for the endpoint returns false it means that the cxl_bus_rescan()
-> > > failed to enumerate the CXL topology to this endpoint and this
-> > > endpoint is limited to only CXL.io operation.
-> >
-> > What is going to invoke the memdev driver's probe? That is where we're talking
-> > about putting that is_cxl_dport(...) right? That is the part that tripped me up
-> > and inspired the original email FWIW.
-> 
-> I *think* I worked that out above, but yes please do poke at it to see
-> if it holds up.
+> I am addressing this comment and taking a step back. By just moving the tail page init to
+> memmap_init_compound() this gets a lot more readable. Albeit now I think having separate
+> top-level loops over pfns, doesn't bring much improvement there.
+>
+> Here's what I have by moving just tails init to a separate routine. See your original
+> suggestion after the scissors mark. I have a slight inclination towards the first one, but
+> no really strong preference. Thoughts?
 
-I think it works. I have some concerns around synchronization of memdev probing
-and cxl_acpi enumerating, but I believe it's workable.
-
-Thanks for the thought.
+I like your "first one" too.
