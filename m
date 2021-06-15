@@ -1,28 +1,28 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F00366D12
-	for <nvdimm@lists.linux.dev>; Tue, 15 Jun 2021 23:18:12 +0000 (UTC)
-IronPort-SDR: MboTBGgbgi1+DV8Qq6DKCZcyG7zO0/e5hOJDLF1dV/UaA9R2/xtgPpRmRQtZlMdvoekIWTDVgo
- A52a1kpM79aA==
-X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="205901581"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 366BE6D0E
+	for <nvdimm@lists.linux.dev>; Tue, 15 Jun 2021 23:18:18 +0000 (UTC)
+IronPort-SDR: hUTODScJZstO34EEAODsG0mGmIavAOxOBreXuax99e17tLN59cwKH9ExJq0teFLzK32/q1o2xr
+ fExMUZl3zO3w==
+X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="203061469"
 X-IronPort-AV: E=Sophos;i="5.83,276,1616482800"; 
-   d="scan'208";a="205901581"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2021 16:18:12 -0700
-IronPort-SDR: elHlbj/JjWZmywhOk/1xJayrk9q031ggwxbHUgsozSzm3XG1LJzIo5uWfl6OmAwjiUK50OwmuV
- BSvwhFq4OtvA==
+   d="scan'208";a="203061469"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2021 16:18:17 -0700
+IronPort-SDR: Afv22M2jpXB9VTLKFV5jvvDna6paaa8se9YCg3fTahQG5FjgIZnLSettUMF2grETmH3LLuZL8f
+ ZV/0rK/uqrJw==
 X-IronPort-AV: E=Sophos;i="5.83,276,1616482800"; 
-   d="scan'208";a="450414384"
+   d="scan'208";a="554603686"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2021 16:18:12 -0700
-Subject: [PATCH v2 1/5] cxl/core: Add cxl-bus driver infrastructure
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2021 16:18:17 -0700
+Subject: [PATCH v2 2/5] cxl/pmem: Add initial infrastructure for pmem support
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>,
  linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Tue, 15 Jun 2021 16:18:11 -0700
-Message-ID: <162379909190.2993820.6134168109678004186.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 15 Jun 2021 16:18:17 -0700
+Message-ID: <162379909706.2993820.14051258608641140169.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <162379908663.2993820.16543025953842049041.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162379908663.2993820.16543025953842049041.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -34,149 +34,483 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Enable devices on the 'cxl' bus to be attached to drivers. The initial
-user of this functionality is a driver for an 'nvdimm-bridge' device
-that anchors a libnvdimm hierarchy attached to CXL persistent memory
-resources. Other device types that will leverage this include:
+Register an 'nvdimm-bridge' device to act as an anchor for a libnvdimm
+bus hierarchy. Also, flesh out the cxl_bus definition to allow a
+cxl_nvdimm_bridge_driver to attach to the bridge and trigger the
+nvdimm-bus registration.
 
-cxl_port: map and use component register functionality (HDM Decoders)
+The creation of the bridge is gated on the detection of a PMEM capable
+address space registered to the root. The bridge indirection allows the
+libnvdimm module to remain unloaded on platforms without PMEM support.
 
-cxl_nvdimm: translate CXL memory expander endpoints to libnvdimm
-	    'nvdimm' objects
-
-cxl_region: translate CXL interleave sets to libnvdimm 'region' objects
-
-The pairing of devices to drivers is handled through the cxl_device_id()
-matching to cxl_driver.id values. A cxl_device_id() of '0' indicates no
-driver support.
-
-In addition to ->match(), ->probe(), and ->remove() support for the
-'cxl' bus introduce MODULE_ALIAS_CXL() to autoload modules containing
-cxl-drivers. Drivers are added in follow-on changes.
+Given that the probing of ACPI0017 is asynchronous to CXL endpoint
+devices, and the expectation that CXL endpoint devices register other
+PMEM resources on the 'CXL' nvdimm bus, a workqueue is added. The
+workqueue is needed to run bus_rescan_devices() outside of the
+device_lock() of the nvdimm-bridge device to rendezvous nvdimm resources
+as they arrive. For now only the bus is taken online/offline in the
+workqueue.
 
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Link: https://lore.kernel.org/r/162336396329.2462439.16556923116284874437.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: https://lore.kernel.org/r/162336396844.2462439.1234951573910835450.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/core.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/cxl/cxl.h  |   22 ++++++++++++++++
- 2 files changed, 95 insertions(+)
+ drivers/cxl/Kconfig  |   13 +++++
+ drivers/cxl/Makefile |    2 +
+ drivers/cxl/acpi.c   |   37 +++++++++++++
+ drivers/cxl/core.c   |  121 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/cxl/cxl.h    |   24 +++++++++
+ drivers/cxl/pmem.c   |  140 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 335 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/cxl/pmem.c
 
+diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
+index 1a44b173dcbc..e6de221cc568 100644
+--- a/drivers/cxl/Kconfig
++++ b/drivers/cxl/Kconfig
+@@ -61,5 +61,18 @@ config CXL_ACPI
+ 	  hierarchy to map regions that represent System RAM, or Persistent
+ 	  Memory regions to be managed by LIBNVDIMM.
+ 
++	  If unsure say 'm'.
++
++config CXL_PMEM
++	tristate "CXL PMEM: Persistent Memory Support"
++	depends on LIBNVDIMM
++	default CXL_BUS
++	help
++	  In addition to typical memory resources a platform may also advertise
++	  support for persistent memory attached via CXL. This support is
++	  managed via a bridge driver from CXL to the LIBNVDIMM system
++	  subsystem. Say 'y/m' to enable support for enumerating and
++	  provisioning the persistent memory capacity of CXL memory expanders.
++
+ 	  If unsure say 'm'.
+ endif
+diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
+index a29efb3e8ad2..32954059b37b 100644
+--- a/drivers/cxl/Makefile
++++ b/drivers/cxl/Makefile
+@@ -2,8 +2,10 @@
+ obj-$(CONFIG_CXL_BUS) += cxl_core.o
+ obj-$(CONFIG_CXL_MEM) += cxl_pci.o
+ obj-$(CONFIG_CXL_ACPI) += cxl_acpi.o
++obj-$(CONFIG_CXL_PMEM) += cxl_pmem.o
+ 
+ ccflags-y += -DDEFAULT_SYMBOL_NAMESPACE=CXL
+ cxl_core-y := core.o
+ cxl_pci-y := pci.o
+ cxl_acpi-y := acpi.o
++cxl_pmem-y := pmem.o
+diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+index be357eea552c..8a723f7f3f73 100644
+--- a/drivers/cxl/acpi.c
++++ b/drivers/cxl/acpi.c
+@@ -145,6 +145,30 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+ 	return 0;
+ }
+ 
++static int add_root_nvdimm_bridge(struct device *match, void *data)
++{
++	struct cxl_decoder *cxld;
++	struct cxl_port *root_port = data;
++	struct cxl_nvdimm_bridge *cxl_nvb;
++	struct device *host = root_port->dev.parent;
++
++	if (!is_root_decoder(match))
++		return 0;
++
++	cxld = to_cxl_decoder(match);
++	if (!(cxld->flags & CXL_DECODER_F_PMEM))
++		return 0;
++
++	cxl_nvb = devm_cxl_add_nvdimm_bridge(host, root_port);
++	if (IS_ERR(cxl_nvb)) {
++		dev_dbg(host, "failed to register pmem\n");
++		return PTR_ERR(cxl_nvb);
++	}
++	dev_dbg(host, "%s: add: %s\n", dev_name(&root_port->dev),
++		dev_name(&cxl_nvb->dev));
++	return 1;
++}
++
+ static int cxl_acpi_probe(struct platform_device *pdev)
+ {
+ 	int rc;
+@@ -166,8 +190,17 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+ 	 * Root level scanned with host-bridge as dports, now scan host-bridges
+ 	 * for their role as CXL uports to their CXL-capable PCIe Root Ports.
+ 	 */
+-	return bus_for_each_dev(adev->dev.bus, NULL, root_port,
+-				add_host_bridge_uport);
++	rc = bus_for_each_dev(adev->dev.bus, NULL, root_port,
++			      add_host_bridge_uport);
++	if (rc)
++		return rc;
++
++	if (IS_ENABLED(CONFIG_CXL_PMEM))
++		rc = device_for_each_child(&root_port->dev, root_port,
++					   add_root_nvdimm_bridge);
++	if (rc < 0)
++		return rc;
++	return 0;
+ }
+ 
+ static const struct acpi_device_id cxl_acpi_ids[] = {
 diff --git a/drivers/cxl/core.c b/drivers/cxl/core.c
-index c613dc795498..68d6afea363b 100644
+index 68d6afea363b..aaffb390d168 100644
 --- a/drivers/cxl/core.c
 +++ b/drivers/cxl/core.c
-@@ -767,8 +767,81 @@ int cxl_map_device_regs(struct pci_dev *pdev,
- }
- EXPORT_SYMBOL_GPL(cxl_map_device_regs);
- 
-+/**
-+ * __cxl_driver_register - register a driver for the cxl bus
-+ * @cxl_drv: cxl driver structure to attach
-+ * @owner: owning module/driver
-+ * @modname: KBUILD_MODNAME for parent driver
-+ */
-+int __cxl_driver_register(struct cxl_driver *cxl_drv, struct module *owner,
-+			  const char *modname)
-+{
-+	if (!cxl_drv->probe) {
-+		pr_debug("%s ->probe() must be specified\n", modname);
-+		return -EINVAL;
-+	}
-+
-+	if (!cxl_drv->name) {
-+		pr_debug("%s ->name must be specified\n", modname);
-+		return -EINVAL;
-+	}
-+
-+	if (!cxl_drv->id) {
-+		pr_debug("%s ->id must be specified\n", modname);
-+		return -EINVAL;
-+	}
-+
-+	cxl_drv->drv.bus = &cxl_bus_type;
-+	cxl_drv->drv.owner = owner;
-+	cxl_drv->drv.mod_name = modname;
-+	cxl_drv->drv.name = cxl_drv->name;
-+
-+	return driver_register(&cxl_drv->drv);
-+}
-+EXPORT_SYMBOL_GPL(__cxl_driver_register);
-+
-+void cxl_driver_unregister(struct cxl_driver *cxl_drv)
-+{
-+	driver_unregister(&cxl_drv->drv);
-+}
-+EXPORT_SYMBOL_GPL(cxl_driver_unregister);
-+
-+static int cxl_device_id(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int cxl_bus_uevent(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	return add_uevent_var(env, "MODALIAS=" CXL_MODALIAS_FMT,
-+			      cxl_device_id(dev));
-+}
-+
-+static int cxl_bus_match(struct device *dev, struct device_driver *drv)
-+{
-+	return cxl_device_id(dev) == to_cxl_drv(drv)->id;
-+}
-+
-+static int cxl_bus_probe(struct device *dev)
-+{
-+	return to_cxl_drv(dev->driver)->probe(dev);
-+}
-+
-+static int cxl_bus_remove(struct device *dev)
-+{
-+	struct cxl_driver *cxl_drv = to_cxl_drv(dev->driver);
-+
-+	if (cxl_drv->remove)
-+		cxl_drv->remove(dev);
-+	return 0;
-+}
-+
- struct bus_type cxl_bus_type = {
- 	.name = "cxl",
-+	.uevent = cxl_bus_uevent,
-+	.match = cxl_bus_match,
-+	.probe = cxl_bus_probe,
-+	.remove = cxl_bus_remove,
+@@ -187,6 +187,12 @@ static const struct device_type cxl_decoder_root_type = {
+ 	.groups = cxl_decoder_root_attribute_groups,
  };
- EXPORT_SYMBOL_GPL(cxl_bus_type);
  
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 97a273ae3947..a6f8e7097ea2 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -268,4 +268,26 @@ devm_cxl_add_passthrough_decoder(struct device *host, struct cxl_port *port)
- }
- 
- extern struct bus_type cxl_bus_type;
++bool is_root_decoder(struct device *dev)
++{
++	return dev->type == &cxl_decoder_root_type;
++}
++EXPORT_SYMBOL_GPL(is_root_decoder);
 +
-+struct cxl_driver {
-+	const char *name;
-+	int (*probe)(struct device *dev);
-+	void (*remove)(struct device *dev);
-+	struct device_driver drv;
-+	int id;
+ struct cxl_decoder *to_cxl_decoder(struct device *dev)
+ {
+ 	if (dev_WARN_ONCE(dev, dev->type->release != cxl_decoder_release,
+@@ -194,6 +200,7 @@ struct cxl_decoder *to_cxl_decoder(struct device *dev)
+ 		return NULL;
+ 	return container_of(dev, struct cxl_decoder, dev);
+ }
++EXPORT_SYMBOL_GPL(to_cxl_decoder);
+ 
+ static void cxl_dport_release(struct cxl_dport *dport)
+ {
+@@ -611,6 +618,118 @@ void cxl_probe_component_regs(struct device *dev, void __iomem *base,
+ }
+ EXPORT_SYMBOL_GPL(cxl_probe_component_regs);
+ 
++static void cxl_nvdimm_bridge_release(struct device *dev)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb = to_cxl_nvdimm_bridge(dev);
++
++	kfree(cxl_nvb);
++}
++
++static const struct attribute_group *cxl_nvdimm_bridge_attribute_groups[] = {
++	&cxl_base_attribute_group,
++	NULL,
 +};
 +
-+static inline struct cxl_driver *to_cxl_drv(struct device_driver *drv)
++static const struct device_type cxl_nvdimm_bridge_type = {
++	.name = "cxl_nvdimm_bridge",
++	.release = cxl_nvdimm_bridge_release,
++	.groups = cxl_nvdimm_bridge_attribute_groups,
++};
++
++struct cxl_nvdimm_bridge *to_cxl_nvdimm_bridge(struct device *dev)
 +{
-+	return container_of(drv, struct cxl_driver, drv);
++	if (dev_WARN_ONCE(dev, dev->type != &cxl_nvdimm_bridge_type,
++			  "not a cxl_nvdimm_bridge device\n"))
++		return NULL;
++	return container_of(dev, struct cxl_nvdimm_bridge, dev);
++}
++EXPORT_SYMBOL_GPL(to_cxl_nvdimm_bridge);
++
++static struct cxl_nvdimm_bridge *
++cxl_nvdimm_bridge_alloc(struct cxl_port *port)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb;
++	struct device *dev;
++
++	cxl_nvb = kzalloc(sizeof(*cxl_nvb), GFP_KERNEL);
++	if (!cxl_nvb)
++		return ERR_PTR(-ENOMEM);
++
++	dev = &cxl_nvb->dev;
++	cxl_nvb->port = port;
++	cxl_nvb->state = CXL_NVB_NEW;
++	device_initialize(dev);
++	device_set_pm_not_required(dev);
++	dev->parent = &port->dev;
++	dev->bus = &cxl_bus_type;
++	dev->type = &cxl_nvdimm_bridge_type;
++
++	return cxl_nvb;
 +}
 +
-+int __cxl_driver_register(struct cxl_driver *cxl_drv, struct module *owner,
-+			  const char *modname);
-+#define cxl_driver_register(x) __cxl_driver_register(x, THIS_MODULE, KBUILD_MODNAME)
-+void cxl_driver_unregister(struct cxl_driver *cxl_drv);
++static void unregister_nvb(void *_cxl_nvb)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb = _cxl_nvb;
++	bool flush;
 +
-+#define MODULE_ALIAS_CXL(type) MODULE_ALIAS("cxl:t" __stringify(type) "*")
-+#define CXL_MODALIAS_FMT "cxl:t%d"
++	/*
++	 * If the bridge was ever activated then there might be in-flight state
++	 * work to flush. Once the state has been changed to 'dead' then no new
++	 * work can be queued by user-triggered bind.
++	 */
++	device_lock(&cxl_nvb->dev);
++	flush = cxl_nvb->state != CXL_NVB_NEW;
++	cxl_nvb->state = CXL_NVB_DEAD;
++	device_unlock(&cxl_nvb->dev);
 +
++	/*
++	 * Even though the device core will trigger device_release_driver()
++	 * before the unregister, it does not know about the fact that
++	 * cxl_nvdimm_bridge_driver defers ->remove() work. So, do the driver
++	 * release not and flush it before tearing down the nvdimm device
++	 * hierarchy.
++	 */
++	device_release_driver(&cxl_nvb->dev);
++	if (flush)
++		flush_work(&cxl_nvb->state_work);
++	device_unregister(&cxl_nvb->dev);
++}
++
++struct cxl_nvdimm_bridge *devm_cxl_add_nvdimm_bridge(struct device *host,
++						     struct cxl_port *port)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb;
++	struct device *dev;
++	int rc;
++
++	if (!IS_ENABLED(CONFIG_CXL_PMEM))
++		return ERR_PTR(-ENXIO);
++
++	cxl_nvb = cxl_nvdimm_bridge_alloc(port);
++	if (IS_ERR(cxl_nvb))
++		return cxl_nvb;
++
++	dev = &cxl_nvb->dev;
++	rc = dev_set_name(dev, "nvdimm-bridge");
++	if (rc)
++		goto err;
++
++	rc = device_add(dev);
++	if (rc)
++		goto err;
++
++	rc = devm_add_action_or_reset(host, unregister_nvb, cxl_nvb);
++	if (rc)
++		return ERR_PTR(rc);
++
++	return cxl_nvb;
++
++err:
++	put_device(dev);
++	return ERR_PTR(rc);
++}
++EXPORT_SYMBOL_GPL(devm_cxl_add_nvdimm_bridge);
++
+ /**
+  * cxl_probe_device_regs() - Detect CXL Device register blocks
+  * @dev: Host device of the @base mapping
+@@ -808,6 +927,8 @@ EXPORT_SYMBOL_GPL(cxl_driver_unregister);
+ 
+ static int cxl_device_id(struct device *dev)
+ {
++	if (dev->type == &cxl_nvdimm_bridge_type)
++		return CXL_DEVICE_NVDIMM_BRIDGE;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index a6f8e7097ea2..5da2163ca45f 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -4,6 +4,7 @@
+ #ifndef __CXL_H__
+ #define __CXL_H__
+ 
++#include <linux/libnvdimm.h>
+ #include <linux/bitfield.h>
+ #include <linux/bitops.h>
+ #include <linux/io.h>
+@@ -202,6 +203,23 @@ struct cxl_decoder {
+ 	struct cxl_dport *target[];
+ };
+ 
++
++enum cxl_nvdimm_brige_state {
++	CXL_NVB_NEW,
++	CXL_NVB_DEAD,
++	CXL_NVB_ONLINE,
++	CXL_NVB_OFFLINE,
++};
++
++struct cxl_nvdimm_bridge {
++	struct device dev;
++	struct cxl_port *port;
++	struct nvdimm_bus *nvdimm_bus;
++	struct nvdimm_bus_descriptor nd_desc;
++	struct work_struct state_work;
++	enum cxl_nvdimm_brige_state state;
++};
++
+ /**
+  * struct cxl_port - logical collection of upstream port devices and
+  *		     downstream port devices to construct a CXL memory
+@@ -247,6 +265,7 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
+ 		  resource_size_t component_reg_phys);
+ 
+ struct cxl_decoder *to_cxl_decoder(struct device *dev);
++bool is_root_decoder(struct device *dev);
+ struct cxl_decoder *
+ devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
+ 		     resource_size_t base, resource_size_t len,
+@@ -287,7 +306,12 @@ int __cxl_driver_register(struct cxl_driver *cxl_drv, struct module *owner,
+ #define cxl_driver_register(x) __cxl_driver_register(x, THIS_MODULE, KBUILD_MODNAME)
+ void cxl_driver_unregister(struct cxl_driver *cxl_drv);
+ 
++#define CXL_DEVICE_NVDIMM_BRIDGE 1
++
+ #define MODULE_ALIAS_CXL(type) MODULE_ALIAS("cxl:t" __stringify(type) "*")
+ #define CXL_MODALIAS_FMT "cxl:t%d"
+ 
++struct cxl_nvdimm_bridge *to_cxl_nvdimm_bridge(struct device *dev);
++struct cxl_nvdimm_bridge *devm_cxl_add_nvdimm_bridge(struct device *host,
++						     struct cxl_port *port);
  #endif /* __CXL_H__ */
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+new file mode 100644
+index 000000000000..8365839856dc
+--- /dev/null
++++ b/drivers/cxl/pmem.c
+@@ -0,0 +1,140 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Copyright(c) 2021 Intel Corporation. All rights reserved. */
++#include <linux/libnvdimm.h>
++#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include "cxl.h"
++
++/*
++ * Ordered workqueue for cxl nvdimm device arrival and departure
++ * to coordinate bus rescans when a bridge arrives and trigger remove
++ * operations when the bridge is removed.
++ */
++static struct workqueue_struct *cxl_pmem_wq;
++
++static int cxl_pmem_ctl(struct nvdimm_bus_descriptor *nd_desc,
++			struct nvdimm *nvdimm, unsigned int cmd, void *buf,
++			unsigned int buf_len, int *cmd_rc)
++{
++	return -ENOTTY;
++}
++
++static bool online_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb)
++{
++	if (cxl_nvb->nvdimm_bus)
++		return true;
++	cxl_nvb->nvdimm_bus =
++		nvdimm_bus_register(&cxl_nvb->dev, &cxl_nvb->nd_desc);
++	return cxl_nvb->nvdimm_bus != NULL;
++}
++
++static void offline_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb)
++{
++	if (!cxl_nvb->nvdimm_bus)
++		return;
++	nvdimm_bus_unregister(cxl_nvb->nvdimm_bus);
++	cxl_nvb->nvdimm_bus = NULL;
++}
++
++static void cxl_nvb_update_state(struct work_struct *work)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb =
++		container_of(work, typeof(*cxl_nvb), state_work);
++	bool release = false;
++
++	device_lock(&cxl_nvb->dev);
++	switch (cxl_nvb->state) {
++	case CXL_NVB_ONLINE:
++		if (!online_nvdimm_bus(cxl_nvb)) {
++			dev_err(&cxl_nvb->dev,
++				"failed to establish nvdimm bus\n");
++			release = true;
++		}
++		break;
++	case CXL_NVB_OFFLINE:
++	case CXL_NVB_DEAD:
++		offline_nvdimm_bus(cxl_nvb);
++		break;
++	default:
++		break;
++	}
++	device_unlock(&cxl_nvb->dev);
++
++	if (release)
++		device_release_driver(&cxl_nvb->dev);
++
++	put_device(&cxl_nvb->dev);
++}
++
++static void cxl_nvdimm_bridge_remove(struct device *dev)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb = to_cxl_nvdimm_bridge(dev);
++
++	if (cxl_nvb->state == CXL_NVB_ONLINE)
++		cxl_nvb->state = CXL_NVB_OFFLINE;
++	if (queue_work(cxl_pmem_wq, &cxl_nvb->state_work))
++		get_device(&cxl_nvb->dev);
++}
++
++static int cxl_nvdimm_bridge_probe(struct device *dev)
++{
++	struct cxl_nvdimm_bridge *cxl_nvb = to_cxl_nvdimm_bridge(dev);
++
++	if (cxl_nvb->state == CXL_NVB_DEAD)
++		return -ENXIO;
++
++	if (cxl_nvb->state == CXL_NVB_NEW) {
++		cxl_nvb->nd_desc = (struct nvdimm_bus_descriptor) {
++			.provider_name = "CXL",
++			.module = THIS_MODULE,
++			.ndctl = cxl_pmem_ctl,
++		};
++
++		INIT_WORK(&cxl_nvb->state_work, cxl_nvb_update_state);
++	}
++
++	cxl_nvb->state = CXL_NVB_ONLINE;
++	if (queue_work(cxl_pmem_wq, &cxl_nvb->state_work))
++		get_device(&cxl_nvb->dev);
++
++	return 0;
++}
++
++static struct cxl_driver cxl_nvdimm_bridge_driver = {
++	.name = "cxl_nvdimm_bridge",
++	.probe = cxl_nvdimm_bridge_probe,
++	.remove = cxl_nvdimm_bridge_remove,
++	.id = CXL_DEVICE_NVDIMM_BRIDGE,
++};
++
++static __init int cxl_pmem_init(void)
++{
++	int rc;
++
++	cxl_pmem_wq = alloc_ordered_workqueue("cxl_pmem", 0);
++	if (!cxl_pmem_wq)
++		return -ENXIO;
++
++	rc = cxl_driver_register(&cxl_nvdimm_bridge_driver);
++	if (rc)
++		goto err;
++
++	return 0;
++
++err:
++	destroy_workqueue(cxl_pmem_wq);
++	return rc;
++}
++
++static __exit void cxl_pmem_exit(void)
++{
++	cxl_driver_unregister(&cxl_nvdimm_bridge_driver);
++	destroy_workqueue(cxl_pmem_wq);
++}
++
++MODULE_LICENSE("GPL v2");
++module_init(cxl_pmem_init);
++module_exit(cxl_pmem_exit);
++MODULE_IMPORT_NS(CXL);
++MODULE_ALIAS_CXL(CXL_DEVICE_NVDIMM_BRIDGE);
 
