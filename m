@@ -1,203 +1,392 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6846570
-	for <nvdimm@lists.linux.dev>; Wed, 16 Jun 2021 01:31:33 +0000 (UTC)
-IronPort-SDR: 1xb/EJpeM2oxS9k8ZiK6MYav59UQrxDJ9cj3zMFxt1EtZZGtaHLrdXUXaHym9Mz0QemOwLPyxs
- ggYuhcS6rRUw==
-X-IronPort-AV: E=McAfee;i="6200,9189,10016"; a="193407604"
-X-IronPort-AV: E=Sophos;i="5.83,276,1616482800"; 
-   d="scan'208";a="193407604"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2021 18:31:32 -0700
-IronPort-SDR: 6HqcgPeRMbFXyIL3j6lCvFr3g/fe96bgH8OHJiqhNfxsWeTXbEZQRjQcOF7gQTcS8YqEOMUlFL
- wh6OS8AdIfHA==
-X-IronPort-AV: E=Sophos;i="5.83,276,1616482800"; 
-   d="scan'208";a="421316463"
-Received: from jingqili-mobl.ccr.corp.intel.com (HELO [10.238.4.189]) ([10.238.4.189])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2021 18:31:31 -0700
-Subject: Re: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-References: <20210609030642.66204-1-jingqi.liu@intel.com>
-Cc: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-From: "Liu, Jingqi" <jingqi.liu@intel.com>
-Message-ID: <9b92ffef-c01d-05fc-3cf6-2f7565b5fb69@intel.com>
-Date: Wed, 16 Jun 2021 09:31:29 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BF2E70
+	for <nvdimm@lists.linux.dev>; Wed, 16 Jun 2021 06:31:02 +0000 (UTC)
+Received: by mail-pg1-f174.google.com with SMTP id t9so1144162pgn.4
+        for <nvdimm@lists.linux.dev>; Tue, 15 Jun 2021 23:31:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wnVJHvXzTfMwZnd+sO8L8PW13B3KOws+XHBcdC/4riM=;
+        b=Yv9ZQDLD3WsQqlq7yq5aUVVWSQwiUdOZ+qsoDuKBQI0Nt78TlXWAKguiTBzi+qqseo
+         iwsgslAKqajlPYp+T/4wz34FbgnCi4e5ymRKLvdfnU/g12RY76V2hgg8wVE8U4Bj9EIB
+         7UU4wxSC3AU3xrehmS1hDX94RtLkU2sf6KT5uhVFHMCYIGkg0uIlS87Moi+EYx9HUVeO
+         wU8Z41eZfaffLRivuWoFCNg0z/3zRbAf4t3Z3xG5AXyj7PhAHt71XlYt7Nj8FOLCeNIo
+         odc7gI6tMdUmPeT8KxIO+I+9kp6nGKAv576nYrk/Arn7Du74NChCTZvHu04ikY2o6XwZ
+         nFHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wnVJHvXzTfMwZnd+sO8L8PW13B3KOws+XHBcdC/4riM=;
+        b=NniTt/JLU51KrV62S0mUPaG8fTiTeJ2Td32pB3QKbpVUGO3YwygRQ9fD4Fx93S/z2s
+         H+8/OgCXHNZk4tr+hKiDC1w2PtZJ8NiXFU2Q9VLNkMGHMtQDBzw2ZUJibivRqHNJdpMQ
+         SLPs2JIr+jFmmXk2R8P2BDKtRZ3XBdsPpH0is/zHFiPaa7lMiRua+SjGRXKkyW1tJzAh
+         lu5Y0ZnFTN18oeHaHlaI9+St2m2pg4iLSUj0Ih+UNSuzXo/8aBYYiersdCy7DHBuGKWw
+         gMNdn9VUE1OTornXFvt5tiswvY3sxFmun1N3ISPrZH6G7mfVJ6vwn4YkT1R8EV0frA34
+         NeVg==
+X-Gm-Message-State: AOAM533tHxLdUhQ5yxh5ZqNmh90vxG1cnV3vfha7I9XYnBcbbz1MOVqS
+	SYNRzcK4Y7tHmf3295+GKOHssyuVZq+WSK3HGOHP0w==
+X-Google-Smtp-Source: ABdhPJxEr9gf18Cdhk1f8EhTHILp6osP6kHcu589GdH0NbQQbUNIN5WvGkClnb9HbcroXzcqyZCUY4XCXkw4wpHlRvc=
+X-Received: by 2002:a63:5c4a:: with SMTP id n10mr3477810pgm.279.1623825061741;
+ Tue, 15 Jun 2021 23:31:01 -0700 (PDT)
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210609030642.66204-1-jingqi.liu@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20210604011844.1756145-1-ruansy.fnst@fujitsu.com> <20210604011844.1756145-5-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20210604011844.1756145-5-ruansy.fnst@fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 15 Jun 2021 23:30:51 -0700
+Message-ID: <CAPcyv4iEuPWs-f+rV=xncbXYKSHkbhuLJ-1hnP9N9ABNzr1VSA@mail.gmail.com>
+Subject: Re: [PATCH v4 04/10] mm, fsdax: Refactor memory-failure handler for
+ dax mapping
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
+	device-mapper development <dm-devel@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, 
+	david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, 
+	Mike Snitzer <snitzer@redhat.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Dan,
+[ drop old nvdimm list, add the new one ]
 
-This is the second version of the patch.
-Any comments?
+On Thu, Jun 3, 2021 at 6:19 PM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+>
+> The current memory_failure_dev_pagemap() can only handle single-mapped
+> dax page for fsdax mode.  The dax page could be mapped by multiple files
+> and offsets if we let reflink feature & fsdax mode work together.  So,
+> we refactor current implementation to support handle memory failure on
+> each file and offset.
 
-Thanks,
-Jingqi
+I don't understand this organization, perhaps because this patch
+introduces mf_dax_kill_procs() without a user. However, my expectation
+is that memory_failure() is mostly untouched save for an early check
+via pgmap->notify_memory_failure(). If pgmap->notify_memory_failure()
+indicates that the memory failure was handled by the pgmap->owner /
+dax_dev holder stack, then the typical memory failure path is
+short-circuited. Otherwise, for non-reflink filesystems where
+page->mapping() is valid the legacy / existing memory_failure()
+operates as it does currently. If reflink capable filesystems want to
+share a common implementation to map pfns to files they can, but I
+don't think that common code belongs in mm/memory-failure.c.
 
-On 6/9/2021 11:06 AM, Liu, Jingqi wrote:
-> The following bug is caused by setting the size of Label Index Block
-> to a fixed 256 bytes.
-> 
-> Use the following Qemu command to start a Guest with 2MB label-size:
-> 	-object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
-> 	-device nvdimm,memdev=mem1,id=nv1,label-size=2M
-> 
-> There is a namespace in the Guest as follows:
-> 	$ ndctl list
-> 	[
-> 	  {
-> 	    "dev":"namespace0.0",
-> 	    "mode":"devdax",
-> 	    "map":"dev",
-> 	    "size":14780727296,
-> 	    "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
-> 	    "chardev":"dax0.0",
-> 	    "align":2097152,
-> 	    "name":"namespace0.0"
-> 	  }
-> 	]
-> 
-> Fail to read labels. The result is as follows:
-> 	$ ndctl read-labels -u nmem0
-> 	[
-> 	]
-> 	read 0 nmem
-> 
-> If using the following Qemu command to start the Guest with 128K
-> label-size, this label can be read correctly.
-> 	-object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
-> 	-device nvdimm,memdev=mem1,id=nv1,label-size=128K
-> 
-> The size of a Label Index Block depends on how many label slots fit into
-> the label storage area. The minimum size of an index block is 256 bytes
-> and the size must be a multiple of 256 bytes. For a storage area of 128KB,
-> the corresponding Label Index Block size is 256 bytes. But if the label
-> storage area is not 128KB, the Label Index Block size should not be 256 bytes.
-> 
-> Namespace Label Index Block appears twice at the top of the label storage area.
-> Following the two index blocks, an array for storing labels takes up the
-> remainder of the label storage area.
-> 
-> For obtaining the size of Namespace Index Block, we also cannot rely on
-> the field of 'mysize' in this index block since it might be corrupted.
-> Similar to the linux kernel, we use sizeof_namespace_index() to get the size
-> of Namespace Index Block. Then we can also correctly calculate the starting
-> offset of the following namespace labels.
-> 
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Jingqi Liu <jingqi.liu@intel.com>
+>
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 > ---
->   ndctl/dimm.c           | 19 +++++++++++++++----
->   ndctl/lib/dimm.c       |  5 +++++
->   ndctl/lib/libndctl.sym |  1 +
->   ndctl/libndctl.h       |  1 +
->   4 files changed, 22 insertions(+), 4 deletions(-)
-> 
-> diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-> index 09ce49e..1d2d9a2 100644
-> --- a/ndctl/dimm.c
-> +++ b/ndctl/dimm.c
-> @@ -94,13 +94,18 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
->   	struct json_object *jarray = json_object_new_array();
->   	struct json_object *jlabel = NULL;
->   	struct namespace_label nslabel;
-> +	unsigned int nsindex_size;
->   	unsigned int slot = -1;
->   	ssize_t offset;
->   
->   	if (!jarray)
->   		return NULL;
->   
-> -	for (offset = NSINDEX_ALIGN * 2; offset < size;
-> +	nsindex_size = ndctl_dimm_sizeof_namespace_index(dimm);
-> +	if (nsindex_size == 0)
-> +		return NULL;
-> +
-> +	for (offset = nsindex_size * 2; offset < size;
->   			offset += ndctl_dimm_sizeof_namespace_label(dimm)) {
->   		ssize_t len = min_t(ssize_t,
->   				ndctl_dimm_sizeof_namespace_label(dimm),
-> @@ -204,17 +209,23 @@ static struct json_object *dump_label_json(struct ndctl_dimm *dimm,
->   	return jarray;
->   }
->   
-> -static struct json_object *dump_index_json(struct ndctl_cmd *cmd_read, ssize_t size)
-> +static struct json_object *dump_index_json(struct ndctl_dimm *dimm,
-> +		struct ndctl_cmd *cmd_read, ssize_t size)
->   {
->   	struct json_object *jarray = json_object_new_array();
->   	struct json_object *jindex = NULL;
->   	struct namespace_index nsindex;
-> +	unsigned int nsindex_size;
->   	ssize_t offset;
->   
->   	if (!jarray)
->   		return NULL;
->   
-> -	for (offset = 0; offset < NSINDEX_ALIGN * 2; offset += NSINDEX_ALIGN) {
-> +	nsindex_size = ndctl_dimm_sizeof_namespace_index(dimm);
-> +	if (nsindex_size == 0)
-> +		return NULL;
-> +
-> +	for (offset = 0; offset < nsindex_size * 2; offset += nsindex_size) {
->   		ssize_t len = min_t(ssize_t, sizeof(nsindex), size - offset);
->   		struct json_object *jobj;
->   
-> @@ -288,7 +299,7 @@ static struct json_object *dump_json(struct ndctl_dimm *dimm,
->   		goto err;
->   	json_object_object_add(jdimm, "dev", jobj);
->   
-> -	jindex = dump_index_json(cmd_read, size);
-> +	jindex = dump_index_json(dimm, cmd_read, size);
->   	if (!jindex)
->   		goto err;
->   	json_object_object_add(jdimm, "index", jindex);
-> diff --git a/ndctl/lib/dimm.c b/ndctl/lib/dimm.c
-> index c045cbe..9e36e28 100644
-> --- a/ndctl/lib/dimm.c
-> +++ b/ndctl/lib/dimm.c
-> @@ -256,6 +256,11 @@ static int __label_validate(struct nvdimm_data *ndd)
->   	return -EINVAL;
->   }
->   
-> +NDCTL_EXPORT unsigned int ndctl_dimm_sizeof_namespace_index(struct ndctl_dimm *dimm)
+>  fs/dax.c            |  21 ++++++++
+>  include/linux/dax.h |   1 +
+>  include/linux/mm.h  |   9 ++++
+>  mm/memory-failure.c | 114 ++++++++++++++++++++++++++++----------------
+>  4 files changed, 105 insertions(+), 40 deletions(-)
+>
+> diff --git a/fs/dax.c b/fs/dax.c
+> index 62352cbcf0f4..58faca85455a 100644
+> --- a/fs/dax.c
+> +++ b/fs/dax.c
+> @@ -389,6 +389,27 @@ static struct page *dax_busy_page(void *entry)
+>         return NULL;
+>  }
+>
+> +/*
+> + * dax_load_pfn - Load pfn of the DAX entry corresponding to a page
+> + * @mapping: The file whose entry we want to load
+> + * @index:   The offset where the DAX entry located in
+> + *
+> + * Return:   pfn of the DAX entry
+> + */
+> +unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index)
 > +{
-> +	return sizeof_namespace_index(&dimm->ndd);
+> +       XA_STATE(xas, &mapping->i_pages, index);
+> +       void *entry;
+> +       unsigned long pfn;
+> +
+> +       xas_lock_irq(&xas);
+> +       entry = xas_load(&xas);
+> +       pfn = dax_to_pfn(entry);
+> +       xas_unlock_irq(&xas);
+
+This looks racy, what happened to the locking afforded by dax_lock_page()?
+
+> +
+> +       return pfn;
 > +}
 > +
->   /*
->    * If the dimm labels have not been previously validated this routine
->    * will make up a default size. Otherwise, it will pick the size based
-> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
-> index 0a82616..0ce2bb9 100644
-> --- a/ndctl/lib/libndctl.sym
-> +++ b/ndctl/lib/libndctl.sym
-> @@ -290,6 +290,7 @@ global:
->   	ndctl_dimm_validate_labels;
->   	ndctl_dimm_init_labels;
->   	ndctl_dimm_sizeof_namespace_label;
-> +	ndctl_dimm_sizeof_namespace_index;
->   	ndctl_mapping_get_position;
->   	ndctl_namespace_set_enforce_mode;
->   	ndctl_namespace_get_enforce_mode;
-> diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-> index 60e1288..9a1a799 100644
-> --- a/ndctl/libndctl.h
-> +++ b/ndctl/libndctl.h
-> @@ -335,6 +335,7 @@ int ndctl_dimm_init_labels(struct ndctl_dimm *dimm,
->   		enum ndctl_namespace_version v);
->   unsigned long ndctl_dimm_get_available_labels(struct ndctl_dimm *dimm);
->   unsigned int ndctl_dimm_sizeof_namespace_label(struct ndctl_dimm *dimm);
-> +unsigned int ndctl_dimm_sizeof_namespace_index(struct ndctl_dimm *dimm);
->   unsigned int ndctl_cmd_cfg_size_get_size(struct ndctl_cmd *cfg_size);
->   ssize_t ndctl_cmd_cfg_read_get_data(struct ndctl_cmd *cfg_read, void *buf,
->   		unsigned int len, unsigned int offset);
-> 
+>  /*
+>   * dax_lock_mapping_entry - Lock the DAX entry corresponding to a page
+>   * @page: The page whose entry we want to lock
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 1ce343a960ab..6e758daa5004 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -158,6 +158,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+>
+>  struct page *dax_layout_busy_page(struct address_space *mapping);
+>  struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
+> +unsigned long dax_load_pfn(struct address_space *mapping, unsigned long index);
+>  dax_entry_t dax_lock_page(struct page *page);
+>  void dax_unlock_page(struct page *page, dax_entry_t cookie);
+>  #else
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index c274f75efcf9..2b7527e93c77 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1187,6 +1187,14 @@ static inline bool is_device_private_page(const struct page *page)
+>                 page->pgmap->type == MEMORY_DEVICE_PRIVATE;
+>  }
+>
+> +static inline bool is_device_fsdax_page(const struct page *page)
+> +{
+> +       return IS_ENABLED(CONFIG_DEV_PAGEMAP_OPS) &&
+> +               IS_ENABLED(CONFIG_FS_DAX) &&
+> +               is_zone_device_page(page) &&
+> +               page->pgmap->type == MEMORY_DEVICE_FS_DAX;
+
+Why is this necessary? The dax_dev holder is the one that knows the
+nature of the pfn. The common memory_failure() code should not care
+about fsdax vs devdax.
+
+> +}
+> +
+>  static inline bool is_pci_p2pdma_page(const struct page *page)
+>  {
+>         return IS_ENABLED(CONFIG_DEV_PAGEMAP_OPS) &&
+> @@ -3078,6 +3086,7 @@ enum mf_flags {
+>         MF_MUST_KILL = 1 << 2,
+>         MF_SOFT_OFFLINE = 1 << 3,
+>  };
+> +int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index, int flags);
+>  extern int memory_failure(unsigned long pfn, int flags);
+>  extern void memory_failure_queue(unsigned long pfn, int flags);
+>  extern void memory_failure_queue_kick(int cpu);
+> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+> index 85ad98c00fd9..4377e727d478 100644
+> --- a/mm/memory-failure.c
+> +++ b/mm/memory-failure.c
+> @@ -56,6 +56,7 @@
+>  #include <linux/kfifo.h>
+>  #include <linux/ratelimit.h>
+>  #include <linux/page-isolation.h>
+> +#include <linux/dax.h>
+>  #include "internal.h"
+>  #include "ras/ras_event.h"
+>
+> @@ -120,6 +121,13 @@ static int hwpoison_filter_dev(struct page *p)
+>         if (PageSlab(p))
+>                 return -EINVAL;
+>
+> +       if (pfn_valid(page_to_pfn(p))) {
+> +               if (is_device_fsdax_page(p))
+
+This is racy unless the page is pinned. Also, not clear why this is needed?
+
+> +                       return 0;
+> +               else
+> +                       return -EINVAL;
+> +       }
+> +
+>         mapping = page_mapping(p);
+>         if (mapping == NULL || mapping->host == NULL)
+>                 return -EINVAL;
+> @@ -290,10 +298,9 @@ void shake_page(struct page *p, int access)
+>  }
+>  EXPORT_SYMBOL_GPL(shake_page);
+>
+> -static unsigned long dev_pagemap_mapping_shift(struct page *page,
+> -               struct vm_area_struct *vma)
+> +static unsigned long dev_pagemap_mapping_shift(struct vm_area_struct *vma,
+> +                                              unsigned long address)
+>  {
+> -       unsigned long address = vma_address(page, vma);
+>         pgd_t *pgd;
+>         p4d_t *p4d;
+>         pud_t *pud;
+> @@ -333,9 +340,8 @@ static unsigned long dev_pagemap_mapping_shift(struct page *page,
+>   * Schedule a process for later kill.
+>   * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
+>   */
+> -static void add_to_kill(struct task_struct *tsk, struct page *p,
+> -                      struct vm_area_struct *vma,
+> -                      struct list_head *to_kill)
+> +static void add_to_kill(struct task_struct *tsk, struct page *p, pgoff_t pgoff,
+> +                       struct vm_area_struct *vma, struct list_head *to_kill)
+>  {
+>         struct to_kill *tk;
+>
+> @@ -346,9 +352,12 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+>         }
+>
+>         tk->addr = page_address_in_vma(p, vma);
+> -       if (is_zone_device_page(p))
+> -               tk->size_shift = dev_pagemap_mapping_shift(p, vma);
+> -       else
+> +       if (is_zone_device_page(p)) {
+> +               if (is_device_fsdax_page(p))
+> +                       tk->addr = vma->vm_start +
+> +                                       ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+> +               tk->size_shift = dev_pagemap_mapping_shift(vma, tk->addr);
+
+What was wrong with the original code?
+
+> +       } else
+>                 tk->size_shift = page_shift(compound_head(p));
+>
+>         /*
+> @@ -496,7 +505,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+>                         if (!page_mapped_in_vma(page, vma))
+>                                 continue;
+>                         if (vma->vm_mm == t->mm)
+> -                               add_to_kill(t, page, vma, to_kill);
+> +                               add_to_kill(t, page, 0, vma, to_kill);
+>                 }
+>         }
+>         read_unlock(&tasklist_lock);
+> @@ -506,24 +515,19 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+>  /*
+>   * Collect processes when the error hit a file mapped page.
+>   */
+> -static void collect_procs_file(struct page *page, struct list_head *to_kill,
+> -                               int force_early)
+> +static void collect_procs_file(struct page *page, struct address_space *mapping,
+> +               pgoff_t pgoff, struct list_head *to_kill, int force_early)
+>  {
+
+collect_procs() and kill_procs() are the only core memory_failure()
+helpers I expect would be exported for a fileystem dax_dev holder to
+call when it is trying to cleanup a memory_failure() on a reflink'd
+mapping.
+
+>         struct vm_area_struct *vma;
+>         struct task_struct *tsk;
+> -       struct address_space *mapping = page->mapping;
+> -       pgoff_t pgoff;
+>
+>         i_mmap_lock_read(mapping);
+>         read_lock(&tasklist_lock);
+> -       pgoff = page_to_pgoff(page);
+>         for_each_process(tsk) {
+>                 struct task_struct *t = task_early_kill(tsk, force_early);
+> -
+>                 if (!t)
+>                         continue;
+> -               vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff,
+> -                                     pgoff) {
+> +               vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+>                         /*
+>                          * Send early kill signal to tasks where a vma covers
+>                          * the page but the corrupted page is not necessarily
+> @@ -532,7 +536,7 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+>                          * to be informed of all such data corruptions.
+>                          */
+>                         if (vma->vm_mm == t->mm)
+> -                               add_to_kill(t, page, vma, to_kill);
+> +                               add_to_kill(t, page, pgoff, vma, to_kill);
+>                 }
+>         }
+>         read_unlock(&tasklist_lock);
+> @@ -551,7 +555,8 @@ static void collect_procs(struct page *page, struct list_head *tokill,
+>         if (PageAnon(page))
+>                 collect_procs_anon(page, tokill, force_early);
+>         else
+> -               collect_procs_file(page, tokill, force_early);
+> +               collect_procs_file(page, page_mapping(page), page_to_pgoff(page),
+> +                                  tokill, force_early);
+>  }
+>
+>  static const char *action_name[] = {
+> @@ -1218,6 +1223,51 @@ static int try_to_split_thp_page(struct page *page, const char *msg)
+>         return 0;
+>  }
+>
+> +static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
+> +               struct address_space *mapping, pgoff_t index, int flags)
+> +{
+> +       struct to_kill *tk;
+> +       unsigned long size = 0;
+> +       loff_t start;
+> +
+> +       list_for_each_entry(tk, to_kill, nd)
+> +               if (tk->size_shift)
+> +                       size = max(size, 1UL << tk->size_shift);
+> +       if (size) {
+> +               /*
+> +                * Unmap the largest mapping to avoid breaking up
+> +                * device-dax mappings which are constant size. The
+> +                * actual size of the mapping being torn down is
+> +                * communicated in siginfo, see kill_proc()
+> +                */
+> +               start = (index << PAGE_SHIFT) & ~(size - 1);
+> +               unmap_mapping_range(mapping, start, size, 0);
+> +       }
+> +
+> +       kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
+> +}
+> +
+> +int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index, int flags)
+> +{
+> +       LIST_HEAD(to_kill);
+> +       /* load the pfn of the dax mapping file */
+> +       unsigned long pfn = dax_load_pfn(mapping, index);
+> +
+> +       /*
+> +        * Unlike System-RAM there is no possibility to swap in a
+> +        * different physical page at a given virtual address, so all
+> +        * userspace consumption of ZONE_DEVICE memory necessitates
+> +        * SIGBUS (i.e. MF_MUST_KILL)
+> +        */
+> +       flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+> +       collect_procs_file(pfn_to_page(pfn), mapping, index, &to_kill,
+> +                          flags & MF_ACTION_REQUIRED);
+> +
+> +       unmap_and_kill(&to_kill, pfn, mapping, index, flags);
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
+> +
+>  static int memory_failure_hugetlb(unsigned long pfn, int flags)
+>  {
+>         struct page *p = pfn_to_page(pfn);
+> @@ -1298,12 +1348,8 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+>                 struct dev_pagemap *pgmap)
+>  {
+>         struct page *page = pfn_to_page(pfn);
+> -       const bool unmap_success = true;
+> -       unsigned long size = 0;
+> -       struct to_kill *tk;
+> -       LIST_HEAD(tokill);
+> +       LIST_HEAD(to_kill);
+>         int rc = -EBUSY;
+> -       loff_t start;
+>         dax_entry_t cookie;
+>
+>         if (flags & MF_COUNT_INCREASED)
+> @@ -1355,22 +1401,10 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+>          * SIGBUS (i.e. MF_MUST_KILL)
+>          */
+>         flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+> -       collect_procs(page, &tokill, flags & MF_ACTION_REQUIRED);
+> +       collect_procs_file(page, page->mapping, page->index, &to_kill,
+> +                          flags & MF_ACTION_REQUIRED);
+>
+> -       list_for_each_entry(tk, &tokill, nd)
+> -               if (tk->size_shift)
+> -                       size = max(size, 1UL << tk->size_shift);
+> -       if (size) {
+> -               /*
+> -                * Unmap the largest mapping to avoid breaking up
+> -                * device-dax mappings which are constant size. The
+> -                * actual size of the mapping being torn down is
+> -                * communicated in siginfo, see kill_proc()
+> -                */
+> -               start = (page->index << PAGE_SHIFT) & ~(size - 1);
+> -               unmap_mapping_range(page->mapping, start, size, 0);
+> -       }
+> -       kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
+> +       unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
+
+There's just too much change in this patch and not enough
+justification of what is being refactored and why.
