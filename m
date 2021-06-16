@@ -1,298 +1,153 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A39FF70
-	for <nvdimm@lists.linux.dev>; Wed, 16 Jun 2021 06:50:09 +0000 (UTC)
-Received: by mail-pl1-f172.google.com with SMTP id 11so608544plk.12
-        for <nvdimm@lists.linux.dev>; Tue, 15 Jun 2021 23:50:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=+Kn3PBZvfdrm3M++IQCcW4SjJvH/DG1JZP1myaOpJRg=;
-        b=EOUg1SGoT/6uPzoDXTs7vcmZcQci9D4manCusk+A1HK/afG4VmUTZJ89jjcHHhF+15
-         uDqVUdG5Jdourr03Cxc0YGw7sbmPEt9Pr3EGYAPrRyqSEEBLdhkj+MTnwPyydv0GBvoM
-         dfqP3Y4INs8cQT5ly23nRsxM3joBbpiFsfbw40tuTTT4WoV1SqU9dQ4Ajfz3c6Ty/0q8
-         1cZOMl+cehTCGKZQ7JY74pJGDp2MPTk0DAJ7yBKQdp6tvwCQExYpIOb+7tmP7sZ/9HqU
-         rqItzUaIRiLJ5q0EBSfITxk49RBh4zDf49bvuF7oxdH6oq0gdzedyMoEZVeEQCFEmpXu
-         6UCQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=+Kn3PBZvfdrm3M++IQCcW4SjJvH/DG1JZP1myaOpJRg=;
-        b=qdvn4gJv2RHIsab0i7o5VUZK9c7gc+YCwF0tzZKYJzD73yfSKnF15UTKOZre7YT7AS
-         U5t9hwENC2eXN5gaFG4G78Mw0e2BMLp401wxOe5sng0koY9dKqpPd6k1KlYLSH2iMy9R
-         doCzLLeW6/2h/UvWpwUreJrwrv2w8LSn08cu5PknTGSTxN0CrX5juI21Y4EtLIu7R/N2
-         3kHbS3GlddBs7EG8AxNZQTRtFXjEYtYI5Vtb5R3MKLBDYb7ISycpLXU5TKYwwRsAaW2h
-         kEutJDbum6g78Nlq6X+jTH2G9+MJypJxI3fj1RemXMFHwxAUFYJkfFXzkX5ylXYJ8MCs
-         qxGg==
-X-Gm-Message-State: AOAM533MPe0tWHMIjVID+97w/DCBAY57pQ1ZwMxOZ2x61L5GF1kILH4I
-	VJYL19xcqrfmc8mBfgknld4nM68aI2Pl29zhXOSt/w==
-X-Google-Smtp-Source: ABdhPJyQRs1D11qRe1LliJmjI3lSiLNlJfJSax7U3r7FSVTrVSQxBNBqbhHBO+w23FsmYdODe6G8Ue0jGeGbsigANto=
-X-Received: by 2002:a17:902:b497:b029:115:e287:7b55 with SMTP id
- y23-20020a170902b497b0290115e2877b55mr7677048plr.79.1623826208688; Tue, 15
- Jun 2021 23:50:08 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA401173
+	for <nvdimm@lists.linux.dev>; Wed, 16 Jun 2021 10:56:44 +0000 (UTC)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15GAlEC3034749;
+	Wed, 16 Jun 2021 06:55:10 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=content-type : subject :
+ from : in-reply-to : date : cc : message-id : references : to :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=80KjtjTCJSGCl+N545fzlhHnYfVsW8UWSAcxhsaSRJ0=;
+ b=E8R7gVXJz6Glv55HFAbiE4K+zDLuCrutJjqHexG7JbLyYymbCdL6IGFm17J5FHxR9Cna
+ HyjLNwIvVPon1YfQL2VjSC31PXXY8RoVL2UVN3JMvRslXF65LGrWNTzp/k4Eh6+RC/Nm
+ I9UfWua1SXWhRGr97SRfdk7orOzwhdnpaP2BdxPRIKYtQbwKS1Fg2NjnSvOtUS1LpiU7
+ NnKt8BkWpXe4QmHlrekAyrKlnHVJ6BcdPEHoXknfw2nILlp8c2mIuFRPd508kAV8P3HC
+ MbTTcyTaeWzAeVoThUPWwGt8G8JVEnUVud4N9aG6Tc8GN9j8aEsVVYAy104cR9SELWAH AA== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 397fuv05ma-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 16 Jun 2021 06:55:10 -0400
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15GAl5qt017422;
+	Wed, 16 Jun 2021 10:55:08 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma04ams.nl.ibm.com with ESMTP id 394mj8t1a3-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 16 Jun 2021 10:55:08 +0000
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15GAt4Et35324226
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 16 Jun 2021 10:55:04 GMT
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C3195A405B;
+	Wed, 16 Jun 2021 10:55:04 +0000 (GMT)
+Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 887DFA4065;
+	Wed, 16 Jun 2021 10:55:02 +0000 (GMT)
+Received: from smtpclient.apple (unknown [9.77.207.60])
+	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
+	Wed, 16 Jun 2021 10:55:02 +0000 (GMT)
+Content-Type: text/plain;
+	charset=us-ascii
+Subject: Re: [PATCH v2 0/4] Add perf interface to expose nvdimm
+From: Nageswara Sastry <rnsastry@linux.ibm.com>
+In-Reply-To: <20210614052326.285710-1-kjain@linux.ibm.com>
+Date: Wed, 16 Jun 2021 16:25:00 +0530
+Cc: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, peterz@infradead.org,
+        maddy@linux.vnet.ibm.com, santosh@fossix.org,
+        aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com,
+        dan.j.williams@intel.com, ira.weiny@intel.com,
+        Athira Rajeev <atrajeev@linux.vnet.ibm.com>, tglx@linutronix.de
+Message-Id: <B216F74B-8542-4363-8A82-1E392D9C5929@linux.ibm.com>
+References: <20210614052326.285710-1-kjain@linux.ibm.com>
+To: Kajol Jain <kjain@linux.ibm.com>
+X-Mailer: Apple Mail (2.3654.100.0.2.22)
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: N3X1kf_xO5sUaZH9i8ADFlbD9voIdr47
+X-Proofpoint-GUID: N3X1kf_xO5sUaZH9i8ADFlbD9voIdr47
+Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210604011844.1756145-1-ruansy.fnst@fujitsu.com> <20210604011844.1756145-6-ruansy.fnst@fujitsu.com>
-In-Reply-To: <20210604011844.1756145-6-ruansy.fnst@fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 15 Jun 2021 23:49:57 -0700
-Message-ID: <CAPcyv4heVL+9T3R8dTRw7yaFsL65MXN2qbuqFnO4G2fHMFgYiA@mail.gmail.com>
-Subject: Re: [PATCH v4 05/10] mm, pmem: Implement ->memory_failure() in pmem driver
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	device-mapper development <dm-devel@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, 
-	david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, 
-	Mike Snitzer <snitzer@redhat.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-06-16_07:2021-06-15,2021-06-16 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ bulkscore=0 adultscore=0 spamscore=0 clxscore=1011 mlxscore=0
+ lowpriorityscore=0 suspectscore=0 mlxlogscore=999 impostorscore=0
+ phishscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2104190000 definitions=main-2106160060
 
-On Thu, Jun 3, 2021 at 6:19 PM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->
-> Call the ->memory_failure() which is implemented by pmem driver, in
-> order to finally notify filesystem to handle the corrupted data.  The
-> handler which collects and kills processes are moved into
-> mf_dax_kill_procs(), which will be called by filesystem.
->
-> Keep the old handler in order to roll back if driver or filesystem
-> does not support ->memory_failure()/->corrupted_range().
->
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+
+
+> On 14-Jun-2021, at 10:53 AM, Kajol Jain <kjain@linux.ibm.com> wrote:
+>=20
+> Patchset adds performance stats reporting support for nvdimm.
+> Added interface includes support for pmu register/unregister
+> functions. A structure is added called nvdimm_pmu to be used for
+> adding arch/platform specific data such as supported events, cpumask
+> pmu event functions like event_init/add/read/del.
+> User could use the standard perf tool to access perf
+> events exposed via pmu.
+>=20
+> Added implementation to expose IBM pseries platform nmem*
+> device performance stats using this interface.
+> ...
+>=20
+> Patch1:
+>        Introduces the nvdimm_pmu structure
+> Patch2:
+> 	Adds common interface to add arch/platform specific data
+> 	includes supported events, pmu event functions. It also
+> 	adds code for cpu hotplug support.
+> Patch3:
+>        Add code in arch/powerpc/platform/pseries/papr_scm.c to expose
+>        nmem* pmu. It fills in the nvdimm_pmu structure with event attrs
+>        cpumask andevent functions and then registers the pmu by adding
+>        callbacks to register_nvdimm_pmu.
+> Patch4:
+>        Sysfs documentation patch
+
+Tested with the following scenarios:
+1. Check dmesg for nmem PMU registered messages.
+2. Listed nmem events using 'perf list and perf list nmem'
+3. Ran 'perf stat' with single event, grouping events, events from same pmu,
+   different pmu and invalid events
+4. Read from sysfs files, Writing in to sysfs files
+5. While running nmem events with perf stat, offline cpu from the nmem?/cpu=
+mask
+
+While running the above functionality worked as expected, no error messages=
+ seen
+in dmesg.
+
+Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
+
+>=20
+> Changelog
 > ---
->  block/genhd.c         | 30 ++++++++++++++++++
->  drivers/nvdimm/pmem.c | 14 +++++++++
->  include/linux/genhd.h |  1 +
->  mm/memory-failure.c   | 71 +++++++++++++++++++++++++++----------------
+> PATCH v1 -> PATCH v2
+> - Fix hotplug code by adding pmu migration call
+>  incase current designated cpu got offline. As
+>  pointed by Peter Zijlstra.
+>=20
+> - Removed the retun -1 part from cpu hotplug offline
+>  function.
+>=20
+> - Link to the previous patchset : https://lkml.org/lkml/2021/6/8/500
+> ---
+> Kajol Jain (4):
+>  drivers/nvdimm: Add nvdimm pmu structure
+>  drivers/nvdimm: Add perf interface to expose nvdimm performance stats
+>  powerpc/papr_scm: Add perf interface support
+>  powerpc/papr_scm: Document papr_scm sysfs event format entries
+>=20
+> Documentation/ABI/testing/sysfs-bus-papr-pmem |  31 ++
+> arch/powerpc/include/asm/device.h             |   5 +
+> arch/powerpc/platforms/pseries/papr_scm.c     | 365 ++++++++++++++++++
+> drivers/nvdimm/Makefile                       |   1 +
+> drivers/nvdimm/nd_perf.c                      | 230 +++++++++++
+> include/linux/nd.h                            |  46 +++
+> 6 files changed, 678 insertions(+)
+> create mode 100644 drivers/nvdimm/nd_perf.c
+>=20
+Thanks and Regards,
+R.Nageswara Sastry
 
-I would not expect a patch that converts the pmem driver to touch
-mm/memory-failure.c. mf_generic_kill_procs() has nothing to do with
-the pmem driver.
+>=20
 
->  4 files changed, 90 insertions(+), 26 deletions(-)
->
-> diff --git a/block/genhd.c b/block/genhd.c
-> index 9f8cb7beaad1..75834bd057df 100644
-> --- a/block/genhd.c
-> +++ b/block/genhd.c
-> @@ -718,6 +718,36 @@ struct block_device *bdget_disk(struct gendisk *disk, int partno)
->         return bdev;
->  }
->
-> +/**
-> + * bdget_disk_sector - get block device by given sector number
-> + * @disk: gendisk of interest
-> + * @sector: sector number
-> + *
-> + * RETURNS: the found block device where sector locates in
-> + */
-> +struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector)
-> +{
-> +       struct block_device *part = NULL, *p;
-> +       unsigned long idx;
-> +
-> +       rcu_read_lock();
-> +       xa_for_each(&disk->part_tbl, idx, p) {
-> +               if (p->bd_partno == 0)
-> +                       continue;
-> +               if (p->bd_start_sect <= sector &&
-> +                       sector < p->bd_start_sect + bdev_nr_sectors(p)) {
-> +                       part = p;
-> +                       break;
-> +               }
-> +       }
-> +       rcu_read_unlock();
-> +       if (!part)
-> +               part = disk->part0;
-> +
-> +       return bdget_disk(disk, part->bd_partno);
-> +}
-> +EXPORT_SYMBOL(bdget_disk_sector);
-
-I can't see any justification for this function. The pmem driver does
-not need it and the upper layer holders should have their own
-mechanism to go from dax_dev offset to bdev if they need to, but
-hopefully they don't. A dax_device failure should be independent of a
-block_device failure.
-
-> +
->  /*
->   * print a full list of all partitions - intended for places where the root
->   * filesystem can't be mounted and thus to give the victim some idea of what
-> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index ed10a8b66068..98349e7d0a28 100644
-> --- a/drivers/nvdimm/pmem.c
-> +++ b/drivers/nvdimm/pmem.c
-> @@ -364,9 +364,23 @@ static void pmem_release_disk(void *__pmem)
->         put_disk(pmem->disk);
->  }
->
-> +static int pmem_pagemap_memory_failure(struct dev_pagemap *pgmap,
-> +               unsigned long pfn, int flags)
-> +{
-> +       struct pmem_device *pdev =
-> +                       container_of(pgmap, struct pmem_device, pgmap);
-
-This local variable is called @pmem not @pdev in other parts of the driver.
-
-> +       loff_t offset = PFN_PHYS(pfn) - pdev->phys_addr - pdev->data_offset;
-> +       struct block_device *bdev =
-> +                       bdget_disk_sector(pdev->disk, offset >> SECTOR_SHIFT);
-> +
-> +       return dax_corrupted_range(pdev->dax_dev, bdev, offset,
-> +                                  page_size(pfn_to_page(pfn)), &flags);
-
-Per previous comments this interface should be range based. Why is the
-last argument &flags? That was passed in by value so any changes to it
-will not be reflected back to memory_failure()?
-
-> +}
-> +
->  static const struct dev_pagemap_ops fsdax_pagemap_ops = {
->         .kill                   = pmem_pagemap_kill,
->         .cleanup                = pmem_pagemap_cleanup,
-> +       .memory_failure         = pmem_pagemap_memory_failure,
->  };
->
->  static int pmem_attach_disk(struct device *dev,
-> diff --git a/include/linux/genhd.h b/include/linux/genhd.h
-> index 6fc26f7bdf71..2ad70c02c343 100644
-> --- a/include/linux/genhd.h
-> +++ b/include/linux/genhd.h
-> @@ -219,6 +219,7 @@ static inline void add_disk_no_queue_reg(struct gendisk *disk)
->
->  extern void del_gendisk(struct gendisk *gp);
->  extern struct block_device *bdget_disk(struct gendisk *disk, int partno);
-> +extern struct block_device *bdget_disk_sector(struct gendisk *disk, sector_t sector);
->
->  void set_disk_ro(struct gendisk *disk, bool read_only);
->
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index 4377e727d478..43017d7f3918 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -1247,6 +1247,36 @@ static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
->         kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
->  }
->
-> +static int mf_generic_kill_procs(unsigned long long pfn, int flags)
-> +{
-> +       struct page *page = pfn_to_page(pfn);
-> +       LIST_HEAD(to_kill);
-> +       dax_entry_t cookie;
-> +
-> +       /*
-> +        * Prevent the inode from being freed while we are interrogating
-> +        * the address_space, typically this would be handled by
-> +        * lock_page(), but dax pages do not use the page lock. This
-> +        * also prevents changes to the mapping of this pfn until
-> +        * poison signaling is complete.
-> +        */
-> +       cookie = dax_lock_page(page);
-> +       if (!cookie)
-> +               return -EBUSY;
-> +       /*
-> +        * Unlike System-RAM there is no possibility to swap in a
-> +        * different physical page at a given virtual address, so all
-> +        * userspace consumption of ZONE_DEVICE memory necessitates
-> +        * SIGBUS (i.e. MF_MUST_KILL)
-> +        */
-> +       flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
-> +       collect_procs(page, &to_kill, flags & MF_ACTION_REQUIRED);
-> +
-> +       unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
-> +       dax_unlock_page(page, cookie);
-> +       return 0;
-> +}
-> +
-
-Per above, I am surprised to find this in this patch, it belong in its
-own patch if at all.
-
->  int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index, int flags)
->  {
->         LIST_HEAD(to_kill);
-> @@ -1348,9 +1378,7 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
->                 struct dev_pagemap *pgmap)
->  {
->         struct page *page = pfn_to_page(pfn);
-> -       LIST_HEAD(to_kill);
->         int rc = -EBUSY;
-> -       dax_entry_t cookie;
->
->         if (flags & MF_COUNT_INCREASED)
->                 /*
-> @@ -1364,20 +1392,9 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
->                 goto out;
->         }
->
-> -       /*
-> -        * Prevent the inode from being freed while we are interrogating
-> -        * the address_space, typically this would be handled by
-> -        * lock_page(), but dax pages do not use the page lock. This
-> -        * also prevents changes to the mapping of this pfn until
-> -        * poison signaling is complete.
-> -        */
-> -       cookie = dax_lock_page(page);
-> -       if (!cookie)
-> -               goto out;
-> -
->         if (hwpoison_filter(page)) {
->                 rc = 0;
-> -               goto unlock;
-> +               goto out;
->         }
->
->         if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
-> @@ -1385,7 +1402,7 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
->                  * TODO: Handle HMM pages which may need coordination
->                  * with device-side memory.
->                  */
-> -               goto unlock;
-> +               goto out;
->         }
->
->         /*
-> @@ -1395,19 +1412,21 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
->         SetPageHWPoison(page);
->
->         /*
-> -        * Unlike System-RAM there is no possibility to swap in a
-> -        * different physical page at a given virtual address, so all
-> -        * userspace consumption of ZONE_DEVICE memory necessitates
-> -        * SIGBUS (i.e. MF_MUST_KILL)
-> +        * Call driver's implementation to handle the memory failure,
-> +        * otherwise roll back to generic handler.
->          */
-> -       flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
-> -       collect_procs_file(page, page->mapping, page->index, &to_kill,
-> -                          flags & MF_ACTION_REQUIRED);
-> +       if (pgmap->ops->memory_failure) {
-> +               rc = pgmap->ops->memory_failure(pgmap, pfn, flags);
-> +               /*
-> +                * Roll back to generic handler too if operation is not
-> +                * supported inside the driver/device/filesystem.
-> +                */
-> +               if (rc != EOPNOTSUPP)
-> +                       goto out;
-> +       }
-> +
-> +       rc = mf_generic_kill_procs(pfn, flags);
->
-> -       unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
-> -       rc = 0;
-> -unlock:
-> -       dax_unlock_page(page, cookie);
->  out:
->         /* drop pgmap ref acquired in caller */
->         put_dev_pagemap(pgmap);
-> --
-> 2.31.1
->
->
->
