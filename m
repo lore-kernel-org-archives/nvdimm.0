@@ -1,51 +1,51 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1ECAD71
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 07:35:44 +0000 (UTC)
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15H7XlBn107779;
-	Thu, 17 Jun 2021 03:35:40 -0400
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BAA371
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 07:40:25 +0000 (UTC)
+Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15H7Xp9s052107;
+	Thu, 17 Jun 2021 03:40:21 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
  : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=pp1;
- bh=KDTrHrIluOO8JNF6WeDa9UEXOBNQv5pdGbt/d9JYNL8=;
- b=lO9VCRAnZJF4OLEMFw4eFPRBGbpIt3bRanyLBDSewd4aq7dpuhJFoQpkJjWB0TjWgJSs
- T3EnJOuMVJ57P28icwxYiz4KOXV84uyZJdr6EFYkM37tKF4QysZ+B1sMQdonc89ani+J
- g70wvKI5pZFAWZG5NSaZ5GvE+CG1Z/L0k2R31+vnIvF5TFS17zROrZRTeHkvskVPvD+l
- tbx7uUFT4Ze200LQCPKXa29iN6dCEj6LCfwmvt4eeOxAnV2ub5XPwNJ3ZyitXfM9k+Lx
- nDTyIWnpqxh9VI4ltakZu7HgBdOSRNuk415APWKQenHf7NHODYoTnl/4cD1qk+2+QT9v YA== 
+ bh=01/uUUbXSudJzlRpKVgbXNW3ySvB0UacosEODucT4AM=;
+ b=CSVYC+6dSvJMONHMtn01kWx+gRG34rTSGHQeJNjVbh/Cu1VmPSvIixzAbsV/D4PdoQUv
+ WWYs9fHcXhNXNvGSjAibxQ8jpw5A91jI90gp0KGDCDrtL8RlQrTJ0DlhNEInAeC3zWO+
+ WWpzy2X7bpsUVV+HR27pOWaN77sVRIHkwNlucd6gNARi43esSpJqLTe+PpuPbeE9iYIE
+ /PDowcTucd9R4HLqtotKiFepXDGH5Dp3NRNKaqJG1ygMq4vfDruaLzohopEk2QFK5KEl
+ 0JF121I5WeNmIyxKWbnthWCf6fqtefE4546x7lHRipi/RUuPnbJmdVl89aBWCxB93neH DQ== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3981cwsh2a-1
+	by mx0a-001b2d01.pphosted.com with ESMTP id 397xrywq2j-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 03:35:40 -0400
-Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15H7Xtvs108377;
-	Thu, 17 Jun 2021 03:35:40 -0400
-Received: from ppma05wdc.us.ibm.com (1b.90.2fa9.ip4.static.sl-reverse.com [169.47.144.27])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3981cwsh1f-1
+	Thu, 17 Jun 2021 03:40:21 -0400
+Received: from m0098394.ppops.net (m0098394.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15H7aEq6062652;
+	Thu, 17 Jun 2021 03:40:20 -0400
+Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 397xrywq1x-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 03:35:40 -0400
-Received: from pps.filterd (ppma05wdc.us.ibm.com [127.0.0.1])
-	by ppma05wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15H7XMq4031231;
-	Thu, 17 Jun 2021 07:35:38 GMT
-Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
-	by ppma05wdc.us.ibm.com with ESMTP id 3954gkj8xc-1
+	Thu, 17 Jun 2021 03:40:20 -0400
+Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
+	by ppma03wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15H7YPSF021038;
+	Thu, 17 Jun 2021 07:35:19 GMT
+Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
+	by ppma03wdc.us.ibm.com with ESMTP id 394mj9xu68-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 07:35:38 +0000
+	Thu, 17 Jun 2021 07:35:19 +0000
 Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
-	by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15H7Zc9M17170750
+	by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15H7ZIC330474626
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 17 Jun 2021 07:35:38 GMT
+	Thu, 17 Jun 2021 07:35:18 GMT
 Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 25FB411206D;
-	Thu, 17 Jun 2021 07:35:38 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id AA88C11206D;
+	Thu, 17 Jun 2021 07:35:18 +0000 (GMT)
 Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 621BF112066;
-	Thu, 17 Jun 2021 07:35:35 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id BDC6111206B;
+	Thu, 17 Jun 2021 07:35:15 +0000 (GMT)
 Received: from skywalker.ibmuc.com (unknown [9.102.31.110])
 	by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
-	Thu, 17 Jun 2021 07:35:35 +0000 (GMT)
+	Thu, 17 Jun 2021 07:35:15 +0000 (GMT)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 To: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au
 Cc: Nathan Lynch <nathanl@linux.ibm.com>,
@@ -53,9 +53,9 @@ Cc: Nathan Lynch <nathanl@linux.ibm.com>,
         Daniel Henrique Barboza <danielhb413@gmail.com>,
         nvdimm@lists.linux.dev, dan.j.williams@intel.com,
         "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v3 8/8] powerpc/papr_scm: Use FORM2 associativity details
-Date: Thu, 17 Jun 2021 13:04:58 +0530
-Message-Id: <20210617073458.510545-9-aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v3 2/8] powerpc/pseries: rename distance_ref_points_depth to max_associativity_domain_index
+Date: Thu, 17 Jun 2021 13:04:52 +0530
+Message-Id: <20210617073458.510545-3-aneesh.kumar@linux.ibm.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210617073458.510545-1-aneesh.kumar@linux.ibm.com>
 References: <20210617073458.510545-1-aneesh.kumar@linux.ibm.com>
@@ -66,162 +66,111 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: tPU5F9ri8c5wAvtek0b9IWQpFCtUpNi6
-X-Proofpoint-GUID: zOXOg1MfUZ9rfDMeTrdSBlVYLuNm48Cv
+X-Proofpoint-ORIG-GUID: XPqEN1LISDUygi9Pw1nuPpBJGn7LbOy5
+X-Proofpoint-GUID: 384gB8FaId9XhP8AVw5y0ca9UYJEB8Hy
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
  definitions=2021-06-17_02:2021-06-15,2021-06-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 spamscore=0
- impostorscore=0 phishscore=0 priorityscore=1501 lowpriorityscore=0
- suspectscore=0 clxscore=1015 mlxlogscore=999 mlxscore=0 adultscore=0
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ lowpriorityscore=0 malwarescore=0 mlxlogscore=999 clxscore=1015
+ priorityscore=1501 suspectscore=0 mlxscore=0 adultscore=0 spamscore=0
+ bulkscore=0 phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2104190000 definitions=main-2106170052
 
-FORM2 introduce a concept of secondary domain which is identical to the
-concept of FORM1 primary domain. Use secondary domain as the numa node
-when using persistent memory device. With DAX kmem kernel can use the
-pimary domainID introduced in Form2. More details can be found in
-patch "powerpc/pseries: Add support for FORM2 associativity"
+No functional change in this patch
 
-Cc: nvdimm@lists.linux.dev
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 ---
- arch/powerpc/mm/numa.c                    | 28 +++++++++++++++++++++++
- arch/powerpc/platforms/pseries/papr_scm.c | 26 +++++++++++++--------
- arch/powerpc/platforms/pseries/pseries.h  |  1 +
- 3 files changed, 45 insertions(+), 10 deletions(-)
+ arch/powerpc/mm/numa.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
 diff --git a/arch/powerpc/mm/numa.c b/arch/powerpc/mm/numa.c
-index 5a7d94960fb7..cd3ae7ff77ac 100644
+index 8365b298ec48..132813dd1a6c 100644
 --- a/arch/powerpc/mm/numa.c
 +++ b/arch/powerpc/mm/numa.c
-@@ -265,6 +265,34 @@ static int associativity_to_nid(const __be32 *associativity)
- 	return nid;
- }
+@@ -56,7 +56,7 @@ static int n_mem_addr_cells, n_mem_size_cells;
+ static int form1_affinity;
  
-+int get_primary_and_secondary_domain(struct device_node *node, int *primary, int *secondary)
-+{
-+	int secondary_index;
-+	const __be32 *associativity;
-+
-+	if (!numa_enabled) {
-+		*primary = NUMA_NO_NODE;
-+		*secondary = NUMA_NO_NODE;
-+		return 0;
-+	}
-+
-+	associativity = of_get_associativity(node);
-+	if (!associativity)
-+		return -ENODEV;
-+
-+	if (of_read_number(associativity, 1) >= primary_domain_index) {
-+		*primary = of_read_number(&associativity[primary_domain_index], 1);
-+		secondary_index = of_read_number(&distance_ref_points[1], 1);
-+		*secondary = of_read_number(&associativity[secondary_index], 1);
-+	}
-+	if (*primary == 0xffff || *primary >= nr_node_ids)
-+		*primary = NUMA_NO_NODE;
-+
-+	if (*secondary == 0xffff || *secondary >= nr_node_ids)
-+		*secondary = NUMA_NO_NODE;
-+	return 0;
-+}
-+
- /* Returns the nid associated with the given device tree node,
-  * or -1 if not found.
-  */
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index ef26fe40efb0..9bf2f1f3ddc5 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -18,6 +18,7 @@
- #include <asm/plpar_wrappers.h>
- #include <asm/papr_pdsm.h>
- #include <asm/mce.h>
-+#include "pseries.h"
+ #define MAX_DISTANCE_REF_POINTS 4
+-static int distance_ref_points_depth;
++static int max_associativity_domain_index;
+ static const __be32 *distance_ref_points;
+ static int distance_lookup_table[MAX_NUMNODES][MAX_DISTANCE_REF_POINTS];
  
- #define BIND_ANY_ADDR (~0ul)
+@@ -169,7 +169,7 @@ int cpu_distance(__be32 *cpu1_assoc, __be32 *cpu2_assoc)
  
-@@ -88,6 +89,8 @@ struct papr_scm_perf_stats {
- struct papr_scm_priv {
- 	struct platform_device *pdev;
- 	struct device_node *dn;
-+	int numa_node;
-+	int target_node;
- 	uint32_t drc_index;
- 	uint64_t blocks;
- 	uint64_t block_size;
-@@ -923,7 +926,6 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
- 	struct nd_mapping_desc mapping;
- 	struct nd_region_desc ndr_desc;
- 	unsigned long dimm_flags;
--	int target_nid, online_nid;
- 	ssize_t stat_size;
+ 	int i, index;
  
- 	p->bus_desc.ndctl = papr_scm_ndctl;
-@@ -974,10 +976,8 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
- 	mapping.size = p->blocks * p->block_size; // XXX: potential overflow?
+-	for (i = 0; i < distance_ref_points_depth; i++) {
++	for (i = 0; i < max_associativity_domain_index; i++) {
+ 		index = be32_to_cpu(distance_ref_points[i]);
+ 		if (cpu1_assoc[index] == cpu2_assoc[index])
+ 			break;
+@@ -193,7 +193,7 @@ int __node_distance(int a, int b)
+ 	if (!form1_affinity)
+ 		return ((a == b) ? LOCAL_DISTANCE : REMOTE_DISTANCE);
  
- 	memset(&ndr_desc, 0, sizeof(ndr_desc));
--	target_nid = dev_to_node(&p->pdev->dev);
--	online_nid = numa_map_to_online_node(target_nid);
--	ndr_desc.numa_node = online_nid;
--	ndr_desc.target_node = target_nid;
-+	ndr_desc.numa_node = p->numa_node;
-+	ndr_desc.target_node = p->target_node;
- 	ndr_desc.res = &p->res;
- 	ndr_desc.of_node = p->dn;
- 	ndr_desc.provider_data = p;
-@@ -1001,9 +1001,6 @@ static int papr_scm_nvdimm_init(struct papr_scm_priv *p)
- 				ndr_desc.res, p->dn);
+-	for (i = 0; i < distance_ref_points_depth; i++) {
++	for (i = 0; i < max_associativity_domain_index; i++) {
+ 		if (distance_lookup_table[a][i] == distance_lookup_table[b][i])
+ 			break;
+ 
+@@ -213,7 +213,7 @@ static void initialize_distance_lookup_table(int nid,
+ 	if (!form1_affinity)
+ 		return;
+ 
+-	for (i = 0; i < distance_ref_points_depth; i++) {
++	for (i = 0; i < max_associativity_domain_index; i++) {
+ 		const __be32 *entry;
+ 
+ 		entry = &associativity[be32_to_cpu(distance_ref_points[i]) - 1];
+@@ -240,7 +240,7 @@ static int associativity_to_nid(const __be32 *associativity)
+ 		nid = NUMA_NO_NODE;
+ 
+ 	if (nid > 0 &&
+-		of_read_number(associativity, 1) >= distance_ref_points_depth) {
++		of_read_number(associativity, 1) >= max_associativity_domain_index) {
+ 		/*
+ 		 * Skip the length field and send start of associativity array
+ 		 */
+@@ -310,14 +310,14 @@ static int __init find_primary_domain_index(void)
+ 	 */
+ 	distance_ref_points = of_get_property(root,
+ 					"ibm,associativity-reference-points",
+-					&distance_ref_points_depth);
++					&max_associativity_domain_index);
+ 
+ 	if (!distance_ref_points) {
+ 		dbg("NUMA: ibm,associativity-reference-points not found.\n");
  		goto err;
  	}
--	if (target_nid != online_nid)
--		dev_info(dev, "Region registered with target node %d and online node %d",
--			 target_nid, online_nid);
  
- 	mutex_lock(&papr_ndr_lock);
- 	list_add_tail(&p->region_list, &papr_nd_regions);
-@@ -1096,7 +1093,7 @@ static int papr_scm_probe(struct platform_device *pdev)
- 	struct papr_scm_priv *p;
- 	const char *uuid_str;
- 	u64 uuid[2];
--	int rc;
-+	int rc, numa_node;
+-	distance_ref_points_depth /= sizeof(int);
++	max_associativity_domain_index /= sizeof(int);
  
- 	/* check we have all the required DT properties */
- 	if (of_property_read_u32(dn, "ibm,my-drc-index", &drc_index)) {
-@@ -1119,11 +1116,20 @@ static int papr_scm_probe(struct platform_device *pdev)
- 		return -ENODEV;
+ 	if (firmware_has_feature(FW_FEATURE_OPAL) ||
+ 	    firmware_has_feature(FW_FEATURE_TYPE1_AFFINITY)) {
+@@ -328,7 +328,7 @@ static int __init find_primary_domain_index(void)
+ 	if (form1_affinity) {
+ 		index = of_read_number(distance_ref_points, 1);
+ 	} else {
+-		if (distance_ref_points_depth < 2) {
++		if (max_associativity_domain_index < 2) {
+ 			printk(KERN_WARNING "NUMA: "
+ 				"short ibm,associativity-reference-points\n");
+ 			goto err;
+@@ -341,10 +341,10 @@ static int __init find_primary_domain_index(void)
+ 	 * Warn and cap if the hardware supports more than
+ 	 * MAX_DISTANCE_REF_POINTS domains.
+ 	 */
+-	if (distance_ref_points_depth > MAX_DISTANCE_REF_POINTS) {
++	if (max_associativity_domain_index > MAX_DISTANCE_REF_POINTS) {
+ 		printk(KERN_WARNING "NUMA: distance array capped at "
+ 			"%d entries\n", MAX_DISTANCE_REF_POINTS);
+-		distance_ref_points_depth = MAX_DISTANCE_REF_POINTS;
++		max_associativity_domain_index = MAX_DISTANCE_REF_POINTS;
  	}
  
--
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
- 	if (!p)
- 		return -ENOMEM;
- 
-+	if (get_primary_and_secondary_domain(dn, &p->target_node, &numa_node)) {
-+		dev_err(&pdev->dev, "%pOF: missing NUMA attributes!\n", dn);
-+		rc = -ENODEV;
-+		goto err;
-+	}
-+	p->numa_node = numa_map_to_online_node(numa_node);
-+	if (numa_node != p->numa_node)
-+		dev_info(&pdev->dev, "Region registered with online node %d and device tree node %d",
-+			 p->numa_node, numa_node);
-+
- 	/* Initialize the dimm mutex */
- 	mutex_init(&p->health_mutex);
- 
-diff --git a/arch/powerpc/platforms/pseries/pseries.h b/arch/powerpc/platforms/pseries/pseries.h
-index 663a0859cf13..9c2a1fc9ded1 100644
---- a/arch/powerpc/platforms/pseries/pseries.h
-+++ b/arch/powerpc/platforms/pseries/pseries.h
-@@ -114,4 +114,5 @@ void pseries_setup_security_mitigations(void);
- void pseries_lpar_read_hblkrm_characteristics(void);
- 
- void update_numa_distance(struct device_node *node);
-+int get_primary_and_secondary_domain(struct device_node *node, int *primary, int *secondary);
- #endif /* _PSERIES_PSERIES_H */
+ 	of_node_put(root);
 -- 
 2.31.1
 
