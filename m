@@ -1,552 +1,182 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D0D16D13
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 13:26:58 +0000 (UTC)
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15HDBCRM115055;
-	Thu, 17 Jun 2021 09:26:42 -0400
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B46CA72
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 16:51:22 +0000 (UTC)
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15HGYa3U143192;
+	Thu, 17 Jun 2021 12:51:15 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=pp1;
- bh=nVmFgpvgNJ3jL7GMlzDLScaM32PewOG4vYTc2WkQSQs=;
- b=jMOmQTy2hp0M08LE1hMgfZ4Bwb3wdgUm3chn0Fh1YMGsE40gSvPwpKTkBFQY2s7Aj2Fm
- 9G4w1YtVw7YQMlsxVe27l9hC6TUYzkxK2utU5W987eQnWluWiQ7xhPHYYDajtXIyr6R2
- bZqymXVr4GL/rg5uwD1Bd/9rrO40YbfcT8bOlvTistkG6xdfNYrcwNDSyUY+CWxvNrMT
- iZxo9AiTy5R6NAOnpUobRUBCMGYsRuOHWfTEFMYAVRcXWCcsNLCWnwZmS12lPNY//XaP
- Ej3KniOBsDR7nsDKWHS5rz7Rt6+2NYQRp65iN+UIXc8Del1+HYEXXlJtzufFfdzI+83v mg== 
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3985xsakje-1
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=TJrIjCgwNXrnQAF2eJf/Y5Tt/ovH5gnvZp+Osn/9NU0=;
+ b=jefOUYdPaHEylOJYILD+NR9K7FeYTisnmEu7TuChZLIInu3K9zRHpTh1PJnR+8kYOI+U
+ OS/0SxNKZQmj81/Qs1QJikRLTtxdGD2sLm5Bo548htdXuXlVwoHj9OdGHAPr6DYQ+VNL
+ zO3Zopychk3hJ5YI77u2T1tlx7xFNfMbhfyRSswV5P4HiTVAIIppAxqsia9HJNg4eb9u
+ bJ7DOjs/CNi3uw1Pcncojgk6HaisAsGZVrLJENWQb+pP64hhAi2CO6R9aeohbJ9nw2zq
+ UMsK6qipdAsmMg1FKAgeTtBYI8wIbn1zrR4MW/yq0Mj6aZpO6InaWPZEfuOIV4wgL80Z 1A== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3989rg8wwp-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 09:26:41 -0400
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15HDD0BM007287;
-	Thu, 17 Jun 2021 13:26:40 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma06ams.nl.ibm.com with ESMTP id 394m6htqph-1
+	Thu, 17 Jun 2021 12:51:15 -0400
+Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15HGYb3t143258;
+	Thu, 17 Jun 2021 12:51:14 -0400
+Received: from ppma03dal.us.ibm.com (b.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.11])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3989rg8wwb-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 13:26:40 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15HDQba625166134
+	Thu, 17 Jun 2021 12:51:14 -0400
+Received: from pps.filterd (ppma03dal.us.ibm.com [127.0.0.1])
+	by ppma03dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15HGlrNj013617;
+	Thu, 17 Jun 2021 16:51:14 GMT
+Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
+	by ppma03dal.us.ibm.com with ESMTP id 394mjad2mp-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 17 Jun 2021 16:51:14 +0000
+Received: from b01ledav003.gho.pok.ibm.com (b01ledav003.gho.pok.ibm.com [9.57.199.108])
+	by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15HGpDGo19661118
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 17 Jun 2021 13:26:37 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 38727AE04D;
-	Thu, 17 Jun 2021 13:26:37 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E7BB6AE056;
-	Thu, 17 Jun 2021 13:26:33 +0000 (GMT)
-Received: from localhost.localdomain.com (unknown [9.199.36.139])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Thu, 17 Jun 2021 13:26:33 +0000 (GMT)
-From: Kajol Jain <kjain@linux.ibm.com>
-To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
-        linux-kernel@vger.kernel.org, peterz@infradead.org
-Cc: maddy@linux.vnet.ibm.com, santosh@fossix.org, aneesh.kumar@linux.ibm.com,
-        vaibhav@linux.ibm.com, dan.j.williams@intel.com, ira.weiny@intel.com,
-        atrajeev@linux.vnet.ibm.com, tglx@linutronix.de, kjain@linux.ibm.com,
-        rnsastry@linux.ibm.com
-Subject: [PATCH v3 3/4] powerpc/papr_scm: Add perf interface support
-Date: Thu, 17 Jun 2021 18:56:16 +0530
-Message-Id: <20210617132617.99529-4-kjain@linux.ibm.com>
+	Thu, 17 Jun 2021 16:51:13 GMT
+Received: from b01ledav003.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E2528B2072;
+	Thu, 17 Jun 2021 16:51:12 +0000 (GMT)
+Received: from b01ledav003.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5338DB206E;
+	Thu, 17 Jun 2021 16:51:10 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.199.39.101])
+	by b01ledav003.gho.pok.ibm.com (Postfix) with ESMTP;
+	Thu, 17 Jun 2021 16:51:09 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au
+Cc: Nathan Lynch <nathanl@linux.ibm.com>,
+        David Gibson <david@gibson.dropbear.id.au>,
+        Daniel Henrique Barboza <danielhb413@gmail.com>,
+        nvdimm@lists.linux.dev, dan.j.williams@intel.com,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v4 0/7] Add support for FORM2 associativity
+Date: Thu, 17 Jun 2021 22:20:58 +0530
+Message-Id: <20210617165105.574178-1-aneesh.kumar@linux.ibm.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210617132617.99529-1-kjain@linux.ibm.com>
-References: <20210617132617.99529-1-kjain@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: EMFsAgBIjohbpzGuJ63HmXikka8pr6QS
+X-Proofpoint-GUID: BgONwuDISp1uhjUX-nxwkh7dkqHgk9V9
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: mCL_TrORJBwfS9yYHxLpL0vidgEQsYJs
-X-Proofpoint-ORIG-GUID: mCL_TrORJBwfS9yYHxLpL0vidgEQsYJs
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-06-17_10:2021-06-15,2021-06-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- lowpriorityscore=0 malwarescore=0 mlxscore=0 spamscore=0 adultscore=0
- suspectscore=0 priorityscore=1501 phishscore=0 clxscore=1015
- mlxlogscore=999 bulkscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2104190000 definitions=main-2106170085
+ definitions=2021-06-17_15:2021-06-15,2021-06-17 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 adultscore=0
+ suspectscore=0 phishscore=0 spamscore=0 mlxscore=0 priorityscore=1501
+ lowpriorityscore=0 malwarescore=0 impostorscore=0 bulkscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2106170104
 
-Performance monitoring support for papr-scm nvdimm devices
-via perf interface is added which includes addition of pmu
-functions like add/del/read/event_init for nvdimm_pmu struture.
+Form2 associativity adds a much more flexible NUMA topology layout
+than what is provided by Form1. More details can be found in patch 7.
 
-A new parameter 'priv' in added to the pdev_archdata structure to save
-nvdimm_pmu device pointer, to handle the unregistering of pmu device.
+$ numactl -H
+...
+node distances:
+node   0   1   2   3 
+  0:  10  11  222  33 
+  1:  44  10  55  66 
+  2:  77  88  10  99 
+  3:  101  121  132  10 
+$
 
-papr_scm_pmu_register function populates the nvdimm_pmu structure
-with events, cpumask, attribute groups along with event handling
-functions. Finally the populated nvdimm_pmu structure is passed to
-register the pmu device.
-Event handling functions internally uses hcall to get events and
-counter data.
+After DAX kmem memory add
+# numactl -H
+available: 5 nodes (0-4)
+...
+node distances:
+node   0   1   2   3   4 
+  0:  10  11  222  33  240 
+  1:  44  10  55  66  255 
+  2:  77  88  10  99  255 
+  3:  101  121  132  10  230 
+  4:  255  255  255  230  10 
 
-Result in power9 machine with 2 nvdimm device:
 
-Ex: List all event by perf list
+PAPR SCM now use the numa distance details to find the numa_node and target_node
+for the device.
 
-command:# perf list nmem
+kvaneesh@ubuntu-guest:~$ ndctl  list -N -v 
+[
+  {
+    "dev":"namespace0.0",
+    "mode":"devdax",
+    "map":"dev",
+    "size":1071644672,
+    "uuid":"d333d867-3f57-44c8-b386-d4d3abdc2bf2",
+    "raw_uuid":"915361ad-fe6a-42dd-848f-d6dc9f5af362",
+    "daxregion":{
+      "id":0,
+      "size":1071644672,
+      "devices":[
+        {
+          "chardev":"dax0.0",
+          "size":1071644672,
+          "target_node":4,
+          "mode":"devdax"
+        }
+      ]
+    },
+    "align":2097152,
+    "numa_node":3
+  }
+]
+kvaneesh@ubuntu-guest:~$ 
 
-  nmem0/cchrhcnt/                                    [Kernel PMU event]
-  nmem0/cchwhcnt/                                    [Kernel PMU event]
-  nmem0/critrscu/                                    [Kernel PMU event]
-  nmem0/ctlresct/                                    [Kernel PMU event]
-  nmem0/ctlrestm/                                    [Kernel PMU event]
-  nmem0/fastwcnt/                                    [Kernel PMU event]
-  nmem0/hostlcnt/                                    [Kernel PMU event]
-  nmem0/hostldur/                                    [Kernel PMU event]
-  nmem0/hostscnt/                                    [Kernel PMU event]
-  nmem0/hostsdur/                                    [Kernel PMU event]
-  nmem0/medrcnt/                                     [Kernel PMU event]
-  nmem0/medrdur/                                     [Kernel PMU event]
-  nmem0/medwcnt/                                     [Kernel PMU event]
-  nmem0/medwdur/                                     [Kernel PMU event]
-  nmem0/memlife/                                     [Kernel PMU event]
-  nmem0/noopstat/                                    [Kernel PMU event]
-  nmem0/ponsecs/                                     [Kernel PMU event]
-  nmem1/cchrhcnt/                                    [Kernel PMU event]
-  nmem1/cchwhcnt/                                    [Kernel PMU event]
-  nmem1/critrscu/                                    [Kernel PMU event]
-  ...
-  nmem1/noopstat/                                    [Kernel PMU event]
-  nmem1/ponsecs/                                     [Kernel PMU event]
 
-Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
-Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
----
- arch/powerpc/include/asm/device.h         |   5 +
- arch/powerpc/platforms/pseries/papr_scm.c | 365 ++++++++++++++++++++++
- 2 files changed, 370 insertions(+)
+The above output is with a Qemu command line
 
-diff --git a/arch/powerpc/include/asm/device.h b/arch/powerpc/include/asm/device.h
-index 219559d65864..47ed639f3b8f 100644
---- a/arch/powerpc/include/asm/device.h
-+++ b/arch/powerpc/include/asm/device.h
-@@ -48,6 +48,11 @@ struct dev_archdata {
- 
- struct pdev_archdata {
- 	u64 dma_mask;
-+	/*
-+	 * Pointer to nvdimm_pmu structure, to handle the unregistering
-+	 * of pmu device
-+	 */
-+	void *priv;
- };
- 
- #endif /* _ASM_POWERPC_DEVICE_H */
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index ef26fe40efb0..92632b4a4a60 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -18,6 +18,8 @@
- #include <asm/plpar_wrappers.h>
- #include <asm/papr_pdsm.h>
- #include <asm/mce.h>
-+#include <linux/perf_event.h>
-+#include <linux/ctype.h>
- 
- #define BIND_ANY_ADDR (~0ul)
- 
-@@ -67,6 +69,8 @@
- #define PAPR_SCM_PERF_STATS_EYECATCHER __stringify(SCMSTATS)
- #define PAPR_SCM_PERF_STATS_VERSION 0x1
- 
-+#define to_nvdimm_pmu(_pmu)	container_of(_pmu, struct nvdimm_pmu, pmu)
-+
- /* Struct holding a single performance metric */
- struct papr_scm_perf_stat {
- 	u8 stat_id[8];
-@@ -116,6 +120,12 @@ struct papr_scm_priv {
- 
- 	/* length of the stat buffer as expected by phyp */
- 	size_t stat_buffer_len;
-+
-+	 /* array to have event_code and stat_id mappings */
-+	char **nvdimm_events_map;
-+
-+	/* count of supported events */
-+	u32 total_events;
- };
- 
- static int papr_scm_pmem_flush(struct nd_region *nd_region,
-@@ -329,6 +339,354 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
- 	return 0;
- }
- 
-+PMU_FORMAT_ATTR(event, "config:0-4");
-+
-+static struct attribute *nvdimm_pmu_format_attr[] = {
-+	&format_attr_event.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group nvdimm_pmu_format_group = {
-+	.name = "format",
-+	.attrs = nvdimm_pmu_format_attr,
-+};
-+
-+static int papr_scm_pmu_get_value(struct perf_event *event, struct device *dev, u64 *count)
-+{
-+	struct papr_scm_perf_stat *stat;
-+	struct papr_scm_perf_stats *stats;
-+	struct papr_scm_priv *p = (struct papr_scm_priv *)dev->driver_data;
-+	int rc, size;
-+
-+	/* Allocate request buffer enough to hold single performance stat */
-+	size = sizeof(struct papr_scm_perf_stats) +
-+		sizeof(struct papr_scm_perf_stat);
-+
-+	if (!p || !p->nvdimm_events_map)
-+		return -EINVAL;
-+
-+	stats = kzalloc(size, GFP_KERNEL);
-+	if (!stats)
-+		return -ENOMEM;
-+
-+	stat = &stats->scm_statistic[0];
-+	memcpy(&stat->stat_id,
-+	       p->nvdimm_events_map[event->attr.config - 1],
-+		sizeof(stat->stat_id));
-+	stat->stat_val = 0;
-+
-+	rc = drc_pmem_query_stats(p, stats, 1);
-+	if (rc < 0) {
-+		kfree(stats);
-+		return rc;
-+	}
-+
-+	*count = be64_to_cpu(stat->stat_val);
-+	kfree(stats);
-+	return 0;
-+}
-+
-+static int papr_scm_pmu_event_init(struct perf_event *event)
-+{
-+	struct nvdimm_pmu *nd_pmu = to_nvdimm_pmu(event->pmu);
-+	struct papr_scm_priv *p;
-+
-+	if (!nd_pmu)
-+		return -EINVAL;
-+
-+	/* test the event attr type for PMU enumeration */
-+	if (event->attr.type != event->pmu->type)
-+		return -ENOENT;
-+
-+	/* it does not support event sampling mode */
-+	if (is_sampling_event(event))
-+		return -EOPNOTSUPP;
-+
-+	/* no branch sampling */
-+	if (has_branch_stack(event))
-+		return -EOPNOTSUPP;
-+
-+	p = (struct papr_scm_priv *)nd_pmu->dev->driver_data;
-+	if (!p)
-+		return -EINVAL;
-+
-+	/* Invalid eventcode */
-+	if (event->attr.config == 0 || event->attr.config > p->total_events)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int papr_scm_pmu_add(struct perf_event *event, int flags)
-+{
-+	u64 count;
-+	int rc;
-+	struct nvdimm_pmu *nd_pmu = to_nvdimm_pmu(event->pmu);
-+
-+	if (!nd_pmu)
-+		return -EINVAL;
-+
-+	if (flags & PERF_EF_START) {
-+		rc = papr_scm_pmu_get_value(event, nd_pmu->dev, &count);
-+		if (rc)
-+			return rc;
-+
-+		local64_set(&event->hw.prev_count, count);
-+	}
-+
-+	return 0;
-+}
-+
-+static void papr_scm_pmu_read(struct perf_event *event)
-+{
-+	u64 prev, now;
-+	int rc;
-+	struct nvdimm_pmu *nd_pmu = to_nvdimm_pmu(event->pmu);
-+
-+	if (!nd_pmu)
-+		return;
-+
-+	rc = papr_scm_pmu_get_value(event, nd_pmu->dev, &now);
-+	if (rc)
-+		return;
-+
-+	prev = local64_xchg(&event->hw.prev_count, now);
-+	local64_add(now - prev, &event->count);
-+}
-+
-+static void papr_scm_pmu_del(struct perf_event *event, int flags)
-+{
-+	papr_scm_pmu_read(event);
-+}
-+
-+static ssize_t device_show_string(struct device *dev, struct device_attribute *attr,
-+				  char *buf)
-+{
-+	struct perf_pmu_events_attr *d;
-+
-+	d = container_of(attr, struct perf_pmu_events_attr, attr);
-+
-+	return sysfs_emit(buf, "%s\n", (char *)d->event_str);
-+}
-+
-+static char *strtolower(char *updated_name)
-+{
-+	int i = 0;
-+
-+	while (updated_name[i]) {
-+		if (isupper(updated_name[i]))
-+			updated_name[i] = tolower(updated_name[i]);
-+		i++;
-+	}
-+	updated_name[i] = '\0';
-+	return strim(updated_name);
-+}
-+
-+/* device_str_attr_create : Populate event "name" and string "str" in attribute */
-+static struct attribute *device_str_attr_create_(char *name, char *str)
-+{
-+	struct perf_pmu_events_attr *attr;
-+
-+	attr = kzalloc(sizeof(*attr), GFP_KERNEL);
-+
-+	if (!attr)
-+		return NULL;
-+
-+	sysfs_attr_init(&attr->attr.attr);
-+	attr->event_str = str;
-+	attr->attr.attr.name = strtolower(name);
-+	attr->attr.attr.mode = 0444;
-+	attr->attr.show = device_show_string;
-+
-+	return &attr->attr.attr;
-+}
-+
-+static int papr_scm_pmu_check_events(struct papr_scm_priv *p, struct nvdimm_pmu *nd_pmu)
-+{
-+	struct papr_scm_perf_stat *stat;
-+	struct papr_scm_perf_stats *stats, *single_stats;
-+	int index, size, rc, count;
-+	u32 available_events;
-+	struct attribute **events;
-+	char *eventcode, *eventname, *statid;
-+	struct attribute_group *nvdimm_pmu_events_group;
-+
-+	if (!p->stat_buffer_len)
-+		return -ENOENT;
-+
-+	available_events = (p->stat_buffer_len  - sizeof(struct papr_scm_perf_stats))
-+			/ sizeof(struct papr_scm_perf_stat);
-+
-+	/* Allocate memory for events attribute group */
-+	nvdimm_pmu_events_group = kzalloc(sizeof(*nvdimm_pmu_events_group), GFP_KERNEL);
-+	if (!nvdimm_pmu_events_group)
-+		return -ENOMEM;
-+
-+	/* Allocate the buffer for phyp where stats are written */
-+	stats = kzalloc(p->stat_buffer_len, GFP_KERNEL);
-+	if (!stats) {
-+		rc = -ENOMEM;
-+		goto out_nvdimm_pmu_events_group;
-+	}
-+
-+	/* Allocate memory to nvdimm_event_map */
-+	p->nvdimm_events_map = kcalloc(available_events, sizeof(char *), GFP_KERNEL);
-+	if (!p->nvdimm_events_map) {
-+		rc = -ENOMEM;
-+		goto out_stats;
-+	}
-+
-+	/* Called to get list of events supported */
-+	rc = drc_pmem_query_stats(p, stats, 0);
-+	if (rc)
-+		goto out_nvdimm_events_map;
-+
-+	/* Allocate buffer to hold single performance stat */
-+	size = sizeof(struct papr_scm_perf_stats) + sizeof(struct papr_scm_perf_stat);
-+
-+	single_stats = kzalloc(size, GFP_KERNEL);
-+	if (!single_stats) {
-+		rc = -ENOMEM;
-+		goto out_nvdimm_events_map;
-+	}
-+
-+	events = kzalloc(available_events * sizeof(struct attribute *), GFP_KERNEL);
-+	if (!events) {
-+		rc = -ENOMEM;
-+		goto out_single_stats;
-+	}
-+
-+	for (index = 0, stat = stats->scm_statistic, count = 0;
-+		     index < available_events; index++, ++stat) {
-+
-+		single_stats->scm_statistic[0] = *stat;
-+		rc = drc_pmem_query_stats(p, single_stats, 1);
-+
-+		if (rc < 0) {
-+			pr_info("Event not supported %s for device %s\n",
-+				stat->stat_id, nvdimm_name(p->nvdimm));
-+		} else {
-+			eventcode = kasprintf(GFP_KERNEL, "event=0x%x", count + 1);
-+			eventname = kzalloc(strlen(stat->stat_id) + 1, GFP_KERNEL);
-+			statid = kzalloc(strlen(stat->stat_id) + 1, GFP_KERNEL);
-+
-+			if (!eventname || !statid || !eventcode)
-+				goto out;
-+
-+			strcpy(eventname, stat->stat_id);
-+			events[count] = device_str_attr_create_(eventname,
-+								eventcode);
-+			if (!events[count])
-+				goto out;
-+
-+			strcpy(statid, stat->stat_id);
-+			p->nvdimm_events_map[count] = statid;
-+			count++;
-+			continue;
-+out:
-+			kfree(eventcode);
-+			kfree(eventname);
-+			kfree(statid);
-+		}
-+	}
-+
-+	if (!count)
-+		goto out_events;
-+
-+	events[count] = NULL;
-+	p->nvdimm_events_map[count] = NULL;
-+	p->total_events = count;
-+
-+	nvdimm_pmu_events_group->name = "events";
-+	nvdimm_pmu_events_group->attrs = events;
-+
-+	/* Fill attribute groups for the nvdimm pmu device */
-+	nd_pmu->attr_groups[NVDIMM_PMU_FORMAT_ATTR] = &nvdimm_pmu_format_group;
-+	nd_pmu->attr_groups[NVDIMM_PMU_EVENT_ATTR] = nvdimm_pmu_events_group;
-+	nd_pmu->attr_groups[NVDIMM_PMU_NULL_ATTR] = NULL;
-+
-+	kfree(single_stats);
-+	kfree(stats);
-+	return 0;
-+
-+out_events:
-+	kfree(events);
-+out_single_stats:
-+	kfree(single_stats);
-+out_nvdimm_events_map:
-+	kfree(p->nvdimm_events_map);
-+out_stats:
-+	kfree(stats);
-+out_nvdimm_pmu_events_group:
-+	kfree(nvdimm_pmu_events_group);
-+	return rc;
-+}
-+
-+/* Function to free the attr_groups which are dynamically allocated */
-+static void papr_scm_pmu_mem_free(struct nvdimm_pmu *nd_pmu)
-+{
-+	if (nd_pmu) {
-+		if (nd_pmu->attr_groups[NVDIMM_PMU_EVENT_ATTR])
-+			kfree(nd_pmu->attr_groups[NVDIMM_PMU_EVENT_ATTR]->attrs);
-+		kfree(nd_pmu->attr_groups[NVDIMM_PMU_EVENT_ATTR]);
-+	}
-+}
-+
-+static void papr_scm_pmu_register(struct papr_scm_priv *p)
-+{
-+	struct nvdimm_pmu *nd_pmu;
-+	int rc, nodeid;
-+
-+	nd_pmu = kzalloc(sizeof(*nd_pmu), GFP_KERNEL);
-+	if (!nd_pmu) {
-+		rc = -ENOMEM;
-+		goto pmu_err_print;
-+	}
-+
-+	rc = papr_scm_pmu_check_events(p, nd_pmu);
-+	if (rc)
-+		goto pmu_check_events_err;
-+
-+	nd_pmu->name = nvdimm_name(p->nvdimm);
-+	nd_pmu->event_init = papr_scm_pmu_event_init;
-+	nd_pmu->read = papr_scm_pmu_read;
-+	nd_pmu->add = papr_scm_pmu_add;
-+	nd_pmu->del = papr_scm_pmu_del;
-+
-+	/*updating the cpumask variable */
-+	nodeid = dev_to_node(&p->pdev->dev);
-+	nd_pmu->arch_cpumask = *cpumask_of_node(nodeid);
-+
-+	/* cpumask should not be NULL */
-+	WARN_ON_ONCE(cpumask_empty(&nd_pmu->arch_cpumask));
-+
-+	rc = register_nvdimm_pmu(nd_pmu, p->pdev);
-+	if (rc)
-+		goto pmu_register_err;
-+
-+	/*
-+	 * Set archdata.priv value to nvdimm_pmu structure, to handle the
-+	 * unregistering of pmu device.
-+	 */
-+	p->pdev->archdata.priv = nd_pmu;
-+	return;
-+
-+pmu_register_err:
-+	papr_scm_pmu_mem_free(nd_pmu);
-+	kfree(p->nvdimm_events_map);
-+pmu_check_events_err:
-+	kfree(nd_pmu);
-+pmu_err_print:
-+	dev_info(&p->pdev->dev, "nvdimm pmu didn't register rc=%d\n", rc);
-+}
-+
-+static void papr_scm_pmu_uninit(struct nvdimm_pmu *nd_pmu)
-+{
-+	unregister_nvdimm_pmu(nd_pmu);
-+	papr_scm_pmu_mem_free(nd_pmu);
-+	kfree(nd_pmu);
-+}
-+
- /*
-  * Issue hcall to retrieve dimm health info and populate papr_scm_priv with the
-  * health information.
-@@ -1177,6 +1535,7 @@ static int papr_scm_probe(struct platform_device *pdev)
- 		goto err2;
- 
- 	platform_set_drvdata(pdev, p);
-+	papr_scm_pmu_register(p);
- 
- 	return 0;
- 
-@@ -1195,6 +1554,12 @@ static int papr_scm_remove(struct platform_device *pdev)
- 
- 	nvdimm_bus_unregister(p->bus);
- 	drc_pmem_unbind(p);
-+
-+	if (pdev->archdata.priv)
-+		papr_scm_pmu_uninit(pdev->archdata.priv);
-+
-+	pdev->archdata.priv = NULL;
-+	kfree(p->nvdimm_events_map);
- 	kfree(p->bus_desc.provider_name);
- 	kfree(p);
- 
+-numa node,nodeid=4 \
+-numa dist,src=0,dst=1,val=11 -numa dist,src=0,dst=2,val=222 -numa dist,src=0,dst=3,val=33 -numa dist,src=0,dst=4,val=240 \
+-numa dist,src=1,dst=0,val=44 -numa dist,src=1,dst=2,val=55 -numa dist,src=1,dst=3,val=66 -numa dist,src=1,dst=4,val=255 \
+-numa dist,src=2,dst=0,val=77 -numa dist,src=2,dst=1,val=88 -numa dist,src=2,dst=3,val=99 -numa dist,src=2,dst=4,val=255 \
+-numa dist,src=3,dst=0,val=101 -numa dist,src=3,dst=1,val=121 -numa dist,src=3,dst=2,val=132 -numa dist,src=3,dst=4,val=230 \
+-numa dist,src=4,dst=0,val=255 -numa dist,src=4,dst=1,val=255 -numa dist,src=4,dst=2,val=255 -numa dist,src=4,dst=3,val=230 \
+-object memory-backend-file,id=memnvdimm1,prealloc=yes,mem-path=$PMEM_DISK,share=yes,size=${PMEM_SIZE}  \
+-device nvdimm,label-size=128K,memdev=memnvdimm1,id=nvdimm1,slot=4,uuid=72511b67-0b3b-42fd-8d1d-5be3cae8bcaa,node=4
+
+Qemu changes can be found at https://lore.kernel.org/qemu-devel/20210616011944.2996399-1-danielhb413@gmail.com/
+
+Changes from v3:
+* Drop PAPR SCM specific changes and depend completely on NUMA distance information.
+
+Changes from v2:
+* Add nvdimm list to Cc:
+* update PATCH 8 commit message.
+
+Changes from v1:
+* Update FORM2 documentation.
+* rename max_domain_index to max_associativity_domain_index
+
+Aneesh Kumar K.V (7):
+  powerpc/pseries: rename min_common_depth to primary_domain_index
+  powerpc/pseries: rename distance_ref_points_depth to
+    max_associativity_domain_index
+  powerpc/pseries: Rename TYPE1_AFFINITY to FORM1_AFFINITY
+  powerpc/pseries: Consolidate DLPAR NUMA distance update
+  powerpc/pseries: Consolidate NUMA distance update during boot
+  powerpc/pseries: Add a helper for form1 cpu distance
+  powerpc/pseries: Add support for FORM2 associativity
+
+ Documentation/powerpc/associativity.rst       | 135 ++++++
+ arch/powerpc/include/asm/firmware.h           |   7 +-
+ arch/powerpc/include/asm/prom.h               |   3 +-
+ arch/powerpc/kernel/prom_init.c               |   3 +-
+ arch/powerpc/mm/numa.c                        | 410 ++++++++++++++----
+ arch/powerpc/platforms/pseries/firmware.c     |   3 +-
+ arch/powerpc/platforms/pseries/hotplug-cpu.c  |   2 +
+ .../platforms/pseries/hotplug-memory.c        |   2 +
+ arch/powerpc/platforms/pseries/pseries.h      |   1 +
+ 9 files changed, 474 insertions(+), 92 deletions(-)
+ create mode 100644 Documentation/powerpc/associativity.rst
+
 -- 
-2.27.0
+2.31.1
 
