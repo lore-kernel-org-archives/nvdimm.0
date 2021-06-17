@@ -1,50 +1,51 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B46CA72
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 16:51:22 +0000 (UTC)
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15HGYa3U143192;
-	Thu, 17 Jun 2021 12:51:15 -0400
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5BF4172
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 16:51:25 +0000 (UTC)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15HGZGAS166284;
+	Thu, 17 Jun 2021 12:51:21 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : content-transfer-encoding : mime-version; s=pp1;
- bh=TJrIjCgwNXrnQAF2eJf/Y5Tt/ovH5gnvZp+Osn/9NU0=;
- b=jefOUYdPaHEylOJYILD+NR9K7FeYTisnmEu7TuChZLIInu3K9zRHpTh1PJnR+8kYOI+U
- OS/0SxNKZQmj81/Qs1QJikRLTtxdGD2sLm5Bo548htdXuXlVwoHj9OdGHAPr6DYQ+VNL
- zO3Zopychk3hJ5YI77u2T1tlx7xFNfMbhfyRSswV5P4HiTVAIIppAxqsia9HJNg4eb9u
- bJ7DOjs/CNi3uw1Pcncojgk6HaisAsGZVrLJENWQb+pP64hhAi2CO6R9aeohbJ9nw2zq
- UMsK6qipdAsmMg1FKAgeTtBYI8wIbn1zrR4MW/yq0Mj6aZpO6InaWPZEfuOIV4wgL80Z 1A== 
+ : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=pp1;
+ bh=01/uUUbXSudJzlRpKVgbXNW3ySvB0UacosEODucT4AM=;
+ b=sLKJzjmk5HmCpPRQiw9EJEwxHbZ/UgP31DYX1MEIQcigHaVqnfsu1g+FCuMiTx3t2ZRt
+ aYr/Z7F7vrBLrdTku75tPb6XESgnG11huBykjY4NXAhxSh8rEsRjxBpq4T1X4F/22+NK
+ dQtmffnPQ5KdAe8mHh4VyP81uYcD1dpFcJvNTHKvFwppuEIi+A6/SmSls5CtHJALF7fW
+ qIPPdgJVS8P4lMmdQnz93Qb1yHgwnqfxgWceKrYhYqyOT+6hLQRQN26/cKVzt9995kfN
+ hxsmbUsrCHkk4DN37DtL0E+ZcqDQvdMa9xWP8cVOUl089k6XuR7kiLeRGrqcf8c/SDbn 9g== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3989rg8wwp-1
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3984w2vct7-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 12:51:15 -0400
-Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15HGYb3t143258;
-	Thu, 17 Jun 2021 12:51:14 -0400
-Received: from ppma03dal.us.ibm.com (b.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.11])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 3989rg8wwb-1
+	Thu, 17 Jun 2021 12:51:21 -0400
+Received: from m0098409.ppops.net (m0098409.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15HGZKAb166777;
+	Thu, 17 Jun 2021 12:51:21 -0400
+Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3984w2vcsw-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 12:51:14 -0400
-Received: from pps.filterd (ppma03dal.us.ibm.com [127.0.0.1])
-	by ppma03dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15HGlrNj013617;
-	Thu, 17 Jun 2021 16:51:14 GMT
-Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
-	by ppma03dal.us.ibm.com with ESMTP id 394mjad2mp-1
+	Thu, 17 Jun 2021 12:51:21 -0400
+Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
+	by ppma03wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15HGm6ZC019799;
+	Thu, 17 Jun 2021 16:51:20 GMT
+Received: from b01cxnp23034.gho.pok.ibm.com (b01cxnp23034.gho.pok.ibm.com [9.57.198.29])
+	by ppma03wdc.us.ibm.com with ESMTP id 394mja2j4b-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 17 Jun 2021 16:51:14 +0000
+	Thu, 17 Jun 2021 16:51:20 +0000
 Received: from b01ledav003.gho.pok.ibm.com (b01ledav003.gho.pok.ibm.com [9.57.199.108])
-	by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15HGpDGo19661118
+	by b01cxnp23034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15HGpJ6031195614
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 17 Jun 2021 16:51:13 GMT
+	Thu, 17 Jun 2021 16:51:19 GMT
 Received: from b01ledav003.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E2528B2072;
-	Thu, 17 Jun 2021 16:51:12 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 8F037B2066;
+	Thu, 17 Jun 2021 16:51:19 +0000 (GMT)
 Received: from b01ledav003.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5338DB206E;
-	Thu, 17 Jun 2021 16:51:10 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id A6AB8B206B;
+	Thu, 17 Jun 2021 16:51:16 +0000 (GMT)
 Received: from skywalker.ibmuc.com (unknown [9.199.39.101])
 	by b01ledav003.gho.pok.ibm.com (Postfix) with ESMTP;
-	Thu, 17 Jun 2021 16:51:09 +0000 (GMT)
+	Thu, 17 Jun 2021 16:51:16 +0000 (GMT)
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 To: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au
 Cc: Nathan Lynch <nathanl@linux.ibm.com>,
@@ -52,131 +53,124 @@ Cc: Nathan Lynch <nathanl@linux.ibm.com>,
         Daniel Henrique Barboza <danielhb413@gmail.com>,
         nvdimm@lists.linux.dev, dan.j.williams@intel.com,
         "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: [PATCH v4 0/7] Add support for FORM2 associativity
-Date: Thu, 17 Jun 2021 22:20:58 +0530
-Message-Id: <20210617165105.574178-1-aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v4 2/7] powerpc/pseries: rename distance_ref_points_depth to max_associativity_domain_index
+Date: Thu, 17 Jun 2021 22:21:00 +0530
+Message-Id: <20210617165105.574178-3-aneesh.kumar@linux.ibm.com>
 X-Mailer: git-send-email 2.31.1
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: EMFsAgBIjohbpzGuJ63HmXikka8pr6QS
-X-Proofpoint-GUID: BgONwuDISp1uhjUX-nxwkh7dkqHgk9V9
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+In-Reply-To: <20210617165105.574178-1-aneesh.kumar@linux.ibm.com>
+References: <20210617165105.574178-1-aneesh.kumar@linux.ibm.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: QNLZwN0xyZ_dqwDuZdCOTX7Y6IbwUuAf
+X-Proofpoint-GUID: xJlFBndiXPMQz8IPMvm4kO4w7w55EFOc
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
  definitions=2021-06-17_15:2021-06-15,2021-06-17 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 adultscore=0
- suspectscore=0 phishscore=0 spamscore=0 mlxscore=0 priorityscore=1501
- lowpriorityscore=0 malwarescore=0 impostorscore=0 bulkscore=0
- mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2106170104
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 suspectscore=0
+ adultscore=0 malwarescore=0 bulkscore=0 priorityscore=1501 spamscore=0
+ mlxscore=0 lowpriorityscore=0 impostorscore=0 mlxlogscore=999 phishscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104190000
+ definitions=main-2106170104
 
-Form2 associativity adds a much more flexible NUMA topology layout
-than what is provided by Form1. More details can be found in patch 7.
+No functional change in this patch
 
-$ numactl -H
-...
-node distances:
-node   0   1   2   3 
-  0:  10  11  222  33 
-  1:  44  10  55  66 
-  2:  77  88  10  99 
-  3:  101  121  132  10 
-$
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ arch/powerpc/mm/numa.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-After DAX kmem memory add
-# numactl -H
-available: 5 nodes (0-4)
-...
-node distances:
-node   0   1   2   3   4 
-  0:  10  11  222  33  240 
-  1:  44  10  55  66  255 
-  2:  77  88  10  99  255 
-  3:  101  121  132  10  230 
-  4:  255  255  255  230  10 
-
-
-PAPR SCM now use the numa distance details to find the numa_node and target_node
-for the device.
-
-kvaneesh@ubuntu-guest:~$ ndctl  list -N -v 
-[
-  {
-    "dev":"namespace0.0",
-    "mode":"devdax",
-    "map":"dev",
-    "size":1071644672,
-    "uuid":"d333d867-3f57-44c8-b386-d4d3abdc2bf2",
-    "raw_uuid":"915361ad-fe6a-42dd-848f-d6dc9f5af362",
-    "daxregion":{
-      "id":0,
-      "size":1071644672,
-      "devices":[
-        {
-          "chardev":"dax0.0",
-          "size":1071644672,
-          "target_node":4,
-          "mode":"devdax"
-        }
-      ]
-    },
-    "align":2097152,
-    "numa_node":3
-  }
-]
-kvaneesh@ubuntu-guest:~$ 
-
-
-The above output is with a Qemu command line
-
--numa node,nodeid=4 \
--numa dist,src=0,dst=1,val=11 -numa dist,src=0,dst=2,val=222 -numa dist,src=0,dst=3,val=33 -numa dist,src=0,dst=4,val=240 \
--numa dist,src=1,dst=0,val=44 -numa dist,src=1,dst=2,val=55 -numa dist,src=1,dst=3,val=66 -numa dist,src=1,dst=4,val=255 \
--numa dist,src=2,dst=0,val=77 -numa dist,src=2,dst=1,val=88 -numa dist,src=2,dst=3,val=99 -numa dist,src=2,dst=4,val=255 \
--numa dist,src=3,dst=0,val=101 -numa dist,src=3,dst=1,val=121 -numa dist,src=3,dst=2,val=132 -numa dist,src=3,dst=4,val=230 \
--numa dist,src=4,dst=0,val=255 -numa dist,src=4,dst=1,val=255 -numa dist,src=4,dst=2,val=255 -numa dist,src=4,dst=3,val=230 \
--object memory-backend-file,id=memnvdimm1,prealloc=yes,mem-path=$PMEM_DISK,share=yes,size=${PMEM_SIZE}  \
--device nvdimm,label-size=128K,memdev=memnvdimm1,id=nvdimm1,slot=4,uuid=72511b67-0b3b-42fd-8d1d-5be3cae8bcaa,node=4
-
-Qemu changes can be found at https://lore.kernel.org/qemu-devel/20210616011944.2996399-1-danielhb413@gmail.com/
-
-Changes from v3:
-* Drop PAPR SCM specific changes and depend completely on NUMA distance information.
-
-Changes from v2:
-* Add nvdimm list to Cc:
-* update PATCH 8 commit message.
-
-Changes from v1:
-* Update FORM2 documentation.
-* rename max_domain_index to max_associativity_domain_index
-
-Aneesh Kumar K.V (7):
-  powerpc/pseries: rename min_common_depth to primary_domain_index
-  powerpc/pseries: rename distance_ref_points_depth to
-    max_associativity_domain_index
-  powerpc/pseries: Rename TYPE1_AFFINITY to FORM1_AFFINITY
-  powerpc/pseries: Consolidate DLPAR NUMA distance update
-  powerpc/pseries: Consolidate NUMA distance update during boot
-  powerpc/pseries: Add a helper for form1 cpu distance
-  powerpc/pseries: Add support for FORM2 associativity
-
- Documentation/powerpc/associativity.rst       | 135 ++++++
- arch/powerpc/include/asm/firmware.h           |   7 +-
- arch/powerpc/include/asm/prom.h               |   3 +-
- arch/powerpc/kernel/prom_init.c               |   3 +-
- arch/powerpc/mm/numa.c                        | 410 ++++++++++++++----
- arch/powerpc/platforms/pseries/firmware.c     |   3 +-
- arch/powerpc/platforms/pseries/hotplug-cpu.c  |   2 +
- .../platforms/pseries/hotplug-memory.c        |   2 +
- arch/powerpc/platforms/pseries/pseries.h      |   1 +
- 9 files changed, 474 insertions(+), 92 deletions(-)
- create mode 100644 Documentation/powerpc/associativity.rst
-
+diff --git a/arch/powerpc/mm/numa.c b/arch/powerpc/mm/numa.c
+index 8365b298ec48..132813dd1a6c 100644
+--- a/arch/powerpc/mm/numa.c
++++ b/arch/powerpc/mm/numa.c
+@@ -56,7 +56,7 @@ static int n_mem_addr_cells, n_mem_size_cells;
+ static int form1_affinity;
+ 
+ #define MAX_DISTANCE_REF_POINTS 4
+-static int distance_ref_points_depth;
++static int max_associativity_domain_index;
+ static const __be32 *distance_ref_points;
+ static int distance_lookup_table[MAX_NUMNODES][MAX_DISTANCE_REF_POINTS];
+ 
+@@ -169,7 +169,7 @@ int cpu_distance(__be32 *cpu1_assoc, __be32 *cpu2_assoc)
+ 
+ 	int i, index;
+ 
+-	for (i = 0; i < distance_ref_points_depth; i++) {
++	for (i = 0; i < max_associativity_domain_index; i++) {
+ 		index = be32_to_cpu(distance_ref_points[i]);
+ 		if (cpu1_assoc[index] == cpu2_assoc[index])
+ 			break;
+@@ -193,7 +193,7 @@ int __node_distance(int a, int b)
+ 	if (!form1_affinity)
+ 		return ((a == b) ? LOCAL_DISTANCE : REMOTE_DISTANCE);
+ 
+-	for (i = 0; i < distance_ref_points_depth; i++) {
++	for (i = 0; i < max_associativity_domain_index; i++) {
+ 		if (distance_lookup_table[a][i] == distance_lookup_table[b][i])
+ 			break;
+ 
+@@ -213,7 +213,7 @@ static void initialize_distance_lookup_table(int nid,
+ 	if (!form1_affinity)
+ 		return;
+ 
+-	for (i = 0; i < distance_ref_points_depth; i++) {
++	for (i = 0; i < max_associativity_domain_index; i++) {
+ 		const __be32 *entry;
+ 
+ 		entry = &associativity[be32_to_cpu(distance_ref_points[i]) - 1];
+@@ -240,7 +240,7 @@ static int associativity_to_nid(const __be32 *associativity)
+ 		nid = NUMA_NO_NODE;
+ 
+ 	if (nid > 0 &&
+-		of_read_number(associativity, 1) >= distance_ref_points_depth) {
++		of_read_number(associativity, 1) >= max_associativity_domain_index) {
+ 		/*
+ 		 * Skip the length field and send start of associativity array
+ 		 */
+@@ -310,14 +310,14 @@ static int __init find_primary_domain_index(void)
+ 	 */
+ 	distance_ref_points = of_get_property(root,
+ 					"ibm,associativity-reference-points",
+-					&distance_ref_points_depth);
++					&max_associativity_domain_index);
+ 
+ 	if (!distance_ref_points) {
+ 		dbg("NUMA: ibm,associativity-reference-points not found.\n");
+ 		goto err;
+ 	}
+ 
+-	distance_ref_points_depth /= sizeof(int);
++	max_associativity_domain_index /= sizeof(int);
+ 
+ 	if (firmware_has_feature(FW_FEATURE_OPAL) ||
+ 	    firmware_has_feature(FW_FEATURE_TYPE1_AFFINITY)) {
+@@ -328,7 +328,7 @@ static int __init find_primary_domain_index(void)
+ 	if (form1_affinity) {
+ 		index = of_read_number(distance_ref_points, 1);
+ 	} else {
+-		if (distance_ref_points_depth < 2) {
++		if (max_associativity_domain_index < 2) {
+ 			printk(KERN_WARNING "NUMA: "
+ 				"short ibm,associativity-reference-points\n");
+ 			goto err;
+@@ -341,10 +341,10 @@ static int __init find_primary_domain_index(void)
+ 	 * Warn and cap if the hardware supports more than
+ 	 * MAX_DISTANCE_REF_POINTS domains.
+ 	 */
+-	if (distance_ref_points_depth > MAX_DISTANCE_REF_POINTS) {
++	if (max_associativity_domain_index > MAX_DISTANCE_REF_POINTS) {
+ 		printk(KERN_WARNING "NUMA: distance array capped at "
+ 			"%d entries\n", MAX_DISTANCE_REF_POINTS);
+-		distance_ref_points_depth = MAX_DISTANCE_REF_POINTS;
++		max_associativity_domain_index = MAX_DISTANCE_REF_POINTS;
+ 	}
+ 
+ 	of_node_put(root);
 -- 
 2.31.1
 
