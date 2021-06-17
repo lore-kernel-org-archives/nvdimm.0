@@ -1,141 +1,178 @@
-Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F1771
-	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 07:04:25 +0000 (UTC)
-Received: by mail-pg1-f170.google.com with SMTP id e33so4192748pgm.3
-        for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 00:04:25 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=LDO+ysM0sZT13J4jvjx62XJsQjzELPOWU0d8eft8zqE=;
-        b=MSYHsRMV+YBgrqCmtspIiBHsjVSnp8q2rrU7xIz1exEHNDD8d7ZXVFDAiYBGzUTszU
-         oxWDRoOSLJRRil8r0ifAAGjL5CWEnd/9F61h67dMi34JsBfVO0VLMQtf5+pezRqLC5go
-         PZTK6NzMCmnsv6Qee5K86hnFigHdQ1dgeZcQIuVrdFW0XhnCWNCv6gPMF5NyGFHxeSL2
-         dMEKiaeQr/vUpglRZ2etWHZYLgOnrHHZEM97IasJ8/tLkV4naYw1TegZMq93k1Ibrwf3
-         nx7W6YkErqI+becB9QtyiVW1SHmC8nzieD38fWwyhux5OnGh/tqoZ0JbbhUCgYq1ZMiH
-         JyTg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=LDO+ysM0sZT13J4jvjx62XJsQjzELPOWU0d8eft8zqE=;
-        b=ah1IRpxkBjo3NledQLkT3tSVT74XsOBuXf25DM37VIgDeBlQMw8MmAlcrgnAno0dCr
-         b+NPFNr7r6B5s3qKe8nw5pEfA7ZGwWwhYhRlj+aR610wtDCZNE0Kn+ZuZLjImLyx1dkc
-         W7++aT+YXXfUE3w/Uu+IgWCEQpFjnjN2jQAvbfe3XjOKfAuyNUPcMeUz46rLCowuaWWN
-         9NIzgsf5qLSD4cSj0pH9ZnYzfqCdG9/Bb1qn1oH3kuJsZ5dKH5InrBHo5ATTMk+Mon8G
-         9XHeUaVblFH2EAH8teH2DFUd/T18Q/B53iIArfs4hmX3muiwPvFWQmoTvlxU/DnaPPtf
-         3+oA==
-X-Gm-Message-State: AOAM532vC5FHGicKoe1eJ5i1su5U/4nUl+daF0+lSMQ5FV0O2oglnc40
-	+gq3M+e+Gi+IDXVurdEle5GomxbFYjrIADapf/W8Mw==
-X-Google-Smtp-Source: ABdhPJytJXCfpu88GCMpLd2JmLVLvndI0iUm974A4Uf+gWPRlWE3qUqN/z2XXe284KMMKTo0F5nBS9HRMjP/H8ccbSA=
-X-Received: by 2002:a62:768c:0:b029:2ff:2002:d3d0 with SMTP id
- r134-20020a62768c0000b02902ff2002d3d0mr324838pfc.70.1623913464979; Thu, 17
- Jun 2021 00:04:24 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C584071
+	for <nvdimm@lists.linux.dev>; Thu, 17 Jun 2021 07:35:19 +0000 (UTC)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15H7XHWY166700;
+	Thu, 17 Jun 2021 03:35:14 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=gRcooKOGKSxUZk5Eop2u8zy/HGuXyxjvKW9RZCz79kw=;
+ b=ZcIJ+2IjqGB5xEDgcEdRbSvP163IXfbovm7cQuvKm0HX3xFGXltRHJrt7XL6/Qqr2r8Y
+ vYHLaqoWCsCB7gJnr/ICcb7eBVNaLzxchFjqKKWu6giaIXtpsJ5/TsZC3kG7a7bWcz5Y
+ YWfcyl3PcxBBso4i/SVn4Jd5+MKItzlfe7HjiwZaEiY7Dvb/AwhWguCTpZAGJ/ihGlA3
+ v4OQAJ2Rry7WxGQ4mCvOCxn9RdmBrWEJ6D98JBn3BI3SeUIk/2zC2YQ2OAy3gEUrIYue
+ APu/6MdThEbxlQjvEr+5/OYG6yUVCcYwlvpkKgCNbLk1z6+dS6+e486/zKAWylZg7ssa gQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3981m991de-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 17 Jun 2021 03:35:14 -0400
+Received: from m0127361.ppops.net (m0127361.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15H7XH2G166648;
+	Thu, 17 Jun 2021 03:35:13 -0400
+Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3981m991cw-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 17 Jun 2021 03:35:13 -0400
+Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
+	by ppma01dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15H7YLT9021069;
+	Thu, 17 Jun 2021 07:35:12 GMT
+Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
+	by ppma01dal.us.ibm.com with ESMTP id 394mjarf7a-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 17 Jun 2021 07:35:12 +0000
+Received: from b01ledav004.gho.pok.ibm.com (b01ledav004.gho.pok.ibm.com [9.57.199.109])
+	by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15H7ZCgM30277934
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 17 Jun 2021 07:35:12 GMT
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D1227112073;
+	Thu, 17 Jun 2021 07:35:11 +0000 (GMT)
+Received: from b01ledav004.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 2657E11206D;
+	Thu, 17 Jun 2021 07:35:09 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.102.31.110])
+	by b01ledav004.gho.pok.ibm.com (Postfix) with ESMTP;
+	Thu, 17 Jun 2021 07:35:08 +0000 (GMT)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au
+Cc: Nathan Lynch <nathanl@linux.ibm.com>,
+        David Gibson <david@gibson.dropbear.id.au>,
+        Daniel Henrique Barboza <danielhb413@gmail.com>,
+        nvdimm@lists.linux.dev, dan.j.williams@intel.com,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: [PATCH v3 0/8] Add support for FORM2 associativity
+Date: Thu, 17 Jun 2021 13:04:50 +0530
+Message-Id: <20210617073458.510545-1-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: kC8sq4ZHoCShknZ6_8bE27gz3W1C0GHx
+X-Proofpoint-GUID: QYddWJ2ykoqlod9PwCAVeiXIXtEj5Uge
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210604011844.1756145-1-ruansy.fnst@fujitsu.com>
- <20210604011844.1756145-4-ruansy.fnst@fujitsu.com> <CAPcyv4h=bUCgFudKTrW09dzi8MWxg7cBC9m68zX1=HY24ftR-A@mail.gmail.com>
- <OSBPR01MB29203DC17C538F7B1B1C9224F40E9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
-In-Reply-To: <OSBPR01MB29203DC17C538F7B1B1C9224F40E9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 17 Jun 2021 00:04:14 -0700
-Message-ID: <CAPcyv4ihuErfVWHL0F1OExQashutJjBdaLn5X5oPm44OkQ+a_A@mail.gmail.com>
-Subject: Re: [PATCH v4 03/10] fs: Introduce ->corrupted_range() for superblock
-To: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux MM <linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	device-mapper development <dm-devel@redhat.com>, "Darrick J. Wong" <darrick.wong@oracle.com>, 
-	david <david@fromorbit.com>, Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, 
-	Mike Snitzer <snitzer@redhat.com>, Goldwyn Rodrigues <rgoldwyn@suse.de>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-06-17_02:2021-06-15,2021-06-17 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 lowpriorityscore=0
+ bulkscore=0 impostorscore=0 clxscore=1015 phishscore=0 suspectscore=0
+ adultscore=0 mlxlogscore=999 malwarescore=0 priorityscore=1501 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104190000
+ definitions=main-2106170052
 
-On Wed, Jun 16, 2021 at 11:51 PM ruansy.fnst@fujitsu.com
-<ruansy.fnst@fujitsu.com> wrote:
->
-> > -----Original Message-----
-> > From: Dan Williams <dan.j.williams@intel.com>
-> > Subject: Re: [PATCH v4 03/10] fs: Introduce ->corrupted_range() for sup=
-erblock
-> >
-> > [ drop old linux-nvdimm@lists.01.org, add nvdimm@lists.linux.dev ]
-> >
-> > On Thu, Jun 3, 2021 at 6:19 PM Shiyang Ruan <ruansy.fnst@fujitsu.com> w=
-rote:
-> > >
-> > > Memory failure occurs in fsdax mode will finally be handled in
-> > > filesystem.  We introduce this interface to find out files or metadat=
-a
-> > > affected by the corrupted range, and try to recover the corrupted dat=
-a
-> > > if possiable.
-> > >
-> > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > > ---
-> > >  include/linux/fs.h | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > >
-> > > diff --git a/include/linux/fs.h b/include/linux/fs.h index
-> > > c3c88fdb9b2a..92af36c4225f 100644
-> > > --- a/include/linux/fs.h
-> > > +++ b/include/linux/fs.h
-> > > @@ -2176,6 +2176,8 @@ struct super_operations {
-> > >                                   struct shrink_control *);
-> > >         long (*free_cached_objects)(struct super_block *,
-> > >                                     struct shrink_control *);
-> > > +       int (*corrupted_range)(struct super_block *sb, struct block_d=
-evice
-> > *bdev,
-> > > +                              loff_t offset, size_t len, void *data)=
-;
-> >
-> > Why does the superblock need a new operation? Wouldn't whatever functio=
-n is
-> > specified here just be specified to the dax_dev as the
-> > ->notify_failure() holder callback?
->
-> Because we need to find out which file is effected by the given poison pa=
-ge so that memory-failure code can do collect_procs() and kill_procs() jobs=
-.  And it needs filesystem to use its rmap feature to search the file from =
-a given offset.  So, we need this implemented by the specified filesystem a=
-nd called by dax_device's holder.
->
-> This is the call trace I described in cover letter:
-> memory_failure()
->  * fsdax case
->  pgmap->ops->memory_failure()      =3D> pmem_pgmap_memory_failure()
->   dax_device->holder_ops->corrupted_range() =3D>
->                                       - fs_dax_corrupted_range()
->                                       - md_dax_corrupted_range()
->    sb->s_ops->currupted_range()    =3D> xfs_fs_corrupted_range()  <=3D=3D=
- **HERE**
->     xfs_rmap_query_range()
->      xfs_currupt_helper()
->       * corrupted on metadata
->           try to recover data, call xfs_force_shutdown()
->       * corrupted on file data
->           try to recover data, call mf_dax_kill_procs()
->  * normal case
->  mf_generic_kill_procs()
->
-> As you can see, this new added operation is an important for the whole pr=
-ogress.
+Form2 associativity adds a much more flexible NUMA topology layout
+than what is provided by Form1. This also allows PAPR SCM device
+to use better associativity when using the device as DAX KMEM
+device. More details can be found in patch 7.
 
-I don't think you need either fs_dax_corrupted_range() nor
-sb->s_ops->corrupted_range(). In fact that fs_dax_corrupted_range()
-looks broken because the filesystem may not even be mounted on the
-device associated with the error. The holder_data and holder_op should
-be sufficient from communicating the stack of notifications:
+$ ndctl list -N -v
+[
+  {
+    "dev":"namespace0.0",
+    "mode":"devdax",
+    "map":"dev",
+    "size":1071644672,
+    "uuid":"37dea198-ddb5-4e42-915a-99a915e24188",
+    "raw_uuid":"148deeaa-4a2f-41d1-8d74-fd9a942d26ba",
+    "daxregion":{
+      "id":0,
+      "size":1071644672,
+      "devices":[
+        {
+          "chardev":"dax0.0",
+          "size":1071644672,
+          "target_node":4,
+          "mode":"devdax"
+        }
+      ]
+    },
+    "align":2097152,
+    "numa_node":1
+  }
+]
 
-pgmap->notify_memory_failure() =3D> pmem_pgmap_notify_failure()
-pmem_dax_dev->holder_ops->notify_failure(pmem_dax_dev) =3D>
-md_dax_notify_failure()
-md_dax_dev->holder_ops->notify_failure() =3D> xfs_notify_failure()
+$ numactl -H
+...
+node distances:
+node   0   1   2   3 
+  0:  10  11  222  33 
+  1:  44  10  55  66 
+  2:  77  88  10  99 
+  3:  101  121  132  10 
+$
 
-I.e. the entire chain just walks dax_dev holder ops.
+After DAX KMEM
+# numactl -H
+available: 5 nodes (0-4)
+...
+node distances:
+node   0   1   2   3   4 
+  0:  10  11  22  33  255 
+  1:  44  10  55  66  255 
+  2:  77  88  10  99  255 
+  3:  101  121  132  10  255 
+  4:  255  255  255  255  10 
+# 
+
+The above output is with a Qemu command line
+
+-numa node,nodeid=4 \
+-numa dist,src=0,dst=1,val=11 -numa dist,src=0,dst=2,val=22 -numa dist,src=0,dst=3,val=33 -numa dist,src=0,dst=4,val=255 \
+-numa dist,src=1,dst=0,val=44 -numa dist,src=1,dst=2,val=55 -numa dist,src=1,dst=3,val=66 -numa dist,src=1,dst=4,val=255 \
+-numa dist,src=2,dst=0,val=77 -numa dist,src=2,dst=1,val=88 -numa dist,src=2,dst=3,val=99 -numa dist,src=2,dst=4,val=255 \
+-numa dist,src=3,dst=0,val=101 -numa dist,src=3,dst=1,val=121 -numa dist,src=3,dst=2,val=132 -numa dist,src=3,dst=4,val=255 \
+-numa dist,src=4,dst=0,val=255 -numa dist,src=4,dst=1,val=255 -numa dist,src=4,dst=2,val=255 -numa dist,src=4,dst=3,val=255 \
+-object memory-backend-file,id=memnvdimm1,prealloc=yes,mem-path=$PMEM_DISK,share=yes,size=${PMEM_SIZE}  \
+-device nvdimm,label-size=128K,memdev=memnvdimm1,id=nvdimm1,slot=4,uuid=72511b67-0b3b-42fd-8d1d-5be3cae8bcaa,node=4,device-node=1
+
+Qemu changes can be found at https://lore.kernel.org/qemu-devel/20210616011944.2996399-1-danielhb413@gmail.com/
+
+Changes from v2:
+* Add nvdimm list to Cc:
+* update PATCH 8 commit message.
+
+Changes from v1:
+* Update FORM2 documentation.
+* rename max_domain_index to max_associativity_domain_index
+
+Aneesh Kumar K.V (8):
+  powerpc/pseries: rename min_common_depth to primary_domain_index
+  powerpc/pseries: rename distance_ref_points_depth to
+    max_associativity_domain_index
+  powerpc/pseries: Rename TYPE1_AFFINITY to FORM1_AFFINITY
+  powerpc/pseries: Consolidate DLPAR NUMA distance update
+  powerpc/pseries: Consolidate NUMA distance update during boot
+  powerpc/pseries: Add a helper for form1 cpu distance
+  powerpc/pseries: Add support for FORM2 associativity
+  powerpc/papr_scm: Use FORM2 associativity details
+
+ Documentation/powerpc/associativity.rst       | 177 +++++++
+ arch/powerpc/include/asm/firmware.h           |   7 +-
+ arch/powerpc/include/asm/prom.h               |   3 +-
+ arch/powerpc/kernel/prom_init.c               |   3 +-
+ arch/powerpc/mm/numa.c                        | 436 ++++++++++++++----
+ arch/powerpc/platforms/pseries/firmware.c     |   3 +-
+ arch/powerpc/platforms/pseries/hotplug-cpu.c  |   2 +
+ .../platforms/pseries/hotplug-memory.c        |   2 +
+ arch/powerpc/platforms/pseries/papr_scm.c     |  26 +-
+ arch/powerpc/platforms/pseries/pseries.h      |   2 +
+ 10 files changed, 560 insertions(+), 101 deletions(-)
+ create mode 100644 Documentation/powerpc/associativity.rst
+
+-- 
+2.31.1
+
