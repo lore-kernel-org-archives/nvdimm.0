@@ -1,35 +1,34 @@
 Received: from mail-m121145.qiye.163.com (mail-m121145.qiye.163.com [115.236.121.145])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36F6970
-	for <nvdimm@lists.linux.dev>; Fri, 18 Jun 2021 14:04:47 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE39D70
+	for <nvdimm@lists.linux.dev>; Fri, 18 Jun 2021 14:13:06 +0000 (UTC)
 DKIM-Signature: a=rsa-sha256;
-	b=cY7Mz3FRd6eGg0YxeZuqLV5muX26Nb2UmqKlgnauglosn39hHRzD8Wko6wiw0lLaGK+n5dllB0nD6xwCp242o/QgDrXGa1JZot4CvTLRRP3MTv9pwQhtpRPUZ6Jh1YOCeX7DnKYhLWwixxV0eZWpoB2wSEvk40nefUIpyAHFx80=;
+	b=eCbb7bXHW4dzc7UW/H4rrPgLOXjqjP6HWpY1y035t+La0wJcYnTdBpjcK4QIx2SHE2pwSUYPJGu+FijapSUHqt/SgmLYPrJ0LPP25iU+CXCff825NsM3EogB0+8sN+5mnU1r0KNyVzbmcLP0S9vNu0ZP4lxujF63/P363JFisZc=;
 	c=relaxed/relaxed; s=default; d=vivo.com; v=1;
-	bh=V4XkhEktEARrowjgB/PIZYXcF+CUS9Lv1BxfzObWSBY=;
+	bh=GGvAF/Qe8GQuaJkuBh4NoVPUQNoWRTjdQlcqF+cYVMI=;
 	h=date:mime-version:subject:message-id:from;
 Received: from ubuntu.localdomain (unknown [36.152.145.182])
-	by mail-m121145.qiye.163.com (Hmail) with ESMTPA id 3D81E8001CC;
-	Fri, 18 Jun 2021 22:04:42 +0800 (CST)
+	by mail-m121145.qiye.163.com (Hmail) with ESMTPA id 8FB7E8001EF;
+	Fri, 18 Jun 2021 22:13:04 +0800 (CST)
 From: zhouchuangao <zhouchuangao@vivo.com>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-kernel@vger.kernel.org
 Cc: zhouchuangao <zhouchuangao@vivo.com>
-Subject: [PATCH] drivers/nvdimm: Use kobj_to_dev() API
-Date: Fri, 18 Jun 2021 07:04:29 -0700
-Message-Id: <1624025070-56253-1-git-send-email-zhouchuangao@vivo.com>
+Subject: [PATCH] drivers/dax: Use kobj_to_dev() API
+Date: Fri, 18 Jun 2021 07:12:57 -0700
+Message-Id: <1624025577-56565-1-git-send-email-zhouchuangao@vivo.com>
 X-Mailer: git-send-email 2.7.4
 X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSE83V1ktWUFJV1kPCR
-	oVCBIfWUFZGhhNS1ZKTB4YS01NS0tMHkNVEwETFhoSFyQUDg9ZV1kWGg8SFR0UWUFZT0tIVUpKS0
+	oVCBIfWUFZQh4fS1ZNTR1LTB8aSUtDS01VEwETFhoSFyQUDg9ZV1kWGg8SFR0UWUFZT0tIVUpKS0
 	hKTFVLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6OhQ6LAw5Cz8WTkIBViw#FQxR
-	HAIwCypVSlVKTUlPS0lOS0NJTE9PVTMWGhIXVQETFA4YEw4aFRwaFDsNEg0UVRgUFkVZV1kSC1lB
-	WUhNVUpOSVVKT05VSkNJWVdZCAFZQUlJT083Bg++
-X-HM-Tid: 0a7a1f702a4ab03akuuu3d81e8001cc
+X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NU06Njo6SD8NEUJDVi0ZCzM*
+	FRQwCQNVSlVKTUlPS0lOTkNOS0xPVTMWGhIXVQETFA4YEw4aFRwaFDsNEg0UVRgUFkVZV1kSC1lB
+	WUhNVUpOSVVKT05VSkNJWVdZCAFZQUpDQk43Bg++
+X-HM-Tid: 0a7a1f77d46fb03akuuu8fb7e8001ef
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
@@ -39,36 +38,31 @@ Use kobj_to_dev() API instead of container_of().
 
 Signed-off-by: zhouchuangao <zhouchuangao@vivo.com>
 ---
- drivers/nvdimm/namespace_devs.c | 2 +-
- drivers/nvdimm/region_devs.c    | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/dax/bus.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 2403b71..c74dcd2 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1623,7 +1623,7 @@ static struct attribute *nd_namespace_attributes[] = {
- static umode_t namespace_visible(struct kobject *kobj,
- 		struct attribute *a, int n)
+diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+index 5aee26e..eb7260a 100644
+--- a/drivers/dax/bus.c
++++ b/drivers/dax/bus.c
+@@ -484,7 +484,7 @@ static DEVICE_ATTR_WO(delete);
+ static umode_t dax_region_visible(struct kobject *kobj, struct attribute *a,
+ 		int n)
  {
 -	struct device *dev = container_of(kobj, struct device, kobj);
 +	struct device *dev = kobj_to_dev(kobj);
+ 	struct dax_region *dax_region = dev_get_drvdata(dev);
  
- 	if (a == &dev_attr_resource.attr && is_namespace_blk(dev))
- 		return 0;
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index 9ccf3d6..3db3195 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -766,7 +766,7 @@ REGION_MAPPING(31);
+ 	if (is_static(dax_region))
+@@ -1213,7 +1213,7 @@ static DEVICE_ATTR_RO(numa_node);
  
- static umode_t mapping_visible(struct kobject *kobj, struct attribute *a, int n)
+ static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
  {
 -	struct device *dev = container_of(kobj, struct device, kobj);
 +	struct device *dev = kobj_to_dev(kobj);
- 	struct nd_region *nd_region = to_nd_region(dev);
+ 	struct dev_dax *dev_dax = to_dev_dax(dev);
+ 	struct dax_region *dax_region = dev_dax->region;
  
- 	if (n < nd_region->ndr_mappings)
 -- 
 2.7.4
 
