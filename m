@@ -1,68 +1,75 @@
-Received: from mail-m121145.qiye.163.com (mail-m121145.qiye.163.com [115.236.121.145])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CE39D70
-	for <nvdimm@lists.linux.dev>; Fri, 18 Jun 2021 14:13:06 +0000 (UTC)
-DKIM-Signature: a=rsa-sha256;
-	b=eCbb7bXHW4dzc7UW/H4rrPgLOXjqjP6HWpY1y035t+La0wJcYnTdBpjcK4QIx2SHE2pwSUYPJGu+FijapSUHqt/SgmLYPrJ0LPP25iU+CXCff825NsM3EogB0+8sN+5mnU1r0KNyVzbmcLP0S9vNu0ZP4lxujF63/P363JFisZc=;
-	c=relaxed/relaxed; s=default; d=vivo.com; v=1;
-	bh=GGvAF/Qe8GQuaJkuBh4NoVPUQNoWRTjdQlcqF+cYVMI=;
-	h=date:mime-version:subject:message-id:from;
-Received: from ubuntu.localdomain (unknown [36.152.145.182])
-	by mail-m121145.qiye.163.com (Hmail) with ESMTPA id 8FB7E8001EF;
-	Fri, 18 Jun 2021 22:13:04 +0800 (CST)
-From: zhouchuangao <zhouchuangao@vivo.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org
-Cc: zhouchuangao <zhouchuangao@vivo.com>
-Subject: [PATCH] drivers/dax: Use kobj_to_dev() API
-Date: Fri, 18 Jun 2021 07:12:57 -0700
-Message-Id: <1624025577-56565-1-git-send-email-zhouchuangao@vivo.com>
-X-Mailer: git-send-email 2.7.4
-X-HM-Spam-Status: e1kfGhgUHx5ZQUtXWQgYFAkeWUFZS1VLWVdZKFlBSE83V1ktWUFJV1kPCR
-	oVCBIfWUFZQh4fS1ZNTR1LTB8aSUtDS01VEwETFhoSFyQUDg9ZV1kWGg8SFR0UWUFZT0tIVUpKS0
-	hKTFVLWQY+
-X-HM-Sender-Digest: e1kMHhlZQR0aFwgeV1kSHx4VD1lBWUc6NU06Njo6SD8NEUJDVi0ZCzM*
-	FRQwCQNVSlVKTUlPS0lOTkNOS0xPVTMWGhIXVQETFA4YEw4aFRwaFDsNEg0UVRgUFkVZV1kSC1lB
-	WUhNVUpOSVVKT05VSkNJWVdZCAFZQUpDQk43Bg++
-X-HM-Tid: 0a7a1f77d46fb03akuuu8fb7e8001ef
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C917172
+	for <nvdimm@lists.linux.dev>; Sat, 19 Jun 2021 01:45:29 +0000 (UTC)
+IronPort-SDR: vqvCvQjhB7VMrVL9ZyiBNFyGU3BHQ7qnMn8Pv6OiAsmrH/T1x7pGZhrNngXmjvzgFZ1DD+h61W
+ pgy/cLuUcSCQ==
+X-IronPort-AV: E=McAfee;i="6200,9189,10019"; a="187020486"
+X-IronPort-AV: E=Sophos;i="5.83,284,1616482800"; 
+   d="scan'208";a="187020486"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jun 2021 18:45:28 -0700
+IronPort-SDR: bh6qK3VRtfLHM5Jbxfhkzv9QXgoMwADb1BeOZ1E9pJ6ILJAlVl9j88jWYGLF2smbfHYrpQc+3+
+ xKdxDfsropdg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.83,284,1616482800"; 
+   d="scan'208";a="489265509"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.53])
+  by fmsmga002.fm.intel.com with ESMTP; 18 Jun 2021 18:45:28 -0700
+From: Alison Schofield <alison.schofield@intel.com>
+To: Vishal Verma <vishal.l.verma@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>
+Cc: Alison Schofield <alison.schofield@intel.com>,
+	nvdimm@lists.linux.dev
+Subject: [ndctl PATCH] ndctl: do not try to load a key already on the kernel keyring
+Date: Fri, 18 Jun 2021 18:40:54 -0700
+Message-Id: <20210619014056.31907-1-alison.schofield@intel.com>
+X-Mailer: git-send-email 2.17.1
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 
-Use kobj_to_dev() API instead of container_of().
+During a bulk load of kernel keys, an attempt to load a key that is
+already on the kernel keyring emits this ndctl error message:
+	add_key failed: Invalid argument
 
-Signed-off-by: zhouchuangao <zhouchuangao@vivo.com>
+and this message in the kernel log:
+	encrypted_key: keyword 'load' not allowed when called from .update method
+
+Avoid these error messages by checking the kernel keyring before
+trying to load.
+
+Fixes: 9925be9d6793 ("ndctl: add a load-keys command and a modprobe config")
+Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- drivers/dax/bus.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ndctl/load-keys.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
-index 5aee26e..eb7260a 100644
---- a/drivers/dax/bus.c
-+++ b/drivers/dax/bus.c
-@@ -484,7 +484,7 @@ static DEVICE_ATTR_WO(delete);
- static umode_t dax_region_visible(struct kobject *kobj, struct attribute *a,
- 		int n)
- {
--	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct device *dev = kobj_to_dev(kobj);
- 	struct dax_region *dax_region = dev_get_drvdata(dev);
+diff --git a/ndctl/load-keys.c b/ndctl/load-keys.c
+index 26648fe..9124d5b 100644
+--- a/ndctl/load-keys.c
++++ b/ndctl/load-keys.c
+@@ -132,6 +132,16 @@ static int load_dimm_keys(struct loadkeys *lk_ctx)
+ 			continue;
+ 		}
  
- 	if (is_static(dax_region))
-@@ -1213,7 +1213,7 @@ static DEVICE_ATTR_RO(numa_node);
- 
- static umode_t dev_dax_visible(struct kobject *kobj, struct attribute *a, int n)
- {
--	struct device *dev = container_of(kobj, struct device, kobj);
-+	struct device *dev = kobj_to_dev(kobj);
- 	struct dev_dax *dev_dax = to_dev_dax(dev);
- 	struct dax_region *dax_region = dev_dax->region;
- 
++		/* Skip if key is already on kernel keyring */
++		key = keyctl_search(KEY_SPEC_USER_KEYRING, "encrypted",
++				    desc, 0);
++
++		if (key > 0) {
++			free(fname);
++			free(blob);
++			continue;
++		}
++
+ 		key = add_key("encrypted", desc, blob, size,
+ 				KEY_SPEC_USER_KEYRING);
+ 		if (key < 0)
+
+base-commit: 4e646fa490ba4b782afa188dd8818b94c419924e
 -- 
-2.7.4
+2.25.1
 
