@@ -1,154 +1,358 @@
-Received: from de-smtp-delivery-102.mimecast.com (de-smtp-delivery-102.mimecast.com [194.104.109.102])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4401F173
-	for <nvdimm@lists.linux.dev>; Tue, 22 Jun 2021 00:16:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=mimecast20200619;
-	t=1624320959;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=JUFrz8jC3dnsHao2y5xN/Wit902iYV28jfx6pgJQ//E=;
-	b=bZF9bsGv6oihSitiUgGN+M8qegdeZHdCuTej155N84wld7aPDLAOB8IRNvpOQsUt6KdMaj
-	SXMs1rZBIyoO3/5ccmeN8LnbjbiLhu8sOPTE7fBtemVX0Y8ULfOlfpftUPNIAuaDSKZAbu
-	DHR5BK513N5zTZk2javP8yR+MvV/bRw=
-Received: from EUR02-AM5-obe.outbound.protection.outlook.com
- (mail-am5eur02lp2058.outbound.protection.outlook.com [104.47.4.58]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- de-mta-27-bBTgW7ihPZCj9VEolMBxYQ-1; Tue, 22 Jun 2021 02:15:58 +0200
-X-MC-Unique: bBTgW7ihPZCj9VEolMBxYQ-1
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=AUFrc5jwqyJsPMg7Qsja3bvv5MrwxgsP4orZDw5V3dHy6TlTtS3bSTQ5iJFWv+pgbdh24vmrVriaJs1xPzGbWpJCd8E+grsH13qebL3+1SCrw6/N5ppeRDWnyCAiRnKhF8XfPMVTNo7KOjutP9aDQEzocpVMbDVeD/Okb1JdbySNPc1xHigrMx8ve+LOHWLMWKQSIPrB0npK6Tkjv/X8O9q/O2YKmmi/jxt2SihFofMFXOKeQUmNZT1cLc09J1M/daLrJTQBuGJVvE60g01/hjGeQkclD7yc3YAKQu/pTfDrDdESQ7rcWyXAXtecBMWpQYnYEQFTrhvwrzs5OTycww==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=gDFkyeUUX+GCiw5avQmVUPk20T7XmDgzJAC/mMhHVvg=;
- b=ixeX1YHycPHMAw/S/H2mID2EsHeRsOld2I41/eaYwUU+IbVP34lW9RafhJ8qvu2vhafPUAa2xoaxKmIgoop61iEWWfBpQh84KrZDvS53Y8NAiqO++v/TiY5QiiJnOw7pugc0WN5UB2z5fAWOgKM8IbuYrchSRy8VH7RpVk0VxnBaivDfvnS+GnkUllX81w7S5NVsAn5mRt5RK8VyyKU01H4dkEj0lNkPmZLgcSWuYJ9KiIkMJjISssnGEeQfRuS7mWMmh5CNgnvLC/cUAn8HVa25chLnrYRrhvaHYG95uy6oJf12kAOs/jOXQoWg1vW6/CP3tL9DI0DmG/Yjl3/bQQ==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=suse.com; dmarc=pass action=none header.from=suse.com;
- dkim=pass header.d=suse.com; arc=none
-Authentication-Results: oracle.com; dkim=none (message not signed)
- header.d=none;oracle.com; dmarc=none action=none header.from=suse.com;
-Received: from VI1PR04MB5325.eurprd04.prod.outlook.com (2603:10a6:803:60::14)
- by VI1PR0402MB3775.eurprd04.prod.outlook.com (2603:10a6:803:1a::16) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.18; Tue, 22 Jun
- 2021 00:15:56 +0000
-Received: from VI1PR04MB5325.eurprd04.prod.outlook.com
- ([fe80::8c62:9178:f0e0:791d]) by VI1PR04MB5325.eurprd04.prod.outlook.com
- ([fe80::8c62:9178:f0e0:791d%7]) with mapi id 15.20.4242.023; Tue, 22 Jun 2021
- 00:15:56 +0000
-Date: Mon, 21 Jun 2021 17:15:48 -0700
-From: Luis Chamberlain <mcgrof@suse.com>
-To: Jane Chu <jane.chu@oracle.com>
-CC: Dan Williams <dan.j.williams@intel.com>, nvdimm@lists.linux.dev,
-	mcgrof@kernel.org
-Subject: Re: set_memory_uc() does not work with pmem poison handling
-Message-ID: <YNErtAaG/i3HBII+@garbanzo>
-References: <327f9156-9b28-d20e-2850-21c125ece8c7@oracle.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-In-Reply-To: <327f9156-9b28-d20e-2850-21c125ece8c7@oracle.com>
-X-Originating-IP: [173.239.198.97]
-X-ClientProxiedBy: SJ0PR03CA0173.namprd03.prod.outlook.com
- (2603:10b6:a03:338::28) To VI1PR04MB5325.eurprd04.prod.outlook.com
- (2603:10a6:803:60::14)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6FE6771
+	for <nvdimm@lists.linux.dev>; Tue, 22 Jun 2021 12:08:18 +0000 (UTC)
+Received: from pps.filterd (m0098404.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15MC5op4019554;
+	Tue, 22 Jun 2021 08:08:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=Sr+2o3TbBATfXlQfXphrTP8TzSTtTrQID0YrpDeSPvM=;
+ b=ov1a/CRD9lzkTqJgdoXiJRAEbdPTU8WnmjPQbkPkMXXtG2pnSllEbYRFEIhE3x9G7ma+
+ Vpa7wq7xlrsuIMjWDA+/UYwqh9OdRQBds2weuSRGp1BiKCZuSSdTPc280BzXYOnBLytv
+ ojRnRpWzVrn6NWr13IJZuVlwAcdSXCXuOof2u5QkcYJm1b2cy9XbR3swpCHsvk3pDdys
+ xh395BxrMXAh80nW/7CR30qoFJR+/aakqW7L++SBkQ0is/TfTHfTn627rkXT8zFUSmOE
+ AwiOB342ss6cjrWR2GpK9H2M8LQ+18kPk3as6EtsFRnE5vzBJav7SnZQh6y30wIfdQsL uA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 39bdxk2nty-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 22 Jun 2021 08:08:06 -0400
+Received: from m0098404.ppops.net (m0098404.ppops.net [127.0.0.1])
+	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15MC6MwB023347;
+	Tue, 22 Jun 2021 08:08:05 -0400
+Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 39bdxk2ntj-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 22 Jun 2021 08:08:05 -0400
+Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
+	by ppma01dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15MC2ZLC004205;
+	Tue, 22 Jun 2021 12:08:04 GMT
+Received: from b01cxnp23034.gho.pok.ibm.com (b01cxnp23034.gho.pok.ibm.com [9.57.198.29])
+	by ppma01dal.us.ibm.com with ESMTP id 399879n4wv-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 22 Jun 2021 12:08:04 +0000
+Received: from b01ledav006.gho.pok.ibm.com (b01ledav006.gho.pok.ibm.com [9.57.199.111])
+	by b01cxnp23034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15MC83Ua30736848
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 22 Jun 2021 12:08:03 GMT
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id C2B3EAC064;
+	Tue, 22 Jun 2021 12:08:03 +0000 (GMT)
+Received: from b01ledav006.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 76495AC05F;
+	Tue, 22 Jun 2021 12:08:01 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.199.58.66])
+	by b01ledav006.gho.pok.ibm.com (Postfix) with ESMTP;
+	Tue, 22 Jun 2021 12:08:01 +0000 (GMT)
+X-Mailer: emacs 28.0.50 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Daniel Henrique Barboza <danielhb413@gmail.com>,
+        linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au
+Cc: Nathan Lynch <nathanl@linux.ibm.com>,
+        David Gibson <david@gibson.dropbear.id.au>, nvdimm@lists.linux.dev,
+        dan.j.williams@intel.com
+Subject: Re: [PATCH v4 7/7] powerpc/pseries: Add support for FORM2
+ associativity
+In-Reply-To: <e500697d-1866-538c-eaff-613e04a92c93@gmail.com>
+References: <20210617165105.574178-1-aneesh.kumar@linux.ibm.com>
+ <20210617165105.574178-8-aneesh.kumar@linux.ibm.com>
+ <e500697d-1866-538c-eaff-613e04a92c93@gmail.com>
+Date: Tue, 22 Jun 2021 17:37:55 +0530
+Message-ID: <87mtrihzl0.fsf@linux.ibm.com>
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from garbanzo (173.239.198.97) by SJ0PR03CA0173.namprd03.prod.outlook.com (2603:10b6:a03:338::28) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.16 via Frontend Transport; Tue, 22 Jun 2021 00:15:54 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 31d1c30e-2818-4db7-e96f-08d93512e766
-X-MS-TrafficTypeDiagnostic: VI1PR0402MB3775:
-X-Microsoft-Antispam-PRVS:
-	<VI1PR0402MB3775C3354C87B239F9E515CEF0099@VI1PR0402MB3775.eurprd04.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:1186;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info:
-	vTUVNF5Zm9kko38Y4D2DGzM1LdhXqTKUwTvb51GdP7hHuU39DNaHmEBcEg54bkTT6s5+FenksYVKqXFA1RNP1PPgn21RHSqIra4fJf098P32NSlOI2iHuYzK9AZCsSkx+tC29tf3lD9D6xjs4aM82ZqCKoAp2bFc+06vrBSRve/1mmLqH48lntnoJNnkqf8x97pHK9aLM8NtwMuVVWH5pU2jGI79k6C8ca8r4utEDkrrH8v6XzTCDRHVVJ/BuIua/V6NQyFcRJd3vDHzWALvHK+6M2nGOoodAzlCDei1fWZqETcR4YQoFxAH4PBop44qcNJuqYD/6n46uLblthQMCci6XLd39EjsXOlQzsxaiupLa9hXUtdE9PSBtMtlYdh77dom0MGLYdkis2hG7s5IywBdkZ/iyfFFcSOpZoHATxi8W6pfIWg/TpgBqpWv/rAInkZarlptWIMTkpWD55EbBl/c5fRmu9p4QhezN5yunQrrZE8oePfn0RebdwiOmnOMwoKl374KjmYqbtf5YI1AZ3xmU/0mx3m8HDd2QxJCXIMuYbuiLQvX9yJ/K7Budw1Fcb4pApuQffAEsrk3sf74cL75caJ3n9l4D5IEUB2NdXdikzGHit0kl3kVKEatItPsVJRdiX8VDx2PQ8QPaatc7w==
-X-Forefront-Antispam-Report:
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VI1PR04MB5325.eurprd04.prod.outlook.com;PTR:;CAT:NONE;SFS:(346002)(39850400004)(136003)(396003)(366004)(376002)(9686003)(55016002)(55236004)(26005)(186003)(16526019)(5660300002)(6666004)(6496006)(83380400001)(33716001)(478600001)(2906002)(38100700002)(4326008)(66556008)(66476007)(6916009)(66946007)(316002)(8936002)(8676002)(9576002)(956004)(78946002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0:
-	=?us-ascii?Q?yEt2xorD1e/YVnRW+Ve83/Pak+wYKUZDHMdGTE3aAMZRTzZ0Fmv025WrS97/?=
- =?us-ascii?Q?d68pptO0sXtpppD2q/pJOVTUsiK8wKFaiUvrOAkE0zsION58Zt+rlXfsYgvy?=
- =?us-ascii?Q?1HmbC9FgrH8PIoa6o0qXLqEqbKp7B0Pz1Ny3FIvHip0wgd3tnU6EzpvD1SWf?=
- =?us-ascii?Q?Lgvnt/V5Hy5u9ubTkzc+EpkLMig/V1ILyLHdbBDd7DgRKu0nqhGoUp7M8fdU?=
- =?us-ascii?Q?AFccVbrTs5MMWEuTAWBKwyZKtRhbooSxAfRv5CnfVuLSd/eBdbpno1Sqm7sj?=
- =?us-ascii?Q?6I16EFt9KAL2ErsNUsZeuEJ8xpqj81K98Kko3Qm5a/PaQesA21kW7d3oVZIb?=
- =?us-ascii?Q?WVonjpmK3+InZ2FhgFr1MOInpgW8JU1BseXDMzqMjzLF2IkSqgVuI5X1q9tH?=
- =?us-ascii?Q?+5QVfh9yVXyqO9JXAnchn3yreo+dWfVv25goz0AH/9P4f8XWKW1i883k9Jqv?=
- =?us-ascii?Q?jRyyVbezjeex7pasNXEYNT8yQ57O95hNO1OpNBqj7wpI5z2KYH23taiZJGko?=
- =?us-ascii?Q?rEik1d8zgB7OU6gXEiYCgIANHiu5tVH/ookf+T8JjWzFU2YGT63IYQZzEZ15?=
- =?us-ascii?Q?hm1vpB1SWhp+O0ywwIMdupelCs56NvFUKGX+a75u67+sudkjbi8yr6gECpJK?=
- =?us-ascii?Q?KE2kyFZPdxVT4ad8aHwVtQRFmChRjmCPCjGDw4pMp512UPhxynXQMJwBQkVg?=
- =?us-ascii?Q?H0dUmjZxM/JOHw+Afjz0zojNh1zjqHpJFZo1UjMQ3N8KMCtMoVp7MvzrM/EU?=
- =?us-ascii?Q?+rI6AraTLUHQbGDtL9dCFIdOfNFaokcEVvFN+Y6vUtUeJcODgK8C0WJMeRyA?=
- =?us-ascii?Q?XLl6c1a1FugFxrTeSH0AMqbhJmlwXvRTl3VfkJ/XMfoI/ahb1GwC+nZLqeXR?=
- =?us-ascii?Q?Dcm8V96Uxs8JZJ9S3ALoY8bNswk6RRUOGYn3IKVwgQtZ1YTFYsG5W0H9zc1u?=
- =?us-ascii?Q?1h0DzeJ87wpNJOAPttuzCDVHygoqzraEUNQLIfgi5IcJtR917ORDbbbjsPCV?=
- =?us-ascii?Q?6G1IhQTeUV89URv9f0EHC+OPPfmyBvaoDxWPQ5YJIXQurlTTGhTci3ThjtKb?=
- =?us-ascii?Q?ok+mRq24UlpclZAnP3gZC5oN3EQOoTH4Ouvdvc8cRRMPwJ1ZH260gdP4lBrf?=
- =?us-ascii?Q?BAX6bEyLQax9AGPDHcgzRkao0sRRTWJq155MdE3fX+j2LsX4+rpWOj/HdEfe?=
- =?us-ascii?Q?HO4fiy7Hbpkp+6I5pjTpW1PGZM/wK4au/mYVtXqAXpcgXqbV+b+hUUPeZE5I?=
- =?us-ascii?Q?Lzx4cp+Gi/YdHODLTRglSKP+UiIQ2Qa5+Ju7YRqPMQbYEfjrasN0t+lwyQCQ?=
- =?us-ascii?Q?GdbcJn0IS4U7b+HoK29qxL+b?=
-X-OriginatorOrg: suse.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 31d1c30e-2818-4db7-e96f-08d93512e766
-X-MS-Exchange-CrossTenant-AuthSource: VI1PR04MB5325.eurprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 22 Jun 2021 00:15:55.9139
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: f7a17af6-1c5c-4a36-aa8b-f5be247aa4ba
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: KweVncLN9WQeb0zc60sO3XH+6XIYEQ4jnA5WAGGD4rxG23LZOBx0z3aNMm7sbiPnEdWVJQzVa6dqBIAruQKGu4MpsiWB6mI3PrGsvo+UgGI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR0402MB3775
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: YhEMA8fyDEji18dAMGRmstzMh884M7KB
+X-Proofpoint-GUID: Nd3GhaHh7vHQ19m31Gj1tCifw2J4VOhZ
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-06-22_06:2021-06-21,2021-06-22 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 adultscore=0
+ mlxscore=0 spamscore=0 malwarescore=0 priorityscore=1501 impostorscore=0
+ phishscore=0 clxscore=1015 mlxlogscore=999 lowpriorityscore=0 bulkscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104190000
+ definitions=main-2106220077
 
-On Tue, Jun 15, 2021 at 11:55:19AM -0700, Jane Chu wrote:
-> Hi, Dan,
->=20
-> It appears the fact pmem region is of WB memtype renders set_memory_uc()
->=20
-> to fail due to inconsistency between the requested memtype(UC-) and the
-> cached
->=20
-> memtype(WB).
->=20
-> # cat /proc/iomem |grep -A 8 -i persist
-> 1840000000-d53fffffff : Persistent Memory
-> =A0 1840000000-1c3fffffff : namespace0.0
-> =A0 5740000000-76bfffffff : namespace2.0
->=20
-> # cat /sys/kernel/debug/x86/pat_memtype_list
-> PAT memtype list:
-> PAT: [mem 0x0000001840000000-0x0000001c40000000] write-back
-> PAT: [mem 0x0000005740000000-0x00000076c0000000] write-back
->=20
-> [10683.418072] Memory failure: 0x1850600: recovery action for dax page:
-> Recovered
-> [10683.426147] x86/PAT: fsdax_poison_v1:5018 conflicting memory types
-> 1850600000-1850601000=A0 uncached-minus<->write-back
->=20
-> cscope search shows that unlike pmem, set_memory_uc() is primarily used b=
-y
-> drivers dealing with ioremap(),
+Daniel Henrique Barboza <danielhb413@gmail.com> writes:
 
-Yes, when a driver *knows* the type must follow certain rules, it
-requests it.
+> On 6/17/21 1:51 PM, Aneesh Kumar K.V wrote:
+>> PAPR interface currently supports two different ways of communicating re=
+source
+>> grouping details to the OS. These are referred to as Form 0 and Form 1
+>> associativity grouping. Form 0 is the older format and is now considered
+>> deprecated. This patch adds another resource grouping named FORM2.
+>>=20
+>> Signed-off-by: Daniel Henrique Barboza <danielhb413@gmail.com>
+>> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+>> ---
+>>   Documentation/powerpc/associativity.rst   | 135 ++++++++++++++++++++
+>>   arch/powerpc/include/asm/firmware.h       |   3 +-
+>>   arch/powerpc/include/asm/prom.h           |   1 +
+>>   arch/powerpc/kernel/prom_init.c           |   3 +-
+>>   arch/powerpc/mm/numa.c                    | 149 +++++++++++++++++++++-
+>>   arch/powerpc/platforms/pseries/firmware.c |   1 +
+>>   6 files changed, 286 insertions(+), 6 deletions(-)
+>>   create mode 100644 Documentation/powerpc/associativity.rst
+>>=20
+>> diff --git a/Documentation/powerpc/associativity.rst b/Documentation/pow=
+erpc/associativity.rst
+>> new file mode 100644
+>> index 000000000000..93be604ac54d
+>> --- /dev/null
+>> +++ b/Documentation/powerpc/associativity.rst
+>> @@ -0,0 +1,135 @@
+>> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D
+>> +NUMA resource associativity
+>> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+>> +
+>> +Associativity represents the groupings of the various platform resource=
+s into
+>> +domains of substantially similar mean performance relative to resources=
+ outside
+>> +of that domain. Resources subsets of a given domain that exhibit better
+>> +performance relative to each other than relative to other resources sub=
+sets
+>> +are represented as being members of a sub-grouping domain. This perform=
+ance
+>> +characteristic is presented in terms of NUMA node distance within the L=
+inux kernel.
+>> +From the platform view, these groups are also referred to as domains.
+>> +
+>> +PAPR interface currently supports different ways of communicating these=
+ resource
+>> +grouping details to the OS. These are referred to as Form 0, Form 1 and=
+ Form2
+>> +associativity grouping. Form 0 is the older format and is now considere=
+d deprecated.
+>> +
+>> +Hypervisor indicates the type/form of associativity used via "ibm,arcit=
+ecture-vec-5 property".
+>> +Bit 0 of byte 5 in the "ibm,architecture-vec-5" property indicates usag=
+e of Form 0 or Form 1.
+>> +A value of 1 indicates the usage of Form 1 associativity. For Form 2 as=
+sociativity
+>> +bit 2 of byte 5 in the "ibm,architecture-vec-5" property is used.
+>> +
+>> +Form 0
+>> +-----
+>> +Form 0 associativity supports only two NUMA distance (LOCAL and REMOTE).
+>> +
+>> +Form 1
+>> +-----
+>> +With Form 1 a combination of ibm,associativity-reference-points and ibm=
+,associativity
+>> +device tree properties are used to determine the NUMA distance between =
+resource groups/domains.
+>> +
+>> +The =E2=80=9Cibm,associativity=E2=80=9D property contains one or more l=
+ists of numbers (domainID)
+>> +representing the resource=E2=80=99s platform grouping domains.
+>> +
+>> +The =E2=80=9Cibm,associativity-reference-points=E2=80=9D property conta=
+ins one or more list of numbers
+>> +(domainID index) that represents the 1 based ordinal in the associativi=
+ty lists.
+>> +The list of domainID index represnets increasing hierachy of resource g=
+rouping.
+>> +
+>> +ex:
+>> +{ primary domainID index, secondary domainID index, tertiary domainID i=
+ndex.. }
+>> +
+>> +Linux kernel uses the domainID at the primary domainID index as the NUM=
+A node id.
+>> +Linux kernel computes NUMA distance between two domains by recursively =
+comparing
+>> +if they belong to the same higher-level domains. For mismatch at every =
+higher
+>> +level of the resource group, the kernel doubles the NUMA distance betwe=
+en the
+>> +comparing domains.
+>> +
+>> +Form 2
+>> +-------
+>> +Form 2 associativity format adds separate device tree properties repres=
+enting NUMA node distance
+>> +thereby making the node distance computation flexible. Form 2 also allo=
+ws flexible primary
+>> +domain numbering. With numa distance computation now detached from the =
+index value of
+>> +"ibm,associativity" property, Form 2 allows a large number of primary d=
+omain ids at the
+>> +same domainID index representing resource groups of different performan=
+ce/latency characteristics.
+>> +
+>> +Hypervisor indicates the usage of FORM2 associativity using bit 2 of by=
+te 5 in the
+>> +"ibm,architecture-vec-5" property.
+>> +
+>> +"ibm,numa-lookup-index-table" property contains one or more list number=
+s representing
+>> +the domainIDs present in the system. The offset of the domainID in this=
+ property is considered
+>> +the domainID index.
+>> +
+>> +prop-encoded-array: The number N of the domainIDs encoded as with encod=
+e-int, followed by
+>> +N domainID encoded as with encode-int
+>> +
+>> +For ex:
+>> +ibm,numa-lookup-index-table =3D  {4, 0, 8, 250, 252}, domainID index fo=
+r domainID 8 is 1.
+>> +
+>> +"ibm,numa-distance-table" property contains one or more list of numbers=
+ representing the NUMA
+>> +distance between resource groups/domains present in the system.
+>> +
+>> +prop-encoded-array: The number N of the distance values encoded as with=
+ encode-int, followed by
+>> +N distance values encoded as with encode-bytes. The max distance value =
+we could encode is 255.
+>> +
+>> +For ex:
+>> +ibm,numa-lookup-index-table =3D  {3, 0, 8, 40}
+>> +ibm,numa-distance-table     =3D  {9, 10, 20, 80, 20, 10, 160, 80, 160, =
+10}
+>> +
+>> +  | 0    8   40
+>> +--|------------
+>> +  |
+>> +0 | 10   20  80
+>> +  |
+>> +8 | 20   10  160
+>> +  |
+>> +40| 80   160  10
+>> +
+>> +
+>> +"ibm,associativity" property for resources in node 0, 8 and 40
+>> +
+>> +{ 3, 6, 7, 0 }
+>> +{ 3, 6, 9, 8 }
+>> +{ 3, 6, 7, 40}
+>> +
+>> +With "ibm,associativity-reference-points"  { 0x3 }
+>
+> With this configuration, would the following ibm,associativity arrays
+> also be valid?
+>
+>
+> { 3, 0, 0, 0 }
+> { 3, 0, 0, 8 }
+> { 3, 0, 0, 40}
+>
 
-> perhaps the pmem case needs another way to suppress prefetch?
->=20
-> Your thoughts?
+Yes
 
-The way to think about this problem is, who did the ioremap call for the
-ioremap'd area? That's the driver that needs changing.
+> If yes, then we need a way to tell that the associativity domains assignm=
+ent
+> are optional, and FORM2 relies solely on finding out the domainID of the
+> resource (0, 8 and 40) to retrieve the domainID index, and with this
+> index all performance metrics can be retrieved from the numa-* properties
+> (numa-distance-table, numa-bandwidth-table ...).
+>
 
-  Luis
+Where do you suggest we clarify that? I agree that it is not explicitly
+mentioned. But we describe the details of how we find the numa distance
+with example in the document.
 
+> Retrieving the resource domainID is done by using ibm,associativity-refer=
+ence-points.
+>
+> This will allow the platform to implement FORM2 such as:
+>
+> { 1, 0 }
+> { 1, 8 }
+> { 1, 40 }
+>=20=20=20
+> - ref-points: { 0x1 }
+>
+> If the platform chooses to do so.
+>
+
+That is correct.
+
+>
+>> +
+>> +Each resource (drcIndex) now also supports additional optional device t=
+ree properties.
+>> +These properties are marked optional because the platform can choose no=
+t to export
+>> +them and provide the system topology details using the earlier defined =
+device tree
+>> +properties alone. The optional device tree properties are used when add=
+ing new resources
+>> +(DLPAR) and when the platform didn't provide the topology details of th=
+e domain which
+>> +contains the newly added resource during boot.
+>> +
+>> +"ibm,numa-lookup-index" property contains a number representing the dom=
+ainID index to be used
+>> +when building the NUMA distance of the numa node to which this resource=
+ belongs. This can
+>> +be looked at as the index at which this new domainID would have appeare=
+d in
+>> +"ibm,numa-lookup-index-table" if the domain was present during boot. Th=
+e domainID
+>> +of the new resource can be obtained from the existing "ibm,associativit=
+y" property. This
+>> +can be used to build distance information of a newly onlined NUMA node =
+via DLPAR operation.
+>> +The value is 1 based array index value.
+>> +
+>> +prop-encoded-array: An integer encoded as with encode-int specifying th=
+e domainID index
+>> +
+>> +"ibm,numa-distance" property contains one or more list of numbers prese=
+nting the NUMA distance
+>> +from this resource domain to other resources.
+>> +
+>> +prop-encoded-array: The number N of the distance values encoded as with=
+ encode-int, followed by
+>> +N distance values encoded as with encode-bytes. The max distance value =
+we could encode is 255.
+>> +
+>> +For ex:
+>> +ibm,associativity     =3D { 4, 5, 10, 50}
+>> +ibm,numa-lookup-index =3D { 4 }
+>> +ibm,numa-distance   =3D  {8, 160, 255, 80, 10, 160, 255, 80, 10}
+>> +
+>> +resulting in a new toplogy as below.
+>> +  | 0    8   40   50
+>> +--|------------------
+>> +  |
+>> +0 | 10   20  80   160
+>> +  |
+>> +8 | 20   10  160  255
+>> +  |
+>> +40| 80   160  10  80
+>> +  |
+>> +50| 160  255  80  10
+>> +
+>
+> I see there is no mention of the special PAPR SCM handling. I saw in
+> one of the your replies of v1:
+>
+> "Another option is to make sure that numa-distance-value is populated
+> such that PMEMB distance indicates it is closer to node0 when compared
+> to node1. ie, node_distance[40][0] < node_distance[40][1]. One could
+> possibly infer the grouping based on the distance value and not deepend
+> on ibm,associativity for that purpose."
+>
+>
+> Is that was we're supposed to do with PAPR SCM? I'm not sure how that
+> affects NVDIMM support in QEMU with FORM2.
+>
+>
+
+yes that is what we are doing with this version of the patchset (v4)
+version. We can drop the nvdimm specific changes from Qemu.
+
+-aneesh
