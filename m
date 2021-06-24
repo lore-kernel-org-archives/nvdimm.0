@@ -1,904 +1,332 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from esa7.fujitsucc.c3s2.iphmx.com (esa7.fujitsucc.c3s2.iphmx.com [68.232.159.87])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B716570
-	for <nvdimm@lists.linux.dev>; Thu, 24 Jun 2021 08:20:55 +0000 (UTC)
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15O82ntB194108;
-	Thu, 24 Jun 2021 04:20:43 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=91po6miM3OyDuMCfeLhB4Ntae5J3qtsfldWDeOwPNdQ=;
- b=RsbLVEim4DoS3LUDWeWBxhnM5W+jY28gwftMrLYO+pk8VY9XW5Xow+ouufoR5yKmN4SP
- T1XsyMxiI4fjZSAJtf6oV+J/DGRvD/tTv5+i9tbHA6cSxNnpJ9DqqWtYQ1dUyor5/f7a
- bx7R20nHsxaioCa8YA1n1PyH4gGThGxgvTSxtDXqCQ5LjrMvk8Nl1U3/8JYsPRwfGA5w
- 16BKQHsoaejH6WLmpFueQHRMEDzQOatPIpDmP9vw7/EfTrhErhu5Fdkoike6mtJJ5PJm
- eLUFKPM3bX2yQuadkHfRCNIXUnO/zvRGQwHOcy3JImeXgZc4dt6y4lzJT9bar67VM3i6 jQ== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 39cj3ar92v-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 24 Jun 2021 04:20:43 -0400
-Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 15O84ld2004544;
-	Thu, 24 Jun 2021 04:20:43 -0400
-Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 39cj3ar91s-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 24 Jun 2021 04:20:43 -0400
-Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
-	by ppma03wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15O8Ccwv017181;
-	Thu, 24 Jun 2021 08:20:41 GMT
-Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
-	by ppma03wdc.us.ibm.com with ESMTP id 399879q4j9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 24 Jun 2021 08:20:41 +0000
-Received: from b03ledav003.gho.boulder.ibm.com (b03ledav003.gho.boulder.ibm.com [9.17.130.234])
-	by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15O8Ke3010092874
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 24 Jun 2021 08:20:40 GMT
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 54FDE13A387;
-	Thu, 24 Jun 2021 08:20:40 +0000 (GMT)
-Received: from b03ledav003.gho.boulder.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0FC2E13A386;
-	Thu, 24 Jun 2021 08:20:36 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.85.116.63])
-	by b03ledav003.gho.boulder.ibm.com (Postfix) with ESMTP;
-	Thu, 24 Jun 2021 08:20:36 +0000 (GMT)
-X-Mailer: emacs 28.0.50 (via feedmail 11-beta-1 I)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au,
-        Nathan Lynch <nathanl@linux.ibm.com>,
-        Daniel Henrique Barboza <danielhb413@gmail.com>,
-        nvdimm@lists.linux.dev, dan.j.williams@intel.com
-Subject: Re: [PATCH v4 7/7] powerpc/pseries: Add support for FORM2
- associativity
-In-Reply-To: <YNP3P+30/tNzYMRP@yekko>
-References: <20210617165105.574178-1-aneesh.kumar@linux.ibm.com>
- <20210617165105.574178-8-aneesh.kumar@linux.ibm.com>
- <YNP3P+30/tNzYMRP@yekko>
-Date: Thu, 24 Jun 2021 13:50:34 +0530
-Message-ID: <87eecrllm5.fsf@linux.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86FFF177
+	for <nvdimm@lists.linux.dev>; Thu, 24 Jun 2021 08:50:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
+  t=1624524637; x=1656060637;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=fZeciij5NdH1BUnl2hDPNC1HNHcgLAITSsoaM8Ptqj4=;
+  b=p6w/HH3Tb1GJP7r0rsd/P43l7BaJnbe05Wfo9B+7bhRGyhAai0o/c3vb
+   rzaaLrQXGqhwQXIKZPZN5gPLYt6IKIk8Y16Nn1nHl/r3Gd004Ar6T0FGA
+   WnMgzxTQVTusCDBDEcVfLrzdhO+jqTquu15cka/9YyAMuT2xV+zDo+pU5
+   QiEysfOrLIg0dR3vYnvRgiHIIFo+UDf6+RbxlJIBSr43GVY2EZES99LJK
+   tBAuzEMabKBXD8n9JZl6WCDpKbWO2HAisOhrFR7qJQ6FZBtzZLsuSzcjC
+   LE6MuYeuqyO75EgATXbL7fLmitthQOkwKrHsmbh/rFYY5xOJTk3+XU8Lj
+   A==;
+IronPort-SDR: YZxybfeW/SoAjJ1bT7WYkb1ImHzHvu4SSZz5+vu1zADKZuFofke4go/eEp2QNxEo6w3gOktZo0
+ 6k34jlN/INe9FdCyS7J5xEynRJYm4C3JFiUI2WJPxJanGRq+dsYHqOoVzPjULN5BY+oju94DYi
+ 7M5C5a/nLxZWjKE4SxCNUpIgCQBmrl7yQQuiP+01bp+iVL06+vHVQOOCIxhtABwAEhHKwCKpte
+ jeKGnN+xXiuNlIx3Tvwyr3SHAphxKfGPc3aolRdd/tLViTfxDy5rKq8IpgfCwsGkIi84ng8Nhy
+ Ayo=
+X-IronPort-AV: E=McAfee;i="6200,9189,10024"; a="33678947"
+X-IronPort-AV: E=Sophos;i="5.83,296,1616425200"; 
+   d="scan'208";a="33678947"
+Received: from mail-ty1jpn01lp2059.outbound.protection.outlook.com (HELO JPN01-TY1-obe.outbound.protection.outlook.com) ([104.47.93.59])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Jun 2021 17:49:23 +0900
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=NCjpsFp7MvkH3pPR8xUQ1aX0i44NzqNiG8a6JjIEMTAx+jF5S4G94s+LK8xUyfZSgS4OMDI3eaBHMkhplG2zroRkJc9TGMkQK9Hr/cX4E/2i0mkCGflaWX1xgJB+jHtWXTgxCGhUz+pzqRly21ZZN2inW30H+QPknuUTUVNMZ0ZVBkQV8YeTbP6GUnM6BuaEkNWEVW9gEbJ1IWT6umnPsHKcRIw3g4paMexAhz9HEkq4s6ubDWCmbIzaSjOVPQ/+WUCiV5UvQ7D/JoCvqa3hGT6Gju/OeWp2hcIy+NTSTipd96wC33XIXkDLN62Vys95rz3+11BQqnRFhIadoMMqjA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fZeciij5NdH1BUnl2hDPNC1HNHcgLAITSsoaM8Ptqj4=;
+ b=LXsEQAvb8hAZEyXFX6oji78bVy+z58k3PlhlJv+zOtjMTZrdIzVs+akxIoSr7FV/vJOm8wgiN2kN9GdbWs5JJD6u+4OmxycLZVNdQc2tgVS0b1+FHsDWpnmCdvCcw2tWPRSvF39mBH2r+o2w8nEj2Kr2RUOUiYHhoolJ4CtTCoJemZ1cv0NQLk3C/ZYtS1U8yUVG+U8lvFNaBsauL10THZlK4uFabLX6eTLrZ6UoLvpoytYTuaZP2rOTzmvJAvbFl7HnNMLtOrufUap/tc5prFUMEQ//NjUGfyugeksP1Y56CEFKpvMuxTLQvqCExv0sNSh/FlCzoSqmZWrgH9oI+g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
+ dkim=pass header.d=fujitsu.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=fujitsu.onmicrosoft.com; s=selector2-fujitsu-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=fZeciij5NdH1BUnl2hDPNC1HNHcgLAITSsoaM8Ptqj4=;
+ b=MFp0DAbQDKDlIl7TcjUUCYomEhvAWPLAP+XUo4+rWkuFlZ09dX4m+5xAU/MTIVIkYYu1mipWEn3le+Ei6k5UKf6PO0pyZ+/BtxTPNrrVcMwh/Aq07vQLckwyw1k63UJZh0m2gUlpRaapltW6sd1OMKgFEigDvGRv8SOeWZHtuGU=
+Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com (2603:1096:604:18::16)
+ by OSBPR01MB2824.jpnprd01.prod.outlook.com (2603:1096:604:14::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.21; Thu, 24 Jun
+ 2021 08:49:19 +0000
+Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com
+ ([fe80::b985:8239:6cf0:1228]) by OSBPR01MB2920.jpnprd01.prod.outlook.com
+ ([fe80::b985:8239:6cf0:1228%7]) with mapi id 15.20.4242.023; Thu, 24 Jun 2021
+ 08:49:19 +0000
+From: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
+To: "Darrick J. Wong" <djwong@kernel.org>
+CC: "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+	"david@fromorbit.com" <david@fromorbit.com>, "djwong@kernel.org"
+	<djwong@kernel.org>, "hch@lst.de" <hch@lst.de>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>, "rgoldwyn@suse.de"
+	<rgoldwyn@suse.de>, "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>,
+	"willy@infradead.org" <willy@infradead.org>
+Subject: RE: [PATCH v6.1 6/7] fs/xfs: Handle CoW for fsdax write() path
+Thread-Topic: [PATCH v6.1 6/7] fs/xfs: Handle CoW for fsdax write() path
+Thread-Index: AQHXYbckY2jHOODaoEahyEINyab63asi57FQ
+Date: Thu, 24 Jun 2021 08:49:17 +0000
+Message-ID:
+ <OSBPR01MB2920D2D275EB0DB15C37D079F4079@OSBPR01MB2920.jpnprd01.prod.outlook.com>
+References:
+ <OSBPR01MB2920A2BCD568364C1363AFA6F4369@OSBPR01MB2920.jpnprd01.prod.outlook.com>
+ <20210615072147.73852-1-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20210615072147.73852-1-ruansy.fnst@fujitsu.com>
+Accept-Language: en-US, zh-CN
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=fujitsu.com;
+x-originating-ip: [223.111.68.150]
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 979a3bae-5663-48fb-aa4a-08d936ecf4ac
+x-ms-traffictypediagnostic: OSBPR01MB2824:
+x-microsoft-antispam-prvs:
+ <OSBPR01MB28245172B21A03AEE789E5FEF4079@OSBPR01MB2824.jpnprd01.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:1122;
+x-ms-exchange-senderadcheck: 1
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ TaE28zuoANdN1vdKF9tj+uNyUesaNMaBoh7YQfFbGLwbpgyysCEb8B0flQxuThWmcRA8vMbea7rtPmFowd4dYRnry2G0+1JrUlkUG04+m6joeRmoe4OvCheRA/th71UnXCc3gA7R5Ctljo4eLF705EUyLry9ne2ZL/ZPeNFnvewFZsAAl1wqJTkeoj7XVLGJIiPVo9wLSmC0pcRPpvTsDlVk/VPzPFtsKZhwoKtEjjyEXRML3+csUrvx0arMU5amWdgOMdcFpO3oe8EAtDIHiu50665WGJF8+mHTGBpHQOk7GY7XvvAEAp4DMX62W47h76PLGc0dR1PoL+qQIkieDVqWe9rKBDyklsdWP5kkvkM9cfciiTDAm6ySxLOd5SILQ4/4g1OcyVYTNofV7ex+nyV2jjnrhq5VGYhN59wuBjmAdMyTTBL/PUAA9EzKafWrSkCVmNg72Ak9mk6vmmOI8KhJBQBHmXLDDNA7kpBY75Vo7cEYcAMzsjXaG/mtGFkJZcXVsQTZPoclCXqmt6+eVkcF1S8MpeRjEF9um9OcpuRuPeN3tDysR082tWXRNrJ1GKkrEehaSaOkVak/K3T2jWiOFwSpYlanRCsT8lW8xr1R2MuXwKSJfiB8ZPlnDph3cxI97mE4G/z1iWtbpuBo3g==
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OSBPR01MB2920.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(366004)(396003)(39860400002)(376002)(346002)(54906003)(66946007)(6916009)(66476007)(66556008)(66446008)(64756008)(76116006)(9686003)(7416002)(26005)(2906002)(55016002)(4326008)(316002)(186003)(5660300002)(122000001)(7696005)(85182001)(478600001)(38100700002)(71200400001)(8676002)(8936002)(83380400001)(86362001)(6506007)(52536014)(33656002);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?gb2312?B?OE4vcjBwYndjUDZWZjAwQ0VRMGcyaWhsOFFXOHJubldHVk1RMFNFZzhVSHdp?=
+ =?gb2312?B?UXA2dGU2YTk3Z2g0cVdkdHRNSnV5aHNkdzdWZCtIWWdZQVVJQmw1ekV5QmU3?=
+ =?gb2312?B?bWhEdDVERFZuemt1RHRkc2ZUckRhTW01b0oyKzNwdHdKTE9oRTAwTUxnVjVs?=
+ =?gb2312?B?T3QrdFAyUU9HOXJBaWEwRU12MlRhMUxHekdHSUlBcXRoQWVHNHdoZGtlc1dN?=
+ =?gb2312?B?ZXNndlBmZk45TTc0QXBUbU1jVEFtTk04Z1p1TkJMVkw5Qk5ubnFnTittTTYz?=
+ =?gb2312?B?UjF5T2JrQ2QwSlVLZVpBVmhLTWFZQkpiR2VjOXhQcnltdENvTG9vR3RnOFNn?=
+ =?gb2312?B?RUR6VDcvYXltNktpOURqRWY3WEJHanpreUVpZnBPUUpwbnJJbTRZK1lVZFVW?=
+ =?gb2312?B?dHZyQUdHakYwQVlVZGlORDNqOGpvbzFpdEMrU0h2YmlkSW1haExHZHNlMnZQ?=
+ =?gb2312?B?ME9ES1hicGV4Y0dTT3NMaHIvcUJ5OUhnSWFENllIUVNUTHFvTnd6dGp6SXFz?=
+ =?gb2312?B?aVZMbUdULzRJakZEWkVlRWhISXkzUVpoZFpsUXZUeWxZZk9UQnBhTGwweWVs?=
+ =?gb2312?B?NjYvTUt4eWRsSHkyQUNrUHppQktEa2tZK0ZTS25RanBRdE5YUTI4SWcwMVRU?=
+ =?gb2312?B?THA3RXdtdXNlOWZJS1QvdTljM2FHZjBXbFpDbFo3MGROQTRzZm9UMVh1TVBM?=
+ =?gb2312?B?UDVsWWhubXdUcGkrRDBQOHZXR3dOWGdqVkNpVndCdnkxclkxd0t6V0FiM05o?=
+ =?gb2312?B?dzVkUHhPWHNjYllLSmxCdWNOMHdoRFFwRjJwZm5yRUhpdHVuRGdzT0pTZmVx?=
+ =?gb2312?B?TExLeGpHd21CK3hJYk9wSFBqbVZsWUdMT1JlQVhJdGdYSVNVc0p2eExVZDBh?=
+ =?gb2312?B?MVRJaWc4TWRiSFhFTVNWejhJWGRSZnhlZkcyaU5JTktkNzNRd2dHUTY4Q2V4?=
+ =?gb2312?B?ZmRyWGlCT0pXYmtqUTZUaFdjMzZmYStkdnZSb1RhREtUTXl4dkhtdFdFb0s0?=
+ =?gb2312?B?b29ac3JIQUNmc1Q2bjhKZ2RUVXlVUzFtdjdYUVBjTlJMcElPV0VLQWdSakhW?=
+ =?gb2312?B?VEEzUEJBelJuVDJSdlpNdmdFMk5wc0VXZTFCd2plUHoyam0wb3lGaWtacW5Q?=
+ =?gb2312?B?Wll6NDk4YVBzdUw5OWJGekZrUEhaUDlRNmhHclBmWFpNQ2JYY3ZyMVdrZHZx?=
+ =?gb2312?B?SHpHcjdzcEFLMlN2OGFZUTFqYTUvS3Y0OWQxQjlmZE9jbi9Ld21vemIvdU9F?=
+ =?gb2312?B?ZzlLRTVleUdHWERrajdBU0taQ3hPN2VvVENtVHNtRU10VEFYcTJZbmQreXJ2?=
+ =?gb2312?B?N3lZZ0JEMStab1JxWjRJbGRGblppQjZya0tWcTFjVFI4TVhiMk5zZlVzZVhG?=
+ =?gb2312?B?UEtvY1hkS2Q0bmhUeko4bExWM2pQSlY3TkY3cTVSWHNpQjNOTGdOWUVYUFNi?=
+ =?gb2312?B?eWFCdXZPdUg3dndMYW9ueUEvTnhxNWVGdG5SNVltY1A1QjM4c0VReEF6LzNX?=
+ =?gb2312?B?VDFhbU45WGJtTmw2dW8yTUsxcUtCRkpWQ2xMT1VtNUp2NXRGUUZiQnp2UnNR?=
+ =?gb2312?B?RG9mYmE5ZG9KK2FCU1Z0aVJ1Rm1YSlRJU0RyNGEvNjBjOFVUSnlmN1JTblJQ?=
+ =?gb2312?B?clJUMytBNk9UODZONU1NQlhrenJWTG44NHBwbWdlTG1ubWNDN0VLcVphN1lv?=
+ =?gb2312?B?OElmRmJmdGZxV0FPelhVQkVSYmg4NlRROTJGakpJUHBoUXRvT0NVaTg2M041?=
+ =?gb2312?Q?qf1lHJgwk0Cl/PkAyxsSPhJ964uByooUhC/VC1T?=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: PV18Kpas5o6Rdp6BolOa2bUJPR8tpvtO
-X-Proofpoint-ORIG-GUID: HraxZBiKixd2CkNRJnYXxwNrUoBm0xzR
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-06-24_06:2021-06-23,2021-06-24 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 malwarescore=0
- mlxlogscore=999 lowpriorityscore=0 spamscore=0 impostorscore=0
- priorityscore=1501 bulkscore=0 clxscore=1015 phishscore=0 adultscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2106240044
-
-David Gibson <david@gibson.dropbear.id.au> writes:
-
-> On Thu, Jun 17, 2021 at 10:21:05PM +0530, Aneesh Kumar K.V wrote:
->> PAPR interface currently supports two different ways of communicating re=
-source
->> grouping details to the OS. These are referred to as Form 0 and Form 1
->> associativity grouping. Form 0 is the older format and is now considered
->> deprecated. This patch adds another resource grouping named FORM2.
->>=20
->> Signed-off-by: Daniel Henrique Barboza <danielhb413@gmail.com>
->> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->> ---
->>  Documentation/powerpc/associativity.rst   | 135 ++++++++++++++++++++
->>  arch/powerpc/include/asm/firmware.h       |   3 +-
->>  arch/powerpc/include/asm/prom.h           |   1 +
->>  arch/powerpc/kernel/prom_init.c           |   3 +-
->>  arch/powerpc/mm/numa.c                    | 149 +++++++++++++++++++++-
->>  arch/powerpc/platforms/pseries/firmware.c |   1 +
->>  6 files changed, 286 insertions(+), 6 deletions(-)
->>  create mode 100644 Documentation/powerpc/associativity.rst
->>=20
->> diff --git a/Documentation/powerpc/associativity.rst b/Documentation/pow=
-erpc/associativity.rst
->> new file mode 100644
->> index 000000000000..93be604ac54d
->> --- /dev/null
->> +++ b/Documentation/powerpc/associativity.rst
->> @@ -0,0 +1,135 @@
->> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D
->> +NUMA resource associativity
->> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
->> +
->> +Associativity represents the groupings of the various platform resource=
-s into
->> +domains of substantially similar mean performance relative to resources=
- outside
->> +of that domain. Resources subsets of a given domain that exhibit better
->> +performance relative to each other than relative to other resources sub=
-sets
->> +are represented as being members of a sub-grouping domain. This perform=
-ance
->> +characteristic is presented in terms of NUMA node distance within the L=
-inux kernel.
->> +From the platform view, these groups are also referred to as domains.
->> +
->> +PAPR interface currently supports different ways of communicating these=
- resource
->> +grouping details to the OS. These are referred to as Form 0, Form 1 and=
- Form2
->> +associativity grouping. Form 0 is the older format and is now considere=
-d deprecated.
->> +
->> +Hypervisor indicates the type/form of associativity used via "ibm,arcit=
-ecture-vec-5 property".
->> +Bit 0 of byte 5 in the "ibm,architecture-vec-5" property indicates usag=
-e of Form 0 or Form 1.
->> +A value of 1 indicates the usage of Form 1 associativity. For Form 2 as=
-sociativity
->> +bit 2 of byte 5 in the "ibm,architecture-vec-5" property is used.
->> +
->> +Form 0
->> +-----
->> +Form 0 associativity supports only two NUMA distance (LOCAL and REMOTE).
->> +
->> +Form 1
->> +-----
->> +With Form 1 a combination of ibm,associativity-reference-points and ibm=
-,associativity
->> +device tree properties are used to determine the NUMA distance between =
-resource groups/domains.
->> +
->> +The =E2=80=9Cibm,associativity=E2=80=9D property contains one or more l=
-ists of numbers (domainID)
->> +representing the resource=E2=80=99s platform grouping domains.
->> +
->> +The =E2=80=9Cibm,associativity-reference-points=E2=80=9D property conta=
-ins one or more list of numbers
->> +(domainID index) that represents the 1 based ordinal in the associativi=
-ty lists.
->> +The list of domainID index represnets increasing hierachy of
->> resource grouping.
->
-> Typo "represnets".  Also s/hierachy/hierarchy/
->
->> +
->> +ex:
->> +{ primary domainID index, secondary domainID index, tertiary domainID i=
-ndex.. }
->
->> +Linux kernel uses the domainID at the primary domainID index as the NUM=
-A node id.
->> +Linux kernel computes NUMA distance between two domains by recursively =
-comparing
->> +if they belong to the same higher-level domains. For mismatch at every =
-higher
->> +level of the resource group, the kernel doubles the NUMA distance betwe=
-en the
->> +comparing domains.
->
-> The Form1 description is still kinda confusing, but I don't really
-> care.  Form1 *is* confusing, it's Form2 that I hope will be clearer.
->
->> +
->> +Form 2
->> +-------
->> +Form 2 associativity format adds separate device tree properties repres=
-enting NUMA node distance
->> +thereby making the node distance computation flexible. Form 2 also allo=
-ws flexible primary
->> +domain numbering. With numa distance computation now detached from the =
-index value of
->> +"ibm,associativity" property, Form 2 allows a large number of primary d=
-omain ids at the
->> +same domainID index representing resource groups of different performan=
-ce/latency characteristics.
->
-> So, see you've removed the special handling of secondary IDs for pmem
-> - big improvement, thanks.  IIUC, in this revised version, for Form2
-> there's really no reason for ibm,associativity-reference-points to
-> have >1 entry.  Is that right?
->
-> In Form2 everything revolves around the primary domain ID - so much
-> that I suggest we come up with a short name for it.  How about just
-> "node id" since that's how Linux uses it.
-
-We don't really refer primary domain ID in rest of FORM2 details. We
-do refer the entries as domainID. Is renaming domainID to NUMA
-node id better?
-
->
->> +Hypervisor indicates the usage of FORM2 associativity using bit 2 of by=
-te 5 in the
->> +"ibm,architecture-vec-5" property.
->> +
->> +"ibm,numa-lookup-index-table" property contains one or more list number=
-s representing
->> +the domainIDs present in the system. The offset of the domainID in this=
- property is considered
->> +the domainID index.
->
-> The lookup-index-table is all about compactifying the representation
-> of the distance matrix.  Because node ids are sparse, the matrix of
-> distances is also effectively sparse.  You don't want to have a huge
-> matrix in the DT with mostly meaningless entries, so you use the
-> lookup table to compact the node ids.
->
-> It's a bit confusing though, because you now have two representations
-> of exactly the same information the "full" node id (=3D=3D primary
-> domainID) and the "short" node id (=3D=3DdomainID lookup table offset).
->
-> I can see three ways to clarify this:
->
->   A) Give the short node id an explicit name rather than difficult to
->      parse "domainID index" or "domainID offset" which gets easily
->      muddled with other uses of index and offset.  Use that name
->      throughout.
-
-I dopped the domainID index and started referring to that as domain
-distance offset.
-
->
->   B) Eliminate the short ID entirely, and use an explicit sparse
->      matrix representation for the distance table e.g. a list of
->      (nodeA, nodeB, distance) tuples
->
->      That does have the disadvantage that it's not structurally
->      guaranteed that you have entries for every pair of "active" node
->      ids.
-
-Other hypervisor would want to have a large possible domainID value and
-mostly want to publish the full topology details during boot. Using the
-above format makes a 16 node config have large "ibm,numa-distance-table"
-property.
-
->
->   C) Eliminate the "long ID" entirely.  In the Form2 world, is there
->      actually any point allowing sparse node ids?  In this case you'd
->      have the node id read from associativity and use that directly to
->      index the distance table
-
-Yes, other hypervisor would like to partition the domain ID space for
-different resources.
-
->
->> +prop-encoded-array: The number N of the domainIDs encoded as with encod=
-e-int, followed by
->> +N domainID encoded as with encode-int
->> +
->> +For ex:
->> +ibm,numa-lookup-index-table =3D  {4, 0, 8, 250, 252}, domainID index
->> for domainID 8 is 1.
->
-> As noted "domainID index" is confusing here, because it's different
-> from the "domainID index" values in reference-points.
->
->> +
->> +"ibm,numa-distance-table" property contains one or more list of numbers=
- representing the NUMA
->> +distance between resource groups/domains present in the system.
->> +
->> +prop-encoded-array: The number N of the distance values encoded as with=
- encode-int, followed by
->> +N distance values encoded as with encode-bytes. The max distance value =
-we could encode is 255.
->
-> The N here always has to be the square of the N in the
-> lookup-index-table, yes?  In which case do we actually need to include
-> it?
-
-most of PAPR device tree property follows the pattern  {N,....
-Nelements}. This follows the same pattern.
-
->
->> +For ex:
->> +ibm,numa-lookup-index-table =3D  {3, 0, 8, 40}
->> +ibm,numa-distance-table     =3D  {9, 10, 20, 80, 20, 10, 160, 80, 160, =
-10}
->> +
->> +  | 0    8   40
->> +--|------------
->> +  |
->> +0 | 10   20  80
->> +  |
->> +8 | 20   10  160
->> +  |
->> +40| 80   160  10
->> +
->> +
->> +"ibm,associativity" property for resources in node 0, 8 and 40
->> +
->> +{ 3, 6, 7, 0 }
->> +{ 3, 6, 9, 8 }
->> +{ 3, 6, 7, 40}
->> +
->> +With "ibm,associativity-reference-points"  { 0x3 }
->> +
->> +Each resource (drcIndex) now also supports additional optional device t=
-ree properties.
->> +These properties are marked optional because the platform can choose no=
-t to export
->> +them and provide the system topology details using the earlier defined =
-device tree
->> +properties alone. The optional device tree properties are used when add=
-ing new resources
->> +(DLPAR) and when the platform didn't provide the topology details of th=
-e domain which
->> +contains the newly added resource during boot.
->
-> In what circumstances would you envisage a hot-add creating a new NUMA
-> node, as opposed to adding resources to an existing (possibly empty)
-> node?  Do you need any provision for removing NUMA nodes again?
-
-Both Qemu and PowerVM don't intend to use this at this point. Both will
-provide the full possible NUMA node details during boot. But I was not
-sure whether we really need to restrict the possibility of a new
-resource being added. This can be true in case of new memory devices
-that gets hotplugged in the latency of the device is such that we never
-expressed that in the distance table during boot.=20
-
-
-
->
->> +"ibm,numa-lookup-index" property contains a number representing the dom=
-ainID index to be used
->> +when building the NUMA distance of the numa node to which this resource=
- belongs. This can
->> +be looked at as the index at which this new domainID would have appeare=
-d in
->> +"ibm,numa-lookup-index-table" if the domain was present during boot. Th=
-e domainID
->
-> Again, confusing use of "index" where it's used both for offsets in
-> ibm,associativity properties and for offsets in ibm,numa-lookup-index-tab=
-le
-
-I guess we can drop the ibm,numa-lookuup-index and state that the
-number of distance element in "ibm,numa-distance" suggest the index at
-which this NUMA node should appear for compuring the distance details.=20
-
->
->> +of the new resource can be obtained from the existing "ibm,associativit=
-y" property. This
->> +can be used to build distance information of a newly onlined NUMA node =
-via DLPAR operation.
->> +The value is 1 based array index value.
->> +
->> +prop-encoded-array: An integer encoded as with encode-int specifying th=
-e domainID index
->> +
->> +"ibm,numa-distance" property contains one or more list of numbers prese=
-nting the NUMA distance
->> +from this resource domain to other resources.
->> +
->> +prop-encoded-array: The number N of the distance values encoded as with=
- encode-int, followed by
->> +N distance values encoded as with encode-bytes. The max distance value =
-we could encode is 255.
->
-> Again, does N have to equal 2 * (existing number of nodes + 1)?  If so
-> you should say so, if not you should specify how incomplete
-> information is interpreted.
->
->> +For ex:
->> +ibm,associativity     =3D { 4, 5, 10, 50}
->> +ibm,numa-lookup-index =3D { 4 }
->> +ibm,numa-distance   =3D  {8, 160, 255, 80, 10, 160, 255, 80, 10}
->> +
->> +resulting in a new toplogy as below.
->> +  | 0    8   40   50
->> +--|------------------
->> +  |
->> +0 | 10   20  80   160
->> +  |
->> +8 | 20   10  160  255
->> +  |
->> +40| 80   160  10  80
->> +  |
->> +50| 160  255  80  10
->> +
-
-Here is the relevant updated part of the doc.
-
-Form 2 associativity format adds separate device tree properties representi=
-ng NUMA node distance
-thereby making the node distance computation flexible. Form 2 also allows f=
-lexible primary
-domain numbering. With numa distance computation now detached from the inde=
-x value in
-"ibm,associativity-reference-points" property, Form 2 allows a large number=
- of primary domain
-ids at the same domainID index representing resource groups of different pe=
-rformance/latency
-characteristics.
-
-Hypervisor indicates the usage of FORM2 associativity using bit 2 of byte 5=
- in the
-"ibm,architecture-vec-5" property.
-
-"ibm,numa-lookup-index-table" property contains one or more list numbers re=
-presenting
-the domainIDs present in the system. The offset of the domainID in this pro=
-perty is
-used as an index while computing numa distance information via "ibm,numa-di=
-stance-table".
-
-prop-encoded-array: The number N of the domainIDs encoded as with encode-in=
-t, followed by
-N domainID encoded as with encode-int
-
-For ex:
-"ibm,numa-lookup-index-table" =3D  {4, 0, 8, 250, 252}. Offset of domainID =
-8 (2) is used when
-computing the distance of domain 8 from other domains present in the system=
-. For rest of
-this document this offset will be referred to as domain distance offset.
-
-"ibm,numa-distance-table" property contains one or more list of numbers rep=
-resenting the NUMA
-distance between resource groups/domains present in the system.
-
-prop-encoded-array: The number N of the distance values encoded as with enc=
-ode-int, followed by
-N distance values encoded as with encode-bytes. The max distance value we c=
-ould encode is 255.
-
-For ex:
-ibm,numa-lookup-index-table =3D  {3, 0, 8, 40}
-ibm,numa-distance-table     =3D  {9, 10, 20, 80, 20, 10, 160, 80, 160, 10}
-
-  | 0    8   40
---|------------
-  |
-0 | 10   20  80
-  |
-8 | 20   10  160
-  |
-40| 80   160  10
-
-A possible "ibm,associativity" property for resources in node 0, 8 and 40
-
-{ 3, 6, 7, 0 }
-{ 3, 6, 9, 8 }
-{ 3, 6, 7, 40}
-
-With "ibm,associativity-reference-points"  { 0x3 }
-
-"ibm,lookup-index-table" helps in having a compact representation of distan=
-ce matrix.
-Since domainID can be sparse, the matrix of distances can also be effective=
-ly sparse.
-With "ibm,lookup-index-table" we are able to achieve a compact representati=
-on of
-distance information.
-
-Each resource (drcIndex) now also supports additional optional device tree =
-properties.
-These properties are marked optional because the platform can choose not to=
- export
-them and provide the system topology details using the earlier defined devi=
-ce tree
-properties alone. The optional device tree properties are used when adding =
-new resources
-(DLPAR) and when the platform didn't provide the topology details of the do=
-main which
-contains the newly added resource during boot.
-
-"ibm,numa-distance" property contains one or more list of numbers presentin=
-g the NUMA distance
-from this resource domain to other resources.
-
-prop-encoded-array: The number N of the distance values encoded as with enc=
-ode-int, followed by
-N distance values encoded as with encode-bytes. The max distance value we c=
-ould encode is 255.
-
-If the system currently has 3 domains and a DLPAR operation is adding one a=
-dditional
-domain, "ibm,numa-distance" property should have 2 * (3 + 1) =3D 8 elements=
- as shown below.
-In other words the domain distance offset value for the newly added domain =
-is number of
-distance value elements in the "ibm,numa-distance" property divided by 2.
-
-
->> diff --git a/arch/powerpc/include/asm/firmware.h b/arch/powerpc/include/=
-asm/firmware.h
->> index 60b631161360..97a3bd9ffeb9 100644
->> --- a/arch/powerpc/include/asm/firmware.h
->> +++ b/arch/powerpc/include/asm/firmware.h
->> @@ -53,6 +53,7 @@
->>  #define FW_FEATURE_ULTRAVISOR	ASM_CONST(0x0000004000000000)
->>  #define FW_FEATURE_STUFF_TCE	ASM_CONST(0x0000008000000000)
->>  #define FW_FEATURE_RPT_INVALIDATE ASM_CONST(0x0000010000000000)
->> +#define FW_FEATURE_FORM2_AFFINITY ASM_CONST(0x0000020000000000)
->>=20=20
->>  #ifndef __ASSEMBLY__
->>=20=20
->> @@ -73,7 +74,7 @@ enum {
->>  		FW_FEATURE_HPT_RESIZE | FW_FEATURE_DRMEM_V2 |
->>  		FW_FEATURE_DRC_INFO | FW_FEATURE_BLOCK_REMOVE |
->>  		FW_FEATURE_PAPR_SCM | FW_FEATURE_ULTRAVISOR |
->> -		FW_FEATURE_RPT_INVALIDATE,
->> +		FW_FEATURE_RPT_INVALIDATE | FW_FEATURE_FORM2_AFFINITY,
->>  	FW_FEATURE_PSERIES_ALWAYS =3D 0,
->>  	FW_FEATURE_POWERNV_POSSIBLE =3D FW_FEATURE_OPAL | FW_FEATURE_ULTRAVISO=
-R,
->>  	FW_FEATURE_POWERNV_ALWAYS =3D 0,
->> diff --git a/arch/powerpc/include/asm/prom.h b/arch/powerpc/include/asm/=
-prom.h
->> index df9fec9d232c..5c80152e8f18 100644
->> --- a/arch/powerpc/include/asm/prom.h
->> +++ b/arch/powerpc/include/asm/prom.h
->> @@ -149,6 +149,7 @@ extern int of_read_drc_info_cell(struct property **p=
-rop,
->>  #define OV5_XCMO		0x0440	/* Page Coalescing */
->>  #define OV5_FORM1_AFFINITY	0x0580	/* FORM1 NUMA affinity */
->>  #define OV5_PRRN		0x0540	/* Platform Resource Reassignment */
->> +#define OV5_FORM2_AFFINITY	0x0520	/* Form2 NUMA affinity */
->>  #define OV5_HP_EVT		0x0604	/* Hot Plug Event support */
->>  #define OV5_RESIZE_HPT		0x0601	/* Hash Page Table resizing */
->>  #define OV5_PFO_HW_RNG		0x1180	/* PFO Random Number Generator */
->> diff --git a/arch/powerpc/kernel/prom_init.c b/arch/powerpc/kernel/prom_=
-init.c
->> index 64b9593038a7..496fdac54c29 100644
->> --- a/arch/powerpc/kernel/prom_init.c
->> +++ b/arch/powerpc/kernel/prom_init.c
->> @@ -1070,7 +1070,8 @@ static const struct ibm_arch_vec ibm_architecture_=
-vec_template __initconst =3D {
->>  #else
->>  		0,
->>  #endif
->> -		.associativity =3D OV5_FEAT(OV5_FORM1_AFFINITY) | OV5_FEAT(OV5_PRRN),
->> +		.associativity =3D OV5_FEAT(OV5_FORM1_AFFINITY) | OV5_FEAT(OV5_PRRN) |
->> +		OV5_FEAT(OV5_FORM2_AFFINITY),
->>  		.bin_opts =3D OV5_FEAT(OV5_RESIZE_HPT) | OV5_FEAT(OV5_HP_EVT),
->>  		.micro_checkpoint =3D 0,
->>  		.reserved0 =3D 0,
->> diff --git a/arch/powerpc/mm/numa.c b/arch/powerpc/mm/numa.c
->> index d32729f235b8..5a7d94960fb7 100644
->> --- a/arch/powerpc/mm/numa.c
->> +++ b/arch/powerpc/mm/numa.c
->> @@ -56,12 +56,17 @@ static int n_mem_addr_cells, n_mem_size_cells;
->>=20=20
->>  #define FORM0_AFFINITY 0
->>  #define FORM1_AFFINITY 1
->> +#define FORM2_AFFINITY 2
->>  static int affinity_form;
->>=20=20
->>  #define MAX_DISTANCE_REF_POINTS 4
->>  static int max_associativity_domain_index;
->>  static const __be32 *distance_ref_points;
->>  static int distance_lookup_table[MAX_NUMNODES][MAX_DISTANCE_REF_POINTS];
->> +static int numa_distance_table[MAX_NUMNODES][MAX_NUMNODES] =3D {
->> +	[0 ... MAX_NUMNODES - 1] =3D { [0 ... MAX_NUMNODES - 1] =3D -1 }
->> +};
->> +static int numa_id_index_table[MAX_NUMNODES];
->>=20=20
->>  /*
->>   * Allocate node_to_cpumask_map based on number of available nodes
->> @@ -166,6 +171,27 @@ static void unmap_cpu_from_node(unsigned long cpu)
->>  }
->>  #endif /* CONFIG_HOTPLUG_CPU || CONFIG_PPC_SPLPAR */
->>=20=20
->> +/*
->> + * With FORM2 if we are not using logical domain ids, we will find
->> + * both primary and seconday domains with same value. Hence always
->> + * start comparison from secondary domains
->
->
-> IIUC, in this new draft, secondary domains are no longer a meaningful
-> thing in Form2, so this comment and code seem outdated.
-
-This needed fixup. With FORM2 our associativity array can be just one
-element. I fixed up as below.
-
-static int __cpu_form2_distance(__be32 *cpu1_assoc, __be32 *cpu2_assoc)
-{
-	int node1, node2;
-	int dist =3D 0;
-
-	node1 =3D associativity_to_nid(cpu1_assoc);
-	node2 =3D associativity_to_nid(cpu2_assoc);
-
-	dist =3D numa_distance_table[node1][node2];
-	if (dist =3D=3D LOCAL_DISTANCE)
-		return 0;
-	else if (dist =3D=3D REMOTE_DISTANCE)
-		return 1;
-	else
-		return 2;
-}
-
-also renamed cpu_distance to cpu_relative_distance.
-
-
->> + */
->> +static int __cpu_form2_distance(__be32 *cpu1_assoc, __be32 *cpu2_assoc)
->> +{
->> +	int dist =3D 0;
->> +
->> +	int i, index;
->> +
->> +	for (i =3D 1; i < max_associativity_domain_index; i++) {
->> +		index =3D be32_to_cpu(distance_ref_points[i]);
->> +		if (cpu1_assoc[index] =3D=3D cpu2_assoc[index])
->> +			break;
->> +		dist++;
->> +	}
->> +
->> +	return dist;
->> +}
->> +
->>  static int __cpu_form1_distance(__be32 *cpu1_assoc, __be32 *cpu2_assoc)
->>  {
->>  	int dist =3D 0;
->> @@ -178,7 +204,6 @@ static int __cpu_form1_distance(__be32 *cpu1_assoc, =
-__be32 *cpu2_assoc)
->>  			break;
->>  		dist++;
->>  	}
->> -
->>  	return dist;
->>  }
->>=20=20
->> @@ -186,8 +211,9 @@ int cpu_distance(__be32 *cpu1_assoc, __be32 *cpu2_as=
-soc)
->>  {
->>  	/* We should not get called with FORM0 */
->>  	VM_WARN_ON(affinity_form =3D=3D FORM0_AFFINITY);
->> -
->> -	return __cpu_form1_distance(cpu1_assoc, cpu2_assoc);
->> +	if (affinity_form =3D=3D FORM1_AFFINITY)
->> +		return __cpu_form1_distance(cpu1_assoc, cpu2_assoc);
->> +	return __cpu_form2_distance(cpu1_assoc, cpu2_assoc);
->>  }
->>=20=20
->>  /* must hold reference to node during call */
->> @@ -201,7 +227,9 @@ int __node_distance(int a, int b)
->>  	int i;
->>  	int distance =3D LOCAL_DISTANCE;
->>=20=20
->> -	if (affinity_form =3D=3D FORM0_AFFINITY)
->> +	if (affinity_form =3D=3D FORM2_AFFINITY)
->> +		return numa_distance_table[a][b];
->> +	else if (affinity_form =3D=3D FORM0_AFFINITY)
->>  		return ((a =3D=3D b) ? LOCAL_DISTANCE : REMOTE_DISTANCE);
->>=20=20
->>  	for (i =3D 0; i < max_associativity_domain_index; i++) {
->> @@ -303,15 +331,116 @@ static void initialize_form1_numa_distance(struct=
- device_node *node)
->>=20=20
->>  /*
->>   * Used to update distance information w.r.t newly added node.
->> + * ibm,numa-lookup-index -> 4
->> + * ibm,numa-distance -> {5, 20, 40, 60, 80, 10 }
->>   */
->>  void update_numa_distance(struct device_node *node)
->>  {
->> +	int i, nid, other_nid, other_nid_index =3D 0;
->> +	const __be32 *numa_indexp;
->> +	const __u8  *numa_distancep;
->> +	int numa_index, max_numa_index, numa_distance;
->> +
->>  	if (affinity_form =3D=3D FORM0_AFFINITY)
->>  		return;
->>  	else if (affinity_form =3D=3D FORM1_AFFINITY) {
->>  		initialize_form1_numa_distance(node);
->>  		return;
->>  	}
->> +	/* FORM2 affinity  */
->> +
->> +	nid =3D of_node_to_nid_single(node);
->> +	if (nid =3D=3D NUMA_NO_NODE)
->> +		return;
->> +
->> +	/* Already initialized */
->> +	if (numa_distance_table[nid][nid] !=3D -1)
->
-> IIUC, this should exactly correspond to the case where the new
-> resource lies in an existing NUMA node, yes?
-
-yes.
-
->
->> +		return;
->> +	/*
->> +	 * update node distance if not already populated.
->> +	 */
->> +	numa_distancep =3D of_get_property(node, "ibm,numa-distance", NULL);
->> +	if (!numa_distancep)
->> +		return;
->> +
->> +	numa_indexp =3D of_get_property(node, "ibm,numa-lookup-index", NULL);
->> +	if (!numa_indexp)
->> +		return;
->> +
->> +	numa_index =3D of_read_number(numa_indexp, 1);
->> +	/*
->> +	 * update the numa_id_index_table. Device tree look at index table as
->> +	 * 1 based array indexing.
->> +	 */
->> +	numa_id_index_table[numa_index - 1] =3D nid;
->> +
->> +	max_numa_index =3D of_read_number((const __be32 *)numa_distancep, 1);
->> +	VM_WARN_ON(max_numa_index !=3D 2 * numa_index);
->
-> You WARN_ON(), but you don't actually bail out to avoid indexing past
-> the end of the property below.
->
-> AFAICT none of this really works unless numa_index =3D=3D (previous number
-> of numa nodes + 1), which makes all the use of these different
-> variables kind of confusing.  If you had a variable that you just set
-> equal to the new number of numa nodes (previous number plus the one
-> being added), then I think you can replace all numa_index and
-> max_numa_index references with that and it will be clearer.
-
-I rewrote that as below.
-
-	numa_distancep =3D of_get_property(node, "ibm,numa-distance", NULL);
-	if (!numa_distancep)
-		return;
-
-	max_dist_element =3D of_read_number((const __be32 *)numa_distancep, 1);
-
-	numa_id_index =3D max_dist_element >> 1;
-	/*
-	 * update the numa_id_index_table. Device tree look at index table as
-	 * 1 based array indexing.
-	 */
-	if (numa_id_index_table[numa_id_index - 1] !=3D -1) {
-		WARN(1, "Wrong NUMA distance information\n");
-		return;
-	}
-
-	numa_id_index_table[numa_id_index - 1] =3D nid;
-
-	/* Skip the size which is encoded int */
-	numa_distancep +=3D sizeof(__be32);
-
-	/*
-	 * First fill the distance information from other node to this node.
-	 */
-	distance_index =3D 0;
-	for (i =3D 0; i < numa_id_index; i++) {
-		numa_distance =3D numa_distancep[distance_index++];
-		other_nid =3D numa_id_index_table[i];
-		if (other_nid =3D=3D NUMA_NO_NODE)
-			continue;
-		numa_distance_table[other_nid][nid] =3D numa_distance;
-	}
-
-	for (i =3D 0; i < numa_id_index; i++) {
-		numa_distance =3D numa_distancep[distance_index++];
-		other_nid =3D numa_id_index_table[i];
-		if (other_nid =3D=3D NUMA_NO_NODE)
-			continue;
-		numa_distance_table[nid][other_nid] =3D numa_distance;
-	}
-}
-
-
->
->
->> +	/* Skip the size which is encoded int */
->> +	numa_distancep +=3D sizeof(__be32);
->> +
->> +	/*
->> +	 * First fill the distance information from other node to this node.
->> +	 */
->> +	other_nid_index =3D 0;
->> +	for (i =3D 0; i < numa_index; i++) {
->> +		numa_distance =3D numa_distancep[i];
->> +		other_nid =3D numa_id_index_table[other_nid_index++];
->> +		numa_distance_table[other_nid][nid] =3D numa_distance;
->> +	}
->> +
->> +	other_nid_index =3D 0;
->> +	for (; i < max_numa_index; i++) {
->
-> Again, splitting this loop and carrying i over seems a confusing way
-> to code this.  It's basically two loops of N, one writing a row of the
-> distance matrix, one writing a column (other_nid will even go through
-> the same values in each loop).
-
-Fixed
-
->
->> +		numa_distance =3D numa_distancep[i];
->> +		other_nid =3D numa_id_index_table[other_nid_index++];
->> +		numa_distance_table[nid][other_nid] =3D numa_distance;
->> +	}
->> +}
->> +
->> +/*
->> + * ibm,numa-lookup-index-table=3D {N, domainid1, domainid2, ..... domai=
-nidN}
->> + * ibm,numa-distance-table =3D { N, 1, 2, 4, 5, 1, 6, .... N elements}
->> + */
->> +static void initialize_form2_numa_distance_lookup_table(struct device_n=
-ode *root)
->> +{
->> +	const __u8 *numa_dist_table;
->> +	const __be32 *numa_lookup_index;
->> +	int numa_dist_table_length;
->> +	int max_numa_index, distance_index;
->> +	int i, curr_row =3D 0, curr_column =3D 0;
->> +
->> +	numa_lookup_index =3D of_get_property(root, "ibm,numa-lookup-index-tab=
-le", NULL);
->> +	max_numa_index =3D of_read_number(&numa_lookup_index[0], 1);
->
-> max_numa_index here has a different meaning to max_numa_index in the
-> previous function, which is pointlessly confusing.
->
->> +	/* first element of the array is the size and is encode-int */
->> +	numa_dist_table =3D of_get_property(root, "ibm,numa-distance-table", N=
-ULL);
->> +	numa_dist_table_length =3D of_read_number((const __be32 *)&numa_dist_t=
-able[0], 1);
->> +	/* Skip the size which is encoded int */
->> +	numa_dist_table +=3D sizeof(__be32);
->> +
->> +	pr_debug("numa_dist_table_len =3D %d, numa_dist_indexes_len =3D %d \n",
->> +		 numa_dist_table_length, max_numa_index);
->> +
->> +	for (i =3D 0; i < max_numa_index; i++)
->> +		/* +1 skip the max_numa_index in the property */
->> +		numa_id_index_table[i] =3D of_read_number(&numa_lookup_index[i + 1], =
-1);
->> +
->> +
->> +	VM_WARN_ON(numa_dist_table_length !=3D max_numa_index * max_numa_index=
-);
->
-> Again, you don't actually bail out in this case.  And if it has to
-> have this value, what's the point of encoding it into the property.
->
->> +	for (distance_index =3D 0; distance_index < numa_dist_table_length; di=
-stance_index++) {
->> +		int nodeA =3D numa_id_index_table[curr_row];
->> +		int nodeB =3D numa_id_index_table[curr_column++];
->
-> You've already (sort of) verified that the distance table has size
-> N^2, in which case you can just to a simple two dimensional loop
-> rather than having to do ugly calculations of row and column.
-
-Fixed all the above and updated as below.
-	if (numa_dist_table_length !=3D max_numa_index * max_numa_index) {
-		WARN(1, "Wrong NUMA distnce information\n");
-		/* consider everybody else just remote. */
-
-		for (i =3D 0;  i < max_numa_index; i++) {
-			for (j =3D 0; j < max_numa_index; j++) {
-				int nodeA =3D numa_id_index_table[i];
-				int nodeB =3D numa_id_index_table[j];
-
-				if (nodeA =3D=3D nodeB)
-					numa_distance_table[nodeA][nodeB] =3D LOCAL_DISTANCE;
-				else
-					numa_distance_table[nodeA][nodeB] =3D REMOTE_DISTANCE;
-			}
-		}
-	}
-
-	distance_index =3D 0;
-	for (i =3D 0;  i < max_numa_index; i++) {
-		for (j =3D 0; j < max_numa_index; j++) {
-			int nodeA =3D numa_id_index_table[i];
-			int nodeB =3D numa_id_index_table[j];
-
-			numa_distance_table[nodeA][nodeB] =3D numa_dist_table[distance_index++];
-
-			pr_debug("dist[%d][%d]=3D%d ", nodeA, nodeB, numa_distance_table[nodeA][=
-nodeB]);
-		}
-	}
-}
-
-
--aneesh
+X-OriginatorOrg: fujitsu.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: OSBPR01MB2920.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 979a3bae-5663-48fb-aa4a-08d936ecf4ac
+X-MS-Exchange-CrossTenant-originalarrivaltime: 24 Jun 2021 08:49:18.1291
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: lJtFlG3BEast+RHpgUnlzZVk5zTXlEaEX/pm5fnGlgZGFzpvx/m4r5RVSr7k6H5D1Xzk5N7ArJgIC1GQsdpv1A==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSBPR01MB2824
+
+SGkgRGFycmljaywNCg0KRG8geW91IGhhdmUgYW55IGNvbW1lbnQgb24gdGhpcz8NCg0KDQotLQ0K
+VGhhbmtzLA0KUnVhbi4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBT
+aGl5YW5nIFJ1YW4gPHJ1YW5zeS5mbnN0QGZ1aml0c3UuY29tPg0KPiBTdWJqZWN0OiBbUEFUQ0gg
+djYuMSA2LzddIGZzL3hmczogSGFuZGxlIENvVyBmb3IgZnNkYXggd3JpdGUoKSBwYXRoDQo+IA0K
+PiBIaSBEYXJyaWNrLA0KPiANCj4gU2luY2Ugb3RoZXIgcGF0Y2hlcyBsb29rcyBnb29kLCBJIHBv
+c3QgdGhpcyBSRkMgcGF0Y2ggc2luZ2x5IHRvIGhvdC1maXggdGhlDQo+IHByb2JsZW0gaW4geGZz
+X2RheF93cml0ZV9pb21hcF9vcHMtPmlvbWFwX2VuZCgpIG9mIHY2IHRoYXQgdGhlIGVycm9yIGNv
+ZGUNCj4gd2FzIGluZ29yZWQuIEkgd2lsbCBzcGxpdCB0aGlzIGluIHR3byBwYXRjaGVzKGNoYW5n
+ZXMgaW4gaW9tYXAgYW5kIHhmcw0KPiByZXNwZWN0aXZlbHkpIGluIG5leHQgZm9ybWFsIHZlcnNp
+b24gaWYgaXQgbG9va3Mgb2suDQo+IA0KPiA9PT09DQo+IA0KPiBJbnRyb2R1Y2UgYSBuZXcgaW50
+ZXJmYWNlIGNhbGxlZCAiaW9tYXBfcG9zdF9hY3RvcigpIiBpbiBpb21hcF9vcHMuICBBbmQgY2Fs
+bA0KPiBpdCBiZXR3ZWVuIC0+YWN0b3IoKSBhbmQgLT5pb21hcF9lbmQoKS4gIEl0IGlzIG1lYW4g
+dG8gaGFuZGxlIHRoZSBlcnJvciBjb2RlDQo+IHJldHVybmVkIGZyb20gLT5hY3RvcigpLiAgSW4g
+dGhpcyBwYXRjaHNldCwgaXQgaXMgdXNlZCB0byByZW1hcCBvciBjYW5jZWwgdGhlDQo+IENvVyBl
+eHRlbnRzIGFjY29yZGluZyB0byB0aGUgZXJyb3IgY29kZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6
+IFNoaXlhbmcgUnVhbiA8cnVhbnN5LmZuc3RAZnVqaXRzdS5jb20+DQo+IC0tLQ0KPiAgZnMvZGF4
+LmMgICAgICAgICAgICAgICB8IDI3ICsrKysrKysrKysrKysrKysrKy0tLS0tLS0tLQ0KPiAgZnMv
+aW9tYXAvYXBwbHkuYyAgICAgICB8ICA0ICsrKysNCj4gIGZzL3hmcy94ZnNfYm1hcF91dGlsLmMg
+fCAgMyArLS0NCj4gIGZzL3hmcy94ZnNfZmlsZS5jICAgICAgfCAgNSArKystLQ0KPiAgZnMveGZz
+L3hmc19pb21hcC5jICAgICB8IDMzICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLQ0K
+PiAgZnMveGZzL3hmc19pb21hcC5oICAgICB8IDI0ICsrKysrKysrKysrKysrKysrKysrKysrKw0K
+PiAgZnMveGZzL3hmc19pb3BzLmMgICAgICB8ICA3ICsrKy0tLS0NCj4gIGZzL3hmcy94ZnNfcmVm
+bGluay5jICAgfCAgMyArLS0NCj4gIGluY2x1ZGUvbGludXgvaW9tYXAuaCAgfCAgOCArKysrKysr
+Kw0KPiAgOSBmaWxlcyBjaGFuZ2VkLCA5NCBpbnNlcnRpb25zKCspLCAyMCBkZWxldGlvbnMoLSkN
+Cj4gDQo+IGRpZmYgLS1naXQgYS9mcy9kYXguYyBiL2ZzL2RheC5jDQo+IGluZGV4IDkzZjE2MjEw
+ODQ3Yi4uMDc0MGMyNjEwYjZmIDEwMDY0NA0KPiAtLS0gYS9mcy9kYXguYw0KPiArKysgYi9mcy9k
+YXguYw0KPiBAQCAtMTUzNyw3ICsxNTM3LDcgQEAgc3RhdGljIHZtX2ZhdWx0X3QgZGF4X2lvbWFw
+X3B0ZV9mYXVsdChzdHJ1Y3QNCj4gdm1fZmF1bHQgKnZtZiwgcGZuX3QgKnBmbnAsDQo+ICAJc3Ry
+dWN0IGlvbWFwIGlvbWFwID0geyAudHlwZSA9IElPTUFQX0hPTEUgfTsNCj4gIAlzdHJ1Y3QgaW9t
+YXAgc3JjbWFwID0geyAudHlwZSA9IElPTUFQX0hPTEUgfTsNCj4gIAl1bnNpZ25lZCBmbGFncyA9
+IElPTUFQX0ZBVUxUOw0KPiAtCWludCBlcnJvcjsNCj4gKwlpbnQgZXJyb3IsIGNvcGllZCA9IFBB
+R0VfU0laRTsNCj4gIAlib29sIHdyaXRlID0gdm1mLT5mbGFncyAmIEZBVUxUX0ZMQUdfV1JJVEU7
+DQo+ICAJdm1fZmF1bHRfdCByZXQgPSAwLCBtYWpvciA9IDA7DQo+ICAJdm9pZCAqZW50cnk7DQo+
+IEBAIC0xNTk4LDcgKzE1OTgsNyBAQCBzdGF0aWMgdm1fZmF1bHRfdCBkYXhfaW9tYXBfcHRlX2Zh
+dWx0KHN0cnVjdA0KPiB2bV9mYXVsdCAqdm1mLCBwZm5fdCAqcGZucCwNCj4gIAlyZXQgPSBkYXhf
+ZmF1bHRfYWN0b3Iodm1mLCBwZm5wLCAmeGFzLCAmZW50cnksIGZhbHNlLCBmbGFncywNCj4gIAkJ
+CSAgICAgICZpb21hcCwgJnNyY21hcCk7DQo+ICAJaWYgKHJldCA9PSBWTV9GQVVMVF9TSUdCVVMp
+DQo+IC0JCWdvdG8gZmluaXNoX2lvbWFwOw0KPiArCQlnb3RvIGZpbmlzaF9pb21hcF9hY3RvcjsN
+Cj4gDQo+ICAJLyogcmVhZC93cml0ZSBNQVBQRUQsIENvVyBVTldSSVRURU4gKi8NCj4gIAlpZiAo
+aW9tYXAuZmxhZ3MgJiBJT01BUF9GX05FVykgew0KPiBAQCAtMTYwNywxMCArMTYwNywxNiBAQCBz
+dGF0aWMgdm1fZmF1bHRfdCBkYXhfaW9tYXBfcHRlX2ZhdWx0KHN0cnVjdA0KPiB2bV9mYXVsdCAq
+dm1mLCBwZm5fdCAqcGZucCwNCj4gIAkJbWFqb3IgPSBWTV9GQVVMVF9NQUpPUjsNCj4gIAl9DQo+
+IA0KPiArIGZpbmlzaF9pb21hcF9hY3RvcjoNCj4gKwlpZiAob3BzLT5pb21hcF9wb3N0X2FjdG9y
+KSB7DQo+ICsJCWlmIChyZXQgJiBWTV9GQVVMVF9FUlJPUikNCj4gKwkJCWNvcGllZCA9IDA7DQo+
+ICsJCW9wcy0+aW9tYXBfcG9zdF9hY3Rvcihpbm9kZSwgcG9zLCBQTURfU0laRSwgY29waWVkLCBm
+bGFncywNCj4gKwkJCQkgICAgICAmaW9tYXAsICZzcmNtYXApOw0KPiArCX0NCj4gKw0KPiAgZmlu
+aXNoX2lvbWFwOg0KPiAgCWlmIChvcHMtPmlvbWFwX2VuZCkgew0KPiAtCQlpbnQgY29waWVkID0g
+UEFHRV9TSVpFOw0KPiAtDQo+ICAJCWlmIChyZXQgJiBWTV9GQVVMVF9FUlJPUikNCj4gIAkJCWNv
+cGllZCA9IDA7DQo+ICAJCS8qDQo+IEBAIC0xNjc3LDcgKzE2ODMsNyBAQCBzdGF0aWMgdm1fZmF1
+bHRfdCBkYXhfaW9tYXBfcG1kX2ZhdWx0KHN0cnVjdA0KPiB2bV9mYXVsdCAqdm1mLCBwZm5fdCAq
+cGZucCwNCj4gIAlwZ29mZl90IG1heF9wZ29mZjsNCj4gIAl2b2lkICplbnRyeTsNCj4gIAlsb2Zm
+X3QgcG9zOw0KPiAtCWludCBlcnJvcjsNCj4gKwlpbnQgZXJyb3IsIGNvcGllZCA9IFBNRF9TSVpF
+Ow0KPiANCj4gIAkvKg0KPiAgCSAqIENoZWNrIHdoZXRoZXIgb2Zmc2V0IGlzbid0IGJleW9uZCBl
+bmQgb2YgZmlsZSBub3cuIENhbGxlciBpcyBAQCAtMTczNiwxMg0KPiArMTc0MiwxNSBAQCBzdGF0
+aWMgdm1fZmF1bHRfdCBkYXhfaW9tYXBfcG1kX2ZhdWx0KHN0cnVjdCB2bV9mYXVsdCAqdm1mLA0K
+PiBwZm5fdCAqcGZucCwNCj4gIAlyZXQgPSBkYXhfZmF1bHRfYWN0b3Iodm1mLCBwZm5wLCAmeGFz
+LCAmZW50cnksIHRydWUsIGZsYWdzLA0KPiAgCQkJICAgICAgJmlvbWFwLCAmc3JjbWFwKTsNCj4g
+DQo+ICsJaWYgKHJldCA9PSBWTV9GQVVMVF9GQUxMQkFDSykNCj4gKwkJY29waWVkID0gMDsNCj4g
+KwlpZiAob3BzLT5pb21hcF9wb3N0X2FjdG9yKSB7DQo+ICsJCW9wcy0+aW9tYXBfcG9zdF9hY3Rv
+cihpbm9kZSwgcG9zLCBQTURfU0laRSwgY29waWVkLCBmbGFncywNCj4gKwkJCQkgICAgICAmaW9t
+YXAsICZzcmNtYXApOw0KPiArCX0NCj4gKw0KPiAgZmluaXNoX2lvbWFwOg0KPiAgCWlmIChvcHMt
+PmlvbWFwX2VuZCkgew0KPiAtCQlpbnQgY29waWVkID0gUE1EX1NJWkU7DQo+IC0NCj4gLQkJaWYg
+KHJldCA9PSBWTV9GQVVMVF9GQUxMQkFDSykNCj4gLQkJCWNvcGllZCA9IDA7DQo+ICAJCS8qDQo+
+ICAJCSAqIFRoZSBmYXVsdCBpcyBkb25lIGJ5IG5vdyBhbmQgdGhlcmUncyBubyB3YXkgYmFjayAo
+b3RoZXINCj4gIAkJICogdGhyZWFkIG1heSBiZSBhbHJlYWR5IGhhcHBpbHkgdXNpbmcgUE1EIHdl
+IGhhdmUgaW5zdGFsbGVkKS4NCj4gZGlmZiAtLWdpdCBhL2ZzL2lvbWFwL2FwcGx5LmMgYi9mcy9p
+b21hcC9hcHBseS5jIGluZGV4DQo+IDA0OTNkYTUyODZhZC4uMjZhNTRkZWQxODRmIDEwMDY0NA0K
+PiAtLS0gYS9mcy9pb21hcC9hcHBseS5jDQo+ICsrKyBiL2ZzL2lvbWFwL2FwcGx5LmMNCj4gQEAg
+LTg0LDYgKzg0LDEwIEBAIGlvbWFwX2FwcGx5KHN0cnVjdCBpbm9kZSAqaW5vZGUsIGxvZmZfdCBw
+b3MsIGxvZmZfdCBsZW5ndGgsDQo+IHVuc2lnbmVkIGZsYWdzLA0KPiAgCXdyaXR0ZW4gPSBhY3Rv
+cihpbm9kZSwgcG9zLCBsZW5ndGgsIGRhdGEsICZpb21hcCwNCj4gIAkJCXNyY21hcC50eXBlICE9
+IElPTUFQX0hPTEUgPyAmc3JjbWFwIDogJmlvbWFwKTsNCj4gDQo+ICsJaWYgKG9wcy0+aW9tYXBf
+cG9zdF9hY3Rvcikgew0KPiArCQl3cml0dGVuID0gb3BzLT5pb21hcF9wb3N0X2FjdG9yKGlub2Rl
+LCBwb3MsIGxlbmd0aCwgd3JpdHRlbiwNCj4gKwkJCQkJCWZsYWdzLCAmaW9tYXAsICZzcmNtYXAp
+Ow0KPiArCX0NCj4gIG91dDoNCj4gIAkvKg0KPiAgCSAqIE5vdyB0aGUgZGF0YSBoYXMgYmVlbiBj
+b3BpZWQsIGNvbW1pdCB0aGUgcmFuZ2Ugd2UndmUgY29waWVkLiAgVGhpcw0KPiBkaWZmIC0tZ2l0
+IGEvZnMveGZzL3hmc19ibWFwX3V0aWwuYyBiL2ZzL3hmcy94ZnNfYm1hcF91dGlsLmMgaW5kZXgN
+Cj4gYTVlOWQ3ZDM0MDIzLi4yYTM2ZGM5M2ZmMjcgMTAwNjQ0DQo+IC0tLSBhL2ZzL3hmcy94ZnNf
+Ym1hcF91dGlsLmMNCj4gKysrIGIvZnMveGZzL3hmc19ibWFwX3V0aWwuYw0KPiBAQCAtOTY1LDgg
+Kzk2NSw3IEBAIHhmc19mcmVlX2ZpbGVfc3BhY2UoDQo+ICAJCXJldHVybiAwOw0KPiAgCWlmIChv
+ZmZzZXQgKyBsZW4gPiBYRlNfSVNJWkUoaXApKQ0KPiAgCQlsZW4gPSBYRlNfSVNJWkUoaXApIC0g
+b2Zmc2V0Ow0KPiAtCWVycm9yID0gaW9tYXBfemVyb19yYW5nZShWRlNfSShpcCksIG9mZnNldCwg
+bGVuLCBOVUxMLA0KPiAtCQkJJnhmc19idWZmZXJlZF93cml0ZV9pb21hcF9vcHMpOw0KPiArCWVy
+cm9yID0geGZzX2lvbWFwX3plcm9fcmFuZ2UoaXAsIG9mZnNldCwgbGVuLCBOVUxMKTsNCj4gIAlp
+ZiAoZXJyb3IpDQo+ICAJCXJldHVybiBlcnJvcjsNCj4gDQo+IGRpZmYgLS1naXQgYS9mcy94ZnMv
+eGZzX2ZpbGUuYyBiL2ZzL3hmcy94ZnNfZmlsZS5jIGluZGV4IDM5NmVmMzZkY2QwYS4uODk0MDZl
+YzY3NDFiDQo+IDEwMDY0NA0KPiAtLS0gYS9mcy94ZnMveGZzX2ZpbGUuYw0KPiArKysgYi9mcy94
+ZnMveGZzX2ZpbGUuYw0KPiBAQCAtNjg0LDExICs2ODQsMTIgQEAgeGZzX2ZpbGVfZGF4X3dyaXRl
+KA0KPiAgCXBvcyA9IGlvY2ItPmtpX3BvczsNCj4gDQo+ICAJdHJhY2VfeGZzX2ZpbGVfZGF4X3dy
+aXRlKGlvY2IsIGZyb20pOw0KPiAtCXJldCA9IGRheF9pb21hcF9ydyhpb2NiLCBmcm9tLCAmeGZz
+X2RpcmVjdF93cml0ZV9pb21hcF9vcHMpOw0KPiArCXJldCA9IGRheF9pb21hcF9ydyhpb2NiLCBm
+cm9tLCAmeGZzX2RheF93cml0ZV9pb21hcF9vcHMpOw0KPiAgCWlmIChyZXQgPiAwICYmIGlvY2It
+PmtpX3BvcyA+IGlfc2l6ZV9yZWFkKGlub2RlKSkgew0KPiAgCQlpX3NpemVfd3JpdGUoaW5vZGUs
+IGlvY2ItPmtpX3Bvcyk7DQo+ICAJCWVycm9yID0geGZzX3NldGZpbGVzaXplKGlwLCBwb3MsIHJl
+dCk7DQo+ICAJfQ0KPiArDQo+ICBvdXQ6DQo+ICAJaWYgKGlvbG9jaykNCj4gIAkJeGZzX2l1bmxv
+Y2soaXAsIGlvbG9jayk7DQo+IEBAIC0xMzA5LDcgKzEzMTAsNyBAQCBfX3hmc19maWxlbWFwX2Zh
+dWx0KA0KPiANCj4gIAkJcmV0ID0gZGF4X2lvbWFwX2ZhdWx0KHZtZiwgcGVfc2l6ZSwgJnBmbiwg
+TlVMTCwNCj4gIAkJCQkod3JpdGVfZmF1bHQgJiYgIXZtZi0+Y293X3BhZ2UpID8NCj4gLQkJCQkg
+Jnhmc19kaXJlY3Rfd3JpdGVfaW9tYXBfb3BzIDoNCj4gKwkJCQkgJnhmc19kYXhfd3JpdGVfaW9t
+YXBfb3BzIDoNCj4gIAkJCQkgJnhmc19yZWFkX2lvbWFwX29wcyk7DQo+ICAJCWlmIChyZXQgJiBW
+TV9GQVVMVF9ORUVERFNZTkMpDQo+ICAJCQlyZXQgPSBkYXhfZmluaXNoX3N5bmNfZmF1bHQodm1m
+LCBwZV9zaXplLCBwZm4pOyBkaWZmIC0tZ2l0DQo+IGEvZnMveGZzL3hmc19pb21hcC5jIGIvZnMv
+eGZzL3hmc19pb21hcC5jIGluZGV4IGQxNTRmNDJlMmRjNi4uMmYzMjJlMmY4NTQ0DQo+IDEwMDY0
+NA0KPiAtLS0gYS9mcy94ZnMveGZzX2lvbWFwLmMNCj4gKysrIGIvZnMveGZzL3hmc19pb21hcC5j
+DQo+IEBAIC03NjEsNyArNzYxLDggQEAgeGZzX2RpcmVjdF93cml0ZV9pb21hcF9iZWdpbigNCj4g
+DQo+ICAJCS8qIG1heSBkcm9wIGFuZCByZS1hY3F1aXJlIHRoZSBpbG9jayAqLw0KPiAgCQllcnJv
+ciA9IHhmc19yZWZsaW5rX2FsbG9jYXRlX2NvdyhpcCwgJmltYXAsICZjbWFwLCAmc2hhcmVkLA0K
+PiAtCQkJCSZsb2NrbW9kZSwgZmxhZ3MgJiBJT01BUF9ESVJFQ1QpOw0KPiArCQkJCSZsb2NrbW9k
+ZSwNCj4gKwkJCQkoZmxhZ3MgJiBJT01BUF9ESVJFQ1QpIHx8IElTX0RBWChpbm9kZSkpOw0KPiAg
+CQlpZiAoZXJyb3IpDQo+ICAJCQlnb3RvIG91dF91bmxvY2s7DQo+ICAJCWlmIChzaGFyZWQpDQo+
+IEBAIC04NTQsNiArODU1LDM2IEBAIGNvbnN0IHN0cnVjdCBpb21hcF9vcHMgeGZzX2RpcmVjdF93
+cml0ZV9pb21hcF9vcHMgPQ0KPiB7DQo+ICAJLmlvbWFwX2JlZ2luCQk9IHhmc19kaXJlY3Rfd3Jp
+dGVfaW9tYXBfYmVnaW4sDQo+ICB9Ow0KPiANCj4gK3N0YXRpYyBpbnQNCj4gK3hmc19kYXhfd3Jp
+dGVfaW9tYXBfcG9zdF9hY3RvcigNCj4gKwlzdHJ1Y3QgaW5vZGUJCSppbm9kZSwNCj4gKwlsb2Zm
+X3QJCQlwb3MsDQo+ICsJbG9mZl90CQkJbGVuZ3RoLA0KPiArCXNzaXplX3QJCQl3cml0dGVuLA0K
+PiArCXVuc2lnbmVkIGludAkJZmxhZ3MsDQo+ICsJc3RydWN0IGlvbWFwCQkqaW9tYXAsDQo+ICsJ
+c3RydWN0IGlvbWFwCQkqc3JjbWFwKQ0KPiArew0KPiArCWludAkJCWVycm9yID0gMDsNCj4gKwlz
+dHJ1Y3QgeGZzX2lub2RlCSppcCA9IFhGU19JKGlub2RlKTsNCj4gKwlib29sCQkJY293ID0geGZz
+X2lzX2Nvd19pbm9kZShpcCk7DQo+ICsNCj4gKwlpZiAod3JpdHRlbiA8PSAwKSB7DQo+ICsJCWlm
+IChjb3cpDQo+ICsJCQl4ZnNfcmVmbGlua19jYW5jZWxfY293X3JhbmdlKGlwLCBwb3MsIGxlbmd0
+aCwgdHJ1ZSk7DQo+ICsJCXJldHVybiB3cml0dGVuOw0KPiArCX0NCj4gKw0KPiArCWlmIChjb3cp
+DQo+ICsJCWVycm9yID0geGZzX3JlZmxpbmtfZW5kX2NvdyhpcCwgcG9zLCB3cml0dGVuKTsNCj4g
+KwlyZXR1cm4gZXJyb3IgPzogd3JpdHRlbjsNCj4gK30NCj4gKw0KPiArY29uc3Qgc3RydWN0IGlv
+bWFwX29wcyB4ZnNfZGF4X3dyaXRlX2lvbWFwX29wcyA9IHsNCj4gKwkuaW9tYXBfYmVnaW4JCT0g
+eGZzX2RpcmVjdF93cml0ZV9pb21hcF9iZWdpbiwNCj4gKwkuaW9tYXBfcG9zdF9hY3Rvcgk9IHhm
+c19kYXhfd3JpdGVfaW9tYXBfcG9zdF9hY3RvciwNCj4gK307DQo+ICsNCj4gIHN0YXRpYyBpbnQN
+Cj4gIHhmc19idWZmZXJlZF93cml0ZV9pb21hcF9iZWdpbigNCj4gIAlzdHJ1Y3QgaW5vZGUJCSpp
+bm9kZSwNCj4gZGlmZiAtLWdpdCBhL2ZzL3hmcy94ZnNfaW9tYXAuaCBiL2ZzL3hmcy94ZnNfaW9t
+YXAuaCBpbmRleA0KPiA3ZDM3MDM1NTZkMGUuLmZiYWNmNjM4YWIyMSAxMDA2NDQNCj4gLS0tIGEv
+ZnMveGZzL3hmc19pb21hcC5oDQo+ICsrKyBiL2ZzL3hmcy94ZnNfaW9tYXAuaA0KPiBAQCAtNDIs
+OCArNDIsMzIgQEAgeGZzX2FsaWduZWRfZnNiX2NvdW50KA0KPiANCj4gIGV4dGVybiBjb25zdCBz
+dHJ1Y3QgaW9tYXBfb3BzIHhmc19idWZmZXJlZF93cml0ZV9pb21hcF9vcHM7ICBleHRlcm4gY29u
+c3QNCj4gc3RydWN0IGlvbWFwX29wcyB4ZnNfZGlyZWN0X3dyaXRlX2lvbWFwX29wczsNCj4gK2V4
+dGVybiBjb25zdCBzdHJ1Y3QgaW9tYXBfb3BzIHhmc19kYXhfd3JpdGVfaW9tYXBfb3BzOw0KPiAg
+ZXh0ZXJuIGNvbnN0IHN0cnVjdCBpb21hcF9vcHMgeGZzX3JlYWRfaW9tYXBfb3BzOyAgZXh0ZXJu
+IGNvbnN0IHN0cnVjdA0KPiBpb21hcF9vcHMgeGZzX3NlZWtfaW9tYXBfb3BzOyAgZXh0ZXJuIGNv
+bnN0IHN0cnVjdCBpb21hcF9vcHMNCj4geGZzX3hhdHRyX2lvbWFwX29wczsNCj4gDQo+ICtzdGF0
+aWMgaW5saW5lIGludA0KPiAreGZzX2lvbWFwX3plcm9fcmFuZ2UoDQo+ICsJc3RydWN0IHhmc19p
+bm9kZQkqaXAsDQo+ICsJbG9mZl90CQkJb2Zmc2V0LA0KPiArCWxvZmZfdAkJCWxlbiwNCj4gKwli
+b29sCQkJKmRpZF96ZXJvKQ0KPiArew0KPiArCXJldHVybiBpb21hcF96ZXJvX3JhbmdlKFZGU19J
+KGlwKSwgb2Zmc2V0LCBsZW4sIGRpZF96ZXJvLA0KPiArCQkJSVNfREFYKFZGU19JKGlwKSkgPyAm
+eGZzX2RheF93cml0ZV9pb21hcF9vcHMNCj4gKwkJCQkJICA6ICZ4ZnNfYnVmZmVyZWRfd3JpdGVf
+aW9tYXBfb3BzKTsgfQ0KPiArDQo+ICtzdGF0aWMgaW5saW5lIGludA0KPiAreGZzX2lvbWFwX3Ry
+dW5jYXRlX3BhZ2UoDQo+ICsJc3RydWN0IHhmc19pbm9kZQkqaXAsDQo+ICsJbG9mZl90CQkJcG9z
+LA0KPiArCWJvb2wJCQkqZGlkX3plcm8pDQo+ICt7DQo+ICsJcmV0dXJuIGlvbWFwX3RydW5jYXRl
+X3BhZ2UoVkZTX0koaXApLCBwb3MsIGRpZF96ZXJvLA0KPiArCQkJSVNfREFYKFZGU19JKGlwKSkg
+PyAmeGZzX2RheF93cml0ZV9pb21hcF9vcHMNCj4gKwkJCQkJICA6ICZ4ZnNfYnVmZmVyZWRfd3Jp
+dGVfaW9tYXBfb3BzKTsgfQ0KPiArDQo+ICAjZW5kaWYgLyogX19YRlNfSU9NQVBfSF9fKi8NCj4g
+ZGlmZiAtLWdpdCBhL2ZzL3hmcy94ZnNfaW9wcy5jIGIvZnMveGZzL3hmc19pb3BzLmMgaW5kZXgN
+Cj4gZGZlMjRiN2YyNmU1Li42ZDkzNmMzZTFhNmUgMTAwNjQ0DQo+IC0tLSBhL2ZzL3hmcy94ZnNf
+aW9wcy5jDQo+ICsrKyBiL2ZzL3hmcy94ZnNfaW9wcy5jDQo+IEBAIC05MTEsOCArOTExLDggQEAg
+eGZzX3NldGF0dHJfc2l6ZSgNCj4gIAkgKi8NCj4gIAlpZiAobmV3c2l6ZSA+IG9sZHNpemUpIHsN
+Cj4gIAkJdHJhY2VfeGZzX3plcm9fZW9mKGlwLCBvbGRzaXplLCBuZXdzaXplIC0gb2xkc2l6ZSk7
+DQo+IC0JCWVycm9yID0gaW9tYXBfemVyb19yYW5nZShpbm9kZSwgb2xkc2l6ZSwgbmV3c2l6ZSAt
+IG9sZHNpemUsDQo+IC0JCQkJJmRpZF96ZXJvaW5nLCAmeGZzX2J1ZmZlcmVkX3dyaXRlX2lvbWFw
+X29wcyk7DQo+ICsJCWVycm9yID0geGZzX2lvbWFwX3plcm9fcmFuZ2UoaXAsIG9sZHNpemUsIG5l
+d3NpemUgLSBvbGRzaXplLA0KPiArCQkJCSZkaWRfemVyb2luZyk7DQo+ICAJfSBlbHNlIHsNCj4g
+IAkJLyoNCj4gIAkJICogaW9tYXAgd29uJ3QgZGV0ZWN0IGEgZGlydHkgcGFnZSBvdmVyIGFuIHVu
+d3JpdHRlbiBibG9jayAob3IgYSBAQA0KPiAtOTI0LDggKzkyNCw3IEBAIHhmc19zZXRhdHRyX3Np
+emUoDQo+ICAJCQkJCQkgICAgIG5ld3NpemUpOw0KPiAgCQlpZiAoZXJyb3IpDQo+ICAJCQlyZXR1
+cm4gZXJyb3I7DQo+IC0JCWVycm9yID0gaW9tYXBfdHJ1bmNhdGVfcGFnZShpbm9kZSwgbmV3c2l6
+ZSwgJmRpZF96ZXJvaW5nLA0KPiAtCQkJCSZ4ZnNfYnVmZmVyZWRfd3JpdGVfaW9tYXBfb3BzKTsN
+Cj4gKwkJZXJyb3IgPSB4ZnNfaW9tYXBfdHJ1bmNhdGVfcGFnZShpcCwgbmV3c2l6ZSwgJmRpZF96
+ZXJvaW5nKTsNCj4gIAl9DQo+IA0KPiAgCWlmIChlcnJvcikNCj4gZGlmZiAtLWdpdCBhL2ZzL3hm
+cy94ZnNfcmVmbGluay5jIGIvZnMveGZzL3hmc19yZWZsaW5rLmMgaW5kZXgNCj4gZDI1NDM0Zjkz
+MjM1Li45YTc4MDk0OGRiZDAgMTAwNjQ0DQo+IC0tLSBhL2ZzL3hmcy94ZnNfcmVmbGluay5jDQo+
+ICsrKyBiL2ZzL3hmcy94ZnNfcmVmbGluay5jDQo+IEBAIC0xMjY2LDggKzEyNjYsNyBAQCB4ZnNf
+cmVmbGlua196ZXJvX3Bvc3Rlb2YoDQo+ICAJCXJldHVybiAwOw0KPiANCj4gIAl0cmFjZV94ZnNf
+emVyb19lb2YoaXAsIGlzaXplLCBwb3MgLSBpc2l6ZSk7DQo+IC0JcmV0dXJuIGlvbWFwX3plcm9f
+cmFuZ2UoVkZTX0koaXApLCBpc2l6ZSwgcG9zIC0gaXNpemUsIE5VTEwsDQo+IC0JCQkmeGZzX2J1
+ZmZlcmVkX3dyaXRlX2lvbWFwX29wcyk7DQo+ICsJcmV0dXJuIHhmc19pb21hcF96ZXJvX3Jhbmdl
+KGlwLCBpc2l6ZSwgcG9zIC0gaXNpemUsIE5VTEwpOw0KPiAgfQ0KPiANCj4gIC8qDQo+IGRpZmYg
+LS1naXQgYS9pbmNsdWRlL2xpbnV4L2lvbWFwLmggYi9pbmNsdWRlL2xpbnV4L2lvbWFwLmggaW5k
+ZXgNCj4gOTU1NjJmODYzYWQwLi41OGYyZTFjNzgwMTggMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUv
+bGludXgvaW9tYXAuaA0KPiArKysgYi9pbmNsdWRlL2xpbnV4L2lvbWFwLmgNCj4gQEAgLTEzNSw2
+ICsxMzUsMTQgQEAgc3RydWN0IGlvbWFwX29wcyB7DQo+ICAJCQl1bnNpZ25lZCBmbGFncywgc3Ry
+dWN0IGlvbWFwICppb21hcCwNCj4gIAkJCXN0cnVjdCBpb21hcCAqc3JjbWFwKTsNCj4gDQo+ICsJ
+LyoNCj4gKwkgKiBIYW5kbGUgdGhlIGVycm9yIGNvZGUgZnJvbSBhY3RvcigpLiBEbyB0aGUgZmlu
+aXNoaW5nIGpvYnMgZm9yIGV4dHJhDQo+ICsJICogb3BlcmF0aW9ucywgc3VjaCBhcyBDb1csIGFj
+Y29yZGluZyB0byB3aGV0aGVyIHdyaXR0ZW4gaXMgbmVnYXRpdmUuDQo+ICsJICovDQo+ICsJaW50
+ICgqaW9tYXBfcG9zdF9hY3Rvcikoc3RydWN0IGlub2RlICppbm9kZSwgbG9mZl90IHBvcywgbG9m
+Zl90IGxlbmd0aCwNCj4gKwkJCXNzaXplX3Qgd3JpdHRlbiwgdW5zaWduZWQgZmxhZ3MsIHN0cnVj
+dCBpb21hcCAqaW9tYXAsDQo+ICsJCQlzdHJ1Y3QgaW9tYXAgKnNyY21hcCk7DQo+ICsNCj4gIAkv
+Kg0KPiAgCSAqIENvbW1pdCBhbmQvb3IgdW5yZXNlcnZlIHNwYWNlIHByZXZpb3VzIGFsbG9jYXRl
+ZCB1c2luZyBpb21hcF9iZWdpbi4NCj4gIAkgKiBXcml0dGVuIGluZGljYXRlcyB0aGUgbGVuZ3Ro
+IG9mIHRoZSBzdWNjZXNzZnVsIHdyaXRlIG9wZXJhdGlvbiB3aGljaA0KPiAtLQ0KPiAyLjMxLjEN
+Cg0K
