@@ -1,77 +1,67 @@
-Received: from mail-pj1-f42.google.com (mail-pj1-f42.google.com [209.85.216.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 23DBF2FB2
-	for <nvdimm@lists.linux.dev>; Fri, 25 Jun 2021 23:49:44 +0000 (UTC)
-Received: by mail-pj1-f42.google.com with SMTP id 13-20020a17090a08cdb029016eed209ca4so6474246pjn.1
-        for <nvdimm@lists.linux.dev>; Fri, 25 Jun 2021 16:49:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=oqRYOB4yhufrE4KfV5rz7mou0hPzahcFWImUQvPEHrY=;
-        b=h7+a3XPdlF75hruXah7r7X1pmp33Al/uDN7q6nB47Nd05Ab3//kzWD3HwhOaf8pDJ1
-         oHhvtD3Qlic9HcfDrBtOsyEaVdjVzOyDIHep6Us7zVkZZsrjMbAblZ7ga8woohHGc6Ii
-         OjP+Ckx3Y8dSyV1KUyfJa5Dk49egthOuWAKCcN+iQY1nozYBkwr1P6OBcInv/KmhfZA6
-         i6QXtC1AeqBoLAZlyor+L/ojzw1gQlCLBcp2JSK7rQMRku3VllAu+Uug78+A1iIVEuCs
-         5IxPdI39BfU1Sj1jxl7v8N6Dhv2sgZl04oztMA2a3WIsPF81BAPrEooNc+1x+XXG77Dk
-         lTdw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=oqRYOB4yhufrE4KfV5rz7mou0hPzahcFWImUQvPEHrY=;
-        b=OhhJOgYwIKiUk8BDIRx0qwAXArM2We+VCGSEeCmtP5Dl7ekxxapjC/61cn3DtRbqm/
-         BfVM3bL7J52PzefOPRqQrCifhwm73JVMKuqA5A9z8ci9Na2vPdbVGaDdTRfaXAQxJN5r
-         TofZSl3n2Ubmch5Yy0u4VdHDG50YEjaNvNrapIys3j88O/Qf6DGLOzw9MjbFjiFmfLqb
-         tMW/fYMR5ONzk+2R06PNd9x2pewspp+34e9aFGXXjdx+G299f5o+CTl9lgLtc0UYkhxB
-         VTDWDEDlq/Xyqc/ixMgCKTLVlAw/qK6/ys4j2mfzYwxYNYg0doBhh4uyR3WORG+MJoJm
-         PkJg==
-X-Gm-Message-State: AOAM530qnyK+w7/oaVQ+Zb9z+qFV8Jv/K0ijYJgMc2hNqCYNxaAT007k
-	skCvwOsBaFBCzUbX+z1fCc8uZ9hVhW/pgGFVVURnpw==
-X-Google-Smtp-Source: ABdhPJxpw7ILMjuH3VcDx8Tni4D7lyMQrYk9NrDho+FvwHhjZwwIyyfWB/74vNHaH0tIy0EtDqsmlZrknf4uJht5w18=
-X-Received: by 2002:a17:902:b497:b029:115:e287:7b55 with SMTP id
- y23-20020a170902b497b0290115e2877b55mr11191631plr.79.1624664983670; Fri, 25
- Jun 2021 16:49:43 -0700 (PDT)
+Received: from m12-15.163.com (m12-15.163.com [220.181.12.15])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DEE3F29D6
+	for <nvdimm@lists.linux.dev>; Sat, 26 Jun 2021 01:27:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+	s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=f2CyK
+	mMlq7uRwuz/k0ZEXMT/kyFKnpFPhfQx5RLJFFE=; b=X0JL8oYZnEJoN0jWp2jwv
+	9vLopB3eObQ0Qr/SvfvcObndRIzSCHBbJ4eyJcmJw+OEa+sEn6u0YTyGhu8GxQ5e
+	p5t+WzYSijB3MdrvxKaZAlc87XKMwvtuhtOmQRdfsNy8d6JHKwy7cIMXMGDJPFaT
+	RUENN8pj4hMsvOlTeR5pgM=
+Received: from ubuntu.localdomain (unknown [218.17.89.92])
+	by smtp11 (Coremail) with SMTP id D8CowABnh99kgtZg40LOAQ--.4S2;
+	Sat, 26 Jun 2021 09:27:38 +0800 (CST)
+From: 13145886936@163.com
+To: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	gushengxian <gushengxian@yulong.com>
+Subject: [PATCH] tools/testing/nvdimm: Remove NULL test before vfree
+Date: Fri, 25 Jun 2021 18:26:55 -0700
+Message-Id: <20210626012655.515279-1-13145886936@163.com>
+X-Mailer: git-send-email 2.25.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <327f9156-9b28-d20e-2850-21c125ece8c7@oracle.com>
- <YNErtAaG/i3HBII+@garbanzo> <81b46576-f30e-5b92-e926-0ffd20c7deac@oracle.com>
- <CAPcyv4hDJiAwAfvdfvnnReMik=ZVM5oNv2SH5Qo+YV3oY=VLBQ@mail.gmail.com> <ffc97a208ada4c7f8e3d3113dd323f78@intel.com>
-In-Reply-To: <ffc97a208ada4c7f8e3d3113dd323f78@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 25 Jun 2021 16:49:33 -0700
-Message-ID: <CAPcyv4ixeE+fDaGxkdhV8uVA+_9OYkd086wA5pARA2HM6UZQGw@mail.gmail.com>
-Subject: Re: set_memory_uc() does not work with pmem poison handling
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Jane Chu <jane.chu@oracle.com>, Luis Chamberlain <mcgrof@suse.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, "Luis R. Rodriguez" <mcgrof@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:D8CowABnh99kgtZg40LOAQ--.4S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZF4fJw1xuF1fGryUGF4Durg_yoW3Awb_Cr
+	47trn7KFZ5JFy2ka12yrn8urZ7Ca1UuFs7Ww4UtF13ZrWUtr45Kwn7Grs5XF4Sgr98KFZF
+	yF95CrnxJr12kjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+	9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IU54T5JUUUUU==
+X-Originating-IP: [218.17.89.92]
+X-CM-SenderInfo: 5zrdx5xxdq6xppld0qqrwthudrp/xtbBzhq9g1QHNBgHrAABs-
 
-On Fri, Jun 25, 2021 at 4:22 PM Luck, Tony <tony.luck@intel.com> wrote:
->
-> -       else
-> -               rc = set_memory_uc(decoy_addr, 1);
-> +       else {
-> +               /*
-> +                * Bypass memtype checks since memory-failure has shot
-> +                * down mappings.
-> +                */
-> +               rc = _set_memory_uc(decoy_addr, 1);
-> +       }
->
-> Does pmem "fix" poison addresses yet? If it does (or will) does it matter that
-> you skip the memtype_reserve() call?
+From: gushengxian <gushengxian@yulong.com>
 
-It does fix them via clear_mce_nospec(), but that also looks like it
-should be using the _set_memory_wb() version to bypass the memory type
-reservation twiddling.
+This NULL test is redundant since vfree() checks for NULL.
+Reported by Coccinelle.
 
-That said, I don't understand why set_memory_wb(), non "_" version,
-thinks it can unconditionally delete any memtype reservation that
-might exist for that pfn? The set_memory_* apis seem disjoint (wrt
-memtype) for a reason that eludes me.
+Signed-off-by: gushengxian <gushengxian@yulong.com>
+---
+ tools/testing/nvdimm/test/nfit.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 54f367cbadae..cb86f0cbb11c 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1641,8 +1641,8 @@ static void *__test_alloc(struct nfit_test *t, size_t size, dma_addr_t *dma,
+  err:
+ 	if (*dma && size >= DIMM_SIZE)
+ 		gen_pool_free(nfit_pool, *dma, size);
+-	if (buf)
+-		vfree(buf);
++
++	vfree(buf);
+ 	kfree(nfit_res);
+ 	return NULL;
+ }
+-- 
+2.25.1
+
