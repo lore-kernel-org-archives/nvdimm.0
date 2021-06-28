@@ -1,92 +1,86 @@
-Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8A124177
-	for <nvdimm@lists.linux.dev>; Sat, 26 Jun 2021 17:43:26 +0000 (UTC)
-Received: by mail-pg1-f177.google.com with SMTP id u14so4665396pga.11
-        for <nvdimm@lists.linux.dev>; Sat, 26 Jun 2021 10:43:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=5lzS3c978KWVZhp9dx/lJ7t8+OWX7BevxD99uFCYCLw=;
-        b=TEKJ4tT2dwiVznc1KdZgOX7jo1ciZgIUvxxu9uZI31WHGV88slpNhl83mHcDRZgEmu
-         fU+I8MOtxrqEcg3/K+I8zC1KC4e5LA/7o7wAujjLvO5HeULS+fArZ8c4YaAx6lNR778N
-         cPodhq6zKDx6tCl846+hdDKKkv8Yl2w37yCMzv5fChJNm1CHecZus8FPsTAuKEeEKX0h
-         z9qgDyvIJRTK+wrEkC/HMu7YXv8sWMSsFxlorTZgnzN0lhFGyYNw7vUDBjLDvifviUyy
-         2v3a5/73Osk7shpGrXgeekreL4yiUkYvs0xbavtaUynL0Gnp65k/Nj4RCk4meV6Tl9KW
-         3B0Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=5lzS3c978KWVZhp9dx/lJ7t8+OWX7BevxD99uFCYCLw=;
-        b=RLPHOwoMPTkrG3nWp4kO6CKmcPXqH0KS2+VtK4xt3UMT2BcxHYwTDIlUz8Fok4wqP0
-         y7sx/NtQVBj/YweMXwiIOlPKXJfuC9ATf2VQPwtOtbKNARaHS1DOMOdqmtkmSM1iHDWR
-         2DTBserZ+eADQe1sOkKzEhXxf+cCg0fhuajaGYV3Y0SVHAp76cPusglJx0dAF2kQLPGp
-         AdyilwKI+AaR/ZfQ08mGjC2VPMueIvFVK+pLL+o2AZ3tHi92wHAUUPswQJU8ozamDitt
-         h03N5lwYuglsPURU8qgMl49MakSNJ+UeAz+Q4FXq5FcXfkxHNZuEoNn6DiVUWX/UPJ9z
-         oE1Q==
-X-Gm-Message-State: AOAM530Mx67qJ3OboU1JDCuKjs/WU1eoOXT7PK8RhZw9ZZdsxSMs9Ntt
-	UQXmHxr0f/ElaSYNtuPMEKXVDWUFR5wvL9kgepuBlg==
-X-Google-Smtp-Source: ABdhPJwDJWNvFeSOl/aHQkL4aR6n+XOQLuyDu1ETB1JWNzeOgPmAjuaVlFygur/FTWNpJhjikW3TvgIaSGjr9vig020=
-X-Received: by 2002:a62:768c:0:b029:2ff:2002:d3d0 with SMTP id
- r134-20020a62768c0000b02902ff2002d3d0mr16409804pfc.70.1624729406065; Sat, 26
- Jun 2021 10:43:26 -0700 (PDT)
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id AD18270
+	for <nvdimm@lists.linux.dev>; Mon, 28 Jun 2021 00:03:06 +0000 (UTC)
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AGQqGlqmcPjC+AJqqUeStSZ1TRGzpDfLI3DAb?=
+ =?us-ascii?q?v31ZSRFFG/Fxl6iV8sjzsiWE7gr5OUtQ4OxoV5PhfZqxz/JICMwqTNKftWrdyQ?=
+ =?us-ascii?q?yVxeNZnOjfKlTbckWUnINgPOVbAsxD4bbLbGSS4/yU3ODBKadD/DCYytHUuc7u?=
+ =?us-ascii?q?i2dqURpxa7xtqyNwCgOgGEVwQwVcbKBJb6a0145WoSa6Y3QLYoCeDnkBZeLKoN?=
+ =?us-ascii?q?rGj9bIehgDbiRXkjWmvHe57qLgCRiE0lM7WzNL+70r9m/IiEjYy8yYwomG9iM?=
+ =?us-ascii?q?=3D?=
+X-IronPort-AV: E=Sophos;i="5.83,304,1616428800"; 
+   d="scan'208";a="110256322"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 28 Jun 2021 08:02:57 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 3EC014D0BA67;
+	Mon, 28 Jun 2021 08:02:54 +0800 (CST)
+Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 28 Jun 2021 08:02:55 +0800
+Received: from irides.mr.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.2 via Frontend Transport; Mon, 28 Jun 2021 08:02:54 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>, <dm-devel@redhat.com>
+CC: <darrick.wong@oracle.com>, <dan.j.williams@intel.com>,
+	<david@fromorbit.com>, <hch@lst.de>, <agk@redhat.com>, <snitzer@redhat.com>,
+	<rgoldwyn@suse.de>
+Subject: [PATCH v5 1/9] pagemap: Introduce ->memory_failure()
+Date: Mon, 28 Jun 2021 08:02:10 +0800
+Message-ID: <20210628000218.387833-2-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210628000218.387833-1-ruansy.fnst@fujitsu.com>
+References: <20210628000218.387833-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210624080621.252038-1-vaibhav@linux.ibm.com>
-In-Reply-To: <20210624080621.252038-1-vaibhav@linux.ibm.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 26 Jun 2021 10:43:15 -0700
-Message-ID: <CAPcyv4g7Y0AQDWq4DN2o+=iDQAuWjd0f9DCY2jR7A-=eED=dZQ@mail.gmail.com>
-Subject: Re: [RESEND-PATCH v2] powerpc/papr_scm: Add support for reporting dirty-shutdown-count
-To: Vaibhav Jain <vaibhav@linux.ibm.com>
-Cc: linux-nvdimm <linux-nvdimm@lists.01.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
-	"Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Santosh Sivaraj <santosh@fossix.org>, Ira Weiny <ira.weiny@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-yoursite-MailScanner-ID: 3EC014D0BA67.A1167
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-On Thu, Jun 24, 2021 at 1:07 AM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->
-> Persistent memory devices like NVDIMMs can loose cached writes in case
-> something prevents flush on power-fail. Such situations are termed as
-> dirty shutdown and are exposed to applications as
-> last-shutdown-state (LSS) flag and a dirty-shutdown-counter(DSC) as
-> described at [1]. The latter being useful in conditions where multiple
-> applications want to detect a dirty shutdown event without racing with
-> one another.
->
-> PAPR-NVDIMMs have so far only exposed LSS style flags to indicate a
-> dirty-shutdown-state. This patch further adds support for DSC via the
-> "ibm,persistence-failed-count" device tree property of an NVDIMM. This
-> property is a monotonic increasing 64-bit counter thats an indication
-> of number of times an NVDIMM has encountered a dirty-shutdown event
-> causing persistence loss.
->
-> Since this value is not expected to change after system-boot hence
-> papr_scm reads & caches its value during NVDIMM probe and exposes it
-> as a PAPR sysfs attributed named 'dirty_shutdown' to match the name of
-> similarly named NFIT sysfs attribute. Also this value is available to
-> libnvdimm via PAPR_PDSM_HEALTH payload. 'struct nd_papr_pdsm_health'
-> has been extended to add a new member called 'dimm_dsc' presence of
-> which is indicated by the newly introduced PDSM_DIMM_DSC_VALID flag.
->
-> References:
-> [1] https://pmem.io/documents/Dirty_Shutdown_Handling-V1.0.pdf
->
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-> Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+When memory-failure occurs, we call this function which is implemented
+by each kind of devices.  For the fsdax case, pmem device driver
+implements it.  Pmem device driver will find out the filesystem in which
+the corrupted page located in.  And finally call filesystem handler to
+deal with this error.
 
-Belated:
+The filesystem will try to recover the corrupted data if necessary.
 
-Acked-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ include/linux/memremap.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-It's looking like CXL will add one of these as well. Might be time to
-add a unified location when that happens and deprecate these
-bus-specific locations.
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 45a79da89c5f..d96da47cc249 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -87,6 +87,15 @@ struct dev_pagemap_ops {
+ 	 * the page back to a CPU accessible page.
+ 	 */
+ 	vm_fault_t (*migrate_to_ram)(struct vm_fault *vmf);
++
++	/*
++	 * Handle the memory failure happens on a range of pfns.  Notify the
++	 * processes who are using these pfns, and try to recover the data on
++	 * them if necessary.  The flag is finally passed to the recover
++	 * function through the whole notify routine.
++	 */
++	int (*memory_failure)(struct dev_pagemap *pgmap, unsigned long pfn,
++			      unsigned long nr_pfns, int flags);
+ };
+
+ #define PGMAP_ALTMAP_VALID	(1 << 0)
+--
+2.32.0
+
+
+
