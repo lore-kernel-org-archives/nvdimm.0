@@ -1,24 +1,23 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9526770
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A46D2FB8
 	for <nvdimm@lists.linux.dev>; Mon, 28 Jun 2021 00:03:08 +0000 (UTC)
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AV8gBeKG6lsoZXInUpLqEAMeALOsnbusQ8zAX?=
- =?us-ascii?q?P0AYc3Jom6uj5qSTdZUgpHjJYVkqOE3I9ertBEDiewK4yXcW2/hzAV7KZmCP0w?=
- =?us-ascii?q?HEEGgI1+rfKlPbdBEWjtQtt5uIbZIOc+HYPBxri9rg+gmkH5IFyNmDyqqhguDT?=
- =?us-ascii?q?1B5WPHhXQpAl/wFkERyaD0EzYAFHAKAyHJ2a6tECiCGnfR0sH7yGL0hAT+7evM?=
- =?us-ascii?q?fKiZ6jRRYHAiQs4A6IgSjtyJOSKWn/4isj?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AiGjbsqx6BG84dbzVRShwKrPwEL1zdoMgy1kn?=
+ =?us-ascii?q?xilNoH1uA6ilfqWV8cjzuiWbtN9vYhsdcLy7WZVoIkmskKKdg7NhXotKNTOO0A?=
+ =?us-ascii?q?SVxepZnOnfKlPbexHWx6p00KdMV+xEAsTsMF4St63HyTj9P9E+4NTvysyVuds?=
+ =?us-ascii?q?=3D?=
 X-IronPort-AV: E=Sophos;i="5.83,304,1616428800"; 
-   d="scan'208";a="110256323"
+   d="scan'208";a="110256333"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 28 Jun 2021 08:02:57 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 28CF14D0BA69;
-	Mon, 28 Jun 2021 08:02:53 +0800 (CST)
+  by heian.cn.fujitsu.com with ESMTP; 28 Jun 2021 08:03:03 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+	by cn.fujitsu.com (Postfix) with ESMTP id C6F2D4D0BA6C;
+	Mon, 28 Jun 2021 08:03:01 +0800 (CST)
 Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Mon, 28 Jun 2021 08:02:44 +0800
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.2; Mon, 28 Jun 2021 08:02:56 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Mon, 28 Jun 2021 08:02:22 +0800
+ id 15.0.1497.2 via Frontend Transport; Mon, 28 Jun 2021 08:02:57 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
@@ -26,10 +25,12 @@ To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 CC: <darrick.wong@oracle.com>, <dan.j.williams@intel.com>,
 	<david@fromorbit.com>, <hch@lst.de>, <agk@redhat.com>, <snitzer@redhat.com>,
 	<rgoldwyn@suse.de>
-Subject: [PATCH v5 0/9] fsdax: introduce fs query to support reflink
-Date: Mon, 28 Jun 2021 08:02:09 +0800
-Message-ID: <20210628000218.387833-1-ruansy.fnst@fujitsu.com>
+Subject: [PATCH v5 3/9] mm: factor helpers for memory_failure_dev_pagemap
+Date: Mon, 28 Jun 2021 08:02:12 +0800
+Message-ID: <20210628000218.387833-4-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.32.0
+In-Reply-To: <20210628000218.387833-1-ruansy.fnst@fujitsu.com>
+References: <20210628000218.387833-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -38,95 +39,164 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: 28CF14D0BA69.A2AEF
+X-yoursite-MailScanner-ID: C6F2D4D0BA6C.A37B2
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-This patchset is aimed to support shared pages tracking for fsdax.
+memory_failure_dev_pagemap code is a bit complex before introduce RMAP
+feature for fsdax.  So it is needed to factor some helper functions to
+simplify these code.
 
-Change from V4:
-  - Add nr_pfns for ->memory_failure() to support range based notification
-  - Remove struct bdev in dax_holder_notify_failure()
-  - Add rwsem for dax_holder
-  - Rename functions to (*_)notify_failure()
-  - Remove sb->corrupted_range(), implement holder_ops in filesystem and
-      MD driver instead
-  - Reorganize the patchset, make it easy to review
-  - Rebased to v5.13-rc7
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ mm/memory-failure.c | 101 +++++++++++++++++++++++++-------------------
+ 1 file changed, 57 insertions(+), 44 deletions(-)
 
-This patchset moves owner tracking from dax_assocaite_entry() to pmem
-device driver, by introducing an interface ->memory_failure() for struct
-pagemap.  This interface is called by memory_failure() in mm, and
-implemented by pmem device.
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 0143d32bc666..068753911946 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1243,6 +1243,60 @@ static int try_to_split_thp_page(struct page *page, const char *msg)
+ 	return 0;
+ }
 
-Then call holder operations to find the filesystem which the corrupted
-data located in, and call filesystem handler to track files or metadata
-associated with this page.
++static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
++		struct address_space *mapping, pgoff_t index, int flags)
++{
++	struct to_kill *tk;
++	unsigned long size = 0;
++
++	list_for_each_entry(tk, to_kill, nd)
++		if (tk->size_shift)
++			size = max(size, 1UL << tk->size_shift);
++	if (size) {
++		/*
++		 * Unmap the largest mapping to avoid breaking up device-dax
++		 * mappings which are constant size. The actual size of the
++		 * mapping being torn down is communicated in siginfo, see
++		 * kill_proc()
++		 */
++		loff_t start = (index << PAGE_SHIFT) & ~(size - 1);
++
++		unmap_mapping_range(mapping, start, size, 0);
++	}
++
++	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
++}
++
++static int mf_generic_kill_procs(unsigned long long pfn, int flags)
++{
++	struct page *page = pfn_to_page(pfn);
++	LIST_HEAD(to_kill);
++	dax_entry_t cookie;
++
++	/*
++	 * Prevent the inode from being freed while we are interrogating
++	 * the address_space, typically this would be handled by
++	 * lock_page(), but dax pages do not use the page lock. This
++	 * also prevents changes to the mapping of this pfn until
++	 * poison signaling is complete.
++	 */
++	cookie = dax_lock_page(page);
++	if (!cookie)
++		return -EBUSY;
++	/*
++	 * Unlike System-RAM there is no possibility to swap in a
++	 * different physical page at a given virtual address, so all
++	 * userspace consumption of ZONE_DEVICE memory necessitates
++	 * SIGBUS (i.e. MF_MUST_KILL)
++	 */
++	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++	collect_procs(page, &to_kill, flags & MF_ACTION_REQUIRED);
++
++	unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
++	dax_unlock_page(page, cookie);
++	return 0;
++}
++
+ static int memory_failure_hugetlb(unsigned long pfn, int flags)
+ {
+ 	struct page *p = pfn_to_page(pfn);
+@@ -1323,13 +1377,8 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+-	const bool unmap_success = true;
+-	unsigned long size = 0;
+-	struct to_kill *tk;
+ 	LIST_HEAD(tokill);
+ 	int rc = -EBUSY;
+-	loff_t start;
+-	dax_entry_t cookie;
 
-Finally we are able to try to fix the corrupted data in filesystem and
-do other necessary processing, such as killing processes who are using
-the files affected.
+ 	if (flags & MF_COUNT_INCREASED)
+ 		/*
+@@ -1343,20 +1392,9 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		goto out;
+ 	}
 
-The call trace is like this:
-memory_failure()
-|* fsdax case
-|------------
-|pgmap->ops->memory_failure()      => pmem_pgmap_memory_failure()
-| dax_holder_notify_failure()      =>
-|  dax_device->holder_ops->notify_failure() =>
-|                                     - xfs_dax_notify_failure()
-|                                     - md_dax_notify_failure()
-|  |* xfs_dax_notify_failure()
-|  |--------------------------
-|  |   xfs_rmap_query_range()
-|  |    xfs_currupt_helper()
-|  |    * corrupted on metadata
-|  |       try to recover data, call xfs_force_shutdown()
-|  |    * corrupted on file data
-|  |       try to recover data, call mf_dax_kill_procs()
-|  |* md_dax_notify_failure()
-|  |-------------------------
-|      md_targets->iterate_devices()
-|      md_targets->rmap()          => linear_rmap()
-|       dax_holder_notify_failure()
-|* normal case
-|-------------
- mf_generic_kill_procs()
+-	/*
+-	 * Prevent the inode from being freed while we are interrogating
+-	 * the address_space, typically this would be handled by
+-	 * lock_page(), but dax pages do not use the page lock. This
+-	 * also prevents changes to the mapping of this pfn until
+-	 * poison signaling is complete.
+-	 */
+-	cookie = dax_lock_page(page);
+-	if (!cookie)
+-		goto out;
+-
+ 	if (hwpoison_filter(page)) {
+ 		rc = 0;
+-		goto unlock;
++		goto out;
+ 	}
 
-The fsdax & reflink support for XFS is not contained in this patchset.
+ 	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
+@@ -1364,7 +1402,7 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		 * TODO: Handle HMM pages which may need coordination
+ 		 * with device-side memory.
+ 		 */
+-		goto unlock;
++		goto out;
+ 	}
 
-(Rebased on v5.13-rc7)
-==
+ 	/*
+@@ -1373,32 +1411,7 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 	 */
+ 	SetPageHWPoison(page);
 
-Shiyang Ruan (9):
-  pagemap: Introduce ->memory_failure()
-  dax: Introduce holder for dax_device
-  mm: factor helpers for memory_failure_dev_pagemap
-  pmem,mm: Implement ->memory_failure in pmem driver
-  mm: Introduce mf_dax_kill_procs() for fsdax case
-  xfs: Implement ->corrupted_range() for XFS
-  dm: Introduce ->rmap() to find bdev offset
-  md: Implement dax_holder_operations
-  fs/dax: Remove useless functions
-
- block/genhd.c                 |  30 +++++++
- drivers/dax/super.c           |  49 ++++++++++
- drivers/md/dm-linear.c        |  20 +++++
- drivers/md/dm.c               | 126 +++++++++++++++++++++++++-
- drivers/nvdimm/pmem.c         |  13 +++
- fs/dax.c                      |  73 ++++-----------
- fs/xfs/xfs_fsops.c            |   5 ++
- fs/xfs/xfs_mount.h            |   1 +
- fs/xfs/xfs_super.c            | 140 +++++++++++++++++++++++++++++
- include/linux/dax.h           |  27 ++++++
- include/linux/device-mapper.h |   5 ++
- include/linux/genhd.h         |   1 +
- include/linux/memremap.h      |   9 ++
- include/linux/mm.h            |  10 +++
- mm/memory-failure.c           | 165 ++++++++++++++++++++++------------
- 15 files changed, 564 insertions(+), 110 deletions(-)
-
+-	/*
+-	 * Unlike System-RAM there is no possibility to swap in a
+-	 * different physical page at a given virtual address, so all
+-	 * userspace consumption of ZONE_DEVICE memory necessitates
+-	 * SIGBUS (i.e. MF_MUST_KILL)
+-	 */
+-	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+-	collect_procs(page, &tokill, flags & MF_ACTION_REQUIRED);
+-
+-	list_for_each_entry(tk, &tokill, nd)
+-		if (tk->size_shift)
+-			size = max(size, 1UL << tk->size_shift);
+-	if (size) {
+-		/*
+-		 * Unmap the largest mapping to avoid breaking up
+-		 * device-dax mappings which are constant size. The
+-		 * actual size of the mapping being torn down is
+-		 * communicated in siginfo, see kill_proc()
+-		 */
+-		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+-		unmap_mapping_range(page->mapping, start, size, 0);
+-	}
+-	kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
+-	rc = 0;
+-unlock:
+-	dax_unlock_page(page, cookie);
++	mf_generic_kill_procs(pfn, flags);
+ out:
+ 	/* drop pgmap ref acquired in caller */
+ 	put_dev_pagemap(pgmap);
 --
 2.32.0
 
