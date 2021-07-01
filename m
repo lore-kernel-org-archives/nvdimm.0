@@ -1,17 +1,17 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5386D6D2D
-	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:28 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606919"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 250D06D3D
+	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:29 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606927"
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="205606919"
+   d="scan'208";a="205606927"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:19 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:20 -0700
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="409271356"
+   d="scan'208";a="409271363"
 Received: from anandvig-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.38.85])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:18 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:19 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>,
 	<linux-cxl@vger.kernel.org>
@@ -20,9 +20,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 10/21] libcxl: add support for the 'GET_LSA' command
-Date: Thu,  1 Jul 2021 14:09:54 -0600
-Message-Id: <20210701201005.3065299-11-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 11/21] util/hexdump: Add a util helper to print a buffer in hex
+Date: Thu,  1 Jul 2021 14:09:55 -0600
+Message-Id: <20210701201005.3065299-12-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210701201005.3065299-1-vishal.l.verma@intel.com>
 References: <20210701201005.3065299-1-vishal.l.verma@intel.com>
@@ -34,102 +34,92 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a command allocator and accessor APIs for the 'GET_LSA' mailbox
-command.
+In preparation for tests that may need to set, retrieve, and display
+opaque data, add a hexdump function in util/
 
 Cc: Ben Widawsky <ben.widawsky@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/lib/private.h  |  5 +++++
- cxl/lib/libcxl.c   | 31 +++++++++++++++++++++++++++++++
- cxl/libcxl.h       |  3 +++
- cxl/lib/libcxl.sym |  2 ++
- 4 files changed, 41 insertions(+)
+ util/hexdump.h |  8 ++++++++
+ util/hexdump.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
+ create mode 100644 util/hexdump.h
+ create mode 100644 util/hexdump.c
 
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index 2232f4c..fb1dd8e 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -73,6 +73,11 @@ struct cxl_cmd_identify {
- 	u8 qos_telemetry_caps;
- } __attribute__((packed));
- 
-+struct cxl_cmd_get_lsa_in {
-+	le32 offset;
-+	le32 length;
-+} __attribute__((packed));
+diff --git a/util/hexdump.h b/util/hexdump.h
+new file mode 100644
+index 0000000..d322b6a
+--- /dev/null
++++ b/util/hexdump.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2021 Intel Corporation. All rights reserved. */
++#ifndef _UTIL_HEXDUMP_H_
++#define _UTIL_HEXDUMP_H_
 +
- struct cxl_cmd_get_health_info {
- 	u8 health_status;
- 	u8 media_status;
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 2e33c5e..d2c38c9 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -799,6 +799,37 @@ CXL_EXPORT struct cxl_cmd *cxl_cmd_new_raw(struct cxl_memdev *memdev,
- 	return cmd;
- }
- 
-+CXL_EXPORT struct cxl_cmd *cxl_cmd_new_get_lsa(struct cxl_memdev *memdev,
-+		unsigned int offset, unsigned int length)
++void hex_dump_buf(unsigned char *buf, int size);
++
++#endif /* _UTIL_HEXDUMP_H_*/
+diff --git a/util/hexdump.c b/util/hexdump.c
+new file mode 100644
+index 0000000..1ab0118
+--- /dev/null
++++ b/util/hexdump.c
+@@ -0,0 +1,53 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (C) 2015-2021 Intel Corporation. All rights reserved. */
++#include <stdio.h>
++#include <util/hexdump.h>
++
++static void print_separator(int len)
 +{
-+	struct cxl_cmd_get_lsa_in *get_lsa;
-+	struct cxl_cmd *cmd;
++	int i;
 +
-+	cmd = cxl_cmd_new_generic(memdev, CXL_MEM_COMMAND_ID_GET_LSA);
-+	if (!cmd)
-+		return NULL;
-+
-+	get_lsa = (void *)cmd->send_cmd->in.payload;
-+	get_lsa->offset = cpu_to_le32(offset);
-+	get_lsa->length = cpu_to_le32(length);
-+	return cmd;
++	for (i = 0; i < len; i++)
++		fprintf(stderr, "-");
++	fprintf(stderr, "\n");
 +}
 +
-+#define cmd_get_void(cmd, N) \
-+do { \
-+	void *p = (void *)cmd->send_cmd->out.payload; \
-+	if (cmd->send_cmd->id != CXL_MEM_COMMAND_ID_##N) \
-+		return NULL; \
-+	if (cmd->status < 0) \
-+		return NULL; \
-+	return p; \
-+} while(0);
-+
-+CXL_EXPORT void *cxl_cmd_get_lsa_get_payload(struct cxl_cmd *cmd)
++void hex_dump_buf(unsigned char *buf, int size)
 +{
-+	cmd_get_void(cmd, GET_LSA);
-+}
++	int i;
++	const int grp = 4;  /* Number of bytes in a group */
++	const int wid = 16; /* Bytes per line. Should be a multiple of grp */
++	char ascii[wid + 1];
 +
- CXL_EXPORT int cxl_cmd_submit(struct cxl_cmd *cmd)
- {
- 	struct cxl_memdev *memdev = cmd->memdev;
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 56ae4af..6edbd8d 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -71,6 +71,9 @@ int cxl_cmd_get_health_info_get_temperature(struct cxl_cmd *cmd);
- int cxl_cmd_get_health_info_get_dirty_shutdowns(struct cxl_cmd *cmd);
- int cxl_cmd_get_health_info_get_volatile_errors(struct cxl_cmd *cmd);
- int cxl_cmd_get_health_info_get_pmem_errors(struct cxl_cmd *cmd);
-+struct cxl_cmd *cxl_cmd_new_get_lsa(struct cxl_memdev *memdev,
-+		unsigned int offset, unsigned int length);
-+void *cxl_cmd_get_lsa_get_payload(struct cxl_cmd *cmd);
- 
- #ifdef __cplusplus
- } /* extern "C" */
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index e00443d..2c6193b 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -52,4 +52,6 @@ global:
- 	cxl_cmd_get_health_info_get_dirty_shutdowns;
- 	cxl_cmd_get_health_info_get_volatile_errors;
- 	cxl_cmd_get_health_info_get_pmem_errors;
-+	cxl_cmd_new_get_lsa;
-+	cxl_cmd_get_lsa_get_payload;
- } LIBCXL_2;
++	/* Generate header */
++	print_separator((wid * 4) + (wid / grp) + 12);
++
++	fprintf(stderr, "Offset    ");
++	for (i = 0; i < wid; i++) {
++		if (i % grp == 0) fprintf(stderr, " ");
++		fprintf(stderr, "%02x ", i);
++	}
++	fprintf(stderr, "  Ascii\n");
++
++	print_separator((wid * 4) + (wid / grp) + 12);
++
++	/* Generate hex dump */
++	for (i = 0; i < size; i++) {
++		if (i % wid == 0) fprintf(stderr, "%08x  ", i);
++		ascii[i % wid] =
++		    ((buf[i] >= ' ') && (buf[i] <= '~')) ? buf[i] : '.';
++		if (i % grp == 0) fprintf(stderr, " ");
++		fprintf(stderr, "%02x ", buf[i]);
++		if ((i == size - 1) && (size % wid != 0)) {
++			int j;
++			int done = size % wid;
++			int grps_done = (done / grp) + ((done % grp) ? 1 : 0);
++			int spaces = wid / grp - grps_done + ((wid - done) * 3);
++
++			for (j = 0; j < spaces; j++) fprintf(stderr, " ");
++		}
++		if ((i % wid == wid - 1) || (i == size - 1))
++			fprintf(stderr, "  %.*s\n", (i % wid) + 1, ascii);
++	}
++	print_separator((wid * 4) + (wid / grp) + 12);
++}
 -- 
 2.31.1
 
