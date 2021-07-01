@@ -1,17 +1,17 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A41433E1
-	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:32 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606984"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D95E533E9
+	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:34 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606997"
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="205606984"
+   d="scan'208";a="205606997"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:26 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:27 -0700
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="409271440"
+   d="scan'208";a="409271460"
 Received: from anandvig-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.38.85])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:25 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:26 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>,
 	<linux-cxl@vger.kernel.org>
@@ -20,9 +20,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 19/21] Documentation/cxl: add library API documentation
-Date: Thu,  1 Jul 2021 14:10:03 -0600
-Message-Id: <20210701201005.3065299-20-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 21/21] cxl-cli: add bash completion
+Date: Thu,  1 Jul 2021 14:10:05 -0600
+Message-Id: <20210701201005.3065299-22-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210701201005.3065299-1-vishal.l.verma@intel.com>
 References: <20210701201005.3065299-1-vishal.l.verma@intel.com>
@@ -34,245 +34,136 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add library API documentation for libcxl(3) using the existing
-asciidoc(tor) build system. Add a section 3 man page for 'libcxl' that
-provides an overview of the library and its usage, and a man page for
-the 'cxl_new()' API.
+Add bash completion for the cxl-cli commands implemented so far:
+  cxl-list
+  cxl-read-labels
+  cxl-write-labels
+  cxl-zero-labels
 
-Cc: Ben Widawsky <ben.widawsky@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/cxl/lib/cxl_new.txt | 43 +++++++++++++++++++++++
- Documentation/cxl/lib/libcxl.txt  | 56 +++++++++++++++++++++++++++++
- configure.ac                      |  1 +
- Makefile.am                       |  1 +
- .gitignore                        |  3 ++
- Documentation/cxl/lib/Makefile.am | 58 +++++++++++++++++++++++++++++++
- 6 files changed, 162 insertions(+)
- create mode 100644 Documentation/cxl/lib/cxl_new.txt
- create mode 100644 Documentation/cxl/lib/libcxl.txt
- create mode 100644 Documentation/cxl/lib/Makefile.am
+ contrib/ndctl | 109 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 109 insertions(+)
 
-diff --git a/Documentation/cxl/lib/cxl_new.txt b/Documentation/cxl/lib/cxl_new.txt
-new file mode 100644
-index 0000000..d4d5bcb
---- /dev/null
-+++ b/Documentation/cxl/lib/cxl_new.txt
-@@ -0,0 +1,43 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl_new(3)
-+==========
-+
-+NAME
-+----
-+cxl_new - Create a new library context object that acts as a handle for all
-+library operations
-+
-+SYNOPSIS
-+--------
-+[verse]
-+----
-+#include <cxl/libcxl.h>
-+
-+int cxl_new(struct cxl_ctx **ctx);
-+----
-+
-+DESCRIPTION
-+-----------
-+Instantiates a new library context, and stores an opaque pointer in ctx. The
-+context is freed by linklibcxl:cxl_unref[3], i.e. cxl_new(3) implies an
-+internal linklibcxl:cxl_ref[3].
-+
-+
-+RETURN VALUE
-+------------
-+Returns 0 on success, and a negative errno on failure.
-+Possible error codes are:
-+
-+ * -ENOMEM
-+ * -ENXIO
-+
-+EXAMPLE
-+-------
-+See example usage in test/libcxl.c
-+
-+include::../../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linklibcxl:cxl_ref[3], linklibcxl:cxl_unref[3]
-diff --git a/Documentation/cxl/lib/libcxl.txt b/Documentation/cxl/lib/libcxl.txt
-new file mode 100644
-index 0000000..47f4cc3
---- /dev/null
-+++ b/Documentation/cxl/lib/libcxl.txt
-@@ -0,0 +1,56 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+libcxl(3)
-+=========
-+
-+NAME
-+----
-+libcxl - A library to interact with CXL devices through sysfs(5)
-+and ioctl(2) interfaces
-+
-+SYNOPSIS
-+--------
-+[verse]
-+#include <cxl/libcxl.h>
-+cc ... -lcxl
-+
-+DESCRIPTION
-+-----------
-+libcxl provides interfaces to interact with CXL devices in Linux, using sysfs
-+interfaces for most kernel interactions, and the ioctl() interface for command
-+submission.
-+
-+The starting point for all library interfaces is a 'cxl_ctx' object, returned
-+by linklibcxl:cxl_new[3]. CXL 'Type 3' memory devices are children of the
-+cxl_ctx object, and can be iterated through using an iterator API.
-+
-+Library level interfaces that are agnostic to any device, or a specific
-+subclass of operations have the prefix 'cxl_'
-+
-+The object representing a CXL Type 3 device is 'cxl_memdev'. Library interfaces
-+related to these devices have the prefix 'cxl_memdev_'. These interfaces are
-+mostly associated with sysfs interactions (unless otherwise noted in their
-+respective documentation pages). They are typically used to retrieve data
-+published by the kernel, or to send data or trigger kernel operations for a
-+given device.
-+
-+A 'cxl_cmd' is a reference counted object which is used to perform 'Mailbox'
-+commands as described in the CXL Specification. A 'cxl_cmd' object is tied to a
-+'cxl_memdev'. Associated library interfaces have the prefix 'cxl_cmd_'. Within
-+this sub-class of interfaces, there are:
-+
-+ * 'cxl_cmd_new_*' interfaces that allocate a new cxl_cmd object for a given
-+   command type.
-+
-+ * 'cxl_cmd_submit' which submits the command via ioctl()
-+
-+ * 'cxl_cmd_<name>_get_<field>' interfaces that get specific fields out of the
-+   command response
-+
-+ * 'cxl_cmd_get_*' interfaces to get general command related information.
-+
-+include::../../copyright.txt[]
-+
-+SEE ALSO
-+--------
-+linklibcxl:cxl[1]
-diff --git a/configure.ac b/configure.ac
-index dadae0a..00497ae 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -231,6 +231,7 @@ AC_CONFIG_FILES([
-         Documentation/ndctl/Makefile
-         Documentation/daxctl/Makefile
-         Documentation/cxl/Makefile
-+        Documentation/cxl/lib/Makefile
- ])
+diff --git a/contrib/ndctl b/contrib/ndctl
+index 680fe6a..cae4b1b 100755
+--- a/contrib/ndctl
++++ b/contrib/ndctl
+@@ -647,5 +647,114 @@ _daxctl()
+ 	__daxctl_main
+ }
  
- AC_OUTPUT
-diff --git a/Makefile.am b/Makefile.am
-index 4904ee7..e2f6bef 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -4,6 +4,7 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
- SUBDIRS = . cxl/lib daxctl/lib ndctl/lib cxl ndctl daxctl
- if ENABLE_DOCS
- SUBDIRS += Documentation/ndctl Documentation/daxctl Documentation/cxl
-+SUBDIRS += Documentation/cxl/lib
- endif
- SUBDIRS += test
- 
-diff --git a/.gitignore b/.gitignore
-index 6a97b92..6468c7a 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -14,12 +14,15 @@ Makefile.in
- /libtool
- /stamp-h1
- *.1
-+*.3
- Documentation/daxctl/asciidoc.conf
- Documentation/ndctl/asciidoc.conf
- Documentation/cxl/asciidoc.conf
-+Documentation/cxl/lib/asciidoc.conf
- Documentation/daxctl/asciidoctor-extensions.rb
- Documentation/ndctl/asciidoctor-extensions.rb
- Documentation/cxl/asciidoctor-extensions.rb
-+Documentation/cxl/lib/asciidoctor-extensions.rb
- Documentation/ndctl/attrs.adoc
- .dirstamp
- daxctl/config.h
-diff --git a/Documentation/cxl/lib/Makefile.am b/Documentation/cxl/lib/Makefile.am
-new file mode 100644
-index 0000000..41e3a5f
---- /dev/null
-+++ b/Documentation/cxl/lib/Makefile.am
-@@ -0,0 +1,58 @@
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2020-2021 Intel Corporation. All rights reserved.
++### cxl-cli ###
 +
-+if USE_ASCIIDOCTOR
++__cxl_get_devs()
++{
++	local opts=("--memdevs" "$*")
++	cxl list "${opts[@]}" | grep -E "^\s*\"memdev\":" | cut -d'"' -f4
++}
 +
-+do_subst = sed -e 's,@Utility@,Libcxl,g' -e's,@utility@,libcxl,g'
-+CONFFILE = asciidoctor-extensions.rb
-+asciidoctor-extensions.rb: ../../asciidoctor-extensions.rb.in
-+	$(AM_V_GEN) $(do_subst) < $< > $@
++__cxlcomp()
++{
++	local i=0
 +
-+else
++	COMPREPLY=( $( compgen -W "$1" -- "$2" ) )
++	for cword in "${COMPREPLY[@]}"; do
++		if [[ "$cword" == @(--memdev|--offset|--size|--input|--output) ]]; then
++			COMPREPLY[$i]="${cword}="
++		else
++			COMPREPLY[$i]="${cword} "
++		fi
++		((i++))
++	done
++}
 +
-+do_subst = sed -e 's,UTILITY,libcxl,g'
-+CONFFILE = asciidoc.conf
-+asciidoc.conf: ../../asciidoc.conf.in
-+	$(AM_V_GEN) $(do_subst) < $< > $@
++__cxl_comp_options()
++{
 +
-+endif
++	local cur=$1
++	local opts
 +
-+man3_MANS = \
-+	libcxl.3 \
-+	cxl_new.3
++	if [[ "$cur" == *=* ]]; then
++		local cur_subopt=${cur%%=*}
++		local cur_arg=${cur##*=}
++		case $cur_subopt in
++		--memdev)
++			opts="$(__cxl_get_devs -i)"
++			;;
++		*)
++			return
++			;;
++		esac
++		__cxlcomp "$opts" "$cur_arg"
++	fi
++}
 +
-+EXTRA_DIST = $(man3_MANS)
++__cxl_comp_non_option_args()
++{
++	local subcmd=$1
++	local cur=$2
++	local opts
 +
-+CLEANFILES = $(man3_MANS)
++	case $subcmd in
++	read-labels)
++		;&
++	write-labels)
++		;&
++	zero-labels)
++		opts="$(__cxl_get_devs -i) all"
++		;;
++	*)
++		return
++		;;
++	esac
++	__cxlcomp "$opts" "$cur"
++}
 +
-+XML_DEPS = \
-+	../../../version.m4 \
-+	../../copyright.txt \
-+	Makefile \
-+	$(CONFFILE)
++__cxl_main()
++{
++	local cmd subcmd
 +
-+RM ?= rm -f
++	cmd=${words[0]}
++	COMPREPLY=()
 +
-+if USE_ASCIIDOCTOR
++	# Skip options backward and find the last cxl command
++	__nd_common_prev_skip_opts
++	subcmd=$prev_skip_opts
++	# List cxl subcommands or long options
++	if [ -z $subcmd ]; then
++		if [[ $cur == --* ]]; then
++			cmds="--version --help --list-cmds"
++		else
++			cmds=$($cmd --list-cmds)
++		fi
++		__cxlcomp "$cmds" "$cur"
++	else
++		# List long option names
++		if [[ $cur == --* ]];  then
++			opts=$($cmd $subcmd --list-opts)
++			__cxlcomp "$opts" "$cur"
++			__cxl_comp_options "$cur"
++		else
++			[ -z "$subcmd" ] && return
++			__cxl_comp_non_option_args "$subcmd" "$cur"
++		fi
++	fi
++}
 +
-+%.3: %.txt $(XML_DEPS)
-+	$(AM_V_GEN)$(RM) $@+ $@ && \
-+		$(ASCIIDOC) -b manpage -d manpage -acompat-mode \
-+		-I. -rasciidoctor-extensions \
-+		-amansource=libcxl -amanmanual="libcxl Manual" \
-+		-andctl_version=$(VERSION) -o $@+ $< && \
-+		mv $@+ $@
++type cxl &>/dev/null &&
++_cxl()
++{
++	local cur words cword prev
++	if [ $preload_get_comp_words_by_ref = "true" ]; then
++		_get_comp_words_by_ref -n =: cur words cword prev
++	else
++		__nd_common_get_comp_words_by_ref -n =: cur words cword prev
++	fi
++	__cxl_main
++}
 +
-+else
-+
-+%.xml: %.txt $(XML_DEPS)
-+	$(AM_V_GEN)$(RM) $@+ $@ && \
-+		$(ASCIIDOC) -b docbook -d manpage -f asciidoc.conf \
-+		--unsafe -alibcxl_version=$(VERSION) -o $@+ $< && \
-+		mv $@+ $@
-+
-+%.3: %.xml $(XML_DEPS)
-+	$(AM_V_GEN)$(RM) $@ && \
-+		$(XMLTO) -o . -m ../../manpage-normal.xsl man $<
-+
-+endif
+ complete -o nospace -F _ndctl ndctl
+ complete -o nospace -F _daxctl daxctl
++complete -o nospace -F _cxl cxl
 -- 
 2.31.1
 
