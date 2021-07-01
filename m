@@ -1,17 +1,17 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A3E66D2D
-	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:25 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606905"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 002AD6D1B
+	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:24 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606895"
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="205606905"
+   d="scan'208";a="205606895"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:18 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:17 -0700
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="409271341"
+   d="scan'208";a="409271328"
 Received: from anandvig-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.38.85])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:17 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:16 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>,
 	<linux-cxl@vger.kernel.org>
@@ -20,9 +20,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 08/21] test: introduce a libcxl unit test
-Date: Thu,  1 Jul 2021 14:09:52 -0600
-Message-Id: <20210701201005.3065299-9-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 06/21] test: rename 'ndctl_test' to 'test_ctx'
+Date: Thu,  1 Jul 2021 14:09:50 -0600
+Message-Id: <20210701201005.3065299-7-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210701201005.3065299-1-vishal.l.verma@intel.com>
 References: <20210701201005.3065299-1-vishal.l.verma@intel.com>
@@ -34,352 +34,713 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a new 'libcxl' test containing a basic harness for unit testing
-libcxl APIs. Include sanity tests such as making sure the test is
-running in an emulated environment, the ability to load and unload
-modules. Submit an 'Identify Device' command, and verify that it
-succeeds, and the identify data returned is as expected from an emulated
-QEMU device.
+In preparation for using the common test core for libcxl tests, rename
+the 'ndctl_test' structure to 'test_ctx'
 
-Cc: Ben Widawsky <ben.widawsky@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- test/libcxl-expect.h |  13 +++
- test/libcxl.c        | 269 +++++++++++++++++++++++++++++++++++++++++++
- test/Makefile.am     |  12 +-
- 3 files changed, 292 insertions(+), 2 deletions(-)
- create mode 100644 test/libcxl-expect.h
- create mode 100644 test/libcxl.c
+ test.h                        | 36 +++++++++++++++++------------------
+ ndctl/bat.c                   |  2 +-
+ ndctl/test.c                  |  2 +-
+ test/ack-shutdown-count-set.c |  8 ++++----
+ test/blk_namespaces.c         |  6 +++---
+ test/core.c                   | 20 +++++++++----------
+ test/dax-dev.c                |  4 ++--
+ test/dax-pmd.c                |  9 +++++----
+ test/dax-poison.c             |  4 ++--
+ test/daxdev-errors.c          |  2 +-
+ test/device-dax.c             | 10 +++++-----
+ test/dpa-alloc.c              |  6 +++---
+ test/dsm-fail.c               |  6 +++---
+ test/libndctl.c               | 34 ++++++++++++++++-----------------
+ test/multi-pmem.c             |  9 +++++----
+ test/parent-uuid.c            |  5 +++--
+ test/pmem_namespaces.c        |  6 +++---
+ test/revoke-devmem.c          |  6 +++---
+ 18 files changed, 89 insertions(+), 86 deletions(-)
 
-diff --git a/test/libcxl-expect.h b/test/libcxl-expect.h
-new file mode 100644
-index 0000000..acb8db9
---- /dev/null
-+++ b/test/libcxl-expect.h
-@@ -0,0 +1,13 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2021 Intel Corporation. All rights reserved. */
-+#ifndef __LIBCXL_EXPECT_H__
-+#define __LIBCXL_EXPECT_H__
-+#include <stdbool.h>
-+
-+#define EXPECT_FW_VER "BWFW VERSION 00"
-+
-+/* Identify command fields */
-+#define EXPECT_CMD_IDENTIFY_PARTITION_ALIGN 0ULL
-+#define EXPECT_CMD_IDENTIFY_LSA_SIZE 1024U
-+
-+#endif /* __LIBCXL_EXPECT_H__ */
-diff --git a/test/libcxl.c b/test/libcxl.c
-new file mode 100644
-index 0000000..241a4bb
---- /dev/null
-+++ b/test/libcxl.c
-@@ -0,0 +1,269 @@
-+// SPDX-License-Identifier: LGPL-2.1
-+/* Copyright (C) 2021, Intel Corporation. All rights reserved. */
-+#include <stdio.h>
-+#include <stddef.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <fcntl.h>
-+#include <ctype.h>
-+#include <errno.h>
-+#include <unistd.h>
-+#include <limits.h>
-+#include <syslog.h>
-+#include <libkmod.h>
-+#include <sys/wait.h>
-+#include <uuid/uuid.h>
-+#include <sys/types.h>
-+#include <sys/ioctl.h>
-+#include <sys/select.h>
-+#include <linux/version.h>
-+
-+#include <util/size.h>
-+#include <ccan/short_types/short_types.h>
-+#include <ccan/array_size/array_size.h>
-+#include <ccan/endian/endian.h>
-+#include <cxl/libcxl.h>
-+#include <cxl/cxl_mem.h>
-+#include <test.h>
-+#include "libcxl-expect.h"
-+
-+#define TEST_SKIP 77
-+
-+const char *mod_list[] = {
-+	"cxl_pci",
-+	"cxl_acpi",
-+	"cxl_core",
-+};
-+
-+static int test_cxl_presence(struct cxl_ctx *ctx)
-+{
-+	struct cxl_memdev *memdev;
-+	int count = 0;
-+
-+	cxl_memdev_foreach(ctx, memdev)
-+		count++;
-+
-+	if (count == 0) {
-+		fprintf(stderr, "%s: no cxl memdevs found\n", __func__);
-+		return TEST_SKIP;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Only continue with tests if all CXL devices in the system are qemu-emulated
-+ * 'fake' devices. For now, use the firmware_version to check for this. Later,
-+ * this might need to be changed to a vendor specific command.
-+ *
-+ * TODO: Change this to produce a list of devices that are safe to run tests
-+ * against, and only run subsequent tests on this list. That will allow devices
-+ * from other, non-emulated sources to be present in the system, and still run
-+ * these unit tests safely.
-+ */
-+static int test_cxl_emulation_env(struct cxl_ctx *ctx)
-+{
-+	struct cxl_memdev *memdev;
-+
-+	cxl_memdev_foreach(ctx, memdev) {
-+		const char *fw;
-+
-+		fw = cxl_memdev_get_firmware_verison(memdev);
-+		if (!fw)
-+			return -ENXIO;
-+		if (strcmp(fw, EXPECT_FW_VER) != 0) {
-+			fprintf(stderr,
-+				"%s: found non-emulation device, aborting\n",
-+				__func__);
-+			return TEST_SKIP;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int test_cxl_modules(struct cxl_ctx *ctx)
-+{
-+	int rc;
-+	unsigned int i;
-+	const char *name;
-+	struct kmod_module *mod;
-+	struct kmod_ctx *kmod_ctx;
-+
-+	kmod_ctx = kmod_new(NULL, NULL);
-+	if (!kmod_ctx)
-+		return -ENXIO;
-+	kmod_set_log_priority(kmod_ctx, LOG_DEBUG);
-+
-+	/* test module removal */
-+	for (i = 0; i < ARRAY_SIZE(mod_list); i++) {
-+		int state;
-+
-+		name = mod_list[i];
-+
-+		rc = kmod_module_new_from_name(kmod_ctx, name, &mod);
-+		if (rc) {
-+			fprintf(stderr, "%s: %s.ko: missing\n", __func__, name);
-+			break;
-+		}
-+
-+		state = kmod_module_get_initstate(mod);
-+		if (state == KMOD_MODULE_LIVE) {
-+			rc = kmod_module_remove_module(mod, 0);
-+			if (rc) {
-+				fprintf(stderr,
-+					"%s: %s.ko: failed to remove: %d\n",
-+					__func__, name, rc);
-+				break;
-+			}
-+		} else if (state == KMOD_MODULE_BUILTIN) {
-+			fprintf(stderr,
-+				"%s: %s is builtin, skipping module removal test\n",
-+				__func__, name);
-+		} else {
-+			fprintf(stderr,
-+				"%s: warning: %s.ko: unexpected state (%d), trying to continue\n",
-+				__func__, name, state);
-+		}
-+	}
-+
-+	if (rc)
-+		goto out;
-+
-+	/* test module insertion */
-+	for (i = 0; i < ARRAY_SIZE(mod_list); i++) {
-+		name = mod_list[i];
-+		rc = kmod_module_new_from_name(kmod_ctx, name, &mod);
-+		if (rc) {
-+			fprintf(stderr, "%s: %s.ko: missing\n", __func__, name);
-+			break;
-+		}
-+
-+		rc = kmod_module_probe_insert_module(mod,
-+				KMOD_PROBE_APPLY_BLACKLIST,
-+				NULL, NULL, NULL, NULL);
-+	}
-+
-+out:
-+	kmod_unref(kmod_ctx);
-+	return rc;
-+}
-+
-+#define expect(c, name, field, expect) \
-+do { \
-+	if (cxl_cmd_##name##_get_##field(c) != expect) { \
-+		fprintf(stderr, \
-+			"%s: %s: " #field " mismatch\n", \
-+			__func__, cxl_cmd_get_devname(c)); \
-+		cxl_cmd_unref(cmd); \
-+		return -ENXIO; \
-+	} \
-+} while (0)
-+
-+static int test_cxl_cmd_identify(struct cxl_ctx *ctx)
-+{
-+	struct cxl_memdev *memdev;
-+	struct cxl_cmd *cmd;
-+	int rc;
-+
-+	cxl_memdev_foreach(ctx, memdev) {
-+		char fw_rev[0x10];
-+
-+		cmd = cxl_cmd_new_identify(memdev);
-+		if (!cmd)
-+			return -ENOMEM;
-+		rc = cxl_cmd_submit(cmd);
-+		if (rc < 0) {
-+			fprintf(stderr, "%s: %s: cmd submission failed: %s\n",
-+				__func__, cxl_memdev_get_devname(memdev),
-+				strerror(-rc));
-+			goto out_fail;
-+		}
-+		rc = cxl_cmd_get_mbox_status(cmd);
-+		if (rc) {
-+			fprintf(stderr,
-+				"%s: %s: cmd failed with firmware status: %d\n",
-+				__func__, cxl_memdev_get_devname(memdev), rc);
-+			rc = -ENXIO;
-+			goto out_fail;
-+		}
-+
-+		rc = cxl_cmd_identify_get_fw_rev(cmd, fw_rev, 0x10);
-+		if (rc)
-+			goto out_fail;
-+		if (strncmp(fw_rev, EXPECT_FW_VER, 0x10) != 0) {
-+			fprintf(stderr,
-+				"%s: fw_rev mismatch. Expected %s, got %s\n",
-+				__func__, EXPECT_FW_VER, fw_rev);
-+			rc = -ENXIO;
-+			goto out_fail;
-+		}
-+
-+		expect(cmd, identify, lsa_size, EXPECT_CMD_IDENTIFY_LSA_SIZE);
-+		expect(cmd, identify, partition_align,
-+			EXPECT_CMD_IDENTIFY_PARTITION_ALIGN);
-+		cxl_cmd_unref(cmd);
-+	}
-+	return 0;
-+
-+out_fail:
-+	cxl_cmd_unref(cmd);
-+	return rc;
-+}
-+
-+typedef int (*do_test_fn)(struct cxl_ctx *ctx);
-+
-+static do_test_fn do_test[] = {
-+	test_cxl_modules,
-+	test_cxl_presence,
-+	test_cxl_emulation_env,
-+	test_cxl_cmd_identify,
-+};
-+
-+static int test_libcxl(int loglevel, struct test_ctx *test, struct cxl_ctx *ctx)
-+{
-+	unsigned int i;
-+	int err, result = EXIT_FAILURE;
-+
-+	if (!test_attempt(test, KERNEL_VERSION(5, 12, 0)))
-+		return 77;
-+
-+	cxl_set_log_priority(ctx, loglevel);
-+	cxl_set_private_data(ctx, test);
-+
-+	for (i = 0; i < ARRAY_SIZE(do_test); i++) {
-+		err = do_test[i](ctx);
-+		if (err < 0) {
-+			fprintf(stderr, "test[%d] failed: %d\n", i, err);
-+			break;
-+		} else if (err == TEST_SKIP) {
-+			fprintf(stderr, "test[%d]: SKIP\n", i);
-+			test_skip(test);
-+			result = TEST_SKIP;
-+			break;
-+		}
-+		fprintf(stderr, "test[%d]: PASS\n", i);
-+	}
-+
-+	if (i >= ARRAY_SIZE(do_test))
-+		result = EXIT_SUCCESS;
-+	return result;
-+}
-+
-+int __attribute__((weak)) main(int argc, char *argv[])
-+{
-+	struct test_ctx *test = test_new(0);
-+	struct cxl_ctx *ctx;
-+	int rc;
-+
-+	if (!test) {
-+		fprintf(stderr, "failed to initialize test\n");
-+		return EXIT_FAILURE;
-+	}
-+
-+	rc = cxl_new(&ctx);
-+	if (rc)
-+		return test_result(test, rc);
-+	rc = test_libcxl(LOG_DEBUG, test, ctx);
-+	cxl_unref(ctx);
-+	return test_result(test, rc);
-+}
-diff --git a/test/Makefile.am b/test/Makefile.am
-index c5b8764..ce492a4 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -44,7 +44,8 @@ check_PROGRAMS =\
- 	hugetlb \
- 	daxdev-errors \
- 	ack-shutdown-count-set \
--	list-smart-dimm
-+	list-smart-dimm \
-+	libcxl
+diff --git a/test.h b/test.h
+index 7de13fe..c5b9d4a 100644
+--- a/test.h
++++ b/test.h
+@@ -4,16 +4,16 @@
+ #define __TEST_H__
+ #include <stdbool.h>
  
- if ENABLE_DESTRUCTIVE
- TESTS +=\
-@@ -61,7 +62,8 @@ TESTS +=\
- 	daxctl-devices.sh \
- 	daxctl-create.sh \
- 	dm.sh \
--	mmap.sh
-+	mmap.sh \
-+	libcxl
+-struct ndctl_test;
++struct test_ctx;
+ struct ndctl_ctx;
+-struct ndctl_test *ndctl_test_new(unsigned int kver);
+-int ndctl_test_result(struct ndctl_test *test, int rc);
+-int ndctl_test_get_skipped(struct ndctl_test *test);
+-int ndctl_test_get_attempted(struct ndctl_test *test);
+-int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
++struct test_ctx *ndctl_test_new(unsigned int kver);
++int ndctl_test_result(struct test_ctx *test, int rc);
++int ndctl_test_get_skipped(struct test_ctx *test);
++int ndctl_test_get_attempted(struct test_ctx *test);
++int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
+ 		const char *caller, int line);
+ #define ndctl_test_attempt(t, v) __ndctl_test_attempt(t, v, __func__, __LINE__)
+-void __ndctl_test_skip(struct ndctl_test *test, const char *caller, int line);
++void __ndctl_test_skip(struct test_ctx *test, const char *caller, int line);
+ #define ndctl_test_skip(t) __ndctl_test_skip(t, __func__, __LINE__)
+ struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx);
+ void builtin_xaction_namespace_reset(void);
+@@ -22,27 +22,27 @@ struct kmod_ctx;
+ struct kmod_module;
+ int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		struct ndctl_ctx *nd_ctx, int log_level,
+-		struct ndctl_test *test);
++		struct test_ctx *test);
  
- if ENABLE_KEYUTILS
- TESTS += security.sh
-@@ -190,3 +192,9 @@ list_smart_dimm_LDADD = \
- 		$(JSON_LIBS) \
- 		$(UUID_LIBS) \
- 		../libutil.a
-+
-+LIBCXL_LIB =\
-+	../cxl/lib/libcxl.la
-+
-+libcxl_SOURCES = libcxl.c $(testcore)
-+libcxl_LDADD = $(LIBCXL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
+ struct ndctl_ctx;
+-int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+-int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
++int test_parent_uuid(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
++int test_multi_pmem(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
+ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t offset);
+-int test_dax_remap(struct ndctl_test *test, int dax_fd, unsigned long align, void *dax_addr,
++int test_dax_remap(struct test_ctx *test, int dax_fd, unsigned long align, void *dax_addr,
+ 		off_t offset, bool fsdax);
+ #ifdef ENABLE_POISON
+-int test_dax_poison(struct ndctl_test *test, int dax_fd, unsigned long align,
++int test_dax_poison(struct test_ctx *test, int dax_fd, unsigned long align,
+ 		void *dax_addr, off_t offset, bool fsdax);
+ #else
+-static inline int test_dax_poison(struct ndctl_test *test, int dax_fd,
++static inline int test_dax_poison(struct test_ctx *test, int dax_fd,
+ 		unsigned long align, void *dax_addr, off_t offset, bool fsdax)
+ {
+ 	return 0;
+ }
+ #endif
+-int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+-int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+-int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+-int test_blk_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
+-int test_pmem_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
++int test_dpa_alloc(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
++int test_dsm_fail(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
++int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
++int test_blk_namespaces(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
++int test_pmem_namespaces(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
+ #endif /* __TEST_H__ */
+diff --git a/ndctl/bat.c b/ndctl/bat.c
+index ef00a3b..18773fd 100644
+--- a/ndctl/bat.c
++++ b/ndctl/bat.c
+@@ -9,7 +9,7 @@
+ int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx)
+ {
+ 	int loglevel = LOG_DEBUG, i, rc;
+-	struct ndctl_test *test;
++	struct test_ctx *test;
+ 	bool force = false;
+ 	const char * const u[] = {
+ 		"ndctl bat [<options>]",
+diff --git a/ndctl/test.c b/ndctl/test.c
+index 6a05d8d..7af3681 100644
+--- a/ndctl/test.c
++++ b/ndctl/test.c
+@@ -18,7 +18,7 @@ static char *result(int rc)
+ 
+ int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
+ {
+-	struct ndctl_test *test;
++	struct test_ctx *test;
+ 	int loglevel = LOG_DEBUG, i, rc;
+ 	const char * const u[] = {
+ 		"ndctl test [<options>]",
+diff --git a/test/ack-shutdown-count-set.c b/test/ack-shutdown-count-set.c
+index c561ff3..d5c7bcb 100644
+--- a/test/ack-shutdown-count-set.c
++++ b/test/ack-shutdown-count-set.c
+@@ -54,7 +54,7 @@ static void reset_bus(struct ndctl_bus *bus)
+ 		ndctl_dimm_zero_labels(dimm);
+ }
+ 
+-static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
++static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
+ {
+ 	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+ 	struct ndctl_dimm *dimm;
+@@ -91,8 +91,8 @@ out:
+ 	return rc;
+ }
+ 
+-static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
+-		struct ndctl_ctx *ctx)
++static int test_ack_shutdown_count_set(int loglevel, struct test_ctx *test,
++				       struct ndctl_ctx *ctx)
+ {
+ 	struct kmod_module *mod;
+ 	struct kmod_ctx *kmod_ctx;
+@@ -117,7 +117,7 @@ static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
+ 
+ int main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
+index f076e85..4919890 100644
+--- a/test/blk_namespaces.c
++++ b/test/blk_namespaces.c
+@@ -198,8 +198,8 @@ static int ns_do_io(const char *bdev)
+ 
+ static const char *comm = "test-blk-namespaces";
+ 
+-int test_blk_namespaces(int log_level, struct ndctl_test *test,
+-		struct ndctl_ctx *ctx)
++int test_blk_namespaces(int log_level, struct test_ctx *test,
++			struct ndctl_ctx *ctx)
+ {
+ 	char bdev[50];
+ 	int rc = -ENXIO;
+@@ -337,7 +337,7 @@ int test_blk_namespaces(int log_level, struct ndctl_test *test,
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/core.c b/test/core.c
+index 2b03aa9..1ef0ac4 100644
+--- a/test/core.c
++++ b/test/core.c
+@@ -16,7 +16,7 @@
+ 
+ #define KVER_STRLEN 20
+ 
+-struct ndctl_test {
++struct test_ctx {
+ 	unsigned int kver;
+ 	int attempt;
+ 	int skip;
+@@ -39,9 +39,9 @@ static unsigned int get_system_kver(void)
+ 	return KERNEL_VERSION(a,b,c);
+ }
+ 
+-struct ndctl_test *ndctl_test_new(unsigned int kver)
++struct test_ctx *ndctl_test_new(unsigned int kver)
+ {
+-	struct ndctl_test *test = calloc(1, sizeof(*test));
++	struct test_ctx *test = calloc(1, sizeof(*test));
+ 
+ 	if (!test)
+ 		return NULL;
+@@ -54,7 +54,7 @@ struct ndctl_test *ndctl_test_new(unsigned int kver)
+ 	return test;
+ }
+ 
+-int ndctl_test_result(struct ndctl_test *test, int rc)
++int ndctl_test_result(struct test_ctx *test, int rc)
+ {
+ 	if (ndctl_test_get_skipped(test))
+ 		fprintf(stderr, "attempted: %d skipped: %d\n",
+@@ -75,8 +75,8 @@ static char *kver_str(char *buf, unsigned int kver)
+ 	return buf;
+ }
+ 
+-int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
+-		const char *caller, int line)
++int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
++			 const char *caller, int line)
+ {
+ 	char requires[KVER_STRLEN], current[KVER_STRLEN];
+ 
+@@ -90,26 +90,26 @@ int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
+ 	return 0;
+ }
+ 
+-void __ndctl_test_skip(struct ndctl_test *test, const char *caller, int line)
++void __ndctl_test_skip(struct test_ctx *test, const char *caller, int line)
+ {
+ 	test->skip++;
+ 	test->attempt = test->skip;
+ 	fprintf(stderr, "%s: explicit skip %s:%d\n", __func__, caller, line);
+ }
+ 
+-int ndctl_test_get_attempted(struct ndctl_test *test)
++int ndctl_test_get_attempted(struct test_ctx *test)
+ {
+ 	return test->attempt;
+ }
+ 
+-int ndctl_test_get_skipped(struct ndctl_test *test)
++int ndctl_test_get_skipped(struct test_ctx *test)
+ {
+ 	return test->skip;
+ }
+ 
+ int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		struct ndctl_ctx *nd_ctx, int log_level,
+-		struct ndctl_test *test)
++		struct test_ctx *test)
+ {
+ 	int rc, family = -1;
+ 	unsigned int i;
+diff --git a/test/dax-dev.c b/test/dax-dev.c
+index 6a1b76d..99eda26 100644
+--- a/test/dax-dev.c
++++ b/test/dax-dev.c
+@@ -87,7 +87,7 @@ struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx)
+ 	return rc ? NULL : ndns;
+ }
+ 
+-static int emit_e820_device(int loglevel, struct ndctl_test *test)
++static int emit_e820_device(int loglevel, struct test_ctx *test)
+ {
+ 	int err;
+ 	struct ndctl_ctx *ctx;
+@@ -118,7 +118,7 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	int rc;
+ 
+ 	if (!test) {
+diff --git a/test/dax-pmd.c b/test/dax-pmd.c
+index 7648e34..e9dedb9 100644
+--- a/test/dax-pmd.c
++++ b/test/dax-pmd.c
+@@ -37,8 +37,9 @@ static void sigbus(int sig, siginfo_t *siginfo, void *d)
+ 	siglongjmp(sj_env, 1);
+ }
+ 
+-int test_dax_remap(struct ndctl_test *test, int dax_fd, unsigned long align, void *dax_addr,
+-		off_t offset, bool fsdax)
++int test_dax_remap(struct test_ctx *test, int dax_fd, unsigned long align,
++		   void *dax_addr,
++		   off_t offset, bool fsdax)
+ {
+ 	void *anon, *remap, *addr;
+ 	struct sigaction act;
+@@ -272,7 +273,7 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
+ }
+ 
+ /* test_pmd assumes that fd references a pre-allocated + dax-capable file */
+-static int test_pmd(struct ndctl_test *test, int fd)
++static int test_pmd(struct test_ctx *test, int fd)
+ {
+ 	unsigned long long m_align, p_align, pmd_off;
+ 	static const bool fsdax = true;
+@@ -351,7 +352,7 @@ err_mmap:
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	int fd, rc;
+ 
+ 	if (!test) {
+diff --git a/test/dax-poison.c b/test/dax-poison.c
+index 4e09761..dc62742 100644
+--- a/test/dax-poison.c
++++ b/test/dax-poison.c
+@@ -44,8 +44,8 @@ static void sigbus_hdl(int sig, siginfo_t *si, void *ptr)
+ 	siglongjmp(sj_env, 1);
+ }
+ 
+-int test_dax_poison(struct ndctl_test *test, int dax_fd, unsigned long align,
+-		void *dax_addr, off_t offset, bool fsdax)
++int test_dax_poison(struct test_ctx *test, int dax_fd, unsigned long align,
++		    void *dax_addr, off_t offset, bool fsdax)
+ {
+ 	unsigned char *addr = MAP_FAILED;
+ 	struct sigaction act;
+diff --git a/test/daxdev-errors.c b/test/daxdev-errors.c
+index fbbea21..4cb6b4d 100644
+--- a/test/daxdev-errors.c
++++ b/test/daxdev-errors.c
+@@ -29,7 +29,7 @@
+ 
+ struct check_cmd {
+ 	struct ndctl_cmd *cmd;
+-	struct ndctl_test *test;
++	struct test_ctx *test;
+ };
+ 
+ static sigjmp_buf sj_env;
+diff --git a/test/device-dax.c b/test/device-dax.c
+index aad8fa5..1837b4d 100644
+--- a/test/device-dax.c
++++ b/test/device-dax.c
+@@ -90,7 +90,7 @@ static void sigbus(int sig, siginfo_t *siginfo, void *d)
+ #define VERIFY_TIME(x) (suseconds_t) ((ALIGN(x, SZ_2M) / SZ_4K) * 60)
+ 
+ static int verify_data(struct daxctl_dev *dev, char *dax_buf,
+-		unsigned long align, int salt, struct ndctl_test *test)
++		unsigned long align, int salt, struct test_ctx *test)
+ {
+ 	struct timeval tv1, tv2, tv_diff;
+ 	unsigned long i;
+@@ -167,7 +167,7 @@ static int test_dax_soft_offline(struct ndctl_test *test, struct ndctl_namespace
+ }
+ 
+ static int __test_device_dax(unsigned long align, int loglevel,
+-		struct ndctl_test *test, struct ndctl_ctx *ctx)
++		struct test_ctx *test, struct ndctl_ctx *ctx)
+ {
+ 	unsigned long i;
+ 	struct sigaction act;
+@@ -406,8 +406,8 @@ static int __test_device_dax(unsigned long align, int loglevel,
+ 	return rc;
+ }
+ 
+-static int test_device_dax(int loglevel, struct ndctl_test *test,
+-		struct ndctl_ctx *ctx)
++static int test_device_dax(int loglevel, struct test_ctx *test,
++			   struct ndctl_ctx *ctx)
+ {
+ 	unsigned long i, aligns[] = { SZ_4K, SZ_2M, SZ_1G };
+ 	int rc;
+@@ -423,7 +423,7 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
+index 59185cf..d0f5271 100644
+--- a/test/dpa-alloc.c
++++ b/test/dpa-alloc.c
+@@ -32,7 +32,7 @@ struct test_dpa_namespace {
+ 
+ #define MIN_SIZE SZ_4M
+ 
+-static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
++static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
+ {
+ 	unsigned int default_available_slots, available_slots, i;
+ 	struct ndctl_region *region, *blk_region = NULL;
+@@ -280,7 +280,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	return 0;
+ }
+ 
+-int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
++int test_dpa_alloc(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
+ {
+ 	struct kmod_module *mod;
+ 	struct kmod_ctx *kmod_ctx;
+@@ -307,7 +307,7 @@ int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/dsm-fail.c b/test/dsm-fail.c
+index 0a6383d..74c56de 100644
+--- a/test/dsm-fail.c
++++ b/test/dsm-fail.c
+@@ -174,7 +174,7 @@ static int test_regions_enable(struct ndctl_bus *bus,
+ 	return 0;
+ }
+ 
+-static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
++static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
+ {
+ 	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+ 	struct ndctl_region *region, *victim_region = NULL;
+@@ -339,7 +339,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	return err;
+ }
+ 
+-int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
++int test_dsm_fail(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
+ {
+ 	struct kmod_module *mod;
+ 	struct kmod_ctx *kmod_ctx;
+@@ -364,7 +364,7 @@ int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/libndctl.c b/test/libndctl.c
+index d9b50f4..30d19db 100644
+--- a/test/libndctl.c
++++ b/test/libndctl.c
+@@ -613,7 +613,7 @@ static int validate_dax(struct ndctl_dax *dax)
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+ 	struct ndctl_region *region = ndctl_dax_get_region(dax);
+ 	struct ndctl_ctx *ctx = ndctl_dax_get_ctx(dax);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct daxctl_region *dax_region = NULL, *found;
+ 	int rc = -ENXIO, fd, count, dax_expect;
+ 	struct daxctl_dev *dax_dev, *seed;
+@@ -725,7 +725,7 @@ static int __check_dax_create(struct ndctl_region *region,
+ {
+ 	struct ndctl_dax *dax_seed = ndctl_region_get_dax_seed(region);
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	enum ndctl_namespace_mode mode;
+ 	struct ndctl_dax *dax;
+ 	const char *devname;
+@@ -835,7 +835,7 @@ static int __check_pfn_create(struct ndctl_region *region,
+ {
+ 	struct ndctl_pfn *pfn_seed = ndctl_region_get_pfn_seed(region);
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	enum ndctl_namespace_mode mode;
+ 	struct ndctl_pfn *pfn;
+ 	const char *devname;
+@@ -978,7 +978,7 @@ static int check_btt_size(struct ndctl_btt *btt)
+ 	unsigned long long actual, expect;
+ 	int size_select, sect_select;
+ 	struct ndctl_ctx *ctx = ndctl_btt_get_ctx(btt);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
+ 	unsigned long long expect_table[][2] = {
+ 		[0] = {
+@@ -1049,7 +1049,7 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
+ 		struct namespace *namespace)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct btt *btt_s = namespace->btt_settings;
+ 	int i, fd, retry = 10;
+ 	struct ndctl_btt *btt;
+@@ -1257,7 +1257,7 @@ static int check_pfn_autodetect(struct ndctl_bus *bus,
+ 	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct pfn *auto_pfn = namespace->pfn_settings;
+ 	struct ndctl_pfn *pfn, *found = NULL;
+ 	enum ndctl_namespace_mode mode;
+@@ -1354,7 +1354,7 @@ static int check_dax_autodetect(struct ndctl_bus *bus,
+ 	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct dax *auto_dax = namespace->dax_settings;
+ 	struct ndctl_dax *dax, *found = NULL;
+ 	enum ndctl_namespace_mode mode;
+@@ -1439,7 +1439,7 @@ static int check_btt_autodetect(struct ndctl_bus *bus,
+ 	struct ndctl_region *region = ndctl_namespace_get_region(ndns);
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+ 	const char *devname = ndctl_namespace_get_devname(ndns);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct btt *auto_btt = namespace->btt_settings;
+ 	struct ndctl_btt *btt, *found = NULL;
+ 	enum ndctl_namespace_mode mode;
+@@ -1681,7 +1681,7 @@ static int check_namespaces(struct ndctl_region *region,
+ 		struct namespace **namespaces, enum ns_mode mode)
+ {
+ 	struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
+-	struct ndctl_test *test = ndctl_get_private_data(ctx);
++	struct test_ctx *test = ndctl_get_private_data(ctx);
+ 	struct ndctl_bus *bus = ndctl_region_get_bus(region);
+ 	struct ndctl_namespace **ndns_save;
+ 	struct namespace *namespace;
+@@ -2044,7 +2044,7 @@ static int check_btts(struct ndctl_region *region, struct btt **btts)
+ struct check_cmd {
+ 	int (*check_fn)(struct ndctl_bus *bus, struct ndctl_dimm *dimm, struct check_cmd *check);
+ 	struct ndctl_cmd *cmd;
+-	struct ndctl_test *test;
++	struct test_ctx *test;
+ };
+ 
+ static struct check_cmd *check_cmds;
+@@ -2412,7 +2412,7 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ #define BITS_PER_LONG 32
+ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 		unsigned long bus_commands, unsigned long dimm_commands,
+-		struct ndctl_test *test)
++		struct test_ctx *test)
+ {
+ 	/*
+ 	 * For now, by coincidence, these are indexed in test execution
+@@ -2483,7 +2483,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+ 
+ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
+ 		unsigned long bus_commands, unsigned long dimm_commands,
+-		struct ndctl_test *test)
++		struct test_ctx *test)
+ {
+ 	long long dsc;
+ 	int i, j, rc;
+@@ -2604,7 +2604,7 @@ static void reset_bus(struct ndctl_bus *bus)
+ 		ndctl_region_enable(region);
+ }
+ 
+-static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
++static int do_test0(struct ndctl_ctx *ctx, struct test_ctx *test)
+ {
+ 	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER0);
+ 	struct ndctl_region *region;
+@@ -2662,7 +2662,7 @@ static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	return check_regions(bus, regions0, ARRAY_SIZE(regions0), BTT);
+ }
+ 
+-static int do_test1(struct ndctl_ctx *ctx, struct ndctl_test *test)
++static int do_test1(struct ndctl_ctx *ctx, struct test_ctx *test)
+ {
+ 	struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER1);
+ 	int rc;
+@@ -2686,13 +2686,13 @@ static int do_test1(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	return check_regions(bus, regions1, ARRAY_SIZE(regions1), BTT);
+ }
+ 
+-typedef int (*do_test_fn)(struct ndctl_ctx *ctx, struct ndctl_test *test);
++typedef int (*do_test_fn)(struct ndctl_ctx *ctx, struct test_ctx *test);
+ static do_test_fn do_test[] = {
+ 	do_test0,
+ 	do_test1,
+ };
+ 
+-int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
++int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
+ {
+ 	unsigned int i;
+ 	struct kmod_module *mod;
+@@ -2732,7 +2732,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/multi-pmem.c b/test/multi-pmem.c
+index 3ea08cc..e2f3bc5 100644
+--- a/test/multi-pmem.c
++++ b/test/multi-pmem.c
+@@ -53,7 +53,7 @@ static void destroy_namespace(struct ndctl_namespace *ndns)
+ 
+ /* Check that the namespace device is gone (if it wasn't the seed) */
+ static int check_deleted(struct ndctl_region *region, const char *devname,
+-		struct ndctl_test *test)
++		struct test_ctx *test)
+ {
+ 	struct ndctl_namespace *ndns;
+ 
+@@ -73,7 +73,7 @@ static int check_deleted(struct ndctl_region *region, const char *devname,
+ 	return 0;
+ }
+ 
+-static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
++static int do_multi_pmem(struct ndctl_ctx *ctx, struct test_ctx *test)
+ {
+ 	int i;
+ 	char devname[100];
+@@ -238,7 +238,8 @@ static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
+ 	return 0;
+ }
+ 
+-int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
++int test_multi_pmem(int loglevel, struct test_ctx *test,
++		    struct ndctl_ctx *ctx)
+ {
+ 	struct kmod_module *mod;
+ 	struct kmod_ctx *kmod_ctx;
+@@ -267,7 +268,7 @@ int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/parent-uuid.c b/test/parent-uuid.c
+index bded33a..dd007c7 100644
+--- a/test/parent-uuid.c
++++ b/test/parent-uuid.c
+@@ -208,7 +208,8 @@ static int do_test(struct ndctl_ctx *ctx)
+ 	return 0;
+ }
+ 
+-int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
++int test_parent_uuid(int loglevel, struct test_ctx *test,
++		     struct ndctl_ctx *ctx)
+ {
+ 	struct kmod_module *mod;
+ 	struct kmod_ctx *kmod_ctx;
+@@ -235,7 +236,7 @@ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ct
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
+index a4db1ae..eddf32a 100644
+--- a/test/pmem_namespaces.c
++++ b/test/pmem_namespaces.c
+@@ -161,8 +161,8 @@ static int ns_do_io(const char *bdev)
+ 
+ static const char *comm = "test-pmem-namespaces";
+ 
+-int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+-		struct ndctl_ctx *ctx)
++int test_pmem_namespaces(int log_level, struct test_ctx *test,
++			 struct ndctl_ctx *ctx)
+ {
+ 	struct ndctl_region *region, *pmem_region = NULL;
+ 	struct kmod_ctx *kmod_ctx = NULL;
+@@ -262,7 +262,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+ 
+ int __attribute__((weak)) main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
+diff --git a/test/revoke-devmem.c b/test/revoke-devmem.c
+index bb8979e..0d67d93 100644
+--- a/test/revoke-devmem.c
++++ b/test/revoke-devmem.c
+@@ -32,8 +32,8 @@ static void sigbus(int sig, siginfo_t *siginfo, void *d)
+ #define err(fmt, ...) \
+ 	fprintf(stderr, "%s: " fmt, __func__, ##__VA_ARGS__)
+ 
+-static int test_devmem(int loglevel, struct ndctl_test *test,
+-		struct ndctl_ctx *ctx)
++static int test_devmem(int loglevel, struct test_ctx *test,
++		       struct ndctl_ctx *ctx)
+ {
+ 	void *buf;
+ 	int fd, rc;
+@@ -124,7 +124,7 @@ out_devmem:
+ 
+ int main(int argc, char *argv[])
+ {
+-	struct ndctl_test *test = ndctl_test_new(0);
++	struct test_ctx *test = ndctl_test_new(0);
+ 	struct ndctl_ctx *ctx;
+ 	int rc;
+ 
 -- 
 2.31.1
 
