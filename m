@@ -1,17 +1,17 @@
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9851229CA
-	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:15 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606870"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1311F2FAE
+	for <nvdimm@lists.linux.dev>; Thu,  1 Jul 2021 20:10:16 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10032"; a="205606873"
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="205606870"
+   d="scan'208";a="205606873"
 Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:13 -0700
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:14 -0700
 X-IronPort-AV: E=Sophos;i="5.83,315,1616482800"; 
-   d="scan'208";a="409271277"
+   d="scan'208";a="409271292"
 Received: from anandvig-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.38.85])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:12 -0700
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 01 Jul 2021 13:10:13 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>,
 	<linux-cxl@vger.kernel.org>
@@ -20,10 +20,12 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Alison Schofield <alison.schofield@intel.com>,
 	Ira Weiny <ira.weiny@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 00/21] Initial CXL support
-Date: Thu,  1 Jul 2021 14:09:44 -0600
-Message-Id: <20210701201005.3065299-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 02/21] cxl: add a cxl utility and libcxl library
+Date: Thu,  1 Jul 2021 14:09:46 -0600
+Message-Id: <20210701201005.3065299-3-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210701201005.3065299-1-vishal.l.verma@intel.com>
+References: <20210701201005.3065299-1-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -32,166 +34,1275 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Changes since v2[1]:
+CXL - or Compute eXpress Link - is a new interconnect that extends PCIe
+to support a wide range of devices, including cache coherent memory
+expanders. As such, these devices can be new sources of 'persistent
+memory', and the 'ndctl' umbrella of tools and libraries needs to be able
+to interact with them.
 
-- Some minor cleanups and formatting (Ben)
-- Update cxl_mem.h to the latest kernel version (Ben)
-- Add .clang-format (Ben)
-- Add label commands to cxl-clu - {read,write,zero}-labels
-- Add libcxl and cxl-cli to the RPM spec
-- Add bash-completion for cxl-cli
-- 
+Add a new utility and library for managing these CXL memory devices. This
+is an initial bring-up for interacting with CXL devices, and only includes
+adding the utility and library infrastructure, parsing device information
+from sysfs for CXL devices, and providing a 'cxl-list' command to
+display this information in JSON formatted output.
 
-[1]: https://lore.kernel.org/linux-cxl/20210219020331.725687-1-vishal.l.verma@intel.com/
-
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
-
-These patches add a new utility and library to support CXL devices.
-This comprehends the kernel's sysfs layout for CXL devices, and
-implements a command submission harness for CXL mailbox commands via
-ioctl()s definied by the cxl_mem driver. 
-
-These patches include:
-- libcxl representation of cxl_mem devices
-- A command submission harness through libcxl
-- A 'cxl-list' command which displays information about a device
-- cxl-{read,write,zero}-labels commands for Label Storage Area
-  manipulation
-- Unit tests to exercise several libcxl APIs and perform mailbox
-  commands.
-
-Patch 15 is an RFC - maybe this should just be dropped entirely for now
-until there is a concept of active/disabled memdevs. It is useful as a
-placeholder as it allows for a way to pre-insert checks in places
-we expect the device to be active or disabled.
-
-An ndctl branch with these patches is also available at [2]
-
-[2]: https://github.com/pmem/ndctl/tree/cxl-2.0v2
-
-Ira Weiny (1):
-  ndctl: Add CXL packages to the RPM spec
-
-Vishal Verma (20):
-  ndctl: add .clang-format
-  cxl: add a cxl utility and libcxl library
-  cxl: add a local copy of the cxl_mem UAPI header
-  libcxl: add support for command query and submission
-  libcxl: add support for the 'Identify Device' command
-  test: rename 'ndctl_test' to 'test_ctx'
-  test: rename 'ndctl_test_*' helpers to 'test_*'
-  test: introduce a libcxl unit test
-  libcxl: add GET_HEALTH_INFO mailbox command and accessors
-  libcxl: add support for the 'GET_LSA' command
-  util/hexdump: Add a util helper to print a buffer in hex
-  test/libcxl: add a test for {set, get}_lsa commands
-  test/libcxl: introduce a command size fuzzing test
-  libcxl: add lsa_size to cxl_memdev, and an API to retrieve it
-  libcxl: PLACEHOLDER: add an interface to determine whether a memdev is
-    active
-  libcxl: add interfaces for label operations
-  test/libcxl: add a test for cxl_memdev_{get,set}_lsa
-  cxl: add commands to read, write, and zero labels
-  Documentation/cxl: add library API documentation
-  cxl-cli: add bash completion
-
- Documentation/cxl/cxl-list.txt           |   64 ++
- Documentation/cxl/cxl-read-labels.txt    |   33 +
- Documentation/cxl/cxl-write-labels.txt   |   32 +
- Documentation/cxl/cxl-zero-labels.txt    |   29 +
- Documentation/cxl/cxl.txt                |   34 +
- Documentation/cxl/human-option.txt       |    8 +
- Documentation/cxl/labels-description.txt |    8 +
- Documentation/cxl/labels-options.txt     |   17 +
- Documentation/cxl/lib/cxl_new.txt        |   43 +
- Documentation/cxl/lib/libcxl.txt         |   56 ++
- Documentation/cxl/memdev-option.txt      |    4 +
- Documentation/cxl/verbose-option.txt     |    5 +
- configure.ac                             |    4 +
- Makefile.am                              |   14 +-
- Makefile.am.in                           |    5 +
- cxl/lib/private.h                        |  104 +++
- cxl/lib/libcxl.c                         | 1026 ++++++++++++++++++++++
- cxl/builtin.h                            |   13 +
- cxl/cxl_mem.h                            |  189 ++++
- cxl/libcxl.h                             |   91 ++
- test.h                                   |   40 +-
- test/libcxl-expect.h                     |   13 +
- util/filter.h                            |    2 +
- util/hexdump.h                           |    8 +
- util/json.h                              |    3 +
- util/main.h                              |    3 +
- cxl/cxl.c                                |   99 +++
- cxl/list.c                               |  113 +++
- cxl/memdev.c                             |  314 +++++++
- ndctl/bat.c                              |    8 +-
- ndctl/test.c                             |    8 +-
- test/ack-shutdown-count-set.c            |   16 +-
- test/blk_namespaces.c                    |   14 +-
- test/core.c                              |   32 +-
- test/dax-dev.c                           |   10 +-
- test/dax-pmd.c                           |   13 +-
- test/dax-poison.c                        |    6 +-
- test/daxdev-errors.c                     |    2 +-
- test/device-dax.c                        |   26 +-
- test/dpa-alloc.c                         |   14 +-
- test/dsm-fail.c                          |   14 +-
- test/libcxl.c                            |  553 ++++++++++++
- test/libndctl.c                          |   84 +-
- test/multi-pmem.c                        |   23 +-
- test/parent-uuid.c                       |   13 +-
- test/pmem_namespaces.c                   |   14 +-
- test/revoke-devmem.c                     |   12 +-
- util/filter.c                            |   20 +
- util/hexdump.c                           |   53 ++
- util/json.c                              |   26 +
- .clang-format                            |  162 ++++
- .gitignore                               |    7 +-
- Documentation/cxl/Makefile.am            |   61 ++
- Documentation/cxl/lib/Makefile.am        |   58 ++
- README.md                                |    2 +-
- contrib/ndctl                            |  109 +++
- cxl/Makefile.am                          |   22 +
- cxl/lib/Makefile.am                      |   32 +
- cxl/lib/libcxl.pc.in                     |   11 +
- cxl/lib/libcxl.sym                       |   67 ++
- ndctl.spec.in                            |   49 ++
- test/Makefile.am                         |   15 +-
- 62 files changed, 3749 insertions(+), 181 deletions(-)
+ Documentation/cxl/cxl-list.txt       |  64 +++++
+ Documentation/cxl/cxl.txt            |  34 +++
+ Documentation/cxl/human-option.txt   |   8 +
+ Documentation/cxl/verbose-option.txt |   5 +
+ configure.ac                         |   3 +
+ Makefile.am                          |   8 +-
+ Makefile.am.in                       |   4 +
+ cxl/lib/private.h                    |  29 +++
+ cxl/lib/libcxl.c                     | 345 +++++++++++++++++++++++++++
+ cxl/builtin.h                        |   8 +
+ cxl/libcxl.h                         |  55 +++++
+ util/filter.h                        |   2 +
+ util/json.h                          |   3 +
+ util/main.h                          |   3 +
+ cxl/cxl.c                            |  96 ++++++++
+ cxl/list.c                           | 113 +++++++++
+ util/filter.c                        |  20 ++
+ util/json.c                          |  26 ++
+ .clang-format                        |   1 +
+ .gitignore                           |   4 +-
+ Documentation/cxl/Makefile.am        |  58 +++++
+ cxl/Makefile.am                      |  21 ++
+ cxl/lib/Makefile.am                  |  32 +++
+ cxl/lib/libcxl.pc.in                 |  11 +
+ cxl/lib/libcxl.sym                   |  29 +++
+ 25 files changed, 978 insertions(+), 4 deletions(-)
  create mode 100644 Documentation/cxl/cxl-list.txt
- create mode 100644 Documentation/cxl/cxl-read-labels.txt
- create mode 100644 Documentation/cxl/cxl-write-labels.txt
- create mode 100644 Documentation/cxl/cxl-zero-labels.txt
  create mode 100644 Documentation/cxl/cxl.txt
  create mode 100644 Documentation/cxl/human-option.txt
- create mode 100644 Documentation/cxl/labels-description.txt
- create mode 100644 Documentation/cxl/labels-options.txt
- create mode 100644 Documentation/cxl/lib/cxl_new.txt
- create mode 100644 Documentation/cxl/lib/libcxl.txt
- create mode 100644 Documentation/cxl/memdev-option.txt
  create mode 100644 Documentation/cxl/verbose-option.txt
  create mode 100644 cxl/lib/private.h
  create mode 100644 cxl/lib/libcxl.c
  create mode 100644 cxl/builtin.h
- create mode 100644 cxl/cxl_mem.h
  create mode 100644 cxl/libcxl.h
- create mode 100644 test/libcxl-expect.h
- create mode 100644 util/hexdump.h
  create mode 100644 cxl/cxl.c
  create mode 100644 cxl/list.c
- create mode 100644 cxl/memdev.c
- create mode 100644 test/libcxl.c
- create mode 100644 util/hexdump.c
- create mode 100644 .clang-format
  create mode 100644 Documentation/cxl/Makefile.am
- create mode 100644 Documentation/cxl/lib/Makefile.am
  create mode 100644 cxl/Makefile.am
  create mode 100644 cxl/lib/Makefile.am
  create mode 100644 cxl/lib/libcxl.pc.in
  create mode 100644 cxl/lib/libcxl.sym
 
-
-base-commit: 4e646fa490ba4b782afa188dd8818b94c419924e
+diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+new file mode 100644
+index 0000000..4e2be87
+--- /dev/null
++++ b/Documentation/cxl/cxl-list.txt
+@@ -0,0 +1,64 @@
++// SPDX-License-Identifier: GPL-2.0
++
++cxl-list(1)
++===========
++
++NAME
++----
++cxl-list - List CXL capable memory devices, and their attributes in json.
++
++SYNOPSIS
++--------
++[verse]
++'cxl list' [<options>]
++
++Walk the CXL capable device hierarchy in the system and list all device
++instances along with some of their major attributes.
++
++Options can be specified to limit the output to specific devices.
++By default, 'cxl list' with no options is equivalent to:
++[verse]
++cxl list --devices
++
++EXAMPLE
++-------
++----
++# cxl list --devices
++{
++  "memdev":"mem0",
++  "pmem_size":268435456,
++  "ram_size":0,
++}
++----
++
++OPTIONS
++-------
++-d::
++--memdev=::
++	Specify a cxl memory device name to filter the listing. For example:
++----
++# cxl list --memdev=mem0
++{
++  "memdev":"mem0",
++  "pmem_size":268435456,
++  "ram_size":0,
++}
++----
++
++-D::
++--memdevs::
++	Include all CXL memory devices in the listing
++
++-i::
++--idle::
++	Include idle (not enabled / zero-sized) devices in the listing
++
++include::human-option.txt[]
++
++include::verbose-option.txt[]
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkcxl:ndctl-list[1]
+diff --git a/Documentation/cxl/cxl.txt b/Documentation/cxl/cxl.txt
+new file mode 100644
+index 0000000..e99e61b
+--- /dev/null
++++ b/Documentation/cxl/cxl.txt
+@@ -0,0 +1,34 @@
++// SPDX-License-Identifier: GPL-2.0
++
++cxl(1)
++======
++
++NAME
++----
++cxl - Provides enumeration and provisioning commands for CXL devices
++
++SYNOPSIS
++--------
++[verse]
++'cxl' [--version] [--help] COMMAND [ARGS]
++
++OPTIONS
++-------
++-v::
++--version::
++  Display the version of the 'cxl' utility.
++
++-h::
++--help::
++  Run the 'cxl help' command.
++
++DESCRIPTION
++-----------
++The cxl utility provides enumeration and provisioning commands for
++the CXL devices managed by the Linux kernel.
++
++include::../copyright.txt[]
++
++SEE ALSO
++--------
++linkcxl:ndctl[1]
+diff --git a/Documentation/cxl/human-option.txt b/Documentation/cxl/human-option.txt
+new file mode 100644
+index 0000000..2f4de7a
+--- /dev/null
++++ b/Documentation/cxl/human-option.txt
+@@ -0,0 +1,8 @@
++// SPDX-License-Identifier: GPL-2.0
++
++-u::
++--human::
++	By default the command will output machine-friendly raw-integer
++	data. Instead, with this flag, numbers representing storage size
++	will be formatted as human readable strings with units, other
++	fields are converted to hexadecimal strings.
+diff --git a/Documentation/cxl/verbose-option.txt b/Documentation/cxl/verbose-option.txt
+new file mode 100644
+index 0000000..cb62c8e
+--- /dev/null
++++ b/Documentation/cxl/verbose-option.txt
+@@ -0,0 +1,5 @@
++// SPDX-License-Identifier: GPL-2.0
++
++-v::
++--verbose::
++	Emit more debug messages
+diff --git a/configure.ac b/configure.ac
+index dc39dbe..dadae0a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -222,12 +222,15 @@ AC_CONFIG_HEADERS(config.h)
+ AC_CONFIG_FILES([
+         Makefile
+         daxctl/lib/Makefile
++        cxl/lib/Makefile
+         ndctl/lib/Makefile
+         ndctl/Makefile
+         daxctl/Makefile
++        cxl/Makefile
+         test/Makefile
+         Documentation/ndctl/Makefile
+         Documentation/daxctl/Makefile
++        Documentation/cxl/Makefile
+ ])
+ 
+ AC_OUTPUT
+diff --git a/Makefile.am b/Makefile.am
+index 60a1998..428fd40 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,9 +1,9 @@
+ include Makefile.am.in
+ 
+ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+-SUBDIRS = . daxctl/lib ndctl/lib ndctl daxctl
++SUBDIRS = . cxl/lib daxctl/lib ndctl/lib cxl ndctl daxctl
+ if ENABLE_DOCS
+-SUBDIRS += Documentation/ndctl Documentation/daxctl
++SUBDIRS += Documentation/ndctl Documentation/daxctl Documentation/cxl
+ endif
+ SUBDIRS += test
+ 
+@@ -87,4 +87,6 @@ libutil_a_SOURCES = \
+ 	util/filter.h \
+ 	util/bitmap.h
+ 
+-nobase_include_HEADERS = daxctl/libdaxctl.h
++nobase_include_HEADERS = \
++	daxctl/libdaxctl.h \
++	cxl/libcxl.h
+diff --git a/Makefile.am.in b/Makefile.am.in
+index bdceda9..aaeee53 100644
+--- a/Makefile.am.in
++++ b/Makefile.am.in
+@@ -42,3 +42,7 @@ LIBNDCTL_AGE=19
+ LIBDAXCTL_CURRENT=6
+ LIBDAXCTL_REVISION=0
+ LIBDAXCTL_AGE=5
++
++LIBCXL_CURRENT=1
++LIBCXL_REVISION=0
++LIBCXL_AGE=0
+diff --git a/cxl/lib/private.h b/cxl/lib/private.h
+new file mode 100644
+index 0000000..fc88fa1
+--- /dev/null
++++ b/cxl/lib/private.h
+@@ -0,0 +1,29 @@
++/* SPDX-License-Identifier: LGPL-2.1 */
++/* Copyright (C) 2020-2021, Intel Corporation. All rights reserved. */
++#ifndef _LIBCXL_PRIVATE_H_
++#define _LIBCXL_PRIVATE_H_
++
++#include <libkmod.h>
++
++#define CXL_EXPORT __attribute__ ((visibility("default")))
++
++struct cxl_memdev {
++	int id, major, minor;
++	void *dev_buf;
++	size_t buf_len;
++	char *dev_path;
++	char *firmware_version;
++	struct cxl_ctx *ctx;
++	struct list_node list;
++	unsigned long long pmem_size;
++	unsigned long long ram_size;
++	int payload_max;
++	struct kmod_module *module;
++};
++
++static inline int check_kmod(struct kmod_ctx *kmod_ctx)
++{
++	return kmod_ctx ? 0 : -ENXIO;
++}
++
++#endif /* _LIBCXL_PRIVATE_H_ */
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+new file mode 100644
+index 0000000..d34e7d0
+--- /dev/null
++++ b/cxl/lib/libcxl.c
+@@ -0,0 +1,345 @@
++// SPDX-License-Identifier: LGPL-2.1
++// Copyright (C) 2020-2021, Intel Corporation. All rights reserved.
++#include <stdio.h>
++#include <errno.h>
++#include <limits.h>
++#include <libgen.h>
++#include <stdlib.h>
++#include <dirent.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <sys/sysmacros.h>
++#include <uuid/uuid.h>
++#include <ccan/list/list.h>
++#include <ccan/array_size/array_size.h>
++
++#include <util/log.h>
++#include <util/sysfs.h>
++#include <util/bitmap.h>
++#include <cxl/libcxl.h>
++#include "private.h"
++
++/**
++ * struct cxl_ctx - library user context to find "nd" instances
++ *
++ * Instantiate with cxl_new(), which takes an initial reference.  Free
++ * the context by dropping the reference count to zero with
++ * cxl_unref(), or take additional references with cxl_ref()
++ * @timeout: default library timeout in milliseconds
++ */
++struct cxl_ctx {
++	/* log_ctx must be first member for cxl_set_log_fn compat */
++	struct log_ctx ctx;
++	int refcount;
++	void *userdata;
++	int memdevs_init;
++	struct list_head memdevs;
++	struct kmod_ctx *kmod_ctx;
++	void *private_data;
++};
++
++static void free_memdev(struct cxl_memdev *memdev, struct list_head *head)
++{
++	if (head)
++		list_del_from(head, &memdev->list);
++	kmod_module_unref(memdev->module);
++	free(memdev->firmware_version);
++	free(memdev->dev_buf);
++	free(memdev->dev_path);
++	free(memdev);
++}
++
++/**
++ * cxl_get_userdata - retrieve stored data pointer from library context
++ * @ctx: cxl library context
++ *
++ * This might be useful to access from callbacks like a custom logging
++ * function.
++ */
++CXL_EXPORT void *cxl_get_userdata(struct cxl_ctx *ctx)
++{
++	if (ctx == NULL)
++		return NULL;
++	return ctx->userdata;
++}
++
++/**
++ * cxl_set_userdata - store custom @userdata in the library context
++ * @ctx: cxl library context
++ * @userdata: data pointer
++ */
++CXL_EXPORT void cxl_set_userdata(struct cxl_ctx *ctx, void *userdata)
++{
++	if (ctx == NULL)
++		return;
++	ctx->userdata = userdata;
++}
++
++CXL_EXPORT void cxl_set_private_data(struct cxl_ctx *ctx, void *data)
++{
++	ctx->private_data = data;
++}
++
++CXL_EXPORT void *cxl_get_private_data(struct cxl_ctx *ctx)
++{
++	return ctx->private_data;
++}
++
++/**
++ * cxl_new - instantiate a new library context
++ * @ctx: context to establish
++ *
++ * Returns zero on success and stores an opaque pointer in ctx.  The
++ * context is freed by cxl_unref(), i.e. cxl_new() implies an
++ * internal cxl_ref().
++ */
++CXL_EXPORT int cxl_new(struct cxl_ctx **ctx)
++{
++	struct kmod_ctx *kmod_ctx;
++	struct cxl_ctx *c;
++	int rc = 0;
++
++	c = calloc(1, sizeof(struct cxl_ctx));
++	if (!c)
++		return -ENOMEM;
++
++	kmod_ctx = kmod_new(NULL, NULL);
++	if (check_kmod(kmod_ctx) != 0) {
++		rc = -ENXIO;
++		goto out;
++	}
++
++	c->refcount = 1;
++	log_init(&c->ctx, "libcxl", "CXL_LOG");
++	info(c, "ctx %p created\n", c);
++	dbg(c, "log_priority=%d\n", c->ctx.log_priority);
++	*ctx = c;
++	list_head_init(&c->memdevs);
++	c->kmod_ctx = kmod_ctx;
++
++	return 0;
++out:
++	free(c);
++	return rc;
++}
++
++/**
++ * cxl_ref - take an additional reference on the context
++ * @ctx: context established by cxl_new()
++ */
++CXL_EXPORT struct cxl_ctx *cxl_ref(struct cxl_ctx *ctx)
++{
++	if (ctx == NULL)
++		return NULL;
++	ctx->refcount++;
++	return ctx;
++}
++
++/**
++ * cxl_unref - drop a context reference count
++ * @ctx: context established by cxl_new()
++ *
++ * Drop a reference and if the resulting reference count is 0 destroy
++ * the context.
++ */
++CXL_EXPORT void cxl_unref(struct cxl_ctx *ctx)
++{
++	struct cxl_memdev *memdev, *_d;
++
++	if (ctx == NULL)
++		return;
++	ctx->refcount--;
++	if (ctx->refcount > 0)
++		return;
++
++	list_for_each_safe(&ctx->memdevs, memdev, _d, list)
++		free_memdev(memdev, &ctx->memdevs);
++
++	kmod_unref(ctx->kmod_ctx);
++	info(ctx, "context %p released\n", ctx);
++	free(ctx);
++}
++
++/**
++ * cxl_set_log_fn - override default log routine
++ * @ctx: cxl library context
++ * @log_fn: function to be called for logging messages
++ *
++ * The built-in logging writes to stderr. It can be overridden by a
++ * custom function, to plug log messages into the user's logging
++ * functionality.
++ */
++CXL_EXPORT void cxl_set_log_fn(struct cxl_ctx *ctx,
++		void (*cxl_log_fn)(struct cxl_ctx *ctx, int priority,
++			const char *file, int line, const char *fn,
++			const char *format, va_list args))
++{
++	ctx->ctx.log_fn = (log_fn) cxl_log_fn;
++	info(ctx, "custom logging function %p registered\n", cxl_log_fn);
++}
++
++/**
++ * cxl_get_log_priority - retrieve current library loglevel (syslog)
++ * @ctx: cxl library context
++ */
++CXL_EXPORT int cxl_get_log_priority(struct cxl_ctx *ctx)
++{
++	return ctx->ctx.log_priority;
++}
++
++/**
++ * cxl_set_log_priority - set log verbosity
++ * @priority: from syslog.h, LOG_ERR, LOG_INFO, LOG_DEBUG
++ *
++ * Note: LOG_DEBUG requires library be built with "configure --enable-debug"
++ */
++CXL_EXPORT void cxl_set_log_priority(struct cxl_ctx *ctx, int priority)
++{
++	ctx->ctx.log_priority = priority;
++}
++
++static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
++{
++	const char *devname = devpath_to_devname(cxlmem_base);
++	char *path = calloc(1, strlen(cxlmem_base) + 100);
++	struct cxl_ctx *ctx = parent;
++	struct cxl_memdev *memdev, *memdev_dup;
++	char buf[SYSFS_ATTR_SIZE];
++	struct stat st;
++
++	if (!path)
++		return NULL;
++	dbg(ctx, "%s: base: \'%s\'\n", __func__, cxlmem_base);
++
++	memdev = calloc(1, sizeof(*memdev));
++	if (!memdev)
++		goto err_dev;
++	memdev->id = id;
++	memdev->ctx = ctx;
++
++	sprintf(path, "/dev/cxl/%s", devname);
++	if (stat(path, &st) < 0)
++		goto err_read;
++	memdev->major = major(st.st_rdev);
++	memdev->minor = minor(st.st_rdev);
++
++	sprintf(path, "%s/pmem/size", cxlmem_base);
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		goto err_read;
++	memdev->pmem_size = strtoull(buf, NULL, 0);
++
++	sprintf(path, "%s/ram/size", cxlmem_base);
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		goto err_read;
++	memdev->ram_size = strtoull(buf, NULL, 0);
++
++	sprintf(path, "%s/payload_max", cxlmem_base);
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		goto err_read;
++	memdev->payload_max = strtoull(buf, NULL, 0);
++	if (memdev->payload_max < 0)
++		goto err_read;
++
++	memdev->dev_path = strdup(cxlmem_base);
++	if (!memdev->dev_path)
++		goto err_read;
++
++	sprintf(path, "%s/firmware_version", cxlmem_base);
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		goto err_read;
++
++	memdev->firmware_version = strdup(buf);
++	if (!memdev->firmware_version)
++		goto err_read;
++
++	memdev->dev_buf = calloc(1, strlen(cxlmem_base) + 50);
++	if (!memdev->dev_buf)
++		goto err_read;
++	memdev->buf_len = strlen(cxlmem_base) + 50;
++
++	cxl_memdev_foreach(ctx, memdev_dup)
++		if (memdev_dup->id == memdev->id) {
++			free_memdev(memdev, NULL);
++			free(path);
++			return memdev_dup;
++		}
++
++	list_add(&ctx->memdevs, &memdev->list);
++	free(path);
++	return memdev;
++
++ err_read:
++	free(memdev->firmware_version);
++	free(memdev->dev_buf);
++	free(memdev->dev_path);
++	free(memdev);
++ err_dev:
++	free(path);
++	return NULL;
++}
++
++static void cxl_memdevs_init(struct cxl_ctx *ctx)
++{
++	if (ctx->memdevs_init)
++		return;
++
++	ctx->memdevs_init = 1;
++
++	sysfs_device_parse(ctx, "/sys/bus/cxl/devices", "mem", ctx,
++			   add_cxl_memdev);
++}
++
++CXL_EXPORT struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev)
++{
++	return memdev->ctx;
++}
++
++CXL_EXPORT struct cxl_memdev *cxl_memdev_get_first(struct cxl_ctx *ctx)
++{
++	cxl_memdevs_init(ctx);
++
++	return list_top(&ctx->memdevs, struct cxl_memdev, list);
++}
++
++CXL_EXPORT struct cxl_memdev *cxl_memdev_get_next(struct cxl_memdev *memdev)
++{
++	struct cxl_ctx *ctx = memdev->ctx;
++
++	return list_next(&ctx->memdevs, memdev, list);
++}
++
++CXL_EXPORT int cxl_memdev_get_id(struct cxl_memdev *memdev)
++{
++	return memdev->id;
++}
++
++CXL_EXPORT const char *cxl_memdev_get_devname(struct cxl_memdev *memdev)
++{
++	return devpath_to_devname(memdev->dev_path);
++}
++
++CXL_EXPORT int cxl_memdev_get_major(struct cxl_memdev *memdev)
++{
++	return memdev->major;
++}
++
++CXL_EXPORT int cxl_memdev_get_minor(struct cxl_memdev *memdev)
++{
++	return memdev->minor;
++}
++
++CXL_EXPORT unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev)
++{
++	return memdev->pmem_size;
++}
++
++CXL_EXPORT unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev)
++{
++	return memdev->ram_size;
++}
++
++CXL_EXPORT const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev)
++{
++	return memdev->firmware_version;
++}
+diff --git a/cxl/builtin.h b/cxl/builtin.h
+new file mode 100644
+index 0000000..3797f98
+--- /dev/null
++++ b/cxl/builtin.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2020-2021 Intel Corporation. All rights reserved. */
++#ifndef _CXL_BUILTIN_H_
++#define _CXL_BUILTIN_H_
++
++struct cxl_ctx;
++int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx);
++#endif /* _CXL_BUILTIN_H_ */
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+new file mode 100644
+index 0000000..fd06790
+--- /dev/null
++++ b/cxl/libcxl.h
+@@ -0,0 +1,55 @@
++/* SPDX-License-Identifier: LGPL-2.1 */
++/* Copyright (C) 2020-2021, Intel Corporation. All rights reserved. */
++#ifndef _LIBCXL_H_
++#define _LIBCXL_H_
++
++#include <stdarg.h>
++#include <unistd.h>
++
++#ifdef HAVE_UUID
++#include <uuid/uuid.h>
++#else
++typedef unsigned char uuid_t[16];
++#endif
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct cxl_ctx;
++struct cxl_ctx *cxl_ref(struct cxl_ctx *ctx);
++void cxl_unref(struct cxl_ctx *ctx);
++int cxl_new(struct cxl_ctx **ctx);
++void cxl_set_log_fn(struct cxl_ctx *ctx,
++		void (*log_fn)(struct cxl_ctx *ctx, int priority,
++			const char *file, int line, const char *fn,
++			const char *format, va_list args));
++int cxl_get_log_priority(struct cxl_ctx *ctx);
++void cxl_set_log_priority(struct cxl_ctx *ctx, int priority);
++void cxl_set_userdata(struct cxl_ctx *ctx, void *userdata);
++void *cxl_get_userdata(struct cxl_ctx *ctx);
++void cxl_set_private_data(struct cxl_ctx *ctx, void *data);
++void *cxl_get_private_data(struct cxl_ctx *ctx);
++
++struct cxl_memdev;
++struct cxl_memdev *cxl_memdev_get_first(struct cxl_ctx *ctx);
++struct cxl_memdev *cxl_memdev_get_next(struct cxl_memdev *memdev);
++int cxl_memdev_get_id(struct cxl_memdev *memdev);
++const char *cxl_memdev_get_devname(struct cxl_memdev *memdev);
++int cxl_memdev_get_major(struct cxl_memdev *memdev);
++int cxl_memdev_get_minor(struct cxl_memdev *memdev);
++struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
++unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
++unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
++const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
++
++#define cxl_memdev_foreach(ctx, memdev) \
++        for (memdev = cxl_memdev_get_first(ctx); \
++             memdev != NULL; \
++             memdev = cxl_memdev_get_next(memdev))
++
++#ifdef __cplusplus
++} /* extern "C" */
++#endif
++
++#endif
+diff --git a/util/filter.h b/util/filter.h
+index 1e1a41c..9a80d65 100644
+--- a/util/filter.h
++++ b/util/filter.h
+@@ -29,6 +29,8 @@ struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
+ 		const char *ident);
+ struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
+ 		const char *ident);
++struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
++		const char *ident);
+ 
+ enum ndctl_namespace_mode util_nsmode(const char *mode);
+ const char *util_nsmode_name(enum ndctl_namespace_mode mode);
+diff --git a/util/json.h b/util/json.h
+index 0f09e36..91918c8 100644
+--- a/util/json.h
++++ b/util/json.h
+@@ -55,4 +55,7 @@ struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
+ struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
+ 		unsigned long flags);
+ struct json_object *util_region_capabilities_to_json(struct ndctl_region *region);
++struct cxl_memdev;
++struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
++		unsigned long flags);
+ #endif /* __NDCTL_JSON_H__ */
+diff --git a/util/main.h b/util/main.h
+index c89a843..80b55c4 100644
+--- a/util/main.h
++++ b/util/main.h
+@@ -10,16 +10,19 @@
+ enum program {
+ 	PROG_NDCTL,
+ 	PROG_DAXCTL,
++	PROG_CXL,
+ };
+ 
+ struct ndctl_ctx;
+ struct daxctl_ctx;
++struct cxl_ctx;
+ 
+ struct cmd_struct {
+ 	const char *cmd;
+ 	union {
+ 		int (*n_fn)(int, const char **, struct ndctl_ctx *ctx);
+ 		int (*d_fn)(int, const char **, struct daxctl_ctx *ctx);
++		int (*c_fn)(int, const char **, struct cxl_ctx *ctx);
+ 	};
+ };
+ 
+diff --git a/cxl/cxl.c b/cxl/cxl.c
+new file mode 100644
+index 0000000..a7725f8
+--- /dev/null
++++ b/cxl/cxl.c
+@@ -0,0 +1,96 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (C) 2020-2021 Intel Corporation. All rights reserved. */
++/* Copyright (C) 2005 Andreas Ericsson. All rights reserved. */
++
++/* originally copied from perf and git */
++
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <cxl/libcxl.h>
++#include <util/parse-options.h>
++#include <ccan/array_size/array_size.h>
++
++#include <util/strbuf.h>
++#include <util/util.h>
++#include <util/main.h>
++#include <cxl/builtin.h>
++
++const char cxl_usage_string[] = "cxl [--version] [--help] COMMAND [ARGS]";
++const char cxl_more_info_string[] =
++	"See 'cxl help COMMAND' for more information on a specific command.\n"
++	" cxl --list-cmds to see all available commands";
++
++static int cmd_version(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	printf("%s\n", VERSION);
++	return 0;
++}
++
++static int cmd_help(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	const char * const builtin_help_subcommands[] = {
++		"list",
++		NULL,
++	};
++	struct option builtin_help_options[] = {
++		OPT_END(),
++	};
++	const char *builtin_help_usage[] = {
++		"cxl help [command]",
++		NULL
++	};
++
++	argc = parse_options_subcommand(argc, argv, builtin_help_options,
++			builtin_help_subcommands, builtin_help_usage, 0);
++
++	if (!argv[0]) {
++		printf("\n usage: %s\n\n", cxl_usage_string);
++		printf("\n %s\n\n", cxl_more_info_string);
++		return 0;
++	}
++
++	return help_show_man_page(argv[0], "cxl", "CXL_MAN_VIEWER");
++}
++
++static struct cmd_struct commands[] = {
++	{ "version", .c_fn = cmd_version },
++	{ "list", .c_fn = cmd_list },
++	{ "help", .c_fn = cmd_help },
++};
++
++int main(int argc, const char **argv)
++{
++	struct cxl_ctx *ctx;
++	int rc;
++
++	/* Look for flags.. */
++	argv++;
++	argc--;
++	main_handle_options(&argv, &argc, cxl_usage_string, commands,
++			ARRAY_SIZE(commands));
++
++	if (argc > 0) {
++		if (!prefixcmp(argv[0], "--"))
++			argv[0] += 2;
++	} else {
++		/* The user didn't specify a command; give them help */
++		printf("\n usage: %s\n\n", cxl_usage_string);
++		printf("\n %s\n\n", cxl_more_info_string);
++		goto out;
++	}
++
++	rc = cxl_new(&ctx);
++	if (rc)
++		goto out;
++	main_handle_internal_command(argc, argv, ctx, commands,
++			ARRAY_SIZE(commands), PROG_CXL);
++	cxl_unref(ctx);
++	fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
++out:
++	return 1;
++}
+diff --git a/cxl/list.c b/cxl/list.c
+new file mode 100644
+index 0000000..3dea73f
+--- /dev/null
++++ b/cxl/list.c
+@@ -0,0 +1,113 @@
++// SPDX-License-Identifier: GPL-2.0
++/* Copyright (C) 2020-2021 Intel Corporation. All rights reserved. */
++#include <stdio.h>
++#include <errno.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <limits.h>
++#include <util/json.h>
++#include <util/filter.h>
++#include <json-c/json.h>
++#include <cxl/libcxl.h>
++#include <util/parse-options.h>
++#include <ccan/array_size/array_size.h>
++
++static struct {
++	bool memdevs;
++	bool idle;
++	bool human;
++} list;
++
++static unsigned long listopts_to_flags(void)
++{
++	unsigned long flags = 0;
++
++	if (list.idle)
++		flags |= UTIL_JSON_IDLE;
++	if (list.human)
++		flags |= UTIL_JSON_HUMAN;
++	return flags;
++}
++
++static struct {
++	const char *memdev;
++} param;
++
++static int did_fail;
++
++#define fail(fmt, ...) \
++do { \
++	did_fail = 1; \
++	fprintf(stderr, "cxl-%s:%s:%d: " fmt, \
++			VERSION, __func__, __LINE__, ##__VA_ARGS__); \
++} while (0)
++
++static int num_list_flags(void)
++{
++	return list.memdevs;
++}
++
++int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
++{
++	const struct option options[] = {
++		OPT_STRING('d', "memdev", &param.memdev, "memory device name",
++			   "filter by CXL memory device name"),
++		OPT_BOOLEAN('D', "memdevs", &list.memdevs,
++			    "include CXL memory device info"),
++		OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
++		OPT_BOOLEAN('u', "human", &list.human,
++				"use human friendly number formats "),
++		OPT_END(),
++	};
++	const char * const u[] = {
++		"cxl list [<options>]",
++		NULL
++	};
++	struct json_object *jdevs = NULL;
++	unsigned long list_flags;
++	struct cxl_memdev *memdev;
++	int i;
++
++	argc = parse_options(argc, argv, options, u, 0);
++	for (i = 0; i < argc; i++)
++		error("unknown parameter \"%s\"\n", argv[i]);
++
++	if (argc)
++		usage_with_options(u, options);
++
++	if (num_list_flags() == 0)
++		list.memdevs = true;
++
++	list_flags = listopts_to_flags();
++
++	cxl_memdev_foreach(ctx, memdev) {
++		struct json_object *jdev = NULL;
++
++		if (!util_cxl_memdev_filter(memdev, param.memdev))
++			continue;
++
++		if (list.memdevs) {
++			if (!jdevs) {
++				jdevs = json_object_new_array();
++				if (!jdevs) {
++					fail("\n");
++					continue;
++				}
++			}
++
++			jdev = util_cxl_memdev_to_json(memdev, list_flags);
++			if (!jdev) {
++				fail("\n");
++				continue;
++			}
++			json_object_array_add(jdevs, jdev);
++		}
++	}
++
++	if (jdevs)
++		util_display_json_array(stdout, jdevs, list_flags);
++
++	if (did_fail)
++		return -ENOMEM;
++	return 0;
++}
+diff --git a/util/filter.c b/util/filter.c
+index 8b4aad3..d81dade 100644
+--- a/util/filter.c
++++ b/util/filter.c
+@@ -12,6 +12,7 @@
+ #include <util/filter.h>
+ #include <ndctl/libndctl.h>
+ #include <daxctl/libdaxctl.h>
++#include <cxl/libcxl.h>
+ 
+ struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *__ident)
+ {
+@@ -339,6 +340,25 @@ struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
+ 	return NULL;
+ }
+ 
++struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
++					  const char *ident)
++{
++	int memdev_id;
++
++	if (!ident || strcmp(ident, "all") == 0)
++		return memdev;
++
++	if (strcmp(ident, cxl_memdev_get_devname(memdev)) == 0)
++		return memdev;
++
++	if ((sscanf(ident, "%d", &memdev_id) == 1
++			|| sscanf(ident, "mem%d", &memdev_id) == 1)
++			&& cxl_memdev_get_id(memdev) == memdev_id)
++		return memdev;
++
++	return NULL;
++}
++
+ enum ndctl_namespace_mode util_nsmode(const char *mode)
+ {
+ 	if (!mode)
+diff --git a/util/json.c b/util/json.c
+index a8d2412..3be3a92 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -9,6 +9,7 @@
+ #include <json-c/printbuf.h>
+ #include <ndctl/libndctl.h>
+ #include <daxctl/libdaxctl.h>
++#include <cxl/libcxl.h>
+ #include <ccan/array_size/array_size.h>
+ #include <ccan/short_types/short_types.h>
+ #include <ndctl.h>
+@@ -1440,3 +1441,28 @@ struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
+ 	json_object_put(jerr);
+ 	return NULL;
+ }
++
++struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
++		unsigned long flags)
++{
++	const char *devname = cxl_memdev_get_devname(memdev);
++	struct json_object *jdev, *jobj;
++
++	jdev = json_object_new_object();
++	if (!devname || !jdev)
++		return NULL;
++
++	jobj = json_object_new_string(devname);
++	if (jobj)
++		json_object_object_add(jdev, "memdev", jobj);
++
++	jobj = util_json_object_size(cxl_memdev_get_pmem_size(memdev), flags);
++	if (jobj)
++		json_object_object_add(jdev, "pmem_size", jobj);
++
++	jobj = util_json_object_size(cxl_memdev_get_ram_size(memdev), flags);
++	if (jobj)
++		json_object_object_add(jdev, "ram_size", jobj);
++
++	return jdev;
++}
+diff --git a/.clang-format b/.clang-format
+index 4e00fff..d2e77d0 100644
+--- a/.clang-format
++++ b/.clang-format
+@@ -77,6 +77,7 @@ ExperimentalAutoDetectBinPacking: false
+ # 		-e 's/\(.*foreach.*\)(.*/\1/' \
+ # 	| sort -u)
+ ForEachMacros:
++  - 'cxl_memdev_foreach'
+   - 'daxctl_dev_foreach'
+   - 'daxctl_mapping_foreach'
+   - 'daxctl_region_foreach'
+diff --git a/.gitignore b/.gitignore
+index 53512b2..6a97b92 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -16,9 +16,11 @@ Makefile.in
+ *.1
+ Documentation/daxctl/asciidoc.conf
+ Documentation/ndctl/asciidoc.conf
+-Documentation/ndctl/attrs.adoc
++Documentation/cxl/asciidoc.conf
+ Documentation/daxctl/asciidoctor-extensions.rb
+ Documentation/ndctl/asciidoctor-extensions.rb
++Documentation/cxl/asciidoctor-extensions.rb
++Documentation/ndctl/attrs.adoc
+ .dirstamp
+ daxctl/config.h
+ daxctl/daxctl
+diff --git a/Documentation/cxl/Makefile.am b/Documentation/cxl/Makefile.am
+new file mode 100644
+index 0000000..db98dd7
+--- /dev/null
++++ b/Documentation/cxl/Makefile.am
+@@ -0,0 +1,58 @@
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2020-2021 Intel Corporation. All rights reserved.
++
++if USE_ASCIIDOCTOR
++
++do_subst = sed -e 's,@Utility@,Cxl,g' -e's,@utility@,cxl,g'
++CONFFILE = asciidoctor-extensions.rb
++asciidoctor-extensions.rb: ../asciidoctor-extensions.rb.in
++	$(AM_V_GEN) $(do_subst) < $< > $@
++
++else
++
++do_subst = sed -e 's,UTILITY,cxl,g'
++CONFFILE = asciidoc.conf
++asciidoc.conf: ../asciidoc.conf.in
++	$(AM_V_GEN) $(do_subst) < $< > $@
++
++endif
++
++man1_MANS = \
++	cxl.1 \
++	cxl-list.1
++
++EXTRA_DIST = $(man1_MANS)
++
++CLEANFILES = $(man1_MANS)
++
++XML_DEPS = \
++	../../version.m4 \
++	../copyright.txt \
++	Makefile \
++	$(CONFFILE)
++
++RM ?= rm -f
++
++if USE_ASCIIDOCTOR
++
++%.1: %.txt $(XML_DEPS)
++	$(AM_V_GEN)$(RM) $@+ $@ && \
++		$(ASCIIDOC) -b manpage -d manpage -acompat-mode \
++		-I. -rasciidoctor-extensions \
++		-amansource=cxl -amanmanual="cxl Manual" \
++		-andctl_version=$(VERSION) -o $@+ $< && \
++		mv $@+ $@
++
++else
++
++%.xml: %.txt $(XML_DEPS)
++	$(AM_V_GEN)$(RM) $@+ $@ && \
++		$(ASCIIDOC) -b docbook -d manpage -f asciidoc.conf \
++		--unsafe -acxl_version=$(VERSION) -o $@+ $< && \
++		mv $@+ $@
++
++%.1: %.xml $(XML_DEPS)
++	$(AM_V_GEN)$(RM) $@ && \
++		$(XMLTO) -o . -m ../manpage-normal.xsl man $<
++
++endif
+diff --git a/cxl/Makefile.am b/cxl/Makefile.am
+new file mode 100644
+index 0000000..98606b9
+--- /dev/null
++++ b/cxl/Makefile.am
+@@ -0,0 +1,21 @@
++include $(top_srcdir)/Makefile.am.in
++
++bin_PROGRAMS = cxl
++
++DISTCLEANFILES = config.h
++BUILT_SOURCES = config.h
++config.h: $(srcdir)/Makefile.am
++	$(AM_V_GEN) echo "/* Autogenerated by cxl/Makefile.am */" >$@
++
++cxl_SOURCES =\
++		cxl.c \
++		list.c \
++		../util/json.c \
++		builtin.h
++
++cxl_LDADD =\
++	lib/libcxl.la \
++	../libutil.a \
++	$(UUID_LIBS) \
++	$(KMOD_LIBS) \
++	$(JSON_LIBS)
+diff --git a/cxl/lib/Makefile.am b/cxl/lib/Makefile.am
+new file mode 100644
+index 0000000..277f0cd
+--- /dev/null
++++ b/cxl/lib/Makefile.am
+@@ -0,0 +1,32 @@
++include $(top_srcdir)/Makefile.am.in
++
++%.pc: %.pc.in Makefile
++	$(SED_PROCESS)
++
++pkginclude_HEADERS = ../libcxl.h
++lib_LTLIBRARIES = libcxl.la
++
++libcxl_la_SOURCES =\
++	../libcxl.h \
++	private.h \
++	../../util/sysfs.c \
++	../../util/sysfs.h \
++	../../util/log.c \
++	../../util/log.h \
++	libcxl.c
++
++libcxl_la_LIBADD =\
++	$(UUID_LIBS) \
++	$(KMOD_LIBS)
++
++EXTRA_DIST += libcxl.sym
++
++libcxl_la_LDFLAGS = $(AM_LDFLAGS) \
++	-version-info $(LIBCXL_CURRENT):$(LIBCXL_REVISION):$(LIBCXL_AGE) \
++	-Wl,--version-script=$(top_srcdir)/cxl/lib/libcxl.sym
++libcxl_la_DEPENDENCIES = libcxl.sym
++
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = libcxl.pc
++EXTRA_DIST += libcxl.pc.in
++CLEANFILES += libcxl.pc
+diff --git a/cxl/lib/libcxl.pc.in b/cxl/lib/libcxl.pc.in
+new file mode 100644
+index 0000000..949fcdc
+--- /dev/null
++++ b/cxl/lib/libcxl.pc.in
+@@ -0,0 +1,11 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
++
++Name: libcxl
++Description: Manage CXL devices
++Version: @VERSION@
++Libs: -L${libdir} -lcxl
++Libs.private:
++Cflags: -I${includedir}
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+new file mode 100644
+index 0000000..0f6ecad
+--- /dev/null
++++ b/cxl/lib/libcxl.sym
+@@ -0,0 +1,29 @@
++LIBCXL_1 {
++global:
++	cxl_get_userdata;
++	cxl_set_userdata;
++	cxl_get_private_data;
++	cxl_set_private_data;
++	cxl_ref;
++	cxl_get_log_priority;
++	cxl_set_log_fn;
++	cxl_unref;
++	cxl_set_log_priority;
++	cxl_new;
++local:
++        *;
++};
++
++LIBCXL_2 {
++global:
++	cxl_memdev_get_first;
++	cxl_memdev_get_next;
++	cxl_memdev_get_id;
++	cxl_memdev_get_devname;
++	cxl_memdev_get_major;
++	cxl_memdev_get_minor;
++	cxl_memdev_get_ctx;
++	cxl_memdev_get_pmem_size;
++	cxl_memdev_get_ram_size;
++	cxl_memdev_get_firmware_verison;
++} LIBCXL_1;
 -- 
 2.31.1
 
