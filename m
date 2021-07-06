@@ -1,150 +1,119 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3799572
-	for <nvdimm@lists.linux.dev>; Tue,  6 Jul 2021 04:49:51 +0000 (UTC)
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.54])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GJqM63x0FzZqnQ
-	for <nvdimm@lists.linux.dev>; Tue,  6 Jul 2021 12:29:06 +0800 (CST)
-Received: from dggema765-chm.china.huawei.com (10.1.198.207) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Tue, 6 Jul 2021 12:32:17 +0800
-Received: from [127.0.0.1] (10.174.177.249) by dggema765-chm.china.huawei.com
- (10.1.198.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Tue, 6 Jul
- 2021 12:32:17 +0800
-Subject: [ndctl PATCH v2 1/2] libndctl: check return value of
- ndctl_pfn_get_namespace
-To: <vishal.l.verma@intel.com>
-CC: <nvdimm@lists.linux.dev>, linfeilong <linfeilong@huawei.com>,
-	<lixiaokeng@huawei.com>, Alison Schofield <alison.schofield@intel.com>,
-	<liuzhiqiang26@huawei.com>
-References: <c3c08075-4815-8e84-2ba6-64644e72abee@huawei.com>
-From: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-Message-ID: <ff2e9afe-3af2-5f6d-eba9-9bf18a529174@huawei.com>
-Date: Tue, 6 Jul 2021 12:32:15 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBDFC70
+	for <nvdimm@lists.linux.dev>; Tue,  6 Jul 2021 07:21:20 +0000 (UTC)
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16673LW4038582;
+	Tue, 6 Jul 2021 03:20:47 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=+tSYXNITpqcsEbNO1EVl+iFKtHcq1jgb/+boOFMvQC0=;
+ b=r+qCSw9HWqt5CsplJnfNdMBfy0TWePM6XL5Heac1XDWTDHv7/jl/EPPC3lqW8bs7Hq75
+ W82RwgyLs7mlEU8Md60unyWdOWkbgd3QOMtnm6vSo2ssx6WRQM26awI1QfVRU3WXE8KA
+ dnI8QIA/2btfO2eOkbuSKi44EjAg9l7hlQ0AZX/CJrby475X/nJXbxwr/zt9DSZOn2+S
+ fqBM+Hwuv1TXWmNJ9J+Bke2e0rF8jTMWYKocy2e+hO1//gs6vOZJ+PYOxvzn4hSxC+tN
+ v21KuHHp8HVOS2ylwdl8dC3CI8STnbLST4HL8fOqxd5PXijJgLr74oy6XH+yQ8Ci8lXO NQ== 
+Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 39mbkdrtkk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 06 Jul 2021 03:20:47 -0400
+Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
+	by ppma01wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1667D0lA027420;
+	Tue, 6 Jul 2021 07:20:46 GMT
+Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
+	by ppma01wdc.us.ibm.com with ESMTP id 39jfhae369-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 06 Jul 2021 07:20:46 +0000
+Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
+	by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1667Kk6N6292072
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 6 Jul 2021 07:20:46 GMT
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D5748AE068;
+	Tue,  6 Jul 2021 07:20:45 +0000 (GMT)
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 4314AAE062;
+	Tue,  6 Jul 2021 07:20:40 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.199.34.44])
+	by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
+	Tue,  6 Jul 2021 07:20:39 +0000 (GMT)
+Subject: Re: [PATCH v3 0/4] Add perf interface to expose nvdimm
+To: Michael Ellerman <mpe@ellerman.id.au>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Dan Williams <dan.j.williams@intel.com>
+Cc: linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, maddy@linux.vnet.ibm.com,
+        santosh@fossix.org, aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com,
+        ira.weiny@intel.com, atrajeev@linux.vnet.ibm.com, tglx@linutronix.de,
+        rnsastry@linux.ibm.com
+References: <20210617132617.99529-1-kjain@linux.ibm.com>
+ <YNHiRO11E9yYS6mv@hirez.programming.kicks-ass.net>
+ <cea827fe-62d4-95fe-b81f-5c7bebe4a6f0@linux.ibm.com>
+ <YNLxRz1w9IeatIKW@hirez.programming.kicks-ass.net>
+ <87fsx825lj.fsf@mpe.ellerman.id.au>
+From: kajoljain <kjain@linux.ibm.com>
+Message-ID: <96e9fa2e-fd8a-dc1a-9cbb-b515b8468867@linux.ibm.com>
+Date: Tue, 6 Jul 2021 12:50:36 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <c3c08075-4815-8e84-2ba6-64644e72abee@huawei.com>
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <87fsx825lj.fsf@mpe.ellerman.id.au>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.177.249]
-X-ClientProxiedBy: dggems705-chm.china.huawei.com (10.3.19.182) To
- dggema765-chm.china.huawei.com (10.1.198.207)
-X-CFilter-Loop: Reflected
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: ZTZGICHiuoHhKfhxOni8w9McQi0WG8ZU
+X-Proofpoint-ORIG-GUID: ZTZGICHiuoHhKfhxOni8w9McQi0WG8ZU
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-07-06_02:2021-07-02,2021-07-06 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 mlxscore=0
+ lowpriorityscore=0 clxscore=1015 mlxlogscore=999 phishscore=0
+ priorityscore=1501 spamscore=0 malwarescore=0 adultscore=0 bulkscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2107060035
 
 
-Recently, we use Coverity to analysis the ndctl package,
-one kind of NULL_RETURNS issue is reported as follows,
-pfn_clear_badblocks():
-	CID 11690495: (NULL_RETURNS)
-    1429. dereference: Dereferencing a pointer that might be "NULL" "ndns" when calling "ndctl_namespace_disable_safe".
-dax_clear_badblocks():
-	CID 11690504: (NULL_RETURNS)
-    1405. dereference: Dereferencing a pointer that might be "NULL" "ndns" when calling "ndctl_namespace_disable_safe".
-util_pfn_badblocks_to_json():
-	CID 11690524: (NULL_RETURNS)
-    812. dereference: Dereferencing a pointer that might be "NULL" "ndns" when calling "util_namespace_badblocks_to_json".
 
-ndctl_pfn_get_namespace() may return NULL, so callers
-should check return value of it. Otherwise, it may
-cause access NULL pointer problem.
+On 6/23/21 4:46 PM, Michael Ellerman wrote:
+> Peter Zijlstra <peterz@infradead.org> writes:
+>> On Wed, Jun 23, 2021 at 01:40:38PM +0530, kajoljain wrote:
+>>>
+>>> On 6/22/21 6:44 PM, Peter Zijlstra wrote:
+>>>> On Thu, Jun 17, 2021 at 06:56:13PM +0530, Kajol Jain wrote:
+>>>>> ---
+>>>>> Kajol Jain (4):
+>>>>>   drivers/nvdimm: Add nvdimm pmu structure
+>>>>>   drivers/nvdimm: Add perf interface to expose nvdimm performance stats
+>>>>>   powerpc/papr_scm: Add perf interface support
+>>>>>   powerpc/papr_scm: Document papr_scm sysfs event format entries
+>>>>
+>>>> Don't see anything obviously wrong with this one.
+>>>>
+>>>> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+>>>>
+>>>
+>>> Hi Peter,
+>>>     Thanks for reviewing the patch. Can you help me on how to take 
+>>> these patches to linus tree or can you take it?
+>>
+>> I would expect either the NVDIMM or PPC maintainers to take this. Dan,
+>> Michael ?
+> 
+> I can take it but would need Acks from nvdimm folks.
 
-Signed-off-by: Zhiqiang Liu <liuzhiqiang26@huawei.com>
----
-v1->v2: add coverity report info as suggested by Alison
+Hi Dan,
+    Do you have any comments on this patchset. Please let me know.
 
- ndctl/namespace.c | 18 ++++++++++++++----
- test/libndctl.c   |  4 ++--
- util/json.c       |  2 ++
- 3 files changed, 18 insertions(+), 6 deletions(-)
+Thanks,
+Kajol jain
 
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 0c8df9f..21089d7 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -1417,11 +1417,16 @@ static int nstype_clear_badblocks(struct ndctl_namespace *ndns,
-
- static int dax_clear_badblocks(struct ndctl_dax *dax)
- {
--	struct ndctl_namespace *ndns = ndctl_dax_get_namespace(dax);
--	const char *devname = ndctl_dax_get_devname(dax);
-+	struct ndctl_namespace *ndns;
-+	const char *devname;
- 	unsigned long long begin, size;
- 	int rc;
-
-+	ndns = ndctl_dax_get_namespace(dax);
-+	if (!ndns)
-+		return -ENXIO;
-+
-+	devname = ndctl_dax_get_devname(dax);
- 	begin = ndctl_dax_get_resource(dax);
- 	if (begin == ULLONG_MAX)
- 		return -ENXIO;
-@@ -1441,11 +1446,16 @@ static int dax_clear_badblocks(struct ndctl_dax *dax)
-
- static int pfn_clear_badblocks(struct ndctl_pfn *pfn)
- {
--	struct ndctl_namespace *ndns = ndctl_pfn_get_namespace(pfn);
--	const char *devname = ndctl_pfn_get_devname(pfn);
-+	struct ndctl_namespace *ndns;
-+	const char *devname;
- 	unsigned long long begin, size;
- 	int rc;
-
-+	ndns = ndctl_pfn_get_namespace(pfn);
-+	if (!ndns)
-+		return -ENXIO;
-+
-+	devname = ndctl_pfn_get_devname(pfn);
- 	begin = ndctl_pfn_get_resource(pfn);
- 	if (begin == ULLONG_MAX)
- 		return -ENXIO;
-diff --git a/test/libndctl.c b/test/libndctl.c
-index 24d72b3..05e5ff2 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -1275,7 +1275,7 @@ static int check_pfn_autodetect(struct ndctl_bus *bus,
- 		if (!ndctl_pfn_is_enabled(pfn))
- 			continue;
- 		pfn_ndns = ndctl_pfn_get_namespace(pfn);
--		if (strcmp(ndctl_namespace_get_devname(pfn_ndns), devname) != 0)
-+		if (!pfn_ndns || strcmp(ndctl_namespace_get_devname(pfn_ndns), devname) != 0)
- 			continue;
- 		fprintf(stderr, "%s: pfn_ndns: %p ndns: %p\n", __func__,
- 				pfn_ndns, ndns);
-@@ -1372,7 +1372,7 @@ static int check_dax_autodetect(struct ndctl_bus *bus,
- 		if (!ndctl_dax_is_enabled(dax))
- 			continue;
- 		dax_ndns = ndctl_dax_get_namespace(dax);
--		if (strcmp(ndctl_namespace_get_devname(dax_ndns), devname) != 0)
-+		if (!dax_ndns || strcmp(ndctl_namespace_get_devname(dax_ndns), devname) != 0)
- 			continue;
- 		fprintf(stderr, "%s: dax_ndns: %p ndns: %p\n", __func__,
- 				dax_ndns, ndns);
-diff --git a/util/json.c b/util/json.c
-index ca0167b..249f021 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -1002,6 +1002,8 @@ static struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
- 	pfn_begin = ndctl_pfn_get_resource(pfn);
- 	if (pfn_begin == ULLONG_MAX) {
- 		struct ndctl_namespace *ndns = ndctl_pfn_get_namespace(pfn);
-+		if (!ndns)
-+			return NULL;
-
- 		return util_namespace_badblocks_to_json(ndns, bb_count, flags);
- 	}
--- 
-2.23.0
-
-
+> 
+> cheers
+> 
