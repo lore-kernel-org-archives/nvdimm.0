@@ -1,119 +1,185 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [78.32.30.218])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBDFC70
-	for <nvdimm@lists.linux.dev>; Tue,  6 Jul 2021 07:21:20 +0000 (UTC)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16673LW4038582;
-	Tue, 6 Jul 2021 03:20:47 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
- references : from : message-id : date : mime-version : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=+tSYXNITpqcsEbNO1EVl+iFKtHcq1jgb/+boOFMvQC0=;
- b=r+qCSw9HWqt5CsplJnfNdMBfy0TWePM6XL5Heac1XDWTDHv7/jl/EPPC3lqW8bs7Hq75
- W82RwgyLs7mlEU8Md60unyWdOWkbgd3QOMtnm6vSo2ssx6WRQM26awI1QfVRU3WXE8KA
- dnI8QIA/2btfO2eOkbuSKi44EjAg9l7hlQ0AZX/CJrby475X/nJXbxwr/zt9DSZOn2+S
- fqBM+Hwuv1TXWmNJ9J+Bke2e0rF8jTMWYKocy2e+hO1//gs6vOZJ+PYOxvzn4hSxC+tN
- v21KuHHp8HVOS2ylwdl8dC3CI8STnbLST4HL8fOqxd5PXijJgLr74oy6XH+yQ8Ci8lXO NQ== 
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 39mbkdrtkk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 06 Jul 2021 03:20:47 -0400
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-	by ppma01wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1667D0lA027420;
-	Tue, 6 Jul 2021 07:20:46 GMT
-Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
-	by ppma01wdc.us.ibm.com with ESMTP id 39jfhae369-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 06 Jul 2021 07:20:46 +0000
-Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
-	by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1667Kk6N6292072
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 6 Jul 2021 07:20:46 GMT
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D5748AE068;
-	Tue,  6 Jul 2021 07:20:45 +0000 (GMT)
-Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 4314AAE062;
-	Tue,  6 Jul 2021 07:20:40 +0000 (GMT)
-Received: from localhost.localdomain (unknown [9.199.34.44])
-	by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
-	Tue,  6 Jul 2021 07:20:39 +0000 (GMT)
-Subject: Re: [PATCH v3 0/4] Add perf interface to expose nvdimm
-To: Michael Ellerman <mpe@ellerman.id.au>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Dan Williams <dan.j.williams@intel.com>
-Cc: linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
-        linux-kernel@vger.kernel.org, maddy@linux.vnet.ibm.com,
-        santosh@fossix.org, aneesh.kumar@linux.ibm.com, vaibhav@linux.ibm.com,
-        ira.weiny@intel.com, atrajeev@linux.vnet.ibm.com, tglx@linutronix.de,
-        rnsastry@linux.ibm.com
-References: <20210617132617.99529-1-kjain@linux.ibm.com>
- <YNHiRO11E9yYS6mv@hirez.programming.kicks-ass.net>
- <cea827fe-62d4-95fe-b81f-5c7bebe4a6f0@linux.ibm.com>
- <YNLxRz1w9IeatIKW@hirez.programming.kicks-ass.net>
- <87fsx825lj.fsf@mpe.ellerman.id.au>
-From: kajoljain <kjain@linux.ibm.com>
-Message-ID: <96e9fa2e-fd8a-dc1a-9cbb-b515b8468867@linux.ibm.com>
-Date: Tue, 6 Jul 2021 12:50:36 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40158168
+	for <nvdimm@lists.linux.dev>; Tue,  6 Jul 2021 10:04:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:
+	Content-Transfer-Encoding:Content-Type:MIME-Version:References:Message-ID:
+	Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description:Resent-Date:
+	Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+	List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+	 bh=16iZcd8UM9edxy0w5wY5BQzXODSiQ7QkmW3vxkbk5D0=; b=a3mzSZ9zhXvQ7z72FKA8Fdnpk
+	LWcvpcuWofwRYcFCjviYZJk1oPXrs7M3uQJ+ywY1LHJEnj+NRwjgrzF1fC0F4Her/0HY+w0mU3H3Y
+	10CG8a1oWmfqpRlDsr7HNnDdAy6f+2/u33SyEsVG77yaTgZQwrs2MZiscSAA5F+AnLuDVz82jgC0J
+	lYqY2gLTqCI0RBtuMN88P4U2IEdFt2eygNpGPrRxU5Qv7iomPheSViajY02rYqXloTzTH8q6Js++w
+	YBqCoH4+kucnPqJUrbotraNf2h/vP6y9RzvkP75RGSjwQMJ9WI7C7sCONSx2yqdBujcUYV4c5FTfO
+	peWj6rYRg==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:45790)
+	by pandora.armlinux.org.uk with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <linux@armlinux.org.uk>)
+	id 1m0hoi-0006RU-5N; Tue, 06 Jul 2021 10:56:36 +0100
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.92)
+	(envelope-from <linux@shell.armlinux.org.uk>)
+	id 1m0hoO-0001sr-Ht; Tue, 06 Jul 2021 10:56:16 +0100
+Date: Tue, 6 Jul 2021 10:56:16 +0100
+From: "Russell King (Oracle)" <linux@armlinux.org.uk>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pengutronix.de,
+	linux-kernel@vger.kernel.org,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Helge Deller <deller@gmx.de>, Geoff Levand <geoff@infradead.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Paul Mackerras <paulus@samba.org>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	Len Brown <lenb@kernel.org>,
+	William Breathitt Gray <vilhelm.gray@gmail.com>,
+	=?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
+	Maxime Ripard <mripard@kernel.org>, Chen-Yu Tsai <wens@csie.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Ben Widawsky <ben.widawsky@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Vinod Koul <vkoul@kernel.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Cristian Marussi <cristian.marussi@arm.com>,
+	Wu Hao <hao.wu@intel.com>, Tom Rix <trix@redhat.com>,
+	Moritz Fischer <mdf@kernel.org>, Jiri Kosina <jikos@kernel.org>,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Stephen Hemminger <sthemmin@microsoft.com>,
+	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Wolfram Sang <wsa@kernel.org>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Samuel Iglesias Gonsalvez <siglesias@igalia.com>,
+	Jens Taprogge <jens.taprogge@taprogge.org>,
+	Johannes Thumshirn <morbidrsa@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Alex Dubov <oakad@yahoo.com>, Ulf Hansson <ulf.hansson@linaro.org>,
+	Lee Jones <lee.jones@linaro.org>,
+	Tomas Winkler <tomas.winkler@intel.com>,
+	Arnd Bergmann <arnd@arndb.de>, Jakub Kicinski <kuba@kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jon Mason <jdmason@kudzu.us>, Allen Hubbe <allenbh@gmail.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Dominik Brodowski <linux@dominikbrodowski.net>,
+	Maximilian Luz <luzmaximilian@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mark Gross <mgross@linux.intel.com>,
+	Matt Porter <mporter@kernel.crashing.org>,
+	Alexandre Bounine <alex.bou9@gmail.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Bjorn Andersson <bjorn.andersson@linaro.org>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Thorsten Scherer <t.scherer@eckelmann.de>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Andy Gross <agross@kernel.org>, Mark Brown <broonie@kernel.org>,
+	Stephen Boyd <sboyd@kernel.org>, Michael Buesch <m@bues.ch>,
+	Sven Van Asbroeck <TheSven73@gmail.com>,
+	Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
+	Andreas Noever <andreas.noever@gmail.com>,
+	Michael Jamet <michael.jamet@intel.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Yehezkel Bernat <YehezkelShB@gmail.com>,
+	Rob Herring <robh@kernel.org>, Jiri Slaby <jirislaby@kernel.org>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Jason Wang <jasowang@redhat.com>,
+	Kirti Wankhede <kwankhede@nvidia.com>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	Cornelia Huck <cohuck@redhat.com>,
+	Martyn Welch <martyn@welchs.me.uk>,
+	Manohar Vanga <manohar.vanga@gmail.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Juergen Gross <jgross@suse.com>,
+	Stefano Stabellini <sstabellini@kernel.org>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
+	Marc Zyngier <maz@kernel.org>,
+	Tyrel Datwyler <tyreld@linux.ibm.com>,
+	Vladimir Zapolskiy <vz@mleia.com>,
+	Samuel Holland <samuel@sholland.org>,
+	Qinglang Miao <miaoqinglang@huawei.com>,
+	Alexey Kardashevskiy <aik@ozlabs.ru>,
+	Kai-Heng Feng <kai.heng.feng@canonical.com>,
+	Joey Pabalan <jpabalanb@gmail.com>,
+	Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+	Adrian Hunter <adrian.hunter@intel.com>,
+	Frank Li <lznuaa@gmail.com>,
+	Mike Christie <michael.christie@oracle.com>,
+	Bodo Stroesser <bostroesser@gmail.com>,
+	Hannes Reinecke <hare@suse.de>, David Woodhouse <dwmw@amazon.co.uk>,
+	SeongJae Park <sjpark@amazon.de>, Julien Grall <jgrall@amazon.com>,
+	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-sunxi@lists.linux.dev, linux-cxl@vger.kernel.org,
+	nvdimm@lists.linux.dev, dmaengine@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-hyperv@vger.kernel.org,
+	linux-i2c@vger.kernel.org, linux-i3c@lists.infradead.org,
+	industrypack-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+	netdev@vger.kernel.org, linux-ntb@googlegroups.com,
+	linux-pci@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-arm-msm@vger.kernel.org,
+	linux-spi@vger.kernel.org, linux-staging@lists.linux.dev,
+	greybus-dev@lists.linaro.org, target-devel@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
+	virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
+	xen-devel@lists.xenproject.org
+Subject: Re: [PATCH] bus: Make remove callback return void
+Message-ID: <20210706095616.GQ22278@shell.armlinux.org.uk>
+References: <20210706095037.1425211-1-u.kleine-koenig@pengutronix.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <87fsx825lj.fsf@mpe.ellerman.id.au>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: ZTZGICHiuoHhKfhxOni8w9McQi0WG8ZU
-X-Proofpoint-ORIG-GUID: ZTZGICHiuoHhKfhxOni8w9McQi0WG8ZU
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-07-06_02:2021-07-02,2021-07-06 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 mlxscore=0
- lowpriorityscore=0 clxscore=1015 mlxlogscore=999 phishscore=0
- priorityscore=1501 spamscore=0 malwarescore=0 adultscore=0 bulkscore=0
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2107060035
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210706095037.1425211-1-u.kleine-koenig@pengutronix.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 
-
-
-On 6/23/21 4:46 PM, Michael Ellerman wrote:
-> Peter Zijlstra <peterz@infradead.org> writes:
->> On Wed, Jun 23, 2021 at 01:40:38PM +0530, kajoljain wrote:
->>>
->>> On 6/22/21 6:44 PM, Peter Zijlstra wrote:
->>>> On Thu, Jun 17, 2021 at 06:56:13PM +0530, Kajol Jain wrote:
->>>>> ---
->>>>> Kajol Jain (4):
->>>>>   drivers/nvdimm: Add nvdimm pmu structure
->>>>>   drivers/nvdimm: Add perf interface to expose nvdimm performance stats
->>>>>   powerpc/papr_scm: Add perf interface support
->>>>>   powerpc/papr_scm: Document papr_scm sysfs event format entries
->>>>
->>>> Don't see anything obviously wrong with this one.
->>>>
->>>> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
->>>>
->>>
->>> Hi Peter,
->>>     Thanks for reviewing the patch. Can you help me on how to take 
->>> these patches to linus tree or can you take it?
->>
->> I would expect either the NVDIMM or PPC maintainers to take this. Dan,
->> Michael ?
+On Tue, Jul 06, 2021 at 11:50:37AM +0200, Uwe Kleine-König wrote:
+> The driver core ignores the return value of this callback because there
+> is only little it can do when a device disappears.
 > 
-> I can take it but would need Acks from nvdimm folks.
-
-Hi Dan,
-    Do you have any comments on this patchset. Please let me know.
-
-Thanks,
-Kajol jain
-
+> This is the final bit of a long lasting cleanup quest where several
+> buses were converted to also return void from their remove callback.
+> Additionally some resource leaks were fixed that were caused by drivers
+> returning an error code in the expectation that the driver won't go
+> away.
 > 
-> cheers
+> With struct bus_type::remove returning void it's prevented that newly
+> implemented buses return an ignored error code and so don't anticipate
+> wrong expectations for driver authors.
 > 
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+
+Yay! For ARM, Amba and related parts:
+
+Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
