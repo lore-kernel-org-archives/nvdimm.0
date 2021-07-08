@@ -1,23 +1,23 @@
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0687C2F80
-	for <nvdimm@lists.linux.dev>; Thu,  8 Jul 2021 18:37:55 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10039"; a="231332269"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E5B72FB8
+	for <nvdimm@lists.linux.dev>; Thu,  8 Jul 2021 18:37:56 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10039"; a="231332274"
 X-IronPort-AV: E=Sophos;i="5.84,224,1620716400"; 
-   d="scan'208";a="231332269"
+   d="scan'208";a="231332274"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2021 11:37:52 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2021 11:37:56 -0700
 X-IronPort-AV: E=Sophos;i="5.84,224,1620716400"; 
-   d="scan'208";a="411017438"
+   d="scan'208";a="411017446"
 Received: from janandra-mobl.amr.corp.intel.com ([10.251.31.93])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2021 11:37:51 -0700
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Jul 2021 11:37:54 -0700
 From: James Anandraj <james.sushanth.anandraj@intel.com>
 To: nvdimm@lists.linux.dev,
 	james.sushanth.anandraj@intel.com
-Subject: [PATCH v1 2/4] pcdctl/list: Add pcdctl-list command to enumerate 'nvdimm' devices
-Date: Thu,  8 Jul 2021 11:37:39 -0700
-Message-Id: <20210708183741.2952-3-james.sushanth.anandraj@intel.com>
+Subject: [PATCH v1 4/4] pcdctl/reconfigure: Add support for pmem and iso-pmem modes
+Date: Thu,  8 Jul 2021 11:37:41 -0700
+Message-Id: <20210708183741.2952-5-james.sushanth.anandraj@intel.com>
 X-Mailer: git-send-email 2.21.0.windows.1
 In-Reply-To: <20210708183741.2952-1-james.sushanth.anandraj@intel.com>
 References: <20210708183741.2952-1-james.sushanth.anandraj@intel.com>
@@ -32,907 +32,986 @@ Content-Transfer-Encoding: 8bit
 
 From: James Sushanth Anandraj <james.sushanth.anandraj@intel.com>
 
-Add pcdctl-list command to enumerate 'nvdimm' devices. The command
-reads pcd data from the 'nvdimm' devices to display information
-related to region reconfiguration such as, Is there a pending
-reconfiguration request and the status of last request.
+Implement pcdctl-reconfigure-region pmem and iso-pmem support.
+This patch adds helper functions to support processing of pmem
+and iso-pmem reconfigure-region requests. The pmem
+reconfigure-region request results in regions that
+does not utilize hardware interleaving across non-volatile memory
+devices. The iso-pmem request results in regions that
+utilize hardware interleaving. The command reads
+pcd data from the 'nvdimm' devices and writes a new pcd reflecting
+the new region reconfiguration request.
 
 Signed-off-by: James Sushanth Anandraj <james.sushanth.anandraj@intel.com>
 ---
- Makefile.am          |   2 +-
- configure.ac         |   1 +
- pcdctl/Makefile.am   |  17 ++
- pcdctl/builtin.h     |   8 +
- pcdctl/list.c        | 114 +++++++++++++
- pcdctl/list.h        |  11 ++
- pcdctl/pcd.h         | 160 ++++++++++++++++++
- pcdctl/pcdctl.c      |  87 ++++++++++
- pcdctl/reconfigure.c | 379 +++++++++++++++++++++++++++++++++++++++++++
- pcdctl/reconfigure.h |  12 ++
- util/main.h          |   1 +
- 11 files changed, 791 insertions(+), 1 deletion(-)
- create mode 100644 pcdctl/Makefile.am
- create mode 100644 pcdctl/builtin.h
- create mode 100644 pcdctl/list.c
- create mode 100644 pcdctl/list.h
- create mode 100644 pcdctl/pcd.h
- create mode 100644 pcdctl/pcdctl.c
- create mode 100644 pcdctl/reconfigure.c
- create mode 100644 pcdctl/reconfigure.h
+ pcdctl/pcd.h         | 163 ++++++++++
+ pcdctl/reconfigure.c | 709 ++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 870 insertions(+), 2 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index e7615d8..6b415e3 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,7 +1,7 @@
- include Makefile.am.in
- 
- ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
--SUBDIRS = . daxctl/lib ndctl/lib ndctl daxctl
-+SUBDIRS = . daxctl/lib ndctl/lib ndctl daxctl pcdctl
- if ENABLE_DOCS
- SUBDIRS += Documentation/ndctl Documentation/daxctl Documentation/pcdctl
- endif
-diff --git a/configure.ac b/configure.ac
-index acf1044..d00d99d 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -225,6 +225,7 @@ AC_CONFIG_FILES([
-         ndctl/lib/Makefile
-         ndctl/Makefile
-         daxctl/Makefile
-+        pcdctl/Makefile
-         test/Makefile
-         Documentation/ndctl/Makefile
-         Documentation/daxctl/Makefile
-diff --git a/pcdctl/Makefile.am b/pcdctl/Makefile.am
-new file mode 100644
-index 0000000..1f26faf
---- /dev/null
-+++ b/pcdctl/Makefile.am
-@@ -0,0 +1,17 @@
-+include $(top_srcdir)/Makefile.am.in
-+
-+bin_PROGRAMS = pcdctl
-+
-+pcdctl_SOURCES =\
-+		pcdctl.c \
-+		list.c \
-+		reconfigure.c \
-+		../util/json.c \
-+		builtin.h
-+
-+pcdctl_LDADD =\
-+	../ndctl/lib/libndctl.la \
-+	../libutil.a \
-+	$(UUID_LIBS) \
-+	$(KMOD_LIBS) \
-+	$(JSON_LIBS)
-diff --git a/pcdctl/builtin.h b/pcdctl/builtin.h
-new file mode 100644
-index 0000000..b1c4b2f
---- /dev/null
-+++ b/pcdctl/builtin.h
-@@ -0,0 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2015-2021 Intel Corporation. All rights reserved. */
-+#ifndef _PCDCTL_BUILTIN_H_
-+#define _PCDCTL_BUILTIN_H_
-+
-+struct ndctl_ctx;
-+int cmd_list(int argc, const char **argv, struct ndctl_ctx *ctx);
-+#endif /* _PCDCTL_BUILTIN_H_ */
-diff --git a/pcdctl/list.c b/pcdctl/list.c
-new file mode 100644
-index 0000000..d594fa9
---- /dev/null
-+++ b/pcdctl/list.c
-@@ -0,0 +1,114 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2021 Intel Corporation. All rights reserved.
-+#include <util/json.h>
-+#include <util/filter.h>
-+#include <json-c/json.h>
-+#include <ndctl/libndctl.h>
-+#include <pcdctl/builtin.h>
-+#include <util/parse-options.h>
-+#include <reconfigure.h>
-+
-+static struct list_param {
-+	const char *bus;
-+	bool verbose;
-+} param;
-+
-+struct json_object *pcdctl_list_dimm_to_json(struct ndctl_dimm *dimm)
-+{
-+	struct json_object *jdimm = json_object_new_object();
-+	const char *id = ndctl_dimm_get_unique_id(dimm);
-+	unsigned int handle = ndctl_dimm_get_handle(dimm);
-+	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
-+	struct json_object *jobj;
-+
-+	if (!jdimm)
-+		return NULL;
-+
-+	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jdimm, "dev", jobj);
-+	if (id) {
-+		jobj = json_object_new_string(id);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "id", jobj);
-+	}
-+	if (handle < UINT_MAX) {
-+		jobj = util_json_object_hex(handle, 0);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "handle", jobj);
-+	}
-+	if (phys_id < USHRT_MAX) {
-+		jobj = util_json_object_hex(phys_id, 0);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "phys_id", jobj);
-+	}
-+	if (pcdctl_dimm_reconfigure_region_pending(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "reconfigure_pending", jobj);
-+	} else {
-+		const char *r_status_str = NULL;
-+		const int r_status = pcdctl_dimm_reconfigure_status(dimm);
-+
-+		r_status_str = pcdctl_dimm_reconfigure_status_string(dimm);
-+		if (r_status_str) {
-+			jobj = json_object_new_string(r_status_str);
-+			if (!jobj)
-+				goto err;
-+			json_object_object_add(jdimm, "reconfigure_status",
-+					       jobj);
-+		}
-+
-+		if (r_status >= 0) {
-+			jobj = json_object_new_int(r_status);
-+			if (!jobj)
-+				goto err;
-+			json_object_object_add(jdimm, "reconfigure_err_status",
-+					       jobj);
-+		}
-+	}
-+	return jdimm;
-+err:
-+	json_object_put(jdimm);
-+	return NULL;
-+}
-+
-+int cmd_list(int argc, const char **argv, struct ndctl_ctx *ctx)
-+{
-+	const struct option options[] = {
-+		OPT_STRING('b', "bus", &param.bus, "bus-id",
-+			   "filter by <bus-id>"),
-+		OPT_BOOLEAN('v', "verbose", &param.verbose, "turn on debug"),
-+		OPT_END(),
-+	};
-+	const char *const u[] = { "pcdctl list [<options>]", NULL };
-+	struct ndctl_bus *bus = NULL;
-+	struct json_object *j_dimms = NULL;
-+
-+	argc = parse_options(argc, argv, options, u, 0);
-+	if (param.verbose)
-+		ndctl_set_log_priority(ctx, LOG_DEBUG);
-+	j_dimms = json_object_new_array();
-+	if (!j_dimms)
-+		return -ENOMEM;
-+	ndctl_bus_foreach(ctx, bus) {
-+		struct ndctl_dimm *dimm = NULL;
-+
-+		if (!util_bus_filter(bus, param.bus))
-+			continue;
-+		ndctl_dimm_foreach(bus, dimm) {
-+			struct json_object *j_dimm = NULL;
-+
-+			j_dimm = pcdctl_list_dimm_to_json(dimm);
-+			if (j_dimm)
-+				json_object_array_add(j_dimms, j_dimm);
-+		}
-+	}
-+	util_display_json_array(stdout, j_dimms, 0);
-+	return 0;
-+}
-diff --git a/pcdctl/list.h b/pcdctl/list.h
-new file mode 100644
-index 0000000..5a4d4c2
---- /dev/null
-+++ b/pcdctl/list.h
-@@ -0,0 +1,11 @@
-+/* SPDX-License-Identifier: GPL-2.0*/
-+/* Copyright(c) 2021 Intel Corporation. All rights reserved.*/
-+
-+#ifndef _LIST_H_
-+#define _LIST_H_
-+
-+#include <ndctl/lib/private.h>
-+#include <ndctl/libndctl.h>
-+#include <util/json.h>
-+struct json_object *pcdctl_list_dimm_to_json(struct ndctl_dimm *dimm);
-+#endif /* _LIST_H_ */
 diff --git a/pcdctl/pcd.h b/pcdctl/pcd.h
-new file mode 100644
-index 0000000..f49f7eb
---- /dev/null
+index e16c1e0..dccc03e 100644
+--- a/pcdctl/pcd.h
 +++ b/pcdctl/pcd.h
-@@ -0,0 +1,160 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright(c) 2021 Intel Corporation. All rights reserved. */
-+#ifndef _PCD_H_
-+#define _PCD_H_
-+#include <stdint.h>
-+#include <ccan/short_types/short_types.h>
-+#include <string.h>
-+#include <acpi.h>
-+/**
-+ * The module Platform Configuration Data (PCD) refers to a section of the
-+ * PMem module that is used to store metadata. The metadata stored in the PCD
-+ * is the architected interface between software and platform firmware to
-+ * support PMem provisioning. The format of PCD partition ID #1 used for
-+ * provisioning is as follows. This is from Section 3 Figure 31 of Provisioning
-+ * specification document.
-+ * PCD Partition ID 1 - Configuration management usage (64KB)
+@@ -26,6 +26,11 @@
+  *	 │		+---------------------+    +---------------+
+  *	 +------------->│Configuration Output +--->│Extension table│
+  *			+---------------------+    +---------------+
 + *
-+ *			+---------------------+    +---------------+
-+ *	 +------------->│Current Configuration+--->│Extension table│
-+ *	 │		+---------------------+    +---------------+
-+ *	 │
-+ * +-----+-------+      +---------------------+    +---------------+
-+ * │Configuration+----->│ Configuration Input +--->│Extension table│
-+ * │   Header    │      +---------------------+    +---------------+
-+ * +-----+-------+
-+ *	 │		+---------------------+    +---------------+
-+ *	 +------------->│Configuration Output +--->│Extension table│
-+ *			+---------------------+    +---------------+
-+ * Glossary
-+ * --------
-+ * PCD - Platform Configuration Data
-+ * Config Header - Configuration header
-+ * CCUR - Current Configuration
-+ * CIN - Configuration Input
-+ * COUT - Configuration Output
-+ */
++ * The extension table for Configuration Input is determined by the region
++ * reconfiguration request. See section 5 in provisioning document for examples
++ * for each request type.
++ *
+  * Glossary
+  * --------
+  * PCD - Platform Configuration Data
+@@ -34,6 +39,11 @@
+  * CIN - Configuration Input
+  * COUT - Configuration Output
+  * PSCT - Partition Size Change Table
++ * IIT - Interleave Information Table
++ * MIIIS - Module Identification Information for Interleave Set
++ * MUI - Module Unique Identifier
++ * ML - Module location
++ * MPIO - Module partition information output
+  */
+ /**
+  * struct pcd_config_header - configuration header
+@@ -130,6 +140,136 @@ struct pcd_psct {
+ 	u32 status;
+ 	u64 size;
+ } __attribute__((packed));
 +/**
-+ * struct pcd_config_header - configuration header
-+ * @header: ACPI header
-+ * @ccur_data_size: current configuration data size
-+ * @ccur_offset: current configuration start offset
-+ * @cin_data_size: configuration input data size
-+ * @cin_offset: configuration input start offset
-+ * @cout_data_size: configuration output data size
-+ * @cout_offset: configuration output start offset
-+ * The configuration header structure contains two parts - ACPI header
-+ * and the body part contains pointers to the current configuration,
-+ * configuration input, and configuration output. The structure and its
-+ * fields are described in the configuration header section 3.1 and Table 31
-+ * in provisioning specification document.
++ * struct pcd_mui - module unique identifier
++ * @id: subsystem vendor id
++ * @location: manufacturing location
++ * @date: manufacturing date
++ * @serial: serial number
++ * The module unique identifier is a field in module identification information
++ * for interleave set. The field and its sub-fields are described in section
++ * 3.8.1.1 Table 311 in the provisioning specification document.
 + */
-+struct pcd_config_header {
-+	struct acpi_header header;
-+	u32 ccur_data_size;
-+	u32 ccur_offset;
-+	u32 cin_data_size;
-+	u32 cin_offset;
-+	u32 cout_data_size;
-+	u32 cout_offset;
++struct pcd_mui {
++	u16 id;
++	u8 location;
++	u16 date;
++	u32 serial;
 +} __attribute__((packed));
 +/**
-+ * struct pcd_ccur - current configuration
-+ * @header: ACPI header
-+ * @status: configuration status
-+ * @r1: reserved
-+ * @volatile_size: volatile memory size mapped into SPA
-+ * @persistent_size: persistent memory size mapped into SPA
-+ * The current configuration structure consists of two parts - ACPI header
-+ * and the body fields that are created by the platform firmware and
-+ * updated on each PMem module during the memory configuration phase of
-+ * the platform firmware. The structure and its fields are described in the
-+ * section 3.2 and Table 32 in the provisioning specification document.
++ * struct pcd_ml - module location
++ * @socket_id: module socket id
++ * @die_id: module die id
++ * @mem_controller_id: module memory controller id
++ * @channel_id: memory channel number
++ * @slot_id: dimm number
++ * @r: reserved
++ * The module location is a field in module identification information for
++ * interleave set. The field and its sub-fields are described in section
++ * 3.8.1.1 Table 311 in the provisioning specification document.
 + */
-+struct pcd_ccur {
-+	struct acpi_header header;
-+	u16 status;
-+	u8 r1[2];
-+	u64 volatile_size;
-+	u64 persistent_size;
++struct pcd_ml {
++	u8 socket_id;
++	u8 die_id;
++	u8 mem_controller_id;
++	u8 channel_id;
++	u8 slot_id;
++	u8 r[3];
 +} __attribute__((packed));
 +/**
-+ * struct pcd_cin - configuration input
-+ * @header: ACPI header
-+ * @sequence: sequence number
-+ * @r1: reserved
-+ * The configuration input structure consists of two parts - ACPI header and
-+ * the body fields that represents a configuration request created by the
-+ * software. The platform firmware processes this table on the next system
-+ * reboot. The structure and its fields are described in the section 3.3 and
-+ * Table 33 in the provisioning specification document.
++ * struct pcd_miiis - module identification information for interleave set
++ * @mui: module unique identifier
++ * @ml: module location only used in pcat v1.2
++ * @r: reserved
++ * @offset: partition offset
++ * @size: partition size
++ * The module identification information for interleave set is used for
++ * identifying the modules that are present in the interleave set.
++ * The structure and fields of table are described in section 3.8.1.1 Table 310
++ * and Table 311 in the provisioning specification document.
 + */
-+struct pcd_cin {
-+	struct acpi_header header;
-+	u32 sequence;
-+	u8 r1[8];
++struct pcd_miiis {
++	struct pcd_mui mui;
++	struct pcd_ml ml;
++	u8 r[15];
++	u64 offset;
++	u64 size;
 +} __attribute__((packed));
 +/**
-+ * struct pcd_cout - configuration output
-+ * @header: ACPI header
-+ * @sequence: sequence number
-+ * @status: validation status
++ * struct pcd_iit - interleave information table (type 5)
++ * @type: table type
++ * @length: length in bytes for the entire table
++ * @index: interleave set index
++ * @modules: number of modules in interleave set
++ * @itype: interleave memory type
++ * @isize: interleave size
++ * @iways: interleave ways - this field is ignore for pcat v1.2
 + * @r1: reserved
-+ * The configuration output structure consists of two parts - ACPI header and
-+ * the body fields that are created by the platform firmware in response to the
-+ * software request input configuration input table. The structure and its
-+ * fields are described in the section 3.4 and Table 34 in the provisioning
-+ * specification document.
++ * @status: interleave change status
++ * @r2: reserved
++ * The interleave information table describes a interleave set. The structure
++ * and fields of the table are described in section 3.8 Table 38 and 39 in the
++ * provisioning specification document
 + */
-+struct pcd_cout {
-+	struct acpi_header header;
-+	u32 sequence;
++struct pcd_iit {
++	u16 type;
++	u16 length;
++	u16 index;
++	u8 modules;
++	u8 itype;
++	u16 isize;
++	u16 iways;
++	u8 r1;
 +	u8 status;
-+	u8 r1[7];
++	u8 r2[10];
 +} __attribute__((packed));
 +/**
-+ * struct pcd_get_pcd_input - get pcd input
-+ * @partition_id: partition id
-+ * @payload_type: payload type
-+ * @retreive option: retreive option
-+ * @reserved: reserved
-+ * @offset: offset
-+ * The structure represents the input parameters to get
-+ * pcd vendor specific command. The structure and its fields are described in
-+ * section 4.1 and Table 41 in the provisioning specification document.
++ * struct nfit_handle - nfit handle
++ * @dimm: dimm number
++ * @mem_chnl: memory channel number
++ * @mem_ctrlr: memory controller id
++ * @socket_id: socket id
++ * @node: node id
++ * @r: reserved
++ * @value: unsigned value
++ * This structure is used to unpack the subfields of the dimm handle.
 + */
-+struct pcd_get_pcd_input {
-+	u8 partition_id;
-+	struct {
-+		u8 payload_type : 1;
-+		u8 retrieve_option : 1;
-+		u8 reserved : 6;
-+	} __attribute__((packed)) options;
-+	u32 offset;
++struct nfit_handle {
++	union {
++		struct {
++			u8 dimm : 4;
++			u8 mem_chnl : 4;
++			u8 mem_ctrlr : 4;
++			u8 socket_id : 4;
++			u16 node : 12;
++			u8 r : 4;
++		} __attribute__((packed));
++		u32 value;
++	};
 +} __attribute__((packed));
 +/**
-+ * Human readable pcd status string
-+ */
-+static const char *const pcd_status_str[] = {
-+	"undefined",
-+	"success",
-+	"reserved",
-+	"configuration input error",
-+};
-+
-+/**
-+ * PCD small payload size .The value is mentioned in section 4.1 of
-+ * provisioning document.
-+ */
-+#define PCD_SP_SIZE 128u
-+/**
-+ * PCD dimm partition size.The value is mentioned in section 3 figure 31 of
-+ * provisioning document.
-+ */
-+#define MAX_PCD_SIZE 0x10000u
-+/**
-+ * The opcode value for get pcd vendor specific command. The value is mentioned
-+ * in section 4.1 Table 42 of provisioning document.
-+ */
-+#define PCD_OPCODE_GET_PCD ((u16)0x0601)
-+#endif /* _PCD_H_ */
-diff --git a/pcdctl/pcdctl.c b/pcdctl/pcdctl.c
-new file mode 100644
-index 0000000..17607ac
---- /dev/null
-+++ b/pcdctl/pcdctl.c
-@@ -0,0 +1,87 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2021 Intel Corporation. All rights reserved.
-+#include <stdio.h>
-+#include <errno.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <util/parse-options.h>
-+#include <util/main.h>
-+#include <ccan/array_size/array_size.h>
-+#include <pcdctl/builtin.h>
-+#include <ndctl/libndctl.h>
-+
-+static const char pcdctl_usage_string[] =
-+	"pcdctl [--version] [--help] COMMAND [ARGS]";
-+static const char pcdctl_more_info_string[] =
-+	"See 'pcdctl help COMMAND' for more information on a specific command."
-+	"\n pcdctl --list-cmds to see all available commands";
-+
-+static int cmd_version(int argc, const char **argv, struct ndctl_ctx *ctx)
-+{
-+	printf("%s\n", VERSION);
-+	return 0;
-+}
-+
-+static int cmd_help(int argc, const char **argv, struct ndctl_ctx *ctx)
-+{
-+	const char *const builtin_help_subcommands[] = {
-+		"list",
-+		NULL,
-+	};
-+	struct option builtin_help_options[] = {
-+		OPT_END(),
-+	};
-+	static const char *builtin_help_usage[] = { "pcdctl help [command]",
-+						    NULL };
-+
-+	argc = parse_options_subcommand(argc, argv, builtin_help_options,
-+					builtin_help_subcommands,
-+					builtin_help_usage, 0);
-+
-+	if (!argv[0]) {
-+		printf("\n usage: %s\n\n", pcdctl_usage_string);
-+		printf("\n %s\n\n", pcdctl_more_info_string);
-+		return 0;
-+	}
-+
-+	return help_show_man_page(argv[0], "pcdctl", "PCDCTL_MAN_VIEWER");
-+}
-+
-+static struct cmd_struct commands[] = {
-+	{ "version", { cmd_version } },
-+	{ "list", { cmd_list } },
-+	{ "help", { cmd_help } },
-+};
-+
-+int main(int argc, const char **argv)
-+{
-+	struct ndctl_ctx *ctx;
-+	int rc;
-+
-+	/* Look for flags.. */
-+	argv++;
-+	argc--;
-+	main_handle_options(&argv, &argc, pcdctl_usage_string, commands,
-+			    ARRAY_SIZE(commands));
-+
-+	if (argc > 0) {
-+		if (!prefixcmp(argv[0], "--"))
-+			argv[0] += 2;
-+	} else {
-+		/* The user didn't specify a command; give them help */
-+		printf("\n usage: %s\n\n", pcdctl_usage_string);
-+		printf("\n %s\n\n", pcdctl_more_info_string);
-+		goto out;
-+	}
-+
-+	rc = ndctl_new(&ctx);
-+	if (rc)
-+		goto out;
-+	main_handle_internal_command(argc, argv, ctx, commands,
-+				     ARRAY_SIZE(commands), PROG_PCDCTL);
-+	ndctl_unref(ctx);
-+	fprintf(stderr, "Unknown command: '%s'\n", argv[0]);
-+out:
-+	return 1;
-+}
-diff --git a/pcdctl/reconfigure.c b/pcdctl/reconfigure.c
-new file mode 100644
-index 0000000..1b405f7
---- /dev/null
-+++ b/pcdctl/reconfigure.c
-@@ -0,0 +1,379 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright(c) 2021 Intel Corporation. All rights reserved.
-+#include <ndctl/libndctl.h>
-+#include <pcd.h>
-+#include <stdbool.h>
-+#include <reconfigure.h>
-+#include <stdlib.h>
-+#include <ccan/minmax/minmax.h>
-+
-+/**
-+ * The location of the configuration input in the pcd partition
-+ * is determined by configuration input start offset field. The
-+ * field is described in Section 3.1 and Table 31 in provisioning
-+ * document
-+ */
-+static struct pcd_cin *get_cin(struct pcd_config_header const *c)
-+{
-+	return (struct pcd_cin *)((u8 *)c + c->cin_offset);
-+}
-+
-+/**
-+ * The location of the current configuration in the pcd partition
-+ * is determined by current configuration start offset field. The
-+ * field is described in Section 3.1 and Table 31 in provisioning
-+ * document
-+ */
-+static struct pcd_ccur *get_ccur(struct pcd_config_header const *c)
-+{
-+	return (struct pcd_ccur *)((u8 *)c + c->ccur_offset);
-+}
-+
-+/**
-+ * The location of the configuration output in the pcd partition
-+ * is determined by configuration output start offset field. The
-+ * field is described in Section 3.1 and Table 31 in provisioning
-+ * document
-+ */
-+static struct pcd_cout *get_cout(struct pcd_config_header const *c)
-+{
-+	return (struct pcd_cout *)((u8 *)c + c->cout_offset);
-+}
-+
-+/**
-+ * To determine if a reconfiguration request is pending we can look at
-+ * configuration input data size and sequence number fields.
-+ */
-+static bool is_pcd_reconfigure_pending(struct pcd_config_header const *ch)
-+{
-+	struct pcd_cin *cin = NULL;
-+	struct pcd_cout *cout = NULL;
-+
-+	/**
-+	 * There is a pending request if configuration input table is
-+	 * present and the sequence number in the configuration input
-+	 * table is not same as the sequence number in configuration
-+	 * output table
-+	 */
-+	cin = get_cin(ch);
-+	cout = get_cout(ch);
-+	if (ch->cin_data_size == 0) {
-+		return false;
-+	} else if (cin->sequence > 0) {
-+		if (ch->cout_data_size == 0)
-+			return true;
-+		else if (cin->sequence != cout->sequence)
-+			return true;
-+	}
-+	return false;
-+}
-+
-+/**
-+ * Map the current configuration status value to human readable strings. The
-+ * current configuration status field is described in Section 3.2 and Table 32
-+ * in provisioning document
-+ */
-+static const char *get_ccur_status_string(struct pcd_config_header const *ch)
-+{
-+	struct pcd_ccur *ccur = NULL;
-+
-+	ccur = get_ccur(ch);
-+	if (ch->ccur_data_size == 0)
-+		return NULL;
-+	if (ccur->status <= 3)
-+		return pcd_status_str[ccur->status];
-+	if (ccur->status == 5)
-+		return pcd_status_str[2];
-+	/* conf status is cin error */
-+	if (ccur->status >= 4 && ccur->status < 16)
-+		return pcd_status_str[3];
-+	/* all other values are reserved */
-+	return pcd_status_str[2];
-+}
-+
-+/**
-+ * Get configuration status field from current configuration structure. The
-+ * field is described in Section 3.2 and Table 32 in provisioning document
-+ */
-+static int get_pcd_ccur_status(struct pcd_config_header const *ch)
-+{
-+	struct pcd_ccur *ccur = NULL;
-+
-+	ccur = get_ccur(ch);
-+	if (ch->ccur_data_size == 0)
-+		return -ENOTTY;
-+	return ccur->status;
-+}
-+
-+/**
-+ * Function to execute a vendor specific command where input data
-+ * can be sent and output data can be received
-+ */
-+static int execute_vendor_specific_cmd(struct ndctl_dimm *dimm,
-+				       const u32 op_code, void *inp,
-+				       const u32 inp_size, void *op,
-+				       u32 op_size)
-+{
-+	struct ndctl_cmd *cmd = NULL;
-+	size_t bytes;
-+
-+	if (!dimm || !inp || inp_size == 0 || (op_size > 0 && !op) ||
-+	    op_size > PCD_SP_SIZE) {
-+		fprintf(stderr, "%s: dimm: %#x vendor cmd param incorrect\n",
-+			__func__, ndctl_dimm_get_handle(dimm));
-+		return -ENOTTY;
-+	}
-+	cmd = ndctl_dimm_cmd_new_vendor_specific(dimm, op_code, inp_size,
-+						 op_size);
-+	if (!cmd)
-+		return -ENOTTY;
-+	bytes = ndctl_cmd_vendor_set_input(cmd, inp, inp_size);
-+	if (bytes != inp_size)
-+		return -ENOTTY;
-+	ndctl_cmd_submit(cmd);
-+	if (op_size > 0) {
-+		size_t rbytes = 0;
-+
-+		rbytes = ndctl_cmd_vendor_get_output(cmd, op, op_size);
-+		if (rbytes < op_size)
-+			return -ENOTTY;
-+	}
-+	ndctl_cmd_unref(cmd);
-+	return 0;
-+}
-+
-+static inline u32 max_of_three(u32 a, u32 b, u32 c)
-+{
-+	return max(a, b) > c ? max(a, b) : c;
-+}
-+
-+/**
-+ * The maximum pcd table size that needs to be read for purpose of reconfigure
-+ * regions is the entire 64 kb configuration management usage sub partition.
-+ * The actual table structures could occupy less space. The function helps
-+ * to calculate the size that needs to be read to get all the pcd table
-+ * structures. PCD format is explained in section 3 of provisioning document.
-+ */
-+static u32 get_table_size(struct pcd_config_header const *ch)
-+{
-+	u32 size = 0;
-+
-+	/**
-+	 * Find which table among ccur, cin and cout is the furthest in
-+	 * the sub partition. The offset + data size of the furthest
-+	 * table rounded up to pcd small payload size and bounded by the maximum
-+	 * pcd size would be the furthest we need to read to get all the pcd
-+	 * table structures. The fields used are explained in section 3.1 and
-+	 * table 31 of the provisioning document.
-+	 */
-+	size = max_of_three(ch->ccur_offset + ch->ccur_data_size,
-+			    ch->cin_offset + ch->cin_data_size,
-+			    ch->cout_offset + ch->cout_data_size);
-+	size = size > PCD_SP_SIZE ? size - (size % PCD_SP_SIZE) + PCD_SP_SIZE :
-+				    PCD_SP_SIZE;
-+	size = min(size, MAX_PCD_SIZE);
-+	return size;
-+}
-+
-+/**
-+ * Given a ndctl dimm object read the pcd and calculate table size to read
-+ * and get all pcd table structures.
-+ */
-+static u32 read_pcd_size(struct ndctl_dimm *dimm)
-+{
-+	u32 op_code = 0;
-+	char inp[PCD_SP_SIZE];
-+	char op[PCD_SP_SIZE];
-+	struct pcd_get_pcd_input *in = NULL;
-+
-+	memset(inp, 0, PCD_SP_SIZE);
-+	memset(op, 0, PCD_SP_SIZE);
-+	in = (struct pcd_get_pcd_input *)inp;
-+	in->partition_id = 1;
-+	in->options.payload_type = 1;
-+	in->options.retrieve_option = 0;
-+	in->offset = 0;
-+	op_code = cpu_to_be16(PCD_OPCODE_GET_PCD);
-+	if (execute_vendor_specific_cmd(dimm, op_code, inp, PCD_SP_SIZE, op,
-+					PCD_SP_SIZE) != 0)
-+		return 0;
-+	return get_table_size((struct pcd_config_header *)op);
-+}
-+
-+/**
-+ * Given ndctl dimm object and a preallocated buffer read the pcd upto
-+ * the number of bytes mentioned in size field into the buffer
-+ */
-+static int read_pcd(struct ndctl_dimm *dimm, struct pcd_config_header **pcd,
-+		    u32 size)
-+{
-+	u32 op_code = 0;
-+	char inp[PCD_SP_SIZE];
-+	char op[PCD_SP_SIZE];
-+	char **buf = (char **)pcd;
-+	struct pcd_get_pcd_input *in = NULL;
-+
-+	memset(inp, 0, PCD_SP_SIZE);
-+	memset(op, 0, PCD_SP_SIZE);
-+	in = (struct pcd_get_pcd_input *)inp;
-+	in->partition_id = 1;
-+	in->options.payload_type = 1;
-+	in->options.retrieve_option = 0;
-+	in->offset = 0;
-+	op_code = cpu_to_be16(PCD_OPCODE_GET_PCD);
-+	while (size > 0) {
-+		if (execute_vendor_specific_cmd(dimm, op_code, inp, PCD_SP_SIZE,
-+						op, PCD_SP_SIZE) != 0)
-+			return -ENOTTY;
-+		memcpy((*buf) + in->offset, op, PCD_SP_SIZE);
-+		size = size - PCD_SP_SIZE;
-+		in->offset = in->offset + PCD_SP_SIZE;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * Validate checksum field of configuration header.
-+ */
-+static inline int validate_config_header(struct pcd_config_header *c)
-+{
-+	return acpi_checksum(c, c->header.length);
-+}
-+
-+/**
-+ * Validate signature and checksum fields of current configuration,
-+ * configuration input and configuration output tables when they are present.
-+ * These tables and the fields are explained in Section 3 of provisioning
++ * struct pcd_mpio - module partition information output payload
++ * @volatile_capacity: volatile capacity
++ * @r1: reserved
++ * @volatile_start: volatile start location
++ * @persistent_capacity: persistent capacity
++ * @r2: reserved
++ * @persistent_start: persistent start location
++ * @raw_capacity: raw capacity
++ * The structure represents the output parameters of get module partition
++ * information vendor specific command. The structure and its fields are
++ * described in section 4.3 and Table 48 in the provisioning specification
 + * document.
 + */
-+static inline int validate_config_data(struct pcd_config_header const *ch)
-+{
-+	int ret = 0;
-+
-+	if (ch->ccur_data_size > 0) {
-+		const char *ccur_sig = "CCUR";
-+		struct pcd_ccur *ccur = get_ccur(ch);
-+
-+		if (memcmp(ccur_sig, &ccur->header.signature, 4) != 0)
-+			ret = -ENOTTY;
-+		if (acpi_checksum(ccur, ccur->header.length) != 0)
-+			ret = -ENOTTY;
-+	}
-+	if (ch->cin_data_size > 0) {
-+		const char *cin_sig = "CIN_";
-+		struct pcd_cin *cin = get_cin(ch);
-+
-+		if (memcmp(cin_sig, &cin->header.signature, 4) != 0)
-+			ret = -ENOTTY;
-+		if (acpi_checksum(cin, cin->header.length) != 0)
-+			ret = -ENOTTY;
-+	}
-+	if (ch->cout_data_size > 0) {
-+		const char *cout_sig = "COUT";
-+		struct pcd_cout *cout = get_cout(ch);
-+
-+		if (memcmp(cout_sig, &cout->header.signature, 4) != 0)
-+			ret = -ENOTTY;
-+		if (acpi_checksum(cout, cout->header.length) != 0)
-+			ret = -ENOTTY;
-+	}
-+	return ret;
-+}
-+
++struct pcd_mpio {
++	u32 volatile_capacity;
++	u8 r1[4];
++	u64 volatile_start;
++	u32 persistent_capacity;
++	u8 r2[4];
++	u64 persistent_start;
++	u32 raw_capacity;
++} __attribute__((packed));
+ /**
+  * struct pcd_get_pcd_input - get pcd input
+  * @partition_id: partition id
+@@ -203,6 +343,12 @@ static const char *const pcd_status_str[] = {
+  * in section 4.2 Table 45 of provisioning document.
+  */
+ #define PCD_OPCODE_SET_PCD ((u16)0x0701)
 +/**
-+ * Given a pcd buffer validate checksum and signature of sub tables. The pcd
-+ * tables and subtables are explained in section 3 of provisioning document.
++ * The opcode value for get module partition information vendor specific
++ * command. The value is mentioned in section 4.3 Table 447 of provisioning
++ * document.
 + */
-+static int validate_pcd(struct pcd_config_header *pcd)
-+{
-+	int ret = -ENOTTY;
-+
-+	if (!pcd)
-+		return ret;
-+	if (validate_config_header(pcd) != 0)
-+		return ret;
-+	if (validate_config_data(pcd) != 0)
-+		return ret;
-+	ret = 0;
-+	return ret;
-+}
-+
++#define PCD_OPCODE_GET_MPI ((u16)0x0602)
+ /**
+  * Defines for PCD revision values
+  */
+@@ -215,4 +361,21 @@ static const char *const pcd_status_str[] = {
+  * mentioned in Table 37 of provisioning document.
+  */
+ #define PSCT_TYPE ((u16)0x4)
 +/**
-+ * Read pcd data from dimm and if valid pcd is present check if there is
-+ * a pending region reconfigure request.
++ * Define for header type value for Interleave Information Table. The value is
++ * mentioned in Table 38 of provisioning document.
 + */
-+bool pcdctl_dimm_reconfigure_region_pending(struct ndctl_dimm *dimm)
-+{
-+	struct pcd_config_header *buf = NULL;
-+	bool ret = false;
-+	u32 size = read_pcd_size(dimm);
-+
-+	if (!size)
-+		return ret;
-+	buf = (struct pcd_config_header *)calloc(size, sizeof(char));
-+	if (!(buf))
-+		return ret;
-+	if (read_pcd(dimm, &buf, size))
-+		goto out;
-+	if (validate_pcd(buf))
-+		goto out;
-+	ret = is_pcd_reconfigure_pending(buf);
-+out:
-+	free(buf);
-+	return ret;
-+}
-+
++#define IIT_TYPE ((u16)0x5)
 +/**
-+ * Read pcd data from dimm and if valid pcd and reconfigure request is present.
-+ * return human readable configuration status string. This field is explained in
-+ * section 3.2 and Table 32 of provisioning specification.
++ * Define for interleave memory type field app direct mode value in Interleave
++ * information table. The value is mentioned in Table 38 of provisioning
++ * document.
 + */
-+const char *pcdctl_dimm_reconfigure_status_string(struct ndctl_dimm *dimm)
-+{
-+	struct pcd_config_header *buf = NULL;
-+	const char *status = NULL;
-+	u32 size = read_pcd_size(dimm);
-+
-+	if (!size)
-+		return status;
-+	buf = (struct pcd_config_header *)calloc(size, sizeof(char));
-+	if (!(buf))
-+		return status;
-+	if (read_pcd(dimm, &buf, size))
-+		goto out;
-+	if (validate_pcd(buf))
-+		goto out;
-+	status = get_ccur_status_string(buf);
-+out:
-+	free(buf);
-+	return status;
-+}
-+
++#define APP_DIRECT_MODE ((u8)0x2)
 +/**
-+ * Read pcd data from dimm and if valid pcd and reconfiguration request is
-+ * present return the configuration status value if it is not success. This
-+ * field is explained in section 3.2 and Table 32 of provisioning specification.
++ * Define for interleave size field value in Interleave information table.
++ * The value is mentioned in Table 38 of provisioning document.
 + */
-+int pcdctl_dimm_reconfigure_status(struct ndctl_dimm *dimm)
-+{
-+	struct pcd_config_header *buf = NULL;
-+	int status = -1;
-+	u32 size = read_pcd_size(dimm);
++#define INTERLEAVE_SIZE ((u16)0x4040)
 +
-+	if (!size)
-+		return status;
-+	buf = (struct pcd_config_header *)calloc(size, sizeof(char));
-+	if (!(buf))
-+		return status;
-+	if (read_pcd(dimm, &buf, size))
-+		goto out;
-+	if (validate_pcd(buf))
-+		goto out;
-+	status = get_pcd_ccur_status(buf);
-+	/* No need to display if status is success */
-+	if (status == 1)
-+		status = -1;
-+out:
-+	free(buf);
-+	return status;
-+}
-diff --git a/pcdctl/reconfigure.h b/pcdctl/reconfigure.h
-new file mode 100644
-index 0000000..b3ba17a
---- /dev/null
-+++ b/pcdctl/reconfigure.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0*/
-+/* Copyright(c) 2021 Intel Corporation. All rights reserved.*/
-+
-+#ifndef _RECONFIGURE_H_
-+#define _RECONFIGURE_H_
-+
-+#include <ndctl/lib/private.h>
-+#include <ndctl/libndctl.h>
-+bool pcdctl_dimm_reconfigure_region_pending(struct ndctl_dimm *dimm);
-+const char *pcdctl_dimm_reconfigure_status_string(struct ndctl_dimm *dimm);
-+int pcdctl_dimm_reconfigure_status(struct ndctl_dimm *dimm);
-+#endif /* _RECONFIGURE_H_ */
-diff --git a/util/main.h b/util/main.h
-index c89a843..59a9683 100644
---- a/util/main.h
-+++ b/util/main.h
-@@ -10,6 +10,7 @@
- enum program {
- 	PROG_NDCTL,
- 	PROG_DAXCTL,
-+	PROG_PCDCTL
+ #endif /* _PCD_H_ */
+diff --git a/pcdctl/reconfigure.c b/pcdctl/reconfigure.c
+index 72385f9..d8389a7 100644
+--- a/pcdctl/reconfigure.c
++++ b/pcdctl/reconfigure.c
+@@ -9,6 +9,7 @@
+ #include <util/parse-options.h>
+ #include <util/json.h>
+ #include <util/filter.h>
++#include <util/bitmap.h>
+ #include <json-c/json.h>
+ #include <pcat.h>
+ #include <list.h>
+@@ -25,6 +26,20 @@ static const struct option reconfigure_options[] = {
+ 	OPT_END()
  };
  
- struct ndctl_ctx;
++/**
++ * Global interleave set linked list pointer. This stores the different
++ * interleave sets for the system. The interleave sets are ordered by socket
++ * id of the dimms in the interleave set. Within a set the dimms are ordered
++ * as they would in module identification information field. See Section 3.8
++ * Table 38 in provisioning document for more information on this field.
++ */
++static struct ndctl_dimm **iset_list;
++/**
++ * Global variable to store number of dimms in the interleave set linked list.
++ * It should be equal to the number of dimms in the system.
++ */
++static u32 iset_count;
++
+ /**
+  * Return the Configuration Header revision based on pcat revision.
+  * 0.1: Used with PCAT revision 0.2
+@@ -216,6 +231,125 @@ static void fill_psct(struct pcd_psct *psct, const u64 size)
+ 	psct->size = size;
+ }
+ 
++/**
++ * The first module identification information for interleave set structure
++ * comes immediately after the location of interleave information table
++ * in PCD. These structures are explained in Section 3.8 Table 38, 39 and
++ * Section 3.8.1.1 Table 310, 311 of the provisioning document
++ */
++static struct pcd_miiis *get_miiis(struct pcd_iit const *i)
++{
++	return (struct pcd_miiis *)(i + 1);
++}
++
++/**
++ * Helper function to convert raw capacity in GiB to bytes. The Persistent
++ * memory partition size field of partition size change table needs to be
++ * filled as bytes. See section 3.7 Table 37 of the provisioning document.
++ */
++static u64 raw_capacity_to_bytes(u32 raw_capacity)
++{
++	u64 capacity = raw_capacity;
++
++	return capacity << 12;
++}
++
++/**
++ * Helper function to align byte to 1-GiB. The partition size field in module
++ * identification information for Interleave set needs to be filled in as bytes
++ * aligned to 1-GiB size. See section 3.8.1.1 Table 310 and 311 of the
++ * provisioning docuement.
++ */
++static inline u64 align_to_gb(u64 byte)
++{
++	return (byte >> 30) << 30;
++}
++
++/**
++ * Helper function to get the Interleave ways field value of Interleave
++ * information table , given number of modules in interleave set. See section
++ * 38 Table 38 of the provisioning document
++ */
++static u32 get_interleave_ways(u32 m_count)
++{
++	u32 i;
++	/**
++	 * The array has the number of modules in the interleave set given a
++	 * index position. The index position is used to determine the bit to
++	 * be set for the interleave ways field. See section 38 Table 38 of the
++	 * provisioning document
++	 */
++	u32 i_ways[] = { 1, 2, 3, 4, 6, 8, 12, 16, 24 };
++
++	/**
++	 * Search the array to find the index position the number of modules
++	 * is at. Return BIT(index) as the interleave ways field value. See
++	 * section 38 Table 38 of the provisioning document
++	 */
++	for (i = 0; i < 9; i++)
++		if (i_ways[i] == m_count)
++			return BIT(i);
++	return 0;
++}
++
++/**
++ * This helper function fills the fields of the interleave information table
++ * (iit). The structure and the fields are described in section 3.8 Table 38
++ * of the provisioning document.
++ */
++static void fill_iit(struct pcd_iit *iit, u8 modules, u16 index)
++{
++	iit->type = IIT_TYPE;
++	iit->length =
++		sizeof(struct pcd_iit) + (modules * sizeof(struct pcd_miiis));
++	iit->index = index;
++	iit->modules = modules;
++	iit->itype = APP_DIRECT_MODE;
++	iit->isize = INTERLEAVE_SIZE;
++	/**
++	 * This field is only present in 0.2 version of the interleave
++	 * information table. In version 1.2 the field becomes reserved
++	 * See section 3.8 Table 38 of the provisioning document
++	 */
++	iit->iways =
++		get_pcat_rev() < PCD_REV_1_0 ? get_interleave_ways(modules) : 0;
++}
++
++/**
++ * This helper function fills the fields of the module identification
++ * information for interleave set table (miiis). The structure and the
++ * fields are described in section 3.8.1.1 Table 310, 311
++ * of the provisioning document.
++ */
++static void fill_miiis(struct ndctl_dimm *dimm, struct pcd_miiis *m,
++		       u8 revision, u64 size)
++{
++	struct nfit_handle n_handle;
++
++	m->mui.id = ndctl_dimm_get_vendor(dimm);
++	m->mui.id = cpu_to_be16(m->mui.id);
++	m->mui.location = ndctl_dimm_get_manufacturing_location(dimm);
++	m->mui.date = ndctl_dimm_get_manufacturing_date(dimm);
++	m->mui.date = cpu_to_be16(m->mui.date);
++	m->mui.serial = ndctl_dimm_get_serial(dimm);
++	m->mui.serial = cpu_to_be32(m->mui.serial);
++	m->offset = 0;
++	m->size = size;
++	n_handle.value = ndctl_dimm_get_handle(dimm);
++	/**
++	 * The module location field only exists in v1.2 of the table
++	 * In v0.2 the field is reserved. See section 3.8.1.1 Table 311
++	 * of the provisioning document
++	 */
++	if (revision > PCD_REV_1_0) {
++		m->ml.socket_id = n_handle.socket_id;
++		m->ml.die_id = 0;
++		m->ml.mem_controller_id = n_handle.mem_ctrlr;
++		m->ml.channel_id = n_handle.mem_chnl;
++		m->ml.slot_id = n_handle.dimm;
++	}
++}
++
+ /**
+  * Update the checksum fields in the configuration input and configuration
+  * header. These fields are described in Table 31 and Table 33 of provisioning
+@@ -463,6 +597,30 @@ static int write_pcd(struct ndctl_dimm *dimm, const char *buf, u32 buf_length)
+ 	return 0;
+ }
+ 
++/**
++ * Given the ndctl dimm object obtain the module partition information
++ * output structure by using a vendor specific command. See section 4.3
++ * Table 47 and 48 for more information on the command and the structure
++ * and field information of command input and output.
++ */
++static int get_module_partition_info(struct ndctl_dimm *dimm,
++				     struct pcd_mpio *buf)
++{
++	u32 op_code = 0;
++	char inp[PCD_SP_SIZE];
++	char op[PCD_SP_SIZE];
++
++	memset(buf, 0, sizeof(struct pcd_mpio));
++	memset(inp, 0, PCD_SP_SIZE);
++	memset(op, 0, PCD_SP_SIZE);
++	op_code = cpu_to_be16(PCD_OPCODE_GET_MPI);
++	if (execute_vendor_specific_cmd(dimm, op_code, inp, PCD_SP_SIZE, op,
++					PCD_SP_SIZE) != 0)
++		return -ENOTTY;
++	memcpy(buf, op, sizeof(struct pcd_mpio));
++	return 0;
++}
++
+ /**
+  * Validate checksum field of configuration header.
+  */
+@@ -609,6 +767,323 @@ out:
+ 	return status;
+ }
+ 
++static u8 get_socket_id(struct ndctl_dimm *dimm)
++{
++	struct nfit_handle n_handle;
++
++	n_handle.value = ndctl_dimm_get_handle(dimm);
++	return n_handle.socket_id;
++}
++
++static int compare_dimm_socket(const void *p1, const void *p2)
++{
++	struct ndctl_dimm *dimm1 = *(struct ndctl_dimm **)p1;
++	struct ndctl_dimm *dimm2 = *(struct ndctl_dimm **)p2;
++	u8 sid1 = get_socket_id(dimm1);
++	u8 sid2 = get_socket_id(dimm2);
++
++	return sid1 - sid2;
++}
++
++static int compare_dimm_iset_parity(const void *p1, const void *p2)
++{
++	struct ndctl_dimm *dimm1 = *(struct ndctl_dimm **)p1;
++	struct ndctl_dimm *dimm2 = *(struct ndctl_dimm **)p2;
++	struct nfit_handle n_handle;
++	u32 order1 = 0;
++	u32 order2 = 0;
++
++	n_handle.value = ndctl_dimm_get_handle(dimm1);
++	/**
++	 * For six-way interleave sets (which can occur in sockets that have
++	 * two iMCs, each with three channels), the order is determined as
++	 * follows: Modules are first ordered by
++	 * “(channel number + iMC number) modulus 2”
++	 * and then ordered by channel number. See section 3.8 Table 38 of the
++	 * provisioning document.
++	 */
++	order1 = n_handle.socket_id << 8 |
++		 (n_handle.mem_chnl + n_handle.mem_ctrlr) % 2 << 4 |
++		 n_handle.mem_chnl;
++	n_handle.value = ndctl_dimm_get_handle(dimm2);
++	order2 = n_handle.socket_id << 8 |
++		 (n_handle.mem_chnl + n_handle.mem_ctrlr) % 2 << 4 |
++		 n_handle.mem_chnl;
++	return order1 - order2;
++}
++
++static int compare_dimm_iset(const void *p1, const void *p2)
++{
++	struct ndctl_dimm *dimm1 = *(struct ndctl_dimm **)p1;
++	struct ndctl_dimm *dimm2 = *(struct ndctl_dimm **)p2;
++	struct nfit_handle n_handle;
++	u32 order1 = 0;
++	u32 order2 = 0;
++
++	n_handle.value = ndctl_dimm_get_handle(dimm1);
++	/**
++	 * In interleave set the modules are first ordered by channel number
++	 * and then ordered by iMC number. See section 3.8 Table 38 of the
++	 * provisioning document.
++	 */
++	order1 = n_handle.socket_id << 8 | n_handle.mem_chnl << 4 |
++		 n_handle.mem_ctrlr;
++	n_handle.value = ndctl_dimm_get_handle(dimm2);
++	order2 = n_handle.socket_id << 8 | n_handle.mem_chnl << 4 |
++		 n_handle.mem_ctrlr;
++	return order1 - order2;
++}
++
++/**
++ * Helper function to rearrange dimms in the global interleave set dimm array
++ * with the same socket id into the order in which they would be in an
++ * module identification information field. See Section 3.8 Table 38 in
++ * provisioning document for more information on this field.
++ */
++static void rearrange_iset(u32 loc)
++{
++	static u8 tsocket;
++	static u32 dcount;
++	u8 csocket = 0;
++
++	/**
++	 * Here are the steps
++	 * 1) Check if there is dimm in the location
++	 * 2) If first location store the socket id
++	 * 3) If the socket id is same as stored socket id increment dcount
++	 * 4) If new socket id is seen one interleave set is complete and
++	 *    can be sorted
++	 * 5) Reset dcount and stored socket id for next interleave set
++	 */
++	if (iset_list[loc]) {
++		csocket = get_socket_id(iset_list[loc]);
++		if (loc == 0)
++			tsocket = csocket;
++		if (tsocket == csocket)
++			dcount++;
++	}
++	if (!iset_list[loc] || csocket != tsocket) {
++		/* All devices within the socket have been found */
++		if (dcount == 6)
++			qsort(&iset_list[loc - dcount], dcount,
++			      sizeof(struct ndctl_dimm *),
++			      compare_dimm_iset_parity);
++		else
++			qsort(&iset_list[loc - dcount], dcount,
++			      sizeof(struct ndctl_dimm *), compare_dimm_iset);
++		dcount = 1;
++		tsocket = csocket;
++	}
++}
++
++/**
++ * Helper function to initialize in the global interleave set dimm array
++ * with dimms sorted first in increasing order of socket id. Dimms with same
++ * socket id belong to same interleave set. Within each interleave set the
++ * are stored in order in which they would be in an
++ * module identification information field. See Section 3.8 Table 38 in
++ * provisioning document for more information on this field.
++ */
++static int initialize_adi(struct ndctl_dimm *dimm, u32 adcount)
++{
++	struct ndctl_bus *const bus = ndctl_dimm_get_bus((void *)dimm);
++	u32 i = 0;
++
++	/**
++	 * Here are the steps
++	 * 1) Do initialization, if this is the first dimm.
++	 * 2) Count number of dimms
++	 * 3) Create a global array with size number of dimms + 1
++	 * 4) Copy dimms into the global array and assign null to last element
++	 * 5) Sort the dimms by socket id to create interleave sets with dimms
++	 *    having the same socket id
++	 * 6) Run the helper function over all dimms to identify interleave sets
++	 *    and sort the dimms within an interleave set in order in which
++	 *    they would be in a module identification information field.
++	 *    See Section 3.8 Table 38 in provisioning document.
++	 */
++	if (adcount != 0)
++		return 0;
++	dimm = NULL;
++	ndctl_dimm_foreach((void *)bus, dimm) {
++		iset_count++;
++	}
++	iset_list = malloc((iset_count + 1) * sizeof(dimm));
++	if (!iset_list)
++		return -ENOMEM;
++	i = 0;
++	ndctl_dimm_foreach((void *)bus, dimm) {
++		iset_list[i++] = dimm;
++	}
++	iset_list[i] = NULL;
++	qsort(iset_list, iset_count, sizeof(dimm), compare_dimm_socket);
++	for (i = 0; i < iset_count + 1; i++)
++		rearrange_iset(i);
++	return 0;
++}
++
++/**
++ * Given a iset location, socket id of dimm, and previously returned
++ * interleave set dimm, see if the dimm in iset location can be returned
++ * as the next dimm in the interleave set
++ */
++static int check_next_iset_dimm(u32 loc, u8 sid, struct ndctl_dimm **b)
++{
++	struct ndctl_dimm *d = (void *)iset_list[loc];
++
++	/**
++	 * Here are the steps
++	 * 1) If previous returned dimm is null, return dimm at current
++	 *    iset location as the next dimm in interleave set.
++	 * 2) If previous returned dimm is at current iset location, check to
++	 *    see if dimm in next iset location exists and belongs to same
++	 *    iset (same socket id), if so return the dimm in loc + 1 as the
++	 *    next dimm in interleave set
++	 * 3) If dimm at loc + 1 does not exist or has different socket id. The
++	 *    end of interleave set is reached and return null as next dimm.
++	 * See Section 3.8 Table 38 in provisioning document for ordering a
++	 * interleave set.
++	 */
++	if (!(*b)) {
++		/* inp is null , return first elem */
++		*b = d;
++		return 0;
++	} else if (*b == d) {
++		/* reached last returned elem */
++		struct ndctl_dimm *dn = iset_list[loc + 1];
++
++		if (!dn) {
++			/* No more elements in isetlist */
++			*b = NULL;
++			return 0;
++		} else if (dn) {
++			/* Next element in isetlist present */
++			u8 isid = get_socket_id(dn);
++
++			if (isid != sid) {
++				/* No next element to return */
++				*b = NULL;
++				return 0;
++			} else if (isid == sid) {
++				/* Next element is same sid */
++				*b = dn;
++				return 0;
++			}
++		}
++	}
++	return -1;
++}
++
++/**
++ * Given a dimm object and a dimm in the interleave set b, get the
++ * next dimm in the same interleave set after b. If next dimm does not exist
++ * or belongs to another interleave set return null. If b is null then
++ * the first dimm in interleave set to which dimm object belongs is returned.
++ */
++static int get_next_iset_dimm(struct ndctl_dimm *dimm, struct ndctl_dimm **b)
++{
++	u8 sid = 0;
++	struct ndctl_dimm *di = NULL;
++	u32 i = 0;
++	int ret = 0;
++
++	/**
++	 * Here are the steps
++	 * 1) Get socket id of dimm
++	 * 2) Loop through dimms in global interleave set array till dimm of
++	 *    same socket id can be found.
++	 * 3) For each dimm of same socket id, call check_next_iset_dimm
++	 *    to see if the next dimm in global interleave set array should
++	 *    be returned as the next dimm in interleave set after dimm b
++	 * See Section 3.8 Table 38 in provisioning document for ordering a
++	 * interleave set.
++	 */
++	di = (void *)iset_list[0];
++	if (!b || !dimm || !di)
++		return -ENOTTY;
++	sid = get_socket_id(dimm);
++	while (di) {
++		u8 isid = 0;
++
++		isid = get_socket_id(di);
++		if (sid == isid) {
++			ret = check_next_iset_dimm(i, sid, b);
++			if (!ret)
++				return ret;
++		}
++		di = (void *)iset_list[++i];
++	}
++	*b = NULL;
++	return -1;
++}
++
++/**
++ * Given a dimm object, get the number of dimms in the interleave set to which
++ * it belongs. See Section 3.8 Table 38 in provisioning document for ordering a
++ * interleave set
++ */
++static int get_iset_dimm_count(struct ndctl_dimm *dimm, u32 *count)
++{
++	struct ndctl_dimm *d = NULL;
++	int ret = -1;
++
++	if (!count)
++		return ret;
++	*count = 0;
++	/**
++	 * Iterate through the dimms in the interleave set and keep count
++	 * of dimms. If next dimm in interleave set is NULL, then return count
++	 */
++	while (!(ret = get_next_iset_dimm(dimm, &d))) {
++		if (!d)
++			break;
++		*count = *count + 1;
++	}
++	return ret;
++}
++
++/**
++ * Given a dimm object calculate partition size field in module identification
++ * information for interleave set table. See section 3.8.1.1 Table 310 and 311
++ * of provisioning document.
++ */
++static u64 get_iset_psize(struct ndctl_dimm *dimm)
++{
++	struct ndctl_dimm *d = NULL;
++	int count = 0;
++	struct pcd_mpio mpio;
++	u64 i_size = 0;
++	u64 r_size = 0;
++	int ret = 0;
++
++	/**
++	 * Iterate over dimms in the same interleave set as dimm object and
++	 * return the lowest raw capacity aligned to 1gib
++	 */
++	while (!(ret = get_next_iset_dimm(dimm, &d))) {
++		if (!d)
++			break;
++		if (get_module_partition_info(d, &mpio) != 0)
++			break;
++		i_size = align_to_gb(raw_capacity_to_bytes(mpio.raw_capacity));
++		r_size = (count == 0) ? i_size : min(r_size, i_size);
++		count++;
++	}
++	return r_size;
++}
++
++/**
++ * Free the global interleave set array. Using the passed in count, free is
++ * called only after all dimms are processed for the reconfigure request.
++ */
++static void deinitialize_adi(u32 ad_count)
++{
++	if ((ad_count == iset_count || ad_count == 0) && iset_list) {
++		free(iset_list);
++		iset_list = NULL;
++	}
++}
++
+ /**
+  * Given a dimm object read its pcd and create a pcd structure with a
+  * configuration input table that requests creation of volatile region.
+@@ -681,6 +1156,234 @@ out:
+ 	return ret;
+ }
+ 
++/**
++ * Given a dimm object read its pcd and create a pcd structure with a
++ * configuration input table that requests creation of
++ * non-interleaved region.
++ * To create the request a new Configuration input table, Partition size
++ * change table, interleave information table and module identification
++ * information for interleave set table are to be added the pcd .Existing
++ * configuration output table is removed.
++ * PCD Partition ID 1 - Configuration management usage (64KB)
++ *
++ * +-------------+	+---------------------+    +---------------+
++ * |		 +----->│Current Configuration+--->│Extension table│
++ * |Configuration|	+---------------------+    +---------------+
++ * │	Header	 |	+---------------------+    +--------------------------+
++ * │		 +----->│ Configuration Input +--->│ Request Extension tables │
++ * +-------------+	+---------------------+    +--------------------------+
++ *
++ * The request extension tables for non-interleaved regions are
++ * 1) Partition size change table (PSCT)
++ * 2) Interleave information table (IIT)
++ * 3) Module identification information for interleave set (MIIIS)
++ * These tables are placed one after another. Section 5.2 in provisioning
++ * document provides an example pcd when creating this request.
++ */
++static int reconfigure_adni(struct ndctl_dimm *dimm)
++{
++	struct pcd_config_header *buf = NULL;
++	u32 length = 0;
++	struct pcd_mpio mpio;
++	struct pcd_config_header *ch = NULL;
++	struct pcd_psct *psct = NULL;
++	struct pcd_iit *iit = NULL;
++	struct pcd_miiis *m = NULL;
++	static u32 isi;
++	int ret = 0;
++	u64 msize = 0;
++	u32 pcd_size = read_pcd_size(dimm);
++
++	/**
++	 * Here are the steps to create a 100% memory mode request
++	 * 1) Read current pcd and module partition information
++	 * 2) Copy configuration header, current configuration tables to a new
++	 *    pcd
++	 * 3) Create the Configuration input table, partition size change
++	      table, interleave information table, module identification
++	      information for interleave set and add them to the pcd
++	 * 4) Write the new pcd.
++	 * The value of persistent memory partition size in the partition size
++	 * change table is set to raw capacity of the dimm to indicate that all
++	 * memory is to be used for interleave set. The number of modules in
++	 * interleave set field of interleave information table is set to 1 to
++	 * indicate there is no interleaving. Section 5.2 in provisioning
++	 * document provides an example pcd when creating this request.
++	 */
++	if (!pcd_size)
++		goto out;
++	buf = (struct pcd_config_header *)calloc(pcd_size, sizeof(char));
++	if (!(buf))
++		goto out;
++	ret = read_pcd(dimm, &buf, pcd_size);
++	if (ret != 0)
++		goto out;
++	/**
++	 * For non-interleave request, The length of pcd table
++	 * to be written would depend on
++	 * 1) sum of read pcd size
++	 * 2) length of psct table
++	 * 3) length of iit table
++	 * 4) length of one miiis
++	 * The configuration input table would take the same space as zeroed
++	 * out configuration output table from read pcd. Section 5.2 in
++	 * provisioning document provides an example pcd when creating
++	 * this request.
++	 */
++	length = sizeof(struct pcd_psct) + sizeof(struct pcd_iit) +
++		 sizeof(struct pcd_miiis);
++	pcd_size = set_pcd_length(pcd_size, length);
++	ret = get_module_partition_info(dimm, &mpio);
++	if (ret != 0)
++		goto out;
++	ch = malloc(pcd_size);
++	if (!ch) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	init_pcd(buf, pcd_size, length, ch);
++	psct = (struct pcd_psct *)get_cin_tables_start(ch);
++	fill_psct(psct, raw_capacity_to_bytes(mpio.raw_capacity));
++	iit = (struct pcd_iit *)(psct + 1);
++	fill_iit(iit, 1, isi++);
++	m = get_miiis(iit);
++	msize = align_to_gb(raw_capacity_to_bytes(mpio.raw_capacity));
++	fill_miiis(dimm, m, ch->header.revision, msize);
++	finalize_pcd(ch);
++	ret = write_pcd(dimm, (char *)ch, pcd_size);
++out:
++	free(ch);
++	free(buf);
++	return ret;
++}
++
++/**
++ * Given a dimm object read its pcd and create a pcd structure with a
++ * configuration input table that requests creation of
++ * interleaved region.
++ * To create the request a new Configuration input table, Partition size
++ * change table, interleave information table and module identification
++ * information for interleave set tables for each dimm in the interleave set
++ * are to be added the pcd .Existing configuration output table is removed.
++ * PCD Partition ID 1 - Configuration management usage (64KB)
++ *
++ * +-------------+	+---------------------+    +---------------+
++ * |		 +----->│Current Configuration+--->│Extension table│
++ * |Configuration|	+---------------------+    +---------------+
++ * │	Header	 |	+---------------------+    +--------------------------+
++ * │		 +----->│ Configuration Input +--->│ Request Extension tables │
++ * +-------------+	+---------------------+    +--------------------------+
++ *
++ * The request extension tables for interleaved are
++ * 1) Partition size change table (PSCT)
++ * 2) Interleave information table (IIT)
++ * 3) N * Module identification information for interleave set (MIIIS). N is
++ *    number of dimms in the same interleave set as dimm object.
++ * Here an interleave set is all dimms with same socket id as dimm object.
++ * These tables are placed one after another. Section 5.3 in provisioning
++ * document provides an example pcd when creating this request.
++ */
++static int reconfigure_ad(struct ndctl_dimm *dimm)
++{
++	struct pcd_config_header *buf = NULL;
++	static u32 ad_count;
++	u32 mii_count = 0;
++	u32 length = 0;
++	struct pcd_mpio mpio;
++	int ret = 0;
++	struct ndctl_dimm *idimm = NULL;
++	struct pcd_config_header *ch = NULL;
++	struct pcd_psct *psct = NULL;
++	struct pcd_iit *iit = NULL;
++	struct pcd_miiis *m = NULL;
++	u64 msize = 0;
++	u32 pcd_size = read_pcd_size(dimm);
++
++	/**
++	 * Here are the steps to create interleave request
++	 * 1) Create interleave sets for system if not created.
++	 * 2) Read current pcd and module partition information
++	 * 3) Copy configuration header, current configuration tables to a new
++	 *    pcd
++	 * 4) Create the Configuration input table, partition size change
++	      table and interleave information table.
++	 * 5) Identify other dimms in the same interleave set and for each
++	 *    dimm create a module indentification information for interleave
++	 *    set table and add all of them to interleave information table.
++	 * 6) Add all the new tables to the new pcd.
++	 * 7) Write the new pcd.
++	 * The value of persistent memory partition size in the partition size
++	 * change table is set to raw capacity of the dimm to indicate that all
++	 * memory is to be used for interleave set. The number of modules in
++	 * interleave set field of interleave information table is set to
++	 * to number of dimms in interleave set to indicate there is
++	 * interleaving. Section 5.3 in provisioning
++	 * document provides an example pcd when creating this request.
++	 */
++	ret = initialize_adi(dimm, ad_count++);
++	if (ret != 0)
++		goto out;
++	ret = get_iset_dimm_count(dimm, &mii_count);
++	if (ret != 0)
++		goto out;
++	ret = get_next_iset_dimm(dimm, &idimm);
++	if (ret != 0)
++		goto out;
++	ret = get_module_partition_info(dimm, &mpio);
++	if (ret != 0)
++		goto out;
++	if (!pcd_size)
++		goto out;
++	buf = (struct pcd_config_header *)calloc(pcd_size, sizeof(char));
++	if (!(buf))
++		goto out;
++	ret = read_pcd(dimm, &buf, pcd_size);
++	if (ret != 0)
++		goto out;
++	/**
++	 * For interleave request, The length of pcd table
++	 * to be written would depend on
++	 * 1) sum of read pcd size
++	 * 2) length of psct table
++	 * 3) length of iit table
++	 * 4) length of miiis * number of dimms in interleave set
++	 * The configuration input table would take the same space as zeroed
++	 * out configuration output table from read pcd. Section 5.3 in
++	 * provisioning document provides an example pcd when creating
++	 * this request.
++	 */
++	length = sizeof(struct pcd_psct) + sizeof(struct pcd_iit) +
++		 (mii_count * sizeof(struct pcd_miiis));
++	pcd_size = set_pcd_length(pcd_size, length);
++	ch = malloc(pcd_size);
++	if (!ch) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	init_pcd(buf, pcd_size, length, ch);
++	psct = (struct pcd_psct *)get_cin_tables_start(ch);
++	fill_psct(psct, raw_capacity_to_bytes(mpio.raw_capacity));
++	iit = (struct pcd_iit *)(psct + 1);
++	fill_iit(iit, mii_count, get_socket_id(dimm) + 1);
++	m = get_miiis(iit);
++	msize = get_iset_psize(dimm);
++	while (idimm) {
++		fill_miiis(idimm, m, ch->header.revision, msize);
++		get_next_iset_dimm(dimm, &idimm);
++		m = m + 1;
++	}
++	finalize_pcd(ch);
++	ret = write_pcd(dimm, (char *)ch, pcd_size);
++out:
++	free(ch);
++	free(buf);
++	/* Force deinitialization if returning error */
++	if (ret != 0)
++		ad_count = 0;
++	deinitialize_adi(ad_count);
++	return ret;
++}
++
+ /**
+  * Given the mode option perform the region reconfiguration action on
+  * the dimm object
+@@ -688,10 +1391,12 @@ out:
+ static int do_reconfigure(struct ndctl_dimm *dimm, const char *mode)
+ {
+ 	if (!mode)
+-		return -EOPNOTSUPP;
++		return reconfigure_ad(dimm);
+ 	if (strncmp(mode, "ram", 3) == 0)
+ 		return reconfigure_volatile(dimm);
+-	return -EOPNOTSUPP;
++	if (strncmp(mode, "pmem", 4) == 0)
++		return reconfigure_adni(dimm);
++	return reconfigure_ad(dimm);
+ }
+ 
+ /**
 -- 
 2.20.1
 
