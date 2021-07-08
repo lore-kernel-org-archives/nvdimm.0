@@ -1,126 +1,136 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f43.google.com (mail-wm1-f43.google.com [209.85.128.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B8D8173
-	for <nvdimm@lists.linux.dev>; Thu,  8 Jul 2021 01:53:29 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10038"; a="295064699"
-X-IronPort-AV: E=Sophos;i="5.84,222,1620716400"; 
-   d="scan'208";a="295064699"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jul 2021 18:53:29 -0700
-X-IronPort-AV: E=Sophos;i="5.84,222,1620716400"; 
-   d="scan'208";a="498193450"
-Received: from jingqili-mobl.ccr.corp.intel.com (HELO [10.238.6.254]) ([10.238.6.254])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jul 2021 18:53:28 -0700
-Subject: Re: [PATCH] ndctl/dimm: Fix to dump namespace indexs and labels
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>,
- "Williams, Dan J" <dan.j.williams@intel.com>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-References: <20210609030642.66204-1-jingqi.liu@intel.com>
- <8110e80df98fb57fd20d0bf73dc7d266fef5ab84.camel@intel.com>
-From: "Liu, Jingqi" <jingqi.liu@intel.com>
-Message-ID: <9cba6794-e3ea-fb89-1391-e3bd992912a6@intel.com>
-Date: Thu, 8 Jul 2021 09:53:26 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0AC9A173;
+	Thu,  8 Jul 2021 02:09:05 +0000 (UTC)
+Received: by mail-wm1-f43.google.com with SMTP id l18-20020a1ced120000b029014c1adff1edso5620393wmh.4;
+        Wed, 07 Jul 2021 19:09:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=3PsL89oWHD3lPAqXaooZwbzxbg1c8VW9/mevLYmxoEY=;
+        b=Io7pdvzLgLAcWTLuF5ChPlqPXk8RD3AjkbMakmdmrW+tJF8WmpTLIy+6Q6+3CkaEMB
+         DiGtf8xMIi/Js/Dp28RJSTDsd6fivWwEshHU0ncZmqrlNcSixmrFJIMiY5aH0CNk37lu
+         ZxaGIjIRv4gnUqRRsRV9LF3hBCpGMTCjFBPurxMRm/oJnUVBQLyBO98Tze3h39uGWPjq
+         L1hynZ4nw5dufGsacwH52FPdsq9ucSHiu2W0uD2PM6zfNlldOQXdtSmYU4w64AhwrfAV
+         AGk22auShLhCRWC8I72blncKoOlQeoTMsnm/VTRo3w2RzqnlGs4u/t7Kteji5q2GImlm
+         Xejg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=3PsL89oWHD3lPAqXaooZwbzxbg1c8VW9/mevLYmxoEY=;
+        b=rkphDYjTm//TbWmW9WGvke6x8CcukhkIAwr+UKtVEJjK61usjr2ZNlnmzAgYIiPIDP
+         hFGemif/k7epLBAXWWQx4iWAxzzBYB+W8d1IhlNlbSx1X0F3OkqIwwdFz0xcj1sUBQm6
+         n+rh1Lu9OrcDsENOuL8NBK6OdP6+D23gZBMLyK3e83gPhYs05QU942dutDLtc3umRD3P
+         ED6Y47lfM9Tn1NlTZ7RXjZKdpuZmXrHt7P8t2lRRSCRaiDtzRwefKzjRfBtaD8nylMHa
+         ei02po4z0fKwb/Coqa9rjiE7j4VNLKqjA+KaBiRMuAsJjYj6xPanC/DMjOZ9DfHuBft7
+         i9xQ==
+X-Gm-Message-State: AOAM532E0rhMinnbuRYzeswGjwqIcGBoFzsmVVBt9JMi/OcUcy86N0F4
+	XQC/BVSe4ZgsL+JUhVVHfJy33y9uxpuio8n2e0w=
+X-Google-Smtp-Source: ABdhPJx2ABZfFCczzC2+tHa6i67MY0TTbXPJ4h7OQNwopTDiNt9WjzOb7awBWWfFzzKIcRsQNvEeOBa03Rz7d0rVqcg=
+X-Received: by 2002:a1c:7512:: with SMTP id o18mr999573wmc.94.1625710144333;
+ Wed, 07 Jul 2021 19:09:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <8110e80df98fb57fd20d0bf73dc7d266fef5ab84.camel@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <20210706154803.1631813-1-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20210706154803.1631813-1-u.kleine-koenig@pengutronix.de>
+From: Sven Van Asbroeck <thesven73@gmail.com>
+Date: Wed, 7 Jul 2021 22:08:53 -0400
+Message-ID: <CAGngYiWm4u27o-yy5L5tokMB5G1RUR5uYmKf2oXah2P3J=hK2A@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] bus: Make remove callback return void
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sascha Hauer <kernel@pengutronix.de>, 
+	Cornelia Huck <cohuck@redhat.com>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russell King <linux@armlinux.org.uk>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Geoff Levand <geoff@infradead.org>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, 
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, 
+	William Breathitt Gray <vilhelm.gray@gmail.com>, =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>, 
+	Maxime Ripard <mripard@kernel.org>, Chen-Yu Tsai <wens@csie.org>, 
+	Jernej Skrabec <jernej.skrabec@gmail.com>, Alison Schofield <alison.schofield@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Ben Widawsky <ben.widawsky@intel.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Vinod Koul <vkoul@kernel.org>, 
+	Stefan Richter <stefanr@s5r6.in-berlin.de>, Sudeep Holla <sudeep.holla@arm.com>, 
+	Cristian Marussi <cristian.marussi@arm.com>, Wu Hao <hao.wu@intel.com>, Tom Rix <trix@redhat.com>, 
+	Moritz Fischer <mdf@kernel.org>, Jiri Kosina <jikos@kernel.org>, 
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>, 
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, 
+	"K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, 
+	Stephen Hemminger <sthemmin@microsoft.com>, Wei Liu <wei.liu@kernel.org>, 
+	Dexuan Cui <decui@microsoft.com>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, Wolfram Sang <wsa@kernel.org>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+	Samuel Iglesias Gonsalvez <siglesias@igalia.com>, Jens Taprogge <jens.taprogge@taprogge.org>, 
+	Johannes Thumshirn <morbidrsa@gmail.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, 
+	Maxim Levitsky <maximlevitsky@gmail.com>, Alex Dubov <oakad@yahoo.com>, 
+	Ulf Hansson <ulf.hansson@linaro.org>, Lee Jones <lee.jones@linaro.org>, 
+	Tomas Winkler <tomas.winkler@intel.com>, Arnd Bergmann <arnd@arndb.de>, 
+	Jakub Kicinski <kuba@kernel.org>, "David S. Miller" <davem@davemloft.net>, Jon Mason <jdmason@kudzu.us>, 
+	Allen Hubbe <allenbh@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, 
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, =?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>, 
+	Bjorn Helgaas <bhelgaas@google.com>, Dominik Brodowski <linux@dominikbrodowski.net>, 
+	Maximilian Luz <luzmaximilian@gmail.com>, Hans de Goede <hdegoede@redhat.com>, 
+	Mark Gross <mgross@linux.intel.com>, Matt Porter <mporter@kernel.crashing.org>, 
+	Alexandre Bounine <alex.bou9@gmail.com>, Ohad Ben-Cohen <ohad@wizery.com>, 
+	Bjorn Andersson <bjorn.andersson@linaro.org>, Mathieu Poirier <mathieu.poirier@linaro.org>, 
+	"Martin K. Petersen" <martin.petersen@oracle.com>, Thorsten Scherer <t.scherer@eckelmann.de>, 
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andy Gross <agross@kernel.org>, 
+	Mark Brown <broonie@kernel.org>, Stephen Boyd <sboyd@kernel.org>, Michael Buesch <m@bues.ch>, 
+	Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>, 
+	Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, 
+	Mika Westerberg <mika.westerberg@linux.intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, 
+	Rob Herring <robh@kernel.org>, Jiri Slaby <jirislaby@kernel.org>, 
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Michael S. Tsirkin" <mst@redhat.com>, 
+	Jason Wang <jasowang@redhat.com>, Kirti Wankhede <kwankhede@nvidia.com>, 
+	Alex Williamson <alex.williamson@redhat.com>, Martyn Welch <martyn@welchs.me.uk>, 
+	Manohar Vanga <manohar.vanga@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, 
+	Juergen Gross <jgross@suse.com>, Stefano Stabellini <sstabellini@kernel.org>, 
+	Johannes Berg <johannes@sipsolutions.net>, Jaroslav Kysela <perex@perex.cz>, 
+	Takashi Iwai <tiwai@suse.com>, Marc Zyngier <maz@kernel.org>, Tyrel Datwyler <tyreld@linux.ibm.com>, 
+	Vladimir Zapolskiy <vz@mleia.com>, Samuel Holland <samuel@sholland.org>, 
+	Qinglang Miao <miaoqinglang@huawei.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, 
+	Kai-Heng Feng <kai.heng.feng@canonical.com>, Joey Pabalan <jpabalanb@gmail.com>, 
+	=?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>, 
+	Adrian Hunter <adrian.hunter@intel.com>, Frank Li <lznuaa@gmail.com>, 
+	Mike Christie <michael.christie@oracle.com>, Bodo Stroesser <bostroesser@gmail.com>, 
+	Hannes Reinecke <hare@suse.de>, David Woodhouse <dwmw@amazon.co.uk>, SeongJae Park <sjpark@amazon.de>, 
+	Julien Grall <jgrall@amazon.com>, 
+	"moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, linux-mips@vger.kernel.org, 
+	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
+	linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org, 
+	linux-sunxi@lists.linux.dev, linux-cxl@vger.kernel.org, 
+	nvdimm@lists.linux.dev, dmaengine@vger.kernel.org, 
+	linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org, 
+	linux-input@vger.kernel.org, linux-hyperv@vger.kernel.org, 
+	linux-i2c <linux-i2c@vger.kernel.org>, linux-i3c@lists.infradead.org, 
+	industrypack-devel@lists.sourceforge.net, 
+	linux-media <linux-media@vger.kernel.org>, linux-mmc@vger.kernel.org, 
+	netdev <netdev@vger.kernel.org>, linux-ntb@googlegroups.com, 
+	linux-pci@vger.kernel.org, platform-driver-x86@vger.kernel.org, 
+	linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	alsa-devel@alsa-project.org, linux-arm-msm@vger.kernel.org, 
+	linux-spi <linux-spi@vger.kernel.org>, linux-staging@lists.linux.dev, 
+	greybus-dev@lists.linaro.org, target-devel@vger.kernel.org, 
+	linux-usb@vger.kernel.org, linux-serial@vger.kernel.org, 
+	virtualization@lists.linux-foundation.org, kvm@vger.kernel.org, 
+	xen-devel@lists.xenproject.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Vishal,
+On Tue, Jul 6, 2021 at 11:50 AM Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de> wrote:
+>
+>  drivers/staging/fieldbus/anybuss/host.c   | 4 +---
 
-Thanks for your comments.
+Awesome !
 
-On 7/8/2021 8:21 AM, Verma, Vishal L wrote:
-> On Wed, 2021-06-09 at 11:06 +0800, Jingqi Liu wrote:
->> The following bug is caused by setting the size of Label Index Block
->> to a fixed 256 bytes.
->>
->> Use the following Qemu command to start a Guest with 2MB label-size:
->>        -object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
->>        -device nvdimm,memdev=mem1,id=nv1,label-size=2M
->>
->> There is a namespace in the Guest as follows:
->>        $ ndctl list
->>        [
->>          {
->>            "dev":"namespace0.0",
->>            "mode":"devdax",
->>            "map":"dev",
->>            "size":14780727296,
->>            "uuid":"58ad5282-5a16-404f-b8ee-e28b4c784eb8",
->>            "chardev":"dax0.0",
->>            "align":2097152,
->>            "name":"namespace0.0"
->>          }
->>        ]
->>
->> Fail to read labels. The result is as follows:
->>        $ ndctl read-labels -u nmem0
->>        [
->>        ]
->>        read 0 nmem
->>
->> If using the following Qemu command to start the Guest with 128K
->> label-size, this label can be read correctly.
->>        -object memory-backend-file,id=mem1,share=on,mem-path=/dev/dax1.1,size=14G,align=2M
->>        -device nvdimm,memdev=mem1,id=nv1,label-size=128K
->>
->> The size of a Label Index Block depends on how many label slots fit into
->> the label storage area. The minimum size of an index block is 256 bytes
->> and the size must be a multiple of 256 bytes. For a storage area of 128KB,
->> the corresponding Label Index Block size is 256 bytes. But if the label
->> storage area is not 128KB, the Label Index Block size should not be 256 bytes.
->>
->> Namespace Label Index Block appears twice at the top of the label storage area.
->> Following the two index blocks, an array for storing labels takes up the
->> remainder of the label storage area.
->>
->> For obtaining the size of Namespace Index Block, we also cannot rely on
->> the field of 'mysize' in this index block since it might be corrupted.
->> Similar to the linux kernel, we use sizeof_namespace_index() to get the size
->> of Namespace Index Block. Then we can also correctly calculate the starting
->> offset of the following namespace labels.
->>
->> Suggested-by: Dan Williams <dan.j.williams@intel.com>
->> Signed-off-by: Jingqi Liu <jingqi.liu@intel.com>
->> ---
->>   ndctl/dimm.c           | 19 +++++++++++++++----
->>   ndctl/lib/dimm.c       |  5 +++++
->>   ndctl/lib/libndctl.sym |  1 +
->>   ndctl/libndctl.h       |  1 +
->>   4 files changed, 22 insertions(+), 4 deletions(-)
-> 
-> Hi Jingqi,
-> 
-> This looks fine, one comment below.
-> 
-> [..]
->>
->> diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
->> index 0a82616..0ce2bb9 100644
->> --- a/ndctl/lib/libndctl.sym
->> +++ b/ndctl/lib/libndctl.sym
->> @@ -290,6 +290,7 @@ global:
->>        ndctl_dimm_validate_labels;
->>        ndctl_dimm_init_labels;
->>        ndctl_dimm_sizeof_namespace_label;
->> +     ndctl_dimm_sizeof_namespace_index;
-> 
-> This can't go into an 'old' section of the symbol version script - if
-> you base off the current 'pending' branch, you should see a LIBNDCTL_26
-> section at the bottom. You can add this there.
-
-It's based on the current 'master' branch.
-I don't see a LIBNDCTL_26 section, just 'LIBNDCTL_25'.
-How about adding 'ndctl_dimm_sizeof_namespace_index' to LIBNDCTL_25 
-section ?
-
-Thanks,
-Jingqi
+Acked-by: Sven Van Asbroeck <TheSven73@gmail.com>
