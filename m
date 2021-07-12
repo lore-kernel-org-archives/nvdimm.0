@@ -1,336 +1,224 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from out4436.biz.mail.alibaba.com (out4436.biz.mail.alibaba.com [47.88.44.36])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F15C72
-	for <nvdimm@lists.linux.dev>; Mon, 12 Jul 2021 08:49:08 +0000 (UTC)
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16C8Xn3C112987;
-	Mon, 12 Jul 2021 04:48:55 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : content-transfer-encoding : mime-version; s=pp1;
- bh=hhaFh1bdiVXfa0mbzwOPOB1EtpdGUT9yWlIQEVGNJWo=;
- b=cMw3V2lcCiEA6v0CmcfT0+W4mC2VXdaHrsTs85yCWLmPQrKwInQcEOFieX2ONhFoDt1R
- 7+TTt8ewpAi51anwftY4icJmT+XRPwZiEFpI3b04wU3RFkY+fm/8jl9lOL64DdZfCPJp
- 4xDN1Kgi/wzn/Hw4heTVDTXSfIAN9XI7DGaW4rr0AhSPPVz57GCBkf2lnZ02VEyyVLOO
- g5k5Rtp6s1tNXipo9Pd17TuvlQ/ozSosSO/+mdsEeoEjzgyrQhLQOYAOnoTGRk5ap/2U
- Mcmwc0RY2sjmuM4imiPGUOXGxyYc4cohhQKuEystooEwIjJE0qf/wAqwaQI1Jtc60ZYz WA== 
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 39qrhyk0y0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 12 Jul 2021 04:48:55 -0400
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16C8iVsH025238;
-	Mon, 12 Jul 2021 08:48:53 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma06ams.nl.ibm.com with ESMTP id 39q2th8nsy-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 12 Jul 2021 08:48:53 +0000
-Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16C8kixN29360434
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 12 Jul 2021 08:46:45 GMT
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2617FA4070;
-	Mon, 12 Jul 2021 08:48:50 +0000 (GMT)
-Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 32EDEA40A3;
-	Mon, 12 Jul 2021 08:48:47 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.85.98.133])
-	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Mon, 12 Jul 2021 08:48:46 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Mon, 12 Jul 2021 14:18:46 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: linux-nvdimm@lists.01.org, nvdimm@lists.linux.dev,
-        linuxppc-dev@lists.ozlabs.org
-Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Santosh Sivaraj <santosh@fossix.org>, Ira Weiny <ira.weiny@intel.com>,
-        Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Subject: [PATCH] powerpc/papr_scm: Implement initial support for injecting smart errors
-Date: Mon, 12 Jul 2021 14:18:19 +0530
-Message-Id: <20210712084819.1150350-1-vaibhav@linux.ibm.com>
-X-Mailer: git-send-email 2.31.1
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: veuxCgwDcfy7YcJ1T5-KJ2GqmqVVhbnS
-X-Proofpoint-GUID: veuxCgwDcfy7YcJ1T5-KJ2GqmqVVhbnS
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B473B168
+	for <nvdimm@lists.linux.dev>; Mon, 12 Jul 2021 12:03:07 +0000 (UTC)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0UfXFBmR_1626091362;
+Received: from e18g09479.et15sqa.tbsite.net(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0UfXFBmR_1626091362)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Mon, 12 Jul 2021 20:02:49 +0800
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+To: linux-erofs@lists.ozlabs.org
+Cc: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Chao Yu <chao@kernel.org>,
+	Liu Bo <bo.liu@linux.alibaba.com>,
+	Joseph Qi <joseph.qi@linux.alibaba.com>,
+	Liu Jiang <gerry@linux.alibaba.com>,
+	Huang Jianan <huangjianan@oppo.com>,
+	Gao Xiang <hsiangkao@linux.alibaba.com>
+Subject: [PATCH v2 1/2] erofs: iomap support for non-tailpacking DIO
+Date: Mon, 12 Jul 2021 20:02:40 +0800
+Message-Id: <20210712120241.199903-2-hsiangkao@linux.alibaba.com>
+X-Mailer: git-send-email 2.24.4
+In-Reply-To: <20210712120241.199903-1-hsiangkao@linux.alibaba.com>
+References: <20210712120241.199903-1-hsiangkao@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-07-12_04:2021-07-12,2021-07-12 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- mlxlogscore=999 suspectscore=0 phishscore=0 spamscore=0 malwarescore=0
- bulkscore=0 impostorscore=0 mlxscore=0 clxscore=1015 adultscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2107120067
+Content-Transfer-Encoding: 8bit
 
-Presently PAPR doesn't support injecting smart errors on an
-NVDIMM. This makes testing the NVDIMM health reporting functionality
-difficult as simulating NVDIMM health related events need a hacked up
-qemu version.
+From: Huang Jianan <huangjianan@oppo.com>
 
-To solve this problem this patch proposes simulating certain set of
-NVDIMM health related events in papr_scm. Specifically 'fatal' health
-state and 'dirty' shutdown state. These error can be injected via the
-user-space 'ndctl-inject-smart(1)' command. With the proposed patch and
-corresponding ndctl patches following command flow is expected:
+Add iomap support for non-tailpacking uncompressed data in order to
+support DIO and DAX.
 
-$ sudo ndctl list -DH -d nmem0
-...
-      "health_state":"ok",
-      "shutdown_state":"clean",
-...
- # inject unsafe shutdown and fatal health error
-$ sudo ndctl inject-smart nmem0 -Uf
-...
-      "health_state":"fatal",
-      "shutdown_state":"dirty",
-...
- # uninject all errors
-$ sudo ndctl inject-smart nmem0 -N
-...
-      "health_state":"ok",
-      "shutdown_state":"clean",
-...
+Direct I/O is useful in certain scenarios for uncompressed files.
+For example, double pagecache can be avoid by direct I/O when
+loop device is used for uncompressed files containing upper layer
+compressed filesystem.
 
-The patch adds two members 'health_bitmap_mask' and
-'health_bitmap_override' inside struct papr_scm_priv which are then
-bit blt'ed[1] to the health bitmaps fetched from the hypervisor. In case
-we are not able to fetch health information from the hypervisor we
-service the health bitmap from these two members. These members are
-accessible from sysfs at nmemX/papr/health_bitmap_override
+This adds iomap DIO support for non-tailpacking cases first and
+tail-packing inline files can be handled later.
 
-A new PDSM named 'SMART_INJECT' is proposed that accepts newly
-introduced 'struct nd_papr_pdsm_smart_inject' as payload thats
-exchanged between libndctl and papr_scm to indicate the requested
-smart-error states.
-
-When the processing the PDSM 'SMART_INJECT', papr_pdsm_smart_inject()
-constructs a pair or 'mask' and 'override' bitmaps from the payload
-and bit-blt it to the 'health_bitmap_{mask, override}' members. This
-ensures the after being fetched from the hypervisor, the health_bitmap
-reflects requested smart-error states.
-
-The patch is based on [2] "powerpc/papr_scm: Move duplicate
-definitions to common header files".
-
-[1] : https://en.wikipedia.org/wiki/Bit_blit
-[2] :
-https://lore.kernel.org/nvdimm/162505488483.72147.12741153746322191381.stgit@56e104a48989
-
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Cc: linux-fsdevel@vger.kernel.org
+Signed-off-by: Huang Jianan <huangjianan@oppo.com>
+Signed-off-by: Gao Xiang <hsiangkao@linux.alibaba.com>
 ---
- arch/powerpc/platforms/pseries/papr_scm.c | 94 ++++++++++++++++++++++-
- include/uapi/linux/papr_pdsm.h            | 18 +++++
- 2 files changed, 109 insertions(+), 3 deletions(-)
+ fs/erofs/Kconfig    |   1 +
+ fs/erofs/data.c     | 102 ++++++++++++++++++++++++++++++++++++++++++++
+ fs/erofs/inode.c    |   5 ++-
+ fs/erofs/internal.h |   1 +
+ 4 files changed, 108 insertions(+), 1 deletion(-)
 
-diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
-index 0c56db5a1427..b7437c61a270 100644
---- a/arch/powerpc/platforms/pseries/papr_scm.c
-+++ b/arch/powerpc/platforms/pseries/papr_scm.c
-@@ -29,6 +29,10 @@
- 	 (1ul << ND_CMD_SET_CONFIG_DATA) | \
- 	 (1ul << ND_CMD_CALL))
+diff --git a/fs/erofs/Kconfig b/fs/erofs/Kconfig
+index 906af0c1998c..14b747026742 100644
+--- a/fs/erofs/Kconfig
++++ b/fs/erofs/Kconfig
+@@ -3,6 +3,7 @@
+ config EROFS_FS
+ 	tristate "EROFS filesystem support"
+ 	depends on BLOCK
++	select FS_IOMAP
+ 	select LIBCRC32C
+ 	help
+ 	  EROFS (Enhanced Read-Only File System) is a lightweight
+diff --git a/fs/erofs/data.c b/fs/erofs/data.c
+index 3787a5fb0a42..0f82b4cb474c 100644
+--- a/fs/erofs/data.c
++++ b/fs/erofs/data.c
+@@ -5,6 +5,7 @@
+  */
+ #include "internal.h"
+ #include <linux/prefetch.h>
++#include <linux/iomap.h>
  
-+/* Use bitblt method to override specific bits in the '_bitmap_' */
-+#define BITBLT_BITMAP(_bitmap_, _mask_, _override_)		\
-+	(((_bitmap_) & ~(_mask_)) | ((_mask_) & (_override_)))
-+
- /* Struct holding a single performance metric */
- struct papr_scm_perf_stat {
- 	u8 stat_id[8];
-@@ -81,6 +85,12 @@ struct papr_scm_priv {
+ #include <trace/events/erofs.h>
  
- 	/* length of the stat buffer as expected by phyp */
- 	size_t stat_buffer_len;
-+
-+	/* The bits which needs to be overridden */
-+	u64 health_bitmap_mask;
-+
-+	/* The overridden values for the bits having the masks set */
-+	u64 health_bitmap_override;
- };
- 
- static int papr_scm_pmem_flush(struct nd_region *nd_region,
-@@ -308,19 +318,28 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
- static int __drc_pmem_query_health(struct papr_scm_priv *p)
- {
- 	unsigned long ret[PLPAR_HCALL_BUFSIZE];
-+	u64 bitmap = 0;
- 	long rc;
- 
- 	/* issue the hcall */
- 	rc = plpar_hcall(H_SCM_HEALTH, ret, p->drc_index);
--	if (rc != H_SUCCESS) {
-+	if (rc == H_SUCCESS)
-+		bitmap = ret[0] & ret[1];
-+	else if (rc == H_FUNCTION)
-+		dev_info_once(&p->pdev->dev,
-+			      "Hcall H_SCM_HEALTH not implemented, assuming empty health bitmap");
-+	else {
-+
- 		dev_err(&p->pdev->dev,
- 			"Failed to query health information, Err:%ld\n", rc);
- 		return -ENXIO;
- 	}
- 
- 	p->lasthealth_jiffies = jiffies;
--	p->health_bitmap = ret[0] & ret[1];
--
-+	/* Allow overriding specific health bits via bit blt. */
-+	bitmap = BITBLT_BITMAP(bitmap, p->health_bitmap_mask,
-+			       p->health_bitmap_override);
-+	WRITE_ONCE(p->health_bitmap, bitmap);
- 	dev_dbg(&p->pdev->dev,
- 		"Queried dimm health info. Bitmap:0x%016lx Mask:0x%016lx\n",
- 		ret[0], ret[1]);
-@@ -630,6 +649,54 @@ static int papr_pdsm_health(struct papr_scm_priv *p,
- 	return rc;
- }
- 
-+/* Inject a smart error Add the dirty-shutdown-counter value to the pdsm */
-+static int papr_pdsm_smart_inject(struct papr_scm_priv *p,
-+				  union nd_pdsm_payload *payload)
-+{
-+	int rc;
-+	u32 supported_flags = 0;
-+	u64 mask = 0, override = 0;
-+
-+	/* Check for individual smart error flags and update mask and override */
-+	if (payload->smart_inject.flags & PDSM_SMART_INJECT_HEALTH_FATAL) {
-+		supported_flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
-+		mask |= PAPR_PMEM_HEALTH_FATAL;
-+		override |= payload->smart_inject.fatal_enable ?
-+			PAPR_PMEM_HEALTH_FATAL : 0;
-+	}
-+
-+	if (payload->smart_inject.flags & PDSM_SMART_INJECT_BAD_SHUTDOWN) {
-+		supported_flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
-+		mask |= PAPR_PMEM_SHUTDOWN_DIRTY;
-+		override |= payload->smart_inject.unsafe_shutdown_enable ?
-+			PAPR_PMEM_SHUTDOWN_DIRTY : 0;
-+	}
-+
-+	dev_dbg(&p->pdev->dev, "[Smart-inject] Mask=%#llx override=%#llx\n",
-+		mask, override);
-+
-+	/* Prevent concurrent access to dimm health bitmap related members */
-+	rc = mutex_lock_interruptible(&p->health_mutex);
-+	if (rc)
-+		return rc;
-+
-+	/* Bitblt mask/override to corrosponding health_bitmap couterparts */
-+	p->health_bitmap_mask = BITBLT_BITMAP(p->health_bitmap_mask,
-+					      mask, override);
-+	p->health_bitmap_override = BITBLT_BITMAP(p->health_bitmap_override,
-+						  mask, override);
-+
-+	/* Invalidate cached health bitmap */
-+	p->lasthealth_jiffies = 0;
-+
-+	mutex_unlock(&p->health_mutex);
-+
-+	/* Return the supported flags back to userspace */
-+	payload->smart_inject.flags = supported_flags;
-+
-+	return sizeof(struct nd_papr_pdsm_health);
-+}
-+
- /*
-  * 'struct pdsm_cmd_desc'
-  * Identifies supported PDSMs' expected length of in/out payloads
-@@ -663,6 +730,12 @@ static const struct pdsm_cmd_desc __pdsm_cmd_descriptors[] = {
- 		.size_out = sizeof(struct nd_papr_pdsm_health),
- 		.service = papr_pdsm_health,
- 	},
-+
-+	[PAPR_PDSM_SMART_INJECT] = {
-+		.size_in = sizeof(struct nd_papr_pdsm_smart_inject),
-+		.size_out = sizeof(struct nd_papr_pdsm_smart_inject),
-+		.service = papr_pdsm_smart_inject,
-+	},
- 	/* Empty */
- 	[PAPR_PDSM_MAX] = {
- 		.size_in = 0,
-@@ -799,6 +872,20 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
+@@ -308,9 +309,110 @@ static sector_t erofs_bmap(struct address_space *mapping, sector_t block)
  	return 0;
  }
  
-+static ssize_t health_bitmap_override_show(struct device *dev,
-+					   struct device_attribute *attr,
-+					   char *buf)
++static int erofs_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
++		unsigned int flags, struct iomap *iomap, struct iomap *srcmap)
 +{
-+	struct nvdimm *dimm = to_nvdimm(dev);
-+	struct papr_scm_priv *p = nvdimm_provider_data(dimm);
++	int ret;
++	struct erofs_map_blocks map;
 +
-+	return sprintf(buf, "mask=%#llx override=%#llx\n",
-+		       READ_ONCE(p->health_bitmap_mask),
-+		       READ_ONCE(p->health_bitmap_override));
++	map.m_la = offset;
++	map.m_llen = length;
++
++	ret = erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW);
++	if (ret < 0)
++		return ret;
++
++	iomap->bdev = inode->i_sb->s_bdev;
++	iomap->offset = map.m_la;
++	iomap->length = map.m_llen;
++
++	if (!(map.m_flags & EROFS_MAP_MAPPED)) {
++		iomap->type = IOMAP_HOLE;
++		iomap->addr = IOMAP_NULL_ADDR;
++		if (!iomap->length)
++			iomap->length = length;
++		return 0;
++	}
++
++	/* that shouldn't happen for now */
++	if (map.m_flags & EROFS_MAP_META) {
++		DBG_BUGON(1);
++		return -ENOTBLK;
++	}
++	iomap->type = IOMAP_MAPPED;
++	iomap->addr = map.m_pa;
++	iomap->flags = 0;
++	return 0;
 +}
 +
-+static DEVICE_ATTR_ADMIN_RO(health_bitmap_override);
++const struct iomap_ops erofs_iomap_ops = {
++	.iomap_begin = erofs_iomap_begin,
++};
 +
- static ssize_t perf_stats_show(struct device *dev,
- 			       struct device_attribute *attr, char *buf)
- {
-@@ -913,6 +1000,7 @@ static struct attribute *papr_nd_attributes[] = {
- 	&dev_attr_flags.attr,
- 	&dev_attr_perf_stats.attr,
- 	&dev_attr_dirty_shutdown.attr,
-+	&dev_attr_health_bitmap_override.attr,
- 	NULL,
- };
- 
-diff --git a/include/uapi/linux/papr_pdsm.h b/include/uapi/linux/papr_pdsm.h
-index 1ef46fe8d905..14ec90912460 100644
---- a/include/uapi/linux/papr_pdsm.h
-+++ b/include/uapi/linux/papr_pdsm.h
-@@ -116,6 +116,22 @@ struct nd_papr_pdsm_health {
- 	};
- };
- 
-+/* Flags for injecting specific smart errors */
-+#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
-+#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
++static int erofs_prepare_dio(struct kiocb *iocb, struct iov_iter *to)
++{
++	struct inode *inode = file_inode(iocb->ki_filp);
++	unsigned int blksize_mask = (1 << inode->i_blkbits) - 1;
++	loff_t align = iocb->ki_pos | iov_iter_count(to) |
++		iov_iter_alignment(to);
++	struct block_device *bdev = inode->i_sb->s_bdev;
 +
-+struct nd_papr_pdsm_smart_inject {
-+	union {
-+		struct {
-+			/* One or more of PDSM_SMART_INJECT_ */
-+			__u32 flags;
-+			__u8 fatal_enable;
-+			__u8 unsafe_shutdown_enable;
-+		};
-+		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
-+	};
-+} __packed;
++	if (bdev)
++		blksize_mask = (1 << ilog2(bdev_logical_block_size(bdev))) - 1;
++	else
++		blksize_mask = (1 << inode->i_blkbits) - 1;
 +
- /*
-  * Methods to be embedded in ND_CMD_CALL request. These are sent to the kernel
-  * via 'nd_cmd_pkg.nd_command' member of the ioctl struct
-@@ -123,12 +139,14 @@ struct nd_papr_pdsm_health {
- enum papr_pdsm {
- 	PAPR_PDSM_MIN = 0x0,
- 	PAPR_PDSM_HEALTH,
-+	PAPR_PDSM_SMART_INJECT,
- 	PAPR_PDSM_MAX,
++	if (align & blksize_mask)
++		return -EINVAL;
++
++	/*
++	 * Tail-packing inline data is not supported for iomap for now.
++	 * Temporarily fall back this to buffered I/O instead.
++	 */
++	if (EROFS_I(inode)->datalayout == EROFS_INODE_FLAT_INLINE &&
++	    iocb->ki_pos + iov_iter_count(to) >
++			rounddown(inode->i_size, EROFS_BLKSIZ))
++		return 1;
++	return 0;
++}
++
++static ssize_t erofs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
++{
++	/* no need taking (shared) inode lock since it's a ro filesystem */
++	if (!iov_iter_count(to))
++		return 0;
++
++	if (iocb->ki_flags & IOCB_DIRECT) {
++		int err = erofs_prepare_dio(iocb, to);
++
++		if (!err)
++			return iomap_dio_rw(iocb, to, &erofs_iomap_ops,
++					    NULL, 0);
++		if (err < 0)
++			return err;
++		/*
++		 * Fallback to buffered I/O if the operation being performed on
++		 * the inode is not supported by direct I/O. The IOCB_DIRECT
++		 * flag needs to be cleared here in order to ensure that the
++		 * direct I/O path within generic_file_read_iter() is not
++		 * taken.
++		 */
++		iocb->ki_flags &= ~IOCB_DIRECT;
++	}
++	return generic_file_read_iter(iocb, to);
++}
++
+ /* for uncompressed (aligned) files and raw access for other files */
+ const struct address_space_operations erofs_raw_access_aops = {
+ 	.readpage = erofs_raw_access_readpage,
+ 	.readahead = erofs_raw_access_readahead,
+ 	.bmap = erofs_bmap,
++	.direct_IO = noop_direct_IO,
++};
++
++const struct file_operations erofs_file_fops = {
++	.llseek		= generic_file_llseek,
++	.read_iter	= erofs_file_read_iter,
++	.mmap		= generic_file_readonly_mmap,
++	.splice_read	= generic_file_splice_read,
  };
+diff --git a/fs/erofs/inode.c b/fs/erofs/inode.c
+index aa8a0d770ba3..00edb7562fea 100644
+--- a/fs/erofs/inode.c
++++ b/fs/erofs/inode.c
+@@ -247,7 +247,10 @@ static int erofs_fill_inode(struct inode *inode, int isdir)
+ 	switch (inode->i_mode & S_IFMT) {
+ 	case S_IFREG:
+ 		inode->i_op = &erofs_generic_iops;
+-		inode->i_fop = &generic_ro_fops;
++		if (!erofs_inode_is_data_compressed(vi->datalayout))
++			inode->i_fop = &erofs_file_fops;
++		else
++			inode->i_fop = &generic_ro_fops;
+ 		break;
+ 	case S_IFDIR:
+ 		inode->i_op = &erofs_dir_iops;
+diff --git a/fs/erofs/internal.h b/fs/erofs/internal.h
+index 543c2ff97d30..2669c785d548 100644
+--- a/fs/erofs/internal.h
++++ b/fs/erofs/internal.h
+@@ -371,6 +371,7 @@ static inline int z_erofs_map_blocks_iter(struct inode *inode,
+ #endif	/* !CONFIG_EROFS_FS_ZIP */
  
- /* Maximal union that can hold all possible payload types */
- union nd_pdsm_payload {
- 	struct nd_papr_pdsm_health health;
-+	struct nd_papr_pdsm_smart_inject smart_inject;
- 	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
- } __packed;
+ /* data.c */
++extern const struct file_operations erofs_file_fops;
+ struct page *erofs_get_meta_page(struct super_block *sb, erofs_blk_t blkaddr);
  
+ /* inode.c */
 -- 
-2.31.1
+2.24.4
 
