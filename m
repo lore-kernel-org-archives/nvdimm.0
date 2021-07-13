@@ -1,251 +1,346 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [85.220.165.71])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43DA270
-	for <nvdimm@lists.linux.dev>; Tue, 13 Jul 2021 07:51:37 +0000 (UTC)
-Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16D7bof7138653;
-	Tue, 13 Jul 2021 03:51:35 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : content-type :
- mime-version; s=pp1; bh=H30zpMOJl7CC2JfCaBnurhdjR5IzeUtD59DShwsm1d8=;
- b=OgPg0DcSCt6ox2eBQXYVhTW+FkqbDqLcQkw/hWyF/qiAU3njhK3fgiRrOYvI903cAeyc
- uWChNep8AuDxn7pwgCjBRa5S50G2jMG5/yCFUPCRVKHF+38WHYjCYV+0NchDwW0BOY8B
- MKYHNyp57WNHItD4CGQX6PWPuFv8A24CtbNtWmZQ6IbrAmLAXfz79f9SIj8M04CKbisZ
- bLm8BHBhy+mnBO3lcO0lr0GoTA/gPJ2J8vYHzioZhYRRXnRCg+IVMhe5ZXr0DWNxIJ4j
- eUFooJgHOWdaHeMwXBsOreM6U6yzHsanAoqWwoCCpTtUgp+sfbiw3dCrHuWLiBPsbQeB jQ== 
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 39qrkwhhdg-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 13 Jul 2021 03:51:35 -0400
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16D7nY4K014567;
-	Tue, 13 Jul 2021 07:51:33 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma06ams.nl.ibm.com with ESMTP id 39q2th95fc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 13 Jul 2021 07:51:32 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16D7nL1j28967352
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 13 Jul 2021 07:49:21 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 367FBAE045;
-	Tue, 13 Jul 2021 07:51:29 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id ED777AE058;
-	Tue, 13 Jul 2021 07:51:26 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.199.40.58])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Tue, 13 Jul 2021 07:51:26 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Tue, 13 Jul 2021 13:21:26 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, nvdimm@lists.linux.dev
-Cc: Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma
- <vishal.l.verma@intel.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Shivaprasad G
- Bhat <sbhat@linux.ibm.com>
-Subject: Re: [ndctl PATCH 2/2] libndctl/papr: Add limited support for
- inject-smart
-In-Reply-To: <527107a5-c124-6e85-2364-499d9bb0913e@linux.ibm.com>
-References: <20210712173132.1205192-1-vaibhav@linux.ibm.com>
- <20210712173132.1205192-3-vaibhav@linux.ibm.com>
- <527107a5-c124-6e85-2364-499d9bb0913e@linux.ibm.com>
-Date: Tue, 13 Jul 2021 13:21:26 +0530
-Message-ID: <87k0lups75.fsf@vajain21.in.ibm.com>
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: UdbmOffbkhtaYZhsGv-fx0-yARAyqKiK
-X-Proofpoint-ORIG-GUID: UdbmOffbkhtaYZhsGv-fx0-yARAyqKiK
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86532177
+	for <nvdimm@lists.linux.dev>; Tue, 13 Jul 2021 19:36:26 +0000 (UTC)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+	by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+	(Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1m3OBr-0001GT-RJ; Tue, 13 Jul 2021 21:35:35 +0200
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+	by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1m3OBi-0006p7-4I; Tue, 13 Jul 2021 21:35:26 +0200
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.92)
+	(envelope-from <ukl@pengutronix.de>)
+	id 1m3OBh-0002bU-W6; Tue, 13 Jul 2021 21:35:25 +0200
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: kernel@pengutronix.de,
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+	Alexandre Belloni <alexandre.belloni@bootlin.com>,
+	Alexandre Bounine <alex.bou9@gmail.com>,
+	Alex Dubov <oakad@yahoo.com>,
+	Alex Elder <elder@kernel.org>,
+	Alex Williamson <alex.williamson@redhat.com>,
+	Alison Schofield <alison.schofield@intel.com>,
+	Allen Hubbe <allenbh@gmail.com>,
+	Andreas Noever <andreas.noever@gmail.com>,
+	Andy Gross <agross@kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Ben Widawsky <ben.widawsky@intel.com>,
+	Bjorn Andersson <bjorn.andersson@linaro.org>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Bodo Stroesser <bostroesser@gmail.com>,
+	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
+	Chen-Yu Tsai <wens@csie.org>,
+	Christian Borntraeger <borntraeger@de.ibm.com>,
+	Cornelia Huck <cohuck@redhat.com>,
+	Cristian Marussi <cristian.marussi@arm.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	David Woodhouse <dwmw@amazon.co.uk>,
+	Dexuan Cui <decui@microsoft.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Dominik Brodowski <linux@dominikbrodowski.net>,
+	Eric Farman <farman@linux.ibm.com>,
+	Finn Thain <fthain@linux-m68k.org>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	Frank Li <lznuaa@gmail.com>,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Geoff Levand <geoff@infradead.org>,
+	Haiyang Zhang <haiyangz@microsoft.com>,
+	Halil Pasic <pasic@linux.ibm.com>,
+	Hannes Reinecke <hare@suse.de>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Harald Freudenberger <freude@linux.ibm.com>,
+	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Helge Deller <deller@gmx.de>,
+	Ira Weiny <ira.weiny@intel.com>,
+	Jakub Kicinski <kuba@kernel.org>,
+	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Jason Wang <jasowang@redhat.com>,
+	Jens Taprogge <jens.taprogge@taprogge.org>,
+	Jernej Skrabec <jernej.skrabec@gmail.com>,
+	Jiri Kosina <jikos@kernel.org>,
+	Jiri Slaby <jirislaby@kernel.org>,
+	Joey Pabalan <jpabalanb@gmail.com>,
+	Johan Hovold <johan@kernel.org>,
+	Johannes Berg <johannes@sipsolutions.net>,
+	Johannes Thumshirn <morbidrsa@gmail.com>,
+	Jon Mason <jdmason@kudzu.us>,
+	Juergen Gross <jgross@suse.com>,
+	Julien Grall <jgrall@amazon.com>,
+	Kai-Heng Feng <kai.heng.feng@canonical.com>,
+	Kirti Wankhede <kwankhede@nvidia.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	=?UTF-8?q?Krzysztof=20Wilczy=C5=84ski?= <kw@linux.com>,
+	"K. Y. Srinivasan" <kys@microsoft.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Len Brown <lenb@kernel.org>,
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+	Manohar Vanga <manohar.vanga@gmail.com>,
+	Marc Zyngier <maz@kernel.org>,
+	Mark Brown <broonie@kernel.org>,
+	Mark Gross <mgross@linux.intel.com>,
+	"Martin K. Petersen" <martin.petersen@oracle.com>,
+	Martyn Welch <martyn@welchs.me.uk>,
+	Mathieu Poirier <mathieu.poirier@linaro.org>,
+	Matthew Rosato <mjrosato@linux.ibm.com>,
+	Matt Porter <mporter@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@kernel.org>,
+	Maxime Ripard <mripard@kernel.org>,
+	Maximilian Luz <luzmaximilian@gmail.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Michael Buesch <m@bues.ch>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Michael Jamet <michael.jamet@intel.com>,
+	"Michael S. Tsirkin" <mst@redhat.com>,
+	Mika Westerberg <mika.westerberg@linux.intel.com>,
+	Mike Christie <michael.christie@oracle.com>,
+	Moritz Fischer <mdf@kernel.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	=?UTF-8?q?Pali=20Roh=C3=A1r?= <pali@kernel.org>,
+	Paul Mackerras <paulus@samba.org>,
+	Peter Oberparleiter <oberpar@linux.ibm.com>,
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
+	=?UTF-8?q?Rafa=C5=82=20Mi=C5=82ecki?= <zajec5@gmail.com>,
+	Rich Felker <dalias@libc.org>,
+	Rikard Falkeborn <rikard.falkeborn@gmail.com>,
+	Rob Herring <robh@kernel.org>,
+	Russell King <linux@armlinux.org.uk>,
+	"Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+	Samuel Holland <samuel@sholland.org>,
+	Samuel Iglesias Gonsalvez <siglesias@igalia.com>,
+	SeongJae Park <sjpark@amazon.de>,
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Stefano Stabellini <sstabellini@kernel.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Stephen Boyd <sboyd@kernel.org>,
+	Stephen Hemminger <sthemmin@microsoft.com>,
+	Sudeep Holla <sudeep.holla@arm.com>,
+	Sven Van Asbroeck <TheSven73@gmail.com>,
+	Takashi Iwai <tiwai@suse.com>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Thorsten Scherer <t.scherer@eckelmann.de>,
+	Tomas Winkler <tomas.winkler@intel.com>,
+	Tom Rix <trix@redhat.com>,
+	Tyrel Datwyler <tyreld@linux.ibm.com>,
+	Ulf Hansson <ulf.hansson@linaro.org>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Vineeth Vijayan <vneethv@linux.ibm.com>,
+	Vinod Koul <vkoul@kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Wei Liu <wei.liu@kernel.org>,
+	William Breathitt Gray <vilhelm.gray@gmail.com>,
+	Wolfram Sang <wsa@kernel.org>,
+	Wu Hao <hao.wu@intel.com>,
+	Yehezkel Bernat <YehezkelShB@gmail.com>,
+	Yoshinori Sato <ysato@users.sourceforge.jp>,
+	YueHaibing <yuehaibing@huawei.com>,
+	Yufen Yu <yuyufen@huawei.com>,
+	alsa-devel@alsa-project.org,
+	dmaengine@vger.kernel.org,
+	greybus-dev@lists.linaro.org,
+	industrypack-devel@lists.sourceforge.net,
+	kvm@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net,
+	linux-acpi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-arm-msm@vger.kernel.org,
+	linux-cxl@vger.kernel.org,
+	linux-fpga@vger.kernel.org,
+	linux-hyperv@vger.kernel.org,
+	linux-i2c@vger.kernel.org,
+	linux-i3c@lists.infradead.org,
+	linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	linux-m68k@lists.linux-m68k.org,
+	linux-media@vger.kernel.org,
+	linux-mips@vger.kernel.org,
+	linux-mmc@vger.kernel.org,
+	linux-ntb@googlegroups.com,
+	linux-parisc@vger.kernel.org,
+	linux-pci@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org,
+	linux-remoteproc@vger.kernel.org,
+	linux-s390@vger.kernel.org,
+	linux-scsi@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	linux-sh@vger.kernel.org,
+	linux-spi@vger.kernel.org,
+	linux-staging@lists.linux.dev,
+	linux-sunxi@lists.linux.dev,
+	linux-usb@vger.kernel.org,
+	linux-wireless@vger.kernel.org,
+	netdev@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	platform-driver-x86@vger.kernel.org,
+	sparclinux@vger.kernel.org,
+	target-devel@vger.kernel.org,
+	virtualization@lists.linux-foundation.org,
+	xen-devel@lists.xenproject.org
+Subject: [PATCH v4 0/5] bus: Make remove callback return void
+Date: Tue, 13 Jul 2021 21:35:17 +0200
+Message-Id: <20210713193522.1770306-1-u.kleine-koenig@pengutronix.de>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-07-13_03:2021-07-13,2021-07-13 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
- lowpriorityscore=0 mlxscore=0 malwarescore=0 suspectscore=0
- impostorscore=0 phishscore=0 priorityscore=1501 spamscore=0
- mlxlogscore=999 bulkscore=0 adultscore=0 classifier=spam adjust=0
- reason=mlx scancount=1 engine=8.12.0-2104190000
- definitions=main-2107130047
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: nvdimm@lists.linux.dev
 
-Thanks Aneesh for looking into this patch
+Hello,
 
-"Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com> writes:
+this is v4 of the final patch set for my effort to make struct
+bus_type::remove return void.
 
-> On 7/12/21 11:01 PM, Vaibhav Jain wrote:
->> Implements support for ndctl inject-smart command by providing an
->> implementation of 'smart_inject*' dimm-ops callbacks. Presently only
->> support for injecting unsafe-shutdown and fatal-health states is
->> available.
->> 
->> The patch also introduce various PAPR PDSM structures that are used to
->> communicate the inject-smart errors to the papr_scm kernel
->> module. This is done via SMART_INJECT PDSM which sends a payload of
->> type 'struct nd_papr_pdsm_smart_inject'.
->> 
->> The patch depends on the kernel PAPR PDSM implementation for
->> PDSM_SMART_INJECT posted at [1].
->> 
->> [1] : https://lore.kernel.org/nvdimm/20210712084819.1150350-1-vaibhav@linux.ibm.com
->> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
->> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
->> ---
->>   ndctl/lib/papr.c      | 61 +++++++++++++++++++++++++++++++++++++++++++
->>   ndctl/lib/papr_pdsm.h | 17 ++++++++++++
->>   2 files changed, 78 insertions(+)
->> 
->> diff --git a/ndctl/lib/papr.c b/ndctl/lib/papr.c
->> index 42ff200dc588..b797e1e5fe8b 100644
->> --- a/ndctl/lib/papr.c
->> +++ b/ndctl/lib/papr.c
->> @@ -221,6 +221,41 @@ static unsigned int papr_smart_get_shutdown_state(struct ndctl_cmd *cmd)
->>   	return health.dimm_bad_shutdown;
->>   }
->>   
->> +static int papr_smart_inject_supported(struct ndctl_dimm *dimm)
->> +{
->> +	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL))
->> +		return -EOPNOTSUPP;
->> +
->> +	if (!test_dimm_dsm(dimm, PAPR_PDSM_SMART_INJECT))
->> +		return -EIO;
->> +
->> +	return ND_SMART_INJECT_HEALTH_STATE | ND_SMART_INJECT_UNCLEAN_SHUTDOWN;
->> +}
->> +
->
-> with ndtest PAPR_SCM_FAMILY driver, should we test more inject types?
+The first four patches contain cleanups that make some of these
+callbacks (more obviously) always return 0. They are acked by the
+respective maintainers. Bjorn Helgaas explicitly asked to include the
+pci patch (#1) into this series, so Greg taking this is fine. I assume
+the s390 people are fine with Greg taking patches #2 to #4, too, they
+didn't explicitly said so though.
 
-Presently a commmon PDSM structure 'struct nd_papr_pdsm_smart_inject'
-used between ndtest and papr_scm. If we want to add support for more
-inject types in ndtest then that structure would need to be extended.
+The last patch actually changes the prototype and so touches quite some
+drivers and has the potential to conflict with future developments, so I
+consider it beneficial to put these patches into next soon. I expect
+that it will be Greg who takes the complete series, he already confirmed
+via irc (for v2) to look into this series.
 
-However even with that, libndctl still shares common dimm-ops
-callback for papr_scm & ndtest which only supports injecting smart fatal
-health and dirty-shutdown at the moment. So with only ndtest supporting an inject
-type for example temprature-threshold, not sure which libndctl code
-patch we will be testing.
+The only change compared to v3 is in the fourth patch where I modified a
+few more drivers to fix build failures. Some of them were found by build
+bots (thanks!), some of them I found myself using a regular expression
+search. The newly modified files are:
 
-> if 
-> so should the supported inject types be fetched from the driver?
->
-Good suggestion.
-Surely that can be a implemented in future once papr_scm and ndtest
-starts supporting more smart inject types.
+ arch/sparc/kernel/vio.c
+ drivers/nubus/bus.c
+ drivers/sh/superhyway/superhyway.c
+ drivers/vlynq/vlynq.c
+ drivers/zorro/zorro-driver.c
+ sound/ac97/bus.c
 
->> +static int papr_smart_inject_valid(struct ndctl_cmd *cmd)
->> +{
->> +	if (cmd->type != ND_CMD_CALL ||
->> +	    to_pdsm(cmd)->cmd_status != 0 ||
->> +	    to_pdsm_cmd(cmd) != PAPR_PDSM_SMART_INJECT)
->> +		return -EINVAL;
->> +
->> +	return 0;
->> +}
->> +
->> +static struct ndctl_cmd *papr_new_smart_inject(struct ndctl_dimm *dimm)
->> +{
->> +	struct ndctl_cmd *cmd;
->> +
->> +	cmd = allocate_cmd(dimm, PAPR_PDSM_SMART_INJECT,
->> +			sizeof(struct nd_papr_pdsm_smart_inject));
->> +	if (!cmd)
->> +		return NULL;
->> +	/* Set the input payload size */
->> +	to_ndcmd(cmd)->nd_size_in = ND_PDSM_HDR_SIZE +
->> +		sizeof(struct nd_papr_pdsm_smart_inject);
->> +	return cmd;
->> +}
->> +
->>   static unsigned int papr_smart_get_life_used(struct ndctl_cmd *cmd)
->>   {
->>   	struct nd_papr_pdsm_health health;
->> @@ -255,11 +290,37 @@ static unsigned int papr_smart_get_shutdown_count(struct ndctl_cmd *cmd)
->>   
->>   	return (health.extension_flags & PDSM_DIMM_DSC_VALID) ?
->>   		(health.dimm_dsc) : 0;
->> +}
->> +
->> +static int papr_cmd_smart_inject_fatal(struct ndctl_cmd *cmd, bool enable)
->> +{
->> +	if (papr_smart_inject_valid(cmd) < 0)
->> +		return -EINVAL;
->> +
->> +	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
->> +	to_payload(cmd)->inject.fatal_enable = enable;
->>   
->> +	return 0;
->> +}
->> +
->> +static int papr_cmd_smart_inject_unsafe_shutdown(struct ndctl_cmd *cmd,
->> +						 bool enable)
->> +{
->> +	if (papr_smart_inject_valid(cmd) < 0)
->> +		return -EINVAL;
->> +
->> +	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
->> +	to_payload(cmd)->inject.unsafe_shutdown_enable = enable;
->> +
->> +	return 0;
->>   }
->>   
->>   struct ndctl_dimm_ops * const papr_dimm_ops = &(struct ndctl_dimm_ops) {
->>   	.cmd_is_supported = papr_cmd_is_supported,
->> +	.new_smart_inject = papr_new_smart_inject,
->> +	.smart_inject_supported = papr_smart_inject_supported,
->> +	.smart_inject_fatal = papr_cmd_smart_inject_fatal,
->> +	.smart_inject_unsafe_shutdown = papr_cmd_smart_inject_unsafe_shutdown,
->>   	.smart_get_flags = papr_smart_get_flags,
->>   	.get_firmware_status =  papr_get_firmware_status,
->>   	.xlat_firmware_status = papr_xlat_firmware_status,
->> diff --git a/ndctl/lib/papr_pdsm.h b/ndctl/lib/papr_pdsm.h
->> index f45b1e40c075..20ac20f89acd 100644
->> --- a/ndctl/lib/papr_pdsm.h
->> +++ b/ndctl/lib/papr_pdsm.h
->> @@ -121,12 +121,29 @@ struct nd_papr_pdsm_health {
->>   enum papr_pdsm {
->>   	PAPR_PDSM_MIN = 0x0,
->>   	PAPR_PDSM_HEALTH,
->> +	PAPR_PDSM_SMART_INJECT,
->>   	PAPR_PDSM_MAX,
->>   };
->> +/* Flags for injecting specific smart errors */
->> +#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
->> +#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
->> +
->> +struct nd_papr_pdsm_smart_inject {
->> +	union {
->> +		struct {
->> +			/* One or more of PDSM_SMART_INJECT_ */
->> +			__u32 flags;
->> +			__u8 fatal_enable;
->> +			__u8 unsafe_shutdown_enable;
->> +		};
->> +		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
->> +	};
->> +};
->>   
->>   /* Maximal union that can hold all possible payload types */
->>   union nd_pdsm_payload {
->>   	struct nd_papr_pdsm_health health;
->> +	struct nd_papr_pdsm_smart_inject inject;
->>   	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
->>   } __attribute__((packed));
->>   
->> 
->
->
-> -aneesh
->
->
+Best regards
+Uwe
 
+Uwe Kleine-König (5):
+  PCI: endpoint: Make struct pci_epf_driver::remove return void
+  s390/cio: Make struct css_driver::remove return void
+  s390/ccwgroup: Drop if with an always false condition
+  s390/scm: Make struct scm_driver::remove return void
+  bus: Make remove callback return void
+
+ arch/arm/common/locomo.c                  | 3 +--
+ arch/arm/common/sa1111.c                  | 4 +---
+ arch/arm/mach-rpc/ecard.c                 | 4 +---
+ arch/mips/sgi-ip22/ip22-gio.c             | 3 +--
+ arch/parisc/kernel/drivers.c              | 5 ++---
+ arch/powerpc/platforms/ps3/system-bus.c   | 3 +--
+ arch/powerpc/platforms/pseries/ibmebus.c  | 3 +--
+ arch/powerpc/platforms/pseries/vio.c      | 3 +--
+ arch/s390/include/asm/eadm.h              | 2 +-
+ arch/sparc/kernel/vio.c                   | 4 +---
+ drivers/acpi/bus.c                        | 3 +--
+ drivers/amba/bus.c                        | 4 +---
+ drivers/base/auxiliary.c                  | 4 +---
+ drivers/base/isa.c                        | 4 +---
+ drivers/base/platform.c                   | 4 +---
+ drivers/bcma/main.c                       | 6 ++----
+ drivers/bus/sunxi-rsb.c                   | 4 +---
+ drivers/cxl/core.c                        | 3 +--
+ drivers/dax/bus.c                         | 4 +---
+ drivers/dma/idxd/sysfs.c                  | 4 +---
+ drivers/firewire/core-device.c            | 4 +---
+ drivers/firmware/arm_scmi/bus.c           | 4 +---
+ drivers/firmware/google/coreboot_table.c  | 4 +---
+ drivers/fpga/dfl.c                        | 4 +---
+ drivers/hid/hid-core.c                    | 4 +---
+ drivers/hid/intel-ish-hid/ishtp/bus.c     | 4 +---
+ drivers/hv/vmbus_drv.c                    | 5 +----
+ drivers/hwtracing/intel_th/core.c         | 4 +---
+ drivers/i2c/i2c-core-base.c               | 5 +----
+ drivers/i3c/master.c                      | 4 +---
+ drivers/input/gameport/gameport.c         | 3 +--
+ drivers/input/serio/serio.c               | 3 +--
+ drivers/ipack/ipack.c                     | 4 +---
+ drivers/macintosh/macio_asic.c            | 4 +---
+ drivers/mcb/mcb-core.c                    | 4 +---
+ drivers/media/pci/bt8xx/bttv-gpio.c       | 3 +--
+ drivers/memstick/core/memstick.c          | 3 +--
+ drivers/mfd/mcp-core.c                    | 3 +--
+ drivers/misc/mei/bus.c                    | 4 +---
+ drivers/misc/tifm_core.c                  | 3 +--
+ drivers/mmc/core/bus.c                    | 4 +---
+ drivers/mmc/core/sdio_bus.c               | 4 +---
+ drivers/net/netdevsim/bus.c               | 3 +--
+ drivers/ntb/core.c                        | 4 +---
+ drivers/ntb/ntb_transport.c               | 4 +---
+ drivers/nubus/bus.c                       | 6 ++----
+ drivers/nvdimm/bus.c                      | 3 +--
+ drivers/pci/endpoint/pci-epf-core.c       | 7 ++-----
+ drivers/pci/pci-driver.c                  | 3 +--
+ drivers/pcmcia/ds.c                       | 4 +---
+ drivers/platform/surface/aggregator/bus.c | 4 +---
+ drivers/platform/x86/wmi.c                | 4 +---
+ drivers/pnp/driver.c                      | 3 +--
+ drivers/rapidio/rio-driver.c              | 4 +---
+ drivers/rpmsg/rpmsg_core.c                | 7 ++-----
+ drivers/s390/block/scm_drv.c              | 4 +---
+ drivers/s390/cio/ccwgroup.c               | 6 +-----
+ drivers/s390/cio/chsc_sch.c               | 3 +--
+ drivers/s390/cio/css.c                    | 7 +++----
+ drivers/s390/cio/css.h                    | 2 +-
+ drivers/s390/cio/device.c                 | 9 +++------
+ drivers/s390/cio/eadm_sch.c               | 4 +---
+ drivers/s390/cio/scm.c                    | 5 +++--
+ drivers/s390/cio/vfio_ccw_drv.c           | 3 +--
+ drivers/s390/crypto/ap_bus.c              | 4 +---
+ drivers/scsi/scsi_debug.c                 | 3 +--
+ drivers/sh/superhyway/superhyway.c        | 8 ++------
+ drivers/siox/siox-core.c                  | 4 +---
+ drivers/slimbus/core.c                    | 4 +---
+ drivers/soc/qcom/apr.c                    | 4 +---
+ drivers/spi/spi.c                         | 4 +---
+ drivers/spmi/spmi.c                       | 3 +--
+ drivers/ssb/main.c                        | 4 +---
+ drivers/staging/fieldbus/anybuss/host.c   | 4 +---
+ drivers/staging/greybus/gbphy.c           | 4 +---
+ drivers/target/loopback/tcm_loop.c        | 5 ++---
+ drivers/thunderbolt/domain.c              | 4 +---
+ drivers/tty/serdev/core.c                 | 4 +---
+ drivers/usb/common/ulpi.c                 | 4 +---
+ drivers/usb/serial/bus.c                  | 4 +---
+ drivers/usb/typec/bus.c                   | 4 +---
+ drivers/vdpa/vdpa.c                       | 4 +---
+ drivers/vfio/mdev/mdev_driver.c           | 4 +---
+ drivers/virtio/virtio.c                   | 3 +--
+ drivers/vlynq/vlynq.c                     | 4 +---
+ drivers/vme/vme.c                         | 4 +---
+ drivers/xen/xenbus/xenbus.h               | 2 +-
+ drivers/xen/xenbus/xenbus_probe.c         | 4 +---
+ drivers/zorro/zorro-driver.c              | 3 +--
+ include/linux/device/bus.h                | 2 +-
+ include/linux/pci-epf.h                   | 2 +-
+ sound/ac97/bus.c                          | 6 ++----
+ sound/aoa/soundbus/core.c                 | 4 +---
+ 93 files changed, 107 insertions(+), 263 deletions(-)
+
+
+base-commit: e73f0f0ee7541171d89f2e2491130c7771ba58d3
 -- 
-Cheers
-~ Vaibhav
+2.30.2
+
