@@ -1,70 +1,64 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1734D72
-	for <nvdimm@lists.linux.dev>; Tue, 13 Jul 2021 04:14:19 +0000 (UTC)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16D441Df055433;
-	Tue, 13 Jul 2021 00:14:11 -0400
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A080A168
+	for <nvdimm@lists.linux.dev>; Tue, 13 Jul 2021 04:43:22 +0000 (UTC)
+Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16D4XOpP018058;
+	Tue, 13 Jul 2021 00:43:20 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
  references : from : message-id : date : in-reply-to : content-type :
  content-transfer-encoding : mime-version; s=pp1;
- bh=Nl9tUJdaQ+ChCZg7GKGLRyB7Bmmqt2HLADEjbIZY+gA=;
- b=l5hEpn5tir1Ctk+Cwb6jTQmm839U+L2qGlBmETR2dyQ79ecbBQCIndzLjmCBhtaIgiBO
- iAemsC2xP3NdHGlMXFDNePJztBcUiAJgkheSvJSgsH9A3u4rGbSbn4aKkvaDPxORN6sz
- Ob1xY5rguSqc+Or4N3qeolq6WBvN05nxF0h/18ycZDEAmHJZIDqZynJCCXNcXrtE16np
- iuDEwxfnRr8q2wy1fiqhsQFR1jUcS5HEInsclleRwS3WJKpvSyCmmWgQntybmKz1qJ8P
- Qppu9CUWw/Nw2fmZzM0bCKooGJQ0GoCfSwXUcn/5sARz3hSUxfrl0FyTFcYb9FszPjfx eA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 39qs3bpa5e-1
+ bh=XCxDF3GqQChWbI52Xp2dfWhiS/q36wl2avHheVJzhXw=;
+ b=qPQS+AaTqIbh6FC7h9GT/Yu13m9viGwTfitZUnbZ4/tIgmyHJ0P/N1BQmXr3dBDg3BRh
+ nwWYv1uwUxYVTshxmbaVhMB/f9ThgDGUi+q5FguIagkIAEodcmLvfhmlVgBIAaGe0jVg
+ SRBWWOIXwVl1y2DbWAVC8qKHm3N69Hptwj9k7bFmxd1ICdi/7gi9EU0iFncKuchFrYDM
+ GK21D3SEhgEOOjB2ZQweI+1Sb7gr3vZ1BxYUeB9IeiI4lgyeZoFTJWe6kOy91qPEuuCR
+ m/tpoSkEPA+LycVqASvXrtc0rWeAXJZShJCO9okk1T+LHZZxJgiDTAVOnjVAv1LOcWdj fQ== 
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 39qrud6u3a-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 13 Jul 2021 00:14:10 -0400
-Received: from m0098416.ppops.net (m0098416.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 16D444uD055702;
-	Tue, 13 Jul 2021 00:14:10 -0400
-Received: from ppma06fra.de.ibm.com (48.49.7a9f.ip4.static.sl-reverse.com [159.122.73.72])
-	by mx0b-001b2d01.pphosted.com with ESMTP id 39qs3bpa4n-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 13 Jul 2021 00:14:10 -0400
-Received: from pps.filterd (ppma06fra.de.ibm.com [127.0.0.1])
-	by ppma06fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16D3v5gO013323;
-	Tue, 13 Jul 2021 04:14:08 GMT
+	Tue, 13 Jul 2021 00:43:19 -0400
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16D4d2ca020091;
+	Tue, 13 Jul 2021 04:43:18 GMT
 Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-	by ppma06fra.de.ibm.com with ESMTP id 39q2th8j5u-1
+	by ppma06ams.nl.ibm.com with ESMTP id 39q2th92h5-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 13 Jul 2021 04:14:08 +0000
+	Tue, 13 Jul 2021 04:43:18 +0000
 Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
-	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16D4BwkW35783002
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16D4f7TO36176202
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 13 Jul 2021 04:11:58 GMT
+	Tue, 13 Jul 2021 04:41:07 GMT
 Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9B28DA4059;
-	Tue, 13 Jul 2021 04:14:05 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id F2DDBA4057;
+	Tue, 13 Jul 2021 04:43:14 +0000 (GMT)
 Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6B9D3A4053;
-	Tue, 13 Jul 2021 04:14:04 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 912C8A4055;
+	Tue, 13 Jul 2021 04:43:13 +0000 (GMT)
 Received: from [9.85.92.56] (unknown [9.85.92.56])
 	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue, 13 Jul 2021 04:14:04 +0000 (GMT)
-Subject: Re: [PATCH] ndctl: Avoid confusing error message when operating on
- all the namespaces
-To: Yi Zhang <yi.zhang@redhat.com>
-Cc: nvdimm@lists.linux.dev, Dan Williams <dan.j.williams@intel.com>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        Jeff Moyer <jmoyer@redhat.com>
-References: <20210708100104.168348-1-aneesh.kumar@linux.ibm.com>
- <CAHj4cs_t9sMw9b5XRPMkYE37BfAEMkWCFFpU1C8heKYBbRcnbA@mail.gmail.com>
+	Tue, 13 Jul 2021 04:43:13 +0000 (GMT)
+Subject: Re: [ndctl PATCH 2/2] libndctl/papr: Add limited support for
+ inject-smart
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, nvdimm@lists.linux.dev
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>
+References: <20210712173132.1205192-1-vaibhav@linux.ibm.com>
+ <20210712173132.1205192-3-vaibhav@linux.ibm.com>
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Message-ID: <6ece565f-e866-4a48-3a08-bf4f94f738e9@linux.ibm.com>
-Date: Tue, 13 Jul 2021 09:44:03 +0530
+Message-ID: <527107a5-c124-6e85-2364-499d9bb0913e@linux.ibm.com>
+Date: Tue, 13 Jul 2021 10:13:12 +0530
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.11.0
-In-Reply-To: <CAHj4cs_t9sMw9b5XRPMkYE37BfAEMkWCFFpU1C8heKYBbRcnbA@mail.gmail.com>
+In-Reply-To: <20210712173132.1205192-3-vaibhav@linux.ibm.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: GqrbKxuqHaffd1c0OQhjzGYMwvSZpRYs
-X-Proofpoint-ORIG-GUID: TXBjikA70UaC3UR00uOMkokbi7RApa9A
+X-Proofpoint-GUID: 2tuaPHvVsljW5N9Xff4Y-bj9sZhr4FtE
+X-Proofpoint-ORIG-GUID: 2tuaPHvVsljW5N9Xff4Y-bj9sZhr4FtE
 Content-Transfer-Encoding: 7bit
 X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
@@ -76,88 +70,157 @@ MIME-Version: 1.0
 X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
  definitions=2021-07-12_14:2021-07-12,2021-07-12 signatures=0
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- mlxlogscore=999 phishscore=0 impostorscore=0 suspectscore=0 mlxscore=0
- adultscore=0 malwarescore=0 clxscore=1015 bulkscore=0 spamscore=0
+ clxscore=1011 suspectscore=0 phishscore=0 malwarescore=0 mlxscore=0
+ spamscore=0 mlxlogscore=999 impostorscore=0 bulkscore=0 adultscore=0
  lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2107130021
+ engine=8.12.0-2104190000 definitions=main-2107130022
 
-On 7/13/21 5:49 AM, Yi Zhang wrote:
-> Jeff had posted one patch to fix similar issue
-> https://lore.kernel.org/linux-nvdimm/x49r1lohpty.fsf@segfault.boston.devel.redhat.com/T/#u
+On 7/12/21 11:01 PM, Vaibhav Jain wrote:
+> Implements support for ndctl inject-smart command by providing an
+> implementation of 'smart_inject*' dimm-ops callbacks. Presently only
+> support for injecting unsafe-shutdown and fatal-health states is
+> available.
+> 
+> The patch also introduce various PAPR PDSM structures that are used to
+> communicate the inject-smart errors to the papr_scm kernel
+> module. This is done via SMART_INJECT PDSM which sends a payload of
+> type 'struct nd_papr_pdsm_smart_inject'.
+> 
+> The patch depends on the kernel PAPR PDSM implementation for
+> PDSM_SMART_INJECT posted at [1].
+> 
+> [1] : https://lore.kernel.org/nvdimm/20210712084819.1150350-1-vaibhav@linux.ibm.com
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+> ---
+>   ndctl/lib/papr.c      | 61 +++++++++++++++++++++++++++++++++++++++++++
+>   ndctl/lib/papr_pdsm.h | 17 ++++++++++++
+>   2 files changed, 78 insertions(+)
+> 
+> diff --git a/ndctl/lib/papr.c b/ndctl/lib/papr.c
+> index 42ff200dc588..b797e1e5fe8b 100644
+> --- a/ndctl/lib/papr.c
+> +++ b/ndctl/lib/papr.c
+> @@ -221,6 +221,41 @@ static unsigned int papr_smart_get_shutdown_state(struct ndctl_cmd *cmd)
+>   	return health.dimm_bad_shutdown;
+>   }
+>   
+> +static int papr_smart_inject_supported(struct ndctl_dimm *dimm)
+> +{
+> +	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL))
+> +		return -EOPNOTSUPP;
+> +
+> +	if (!test_dimm_dsm(dimm, PAPR_PDSM_SMART_INJECT))
+> +		return -EIO;
+> +
+> +	return ND_SMART_INJECT_HEALTH_STATE | ND_SMART_INJECT_UNCLEAN_SHUTDOWN;
+> +}
+> +
+
+with ndtest PAPR_SCM_FAMILY driver, should we test more inject types? if 
+so should the supported inject types be fetched from the driver?
+
+> +static int papr_smart_inject_valid(struct ndctl_cmd *cmd)
+> +{
+> +	if (cmd->type != ND_CMD_CALL ||
+> +	    to_pdsm(cmd)->cmd_status != 0 ||
+> +	    to_pdsm_cmd(cmd) != PAPR_PDSM_SMART_INJECT)
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct ndctl_cmd *papr_new_smart_inject(struct ndctl_dimm *dimm)
+> +{
+> +	struct ndctl_cmd *cmd;
+> +
+> +	cmd = allocate_cmd(dimm, PAPR_PDSM_SMART_INJECT,
+> +			sizeof(struct nd_papr_pdsm_smart_inject));
+> +	if (!cmd)
+> +		return NULL;
+> +	/* Set the input payload size */
+> +	to_ndcmd(cmd)->nd_size_in = ND_PDSM_HDR_SIZE +
+> +		sizeof(struct nd_papr_pdsm_smart_inject);
+> +	return cmd;
+> +}
+> +
+>   static unsigned int papr_smart_get_life_used(struct ndctl_cmd *cmd)
+>   {
+>   	struct nd_papr_pdsm_health health;
+> @@ -255,11 +290,37 @@ static unsigned int papr_smart_get_shutdown_count(struct ndctl_cmd *cmd)
+>   
+>   	return (health.extension_flags & PDSM_DIMM_DSC_VALID) ?
+>   		(health.dimm_dsc) : 0;
+> +}
+> +
+> +static int papr_cmd_smart_inject_fatal(struct ndctl_cmd *cmd, bool enable)
+> +{
+> +	if (papr_smart_inject_valid(cmd) < 0)
+> +		return -EINVAL;
+> +
+> +	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
+> +	to_payload(cmd)->inject.fatal_enable = enable;
+>   
+> +	return 0;
+> +}
+> +
+> +static int papr_cmd_smart_inject_unsafe_shutdown(struct ndctl_cmd *cmd,
+> +						 bool enable)
+> +{
+> +	if (papr_smart_inject_valid(cmd) < 0)
+> +		return -EINVAL;
+> +
+> +	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
+> +	to_payload(cmd)->inject.unsafe_shutdown_enable = enable;
+> +
+> +	return 0;
+>   }
+>   
+>   struct ndctl_dimm_ops * const papr_dimm_ops = &(struct ndctl_dimm_ops) {
+>   	.cmd_is_supported = papr_cmd_is_supported,
+> +	.new_smart_inject = papr_new_smart_inject,
+> +	.smart_inject_supported = papr_smart_inject_supported,
+> +	.smart_inject_fatal = papr_cmd_smart_inject_fatal,
+> +	.smart_inject_unsafe_shutdown = papr_cmd_smart_inject_unsafe_shutdown,
+>   	.smart_get_flags = papr_smart_get_flags,
+>   	.get_firmware_status =  papr_get_firmware_status,
+>   	.xlat_firmware_status = papr_xlat_firmware_status,
+> diff --git a/ndctl/lib/papr_pdsm.h b/ndctl/lib/papr_pdsm.h
+> index f45b1e40c075..20ac20f89acd 100644
+> --- a/ndctl/lib/papr_pdsm.h
+> +++ b/ndctl/lib/papr_pdsm.h
+> @@ -121,12 +121,29 @@ struct nd_papr_pdsm_health {
+>   enum papr_pdsm {
+>   	PAPR_PDSM_MIN = 0x0,
+>   	PAPR_PDSM_HEALTH,
+> +	PAPR_PDSM_SMART_INJECT,
+>   	PAPR_PDSM_MAX,
+>   };
+> +/* Flags for injecting specific smart errors */
+> +#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
+> +#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
+> +
+> +struct nd_papr_pdsm_smart_inject {
+> +	union {
+> +		struct {
+> +			/* One or more of PDSM_SMART_INJECT_ */
+> +			__u32 flags;
+> +			__u8 fatal_enable;
+> +			__u8 unsafe_shutdown_enable;
+> +		};
+> +		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
+> +	};
+> +};
+>   
+>   /* Maximal union that can hold all possible payload types */
+>   union nd_pdsm_payload {
+>   	struct nd_papr_pdsm_health health;
+> +	struct nd_papr_pdsm_smart_inject inject;
+>   	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
+>   } __attribute__((packed));
+>   
 > 
 
-I missed that patch. I am wondering whether that would result in ndctl 
-not reporting error when we use the seed namespace name directly with 
-destroy-namespace command
 
-> Hi Dan/Visha
-> Could we make some progress on this issue?
-> 
-> 
-> On Thu, Jul 8, 2021 at 6:41 PM Aneesh Kumar K.V
-> <aneesh.kumar@linux.ibm.com> wrote:
->>
->> With only seed namespace present, ndctl results in confusing error messages as
->> below.
->>
->> ndctl# ./ndctl/ndctl  enable-namespace all
->> error enabling namespaces: No such device or address
->> enabled 0 namespaces
->>
->> ndctl# ./ndctl/ndctl  disable-namespace all
->> disabled 3 namespaces
->>
->> ndctl# ./ndctl/ndctl  destroy-namespace all -f
->>    Error: destroy namespace: namespace1.0 failed to enable for zeroing, continuing
->>
->>    Error: destroy namespace: namespace1.1 failed to enable for zeroing, continuing
->>
->>    Error: destroy namespace: namespace0.0 failed to enable for zeroing, continuing
->>
->> destroyed 0 namespaces
->> ndctl#
->>
->> With the patch we get
->> ndctl# ./ndctl/ndctl  disable-namespace all
->> disabled 0 namespaces
->>
->> ndctl# ./ndctl/ndctl  enable-namespace all
->> enabled 0 namespaces
->>
->> ndctl# ./ndctl/ndctl  destroy-namespace all -f
->> destroyed 0 namespaces
->> ndctl#
->>
->> Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
->> ---
->>   ndctl/namespace.c | 9 ++++++++-
->>   1 file changed, 8 insertions(+), 1 deletion(-)
->>
->> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
->> index 0c8df9fa8b47..c52daeae562a 100644
->> --- a/ndctl/namespace.c
->> +++ b/ndctl/namespace.c
->> @@ -2205,8 +2205,15 @@ static int do_xaction_namespace(const char *namespace,
->>                                  return rc;
->>                          }
->>                          ndctl_namespace_foreach_safe(region, ndns, _n) {
->> -                               ndns_name = ndctl_namespace_get_devname(ndns);
->>
->> +                               if (!strcmp(namespace, "all")
->> +                                               && !ndctl_namespace_get_size(ndns)) {
->> +                                       if (!*processed && rc)
->> +                                               rc  = 0;
->> +                                       continue;
->> +                               }
->> +
->> +                               ndns_name = ndctl_namespace_get_devname(ndns);
->>                                  if (strcmp(namespace, "all") != 0
->>                                                  && strcmp(namespace, ndns_name) != 0)
->>                                          continue;
->> --
->> 2.31.1
->>
->>
-> 
-> 
+-aneesh
 
