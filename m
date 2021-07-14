@@ -1,147 +1,155 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ua1-f46.google.com (mail-ua1-f46.google.com [209.85.222.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B746870
-	for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 07:58:11 +0000 (UTC)
-Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16E7XfM1026411;
-	Wed, 14 Jul 2021 03:58:10 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : mime-version :
- content-type; s=pp1; bh=Q755q2fk5ahXRImTKBNQGzQGgSAQU0w7tQbMfjnsRI8=;
- b=Bkq4IwEV+NmXpc/tv4+Oq2MwTvEYbSJ66ewyWgAT0UN7Eq12GXEcJWM972v9KgaYTyQn
- e0PFX3adL0D35slbQeQsYh3bgf2D8EZN/pWBFAIvldXpDHDfNRCfQr/ekGUF32OXWJj1
- nVMpvcwbTnrKOlegXY32f2Ro/p+6c6C/EM6EJ9nCBhvDVTbdSjJkCU3f3LjOf5ICWVQc
- TBwgAuErcUXC7UL2B8k8gu3jpm+Heq6Z1S5lbkrTdkDvkSX6ji8UuO40mZQGg31FHVCl
- qXeM+DRGpKQ7uWzOYGUksNeOatxpSPkRwzwR66j9wPoaNPcYLvQ6BfzutqEENlfmItF3 jA== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 39sc8ju3n9-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 14 Jul 2021 03:58:09 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16E7s8r1009364;
-	Wed, 14 Jul 2021 07:58:07 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma03ams.nl.ibm.com with ESMTP id 39q3689n9t-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Wed, 14 Jul 2021 07:58:07 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16E7w4Kl16646536
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Wed, 14 Jul 2021 07:58:04 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3EA8F42041;
-	Wed, 14 Jul 2021 07:58:04 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 02A614204B;
-	Wed, 14 Jul 2021 07:58:02 +0000 (GMT)
-Received: from vajain21.in.ibm.com (unknown [9.199.50.125])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Wed, 14 Jul 2021 07:58:01 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 14 Jul 2021 13:28:00 +0530
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>,
-        Vishal Verma
- <vishal.l.verma@intel.com>,
-        "Aneesh Kumar K . V"
- <aneesh.kumar@linux.ibm.com>,
-        Ira Weiny <ira.weiny@intel.com>,
-        Shivaprasad
- G Bhat <sbhat@linux.ibm.com>
-Subject: Re: [ndctl PATCH] libndctl: Update nvdimm flags after inject-smart
-In-Reply-To: <CAPcyv4hnZSzcG3uc0BLWBjhbqBwJLsCeUPiAALwubHoXge58NQ@mail.gmail.com>
-References: <20210713202523.190113-1-vaibhav@linux.ibm.com>
- <CAPcyv4hnZSzcG3uc0BLWBjhbqBwJLsCeUPiAALwubHoXge58NQ@mail.gmail.com>
-Date: Wed, 14 Jul 2021 13:28:00 +0530
-Message-ID: <87r1g15nuf.fsf@vajain21.in.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24B2570;
+	Wed, 14 Jul 2021 08:44:19 +0000 (UTC)
+Received: by mail-ua1-f46.google.com with SMTP id c20so340386uar.12;
+        Wed, 14 Jul 2021 01:44:19 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=r5k/nzvm++7I0kjlsxJbLPoLxldn2GkCJzAXrc4Q3tE=;
+        b=gOcGreojsNbRIYOKX7kOgl/ufE/L+LqxyGLnyxvRl5Anx0Ya5qm94oYNaw6rVaK4f9
+         93H6AgBtNXYspn0rZJ+yFqnYfUjuwnTRFeJ/ZIuM/uTGwod8W75AVOQxJSq+P5as0atV
+         pHp6XaiIr+JYSzM/Zh1IY+Q6jHxcyJ6zoFJKkab1K/WXPwsLJYVerZxrgYs7Ntp7xvlz
+         TNQk23Tt2gPZugCEoqqXFwL9OCCm37+yYZvyj82H0U3cTU5mm6851CigDqHoPFv3jklV
+         Hqzhjfp8WKC+WvkDiObZRrgP8HDnXVNZ8Al9IseEjbqXGxvpiqfNGQIAn+EcnZX/AVIU
+         MrvQ==
+X-Gm-Message-State: AOAM532114POD1ju6cEg2bq3tYCtLHsnj+Zs37nO9oapq8U42jo38t31
+	o5aj4VUQpXibIHIKHPxZ/wHWdu5lI7DntabwEzY=
+X-Google-Smtp-Source: ABdhPJw+Y3tnjfY/zI+Y1qOhR0PNRzn2MQD3PHuwf/AzIRJfXjUIjP825Ll9FtnbmVsf04QAqWLG0Tq2dErAW2+m0rM=
+X-Received: by 2002:a9f:3f0d:: with SMTP id h13mr12412958uaj.100.1626252258156;
+ Wed, 14 Jul 2021 01:44:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: uLL8g6Iyj59CIAjTwN1_OQ4zDfeaj2Gs
-X-Proofpoint-ORIG-GUID: uLL8g6Iyj59CIAjTwN1_OQ4zDfeaj2Gs
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-07-14_03:2021-07-14,2021-07-14 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 phishscore=0
- adultscore=0 lowpriorityscore=0 bulkscore=0 priorityscore=1501
- mlxlogscore=999 spamscore=0 suspectscore=0 impostorscore=0 clxscore=1015
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2107140047
+References: <20210713193522.1770306-1-u.kleine-koenig@pengutronix.de> <20210713193522.1770306-6-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20210713193522.1770306-6-u.kleine-koenig@pengutronix.de>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 14 Jul 2021 10:44:06 +0200
+Message-ID: <CAMuHMdW8r6u4O5zv2ee-3=jPP6qwnOSHdSzf8pPE_y=jY3Bn5A@mail.gmail.com>
+Subject: Re: [PATCH v4 5/5] bus: Make remove callback return void
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sascha Hauer <kernel@pengutronix.de>, 
+	Alexander Shishkin <alexander.shishkin@linux.intel.com>, 
+	Alexandre Belloni <alexandre.belloni@bootlin.com>, Alexandre Bounine <alex.bou9@gmail.com>, 
+	Alex Dubov <oakad@yahoo.com>, Alex Elder <elder@kernel.org>, 
+	Alex Williamson <alex.williamson@redhat.com>, Alison Schofield <alison.schofield@intel.com>, 
+	Allen Hubbe <allenbh@gmail.com>, Andreas Noever <andreas.noever@gmail.com>, 
+	Andy Gross <agross@kernel.org>, Arnd Bergmann <arnd@arndb.de>, 
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>, 
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>, Ben Widawsky <ben.widawsky@intel.com>, 
+	Bjorn Andersson <bjorn.andersson@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, 
+	Bodo Stroesser <bostroesser@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, 
+	Chen-Yu Tsai <wens@csie.org>, Christian Borntraeger <borntraeger@de.ibm.com>, 
+	Cornelia Huck <cohuck@redhat.com>, Cristian Marussi <cristian.marussi@arm.com>, 
+	Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"David S. Miller" <davem@davemloft.net>, David Woodhouse <dwmw@amazon.co.uk>, 
+	Dexuan Cui <decui@microsoft.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, 
+	Dominik Brodowski <linux@dominikbrodowski.net>, Finn Thain <fthain@linux-m68k.org>, 
+	Florian Fainelli <f.fainelli@gmail.com>, Frank Li <lznuaa@gmail.com>, 
+	Geoff Levand <geoff@infradead.org>, Haiyang Zhang <haiyangz@microsoft.com>, 
+	Hannes Reinecke <hare@suse.de>, Hans de Goede <hdegoede@redhat.com>, 
+	Harald Freudenberger <freude@linux.ibm.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, 
+	Heiko Carstens <hca@linux.ibm.com>, Helge Deller <deller@gmx.de>, Ira Weiny <ira.weiny@intel.com>, 
+	Jakub Kicinski <kuba@kernel.org>, 
+	"James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Jaroslav Kysela <perex@perex.cz>, 
+	Jason Wang <jasowang@redhat.com>, Jens Taprogge <jens.taprogge@taprogge.org>, 
+	Jernej Skrabec <jernej.skrabec@gmail.com>, Jiri Kosina <jikos@kernel.org>, 
+	Jiri Slaby <jirislaby@kernel.org>, Joey Pabalan <jpabalanb@gmail.com>, 
+	Johan Hovold <johan@kernel.org>, Johannes Berg <johannes@sipsolutions.net>, 
+	Johannes Thumshirn <morbidrsa@gmail.com>, Jon Mason <jdmason@kudzu.us>, Juergen Gross <jgross@suse.com>, 
+	Julien Grall <jgrall@amazon.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, 
+	Kirti Wankhede <kwankhede@nvidia.com>, Kishon Vijay Abraham I <kishon@ti.com>, 
+	=?UTF-8?Q?Krzysztof_Wilczy=C5=84ski?= <kw@linux.com>, 
+	"K. Y. Srinivasan" <kys@microsoft.com>, Lee Jones <lee.jones@linaro.org>, Len Brown <lenb@kernel.org>, 
+	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Manohar Vanga <manohar.vanga@gmail.com>, 
+	Marc Zyngier <maz@kernel.org>, Mark Brown <broonie@kernel.org>, Mark Gross <mgross@linux.intel.com>, 
+	"Martin K. Petersen" <martin.petersen@oracle.com>, Martyn Welch <martyn@welchs.me.uk>, 
+	Mathieu Poirier <mathieu.poirier@linaro.org>, Matt Porter <mporter@kernel.crashing.org>, 
+	Mauro Carvalho Chehab <mchehab@kernel.org>, Maxime Ripard <mripard@kernel.org>, 
+	Maximilian Luz <luzmaximilian@gmail.com>, Maxim Levitsky <maximlevitsky@gmail.com>, 
+	Michael Buesch <m@bues.ch>, Michael Ellerman <mpe@ellerman.id.au>, Michael Jamet <michael.jamet@intel.com>, 
+	"Michael S. Tsirkin" <mst@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, 
+	Mike Christie <michael.christie@oracle.com>, Moritz Fischer <mdf@kernel.org>, 
+	Ohad Ben-Cohen <ohad@wizery.com>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>, 
+	Paul Mackerras <paulus@samba.org>, Peter Oberparleiter <oberpar@linux.ibm.com>, 
+	"Rafael J. Wysocki" <rjw@rjwysocki.net>, =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>, 
+	Rich Felker <dalias@libc.org>, Rikard Falkeborn <rikard.falkeborn@gmail.com>, 
+	Rob Herring <robh@kernel.org>, Russell King <linux@armlinux.org.uk>, 
+	"Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>, Samuel Holland <samuel@sholland.org>, 
+	Samuel Iglesias Gonsalvez <siglesias@igalia.com>, SeongJae Park <sjpark@amazon.de>, 
+	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, 
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, 
+	Stefano Stabellini <sstabellini@kernel.org>, Stefan Richter <stefanr@s5r6.in-berlin.de>, 
+	Stephen Boyd <sboyd@kernel.org>, Stephen Hemminger <sthemmin@microsoft.com>, 
+	Sudeep Holla <sudeep.holla@arm.com>, Sven Van Asbroeck <TheSven73@gmail.com>, 
+	Takashi Iwai <tiwai@suse.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	Thorsten Scherer <t.scherer@eckelmann.de>, Tomas Winkler <tomas.winkler@intel.com>, 
+	Tom Rix <trix@redhat.com>, Tyrel Datwyler <tyreld@linux.ibm.com>, 
+	Ulf Hansson <ulf.hansson@linaro.org>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Vineeth Vijayan <vneethv@linux.ibm.com>, Vinod Koul <vkoul@kernel.org>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Wei Liu <wei.liu@kernel.org>, 
+	William Breathitt Gray <vilhelm.gray@gmail.com>, Wolfram Sang <wsa@kernel.org>, Wu Hao <hao.wu@intel.com>, 
+	Yehezkel Bernat <YehezkelShB@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	YueHaibing <yuehaibing@huawei.com>, Yufen Yu <yuyufen@huawei.com>, alsa-devel@alsa-project.org, 
+	dmaengine@vger.kernel.org, greybus-dev@lists.linaro.org, 
+	industrypack-devel@lists.sourceforge.net, kvm@vger.kernel.org, 
+	linux1394-devel@lists.sourceforge.net, linux-acpi@vger.kernel.org, 
+	linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, 
+	linux-cxl@vger.kernel.org, linux-fpga@vger.kernel.org, 
+	linux-hyperv@vger.kernel.org, linux-i2c@vger.kernel.org, 
+	linux-i3c@lists.infradead.org, linux-input@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, 
+	linux-media@vger.kernel.org, linux-mips@vger.kernel.org, 
+	linux-mmc@vger.kernel.org, linux-ntb@googlegroups.com, 
+	linux-parisc@vger.kernel.org, linux-pci@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-remoteproc@vger.kernel.org, 
+	linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org, 
+	linux-serial@vger.kernel.org, linux-sh@vger.kernel.org, 
+	linux-spi@vger.kernel.org, linux-staging@lists.linux.dev, 
+	linux-sunxi@lists.linux.dev, linux-usb@vger.kernel.org, 
+	linux-wireless@vger.kernel.org, netdev@vger.kernel.org, 
+	nvdimm@lists.linux.dev, platform-driver-x86@vger.kernel.org, 
+	sparclinux@vger.kernel.org, target-devel@vger.kernel.org, 
+	virtualization@lists.linux-foundation.org, xen-devel@lists.xenproject.org, 
+	Johannes Thumshirn <jth@kernel.org>, "Rafael J . Wysocki" <rafael@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-
-Thanks for looking into this patch Dan
-
-Dan Williams <dan.j.williams@intel.com> writes:
-
-> On Tue, Jul 13, 2021 at 1:25 PM Vaibhav Jain <vaibhav@linux.ibm.com> wrote:
->>
->> Presently after performing a inject-smart the nvdimm flags reported are out
->> of date as shown below where no 'smart_notify' or 'flush_fail' flags were
->> reported even though they are set after injecting the smart error:
->>
->> $ sudo inject-smart -fU nmem0
->> [
->>   {
->>     "dev":"nmem0",
->>     "health":{
->>       "health_state":"fatal",
->>       "shutdown_state":"dirty",
->>       "shutdown_count":0
->>     }
->>   }
->> ]
->> $ sudo cat /sys/class/nd/ndctl0/device/nmem0/papr/flags
->> flush_fail smart_notify
->>
->> This happens because nvdimm flags are only parsed once during its probe and
->> not refreshed even after a inject-smart operation makes them out of
->> date. To fix this the patch adds a new export from libndctl named as
->> ndctl_refresh_dimm_flags() that can be called after inject-smart that
->> forces a refresh of nvdimm flags. This ensures that correct nvdimm flags
->> are reported after the inject-smart operation as shown below:
->>
->> $ sudo ndctl inject-smart -fU nmem0
->> [
->>   {
->>     "dev":"nmem0",
->>     "flag_failed_flush":true,
->>     "flag_smart_event":true,
->>     "health":{
->>       "health_state":"fatal",
->>       "shutdown_state":"dirty",
->>       "shutdown_count":0
->>     }
->>   }
->> ]
->>
->> The patch refactors populate_dimm_attributes() to move the nvdimm flags
->> parsing code to the newly introduced ndctl_refresh_dimm_flags()
->> export. Since reading nvdimm flags requires constructing path using
->> 'bus_prefix' which is only available during add_dimm(), the patch
->> introduces a new member 'struct ndctl_dimm.bus_prefix' to cache its
->> value. During ndctl_refresh_dimm_flags() the cached bus_prefix is used to
->> read the contents of the nvdimm flag file and pass it on to the appropriate
->> flag parsing function.
+On Tue, Jul 13, 2021 at 9:35 PM Uwe Kleine-K=C3=B6nig
+<u.kleine-koenig@pengutronix.de> wrote:
+> The driver core ignores the return value of this callback because there
+> is only little it can do when a device disappears.
 >
-> I think this can be handled without needing an explicit
-> ndctl_refresh_dimm_flags() api. Teach all the flag retrieval apis to
-> check if the cached value has been invalidated and re-parse the flags.
-> Then teach the inject-smart path to invalidate the cached copy of the
-> flags.
+> This is the final bit of a long lasting cleanup quest where several
+> buses were converted to also return void from their remove callback.
+> Additionally some resource leaks were fixed that were caused by drivers
+> returning an error code in the expectation that the driver won't go
+> away.
 >
-Thanks for the suggestion. On the same line I think refreshing nvdimm
-flags can also be done implicitly after a successful ndctl_cmd_submit()
-call as that point we have interacted with the kernel_module which may
-have triggered a nvdimm flags change.
+> With struct bus_type::remove returning void it's prevented that newly
+> implemented buses return an ignored error code and so don't anticipate
+> wrong expectations for driver authors.
 
-Such a changeset would also be smaller compared to updating all flags
-retrieval api's to invalidate and refresh nvdimm flags.
+>  drivers/zorro/zorro-driver.c              | 3 +--
 
--- 
-Cheers
-~ Vaibhav
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--=20
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
