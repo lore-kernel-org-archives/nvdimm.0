@@ -1,49 +1,49 @@
-Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 910BB2F80
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 23:51:16 +0000 (UTC)
-Received: by mail-pj1-f45.google.com with SMTP id x21-20020a17090aa395b029016e25313bfcso5804849pjp.2
-        for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 16:51:16 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C59BD168
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 23:51:47 +0000 (UTC)
+Received: by mail-pf1-f176.google.com with SMTP id m83so7225499pfd.0
+        for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 16:51:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=yHyRkOoe0FJbGgLZWBNIbmaxXRkBCpAbQvrwWfS+09k=;
-        b=dQq3y2yc7F9Tv6jumuDYgf4E7j6M2jezkpxY22yl/kmeer8aPwoFO26qcFzK7mtv+h
-         mhzdt75PviEuasuHrLH2jMMqFDSaD7i9AO4hcvkiAQMTRez7AHcE0jT5GqkZ80renF6/
-         tlZExECJVHsiJ5icgNF3YxPLCFAxYsFLtcwwX9vv0UdYBJJ2GsEoIcoAqeI9gEvuTyS4
-         e21U9RkiIPGiRizTKANgU/aFd0kiSX6pSbpkljSpDVEMiKrsnInnh0iBIrPVh2sZ0x3M
-         l1tmBa30CwbQf9tNOInJNO3Apexih1IJ8YDjy2t9YI8rHQG/xPcZ2fqz1Y0Cs0nvN162
-         pT5g==
+        bh=AC6H/bYQ51Mx47FrqME4hLxCV2FqJ4qT1zFVZnMyepw=;
+        b=TqRlFNWcs8eJZpad6iMZ4RzKjsyhRtOT6zQEWEhuL7A7LqSPYLJ4unp1jD/EPbJCUs
+         A4Hx7nsB+Pm2wmxviqEUdSiEThFuDAKEoQDnrGJGDGRHGrnzvT7QiOO9yedYX8fttGgR
+         K1wGgeYKeBkvAz3y2hlaxQD2Kmz1m7wk9/qkATAOC70722myJgDaGz31qcH8eLW17ahz
+         iGvMWlNfnxVDcMdscaSfznyx/Be/MeEnNJDSLd4e6QmOi0TqqOXCzr0Bih0S0PkLaU+l
+         daZDQSXI9CTpE9APHlfIhkCTy56n7bkjBQSwQPU4drEnb4GdncWh7WOyk+LlrfZSu8+f
+         KPcQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=yHyRkOoe0FJbGgLZWBNIbmaxXRkBCpAbQvrwWfS+09k=;
-        b=kprjA5BOIX7WSupg1uAjiGkGWNQJmcJSP3k7bHibOhf2q+NxHGHo6t/nMw2kabgZEN
-         E0xEKdtwTWxTC4NZoTzKqb8MlMOkIfHeTUP3QczZ5KG2ppzivxrhdIXj20SKkAiwR1GW
-         T9cEZt2i4jU3bMkVPCvDmxZnPsmdZYNMr4ktpSQ7BAbYcQFIbCW7veMzHw3M37gKTjKz
-         r1uvx2RL/dA508m883xe43qRgeZ7rML49pl6a8xK7X5oPC4UXbkb6Ie27vrG2SLGT846
-         TPe8blqc4xKaFPf5HYShYOZ+NawRf3SFCOdbmL51t7AGtYKlaJc/ob6h1vw1j8X018s1
-         IQZQ==
-X-Gm-Message-State: AOAM533LSjjLfo8FkqAI/C0Z7gddPL1N7Ovttc0DsnEHs1xDRjudKaB3
-	gUxeAq1TCBTY1SvQcpFu8GILOeEJg/zBhHAjaFuJMQ==
-X-Google-Smtp-Source: ABdhPJyuf5JptNOi5y8fr33GFz48dLpMq9DbdA15qdRjY+mHXoEEX1HEImoaXIJOYVz8itExQLTbmUviosE32Qib1X0=
-X-Received: by 2002:a17:90a:8407:: with SMTP id j7mr12694744pjn.13.1626393075877;
- Thu, 15 Jul 2021 16:51:15 -0700 (PDT)
+        bh=AC6H/bYQ51Mx47FrqME4hLxCV2FqJ4qT1zFVZnMyepw=;
+        b=szkT0CYjtT1JqFbjEhfN91nJn1LYCyodweP3+ZFkTby114jSxawoSTvbTCQGbtDsCC
+         je/3ifWIbkA18tmAbO/Q9Fg7dGtucHN8IdRzxD82KkJ0rW1z5keCKkNpp2I9BhbpPJq0
+         KNXAKB3/kRb5mlQKgUCUkZiPTwgllD0fel/p8Yz3AxtGt8prZsE/9lSpNs0MseS5vZSd
+         ixxt58L6/ZUXar5LeQBcki/Yp/nkne1PUGx13xuAsl1KVoHLrWAAn7i4O/g9raX15eyB
+         x/d3jRdUGuOpoZArE0qnWaKVesjl8dpupkkpojCWZOtIjOCpEBNyQ0X/MROQBurredjP
+         gUdA==
+X-Gm-Message-State: AOAM532/EGuGvThZDvH2AifuXZUdgca6KKQc08X68snP/aAqNTf045r9
+	7zxDmZjxKOZuFkI3+lH5z1gNq4utLxlS1Jt1InmxwQ==
+X-Google-Smtp-Source: ABdhPJws7yUdJm3zbGWaTvOnf9Ry6+XgRitzzvRVIylGIdyoKqSNF8EKuFZoNbWaZYksilsOAXgAaYRKWxusQciwCQA=
+X-Received: by 2002:a63:d54b:: with SMTP id v11mr6973133pgi.450.1626393106902;
+ Thu, 15 Jul 2021 16:51:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210701201005.3065299-1-vishal.l.verma@intel.com> <20210701201005.3065299-7-vishal.l.verma@intel.com>
-In-Reply-To: <20210701201005.3065299-7-vishal.l.verma@intel.com>
+References: <20210701201005.3065299-1-vishal.l.verma@intel.com> <20210701201005.3065299-8-vishal.l.verma@intel.com>
+In-Reply-To: <20210701201005.3065299-8-vishal.l.verma@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 15 Jul 2021 16:51:04 -0700
-Message-ID: <CAPcyv4it2Ubzf62x4ZrFL=ivJJgjJko4JgA=QbigSrD9wfsSnQ@mail.gmail.com>
-Subject: Re: [ndctl PATCH v3 06/21] test: rename 'ndctl_test' to 'test_ctx'
+Date: Thu, 15 Jul 2021 16:51:35 -0700
+Message-ID: <CAPcyv4h78h21bPv2tA2DCRm1x-auL7gy2173Q2dCQUuP46yqgA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 07/21] test: rename 'ndctl_test_*' helpers to 'test_*'
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org, 
 	Ben Widawsky <ben.widawsky@intel.com>, Alison Schofield <alison.schofield@intel.com>, 
@@ -52,718 +52,940 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Thu, Jul 1, 2021 at 1:10 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
 >
-> In preparation for using the common test core for libcxl tests, rename
-> the 'ndctl_test' structure to 'test_ctx'
->
+> In preparation for using the test harness for libcxl, rename
+> ndctl_test_* helpers to make them more generic.
 
 Looks good,
 
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 
-
+>
 > Cc: Dan Williams <dan.j.williams@intel.com>
 > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
->  test.h                        | 36 +++++++++++++++++------------------
->  ndctl/bat.c                   |  2 +-
->  ndctl/test.c                  |  2 +-
->  test/ack-shutdown-count-set.c |  8 ++++----
->  test/blk_namespaces.c         |  6 +++---
->  test/core.c                   | 20 +++++++++----------
->  test/dax-dev.c                |  4 ++--
->  test/dax-pmd.c                |  9 +++++----
->  test/dax-poison.c             |  4 ++--
->  test/daxdev-errors.c          |  2 +-
->  test/device-dax.c             | 10 +++++-----
->  test/dpa-alloc.c              |  6 +++---
->  test/dsm-fail.c               |  6 +++---
->  test/libndctl.c               | 34 ++++++++++++++++-----------------
->  test/multi-pmem.c             |  9 +++++----
->  test/parent-uuid.c            |  5 +++--
->  test/pmem_namespaces.c        |  6 +++---
->  test/revoke-devmem.c          |  6 +++---
->  18 files changed, 89 insertions(+), 86 deletions(-)
+>  test.h                        | 16 +++++------
+>  ndctl/bat.c                   |  6 ++--
+>  ndctl/test.c                  |  6 ++--
+>  test/ack-shutdown-count-set.c | 10 +++----
+>  test/blk_namespaces.c         | 10 +++----
+>  test/core.c                   | 24 ++++++++--------
+>  test/dax-dev.c                |  8 +++---
+>  test/dax-pmd.c                |  6 ++--
+>  test/dax-poison.c             |  2 +-
+>  test/device-dax.c             | 18 ++++++------
+>  test/dpa-alloc.c              | 10 +++----
+>  test/dsm-fail.c               | 10 +++----
+>  test/libndctl.c               | 52 +++++++++++++++++------------------
+>  test/multi-pmem.c             | 16 +++++------
+>  test/parent-uuid.c            | 10 +++----
+>  test/pmem_namespaces.c        | 10 +++----
+>  test/revoke-devmem.c          |  8 +++---
+>  README.md                     |  2 +-
+>  18 files changed, 112 insertions(+), 112 deletions(-)
 >
 > diff --git a/test.h b/test.h
-> index 7de13fe..c5b9d4a 100644
+> index c5b9d4a..a25f6c9 100644
 > --- a/test.h
 > +++ b/test.h
-> @@ -4,16 +4,16 @@
->  #define __TEST_H__
->  #include <stdbool.h>
+> @@ -6,15 +6,15 @@
 >
-> -struct ndctl_test;
-> +struct test_ctx;
+>  struct test_ctx;
 >  struct ndctl_ctx;
-> -struct ndctl_test *ndctl_test_new(unsigned int kver);
-> -int ndctl_test_result(struct ndctl_test *test, int rc);
-> -int ndctl_test_get_skipped(struct ndctl_test *test);
-> -int ndctl_test_get_attempted(struct ndctl_test *test);
-> -int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
-> +struct test_ctx *ndctl_test_new(unsigned int kver);
-> +int ndctl_test_result(struct test_ctx *test, int rc);
-> +int ndctl_test_get_skipped(struct test_ctx *test);
-> +int ndctl_test_get_attempted(struct test_ctx *test);
-> +int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
+> -struct test_ctx *ndctl_test_new(unsigned int kver);
+> -int ndctl_test_result(struct test_ctx *test, int rc);
+> -int ndctl_test_get_skipped(struct test_ctx *test);
+> -int ndctl_test_get_attempted(struct test_ctx *test);
+> -int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
+> +struct test_ctx *test_new(unsigned int kver);
+> +int test_result(struct test_ctx *test, int rc);
+> +int test_get_skipped(struct test_ctx *test);
+> +int test_get_attempted(struct test_ctx *test);
+> +int __test_attempt(struct test_ctx *test, unsigned int kver,
 >                 const char *caller, int line);
->  #define ndctl_test_attempt(t, v) __ndctl_test_attempt(t, v, __func__, __LINE__)
-> -void __ndctl_test_skip(struct ndctl_test *test, const char *caller, int line);
-> +void __ndctl_test_skip(struct test_ctx *test, const char *caller, int line);
->  #define ndctl_test_skip(t) __ndctl_test_skip(t, __func__, __LINE__)
+> -#define ndctl_test_attempt(t, v) __ndctl_test_attempt(t, v, __func__, __LINE__)
+> -void __ndctl_test_skip(struct test_ctx *test, const char *caller, int line);
+> -#define ndctl_test_skip(t) __ndctl_test_skip(t, __func__, __LINE__)
+> +#define test_attempt(t, v) __test_attempt(t, v, __func__, __LINE__)
+> +void __test_skip(struct test_ctx *test, const char *caller, int line);
+> +#define test_skip(t) __test_skip(t, __func__, __LINE__)
 >  struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx);
 >  void builtin_xaction_namespace_reset(void);
-> @@ -22,27 +22,27 @@ struct kmod_ctx;
->  struct kmod_module;
->  int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
->                 struct ndctl_ctx *nd_ctx, int log_level,
-> -               struct ndctl_test *test);
-> +               struct test_ctx *test);
 >
->  struct ndctl_ctx;
-> -int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> -int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> +int test_parent_uuid(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
-> +int test_multi_pmem(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
->  int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t offset);
-> -int test_dax_remap(struct ndctl_test *test, int dax_fd, unsigned long align, void *dax_addr,
-> +int test_dax_remap(struct test_ctx *test, int dax_fd, unsigned long align, void *dax_addr,
->                 off_t offset, bool fsdax);
->  #ifdef ENABLE_POISON
-> -int test_dax_poison(struct ndctl_test *test, int dax_fd, unsigned long align,
-> +int test_dax_poison(struct test_ctx *test, int dax_fd, unsigned long align,
->                 void *dax_addr, off_t offset, bool fsdax);
->  #else
-> -static inline int test_dax_poison(struct ndctl_test *test, int dax_fd,
-> +static inline int test_dax_poison(struct test_ctx *test, int dax_fd,
->                 unsigned long align, void *dax_addr, off_t offset, bool fsdax)
->  {
->         return 0;
->  }
->  #endif
-> -int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> -int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> -int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> -int test_blk_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> -int test_pmem_namespaces(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx);
-> +int test_dpa_alloc(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
-> +int test_dsm_fail(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
-> +int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
-> +int test_blk_namespaces(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
-> +int test_pmem_namespaces(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx);
->  #endif /* __TEST_H__ */
 > diff --git a/ndctl/bat.c b/ndctl/bat.c
-> index ef00a3b..18773fd 100644
+> index 18773fd..a3452fa 100644
 > --- a/ndctl/bat.c
 > +++ b/ndctl/bat.c
-> @@ -9,7 +9,7 @@
->  int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx)
->  {
->         int loglevel = LOG_DEBUG, i, rc;
-> -       struct ndctl_test *test;
-> +       struct test_ctx *test;
->         bool force = false;
->         const char * const u[] = {
->                 "ndctl bat [<options>]",
+> @@ -32,9 +32,9 @@ int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx)
+>                 usage_with_options(u, options);
+>
+>         if (force)
+> -               test = ndctl_test_new(UINT_MAX);
+> +               test = test_new(UINT_MAX);
+>         else
+> -               test = ndctl_test_new(0);
+> +               test = test_new(0);
+>
+>         if (!test) {
+>                 fprintf(stderr, "failed to initialize test\n");
+> @@ -48,5 +48,5 @@ int cmd_bat(int argc, const char **argv, struct ndctl_ctx *ctx)
+>
+>         rc = test_pmem_namespaces(loglevel, test, ctx);
+>         fprintf(stderr, "test_pmem_namespaces: %s\n", rc ? "FAIL" : "PASS");
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/ndctl/test.c b/ndctl/test.c
-> index 6a05d8d..7af3681 100644
+> index 7af3681..92713df 100644
 > --- a/ndctl/test.c
 > +++ b/ndctl/test.c
-> @@ -18,7 +18,7 @@ static char *result(int rc)
+> @@ -42,9 +42,9 @@ int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
+>                 usage_with_options(u, options);
 >
->  int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
->  {
-> -       struct ndctl_test *test;
-> +       struct test_ctx *test;
->         int loglevel = LOG_DEBUG, i, rc;
->         const char * const u[] = {
->                 "ndctl test [<options>]",
+>         if (force)
+> -               test = ndctl_test_new(UINT_MAX);
+> +               test = test_new(UINT_MAX);
+>         else
+> -               test = ndctl_test_new(0);
+> +               test = test_new(0);
+>         if (!test)
+>                 return EXIT_FAILURE;
+>
+> @@ -69,5 +69,5 @@ int cmd_test(int argc, const char **argv, struct ndctl_ctx *ctx)
+>         rc = test_multi_pmem(loglevel, test, ctx);
+>         fprintf(stderr, "test-multi-pmem: %s\n", result(rc));
+>
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/ack-shutdown-count-set.c b/test/ack-shutdown-count-set.c
-> index c561ff3..d5c7bcb 100644
+> index d5c7bcb..92690f4 100644
 > --- a/test/ack-shutdown-count-set.c
 > +++ b/test/ack-shutdown-count-set.c
-> @@ -54,7 +54,7 @@ static void reset_bus(struct ndctl_bus *bus)
->                 ndctl_dimm_zero_labels(dimm);
->  }
+> @@ -62,7 +62,7 @@ static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
+>         struct log_ctx log_ctx;
+>         int rc = 0;
 >
-> -static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
-> +static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
->  {
->         struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
->         struct ndctl_dimm *dimm;
-> @@ -91,8 +91,8 @@ out:
->         return rc;
->  }
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 15, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 15, 0)))
+>                 return 77;
 >
-> -static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
-> -               struct ndctl_ctx *ctx)
-> +static int test_ack_shutdown_count_set(int loglevel, struct test_ctx *test,
-> +                                      struct ndctl_ctx *ctx)
->  {
->         struct kmod_module *mod;
->         struct kmod_ctx *kmod_ctx;
-> @@ -117,7 +117,7 @@ static int test_ack_shutdown_count_set(int loglevel, struct ndctl_test *test,
+>         if (!bus)
+> @@ -102,7 +102,7 @@ static int test_ack_shutdown_count_set(int loglevel, struct test_ctx *test,
+>         err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>         if (err < 0) {
+>                 result = 77;
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 fprintf(stderr, "%s unavailable skipping tests\n",
+>                                 "nfit_test");
+>                 return result;
+> @@ -117,7 +117,7 @@ static int test_ack_shutdown_count_set(int loglevel, struct test_ctx *test,
 >
 >  int main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -128,9 +128,9 @@ int main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>         rc = test_ack_shutdown_count_set(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+>
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
-> index f076e85..4919890 100644
+> index 4919890..04eb600 100644
 > --- a/test/blk_namespaces.c
 > +++ b/test/blk_namespaces.c
-> @@ -198,8 +198,8 @@ static int ns_do_io(const char *bdev)
+> @@ -210,7 +210,7 @@ int test_blk_namespaces(int log_level, struct test_ctx *test,
+>         struct ndctl_namespace *ndns[2];
+>         struct ndctl_region *region, *blk_region = NULL;
 >
->  static const char *comm = "test-blk-namespaces";
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+>                 return 77;
 >
-> -int test_blk_namespaces(int log_level, struct ndctl_test *test,
-> -               struct ndctl_ctx *ctx)
-> +int test_blk_namespaces(int log_level, struct test_ctx *test,
-> +                       struct ndctl_ctx *ctx)
->  {
->         char bdev[50];
->         int rc = -ENXIO;
-> @@ -337,7 +337,7 @@ int test_blk_namespaces(int log_level, struct ndctl_test *test,
+>         ndctl_set_log_priority(ctx, log_level);
+> @@ -232,7 +232,7 @@ int test_blk_namespaces(int log_level, struct test_ctx *test,
+>                 ndctl_invalidate(ctx);
+>                 bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+>                 if (rc < 0 || !bus) {
+> -                       ndctl_test_skip(test);
+> +                       test_skip(test);
+>                         fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>                         return 77;
+>                 }
+> @@ -337,7 +337,7 @@ int test_blk_namespaces(int log_level, struct test_ctx *test,
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -349,9 +349,9 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>
+>         rc = test_blk_namespaces(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/core.c b/test/core.c
-> index 2b03aa9..1ef0ac4 100644
+> index 1ef0ac4..d143e89 100644
 > --- a/test/core.c
 > +++ b/test/core.c
-> @@ -16,7 +16,7 @@
->
->  #define KVER_STRLEN 20
->
-> -struct ndctl_test {
-> +struct test_ctx {
->         unsigned int kver;
->         int attempt;
->         int skip;
-> @@ -39,9 +39,9 @@ static unsigned int get_system_kver(void)
+> @@ -39,7 +39,7 @@ static unsigned int get_system_kver(void)
 >         return KERNEL_VERSION(a,b,c);
 >  }
 >
-> -struct ndctl_test *ndctl_test_new(unsigned int kver)
-> +struct test_ctx *ndctl_test_new(unsigned int kver)
+> -struct test_ctx *ndctl_test_new(unsigned int kver)
+> +struct test_ctx *test_new(unsigned int kver)
 >  {
-> -       struct ndctl_test *test = calloc(1, sizeof(*test));
-> +       struct test_ctx *test = calloc(1, sizeof(*test));
+>         struct test_ctx *test = calloc(1, sizeof(*test));
 >
->         if (!test)
->                 return NULL;
-> @@ -54,7 +54,7 @@ struct ndctl_test *ndctl_test_new(unsigned int kver)
+> @@ -54,15 +54,15 @@ struct test_ctx *ndctl_test_new(unsigned int kver)
 >         return test;
 >  }
 >
-> -int ndctl_test_result(struct ndctl_test *test, int rc)
-> +int ndctl_test_result(struct test_ctx *test, int rc)
+> -int ndctl_test_result(struct test_ctx *test, int rc)
+> +int test_result(struct test_ctx *test, int rc)
 >  {
->         if (ndctl_test_get_skipped(test))
+> -       if (ndctl_test_get_skipped(test))
+> +       if (test_get_skipped(test))
 >                 fprintf(stderr, "attempted: %d skipped: %d\n",
-> @@ -75,8 +75,8 @@ static char *kver_str(char *buf, unsigned int kver)
+> -                               ndctl_test_get_attempted(test),
+> -                               ndctl_test_get_skipped(test));
+> +                               test_get_attempted(test),
+> +                               test_get_skipped(test));
+>         if (rc && rc != 77)
+>                 return rc;
+> -       if (ndctl_test_get_skipped(test) >= ndctl_test_get_attempted(test))
+> +       if (test_get_skipped(test) >= test_get_attempted(test))
+>                 return 77;
+>         /* return success if no failures and at least one test not skipped */
+>         return 0;
+> @@ -75,7 +75,7 @@ static char *kver_str(char *buf, unsigned int kver)
 >         return buf;
 >  }
 >
-> -int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
-> -               const char *caller, int line)
-> +int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
-> +                        const char *caller, int line)
+> -int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
+> +int __test_attempt(struct test_ctx *test, unsigned int kver,
+>                          const char *caller, int line)
 >  {
 >         char requires[KVER_STRLEN], current[KVER_STRLEN];
->
-> @@ -90,26 +90,26 @@ int __ndctl_test_attempt(struct ndctl_test *test, unsigned int kver,
+> @@ -90,19 +90,19 @@ int __ndctl_test_attempt(struct test_ctx *test, unsigned int kver,
 >         return 0;
 >  }
 >
-> -void __ndctl_test_skip(struct ndctl_test *test, const char *caller, int line)
-> +void __ndctl_test_skip(struct test_ctx *test, const char *caller, int line)
+> -void __ndctl_test_skip(struct test_ctx *test, const char *caller, int line)
+> +void __test_skip(struct test_ctx *test, const char *caller, int line)
 >  {
 >         test->skip++;
 >         test->attempt = test->skip;
 >         fprintf(stderr, "%s: explicit skip %s:%d\n", __func__, caller, line);
 >  }
 >
-> -int ndctl_test_get_attempted(struct ndctl_test *test)
-> +int ndctl_test_get_attempted(struct test_ctx *test)
+> -int ndctl_test_get_attempted(struct test_ctx *test)
+> +int test_get_attempted(struct test_ctx *test)
 >  {
 >         return test->attempt;
 >  }
 >
-> -int ndctl_test_get_skipped(struct ndctl_test *test)
-> +int ndctl_test_get_skipped(struct test_ctx *test)
+> -int ndctl_test_get_skipped(struct test_ctx *test)
+> +int test_get_skipped(struct test_ctx *test)
 >  {
 >         return test->skip;
 >  }
+> @@ -174,7 +174,7 @@ int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>                  * than 4.7.
+>                  */
+>                 if (strcmp(name, "dax") == 0
+> -                               && !ndctl_test_attempt(test,
+> +                               && !test_attempt(test,
+>                                         KERNEL_VERSION(4, 7, 0)))
+>                         continue;
 >
->  int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
->                 struct ndctl_ctx *nd_ctx, int log_level,
-> -               struct ndctl_test *test)
-> +               struct test_ctx *test)
->  {
->         int rc, family = -1;
->         unsigned int i;
+> @@ -183,7 +183,7 @@ int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+>                  */
+>                 if ((strcmp(name, "dax_pmem_core") == 0
+>                                 || strcmp(name, "dax_pmem_compat") == 0)
+> -                               && !ndctl_test_attempt(test,
+> +                               && !test_attempt(test,
+>                                         KERNEL_VERSION(5, 1, 0)))
+>                         continue;
+>
 > diff --git a/test/dax-dev.c b/test/dax-dev.c
-> index 6a1b76d..99eda26 100644
+> index 99eda26..d61104f 100644
 > --- a/test/dax-dev.c
 > +++ b/test/dax-dev.c
-> @@ -87,7 +87,7 @@ struct ndctl_namespace *ndctl_get_test_dev(struct ndctl_ctx *ctx)
->         return rc ? NULL : ndns;
->  }
->
-> -static int emit_e820_device(int loglevel, struct ndctl_test *test)
-> +static int emit_e820_device(int loglevel, struct test_ctx *test)
->  {
->         int err;
+> @@ -93,7 +93,7 @@ static int emit_e820_device(int loglevel, struct test_ctx *test)
 >         struct ndctl_ctx *ctx;
-> @@ -118,7 +118,7 @@ static int emit_e820_device(int loglevel, struct ndctl_test *test)
+>         struct ndctl_namespace *ndns;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 3, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 3, 0)))
+>                 return 77;
+>
+>         err = ndctl_new(&ctx);
+> @@ -106,7 +106,7 @@ static int emit_e820_device(int loglevel, struct test_ctx *test)
+>         if (!ndns) {
+>                 fprintf(stderr, "%s: failed to find usable victim device\n",
+>                                 __func__);
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 err = 77;
+>         } else {
+>                 fprintf(stdout, "%s\n", ndctl_namespace_get_devname(ndns));
+> @@ -118,7 +118,7 @@ static int emit_e820_device(int loglevel, struct test_ctx *test)
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         int rc;
 >
 >         if (!test) {
+> @@ -127,5 +127,5 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>         }
+>
+>         rc = emit_e820_device(LOG_DEBUG, test);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/dax-pmd.c b/test/dax-pmd.c
-> index 7648e34..e9dedb9 100644
+> index e9dedb9..190a0fd 100644
 > --- a/test/dax-pmd.c
 > +++ b/test/dax-pmd.c
-> @@ -37,8 +37,9 @@ static void sigbus(int sig, siginfo_t *siginfo, void *d)
->         siglongjmp(sj_env, 1);
->  }
->
-> -int test_dax_remap(struct ndctl_test *test, int dax_fd, unsigned long align, void *dax_addr,
-> -               off_t offset, bool fsdax)
-> +int test_dax_remap(struct test_ctx *test, int dax_fd, unsigned long align,
-> +                  void *dax_addr,
-> +                  off_t offset, bool fsdax)
->  {
->         void *anon, *remap, *addr;
+> @@ -45,7 +45,7 @@ int test_dax_remap(struct test_ctx *test, int dax_fd, unsigned long align,
 >         struct sigaction act;
-> @@ -272,7 +273,7 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
->  }
+>         int rc, val;
 >
->  /* test_pmd assumes that fd references a pre-allocated + dax-capable file */
-> -static int test_pmd(struct ndctl_test *test, int fd)
-> +static int test_pmd(struct test_ctx *test, int fd)
->  {
->         unsigned long long m_align, p_align, pmd_off;
->         static const bool fsdax = true;
-> @@ -351,7 +352,7 @@ err_mmap:
+> -       if ((fsdax || align == SZ_2M) && !ndctl_test_attempt(test, KERNEL_VERSION(5, 8, 0))) {
+> +       if ((fsdax || align == SZ_2M) && !test_attempt(test, KERNEL_VERSION(5, 8, 0))) {
+>                 /* kernel's prior to 5.8 may crash on this test */
+>                 fprintf(stderr, "%s: SKIP mremap() test\n", __func__);
+>                 return 0;
+> @@ -352,7 +352,7 @@ err_mmap:
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         int fd, rc;
 >
 >         if (!test) {
+> @@ -367,5 +367,5 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>         rc = test_pmd(test, fd);
+>         if (fd >= 0)
+>                 close(fd);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/dax-poison.c b/test/dax-poison.c
-> index 4e09761..dc62742 100644
+> index dc62742..e50ff8f 100644
 > --- a/test/dax-poison.c
 > +++ b/test/dax-poison.c
-> @@ -44,8 +44,8 @@ static void sigbus_hdl(int sig, siginfo_t *si, void *ptr)
->         siglongjmp(sj_env, 1);
->  }
+> @@ -54,7 +54,7 @@ int test_dax_poison(struct test_ctx *test, int dax_fd, unsigned long align,
+>         void *buf;
+>         int rc;
 >
-> -int test_dax_poison(struct ndctl_test *test, int dax_fd, unsigned long align,
-> -               void *dax_addr, off_t offset, bool fsdax)
-> +int test_dax_poison(struct test_ctx *test, int dax_fd, unsigned long align,
-> +                   void *dax_addr, off_t offset, bool fsdax)
->  {
->         unsigned char *addr = MAP_FAILED;
->         struct sigaction act;
-> diff --git a/test/daxdev-errors.c b/test/daxdev-errors.c
-> index fbbea21..4cb6b4d 100644
-> --- a/test/daxdev-errors.c
-> +++ b/test/daxdev-errors.c
-> @@ -29,7 +29,7 @@
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 19, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 19, 0)))
+>                 return 77;
 >
->  struct check_cmd {
->         struct ndctl_cmd *cmd;
-> -       struct ndctl_test *test;
-> +       struct test_ctx *test;
->  };
->
->  static sigjmp_buf sj_env;
+>         /*
 > diff --git a/test/device-dax.c b/test/device-dax.c
-> index aad8fa5..1837b4d 100644
+> index 1837b4d..80f0ef7 100644
 > --- a/test/device-dax.c
 > +++ b/test/device-dax.c
-> @@ -90,7 +90,7 @@ static void sigbus(int sig, siginfo_t *siginfo, void *d)
->  #define VERIFY_TIME(x) (suseconds_t) ((ALIGN(x, SZ_2M) / SZ_4K) * 60)
->
->  static int verify_data(struct daxctl_dev *dev, char *dax_buf,
-> -               unsigned long align, int salt, struct ndctl_test *test)
-> +               unsigned long align, int salt, struct test_ctx *test)
->  {
+> @@ -95,7 +95,7 @@ static int verify_data(struct daxctl_dev *dev, char *dax_buf,
 >         struct timeval tv1, tv2, tv_diff;
 >         unsigned long i;
-> @@ -167,7 +167,7 @@ static int test_dax_soft_offline(struct ndctl_test *test, struct ndctl_namespace
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 9, 0)))
+>                 return 0;
+>
+>         /* verify data and cache mode */
+> @@ -128,7 +128,7 @@ static int verify_data(struct daxctl_dev *dev, char *dax_buf,
+>         return 0;
 >  }
 >
->  static int __test_device_dax(unsigned long align, int loglevel,
-> -               struct ndctl_test *test, struct ndctl_ctx *ctx)
-> +               struct test_ctx *test, struct ndctl_ctx *ctx)
+> -static int test_dax_soft_offline(struct ndctl_test *test, struct ndctl_namespace *ndns)
+> +static int test_dax_soft_offline(struct test_ctx *test, struct ndctl_namespace *ndns)
 >  {
->         unsigned long i;
->         struct sigaction act;
-> @@ -406,8 +406,8 @@ static int __test_device_dax(unsigned long align, int loglevel,
->         return rc;
->  }
+>         unsigned long long resource = ndctl_namespace_get_resource(ndns);
+>         int fd, rc;
+> @@ -188,10 +188,10 @@ static int __test_device_dax(unsigned long align, int loglevel,
+>                 return 77;
+>         }
 >
-> -static int test_device_dax(int loglevel, struct ndctl_test *test,
-> -               struct ndctl_ctx *ctx)
-> +static int test_device_dax(int loglevel, struct test_ctx *test,
-> +                          struct ndctl_ctx *ctx)
->  {
->         unsigned long i, aligns[] = { SZ_4K, SZ_2M, SZ_1G };
->         int rc;
-> @@ -423,7 +423,7 @@ static int test_device_dax(int loglevel, struct ndctl_test *test,
+> -       if (align > SZ_2M && !ndctl_test_attempt(test, KERNEL_VERSION(4, 11, 0)))
+> +       if (align > SZ_2M && !test_attempt(test, KERNEL_VERSION(4, 11, 0)))
+>                 return 77;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 7, 0)))
+>                 return 77;
+>
+>         /* setup up fsdax mode pmem device and seed with verification data */
+> @@ -279,7 +279,7 @@ static int __test_device_dax(unsigned long align, int loglevel,
+>          * Prior to 4.8-final these tests cause crashes, or are
+>          * otherwise not supported.
+>          */
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
+>                 static const bool devdax = false;
+>                 int fd2;
+>
+> @@ -394,7 +394,7 @@ static int __test_device_dax(unsigned long align, int loglevel,
+>         rc = EXIT_SUCCESS;
+>         p = (int *) (buf + align);
+>         *p = 0xff;
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
+>                 /* after 4.9 this test will properly get sigbus above */
+>                 rc = EXIT_FAILURE;
+>                 fprintf(stderr, "%s: failed to unmap after reset\n",
+> @@ -423,7 +423,7 @@ static int test_device_dax(int loglevel, struct test_ctx *test,
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -434,9 +434,9 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc < 0)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>
+>         rc = test_device_dax(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
-> index 59185cf..d0f5271 100644
+> index d0f5271..e530ed4 100644
 > --- a/test/dpa-alloc.c
 > +++ b/test/dpa-alloc.c
-> @@ -32,7 +32,7 @@ struct test_dpa_namespace {
->
->  #define MIN_SIZE SZ_4M
->
-> -static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
-> +static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
->  {
->         unsigned int default_available_slots, available_slots, i;
->         struct ndctl_region *region, *blk_region = NULL;
-> @@ -280,7 +280,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
->         return 0;
->  }
->
-> -int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
-> +int test_dpa_alloc(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
->  {
->         struct kmod_module *mod;
+> @@ -286,13 +286,13 @@ int test_dpa_alloc(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
 >         struct kmod_ctx *kmod_ctx;
-> @@ -307,7 +307,7 @@ int test_dpa_alloc(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+>         int err, result = EXIT_FAILURE;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+>                 return 77;
+>
+>         ndctl_set_log_priority(ctx, loglevel);
+>         err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>         if (err < 0) {
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>                 return 77;
+>         }
+> @@ -307,7 +307,7 @@ int test_dpa_alloc(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -318,9 +318,9 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>
+>         rc = test_dpa_alloc(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/dsm-fail.c b/test/dsm-fail.c
-> index 0a6383d..74c56de 100644
+> index 74c56de..5559da2 100644
 > --- a/test/dsm-fail.c
 > +++ b/test/dsm-fail.c
-> @@ -174,7 +174,7 @@ static int test_regions_enable(struct ndctl_bus *bus,
->         return 0;
->  }
+> @@ -184,7 +184,7 @@ static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
+>         unsigned int handle;
+>         int rc, err = 0;
 >
-> -static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
-> +static int do_test(struct ndctl_ctx *ctx, struct test_ctx *test)
->  {
->         struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
->         struct ndctl_region *region, *victim_region = NULL;
-> @@ -339,7 +339,7 @@ static int do_test(struct ndctl_ctx *ctx, struct ndctl_test *test)
->         return err;
->  }
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 9, 0)))
+>                 return 77;
 >
-> -int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
-> +int test_dsm_fail(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
->  {
->         struct kmod_module *mod;
->         struct kmod_ctx *kmod_ctx;
-> @@ -364,7 +364,7 @@ int test_dsm_fail(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+>         if (!bus)
+> @@ -349,7 +349,7 @@ int test_dsm_fail(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
+>         err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>         if (err < 0) {
+>                 result = 77;
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 fprintf(stderr, "%s unavailable skipping tests\n",
+>                                 "nfit_test");
+>                 return result;
+> @@ -364,7 +364,7 @@ int test_dsm_fail(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -375,8 +375,8 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>         rc = test_dsm_fail(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/libndctl.c b/test/libndctl.c
-> index d9b50f4..30d19db 100644
+> index 30d19db..8aeaded 100644
 > --- a/test/libndctl.c
 > +++ b/test/libndctl.c
-> @@ -613,7 +613,7 @@ static int validate_dax(struct ndctl_dax *dax)
->         const char *devname = ndctl_namespace_get_devname(ndns);
->         struct ndctl_region *region = ndctl_dax_get_region(dax);
->         struct ndctl_ctx *ctx = ndctl_dax_get_ctx(dax);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct daxctl_region *dax_region = NULL, *found;
->         int rc = -ENXIO, fd, count, dax_expect;
->         struct daxctl_dev *dax_dev, *seed;
-> @@ -725,7 +725,7 @@ static int __check_dax_create(struct ndctl_region *region,
->  {
->         struct ndctl_dax *dax_seed = ndctl_region_get_dax_seed(region);
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         enum ndctl_namespace_mode mode;
->         struct ndctl_dax *dax;
->         const char *devname;
-> @@ -835,7 +835,7 @@ static int __check_pfn_create(struct ndctl_region *region,
->  {
->         struct ndctl_pfn *pfn_seed = ndctl_region_get_pfn_seed(region);
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         enum ndctl_namespace_mode mode;
->         struct ndctl_pfn *pfn;
->         const char *devname;
-> @@ -978,7 +978,7 @@ static int check_btt_size(struct ndctl_btt *btt)
->         unsigned long long actual, expect;
->         int size_select, sect_select;
->         struct ndctl_ctx *ctx = ndctl_btt_get_ctx(btt);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
->         unsigned long long expect_table[][2] = {
->                 [0] = {
-> @@ -1049,7 +1049,7 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
->                 struct namespace *namespace)
->  {
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct btt *btt_s = namespace->btt_settings;
->         int i, fd, retry = 10;
->         struct ndctl_btt *btt;
-> @@ -1257,7 +1257,7 @@ static int check_pfn_autodetect(struct ndctl_bus *bus,
->         struct ndctl_region *region = ndctl_namespace_get_region(ndns);
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
->         const char *devname = ndctl_namespace_get_devname(ndns);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct pfn *auto_pfn = namespace->pfn_settings;
->         struct ndctl_pfn *pfn, *found = NULL;
->         enum ndctl_namespace_mode mode;
-> @@ -1354,7 +1354,7 @@ static int check_dax_autodetect(struct ndctl_bus *bus,
->         struct ndctl_region *region = ndctl_namespace_get_region(ndns);
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
->         const char *devname = ndctl_namespace_get_devname(ndns);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct dax *auto_dax = namespace->dax_settings;
->         struct ndctl_dax *dax, *found = NULL;
->         enum ndctl_namespace_mode mode;
-> @@ -1439,7 +1439,7 @@ static int check_btt_autodetect(struct ndctl_bus *bus,
->         struct ndctl_region *region = ndctl_namespace_get_region(ndns);
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
->         const char *devname = ndctl_namespace_get_devname(ndns);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct btt *auto_btt = namespace->btt_settings;
->         struct ndctl_btt *btt, *found = NULL;
->         enum ndctl_namespace_mode mode;
-> @@ -1681,7 +1681,7 @@ static int check_namespaces(struct ndctl_region *region,
->                 struct namespace **namespaces, enum ns_mode mode)
->  {
->         struct ndctl_ctx *ctx = ndctl_region_get_ctx(region);
-> -       struct ndctl_test *test = ndctl_get_private_data(ctx);
-> +       struct test_ctx *test = ndctl_get_private_data(ctx);
->         struct ndctl_bus *bus = ndctl_region_get_bus(region);
->         struct ndctl_namespace **ndns_save;
->         struct namespace *namespace;
-> @@ -2044,7 +2044,7 @@ static int check_btts(struct ndctl_region *region, struct btt **btts)
->  struct check_cmd {
->         int (*check_fn)(struct ndctl_bus *bus, struct ndctl_dimm *dimm, struct check_cmd *check);
->         struct ndctl_cmd *cmd;
-> -       struct ndctl_test *test;
-> +       struct test_ctx *test;
->  };
+> @@ -639,7 +639,7 @@ static int validate_dax(struct ndctl_dax *dax)
+>                 return -ENXIO;
+>         }
 >
->  static struct check_cmd *check_cmds;
-> @@ -2412,7 +2412,7 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
->  #define BITS_PER_LONG 32
->  static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
->                 unsigned long bus_commands, unsigned long dimm_commands,
-> -               struct ndctl_test *test)
-> +               struct test_ctx *test)
->  {
->         /*
->          * For now, by coincidence, these are indexed in test execution
-> @@ -2483,7 +2483,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 10, 0))) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 10, 0))) {
+>                 if (daxctl_region_get_size(dax_region)
+>                                 != ndctl_dax_get_size(dax)) {
+>                         fprintf(stderr, "%s: expect size: %llu != %llu\n",
+> @@ -745,7 +745,7 @@ static int __check_dax_create(struct ndctl_region *region,
+>         ndctl_dax_set_align(dax, SZ_4K);
 >
->  static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
->                 unsigned long bus_commands, unsigned long dimm_commands,
-> -               struct ndctl_test *test)
-> +               struct test_ctx *test)
->  {
->         long long dsc;
->         int i, j, rc;
-> @@ -2604,7 +2604,7 @@ static void reset_bus(struct ndctl_bus *bus)
->                 ndctl_region_enable(region);
->  }
+>         rc = ndctl_namespace_set_enforce_mode(ndns, NDCTL_NS_MODE_DAX);
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0)) && rc < 0) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 13, 0)) && rc < 0) {
+>                 fprintf(stderr, "%s: failed to enforce dax mode\n", devname);
+>                 return rc;
+>         }
+> @@ -856,7 +856,7 @@ static int __check_pfn_create(struct ndctl_region *region,
+>          */
+>         ndctl_pfn_set_align(pfn, SZ_4K);
+>         rc = ndctl_namespace_set_enforce_mode(ndns, NDCTL_NS_MODE_MEMORY);
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0)) && rc < 0) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 13, 0)) && rc < 0) {
+>                 fprintf(stderr, "%s: failed to enforce pfn mode\n", devname);
+>                 return rc;
+>         }
+> @@ -1030,7 +1030,7 @@ static int check_btt_size(struct ndctl_btt *btt)
+>         }
 >
-> -static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
-> +static int do_test0(struct ndctl_ctx *ctx, struct test_ctx *test)
->  {
->         struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER0);
->         struct ndctl_region *region;
-> @@ -2662,7 +2662,7 @@ static int do_test0(struct ndctl_ctx *ctx, struct ndctl_test *test)
->         return check_regions(bus, regions0, ARRAY_SIZE(regions0), BTT);
->  }
+>         /* prior to 4.8 btt devices did not have a size attribute */
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 8, 0)))
+>                 return 0;
 >
-> -static int do_test1(struct ndctl_ctx *ctx, struct ndctl_test *test)
-> +static int do_test1(struct ndctl_ctx *ctx, struct test_ctx *test)
->  {
->         struct ndctl_bus *bus = ndctl_bus_get_by_provider(ctx, NFIT_PROVIDER1);
->         int rc;
-> @@ -2686,13 +2686,13 @@ static int do_test1(struct ndctl_ctx *ctx, struct ndctl_test *test)
->         return check_regions(bus, regions1, ARRAY_SIZE(regions1), BTT);
->  }
+>         expect = expect_table[size_select][sect_select];
+> @@ -1077,7 +1077,7 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
+>                 ndctl_btt_set_uuid(btt, btt_s->uuid);
+>                 ndctl_btt_set_sector_size(btt, btt_s->sector_sizes[i]);
+>                 rc = ndctl_namespace_set_enforce_mode(ndns, NDCTL_NS_MODE_SECTOR);
+> -               if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0)) && rc < 0) {
+> +               if (test_attempt(test, KERNEL_VERSION(4, 13, 0)) && rc < 0) {
+>                         fprintf(stderr, "%s: failed to enforce btt mode\n", devname);
+>                         goto err;
+>                 }
+> @@ -1094,7 +1094,7 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
+>                 }
 >
-> -typedef int (*do_test_fn)(struct ndctl_ctx *ctx, struct ndctl_test *test);
-> +typedef int (*do_test_fn)(struct ndctl_ctx *ctx, struct test_ctx *test);
->  static do_test_fn do_test[] = {
->         do_test0,
->         do_test1,
->  };
+>                 /* prior to v4.5 the mode attribute did not exist */
+> -               if (ndctl_test_attempt(test, KERNEL_VERSION(4, 5, 0))) {
+> +               if (test_attempt(test, KERNEL_VERSION(4, 5, 0))) {
+>                         mode = ndctl_namespace_get_mode(ndns);
+>                         if (mode >= 0 && mode != NDCTL_NS_MODE_SECTOR)
+>                                 fprintf(stderr, "%s: expected safe mode got: %d\n",
+> @@ -1102,7 +1102,7 @@ static int check_btt_create(struct ndctl_region *region, struct ndctl_namespace
+>                 }
 >
-> -int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
-> +int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
->  {
->         unsigned int i;
->         struct kmod_module *mod;
-> @@ -2732,7 +2732,7 @@ int test_libndctl(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
+>                 /* prior to v4.13 the expected sizes were different due to BTT1.1 */
+> -               if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0))) {
+> +               if (test_attempt(test, KERNEL_VERSION(4, 13, 0))) {
+>                         rc = check_btt_size(btt);
+>                         if (rc)
+>                                 goto err;
+> @@ -1287,7 +1287,7 @@ static int check_pfn_autodetect(struct ndctl_bus *bus,
+>                 return -ENXIO;
+>
+>         mode = ndctl_namespace_get_enforce_mode(ndns);
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0))
+> +       if (test_attempt(test, KERNEL_VERSION(4, 13, 0))
+>                         && mode != NDCTL_NS_MODE_MEMORY) {
+>                 fprintf(stderr, "%s expected enforce_mode pfn\n", devname);
+>                 return -ENXIO;
+> @@ -1384,7 +1384,7 @@ static int check_dax_autodetect(struct ndctl_bus *bus,
+>                 return -ENXIO;
+>
+>         mode = ndctl_namespace_get_enforce_mode(ndns);
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0))
+> +       if (test_attempt(test, KERNEL_VERSION(4, 13, 0))
+>                         && mode != NDCTL_NS_MODE_DAX) {
+>                 fprintf(stderr, "%s expected enforce_mode dax\n", devname);
+>                 return -ENXIO;
+> @@ -1469,7 +1469,7 @@ static int check_btt_autodetect(struct ndctl_bus *bus,
+>                 return -ENXIO;
+>
+>         mode = ndctl_namespace_get_enforce_mode(ndns);
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0))
+> +       if (test_attempt(test, KERNEL_VERSION(4, 13, 0))
+>                         && mode != NDCTL_NS_MODE_SECTOR) {
+>                 fprintf(stderr, "%s expected enforce_mode btt\n", devname);
+>                 return -ENXIO;
+> @@ -1714,7 +1714,7 @@ static int check_namespaces(struct ndctl_region *region,
+>                 }
+>
+>                 if (ndctl_region_get_type(region) == ND_DEVICE_REGION_PMEM
+> -                               && !ndctl_test_attempt(test, KERNEL_VERSION(4, 13, 0)))
+> +                               && !test_attempt(test, KERNEL_VERSION(4, 13, 0)))
+>                         /* pass, no sector_size support for pmem prior to 4.13 */;
+>                 else {
+>                         num_sector_sizes = namespace->num_sector_sizes;
+> @@ -2321,7 +2321,7 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+>          * Starting with v4.9 smart threshold requests trigger the file
+>          * descriptor returned by ndctl_dimm_get_health_eventfd().
+>          */
+> -       if (ndctl_test_attempt(check->test, KERNEL_VERSION(4, 9, 0))) {
+> +       if (test_attempt(check->test, KERNEL_VERSION(4, 9, 0))) {
+>                 int pid = fork();
+>
+>                 if (pid == 0) {
+> @@ -2396,7 +2396,7 @@ static int check_smart_threshold(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+>                 ndctl_cmd_unref(cmd_set);
+>         }
+>
+> -       if (ndctl_test_attempt(check->test, KERNEL_VERSION(4, 9, 0))) {
+> +       if (test_attempt(check->test, KERNEL_VERSION(4, 9, 0))) {
+>                 wait(&rc);
+>                 if (WEXITSTATUS(rc) == EXIT_FAILURE) {
+>                         fprintf(stderr, "%s: expect health event trigger\n",
+> @@ -2439,7 +2439,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+>          * The kernel did not start emulating v1.2 namespace spec smart data
+>          * until 4.9.
+>          */
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 9, 0)))
+>                 dimm_commands &= ~((1 << ND_CMD_SMART)
+>                                 | (1 << ND_CMD_SMART_THRESHOLD));
+>
+> @@ -2474,7 +2474,7 @@ static int check_commands(struct ndctl_bus *bus, struct ndctl_dimm *dimm,
+>         if (rc)
+>                 goto out;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 6, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 6, 0)))
+>                 goto out;
+>
+>   out:
+> @@ -2530,7 +2530,7 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
+>                         return -ENXIO;
+>                 }
+>
+> -               if (ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
+> +               if (test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
+>                         if (ndctl_dimm_get_formats(dimm) != dimms[i].formats) {
+>                                 fprintf(stderr, "dimm%d expected formats: %d got: %d\n",
+>                                                 i, dimms[i].formats,
+> @@ -2548,7 +2548,7 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
+>                         }
+>                 }
+>
+> -               if (ndctl_test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
+> +               if (test_attempt(test, KERNEL_VERSION(4, 7, 0))) {
+>                         if (ndctl_dimm_get_subsystem_vendor(dimm)
+>                                         != dimms[i].subsystem_vendor) {
+>                                 fprintf(stderr,
+> @@ -2559,7 +2559,7 @@ static int check_dimms(struct ndctl_bus *bus, struct dimm *dimms, int n,
+>                         }
+>                 }
+>
+> -               if (ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
+> +               if (test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
+>                         if (ndctl_dimm_get_manufacturing_date(dimm)
+>                                         != dimms[i].manufacturing_date) {
+>                                 fprintf(stderr,
+> @@ -2645,14 +2645,14 @@ static int do_test0(struct ndctl_ctx *ctx, struct test_ctx *test)
+>         }
+>
+>         /* pfn and dax tests require vmalloc-enabled nfit_test */
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
+>                 rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), DAX);
+>                 if (rc)
+>                         return rc;
+>                 reset_bus(bus);
+>         }
+>
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
+> +       if (test_attempt(test, KERNEL_VERSION(4, 8, 0))) {
+>                 rc = check_regions(bus, regions0, ARRAY_SIZE(regions0), PFN);
+>                 if (rc)
+>                         return rc;
+> @@ -2676,7 +2676,7 @@ static int do_test1(struct ndctl_ctx *ctx, struct test_ctx *test)
+>          * Starting with v4.10 the dimm on nfit_test.1 gets a unique
+>          * handle.
+>          */
+> -       if (ndctl_test_attempt(test, KERNEL_VERSION(4, 10, 0)))
+> +       if (test_attempt(test, KERNEL_VERSION(4, 10, 0)))
+>                 dimms1[0].handle = DIMM_HANDLE(1, 0, 0, 0, 0);
+>
+>         rc = check_dimms(bus, dimms1, ARRAY_SIZE(dimms1), 0, 0, test);
+> @@ -2700,7 +2700,7 @@ int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
+>         struct daxctl_ctx *daxctl_ctx;
+>         int err, result = EXIT_FAILURE;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+>                 return 77;
+>
+>         ndctl_set_log_priority(ctx, loglevel);
+> @@ -2710,7 +2710,7 @@ int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
+>
+>         err = ndctl_test_init(&kmod_ctx, &mod, ctx, loglevel, test);
+>         if (err < 0) {
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>                 return 77;
+>         }
+> @@ -2732,7 +2732,7 @@ int test_libndctl(int loglevel, struct test_ctx *test, struct ndctl_ctx *ctx)
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -2743,8 +2743,8 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>         rc = test_libndctl(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/multi-pmem.c b/test/multi-pmem.c
-> index 3ea08cc..e2f3bc5 100644
+> index e2f3bc5..f2eb381 100644
 > --- a/test/multi-pmem.c
 > +++ b/test/multi-pmem.c
-> @@ -53,7 +53,7 @@ static void destroy_namespace(struct ndctl_namespace *ndns)
->
->  /* Check that the namespace device is gone (if it wasn't the seed) */
->  static int check_deleted(struct ndctl_region *region, const char *devname,
-> -               struct ndctl_test *test)
-> +               struct test_ctx *test)
+> @@ -57,7 +57,7 @@ static int check_deleted(struct ndctl_region *region, const char *devname,
 >  {
 >         struct ndctl_namespace *ndns;
 >
-> @@ -73,7 +73,7 @@ static int check_deleted(struct ndctl_region *region, const char *devname,
->         return 0;
->  }
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 10, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 10, 0)))
+>                 return 0;
 >
-> -static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
-> +static int do_multi_pmem(struct ndctl_ctx *ctx, struct test_ctx *test)
->  {
->         int i;
->         char devname[100];
-> @@ -238,7 +238,8 @@ static int do_multi_pmem(struct ndctl_ctx *ctx, struct ndctl_test *test)
->         return 0;
->  }
+>         ndctl_namespace_foreach(region, ndns) {
+> @@ -85,8 +85,8 @@ static int do_multi_pmem(struct ndctl_ctx *ctx, struct test_ctx *test)
+>         struct ndctl_namespace *namespaces[NUM_NAMESPACES];
+>         unsigned long long blk_avail, blk_avail_orig, expect;
 >
-> -int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
-> +int test_multi_pmem(int loglevel, struct test_ctx *test,
-> +                   struct ndctl_ctx *ctx)
->  {
->         struct kmod_module *mod;
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
+> -               ndctl_test_skip(test);
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 9, 0))) {
+> +               test_skip(test);
+>                 return 77;
+>         }
+>
+> @@ -245,7 +245,7 @@ int test_multi_pmem(int loglevel, struct test_ctx *test,
 >         struct kmod_ctx *kmod_ctx;
-> @@ -267,7 +268,7 @@ int test_multi_pmem(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx
+>         int err, result = EXIT_FAILURE;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+>                 return 77;
+>
+>         ndctl_set_log_priority(ctx, loglevel);
+> @@ -253,7 +253,7 @@ int test_multi_pmem(int loglevel, struct test_ctx *test,
+>         err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>         if (err < 0) {
+>                 result = 77;
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 fprintf(stderr, "%s unavailable skipping tests\n",
+>                                 "nfit_test");
+>                 return result;
+> @@ -268,7 +268,7 @@ int test_multi_pmem(int loglevel, struct test_ctx *test,
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -279,8 +279,8 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>         rc = test_multi_pmem(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/parent-uuid.c b/test/parent-uuid.c
-> index bded33a..dd007c7 100644
+> index dd007c7..8da396f 100644
 > --- a/test/parent-uuid.c
 > +++ b/test/parent-uuid.c
-> @@ -208,7 +208,8 @@ static int do_test(struct ndctl_ctx *ctx)
->         return 0;
->  }
->
-> -int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ctx)
-> +int test_parent_uuid(int loglevel, struct test_ctx *test,
-> +                    struct ndctl_ctx *ctx)
->  {
->         struct kmod_module *mod;
+> @@ -215,13 +215,13 @@ int test_parent_uuid(int loglevel, struct test_ctx *test,
 >         struct kmod_ctx *kmod_ctx;
-> @@ -235,7 +236,7 @@ int test_parent_uuid(int loglevel, struct ndctl_test *test, struct ndctl_ctx *ct
+>         int err, result = EXIT_FAILURE;
+>
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 3, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 3, 0)))
+>                 return 77;
+>
+>         ndctl_set_log_priority(ctx, loglevel);
+>         err = ndctl_test_init(&kmod_ctx, &mod, NULL, loglevel, test);
+>         if (err < 0) {
+> -               ndctl_test_skip(test);
+> +               test_skip(test);
+>                 fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>                 return 77;
+>         }
+> @@ -236,7 +236,7 @@ int test_parent_uuid(int loglevel, struct test_ctx *test,
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -247,9 +247,9 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>
+>         rc = test_parent_uuid(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
-> index a4db1ae..eddf32a 100644
+> index eddf32a..20f41fe 100644
 > --- a/test/pmem_namespaces.c
 > +++ b/test/pmem_namespaces.c
-> @@ -161,8 +161,8 @@ static int ns_do_io(const char *bdev)
+> @@ -173,7 +173,7 @@ int test_pmem_namespaces(int log_level, struct test_ctx *test,
+>         int rc = -ENXIO;
+>         char bdev[50];
 >
->  static const char *comm = "test-pmem-namespaces";
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 2, 0)))
+>                 return 77;
 >
-> -int test_pmem_namespaces(int log_level, struct ndctl_test *test,
-> -               struct ndctl_ctx *ctx)
-> +int test_pmem_namespaces(int log_level, struct test_ctx *test,
-> +                        struct ndctl_ctx *ctx)
->  {
->         struct ndctl_region *region, *pmem_region = NULL;
->         struct kmod_ctx *kmod_ctx = NULL;
-> @@ -262,7 +262,7 @@ int test_pmem_namespaces(int log_level, struct ndctl_test *test,
+>         ndctl_set_log_priority(ctx, log_level);
+> @@ -196,7 +196,7 @@ int test_pmem_namespaces(int log_level, struct test_ctx *test,
+>                 bus = ndctl_bus_get_by_provider(ctx, "nfit_test.0");
+>                 if (rc < 0 || !bus) {
+>                         rc = 77;
+> -                       ndctl_test_skip(test);
+> +                       test_skip(test);
+>                         fprintf(stderr, "nfit_test unavailable skipping tests\n");
+>                         goto err_module;
+>                 }
+> @@ -262,7 +262,7 @@ int test_pmem_namespaces(int log_level, struct test_ctx *test,
 >
 >  int __attribute__((weak)) main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
 >
+> @@ -274,9 +274,9 @@ int __attribute__((weak)) main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>
+>         rc = test_pmem_namespaces(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
 > diff --git a/test/revoke-devmem.c b/test/revoke-devmem.c
-> index bb8979e..0d67d93 100644
+> index 0d67d93..ac8d81c 100644
 > --- a/test/revoke-devmem.c
 > +++ b/test/revoke-devmem.c
-> @@ -32,8 +32,8 @@ static void sigbus(int sig, siginfo_t *siginfo, void *d)
->  #define err(fmt, ...) \
->         fprintf(stderr, "%s: " fmt, __func__, ##__VA_ARGS__)
+> @@ -44,7 +44,7 @@ static int test_devmem(int loglevel, struct test_ctx *test,
+>         ndctl_set_log_priority(ctx, loglevel);
 >
-> -static int test_devmem(int loglevel, struct ndctl_test *test,
-> -               struct ndctl_ctx *ctx)
-> +static int test_devmem(int loglevel, struct test_ctx *test,
-> +                      struct ndctl_ctx *ctx)
->  {
->         void *buf;
->         int fd, rc;
+>         /* iostrict devmem started in kernel 4.5 */
+> -       if (!ndctl_test_attempt(test, KERNEL_VERSION(4, 5, 0)))
+> +       if (!test_attempt(test, KERNEL_VERSION(4, 5, 0)))
+>                 return 77;
+>
+>         ndns = ndctl_get_test_dev(ctx);
 > @@ -124,7 +124,7 @@ out_devmem:
 >
 >  int main(int argc, char *argv[])
 >  {
-> -       struct ndctl_test *test = ndctl_test_new(0);
-> +       struct test_ctx *test = ndctl_test_new(0);
+> -       struct test_ctx *test = ndctl_test_new(0);
+> +       struct test_ctx *test = test_new(0);
 >         struct ndctl_ctx *ctx;
 >         int rc;
+>
+> @@ -135,9 +135,9 @@ int main(int argc, char *argv[])
+>
+>         rc = ndctl_new(&ctx);
+>         if (rc < 0)
+> -               return ndctl_test_result(test, rc);
+> +               return test_result(test, rc);
+>
+>         rc = test_devmem(LOG_DEBUG, test, ctx);
+>         ndctl_unref(ctx);
+> -       return ndctl_test_result(test, rc);
+> +       return test_result(test, rc);
+>  }
+> diff --git a/README.md b/README.md
+> index 89dfc87..7a687ac 100644
+> --- a/README.md
+> +++ b/README.md
+> @@ -95,7 +95,7 @@ test/test-suite.log:
+>  SKIP: libndctl
+>  ==============
+>  test/init: nfit_test_init: nfit.ko: appears to be production version: /lib/modules/4.8.8-200.fc24.x86_64/kernel/drivers/acpi/nfit/nfit.ko.xz
+> -__ndctl_test_skip: explicit skip test_libndctl:2684
+> +__test_skip: explicit skip test_libndctl:2684
+>  nfit_test unavailable skipping tests
+>  ```
 >
 > --
 > 2.31.1
