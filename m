@@ -1,130 +1,70 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28F43168
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 01:17:19 +0000 (UTC)
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.53])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4GQG7J63jXz1CJKh
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 08:52:44 +0800 (CST)
-Received: from dggema765-chm.china.huawei.com (10.1.198.207) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Thu, 15 Jul 2021 08:58:23 +0800
-Received: from [127.0.0.1] (10.174.177.249) by dggema765-chm.china.huawei.com
- (10.1.198.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Thu, 15
- Jul 2021 08:58:22 +0800
-Subject: Re: [ndctl PATCH v2 2/2] namespace: Close fd before return in
- do_xaction_namespace()
-To: <vishal.l.verma@intel.com>
-CC: <nvdimm@lists.linux.dev>, linfeilong <linfeilong@huawei.com>,
-	<lixiaokeng@huawei.com>, Alison Schofield <alison.schofield@intel.com>
-References: <c3c08075-4815-8e84-2ba6-64644e72abee@huawei.com>
- <a10193c0-e56b-8bf1-7ce4-d0c0f7bdc35b@huawei.com>
-From: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-Message-ID: <6060dada-9ad0-c6bc-0c2a-89ced6414120@huawei.com>
-Date: Thu, 15 Jul 2021 08:58:22 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AEB470
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 02:48:05 +0000 (UTC)
+Received: by mail-pj1-f52.google.com with SMTP id p4-20020a17090a9304b029016f3020d867so3034034pjo.3
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 19:48:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=wLYnBhNAj/XYO/bo2YBoHKajEtf9fKNsRXOzJF9AhAY=;
+        b=WacdKpDj/uTksZo6/l6FDHFWO104E7OO2DgdbtlDcJCotc2VpJn0V6oiyUYEPdPbsQ
+         ssVnr/8JKm8cIKZcniDPaxqhlFzeZFAf3DvwQGD/B1iPdcQ3V/Fpehd6v6v+SXAPJpyk
+         iOvMEkx3YaxCr63is2uK9eJ3CCOBEH2cqrC/O7iDRN9K9Sw6OuE6K6CPyzF3PM3V9fL0
+         llII3rzUe9qs8gH8c/cQYk4ZZuzDjm1rrXvWSdoIrJjhh+qSlajYgTI+u6zVDvRSRyzt
+         hn4jYPeAvnkM7uGQy537gNMVXl9EVQCk26OWvOPizkE9GVOx2c3GXOsZIBAaTKlx4XoX
+         EExQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=wLYnBhNAj/XYO/bo2YBoHKajEtf9fKNsRXOzJF9AhAY=;
+        b=TC1dxD6BSA/CUNSxXh22M3JtRGJX/imhJ9AsFpHAX8OrYrHIlS8k2GZihJoduIs8qh
+         PuIVqf8ZNyXcCmp/uT+Iq36/zgFDna4Dq+yeA/ul1aiaDhy1g0pYrSGKLxJhjO3cjaMg
+         f8KOirpdXbHRNeslUP6YNscGWuI9F4Wx5Ncq6T5QSJynef8iBOmNmdRNc7Kw6DZkgQE9
+         uXYsT3eKQCSs99EMik7nq4y96mHHBgjQubBAk52caV0yXVi/LR5MSl2LzEU0YI8zN8DK
+         AJJ4Qe5ZueBEOJVN49VnUnZH+ufqCcgyFGR7cZuV2x8/wgwbJp9btfi+NPjEiyObXgsC
+         XoYw==
+X-Gm-Message-State: AOAM532S74mhSsb5Fyi5Ap0hCPoQGvwEXuB4SbeP0rfXv23Amrn+6qZh
+	qmZB0oe8Ig8kyO6COH8YFmdNZ55aS591+5Yadef57g==
+X-Google-Smtp-Source: ABdhPJwnYKsB/f8VcSXozl4jCzBcmpmRoGBlFdzIHhfg7bLHH9uUQUn0ixm4YyAIqR4ymVuzLh5W7ViAwd54SDp7dgo=
+X-Received: by 2002:a17:90a:9b13:: with SMTP id f19mr1296324pjp.229.1626317284798;
+ Wed, 14 Jul 2021 19:48:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <a10193c0-e56b-8bf1-7ce4-d0c0f7bdc35b@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [10.174.177.249]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggema765-chm.china.huawei.com (10.1.198.207)
-X-CFilter-Loop: Reflected
+References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-8-joao.m.martins@oracle.com>
+In-Reply-To: <20210714193542.21857-8-joao.m.martins@oracle.com>
+From: Muchun Song <songmuchun@bytedance.com>
+Date: Thu, 15 Jul 2021 10:47:28 +0800
+Message-ID: <CAMZfGtVrv=Eh3PGkgYm+mV_E-mO9_0rVW0LSJsZh0e9Kr9hBFg@mail.gmail.com>
+Subject: Re: [External] [PATCH v3 07/14] mm/hugetlb_vmemmap: move comment
+ block to Documentation/vm
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Naoya Horiguchi <naoya.horiguchi@nec.com>, Matthew Wilcox <willy@infradead.org>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>, 
+	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, nvdimm@lists.linux.dev, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-friendly ping...
+On Thu, Jul 15, 2021 at 3:36 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+> In preparation for device-dax for using hugetlbfs compound page tail
+> deduplication technique, move the comment block explanation into a
+> common place in Documentation/vm.
+>
+> Cc: Muchun Song <songmuchun@bytedance.com>
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 
-On 2021/7/6 12:33, Zhiqiang Liu wrote:
-> Recently, we use Coverity to analysis the ndctl package,
-> one issue in do_xaction_namespace() is reported as follows,
-> 	CID 11690564: (RESOURCE_LEAK)
-> 	2058. leaked_storage: Variable "ri_ctx" going out of scope
-> 	      leaks the storage "ri_ctx.f_out" points to.
->
-> In do_xaction_namespace(), ri_ctx.f_out should be closed after
-> being opened. This prevents a potential file descriptor leak
-> in do_xaction_namespace().
->
-> Signed-off-by: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-> ---
-> v1->v2: add coverity report info as suggested by Alison
->
->  ndctl/namespace.c | 17 +++++++++--------
->  1 file changed, 9 insertions(+), 8 deletions(-)
->
-> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-> index 21089d7..55364ac 100644
-> --- a/ndctl/namespace.c
-> +++ b/ndctl/namespace.c
-> @@ -2141,7 +2141,7 @@ static int do_xaction_namespace(const char *namespace,
->  				util_display_json_array(ri_ctx.f_out, ri_ctx.jblocks, 0);
->  			if (rc >= 0)
->  				(*processed)++;
-> -			return rc;
-> +			goto out;
->  		}
->  	}
->
-> @@ -2152,11 +2152,11 @@ static int do_xaction_namespace(const char *namespace,
->  		rc = file_write_infoblock(param.outfile);
->  		if (rc >= 0)
->  			(*processed)++;
-> -		return rc;
-> +		goto out;
->  	}
->
->  	if (!namespace && action != ACTION_CREATE)
-> -		return rc;
-> +		goto out;
->
->  	if (verbose)
->  		ndctl_set_log_priority(ctx, LOG_DEBUG);
-> @@ -2212,7 +2212,7 @@ static int do_xaction_namespace(const char *namespace,
->  						saved_rc = rc;
->  						continue;
->  				}
-> -				return rc;
-> +				goto out;
->  			}
->  			ndctl_namespace_foreach_safe(region, ndns, _n) {
->  				ndns_name = ndctl_namespace_get_devname(ndns);
-> @@ -2259,7 +2259,7 @@ static int do_xaction_namespace(const char *namespace,
->  					rc = namespace_reconfig(region, ndns);
->  					if (rc == 0)
->  						*processed = 1;
-> -					return rc;
-> +					goto out;
->  				case ACTION_READ_INFOBLOCK:
->  					rc = namespace_rw_infoblock(ndns, &ri_ctx, READ);
->  					if (rc == 0)
-> @@ -2281,9 +2281,6 @@ static int do_xaction_namespace(const char *namespace,
->  	if (ri_ctx.jblocks)
->  		util_display_json_array(ri_ctx.f_out, ri_ctx.jblocks, 0);
->
-> -	if (ri_ctx.f_out && ri_ctx.f_out != stdout)
-> -		fclose(ri_ctx.f_out);
-> -
->  	if (action == ACTION_CREATE && rc == -EAGAIN) {
->  		/*
->  		 * Namespace creation searched through all candidate
-> @@ -2301,6 +2298,10 @@ static int do_xaction_namespace(const char *namespace,
->  	if (saved_rc)
->  		rc = saved_rc;
->
-> +out:
-> +	if (ri_ctx.f_out && ri_ctx.f_out != stdout)
-> +		fclose(ri_ctx.f_out);
-> +
->  	return rc;
->  }
->
+LGTM.
 
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
