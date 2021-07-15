@@ -1,51 +1,51 @@
-Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9901A72
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 00:19:28 +0000 (UTC)
-Received: by mail-pg1-f179.google.com with SMTP id s18so4239513pgq.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 17:19:28 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FE8072
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 00:20:39 +0000 (UTC)
+Received: by mail-pl1-f179.google.com with SMTP id o8so2286290plg.11
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 17:20:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=xptbCn3ZR6g3HHgjV/Xny4YP8XtafdWsr2mlA0mT64U=;
-        b=pZ57OUfv/A3XPbSrq8TjPCfFK38KeIBp1cKqaCSFN7yDgtXstzslwp1/cg/MWnHAEN
-         rvjpTla6Pmpq+QRIYprdqlOiFG+xlEpnftL5MubgNlUfRXI/50E22pRThISLKzQGRm91
-         T426iHag7KVqecSn8VNEwbN+5H/YssX5MBL3Lf4IOMmgmarVnbvUs5tDpeDxOvutdR/2
-         4FtpgUIAtm8XwgdS+VjlbErD6HSB3EBM1TxTVba/7RdwqO/s60/OwiwcJ3DT1FrJLgo/
-         p5gBF+iuRXGZFPtm6NkAULS/PPMWaoMovxzzinqrf0SdnpMx+VQdMsRihIB7dDSamVvh
-         7b6A==
+        bh=++GKWz1ssqCoeJx6bnGwv/X0kc5Z2dWJaQSf7sR2xSw=;
+        b=U0PaRa++GGYaBFwYDH/lfFiilXCr2yuSCQujvVP22gL1atGIlTC378Mi40GfDOVB6A
+         LGJQH3s5KlIRQ7jvjPI7PRMBUiieTdQD8EYG6o6W2/O8U70BMLXDq35Kwa1IwBLb3eom
+         EOH0+hBF8DUoD0vjyPGEBg4f5VkUqNjqnUR5DPN7lHlEuj7S/OJejm38Ozv0gPPydnJt
+         3V1iRBhx3r8j1M1OTc1CWwejo+jBFjEltwpdNN/0xia1WQwphKJ6zjxe6RMYwdaUPRTY
+         P7ywcBETHArMhiTAjqTuk79xznUmb5Hx5aIFoY/zOl2nJ4TIx9npkb6bAAG6BO9aDRpO
+         wqQA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=xptbCn3ZR6g3HHgjV/Xny4YP8XtafdWsr2mlA0mT64U=;
-        b=rnzt4dmoHfjgiPinehWVdOQd+TLzC2/OQ475mVJOX7TVkzu+WkhjfIc9cTBHV+Vg7R
-         +23GTI+U6gAJt08omPu25uPjDJGCIGA6aW3pH7oTjoo2YxUAYGj9/rqKWlXSRllzuPMN
-         k3652blgBN8HhHmEqYIUs22Ar2XI2X2Sk+jaIazN5L9CSIQ1/okbWxclBNptJZuU2FJ6
-         HTl7af1lJZQ6r0WNxd0xRW4AL7E54EbbKSxNHHFXAkIwURCFkjIR4NUjgLCDzmsgJgEq
-         FEAxSg8P+NwkSK49IzGx4DmgHZFmsNbA9nnspXo5Lsdodxk/YwB2QFNsvd9/tYpn62n0
-         OM+A==
-X-Gm-Message-State: AOAM531aG9j0uuzFtck4BY7INEIZHs7Hlj42x+YoMVhCg0sONmQZWmpK
-	iLkAQG2KLjgbYfx0IyZXTsewBBCLMHdWCjGt71l8dw==
-X-Google-Smtp-Source: ABdhPJzr3Gu4NfSezOIp9S9hnR9ZfNwv/i1ULAds8y94a5pFZ/UrtXrOB6tXMxlT/ruiiWH0tAJd3Csnh7XSYP4bKvU=
-X-Received: by 2002:a05:6a00:d53:b029:32a:2db6:1be3 with SMTP id
- n19-20020a056a000d53b029032a2db61be3mr620397pfv.71.1626308367997; Wed, 14 Jul
- 2021 17:19:27 -0700 (PDT)
+        bh=++GKWz1ssqCoeJx6bnGwv/X0kc5Z2dWJaQSf7sR2xSw=;
+        b=n3X8og+DpMn08P82iWPmhW9vZ4+2VCPx42vCYJnQxTdayS30jf+L1YqOUqDyYGAVm6
+         eqaWKUISObLVBUrY92MnmNH/c2RM9ETWvsNxqxDbHBhN/3BXN8wYX1RthBNf6Z6FbJwv
+         ne0oU/pCpVQ8qThmZj0H//2fG0tB8Je6iPWst2zlAPRUiIgaZhUE0Ttu/6NyoYBl3NpN
+         Lssxh/WQf5NvI9qCtCoXJuQuDe4rKCv+xxYPDjFdmZHTl8savk29PUEBpf634r9HDqUs
+         CV9qzkaQ+EO1BzbDIINd92sdFQyZIVGuPO18jJKZQHOTIXfqRLbfVbUfBT9Kldn+FGXQ
+         OK7A==
+X-Gm-Message-State: AOAM532bDajpFJb7g/CTiiQCWOMomQ/Ip3dwMZLv6fe980gLP8fMhob3
+	ron9FsBvjDjBFj1yjhm4JLr+D3ZGFVXQQWJ9fTzvSQ==
+X-Google-Smtp-Source: ABdhPJyrCy3+Y6IJAkn3gtPXWHmXninLfXfs7SN98GDpyx+hpvDd5ePEFLW9PH44iDbQsDONtPRb8Mn3CdBYf6L02Lc=
+X-Received: by 2002:a17:902:6bc7:b029:129:20c4:1c33 with SMTP id
+ m7-20020a1709026bc7b029012920c41c33mr679072plt.52.1626308439094; Wed, 14 Jul
+ 2021 17:20:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-3-joao.m.martins@oracle.com>
-In-Reply-To: <20210714193542.21857-3-joao.m.martins@oracle.com>
+References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-4-joao.m.martins@oracle.com>
+In-Reply-To: <20210714193542.21857-4-joao.m.martins@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Jul 2021 17:19:17 -0700
-Message-ID: <CAPcyv4iZGLzzv7o7JK3iTu6rudX2d0-OqV-ueDhx6w9fminnAw@mail.gmail.com>
-Subject: Re: [PATCH v3 02/14] mm/page_alloc: split prep_compound_page into
- head and tail subparts
+Date: Wed, 14 Jul 2021 17:20:28 -0700
+Message-ID: <CAPcyv4jgsAy0RFnxvegJSBypYnHS_JrMUmbLvgwvSDUXurHnnA@mail.gmail.com>
+Subject: Re: [PATCH v3 03/14] mm/page_alloc: refactor memmap_init_zone_device()
+ page init
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
@@ -58,14 +58,11 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Wed, Jul 14, 2021 at 12:36 PM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> Split the utility function prep_compound_page() into head and tail
-> counterparts, and use them accordingly.
+> Move struct page init to an helper function __init_zone_device_page().
 >
 > This is in preparation for sharing the storage for / deduplicating
 > compound page metadata.
 >
-> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-> Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 
 Looks good,
 
