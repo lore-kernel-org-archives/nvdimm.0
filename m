@@ -1,189 +1,309 @@
-Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 2A17670;
-	Thu, 15 Jul 2021 14:41:42 +0000 (UTC)
-Received: from uucp (helo=alpha)
-	by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-	id 1m42Ly-0004w9-01; Thu, 15 Jul 2021 16:28:42 +0200
-Received: by alpha.franken.de (Postfix, from userid 1000)
-	id AC72DC099E; Thu, 15 Jul 2021 15:02:21 +0200 (CEST)
-Date: Thu, 15 Jul 2021 15:02:21 +0200
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, kernel@pengutronix.de,
-	Cornelia Huck <cohuck@redhat.com>, linux-kernel@vger.kernel.org,
-	Russell King <linux@armlinux.org.uk>,
-	"James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-	Helge Deller <deller@gmx.de>, Geoff Levand <geoff@infradead.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Paul Mackerras <paulus@samba.org>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Len Brown <lenb@kernel.org>,
-	William Breathitt Gray <vilhelm.gray@gmail.com>,
-	=?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>,
-	Maxime Ripard <mripard@kernel.org>, Chen-Yu Tsai <wens@csie.org>,
-	Jernej Skrabec <jernej.skrabec@gmail.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Ben Widawsky <ben.widawsky@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Vinod Koul <vkoul@kernel.org>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Sudeep Holla <sudeep.holla@arm.com>,
-	Cristian Marussi <cristian.marussi@arm.com>,
-	Wu Hao <hao.wu@intel.com>, Tom Rix <trix@redhat.com>,
-	Moritz Fischer <mdf@kernel.org>, Jiri Kosina <jikos@kernel.org>,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	"K. Y. Srinivasan" <kys@microsoft.com>,
-	Haiyang Zhang <haiyangz@microsoft.com>,
-	Stephen Hemminger <sthemmin@microsoft.com>,
-	Wei Liu <wei.liu@kernel.org>, Dexuan Cui <decui@microsoft.com>,
-	Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-	Wolfram Sang <wsa@kernel.org>,
-	Alexandre Belloni <alexandre.belloni@bootlin.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Samuel Iglesias Gonsalvez <siglesias@igalia.com>,
-	Jens Taprogge <jens.taprogge@taprogge.org>,
-	Johannes Thumshirn <morbidrsa@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@kernel.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Alex Dubov <oakad@yahoo.com>, Ulf Hansson <ulf.hansson@linaro.org>,
-	Lee Jones <lee.jones@linaro.org>,
-	Tomas Winkler <tomas.winkler@intel.com>,
-	Arnd Bergmann <arnd@arndb.de>, Jakub Kicinski <kuba@kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jon Mason <jdmason@kudzu.us>, Allen Hubbe <allenbh@gmail.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-	Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Dominik Brodowski <linux@dominikbrodowski.net>,
-	Maximilian Luz <luzmaximilian@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mark Gross <mgross@linux.intel.com>,
-	Matt Porter <mporter@kernel.crashing.org>,
-	Alexandre Bounine <alex.bou9@gmail.com>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Bjorn Andersson <bjorn.andersson@linaro.org>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	"Martin K. Petersen" <martin.petersen@oracle.com>,
-	Thorsten Scherer <t.scherer@eckelmann.de>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Andy Gross <agross@kernel.org>, Mark Brown <broonie@kernel.org>,
-	Stephen Boyd <sboyd@kernel.org>, Michael Buesch <m@bues.ch>,
-	Sven Van Asbroeck <TheSven73@gmail.com>,
-	Johan Hovold <johan@kernel.org>, Alex Elder <elder@kernel.org>,
-	Andreas Noever <andreas.noever@gmail.com>,
-	Michael Jamet <michael.jamet@intel.com>,
-	Mika Westerberg <mika.westerberg@linux.intel.com>,
-	Yehezkel Bernat <YehezkelShB@gmail.com>,
-	Rob Herring <robh@kernel.org>, Jiri Slaby <jirislaby@kernel.org>,
-	Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	Jason Wang <jasowang@redhat.com>,
-	Kirti Wankhede <kwankhede@nvidia.com>,
-	Alex Williamson <alex.williamson@redhat.com>,
-	Martyn Welch <martyn@welchs.me.uk>,
-	Manohar Vanga <manohar.vanga@gmail.com>,
-	Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-	Juergen Gross <jgross@suse.com>,
-	Stefano Stabellini <sstabellini@kernel.org>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>,
-	Marc Zyngier <maz@kernel.org>,
-	Tyrel Datwyler <tyreld@linux.ibm.com>,
-	Vladimir Zapolskiy <vz@mleia.com>,
-	Samuel Holland <samuel@sholland.org>,
-	Qinglang Miao <miaoqinglang@huawei.com>,
-	Alexey Kardashevskiy <aik@ozlabs.ru>,
-	Kai-Heng Feng <kai.heng.feng@canonical.com>,
-	Joey Pabalan <jpabalanb@gmail.com>,
-	Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Frank Li <lznuaa@gmail.com>,
-	Mike Christie <michael.christie@oracle.com>,
-	Bodo Stroesser <bostroesser@gmail.com>,
-	Hannes Reinecke <hare@suse.de>, David Woodhouse <dwmw@amazon.co.uk>,
-	SeongJae Park <sjpark@amazon.de>, Julien Grall <jgrall@amazon.com>,
-	linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-acpi@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-sunxi@lists.linux.dev, linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev, dmaengine@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, linux-fpga@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-hyperv@vger.kernel.org,
-	linux-i2c@vger.kernel.org, linux-i3c@lists.infradead.org,
-	industrypack-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-	netdev@vger.kernel.org, linux-ntb@googlegroups.com,
-	linux-pci@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-	linux-remoteproc@vger.kernel.org, linux-scsi@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-arm-msm@vger.kernel.org,
-	linux-spi@vger.kernel.org, linux-staging@lists.linux.dev,
-	greybus-dev@lists.linaro.org, target-devel@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-serial@vger.kernel.org,
-	virtualization@lists.linux-foundation.org, kvm@vger.kernel.org,
-	xen-devel@lists.xenproject.org,
-	Russell King <rmk+kernel@armlinux.org.uk>,
-	Johannes Thumshirn <jth@kernel.org>
-Subject: Re: [PATCH v2 4/4] bus: Make remove callback return void
-Message-ID: <20210715130221.GA10298@alpha.franken.de>
-References: <20210706154803.1631813-1-u.kleine-koenig@pengutronix.de>
- <20210706154803.1631813-5-u.kleine-koenig@pengutronix.de>
+Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A01572
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 19:48:12 +0000 (UTC)
+Received: by mail-pg1-f170.google.com with SMTP id a6so305410pgw.3
+        for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 12:48:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ipm8QD7K3E5dbp5V+AEYlrbDnPV1RoLwZuoSKWf1+iU=;
+        b=V5Nhf2bBzxQ7dJXGqjDI4fyMwQHSwC36VuNizwrQG7HCCIbygTVsNkLV8RRysHPw+O
+         K2cs3w9+Aawe6aMNRlxh0bTtCxcQuaMKYYJPrbOaWDl2+Nx+2dh9J2a61abvmopeyezK
+         xT6XJE56y51pUxRPiDX17mU6QStyN1s14G/NaxmY5HyVhd2HC4HRVGenqLEaBxo0nnS0
+         MW4y9hk15/R6QoUNrPJ9wTdnwT4L0t49j/TslYACjFtcbboi4xhuBHT38d7ZQJW/+EY9
+         iwNP/FRspItJAvcnCg4+nLk/iNrqDl6gWGH51Lh9sybG/3tbn+3Ww16RI5aQFGdhFwEC
+         Ewcg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ipm8QD7K3E5dbp5V+AEYlrbDnPV1RoLwZuoSKWf1+iU=;
+        b=leLt6a6K/niFOH0t84afo1OlzzIrDnHDdq5Rzp2NOEwu9slW64mq7FgCIiMQOF5mRK
+         kHytcOl8wdUWsiRKaUJAR0i8kJSIIwKrOBOuo3s+h05FgfxVdx7xnB7e1F2VhnM1zom/
+         gVKkXYpvKXbqFUfk2UiTu9hBjr1WoTa1Bsto8kYVOmlt/QG+2TSkBsuSsk33k8iUM4hC
+         xUsGw/V33nvUmqnhbCq5b5mN73Ssd2e7kRFn1GUMcVgnp8w034XqI2i12KQvGbfzKmz9
+         7D6kk6q5iVF/HCdtmuTGVKcC6EVvXtSgOG/gUknIr9tO2XlPjbGFpucF55BKrjyHWXsy
+         eekA==
+X-Gm-Message-State: AOAM531azGClxPnmVgPURvUwj0f/H78UlqATcyXf5RhcMxsh/xnYfSpb
+	ksbvOHKBlmxyrUKj7uFJFX4YBbcgBTScAzY7argmNw==
+X-Google-Smtp-Source: ABdhPJyBSmsoLLILXgdjI3Ptnk3RNrpSN7cdW3We0nxVBU5tpdX+mYriTC/pSfbEZ9FWhDgYAw1sIlmascojCZ8h2l4=
+X-Received: by 2002:aa7:92d2:0:b029:32d:e0aa:6570 with SMTP id
+ k18-20020aa792d20000b029032de0aa6570mr6420477pfa.31.1626378491822; Thu, 15
+ Jul 2021 12:48:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210706154803.1631813-5-u.kleine-koenig@pengutronix.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20210714193542.21857-1-joao.m.martins@oracle.com>
+ <20210714193542.21857-5-joao.m.martins@oracle.com> <CAPcyv4jwd_dzTH1H+cbiKqfK5=Xaa9JY=EVKHhPbjicVZA-URQ@mail.gmail.com>
+ <d73793a8-7540-c473-0e30-0880341c2baf@oracle.com>
+In-Reply-To: <d73793a8-7540-c473-0e30-0880341c2baf@oracle.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 15 Jul 2021 12:48:01 -0700
+Message-ID: <CAPcyv4igDypf04H2bK0G3cR=4ZrND2VL4UoSUN5zeLVa_vbfiA@mail.gmail.com>
+Subject: Re: [PATCH v3 04/14] mm/memremap: add ZONE_DEVICE support for
+ compound pages
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
+	Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, 
+	Jane Chu <jane.chu@oracle.com>, Muchun Song <songmuchun@bytedance.com>, 
+	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Jul 06, 2021 at 05:48:03PM +0200, Uwe Kleine-König wrote:
-> The driver core ignores the return value of this callback because there
-> is only little it can do when a device disappears.
-> 
-> This is the final bit of a long lasting cleanup quest where several
-> buses were converted to also return void from their remove callback.
-> Additionally some resource leaks were fixed that were caused by drivers
-> returning an error code in the expectation that the driver won't go
-> away.
-> 
-> With struct bus_type::remove returning void it's prevented that newly
-> implemented buses return an ignored error code and so don't anticipate
-> wrong expectations for driver authors.
-> 
-> Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk> (For ARM, Amba and related parts)
-> Acked-by: Mark Brown <broonie@kernel.org>
-> Acked-by: Chen-Yu Tsai <wens@csie.org> (for drivers/bus/sunxi-rsb.c)
-> Acked-by: Pali Rohár <pali@kernel.org>
-> Acked-by: Mauro Carvalho Chehab <mchehab@kernel.org> (for drivers/media)
-> Acked-by: Hans de Goede <hdegoede@redhat.com> (For drivers/platform)
-> Acked-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
-> Acked-By: Vinod Koul <vkoul@kernel.org>
-> Acked-by: Juergen Gross <jgross@suse.com> (For Xen)
-> Acked-by: Lee Jones <lee.jones@linaro.org> (For drivers/mfd)
-> Acked-by: Johannes Thumshirn <jth@kernel.org> (For drivers/mcb)
-> Acked-by: Johan Hovold <johan@kernel.org>
-> Acked-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org> (For drivers/slimbus)
-> Acked-by: Kirti Wankhede <kwankhede@nvidia.com> (For drivers/vfio)
-> Acked-by: Maximilian Luz <luzmaximilian@gmail.com>
-> Acked-by: Heikki Krogerus <heikki.krogerus@linux.intel.com> (For ulpi and typec)
-> Acked-by: Samuel Iglesias Gonsálvez <siglesias@igalia.com> (For ipack)
-> Reviewed-by: Tom Rix <trix@redhat.com> (For fpga)
-> Acked-by: Geoff Levand <geoff@infradead.org> (For ps3)
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-> ---
-> [...] 
->  arch/mips/sgi-ip22/ip22-gio.c             | 3 +--
+On Thu, Jul 15, 2021 at 5:52 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+>
+>
+>
+> On 7/15/21 2:08 AM, Dan Williams wrote:
+> > On Wed, Jul 14, 2021 at 12:36 PM Joao Martins <joao.m.martins@oracle.com> wrote:
+> >>
+> >> Add a new align property for struct dev_pagemap which specifies that a
+> >
+> > s/align/@geometry/
+> >
+> Yeap, updated.
+>
+> >> pagemap is composed of a set of compound pages of size @align,
+> >
+> > s/@align/@geometry/
+> >
+> Yeap, updated.
+>
+> >> instead of
+> >> base pages. When a compound page geometry is requested, all but the first
+> >> page are initialised as tail pages instead of order-0 pages.
+> >>
+> >> For certain ZONE_DEVICE users like device-dax which have a fixed page size,
+> >> this creates an opportunity to optimize GUP and GUP-fast walkers, treating
+> >> it the same way as THP or hugetlb pages.
+> >>
+> >> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+> >> ---
+> >>  include/linux/memremap.h | 17 +++++++++++++++++
+> >>  mm/memremap.c            |  8 ++++++--
+> >>  mm/page_alloc.c          | 34 +++++++++++++++++++++++++++++++++-
+> >>  3 files changed, 56 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+> >> index 119f130ef8f1..e5ab6d4525c1 100644
+> >> --- a/include/linux/memremap.h
+> >> +++ b/include/linux/memremap.h
+> >> @@ -99,6 +99,10 @@ struct dev_pagemap_ops {
+> >>   * @done: completion for @internal_ref
+> >>   * @type: memory type: see MEMORY_* in memory_hotplug.h
+> >>   * @flags: PGMAP_* flags to specify defailed behavior
+> >> + * @geometry: structural definition of how the vmemmap metadata is populated.
+> >> + *     A zero or PAGE_SIZE defaults to using base pages as the memmap metadata
+> >> + *     representation. A bigger value but also multiple of PAGE_SIZE will set
+> >> + *     up compound struct pages representative of the requested geometry size.
+> >>   * @ops: method table
+> >>   * @owner: an opaque pointer identifying the entity that manages this
+> >>   *     instance.  Used by various helpers to make sure that no
+> >> @@ -114,6 +118,7 @@ struct dev_pagemap {
+> >>         struct completion done;
+> >>         enum memory_type type;
+> >>         unsigned int flags;
+> >> +       unsigned long geometry;
+> >>         const struct dev_pagemap_ops *ops;
+> >>         void *owner;
+> >>         int nr_range;
+> >> @@ -130,6 +135,18 @@ static inline struct vmem_altmap *pgmap_altmap(struct dev_pagemap *pgmap)
+> >>         return NULL;
+> >>  }
+> >>
+> >> +static inline unsigned long pgmap_geometry(struct dev_pagemap *pgmap)
+> >> +{
+> >> +       if (!pgmap || !pgmap->geometry)
+> >> +               return PAGE_SIZE;
+> >> +       return pgmap->geometry;
+> >> +}
+> >> +
+> >> +static inline unsigned long pgmap_pfn_geometry(struct dev_pagemap *pgmap)
+> >> +{
+> >> +       return PHYS_PFN(pgmap_geometry(pgmap));
+> >> +}
+> >
+> > Are both needed? Maybe just have ->geometry natively be in nr_pages
+> > units directly, because pgmap_pfn_geometry() makes it confusing
+> > whether it's a geometry of the pfn or the geometry of the pgmap.
+> >
+> I use pgmap_geometry() largelly when we manipulate memmap in sparse-vmemmap code, as we
+> deal with addresses/offsets/subsection-size. While using pgmap_pfn_geometry for code that
+> deals with PFN initialization. For this patch I could remove the confusion.
+>
+> And actually maybe I can just store the pgmap_geometry() value in bytes locally in
+> vmemmap_populate_compound_pages() and we can remove this extra helper.
+>
+> >> +
+> >>  #ifdef CONFIG_ZONE_DEVICE
+> >>  bool pfn_zone_device_reserved(unsigned long pfn);
+> >>  void *memremap_pages(struct dev_pagemap *pgmap, int nid);
+> >> diff --git a/mm/memremap.c b/mm/memremap.c
+> >> index 805d761740c4..ffcb924eb6a5 100644
+> >> --- a/mm/memremap.c
+> >> +++ b/mm/memremap.c
+> >> @@ -318,8 +318,12 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
+> >>         memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
+> >>                                 PHYS_PFN(range->start),
+> >>                                 PHYS_PFN(range_len(range)), pgmap);
+> >> -       percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
+> >> -                       - pfn_first(pgmap, range_id));
+> >> +       if (pgmap_geometry(pgmap) > PAGE_SIZE)
+> >
+> > This would become
+> >
+> > if (pgmap_geometry(pgmap) > 1)
+> >
+> >> +               percpu_ref_get_many(pgmap->ref, (pfn_end(pgmap, range_id)
+> >> +                       - pfn_first(pgmap, range_id)) / pgmap_pfn_geometry(pgmap));
+> >
+> > ...and this would be pgmap_geometry()
+> >
+> >> +       else
+> >> +               percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
+> >> +                               - pfn_first(pgmap, range_id));
+> >>         return 0;
+> >>
+> Let me adjust accordingly.
+>
+> >>  err_add_memory:
+> >> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> >> index 79f3b38afeca..188cb5f8c308 100644
+> >> --- a/mm/page_alloc.c
+> >> +++ b/mm/page_alloc.c
+> >> @@ -6597,6 +6597,31 @@ static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
+> >>         }
+> >>  }
+> >>
+> >> +static void __ref memmap_init_compound(struct page *page, unsigned long pfn,
+> >
+> > I'd feel better if @page was renamed @head... more below:
+> >
+> Oh yeah -- definitely more readable.
+>
+> >> +                                       unsigned long zone_idx, int nid,
+> >> +                                       struct dev_pagemap *pgmap,
+> >> +                                       unsigned long nr_pages)
+> >> +{
+> >> +       unsigned int order_align = order_base_2(nr_pages);
+> >> +       unsigned long i;
+> >> +
+> >> +       __SetPageHead(page);
+> >> +
+> >> +       for (i = 1; i < nr_pages; i++) {
+> >
+> > The switch of loop styles is jarring. I.e. the switch from
+> > memmap_init_zone_device() that is using pfn, end_pfn, and a local
+> > 'struct page *' variable to this helper using pfn + i and a mix of
+> > helpers (__init_zone_device_page,  prep_compound_tail) that have
+> > different expectations of head page + tail_idx and current page.
+> >
+> > I.e. this reads more obviously correct to me, but maybe I'm just in
+> > the wrong headspace:
+> >
+> >         for (pfn = head_pfn + 1; pfn < end_pfn; pfn++) {
+> >                 struct page *page = pfn_to_page(pfn);
+> >
+> >                 __init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
+> >                 prep_compound_tail(head, pfn - head_pfn);
+> >
+> Personally -- and I am dubious given I have been staring at this code -- I find that what
+> I wrote a little better as it follows more what compound page initialization does. Like
+> it's easier for me to read that I am initializing a number of tail pages and a head page
+> (for a known geometry size).
+>
+> Additionally, it's unnecessary (and a tiny ineficient?) to keep doing pfn_to_page(pfn)
+> provided ZONE_DEVICE requires SPARSEMEM_VMEMMAP and so your page pointers are all
+> contiguous and so for any given PFN we can avoid having deref vmemmap vaddrs back and
+> forth. Which is the second reason I pass a page, and iterate over its tails based on a
+> head page pointer. But I was at too minds when writing this, so if the there's no added
+> inefficiency I can rewrite like the above.
 
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+I mainly just don't want 2 different styles between
+memmap_init_zone_device() and this helper. So if the argument is that
+"it's inefficient to use pfn_to_page() here" then why does the caller
+use pfn_to_page()? I won't argue too much for one way or the other,
+I'm still biased towards my rewrite, but whatever you pick just make
+the style consistent.
 
--- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+>
+> >> +               __init_zone_device_page(page + i, pfn + i, zone_idx,
+> >> +                                       nid, pgmap);
+> >> +               prep_compound_tail(page, i);
+> >> +
+> >> +               /*
+> >> +                * The first and second tail pages need to
+> >> +                * initialized first, hence the head page is
+> >> +                * prepared last.
+> >
+> > I'd change this comment to say why rather than restate what can be
+> > gleaned from the code. It's actually not clear to me why this order is
+> > necessary.
+> >
+> So the first tail page stores mapcount_ptr and compound order, and the
+> second tail page stores pincount_ptr. prep_compound_head() does this:
+>
+>         set_compound_order(page, order);
+>         atomic_set(compound_mapcount_ptr(page), -1);
+>         if (hpage_pincount_available(page))
+>                 atomic_set(compound_pincount_ptr(page), 0);
+>
+> So we need those tail pages initialized first prior to initializing the head.
+>
+> I can expand the comment above to make it clear why we need first and second tail pages.
+
+Thanks!
+
+> >> +                */
+> >> +               if (i == 2)
+> >> +                       prep_compound_head(page, order_align);
+> >> +       }
+> >> +}
+> >> +
+> >>  void __ref memmap_init_zone_device(struct zone *zone,
+> >>                                    unsigned long start_pfn,
+> >>                                    unsigned long nr_pages,
+> >> @@ -6605,6 +6630,7 @@ void __ref memmap_init_zone_device(struct zone *zone,
+> >>         unsigned long pfn, end_pfn = start_pfn + nr_pages;
+> >>         struct pglist_data *pgdat = zone->zone_pgdat;
+> >>         struct vmem_altmap *altmap = pgmap_altmap(pgmap);
+> >> +       unsigned int pfns_per_compound = pgmap_pfn_geometry(pgmap);
+> >>         unsigned long zone_idx = zone_idx(zone);
+> >>         unsigned long start = jiffies;
+> >>         int nid = pgdat->node_id;
+> >> @@ -6622,10 +6648,16 @@ void __ref memmap_init_zone_device(struct zone *zone,
+> >>                 nr_pages = end_pfn - start_pfn;
+> >>         }
+> >>
+> >> -       for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+> >> +       for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
+> >>                 struct page *page = pfn_to_page(pfn);
+> >>
+> >>                 __init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
+> >> +
+> >> +               if (pfns_per_compound == 1)
+> >> +                       continue;
+> >> +
+> >> +               memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
+> >> +                                    pfns_per_compound);
+> >
+> > I otherwise don't see anything broken with this patch, so feel free to include:
+> >
+> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> >
+> > ...on the resend with the fixups.
+> >
+> Thanks.
+>
+> I will wait whether you still want to retain the tag provided the implied changes
+> fixing the failure you reported.
+
+Yeah, tag is still valid.
