@@ -1,50 +1,50 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
+Received: from mail-pf1-f179.google.com (mail-pf1-f179.google.com [209.85.210.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7AEB470
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 02:48:05 +0000 (UTC)
-Received: by mail-pj1-f52.google.com with SMTP id p4-20020a17090a9304b029016f3020d867so3034034pjo.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 19:48:05 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E5A7070
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 02:52:23 +0000 (UTC)
+Received: by mail-pf1-f179.google.com with SMTP id 21so3776841pfp.3
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 19:52:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=wLYnBhNAj/XYO/bo2YBoHKajEtf9fKNsRXOzJF9AhAY=;
-        b=WacdKpDj/uTksZo6/l6FDHFWO104E7OO2DgdbtlDcJCotc2VpJn0V6oiyUYEPdPbsQ
-         ssVnr/8JKm8cIKZcniDPaxqhlFzeZFAf3DvwQGD/B1iPdcQ3V/Fpehd6v6v+SXAPJpyk
-         iOvMEkx3YaxCr63is2uK9eJ3CCOBEH2cqrC/O7iDRN9K9Sw6OuE6K6CPyzF3PM3V9fL0
-         llII3rzUe9qs8gH8c/cQYk4ZZuzDjm1rrXvWSdoIrJjhh+qSlajYgTI+u6zVDvRSRyzt
-         hn4jYPeAvnkM7uGQy537gNMVXl9EVQCk26OWvOPizkE9GVOx2c3GXOsZIBAaTKlx4XoX
-         EExQ==
+        bh=dMC/7BJES1xsl6whxIikhxzC8Rq8hRd9OZiivLLNk5o=;
+        b=wVWv2guCZsRL63EFpcEV44cSTV9blEjTw/yo7hgyxR635O9UVREcpt+T3FzX4Lluqs
+         9G7kDyCSSVj6iBRtHARWGMcpRXOO67gArpetvAoVUDNAwCc0X7fXV/FYFNk4h2qV6m8h
+         Rl77vuZNfyFgqZ8+NucSgYQRhhsvVOOEHMixZRwsdM2gXDbNSHflX4NZ/evElDfxPTNw
+         fQ/F/dwxnC+KU78EI5foaEWwwjSVMVXQhY2wGXsHoRBXVzLDNF6D6ta0tA9L7rmp9Y7V
+         Mv2ayi8gIdpa3QNo3O+RZQMXpnyoYp5hXOYtXJ2V1VmTDMLNEl9V6AigG8qFVNbmsenW
+         WOlw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=wLYnBhNAj/XYO/bo2YBoHKajEtf9fKNsRXOzJF9AhAY=;
-        b=TC1dxD6BSA/CUNSxXh22M3JtRGJX/imhJ9AsFpHAX8OrYrHIlS8k2GZihJoduIs8qh
-         PuIVqf8ZNyXcCmp/uT+Iq36/zgFDna4Dq+yeA/ul1aiaDhy1g0pYrSGKLxJhjO3cjaMg
-         f8KOirpdXbHRNeslUP6YNscGWuI9F4Wx5Ncq6T5QSJynef8iBOmNmdRNc7Kw6DZkgQE9
-         uXYsT3eKQCSs99EMik7nq4y96mHHBgjQubBAk52caV0yXVi/LR5MSl2LzEU0YI8zN8DK
-         AJJ4Qe5ZueBEOJVN49VnUnZH+ufqCcgyFGR7cZuV2x8/wgwbJp9btfi+NPjEiyObXgsC
-         XoYw==
-X-Gm-Message-State: AOAM532S74mhSsb5Fyi5Ap0hCPoQGvwEXuB4SbeP0rfXv23Amrn+6qZh
-	qmZB0oe8Ig8kyO6COH8YFmdNZ55aS591+5Yadef57g==
-X-Google-Smtp-Source: ABdhPJwnYKsB/f8VcSXozl4jCzBcmpmRoGBlFdzIHhfg7bLHH9uUQUn0ixm4YyAIqR4ymVuzLh5W7ViAwd54SDp7dgo=
-X-Received: by 2002:a17:90a:9b13:: with SMTP id f19mr1296324pjp.229.1626317284798;
- Wed, 14 Jul 2021 19:48:04 -0700 (PDT)
+        bh=dMC/7BJES1xsl6whxIikhxzC8Rq8hRd9OZiivLLNk5o=;
+        b=UW+D92kNXAiG9CsyLZS7xyKV5suu6cZC38/aFjKx+wx+pbJfWT4bvJlTbm/C1llA2C
+         K8ENy/3PUl+dd+n8s7Gdlxx9ywPvuljF0+UePjMNWWNgS8txX6yuGaJq7h+UyLU3eZL8
+         7TKbir+AN4g7MJHabeFQRBjfMhAN1ah8MlDbS0umz8AeawP8rrczLxynxWSS3S58iC41
+         ZxZVH6fRQiL21PRuHCDgG1VZeFBc7v2ULQ7NwaAs2EU+u4mSPm7Z0yPX0q6HCGvHhOm2
+         hfEelqJ1f8DdsUJjrdyEhdOA8KG7gGRIi6tO5BXU7LLlemHldWwmqzq4po8ROiLoQ6Mo
+         2gaw==
+X-Gm-Message-State: AOAM533Px4n2EwyHPTS1I7Dhfc/KYLAC+Chu3Vozni+VPphs+HeanbJh
+	9gvKJ6QVgiloAnuaj27ln26pX6DTDBJnNVcYQD5/Tw==
+X-Google-Smtp-Source: ABdhPJyCEpo9gLI9Iqz6IRgl/n5sGdxftzB8/eWvGjFyB3LPYbqUeTR0VczLI0dVPoOPiyANWeNQTYTcnqJBBlaPbr4=
+X-Received: by 2002:a63:5963:: with SMTP id j35mr1588664pgm.341.1626317543330;
+ Wed, 14 Jul 2021 19:52:23 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-8-joao.m.martins@oracle.com>
-In-Reply-To: <20210714193542.21857-8-joao.m.martins@oracle.com>
+References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-2-joao.m.martins@oracle.com>
+In-Reply-To: <20210714193542.21857-2-joao.m.martins@oracle.com>
 From: Muchun Song <songmuchun@bytedance.com>
-Date: Thu, 15 Jul 2021 10:47:28 +0800
-Message-ID: <CAMZfGtVrv=Eh3PGkgYm+mV_E-mO9_0rVW0LSJsZh0e9Kr9hBFg@mail.gmail.com>
-Subject: Re: [External] [PATCH v3 07/14] mm/hugetlb_vmemmap: move comment
- block to Documentation/vm
+Date: Thu, 15 Jul 2021 10:51:47 +0800
+Message-ID: <CAMZfGtWhx71w0b4FM_t2LCK-q1+ePv6YQtQat+9FozLPnN4x3Q@mail.gmail.com>
+Subject: Re: [External] [PATCH v3 01/14] memory-failure: fetch compound_head
+ after pgmap_pfn_valid()
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux Memory Management List <linux-mm@kvack.org>, Dan Williams <dan.j.williams@intel.com>, 
 	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
@@ -56,15 +56,15 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Thu, Jul 15, 2021 at 3:36 AM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> In preparation for device-dax for using hugetlbfs compound page tail
-> deduplication technique, move the comment block explanation into a
-> common place in Documentation/vm.
+> memory_failure_dev_pagemap() at the moment assumes base pages (e.g.
+> dax_lock_page()).  For pagemap with compound pages fetch the
+> compound_head in case a tail page memory failure is being handled.
 >
-> Cc: Muchun Song <songmuchun@bytedance.com>
-> Cc: Mike Kravetz <mike.kravetz@oracle.com>
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Currently this is a nop, but in the advent of compound pages in
+> dev_pagemap it allows memory_failure_dev_pagemap() to keep working.
+>
+> Reported-by: Jane Chu <jane.chu@oracle.com>
 > Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-
-LGTM.
+> Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
