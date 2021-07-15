@@ -1,50 +1,51 @@
-Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
+Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EA5F72
-	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 00:18:07 +0000 (UTC)
-Received: by mail-pg1-f178.google.com with SMTP id s18so4237243pgq.3
-        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 17:18:07 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9901A72
+	for <nvdimm@lists.linux.dev>; Thu, 15 Jul 2021 00:19:28 +0000 (UTC)
+Received: by mail-pg1-f179.google.com with SMTP id s18so4239513pgq.3
+        for <nvdimm@lists.linux.dev>; Wed, 14 Jul 2021 17:19:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=4VJ3QvXXf1oCSZlmmZFCmW5HhP20GRBt05z5BXuB1vs=;
-        b=uBduij+oYAOXEjH4jNqSZs7BixvrflL0IdUDoXUhFmhs1w/2WYw8ttEEGg0fN02eaK
-         7jsxrQM6OVx8FmZm481U3WqWwFAVAui13aUjeAE1kfy6CAYU+LuqJOhRzoywQ2m84iXS
-         B1nfeX/Ke9hDOud+8boi/Ki8fNat1B4XK5KyHFB5BT4fXGBAaEMEttGMHdCBq+3X7Rty
-         ziJScIfev0Y8vKOVwePgJfib2PwmVGnXtzcGHuRrxCcTChd/GC8pmKw5xJOw9d0JLeB9
-         KehMTZovWBH1NoSAnLm/xlmhl2DLXrMROI/NiJA33bK5WY9iZsdazO9f7mnP60FF15o/
-         VHrw==
+        bh=xptbCn3ZR6g3HHgjV/Xny4YP8XtafdWsr2mlA0mT64U=;
+        b=pZ57OUfv/A3XPbSrq8TjPCfFK38KeIBp1cKqaCSFN7yDgtXstzslwp1/cg/MWnHAEN
+         rvjpTla6Pmpq+QRIYprdqlOiFG+xlEpnftL5MubgNlUfRXI/50E22pRThISLKzQGRm91
+         T426iHag7KVqecSn8VNEwbN+5H/YssX5MBL3Lf4IOMmgmarVnbvUs5tDpeDxOvutdR/2
+         4FtpgUIAtm8XwgdS+VjlbErD6HSB3EBM1TxTVba/7RdwqO/s60/OwiwcJ3DT1FrJLgo/
+         p5gBF+iuRXGZFPtm6NkAULS/PPMWaoMovxzzinqrf0SdnpMx+VQdMsRihIB7dDSamVvh
+         7b6A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=4VJ3QvXXf1oCSZlmmZFCmW5HhP20GRBt05z5BXuB1vs=;
-        b=ttYik+WHSKwxRaHt7hsJytFcjIkmUBb4VijPtp8bN/BeL9UraZ5RHNPfknpce0WhCb
-         CaBAoPjCkiqxm71pltpCuRZPnh6ilIaMjfhzr4O8Sn47ywQN09aewEXdtgJeNKn/V7Jl
-         rr0Chn5ORHbXBy6d+iqDwVHjbhpTAE6yRLgV7yxLjmyvYY1voOL0I81vU+QBBSdgHQvo
-         yUu/G07W+deNjEpUw/qN909zAVJ4uAneYnsrgUeb066IXq3mxF7rspMa+smEflXyllUa
-         0JdrJ5GYRTGIMsF7+5ZoZGhXzdflhy9tz0dNSrDWYMCTgusv4RxHOmaAObBzKnOVtW7l
-         LURg==
-X-Gm-Message-State: AOAM533xIhebuCsPoSJuSPGTJXe3ZnAfWQjhpRTyX9beSaILWxySeCvq
-	sSA/93Eicx6SXc2hAXd6vitc9ho0+5pTlWy/lwc1oA==
-X-Google-Smtp-Source: ABdhPJyETQCPrQKAwXM3+Q+zFkI7GfSpzIc9Eemwwj5kBC+9lq+w0ZtFhIg9xVOKlT93NH9LOjq2bKHvYF+tqDg4OFk=
-X-Received: by 2002:a05:6a00:16c6:b029:32d:e190:9dd0 with SMTP id
- l6-20020a056a0016c6b029032de1909dd0mr811916pfc.70.1626308286912; Wed, 14 Jul
- 2021 17:18:06 -0700 (PDT)
+        bh=xptbCn3ZR6g3HHgjV/Xny4YP8XtafdWsr2mlA0mT64U=;
+        b=rnzt4dmoHfjgiPinehWVdOQd+TLzC2/OQ475mVJOX7TVkzu+WkhjfIc9cTBHV+Vg7R
+         +23GTI+U6gAJt08omPu25uPjDJGCIGA6aW3pH7oTjoo2YxUAYGj9/rqKWlXSRllzuPMN
+         k3652blgBN8HhHmEqYIUs22Ar2XI2X2Sk+jaIazN5L9CSIQ1/okbWxclBNptJZuU2FJ6
+         HTl7af1lJZQ6r0WNxd0xRW4AL7E54EbbKSxNHHFXAkIwURCFkjIR4NUjgLCDzmsgJgEq
+         FEAxSg8P+NwkSK49IzGx4DmgHZFmsNbA9nnspXo5Lsdodxk/YwB2QFNsvd9/tYpn62n0
+         OM+A==
+X-Gm-Message-State: AOAM531aG9j0uuzFtck4BY7INEIZHs7Hlj42x+YoMVhCg0sONmQZWmpK
+	iLkAQG2KLjgbYfx0IyZXTsewBBCLMHdWCjGt71l8dw==
+X-Google-Smtp-Source: ABdhPJzr3Gu4NfSezOIp9S9hnR9ZfNwv/i1ULAds8y94a5pFZ/UrtXrOB6tXMxlT/ruiiWH0tAJd3Csnh7XSYP4bKvU=
+X-Received: by 2002:a05:6a00:d53:b029:32a:2db6:1be3 with SMTP id
+ n19-20020a056a000d53b029032a2db61be3mr620397pfv.71.1626308367997; Wed, 14 Jul
+ 2021 17:19:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-2-joao.m.martins@oracle.com>
-In-Reply-To: <20210714193542.21857-2-joao.m.martins@oracle.com>
+References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-3-joao.m.martins@oracle.com>
+In-Reply-To: <20210714193542.21857-3-joao.m.martins@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 14 Jul 2021 17:17:55 -0700
-Message-ID: <CAPcyv4iSiTRN2QNYqWDUepFQdiDmBk24e420xUUUCZ_ON8j5SA@mail.gmail.com>
-Subject: Re: [PATCH v3 01/14] memory-failure: fetch compound_head after pgmap_pfn_valid()
+Date: Wed, 14 Jul 2021 17:19:17 -0700
+Message-ID: <CAPcyv4iZGLzzv7o7JK3iTu6rudX2d0-OqV-ueDhx6w9fminnAw@mail.gmail.com>
+Subject: Re: [PATCH v3 02/14] mm/page_alloc: split prep_compound_page into
+ head and tail subparts
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
@@ -57,15 +58,15 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Wed, Jul 14, 2021 at 12:36 PM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> memory_failure_dev_pagemap() at the moment assumes base pages (e.g.
-> dax_lock_page()).  For pagemap with compound pages fetch the
-> compound_head in case a tail page memory failure is being handled.
+> Split the utility function prep_compound_page() into head and tail
+> counterparts, and use them accordingly.
 >
-> Currently this is a nop, but in the advent of compound pages in
-> dev_pagemap it allows memory_failure_dev_pagemap() to keep working.
+> This is in preparation for sharing the storage for / deduplicating
+> compound page metadata.
 >
-> Reported-by: Jane Chu <jane.chu@oracle.com>
 > Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-> Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+> Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+
+Looks good,
 
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
