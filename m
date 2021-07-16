@@ -1,167 +1,267 @@
-Received: from esa7.fujitsucc.c3s2.iphmx.com (esa7.fujitsucc.c3s2.iphmx.com [68.232.159.87])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A261177
-	for <nvdimm@lists.linux.dev>; Fri, 16 Jul 2021 06:33:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
-  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1626417215; x=1657953215;
-  h=from:to:cc:subject:date:message-id:references:
-   in-reply-to:content-transfer-encoding:mime-version;
-  bh=6HQa2/Z9WpXWSCAbFS7mapVAEg0O8QQIj3k4eyyMET0=;
-  b=vwL+YIWZO4JzjBYKdzjYD+nj7ZrvMwZTsRxtoO/dJPsTxJaYpmdNrLOC
-   wJpYEgs4JJqlgheAhjS9AHmX/0d3oSJswAmJqQGgLZehdPHWcPMfIqW0x
-   Os4oBEjjEcsJk4AhKe8j2NtpVKEzTnoolY86x2jrHK2fD4DHzbutChvvb
-   k9yp8XLcr0ajh5lo4GoBC1QQLGDRCd0dE/xDrA/6Sf5PW+ZK/EPhjLwFp
-   z2YEtOF2VyuPZnU3Dsa82J8qxldwLt7zmmH6fGTVFe3bfUBedXHVL4W/x
-   AgwzEaxFOlcmpkSJFPVVlNg4LhIK0yJuVWJv0j3yZ9E6ZKUgAupAHH7EE
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10046"; a="35021219"
-X-IronPort-AV: E=Sophos;i="5.84,244,1620658800"; 
-   d="scan'208";a="35021219"
-Received: from mail-os2jpn01lp2055.outbound.protection.outlook.com (HELO JPN01-OS2-obe.outbound.protection.outlook.com) ([104.47.92.55])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Jul 2021 15:32:21 +0900
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Y1e4cT5af6vm8Wjv7FJNzJLMaVXwpMqffY6utk2iWhmGHZLYuEHQjgEGirAvwuUchQpHx/pzpF6RhR9zo0gleHXqv/dQhgwtzZU9j+lub1KVfbxCodb8qVeQWvMk1lAP9/56xcFUwaY6eyvKjgDB3L0SjeSVhSmk6l1ki9DlZquADLAeQls9BeSmZu2B3aeLutI0Lz6x/8OdgT8gw1WwjBoeyDfWbzMyxFS5XJysNfsgYnc9W+2glYmsp4I5XS3Nn3gc++xxSPBqsJm/dq+pEWoUGyg5LDi2oylWwtqRu9GppCREZGy5Id5v1jNnsuAA/bgSxLXPAZp5/LhjZaf8Rg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6HQa2/Z9WpXWSCAbFS7mapVAEg0O8QQIj3k4eyyMET0=;
- b=RpkGVUB/Prs4L+NKB0p8roGJZXgrs1BDYFsMYFw5Y0v3/I2ky/tR4P6UXzKJukJHxSQpb6rXbFSzgBdfE51G6NZw5ENLMk5xqaAyfhSeMXow19FRXrxNoLeLuBAxNW2xOJBNLxQAuhuKOJdiI8sO33Ch3bLONIi3ldkFN24nvC/vssevohfHyQRs0fEClhsFHQ0Fm0Kama+haCvnKlD25eI+Eg748ubEIPGKO4h/JVtjp5hXwTqAMpIIdGy/wDhGEDTdIl0P+Yuf/6AFk0LKHQI+quGJNJFu+FTYpgMPfUwHzK1j/gl4jRoYzuesZC3IMZsHK+r4jfGiptgO+Ksb4A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
- dkim=pass header.d=fujitsu.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=fujitsu.onmicrosoft.com; s=selector2-fujitsu-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6HQa2/Z9WpXWSCAbFS7mapVAEg0O8QQIj3k4eyyMET0=;
- b=D9AOIXAZqff2EULMguU/qHJeEyuflP2nZIvohgXeDWa6LK7atymQH69qoabLxA1ubqrs7RC2pLfjE6/gKnA48CHN9mz1y4sifeCXX5ch3eEQ5/TKeDZMuhquXeyl2jVXFU7vKT7/Jq9Din4JgB4dTI/aQNzWWwfRs7Ml1pqBnPo=
-Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com (2603:1096:604:18::16)
- by OSZPR01MB6197.jpnprd01.prod.outlook.com (2603:1096:604:ef::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4331.23; Fri, 16 Jul
- 2021 06:32:18 +0000
-Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com
- ([fe80::b88e:7015:e4a2:3d9a]) by OSBPR01MB2920.jpnprd01.prod.outlook.com
- ([fe80::b88e:7015:e4a2:3d9a%7]) with mapi id 15.20.4308.027; Fri, 16 Jul 2021
- 06:32:18 +0000
-From: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
-To: Matthew Wilcox <willy@infradead.org>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, "linux-mm@kvack.org"
-	<linux-mm@kvack.org>, "linux-fsdevel@vger.kernel.org"
-	<linux-fsdevel@vger.kernel.org>, "dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"darrick.wong@oracle.com" <darrick.wong@oracle.com>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>, "david@fromorbit.com"
-	<david@fromorbit.com>, "hch@lst.de" <hch@lst.de>, "agk@redhat.com"
-	<agk@redhat.com>, "snitzer@redhat.com" <snitzer@redhat.com>,
-	"rgoldwyn@suse.de" <rgoldwyn@suse.de>
-Subject: RE: [PATCH v5 5/9] mm: Introduce mf_dax_kill_procs() for fsdax case
-Thread-Topic: [PATCH v5 5/9] mm: Introduce mf_dax_kill_procs() for fsdax case
-Thread-Index: AQHXa7EmrHLpSGG2eEOWO38ftnVtTKspT/mAgAFCBXCAAE9xAIAaXSKg
-Date: Fri, 16 Jul 2021 06:32:17 +0000
-Message-ID:
- <OSBPR01MB29201EF10FBF32FF8B3A9168F4119@OSBPR01MB2920.jpnprd01.prod.outlook.com>
-References: <20210628000218.387833-1-ruansy.fnst@fujitsu.com>
- <20210628000218.387833-6-ruansy.fnst@fujitsu.com>
- <YNm3VeeWuI0m4Vcx@casper.infradead.org>
- <OSBPR01MB292012F7C264076E9AA645C3F4029@OSBPR01MB2920.jpnprd01.prod.outlook.com>
- <YNsIGid6CwtH/h1Z@casper.infradead.org>
-In-Reply-To: <YNsIGid6CwtH/h1Z@casper.infradead.org>
-Accept-Language: en-US, zh-CN
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-authentication-results: infradead.org; dkim=none (message not signed)
- header.d=none;infradead.org; dmarc=none action=none header.from=fujitsu.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 0b5045b9-91a2-4d62-98d8-08d94823756a
-x-ms-traffictypediagnostic: OSZPR01MB6197:
-x-microsoft-antispam-prvs:
- <OSZPR01MB6197E43ED10BFFC2CD2362C8F4119@OSZPR01MB6197.jpnprd01.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:9508;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info:
- GzS+26NwGxg4d9jZzsN5HTKGfCCu/x9fbpkZvvYP2BETjo6CpicTjGCdL3ebzA7cWui4Qb2G3jcc8we1jApiwNXcnkeQwdo0DyDQNTNrOMX67JYI2swuyYqhN2JZiVzx4mE3jKToowFKK1TV0FEs6qwuCY1KuOD8vvQCuRzfUopSSPtS+J76w5sfsdDNbqp9BGgtjULWATJebNkifi238dPfdjFoYTT8sQ3N8nAs2H1VHR6o85MPizOQ0yuc6CldAaAt34V1wRDiRlrXRk3NP59fn09hVYCdVx+3vU9QKpGeV1YTwlpVeeuN/adwX9VYoK4zANYbowtWn+RPkKlR1nsz1docAUFDqfL3lO0GQKyAYVFlAYGyh2EET54B4g+P1qkTq0UChyfmsdjXIOSqKrFEOq8uhfs8Fxp58j3x7IxCrea0qEui7d0pf/lfF51+kXEsRtXiN0KA5POfZ6U6MzDgU5RQ4zXeUkVFhwuq9uu7hNvzDyfqC7FSHr6WVVLEGKrPDra8+mizy5b2MSVSYadTJ6xtUa+w2R050XsEjTKh44SrCso0GzEshxv/bHBoiWcV1kM4ZtYrkD76dfH6N+noCw7d+T8XieWT+d/IBIiMSCsVn0RGnGueDuxzX8Y31ZNVsOu35ngJhSWlu0p0ShtPa5PMjGuvDHuCWUe2nw87n4327cTdD4yw7mHkmBvnP6vC3LYTFtREZDcOxJQotA==
-x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OSBPR01MB2920.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(39860400002)(346002)(376002)(366004)(396003)(136003)(83380400001)(8676002)(85182001)(7416002)(6916009)(71200400001)(122000001)(316002)(76116006)(38100700002)(86362001)(66946007)(8936002)(66446008)(54906003)(33656002)(4326008)(26005)(66476007)(66556008)(64756008)(2906002)(5660300002)(52536014)(7696005)(6506007)(55016002)(478600001)(9686003)(186003)(38070700004);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0:
- =?gb2312?B?KzJSeWFTMG1tb3hxbFNVb0tJZXdxOUZYY3Y5MGV1TXJ0cmJ1T0VCNHpVVnR3?=
- =?gb2312?B?bDJ4bXhEVy9FMis4Z0RXRndCZHpOWXYxMjlBUFI0cW9sUXhQMWFwc1ViMjVB?=
- =?gb2312?B?ODVHR3p1MHdLYVlEdy91TmFMbVIrTFVGK2NKNTVlRnh1OG1yclB5NVZRWlhz?=
- =?gb2312?B?WTZyK0w1T1RTWkhTV0E0REVyT1l2b0tKYjhnRDF1SmhseUF2dEk1ZmEwY05z?=
- =?gb2312?B?a05vY1hRY2Y1SDNHZ3dyaUhHaUhJc1hTUlNzRW42em5WZlNTcktTYkNNNnAx?=
- =?gb2312?B?VG9LTUtVOEZrck8wcUkzYVMrNjErcUJQcEJkNEFFdHovM3VPb0hyaFNjTDVJ?=
- =?gb2312?B?c2NoeXVRNjc0SStUNnVhdUoxdU9Md1V4cFVPUCtyL1c1V3RXNDhhU2ptZGQz?=
- =?gb2312?B?WGpUVTBwNkFQdXdzMXNrWGRSN0ZmdXh2VytQMG5aSmpMMHp4dnhiYU5lL3JB?=
- =?gb2312?B?bUhJSlZJMGUrSkV5ZVNmMmtIcWtaeWVFZDJMTTJQd0grYVAzV0tTV0E2MXhM?=
- =?gb2312?B?R2ZFZkZzVWpzZXZrL0oyWFdZSlZCSTAzbmttcmdkWGJHVGRlelZQUXpCazhp?=
- =?gb2312?B?NUxGZjh2MFRNNEszTWFiV2ZscmJnNnJ1TDl6RUJVdDZWdlhWWHArUnJvemlq?=
- =?gb2312?B?QXROYnFuZHVkUmdFU1ZHQWErY3Qzem0wZU5sM29lOFB6cldtUC9YMTloek8r?=
- =?gb2312?B?RlY2TTgrTElIOHF4eWVQNnl3cTdHYXg1Rys5MFptdlhLM3hqTUJ2Z1RqUmhw?=
- =?gb2312?B?SmFLRVVHaFNUTS9JV0poeHFzWFBSRGQ3QVNwbUtHQzgvekhhTkNqYld0ZGs0?=
- =?gb2312?B?QUNBUVVrYVUva25taTZleXNtVjBWeEtHcXE4N2RPY0lKSFJXQkh6UU9HWHUv?=
- =?gb2312?B?N3duY0UrZ01RajVHQkw0MVEvM2w5NmFYb2lsdjgrSmZzc2JUMEpmNnNDdVdr?=
- =?gb2312?B?SHhxMUZTMGhEand5c2N6dFo3RU9Hdk85NFdXeUtlUFYxN0kxUkdkbDZXdXRF?=
- =?gb2312?B?SHRpbSsxOW16RHVMSVZRODdoM3grYTRUWmpHNS9XOWJlL3dvVFgrR0pXWHdV?=
- =?gb2312?B?TmZDa3U1Tmxua0pCSTFodmhPYXNsOEV0MW1Td0hLN0JxTlFDOGVzY2wzM3dU?=
- =?gb2312?B?ZnkxNFlzYVU5S1dMV25PUGdhMUIrZ0s3dnJKOUtIbWVVbU1LVDd5dDZqNDRr?=
- =?gb2312?B?ejhjY3RiL3hJTno3M0lYaVhGcmZrWnBlb2wvazhpaEhuOXk5NEdTamdjWHdx?=
- =?gb2312?B?UFIxOXdIVHFramhubnRIZEhLMEZBZHVxNCtESWxxVTVMYTZOSkJyelNFNk9E?=
- =?gb2312?B?Q1lEc0FkWlhQUDFyNHVTS1MyOHdVRFRWQ0l2bFNCcGNjcFJQZ1piaDd6Vjdh?=
- =?gb2312?B?TjJ4a1NoaGFmSDVYeExiNHdDTW5zaVZ4T2tBZ3Npb2szODFJR2Z2d1J5VDVT?=
- =?gb2312?B?VVpEQjVpRmE5QkxMYTRlZm9BZmtPMDNpWkZtN3ErR1VFZ0c5dEp2Z3RzR0J0?=
- =?gb2312?B?NHEwMlk1a0UrUFhVd1ZOd1RhYnBiQmxYQ0lhOGVKSG9CL2I1NWhwMUIya1hH?=
- =?gb2312?B?VERHTWp2akgrQ1FMNjg3aE40WHFNS2ZLMFZuQU9Hc3N5Uk5yUTM3L0JVZWRC?=
- =?gb2312?B?anc4SmZHUFluT1RoUmcwMmoxKzFUMWg5OUxDaUpkRlgwdldjU2tKSFF4eGZo?=
- =?gb2312?B?cmpUeXc3b3VURlVudnpqY0JhR1BtRFlLUFRKTHh2WHJVbWgrZEZRMUJJeWpP?=
- =?gb2312?Q?wc7P+Omjt9VjSkBFFRRx7Q2EkCjjBlSUXlAKPS2?=
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="gb2312"
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FCFD177
+	for <nvdimm@lists.linux.dev>; Fri, 16 Jul 2021 07:21:24 +0000 (UTC)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16G749Pc019703;
+	Fri, 16 Jul 2021 03:21:16 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=HsnsJGZaugLPL0AVIiNhHlOD2K2H3jvWSUgJcTJrJIs=;
+ b=dC6hRpMMI9AJ4pq3Rx09DQYCHOfXelIsFgjvT+CDvh43qT0iOTQnklUtErCe0cysH2Sc
+ SnfQj4WZpkKExjHmDJ5P3rjEPCEkRkHAAfPDVKA0FFp6Xzy6L6Fw1gM14ao+IaFfriV8
+ kWG7aKL5SsbqC4ICG2y4A7h907jVb4QPMe6Wpze8Q6Wawq+FTWPHmWH2m9q5GDh89GMS
+ LTOQQzHOjz7yeA9mVEtgCftXT9Dd1R283uw/BUwbC3lUN1gtsf+fKFbB09343VTnQPg6
+ SJENJ/F0wqkisaPAoOdPDMu+Zr0YKvffE5hLLhC31fqZ/5EcB0Ho6lxl9zJXcJ7/rQsi 7g== 
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 39twqyjp0n-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 16 Jul 2021 03:21:15 -0400
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+	by ppma04fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16G7CDNT015890;
+	Fri, 16 Jul 2021 07:21:13 GMT
+Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
+	by ppma04fra.de.ibm.com with ESMTP id 39q368hcsx-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 16 Jul 2021 07:21:13 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (mk.ibm.com [9.149.105.60])
+	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16G7LAQ219005702
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 16 Jul 2021 07:21:10 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5175E42045;
+	Fri, 16 Jul 2021 07:21:10 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 7DB494204B;
+	Fri, 16 Jul 2021 07:21:07 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.102.0.33])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Fri, 16 Jul 2021 07:21:07 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Fri, 16 Jul 2021 12:51:06 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: nvdimm@lists.linux.dev
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+        Ira Weiny <ira.weiny@intel.com>,
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: [ndctl PATCH v2] libndctl: Update nvdimm flags after in ndctl_cmd_submit()
+Date: Fri, 16 Jul 2021 12:51:04 +0530
+Message-Id: <20210716072104.11808-1-vaibhav@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: ErsJope_ZjrYd3d86QtaSIeLwEB2PB62
+X-Proofpoint-GUID: ErsJope_ZjrYd3d86QtaSIeLwEB2PB62
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-OriginatorOrg: fujitsu.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: OSBPR01MB2920.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 0b5045b9-91a2-4d62-98d8-08d94823756a
-X-MS-Exchange-CrossTenant-originalarrivaltime: 16 Jul 2021 06:32:17.9242
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 8Ur7kzhuP7Nyf66n+Ap10UBKipaGIxZibiMbF7I88Wb0pAbSrASfOiCD4KONmwckEXMc7fIBESGgG9te4V+PEg==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSZPR01MB6197
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-07-16_02:2021-07-16,2021-07-16 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 clxscore=1015
+ bulkscore=0 priorityscore=1501 mlxscore=0 suspectscore=0 mlxlogscore=999
+ phishscore=0 malwarescore=0 adultscore=0 spamscore=0 lowpriorityscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2104190000
+ definitions=main-2107160041
 
-PiBGcm9tOiBNYXR0aGV3IFdpbGNveCA8d2lsbHlAaW5mcmFkZWFkLm9yZz4NCj4gU3ViamVjdDog
-UmU6IFtQQVRDSCB2NSA1LzldIG1tOiBJbnRyb2R1Y2UgbWZfZGF4X2tpbGxfcHJvY3MoKSBmb3Ig
-ZnNkYXggY2FzZQ0KPiANCj4gT24gVHVlLCBKdW4gMjksIDIwMjEgYXQgMDc6NDk6MjRBTSArMDAw
-MCwgcnVhbnN5LmZuc3RAZnVqaXRzdS5jb20gd3JvdGU6DQo+ID4gPiBCdXQgSSB0aGluayB0aGlz
-IGlzIHVubmVjZXNzYXJ5OyB3aHkgbm90IGp1c3QgcGFzcyB0aGUgUEZOIGludG8NCj4gbWZfZGF4
-X2tpbGxfcHJvY3M/DQo+ID4NCj4gPiBCZWNhdXNlIHRoZSBtZl9kYXhfa2lsbF9wcm9jcygpIGlz
-IGNhbGxlZCBpbiBmaWxlc3lzdGVtIHJlY292ZXJ5IGZ1bmN0aW9uLA0KPiB3aGljaCBpcyBhdCB0
-aGUgZW5kIG9mIHRoZSBSTUFQIHJvdXRpbmUuICBBbmQgdGhlIFBGTiBoYXMgYmVlbiB0cmFuc2xh
-dGVkIHRvDQo+IGRpc2sgb2Zmc2V0IGluIHBtZW0gZHJpdmVyIGluIG9yZGVyIHRvIGRvIFJNQVAg
-c2VhcmNoIGluIGZpbGVzeXN0ZW0uICBTbywgaWYgd2UNCj4gaGF2ZSB0byBwYXNzIGl0LCBldmVy
-eSBmdW5jdGlvbiBpbiB0aGlzIHJvdXRpbmUgbmVlZHMgdG8gYWRkIGFuIGFyZ3VtZW50IGZvciB0
-aGlzDQo+IFBGTi4gIEkgd2FzIGhvcGluZyBJIGNhbiBhdm9pZCBwYXNzaW5nIFBGTiB0aHJvdWdo
-IHRoZSB3aG9sZSBzdGFjayB3aXRoIHRoZQ0KPiBoZWxwIG9mIHRoaXMgZGF4X2xvYWRfcGZuKCku
-DQo+IA0KPiBPSywgSSB0aGluayB5b3UgbmVlZCB0byBjcmVhdGU6DQo+IA0KPiBzdHJ1Y3QgbWVt
-b3J5X2ZhaWx1cmUgew0KPiAJcGh5c19hZGRyX3Qgc3RhcnQ7DQo+IAlwaHlzX2FkZHJfdCBlbmQ7
-DQo+IAl1bnNpZ25lZCBsb25nIGZsYWdzOw0KPiB9Ow0KPiANCj4gKGEgbWVtb3J5IGZhaWx1cmUg
-bWlnaHQgbm90IGJlIGFuIGVudGlyZSBwYWdlLCBzbyB3b3JraW5nIGluIHBmbnMgaXNuJ3QgdGhl
-IGJlc3QNCj4gYXBwcm9hY2gpDQoNCkRvIHlvdSBtZWFuIHRoZSByYW5nZSBvZiBtZW1vcnkgZmFp
-bHVyZSBtYXkgbGVzcyB0aGFuIG9uZSBwYWdlIHNpemU/ICBJIGZvdW5kIHRob3NlIG1lbW9yeV9m
-YWlsdXJlKiBmdW5jdGlvbnMgYXJlIHVzaW5nIHBmbiBhcyB0aGVpciBwYXJhbWV0ZXIuICBTbyBp
-biB3aGljaCBjYXNlIGl0IGNvdWxkIGJlIGxlc3MgdGhhbiBvbmUgcGFnZSBzaXplPw0KDQoNCi0t
-DQpUaGFua3MsDQpSdWFuLg0KDQo+IA0KPiBUaGVuIHRoYXQgY2FuIGJlIHBhc3NlZCB0byAtPm1l
-bW9yeV9mYWlsdXJlKCkgYW5kIHRoZW4gZGVlcGVyIHRvDQo+IC0+bm90aWZ5X2ZhaWx1cmUoKSwg
-YW5kIGZpbmFsbHkgaW50byB4ZnNfY29ycnVwdF9oZWxwZXIoKS4NCg==
+Presently after performing an inject-smart the nvdimm flags reported are out of
+date as shown below where no 'smart_notify' or 'flush_fail' flags were reported
+even though they are set after injecting the smart error:
+
+$ sudo inject-smart -fU nmem0
+[
+  {
+    "dev":"nmem0",
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+$ sudo cat /sys/class/nd/ndctl0/device/nmem0/papr/flags
+flush_fail smart_notify
+
+This happens because nvdimm flags are only parsed once during its probe and
+not refreshed even after a inject-smart operation makes them out of
+date. To fix this the patch forces an update of nvdimm flags via newly
+introduced ndctl_refresh_dimm_flags() thats called successfully submitting
+a 'struct ndctl_cmd' in ndctl_cmd_submit(). This ensures that correct
+nvdimm flags are reported after an interaction with the kernel module which
+may trigger a change nvdimm-flags. With this implemented correct nvdimm
+flags are reported after a inject-smart operation:
+
+$ sudo ndctl inject-smart -fU nmem0
+[
+  {
+    "dev":"nmem0",
+    "flag_failed_flush":true,
+    "flag_smart_event":true,
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+
+The patch refactors populate_dimm_attributes() to move the nvdimm flags
+parsing code to the newly introduced ndctl_refresh_dimm_flags()
+export. Since reading nvdimm flags requires constructing path using
+'bus_prefix' which is only available during add_dimm(), the patch
+introduces a new member 'struct ndctl_dimm.bus_prefix' to cache its
+value. During ndctl_refresh_dimm_flags() the cached bus_prefix is used to
+read the contents of the nvdimm flag file and pass it on to the appropriate
+flag parsing function. Finally ndctl_refresh_dimm_flags() is invoked at the
+end of ndctl_cmd_submit() if nd-command submission succeeds.
+
+Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+---
+Changelog:
+
+Since v1:
+Link: https://lore.kernel.org/nvdimm/20210713202523.190113-1-vaibhav@linux.ibm.com
+* Remove the export of ndctl_refresh_dimm_flags().
+* Remove the call to ndctl_refresh_dimm_flags() from dimm_inject_smart().
+* Add call to ndctl_refresh_dimm_flags() at end of ndctl_cmd_submit().
+---
+ ndctl/lib/libndctl.c | 49 +++++++++++++++++++++++++++++++-------------
+ ndctl/lib/private.h  |  1 +
+ ndctl/libndctl.h     |  1 +
+ 3 files changed, 37 insertions(+), 14 deletions(-)
+
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index bb0ea094a153..20eecbe5ca2c 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -588,6 +588,7 @@ static void free_dimm(struct ndctl_dimm *dimm)
+ 	free(dimm->unique_id);
+ 	free(dimm->dimm_buf);
+ 	free(dimm->dimm_path);
++	free(dimm->bus_prefix);
+ 	if (dimm->module)
+ 		kmod_module_unref(dimm->module);
+ 	if (dimm->health_eventfd > -1)
+@@ -1650,14 +1651,34 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
+ static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
+ static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
+ 
++void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm)
++{
++	struct ndctl_ctx *ctx = dimm->bus->ctx;
++	char *path = dimm->dimm_buf;
++	char buf[SYSFS_ATTR_SIZE];
++
++	/* Construct path to dimm flags sysfs file */
++	sprintf(path, "%s/%s/flags", dimm->dimm_path, dimm->bus_prefix);
++
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		return;
++
++	/* Reset the flags */
++	dimm->flags.flags = 0;
++	if (ndctl_bus_has_nfit(dimm->bus))
++		parse_nfit_mem_flags(dimm, buf);
++	else if (ndctl_bus_is_papr_scm(dimm->bus))
++		parse_papr_flags(dimm, buf);
++}
++
+ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+-				    const char *dimm_base,
+-				    const char *bus_prefix)
++				    const char *dimm_base)
+ {
+ 	int i, rc = -1;
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	struct ndctl_ctx *ctx = dimm->bus->ctx;
+ 	char *path = calloc(1, strlen(dimm_base) + 100);
++	const char *bus_prefix = dimm->bus_prefix;
+ 
+ 	if (!path)
+ 		return -ENOMEM;
+@@ -1740,15 +1761,7 @@ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+ 			dimm->format[i] = strtoul(buf, NULL, 0);
+ 	}
+ 
+-	sprintf(path, "%s/%s/flags", dimm_base, bus_prefix);
+-	if (sysfs_read_attr(ctx, path, buf) == 0) {
+-		if (ndctl_bus_has_nfit(dimm->bus))
+-			parse_nfit_mem_flags(dimm, buf);
+-		else if (ndctl_bus_is_papr_scm(dimm->bus)) {
+-			dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+-			parse_papr_flags(dimm, buf);
+-		}
+-	}
++	ndctl_refresh_dimm_flags(dimm);
+ 
+ 	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
+ 	rc = 0;
+@@ -1807,7 +1820,7 @@ static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
+ 		rc = 0;
+ 	} else if (strcmp(buf, "nvdimm_test") == 0) {
+ 		/* probe via common populate_dimm_attributes() */
+-		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
++		rc = populate_dimm_attributes(dimm, dimm_base);
+ 	}
+ out:
+ 	free(path);
+@@ -1904,9 +1917,13 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
+ 	dimm->formats = formats;
+ 	/* Check if the given dimm supports nfit */
+ 	if (ndctl_bus_has_nfit(bus)) {
+-		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
++		dimm->bus_prefix = strdup("nfit");
++		rc = dimm->bus_prefix ?
++			populate_dimm_attributes(dimm, dimm_base) : -ENOMEM;
+ 	} else if (ndctl_bus_has_of_node(bus)) {
+-		rc = add_papr_dimm(dimm, dimm_base);
++		dimm->bus_prefix = strdup("papr");
++		rc = dimm->bus_prefix ?
++			add_papr_dimm(dimm, dimm_base) : -ENOMEM;
+ 	}
+ 
+ 	if (rc == -ENODEV) {
+@@ -3486,6 +3503,10 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+ 		rc = -ENXIO;
+ 	}
+ 	close(fd);
++
++	/* update dimm-flags if command submitted successfully */
++	if (!rc)
++		ndctl_refresh_dimm_flags(cmd->dimm);
+  out:
+ 	cmd->status = rc;
+ 	return rc;
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 8f4510e562c4..a4b920ca0c94 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -75,6 +75,7 @@ struct ndctl_dimm {
+ 	char *unique_id;
+ 	char *dimm_path;
+ 	char *dimm_buf;
++	char *bus_prefix;
+ 	int health_eventfd;
+ 	int buf_len;
+ 	int id;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 87d07b74ef8b..cdadd5fd4548 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -214,6 +214,7 @@ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
+ int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
+ int ndctl_dimm_disable(struct ndctl_dimm *dimm);
+ int ndctl_dimm_enable(struct ndctl_dimm *dimm);
++void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm);
+ 
+ struct ndctl_cmd;
+ struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
+-- 
+2.31.1
+
