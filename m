@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6E556D00
-	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 10:58:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA3262FB0
+	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 10:59:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=L2dn47BW8cimA4OGCXzIvd0BRf0hak7es3Cdvb274Qs=; b=nHomzFZHdFHlfMS42qKgf9Udd/
-	iBRpU4ViMMrrYu6MndRcg1H9xxzCxUZjNH6NVD1jBw1GzvGITB3lRolwAfaUkrmCaI6RmXSIo/Dko
-	F/b0tKH3d6Pf+YxoZIqZ4EWuu/YzmCbrbDtaMowj5VLV9BmcMaAwgwXtoFpZ/FtoyfCAdaM1PVL0j
-	3JfqIrwdne/VIpctpcGxGIrnLiEfHUhFWTs/cgplteOEgKQNnWCtPWy8I3zSYxJmGPFP1EqwOGIEc
-	DEk9+NmCUULUId4XsWQfp8Y1WHOl6CaWtKRO6AI1ZqZ1rF/pRDbvxXlSTRaT5P3RR59Gw3MgzYaLx
-	wmvwJzxQ==;
+	bh=nYO7cnuv0Th0s4KtBKiBkzxE8Vhba6ah/Rs5J4rme2A=; b=bbsCa/JcSFcTo3GXncZIBTVlJM
+	eYlBY32FXiorkPQW99sKgykI7spb7CufJ/UaokhfLIvl8+bprGz1W51WrXF3m7sV3JK7l9hKgs5zL
+	dhnwX1r0tMR3dwjPhwKhRcMwn4qSJstXlZqEhHOjj8c4AmKFlTz8DaFmKenXuJ7lCNZqr3jkMT+BL
+	MTwWVEY8yefUOUBD1jQpRBL4Qww1y0nYBoB6ThIM15JU69ST1UJl9kgJkAKLIKa6E4TDI9jtpJjhZ
+	G3G/AfHHeZ3Wmd1/pVuM8/OjOzimSjjwWBqLgRwsO+CpNulyQGjyletlGaAGgazrN2gbf2OcJXcsk
+	4HOKKALQ==;
 Received: from [2001:4bb8:193:7660:d2a4:8d57:2e55:21d0] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1m5Qwj-006m1S-EQ; Mon, 19 Jul 2021 10:56:50 +0000
+	id 1m5Qxi-006m4i-Fb; Mon, 19 Jul 2021 10:57:49 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -27,9 +27,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	linux-btrfs@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	cluster-devel@redhat.com
-Subject: [PATCH 18/27] iomap: switch iomap_seek_data to use iomap_iter
-Date: Mon, 19 Jul 2021 12:35:11 +0200
-Message-Id: <20210719103520.495450-19-hch@lst.de>
+Subject: [PATCH 19/27] iomap: switch iomap_swapfile_activate to use iomap_iter
+Date: Mon, 19 Jul 2021 12:35:12 +0200
+Message-Id: <20210719103520.495450-20-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210719103520.495450-1-hch@lst.de>
 References: <20210719103520.495450-1-hch@lst.de>
@@ -42,85 +42,93 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-Rewrite iomap_seek_data to use iomap_iter.
+Switch iomap_swapfile_activate to use iomap_iter.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/iomap/seek.c | 42 +++++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ fs/iomap/swapfile.c | 38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
-diff --git a/fs/iomap/seek.c b/fs/iomap/seek.c
-index 7d6ed9af925e96..0a758e3851fcb7 100644
---- a/fs/iomap/seek.c
-+++ b/fs/iomap/seek.c
-@@ -55,23 +55,21 @@ iomap_seek_hole(struct inode *inode, loff_t offset, const struct iomap_ops *ops)
- }
- EXPORT_SYMBOL_GPL(iomap_seek_hole);
- 
--static loff_t
--iomap_seek_data_actor(struct inode *inode, loff_t start, loff_t length,
--		      void *data, struct iomap *iomap, struct iomap *srcmap)
-+static loff_t iomap_seek_data_iter(const struct iomap_iter *iter, loff_t *pos)
+diff --git a/fs/iomap/swapfile.c b/fs/iomap/swapfile.c
+index 6250ca6a1f851d..7069606eca85b2 100644
+--- a/fs/iomap/swapfile.c
++++ b/fs/iomap/swapfile.c
+@@ -88,13 +88,9 @@ static int iomap_swapfile_fail(struct iomap_swapfile_info *isi, const char *str)
+  * swap only cares about contiguous page-aligned physical extents and makes no
+  * distinction between written and unwritten extents.
+  */
+-static loff_t iomap_swapfile_activate_actor(struct inode *inode, loff_t pos,
+-		loff_t count, void *data, struct iomap *iomap,
+-		struct iomap *srcmap)
++static loff_t iomap_swapfile_iter(const struct iomap_iter *iter,
++		struct iomap *iomap, struct iomap_swapfile_info *isi)
  {
--	loff_t offset = start;
-+	loff_t length = iomap_length(iter);
- 
--	switch (iomap->type) {
-+	switch (iter->iomap.type) {
- 	case IOMAP_HOLE:
- 		return length;
+-	struct iomap_swapfile_info *isi = data;
+-	int error;
+-
+ 	switch (iomap->type) {
+ 	case IOMAP_MAPPED:
  	case IOMAP_UNWRITTEN:
--		offset = mapping_seek_hole_data(inode->i_mapping, start,
--				start + length, SEEK_DATA);
--		if (offset < 0)
-+		*pos = mapping_seek_hole_data(iter->inode->i_mapping,
-+				iter->pos, iter->pos + length, SEEK_DATA);
-+		if (*pos < 0)
- 			return length;
--		fallthrough;
-+		return 0;
- 	default:
--		*(loff_t *)data = offset;
-+		*pos = iter->pos;
- 		return 0;
+@@ -125,12 +121,12 @@ static loff_t iomap_swapfile_activate_actor(struct inode *inode, loff_t pos,
+ 		isi->iomap.length += iomap->length;
+ 	} else {
+ 		/* Otherwise, add the retained iomap and store this one. */
+-		error = iomap_swapfile_add_extent(isi);
++		int error = iomap_swapfile_add_extent(isi);
+ 		if (error)
+ 			return error;
+ 		memcpy(&isi->iomap, iomap, sizeof(isi->iomap));
  	}
+-	return count;
++	return iomap_length(iter);
  }
-@@ -80,22 +78,24 @@ loff_t
- iomap_seek_data(struct inode *inode, loff_t offset, const struct iomap_ops *ops)
+ 
+ /*
+@@ -141,16 +137,19 @@ int iomap_swapfile_activate(struct swap_info_struct *sis,
+ 		struct file *swap_file, sector_t *pagespan,
+ 		const struct iomap_ops *ops)
  {
- 	loff_t size = i_size_read(inode);
--	loff_t ret;
++	struct inode *inode = swap_file->f_mapping->host;
 +	struct iomap_iter iter = {
 +		.inode	= inode,
-+		.pos	= offset,
++		.pos	= 0,
++		.len	= ALIGN_DOWN(i_size_read(inode), PAGE_SIZE),
 +		.flags	= IOMAP_REPORT,
 +	};
+ 	struct iomap_swapfile_info isi = {
+ 		.sis = sis,
+ 		.lowest_ppage = (sector_t)-1ULL,
+ 		.file = swap_file,
+ 	};
+-	struct address_space *mapping = swap_file->f_mapping;
+-	struct inode *inode = mapping->host;
+-	loff_t pos = 0;
+-	loff_t len = ALIGN_DOWN(i_size_read(inode), PAGE_SIZE);
+-	loff_t ret;
 +	int ret;
  
- 	/* Nothing to be found before or beyond the end of the file. */
- 	if (offset < 0 || offset >= size)
- 		return -ENXIO;
+ 	/*
+ 	 * Persist all file mapping metadata so that we won't have any
+@@ -160,15 +159,10 @@ int iomap_swapfile_activate(struct swap_info_struct *sis,
+ 	if (ret)
+ 		return ret;
  
--	while (offset < size) {
--		ret = iomap_apply(inode, offset, size - offset, IOMAP_REPORT,
--				  ops, &offset, iomap_seek_data_actor);
--		if (ret < 0)
+-	while (len > 0) {
+-		ret = iomap_apply(inode, pos, len, IOMAP_REPORT,
+-				ops, &isi, iomap_swapfile_activate_actor);
+-		if (ret <= 0)
 -			return ret;
--		if (ret == 0)
--			return offset;
--		offset += ret;
--	}
 -
-+	iter.len = size - offset;
+-		pos += ret;
+-		len -= ret;
+-	}
 +	while ((ret = iomap_iter(&iter, ops)) > 0)
-+		iter.processed = iomap_seek_data_iter(&iter, &offset);
++		iter.processed = iomap_swapfile_iter(&iter, &iter.iomap, &isi);
 +	if (ret < 0)
 +		return ret;
-+	if (iter.len)
-+		return offset;
- 	/* We've reached the end of the file without finding data */
- 	return -ENXIO;
- }
+ 
+ 	if (isi.iomap.length) {
+ 		ret = iomap_swapfile_add_extent(&isi);
 -- 
 2.30.2
 
