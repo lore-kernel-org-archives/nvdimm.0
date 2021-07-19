@@ -1,22 +1,33 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57A170
-	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 15:28:02 +0000 (UTC)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id E6FF767373; Mon, 19 Jul 2021 17:17:44 +0200 (CEST)
-Date: Mon, 19 Jul 2021 17:17:44 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, dm-devel@redhat.com,
-	darrick.wong@oracle.com, dan.j.williams@intel.com,
-	david@fromorbit.com, hch@lst.de, agk@redhat.com, snitzer@redhat.com,
-	rgoldwyn@suse.de
-Subject: Re: [PATCH v5 2/9] dax: Introduce holder for dax_device
-Message-ID: <20210719151744.GA22718@lst.de>
-References: <20210628000218.387833-1-ruansy.fnst@fujitsu.com> <20210628000218.387833-3-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09A6170
+	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 16:00:50 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 268EC613ED;
+	Mon, 19 Jul 2021 16:00:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1626710450;
+	bh=AyDppAbQr+ozfywAjYIPhhIzoe8rAsZVoJN4/3CPOIE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Wnl3yXmLuWrHkJUM12djk5eyKICfd2Mb5AFrsLl01gUKn8MPzQFQUWfZcq98UIBC7
+	 Jb23Oov3tZv20IdGYkxV67dHUrU2IX4KiGv8h09kZ3VRF9NxSRTF1JRIAEHhHp/rPm
+	 ZggjeP6kD5oT45pykGXdv5VG95PnJZm9ZofAdfbKh/xJK+bfMc40JwAcZIrcj1a401
+	 hElKVPQ2J/Xk0dpYS18OES3ZXQIvl+C4tZC9NIH+v0kQtSB8p7jGam4W88F8J75Mmz
+	 VtNFcRUHRSrNuVLvucYfQzCXOf0no6enfG96vlwZmGyIr3bMdkif0Ub7ZIAnZwKmPl
+	 HjRU2/Fi04RMw==
+Date: Mon, 19 Jul 2021 09:00:49 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andreas Gruenbacher <agruenba@redhat.com>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, cluster-devel@redhat.com
+Subject: Re: [PATCH 01/27] iomap: fix a trivial comment typo in trace.h
+Message-ID: <20210719160049.GC22402@magnolia>
+References: <20210719103520.495450-1-hch@lst.de>
+ <20210719103520.495450-2-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -25,61 +36,32 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210628000218.387833-3-ruansy.fnst@fujitsu.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <20210719103520.495450-2-hch@lst.de>
 
-On Mon, Jun 28, 2021 at 08:02:11AM +0800, Shiyang Ruan wrote:
-> +int dax_holder_notify_failure(struct dax_device *dax_dev, loff_t offset,
-> +			      size_t size, void *data)
-> +{
-> +	int rc = -ENXIO;
-> +	if (!dax_dev)
-> +		return rc;
-> +
-> +	if (dax_dev->holder_data) {
-> +		rc = dax_dev->holder_ops->notify_failure(dax_dev, offset,
-> +							 size, data);
-> +		if (rc == -ENODEV)
-> +			rc = -ENXIO;
-> +	} else
-> +		rc = -EOPNOTSUPP;
+On Mon, Jul 19, 2021 at 12:34:54PM +0200, Christoph Hellwig wrote:
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-The style looks a little odd.  Why not:
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 
-	if (!dax_dev)
-		return -ENXIO
-	if (!dax_dev->holder_data)
-		return -EOPNOTSUPP;
-	return dax_dev->holder_ops->notify_failure(dax_dev, offset, size, data);
+--D
 
-and let everyone deal with the same errno codes?
-
-Also why do we even need the dax_dev NULL check?
-
-> +void dax_set_holder(struct dax_device *dax_dev, void *holder,
-> +		const struct dax_holder_operations *ops)
-> +{
-> +	if (!dax_dev)
-> +		return;
-
-I don't think we really need that check here.
-
-> +void *dax_get_holder(struct dax_device *dax_dev)
-> +{
-> +	void *holder_data;
-> +
-> +	if (!dax_dev)
-> +		return NULL;
-
-Same here.
-
-> +
-> +	down_read(&dax_dev->holder_rwsem);
-> +	holder_data = dax_dev->holder_data;
-> +	up_read(&dax_dev->holder_rwsem);
-> +
-> +	return holder_data;
-
-That lock won't protect anything.  I think we simply must have
-synchronization to prevent unregistration while the ->notify_failure
-call is in progress.
+> ---
+>  fs/iomap/trace.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/fs/iomap/trace.h b/fs/iomap/trace.h
+> index fdc7ae388476f5..e9cd5cc0d6ba40 100644
+> --- a/fs/iomap/trace.h
+> +++ b/fs/iomap/trace.h
+> @@ -2,7 +2,7 @@
+>  /*
+>   * Copyright (c) 2009-2019 Christoph Hellwig
+>   *
+> - * NOTE: none of these tracepoints shall be consider a stable kernel ABI
+> + * NOTE: none of these tracepoints shall be considered a stable kernel ABI
+>   * as they can change at any time.
+>   */
+>  #undef TRACE_SYSTEM
+> -- 
+> 2.30.2
+> 
