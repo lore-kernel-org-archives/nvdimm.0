@@ -1,149 +1,110 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E794372
-	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 21:17:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1626729430;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=kujiEKMy0thaS5CF5Qo02RWe4IiDsfJcC10rQmHEXBc=;
-	b=KYBApTr5scRPsUUrnM4k23fgAsEWSHFXpaUlotkh+kglfzNK0ZKNsf64hVc1R13i2cVXZ1
-	HVnVixR+gO1LC7Arq6EuTAOu7j3n87I0fayOcaDQiGPzzRUbeoUbPfTCPaOwjzJZ09YnEj
-	ZvI2Vh3tFtN5aiggagkIjtpZTUhzeCI=
-Received: from mail-ed1-f70.google.com (mail-ed1-f70.google.com
- [209.85.208.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-371-caqEcJ83MWWONOC72shmAw-1; Mon, 19 Jul 2021 17:17:07 -0400
-X-MC-Unique: caqEcJ83MWWONOC72shmAw-1
-Received: by mail-ed1-f70.google.com with SMTP id c21-20020aa7d6150000b02903ab03a06e86so9902141edr.14
-        for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 14:17:07 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=kujiEKMy0thaS5CF5Qo02RWe4IiDsfJcC10rQmHEXBc=;
-        b=DnrCXuDbFDJuxv22XECcynRSdLDJu3Mte6VtPMv+qcrAE/7FgjI7eKoqLaB86bWcIa
-         K3Q9rGEPwV4d7v+GPTunVy38JPanufPu4WyNql+Alfa16Exb4ptVx8zhzbwg6K13KKIT
-         ypj2ftTTlQ2gl3rzIl3QwkEgs5vuKT08CnGkQPg5cQ5KLhP8njf23XGl96EzqztxkjHs
-         IXU/9L83xy+5l1QI3q7MkOX5Hb52UYmcJFsEoKt29od765odEl9+Su59bW+IxiMpzRx3
-         EHfLM8XFdcncQRSJtztqzK/MPHy91mkKcm1sIn6gm5SyVR4aaW/MIGvFs9ockmwxMa3x
-         HWAA==
-X-Gm-Message-State: AOAM531OFr7HBLbdCPVI7QkL0aPBYwKM8bUc8nZghcehAH0T1A4hv3m4
-	eunA12Z6WXfbNOts85zIGXPLPGj9/8ykwZGncYGJkaFaxIR0wTq0uUjPcfNXgkbp4OjF0KPCQKK
-	BTPW22m42TVPulYpd
-X-Received: by 2002:a17:906:30d8:: with SMTP id b24mr28743764ejb.358.1626729426259;
-        Mon, 19 Jul 2021 14:17:06 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyJQOuk69N2sFzCoUDVPF4aaT8BJQky04/6I0ylfvTyOaGWbCPLANj6y6oZFFK0ToBrpsFkkA==
-X-Received: by 2002:a17:906:30d8:: with SMTP id b24mr28743745ejb.358.1626729426068;
-        Mon, 19 Jul 2021 14:17:06 -0700 (PDT)
-Received: from redhat.com ([2.55.139.106])
-        by smtp.gmail.com with ESMTPSA id jp26sm6402600ejb.28.2021.07.19.14.17.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 19 Jul 2021 14:17:04 -0700 (PDT)
-Date: Mon, 19 Jul 2021 17:17:00 -0400
-From: "Michael S. Tsirkin" <mst@redhat.com>
-To: Taylor Stark <tstark@linux.microsoft.com>
-Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, ira.weiny@intel.com, nvdimm@lists.linux.dev,
-	apais@microsoft.com, tyhicks@microsoft.com, jamorris@microsoft.com,
-	benhill@microsoft.com, sunilmut@microsoft.com,
-	grahamwo@microsoft.com, tstark@microsoft.com
-Subject: Re: [PATCH v2 1/2] virtio-pmem: Support PCI BAR-relative addresses
-Message-ID: <20210719171533-mutt-send-email-mst@kernel.org>
-References: <20210715223505.GA29329@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+Received: from mail107.syd.optusnet.com.au (mail107.syd.optusnet.com.au [211.29.132.53])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9E3A072
+	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 22:20:38 +0000 (UTC)
+Received: from dread.disaster.area (pa49-181-34-10.pa.nsw.optusnet.com.au [49.181.34.10])
+	by mail107.syd.optusnet.com.au (Postfix) with ESMTPS id D3E955E74;
+	Tue, 20 Jul 2021 07:48:38 +1000 (AEST)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+	(envelope-from <david@fromorbit.com>)
+	id 1m5b7u-008UI5-A0; Tue, 20 Jul 2021 07:48:38 +1000
+Date: Tue, 20 Jul 2021 07:48:38 +1000
+From: Dave Chinner <david@fromorbit.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: "Darrick J. Wong" <djwong@kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andreas Gruenbacher <agruenba@redhat.com>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, cluster-devel@redhat.com
+Subject: Re: [PATCH 08/27] iomap: add the new iomap_iter model
+Message-ID: <20210719214838.GK664593@dread.disaster.area>
+References: <20210719103520.495450-1-hch@lst.de>
+ <20210719103520.495450-9-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210715223505.GA29329@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=mst@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20210719103520.495450-9-hch@lst.de>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.3 cv=YKPhNiOx c=1 sm=1 tr=0
+	a=hdaoRb6WoHYrV466vVKEyw==:117 a=hdaoRb6WoHYrV466vVKEyw==:17
+	a=kj9zAlcOel0A:10 a=e_q4qTt1xDgA:10 a=JfrnYn6hAAAA:8 a=7-415B0cAAAA:8
+	a=7pAWPZz2LBkM90URnJoA:9 a=CjuIK1q_8ugA:10 a=1CNFftbPRP8L7MoqJWF3:22
+	a=biEYGPWJfzWAr4FL6Ov7:22
 
-On Thu, Jul 15, 2021 at 03:35:05PM -0700, Taylor Stark wrote:
-> Update virtio-pmem to allow for the pmem region to be specified in either
-> guest absolute terms or as a PCI BAR-relative address. This is required
-> to support virtio-pmem in Hyper-V, since Hyper-V only allows PCI devices
-> to operate on PCI memory ranges defined via BARs.
+On Mon, Jul 19, 2021 at 12:35:01PM +0200, Christoph Hellwig wrote:
+> The iomap_iter struct provides a convenient way to package up and
+> maintain all the arguments to the various mapping and operation
+> functions.  It is operated on using the iomap_iter() function that
+> is called in loop until the whole range has been processed.  Compared
+> to the existing iomap_apply() function this avoid an indirect call
+> for each iteration.
 > 
-> Virtio-pmem will check for a shared memory window and use that if found,
-> else it will fallback to using the guest absolute addresses in
-> virtio_pmem_config. This was chosen over defining a new feature bit,
-> since it's similar to how virtio-fs is configured.
+> For now iomap_iter() calls back into the existing ->iomap_begin and
+> ->iomap_end methods, but in the future this could be further optimized
+> to avoid indirect calls entirely.
 > 
-> Signed-off-by: Taylor Stark <tstark@microsoft.com>
-
-This needs to be added to the device spec too.
-Can you send a spec patch please?
-It's a subscriber-only list virtio-comment@lists.oasis-open.org
-
-
+> Based on an earlier patch from Matthew Wilcox <willy@infradead.org>.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->  drivers/nvdimm/virtio_pmem.c | 21 +++++++++++++++++----
->  drivers/nvdimm/virtio_pmem.h |  3 +++
->  2 files changed, 20 insertions(+), 4 deletions(-)
+>  fs/iomap/Makefile     |  1 +
+>  fs/iomap/iter.c       | 74 +++++++++++++++++++++++++++++++++++++++++++
+>  fs/iomap/trace.h      | 37 +++++++++++++++++++++-
+>  include/linux/iomap.h | 56 ++++++++++++++++++++++++++++++++
+>  4 files changed, 167 insertions(+), 1 deletion(-)
+>  create mode 100644 fs/iomap/iter.c
 > 
-> diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> index 726c7354d465..43c1d835a449 100644
-> --- a/drivers/nvdimm/virtio_pmem.c
-> +++ b/drivers/nvdimm/virtio_pmem.c
-> @@ -37,6 +37,8 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->  	struct virtio_pmem *vpmem;
->  	struct resource res;
->  	int err = 0;
-> +	bool have_shm_region;
-> +	struct virtio_shm_region pmem_region;
+> diff --git a/fs/iomap/Makefile b/fs/iomap/Makefile
+> index eef2722d93a183..85034deb5a2f19 100644
+> --- a/fs/iomap/Makefile
+> +++ b/fs/iomap/Makefile
+> @@ -10,6 +10,7 @@ obj-$(CONFIG_FS_IOMAP)		+= iomap.o
 >  
->  	if (!vdev->config->get) {
->  		dev_err(&vdev->dev, "%s failure: config access disabled\n",
-> @@ -58,10 +60,21 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
->  		goto out_err;
->  	}
->  
-> -	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> -			start, &vpmem->start);
-> -	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> -			size, &vpmem->size);
-> +	/* Retrieve the pmem device's address and size. It may have been supplied
-> +	 * as a PCI BAR-relative shared memory region, or as a guest absolute address.
-> +	 */
-> +	have_shm_region = virtio_get_shm_region(vpmem->vdev, &pmem_region,
-> +						VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION);
-> +
-> +	if (have_shm_region) {
-> +		vpmem->start = pmem_region.addr;
-> +		vpmem->size = pmem_region.len;
-> +	} else {
-> +		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> +				start, &vpmem->start);
-> +		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> +				size, &vpmem->size);
-> +	}
->  
->  	res.start = vpmem->start;
->  	res.end   = vpmem->start + vpmem->size - 1;
-> diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
-> index 0dddefe594c4..62bb564e81cb 100644
-> --- a/drivers/nvdimm/virtio_pmem.h
-> +++ b/drivers/nvdimm/virtio_pmem.h
-> @@ -50,6 +50,9 @@ struct virtio_pmem {
->  	__u64 size;
->  };
->  
-> +/* For the id field in virtio_pci_shm_cap */
-> +#define VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION 0
-> +
->  void virtio_pmem_host_ack(struct virtqueue *vq);
->  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio);
->  #endif
-> -- 
-> 2.32.0
-> 
-> 
+>  iomap-y				+= trace.o \
+>  				   apply.o \
+> +				   iter.o \
 
+Can we break this cycle of creating new files and removing old files
+when changing the iomap core code? It breaks the ability to troll
+git history easily through git blame and other techniques that are
+file based.
+
+If we are going to create a new file, then the core iomap code that
+every thing depends on should just be in a neutrally names file such
+as "iomap.c" so that we don't need to play these games in future.
+
+....
+
+> +/**
+> + * iomap_iter - iterate over a ranges in a file
+> + * @iter: iteration structue
+> + * @ops: iomap ops provided by the file system
+> + *
+> + * Iterate over file system provided contiguous ranges of blocks with the same
+> + * state.  Should be called in a loop that continues as long as this function
+> + * returns a positive value.  If 0 or a negative value is returned the caller
+> + * should break out of the loop - a negative value is an error either from the
+> + * file system or from the last iteration stored in @iter.copied.
+> + */
+> +int iomap_iter(struct iomap_iter *iter, const struct iomap_ops *ops)
+> +{
+
+We should avoid namespace conflicts where function names shadow
+object types. iomap_iterate() is fine as the function name - there's
+no need for abbreviation here because it's not an overly long name.
+This will makes it clearly different to the struct iomap_iter that
+is passed to it and it will also make grep, cscope and other
+code searching tools much more precise...
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
