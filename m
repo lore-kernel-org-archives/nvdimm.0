@@ -1,26 +1,31 @@
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id C098670
-	for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 22:34:15 +0000 (UTC)
-Received: from dread.disaster.area (pa49-181-34-10.pa.nsw.optusnet.com.au [49.181.34.10])
-	by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id 608471045436;
-	Tue, 20 Jul 2021 08:10:06 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1m5bSf-008Ug1-At; Tue, 20 Jul 2021 08:10:05 +1000
-Date: Tue, 20 Jul 2021 08:10:05 +1000
-From: Dave Chinner <david@fromorbit.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 20/27] fsdax: switch dax_iomap_rw to use iomap_iter
-Message-ID: <20210719221005.GL664593@dread.disaster.area>
-References: <20210719103520.495450-1-hch@lst.de>
- <20210719103520.495450-21-hch@lst.de>
+Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9F3F770
+	for <nvdimm@lists.linux.dev>; Tue, 20 Jul 2021 06:35:16 +0000 (UTC)
+Received: by linux.microsoft.com (Postfix, from userid 1096)
+	id 4E7C920B7178; Mon, 19 Jul 2021 23:35:10 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com 4E7C920B7178
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
+	s=default; t=1626762910;
+	bh=JTacEHvMReBHz+sxFanAVqmTqOcf9mqw8F4SJvhKzOA=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=g6f30W3BNATqxc4IE8KuToFJbE8gQej/w30TePM77G90p04xW4IKFx7XIzRfkkIGi
+	 HWhzD5M1FgBoVoxcoeCrwi+d30DELNVW2CX3dy6JaugviNgywKg88x4XrhGWQk1kM6
+	 hd6qgPUsFdZTcWqA0CNzVOmK3Ikk2y+fTEVmPR64=
+Date: Mon, 19 Jul 2021 23:35:10 -0700
+From: Taylor Stark <tstark@linux.microsoft.com>
+To: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	nvdimm@lists.linux.dev, apais@microsoft.com, tyhicks@microsoft.com,
+	jamorris@microsoft.com, benhill@microsoft.com,
+	sunilmut@microsoft.com, grahamwo@microsoft.com,
+	tstark@microsoft.com, "Michael S . Tsirkin" <mst@redhat.com>,
+	Pankaj Gupta <pankaj.gupta@ionos.com>
+Subject: Re: [PATCH v2 1/2] virtio-pmem: Support PCI BAR-relative addresses
+Message-ID: <20210720063510.GB8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <20210715223505.GA29329@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <CAM9Jb+g5viRiogvv2Mms+nBVWrYQXKofC9pweADUAW8-C6+iOw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -29,52 +34,98 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210719103520.495450-21-hch@lst.de>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=YKPhNiOx c=1 sm=1 tr=0
-	a=hdaoRb6WoHYrV466vVKEyw==:117 a=hdaoRb6WoHYrV466vVKEyw==:17
-	a=kj9zAlcOel0A:10 a=e_q4qTt1xDgA:10 a=7-415B0cAAAA:8
-	a=ptF0LWpzHeEXjmLxdvQA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
+In-Reply-To: <CAM9Jb+g5viRiogvv2Mms+nBVWrYQXKofC9pweADUAW8-C6+iOw@mail.gmail.com>
+User-Agent: Mutt/1.5.21 (2010-09-15)
 
-On Mon, Jul 19, 2021 at 12:35:13PM +0200, Christoph Hellwig wrote:
-> Switch the dax_iomap_rw implementation to use iomap_iter.
+On Mon, Jul 19, 2021 at 10:36:34PM +0200, Pankaj Gupta wrote:
+> > Update virtio-pmem to allow for the pmem region to be specified in either
+> > guest absolute terms or as a PCI BAR-relative address. This is required
+> > to support virtio-pmem in Hyper-V, since Hyper-V only allows PCI devices
+> > to operate on PCI memory ranges defined via BARs.
+> >
+> > Virtio-pmem will check for a shared memory window and use that if found,
+> > else it will fallback to using the guest absolute addresses in
+> > virtio_pmem_config. This was chosen over defining a new feature bit,
+> > since it's similar to how virtio-fs is configured.
+> >
+> > Signed-off-by: Taylor Stark <tstark@microsoft.com>
+> > ---
+> >  drivers/nvdimm/virtio_pmem.c | 21 +++++++++++++++++----
+> >  drivers/nvdimm/virtio_pmem.h |  3 +++
+> >  2 files changed, 20 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
+> > index 726c7354d465..43c1d835a449 100644
+> > --- a/drivers/nvdimm/virtio_pmem.c
+> > +++ b/drivers/nvdimm/virtio_pmem.c
+> > @@ -37,6 +37,8 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> >         struct virtio_pmem *vpmem;
+> >         struct resource res;
+> >         int err = 0;
+> > +       bool have_shm_region;
+> > +       struct virtio_shm_region pmem_region;
+> >
+> >         if (!vdev->config->get) {
+> >                 dev_err(&vdev->dev, "%s failure: config access disabled\n",
+> > @@ -58,10 +60,21 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
+> >                 goto out_err;
+> >         }
+> >
+> > -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> > -                       start, &vpmem->start);
+> > -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> > -                       size, &vpmem->size);
+> > +       /* Retrieve the pmem device's address and size. It may have been supplied
+> > +        * as a PCI BAR-relative shared memory region, or as a guest absolute address.
+> > +        */
+> > +       have_shm_region = virtio_get_shm_region(vpmem->vdev, &pmem_region,
+> > +                                               VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION);
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  fs/dax.c | 49 ++++++++++++++++++++++++-------------------------
->  1 file changed, 24 insertions(+), 25 deletions(-)
+> Current implementation of Virtio pmem device in Qemu does not expose
+> it as PCI BAR.
+> So, can't test it. Just curious if device side implementation is also
+> tested for asynchronous
+> flush case?
 > 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 4d63040fd71f56..51da45301350a6 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -1103,20 +1103,21 @@ s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
->  	return size;
->  }
->  
-> -static loff_t
-> -dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
-> -		struct iomap *iomap, struct iomap *srcmap)
-> +static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
-> +		struct iov_iter *iter)
+> Thanks,
+> Pankaj
 
-At first I wondered "iomi? Strange name, why is this one-off name
-used?" and then I realised it's because this function also takes an
-struct iov_iter named "iter".
+Yes, I tested the async flush case as well. We basically call
+FlushFileBuffers on the backing file, which is Windows' equivalent of
+fsync. I also briefly tested with qemu to ensure that still works with
+the patch.
 
-That's going to cause confusion in the long run - iov_iter and
-iomap_iter both being generally named "iter", and then one or the
-other randomly changing when both are used in the same function.
-
-Would it be better to avoid any possible confusion simply by using
-"iomi" for all iomap_iter variables throughout the patchset from the
-start? That way nobody is going to confuse iov_iter with iomap_iter
-iteration variables and code that uses both types will naturally
-have different, well known names...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Thanks,
+Taylor
+ 
+> > +
+> > +       if (have_shm_region) {
+> > +               vpmem->start = pmem_region.addr;
+> > +               vpmem->size = pmem_region.len;
+> > +       } else {
+> > +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> > +                               start, &vpmem->start);
+> > +               virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> > +                               size, &vpmem->size);
+> > +       }
+> >
+> >         res.start = vpmem->start;
+> >         res.end   = vpmem->start + vpmem->size - 1;
+> > diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
+> > index 0dddefe594c4..62bb564e81cb 100644
+> > --- a/drivers/nvdimm/virtio_pmem.h
+> > +++ b/drivers/nvdimm/virtio_pmem.h
+> > @@ -50,6 +50,9 @@ struct virtio_pmem {
+> >         __u64 size;
+> >  };
+> >
+> > +/* For the id field in virtio_pci_shm_cap */
+> > +#define VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION 0
+> > +
+> >  void virtio_pmem_host_ack(struct virtqueue *vq);
+> >  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio);
+> >  #endif
+> > --
+> > 2.32.0
+> >
+> >
