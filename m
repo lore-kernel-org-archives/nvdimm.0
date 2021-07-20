@@ -1,123 +1,90 @@
-Received: from linux.microsoft.com (linux.microsoft.com [13.77.154.182])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 589F370
-	for <nvdimm@lists.linux.dev>; Tue, 20 Jul 2021 06:41:04 +0000 (UTC)
-Received: by linux.microsoft.com (Postfix, from userid 1096)
-	id E278320B7178; Mon, 19 Jul 2021 23:41:03 -0700 (PDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 linux.microsoft.com E278320B7178
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.microsoft.com;
-	s=default; t=1626763263;
-	bh=5oOKS/wiVtbMbsXWKlaSB6ysu8FOLfawi1KrzjYFVPY=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=FHt3WJXYRcLzGT+Dz8uxtYfT9a6JhDWGY5a0UO9UaVk1LzLeTgzBj9LCIwmqjUeuk
-	 ln2isSx+FAOs2Da7sBWjP/PTLEvYH7srO4Se85fo09eJr4YJf4U4tm+LXJDnaMStx4
-	 GpZCnZjI5sCBh0rgqvxr5B8YLrp5n85XiZfhbGAc=
-Date: Mon, 19 Jul 2021 23:41:03 -0700
-From: Taylor Stark <tstark@linux.microsoft.com>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, ira.weiny@intel.com, nvdimm@lists.linux.dev,
-	apais@microsoft.com, tyhicks@microsoft.com, jamorris@microsoft.com,
-	benhill@microsoft.com, sunilmut@microsoft.com,
-	grahamwo@microsoft.com, tstark@microsoft.com
-Subject: Re: [PATCH v2 1/2] virtio-pmem: Support PCI BAR-relative addresses
-Message-ID: <20210720064103.GC8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-References: <20210715223505.GA29329@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
- <20210719171533-mutt-send-email-mst@kernel.org>
+Received: from mail-lf1-f45.google.com (mail-lf1-f45.google.com [209.85.167.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15FFE70
+	for <nvdimm@lists.linux.dev>; Tue, 20 Jul 2021 06:51:16 +0000 (UTC)
+Received: by mail-lf1-f45.google.com with SMTP id a12so34235504lfb.7
+        for <nvdimm@lists.linux.dev>; Mon, 19 Jul 2021 23:51:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=aYwYtLmWkzL3x9IjqcMiTVGuH2raC566+MRB47zYHFc=;
+        b=NXQaaPdCRZf0X+nj/5vpaOatAb3BKZ1StuJPfRsM5FGshG0A4xLi8OZZk6KB5iqwZf
+         ZQjOrUtZeg6bCSEyYmvcAjzDYnvflgDRP/sGUn3s625ODDCciK2SXRg6uu00cDlVhbNn
+         gsbW8yLdChZ2AABmFubdCqJvkapVLv4dLR816XTkDdXewNrCNcfm9fZ28OSqJDs77pcd
+         N2F5CGEdd3slQSoh3sF/UK18yvhDrejDeS5bVVikkCWx3vpINpCaBfMoL3mq9QelJ6g8
+         wvOI3+BvFlvjhZU3bB6X6HGbVk0U4ehr80lk+WqmBDi/yRULJozzrZ8VIIlOCed4a3PZ
+         T3KA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=aYwYtLmWkzL3x9IjqcMiTVGuH2raC566+MRB47zYHFc=;
+        b=c78rCvS/lBn4ZXn8RbJYSIeyitU8wBSj2G3VWI9bYJFJHgOQ269ZPAAF/FvaxRy5GW
+         pIAz80+MADcpVFICBll/IfvVL8M+H1Ni2LUwrYXkPSmH/ShOtwrgk1sH/0m5C8tXHr7A
+         cg8EV//+gx/45Xid4PgM2UyqAcVLJNcC7ZprBA9wUqDWUzM6/ihCWTAfsNOnHsPY/xoG
+         sgzASj4TB7f3oZeTbWFMfUytyUKRcB9joadROrMxO1sx1lAciqAxQU69N0swptcMXB4L
+         53rL9/cm9hZ9tKGuW4e+WumnJBnVSbtZZ8J+IMUFev66uhFAQKqsXFHGhhqUgPKBMn7e
+         anOg==
+X-Gm-Message-State: AOAM530RZV4uPxxc4sd6ukOgWStQIhw6SQsl/ndLS8TV5auV4+QfVVoW
+	qKKfs96F+hd16wHPuMh1KB0B9oEZeEhoEOp98qkNXA==
+X-Google-Smtp-Source: ABdhPJxzQEofO7lkqOXYRfUEfChs5RF6J614Q2HXjMph1B1IGp5DLiZCguyxucxfG2LSxV0Bx/Nq+ZCp9FwJkIjZz6E=
+X-Received: by 2002:a05:6512:220b:: with SMTP id h11mr14325763lfu.504.1626763875065;
+ Mon, 19 Jul 2021 23:51:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210719171533-mutt-send-email-mst@kernel.org>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+References: <20210715223505.GA29329@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <CAM9Jb+g5viRiogvv2Mms+nBVWrYQXKofC9pweADUAW8-C6+iOw@mail.gmail.com> <20210720063510.GB8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+In-Reply-To: <20210720063510.GB8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+From: Pankaj Gupta <pankaj.gupta@ionos.com>
+Date: Tue, 20 Jul 2021 08:51:04 +0200
+Message-ID: <CALzYo30-fzcQMDVEhKMAGmzXO5hvtd-J6CtavesAUzaQjcpDcg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] virtio-pmem: Support PCI BAR-relative addresses
+To: Taylor Stark <tstark@linux.microsoft.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev, apais@microsoft.com, 
+	tyhicks@microsoft.com, jamorris@microsoft.com, benhill@microsoft.com, 
+	sunilmut@microsoft.com, grahamwo@microsoft.com, tstark@microsoft.com, 
+	"Michael S . Tsirkin" <mst@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Jul 19, 2021 at 05:17:00PM -0400, Michael S. Tsirkin wrote:
-> On Thu, Jul 15, 2021 at 03:35:05PM -0700, Taylor Stark wrote:
-> > Update virtio-pmem to allow for the pmem region to be specified in either
-> > guest absolute terms or as a PCI BAR-relative address. This is required
-> > to support virtio-pmem in Hyper-V, since Hyper-V only allows PCI devices
-> > to operate on PCI memory ranges defined via BARs.
-> > 
-> > Virtio-pmem will check for a shared memory window and use that if found,
-> > else it will fallback to using the guest absolute addresses in
-> > virtio_pmem_config. This was chosen over defining a new feature bit,
-> > since it's similar to how virtio-fs is configured.
-> > 
-> > Signed-off-by: Taylor Stark <tstark@microsoft.com>
-> 
-> This needs to be added to the device spec too.
-> Can you send a spec patch please?
-> It's a subscriber-only list virtio-comment@lists.oasis-open.org
+> > >
+> > > -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> > > -                       start, &vpmem->start);
+> > > -       virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
+> > > -                       size, &vpmem->size);
+> > > +       /* Retrieve the pmem device's address and size. It may have been supplied
+> > > +        * as a PCI BAR-relative shared memory region, or as a guest absolute address.
+> > > +        */
+> > > +       have_shm_region = virtio_get_shm_region(vpmem->vdev, &pmem_region,
+> > > +                                               VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION);
+> >
+> > Current implementation of Virtio pmem device in Qemu does not expose
+> > it as PCI BAR.
+> > So, can't test it. Just curious if device side implementation is also
+> > tested for asynchronous
+> > flush case?
+> >
+> > Thanks,
+> > Pankaj
+>
+> Yes, I tested the async flush case as well. We basically call
+> FlushFileBuffers on the backing file, which is Windows' equivalent of
+> fsync. I also briefly tested with qemu to ensure that still works with
+> the patch.
 
-Absolutely! I tried looking on the virtio-spec repo on github but
-I couldn't find a spec for virtio-pmem to update. There is this
-issue (https://github.com/oasis-tcs/virtio-spec/issues/78) which
-seems to indicate the virtio-pmem spec hasn't been added yet.
-Any suggestions for where to send a patch?
+Thank you for the confirmation. This sounds really good.
+I am also getting back to pending items for virtio-pmem.
+
+On a side question: Do you guys have any or plan for Windows guest
+implementation
+for virtio-pmem?
 
 Thanks,
-Taylor 
- 
-> > ---
-> >  drivers/nvdimm/virtio_pmem.c | 21 +++++++++++++++++----
-> >  drivers/nvdimm/virtio_pmem.h |  3 +++
-> >  2 files changed, 20 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/nvdimm/virtio_pmem.c b/drivers/nvdimm/virtio_pmem.c
-> > index 726c7354d465..43c1d835a449 100644
-> > --- a/drivers/nvdimm/virtio_pmem.c
-> > +++ b/drivers/nvdimm/virtio_pmem.c
-> > @@ -37,6 +37,8 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
-> >  	struct virtio_pmem *vpmem;
-> >  	struct resource res;
-> >  	int err = 0;
-> > +	bool have_shm_region;
-> > +	struct virtio_shm_region pmem_region;
-> >  
-> >  	if (!vdev->config->get) {
-> >  		dev_err(&vdev->dev, "%s failure: config access disabled\n",
-> > @@ -58,10 +60,21 @@ static int virtio_pmem_probe(struct virtio_device *vdev)
-> >  		goto out_err;
-> >  	}
-> >  
-> > -	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> > -			start, &vpmem->start);
-> > -	virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> > -			size, &vpmem->size);
-> > +	/* Retrieve the pmem device's address and size. It may have been supplied
-> > +	 * as a PCI BAR-relative shared memory region, or as a guest absolute address.
-> > +	 */
-> > +	have_shm_region = virtio_get_shm_region(vpmem->vdev, &pmem_region,
-> > +						VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION);
-> > +
-> > +	if (have_shm_region) {
-> > +		vpmem->start = pmem_region.addr;
-> > +		vpmem->size = pmem_region.len;
-> > +	} else {
-> > +		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> > +				start, &vpmem->start);
-> > +		virtio_cread_le(vpmem->vdev, struct virtio_pmem_config,
-> > +				size, &vpmem->size);
-> > +	}
-> >  
-> >  	res.start = vpmem->start;
-> >  	res.end   = vpmem->start + vpmem->size - 1;
-> > diff --git a/drivers/nvdimm/virtio_pmem.h b/drivers/nvdimm/virtio_pmem.h
-> > index 0dddefe594c4..62bb564e81cb 100644
-> > --- a/drivers/nvdimm/virtio_pmem.h
-> > +++ b/drivers/nvdimm/virtio_pmem.h
-> > @@ -50,6 +50,9 @@ struct virtio_pmem {
-> >  	__u64 size;
-> >  };
-> >  
-> > +/* For the id field in virtio_pci_shm_cap */
-> > +#define VIRTIO_PMEM_SHMCAP_ID_PMEM_REGION 0
-> > +
-> >  void virtio_pmem_host_ack(struct virtqueue *vq);
-> >  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio);
-> >  #endif
-> > -- 
-> > 2.32.0
+Pankaj
