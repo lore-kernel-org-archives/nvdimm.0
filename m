@@ -1,67 +1,72 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lj1-f181.google.com (mail-lj1-f181.google.com [209.85.208.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 976E0168
-	for <nvdimm@lists.linux.dev>; Thu, 22 Jul 2021 02:26:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=dLP+yOynOGe7mNsLIAGIVj4pAcnAp3u4c0p+GVerGOM=; b=WQ8LAhS5qjh02Hm/qXcWacXOzO
-	LcmxTqKGZ6Y2w988GubYidarF5CS9CmsEmff/SEFquuoThjXph/ZZ8f3iDOM8R8fUG1iB6igk6pky
-	pPuyDLYpq9n9c0n1tY18goCib6gpCTnWE1l9eSUmEoUDeN9uw+2JEPYo4rjPrNtzT/xSjUxribsJJ
-	9BHG3GMl8+1ANgW/krR5J++HfZVbvlqwpodGY5MHl5m32qxxFI9j5p6laDmQV6yqNTSmuhw2BWBQp
-	dGOTFzukVbTUtg5RHvUG1td9RUkABn8igkl3ZdSTShoQWQSaWdpIIbzgH4ptqR7pxp3krX8eatFEv
-	PXF/bhiA==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1m6OOE-009nxI-4s; Thu, 22 Jul 2021 02:24:54 +0000
-Date: Thu, 22 Jul 2021 03:24:46 +0100
-From: Matthew Wilcox <willy@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Joao Martins <joao.m.martins@oracle.com>, linux-mm@kvack.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Naoya Horiguchi <naoya.horiguchi@nec.com>,
-	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
-	Jane Chu <jane.chu@oracle.com>,
-	Muchun Song <songmuchun@bytedance.com>,
-	Mike Kravetz <mike.kravetz@oracle.com>,
-	Jonathan Corbet <corbet@lwn.net>, nvdimm@lists.linux.dev,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH v3 00/14] mm, sparse-vmemmap: Introduce compound pagemaps
-Message-ID: <YPjW7tu1NU0iRaH9@casper.infradead.org>
-References: <20210714193542.21857-1-joao.m.martins@oracle.com>
- <20210714144830.29f9584878b04903079ef7eb@linux-foundation.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 293A270
+	for <nvdimm@lists.linux.dev>; Thu, 22 Jul 2021 04:40:40 +0000 (UTC)
+Received: by mail-lj1-f181.google.com with SMTP id c23so5736733ljr.8
+        for <nvdimm@lists.linux.dev>; Wed, 21 Jul 2021 21:40:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FqaF1toTkZO1aIkjtXOKxydI54vBBJOz0yz3CPG4AT8=;
+        b=ZFksZed0LXtmImxmSANOpFmEtvY0GG7XmtNlDRjMTQhMRKaAzYe57EUcDrKcUg6H17
+         S9rWGY+V5UfK2i8WDGYEfXfe4vNN+2B7CDjY0vagKHUdIcNTxscOsdjp6A54ySJ3dt5k
+         bbgbm4o/fWdixjfAGISDUeTJbR/V6orVWgktJ+TnJ+QuT/jLulTb4AJSsn5F+ZWgtPOV
+         fHmgoSQHsfzo/nZRqaGP8gZdPd3hai3EF/tyzEVuo/hPiX0tZwuKLY/wWEgb5UQMtPyj
+         BQCYZIWit1gOUocE6LToEDkSVP3RfLhjZ70amz8rkYtKm75Di1U3mUpPVEYQMLJxE6+/
+         6AYA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FqaF1toTkZO1aIkjtXOKxydI54vBBJOz0yz3CPG4AT8=;
+        b=j/ZEWzjyzY06HpIcB/Y2gVfkjThIHDA2ogB36pQGXIq0GEB675o5RWMENbSZSMN3h/
+         shzPcT/JoutqyxUHOzlJm0A32hsiaZmmhyp0H1T8sOIeU4XFhCsS8aPr0soywj2aTfo4
+         lnSvTwxBUcWC1WgL/axlQFuDSICaq6qPSokg0VrD6FzShm8qEh0ELgXh/MLuAKYM3oWh
+         KzdRJgmbZH2ozYdCvheTHbpiWupTES0fGBCDg9Zb+YwvH2rC63LY1yqcZPxeWZZVnhJ0
+         GDYJ+FlgYkinAVCtd0qIz7sQ7ZB9cfqMbnMkKqRksBb8xlrSWiIhD7Arl5sQ10o6EE+c
+         ZEyA==
+X-Gm-Message-State: AOAM533KeXMmL7u0/Fvb41G1VjoAIqNuHWat6tZz6Z56kuSq/qeJ7M9i
+	EGk3TUh3kpoJ6ABqe2keYQS9FW+85SW8PX3Mjx36Fw==
+X-Google-Smtp-Source: ABdhPJyBmJ8x9rdIZ7PzfEct3U03Dmp5hp5gN6jd27mrCPUZt2BEIfrNIkVgotqTJTuFY+GFXQtCRmZdzV3mQU6S1Yc=
+X-Received: by 2002:a2e:bd84:: with SMTP id o4mr32736094ljq.334.1626928838170;
+ Wed, 21 Jul 2021 21:40:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210714144830.29f9584878b04903079ef7eb@linux-foundation.org>
+References: <20210715223505.GA29329@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <CAM9Jb+g5viRiogvv2Mms+nBVWrYQXKofC9pweADUAW8-C6+iOw@mail.gmail.com>
+ <20210720063510.GB8476@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+ <CALzYo30-fzcQMDVEhKMAGmzXO5hvtd-J6CtavesAUzaQjcpDcg@mail.gmail.com> <20210721220851.GB19842@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+In-Reply-To: <20210721220851.GB19842@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+From: Pankaj Gupta <pankaj.gupta@ionos.com>
+Date: Thu, 22 Jul 2021 06:40:27 +0200
+Message-ID: <CALzYo30TneZqhR4Uz_=sWVpzr3Y3VX9d=3dYMe-NbvF-yYessA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] virtio-pmem: Support PCI BAR-relative addresses
+To: Taylor Stark <tstark@linux.microsoft.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Dan Williams <dan.j.williams@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Ira Weiny <ira.weiny@intel.com>, nvdimm@lists.linux.dev, apais@microsoft.com, 
+	tyhicks@microsoft.com, jamorris@microsoft.com, benhill@microsoft.com, 
+	sunilmut@microsoft.com, grahamwo@microsoft.com, tstark@microsoft.com, 
+	"Michael S . Tsirkin" <mst@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Jul 14, 2021 at 02:48:30PM -0700, Andrew Morton wrote:
-> On Wed, 14 Jul 2021 20:35:28 +0100 Joao Martins <joao.m.martins@oracle.com> wrote:
-> 
-> > This series, attempts at minimizing 'struct page' overhead by
-> > pursuing a similar approach as Muchun Song series "Free some vmemmap
-> > pages of hugetlb page"[0] but applied to devmap/ZONE_DEVICE which is now
-> > in mmotm. 
-> > 
-> > [0] https://lore.kernel.org/linux-mm/20210308102807.59745-1-songmuchun@bytedance.com/
-> 
-> [0] is now in mainline.
-> 
-> This patch series looks like it'll clash significantly with the folio
-> work and it is pretty thinly reviewed, so I think I'll take a pass for
-> now.  Matthew, thoughts?
+> > On a side question: Do you guys have any or plan for Windows guest
+> > implementation
+> > for virtio-pmem?
+>
+> Unfortunately, my team doesn't currently have any plans to add a Windows
+> virtio-pmem implementation. My team is primarily focused on virtualization
+> in client environments, which is a little different than server environments.
+> For our Windows-based scenarios, dynamically sized disks are important. It's
+> tricky to get that to work with pmem+DAX given that Windows isn't state separated.
 
-I had a look through it, and I don't see anything that looks like it'll
-clash with the folio patches.  The folio work really touches the page
-cache for now, and this seems mostly to touch the devmap paths.
+I see. Thank you for the details.
 
-It would be nice to convert the devmap code to folios too, but that
-can wait.  The mess with page refcounts needs to be sorted out first.
+Best regards,
+Pankaj
