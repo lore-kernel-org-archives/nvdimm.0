@@ -1,22 +1,23 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 340D970
-	for <nvdimm@lists.linux.dev>; Mon, 26 Jul 2021 08:22:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FB5670
+	for <nvdimm@lists.linux.dev>; Mon, 26 Jul 2021 08:25:41 +0000 (UTC)
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 1A49667373; Mon, 26 Jul 2021 10:22:38 +0200 (CEST)
-Date: Mon, 26 Jul 2021 10:22:36 +0200
+	id 66F7767373; Mon, 26 Jul 2021 10:25:38 +0200 (CEST)
+Date: Mon, 26 Jul 2021 10:25:38 +0200
 From: Christoph Hellwig <hch@lst.de>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>,
+To: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@lst.de>, "Darrick J. Wong" <djwong@kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
 	Matthew Wilcox <willy@infradead.org>,
 	Andreas Gruenbacher <agruenba@redhat.com>,
 	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
 	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 17/27] iomap: switch iomap_seek_hole to use iomap_iter
-Message-ID: <20210726082236.GE14853@lst.de>
-References: <20210719103520.495450-1-hch@lst.de> <20210719103520.495450-18-hch@lst.de> <20210719172247.GG22402@magnolia>
+Subject: Re: [PATCH 20/27] fsdax: switch dax_iomap_rw to use iomap_iter
+Message-ID: <20210726082538.GF14853@lst.de>
+References: <20210719103520.495450-1-hch@lst.de> <20210719103520.495450-21-hch@lst.de> <20210719221005.GL664593@dread.disaster.area>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -25,32 +26,26 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210719172247.GG22402@magnolia>
+In-Reply-To: <20210719221005.GL664593@dread.disaster.area>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Mon, Jul 19, 2021 at 10:22:47AM -0700, Darrick J. Wong wrote:
-> > -static loff_t
-> > -iomap_seek_hole_actor(struct inode *inode, loff_t start, loff_t length,
-> > -		      void *data, struct iomap *iomap, struct iomap *srcmap)
-> > +static loff_t iomap_seek_hole_iter(const struct iomap_iter *iter, loff_t *pos)
+On Tue, Jul 20, 2021 at 08:10:05AM +1000, Dave Chinner wrote:
+> At first I wondered "iomi? Strange name, why is this one-off name
+> used?" and then I realised it's because this function also takes an
+> struct iov_iter named "iter".
 > 
-> /me wonders if @pos should be named hole_pos (here and in the caller) to
-> make it a little easier to read...
-
-Sure.
-
-> ...because what we're really saying here is that if seek_hole_iter found
-> a hole (and returned zero, thereby terminating the loop before iter.len
-> could reach zero), we want to return the position of the hole.
-
-Yes.
-
-> > +	return size;
+> That's going to cause confusion in the long run - iov_iter and
+> iomap_iter both being generally named "iter", and then one or the
+> other randomly changing when both are used in the same function.
 > 
-> Not sure why we return size here...?  Oh, because there's an implicit
-> hole at EOF, so we return i_size.  Uh, does this do the right thing if
-> ->iomap_begin returns posteof mappings?  I don't see anything in
-> iomap_iter_advance that would stop iteration at EOF.
+> Would it be better to avoid any possible confusion simply by using
+> "iomi" for all iomap_iter variables throughout the patchset from the
+> start? That way nobody is going to confuse iov_iter with iomap_iter
+> iteration variables and code that uses both types will naturally
+> have different, well known names...
 
-Nothing in ->iomap_begin checks that, iomap_seek_hole initializes
-iter.len so that it stops at EOF.
+Hmm.  iomi comes from the original patch from willy and I kinda hate
+it.  But given that we have this clash here (and in the direct I/O code)
+I kept using it.
+
+Does anyone have any strong opinions here?
