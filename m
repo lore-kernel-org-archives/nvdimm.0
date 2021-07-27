@@ -1,87 +1,71 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 682BB70
-	for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 15:47:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1627400867;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
-	bh=ralyV5G7XJkmcT2GXx/j2umoacDKJ2ppZ813mNupf+4=;
-	b=g1Hxk2Ybke99/XhiMRMR4M05J91Q8qtB/L7gNERmIfg/iu3bWJsDXE6Ufeja24Zafsx/6r
-	TJRSQCRFoe3lGqhTI+vmSZLcdMWGdcE0aknqusr68PYx0qjBTX6CewDlENkUVK8Qnfeqvt
-	VcV98c3xUFxvdjsrhFwpG5uIEfnAhcs=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-212--tPwhjigM7-Tm0m0FAyATw-1; Tue, 27 Jul 2021 11:47:45 -0400
-X-MC-Unique: -tPwhjigM7-Tm0m0FAyATw-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F2DDA18C8C00;
-	Tue, 27 Jul 2021 15:47:40 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 8A6965D9FC;
-	Tue, 27 Jul 2021 15:47:40 +0000 (UTC)
-Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 16RFldMM011955;
-	Tue, 27 Jul 2021 11:47:39 -0400
-Received: from localhost (mpatocka@localhost)
-	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 16RFlb1u011951;
-	Tue, 27 Jul 2021 11:47:37 -0400
-X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
-Date: Tue, 27 Jul 2021 11:47:37 -0400 (EDT)
-From: Mikulas Patocka <mpatocka@redhat.com>
-X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
-To: Alexander Viro <viro@zeniv.linux.org.uk>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Zhongwei Cai <sunrise_l@sjtu.edu.cn>,
-        Mingkai Dong <mingkaidong@gmail.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
-        Eric Sandeen <esandeen@redhat.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "Theodore Ts'o" <tytso@mit.edu>
-cc: linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        linux-nvdimm <linux-nvdimm@lists.01.org>, nvdimm@lists.linux.dev
-Subject: [RFC v4] nvfs: a filesystem for persistent memory
-Message-ID: <alpine.LRH.2.02.2107270946180.876@file01.intranet.prod.int.rdu2.redhat.com>
-User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B8822F80
+	for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 23:23:25 +0000 (UTC)
+Received: by mail-pj1-f51.google.com with SMTP id o44-20020a17090a0a2fb0290176ca3e5a2fso1543580pjo.1
+        for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 16:23:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=xJppDtDekYuL4cldpvhWyZyRjcblITCSsPeqIjft4RM=;
+        b=yr6kw4zf3gIwms/Q88NRoMz75sAKL02QThM0wQN+UqNWENuFrKmN+BaWXb7ywu+cYJ
+         fU3LyjFZwemn2aKXNQl2EhOw1XmpolDFwb/6zlB8ROPTufuWXtwoD0Uxaut87feMA1q2
+         jqgz7QMHLSk1uGXvOkPQ03plMlEQntwl/QOf7opT3eOBuODi/Iji1fjDl0nGXCjm9/gJ
+         XZODtSaFfxiDXJB9BdfFmnGZk9BxuwqtZ54ym5WAC/vzHSxuCIXkw0Yk+YzRB8QQkhzL
+         LuArIRpDS18WAYJWDMr8TDCFmRWjxSN2zfBSw6d28X6uRedeXFM2OgYDReK89s1M2P+w
+         G+Iw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=xJppDtDekYuL4cldpvhWyZyRjcblITCSsPeqIjft4RM=;
+        b=bWU+8WHJMwwStyN7wZ33Kkc153QINA0u6H8XNtBR4fBT4cm/HU6Rvqos+tvr+l7Ibi
+         +q3MVFOohrgyALY0+VsfTD5Gg2T7HurBScdW/grqfQD2ZGfLyGnqtufct6ql9F8MtjO+
+         GkKkf+lFoEianBCEpmfkJ5Qawsx9Xf61rngAagw448NgCbViISeB7X81h9j4DkqXhvFP
+         fWEdiWeT1OunZ29eMUI4e0UG7xXexJ2WDQjLACgWsfcUo/jVvEogEGphZjWzJu9W3S20
+         YQFw3OLOtLgMJ1bv4c/XKo6dsq1IbfiE+gTKzJmg2HibUSyyQGhX9bP/dNIWMxUjPTKj
+         Wgpg==
+X-Gm-Message-State: AOAM533h6F5Y3G7f4Jc3OVAPYe7u8S4JF08HxzQlCy/bnugcx/yG83nn
+	XIlgDkpj3aBspMZ2m9dSTut5pHB5SMjd4jWPoSNqPA==
+X-Google-Smtp-Source: ABdhPJwLO7kXi5PzPgZkkGTm9QpggNSyfhWzfbITFv6b2qe0ZlE5ljlM6M13ncXAS3Z4qLENhnEhhA+Yvdr6t8zRaqU=
+X-Received: by 2002:a65:5544:: with SMTP id t4mr25771932pgr.240.1627428205422;
+ Tue, 27 Jul 2021 16:23:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+References: <20210714193542.21857-1-joao.m.martins@oracle.com>
+ <20210714144830.29f9584878b04903079ef7eb@linux-foundation.org>
+ <YPjW7tu1NU0iRaH9@casper.infradead.org> <5642c8c3-cf13-33dc-c617-9d1becfba1b1@oracle.com>
+In-Reply-To: <5642c8c3-cf13-33dc-c617-9d1becfba1b1@oracle.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 27 Jul 2021 16:23:14 -0700
+Message-ID: <CAPcyv4ho7idBPU8F4qE8XWhRttkdfzQRATaTAw2C3AfY+Z2BdQ@mail.gmail.com>
+Subject: Re: [PATCH v3 00/14] mm, sparse-vmemmap: Introduce compound pagemaps
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, 
+	Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
+	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>, 
+	Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, 
+	Jonathan Corbet <corbet@lwn.net>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi
+On Thu, Jul 22, 2021 at 3:54 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+[..]
+> > The folio work really touches the page
+> > cache for now, and this seems mostly to touch the devmap paths.
+> >
+> /me nods -- it really is about devmap infra for usage in device-dax for persistent memory.
+>
+> Perhaps I should do s/pagemaps/devmap/ throughout the series to avoid confusion.
 
-I announce a new version of NVFS - a filesystem for persistent memory.
-You can download it at:
-	http://people.redhat.com/~mpatocka/nvfs/
-	git://leontynka.twibright.com/nvfs.git
-Description of the filesystem layout:
-	http://people.redhat.com/~mpatocka/nvfs/INTERNALS
-
-
-Changes since the last release:
-
-* updated for the kernels 5.13 and 5.14-rc
-
-* add the ability to export the NVFS filesystem over NFS:
-	- each directory contains a pointer to its parent directory 
-	- add the 'generation' field to inodes
-	- the ability to open files by inode numbers
-
-* fixed some endianity conversions
-
-* fixed some sparse warnings
-
-* fixed a bug in extended attributes
-
-Mikulas
-
+I also like "devmap" as a more accurate name. It matches the PFN_DEV
+and PFN_MAP flags that decorate DAX capable pfn_t instances. It also
+happens to match a recommendation I gave to Ira for his support for
+supervisor protection keys with devmap pfns.
