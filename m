@@ -1,77 +1,87 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2561D70
-	for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 14:32:57 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8053603E7;
-	Tue, 27 Jul 2021 14:32:56 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1627396376;
-	bh=P+J3nIURP3B0hGzMIl54oyj1L6/yl7CDmXAm5X+Upx8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=mrlGqwmpjfPpgIzgTRGvv8csrCB9SF7IAeAXSl4PoYy4iHOL8O7IQYDa4eZu4E+7C
-	 1OaUNt7sGa++izEvGezUm4A51hFgnFq/otisMzdmjNXAX54GLwKWj5K/orOK2B6S1v
-	 XglpIa8SNerVvNFX5K5SD/TrRB+AvsU3281uQ1BiTC6o4EXW3QZJCVVCJ33pM+NlJm
-	 L3VPYLxHOsKcEElZIdokwaqGoub+L6oWy+apXEDlQpMVQj7k7qbq0hXCQmhVKpiKtO
-	 v+lwBnYgi/S5VV0CcbVlTi3CTNmvbAJrktYncwHyG+GYNgGiXBwuqtUsZX8lH/OQdw
-	 uHMmFHkU98lMA==
-Date: Tue, 27 Jul 2021 07:32:56 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 16/27] iomap: switch iomap_bmap to use iomap_iter
-Message-ID: <20210727143256.GC559142@magnolia>
-References: <20210719103520.495450-1-hch@lst.de>
- <20210719103520.495450-17-hch@lst.de>
- <20210719170545.GF22402@magnolia>
- <20210726081942.GD14853@lst.de>
- <20210726163922.GA559142@magnolia>
- <20210727063138.GA10143@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 682BB70
+	for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 15:47:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1627400867;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+	bh=ralyV5G7XJkmcT2GXx/j2umoacDKJ2ppZ813mNupf+4=;
+	b=g1Hxk2Ybke99/XhiMRMR4M05J91Q8qtB/L7gNERmIfg/iu3bWJsDXE6Ufeja24Zafsx/6r
+	TJRSQCRFoe3lGqhTI+vmSZLcdMWGdcE0aknqusr68PYx0qjBTX6CewDlENkUVK8Qnfeqvt
+	VcV98c3xUFxvdjsrhFwpG5uIEfnAhcs=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-212--tPwhjigM7-Tm0m0FAyATw-1; Tue, 27 Jul 2021 11:47:45 -0400
+X-MC-Unique: -tPwhjigM7-Tm0m0FAyATw-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id F2DDA18C8C00;
+	Tue, 27 Jul 2021 15:47:40 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 8A6965D9FC;
+	Tue, 27 Jul 2021 15:47:40 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 16RFldMM011955;
+	Tue, 27 Jul 2021 11:47:39 -0400
+Received: from localhost (mpatocka@localhost)
+	by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 16RFlb1u011951;
+	Tue, 27 Jul 2021 11:47:37 -0400
+X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
+Date: Tue, 27 Jul 2021 11:47:37 -0400 (EDT)
+From: Mikulas Patocka <mpatocka@redhat.com>
+X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
+To: Alexander Viro <viro@zeniv.linux.org.uk>,
+        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+        Zhongwei Cai <sunrise_l@sjtu.edu.cn>,
+        Mingkai Dong <mingkaidong@gmail.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+        Eric Sandeen <esandeen@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "Theodore Ts'o" <tytso@mit.edu>
+cc: linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        linux-nvdimm <linux-nvdimm@lists.01.org>, nvdimm@lists.linux.dev
+Subject: [RFC v4] nvfs: a filesystem for persistent memory
+Message-ID: <alpine.LRH.2.02.2107270946180.876@file01.intranet.prod.int.rdu2.redhat.com>
+User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210727063138.GA10143@lst.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 
-On Tue, Jul 27, 2021 at 08:31:38AM +0200, Christoph Hellwig wrote:
-> On Mon, Jul 26, 2021 at 09:39:22AM -0700, Darrick J. Wong wrote:
-> > The documentation needs to be much more explicit about the fact that you
-> > cannot "break;" your way out of an iomap_iter loop.  I think the comment
-> > should be rewritten along these lines:
-> > 
-> > "Iterate over filesystem-provided space mappings for the provided file
-> > range.  This function handles cleanup of resources acquired for
-> > iteration when the filesystem indicates there are no more space
-> > mappings, which means that this function must be called in a loop that
-> > continues as long it returns a positive value.  If 0 or a negative value
-> > is returned, the caller must not return to the loop body.  Within a loop
-> > body, there are two ways to break out of the loop body: leave
-> > @iter.processed unchanged, or set it to the usual negative errno."
-> > 
-> > Hm.
-> 
-> Yes, I'll update the documentation.
+Hi
 
-Ok, thanks!
+I announce a new version of NVFS - a filesystem for persistent memory.
+You can download it at:
+	http://people.redhat.com/~mpatocka/nvfs/
+	git://leontynka.twibright.com/nvfs.git
+Description of the filesystem layout:
+	http://people.redhat.com/~mpatocka/nvfs/INTERNALS
 
-> > Clunky, for sure, but at least we still get to use break as the language
-> > designers intended.
-> 
-> I can't see any advantage there over just proper documentation.  If you
-> are totally attached to a working break we might have to come up with
-> a nasty for_each macro that ensures we have a final iomap_apply, but I
-> doubt it is worth the effort.
 
-I was pushing the explicit _break() function as a means to avoid an even
-fuglier loop macro.
+Changes since the last release:
 
---D
+* updated for the kernels 5.13 and 5.14-rc
+
+* add the ability to export the NVFS filesystem over NFS:
+	- each directory contains a pointer to its parent directory 
+	- add the 'generation' field to inodes
+	- the ability to open files by inode numbers
+
+* fixed some endianity conversions
+
+* fixed some sparse warnings
+
+* fixed a bug in extended attributes
+
+Mikulas
+
