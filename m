@@ -1,123 +1,77 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 187AA72
-	for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 08:12:33 +0000 (UTC)
-Received: from pps.filterd (m0098421.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16R86nmY013776;
-	Tue, 27 Jul 2021 04:12:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
- : date : message-id : in-reply-to : references : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=Nc0ifOUYXrvadp9KTM5lZlE0jzf8qOn7WyUVTeD+9QM=;
- b=N+LTdPCJAdo8s6bLwYa2fhFHrUkVt2PeoMjzfrFKwq6YoT+bOeKn1q1lsiUZJVN+NdPV
- 17/lPT3EMm+bmCJ1dPwtMc2D4XxU86TiuVJ6LSzlzWCSNVTz1Ck+Ix27Kiy+Gr30zdWH
- BbMqxfYozRhSSzFLPH7X3m5M1IUDPJJRzBt1exodkY+EvfV+IZhnyfprYRNmNVghKlMF
- BI5MxZsmu2v/Uap/iju1x4Q/ziUu1LDn+5SfCvHGJlTMFLySN6u/HcnU2UDb9J7xxkIm
- b3gGdZMAn4V62e6YKFE9iGaPW+DXgV1b0YPtSGKj4894yL1/D6FPS9oWI7j6aGpjm0Tu +A== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3a2d542vfw-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 27 Jul 2021 04:12:30 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16R83mXp016919;
-	Tue, 27 Jul 2021 08:12:28 GMT
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
-	by ppma03ams.nl.ibm.com with ESMTP id 3a235yg8ws-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 27 Jul 2021 08:12:28 +0000
-Received: from d06av25.portsmouth.uk.ibm.com (d06av25.portsmouth.uk.ibm.com [9.149.105.61])
-	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16R8CP2G28639686
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 27 Jul 2021 08:12:25 GMT
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0647111C066;
-	Tue, 27 Jul 2021 08:12:25 +0000 (GMT)
-Received: from d06av25.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C259D11C04A;
-	Tue, 27 Jul 2021 08:12:23 +0000 (GMT)
-Received: from lep8c.aus.stglabs.ibm.com (unknown [9.40.192.207])
-	by d06av25.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue, 27 Jul 2021 08:12:23 +0000 (GMT)
-Subject: [PATCH 3/3] test/monitor.sh: Partially skip monitor test on ndtest
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-To: nvdimm@lists.linux.dev
-Cc: aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com,
-        santosh@fossix.org, dan.j.williams@intel.com, ira.weiny@intel.com,
-        vishal.l.verma@intel.com
-Date: Tue, 27 Jul 2021 03:12:22 -0500
-Message-ID: 
- <162737354018.3944327.1169429056790170660.stgit@lep8c.aus.stglabs.ibm.com>
-In-Reply-To: 
- <162737349828.3944327.12958894438783947695.stgit@lep8c.aus.stglabs.ibm.com>
-References: 
- <162737349828.3944327.12958894438783947695.stgit@lep8c.aus.stglabs.ibm.com>
-User-Agent: StGit/1.1+40.g1b20
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2561D70
+	for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 14:32:57 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8053603E7;
+	Tue, 27 Jul 2021 14:32:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1627396376;
+	bh=P+J3nIURP3B0hGzMIl54oyj1L6/yl7CDmXAm5X+Upx8=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=mrlGqwmpjfPpgIzgTRGvv8csrCB9SF7IAeAXSl4PoYy4iHOL8O7IQYDa4eZu4E+7C
+	 1OaUNt7sGa++izEvGezUm4A51hFgnFq/otisMzdmjNXAX54GLwKWj5K/orOK2B6S1v
+	 XglpIa8SNerVvNFX5K5SD/TrRB+AvsU3281uQ1BiTC6o4EXW3QZJCVVCJ33pM+NlJm
+	 L3VPYLxHOsKcEElZIdokwaqGoub+L6oWy+apXEDlQpMVQj7k7qbq0hXCQmhVKpiKtO
+	 v+lwBnYgi/S5VV0CcbVlTi3CTNmvbAJrktYncwHyG+GYNgGiXBwuqtUsZX8lH/OQdw
+	 uHMmFHkU98lMA==
+Date: Tue, 27 Jul 2021 07:32:56 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andreas Gruenbacher <agruenba@redhat.com>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, cluster-devel@redhat.com
+Subject: Re: [PATCH 16/27] iomap: switch iomap_bmap to use iomap_iter
+Message-ID: <20210727143256.GC559142@magnolia>
+References: <20210719103520.495450-1-hch@lst.de>
+ <20210719103520.495450-17-hch@lst.de>
+ <20210719170545.GF22402@magnolia>
+ <20210726081942.GD14853@lst.de>
+ <20210726163922.GA559142@magnolia>
+ <20210727063138.GA10143@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: XjyCxs7IElDdCqlFJFHtVZCmTdNcFjaA
-X-Proofpoint-GUID: XjyCxs7IElDdCqlFJFHtVZCmTdNcFjaA
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-07-27_05:2021-07-27,2021-07-27 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- phishscore=0 priorityscore=1501 adultscore=0 malwarescore=0
- impostorscore=0 mlxscore=0 clxscore=1015 bulkscore=0 mlxlogscore=999
- suspectscore=0 spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2107140000 definitions=main-2107270046
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210727063138.GA10143@lst.de>
 
-The ndtest/papr pdsm has the unclean shutdown inject support.
-Rest of the tests in monitor.sh are injecting temperature,
-spares with thresholds and monitoring on them. These test cases
-are irrelavent on ndtest, skip them.
+On Tue, Jul 27, 2021 at 08:31:38AM +0200, Christoph Hellwig wrote:
+> On Mon, Jul 26, 2021 at 09:39:22AM -0700, Darrick J. Wong wrote:
+> > The documentation needs to be much more explicit about the fact that you
+> > cannot "break;" your way out of an iomap_iter loop.  I think the comment
+> > should be rewritten along these lines:
+> > 
+> > "Iterate over filesystem-provided space mappings for the provided file
+> > range.  This function handles cleanup of resources acquired for
+> > iteration when the filesystem indicates there are no more space
+> > mappings, which means that this function must be called in a loop that
+> > continues as long it returns a positive value.  If 0 or a negative value
+> > is returned, the caller must not return to the loop body.  Within a loop
+> > body, there are two ways to break out of the loop body: leave
+> > @iter.processed unchanged, or set it to the usual negative errno."
+> > 
+> > Hm.
+> 
+> Yes, I'll update the documentation.
 
-Reorders the code to call the dimm events test first for
-cleanliness.
+Ok, thanks!
 
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
----
- test/monitor.sh |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+> > Clunky, for sure, but at least we still get to use break as the language
+> > designers intended.
+> 
+> I can't see any advantage there over just proper documentation.  If you
+> are totally attached to a working break we might have to come up with
+> a nasty for_each macro that ensures we have a final iomap_apply, but I
+> doubt it is worth the effort.
 
-diff --git a/test/monitor.sh b/test/monitor.sh
-index 28c55415..b78ed093 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -143,6 +143,10 @@ test_filter_dimmevent()
- 	check_result "$monitor_dimms"
- 	stop_monitor
- 
-+	if [ $NDCTL_TEST_FAMILY == "PAPR" ]; then
-+		return
-+	fi
-+
- 	inject_value=$($NDCTL list -H -d $monitor_dimms | jq -r .[]."health"."spares_threshold")
- 	inject_value=$((inject_value - 1))
- 	start_monitor "-d $monitor_dimms -D dimm-spares-remaining"
-@@ -160,12 +164,17 @@ test_filter_dimmevent()
- 
- do_tests()
- {
-+	test_filter_dimmevent
-+
-+	if [ $NDCTL_TEST_FAMILY == "PAPR" ]; then
-+		return
-+	fi
-+
- 	test_filter_dimm
- 	test_filter_bus
- 	test_filter_region
- 	test_filter_namespace
- 	test_conf_file
--	test_filter_dimmevent
- }
- 
- modprobe nfit_test
+I was pushing the explicit _break() function as a means to avoid an even
+fuglier loop macro.
 
-
+--D
