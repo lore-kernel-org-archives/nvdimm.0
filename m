@@ -1,51 +1,50 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9788970
-	for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 05:56:32 +0000 (UTC)
-Received: by mail-pl1-f169.google.com with SMTP id d17so1343959plh.10
-        for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 22:56:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D3F6E70
+	for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 06:05:08 +0000 (UTC)
+Received: by mail-pj1-f45.google.com with SMTP id b1-20020a17090a8001b029017700de3903so5138510pjn.1
+        for <nvdimm@lists.linux.dev>; Tue, 27 Jul 2021 23:05:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=/Ndwx5sj3OOP7ioabuI7ivmApveSC+sSu/IcifkkjAA=;
-        b=ggP6Xbcf3ryMs1h4pgRW6LIfAl1p5Cbyq5RCbN3PPbRSKXZtbEC01etFLpDuAgvtDa
-         Q3+G/GL3OJPC1zA2Bou8/OvZaXzaeXWzd/V9XASV4up7wfTCsrwSRdtweX/lf+LvsKu/
-         8boDWX5YM9YDwm7vMBfkvTBfwNALbQmTU98X9quV9Kif1bjC+MLikAz5yoAAb+z5w7TB
-         Pup6297Rhdik+lRrdNbfnVo87Cy2Sy1FnZ6dc00Ze5JMj5DmJ64JjA+bkOYnK0tcNe1J
-         4V7JtUL/edsIb82SjWYvO89XbpA1YhxYJ8jL2E7rUgMjzfQLIrsJy75h/fJ0RHIj5381
-         vtgQ==
+        bh=S7De9cl6rnz9ISdIKsf2YW99C7Ty4jqzN9gqFoe2Kdc=;
+        b=WrVtdYQO4ThTm8MRttwaCgaeAvU8yh35FxPt21mtICHGTQMVjYUMbeCck/xGO7vHp3
+         DVvrq+BntGXqkffGd7wIoY2ktRw8HmuWoFvULqJkxiHPcqbPconQfN+PplhAqjz9toRY
+         UCnn1Cg8YbrGWdVq6ZpIm+HjTXVXTj2wSoEEHhw8GTUJA+eeozsUY8RnPtER2+qKAPj/
+         oUtCkMBuAYsxC3wjUJV9kbYHtLDprlDwxd2uWCLTuY36+ZoY19Urn6sHz5QBUMU3sYuJ
+         vtWrjsrPq/yiVU8yiBQvvubQ8df6swkqWrhVdK+qKQEyJnJsQDLxdoDMvT+ZzTlJSZuz
+         OpTw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=/Ndwx5sj3OOP7ioabuI7ivmApveSC+sSu/IcifkkjAA=;
-        b=A7yK5/M1kpMl8eiRGLTNLtCSREi2OtWSIFbU3Q6twMNlw/v+BDfhqQtu9s6Sz6iK6R
-         Fq+ABzE1J7ttis+ZHjWrv8u3PfVBga5rbzb3HIcuXmC0+dR6XQ8/Op2LSYOtF3gvjn6A
-         byO+EAzxiJcb9VJPJhxBmingn2SZ0GznYxdU6KyybSuC+Fa89FWPopGdSPC3i8VAJlp0
-         wHA6su2+k4ByqIHLeq7Ayje9VMN6jGyysM3u4hWO7SsJhGRBOCE9UZ/1EPKLrQxaUGVs
-         JvFWCDBPL+cDNo3dAOmp0kFKwIzWxyFNNNe6VCTI80F0z+czVbuYZ1W3RBRxBySKpRxy
-         z4yA==
-X-Gm-Message-State: AOAM533Oc+ZJjfwcS1gAO0D/2L6WIqeCIFgr15vm65zre+n2Q8Lh8pIL
-	a2nnnSV+2WSBde9uuINw4q975tma/LyP6cTTr5Oeug==
-X-Google-Smtp-Source: ABdhPJyyIr2ZOjpYgVHk5o2dqRUNDP22sIfVcT2Aove8tI1tBaiEBdauPBkzAHXRgeDQXoqLta2MOYasarDKwbDAHa0=
-X-Received: by 2002:a17:902:ab91:b029:12b:8dae:b1ff with SMTP id
- f17-20020a170902ab91b029012b8daeb1ffmr21725381plr.52.1627451791951; Tue, 27
- Jul 2021 22:56:31 -0700 (PDT)
+        bh=S7De9cl6rnz9ISdIKsf2YW99C7Ty4jqzN9gqFoe2Kdc=;
+        b=m+Q/V1ZlnfiIJnia6zKBXYOdxV9IaxuZmT31P+z47E4hOoSs3jaMZalGMSdG/UKuyT
+         ADF/Vu1MvFMyZ1bexzJj7j2K2tn0fuK6titPN2mZa7CQe17A1fjOVpJ1Ru1yZTPShvfw
+         7imOIRmpcOYR8Uxa68SAcHif3aMPTmpNeEsree6T7HawGKrUvBTPc85gO00pvSJPaOKe
+         hnrLjKIww505Dn6WhPSJ3iL7qrWXvi0mOABOS2ixboGhT0iDo/X95DXLeGvjjtiZdaiO
+         z1jp3NenHRoPXUvEVhwYanBgBgzGLvmDXQM4lNqy43gK54R+jqKj/ICrzc4efzVNrVo6
+         BcyA==
+X-Gm-Message-State: AOAM532s59NLM6fmQ0TMnsWoE3Jc2cWtnLItilNWLoRzBX0U0akwXpfr
+	4jhwl1OY4TS9PnR3UJ7immdGZpn4ntXlJByXcc6SXA==
+X-Google-Smtp-Source: ABdhPJwKAAossYI2q6UvsYvBLJL1fq+DZe/6tRo+YtbetwmSSE8kD/eIiedXsRYc1dv063oIth4g/rKmDYv1ItVMW4g=
+X-Received: by 2002:a65:6248:: with SMTP id q8mr27652152pgv.279.1627452308333;
+ Tue, 27 Jul 2021 23:05:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-6-joao.m.martins@oracle.com>
-In-Reply-To: <20210714193542.21857-6-joao.m.martins@oracle.com>
+References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-7-joao.m.martins@oracle.com>
+In-Reply-To: <20210714193542.21857-7-joao.m.martins@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 27 Jul 2021 22:56:20 -0700
-Message-ID: <CAPcyv4j2TZXUUi3zoJwTZ-gnNpnh4sQPC-gRXmVwNoF4N6qnxA@mail.gmail.com>
-Subject: Re: [PATCH v3 05/14] mm/sparse-vmemmap: add a pgmap argument to
- section activation
+Date: Tue, 27 Jul 2021 23:04:57 -0700
+Message-ID: <CAPcyv4j=gqdkj-hT1dD5jyndG=P9DogUH7Ptr-aDeAk7uacpCQ@mail.gmail.com>
+Subject: Re: [PATCH v3 06/14] mm/sparse-vmemmap: refactor core of
+ vmemmap_populate_basepages() to helper
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
@@ -58,212 +57,101 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Wed, Jul 14, 2021 at 12:36 PM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> In support of using compound pages for devmap mappings, plumb the pgmap
-> down to the vmemmap_populate implementation. Note that while altmap is
-> retrievable from pgmap the memory hotplug code passes altmap without
-> pgmap[*], so both need to be independently plumbed.
->
-> So in addition to @altmap, pass @pgmap to sparse section populate
-> functions namely:
->
->         sparse_add_section
->           section_activate
->             populate_section_memmap
->               __populate_section_memmap
->
-> Passing @pgmap allows __populate_section_memmap() to both fetch the
-> geometry in which memmap metadata is created for and also to let
-> sparse-vmemmap fetch pgmap ranges to co-relate to a given section and pick
-> whether to just reuse tail pages from past onlined sections.
-
-Looks good to me, just one quibble below:
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-
->
-> [*] https://lore.kernel.org/linux-mm/20210319092635.6214-1-osalvador@suse.de/
+> In preparation for describing a memmap with compound pages, move the
+> actual pte population logic into a separate function
+> vmemmap_populate_address() and have vmemmap_populate_basepages() walk
+> through all base pages it needs to populate.
 >
 > Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 > ---
->  include/linux/memory_hotplug.h |  5 ++++-
->  include/linux/mm.h             |  3 ++-
->  mm/memory_hotplug.c            |  3 ++-
->  mm/sparse-vmemmap.c            |  3 ++-
->  mm/sparse.c                    | 24 +++++++++++++++---------
->  5 files changed, 25 insertions(+), 13 deletions(-)
+>  mm/sparse-vmemmap.c | 44 ++++++++++++++++++++++++++------------------
+>  1 file changed, 26 insertions(+), 18 deletions(-)
 >
-> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> index a7fd2c3ccb77..9b1bca80224d 100644
-> --- a/include/linux/memory_hotplug.h
-> +++ b/include/linux/memory_hotplug.h
-> @@ -14,6 +14,7 @@ struct mem_section;
->  struct memory_block;
->  struct resource;
->  struct vmem_altmap;
-> +struct dev_pagemap;
->
->  #ifdef CONFIG_MEMORY_HOTPLUG
->  struct page *pfn_to_online_page(unsigned long pfn);
-> @@ -60,6 +61,7 @@ typedef int __bitwise mhp_t;
->  struct mhp_params {
->         struct vmem_altmap *altmap;
->         pgprot_t pgprot;
-> +       struct dev_pagemap *pgmap;
->  };
->
->  bool mhp_range_allowed(u64 start, u64 size, bool need_mapping);
-> @@ -333,7 +335,8 @@ extern void remove_pfn_range_from_zone(struct zone *zone,
->                                        unsigned long nr_pages);
->  extern bool is_memblock_offlined(struct memory_block *mem);
->  extern int sparse_add_section(int nid, unsigned long pfn,
-> -               unsigned long nr_pages, struct vmem_altmap *altmap);
-> +               unsigned long nr_pages, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap);
->  extern void sparse_remove_section(struct mem_section *ms,
->                 unsigned long pfn, unsigned long nr_pages,
->                 unsigned long map_offset, struct vmem_altmap *altmap);
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 7ca22e6e694a..f244a9219ce4 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3083,7 +3083,8 @@ int vmemmap_remap_alloc(unsigned long start, unsigned long end,
->
->  void *sparse_buffer_alloc(unsigned long size);
->  struct page * __populate_section_memmap(unsigned long pfn,
-> -               unsigned long nr_pages, int nid, struct vmem_altmap *altmap);
-> +               unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap);
->  pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
->  p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
->  pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 8cb75b26ea4f..c728a8ff38ad 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -268,7 +268,8 @@ int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
->                 /* Select all remaining pages up to the next section boundary */
->                 cur_nr_pages = min(end_pfn - pfn,
->                                    SECTION_ALIGN_UP(pfn + 1) - pfn);
-> -               err = sparse_add_section(nid, pfn, cur_nr_pages, altmap);
-> +               err = sparse_add_section(nid, pfn, cur_nr_pages, altmap,
-> +                                        params->pgmap);
->                 if (err)
->                         break;
->                 cond_resched();
 > diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-> index bdce883f9286..80d3ba30d345 100644
+> index 80d3ba30d345..76f4158f6301 100644
 > --- a/mm/sparse-vmemmap.c
 > +++ b/mm/sparse-vmemmap.c
-> @@ -603,7 +603,8 @@ int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+> @@ -570,33 +570,41 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+>         return pgd;
 >  }
 >
->  struct page * __meminit __populate_section_memmap(unsigned long pfn,
-> -               unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-> +               unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap)
+> -int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+> -                                        int node, struct vmem_altmap *altmap)
+> +static int __meminit vmemmap_populate_address(unsigned long addr, int node,
+> +                                             struct vmem_altmap *altmap)
 >  {
->         unsigned long start = (unsigned long) pfn_to_page(pfn);
->         unsigned long end = start + nr_pages * sizeof(struct page);
-> diff --git a/mm/sparse.c b/mm/sparse.c
-> index 6326cdf36c4f..5310be6171f1 100644
-> --- a/mm/sparse.c
-> +++ b/mm/sparse.c
-> @@ -453,7 +453,8 @@ static unsigned long __init section_map_size(void)
->  }
+> -       unsigned long addr = start;
+>         pgd_t *pgd;
+>         p4d_t *p4d;
+>         pud_t *pud;
+>         pmd_t *pmd;
+>         pte_t *pte;
 >
->  struct page __init *__populate_section_memmap(unsigned long pfn,
-> -               unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-> +               unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap)
->  {
->         unsigned long size = section_map_size();
->         struct page *map = sparse_buffer_alloc(size);
-> @@ -552,7 +553,7 @@ static void __init sparse_init_nid(int nid, unsigned long pnum_begin,
->                         break;
->
->                 map = __populate_section_memmap(pfn, PAGES_PER_SECTION,
-> -                               nid, NULL);
-> +                               nid, NULL, NULL);
->                 if (!map) {
->                         pr_err("%s: node[%d] memory map backing failed. Some memory will not be available.",
->                                __func__, nid);
-> @@ -657,9 +658,10 @@ void offline_mem_sections(unsigned long start_pfn, unsigned long end_pfn)
->
->  #ifdef CONFIG_SPARSEMEM_VMEMMAP
->  static struct page * __meminit populate_section_memmap(unsigned long pfn,
-> -               unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-> +               unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap)
->  {
-> -       return __populate_section_memmap(pfn, nr_pages, nid, altmap);
-> +       return __populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
->  }
->
->  static void depopulate_section_memmap(unsigned long pfn, unsigned long nr_pages,
-> @@ -728,7 +730,8 @@ static int fill_subsection_map(unsigned long pfn, unsigned long nr_pages)
->  }
->  #else
->  struct page * __meminit populate_section_memmap(unsigned long pfn,
-> -               unsigned long nr_pages, int nid, struct vmem_altmap *altmap)
-> +               unsigned long nr_pages, int nid, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap)
->  {
->         return kvmalloc_node(array_size(sizeof(struct page),
->                                         PAGES_PER_SECTION), GFP_KERNEL, nid);
-> @@ -851,7 +854,8 @@ static void section_deactivate(unsigned long pfn, unsigned long nr_pages,
->  }
->
->  static struct page * __meminit section_activate(int nid, unsigned long pfn,
-> -               unsigned long nr_pages, struct vmem_altmap *altmap)
-> +               unsigned long nr_pages, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap)
->  {
->         struct mem_section *ms = __pfn_to_section(pfn);
->         struct mem_section_usage *usage = NULL;
-> @@ -883,7 +887,7 @@ static struct page * __meminit section_activate(int nid, unsigned long pfn,
->         if (nr_pages < PAGES_PER_SECTION && early_section(ms))
->                 return pfn_to_page(pfn);
->
-> -       memmap = populate_section_memmap(pfn, nr_pages, nid, altmap);
-> +       memmap = populate_section_memmap(pfn, nr_pages, nid, altmap, pgmap);
->         if (!memmap) {
->                 section_deactivate(pfn, nr_pages, altmap);
->                 return ERR_PTR(-ENOMEM);
-> @@ -898,6 +902,7 @@ static struct page * __meminit section_activate(int nid, unsigned long pfn,
->   * @start_pfn: start pfn of the memory range
->   * @nr_pages: number of pfns to add in the section
->   * @altmap: device page map
-> + * @pgmap: device page map object that owns the section
+> +       pgd = vmemmap_pgd_populate(addr, node);
+> +       if (!pgd)
+> +               return -ENOMEM;
+> +       p4d = vmemmap_p4d_populate(pgd, addr, node);
+> +       if (!p4d)
+> +               return -ENOMEM;
+> +       pud = vmemmap_pud_populate(p4d, addr, node);
+> +       if (!pud)
+> +               return -ENOMEM;
+> +       pmd = vmemmap_pmd_populate(pud, addr, node);
+> +       if (!pmd)
+> +               return -ENOMEM;
+> +       pte = vmemmap_pte_populate(pmd, addr, node, altmap);
+> +       if (!pte)
+> +               return -ENOMEM;
+> +       vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
 
-Since this patch is touching the kdoc, might as well fix it up
-properly for @altmap, and perhaps an alternate note for @pgmap:
+Missing a return here:
 
-@altmap: alternate pfns to allocate the memmap backing store
-@pgmap: alternate compound page geometry for devmap mappings
+mm/sparse-vmemmap.c:598:1: error: control reaches end of non-void
+function [-Werror=return-type]
+
+Yes, it's fixed up in a later patch, but might as well not leave the
+bisect breakage lying around, and the kbuild robot would gripe about
+this eventually as well.
 
 
->   *
->   * This is only intended for hotplug.
->   *
-> @@ -911,7 +916,8 @@ static struct page * __meminit section_activate(int nid, unsigned long pfn,
->   * * -ENOMEM   - Out of memory.
->   */
->  int __meminit sparse_add_section(int nid, unsigned long start_pfn,
-> -               unsigned long nr_pages, struct vmem_altmap *altmap)
-> +               unsigned long nr_pages, struct vmem_altmap *altmap,
-> +               struct dev_pagemap *pgmap)
->  {
->         unsigned long section_nr = pfn_to_section_nr(start_pfn);
->         struct mem_section *ms;
-> @@ -922,7 +928,7 @@ int __meminit sparse_add_section(int nid, unsigned long start_pfn,
->         if (ret < 0)
->                 return ret;
+> +}
+> +
+> +int __meminit vmemmap_populate_basepages(unsigned long start, unsigned long end,
+> +                                        int node, struct vmem_altmap *altmap)
+> +{
+> +       unsigned long addr = start;
+> +
+>         for (; addr < end; addr += PAGE_SIZE) {
+> -               pgd = vmemmap_pgd_populate(addr, node);
+> -               if (!pgd)
+> -                       return -ENOMEM;
+> -               p4d = vmemmap_p4d_populate(pgd, addr, node);
+> -               if (!p4d)
+> -                       return -ENOMEM;
+> -               pud = vmemmap_pud_populate(p4d, addr, node);
+> -               if (!pud)
+> -                       return -ENOMEM;
+> -               pmd = vmemmap_pmd_populate(pud, addr, node);
+> -               if (!pmd)
+> -                       return -ENOMEM;
+> -               pte = vmemmap_pte_populate(pmd, addr, node, altmap);
+> -               if (!pte)
+> +               if (vmemmap_populate_address(addr, node, altmap))
+>                         return -ENOMEM;
+
+I'd prefer:
+
+rc = vmemmap_populate_address(addr, node, altmap);
+if (rc)
+    return rc;
+
+...in case future refactoring adds different error codes to pass up.
+
+
+> -               vmemmap_verify(pte, node, addr, addr + PAGE_SIZE);
+>         }
 >
-> -       memmap = section_activate(nid, start_pfn, nr_pages, altmap);
-> +       memmap = section_activate(nid, start_pfn, nr_pages, altmap, pgmap);
->         if (IS_ERR(memmap))
->                 return PTR_ERR(memmap);
->
+>         return 0;
 > --
 > 2.17.1
 >
