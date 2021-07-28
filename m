@@ -1,51 +1,50 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5939D70
-	for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 19:56:04 +0000 (UTC)
-Received: by mail-pj1-f54.google.com with SMTP id mz5-20020a17090b3785b0290176ecf64922so11819705pjb.3
-        for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 12:56:04 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0BCD70
+	for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 20:03:46 +0000 (UTC)
+Received: by mail-pl1-f180.google.com with SMTP id c16so4060509plh.7
+        for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 13:03:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=hjw/5hPfcSAnUDtkGO7dLZoRiawjIU1v57wTHZKdYCc=;
-        b=t3PfB1msBLB28JyzEIMcKXwRsHMPWdoEN3TENtYZlt2tYrmfA0vJeqRHiG6LEJgYXc
-         6U1MlRMdS5sumPb5IGtGvzY9zqiqrCwE88JT7X7eACtneUkCx3IXPgwzLRp20tWezGbV
-         3tfofj2uFWoi/9fyyMoVjsrz4WkZtCRozGny3Fs1G98xiCHbsQbCPGzAoEAzhTwFkQdc
-         eG4K/g/2vBogT6hHN99sA0UBpTckeriuQ2G3l8nzGbdDZ1a4c+xWHpvbJWhCI2SPFXak
-         mb1SI5+oF4QcRdj8tbtXnLi7Q6f1k3GDMiLzEqiIgmM1Eo+lUEeuSbV4S9IZlON/3CZN
-         1FRg==
+        bh=ysiezwmUDKNp3rn8Q5rCeBfDu4fXUowOvIaq6qVfJpk=;
+        b=HiFP9loVMUO4hRquds0WVPuR1si66/KJQBlD2s/zRa088LCmX170Cp0xZvhpWf0FTR
+         N89x2qqyKKLbQ7R8RIKM7bbhweRkk3QnSErta57Qms3EVyyNlRKF0kFTcgvSTcxzBeCF
+         KVOnv6J4dQtycBhvuj5XOvRKiOKoUZTsiqKU4hZv/Jmyh2wXdvY2N9uXaCVI6/YIRO8S
+         o155amXcVZgG827Fg20Sz/Q4+aeiW17hr1LBqhR0erxgF6mVVkYW4FPAa1bq5jB+lUA5
+         HRfH7yPcN5JU+MPplfk1C6F8a41Q1LOxNbHJHL6vafMXAKuPu7GSzotuuFf95n1OyS+F
+         IhnQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=hjw/5hPfcSAnUDtkGO7dLZoRiawjIU1v57wTHZKdYCc=;
-        b=GJFMF0GkQhx9Eo0jHm2BoqIc9PmRhtC54QL99Ss1+eNbKoZ0LhybBfFlPqCi3pOmtG
-         GG97n0HIEojgbk7wLtRtGNGJ2GSMSEdPxOF4yo+Reb9rHm0sFZaJRw6y6+F86hKGQwhO
-         W38SU/J/yRWG/XrbXEMcgHCFqrbx0Zhm86I2feQLYhHn5oAKiFFqgUfqHFPN9COpNeZ/
-         H4ZOi0UfpNODUV3yEEuvOIiO52kfA7ePCLXxzNhHbOe3yRzwvqC/7lvGi6B4NfX7c5V2
-         rTijbE/C75OawxFFbr4Uj3ai7b3y0K/L/gLP7ueZ3biSaHJW47oC/Q4AGamNXfxLlgrc
-         VQtw==
-X-Gm-Message-State: AOAM5328iw3NUwAE3t9ShsGxCbC6HXzAVL9V09O8I2FSr/4IYZPPStbk
-	r+H6hqlAyCifS/nbKc4y2VTRVFpkdyFauG0F/haHvw==
-X-Google-Smtp-Source: ABdhPJwr07MbmYenDrsCXLzA/k3E+4LlKYbMRwTmY0e+U3JwUORF0A3zdz8QcxmndAVjTfm9JaG1BaDYu23LMCTIpkc=
-X-Received: by 2002:a17:902:7d91:b029:12b:45b0:736b with SMTP id
- a17-20020a1709027d91b029012b45b0736bmr1123726plm.79.1627502163850; Wed, 28
- Jul 2021 12:56:03 -0700 (PDT)
+        bh=ysiezwmUDKNp3rn8Q5rCeBfDu4fXUowOvIaq6qVfJpk=;
+        b=ltekNUBU0OJjmJSnjYnah7sZ+LAmEZibEYcxwD+E+Dch4dRRv6NZX6sopMStoUmv1q
+         G+qPPH40cyG0/JefmZKERCBEwddx9fxZ19IMZe02W30KpbU4ewJX28QgfYbjpELcjKws
+         AL2kF8n+kXQ9OGu06OIDzslADtnhwgOPQl/iERQLbZz4df3N5luemVsGIIzJWGzkCEr9
+         sQWK9kMujfzKms5GzeCcI4Tw5wbCvpA6JM9EbhYHNDh2JHthLamWsxZgcsHKa6jlGV29
+         e3f8rBUFAn3AZ5T+UtI/fgnjU4kITl9P+YJf1UVOyazKQWpktyNw/Wya1UXf7cAUgUoh
+         aydQ==
+X-Gm-Message-State: AOAM532RwSywQOHPVri0z7eTi0iedl4yuG49CGcR4sRRUw2kYeZ9LXHC
+	eanQT51d4qzDcw5JXG79XWxxrV7ynt3LkYqjhp3WkQ==
+X-Google-Smtp-Source: ABdhPJwi3G9UPIvnUOytayOncvGXXGvlBIn9QgvS7o9bcb3fkVRHVqAK9b4va/PEzzOC7XR8pvxTdJZc658a3Uz7f8A=
+X-Received: by 2002:a17:90a:1196:: with SMTP id e22mr10963441pja.168.1627502626028;
+ Wed, 28 Jul 2021 13:03:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-14-joao.m.martins@oracle.com>
-In-Reply-To: <20210714193542.21857-14-joao.m.martins@oracle.com>
+References: <20210714193542.21857-1-joao.m.martins@oracle.com> <20210714193542.21857-15-joao.m.martins@oracle.com>
+In-Reply-To: <20210714193542.21857-15-joao.m.martins@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Jul 2021 12:55:53 -0700
-Message-ID: <CAPcyv4i_BbQn6WkgeNq5kLeQcMu=w4GBdrBZ=YbuYnGC5-Dbiw@mail.gmail.com>
-Subject: Re: [PATCH v3 13/14] mm/gup: grab head page refcount once for group
- of subpages
+Date: Wed, 28 Jul 2021 13:03:35 -0700
+Message-ID: <CAPcyv4jC9He7tnTnbiracHZ9P9XSWsH4pJMKFip6-nSbsBWyrg@mail.gmail.com>
+Subject: Re: [PATCH v3 14/14] mm/sparse-vmemmap: improve memory savings for
+ compound pud geometry
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
@@ -58,128 +57,317 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Wed, Jul 14, 2021 at 12:36 PM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> Use try_grab_compound_head() for device-dax GUP when configured with a
-> compound pagemap.
+> Currently, for compound PUD mappings, the implementation consumes 40MB
+> per TB but it can be optimized to 16MB per TB with the approach
+> detailed below.
 >
-> Rather than incrementing the refcount for each page, do one atomic
-> addition for all the pages to be pinned.
+> Right now basepages are used to populate the PUD tail pages, and it
+> picks the address of the previous page of the subsection that precedes
+> the memmap being initialized.  This is done when a given memmap
+> address isn't aligned to the pgmap @geometry (which is safe to do because
+> @ranges are guaranteed to be aligned to @geometry).
 >
-> Performance measured by gup_benchmark improves considerably
-> get_user_pages_fast() and pin_user_pages_fast() with NVDIMMs:
+> For pagemaps with an align which spans various sections, this means
+> that PMD pages are unnecessarily allocated for reusing the same tail
+> pages.  Effectively, on x86 a PUD can span 8 sections (depending on
+> config), and a page is being  allocated a page for the PMD to reuse
+> the tail vmemmap across the rest of the PTEs. In short effecitvely the
+> PMD cover the tail vmemmap areas all contain the same PFN. So instead
+> of doing this way, populate a new PMD on the second section of the
+> compound page (tail vmemmap PMD), and then the following sections
+> utilize the preceding PMD previously populated which only contain
+> tail pages).
 >
->  $ gup_test -f /dev/dax1.0 -m 16384 -r 10 -S [-u,-a] -n 512 -w
-> (get_user_pages_fast 2M pages) ~59 ms -> ~6.1 ms
-> (pin_user_pages_fast 2M pages) ~87 ms -> ~6.2 ms
-> [altmap]
-> (get_user_pages_fast 2M pages) ~494 ms -> ~9 ms
-> (pin_user_pages_fast 2M pages) ~494 ms -> ~10 ms
+> After this scheme for an 1GB pagemap aligned area, the first PMD
+> (section) would contain head page and 32767 tail pages, where the
+> second PMD contains the full 32768 tail pages.  The latter page gets
+> its PMD reused across future section mapping of the same pagemap.
 >
->  $ gup_test -f /dev/dax1.0 -m 129022 -r 10 -S [-u,-a] -n 512 -w
-> (get_user_pages_fast 2M pages) ~492 ms -> ~49 ms
-> (pin_user_pages_fast 2M pages) ~493 ms -> ~50 ms
-> [altmap with -m 127004]
-> (get_user_pages_fast 2M pages) ~3.91 sec -> ~70 ms
-> (pin_user_pages_fast 2M pages) ~3.97 sec -> ~74 ms
+> Besides fewer pagetable entries allocated, keeping parity with
+> hugepages in the directmap (as done by vmemmap_populate_hugepages()),
+> this further increases savings per compound page. Rather than
+> requiring 8 PMD page allocations only need 2 (plus two base pages
+> allocated for head and tail areas for the first PMD). 2M pages still
+> require using base pages, though.
+
+This looks good to me now, modulo the tail_page helper discussed
+previously. Thanks for the diagram, makes it clearer what's happening.
+
+I don't see any red flags that would prevent a reviewed-by when you
+send the next spin.
+
 >
 > Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 > ---
->  mm/gup.c | 53 +++++++++++++++++++++++++++++++++--------------------
->  1 file changed, 33 insertions(+), 20 deletions(-)
+>  Documentation/vm/vmemmap_dedup.rst | 109 +++++++++++++++++++++++++++++
+>  include/linux/mm.h                 |   3 +-
+>  mm/sparse-vmemmap.c                |  74 +++++++++++++++++---
+>  3 files changed, 174 insertions(+), 12 deletions(-)
 >
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 42b8b1fa6521..9baaa1c0b7f3 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -2234,31 +2234,55 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
+> diff --git a/Documentation/vm/vmemmap_dedup.rst b/Documentation/vm/vmemmap_dedup.rst
+> index 42830a667c2a..96d9f5f0a497 100644
+> --- a/Documentation/vm/vmemmap_dedup.rst
+> +++ b/Documentation/vm/vmemmap_dedup.rst
+> @@ -189,3 +189,112 @@ at a later stage when we populate the sections.
+>  It only use 3 page structs for storing all information as opposed
+>  to 4 on HugeTLB pages. This does not affect memory savings between both.
+>
+> +Additionally, it further extends the tail page deduplication with 1GB
+> +device-dax compound pages.
+> +
+> +E.g.: A 1G device-dax page on x86_64 consists in 4096 page frames, split
+> +across 8 PMD page frames, with the first PMD having 2 PTE page frames.
+> +In total this represents a total of 40960 bytes per 1GB page.
+> +
+> +Here is how things look after the previously described tail page deduplication
+> +technique.
+> +
+> +   device-dax      page frames   struct pages(4096 pages)     page frame(2 pages)
+> + +-----------+ -> +----------+ --> +-----------+   mapping to   +-------------+
+> + |           |    |    0     |     |     0     | -------------> |      0      |
+> + |           |    +----------+     +-----------+                +-------------+
+> + |           |                     |     1     | -------------> |      1      |
+> + |           |                     +-----------+                +-------------+
+> + |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^ ^
+> + |           |                     +-----------+                   | | | | | |
+> + |           |                     |     3     | ------------------+ | | | | |
+> + |           |                     +-----------+                     | | | | |
+> + |           |                     |     4     | --------------------+ | | | |
+> + |   PMD 0   |                     +-----------+                       | | | |
+> + |           |                     |     5     | ----------------------+ | | |
+> + |           |                     +-----------+                         | | |
+> + |           |                     |     ..    | ------------------------+ | |
+> + |           |                     +-----------+                           | |
+> + |           |                     |     511   | --------------------------+ |
+> + |           |                     +-----------+                             |
+> + |           |                                                               |
+> + |           |                                                               |
+> + |           |                                                               |
+> + +-----------+     page frames                                               |
+> + +-----------+ -> +----------+ --> +-----------+    mapping to               |
+> + |           |    |  1 .. 7  |     |    512    | ----------------------------+
+> + |           |    +----------+     +-----------+                             |
+> + |           |                     |    ..     | ----------------------------+
+> + |           |                     +-----------+                             |
+> + |           |                     |    ..     | ----------------------------+
+> + |           |                     +-----------+                             |
+> + |           |                     |    ..     | ----------------------------+
+> + |           |                     +-----------+                             |
+> + |           |                     |    ..     | ----------------------------+
+> + |    PMD    |                     +-----------+                             |
+> + |  1 .. 7   |                     |    ..     | ----------------------------+
+> + |           |                     +-----------+                             |
+> + |           |                     |    ..     | ----------------------------+
+> + |           |                     +-----------+                             |
+> + |           |                     |    4095   | ----------------------------+
+> + +-----------+                     +-----------+
+> +
+> +Page frames of PMD 1 through 7 are allocated and mapped to the same PTE page frame
+> +that contains stores tail pages. As we can see in the diagram, PMDs 1 through 7
+> +all look like the same. Therefore we can map PMD 2 through 7 to PMD 1 page frame.
+> +This allows to free 6 vmemmap pages per 1GB page, decreasing the overhead per
+> +1GB page from 40960 bytes to 16384 bytes.
+> +
+> +Here is how things look after PMD tail page deduplication.
+> +
+> +   device-dax      page frames   struct pages(4096 pages)     page frame(2 pages)
+> + +-----------+ -> +----------+ --> +-----------+   mapping to   +-------------+
+> + |           |    |    0     |     |     0     | -------------> |      0      |
+> + |           |    +----------+     +-----------+                +-------------+
+> + |           |                     |     1     | -------------> |      1      |
+> + |           |                     +-----------+                +-------------+
+> + |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^ ^
+> + |           |                     +-----------+                   | | | | | |
+> + |           |                     |     3     | ------------------+ | | | | |
+> + |           |                     +-----------+                     | | | | |
+> + |           |                     |     4     | --------------------+ | | | |
+> + |   PMD 0   |                     +-----------+                       | | | |
+> + |           |                     |     5     | ----------------------+ | | |
+> + |           |                     +-----------+                         | | |
+> + |           |                     |     ..    | ------------------------+ | |
+> + |           |                     +-----------+                           | |
+> + |           |                     |     511   | --------------------------+ |
+> + |           |                     +-----------+                             |
+> + |           |                                                               |
+> + |           |                                                               |
+> + |           |                                                               |
+> + +-----------+     page frames                                               |
+> + +-----------+ -> +----------+ --> +-----------+    mapping to               |
+> + |           |    |    1     |     |    512    | ----------------------------+
+> + |           |    +----------+     +-----------+                             |
+> + |           |     ^ ^ ^ ^ ^ ^     |    ..     | ----------------------------+
+> + |           |     | | | | | |     +-----------+                             |
+> + |           |     | | | | | |     |    ..     | ----------------------------+
+> + |           |     | | | | | |     +-----------+                             |
+> + |           |     | | | | | |     |    ..     | ----------------------------+
+> + |           |     | | | | | |     +-----------+                             |
+> + |           |     | | | | | |     |    ..     | ----------------------------+
+> + |   PMD 1   |     | | | | | |     +-----------+                             |
+> + |           |     | | | | | |     |    ..     | ----------------------------+
+> + |           |     | | | | | |     +-----------+                             |
+> + |           |     | | | | | |     |    ..     | ----------------------------+
+> + |           |     | | | | | |     +-----------+                             |
+> + |           |     | | | | | |     |    4095   | ----------------------------+
+> + +-----------+     | | | | | |     +-----------+
+> + |   PMD 2   | ----+ | | | | |
+> + +-----------+       | | | | |
+> + |   PMD 3   | ------+ | | | |
+> + +-----------+         | | | |
+> + |   PMD 4   | --------+ | | |
+> + +-----------+           | | |
+> + |   PMD 5   | ----------+ | |
+> + +-----------+             | |
+> + |   PMD 6   | ------------+ |
+> + +-----------+               |
+> + |   PMD 7   | --------------+
+> + +-----------+
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 5e3e153ddd3d..e9dc3e2de7be 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -3088,7 +3088,8 @@ struct page * __populate_section_memmap(unsigned long pfn,
+>  pgd_t *vmemmap_pgd_populate(unsigned long addr, int node);
+>  p4d_t *vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node);
+>  pud_t *vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node);
+> -pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
+> +pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node,
+> +                           struct page *block);
+>  pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node,
+>                             struct vmem_altmap *altmap, struct page *block);
+>  void *vmemmap_alloc_block(unsigned long size, int node);
+> diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+> index a8de6c472999..68041ca9a797 100644
+> --- a/mm/sparse-vmemmap.c
+> +++ b/mm/sparse-vmemmap.c
+> @@ -537,13 +537,22 @@ static void * __meminit vmemmap_alloc_block_zero(unsigned long size, int node)
+>         return p;
 >  }
->  #endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
 >
+> -pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+> +pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node,
+> +                                      struct page *block)
+>  {
+>         pmd_t *pmd = pmd_offset(pud, addr);
+>         if (pmd_none(*pmd)) {
+> -               void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+> -               if (!p)
+> -                       return NULL;
+> +               void *p;
 > +
-> +static int record_subpages(struct page *page, unsigned long addr,
-> +                          unsigned long end, struct page **pages)
-> +{
-> +       int nr;
-> +
-> +       for (nr = 0; addr != end; addr += PAGE_SIZE)
-> +               pages[nr++] = page++;
-> +
-> +       return nr;
+> +               if (!block) {
+> +                       p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+> +                       if (!p)
+> +                               return NULL;
+> +               } else {
+> +                       /* See comment in vmemmap_pte_populate(). */
+> +                       get_page(block);
+> +                       p = page_to_virt(block);
+> +               }
+>                 pmd_populate_kernel(&init_mm, pmd, p);
+>         }
+>         return pmd;
+> @@ -585,15 +594,14 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+>         return pgd;
+>  }
+>
+> -static int __meminit vmemmap_populate_address(unsigned long addr, int node,
+> -                                             struct vmem_altmap *altmap,
+> -                                             struct page *reuse, struct page **page)
+> +static int __meminit vmemmap_populate_pmd_address(unsigned long addr, int node,
+> +                                                 struct vmem_altmap *altmap,
+> +                                                 struct page *reuse, pmd_t **ptr)
+>  {
+>         pgd_t *pgd;
+>         p4d_t *p4d;
+>         pud_t *pud;
+>         pmd_t *pmd;
+> -       pte_t *pte;
+>
+>         pgd = vmemmap_pgd_populate(addr, node);
+>         if (!pgd)
+> @@ -604,9 +612,24 @@ static int __meminit vmemmap_populate_address(unsigned long addr, int node,
+>         pud = vmemmap_pud_populate(p4d, addr, node);
+>         if (!pud)
+>                 return -ENOMEM;
+> -       pmd = vmemmap_pmd_populate(pud, addr, node);
+> +       pmd = vmemmap_pmd_populate(pud, addr, node, reuse);
+>         if (!pmd)
+>                 return -ENOMEM;
+> +       if (ptr)
+> +               *ptr = pmd;
+> +       return 0;
 > +}
 > +
->  #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
->  static int __gup_device_huge(unsigned long pfn, unsigned long addr,
->                              unsigned long end, unsigned int flags,
->                              struct page **pages, int *nr)
->  {
-> -       int nr_start = *nr;
-> +       int refs, nr_start = *nr;
->         struct dev_pagemap *pgmap = NULL;
->
->         do {
-> -               struct page *page = pfn_to_page(pfn);
-> +               struct page *pinned_head, *head, *page = pfn_to_page(pfn);
-> +               unsigned long next;
->
->                 pgmap = get_dev_pagemap(pfn, pgmap);
->                 if (unlikely(!pgmap)) {
->                         undo_dev_pagemap(nr, nr_start, flags, pages);
->                         return 0;
->                 }
-> -               SetPageReferenced(page);
-> -               pages[*nr] = page;
-> -               if (unlikely(!try_grab_page(page, flags))) {
-> -                       undo_dev_pagemap(nr, nr_start, flags, pages);
+> +static int __meminit vmemmap_populate_address(unsigned long addr, int node,
+> +                                             struct vmem_altmap *altmap,
+> +                                             struct page *reuse, struct page **page)
+> +{
+> +       pmd_t *pmd;
+> +       pte_t *pte;
 > +
-> +               head = compound_head(page);
-> +               /* @end is assumed to be limited at most one compound page */
-> +               next = PageCompound(head) ? end : addr + PAGE_SIZE;
-
-Please no ternary operator for this check, but otherwise this patch
-looks good to me.
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-
-
-> +               refs = record_subpages(page, addr, next, pages + *nr);
+> +       if (vmemmap_populate_pmd_address(addr, node, altmap, NULL, &pmd))
+> +               return -ENOMEM;
 > +
-> +               SetPageReferenced(head);
-> +               pinned_head = try_grab_compound_head(head, refs, flags);
-> +               if (!pinned_head) {
-> +                       if (PageCompound(head)) {
-> +                               ClearPageReferenced(head);
-> +                               put_dev_pagemap(pgmap);
-> +                       } else {
-> +                               undo_dev_pagemap(nr, nr_start, flags, pages);
-> +                       }
->                         return 0;
->                 }
-> -               (*nr)++;
-> -               pfn++;
-> -       } while (addr += PAGE_SIZE, addr != end);
-> +               *nr += refs;
-> +               pfn += refs;
-> +       } while (addr += (refs << PAGE_SHIFT), addr != end);
->
->         if (pgmap)
->                 put_dev_pagemap(pgmap);
-> @@ -2318,17 +2342,6 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
+>         pte = vmemmap_pte_populate(pmd, addr, node, altmap, reuse);
+>         if (!pte)
+>                 return -ENOMEM;
+> @@ -650,6 +673,20 @@ static inline int __meminit vmemmap_populate_page(unsigned long addr, int node,
+>         return vmemmap_populate_address(addr, node, NULL, NULL, page);
 >  }
->  #endif
 >
-> -static int record_subpages(struct page *page, unsigned long addr,
-> -                          unsigned long end, struct page **pages)
-> -{
-> -       int nr;
-> -
-> -       for (nr = 0; addr != end; addr += PAGE_SIZE)
-> -               pages[nr++] = page++;
-> -
-> -       return nr;
-> -}
-> -
->  #ifdef CONFIG_ARCH_HAS_HUGEPD
->  static unsigned long hugepte_addr_end(unsigned long addr, unsigned long end,
->                                       unsigned long sz)
+> +static int __meminit vmemmap_populate_pmd_range(unsigned long start,
+> +                                               unsigned long end,
+> +                                               int node, struct page *page)
+> +{
+> +       unsigned long addr = start;
+> +
+> +       for (; addr < end; addr += PMD_SIZE) {
+> +               if (vmemmap_populate_pmd_address(addr, node, NULL, page, NULL))
+> +                       return -ENOMEM;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
+>                                                      unsigned long start,
+>                                                      unsigned long end, int node,
+> @@ -670,6 +707,7 @@ static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
+>         offset = PFN_PHYS(start_pfn) - pgmap->ranges[pgmap->nr_range].start;
+>         if (!IS_ALIGNED(offset, pgmap_geometry(pgmap)) &&
+>             pgmap_geometry(pgmap) > SUBSECTION_SIZE) {
+> +               pmd_t *pmdp;
+>                 pte_t *ptep;
+>
+>                 addr = start - PAGE_SIZE;
+> @@ -681,11 +719,25 @@ static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
+>                  * the previous struct pages are mapped when trying to lookup
+>                  * the last tail page.
+>                  */
+> -               ptep = pte_offset_kernel(pmd_off_k(addr), addr);
+> -               if (!ptep)
+> +               pmdp = pmd_off_k(addr);
+> +               if (!pmdp)
+> +                       return -ENOMEM;
+> +
+> +               /*
+> +                * Reuse the tail pages vmemmap pmd page
+> +                * See layout diagram in Documentation/vm/vmemmap_dedup.rst
+> +                */
+> +               if (offset % pgmap_geometry(pgmap) > PFN_PHYS(PAGES_PER_SECTION))
+> +                       return vmemmap_populate_pmd_range(start, end, node,
+> +                                                         pmd_page(*pmdp));
+> +
+> +               /* See comment above when pmd_off_k() is called. */
+> +               ptep = pte_offset_kernel(pmdp, addr);
+> +               if (pte_none(*ptep))
+>                         return -ENOMEM;
+>
+>                 /*
+> +                * Populate the tail pages vmemmap pmd page.
+>                  * Reuse the page that was populated in the prior iteration
+>                  * with just tail struct pages.
+>                  */
 > --
 > 2.17.1
 >
