@@ -1,162 +1,258 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E60070
-	for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 18:51:56 +0000 (UTC)
-Received: by mail-pj1-f54.google.com with SMTP id g23-20020a17090a5797b02901765d605e14so5452475pji.5
-        for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 11:51:56 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EBF870
+	for <nvdimm@lists.linux.dev>; Wed, 28 Jul 2021 18:54:18 +0000 (UTC)
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16SIolIA002496;
+	Wed, 28 Jul 2021 18:54:12 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=u94fyDQ/F5weA+boe3zisgYbHJ5P/a9quIzPebrQMQo=;
+ b=JdJGDqavUkPwVsQYYt+gzm8RXs1+5XxQDHzHnvY77Ki3qfDVDWaelodE+yU/8nHdcQue
+ VtWAYd6vobVTFyGn/mgJJD91lZszY1fuIPLVGFhmxA0PNJaay77V++qfnlBKBeDNgyVc
+ do5R6D5NupBeVFli/LUCIrLwqiPO364W7dv8YciX36uus8Qlwz9zBAkscXgWb/Xpb9+L
+ siAw2ufo5vr3a5g3/Vo3fPEdwzyCO/uq0kxwueOkHFPmKn8Dx9cKb/ZOWDLP10ZFkTZn
+ +lE+aLO7RowaWiq8xVAw15UiLmd8uYTlNMrICZ9ZwfVyc8OEMQpDSlGgD3MMkh07KGG2 aQ== 
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2020-01-29;
+ bh=u94fyDQ/F5weA+boe3zisgYbHJ5P/a9quIzPebrQMQo=;
+ b=jArOsJ+z5BbofcZifob0YEKsTI9j9CMj/4pZRMCdfNzMqTTSCp3J/spfcwX+PzR4LzSj
+ 8dWNU/QFAeR9aomMNbK+/g0n13GXwVzqOzUnDFOlOMXJh9OBzgewtWkWwhYd9E6pqPKa
+ zbU4bu5kII4ss+2abAVI8fhirM+FAfKX2ck23cHTb9XBnUpzdmDKkWCV3sTRv5WOKhs/
+ vFakeNziR8O7tWkQjmaLDE0h8PcP/Al214Ta6b6qiAH6gdlPanLrZujMNaWmE6miPVX8
+ CEVOCwW6kXqSHTsJSKz6eg8+IavzfwH/eb9WIEiOUPIZEo/5BhGs/9bVjNrfu61V1nHf Fw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3a2353daqa-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 28 Jul 2021 18:54:11 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 16SIipYE010348;
+	Wed, 28 Jul 2021 18:54:10 GMT
+Received: from nam02-bn1-obe.outbound.protection.outlook.com (mail-bn1nam07lp2044.outbound.protection.outlook.com [104.47.51.44])
+	by userp3020.oracle.com with ESMTP id 3a234ya40q-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 28 Jul 2021 18:54:10 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Ik6eZGdbZHchzzWGMzH+DOC3y4H7fx1qDMGlNStQeJPa2I+aVLvSnXCDsUNvLiy+NI+WRUGzCzelF7uZ3HUHHkkxRwbAt8iYugrwNrLvl0Yni9PdrQkpl3KW/WwHGi7WB1gNkGCrenXsD3qJvf7qsD2JtP1MMG9TEwbRQTGnWpEmz4ENzA0Y2QDuwiXgbg4GKGsLzF7Ie7xO3BmsaV9AvoiWE0lgNhvSJjXF90IZNlGRJUaoqkFI/41lYoKSJpV17hS4SIjTx9vAu8PIXa4z9i18M8XAulDXPMmztaj637CnkbbOTDS8iUvociIl9nD+QRnZcLgIyjkRyeoIVF7vfQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=u94fyDQ/F5weA+boe3zisgYbHJ5P/a9quIzPebrQMQo=;
+ b=K/JoXlyTxoN1pZ/RI0qtKsCtBS1aGCfYVn3xzK8bFMy6HA9aXGojvtap2/iLGrqvlCkSijmOI8NJOiH3O0eNc/VdykmGyYFBPU1/6ZLh9f1IigqM3vztbyufGszCvEkJHBqcZoDrEsBzwzc0UnCGOWDr8I31HrFH7WKQXUR38xvPnqPa/mvPIIerge4hkM9LTcOIZp4DfgI1YQN5Ic4tKHhdObL0EDPkNMIx4iVwR8j7/U3vexCjVMKqw917RrI2NRPTXYGg5yS+AzHYEo2FW90ZzxgbPajAT/k9xWJLCY1bX/bsBCPJ7BOKgwwtTXZAQkkv0bdxUNRXAxyGyYM8oQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=TOKcmXzEo94iAN3IEev2/GCNTAlz4I4z5cl17b0W5PY=;
-        b=YiMzmM0RaHJqrnUo6ndFY64z9GYOX9Kxi2LIYYmmSOK7FC6CXsVPNITK5KA+5xbBe2
-         zz2n8UiE/TmE1RUgXES28lDNf3RhjyIk/FFxriWQqU7FRgDEvvdNaqugokIm/wrELyad
-         LjWGXnn0vxn/602tWg8na8V60BVEQr0xadYNxG2eGedDirDCDzEB5BoJWHRFI5jIJN/Z
-         sqLd4tICVgQPj4xqXtEGwHJqMs6+s01aIGzYUkV9CdYnlf7XAGbNi+Gmbh3ERu0rvP+D
-         Lukdri/Ofz3vO7/Dpo12mjMXf0Uy+wpH8ohUO3gHdNLHC0lv7stBTCTqs7qUCmJVC5L2
-         cCrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=TOKcmXzEo94iAN3IEev2/GCNTAlz4I4z5cl17b0W5PY=;
-        b=jzizjs3ad7I3W06/yKjhE5E3ZJ+Zl/rF4hZFS4g7fLB2Af9kL0WmQWTEw5TS213yo2
-         lUSu+qb5ocyyZwMSlyuqTYlGEyLcG9ke6c92vAXKLfupNc47yPnIJhiB9SYsAqPTij/z
-         v2+88J3eL2d52V5JwE4oUCz5AEt/2sMdb89/drNwP3RrEz7V0H6B4jDsrq3SAQgEXpHR
-         9tNKRhwyC/0V4Tl7GIYsrrYCJnA6wdFFTbia7d4IrP/7EHEv/Vtwwv26KnFEojYAKXT1
-         JBqtUueqChaP06qxH5Ndb63AZbj4zUQrCoTSlCYuOQDXj7vKvhxHG3UovM/kW/aqEZyD
-         Nnuw==
-X-Gm-Message-State: AOAM530fprZ4tBtPprAMjSajRyByrOXaUaq3oSNt7ibcbpMbORff98B0
-	okTNMMcVW4vcvHB6sh8HiQSaRXyroAAJd5HSaGs9kg==
-X-Google-Smtp-Source: ABdhPJybqMYUe5zefm7Vr3S+aiJhxjyQpD/pZqJK+Uv2rjIWSl/PZ9O9rmylxXkNzgwZEvWtlaVGtW+9a+r6/aD6/Jo=
-X-Received: by 2002:a17:90a:708c:: with SMTP id g12mr11094772pjk.13.1627498316410;
- Wed, 28 Jul 2021 11:51:56 -0700 (PDT)
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=u94fyDQ/F5weA+boe3zisgYbHJ5P/a9quIzPebrQMQo=;
+ b=HmFLpdcDuH+znRqsAUqkwiHTNembFbO3fW85h3QHWz0GlQ6QhBT2jx51V5A5BP0od0INCLF1kK33RPGlKWV9pzYtC75g/NI9u2Yt9v5+8x2g19tnCv9aIGRrb1AoBdC9d/lqUhQSqu2y/qxfTo9faFKcg0+HZQYaCdSKOdyI5pQ=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none header.from=oracle.com;
+Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
+ by BLAPR10MB5138.namprd10.prod.outlook.com (2603:10b6:208:322::8) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.20; Wed, 28 Jul
+ 2021 18:54:08 +0000
+Received: from BLAPR10MB4835.namprd10.prod.outlook.com
+ ([fe80::5833:5ab2:944c:7360]) by BLAPR10MB4835.namprd10.prod.outlook.com
+ ([fe80::5833:5ab2:944c:7360%9]) with mapi id 15.20.4373.020; Wed, 28 Jul 2021
+ 18:54:08 +0000
+Subject: Re: [PATCH v3 08/14] mm/sparse-vmemmap: populate compound pagemaps
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        Naoya Horiguchi
+ <naoya.horiguchi@nec.com>,
+        Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>,
+        John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Linux NVDIMM <nvdimm@lists.linux.dev>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+References: <20210714193542.21857-1-joao.m.martins@oracle.com>
+ <20210714193542.21857-9-joao.m.martins@oracle.com>
+ <CAPcyv4jPWSeP3jOKiEy0ko4Yy5SgAFmuD64ABgv=cRxHaQM7ew@mail.gmail.com>
+ <131e77ec-6de4-8401-e7b0-7ff12abac04c@oracle.com>
+ <CAPcyv4jR9atodmLqk4O+RdbM9DJDvoQvAZqH03UAgAKB71Fcdg@mail.gmail.com>
+From: Joao Martins <joao.m.martins@oracle.com>
+Message-ID: <d7f1e0b9-bf57-b30e-84d5-cd0e5cdadaaf@oracle.com>
+Date: Wed, 28 Jul 2021 19:54:00 +0100
+In-Reply-To: <CAPcyv4jR9atodmLqk4O+RdbM9DJDvoQvAZqH03UAgAKB71Fcdg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: LO4P123CA0174.GBRP123.PROD.OUTLOOK.COM
+ (2603:10a6:600:18a::17) To BLAPR10MB4835.namprd10.prod.outlook.com
+ (2603:10b6:208:331::11)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com>
- <20210714193542.21857-13-joao.m.martins@oracle.com> <CAPcyv4h5c9afuxXy=UhrRr_tTwHB62RODyCKWNFU5TumXHc76A@mail.gmail.com>
- <f7217b61-c845-eaed-501e-c9e7067a6b87@oracle.com> <CAPcyv4hRQhG+0ika-wbxSFYrpmMJHxxX456qE64PMxDoxS+Fwg@mail.gmail.com>
- <156c4fb8-46c5-d8ae-b953-837b86516ded@oracle.com>
-In-Reply-To: <156c4fb8-46c5-d8ae-b953-837b86516ded@oracle.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 28 Jul 2021 11:51:45 -0700
-Message-ID: <CAPcyv4hmoS8QSfBY6z07w9Ywjdq8WkROFVn3b_1bsE9i9_j3UA@mail.gmail.com>
-Subject: Re: [PATCH v3 12/14] device-dax: compound pagemap support
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
-	Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, 
-	Jane Chu <jane.chu@oracle.com>, Muchun Song <songmuchun@bytedance.com>, 
-	Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.1.67] (94.61.1.144) by LO4P123CA0174.GBRP123.PROD.OUTLOOK.COM (2603:10a6:600:18a::17) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.18 via Frontend Transport; Wed, 28 Jul 2021 18:54:06 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: a108e6d9-b216-4f27-9076-08d951f9147e
+X-MS-TrafficTypeDiagnostic: BLAPR10MB5138:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: 
+	<BLAPR10MB5138C3CEEACABE53595DA85CBBEA9@BLAPR10MB5138.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 
+	fLVVGl+UuRa87fU/DNj04uUxvANgqw/Sb274q3hEGck0l+xlN1ZjjUKTSxfZtWfmbrIUeg9QXluhUUX7zp+uR7SWS0Xe+SCYuj05uo7AgSxiPfEaaeyCUd+LwSuPzXa+Vahqi3mYAoLD2LKU9wD0iFL4oe/uu75s4S3kDJ3nXcLDzdfwMBY9qF6U77rnqyfWGcc9yJt5T3nGNqaESUQL6asS8x+X5Np68Gf5vu3lHq+MmTdKbGOCTw1BJqLkYab2+CdL26STTq1n9/aWjJvsRwUTyNPUEOto+ZCZIPUsCkZFQqZPQdIsFzixtjU63Pl/bA3s40DX9YLgaHWTuZnvrPSWugVy4Buy3UeWMvLRifF+yEGQQL0Nw5Xuf8PZ4GpE3WggH9P7sIQqeZws0MYIJT6b1mTGzUHEyU/IYPpVAXLhyN0zIM74ZIoxMc7uJdP1Jf9IdWI+AEEJ0hYj293pOmPO1k0fvV28S7DIB9TOusMo9XhB4SXuhQYBpmbocpPOWVd+54rEKgrtpNEOZ4jMB7WpRjRcdVNFYzf6TOYaGV/tAGwaWO1I8H8yjJyOIX1j3IFu81vTNXB6o/xaKz2Ny8RfX4VsvBFOkcLAjXFqojv1lcyI7KmjDv76hQB4BiXYrAsK9FUtyNUI+mkympqULjPZLmbUM1syR2Zymy6QV+dHRjmMBuLLGFj/VPtQMc+xCIzBbKdBefmdh2udzjZyeg==
+X-Forefront-Antispam-Report: 
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(376002)(136003)(366004)(396003)(39860400002)(346002)(86362001)(2906002)(956004)(2616005)(8936002)(83380400001)(6916009)(478600001)(31696002)(16576012)(6666004)(31686004)(5660300002)(8676002)(66946007)(54906003)(66476007)(26005)(6486002)(66556008)(53546011)(316002)(38100700002)(7416002)(36756003)(4326008)(186003)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: 
+	=?utf-8?B?bkFtbkFJNE96OTZNSU5Ram16emsvVndZQ1YvaUk5aU9SU0NuWlFUeTJwUnpM?=
+ =?utf-8?B?ckNYNG0xSkdHck9zNWxROVNTTEVBcVk3dkZoekR3N1ByOGJ6TEh2clM1ZW5t?=
+ =?utf-8?B?b05yQTRSV3pEMFpjc01EczNrNnR6SEZnaGxBM1g2ZHFiVmI4QTcrVGZ5UWE2?=
+ =?utf-8?B?L09KVXBIREp4NnJOd3FKYUR4bHpYaWNBVUt6WndxRDBmTmdoV3hmNkZZemxh?=
+ =?utf-8?B?YlNrS2NUdHNwZkNBK1dJYnQ2UlZEWGZRejlFNmdESWlwYmNNUFBGN3ZwTlFV?=
+ =?utf-8?B?dXNjdHFLNlUxTWZPenFUQ3ZuWVVPUGxCVE13RVdheDFmZzhkV0VtaEZBQ3FG?=
+ =?utf-8?B?c2lTWFZSWTdFMkt1TzYzVlRmR3hNSjVTbnYxTTZ5RUFOOExnZXJmbGpndGly?=
+ =?utf-8?B?bStBbzZXREFraDhYQ2Z6TmtjNE0wRnlMcGEyR3FZQy96dWxRRTFDTnR2NHhE?=
+ =?utf-8?B?bmRWNDJQeE5oTjJqcDlPcnFqei9ZRDRkcDlaMERleWkvODlFSkdvSEY0Y28r?=
+ =?utf-8?B?SnZBK1Jkb0dzUHQvZHpzM1RwTHF1N0xQNlREZUNEdUtYS0ZhTmtFSy9lMGhm?=
+ =?utf-8?B?dzYrNkg3RkZTYkQ0Z1EyOVhXcExzdWR2OVZuVGxNVGx0VW5pMldUMnl5c2ww?=
+ =?utf-8?B?aXZoQk5zSms3T3NjcmdJNzRUb1NqeitsdElCM0tOekJDZDB1YXVTR0QvaklC?=
+ =?utf-8?B?ZUZQQzh6cTJndUY4RHM1ZzVkOE5BTHVUVFI3T3dnbjlQMit1bzM0ZURJT3F5?=
+ =?utf-8?B?cUtqOXBQNW9Bd3IvQTIvdDFuV3VoSmIzWW5lNjdOd0RVSWRYK0FFdXkvT2xs?=
+ =?utf-8?B?aHJjYi9reFhKSmd3L2pSVGRTdTRNNkZLaGRDaHpKclFLL2Z4akRMSmk1WFB6?=
+ =?utf-8?B?d1JLSmgyNlNRcVVHZk5wRVVHcFBLZE5ha0hmNU5RVjQycmRDbXN3UklBeG1w?=
+ =?utf-8?B?OGNacUdyTml0WFlOYVFnSmlWeVV5UCt2RllNY2dLeEFHVGx1Wk9LQ09CS1pl?=
+ =?utf-8?B?VTcyLzY4Y0FiY21uMHVMRUdzTmJiUUlvOGJzc3lTWUpXamR3WmlsQmltdWkz?=
+ =?utf-8?B?L3FkWk91UEFxMFhDbjZPaEFuVHAwUTRJS3l4QnpuVk9sV0ZxMWhJYkZNQW84?=
+ =?utf-8?B?ZWgzMnJvMFIxZUZuaUVoL3VxTGhtamlLRldNOEtyWVlYRkdOVng5a3VOREIw?=
+ =?utf-8?B?eVIyV1VYUTBZb3REeTZaWGlXaXYrRitXOTRtSzQrY3NhLzVsWlFid0ZQN1ZV?=
+ =?utf-8?B?ZlpqZTlSMm9kS3pkZ3lGSzZaeDAwNk04UmdBTTNRVngzNmtJY29lbFU0N3R3?=
+ =?utf-8?B?bWdWQmdLWGpSdlU0U1NPVlJvaldUV1l3ano5VWVyTmFINXltclZIampBdkd1?=
+ =?utf-8?B?ZDN5QmM1Q2xUeDVhV1hKdTZUT2d2TzhtcFVYdFlJUVdNNnhKNzkzdFhvcW9L?=
+ =?utf-8?B?Q3hUWnpyaUhyYWtqanVlTExsNzV4U3pLdGJ5R01YTkR3TjZmRjYrcFVtQVhI?=
+ =?utf-8?B?cCtud2NGa0tPT0xORjgybDFnVCtGdEI4Mlpwb1Baa2FtSmV0QXpVMHppVGJU?=
+ =?utf-8?B?cElEUWtzRTA3d1FZRmVlMm9sVHlWelorNmcrZGNkajNWMklJYzlJMHg0Vk15?=
+ =?utf-8?B?b2JRTlRKUjY3SEl1anJCQjBMdlFoVHhaRlNSS00xSll2ZTJ3bzNtdjNqelNL?=
+ =?utf-8?B?U2tNOVZjRUh5VG16b0loSFluZHhrZlFISkFMcDkwcGVXM2tRWFhBZ2RQT2Er?=
+ =?utf-8?Q?MJ5m0ESTyYE/HfCVWrfifAtHhXplR+jKgmTNbMg?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a108e6d9-b216-4f27-9076-08d951f9147e
+X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Jul 2021 18:54:08.3634
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: sAZ7k6cG8ZK2DLRKlbZvE+LV1lZDEVAA/VI2EozxqLBrMpsjOaxMbLJ0E0HmlD1ZU1mx/3EigKegEtFryd1OIVCS8p+VLtcM+bp92hxRDqM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BLAPR10MB5138
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=10059 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 spamscore=0
+ mlxlogscore=999 bulkscore=0 mlxscore=0 phishscore=0 suspectscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2107140000 definitions=main-2107280107
+X-Proofpoint-GUID: ZgGeGl90Sjm87-rc8MOUyNvCzyXPSNQg
+X-Proofpoint-ORIG-GUID: ZgGeGl90Sjm87-rc8MOUyNvCzyXPSNQg
 
-On Wed, Jul 28, 2021 at 2:36 AM Joao Martins <joao.m.martins@oracle.com> wrote:
->
-> On 7/28/21 12:51 AM, Dan Williams wrote:
-> > On Thu, Jul 15, 2021 at 5:01 AM Joao Martins <joao.m.martins@oracle.com> wrote:
-> >> On 7/15/21 12:36 AM, Dan Williams wrote:
-> >>> On Wed, Jul 14, 2021 at 12:36 PM Joao Martins <joao.m.martins@oracle.com> wrote:
-> >> This patch is not the culprit, the flaw is early in the series, specifically the fourth patch.
-> >>
-> >> It needs this chunk below change on the fourth patch due to the existing elevated page ref
-> >> count at zone device memmap init. put_page() called here in memunmap_pages():
-> >>
-> >> for (i = 0; i < pgmap->nr_ranges; i++)
-> >>         for_each_device_pfn(pfn, pgmap, i)
-> >>                 put_page(pfn_to_page(pfn));
-> >>
-> >> ... on a zone_device compound memmap would otherwise always decrease head page refcount by
-> >> @geometry pfn amount (leading to the aforementioned splat you reported).
-> >>
-> >> diff --git a/mm/memremap.c b/mm/memremap.c
-> >> index b0e7b8cf3047..79a883af788e 100644
-> >> --- a/mm/memremap.c
-> >> +++ b/mm/memremap.c
-> >> @@ -102,15 +102,15 @@ static unsigned long pfn_end(struct dev_pagemap *pgmap, int range_id)
-> >>         return (range->start + range_len(range)) >> PAGE_SHIFT;
-> >>  }
-> >>
-> >> -static unsigned long pfn_next(unsigned long pfn)
-> >> +static unsigned long pfn_next(struct dev_pagemap *pgmap, unsigned long pfn)
-> >>  {
-> >>         if (pfn % 1024 == 0)
-> >>                 cond_resched();
-> >> -       return pfn + 1;
-> >> +       return pfn + pgmap_pfn_geometry(pgmap);
-> >
-> > The cond_resched() would need to be fixed up too to something like:
-> >
-> > if (pfn % (1024 << pgmap_geometry_order(pgmap)))
-> >     cond_resched();
-> >
-> > ...because the goal is to take a break every 1024 iterations, not
-> > every 1024 pfns.
-> >
->
-> Ah, good point.
->
-> >>  }
-> >>
-> >>  #define for_each_device_pfn(pfn, map, i) \
-> >> -       for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(pfn))
-> >> +       for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(map, pfn))
-> >>
-> >>  static void dev_pagemap_kill(struct dev_pagemap *pgmap)
-> >>  {
-> >>
-> >> It could also get this hunk below, but it is sort of redundant provided we won't touch
-> >> tail page refcount through out the devmap pages lifetime. This setting of tail pages
-> >> refcount to zero was in pre-v5.14 series, but it got removed under the assumption it comes
-> >> from the page allocator (where tail pages are already zeroed in refcount).
-> >
-> > Wait, devmap pages never see the page allocator?
-> >
-> "where tail pages are already zeroed in refcount" this actually meant 'freshly allocated
-> pages' and I was referring to commit 7118fc2906e2 ("hugetlb: address ref count racing in
-> prep_compound_gigantic_page") that removed set_page_count() because the setting of page
-> ref count to zero was redundant.
 
-Ah, maybe include that reference in the changelog?
 
->
-> Albeit devmap pages don't come from page allocator, you know separate zone and these pages
-> aren't part of the regular page pools (e.g. accessible via alloc_pages()), as you are
-> aware. Unless of course, we reassign them via dax_kmem, but then the way we map the struct
-> pages would be regular without any devmap stuff.
+On 7/28/21 7:03 PM, Dan Williams wrote:
+> On Wed, Jul 28, 2021 at 8:36 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+> [..]
+>> +/*
+>> + * For compound pages bigger than section size (e.g. x86 1G compound
+>> + * pages with 2M subsection size) fill the rest of sections as tail
+>> + * pages.
+>> + *
+>> + * Note that memremap_pages() resets @nr_range value and will increment
+>> + * it after each range successful onlining. Thus the value or @nr_range
+>> + * at section memmap populate corresponds to the in-progress range
+>> + * being onlined here.
+>> + */
+>> +static bool compound_section_index(unsigned long start_pfn,
+> 
+> Oh, I was thinking this would return the actual Nth index number for
+> the section within the compound page. 
+> A bool is ok too, but then the
+> function name would be something like:
+> 
+> reuse_compound_section()
+> 
+> ...right?
+> 
+Yes.
 
-Got it. I think with the back reference to that commit (7118fc2906e2)
-it resolves my confusion.
+> 
+> [..]
+>> [...] And here's compound_section_tail_huge_page() (for the last patch in the series):
+>>
+>>
+>> @@ -690,6 +727,33 @@ static struct page * __meminit compound_section_tail_page(unsigned
+>> long addr)
+>>         return pte_page(*ptep);
+>>  }
+>>
+>> +static struct page * __meminit compound_section_tail_huge_page(unsigned long addr,
+>> +                               unsigned long offset, struct dev_pagemap *pgmap)
+>> +{
+>> +       unsigned long geometry_size = pgmap_geometry(pgmap) << PAGE_SHIFT;
+>> +       pmd_t *pmdp;
+>> +
+>> +       addr -= PAGE_SIZE;
+>> +
+>> +       /*
+>> +        * Assuming sections are populated sequentially, the previous section's
+>> +        * page data can be reused.
+>> +        */
+>> +       pmdp = pmd_off_k(addr);
+>> +       if (!pmdp)
+>> +               return ERR_PTR(-ENOMEM);
+>> +
+>> +       /*
+>> +        * Reuse the tail pages vmemmap pmd page
+>> +        * See layout diagram in Documentation/vm/vmemmap_dedup.rst
+>> +        */
+>> +       if (offset % geometry_size > PFN_PHYS(PAGES_PER_SECTION))
+>> +               return pmd_page(*pmdp);
+>> +
+Maybe I can drop the geometry_size and just do here:
 
->
-> >>
-> >> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> >> index 96975edac0a8..469a7aa5cf38 100644
-> >> --- a/mm/page_alloc.c
-> >> +++ b/mm/page_alloc.c
-> >> @@ -6623,6 +6623,7 @@ static void __ref memmap_init_compound(struct page *page, unsigned
-> >> long pfn,
-> >>                 __init_zone_device_page(page + i, pfn + i, zone_idx,
-> >>                                         nid, pgmap);
-> >>                 prep_compound_tail(page, i);
-> >> +               set_page_count(page + i, 0);
-> >
-> > Looks good to me and perhaps a for elevated tail page refcount at
-> > teardown as a sanity check that the tail pages was never pinned
-> > directly?
-> >
-> Sorry didn't follow completely.
->
-> You meant to set tail page refcount back to 1 at teardown if it was kept to 0 (e.g.
-> memunmap_pages() after put_page()) or that the refcount is indeed kept to zero after the
-> put_page() in memunmap_pages() ?
+if (PHYS_PFN(offset) % pgmap_geometry(pgmap) > PAGES_PER_SECTION)
 
-The latter, i.e. would it be worth it to check that a tail page did
-not get accidentally pinned instead of a head page? I'm also ok to
-leave out that sanity checking for now.
+and thus drop the geometry_size variable.
+
+>> +       /* No reusable PMD fallback to PTE tail page*/
+>> +       return NULL;
+>> +}
+>> +
+>>  static int __meminit vmemmap_populate_compound_pages(unsigned long start_pfn,
+>>                                                      unsigned long start,
+>>                                                      unsigned long end, int node,
+>> @@ -697,14 +761,22 @@ static int __meminit vmemmap_populate_compound_pages(unsigned long
+>> start_pfn,
+>>  {
+>>         unsigned long offset, size, addr;
+>>
+>> -       if (compound_section_index(start_pfn, pgmap)) {
+>> -               struct page *page;
+>> +       if (compound_section_index(start_pfn, pgmap, &offset)) {
+>> +               struct page *page, *hpage;
+>> +
+>> +               hpage = compound_section_tail_huge_page(addr, offset);
+>> +               if (IS_ERR(hpage))
+>> +                       return -ENOMEM;
+>> +               else if (hpage)
+> 
+> No need for "else" after return... other than that these helpers and
+> this arrangement looks good to me.
+> 
+OK.
