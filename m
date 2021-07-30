@@ -1,385 +1,336 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
+Received: from esa14.fujitsucc.c3s2.iphmx.com (esa14.fujitsucc.c3s2.iphmx.com [68.232.156.101])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED5F70
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 09:15:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1627636549;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=2G6YqzVccvwwc7B9va0puf2bDyrJ3NwGJeOcoTuePQc=;
-	b=O29Xnh27ZKSOzUOeyOHRWY1n5pjA13gJIP5nbz2L101OODECrluU7xOxoim6DmWkz8kjbX
-	h/9oht7TP/uJpML8mpzdyR4ra2FRskptiJWoTMXMhQ+gnAd4jrnY22tmoKX+rlbyxDMvEg
-	KzQTpHFS9PHtN5U/dD9e0T0IZfFLK6k=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-593-n6I_yTNoMDO9ZFFWZHeLHQ-1; Fri, 30 Jul 2021 05:15:48 -0400
-X-MC-Unique: n6I_yTNoMDO9ZFFWZHeLHQ-1
-Received: by mail-wm1-f71.google.com with SMTP id d72-20020a1c1d4b0000b029025164ff3ebfso3012907wmd.7
-        for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 02:15:48 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:organization
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=2G6YqzVccvwwc7B9va0puf2bDyrJ3NwGJeOcoTuePQc=;
-        b=T/o/G72tVyQ9NTt9klfRagthZC0CfY/YS53rRVMBND4fX5TSQhZhHLH9UgWf1fQFk1
-         fQ06kZIRcRgeDZhyddHDmBPY+WlAehewkj38fhFFaUPaIkqeQe/d7KoFl5kZKR0ZJr80
-         rp+8GE0uK3M1qTbj9k5eaorkbIEbOPBVcmBkDkwcZ1HhSEmsE2ay78U4vSZTMqZK0e8B
-         Et+LphIoxNy29igW9gWYwgdxGCUDW+f3azZn0OEK07BRAYUHHGd/kX2EE4lf5KPIcXGG
-         Af0ezJ6hsazug68FAgRzk6Oj0rtONJEbHSTwIXQ7M3FQqaP89MHU+TezCqSlCDrnb63K
-         oSBg==
-X-Gm-Message-State: AOAM531lonNTA158glRvPi/IXaQiXHZDrgqMfnNkFaaVRs75MpdBGc/r
-	jvY7EPUoabsYOF/vSebMg/ZZrSxOXTUZXmK70MEUiv1bBxvMB94l+LZcl4ljtNhoTrtM6ChA0l7
-	rz8Un9MbQCDSBTPOR
-X-Received: by 2002:a05:600c:ac4:: with SMTP id c4mr1967693wmr.10.1627636547102;
-        Fri, 30 Jul 2021 02:15:47 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJzG+H96dDTWqQcuJ+RbEY9tKITJ8Afuww7GOPOiwc5dZwIDUsqt9sDMj8Sm9FxLdUz+h5MzYQ==
-X-Received: by 2002:a05:600c:ac4:: with SMTP id c4mr1967663wmr.10.1627636546757;
-        Fri, 30 Jul 2021 02:15:46 -0700 (PDT)
-Received: from ?IPv6:2003:d8:2f0a:7f00:fad7:3bc9:69d:31f? (p200300d82f0a7f00fad73bc9069d031f.dip0.t-ipconnect.de. [2003:d8:2f0a:7f00:fad7:3bc9:69d:31f])
-        by smtp.gmail.com with ESMTPSA id c204sm1176741wme.15.2021.07.30.02.15.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 30 Jul 2021 02:15:46 -0700 (PDT)
-Subject: Re: [PATCH v6 6/9] xfs: Implement ->corrupted_range() for XFS
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
- linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org,
- linux-fsdevel@vger.kernel.org, dm-devel@redhat.com
-Cc: djwong@kernel.com, dan.j.williams@intel.com, david@fromorbit.com,
- hch@lst.de, agk@redhat.com, snitzer@redhat.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82FE270
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 09:27:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
+  t=1627637225; x=1659173225;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=+mnf66uj4w0fnfMNjYsus6KCqgk1b/IsA2hOc1c4H0c=;
+  b=qjF/kJd9VOAwMTkRNISHXZQkky9M2oXUlc50tfJ4XzitFV4yjpF7GHt/
+   TcgvLZouNj6/XuqOSVzW+Jq6Ta99PmZC2dCAeQTdONKv++BFK5Y/vmsGk
+   ximNVFA6JL23uc8UgmZRfDPlaV4nQPpW7k+aC1sTXgzQNCZmDU7SvJwRP
+   EARG9uFX5gAaKwVKSWaWKKNGoKR5LEJkkCAnM2hRkUVmopapfSxXVwHTv
+   eHhnJ/F+MTqO3TB/AtF/QBF/GNCz0S6G45U5wxvgwT6JJQQdYpFOrAQGZ
+   TVSG3kGpJK5VZIBzpeJsMTjejtJE1kH2GDU6jkbLPTcqB8kOyMEAH5VLH
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10060"; a="35766196"
+X-IronPort-AV: E=Sophos;i="5.84,281,1620658800"; 
+   d="scan'208";a="35766196"
+Received: from mail-os2jpn01lp2053.outbound.protection.outlook.com (HELO JPN01-OS2-obe.outbound.protection.outlook.com) ([104.47.92.53])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jul 2021 18:25:50 +0900
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Oe8RVtSxH1Cgy/NmForoEuMVTwpJB9d1SnxryzYKXhoj7lov8Zk06LVNDv567w9aoMAyHdM1AUdoS9nrlAwLvY7itveg66aS0EhlPbIuAcGMQnNnF82Kzqmrul/73tat8wnqCExwJI3JulTRV/FaHC1lxLC3uXZ2lrA0KtFDzV1M5WZnKHYEkpcHc+vzedvngJKZTQAn4Owlg/ewZf/UYJ6PcbWh1IYxSnZiuzLXhC7eS4D6Odd5In78CRaZadtciAliJQEd1AAZztowFHMlS++/t0QeXar/GoipqHoxP7UNX99PreZcYV0HjM9zUrs6Q3VkMuQZkJEUntCGu2eGgg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+mnf66uj4w0fnfMNjYsus6KCqgk1b/IsA2hOc1c4H0c=;
+ b=QoGf/SZffCf7cdVwJx1ObnkpcbU1CdeUDG+T3paLceT+eA5EHzfBxnijm0Yi6IgNHYVrUAa4t5oYmfuYdGHDHnrmTbomeOtHCXNs0SgendcLaxrG8E7EqirvqitBztgZh2Fc6bD0zJs0ugL2ihZ2PGgozNhJkN+Snabd7+cRHpslUAUh5KkCI4jEhGQE3jBYzSL9oOmQWhPgsCIfhgl1xn9w2gyxQ8NSDNR6eI/FvI2IMg2d+pUGAXtfv7G05QezSv5HBL7Uv+Ym70uLNwmkjf7hNyjt0Ix5XdtW36PA1jMV7Hpx2fo4mam80vRKt3rTakamiJiumo2/XAhDwA0G0g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
+ dkim=pass header.d=fujitsu.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=fujitsu.onmicrosoft.com; s=selector2-fujitsu-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=+mnf66uj4w0fnfMNjYsus6KCqgk1b/IsA2hOc1c4H0c=;
+ b=XYfFjAV8txAtvxBR2svFuzUNxV9D99b4GmtN0wCKFOF07VgkbtmYSZnUBRiST9xdxK3qJHstDrSqV6EofwWEPHMLtEi0ouMGo0jQ17hHaq/2EK5/diSwcV0YkSoZ3t2E/du512ikJaRQG4kfY4x6yYT67RR+fR5VnIcxNUKt5TY=
+Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com (2603:1096:604:18::16)
+ by OSAPR01MB4610.jpnprd01.prod.outlook.com (2603:1096:604:6e::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.21; Fri, 30 Jul
+ 2021 09:25:43 +0000
+Received: from OSBPR01MB2920.jpnprd01.prod.outlook.com
+ ([fe80::b88e:7015:e4a2:3d9a]) by OSBPR01MB2920.jpnprd01.prod.outlook.com
+ ([fe80::b88e:7015:e4a2:3d9a%7]) with mapi id 15.20.4352.034; Fri, 30 Jul 2021
+ 09:25:43 +0000
+From: "ruansy.fnst@fujitsu.com" <ruansy.fnst@fujitsu.com>
+To: David Hildenbrand <david@redhat.com>, "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>, "linux-xfs@vger.kernel.org"
+	<linux-xfs@vger.kernel.org>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>, "linux-mm@kvack.org" <linux-mm@kvack.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>
+CC: "Darrick J. Wong" <djwong@kernel.org>, "dan.j.williams@intel.com"
+	<dan.j.williams@intel.com>, "david@fromorbit.com" <david@fromorbit.com>,
+	"hch@lst.de" <hch@lst.de>, "agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>
+Subject: RE: [PATCH v6 6/9] xfs: Implement ->corrupted_range() for XFS
+Thread-Topic: [PATCH v6 6/9] xfs: Implement ->corrupted_range() for XFS
+Thread-Index: AQHXhSBovZIp2W/9YE+rhx/Wuicgv6tbPLOAgAACERA=
+Date: Fri, 30 Jul 2021 09:25:43 +0000
+Message-ID:
+ <OSBPR01MB2920E338AE42C6696EEFD3AAF4EC9@OSBPR01MB2920.jpnprd01.prod.outlook.com>
 References: <20210730085245.3069812-1-ruansy.fnst@fujitsu.com>
  <20210730085245.3069812-7-ruansy.fnst@fujitsu.com>
-From: David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Message-ID: <f0037d29-9402-6357-ce91-ef6e2e5b7c04@redhat.com>
-Date: Fri, 30 Jul 2021 11:15:45 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+ <f0037d29-9402-6357-ce91-ef6e2e5b7c04@redhat.com>
+In-Reply-To: <f0037d29-9402-6357-ce91-ef6e2e5b7c04@redhat.com>
+Accept-Language: en-US, zh-CN
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+authentication-results: redhat.com; dkim=none (message not signed)
+ header.d=none;redhat.com; dmarc=none action=none header.from=fujitsu.com;
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: ff270130-5630-4402-dbfd-08d9533c018a
+x-ms-traffictypediagnostic: OSAPR01MB4610:
+x-microsoft-antispam-prvs:
+ <OSAPR01MB4610508471B0D588B1831A36F4EC9@OSAPR01MB4610.jpnprd01.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:8882;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info:
+ XWPP4udVU/wLzG+Cp7l/nQJrb/YgJi/AihPMuGkwcXE/kLnVhkw8pfR7hjPCTFuf6nUDWQE5dVCZnndznZ/r3Yo41tsZApGjpp+w8tyemj3TIDIL6Ca8dTnnHBc9tvnJwn+w4dvGjAYmEosKullIiiMRRB+wLtb3WKYM1iIFxVg65EU2o9zFcmdpRdwSl1FJB67mpXjcuLeDA5aIG13k+hyNY5c/pJwHUx5utGlx+QmKxDlne+aGdXNepP7n3RS75HDcXv7JtkaBaaw9Fj1wIFd+e/2a378QKrpbQR/6NTo5Hi/A8SeDiAInSdvKGfCmc9Hn6HnkF73T16BVD6GwNvAPCFAkkwmog/U9AoY9CxhWFkEqt3pFp601B52fTd1WQZvBWrE18Tl+ezN5I+PtEc5k/n9plKxfYE4Cm5XOSwtytSnnOoiGX7OusuGK2Zka6nDIAJj4M1wbWEw4m7qPquVg+seYNiN3zC6yQKAqUDopdPh7MMVVDra4jXD2TiLU6jPkwT2wpcQQR8dpKl4noyS8VtjJH72JxwbQ6G+u/jBCVuH2oKYQpzvRuvfW1rcYHCPGZQUEPamntYqkqPnZQWE3Ovw5nPMpYLMLWUhrwSYzNCLiIRl4YdkkFVd0fDnK5iQeehQEInAOLGk94EXyCOYfq5s14cRgl74mQNh5tAydkF6/tWwkWrNTKfARwDHa5rd5jRfG3KfGdiT/TzY9dg==
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OSBPR01MB2920.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(39860400002)(136003)(346002)(396003)(376002)(2906002)(26005)(316002)(86362001)(7416002)(6506007)(186003)(110136005)(71200400001)(4326008)(5660300002)(122000001)(85182001)(38070700005)(38100700002)(8676002)(478600001)(53546011)(9686003)(7696005)(66476007)(52536014)(83380400001)(55016002)(33656002)(8936002)(76116006)(66946007)(30864003)(66446008)(64756008)(54906003)(66556008);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?utf-8?B?NFVMSm1GVlRsQzZMMG1KbXZuaDVGSXh4UVd4MTlOZzdtY3dFbnB4V0g3b0Jl?=
+ =?utf-8?B?SjZrVTVFR0YvM0Y4S0NJd0EzM01idXF6V1VWTFBOL3ljU0krSzhtdkp3Smx2?=
+ =?utf-8?B?NTlaaGxGSXRUc1BWb0VaWVgvbWpoSTdiWFBmeGgwNERmWTZGUE9vRENGazJM?=
+ =?utf-8?B?MGc2cEJmditPd1RvL2NTTHRZNGlOajFsbE9ubzlaRDVmbTBaU3dwTWJqOHBS?=
+ =?utf-8?B?ck9nb2NtTmdKdFRRTHZqRGJqdS9jcDlwbXMxd2YweFNSTnJFejRjclJrVXRz?=
+ =?utf-8?B?Y1BvSFdYdmxnOTBtN29YSWxvMUlTcmkzOXlQUExZTTZNN1dMNTY4Q2FUZytT?=
+ =?utf-8?B?c2pMUUp6N2ttRFg3UGVab3hmeVVVbi9Ld3paM2FDZUZ2ZmhvTE1BdVhCNDhm?=
+ =?utf-8?B?Q0RDWjJtS3ovbnl5SXY3SlZodGRFZHU2VDQ5RmZ6NW0vYXhzWnpETnFMVmVD?=
+ =?utf-8?B?QUY5RVg4QU9ZaS82eW9WOEdtcW14WU9nNEwyYk5XR1BvTjhhTUhWbHJjNS9N?=
+ =?utf-8?B?WWZEeWJvandaNEo3dWZRck9pRDRTNUdZcDhTVjZJbW1jMFBLWVUrRzlBaUg2?=
+ =?utf-8?B?K1dxalBrcndzZXgyNjA3ak9WNU12czhZd0F4UG1jRFFiZm1KSTdRcXdlMnBi?=
+ =?utf-8?B?UStCckVqaWR1WlBYdmN6NlQ5bVhRelpWMXBsVlduaTZFTzdlRENxSjBvOU5s?=
+ =?utf-8?B?TzNUamI4d0NPWmR6Y0xsVHFFTDhTKzkxZ3lqcXN2dVFPOExuOWpka3RrNUNG?=
+ =?utf-8?B?RTF0ZUxHRG1FR3RDT1FZOTdlb3l3VHpiRmNMTUtpOTJFbTUrQW4wWHJoS1lw?=
+ =?utf-8?B?VDdkTHlGQTNnZ0xuSkZBUlR5bXlYRFFTK05WMmE2aUNZbnRnR2liVk55Y203?=
+ =?utf-8?B?ampaQ1JNMGlkUXZ4aDQ2ZXdQTjBBaUNoY3U0ZlB1eTMyOEp6NDZydlh0SjZt?=
+ =?utf-8?B?RUNON3d3U0xxaktUOW1WeUdkc0VQanZGM21wVnVjOU1HaEVFSFNhYlBiUVFW?=
+ =?utf-8?B?aktYakhyRXJTVVEveVhLSVlOMjV2Y0kyZTUvVm9jRFZiTVJFZzhxYlc5bldI?=
+ =?utf-8?B?ZU16MytUbTRmUFZBMlYvUjU0dzdhYkZ3VW5kbFFrbEZyWmxQVXNRTXUweXlS?=
+ =?utf-8?B?QWc0U0hkUjFNdkNWcEFtejZpc3ZCY1VIS3c5c2t6dmJ2ZDdyMGladDh6SHFS?=
+ =?utf-8?B?S0ZYSlpDamZKWllkaFhwa3ZEUENROXFEQXB6ZjMvUWQ5bisrbXp4Yyt1cE5u?=
+ =?utf-8?B?TnlkUjR5cWhiRWg4Q0dKeDlaZ21iOEExTWtodjQ2R0ZKM1ZWaStPd1ZBSkp6?=
+ =?utf-8?B?VGtaQ2Z4OXRFMVFFUC9IbTl3bzZSOEhZcVMzWDRhTEo3Vkh3VnVmSTlXVjMv?=
+ =?utf-8?B?ZTJMRUlBd1lSMk9rbllqS1U3SkxDa2duMU5xaHBWbmw0RWNHSnRwdzdWOTZ6?=
+ =?utf-8?B?aWtOQWQ4NGo3bGpqczVrOHRkTDdlREVEbHZXaHJwakh5cTRwOWRGVEZKMlRh?=
+ =?utf-8?B?MHphYmxtVzY5V2Y1b3M0QzJoTEZyOUJKL3BrdTFRWExyZjlzbWkyWklpbGhp?=
+ =?utf-8?B?enZPVHhVYmtoYzlqWUpVR3gxbnBObGhDVXFBeEV2akh3Zm5GVHBGZUhoUjVP?=
+ =?utf-8?B?bUpDZTZVNmovU2VrVUh2Y25SVDJ3TmxwRHNyQ29ZUm9UZmZhcWJ6ZUJRLytU?=
+ =?utf-8?B?M1kzb1U3QzZIZ2Z6UnpiWVV4R25TcXVYTlFsU0RZM3lYZ1lBQzVsUUlkemdZ?=
+ =?utf-8?Q?S2E8/w0SQo3ylg/+FIJ1WFOPpsYNns4o4DloRC0?=
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210730085245.3069812-7-ruansy.fnst@fujitsu.com>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=david@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: fujitsu.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: OSBPR01MB2920.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: ff270130-5630-4402-dbfd-08d9533c018a
+X-MS-Exchange-CrossTenant-originalarrivaltime: 30 Jul 2021 09:25:43.7477
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: Qf53AchwNYjk0dl7MSrNOsYq86Aa/WJLEk3iIFLfgpXnL6qFRFhsdBNvbo/C4tm7aYNDBroIRJnHuReu6gPFGw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSAPR01MB4610
 
-There is no ocurrence of "corrupted_range" in this patch. Does the patch 
-subject need updating?
-
-
-On 30.07.21 10:52, Shiyang Ruan wrote:
-> This function is used to handle errors which may cause data lost in
-> filesystem.  Such as memory failure in fsdax mode.
-> 
-> If the rmap feature of XFS enabled, we can query it to find files and
-> metadata which are associated with the corrupt data.  For now all we do
-> is kill processes with that file mapped into their address spaces, but
-> future patches could actually do something about corrupt metadata.
-> 
-> After that, the memory failure needs to notify the processes who are
-> using those files.
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> ---
->   drivers/dax/super.c |  12 ++++
->   fs/xfs/xfs_fsops.c  |   5 ++
->   fs/xfs/xfs_mount.h  |   1 +
->   fs/xfs/xfs_super.c  | 135 ++++++++++++++++++++++++++++++++++++++++++++
->   include/linux/dax.h |  13 +++++
->   5 files changed, 166 insertions(+)
-> 
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 00c32dfa5665..63f7b63d078d 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -65,6 +65,18 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
->   	return dax_get_by_host(bdev->bd_disk->disk_name);
->   }
->   EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-> +
-> +void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-> +		const struct dax_holder_operations *ops)
-> +{
-> +	dax_set_holder(dax_dev, holder, ops);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_set_holder);
-> +void *fs_dax_get_holder(struct dax_device *dax_dev)
-> +{
-> +	return dax_get_holder(dax_dev);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_get_holder);
->   #endif
->   
->   bool __generic_fsdax_supported(struct dax_device *dax_dev,
-> diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
-> index 6ed29b158312..e96ddb5c28bc 100644
-> --- a/fs/xfs/xfs_fsops.c
-> +++ b/fs/xfs/xfs_fsops.c
-> @@ -549,6 +549,11 @@ xfs_do_force_shutdown(
->   				flags, __return_address, fname, lnnum);
->   		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
->   			xfs_stack_trace();
-> +	} else if (flags & SHUTDOWN_CORRUPT_META) {
-> +		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-> +"Corruption of on-disk metadata detected.  Shutting down filesystem");
-> +		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
-> +			xfs_stack_trace();
->   	} else if (logerror) {
->   		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_LOGERROR,
->   "Log I/O error (0x%x) detected at %pS (%s:%d). Shutting down filesystem",
-> diff --git a/fs/xfs/xfs_mount.h b/fs/xfs/xfs_mount.h
-> index c78b63fe779a..203eb62d16d0 100644
-> --- a/fs/xfs/xfs_mount.h
-> +++ b/fs/xfs/xfs_mount.h
-> @@ -277,6 +277,7 @@ void xfs_do_force_shutdown(struct xfs_mount *mp, int flags, char *fname,
->   #define SHUTDOWN_LOG_IO_ERROR	0x0002	/* write attempt to the log failed */
->   #define SHUTDOWN_FORCE_UMOUNT	0x0004	/* shutdown from a forced unmount */
->   #define SHUTDOWN_CORRUPT_INCORE	0x0008	/* corrupt in-memory data structures */
-> +#define SHUTDOWN_CORRUPT_META	0x0010  /* corrupt metadata on device */
->   
->   /*
->    * Flags for xfs_mountfs
-> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-> index 2c9e26a44546..4a362e14318d 100644
-> --- a/fs/xfs/xfs_super.c
-> +++ b/fs/xfs/xfs_super.c
-> @@ -37,11 +37,19 @@
->   #include "xfs_reflink.h"
->   #include "xfs_pwork.h"
->   #include "xfs_ag.h"
-> +#include "xfs_alloc.h"
-> +#include "xfs_rmap.h"
-> +#include "xfs_rmap_btree.h"
-> +#include "xfs_rtalloc.h"
-> +#include "xfs_bit.h"
->   
->   #include <linux/magic.h>
->   #include <linux/fs_context.h>
->   #include <linux/fs_parser.h>
-> +#include <linux/mm.h>
-> +#include <linux/dax.h>
->   
-> +static const struct dax_holder_operations xfs_dax_holder_operations;
->   static const struct super_operations xfs_super_operations;
->   
->   static struct kset *xfs_kset;		/* top-level xfs sysfs dir */
-> @@ -352,6 +360,7 @@ xfs_close_devices(
->   
->   		xfs_free_buftarg(mp->m_logdev_targp);
->   		xfs_blkdev_put(logdev);
-> +		fs_dax_set_holder(dax_logdev, NULL, NULL);
->   		fs_put_dax(dax_logdev);
->   	}
->   	if (mp->m_rtdev_targp) {
-> @@ -360,9 +369,11 @@ xfs_close_devices(
->   
->   		xfs_free_buftarg(mp->m_rtdev_targp);
->   		xfs_blkdev_put(rtdev);
-> +		fs_dax_set_holder(dax_rtdev, NULL, NULL);
->   		fs_put_dax(dax_rtdev);
->   	}
->   	xfs_free_buftarg(mp->m_ddev_targp);
-> +	fs_dax_set_holder(dax_ddev, NULL, NULL);
->   	fs_put_dax(dax_ddev);
->   }
->   
-> @@ -386,6 +397,7 @@ xfs_open_devices(
->   	struct block_device	*logdev = NULL, *rtdev = NULL;
->   	int			error;
->   
-> +	fs_dax_set_holder(dax_ddev, mp, &xfs_dax_holder_operations);
->   	/*
->   	 * Open real time and log devices - order is important.
->   	 */
-> @@ -394,6 +406,9 @@ xfs_open_devices(
->   		if (error)
->   			goto out;
->   		dax_logdev = fs_dax_get_by_bdev(logdev);
-> +		if (dax_logdev != dax_ddev)
-> +			fs_dax_set_holder(dax_logdev, mp,
-> +				       &xfs_dax_holder_operations);
->   	}
->   
->   	if (mp->m_rtname) {
-> @@ -408,6 +423,7 @@ xfs_open_devices(
->   			goto out_close_rtdev;
->   		}
->   		dax_rtdev = fs_dax_get_by_bdev(rtdev);
-> +		fs_dax_set_holder(dax_rtdev, mp, &xfs_dax_holder_operations);
->   	}
->   
->   	/*
-> @@ -1070,6 +1086,125 @@ xfs_fs_free_cached_objects(
->   	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
->   }
->   
-> +static int
-> +xfs_corrupt_helper(
-> +	struct xfs_btree_cur		*cur,
-> +	struct xfs_rmap_irec		*rec,
-> +	void				*data)
-> +{
-> +	struct xfs_inode		*ip;
-> +	struct address_space		*mapping;
-> +	int				error = 0, *flags = data, i;
-> +
-> +	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
-> +	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
-> +		// TODO check and try to fix metadata
-> +		xfs_force_shutdown(cur->bc_mp, SHUTDOWN_CORRUPT_META);
-> +		return -EFSCORRUPTED;
-> +	}
-> +
-> +	/* Get files that incore, filter out others that are not in use. */
-> +	error = xfs_iget(cur->bc_mp, cur->bc_tp, rec->rm_owner, XFS_IGET_INCORE,
-> +			 0, &ip);
-> +	if (error)
-> +		return error;
-> +
-> +	mapping = VFS_I(ip)->i_mapping;
-> +	if (IS_ENABLED(CONFIG_MEMORY_FAILURE)) {
-> +		for (i = 0; i < rec->rm_blockcount; i++) {
-> +			error = mf_dax_kill_procs(mapping, rec->rm_offset + i,
-> +						  *flags);
-> +			if (error)
-> +				break;
-> +		}
-> +	}
-> +	// TODO try to fix data
-> +	xfs_irele(ip);
-> +
-> +	return error;
-> +}
-> +
-> +static loff_t
-> +xfs_dax_bdev_offset(
-> +	struct xfs_mount *mp,
-> +	struct dax_device *dax_dev,
-> +	loff_t disk_offset)
-> +{
-> +	struct block_device *bdev;
-> +
-> +	if (mp->m_ddev_targp->bt_daxdev == dax_dev)
-> +		bdev = mp->m_ddev_targp->bt_bdev;
-> +	else if (mp->m_logdev_targp->bt_daxdev == dax_dev)
-> +		bdev = mp->m_logdev_targp->bt_bdev;
-> +	else
-> +		bdev = mp->m_rtdev_targp->bt_bdev;
-> +
-> +	return disk_offset - (get_start_sect(bdev) << SECTOR_SHIFT);
-> +}
-> +
-> +static int
-> +xfs_dax_notify_failure(
-> +	struct dax_device	*dax_dev,
-> +	loff_t			offset,
-> +	size_t			len,
-> +	void			*data)
-> +{
-> +	struct xfs_mount	*mp = fs_dax_get_holder(dax_dev);
-> +	struct xfs_trans	*tp = NULL;
-> +	struct xfs_btree_cur	*cur = NULL;
-> +	struct xfs_buf		*agf_bp = NULL;
-> +	struct xfs_rmap_irec	rmap_low, rmap_high;
-> +	loff_t 			bdev_offset = xfs_dax_bdev_offset(mp, dax_dev,
-> +								  offset);
-> +	xfs_fsblock_t		fsbno = XFS_B_TO_FSB(mp, bdev_offset);
-> +	xfs_filblks_t		bcnt = XFS_B_TO_FSB(mp, len);
-> +	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
-> +	xfs_agblock_t		agbno = XFS_FSB_TO_AGBNO(mp, fsbno);
-> +	int			error = 0;
-> +
-> +	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
-> +	    mp->m_logdev_targp != mp->m_ddev_targp) {
-> +		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
-> +		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_META);
-> +		return -EFSCORRUPTED;
-> +	}
-> +
-> +	if (!xfs_sb_version_hasrmapbt(&mp->m_sb)) {
-> +		xfs_warn(mp, "notify_failure() needs rmapbt enabled!");
-> +		return -EOPNOTSUPP;
-> +	}
-> +
-> +	error = xfs_trans_alloc_empty(mp, &tp);
-> +	if (error)
-> +		return error;
-> +
-> +	error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
-> +	if (error)
-> +		goto out_cancel_tp;
-> +
-> +	cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agf_bp->b_pag);
-> +
-> +	/* Construct a range for rmap query */
-> +	memset(&rmap_low, 0, sizeof(rmap_low));
-> +	memset(&rmap_high, 0xFF, sizeof(rmap_high));
-> +	rmap_low.rm_startblock = rmap_high.rm_startblock = agbno;
-> +	rmap_low.rm_blockcount = rmap_high.rm_blockcount = bcnt;
-> +
-> +	error = xfs_rmap_query_range(cur, &rmap_low, &rmap_high,
-> +				     xfs_corrupt_helper, data);
-> +
-> +	xfs_btree_del_cursor(cur, error);
-> +	xfs_trans_brelse(tp, agf_bp);
-> +
-> +out_cancel_tp:
-> +	xfs_trans_cancel(tp);
-> +	return error;
-> +}
-> +
-> +static const struct dax_holder_operations xfs_dax_holder_operations = {
-> +	.notify_failure = xfs_dax_notify_failure,
-> +};
-> +
->   static const struct super_operations xfs_super_operations = {
->   	.alloc_inode		= xfs_fs_alloc_inode,
->   	.destroy_inode		= xfs_fs_destroy_inode,
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 359e809516b8..c8a188b76031 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -160,6 +160,9 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
->   }
->   
->   struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
-> +void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-> +		const struct dax_holder_operations *ops);
-> +void *fs_dax_get_holder(struct dax_device *dax_dev);
->   int dax_writeback_mapping_range(struct address_space *mapping,
->   		struct dax_device *dax_dev, struct writeback_control *wbc);
->   
-> @@ -191,6 +194,16 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
->   	return NULL;
->   }
->   
-> +static inline void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-> +		const struct dax_holder_operations *ops)
-> +{
-> +}
-> +
-> +static inline void *fs_dax_get_holder(struct dax_device *dax_dev)
-> +{
-> +	return NULL;
-> +}
-> +
->   static inline struct page *dax_layout_busy_page(struct address_space *mapping)
->   {
->   	return NULL;
-> 
-
-
--- 
-Thanks,
-
-David / dhildenb
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHY2IDYv
+OV0geGZzOiBJbXBsZW1lbnQgLT5jb3JydXB0ZWRfcmFuZ2UoKSBmb3IgWEZTDQo+IA0KPiBUaGVy
+ZSBpcyBubyBvY3VycmVuY2Ugb2YgImNvcnJ1cHRlZF9yYW5nZSIgaW4gdGhpcyBwYXRjaC4gRG9l
+cyB0aGUgcGF0Y2gNCj4gc3ViamVjdCBuZWVkIHVwZGF0aW5nPw0KPiANCg0KWWVzLCBJIGZvcmdv
+dCB0aGlzLi4uICBUaGFua3MgZm9yIHBvaW50aW5nIG91dC4NCg0KDQotLQ0KVGhhbmtzLA0KUnVh
+bi4NCg0KPiANCj4gT24gMzAuMDcuMjEgMTA6NTIsIFNoaXlhbmcgUnVhbiB3cm90ZToNCj4gPiBU
+aGlzIGZ1bmN0aW9uIGlzIHVzZWQgdG8gaGFuZGxlIGVycm9ycyB3aGljaCBtYXkgY2F1c2UgZGF0
+YSBsb3N0IGluDQo+ID4gZmlsZXN5c3RlbS4gIFN1Y2ggYXMgbWVtb3J5IGZhaWx1cmUgaW4gZnNk
+YXggbW9kZS4NCj4gPg0KPiA+IElmIHRoZSBybWFwIGZlYXR1cmUgb2YgWEZTIGVuYWJsZWQsIHdl
+IGNhbiBxdWVyeSBpdCB0byBmaW5kIGZpbGVzIGFuZA0KPiA+IG1ldGFkYXRhIHdoaWNoIGFyZSBh
+c3NvY2lhdGVkIHdpdGggdGhlIGNvcnJ1cHQgZGF0YS4gIEZvciBub3cgYWxsIHdlIGRvDQo+ID4g
+aXMga2lsbCBwcm9jZXNzZXMgd2l0aCB0aGF0IGZpbGUgbWFwcGVkIGludG8gdGhlaXIgYWRkcmVz
+cyBzcGFjZXMsIGJ1dA0KPiA+IGZ1dHVyZSBwYXRjaGVzIGNvdWxkIGFjdHVhbGx5IGRvIHNvbWV0
+aGluZyBhYm91dCBjb3JydXB0IG1ldGFkYXRhLg0KPiA+DQo+ID4gQWZ0ZXIgdGhhdCwgdGhlIG1l
+bW9yeSBmYWlsdXJlIG5lZWRzIHRvIG5vdGlmeSB0aGUgcHJvY2Vzc2VzIHdobyBhcmUNCj4gPiB1
+c2luZyB0aG9zZSBmaWxlcy4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFNoaXlhbmcgUnVhbiA8
+cnVhbnN5LmZuc3RAZnVqaXRzdS5jb20+DQo+ID4gLS0tDQo+ID4gICBkcml2ZXJzL2RheC9zdXBl
+ci5jIHwgIDEyICsrKysNCj4gPiAgIGZzL3hmcy94ZnNfZnNvcHMuYyAgfCAgIDUgKysNCj4gPiAg
+IGZzL3hmcy94ZnNfbW91bnQuaCAgfCAgIDEgKw0KPiA+ICAgZnMveGZzL3hmc19zdXBlci5jICB8
+IDEzNQ0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+
+ICAgaW5jbHVkZS9saW51eC9kYXguaCB8ICAxMyArKysrKw0KPiA+ICAgNSBmaWxlcyBjaGFuZ2Vk
+LCAxNjYgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZGF4L3N1
+cGVyLmMgYi9kcml2ZXJzL2RheC9zdXBlci5jDQo+ID4gaW5kZXggMDBjMzJkZmE1NjY1Li42M2Y3
+YjYzZDA3OGQgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9kYXgvc3VwZXIuYw0KPiA+ICsrKyBi
+L2RyaXZlcnMvZGF4L3N1cGVyLmMNCj4gPiBAQCAtNjUsNiArNjUsMTggQEAgc3RydWN0IGRheF9k
+ZXZpY2UgKmZzX2RheF9nZXRfYnlfYmRldihzdHJ1Y3QNCj4gYmxvY2tfZGV2aWNlICpiZGV2KQ0K
+PiA+ICAgCXJldHVybiBkYXhfZ2V0X2J5X2hvc3QoYmRldi0+YmRfZGlzay0+ZGlza19uYW1lKTsN
+Cj4gPiAgIH0NCj4gPiAgIEVYUE9SVF9TWU1CT0xfR1BMKGZzX2RheF9nZXRfYnlfYmRldik7DQo+
+ID4gKw0KPiA+ICt2b2lkIGZzX2RheF9zZXRfaG9sZGVyKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhf
+ZGV2LCB2b2lkICpob2xkZXIsDQo+ID4gKwkJY29uc3Qgc3RydWN0IGRheF9ob2xkZXJfb3BlcmF0
+aW9ucyAqb3BzKQ0KPiA+ICt7DQo+ID4gKwlkYXhfc2V0X2hvbGRlcihkYXhfZGV2LCBob2xkZXIs
+IG9wcyk7DQo+ID4gK30NCj4gPiArRVhQT1JUX1NZTUJPTF9HUEwoZnNfZGF4X3NldF9ob2xkZXIp
+Ow0KPiA+ICt2b2lkICpmc19kYXhfZ2V0X2hvbGRlcihzdHJ1Y3QgZGF4X2RldmljZSAqZGF4X2Rl
+dikNCj4gPiArew0KPiA+ICsJcmV0dXJuIGRheF9nZXRfaG9sZGVyKGRheF9kZXYpOw0KPiA+ICt9
+DQo+ID4gK0VYUE9SVF9TWU1CT0xfR1BMKGZzX2RheF9nZXRfaG9sZGVyKTsNCj4gPiAgICNlbmRp
+Zg0KPiA+DQo+ID4gICBib29sIF9fZ2VuZXJpY19mc2RheF9zdXBwb3J0ZWQoc3RydWN0IGRheF9k
+ZXZpY2UgKmRheF9kZXYsDQo+ID4gZGlmZiAtLWdpdCBhL2ZzL3hmcy94ZnNfZnNvcHMuYyBiL2Zz
+L3hmcy94ZnNfZnNvcHMuYw0KPiA+IGluZGV4IDZlZDI5YjE1ODMxMi4uZTk2ZGRiNWMyOGJjIDEw
+MDY0NA0KPiA+IC0tLSBhL2ZzL3hmcy94ZnNfZnNvcHMuYw0KPiA+ICsrKyBiL2ZzL3hmcy94ZnNf
+ZnNvcHMuYw0KPiA+IEBAIC01NDksNiArNTQ5LDExIEBAIHhmc19kb19mb3JjZV9zaHV0ZG93bigN
+Cj4gPiAgIAkJCQlmbGFncywgX19yZXR1cm5fYWRkcmVzcywgZm5hbWUsIGxubnVtKTsNCj4gPiAg
+IAkJaWYgKFhGU19FUlJMRVZFTF9ISUdIIDw9IHhmc19lcnJvcl9sZXZlbCkNCj4gPiAgIAkJCXhm
+c19zdGFja190cmFjZSgpOw0KPiA+ICsJfSBlbHNlIGlmIChmbGFncyAmIFNIVVRET1dOX0NPUlJV
+UFRfTUVUQSkgew0KPiA+ICsJCXhmc19hbGVydF90YWcobXAsIFhGU19QVEFHX1NIVVRET1dOX0NP
+UlJVUFQsDQo+ID4gKyJDb3JydXB0aW9uIG9mIG9uLWRpc2sgbWV0YWRhdGEgZGV0ZWN0ZWQuICBT
+aHV0dGluZyBkb3duIGZpbGVzeXN0ZW0iKTsNCj4gPiArCQlpZiAoWEZTX0VSUkxFVkVMX0hJR0gg
+PD0geGZzX2Vycm9yX2xldmVsKQ0KPiA+ICsJCQl4ZnNfc3RhY2tfdHJhY2UoKTsNCj4gPiAgIAl9
+IGVsc2UgaWYgKGxvZ2Vycm9yKSB7DQo+ID4gICAJCXhmc19hbGVydF90YWcobXAsIFhGU19QVEFH
+X1NIVVRET1dOX0xPR0VSUk9SLA0KPiA+ICAgIkxvZyBJL08gZXJyb3IgKDB4JXgpIGRldGVjdGVk
+IGF0ICVwUyAoJXM6JWQpLiBTaHV0dGluZyBkb3duIGZpbGVzeXN0ZW0iLA0KPiA+IGRpZmYgLS1n
+aXQgYS9mcy94ZnMveGZzX21vdW50LmggYi9mcy94ZnMveGZzX21vdW50LmgNCj4gPiBpbmRleCBj
+NzhiNjNmZTc3OWEuLjIwM2ViNjJkMTZkMCAxMDA2NDQNCj4gPiAtLS0gYS9mcy94ZnMveGZzX21v
+dW50LmgNCj4gPiArKysgYi9mcy94ZnMveGZzX21vdW50LmgNCj4gPiBAQCAtMjc3LDYgKzI3Nyw3
+IEBAIHZvaWQgeGZzX2RvX2ZvcmNlX3NodXRkb3duKHN0cnVjdCB4ZnNfbW91bnQgKm1wLA0KPiBp
+bnQgZmxhZ3MsIGNoYXIgKmZuYW1lLA0KPiA+ICAgI2RlZmluZSBTSFVURE9XTl9MT0dfSU9fRVJS
+T1IJMHgwMDAyCS8qIHdyaXRlIGF0dGVtcHQgdG8gdGhlDQo+IGxvZyBmYWlsZWQgKi8NCj4gPiAg
+ICNkZWZpbmUgU0hVVERPV05fRk9SQ0VfVU1PVU5UCTB4MDAwNAkvKiBzaHV0ZG93biBmcm9tDQo+
+IGEgZm9yY2VkIHVubW91bnQgKi8NCj4gPiAgICNkZWZpbmUgU0hVVERPV05fQ09SUlVQVF9JTkNP
+UkUJMHgwMDA4CS8qIGNvcnJ1cHQNCj4gaW4tbWVtb3J5IGRhdGEgc3RydWN0dXJlcyAqLw0KPiA+
+ICsjZGVmaW5lIFNIVVRET1dOX0NPUlJVUFRfTUVUQQkweDAwMTAgIC8qIGNvcnJ1cHQgbWV0YWRh
+dGEgb24NCj4gZGV2aWNlICovDQo+ID4NCj4gPiAgIC8qDQo+ID4gICAgKiBGbGFncyBmb3IgeGZz
+X21vdW50ZnMNCj4gPiBkaWZmIC0tZ2l0IGEvZnMveGZzL3hmc19zdXBlci5jIGIvZnMveGZzL3hm
+c19zdXBlci5jDQo+ID4gaW5kZXggMmM5ZTI2YTQ0NTQ2Li40YTM2MmUxNDMxOGQgMTAwNjQ0DQo+
+ID4gLS0tIGEvZnMveGZzL3hmc19zdXBlci5jDQo+ID4gKysrIGIvZnMveGZzL3hmc19zdXBlci5j
+DQo+ID4gQEAgLTM3LDExICszNywxOSBAQA0KPiA+ICAgI2luY2x1ZGUgInhmc19yZWZsaW5rLmgi
+DQo+ID4gICAjaW5jbHVkZSAieGZzX3B3b3JrLmgiDQo+ID4gICAjaW5jbHVkZSAieGZzX2FnLmgi
+DQo+ID4gKyNpbmNsdWRlICJ4ZnNfYWxsb2MuaCINCj4gPiArI2luY2x1ZGUgInhmc19ybWFwLmgi
+DQo+ID4gKyNpbmNsdWRlICJ4ZnNfcm1hcF9idHJlZS5oIg0KPiA+ICsjaW5jbHVkZSAieGZzX3J0
+YWxsb2MuaCINCj4gPiArI2luY2x1ZGUgInhmc19iaXQuaCINCj4gPg0KPiA+ICAgI2luY2x1ZGUg
+PGxpbnV4L21hZ2ljLmg+DQo+ID4gICAjaW5jbHVkZSA8bGludXgvZnNfY29udGV4dC5oPg0KPiA+
+ICAgI2luY2x1ZGUgPGxpbnV4L2ZzX3BhcnNlci5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvbW0u
+aD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4L2RheC5oPg0KPiA+DQo+ID4gK3N0YXRpYyBjb25zdCBz
+dHJ1Y3QgZGF4X2hvbGRlcl9vcGVyYXRpb25zIHhmc19kYXhfaG9sZGVyX29wZXJhdGlvbnM7DQo+
+ID4gICBzdGF0aWMgY29uc3Qgc3RydWN0IHN1cGVyX29wZXJhdGlvbnMgeGZzX3N1cGVyX29wZXJh
+dGlvbnM7DQo+ID4NCj4gPiAgIHN0YXRpYyBzdHJ1Y3Qga3NldCAqeGZzX2tzZXQ7CQkvKiB0b3At
+bGV2ZWwgeGZzIHN5c2ZzIGRpciAqLw0KPiA+IEBAIC0zNTIsNiArMzYwLDcgQEAgeGZzX2Nsb3Nl
+X2RldmljZXMoDQo+ID4NCj4gPiAgIAkJeGZzX2ZyZWVfYnVmdGFyZyhtcC0+bV9sb2dkZXZfdGFy
+Z3ApOw0KPiA+ICAgCQl4ZnNfYmxrZGV2X3B1dChsb2dkZXYpOw0KPiA+ICsJCWZzX2RheF9zZXRf
+aG9sZGVyKGRheF9sb2dkZXYsIE5VTEwsIE5VTEwpOw0KPiA+ICAgCQlmc19wdXRfZGF4KGRheF9s
+b2dkZXYpOw0KPiA+ICAgCX0NCj4gPiAgIAlpZiAobXAtPm1fcnRkZXZfdGFyZ3ApIHsNCj4gPiBA
+QCAtMzYwLDkgKzM2OSwxMSBAQCB4ZnNfY2xvc2VfZGV2aWNlcygNCj4gPg0KPiA+ICAgCQl4ZnNf
+ZnJlZV9idWZ0YXJnKG1wLT5tX3J0ZGV2X3RhcmdwKTsNCj4gPiAgIAkJeGZzX2Jsa2Rldl9wdXQo
+cnRkZXYpOw0KPiA+ICsJCWZzX2RheF9zZXRfaG9sZGVyKGRheF9ydGRldiwgTlVMTCwgTlVMTCk7
+DQo+ID4gICAJCWZzX3B1dF9kYXgoZGF4X3J0ZGV2KTsNCj4gPiAgIAl9DQo+ID4gICAJeGZzX2Zy
+ZWVfYnVmdGFyZyhtcC0+bV9kZGV2X3RhcmdwKTsNCj4gPiArCWZzX2RheF9zZXRfaG9sZGVyKGRh
+eF9kZGV2LCBOVUxMLCBOVUxMKTsNCj4gPiAgIAlmc19wdXRfZGF4KGRheF9kZGV2KTsNCj4gPiAg
+IH0NCj4gPg0KPiA+IEBAIC0zODYsNiArMzk3LDcgQEAgeGZzX29wZW5fZGV2aWNlcygNCj4gPiAg
+IAlzdHJ1Y3QgYmxvY2tfZGV2aWNlCSpsb2dkZXYgPSBOVUxMLCAqcnRkZXYgPSBOVUxMOw0KPiA+
+ICAgCWludAkJCWVycm9yOw0KPiA+DQo+ID4gKwlmc19kYXhfc2V0X2hvbGRlcihkYXhfZGRldiwg
+bXAsICZ4ZnNfZGF4X2hvbGRlcl9vcGVyYXRpb25zKTsNCj4gPiAgIAkvKg0KPiA+ICAgCSAqIE9w
+ZW4gcmVhbCB0aW1lIGFuZCBsb2cgZGV2aWNlcyAtIG9yZGVyIGlzIGltcG9ydGFudC4NCj4gPiAg
+IAkgKi8NCj4gPiBAQCAtMzk0LDYgKzQwNiw5IEBAIHhmc19vcGVuX2RldmljZXMoDQo+ID4gICAJ
+CWlmIChlcnJvcikNCj4gPiAgIAkJCWdvdG8gb3V0Ow0KPiA+ICAgCQlkYXhfbG9nZGV2ID0gZnNf
+ZGF4X2dldF9ieV9iZGV2KGxvZ2Rldik7DQo+ID4gKwkJaWYgKGRheF9sb2dkZXYgIT0gZGF4X2Rk
+ZXYpDQo+ID4gKwkJCWZzX2RheF9zZXRfaG9sZGVyKGRheF9sb2dkZXYsIG1wLA0KPiA+ICsJCQkJ
+ICAgICAgICZ4ZnNfZGF4X2hvbGRlcl9vcGVyYXRpb25zKTsNCj4gPiAgIAl9DQo+ID4NCj4gPiAg
+IAlpZiAobXAtPm1fcnRuYW1lKSB7DQo+ID4gQEAgLTQwOCw2ICs0MjMsNyBAQCB4ZnNfb3Blbl9k
+ZXZpY2VzKA0KPiA+ICAgCQkJZ290byBvdXRfY2xvc2VfcnRkZXY7DQo+ID4gICAJCX0NCj4gPiAg
+IAkJZGF4X3J0ZGV2ID0gZnNfZGF4X2dldF9ieV9iZGV2KHJ0ZGV2KTsNCj4gPiArCQlmc19kYXhf
+c2V0X2hvbGRlcihkYXhfcnRkZXYsIG1wLCAmeGZzX2RheF9ob2xkZXJfb3BlcmF0aW9ucyk7DQo+
+ID4gICAJfQ0KPiA+DQo+ID4gICAJLyoNCj4gPiBAQCAtMTA3MCw2ICsxMDg2LDEyNSBAQCB4ZnNf
+ZnNfZnJlZV9jYWNoZWRfb2JqZWN0cygNCj4gPiAgIAlyZXR1cm4geGZzX3JlY2xhaW1faW5vZGVz
+X25yKFhGU19NKHNiKSwgc2MtPm5yX3RvX3NjYW4pOw0KPiA+ICAgfQ0KPiA+DQo+ID4gK3N0YXRp
+YyBpbnQNCj4gPiAreGZzX2NvcnJ1cHRfaGVscGVyKA0KPiA+ICsJc3RydWN0IHhmc19idHJlZV9j
+dXIJCSpjdXIsDQo+ID4gKwlzdHJ1Y3QgeGZzX3JtYXBfaXJlYwkJKnJlYywNCj4gPiArCXZvaWQJ
+CQkJKmRhdGEpDQo+ID4gK3sNCj4gPiArCXN0cnVjdCB4ZnNfaW5vZGUJCSppcDsNCj4gPiArCXN0
+cnVjdCBhZGRyZXNzX3NwYWNlCQkqbWFwcGluZzsNCj4gPiArCWludAkJCQllcnJvciA9IDAsICpm
+bGFncyA9IGRhdGEsIGk7DQo+ID4gKw0KPiA+ICsJaWYgKFhGU19STUFQX05PTl9JTk9ERV9PV05F
+UihyZWMtPnJtX293bmVyKSB8fA0KPiA+ICsJICAgIChyZWMtPnJtX2ZsYWdzICYgKFhGU19STUFQ
+X0FUVFJfRk9SSyB8DQo+IFhGU19STUFQX0JNQlRfQkxPQ0spKSkgew0KPiA+ICsJCS8vIFRPRE8g
+Y2hlY2sgYW5kIHRyeSB0byBmaXggbWV0YWRhdGENCj4gPiArCQl4ZnNfZm9yY2Vfc2h1dGRvd24o
+Y3VyLT5iY19tcCwgU0hVVERPV05fQ09SUlVQVF9NRVRBKTsNCj4gPiArCQlyZXR1cm4gLUVGU0NP
+UlJVUFRFRDsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwkvKiBHZXQgZmlsZXMgdGhhdCBpbmNvcmUs
+IGZpbHRlciBvdXQgb3RoZXJzIHRoYXQgYXJlIG5vdCBpbiB1c2UuICovDQo+ID4gKwllcnJvciA9
+IHhmc19pZ2V0KGN1ci0+YmNfbXAsIGN1ci0+YmNfdHAsIHJlYy0+cm1fb3duZXIsDQo+IFhGU19J
+R0VUX0lOQ09SRSwNCj4gPiArCQkJIDAsICZpcCk7DQo+ID4gKwlpZiAoZXJyb3IpDQo+ID4gKwkJ
+cmV0dXJuIGVycm9yOw0KPiA+ICsNCj4gPiArCW1hcHBpbmcgPSBWRlNfSShpcCktPmlfbWFwcGlu
+ZzsNCj4gPiArCWlmIChJU19FTkFCTEVEKENPTkZJR19NRU1PUllfRkFJTFVSRSkpIHsNCj4gPiAr
+CQlmb3IgKGkgPSAwOyBpIDwgcmVjLT5ybV9ibG9ja2NvdW50OyBpKyspIHsNCj4gPiArCQkJZXJy
+b3IgPSBtZl9kYXhfa2lsbF9wcm9jcyhtYXBwaW5nLCByZWMtPnJtX29mZnNldCArIGksDQo+ID4g
+KwkJCQkJCSAgKmZsYWdzKTsNCj4gPiArCQkJaWYgKGVycm9yKQ0KPiA+ICsJCQkJYnJlYWs7DQo+
+ID4gKwkJfQ0KPiA+ICsJfQ0KPiA+ICsJLy8gVE9ETyB0cnkgdG8gZml4IGRhdGENCj4gPiArCXhm
+c19pcmVsZShpcCk7DQo+ID4gKw0KPiA+ICsJcmV0dXJuIGVycm9yOw0KPiA+ICt9DQo+ID4gKw0K
+PiA+ICtzdGF0aWMgbG9mZl90DQo+ID4gK3hmc19kYXhfYmRldl9vZmZzZXQoDQo+ID4gKwlzdHJ1
+Y3QgeGZzX21vdW50ICptcCwNCj4gPiArCXN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LA0KPiA+
+ICsJbG9mZl90IGRpc2tfb2Zmc2V0KQ0KPiA+ICt7DQo+ID4gKwlzdHJ1Y3QgYmxvY2tfZGV2aWNl
+ICpiZGV2Ow0KPiA+ICsNCj4gPiArCWlmIChtcC0+bV9kZGV2X3RhcmdwLT5idF9kYXhkZXYgPT0g
+ZGF4X2RldikNCj4gPiArCQliZGV2ID0gbXAtPm1fZGRldl90YXJncC0+YnRfYmRldjsNCj4gPiAr
+CWVsc2UgaWYgKG1wLT5tX2xvZ2Rldl90YXJncC0+YnRfZGF4ZGV2ID09IGRheF9kZXYpDQo+ID4g
+KwkJYmRldiA9IG1wLT5tX2xvZ2Rldl90YXJncC0+YnRfYmRldjsNCj4gPiArCWVsc2UNCj4gPiAr
+CQliZGV2ID0gbXAtPm1fcnRkZXZfdGFyZ3AtPmJ0X2JkZXY7DQo+ID4gKw0KPiA+ICsJcmV0dXJu
+IGRpc2tfb2Zmc2V0IC0gKGdldF9zdGFydF9zZWN0KGJkZXYpIDw8IFNFQ1RPUl9TSElGVCk7DQo+
+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyBpbnQNCj4gPiAreGZzX2RheF9ub3RpZnlfZmFpbHVy
+ZSgNCj4gPiArCXN0cnVjdCBkYXhfZGV2aWNlCSpkYXhfZGV2LA0KPiA+ICsJbG9mZl90CQkJb2Zm
+c2V0LA0KPiA+ICsJc2l6ZV90CQkJbGVuLA0KPiA+ICsJdm9pZAkJCSpkYXRhKQ0KPiA+ICt7DQo+
+ID4gKwlzdHJ1Y3QgeGZzX21vdW50CSptcCA9IGZzX2RheF9nZXRfaG9sZGVyKGRheF9kZXYpOw0K
+PiA+ICsJc3RydWN0IHhmc190cmFucwkqdHAgPSBOVUxMOw0KPiA+ICsJc3RydWN0IHhmc19idHJl
+ZV9jdXIJKmN1ciA9IE5VTEw7DQo+ID4gKwlzdHJ1Y3QgeGZzX2J1ZgkJKmFnZl9icCA9IE5VTEw7
+DQo+ID4gKwlzdHJ1Y3QgeGZzX3JtYXBfaXJlYwlybWFwX2xvdywgcm1hcF9oaWdoOw0KPiA+ICsJ
+bG9mZl90IAkJCWJkZXZfb2Zmc2V0ID0geGZzX2RheF9iZGV2X29mZnNldChtcCwgZGF4X2RldiwN
+Cj4gPiArCQkJCQkJCQkgIG9mZnNldCk7DQo+ID4gKwl4ZnNfZnNibG9ja190CQlmc2JubyA9IFhG
+U19CX1RPX0ZTQihtcCwgYmRldl9vZmZzZXQpOw0KPiA+ICsJeGZzX2ZpbGJsa3NfdAkJYmNudCA9
+IFhGU19CX1RPX0ZTQihtcCwgbGVuKTsNCj4gPiArCXhmc19hZ251bWJlcl90CQlhZ25vID0gWEZT
+X0ZTQl9UT19BR05PKG1wLCBmc2Jubyk7DQo+ID4gKwl4ZnNfYWdibG9ja190CQlhZ2JubyA9IFhG
+U19GU0JfVE9fQUdCTk8obXAsIGZzYm5vKTsNCj4gPiArCWludAkJCWVycm9yID0gMDsNCj4gPiAr
+DQo+ID4gKwlpZiAobXAtPm1fbG9nZGV2X3RhcmdwICYmIG1wLT5tX2xvZ2Rldl90YXJncC0+YnRf
+ZGF4ZGV2ID09DQo+IGRheF9kZXYgJiYNCj4gPiArCSAgICBtcC0+bV9sb2dkZXZfdGFyZ3AgIT0g
+bXAtPm1fZGRldl90YXJncCkgew0KPiA+ICsJCXhmc19lcnIobXAsICJvbmRpc2sgbG9nIGNvcnJ1
+cHQsIHNodXR0aW5nIGRvd24gZnMhIik7DQo+ID4gKwkJeGZzX2ZvcmNlX3NodXRkb3duKG1wLCBT
+SFVURE9XTl9DT1JSVVBUX01FVEEpOw0KPiA+ICsJCXJldHVybiAtRUZTQ09SUlVQVEVEOw0KPiA+
+ICsJfQ0KPiA+ICsNCj4gPiArCWlmICgheGZzX3NiX3ZlcnNpb25faGFzcm1hcGJ0KCZtcC0+bV9z
+YikpIHsNCj4gPiArCQl4ZnNfd2FybihtcCwgIm5vdGlmeV9mYWlsdXJlKCkgbmVlZHMgcm1hcGJ0
+IGVuYWJsZWQhIik7DQo+ID4gKwkJcmV0dXJuIC1FT1BOT1RTVVBQOw0KPiA+ICsJfQ0KPiA+ICsN
+Cj4gPiArCWVycm9yID0geGZzX3RyYW5zX2FsbG9jX2VtcHR5KG1wLCAmdHApOw0KPiA+ICsJaWYg
+KGVycm9yKQ0KPiA+ICsJCXJldHVybiBlcnJvcjsNCj4gPiArDQo+ID4gKwllcnJvciA9IHhmc19h
+bGxvY19yZWFkX2FnZihtcCwgdHAsIGFnbm8sIDAsICZhZ2ZfYnApOw0KPiA+ICsJaWYgKGVycm9y
+KQ0KPiA+ICsJCWdvdG8gb3V0X2NhbmNlbF90cDsNCj4gPiArDQo+ID4gKwljdXIgPSB4ZnNfcm1h
+cGJ0X2luaXRfY3Vyc29yKG1wLCB0cCwgYWdmX2JwLCBhZ2ZfYnAtPmJfcGFnKTsNCj4gPiArDQo+
+ID4gKwkvKiBDb25zdHJ1Y3QgYSByYW5nZSBmb3Igcm1hcCBxdWVyeSAqLw0KPiA+ICsJbWVtc2V0
+KCZybWFwX2xvdywgMCwgc2l6ZW9mKHJtYXBfbG93KSk7DQo+ID4gKwltZW1zZXQoJnJtYXBfaGln
+aCwgMHhGRiwgc2l6ZW9mKHJtYXBfaGlnaCkpOw0KPiA+ICsJcm1hcF9sb3cucm1fc3RhcnRibG9j
+ayA9IHJtYXBfaGlnaC5ybV9zdGFydGJsb2NrID0gYWdibm87DQo+ID4gKwlybWFwX2xvdy5ybV9i
+bG9ja2NvdW50ID0gcm1hcF9oaWdoLnJtX2Jsb2NrY291bnQgPSBiY250Ow0KPiA+ICsNCj4gPiAr
+CWVycm9yID0geGZzX3JtYXBfcXVlcnlfcmFuZ2UoY3VyLCAmcm1hcF9sb3csICZybWFwX2hpZ2gs
+DQo+ID4gKwkJCQkgICAgIHhmc19jb3JydXB0X2hlbHBlciwgZGF0YSk7DQo+ID4gKw0KPiA+ICsJ
+eGZzX2J0cmVlX2RlbF9jdXJzb3IoY3VyLCBlcnJvcik7DQo+ID4gKwl4ZnNfdHJhbnNfYnJlbHNl
+KHRwLCBhZ2ZfYnApOw0KPiA+ICsNCj4gPiArb3V0X2NhbmNlbF90cDoNCj4gPiArCXhmc190cmFu
+c19jYW5jZWwodHApOw0KPiA+ICsJcmV0dXJuIGVycm9yOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtz
+dGF0aWMgY29uc3Qgc3RydWN0IGRheF9ob2xkZXJfb3BlcmF0aW9ucyB4ZnNfZGF4X2hvbGRlcl9v
+cGVyYXRpb25zID0gew0KPiA+ICsJLm5vdGlmeV9mYWlsdXJlID0geGZzX2RheF9ub3RpZnlfZmFp
+bHVyZSwNCj4gPiArfTsNCj4gPiArDQo+ID4gICBzdGF0aWMgY29uc3Qgc3RydWN0IHN1cGVyX29w
+ZXJhdGlvbnMgeGZzX3N1cGVyX29wZXJhdGlvbnMgPSB7DQo+ID4gICAJLmFsbG9jX2lub2RlCQk9
+IHhmc19mc19hbGxvY19pbm9kZSwNCj4gPiAgIAkuZGVzdHJveV9pbm9kZQkJPSB4ZnNfZnNfZGVz
+dHJveV9pbm9kZSwNCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9kYXguaCBiL2luY2x1
+ZGUvbGludXgvZGF4LmgNCj4gPiBpbmRleCAzNTllODA5NTE2YjguLmM4YTE4OGI3NjAzMSAxMDA2
+NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2RheC5oDQo+ID4gKysrIGIvaW5jbHVkZS9saW51
+eC9kYXguaA0KPiA+IEBAIC0xNjAsNiArMTYwLDkgQEAgc3RhdGljIGlubGluZSB2b2lkIGZzX3B1
+dF9kYXgoc3RydWN0IGRheF9kZXZpY2UNCj4gKmRheF9kZXYpDQo+ID4gICB9DQo+ID4NCj4gPiAg
+IHN0cnVjdCBkYXhfZGV2aWNlICpmc19kYXhfZ2V0X2J5X2JkZXYoc3RydWN0IGJsb2NrX2Rldmlj
+ZSAqYmRldik7DQo+ID4gK3ZvaWQgZnNfZGF4X3NldF9ob2xkZXIoc3RydWN0IGRheF9kZXZpY2Ug
+KmRheF9kZXYsIHZvaWQgKmhvbGRlciwNCj4gPiArCQljb25zdCBzdHJ1Y3QgZGF4X2hvbGRlcl9v
+cGVyYXRpb25zICpvcHMpOw0KPiA+ICt2b2lkICpmc19kYXhfZ2V0X2hvbGRlcihzdHJ1Y3QgZGF4
+X2RldmljZSAqZGF4X2Rldik7DQo+ID4gICBpbnQgZGF4X3dyaXRlYmFja19tYXBwaW5nX3Jhbmdl
+KHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLA0KPiA+ICAgCQlzdHJ1Y3QgZGF4X2Rldmlj
+ZSAqZGF4X2Rldiwgc3RydWN0IHdyaXRlYmFja19jb250cm9sICp3YmMpOw0KPiA+DQo+ID4gQEAg
+LTE5MSw2ICsxOTQsMTYgQEAgc3RhdGljIGlubGluZSBzdHJ1Y3QgZGF4X2RldmljZQ0KPiAqZnNf
+ZGF4X2dldF9ieV9iZGV2KHN0cnVjdCBibG9ja19kZXZpY2UgKmJkZXYpDQo+ID4gICAJcmV0dXJu
+IE5VTEw7DQo+ID4gICB9DQo+ID4NCj4gPiArc3RhdGljIGlubGluZSB2b2lkIGZzX2RheF9zZXRf
+aG9sZGVyKHN0cnVjdCBkYXhfZGV2aWNlICpkYXhfZGV2LCB2b2lkDQo+ICpob2xkZXIsDQo+ID4g
+KwkJY29uc3Qgc3RydWN0IGRheF9ob2xkZXJfb3BlcmF0aW9ucyAqb3BzKQ0KPiA+ICt7DQo+ID4g
+K30NCj4gPiArDQo+ID4gK3N0YXRpYyBpbmxpbmUgdm9pZCAqZnNfZGF4X2dldF9ob2xkZXIoc3Ry
+dWN0IGRheF9kZXZpY2UgKmRheF9kZXYpDQo+ID4gK3sNCj4gPiArCXJldHVybiBOVUxMOw0KPiA+
+ICt9DQo+ID4gKw0KPiA+ICAgc3RhdGljIGlubGluZSBzdHJ1Y3QgcGFnZSAqZGF4X2xheW91dF9i
+dXN5X3BhZ2Uoc3RydWN0IGFkZHJlc3Nfc3BhY2UNCj4gKm1hcHBpbmcpDQo+ID4gICB7DQo+ID4g
+ICAJcmV0dXJuIE5VTEw7DQo+ID4NCj4gDQo+IA0KPiAtLQ0KPiBUaGFua3MsDQo+IA0KPiBEYXZp
+ZCAvIGRoaWxkZW5iDQoNCg==
