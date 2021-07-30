@@ -1,85 +1,60 @@
-Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28CAC3481
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 19:51:55 +0000 (UTC)
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0UhT8q23_1627674386;
-Received: from e18g09479.et15sqa.tbsite.net(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0UhT8q23_1627674386)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Sat, 31 Jul 2021 03:46:38 +0800
-From: Gao Xiang <hsiangkao@linux.alibaba.com>
-To: linux-erofs@lists.ozlabs.org
-Cc: linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Chao Yu <chao@kernel.org>,
-	Liu Bo <bo.liu@linux.alibaba.com>,
-	Joseph Qi <joseph.qi@linux.alibaba.com>,
-	Liu Jiang <gerry@linux.alibaba.com>,
-	Huang Jianan <huangjianan@oppo.com>,
-	Tao Ma <boyu.mt@taobao.com>,
-	Gao Xiang <hsiangkao@linux.alibaba.com>
-Subject: [PATCH v2 0/3] erofs: iomap support for uncompressed cases
-Date: Sat, 31 Jul 2021 03:46:22 +0800
-Message-Id: <20210730194625.93856-1-hsiangkao@linux.alibaba.com>
-X-Mailer: git-send-email 2.24.4
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A55913481
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 20:00:25 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10061"; a="200365513"
+X-IronPort-AV: E=Sophos;i="5.84,282,1620716400"; 
+   d="scan'208";a="200365513"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jul 2021 13:00:22 -0700
+X-IronPort-AV: E=Sophos;i="5.84,282,1620716400"; 
+   d="scan'208";a="508342000"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Jul 2021 13:00:22 -0700
+Subject: [PATCH] tools/testing/nvdimm: Fix missing 'fallthrough' warning
+From: Dan Williams <dan.j.williams@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: vishal.l.verma@intel.com
+Date: Fri, 30 Jul 2021 13:00:20 -0700
+Message-ID: <162767522046.3313209.14767278726893995797.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 
-Hi folks,
+Use "fallthrough;" to address:
 
-This patchset mainly adds EROFS iomap support for uncompressed cases
-I've planed for the next merge window.
+tools/testing/nvdimm/test/nfit.c: In function ‘nd_intel_test_finish_query’:
+tools/testing/nvdimm/test/nfit.c:436:37: warning: this statement may
+	fall through [-Wimplicit-fallthrough=]
+  436 |                 fw->missed_activate = false;
+      |                 ~~~~~~~~~~~~~~~~~~~~^~~~~~~
+tools/testing/nvdimm/test/nfit.c:438:9: note: here
+  438 |         case FW_STATE_UPDATED:
+      |         ^~~~
 
-The first 2 patches mainly deal with 2 new cases:
-1) Direct I/O is useful in certain scenarios for uncompressed files.
-For example, double pagecache can be avoid by direct I/O when loop
-device is used for uncompressed files containing upper layer
-compressed filesystem.
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ tools/testing/nvdimm/test/nfit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-2) DAX is quite useful for some container use cases in order to save
-guest memory extremely by using the minimal lightweight EROFS image.
-BTW, a bit more off this iomap topic, chunk-deduplicated regfile
-support is almost available (blob data support) for multi-layer
-container image use cases (aka. called RAFS v6, nydus [1] will support
-RAFS v6 (EROFS-compatible format) in the future and form a unified
-high-performance container image solution, which will be announced
-formally independently), which is also a small independent update.
-
-The last patch relies on the previous iomap core update in order to
-convert tail-packing inline files into iomap, thus all uncompressed
-cases are handled with iomap properly.
-
-Comments are welcome. Thanks for your time on reading this!
-
-Thanks,
-Gao Xiang
-
-[1] https://github.com/dragonflyoss/image-service
-
-changes since v1:
- - mainly resend with commit message & comments update.
-
-Gao Xiang (2):
-  erofs: dax support for non-tailpacking regular file
-  erofs: convert all uncompressed cases to iomap
-
-Huang Jianan (1):
-  erofs: iomap support for non-tailpacking DIO
-
- fs/erofs/Kconfig    |   1 +
- fs/erofs/data.c     | 342 +++++++++++++++++++-------------------------
- fs/erofs/inode.c    |   9 +-
- fs/erofs/internal.h |   4 +
- fs/erofs/super.c    |  60 +++++++-
- 5 files changed, 217 insertions(+), 199 deletions(-)
-
--- 
-2.24.4
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 54f367cbadae..b1bff5fb0f65 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -434,7 +434,7 @@ static int nd_intel_test_finish_query(struct nfit_test *t,
+ 		dev_dbg(dev, "%s: transition out verify\n", __func__);
+ 		fw->state = FW_STATE_UPDATED;
+ 		fw->missed_activate = false;
+-		/* fall through */
++		fallthrough;
+ 	case FW_STATE_UPDATED:
+ 		nd_cmd->status = 0;
+ 		/* bogus test version */
 
