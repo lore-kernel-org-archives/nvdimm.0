@@ -1,31 +1,31 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6F8D8349C
-	for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 10:02:20 +0000 (UTC)
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A075swKH1jGovkDZbpLqE1MeALOsnbusQ8zAX?=
- =?us-ascii?q?PiFKOHhom6mj+vxG88506faKslwssR0b+OxoW5PwJE80l6QFgrX5VI3KNGbbUQ?=
- =?us-ascii?q?CTXeNfBOXZowHIKmnX8+5x8eNaebFiNduYNzNHpPe/zA6mM9tI+rW6zJw=3D?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5C7E63483
+	for <nvdimm@lists.linux.dev>; Fri, 30 Jul 2021 10:02:21 +0000 (UTC)
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AxlOEba4/NSlm8RnYvgPXwPTXdLJyesId70hD?=
+ =?us-ascii?q?6qkRc20wTiX8ra2TdZsguyMc9wx6ZJhNo7G90cq7MBbhHPxOkOos1N6ZNWGIhI?=
+ =?us-ascii?q?LCFvAB0WKN+V3dMhy73utc+IMlSKJmFeD3ZGIQse/KpCW+DPYsqePqzJyV?=
 X-IronPort-AV: E=Sophos;i="5.84,281,1620662400"; 
-   d="scan'208";a="112074019"
+   d="scan'208";a="112074017"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 30 Jul 2021 18:02:19 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id CA90D4D0D4A1;
-	Fri, 30 Jul 2021 18:02:13 +0800 (CST)
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 09A294D0D4A2;
+	Fri, 30 Jul 2021 18:02:16 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Fri, 30 Jul 2021 18:02:14 +0800
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Fri, 30 Jul 2021 18:02:18 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Fri, 30 Jul 2021 18:02:12 +0800
+ id 15.0.1497.23 via Frontend Transport; Fri, 30 Jul 2021 18:02:14 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>, <dm-devel@redhat.com>
 CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
 	<hch@lst.de>, <agk@redhat.com>, <snitzer@redhat.com>
-Subject: [PATCH RESEND v6 6/9] xfs: Implement ->notify_failure() for XFS
-Date: Fri, 30 Jul 2021 18:01:55 +0800
-Message-ID: <20210730100158.3117319-7-ruansy.fnst@fujitsu.com>
+Subject: [PATCH RESEND v6 8/9] md: Implement dax_holder_operations
+Date: Fri, 30 Jul 2021 18:01:57 +0800
+Message-ID: <20210730100158.3117319-9-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210730100158.3117319-1-ruansy.fnst@fujitsu.com>
 References: <20210730100158.3117319-1-ruansy.fnst@fujitsu.com>
@@ -37,309 +37,199 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: CA90D4D0D4A1.A4774
+X-yoursite-MailScanner-ID: 09A294D0D4A2.A5534
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-This function is used to handle errors which may cause data lost in
-filesystem.  Such as memory failure in fsdax mode.
+This is the case where the holder represents a mapped device, or a list
+of mapped devices more exactly(because it is possible to create more
+than one mapped device on one pmem device).
 
-If the rmap feature of XFS enabled, we can query it to find files and
-metadata which are associated with the corrupt data.  For now all we do
-is kill processes with that file mapped into their address spaces, but
-future patches could actually do something about corrupt metadata.
-
-After that, the memory failure needs to notify the processes who are
-using those files.
+Find out which mapped device the offset belongs to, and translate the
+offset from target device to mapped device.  When it is done, call
+dax_corrupted_range() for the holder of this mapped device.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 ---
- drivers/dax/super.c |  12 ++++
- fs/xfs/xfs_fsops.c  |   5 ++
- fs/xfs/xfs_mount.h  |   1 +
- fs/xfs/xfs_super.c  | 135 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h |  13 +++++
- 5 files changed, 166 insertions(+)
+ drivers/md/dm.c | 126 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 125 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 00c32dfa5665..63f7b63d078d 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -65,6 +65,18 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
- 	return dax_get_by_host(bdev->bd_disk->disk_name);
+diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+index 2c5f9e585211..a35b9a97a73f 100644
+--- a/drivers/md/dm.c
++++ b/drivers/md/dm.c
+@@ -626,7 +626,11 @@ static void dm_put_live_table_fast(struct mapped_device *md) __releases(RCU)
  }
- EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-+
-+void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+	dax_set_holder(dax_dev, holder, ops);
-+}
-+EXPORT_SYMBOL_GPL(fs_dax_set_holder);
-+void *fs_dax_get_holder(struct dax_device *dax_dev)
-+{
-+	return dax_get_holder(dax_dev);
-+}
-+EXPORT_SYMBOL_GPL(fs_dax_get_holder);
- #endif
  
- bool __generic_fsdax_supported(struct dax_device *dax_dev,
-diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
-index 6ed29b158312..e96ddb5c28bc 100644
---- a/fs/xfs/xfs_fsops.c
-+++ b/fs/xfs/xfs_fsops.c
-@@ -549,6 +549,11 @@ xfs_do_force_shutdown(
- 				flags, __return_address, fname, lnnum);
- 		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
- 			xfs_stack_trace();
-+	} else if (flags & SHUTDOWN_CORRUPT_META) {
-+		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_CORRUPT,
-+"Corruption of on-disk metadata detected.  Shutting down filesystem");
-+		if (XFS_ERRLEVEL_HIGH <= xfs_error_level)
-+			xfs_stack_trace();
- 	} else if (logerror) {
- 		xfs_alert_tag(mp, XFS_PTAG_SHUTDOWN_LOGERROR,
- "Log I/O error (0x%x) detected at %pS (%s:%d). Shutting down filesystem",
-diff --git a/fs/xfs/xfs_mount.h b/fs/xfs/xfs_mount.h
-index c78b63fe779a..203eb62d16d0 100644
---- a/fs/xfs/xfs_mount.h
-+++ b/fs/xfs/xfs_mount.h
-@@ -277,6 +277,7 @@ void xfs_do_force_shutdown(struct xfs_mount *mp, int flags, char *fname,
- #define SHUTDOWN_LOG_IO_ERROR	0x0002	/* write attempt to the log failed */
- #define SHUTDOWN_FORCE_UMOUNT	0x0004	/* shutdown from a forced unmount */
- #define SHUTDOWN_CORRUPT_INCORE	0x0008	/* corrupt in-memory data structures */
-+#define SHUTDOWN_CORRUPT_META	0x0010  /* corrupt metadata on device */
- 
+ static char *_dm_claim_ptr = "I belong to device-mapper";
+-
++static const struct dax_holder_operations dm_dax_holder_ops;
++struct dm_holder {
++	struct list_head list;
++	struct mapped_device *md;
++};
  /*
-  * Flags for xfs_mountfs
-diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-index 2c9e26a44546..4a362e14318d 100644
---- a/fs/xfs/xfs_super.c
-+++ b/fs/xfs/xfs_super.c
-@@ -37,11 +37,19 @@
- #include "xfs_reflink.h"
- #include "xfs_pwork.h"
- #include "xfs_ag.h"
-+#include "xfs_alloc.h"
-+#include "xfs_rmap.h"
-+#include "xfs_rmap_btree.h"
-+#include "xfs_rtalloc.h"
-+#include "xfs_bit.h"
+  * Open a table device so we can use it as a map destination.
+  */
+@@ -634,6 +638,8 @@ static int open_table_device(struct table_device *td, dev_t dev,
+ 			     struct mapped_device *md)
+ {
+ 	struct block_device *bdev;
++	struct list_head *holders;
++	struct dm_holder *holder;
  
- #include <linux/magic.h>
- #include <linux/fs_context.h>
- #include <linux/fs_parser.h>
-+#include <linux/mm.h>
-+#include <linux/dax.h>
+ 	int r;
  
-+static const struct dax_holder_operations xfs_dax_holder_operations;
- static const struct super_operations xfs_super_operations;
+@@ -651,6 +657,19 @@ static int open_table_device(struct table_device *td, dev_t dev,
  
- static struct kset *xfs_kset;		/* top-level xfs sysfs dir */
-@@ -352,6 +360,7 @@ xfs_close_devices(
- 
- 		xfs_free_buftarg(mp->m_logdev_targp);
- 		xfs_blkdev_put(logdev);
-+		fs_dax_set_holder(dax_logdev, NULL, NULL);
- 		fs_put_dax(dax_logdev);
- 	}
- 	if (mp->m_rtdev_targp) {
-@@ -360,9 +369,11 @@ xfs_close_devices(
- 
- 		xfs_free_buftarg(mp->m_rtdev_targp);
- 		xfs_blkdev_put(rtdev);
-+		fs_dax_set_holder(dax_rtdev, NULL, NULL);
- 		fs_put_dax(dax_rtdev);
- 	}
- 	xfs_free_buftarg(mp->m_ddev_targp);
-+	fs_dax_set_holder(dax_ddev, NULL, NULL);
- 	fs_put_dax(dax_ddev);
- }
- 
-@@ -386,6 +397,7 @@ xfs_open_devices(
- 	struct block_device	*logdev = NULL, *rtdev = NULL;
- 	int			error;
- 
-+	fs_dax_set_holder(dax_ddev, mp, &xfs_dax_holder_operations);
- 	/*
- 	 * Open real time and log devices - order is important.
- 	 */
-@@ -394,6 +406,9 @@ xfs_open_devices(
- 		if (error)
- 			goto out;
- 		dax_logdev = fs_dax_get_by_bdev(logdev);
-+		if (dax_logdev != dax_ddev)
-+			fs_dax_set_holder(dax_logdev, mp,
-+				       &xfs_dax_holder_operations);
- 	}
- 
- 	if (mp->m_rtname) {
-@@ -408,6 +423,7 @@ xfs_open_devices(
- 			goto out_close_rtdev;
- 		}
- 		dax_rtdev = fs_dax_get_by_bdev(rtdev);
-+		fs_dax_set_holder(dax_rtdev, mp, &xfs_dax_holder_operations);
- 	}
- 
- 	/*
-@@ -1070,6 +1086,125 @@ xfs_fs_free_cached_objects(
- 	return xfs_reclaim_inodes_nr(XFS_M(sb), sc->nr_to_scan);
- }
- 
-+static int
-+xfs_corrupt_helper(
-+	struct xfs_btree_cur		*cur,
-+	struct xfs_rmap_irec		*rec,
-+	void				*data)
-+{
-+	struct xfs_inode		*ip;
-+	struct address_space		*mapping;
-+	int				error = 0, *flags = data, i;
+ 	td->dm_dev.bdev = bdev;
+ 	td->dm_dev.dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
++	if (!td->dm_dev.dax_dev)
++		return 0;
 +
-+	if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
-+	    (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
-+		// TODO check and try to fix metadata
-+		xfs_force_shutdown(cur->bc_mp, SHUTDOWN_CORRUPT_META);
-+		return -EFSCORRUPTED;
++	holders = dax_get_holder(td->dm_dev.dax_dev);
++	if (!holders) {
++		holders = kmalloc(sizeof(*holders), GFP_KERNEL);
++		INIT_LIST_HEAD(holders);
++		dax_set_holder(td->dm_dev.dax_dev, holders, &dm_dax_holder_ops);
 +	}
++	holder = kmalloc(sizeof(*holder), GFP_KERNEL);
++	holder->md = md;
++	list_add_tail(&holder->list, holders);
 +
-+	/* Get files that incore, filter out others that are not in use. */
-+	error = xfs_iget(cur->bc_mp, cur->bc_tp, rec->rm_owner, XFS_IGET_INCORE,
-+			 0, &ip);
-+	if (error)
-+		return error;
+ 	return 0;
+ }
+ 
+@@ -659,9 +678,27 @@ static int open_table_device(struct table_device *td, dev_t dev,
+  */
+ static void close_table_device(struct table_device *td, struct mapped_device *md)
+ {
++	struct list_head *holders;
++	struct dm_holder *holder, *n;
 +
-+	mapping = VFS_I(ip)->i_mapping;
-+	if (IS_ENABLED(CONFIG_MEMORY_FAILURE)) {
-+		for (i = 0; i < rec->rm_blockcount; i++) {
-+			error = mf_dax_kill_procs(mapping, rec->rm_offset + i,
-+						  *flags);
-+			if (error)
-+				break;
+ 	if (!td->dm_dev.bdev)
+ 		return;
+ 
++	holders = dax_get_holder(td->dm_dev.dax_dev);
++	if (holders) {
++		list_for_each_entry_safe(holder, n, holders, list) {
++			if (holder->md == md) {
++				list_del(&holder->list);
++				kfree(holder);
++			}
++		}
++		if (list_empty(holders)) {
++			kfree(holders);
++			/* unset dax_device's holder_data */
++			dax_set_holder(td->dm_dev.dax_dev, NULL, NULL);
 +		}
 +	}
-+	// TODO try to fix data
-+	xfs_irele(ip);
 +
-+	return error;
-+}
-+
-+static loff_t
-+xfs_dax_bdev_offset(
-+	struct xfs_mount *mp,
-+	struct dax_device *dax_dev,
-+	loff_t disk_offset)
-+{
-+	struct block_device *bdev;
-+
-+	if (mp->m_ddev_targp->bt_daxdev == dax_dev)
-+		bdev = mp->m_ddev_targp->bt_bdev;
-+	else if (mp->m_logdev_targp->bt_daxdev == dax_dev)
-+		bdev = mp->m_logdev_targp->bt_bdev;
-+	else
-+		bdev = mp->m_rtdev_targp->bt_bdev;
-+
-+	return disk_offset - (get_start_sect(bdev) << SECTOR_SHIFT);
-+}
-+
-+static int
-+xfs_dax_notify_failure(
-+	struct dax_device	*dax_dev,
-+	loff_t			offset,
-+	size_t			len,
-+	void			*data)
-+{
-+	struct xfs_mount	*mp = fs_dax_get_holder(dax_dev);
-+	struct xfs_trans	*tp = NULL;
-+	struct xfs_btree_cur	*cur = NULL;
-+	struct xfs_buf		*agf_bp = NULL;
-+	struct xfs_rmap_irec	rmap_low, rmap_high;
-+	loff_t 			bdev_offset = xfs_dax_bdev_offset(mp, dax_dev,
-+								  offset);
-+	xfs_fsblock_t		fsbno = XFS_B_TO_FSB(mp, bdev_offset);
-+	xfs_filblks_t		bcnt = XFS_B_TO_FSB(mp, len);
-+	xfs_agnumber_t		agno = XFS_FSB_TO_AGNO(mp, fsbno);
-+	xfs_agblock_t		agbno = XFS_FSB_TO_AGBNO(mp, fsbno);
-+	int			error = 0;
-+
-+	if (mp->m_logdev_targp && mp->m_logdev_targp->bt_daxdev == dax_dev &&
-+	    mp->m_logdev_targp != mp->m_ddev_targp) {
-+		xfs_err(mp, "ondisk log corrupt, shutting down fs!");
-+		xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_META);
-+		return -EFSCORRUPTED;
-+	}
-+
-+	if (!xfs_sb_version_hasrmapbt(&mp->m_sb)) {
-+		xfs_warn(mp, "notify_failure() needs rmapbt enabled!");
-+		return -EOPNOTSUPP;
-+	}
-+
-+	error = xfs_trans_alloc_empty(mp, &tp);
-+	if (error)
-+		return error;
-+
-+	error = xfs_alloc_read_agf(mp, tp, agno, 0, &agf_bp);
-+	if (error)
-+		goto out_cancel_tp;
-+
-+	cur = xfs_rmapbt_init_cursor(mp, tp, agf_bp, agf_bp->b_pag);
-+
-+	/* Construct a range for rmap query */
-+	memset(&rmap_low, 0, sizeof(rmap_low));
-+	memset(&rmap_high, 0xFF, sizeof(rmap_high));
-+	rmap_low.rm_startblock = rmap_high.rm_startblock = agbno;
-+	rmap_low.rm_blockcount = rmap_high.rm_blockcount = bcnt;
-+
-+	error = xfs_rmap_query_range(cur, &rmap_low, &rmap_high,
-+				     xfs_corrupt_helper, data);
-+
-+	xfs_btree_del_cursor(cur, error);
-+	xfs_trans_brelse(tp, agf_bp);
-+
-+out_cancel_tp:
-+	xfs_trans_cancel(tp);
-+	return error;
-+}
-+
-+static const struct dax_holder_operations xfs_dax_holder_operations = {
-+	.notify_failure = xfs_dax_notify_failure,
+ 	bd_unlink_disk_holder(td->dm_dev.bdev, dm_disk(md));
+ 	blkdev_put(td->dm_dev.bdev, td->dm_dev.mode | FMODE_EXCL);
+ 	put_dax(td->dm_dev.dax_dev);
+@@ -1115,6 +1152,89 @@ static int dm_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	return ret;
+ }
+ 
++#if IS_ENABLED(CONFIG_DAX_DRIVER)
++struct corrupted_hit_info {
++	struct dax_device *dax_dev;
++	sector_t offset;
 +};
 +
- static const struct super_operations xfs_super_operations = {
- 	.alloc_inode		= xfs_fs_alloc_inode,
- 	.destroy_inode		= xfs_fs_destroy_inode,
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 359e809516b8..c8a188b76031 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -160,6 +160,9 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
- }
- 
- struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev);
-+void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops);
-+void *fs_dax_get_holder(struct dax_device *dax_dev);
- int dax_writeback_mapping_range(struct address_space *mapping,
- 		struct dax_device *dax_dev, struct writeback_control *wbc);
- 
-@@ -191,6 +194,16 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
- 	return NULL;
- }
- 
-+static inline void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
++static int dm_blk_corrupted_hit(struct dm_target *ti, struct dm_dev *dev,
++				sector_t start, sector_t count, void *data)
 +{
++	struct corrupted_hit_info *bc = data;
++
++	return bc->dax_dev == (void *)dev->dax_dev &&
++			(start <= bc->offset && bc->offset < start + count);
 +}
 +
-+static inline void *fs_dax_get_holder(struct dax_device *dax_dev)
++struct corrupted_do_info {
++	size_t length;
++	void *data;
++};
++
++static int dm_blk_corrupted_do(struct dm_target *ti, struct block_device *bdev,
++			       sector_t sector, void *data)
 +{
-+	return NULL;
++	struct mapped_device *md = ti->table->md;
++	struct corrupted_do_info *bc = data;
++
++	return dax_holder_notify_failure(md->dax_dev, to_bytes(sector),
++					 bc->length, bc->data);
 +}
 +
- static inline struct page *dax_layout_busy_page(struct address_space *mapping)
- {
- 	return NULL;
++static int dm_dax_notify_failure_one(struct mapped_device *md,
++				     struct dax_device *dax_dev,
++				     loff_t offset, size_t length, void *data)
++{
++	struct dm_table *map;
++	struct dm_target *ti;
++	sector_t sect = to_sector(offset);
++	struct corrupted_hit_info hi = {dax_dev, sect};
++	struct corrupted_do_info di = {length, data};
++	int srcu_idx, i, rc = -ENODEV;
++
++	map = dm_get_live_table(md, &srcu_idx);
++	if (!map)
++		return rc;
++
++	/*
++	 * find the target device, and then translate the offset of this target
++	 * to the whole mapped device.
++	 */
++	for (i = 0; i < dm_table_get_num_targets(map); i++) {
++		ti = dm_table_get_target(map, i);
++		if (!(ti->type->iterate_devices && ti->type->rmap))
++			continue;
++		if (!ti->type->iterate_devices(ti, dm_blk_corrupted_hit, &hi))
++			continue;
++
++		rc = ti->type->rmap(ti, sect, dm_blk_corrupted_do, &di);
++		break;
++	}
++
++	dm_put_live_table(md, srcu_idx);
++	return rc;
++}
++
++static int dm_dax_notify_failure(struct dax_device *dax_dev,
++				 loff_t offset, size_t length, void *data)
++{
++	struct dm_holder *holder;
++	struct list_head *holders = dax_get_holder(dax_dev);
++	int rc = -ENODEV;
++
++	list_for_each_entry(holder, holders, list) {
++		rc = dm_dax_notify_failure_one(holder->md, dax_dev, offset,
++					       length, data);
++		if (rc != -ENODEV)
++			break;
++	}
++	return rc;
++}
++#else
++#define dm_dax_notify_failure NULL
++#endif
++
+ /*
+  * A target may call dm_accept_partial_bio only from the map routine.  It is
+  * allowed for all bio types except REQ_PREFLUSH, REQ_OP_ZONE_* zone management
+@@ -3057,6 +3177,10 @@ static const struct dax_operations dm_dax_ops = {
+ 	.zero_page_range = dm_dax_zero_page_range,
+ };
+ 
++static const struct dax_holder_operations dm_dax_holder_ops = {
++	.notify_failure = dm_dax_notify_failure,
++};
++
+ /*
+  * module hooks
+  */
 -- 
 2.32.0
 
