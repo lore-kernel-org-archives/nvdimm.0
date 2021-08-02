@@ -1,131 +1,150 @@
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D8BB70
-	for <nvdimm@lists.linux.dev>; Sat, 31 Jul 2021 08:47:53 +0000 (UTC)
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.55])
-	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4GcHTX0J3rzchyn
-	for <nvdimm@lists.linux.dev>; Sat, 31 Jul 2021 16:28:16 +0800 (CST)
-Received: from dggema765-chm.china.huawei.com (10.1.198.207) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Sat, 31 Jul 2021 16:31:46 +0800
-Received: from [127.0.0.1] (10.174.177.249) by dggema765-chm.china.huawei.com
- (10.1.198.207) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id 15.1.2176.2; Sat, 31
- Jul 2021 16:31:46 +0800
-Subject: Re: [ndctl PATCH v2 2/2] namespace: Close fd before return in
- do_xaction_namespace()
-To: <vishal.l.verma@intel.com>
-CC: <nvdimm@lists.linux.dev>, linfeilong <linfeilong@huawei.com>,
-	<lixiaokeng@huawei.com>, Alison Schofield <alison.schofield@intel.com>,
-	<liuzhiqiang26@huawei.com>
-References: <c3c08075-4815-8e84-2ba6-64644e72abee@huawei.com>
- <a10193c0-e56b-8bf1-7ce4-d0c0f7bdc35b@huawei.com>
-From: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-Message-ID: <529413c2-6f7f-ddcc-b82f-bf69166f65d0@huawei.com>
-Date: Sat, 31 Jul 2021 16:31:44 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.2.2
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6846F348B
+	for <nvdimm@lists.linux.dev>; Mon,  2 Aug 2021 07:40:33 +0000 (UTC)
+Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 1727YKF6047916;
+	Mon, 2 Aug 2021 03:40:24 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=pp1;
+ bh=9KfUvzYgAT3H6qM2KQ85LLSVJMiL9yuP9cnvQZGOeGU=;
+ b=sq7LWapqUmOhyGDfdkbVU/HEO4UCopn3cb+V6C5XKLY+SD2hd9ZHfFgb6uuIY4uEFBiQ
+ 6Z1CcR1gqHINW0Jw9jrtWLrWn4j0FM7juHoJbAN5XoDa/PqJvJcUl225ALI7TwiHiblQ
+ M/lKCqJK47YOPJ6j+amWq4oq7UWcZtfAKCleaDwHqCBK1iUok9OrM/T+Yt3XmtoYdeXK
+ p7uOZaLOu3qpYpAOdjmko1t+gCp/FudlXz9NlmAk5IxfLW9tkIz31hOFhBnY27LMKZRa
+ uyHj2BLBc6KLim0zG73S7ylmVjWbOifH52GPvdptsDSNhp/Px/kK+PsvibZ8Rn0RNUqQ rg== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3a5qqtn9d6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 02 Aug 2021 03:40:24 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1727c1RM032710;
+	Mon, 2 Aug 2021 07:40:22 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+	by ppma03ams.nl.ibm.com with ESMTP id 3a4x58v118-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 02 Aug 2021 07:40:22 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1727bS8F25559538
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 2 Aug 2021 07:37:28 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3CB61A404D;
+	Mon,  2 Aug 2021 07:40:18 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 80504A4057;
+	Mon,  2 Aug 2021 07:40:13 +0000 (GMT)
+Received: from localhost.localdomain.com (unknown [9.199.36.88])
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Mon,  2 Aug 2021 07:40:13 +0000 (GMT)
+From: Kajol Jain <kjain@linux.ibm.com>
+To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, peterz@infradead.org,
+        dan.j.williams@intel.com, ira.weiny@intel.com,
+        vishal.l.verma@intel.com
+Cc: maddy@linux.ibm.com, santosh@fossix.org, aneesh.kumar@linux.ibm.com,
+        vaibhav@linux.ibm.com, atrajeev@linux.vnet.ibm.com, tglx@linutronix.de,
+        kjain@linux.ibm.com, rnsastry@linux.ibm.com
+Subject: [PATCH v4 1/4] drivers/nvdimm: Add nvdimm pmu structure
+Date: Mon,  2 Aug 2021 13:09:26 +0530
+Message-Id: <20210802073929.907431-2-kjain@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210802073929.907431-1-kjain@linux.ibm.com>
+References: <20210802073929.907431-1-kjain@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <a10193c0-e56b-8bf1-7ce4-d0c0f7bdc35b@huawei.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Originating-IP: [10.174.177.249]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggema765-chm.china.huawei.com (10.1.198.207)
-X-CFilter-Loop: Reflected
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: 097XHNcPf_haabFt2UixDbZER5uXurlF
+X-Proofpoint-GUID: 097XHNcPf_haabFt2UixDbZER5uXurlF
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-08-02_01:2021-08-02,2021-08-02 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 mlxscore=0
+ bulkscore=0 phishscore=0 malwarescore=0 clxscore=1015 priorityscore=1501
+ adultscore=0 impostorscore=0 lowpriorityscore=0 mlxlogscore=999
+ spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2107140000 definitions=main-2108020053
 
-friendly ping...
+A structure is added, called nvdimm_pmu, for performance
+stats reporting support of nvdimm devices. It can be used to add
+nvdimm pmu data such as supported events and pmu event functions
+like event_init/add/read/del with cpu hotplug support.
 
-On 2021/7/6 12:33, Zhiqiang Liu wrote:
-> Recently, we use Coverity to analysis the ndctl package,
-> one issue in do_xaction_namespace() is reported as follows,
-> 	CID 11690564: (RESOURCE_LEAK)
-> 	2058. leaked_storage: Variable "ri_ctx" going out of scope
-> 	      leaks the storage "ri_ctx.f_out" points to.
->
-> In do_xaction_namespace(), ri_ctx.f_out should be closed after
-> being opened. This prevents a potential file descriptor leak
-> in do_xaction_namespace().
->
-> Signed-off-by: Zhiqiang Liu <liuzhiqiang26@huawei.com>
-> ---
-> v1->v2: add coverity report info as suggested by Alison
->
->  ndctl/namespace.c | 17 +++++++++--------
->  1 file changed, 9 insertions(+), 8 deletions(-)
->
-> diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-> index 21089d7..55364ac 100644
-> --- a/ndctl/namespace.c
-> +++ b/ndctl/namespace.c
-> @@ -2141,7 +2141,7 @@ static int do_xaction_namespace(const char *namespace,
->  				util_display_json_array(ri_ctx.f_out, ri_ctx.jblocks, 0);
->  			if (rc >= 0)
->  				(*processed)++;
-> -			return rc;
-> +			goto out;
->  		}
->  	}
->
-> @@ -2152,11 +2152,11 @@ static int do_xaction_namespace(const char *namespace,
->  		rc = file_write_infoblock(param.outfile);
->  		if (rc >= 0)
->  			(*processed)++;
-> -		return rc;
-> +		goto out;
->  	}
->
->  	if (!namespace && action != ACTION_CREATE)
-> -		return rc;
-> +		goto out;
->
->  	if (verbose)
->  		ndctl_set_log_priority(ctx, LOG_DEBUG);
-> @@ -2212,7 +2212,7 @@ static int do_xaction_namespace(const char *namespace,
->  						saved_rc = rc;
->  						continue;
->  				}
-> -				return rc;
-> +				goto out;
->  			}
->  			ndctl_namespace_foreach_safe(region, ndns, _n) {
->  				ndns_name = ndctl_namespace_get_devname(ndns);
-> @@ -2259,7 +2259,7 @@ static int do_xaction_namespace(const char *namespace,
->  					rc = namespace_reconfig(region, ndns);
->  					if (rc == 0)
->  						*processed = 1;
-> -					return rc;
-> +					goto out;
->  				case ACTION_READ_INFOBLOCK:
->  					rc = namespace_rw_infoblock(ndns, &ri_ctx, READ);
->  					if (rc == 0)
-> @@ -2281,9 +2281,6 @@ static int do_xaction_namespace(const char *namespace,
->  	if (ri_ctx.jblocks)
->  		util_display_json_array(ri_ctx.f_out, ri_ctx.jblocks, 0);
->
-> -	if (ri_ctx.f_out && ri_ctx.f_out != stdout)
-> -		fclose(ri_ctx.f_out);
-> -
->  	if (action == ACTION_CREATE && rc == -EAGAIN) {
->  		/*
->  		 * Namespace creation searched through all candidate
-> @@ -2301,6 +2298,10 @@ static int do_xaction_namespace(const char *namespace,
->  	if (saved_rc)
->  		rc = saved_rc;
->
-> +out:
-> +	if (ri_ctx.f_out && ri_ctx.f_out != stdout)
-> +		fclose(ri_ctx.f_out);
-> +
->  	return rc;
->  }
->
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reviewed-by: Madhavan Srinivasan <maddy@linux.ibm.com>
+Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
+Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+---
+ include/linux/nd.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index ee9ad76afbba..712499cf7335 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -8,6 +8,8 @@
+ #include <linux/ndctl.h>
+ #include <linux/device.h>
+ #include <linux/badblocks.h>
++#include <linux/platform_device.h>
++#include <linux/perf_event.h>
+ 
+ enum nvdimm_event {
+ 	NVDIMM_REVALIDATE_POISON,
+@@ -23,6 +25,47 @@ enum nvdimm_claim_class {
+ 	NVDIMM_CCLASS_UNKNOWN,
+ };
+ 
++/* Event attribute array index */
++#define NVDIMM_PMU_FORMAT_ATTR		0
++#define NVDIMM_PMU_EVENT_ATTR		1
++#define NVDIMM_PMU_CPUMASK_ATTR		2
++#define NVDIMM_PMU_NULL_ATTR		3
++
++/**
++ * struct nvdimm_pmu - data structure for nvdimm perf driver
++ *
++ * @name: name of the nvdimm pmu device.
++ * @pmu: pmu data structure for nvdimm performance stats.
++ * @dev: nvdimm device pointer.
++ * @functions(event_init/add/del/read): platform specific pmu functions.
++ * @attr_groups: data structure for events, formats and cpumask
++ * @cpu: designated cpu for counter access.
++ * @node: node for cpu hotplug notifier link.
++ * @cpuhp_state: state for cpu hotplug notification.
++ * @arch_cpumask: cpumask to get designated cpu for counter access.
++ */
++struct nvdimm_pmu {
++	const char *name;
++	struct pmu pmu;
++	struct device *dev;
++	int (*event_init)(struct perf_event *event);
++	int  (*add)(struct perf_event *event, int flags);
++	void (*del)(struct perf_event *event, int flags);
++	void (*read)(struct perf_event *event);
++	/*
++	 * Attribute groups for the nvdimm pmu. Index 0 used for
++	 * format attribute, index 1 used for event attribute,
++	 * index 2 used for cpusmask attribute and index 3 kept as NULL.
++	 */
++	const struct attribute_group *attr_groups[4];
++	int cpu;
++	struct hlist_node node;
++	enum cpuhp_state cpuhp_state;
++
++	/* cpumask provided by arch/platform specific code */
++	struct cpumask arch_cpumask;
++};
++
+ struct nd_device_driver {
+ 	struct device_driver drv;
+ 	unsigned long type;
+-- 
+2.26.2
 
