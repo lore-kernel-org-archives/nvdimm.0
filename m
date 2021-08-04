@@ -1,37 +1,36 @@
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAA84348C
-	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:40 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433063"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 843833492
+	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:41 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433065"
 X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="299433063"
+   d="scan'208";a="299433065"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
   by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:37 -0700
 X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="511702690"
+   d="scan'208";a="511702693"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
   by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:37 -0700
 From: ira.weiny@intel.com
 To: Dave Hansen <dave.hansen@linux.intel.com>,
 	Dan Williams <dan.j.williams@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>,
-	Sean Christopherson <seanjc@google.com>,
-	Ira Weiny <ira.weiny@intel.com>,
+Cc: Ira Weiny <ira.weiny@intel.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Andy Lutomirski <luto@kernel.org>,
 	"H. Peter Anvin" <hpa@zytor.com>,
+	Fenghua Yu <fenghua.yu@intel.com>,
 	Rick Edgecombe <rick.p.edgecombe@intel.com>,
 	x86@kernel.org,
 	linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-mm@kvack.org
-Subject: [PATCH V7 09/18] x86/pks: Add PKS kernel API
-Date: Tue,  3 Aug 2021 21:32:22 -0700
-Message-Id: <20210804043231.2655537-10-ira.weiny@intel.com>
+Subject: [PATCH V7 10/18] x86/pks: Introduce pks_abandon_protections()
+Date: Tue,  3 Aug 2021 21:32:23 -0700
+Message-Id: <20210804043231.2655537-11-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20210804043231.2655537-1-ira.weiny@intel.com>
 References: <20210804043231.2655537-1-ira.weiny@intel.com>
@@ -43,356 +42,260 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Fenghua Yu <fenghua.yu@intel.com>
+From: Ira Weiny <ira.weiny@intel.com>
 
-PKS allows kernel users to define domains of page mappings which have
-additional protections beyond the paging protections.  Violating those
-protections creates a fault which by default will oops.
+Unanticipated access to PMEM by otherwise working kernel code would be
+very disruptive to otherwise working systems.  Such access could be
+through valid uses such as kmap().  In this use case PMEM protections
+will require the ability to abandon all protections of a pkey on all
+threads system wide.
 
-Each kernel user defines a PKS_KEY_* key value which identifies a PKS
-domain to be used exclusively by that kernel user.  This API is then
-used to control which pages are part of that domain and the current
-threads protection of those pages.
+Introduce pks_abandon_protections() to allow a user to mask off
+protection values.  This will filter through all the threads of the
+system as they are scheduled in and in the immediate case override the
+value should running threads PKS fault.
 
-4 new functions are added pks_enabled(), pks_mk_noaccess(),
-pks_mk_readonly(), and pks_mk_readwrite().  2 new macros are added
-PAGE_KERNEL_PKEY(key) and _PAGE_PKEY(pkey).
+Update pkrs_write_current(), pks_init_task(), and
+pkrs_{save|restore}_irq() to account for pkrs_pkey_allowed_mask.
 
-Update the protection key documentation to cover pkeys on supervisor
-pages.  This includes how to reserve a key and set the default
-permissions on that key.
+Add handle_abandoned_pks_value() to adjust any already running threads
+which may fault on an abandoned pkey.
 
-Cc: Sean Christopherson <seanjc@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 
 ---
-Change for V7
-	Add pks_enabled() to allow users more dynamic choice on PKS use.
-	Update documentation for key allocation
-	Remove dynamic key allocation, keys will be allocated statically
-	now.
-	Add expected CPU generation support to documentation
+Changes for V7
+	New patch
+	Significant internal review from Dan Williams and Rick Edgecombe
 ---
- Documentation/core-api/protection-keys.rst | 121 ++++++++++++++++++---
- arch/x86/include/asm/pgtable_types.h       |  12 ++
- arch/x86/mm/pkeys.c                        |  66 +++++++++++
- include/linux/pgtable.h                    |   4 +
- include/linux/pkeys.h                      |  14 +++
- 5 files changed, 199 insertions(+), 18 deletions(-)
+ Documentation/core-api/protection-keys.rst |  7 +++-
+ arch/x86/entry/common.c                    |  6 ++-
+ arch/x86/include/asm/pks.h                 |  5 +++
+ arch/x86/mm/fault.c                        | 24 ++++++-----
+ arch/x86/mm/pkeys.c                        | 49 ++++++++++++++++++++++
+ include/linux/pkeys.h                      |  2 +
+ 6 files changed, 80 insertions(+), 13 deletions(-)
 
 diff --git a/Documentation/core-api/protection-keys.rst b/Documentation/core-api/protection-keys.rst
-index ec575e72d0b2..6420a60666fc 100644
+index 6420a60666fc..202088634fa3 100644
 --- a/Documentation/core-api/protection-keys.rst
 +++ b/Documentation/core-api/protection-keys.rst
-@@ -4,25 +4,30 @@
- Memory Protection Keys
- ======================
+@@ -157,6 +157,7 @@ this additional protection to the page.
+         void pks_mk_noaccess(int pkey);
+         void pks_mk_readonly(int pkey);
+         void pks_mk_readwrite(int pkey);
++        void pks_abandon_protections(int pkey);
  
--Memory Protection Keys for Userspace (PKU aka PKEYs) is a feature
--which is found on Intel's Skylake (and later) "Scalable Processor"
--Server CPUs. It will be available in future non-server Intel parts
--and future AMD processors.
-+Memory Protection Keys provide a mechanism for enforcing page-based
-+protections, but without requiring modification of the page tables
-+when an application changes protection domains.
+ pks_enabled() allows users to know if PKS is configured and available on the
+ current running system.
+@@ -169,7 +170,11 @@ protections for the domain identified by the pkey parameter.  3 states are
+ available: pks_mk_noaccess(), pks_mk_readonly(), and pks_mk_readwrite() which
+ set the access to none, read, and read/write respectively.
  
--For anyone wishing to test or use this feature, it is available in
--Amazon's EC2 C5 instances and is known to work there using an Ubuntu
--17.04 image.
-+PKeys Userspace (PKU) is a feature which is found on Intel's Skylake "Scalable
-+Processor" Server CPUs and later.  And it will be available in future
-+non-server Intel parts and future AMD processors.
+-The interface sets (Access Disabled (AD=1)) for all keys not in use.
++The interface sets Access Disabled for all keys not in use.  The
++pks_abandon_protections() call reduces the protections for the specified key to
++be fully accessible thus abandoning the protections of the key.  There is no
++way to reverse this.  As such pks_abandon_protections() is intended to provide
++a 'relief valve' if the PKS protections should prove too restrictive.
  
--Memory Protection Keys provides a mechanism for enforcing page-based
--protections, but without requiring modification of the page tables
--when an application changes protection domains.  It works by
--dedicating 4 previously ignored bits in each page table entry to a
--"protection key", giving 16 possible keys.
-+Protection Keys for Supervisor pages (PKS) is available in the SDM since May
-+2020.
-+
-+pkeys work by dedicating 4 previously Reserved bits in each page table entry to
-+a "protection key", giving 16 possible keys.  User and Supervisor pages are
-+treated separately.
-+
-+Protections for each page are controlled with per-CPU registers for each type
-+of page User and Supervisor.  Each of these 32-bit register stores two separate
-+bits (Access Disable and Write Disable) for each key.
+ It should be noted that the underlying WRMSR(MSR_IA32_PKRS) is not serializing
+ but still maintains ordering properties similar to WRPKRU.  Thus it is safe to
+diff --git a/arch/x86/entry/common.c b/arch/x86/entry/common.c
+index a0d1d5519dba..717091910ebc 100644
+--- a/arch/x86/entry/common.c
++++ b/arch/x86/entry/common.c
+@@ -37,6 +37,8 @@
+ #include <asm/irq_stack.h>
+ #include <asm/pks.h>
  
--There is also a new user-accessible register (PKRU) with two separate
--bits (Access Disable and Write Disable) for each key.  Being a CPU
--register, PKRU is inherently thread-local, potentially giving each
--thread a different set of protections from every other thread.
-+For Userspace the register is user-accessible (rdpkru/wrpkru).  For
-+Supervisor, the register (MSR_IA32_PKRS) is accessible only to the kernel.
++extern u32 pkrs_pkey_allowed_mask;
 +
-+Being a CPU register, pkeys are inherently thread-local, potentially giving
-+each thread an independent set of protections from every other thread.
+ #ifdef CONFIG_X86_64
  
- There are two new instructions (RDPKRU/WRPKRU) for reading and writing
- to the new register.  The feature is only available in 64-bit mode,
-@@ -30,8 +35,11 @@ even though there is theoretically space in the PAE PTEs.  These
- permissions are enforced on data access only and have no effect on
- instruction fetches.
+ static __always_inline bool do_syscall_x64(struct pt_regs *regs, int nr)
+@@ -287,7 +289,7 @@ void pkrs_save_irq(struct pt_regs *regs)
  
--Syscalls
--========
-+For kernel space rdmsr/wrmsr are used to access the kernel MSRs.
-+
-+
-+Syscalls for user space keys
-+============================
- 
- There are 3 system calls which directly interact with pkeys::
- 
-@@ -98,3 +106,80 @@ with a read()::
- The kernel will send a SIGSEGV in both cases, but si_code will be set
- to SEGV_PKERR when violating protection keys versus SEGV_ACCERR when
- the plain mprotect() permissions are violated.
-+
-+
-+Kernel API for PKS support
-+==========================
-+
-+Similar to user space pkeys, supervisor pkeys allow additional protections to
-+be defined for a supervisor mappings.  Unlike user space pkeys, violations of
-+these protections result in a a kernel oops.
-+
-+Supervisor Memory Protection Keys (PKS) is a feature which is found on Intel's
-+Sapphire Rapids (and later) "Scalable Processor" Server CPUs.  It will also be
-+available in future non-server Intel parts.
-+
-+Also qemu has some support as well: https://www.qemu.org/2021/04/30/qemu-6-0-0/
-+
-+Kernel users intending to use PKS support should depend on
-+ARCH_HAS_SUPERVISOR_PKEYS, and add their config to ARCH_ENABLE_SUPERVISOR_PKEYS
-+to turn on this support within the core.
-+
-+Users reserve a key value by adding an entry to the enum pks_pkey_consumers and
-+defining the initial protections in the consumer_defaults[] array.
-+
-+For example to configure a key for 'MY_FEATURE' with a default of Write
-+Disabled.
-+
-+::
-+
-+        enum pks_pkey_consumers
-+        {
-+	        PKS_KEY_DEFAULT,
-+	        PKS_KEY_MY_FEATURE,
-+	        PKS_KEY_NR_CONSUMERS
-+        }
-+
-+        ...
-+        consumer_defaults[PKS_KEY_DEFAULT]     = 0;
-+        consumer_defaults[PKS_KEY_MY_FEATURE]  = PKR_DISABLE_WRITE;
-+        ...
-+
-+The following interface is used to manipulate the 'protection domain' defined
-+by a pkey within the kernel.  Setting a pkey value in a supervisor PTE adds
-+this additional protection to the page.
-+
-+::
-+
-+        #define PAGE_KERNEL_PKEY(pkey)
-+        #define _PAGE_KEY(pkey)
-+        bool pks_enabled(void);
-+        void pks_mk_noaccess(int pkey);
-+        void pks_mk_readonly(int pkey);
-+        void pks_mk_readwrite(int pkey);
-+
-+pks_enabled() allows users to know if PKS is configured and available on the
-+current running system.
-+
-+Kernel users must set the pkey in the page table entries for the mappings they
-+want to protect.  This can be done with PAGE_KERNEL_PKEY() or _PAGE_KEY().
-+
-+The pks_mk*() family of calls allow indinvidual threads to change the
-+protections for the domain identified by the pkey parameter.  3 states are
-+available: pks_mk_noaccess(), pks_mk_readonly(), and pks_mk_readwrite() which
-+set the access to none, read, and read/write respectively.
-+
-+The interface sets (Access Disabled (AD=1)) for all keys not in use.
-+
-+It should be noted that the underlying WRMSR(MSR_IA32_PKRS) is not serializing
-+but still maintains ordering properties similar to WRPKRU.  Thus it is safe to
-+immediately use a mapping when the pks_mk*() functions return.
-+
-+Older versions of the SDM on PKRS may be wrong with regard to this
-+serialization.  The text should be the same as that of WRPKRU.  From the WRPKRU
-+text:
-+
-+	WRPKRU will never execute transiently. Memory accesses
-+	affected by PKRU register will not execute (even transiently)
-+	until all prior executions of WRPKRU have completed execution
-+	and updated the PKRU register.
-diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-index 40497a9020c6..3f866e730456 100644
---- a/arch/x86/include/asm/pgtable_types.h
-+++ b/arch/x86/include/asm/pgtable_types.h
-@@ -71,6 +71,12 @@
- 			 _PAGE_PKEY_BIT2 | \
- 			 _PAGE_PKEY_BIT3)
- 
-+#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-+#define _PAGE_PKEY(pkey)	(_AT(pteval_t, pkey) << _PAGE_BIT_PKEY_BIT0)
-+#else
-+#define _PAGE_PKEY(pkey)	(_AT(pteval_t, 0))
-+#endif
-+
- #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
- #define _PAGE_KNL_ERRATUM_MASK (_PAGE_DIRTY | _PAGE_ACCESSED)
- #else
-@@ -226,6 +232,12 @@ enum page_cache_mode {
- #define PAGE_KERNEL_IO		__pgprot_mask(__PAGE_KERNEL_IO)
- #define PAGE_KERNEL_IO_NOCACHE	__pgprot_mask(__PAGE_KERNEL_IO_NOCACHE)
- 
-+#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-+#define PAGE_KERNEL_PKEY(pkey)	__pgprot_mask(__PAGE_KERNEL | _PAGE_PKEY(pkey))
-+#else
-+#define PAGE_KERNEL_PKEY(pkey) PAGE_KERNEL
-+#endif
-+
- #endif	/* __ASSEMBLY__ */
- 
- /*         xwr */
-diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
-index eca01dc8d7ac..146a665d1bf3 100644
---- a/arch/x86/mm/pkeys.c
-+++ b/arch/x86/mm/pkeys.c
-@@ -3,6 +3,9 @@
-  * Intel Memory Protection Keys management
-  * Copyright (c) 2015, Intel Corporation.
-  */
-+#undef pr_fmt
-+#define pr_fmt(fmt) "x86/pkeys: " fmt
-+
- #include <linux/debugfs.h>		/* debugfs_create_u32()		*/
- #include <linux/mm_types.h>             /* mm_struct, vma, etc...       */
- #include <linux/pkeys.h>                /* PKEY_*                       */
-@@ -10,6 +13,7 @@
- 
- #include <asm/cpufeature.h>             /* boot_cpu_has, ...            */
- #include <asm/mmu_context.h>            /* vma_pkey()                   */
-+#include <asm/pks.h>
- 
- int __execute_only_pkey(struct mm_struct *mm)
- {
-@@ -301,4 +305,66 @@ void pks_init_task(struct task_struct *task)
- 	task->thread.saved_pkrs = pkrs_init_value;
+ 	ept_regs = extended_pt_regs(regs);
+ 	ept_regs->thread_pkrs = current->thread.saved_pkrs;
+-	write_pkrs(pkrs_init_value);
++	write_pkrs(pkrs_init_value & pkrs_pkey_allowed_mask);
  }
  
-+bool pks_enabled(void)
-+{
-+	return cpu_feature_enabled(X86_FEATURE_PKS);
-+}
-+
-+/*
-+ * Do not call this directly, see pks_mk*() below.
-+ *
-+ * @pkey: Key for the domain to change
-+ * @protection: protection bits to be used
-+ *
-+ * Protection utilizes the same protection bits specified for User pkeys
-+ *     PKEY_DISABLE_ACCESS
-+ *     PKEY_DISABLE_WRITE
-+ *
-+ */
-+static inline void pks_update_protection(int pkey, unsigned long protection)
-+{
-+	current->thread.saved_pkrs = update_pkey_val(current->thread.saved_pkrs,
-+						     pkey, protection);
+ void pkrs_restore_irq(struct pt_regs *regs)
+@@ -298,8 +300,8 @@ void pkrs_restore_irq(struct pt_regs *regs)
+ 		return;
+ 
+ 	ept_regs = extended_pt_regs(regs);
+-	write_pkrs(ept_regs->thread_pkrs);
+ 	current->thread.saved_pkrs = ept_regs->thread_pkrs;
 +	pkrs_write_current();
-+}
-+
-+/**
-+ * pks_mk_noaccess() - Disable all access to the domain
-+ * @pkey the pkey for which the access should change.
-+ *
-+ * Disable all access to the domain specified by pkey.  This is not a global
-+ * update and only affects the current running thread.
-+ */
-+void pks_mk_noaccess(int pkey)
-+{
-+	pks_update_protection(pkey, PKEY_DISABLE_ACCESS);
-+}
-+EXPORT_SYMBOL_GPL(pks_mk_noaccess);
-+
-+/**
-+ * pks_mk_readonly() - Make the domain Read only
-+ * @pkey the pkey for which the access should change.
-+ *
-+ * Allow read access to the domain specified by pkey.  This is not a global
-+ * update and only affects the current running thread.
-+ */
-+void pks_mk_readonly(int pkey)
-+{
-+	pks_update_protection(pkey, PKEY_DISABLE_WRITE);
-+}
-+EXPORT_SYMBOL_GPL(pks_mk_readonly);
-+
-+/**
-+ * pks_mk_readwrite() - Make the domain Read/Write
-+ * @pkey the pkey for which the access should change.
-+ *
-+ * Allow all access, read and write, to the domain specified by pkey.  This is
-+ * not a global update and only affects the current running thread.
-+ */
-+void pks_mk_readwrite(int pkey)
-+{
-+	pks_update_protection(pkey, 0);
-+}
-+EXPORT_SYMBOL_GPL(pks_mk_readwrite);
-+
+ }
+ 
  #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index d147480cdefc..eba1a9f9d124 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -1526,6 +1526,10 @@ static inline bool arch_has_pfn_modify_check(void)
- # define PAGE_KERNEL_EXEC PAGE_KERNEL
- #endif
+diff --git a/arch/x86/include/asm/pks.h b/arch/x86/include/asm/pks.h
+index 76960ec71b4b..ed293ef4509e 100644
+--- a/arch/x86/include/asm/pks.h
++++ b/arch/x86/include/asm/pks.h
+@@ -22,6 +22,7 @@ static inline struct extended_pt_regs *extended_pt_regs(struct pt_regs *regs)
+ }
  
-+#ifndef PAGE_KERNEL_PKEY
-+#define PAGE_KERNEL_PKEY(pkey) PAGE_KERNEL
-+#endif
-+
- /*
-  * Page Table Modification bits for pgtbl_mod_mask.
-  *
-diff --git a/include/linux/pkeys.h b/include/linux/pkeys.h
-index 76eb19a37942..b9919ed4d300 100644
---- a/include/linux/pkeys.h
-+++ b/include/linux/pkeys.h
-@@ -56,11 +56,25 @@ extern u32 pkrs_init_value;
- void pkrs_save_irq(struct pt_regs *regs);
- void pkrs_restore_irq(struct pt_regs *regs);
+ void show_extended_regs_oops(struct pt_regs *regs, unsigned long error_code);
++int handle_abandoned_pks_value(struct pt_regs *regs);
  
-+bool pks_enabled(void);
-+void pks_mk_noaccess(int pkey);
-+void pks_mk_readonly(int pkey);
-+void pks_mk_readwrite(int pkey);
-+
  #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
  
- static inline void pkrs_save_irq(struct pt_regs *regs) { }
- static inline void pkrs_restore_irq(struct pt_regs *regs) { }
- 
-+static inline bool pks_enabled(void)
+@@ -31,6 +32,10 @@ static inline void pks_init_task(struct task_struct *task) { }
+ static inline void write_pkrs(u32 new_pkrs) { }
+ static inline void show_extended_regs_oops(struct pt_regs *regs,
+ 					   unsigned long error_code) { }
++static inline int handle_abandoned_pks_value(struct pt_regs *regs)
 +{
-+	return false;
++	return 0;
 +}
-+
-+static inline void pks_mk_noaccess(int pkey) {}
-+static inline void pks_mk_readonly(int pkey) {}
-+static inline void pks_mk_readwrite(int pkey) {}
-+
+ 
  #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
  
- #endif /* _LINUX_PKEYS_H */
+diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
+index a4ce7cef0260..bf3353d8e011 100644
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -1143,16 +1143,20 @@ static void
+ do_kern_addr_fault(struct pt_regs *regs, unsigned long hw_error_code,
+ 		   unsigned long address)
+ {
+-	/*
+-	 * X86_PF_PK (Protection key exceptions) may occur on kernel addresses
+-	 * when PKS (PKeys Supervisor) is enabled.
+-	 *
+-	 * However, if PKS is not enabled WARN if this exception is seen
+-	 * because there are no user pages in the kernel portion of the address
+-	 * space.
+-	 */
+-	WARN_ON_ONCE(!cpu_feature_enabled(X86_FEATURE_PKS) &&
+-		     (hw_error_code & X86_PF_PK));
++	if (hw_error_code & X86_PF_PK) {
++		/*
++		 * X86_PF_PK (Protection key exceptions) may occur on kernel
++		 * addresses when PKS (PKeys Supervisor) is enabled.
++		 *
++		 * However, if PKS is not enabled WARN if this exception is
++		 * seen because there are no user pages in the kernel portion
++		 * of the address space.
++		 */
++		WARN_ON_ONCE(!cpu_feature_enabled(X86_FEATURE_PKS));
++
++		if (handle_abandoned_pks_value(regs))
++			return;
++	}
+ 
+ #ifdef CONFIG_X86_32
+ 	/*
+diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
+index 146a665d1bf3..56d37840186b 100644
+--- a/arch/x86/mm/pkeys.c
++++ b/arch/x86/mm/pkeys.c
+@@ -221,6 +221,26 @@ u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags)
+ static DEFINE_PER_CPU(u32, pkrs_cache);
+ u32 __read_mostly pkrs_init_value;
+ 
++/*
++ * Define a mask of pkeys which are allowed, ie have not been abandoned.
++ * Default is all keys are allowed.
++ */
++#define PKRS_ALLOWED_MASK_DEFAULT 0xffffffff
++u32 __read_mostly pkrs_pkey_allowed_mask;
++
++int handle_abandoned_pks_value(struct pt_regs *regs)
++{
++	struct extended_pt_regs *ept_regs;
++	u32 old;
++
++	ept_regs = extended_pt_regs(regs);
++	old = ept_regs->thread_pkrs;
++	ept_regs->thread_pkrs &= pkrs_pkey_allowed_mask;
++
++	/* If something changed retry the fault */
++	return (ept_regs->thread_pkrs != old);
++}
++
+ /*
+  * write_pkrs() optimizes MSR writes by maintaining a per cpu cache which can
+  * be checked quickly.
+@@ -267,6 +287,7 @@ static int __init create_initial_pkrs_value(void)
+ 	BUILD_BUG_ON(PKS_KEY_NR_CONSUMERS > PKS_NUM_PKEYS);
+ 
+ 	pkrs_init_value = 0;
++	pkrs_pkey_allowed_mask = PKRS_ALLOWED_MASK_DEFAULT;
+ 
+ 	/* Fill the defaults for the consumers */
+ 	for (i = 0; i < PKS_NUM_PKEYS; i++)
+@@ -297,12 +318,14 @@ void setup_pks(void)
+  */
+ void pkrs_write_current(void)
+ {
++	current->thread.saved_pkrs &= pkrs_pkey_allowed_mask;
+ 	write_pkrs(current->thread.saved_pkrs);
+ }
+ 
+ void pks_init_task(struct task_struct *task)
+ {
+ 	task->thread.saved_pkrs = pkrs_init_value;
++	task->thread.saved_pkrs &= pkrs_pkey_allowed_mask;
+ }
+ 
+ bool pks_enabled(void)
+@@ -367,4 +390,30 @@ void pks_mk_readwrite(int pkey)
+ }
+ EXPORT_SYMBOL_GPL(pks_mk_readwrite);
+ 
++/**
++ * pks_abandon_protections() - Force readwrite (no protections) for the
++ *                             specified pkey
++ * @pkey The pkey to force
++ *
++ * Force the value of the pkey to readwrite (no protections) thus abandoning
++ * protections for this key.  This is a permanent change and has no
++ * coresponding reversal function.
++ *
++ * This also updates the current running thread.
++ */
++void pks_abandon_protections(int pkey)
++{
++	u32 old_mask, new_mask;
++
++	do {
++		old_mask = READ_ONCE(pkrs_pkey_allowed_mask);
++		new_mask = update_pkey_val(old_mask, pkey, 0);
++	} while (unlikely(
++		 cmpxchg(&pkrs_pkey_allowed_mask, old_mask, new_mask) != old_mask));
++
++	/* Update the local thread as well. */
++	pks_update_protection(pkey, 0);
++}
++EXPORT_SYMBOL_GPL(pks_abandon_protections);
++
+ #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
+diff --git a/include/linux/pkeys.h b/include/linux/pkeys.h
+index b9919ed4d300..4d22ccd971fc 100644
+--- a/include/linux/pkeys.h
++++ b/include/linux/pkeys.h
+@@ -60,6 +60,7 @@ bool pks_enabled(void);
+ void pks_mk_noaccess(int pkey);
+ void pks_mk_readonly(int pkey);
+ void pks_mk_readwrite(int pkey);
++void pks_abandon_protections(int pkey);
+ 
+ #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
+ 
+@@ -74,6 +75,7 @@ static inline bool pks_enabled(void)
+ static inline void pks_mk_noaccess(int pkey) {}
+ static inline void pks_mk_readonly(int pkey) {}
+ static inline void pks_mk_readwrite(int pkey) {}
++static inline void pks_abandon_protections(int pkey) {}
+ 
+ #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
+ 
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
