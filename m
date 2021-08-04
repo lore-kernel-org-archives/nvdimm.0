@@ -1,198 +1,166 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from out4436.biz.mail.alibaba.com (out4436.biz.mail.alibaba.com [47.88.44.36])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D41AF34AB
-	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:45 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433083"
-X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="299433083"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:39 -0700
-X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="511702726"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:39 -0700
-From: ira.weiny@intel.com
-To: Dave Hansen <dave.hansen@linux.intel.com>,
-	Dan Williams <dan.j.williams@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>,
-	Borislav Petkov <bp@alien8.de>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Andy Lutomirski <luto@kernel.org>,
-	"H. Peter Anvin" <hpa@zytor.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>,
-	x86@kernel.org,
-	linux-kernel@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-mm@kvack.org
-Subject: [PATCH V7 17/18] nvdimm/pmem: Enable stray access protection
-Date: Tue,  3 Aug 2021 21:32:30 -0700
-Message-Id: <20210804043231.2655537-18-ira.weiny@intel.com>
-X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
-In-Reply-To: <20210804043231.2655537-1-ira.weiny@intel.com>
-References: <20210804043231.2655537-1-ira.weiny@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3440370
+	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:52:50 +0000 (UTC)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0Uhw5or2_1628052749;
+Received: from B-P7TQMD6M-0146.local(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Uhw5or2_1628052749)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Wed, 04 Aug 2021 12:52:31 +0800
+Date: Wed, 4 Aug 2021 12:52:29 +0800
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+To: Chao Yu <chao@kernel.org>
+Cc: linux-erofs@lists.ozlabs.org, linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Liu Bo <bo.liu@linux.alibaba.com>,
+	Joseph Qi <joseph.qi@linux.alibaba.com>,
+	Liu Jiang <gerry@linux.alibaba.com>,
+	Huang Jianan <huangjianan@oppo.com>, Tao Ma <boyu.mt@taobao.com>
+Subject: Re: [PATCH v2 1/3] erofs: iomap support for non-tailpacking DIO
+Message-ID: <YQodDac58Uta4ZtR@B-P7TQMD6M-0146.local>
+Mail-Followup-To: Chao Yu <chao@kernel.org>, linux-erofs@lists.ozlabs.org,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Liu Bo <bo.liu@linux.alibaba.com>,
+	Joseph Qi <joseph.qi@linux.alibaba.com>,
+	Liu Jiang <gerry@linux.alibaba.com>,
+	Huang Jianan <huangjianan@oppo.com>, Tao Ma <boyu.mt@taobao.com>
+References: <20210730194625.93856-1-hsiangkao@linux.alibaba.com>
+ <20210730194625.93856-2-hsiangkao@linux.alibaba.com>
+ <e79e3261-e582-e848-b550-c0c3163d9af4@kernel.org>
+ <YQoX62zRERGX9BGB@B-P7TQMD6M-0146.local>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <YQoX62zRERGX9BGB@B-P7TQMD6M-0146.local>
 
-From: Ira Weiny <ira.weiny@intel.com>
+On Wed, Aug 04, 2021 at 12:30:35PM +0800, Gao Xiang wrote:
+> Hi Chao,
+> 
+> On Wed, Aug 04, 2021 at 10:57:08AM +0800, Chao Yu wrote:
+> > On 2021/7/31 3:46, Gao Xiang wrote:
+> 
+> ...
+> 
+> > >   }
+> > > +static int erofs_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+> > > +		unsigned int flags, struct iomap *iomap, struct iomap *srcmap)
+> > > +{
+> > > +	int ret;
+> > > +	struct erofs_map_blocks map;
+> > > +
+> > > +	map.m_la = offset;
+> > > +	map.m_llen = length;
+> > > +
+> > > +	ret = erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW);
+> > > +	if (ret < 0)
+> > > +		return ret;
+> > > +
+> > > +	iomap->bdev = inode->i_sb->s_bdev;
+> > > +	iomap->offset = map.m_la;
+> > > +	iomap->length = map.m_llen;
+> > > +	iomap->flags = 0;
+> > > +
+> > > +	if (!(map.m_flags & EROFS_MAP_MAPPED)) {
+> > > +		iomap->type = IOMAP_HOLE;
+> > > +		iomap->addr = IOMAP_NULL_ADDR;
+> > > +		if (!iomap->length)
+> > > +			iomap->length = length;
+> > 
+> > This only happens for the case offset exceeds isize?
+> 
+> Thanks for the review.
+> 
+> Yeah, this is a convention (length 0 with !EROFS_MAP_MAPPED) for post-EOF
+> in erofs_map_blocks_flatmode(), need to follow iomap rule as well.
+> 
+> > 
+> > > +		return 0;
+> > > +	}
+> > > +
+> > > +	/* that shouldn't happen for now */
+> > > +	if (map.m_flags & EROFS_MAP_META) {
+> > > +		DBG_BUGON(1);
+> > > +		return -ENOTBLK;
+> > > +	}
+> > > +	iomap->type = IOMAP_MAPPED;
+> > > +	iomap->addr = map.m_pa;
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +const struct iomap_ops erofs_iomap_ops = {
+> > > +	.iomap_begin = erofs_iomap_begin,
+> > > +};
+> > > +
+> > > +static int erofs_prepare_dio(struct kiocb *iocb, struct iov_iter *to)
+> > > +{
+> > > +	struct inode *inode = file_inode(iocb->ki_filp);
+> > > +	loff_t align = iocb->ki_pos | iov_iter_count(to) |
+> > > +		iov_iter_alignment(to);
+> > > +	struct block_device *bdev = inode->i_sb->s_bdev;
+> > > +	unsigned int blksize_mask;
+> > > +
+> > > +	if (bdev)
+> > > +		blksize_mask = (1 << ilog2(bdev_logical_block_size(bdev))) - 1;
+> > > +	else
+> > > +		blksize_mask = (1 << inode->i_blkbits) - 1;
+> > > +
+> > > +	if (align & blksize_mask)
+> > > +		return -EINVAL;
+> > > +
+> > > +	/*
+> > > +	 * Temporarily fall back tail-packing inline to buffered I/O instead
+> > > +	 * since tail-packing inline support relies on an iomap core update.
+> > > +	 */
+> > > +	if (EROFS_I(inode)->datalayout == EROFS_INODE_FLAT_INLINE &&
+> > > +	    iocb->ki_pos + iov_iter_count(to) >
+> > > +			rounddown(inode->i_size, EROFS_BLKSIZ))
+> > > +		return 1;
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static ssize_t erofs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
+> > > +{
+> > > +	/* no need taking (shared) inode lock since it's a ro filesystem */
+> > > +	if (!iov_iter_count(to))
+> > > +		return 0;
+> > > +
+> > > +	if (iocb->ki_flags & IOCB_DIRECT) {
+> > > +		int err = erofs_prepare_dio(iocb, to);
+> > > +
+> > > +		if (!err)
+> > > +			return iomap_dio_rw(iocb, to, &erofs_iomap_ops,
+> > > +					    NULL, 0);
+> > > +		if (err < 0)
+> > > +			return err;
+> > > +		/*
+> > > +		 * Fallback to buffered I/O if the operation being performed on
+> > > +		 * the inode is not supported by direct I/O. The IOCB_DIRECT
+> > > +		 * flag needs to be cleared here in order to ensure that the
+> > > +		 * direct I/O path within generic_file_read_iter() is not
+> > > +		 * taken.
+> > > +		 */
+> > > +		iocb->ki_flags &= ~IOCB_DIRECT;
+> > > +	}
+> > > +	return generic_file_read_iter(iocb, to);
+> > 
+> > It looks it's fine to call filemap_read() directly since above codes have
+> > covered DIO case, then we don't need to change iocb->ki_flags flag, it's
+> > minor though.
+> 
+> Yeah, we could use filemap_read() here instead. yet IMO, it might be
+> better to drop IOCB_DIRECT too to keep iocb consistent with the real
+> semantics (even it's not used internally.)
 
-Now that all potential / valid kernel initiated access' to PMEM have
-been annotated with {__}pgmap_mk_{readwrite,noaccess}(), turn on
-PGMAP_PROTECTION.
+After checking the other users of filemap_read(), I'm fine to leave
+IOCB_DIRECT as-is. Will update.
 
-Implement the dax_protected which communicates this memory has extra
-protection.  Also implement pmem_mk_{readwrite,noaccess}() to relax
-those protections for valid users.
-
-Internally, the pmem driver uses a cached virtual address,
-pmem->virt_addr (pmem_addr).
-
-Call __pgmap_mk_{readwrite,noaccess}() directly when PGMAP_PROTECTION is
-active on the device.
-
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
----
-Changes for V7
-	Remove global param
-	Add internal structure which uses the pmem device and pgmap
-		device directly in the *_mk_*() calls.
-	Add pmem dax ops callbacks
-	Use pgmap_protection_enabled()
-	s/PGMAP_PKEY_PROTECT/PGMAP_PROTECTION
----
- drivers/nvdimm/pmem.c | 55 ++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 54 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 1e0615b8565e..6e924b907264 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -138,6 +138,18 @@ static blk_status_t read_pmem(struct page *page, unsigned int off,
- 	return BLK_STS_OK;
- }
- 
-+static void __pmem_mk_readwrite(struct pmem_device *pmem)
-+{
-+	if (pmem->pgmap.flags & PGMAP_PROTECTION)
-+		__pgmap_mk_readwrite(&pmem->pgmap);
-+}
-+
-+static void __pmem_mk_noaccess(struct pmem_device *pmem)
-+{
-+	if (pmem->pgmap.flags & PGMAP_PROTECTION)
-+		__pgmap_mk_noaccess(&pmem->pgmap);
-+}
-+
- static blk_status_t pmem_do_read(struct pmem_device *pmem,
- 			struct page *page, unsigned int page_off,
- 			sector_t sector, unsigned int len)
-@@ -149,7 +161,10 @@ static blk_status_t pmem_do_read(struct pmem_device *pmem,
- 	if (unlikely(is_bad_pmem(&pmem->bb, sector, len)))
- 		return BLK_STS_IOERR;
- 
-+	__pmem_mk_readwrite(pmem);
- 	rc = read_pmem(page, page_off, pmem_addr, len);
-+	__pmem_mk_noaccess(pmem);
-+
- 	flush_dcache_page(page);
- 	return rc;
- }
-@@ -181,11 +196,14 @@ static blk_status_t pmem_do_write(struct pmem_device *pmem,
- 	 * after clear poison.
- 	 */
- 	flush_dcache_page(page);
-+
-+	__pmem_mk_readwrite(pmem);
- 	write_pmem(pmem_addr, page, page_off, len);
- 	if (unlikely(bad_pmem)) {
- 		rc = pmem_clear_poison(pmem, pmem_off, len);
- 		write_pmem(pmem_addr, page, page_off, len);
- 	}
-+	__pmem_mk_noaccess(pmem);
- 
- 	return rc;
- }
-@@ -320,6 +338,23 @@ static size_t pmem_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff,
- 	return _copy_mc_to_iter(addr, bytes, i);
- }
- 
-+static bool pmem_map_protected(struct dax_device *dax_dev)
-+{
-+	struct pmem_device *pmem = dax_get_private(dax_dev);
-+
-+	return (pmem->pgmap.flags & PGMAP_PROTECTION);
-+}
-+
-+static void pmem_mk_readwrite(struct dax_device *dax_dev)
-+{
-+	__pmem_mk_readwrite(dax_get_private(dax_dev));
-+}
-+
-+static void pmem_mk_noaccess(struct dax_device *dax_dev)
-+{
-+	__pmem_mk_noaccess(dax_get_private(dax_dev));
-+}
-+
- static const struct dax_operations pmem_dax_ops = {
- 	.direct_access = pmem_dax_direct_access,
- 	.dax_supported = generic_fsdax_supported,
-@@ -328,6 +363,17 @@ static const struct dax_operations pmem_dax_ops = {
- 	.zero_page_range = pmem_dax_zero_page_range,
- };
- 
-+static const struct dax_operations pmem_protected_dax_ops = {
-+	.direct_access = pmem_dax_direct_access,
-+	.dax_supported = generic_fsdax_supported,
-+	.copy_from_iter = pmem_copy_from_iter,
-+	.copy_to_iter = pmem_copy_to_iter,
-+	.zero_page_range = pmem_dax_zero_page_range,
-+	.map_protected = pmem_map_protected,
-+	.mk_readwrite = pmem_mk_readwrite,
-+	.mk_noaccess = pmem_mk_noaccess,
-+};
-+
- static const struct attribute_group *pmem_attribute_groups[] = {
- 	&dax_attribute_group,
- 	NULL,
-@@ -432,6 +478,8 @@ static int pmem_attach_disk(struct device *dev,
- 	if (is_nd_pfn(dev)) {
- 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
- 		pmem->pgmap.ops = &fsdax_pagemap_ops;
-+		if (pgmap_protection_enabled())
-+			pmem->pgmap.flags |= PGMAP_PROTECTION;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
- 		pfn_sb = nd_pfn->pfn_sb;
- 		pmem->data_offset = le64_to_cpu(pfn_sb->dataoff);
-@@ -446,6 +494,8 @@ static int pmem_attach_disk(struct device *dev,
- 		pmem->pgmap.nr_range = 1;
- 		pmem->pgmap.type = MEMORY_DEVICE_FS_DAX;
- 		pmem->pgmap.ops = &fsdax_pagemap_ops;
-+		if (pgmap_protection_enabled())
-+			pmem->pgmap.flags |= PGMAP_PROTECTION;
- 		addr = devm_memremap_pages(dev, &pmem->pgmap);
- 		pmem->pfn_flags |= PFN_MAP;
- 		bb_range = pmem->pgmap.range;
-@@ -483,7 +533,10 @@ static int pmem_attach_disk(struct device *dev,
- 
- 	if (is_nvdimm_sync(nd_region))
- 		flags = DAXDEV_F_SYNC;
--	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
-+	if (pmem->pgmap.flags & PGMAP_PROTECTION)
-+		dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_protected_dax_ops, flags);
-+	else
-+		dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
- 	if (IS_ERR(dax_dev)) {
- 		return PTR_ERR(dax_dev);
- 	}
--- 
-2.28.0.rc0.12.gb6a658bd00c9
-
+Thanks,
+Gao Xiang
