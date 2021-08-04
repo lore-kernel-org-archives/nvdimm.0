@@ -1,36 +1,37 @@
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16AC8348A
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CAA84348C
 	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:40 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433061"
+X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433063"
 X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="299433061"
+   d="scan'208";a="299433063"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
   by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:37 -0700
 X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="511702686"
+   d="scan'208";a="511702690"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:36 -0700
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:37 -0700
 From: ira.weiny@intel.com
 To: Dave Hansen <dave.hansen@linux.intel.com>,
 	Dan Williams <dan.j.williams@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>,
-	Peter Zijlstra <peterz@infradead.org>,
+Cc: Fenghua Yu <fenghua.yu@intel.com>,
+	Sean Christopherson <seanjc@google.com>,
+	Ira Weiny <ira.weiny@intel.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
-	Andy Lutomirski <luto@kernel.org>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Andy Lutomirski <luto@kernel.org>,
 	"H. Peter Anvin" <hpa@zytor.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
 	Rick Edgecombe <rick.p.edgecombe@intel.com>,
 	x86@kernel.org,
 	linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-mm@kvack.org
-Subject: [PATCH V7 08/18] x86/entry: Preserve PKRS MSR across exceptions
-Date: Tue,  3 Aug 2021 21:32:21 -0700
-Message-Id: <20210804043231.2655537-9-ira.weiny@intel.com>
+Subject: [PATCH V7 09/18] x86/pks: Add PKS kernel API
+Date: Tue,  3 Aug 2021 21:32:22 -0700
+Message-Id: <20210804043231.2655537-10-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20210804043231.2655537-1-ira.weiny@intel.com>
 References: <20210804043231.2655537-1-ira.weiny@intel.com>
@@ -42,511 +43,356 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-From: Ira Weiny <ira.weiny@intel.com>
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-The PKRS MSR is not managed by XSAVE.  It is preserved through a context
-switch but this support leaves exception handling code open to memory
-accesses during exceptions.
+PKS allows kernel users to define domains of page mappings which have
+additional protections beyond the paging protections.  Violating those
+protections creates a fault which by default will oops.
 
-2 possible places for preserving this state were considered,
-irqentry_state_t or pt_regs.[1]  pt_regs was much more complicated and
-was potentially fraught with unintended consequences.[2]  However, Andy
-came up with a way to hide additional values on the stack which could be
-accessed as "extended_pt_regs".[3]  This method allows for; any place
-which has struct pt_regs can get access to the extra information; no
-extra information is added to irq_state; and pt_regs is left intact for
-compatibility with outside tools like BPF.
+Each kernel user defines a PKS_KEY_* key value which identifies a PKS
+domain to be used exclusively by that kernel user.  This API is then
+used to control which pages are part of that domain and the current
+threads protection of those pages.
 
-To simplify, the assembly code only adds space on the stack.  The
-setting or use of any needed values are left to the C code.  While some
-entry points may not use this space it is still added where ever pt_regs
-is passed to the C code for consistency.
+4 new functions are added pks_enabled(), pks_mk_noaccess(),
+pks_mk_readonly(), and pks_mk_readwrite().  2 new macros are added
+PAGE_KERNEL_PKEY(key) and _PAGE_PKEY(pkey).
 
-Each nested exception gets another copy of this extended space allowing
-for any number of levels of exception handling.
+Update the protection key documentation to cover pkeys on supervisor
+pages.  This includes how to reserve a key and set the default
+permissions on that key.
 
-In the assembly, a macro is defined to allow a central place to add
-space for other uses should the need arise.
-
-Finally export pkrs_{save|restore}_irq to the common code to allow
-it to preserve the current task's PKRS in the new extended pt_regs if
-enabled.
-
-Peter, Thomas, Andy, Dave, and Dan all suggested parts of the patch or
-aided in the development of the patch..
-
-[1] https://lore.kernel.org/lkml/CALCETrVe1i5JdyzD_BcctxQJn+ZE3T38EFPgjxN1F577M36g+w@mail.gmail.com/
-[2] https://lore.kernel.org/lkml/874kpxx4jf.fsf@nanos.tec.linutronix.de/#t
-[3] https://lore.kernel.org/lkml/CALCETrUHwZPic89oExMMe-WyDY8-O3W68NcZvse3=PGW+iW5=w@mail.gmail.com/
-
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Sean Christopherson <seanjc@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-Suggested-by: Andy Lutomirski <luto@kernel.org>
+Co-developed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 
 ---
-Changes for V7:
-	Rebased to 5.14 entry code
-	declare write_pkrs() in pks.h
-	s/INIT_PKRS_VALUE/pkrs_init_value
-	Remove unnecessary INIT_PKRS_VALUE def
-	s/pkrs_save_set_irq/pkrs_save_irq/
-		The inital value for exceptions is best managed
-		completely within the pkey code.
+Change for V7
+	Add pks_enabled() to allow users more dynamic choice on PKS use.
+	Update documentation for key allocation
+	Remove dynamic key allocation, keys will be allocated statically
+	now.
+	Add expected CPU generation support to documentation
 ---
- arch/x86/entry/calling.h               | 26 +++++++++++++
- arch/x86/entry/common.c                | 54 ++++++++++++++++++++++++++
- arch/x86/entry/entry_64.S              | 22 ++++++-----
- arch/x86/entry/entry_64_compat.S       |  6 +--
- arch/x86/include/asm/pks.h             | 18 +++++++++
- arch/x86/include/asm/processor-flags.h |  2 +
- arch/x86/kernel/head_64.S              |  7 ++--
- arch/x86/mm/fault.c                    |  3 ++
- include/linux/pkeys.h                  | 11 +++++-
- kernel/entry/common.c                  | 14 ++++++-
- 10 files changed, 143 insertions(+), 20 deletions(-)
+ Documentation/core-api/protection-keys.rst | 121 ++++++++++++++++++---
+ arch/x86/include/asm/pgtable_types.h       |  12 ++
+ arch/x86/mm/pkeys.c                        |  66 +++++++++++
+ include/linux/pgtable.h                    |   4 +
+ include/linux/pkeys.h                      |  14 +++
+ 5 files changed, 199 insertions(+), 18 deletions(-)
 
-diff --git a/arch/x86/entry/calling.h b/arch/x86/entry/calling.h
-index a4c061fb7c6e..a2f94677c3fd 100644
---- a/arch/x86/entry/calling.h
-+++ b/arch/x86/entry/calling.h
-@@ -63,6 +63,32 @@ For 32-bit we have the following conventions - kernel is built with
-  * for assembly code:
+diff --git a/Documentation/core-api/protection-keys.rst b/Documentation/core-api/protection-keys.rst
+index ec575e72d0b2..6420a60666fc 100644
+--- a/Documentation/core-api/protection-keys.rst
++++ b/Documentation/core-api/protection-keys.rst
+@@ -4,25 +4,30 @@
+ Memory Protection Keys
+ ======================
+ 
+-Memory Protection Keys for Userspace (PKU aka PKEYs) is a feature
+-which is found on Intel's Skylake (and later) "Scalable Processor"
+-Server CPUs. It will be available in future non-server Intel parts
+-and future AMD processors.
++Memory Protection Keys provide a mechanism for enforcing page-based
++protections, but without requiring modification of the page tables
++when an application changes protection domains.
+ 
+-For anyone wishing to test or use this feature, it is available in
+-Amazon's EC2 C5 instances and is known to work there using an Ubuntu
+-17.04 image.
++PKeys Userspace (PKU) is a feature which is found on Intel's Skylake "Scalable
++Processor" Server CPUs and later.  And it will be available in future
++non-server Intel parts and future AMD processors.
+ 
+-Memory Protection Keys provides a mechanism for enforcing page-based
+-protections, but without requiring modification of the page tables
+-when an application changes protection domains.  It works by
+-dedicating 4 previously ignored bits in each page table entry to a
+-"protection key", giving 16 possible keys.
++Protection Keys for Supervisor pages (PKS) is available in the SDM since May
++2020.
++
++pkeys work by dedicating 4 previously Reserved bits in each page table entry to
++a "protection key", giving 16 possible keys.  User and Supervisor pages are
++treated separately.
++
++Protections for each page are controlled with per-CPU registers for each type
++of page User and Supervisor.  Each of these 32-bit register stores two separate
++bits (Access Disable and Write Disable) for each key.
+ 
+-There is also a new user-accessible register (PKRU) with two separate
+-bits (Access Disable and Write Disable) for each key.  Being a CPU
+-register, PKRU is inherently thread-local, potentially giving each
+-thread a different set of protections from every other thread.
++For Userspace the register is user-accessible (rdpkru/wrpkru).  For
++Supervisor, the register (MSR_IA32_PKRS) is accessible only to the kernel.
++
++Being a CPU register, pkeys are inherently thread-local, potentially giving
++each thread an independent set of protections from every other thread.
+ 
+ There are two new instructions (RDPKRU/WRPKRU) for reading and writing
+ to the new register.  The feature is only available in 64-bit mode,
+@@ -30,8 +35,11 @@ even though there is theoretically space in the PAE PTEs.  These
+ permissions are enforced on data access only and have no effect on
+ instruction fetches.
+ 
+-Syscalls
+-========
++For kernel space rdmsr/wrmsr are used to access the kernel MSRs.
++
++
++Syscalls for user space keys
++============================
+ 
+ There are 3 system calls which directly interact with pkeys::
+ 
+@@ -98,3 +106,80 @@ with a read()::
+ The kernel will send a SIGSEGV in both cases, but si_code will be set
+ to SEGV_PKERR when violating protection keys versus SEGV_ACCERR when
+ the plain mprotect() permissions are violated.
++
++
++Kernel API for PKS support
++==========================
++
++Similar to user space pkeys, supervisor pkeys allow additional protections to
++be defined for a supervisor mappings.  Unlike user space pkeys, violations of
++these protections result in a a kernel oops.
++
++Supervisor Memory Protection Keys (PKS) is a feature which is found on Intel's
++Sapphire Rapids (and later) "Scalable Processor" Server CPUs.  It will also be
++available in future non-server Intel parts.
++
++Also qemu has some support as well: https://www.qemu.org/2021/04/30/qemu-6-0-0/
++
++Kernel users intending to use PKS support should depend on
++ARCH_HAS_SUPERVISOR_PKEYS, and add their config to ARCH_ENABLE_SUPERVISOR_PKEYS
++to turn on this support within the core.
++
++Users reserve a key value by adding an entry to the enum pks_pkey_consumers and
++defining the initial protections in the consumer_defaults[] array.
++
++For example to configure a key for 'MY_FEATURE' with a default of Write
++Disabled.
++
++::
++
++        enum pks_pkey_consumers
++        {
++	        PKS_KEY_DEFAULT,
++	        PKS_KEY_MY_FEATURE,
++	        PKS_KEY_NR_CONSUMERS
++        }
++
++        ...
++        consumer_defaults[PKS_KEY_DEFAULT]     = 0;
++        consumer_defaults[PKS_KEY_MY_FEATURE]  = PKR_DISABLE_WRITE;
++        ...
++
++The following interface is used to manipulate the 'protection domain' defined
++by a pkey within the kernel.  Setting a pkey value in a supervisor PTE adds
++this additional protection to the page.
++
++::
++
++        #define PAGE_KERNEL_PKEY(pkey)
++        #define _PAGE_KEY(pkey)
++        bool pks_enabled(void);
++        void pks_mk_noaccess(int pkey);
++        void pks_mk_readonly(int pkey);
++        void pks_mk_readwrite(int pkey);
++
++pks_enabled() allows users to know if PKS is configured and available on the
++current running system.
++
++Kernel users must set the pkey in the page table entries for the mappings they
++want to protect.  This can be done with PAGE_KERNEL_PKEY() or _PAGE_KEY().
++
++The pks_mk*() family of calls allow indinvidual threads to change the
++protections for the domain identified by the pkey parameter.  3 states are
++available: pks_mk_noaccess(), pks_mk_readonly(), and pks_mk_readwrite() which
++set the access to none, read, and read/write respectively.
++
++The interface sets (Access Disabled (AD=1)) for all keys not in use.
++
++It should be noted that the underlying WRMSR(MSR_IA32_PKRS) is not serializing
++but still maintains ordering properties similar to WRPKRU.  Thus it is safe to
++immediately use a mapping when the pks_mk*() functions return.
++
++Older versions of the SDM on PKRS may be wrong with regard to this
++serialization.  The text should be the same as that of WRPKRU.  From the WRPKRU
++text:
++
++	WRPKRU will never execute transiently. Memory accesses
++	affected by PKRU register will not execute (even transiently)
++	until all prior executions of WRPKRU have completed execution
++	and updated the PKRU register.
+diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
+index 40497a9020c6..3f866e730456 100644
+--- a/arch/x86/include/asm/pgtable_types.h
++++ b/arch/x86/include/asm/pgtable_types.h
+@@ -71,6 +71,12 @@
+ 			 _PAGE_PKEY_BIT2 | \
+ 			 _PAGE_PKEY_BIT3)
+ 
++#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
++#define _PAGE_PKEY(pkey)	(_AT(pteval_t, pkey) << _PAGE_BIT_PKEY_BIT0)
++#else
++#define _PAGE_PKEY(pkey)	(_AT(pteval_t, 0))
++#endif
++
+ #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
+ #define _PAGE_KNL_ERRATUM_MASK (_PAGE_DIRTY | _PAGE_ACCESSED)
+ #else
+@@ -226,6 +232,12 @@ enum page_cache_mode {
+ #define PAGE_KERNEL_IO		__pgprot_mask(__PAGE_KERNEL_IO)
+ #define PAGE_KERNEL_IO_NOCACHE	__pgprot_mask(__PAGE_KERNEL_IO_NOCACHE)
+ 
++#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
++#define PAGE_KERNEL_PKEY(pkey)	__pgprot_mask(__PAGE_KERNEL | _PAGE_PKEY(pkey))
++#else
++#define PAGE_KERNEL_PKEY(pkey) PAGE_KERNEL
++#endif
++
+ #endif	/* __ASSEMBLY__ */
+ 
+ /*         xwr */
+diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
+index eca01dc8d7ac..146a665d1bf3 100644
+--- a/arch/x86/mm/pkeys.c
++++ b/arch/x86/mm/pkeys.c
+@@ -3,6 +3,9 @@
+  * Intel Memory Protection Keys management
+  * Copyright (c) 2015, Intel Corporation.
   */
- 
-+/*
-+ * __call_ext_ptregs - Helper macro to call into C with extended pt_regs
-+ * @cfunc:		C function to be called
-+ *
-+ * This will ensure that extended_ptregs is added and removed as needed during
-+ * a call into C code.
-+ */
-+.macro __call_ext_ptregs cfunc annotate_retpoline_safe:req
-+#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-+	/* add space for extended_pt_regs */
-+	subq    $EXTENDED_PT_REGS_SIZE, %rsp
-+#endif
-+	.if \annotate_retpoline_safe == 1
-+		ANNOTATE_RETPOLINE_SAFE
-+	.endif
-+	call	\cfunc
-+#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-+	/* remove space for extended_pt_regs */
-+	addq    $EXTENDED_PT_REGS_SIZE, %rsp
-+#endif
-+.endm
++#undef pr_fmt
++#define pr_fmt(fmt) "x86/pkeys: " fmt
 +
-+.macro call_ext_ptregs cfunc
-+	__call_ext_ptregs \cfunc, annotate_retpoline_safe=0
-+.endm
-+
- .macro PUSH_REGS rdx=%rdx rax=%rax save_ret=0
- 	.if \save_ret
- 	pushq	%rsi		/* pt_regs->si */
-diff --git a/arch/x86/entry/common.c b/arch/x86/entry/common.c
-index 6c2826417b33..a0d1d5519dba 100644
---- a/arch/x86/entry/common.c
-+++ b/arch/x86/entry/common.c
-@@ -19,6 +19,7 @@
- #include <linux/nospec.h>
- #include <linux/syscalls.h>
- #include <linux/uaccess.h>
-+#include <linux/pkeys.h>
+ #include <linux/debugfs.h>		/* debugfs_create_u32()		*/
+ #include <linux/mm_types.h>             /* mm_struct, vma, etc...       */
+ #include <linux/pkeys.h>                /* PKEY_*                       */
+@@ -10,6 +13,7 @@
  
- #ifdef CONFIG_XEN_PV
- #include <xen/xen-ops.h>
-@@ -34,6 +35,7 @@
- #include <asm/io_bitmap.h>
- #include <asm/syscall.h>
- #include <asm/irq_stack.h>
+ #include <asm/cpufeature.h>             /* boot_cpu_has, ...            */
+ #include <asm/mmu_context.h>            /* vma_pkey()                   */
 +#include <asm/pks.h>
  
- #ifdef CONFIG_X86_64
- 
-@@ -252,6 +254,56 @@ SYSCALL_DEFINE0(ni_syscall)
- 	return -ENOSYS;
+ int __execute_only_pkey(struct mm_struct *mm)
+ {
+@@ -301,4 +305,66 @@ void pks_init_task(struct task_struct *task)
+ 	task->thread.saved_pkrs = pkrs_init_value;
  }
  
-+#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-+
-+void show_extended_regs_oops(struct pt_regs *regs, unsigned long error_code)
++bool pks_enabled(void)
 +{
-+	struct extended_pt_regs *ept_regs = extended_pt_regs(regs);
-+
-+	if (cpu_feature_enabled(X86_FEATURE_PKS) && (error_code & X86_PF_PK))
-+		pr_alert("PKRS: 0x%x\n", ept_regs->thread_pkrs);
++	return cpu_feature_enabled(X86_FEATURE_PKS);
 +}
 +
 +/*
-+ * PKRS is a per-logical-processor MSR which overlays additional protection for
-+ * pages which have been mapped with a protection key.
++ * Do not call this directly, see pks_mk*() below.
 + *
-+ * Context switches save the MSR in the task struct thus taking that value to
-+ * other processors if necessary.
++ * @pkey: Key for the domain to change
++ * @protection: protection bits to be used
 + *
-+ * To protect against exceptions having access to this memory save the current
-+ * thread value and set the PKRS value to be used during the exception.
++ * Protection utilizes the same protection bits specified for User pkeys
++ *     PKEY_DISABLE_ACCESS
++ *     PKEY_DISABLE_WRITE
++ *
 + */
-+void pkrs_save_irq(struct pt_regs *regs)
++static inline void pks_update_protection(int pkey, unsigned long protection)
 +{
-+	struct extended_pt_regs *ept_regs;
-+
-+	BUILD_BUG_ON(sizeof(struct extended_pt_regs)
-+			!= EXTENDED_PT_REGS_SIZE
-+				+ sizeof(struct pt_regs));
-+
-+	if (!cpu_feature_enabled(X86_FEATURE_PKS))
-+		return;
-+
-+	ept_regs = extended_pt_regs(regs);
-+	ept_regs->thread_pkrs = current->thread.saved_pkrs;
-+	write_pkrs(pkrs_init_value);
++	current->thread.saved_pkrs = update_pkey_val(current->thread.saved_pkrs,
++						     pkey, protection);
++	pkrs_write_current();
 +}
 +
-+void pkrs_restore_irq(struct pt_regs *regs)
++/**
++ * pks_mk_noaccess() - Disable all access to the domain
++ * @pkey the pkey for which the access should change.
++ *
++ * Disable all access to the domain specified by pkey.  This is not a global
++ * update and only affects the current running thread.
++ */
++void pks_mk_noaccess(int pkey)
 +{
-+	struct extended_pt_regs *ept_regs;
-+
-+	if (!cpu_feature_enabled(X86_FEATURE_PKS))
-+		return;
-+
-+	ept_regs = extended_pt_regs(regs);
-+	write_pkrs(ept_regs->thread_pkrs);
-+	current->thread.saved_pkrs = ept_regs->thread_pkrs;
++	pks_update_protection(pkey, PKEY_DISABLE_ACCESS);
 +}
++EXPORT_SYMBOL_GPL(pks_mk_noaccess);
 +
-+#endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
-+
- #ifdef CONFIG_XEN_PV
- #ifndef CONFIG_PREEMPTION
- /*
-@@ -309,6 +361,8 @@ __visible noinstr void xen_pv_evtchn_do_upcall(struct pt_regs *regs)
- 
- 	inhcall = get_and_clear_inhcall();
- 	if (inhcall && !WARN_ON_ONCE(state.exit_rcu)) {
-+		/* Normally called by irqentry_exit, restore pkrs here */
-+		pkrs_restore_irq(regs);
- 		irqentry_exit_cond_resched();
- 		instrumentation_end();
- 		restore_inhcall(inhcall);
-diff --git a/arch/x86/entry/entry_64.S b/arch/x86/entry/entry_64.S
-index e38a4cf795d9..1c390975a3de 100644
---- a/arch/x86/entry/entry_64.S
-+++ b/arch/x86/entry/entry_64.S
-@@ -332,7 +332,7 @@ SYM_CODE_END(ret_from_fork)
- 		movq	$-1, ORIG_RAX(%rsp)	/* no syscall to restart */
- 	.endif
- 
--	call	\cfunc
-+	call_ext_ptregs \cfunc
- 
- 	jmp	error_return
- .endm
-@@ -435,7 +435,7 @@ SYM_CODE_START(\asmsym)
- 
- 	movq	%rsp, %rdi		/* pt_regs pointer */
- 
--	call	\cfunc
-+	call_ext_ptregs \cfunc
- 
- 	jmp	paranoid_exit
- 
-@@ -496,7 +496,7 @@ SYM_CODE_START(\asmsym)
- 	 * stack.
- 	 */
- 	movq	%rsp, %rdi		/* pt_regs pointer */
--	call	vc_switch_off_ist
-+	call_ext_ptregs vc_switch_off_ist
- 	movq	%rax, %rsp		/* Switch to new stack */
- 
- 	UNWIND_HINT_REGS
-@@ -507,7 +507,7 @@ SYM_CODE_START(\asmsym)
- 
- 	movq	%rsp, %rdi		/* pt_regs pointer */
- 
--	call	kernel_\cfunc
-+	call_ext_ptregs kernel_\cfunc
- 
- 	/*
- 	 * No need to switch back to the IST stack. The current stack is either
-@@ -542,7 +542,7 @@ SYM_CODE_START(\asmsym)
- 	movq	%rsp, %rdi		/* pt_regs pointer into first argument */
- 	movq	ORIG_RAX(%rsp), %rsi	/* get error code into 2nd argument*/
- 	movq	$-1, ORIG_RAX(%rsp)	/* no syscall to restart */
--	call	\cfunc
-+	call_ext_ptregs \cfunc
- 
- 	jmp	paranoid_exit
- 
-@@ -781,7 +781,7 @@ SYM_CODE_START_LOCAL(exc_xen_hypervisor_callback)
- 	movq	%rdi, %rsp			/* we don't return, adjust the stack frame */
- 	UNWIND_HINT_REGS
- 
--	call	xen_pv_evtchn_do_upcall
-+	call_ext_ptregs xen_pv_evtchn_do_upcall
- 
- 	jmp	error_return
- SYM_CODE_END(exc_xen_hypervisor_callback)
-@@ -987,7 +987,7 @@ SYM_CODE_START_LOCAL(error_entry)
- 	/* Put us onto the real thread stack. */
- 	popq	%r12				/* save return addr in %12 */
- 	movq	%rsp, %rdi			/* arg0 = pt_regs pointer */
--	call	sync_regs
-+	call_ext_ptregs sync_regs
- 	movq	%rax, %rsp			/* switch stack */
- 	ENCODE_FRAME_POINTER
- 	pushq	%r12
-@@ -1042,7 +1042,7 @@ SYM_CODE_START_LOCAL(error_entry)
- 	 * as if we faulted immediately after IRET.
- 	 */
- 	mov	%rsp, %rdi
--	call	fixup_bad_iret
-+	call_ext_ptregs fixup_bad_iret
- 	mov	%rax, %rsp
- 	jmp	.Lerror_entry_from_usermode_after_swapgs
- SYM_CODE_END(error_entry)
-@@ -1148,7 +1148,7 @@ SYM_CODE_START(asm_exc_nmi)
- 
- 	movq	%rsp, %rdi
- 	movq	$-1, %rsi
--	call	exc_nmi
-+	call_ext_ptregs exc_nmi
- 
- 	/*
- 	 * Return back to user mode.  We must *not* do the normal exit
-@@ -1184,6 +1184,8 @@ SYM_CODE_START(asm_exc_nmi)
- 	 * +---------------------------------------------------------+
- 	 * | pt_regs                                                 |
- 	 * +---------------------------------------------------------+
-+	 * | (Optionally) extended_pt_regs                           |
-+	 * +---------------------------------------------------------+
- 	 *
- 	 * The "original" frame is used by hardware.  Before re-enabling
- 	 * NMIs, we need to be done with it, and we need to leave enough
-@@ -1360,7 +1362,7 @@ end_repeat_nmi:
- 
- 	movq	%rsp, %rdi
- 	movq	$-1, %rsi
--	call	exc_nmi
-+	call_ext_ptregs exc_nmi
- 
- 	/* Always restore stashed CR3 value (see paranoid_entry) */
- 	RESTORE_CR3 scratch_reg=%r15 save_reg=%r14
-diff --git a/arch/x86/entry/entry_64_compat.S b/arch/x86/entry/entry_64_compat.S
-index 0051cf5c792d..53254d29d5c7 100644
---- a/arch/x86/entry/entry_64_compat.S
-+++ b/arch/x86/entry/entry_64_compat.S
-@@ -136,7 +136,7 @@ SYM_INNER_LABEL(entry_SYSENTER_compat_after_hwframe, SYM_L_GLOBAL)
- .Lsysenter_flags_fixed:
- 
- 	movq	%rsp, %rdi
--	call	do_SYSENTER_32
-+	call_ext_ptregs do_SYSENTER_32
- 	/* XEN PV guests always use IRET path */
- 	ALTERNATIVE "testl %eax, %eax; jz swapgs_restore_regs_and_return_to_usermode", \
- 		    "jmp swapgs_restore_regs_and_return_to_usermode", X86_FEATURE_XENPV
-@@ -253,7 +253,7 @@ SYM_INNER_LABEL(entry_SYSCALL_compat_after_hwframe, SYM_L_GLOBAL)
- 	UNWIND_HINT_REGS
- 
- 	movq	%rsp, %rdi
--	call	do_fast_syscall_32
-+	call_ext_ptregs do_fast_syscall_32
- 	/* XEN PV guests always use IRET path */
- 	ALTERNATIVE "testl %eax, %eax; jz swapgs_restore_regs_and_return_to_usermode", \
- 		    "jmp swapgs_restore_regs_and_return_to_usermode", X86_FEATURE_XENPV
-@@ -410,6 +410,6 @@ SYM_CODE_START(entry_INT80_compat)
- 	cld
- 
- 	movq	%rsp, %rdi
--	call	do_int80_syscall_32
-+	call_ext_ptregs do_int80_syscall_32
- 	jmp	swapgs_restore_regs_and_return_to_usermode
- SYM_CODE_END(entry_INT80_compat)
-diff --git a/arch/x86/include/asm/pks.h b/arch/x86/include/asm/pks.h
-index e7727086cec2..76960ec71b4b 100644
---- a/arch/x86/include/asm/pks.h
-+++ b/arch/x86/include/asm/pks.h
-@@ -4,15 +4,33 @@
- 
- #ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
- 
-+struct extended_pt_regs {
-+	u32 thread_pkrs;
-+	/* Keep stack 8 byte aligned */
-+	u32 pad;
-+	struct pt_regs pt_regs;
-+};
-+
- void setup_pks(void);
- void pkrs_write_current(void);
- void pks_init_task(struct task_struct *task);
-+void write_pkrs(u32 new_pkrs);
-+
-+static inline struct extended_pt_regs *extended_pt_regs(struct pt_regs *regs)
++/**
++ * pks_mk_readonly() - Make the domain Read only
++ * @pkey the pkey for which the access should change.
++ *
++ * Allow read access to the domain specified by pkey.  This is not a global
++ * update and only affects the current running thread.
++ */
++void pks_mk_readonly(int pkey)
 +{
-+	return container_of(regs, struct extended_pt_regs, pt_regs);
++	pks_update_protection(pkey, PKEY_DISABLE_WRITE);
 +}
++EXPORT_SYMBOL_GPL(pks_mk_readonly);
 +
-+void show_extended_regs_oops(struct pt_regs *regs, unsigned long error_code);
- 
- #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
- 
- static inline void setup_pks(void) { }
- static inline void pkrs_write_current(void) { }
- static inline void pks_init_task(struct task_struct *task) { }
-+static inline void write_pkrs(u32 new_pkrs) { }
-+static inline void show_extended_regs_oops(struct pt_regs *regs,
-+					   unsigned long error_code) { }
- 
++/**
++ * pks_mk_readwrite() - Make the domain Read/Write
++ * @pkey the pkey for which the access should change.
++ *
++ * Allow all access, read and write, to the domain specified by pkey.  This is
++ * not a global update and only affects the current running thread.
++ */
++void pks_mk_readwrite(int pkey)
++{
++	pks_update_protection(pkey, 0);
++}
++EXPORT_SYMBOL_GPL(pks_mk_readwrite);
++
  #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
- 
-diff --git a/arch/x86/include/asm/processor-flags.h b/arch/x86/include/asm/processor-flags.h
-index 02c2cbda4a74..4a41fc4cf028 100644
---- a/arch/x86/include/asm/processor-flags.h
-+++ b/arch/x86/include/asm/processor-flags.h
-@@ -53,4 +53,6 @@
- # define X86_CR3_PTI_PCID_USER_BIT	11
+diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+index d147480cdefc..eba1a9f9d124 100644
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -1526,6 +1526,10 @@ static inline bool arch_has_pfn_modify_check(void)
+ # define PAGE_KERNEL_EXEC PAGE_KERNEL
  #endif
  
-+#define EXTENDED_PT_REGS_SIZE 8
++#ifndef PAGE_KERNEL_PKEY
++#define PAGE_KERNEL_PKEY(pkey) PAGE_KERNEL
++#endif
 +
- #endif /* _ASM_X86_PROCESSOR_FLAGS_H */
-diff --git a/arch/x86/kernel/head_64.S b/arch/x86/kernel/head_64.S
-index d8b3ebd2bb85..90e76178b6b4 100644
---- a/arch/x86/kernel/head_64.S
-+++ b/arch/x86/kernel/head_64.S
-@@ -319,8 +319,7 @@ SYM_CODE_START_NOALIGN(vc_boot_ghcb)
- 	movq    %rsp, %rdi
- 	movq	ORIG_RAX(%rsp), %rsi
- 	movq	initial_vc_handler(%rip), %rax
--	ANNOTATE_RETPOLINE_SAFE
--	call	*%rax
-+	__call_ext_ptregs *%rax, annotate_retpoline_safe=1
- 
- 	/* Unwind pt_regs */
- 	POP_REGS
-@@ -397,7 +396,7 @@ SYM_CODE_START_LOCAL(early_idt_handler_common)
- 	UNWIND_HINT_REGS
- 
- 	movq %rsp,%rdi		/* RDI = pt_regs; RSI is already trapnr */
--	call do_early_exception
-+	call_ext_ptregs do_early_exception
- 
- 	decl early_recursion_flag(%rip)
- 	jmp restore_regs_and_return_to_kernel
-@@ -421,7 +420,7 @@ SYM_CODE_START_NOALIGN(vc_no_ghcb)
- 	/* Call C handler */
- 	movq    %rsp, %rdi
- 	movq	ORIG_RAX(%rsp), %rsi
--	call    do_vc_no_ghcb
-+	call_ext_ptregs do_vc_no_ghcb
- 
- 	/* Unwind pt_regs */
- 	POP_REGS
-diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-index e133c0ed72a0..a4ce7cef0260 100644
---- a/arch/x86/mm/fault.c
-+++ b/arch/x86/mm/fault.c
-@@ -32,6 +32,7 @@
- #include <asm/pgtable_areas.h>		/* VMALLOC_START, ...		*/
- #include <asm/kvm_para.h>		/* kvm_handle_async_pf		*/
- #include <asm/vdso.h>			/* fixup_vdso_exception()	*/
-+#include <asm/pks.h>
- 
- #define CREATE_TRACE_POINTS
- #include <asm/trace/exceptions.h>
-@@ -547,6 +548,8 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code, unsigned long ad
- 		 (error_code & X86_PF_PK)    ? "protection keys violation" :
- 					       "permissions violation");
- 
-+	show_extended_regs_oops(regs, error_code);
-+
- 	if (!(error_code & X86_PF_USER) && user_mode(regs)) {
- 		struct desc_ptr idt, gdt;
- 		u16 ldtr, tr;
+ /*
+  * Page Table Modification bits for pgtbl_mod_mask.
+  *
 diff --git a/include/linux/pkeys.h b/include/linux/pkeys.h
-index 580238388f0c..76eb19a37942 100644
+index 76eb19a37942..b9919ed4d300 100644
 --- a/include/linux/pkeys.h
 +++ b/include/linux/pkeys.h
-@@ -52,6 +52,15 @@ enum pks_pkey_consumers {
- 	PKS_KEY_NR_CONSUMERS
- };
- extern u32 pkrs_init_value;
--#endif
+@@ -56,11 +56,25 @@ extern u32 pkrs_init_value;
+ void pkrs_save_irq(struct pt_regs *regs);
+ void pkrs_restore_irq(struct pt_regs *regs);
+ 
++bool pks_enabled(void);
++void pks_mk_noaccess(int pkey);
++void pks_mk_readonly(int pkey);
++void pks_mk_readwrite(int pkey);
 +
-+void pkrs_save_irq(struct pt_regs *regs);
-+void pkrs_restore_irq(struct pt_regs *regs);
+ #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
+ 
+ static inline void pkrs_save_irq(struct pt_regs *regs) { }
+ static inline void pkrs_restore_irq(struct pt_regs *regs) { }
+ 
++static inline bool pks_enabled(void)
++{
++	return false;
++}
 +
-+#else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
++static inline void pks_mk_noaccess(int pkey) {}
++static inline void pks_mk_readonly(int pkey) {}
++static inline void pks_mk_readwrite(int pkey) {}
 +
-+static inline void pkrs_save_irq(struct pt_regs *regs) { }
-+static inline void pkrs_restore_irq(struct pt_regs *regs) { }
-+
-+#endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
+ #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
  
  #endif /* _LINUX_PKEYS_H */
-diff --git a/kernel/entry/common.c b/kernel/entry/common.c
-index bf16395b9e13..aa0b1e8dd742 100644
---- a/kernel/entry/common.c
-+++ b/kernel/entry/common.c
-@@ -6,6 +6,7 @@
- #include <linux/livepatch.h>
- #include <linux/audit.h>
- #include <linux/tick.h>
-+#include <linux/pkeys.h>
- 
- #include "common.h"
- 
-@@ -364,7 +365,7 @@ noinstr irqentry_state_t irqentry_enter(struct pt_regs *regs)
- 		instrumentation_end();
- 
- 		ret.exit_rcu = true;
--		return ret;
-+		goto done;
- 	}
- 
- 	/*
-@@ -379,6 +380,8 @@ noinstr irqentry_state_t irqentry_enter(struct pt_regs *regs)
- 	trace_hardirqs_off_finish();
- 	instrumentation_end();
- 
-+done:
-+	pkrs_save_irq(regs);
- 	return ret;
- }
- 
-@@ -404,7 +407,12 @@ noinstr void irqentry_exit(struct pt_regs *regs, irqentry_state_t state)
- 	/* Check whether this returns to user mode */
- 	if (user_mode(regs)) {
- 		irqentry_exit_to_user_mode(regs);
--	} else if (!regs_irqs_disabled(regs)) {
-+		return;
-+	}
-+
-+	pkrs_restore_irq(regs);
-+
-+	if (!regs_irqs_disabled(regs)) {
- 		/*
- 		 * If RCU was not watching on entry this needs to be done
- 		 * carefully and needs the same ordering of lockdep/tracing
-@@ -458,11 +466,13 @@ irqentry_state_t noinstr irqentry_nmi_enter(struct pt_regs *regs)
- 	ftrace_nmi_enter();
- 	instrumentation_end();
- 
-+	pkrs_save_irq(regs);
- 	return irq_state;
- }
- 
- void noinstr irqentry_nmi_exit(struct pt_regs *regs, irqentry_state_t irq_state)
- {
-+	pkrs_restore_irq(regs);
- 	instrumentation_begin();
- 	ftrace_nmi_exit();
- 	if (irq_state.lockdep) {
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
