@@ -1,103 +1,250 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD182168
-	for <nvdimm@lists.linux.dev>; Mon,  2 Aug 2021 14:06:32 +0000 (UTC)
-Received: by mail-pl1-f182.google.com with SMTP id q2so19709646plr.11
-        for <nvdimm@lists.linux.dev>; Mon, 02 Aug 2021 07:06:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=S30D7JnOgPGqBVRgaO8L0r6DfESVg4Q0tFc852vuoQg=;
-        b=o7zchrRzGSGJvS1YaJA1zPgb9ncAEmQmS7wdtDRLvzTCTV0KV5fs6bh0F0NjLGNQdA
-         hAsch3Th8KrrnTB3oABOyV9xGiM0mqxvjwcQkfhvu6p+CzBkBfEJS62qGuplsCP//3yg
-         Y/7Pd6ryCB0f1VkCo8aXIsC1y4zhgDxhhN+SRDfojcY9OlwszZt73S0OMdSAGrrt/lEF
-         DAL3uoym+fNdBMYLmsgLkKHhyp31BFULI/YtTh4pTa9xWKYuYTipXMvvP+ON9z6AxU2Y
-         Ley1Tyza1FWHdyq3dJxbBTwJofGKtCqvbKWZgl3yHMFRcxOB/Pt8dJtPdR+vN52DMLVv
-         44lw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=S30D7JnOgPGqBVRgaO8L0r6DfESVg4Q0tFc852vuoQg=;
-        b=dYiZvifEMlH2A3mAAKpmEH+sazP5dTW4lT9eNVETEwTxyJqWM5pDlliefuBgYoURwR
-         2B5vYFFbPcvmy54fJQo0bRBR289Gah6cfDGIKHsWwxY+juhINP+R3Z6dRNhPaKX6UmAb
-         S7cVivtIHDusVjxYOmxQ8gAXg6ibOJLChbITxso3M2yMUsUxFJUhDkfoMPACrzpxeS+0
-         p2+YWAXfSHNOkbwajBea9DJlv9NJgGQzRVyTPmx/rgBNu1MEfPQnRYrK9j7zeVu+5WAG
-         FFWuF4OrKGbh2A9P4S3a2Zy8RgJDj1P2ZQviCspCu/JdpVv2ha9f2uaJE4Ac2YkflfZm
-         oU5Q==
-X-Gm-Message-State: AOAM532grVFIr5lEkjIJruxJvfsF0gd+FPuU7JTmflx6cNxgsj64D0Nl
-	BogPfUNDA8MyIwLDuE7iW5g5S8qrHy1JUHURKIqtWg==
-X-Google-Smtp-Source: ABdhPJyVKOnhVt0Wdh9gR5klKUeMY8LJl9xOy+rXAR1aL3gh/RyX3d+gIGycEUJ0HTA94nfjLHThyGCadYvcoTFdMUM=
-X-Received: by 2002:a65:6248:: with SMTP id q8mr1176705pgv.279.1627913192152;
- Mon, 02 Aug 2021 07:06:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 982E770
+	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 02:57:13 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A95560F46;
+	Wed,  4 Aug 2021 02:57:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1628045833;
+	bh=lnQilC4UM17zCwYD5b03vi9DCTZzWAKF25Z2CjkYw6M=;
+	h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+	b=Kf9s4nnBfuAQVMf+v2osuwky4bc4uG/GLyJY6JwIE4eSjfIrtdq1MU/pcaFxJY83S
+	 cLrdRMhn6PjbsPwvpb3+GXqcNtIUU48YpoyQ+ujK9bGZJMpWkNRyJBXaaVtTfw4V5G
+	 vx/sPx5mml23je2qzALAFQFUWzXy+1Pn8B7s4FdfDxhvBPO6682wD68rm800vMhgjX
+	 Ij3O/kg40zwacJ3KtXo6Dd+w9V5b2Dx/SD/7Zggz4Dd9LZUn59T2F4/mifNIeXaoC6
+	 zykD73AXRBIkVDNQm0nU02BdTm66L1xKI9rvBNaEkGsn8juee3/Havvo1xkykGJjXB
+	 esl/qu9Op/Mjw==
+Subject: Re: [PATCH v2 1/3] erofs: iomap support for non-tailpacking DIO
+To: Gao Xiang <hsiangkao@linux.alibaba.com>, linux-erofs@lists.ozlabs.org
+Cc: linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+ LKML <linux-kernel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>,
+ Liu Bo <bo.liu@linux.alibaba.com>, Joseph Qi <joseph.qi@linux.alibaba.com>,
+ Liu Jiang <gerry@linux.alibaba.com>, Huang Jianan <huangjianan@oppo.com>,
+ Tao Ma <boyu.mt@taobao.com>
+References: <20210730194625.93856-1-hsiangkao@linux.alibaba.com>
+ <20210730194625.93856-2-hsiangkao@linux.alibaba.com>
+From: Chao Yu <chao@kernel.org>
+Message-ID: <e79e3261-e582-e848-b550-c0c3163d9af4@kernel.org>
+Date: Wed, 4 Aug 2021 10:57:08 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.12.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210714193542.21857-1-joao.m.martins@oracle.com>
- <20210714144830.29f9584878b04903079ef7eb@linux-foundation.org>
- <YPjW7tu1NU0iRaH9@casper.infradead.org> <5642c8c3-cf13-33dc-c617-9d1becfba1b1@oracle.com>
- <CAPcyv4ho7idBPU8F4qE8XWhRttkdfzQRATaTAw2C3AfY+Z2BdQ@mail.gmail.com> <fbb77d0f-f1e9-3ef9-fd12-b412b845b7fc@oracle.com>
-In-Reply-To: <fbb77d0f-f1e9-3ef9-fd12-b412b845b7fc@oracle.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 2 Aug 2021 07:06:21 -0700
-Message-ID: <CAPcyv4gXrNnTQfHXGy-psWRq59UdrfqJ_1xDvxb2Db_rQGGxug@mail.gmail.com>
-Subject: Re: [PATCH v3 00/14] mm, sparse-vmemmap: Introduce compound pagemaps
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, 
-	Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
-	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>, 
-	Muchun Song <songmuchun@bytedance.com>, Mike Kravetz <mike.kravetz@oracle.com>, 
-	Jonathan Corbet <corbet@lwn.net>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20210730194625.93856-2-hsiangkao@linux.alibaba.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 
-On Mon, Aug 2, 2021 at 3:41 AM Joao Martins <joao.m.martins@oracle.com> wrote:
->
->
->
-> On 7/28/21 12:23 AM, Dan Williams wrote:
-> > On Thu, Jul 22, 2021 at 3:54 AM Joao Martins <joao.m.martins@oracle.com> wrote:
-> > [..]
-> >>> The folio work really touches the page
-> >>> cache for now, and this seems mostly to touch the devmap paths.
-> >>>
-> >> /me nods -- it really is about devmap infra for usage in device-dax for persistent memory.
-> >>
-> >> Perhaps I should do s/pagemaps/devmap/ throughout the series to avoid confusion.
-> >
-> > I also like "devmap" as a more accurate name. It matches the PFN_DEV
-> > and PFN_MAP flags that decorate DAX capable pfn_t instances. It also
-> > happens to match a recommendation I gave to Ira for his support for
-> > supervisor protection keys with devmap pfns.
-> >
-> /me nods
->
-> Additionally, I think I'll be reordering the patches for more clear/easier
-> bisection i.e. first introducing compound pages for devmap, fixing associated
-> issues wrt to the slow pinning and then introduce vmemmap deduplication for
-> devmap.
->
-> It should look like below after the reordering from first patch to last.
-> Let me know if you disagree.
->
-> memory-failure: fetch compound_head after pgmap_pfn_valid()
-> mm/page_alloc: split prep_compound_page into head and tail subparts
-> mm/page_alloc: refactor memmap_init_zone_device() page init
-> mm/memremap: add ZONE_DEVICE support for compound pages
-> device-dax: use ALIGN() for determining pgoff
-> device-dax: compound devmap support
-> mm/gup: grab head page refcount once for group of subpages
-> mm/sparse-vmemmap: add a pgmap argument to section activation
-> mm/sparse-vmemmap: refactor core of vmemmap_populate_basepages() to helper
-> mm/hugetlb_vmemmap: move comment block to Documentation/vm
-> mm/sparse-vmemmap: populate compound devmaps
-> mm/page_alloc: reuse tail struct pages for compound devmaps
-> mm/sparse-vmemmap: improve memory savings for compound pud geometry
+On 2021/7/31 3:46, Gao Xiang wrote:
+> From: Huang Jianan <huangjianan@oppo.com>
+> 
+> Add iomap support for non-tailpacking uncompressed data in order to
+> support DIO and DAX.
+> 
+> Direct I/O is useful in certain scenarios for uncompressed files.
+> For example, double pagecache can be avoid by direct I/O when
+> loop device is used for uncompressed files containing upper layer
+> compressed filesystem.
+> 
+> This adds iomap DIO support for non-tailpacking cases first and
+> tail-packing inline files are handled in the follow-up patch.
+> 
+> Cc: linux-fsdevel@vger.kernel.org
+> Signed-off-by: Huang Jianan <huangjianan@oppo.com>
+> Signed-off-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+> ---
+>   fs/erofs/Kconfig    |   1 +
+>   fs/erofs/data.c     | 102 ++++++++++++++++++++++++++++++++++++++++++++
+>   fs/erofs/inode.c    |   5 ++-
+>   fs/erofs/internal.h |   1 +
+>   4 files changed, 108 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/erofs/Kconfig b/fs/erofs/Kconfig
+> index 906af0c1998c..14b747026742 100644
+> --- a/fs/erofs/Kconfig
+> +++ b/fs/erofs/Kconfig
+> @@ -3,6 +3,7 @@
+>   config EROFS_FS
+>   	tristate "EROFS filesystem support"
+>   	depends on BLOCK
+> +	select FS_IOMAP
+>   	select LIBCRC32C
+>   	help
+>   	  EROFS (Enhanced Read-Only File System) is a lightweight
+> diff --git a/fs/erofs/data.c b/fs/erofs/data.c
+> index 3787a5fb0a42..1f97151a9f90 100644
+> --- a/fs/erofs/data.c
+> +++ b/fs/erofs/data.c
+> @@ -5,6 +5,7 @@
+>    */
+>   #include "internal.h"
+>   #include <linux/prefetch.h>
+> +#include <linux/iomap.h>
+>   
+>   #include <trace/events/erofs.h>
+>   
+> @@ -308,9 +309,110 @@ static sector_t erofs_bmap(struct address_space *mapping, sector_t block)
+>   	return 0;
+>   }
+>   
+> +static int erofs_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
+> +		unsigned int flags, struct iomap *iomap, struct iomap *srcmap)
+> +{
+> +	int ret;
+> +	struct erofs_map_blocks map;
+> +
+> +	map.m_la = offset;
+> +	map.m_llen = length;
+> +
+> +	ret = erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	iomap->bdev = inode->i_sb->s_bdev;
+> +	iomap->offset = map.m_la;
+> +	iomap->length = map.m_llen;
+> +	iomap->flags = 0;
+> +
+> +	if (!(map.m_flags & EROFS_MAP_MAPPED)) {
+> +		iomap->type = IOMAP_HOLE;
+> +		iomap->addr = IOMAP_NULL_ADDR;
+> +		if (!iomap->length)
+> +			iomap->length = length;
 
-LGTM.
+This only happens for the case offset exceeds isize?
+
+> +		return 0;
+> +	}
+> +
+> +	/* that shouldn't happen for now */
+> +	if (map.m_flags & EROFS_MAP_META) {
+> +		DBG_BUGON(1);
+> +		return -ENOTBLK;
+> +	}
+> +	iomap->type = IOMAP_MAPPED;
+> +	iomap->addr = map.m_pa;
+> +	return 0;
+> +}
+> +
+> +const struct iomap_ops erofs_iomap_ops = {
+> +	.iomap_begin = erofs_iomap_begin,
+> +};
+> +
+> +static int erofs_prepare_dio(struct kiocb *iocb, struct iov_iter *to)
+> +{
+> +	struct inode *inode = file_inode(iocb->ki_filp);
+> +	loff_t align = iocb->ki_pos | iov_iter_count(to) |
+> +		iov_iter_alignment(to);
+> +	struct block_device *bdev = inode->i_sb->s_bdev;
+> +	unsigned int blksize_mask;
+> +
+> +	if (bdev)
+> +		blksize_mask = (1 << ilog2(bdev_logical_block_size(bdev))) - 1;
+> +	else
+> +		blksize_mask = (1 << inode->i_blkbits) - 1;
+> +
+> +	if (align & blksize_mask)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * Temporarily fall back tail-packing inline to buffered I/O instead
+> +	 * since tail-packing inline support relies on an iomap core update.
+> +	 */
+> +	if (EROFS_I(inode)->datalayout == EROFS_INODE_FLAT_INLINE &&
+> +	    iocb->ki_pos + iov_iter_count(to) >
+> +			rounddown(inode->i_size, EROFS_BLKSIZ))
+> +		return 1;
+> +	return 0;
+> +}
+> +
+> +static ssize_t erofs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
+> +{
+> +	/* no need taking (shared) inode lock since it's a ro filesystem */
+> +	if (!iov_iter_count(to))
+> +		return 0;
+> +
+> +	if (iocb->ki_flags & IOCB_DIRECT) {
+> +		int err = erofs_prepare_dio(iocb, to);
+> +
+> +		if (!err)
+> +			return iomap_dio_rw(iocb, to, &erofs_iomap_ops,
+> +					    NULL, 0);
+> +		if (err < 0)
+> +			return err;
+> +		/*
+> +		 * Fallback to buffered I/O if the operation being performed on
+> +		 * the inode is not supported by direct I/O. The IOCB_DIRECT
+> +		 * flag needs to be cleared here in order to ensure that the
+> +		 * direct I/O path within generic_file_read_iter() is not
+> +		 * taken.
+> +		 */
+> +		iocb->ki_flags &= ~IOCB_DIRECT;
+> +	}
+> +	return generic_file_read_iter(iocb, to);
+
+It looks it's fine to call filemap_read() directly since above codes have
+covered DIO case, then we don't need to change iocb->ki_flags flag, it's
+minor though.
+
+> +}
+> +
+>   /* for uncompressed (aligned) files and raw access for other files */
+>   const struct address_space_operations erofs_raw_access_aops = {
+>   	.readpage = erofs_raw_access_readpage,
+>   	.readahead = erofs_raw_access_readahead,
+>   	.bmap = erofs_bmap,
+> +	.direct_IO = noop_direct_IO,
+> +};
+> +
+> +const struct file_operations erofs_file_fops = {
+> +	.llseek		= generic_file_llseek,
+> +	.read_iter	= erofs_file_read_iter,
+> +	.mmap		= generic_file_readonly_mmap,
+> +	.splice_read	= generic_file_splice_read,
+>   };
+> diff --git a/fs/erofs/inode.c b/fs/erofs/inode.c
+> index aa8a0d770ba3..00edb7562fea 100644
+> --- a/fs/erofs/inode.c
+> +++ b/fs/erofs/inode.c
+> @@ -247,7 +247,10 @@ static int erofs_fill_inode(struct inode *inode, int isdir)
+>   	switch (inode->i_mode & S_IFMT) {
+>   	case S_IFREG:
+>   		inode->i_op = &erofs_generic_iops;
+> -		inode->i_fop = &generic_ro_fops;
+> +		if (!erofs_inode_is_data_compressed(vi->datalayout))
+> +			inode->i_fop = &erofs_file_fops;
+> +		else
+> +			inode->i_fop = &generic_ro_fops;
+
+if (erofs_inode_is_data_compressed(vi->datalayout))
+	inode->i_fop = &generic_ro_fops;
+else
+	inode->i_fop = &erofs_file_fops;
+
+Otherwise, it looks good to me.
+
+Reviewed-by: Chao Yu <chao@kernel.org>
+
+Thanks
+
+>   		break;
+>   	case S_IFDIR:
+>   		inode->i_op = &erofs_dir_iops;
+> diff --git a/fs/erofs/internal.h b/fs/erofs/internal.h
+> index 543c2ff97d30..2669c785d548 100644
+> --- a/fs/erofs/internal.h
+> +++ b/fs/erofs/internal.h
+> @@ -371,6 +371,7 @@ static inline int z_erofs_map_blocks_iter(struct inode *inode,
+>   #endif	/* !CONFIG_EROFS_FS_ZIP */
+>   
+>   /* data.c */
+> +extern const struct file_operations erofs_file_fops;
+>   struct page *erofs_get_meta_page(struct super_block *sb, erofs_blk_t blkaddr);
+>   
+>   /* inode.c */
+> 
