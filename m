@@ -1,221 +1,149 @@
-Received: from out4436.biz.mail.alibaba.com (out4436.biz.mail.alibaba.com [47.88.44.36])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A640F70
-	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:30:53 +0000 (UTC)
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R611e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=alimailimapcm10staff010182156082;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0UhwJ.LP_1628051435;
-Received: from B-P7TQMD6M-0146.local(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0UhwJ.LP_1628051435)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 04 Aug 2021 12:30:37 +0800
-Date: Wed, 4 Aug 2021 12:30:35 +0800
-From: Gao Xiang <hsiangkao@linux.alibaba.com>
-To: Chao Yu <chao@kernel.org>
-Cc: linux-erofs@lists.ozlabs.org, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Liu Bo <bo.liu@linux.alibaba.com>,
-	Joseph Qi <joseph.qi@linux.alibaba.com>,
-	Liu Jiang <gerry@linux.alibaba.com>,
-	Huang Jianan <huangjianan@oppo.com>, Tao Ma <boyu.mt@taobao.com>
-Subject: Re: [PATCH v2 1/3] erofs: iomap support for non-tailpacking DIO
-Message-ID: <YQoX62zRERGX9BGB@B-P7TQMD6M-0146.local>
-Mail-Followup-To: Chao Yu <chao@kernel.org>, linux-erofs@lists.ozlabs.org,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Liu Bo <bo.liu@linux.alibaba.com>,
-	Joseph Qi <joseph.qi@linux.alibaba.com>,
-	Liu Jiang <gerry@linux.alibaba.com>,
-	Huang Jianan <huangjianan@oppo.com>, Tao Ma <boyu.mt@taobao.com>
-References: <20210730194625.93856-1-hsiangkao@linux.alibaba.com>
- <20210730194625.93856-2-hsiangkao@linux.alibaba.com>
- <e79e3261-e582-e848-b550-c0c3163d9af4@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 071B13481
+	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:36 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433047"
+X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
+   d="scan'208";a="299433047"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:35 -0700
+X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
+   d="scan'208";a="511702659"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:35 -0700
+From: ira.weiny@intel.com
+To: Dave Hansen <dave.hansen@linux.intel.com>,
+	Dan Williams <dan.j.williams@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@redhat.com>,
+	Borislav Petkov <bp@alien8.de>,
+	Andy Lutomirski <luto@kernel.org>,
+	"H. Peter Anvin" <hpa@zytor.com>,
+	Fenghua Yu <fenghua.yu@intel.com>,
+	Rick Edgecombe <rick.p.edgecombe@intel.com>,
+	x86@kernel.org,
+	linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	linux-mm@kvack.org
+Subject: [PATCH V7 02/18] x86/fpu: Refactor arch_set_user_pkey_access()
+Date: Tue,  3 Aug 2021 21:32:15 -0700
+Message-Id: <20210804043231.2655537-3-ira.weiny@intel.com>
+X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
+In-Reply-To: <20210804043231.2655537-1-ira.weiny@intel.com>
+References: <20210804043231.2655537-1-ira.weiny@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <e79e3261-e582-e848-b550-c0c3163d9af4@kernel.org>
+Content-Transfer-Encoding: 8bit
 
-Hi Chao,
+From: Ira Weiny <ira.weiny@intel.com>
 
-On Wed, Aug 04, 2021 at 10:57:08AM +0800, Chao Yu wrote:
-> On 2021/7/31 3:46, Gao Xiang wrote:
+Both PKU and PKS update their register values in the same way.  They can
+therefore share the update code.
 
-...
+Define a helper, update_pkey_val(), which will be used to support both
+Protection Key User (PKU) and the new Protection Key for Supervisor
+(PKS) in subsequent patches.
 
-> >   }
-> > +static int erofs_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
-> > +		unsigned int flags, struct iomap *iomap, struct iomap *srcmap)
-> > +{
-> > +	int ret;
-> > +	struct erofs_map_blocks map;
-> > +
-> > +	map.m_la = offset;
-> > +	map.m_llen = length;
-> > +
-> > +	ret = erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	iomap->bdev = inode->i_sb->s_bdev;
-> > +	iomap->offset = map.m_la;
-> > +	iomap->length = map.m_llen;
-> > +	iomap->flags = 0;
-> > +
-> > +	if (!(map.m_flags & EROFS_MAP_MAPPED)) {
-> > +		iomap->type = IOMAP_HOLE;
-> > +		iomap->addr = IOMAP_NULL_ADDR;
-> > +		if (!iomap->length)
-> > +			iomap->length = length;
-> 
-> This only happens for the case offset exceeds isize?
+Use that helper in arch_set_user_pkey_access().
 
-Thanks for the review.
+Co-developed-by: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ arch/x86/include/asm/pkeys.h |  2 ++
+ arch/x86/kernel/fpu/xstate.c | 22 ++++------------------
+ arch/x86/mm/pkeys.c          | 23 +++++++++++++++++++++++
+ 3 files changed, 29 insertions(+), 18 deletions(-)
 
-Yeah, this is a convention (length 0 with !EROFS_MAP_MAPPED) for post-EOF
-in erofs_map_blocks_flatmode(), need to follow iomap rule as well.
+diff --git a/arch/x86/include/asm/pkeys.h b/arch/x86/include/asm/pkeys.h
+index 5c7bcaa79623..597f19e4525b 100644
+--- a/arch/x86/include/asm/pkeys.h
++++ b/arch/x86/include/asm/pkeys.h
+@@ -133,4 +133,6 @@ static inline int vma_pkey(struct vm_area_struct *vma)
+ 	return (vma->vm_flags & vma_pkey_mask) >> VM_PKEY_SHIFT;
+ }
+ 
++u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags);
++
+ #endif /*_ASM_X86_PKEYS_H */
+diff --git a/arch/x86/kernel/fpu/xstate.c b/arch/x86/kernel/fpu/xstate.c
+index 6af0c80ad425..4f95ab38a23c 100644
+--- a/arch/x86/kernel/fpu/xstate.c
++++ b/arch/x86/kernel/fpu/xstate.c
+@@ -915,8 +915,7 @@ EXPORT_SYMBOL_GPL(get_xsave_addr);
+ int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+ 			      unsigned long init_val)
+ {
+-	u32 old_pkru, new_pkru_bits = 0;
+-	int pkey_shift;
++	u32 pkru;
+ 
+ 	/*
+ 	 * This check implies XSAVE support.  OSPKE only gets
+@@ -933,22 +932,9 @@ int arch_set_user_pkey_access(struct task_struct *tsk, int pkey,
+ 	if (WARN_ON_ONCE(pkey >= arch_max_pkey()))
+ 		return -EINVAL;
+ 
+-	/* Set the bits needed in PKRU:  */
+-	if (init_val & PKEY_DISABLE_ACCESS)
+-		new_pkru_bits |= PKR_AD_BIT;
+-	if (init_val & PKEY_DISABLE_WRITE)
+-		new_pkru_bits |= PKR_WD_BIT;
+-
+-	/* Shift the bits in to the correct place in PKRU for pkey: */
+-	pkey_shift = pkey * PKRU_BITS_PER_PKEY;
+-	new_pkru_bits <<= pkey_shift;
+-
+-	/* Get old PKRU and mask off any old bits in place: */
+-	old_pkru = read_pkru();
+-	old_pkru &= ~((PKR_AD_BIT|PKR_WD_BIT) << pkey_shift);
+-
+-	/* Write old part along with new part: */
+-	write_pkru(old_pkru | new_pkru_bits);
++	pkru = read_pkru();
++	pkru = update_pkey_val(pkru, pkey, init_val);
++	write_pkru(pkru);
+ 
+ 	return 0;
+ }
+diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
+index aa7042f272fb..ca2e20b18645 100644
+--- a/arch/x86/mm/pkeys.c
++++ b/arch/x86/mm/pkeys.c
+@@ -190,3 +190,26 @@ static __init int setup_init_pkru(char *opt)
+ 	return 1;
+ }
+ __setup("init_pkru=", setup_init_pkru);
++
++/*
++ * Replace disable bits for @pkey with values from @flags
++ *
++ * Kernel users use the same flags as user space:
++ *     PKEY_DISABLE_ACCESS
++ *     PKEY_DISABLE_WRITE
++ */
++u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags)
++{
++	int pkey_shift = pkey * PKR_BITS_PER_PKEY;
++
++	/*  Mask out old bit values */
++	pk_reg &= ~(((1 << PKR_BITS_PER_PKEY) - 1) << pkey_shift);
++
++	/*  Or in new values */
++	if (flags & PKEY_DISABLE_ACCESS)
++		pk_reg |= PKR_AD_BIT << pkey_shift;
++	if (flags & PKEY_DISABLE_WRITE)
++		pk_reg |= PKR_WD_BIT << pkey_shift;
++
++	return pk_reg;
++}
+-- 
+2.28.0.rc0.12.gb6a658bd00c9
 
-> 
-> > +		return 0;
-> > +	}
-> > +
-> > +	/* that shouldn't happen for now */
-> > +	if (map.m_flags & EROFS_MAP_META) {
-> > +		DBG_BUGON(1);
-> > +		return -ENOTBLK;
-> > +	}
-> > +	iomap->type = IOMAP_MAPPED;
-> > +	iomap->addr = map.m_pa;
-> > +	return 0;
-> > +}
-> > +
-> > +const struct iomap_ops erofs_iomap_ops = {
-> > +	.iomap_begin = erofs_iomap_begin,
-> > +};
-> > +
-> > +static int erofs_prepare_dio(struct kiocb *iocb, struct iov_iter *to)
-> > +{
-> > +	struct inode *inode = file_inode(iocb->ki_filp);
-> > +	loff_t align = iocb->ki_pos | iov_iter_count(to) |
-> > +		iov_iter_alignment(to);
-> > +	struct block_device *bdev = inode->i_sb->s_bdev;
-> > +	unsigned int blksize_mask;
-> > +
-> > +	if (bdev)
-> > +		blksize_mask = (1 << ilog2(bdev_logical_block_size(bdev))) - 1;
-> > +	else
-> > +		blksize_mask = (1 << inode->i_blkbits) - 1;
-> > +
-> > +	if (align & blksize_mask)
-> > +		return -EINVAL;
-> > +
-> > +	/*
-> > +	 * Temporarily fall back tail-packing inline to buffered I/O instead
-> > +	 * since tail-packing inline support relies on an iomap core update.
-> > +	 */
-> > +	if (EROFS_I(inode)->datalayout == EROFS_INODE_FLAT_INLINE &&
-> > +	    iocb->ki_pos + iov_iter_count(to) >
-> > +			rounddown(inode->i_size, EROFS_BLKSIZ))
-> > +		return 1;
-> > +	return 0;
-> > +}
-> > +
-> > +static ssize_t erofs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
-> > +{
-> > +	/* no need taking (shared) inode lock since it's a ro filesystem */
-> > +	if (!iov_iter_count(to))
-> > +		return 0;
-> > +
-> > +	if (iocb->ki_flags & IOCB_DIRECT) {
-> > +		int err = erofs_prepare_dio(iocb, to);
-> > +
-> > +		if (!err)
-> > +			return iomap_dio_rw(iocb, to, &erofs_iomap_ops,
-> > +					    NULL, 0);
-> > +		if (err < 0)
-> > +			return err;
-> > +		/*
-> > +		 * Fallback to buffered I/O if the operation being performed on
-> > +		 * the inode is not supported by direct I/O. The IOCB_DIRECT
-> > +		 * flag needs to be cleared here in order to ensure that the
-> > +		 * direct I/O path within generic_file_read_iter() is not
-> > +		 * taken.
-> > +		 */
-> > +		iocb->ki_flags &= ~IOCB_DIRECT;
-> > +	}
-> > +	return generic_file_read_iter(iocb, to);
-> 
-> It looks it's fine to call filemap_read() directly since above codes have
-> covered DIO case, then we don't need to change iocb->ki_flags flag, it's
-> minor though.
-
-Yeah, we could use filemap_read() here instead. yet IMO, it might be
-better to drop IOCB_DIRECT too to keep iocb consistent with the real
-semantics (even it's not used internally.)
-
-> 
-> > +}
-> > +
-> >   /* for uncompressed (aligned) files and raw access for other files */
-> >   const struct address_space_operations erofs_raw_access_aops = {
-> >   	.readpage = erofs_raw_access_readpage,
-> >   	.readahead = erofs_raw_access_readahead,
-> >   	.bmap = erofs_bmap,
-> > +	.direct_IO = noop_direct_IO,
-> > +};
-> > +
-> > +const struct file_operations erofs_file_fops = {
-> > +	.llseek		= generic_file_llseek,
-> > +	.read_iter	= erofs_file_read_iter,
-> > +	.mmap		= generic_file_readonly_mmap,
-> > +	.splice_read	= generic_file_splice_read,
-> >   };
-> > diff --git a/fs/erofs/inode.c b/fs/erofs/inode.c
-> > index aa8a0d770ba3..00edb7562fea 100644
-> > --- a/fs/erofs/inode.c
-> > +++ b/fs/erofs/inode.c
-> > @@ -247,7 +247,10 @@ static int erofs_fill_inode(struct inode *inode, int isdir)
-> >   	switch (inode->i_mode & S_IFMT) {
-> >   	case S_IFREG:
-> >   		inode->i_op = &erofs_generic_iops;
-> > -		inode->i_fop = &generic_ro_fops;
-> > +		if (!erofs_inode_is_data_compressed(vi->datalayout))
-> > +			inode->i_fop = &erofs_file_fops;
-> > +		else
-> > +			inode->i_fop = &generic_ro_fops;
-> 
-> if (erofs_inode_is_data_compressed(vi->datalayout))
-> 	inode->i_fop = &generic_ro_fops;
-> else
-> 	inode->i_fop = &erofs_file_fops;
-> 
-> Otherwise, it looks good to me.
-
-ok, will fix in the next version.
-
-Thanks,
-Gao Xiang
-
-> 
-> Reviewed-by: Chao Yu <chao@kernel.org>
-> 
-> Thanks
-> 
-> >   		break;
-> >   	case S_IFDIR:
-> >   		inode->i_op = &erofs_dir_iops;
-> > diff --git a/fs/erofs/internal.h b/fs/erofs/internal.h
-> > index 543c2ff97d30..2669c785d548 100644
-> > --- a/fs/erofs/internal.h
-> > +++ b/fs/erofs/internal.h
-> > @@ -371,6 +371,7 @@ static inline int z_erofs_map_blocks_iter(struct inode *inode,
-> >   #endif	/* !CONFIG_EROFS_FS_ZIP */
-> >   /* data.c */
-> > +extern const struct file_operations erofs_file_fops;
-> >   struct page *erofs_get_meta_page(struct super_block *sb, erofs_blk_t blkaddr);
-> >   /* inode.c */
-> > 
