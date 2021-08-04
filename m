@@ -1,36 +1,36 @@
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 843833492
-	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:41 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433065"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34E43486
+	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:32:39 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10065"; a="299433059"
 X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="299433065"
+   d="scan'208";a="299433059"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:37 -0700
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:36 -0700
 X-IronPort-AV: E=Sophos;i="5.84,293,1620716400"; 
-   d="scan'208";a="511702693"
+   d="scan'208";a="511702681"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:37 -0700
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Aug 2021 21:32:36 -0700
 From: ira.weiny@intel.com
 To: Dave Hansen <dave.hansen@linux.intel.com>,
 	Dan Williams <dan.j.williams@intel.com>
 Cc: Ira Weiny <ira.weiny@intel.com>,
+	Fenghua Yu <fenghua.yu@intel.com>,
 	Thomas Gleixner <tglx@linutronix.de>,
 	Ingo Molnar <mingo@redhat.com>,
 	Borislav Petkov <bp@alien8.de>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Andy Lutomirski <luto@kernel.org>,
 	"H. Peter Anvin" <hpa@zytor.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
 	Rick Edgecombe <rick.p.edgecombe@intel.com>,
 	x86@kernel.org,
 	linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	linux-mm@kvack.org
-Subject: [PATCH V7 10/18] x86/pks: Introduce pks_abandon_protections()
-Date: Tue,  3 Aug 2021 21:32:23 -0700
-Message-Id: <20210804043231.2655537-11-ira.weiny@intel.com>
+Subject: [PATCH V7 07/18] x86/pks: Preserve the PKRS MSR on context switch
+Date: Tue,  3 Aug 2021 21:32:20 -0700
+Message-Id: <20210804043231.2655537-8-ira.weiny@intel.com>
 X-Mailer: git-send-email 2.28.0.rc0.12.gb6a658bd00c9
 In-Reply-To: <20210804043231.2655537-1-ira.weiny@intel.com>
 References: <20210804043231.2655537-1-ira.weiny@intel.com>
@@ -44,258 +44,158 @@ Content-Transfer-Encoding: 8bit
 
 From: Ira Weiny <ira.weiny@intel.com>
 
-Unanticipated access to PMEM by otherwise working kernel code would be
-very disruptive to otherwise working systems.  Such access could be
-through valid uses such as kmap().  In this use case PMEM protections
-will require the ability to abandon all protections of a pkey on all
-threads system wide.
+The PKRS MSR is defined as a per-logical-processor register.  This
+isolates memory access by logical CPU.  Unfortunately, the MSR is not
+managed by XSAVE.  Therefore, tasks must save/restore the MSR value on
+context switch.
 
-Introduce pks_abandon_protections() to allow a user to mask off
-protection values.  This will filter through all the threads of the
-system as they are scheduled in and in the immediate case override the
-value should running threads PKS fault.
+Define a saved PKRS value in the task struct.  Initialize all tasks with
+the INIT_PKRS_VALUE and call pkrs_write_current() to set the MSR to the
+saved task value on schedule in.
 
-Update pkrs_write_current(), pks_init_task(), and
-pkrs_{save|restore}_irq() to account for pkrs_pkey_allowed_mask.
-
-Add handle_abandoned_pks_value() to adjust any already running threads
-which may fault on an abandoned pkey.
-
+Co-developed-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
 ---
 Changes for V7
-	New patch
-	Significant internal review from Dan Williams and Rick Edgecombe
+	Move definitions from asm/processor.h to asm/pks.h
+	s/INIT_PKRS_VALUE/pkrs_init_value
+	Change pks_init_task()/pks_sched_in() to functions
+	s/pks_sched_in/pks_write_current to be used more generically
+	later in the series
 ---
- Documentation/core-api/protection-keys.rst |  7 +++-
- arch/x86/entry/common.c                    |  6 ++-
- arch/x86/include/asm/pks.h                 |  5 +++
- arch/x86/mm/fault.c                        | 24 ++++++-----
- arch/x86/mm/pkeys.c                        | 49 ++++++++++++++++++++++
- include/linux/pkeys.h                      |  2 +
- 6 files changed, 80 insertions(+), 13 deletions(-)
+ arch/x86/include/asm/pks.h       |  4 ++++
+ arch/x86/include/asm/processor.h | 19 ++++++++++++++++++-
+ arch/x86/kernel/process.c        |  3 +++
+ arch/x86/kernel/process_64.c     |  3 +++
+ arch/x86/mm/pkeys.c              | 16 ++++++++++++++++
+ 5 files changed, 44 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/core-api/protection-keys.rst b/Documentation/core-api/protection-keys.rst
-index 6420a60666fc..202088634fa3 100644
---- a/Documentation/core-api/protection-keys.rst
-+++ b/Documentation/core-api/protection-keys.rst
-@@ -157,6 +157,7 @@ this additional protection to the page.
-         void pks_mk_noaccess(int pkey);
-         void pks_mk_readonly(int pkey);
-         void pks_mk_readwrite(int pkey);
-+        void pks_abandon_protections(int pkey);
- 
- pks_enabled() allows users to know if PKS is configured and available on the
- current running system.
-@@ -169,7 +170,11 @@ protections for the domain identified by the pkey parameter.  3 states are
- available: pks_mk_noaccess(), pks_mk_readonly(), and pks_mk_readwrite() which
- set the access to none, read, and read/write respectively.
- 
--The interface sets (Access Disabled (AD=1)) for all keys not in use.
-+The interface sets Access Disabled for all keys not in use.  The
-+pks_abandon_protections() call reduces the protections for the specified key to
-+be fully accessible thus abandoning the protections of the key.  There is no
-+way to reverse this.  As such pks_abandon_protections() is intended to provide
-+a 'relief valve' if the PKS protections should prove too restrictive.
- 
- It should be noted that the underlying WRMSR(MSR_IA32_PKRS) is not serializing
- but still maintains ordering properties similar to WRPKRU.  Thus it is safe to
-diff --git a/arch/x86/entry/common.c b/arch/x86/entry/common.c
-index a0d1d5519dba..717091910ebc 100644
---- a/arch/x86/entry/common.c
-+++ b/arch/x86/entry/common.c
-@@ -37,6 +37,8 @@
- #include <asm/irq_stack.h>
- #include <asm/pks.h>
- 
-+extern u32 pkrs_pkey_allowed_mask;
-+
- #ifdef CONFIG_X86_64
- 
- static __always_inline bool do_syscall_x64(struct pt_regs *regs, int nr)
-@@ -287,7 +289,7 @@ void pkrs_save_irq(struct pt_regs *regs)
- 
- 	ept_regs = extended_pt_regs(regs);
- 	ept_regs->thread_pkrs = current->thread.saved_pkrs;
--	write_pkrs(pkrs_init_value);
-+	write_pkrs(pkrs_init_value & pkrs_pkey_allowed_mask);
- }
- 
- void pkrs_restore_irq(struct pt_regs *regs)
-@@ -298,8 +300,8 @@ void pkrs_restore_irq(struct pt_regs *regs)
- 		return;
- 
- 	ept_regs = extended_pt_regs(regs);
--	write_pkrs(ept_regs->thread_pkrs);
- 	current->thread.saved_pkrs = ept_regs->thread_pkrs;
-+	pkrs_write_current();
- }
- 
- #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
 diff --git a/arch/x86/include/asm/pks.h b/arch/x86/include/asm/pks.h
-index 76960ec71b4b..ed293ef4509e 100644
+index 5d7067ada8fb..e7727086cec2 100644
 --- a/arch/x86/include/asm/pks.h
 +++ b/arch/x86/include/asm/pks.h
-@@ -22,6 +22,7 @@ static inline struct extended_pt_regs *extended_pt_regs(struct pt_regs *regs)
- }
+@@ -5,10 +5,14 @@
+ #ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
  
- void show_extended_regs_oops(struct pt_regs *regs, unsigned long error_code);
-+int handle_abandoned_pks_value(struct pt_regs *regs);
+ void setup_pks(void);
++void pkrs_write_current(void);
++void pks_init_task(struct task_struct *task);
  
  #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
  
-@@ -31,6 +32,10 @@ static inline void pks_init_task(struct task_struct *task) { }
- static inline void write_pkrs(u32 new_pkrs) { }
- static inline void show_extended_regs_oops(struct pt_regs *regs,
- 					   unsigned long error_code) { }
-+static inline int handle_abandoned_pks_value(struct pt_regs *regs)
-+{
-+	return 0;
-+}
+ static inline void setup_pks(void) { }
++static inline void pkrs_write_current(void) { }
++static inline void pks_init_task(struct task_struct *task) { }
  
  #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
  
-diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-index a4ce7cef0260..bf3353d8e011 100644
---- a/arch/x86/mm/fault.c
-+++ b/arch/x86/mm/fault.c
-@@ -1143,16 +1143,20 @@ static void
- do_kern_addr_fault(struct pt_regs *regs, unsigned long hw_error_code,
- 		   unsigned long address)
- {
--	/*
--	 * X86_PF_PK (Protection key exceptions) may occur on kernel addresses
--	 * when PKS (PKeys Supervisor) is enabled.
--	 *
--	 * However, if PKS is not enabled WARN if this exception is seen
--	 * because there are no user pages in the kernel portion of the address
--	 * space.
--	 */
--	WARN_ON_ONCE(!cpu_feature_enabled(X86_FEATURE_PKS) &&
--		     (hw_error_code & X86_PF_PK));
-+	if (hw_error_code & X86_PF_PK) {
-+		/*
-+		 * X86_PF_PK (Protection key exceptions) may occur on kernel
-+		 * addresses when PKS (PKeys Supervisor) is enabled.
-+		 *
-+		 * However, if PKS is not enabled WARN if this exception is
-+		 * seen because there are no user pages in the kernel portion
-+		 * of the address space.
-+		 */
-+		WARN_ON_ONCE(!cpu_feature_enabled(X86_FEATURE_PKS));
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index f3020c54e2cb..a6cb7d152c62 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -502,6 +502,12 @@ struct thread_struct {
+ 	unsigned long		cr2;
+ 	unsigned long		trap_nr;
+ 	unsigned long		error_code;
 +
-+		if (handle_abandoned_pks_value(regs))
-+			return;
-+	}
++#ifdef	CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
++	/* Saved Protection key register for supervisor mappings */
++	u32			saved_pkrs;
++#endif
++
+ #ifdef CONFIG_VM86
+ 	/* Virtual 86 mode info */
+ 	struct vm86		*vm86;
+@@ -768,7 +774,18 @@ static inline void spin_lock_prefetch(const void *x)
+ #define KSTK_ESP(task)		(task_pt_regs(task)->sp)
  
- #ifdef CONFIG_X86_32
- 	/*
+ #else
+-#define INIT_THREAD { }
++
++#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
++/*
++ * Early task gets full permissions, the restrictive value is set in
++ * pks_init_task()
++ */
++#define INIT_THREAD  {					\
++	.saved_pkrs = 0,				\
++}
++#else
++#define INIT_THREAD  { }
++#endif
+ 
+ extern unsigned long KSTK_ESP(struct task_struct *task);
+ 
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index 1d9463e3096b..c792ac5f33a2 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -43,6 +43,7 @@
+ #include <asm/io_bitmap.h>
+ #include <asm/proto.h>
+ #include <asm/frame.h>
++#include <asm/pks.h>
+ 
+ #include "process.h"
+ 
+@@ -223,6 +224,8 @@ void flush_thread(void)
+ 
+ 	fpu_flush_thread();
+ 	pkru_flush_thread();
++
++	pks_init_task(tsk);
+ }
+ 
+ void disable_TSC(void)
+diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+index ec0d836a13b1..8bd1f039e5bf 100644
+--- a/arch/x86/kernel/process_64.c
++++ b/arch/x86/kernel/process_64.c
+@@ -59,6 +59,7 @@
+ /* Not included via unistd.h */
+ #include <asm/unistd_32_ia32.h>
+ #endif
++#include <asm/pks.h>
+ 
+ #include "process.h"
+ 
+@@ -658,6 +659,8 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
+ 	/* Load the Intel cache allocation PQR MSR. */
+ 	resctrl_sched_in();
+ 
++	pkrs_write_current();
++
+ 	return prev_p;
+ }
+ 
 diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
-index 146a665d1bf3..56d37840186b 100644
+index fbffbced81b5..eca01dc8d7ac 100644
 --- a/arch/x86/mm/pkeys.c
 +++ b/arch/x86/mm/pkeys.c
-@@ -221,6 +221,26 @@ u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags)
- static DEFINE_PER_CPU(u32, pkrs_cache);
- u32 __read_mostly pkrs_init_value;
- 
+@@ -284,5 +284,21 @@ void setup_pks(void)
+ 	write_pkrs(pkrs_init_value);
+ 	cr4_set_bits(X86_CR4_PKS);
+ }
++;
++
 +/*
-+ * Define a mask of pkeys which are allowed, ie have not been abandoned.
-+ * Default is all keys are allowed.
++ * PKRS is only temporarily changed during specific code paths.  Only a
++ * preemption during these windows away from the default value would
++ * require updating the MSR.  write_pkrs() handles this optimization.
 + */
-+#define PKRS_ALLOWED_MASK_DEFAULT 0xffffffff
-+u32 __read_mostly pkrs_pkey_allowed_mask;
-+
-+int handle_abandoned_pks_value(struct pt_regs *regs)
++void pkrs_write_current(void)
 +{
-+	struct extended_pt_regs *ept_regs;
-+	u32 old;
-+
-+	ept_regs = extended_pt_regs(regs);
-+	old = ept_regs->thread_pkrs;
-+	ept_regs->thread_pkrs &= pkrs_pkey_allowed_mask;
-+
-+	/* If something changed retry the fault */
-+	return (ept_regs->thread_pkrs != old);
++	write_pkrs(current->thread.saved_pkrs);
 +}
 +
- /*
-  * write_pkrs() optimizes MSR writes by maintaining a per cpu cache which can
-  * be checked quickly.
-@@ -267,6 +287,7 @@ static int __init create_initial_pkrs_value(void)
- 	BUILD_BUG_ON(PKS_KEY_NR_CONSUMERS > PKS_NUM_PKEYS);
- 
- 	pkrs_init_value = 0;
-+	pkrs_pkey_allowed_mask = PKRS_ALLOWED_MASK_DEFAULT;
- 
- 	/* Fill the defaults for the consumers */
- 	for (i = 0; i < PKS_NUM_PKEYS; i++)
-@@ -297,12 +318,14 @@ void setup_pks(void)
-  */
- void pkrs_write_current(void)
- {
-+	current->thread.saved_pkrs &= pkrs_pkey_allowed_mask;
- 	write_pkrs(current->thread.saved_pkrs);
- }
- 
- void pks_init_task(struct task_struct *task)
- {
- 	task->thread.saved_pkrs = pkrs_init_value;
-+	task->thread.saved_pkrs &= pkrs_pkey_allowed_mask;
- }
- 
- bool pks_enabled(void)
-@@ -367,4 +390,30 @@ void pks_mk_readwrite(int pkey)
- }
- EXPORT_SYMBOL_GPL(pks_mk_readwrite);
- 
-+/**
-+ * pks_abandon_protections() - Force readwrite (no protections) for the
-+ *                             specified pkey
-+ * @pkey The pkey to force
-+ *
-+ * Force the value of the pkey to readwrite (no protections) thus abandoning
-+ * protections for this key.  This is a permanent change and has no
-+ * coresponding reversal function.
-+ *
-+ * This also updates the current running thread.
-+ */
-+void pks_abandon_protections(int pkey)
++void pks_init_task(struct task_struct *task)
 +{
-+	u32 old_mask, new_mask;
-+
-+	do {
-+		old_mask = READ_ONCE(pkrs_pkey_allowed_mask);
-+		new_mask = update_pkey_val(old_mask, pkey, 0);
-+	} while (unlikely(
-+		 cmpxchg(&pkrs_pkey_allowed_mask, old_mask, new_mask) != old_mask));
-+
-+	/* Update the local thread as well. */
-+	pks_update_protection(pkey, 0);
++	task->thread.saved_pkrs = pkrs_init_value;
 +}
-+EXPORT_SYMBOL_GPL(pks_abandon_protections);
-+
- #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
-diff --git a/include/linux/pkeys.h b/include/linux/pkeys.h
-index b9919ed4d300..4d22ccd971fc 100644
---- a/include/linux/pkeys.h
-+++ b/include/linux/pkeys.h
-@@ -60,6 +60,7 @@ bool pks_enabled(void);
- void pks_mk_noaccess(int pkey);
- void pks_mk_readonly(int pkey);
- void pks_mk_readwrite(int pkey);
-+void pks_abandon_protections(int pkey);
- 
- #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
- 
-@@ -74,6 +75,7 @@ static inline bool pks_enabled(void)
- static inline void pks_mk_noaccess(int pkey) {}
- static inline void pks_mk_readonly(int pkey) {}
- static inline void pks_mk_readwrite(int pkey) {}
-+static inline void pks_abandon_protections(int pkey) {}
  
  #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
- 
 -- 
 2.28.0.rc0.12.gb6a658bd00c9
 
