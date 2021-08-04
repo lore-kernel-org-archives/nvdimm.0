@@ -1,166 +1,76 @@
-Received: from out4436.biz.mail.alibaba.com (out4436.biz.mail.alibaba.com [47.88.44.36])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3440370
-	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:52:50 +0000 (UTC)
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=11;SR=0;TI=SMTPD_---0Uhw5or2_1628052749;
-Received: from B-P7TQMD6M-0146.local(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Uhw5or2_1628052749)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 04 Aug 2021 12:52:31 +0800
-Date: Wed, 4 Aug 2021 12:52:29 +0800
-From: Gao Xiang <hsiangkao@linux.alibaba.com>
-To: Chao Yu <chao@kernel.org>
-Cc: linux-erofs@lists.ozlabs.org, linux-fsdevel@vger.kernel.org,
-	nvdimm@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Liu Bo <bo.liu@linux.alibaba.com>,
-	Joseph Qi <joseph.qi@linux.alibaba.com>,
-	Liu Jiang <gerry@linux.alibaba.com>,
-	Huang Jianan <huangjianan@oppo.com>, Tao Ma <boyu.mt@taobao.com>
-Subject: Re: [PATCH v2 1/3] erofs: iomap support for non-tailpacking DIO
-Message-ID: <YQodDac58Uta4ZtR@B-P7TQMD6M-0146.local>
-Mail-Followup-To: Chao Yu <chao@kernel.org>, linux-erofs@lists.ozlabs.org,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	Liu Bo <bo.liu@linux.alibaba.com>,
-	Joseph Qi <joseph.qi@linux.alibaba.com>,
-	Liu Jiang <gerry@linux.alibaba.com>,
-	Huang Jianan <huangjianan@oppo.com>, Tao Ma <boyu.mt@taobao.com>
-References: <20210730194625.93856-1-hsiangkao@linux.alibaba.com>
- <20210730194625.93856-2-hsiangkao@linux.alibaba.com>
- <e79e3261-e582-e848-b550-c0c3163d9af4@kernel.org>
- <YQoX62zRERGX9BGB@B-P7TQMD6M-0146.local>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC12570
+	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 04:58:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+	:Reply-To:Content-ID:Content-Description;
+	bh=Mtg1AswyFwxPF9X4tI9/jd6V3tatlrDW5m8cofHfWUw=; b=dlkbK9YGk8If6axFFQUH5ic4HF
+	M67pvhar+aIIvNjcQLF87r/U8ZbOp0VYZRifD2yT6ohRQy2Q7Fee4unLa9NMbn1VJbbtlqkJHyXRg
+	iGB91UPIMYBQr/QJXGpCYBSNl/bGJBpS4z8WGm7SYlA/k05vu2pcoC4qn2+hXp1l42zkKxQ5fS8sh
+	xKinMbclqQw8loUpxNOBwJ4QfHcsHY+SUmYffLA4nAZHX7XCGXEI6XJhLfcT5E57XhjHWUOePLqjz
+	qWyA7bAWUbL1OU5kPWrYM6WugfRutbFgzXWZh12mjew9H1zgaXlEXGrEmW4jeNq54C15klUAYqmK+
+	YYlkka7w==;
+Received: from [2601:1c0:6280:3f0::aa0b]
+	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mB8yI-005QJb-4e; Wed, 04 Aug 2021 04:57:43 +0000
+Subject: Re: [PATCH V7 14/18] memremap_pages: Add memremap.pks_fault_mode
+To: ira.weiny@intel.com, Dave Hansen <dave.hansen@linux.intel.com>,
+ Dan Williams <dan.j.williams@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Peter Zijlstra <peterz@infradead.org>,
+ Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+ Fenghua Yu <fenghua.yu@intel.com>,
+ Rick Edgecombe <rick.p.edgecombe@intel.com>, x86@kernel.org,
+ linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org
+References: <20210804043231.2655537-1-ira.weiny@intel.com>
+ <20210804043231.2655537-15-ira.weiny@intel.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <2bbd7ce2-8d16-8724-5505-96a4731c3c45@infradead.org>
+Date: Tue, 3 Aug 2021 21:57:31 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.12.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YQoX62zRERGX9BGB@B-P7TQMD6M-0146.local>
+In-Reply-To: <20210804043231.2655537-15-ira.weiny@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 
-On Wed, Aug 04, 2021 at 12:30:35PM +0800, Gao Xiang wrote:
-> Hi Chao,
-> 
-> On Wed, Aug 04, 2021 at 10:57:08AM +0800, Chao Yu wrote:
-> > On 2021/7/31 3:46, Gao Xiang wrote:
-> 
-> ...
-> 
-> > >   }
-> > > +static int erofs_iomap_begin(struct inode *inode, loff_t offset, loff_t length,
-> > > +		unsigned int flags, struct iomap *iomap, struct iomap *srcmap)
-> > > +{
-> > > +	int ret;
-> > > +	struct erofs_map_blocks map;
-> > > +
-> > > +	map.m_la = offset;
-> > > +	map.m_llen = length;
-> > > +
-> > > +	ret = erofs_map_blocks_flatmode(inode, &map, EROFS_GET_BLOCKS_RAW);
-> > > +	if (ret < 0)
-> > > +		return ret;
-> > > +
-> > > +	iomap->bdev = inode->i_sb->s_bdev;
-> > > +	iomap->offset = map.m_la;
-> > > +	iomap->length = map.m_llen;
-> > > +	iomap->flags = 0;
-> > > +
-> > > +	if (!(map.m_flags & EROFS_MAP_MAPPED)) {
-> > > +		iomap->type = IOMAP_HOLE;
-> > > +		iomap->addr = IOMAP_NULL_ADDR;
-> > > +		if (!iomap->length)
-> > > +			iomap->length = length;
-> > 
-> > This only happens for the case offset exceeds isize?
-> 
-> Thanks for the review.
-> 
-> Yeah, this is a convention (length 0 with !EROFS_MAP_MAPPED) for post-EOF
-> in erofs_map_blocks_flatmode(), need to follow iomap rule as well.
-> 
-> > 
-> > > +		return 0;
-> > > +	}
-> > > +
-> > > +	/* that shouldn't happen for now */
-> > > +	if (map.m_flags & EROFS_MAP_META) {
-> > > +		DBG_BUGON(1);
-> > > +		return -ENOTBLK;
-> > > +	}
-> > > +	iomap->type = IOMAP_MAPPED;
-> > > +	iomap->addr = map.m_pa;
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +const struct iomap_ops erofs_iomap_ops = {
-> > > +	.iomap_begin = erofs_iomap_begin,
-> > > +};
-> > > +
-> > > +static int erofs_prepare_dio(struct kiocb *iocb, struct iov_iter *to)
-> > > +{
-> > > +	struct inode *inode = file_inode(iocb->ki_filp);
-> > > +	loff_t align = iocb->ki_pos | iov_iter_count(to) |
-> > > +		iov_iter_alignment(to);
-> > > +	struct block_device *bdev = inode->i_sb->s_bdev;
-> > > +	unsigned int blksize_mask;
-> > > +
-> > > +	if (bdev)
-> > > +		blksize_mask = (1 << ilog2(bdev_logical_block_size(bdev))) - 1;
-> > > +	else
-> > > +		blksize_mask = (1 << inode->i_blkbits) - 1;
-> > > +
-> > > +	if (align & blksize_mask)
-> > > +		return -EINVAL;
-> > > +
-> > > +	/*
-> > > +	 * Temporarily fall back tail-packing inline to buffered I/O instead
-> > > +	 * since tail-packing inline support relies on an iomap core update.
-> > > +	 */
-> > > +	if (EROFS_I(inode)->datalayout == EROFS_INODE_FLAT_INLINE &&
-> > > +	    iocb->ki_pos + iov_iter_count(to) >
-> > > +			rounddown(inode->i_size, EROFS_BLKSIZ))
-> > > +		return 1;
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static ssize_t erofs_file_read_iter(struct kiocb *iocb, struct iov_iter *to)
-> > > +{
-> > > +	/* no need taking (shared) inode lock since it's a ro filesystem */
-> > > +	if (!iov_iter_count(to))
-> > > +		return 0;
-> > > +
-> > > +	if (iocb->ki_flags & IOCB_DIRECT) {
-> > > +		int err = erofs_prepare_dio(iocb, to);
-> > > +
-> > > +		if (!err)
-> > > +			return iomap_dio_rw(iocb, to, &erofs_iomap_ops,
-> > > +					    NULL, 0);
-> > > +		if (err < 0)
-> > > +			return err;
-> > > +		/*
-> > > +		 * Fallback to buffered I/O if the operation being performed on
-> > > +		 * the inode is not supported by direct I/O. The IOCB_DIRECT
-> > > +		 * flag needs to be cleared here in order to ensure that the
-> > > +		 * direct I/O path within generic_file_read_iter() is not
-> > > +		 * taken.
-> > > +		 */
-> > > +		iocb->ki_flags &= ~IOCB_DIRECT;
-> > > +	}
-> > > +	return generic_file_read_iter(iocb, to);
-> > 
-> > It looks it's fine to call filemap_read() directly since above codes have
-> > covered DIO case, then we don't need to change iocb->ki_flags flag, it's
-> > minor though.
-> 
-> Yeah, we could use filemap_read() here instead. yet IMO, it might be
-> better to drop IOCB_DIRECT too to keep iocb consistent with the real
-> semantics (even it's not used internally.)
+On 8/3/21 9:32 PM, ira.weiny@intel.com wrote:
+> diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+> index bdb22006f713..7902fce7f1da 100644
+> --- a/Documentation/admin-guide/kernel-parameters.txt
+> +++ b/Documentation/admin-guide/kernel-parameters.txt
+> @@ -4081,6 +4081,20 @@
+>   	pirq=		[SMP,APIC] Manual mp-table setup
+>   			See Documentation/x86/i386/IO-APIC.rst.
+>   
+> +	memremap.pks_fault_mode=	[X86] Control the behavior of page map
+> +			protection violations.  Violations may not be an actual
+> +			use of the memory but simply an attempt to map it in an
+> +			incompatible way.
+> +			(depends on CONFIG_DEVMAP_ACCESS_PROTECTION
 
-After checking the other users of filemap_read(), I'm fine to leave
-IOCB_DIRECT as-is. Will update.
+Missing closing ')' above.
 
-Thanks,
-Gao Xiang
+> +
+> +			Format: { relaxed | strict }
+> +
+> +			relaxed - Print a warning, disable the protection and
+> +				  continue execution.
+> +			strict - Stop kernel execution via BUG_ON or fault
+> +
+> +			default: relaxed
+> +
+
+
+-- 
+~Randy
+
