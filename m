@@ -1,90 +1,90 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [216.205.24.124])
+Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F5F970
-	for <nvdimm@lists.linux.dev>; Wed,  4 Aug 2021 17:12:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1628097127;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=oSmR+/HijKgPwgA8IKqDoIEh2RdgQnMoqoL9TJOZ15I=;
-	b=ROXJHedIJvZAaDA9/xC+Y2OoNg7ky44ESya1kH9DZ462kbsDeZ+I8dgxLPLzR0pvklrPON
-	ACN36gjZ+iBzzugzOH71ZcH6F+Mz0HSAaV4gAilcLMrSVG2Au7SVj+DBcfLmMno0Wh6RlT
-	L08rrN5APmPoLsMkwNg+2sxUw1ySsbM=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-293-GgwxHg9uNQW68tPBnQC5eg-1; Wed, 04 Aug 2021 13:12:04 -0400
-X-MC-Unique: GgwxHg9uNQW68tPBnQC5eg-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 6A5A51084F55;
-	Wed,  4 Aug 2021 17:12:03 +0000 (UTC)
-Received: from segfault.boston.devel.redhat.com (segfault.boston.devel.redhat.com [10.19.60.26])
-	by smtp.corp.redhat.com (Postfix) with ESMTPS id 180494536;
-	Wed,  4 Aug 2021 17:12:03 +0000 (UTC)
-From: Jeff Moyer <jmoyer@redhat.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: nvdimm@lists.linux.dev,  vishal.l.verma@intel.com
-Subject: Re: [PATCH] tools/testing/nvdimm: Fix missing 'fallthrough' warning
-References: <162767522046.3313209.14767278726893995797.stgit@dwillia2-desk3.amr.corp.intel.com>
-X-PGP-KeyID: 1F78E1B4
-X-PGP-CertKey: F6FE 280D 8293 F72C 65FD  5A58 1FF8 A7CA 1F78 E1B4
-Date: Wed, 04 Aug 2021 13:13:28 -0400
-In-Reply-To: <162767522046.3313209.14767278726893995797.stgit@dwillia2-desk3.amr.corp.intel.com>
-	(Dan Williams's message of "Fri, 30 Jul 2021 13:00:20 -0700")
-Message-ID: <x49h7g5t9on.fsf@segfault.boston.devel.redhat.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7666D70
+	for <nvdimm@lists.linux.dev>; Thu,  5 Aug 2021 00:36:19 +0000 (UTC)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R101e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=12;SR=0;TI=SMTPD_---0Ui.Crlc_1628123764;
+Received: from e18g09479.et15sqa.tbsite.net(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Ui.Crlc_1628123764)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Thu, 05 Aug 2021 08:36:15 +0800
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+To: linux-erofs@lists.ozlabs.org
+Cc: linux-fsdevel@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Chao Yu <chao@kernel.org>,
+	Liu Bo <bo.liu@linux.alibaba.com>,
+	Joseph Qi <joseph.qi@linux.alibaba.com>,
+	Liu Jiang <gerry@linux.alibaba.com>,
+	Huang Jianan <huangjianan@oppo.com>,
+	Tao Ma <boyu.mt@taobao.com>,
+	Gao Xiang <hsiangkao@linux.alibaba.com>
+Subject: [PATCH v3 0/3] erofs: iomap support for uncompressed cases
+Date: Thu,  5 Aug 2021 08:35:58 +0800
+Message-Id: <20210805003601.183063-1-hsiangkao@linux.alibaba.com>
+X-Mailer: git-send-email 2.24.4
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=jmoyer@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Dan Williams <dan.j.williams@intel.com> writes:
+Hi folks,
 
-> Use "fallthrough;" to address:
->
-> tools/testing/nvdimm/test/nfit.c: In function =E2=80=98nd_intel_test_fini=
-sh_query=E2=80=99:
-> tools/testing/nvdimm/test/nfit.c:436:37: warning: this statement may
-> =09fall through [-Wimplicit-fallthrough=3D]
->   436 |                 fw->missed_activate =3D false;
->       |                 ~~~~~~~~~~~~~~~~~~~~^~~~~~~
-> tools/testing/nvdimm/test/nfit.c:438:9: note: here
->   438 |         case FW_STATE_UPDATED:
->       |         ^~~~
->
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  tools/testing/nvdimm/test/nfit.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test=
-/nfit.c
-> index 54f367cbadae..b1bff5fb0f65 100644
-> --- a/tools/testing/nvdimm/test/nfit.c
-> +++ b/tools/testing/nvdimm/test/nfit.c
-> @@ -434,7 +434,7 @@ static int nd_intel_test_finish_query(struct nfit_tes=
-t *t,
->  =09=09dev_dbg(dev, "%s: transition out verify\n", __func__);
->  =09=09fw->state =3D FW_STATE_UPDATED;
->  =09=09fw->missed_activate =3D false;
-> -=09=09/* fall through */
-> +=09=09fallthrough;
->  =09case FW_STATE_UPDATED:
->  =09=09nd_cmd->status =3D 0;
->  =09=09/* bogus test version */
+This patchset mainly adds EROFS iomap support for uncompressed cases
+I've planed for the next merge window.
 
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+The first 2 patches mainly deal with 2 new cases:
+1) Direct I/O is useful in certain scenarios for uncompressed files.
+For example, double pagecache can be avoid by direct I/O when loop
+device is used for uncompressed files containing upper layer
+compressed filesystem.
+
+2) DAX is quite useful for some container use cases in order to save
+guest memory extremely by using the minimal lightweight EROFS image.
+BTW, a bit more off this iomap topic, chunk-deduplicated regfile
+support is almost available (blob data support) for multi-layer
+container image use cases (aka. called RAFS v6, nydus [1] will support
+RAFS v6 (EROFS-compatible format) in the future and form a unified
+high-performance container image solution, which will be announced
+formally independently), which is also a small independent update.
+
+The last patch relies on the previous iomap core update in order to
+convert tail-packing inline files into iomap, thus all uncompressed
+cases are handled with iomap properly.
+
+Comments are welcome. Thanks for your time on reading this!
+
+Thanks,
+Gao Xiang
+
+[1] https://github.com/dragonflyoss/image-service
+
+changes since v2 (Chao):
+ - use filemap_read() instead;
+ - slightly adjust the order of a hunk in erofs_fill_inode();
+ - update brief documentation for dax option;
+ - use fs_put_dax() directly w/o NULL check;
+ - add a missing error handling for erofs_get_meta_page().
+
+Gao Xiang (2):
+  erofs: dax support for non-tailpacking regular file
+  erofs: convert all uncompressed cases to iomap
+
+Huang Jianan (1):
+  erofs: iomap support for non-tailpacking DIO
+
+ Documentation/filesystems/erofs.rst |   2 +
+ fs/erofs/Kconfig                    |   1 +
+ fs/erofs/data.c                     | 338 ++++++++++++----------------
+ fs/erofs/inode.c                    |   9 +-
+ fs/erofs/internal.h                 |   4 +
+ fs/erofs/super.c                    |  59 ++++-
+ 6 files changed, 213 insertions(+), 200 deletions(-)
+
+-- 
+2.24.4
 
