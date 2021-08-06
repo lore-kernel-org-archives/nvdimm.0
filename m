@@ -1,33 +1,35 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5F46470
-	for <nvdimm@lists.linux.dev>; Fri,  6 Aug 2021 03:21:01 +0000 (UTC)
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AYYFE2KH4/Yw8RE4tpLqE1MeALOsnbusQ8zAX?=
- =?us-ascii?q?PiFKOHhom6mj+vxG88506faKslwssR0b+OxoW5PwJE80l6QFgrX5VI3KNGbbUQ?=
- =?us-ascii?q?CTXeNfBOXZowHIKmnX8+5x8eNaebFiNduYNzNHpPe/zA6mM9tI+rW6zJw=3D?=
-X-IronPort-AV: E=Sophos;i="5.84,299,1620662400"; 
-   d="scan'208";a="112483857"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 06 Aug 2021 11:20:52 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 6ED5B4D0D4A5;
-	Fri,  6 Aug 2021 11:20:47 +0800 (CST)
-Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Fri, 6 Aug 2021 11:20:47 +0800
-Received: from [192.168.122.212] (10.167.226.45) by
- G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Fri, 6 Aug 2021 11:20:47 +0800
-Subject: Re: RDMA/rpma + fsdax(ext4) was broken since 36f30e486d
-To: Jason Gunthorpe <jgg@ziepe.ca>, <nvdimm@lists.linux.dev>
-CC: Yishai Hadas <yishaih@nvidia.com>, <linux-rdma@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, =?UTF-8?B?WWFuZywgWGlhby/mnagg5pmT?=
-	<yangx.jy@fujitsu.com>
-References: <8b2514bb-1d4b-48bb-a666-85e6804fbac0@cn.fujitsu.com>
- <68169bc5-075f-8260-eedc-80fdf4b0accd@cn.fujitsu.com>
- <20210806014559.GM543798@ziepe.ca>
-From: =?UTF-8?B?TGksIFpoaWppYW4v5p2OIOaZuuWdmg==?= <lizhijian@cn.fujitsu.com>
-Message-ID: <b5e6c4cd-8842-59ef-c089-2802057f3202@cn.fujitsu.com>
-Date: Fri, 6 Aug 2021 11:20:46 +0800
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A68A70
+	for <nvdimm@lists.linux.dev>; Fri,  6 Aug 2021 09:12:38 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ECDA16113C;
+	Fri,  6 Aug 2021 09:12:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1628241158;
+	bh=gVfakN+vVEJEkHVwWBvwIWcsbdvB9+grIspJr8mNPEU=;
+	h=Subject:To:References:From:Date:In-Reply-To:From;
+	b=Y+v10eWW1J89wUgq2yYaMGLzvwigXh/mmmmi9nVT//xG34nNrbe1IZkeBEVWz/8dI
+	 rToriWczbHQ6NH3KF8P375IE+zqapbU12B+we/ctGGbTy0nRUFtUsY6+d+7uKsmKKw
+	 w5Y4b4iEE7Ux/SwRRxl8iO/ES3cYyuv5n/Dei1BTtb8jZBXB+Mre5aVWMhermYLoRH
+	 0Tk3sfqfsvGChV2RseF5eF3vuewwbE/wqJO3N516fpFY5zJ7dgJzuVwoGCrezscflH
+	 U+NA4mkpd2cg1WsjaNztiAF1bOHjOT5ytPU2Ia9O7lFU9vIPBj1YhnO2lxo/Thbmhj
+	 y2MDDAqyFA01A==
+Subject: Re: [PATCH v3 2/3] erofs: dax support for non-tailpacking regular
+ file
+To: linux-erofs@lists.ozlabs.org, linux-fsdevel@vger.kernel.org,
+ nvdimm@lists.linux.dev, LKML <linux-kernel@vger.kernel.org>,
+ "Darrick J. Wong" <djwong@kernel.org>, Liu Bo <bo.liu@linux.alibaba.com>,
+ Joseph Qi <joseph.qi@linux.alibaba.com>, Liu Jiang
+ <gerry@linux.alibaba.com>, Huang Jianan <huangjianan@oppo.com>,
+ Tao Ma <boyu.mt@taobao.com>
+References: <20210805003601.183063-1-hsiangkao@linux.alibaba.com>
+ <20210805003601.183063-3-hsiangkao@linux.alibaba.com>
+ <7aa650b8-a853-368d-7a81-f435194eec33@kernel.org>
+ <YQtZ+CtvB3P+7Xim@B-P7TQMD6M-0146.local>
+From: Chao Yu <chao@kernel.org>
+Message-ID: <2bdaab77-c219-3f42-f50d-2af856386006@kernel.org>
+Date: Fri, 6 Aug 2021 17:12:34 +0800
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
  Thunderbird/78.12.0
 Precedence: bulk
@@ -36,79 +38,24 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20210806014559.GM543798@ziepe.ca>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 6ED5B4D0D4A5.AD4A0
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: lizhijian@fujitsu.com
-X-Spam-Status: No
+In-Reply-To: <YQtZ+CtvB3P+7Xim@B-P7TQMD6M-0146.local>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 
-Hi Jason
+Xiang,
 
-thank you for your advice.
+On 2021/8/5 11:24, Gao Xiang wrote:
+> Thanks, it originally inherited from filesystems/ext2.rst, I will update
+> this into
+> dax, dax={always,never}      .....
 
-CCing nvdimm
+Above change looks fine to me, thanks.
 
-both ext4 and xfs are impacted.
+> 
+> Since for such image vm-shared memory scenario, no need to add per-file
+> DAX (at least for now.)
 
-Thanks
+Agreed.
 
-
-at 2021/8/6 9:45, Jason Gunthorpe wrote:
-> On Wed, Aug 04, 2021 at 04:06:53PM +0800, Li, Zhijian/李 智坚 wrote:
->> convert to text and send again
->>
->> 2021/8/4 15:55, Li, Zhijian wrote:
->>> Hey all:
->>>
->>> Recently, i reported a issue to rpmahttps://github.com/pmem/rpma/issues/1142
->>> where we found that the native rpma + fsdax example failed in recent kernel.
->>>
->>> Below is the bisect log
->>>
->>> [lizhijian@yl linux]$ git bisect log
->>> git bisect start
->>> # good: [bbf5c979011a099af5dc76498918ed7df445635b] Linux 5.9
->>> git bisect good bbf5c979011a099af5dc76498918ed7df445635b
->>> # bad: [2c85ebc57b3e1817b6ce1a6b703928e113a90442] Linux 5.10
->>> git bisect bad 2c85ebc57b3e1817b6ce1a6b703928e113a90442
->>> # good: [4d0e9df5e43dba52d38b251e3b909df8fa1110be] lib, uaccess: add failure injection to usercopy functions
->>> git bisect good 4d0e9df5e43dba52d38b251e3b909df8fa1110be
->>> # bad: [6694875ef8045cdb1e6712ee9b68fe08763507d8] ext4: indicate that fast_commit is available via /sys/fs/ext4/feature/...
->>> git bisect bad 6694875ef8045cdb1e6712ee9b68fe08763507d8
->>> # good: [14c914fcb515c424177bb6848cc2858ebfe717a8] Merge tag 'wireless-drivers-next-2020-10-02' of git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers-next
->>> git bisect good 14c914fcb515c424177bb6848cc2858ebfe717a8
->>> # good: [6f78b9acf04fbf9ede7f4265e7282f9fb39d2c8c] Merge tag 'mtd/for-5.10' of git://git.kernel.org/pub/scm/linux/kernel/git/mtd/linux
->>> git bisect good 6f78b9acf04fbf9ede7f4265e7282f9fb39d2c8c
->>> # bad: [bbe85027ce8019c73ab99ad1c2603e2dcd1afa49] Merge tag 'xfs-5.10-merge-5' of git://git.kernel.org/pub/scm/fs/xfs/xfs-linux
->>> git bisect bad bbe85027ce8019c73ab99ad1c2603e2dcd1afa49
->>> # bad: [9d9af1007bc08971953ae915d88dc9bb21344b53] Merge tag 'perf-tools-for-v5.10-2020-10-15' of git://git.kernel.org/pub/scm/linux/kernel/git/acme/linux
->>> git bisect bad 9d9af1007bc08971953ae915d88dc9bb21344b53
->>> # good: [21c2fe94abb2abe894e6aabe6b4e84a255c8d339] RDMA/mthca: Combine special QP struct with mthca QP
->>> git bisect good 21c2fe94abb2abe894e6aabe6b4e84a255c8d339
->>> # good: [dbaa1b3d9afba3c050d365245a36616ae3f425a7] Merge branch 'perf/urgent' into perf/core
->>> git bisect good dbaa1b3d9afba3c050d365245a36616ae3f425a7
->>> # bad: [c7a198c700763ac89abbb166378f546aeb9afb33] RDMA/ucma: Fix use after free in destroy id flow
->>> git bisect bad c7a198c700763ac89abbb166378f546aeb9afb33
->>> # bad: [5ce2dced8e95e76ff7439863a118a053a7fc6f91] RDMA/ipoib: Set rtnl_link_ops for ipoib interfaces
->>> git bisect bad 5ce2dced8e95e76ff7439863a118a053a7fc6f91
->>> # bad: [a03bfc37d59de316436c46f5691c5a972ed57c82] RDMA/mlx5: Sync device with CPU pages upon ODP MR registration
->>> git bisect bad a03bfc37d59de316436c46f5691c5a972ed57c82
->>> # good: [a6f0b08dbaf289c3c57284e16ac8043140f2139b] RDMA/core: Remove ucontext->closing
->>> git bisect good a6f0b08dbaf289c3c57284e16ac8043140f2139b
->>> # bad: [36f30e486dce22345c2dd3a3ba439c12cd67f6ba] IB/core: Improve ODP to use hmm_range_fault()
->>> git bisect bad 36f30e486dce22345c2dd3a3ba439c12cd67f6ba
->>> # good: [2ee9bf346fbfd1dad0933b9eb3a4c2c0979b633e] RDMA/addr: Fix race with netevent_callback()/rdma_addr_cancel()
->>> git bisect good 2ee9bf346fbfd1dad0933b9eb3a4c2c0979b633e
->>> # first bad commit: [36f30e486dce22345c2dd3a3ba439c12cd67f6ba] IB/core: Improve ODP to use hmm_range_fault()
-> This is perhaps not so surprising, but I think you should report it to
-> the dax people that hmm_range_fault and dax don't work together..
->
-> Though I think it is supposed to, and I'm surprised it doesn't.
->
-> Jason
->
->
-
-
+Thanks,
