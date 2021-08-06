@@ -1,180 +1,114 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73E9C70
-	for <nvdimm@lists.linux.dev>; Fri,  6 Aug 2021 01:17:48 +0000 (UTC)
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 1761FvMR005072;
-	Fri, 6 Aug 2021 01:17:41 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=Bc2OsMkTTEIJAi0qZqEWWTBMYo5myKA29oToKSgEeR4=;
- b=Wa3MhiycJFJIitwqW+3DhCf3MfPHdlK3KSl/6rGiBpL1K1ozktDvdJ+gXf1pkbzYRxTO
- ke0E1mDD5AsM/y+s2qy08LPrYG+4anbZqtpv9ZDZbLTfOCBN7L/EMJmdxZ0Nj2JA6qS0
- dvxcnH3Vbp8aw9VeT+71iI6HmGbyj9iF+3HlsXcSrmxBmizUBg82M09Tg0b9lUPBsfb1
- c3jdRmfBxyxNKL9uJvoDMTe+0Vrc9FxZu0SGdxI/om3GRFSaVMcjwyj2VeCvDX4KkzCm
- A+awImwSDWLAGTvpao/a4UUMlaRzBGcUgvNb6GNfChY5mVV+9MuCHqh+7soTX5tvMtDE 8A== 
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
- references : from : message-id : date : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2020-01-29;
- bh=Bc2OsMkTTEIJAi0qZqEWWTBMYo5myKA29oToKSgEeR4=;
- b=pnDXPI7KAHF18nwsWe4hbpOuVfE69n5l3XPJpCqdfU46t4VFtGsAPmoQkTNm/kjrEsl0
- CrIXj4plHttXW6uHlMQ1EVHHihl9PeTM/50eaN9fmptk+7ju1e28xrV+FAJup704iZE5
- SdWAjbd8fmv5V+kq2aU6jUG5ed8FUTqkNz2hZsHXiSxsjZ/qBRK6De1pOOZyd+2rXgYx
- tId4Lbi4ZNhU9yVcS1RiJxvfpu+yOA/e3O3JcgG1H7LO7gVVdhutxz2oUG++HmoEJW5F
- FDmLNzn730Y8juDIRmRxs/lPf505fOV50vBnRWszVtwrwR2HcqkGlnlGGrM9lvNrH7t3 Hg== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3a7aq0e2rv-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 06 Aug 2021 01:17:41 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 1761FgY7161090;
-	Fri, 6 Aug 2021 01:17:39 GMT
-Received: from nam10-dm6-obe.outbound.protection.outlook.com (mail-dm6nam10lp2103.outbound.protection.outlook.com [104.47.58.103])
-	by userp3030.oracle.com with ESMTP id 3a4un4u2pn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 06 Aug 2021 01:17:39 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=EuCJOjFNmZ6idrf7rvxWtE61tpimosNg2iWknXMT56LD2964rCb3s4tJov+0N9rV+J6wi/B1zAd0bz9QBDlsXkCAqPP7oMoXjwXRtLpgPZh3+k8pKR/+mzlgpIbzDufnTHz50Y98aFWvjCmf75sZIjl09xAQkvJ+fy3ebYUeNpeaQoebjUYe1R4MEkuWGn7vlioic1Qo82QJgPapuHn+i69QvP6Ppuj2FnObrtwtbEtFp7jIxtM1DRsaKdMQPu4xnYWijiEAzt7QlxAGB0RK3xrxGAAvXe5KZY64HCd4cET+AvtPI0bib9xJvQw/CD9W2Hk+gkaCW8wOImHfMZjP+w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Bc2OsMkTTEIJAi0qZqEWWTBMYo5myKA29oToKSgEeR4=;
- b=IPVoIfttXG6D5H7Wgmh8u32w9zjJhptM/OcyKh0zICtmUMeOQiMwONfS8VKieCK6bHv5/hPTJBjVET0b08ToT5x1rC3m9m2VyIdMYAaWxGUHRUo0oomOmnKmjkxrkeOszDkfLYWmA1q2umffzBiOrEfgzWsNr18wURZtsmA/D77L2L2hwkNyHVIV4zkX0Dg4JE34ZDSv5gqxnrXaUuV6En5p6D1wIHGcc5y6agS8l5XZPN+JLmUJR8+XnpVMmHpx+Uu4nswUZejjTZMWWLwN5DvmFF+rSYITkBEKpyEjQzcN16YiLmCEwpxTNYLRvsLwUHUA12pFSa7FdUSPpH7H8g==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Bc2OsMkTTEIJAi0qZqEWWTBMYo5myKA29oToKSgEeR4=;
- b=sv8324DSefGqpveIEBeDT6wFX8GOit/7Cx6l8g0rGQCKdkH5190Eys0j7y53WXm0iMfJqvpetQ3ekxb5aJGUd5/LMkdc43sjoduejv3UkKqpLJriVqrQINPWpmvMCWeYI3ZnK/fE0WFPvLVse+X5eZLVowubMTrR3MtNyIgfcpU=
-Authentication-Results: redhat.com; dkim=none (message not signed)
- header.d=none;redhat.com; dmarc=none action=none header.from=oracle.com;
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by BYAPR10MB2759.namprd10.prod.outlook.com (2603:10b6:a02:b5::19) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.25; Fri, 6 Aug
- 2021 01:17:37 +0000
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::51f7:787e:80e5:6434]) by SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::51f7:787e:80e5:6434%3]) with mapi id 15.20.4373.027; Fri, 6 Aug 2021
- 01:17:37 +0000
-Subject: Re: [PATCH RESEND v6 1/9] pagemap: Introduce ->memory_failure()
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
-        linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org,
-        linux-fsdevel@vger.kernel.org, dm-devel@redhat.com
-Cc: djwong@kernel.org, dan.j.williams@intel.com, david@fromorbit.com,
-        hch@lst.de, agk@redhat.com, snitzer@redhat.com
-References: <20210730100158.3117319-1-ruansy.fnst@fujitsu.com>
- <20210730100158.3117319-2-ruansy.fnst@fujitsu.com>
-From: Jane Chu <jane.chu@oracle.com>
-Organization: Oracle Corporation
-Message-ID: <1d286104-28f4-d442-efed-4344eb8fa5a1@oracle.com>
-Date: Thu, 5 Aug 2021 18:17:33 -0700
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 5F46470
+	for <nvdimm@lists.linux.dev>; Fri,  6 Aug 2021 03:21:01 +0000 (UTC)
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AYYFE2KH4/Yw8RE4tpLqE1MeALOsnbusQ8zAX?=
+ =?us-ascii?q?PiFKOHhom6mj+vxG88506faKslwssR0b+OxoW5PwJE80l6QFgrX5VI3KNGbbUQ?=
+ =?us-ascii?q?CTXeNfBOXZowHIKmnX8+5x8eNaebFiNduYNzNHpPe/zA6mM9tI+rW6zJw=3D?=
+X-IronPort-AV: E=Sophos;i="5.84,299,1620662400"; 
+   d="scan'208";a="112483857"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 06 Aug 2021 11:20:52 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 6ED5B4D0D4A5;
+	Fri,  6 Aug 2021 11:20:47 +0800 (CST)
+Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Fri, 6 Aug 2021 11:20:47 +0800
+Received: from [192.168.122.212] (10.167.226.45) by
+ G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Fri, 6 Aug 2021 11:20:47 +0800
+Subject: Re: RDMA/rpma + fsdax(ext4) was broken since 36f30e486d
+To: Jason Gunthorpe <jgg@ziepe.ca>, <nvdimm@lists.linux.dev>
+CC: Yishai Hadas <yishaih@nvidia.com>, <linux-rdma@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, =?UTF-8?B?WWFuZywgWGlhby/mnagg5pmT?=
+	<yangx.jy@fujitsu.com>
+References: <8b2514bb-1d4b-48bb-a666-85e6804fbac0@cn.fujitsu.com>
+ <68169bc5-075f-8260-eedc-80fdf4b0accd@cn.fujitsu.com>
+ <20210806014559.GM543798@ziepe.ca>
+From: =?UTF-8?B?TGksIFpoaWppYW4v5p2OIOaZuuWdmg==?= <lizhijian@cn.fujitsu.com>
+Message-ID: <b5e6c4cd-8842-59ef-c089-2802057f3202@cn.fujitsu.com>
+Date: Fri, 6 Aug 2021 11:20:46 +0800
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
  Thunderbird/78.12.0
-In-Reply-To: <20210730100158.3117319-2-ruansy.fnst@fujitsu.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BY5PR17CA0066.namprd17.prod.outlook.com
- (2603:10b6:a03:167::43) To SJ0PR10MB4429.namprd10.prod.outlook.com
- (2603:10b6:a03:2d1::14)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from [192.168.1.70] (108.226.113.12) by BY5PR17CA0066.namprd17.prod.outlook.com (2603:10b6:a03:167::43) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4394.15 via Frontend Transport; Fri, 6 Aug 2021 01:17:36 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: c7c5cec6-3247-4400-201b-08d95877fa1a
-X-MS-TrafficTypeDiagnostic: BYAPR10MB2759:
-X-Microsoft-Antispam-PRVS: 
-	<BYAPR10MB2759C9D650ACA2AC0DDED94FF3F39@BYAPR10MB2759.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	HKhk0KoBWdg43/Kxl9So08KHqd6H/PuqHPERjTYq/qfZ521Snu2M9I4l8uzZjmKU9fzd2DpeVTHFAMXDDcNMATAXUCqSAEXPyOfRie4yabWoLZ5a7ZHLqUYy6HfIwsX9oaD4FBoz844IlOLJxaC2fb0PQLu0llZ4Ytz+iCekOtS6xwsJ4tEbp35wfIa2SDJq1W2COAXsSX3d+AgRYzqa4GtiGT14qcEzciixPe6N5qhm3yhhTLQIpmYMjiHsyf3QNDRGQpTVWPJR+/xH+AG7ofLkoJO254AkpBrrfbf0GF1h11zUYJ+B0qITF8J2TMq9eftocU4dnLS01eGPnTwbiFh7qCaA7JpnwfrUTRFhAtcaRxT3/UIIWKhpGAWxa8ipkAIXuUdwoqpXSrdWNw+09Irb51bXxQr30KnYZXPh/zkPST30zdUAFN08P+VL3XXw/mwA/C0sUG2g9emQA6J0+dpYXeEoUgJzrEzsN7JQSG9ZAu1W21ccGmZwlI70iI784FHraIHLGcEVQy8iuSdUc7evmkCGPc37T04h/XKXpkG9b1Z7GXiarwVIKyaewcJqYrTOfIsLrwBAdlxAzT2viEcx8YTzkTNZUuBJwNexhHfCf/krf6v7X40FB5C3aEC5QvmpxUxkimpxAAqB/piLcgUi+hhNh47NLsWSZyDhml51Sa1sCKNgpgT45IlldLPTyIyCnpUcQhQC8oIjbOvoByS2n6dXMLSrlVgaid2kFxc=
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(346002)(136003)(39860400002)(366004)(396003)(376002)(478600001)(6666004)(38100700002)(31686004)(8936002)(2906002)(6486002)(8676002)(4326008)(7416002)(36756003)(16576012)(44832011)(5660300002)(316002)(956004)(31696002)(66946007)(66556008)(66476007)(36916002)(2616005)(83380400001)(186003)(86362001)(53546011)(26005)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?dFdpYllmN1Jxa2kzVGN0UjFZTjdQa1oxT0JNUEpDRlBZN2VEb0t3VU9xUzN5?=
- =?utf-8?B?cTZxZmxBR3JiUDU3Z2p2T2o3bXU1UDhaWVEzTFcyNUxpSHJxdGFNd2NTcUZz?=
- =?utf-8?B?UjBCMzBpRVFrYTdaR3RnTFNZOFBPUEVJWnpVOWh2Tk1FVEdGVnVFRlNOK0JT?=
- =?utf-8?B?WHBQTnk2VHRFQjdCdE5aNEdMbW1SdzdVTjM5YjErYVFNcWFFTW9xby9lRVJC?=
- =?utf-8?B?UTRNYmJvZGMrdUFEMmZEVjVZSUc2LzREMVdBbWdxU3VnV3BNOE0rSnN5bElP?=
- =?utf-8?B?c2lJQStFTVlhK2RBODd3bEFMbjUveStpMzd1dE1saFpUYlVBcmMzczRobFlp?=
- =?utf-8?B?YXNTUTRVamIxNjVaNnkrRHc2ZFQ0RTJVMytscHVHcFQwUFJoa3ZxNTE5NGVP?=
- =?utf-8?B?OEgvTlRhcHlHbVFFMVEwcE5wbGIyOW1rbDUzL1MwZEROR0FRczJqUmdrVXQ5?=
- =?utf-8?B?d1dnZEY5c1pvWjhQbzA5blUrNlRacllrTTVnR2NQNndqWktzUzRacXdrZFBH?=
- =?utf-8?B?V0ZSYU5wSWpSVVg0YXdTQ2JjK3ZMN3BtQTlJczNRWWJ5andaOTNDNkp1UDJP?=
- =?utf-8?B?djliRjR6QXR0MkNpTDF5bHFuL240ZklnRU1NREZMck9QRGExN2Zpak9rNmlG?=
- =?utf-8?B?UENxYXFyUzdBRlpySEFBTWg4Zyt6VXM4STZkdHpYakQrT1JReEZSS2h1YktY?=
- =?utf-8?B?ZFNtMzA3cTl6OS82YkNRZ05HTU5nS2h3ZVBiZUZJNWloODR1TnNpVHJmM2xC?=
- =?utf-8?B?NHduSjZaZ0t6YmtVc2FmTEtiQlhhdHVUTkxpUjVaRkR4ZmUvNDdHT21DczRB?=
- =?utf-8?B?QlNrNXM5WE5MTGx2Wi8zK2RVWWEzR2lvbnBZeC9mVVQ0QVF1SEdkSnVlOWo4?=
- =?utf-8?B?QXVkSDFtNVlRVnk0MnNkUTZlVmxnb1VZQzQ0bytKVTFCRDBOWSs2UVhTYTgv?=
- =?utf-8?B?M1dLdWFCODY1ZDV0RTFxOFVrRGN0aUxXeWFUTnVjNEh5SVFCTElYZXJLQXFI?=
- =?utf-8?B?QkM2WEd3Szg4U2hMeXY2ajd1ZkZ6NzlHZmQyenBTRTltUTNoTGpXa1pYS2E3?=
- =?utf-8?B?MDFqblVOOXNLSkdvSXRWcUpFVEVvaFAxVmFZVWthQTJwZkttWWlwWFkwNU9M?=
- =?utf-8?B?MVoybVlwTXJBcUQxaWFIT3hVZVpiWTlZenN1cUtpMmlDamVvSm0rbGJacEYz?=
- =?utf-8?B?MncxSlc3RldWTWl3UExWNWtXZjFhL1QyNS82aS9sWGprOUk1c0lVaEIxN0c3?=
- =?utf-8?B?YUFKOStZY0h1dlozWTVOb05PbEpqL2NpOWlRd09wNGpuRWJTYTlNNHliM1pD?=
- =?utf-8?B?eFVITkZ3cmR0K09BLzB3ckJCaElKbkZvZ0JmaGNKQUR5ckY0cG1ZU0U3VVJW?=
- =?utf-8?B?d29WeUxsU1ltbXVvWXA0WFNWU1Q2cW5IWStyazVpeEwybjg3WGsxVUxMajV3?=
- =?utf-8?B?SE92OURrSHovMW1UWEMrTGRrZW1vdjhYY21HOWFrV21kU3IyV0VxNXRyc2dj?=
- =?utf-8?B?ajc2ZjFiV3JIajNsc1M2TjNzVEJTcVZwMHZrMTh5NmxKdWwxVUxOYndVRVd6?=
- =?utf-8?B?MEJTRVgxK1FOZjVpcGZoRFFrRlB1YjZGWSs0YnRZYXVaaFJuWFQ5dGQrcTEw?=
- =?utf-8?B?Z1ZIeE81cm1VakdRTitiK0JwWkVMbVVqK1l6b0NPL2VTM0lBcWgzQ01zY3Ez?=
- =?utf-8?B?YmZLVENjSklrTGc2TjlRYUdFeUJXRGZQV1UyT2hoRk0zT1hQZjhEc0I3d1Fr?=
- =?utf-8?Q?UZLRS7Tv5GqWE9D1xN+EhyjoAVbNzHuiv1+Huvj?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: c7c5cec6-3247-4400-201b-08d95877fa1a
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 06 Aug 2021 01:17:37.1975
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: TJ0UFJfnHxTubhg2VDGW1SixkmdGceu5m4D7eU9i/P9BWO8HHYmihmdDVYgsaGdXIMjZBHFmSh6mdmQaq5lTkQ==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR10MB2759
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=10067 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 phishscore=0 malwarescore=0
- suspectscore=0 mlxscore=0 adultscore=0 mlxlogscore=999 spamscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2107140000
- definitions=main-2108060006
-X-Proofpoint-ORIG-GUID: iwqIXf6cCbK537Zcio4y0mLUaJ0KmU09
-X-Proofpoint-GUID: iwqIXf6cCbK537Zcio4y0mLUaJ0KmU09
+In-Reply-To: <20210806014559.GM543798@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-yoursite-MailScanner-ID: 6ED5B4D0D4A5.AD4A0
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: lizhijian@fujitsu.com
+X-Spam-Status: No
 
-The filesystem part of the pmem failure handling is at minimum built
-on PAGE_SIZE granularity - an inheritance from general memory_failure 
-handling.  However, with Intel's DCPMEM technology, the error blast
-radius is no more than 256bytes, and might get smaller with future
-hardware generation, also advanced atomic 64B write to clear the poison.
-But I don't see any of that could be incorporated in, given that the
-filesystem is notified a corruption with pfn, rather than an exact
-address.
+Hi Jason
 
-So I guess this question is also for Dan: how to avoid unnecessarily
-repairing a PMD range for a 256B corrupt range going forward?
+thank you for your advice.
 
-thanks,
--jane
+CCing nvdimm
+
+both ext4 and xfs are impacted.
+
+Thanks
 
 
-On 7/30/2021 3:01 AM, Shiyang Ruan wrote:
-> When memory-failure occurs, we call this function which is implemented
-> by each kind of devices.  For the fsdax case, pmem device driver
-> implements it.  Pmem device driver will find out the filesystem in which
-> the corrupted page located in.  And finally call filesystem handler to
-> deal with this error.
-> 
-> The filesystem will try to recover the corrupted data if necessary.
+at 2021/8/6 9:45, Jason Gunthorpe wrote:
+> On Wed, Aug 04, 2021 at 04:06:53PM +0800, Li, Zhijian/李 智坚 wrote:
+>> convert to text and send again
+>>
+>> 2021/8/4 15:55, Li, Zhijian wrote:
+>>> Hey all:
+>>>
+>>> Recently, i reported a issue to rpmahttps://github.com/pmem/rpma/issues/1142
+>>> where we found that the native rpma + fsdax example failed in recent kernel.
+>>>
+>>> Below is the bisect log
+>>>
+>>> [lizhijian@yl linux]$ git bisect log
+>>> git bisect start
+>>> # good: [bbf5c979011a099af5dc76498918ed7df445635b] Linux 5.9
+>>> git bisect good bbf5c979011a099af5dc76498918ed7df445635b
+>>> # bad: [2c85ebc57b3e1817b6ce1a6b703928e113a90442] Linux 5.10
+>>> git bisect bad 2c85ebc57b3e1817b6ce1a6b703928e113a90442
+>>> # good: [4d0e9df5e43dba52d38b251e3b909df8fa1110be] lib, uaccess: add failure injection to usercopy functions
+>>> git bisect good 4d0e9df5e43dba52d38b251e3b909df8fa1110be
+>>> # bad: [6694875ef8045cdb1e6712ee9b68fe08763507d8] ext4: indicate that fast_commit is available via /sys/fs/ext4/feature/...
+>>> git bisect bad 6694875ef8045cdb1e6712ee9b68fe08763507d8
+>>> # good: [14c914fcb515c424177bb6848cc2858ebfe717a8] Merge tag 'wireless-drivers-next-2020-10-02' of git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers-next
+>>> git bisect good 14c914fcb515c424177bb6848cc2858ebfe717a8
+>>> # good: [6f78b9acf04fbf9ede7f4265e7282f9fb39d2c8c] Merge tag 'mtd/for-5.10' of git://git.kernel.org/pub/scm/linux/kernel/git/mtd/linux
+>>> git bisect good 6f78b9acf04fbf9ede7f4265e7282f9fb39d2c8c
+>>> # bad: [bbe85027ce8019c73ab99ad1c2603e2dcd1afa49] Merge tag 'xfs-5.10-merge-5' of git://git.kernel.org/pub/scm/fs/xfs/xfs-linux
+>>> git bisect bad bbe85027ce8019c73ab99ad1c2603e2dcd1afa49
+>>> # bad: [9d9af1007bc08971953ae915d88dc9bb21344b53] Merge tag 'perf-tools-for-v5.10-2020-10-15' of git://git.kernel.org/pub/scm/linux/kernel/git/acme/linux
+>>> git bisect bad 9d9af1007bc08971953ae915d88dc9bb21344b53
+>>> # good: [21c2fe94abb2abe894e6aabe6b4e84a255c8d339] RDMA/mthca: Combine special QP struct with mthca QP
+>>> git bisect good 21c2fe94abb2abe894e6aabe6b4e84a255c8d339
+>>> # good: [dbaa1b3d9afba3c050d365245a36616ae3f425a7] Merge branch 'perf/urgent' into perf/core
+>>> git bisect good dbaa1b3d9afba3c050d365245a36616ae3f425a7
+>>> # bad: [c7a198c700763ac89abbb166378f546aeb9afb33] RDMA/ucma: Fix use after free in destroy id flow
+>>> git bisect bad c7a198c700763ac89abbb166378f546aeb9afb33
+>>> # bad: [5ce2dced8e95e76ff7439863a118a053a7fc6f91] RDMA/ipoib: Set rtnl_link_ops for ipoib interfaces
+>>> git bisect bad 5ce2dced8e95e76ff7439863a118a053a7fc6f91
+>>> # bad: [a03bfc37d59de316436c46f5691c5a972ed57c82] RDMA/mlx5: Sync device with CPU pages upon ODP MR registration
+>>> git bisect bad a03bfc37d59de316436c46f5691c5a972ed57c82
+>>> # good: [a6f0b08dbaf289c3c57284e16ac8043140f2139b] RDMA/core: Remove ucontext->closing
+>>> git bisect good a6f0b08dbaf289c3c57284e16ac8043140f2139b
+>>> # bad: [36f30e486dce22345c2dd3a3ba439c12cd67f6ba] IB/core: Improve ODP to use hmm_range_fault()
+>>> git bisect bad 36f30e486dce22345c2dd3a3ba439c12cd67f6ba
+>>> # good: [2ee9bf346fbfd1dad0933b9eb3a4c2c0979b633e] RDMA/addr: Fix race with netevent_callback()/rdma_addr_cancel()
+>>> git bisect good 2ee9bf346fbfd1dad0933b9eb3a4c2c0979b633e
+>>> # first bad commit: [36f30e486dce22345c2dd3a3ba439c12cd67f6ba] IB/core: Improve ODP to use hmm_range_fault()
+> This is perhaps not so surprising, but I think you should report it to
+> the dax people that hmm_range_fault and dax don't work together..
+>
+> Though I think it is supposed to, and I'm surprised it doesn't.
+>
+> Jason
+>
+>
+
+
