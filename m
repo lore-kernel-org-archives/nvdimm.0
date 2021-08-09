@@ -1,79 +1,80 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D52072
-	for <nvdimm@lists.linux.dev>; Sat,  7 Aug 2021 19:33:00 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10069"; a="211419329"
-X-IronPort-AV: E=Sophos;i="5.84,303,1620716400"; 
-   d="scan'208";a="211419329"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2021 12:32:59 -0700
-X-IronPort-AV: E=Sophos;i="5.84,303,1620716400"; 
-   d="scan'208";a="524453650"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Aug 2021 12:32:59 -0700
-Date: Sat, 7 Aug 2021 12:32:59 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, x86@kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org
-Subject: Re: [PATCH V7 14/18] memremap_pages: Add memremap.pks_fault_mode
-Message-ID: <20210807193259.GD3169279@iweiny-DESK2.sc.intel.com>
-References: <20210804043231.2655537-1-ira.weiny@intel.com>
- <20210804043231.2655537-15-ira.weiny@intel.com>
- <2bbd7ce2-8d16-8724-5505-96a4731c3c45@infradead.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBE2F17F
+	for <nvdimm@lists.linux.dev>; Mon,  9 Aug 2021 06:14:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=7FmgXzovyc5phIOk3kLbdD7QAz86Q3F4B8c/fhn138E=; b=AQm6rpTIzS8vUg89mB+/TNq77+
+	u8XQ7o6eWID+fuPGA9NElU7fOwmtfywI5W/1l7fljBEy6Z3wXRepnzRUUS6DznuzZuXJMfDBK4aDg
+	NiWZ7f1QNm/gSEi1b3btLVx3dCWeL7UC06aeNgmk39fWmM9uO9JJSQ0VfQLWP17gamqMenHBssPH4
+	uR6IJwWd2qF1K7Y1s6b6IrG1YC3ZbpCQPlZil3ldKOLbmhCgXSp0gl208oG6PNckpAToZUYiaBwXw
+	XcK6A7XsadRIN4YZV7HZMDUEhl9HlMaPLtDfnrisObaAiYzUv45U+KY9Edp3UQM+bVd/LzKIbnVRA
+	t9n5nBHg==;
+Received: from [2a02:1205:5023:1f80:c068:bd3d:78b3:7d37] (helo=localhost)
+	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mCyWj-00AgKi-5E; Mon, 09 Aug 2021 06:12:53 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	Andreas Gruenbacher <agruenba@redhat.com>,
+	Shiyang Ruan <ruansy.fnst@fujitsu.com>,
+	linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-btrfs@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	cluster-devel@redhat.com
+Subject: switch iomap to an iterator model v2
+Date: Mon,  9 Aug 2021 08:12:14 +0200
+Message-Id: <20210809061244.1196573-1-hch@lst.de>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2bbd7ce2-8d16-8724-5505-96a4731c3c45@infradead.org>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-On Tue, Aug 03, 2021 at 09:57:31PM -0700, Randy Dunlap wrote:
-> On 8/3/21 9:32 PM, ira.weiny@intel.com wrote:
-> > diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-> > index bdb22006f713..7902fce7f1da 100644
-> > --- a/Documentation/admin-guide/kernel-parameters.txt
-> > +++ b/Documentation/admin-guide/kernel-parameters.txt
-> > @@ -4081,6 +4081,20 @@
-> >   	pirq=		[SMP,APIC] Manual mp-table setup
-> >   			See Documentation/x86/i386/IO-APIC.rst.
-> > +	memremap.pks_fault_mode=	[X86] Control the behavior of page map
-> > +			protection violations.  Violations may not be an actual
-> > +			use of the memory but simply an attempt to map it in an
-> > +			incompatible way.
-> > +			(depends on CONFIG_DEVMAP_ACCESS_PROTECTION
-> 
-> Missing closing ')' above.
+Hi all,
 
-Fixed.  Thank you!
-Ira
+this series replies the existing callback-based iomap_apply to an iter based
+model.  The prime aim here is to simply the DAX reflink support, which
+requires iterating through two inodes, something that is rather painful
+with the apply model.  It also helps to kill an indirect call per segment
+as-is.  Compared to the earlier patchset from Matthew Wilcox that this
+series is based upon it does not eliminate all indirect calls, but as the
+upside it does not change the file systems at all (except for the btrfs
+and gfs2 hooks which have slight prototype changes).
 
-> 
-> > +
-> > +			Format: { relaxed | strict }
-> > +
-> > +			relaxed - Print a warning, disable the protection and
-> > +				  continue execution.
-> > +			strict - Stop kernel execution via BUG_ON or fault
-> > +
-> > +			default: relaxed
-> > +
-> 
-> 
-> -- 
-> ~Randy
-> 
-> 
+
+Changes since v1:
+ - rebased to the lastes iomap-for-next tree
+ - rename iter.c to core.c
+ - turn iomap_iter.processed into a s64
+ - rename a few variables
+ - error out instead of just warn when a loop processed too much data
+ - fix the readpage iter return value for inline data
+ - better document the iomap_iter() calling conventions
+
+Diffstat:
+ b/fs/btrfs/inode.c       |    5 
+ b/fs/buffer.c            |    4 
+ b/fs/dax.c               |  578 ++++++++++++++++++++++-------------------------
+ b/fs/gfs2/bmap.c         |    5 
+ b/fs/internal.h          |    4 
+ b/fs/iomap/Makefile      |    2 
+ b/fs/iomap/buffered-io.c |  359 +++++++++++++----------------
+ b/fs/iomap/core.c        |   79 ++++++
+ b/fs/iomap/direct-io.c   |  164 ++++++-------
+ b/fs/iomap/fiemap.c      |  101 +++-----
+ b/fs/iomap/seek.c        |   98 ++++---
+ b/fs/iomap/swapfile.c    |   38 +--
+ b/fs/iomap/trace.h       |   35 +-
+ b/include/linux/iomap.h  |   77 ++++--
+ fs/iomap/apply.c         |   99 --------
+ 15 files changed, 799 insertions(+), 849 deletions(-)
