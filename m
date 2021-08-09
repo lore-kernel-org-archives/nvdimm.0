@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB1E22FB6
-	for <nvdimm@lists.linux.dev>; Mon,  9 Aug 2021 06:19:55 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AA4ED29D6
+	for <nvdimm@lists.linux.dev>; Mon,  9 Aug 2021 06:20:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=gZs/5VXHLNemF1diUFV8JjL2uvMR07HXumQXu+SNRS4=; b=CSdzaEMzx8hb8TdFtto6R9saeR
-	PwhyWjyLx+OjpeUGAgzx3IZZh6GMa0B/c5aCDwJ9OXR/dzTwuv/F+ZEv5T7XgKzOSGV5wyZYTavbb
-	Je2BnGwC0eIgNxOjOPVFgs1F9FRTvIwCyfNh4EN1rn1vdeWje8ccjtL3+QjSo0KLt4lcXI95arB85
-	cLXjKfj2znsnEs2ATSJNBoEx85duqMgeWk78TO3mjPSXHlq8SQJ/iYkkpP0UDWIkoF8l3Y6EZPAvm
-	q8aKXFIXluJIzvlru5XFsVYhuiXbT+xjdKgXLJYu/v+ckDC+NARYySSBZti/BZ47bNDuU58RrtcBp
-	WTOY/vXA==;
+	bh=SpLa8xXiLETp482f8TpSRj3+HkNL4ciTetnk4qLMMXw=; b=mHdHdUrJlcIc6ESaFKdhQAawPn
+	xz0iqi09VROOHtse6qm8Y3s/y1xzvMzeLG01UTRYYFxs90MPHtcEQhEBU9ymW9hclbo32Bbrx9ufb
+	XTXg/c16sdqFEPriHlsFM1eg9yioXtRTZw5/ETk27QJW7hIMvn0jO+qlk1z/QnLeJyZfx58nXFsIv
+	h7aQ4FYAusw9lKK9/dYqyEYFGIdCVsNdn7PcHLkuOjK9cNmwy7/6Hq5BuV7ddsdlyE/2cYYUBnqVC
+	nRMNn3P57qbEqJzOetQlVsIrDSl2/nDvVcWonB1Dq4ywampCoQyve8jXHvRSeFq32zZ+rvYLAYt+E
+	cP9wzFJw==;
 Received: from [2a02:1205:5023:1f80:c068:bd3d:78b3:7d37] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mCybf-00AgdT-QS; Mon, 09 Aug 2021 06:18:15 +0000
+	id 1mCycj-00Agjm-EB; Mon, 09 Aug 2021 06:19:08 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -27,9 +27,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	linux-btrfs@vger.kernel.org,
 	nvdimm@lists.linux.dev,
 	cluster-devel@redhat.com
-Subject: [PATCH 07/30] fsdax: mark the iomap argument to dax_iomap_sector as const
-Date: Mon,  9 Aug 2021 08:12:21 +0200
-Message-Id: <20210809061244.1196573-8-hch@lst.de>
+Subject: [PATCH 08/30] iomap: mark the iomap argument to iomap_read_inline_data const
+Date: Mon,  9 Aug 2021 08:12:22 +0200
+Message-Id: <20210809061244.1196573-9-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210809061244.1196573-1-hch@lst.de>
 References: <20210809061244.1196573-1-hch@lst.de>
@@ -42,25 +42,28 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
+iomap_read_inline_data never modifies the passed in iomap, so mark
+it const.
+
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 ---
- fs/dax.c | 2 +-
+ fs/iomap/buffered-io.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index da41f9363568e0..4d63040fd71f56 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1005,7 +1005,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
- }
- EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
+diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+index 8a7746433bc719..eda8892b8c5741 100644
+--- a/fs/iomap/buffered-io.c
++++ b/fs/iomap/buffered-io.c
+@@ -206,7 +206,7 @@ struct iomap_readpage_ctx {
+ };
  
--static sector_t dax_iomap_sector(struct iomap *iomap, loff_t pos)
-+static sector_t dax_iomap_sector(const struct iomap *iomap, loff_t pos)
+ static int iomap_read_inline_data(struct inode *inode, struct page *page,
+-		struct iomap *iomap)
++		const struct iomap *iomap)
  {
- 	return (iomap->addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
- }
+ 	size_t size = i_size_read(inode) - iomap->offset;
+ 	size_t poff = offset_in_page(iomap->offset);
 -- 
 2.30.2
 
