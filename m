@@ -1,24 +1,25 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2A5C26D0F
-	for <nvdimm@lists.linux.dev>; Mon,  9 Aug 2021 22:28:09 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10070"; a="212937499"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 61FD76D0D
+	for <nvdimm@lists.linux.dev>; Mon,  9 Aug 2021 22:28:20 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10070"; a="236796706"
 X-IronPort-AV: E=Sophos;i="5.84,308,1620716400"; 
-   d="scan'208";a="212937499"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2021 15:28:08 -0700
+   d="scan'208";a="236796706"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2021 15:28:19 -0700
 X-IronPort-AV: E=Sophos;i="5.84,308,1620716400"; 
-   d="scan'208";a="439090753"
+   d="scan'208";a="502914324"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2021 15:28:08 -0700
-Subject: [PATCH 04/23] libnvdimm/labels: Add a checksum calculation helper
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Aug 2021 15:28:19 -0700
+Subject: [PATCH 06/23] libnvdimm/labels: Add blk special cases for nlabel
+ and position helpers
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: nvdimm@lists.linux.dev, Jonathan.Cameron@huawei.com, ben.widawsky@intel.com,
  vishal.l.verma@intel.com, alison.schofield@intel.com, ira.weiny@intel.com
-Date: Mon, 09 Aug 2021 15:28:08 -0700
-Message-ID: <162854808885.1980150.16357075479454603275.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Mon, 09 Aug 2021 15:28:19 -0700
+Message-ID: <162854809945.1980150.460559852452554553.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -37,112 +38,84 @@ label format is mostly similar to the EFI label format with concepts /
 fields added, like dynamic region creation and label type guids, and
 other concepts removed like BLK-mode and interleave-set-cookie ids.
 
-CXL labels support checksums by default, but early versions of the EFI
-labels did not. Add a validate function that can return true in the case
-the label format does not implement a checksum.
+Finish off the BLK-mode specific helper conversion with the nlabel and
+position behaviour that is specific to EFI v1.2 labels and not the
+original v1.1 definition.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/label.c |   68 +++++++++++++++++++++++++-----------------------
- 1 file changed, 35 insertions(+), 33 deletions(-)
+ drivers/nvdimm/label.c |   46 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 17 deletions(-)
 
 diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index b40a4eda1d89..3f73412dd438 100644
+index d1a7f399cfe4..7188675c0955 100644
 --- a/drivers/nvdimm/label.c
 +++ b/drivers/nvdimm/label.c
-@@ -346,29 +346,45 @@ static bool preamble_next(struct nvdimm_drvdata *ndd,
- 			free, nslot);
+@@ -898,6 +898,10 @@ static struct resource *to_resource(struct nvdimm_drvdata *ndd,
+ 	return NULL;
  }
  
-+static bool nsl_validate_checksum(struct nvdimm_drvdata *ndd,
-+				  struct nd_namespace_label *nd_label)
++/*
++ * Use the presence of the type_guid as a flag to determine isetcookie
++ * usage and nlabel + position policy for blk-aperture namespaces.
++ */
+ static void nsl_set_blk_isetcookie(struct nvdimm_drvdata *ndd,
+ 				   struct nd_namespace_label *nd_label,
+ 				   u64 isetcookie)
+@@ -925,6 +929,28 @@ bool nsl_validate_blk_isetcookie(struct nvdimm_drvdata *ndd,
+ 	return true;
+ }
+ 
++static void nsl_set_blk_nlabel(struct nvdimm_drvdata *ndd,
++			       struct nd_namespace_label *nd_label, int nlabel,
++			       bool first)
 +{
-+	u64 sum, sum_save;
-+
-+	if (!namespace_label_has(ndd, checksum))
-+		return true;
-+
-+	sum_save = nsl_get_checksum(ndd, nd_label);
-+	nsl_set_checksum(ndd, nd_label, 0);
-+	sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
-+	nsl_set_checksum(ndd, nd_label, sum_save);
-+	return sum == sum_save;
-+}
-+
-+static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
-+				   struct nd_namespace_label *nd_label)
-+{
-+	u64 sum;
-+
-+	if (!namespace_label_has(ndd, checksum))
++	if (!namespace_label_has(ndd, type_guid)) {
++		nsl_set_nlabel(ndd, nd_label, 0); /* N/A */
 +		return;
-+	nsl_set_checksum(ndd, nd_label, 0);
-+	sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
-+	nsl_set_checksum(ndd, nd_label, sum);
++	}
++	nsl_set_nlabel(ndd, nd_label, first ? nlabel : 0xffff);
 +}
 +
- static bool slot_valid(struct nvdimm_drvdata *ndd,
- 		struct nd_namespace_label *nd_label, u32 slot)
- {
-+	bool valid;
++static void nsl_set_blk_position(struct nvdimm_drvdata *ndd,
++				 struct nd_namespace_label *nd_label,
++				 bool first)
++{
++	if (!namespace_label_has(ndd, type_guid)) {
++		nsl_set_position(ndd, nd_label, 0);
++		return;
++	}
++	nsl_set_position(ndd, nd_label, first ? 0 : 0xffff);
++}
 +
- 	/* check that we are written where we expect to be written */
- 	if (slot != nsl_get_slot(ndd, nd_label))
- 		return false;
--
--	/* check checksum */
--	if (namespace_label_has(ndd, checksum)) {
--		u64 sum, sum_save;
--
--		sum_save = nsl_get_checksum(ndd, nd_label);
--		nsl_set_checksum(ndd, nd_label, 0);
--		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
--		nsl_set_checksum(ndd, nd_label, sum_save);
--		if (sum != sum_save) {
--			dev_dbg(ndd->dev, "fail checksum. slot: %d expect: %#llx\n",
--				slot, sum);
--			return false;
+ /*
+  * 1/ Account all the labels that can be freed after this update
+  * 2/ Allocate and write the label to the staging (next) index
+@@ -1056,23 +1082,9 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		nsl_set_name(ndd, nd_label, nsblk->alt_name);
+ 		nsl_set_flags(ndd, nd_label, NSLABEL_FLAG_LOCAL);
+ 
+-		/*
+-		 * Use the presence of the type_guid as a flag to
+-		 * determine isetcookie usage and nlabel + position
+-		 * policy for blk-aperture namespaces.
+-		 */
+-		if (namespace_label_has(ndd, type_guid)) {
+-			if (i == min_dpa_idx) {
+-				nsl_set_nlabel(ndd, nd_label, nsblk->num_resources);
+-				nsl_set_position(ndd, nd_label, 0);
+-			} else {
+-				nsl_set_nlabel(ndd, nd_label, 0xffff);
+-				nsl_set_position(ndd, nd_label, 0xffff);
+-			}
+-		} else {
+-			nsl_set_nlabel(ndd, nd_label, 0); /* N/A */
+-			nsl_set_position(ndd, nd_label, 0); /* N/A */
 -		}
--	}
--
--	return true;
-+	valid = nsl_validate_checksum(ndd, nd_label);
-+	if (!valid)
-+		dev_dbg(ndd->dev, "fail checksum. slot: %d\n", slot);
-+	return valid;
- }
++		nsl_set_blk_nlabel(ndd, nd_label, nsblk->num_resources,
++				   i == min_dpa_idx);
++		nsl_set_blk_position(ndd, nd_label, i == min_dpa_idx);
+ 		nsl_set_blk_isetcookie(ndd, nd_label, nd_set->cookie2);
  
- int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
-@@ -812,13 +828,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 		guid_copy(&nd_label->abstraction_guid,
- 				to_abstraction_guid(ndns->claim_class,
- 					&nd_label->abstraction_guid));
--	if (namespace_label_has(ndd, checksum)) {
--		u64 sum;
--
--		nsl_set_checksum(ndd, nd_label, 0);
--		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
--		nsl_set_checksum(ndd, nd_label, sum);
--	}
-+	nsl_calculate_checksum(ndd, nd_label);
- 	nd_dbg_dpa(nd_region, ndd, res, "\n");
- 
- 	/* update label */
-@@ -1049,15 +1059,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 			guid_copy(&nd_label->abstraction_guid,
- 					to_abstraction_guid(ndns->claim_class,
- 						&nd_label->abstraction_guid));
--
--		if (namespace_label_has(ndd, checksum)) {
--			u64 sum;
--
--			nsl_set_checksum(ndd, nd_label, 0);
--			sum = nd_fletcher64(nd_label,
--					sizeof_namespace_label(ndd), 1);
--			nsl_set_checksum(ndd, nd_label, sum);
--		}
-+		nsl_calculate_checksum(ndd, nd_label);
- 
- 		/* update label */
- 		offset = nd_label_offset(ndd, nd_label);
+ 		nsl_set_dpa(ndd, nd_label, res->start);
 
