@@ -1,31 +1,29 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD5BD17F
-	for <nvdimm@lists.linux.dev>; Tue, 10 Aug 2021 22:07:03 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10072"; a="214730826"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B453817F
+	for <nvdimm@lists.linux.dev>; Tue, 10 Aug 2021 22:10:27 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10072"; a="214991889"
 X-IronPort-AV: E=Sophos;i="5.84,310,1620716400"; 
-   d="scan'208";a="214730826"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2021 15:06:57 -0700
+   d="scan'208";a="214991889"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2021 15:10:26 -0700
 X-IronPort-AV: E=Sophos;i="5.84,310,1620716400"; 
-   d="scan'208";a="469178900"
+   d="scan'208";a="589591792"
 Received: from luisdsan-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.128.20])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2021 15:06:57 -0700
-Date: Tue, 10 Aug 2021 15:06:54 -0700
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Aug 2021 15:10:26 -0700
+Date: Tue, 10 Aug 2021 15:10:23 -0700
 From: Ben Widawsky <ben.widawsky@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Vishal L Verma <vishal.l.verma@intel.com>,
-	"Schofield, Alison" <alison.schofield@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>
-Subject: Re: [PATCH 17/23] cxl/mbox: Add exclusive kernel command support
-Message-ID: <20210810220654.nztok7mxvjzaizhk@intel.com>
+Cc: linux-cxl@vger.kernel.org,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	nvdimm@lists.linux.dev, Jonathan.Cameron@huawei.com,
+	vishal.l.verma@intel.com, alison.schofield@intel.com,
+	ira.weiny@intel.com
+Subject: Re: [PATCH 00/23] cxl_test: Enable CXL Topology and UAPI regression
+ tests
+Message-ID: <20210810221023.h65s3i3ephzt7m2w@intel.com>
 References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162854815819.1980150.14391324052281496748.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210810213459.5zpvfrvbo2rztwmc@intel.com>
- <CAPcyv4iXZpeahdDxyRLd7ACS6vpV+VA3-J3MiLQvvV2Q6asBFg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -34,189 +32,143 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4iXZpeahdDxyRLd7ACS6vpV+VA3-J3MiLQvvV2Q6asBFg@mail.gmail.com>
+In-Reply-To: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-On 21-08-10 14:52:18, Dan Williams wrote:
-> On Tue, Aug 10, 2021 at 2:35 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
-> >
-> > On 21-08-09 15:29:18, Dan Williams wrote:
-> > > The CXL_PMEM driver expects exclusive control of the label storage area
-> > > space. Similar to the LIBNVDIMM expectation that the label storage area
-> > > is only writable from userspace when the corresponding memory device is
-> > > not active in any region, the expectation is the native CXL_PCI UAPI
-> > > path is disabled while the cxl_nvdimm for a given cxl_memdev device is
-> > > active in LIBNVDIMM.
-> > >
-> > > Add the ability to toggle the availability of a given command for the
-> > > UAPI path. Use that new capability to shutdown changes to partitions and
-> > > the label storage area while the cxl_nvdimm device is actively proxying
-> > > commands for LIBNVDIMM.
-> > >
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > ---
-> > >  drivers/cxl/core/mbox.c |    5 +++++
-> > >  drivers/cxl/cxlmem.h    |    2 ++
-> > >  drivers/cxl/pmem.c      |   35 +++++++++++++++++++++++++++++------
-> > >  3 files changed, 36 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
-> > > index 23100231e246..f26962d7cb65 100644
-> > > --- a/drivers/cxl/core/mbox.c
-> > > +++ b/drivers/cxl/core/mbox.c
-> > > @@ -409,6 +409,11 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
-> > >               }
-> > >       }
-> > >
-> > > +     if (test_bit(cmd->info.id, cxlm->exclusive_cmds)) {
-> > > +             rc = -EBUSY;
-> > > +             goto out;
-> > > +     }
-> > > +
-> >
-> > This breaks our current definition for cxl_raw_allow_all. All the test machinery
+On 21-08-09 15:27:47, Dan Williams wrote:
+> As mentioned in patch 20 in this series the response of upstream QEMU
+> community to CXL device emulation has been underwhelming to date. Even
+> if that picked up it still results in a situation where new driver
+> features and new test capabilities for those features are split across
+> multiple repositories.
 > 
-> That's deliberate; this exclusion is outside of the raw policy. I
-> don't think raw_allow_all should override kernel self protection of
-> data structures, like labels, that it needs to maintain consistency.
-> If userspace wants to use raw_allow_all to send LSA manipulation
-> commands it must do so while the device is not active on the nvdimm
-> side of the house. You'll see that:
+> The "nfit_test" approach of mocking up platform resources via an
+> external test module continues to yield positive results catching
+> regressions early and often. Repeat that success with a "cxl_test"
+> module to inject custom crafted topologies and command responses into
+> the CXL subsystem's sysfs and ioctl UAPIs.
 > 
-> ndctl disable-region all
-> <mutate labels>
-> ndctl enable-region all
+> The first target for cxl_test to verify is the integration of CXL with
+> LIBNVDIMM and the new support for the CXL namespace label + region-label
+> format. The first 11 patches introduce support for the new label format.
 > 
-> ...is a common pattern from custom label update flows.
+> The next 9 patches rework the CXL PCI driver and to move more common
+> infrastructure into the core for the unit test environment to reuse. The
+> largest change here is disconnecting the mailbox command processing
+> infrastructure from the PCI specific transport. The unit test
+> environment replaces the PCI transport with a custom backend with mocked
+> responses to command requests.
 > 
+> Patch 20 introduces just enough mocked functionality for the cxl_acpi
+> driver to load against cxl_test resources. Patch 21 fixes the first bug
+> discovered by this framework, namely that HDM decoder target list maps
+> were not being filled out.
+> 
+> Finally patches 22 and 23 introduce a cxl_test representation of memory
+> expander devices. In this initial implementation these memory expander
+> targets implement just enough command support to pass the basic driver
+> init sequence and enable label command passthrough to LIBNVDIMM.
+> 
+> The topology of cxl_test includes:
+> - (4) platform fixed memory windows. One each of a x1-volatile,
+>   x4-volatile, x1-persistent, and x4-persistent.
+> - (4) Host bridges each with (2) root ports
+> - (8) CXL memory expanders, one for each root port
+> - Each memory expander device supports the GET_SUPPORTED_LOGS, GET_LOG,
+>   IDENTIFY, GET_LSA, and SET_LSA commands.
+> 
+> Going forward the expectation is that where possible new UAPI visible
+> subsystem functionality comes with cxl_test emulation of the same.
+> 
+> The build process for cxl_test is:
+> 
+>     make M=tools/testing/cxl
+>     make M=tools/testing/cxl modules_install
+> 
+> The implementation methodology of the test module is the same as
+> nfit_test where the bulk of the emulation comes from replacing symbols
+> that cxl_acpi and the cxl_core import with mocked implementation of
+> those symbols. See the "--wrap=" lines in tools/testing/cxl/Kbuild. Some
+> symbols need to be replaced, but are local to the modules like
+> match_add_root_ports(). In those cases the local symbol is marked __weak
+> with a strong implementation coming from tools/testing/cxl/. The goal
+> being to be minimally invasive to production code paths.
 
-I won't argue about raw_allow_all since we never did document its debugfs
-meaning (however, my intention was always to let userspace trump the kernel
-(which was why we tainted)).
+I went through everything except the very last patch, which I'll try to get to
+tomorrow when my brain is working a bit better. It looks fine to me overall. I'd
+like if we could remove code duplication in the mock driver, but perhaps that's
+the nature of the beast here.
 
-Either way, could you please move the actual check to
-cxl_validate_cmd_from_user() instead of handle...(). Validate is the main
-function to determine whether a command is allowed to be sent on behalf of the
-user.  I think just putting it next to the enabled cmd check would make a lot
-more sense. And please add the EBUSY meaning to the kdocs.
-
-> > for whether a command can be submitted was supposed to happen in
-> > cxl_validate_cmd_from_user(). Various versions of the original patches made
-> > cxl_mem_raw_command_allowed() grow more intelligence (ie. more than just the
-> > opcode). I think this check belongs there with more intelligence.
-> >
-> > I don't love the EBUSY because it already had a meaning for concurrent use of
-> > the mailbox, but I can't think of a better errno.
 > 
-> It's the existing errno that happens from nvdimm land when the kernel
-> owns the label area, so it would be confusing to invent a new one for
-> the same behavior now:
+> ---
 > 
-> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/nvdimm/bus.c#n1013
+> Dan Williams (23):
+>       libnvdimm/labels: Introduce getters for namespace label fields
+>       libnvdimm/labels: Add isetcookie validation helper
+>       libnvdimm/labels: Introduce label setter helpers
+>       libnvdimm/labels: Add a checksum calculation helper
+>       libnvdimm/labels: Add blk isetcookie set / validation helpers
+>       libnvdimm/labels: Add blk special cases for nlabel and position helpers
+>       libnvdimm/labels: Add type-guid helpers
+>       libnvdimm/labels: Add claim class helpers
+>       libnvdimm/labels: Add address-abstraction uuid definitions
+>       libnvdimm/labels: Add uuid helpers
+>       libnvdimm/labels: Introduce CXL labels
+>       cxl/pci: Make 'struct cxl_mem' device type generic
+>       cxl/mbox: Introduce the mbox_send operation
+>       cxl/mbox: Move mailbox and other non-PCI specific infrastructure to the core
+>       cxl/pci: Use module_pci_driver
+>       cxl/mbox: Convert 'enabled_cmds' to DECLARE_BITMAP
+>       cxl/mbox: Add exclusive kernel command support
+>       cxl/pmem: Translate NVDIMM label commands to CXL label commands
+>       cxl/pmem: Add support for multiple nvdimm-bridge objects
+>       tools/testing/cxl: Introduce a mocked-up CXL port hierarchy
+>       cxl/bus: Populate the target list at decoder create
+>       cxl/mbox: Move command definitions to common location
+>       tools/testing/cxl: Introduce a mock memory device + driver
 > 
-> >
-> > >       dev_dbg(dev,
-> > >               "Submitting %s command for user\n"
-> > >               "\topcode: %x\n"
-> > > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> > > index df4f3636a999..f6cfe84a064c 100644
-> > > --- a/drivers/cxl/cxlmem.h
-> > > +++ b/drivers/cxl/cxlmem.h
-> > > @@ -102,6 +102,7 @@ struct cxl_mbox_cmd {
-> > >   * @mbox_mutex: Mutex to synchronize mailbox access.
-> > >   * @firmware_version: Firmware version for the memory device.
-> > >   * @enabled_cmds: Hardware commands found enabled in CEL.
-> > > + * @exclusive_cmds: Commands that are kernel-internal only
-> > >   * @pmem_range: Persistent memory capacity information.
-> > >   * @ram_range: Volatile memory capacity information.
-> > >   * @mbox_send: @dev specific transport for transmitting mailbox commands
-> > > @@ -117,6 +118,7 @@ struct cxl_mem {
-> > >       struct mutex mbox_mutex; /* Protects device mailbox and firmware */
-> > >       char firmware_version[0x10];
-> > >       DECLARE_BITMAP(enabled_cmds, CXL_MEM_COMMAND_ID_MAX);
-> > > +     DECLARE_BITMAP(exclusive_cmds, CXL_MEM_COMMAND_ID_MAX);
-> > >
-> > >       struct range pmem_range;
-> > >       struct range ram_range;
-> > > diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-> > > index 9652c3ee41e7..11410df77444 100644
-> > > --- a/drivers/cxl/pmem.c
-> > > +++ b/drivers/cxl/pmem.c
-> > > @@ -16,9 +16,23 @@
-> > >   */
-> > >  static struct workqueue_struct *cxl_pmem_wq;
-> > >
-> > > -static void unregister_nvdimm(void *nvdimm)
-> > > +static void unregister_nvdimm(void *_cxl_nvd)
-> > >  {
-> > > -     nvdimm_delete(nvdimm);
-> > > +     struct cxl_nvdimm *cxl_nvd = _cxl_nvd;
-> > > +     struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-> > > +     struct cxl_mem *cxlm = cxlmd->cxlm;
-> > > +     struct device *dev = &cxl_nvd->dev;
-> > > +     struct nvdimm *nvdimm;
-> > > +
-> > > +     nvdimm = dev_get_drvdata(dev);
-> > > +     if (nvdimm)
-> > > +             nvdimm_delete(nvdimm);
-> > > +
-> > > +     mutex_lock(&cxlm->mbox_mutex);
-> > > +     clear_bit(CXL_MEM_COMMAND_ID_SET_PARTITION_INFO, cxlm->exclusive_cmds);
-> > > +     clear_bit(CXL_MEM_COMMAND_ID_SET_SHUTDOWN_STATE, cxlm->exclusive_cmds);
-> > > +     clear_bit(CXL_MEM_COMMAND_ID_SET_LSA, cxlm->exclusive_cmds);
-> > > +     mutex_unlock(&cxlm->mbox_mutex);
-> > >  }
-> > >
-> > >  static int match_nvdimm_bridge(struct device *dev, const void *data)
-> > > @@ -39,6 +53,8 @@ static struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void)
-> > >  static int cxl_nvdimm_probe(struct device *dev)
-> > >  {
-> > >       struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
-> > > +     struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-> > > +     struct cxl_mem *cxlm = cxlmd->cxlm;
-> > >       struct cxl_nvdimm_bridge *cxl_nvb;
-> > >       unsigned long flags = 0;
-> > >       struct nvdimm *nvdimm;
-> > > @@ -52,17 +68,24 @@ static int cxl_nvdimm_probe(struct device *dev)
-> > >       if (!cxl_nvb->nvdimm_bus)
-> > >               goto out;
-> > >
-> > > +     mutex_lock(&cxlm->mbox_mutex);
-> > > +     set_bit(CXL_MEM_COMMAND_ID_SET_PARTITION_INFO, cxlm->exclusive_cmds);
-> > > +     set_bit(CXL_MEM_COMMAND_ID_SET_SHUTDOWN_STATE, cxlm->exclusive_cmds);
-> > > +     set_bit(CXL_MEM_COMMAND_ID_SET_LSA, cxlm->exclusive_cmds);
-> > > +     mutex_unlock(&cxlm->mbox_mutex);
-> > > +
-> >
-> > What's the concurrency this lock is trying to protect against?
 > 
-> I can add a comment. It synchronizes against in-flight ioctl users to
-> make sure that any requests have completed before the policy changes.
-> I.e. do not allow userspace to race the nvdimm subsystem attaching to
-> get a consistent state of the persistent memory configuration.
+>  Documentation/driver-api/cxl/memory-devices.rst |    3 
+>  drivers/cxl/acpi.c                              |   65 +
+>  drivers/cxl/core/Makefile                       |    1 
+>  drivers/cxl/core/bus.c                          |   69 +-
+>  drivers/cxl/core/core.h                         |    8 
+>  drivers/cxl/core/mbox.c                         |  796 +++++++++++++++++
+>  drivers/cxl/core/memdev.c                       |   84 ++
+>  drivers/cxl/core/pmem.c                         |   32 +
+>  drivers/cxl/cxl.h                               |   35 -
+>  drivers/cxl/cxlmem.h                            |  186 ++++
+>  drivers/cxl/pci.c                               | 1053 +----------------------
+>  drivers/cxl/pmem.c                              |  162 +++-
+>  drivers/nvdimm/btt.c                            |   11 
+>  drivers/nvdimm/btt.h                            |    4 
+>  drivers/nvdimm/btt_devs.c                       |   12 
+>  drivers/nvdimm/core.c                           |   40 -
+>  drivers/nvdimm/label.c                          |  354 +++++---
+>  drivers/nvdimm/label.h                          |   96 +-
+>  drivers/nvdimm/namespace_devs.c                 |  194 ++--
+>  drivers/nvdimm/nd-core.h                        |    5 
+>  drivers/nvdimm/nd.h                             |  263 ++++++
+>  drivers/nvdimm/pfn_devs.c                       |    2 
+>  include/linux/nd.h                              |    4 
+>  tools/testing/cxl/Kbuild                        |   29 +
+>  tools/testing/cxl/mock_acpi.c                   |  105 ++
+>  tools/testing/cxl/mock_pmem.c                   |   24 +
+>  tools/testing/cxl/test/Kbuild                   |   10 
+>  tools/testing/cxl/test/cxl.c                    |  587 +++++++++++++
+>  tools/testing/cxl/test/mem.c                    |  255 ++++++
+>  tools/testing/cxl/test/mock.c                   |  155 +++
+>  tools/testing/cxl/test/mock.h                   |   27 +
+>  31 files changed, 3234 insertions(+), 1437 deletions(-)
+>  create mode 100644 drivers/cxl/core/mbox.c
+>  create mode 100644 tools/testing/cxl/Kbuild
+>  create mode 100644 tools/testing/cxl/mock_acpi.c
+>  create mode 100644 tools/testing/cxl/mock_pmem.c
+>  create mode 100644 tools/testing/cxl/test/Kbuild
+>  create mode 100644 tools/testing/cxl/test/cxl.c
+>  create mode 100644 tools/testing/cxl/test/mem.c
+>  create mode 100644 tools/testing/cxl/test/mock.c
+>  create mode 100644 tools/testing/cxl/test/mock.h
 > 
-
-Ah, so the expectation is that these things will be set not just on
-probe/unregister()? I would assume an IOCTL couldn't happen while
-probe/unregister is happening.
-
-> >
-> > >       set_bit(NDD_LABELING, &flags);
-> > >       nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags, 0, 0,
-> > >                              NULL);
-> > > -     if (!nvdimm)
-> > > -             goto out;
-> > > -
-> > > -     rc = devm_add_action_or_reset(dev, unregister_nvdimm, nvdimm);
-> > > +     dev_set_drvdata(dev, nvdimm);
-> > > +     rc = devm_add_action_or_reset(dev, unregister_nvdimm, cxl_nvd);
-> > >  out:
-> > >       device_unlock(&cxl_nvb->dev);
-> > >       put_device(&cxl_nvb->dev);
-> > >
-> > > +     if (!nvdimm && rc == 0)
-> > > +             rc = -ENOMEM;
-> > > +
-> > >       return rc;
-> > >  }
-> > >
-> > >
+> base-commit: 427832674f6e2413c21ca2271ec945a720608ff2
+> 
+> (cxl.git#pending as of August 9th, 2021)
