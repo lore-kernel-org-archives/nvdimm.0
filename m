@@ -1,26 +1,33 @@
-Received: from mail109.syd.optusnet.com.au (mail109.syd.optusnet.com.au [211.29.132.80])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id DA7B029CA
-	for <nvdimm@lists.linux.dev>; Mon,  9 Aug 2021 22:34:56 +0000 (UTC)
-Received: from dread.disaster.area (pa49-195-182-146.pa.nsw.optusnet.com.au [49.195.182.146])
-	by mail109.syd.optusnet.com.au (Postfix) with ESMTPS id 919098552B;
-	Tue, 10 Aug 2021 08:10:49 +1000 (AEST)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-	(envelope-from <david@fromorbit.com>)
-	id 1mDDTr-00GSfc-Td; Tue, 10 Aug 2021 08:10:47 +1000
-Date: Tue, 10 Aug 2021 08:10:47 +1000
-From: Dave Chinner <david@fromorbit.com>
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5291D177
+	for <nvdimm@lists.linux.dev>; Tue, 10 Aug 2021 06:39:52 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B50DD60238;
+	Tue, 10 Aug 2021 06:39:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1628577591;
+	bh=Rt8OufpkIbsLyiXRCpS3gkfeWehc9wTsVDBkYN0Fyqw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Yjvl1922O0SS+tM6M/cH/Wh4ac8k7jnNBYQI3W7s14ozjpLmppXWgCgcwDZmjlBLM
+	 o+MaylInt6EJVnKD3CsZrxrFU3sPk6A+SW5cQEVZkEspbXEbfD5f4dZe9MSMq6BHla
+	 A3XuxUgpFM2zg8w5+tyHXXyAV6QREHdO/ehKjJ2t+dAwYvaYaNW8cUyDdsyuJWWFJV
+	 w61ks7bG17YL0r48We5YJMifOo7sO+ZcnZDyPladHWOYABbCHRR4MPW9Bf/9SyuVHn
+	 3Dn1LvlTmCYKzxbPAeYKZO2r1r+rG2JozMzYUzO/QJjzzAMq6Di8Gkv50b5sSfCZ1Y
+	 6hKVXKdBIY4Mw==
+Date: Mon, 9 Aug 2021 23:39:51 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
 To: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
+Cc: Dan Williams <dan.j.williams@intel.com>,
 	Matthew Wilcox <willy@infradead.org>,
 	Andreas Gruenbacher <agruenba@redhat.com>,
 	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
 	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 11/30] iomap: add the new iomap_iter model
-Message-ID: <20210809221047.GC3657114@dread.disaster.area>
+Subject: Re: [PATCH 19/30] iomap: switch iomap_bmap to use iomap_iter
+Message-ID: <20210810063951.GH3601443@magnolia>
 References: <20210809061244.1196573-1-hch@lst.de>
- <20210809061244.1196573-12-hch@lst.de>
+ <20210809061244.1196573-20-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -29,58 +36,92 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210809061244.1196573-12-hch@lst.de>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=YKPhNiOx c=1 sm=1 tr=0
-	a=QpfB3wCSrn/dqEBSktpwZQ==:117 a=QpfB3wCSrn/dqEBSktpwZQ==:17
-	a=kj9zAlcOel0A:10 a=MhDmnRu9jo8A:10 a=JfrnYn6hAAAA:8 a=7-415B0cAAAA:8
-	a=c-sO9qzMkAf5MM67-4kA:9 a=CjuIK1q_8ugA:10 a=1CNFftbPRP8L7MoqJWF3:22
-	a=biEYGPWJfzWAr4FL6Ov7:22
+In-Reply-To: <20210809061244.1196573-20-hch@lst.de>
 
-On Mon, Aug 09, 2021 at 08:12:25AM +0200, Christoph Hellwig wrote:
-> The iomap_iter struct provides a convenient way to package up and
-> maintain all the arguments to the various mapping and operation
-> functions.  It is operated on using the iomap_iter() function that
-> is called in loop until the whole range has been processed.  Compared
-> to the existing iomap_apply() function this avoid an indirect call
-> for each iteration.
-> 
-> For now iomap_iter() calls back into the existing ->iomap_begin and
-> ->iomap_end methods, but in the future this could be further optimized
-> to avoid indirect calls entirely.
-> 
-> Based on an earlier patch from Matthew Wilcox <willy@infradead.org>.
+On Mon, Aug 09, 2021 at 08:12:33AM +0200, Christoph Hellwig wrote:
+> Rewrite the ->bmap implementation based on iomap_iter.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
->  fs/iomap/Makefile     |  1 +
->  fs/iomap/core.c       | 79 +++++++++++++++++++++++++++++++++++++++++++
->  fs/iomap/trace.h      | 37 +++++++++++++++++++-
->  include/linux/iomap.h | 56 ++++++++++++++++++++++++++++++
->  4 files changed, 172 insertions(+), 1 deletion(-)
->  create mode 100644 fs/iomap/core.c
+>  fs/iomap/fiemap.c | 31 +++++++++++++------------------
+>  1 file changed, 13 insertions(+), 18 deletions(-)
 > 
-> diff --git a/fs/iomap/Makefile b/fs/iomap/Makefile
-> index eef2722d93a183..6b56b10ded347a 100644
-> --- a/fs/iomap/Makefile
-> +++ b/fs/iomap/Makefile
-> @@ -10,6 +10,7 @@ obj-$(CONFIG_FS_IOMAP)		+= iomap.o
+> diff --git a/fs/iomap/fiemap.c b/fs/iomap/fiemap.c
+> index acad09a8c188df..60daadba16c149 100644
+> --- a/fs/iomap/fiemap.c
+> +++ b/fs/iomap/fiemap.c
+> @@ -92,35 +92,30 @@ int iomap_fiemap(struct inode *inode, struct fiemap_extent_info *fi,
+>  }
+>  EXPORT_SYMBOL_GPL(iomap_fiemap);
 >  
->  iomap-y				+= trace.o \
->  				   apply.o \
-> +				   core.o \
+> -static loff_t
+> -iomap_bmap_actor(struct inode *inode, loff_t pos, loff_t length,
+> -		void *data, struct iomap *iomap, struct iomap *srcmap)
+> -{
+> -	sector_t *bno = data, addr;
+> -
+> -	if (iomap->type == IOMAP_MAPPED) {
+> -		addr = (pos - iomap->offset + iomap->addr) >> inode->i_blkbits;
+> -		*bno = addr;
+> -	}
+> -	return 0;
+> -}
+> -
+>  /* legacy ->bmap interface.  0 is the error return (!) */
+>  sector_t
+>  iomap_bmap(struct address_space *mapping, sector_t bno,
+>  		const struct iomap_ops *ops)
+>  {
+> -	struct inode *inode = mapping->host;
+> -	loff_t pos = bno << inode->i_blkbits;
+> -	unsigned blocksize = i_blocksize(inode);
+> +	struct iomap_iter iter = {
+> +		.inode	= mapping->host,
+> +		.pos	= (loff_t)bno << mapping->host->i_blkbits,
+> +		.len	= i_blocksize(mapping->host),
+> +		.flags	= IOMAP_REPORT,
+> +	};
+>  	int ret;
+>  
+>  	if (filemap_write_and_wait(mapping))
+>  		return 0;
+>  
+>  	bno = 0;
+> -	ret = iomap_apply(inode, pos, blocksize, 0, ops, &bno,
+> -			  iomap_bmap_actor);
+> +	while ((ret = iomap_iter(&iter, ops)) > 0) {
+> +		if (iter.iomap.type != IOMAP_MAPPED)
+> +			continue;
 
-This creates a discontinuity in the iomap git history. Can you add
-these new functions to iomap/apply.c, then when the old apply code
-is removed later in the series rename the file to core.c? At least
-that way 'git log --follow fs/iomap/core.c' will walk back into the
-current history of fs/iomap/apply.c and the older pre-disaggregation
-fs/iomap.c without having to take the tree back in time to find
-those files...
+I still feel uncomfortable about this use of "continue" here, because it
+really means "call iomap_iter again to clean up and exit even though we
+know it won't even look for more iomaps to iterate".
 
-Cheers,
+To me that feels subtly broken (I usually associate 'continue' with
+'go run the loop body again'), and even though bmap has been a quirky
+hot mess for 45 years, we don't need to make it even moreso.
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Can't this at least be rephrased as:
+
+	const uint bno_shift = (mapping->host->i_blkbits - SECTOR_SHIFT);
+
+	while ((ret = iomap_iter(&iter, ops)) > 0) {
+		if (iter.iomap.type == IOMAP_MAPPED)
+			bno = iomap_sector(iomap, iter.pos) << bno_shift;
+		/* leave iter.processed unset to stop iteration */
+	}
+
+to make the loop exit more explicit?
+
+--D
+
+> +		bno = (iter.pos - iter.iomap.offset + iter.iomap.addr) >>
+> +				mapping->host->i_blkbits;
+> +	}
+> +
+>  	if (ret)
+>  		return 0;
+>  	return bno;
+> -- 
+> 2.30.2
+> 
