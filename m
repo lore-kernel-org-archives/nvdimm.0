@@ -1,37 +1,37 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 299DA70
-	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 22:47:39 +0000 (UTC)
-Received: by mail-pl1-f180.google.com with SMTP id k2so4660813plk.13
-        for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 15:47:39 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8502A70
+	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 23:01:37 +0000 (UTC)
+Received: by mail-pj1-f47.google.com with SMTP id bo18so6181141pjb.0
+        for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 16:01:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=OztpKFyFkHWq5WmztlCUxj24iVog+SfKlFUjwOQEcIM=;
-        b=Ee5VvOM4+VyN0yPauYS9IvJ9A6xbJ1FPxuOaat69KAXUI++RH/9oGYOP25DAXvA7ub
-         u2kQW2QMmNNyt8vw2iAeV6dJp19mwcmf0au7qoDzB8vLkFPpSwha1GKZw6ufXzyPKV9C
-         WFCM7Fpr+gVD898Q2Dr+ziDEZe8H7y0XyX/ijFkSeBL6iquo+wLgNjsP3eNbWmeukcL6
-         XB2zUp6erLruYx+oc6ptvw4HXUGo0ek9WmK6KL74voFg2erwcoC3TVr7jlMfrkdNwm3E
-         yTxM+V5ISgNrFkEdpdXwZWZEmpeOpUrQvlgqWPgAmGQPUUrIpS9iedbAJS7cK6Y0MzqB
-         KWdQ==
+        bh=Yxej9o+kAuH8mw1puVow9dkxnPzrO/KbVD0nxt+UR8c=;
+        b=Ukp7AZo+GcRhDxWPQqjX4x5guiaIclboctwL6bL6a6Cx2sOB0t1HM5XskeGCQlfz4Z
+         wyQGwJoSIVhS3jlm/78AQuWneWFhopVMyUHORlK7aBuAwtJdWo6Zng8Rat8sZ6sI9SVg
+         gTUl4Tuw+bvL2+9CJPkHq0c5kWR4yNqkb/S74Kq1OMzrGdWMo/s//t5ZOVwKxyNQNtSh
+         aAaVjhS6/iJg7puBFGgNRhRo9MA6xrgJZbVpAQqa7yom1gJrGvlIv8lop4tsFf62vXFH
+         Gmh9xsBX2v0F7ELvTIy2Futzyv4ZVCvAvVvoq1pB1G8D/YTeqhCwYXF0+KTFNvq86ZfT
+         QKVg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=OztpKFyFkHWq5WmztlCUxj24iVog+SfKlFUjwOQEcIM=;
-        b=XIh8/jV31OtSwqbtw+cwk7kjoSkk/LUGpP04xXY4tYRFY92FuX+rz6Obfmmh+QLsa3
-         8VKsEya59wNgboEOUfplmwrIFzKkWfSky+5ot/mHAoXcJn7uBV63b/Os8bh2BSJDhY7P
-         DwBtEwxtbBm1Sd8gcVEHsxtfyMEcSnkxy48KiuUE9UV2YqrQTIi3GOrE3v/xlVnvKnzL
-         F64nG5BFJomtYyVRTgHKJRZTUOrBQFjxCCVbnkEsrodEz5zTKAizP19tkDHmyy7yuVK6
-         hgdzCOSxhTi58CfUZYnobCopPm1b7KyQp9R6p+xoql6o3YsVu5Fh/RjkkWgtOKpKUEnn
-         7HoA==
-X-Gm-Message-State: AOAM5322+OaGNcH9xnG+jCptaAZSxdWfwitBAzMStpbCQTu2z+iDGGXa
-	XdI32jBACClu9fS/tLjAbhrQG6Zbd6dqYHCPbRK2Yw==
-X-Google-Smtp-Source: ABdhPJwPiM+NKEtruzRpK/NiP66bEuzTYZ4j9DmM8ubfJBKgrpBiXCa+LC9RkMHZ7UAJFPKXOAuDfLO0UiUHM5H7org=
-X-Received: by 2002:a17:90b:18f:: with SMTP id t15mr12593468pjs.168.1628722058608;
- Wed, 11 Aug 2021 15:47:38 -0700 (PDT)
+        bh=Yxej9o+kAuH8mw1puVow9dkxnPzrO/KbVD0nxt+UR8c=;
+        b=pKQEjZCVM7X8J2sB48ci8WeiUUVgF52EljvNQlLSVV1VQ4El3LB9rsL36XBCn7aWkv
+         D0QXqS8M3fytTgnCBXoGjEx4P8SQwT3QpQRbN8uVM7kkbv9wkPCc5dhWGrdXpcF62xqq
+         Gy49SIXVYPeXkQ4z/XPbUAI+xrdd5hP93XnngKzFgZgWvQ0PNwVGNNs7knbQE8k/5GeT
+         h++KjVjO3z7EKpo5SzaK76dHOAAbfC+CxGSi1RSSx/qFfSQDuqaYE6C7WL7ai38qk5nu
+         0kOhFLJclYBX2HR++xoVCQy4sc8bgG6TmPHruGniOKGfwBFgu1h3h8EwGdWeDUMBGECZ
+         1rWA==
+X-Gm-Message-State: AOAM533TvtP6U3d4owKkrrVU4KvMxr+9/rATLPa73Qc6952szEVy2WhL
+	OpZI96MA4yE3J3sphk1Jp2HPoDaEBRXsq64FJJNrQQ==
+X-Google-Smtp-Source: ABdhPJy/n2WoVwFLflG267mv2Hg6lRUCGT0lEgyePr7ZBJGDuzEnRcQycD8RH97G0CIC33HpmyIjG/jZyAqYRKidV5Q=
+X-Received: by 2002:a17:90b:23d6:: with SMTP id md22mr12577593pjb.149.1628722897133;
+ Wed, 11 Aug 2021 16:01:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,39 +39,127 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162854811511.1980150.3921515741758120378.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210811194905.000034f6@Huawei.com>
-In-Reply-To: <20210811194905.000034f6@Huawei.com>
+ <162854812641.1980150.4928659819619856243.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20210811194130.00006076@Huawei.com>
+In-Reply-To: <20210811194130.00006076@Huawei.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 11 Aug 2021 15:47:27 -0700
-Message-ID: <CAPcyv4gZgkTtoVhMR+YWZHv2P9xeBQ3-a_2nRQ6euSQ-eaY5Jw@mail.gmail.com>
-Subject: Re: [PATCH 09/23] libnvdimm/labels: Add address-abstraction uuid definitions
+Date: Wed, 11 Aug 2021 16:01:26 -0700
+Message-ID: <CAPcyv4hD16UzKBDHDAbUwmTM01ycXcJCFmS8S11C4JmP1A8d6Q@mail.gmail.com>
+Subject: Re: [PATCH 11/23] libnvdimm/labels: Introduce CXL labels
 To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>, 
 	Ben Widawsky <ben.widawsky@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, 
 	"Schofield, Alison" <alison.schofield@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Aug 11, 2021 at 11:49 AM Jonathan Cameron
+On Wed, Aug 11, 2021 at 11:42 AM Jonathan Cameron
 <Jonathan.Cameron@huawei.com> wrote:
 >
-> On Mon, 9 Aug 2021 15:28:35 -0700
+> On Mon, 9 Aug 2021 15:28:46 -0700
 > Dan Williams <dan.j.williams@intel.com> wrote:
 >
-> > The EFI definition of the labels represents the Linux "claim class" with
-> > a GUID. The CXL definition of the labels stores the same identifier in
-> > UUID byte order. In preparation for adding CXL label support, enable the
-> > claim class to optionally handle uuids.
+> > Now that all of use sites of label data have been converted to nsl_*
+> > helpers, introduce the CXL label format. The ->cxl flag in
+> > nvdimm_drvdata indicates the label format the device expects. A
+> > follow-on patch allows a bus provider to select the label style.
 > >
 > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> A few trivial things inline. Nothing that actually 'needs' changing though.
 > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 >
-> I've already commented on 10 and 11 so this was backfilling tags
-> for the ones I'd looked at earlier but looked good to me.
+> > index e6e77691dbec..71ffde56fac0 100644
+> > --- a/drivers/nvdimm/label.h
+> > +++ b/drivers/nvdimm/label.h
+> > @@ -64,40 +64,77 @@ struct nd_namespace_index {
+> >       u8 free[];
+> >  };
+> >
+> > -/**
+> > - * struct nd_namespace_label - namespace superblock
+> > - * @uuid: UUID per RFC 4122
+> > - * @name: optional name (NULL-terminated)
+> > - * @flags: see NSLABEL_FLAG_*
+> > - * @nlabel: num labels to describe this ns
+> > - * @position: labels position in set
+> > - * @isetcookie: interleave set cookie
+> > - * @lbasize: LBA size in bytes or 0 for pmem
+> > - * @dpa: DPA of NVM range on this DIMM
+> > - * @rawsize: size of namespace
+> > - * @slot: slot of this label in label area
+> > - * @unused: must be zero
+> > - */
+> >  struct nd_namespace_label {
+> > +     union {
+> Cross reference might be a nice thing to include?
+> Table 212 I think...
+> > +             struct nvdimm_cxl_label {
+> > +                     uuid_t type;
+> > +                     uuid_t uuid;
+> > +                     u8 name[NSLABEL_NAME_LEN];
+> > +                     __le32 flags;
+> > +                     __le16 nlabel;
 >
-> I'm not all that familiar with this code yet, so all my checking was off the
-> "does it look locally correct?" variety.
->
-> Out of time for today, and not sure when I'll get to looking at the remainder.
+> Perhaps call out nlabel is nrange in the spec?
 
-I appreciate the slog through this legacy nvdimm code!
+Actually, this is a bug, because nlabel in EFI labels is the width of
+the interleave set. In CXL labels that property is moved to the region
+and this field is only for discontiguous namespace support. Good
+indirect catch!
+
+>
+> > +                     __le16 position;
+> > +                     __le64 dpa;
+> > +                     __le64 rawsize;
+> > +                     __le32 slot;
+> > +                     __le32 align;
+> > +                     uuid_t region_uuid;
+> > +                     uuid_t abstraction_uuid;
+> > +                     __le16 lbasize;
+> > +                     u8 reserved[0x56];
+> > +                     __le64 checksum;
+> > +             } cxl;
+> > +             /**
+> > +              * struct nvdimm_efi_label - namespace superblock
+> > +              * @uuid: UUID per RFC 4122
+> > +              * @name: optional name (NULL-terminated)
+> > +              * @flags: see NSLABEL_FLAG_*
+> > +              * @nlabel: num labels to describe this ns
+> > +              * @position: labels position in set
+> > +              * @isetcookie: interleave set cookie
+> > +              * @lbasize: LBA size in bytes or 0 for pmem
+> > +              * @dpa: DPA of NVM range on this DIMM
+> > +              * @rawsize: size of namespace
+> > +              * @slot: slot of this label in label area
+> > +              * @unused: must be zero
+> > +              */
+> > +             struct nvdimm_efi_label {
+> > +                     uuid_t uuid;
+> > +                     u8 name[NSLABEL_NAME_LEN];
+> > +                     __le32 flags;
+> > +                     __le16 nlabel;
+> > +                     __le16 position;
+> > +                     __le64 isetcookie;
+> > +                     __le64 lbasize;
+> > +                     __le64 dpa;
+> > +                     __le64 rawsize;
+> > +                     __le32 slot;
+> > +                     /*
+> > +                      * Accessing fields past this point should be
+> > +                      * gated by a efi_namespace_label_has() check.
+> > +                      */
+> > +                     u8 align;
+> > +                     u8 reserved[3];
+> > +                     guid_t type_guid;
+> > +                     guid_t abstraction_guid;
+> > +                     u8 reserved2[88];
+> > +                     __le64 checksum;
+> > +             } efi;
+> > +     };
+> > +};
+> > +
+> > +struct cxl_region_label {
+>
+> Perhaps separate this out to another patch so the diff ends up less confusing?
+
+I'll take a look.
