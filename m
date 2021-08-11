@@ -1,21 +1,21 @@
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 278372FB8
-	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 00:08:44 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C6007600CD;
-	Wed, 11 Aug 2021 00:08:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09268177
+	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 00:12:25 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6B88260F25;
+	Wed, 11 Aug 2021 00:12:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1628640523;
-	bh=OHDM4XZtwVeumjQMhwhxYCPd8z30085t/okcA6XD6ns=;
+	s=k20201202; t=1628640745;
+	bh=Yt+kMsdwDL774Fw12K5/rXYBwm/6VkmxXAJo596EOLw=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=BYUz3wDYq9MPo46WJn3zlRhyiqUuhwfK4DV98eWQs0aB97LqYgvVXu8HtyW+uyzfz
-	 EQHW9dQ0qDn63hROd64fM5SsJYl8+AdxdxhRk/lQompe2zw2KNG5PEEXXD2vjHaa+G
-	 5kS+zQ6AO4sCaHBmO22Iom8NaZbhbCju5cS94BLjiOgWUfUUdGcLT/QbxPNDmGsrLQ
-	 x2OC62IWpKFm3Wjpk28F09Aag1UXvzNEXArRA5neWCnvKVLz3Vm8hs8EK7e9+sArYT
-	 iBeoAe0g38omOZXVZFnSJ0uXCkITGi5/y1Ils1wSuPjX5QUdf2qjrwL0wIepAdtJvG
-	 NlMb/avZOyQlw==
-Date: Tue, 10 Aug 2021 17:08:43 -0700
+	b=qsvFf+9yjcOSRNcrVsO/gzcg8fVOCoQGvIdVmkyqNvaa5gfNs1gycd3HQ9oOgNuDl
+	 2CfDkDEe1kBGZoZEunIQWZ5l6jg6af5osq9daEzxX+/VHUNhAJPur/gWDP+9GscT6w
+	 nXKyf4PPYMzUCYaqA4Pk/dUFE7DDQNhZB8NJyEmBAC4PtjpB9iLZ8n3oBV+FMbg3kg
+	 YyeGgbs10NGClZGhKxMjuEhTulWOupOxR5RFqY3MC0Yo0XmBetX5f7uvHqnxXWyBB4
+	 sGtTVas3Wm9zUuqgBy4J8I16tEpVHxle0AaMc1b1ciapJTHWtpJhORQ3LicVpk0o9H
+	 c8QdRduuAPmkA==
+Date: Tue, 10 Aug 2021 17:12:25 -0700
 From: "Darrick J. Wong" <djwong@kernel.org>
 To: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -24,11 +24,10 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
 	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 22/30] iomap: switch iomap_swapfile_activate to use
- iomap_iter
-Message-ID: <20210811000843.GR3601443@magnolia>
+Subject: Re: [PATCH 21/30] iomap: switch iomap_seek_data to use iomap_iter
+Message-ID: <20210811001225.GS3601443@magnolia>
 References: <20210809061244.1196573-1-hch@lst.de>
- <20210809061244.1196573-23-hch@lst.de>
+ <20210809061244.1196573-22-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -37,102 +36,98 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210809061244.1196573-23-hch@lst.de>
+In-Reply-To: <20210809061244.1196573-22-hch@lst.de>
 
-On Mon, Aug 09, 2021 at 08:12:36AM +0200, Christoph Hellwig wrote:
-> Switch iomap_swapfile_activate to use iomap_iter.
+On Mon, Aug 09, 2021 at 08:12:35AM +0200, Christoph Hellwig wrote:
+> Rewrite iomap_seek_data to use iomap_iter.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Smooooooth
+Nice cleanup,
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 
 --D
 
 > ---
->  fs/iomap/swapfile.c | 38 ++++++++++++++++----------------------
->  1 file changed, 16 insertions(+), 22 deletions(-)
+>  fs/iomap/seek.c | 47 ++++++++++++++++++++++++-----------------------
+>  1 file changed, 24 insertions(+), 23 deletions(-)
 > 
-> diff --git a/fs/iomap/swapfile.c b/fs/iomap/swapfile.c
-> index 6250ca6a1f851d..7069606eca85b2 100644
-> --- a/fs/iomap/swapfile.c
-> +++ b/fs/iomap/swapfile.c
-> @@ -88,13 +88,9 @@ static int iomap_swapfile_fail(struct iomap_swapfile_info *isi, const char *str)
->   * swap only cares about contiguous page-aligned physical extents and makes no
->   * distinction between written and unwritten extents.
->   */
-> -static loff_t iomap_swapfile_activate_actor(struct inode *inode, loff_t pos,
-> -		loff_t count, void *data, struct iomap *iomap,
-> -		struct iomap *srcmap)
-> +static loff_t iomap_swapfile_iter(const struct iomap_iter *iter,
-> +		struct iomap *iomap, struct iomap_swapfile_info *isi)
+> diff --git a/fs/iomap/seek.c b/fs/iomap/seek.c
+> index fed8f9005f9e46..a845c012b50c67 100644
+> --- a/fs/iomap/seek.c
+> +++ b/fs/iomap/seek.c
+> @@ -56,47 +56,48 @@ iomap_seek_hole(struct inode *inode, loff_t pos, const struct iomap_ops *ops)
+>  }
+>  EXPORT_SYMBOL_GPL(iomap_seek_hole);
+>  
+> -static loff_t
+> -iomap_seek_data_actor(struct inode *inode, loff_t start, loff_t length,
+> -		      void *data, struct iomap *iomap, struct iomap *srcmap)
+> +static loff_t iomap_seek_data_iter(const struct iomap_iter *iter,
+> +		loff_t *hole_pos)
 >  {
-> -	struct iomap_swapfile_info *isi = data;
-> -	int error;
-> -
->  	switch (iomap->type) {
->  	case IOMAP_MAPPED:
+> -	loff_t offset = start;
+> +	loff_t length = iomap_length(iter);
+>  
+> -	switch (iomap->type) {
+> +	switch (iter->iomap.type) {
+>  	case IOMAP_HOLE:
+>  		return length;
 >  	case IOMAP_UNWRITTEN:
-> @@ -125,12 +121,12 @@ static loff_t iomap_swapfile_activate_actor(struct inode *inode, loff_t pos,
->  		isi->iomap.length += iomap->length;
->  	} else {
->  		/* Otherwise, add the retained iomap and store this one. */
-> -		error = iomap_swapfile_add_extent(isi);
-> +		int error = iomap_swapfile_add_extent(isi);
->  		if (error)
->  			return error;
->  		memcpy(&isi->iomap, iomap, sizeof(isi->iomap));
+> -		offset = mapping_seek_hole_data(inode->i_mapping, start,
+> -				start + length, SEEK_DATA);
+> -		if (offset < 0)
+> +		*hole_pos = mapping_seek_hole_data(iter->inode->i_mapping,
+> +				iter->pos, iter->pos + length, SEEK_DATA);
+> +		if (*hole_pos < 0)
+>  			return length;
+> -		fallthrough;
+> +		return 0;
+>  	default:
+> -		*(loff_t *)data = offset;
+> +		*hole_pos = iter->pos;
+>  		return 0;
 >  	}
-> -	return count;
-> +	return iomap_length(iter);
 >  }
 >  
->  /*
-> @@ -141,16 +137,19 @@ int iomap_swapfile_activate(struct swap_info_struct *sis,
->  		struct file *swap_file, sector_t *pagespan,
->  		const struct iomap_ops *ops)
+>  loff_t
+> -iomap_seek_data(struct inode *inode, loff_t offset, const struct iomap_ops *ops)
+> +iomap_seek_data(struct inode *inode, loff_t pos, const struct iomap_ops *ops)
 >  {
-> +	struct inode *inode = swap_file->f_mapping->host;
+>  	loff_t size = i_size_read(inode);
+> -	loff_t ret;
 > +	struct iomap_iter iter = {
 > +		.inode	= inode,
-> +		.pos	= 0,
-> +		.len	= ALIGN_DOWN(i_size_read(inode), PAGE_SIZE),
+> +		.pos	= pos,
 > +		.flags	= IOMAP_REPORT,
 > +	};
->  	struct iomap_swapfile_info isi = {
->  		.sis = sis,
->  		.lowest_ppage = (sector_t)-1ULL,
->  		.file = swap_file,
->  	};
-> -	struct address_space *mapping = swap_file->f_mapping;
-> -	struct inode *inode = mapping->host;
-> -	loff_t pos = 0;
-> -	loff_t len = ALIGN_DOWN(i_size_read(inode), PAGE_SIZE);
-> -	loff_t ret;
 > +	int ret;
 >  
->  	/*
->  	 * Persist all file mapping metadata so that we won't have any
-> @@ -160,15 +159,10 @@ int iomap_swapfile_activate(struct swap_info_struct *sis,
->  	if (ret)
->  		return ret;
+>  	/* Nothing to be found before or beyond the end of the file. */
+> -	if (offset < 0 || offset >= size)
+> +	if (pos < 0 || pos >= size)
+>  		return -ENXIO;
 >  
-> -	while (len > 0) {
-> -		ret = iomap_apply(inode, pos, len, IOMAP_REPORT,
-> -				ops, &isi, iomap_swapfile_activate_actor);
-> -		if (ret <= 0)
+> -	while (offset < size) {
+> -		ret = iomap_apply(inode, offset, size - offset, IOMAP_REPORT,
+> -				  ops, &offset, iomap_seek_data_actor);
+> -		if (ret < 0)
 > -			return ret;
-> -
-> -		pos += ret;
-> -		len -= ret;
+> -		if (ret == 0)
+> -			return offset;
+> -		offset += ret;
 > -	}
+> -
+> +	iter.len = size - pos;
 > +	while ((ret = iomap_iter(&iter, ops)) > 0)
-> +		iter.processed = iomap_swapfile_iter(&iter, &iter.iomap, &isi);
+> +		iter.processed = iomap_seek_data_iter(&iter, &pos);
 > +	if (ret < 0)
 > +		return ret;
->  
->  	if (isi.iomap.length) {
->  		ret = iomap_swapfile_add_extent(&isi);
+> +	if (iter.len) /* found data before EOF */
+> +		return pos;
+>  	/* We've reached the end of the file without finding data */
+>  	return -ENXIO;
+>  }
 > -- 
 > 2.30.2
 > 
