@@ -1,813 +1,383 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4AE0D177
-	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 08:06:05 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10072"; a="195346843"
-X-IronPort-AV: E=Sophos;i="5.84,311,1620716400"; 
-   d="scan'208";a="195346843"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 01:06:04 -0700
-X-IronPort-AV: E=Sophos;i="5.84,311,1620716400"; 
-   d="scan'208";a="675940080"
-Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 01:06:01 -0700
-Received: from andy by smile with local (Exim 4.94.2)
-	(envelope-from <andriy.shevchenko@linux.intel.com>)
-	id 1mDjFL-007kqW-SN; Wed, 11 Aug 2021 11:05:55 +0300
-Date: Wed, 11 Aug 2021 11:05:55 +0300
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4227070
+	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 15:18:34 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10072"; a="194729382"
+X-IronPort-AV: E=Sophos;i="5.84,313,1620716400"; 
+   d="scan'208";a="194729382"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 08:18:33 -0700
+X-IronPort-AV: E=Sophos;i="5.84,313,1620716400"; 
+   d="scan'208";a="639195672"
+Received: from pdebashi-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.128.27])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 08:18:32 -0700
+Date: Wed, 11 Aug 2021 08:18:29 -0700
+From: Ben Widawsky <ben.widawsky@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	Jonathan.Cameron@huawei.com, ben.widawsky@intel.com,
-	vishal.l.verma@intel.com, alison.schofield@intel.com,
-	ira.weiny@intel.com
-Subject: Re: [PATCH 10/23] libnvdimm/labels: Add uuid helpers
-Message-ID: <YROE48iCZNFaDcSo@smile.fi.intel.com>
+Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Vishal L Verma <vishal.l.verma@intel.com>,
+	"Schofield, Alison" <alison.schofield@intel.com>,
+	"Weiny, Ira" <ira.weiny@intel.com>
+Subject: Re: [PATCH 20/23] tools/testing/cxl: Introduce a mocked-up CXL port
+ hierarchy
+Message-ID: <20210811151829.yt452x2yavrldme4@intel.com>
 References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162854812073.1980150.8157116233571368158.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <162854817382.1980150.11827836438841211401.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20210810215734.qb4ik65uangytvbm@intel.com>
+ <CAPcyv4hc_=7s4dwrfw89B0cdAQAALZ5Yhiuo6xehB6TJQjekog@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <162854812073.1980150.8157116233571368158.stgit@dwillia2-desk3.amr.corp.intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPcyv4hc_=7s4dwrfw89B0cdAQAALZ5Yhiuo6xehB6TJQjekog@mail.gmail.com>
 
-On Mon, Aug 09, 2021 at 03:28:40PM -0700, Dan Williams wrote:
-> In preparation for CXL labels that move the uuid to a different offset
-> in the label, add nsl_{ref,get,validate}_uuid(). These helpers use the
-> proper uuid_t type. That type definition predated the libnvdimm
-> subsystem, so now is as a good a time as any to convert all the uuid
-> handling in the subsystem to uuid_t to match the helpers.
+On 21-08-10 15:40:58, Dan Williams wrote:
+> On Tue, Aug 10, 2021 at 2:57 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
+> >
+> > On 21-08-09 15:29:33, Dan Williams wrote:
+> > > Create an environment for CXL plumbing unit tests. Especially when it
+> > > comes to an algorithm for HDM Decoder (Host-managed Device Memory
+> > > Decoder) programming, the availability of an in-kernel-tree emulation
+> > > environment for CXL configuration complexity and corner cases speeds
+> > > development and deters regressions.
+> > >
+> > > The approach taken mirrors what was done for tools/testing/nvdimm/. I.e.
+> > > an external module, cxl_test.ko built out of the tools/testing/cxl/
+> > > directory, provides mock implementations of kernel APIs and kernel
+> > > objects to simulate a real world device hierarchy.
+> > >
+> > > One feedback for the tools/testing/nvdimm/ proposal was "why not do this
+> > > in QEMU?". In fact, the CXL development community has developed a QEMU
+> > > model for CXL [1]. However, there are a few blocking issues that keep
+> > > QEMU from being a tight fit for topology + provisioning unit tests:
+> > >
+> > > 1/ The QEMU community has yet to show interest in merging any of this
+> > >    support that has had patches on the list since November 2020. So,
+> > >    testing CXL to date involves building custom QEMU with out-of-tree
+> > >    patches.
+> > >
+> > > 2/ CXL mechanisms like cross-host-bridge interleave do not have a clear
+> > >    path to be emulated by QEMU without major infrastructure work. This
+> > >    is easier to achieve with the alloc_mock_res() approach taken in this
+> > >    patch to shortcut-define emulated system physical address ranges with
+> > >    interleave behavior.
+> >
+> > I just want to say that this was discussed on the mailing list, and I think
+> > there is a reasonable plan (albeit a lot of work). However, #1 is the true
+> > blocker IMHO.
+> >
+> > >
+> > > The QEMU enabling has been critical to get the driver off the ground,
+> > > and may still move forward, but it does not address the ongoing needs of
+> > > a regression testing environment and test driven development.
+> > >
+> >
+> > The really nice thing QEMU provides over this (assuming one implemented
+> > interleaving properly), is it does allow a programmatic (via commandline) way to
+> > test an infinite set of topologies, configurations, and hotplug scenarios. I
+> > therefore disagree here in that I think QEMU is a better theoretical vehicle for
+> > regression testing and test driven development, however, my unfinished branch
+> > with no upstream interest in sight is problematic at best for longer term.
 > 
-> As for the whitespace changes, all new code is clang-format compliant.
+> The "infinite" is what I don't think QEMU will sign up to support.
+> There are going to be degenerate error handling scenarios that we want
+> to test that QEMU will have no interest in supporting because QEMU is
+> primarily targeted at faithfully emulating well behaved hardware. At
+> the same time cxl_test does not preclude QEMU support which will
+> remain super useful. You will notice that the ndctl unit tests have
+> some tests that run against nfit_test and some that run against "real"
+> topologies where the "real" stuff is usually the QEMU NVDIMM model. So
+> it's not "either, or" it's "QEMU and cxl_test".
 
-Thanks, looks good to me!
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+I don't mean infinite in the sense of adding code into QEMU to handle weird
+things. All sorts of host bridge configs, device configs, etc, are simply done
+by instantiating them on the commandline and with the appropriate properties.
+Perhaps with this module, you can do the same via modparams.
 
-> Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/nvdimm/btt.c            |   11 +++--
->  drivers/nvdimm/btt.h            |    4 +-
->  drivers/nvdimm/btt_devs.c       |   12 +++---
->  drivers/nvdimm/core.c           |   40 ++-----------------
->  drivers/nvdimm/label.c          |   34 +++++++---------
->  drivers/nvdimm/label.h          |    3 -
->  drivers/nvdimm/namespace_devs.c |   83 ++++++++++++++++++++-------------------
->  drivers/nvdimm/nd-core.h        |    5 +-
->  drivers/nvdimm/nd.h             |   37 ++++++++++++++++-
->  drivers/nvdimm/pfn_devs.c       |    2 -
->  include/linux/nd.h              |    4 +-
->  11 files changed, 115 insertions(+), 120 deletions(-)
+I did have the intention of creating a vendor specific command for QEMU that
+would allow all sorts of testable events, but that could have lived out of tree
+fairly easily.
+
 > 
-> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> index 92dec4952297..1cdfbadb7408 100644
-> --- a/drivers/nvdimm/btt.c
-> +++ b/drivers/nvdimm/btt.c
-> @@ -973,7 +973,7 @@ static int btt_arena_write_layout(struct arena_info *arena)
->  	u64 sum;
->  	struct btt_sb *super;
->  	struct nd_btt *nd_btt = arena->nd_btt;
-> -	const u8 *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
-> +	const uuid_t *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
->  
->  	ret = btt_map_init(arena);
->  	if (ret)
-> @@ -988,8 +988,8 @@ static int btt_arena_write_layout(struct arena_info *arena)
->  		return -ENOMEM;
->  
->  	strncpy(super->signature, BTT_SIG, BTT_SIG_LEN);
-> -	memcpy(super->uuid, nd_btt->uuid, 16);
-> -	memcpy(super->parent_uuid, parent_uuid, 16);
-> +	uuid_copy(&super->uuid, nd_btt->uuid);
-> +	uuid_copy(&super->parent_uuid, parent_uuid);
->  	super->flags = cpu_to_le32(arena->flags);
->  	super->version_major = cpu_to_le16(arena->version_major);
->  	super->version_minor = cpu_to_le16(arena->version_minor);
-> @@ -1575,7 +1575,8 @@ static void btt_blk_cleanup(struct btt *btt)
->   * Pointer to a new struct btt on success, NULL on failure.
->   */
->  static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
-> -		u32 lbasize, u8 *uuid, struct nd_region *nd_region)
-> +			    u32 lbasize, uuid_t *uuid,
-> +			    struct nd_region *nd_region)
->  {
->  	int ret;
->  	struct btt *btt;
-> @@ -1694,7 +1695,7 @@ int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns)
->  	}
->  	nd_region = to_nd_region(nd_btt->dev.parent);
->  	btt = btt_init(nd_btt, rawsize, nd_btt->lbasize, nd_btt->uuid,
-> -			nd_region);
-> +		       nd_region);
->  	if (!btt)
->  		return -ENOMEM;
->  	nd_btt->btt = btt;
-> diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-> index 0c76c0333f6e..fc3512d92ae5 100644
-> --- a/drivers/nvdimm/btt.h
-> +++ b/drivers/nvdimm/btt.h
-> @@ -94,8 +94,8 @@ struct log_group {
->  
->  struct btt_sb {
->  	u8 signature[BTT_SIG_LEN];
-> -	u8 uuid[16];
-> -	u8 parent_uuid[16];
-> +	uuid_t uuid;
-> +	uuid_t parent_uuid;
->  	__le32 flags;
->  	__le16 version_major;
->  	__le16 version_minor;
-> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-> index 05feb97e11ce..5ad45e9e48c9 100644
-> --- a/drivers/nvdimm/btt_devs.c
-> +++ b/drivers/nvdimm/btt_devs.c
-> @@ -180,8 +180,8 @@ bool is_nd_btt(struct device *dev)
->  EXPORT_SYMBOL(is_nd_btt);
->  
->  static struct device *__nd_btt_create(struct nd_region *nd_region,
-> -		unsigned long lbasize, u8 *uuid,
-> -		struct nd_namespace_common *ndns)
-> +				      unsigned long lbasize, uuid_t *uuid,
-> +				      struct nd_namespace_common *ndns)
->  {
->  	struct nd_btt *nd_btt;
->  	struct device *dev;
-> @@ -244,14 +244,14 @@ struct device *nd_btt_create(struct nd_region *nd_region)
->   */
->  bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
->  {
-> -	const u8 *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
-> +	const uuid_t *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
->  	u64 checksum;
->  
->  	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
->  		return false;
->  
-> -	if (!guid_is_null((guid_t *)&super->parent_uuid))
-> -		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
-> +	if (!uuid_is_null(&super->parent_uuid))
-> +		if (!uuid_equal(&super->parent_uuid, parent_uuid))
->  			return false;
->  
->  	checksum = le64_to_cpu(super->checksum);
-> @@ -319,7 +319,7 @@ static int __nd_btt_probe(struct nd_btt *nd_btt,
->  		return rc;
->  
->  	nd_btt->lbasize = le32_to_cpu(btt_sb->external_lbasize);
-> -	nd_btt->uuid = kmemdup(btt_sb->uuid, 16, GFP_KERNEL);
-> +	nd_btt->uuid = kmemdup(&btt_sb->uuid, sizeof(uuid_t), GFP_KERNEL);
->  	if (!nd_btt->uuid)
->  		return -ENOMEM;
->  
-> diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-> index 7de592d7eff4..690152d62bf0 100644
-> --- a/drivers/nvdimm/core.c
-> +++ b/drivers/nvdimm/core.c
-> @@ -206,38 +206,6 @@ struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus)
->  }
->  EXPORT_SYMBOL_GPL(to_nvdimm_bus_dev);
->  
-> -static bool is_uuid_sep(char sep)
-> -{
-> -	if (sep == '\n' || sep == '-' || sep == ':' || sep == '\0')
-> -		return true;
-> -	return false;
-> -}
-> -
-> -static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
-> -		size_t len)
-> -{
-> -	const char *str = buf;
-> -	u8 uuid[16];
-> -	int i;
-> -
-> -	for (i = 0; i < 16; i++) {
-> -		if (!isxdigit(str[0]) || !isxdigit(str[1])) {
-> -			dev_dbg(dev, "pos: %d buf[%zd]: %c buf[%zd]: %c\n",
-> -					i, str - buf, str[0],
-> -					str + 1 - buf, str[1]);
-> -			return -EINVAL;
-> -		}
-> -
-> -		uuid[i] = (hex_to_bin(str[0]) << 4) | hex_to_bin(str[1]);
-> -		str += 2;
-> -		if (is_uuid_sep(*str))
-> -			str++;
-> -	}
-> -
-> -	memcpy(uuid_out, uuid, sizeof(uuid));
-> -	return 0;
-> -}
-> -
->  /**
->   * nd_uuid_store: common implementation for writing 'uuid' sysfs attributes
->   * @dev: container device for the uuid property
-> @@ -248,21 +216,21 @@ static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
->   * (driver detached)
->   * LOCKING: expects nd_device_lock() is held on entry
->   */
-> -int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
-> +int nd_uuid_store(struct device *dev, uuid_t **uuid_out, const char *buf,
->  		size_t len)
->  {
-> -	u8 uuid[16];
-> +	uuid_t uuid;
->  	int rc;
->  
->  	if (dev->driver)
->  		return -EBUSY;
->  
-> -	rc = nd_uuid_parse(dev, uuid, buf, len);
-> +	rc = uuid_parse(buf, &uuid);
->  	if (rc)
->  		return rc;
->  
->  	kfree(*uuid_out);
-> -	*uuid_out = kmemdup(uuid, sizeof(uuid), GFP_KERNEL);
-> +	*uuid_out = kmemdup(&uuid, sizeof(uuid), GFP_KERNEL);
->  	if (!(*uuid_out))
->  		return -ENOMEM;
->  
-> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-> index 2ba31b883b28..99608e6aeaae 100644
-> --- a/drivers/nvdimm/label.c
-> +++ b/drivers/nvdimm/label.c
-> @@ -326,7 +326,8 @@ static bool preamble_index(struct nvdimm_drvdata *ndd, int idx,
->  	return true;
->  }
->  
-> -char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags)
-> +char *nd_label_gen_id(struct nd_label_id *label_id, const uuid_t *uuid,
-> +		      u32 flags)
->  {
->  	if (!label_id || !uuid)
->  		return NULL;
-> @@ -405,9 +406,9 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
->  		struct nvdimm *nvdimm = to_nvdimm(ndd->dev);
->  		struct nd_namespace_label *nd_label;
->  		struct nd_region *nd_region = NULL;
-> -		u8 label_uuid[NSLABEL_UUID_LEN];
->  		struct nd_label_id label_id;
->  		struct resource *res;
-> +		uuid_t label_uuid;
->  		u32 flags;
->  
->  		nd_label = to_label(ndd, slot);
-> @@ -415,11 +416,11 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
->  		if (!slot_valid(ndd, nd_label, slot))
->  			continue;
->  
-> -		memcpy(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
-> +		nsl_get_uuid(ndd, nd_label, &label_uuid);
->  		flags = nsl_get_flags(ndd, nd_label);
->  		if (test_bit(NDD_NOBLK, &nvdimm->flags))
->  			flags &= ~NSLABEL_FLAG_LOCAL;
-> -		nd_label_gen_id(&label_id, label_uuid, flags);
-> +		nd_label_gen_id(&label_id, &label_uuid, flags);
->  		res = nvdimm_allocate_dpa(ndd, &label_id,
->  					  nsl_get_dpa(ndd, nd_label),
->  					  nsl_get_rawsize(ndd, nd_label));
-> @@ -896,7 +897,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
->  
->  	nd_label = to_label(ndd, slot);
->  	memset(nd_label, 0, sizeof_namespace_label(ndd));
-> -	memcpy(nd_label->uuid, nspm->uuid, NSLABEL_UUID_LEN);
-> +	nsl_set_uuid(ndd, nd_label, nspm->uuid);
->  	nsl_set_name(ndd, nd_label, nspm->alt_name);
->  	nsl_set_flags(ndd, nd_label, flags);
->  	nsl_set_nlabel(ndd, nd_label, nd_region->ndr_mappings);
-> @@ -923,9 +924,8 @@ static int __pmem_label_update(struct nd_region *nd_region,
->  	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
->  		if (!label_ent->label)
->  			continue;
-> -		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags)
-> -				|| memcmp(nspm->uuid, label_ent->label->uuid,
-> -					NSLABEL_UUID_LEN) == 0)
-> +		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags) ||
-> +		    uuid_equal(nspm->uuid, nsl_ref_uuid(ndd, label_ent->label)))
->  			reap_victim(nd_mapping, label_ent);
->  	}
->  
-> @@ -1050,7 +1050,6 @@ static int __blk_label_update(struct nd_region *nd_region,
->  	unsigned long *free, *victim_map = NULL;
->  	struct resource *res, **old_res_list;
->  	struct nd_label_id label_id;
-> -	u8 uuid[NSLABEL_UUID_LEN];
->  	int min_dpa_idx = 0;
->  	LIST_HEAD(list);
->  	u32 nslot, slot;
-> @@ -1088,8 +1087,7 @@ static int __blk_label_update(struct nd_region *nd_region,
->  		/* mark unused labels for garbage collection */
->  		for_each_clear_bit_le(slot, free, nslot) {
->  			nd_label = to_label(ndd, slot);
-> -			memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
-> -			if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
-> +			if (!nsl_validate_uuid(ndd, nd_label, nsblk->uuid))
->  				continue;
->  			res = to_resource(ndd, nd_label);
->  			if (res && is_old_resource(res, old_res_list,
-> @@ -1158,7 +1156,7 @@ static int __blk_label_update(struct nd_region *nd_region,
->  
->  		nd_label = to_label(ndd, slot);
->  		memset(nd_label, 0, sizeof_namespace_label(ndd));
-> -		memcpy(nd_label->uuid, nsblk->uuid, NSLABEL_UUID_LEN);
-> +		nsl_set_uuid(ndd, nd_label, nsblk->uuid);
->  		nsl_set_name(ndd, nd_label, nsblk->alt_name);
->  		nsl_set_flags(ndd, nd_label, NSLABEL_FLAG_LOCAL);
->  
-> @@ -1206,8 +1204,7 @@ static int __blk_label_update(struct nd_region *nd_region,
->  		if (!nd_label)
->  			continue;
->  		nlabel++;
-> -		memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
-> -		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
-> +		if (!nsl_validate_uuid(ndd, nd_label, nsblk->uuid))
->  			continue;
->  		nlabel--;
->  		list_move(&label_ent->list, &list);
-> @@ -1237,8 +1234,7 @@ static int __blk_label_update(struct nd_region *nd_region,
->  	}
->  	for_each_clear_bit_le(slot, free, nslot) {
->  		nd_label = to_label(ndd, slot);
-> -		memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
-> -		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
-> +		if (!nsl_validate_uuid(ndd, nd_label, nsblk->uuid))
->  			continue;
->  		res = to_resource(ndd, nd_label);
->  		res->flags &= ~DPA_RESOURCE_ADJUSTED;
-> @@ -1318,12 +1314,11 @@ static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
->  	return max(num_labels, old_num_labels);
->  }
->  
-> -static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
-> +static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
->  {
->  	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
->  	struct nd_label_ent *label_ent, *e;
->  	struct nd_namespace_index *nsindex;
-> -	u8 label_uuid[NSLABEL_UUID_LEN];
->  	unsigned long *free;
->  	LIST_HEAD(list);
->  	u32 nslot, slot;
-> @@ -1343,8 +1338,7 @@ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
->  		if (!nd_label)
->  			continue;
->  		active++;
-> -		memcpy(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
-> -		if (memcmp(label_uuid, uuid, NSLABEL_UUID_LEN) != 0)
-> +		if (!nsl_validate_uuid(ndd, nd_label, uuid))
->  			continue;
->  		active--;
->  		slot = to_slot(ndd, nd_label);
-> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-> index 31f94fad7b92..e6e77691dbec 100644
-> --- a/drivers/nvdimm/label.h
-> +++ b/drivers/nvdimm/label.h
-> @@ -14,7 +14,6 @@ enum {
->  	NSINDEX_SIG_LEN = 16,
->  	NSINDEX_ALIGN = 256,
->  	NSINDEX_SEQ_MASK = 0x3,
-> -	NSLABEL_UUID_LEN = 16,
->  	NSLABEL_NAME_LEN = 64,
->  	NSLABEL_FLAG_ROLABEL = 0x1,  /* read-only label */
->  	NSLABEL_FLAG_LOCAL = 0x2,    /* DIMM-local namespace */
-> @@ -80,7 +79,7 @@ struct nd_namespace_index {
->   * @unused: must be zero
->   */
->  struct nd_namespace_label {
-> -	u8 uuid[NSLABEL_UUID_LEN];
-> +	uuid_t uuid;
->  	u8 name[NSLABEL_NAME_LEN];
->  	__le32 flags;
->  	__le16 nlabel;
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-> index 58c76d74127a..20ea3ccd1f29 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -51,7 +51,7 @@ static bool is_namespace_io(const struct device *dev);
->  
->  static int is_uuid_busy(struct device *dev, void *data)
->  {
-> -	u8 *uuid1 = data, *uuid2 = NULL;
-> +	uuid_t *uuid1 = data, *uuid2 = NULL;
->  
->  	if (is_namespace_pmem(dev)) {
->  		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
-> @@ -71,7 +71,7 @@ static int is_uuid_busy(struct device *dev, void *data)
->  		uuid2 = nd_pfn->uuid;
->  	}
->  
-> -	if (uuid2 && memcmp(uuid1, uuid2, NSLABEL_UUID_LEN) == 0)
-> +	if (uuid2 && uuid_equal(uuid1, uuid2))
->  		return -EBUSY;
->  
->  	return 0;
-> @@ -89,7 +89,7 @@ static int is_namespace_uuid_busy(struct device *dev, void *data)
->   * @dev: any device on a nvdimm_bus
->   * @uuid: uuid to check
->   */
-> -bool nd_is_uuid_unique(struct device *dev, u8 *uuid)
-> +bool nd_is_uuid_unique(struct device *dev, uuid_t *uuid)
->  {
->  	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
->  
-> @@ -192,12 +192,10 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
->  }
->  EXPORT_SYMBOL(nvdimm_namespace_disk_name);
->  
-> -const u8 *nd_dev_to_uuid(struct device *dev)
-> +const uuid_t *nd_dev_to_uuid(struct device *dev)
->  {
-> -	static const u8 null_uuid[16];
-> -
->  	if (!dev)
-> -		return null_uuid;
-> +		return &uuid_null;
->  
->  	if (is_namespace_pmem(dev)) {
->  		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
-> @@ -208,7 +206,7 @@ const u8 *nd_dev_to_uuid(struct device *dev)
->  
->  		return nsblk->uuid;
->  	} else
-> -		return null_uuid;
-> +		return &uuid_null;
->  }
->  EXPORT_SYMBOL(nd_dev_to_uuid);
->  
-> @@ -938,7 +936,8 @@ static void nd_namespace_pmem_set_resource(struct nd_region *nd_region,
->  	res->end = res->start + size - 1;
->  }
->  
-> -static bool uuid_not_set(const u8 *uuid, struct device *dev, const char *where)
-> +static bool uuid_not_set(const uuid_t *uuid, struct device *dev,
-> +			 const char *where)
->  {
->  	if (!uuid) {
->  		dev_dbg(dev, "%s: uuid not set\n", where);
-> @@ -957,7 +956,7 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
->  	struct nd_label_id label_id;
->  	u32 flags = 0, remainder;
->  	int rc, i, id = -1;
-> -	u8 *uuid = NULL;
-> +	uuid_t *uuid = NULL;
->  
->  	if (dev->driver || ndns->claim)
->  		return -EBUSY;
-> @@ -1050,7 +1049,7 @@ static ssize_t size_store(struct device *dev,
->  {
->  	struct nd_region *nd_region = to_nd_region(dev->parent);
->  	unsigned long long val;
-> -	u8 **uuid = NULL;
-> +	uuid_t **uuid = NULL;
->  	int rc;
->  
->  	rc = kstrtoull(buf, 0, &val);
-> @@ -1147,7 +1146,7 @@ static ssize_t size_show(struct device *dev,
->  }
->  static DEVICE_ATTR(size, 0444, size_show, size_store);
->  
-> -static u8 *namespace_to_uuid(struct device *dev)
-> +static uuid_t *namespace_to_uuid(struct device *dev)
->  {
->  	if (is_namespace_pmem(dev)) {
->  		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
-> @@ -1161,10 +1160,10 @@ static u8 *namespace_to_uuid(struct device *dev)
->  		return ERR_PTR(-ENXIO);
->  }
->  
-> -static ssize_t uuid_show(struct device *dev,
-> -		struct device_attribute *attr, char *buf)
-> +static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
-> +			 char *buf)
->  {
-> -	u8 *uuid = namespace_to_uuid(dev);
-> +	uuid_t *uuid = namespace_to_uuid(dev);
->  
->  	if (IS_ERR(uuid))
->  		return PTR_ERR(uuid);
-> @@ -1181,7 +1180,8 @@ static ssize_t uuid_show(struct device *dev,
->   * @old_uuid: reference to the uuid storage location in the namespace object
->   */
->  static int namespace_update_uuid(struct nd_region *nd_region,
-> -		struct device *dev, u8 *new_uuid, u8 **old_uuid)
-> +				 struct device *dev, uuid_t *new_uuid,
-> +				 uuid_t **old_uuid)
->  {
->  	u32 flags = is_namespace_blk(dev) ? NSLABEL_FLAG_LOCAL : 0;
->  	struct nd_label_id old_label_id;
-> @@ -1234,7 +1234,7 @@ static int namespace_update_uuid(struct nd_region *nd_region,
->  
->  			if (!nd_label)
->  				continue;
-> -			nd_label_gen_id(&label_id, nd_label->uuid,
-> +			nd_label_gen_id(&label_id, nsl_ref_uuid(ndd, nd_label),
->  					nsl_get_flags(ndd, nd_label));
->  			if (strcmp(old_label_id.id, label_id.id) == 0)
->  				set_bit(ND_LABEL_REAP, &label_ent->flags);
-> @@ -1251,9 +1251,9 @@ static ssize_t uuid_store(struct device *dev,
->  		struct device_attribute *attr, const char *buf, size_t len)
->  {
->  	struct nd_region *nd_region = to_nd_region(dev->parent);
-> -	u8 *uuid = NULL;
-> +	uuid_t *uuid = NULL;
-> +	uuid_t **ns_uuid;
->  	ssize_t rc = 0;
-> -	u8 **ns_uuid;
->  
->  	if (is_namespace_pmem(dev)) {
->  		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
-> @@ -1378,8 +1378,8 @@ static ssize_t dpa_extents_show(struct device *dev,
->  {
->  	struct nd_region *nd_region = to_nd_region(dev->parent);
->  	struct nd_label_id label_id;
-> +	uuid_t *uuid = NULL;
->  	int count = 0, i;
-> -	u8 *uuid = NULL;
->  	u32 flags = 0;
->  
->  	nvdimm_bus_lock(dev);
-> @@ -1831,8 +1831,8 @@ static struct device **create_namespace_io(struct nd_region *nd_region)
->  	return devs;
->  }
->  
-> -static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
-> -		u64 cookie, u16 pos)
-> +static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
-> +			    u64 cookie, u16 pos)
->  {
->  	struct nd_namespace_label *found = NULL;
->  	int i;
-> @@ -1856,7 +1856,7 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
->  			if (!nsl_validate_isetcookie(ndd, nd_label, cookie))
->  				continue;
->  
-> -			if (memcmp(nd_label->uuid, uuid, NSLABEL_UUID_LEN) != 0)
-> +			if (!nsl_validate_uuid(ndd, nd_label, uuid))
->  				continue;
->  
->  			if (!nsl_validate_type_guid(ndd, nd_label,
-> @@ -1881,7 +1881,7 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
->  	return found != NULL;
->  }
->  
-> -static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
-> +static int select_pmem_id(struct nd_region *nd_region, const uuid_t *pmem_id)
->  {
->  	int i;
->  
-> @@ -1900,7 +1900,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
->  			nd_label = label_ent->label;
->  			if (!nd_label)
->  				continue;
-> -			if (memcmp(nd_label->uuid, pmem_id, NSLABEL_UUID_LEN) == 0)
-> +			if (nsl_validate_uuid(ndd, nd_label, pmem_id))
->  				break;
->  			nd_label = NULL;
->  		}
-> @@ -1923,7 +1923,8 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
->  			/* pass */;
->  		else {
->  			dev_dbg(&nd_region->dev, "%s invalid label for %pUb\n",
-> -					dev_name(ndd->dev), nd_label->uuid);
-> +				dev_name(ndd->dev),
-> +				nsl_ref_uuid(ndd, nd_label));
->  			return -EINVAL;
->  		}
->  
-> @@ -1963,12 +1964,12 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  
->  	if (!nsl_validate_isetcookie(ndd, nd_label, cookie)) {
->  		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
-> -				nd_label->uuid);
-> +			nsl_ref_uuid(ndd, nd_label));
->  		if (!nsl_validate_isetcookie(ndd, nd_label, altcookie))
->  			return ERR_PTR(-EAGAIN);
->  
->  		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
-> -				nd_label->uuid);
-> +			nsl_ref_uuid(ndd, nd_label));
->  	}
->  
->  	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
-> @@ -1984,9 +1985,11 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  	res->flags = IORESOURCE_MEM;
->  
->  	for (i = 0; i < nd_region->ndr_mappings; i++) {
-> -		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
-> +		if (has_uuid_at_pos(nd_region, nsl_ref_uuid(ndd, nd_label),
-> +				    cookie, i))
->  			continue;
-> -		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
-> +		if (has_uuid_at_pos(nd_region, nsl_ref_uuid(ndd, nd_label),
-> +				    altcookie, i))
->  			continue;
->  		break;
->  	}
-> @@ -2000,7 +2003,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  		 * find a dimm with two instances of the same uuid.
->  		 */
->  		dev_err(&nd_region->dev, "%s missing label for %pUb\n",
-> -				nvdimm_name(nvdimm), nd_label->uuid);
-> +			nvdimm_name(nvdimm), nsl_ref_uuid(ndd, nd_label));
->  		rc = -EINVAL;
->  		goto err;
->  	}
-> @@ -2013,7 +2016,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  	 * the dimm being enabled (i.e. nd_label_reserve_dpa()
->  	 * succeeded).
->  	 */
-> -	rc = select_pmem_id(nd_region, nd_label->uuid);
-> +	rc = select_pmem_id(nd_region, nsl_ref_uuid(ndd, nd_label));
->  	if (rc)
->  		goto err;
->  
-> @@ -2039,8 +2042,8 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
->  		WARN_ON(nspm->alt_name || nspm->uuid);
->  		nspm->alt_name = kmemdup(nsl_ref_name(ndd, label0),
->  					 NSLABEL_NAME_LEN, GFP_KERNEL);
-> -		nspm->uuid = kmemdup((void __force *) label0->uuid,
-> -				NSLABEL_UUID_LEN, GFP_KERNEL);
-> +		nspm->uuid = kmemdup(nsl_ref_uuid(ndd, label0), sizeof(uuid_t),
-> +				     GFP_KERNEL);
->  		nspm->lbasize = nsl_get_lbasize(ndd, label0);
->  		nspm->nsio.common.claim_class =
->  			nsl_get_claim_class(ndd, label0);
-> @@ -2217,15 +2220,15 @@ static int add_namespace_resource(struct nd_region *nd_region,
->  	int i;
->  
->  	for (i = 0; i < count; i++) {
-> -		u8 *uuid = namespace_to_uuid(devs[i]);
-> +		uuid_t *uuid = namespace_to_uuid(devs[i]);
->  		struct resource *res;
->  
-> -		if (IS_ERR_OR_NULL(uuid)) {
-> +		if (IS_ERR(uuid)) {
->  			WARN_ON(1);
->  			continue;
->  		}
->  
-> -		if (memcmp(uuid, nd_label->uuid, NSLABEL_UUID_LEN) != 0)
-> +		if (!nsl_validate_uuid(ndd, nd_label, uuid))
->  			continue;
->  		if (is_namespace_blk(devs[i])) {
->  			res = nsblk_add_resource(nd_region, ndd,
-> @@ -2236,8 +2239,8 @@ static int add_namespace_resource(struct nd_region *nd_region,
->  			nd_dbg_dpa(nd_region, ndd, res, "%d assign\n", count);
->  		} else {
->  			dev_err(&nd_region->dev,
-> -					"error: conflicting extents for uuid: %pUb\n",
-> -					nd_label->uuid);
-> +				"error: conflicting extents for uuid: %pUb\n",
-> +				uuid);
->  			return -ENXIO;
->  		}
->  		break;
-> @@ -2271,7 +2274,7 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
->  	dev->parent = &nd_region->dev;
->  	nsblk->id = -1;
->  	nsblk->lbasize = nsl_get_lbasize(ndd, nd_label);
-> -	nsblk->uuid = kmemdup(nd_label->uuid, NSLABEL_UUID_LEN, GFP_KERNEL);
-> +	nsblk->uuid = kmemdup(nsl_ref_uuid(ndd, nd_label), sizeof(uuid_t), GFP_KERNEL);
->  	nsblk->common.claim_class = nsl_get_claim_class(ndd, nd_label);
->  	if (!nsblk->uuid)
->  		goto blk_err;
-> diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
-> index 564faa36a3ca..a11850dd475d 100644
-> --- a/drivers/nvdimm/nd-core.h
-> +++ b/drivers/nvdimm/nd-core.h
-> @@ -126,8 +126,9 @@ void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
->  void nd_synchronize(void);
->  void __nd_device_register(struct device *dev);
->  struct nd_label_id;
-> -char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
-> -bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
-> +char *nd_label_gen_id(struct nd_label_id *label_id, const uuid_t *uuid,
-> +		      u32 flags);
-> +bool nd_is_uuid_unique(struct device *dev, uuid_t *uuid);
->  struct nd_region;
->  struct nvdimm_drvdata;
->  struct nd_mapping;
-> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> index ac80d9680367..132a8021e3ad 100644
-> --- a/drivers/nvdimm/nd.h
-> +++ b/drivers/nvdimm/nd.h
-> @@ -176,6 +176,35 @@ static inline void nsl_set_lbasize(struct nvdimm_drvdata *ndd,
->  	nd_label->lbasize = __cpu_to_le64(lbasize);
->  }
->  
-> +static inline const uuid_t *nsl_get_uuid(struct nvdimm_drvdata *ndd,
-> +					 struct nd_namespace_label *nd_label,
-> +					 uuid_t *uuid)
-> +{
-> +	uuid_copy(uuid, &nd_label->uuid);
-> +	return uuid;
-> +}
-> +
-> +static inline const uuid_t *nsl_set_uuid(struct nvdimm_drvdata *ndd,
-> +					 struct nd_namespace_label *nd_label,
-> +					 const uuid_t *uuid)
-> +{
-> +	uuid_copy(&nd_label->uuid, uuid);
-> +	return &nd_label->uuid;
-> +}
-> +
-> +static inline bool nsl_validate_uuid(struct nvdimm_drvdata *ndd,
-> +				     struct nd_namespace_label *nd_label,
-> +				     const uuid_t *uuid)
-> +{
-> +	return uuid_equal(&nd_label->uuid, uuid);
-> +}
-> +
-> +static inline const uuid_t *nsl_ref_uuid(struct nvdimm_drvdata *ndd,
-> +					 struct nd_namespace_label *nd_label)
-> +{
-> +	return &nd_label->uuid;
-> +}
-> +
->  bool nsl_validate_blk_isetcookie(struct nvdimm_drvdata *ndd,
->  				 struct nd_namespace_label *nd_label,
->  				 u64 isetcookie);
-> @@ -334,7 +363,7 @@ struct nd_btt {
->  	struct btt *btt;
->  	unsigned long lbasize;
->  	u64 size;
-> -	u8 *uuid;
-> +	uuid_t *uuid;
->  	int id;
->  	int initial_offset;
->  	u16 version_major;
-> @@ -349,7 +378,7 @@ enum nd_pfn_mode {
->  
->  struct nd_pfn {
->  	int id;
-> -	u8 *uuid;
-> +	uuid_t *uuid;
->  	struct device dev;
->  	unsigned long align;
->  	unsigned long npfns;
-> @@ -377,7 +406,7 @@ void wait_nvdimm_bus_probe_idle(struct device *dev);
->  void nd_device_register(struct device *dev);
->  void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
->  void nd_device_notify(struct device *dev, enum nvdimm_event event);
-> -int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
-> +int nd_uuid_store(struct device *dev, uuid_t **uuid_out, const char *buf,
->  		size_t len);
->  ssize_t nd_size_select_show(unsigned long current_size,
->  		const unsigned long *supported, char *buf);
-> @@ -560,6 +589,6 @@ static inline bool is_bad_pmem(struct badblocks *bb, sector_t sector,
->  	return false;
->  }
->  resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk);
-> -const u8 *nd_dev_to_uuid(struct device *dev);
-> +const uuid_t *nd_dev_to_uuid(struct device *dev);
->  bool pmem_should_map_pages(struct device *dev);
->  #endif /* __ND_H__ */
-> diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
-> index b499df630d4d..58eda16f5c53 100644
-> --- a/drivers/nvdimm/pfn_devs.c
-> +++ b/drivers/nvdimm/pfn_devs.c
-> @@ -452,7 +452,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
->  	unsigned long align, start_pad;
->  	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
->  	struct nd_namespace_common *ndns = nd_pfn->ndns;
-> -	const u8 *parent_uuid = nd_dev_to_uuid(&ndns->dev);
-> +	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
->  
->  	if (!pfn_sb || !ndns)
->  		return -ENODEV;
-> diff --git a/include/linux/nd.h b/include/linux/nd.h
-> index ee9ad76afbba..8a8c63edb1b2 100644
-> --- a/include/linux/nd.h
-> +++ b/include/linux/nd.h
-> @@ -88,7 +88,7 @@ struct nd_namespace_pmem {
->  	struct nd_namespace_io nsio;
->  	unsigned long lbasize;
->  	char *alt_name;
-> -	u8 *uuid;
-> +	uuid_t *uuid;
->  	int id;
->  };
->  
-> @@ -105,7 +105,7 @@ struct nd_namespace_pmem {
->  struct nd_namespace_blk {
->  	struct nd_namespace_common common;
->  	char *alt_name;
-> -	u8 *uuid;
-> +	uuid_t *uuid;
->  	int id;
->  	unsigned long lbasize;
->  	resource_size_t size;
+> >
+> > I didn't look super closely, but I have one comment/question below. Otherwise,
+> > LGTM.
+> >
+> > > This patch adds an ACPI CXL Platform definition with emulated CXL
+> > > multi-ported host-bridges. A follow on patch adds emulated memory
+> > > expander devices.
+> > >
+> > > Link: https://lore.kernel.org/r/20210202005948.241655-1-ben.widawsky@intel.com [1]
+> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > > ---
+> > >  drivers/cxl/acpi.c            |   52 +++-
+> > >  drivers/cxl/cxl.h             |    8 +
+> > >  tools/testing/cxl/Kbuild      |   27 ++
+> > >  tools/testing/cxl/mock_acpi.c |  105 ++++++++
+> > >  tools/testing/cxl/test/Kbuild |    6
+> > >  tools/testing/cxl/test/cxl.c  |  508 +++++++++++++++++++++++++++++++++++++++++
+> > >  tools/testing/cxl/test/mock.c |  155 +++++++++++++
+> > >  tools/testing/cxl/test/mock.h |   26 ++
+> > >  8 files changed, 866 insertions(+), 21 deletions(-)
+> > >  create mode 100644 tools/testing/cxl/Kbuild
+> > >  create mode 100644 tools/testing/cxl/mock_acpi.c
+> > >  create mode 100644 tools/testing/cxl/test/Kbuild
+> > >  create mode 100644 tools/testing/cxl/test/cxl.c
+> > >  create mode 100644 tools/testing/cxl/test/mock.c
+> > >  create mode 100644 tools/testing/cxl/test/mock.h
+> > >
+> > > diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
+> > > index 8ae89273f58e..e0cd9df85ca5 100644
+> > > --- a/drivers/cxl/acpi.c
+> > > +++ b/drivers/cxl/acpi.c
+> > > @@ -182,15 +182,7 @@ static resource_size_t get_chbcr(struct acpi_cedt_chbs *chbs)
+> > >       return IS_ERR(chbs) ? CXL_RESOURCE_NONE : chbs->base;
+> > >  }
+> > >
+> > > -struct cxl_walk_context {
+> > > -     struct device *dev;
+> > > -     struct pci_bus *root;
+> > > -     struct cxl_port *port;
+> > > -     int error;
+> > > -     int count;
+> > > -};
+> > > -
+> > > -static int match_add_root_ports(struct pci_dev *pdev, void *data)
+> > > +__weak int match_add_root_ports(struct pci_dev *pdev, void *data)
+> > >  {
+> > >       struct cxl_walk_context *ctx = data;
+> > >       struct pci_bus *root_bus = ctx->root;
+> > > @@ -214,6 +206,8 @@ static int match_add_root_ports(struct pci_dev *pdev, void *data)
+> > >       port_num = FIELD_GET(PCI_EXP_LNKCAP_PN, lnkcap);
+> > >       rc = cxl_add_dport(port, &pdev->dev, port_num, CXL_RESOURCE_NONE);
+> > >       if (rc) {
+> > > +             dev_err(dev, "failed to add dport: %s (%d)\n",
+> > > +                     dev_name(&pdev->dev), rc);
+> > >               ctx->error = rc;
+> > >               return rc;
+> > >       }
+> > > @@ -239,12 +233,15 @@ static struct cxl_dport *find_dport_by_dev(struct cxl_port *port, struct device
+> > >       return NULL;
+> > >  }
+> > >
+> > > -static struct acpi_device *to_cxl_host_bridge(struct device *dev)
+> > > +__weak struct acpi_device *to_cxl_host_bridge(struct device *host,
+> > > +                                           struct device *dev)
+> > >  {
+> > >       struct acpi_device *adev = to_acpi_device(dev);
+> > >
+> > > -     if (strcmp(acpi_device_hid(adev), "ACPI0016") == 0)
+> > > +     if (strcmp(acpi_device_hid(adev), "ACPI0016") == 0) {
+> > > +             dev_dbg(host, "found host bridge %s\n", dev_name(&adev->dev));
+> > >               return adev;
+> > > +     }
+> > >       return NULL;
+> > >  }
+> > >
+> > > @@ -254,14 +251,14 @@ static struct acpi_device *to_cxl_host_bridge(struct device *dev)
+> > >   */
+> > >  static int add_host_bridge_uport(struct device *match, void *arg)
+> > >  {
+> > > -     struct acpi_device *bridge = to_cxl_host_bridge(match);
+> > > +     struct cxl_port *port;
+> > > +     struct cxl_dport *dport;
+> > > +     struct cxl_decoder *cxld;
+> > > +     struct cxl_walk_context ctx;
+> > > +     struct acpi_pci_root *pci_root;
+> > >       struct cxl_port *root_port = arg;
+> > >       struct device *host = root_port->dev.parent;
+> > > -     struct acpi_pci_root *pci_root;
+> > > -     struct cxl_walk_context ctx;
+> > > -     struct cxl_decoder *cxld;
+> > > -     struct cxl_dport *dport;
+> > > -     struct cxl_port *port;
+> > > +     struct acpi_device *bridge = to_cxl_host_bridge(host, match);
+> > >
+> > >       if (!bridge)
+> > >               return 0;
+> > > @@ -319,7 +316,7 @@ static int add_host_bridge_dport(struct device *match, void *arg)
+> > >       struct acpi_cedt_chbs *chbs;
+> > >       struct cxl_port *root_port = arg;
+> > >       struct device *host = root_port->dev.parent;
+> > > -     struct acpi_device *bridge = to_cxl_host_bridge(match);
+> > > +     struct acpi_device *bridge = to_cxl_host_bridge(host, match);
+> > >
+> > >       if (!bridge)
+> > >               return 0;
+> > > @@ -371,6 +368,17 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
+> > >       return 1;
+> > >  }
+> > >
+> > > +static u32 cedt_instance(struct platform_device *pdev)
+> > > +{
+> > > +     const bool *native_acpi0017 = acpi_device_get_match_data(&pdev->dev);
+> > > +
+> > > +     if (native_acpi0017 && *native_acpi0017)
+> > > +             return 0;
+> > > +
+> > > +     /* for cxl_test request a non-canonical instance */
+> > > +     return U32_MAX;
+> > > +}
+> > > +
+> > >  static int cxl_acpi_probe(struct platform_device *pdev)
+> > >  {
+> > >       int rc;
+> > > @@ -384,7 +392,7 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+> > >               return PTR_ERR(root_port);
+> > >       dev_dbg(host, "add: %s\n", dev_name(&root_port->dev));
+> > >
+> > > -     status = acpi_get_table(ACPI_SIG_CEDT, 0, &acpi_cedt);
+> > > +     status = acpi_get_table(ACPI_SIG_CEDT, cedt_instance(pdev), &acpi_cedt);
+> > >       if (ACPI_FAILURE(status))
+> > >               return -ENXIO;
+> > >
+> > > @@ -415,9 +423,11 @@ static int cxl_acpi_probe(struct platform_device *pdev)
+> > >       return 0;
+> > >  }
+> > >
+> > > +static bool native_acpi0017 = true;
+> > > +
+> > >  static const struct acpi_device_id cxl_acpi_ids[] = {
+> > > -     { "ACPI0017", 0 },
+> > > -     { "", 0 },
+> > > +     { "ACPI0017", (unsigned long) &native_acpi0017 },
+> > > +     { },
+> > >  };
+> > >  MODULE_DEVICE_TABLE(acpi, cxl_acpi_ids);
+> > >
+> > > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> > > index 1b2e816e061e..09c81cf8b800 100644
+> > > --- a/drivers/cxl/cxl.h
+> > > +++ b/drivers/cxl/cxl.h
+> > > @@ -226,6 +226,14 @@ struct cxl_nvdimm {
+> > >       struct nvdimm *nvdimm;
+> > >  };
+> > >
+> > > +struct cxl_walk_context {
+> > > +     struct device *dev;
+> > > +     struct pci_bus *root;
+> > > +     struct cxl_port *port;
+> > > +     int error;
+> > > +     int count;
+> > > +};
+> > > +
+> > >  /**
+> > >   * struct cxl_port - logical collection of upstream port devices and
+> > >   *                downstream port devices to construct a CXL memory
+> > > diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
+> > > new file mode 100644
+> > > index 000000000000..6ea0c7df36f0
+> > > --- /dev/null
+> > > +++ b/tools/testing/cxl/Kbuild
+> > > @@ -0,0 +1,27 @@
+> > > +# SPDX-License-Identifier: GPL-2.0
+> > > +ldflags-y += --wrap=is_acpi_device_node
+> > > +ldflags-y += --wrap=acpi_get_table
+> > > +ldflags-y += --wrap=acpi_put_table
+> > > +ldflags-y += --wrap=acpi_evaluate_integer
+> > > +ldflags-y += --wrap=acpi_pci_find_root
+> > > +ldflags-y += --wrap=pci_walk_bus
+> > > +
+> > > +DRIVERS := ../../../drivers
+> > > +CXL_SRC := $(DRIVERS)/cxl
+> > > +CXL_CORE_SRC := $(DRIVERS)/cxl/core
+> > > +ccflags-y := -I$(srctree)/drivers/cxl/
+> > > +
+> > > +obj-$(CONFIG_CXL_ACPI) += cxl_acpi.o
+> > > +
+> > > +cxl_acpi-y := $(CXL_SRC)/acpi.o
+> > > +cxl_acpi-y += mock_acpi.o
+> > > +
+> > > +obj-$(CONFIG_CXL_BUS) += cxl_core.o
+> > > +
+> > > +cxl_core-y := $(CXL_CORE_SRC)/bus.o
+> > > +cxl_core-y += $(CXL_CORE_SRC)/pmem.o
+> > > +cxl_core-y += $(CXL_CORE_SRC)/regs.o
+> > > +cxl_core-y += $(CXL_CORE_SRC)/memdev.o
+> > > +cxl_core-y += $(CXL_CORE_SRC)/mbox.o
+> > > +
+> > > +obj-m += test/
+> > > diff --git a/tools/testing/cxl/mock_acpi.c b/tools/testing/cxl/mock_acpi.c
+> > > new file mode 100644
+> > > index 000000000000..256bdf9e1ce8
+> > > --- /dev/null
+> > > +++ b/tools/testing/cxl/mock_acpi.c
+> > > @@ -0,0 +1,105 @@
+> > > +// SPDX-License-Identifier: GPL-2.0-only
+> > > +/* Copyright(c) 2021 Intel Corporation. All rights reserved. */
+> > > +
+> > > +#include <linux/platform_device.h>
+> > > +#include <linux/device.h>
+> > > +#include <linux/acpi.h>
+> > > +#include <linux/pci.h>
+> > > +#include <cxl.h>
+> > > +#include "test/mock.h"
+> > > +
+> > > +struct acpi_device *to_cxl_host_bridge(struct device *host, struct device *dev)
+> > > +{
+> > > +     int index;
+> > > +     struct cxl_mock_ops *ops = get_cxl_mock_ops(&index);
+> > > +     struct acpi_device *adev = NULL;
+> > > +
+> > > +     if (ops && ops->is_mock_bridge(dev)) {
+> > > +             adev = ACPI_COMPANION(dev);
+> > > +             goto out;
+> > > +     }
+> >
+> > Here, and below ops->is_mock_port()... I'm a bit confused why a mock driver
+> > would ever attempt to do anything with real hardware. ie, why not
 > 
-
--- 
-With Best Regards,
-Andy Shevchenko
-
-
+> The rationale is to be able to run cxl_test on a system that might
+> also have real CXL. For example I run this alongside the current QEMU
+> CXL model, and that results in the cxl_acpi driver attaching to 2
+> devices:
+> 
+> # tree /sys/bus/platform/drivers/cxl_acpi
+> /sys/bus/platform/drivers/cxl_acpi
+> ├── ACPI0017:00 -> ../../../../devices/platform/ACPI0017:00
+> ├── bind
+> ├── cxl_acpi.0 -> ../../../../devices/platform/cxl_acpi.0
+> ├── module -> ../../../../module/cxl_acpi
+> ├── uevent
+> └── unbind
+> 
+> When the device is ACPI0017 this code is walking the ACPI bus looking
+> for  ACPI0016 devices. A real ACPI0016 will fall through
+> is_mock_port() to the original to_cxl_host_bridge() logic that just
+> reads the ACPI device HID. In the mock case the cxl_acpi driver has
+> instead been tricked into walk the platform bus which has real
+> platform devices, and the fake cxl_test ones:
+> 
+> /sys/bus/platform/devices/
+> ├── ACPI0012:00 -> ../../../devices/platform/ACPI0012:00
+> ├── ACPI0017:00 -> ../../../devices/platform/ACPI0017:00
+> ├── alarmtimer.0.auto -> ../../../devices/pnp0/00:04/rtc/rtc0/alarmtimer.0.auto
+> ├── cxl_acpi.0 -> ../../../devices/platform/cxl_acpi.0
+> ├── cxl_host_bridge.0 -> ../../../devices/platform/cxl_host_bridge.0
+> ├── cxl_host_bridge.1 -> ../../../devices/platform/cxl_host_bridge.1
+> ├── cxl_host_bridge.2 -> ../../../devices/platform/cxl_host_bridge.2
+> ├── cxl_host_bridge.3 -> ../../../devices/platform/cxl_host_bridge.3
+> ├── e820_pmem -> ../../../devices/platform/e820_pmem
+> ├── efi-framebuffer.0 -> ../../../devices/platform/efi-framebuffer.0
+> ├── efivars.0 -> ../../../devices/platform/efivars.0
+> ├── Fixed MDIO bus.0 -> ../../../devices/platform/Fixed MDIO bus.0
+> ├── i8042 -> ../../../devices/platform/i8042
+> ├── iTCO_wdt.1.auto -> ../../../devices/pci0000:00/0000:00:1f.0/iTCO_wdt.1.auto
+> ├── kgdboc -> ../../../devices/platform/kgdboc
+> ├── pcspkr -> ../../../devices/platform/pcspkr
+> ├── PNP0103:00 -> ../../../devices/platform/PNP0103:00
+> ├── QEMU0002:00 -> ../../../devices/pci0000:00/QEMU0002:00
+> ├── rtc-efi.0 -> ../../../devices/platform/rtc-efi.0
+> └── serial8250 -> ../../../devices/platform/serial8250
+> 
+> ...where is_mock_port() filters out those real platform devices. Note
+> that ACPI devices are atypical in that they get registered on the ACPI
+> bus and some get a companion device with the same name registered on
+> the platform bus.
