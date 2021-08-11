@@ -1,169 +1,90 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2EE772
-	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 18:49:38 +0000 (UTC)
-Received: from fraeml741-chm.china.huawei.com (unknown [172.18.147.226])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4GlJkh5YtWz6G9JB;
-	Thu, 12 Aug 2021 02:49:00 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml741-chm.china.huawei.com (10.206.15.222) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.8; Wed, 11 Aug 2021 20:49:36 +0200
-Received: from localhost (10.52.123.85) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2176.2; Wed, 11 Aug
- 2021 19:49:35 +0100
-Date: Wed, 11 Aug 2021 19:49:05 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <nvdimm@lists.linux.dev>,
-	<ben.widawsky@intel.com>, <vishal.l.verma@intel.com>,
-	<alison.schofield@intel.com>, <ira.weiny@intel.com>
-Subject: Re: [PATCH 09/23] libnvdimm/labels: Add address-abstraction uuid
- definitions
-Message-ID: <20210811194905.000034f6@Huawei.com>
-In-Reply-To: <162854811511.1980150.3921515741758120378.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<162854811511.1980150.3921515741758120378.stgit@dwillia2-desk3.amr.corp.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFE5572
+	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 18:53:38 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10073"; a="237223970"
+X-IronPort-AV: E=Sophos;i="5.84,313,1620716400"; 
+   d="scan'208";a="237223970"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 11:53:38 -0700
+X-IronPort-AV: E=Sophos;i="5.84,313,1620716400"; 
+   d="scan'208";a="446066016"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 11:53:38 -0700
+Subject: [PATCH v2] ACPI: NFIT: Fix support for virtual SPA ranges
+From: Dan Williams <dan.j.williams@intel.com>
+To: nvdimm@lists.linux.dev
+Cc: Jacek Zloch <jacek.zloch@intel.com>,
+ Lukasz Sobieraj <lukasz.sobieraj@intel.com>, "Lee, Chun-Yi" <jlee@suse.com>,
+ stable@vger.kernel.org, Krzysztof Rusocki <krzysztof.rusocki@intel.com>,
+ Damian Bassa <damian.bassa@intel.com>, Jeff Moyer <jmoyer@redhat.com>
+Date: Wed, 11 Aug 2021 11:53:37 -0700
+Message-ID: <162870796589.2521182.1240403310175570220.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <162766355874.3223041.9582643895337437921.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <162766355874.3223041.9582643895337437921.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.52.123.85]
-X-ClientProxiedBy: lhreml716-chm.china.huawei.com (10.201.108.67) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
 
-On Mon, 9 Aug 2021 15:28:35 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+Fix the NFIT parsing code to treat a 0 index in a SPA Range Structure as
+a special case and not match Region Mapping Structures that use 0 to
+indicate that they are not mapped. Without this fix some platform BIOS
+descriptions of "virtual disk" ranges do not result in the pmem driver
+attaching to the range.
 
-> The EFI definition of the labels represents the Linux "claim class" with
-> a GUID. The CXL definition of the labels stores the same identifier in
-> UUID byte order. In preparation for adding CXL label support, enable the
-> claim class to optionally handle uuids.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Details:
+In addition to typical persistent memory ranges, the ACPI NFIT may also
+convey "virtual" ranges. These ranges are indicated by a UUID in the SPA
+Range Structure of UUID_VOLATILE_VIRTUAL_DISK, UUID_VOLATILE_VIRTUAL_CD,
+UUID_PERSISTENT_VIRTUAL_DISK, or UUID_PERSISTENT_VIRTUAL_CD. The
+critical difference between virtual ranges and UUID_PERSISTENT_MEMORY,
+is that virtual do not support associations with Region Mapping
+Structures.  For this reason the "index" value of virtual SPA Range
+Structures is allowed to be 0. If a platform BIOS decides to represent
+NVDIMMs with disconnected "Region Mapping Structures" (range-index ==
+0), the kernel may falsely associate them with standalone ranges where
+the "SPA Range Structure Index" is also zero. When this happens the
+driver may falsely require labels where "virtual disks" are expected to
+be label-less. I.e. "label-less" is where the namespace-range ==
+region-range and the pmem driver attaches with no user action to create
+a namespace.
 
-I've already commented on 10 and 11 so this was backfilling tags
-for the ones I'd looked at earlier but looked good to me.
+Cc: Jacek Zloch <jacek.zloch@intel.com>
+Cc: Lukasz Sobieraj <lukasz.sobieraj@intel.com>
+Cc: "Lee, Chun-Yi" <jlee@suse.com>
+Cc: <stable@vger.kernel.org>
+Fixes: c2f32acdf848 ("acpi, nfit: treat virtual ramdisk SPA as pmem region")
+Reported-by: Krzysztof Rusocki <krzysztof.rusocki@intel.com>
+Reported-by: Damian Bassa <damian.bassa@intel.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Changes since v1:
+- Clarify the changelog (Jeff)
+- Add a comment about why range_index is checked (Jeff)
 
-I'm not all that familiar with this code yet, so all my checking was off the
-"does it look locally correct?" variety.
+ drivers/acpi/nfit/core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Out of time for today, and not sure when I'll get to looking at the remainder.
-
-Jonathan
-
-> ---
->  drivers/nvdimm/label.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 52 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-> index 7f473f9db300..2ba31b883b28 100644
-> --- a/drivers/nvdimm/label.c
-> +++ b/drivers/nvdimm/label.c
-> @@ -17,6 +17,11 @@ static guid_t nvdimm_btt2_guid;
->  static guid_t nvdimm_pfn_guid;
->  static guid_t nvdimm_dax_guid;
->  
-> +static uuid_t nvdimm_btt_uuid;
-> +static uuid_t nvdimm_btt2_uuid;
-> +static uuid_t nvdimm_pfn_uuid;
-> +static uuid_t nvdimm_dax_uuid;
-> +
->  static const char NSINDEX_SIGNATURE[] = "NAMESPACE_INDEX\0";
->  
->  static u32 best_seq(u32 a, u32 b)
-> @@ -724,7 +729,7 @@ static unsigned long nd_label_offset(struct nvdimm_drvdata *ndd,
->  		- (unsigned long) to_namespace_index(ndd, 0);
->  }
->  
-> -static enum nvdimm_claim_class to_nvdimm_cclass(guid_t *guid)
-> +static enum nvdimm_claim_class guid_to_nvdimm_cclass(guid_t *guid)
->  {
->  	if (guid_equal(guid, &nvdimm_btt_guid))
->  		return NVDIMM_CCLASS_BTT;
-> @@ -740,6 +745,23 @@ static enum nvdimm_claim_class to_nvdimm_cclass(guid_t *guid)
->  	return NVDIMM_CCLASS_UNKNOWN;
->  }
->  
-> +/* CXL labels store UUIDs instead of GUIDs for the same data */
-> +enum nvdimm_claim_class uuid_to_nvdimm_cclass(uuid_t *uuid)
-> +{
-> +	if (uuid_equal(uuid, &nvdimm_btt_uuid))
-> +		return NVDIMM_CCLASS_BTT;
-> +	else if (uuid_equal(uuid, &nvdimm_btt2_uuid))
-> +		return NVDIMM_CCLASS_BTT2;
-> +	else if (uuid_equal(uuid, &nvdimm_pfn_uuid))
-> +		return NVDIMM_CCLASS_PFN;
-> +	else if (uuid_equal(uuid, &nvdimm_dax_uuid))
-> +		return NVDIMM_CCLASS_DAX;
-> +	else if (uuid_equal(uuid, &uuid_null))
-> +		return NVDIMM_CCLASS_NONE;
-> +
-> +	return NVDIMM_CCLASS_UNKNOWN;
-> +}
-> +
->  static const guid_t *to_abstraction_guid(enum nvdimm_claim_class claim_class,
->  	guid_t *target)
->  {
-> @@ -761,6 +783,29 @@ static const guid_t *to_abstraction_guid(enum nvdimm_claim_class claim_class,
->  		return &guid_null;
->  }
->  
-> +/* CXL labels store UUIDs instead of GUIDs for the same data */
-> +__maybe_unused
-> +static const uuid_t *to_abstraction_uuid(enum nvdimm_claim_class claim_class,
-> +					 uuid_t *target)
-> +{
-> +	if (claim_class == NVDIMM_CCLASS_BTT)
-> +		return &nvdimm_btt_uuid;
-> +	else if (claim_class == NVDIMM_CCLASS_BTT2)
-> +		return &nvdimm_btt2_uuid;
-> +	else if (claim_class == NVDIMM_CCLASS_PFN)
-> +		return &nvdimm_pfn_uuid;
-> +	else if (claim_class == NVDIMM_CCLASS_DAX)
-> +		return &nvdimm_dax_uuid;
-> +	else if (claim_class == NVDIMM_CCLASS_UNKNOWN) {
-> +		/*
-> +		 * If we're modifying a namespace for which we don't
-> +		 * know the claim_class, don't touch the existing uuid.
-> +		 */
-> +		return target;
-> +	} else
-> +		return &uuid_null;
-> +}
-> +
->  static void reap_victim(struct nd_mapping *nd_mapping,
->  		struct nd_label_ent *victim)
->  {
-> @@ -808,7 +853,7 @@ enum nvdimm_claim_class nsl_get_claim_class(struct nvdimm_drvdata *ndd,
->  {
->  	if (!namespace_label_has(ndd, abstraction_guid))
->  		return NVDIMM_CCLASS_NONE;
-> -	return to_nvdimm_cclass(&nd_label->abstraction_guid);
-> +	return guid_to_nvdimm_cclass(&nd_label->abstraction_guid);
->  }
->  
->  static int __pmem_label_update(struct nd_region *nd_region,
-> @@ -1395,5 +1440,10 @@ int __init nd_label_init(void)
->  	WARN_ON(guid_parse(NVDIMM_PFN_GUID, &nvdimm_pfn_guid));
->  	WARN_ON(guid_parse(NVDIMM_DAX_GUID, &nvdimm_dax_guid));
->  
-> +	WARN_ON(uuid_parse(NVDIMM_BTT_GUID, &nvdimm_btt_uuid));
-> +	WARN_ON(uuid_parse(NVDIMM_BTT2_GUID, &nvdimm_btt2_uuid));
-> +	WARN_ON(uuid_parse(NVDIMM_PFN_GUID, &nvdimm_pfn_uuid));
-> +	WARN_ON(uuid_parse(NVDIMM_DAX_GUID, &nvdimm_dax_uuid));
-> +
->  	return 0;
->  }
-> 
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 23d9a09d7060..a3ef6cce644c 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3021,6 +3021,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping_desc *mapping;
+ 
++		/* range index 0 == unmapped in SPA or invalid-SPA */
++		if (memdev->range_index == 0 || spa->range_index == 0)
++			continue;
+ 		if (memdev->range_index != spa->range_index)
+ 			continue;
+ 		if (count >= ND_MAX_MAPPINGS) {
 
