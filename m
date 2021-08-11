@@ -1,33 +1,36 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1F3872
-	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 19:18:26 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5DEAA60EB9;
-	Wed, 11 Aug 2021 19:18:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1628709506;
-	bh=UdgfDXXujrxmL4idohc3c8tjVe5qH4DuaJJFmReZljk=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=UcrvppARhMk3/ieOBELNzLrP6bwuX6v0LGfsYUJ9OOg+y+jPUPgxfBSz6J2SwZBoP
-	 kjud+1G40MDhqwvk5vS6EzOeVT2VkL4yBAC2zYMWaYh2iqgui/mKDVBKQXbgNhburM
-	 ZaI7CggvvKuhT0FjWhJlE3oHyELyXXdb/tfbAfXXl8qrIl60p3leTVkn34dUdMSP1I
-	 AOGh+3YQEvhw9i6+k4GHfGpSssouXQcrOErxLhRq6LfkXcccmiNknS1Cx9PeQ/WUtI
-	 naJ3TSKa3WkfW+PrQjpgNY+quQ4PIeyZnOAmk73qqpttJ6U+5Fb71BHHBJdfDa5U+f
-	 fgddqM58qFo/A==
-Date: Wed, 11 Aug 2021 12:18:26 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: [PATCH v2.1 24/30] iomap: remove iomap_apply
-Message-ID: <20210811191826.GI3601443@magnolia>
-References: <20210809061244.1196573-1-hch@lst.de>
- <20210809061244.1196573-25-hch@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E25972
+	for <nvdimm@lists.linux.dev>; Wed, 11 Aug 2021 19:19:00 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10073"; a="215231441"
+X-IronPort-AV: E=Sophos;i="5.84,313,1620716400"; 
+   d="scan'208";a="215231441"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 12:18:54 -0700
+X-IronPort-AV: E=Sophos;i="5.84,313,1620716400"; 
+   d="scan'208";a="673021451"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Aug 2021 12:18:49 -0700
+Received: from andy by smile with local (Exim 4.94.2)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1mDtkR-008Lj8-Bq; Wed, 11 Aug 2021 22:18:43 +0300
+Date: Wed, 11 Aug 2021 22:18:43 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Ben Widawsky <ben.widawsky@intel.com>,
+	Vishal L Verma <vishal.l.verma@intel.com>,
+	"Schofield, Alison" <alison.schofield@intel.com>,
+	"Weiny, Ira" <ira.weiny@intel.com>
+Subject: Re: [PATCH 10/23] libnvdimm/labels: Add uuid helpers
+Message-ID: <YRQik5OnRyYQAm4o@smile.fi.intel.com>
+References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <162854812073.1980150.8157116233571368158.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <YROE48iCZNFaDcSo@smile.fi.intel.com>
+ <YRQB9Yvh3tmT9An4@smile.fi.intel.com>
+ <CAPcyv4jOEfi=RJTeOFTbvkBB+Khfzi5QirrhPxeM4J2bQXRYiQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -36,200 +39,76 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210809061244.1196573-25-hch@lst.de>
+In-Reply-To: <CAPcyv4jOEfi=RJTeOFTbvkBB+Khfzi5QirrhPxeM4J2bQXRYiQ@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-From: Christoph Hellwig <hch@lst.de>
+On Wed, Aug 11, 2021 at 10:11:56AM -0700, Dan Williams wrote:
+> On Wed, Aug 11, 2021 at 9:59 AM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Wed, Aug 11, 2021 at 11:05:55AM +0300, Andy Shevchenko wrote:
+> > > On Mon, Aug 09, 2021 at 03:28:40PM -0700, Dan Williams wrote:
+> > > > In preparation for CXL labels that move the uuid to a different offset
+> > > > in the label, add nsl_{ref,get,validate}_uuid(). These helpers use the
+> > > > proper uuid_t type. That type definition predated the libnvdimm
+> > > > subsystem, so now is as a good a time as any to convert all the uuid
+> > > > handling in the subsystem to uuid_t to match the helpers.
+> > > >
+> > > > As for the whitespace changes, all new code is clang-format compliant.
+> > >
+> > > Thanks, looks good to me!
+> > > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> >
+> > Sorry, I'm in doubt this Rb stays. See below.
+> >
+> > ...
+> >
+> > > >  struct btt_sb {
+> > > >     u8 signature[BTT_SIG_LEN];
+> > > > -   u8 uuid[16];
+> > > > -   u8 parent_uuid[16];
+> > > > +   uuid_t uuid;
+> > > > +   uuid_t parent_uuid;
+> >
+> > uuid_t type is internal to the kernel. This seems to be an ABI?
+> 
+> No, it's not a user ABI, this is an on-disk metadata structure. uuid_t
+> is approprirate.
 
-iomap_apply is unused now, so remove it.
+So, changing size of the structure is forbidden after this change, right?
+I don't like this. It means we always stuck with this type to be like this and
+no change will be allowed.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-[djwong: rebase this patch to preserve git history of iomap loop control]
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-Signed-off-by: Darrick J. Wong <djwong@kernel.org>
----
- fs/iomap/apply.c      |   91 -------------------------------------------------
- fs/iomap/trace.h      |   40 ----------------------
- include/linux/iomap.h |   10 -----
- 3 files changed, 141 deletions(-)
+> > > >     __le32 flags;
+> > > >     __le16 version_major;
+> > > >     __le16 version_minor;
+> >
+> > ...
+> >
+> > > >  struct nd_namespace_label {
+> > > > -   u8 uuid[NSLABEL_UUID_LEN];
+> > > > +   uuid_t uuid;
+> >
+> > So seems this.
+> >
+> > > >     u8 name[NSLABEL_NAME_LEN];
+> > > >     __le32 flags;
+> > > >     __le16 nlabel;
+> >
+> > ...
+> >
+> > I'm not familiar with FS stuff, but looks to me like unwanted changes.
+> > In such cases you have to use export/import APIs. otherwise you make the type
+> > carved in stone without even knowing that it's part of an ABI or some hardware
+> > / firmware interfaces.
+> 
+> Can you clarify the concern? Carving the intent that these 16-bytes
+> are meant to be treated as UUID in stone is deliberate.
 
-diff --git a/fs/iomap/apply.c b/fs/iomap/apply.c
-index e82647aef7ea..a1c7592d2ade 100644
---- a/fs/iomap/apply.c
-+++ b/fs/iomap/apply.c
-@@ -3,101 +3,10 @@
-  * Copyright (C) 2010 Red Hat, Inc.
-  * Copyright (c) 2016-2021 Christoph Hellwig.
-  */
--#include <linux/module.h>
--#include <linux/compiler.h>
- #include <linux/fs.h>
- #include <linux/iomap.h>
- #include "trace.h"
- 
--/*
-- * Execute a iomap write on a segment of the mapping that spans a
-- * contiguous range of pages that have identical block mapping state.
-- *
-- * This avoids the need to map pages individually, do individual allocations
-- * for each page and most importantly avoid the need for filesystem specific
-- * locking per page. Instead, all the operations are amortised over the entire
-- * range of pages. It is assumed that the filesystems will lock whatever
-- * resources they require in the iomap_begin call, and release them in the
-- * iomap_end call.
-- */
--loff_t
--iomap_apply(struct inode *inode, loff_t pos, loff_t length, unsigned flags,
--		const struct iomap_ops *ops, void *data, iomap_actor_t actor)
--{
--	struct iomap iomap = { .type = IOMAP_HOLE };
--	struct iomap srcmap = { .type = IOMAP_HOLE };
--	loff_t written = 0, ret;
--	u64 end;
--
--	trace_iomap_apply(inode, pos, length, flags, ops, actor, _RET_IP_);
--
--	/*
--	 * Need to map a range from start position for length bytes. This can
--	 * span multiple pages - it is only guaranteed to return a range of a
--	 * single type of pages (e.g. all into a hole, all mapped or all
--	 * unwritten). Failure at this point has nothing to undo.
--	 *
--	 * If allocation is required for this range, reserve the space now so
--	 * that the allocation is guaranteed to succeed later on. Once we copy
--	 * the data into the page cache pages, then we cannot fail otherwise we
--	 * expose transient stale data. If the reserve fails, we can safely
--	 * back out at this point as there is nothing to undo.
--	 */
--	ret = ops->iomap_begin(inode, pos, length, flags, &iomap, &srcmap);
--	if (ret)
--		return ret;
--	if (WARN_ON(iomap.offset > pos)) {
--		written = -EIO;
--		goto out;
--	}
--	if (WARN_ON(iomap.length == 0)) {
--		written = -EIO;
--		goto out;
--	}
--
--	trace_iomap_apply_dstmap(inode, &iomap);
--	if (srcmap.type != IOMAP_HOLE)
--		trace_iomap_apply_srcmap(inode, &srcmap);
--
--	/*
--	 * Cut down the length to the one actually provided by the filesystem,
--	 * as it might not be able to give us the whole size that we requested.
--	 */
--	end = iomap.offset + iomap.length;
--	if (srcmap.type != IOMAP_HOLE)
--		end = min(end, srcmap.offset + srcmap.length);
--	if (pos + length > end)
--		length = end - pos;
--
--	/*
--	 * Now that we have guaranteed that the space allocation will succeed,
--	 * we can do the copy-in page by page without having to worry about
--	 * failures exposing transient data.
--	 *
--	 * To support COW operations, we read in data for partially blocks from
--	 * the srcmap if the file system filled it in.  In that case we the
--	 * length needs to be limited to the earlier of the ends of the iomaps.
--	 * If the file system did not provide a srcmap we pass in the normal
--	 * iomap into the actors so that they don't need to have special
--	 * handling for the two cases.
--	 */
--	written = actor(inode, pos, length, data, &iomap,
--			srcmap.type != IOMAP_HOLE ? &srcmap : &iomap);
--
--out:
--	/*
--	 * Now the data has been copied, commit the range we've copied.  This
--	 * should not fail unless the filesystem has had a fatal error.
--	 */
--	if (ops->iomap_end) {
--		ret = ops->iomap_end(inode, pos, length,
--				     written > 0 ? written : 0,
--				     flags, &iomap);
--	}
--
--	return written ? written : ret;
--}
--
- static inline int iomap_iter_advance(struct iomap_iter *iter)
- {
- 	/* handle the previous iteration (if any) */
-diff --git a/fs/iomap/trace.h b/fs/iomap/trace.h
-index 1012d7af6b68..f1519f9a1403 100644
---- a/fs/iomap/trace.h
-+++ b/fs/iomap/trace.h
-@@ -138,49 +138,9 @@ DECLARE_EVENT_CLASS(iomap_class,
- DEFINE_EVENT(iomap_class, name,	\
- 	TP_PROTO(struct inode *inode, struct iomap *iomap), \
- 	TP_ARGS(inode, iomap))
--DEFINE_IOMAP_EVENT(iomap_apply_dstmap);
--DEFINE_IOMAP_EVENT(iomap_apply_srcmap);
- DEFINE_IOMAP_EVENT(iomap_iter_dstmap);
- DEFINE_IOMAP_EVENT(iomap_iter_srcmap);
- 
--TRACE_EVENT(iomap_apply,
--	TP_PROTO(struct inode *inode, loff_t pos, loff_t length,
--		unsigned int flags, const void *ops, void *actor,
--		unsigned long caller),
--	TP_ARGS(inode, pos, length, flags, ops, actor, caller),
--	TP_STRUCT__entry(
--		__field(dev_t, dev)
--		__field(u64, ino)
--		__field(loff_t, pos)
--		__field(loff_t, length)
--		__field(unsigned int, flags)
--		__field(const void *, ops)
--		__field(void *, actor)
--		__field(unsigned long, caller)
--	),
--	TP_fast_assign(
--		__entry->dev = inode->i_sb->s_dev;
--		__entry->ino = inode->i_ino;
--		__entry->pos = pos;
--		__entry->length = length;
--		__entry->flags = flags;
--		__entry->ops = ops;
--		__entry->actor = actor;
--		__entry->caller = caller;
--	),
--	TP_printk("dev %d:%d ino 0x%llx pos %lld length %lld flags %s (0x%x) "
--		  "ops %ps caller %pS actor %ps",
--		  MAJOR(__entry->dev), MINOR(__entry->dev),
--		   __entry->ino,
--		   __entry->pos,
--		   __entry->length,
--		   __print_flags(__entry->flags, "|", IOMAP_FLAGS_STRINGS),
--		   __entry->flags,
--		   __entry->ops,
--		   (void *)__entry->caller,
--		   __entry->actor)
--);
--
- TRACE_EVENT(iomap_iter,
- 	TP_PROTO(struct iomap_iter *iter, const void *ops,
- 		 unsigned long caller),
-diff --git a/include/linux/iomap.h b/include/linux/iomap.h
-index 66e04aedd2ca..6784a8b64714 100644
---- a/include/linux/iomap.h
-+++ b/include/linux/iomap.h
-@@ -217,16 +217,6 @@ static inline struct iomap *iomap_iter_srcmap(struct iomap_iter *i)
- 	return &i->iomap;
- }
- 
--/*
-- * Main iomap iterator function.
-- */
--typedef loff_t (*iomap_actor_t)(struct inode *inode, loff_t pos, loff_t len,
--		void *data, struct iomap *iomap, struct iomap *srcmap);
--
--loff_t iomap_apply(struct inode *inode, loff_t pos, loff_t length,
--		unsigned flags, const struct iomap_ops *ops, void *data,
--		iomap_actor_t actor);
--
- ssize_t iomap_file_buffered_write(struct kiocb *iocb, struct iov_iter *from,
- 		const struct iomap_ops *ops);
- int iomap_readpage(struct page *page, const struct iomap_ops *ops);
+It's a bit surprise to me. Do we have any documentation on that?
+How do we handle such types in kernel that covers a lot of code?
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
