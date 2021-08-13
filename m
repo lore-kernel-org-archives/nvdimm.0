@@ -1,22 +1,38 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29B2E72
-	for <nvdimm@lists.linux.dev>; Fri, 13 Aug 2021 07:30:04 +0000 (UTC)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 958DD6736F; Fri, 13 Aug 2021 09:29:55 +0200 (CEST)
-Date: Fri, 13 Aug 2021 09:29:55 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Andreas Gruenbacher <agruenba@redhat.com>,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 11/30] iomap: add the new iomap_iter model
-Message-ID: <20210813072955.GA27278@lst.de>
-References: <20210809061244.1196573-1-hch@lst.de> <20210809061244.1196573-12-hch@lst.de> <20210811003118.GT3601466@magnolia> <20210811053856.GA1934@lst.de> <20210811191708.GF3601443@magnolia> <20210812064914.GA27145@lst.de> <20210812182017.GX3601466@magnolia>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C66E06D13
+	for <nvdimm@lists.linux.dev>; Fri, 13 Aug 2021 10:15:07 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10074"; a="202729616"
+X-IronPort-AV: E=Sophos;i="5.84,318,1620716400"; 
+   d="scan'208";a="202729616"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2021 03:15:06 -0700
+X-IronPort-AV: E=Sophos;i="5.84,318,1620716400"; 
+   d="scan'208";a="591068974"
+Received: from smile.fi.intel.com (HELO smile) ([10.237.68.40])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Aug 2021 03:15:04 -0700
+Received: from andy by smile with local (Exim 4.94.2)
+	(envelope-from <andriy.shevchenko@linux.intel.com>)
+	id 1mEUDK-0091rD-Cu; Fri, 13 Aug 2021 13:14:58 +0300
+Date: Fri, 13 Aug 2021 13:14:58 +0300
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>
+Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	Ben Widawsky <ben.widawsky@intel.com>,
+	Vishal L Verma <vishal.l.verma@intel.com>,
+	"Schofield, Alison" <alison.schofield@intel.com>,
+	"Weiny, Ira" <ira.weiny@intel.com>
+Subject: Re: [PATCH 10/23] libnvdimm/labels: Add uuid helpers
+Message-ID: <YRZGInO3vguWR4IA@smile.fi.intel.com>
+References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <162854812073.1980150.8157116233571368158.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <YROE48iCZNFaDcSo@smile.fi.intel.com>
+ <YRQB9Yvh3tmT9An4@smile.fi.intel.com>
+ <CAPcyv4jOEfi=RJTeOFTbvkBB+Khfzi5QirrhPxeM4J2bQXRYiQ@mail.gmail.com>
+ <YRQik5OnRyYQAm4o@smile.fi.intel.com>
+ <CAPcyv4hY9YL7MhkeSu4GYBNo6hbeMRgqnKf8YuLuQ3khSbhn9A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -25,29 +41,45 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210812182017.GX3601466@magnolia>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <CAPcyv4hY9YL7MhkeSu4GYBNo6hbeMRgqnKf8YuLuQ3khSbhn9A@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 
-On Thu, Aug 12, 2021 at 11:20:17AM -0700, Darrick J. Wong wrote:
-> The history of the gluecode that enables us to walk a bunch of extent
-> mappings.  In the beginning it was the _apply function, but now in our
-> spectre-weary world, you've switched it to a direct loop to reduce the
-> number of indirect calls in the hot path by 30-50%.
+On Thu, Aug 12, 2021 at 03:34:59PM -0700, Dan Williams wrote:
+> On Wed, Aug 11, 2021 at 12:18 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > On Wed, Aug 11, 2021 at 10:11:56AM -0700, Dan Williams wrote:
+> > > On Wed, Aug 11, 2021 at 9:59 AM Andy Shevchenko
+> > > <andriy.shevchenko@linux.intel.com> wrote:
+> > > > On Wed, Aug 11, 2021 at 11:05:55AM +0300, Andy Shevchenko wrote:
+> > > > > On Mon, Aug 09, 2021 at 03:28:40PM -0700, Dan Williams wrote:
+> > > > > > In preparation for CXL labels that move the uuid to a different offset
+> > > > > > in the label, add nsl_{ref,get,validate}_uuid(). These helpers use the
+> > > > > > proper uuid_t type. That type definition predated the libnvdimm
+> > > > > > subsystem, so now is as a good a time as any to convert all the uuid
+> > > > > > handling in the subsystem to uuid_t to match the helpers.
+> > > > > >
+> > > > > > As for the whitespace changes, all new code is clang-format compliant.
+> > > > >
+> > > > > Thanks, looks good to me!
+> > > > > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > >
+> > > > Sorry, I'm in doubt this Rb stays. See below.
 > 
-> As you correctly point out, there's no /code/ shared by the two
-> implementations, but Dave and I would like to preserve the continuity
-> from one to the next.
-> 
-> > > I'll send the updated patches as replies to this series to avoid
-> > > spamming the list, since I also have a patchset of bugfixes to send out
-> > > and don't want to overwhelm everyone.
-> > 
-> > Just as a clear statement:  I think this dance is obsfucation and doesn't
-> > help in any way.  But if that's what it takes..
-> 
-> I /would/ appreciate it if you'd rvb (or at least ack) patch 31 so I can
-> get the 5.15 iomap changes finalized next week.  Pretty please? :)
+> Andy, does this incremental diff restore your reviewed-by? The awkward
+> piece of this for me is that it introduces a handful of unnecessary
+> memory copies. See some of the new nsl_get_uuid() additions and the
+> extra copy in nsl_uuid_equal()
 
-I think it is a really stupid idea, so certainly no rvb or ack from me.
-If you feel you want to do it this way go ahead, but I do not in any
-way approve of it.
+It does, thanks! As for the deeper discussion I think you need to talk to
+Christoph. It was his idea to move uuid_t from UAPI to internal kernel type.
+And I think it made and still makes sense to be that way.
+
+But if we have already users of uuid_t like you are doing here (without this
+patch) then it will be fine I guess. Not my area to advise or decide.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
+
