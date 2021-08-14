@@ -1,57 +1,107 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CB5A2FAD
-	for <nvdimm@lists.linux.dev>; Sat, 14 Aug 2021 07:35:15 +0000 (UTC)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 645AA67373; Sat, 14 Aug 2021 09:35:06 +0200 (CEST)
-Date: Sat, 14 Aug 2021 09:35:06 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>,
-	linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Ben Widawsky <ben.widawsky@intel.com>,
-	Vishal L Verma <vishal.l.verma@intel.com>,
-	"Schofield, Alison" <alison.schofield@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>
-Subject: Re: [PATCH 10/23] libnvdimm/labels: Add uuid helpers
-Message-ID: <20210814073506.GA21463@lst.de>
-References: <162854806653.1980150.3354618413963083778.stgit@dwillia2-desk3.amr.corp.intel.com> <162854812073.1980150.8157116233571368158.stgit@dwillia2-desk3.amr.corp.intel.com> <YROE48iCZNFaDcSo@smile.fi.intel.com> <YRQB9Yvh3tmT9An4@smile.fi.intel.com> <CAPcyv4jOEfi=RJTeOFTbvkBB+Khfzi5QirrhPxeM4J2bQXRYiQ@mail.gmail.com> <YRQik5OnRyYQAm4o@smile.fi.intel.com> <CAPcyv4hY9YL7MhkeSu4GYBNo6hbeMRgqnKf8YuLuQ3khSbhn9A@mail.gmail.com> <YRZGInO3vguWR4IA@smile.fi.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 07131168
+	for <nvdimm@lists.linux.dev>; Sat, 14 Aug 2021 22:34:11 +0000 (UTC)
+Received: by mail-pl1-f172.google.com with SMTP id u15so985375plg.13
+        for <nvdimm@lists.linux.dev>; Sat, 14 Aug 2021 15:34:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=PI1rHatEWX0PgsdhvR2pdSj/thVQ6y4q8Nxx0pg39jc=;
+        b=p1x9t2aNBaHGnyuVrfa0m2kZyWdjSl9cvL9d3DGvYfBiyEB0/lw5NuAI0V3pag+5qB
+         uB6hPfMRQJcIha1zyl4CzIsWy+84RscMQG+CkRQPPWntIvgFymDdzb3FHVhrNbB8Ql5r
+         uO/mF7xfoXK2LnJU3wCi+wkEaHCTgER7NHVbrlTR4JCksOIkDH9dQlf1b5MbiEqeTRS8
+         ewL49oWwRGyc6bfIxZ3rLw2TmwfY9SWFxqHMBLZ804BCxbCneNSPMr14qMNSTZie/MTf
+         qvj0fotsHMx3xAanWjjZfFr6tefzB7+viOcutPM2ekBioEwo6bM7ui+g9ML06G6GoriU
+         vn3w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=PI1rHatEWX0PgsdhvR2pdSj/thVQ6y4q8Nxx0pg39jc=;
+        b=o1laGOd2msuQvcE5tdOJ4p/6KTj7HXDBkIzK/h+7gWbnHy/BaG/x6OBWtBsj7NHmNA
+         +QSVWYUPC9ts6m54BnIIdL1iLovNqzqry+yKrks0Zii7Gcf3Gpy2HO1406PtY6HRUrjP
+         ZTRXMSu7qzSdnUeFvjqCBDIkgHO17vkYo9vCCu/anODJ2oPZgiE78Ohl31JtFZYXRqv2
+         KL9ee8gVTmPP4KUEXb4VfvGN3gYru2v7pVbddO6/M2O1uWha43izA+UZfVOepn8fysB9
+         tQq+0YQYky9ZI3bsNF9ZZ9BsPPhV1MUOtZSB9UqDf95yPNM1XkfJlZBkkeMxl/oj+dD8
+         +4Zg==
+X-Gm-Message-State: AOAM531FJxmjyYbunzSZfTx3JXHds0aaFtFPNxNrBV4OFIaw2EYThiH4
+	bgxIHb8k8f+N6N2YO5mm5+94o0oqQRGhoWBY8/xz6g==
+X-Google-Smtp-Source: ABdhPJz0PO4aWETtYavvTshIi+MXSwuUyXdhr+bFQ+jlbKCm6IGWh/rBqWCC7E9Z1jXxNkSbK7i8HO9LeBFTzuYFid4=
+X-Received: by 2002:a05:6a00:16c6:b029:32d:e190:9dd0 with SMTP id
+ l6-20020a056a0016c6b029032de1909dd0mr8666336pfc.70.1628980451450; Sat, 14 Aug
+ 2021 15:34:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <YRZGInO3vguWR4IA@smile.fi.intel.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sat, 14 Aug 2021 15:34:00 -0700
+Message-ID: <CAPcyv4iDA0og-BpZWnXY=6pi1GJ9KYpq-f7UkTqSpin1E7rUvg@mail.gmail.com>
+Subject: [GIT PULL] libvdimm + dax fixes for v5.14-rc6
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, "Weiny, Ira" <ira.weiny@intel.com>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Aug 13, 2021 at 01:14:58PM +0300, Andy Shevchenko wrote:
-> > Andy, does this incremental diff restore your reviewed-by? The awkward
-> > piece of this for me is that it introduces a handful of unnecessary
-> > memory copies. See some of the new nsl_get_uuid() additions and the
-> > extra copy in nsl_uuid_equal()
-> 
-> It does, thanks! As for the deeper discussion I think you need to talk to
-> Christoph. It was his idea to move uuid_t from UAPI to internal kernel type.
-> And I think it made and still makes sense to be that way.
-> 
-> But if we have already users of uuid_t like you are doing here (without this
-> patch) then it will be fine I guess. Not my area to advise or decide.
+Hi Linus, please pull from:
 
-I'm missing a lot of context here.  But that whole uuid/guid thing is
-a little complex:
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+tags/libnvdimm-fixes-5.14-rc6
 
- - for userspace APIs and on-disk formats a uuid is nothing but a blob
- - userspace historically has its own library to deal with this (libuuid),
-   which defines a uuid_t itself.
+...to receive a couple fixes for long standing bugs, a warning fixup,
+and some miscellaneous dax cleanups.
 
-So instead of trying to build abstractions that somehow word in diferent
-software ecosystems I think just treating it as the blob that it is for
-exchange makes life easіer for everyone.  It also really makes definitions
-of on-disk structures more clear when using the raw bytes instead of a
-semi-opaque typedef.
+The bugs were recently found due to new platforms looking to use the
+ACPI NFIT "virtual" device definition, and new error injection
+capabilities to trigger error responses to label area requests. Ira's
+cleanups have been long pending, I neglected to send them earlier, and
+see no harm in including them now. This has all appeared in -next with
+no reported issues.
+
+---
+
+The following changes since commit ff1176468d368232b684f75e82563369208bc371:
+
+  Linux 5.14-rc3 (2021-07-25 15:35:14 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
+tags/libnvdimm-fixes-5.14-rc6
+
+for you to fetch changes up to 96dcb97d0a40a60b9aee9f2c7a44ce8a1b6704bc:
+
+  Merge branch 'for-5.14/dax' into libnvdimm-fixes (2021-08-11 12:04:43 -0700)
+
+----------------------------------------------------------------
+libnvdimm fixes for v5.14-rc6
+
+- Fix support for NFIT "virtual" ranges (BIOS-defined memory disks)
+
+- Fix recovery from failed label storage areas on NVDIMM devices
+
+- Miscellaneous cleanups from Ira's investigation of dax_direct_access
+  paths preparing for stray-write protection.
+
+----------------------------------------------------------------
+Dan Williams (4):
+      ACPI: NFIT: Fix support for virtual SPA ranges
+      libnvdimm/region: Fix label activation vs errors
+      tools/testing/nvdimm: Fix missing 'fallthrough' warning
+      Merge branch 'for-5.14/dax' into libnvdimm-fixes
+
+Ira Weiny (3):
+      fs/fuse: Remove unneeded kaddr parameter
+      fs/dax: Clarify nr_pages to dax_direct_access()
+      dax: Ensure errno is returned from dax_direct_access
+
+ drivers/acpi/nfit/core.c         |  3 +++
+ drivers/dax/super.c              |  2 +-
+ drivers/nvdimm/namespace_devs.c  | 17 +++++++++++------
+ fs/dax.c                         |  2 +-
+ fs/fuse/dax.c                    |  6 ++----
+ tools/testing/nvdimm/test/nfit.c |  2 +-
+ 6 files changed, 19 insertions(+), 13 deletions(-)
