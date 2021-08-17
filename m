@@ -1,13 +1,13 @@
-Received: from mail108.syd.optusnet.com.au (mail108.syd.optusnet.com.au [211.29.132.59])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B89A5173
-	for <nvdimm@lists.linux.dev>; Tue, 17 Aug 2021 02:37:05 +0000 (UTC)
+Received: from mail104.syd.optusnet.com.au (mail104.syd.optusnet.com.au [211.29.132.246])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 7A73B173
+	for <nvdimm@lists.linux.dev>; Tue, 17 Aug 2021 03:00:04 +0000 (UTC)
 Received: from dread.disaster.area (pa49-195-182-146.pa.nsw.optusnet.com.au [49.195.182.146])
-	by mail108.syd.optusnet.com.au (Postfix) with ESMTPS id F26771B4722;
-	Tue, 17 Aug 2021 12:37:03 +1000 (AEST)
+	by mail104.syd.optusnet.com.au (Postfix) with ESMTPS id AFB4F869CF3;
+	Tue, 17 Aug 2021 12:34:46 +1000 (AEST)
 Received: from dave by dread.disaster.area with local (Exim 4.92.3)
 	(envelope-from <david@fromorbit.com>)
-	id 1mFoyN-001amD-2Z; Tue, 17 Aug 2021 12:37:03 +1000
-Date: Tue, 17 Aug 2021 12:37:02 +1000
+	id 1mFow9-001ajs-JP; Tue, 17 Aug 2021 12:34:45 +1000
+Date: Tue, 17 Aug 2021 12:34:45 +1000
 From: Dave Chinner <david@fromorbit.com>
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>,
@@ -16,10 +16,11 @@ Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>,
 	Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-btrfs@vger.kernel.org,
 	nvdimm@lists.linux.dev, cluster-devel@redhat.com
-Subject: Re: [PATCH 31/30] iomap: move iomap iteration code to iter.c
-Message-ID: <20210817023702.GJ3657114@dread.disaster.area>
+Subject: Re: [PATCH v2.1 11/30] iomap: add the new iomap_iter model
+Message-ID: <20210817023445.GG3657114@dread.disaster.area>
 References: <20210809061244.1196573-1-hch@lst.de>
- <20210811191926.GJ3601443@magnolia>
+ <20210809061244.1196573-12-hch@lst.de>
+ <20210811191720.GG3601443@magnolia>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -28,48 +29,38 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210811191926.GJ3601443@magnolia>
+In-Reply-To: <20210811191720.GG3601443@magnolia>
 X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.3 cv=F8MpiZpN c=1 sm=1 tr=0
+X-Optus-CM-Analysis: v=2.3 cv=YKPhNiOx c=1 sm=1 tr=0
 	a=QpfB3wCSrn/dqEBSktpwZQ==:117 a=QpfB3wCSrn/dqEBSktpwZQ==:17
-	a=kj9zAlcOel0A:10 a=MhDmnRu9jo8A:10 a=VwQbUJbxAAAA:8 a=20KFwNOVAAAA:8
-	a=7-415B0cAAAA:8 a=q_jVzwUvvCIIwZNgioUA:9 a=CjuIK1q_8ugA:10
-	a=AjGcO6oz07-iQ99wixmX:22 a=biEYGPWJfzWAr4FL6Ov7:22
+	a=kj9zAlcOel0A:10 a=MhDmnRu9jo8A:10 a=JfrnYn6hAAAA:8 a=VwQbUJbxAAAA:8
+	a=20KFwNOVAAAA:8 a=7-415B0cAAAA:8 a=25Yfc8azc3NZfLh1rZQA:9
+	a=CjuIK1q_8ugA:10 a=1CNFftbPRP8L7MoqJWF3:22 a=AjGcO6oz07-iQ99wixmX:22
+	a=biEYGPWJfzWAr4FL6Ov7:22
 
-On Wed, Aug 11, 2021 at 12:19:26PM -0700, Darrick J. Wong wrote:
-> From: Darrick J. Wong <djwong@kernel.org>
+On Wed, Aug 11, 2021 at 12:17:20PM -0700, Darrick J. Wong wrote:
+> From: Christoph Hellwig <hch@lst.de>
 > 
-> Now that we've moved iomap to the iterator model, rename this file to be
-> in sync with the functions contained inside of it.
+> The iomap_iter struct provides a convenient way to package up and
+> maintain all the arguments to the various mapping and operation
+> functions.  It is operated on using the iomap_iter() function that
+> is called in loop until the whole range has been processed.  Compared
+> to the existing iomap_apply() function this avoid an indirect call
+> for each iteration.
 > 
+> For now iomap_iter() calls back into the existing ->iomap_begin and
+> ->iomap_end methods, but in the future this could be further optimized
+> to avoid indirect calls entirely.
+> 
+> Based on an earlier patch from Matthew Wilcox <willy@infradead.org>.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> [djwong: add to apply.c to preserve git history of iomap loop control]
+> Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 > Signed-off-by: Darrick J. Wong <djwong@kernel.org>
-> ---
->  fs/iomap/Makefile |    2 +-
->  fs/iomap/iter.c   |    0 
->  2 files changed, 1 insertion(+), 1 deletion(-)
->  rename fs/iomap/{apply.c => iter.c} (100%)
-> 
-> diff --git a/fs/iomap/Makefile b/fs/iomap/Makefile
-> index e46f936dde81..bb64215ae256 100644
-> --- a/fs/iomap/Makefile
-> +++ b/fs/iomap/Makefile
-> @@ -26,9 +26,9 @@ ccflags-y += -I $(srctree)/$(src)		# needed for trace events
->  obj-$(CONFIG_FS_IOMAP)		+= iomap.o
->  
->  iomap-y				+= trace.o \
-> -				   apply.o \
->  				   buffered-io.o \
->  				   direct-io.o \
->  				   fiemap.o \
-> +				   iter.o \
->  				   seek.o
->  iomap-$(CONFIG_SWAP)		+= swapfile.o
-> diff --git a/fs/iomap/apply.c b/fs/iomap/iter.c
-> similarity index 100%
-> rename from fs/iomap/apply.c
-> rename to fs/iomap/iter.c
 
-LGTM,
+Looks like a straight translation of Christoph's original. Seems
+fine to me as a simepl step towards preserving the git history.
 
 Reviewed-by: Dave Chinner <dchinner@redhat.com>
 -- 
