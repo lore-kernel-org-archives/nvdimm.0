@@ -1,49 +1,50 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A5E93FC1
-	for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 22:59:14 +0000 (UTC)
-Received: by mail-pl1-f181.google.com with SMTP id w6so6788717plg.9
-        for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 15:59:14 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B26103FC1
+	for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 23:46:39 +0000 (UTC)
+Received: by mail-pg1-f171.google.com with SMTP id s11so10749337pgr.11
+        for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 16:46:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=4J9u3EAGcrYRrFr9a28F3qghmkpi2i6oIZ8UbGMRg5Q=;
-        b=anEFs1UiP9dfKz4P/uHPE9kEqv7MkVMmOpvTAzqV08rYDche7b0ksSUnfNPfaCpgzP
-         e9o7hblx+hLz5Nl60I6+hAR3wChILzkxma984XnglnGUVjrxySBf9RHwcnCyvmHR0E3D
-         /PO4zKOIZ00vbiCJCST1mcmqExfELWV35I4c28sImt4NeEjmuyoqAo4veMcamynIXSly
-         N374deXmUfZlN3MdOJk8WH+CtiC6uTHGByFsY0+nzx9U5qO6R2wXluoewcgzM1QD9Uqk
-         vDn3TqmthLxUy2TNMDmX+v1WaZ3As1fJ46enIH2XqW2Cm8fX2W+a1rUf0UBQqimRAjvl
-         /C9g==
+        bh=eHMEwcWn5S7G+chbvcpQTCNCdRCcbE/CWjRPjJXaV5I=;
+        b=dV1qy1mgsEI4INkTjHHUKy2f7GSIBsf4O1+fXHWSy+kAEv3jYRCYAaMAoxshjnqkyG
+         oT2A+bqzdhWPP7Nst6cJc+rRq8qjOqCAzweIkXIkoEgo8nuUUMoiRJVOkDK3YmorYY2a
+         MiYIB0B/a9xDq85QpmZl/2OTACzF1vsdUrsmu7G3BBNzopmDSm3t3cTCYxalZF+EklbQ
+         z/QBhrFGCRX/NdduCq4/gSDYTAIHTqZ63QqvdfDM9w8L08bZLCVJabVWF+5h1GcwWdBx
+         g+Yx1heQOEc1eDGWC1flE3Y5YJQ9B8bHRxJIIM5h054uHHrScv9Gt6FUJTVHrhRhnuED
+         x2EA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=4J9u3EAGcrYRrFr9a28F3qghmkpi2i6oIZ8UbGMRg5Q=;
-        b=hBmLqg2HzNmtygLnr0zYRiiGepmSbWcADv5hbs3NbNyBEzxrqzIf2TY+AyVcjV2feY
-         V6iEgjO+w18HbZsoMLbOL2MtmLlH9vASvGyXkHRQUZ5hGJKEgGPWU5nT7332jS35uMbu
-         kVjwd+BCt4t2iCEsFsOWte0O2lasWTk0HWIYxzqkbzlnAlprncFHZr5eI0CM0qiY9sPe
-         kHjZUO+uApZPHApe1opjl+oWdblrrjiyWNK5e7GlG4JyTsHudY/oVy2XoVSoXOGew47j
-         k1oJHnEU+gyoogZzow9/GckoMQQ2rrqom+OHDnxpPUv9l4N2c4f4V2Rot+0UJrQ7DvIU
-         14Xw==
-X-Gm-Message-State: AOAM530jtoQAVFunqU7+Qli3iKxdpDDFermE+as/h9oGOkOIxH8wg6Mj
-	qlLdtQulhy2XgZdY2VGir9A+mybbXzUZduPdTTrENw==
-X-Google-Smtp-Source: ABdhPJzmm+ahkZHadNRsrgbZ7uYrM7d7oiVybo+IGZSGhl9C+B3H/3syn4zyd/DiLhslnXQ3Gq0ivqGhKs2WDDhbCAQ=
-X-Received: by 2002:a17:90a:708c:: with SMTP id g12mr7031600pjk.13.1629500353664;
- Fri, 20 Aug 2021 15:59:13 -0700 (PDT)
+        bh=eHMEwcWn5S7G+chbvcpQTCNCdRCcbE/CWjRPjJXaV5I=;
+        b=JzF1N0DXmcTQYurrcgulpA2Gv3x/ZRWzqLzFZhqDKajkN6cIATPEifCI9zYvJVS/cB
+         Q9rlAT3hrntU53ng2tI9cst37+k/BkGuZkgrqD6iH/wwYZdczwEQDppZIP1CWqvNbrPy
+         r6a8pTnzIq/O6QoJdHQlCuWNNtKJLzSNImaZ6Hs5qDoLUAh9Ao/wiwafhlyWgAxxhA5E
+         O4ftOVy7bjGFiekunE4Qx4jM292/0HgR0yE3yAYbcVd/hFgMV+wRTxbWDUb5PlGDArk8
+         XoPJsrVs2EZKezQggPEDsPmYtxlmj17YSe0iHg/MqDCdB5VPG1KH3Ptre+QR1HY6ViQU
+         p9tA==
+X-Gm-Message-State: AOAM532Wj+Ljz8LgB4C4lgkc5eug7KH47pJqmJ1Z2JlkaRjxzcfRv3R9
+	Ei4p2dcff5TkdgPu048qUvcEt4pGKIAoPxauxM+h8Q==
+X-Google-Smtp-Source: ABdhPJzS5HGT6xJgqFrmEph3uz/ZG7OFdXOcKr3T36oL70Xxr6i57XBJUHqsj1rzOh9dfprsZA/boIS7GPxjc7UyUjw=
+X-Received: by 2002:a62:3342:0:b029:3b7:6395:a93 with SMTP id
+ z63-20020a6233420000b02903b763950a93mr21855818pfz.71.1629503199185; Fri, 20
+ Aug 2021 16:46:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210730100158.3117319-1-ruansy.fnst@fujitsu.com> <20210730100158.3117319-7-ruansy.fnst@fujitsu.com>
-In-Reply-To: <20210730100158.3117319-7-ruansy.fnst@fujitsu.com>
+References: <20210730100158.3117319-1-ruansy.fnst@fujitsu.com> <20210730100158.3117319-8-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20210730100158.3117319-8-ruansy.fnst@fujitsu.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 20 Aug 2021 15:59:02 -0700
-Message-ID: <CAPcyv4h8eUKYDz+KLzXeMTEKc03k=8juXtYjYj+XSVQ5ww=KyQ@mail.gmail.com>
-Subject: Re: [PATCH RESEND v6 6/9] xfs: Implement ->notify_failure() for XFS
+Date: Fri, 20 Aug 2021 16:46:27 -0700
+Message-ID: <CAPcyv4ic+LDagR8uF18tO3cCb6t=YTZNkAOK=vnsnERqY6Ze_g@mail.gmail.com>
+Subject: Re: [PATCH RESEND v6 7/9] dm: Introduce ->rmap() to find bdev offset
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
 	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
@@ -54,61 +55,53 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Fri, Jul 30, 2021 at 3:02 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
 >
-> This function is used to handle errors which may cause data lost in
-> filesystem.  Such as memory failure in fsdax mode.
+> Pmem device could be a target of mapped device.  In order to find out
+> the global location on a mapped device, we introduce this to translate
+> offset from target device to mapped device.
 >
-> If the rmap feature of XFS enabled, we can query it to find files and
-> metadata which are associated with the corrupt data.  For now all we do
-> is kill processes with that file mapped into their address spaces, but
-> future patches could actually do something about corrupt metadata.
->
-> After that, the memory failure needs to notify the processes who are
-> using those files.
+> Currently, we implement it on linear target, which is easy to do the
+> translation.  Other targets will be supported in the future.  However,
+> some targets may not support it because of the non-linear mapping.
 >
 > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 > ---
->  drivers/dax/super.c |  12 ++++
->  fs/xfs/xfs_fsops.c  |   5 ++
->  fs/xfs/xfs_mount.h  |   1 +
->  fs/xfs/xfs_super.c  | 135 ++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/dax.h |  13 +++++
->  5 files changed, 166 insertions(+)
->
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 00c32dfa5665..63f7b63d078d 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -65,6 +65,18 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
->         return dax_get_by_host(bdev->bd_disk->disk_name);
->  }
->  EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-> +
-> +void fs_dax_set_holder(struct dax_device *dax_dev, void *holder,
-> +               const struct dax_holder_operations *ops)
-> +{
-> +       dax_set_holder(dax_dev, holder, ops);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_set_holder);
+>  block/genhd.c                 | 56 +++++++++++++++++++++++++++++++++++
+>  drivers/md/dm-linear.c        | 20 +++++++++++++
+>  include/linux/device-mapper.h |  5 ++++
+>  include/linux/genhd.h         |  1 +
+>  4 files changed, 82 insertions(+)
 
-Small style issue, I'd prefer a pair of functions:
+This might be where dax-device support needs to part ways with the block layer.
 
-fs_dax_register_holder(struct dax_device *dax_dev, void *holder, const
-struct dax_holder_operations *ops)
-fs_dax_unregister_holder(struct dax_device *dax_dev)
+As Christoph has mentioned before the long term goal for dax-devices
+(direct mapped byte-addressable media) is to have filesystems mount on
+them directly and abandon block-layer entanglements. This patch goes
+the opposite direct and adds more block layer infrastructure to
+support a dax-device need. Now, I'm not opposed to this moving
+forward, but I'm not sure block and DM maintainers will be excited
+about this additional maintenance burden.
 
-...rather than open coding unregister as a special set that passes
-NULL arguments.
+At the same time a lot of effort has been poured into dax-reflink and
+I want that support to move forward. So, my proposal while we figure
+out what to do about device-mapper rmap is to have
+fs_dax_register_holder() fail on device-mapper dax-devices until we
+get wider agreement amongst all involved that this is an additional
+burden worth carrying. In the meantime XFS on PMEM will see
+fs_dax_register_holder() succeed and DAX reflink support can be gated
+on whether the dax-device allowed the notify failure handler to be
+registered.
 
-> +void *fs_dax_get_holder(struct dax_device *dax_dev)
-> +{
-> +       return dax_get_holder(dax_dev);
+Now, there may be room to allow reflink on device-mapper-dax for
+CONFIG_MEMORY_FAILURE=n builds, but that would collide with future
+work to use notify_failure for more than memory_failure, but also
+NVDIMM_REVALIDATE_POISON, and surprise memory-device-remove events.
 
-Does dax_get_holder() have a lockdep_assert to check that the caller
-has at least a read_lock? Please add kernel-doc for this api to
-indicate the locking context expectations.
+The code in this patch looks ok to me, just not the direction the
+dax-device layer was looking to go. It might be time to revive the
+discussions around support for concatenation and striping in the pmem
+driver itself, especially as the CXL label specification is already
+adding support for physically discontiguous namespaces.
 
-The rest of this looks plausibly ok to me, but it would be up to xfs
-folks to comment on the details. I'm not entirely comfortable with
-these handlers assuming DAX, i.e. they should also one day be useful
-for page cache memory failure notifications, but that support can come
-later.
+At a minimum if the patch set is organized to support XFS-reflink on
+PMEM-DAX and later XFS-reflink on DM-DAX some progress can be made
+without waiting for the whole set to be accepted.
