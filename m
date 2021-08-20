@@ -1,67 +1,78 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EACBE3FC2
-	for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 15:27:25 +0000 (UTC)
-Received: by mail-pl1-f180.google.com with SMTP id c4so6136392plh.7
-        for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 08:27:25 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BD0313FC2
+	for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 15:42:03 +0000 (UTC)
+Received: by mail-pg1-f178.google.com with SMTP id t1so9558839pgv.3
+        for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 08:42:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=s+pZady9bZxuI5ZV217HLh19NePVUH4NtT4PhDASe8A=;
-        b=mxA9ryU8JJCE6xg91cuNIqjrL1JDkONo6P8+DLklfSN2yE7omlUTGVGqGsV1LSrJxc
-         u4r8m32maq75ln8QSnsVjt9XX5dmqle4XU1My+eIZsS0jOx+vYDBuXsJbjmri79tSozC
-         LWc4QxAU/S3MEO/w8soRt9iUyt6bsc+zdf16d1u6kn3PvO2WLVhSEOlzuAnzSFLZhcfH
-         B7xmSABvYCijcB2WMf1CsVQQjTsozoby0hS/2FmN81TbxQ2/AsTb9+zM7cG/0oG/6pPx
-         LBPeMmPGI0E0s2HAI/mpmtk5cMbx6dWGUpQvnNfM89CcP9e/Z3/7W8Y34lCUC92JOBNm
-         UWnQ==
+        bh=q8jZHSiFFfLy2DZDlFqcLZRFcfHsQs2eaK/uITfLozM=;
+        b=gxFhBBzJw6MYFPO85nq5sl6q+X4IPCdfY+KIwfcptL3vT1Ic1lmczfKpNv9t+6QewK
+         r2T354UoS+XEdkGmAhxUsU2UUxrO+eR+uOmoTVMjcJVpb4kAvTvwawGynAndCvpGr8tn
+         p9ocBNhfb7tGVAiP/UnDbnPOvuWYf7ivb2ybXL4eMxRPL3+CEZobUEvQQkBw7AAWv16W
+         yp2ozgyOt3nxeQxMUcDZjxCcV1A46xL86HRuujYwJHUCVHPIJ6QgasgsTl6XiLm3S1qK
+         lMFf4Z+zOfL2T40sJ8y1hGqYWXbL1ZdWFCaa9WTNf4MGih+CCOuoYrkgfwmNeu4iMthf
+         hXAQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=s+pZady9bZxuI5ZV217HLh19NePVUH4NtT4PhDASe8A=;
-        b=GDQFHPhUGi1sn5KAXFPyHcqqXuFiMphvPPDf3GPYPMwmSp+sIG4T/FBvJu7jhQHx0i
-         x1MkMBuEpyUWaUKWcoq3XCgSAM34T3Qsyycmq5HKJs5JT2rIHkbrx/a4ole3G9tlN8Dc
-         vcgmnVa80chE/aEkmzNMd+7c6JiG/gkvojCZIh5ayuZlwRpMdGae07KH0/EO8/0UMMPi
-         JxChu+0ujaAmg92J+YalPdpKaRUtGawOdY+PkgZvfZY3aeAOGRDk4sbbTP1hRMJltlvN
-         eWgRqmOog5xkPv4ivjjcdB261c44UK9fRO0s3izaUlwa0iBrsJJZ/wWph72ZV6sj3XYn
-         XiuA==
-X-Gm-Message-State: AOAM530dOb0MfyueOZtMxwvoDUCCK4/aQnqlWaETS+sOc/kVAFc4qrUd
-	ZQeXLwug93asAttpy5a//vchmGXNOtvFXH0XNwnDLA==
-X-Google-Smtp-Source: ABdhPJxF0RCYcUVUBwMvZeOpqalPa/B9+Q+bapkBeipJxdjltc3i6RXJVl+F7zMaJbsIi20VC25awiuka6Iizvicc98=
-X-Received: by 2002:a17:90b:23d6:: with SMTP id md22mr4951556pjb.149.1629473245264;
- Fri, 20 Aug 2021 08:27:25 -0700 (PDT)
+        bh=q8jZHSiFFfLy2DZDlFqcLZRFcfHsQs2eaK/uITfLozM=;
+        b=gV6I/md4VrUG73vlNQAOE0uHPw2mQZYnMu456ORlVZYF5x5y4vGWjE6HJUdP5qR2NL
+         o+wPpL+05HCKWVjtpLgMc8+DHPPWVnKplIR8XucpcsnXSXUvR1Am32HyiuL1LGlO9yv5
+         76RsTqC1cSdc8JOfuXn/BOoe39SP4HSk+qOLOp7QqDKX/sw8bUDep4xynNryV8RNqTlN
+         KqRic0tQm+76+xQMeyxPrsMWM1P3LfHogzxBEmHTixll0fpdybLs6SEB0uiWagyMOgeC
+         7nsWoLvJ8mnRiBh1hNqS4673MD2fBSGe/bTA8xc8duG5/pofQ7zDZE9ggGGebWY9XBz0
+         Fk0A==
+X-Gm-Message-State: AOAM533CjN02Jop6vfh81cM4zucKw7R3XaRmlPowON5+qbN/6Zq+tCVa
+	c5AuvTu66XuEvwX939w0DIetZ/DGGr+t+LvrAnBkqQ==
+X-Google-Smtp-Source: ABdhPJziD/dmI1/E002HyAJ5OylTk+JhXSjQ5FRN2yxl8+RzYWMFBCQEuK+/1sCUgSRaUjkwUyvDHK2r4a8SFvshsMM=
+X-Received: by 2002:a63:311:: with SMTP id 17mr19133524pgd.450.1629474123284;
+ Fri, 20 Aug 2021 08:42:03 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210809061244.1196573-1-hch@lst.de> <20210809061244.1196573-12-hch@lst.de>
- <CAPcyv4hbSYnOC6Pdi1QShRxGjBAteig7nN1h-5cEvsFDX9SuAQ@mail.gmail.com> <20210820041158.GA26417@lst.de>
-In-Reply-To: <20210820041158.GA26417@lst.de>
+References: <20210820054340.GA28560@lst.de>
+In-Reply-To: <20210820054340.GA28560@lst.de>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 20 Aug 2021 08:27:14 -0700
-Message-ID: <CAPcyv4iQgyPgQhjCwWv9JkA+kx18nRjOucVm+z79uw1zcAbhPg@mail.gmail.com>
-Subject: Re: [PATCH 11/30] iomap: add the new iomap_iter model
+Date: Fri, 20 Aug 2021 08:41:52 -0700
+Message-ID: <CAPcyv4i5GHUXPCEu4RbD1x_=usTdK2VWqHfvHFEHijDYBg+CLw@mail.gmail.com>
+Subject: Re: can we finally kill off CONFIG_FS_DAX_LIMITED
 To: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Matthew Wilcox <willy@infradead.org>, 
-	Andreas Gruenbacher <agruenba@redhat.com>, Shiyang Ruan <ruansy.fnst@fujitsu.com>, 
-	linux-xfs <linux-xfs@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	linux-btrfs <linux-btrfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	cluster-devel@redhat.com
+Cc: Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@de.ibm.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	linux-s390 <linux-s390@vger.kernel.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, 
+	Joao Martins <joao.m.martins@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Aug 19, 2021 at 9:12 PM Christoph Hellwig <hch@lst.de> wrote:
->
-> On Thu, Aug 19, 2021 at 02:25:52PM -0700, Dan Williams wrote:
-> > Given most of the iomap_iter users don't care about srcmap, i.e. are
-> > not COW cases, they are leaving srcmap zero initialized. Should the
-> > IOMAP types be incremented by one so that there is no IOMAP_HOLE
-> > confusion? In other words, fold something like this?
->
-> A hole really means nothing to read from the source.  The existing code
-> also relies on that.
+[ add Gerald and Joao ]
 
-Ok, I've since found iomap_iter_srcmap(). Sorry for the noise.
+On Thu, Aug 19, 2021 at 10:44 PM Christoph Hellwig <hch@lst.de> wrote:
+>
+> Hi all,
+>
+> looking at the recent ZONE_DEVICE related changes we still have a
+> horrible maze of different code paths.  I already suggested to
+> depend on ARCH_HAS_PTE_SPECIAL for ZONE_DEVICE there, which all modern
+> architectures have anyway.  But the other odd special case is
+> CONFIG_FS_DAX_LIMITED which is just used for the xpram driver.  Does
+> this driver still see use?  If so can we make it behave like the
+> other DAX drivers and require a pgmap?  I think the biggest missing
+> part would be to implement ARCH_HAS_PTE_DEVMAP for s390.
+>
+
+Gerald,
+
+Might you still be looking to help dcssblk get out of FS_DAX_LIMITED
+jail [1]? I recall Martin saying that 'struct page' overhead was
+prohibitive. I don't know if Joao's 'struct page' diet patches could
+help alleviate that at all (would require the filesystem to only
+allocate blocks in large page sizes).
+
+[1]: https://lore.kernel.org/r/20180523205017.0f2bc83e@thinkpad
