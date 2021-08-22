@@ -1,107 +1,122 @@
-Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B26103FC1
-	for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 23:46:39 +0000 (UTC)
-Received: by mail-pg1-f171.google.com with SMTP id s11so10749337pgr.11
-        for <nvdimm@lists.linux.dev>; Fri, 20 Aug 2021 16:46:39 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 192903FC0
+	for <nvdimm@lists.linux.dev>; Sun, 22 Aug 2021 11:49:19 +0000 (UTC)
+Received: by mail-pf1-f176.google.com with SMTP id 18so12873175pfh.9
+        for <nvdimm@lists.linux.dev>; Sun, 22 Aug 2021 04:49:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=eHMEwcWn5S7G+chbvcpQTCNCdRCcbE/CWjRPjJXaV5I=;
-        b=dV1qy1mgsEI4INkTjHHUKy2f7GSIBsf4O1+fXHWSy+kAEv3jYRCYAaMAoxshjnqkyG
-         oT2A+bqzdhWPP7Nst6cJc+rRq8qjOqCAzweIkXIkoEgo8nuUUMoiRJVOkDK3YmorYY2a
-         MiYIB0B/a9xDq85QpmZl/2OTACzF1vsdUrsmu7G3BBNzopmDSm3t3cTCYxalZF+EklbQ
-         z/QBhrFGCRX/NdduCq4/gSDYTAIHTqZ63QqvdfDM9w8L08bZLCVJabVWF+5h1GcwWdBx
-         g+Yx1heQOEc1eDGWC1flE3Y5YJQ9B8bHRxJIIM5h054uHHrScv9Gt6FUJTVHrhRhnuED
-         x2EA==
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=pd41d9ozzT13Et9mqhXW/uLkG1Pg7swYhOyYwUuusqA=;
+        b=I8Ri1XV54WwxQ6llO5Fjp5p0etHpDD6yONomif7Z28SWFmArIkp3tT0HO1tho0ONb9
+         5ofeuwgp+C675l57Gs7a3Iokrwd5QMtHQg7Q0hszfEV+wQCmWk3VLzsPheUWwBPoh+uA
+         AKfYY4hQWXGWoVErFTPPk9WmXUjAaFSh6DvojAZHOJ73TSsNj4KAbIzDr65XoqQF+KcU
+         9yscrh0dmaVVERxU7IfyFEA95FU1Bt/sB/fHXCcwdkjE0AMnyjVM9EVJc/jf7IWlHdS/
+         QEYfswhZbTWXfbhBBXOd1F/xDsGDmYjyWF85K1whGEfK8Bfqp0kQbTaK8lGjZtUiYKBX
+         KuuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=eHMEwcWn5S7G+chbvcpQTCNCdRCcbE/CWjRPjJXaV5I=;
-        b=JzF1N0DXmcTQYurrcgulpA2Gv3x/ZRWzqLzFZhqDKajkN6cIATPEifCI9zYvJVS/cB
-         Q9rlAT3hrntU53ng2tI9cst37+k/BkGuZkgrqD6iH/wwYZdczwEQDppZIP1CWqvNbrPy
-         r6a8pTnzIq/O6QoJdHQlCuWNNtKJLzSNImaZ6Hs5qDoLUAh9Ao/wiwafhlyWgAxxhA5E
-         O4ftOVy7bjGFiekunE4Qx4jM292/0HgR0yE3yAYbcVd/hFgMV+wRTxbWDUb5PlGDArk8
-         XoPJsrVs2EZKezQggPEDsPmYtxlmj17YSe0iHg/MqDCdB5VPG1KH3Ptre+QR1HY6ViQU
-         p9tA==
-X-Gm-Message-State: AOAM532Wj+Ljz8LgB4C4lgkc5eug7KH47pJqmJ1Z2JlkaRjxzcfRv3R9
-	Ei4p2dcff5TkdgPu048qUvcEt4pGKIAoPxauxM+h8Q==
-X-Google-Smtp-Source: ABdhPJzS5HGT6xJgqFrmEph3uz/ZG7OFdXOcKr3T36oL70Xxr6i57XBJUHqsj1rzOh9dfprsZA/boIS7GPxjc7UyUjw=
-X-Received: by 2002:a62:3342:0:b029:3b7:6395:a93 with SMTP id
- z63-20020a6233420000b02903b763950a93mr21855818pfz.71.1629503199185; Fri, 20
- Aug 2021 16:46:39 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=pd41d9ozzT13Et9mqhXW/uLkG1Pg7swYhOyYwUuusqA=;
+        b=jt8hO0P8f7pywi6KTpVXbCLgZTC6BolOL9m4GV5tcSX0zvCwK5ltXyZkux4rKHEpOD
+         XbvIfCXpvI6zZTWWe7erIjEK9MJxhohPEWJ3bwZEjZtzpgLCusGcSm2K80rKYok08jaj
+         Rg+n40AF2TyXVNBTsmDdh7dQFyIJX/nJzBkDb6pM6qiLoBgh81ljd2s1RMsYzqpvRBLL
+         buq8v0VGaUkAxPAggRnZ4keVrXbl8vMKevvH1NkCWyJCPhB0nGURwkhZ0Hbg8D9QnWMN
+         AtPzGi3JqMt9mEILRFp+kpUrP+nqVddNUc8TResKBmpJgEH+xwkkKwAhnStQEMVzTLOh
+         ntaw==
+X-Gm-Message-State: AOAM532RKAhX1TOpXaucgg6wARgHu7fqkfmr/u6FZi1crITeLFxTvWN5
+	TVpxhF+3KdXZfK6FJD3NDqw=
+X-Google-Smtp-Source: ABdhPJxFkUT0wNez4dMng/trKMU36qRV9Ls3M3OYF/c120GFc+9qgFgbTg1LLGo+asVtMWof5yZ5xg==
+X-Received: by 2002:a05:6a00:16d2:b029:300:200b:6572 with SMTP id l18-20020a056a0016d2b0290300200b6572mr28972142pfc.62.1629632958566;
+        Sun, 22 Aug 2021 04:49:18 -0700 (PDT)
+Received: from localhost.localdomain ([129.226.66.100])
+        by smtp.gmail.com with ESMTPSA id b15sm14671076pgj.60.2021.08.22.04.49.16
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 22 Aug 2021 04:49:17 -0700 (PDT)
+From: sumiyawang@gmail.com
+X-Google-Original-From: sumiyawang@tencent.com
+To: dan.j.williams@intel.com,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	lidongchen@tencent.com,
+	sumiyawang <sumiyawang@tencent.com>
+Subject: [PATCH] pmem: fix the crash when unbind namespaces
+Date: Sun, 22 Aug 2021 19:49:09 +0800
+Message-Id: <1629632949-14749-1-git-send-email-sumiyawang@tencent.com>
+X-Mailer: git-send-email 2.7.4
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-References: <20210730100158.3117319-1-ruansy.fnst@fujitsu.com> <20210730100158.3117319-8-ruansy.fnst@fujitsu.com>
-In-Reply-To: <20210730100158.3117319-8-ruansy.fnst@fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 20 Aug 2021 16:46:27 -0700
-Message-ID: <CAPcyv4ic+LDagR8uF18tO3cCb6t=YTZNkAOK=vnsnERqY6Ze_g@mail.gmail.com>
-Subject: Re: [PATCH RESEND v6 7/9] dm: Introduce ->rmap() to find bdev offset
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	device-mapper development <dm-devel@redhat.com>, "Darrick J. Wong" <djwong@kernel.org>, david <david@fromorbit.com>, 
-	Christoph Hellwig <hch@lst.de>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Jul 30, 2021 at 3:02 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->
-> Pmem device could be a target of mapped device.  In order to find out
-> the global location on a mapped device, we introduce this to translate
-> offset from target device to mapped device.
->
-> Currently, we implement it on linear target, which is easy to do the
-> translation.  Other targets will be supported in the future.  However,
-> some targets may not support it because of the non-linear mapping.
->
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> ---
->  block/genhd.c                 | 56 +++++++++++++++++++++++++++++++++++
->  drivers/md/dm-linear.c        | 20 +++++++++++++
->  include/linux/device-mapper.h |  5 ++++
->  include/linux/genhd.h         |  1 +
->  4 files changed, 82 insertions(+)
+From: sumiyawang <sumiyawang@tencent.com>
 
-This might be where dax-device support needs to part ways with the block layer.
+kernel will crash when use after free the ioremap space,
+which is triggered by ndctl destroy-namespace while some IO operations
+exist.
+The sequence of pmem driver release chain should be changed:
+freeze the queue and wait io finished first, then iounmap. 
 
-As Christoph has mentioned before the long term goal for dax-devices
-(direct mapped byte-addressable media) is to have filesystems mount on
-them directly and abandon block-layer entanglements. This patch goes
-the opposite direct and adds more block layer infrastructure to
-support a dax-device need. Now, I'm not opposed to this moving
-forward, but I'm not sure block and DM maintainers will be excited
-about this additional maintenance burden.
+[47202.018374] BUG: unable to handle page fault for address: ffffc90080200000
+[47202.018822] CPU: 36 PID: 9606 Comm: systemd-udevd 
+[47202.020921] Call Trace:
+[47202.020969]  ? pmem_do_bvec+0xf9/0x3a0
+[47202.021036]  ? xas_alloc+0x55/0xd0
+[47202.021094]  pmem_rw_page+0x4b/0x80
+[47202.021159]  bdev_read_page+0x86/0xb0
+[47202.021222]  do_mpage_readpage+0x5d4/0x7a0
+[47202.021297]  ? lru_cache_add+0xe/0x10
+[47202.021359]  mpage_readpages+0xf9/0x1c0
+[47202.021428]  ? bd_link_disk_holder+0x1a0/0x1a0
+[47202.021506]  blkdev_readpages+0x1d/0x20
+[47202.021574]  read_pages+0x67/0x1a0
 
-At the same time a lot of effort has been poured into dax-reflink and
-I want that support to move forward. So, my proposal while we figure
-out what to do about device-mapper rmap is to have
-fs_dax_register_holder() fail on device-mapper dax-devices until we
-get wider agreement amongst all involved that this is an additional
-burden worth carrying. In the meantime XFS on PMEM will see
-fs_dax_register_holder() succeed and DAX reflink support can be gated
-on whether the dax-device allowed the notify failure handler to be
-registered.
+ndctl Call Trace in vmcore:
+PID: 23473  TASK: ffff88c4fbbe8000  CPU: 1   COMMAND: "ndctl"
+__schedule
+schedule
+blk_mq_freeze_queue_wait
+blk_freeze_queue
+blk_cleanup_queue
+pmem_release_queue
+devm_action_release
+release_nodes
+devres_release_all
+device_release_driver_internal
+device_driver_detach
+unbind_store
 
-Now, there may be room to allow reflink on device-mapper-dax for
-CONFIG_MEMORY_FAILURE=n builds, but that would collide with future
-work to use notify_failure for more than memory_failure, but also
-NVDIMM_REVALIDATE_POISON, and surprise memory-device-remove events.
+At that time, the ioremap space is released
 
-The code in this patch looks ok to me, just not the direction the
-dax-device layer was looking to go. It might be time to revive the
-discussions around support for concatenation and striping in the pmem
-driver itself, especially as the CXL label specification is already
-adding support for physically discontiguous namespaces.
+Signed-off-by: sumiyawang <sumiyawang@tencent.com>
+Reviewed-by: yongduan <yongduan@tencent.com>
+---
+ drivers/nvdimm/pmem.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-At a minimum if the patch set is organized to support XFS-reflink on
-PMEM-DAX and later XFS-reflink on DM-DAX some progress can be made
-without waiting for the whole set to be accepted.
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 1e0615b..72de88f 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -450,11 +450,11 @@ static int pmem_attach_disk(struct device *dev,
+ 		pmem->pfn_flags |= PFN_MAP;
+ 		bb_range = pmem->pgmap.range;
+ 	} else {
++		addr = devm_memremap(dev, pmem->phys_addr,
++				pmem->size, ARCH_MEMREMAP_PMEM);
+ 		if (devm_add_action_or_reset(dev, pmem_release_queue,
+ 					&pmem->pgmap))
+ 			return -ENOMEM;
+-		addr = devm_memremap(dev, pmem->phys_addr,
+-				pmem->size, ARCH_MEMREMAP_PMEM);
+ 		bb_range.start =  res->start;
+ 		bb_range.end = res->end;
+ 	}
+-- 
+2.7.4
+
