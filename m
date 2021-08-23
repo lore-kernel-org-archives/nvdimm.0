@@ -1,61 +1,113 @@
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5971972
-	for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 16:48:43 +0000 (UTC)
-Received: by mail-pj1-f51.google.com with SMTP id mq3so12322952pjb.5
-        for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 09:48:43 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE6383FC0
+	for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 18:46:03 +0000 (UTC)
+Received: by mail-pg1-f177.google.com with SMTP id t1so17476976pgv.3
+        for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 11:46:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=DHjpXJVaorJJrONHThs2n/BVyyOjMaPVQq0TyoaLObU=;
-        b=K4aPSagCbeW0et34hov0mWX89VGjBHt70OaTXNcqskc+Zzgcryf5LCb4YKOAiVzCB4
-         PduovYBUnfaBuy5aPnbjX4Etn60IEtFClFgswwlTXmWMQqz5aCNeVIx7+HN2BjSILDK2
-         03w5JFvHrHMXh9H3K2NWXqmlcI/ij2RcsnsZfEJyHWfNl/gx6JgWOy9Mi095I6rOi9BU
-         2wOrbBtjyAg/u6ZjGLVDZyqgsn33kCp9FeO3+KKwCi/K7RyukQVv0Ohb5iV7MrU4Dwk5
-         LziniW3UE8vIHivVj2QIjHptqmNTxA1VHrAPHSJuhRMI5v+dwUmyt0XRz4Wc0WMAbhjz
-         TEBg==
+        bh=bsWLS5Lsvli6/G6DR+M0//W1oeoCxpbroaiM0AweC2U=;
+        b=cJwve58u1e5m7sq1m17LOxCx1TWZxIV225n3TyUIWLcuS7wiK3So1eEBRuWJuVlR2f
+         ZLXuzA8sLPpwGnGe2Yk1AyXRJZDBWlRISfYsJ8gv6749D39kIF8KnvTCK3EbCOxUaxlp
+         LGmfd7P1T4eH9WLpW17RKt0hIP2I/Vhp5q00KhjRS7FCdn/BvKP+nFi/hJKqAUpSBmBQ
+         ahmtxdhOeKhEeHJ6iEJJFl9MgIYiM+ZU9UmBohE35lPT+s38Y12qHJ/Yq7JJTx4WQoaB
+         L/OYBbRTy1crtTWqUvFh5XbJQGNjKDLPiSiYFz84weHUGmtIs3wik5fXRuL2uugwYOeE
+         pLiQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=DHjpXJVaorJJrONHThs2n/BVyyOjMaPVQq0TyoaLObU=;
-        b=VGKk/296lKzTFZqAKUv6QRoOFA9K3Pjvly0HUgJJpLmQkqP+MPDPagrTCTOpd3BLmT
-         FE1iRvzzPwSX2dp7fKWMwlftkDwGbgkzk1inajdiDoek9jw05V05nsqgu7XZymGYMn4q
-         rExXjaNUGJ4Jfnlt25aKEOZYidHpbNrEzdEXx05weAUNW1uPXnko8BOcZJErm0giZzpb
-         3cq9vN8oiNbfXIeY77XOtgFwthHUyI/l0D3RRGLLg29zcXpHmHSQEf2I67b9dw9PFzWd
-         8YQnT38ucHDoRYOR409+w4+c79GsvWgLGNyqANeTJULPsKGhriasPUo43JjPdCHWSwok
-         8OnQ==
-X-Gm-Message-State: AOAM53130FDpNfn4F7PzTVuFbudPzn9y96n1lfEGb9pL2wyAVFCrbXLC
-	vx05C5aGMqWYp7Q358WWLDiwE9HlhMNO6Bbaq7F3XA==
-X-Google-Smtp-Source: ABdhPJy+qNZNmxIul3yPPhfME5mYCBgn8upKUahPfXfj1jFqWcs4Eq1xQbDDVdK6Tzwd6GVD9cFFJVtkt3W6Lxln4B8=
-X-Received: by 2002:a17:902:9b95:b0:130:6a7b:4570 with SMTP id
- y21-20020a1709029b9500b001306a7b4570mr17565813plp.27.1629737322913; Mon, 23
- Aug 2021 09:48:42 -0700 (PDT)
+        bh=bsWLS5Lsvli6/G6DR+M0//W1oeoCxpbroaiM0AweC2U=;
+        b=Kzp3uJcH0GpCf2btQfa76pdOjn9ediHeJssCkoa04lUPiYmwPTotowcMO+exd7zty9
+         e12NWRYTJ8PCWKkDX/1dJmRr0YEy90WznSXK9ipblPp63jN27HXEdF7Xl4wPCK0Y6cbJ
+         5TBWevL9s3xl6hO/9hVSDSvTHWLKGtOgodIsLLMeApTKw3cgZdkAnamUxiFdVz5eqeIR
+         USp1TY4JM7ddybFspLJiLK1ntJlkcGRBv+tJPwEvwZX4xa8NOexkmMOacjUMBrD0kCb/
+         ZVt1PONPye9HNrNSEcXqy+VqW9Bnt1YXeXo5DGQBrvnZ0ykxOK3aKFZQ7OGEWFf59okq
+         6P2w==
+X-Gm-Message-State: AOAM532uwnxKlFBA3YjZe9JXGr8xlwlH/WR3FoMoNMblsMbTcEz+T0nl
+	aSr8XTXRjlXcov4jL2DqRwcD+3qWIPKv5gmqk95kBA==
+X-Google-Smtp-Source: ABdhPJxpo0+vyQ+xK7UvVGbCGg974A5JaeqyO5j1qTLhfDJa9Ok2iMc/TS0rPaPh8KlGL59bGBG0Nq+rOhg4vkr2vRw=
+X-Received: by 2002:a63:dd0e:: with SMTP id t14mr32040633pgg.279.1629744363336;
+ Mon, 23 Aug 2021 11:46:03 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210822203015.528438-1-qi.fuli@fujitsu.com> <20210822203015.528438-2-qi.fuli@fujitsu.com>
-In-Reply-To: <20210822203015.528438-2-qi.fuli@fujitsu.com>
+References: <20210823123516.969486-1-hch@lst.de> <20210823123516.969486-2-hch@lst.de>
+In-Reply-To: <20210823123516.969486-2-hch@lst.de>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 23 Aug 2021 09:48:32 -0700
-Message-ID: <CAPcyv4imFbXW2_84QqmT+AmanXAtKXNQgKNEez3EX=o=XLiNjg@mail.gmail.com>
-Subject: Re: [ndctl PATCH 1/5] ndctl, ccan: import ciniparser
-To: QI Fuli <fukuri.sai@gmail.com>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, QI Fuli <qi.fuli@fujitsu.com>
+Date: Mon, 23 Aug 2021 11:45:52 -0700
+Message-ID: <CAPcyv4h0QdHi10ngaXtuisxeZ+66wd-oy0F7r9C0FjJmyXBOFg@mail.gmail.com>
+Subject: Re: [PATCH 1/9] fsdax: improve the FS_DAX Kconfig description and
+ help text
+To: Christoph Hellwig <hch@lst.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <willy@infradead.org>, 
+	linux-xfs <linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Sun, Aug 22, 2021 at 1:36 PM QI Fuli <fukuri.sai@gmail.com> wrote:
+On Mon, Aug 23, 2021 at 5:37 AM Christoph Hellwig <hch@lst.de> wrote:
 >
-> Import ciniparser from ccan[1].
-> [1] https://ccodearchive.net/info/ciniparser.html
+> Rename the main option text to clarify it is for file system access,
+> and add a bit of text that explains how to actually switch a nvdimm
+> to a fsdax capable state.
+>
 
-Hi Qi,
+Looks good, nice improvement. A couple suggestions below.
 
-Vishal points out that an updated version of this code is now
-available as a proper library that ships in distributions called
-"iniparser".
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  fs/Kconfig | 17 ++++++++++++++---
+>  1 file changed, 14 insertions(+), 3 deletions(-)
+>
+> diff --git a/fs/Kconfig b/fs/Kconfig
+> index a7749c126b8e..37e4441119cf 100644
+> --- a/fs/Kconfig
+> +++ b/fs/Kconfig
+> @@ -43,7 +43,7 @@ source "fs/f2fs/Kconfig"
+>  source "fs/zonefs/Kconfig"
+>
+>  config FS_DAX
+> -       bool "Direct Access (DAX) support"
+> +       bool "File system based Direct Access (DAX) support"
+>         depends on MMU
+>         depends on !(ARM || MIPS || SPARC)
+>         select DEV_PAGEMAP_OPS if (ZONE_DEVICE && !FS_DAX_LIMITED)
+> @@ -53,8 +53,19 @@ config FS_DAX
+>           Direct Access (DAX) can be used on memory-backed block devices.
+>           If the block device supports DAX and the filesystem supports DAX,
+>           then you can avoid using the pagecache to buffer I/Os.  Turning
+> -         on this option will compile in support for DAX; you will need to
+> -         mount the filesystem using the -o dax option.
+> +         on this option will compile in support for DAX.
+> +
+> +         For a DAX device to support file system access it needs to have
+> +         struct pages.  For the nfit based NVDIMMs this can be enabled
+> +         using the ndctl utility:
+> +
+> +               # ndctl create-namespace --force --reconfig=namespace0.0 \
+> +                       --mode=fsdax --map=mem
+
+There's still the concern that on systems with small amount of DRAM
+relative to large amounts of PMEM that --map=mem might consume all
+available memory for 'struct page'. Perhaps just add:
+
+"See the 'create-namespace' man page for details on the overhead of
+--map=mem: https://docs.pmem.io/ndctl-user-guide/ndctl-man-pages/ndctl-create-namespace"
+
+> +
+> +          For ndctl to work CONFIG_DEV_DAX needs to be enabled as well.
+> +         For most file systems DAX support needs to be manually enable
+> +         globally or per-inode using a mount option as well.  See the
+> +         file system documentation for details.
+
+How about include the link?
+
+"See the file system documentation for details:
+https://www.kernel.org/doc/html/latest/filesystems/dax.html"
