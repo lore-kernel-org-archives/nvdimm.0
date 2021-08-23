@@ -1,98 +1,61 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 846383FC4
-	for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 14:06:02 +0000 (UTC)
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 17NE2ubY109623;
-	Mon, 23 Aug 2021 10:05:56 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : in-reply-to : references : mime-version :
- content-type : content-transfer-encoding; s=pp1;
- bh=bOin9H3/j8g9XbLCcxMtctZkDI1hAxdofJouD39ZKKs=;
- b=Uj3MpLREZFTwpPG7riHPRe9kkdBOnR/AzPJTZR846c00HxqOOlyaDbEONKv0YrsHy4x9
- B6BzEw/hdskdSJQ46JAaTcE0h65qT0jbEikRsWbDc9fIgTGbwEJuqr6QH8wY+/22qRiw
- IGKaXjYYMRukF0azjsr/DUsYlBHHyB/NuZldV31nLho7JpwH/IZtKTOL4meLf/L4mGAI
- zFxqwo5dCrcLkG/Zio50CzOXrtP7DWCwEEuyG/euSK6tfbowBnFEV6IaMnnY0kyo01XQ
- WNBYRPMH0W+6lZrc0e5+H8G3fR9TVvlPyJC/HaWhiHFJLSKALu/9ZJ+dgKE2lAUMUUlf bg== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3amamgw2fw-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 23 Aug 2021 10:05:55 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 17NE3eWQ012401;
-	Mon, 23 Aug 2021 14:05:52 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-	by ppma03ams.nl.ibm.com with ESMTP id 3ajs48bcvh-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 23 Aug 2021 14:05:52 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 17NE5nQo23855460
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 23 Aug 2021 14:05:49 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5975F4C044;
-	Mon, 23 Aug 2021 14:05:49 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D36274C046;
-	Mon, 23 Aug 2021 14:05:48 +0000 (GMT)
-Received: from thinkpad (unknown [9.171.9.196])
-	by d06av22.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Mon, 23 Aug 2021 14:05:48 +0000 (GMT)
-Date: Mon, 23 Aug 2021 16:05:46 +0200
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Dan Williams
- <dan.j.williams@intel.com>, nvdimm@lists.linux.dev,
-        linux-s390@vger.kernel.org
-Subject: Re: can we finally kill off CONFIG_FS_DAX_LIMITED
-Message-ID: <20210823160546.0bf243bf@thinkpad>
-In-Reply-To: <20210820054340.GA28560@lst.de>
-References: <20210820054340.GA28560@lst.de>
-X-Mailer: Claws Mail 3.18.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5971972
+	for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 16:48:43 +0000 (UTC)
+Received: by mail-pj1-f51.google.com with SMTP id mq3so12322952pjb.5
+        for <nvdimm@lists.linux.dev>; Mon, 23 Aug 2021 09:48:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=DHjpXJVaorJJrONHThs2n/BVyyOjMaPVQq0TyoaLObU=;
+        b=K4aPSagCbeW0et34hov0mWX89VGjBHt70OaTXNcqskc+Zzgcryf5LCb4YKOAiVzCB4
+         PduovYBUnfaBuy5aPnbjX4Etn60IEtFClFgswwlTXmWMQqz5aCNeVIx7+HN2BjSILDK2
+         03w5JFvHrHMXh9H3K2NWXqmlcI/ij2RcsnsZfEJyHWfNl/gx6JgWOy9Mi095I6rOi9BU
+         2wOrbBtjyAg/u6ZjGLVDZyqgsn33kCp9FeO3+KKwCi/K7RyukQVv0Ohb5iV7MrU4Dwk5
+         LziniW3UE8vIHivVj2QIjHptqmNTxA1VHrAPHSJuhRMI5v+dwUmyt0XRz4Wc0WMAbhjz
+         TEBg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=DHjpXJVaorJJrONHThs2n/BVyyOjMaPVQq0TyoaLObU=;
+        b=VGKk/296lKzTFZqAKUv6QRoOFA9K3Pjvly0HUgJJpLmQkqP+MPDPagrTCTOpd3BLmT
+         FE1iRvzzPwSX2dp7fKWMwlftkDwGbgkzk1inajdiDoek9jw05V05nsqgu7XZymGYMn4q
+         rExXjaNUGJ4Jfnlt25aKEOZYidHpbNrEzdEXx05weAUNW1uPXnko8BOcZJErm0giZzpb
+         3cq9vN8oiNbfXIeY77XOtgFwthHUyI/l0D3RRGLLg29zcXpHmHSQEf2I67b9dw9PFzWd
+         8YQnT38ucHDoRYOR409+w4+c79GsvWgLGNyqANeTJULPsKGhriasPUo43JjPdCHWSwok
+         8OnQ==
+X-Gm-Message-State: AOAM53130FDpNfn4F7PzTVuFbudPzn9y96n1lfEGb9pL2wyAVFCrbXLC
+	vx05C5aGMqWYp7Q358WWLDiwE9HlhMNO6Bbaq7F3XA==
+X-Google-Smtp-Source: ABdhPJy+qNZNmxIul3yPPhfME5mYCBgn8upKUahPfXfj1jFqWcs4Eq1xQbDDVdK6Tzwd6GVD9cFFJVtkt3W6Lxln4B8=
+X-Received: by 2002:a17:902:9b95:b0:130:6a7b:4570 with SMTP id
+ y21-20020a1709029b9500b001306a7b4570mr17565813plp.27.1629737322913; Mon, 23
+ Aug 2021 09:48:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: 1A_TPo4dkfWUK9cCFGq2PmlskZkAXvhC
-X-Proofpoint-GUID: 1A_TPo4dkfWUK9cCFGq2PmlskZkAXvhC
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-08-23_03:2021-08-23,2021-08-23 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
- malwarescore=0 mlxscore=0 lowpriorityscore=0 bulkscore=0 impostorscore=0
- mlxlogscore=779 priorityscore=1501 spamscore=0 suspectscore=0
- clxscore=1015 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2107140000 definitions=main-2108230098
+References: <20210822203015.528438-1-qi.fuli@fujitsu.com> <20210822203015.528438-2-qi.fuli@fujitsu.com>
+In-Reply-To: <20210822203015.528438-2-qi.fuli@fujitsu.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 23 Aug 2021 09:48:32 -0700
+Message-ID: <CAPcyv4imFbXW2_84QqmT+AmanXAtKXNQgKNEez3EX=o=XLiNjg@mail.gmail.com>
+Subject: Re: [ndctl PATCH 1/5] ndctl, ccan: import ciniparser
+To: QI Fuli <fukuri.sai@gmail.com>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, QI Fuli <qi.fuli@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 20 Aug 2021 07:43:40 +0200
-Christoph Hellwig <hch@lst.de> wrote:
+On Sun, Aug 22, 2021 at 1:36 PM QI Fuli <fukuri.sai@gmail.com> wrote:
+>
+> Import ciniparser from ccan[1].
+> [1] https://ccodearchive.net/info/ciniparser.html
 
-> Hi all,
-> 
-> looking at the recent ZONE_DEVICE related changes we still have a
-> horrible maze of different code paths.  I already suggested to
-> depend on ARCH_HAS_PTE_SPECIAL for ZONE_DEVICE there, which all modern
-> architectures have anyway.  But the other odd special case is
-> CONFIG_FS_DAX_LIMITED which is just used for the xpram driver.  Does
-> this driver still see use?  If so can we make it behave like the
-> other DAX drivers and require a pgmap?  I think the biggest missing
-> part would be to implement ARCH_HAS_PTE_DEVMAP for s390.
+Hi Qi,
 
-Puh, yes, that seems to be needed in order to enable ZONE_DEVICE, and
-then we could use devm_memremap_pages(), at least that was my plan
-some time ago. However, either the ARCH_HAS_PTE_DEVMAP dependency
-is new, or I overlooked it before, but we do not have any free bits
-in the pte left, so this is not going to work.
-
-Would it strictly be necessary to implement ZONE_DEVICE, or would
-it be enough if we would use e.g. add_memory() instead of just
-adding the DCSS memory directly to the kernel mapping via
-vmem_add_mapping()? That way we might at least get the struct pages,
-but somehow it doesn't feel completely right.
+Vishal points out that an updated version of this code is now
+available as a proper library that ships in distributions called
+"iniparser".
