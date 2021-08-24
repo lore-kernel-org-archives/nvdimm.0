@@ -1,26 +1,26 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5854C3FCC
-	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:26 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="196918160"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C160C3FCE
+	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:30 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="214221048"
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="196918160"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:02 -0700
+   d="scan'208";a="214221048"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:13 -0700
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="575064061"
+   d="scan'208";a="426161962"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:02 -0700
-Subject: [PATCH v3 07/28] libnvdimm/labels: Add type-guid helpers
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:13 -0700
+Subject: [PATCH v3 20/28] cxl/mbox: Add exclusive kernel command support
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, vishal.l.verma@intel.com,
+Cc: Ben Widawsky <ben.widawsky@intel.com>, vishal.l.verma@intel.com,
  alison.schofield@intel.com, nvdimm@lists.linux.dev,
  Jonathan.Cameron@huawei.com, ira.weiny@intel.com, ben.widawsky@intel.com,
  vishal.l.verma@intel.com, alison.schofield@intel.com
-Date: Tue, 24 Aug 2021 09:06:02 -0700
-Message-ID: <162982116208.1124374.13938280892226800953.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 24 Aug 2021 09:07:13 -0700
+Message-ID: <162982123298.1124374.22718002900700392.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -33,120 +33,194 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-In preparation for CXL label support, which does not have the type-guid
-concept, wrap the existing users with nsl_set_type_guid, and
-nsl_validate_type_guid. Recall that the type-guid is a value in the ACPI
-NFIT table to indicate how the memory range is used / should be
-presented to upper layers.
+The CXL_PMEM driver expects exclusive control of the label storage area
+space. Similar to the LIBNVDIMM expectation that the label storage area
+is only writable from userspace when the corresponding memory device is
+not active in any region, the expectation is the native CXL_PCI UAPI
+path is disabled while the cxl_nvdimm for a given cxl_memdev device is
+active in LIBNVDIMM.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Add the ability to toggle the availability of a given command for the
+UAPI path. Use that new capability to shutdown changes to partitions and
+the label storage area while the cxl_nvdimm device is actively proxying
+commands for LIBNVDIMM.
+
+Acked-by: Ben Widawsky <ben.widawsky@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/label.c          |   26 ++++++++++++++++++++++----
- drivers/nvdimm/namespace_devs.c |   19 ++++---------------
- drivers/nvdimm/nd.h             |    2 ++
- 3 files changed, 28 insertions(+), 19 deletions(-)
+ drivers/cxl/core/mbox.c   |    5 +++++
+ drivers/cxl/core/memdev.c |   31 +++++++++++++++++++++++++++++++
+ drivers/cxl/cxlmem.h      |    4 ++++
+ drivers/cxl/pmem.c        |   35 ++++++++++++++++++++++++++++-------
+ 4 files changed, 68 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-index 7188675c0955..294ffc3cb582 100644
---- a/drivers/nvdimm/label.c
-+++ b/drivers/nvdimm/label.c
-@@ -772,6 +772,26 @@ static void reap_victim(struct nd_mapping *nd_mapping,
- 	victim->label = NULL;
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 73107b302224..6a5c4f3679ba 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -230,6 +230,7 @@ static bool cxl_mem_raw_command_allowed(u16 opcode)
+  *  * %-EINVAL	- Reserved fields or invalid values were used.
+  *  * %-ENOMEM	- Input or output buffer wasn't sized properly.
+  *  * %-EPERM	- Attempted to use a protected command.
++ *  * %-EBUSY	- Kernel has claimed exclusive access to this opcode
+  *
+  * The result of this command is a fully validated command in @out_cmd that is
+  * safe to send to the hardware.
+@@ -305,6 +306,10 @@ static int cxl_validate_cmd_from_user(struct cxl_mem *cxlm,
+ 	if (!test_bit(info->id, cxlm->enabled_cmds))
+ 		return -ENOTTY;
+ 
++	/* Check that the command is not claimed for exclusive kernel use */
++	if (test_bit(info->id, cxlm->exclusive_cmds))
++		return -EBUSY;
++
+ 	/* Check the input buffer is the expected size */
+ 	if (info->size_in >= 0 && info->size_in != send_cmd->in.size)
+ 		return -ENOMEM;
+diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+index a2a9691568af..ee61202c7aab 100644
+--- a/drivers/cxl/core/memdev.c
++++ b/drivers/cxl/core/memdev.c
+@@ -134,6 +134,37 @@ static const struct device_type cxl_memdev_type = {
+ 	.groups = cxl_memdev_attribute_groups,
+ };
+ 
++/**
++ * set_exclusive_cxl_commands() - atomically disable user cxl commands
++ * @cxlm: cxl_mem instance to modify
++ * @cmds: bitmap of commands to mark exclusive
++ *
++ * Flush the ioctl path and disable future execution of commands with
++ * the command ids set in @cmds.
++ */
++void set_exclusive_cxl_commands(struct cxl_mem *cxlm, unsigned long *cmds)
++{
++	down_write(&cxl_memdev_rwsem);
++	bitmap_or(cxlm->exclusive_cmds, cxlm->exclusive_cmds, cmds,
++		  CXL_MEM_COMMAND_ID_MAX);
++	up_write(&cxl_memdev_rwsem);
++}
++EXPORT_SYMBOL_GPL(set_exclusive_cxl_commands);
++
++/**
++ * clear_exclusive_cxl_commands() - atomically enable user cxl commands
++ * @cxlm: cxl_mem instance to modify
++ * @cmds: bitmap of commands to mark available for userspace
++ */
++void clear_exclusive_cxl_commands(struct cxl_mem *cxlm, unsigned long *cmds)
++{
++	down_write(&cxl_memdev_rwsem);
++	bitmap_andnot(cxlm->exclusive_cmds, cxlm->exclusive_cmds, cmds,
++		      CXL_MEM_COMMAND_ID_MAX);
++	up_write(&cxl_memdev_rwsem);
++}
++EXPORT_SYMBOL_GPL(clear_exclusive_cxl_commands);
++
+ static void cxl_memdev_shutdown(struct device *dev)
+ {
+ 	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index df4f3636a999..45d5347b5d61 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -102,6 +102,7 @@ struct cxl_mbox_cmd {
+  * @mbox_mutex: Mutex to synchronize mailbox access.
+  * @firmware_version: Firmware version for the memory device.
+  * @enabled_cmds: Hardware commands found enabled in CEL.
++ * @exclusive_cmds: Commands that are kernel-internal only
+  * @pmem_range: Persistent memory capacity information.
+  * @ram_range: Volatile memory capacity information.
+  * @mbox_send: @dev specific transport for transmitting mailbox commands
+@@ -117,6 +118,7 @@ struct cxl_mem {
+ 	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
+ 	char firmware_version[0x10];
+ 	DECLARE_BITMAP(enabled_cmds, CXL_MEM_COMMAND_ID_MAX);
++	DECLARE_BITMAP(exclusive_cmds, CXL_MEM_COMMAND_ID_MAX);
+ 
+ 	struct range pmem_range;
+ 	struct range ram_range;
+@@ -190,4 +192,6 @@ int cxl_mem_identify(struct cxl_mem *cxlm);
+ int cxl_mem_enumerate_cmds(struct cxl_mem *cxlm);
+ int cxl_mem_create_range_info(struct cxl_mem *cxlm);
+ struct cxl_mem *cxl_mem_create(struct device *dev);
++void set_exclusive_cxl_commands(struct cxl_mem *cxlm, unsigned long *cmds);
++void clear_exclusive_cxl_commands(struct cxl_mem *cxlm, unsigned long *cmds);
+ #endif /* __CXL_MEM_H__ */
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index 9652c3ee41e7..469b984176a2 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -16,9 +16,21 @@
+  */
+ static struct workqueue_struct *cxl_pmem_wq;
+ 
+-static void unregister_nvdimm(void *nvdimm)
++static __read_mostly DECLARE_BITMAP(exclusive_cmds, CXL_MEM_COMMAND_ID_MAX);
++
++static void unregister_nvdimm(void *_cxl_nvd)
+ {
+-	nvdimm_delete(nvdimm);
++	struct cxl_nvdimm *cxl_nvd = _cxl_nvd;
++	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
++	struct cxl_mem *cxlm = cxlmd->cxlm;
++	struct device *dev = &cxl_nvd->dev;
++	struct nvdimm *nvdimm;
++
++	nvdimm = dev_get_drvdata(dev);
++	if (nvdimm)
++		nvdimm_delete(nvdimm);
++
++	clear_exclusive_cxl_commands(cxlm, exclusive_cmds);
  }
  
-+static void nsl_set_type_guid(struct nvdimm_drvdata *ndd,
-+			      struct nd_namespace_label *nd_label, guid_t *guid)
-+{
-+	if (namespace_label_has(ndd, type_guid))
-+		guid_copy(&nd_label->type_guid, guid);
-+}
+ static int match_nvdimm_bridge(struct device *dev, const void *data)
+@@ -39,9 +51,11 @@ static struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void)
+ static int cxl_nvdimm_probe(struct device *dev)
+ {
+ 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
++	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
++	struct cxl_mem *cxlm = cxlmd->cxlm;
+ 	struct cxl_nvdimm_bridge *cxl_nvb;
++	struct nvdimm *nvdimm = NULL;
+ 	unsigned long flags = 0;
+-	struct nvdimm *nvdimm;
+ 	int rc = -ENXIO;
+ 
+ 	cxl_nvb = cxl_find_nvdimm_bridge();
+@@ -52,17 +66,20 @@ static int cxl_nvdimm_probe(struct device *dev)
+ 	if (!cxl_nvb->nvdimm_bus)
+ 		goto out;
+ 
++	set_exclusive_cxl_commands(cxlm, exclusive_cmds);
 +
-+bool nsl_validate_type_guid(struct nvdimm_drvdata *ndd,
-+			    struct nd_namespace_label *nd_label, guid_t *guid)
-+{
-+	if (!namespace_label_has(ndd, type_guid))
-+		return true;
-+	if (!guid_equal(&nd_label->type_guid, guid)) {
-+		dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n", guid,
-+			&nd_label->type_guid);
-+		return false;
-+	}
-+	return true;
-+}
+ 	set_bit(NDD_LABELING, &flags);
+ 	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags, 0, 0,
+ 			       NULL);
+-	if (!nvdimm)
+-		goto out;
+-
+-	rc = devm_add_action_or_reset(dev, unregister_nvdimm, nvdimm);
++	dev_set_drvdata(dev, nvdimm);
++	rc = devm_add_action_or_reset(dev, unregister_nvdimm, cxl_nvd);
+ out:
+ 	device_unlock(&cxl_nvb->dev);
+ 	put_device(&cxl_nvb->dev);
+ 
++	if (!nvdimm && rc == 0)
++		rc = -ENOMEM;
 +
- static int __pmem_label_update(struct nd_region *nd_region,
- 		struct nd_mapping *nd_mapping, struct nd_namespace_pmem *nspm,
- 		int pos, unsigned long flags)
-@@ -822,8 +842,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
- 	nsl_set_lbasize(ndd, nd_label, nspm->lbasize);
- 	nsl_set_dpa(ndd, nd_label, res->start);
- 	nsl_set_slot(ndd, nd_label, slot);
--	if (namespace_label_has(ndd, type_guid))
--		guid_copy(&nd_label->type_guid, &nd_set->type_guid);
-+	nsl_set_type_guid(ndd, nd_label, &nd_set->type_guid);
- 	if (namespace_label_has(ndd, abstraction_guid))
- 		guid_copy(&nd_label->abstraction_guid,
- 				to_abstraction_guid(ndns->claim_class,
-@@ -1091,8 +1110,7 @@ static int __blk_label_update(struct nd_region *nd_region,
- 		nsl_set_rawsize(ndd, nd_label, resource_size(res));
- 		nsl_set_lbasize(ndd, nd_label, nsblk->lbasize);
- 		nsl_set_slot(ndd, nd_label, slot);
--		if (namespace_label_has(ndd, type_guid))
--			guid_copy(&nd_label->type_guid, &nd_set->type_guid);
-+		nsl_set_type_guid(ndd, nd_label, &nd_set->type_guid);
- 		if (namespace_label_has(ndd, abstraction_guid))
- 			guid_copy(&nd_label->abstraction_guid,
- 					to_abstraction_guid(ndns->claim_class,
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index fbd0c2fcea4a..af5a31dd3147 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1859,14 +1859,9 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
- 			if (memcmp(nd_label->uuid, uuid, NSLABEL_UUID_LEN) != 0)
- 				continue;
+ 	return rc;
+ }
  
--			if (namespace_label_has(ndd, type_guid)
--					&& !guid_equal(&nd_set->type_guid,
--						&nd_label->type_guid)) {
--				dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n",
--						&nd_set->type_guid,
--						&nd_label->type_guid);
-+			if (!nsl_validate_type_guid(ndd, nd_label,
-+						    &nd_set->type_guid))
- 				continue;
--			}
+@@ -194,6 +211,10 @@ static __init int cxl_pmem_init(void)
+ {
+ 	int rc;
  
- 			if (found_uuid) {
- 				dev_dbg(ndd->dev, "duplicate entry for uuid\n");
-@@ -2265,14 +2260,8 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
- 	struct device *dev = NULL;
- 	struct resource *res;
- 
--	if (namespace_label_has(ndd, type_guid)) {
--		if (!guid_equal(&nd_set->type_guid, &nd_label->type_guid)) {
--			dev_dbg(ndd->dev, "expect type_guid %pUb got %pUb\n",
--					&nd_set->type_guid,
--					&nd_label->type_guid);
--			return ERR_PTR(-EAGAIN);
--		}
--	}
-+	if (!nsl_validate_type_guid(ndd, nd_label, &nd_set->type_guid))
-+		return ERR_PTR(-EAGAIN);
- 	if (!nsl_validate_blk_isetcookie(ndd, nd_label, nd_set->cookie2))
- 		return ERR_PTR(-EAGAIN);
- 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 955c4395a8e3..a3e215f2d837 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -180,6 +180,8 @@ static inline void nsl_set_lbasize(struct nvdimm_drvdata *ndd,
- bool nsl_validate_blk_isetcookie(struct nvdimm_drvdata *ndd,
- 				 struct nd_namespace_label *nd_label,
- 				 u64 isetcookie);
-+bool nsl_validate_type_guid(struct nvdimm_drvdata *ndd,
-+			    struct nd_namespace_label *nd_label, guid_t *guid);
- 
- struct nd_region_data {
- 	int ns_count;
++	set_bit(CXL_MEM_COMMAND_ID_SET_PARTITION_INFO, exclusive_cmds);
++	set_bit(CXL_MEM_COMMAND_ID_SET_SHUTDOWN_STATE, exclusive_cmds);
++	set_bit(CXL_MEM_COMMAND_ID_SET_LSA, exclusive_cmds);
++
+ 	cxl_pmem_wq = alloc_ordered_workqueue("cxl_pmem", 0);
+ 	if (!cxl_pmem_wq)
+ 		return -ENXIO;
 
