@@ -1,149 +1,101 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98B063FC1
-	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 19:09:16 +0000 (UTC)
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 17OI2pXD088938;
-	Tue, 24 Aug 2021 14:24:57 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=CQSjhBqa9IhwtYPuxQFmZCtU1qfdpGE9cPYZK/auCdI=;
- b=Op4Ba4wSJ61c8cVhurJT+aTzEwLmGlZEfTdplgPQFVgMVijDpHLCABZ01CIrjT64wOGm
- n63kMjg3FHBx/B9ha0RzOPh042XOzJStY/oCsahnVqoueez3jFONqzCV7ARkkp/Ufdcg
- D8G+7Kzds3ZlZOtlcJzzaVKRSxLPmRaRy4pOgb/1UyUK9ynvLuHyOl4hWK2RdGg++im+
- LiyPb+89QeWbznhcgDpfEgJyX/R2JEX6vWZ+H2r6yXX6Bk9VikjBLnk829z+GewqfuuN
- 2hvdKMY/PwOGWSBMk7h5qqkUP5Tn6+ciYrWhTld8TGFFUAKkzQKQp5gE1D+cjwrj6Wso jA== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3an5nu8mbb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 24 Aug 2021 14:24:57 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 17OI8WZN004717;
-	Tue, 24 Aug 2021 18:24:56 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-	by ppma03ams.nl.ibm.com with ESMTP id 3ajs48dnnn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 24 Aug 2021 18:24:55 +0000
-Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
-	by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 17OIOqEu52494822
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 24 Aug 2021 18:24:52 GMT
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E5B6AAE06E;
-	Tue, 24 Aug 2021 18:24:51 +0000 (GMT)
-Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 75B62AE057;
-	Tue, 24 Aug 2021 18:24:51 +0000 (GMT)
-Received: from thinkpad (unknown [9.171.26.150])
-	by d06av26.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Tue, 24 Aug 2021 18:24:51 +0000 (GMT)
-Date: Tue, 24 Aug 2021 20:24:49 +0200
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>, Christoph Hellwig
- <hch@lst.de>,
-        Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik
- <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Linux
- NVDIMM <nvdimm@lists.linux.dev>,
-        linux-s390 <linux-s390@vger.kernel.org>
-Subject: Re: can we finally kill off CONFIG_FS_DAX_LIMITED
-Message-ID: <20210824202449.19d524b5@thinkpad>
-In-Reply-To: <CAPcyv4jYXPWmT2EzroTa7RDz1Z68Qz8Uj4MeheQHPbBXdfS4pA@mail.gmail.com>
-References: <20210820054340.GA28560@lst.de>
-	<20210823160546.0bf243bf@thinkpad>
-	<20210823214708.77979b3f@thinkpad>
-	<CAPcyv4jijqrb1O5OOTd5ftQ2Q-5SVwNRM7XMQ+N3MAFxEfvxpA@mail.gmail.com>
-	<e250feab-1873-c91d-5ea9-39ac6ef26458@oracle.com>
-	<CAPcyv4jYXPWmT2EzroTa7RDz1Z68Qz8Uj4MeheQHPbBXdfS4pA@mail.gmail.com>
-X-Mailer: Claws Mail 3.18.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Content-Type: text/plain; charset=US-ASCII
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: aDSOrzBDX7qNcPzvxKb_e1iSh3ps2dXR
-X-Proofpoint-GUID: aDSOrzBDX7qNcPzvxKb_e1iSh3ps2dXR
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED0B33FC0
+	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 22:18:36 +0000 (UTC)
+Received: by mail-pj1-f50.google.com with SMTP id j10-20020a17090a94ca00b00181f17b7ef7so2807430pjw.2
+        for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 15:18:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=I29PRDdkFO6DfCb1a8J3sNnkifDHvzcssrN6abY8/Uc=;
+        b=jNr4P6pJTiy4S8ANh5NEBDQ/AUgZNSXcGTDQX4h8HXy2DvhWl9FnotcZZdAPCc1Ax2
+         yjnO73wJilmK6RAqPOcmo6UyBLHPkwoPqIbcWfPywXPKmt92AgCXprDkQDLT2LGLl8hy
+         KAo9vkIQ4q6zZdPneh3X+/idHtC2qozqLGEq4G9drJQVFE2bpdj2bP9lcF5KHC1m/yGh
+         qhGtDSh+S2M6wjgFhds/DvF8NGpwckw16lLGJgQMq7le8Ip0Kd/9hyRWEuf/+6w5le+L
+         wpsaf2AF/6HUaxKc88JS74RI9duCFJSH5WvJHdKMpy61h5t2SVtg4oQkPwkyjxvXta7H
+         nLMw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=I29PRDdkFO6DfCb1a8J3sNnkifDHvzcssrN6abY8/Uc=;
+        b=li2A4w/mo6J3QJbhvtIsqGvDKHXjIZZqtlVoFsmb9Un6ws3848PBm28jDoaHHqPobk
+         ZJgYST3Tq8Aq2ymmfBST6ZUcI0scOIb0y5904LcoE/BCgv5/8S0cIfX+dvpX41lE825N
+         JKrxFXBYEc22h6uiIzrlVey0pqy61GTeEOAP1UNuySxQRya1hEXy2SKzM5z0iDf6o4+O
+         ylrQl+oIftq6Hk6fhN5JGOzIOhSR8PiUB2YgGBDJmPmKE+BdwDyr/2VhxGs1LqK/ti2j
+         ARtXJxs/xr5zGnqPoFPJQTdR9MbN4BIbgQgUespLvo0la3xVRpo+QsI6LtCVOLH3MkgW
+         ukHA==
+X-Gm-Message-State: AOAM532lYiw6PafC3zxhyFz3shXLYxOIsaJwY4OF+DdABv6jpgX38T2S
+	ceC0tWgHh/grC1nncjvofcrEwVggMH5n4lsCkBAXvg==
+X-Google-Smtp-Source: ABdhPJwHL4MBQfn67NKc1fqZnTexiXm4dZHsyxHgKKd4j1oHv/yeVYq5RUD2nvBwzKDpYdFvwL7qKGe933cREOvwRAo=
+X-Received: by 2002:a17:902:ba90:b0:135:6709:705 with SMTP id
+ k16-20020a170902ba9000b0013567090705mr7838088pls.79.1629843516441; Tue, 24
+ Aug 2021 15:18:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-08-24_05:2021-08-24,2021-08-24 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0
- priorityscore=1501 lowpriorityscore=0 malwarescore=0 clxscore=1015
- mlxscore=0 mlxlogscore=999 spamscore=0 suspectscore=0 phishscore=0
- impostorscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx
- scancount=1 engine=8.12.0-2107140000 definitions=main-2108240119
+References: <1629632949-14749-1-git-send-email-sumiyawang@tencent.com>
+In-Reply-To: <1629632949-14749-1-git-send-email-sumiyawang@tencent.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 24 Aug 2021 15:18:24 -0700
+Message-ID: <CAPcyv4ii8ajOk-dfC3ak03Ugg8C3DdOXCPY_h8WYKm4vn6KDHg@mail.gmail.com>
+Subject: Re: [PATCH] pmem: fix the crash when unbind namespaces
+To: sumiyawang@gmail.com
+Cc: Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lidongchen@tencent.com, 
+	sumiyawang <sumiyawang@tencent.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, 24 Aug 2021 07:53:22 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+On Sun, Aug 22, 2021 at 4:49 AM <sumiyawang@gmail.com> wrote:
+>
+> From: sumiyawang <sumiyawang@tencent.com>
+>
+> kernel will crash when use after free the ioremap space,
+> which is triggered by ndctl destroy-namespace while some IO operations
+> exist.
+> The sequence of pmem driver release chain should be changed:
+> freeze the queue and wait io finished first, then iounmap.
+>
+> [47202.018374] BUG: unable to handle page fault for address: ffffc90080200000
+> [47202.018822] CPU: 36 PID: 9606 Comm: systemd-udevd
+> [47202.020921] Call Trace:
+> [47202.020969]  ? pmem_do_bvec+0xf9/0x3a0
+> [47202.021036]  ? xas_alloc+0x55/0xd0
+> [47202.021094]  pmem_rw_page+0x4b/0x80
+> [47202.021159]  bdev_read_page+0x86/0xb0
+> [47202.021222]  do_mpage_readpage+0x5d4/0x7a0
+> [47202.021297]  ? lru_cache_add+0xe/0x10
+> [47202.021359]  mpage_readpages+0xf9/0x1c0
+> [47202.021428]  ? bd_link_disk_holder+0x1a0/0x1a0
+> [47202.021506]  blkdev_readpages+0x1d/0x20
+> [47202.021574]  read_pages+0x67/0x1a0
+>
+> ndctl Call Trace in vmcore:
+> PID: 23473  TASK: ffff88c4fbbe8000  CPU: 1   COMMAND: "ndctl"
+> __schedule
+> schedule
+> blk_mq_freeze_queue_wait
+> blk_freeze_queue
+> blk_cleanup_queue
+> pmem_release_queue
+> devm_action_release
+> release_nodes
+> devres_release_all
+> device_release_driver_internal
+> device_driver_detach
+> unbind_store
+>
+> At that time, the ioremap space is released
 
-> On Tue, Aug 24, 2021 at 7:10 AM Joao Martins <joao.m.martins@oracle.com> wrote:
-> >
-> >
-> >
-> > On 8/23/21 9:21 PM, Dan Williams wrote:
-> > > On Mon, Aug 23, 2021 at 12:47 PM Gerald Schaefer
-> > > <gerald.schaefer@linux.ibm.com> wrote:
-> > >>
-> > >> On Mon, 23 Aug 2021 16:05:46 +0200
-> > >> Gerald Schaefer <gerald.schaefer@linux.ibm.com> wrote:
-> > >>
-> > >>> On Fri, 20 Aug 2021 07:43:40 +0200
-> > >>> Christoph Hellwig <hch@lst.de> wrote:
-> > >>>
-> > >>>> Hi all,
-> > >>>>
-> > >>>> looking at the recent ZONE_DEVICE related changes we still have a
-> > >>>> horrible maze of different code paths.  I already suggested to
-> > >>>> depend on ARCH_HAS_PTE_SPECIAL for ZONE_DEVICE there, which all modern
-> > >>
-> > >> Oh, we do have PTE_SPECIAL, actually that took away the last free bit
-> > >> in the pte. So, if there is a chance that ZONE_DEVICE would depend
-> > >> on PTE_SPECIAL instead of PTE_DEVMAP, we might be back in the game
-> > >> and get rid of that CONFIG_FS_DAX_LIMITED.
-> > >
-> > > So PTE_DEVMAP is primarily there to coordinate the
-> > > get_user_pages_fast() path, and even there it's usage can be
-> > > eliminated in favor of PTE_SPECIAL. I started that effort [1], but
-> > > need to rebase on new notify_failure infrastructure coming from Ruan
-> > > [2]. So I think you are not in the critical path until I can get the
-> > > PTE_DEVMAP requirement out of your way.
-> > >
-> >
-> > Isn't the implicit case that PTE_SPECIAL means that you
-> > aren't supposed to get a struct page back? The gup path bails out on
-> > pte_special() case. And in the fact in this thread that you quote:
-> >
-> > > [1]: https://lore.kernel.org/r/161604050866.1463742.7759521510383551055.stgit@dwillia2-desk3.amr.corp.intel.com
-> >
-> > (...) we were speaking about[1.1] using that same special bit to block
-> > longterm gup for fs-dax (while allowing it device-dax which does support it).
-> >
-> > [1.1] https://lore.kernel.org/nvdimm/a8c41028-c7f5-9b93-4721-b8ddcf2427da@oracle.com/
-> >
-> > Or maybe that's what you mean for this particular case of FS_DAX_LIMITED. Most _special*()
-> > cases in mm match _devmap*() as far I've experimented in the past with PMD/PUD and dax
-> > (prior to [1.1]).
-> >
-> > I am just wondering would you differentiate the case where you have metadata for the
-> > !FS_DAX_LIMITED case in {gup,gup_fast} path in light of removing PTE_DEVMAP. I would have
-> > thought of checking that a pgmap exists for the pfn (without grabbing a ref to it).
-> 
-> So I should clarify, I'm not proposing removing PTE_DEVMAP, I'm
-> proposing relaxing its need for architectures that can not afford the
-> PTE bit. Those architectures would miss out on get_user_pages_fast()
-> for devmap pages. Then, once PTE_SPECIAL kicks get_user_pages() to the
-> slow path, get_dev_pagemap() is used to detect devmap pages.
+Thanks, looks good. I reworded the changelog a bit and added a "Cc:
+stable" as well as a "Fixes: 50f44ee7248a ("mm/devm_memremap_pages:
+fix final page put race")" tag. I'll send this up during the v5.15
+merge window.
 
-Thanks, I was also a bit confused, but I think I got it now. Does that mean
-that you also plan to relax the pte_devmap(pte) check in follow_page_pte(),
-before calling get_dev_pagemap() in the slow path? So that it could also be
-called for pte_special(), maybe with additional vma_is_dax() check. And then
-rely on get_dev_pagemap() finding the pages for those "very special" PTEs that
-actually would have struct pages (at least for s390 DCSS with DAX)?
+https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git/commit/?h=libnvdimm-fixes&id=32b2397c
