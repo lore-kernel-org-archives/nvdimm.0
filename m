@@ -1,113 +1,151 @@
-Received: from mail-pl1-f172.google.com (mail-pl1-f172.google.com [209.85.214.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 194D03FC0
-	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 14:53:34 +0000 (UTC)
-Received: by mail-pl1-f172.google.com with SMTP id n12so955907plk.10
-        for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 07:53:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9ylhUTqwJhOuYYwdsmYmo/6iY3LnpW0+y5HqqgED6H8=;
-        b=0GqAkBH/nv5mE+SUkUmCtp/Pwe2XyfpfayIPW7xPf4zMALUn+8UVuRqkiU5/doWAyu
-         mYltVepwNSNg4jFsmuXbs0v3dQ1BDTt6vaL7/GAiuFiI684L6L+K76lJrONqA9PoUKTZ
-         H98GgJ6wpuG4u+VZ+rOGiYpjGy1dIZJbTCiBtcEvQHTBiWGIH4qRplx+5wPBu5PCjIFk
-         9OBXbOiNJetFqwHBcvKNPfUwCLj33yaz6uqLopvKR0Re5pPWAQCKgtr4FqCkD/DrGF6i
-         S0FWWP6ujBqaO/ixSi1B8Qtm/cvJ9ZpyK5HCj5KknKJqHaLQMCj6+7AskxNfi8waSbKY
-         AdXg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9ylhUTqwJhOuYYwdsmYmo/6iY3LnpW0+y5HqqgED6H8=;
-        b=g1v9fb6hvypMg/8ukkSPoP48EbNrYEV0thM13AzpCl+5hPA/GbaPgmaMr/8gPHn1pa
-         X9ATH8+1czbl7M7IegzC3wvqi2ytmE9UTcLsmB6fsYOPizStcrjv6QgpyjUXiQruLknK
-         yMyvfyxPqFOQdZNgTp1diejUM+n/isbtw9wwTm1kzb3rfcn490lGZmA08byBb7vqbwiY
-         D0Ue3qqXfpMcQARUlPwQAOIDYhML/fObnDtln9qGqmzUpkPa0Q8wGqp6XFYfAPhZe3wq
-         gS9/vIdICEQbLg8V5lTitCHlsMPVEi/gVBDBFsCW/6KkSrdp6AUu3DYcBjwx/ZIFRT8a
-         xFgg==
-X-Gm-Message-State: AOAM530N+5GrVbV18MIZIl6lEf5T8kNSuMxX0QIg4lBJjJrZtNZNk4NG
-	MzlrHshJa7JrJKc97NXEOsSfAJ4n5VQ3rSW/35os5g==
-X-Google-Smtp-Source: ABdhPJxB5qoItv8tPXXCue0hhdumr9yxeciPby/nl24so9ftRlXdHk/l9EUDaI5+k43oB4FfA4dj+mopqnyG/DhwRe8=
-X-Received: by 2002:a17:902:9b95:b0:130:6a7b:4570 with SMTP id
- y21-20020a1709029b9500b001306a7b4570mr21771893plp.27.1629816813538; Tue, 24
- Aug 2021 07:53:33 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384DC3FC0
+	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:06:19 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="217374976"
+X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
+   d="scan'208";a="217374976"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:05:47 -0700
+X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
+   d="scan'208";a="535913186"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:05:46 -0700
+Subject: [PATCH v3 04/28] libnvdimm/labels: Add a checksum calculation helper
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, vishal.l.verma@intel.com,
+ alison.schofield@intel.com, nvdimm@lists.linux.dev,
+ Jonathan.Cameron@huawei.com, ira.weiny@intel.com, ben.widawsky@intel.com,
+ vishal.l.verma@intel.com, alison.schofield@intel.com
+Date: Tue, 24 Aug 2021 09:05:46 -0700
+Message-ID: <162982114637.1124374.6966639787307077105.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210820054340.GA28560@lst.de> <20210823160546.0bf243bf@thinkpad>
- <20210823214708.77979b3f@thinkpad> <CAPcyv4jijqrb1O5OOTd5ftQ2Q-5SVwNRM7XMQ+N3MAFxEfvxpA@mail.gmail.com>
- <e250feab-1873-c91d-5ea9-39ac6ef26458@oracle.com>
-In-Reply-To: <e250feab-1873-c91d-5ea9-39ac6ef26458@oracle.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 24 Aug 2021 07:53:22 -0700
-Message-ID: <CAPcyv4jYXPWmT2EzroTa7RDz1Z68Qz8Uj4MeheQHPbBXdfS4pA@mail.gmail.com>
-Subject: Re: can we finally kill off CONFIG_FS_DAX_LIMITED
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Christoph Hellwig <hch@lst.de>, 
-	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Christian Borntraeger <borntraeger@de.ibm.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-s390 <linux-s390@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Tue, Aug 24, 2021 at 7:10 AM Joao Martins <joao.m.martins@oracle.com> wrote:
->
->
->
-> On 8/23/21 9:21 PM, Dan Williams wrote:
-> > On Mon, Aug 23, 2021 at 12:47 PM Gerald Schaefer
-> > <gerald.schaefer@linux.ibm.com> wrote:
-> >>
-> >> On Mon, 23 Aug 2021 16:05:46 +0200
-> >> Gerald Schaefer <gerald.schaefer@linux.ibm.com> wrote:
-> >>
-> >>> On Fri, 20 Aug 2021 07:43:40 +0200
-> >>> Christoph Hellwig <hch@lst.de> wrote:
-> >>>
-> >>>> Hi all,
-> >>>>
-> >>>> looking at the recent ZONE_DEVICE related changes we still have a
-> >>>> horrible maze of different code paths.  I already suggested to
-> >>>> depend on ARCH_HAS_PTE_SPECIAL for ZONE_DEVICE there, which all modern
-> >>
-> >> Oh, we do have PTE_SPECIAL, actually that took away the last free bit
-> >> in the pte. So, if there is a chance that ZONE_DEVICE would depend
-> >> on PTE_SPECIAL instead of PTE_DEVMAP, we might be back in the game
-> >> and get rid of that CONFIG_FS_DAX_LIMITED.
-> >
-> > So PTE_DEVMAP is primarily there to coordinate the
-> > get_user_pages_fast() path, and even there it's usage can be
-> > eliminated in favor of PTE_SPECIAL. I started that effort [1], but
-> > need to rebase on new notify_failure infrastructure coming from Ruan
-> > [2]. So I think you are not in the critical path until I can get the
-> > PTE_DEVMAP requirement out of your way.
-> >
->
-> Isn't the implicit case that PTE_SPECIAL means that you
-> aren't supposed to get a struct page back? The gup path bails out on
-> pte_special() case. And in the fact in this thread that you quote:
->
-> > [1]: https://lore.kernel.org/r/161604050866.1463742.7759521510383551055.stgit@dwillia2-desk3.amr.corp.intel.com
->
-> (...) we were speaking about[1.1] using that same special bit to block
-> longterm gup for fs-dax (while allowing it device-dax which does support it).
->
-> [1.1] https://lore.kernel.org/nvdimm/a8c41028-c7f5-9b93-4721-b8ddcf2427da@oracle.com/
->
-> Or maybe that's what you mean for this particular case of FS_DAX_LIMITED. Most _special*()
-> cases in mm match _devmap*() as far I've experimented in the past with PMD/PUD and dax
-> (prior to [1.1]).
->
-> I am just wondering would you differentiate the case where you have metadata for the
-> !FS_DAX_LIMITED case in {gup,gup_fast} path in light of removing PTE_DEVMAP. I would have
-> thought of checking that a pgmap exists for the pfn (without grabbing a ref to it).
+In preparation for LIBNVDIMM to manage labels on CXL devices deploy
+helpers that abstract the label type from the implementation. The CXL
+label format is mostly similar to the EFI label format with concepts /
+fields added, like dynamic region creation and label type guids, and
+other concepts removed like BLK-mode and interleave-set-cookie ids.
 
-So I should clarify, I'm not proposing removing PTE_DEVMAP, I'm
-proposing relaxing its need for architectures that can not afford the
-PTE bit. Those architectures would miss out on get_user_pages_fast()
-for devmap pages. Then, once PTE_SPECIAL kicks get_user_pages() to the
-slow path, get_dev_pagemap() is used to detect devmap pages.
+CXL labels support checksums by default, but early versions of the EFI
+labels did not. Add a validate function that can return true in the case
+the label format does not implement a checksum.
+
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/nvdimm/label.c |   68 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 35 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index b40a4eda1d89..3f73412dd438 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -346,29 +346,45 @@ static bool preamble_next(struct nvdimm_drvdata *ndd,
+ 			free, nslot);
+ }
+ 
++static bool nsl_validate_checksum(struct nvdimm_drvdata *ndd,
++				  struct nd_namespace_label *nd_label)
++{
++	u64 sum, sum_save;
++
++	if (!namespace_label_has(ndd, checksum))
++		return true;
++
++	sum_save = nsl_get_checksum(ndd, nd_label);
++	nsl_set_checksum(ndd, nd_label, 0);
++	sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
++	nsl_set_checksum(ndd, nd_label, sum_save);
++	return sum == sum_save;
++}
++
++static void nsl_calculate_checksum(struct nvdimm_drvdata *ndd,
++				   struct nd_namespace_label *nd_label)
++{
++	u64 sum;
++
++	if (!namespace_label_has(ndd, checksum))
++		return;
++	nsl_set_checksum(ndd, nd_label, 0);
++	sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
++	nsl_set_checksum(ndd, nd_label, sum);
++}
++
+ static bool slot_valid(struct nvdimm_drvdata *ndd,
+ 		struct nd_namespace_label *nd_label, u32 slot)
+ {
++	bool valid;
++
+ 	/* check that we are written where we expect to be written */
+ 	if (slot != nsl_get_slot(ndd, nd_label))
+ 		return false;
+-
+-	/* check checksum */
+-	if (namespace_label_has(ndd, checksum)) {
+-		u64 sum, sum_save;
+-
+-		sum_save = nsl_get_checksum(ndd, nd_label);
+-		nsl_set_checksum(ndd, nd_label, 0);
+-		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
+-		nsl_set_checksum(ndd, nd_label, sum_save);
+-		if (sum != sum_save) {
+-			dev_dbg(ndd->dev, "fail checksum. slot: %d expect: %#llx\n",
+-				slot, sum);
+-			return false;
+-		}
+-	}
+-
+-	return true;
++	valid = nsl_validate_checksum(ndd, nd_label);
++	if (!valid)
++		dev_dbg(ndd->dev, "fail checksum. slot: %d\n", slot);
++	return valid;
+ }
+ 
+ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+@@ -812,13 +828,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 		guid_copy(&nd_label->abstraction_guid,
+ 				to_abstraction_guid(ndns->claim_class,
+ 					&nd_label->abstraction_guid));
+-	if (namespace_label_has(ndd, checksum)) {
+-		u64 sum;
+-
+-		nsl_set_checksum(ndd, nd_label, 0);
+-		sum = nd_fletcher64(nd_label, sizeof_namespace_label(ndd), 1);
+-		nsl_set_checksum(ndd, nd_label, sum);
+-	}
++	nsl_calculate_checksum(ndd, nd_label);
+ 	nd_dbg_dpa(nd_region, ndd, res, "\n");
+ 
+ 	/* update label */
+@@ -1049,15 +1059,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 			guid_copy(&nd_label->abstraction_guid,
+ 					to_abstraction_guid(ndns->claim_class,
+ 						&nd_label->abstraction_guid));
+-
+-		if (namespace_label_has(ndd, checksum)) {
+-			u64 sum;
+-
+-			nsl_set_checksum(ndd, nd_label, 0);
+-			sum = nd_fletcher64(nd_label,
+-					sizeof_namespace_label(ndd), 1);
+-			nsl_set_checksum(ndd, nd_label, sum);
+-		}
++		nsl_calculate_checksum(ndd, nd_label);
+ 
+ 		/* update label */
+ 		offset = nd_label_offset(ndd, nd_label);
+
