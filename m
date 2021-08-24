@@ -1,27 +1,25 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 216503FCC
-	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:33 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="217375370"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C58F3FCC
+	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:40 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="278355784"
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="217375370"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:29 -0700
+   d="scan'208";a="278355784"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:24 -0700
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="575064522"
+   d="scan'208";a="426161680"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:28 -0700
-Subject: [PATCH v3 23/28] cxl/acpi: Do not add DSDT disabled ACPI0016 host
- bridge ports
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:24 -0700
+Subject: [PATCH v3 11/28] libnvdimm/label: Add a helper for nlabel validation
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Alison Schofield <alison.schofield@intel.com>, stable@vger.kernel.org,
- vishal.l.verma@intel.com, nvdimm@lists.linux.dev, Jonathan.Cameron@huawei.com,
- ira.weiny@intel.com, ben.widawsky@intel.com, vishal.l.verma@intel.com,
- alison.schofield@intel.com
-Date: Tue, 24 Aug 2021 09:07:28 -0700
-Message-ID: <162982124835.1124374.16212896894542743429.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc: vishal.l.verma@intel.com, alison.schofield@intel.com,
+ nvdimm@lists.linux.dev, Jonathan.Cameron@huawei.com, ira.weiny@intel.com,
+ ben.widawsky@intel.com, vishal.l.verma@intel.com, alison.schofield@intel.com
+Date: Tue, 24 Aug 2021 09:06:24 -0700
+Message-ID: <162982118423.1124374.11980785134458815600.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -34,61 +32,59 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-From: Alison Schofield <alison.schofield@intel.com>
+In the CXL namespace label there is no need for nlabel since that is
+inferred from the region. Add a helper that moves nsl_get_label() behind
+a helper that validates the number of labels relative to the region.
 
-During CXL ACPI probe, host bridge ports are discovered by scanning
-the ACPI0017 root port for ACPI0016 host bridge devices. The scan
-matches on the hardware id of "ACPI0016". An issue occurs when an
-ACPI0016 device is defined in the DSDT yet disabled on the platform.
-Attempts by the cxl_acpi driver to add host bridge ports using a
-disabled device fails, and the entire cxl_acpi probe fails.
-
-The DSDT table includes an _STA method that sets the status and the
-ACPI subsystem has checks available to examine it. One such check is
-in the acpi_pci_find_root() path. Move the call to acpi_pci_find_root()
-to the matching function to prevent this issue when adding either
-upstream or downstream ports.
-
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-Fixes: 7d4b5ca2e2cb ("cxl/acpi: Add downstream port data to cxl_port instances")
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/acpi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/nvdimm/namespace_devs.c |    5 ++---
+ drivers/nvdimm/nd.h             |    7 +++++++
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index 8ae89273f58e..2d8f1ec1abff 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -243,6 +243,9 @@ static struct acpi_device *to_cxl_host_bridge(struct device *dev)
- {
- 	struct acpi_device *adev = to_acpi_device(dev);
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index d4959981c7d4..28ed14052e36 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1848,12 +1848,11 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
  
-+	if (!acpi_pci_find_root(adev->handle))
-+		return NULL;
+ 		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+ 			struct nd_namespace_label *nd_label = label_ent->label;
+-			u16 position, nlabel;
++			u16 position;
+ 
+ 			if (!nd_label)
+ 				continue;
+ 			position = nsl_get_position(ndd, nd_label);
+-			nlabel = nsl_get_nlabel(ndd, nd_label);
+ 
+ 			if (!nsl_validate_isetcookie(ndd, nd_label, cookie))
+ 				continue;
+@@ -1870,7 +1869,7 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
+ 				return false;
+ 			}
+ 			found_uuid = true;
+-			if (nlabel != nd_region->ndr_mappings)
++			if (!nsl_validate_nlabel(nd_region, ndd, nd_label))
+ 				continue;
+ 			if (position != pos)
+ 				continue;
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index ec3c9aad7f50..036638bdb7e3 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -342,6 +342,13 @@ struct nd_region {
+ 	struct nd_mapping mapping[];
+ };
+ 
++static inline bool nsl_validate_nlabel(struct nd_region *nd_region,
++				       struct nvdimm_drvdata *ndd,
++				       struct nd_namespace_label *nd_label)
++{
++	return nsl_get_nlabel(ndd, nd_label) == nd_region->ndr_mappings;
++}
 +
- 	if (strcmp(acpi_device_hid(adev), "ACPI0016") == 0)
- 		return adev;
- 	return NULL;
-@@ -266,10 +269,6 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 	if (!bridge)
- 		return 0;
- 
--	pci_root = acpi_pci_find_root(bridge->handle);
--	if (!pci_root)
--		return -ENXIO;
--
- 	dport = find_dport_by_dev(root_port, match);
- 	if (!dport) {
- 		dev_dbg(host, "host bridge expected and not found\n");
-@@ -282,6 +281,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 		return PTR_ERR(port);
- 	dev_dbg(host, "%s: add: %s\n", dev_name(match), dev_name(&port->dev));
- 
-+	pci_root = acpi_pci_find_root(bridge->handle);
- 	ctx = (struct cxl_walk_context){
- 		.dev = host,
- 		.root = pci_root->bus,
+ struct nd_blk_region {
+ 	int (*enable)(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ 	int (*do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
 
