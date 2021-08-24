@@ -1,26 +1,26 @@
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A445C3FC0
-	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:06:42 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="204541255"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C0CD3FC0
+	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:10 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="204541379"
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="204541255"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:36 -0700
+   d="scan'208";a="204541379"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:09 -0700
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="643232631"
+   d="scan'208";a="515510177"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:36 -0700
-Subject: [PATCH v3 13/28] libnvdimm/label: Define CXL region labels
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:07 -0700
+Subject: [PATCH v3 19/28] cxl/mbox: Convert 'enabled_cmds' to DECLARE_BITMAP
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, vishal.l.verma@intel.com,
+Cc: Ben Widawsky <ben.widawsky@intel.com>, vishal.l.verma@intel.com,
  alison.schofield@intel.com, nvdimm@lists.linux.dev,
  Jonathan.Cameron@huawei.com, ira.weiny@intel.com, ben.widawsky@intel.com,
  vishal.l.verma@intel.com, alison.schofield@intel.com
-Date: Tue, 24 Aug 2021 09:06:36 -0700
-Message-ID: <162982119604.1124374.8364301519543316156.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 24 Aug 2021 09:07:07 -0700
+Message-ID: <162982122744.1124374.6742215706893563515.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -33,55 +33,65 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Add a definition of the CXL 2.0 region label format. Note this is done
-as a separate patch to make the next patch that adds namespace label
-support easier to read.
+Define enabled_cmds as an embedded member of 'struct cxl_mem' rather
+than a pointer to another dynamic allocation.
 
-Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+As this leaves only one user of cxl_cmd_count, just open code it and
+delete the helper.
+
+Acked-by: Ben Widawsky <ben.widawsky@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/label.h |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ drivers/cxl/core/mbox.c |   10 +---------
+ drivers/cxl/cxlmem.h    |    2 +-
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-index 31f94fad7b92..76ecd0347dc2 100644
---- a/drivers/nvdimm/label.h
-+++ b/drivers/nvdimm/label.h
-@@ -65,6 +65,36 @@ struct nd_namespace_index {
- 	u8 free[];
- };
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 706fe007c8d6..73107b302224 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -324,8 +324,6 @@ static int cxl_validate_cmd_from_user(struct cxl_mem *cxlm,
+ 	return 0;
+ }
  
-+/**
-+ * struct cxl_region_label - CXL 2.0 Table 211
-+ * @type: uuid identifying this label format (region)
-+ * @uuid: uuid for the region this label describes
-+ * @flags: NSLABEL_FLAG_UPDATING (all other flags reserved)
-+ * @position: this label's position in the set
-+ * @dpa: start address in device-local capacity for this label
-+ * @rawsize: size of this label's contribution to region
-+ * @hpa: mandatory system physical address to map this region
-+ * @slot: slot id of this label in label area
-+ * @ig: interleave granularity (1 << @ig) * 256 bytes
-+ * @align: alignment in SZ_256M blocks
-+ * @checksum: fletcher64 sum of this label
-+ */
-+struct cxl_region_label {
-+	u8 type[NSLABEL_UUID_LEN];
-+	u8 uuid[NSLABEL_UUID_LEN];
-+	__le32 flags;
-+	__le16 nlabel;
-+	__le16 position;
-+	__le64 dpa;
-+	__le64 rawsize;
-+	__le64 hpa;
-+	__le32 slot;
-+	__le32 ig;
-+	__le32 align;
-+	u8 reserved[0xac];
-+	__le64 checksum;
-+};
-+
- /**
-  * struct nd_namespace_label - namespace superblock
-  * @uuid: UUID per RFC 4122
+-#define cxl_cmd_count ARRAY_SIZE(cxl_mem_commands)
+-
+ int cxl_query_cmd(struct cxl_memdev *cxlmd,
+ 		  struct cxl_mem_query_commands __user *q)
+ {
+@@ -341,7 +339,7 @@ int cxl_query_cmd(struct cxl_memdev *cxlmd,
+ 
+ 	/* returns the total number if 0 elements are requested. */
+ 	if (n_commands == 0)
+-		return put_user(cxl_cmd_count, &q->n_commands);
++		return put_user(ARRAY_SIZE(cxl_mem_commands), &q->n_commands);
+ 
+ 	/*
+ 	 * otherwise, return max(n_commands, total commands) cxl_command_info
+@@ -805,12 +803,6 @@ struct cxl_mem *cxl_mem_create(struct device *dev)
+ 
+ 	mutex_init(&cxlm->mbox_mutex);
+ 	cxlm->dev = dev;
+-	cxlm->enabled_cmds =
+-		devm_kmalloc_array(dev, BITS_TO_LONGS(cxl_cmd_count),
+-				   sizeof(unsigned long),
+-				   GFP_KERNEL | __GFP_ZERO);
+-	if (!cxlm->enabled_cmds)
+-		return ERR_PTR(-ENOMEM);
+ 
+ 	return cxlm;
+ }
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index b7122ded3a04..df4f3636a999 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -116,7 +116,7 @@ struct cxl_mem {
+ 	size_t lsa_size;
+ 	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
+ 	char firmware_version[0x10];
+-	unsigned long *enabled_cmds;
++	DECLARE_BITMAP(enabled_cmds, CXL_MEM_COMMAND_ID_MAX);
+ 
+ 	struct range pmem_range;
+ 	struct range ram_range;
 
