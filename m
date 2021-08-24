@@ -1,27 +1,26 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8879D3FCC
-	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:24 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="204477432"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 355393FD0
+	for <nvdimm@lists.linux.dev>; Tue, 24 Aug 2021 16:07:25 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10086"; a="214220991"
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="204477432"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:18 -0700
+   d="scan'208";a="214220991"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:52 -0700
 X-IronPort-AV: E=Sophos;i="5.84,347,1620716400"; 
-   d="scan'208";a="473541669"
+   d="scan'208";a="643232739"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:07:18 -0700
-Subject: [PATCH v3 21/28] cxl/pmem: Translate NVDIMM label commands to CXL
- label commands
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Aug 2021 09:06:52 -0700
+Subject: [PATCH v3 16/28] cxl/mbox: Introduce the mbox_send operation
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: Ben Widawsky <ben.widawsky@intel.com>, vishal.l.verma@intel.com,
  alison.schofield@intel.com, nvdimm@lists.linux.dev,
  Jonathan.Cameron@huawei.com, ira.weiny@intel.com, ben.widawsky@intel.com,
  vishal.l.verma@intel.com, alison.schofield@intel.com
-Date: Tue, 24 Aug 2021 09:07:18 -0700
-Message-ID: <162982123813.1124374.3721946437291753388.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 24 Aug 2021 09:06:52 -0700
+Message-ID: <162982121207.1124374.6113172345033386781.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -34,177 +33,236 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-The LIBNVDIMM IOCTL UAPI calls back to the nvdimm-bus-provider to
-translate the Linux command payload to the device native command format.
-The LIBNVDIMM commands get-config-size, get-config-data, and
-set-config-data, map to the CXL memory device commands device-identify,
-get-lsa, and set-lsa. Recall that the label-storage-area (LSA) on an
-NVDIMM device arranges for the provisioning of namespaces. Additionally
-for CXL the LSA is used for provisioning regions as well.
+In preparation for implementing a unit test backend transport for ioctl
+operations, and making the mailbox available to the cxl/pmem
+infrastructure, move the existing PCI specific portion of mailbox handling
+to an "mbox_send" operation.
 
-The data from device-identify is already cached in the 'struct cxl_mem'
-instance associated with @cxl_nvd, so that payload return is simply
-crafted and no CXL command is issued. The conversion for get-lsa is
-straightforward, but the conversion for set-lsa requires an allocation
-to append the set-lsa header in front of the payload.
+With this split all the PCI-specific transport details are comprehended
+by a single operation and the rest of the mailbox infrastructure is
+'struct cxl_mem' and 'struct cxl_memdev' generic.
 
 Acked-by: Ben Widawsky <ben.widawsky@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/pmem.c |  121 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 117 insertions(+), 4 deletions(-)
+ drivers/cxl/cxlmem.h |   42 ++++++++++++++++++++++++++++
+ drivers/cxl/pci.c    |   76 ++++++++++++++------------------------------------
+ 2 files changed, 63 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-index 469b984176a2..6cc76302c8f8 100644
---- a/drivers/cxl/pmem.c
-+++ b/drivers/cxl/pmem.c
-@@ -52,10 +52,10 @@ static int cxl_nvdimm_probe(struct device *dev)
- {
- 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
- 	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-+	unsigned long flags = 0, cmd_mask = 0;
- 	struct cxl_mem *cxlm = cxlmd->cxlm;
- 	struct cxl_nvdimm_bridge *cxl_nvb;
- 	struct nvdimm *nvdimm = NULL;
--	unsigned long flags = 0;
- 	int rc = -ENXIO;
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 8397daea9d9b..a56d8f26a157 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -66,6 +66,45 @@ struct cxl_memdev *
+ devm_cxl_add_memdev(struct device *host, struct cxl_mem *cxlm,
+ 		    const struct cdevm_file_operations *cdevm_fops);
  
- 	cxl_nvb = cxl_find_nvdimm_bridge();
-@@ -69,8 +69,11 @@ static int cxl_nvdimm_probe(struct device *dev)
- 	set_exclusive_cxl_commands(cxlm, exclusive_cmds);
- 
- 	set_bit(NDD_LABELING, &flags);
--	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags, 0, 0,
--			       NULL);
-+	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
-+	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-+	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-+	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-+			       cmd_mask, 0, NULL);
- 	dev_set_drvdata(dev, nvdimm);
- 	rc = devm_add_action_or_reset(dev, unregister_nvdimm, cxl_nvd);
- out:
-@@ -89,11 +92,121 @@ static struct cxl_driver cxl_nvdimm_driver = {
- 	.id = CXL_DEVICE_NVDIMM,
++/**
++ * struct mbox_cmd - A command to be submitted to hardware.
++ * @opcode: (input) The command set and command submitted to hardware.
++ * @payload_in: (input) Pointer to the input payload.
++ * @payload_out: (output) Pointer to the output payload. Must be allocated by
++ *		 the caller.
++ * @size_in: (input) Number of bytes to load from @payload_in.
++ * @size_out: (input) Max number of bytes loaded into @payload_out.
++ *            (output) Number of bytes generated by the device. For fixed size
++ *            outputs commands this is always expected to be deterministic. For
++ *            variable sized output commands, it tells the exact number of bytes
++ *            written.
++ * @return_code: (output) Error code returned from hardware.
++ *
++ * This is the primary mechanism used to send commands to the hardware.
++ * All the fields except @payload_* correspond exactly to the fields described in
++ * Command Register section of the CXL 2.0 8.2.8.4.5. @payload_in and
++ * @payload_out are written to, and read from the Command Payload Registers
++ * defined in CXL 2.0 8.2.8.4.8.
++ */
++struct cxl_mbox_cmd {
++	u16 opcode;
++	void *payload_in;
++	void *payload_out;
++	size_t size_in;
++	size_t size_out;
++	u16 return_code;
++#define CXL_MBOX_SUCCESS 0
++};
++
++/*
++ * CXL 2.0 - Memory capacity multiplier
++ * See Section 8.2.9.5
++ *
++ * Volatile, Persistent, and Partition capacities are specified to be in
++ * multiples of 256MB - define a multiplier to convert to/from bytes.
++ */
++#define CXL_CAPACITY_MULTIPLIER SZ_256M
++
+ /**
+  * struct cxl_mem - A CXL memory device
+  * @dev: The device associated with this CXL device.
+@@ -80,6 +119,7 @@ devm_cxl_add_memdev(struct device *host, struct cxl_mem *cxlm,
+  * @enabled_cmds: Hardware commands found enabled in CEL.
+  * @pmem_range: Persistent memory capacity information.
+  * @ram_range: Volatile memory capacity information.
++ * @mbox_send: @dev specific transport for transmitting mailbox commands
+  */
+ struct cxl_mem {
+ 	struct device *dev;
+@@ -104,5 +144,7 @@ struct cxl_mem {
+ 	u64 active_persistent_bytes;
+ 	u64 next_volatile_bytes;
+ 	u64 next_persistent_bytes;
++
++	int (*mbox_send)(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd);
+ };
+ #endif /* __CXL_MEM_H__ */
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index 24d84b69227a..a211b35af4be 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -64,45 +64,6 @@ enum opcode {
+ 	CXL_MBOX_OP_MAX			= 0x10000
  };
  
-+static int cxl_pmem_get_config_size(struct cxl_mem *cxlm,
-+				    struct nd_cmd_get_config_size *cmd,
-+				    unsigned int buf_len, int *cmd_rc)
-+{
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+
-+	*cmd = (struct nd_cmd_get_config_size) {
-+		 .config_size = cxlm->lsa_size,
-+		 .max_xfer = cxlm->payload_size,
-+	};
-+	*cmd_rc = 0;
-+
-+	return 0;
-+}
-+
-+static int cxl_pmem_get_config_data(struct cxl_mem *cxlm,
-+				    struct nd_cmd_get_config_data_hdr *cmd,
-+				    unsigned int buf_len, int *cmd_rc)
-+{
-+	struct cxl_mbox_get_lsa {
-+		u32 offset;
-+		u32 length;
-+	} get_lsa;
-+	int rc;
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
-+		return -EINVAL;
-+
-+	get_lsa = (struct cxl_mbox_get_lsa) {
-+		.offset = cmd->in_offset,
-+		.length = cmd->in_length,
-+	};
-+
-+	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_GET_LSA, &get_lsa,
-+				   sizeof(get_lsa), cmd->out_buf,
-+				   cmd->in_length);
-+	cmd->status = 0;
-+	*cmd_rc = 0;
-+
-+	return rc;
-+}
-+
-+static int cxl_pmem_set_config_data(struct cxl_mem *cxlm,
-+				    struct nd_cmd_set_config_hdr *cmd,
-+				    unsigned int buf_len, int *cmd_rc)
-+{
-+	struct cxl_mbox_set_lsa {
-+		u32 offset;
-+		u32 reserved;
-+		u8 data[];
-+	} *set_lsa;
-+	int rc;
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+
-+	/* 4-byte status follows the input data in the payload */
-+	if (struct_size(cmd, in_buf, cmd->in_length) + 4 > buf_len)
-+		return -EINVAL;
-+
-+	set_lsa =
-+		kvzalloc(struct_size(set_lsa, data, cmd->in_length), GFP_KERNEL);
-+	if (!set_lsa)
-+		return -ENOMEM;
-+
-+	*set_lsa = (struct cxl_mbox_set_lsa) {
-+		.offset = cmd->in_offset,
-+	};
-+	memcpy(set_lsa->data, cmd->in_buf, cmd->in_length);
-+
-+	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_SET_LSA, set_lsa,
-+				   struct_size(set_lsa, data, cmd->in_length),
-+				   NULL, 0);
-+
-+	/* set "firmware" status */
-+	*(u32 *) &cmd->in_buf[cmd->in_length] = 0;
-+	*cmd_rc = 0;
-+	kvfree(set_lsa);
-+
-+	return rc;
-+}
-+
-+static int cxl_pmem_nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd,
-+			       void *buf, unsigned int buf_len, int *cmd_rc)
-+{
-+	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
-+	unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
-+	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-+	struct cxl_mem *cxlm = cxlmd->cxlm;
-+
-+	if (!test_bit(cmd, &cmd_mask))
-+		return -ENOTTY;
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		return cxl_pmem_get_config_size(cxlm, buf, buf_len, cmd_rc);
-+	case ND_CMD_GET_CONFIG_DATA:
-+		return cxl_pmem_get_config_data(cxlm, buf, buf_len, cmd_rc);
-+	case ND_CMD_SET_CONFIG_DATA:
-+		return cxl_pmem_set_config_data(cxlm, buf, buf_len, cmd_rc);
-+	default:
-+		return -ENOTTY;
-+	}
-+}
-+
- static int cxl_pmem_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 			unsigned int buf_len, int *cmd_rc)
- {
--	return -ENOTTY;
-+	if (!nvdimm)
-+		return -ENOTTY;
-+	return cxl_pmem_nvdimm_ctl(nvdimm, cmd, buf, buf_len, cmd_rc);
+-/*
+- * CXL 2.0 - Memory capacity multiplier
+- * See Section 8.2.9.5
+- *
+- * Volatile, Persistent, and Partition capacities are specified to be in
+- * multiples of 256MB - define a multiplier to convert to/from bytes.
+- */
+-#define CXL_CAPACITY_MULTIPLIER SZ_256M
+-
+-/**
+- * struct mbox_cmd - A command to be submitted to hardware.
+- * @opcode: (input) The command set and command submitted to hardware.
+- * @payload_in: (input) Pointer to the input payload.
+- * @payload_out: (output) Pointer to the output payload. Must be allocated by
+- *		 the caller.
+- * @size_in: (input) Number of bytes to load from @payload_in.
+- * @size_out: (input) Max number of bytes loaded into @payload_out.
+- *            (output) Number of bytes generated by the device. For fixed size
+- *            outputs commands this is always expected to be deterministic. For
+- *            variable sized output commands, it tells the exact number of bytes
+- *            written.
+- * @return_code: (output) Error code returned from hardware.
+- *
+- * This is the primary mechanism used to send commands to the hardware.
+- * All the fields except @payload_* correspond exactly to the fields described in
+- * Command Register section of the CXL 2.0 8.2.8.4.5. @payload_in and
+- * @payload_out are written to, and read from the Command Payload Registers
+- * defined in CXL 2.0 8.2.8.4.8.
+- */
+-struct mbox_cmd {
+-	u16 opcode;
+-	void *payload_in;
+-	void *payload_out;
+-	size_t size_in;
+-	size_t size_out;
+-	u16 return_code;
+-#define CXL_MBOX_SUCCESS 0
+-};
+-
+ static DECLARE_RWSEM(cxl_memdev_rwsem);
+ static struct dentry *cxl_debugfs;
+ static bool cxl_raw_allow_all;
+@@ -266,7 +227,7 @@ static bool cxl_is_security_command(u16 opcode)
  }
  
- static bool online_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb)
+ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
+-				 struct mbox_cmd *mbox_cmd)
++				 struct cxl_mbox_cmd *mbox_cmd)
+ {
+ 	struct device *dev = cxlm->dev;
+ 
+@@ -297,7 +258,7 @@ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
+  * mailbox.
+  */
+ static int __cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
+-				   struct mbox_cmd *mbox_cmd)
++				   struct cxl_mbox_cmd *mbox_cmd)
+ {
+ 	void __iomem *payload = cxlm->regs.mbox + CXLDEV_MBOX_PAYLOAD_OFFSET;
+ 	struct device *dev = cxlm->dev;
+@@ -472,6 +433,20 @@ static void cxl_mem_mbox_put(struct cxl_mem *cxlm)
+ 	mutex_unlock(&cxlm->mbox_mutex);
+ }
+ 
++static int cxl_pci_mbox_send(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
++{
++	int rc;
++
++	rc = cxl_mem_mbox_get(cxlm);
++	if (rc)
++		return rc;
++
++	rc = __cxl_mem_mbox_send_cmd(cxlm, cmd);
++	cxl_mem_mbox_put(cxlm);
++
++	return rc;
++}
++
+ /**
+  * handle_mailbox_cmd_from_user() - Dispatch a mailbox command for userspace.
+  * @cxlm: The CXL memory device to communicate with.
+@@ -503,7 +478,7 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
+ 					s32 *size_out, u32 *retval)
+ {
+ 	struct device *dev = cxlm->dev;
+-	struct mbox_cmd mbox_cmd = {
++	struct cxl_mbox_cmd mbox_cmd = {
+ 		.opcode = cmd->opcode,
+ 		.size_in = cmd->info.size_in,
+ 		.size_out = cmd->info.size_out,
+@@ -525,10 +500,6 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
+ 		}
+ 	}
+ 
+-	rc = cxl_mem_mbox_get(cxlm);
+-	if (rc)
+-		goto out;
+-
+ 	dev_dbg(dev,
+ 		"Submitting %s command for user\n"
+ 		"\topcode: %x\n"
+@@ -539,8 +510,7 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
+ 	dev_WARN_ONCE(dev, cmd->info.id == CXL_MEM_COMMAND_ID_RAW,
+ 		      "raw command path used\n");
+ 
+-	rc = __cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
+-	cxl_mem_mbox_put(cxlm);
++	rc = cxlm->mbox_send(cxlm, &mbox_cmd);
+ 	if (rc)
+ 		goto out;
+ 
+@@ -874,7 +844,7 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, u16 opcode,
+ 				 void *out, size_t out_size)
+ {
+ 	const struct cxl_mem_command *cmd = cxl_mem_find_command(opcode);
+-	struct mbox_cmd mbox_cmd = {
++	struct cxl_mbox_cmd mbox_cmd = {
+ 		.opcode = opcode,
+ 		.payload_in = in,
+ 		.size_in = in_size,
+@@ -886,12 +856,7 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, u16 opcode,
+ 	if (out_size > cxlm->payload_size)
+ 		return -E2BIG;
+ 
+-	rc = cxl_mem_mbox_get(cxlm);
+-	if (rc)
+-		return rc;
+-
+-	rc = __cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
+-	cxl_mem_mbox_put(cxlm);
++	rc = cxlm->mbox_send(cxlm, &mbox_cmd);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -913,6 +878,7 @@ static int cxl_mem_setup_mailbox(struct cxl_mem *cxlm)
+ {
+ 	const int cap = readl(cxlm->regs.mbox + CXLDEV_MBOX_CAPS_OFFSET);
+ 
++	cxlm->mbox_send = cxl_pci_mbox_send;
+ 	cxlm->payload_size =
+ 		1 << FIELD_GET(CXLDEV_MBOX_CAP_PAYLOAD_SIZE_MASK, cap);
+ 
 
