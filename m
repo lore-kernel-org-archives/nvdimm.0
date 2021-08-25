@@ -1,94 +1,143 @@
-Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
+Received: from mail-pf1-f181.google.com (mail-pf1-f181.google.com [209.85.210.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 338203FC0
-	for <nvdimm@lists.linux.dev>; Wed, 25 Aug 2021 22:05:27 +0000 (UTC)
-Received: by mail-pj1-f47.google.com with SMTP id oc2-20020a17090b1c0200b00179e56772d6so5048098pjb.4
-        for <nvdimm@lists.linux.dev>; Wed, 25 Aug 2021 15:05:27 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EA3329CA
+	for <nvdimm@lists.linux.dev>; Wed, 25 Aug 2021 22:08:41 +0000 (UTC)
+Received: by mail-pf1-f181.google.com with SMTP id m26so885624pff.3
+        for <nvdimm@lists.linux.dev>; Wed, 25 Aug 2021 15:08:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=zbgcy0H2XZaZpgH1WoNm2chkRPcTPJCJf59MVEDZuME=;
-        b=pLgTZL9a1yfukekaD2fYYpMt6/7pL54S6kNuEeF+Go0UIm6bT4KvG5MqmpapljtXCT
-         3Gs5JvhHXX8spV+rgpQsm09hRLYO/ZJgJ+BKwEUR8LGp83j9C3nPZcfOla7hkZX55aqO
-         BsGEMst4M3vRwFrNbgaIocYSU/HkSr/pc2CLt/k44oPQIL1kbSh8iocueTrae1XI0lcV
-         FACnRO3QbvCuOZ1RDL8heQroHO/mK9eEGtVKM6jnv5MpEdNif/DT8dsGuItq/5SKXkvn
-         85R+R2HmJC++3+c4GHxRYyUKJesd7miaZglOoDdzO/4LbcWD3o1kdHzAGSrmlLAPG5t8
-         2jiA==
+        bh=7NZNUzkwqV8FV6bts50PDqCVbYsdeI9DWpW3UuuSetQ=;
+        b=H9bYH617YjERR4qzzuhHKRD1sRRQFu+Q1Jh64kJ1djlfDal40fY+iY87u0l9uJoll9
+         qKsSebVBrXVCpOAl8hvLF4LtB9qq5pdwDXayqDjbt2sUyexsxQbLG62BB3WNpfD87xZG
+         IVyDddf9ZPTBcoPNghKtAs9E6jlQ28nDWusY81EErhC9J7IxJxP7uwjAdgVMD8py+u1P
+         nxTuWeiGOBc+Tfc1qeRQ2kq5o5K9WUw6NdaVl+u6l7blBulIUS1a0b8Q01jOTrYRv73M
+         znQKQv6MK8THCvnQOstYHUHj9L24gqn6pk51HjKJEQG0bWnijVmLYjUAaUC1yNQfLkfP
+         bq2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=zbgcy0H2XZaZpgH1WoNm2chkRPcTPJCJf59MVEDZuME=;
-        b=siwQbzgkFiVP6nfZ+SoSR05+/lVs27UhPpGvPKabErbhHkMTK1GheIzpV91poJejfS
-         MK/c9cQ1jkTh2IhAgSN7Nv2OXEMPzl4iUeHysNrqvv08eblO0KsyARy0PF7luVi0lf+K
-         cyb3XxXYkiKepa0fXz2QR0Ywc06EKkzXHe0Aulb8oKWPPVC2UCnbBa2TU98+zq5KnWul
-         QE/hKyq49aLABOEHUq7bRlmckV4vz6bjSeMU7IOutwXM9WQNHJGRIlRDRsvtDy3caivl
-         cLFYiWTpcAJBdCcW2bPZjxWs1JEhShP5mAu+rkIDWjOnTk1neffEOqfzYGByX+K1tf5W
-         6raQ==
-X-Gm-Message-State: AOAM533kCGQnV6/bqGjG/DiOXxLMF10E22pDJSdzihH4H6ZWCpIeg749
-	pf0DvxD4yoPFN0hz1Rte9O0dash25NKirxBG2GNurQ==
-X-Google-Smtp-Source: ABdhPJyhNAtBF1kxYhaMw72sH8vmiiKDmiSZ1Ajm/UP9/+mObdNBqTSCIA/L9nxMvUapBFtWeNdrb4EHFCW0GauQIfM=
-X-Received: by 2002:a17:90a:1991:: with SMTP id 17mr4312708pji.149.1629929126746;
- Wed, 25 Aug 2021 15:05:26 -0700 (PDT)
+        bh=7NZNUzkwqV8FV6bts50PDqCVbYsdeI9DWpW3UuuSetQ=;
+        b=lPAErdDVEzB3ZeCnxvNrXqtbOkb/zi1Y6Wq82eReuhuZ90yVr4tSYJ/mlieKzM51Hj
+         wSX4TrrB5jwig33San9GM/QbFTsnam85RNBZ2R2TD4DHIntWL5r7OH6tEjfg2xK5DCOd
+         gtdGKNgNJ2ftuCCxlYTkKGxkQqmetvv2myRUHL/a+85A4XHBdqRrzU36+aJMwwty4gls
+         U+kOwpCoUdY4iB1XCpcKItSafuzxGmBiqkxlc7v/jss4NhYXlhho4N7VVdtb+g8cxfI6
+         IH0YMjE880yoO4LqJ3YLpfI21kQb5UqYju4oVp5NnyufwXPmQwxvyShzqKc8MDF847tI
+         /4KA==
+X-Gm-Message-State: AOAM530dnRvBDrM/CCeDzZNFKHehhVOScS4I8M5nN4jIYfjO5+F9Evih
+	SzqOT9QWHhmca97HSH4tVu4LfAXulUWDmpu80++3dBie70g=
+X-Google-Smtp-Source: ABdhPJw2KP0i89pMalH0wosmc6VWGByLDHoPtHP3Rvh3Nqhuz6fCxv+quhVvh9yLawfYIETYtZ7Iyp0W5bbg6cwoq38=
+X-Received: by 2002:a65:6642:: with SMTP id z2mr353069pgv.240.1629929320968;
+ Wed, 25 Aug 2021 15:08:40 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210715223324.GA29063@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
- <CAPcyv4gKqK6Mi6-PT0Mo=P=gBvMkA2zK1Huo3f2aAKYAP3SCVg@mail.gmail.com> <20210825215622.GB3868@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
-In-Reply-To: <20210825215622.GB3868@linuxonhyperv3.guj3yctzbm1etfxqx2vob5hsef.xx.internal.cloudapp.net>
+References: <20210726060855.108250-1-pankaj.gupta.linux@gmail.com>
+ <20210726060855.108250-2-pankaj.gupta.linux@gmail.com> <CAPcyv4inCFFXmg0r5+h0O6cADpt9HdboVDEL00XX-wGroy-7LQ@mail.gmail.com>
+ <CAM9Jb+hqPBFUh9X4sKb9TUGXX1P0mC1xcuCNQx1BYvAvoP9uQg@mail.gmail.com>
+ <CAPcyv4gUG1-y1u0ZyUkSGXg0eER_oTdexb8n-CYgb_rURvr8LA@mail.gmail.com> <CALzYo32AnNzENe414GDVivaF5wXQ7azaysBYkN9wHVYEW27NPw@mail.gmail.com>
+In-Reply-To: <CALzYo32AnNzENe414GDVivaF5wXQ7azaysBYkN9wHVYEW27NPw@mail.gmail.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 25 Aug 2021 15:05:16 -0700
-Message-ID: <CAPcyv4i0PYOJthSs0UmgOAXSVZ0ggQNnS86ViLKVfCz8Bv0dgQ@mail.gmail.com>
-Subject: Re: [PATCH v2 0/2] virtio-pmem: Support PCI BAR-relative addresses
-To: Taylor Stark <tstark@linux.microsoft.com>
-Cc: Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	"Weiny, Ira" <ira.weiny@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, apais@microsoft.com, 
-	tyhicks@microsoft.com, jamorris@microsoft.com, benhill@microsoft.com, 
-	sunilmut@microsoft.com, grahamwo@microsoft.com, tstark@microsoft.com
+Date: Wed, 25 Aug 2021 15:08:30 -0700
+Message-ID: <CAPcyv4idY7GDYjXsvjduQ4rjfKo-qDgQoj5r6=Rr9poXqHEzeg@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] virtio-pmem: Async virtio-pmem flush
+To: Pankaj Gupta <pankaj.gupta@ionos.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, 
+	David Hildenbrand <david@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Cornelia Huck <cohuck@redhat.com>, 
+	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"Weiny, Ira" <ira.weiny@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Aug 25, 2021 at 2:56 PM Taylor Stark <tstark@linux.microsoft.com> wrote:
+On Wed, Aug 25, 2021 at 3:01 PM Pankaj Gupta <pankaj.gupta@ionos.com> wrote:
 >
-> On Tue, Aug 24, 2021 at 05:35:48PM -0700, Dan Williams wrote:
-> > On Thu, Jul 15, 2021 at 3:34 PM Taylor Stark <tstark@linux.microsoft.com> wrote:
+> > > Hi Dan,
 > > >
-> > > Changes from v1 [1]:
-> > >  - Fixed a bug where the guest might touch pmem region prior to the
-> > >    backing file being mapped into the guest's address space.
+> > > Thank you for the review. Please see my reply inline.
 > > >
-> > > [1]: https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg23736.html
+> > > > > Implement asynchronous flush for virtio pmem using work queue
+> > > > > to solve the preflush ordering issue. Also, coalesce the flush
+> > > > > requests when a flush is already in process.
+> > > > >
+> > > > > Signed-off-by: Pankaj Gupta <pankaj.gupta@ionos.com>
+> > > > > ---
+> > > > >  drivers/nvdimm/nd_virtio.c   | 72 ++++++++++++++++++++++++++++--------
+> > > > >  drivers/nvdimm/virtio_pmem.c | 10 ++++-
+> > > > >  drivers/nvdimm/virtio_pmem.h | 14 +++++++
+> > > > >  3 files changed, 79 insertions(+), 17 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> > > > > index 10351d5b49fa..61b655b583be 100644
+> > > > > --- a/drivers/nvdimm/nd_virtio.c
+> > > > > +++ b/drivers/nvdimm/nd_virtio.c
+> > > > > @@ -97,29 +97,69 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+> > > > >         return err;
+> > > > >  };
+> > > > >
+> > > > > +static void submit_async_flush(struct work_struct *ws);
+> > > > > +
+> > > > >  /* The asynchronous flush callback function */
+> > > > >  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+> > > > >  {
+> > > > > -       /*
+> > > > > -        * Create child bio for asynchronous flush and chain with
+> > > > > -        * parent bio. Otherwise directly call nd_region flush.
+> > > > > +       /* queue asynchronous flush and coalesce the flush requests */
+> > > > > +       struct virtio_device *vdev = nd_region->provider_data;
+> > > > > +       struct virtio_pmem *vpmem  = vdev->priv;
+> > > > > +       ktime_t req_start = ktime_get_boottime();
+> > > > > +
+> > > > > +       spin_lock_irq(&vpmem->lock);
+> > > > > +       /* flush requests wait until ongoing flush completes,
+> > > > > +        * hence coalescing all the pending requests.
+> > > > >          */
+> > > > > -       if (bio && bio->bi_iter.bi_sector != -1) {
+> > > > > -               struct bio *child = bio_alloc(GFP_ATOMIC, 0);
+> > > > > -
+> > > > > -               if (!child)
+> > > > > -                       return -ENOMEM;
+> > > > > -               bio_copy_dev(child, bio);
+> > > > > -               child->bi_opf = REQ_PREFLUSH;
+> > > > > -               child->bi_iter.bi_sector = -1;
+> > > > > -               bio_chain(child, bio);
+> > > > > -               submit_bio(child);
+> > > > > -               return 0;
+> > > > > +       wait_event_lock_irq(vpmem->sb_wait,
+> > > > > +                           !vpmem->flush_bio ||
+> > > > > +                           ktime_before(req_start, vpmem->prev_flush_start),
+> > > > > +                           vpmem->lock);
+> > > > > +       /* new request after previous flush is completed */
+> > > > > +       if (ktime_after(req_start, vpmem->prev_flush_start)) {
+> > > > > +               WARN_ON(vpmem->flush_bio);
+> > > > > +               vpmem->flush_bio = bio;
+> > > > > +               bio = NULL;
+> > > > > +       }
+> > > >
+> > > > Why the dance with ->prev_flush_start vs just calling queue_work()
+> > > > again. queue_work() is naturally coalescing in that if the last work
+> > > > request has not started execution another queue attempt will be
+> > > > dropped.
 > > >
-> > > ---
-> > >
-> > > These patches add support to virtio-pmem to allow the pmem region to be
-> > > specified in either guest absolute terms or as a PCI BAR-relative address.
-> > > This is required to support virtio-pmem in Hyper-V, since Hyper-V only
-> > > allows PCI devices to operate on PCI memory ranges defined via BARs.
-> > >
-> > > Taylor Stark (2):
-> > >   virtio-pmem: Support PCI BAR-relative addresses
-> > >   virtio-pmem: Set DRIVER_OK status prior to creating pmem region
+> > > How parent flush request will know when corresponding flush is completed?
 > >
-> > Are these patches still valid? I am only seeing one of them on the list.
+> > The eventual bio_endio() is what signals upper layers that the flush
+> > completed...
+> >
+> >
+> > Hold on... it's been so long that I forgot that you are copying
+> > md_flush_request() here. It would help immensely if that was mentioned
+> > in the changelog and at a minimum have a comment in the code that this
+> > was copied from md. In fact it would be extra helpful if you
 >
-> I'd hold off on taking a look for now. I'll need to post a v3 based on some
-> suggestions while I was updating the virtio-pmem spec. It's a small change
-> compared to the current patches (adds in a feature bit check). I'll post v3
-> when the virtio-pmem base spec goes in. More info here:
->
-> https://lists.oasis-open.org/archives/virtio-comment/202107/msg00169.html
->
-> And yes, I messed up how I sent the patches. First time making linux changes,
-> so I had some bumps while getting my email properly configured.. :)
+> My bad. I only mentioned this in the cover letter.
 
-No worries, yes it's a pain. It turns out Konstantin is trying to make
-that process easier for new contributors:
-
-https://lore.kernel.org/workflows/20210616171813.bwvu6mtl4ltotf7p@nitro.local/
-
-...but I don't think that's up and running yet.
+Yeah, sorry about that. Having come back to this after so long I just
+decided to jump straight into the patches, but even if I had read that
+cover I still would have given the feedback that md_flush_request()
+heritage should also be noted with a comment in the code.
