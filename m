@@ -1,85 +1,106 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BCA8E3FCB
-	for <nvdimm@lists.linux.dev>; Thu, 26 Aug 2021 14:42:21 +0000 (UTC)
-Received: by mail-pj1-f52.google.com with SMTP id fz10so2389730pjb.0
-        for <nvdimm@lists.linux.dev>; Thu, 26 Aug 2021 07:42:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ABTfU8gxdjv5n74FbYsyCDi8X7MNpO1jIxZ8zrk/JGc=;
-        b=RnM+EalWmI3PqG7GROErhErzyPvDbZCl0KTyuEsZ8rvwaXbCmLGYFo0yra0yZXKsar
-         gK732TMBNazrj5DR9ByMd3UdZOzjU1wCyhqFo++Dz5dnNmiau+yIflCs68+Qtk0bLvmD
-         WU1qzs7I1dCdU4qAnLydv3o+dt60dwm1PpLP6xm8EaBkpVmN7pzNVF0vda5VBS3dKner
-         IhF1jpU2gcPXjHxcJXA2tfQz0eUeS8yYMY+eKVIyig67TB1zvew32ziVngCOkemv3QEj
-         yppNGbWtyBRoXelyhp6VliZ0pKhRgYBRfs19XpiXUpK4P59cmR42IxfV7c+kphMG8VWg
-         3BCA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ABTfU8gxdjv5n74FbYsyCDi8X7MNpO1jIxZ8zrk/JGc=;
-        b=hsiGWhn/NVy3BRxxDUgq9KgZ7LOoDbMwBhcqihlL1+dt06BOH40x52KA4TgqSlnIHA
-         2OwTjwa96thnpNE+IC76cwv/eknDt7ilqM8uKmF74uXHq5CbLx0QtryI36yZzZTRNA0W
-         n6teVowKLPFX1FSKmB2mkXiJvl6WE/qci7EmiE3nMIyQSoXNyS9RBeeIMUnErQwpidqA
-         dVvn4wKpSZDV/peimpq3mLWrGUcU214Z+HKpHO+OMMCcCKNJWK2BvGiDHuciXIQuT4xR
-         tOU29Zuqcb/hjI+RCaUOPKK1qyYOqB4cPySJcrQHyDGnH00QRw/SmrTKlS4aYn3vD2jh
-         VmxQ==
-X-Gm-Message-State: AOAM533FX270gkZNVd35kmDG0K3TUcVa8N3LU93uR1EHzvFSZj0xicTC
-	j0ReDcwje3nZh3fej/XalfPOwoN3b5Vk3sw/jdtGyw==
-X-Google-Smtp-Source: ABdhPJzO1UFjPYxjHHDbPPyTeWuvMW2jYmROew+jJbFtaVcDFYVCU8mx/aezSMbrIMNKUs0Szwc4PU9+n1E6cYIivVo=
-X-Received: by 2002:a17:902:ba90:b0:135:6709:705 with SMTP id
- k16-20020a170902ba9000b0013567090705mr3869473pls.79.1629988941096; Thu, 26
- Aug 2021 07:42:21 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6283E3FCB
+	for <nvdimm@lists.linux.dev>; Thu, 26 Aug 2021 15:11:16 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E333B60F21;
+	Thu, 26 Aug 2021 15:11:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1629990676;
+	bh=YIVjWXw8f+ZBPD7zdaxiLaLkxWEJo/Ev3bHAZJpMGGE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nwIQ3u4HypRcZ0l2pi/CUVTLmWvNM+eWTq/XyYEfj4FurR5GlzGNOubvbYnDD3yRL
+	 N3mmB0NhI3n1SwAEl54C7mR6cEgPDf3MgDNv6tK09pzOgviTRnL8yQ0XvlNPDAi7Jt
+	 7A8/HL3tD0tZ3QXVcgdleoHaGCXYVEjvTmaP4OhnSI98AiXaPbwHzmAo9WzADNmKY2
+	 At+wezzks80f03wkv4tH6F+Z9IZGP3GAW5zlNZ/8QDJiMj7DPKQCAISt+mx1DBjTps
+	 v8Wn5aTnm2Fg7ipKZlcBBTlwKrSYYXJ9vWeervl40kMwdHW8uEZzqaaRBGDGhqVu8E
+	 jWIgH5T22HYaA==
+Date: Thu, 26 Aug 2021 08:11:15 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Mike Snitzer <snitzer@redhat.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	linux-xfs <linux-xfs@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	linux-ext4 <linux-ext4@vger.kernel.org>
+Subject: Re: [PATCH 8/9] xfs: factor out a xfs_buftarg_is_dax helper
+Message-ID: <20210826151115.GK12640@magnolia>
+References: <20210826135510.6293-1-hch@lst.de>
+ <20210826135510.6293-9-hch@lst.de>
+ <CAPcyv4jXAxSABiZ543xDWOnx0xGAq+LqjbQdqjs+6wbFgsqYyg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210826135510.6293-1-hch@lst.de> <20210826135510.6293-4-hch@lst.de>
-In-Reply-To: <20210826135510.6293-4-hch@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 26 Aug 2021 07:42:10 -0700
-Message-ID: <CAPcyv4ieXdjgxE+PkcUjuL7vdcnQfXhb_1aG2YeLtX9BZWVQfQ@mail.gmail.com>
-Subject: Re: [PATCH 3/9] dm: use fs_dax_get_by_bdev instead of dax_get_by_host
-To: Christoph Hellwig <hch@lst.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <willy@infradead.org>, 
-	linux-xfs <linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jXAxSABiZ543xDWOnx0xGAq+LqjbQdqjs+6wbFgsqYyg@mail.gmail.com>
 
-On Thu, Aug 26, 2021 at 6:59 AM Christoph Hellwig <hch@lst.de> wrote:
->
-> There is no point in trying to finding the dax device if the DAX flag is
-> not set on the queue as none of the users of the device mapper exported
-> block devices could make use of the DAX capability.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/md/dm.c | 2 +-
+On Thu, Aug 26, 2021 at 07:37:29AM -0700, Dan Williams wrote:
+> [ add Darrick ]
+> 
+> 
+> On Thu, Aug 26, 2021 at 7:07 AM Christoph Hellwig <hch@lst.de> wrote:
+> >
+> > Refactor the DAX setup code in preparation of removing
+> > bdev_dax_supported.
+> >
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  fs/xfs/xfs_super.c | 15 +++++++++++----
+> >  1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+> Darrick, any concerns with me taking this through the dax tree?
 
-Mike, any objections to me taking this through a dax branch?
+Nope.
 
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-> index 2c5f9e585211..465714341300 100644
-> --- a/drivers/md/dm.c
-> +++ b/drivers/md/dm.c
-> @@ -650,7 +650,7 @@ static int open_table_device(struct table_device *td, dev_t dev,
->         }
->
->         td->dm_dev.bdev = bdev;
-> -       td->dm_dev.dax_dev = dax_get_by_host(bdev->bd_disk->disk_name);
-> +       td->dm_dev.dax_dev = fs_dax_get_by_bdev(bdev);
->         return 0;
->  }
->
-> --
-> 2.30.2
->
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+
+--D
+
+> 
+> >
+> > diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> > index 2c9e26a44546..5a89bf601d97 100644
+> > --- a/fs/xfs/xfs_super.c
+> > +++ b/fs/xfs/xfs_super.c
+> > @@ -314,6 +314,14 @@ xfs_set_inode_alloc(
+> >         return (mp->m_flags & XFS_MOUNT_32BITINODES) ? maxagi : agcount;
+> >  }
+> >
+> > +static bool
+> > +xfs_buftarg_is_dax(
+> > +       struct super_block      *sb,
+> > +       struct xfs_buftarg      *bt)
+> > +{
+> > +       return bdev_dax_supported(bt->bt_bdev, sb->s_blocksize);
+> > +}
+> > +
+> >  STATIC int
+> >  xfs_blkdev_get(
+> >         xfs_mount_t             *mp,
+> > @@ -1549,11 +1557,10 @@ xfs_fs_fill_super(
+> >                 xfs_warn(mp,
+> >                 "DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> >
+> > -               datadev_is_dax = bdev_dax_supported(mp->m_ddev_targp->bt_bdev,
+> > -                       sb->s_blocksize);
+> > +               datadev_is_dax = xfs_buftarg_is_dax(sb, mp->m_ddev_targp);
+> >                 if (mp->m_rtdev_targp)
+> > -                       rtdev_is_dax = bdev_dax_supported(
+> > -                               mp->m_rtdev_targp->bt_bdev, sb->s_blocksize);
+> > +                       rtdev_is_dax = xfs_buftarg_is_dax(sb,
+> > +                                               mp->m_rtdev_targp);
+> >                 if (!rtdev_is_dax && !datadev_is_dax) {
+> >                         xfs_alert(mp,
+> >                         "DAX unsupported by block device. Turning off DAX.");
+> > --
+> > 2.30.2
+> >
+> >
