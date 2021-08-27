@@ -1,95 +1,143 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE0313FC1
-	for <nvdimm@lists.linux.dev>; Fri, 27 Aug 2021 12:10:36 +0000 (UTC)
-Received: by mail-qk1-f170.google.com with SMTP id 14so6885845qkc.4
-        for <nvdimm@lists.linux.dev>; Fri, 27 Aug 2021 05:10:36 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1F953FC6
+	for <nvdimm@lists.linux.dev>; Fri, 27 Aug 2021 12:39:41 +0000 (UTC)
+Received: by mail-lf1-f42.google.com with SMTP id b4so13990507lfo.13
+        for <nvdimm@lists.linux.dev>; Fri, 27 Aug 2021 05:39:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=tabyB924yXzKjpImGrZhEjdKF7M150xI6NXPXiRzacQ=;
-        b=BXOWR0PoIMXAKeleGwpfna7bI0eKjcWwgsphSW8ThLvagIpDr0ls8T2rwQF4WaCYAP
-         Nq8VthgBIjaMUmNkJJE5Hwe0p/+3AElNMwCti8WYko1Ip355vTLK41xamz4sDzkVarCy
-         TuTYufAPQjwnsjTbjgE8ZUjjOE4nIIg6xWTi5I0b8whsNLyXTuNpMRqj7m25O1m/kjyi
-         tGleiN1YawmdwDRDS6nIrbww73nh546jFUpBOYpQ8ryhiIH/GPQxhlfqdnkbPU9jgudD
-         udg/fSkl8CvxxWVRbSd6JBto62jmSLZwL21/ci7CBLE9os8UXBW4oIz1k3angsHEHn8J
-         OzjA==
+        d=ionos.com; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=rSCVAOdTzS6of67hqwXXSt/v4Q5zwDeqrRZRMqtOo4o=;
+        b=e1H4CnN0oVEEbKadjd940jNGpQ+4i9Is62sT4sD9RRPkpJVz//9sGynYDjUvr7qOqY
+         9+KZGi3nY6T3oO/klS2IhsDOR1ubpDzwNM0mGlITPJknlP/5lu5G+jOGUB8w4yh375z8
+         uUKOkX9MsDLDLQ+nCmgyS3p0++5c4UvqcciD12MAtYATXCJUM2KDAOYv7LLHK5YGTNiZ
+         7xe/lJg6+6fUoeLam6qlFtW4PTe5pGiTyAbnQ628L/BHbe+2n/o+7BiK1VLvKMxMTRTW
+         tuaOlJ3+A/24VY84DEXxONhu+KShaH4VqtEyFcis1ZvpKPS4XD4TF7G5IF0XmsA+xZMS
+         hlSw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=tabyB924yXzKjpImGrZhEjdKF7M150xI6NXPXiRzacQ=;
-        b=eQlUPb6kD200RgP6RE9lyr8MvzzIr+4Mnv/xBzeNDWbbkKEX5OBrbVKkbZKdhDAOL3
-         1omOQ8gXk9qhkzqfrLXglpRI1dXPDGzmgrNYevaVehwLJ1InwAN87sGpAO4a/fXuEmYl
-         ms26rb7NBPMMjzQStMXTbuA8La5Qj166VkUpCfW2UnA42G6+yoNkZzHgbzQfv048GKE4
-         FMT1dAiZOXSeBqn2jk5y0F0MZnyMKCgo5DML6WAJZE2OlLMaP/P4/SoXLgRELjI3y7Wp
-         mBEsTD/KFkOotD5GDBmUBVr1y79E7UJv17AXJAP8bifF+mAC/miNMzqJPfYwqOGKdDx8
-         a8gA==
-X-Gm-Message-State: AOAM531pkADNBiwnQ6Ow7O0lzNXuZ6KBi50KSMimJEuKux8A3+pRQnYx
-	w/BR8K4yINWhH1qTeuXYxpt04Q==
-X-Google-Smtp-Source: ABdhPJxcPlkQBE/+4Tx66G5euuWsIpG7RqUHiGHzvkWM9wne3DI0N4maWU6ebpmyWqNselqD09P/QQ==
-X-Received: by 2002:a05:620a:7d5:: with SMTP id 21mr8703422qkb.339.1630066235609;
-        Fri, 27 Aug 2021 05:10:35 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
-        by smtp.gmail.com with ESMTPSA id b1sm3451778qtj.76.2021.08.27.05.10.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Aug 2021 05:10:35 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1mJags-005eR4-H7; Fri, 27 Aug 2021 09:10:34 -0300
-Date: Fri, 27 Aug 2021 09:10:34 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: "lizhijian@fujitsu.com" <lizhijian@fujitsu.com>
-Cc: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	Yishai Hadas <yishaih@nvidia.com>,
-	"linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"yangx.jy@fujitsu.com" <yangx.jy@fujitsu.com>
-Subject: Re: RDMA/rpma + fsdax(ext4) was broken since 36f30e486d
-Message-ID: <20210827121034.GG1200268@ziepe.ca>
-References: <8b2514bb-1d4b-48bb-a666-85e6804fbac0@cn.fujitsu.com>
- <68169bc5-075f-8260-eedc-80fdf4b0accd@cn.fujitsu.com>
- <20210806014559.GM543798@ziepe.ca>
- <b5e6c4cd-8842-59ef-c089-2802057f3202@cn.fujitsu.com>
- <10c4bead-c778-8794-f916-80bf7ba3a56b@fujitsu.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=rSCVAOdTzS6of67hqwXXSt/v4Q5zwDeqrRZRMqtOo4o=;
+        b=i7+Psabbc5eeF0pU186FrT+fmQMrD4+Z4xKe4Kt4J43KlcdmaWI7LC9WEe7J89EafJ
+         2FCVou0N8iadA9oTMORHy/3XGRp5Dm3UdtVld7FCZSlE9nq/25dtz6TON7yM9PPUfbac
+         mVJJ9by5RnBnj6BJm8GECqVkBLohQP9lFirb/MgUox+rQJGkBGf7m2KXiBoey4gk3e3S
+         Euhdiq/Zq2FWdlSt3XbG92BGANG5zi1R9g0AA7DYs4buMrqW+n5zuLflYvek/b0jInGN
+         C1Tl2Ly3h7nywSYKzGgEgzNCm/vFq4LjQVC1df9ap//GIwjaqsi8Y7Pfh2PxsIwhbMAE
+         z6WA==
+X-Gm-Message-State: AOAM530Whv4av/5AKW7us62VIRhmGy51l0a7ru9AfLZAFexry4tzEw8I
+	Sapb+YJU2t8RY/rFSgJ+UlV5PmEMmJQ4Bek8C9wfHg==
+X-Google-Smtp-Source: ABdhPJxb8nP92sVAh62cKernHOP1MWRfQb68gcojS0Hh9rRTVhgY8RCAwZxU1/qQehPnXDTY0/jHdLv2Pp4Pb8OtBtE=
+X-Received: by 2002:a19:5f0d:: with SMTP id t13mr6558353lfb.229.1630067979561;
+ Fri, 27 Aug 2021 05:39:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <10c4bead-c778-8794-f916-80bf7ba3a56b@fujitsu.com>
+References: <20210726060855.108250-1-pankaj.gupta.linux@gmail.com>
+ <20210726060855.108250-2-pankaj.gupta.linux@gmail.com> <CAPcyv4inCFFXmg0r5+h0O6cADpt9HdboVDEL00XX-wGroy-7LQ@mail.gmail.com>
+ <CAM9Jb+hqPBFUh9X4sKb9TUGXX1P0mC1xcuCNQx1BYvAvoP9uQg@mail.gmail.com>
+ <CAPcyv4gUG1-y1u0ZyUkSGXg0eER_oTdexb8n-CYgb_rURvr8LA@mail.gmail.com>
+ <CALzYo32AnNzENe414GDVivaF5wXQ7azaysBYkN9wHVYEW27NPw@mail.gmail.com> <CAPcyv4idY7GDYjXsvjduQ4rjfKo-qDgQoj5r6=Rr9poXqHEzeg@mail.gmail.com>
+In-Reply-To: <CAPcyv4idY7GDYjXsvjduQ4rjfKo-qDgQoj5r6=Rr9poXqHEzeg@mail.gmail.com>
+From: Pankaj Gupta <pankaj.gupta@ionos.com>
+Date: Fri, 27 Aug 2021 14:39:28 +0200
+Message-ID: <CALzYo315CXhcO2Dph010WazWBYkaAeEuGdjUFDnJcsVBDa5LNQ@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] virtio-pmem: Async virtio-pmem flush
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, 
+	David Hildenbrand <david@redhat.com>, "Michael S. Tsirkin" <mst@redhat.com>, Cornelia Huck <cohuck@redhat.com>, 
+	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"Weiny, Ira" <ira.weiny@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Aug 27, 2021 at 08:15:40AM +0000, lizhijian@fujitsu.com wrote:
-> i looked over the change-log of hmm_vma_handle_pte(), and found that before
-> 4055062 ("mm/hmm: add missing call to hmm_pte_need_fault in HMM_PFN_SPECIAL handling")
-> 
-> hmm_vma_handle_pte() will not check pte_special(pte) if pte_devmap(pte) is true.
-> 
-> when we reached
-> "if (pte_special(pte) && !is_zero_pfn(pte_pfn(pte))) {"
-> the pte have already presented and its pte's flag already fulfilled the request flags.
-> 
-> 
-> My question is that
-> Per https://01.org/blogs/dave/2020/linux-consumption-x86-page-table-bits,
-> pte_devmap(pte) and pte_special(pte) could be both true in fsdax user case, right ?
+> > > > > > Implement asynchronous flush for virtio pmem using work queue
+> > > > > > to solve the preflush ordering issue. Also, coalesce the flush
+> > > > > > requests when a flush is already in process.
+> > > > > >
+> > > > > > Signed-off-by: Pankaj Gupta <pankaj.gupta@ionos.com>
+> > > > > > ---
+> > > > > >  drivers/nvdimm/nd_virtio.c   | 72 ++++++++++++++++++++++++++++--------
+> > > > > >  drivers/nvdimm/virtio_pmem.c | 10 ++++-
+> > > > > >  drivers/nvdimm/virtio_pmem.h | 14 +++++++
+> > > > > >  3 files changed, 79 insertions(+), 17 deletions(-)
+> > > > > >
+> > > > > > diff --git a/drivers/nvdimm/nd_virtio.c b/drivers/nvdimm/nd_virtio.c
+> > > > > > index 10351d5b49fa..61b655b583be 100644
+> > > > > > --- a/drivers/nvdimm/nd_virtio.c
+> > > > > > +++ b/drivers/nvdimm/nd_virtio.c
+> > > > > > @@ -97,29 +97,69 @@ static int virtio_pmem_flush(struct nd_region *nd_region)
+> > > > > >         return err;
+> > > > > >  };
+> > > > > >
+> > > > > > +static void submit_async_flush(struct work_struct *ws);
+> > > > > > +
+> > > > > >  /* The asynchronous flush callback function */
+> > > > > >  int async_pmem_flush(struct nd_region *nd_region, struct bio *bio)
+> > > > > >  {
+> > > > > > -       /*
+> > > > > > -        * Create child bio for asynchronous flush and chain with
+> > > > > > -        * parent bio. Otherwise directly call nd_region flush.
+> > > > > > +       /* queue asynchronous flush and coalesce the flush requests */
+> > > > > > +       struct virtio_device *vdev = nd_region->provider_data;
+> > > > > > +       struct virtio_pmem *vpmem  = vdev->priv;
+> > > > > > +       ktime_t req_start = ktime_get_boottime();
+> > > > > > +
+> > > > > > +       spin_lock_irq(&vpmem->lock);
+> > > > > > +       /* flush requests wait until ongoing flush completes,
+> > > > > > +        * hence coalescing all the pending requests.
+> > > > > >          */
+> > > > > > -       if (bio && bio->bi_iter.bi_sector != -1) {
+> > > > > > -               struct bio *child = bio_alloc(GFP_ATOMIC, 0);
+> > > > > > -
+> > > > > > -               if (!child)
+> > > > > > -                       return -ENOMEM;
+> > > > > > -               bio_copy_dev(child, bio);
+> > > > > > -               child->bi_opf = REQ_PREFLUSH;
+> > > > > > -               child->bi_iter.bi_sector = -1;
+> > > > > > -               bio_chain(child, bio);
+> > > > > > -               submit_bio(child);
+> > > > > > -               return 0;
+> > > > > > +       wait_event_lock_irq(vpmem->sb_wait,
+> > > > > > +                           !vpmem->flush_bio ||
+> > > > > > +                           ktime_before(req_start, vpmem->prev_flush_start),
+> > > > > > +                           vpmem->lock);
+> > > > > > +       /* new request after previous flush is completed */
+> > > > > > +       if (ktime_after(req_start, vpmem->prev_flush_start)) {
+> > > > > > +               WARN_ON(vpmem->flush_bio);
+> > > > > > +               vpmem->flush_bio = bio;
+> > > > > > +               bio = NULL;
+> > > > > > +       }
+> > > > >
+> > > > > Why the dance with ->prev_flush_start vs just calling queue_work()
+> > > > > again. queue_work() is naturally coalescing in that if the last work
+> > > > > request has not started execution another queue attempt will be
+> > > > > dropped.
+> > > >
+> > > > How parent flush request will know when corresponding flush is completed?
+> > >
+> > > The eventual bio_endio() is what signals upper layers that the flush
+> > > completed...
+> > >
+> > >
+> > > Hold on... it's been so long that I forgot that you are copying
+> > > md_flush_request() here. It would help immensely if that was mentioned
+> > > in the changelog and at a minimum have a comment in the code that this
+> > > was copied from md. In fact it would be extra helpful if you
+> >
+> > My bad. I only mentioned this in the cover letter.
+>
+> Yeah, sorry about that. Having come back to this after so long I just
+> decided to jump straight into the patches, but even if I had read that
+> cover I still would have given the feedback that md_flush_request()
+> heritage should also be noted with a comment in the code.
 
-How? what code creates that?
+Sure.
 
-I see:
-
-insert_pfn():
-	/* Ok, finally just insert the thing.. */
-	if (pfn_t_devmap(pfn))
-		entry = pte_mkdevmap(pfn_t_pte(pfn, prot));
-	else
-		entry = pte_mkspecial(pfn_t_pte(pfn, prot));
-
-So what code path ends up setting both bits?
-
-Jason
+Thanks,
+Pankaj
