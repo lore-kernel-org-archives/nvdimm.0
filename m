@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4BE353FCD
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99B4C3FD1
 	for <nvdimm@lists.linux.dev>; Fri, 27 Aug 2021 19:18:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=27odH5nuWhozi1ECDZZ4goiUsLRrmSNLiICgWw9rj94=; b=RoVROwonXgehtqGc+uNEhBcWcZ
-	R5TCqcCZrOdRGr9HUPwtMi32e/ae/EkxCUSAPtRc6M2LeT6rdituE92p30lXXWNaVFoW1e/c2e6Jb
-	kraEvvyQ0M5bcOebJtmKBzhn/SKTI3nIuCgdJLTg8IUxMR9sn5GxY4zSbxxEz0K4wwzTyI0DP5qL4
-	2x+bE9BxAJsWm1ucxECHkU1A/iGQVGxBjvTqucWQarpvTa/rJT4JydPtEf/YgYxRjQJlkZQbeG6KC
-	TpQ8GMDtI1KQRlMQi4ArGei1Q6BvaQQHz0c7jbbmvYnpnnYjjiZOxdHBsmeZG072BsLXL5mGH59Kg
-	DQxVvblQ==;
+	bh=KzwjtOOfTw3O+GVEV4PWsbl44+6kR5dP++6Kf9jn+mM=; b=22AEbFZXnUBijnmWHGiRM2ca1G
+	I7DdRw6q+h1AAkzSSsriWrRm6rwQttirydRWTxP+Dc9ypWHGLmyBkFTpVBbwVVN07dFqnD9aBeiW1
+	oTj47B/RZJlwgZTa3Mvy0Z2HINQE1ANIR5vX3wgFRLERYG89rawNAiCgeBr3FqDrB/czdQF1B6XIp
+	Y+XgiGc3NadMhe8cZIBRxzuCtj3wgELhBZsQklN3du2PKCibgxt1CkHiHjYKl0SXXjZCp3PdmSI0U
+	D1Oum0CpCf1bGZ/OZm1TiyGZOKJOMo0Bl8dluQpmwqyy42PlPzUePzImhvPpzLv9ZMVomsm/80u0z
+	pidRqVQg==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mJhMh-00D5B1-9r; Fri, 27 Aug 2021 19:18:11 +0000
+	id 1mJhMh-00D5BC-FT; Fri, 27 Aug 2021 19:18:11 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	colyli@suse.de,
@@ -40,9 +40,9 @@ Cc: xen-devel@lists.xenproject.org,
 	linux-block@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH 05/10] nvdimm/btt: use goto error labels on btt_blk_init()
-Date: Fri, 27 Aug 2021 12:18:04 -0700
-Message-Id: <20210827191809.3118103-6-mcgrof@kernel.org>
+Subject: [PATCH 09/10] xen-blkfront: add error handling support for add_disk()
+Date: Fri, 27 Aug 2021 12:18:08 -0700
+Message-Id: <20210827191809.3118103-10-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210827191809.3118103-1-mcgrof@kernel.org>
 References: <20210827191809.3118103-1-mcgrof@kernel.org>
@@ -55,60 +55,41 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: Luis Chamberlain <mcgrof@infradead.org>
 
-This will make it easier to share common error paths.
+We never checked for errors on device_add_disk() as this function
+returned void. Now that this is fixed, use the shiny new error
+handling. The function xlvbd_alloc_gendisk() typically does the
+unwinding on error on allocating the disk and creating the tag,
+but since all that error handling was stuffed inside
+xlvbd_alloc_gendisk() we must repeat the tag free'ing as well.
+
+We set the info->rq to NULL to ensure blkif_free() doesn't crash
+on blk_mq_stop_hw_queues() on device_add_disk() error as the queue
+will be long gone by then.
 
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/nvdimm/btt.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ drivers/block/xen-blkfront.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 3fd1bdb9fc05..275704d80109 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1520,10 +1520,11 @@ static int btt_blk_init(struct btt *btt)
- {
- 	struct nd_btt *nd_btt = btt->nd_btt;
- 	struct nd_namespace_common *ndns = nd_btt->ndns;
-+	int rc = -ENOMEM;
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 715bfa8aca7f..9fe28af5f6d9 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -2343,7 +2343,13 @@ static void blkfront_connect(struct blkfront_info *info)
+ 	for_each_rinfo(info, rinfo, i)
+ 		kick_pending_request_queues(rinfo);
  
- 	btt->btt_disk = blk_alloc_disk(NUMA_NO_NODE);
- 	if (!btt->btt_disk)
--		return -ENOMEM;
-+		goto out;
+-	device_add_disk(&info->xbdev->dev, info->gd, NULL);
++	err = device_add_disk(&info->xbdev->dev, info->gd, NULL);
++	if (err) {
++		blk_cleanup_disk(info->gd);
++		blk_mq_free_tag_set(&info->tag_set);
++		info->rq = NULL;
++		goto fail;
++	}
  
- 	nvdimm_namespace_disk_name(ndns, btt->btt_disk->disk_name);
- 	btt->btt_disk->first_minor = 0;
-@@ -1535,19 +1536,23 @@ static int btt_blk_init(struct btt *btt)
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, btt->btt_disk->queue);
- 
- 	if (btt_meta_size(btt)) {
--		int rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
--
--		if (rc) {
--			blk_cleanup_disk(btt->btt_disk);
--			return rc;
--		}
-+		rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
-+		if (rc)
-+			goto out_cleanup_disk;
- 	}
-+
- 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
- 	device_add_disk(&btt->nd_btt->dev, btt->btt_disk, NULL);
-+
- 	btt->nd_btt->size = btt->nlba * (u64)btt->sector_size;
- 	nvdimm_check_and_set_ro(btt->btt_disk);
- 
- 	return 0;
-+
-+out_cleanup_disk:
-+	blk_cleanup_disk(btt->btt_disk);
-+out:
-+	return rc;
- }
- 
- static void btt_blk_cleanup(struct btt *btt)
+ 	info->is_ready = 1;
+ 	return;
 -- 
 2.30.2
 
