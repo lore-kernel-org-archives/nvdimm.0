@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37A323FC1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 37A5F2FAE
 	for <nvdimm@lists.linux.dev>; Fri, 27 Aug 2021 19:18:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=MlI7d0NX6/gbusr57eEjs+4gHr0mIPfbnhczoHLdvTU=; b=FiVuZjEeF4M9ZPaADvhCFh2tVN
-	DYzuVOnQmxkB6JoMep8Nf6n0GlJbr2Q8vO49ziGqNHa6U7Oit5uXjxVqrkzljKd5V4BEzEEAUkUD6
-	YkPOGbzZDCekCv+riLl+K1iJzN5XsHP27b3OELPN4/xukR2OO/D0M/BfnulrdBkq6hBZbx5yvaWR8
-	jYpGUufJSWYUf92kagUPDE7vDOe+VuqHuiQQ+vWtf/BMkP8rZiEbfsWLqq+zspf5RTu1JOPpd0SDd
-	pZexEgoIjJykLfRqUEO6XEGLamStM3CeBh+3o8KVyzA5W26cCP7v0d2MiCEfgKaU9kuR6jvDKuurb
-	gNssezdw==;
+	bh=vLYLL0oFZhxGylgSJPWXsGjPK2psQoUWyxkb9au47Xw=; b=O3AoZlZnbbHQwfvGAtYvirog88
+	EON0OdRqJ6ZNzUhguT3+31CMn99Dygty5KuFC7VLotkku9ilfuOy06Oc7/54lv5yP7YxlxivOMJuF
+	hD2YhvsrCtHG51gDcXamrBh68I6Ogwu0ifCKgUDsQBoyWwXuMLFKxdlQcc+TFIr84VKkggf/t61i6
+	e5dMcioA6KN+rhWZTtIsd8fu8k/YXGPA6Qfjktzpj0VLdY+6m1toijsuQeqiSXIcBBQSLwvDBDi+v
+	lgKdIIRbsqr8QoIXbG3zrVctqdrqvShN+LA602q9Y7/vv5WNzB+RE7I1AQx/cTOh147AgEQchMFg2
+	vWX3qxJg==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mJhMh-00D5B4-BH; Fri, 27 Aug 2021 19:18:11 +0000
+	id 1mJhMh-00D5B9-Dv; Fri, 27 Aug 2021 19:18:11 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	colyli@suse.de,
@@ -40,9 +40,9 @@ Cc: xen-devel@lists.xenproject.org,
 	linux-block@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH 06/10] nvdimm/btt: add error handling support for add_disk()
-Date: Fri, 27 Aug 2021 12:18:05 -0700
-Message-Id: <20210827191809.3118103-7-mcgrof@kernel.org>
+Subject: [PATCH 08/10] nvdimm/blk: add error handling support for add_disk()
+Date: Fri, 27 Aug 2021 12:18:07 -0700
+Message-Id: <20210827191809.3118103-9-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210827191809.3118103-1-mcgrof@kernel.org>
 References: <20210827191809.3118103-1-mcgrof@kernel.org>
@@ -59,26 +59,36 @@ We never checked for errors on add_disk() as this function
 returned void. Now that this is fixed, use the shiny new
 error handling.
 
+Since nvdimm/blk uses devm we just need to move the devm
+registration towards the end. And in hindsight, that seems
+to also provide a fix given del_gendisk() should not be
+called unless the disk was already added via add_disk().
+The probably of that issue happening is low though, like
+OOM while calling devm_add_action(), so the fix is minor.
+
+We manually unwind in case of add_disk() failure prior
+to the devm registration.
+
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/nvdimm/btt.c | 4 +++-
+ drivers/nvdimm/blk.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 275704d80109..abdac4b7769f 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1542,7 +1542,9 @@ static int btt_blk_init(struct btt *btt)
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index 591fa1f86f1e..9f1eb41404ac 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -265,7 +265,9 @@ static int nsblk_attach_disk(struct nd_namespace_blk *nsblk)
  	}
  
- 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
--	device_add_disk(&btt->nd_btt->dev, btt->btt_disk, NULL);
-+	rc = device_add_disk(&btt->nd_btt->dev, btt->btt_disk, NULL);
+ 	set_capacity(disk, available_disk_size >> SECTOR_SHIFT);
+-	device_add_disk(dev, disk, NULL);
++	rc = device_add_disk(dev, disk, NULL);
 +	if (rc)
-+		goto out_cleanup_disk;
++		goto out_before_devm_err;
  
- 	btt->nd_btt->size = btt->nlba * (u64)btt->sector_size;
- 	nvdimm_check_and_set_ro(btt->btt_disk);
+ 	/* nd_blk_release_disk() is called if this fails */
+ 	if (devm_add_action_or_reset(dev, nd_blk_release_disk, disk))
 -- 
 2.30.2
 
