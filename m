@@ -1,180 +1,174 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id B3E1F3FC6
-	for <nvdimm@lists.linux.dev>; Sun, 29 Aug 2021 12:26:02 +0000 (UTC)
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AS8vJoqjzGyl/1NnrZVeaRdGVgnBQXj4ji2hC?=
- =?us-ascii?q?6mlwRA09TySZ//rBoB19726TtN9xYgBYpTnuAsm9qB/nmaKdpLNhWItKPzOW31?=
- =?us-ascii?q?dATrsSjrcKqgeIc0aVm9K1l50QF5SWY+eQMbEVt6nHCXGDYrQdKce8gd2VrNab?=
- =?us-ascii?q?33FwVhtrdq0lyw94DzyQGkpwSBIuP+tDKLOsotpAuyG7eWkaKuCyBnw+VeDFoN?=
- =?us-ascii?q?HR0L38ZxpuPW9c1CC+ySOv9KXhEwWVmjMXUzZ0y78k9mTf1yzVj5/Ty82G9g?=
- =?us-ascii?q?=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.84,361,1620662400"; 
-   d="scan'208";a="113656488"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 29 Aug 2021 20:26:02 +0800
-Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
-	by cn.fujitsu.com (Postfix) with ESMTP id 77ACE4D0D9D7;
-	Sun, 29 Aug 2021 20:25:56 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Sun, 29 Aug 2021 20:25:50 +0800
-Received: from irides.mr.mr.mr (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Sun, 29 Aug 2021 20:25:50 +0800
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <djwong@kernel.org>, <hch@lst.de>, <linux-xfs@vger.kernel.org>
-CC: <ruansy.fnst@fujitsu.com>, <dan.j.williams@intel.com>,
-	<david@fromorbit.com>, <linux-fsdevel@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <nvdimm@lists.linux.dev>, <rgoldwyn@suse.de>,
-	<viro@zeniv.linux.org.uk>, <willy@infradead.org>
-Subject: [PATCH v8 7/7] xfs: Add dax dedupe support
-Date: Sun, 29 Aug 2021 20:25:17 +0800
-Message-ID: <20210829122517.1648171-8-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20210829122517.1648171-1-ruansy.fnst@fujitsu.com>
-References: <20210829122517.1648171-1-ruansy.fnst@fujitsu.com>
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 500863FC1
+	for <nvdimm@lists.linux.dev>; Mon, 30 Aug 2021 13:07:44 +0000 (UTC)
+Received: by mail-qv1-f50.google.com with SMTP id 4so1403952qvp.3
+        for <nvdimm@lists.linux.dev>; Mon, 30 Aug 2021 06:07:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ziepe.ca; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=1qnygVIdbO5qF5LsQbT9hI/Ok2qT9hqw4DyjZOskK38=;
+        b=FCbsWnp1YMdAAs88hVebCbV+bCns5Qdb54WRn1kBoOvfwzfzSYGllmcv2DaVXBUGrI
+         biw7fjnU8dNz9qKs3ofhsuUdDhf4gGecWEpgv10rtdqNCC7NPCan0ag12uLILA3uv9Fl
+         fX0YQZ2JcmSufsB1g80pckdiEbo8/wZnrbP8BbDziymWYLQ3fOUE4ZnjLs5NcZ+0d17K
+         iSRlJ3Is1H/85BygstMwNJTywr4UlawNJPo9wpKRj3iVwFhu4dMYpCrVtmpDZ2psxdfb
+         lwKdvNMD850i7auhmlR5sIu+zbhpuWIzHkUXgM1FUBWa7cs1mtmF+05dWg/lVzgo+IJe
+         P3+A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=1qnygVIdbO5qF5LsQbT9hI/Ok2qT9hqw4DyjZOskK38=;
+        b=YeBpjVihKXt4pJiPHeKX93FypOlXlUZCwuus6vv+iOixf9KDH/oRTkLE3jhyNbAdek
+         sk+k2mz8dkqwKHxdV+kt6KnnJe/+sg4s6Xi2PHQn+gBd9oHeoRQl3jbk5b8p4DAZiBBa
+         P3KM+WjD27yMh4yul1/ujnhaUisxpIUYRcjWn6oRyztTLRZos0qXzft9mDFW8EQD4TgM
+         9mgjsO1EkD2u7JAMnmb3JvgzJFiAaIK1/uakUToW5yxVkjhTUfa/D4RmegritpQTPoxg
+         YUxocrkgRNoMsnOYCFUWqSr6B9/TUpC1hxH3pcOV54Z0vu0paz+KoZWFN23MmsaWT6pX
+         7uWw==
+X-Gm-Message-State: AOAM530CekBobScitBkmXuz4W4n4QzMV9sKJmt2fVP9RL4YjdnfEotA2
+	2J+SLuXcGYaUShjFkHbLj8DoIg==
+X-Google-Smtp-Source: ABdhPJyJOTt2clWfHDjZgw7CKauIEY9N24woeOtrgL67oYkMzCrstsgj0LDvTSCcn/YsRwfBoO1BSw==
+X-Received: by 2002:a05:6214:250f:: with SMTP id gf15mr23180471qvb.2.1630328863099;
+        Mon, 30 Aug 2021 06:07:43 -0700 (PDT)
+Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
+        by smtp.gmail.com with ESMTPSA id c4sm9235157qkf.122.2021.08.30.06.07.42
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 30 Aug 2021 06:07:42 -0700 (PDT)
+Received: from jgg by mlx with local (Exim 4.94)
+	(envelope-from <jgg@ziepe.ca>)
+	id 1mKh0n-007CHr-Ea; Mon, 30 Aug 2021 10:07:41 -0300
+Date: Mon, 30 Aug 2021 10:07:41 -0300
+From: Jason Gunthorpe <jgg@ziepe.ca>
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: linux-mm@kvack.org, Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	Naoya Horiguchi <naoya.horiguchi@nec.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>,
+	Muchun Song <songmuchun@bytedance.com>,
+	Mike Kravetz <mike.kravetz@oracle.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
+	nvdimm@lists.linux.dev, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v4 08/14] mm/gup: grab head page refcount once for group
+ of subpages
+Message-ID: <20210830130741.GO1200268@ziepe.ca>
+References: <20210827145819.16471-1-joao.m.martins@oracle.com>
+ <20210827145819.16471-9-joao.m.martins@oracle.com>
+ <20210827162552.GK1200268@ziepe.ca>
+ <da90638d-d97f-bacb-f0fa-01f5fd9f2504@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-yoursite-MailScanner-ID: 77ACE4D0D9D7.A3E34
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <da90638d-d97f-bacb-f0fa-01f5fd9f2504@oracle.com>
 
-Introduce xfs_mmaplock_two_inodes_and_break_dax_layout() for dax files
-who are going to be deduped.  After that, call compare range function
-only when files are both DAX or not.
+On Fri, Aug 27, 2021 at 07:34:54PM +0100, Joao Martins wrote:
+> On 8/27/21 5:25 PM, Jason Gunthorpe wrote:
+> > On Fri, Aug 27, 2021 at 03:58:13PM +0100, Joao Martins wrote:
+> > 
+> >>  #if defined(CONFIG_ARCH_HAS_PTE_DEVMAP) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+> >>  static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+> >>  			     unsigned long end, unsigned int flags,
+> >>  			     struct page **pages, int *nr)
+> >>  {
+> >> -	int nr_start = *nr;
+> >> +	int refs, nr_start = *nr;
+> >>  	struct dev_pagemap *pgmap = NULL;
+> >>  	int ret = 1;
+> >>  
+> >>  	do {
+> >> -		struct page *page = pfn_to_page(pfn);
+> >> +		struct page *head, *page = pfn_to_page(pfn);
+> >> +		unsigned long next = addr + PAGE_SIZE;
+> >>  
+> >>  		pgmap = get_dev_pagemap(pfn, pgmap);
+> >>  		if (unlikely(!pgmap)) {
+> >> @@ -2252,16 +2265,25 @@ static int __gup_device_huge(unsigned long pfn, unsigned long addr,
+> >>  			ret = 0;
+> >>  			break;
+> >>  		}
+> >> -		SetPageReferenced(page);
+> >> -		pages[*nr] = page;
+> >> -		if (unlikely(!try_grab_page(page, flags))) {
+> >> -			undo_dev_pagemap(nr, nr_start, flags, pages);
+> >> +
+> >> +		head = compound_head(page);
+> >> +		/* @end is assumed to be limited at most one compound page */
+> >> +		if (PageHead(head))
+> >> +			next = end;
+> >> +		refs = record_subpages(page, addr, next, pages + *nr);
+> >> +
+> >> +		SetPageReferenced(head);
+> >> +		if (unlikely(!try_grab_compound_head(head, refs, flags))) {
+> >> +			if (PageHead(head))
+> >> +				ClearPageReferenced(head);
+> >> +			else
+> >> +				undo_dev_pagemap(nr, nr_start, flags, pages);
+> >>  			ret = 0;
+> >>  			break;
+> > 
+> > Why is this special cased for devmap?
+> > 
+> > Shouldn't everything processing pud/pmds/etc use the same basic loop
+> > that is similar in idea to the 'for_each_compound_head' scheme in
+> > unpin_user_pages_dirty_lock()?
+> > 
+> > Doesn't that work for all the special page type cases here?
+> 
+> We are iterating over PFNs to create an array of base pages (regardless of page table
+> type), rather than iterating over an array of pages to work on. 
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
----
- fs/xfs/xfs_file.c    |  2 +-
- fs/xfs/xfs_inode.c   | 57 ++++++++++++++++++++++++++++++++++++++++++++
- fs/xfs/xfs_inode.h   |  1 +
- fs/xfs/xfs_reflink.c |  4 ++--
- 4 files changed, 61 insertions(+), 3 deletions(-)
+That is part of it, yes, but the slow bit here is to minimally find
+the head pages and do the atomics on them, much like the
+unpin_user_pages_dirty_lock()
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index d57f94c523c7..e23f2cfa4da8 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -846,7 +846,7 @@ xfs_wait_dax_page(
- 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- }
- 
--static int
-+int
- xfs_break_dax_layouts(
- 	struct inode		*inode,
- 	bool			*retry)
-diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
-index 990b72ae3635..4b44d9d1e42a 100644
---- a/fs/xfs/xfs_inode.c
-+++ b/fs/xfs/xfs_inode.c
-@@ -3727,6 +3727,59 @@ xfs_iolock_two_inodes_and_break_layout(
- 	return 0;
- }
- 
-+static int
-+xfs_mmaplock_two_inodes_and_break_dax_layout(
-+	struct xfs_inode	*ip1,
-+	struct xfs_inode	*ip2)
-+{
-+	int			error, attempts = 0;
-+	bool			retry;
-+	struct page		*page;
-+	struct xfs_log_item	*lp;
-+
-+	if (ip1->i_ino > ip2->i_ino)
-+		swap(ip1, ip2);
-+
-+again:
-+	retry = false;
-+	/* Lock the first inode */
-+	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
-+	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
-+	if (error || retry) {
-+		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-+		goto again;
-+	}
-+
-+	if (ip1 == ip2)
-+		return 0;
-+
-+	/* Nested lock the second inode */
-+	lp = &ip1->i_itemp->ili_item;
-+	if (lp && test_bit(XFS_LI_IN_AIL, &lp->li_flags)) {
-+		if (!xfs_ilock_nowait(ip2,
-+		    xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1))) {
-+			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-+			if ((++attempts % 5) == 0)
-+				delay(1); /* Don't just spin the CPU */
-+			goto again;
-+		}
-+	} else
-+		xfs_ilock(ip2, xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1));
-+	/*
-+	 * We cannot use xfs_break_dax_layouts() directly here because it may
-+	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
-+	 * for this nested lock case.
-+	 */
-+	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
-+	if (page && page_ref_count(page) != 1) {
-+		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
-+		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-+		goto again;
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * Lock two inodes so that userspace cannot initiate I/O via file syscalls or
-  * mmap activity.
-@@ -3741,6 +3794,10 @@ xfs_ilock2_io_mmap(
- 	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
- 	if (ret)
- 		return ret;
-+
-+	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2)))
-+		return xfs_mmaplock_two_inodes_and_break_dax_layout(ip1, ip2);
-+
- 	if (ip1 == ip2)
- 		xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
- 	else
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index 4b6703dbffb8..f1547330b087 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -456,6 +456,7 @@ enum xfs_prealloc_flags {
- 
- int	xfs_update_prealloc_flags(struct xfs_inode *ip,
- 				  enum xfs_prealloc_flags flags);
-+int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
- int	xfs_break_layouts(struct inode *inode, uint *iolock,
- 		enum layout_break_reason reason);
- 
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 13e461cf2055..86c737c2baeb 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1327,8 +1327,8 @@ xfs_reflink_remap_prep(
- 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
- 		goto out_unlock;
- 
--	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	/* Don't share DAX file data with non-DAX file. */
-+	if (IS_DAX(inode_in) != IS_DAX(inode_out))
- 		goto out_unlock;
- 
- 	if (!IS_DAX(inode_in))
--- 
-2.32.0
+I would think this should be designed similar to how things work on
+the unpin side.
+
+Sweep the page tables to find a proper start/end - eg even if a
+compound is spread across multiple pte/pmd/pud/etc we should find a
+linear range of starting PFN (ie starting page*) and npages across as
+much of the page tables as we can manage. This is the same as where
+things end up in the unpin case where all the contiguous PFNs are
+grouped togeher into a range.
+
+Then 'assign' that range to the output array which requires walking
+over each compount_head in the range and pinning it, then writing out
+the tail pages to the output struct page array.
+
+And this approach should apply universally no matter what is under the
+pte's - ie huge pages, THPs and devmaps should all be treated the same
+way. Currently each case is different, like above which is unique to
+device_huge.
+
+The more we can process groups of pages in bulks the faster the whole
+thing will be.
+
+Jason
 
 
 
+
+
+Given that all these gup
+> functions already give you the boundary (end of pmd or end of pud, etc) then we just need
+> to grab the ref to pgmap and head page and save the tails. But sadly we need to handle the
+> base page case which is why there's this outer loop exists sadly. If it was just head
+> pages we wouldn't need the outer loop (and hence no for_each_compound_head, like the
+> hugetlb variant).
+> 
+> But maybe I am being dense and you just mean to replace the outer loop with
+> for_each_compound_range(). I am a little stuck on the part that I anyways need to record
+> back the tail pages when iterating over the (single) head page. So I feel that it wouldn't
+> bring that much improvement, unless I missed your point.
+> 
+> 	Joao
+> 
