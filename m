@@ -1,30 +1,22 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E609172
-	for <nvdimm@lists.linux.dev>; Wed,  1 Sep 2021 09:44:56 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C09853FC1
+	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 07:27:23 +0000 (UTC)
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 3F54868AFE; Wed,  1 Sep 2021 11:44:47 +0200 (CEST)
-Date: Wed, 1 Sep 2021 11:44:46 +0200
+	id D973368B05; Thu,  2 Sep 2021 09:27:19 +0200 (CEST)
+Date: Thu, 2 Sep 2021 09:27:19 +0200
 From: Christoph Hellwig <hch@lst.de>
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-mm@kvack.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Naoya Horiguchi <naoya.horiguchi@nec.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
-	Jane Chu <jane.chu@oracle.com>,
-	Muchun Song <songmuchun@bytedance.com>,
-	Mike Kravetz <mike.kravetz@oracle.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>, nvdimm@lists.linux.dev,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH v4 04/14] mm/memremap: add ZONE_DEVICE support for
- compound pages
-Message-ID: <20210901094446.GA29632@lst.de>
-References: <20210827145819.16471-1-joao.m.martins@oracle.com> <20210827145819.16471-5-joao.m.martins@oracle.com> <20210827153308.GA20687@lst.de> <9ee23c67-e600-555a-85fc-d527b1484bcc@oracle.com>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: djwong@kernel.org, hch@lst.de, linux-xfs@vger.kernel.org,
+	dan.j.williams@intel.com, david@fromorbit.com,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	nvdimm@lists.linux.dev, rgoldwyn@suse.de, viro@zeniv.linux.org.uk,
+	willy@infradead.org, Goldwyn Rodrigues <rgoldwyn@suse.com>,
+	Ritesh Harjani <riteshh@linux.ibm.com>
+Subject: Re: [PATCH v8 3/7] fsdax: Replace mmap entry in case of CoW
+Message-ID: <20210902072719.GB13867@lst.de>
+References: <20210829122517.1648171-1-ruansy.fnst@fujitsu.com> <20210829122517.1648171-4-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -33,30 +25,31 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <9ee23c67-e600-555a-85fc-d527b1484bcc@oracle.com>
+In-Reply-To: <20210829122517.1648171-4-ruansy.fnst@fujitsu.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Fri, Aug 27, 2021 at 05:00:11PM +0100, Joao Martins wrote:
-> So felt like doing it inline straight away inline when calling percpu_ref_get_many():
-> 	
-> 	(pfn_end(pgmap, range_id) - pfn_first(pgmap, range_id)) / pgmap_geometry(pgmap);
-> 
-> I can switch to a shift if you prefer:
-> 
-> 	(pfn_end(pgmap, range_id) - pfn_first(pgmap, range_id))
-> 		<< pgmap_geometry_order(pgmap);
+On Sun, Aug 29, 2021 at 08:25:13PM +0800, Shiyang Ruan wrote:
+> We replace the existing entry to the newly allocated one in case of CoW.
+> Also, we mark the entry as PAGECACHE_TAG_TOWRITE so writeback marks this
+> entry as writeprotected.  This helps us snapshots so new write
+> pagefaults after snapshots trigger a CoW.
 
-Yes.  A shift is less overhead than a branch.
+Nit: s/We r/R/ above.
 
-> > Also geometry sounds a bit strange, even if I can't really
-> > offer anything better offhand.
-> > 
-> We started with @align (like in device dax core), and then we switched
-> to @geometry because these are slightly different things (one relates
-> to vmemmap metadata structure (number of pages) and the other is how
-> the mmap is aligned to a page size. I couldn't suggest anything else,
-> besides a more verbose name like vmemmap_align maybe.
+> + * MAP_SYNC on a dax mapping guarantees dirty metadata is
+> + * flushed on write-faults (non-cow), but not read-faults.
+> + */
+> +static bool dax_fault_is_synchronous(const struct iomap_iter *iter,
+> +		struct vm_area_struct *vma)
+> +{
+> +	return (iter->flags & IOMAP_WRITE) && (vma->vm_flags & VM_SYNC)
+> +		&& (iter->iomap.flags & IOMAP_F_DIRTY);
+> +}
+> +
+> +static bool dax_fault_is_cow(const struct iomap_iter *iter)
+> +{
+> +	return (iter->flags & IOMAP_WRITE)
+> +		&& (iter->iomap.flags & IOMAP_F_SHARED);
+> +}
 
-It for sure isn't an alignment.  I think the term that comes closest
-is a granularity.  But something like vmemmap_shift if switching to
-a shift might be descriptive enough for the struct member name.
+The && goes last on the first line, not at the beginning of the second.
