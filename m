@@ -1,24 +1,24 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C376F2FB6
-	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 20:43:25 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10095"; a="198789630"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9047D3FD5
+	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 20:43:28 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10095"; a="219300529"
 X-IronPort-AV: E=Sophos;i="5.85,263,1624345200"; 
-   d="scan'208";a="198789630"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:05 -0700
+   d="scan'208";a="219300529"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:28 -0700
 X-IronPort-AV: E=Sophos;i="5.85,263,1624345200"; 
-   d="scan'208";a="499983114"
+   d="scan'208";a="691676454"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:05 -0700
-Subject: [ndctl PATCH v2 1/6] util: Distribute 'filter' and 'json' helpers
- to per-tool objects
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:27 -0700
+Subject: [ndctl PATCH v2 5/6] build: Add meson build infrastructure
 From: Dan Williams <dan.j.williams@intel.com>
 To: nvdimm@lists.linux.dev
-Cc: vishal.l.verma@intel.com, linux-cxl@vger.kernel.org
-Date: Thu, 02 Sep 2021 13:43:05 -0700
-Message-ID: <163061538518.1943957.15779108351433202009.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>, vishal.l.verma@intel.com,
+ linux-cxl@vger.kernel.org
+Date: Thu, 02 Sep 2021 13:43:27 -0700
+Message-ID: <163061540739.1943957.16160705686052773753.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <163061537869.1943957.8491829881215255815.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <163061537869.1943957.8491829881215255815.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -31,3992 +31,1597 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-In preparation for switching build systems, fix the long standing wart
-of mixing ndctl, daxctl, and cxl 'filter' and 'json' utilities in the
-top-level util/filter.[ch]. Distribute them to their respective
-{ndctl,daxctl,cxl}/filter.{c,h} locations.
+Build times improve from 10s of seconds to sub-second builds especially
+when ccache gets involved and the only change is a git version bump. Recall
+that every time the version changes with autotools it does a reconfigure.
+With meson only the objects that depend on the version string are rebuilt.
+So the primary motivation is to make the ndctl project more enjoyable to
+develop.
 
-This also removes the naming collisions for util/json.h between util/
-and ndct/util/. I.e. <util/json.h> is no longer ambiguous or subject to
-being shadowed by the tool local "util" directory.
+Tools, libraries, documentation, and tests all seem to be working. The
+remaining work is to redo the rpm build infrastructure, and validate that
+installation is working as expected.
 
-Unfortunately unwinding this caused a lot of code to move all at once.
-The benefit is that now it is clear that ndctl is the only tool that
-reaches across into the 'filter' and 'json' functionality of another
-tool (daxctl).
+Given the long standing momentum on the old build system it is still kept
+functional for now. The only compatibility hack when moving from an
+autotools build to a meson build is to delete the config.h files generated
+by the old system in favor of the unified configuration header build from
+the config.h.meson template.
 
+Tested-by: Vaibhav Jain <vaibhav@linux.ibm.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- Makefile.am                   |    1 
- Makefile.am.in                |    3 
- cxl/Makefile.am               |    3 
- cxl/filter.c                  |   25 +
- cxl/filter.h                  |    7 
- cxl/json.c                    |   34 +
- cxl/json.h                    |    8 
- cxl/list.c                    |    4 
- cxl/memdev.c                  |    3 
- daxctl/Makefile.am            |    5 
- daxctl/device.c               |    4 
- daxctl/filter.c               |   43 +
- daxctl/filter.h               |   12 
- daxctl/json.c                 |  251 ++++++++
- daxctl/json.h                 |   18 +
- daxctl/list.c                 |    4 
- ndctl/Makefile.am             |   16 
- ndctl/bus.c                   |    4 
- ndctl/check.c                 |    2 
- ndctl/dimm.c                  |    6 
- ndctl/filter.c                |   60 --
- ndctl/filter.h                |   12 
- ndctl/inject-error.c          |    6 
- ndctl/inject-smart.c          |    6 
- ndctl/json-smart.c            |    5 
- ndctl/json.c                  | 1114 ++++++++++++++++++++++++++++++++++
- ndctl/json.h                  |   24 +
- ndctl/keys.c                  |    5 
- ndctl/keys.h                  |    0 
- ndctl/lib/libndctl.c          |    2 
- ndctl/lib/papr.c              |    4 
- ndctl/lib/private.h           |    4 
- ndctl/list.c                  |    5 
- ndctl/load-keys.c             |    7 
- ndctl/monitor.c               |    4 
- ndctl/namespace.c             |    6 
- ndctl/region.c                |    3 
- test/Makefile.am              |   27 +
- test/ack-shutdown-count-set.c |    2 
- test/blk_namespaces.c         |    2 
- test/daxdev-errors.c          |    2 
- test/device-dax.c             |    2 
- test/dpa-alloc.c              |    2 
- test/dsm-fail.c               |    4 
- test/libndctl.c               |    2 
- test/list-smart-dimm.c        |    6 
- test/multi-pmem.c             |    4 
- test/pmem_namespaces.c        |    2 
- test/revoke-devmem.c          |    2 
- util/help.c                   |    2 
- util/json.c                   | 1363 -----------------------------------------
- util/json.h                   |   39 -
- 52 files changed, 1652 insertions(+), 1529 deletions(-)
- create mode 100644 cxl/filter.c
- create mode 100644 cxl/filter.h
- create mode 100644 cxl/json.c
- create mode 100644 cxl/json.h
- create mode 100644 daxctl/filter.c
- create mode 100644 daxctl/filter.h
- create mode 100644 daxctl/json.c
- create mode 100644 daxctl/json.h
- rename util/filter.c => ndctl/filter.c (88%)
- rename util/filter.h => ndctl/filter.h (89%)
- rename ndctl/{util/json-smart.c => json-smart.c} (99%)
- create mode 100644 ndctl/json.c
- create mode 100644 ndctl/json.h
- rename ndctl/{util/keys.c => keys.c} (99%)
- rename ndctl/{util/keys.h => keys.h} (100%)
+ .gitignore                        |    5 +
+ Documentation/cxl/lib/meson.build |   79 +++++++++++
+ Documentation/cxl/meson.build     |   84 ++++++++++++
+ Documentation/daxctl/meson.build  |   88 ++++++++++++
+ Documentation/ndctl/meson.build   |  124 +++++++++++++++++
+ clean_config.sh                   |    2 
+ config.h.meson                    |  149 ++++++++++++++++++++
+ contrib/meson.build               |   16 ++
+ cxl/lib/meson.build               |   35 +++++
+ cxl/meson.build                   |   25 +++
+ daxctl/lib/meson.build            |   44 ++++++
+ daxctl/meson.build                |   27 ++++
+ meson.build                       |  269 +++++++++++++++++++++++++++++++++++++
+ meson_options.txt                 |   23 +++
+ ndctl/lib/meson.build             |   48 +++++++
+ ndctl/meson.build                 |   85 ++++++++++++
+ test/meson.build                  |  262 ++++++++++++++++++++++++++++++++++++
+ tools/meson-vcs-tag.sh            |   18 ++
+ util/meson.build                  |   15 ++
+ version.h.in                      |    2 
+ 20 files changed, 1399 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/cxl/lib/meson.build
+ create mode 100644 Documentation/cxl/meson.build
+ create mode 100644 Documentation/daxctl/meson.build
+ create mode 100644 Documentation/ndctl/meson.build
+ create mode 100755 clean_config.sh
+ create mode 100644 config.h.meson
+ create mode 100644 contrib/meson.build
+ create mode 100644 cxl/lib/meson.build
+ create mode 100644 cxl/meson.build
+ create mode 100644 daxctl/lib/meson.build
+ create mode 100644 daxctl/meson.build
+ create mode 100644 meson.build
+ create mode 100644 meson_options.txt
+ create mode 100644 ndctl/lib/meson.build
+ create mode 100644 ndctl/meson.build
+ create mode 100644 test/meson.build
+ create mode 100755 tools/meson-vcs-tag.sh
+ create mode 100644 util/meson.build
+ create mode 100644 version.h.in
 
-diff --git a/Makefile.am b/Makefile.am
-index fa2010aa6efc..75d80fc24095 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -81,7 +81,6 @@ libutil_a_SOURCES = \
- 	util/help.c \
- 	util/strbuf.c \
- 	util/wrapper.c \
--	util/filter.c \
- 	util/bitmap.c \
- 	util/abspath.c \
- 	util/iomem.c \
-diff --git a/Makefile.am.in b/Makefile.am.in
-index a748128f524c..b1dcd20c9b6b 100644
---- a/Makefile.am.in
-+++ b/Makefile.am.in
-@@ -9,9 +9,6 @@ AM_CPPFLAGS = \
- 	-DLIBEXECDIR=\""$(libexecdir)"\" \
- 	-DPREFIX=\""$(prefix)"\" \
- 	-DNDCTL_MAN_PATH=\""$(mandir)"\" \
--	-I${top_srcdir}/ndctl/lib \
--	-I${top_srcdir}/ndctl \
--	-I${top_srcdir}/cxl \
- 	-I${top_srcdir}/ \
- 	$(KMOD_CFLAGS) \
- 	$(UDEV_CFLAGS) \
-diff --git a/cxl/Makefile.am b/cxl/Makefile.am
-index da9f91d8fd05..ee8488900a3b 100644
---- a/cxl/Makefile.am
-+++ b/cxl/Makefile.am
-@@ -12,6 +12,9 @@ cxl_SOURCES =\
- 		list.c \
- 		memdev.c \
- 		../util/json.c \
-+		json.c \
-+		filter.c \
-+		filter.h \
- 		builtin.h
- 
- cxl_LDADD =\
-diff --git a/cxl/filter.c b/cxl/filter.c
+diff --git a/.gitignore b/.gitignore
+index 6468c7a91f06..4cb232519e72 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -9,7 +9,9 @@ Makefile.in
+ /aclocal.m4
+ /autom4te.cache
+ /build-aux
+-/config.*
++/config.h
++/config.log
++/config.status
+ /configure
+ /libtool
+ /stamp-h1
+@@ -25,6 +27,7 @@ Documentation/cxl/asciidoctor-extensions.rb
+ Documentation/cxl/lib/asciidoctor-extensions.rb
+ Documentation/ndctl/attrs.adoc
+ .dirstamp
++build/
+ daxctl/config.h
+ daxctl/daxctl
+ daxctl/lib/libdaxctl.la
+diff --git a/Documentation/cxl/lib/meson.build b/Documentation/cxl/lib/meson.build
 new file mode 100644
-index 000000000000..21322ed4b4d0
+index 000000000000..fbfd776b4dcb
 --- /dev/null
-+++ b/cxl/filter.c
++++ b/Documentation/cxl/lib/meson.build
+@@ -0,0 +1,79 @@
++if get_option('asciidoctor').enabled()
++  asciidoc_conf = custom_target('asciidoctor-extensions.rb',
++    command : [
++      'sed', '-e', 's,@Utility@,libcxl,g', '-e', 's,@utility@,cxl,g', '@INPUT@'
++    ],
++    input : '../../asciidoctor-extensions.rb.in',
++    output : 'asciidoctor-extensions.rb',
++    capture : true,
++  )
++else
++  asciidoc_conf = custom_target('asciidoc.conf',
++    command : [
++      'sed', '-e', 's,UTILITY,libcxl,g',
++    ],
++    input : '../../asciidoc.conf.in',
++    output : 'asciidoc.conf',
++    capture : true,
++  )
++endif
++
++filedeps = [
++        '../../copyright.txt',
++]
++
++libcxl_manpages = [
++  'libcxl.txt',
++  'cxl_new.txt',
++]
++
++foreach man : libcxl_manpages
++  name = man.split('.')[0]
++  output = name + '.3'
++  output_xml = name + '.xml'
++  if get_option('asciidoctor').enabled()
++    custom_target(name,
++      command : [
++        asciidoc,
++        '-b', 'manpage', '-d', 'manpage', '-acompat-mode', '-I', '@OUTDIR@',
++        '-rasciidoctor-extensions', '-amansource=libcxl',
++        '-amanmanual=libcxl Manual',
++        '-andctl_version=@0@'.format(meson.project_version()),
++        '-o', '@OUTPUT@', '@INPUT@'
++      ],
++      input : man,
++      output : output,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man3'),
++    )
++  else
++    xml = custom_target(output_xml,
++      command : [
++        asciidoc,
++	'-b', 'docbook', '-d', 'manpage', '-f', asciidoc_conf, '--unsafe',
++	'-andctl_version=@0@'.format(meson.project_version()),
++	'-o', '@OUTPUT@', '@INPUT@',
++      ],
++      input : man,
++      output : output_xml,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++    )
++
++    xsl = files('../../manpage-normal.xsl')
++
++    custom_target(name,
++      command : [
++        xmlto, '-o', '@OUTDIR@', '-m', xsl, 'man', '@INPUT@'
++      ],
++      depends : xml,
++      depend_files : xsl,
++      input : xml,
++      output : output,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man3'),
++    )
++  endif
++endforeach
+diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
+new file mode 100644
+index 000000000000..da4e44edafe5
+--- /dev/null
++++ b/Documentation/cxl/meson.build
+@@ -0,0 +1,84 @@
++if get_option('asciidoctor').enabled()
++  asciidoc_conf = custom_target('asciidoctor-extensions.rb',
++    command : [
++      'sed', '-e', 's,@Utility@,cxl,g', '-e', 's,@utility@,cxl,g', '@INPUT@'
++    ],
++    input : '../asciidoctor-extensions.rb.in',
++    output : 'asciidoctor-extensions.rb',
++    capture : true,
++  )
++else
++  asciidoc_conf = custom_target('asciidoc.conf',
++    command : [
++      'sed', '-e', 's,UTILITY,cxl,g',
++    ],
++    input : '../asciidoc.conf.in',
++    output : 'asciidoc.conf',
++    capture : true,
++  )
++endif
++
++filedeps = [
++        '../copyright.txt',
++]
++
++cxl_manpages = [
++  'cxl.txt',
++  'cxl-list.txt',
++  'cxl-read-labels.txt',
++  'cxl-write-labels.txt',
++  'cxl-zero-labels.txt',
++]
++
++foreach man : cxl_manpages
++  name = man.split('.')[0]
++  output = name + '.1'
++  output_xml = name + '.xml'
++  if get_option('asciidoctor').enabled()
++    custom_target(name,
++      command : [
++        asciidoc,
++        '-b', 'manpage', '-d', 'manpage', '-acompat-mode', '-I', '@OUTDIR@',
++        '-rasciidoctor-extensions', '-amansource=cxl',
++        '-amanmanual=cxl Manual',
++        '-andctl_version=@0@'.format(meson.project_version()),
++        '-o', '@OUTPUT@', '@INPUT@'
++      ],
++      input : man,
++      output : output,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man1'),
++    )
++  else
++    xml = custom_target(output_xml,
++      command : [
++        asciidoc,
++	'-b', 'docbook', '-d', 'manpage', '-f', asciidoc_conf, '--unsafe',
++	'-andctl_version=@0@'.format(meson.project_version()),
++	'-o', '@OUTPUT@', '@INPUT@',
++      ],
++      input : man,
++      output : output_xml,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++    )
++
++    xsl = files('../manpage-normal.xsl')
++
++    custom_target(name,
++      command : [
++        xmlto, '-o', '@OUTDIR@', '-m', xsl, 'man', '@INPUT@'
++      ],
++      depends : xml,
++      depend_files : xsl,
++      input : xml,
++      output : output,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man1'),
++    )
++  endif
++endforeach
++
++subdir('lib')
+diff --git a/Documentation/daxctl/meson.build b/Documentation/daxctl/meson.build
+new file mode 100644
+index 000000000000..4a80ecb98a9f
+--- /dev/null
++++ b/Documentation/daxctl/meson.build
+@@ -0,0 +1,88 @@
++if get_option('asciidoctor').enabled()
++  asciidoc_conf = custom_target('asciidoctor-extensions.rb',
++    command : [
++      'sed', '-e', 's,@Utility@,Daxctl,g', '-e', 's,@utility@,daxctl,g', '@INPUT@'
++    ],
++    input : '../asciidoctor-extensions.rb.in',
++    output : 'asciidoctor-extensions.rb',
++    capture : true,
++  )
++else
++  asciidoc_conf = custom_target('asciidoc.conf',
++    command : [
++      'sed', '-e', 's,UTILITY,daxctl,g',
++    ],
++    input : '../asciidoc.conf.in',
++    output : 'asciidoc.conf',
++    capture : true,
++  )
++endif
++
++filedeps = [
++	'human-option.txt',
++        '../copyright.txt',
++]
++
++daxctl_manpages = [
++  'daxctl.txt',
++  'daxctl-list.txt',
++  'daxctl-migrate-device-model.txt',
++  'daxctl-reconfigure-device.txt',
++  'daxctl-online-memory.txt',
++  'daxctl-offline-memory.txt',
++  'daxctl-disable-device.txt',
++  'daxctl-enable-device.txt',
++  'daxctl-create-device.txt',
++  'daxctl-destroy-device.txt',
++]
++
++foreach man : daxctl_manpages
++  name = man.split('.')[0]
++  output = name + '.1'
++  output_xml = name + '.xml'
++  if get_option('asciidoctor').enabled()
++    custom_target(name,
++      command : [
++        asciidoc,
++        '-b', 'manpage', '-d', 'manpage', '-acompat-mode', '-I', '@OUTDIR@',
++        '-rasciidoctor-extensions', '-amansource=daxctl',
++        '-amanmanual=daxctl Manual',
++        '-andctl_version=@0@'.format(meson.project_version()),
++        '-o', '@OUTPUT@', '@INPUT@'
++      ],
++      input : man,
++      output : output,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man1'),
++    )
++  else
++    xml = custom_target(output_xml,
++      command : [
++        asciidoc,
++	'-b', 'docbook', '-d', 'manpage', '-f', asciidoc_conf, '--unsafe',
++	'-andctl_version=@0@'.format(meson.project_version()),
++	'-o', '@OUTPUT@', '@INPUT@',
++      ],
++      input : man,
++      output : output_xml,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++    )
++
++    xsl = files('../manpage-normal.xsl')
++
++    custom_target(name,
++      command : [
++        xmlto, '-o', '@OUTDIR@', '-m', xsl, 'man', '@INPUT@'
++      ],
++      depends : xml,
++      depend_files : xsl,
++      input : xml,
++      output : output,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man1'),
++    )
++  endif
++endforeach
+diff --git a/Documentation/ndctl/meson.build b/Documentation/ndctl/meson.build
+new file mode 100644
+index 000000000000..9e16eb399fa3
+--- /dev/null
++++ b/Documentation/ndctl/meson.build
+@@ -0,0 +1,124 @@
++if get_option('asciidoctor').enabled()
++  asciidoc_conf = custom_target('asciidoctor-extensions.rb',
++    command : [
++      'sed', '-e', 's,@Utility@,Ndctl,g', '-e', 's,@utility@,ndctl,g', '@INPUT@'
++    ],
++    input : '../asciidoctor-extensions.rb.in',
++    output : 'asciidoctor-extensions.rb',
++    capture : true,
++  )
++else
++  asciidoc_conf = custom_target('asciidoc.conf',
++    command : [
++      'sed', '-e', 's,UTILITY,ndctl,g',
++    ],
++    input : '../asciidoc.conf.in',
++    output : 'asciidoc.conf',
++    capture : true,
++  )
++endif
++
++filedeps = [
++        '../copyright.txt',
++        'region-description.txt',
++        'xable-region-options.txt',
++        'dimm-description.txt',
++        'xable-dimm-options.txt',
++        'xable-namespace-options.txt',
++        'ars-description.txt',
++        'labels-description.txt',
++        'labels-options.txt',
++]
++
++ndctl_manpages = [
++  'ndctl.txt',
++  'ndctl-wait-scrub.txt',
++  'ndctl-start-scrub.txt',
++  'ndctl-zero-labels.txt',
++  'ndctl-read-labels.txt',
++  'ndctl-write-labels.txt',
++  'ndctl-init-labels.txt',
++  'ndctl-check-labels.txt',
++  'ndctl-enable-region.txt',
++  'ndctl-disable-region.txt',
++  'ndctl-enable-dimm.txt',
++  'ndctl-disable-dimm.txt',
++  'ndctl-enable-namespace.txt',
++  'ndctl-disable-namespace.txt',
++  'ndctl-create-namespace.txt',
++  'ndctl-destroy-namespace.txt',
++  'ndctl-check-namespace.txt',
++  'ndctl-clear-errors.txt',
++  'ndctl-inject-error.txt',
++  'ndctl-inject-smart.txt',
++  'ndctl-update-firmware.txt',
++  'ndctl-list.txt',
++  'ndctl-monitor.txt',
++  'ndctl-setup-passphrase.txt',
++  'ndctl-update-passphrase.txt',
++  'ndctl-remove-passphrase.txt',
++  'ndctl-freeze-security.txt',
++  'ndctl-sanitize-dimm.txt',
++  'ndctl-load-keys.txt',
++  'ndctl-wait-overwrite.txt',
++  'ndctl-read-infoblock.txt',
++  'ndctl-write-infoblock.txt',
++  'ndctl-activate-firmware.txt',
++]
++
++foreach man : ndctl_manpages
++  name = man.split('.')[0]
++  output = name + '.1'
++  output_xml = name + '.xml'
++  if get_option('asciidoctor').enabled()
++    custom_target(name,
++      command : [
++        asciidoc,
++        '-b', 'manpage', '-d', 'manpage', '-acompat-mode', '-I', '@OUTDIR@',
++        '-rasciidoctor-extensions', '-amansource=ndctl',
++        '-amanmanual=ndctl Manual',
++	'-andctl_monitorconfdir=@0@'.format(ndctlconf_dir),
++	'-andctl_monitorconf=@0@'.format(ndctlconf),
++	'-andctl_keysdir=@0@'.format(ndctlkeys_dir),
++        '-andctl_version=@0@'.format(meson.project_version()),
++        '-o', '@OUTPUT@', '@INPUT@'
++      ],
++      input : man,
++      output : output,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man1'),
++    )
++  else
++    xml = custom_target(output_xml,
++      command : [
++        asciidoc,
++	'-b', 'docbook', '-d', 'manpage', '-f', asciidoc_conf, '--unsafe',
++	'-andctl_version=@0@'.format(meson.project_version()),
++	'-andctl_monitorconfdir=@0@'.format(ndctlconf_dir),
++	'-andctl_monitorconf=@0@'.format(ndctlconf),
++	'-andctl_keysdir=@0@'.format(ndctlkeys_dir),
++	'-o', '@OUTPUT@', '@INPUT@',
++      ],
++      input : man,
++      output : output_xml,
++      depend_files : filedeps,
++      depends : asciidoc_conf,
++    )
++
++    xsl = files('../manpage-normal.xsl')
++
++    custom_target(name,
++      command : [
++        xmlto, '-o', '@OUTDIR@', '-m', xsl, 'man', '@INPUT@'
++      ],
++      depends : xml,
++      depend_files : xsl,
++      input : xml,
++      output : output,
++      install : get_option('docs').enabled(),
++      install_dir : join_paths(get_option('mandir'), 'man1'),
++    )
++  endif
++endforeach
+diff --git a/clean_config.sh b/clean_config.sh
+new file mode 100755
+index 000000000000..03ec04c5554b
+--- /dev/null
++++ b/clean_config.sh
+@@ -0,0 +1,2 @@
++#!/bin/bash
++git ls-files -o --exclude build | grep config.h\$ | xargs rm
+diff --git a/config.h.meson b/config.h.meson
+new file mode 100644
+index 000000000000..4796ea67b0db
+--- /dev/null
++++ b/config.h.meson
+@@ -0,0 +1,149 @@
++/* Debug messages. */
++#mesondefine ENABLE_DEBUG
++
++/* destructive functional tests support */
++#mesondefine ENABLE_DESTRUCTIVE
++
++/* Documentation / man pages. */
++#mesondefine ENABLE_DOCS
++
++/* Enable keyutils support */
++#mesondefine ENABLE_KEYUTILS
++
++/* System logging. */
++#mesondefine ENABLE_LOGGING
++
++/* ndctl test poison support */
++#mesondefine ENABLE_POISON
++
++/* ndctl test support */
++#mesondefine ENABLE_TEST
++
++/* Define to 1 if big-endian-arch */
++#mesondefine HAVE_BIG_ENDIAN
++
++/* Define to 1 if you have the declaration of `BUS_MCEERR_AR', and to 0 if you
++   don't. */
++#mesondefine HAVE_DECL_BUS_MCEERR_AR
++
++/* Define to 1 if you have the declaration of `MAP_SHARED_VALIDATE', and to 0
++   if you don't. */
++#mesondefine HAVE_DECL_MAP_SHARED_VALIDATE
++
++/* Define to 1 if you have the declaration of `MAP_SYNC', and to 0 if you
++   don't. */
++#mesondefine HAVE_DECL_MAP_SYNC
++
++/* Define to 1 if you have the <dlfcn.h> header file. */
++#mesondefine HAVE_DLFCN_H
++
++/* Define to 1 if you have the <inttypes.h> header file. */
++#mesondefine HAVE_INTTYPES_H
++
++/* Define to 1 if you have the <keyutils.h> header file. */
++#mesondefine HAVE_KEYUTILS_H
++
++/* Define to 1 if you have the <linux/version.h> header file. */
++#mesondefine HAVE_LINUX_VERSION_H
++
++/* Define to 1 if little-endian-arch */
++#mesondefine HAVE_LITTLE_ENDIAN
++
++/* Define to 1 if you have the <memory.h> header file. */
++#mesondefine HAVE_MEMORY_H
++
++/* Define to 1 if you have the `secure_getenv' function. */
++#mesondefine HAVE_SECURE_GETENV
++
++/* Define to 1 if you have statement expressions. */
++#mesondefine HAVE_STATEMENT_EXPR
++
++/* Define to 1 if you have the <stdint.h> header file. */
++#mesondefine HAVE_STDINT_H
++
++/* Define to 1 if you have the <stdlib.h> header file. */
++#mesondefine HAVE_STDLIB_H
++
++/* Define to 1 if you have the <strings.h> header file. */
++#mesondefine HAVE_STRINGS_H
++
++/* Define to 1 if you have the <string.h> header file. */
++#mesondefine HAVE_STRING_H
++
++/* Define to 1 if you have the <sys/stat.h> header file. */
++#mesondefine HAVE_SYS_STAT_H
++
++/* Define to 1 if you have the <sys/types.h> header file. */
++#mesondefine HAVE_SYS_TYPES_H
++
++/* Define to 1 if typeof works with your compiler. */
++#mesondefine HAVE_TYPEOF
++
++/* Define to 1 if you have the <unistd.h> header file. */
++#mesondefine HAVE_UNISTD_H
++
++/* Define to 1 if using libuuid */
++#mesondefine HAVE_UUID
++
++/* Define to 1 if you have the `__secure_getenv' function. */
++#mesondefine HAVE___SECURE_GETENV
++
++/* Define to the sub-directory where libtool stores uninstalled libraries. */
++#mesondefine LT_OBJDIR
++
++/* Name of package */
++#mesondefine PACKAGE
++
++/* Define to the address where bug reports for this package should be sent. */
++#mesondefine PACKAGE_BUGREPORT
++
++/* Define to the full name of this package. */
++#mesondefine PACKAGE_NAME
++
++/* Define to the full name and version of this package. */
++#mesondefine PACKAGE_STRING
++
++/* Define to the one symbol short name of this package. */
++#mesondefine PACKAGE_TARNAME
++
++/* Define to the home page for this package. */
++#mesondefine PACKAGE_URL
++
++/* Define to the version of this package. */
++#mesondefine PACKAGE_VERSION
++
++/* Define to 1 if you have the ANSI C header files. */
++#mesondefine STDC_HEADERS
++
++/* Version number of package */
++#mesondefine VERSION
++
++/* Number of bits in a file offset, on hosts where this is settable. */
++#mesondefine _FILE_OFFSET_BITS
++
++/* Define for large files, on AIX-style hosts. */
++#mesondefine _LARGE_FILES
++
++/* Define to 1 if on MINIX. */
++#mesondefine _MINIX
++
++/* Define to 2 if the system does not provide POSIX.1 features except with
++   this defined. */
++#mesondefine _POSIX_1_SOURCE
++
++/* Define to 1 if you need to in order for `stat' and other things to work. */
++#mesondefine _POSIX_SOURCE
++
++/* Define to __typeof__ if your compiler spells it that way. */
++#mesondefine typeof
++
++/* Define to enable GNU Source Extensions */
++#mesondefine _GNU_SOURCE
++
++/* Locations to install configuration files, key config, man pages, etc.. */
++#mesondefine NDCTL_CONF_FILE
++#mesondefine NDCTL_KEYS_DIR
++#mesondefine NDCTL_MAN_PATH
++#mesondefine DAXCTL_MODPROBE_DATA
++#mesondefine DAXCTL_MODPROBE_INSTALL
++#mesondefine PREFIX
+diff --git a/contrib/meson.build b/contrib/meson.build
+new file mode 100644
+index 000000000000..a6505d58cea4
+--- /dev/null
++++ b/contrib/meson.build
+@@ -0,0 +1,16 @@
++bashcompletiondir = get_option('bashcompletiondir')
++if bashcompletiondir == ''
++  bash_completion = dependency('bash-completion', required : false)
++  if bash_completion.found()
++      bashcompletiondir = bash_completion.get_pkgconfig_variable('completionsdir')
++  else
++    bashcompletiondir = datadir / 'bash-completion/completions'
++  endif
++endif
++
++if bashcompletiondir != 'no'
++  install_data('ndctl', install_dir : bashcompletiondir)
++endif
++
++modprobedatadir = get_option('sysconfdir') + '/modprobe.d/'
++install_data('nvdimm-security.conf', install_dir : modprobedatadir)
+diff --git a/cxl/lib/meson.build b/cxl/lib/meson.build
+new file mode 100644
+index 000000000000..eba0ce7278e7
+--- /dev/null
++++ b/cxl/lib/meson.build
+@@ -0,0 +1,35 @@
++libcxl_version = '@0@.@1@.@2@'.format(
++  LIBCXL_CURRENT - LIBCXL_AGE,
++  LIBCXL_REVISION,
++  LIBCXL_AGE)
++
++mapfile = files('libcxl.sym')
++vflag = '-Wl,--version-script,@0@/@1@'.format(project_source_root, mapfile[0])
++
++cxl = library('cxl',
++  '../../util/sysfs.c',
++  '../../util/log.c',
++  '../../util/log.h',
++  'libcxl.c',
++  include_directories : root_inc,
++  dependencies : [
++    uuid,
++    kmod,
++  ],
++  version : libcxl_version,
++  install : true,
++  install_dir : rootlibdir,
++  link_args : vflag,
++  link_depends : mapfile,
++)
++cxl_dep = declare_dependency(link_with : cxl)
++
++custom_target(
++  'libcxl.pc',
++  command : pkgconfig_script + [ '@INPUT@' ],
++  input : 'libcxl.pc.in',
++  output : 'libcxl.pc',
++  capture : true,
++  install : true,
++  install_dir : pkgconfiglibdir,
++)
+diff --git a/cxl/meson.build b/cxl/meson.build
+new file mode 100644
+index 000000000000..146c8493330e
+--- /dev/null
++++ b/cxl/meson.build
 @@ -0,0 +1,25 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
-+#include <stdio.h>
-+#include <string.h>
-+#include <cxl/libcxl.h>
-+#include "filter.h"
++cxl_src = [
++  'cxl.c',
++  'list.c',
++  'memdev.c',
++  '../util/json.c',
++  'json.c',
++  'filter.c',
++]
 +
-+struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
-+                                         const char *ident)
-+{
-+       int memdev_id;
++cxl_tool = executable('cxl',
++  cxl_src,
++  include_directories : root_inc,
++  dependencies : [
++    versiondep,
++    cxl_dep,
++    util_dep,
++    uuid,
++    kmod,
++    json,
++  ],
++  install : true,
++  install_dir : rootbindir,
++)
 +
-+       if (!ident || strcmp(ident, "all") == 0)
-+               return memdev;
-+
-+       if (strcmp(ident, cxl_memdev_get_devname(memdev)) == 0)
-+               return memdev;
-+
-+       if ((sscanf(ident, "%d", &memdev_id) == 1
-+                       || sscanf(ident, "mem%d", &memdev_id) == 1)
-+                       && cxl_memdev_get_id(memdev) == memdev_id)
-+               return memdev;
-+
-+       return NULL;
-+}
-diff --git a/cxl/filter.h b/cxl/filter.h
++install_headers('libcxl.h', subdir : 'cxl')
+diff --git a/daxctl/lib/meson.build b/daxctl/lib/meson.build
 new file mode 100644
-index 000000000000..da800336b528
+index 000000000000..b79c6e591945
 --- /dev/null
-+++ b/cxl/filter.h
-@@ -0,0 +1,7 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
-+#ifndef _CXL_UTIL_FILTER_H_
-+#define _CXL_UTIL_FILTER_H_
-+struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
-+		const char *ident);
-+#endif /* _CXL_UTIL_FILTER_H_ */
-diff --git a/cxl/json.c b/cxl/json.c
++++ b/daxctl/lib/meson.build
+@@ -0,0 +1,44 @@
++libdaxctl_version = '@0@.@1@.@2@'.format(
++  LIBDAXCTL_CURRENT - LIBDAXCTL_AGE,
++  LIBDAXCTL_REVISION,
++  LIBDAXCTL_AGE,
++)
++
++mapfile = files('libdaxctl.sym')
++vflag = '-Wl,--version-script,@0@/@1@'.format(project_source_root, mapfile[0])
++
++libdaxctl_src = [
++  '../../util/iomem.c',
++  '../../util/sysfs.c',
++  '../../util/log.c',
++  'libdaxctl.c',
++]
++
++daxctl = library(
++ 'daxctl',
++  libdaxctl_src,
++  version : libdaxctl_version,
++  include_directories : root_inc,
++  dependencies : [
++    uuid,
++    kmod,
++  ],
++  install : true,
++  install_dir : rootlibdir,
++  link_args : vflag,
++  link_depends : mapfile,
++)
++
++daxctl_dep = declare_dependency(link_with : daxctl)
++
++custom_target(
++  'libdaxctl.pc',
++  command : pkgconfig_script + [ '@INPUT@' ],
++  input : 'libdaxctl.pc.in',
++  output : 'libdaxctl.pc',
++  capture : true,
++  install : true,
++  install_dir : pkgconfiglibdir,
++)
++
++install_data('daxctl.conf', install_dir : datadir / 'daxctl')
+diff --git a/daxctl/meson.build b/daxctl/meson.build
 new file mode 100644
-index 000000000000..9faa21e52701
+index 000000000000..c6738743b5d1
 --- /dev/null
-+++ b/cxl/json.c
-@@ -0,0 +1,34 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
-+#include <util/json.h>
-+#include <uuid/uuid.h>
-+#include <cxl/libcxl.h>
-+#include <json-c/json.h>
-+#include <json-c/printbuf.h>
++++ b/daxctl/meson.build
+@@ -0,0 +1,27 @@
++daxctl_src = [
++  'daxctl.c',
++  'acpi.c',
++  'list.c',
++  'migrate.c',
++  'device.c',
++  '../util/json.c',
++  'json.c',
++  'filter.c',
++]
 +
-+#include "json.h"
++daxctl_tool = executable('daxctl',
++  daxctl_src,
++  include_directories : root_inc,
++  dependencies : [
++    versiondep,
++    daxctl_dep,
++    util_dep,
++    uuid,
++    kmod,
++    json,
++  ],
++  install : true,
++  install_dir : rootbindir,
++)
 +
-+struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
-+		unsigned long flags)
-+{
-+	const char *devname = cxl_memdev_get_devname(memdev);
-+	struct json_object *jdev, *jobj;
-+
-+	jdev = json_object_new_object();
-+	if (!devname || !jdev)
-+		return NULL;
-+
-+	jobj = json_object_new_string(devname);
-+	if (jobj)
-+		json_object_object_add(jdev, "memdev", jobj);
-+
-+	jobj = util_json_object_size(cxl_memdev_get_pmem_size(memdev), flags);
-+	if (jobj)
-+		json_object_object_add(jdev, "pmem_size", jobj);
-+
-+	jobj = util_json_object_size(cxl_memdev_get_ram_size(memdev), flags);
-+	if (jobj)
-+		json_object_object_add(jdev, "ram_size", jobj);
-+
-+	return jdev;
-+}
-diff --git a/cxl/json.h b/cxl/json.h
++install_headers('libdaxctl.h', subdir : 'daxctl')
+diff --git a/meson.build b/meson.build
 new file mode 100644
-index 000000000000..3abcfe6661bf
+index 000000000000..746408948e4d
 --- /dev/null
-+++ b/cxl/json.h
-@@ -0,0 +1,8 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
-+#ifndef __CXL_UTIL_JSON_H__
-+#define __CXL_UTIL_JSON_H__
-+struct cxl_memdev;
-+struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
-+		unsigned long flags);
-+#endif /* __CXL_UTIL_JSON_H__ */
-diff --git a/cxl/list.c b/cxl/list.c
-index 3dea73f3f33f..d7b836bd2b46 100644
---- a/cxl/list.c
-+++ b/cxl/list.c
-@@ -6,12 +6,14 @@
- #include <unistd.h>
- #include <limits.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <cxl/libcxl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
- 
-+#include "json.h"
-+#include "filter.h"
++++ b/meson.build
+@@ -0,0 +1,269 @@
++project('ndctl', 'c',
++  version : '71',
++  license : [
++    'GPL-2.0',
++    'LGPL-2.1',
++    'CC0-1.0',
++    'MIT',
++  ],
++  default_options : [
++    'c_std=gnu99',
++    'prefix=/usr',
++    'sysconfdir=/etc',
++    'localstatedir=/var',
++  ],
++)
 +
- static struct {
- 	bool memdevs;
- 	bool idle;
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index ffc66dfc589a..f31960a7235d 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -6,12 +6,13 @@
- #include <unistd.h>
- #include <limits.h>
- #include <util/log.h>
--#include <util/filter.h>
- #include <cxl/libcxl.h>
- #include <util/parse-options.h>
- #include <ccan/minmax/minmax.h>
- #include <ccan/array_size/array_size.h>
- 
-+#include "filter.h"
++# rootprefixdir and rootlibdir setup copied from systemd:
++rootprefixdir = get_option('rootprefix')
++rootprefix_default = '/usr'
++if rootprefixdir == ''
++        rootprefixdir = rootprefix_default
++endif
++rootbindir = join_paths(rootprefixdir, 'bin')
 +
- struct action_context {
- 	FILE *f_out;
- 	FILE *f_in;
-diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-index 9b1313ac547f..ce0ef7f642dc 100644
---- a/daxctl/Makefile.am
-+++ b/daxctl/Makefile.am
-@@ -18,6 +18,11 @@ daxctl_SOURCES =\
- 		migrate.c \
- 		device.c \
- 		../util/json.c \
-+		../util/json.h \
-+		json.c \
-+		json.h \
-+		filter.c \
-+		filter.h \
- 		builtin.h
- 
- daxctl_LDADD =\
-diff --git a/daxctl/device.c b/daxctl/device.c
-index a427b7d29d4d..530cadc09f1e 100644
---- a/daxctl/device.c
-+++ b/daxctl/device.c
-@@ -11,13 +11,15 @@
- #include <sys/sysmacros.h>
- #include <util/size.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <json-c/json_util.h>
- #include <daxctl/libdaxctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
- 
-+#include "filter.h"
-+#include "json.h"
++# join_paths ignores the preceding arguments if an absolute component is
++# encountered, so this should canonicalize various paths when they are
++# absolute or relative.
++prefixdir = get_option('prefix')
++if not prefixdir.startswith('/')
++        error('Prefix is not absolute: "@0@"'.format(prefixdir))
++endif
++if prefixdir != rootprefixdir and rootprefixdir != '/' and not prefixdir.strip('/').startswith(rootprefixdir.strip('/') + '/')
++  error('Prefix is not below root prefix (now rootprefix=@0@ prefix=@1@)'.format(
++	rootprefixdir, prefixdir))
++endif
 +
- static struct {
- 	const char *dev;
- 	const char *mode;
-diff --git a/daxctl/filter.c b/daxctl/filter.c
++libdir = join_paths(prefixdir, get_option('libdir'))
++rootlibdir = get_option('rootlibdir')
++if rootlibdir == ''
++  rootlibdir = join_paths(rootprefixdir, libdir.split('/')[-1])
++endif
++datadir = prefixdir / get_option('datadir')
++includedir = prefixdir / get_option('includedir')
++
++pkgconfiglibdir = get_option('pkgconfiglibdir') != '' ? get_option('pkgconfiglibdir') : libdir / 'pkgconfig'
++
++datadir = prefixdir / get_option('datadir')
++includedir = prefixdir / get_option('includedir')
++sysconfdir =  get_option('sysconfdir')
++
++pkgconfig_script = '''
++sed -e s,@VERSION@,@0@,g
++    -e s,@prefix@,@1@,g
++    -e s,@exec_prefix@,@1@,g
++    -e s,@libdir@,@2@,g
++    -e s,@includedir@,@3@,g
++'''.format(meson.project_version(), prefixdir, libdir, includedir).split()
++
++cc_flags = [
++  '-Wall',
++  '-Wchar-subscripts',
++  '-Wformat-security',
++  '-Wmissing-declarations',
++  '-Wmissing-prototypes',
++  '-Wnested-externs ',
++  '-Wshadow',
++  '-Wsign-compare',
++  '-Wstrict-prototypes',
++  '-Wtype-limits',
++  '-Wmaybe-uninitialized',
++  '-Wdeclaration-after-statement',
++  '-Wunused-result',
++  '-D_FORTIFY_SOURCE=2',
++  '-O2',
++]
++cc = meson.get_compiler('c')
++add_project_arguments(cc.get_supported_arguments(cc_flags), language : 'c')
++
++project_source_root = meson.current_source_dir()
++
++# Remove this after the conversion to meson has been completed
++# Cleanup the leftover config.h files to avoid conflicts with the meson
++# generated config.h
++git = find_program('git', required : false)
++if git.found()
++  run_command('clean_config.sh',
++    env : 'GIT_DIR=@0@/.git'.format(project_source_root),
++  )
++endif
++
++version_tag = get_option('version-tag')
++if version_tag != ''
++  vcs_data = configuration_data()
++  vcs_data.set('VCS_TAG', version_tag)
++  version_h = configure_file(
++    configuration : vcs_data,
++    input : 'version.h.in',
++    output : 'version.h'
++  )
++else
++  vcs_tagger = [
++    project_source_root + '/tools/meson-vcs-tag.sh',
++    project_source_root,
++    meson.project_version()
++  ]
++
++  version_h = vcs_tag(
++      input : 'version.h.in',
++      output : 'version.h',
++      command: vcs_tagger
++  )
++endif
++add_project_arguments('-include', 'version.h', language : 'c')
++
++versiondep = declare_dependency(sources: version_h)
++
++kmod = dependency('libkmod')
++udev = dependency('libudev')
++uuid = dependency('uuid')
++json = dependency('json-c')
++if get_option('docs').enabled()
++  if get_option('asciidoctor').enabled()
++    asciidoc = find_program('asciidoctor', required : true)
++  else
++    asciidoc = find_program('asciidoc', required : true)
++    xmlto = find_program('xmlto', required : true)
++  endif
++endif
++
++if get_option('systemd').enabled()
++  systemd = dependency('systemd', required : true)
++  systemdunitdir = systemd.get_pkgconfig_variable('systemd_system_unit_dir')
++endif
++
++cc = meson.get_compiler('c')
++
++# keyutils lacks pkgconfig
++keyutils = cc.find_library('keyutils', required : get_option('keyutils'))
++
++conf = configuration_data()
++check_headers = [
++  ['HAVE_DLFCN_H', 'dlfcn.h'],
++  ['HAVE_INTTYPES_H', 'inttypes.h'],
++  ['HAVE_KEYUTILS_H', 'keyutils.h'],
++  ['HAVE_LINUX_VERSION_H', 'linux/version.h'],
++  ['HAVE_MEMORY_H', 'memory.h'],
++  ['HAVE_STDINT_H', 'stdint.h'],
++  ['HAVE_STDLIB_H', 'stdlib.h'],
++  ['HAVE_STRINGS_H', 'strings.h'],
++  ['HAVE_STRING_H', 'string.h'],
++  ['HAVE_SYS_STAT_H', 'sys/stat.h'],
++  ['HAVE_SYS_TYPES_H', 'sys/types.h'],
++  ['HAVE_UNISTD_H', 'unistd.h'],
++]
++
++foreach h : check_headers
++  if cc.has_header(h.get(1))
++    conf.set(h.get(0), 1)
++  endif
++endforeach
++
++map_sync_symbols = [
++  [ 'signal.h', 'BUS_MCEERR_AR' ],
++  [ 'linux/mman.h', 'MAP_SHARED_VALIDATE' ],
++  [ 'linux/mman.h', 'MAP_SYNC' ],
++]
++
++count = 0
++foreach symbol : map_sync_symbols
++  if cc.has_header_symbol(symbol[0], symbol[1])
++    conf.set('HAVE_DECL_@0@'.format(symbol[1].to_upper()), 1)
++    count = count + 1
++  endif
++endforeach
++
++poison_enabled = false
++if get_option('poison').enabled() and count == 3
++  poison_enabled = true
++endif
++
++conf.set('ENABLE_POISON', poison_enabled)
++conf.set('ENABLE_KEYUTILS', get_option('keyutils').enabled())
++conf.set('ENABLE_TEST', get_option('test').enabled())
++conf.set('ENABLE_DESTRUCTIVE', get_option('destructive').enabled())
++conf.set('ENABLE_LOGGING', get_option('logging').enabled())
++
++typeof = cc.run('''
++  int main() {
++    struct {
++      char a[16];
++    } x;
++    typeof(x) y;
++
++    return sizeof(x) == sizeof(y);
++  }
++  '''
++)
++
++if typeof.compiled() and typeof.returncode() == 1
++  conf.set('HAVE_TYPEOF', 1)
++  conf.set('HAVE_STATEMENT_EXPR', 1)
++endif
++
++if target_machine.endian() == 'big'
++  conf.set('HAVE_BIG_ENDIAN', 1)
++else
++  conf.set('HAVE_LITTLE_ENDIAN', 1)
++endif
++
++conf.set('_GNU_SOURCE', true)
++conf.set_quoted('PREFIX', get_option('prefix'))
++conf.set_quoted('NDCTL_MAN_PATH', get_option('mandir'))
++
++foreach ident : ['secure_getenv', '__secure_getenv']
++  conf.set10('HAVE_' + ident.to_upper(), cc.has_function(ident))
++endforeach
++
++
++ndctlconf_dir = sysconfdir / 'ndctl'
++ndctlconf = ndctlconf_dir / 'monitor.conf'
++conf.set_quoted('NDCTL_CONF_FILE', ndctlconf)
++
++ndctlkeys_dir = sysconfdir / 'ndctl'
++ndctlkeys = ndctlkeys_dir / 'keys'
++conf.set_quoted('NDCTL_KEYS_DIR', ndctlkeys)
++
++conf.set_quoted('DAXCTL_MODPROBE_DATA', datadir / 'daxctl/daxctl.conf')
++conf.set_quoted('DAXCTL_MODPROBE_INSTALL', sysconfdir / 'modprobe.d/daxctl.conf')
++
++config_h = configure_file(
++  input : 'config.h.meson',
++  output : 'config.h',
++  configuration : conf
++)
++add_project_arguments('-include', 'config.h', language : 'c')
++
++LIBNDCTL_CURRENT=25
++LIBNDCTL_REVISION=1
++LIBNDCTL_AGE=19
++
++LIBDAXCTL_CURRENT=6
++LIBDAXCTL_REVISION=0
++LIBDAXCTL_AGE=5
++
++LIBCXL_CURRENT=1
++LIBCXL_REVISION=0
++LIBCXL_AGE=0
++
++root_inc = include_directories(['.', 'ndctl', ])
++
++ccan = static_library('ccan',
++  [ 'ccan/str/str.c', 'ccan/list/list.c' ],
++)
++ccan_dep = declare_dependency(link_with : ccan)
++
++subdir('daxctl/lib')
++subdir('ndctl/lib')
++subdir('cxl/lib')
++subdir('util')
++subdir('ndctl')
++subdir('daxctl')
++subdir('cxl')
++if get_option('docs').enabled()
++  subdir('Documentation/ndctl')
++  subdir('Documentation/daxctl')
++  subdir('Documentation/cxl')
++endif
++subdir('test')
++subdir('contrib')
+diff --git a/meson_options.txt b/meson_options.txt
 new file mode 100644
-index 000000000000..cecb808edade
+index 000000000000..5ccbf1230b55
 --- /dev/null
-+++ b/daxctl/filter.c
-@@ -0,0 +1,43 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
-+#include <stdio.h>
-+#include <string.h>
-+#include <daxctl/libdaxctl.h>
-+
-+#include "filter.h"
-+
-+struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
-+					  const char *ident)
-+{
-+	struct daxctl_region *region = daxctl_dev_get_region(dev);
-+	int region_id, dev_id;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return dev;
-+
-+	if (strcmp(ident, daxctl_dev_get_devname(dev)) == 0)
-+		return dev;
-+
-+	if (sscanf(ident, "%d.%d", &region_id, &dev_id) == 2 &&
-+	    daxctl_region_get_id(region) == region_id &&
-+	    daxctl_dev_get_id(dev) == dev_id)
-+		return dev;
-+
-+	return NULL;
-+}
-+
-+struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
-+						const char *ident)
-+{
-+	int region_id;
-+
-+	if (!ident || strcmp(ident, "all") == 0)
-+		return region;
-+
-+	if ((sscanf(ident, "%d", &region_id) == 1 ||
-+	     sscanf(ident, "region%d", &region_id) == 1) &&
-+	    daxctl_region_get_id(region) == region_id)
-+		return region;
-+
-+	return NULL;
-+}
-diff --git a/daxctl/filter.h b/daxctl/filter.h
++++ b/meson_options.txt
+@@ -0,0 +1,23 @@
++option('version-tag', type : 'string',
++       description : 'override the git version string')
++option('docs', type : 'feature', value : 'enabled')
++option('asciidoctor', type : 'feature', value : 'disabled')
++option('systemd', type : 'feature', value : 'enabled')
++option('keyutils', type : 'feature', value : 'enabled',
++  description : 'enable nvdimm device passphrase management')
++option('test', type : 'feature', value : 'disabled',
++  description : 'enable shipping tests in ndctl')
++option('destructive', type : 'feature', value : 'disabled',
++  description : 'enable tests that may clobber live system resources')
++option('poison', type : 'feature', value : 'enabled',
++  description : 'enable tests that inject poison / memory-failure')
++option('logging', type : 'feature', value : 'enabled',
++  description : 'enable log infrastructure')
++option('rootprefix', type : 'string',
++       description : '''override the root prefix [default '/' if split-usr and '/usr' otherwise]''')
++option('rootlibdir', type : 'string',
++       description : '''[/usr]/lib/x86_64-linux-gnu or such''')
++option('pkgconfiglibdir', type : 'string', value : '',
++       description : 'directory for standard pkg-config files')
++option('bashcompletiondir', type : 'string',
++       description : '''${datadir}/bash-completion/completions''')
+diff --git a/ndctl/lib/meson.build b/ndctl/lib/meson.build
 new file mode 100644
-index 000000000000..234f2216e57e
+index 000000000000..fa46ea381cd4
 --- /dev/null
-+++ b/daxctl/filter.h
-@@ -0,0 +1,12 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
-+#ifndef _DAXCTL_UTIL_FILTER_H_
-+#define _DAXCTL_UTIL_FILTER_H_
-+#include <stdbool.h>
-+#include <ccan/list/list.h>
++++ b/ndctl/lib/meson.build
+@@ -0,0 +1,48 @@
++libndctl_version = '@0@.@1@.@2@'.format(
++  LIBNDCTL_CURRENT - LIBNDCTL_AGE,
++  LIBNDCTL_REVISION,
++  LIBNDCTL_AGE)
 +
-+struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
-+		const char *ident);
-+struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
-+		const char *ident);
-+#endif /* _DAXCTL_UTIL_FILTER_H_ */
-diff --git a/daxctl/json.c b/daxctl/json.c
++mapfile = files('libndctl.sym')
++vflag = '-Wl,--version-script,@0@/@1@'.format(project_source_root, mapfile[0])
++
++ndctl = library(
++ 'ndctl',
++  '../../util/log.c',
++  '../../util/sysfs.c',
++  'dimm.c',
++  'inject.c',
++  'nfit.c',
++  'smart.c',
++  'intel.c',
++  'hpe1.c',
++  'msft.c',
++  'hyperv.c',
++  'papr.c',
++  'ars.c',
++  'firmware.c',
++  'libndctl.c',
++  dependencies : [
++    daxctl_dep,
++    udev,
++    uuid,
++    kmod,
++  ],
++  include_directories : root_inc,
++  version : libndctl_version,
++  install : true,
++  install_dir : rootlibdir,
++  link_args : vflag,
++  link_depends : mapfile,
++)
++ndctl_dep = declare_dependency(link_with : ndctl)
++
++custom_target(
++  'libndctl.pc',
++  command : pkgconfig_script + [ '@INPUT@' ],
++  input : 'libndctl.pc.in',
++  output : 'libndctl.pc',
++  capture : true,
++  install : true,
++  install_dir : pkgconfiglibdir,
++)
+diff --git a/ndctl/meson.build b/ndctl/meson.build
 new file mode 100644
-index 000000000000..bc20b0518469
+index 000000000000..86b8c8f7abf3
 --- /dev/null
-+++ b/daxctl/json.c
-@@ -0,0 +1,251 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
-+#include <limits.h>
-+#include <string.h>
-+#include <util/json.h>
-+#include <uuid/uuid.h>
-+#include <json-c/json.h>
-+#include <json-c/printbuf.h>
-+#include <daxctl/libdaxctl.h>
++++ b/ndctl/meson.build
+@@ -0,0 +1,85 @@
++ndctl_src = [
++  'ndctl.c',
++  'bus.c',
++  'create-nfit.c',
++  'namespace.c',
++  'check.c',
++  'region.c',
++  'dimm.c',
++  '../util/log.c',
++  '../daxctl/filter.c',
++  'filter.c',
++  'list.c',
++  '../util/json.c',
++  '../daxctl/json.c',
++  'json.c',
++  'json-smart.c',
++  'inject-error.c',
++  'inject-smart.c',
++  'monitor.c',
++]
 +
-+#include "filter.h"
-+#include "json.h"
++deps = [
++  versiondep,
++  util_dep,
++  ndctl_dep,
++  daxctl_dep,
++  cxl_dep,
++  uuid,
++  kmod,
++  json,
++]
 +
-+struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
-+		unsigned long flags)
-+{
-+	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
-+	const char *devname = daxctl_dev_get_devname(dev);
-+	struct json_object *jdev, *jobj, *jmappings = NULL;
-+	struct daxctl_mapping *mapping = NULL;
-+	int node, movable, align;
++if get_option('keyutils').enabled()
++  ndctl_src += [
++    'keys.c',
++    'load-keys.c',
++  ]
++  deps += keyutils
++endif
 +
-+	jdev = json_object_new_object();
-+	if (!devname || !jdev)
-+		return NULL;
++if get_option('test').enabled()
++  ndctl_src += [
++  '../test/libndctl.c',
++  '../test/dsm-fail.c',
++  '../util/sysfs.c',
++  '../test/dpa-alloc.c',
++  '../test/parent-uuid.c',
++  '../test/multi-pmem.c',
++  '../test/core.c',
++  'test.c',
++]
++endif
 +
-+	jobj = json_object_new_string(devname);
-+	if (jobj)
-+		json_object_object_add(jdev, "chardev", jobj);
++if get_option('destructive').enabled()
++  if get_option('test').disabled()
++    error('destrive option requires -Dtest=enabled')
++  endif
++  ndctl_src += [
++    '../test/blk_namespaces.c',
++    '../test/pmem_namespaces.c',
++    'bat.c',
++  ]
++endif
 +
-+	jobj = util_json_object_size(daxctl_dev_get_size(dev), flags);
-+	if (jobj)
-+		json_object_object_add(jdev, "size", jobj);
++if get_option('systemd').enabled()
++  install_data('ndctl-monitor.service', install_dir : systemdunitdir)
++endif
++install_data('monitor.conf', install_dir : ndctlconf_dir)
++ndctlconfkeys_dir = ndctlconf_dir / 'keys/'
++install_data('keys.readme', install_dir : ndctlconfkeys_dir)
 +
-+	node = daxctl_dev_get_target_node(dev);
-+	if (node >= 0) {
-+		jobj = json_object_new_int(node);
-+		if (jobj)
-+			json_object_object_add(jdev, "target_node", jobj);
-+	}
++ndctl_tool = executable('ndctl', ndctl_src,
++  dependencies : deps,
++  install : true,
++  install_dir : rootbindir,
++  include_directories : root_inc,
++)
 +
-+	align = daxctl_dev_get_align(dev);
-+	if (align > 0) {
-+		jobj = util_json_object_size(daxctl_dev_get_align(dev), flags);
-+		if (jobj)
-+			json_object_object_add(jdev, "align", jobj);
-+	}
-+
-+	if (mem)
-+		jobj = json_object_new_string("system-ram");
-+	else
-+		jobj = json_object_new_string("devdax");
-+	if (jobj)
-+		json_object_object_add(jdev, "mode", jobj);
-+
-+	if (mem && daxctl_dev_get_resource(dev) != 0) {
-+		int num_sections = daxctl_memory_num_sections(mem);
-+		int num_online = daxctl_memory_is_online(mem);
-+
-+		jobj = json_object_new_int(num_online);
-+		if (jobj)
-+			json_object_object_add(jdev, "online_memblocks", jobj);
-+
-+		jobj = json_object_new_int(num_sections);
-+		if (jobj)
-+			json_object_object_add(jdev, "total_memblocks", jobj);
-+
-+		movable = daxctl_memory_is_movable(mem);
-+		if (movable == 1)
-+			jobj = json_object_new_boolean(true);
-+		else if (movable == 0)
-+			jobj = json_object_new_boolean(false);
-+		else
-+			jobj = NULL;
-+		if (jobj)
-+			json_object_object_add(jdev, "movable", jobj);
-+	}
-+
-+	if (!daxctl_dev_is_enabled(dev)) {
-+		jobj = json_object_new_string("disabled");
-+		if (jobj)
-+			json_object_object_add(jdev, "state", jobj);
-+	}
-+
-+	if (!(flags & UTIL_JSON_DAX_MAPPINGS))
-+		return jdev;
-+
-+	daxctl_mapping_foreach(dev, mapping) {
-+		struct json_object *jmapping;
-+
-+		if (!jmappings) {
-+			jmappings = json_object_new_array();
-+			if (!jmappings)
-+				continue;
-+
-+			json_object_object_add(jdev, "mappings", jmappings);
-+		}
-+
-+		jmapping = util_daxctl_mapping_to_json(mapping, flags);
-+		if (!jmapping)
-+			continue;
-+		json_object_array_add(jmappings, jmapping);
-+	}
-+	return jdev;
-+}
-+
-+
-+
-+struct json_object *util_daxctl_devs_to_list(struct daxctl_region *region,
-+		struct json_object *jdevs, const char *ident,
-+		unsigned long flags)
-+{
-+	struct daxctl_dev *dev;
-+
-+	daxctl_dev_foreach(region, dev) {
-+		struct json_object *jdev;
-+
-+		if (!util_daxctl_dev_filter(dev, ident))
-+			continue;
-+
-+		if (!(flags & (UTIL_JSON_IDLE|UTIL_JSON_CONFIGURED))
-+				&& !daxctl_dev_get_size(dev))
-+			continue;
-+
-+		if (!jdevs) {
-+			jdevs = json_object_new_array();
-+			if (!jdevs)
-+				return NULL;
-+		}
-+
-+		jdev = util_daxctl_dev_to_json(dev, flags);
-+		if (!jdev) {
-+			json_object_put(jdevs);
-+			return NULL;
-+		}
-+
-+		json_object_array_add(jdevs, jdev);
-+	}
-+
-+	return jdevs;
-+}
-+
-+struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
-+		const char *ident, unsigned long flags)
-+{
-+	unsigned long align;
-+	struct json_object *jregion, *jobj;
-+	unsigned long long available_size, size;
-+
-+	jregion = json_object_new_object();
-+	if (!jregion)
-+		return NULL;
-+
-+	/*
-+	 * The flag indicates when we are being called by an agent that
-+	 * already knows about the parent device information.
-+	 */
-+	if (!(flags & UTIL_JSON_DAX)) {
-+		/* trim off the redundant /sys/devices prefix */
-+		const char *path = daxctl_region_get_path(region);
-+		int len = strlen("/sys/devices");
-+		const char *trim = &path[len];
-+
-+		if (strncmp(path, "/sys/devices", len) != 0)
-+			goto err;
-+		jobj = json_object_new_string(trim);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jregion, "path", jobj);
-+	}
-+
-+	jobj = json_object_new_int(daxctl_region_get_id(region));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jregion, "id", jobj);
-+
-+	size = daxctl_region_get_size(region);
-+	if (size < ULLONG_MAX) {
-+		jobj = util_json_object_size(size, flags);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jregion, "size", jobj);
-+	}
-+
-+	available_size = daxctl_region_get_available_size(region);
-+	if (available_size) {
-+		jobj = util_json_object_size(available_size, flags);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jregion, "available_size", jobj);
-+	}
-+
-+	align = daxctl_region_get_align(region);
-+	if (align < ULONG_MAX) {
-+		jobj = json_object_new_int64(align);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jregion, "align", jobj);
-+	}
-+
-+	if (!(flags & UTIL_JSON_DAX_DEVS))
-+		return jregion;
-+
-+	jobj = util_daxctl_devs_to_list(region, NULL, ident, flags);
-+	if (jobj)
-+		json_object_object_add(jregion, "devices", jobj);
-+
-+	return jregion;
-+ err:
-+	json_object_put(jregion);
-+	return NULL;
-+}
-+
-+
-+
-+struct json_object *util_daxctl_mapping_to_json(struct daxctl_mapping *mapping,
-+		unsigned long flags)
-+{
-+	struct json_object *jmapping = json_object_new_object();
-+	struct json_object *jobj;
-+
-+	if (!jmapping)
-+		return NULL;
-+
-+	jobj = util_json_object_hex(daxctl_mapping_get_offset(mapping), flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "page_offset", jobj);
-+
-+	jobj = util_json_object_hex(daxctl_mapping_get_start(mapping), flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "start", jobj);
-+
-+	jobj = util_json_object_hex(daxctl_mapping_get_end(mapping), flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "end", jobj);
-+
-+	jobj = util_json_object_size(daxctl_mapping_get_size(mapping), flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "size", jobj);
-+
-+	return jmapping;
-+ err:
-+	json_object_put(jmapping);
-+	return NULL;
-+}
-+
-+
-diff --git a/daxctl/json.h b/daxctl/json.h
++install_headers(
++  [
++    'libndctl.h',
++    'ndctl.h'
++  ],
++  subdir : 'ndctl'
++)
+diff --git a/test/meson.build b/test/meson.build
 new file mode 100644
-index 000000000000..fc82f06bd594
+index 000000000000..2c9d5b954331
 --- /dev/null
-+++ b/daxctl/json.h
++++ b/test/meson.build
+@@ -0,0 +1,262 @@
++testcore = [
++  'core.c',
++  '../util/log.c',
++  '../util/sysfs.c',
++  '../util/hexdump.c',
++]
++
++libndctl_deps = [
++  ndctl_dep,
++  daxctl_dep,
++  uuid,
++  kmod,
++]
++
++ndctl_deps = libndctl_deps + [
++  json,
++  util_dep,
++]
++
++libndctl = executable('libndctl', testcore + [ 'libndctl.c'],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++namespace_core = [
++  '../ndctl/namespace.c',
++  '../ndctl/filter.c',
++  '../ndctl/check.c',
++  '../util/json.c',
++  '../ndctl/json.c',
++  '../daxctl/filter.c',
++  '../daxctl/json.c',
++]
++
++dsm_fail = executable('dsm-fail', testcore + namespace_core + [ 'dsm-fail.c' ],
++  dependencies : ndctl_deps,
++  include_directories : root_inc,
++)
++
++dpa_alloc = executable('dpa-alloc', testcore + [ 'dpa-alloc.c' ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++parent_uuid = executable('parent-uuid', testcore + [ 'parent-uuid.c' ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++multi_pmem = executable('multi-pmem', testcore + namespace_core
++    + [ 'multi-pmem.c' ],
++  dependencies : ndctl_deps,
++  include_directories : root_inc,
++)
++
++hugetlb_src = testcore + [ 'hugetlb.c', 'dax-pmd.c' ]
++if poison_enabled
++  hugetlb_src += [ 'dax-poison.c' ]
++endif
++hugetlb = executable('hugetlb', hugetlb_src,
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++ack_shutdown_count = executable('ack-shutdown-count-set',
++  testcore + [ 'ack-shutdown-count-set.c' ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++dax_errors = executable('dax-errors', 'dax-errors.c')
++
++smart_notify = executable('smart-notify', 'smart-notify.c',
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++smart_listen = executable('smart-listen', 'smart-listen.c',
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++daxdev_errors = executable('daxdev-errors', [
++    'daxdev-errors.c',
++    '../util/log.c',
++    '../util/sysfs.c',
++  ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++list_smart_dimm = executable('list-smart-dimm', [
++    'list-smart-dimm.c',
++    '../ndctl/filter.c',
++    '../util/json.c',
++    '../ndctl/json.c',
++    '../daxctl/json.c',
++    '../daxctl/filter.c',
++  ],
++  dependencies : ndctl_deps,
++  include_directories : root_inc,
++)
++
++blk_ns = executable('blk-ns', testcore + [ 'blk_namespaces.c' ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++pmem_ns = executable('pmem-ns', testcore + [ 'pmem_namespaces.c' ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++dax_dev = executable('dax-dev', testcore + [ 'dax-dev.c' ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++dax_pmd_src = testcore + [ 'dax-pmd.c' ]
++if poison_enabled
++  dax_pmd_src += [ 'dax-poison.c' ]
++endif
++
++dax_pmd = executable('dax-pmd', dax_pmd_src,
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++device_dax_src = testcore + namespace_core + [
++  'device-dax.c',
++  'dax-dev.c',
++  'dax-pmd.c',
++]
++
++if poison_enabled
++  device_dax_src += 'dax-poison.c'
++endif
++
++device_dax = executable('device-dax', device_dax_src,
++  dependencies : ndctl_deps,
++  include_directories : root_inc,
++)
++
++revoke_devmem = executable('revoke_devmem', testcore + [
++    'revoke-devmem.c',
++    'dax-dev.c',
++  ],
++  dependencies : libndctl_deps,
++  include_directories : root_inc,
++)
++
++mmap = executable('mmap', 'mmap.c')
++
++create = find_program('create.sh')
++clear = find_program('clear.sh')
++pmem_errors = find_program('pmem-errors.sh')
++daxdev_errors_sh = find_program('daxdev-errors.sh')
++multi_dax = find_program('multi-dax.sh')
++btt_check = find_program('btt-check.sh')
++label_compat = find_program('label-compat.sh')
++blk_exhaust = find_program('blk-exhaust.sh')
++sector_mode = find_program('sector-mode.sh')
++inject_error = find_program('inject-error.sh')
++btt_errors = find_program('btt-errors.sh')
++btt_pad_compat = find_program('btt-pad-compat.sh')
++firmware_update = find_program('firmware-update.sh')
++rescan_partitions = find_program('rescan-partitions.sh')
++inject_smart = find_program('inject-smart.sh')
++monitor = find_program('monitor.sh')
++max_extent = find_program('max_available_extent_ns.sh')
++pfn_meta_errors = find_program('pfn-meta-errors.sh')
++track_uuid = find_program('track-uuid.sh')
++
++tests = [
++  [ 'libndctl',               libndctl ],
++  [ 'dsm-fail',               dsm_fail ],
++  [ 'dpa-alloc',              dpa_alloc ],
++  [ 'parent-uuid',            parent_uuid ],
++  [ 'multi-pmem',             multi_pmem ],
++  [ 'create.sh',              create ],
++  [ 'clear.sh',               clear ],
++  [ 'pmem-errors.sh',         pmem_errors ],
++  [ 'daxdev-errors.sh',       daxdev_errors_sh ],
++  [ 'multi-dax.sh',           multi_dax ],
++  [ 'btt-check.sh',           btt_check ],
++  [ 'label-compat.sh',        label_compat ],
++  [ 'blk-exhaust.sh',         blk_exhaust ],
++  [ 'sector-mode.sh',         sector_mode ],
++  [ 'inject-error.sh',        inject_error ],
++  [ 'btt-errors.sh',          btt_errors ],
++  [ 'hugetlb',                hugetlb ],
++  [ 'btt-pad-compat.sh',      btt_pad_compat ],
++  [ 'firmware-update.sh',     firmware_update ],
++  [ 'ack-shutdown-count-set', ack_shutdown_count ],
++  [ 'rescan-partitions.sh',   rescan_partitions ],
++  [ 'inject-smart.sh',        inject_smart ],
++  [ 'monitor.sh',             monitor ],
++  [ 'max_extent_ns',          max_extent ],
++  [ 'pfn-meta-errors.sh',     pfn_meta_errors ],
++  [ 'track-uuid.sh',          track_uuid ],
++]
++
++if get_option('destructive').enabled()
++  sub_section = find_program('sub-section.sh')
++  dax_ext4 = find_program('dax-ext4.sh')
++  dax_xfs = find_program('dax-xfs.sh')
++  align = find_program('align.sh')
++  device_dax_fio = find_program('device-dax-fio.sh')
++  daxctl_devices = find_program('daxctl-devices.sh')
++  daxctl_create = find_program('daxctl-create.sh')
++  dm = find_program('dm.sh')
++  mmap_test = find_program('mmap.sh')
++
++  tests += [
++    [ 'blk-ns',            blk_ns ],
++    [ 'pmem-ns',           pmem_ns ],
++    [ 'sub-section.sh',    sub_section ],
++    [ 'dax-dev',           dax_dev ],
++    [ 'dax-ext4.sh',       dax_ext4 ],
++    [ 'dax-xfs.sh',        dax_xfs ],
++    [ 'align.sh',          align ],
++    [ 'device-dax',        device_dax ],
++    [ 'revoke-devmem',     revoke_devmem ],
++    [ 'device-dax-fio.sh', device_dax_fio ],
++    [ 'daxctl-devices.sh', daxctl_devices ],
++    [ 'daxctl-create.sh',  daxctl_create ],
++    [ 'dm.sh',             dm ],
++    [ 'mmap.sh',           mmap_test ],
++  ]
++endif
++
++if get_option('keyutils').enabled()
++  security = find_program('security.sh')
++  tests += [
++    [ 'security.sh', security ]
++  ]
++endif
++
++foreach t : tests
++  test(t[0], t[1],
++    is_parallel : false,
++    depends : [
++      ndctl_tool,
++      daxctl_tool,
++      cxl_tool,
++      smart_notify,
++      list_smart_dimm,
++      dax_pmd,
++      dax_errors,
++      daxdev_errors,
++      dax_dev,
++      mmap,
++    ],
++    timeout : 0,
++    env : [
++      'NDCTL=@0@'.format(ndctl_tool.full_path()),
++      'DAXCTL=@0@'.format(daxctl_tool.full_path()),
++      'TEST_PATH=@0@'.format(meson.current_build_dir()),
++      'DATA_PATH=@0@'.format(meson.current_source_dir()),
++    ],
++  )
++endforeach
+diff --git a/tools/meson-vcs-tag.sh b/tools/meson-vcs-tag.sh
+new file mode 100755
+index 000000000000..9f21c37b7d26
+--- /dev/null
++++ b/tools/meson-vcs-tag.sh
 @@ -0,0 +1,18 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
-+#ifndef __DAXCTL_JSON_H__
-+#define __DAXCTL_JSON_H__
-+#include <daxctl/libdaxctl.h>
++#!/usr/bin/env bash
++# SPDX-License-Identifier: LGPL-2.1-or-later
 +
-+struct json_object *util_daxctl_mapping_to_json(struct daxctl_mapping *mapping,
-+		unsigned long flags);
-+struct daxctl_region;
-+struct daxctl_dev;
-+struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
-+		const char *ident, unsigned long flags);
-+struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
-+		unsigned long flags);
-+struct json_object *util_daxctl_devs_to_list(struct daxctl_region *region,
-+		struct json_object *jdevs, const char *ident,
-+		unsigned long flags);
-+#endif /*  __CXL_UTIL_JSON_H__ */
-diff --git a/daxctl/list.c b/daxctl/list.c
-index cf93c2f7e8ed..aeff1967116b 100644
---- a/daxctl/list.c
-+++ b/daxctl/list.c
-@@ -6,12 +6,14 @@
- #include <unistd.h>
- #include <limits.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <daxctl/libdaxctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
- 
-+#include "filter.h"
-+#include "json.h"
++set -eu
++set -o pipefail
 +
- static struct {
- 	bool devs;
- 	bool regions;
-diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index a63b1e0b8a01..1b3793e7ec47 100644
---- a/ndctl/Makefile.am
-+++ b/ndctl/Makefile.am
-@@ -19,13 +19,19 @@ ndctl_SOURCES = ndctl.c \
- 		region.c \
- 		dimm.c \
- 		../util/log.c \
--		../util/filter.c \
--		../util/filter.h \
-+		../daxctl/filter.c \
-+		../daxctl/filter.h \
-+		filter.c \
-+		filter.h \
- 		list.c \
- 		../util/json.c \
- 		../util/json.h \
--		util/json-smart.c \
--		util/keys.h \
-+		../daxctl/json.c \
-+		../daxctl/json.h \
-+		json.c \
-+		json.h \
-+		json-smart.c \
-+		keys.h \
- 		inject-error.c \
- 		inject-smart.c \
- 		monitor.c \
-@@ -36,7 +42,7 @@ ndctl_SOURCES = ndctl.c \
- 		firmware-update.h
- 
- if ENABLE_KEYUTILS
--ndctl_SOURCES += util/keys.c \
-+ndctl_SOURCES += keys.c \
- 		load-keys.c
- keys_configdir = $(ndctl_keysdir)
- keys_config_DATA = $(ndctl_keysreadme)
-diff --git a/ndctl/bus.c b/ndctl/bus.c
-index 9bc1797e50eb..4fbb6bb505d1 100644
---- a/ndctl/bus.c
-+++ b/ndctl/bus.c
-@@ -8,12 +8,14 @@
- #include <syslog.h>
- #include <builtin.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
- 
-+#include "filter.h"
-+#include "json.h"
++dir="${1:?}"
++fallback="${2:?}"
 +
- static struct {
- 	bool verbose;
- 	bool force;
-diff --git a/ndctl/check.c b/ndctl/check.c
-index b4e20657e1dd..523923745a33 100644
---- a/ndctl/check.c
-+++ b/ndctl/check.c
-@@ -8,7 +8,6 @@
- #include <stdint.h>
- #include <stdlib.h>
- #include <unistd.h>
--#include <ndctl.h>
- #include <limits.h>
- #include <stdbool.h>
- #include <sys/mman.h>
-@@ -20,6 +19,7 @@
- #include <util/util.h>
- #include <util/bitmap.h>
- #include <util/fletcher.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <ndctl/namespace.h>
- #include <ccan/endian/endian.h>
-diff --git a/ndctl/dimm.c b/ndctl/dimm.c
-index 09ce49e1d2ca..6b658721671a 100644
---- a/ndctl/dimm.c
-+++ b/ndctl/dimm.c
-@@ -11,7 +11,6 @@
- #include <util/size.h>
- #include <uuid/uuid.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <util/fletcher.h>
- #include <ndctl/libndctl.h>
-@@ -20,7 +19,10 @@
- #include <ccan/minmax/minmax.h>
- #include <ccan/array_size/array_size.h>
- #include <ndctl/firmware-update.h>
--#include <util/keys.h>
-+
-+#include "filter.h"
-+#include "json.h"
-+#include "keys.h"
- 
- static const char *cmd_name = "dimm";
- static int err_count;
-diff --git a/util/filter.c b/ndctl/filter.c
-similarity index 88%
-rename from util/filter.c
-rename to ndctl/filter.c
-index d81dadebd0d8..64d00ce87dd5 100644
---- a/util/filter.c
-+++ b/ndctl/filter.c
-@@ -9,10 +9,9 @@
- #include <util/util.h>
- #include <sys/types.h>
- #include <ndctl/ndctl.h>
--#include <util/filter.h>
- #include <ndctl/libndctl.h>
--#include <daxctl/libdaxctl.h>
--#include <cxl/libcxl.h>
-+
-+#include "filter.h"
- 
- struct ndctl_bus *util_bus_filter(struct ndctl_bus *bus, const char *__ident)
- {
-@@ -304,61 +303,6 @@ struct ndctl_region *util_region_filter_by_namespace(struct ndctl_region *region
- 	return NULL;
- }
- 
--struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
--		const char *ident)
--{
--	struct daxctl_region *region = daxctl_dev_get_region(dev);
--	int region_id, dev_id;
--
--	if (!ident || strcmp(ident, "all") == 0)
--		return dev;
--
--	if (strcmp(ident, daxctl_dev_get_devname(dev)) == 0)
--		return dev;
--
--	if (sscanf(ident, "%d.%d", &region_id, &dev_id) == 2
--			&& daxctl_region_get_id(region) == region_id
--			&& daxctl_dev_get_id(dev) == dev_id)
--		return dev;
--
--	return NULL;
--}
--
--struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
--		const char *ident)
--{
--	int region_id;
--
--	if (!ident || strcmp(ident, "all") == 0)
--		return region;
--
--	if ((sscanf(ident, "%d", &region_id) == 1
--			|| sscanf(ident, "region%d", &region_id) == 1)
--			&& daxctl_region_get_id(region) == region_id)
--		return region;
--
--	return NULL;
--}
--
--struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
--					  const char *ident)
--{
--	int memdev_id;
--
--	if (!ident || strcmp(ident, "all") == 0)
--		return memdev;
--
--	if (strcmp(ident, cxl_memdev_get_devname(memdev)) == 0)
--		return memdev;
--
--	if ((sscanf(ident, "%d", &memdev_id) == 1
--			|| sscanf(ident, "mem%d", &memdev_id) == 1)
--			&& cxl_memdev_get_id(memdev) == memdev_id)
--		return memdev;
--
--	return NULL;
--}
--
- enum ndctl_namespace_mode util_nsmode(const char *mode)
- {
- 	if (!mode)
-diff --git a/util/filter.h b/ndctl/filter.h
-similarity index 89%
-rename from util/filter.h
-rename to ndctl/filter.h
-index 9a80d65e8b23..9800cc230865 100644
---- a/util/filter.h
-+++ b/ndctl/filter.h
-@@ -1,7 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
--#ifndef _UTIL_FILTER_H_
--#define _UTIL_FILTER_H_
-+#ifndef _NDCTL_UTIL_FILTER_H_
-+#define _NDCTL_UTIL_FILTER_H_
- #include <stdbool.h>
- #include <ccan/list/list.h>
- 
-@@ -25,12 +25,6 @@ struct ndctl_dimm *util_dimm_filter_by_namespace(struct ndctl_dimm *dimm,
- 		const char *ident);
- struct ndctl_region *util_region_filter_by_namespace(struct ndctl_region *region,
- 		const char *ident);
--struct daxctl_dev *util_daxctl_dev_filter(struct daxctl_dev *dev,
--		const char *ident);
--struct daxctl_region *util_daxctl_region_filter(struct daxctl_region *region,
--		const char *ident);
--struct cxl_memdev *util_cxl_memdev_filter(struct cxl_memdev *memdev,
--		const char *ident);
- 
- enum ndctl_namespace_mode util_nsmode(const char *mode);
- const char *util_nsmode_name(enum ndctl_namespace_mode mode);
-@@ -89,4 +83,4 @@ struct util_filter_params {
- struct ndctl_ctx;
- int util_filter_walk(struct ndctl_ctx *ctx, struct util_filter_ctx *fctx,
- 		struct util_filter_params *param);
--#endif
-+#endif /* _NDCTL_UTIL_FILTER_H_ */
-diff --git a/ndctl/inject-error.c b/ndctl/inject-error.c
-index 05c1a22fc36c..f595cec0033d 100644
---- a/ndctl/inject-error.c
-+++ b/ndctl/inject-error.c
-@@ -12,12 +12,11 @@
- #include <sys/types.h>
- #include <sys/ioctl.h>
- 
--#include <ndctl.h>
- #include <util/log.h>
- #include <util/size.h>
- #include <util/json.h>
- #include <json-c/json.h>
--#include <util/filter.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
-@@ -26,6 +25,9 @@
- #include <builtin.h>
- #include <test.h>
- 
-+#include "filter.h"
-+#include "json.h"
-+
- static bool verbose;
- static struct parameters {
- 	const char *bus;
-diff --git a/ndctl/inject-smart.c b/ndctl/inject-smart.c
-index 9077bca256e4..2b9d7e85241c 100644
---- a/ndctl/inject-smart.c
-+++ b/ndctl/inject-smart.c
-@@ -13,12 +13,11 @@
- #include <sys/types.h>
- #include <sys/ioctl.h>
- 
--#include <ndctl.h>
- #include <util/log.h>
- #include <util/size.h>
- #include <util/json.h>
- #include <json-c/json.h>
--#include <util/filter.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
-@@ -27,6 +26,9 @@
- #include <builtin.h>
- #include <test.h>
- 
-+#include "filter.h"
-+#include "json.h"
-+
- static struct parameters {
- 	const char *bus;
- 	const char *dimm;
-diff --git a/ndctl/util/json-smart.c b/ndctl/json-smart.c
-similarity index 99%
-rename from ndctl/util/json-smart.c
-rename to ndctl/json-smart.c
-index e598e04420cd..400f60b0a710 100644
---- a/ndctl/util/json-smart.c
-+++ b/ndctl/json-smart.c
-@@ -1,12 +1,13 @@
- // SPDX-License-Identifier: GPL-2.0
- // Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
- #include <limits.h>
--#include <util/json.h>
- #include <uuid/uuid.h>
- #include <json-c/json.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <ccan/array_size/array_size.h>
--#include <ndctl.h>
-+
-+#include "json.h"
- 
- static void smart_threshold_to_json(struct ndctl_dimm *dimm,
- 		struct json_object *jhealth)
-diff --git a/ndctl/json.c b/ndctl/json.c
++# Apparently git describe has a bug where it always considers the work-tree
++# dirty when invoked with --git-dir (even though 'git status' is happy). Work
++# around this issue by cd-ing to the source directory.
++cd "$dir"
++# Check that we have either .git/ (a normal clone) or a .git file (a work-tree)
++# and that we don't get confused if a tarball is extracted in a higher-level
++# git repository.
++[ -e .git ] && git describe --abbrev=7 --dirty=+ 2>/dev/null | \
++	sed -e 's/^v//' -e 's/-/./g' || echo "$fallback"
+diff --git a/util/meson.build b/util/meson.build
 new file mode 100644
-index 000000000000..c62e6cae01a9
+index 000000000000..15726bb1e6f5
 --- /dev/null
-+++ b/ndctl/json.c
-@@ -0,0 +1,1114 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
-+#include <limits.h>
-+#include <string.h>
-+#include <util/json.h>
-+#include <uuid/uuid.h>
-+#include <json-c/json.h>
-+#include <ndctl/libndctl.h>
-+#include <json-c/printbuf.h>
-+
-+#include "json.h"
-+#include "ndctl.h"
-+#include "../daxctl/json.h"
-+
-+struct json_object *util_bus_to_json(struct ndctl_bus *bus, unsigned long flags)
-+{
-+	struct json_object *jbus = json_object_new_object();
-+	struct json_object *jobj, *fw_obj = NULL;
-+	int scrub;
-+
-+	if (!jbus)
-+		return NULL;
-+
-+	jobj = json_object_new_string(ndctl_bus_get_provider(bus));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jbus, "provider", jobj);
-+
-+	jobj = json_object_new_string(ndctl_bus_get_devname(bus));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jbus, "dev", jobj);
-+
-+	scrub = ndctl_bus_get_scrub_state(bus);
-+	if (scrub < 0)
-+		return jbus;
-+
-+	jobj = json_object_new_string(scrub ? "active" : "idle");
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jbus, "scrub_state", jobj);
-+
-+	if (flags & UTIL_JSON_FIRMWARE) {
-+		struct ndctl_dimm *dimm;
-+
-+		/*
-+		 * Skip displaying firmware activation capability if no
-+		 * DIMMs support firmware update.
-+		 */
-+		ndctl_dimm_foreach(bus, dimm)
-+			if (ndctl_dimm_fw_update_supported(dimm) == 0) {
-+				fw_obj = json_object_new_object();
-+				break;
-+			}
-+	}
-+
-+	if (fw_obj) {
-+		enum ndctl_fwa_state state;
-+		enum ndctl_fwa_method method;
-+
-+		jobj = NULL;
-+		method = ndctl_bus_get_fw_activate_method(bus);
-+		if (method == NDCTL_FWA_METHOD_RESET)
-+			jobj = json_object_new_string("reset");
-+		if (method == NDCTL_FWA_METHOD_SUSPEND)
-+			jobj = json_object_new_string("suspend");
-+		if (method == NDCTL_FWA_METHOD_LIVE)
-+			jobj = json_object_new_string("live");
-+		if (jobj)
-+			json_object_object_add(fw_obj, "activate_method", jobj);
-+
-+		jobj = NULL;
-+		state = ndctl_bus_get_fw_activate_state(bus);
-+		if (state == NDCTL_FWA_ARMED)
-+			jobj = json_object_new_string("armed");
-+		if (state == NDCTL_FWA_IDLE)
-+			jobj = json_object_new_string("idle");
-+		if (state == NDCTL_FWA_ARM_OVERFLOW)
-+			jobj = json_object_new_string("overflow");
-+		if (jobj)
-+			json_object_object_add(fw_obj, "activate_state", jobj);
-+
-+		json_object_object_add(jbus, "firmware", fw_obj);
-+	}
-+
-+	return jbus;
-+ err:
-+	json_object_put(jbus);
-+	return NULL;
-+}
-+
-+
-+
-+struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags)
-+{
-+	struct json_object *jfirmware = json_object_new_object();
-+	bool can_update, need_powercycle;
-+	enum ndctl_fwa_result result;
-+	enum ndctl_fwa_state state;
-+	struct json_object *jobj;
-+	struct ndctl_cmd *cmd;
-+	uint64_t run, next;
-+	int rc;
-+
-+	if (!jfirmware)
-+		return NULL;
-+
-+	cmd = ndctl_dimm_cmd_new_fw_get_info(dimm);
-+	if (!cmd)
-+		goto err;
-+
-+	rc = ndctl_cmd_submit(cmd);
-+	if ((rc < 0) || ndctl_cmd_fw_xlat_firmware_status(cmd) != FW_SUCCESS) {
-+		jobj = util_json_object_hex(-1, flags);
-+		if (jobj)
-+			json_object_object_add(jfirmware, "current_version",
-+					jobj);
-+		goto out;
-+	}
-+
-+	run = ndctl_cmd_fw_info_get_run_version(cmd);
-+	if (run == ULLONG_MAX) {
-+		jobj = util_json_object_hex(-1, flags);
-+		if (jobj)
-+			json_object_object_add(jfirmware, "current_version",
-+					jobj);
-+		goto out;
-+	}
-+
-+	jobj = util_json_object_hex(run, flags);
-+	if (jobj)
-+		json_object_object_add(jfirmware, "current_version", jobj);
-+
-+	rc = ndctl_dimm_fw_update_supported(dimm);
-+	can_update = rc == 0;
-+	jobj = json_object_new_boolean(can_update);
-+	if (jobj)
-+		json_object_object_add(jfirmware, "can_update", jobj);
-+
-+
-+	next = ndctl_cmd_fw_info_get_updated_version(cmd);
-+	if (next == ULLONG_MAX) {
-+		jobj = util_json_object_hex(-1, flags);
-+		if (jobj)
-+			json_object_object_add(jfirmware, "next_version",
-+					jobj);
-+		goto out;
-+	}
-+
-+	if (!next)
-+		goto out;
-+
-+	jobj = util_json_object_hex(next, flags);
-+	if (jobj)
-+		json_object_object_add(jfirmware,
-+				"next_version", jobj);
-+
-+	state = ndctl_dimm_get_fw_activate_state(dimm);
-+	switch (state) {
-+	case NDCTL_FWA_IDLE:
-+		jobj = json_object_new_string("idle");
-+		break;
-+	case NDCTL_FWA_ARMED:
-+		jobj = json_object_new_string("armed");
-+		break;
-+	case NDCTL_FWA_BUSY:
-+		jobj = json_object_new_string("busy");
-+		break;
-+	default:
-+		jobj = NULL;
-+		break;
-+	}
-+	if (jobj)
-+		json_object_object_add(jfirmware, "activate_state", jobj);
-+
-+	result = ndctl_dimm_get_fw_activate_result(dimm);
-+	switch (result) {
-+	case NDCTL_FWA_RESULT_NONE:
-+	case NDCTL_FWA_RESULT_SUCCESS:
-+	case NDCTL_FWA_RESULT_NOTSTAGED:
-+		/*
-+		 * If a 'next' firmware version is staged then this
-+		 * result is stale, if the activation succeeds that is
-+		 * indicated by not finding a 'next' entry.
-+		 */
-+		need_powercycle = false;
-+		break;
-+	case NDCTL_FWA_RESULT_NEEDRESET:
-+	case NDCTL_FWA_RESULT_FAIL:
-+	default:
-+		/*
-+		 * If the last activation failed, or if the activation
-+		 * result is unavailable it is always the case that the
-+		 * only remediation is powercycle.
-+		 */
-+		need_powercycle = true;
-+		break;
-+	}
-+
-+	if (need_powercycle) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto out;
-+		json_object_object_add(jfirmware, "need_powercycle", jobj);
-+	}
-+
-+	ndctl_cmd_unref(cmd);
-+	return jfirmware;
-+
-+err:
-+	json_object_put(jfirmware);
-+	jfirmware = NULL;
-+out:
-+	if (cmd)
-+		ndctl_cmd_unref(cmd);
-+	return jfirmware;
-+}
-+
-+
-+
-+struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags)
-+{
-+	struct json_object *jdimm = json_object_new_object();
-+	const char *id = ndctl_dimm_get_unique_id(dimm);
-+	unsigned int handle = ndctl_dimm_get_handle(dimm);
-+	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
-+	struct json_object *jobj;
-+	enum ndctl_security_state sstate;
-+
-+	if (!jdimm)
-+		return NULL;
-+
-+	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jdimm, "dev", jobj);
-+
-+	if (id) {
-+		jobj = json_object_new_string(id);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "id", jobj);
-+	}
-+
-+	if (handle < UINT_MAX) {
-+		jobj = util_json_object_hex(handle, flags);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "handle", jobj);
-+	}
-+
-+	if (phys_id < USHRT_MAX) {
-+		jobj = util_json_object_hex(phys_id, flags);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "phys_id", jobj);
-+	}
-+
-+	if (!ndctl_dimm_is_enabled(dimm)) {
-+		jobj = json_object_new_string("disabled");
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "state", jobj);
-+	}
-+
-+	if (ndctl_dimm_failed_map(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "flag_failed_map", jobj);
-+	}
-+
-+	if (ndctl_dimm_failed_save(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "flag_failed_save", jobj);
-+	}
-+
-+	if (ndctl_dimm_failed_arm(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "flag_failed_arm", jobj);
-+	}
-+
-+	if (ndctl_dimm_failed_restore(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "flag_failed_restore", jobj);
-+	}
-+
-+	if (ndctl_dimm_failed_flush(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "flag_failed_flush", jobj);
-+	}
-+
-+	if (ndctl_dimm_smart_pending(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jdimm, "flag_smart_event", jobj);
-+	}
-+
-+	sstate = ndctl_dimm_get_security(dimm);
-+	if (sstate == NDCTL_SECURITY_DISABLED)
-+		jobj = json_object_new_string("disabled");
-+	else if (sstate == NDCTL_SECURITY_UNLOCKED)
-+		jobj = json_object_new_string("unlocked");
-+	else if (sstate == NDCTL_SECURITY_LOCKED)
-+		jobj = json_object_new_string("locked");
-+	else if (sstate == NDCTL_SECURITY_FROZEN)
-+		jobj = json_object_new_string("frozen");
-+	else if (sstate == NDCTL_SECURITY_OVERWRITE)
-+		jobj = json_object_new_string("overwrite");
-+	else
-+		jobj = NULL;
-+	if (jobj)
-+		json_object_object_add(jdimm, "security", jobj);
-+
-+	if (ndctl_dimm_security_is_frozen(dimm)) {
-+		jobj = json_object_new_boolean(true);
-+		if (jobj)
-+			json_object_object_add(jdimm, "security_frozen", jobj);
-+	}
-+
-+	if (flags & UTIL_JSON_FIRMWARE) {
-+		struct json_object *jfirmware;
-+
-+		jfirmware = util_dimm_firmware_to_json(dimm, flags);
-+		if (jfirmware)
-+			json_object_object_add(jdimm, "firmware", jfirmware);
-+	}
-+
-+	return jdimm;
-+ err:
-+	json_object_put(jdimm);
-+	return NULL;
-+}
-+
-+#define _SZ(get_max, get_elem, type) \
-+static struct json_object *util_##type##_build_size_array(struct ndctl_##type *arg)	\
-+{								\
-+	struct json_object *arr = json_object_new_array();	\
-+	int i;							\
-+								\
-+	if (!arr)						\
-+		return NULL;					\
-+								\
-+	for (i = 0; i < get_max(arg); i++) {			\
-+		struct json_object *jobj;			\
-+		int64_t align;					\
-+								\
-+		align = get_elem(arg, i);			\
-+		jobj = json_object_new_int64(align);		\
-+		if (!jobj)					\
-+			goto err;				\
-+		json_object_array_add(arr, jobj);		\
-+	}							\
-+								\
-+	return arr;						\
-+err:								\
-+	json_object_put(arr);					\
-+	return NULL;						\
-+}
-+#define SZ(type, kind) _SZ(ndctl_##type##_get_num_##kind##s, \
-+			   ndctl_##type##_get_supported_##kind, type)
-+SZ(pfn, alignment)
-+SZ(dax, alignment)
-+SZ(btt, sector_size)
-+
-+struct json_object *util_region_capabilities_to_json(struct ndctl_region *region)
-+{
-+	struct json_object *jcaps, *jcap, *jobj;
-+	struct ndctl_btt *btt = ndctl_region_get_btt_seed(region);
-+	struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
-+	struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
-+
-+	if (!btt || !pfn || !dax)
-+		return NULL;
-+
-+	jcaps = json_object_new_array();
-+	if (!jcaps)
-+		return NULL;
-+
-+	if (btt) {
-+		jcap = json_object_new_object();
-+		if (!jcap)
-+			goto err;
-+		json_object_array_add(jcaps, jcap);
-+
-+		jobj = json_object_new_string("sector");
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jcap, "mode", jobj);
-+		jobj = util_btt_build_size_array(btt);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jcap, "sector_sizes", jobj);
-+	}
-+
-+	if (pfn) {
-+		jcap = json_object_new_object();
-+		if (!jcap)
-+			goto err;
-+		json_object_array_add(jcaps, jcap);
-+
-+		jobj = json_object_new_string("fsdax");
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jcap, "mode", jobj);
-+		jobj = util_pfn_build_size_array(pfn);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jcap, "alignments", jobj);
-+	}
-+
-+	if (dax) {
-+		jcap = json_object_new_object();
-+		if (!jcap)
-+			goto err;
-+		json_object_array_add(jcaps, jcap);
-+
-+		jobj = json_object_new_string("devdax");
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jcap, "mode", jobj);
-+		jobj = util_dax_build_size_array(dax);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jcap, "alignments", jobj);
-+	}
-+
-+	return jcaps;
-+err:
-+	json_object_put(jcaps);
-+	return NULL;
-+}
-+
-+
-+static int compare_dimm_number(const void *p1, const void *p2)
-+{
-+	struct ndctl_dimm *dimm1 = *(struct ndctl_dimm **)p1;
-+	struct ndctl_dimm *dimm2 = *(struct ndctl_dimm **)p2;
-+	const char *dimm1_name = ndctl_dimm_get_devname(dimm1);
-+	const char *dimm2_name = ndctl_dimm_get_devname(dimm2);
-+	int num1, num2;
-+
-+	if (sscanf(dimm1_name, "nmem%d", &num1) != 1)
-+		num1 = 0;
-+	if (sscanf(dimm2_name, "nmem%d", &num2) != 1)
-+		num2 = 0;
-+
-+	return num1 - num2;
-+}
-+
-+static struct json_object *badblocks_to_jdimms(struct ndctl_region *region,
-+		unsigned long long addr, unsigned long len)
-+{
-+	struct ndctl_bus *bus = ndctl_region_get_bus(region);
-+	int count = ndctl_region_get_interleave_ways(region);
-+	unsigned long long end = addr + len;
-+	struct json_object *jdimms, *jobj;
-+	struct ndctl_dimm **dimms, *dimm;
-+	int found, i;
-+
-+	jdimms = json_object_new_array();
-+	if (!jdimms)
-+		return NULL;
-+
-+	dimms = calloc(count, sizeof(struct ndctl_dimm *));
-+	if (!dimms)
-+		goto err_dimms;
-+
-+	for (found = 0; found < count && addr < end; addr += 512) {
-+		dimm = ndctl_bus_get_dimm_by_physical_address(bus, addr);
-+		if (!dimm)
-+			continue;
-+
-+		for (i = 0; i < count; i++)
-+			if (dimms[i] == dimm)
-+				break;
-+		if (i >= count)
-+			dimms[found++] = dimm;
-+	}
-+
-+	if (!found)
-+		goto err_found;
-+
-+	qsort(dimms, found, sizeof(dimm), compare_dimm_number);
-+
-+	for (i = 0; i < found; i++) {
-+		const char *devname = ndctl_dimm_get_devname(dimms[i]);
-+
-+		jobj = json_object_new_string(devname);
-+		if (!jobj)
-+			break;
-+		json_object_array_add(jdimms, jobj);
-+	}
-+
-+	if (!i)
-+		goto err_found;
-+	free(dimms);
-+	return jdimms;
-+
-+err_found:
-+	free(dimms);
-+err_dimms:
-+	json_object_put(jdimms);
-+	return NULL;
-+}
-+
-+struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
-+		unsigned int *bb_count, unsigned long flags)
-+{
-+	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
-+	struct badblock *bb;
-+	int bbs = 0;
-+
-+	if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+		jbbs = json_object_new_array();
-+		if (!jbbs)
-+			return NULL;
-+	}
-+
-+	ndctl_region_badblock_foreach(region, bb) {
-+		struct json_object *jdimms;
-+		unsigned long long addr;
-+
-+		bbs += bb->len;
-+
-+		/* recheck so we can still get the badblocks_count from above */
-+		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
-+			continue;
-+
-+		/* get start address of region */
-+		addr = ndctl_region_get_resource(region);
-+		if (addr == ULLONG_MAX)
-+			goto err_array;
-+
-+		/* get address of bad block */
-+		addr += bb->offset << 9;
-+
-+		jbb = json_object_new_object();
-+		if (!jbb)
-+			goto err_array;
-+
-+		jobj = json_object_new_int64(bb->offset);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jbb, "offset", jobj);
-+
-+		jobj = json_object_new_int(bb->len);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jbb, "length", jobj);
-+
-+		jdimms = badblocks_to_jdimms(region, addr, bb->len << 9);
-+		if (jdimms)
-+			json_object_object_add(jbb, "dimms", jdimms);
-+		json_object_array_add(jbbs, jbb);
-+	}
-+
-+	*bb_count = bbs;
-+
-+	if (bbs)
-+		return jbbs;
-+
-+ err:
-+	json_object_put(jbb);
-+ err_array:
-+	json_object_put(jbbs);
-+	return NULL;
-+}
-+
-+static struct json_object *util_namespace_badblocks_to_json(
-+			struct ndctl_namespace *ndns,
-+			unsigned int *bb_count, unsigned long flags)
-+{
-+	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
-+	struct badblock *bb;
-+	int bbs = 0;
-+
-+	if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+		jbbs = json_object_new_array();
-+		if (!jbbs)
-+			return NULL;
-+	} else
-+		return NULL;
-+
-+	ndctl_namespace_badblock_foreach(ndns, bb) {
-+		bbs += bb->len;
-+
-+		/* recheck so we can still get the badblocks_count from above */
-+		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
-+			continue;
-+
-+		jbb = json_object_new_object();
-+		if (!jbb)
-+			goto err_array;
-+
-+		jobj = json_object_new_int64(bb->offset);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jbb, "offset", jobj);
-+
-+		jobj = json_object_new_int(bb->len);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jbb, "length", jobj);
-+		json_object_array_add(jbbs, jbb);
-+	}
-+
-+	*bb_count = bbs;
-+
-+	if (bbs)
-+		return jbbs;
-+
-+ err:
-+	json_object_put(jbb);
-+ err_array:
-+	json_object_put(jbbs);
-+	return NULL;
-+}
-+
-+static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
-+		unsigned long long dev_begin, unsigned long long dev_size,
-+		unsigned int *bb_count, unsigned long flags)
-+{
-+	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
-+	unsigned long long region_begin, dev_end, offset;
-+	unsigned int len, bbs = 0;
-+	struct badblock *bb;
-+
-+	region_begin = ndctl_region_get_resource(region);
-+	if (region_begin == ULLONG_MAX)
-+		return NULL;
-+
-+	dev_end = dev_begin + dev_size - 1;
-+
-+	if (flags & UTIL_JSON_MEDIA_ERRORS) {
-+		jbbs = json_object_new_array();
-+		if (!jbbs)
-+			return NULL;
-+	}
-+
-+	ndctl_region_badblock_foreach(region, bb) {
-+		unsigned long long bb_begin, bb_end, begin, end;
-+		struct json_object *jdimms;
-+
-+		bb_begin = region_begin + (bb->offset << 9);
-+		bb_end = bb_begin + (bb->len << 9) - 1;
-+
-+		if (bb_end <= dev_begin || bb_begin >= dev_end)
-+			continue;
-+
-+		if (bb_begin < dev_begin)
-+			begin = dev_begin;
-+		else
-+			begin = bb_begin;
-+
-+		if (bb_end > dev_end)
-+			end = dev_end;
-+		else
-+			end = bb_end;
-+
-+		offset = (begin - dev_begin) >> 9;
-+		len = (end - begin + 1) >> 9;
-+
-+		bbs += len;
-+
-+		/* recheck so we can still get the badblocks_count from above */
-+		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
-+			continue;
-+
-+		jbb = json_object_new_object();
-+		if (!jbb)
-+			goto err_array;
-+
-+		jobj = json_object_new_int64(offset);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jbb, "offset", jobj);
-+
-+		jobj = json_object_new_int(len);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jbb, "length", jobj);
-+
-+		jdimms = badblocks_to_jdimms(region, begin, len << 9);
-+		if (jdimms)
-+			json_object_object_add(jbb, "dimms", jdimms);
-+
-+		json_object_array_add(jbbs, jbb);
-+	}
-+
-+	*bb_count = bbs;
-+
-+	if (bbs)
-+		return jbbs;
-+
-+ err:
-+	json_object_put(jbb);
-+ err_array:
-+	json_object_put(jbbs);
-+	return NULL;
-+}
-+
-+static struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
-+		unsigned int *bb_count, unsigned long flags)
-+{
-+	struct ndctl_region *region = ndctl_pfn_get_region(pfn);
-+	unsigned long long pfn_begin, pfn_size;
-+
-+	pfn_begin = ndctl_pfn_get_resource(pfn);
-+	if (pfn_begin == ULLONG_MAX) {
-+		struct ndctl_namespace *ndns = ndctl_pfn_get_namespace(pfn);
-+
-+		return util_namespace_badblocks_to_json(ndns, bb_count, flags);
-+	}
-+
-+	pfn_size = ndctl_pfn_get_size(pfn);
-+	if (pfn_size == ULLONG_MAX)
-+		return NULL;
-+
-+	return dev_badblocks_to_json(region, pfn_begin, pfn_size,
-+			bb_count, flags);
-+}
-+
-+static void util_btt_badblocks_to_json(struct ndctl_btt *btt,
-+		unsigned int *bb_count)
-+{
-+	struct ndctl_region *region = ndctl_btt_get_region(btt);
-+	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
-+	unsigned long long begin, size;
-+
-+	if (!ndns)
-+		return;
-+
-+	begin = ndctl_namespace_get_resource(ndns);
-+	if (begin == ULLONG_MAX)
-+		return;
-+
-+	size = ndctl_namespace_get_size(ndns);
-+	if (size == ULLONG_MAX)
-+		return;
-+
-+	/*
-+	 * The dev_badblocks_to_json() for BTT is not accurate with
-+	 * respect to data vs metadata badblocks, and is only useful for
-+	 * a potential bb_count.
-+	 *
-+	 * FIXME: switch to native BTT badblocks representation
-+	 * when / if the kernel provides it.
-+	 */
-+	dev_badblocks_to_json(region, begin, size, bb_count, 0);
-+}
-+static struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
-+		unsigned int *bb_count, unsigned long flags)
-+{
-+	struct ndctl_region *region = ndctl_dax_get_region(dax);
-+	unsigned long long dax_begin, dax_size;
-+
-+	dax_begin = ndctl_dax_get_resource(dax);
-+	if (dax_begin == ULLONG_MAX)
-+		return NULL;
-+
-+	dax_size = ndctl_dax_get_size(dax);
-+	if (dax_size == ULLONG_MAX)
-+		return NULL;
-+
-+	return dev_badblocks_to_json(region, dax_begin, dax_size,
-+			bb_count, flags);
-+}
-+
-+static struct json_object *util_raw_uuid(struct ndctl_namespace *ndns)
-+{
-+	char buf[40];
-+	uuid_t raw_uuid;
-+
-+	ndctl_namespace_get_uuid(ndns, raw_uuid);
-+	if (uuid_is_null(raw_uuid))
-+		return NULL;
-+	uuid_unparse(raw_uuid, buf);
-+	return json_object_new_string(buf);
-+}
-+
-+static void util_raw_uuid_to_json(struct ndctl_namespace *ndns,
-+				  unsigned long flags,
-+				  struct json_object *jndns)
-+{
-+	struct json_object *jobj;
-+
-+	if (!(flags & UTIL_JSON_VERBOSE))
-+		return;
-+
-+	jobj = util_raw_uuid(ndns);
-+	if (!jobj)
-+		return;
-+	json_object_object_add(jndns, "raw_uuid", jobj);
-+}
-+
-+struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
-+		unsigned long flags)
-+{
-+	struct json_object *jndns = json_object_new_object();
-+	enum ndctl_pfn_loc loc = NDCTL_PFN_LOC_NONE;
-+	struct json_object *jobj, *jbbs = NULL;
-+	const char *locations[] = {
-+		[NDCTL_PFN_LOC_NONE] = "none",
-+		[NDCTL_PFN_LOC_RAM] = "mem",
-+		[NDCTL_PFN_LOC_PMEM] = "dev",
-+	};
-+	unsigned long long size = ULLONG_MAX;
-+	unsigned int sector_size = UINT_MAX;
-+	enum ndctl_namespace_mode mode;
-+	const char *bdev = NULL, *name;
-+	unsigned int bb_count = 0;
-+	struct ndctl_btt *btt;
-+	struct ndctl_pfn *pfn;
-+	struct ndctl_dax *dax;
-+	unsigned long align = 0;
-+	char buf[40];
-+	uuid_t uuid;
-+	int numa, target;
-+
-+	if (!jndns)
-+		return NULL;
-+
-+	jobj = json_object_new_string(ndctl_namespace_get_devname(ndns));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jndns, "dev", jobj);
-+
-+	btt = ndctl_namespace_get_btt(ndns);
-+	dax = ndctl_namespace_get_dax(ndns);
-+	pfn = ndctl_namespace_get_pfn(ndns);
-+	mode = ndctl_namespace_get_mode(ndns);
-+	switch (mode) {
-+	case NDCTL_NS_MODE_MEMORY:
-+		if (pfn) { /* dynamic memory mode */
-+			size = ndctl_pfn_get_size(pfn);
-+			loc = ndctl_pfn_get_location(pfn);
-+		} else { /* native/static memory mode */
-+			size = ndctl_namespace_get_size(ndns);
-+			loc = NDCTL_PFN_LOC_RAM;
-+		}
-+		jobj = json_object_new_string("fsdax");
-+		break;
-+	case NDCTL_NS_MODE_DAX:
-+		if (!dax)
-+			goto err;
-+		size = ndctl_dax_get_size(dax);
-+		jobj = json_object_new_string("devdax");
-+		loc = ndctl_dax_get_location(dax);
-+		break;
-+	case NDCTL_NS_MODE_SECTOR:
-+		if (!btt)
-+			goto err;
-+		jobj = json_object_new_string("sector");
-+		size = ndctl_btt_get_size(btt);
-+		break;
-+	case NDCTL_NS_MODE_RAW:
-+		size = ndctl_namespace_get_size(ndns);
-+		jobj = json_object_new_string("raw");
-+		break;
-+	default:
-+		jobj = NULL;
-+	}
-+	if (jobj)
-+		json_object_object_add(jndns, "mode", jobj);
-+
-+	if ((mode != NDCTL_NS_MODE_SECTOR) && (mode != NDCTL_NS_MODE_RAW)) {
-+		jobj = json_object_new_string(locations[loc]);
-+		if (jobj)
-+			json_object_object_add(jndns, "map", jobj);
-+	}
-+
-+	if (size < ULLONG_MAX) {
-+		jobj = util_json_object_size(size, flags);
-+		if (jobj)
-+			json_object_object_add(jndns, "size", jobj);
-+	}
-+
-+	if (btt) {
-+		ndctl_btt_get_uuid(btt, uuid);
-+		uuid_unparse(uuid, buf);
-+		jobj = json_object_new_string(buf);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "uuid", jobj);
-+		util_raw_uuid_to_json(ndns, flags, jndns);
-+		bdev = ndctl_btt_get_block_device(btt);
-+	} else if (pfn) {
-+		align = ndctl_pfn_get_align(pfn);
-+		ndctl_pfn_get_uuid(pfn, uuid);
-+		uuid_unparse(uuid, buf);
-+		jobj = json_object_new_string(buf);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "uuid", jobj);
-+		util_raw_uuid_to_json(ndns, flags, jndns);
-+		bdev = ndctl_pfn_get_block_device(pfn);
-+	} else if (dax) {
-+		struct daxctl_region *dax_region;
-+
-+		dax_region = ndctl_dax_get_daxctl_region(dax);
-+		align = ndctl_dax_get_align(dax);
-+		ndctl_dax_get_uuid(dax, uuid);
-+		uuid_unparse(uuid, buf);
-+		jobj = json_object_new_string(buf);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "uuid", jobj);
-+		util_raw_uuid_to_json(ndns, flags, jndns);
-+		if ((flags & UTIL_JSON_DAX) && dax_region) {
-+			jobj = util_daxctl_region_to_json(dax_region, NULL,
-+					flags);
-+			if (jobj)
-+				json_object_object_add(jndns, "daxregion", jobj);
-+		} else if (dax_region) {
-+			struct daxctl_dev *dev;
-+
-+			/*
-+			 * We can only find/list these device-dax
-+			 * details when the instance is enabled.
-+			 */
-+			dev = daxctl_dev_get_first(dax_region);
-+			if (dev) {
-+				name = daxctl_dev_get_devname(dev);
-+				jobj = json_object_new_string(name);
-+				if (!jobj)
-+					goto err;
-+				json_object_object_add(jndns, "chardev", jobj);
-+			}
-+		}
-+	} else if (ndctl_namespace_get_type(ndns) != ND_DEVICE_NAMESPACE_IO) {
-+		ndctl_namespace_get_uuid(ndns, uuid);
-+		uuid_unparse(uuid, buf);
-+		jobj = json_object_new_string(buf);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "uuid", jobj);
-+		bdev = ndctl_namespace_get_block_device(ndns);
-+	} else
-+		bdev = ndctl_namespace_get_block_device(ndns);
-+
-+	if (btt)
-+		sector_size = ndctl_btt_get_sector_size(btt);
-+	else if (!dax) {
-+		sector_size = ndctl_namespace_get_sector_size(ndns);
-+		if (!sector_size || sector_size == UINT_MAX)
-+			sector_size = 512;
-+	}
-+
-+	/*
-+	 * The kernel will default to a 512 byte sector size on PMEM
-+	 * namespaces that don't explicitly have a sector size. This
-+	 * happens because they use pre-v1.2 labels or because they
-+	 * don't have a label space (devtype=nd_namespace_io).
-+	 */
-+	if (sector_size < UINT_MAX) {
-+		jobj = json_object_new_int(sector_size);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "sector_size", jobj);
-+	}
-+
-+	if (align) {
-+		jobj = json_object_new_int64(align);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "align", jobj);
-+	}
-+
-+	if (bdev && bdev[0]) {
-+		jobj = json_object_new_string(bdev);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "blockdev", jobj);
-+	}
-+
-+	if (!ndctl_namespace_is_active(ndns)) {
-+		jobj = json_object_new_string("disabled");
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "state", jobj);
-+	}
-+
-+	name = ndctl_namespace_get_alt_name(ndns);
-+	if (name && name[0]) {
-+		jobj = json_object_new_string(name);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jndns, "name", jobj);
-+	}
-+
-+	numa = ndctl_namespace_get_numa_node(ndns);
-+	if (numa >= 0 && flags & UTIL_JSON_VERBOSE) {
-+		jobj = json_object_new_int(numa);
-+		if (jobj)
-+			json_object_object_add(jndns, "numa_node", jobj);
-+	}
-+
-+	target = ndctl_namespace_get_target_node(ndns);
-+	if (target >= 0 && flags & UTIL_JSON_VERBOSE) {
-+		jobj = json_object_new_int(target);
-+		if (jobj)
-+			json_object_object_add(jndns, "target_node", jobj);
-+	}
-+
-+	if (pfn)
-+		jbbs = util_pfn_badblocks_to_json(pfn, &bb_count, flags);
-+	else if (dax)
-+		jbbs = util_dax_badblocks_to_json(dax, &bb_count, flags);
-+	else if (btt)
-+		util_btt_badblocks_to_json(btt, &bb_count);
-+	else {
-+		jbbs = util_region_badblocks_to_json(
-+				ndctl_namespace_get_region(ndns), &bb_count,
-+				flags);
-+		if (!jbbs)
-+			jbbs = util_namespace_badblocks_to_json(ndns, &bb_count,
-+					flags);
-+	}
-+
-+	if (bb_count) {
-+		jobj = json_object_new_int(bb_count);
-+		if (!jobj) {
-+			json_object_put(jbbs);
-+			goto err;
-+		}
-+		json_object_object_add(jndns, "badblock_count", jobj);
-+	}
-+
-+	if ((flags & UTIL_JSON_MEDIA_ERRORS) && jbbs)
-+		json_object_object_add(jndns, "badblocks", jbbs);
-+
-+	return jndns;
-+ err:
-+	json_object_put(jndns);
-+	return NULL;
-+}
-+
-+
-+struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
-+		unsigned long flags)
-+{
-+	struct json_object *jmapping = json_object_new_object();
-+	struct ndctl_dimm *dimm = ndctl_mapping_get_dimm(mapping);
-+	struct json_object *jobj;
-+	int position;
-+
-+	if (!jmapping)
-+		return NULL;
-+
-+	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "dimm", jobj);
-+
-+	jobj = util_json_object_hex(ndctl_mapping_get_offset(mapping), flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "offset", jobj);
-+
-+	jobj = util_json_object_hex(ndctl_mapping_get_length(mapping), flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jmapping, "length", jobj);
-+
-+	position = ndctl_mapping_get_position(mapping);
-+	if (position >= 0) {
-+		jobj = json_object_new_int(position);
-+		if (!jobj)
-+			goto err;
-+		json_object_object_add(jmapping, "position", jobj);
-+	}
-+
-+	return jmapping;
-+ err:
-+	json_object_put(jmapping);
-+	return NULL;
-+}
-+
-+struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
-+		unsigned long flags)
-+{
-+	struct json_object *jerr = json_object_new_object();
-+	struct json_object *jobj;
-+
-+	if (!jerr)
-+		return NULL;
-+
-+	jobj = util_json_object_hex(block, flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jerr, "block", jobj);
-+
-+	jobj = util_json_object_hex(count, flags);
-+	if (!jobj)
-+		goto err;
-+	json_object_object_add(jerr, "count", jobj);
-+
-+	return jerr;
-+ err:
-+	json_object_put(jerr);
-+	return NULL;
-+}
-diff --git a/ndctl/json.h b/ndctl/json.h
++++ b/util/meson.build
+@@ -0,0 +1,15 @@
++util = static_library('util', [
++  'parse-options.c',
++  'usage.c',
++  'size.c',
++  'main.c',
++  'help.c',
++  'strbuf.c',
++  'wrapper.c',
++  'bitmap.c',
++  'abspath.c',
++  'iomem.c',
++  ],
++  include_directories : root_inc,
++)
++util_dep = declare_dependency(link_with : util)
+diff --git a/version.h.in b/version.h.in
 new file mode 100644
-index 000000000000..f544b659ca1d
+index 000000000000..dedbaf95caf7
 --- /dev/null
-+++ b/ndctl/json.h
-@@ -0,0 +1,24 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
-+#ifndef __NDCTL_UTIL_JSON_H__
-+#define __NDCTL_UTIL_JSON_H__
-+#include <ndctl/libndctl.h>
-+#include <ccan/short_types/short_types.h>
-+
-+struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
-+		unsigned long flags);
-+struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
-+		unsigned long flags);
-+struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
-+		unsigned int *bb_count, unsigned long flags);
-+struct json_object *util_bus_to_json(struct ndctl_bus *bus,
-+		unsigned long flags);
-+struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags);
-+struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
-+		unsigned long flags);
-+struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
-+struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
-+		unsigned long flags);
-+struct json_object *util_region_capabilities_to_json(struct ndctl_region *region);
-+#endif /* __NDCTL_UTIL_JSON_H__ */
-diff --git a/ndctl/util/keys.c b/ndctl/keys.c
-similarity index 99%
-rename from ndctl/util/keys.c
-rename to ndctl/keys.c
-index 30cb4c884b98..876b34714b7e 100644
---- a/ndctl/util/keys.c
-+++ b/ndctl/keys.c
-@@ -13,10 +13,11 @@
- #include <keyutils.h>
- #include <syslog.h>
- 
--#include <ndctl.h>
- #include <ndctl/config.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
--#include <util/keys.h>
-+
-+#include "keys.h"
- 
- static int get_key_path(struct ndctl_dimm *dimm, char *path,
- 		enum ndctl_key_type key_type)
-diff --git a/ndctl/util/keys.h b/ndctl/keys.h
-similarity index 100%
-rename from ndctl/util/keys.h
-rename to ndctl/keys.h
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 536e142cf6af..681443640a9a 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -20,10 +20,10 @@
- #include <ccan/array_size/array_size.h>
- #include <ccan/build_assert/build_assert.h>
- 
--#include <ndctl.h>
- #include <util/util.h>
- #include <util/size.h>
- #include <util/sysfs.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <ndctl/namespace.h>
- #include <daxctl/libdaxctl.h>
-diff --git a/ndctl/lib/papr.c b/ndctl/lib/papr.c
-index 9c6f2f045fc2..43b8412b2073 100644
---- a/ndctl/lib/papr.c
-+++ b/ndctl/lib/papr.c
-@@ -10,9 +10,9 @@
- #include <stdlib.h>
- #include <limits.h>
- #include <util/log.h>
--#include <ndctl.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
--#include <lib/private.h>
-+#include "private.h"
- #include "papr.h"
- 
- /* Utility logging maros for simplify logging */
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index 8f4510e562c4..006624b6cf49 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -14,8 +14,9 @@
- #include <ccan/list/list.h>
- #include <ccan/array_size/array_size.h>
- 
--#include <ndctl.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
-+#include <ndctl/libndctl-nfit.h>
- #include <ccan/endian/endian.h>
- #include <ccan/short_types/short_types.h>
- #include "intel.h"
-@@ -23,7 +24,6 @@
- #include "msft.h"
- #include "hyperv.h"
- #include "papr.h"
--#include "libndctl-nfit.h"
- 
- struct nvdimm_data {
- 	struct ndctl_cmd *cmd_read;
-diff --git a/ndctl/list.c b/ndctl/list.c
-index 0017f159c708..869edde4fc65 100644
---- a/ndctl/list.c
-+++ b/ndctl/list.c
-@@ -7,13 +7,14 @@
- #include <limits.h>
- 
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
- 
--#include <ndctl.h>
-+#include "ndctl.h"
-+#include "filter.h"
-+#include "json.h"
- 
- static struct {
- 	bool buses;
-diff --git a/ndctl/load-keys.c b/ndctl/load-keys.c
-index 26648fe90fe6..d60e7eeb985d 100644
---- a/ndctl/load-keys.c
-+++ b/ndctl/load-keys.c
-@@ -12,13 +12,14 @@
- #include <fcntl.h>
- #include <keyutils.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/array_size/array_size.h>
--#include <util/keys.h>
--#include <ndctl.h>
-+
-+#include "filter.h"
-+#include "keys.h"
- 
- static struct parameters {
- 	const char *key_path;
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index ca36179e1870..85890c5367d3 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -7,7 +7,6 @@
- #include <time.h>
- #include <dirent.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <util/util.h>
- #include <util/parse-options.h>
- #include <util/strbuf.h>
-@@ -26,6 +25,9 @@
- #endif
- #include <util/log.h>
- 
-+#include "filter.h"
-+#include "json.h"
-+
- static struct monitor {
- 	const char *log;
- 	const char *config_file;
-diff --git a/ndctl/namespace.c b/ndctl/namespace.c
-index 1e8a2cd35333..743c831fdbf3 100644
---- a/ndctl/namespace.c
-+++ b/ndctl/namespace.c
-@@ -9,7 +9,6 @@
- #include <limits.h>
- #include <syslog.h>
- 
--#include <ndctl.h>
- #include "action.h"
- #include "namespace.h"
- #include <sys/stat.h>
-@@ -20,11 +19,14 @@
- #include <util/size.h>
- #include <util/json.h>
- #include <json-c/json.h>
--#include <util/filter.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
- #include <ccan/minmax/minmax.h>
- 
-+#include "filter.h"
-+#include "json.h"
-+
- static bool verbose;
- static bool force;
- static bool repair;
-diff --git a/ndctl/region.c b/ndctl/region.c
-index 4552c4a33478..e49954660ebb 100644
---- a/ndctl/region.c
-+++ b/ndctl/region.c
-@@ -5,10 +5,11 @@
- #include <stdlib.h>
- #include <unistd.h>
- #include "action.h"
--#include <util/filter.h>
- #include <util/parse-options.h>
- #include <ndctl/libndctl.h>
- 
-+#include "filter.h"
-+
- static struct {
- 	const char *bus;
- 	const char *type;
-diff --git a/test/Makefile.am b/test/Makefile.am
-index c5b8764389ea..5a990e975415 100644
---- a/test/Makefile.am
-+++ b/test/Makefile.am
-@@ -89,12 +89,19 @@ testcore =\
- libndctl_SOURCES = libndctl.c $(testcore)
- libndctl_LDADD = $(LIBNDCTL_LIB) $(UUID_LIBS) $(KMOD_LIBS)
- 
-+namespace_core =\
-+	../ndctl/namespace.c \
-+	../ndctl/filter.c \
-+	../ndctl/check.c \
-+	../util/json.c \
-+	../ndctl/json.c \
-+	../daxctl/filter.c \
-+	../daxctl/json.c
-+
- dsm_fail_SOURCES =\
- 	dsm-fail.c \
- 	$(testcore) \
--	../ndctl/namespace.c \
--	../ndctl/check.c \
--	../util/json.c
-+	$(namespace_core)
- 
- dsm_fail_LDADD = $(LIBNDCTL_LIB) \
- 		$(KMOD_LIBS) \
-@@ -140,9 +147,7 @@ device_dax_SOURCES = \
- 		dax-dev.c \
- 		dax-pmd.c \
- 		$(testcore) \
--		../ndctl/namespace.c \
--		../ndctl/check.c \
--		../util/json.c
-+		$(namespace_core)
- 
- if ENABLE_POISON
- dax_pmd_SOURCES += dax-poison.c
-@@ -172,9 +177,8 @@ smart_listen_LDADD = $(LIBNDCTL_LIB)
- multi_pmem_SOURCES = \
- 		multi-pmem.c \
- 		$(testcore) \
--		../ndctl/namespace.c \
--		../ndctl/check.c \
--		../util/json.c
-+		$(namespace_core)
-+
- multi_pmem_LDADD = \
- 		$(LIBNDCTL_LIB) \
- 		$(JSON_LIBS) \
-@@ -184,7 +188,10 @@ multi_pmem_LDADD = \
- 
- list_smart_dimm_SOURCES = \
- 		list-smart-dimm.c \
--		../util/json.c
-+		../ndctl/filter.c \
-+		../util/json.c \
-+		../ndctl/json.c
-+
- list_smart_dimm_LDADD = \
- 		$(LIBNDCTL_LIB) \
- 		$(JSON_LIBS) \
-diff --git a/test/ack-shutdown-count-set.c b/test/ack-shutdown-count-set.c
-index c561ff3416ea..a9e95c63b76c 100644
---- a/test/ack-shutdown-count-set.c
-+++ b/test/ack-shutdown-count-set.c
-@@ -15,7 +15,7 @@
- 
- #include <ccan/array_size/array_size.h>
- #include <ndctl/libndctl.h>
--#include <ndctl.h>
-+#include <ndctl/ndctl.h>
- #include <test.h>
- 
- static int test_dimm(struct ndctl_dimm *dimm)
-diff --git a/test/blk_namespaces.c b/test/blk_namespaces.c
-index f076e853ddda..66732a16b2c0 100644
---- a/test/blk_namespaces.c
-+++ b/test/blk_namespaces.c
-@@ -3,6 +3,7 @@
- #include <errno.h>
- #include <fcntl.h>
- #include <linux/fs.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -11,7 +12,6 @@
- #include <syslog.h>
- #include <sys/stat.h>
- #include <sys/types.h>
--#include <ndctl.h>
- #include <unistd.h>
- #include <uuid/uuid.h>
- #include <linux/version.h>
-diff --git a/test/daxdev-errors.c b/test/daxdev-errors.c
-index fbbea21448d8..706670767b1a 100644
---- a/test/daxdev-errors.c
-+++ b/test/daxdev-errors.c
-@@ -23,7 +23,7 @@
- #include <daxctl/libdaxctl.h>
- #include <ccan/array_size/array_size.h>
- #include <ndctl/libndctl.h>
--#include <ndctl.h>
-+#include <ndctl/ndctl.h>
- 
- #define fail() fprintf(stderr, "%s: failed at: %d\n", __func__, __LINE__)
- 
-diff --git a/test/device-dax.c b/test/device-dax.c
-index aad8fa5f1cb1..49c9bc8b1748 100644
---- a/test/device-dax.c
-+++ b/test/device-dax.c
-@@ -20,7 +20,7 @@
- #include <daxctl/libdaxctl.h>
- #include <ccan/array_size/array_size.h>
- 
--#include <builtin.h>
-+#include <ndctl/builtin.h>
- #include <test.h>
- 
- static sigjmp_buf sj_env;
-diff --git a/test/dpa-alloc.c b/test/dpa-alloc.c
-index 59185cf8cf3b..ab8b8f099b91 100644
---- a/test/dpa-alloc.c
-+++ b/test/dpa-alloc.c
-@@ -14,7 +14,7 @@
- #include <uuid/uuid.h>
- 
- #include <test.h>
--#include <ndctl.h>
-+#include <ndctl/ndctl.h>
- #include <util/size.h>
- #include <linux/version.h>
- #include <ndctl/libndctl.h>
-diff --git a/test/dsm-fail.c b/test/dsm-fail.c
-index 0a6383d49910..5b443dcd703d 100644
---- a/test/dsm-fail.c
-+++ b/test/dsm-fail.c
-@@ -14,8 +14,8 @@
- 
- #include <ccan/array_size/array_size.h>
- #include <ndctl/libndctl.h>
--#include <builtin.h>
--#include <ndctl.h>
-+#include <ndctl/builtin.h>
-+#include <ndctl/ndctl.h>
- #include <test.h>
- 
- #define DIMM_PATH "/sys/devices/platform/nfit_test.0/nfit_test_dimm/test_dimm0"
-diff --git a/test/libndctl.c b/test/libndctl.c
-index d9b50f415766..d313af6fd443 100644
---- a/test/libndctl.c
-+++ b/test/libndctl.c
-@@ -21,7 +21,7 @@
- #include <ccan/array_size/array_size.h>
- #include <ndctl/libndctl.h>
- #include <daxctl/libdaxctl.h>
--#include <ndctl.h>
-+#include <ndctl/ndctl.h>
- #include <test.h>
- 
- #define BLKROGET _IO(0x12,94) /* get read-only status (0 = read_write) */
-diff --git a/test/list-smart-dimm.c b/test/list-smart-dimm.c
-index 00c24e11bf24..47b711e63670 100644
---- a/test/list-smart-dimm.c
-+++ b/test/list-smart-dimm.c
-@@ -3,11 +3,13 @@
- #include <stdio.h>
- #include <errno.h>
- #include <util/json.h>
--#include <util/filter.h>
- #include <json-c/json.h>
- #include <ndctl/libndctl.h>
- #include <util/parse-options.h>
--#include <ndctl.h>
-+
-+#include <ndctl/filter.h>
-+#include <ndctl/ndctl.h>
-+#include <ndctl/json.h>
- 
- struct util_filter_params param;
- static int did_fail;
-diff --git a/test/multi-pmem.c b/test/multi-pmem.c
-index 3ea08cc43f9a..066286ada4a4 100644
---- a/test/multi-pmem.c
-+++ b/test/multi-pmem.c
-@@ -18,8 +18,8 @@
- #include <ndctl/libndctl.h>
- #include <ccan/array_size/array_size.h>
- 
--#include <ndctl.h>
--#include <builtin.h>
-+#include <ndctl/ndctl.h>
-+#include <ndctl/builtin.h>
- #include <test.h>
- 
- #define NUM_NAMESPACES 4
-diff --git a/test/pmem_namespaces.c b/test/pmem_namespaces.c
-index a4db1ae3ecae..4bafff5164c8 100644
---- a/test/pmem_namespaces.c
-+++ b/test/pmem_namespaces.c
-@@ -3,6 +3,7 @@
- #include <errno.h>
- #include <fcntl.h>
- #include <linux/fs.h>
-+#include <ndctl/ndctl.h>
- #include <ndctl/libndctl.h>
- #include <stdio.h>
- #include <stdlib.h>
-@@ -18,7 +19,6 @@
- #include <test.h>
- 
- #include <ccan/array_size/array_size.h>
--#include <ndctl.h>
- 
- #define err(msg)\
- 	fprintf(stderr, "%s:%d: %s (%s)\n", __func__, __LINE__, msg, strerror(errno))
-diff --git a/test/revoke-devmem.c b/test/revoke-devmem.c
-index bb8979e9a3d4..59d1a72df6ad 100644
---- a/test/revoke-devmem.c
-+++ b/test/revoke-devmem.c
-@@ -19,7 +19,7 @@
- #include <ndctl/libndctl.h>
- #include <ccan/array_size/array_size.h>
- 
--#include <builtin.h>
-+#include <ndctl/builtin.h>
- #include <test.h>
- 
- static sigjmp_buf sj_env;
-diff --git a/util/help.c b/util/help.c
-index 6eebfe5143e1..da8408328771 100644
---- a/util/help.c
-+++ b/util/help.c
-@@ -14,7 +14,7 @@
- #include <unistd.h>
- #include <string.h>
- #include <errno.h>
--#include <builtin.h>
-+#include <ndctl/builtin.h>
- #include <util/strbuf.h>
- #include <util/parse-options.h>
- 
-diff --git a/util/json.c b/util/json.c
-index 3be3a920b8bb..9f0a8e137caa 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -2,17 +2,10 @@
- // Copyright (C) 2015-2020 Intel Corporation. All rights reserved.
- #include <limits.h>
- #include <string.h>
-+#include <stdio.h>
- #include <util/json.h>
--#include <util/filter.h>
--#include <uuid/uuid.h>
- #include <json-c/json.h>
- #include <json-c/printbuf.h>
--#include <ndctl/libndctl.h>
--#include <daxctl/libdaxctl.h>
--#include <cxl/libcxl.h>
--#include <ccan/array_size/array_size.h>
--#include <ccan/short_types/short_types.h>
--#include <ndctl.h>
- 
- /* adapted from mdadm::human_size_brief() */
- static int display_size(struct json_object *jobj, struct printbuf *pbuf,
-@@ -112,1357 +105,3 @@ void util_display_json_array(FILE *f_out, struct json_object *jarray,
- 	}
- 	json_object_put(jarray);
- }
--
--struct json_object *util_bus_to_json(struct ndctl_bus *bus, unsigned long flags)
--{
--	struct json_object *jbus = json_object_new_object();
--	struct json_object *jobj, *fw_obj = NULL;
--	int scrub;
--
--	if (!jbus)
--		return NULL;
--
--	jobj = json_object_new_string(ndctl_bus_get_provider(bus));
--	if (!jobj)
--		goto err;
--	json_object_object_add(jbus, "provider", jobj);
--
--	jobj = json_object_new_string(ndctl_bus_get_devname(bus));
--	if (!jobj)
--		goto err;
--	json_object_object_add(jbus, "dev", jobj);
--
--	scrub = ndctl_bus_get_scrub_state(bus);
--	if (scrub < 0)
--		return jbus;
--
--	jobj = json_object_new_string(scrub ? "active" : "idle");
--	if (!jobj)
--		goto err;
--	json_object_object_add(jbus, "scrub_state", jobj);
--
--	if (flags & UTIL_JSON_FIRMWARE) {
--		struct ndctl_dimm *dimm;
--
--		/*
--		 * Skip displaying firmware activation capability if no
--		 * DIMMs support firmware update.
--		 */
--		ndctl_dimm_foreach(bus, dimm)
--			if (ndctl_dimm_fw_update_supported(dimm) == 0) {
--				fw_obj = json_object_new_object();
--				break;
--			}
--	}
--
--	if (fw_obj) {
--		enum ndctl_fwa_state state;
--		enum ndctl_fwa_method method;
--
--		jobj = NULL;
--		method = ndctl_bus_get_fw_activate_method(bus);
--		if (method == NDCTL_FWA_METHOD_RESET)
--			jobj = json_object_new_string("reset");
--		if (method == NDCTL_FWA_METHOD_SUSPEND)
--			jobj = json_object_new_string("suspend");
--		if (method == NDCTL_FWA_METHOD_LIVE)
--			jobj = json_object_new_string("live");
--		if (jobj)
--			json_object_object_add(fw_obj, "activate_method", jobj);
--
--		jobj = NULL;
--		state = ndctl_bus_get_fw_activate_state(bus);
--		if (state == NDCTL_FWA_ARMED)
--			jobj = json_object_new_string("armed");
--		if (state == NDCTL_FWA_IDLE)
--			jobj = json_object_new_string("idle");
--		if (state == NDCTL_FWA_ARM_OVERFLOW)
--			jobj = json_object_new_string("overflow");
--		if (jobj)
--			json_object_object_add(fw_obj, "activate_state", jobj);
--
--		json_object_object_add(jbus, "firmware", fw_obj);
--	}
--
--	return jbus;
-- err:
--	json_object_put(jbus);
--	return NULL;
--}
--
--struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
--		unsigned long flags)
--{
--	struct json_object *jfirmware = json_object_new_object();
--	bool can_update, need_powercycle;
--	enum ndctl_fwa_result result;
--	enum ndctl_fwa_state state;
--	struct json_object *jobj;
--	struct ndctl_cmd *cmd;
--	uint64_t run, next;
--	int rc;
--
--	if (!jfirmware)
--		return NULL;
--
--	cmd = ndctl_dimm_cmd_new_fw_get_info(dimm);
--	if (!cmd)
--		goto err;
--
--	rc = ndctl_cmd_submit(cmd);
--	if ((rc < 0) || ndctl_cmd_fw_xlat_firmware_status(cmd) != FW_SUCCESS) {
--		jobj = util_json_object_hex(-1, flags);
--		if (jobj)
--			json_object_object_add(jfirmware, "current_version",
--					jobj);
--		goto out;
--	}
--
--	run = ndctl_cmd_fw_info_get_run_version(cmd);
--	if (run == ULLONG_MAX) {
--		jobj = util_json_object_hex(-1, flags);
--		if (jobj)
--			json_object_object_add(jfirmware, "current_version",
--					jobj);
--		goto out;
--	}
--
--	jobj = util_json_object_hex(run, flags);
--	if (jobj)
--		json_object_object_add(jfirmware, "current_version", jobj);
--
--	rc = ndctl_dimm_fw_update_supported(dimm);
--	can_update = rc == 0;
--	jobj = json_object_new_boolean(can_update);
--	if (jobj)
--		json_object_object_add(jfirmware, "can_update", jobj);
--
--
--	next = ndctl_cmd_fw_info_get_updated_version(cmd);
--	if (next == ULLONG_MAX) {
--		jobj = util_json_object_hex(-1, flags);
--		if (jobj)
--			json_object_object_add(jfirmware, "next_version",
--					jobj);
--		goto out;
--	}
--
--	if (!next)
--		goto out;
--
--	jobj = util_json_object_hex(next, flags);
--	if (jobj)
--		json_object_object_add(jfirmware,
--				"next_version", jobj);
--
--	state = ndctl_dimm_get_fw_activate_state(dimm);
--	switch (state) {
--	case NDCTL_FWA_IDLE:
--		jobj = json_object_new_string("idle");
--		break;
--	case NDCTL_FWA_ARMED:
--		jobj = json_object_new_string("armed");
--		break;
--	case NDCTL_FWA_BUSY:
--		jobj = json_object_new_string("busy");
--		break;
--	default:
--		jobj = NULL;
--		break;
--	}
--	if (jobj)
--		json_object_object_add(jfirmware, "activate_state", jobj);
--
--	result = ndctl_dimm_get_fw_activate_result(dimm);
--	switch (result) {
--	case NDCTL_FWA_RESULT_NONE:
--	case NDCTL_FWA_RESULT_SUCCESS:
--	case NDCTL_FWA_RESULT_NOTSTAGED:
--		/*
--		 * If a 'next' firmware version is staged then this
--		 * result is stale, if the activation succeeds that is
--		 * indicated by not finding a 'next' entry.
--		 */
--		need_powercycle = false;
--		break;
--	case NDCTL_FWA_RESULT_NEEDRESET:
--	case NDCTL_FWA_RESULT_FAIL:
--	default:
--		/*
--		 * If the last activation failed, or if the activation
--		 * result is unavailable it is always the case that the
--		 * only remediation is powercycle.
--		 */
--		need_powercycle = true;
--		break;
--	}
--
--	if (need_powercycle) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto out;
--		json_object_object_add(jfirmware, "need_powercycle", jobj);
--	}
--
--	ndctl_cmd_unref(cmd);
--	return jfirmware;
--
--err:
--	json_object_put(jfirmware);
--	jfirmware = NULL;
--out:
--	if (cmd)
--		ndctl_cmd_unref(cmd);
--	return jfirmware;
--}
--
--struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
--		unsigned long flags)
--{
--	struct json_object *jdimm = json_object_new_object();
--	const char *id = ndctl_dimm_get_unique_id(dimm);
--	unsigned int handle = ndctl_dimm_get_handle(dimm);
--	unsigned short phys_id = ndctl_dimm_get_phys_id(dimm);
--	struct json_object *jobj;
--	enum ndctl_security_state sstate;
--
--	if (!jdimm)
--		return NULL;
--
--	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
--	if (!jobj)
--		goto err;
--	json_object_object_add(jdimm, "dev", jobj);
--
--	if (id) {
--		jobj = json_object_new_string(id);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "id", jobj);
--	}
--
--	if (handle < UINT_MAX) {
--		jobj = util_json_object_hex(handle, flags);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "handle", jobj);
--	}
--
--	if (phys_id < USHRT_MAX) {
--		jobj = util_json_object_hex(phys_id, flags);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "phys_id", jobj);
--	}
--
--	if (!ndctl_dimm_is_enabled(dimm)) {
--		jobj = json_object_new_string("disabled");
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "state", jobj);
--	}
--
--	if (ndctl_dimm_failed_map(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "flag_failed_map", jobj);
--	}
--
--	if (ndctl_dimm_failed_save(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "flag_failed_save", jobj);
--	}
--
--	if (ndctl_dimm_failed_arm(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "flag_failed_arm", jobj);
--	}
--
--	if (ndctl_dimm_failed_restore(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "flag_failed_restore", jobj);
--	}
--
--	if (ndctl_dimm_failed_flush(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "flag_failed_flush", jobj);
--	}
--
--	if (ndctl_dimm_smart_pending(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jdimm, "flag_smart_event", jobj);
--	}
--
--	sstate = ndctl_dimm_get_security(dimm);
--	if (sstate == NDCTL_SECURITY_DISABLED)
--		jobj = json_object_new_string("disabled");
--	else if (sstate == NDCTL_SECURITY_UNLOCKED)
--		jobj = json_object_new_string("unlocked");
--	else if (sstate == NDCTL_SECURITY_LOCKED)
--		jobj = json_object_new_string("locked");
--	else if (sstate == NDCTL_SECURITY_FROZEN)
--		jobj = json_object_new_string("frozen");
--	else if (sstate == NDCTL_SECURITY_OVERWRITE)
--		jobj = json_object_new_string("overwrite");
--	else
--		jobj = NULL;
--	if (jobj)
--		json_object_object_add(jdimm, "security", jobj);
--
--	if (ndctl_dimm_security_is_frozen(dimm)) {
--		jobj = json_object_new_boolean(true);
--		if (jobj)
--			json_object_object_add(jdimm, "security_frozen", jobj);
--	}
--
--	if (flags & UTIL_JSON_FIRMWARE) {
--		struct json_object *jfirmware;
--
--		jfirmware = util_dimm_firmware_to_json(dimm, flags);
--		if (jfirmware)
--			json_object_object_add(jdimm, "firmware", jfirmware);
--	}
--
--	return jdimm;
-- err:
--	json_object_put(jdimm);
--	return NULL;
--}
--
--struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
--		unsigned long flags)
--{
--	struct daxctl_memory *mem = daxctl_dev_get_memory(dev);
--	const char *devname = daxctl_dev_get_devname(dev);
--	struct json_object *jdev, *jobj, *jmappings = NULL;
--	struct daxctl_mapping *mapping = NULL;
--	int node, movable, align;
--
--	jdev = json_object_new_object();
--	if (!devname || !jdev)
--		return NULL;
--
--	jobj = json_object_new_string(devname);
--	if (jobj)
--		json_object_object_add(jdev, "chardev", jobj);
--
--	jobj = util_json_object_size(daxctl_dev_get_size(dev), flags);
--	if (jobj)
--		json_object_object_add(jdev, "size", jobj);
--
--	node = daxctl_dev_get_target_node(dev);
--	if (node >= 0) {
--		jobj = json_object_new_int(node);
--		if (jobj)
--			json_object_object_add(jdev, "target_node", jobj);
--	}
--
--	align = daxctl_dev_get_align(dev);
--	if (align > 0) {
--		jobj = util_json_object_size(daxctl_dev_get_align(dev), flags);
--		if (jobj)
--			json_object_object_add(jdev, "align", jobj);
--	}
--
--	if (mem)
--		jobj = json_object_new_string("system-ram");
--	else
--		jobj = json_object_new_string("devdax");
--	if (jobj)
--		json_object_object_add(jdev, "mode", jobj);
--
--	if (mem && daxctl_dev_get_resource(dev) != 0) {
--		int num_sections = daxctl_memory_num_sections(mem);
--		int num_online = daxctl_memory_is_online(mem);
--
--		jobj = json_object_new_int(num_online);
--		if (jobj)
--			json_object_object_add(jdev, "online_memblocks", jobj);
--
--		jobj = json_object_new_int(num_sections);
--		if (jobj)
--			json_object_object_add(jdev, "total_memblocks", jobj);
--
--		movable = daxctl_memory_is_movable(mem);
--		if (movable == 1)
--			jobj = json_object_new_boolean(true);
--		else if (movable == 0)
--			jobj = json_object_new_boolean(false);
--		else
--			jobj = NULL;
--		if (jobj)
--			json_object_object_add(jdev, "movable", jobj);
--	}
--
--	if (!daxctl_dev_is_enabled(dev)) {
--		jobj = json_object_new_string("disabled");
--		if (jobj)
--			json_object_object_add(jdev, "state", jobj);
--	}
--
--	if (!(flags & UTIL_JSON_DAX_MAPPINGS))
--		return jdev;
--
--	daxctl_mapping_foreach(dev, mapping) {
--		struct json_object *jmapping;
--
--		if (!jmappings) {
--			jmappings = json_object_new_array();
--			if (!jmappings)
--				continue;
--
--			json_object_object_add(jdev, "mappings", jmappings);
--		}
--
--		jmapping = util_daxctl_mapping_to_json(mapping, flags);
--		if (!jmapping)
--			continue;
--		json_object_array_add(jmappings, jmapping);
--	}
--	return jdev;
--}
--
--struct json_object *util_daxctl_devs_to_list(struct daxctl_region *region,
--		struct json_object *jdevs, const char *ident,
--		unsigned long flags)
--{
--	struct daxctl_dev *dev;
--
--	daxctl_dev_foreach(region, dev) {
--		struct json_object *jdev;
--
--		if (!util_daxctl_dev_filter(dev, ident))
--			continue;
--
--		if (!(flags & (UTIL_JSON_IDLE|UTIL_JSON_CONFIGURED))
--				&& !daxctl_dev_get_size(dev))
--			continue;
--
--		if (!jdevs) {
--			jdevs = json_object_new_array();
--			if (!jdevs)
--				return NULL;
--		}
--
--		jdev = util_daxctl_dev_to_json(dev, flags);
--		if (!jdev) {
--			json_object_put(jdevs);
--			return NULL;
--		}
--
--		json_object_array_add(jdevs, jdev);
--	}
--
--	return jdevs;
--}
--
--#define _SZ(get_max, get_elem, type) \
--static struct json_object *util_##type##_build_size_array(struct ndctl_##type *arg)	\
--{								\
--	struct json_object *arr = json_object_new_array();	\
--	int i;							\
--								\
--	if (!arr)						\
--		return NULL;					\
--								\
--	for (i = 0; i < get_max(arg); i++) {			\
--		struct json_object *jobj;			\
--		int64_t align;					\
--								\
--		align = get_elem(arg, i);			\
--		jobj = json_object_new_int64(align);		\
--		if (!jobj)					\
--			goto err;				\
--		json_object_array_add(arr, jobj);		\
--	}							\
--								\
--	return arr;						\
--err:								\
--	json_object_put(arr);					\
--	return NULL;						\
--}
--#define SZ(type, kind) _SZ(ndctl_##type##_get_num_##kind##s, \
--			   ndctl_##type##_get_supported_##kind, type)
--SZ(pfn, alignment)
--SZ(dax, alignment)
--SZ(btt, sector_size)
--
--struct json_object *util_region_capabilities_to_json(struct ndctl_region *region)
--{
--	struct json_object *jcaps, *jcap, *jobj;
--	struct ndctl_btt *btt = ndctl_region_get_btt_seed(region);
--	struct ndctl_pfn *pfn = ndctl_region_get_pfn_seed(region);
--	struct ndctl_dax *dax = ndctl_region_get_dax_seed(region);
--
--	if (!btt || !pfn || !dax)
--		return NULL;
--
--	jcaps = json_object_new_array();
--	if (!jcaps)
--		return NULL;
--
--	if (btt) {
--		jcap = json_object_new_object();
--		if (!jcap)
--			goto err;
--		json_object_array_add(jcaps, jcap);
--
--		jobj = json_object_new_string("sector");
--		if (!jobj)
--			goto err;
--		json_object_object_add(jcap, "mode", jobj);
--		jobj = util_btt_build_size_array(btt);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jcap, "sector_sizes", jobj);
--	}
--
--	if (pfn) {
--		jcap = json_object_new_object();
--		if (!jcap)
--			goto err;
--		json_object_array_add(jcaps, jcap);
--
--		jobj = json_object_new_string("fsdax");
--		if (!jobj)
--			goto err;
--		json_object_object_add(jcap, "mode", jobj);
--		jobj = util_pfn_build_size_array(pfn);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jcap, "alignments", jobj);
--	}
--
--	if (dax) {
--		jcap = json_object_new_object();
--		if (!jcap)
--			goto err;
--		json_object_array_add(jcaps, jcap);
--
--		jobj = json_object_new_string("devdax");
--		if (!jobj)
--			goto err;
--		json_object_object_add(jcap, "mode", jobj);
--		jobj = util_dax_build_size_array(dax);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jcap, "alignments", jobj);
--	}
--
--	return jcaps;
--err:
--	json_object_put(jcaps);
--	return NULL;
--}
--
--struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
--		const char *ident, unsigned long flags)
--{
--	unsigned long align;
--	struct json_object *jregion, *jobj;
--	unsigned long long available_size, size;
--
--	jregion = json_object_new_object();
--	if (!jregion)
--		return NULL;
--
--	/*
--	 * The flag indicates when we are being called by an agent that
--	 * already knows about the parent device information.
--	 */
--	if (!(flags & UTIL_JSON_DAX)) {
--		/* trim off the redundant /sys/devices prefix */
--		const char *path = daxctl_region_get_path(region);
--		int len = strlen("/sys/devices");
--		const char *trim = &path[len];
--
--		if (strncmp(path, "/sys/devices", len) != 0)
--			goto err;
--		jobj = json_object_new_string(trim);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jregion, "path", jobj);
--	}
--
--	jobj = json_object_new_int(daxctl_region_get_id(region));
--	if (!jobj)
--		goto err;
--	json_object_object_add(jregion, "id", jobj);
--
--	size = daxctl_region_get_size(region);
--	if (size < ULLONG_MAX) {
--		jobj = util_json_object_size(size, flags);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jregion, "size", jobj);
--	}
--
--	available_size = daxctl_region_get_available_size(region);
--	if (available_size) {
--		jobj = util_json_object_size(available_size, flags);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jregion, "available_size", jobj);
--	}
--
--	align = daxctl_region_get_align(region);
--	if (align < ULONG_MAX) {
--		jobj = json_object_new_int64(align);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jregion, "align", jobj);
--	}
--
--	if (!(flags & UTIL_JSON_DAX_DEVS))
--		return jregion;
--
--	jobj = util_daxctl_devs_to_list(region, NULL, ident, flags);
--	if (jobj)
--		json_object_object_add(jregion, "devices", jobj);
--
--	return jregion;
-- err:
--	json_object_put(jregion);
--	return NULL;
--}
--
--static int compare_dimm_number(const void *p1, const void *p2)
--{
--	struct ndctl_dimm *dimm1 = *(struct ndctl_dimm **)p1;
--	struct ndctl_dimm *dimm2 = *(struct ndctl_dimm **)p2;
--	const char *dimm1_name = ndctl_dimm_get_devname(dimm1);
--	const char *dimm2_name = ndctl_dimm_get_devname(dimm2);
--	int num1, num2;
--
--	if (sscanf(dimm1_name, "nmem%d", &num1) != 1)
--		num1 = 0;
--	if (sscanf(dimm2_name, "nmem%d", &num2) != 1)
--		num2 = 0;
--
--	return num1 - num2;
--}
--
--static struct json_object *badblocks_to_jdimms(struct ndctl_region *region,
--		unsigned long long addr, unsigned long len)
--{
--	struct ndctl_bus *bus = ndctl_region_get_bus(region);
--	int count = ndctl_region_get_interleave_ways(region);
--	unsigned long long end = addr + len;
--	struct json_object *jdimms, *jobj;
--	struct ndctl_dimm **dimms, *dimm;
--	int found, i;
--
--	jdimms = json_object_new_array();
--	if (!jdimms)
--		return NULL;
--
--	dimms = calloc(count, sizeof(struct ndctl_dimm *));
--	if (!dimms)
--		goto err_dimms;
--
--	for (found = 0; found < count && addr < end; addr += 512) {
--		dimm = ndctl_bus_get_dimm_by_physical_address(bus, addr);
--		if (!dimm)
--			continue;
--
--		for (i = 0; i < count; i++)
--			if (dimms[i] == dimm)
--				break;
--		if (i >= count)
--			dimms[found++] = dimm;
--	}
--
--	if (!found)
--		goto err_found;
--
--	qsort(dimms, found, sizeof(dimm), compare_dimm_number);
--
--	for (i = 0; i < found; i++) {
--		const char *devname = ndctl_dimm_get_devname(dimms[i]);
--
--		jobj = json_object_new_string(devname);
--		if (!jobj)
--			break;
--		json_object_array_add(jdimms, jobj);
--	}
--
--	if (!i)
--		goto err_found;
--	free(dimms);
--	return jdimms;
--
--err_found:
--	free(dimms);
--err_dimms:
--	json_object_put(jdimms);
--	return NULL;
--}
--
--struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
--		unsigned int *bb_count, unsigned long flags)
--{
--	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
--	struct badblock *bb;
--	int bbs = 0;
--
--	if (flags & UTIL_JSON_MEDIA_ERRORS) {
--		jbbs = json_object_new_array();
--		if (!jbbs)
--			return NULL;
--	}
--
--	ndctl_region_badblock_foreach(region, bb) {
--		struct json_object *jdimms;
--		unsigned long long addr;
--
--		bbs += bb->len;
--
--		/* recheck so we can still get the badblocks_count from above */
--		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
--			continue;
--
--		/* get start address of region */
--		addr = ndctl_region_get_resource(region);
--		if (addr == ULLONG_MAX)
--			goto err_array;
--
--		/* get address of bad block */
--		addr += bb->offset << 9;
--
--		jbb = json_object_new_object();
--		if (!jbb)
--			goto err_array;
--
--		jobj = json_object_new_int64(bb->offset);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jbb, "offset", jobj);
--
--		jobj = json_object_new_int(bb->len);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jbb, "length", jobj);
--
--		jdimms = badblocks_to_jdimms(region, addr, bb->len << 9);
--		if (jdimms)
--			json_object_object_add(jbb, "dimms", jdimms);
--		json_object_array_add(jbbs, jbb);
--	}
--
--	*bb_count = bbs;
--
--	if (bbs)
--		return jbbs;
--
-- err:
--	json_object_put(jbb);
-- err_array:
--	json_object_put(jbbs);
--	return NULL;
--}
--
--static struct json_object *util_namespace_badblocks_to_json(
--			struct ndctl_namespace *ndns,
--			unsigned int *bb_count, unsigned long flags)
--{
--	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
--	struct badblock *bb;
--	int bbs = 0;
--
--	if (flags & UTIL_JSON_MEDIA_ERRORS) {
--		jbbs = json_object_new_array();
--		if (!jbbs)
--			return NULL;
--	} else
--		return NULL;
--
--	ndctl_namespace_badblock_foreach(ndns, bb) {
--		bbs += bb->len;
--
--		/* recheck so we can still get the badblocks_count from above */
--		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
--			continue;
--
--		jbb = json_object_new_object();
--		if (!jbb)
--			goto err_array;
--
--		jobj = json_object_new_int64(bb->offset);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jbb, "offset", jobj);
--
--		jobj = json_object_new_int(bb->len);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jbb, "length", jobj);
--		json_object_array_add(jbbs, jbb);
--	}
--
--	*bb_count = bbs;
--
--	if (bbs)
--		return jbbs;
--
-- err:
--	json_object_put(jbb);
-- err_array:
--	json_object_put(jbbs);
--	return NULL;
--}
--
--static struct json_object *dev_badblocks_to_json(struct ndctl_region *region,
--		unsigned long long dev_begin, unsigned long long dev_size,
--		unsigned int *bb_count, unsigned long flags)
--{
--	struct json_object *jbb = NULL, *jbbs = NULL, *jobj;
--	unsigned long long region_begin, dev_end, offset;
--	unsigned int len, bbs = 0;
--	struct badblock *bb;
--
--	region_begin = ndctl_region_get_resource(region);
--	if (region_begin == ULLONG_MAX)
--		return NULL;
--
--	dev_end = dev_begin + dev_size - 1;
--
--	if (flags & UTIL_JSON_MEDIA_ERRORS) {
--		jbbs = json_object_new_array();
--		if (!jbbs)
--			return NULL;
--	}
--
--	ndctl_region_badblock_foreach(region, bb) {
--		unsigned long long bb_begin, bb_end, begin, end;
--		struct json_object *jdimms;
--
--		bb_begin = region_begin + (bb->offset << 9);
--		bb_end = bb_begin + (bb->len << 9) - 1;
--
--		if (bb_end <= dev_begin || bb_begin >= dev_end)
--			continue;
--
--		if (bb_begin < dev_begin)
--			begin = dev_begin;
--		else
--			begin = bb_begin;
--
--		if (bb_end > dev_end)
--			end = dev_end;
--		else
--			end = bb_end;
--
--		offset = (begin - dev_begin) >> 9;
--		len = (end - begin + 1) >> 9;
--
--		bbs += len;
--
--		/* recheck so we can still get the badblocks_count from above */
--		if (!(flags & UTIL_JSON_MEDIA_ERRORS))
--			continue;
--
--		jbb = json_object_new_object();
--		if (!jbb)
--			goto err_array;
--
--		jobj = json_object_new_int64(offset);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jbb, "offset", jobj);
--
--		jobj = json_object_new_int(len);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jbb, "length", jobj);
--
--		jdimms = badblocks_to_jdimms(region, begin, len << 9);
--		if (jdimms)
--			json_object_object_add(jbb, "dimms", jdimms);
--
--		json_object_array_add(jbbs, jbb);
--	}
--
--	*bb_count = bbs;
--
--	if (bbs)
--		return jbbs;
--
-- err:
--	json_object_put(jbb);
-- err_array:
--	json_object_put(jbbs);
--	return NULL;
--}
--
--static struct json_object *util_pfn_badblocks_to_json(struct ndctl_pfn *pfn,
--		unsigned int *bb_count, unsigned long flags)
--{
--	struct ndctl_region *region = ndctl_pfn_get_region(pfn);
--	unsigned long long pfn_begin, pfn_size;
--
--	pfn_begin = ndctl_pfn_get_resource(pfn);
--	if (pfn_begin == ULLONG_MAX) {
--		struct ndctl_namespace *ndns = ndctl_pfn_get_namespace(pfn);
--
--		return util_namespace_badblocks_to_json(ndns, bb_count, flags);
--	}
--
--	pfn_size = ndctl_pfn_get_size(pfn);
--	if (pfn_size == ULLONG_MAX)
--		return NULL;
--
--	return dev_badblocks_to_json(region, pfn_begin, pfn_size,
--			bb_count, flags);
--}
--
--static void util_btt_badblocks_to_json(struct ndctl_btt *btt,
--		unsigned int *bb_count)
--{
--	struct ndctl_region *region = ndctl_btt_get_region(btt);
--	struct ndctl_namespace *ndns = ndctl_btt_get_namespace(btt);
--	unsigned long long begin, size;
--
--	if (!ndns)
--		return;
--
--	begin = ndctl_namespace_get_resource(ndns);
--	if (begin == ULLONG_MAX)
--		return;
--
--	size = ndctl_namespace_get_size(ndns);
--	if (size == ULLONG_MAX)
--		return;
--
--	/*
--	 * The dev_badblocks_to_json() for BTT is not accurate with
--	 * respect to data vs metadata badblocks, and is only useful for
--	 * a potential bb_count.
--	 *
--	 * FIXME: switch to native BTT badblocks representation
--	 * when / if the kernel provides it.
--	 */
--	dev_badblocks_to_json(region, begin, size, bb_count, 0);
--}
--
--static struct json_object *util_dax_badblocks_to_json(struct ndctl_dax *dax,
--		unsigned int *bb_count, unsigned long flags)
--{
--	struct ndctl_region *region = ndctl_dax_get_region(dax);
--	unsigned long long dax_begin, dax_size;
--
--	dax_begin = ndctl_dax_get_resource(dax);
--	if (dax_begin == ULLONG_MAX)
--		return NULL;
--
--	dax_size = ndctl_dax_get_size(dax);
--	if (dax_size == ULLONG_MAX)
--		return NULL;
--
--	return dev_badblocks_to_json(region, dax_begin, dax_size,
--			bb_count, flags);
--}
--
--static struct json_object *util_raw_uuid(struct ndctl_namespace *ndns)
--{
--	char buf[40];
--	uuid_t raw_uuid;
--
--	ndctl_namespace_get_uuid(ndns, raw_uuid);
--	if (uuid_is_null(raw_uuid))
--		return NULL;
--	uuid_unparse(raw_uuid, buf);
--	return json_object_new_string(buf);
--}
--
--static void util_raw_uuid_to_json(struct ndctl_namespace *ndns,
--				  unsigned long flags,
--				  struct json_object *jndns)
--{
--	struct json_object *jobj;
--
--	if (!(flags & UTIL_JSON_VERBOSE))
--		return;
--
--	jobj = util_raw_uuid(ndns);
--	if (!jobj)
--		return;
--	json_object_object_add(jndns, "raw_uuid", jobj);
--}
--
--struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
--		unsigned long flags)
--{
--	struct json_object *jndns = json_object_new_object();
--	enum ndctl_pfn_loc loc = NDCTL_PFN_LOC_NONE;
--	struct json_object *jobj, *jbbs = NULL;
--	const char *locations[] = {
--		[NDCTL_PFN_LOC_NONE] = "none",
--		[NDCTL_PFN_LOC_RAM] = "mem",
--		[NDCTL_PFN_LOC_PMEM] = "dev",
--	};
--	unsigned long long size = ULLONG_MAX;
--	unsigned int sector_size = UINT_MAX;
--	enum ndctl_namespace_mode mode;
--	const char *bdev = NULL, *name;
--	unsigned int bb_count = 0;
--	struct ndctl_btt *btt;
--	struct ndctl_pfn *pfn;
--	struct ndctl_dax *dax;
--	unsigned long align = 0;
--	char buf[40];
--	uuid_t uuid;
--	int numa, target;
--
--	if (!jndns)
--		return NULL;
--
--	jobj = json_object_new_string(ndctl_namespace_get_devname(ndns));
--	if (!jobj)
--		goto err;
--	json_object_object_add(jndns, "dev", jobj);
--
--	btt = ndctl_namespace_get_btt(ndns);
--	dax = ndctl_namespace_get_dax(ndns);
--	pfn = ndctl_namespace_get_pfn(ndns);
--	mode = ndctl_namespace_get_mode(ndns);
--	switch (mode) {
--	case NDCTL_NS_MODE_MEMORY:
--		if (pfn) { /* dynamic memory mode */
--			size = ndctl_pfn_get_size(pfn);
--			loc = ndctl_pfn_get_location(pfn);
--		} else { /* native/static memory mode */
--			size = ndctl_namespace_get_size(ndns);
--			loc = NDCTL_PFN_LOC_RAM;
--		}
--		jobj = json_object_new_string("fsdax");
--		break;
--	case NDCTL_NS_MODE_DAX:
--		if (!dax)
--			goto err;
--		size = ndctl_dax_get_size(dax);
--		jobj = json_object_new_string("devdax");
--		loc = ndctl_dax_get_location(dax);
--		break;
--	case NDCTL_NS_MODE_SECTOR:
--		if (!btt)
--			goto err;
--		jobj = json_object_new_string("sector");
--		size = ndctl_btt_get_size(btt);
--		break;
--	case NDCTL_NS_MODE_RAW:
--		size = ndctl_namespace_get_size(ndns);
--		jobj = json_object_new_string("raw");
--		break;
--	default:
--		jobj = NULL;
--	}
--	if (jobj)
--		json_object_object_add(jndns, "mode", jobj);
--
--	if ((mode != NDCTL_NS_MODE_SECTOR) && (mode != NDCTL_NS_MODE_RAW)) {
--		jobj = json_object_new_string(locations[loc]);
--		if (jobj)
--			json_object_object_add(jndns, "map", jobj);
--	}
--
--	if (size < ULLONG_MAX) {
--		jobj = util_json_object_size(size, flags);
--		if (jobj)
--			json_object_object_add(jndns, "size", jobj);
--	}
--
--	if (btt) {
--		ndctl_btt_get_uuid(btt, uuid);
--		uuid_unparse(uuid, buf);
--		jobj = json_object_new_string(buf);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "uuid", jobj);
--		util_raw_uuid_to_json(ndns, flags, jndns);
--		bdev = ndctl_btt_get_block_device(btt);
--	} else if (pfn) {
--		align = ndctl_pfn_get_align(pfn);
--		ndctl_pfn_get_uuid(pfn, uuid);
--		uuid_unparse(uuid, buf);
--		jobj = json_object_new_string(buf);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "uuid", jobj);
--		util_raw_uuid_to_json(ndns, flags, jndns);
--		bdev = ndctl_pfn_get_block_device(pfn);
--	} else if (dax) {
--		struct daxctl_region *dax_region;
--
--		dax_region = ndctl_dax_get_daxctl_region(dax);
--		align = ndctl_dax_get_align(dax);
--		ndctl_dax_get_uuid(dax, uuid);
--		uuid_unparse(uuid, buf);
--		jobj = json_object_new_string(buf);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "uuid", jobj);
--		util_raw_uuid_to_json(ndns, flags, jndns);
--		if ((flags & UTIL_JSON_DAX) && dax_region) {
--			jobj = util_daxctl_region_to_json(dax_region, NULL,
--					flags);
--			if (jobj)
--				json_object_object_add(jndns, "daxregion", jobj);
--		} else if (dax_region) {
--			struct daxctl_dev *dev;
--
--			/*
--			 * We can only find/list these device-dax
--			 * details when the instance is enabled.
--			 */
--			dev = daxctl_dev_get_first(dax_region);
--			if (dev) {
--				name = daxctl_dev_get_devname(dev);
--				jobj = json_object_new_string(name);
--				if (!jobj)
--					goto err;
--				json_object_object_add(jndns, "chardev", jobj);
--			}
--		}
--	} else if (ndctl_namespace_get_type(ndns) != ND_DEVICE_NAMESPACE_IO) {
--		ndctl_namespace_get_uuid(ndns, uuid);
--		uuid_unparse(uuid, buf);
--		jobj = json_object_new_string(buf);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "uuid", jobj);
--		bdev = ndctl_namespace_get_block_device(ndns);
--	} else
--		bdev = ndctl_namespace_get_block_device(ndns);
--
--	if (btt)
--		sector_size = ndctl_btt_get_sector_size(btt);
--	else if (!dax) {
--		sector_size = ndctl_namespace_get_sector_size(ndns);
--		if (!sector_size || sector_size == UINT_MAX)
--			sector_size = 512;
--	}
--
--	/*
--	 * The kernel will default to a 512 byte sector size on PMEM
--	 * namespaces that don't explicitly have a sector size. This
--	 * happens because they use pre-v1.2 labels or because they
--	 * don't have a label space (devtype=nd_namespace_io).
--	 */
--	if (sector_size < UINT_MAX) {
--		jobj = json_object_new_int(sector_size);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "sector_size", jobj);
--	}
--
--	if (align) {
--		jobj = json_object_new_int64(align);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "align", jobj);
--	}
--
--	if (bdev && bdev[0]) {
--		jobj = json_object_new_string(bdev);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "blockdev", jobj);
--	}
--
--	if (!ndctl_namespace_is_active(ndns)) {
--		jobj = json_object_new_string("disabled");
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "state", jobj);
--	}
--
--	name = ndctl_namespace_get_alt_name(ndns);
--	if (name && name[0]) {
--		jobj = json_object_new_string(name);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jndns, "name", jobj);
--	}
--
--	numa = ndctl_namespace_get_numa_node(ndns);
--	if (numa >= 0 && flags & UTIL_JSON_VERBOSE) {
--		jobj = json_object_new_int(numa);
--		if (jobj)
--			json_object_object_add(jndns, "numa_node", jobj);
--	}
--
--	target = ndctl_namespace_get_target_node(ndns);
--	if (target >= 0 && flags & UTIL_JSON_VERBOSE) {
--		jobj = json_object_new_int(target);
--		if (jobj)
--			json_object_object_add(jndns, "target_node", jobj);
--	}
--
--	if (pfn)
--		jbbs = util_pfn_badblocks_to_json(pfn, &bb_count, flags);
--	else if (dax)
--		jbbs = util_dax_badblocks_to_json(dax, &bb_count, flags);
--	else if (btt)
--		util_btt_badblocks_to_json(btt, &bb_count);
--	else {
--		jbbs = util_region_badblocks_to_json(
--				ndctl_namespace_get_region(ndns), &bb_count,
--				flags);
--		if (!jbbs)
--			jbbs = util_namespace_badblocks_to_json(ndns, &bb_count,
--					flags);
--	}
--
--	if (bb_count) {
--		jobj = json_object_new_int(bb_count);
--		if (!jobj) {
--			json_object_put(jbbs);
--			goto err;
--		}
--		json_object_object_add(jndns, "badblock_count", jobj);
--	}
--
--	if ((flags & UTIL_JSON_MEDIA_ERRORS) && jbbs)
--		json_object_object_add(jndns, "badblocks", jbbs);
--
--	return jndns;
-- err:
--	json_object_put(jndns);
--	return NULL;
--}
--
--struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
--		unsigned long flags)
--{
--	struct json_object *jmapping = json_object_new_object();
--	struct ndctl_dimm *dimm = ndctl_mapping_get_dimm(mapping);
--	struct json_object *jobj;
--	int position;
--
--	if (!jmapping)
--		return NULL;
--
--	jobj = json_object_new_string(ndctl_dimm_get_devname(dimm));
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "dimm", jobj);
--
--	jobj = util_json_object_hex(ndctl_mapping_get_offset(mapping), flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "offset", jobj);
--
--	jobj = util_json_object_hex(ndctl_mapping_get_length(mapping), flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "length", jobj);
--
--	position = ndctl_mapping_get_position(mapping);
--	if (position >= 0) {
--		jobj = json_object_new_int(position);
--		if (!jobj)
--			goto err;
--		json_object_object_add(jmapping, "position", jobj);
--	}
--
--	return jmapping;
-- err:
--	json_object_put(jmapping);
--	return NULL;
--}
--
--struct json_object *util_daxctl_mapping_to_json(struct daxctl_mapping *mapping,
--		unsigned long flags)
--{
--	struct json_object *jmapping = json_object_new_object();
--	struct json_object *jobj;
--
--	if (!jmapping)
--		return NULL;
--
--	jobj = util_json_object_hex(daxctl_mapping_get_offset(mapping), flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "page_offset", jobj);
--
--	jobj = util_json_object_hex(daxctl_mapping_get_start(mapping), flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "start", jobj);
--
--	jobj = util_json_object_hex(daxctl_mapping_get_end(mapping), flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "end", jobj);
--
--	jobj = util_json_object_size(daxctl_mapping_get_size(mapping), flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jmapping, "size", jobj);
--
--	return jmapping;
-- err:
--	json_object_put(jmapping);
--	return NULL;
--}
--
--struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
--		unsigned long flags)
--{
--	struct json_object *jerr = json_object_new_object();
--	struct json_object *jobj;
--
--	if (!jerr)
--		return NULL;
--
--	jobj = util_json_object_hex(block, flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jerr, "block", jobj);
--
--	jobj = util_json_object_hex(count, flags);
--	if (!jobj)
--		goto err;
--	json_object_object_add(jerr, "count", jobj);
--
--	return jerr;
-- err:
--	json_object_put(jerr);
--	return NULL;
--}
--
--struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
--		unsigned long flags)
--{
--	const char *devname = cxl_memdev_get_devname(memdev);
--	struct json_object *jdev, *jobj;
--
--	jdev = json_object_new_object();
--	if (!devname || !jdev)
--		return NULL;
--
--	jobj = json_object_new_string(devname);
--	if (jobj)
--		json_object_object_add(jdev, "memdev", jobj);
--
--	jobj = util_json_object_size(cxl_memdev_get_pmem_size(memdev), flags);
--	if (jobj)
--		json_object_object_add(jdev, "pmem_size", jobj);
--
--	jobj = util_json_object_size(cxl_memdev_get_ram_size(memdev), flags);
--	if (jobj)
--		json_object_object_add(jdev, "ram_size", jobj);
--
--	return jdev;
--}
-diff --git a/util/json.h b/util/json.h
-index 91918c8e0e96..dfeabc6129e2 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -1,12 +1,9 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- /* Copyright (C) 2015-2020 Intel Corporation. All rights reserved. */
--#ifndef __NDCTL_JSON_H__
--#define __NDCTL_JSON_H__
-+#ifndef __UTIL_JSON_H__
-+#define __UTIL_JSON_H__
- #include <stdio.h>
- #include <stdbool.h>
--#include <ndctl/libndctl.h>
--#include <daxctl/libdaxctl.h>
--#include <ccan/short_types/short_types.h>
- 
- enum util_json_flags {
- 	UTIL_JSON_IDLE		= (1 << 0),
-@@ -24,38 +21,8 @@ enum util_json_flags {
- struct json_object;
- void util_display_json_array(FILE *f_out, struct json_object *jarray,
- 		unsigned long flags);
--struct json_object *util_bus_to_json(struct ndctl_bus *bus,
--		unsigned long flags);
--struct json_object *util_dimm_to_json(struct ndctl_dimm *dimm,
--		unsigned long flags);
--struct json_object *util_mapping_to_json(struct ndctl_mapping *mapping,
--		unsigned long flags);
--struct json_object *util_daxctl_mapping_to_json(struct daxctl_mapping *mapping,
--		unsigned long flags);
--struct json_object *util_namespace_to_json(struct ndctl_namespace *ndns,
--		unsigned long flags);
--struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
--		unsigned long flags);
--struct daxctl_region;
--struct daxctl_dev;
--struct json_object *util_region_badblocks_to_json(struct ndctl_region *region,
--		unsigned int *bb_count, unsigned long flags);
--struct json_object *util_daxctl_region_to_json(struct daxctl_region *region,
--		const char *ident, unsigned long flags);
--struct json_object *util_daxctl_dev_to_json(struct daxctl_dev *dev,
--		unsigned long flags);
--struct json_object *util_daxctl_devs_to_list(struct daxctl_region *region,
--		struct json_object *jdevs, const char *ident,
--		unsigned long flags);
- struct json_object *util_json_object_size(unsigned long long size,
- 		unsigned long flags);
- struct json_object *util_json_object_hex(unsigned long long val,
- 		unsigned long flags);
--struct json_object *util_dimm_health_to_json(struct ndctl_dimm *dimm);
--struct json_object *util_dimm_firmware_to_json(struct ndctl_dimm *dimm,
--		unsigned long flags);
--struct json_object *util_region_capabilities_to_json(struct ndctl_region *region);
--struct cxl_memdev;
--struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
--		unsigned long flags);
--#endif /* __NDCTL_JSON_H__ */
-+#endif /* __UTIL_JSON_H__ */
++++ b/version.h.in
+@@ -0,0 +1,2 @@
++/* SPDX-License-Identifier: LGPL-2.1 */
++#define VERSION "@VCS_TAG@"
 
