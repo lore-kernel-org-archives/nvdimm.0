@@ -1,23 +1,23 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09B03FDB
-	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 20:43:31 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10095"; a="198789678"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C55FE3FDB
+	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 20:43:33 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10095"; a="217381912"
 X-IronPort-AV: E=Sophos;i="5.85,263,1624345200"; 
-   d="scan'208";a="198789678"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:22 -0700
+   d="scan'208";a="217381912"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:33 -0700
 X-IronPort-AV: E=Sophos;i="5.85,263,1624345200"; 
-   d="scan'208";a="533471479"
+   d="scan'208";a="689297058"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:22 -0700
-Subject: [ndctl PATCH v2 4/6] test: Prepare out of line builds
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 13:43:33 -0700
+Subject: [ndctl PATCH v2 6/6] build: Add meson rpmbuild support
 From: Dan Williams <dan.j.williams@intel.com>
 To: nvdimm@lists.linux.dev
 Cc: vishal.l.verma@intel.com, linux-cxl@vger.kernel.org
-Date: Thu, 02 Sep 2021 13:43:21 -0700
-Message-ID: <163061540176.1943957.10710406605059844145.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Thu, 02 Sep 2021 13:43:33 -0700
+Message-ID: <163061541299.1943957.16202191465635771045.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <163061537869.1943957.8491829881215255815.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <163061537869.1943957.8491829881215255815.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -30,343 +30,226 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-In preparation for converting to meson prepare the unit tests to run out of
-a build directory rather than out of the source directory. Introduce
-TEST_PATH for the location of the test executables.
+Beyond being a prerequisite for removing autotools support, this capability
+served as validation that the meson conversion generated all the same files
+as autotools and installed them to the same expected locations.
+
+The procedure to use the rpmbuild.sh script is:
+
+    meson setup build
+    meson compile -C build rhel/ndctl.spec
+    ./rpmbuild.sh build/rhel/ndctl.spec
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/btt-errors.sh     |    4 +---
- test/common            |   37 +++++++++++++++++++++----------------
- test/dax-pmd.c         |    7 +++++--
- test/dax.sh            |    6 +++---
- test/daxdev-errors.sh  |    4 ++--
- test/device-dax-fio.sh |    2 +-
- test/dm.sh             |    4 ++--
- test/inject-smart.sh   |    2 +-
- test/mmap.sh           |    6 +++---
- test/monitor.sh        |    6 +++---
- test/pmem-errors.sh    |    8 +++-----
- test/sub-section.sh    |    4 ++--
- test/track-uuid.sh     |    2 +-
- 13 files changed, 48 insertions(+), 44 deletions(-)
+ .gitignore       |    2 +-
+ Makefile.am      |    2 ++
+ meson.build      |    6 ++++++
+ ndctl.spec.in    |   22 ++++++++++++++++++++++
+ rhel/meson.build |   23 +++++++++++++++++++++++
+ rpmbuild.sh      |    5 ++++-
+ sles/meson.build |   36 ++++++++++++++++++++++++++++++++++++
+ 7 files changed, 94 insertions(+), 2 deletions(-)
+ create mode 100644 rhel/meson.build
+ create mode 100644 sles/meson.build
 
-diff --git a/test/btt-errors.sh b/test/btt-errors.sh
-index 4e59f57aea7c..599d160d1922 100755
---- a/test/btt-errors.sh
-+++ b/test/btt-errors.sh
-@@ -11,14 +11,12 @@ rc=77
+diff --git a/.gitignore b/.gitignore
+index 4cb232519e72..68c55c1af80e 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -36,7 +36,7 @@ daxctl/lib/libdaxctl.pc
+ ndctl/config.h
+ ndctl/lib/libndctl.pc
+ ndctl/ndctl
+-rhel/
++rhel/ndctl.spec
+ sles/ndctl.spec
+ version.m4
+ *.swp
+diff --git a/Makefile.am b/Makefile.am
+index 75d80fc24095..909c2699af47 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -22,6 +22,7 @@ noinst_SCRIPTS = rhel/ndctl.spec sles/ndctl.spec
+ CLEANFILES += $(noinst_SCRIPTS)
  
- cleanup()
- {
--	rm -f $FILE
--	rm -f $MNT/$FILE
- 	if grep -q "$MNT" /proc/mounts; then
- 		umount $MNT
- 	else
- 		rc=77
- 	fi
--	rmdir $MNT
-+	rm -rf $MNT
- }
+ do_rhel_subst = sed -e 's,VERSION,$(VERSION),g' \
++            -e 's,MESON,0,g' \
+             -e 's,DAX_DNAME,daxctl-devel,g' \
+             -e 's,CXL_DNAME,cxl-devel,g' \
+             -e 's,DNAME,ndctl-devel,g' \
+@@ -31,6 +32,7 @@ do_rhel_subst = sed -e 's,VERSION,$(VERSION),g' \
+ 	    -e 's,LNAME,ndctl-libs,g'
  
- force_raw()
-diff --git a/test/common b/test/common
-index 6bcefcad9bf9..251a129b1771 100644
---- a/test/common
-+++ b/test/common
-@@ -4,27 +4,32 @@
- # Global variables
+ do_sles_subst = sed -e 's,VERSION,$(VERSION),g' \
++            -e 's,MESON,0,g' \
+             -e 's,DAX_DNAME,libdaxctl-devel,g' \
+             -e 's,CXL_DNAME,libcxl-devel,g' \
+             -e 's,DNAME,libndctl-devel,g' \
+diff --git a/meson.build b/meson.build
+index 746408948e4d..a94bbd740ef0 100644
+--- a/meson.build
++++ b/meson.build
+@@ -267,3 +267,9 @@ if get_option('docs').enabled()
+ endif
+ subdir('test')
+ subdir('contrib')
++
++# only support spec file generation from git builds
++if version_tag == ''
++  subdir('rhel')
++  subdir('sles')
++endif
+diff --git a/ndctl.spec.in b/ndctl.spec.in
+index 4b08c05719c9..fd517317b943 100644
+--- a/ndctl.spec.in
++++ b/ndctl.spec.in
+@@ -6,14 +6,20 @@ License:	GPLv2
+ Url:		https://github.com/pmem/ndctl
+ Source0:	https://github.com/pmem/%{name}/archive/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
  
- # NDCTL
--#
--if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
--	export NDCTL=../ndctl/ndctl
--elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
--	export NDCTL=./ndctl/ndctl
--else
--	echo "Couldn't find an ndctl binary"
--	exit 1
-+if [ -z $NDCTL ]; then
-+	if [ -f "../ndctl/ndctl" ] && [ -x "../ndctl/ndctl" ]; then
-+		export NDCTL=../ndctl/ndctl
-+	elif [ -f "./ndctl/ndctl" ] && [ -x "./ndctl/ndctl" ]; then
-+		export NDCTL=./ndctl/ndctl
-+	else
-+		echo "Couldn't find an ndctl binary"
-+		exit 1
-+	fi
- fi
++%define with_meson MESON
+ Requires:	LNAME%{?_isa} = %{version}-%{release}
+ Requires:	DAX_LNAME%{?_isa} = %{version}-%{release}
+ Requires:	CXL_LNAME%{?_isa} = %{version}-%{release}
+ BuildRequires:	autoconf
+ %if 0%{?rhel} < 9
+ BuildRequires:	asciidoc
++%if !%{with_meson}
+ %define asciidoc --disable-asciidoctor
++%endif
+ %else
++%if %{with_meson}
++%define asciidoctor -Dasciidoctor=enabled
++%endif
+ BuildRequires:	rubygem-asciidoctor
+ %endif
+ BuildRequires:	xmlto
+@@ -27,6 +33,9 @@ BuildRequires:	pkgconfig(json-c)
+ BuildRequires:	pkgconfig(bash-completion)
+ BuildRequires:	pkgconfig(systemd)
+ BuildRequires:	keyutils-libs-devel
++%if %{with_meson}
++BuildRequires:	meson
++%endif
  
- # DAXCTL
--#
--if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
--	export DAXCTL=../daxctl/daxctl
--elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
--	export DAXCTL=./daxctl/daxctl
--else
--	echo "Couldn't find an daxctl binary"
--	exit 1
-+if [ -z $DAXCTL ]; then
-+	if [ -f "../daxctl/daxctl" ] && [ -x "../daxctl/daxctl" ]; then
-+		export DAXCTL=../daxctl/daxctl
-+	elif [ -f "./daxctl/daxctl" ] && [ -x "./daxctl/daxctl" ]; then
-+		export DAXCTL=./daxctl/daxctl
-+	else
-+		echo "Couldn't find an daxctl binary"
-+		exit 1
-+	fi
- fi
+ %description
+ Utility library for managing the "libnvdimm" subsystem.  The "libnvdimm"
+@@ -115,17 +124,30 @@ libcxl is a library for enumerating and communicating with CXL devices.
+ %setup -q ndctl-%{version}
  
-+if [ -z $TEST_PATH ]; then
-+	export TEST_PATH=.
-+fi
+ %build
++%if %{with_meson}
++%meson %{?asciidoctor} -Dversion-tag=%{version}
++%meson_build
++%else
+ echo %{version} > version
+ ./autogen.sh
+ %configure --disable-static --disable-silent-rules %{?asciidoc}
+ make %{?_smp_mflags}
++%endif
  
- # NFIT_TEST_BUS[01]
- #
-diff --git a/test/dax-pmd.c b/test/dax-pmd.c
-index 7648e348b0a6..1a61abf10c11 100644
---- a/test/dax-pmd.c
-+++ b/test/dax-pmd.c
-@@ -24,7 +24,7 @@
- 	__func__, __LINE__, strerror(errno))
- #define faili(i) fprintf(stderr, "%s: failed at: %d: %d (%s)\n", \
- 	__func__, __LINE__, i, strerror(errno))
--#define TEST_FILE "test_dax_data"
-+#define TEST_FILE "test_dax_mnt/test_dax_data"
+ %install
++%if %{with_meson}
++%meson_install
++%else
+ %make_install
+ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
++%endif
  
- #define REGION_MEM_SIZE 4096*4
- #define REGION_PM_SIZE        4096*512
-@@ -172,8 +172,11 @@ int test_dax_directio(int dax_fd, unsigned long align, void *dax_addr, off_t off
- 		rc = -ENXIO;
+ %check
++%if %{with_meson}
++%meson_test
++%else
+ make check
++%endif
  
- 		fd2 = open(TEST_FILE, O_CREAT|O_TRUNC|O_DIRECT|O_RDWR,
--				DEFFILEMODE);
-+				0600);
- 		if (fd2 < 0) {
-+			/* skip on tmpfs */
-+			if (errno == EINVAL)
-+				rc = 77;
- 			faili(i);
- 			munmap(addr, 2*align);
- 			break;
-diff --git a/test/dax.sh b/test/dax.sh
-index bcdd4e9bda27..bb9848b10ecc 100755
---- a/test/dax.sh
-+++ b/test/dax.sh
-@@ -15,13 +15,13 @@ cleanup() {
- 	else
- 		rc=77
- 	fi
--	rmdir $MNT
-+	rm -rf $MNT
- 	exit $rc
- }
+ %ldconfig_scriptlets -n LNAME
  
- run_test() {
- 	rc=0
--	if ! trace-cmd record -e fs_dax:dax_pmd_fault_done ./dax-pmd $MNT/$FILE; then
-+	if ! trace-cmd record -e fs_dax:dax_pmd_fault_done $TEST_PATH/dax-pmd $MNT/$FILE; then
- 		rc=$?
- 		if [ "$rc" -ne 77 ] && [ "$rc" -ne 0 ]; then
- 			cleanup "$1"
-@@ -104,7 +104,7 @@ set -e
- mkdir -p $MNT
- trap 'err $LINENO cleanup' ERR
- 
--dev=$(./dax-dev)
-+dev=$($TEST_PATH/dax-dev)
- json=$($NDCTL list -N -n $dev)
- eval $(json2var <<< "$json")
- rc=1
-diff --git a/test/daxdev-errors.sh b/test/daxdev-errors.sh
-index 9547d781162b..3718e32a3052 100755
---- a/test/daxdev-errors.sh
-+++ b/test/daxdev-errors.sh
-@@ -64,8 +64,8 @@ read sector len < /sys/bus/nd/devices/$region/badblocks
- echo "sector: $sector len: $len"
- 
- # run the daxdev-errors test
--test -x ./daxdev-errors
--./daxdev-errors $busdev $region
-+test -x $TEST_PATH/daxdev-errors
-+$TEST_PATH/daxdev-errors $busdev $region
- 
- # check badblocks, should be empty
- if read sector len < /sys/bus/platform/devices/nfit_test.0/$busdev/$region/badblocks; then
-diff --git a/test/device-dax-fio.sh b/test/device-dax-fio.sh
-index f57a9d266afc..c43ac058d2b0 100755
---- a/test/device-dax-fio.sh
-+++ b/test/device-dax-fio.sh
-@@ -18,7 +18,7 @@ if ! fio --enghelp | grep -q "dev-dax"; then
- 	exit 77
- fi
- 
--dev=$(./dax-dev)
-+dev=$($TEST_PATH/dax-dev)
- for align in 4k 2m 1g
- do
- 	json=$($NDCTL create-namespace -m devdax -a $align -f -e $dev)
-diff --git a/test/dm.sh b/test/dm.sh
-index 4656e5bfbebe..b780a65c27d2 100755
---- a/test/dm.sh
-+++ b/test/dm.sh
-@@ -8,7 +8,7 @@ SKIP=77
- FAIL=1
- SUCCESS=0
- 
--. ./common
-+. $(dirname $0)/common
- 
- MNT=test_dax_mnt
- TEST_DM_PMEM=/dev/mapper/test_pmem
-@@ -30,7 +30,7 @@ cleanup() {
- 	if [ -L $TEST_DM_PMEM ]; then
- 		dmsetup remove $TEST_DM_PMEM
- 	fi
--	rmdir $MNT
-+	rm -rf $MNT
- 	# opportunistic cleanup, not fatal if these fail
- 	namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
- 	for i in $namespaces
-diff --git a/test/inject-smart.sh b/test/inject-smart.sh
-index 4ca83b8b2263..8b913601bdd2 100755
---- a/test/inject-smart.sh
-+++ b/test/inject-smart.sh
-@@ -170,7 +170,7 @@ check_prereq "jq"
- modprobe nfit_test
- rc=1
- 
--jlist=$(./list-smart-dimm -b $bus)
-+jlist=$($TEST_PATH/list-smart-dimm -b $bus)
- dimm="$(jq '.[]."dev"?, ."dev"?' <<< $jlist | sort | head -1 | xargs)"
- test -n "$dimm"
- 
-diff --git a/test/mmap.sh b/test/mmap.sh
-index 50a1d34d0b75..760257dc7f93 100755
---- a/test/mmap.sh
-+++ b/test/mmap.sh
-@@ -7,7 +7,7 @@
- MNT=test_mmap_mnt
- FILE=image
- DEV=""
--TEST=./mmap
-+TEST=$TEST_PATH/mmap
- rc=77
- 
- cleanup() {
-@@ -17,7 +17,7 @@ cleanup() {
- 	else
- 		rc=77
- 	fi
--	rmdir $MNT
-+	rm -rf $MNT
- 	exit $rc
- }
- 
-@@ -49,7 +49,7 @@ set -e
- mkdir -p $MNT
- trap 'err $LINENO cleanup' ERR
- 
--dev=$(./dax-dev)
-+dev=$($TEST_PATH/dax-dev)
- json=$($NDCTL list -N -n $dev)
- eval $(json2var <<< "$json")
- DEV="/dev/${blockdev}"
-diff --git a/test/monitor.sh b/test/monitor.sh
-index 28c55415c819..7b0031c650f3 100755
---- a/test/monitor.sh
-+++ b/test/monitor.sh
-@@ -38,7 +38,7 @@ start_monitor()
- set_smart_supported_bus()
- {
- 	smart_supported_bus=$NFIT_TEST_BUS0
--	monitor_dimms=$(./list-smart-dimm -b $smart_supported_bus | jq -r .[0].dev)
-+	monitor_dimms=$($TEST_PATH/list-smart-dimm -b $smart_supported_bus | jq -r .[0].dev)
- 	if [ -z $monitor_dimms ]; then
- 		smart_supported_bus=$NFIT_TEST_BUS1
- 	fi
-@@ -46,14 +46,14 @@ set_smart_supported_bus()
- 
- get_monitor_dimm()
- {
--	jlist=$(./list-smart-dimm -b $smart_supported_bus $1)
-+	jlist=$($TEST_PATH/list-smart-dimm -b $smart_supported_bus $1)
- 	monitor_dimms=$(jq '.[]."dev"?, ."dev"?' <<<$jlist | sort | uniq | xargs)
- 	echo $monitor_dimms
- }
- 
- call_notify()
- {
--	./smart-notify $smart_supported_bus
-+	$TEST_PATH/smart-notify $smart_supported_bus
- 	sync; sleep 3
- }
- 
-diff --git a/test/pmem-errors.sh b/test/pmem-errors.sh
-index 4225c3bce0c7..4083fc389bdf 100755
---- a/test/pmem-errors.sh
-+++ b/test/pmem-errors.sh
-@@ -10,14 +10,12 @@ rc=77
- 
- cleanup()
- {
--	rm -f $FILE
--	rm -f $MNT/$FILE
- 	if [ -n "$blockdev" ]; then
- 		umount /dev/$blockdev
- 	else
- 		rc=77
- 	fi
--	rmdir $MNT
-+	rm -rf $MNT
- }
- 
- check_min_kver "4.7" || do_skip "may lack dax error handling"
-@@ -84,8 +82,8 @@ echo $start_sect 8 > /sys/block/$blockdev/badblocks
- dd if=$MNT/$FILE of=/dev/null iflag=direct bs=4096 count=1 && err $LINENO || true
- 
- # run the dax-errors test
--test -x ./dax-errors
--./dax-errors $MNT/$FILE
-+test -x $TEST_PATH/dax-errors
-+$TEST_PATH/dax-errors $MNT/$FILE
- 
- # TODO: disable this check till we have clear-on-write in the kernel
- #if read sector len < /sys/block/$blockdev/badblocks; then
-diff --git a/test/sub-section.sh b/test/sub-section.sh
-index 92ae816c448c..77b963355c8f 100755
---- a/test/sub-section.sh
-+++ b/test/sub-section.sh
-@@ -8,7 +8,7 @@ SKIP=77
- FAIL=1
- SUCCESS=0
- 
--. ./common
-+. $(dirname $0)/common
- 
- check_min_kver "5.3" || do_skip "may lack align sub-section hotplug support"
- 
-@@ -30,7 +30,7 @@ cleanup() {
- 	if mountpoint -q $MNT; then
- 		umount $MNT
- 	fi
--	rmdir $MNT
-+	rm -rf $MNT
- 	# opportunistic cleanup, not fatal if these fail
- 	namespaces=$($NDCTL list -N | jq -r ".[] | select(.name==\"$NAME\") | .dev")
- 	for i in $namespaces
-diff --git a/test/track-uuid.sh b/test/track-uuid.sh
-index be3cf9c07a0a..516d073ac109 100755
---- a/test/track-uuid.sh
-+++ b/test/track-uuid.sh
-@@ -5,7 +5,7 @@
- blockdev=""
- rc=77
- 
--. ./common
-+. $(dirname $0)/common
- 
- set -e
- trap 'err $LINENO' ERR
+diff --git a/rhel/meson.build b/rhel/meson.build
+new file mode 100644
+index 000000000000..8672098d84e1
+--- /dev/null
++++ b/rhel/meson.build
+@@ -0,0 +1,23 @@
++rhel_spec1 = vcs_tag(
++    input : '../ndctl.spec.in',
++    output : 'ndctl.spec.in',
++    command: vcs_tagger,
++    replace_string : 'VERSION',
++)
++
++rhel_spec2 = custom_target('ndctl.spec',
++  command : [
++    'sed', '-e', 's,MESON,1,g',
++	   '-e', 's,DAX_DNAME,daxctl-devel,g',
++	   '-e', 's,CXL_DNAME,cxl-devel,g',
++	   '-e', 's,DNAME,ndctl-devel,g',
++	   '-e', '/^%defattr.*/d',
++	   '-e', 's,DAX_LNAME,daxctl-libs,g',
++	   '-e', 's,CXL_LNAME,cxl-libs,g',
++	   '-e', 's,LNAME,ndctl-libs,g',
++	   '@INPUT@'
++  ],
++  input : rhel_spec1,
++  output : 'ndctl.spec',
++  capture : true,
++)
+diff --git a/rpmbuild.sh b/rpmbuild.sh
+index fe4154b6be9f..b1f4d9e5c0f3 100755
+--- a/rpmbuild.sh
++++ b/rpmbuild.sh
+@@ -1,6 +1,9 @@
+ #!/bin/bash
++
++spec=${1:-$(dirname $0)/rhel/ndctl.spec)}
++
+ pushd $(dirname $0) >/dev/null
+ [ ! -d ~/rpmbuild/SOURCES ] && echo "rpmdev tree not found" && exit 1
+ ./make-git-snapshot.sh
+ popd > /dev/null
+-rpmbuild -ba $(dirname $0)/rhel/ndctl.spec
++rpmbuild --nocheck -ba $spec
+diff --git a/sles/meson.build b/sles/meson.build
+new file mode 100644
+index 000000000000..21c72cb4f5ec
+--- /dev/null
++++ b/sles/meson.build
+@@ -0,0 +1,36 @@
++sles_spec1 = vcs_tag(
++    input : '../ndctl.spec.in',
++    output : 'ndctl.spec.sles.in',
++    command: vcs_tagger,
++    replace_string : 'VERSION',
++)
++
++header = files('header')
++
++sles_spec2 = custom_target('ndctl.spec.in',
++  command : [
++    'cat', header, '@INPUT@',
++  ],
++  input : sles_spec1,
++  output : 'ndctl.spec.in',
++  capture : true,
++)
++
++sles_spec3 = custom_target('ndctl.spec',
++  command : [
++    'sed', '-e', 's,MESON,1,g',
++           '-e', 's,DAX_DNAME,libdaxctl-devel,g',
++           '-e', 's,CXL_DNAME,libcxl-devel,g',
++           '-e', 's,DNAME,libndctl-devel,g',
++           '-e', 's,%license,%doc,g',
++           '-e', 's,\(^License:.*GPL\)v2,\1-2.0,g',
++           '-e', 's,DAX_LNAME,libdaxctl@0@,g'.format(LIBDAXCTL_CURRENT - LIBDAXCTL_AGE),
++           '-e', 's,CXL_LNAME,libcxl@0@,g'.format(LIBCXL_CURRENT - LIBCXL_AGE),
++           '-e', 's,LNAME,libndctl@0@,g'.format(LIBNDCTL_CURRENT - LIBNDCTL_AGE),
++	   '@INPUT@'
++  ],
++
++  input : sles_spec2,
++  output : 'ndctl.spec',
++  capture : true,
++)
 
