@@ -1,124 +1,126 @@
-Received: from esa2.fujitsucc.c3s2.iphmx.com (esa2.fujitsucc.c3s2.iphmx.com [68.232.152.246])
+Received: from esa7.fujitsucc.c3s2.iphmx.com (esa7.fujitsucc.c3s2.iphmx.com [68.232.159.87])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F02E73FCD
-	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 12:17:08 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 35C022FAE
+	for <nvdimm@lists.linux.dev>; Thu,  2 Sep 2021 12:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=fujitsu.com; i=@fujitsu.com; q=dns/txt; s=fj1;
-  t=1630585029; x=1662121029;
+  t=1630585121; x=1662121121;
   h=from:to:cc:subject:date:message-id:references:
    in-reply-to:content-transfer-encoding:mime-version;
-  bh=u5t2hXNp/ft3bOOCBIOknIHxL7pVtdng2br/t71ak3E=;
-  b=qAbBrv2wTki4Tzhm+7/LJ/tpXwjvV/xX20Eqtpqh3N0kOxHhEyKho50U
-   c5CL7Qqc85J6gHd8r2mTFdgtgBaJg16BGrAyrFDC4P3KQwBuXZQW0IaVv
-   KOYzFNKFVn5vgsVnJMMpV9bCyzq923Cb3QnL+dJVtxVsXuN+5KdtHPkEW
-   Sxfv6wVGs37JCpEtBzhLH0o5eZYp7/UTu1hQKfvw4kSpX6ETCYtOQ8AZA
-   1NWi+Q0tAx3F0PMwtj3HWfhaCm1uuvcxa89dhXIQY9baHTkCZUdDU6wIF
-   5d2Uo7zC25YiXjHmnx8v74iGA8+cAzo6RnqvLFS5u0rlp0LDurkynImWk
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10094"; a="46606537"
+  bh=JFK3k8vP5je1JU+6LkHn615nYBs8Uum1LAwm3bpxvHQ=;
+  b=XxpmRDHsP5h5ieC4LIVcj8aI9qNf1izD3vqIX5RnBq8cDQQo571X4l4V
+   Ifxh5BpLVD2Rs4ivEChdK42fHUZwyI4ozZvNdpuU5gQEWuVJy+/nQ5TNV
+   tpeBwbr0ldwKbkuyHCxXaHh7gPy/GLOhZdk0kWB+O3m6WKkw0b7sTGakL
+   jnAsLF51GtPsVDq6Sue/ryz2AmW27VU3gFknv41Eu4IlU/3bEL7zIdTxP
+   Xm0QRdjRy8w9VggTI+3BYCBEOg9+VG5D5ZVKODJUsgx+YPoyc9HEM85en
+   1KFvKfemCo1WRgTLW5QebT4H0q14JGdx+WTaePD6Io3EPrva8W1j2GLMN
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10094"; a="38416064"
 X-IronPort-AV: E=Sophos;i="5.84,372,1620658800"; 
-   d="scan'208";a="46606537"
-Received: from mail-pu1apc01lp2052.outbound.protection.outlook.com (HELO APC01-PU1-obe.outbound.protection.outlook.com) ([104.47.126.52])
-  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 21:15:56 +0900
+   d="scan'208";a="38416064"
+Received: from mail-ty1jpn01lp2053.outbound.protection.outlook.com (HELO JPN01-TY1-obe.outbound.protection.outlook.com) ([104.47.93.53])
+  by ob1.fujitsucc.c3s2.iphmx.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Sep 2021 21:17:29 +0900
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Y/aDVBQJAcY9vubxiz1aMK7ZsM3jEyB/u70lZIQe+7g70SPdIhynwC+pw+l5AgIYNSI+xQM6/0GgDKkYV04jotJ0R3NquLuotL3dI8wsjwG7jFYjItfxZgUetQqKdZ0P6CvMpqav7rCGyAICshRh3ugJOObKy0Y/Qv8hIYJ70z6BJTQsErOOi85Mz8oAMLlwZEk6D30yM5Rqn6TsL9IyDG/kVl1n0LgGcLhPYQvJTwm5J4XZwLwcpB5ozdZcwAkUXTAwbFgWXNpWeNfM5zdLs6+fSot4sIoxXejWeXbIsQgE68kHmJEcevts+TX0GQ5nUnYK6V8B1UMi/wgE1GwvPQ==
+ b=MEcbcIS6ZcCkq+dP/3WKTRId8YSuhtTFy4uVp4p7GS68ULhhGRIl83za/Ccof8pYR3f/3aDGsb/09N6h6UJ1qORg6LbwZgUKdMqFHL5MVHS+9wqvuffFocfTBgokYmOecwT0nXe+NmjmdZC/+MCI5s6lxl8BNIhiqKeMAMDiO+C0jETW7c9gwpFJfE6yuWFBvmWrOJU5p724rrCwhHQv02/zRydD3wBYAaqhpgnUS6TGABSSN+5uO76Bi4RroJ5/0QtmFMNu33gG9xB8TvAQ8AoYBui6npshNrvlO51xjsRByhmYwq0ABCZBPtzCKZj3MHtw+ZVbSEBf/a6OP1Jgrw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2iocMY9YzxDDwDeLFYEqMUkvL/+FBHIpQlAo/8llJkE=;
- b=Rdclz+4JhD6mgG8N2W2cYYqAkgHK/tSktoOut+Wu33qG3O76jm5AWLP/1065gqWKL+Zw9TWHxJBKtm8nqWTLwRiWs71J1uofFna+2A7SLsJ5S4xgMliCzF48kmlhoKn91hZgRx5SQLT7BxSMPJZ11EdkjchU8PoC1rP/IBK+uz+S8LyEo3mBueQBvt0JocUEpWc50GsOe8AJpft3r/H44YzDQEdwYdTKoxC9o+QOT56QDzsScJWhwmI0rDcN6R7pgBWAFy+6YrAAmjy18zRuVn8w2n9ulaNH1zPKk3fGBtithloPb/LQNNlsWtck6DxaSmQ1VTb33qgrxRrpt6UNfg==
+ bh=b8ajjASA09/+GA+Z5ndC+7Idfzoa3MFSnQaeMdxqtqw=;
+ b=jrxBp6XaIpEK11k3AJXT1WvCejGei6LHMbIZXQ8TEcrVkBZizvOwI7Nvo15/kyXE6hxDI5D1FBavKo2BhtW3RovNmsFy/PRxIqT1YHrFI9c9hzLNk0uRt3BCURg99/LqwtnrIzap6JSrczS7yDJ7hIQeVXtSDoHjAN3yt5nbQXXZM6QV0FR5oeYbXfUvRCPqJVv/FTXUgKEJYt0VCTq9Zy6nGsjitnjCP8Ui/dO5R3qTCSMjK+6RBi/76I00eHqEpSCNUJEmquxykILoiOdq96cf6wvVxLs/jYbo30UrN3dM6UE/VCy2o2Fcz1Zhd3rpKEkgho2gIs8k7j5v77f41w==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=fujitsu.com; dmarc=pass action=none header.from=fujitsu.com;
  dkim=pass header.d=fujitsu.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=fujitsu.onmicrosoft.com; s=selector2-fujitsu-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2iocMY9YzxDDwDeLFYEqMUkvL/+FBHIpQlAo/8llJkE=;
- b=NZovhWrOMGAfMsUFRLq/zg5vZKI5qhYr3i/gD58HMiDjAerZTLnD/PtrXxT22FbYOXdudHhtG3lTpc5ytqIybgIIQhZfSX26R+qBDag7rfOF1T8Fg+A/FMzOAwqm1TfQUb5loz/hNFGMkJWImPQhinEb7zEpcPoL90s9Acbzpe4=
+ bh=b8ajjASA09/+GA+Z5ndC+7Idfzoa3MFSnQaeMdxqtqw=;
+ b=WwmFyaLp60jmntIgf/tEYn0Md9YCXbzz+xHwGtNn82inmG8H3xENU204V2YSyjBIvWFvzyktue6uARa3yrD9Cd4sg5Cmuu0EqpyFdj3XWrv6OAAEKulxV20iwXootVx35Ih9T08/+O7xBsgP54tos1qgVDGH087+ftiSfFwEQ/E=
 Received: from TYCPR01MB6461.jpnprd01.prod.outlook.com (2603:1096:400:7b::10)
- by TY2PR01MB3532.jpnprd01.prod.outlook.com (2603:1096:404:d1::18) with
+ by TYXPR01MB1648.jpnprd01.prod.outlook.com (2603:1096:403:c::19) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4457.23; Thu, 2 Sep
- 2021 12:15:53 +0000
+ 2021 12:17:25 +0000
 Received: from TYCPR01MB6461.jpnprd01.prod.outlook.com
  ([fe80::a91d:f519:509:56f8]) by TYCPR01MB6461.jpnprd01.prod.outlook.com
  ([fe80::a91d:f519:509:56f8%9]) with mapi id 15.20.4478.019; Thu, 2 Sep 2021
- 12:15:53 +0000
+ 12:17:25 +0000
 From: "qi.fuli@fujitsu.com" <qi.fuli@fujitsu.com>
 To: 'Vishal Verma' <vishal.l.verma@intel.com>, "nvdimm@lists.linux.dev"
 	<nvdimm@lists.linux.dev>
 CC: Dan Williams <dan.j.williams@intel.com>, "fenghua.hu@intel.com"
 	<fenghua.hu@intel.com>
-Subject: RE: [ndctl PATCH 1/7] ndctl: Update ndctl.spec.in for 'ndctl.conf'
-Thread-Topic: [ndctl PATCH 1/7] ndctl: Update ndctl.spec.in for 'ndctl.conf'
-Thread-Index: AQHXnkdRpPXwtMsqM0eo/gPfr1FDQauQqxsQ
-Date: Thu, 2 Sep 2021 12:15:53 +0000
+Subject: RE: [ndctl PATCH 3/7] util/parse-config: refactor filter_conf_files
+ into util/
+Thread-Topic: [ndctl PATCH 3/7] util/parse-config: refactor filter_conf_files
+ into util/
+Thread-Index: AQHXnkdRgNMQb0fZy0+e0+Gp05ZjC6uQrECQ
+Date: Thu, 2 Sep 2021 12:17:25 +0000
 Message-ID:
- <TYCPR01MB6461D03B01710974180BD8A7F7CE9@TYCPR01MB6461.jpnprd01.prod.outlook.com>
+ <TYCPR01MB6461717B39B9FDEDE9EFE55AF7CE9@TYCPR01MB6461.jpnprd01.prod.outlook.com>
 References: <20210831090459.2306727-1-vishal.l.verma@intel.com>
- <20210831090459.2306727-2-vishal.l.verma@intel.com>
-In-Reply-To: <20210831090459.2306727-2-vishal.l.verma@intel.com>
+ <20210831090459.2306727-4-vishal.l.verma@intel.com>
+In-Reply-To: <20210831090459.2306727-4-vishal.l.verma@intel.com>
 Accept-Language: en-US
 Content-Language: ja-JP
 X-MS-Has-Attach:
 X-MS-TNEF-Correlator:
 msip_labels: MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Enabled=true;
- MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SetDate=2021-09-02T12:12:44Z;
+ MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SetDate=2021-09-02T12:16:49Z;
  MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Method=Standard;
  MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_Name=FUJITSU-RESTRICTED?;
  MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_SiteId=a19f121d-81e1-4858-a9d8-736e267fd4c7;
- MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_ActionId=c0aa9d9c-107e-4737-89b7-ca2adce1c0b5;
+ MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_ActionId=fe520678-9e89-4543-bd2b-9d7b95d2d648;
  MSIP_Label_a7295cc1-d279-42ac-ab4d-3b0f4fece050_ContentBits=0
 authentication-results: intel.com; dkim=none (message not signed)
  header.d=none;intel.com; dmarc=none action=none header.from=fujitsu.com;
 x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: ad34cfe1-4ee0-4b22-ed46-08d96e0b691c
-x-ms-traffictypediagnostic: TY2PR01MB3532:
+x-ms-office365-filtering-correlation-id: 780ed7c6-d4f7-40b5-e401-08d96e0ba019
+x-ms-traffictypediagnostic: TYXPR01MB1648:
 x-microsoft-antispam-prvs:
- <TY2PR01MB353258DAC64C2E4501DF90E8F7CE9@TY2PR01MB3532.jpnprd01.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:7691;
+ <TYXPR01MB1648BF4C2EA4DBAFE19F60F5F7CE9@TYXPR01MB1648.jpnprd01.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:6430;
 x-ms-exchange-senderadcheck: 1
 x-ms-exchange-antispam-relay: 0
 x-microsoft-antispam: BCL:0;
 x-microsoft-antispam-message-info:
- YP6andeJCW0lvqaXh9MEqu8c9Wvo7l6aURpnSslvZN5/S9bx/9z0TEwcS/eQavFmN7pdCo1riBSnCbJ7tNbdH/iYX9CJPQpan43IK9ojdMzHIDRQn7WJIZiD2AODuxCv9HN2ZsJnq0w8iUW2TXCc5mmn3y4sT7OB/lEluuU8sfPf0Zl7Ioidth2CXkxl+eoTGfj6XSsmVzf2UKQk4ew6HZmoJBMwNvkOakPCLjLBZfGd4rovFn5Wfapp+qB0DO2O8R7F9aMXRo1vRCddidRbaZ5Qwo5uIOwZHnqEkpYvNF6EJH66+14YmJpI5KpefgNQh/PTH3XGhq+ukGSfKhChmUCQKtXTnbhTQJ6Jms27t9igocQPZcuHhYtpBkRmmb0yCFDSIiINF2KEzuL4iDjMSXAyY9B9n6RbtHJlXNsIF2voHANRXvlGji08Xr2zgzwOTTsaV8gNEsq++GGQmQjyFKvvZTbXH7Ad0Exr+/PlCmxmzJ/IhpRm6IqNRemkPqSKE5J0zIVsImXST7Uto1DykE/UG82cTeEIr+oDGDNKPnmCPh+Sq2l7CRxsXJENYCb18uAAmSxM4ZW2K+gp7uVrvnSftBA816fVmK1sHwfgx3UDe7Qt6ugq4jSvey54NIb+P/Y8IrCpr+3yl/pBXqN2I3fTT/pp+FGrOoS7i+dBS0fvB+8ofkmgYBC4ZqGYOW26xMUB2h+dcpx4rr6z4013pw==
+ 5sSU9gXEZ9NIEU+e199vxUbWTI4Ft08sHC8/E/Xg+YndTEEW60urklBr3v2AV1oFK83f31X6qLkhUmuZ4Bg+eFZHuzpl6QAbWyGDbxZT2gpbkeyTW7FF5jrMsdeBnN1ksZxJgP27LZYSRLTp9FpKwkCmxbeYsxR1jCgkXXm6KZ5OFA+kjR4TlGe6nPa4ALbmn+anAeSkBMBwVx9dYzsP8qrkEuvKiJnmr/v3ZUO/PY/kOZFjs1UPB7wfpqBM/KKPpiGRPPsQtJnOqeG7ISZIxsSN/k2voAJJo9+jk//LKSulEOV5XkK1J5CdrrtuU0JGWPDx83RkMDcHPI3J+TceyvmznSNuT12BCb5Ogs9gftS+6tj0vR6avgcvTZWY8xf5RpvFtwMFCJrC+7Mes1FieqmXVkuIvD87OnGttC4rkbLmhqqR4tbH6+VdBd+hQxg3mD/027KhEHffwdsc6AHjGh6tz9+GZGcsdzVi3096TSx7s9/y+FtLna1MxnjPDupOmGnOKs5bZdgpbFttYUdl1yssnWv/y821Ga1iemOAVWLV9qOksMep8OiugGYRII483//3HAwI8jDOU1J1XEsXsIevHN80u3v9cXQSqYdURMBZWupCsgJMkvskgDQNdPG3arlXo3xjjMVL0wuXRqVvpy7p5WhvmVFo6XVju9aHMvjjXkcP9cJuQR6FEiTtRd8QWJ/rcdBiK9s5RPmZQv09aw==
 x-forefront-antispam-report:
- CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYCPR01MB6461.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(508600001)(8936002)(85182001)(71200400001)(2906002)(316002)(76116006)(64756008)(66446008)(66556008)(66476007)(9686003)(15650500001)(66946007)(4326008)(83380400001)(54906003)(38100700002)(110136005)(122000001)(8676002)(6506007)(55016002)(38070700005)(86362001)(26005)(4744005)(52536014)(33656002)(5660300002)(186003)(7696005);DIR:OUT;SFP:1101;
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYCPR01MB6461.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(346002)(136003)(396003)(39860400002)(366004)(376002)(5660300002)(38100700002)(4326008)(38070700005)(76116006)(8936002)(9686003)(64756008)(122000001)(55016002)(86362001)(7696005)(478600001)(33656002)(2906002)(110136005)(66946007)(71200400001)(6506007)(83380400001)(8676002)(52536014)(66446008)(316002)(186003)(54906003)(85182001)(66556008)(66476007)(26005);DIR:OUT;SFP:1101;
 x-ms-exchange-antispam-messagedata-chunkcount: 1
 x-ms-exchange-antispam-messagedata-0:
- =?iso-2022-jp?B?c1M2Z2ZrYTNhYUt4Ti9lcFdGK1lPOVFsQjBBRmxudGpJT0RHa2ZUM3Y5?=
- =?iso-2022-jp?B?SFY1R2RwdlpaRGNkelRPKzB1ZkRUZnNFcDJmb0tqQWEvMjFERUsrZkpG?=
- =?iso-2022-jp?B?MFpuWlFqVUpyWXVjMS9EM2s5ZzlHY01Ndks5OER2UUdrbHdNNXh2SHk3?=
- =?iso-2022-jp?B?d1IwOUczLzgyN1h2RHZTR3YvT3RaMTcvWktGWlhiTmtGL2ZHbjFpNWRk?=
- =?iso-2022-jp?B?WjZNZE1sdWJBanFzcExxcElCcTRpbWRlU0UvSE80WlUzL0pndWV4NEdl?=
- =?iso-2022-jp?B?Z3BFNGN0Q05JeVczNjVYekhmd3NRcVhEMUMzK1dHU2s0aGNoL1BjamFh?=
- =?iso-2022-jp?B?a0VRYTRmSm1yVkdOeUNwcWVrclk3aTdhd3RyNnM5ZWQ4T09lbkYvOGVQ?=
- =?iso-2022-jp?B?VGp4ZEdHWUh5OXBuR2NFZEdqNi9qNkJQYU1aZXBYQU5iUVUyVHlBUVpD?=
- =?iso-2022-jp?B?SkhEMlEvOUVaOEZGbjl4VGNlOU5STWRqT0dMYjRXSVhxZ3NBL2VVc1ZR?=
- =?iso-2022-jp?B?eWFjVnBQbnJraS9CSjJaRnorM25pNmRIYTVYWG5IRGN4Vkp3RkFKQmF4?=
- =?iso-2022-jp?B?czdNNDhTY2tMR2JCOVB3TVhveGlGa0hPS0hPOUVFVHMzcXNmVlFSNUw0?=
- =?iso-2022-jp?B?N1hLcFEvNnc1elA2Z1FTelJQK1M0YldxWkxLQlMxZWJRTjF1enZBaUZy?=
- =?iso-2022-jp?B?SHFTbnJkOUdKOWlMcllUMUZhbGo0ZVRuc0pTczlUOGo1NDUzS2RqcXFi?=
- =?iso-2022-jp?B?YXV6S24wcThXVWlKMkpOTTJKcVZjMFpFaklWejhPdWZZOUNTcjRnN0dq?=
- =?iso-2022-jp?B?K2NRMGlvOGFob2VjdnBpbzN1UUV0VFZwN2lJTHRNc2NlYi9wZVF1MmIz?=
- =?iso-2022-jp?B?MWZIVTB1dU5ReUM1QndvcGk2TGhWT09RNDh5MzVnQ0FEQktvdllaREpH?=
- =?iso-2022-jp?B?YWlXU3ZIdFFvZTQwTlBRQWtFV0FJVlNkSm9OV21CQ0JPQllnK2xhVVRW?=
- =?iso-2022-jp?B?Unp4QUJ6SmJSZm9BM2p5UXZPS05uOGdBa1VIYlpQdXhpWU1LQ201WVpj?=
- =?iso-2022-jp?B?THBXQW9wWjFwMTlpcDVJQ21xSWxxUUEzTUhnWWpZT1Jiei8yN2hZKy9H?=
- =?iso-2022-jp?B?NW5hdlpKTm92bG1oVmRZdWlqU2FUakc3SENUVFpxZVdxTndhNk4wdXQw?=
- =?iso-2022-jp?B?NlNNVU1jdUxHb25CQmkyRGZUcTBvS2dVSzU4c3pBeG5vaDZqT3d6enZB?=
- =?iso-2022-jp?B?YXFSMjJGcGEvS2lGNlNxQi9tZGVFbTltd283NWdEK2piMjZiTzdHMGx3?=
- =?iso-2022-jp?B?SWt5N1FMdmF4L3hvT09iU0VhSGQrZk5EL2FmN1FhcC9QdEtUOEJlUEsz?=
- =?iso-2022-jp?B?T3d3T1dpQkhDZ1hPc0xGZnpFQ1RoZmVxbGY4dFF5RlMycjNJR2RJTEVy?=
- =?iso-2022-jp?B?Rjc0TWc4S09pMmhMWTlsVTZjN2o5VXN2aE1DZ1gxcUpaNEtBOGhwbHdi?=
- =?iso-2022-jp?B?cnBLOVhiMGJObENEbXBBZlM0R1RhL1I0UkNXSHF5SUZMRkVkS2VOczJ1?=
- =?iso-2022-jp?B?aEkva2pDbWFYWU1OTTA5aUpUNWh6WUxqWnUzTDdZeGd2Wkl2eG91Z3Ft?=
- =?iso-2022-jp?B?S1dSczBsSFk4Y21lWDlFemROZUFWRG9XYTVCcWJBQlI1QXNYWmJGTUZ3?=
- =?iso-2022-jp?B?MUNtaTVNNTVmcWo0TkFUZDcvTlBwM1NmSFYvaFFOaERPcW9hb1dTUFFC?=
- =?iso-2022-jp?B?WkpBYkVvY284QjdvMlk2SXNIdlJzcDVuQ3NSUFExR01pZStQZ0dUeUJz?=
- =?iso-2022-jp?B?Q3g3UngvRXc2cFUwcVF2eXVmcThQYVFDZ1hibUV3UlZROHJNV01vbVls?=
- =?iso-2022-jp?B?d0ozWWJ0MlBMZWpPYkU4UUNXMXYraVRucEJRVFExMmo0dmZLa0FFekxQ?=
+ =?iso-2022-jp?B?WEg2Z092U2o5TEIzNUJrMGh5ajN2dTc2K0dUL1AyT0pDODdRb01IbXhT?=
+ =?iso-2022-jp?B?ZENYeVdFdmNUMHVPTjVzMW9LR0JwT0l4ZkU0TDlRRVZqM1p2ZmdTQ3NS?=
+ =?iso-2022-jp?B?TjBWWTZaU0NSS05mWi9Xa0ViTVQ2VEc5Rll1NUkwQnl3Z1ZnVTFZUDFX?=
+ =?iso-2022-jp?B?N2hNK2ZjbnNyZEpXME9zMlEzVmM1RXlXNHBxQ2V1aXEyL0N6akJwTXJU?=
+ =?iso-2022-jp?B?RXh6UHBFNFdJL2VnNnpJVUUxdzVFanBPcnJoSVQrcEZCR3lWc2pCOHgr?=
+ =?iso-2022-jp?B?UFk1MEZSYU5DeGRYK2xzUDZieVBJbVNWZWV4c09tYStDdm5YOElpT2Jr?=
+ =?iso-2022-jp?B?NGw1SHUxWld5aGJtNlZ3YkFlL1hsYW04aVFvcThGSHRGbVVqeFVpQjFa?=
+ =?iso-2022-jp?B?bkE4R0ExMnBnN05sQWpRRUVzNHE2akpqS29zVW1Yb25kcjNtNmhRU1Jx?=
+ =?iso-2022-jp?B?cGs4eUllZlIyNGkrTGNTeVNMcUNNTGdBZitDaWZVQWd4WFNPQUhsdVh1?=
+ =?iso-2022-jp?B?aU5SdGd1MDFyNHU1OUlHWlZscVhVS3FJM2htczJrdUlUaDFnOVFBWksr?=
+ =?iso-2022-jp?B?Qkt3aEsxWHczd283SkJGYVppMDlvSGJRRzJZVEFmQW9xWGVZQzZWaUxM?=
+ =?iso-2022-jp?B?WnhCWk5OT0haT0tZWXl6eGJVVlR5VHg3RW1zUVp6YlpqU09FYVVQd1dj?=
+ =?iso-2022-jp?B?RTBpZ2QwOWpPWGVMeG1XWEpidE5vRzlwOHlBenp4RmJsYUNvSnZTWVpY?=
+ =?iso-2022-jp?B?a01YMFFvcmFBZnhVMnN6VkRYS2RmUUNPbW9ycWNjeWRxSWhmSTdWWCtx?=
+ =?iso-2022-jp?B?ZGJDbnNJZUdoODJFN094VXBvNnJzUTd6UnR5eUFtaldackxkelVZREFQ?=
+ =?iso-2022-jp?B?cTIxSW5zZnROM1JBUzJEcE04blVGdG5uNU1wVVdrUE1vdFNkTTFQSXNj?=
+ =?iso-2022-jp?B?OTBHSE5PcEpmRGpkNWFDSUhtLzdMQ0U4ZDRhdDB4NTNVTjVOZUhYd0Fy?=
+ =?iso-2022-jp?B?K3dQM0lOTjh1UVhIQjh3QzJDcEdMWnk5RGhKaStEeTU4ZWt4alV0bmhn?=
+ =?iso-2022-jp?B?SnhqUjkxbm1wVVZNK2IvZi9DRzdvYkpsWlIwVUNOMk9ERjdQWkwrYm8x?=
+ =?iso-2022-jp?B?UHdiTS9oV0hSbVFqVStHRHphNzlhaHBqdnBVaUY5WDkySWIycUZ6RjFD?=
+ =?iso-2022-jp?B?bDhuemVuZThxQThYY2FWb3BqR3JjMTUwb2p6V3lNUVp6KzdJQjQ1VUZy?=
+ =?iso-2022-jp?B?RFAzYkJZeE95MEEwSlU0bXhUbEZVQnpuWSt2blhFdGFNeE9CaS9RWDVY?=
+ =?iso-2022-jp?B?elpVdkFzd3lrOXA5aUM1SFNHaHBObkgzcEdDeDlHeFZtVUcrMUNpT2tX?=
+ =?iso-2022-jp?B?Z0xoRUxWdk9iQTNZTGJtUE5ZS1JSV3hONDYzeTV4bUxZeElaTlhQVm4x?=
+ =?iso-2022-jp?B?RnRHQXRJcXNRd3JkbVQ5RzZwTkY0ZCtHNmZSU0tBMDR0VzZzMFdZaG5k?=
+ =?iso-2022-jp?B?eWpBQkM5amF2RVczR2o5dzBiMFZNRkJuRzZVMkwvTkF3OXNHMU1KdExn?=
+ =?iso-2022-jp?B?cmlRK3pkS2kyMi81TGlKY0ZiWllIMzM3WU5KNGNlcEIzVytuMnBGYWlR?=
+ =?iso-2022-jp?B?d1NSWkRPdFdueEc2aFlDbGtienpUWWp3ZmxqakFuWXVXWkI1WUJyOXNi?=
+ =?iso-2022-jp?B?NHFrOGVhOWt6NjNRK3EyaHVwaHhtblg5QTlaeWluQ3VtR0wxWG1DUnRp?=
+ =?iso-2022-jp?B?bUNkZUZzWldGWURkR2pRekg0dFFNdjE1dURIVHoyOTRNTUxhN1BROUQx?=
+ =?iso-2022-jp?B?UHUzekRMTVZXejhzT2VmYy9ZUTZSek1BejJZWUJkeG5QTXo0bzJkZWE4?=
+ =?iso-2022-jp?B?b05CMW9JUy9BNzkwY1dkTTk1ZUNPN3M0U3F1U2J2bzZRbG9kUXZXWC9I?=
 x-ms-exchange-transport-forked: True
 Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: quoted-printable
@@ -131,38 +133,157 @@ MIME-Version: 1.0
 X-OriginatorOrg: fujitsu.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
 X-MS-Exchange-CrossTenant-AuthSource: TYCPR01MB6461.jpnprd01.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: ad34cfe1-4ee0-4b22-ed46-08d96e0b691c
-X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Sep 2021 12:15:53.5640
+X-MS-Exchange-CrossTenant-Network-Message-Id: 780ed7c6-d4f7-40b5-e401-08d96e0ba019
+X-MS-Exchange-CrossTenant-originalarrivaltime: 02 Sep 2021 12:17:25.9004
  (UTC)
 X-MS-Exchange-CrossTenant-fromentityheader: Hosted
 X-MS-Exchange-CrossTenant-id: a19f121d-81e1-4858-a9d8-736e267fd4c7
 X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: qGFgonip7rGGYDv9rHAmpeb5MgLHNHLq0syPz3zpi8czGkulnw5hSSPzgdUmAetmNl2y9OReOBixg+0DFqcj0g==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: TY2PR01MB3532
+X-MS-Exchange-CrossTenant-userprincipalname: zq9zc+vuzJiazsnG7HCJpewhCjanjwJiq9wnYJcuyQdxJ9tvF1be9QgElbKGDCVGy+fFLUgU3iMJdWehmThdbQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: TYXPR01MB1648
 
-> Subject: [ndctl PATCH 1/7] ndctl: Update ndctl.spec.in for 'ndctl.conf'
+> Subject: [ndctl PATCH 3/7] util/parse-config: refactor filter_conf_files =
+into util/
 >=20
-> The new config system introduces and installs a sample config file called
-> ndctl.conf. Update the RPM spec to include this in the %files section for=
- ndctl.
+> Move filter_conf() into util/parse-configs.c as filter_conf_files() so th=
+at it can be
+> reused by the config parser in daxctl.
 >=20
 > Cc: QI Fuli <qi.fuli@fujitsu.com>
 > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
->  ndctl.spec.in | 1 +
->  1 file changed, 1 insertion(+)
+>  ndctl/lib/libndctl.c   | 19 ++-----------------
+>  util/parse-configs.h   |  4 ++++
+>  util/parse-configs.c   | 16 ++++++++++++++++
+>  daxctl/lib/Makefile.am |  2 ++
+>  ndctl/lib/Makefile.am  |  2 ++
+>  5 files changed, 26 insertions(+), 17 deletions(-)
 >=20
-> diff --git a/ndctl.spec.in b/ndctl.spec.in index 0563b2d..07c36ec 100644
-> --- a/ndctl.spec.in
-> +++ b/ndctl.spec.in
-> @@ -118,6 +118,7 @@ make check
->  %{_sysconfdir}/modprobe.d/nvdimm-security.conf
+> diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c index db2e38b..a=
+01ac80
+> 100644
+> --- a/ndctl/lib/libndctl.c
+> +++ b/ndctl/lib/libndctl.c
+> @@ -25,6 +25,7 @@
+>  #include <util/size.h>
+>  #include <util/sysfs.h>
+>  #include <util/strbuf.h>
+> +#include <util/parse-configs.h>
+>  #include <ndctl/libndctl.h>
+>  #include <ndctl/namespace.h>
+>  #include <daxctl/libdaxctl.h>
+> @@ -266,22 +267,6 @@ NDCTL_EXPORT void ndctl_set_userdata(struct
+> ndctl_ctx *ctx, void *userdata)
+>  	ctx->userdata =3D userdata;
+>  }
 >=20
->  %config(noreplace) %{_sysconfdir}/ndctl/monitor.conf
-> +%config(noreplace) %{_sysconfdir}/ndctl/ndctl.conf
+> -static int filter_conf(const struct dirent *dir) -{
+> -	if (!dir)
+> -		return 0;
+> -
+> -	if (dir->d_type =3D=3D DT_REG) {
+> -		const char *ext =3D strrchr(dir->d_name, '.');
+> -		if ((!ext) || (ext =3D=3D dir->d_name))
+> -			return 0;
+> -		if (strcmp(ext, ".conf") =3D=3D 0)
+> -			return 1;
+> -	}
+> -
+> -	return 0;
+> -}
+> -
+>  NDCTL_EXPORT void ndctl_set_configs(struct ndctl_ctx **ctx, char *conf_d=
+ir)
+> {
+>  	struct dirent **namelist;
+> @@ -291,7 +276,7 @@ NDCTL_EXPORT void ndctl_set_configs(struct ndctl_ctx
+> **ctx, char *conf_dir)
+>  	if ((!ctx) || (!conf_dir))
+>  		return;
 >=20
->  %files -n daxctl
->  %defattr(-,root,root)
+> -	rc =3D scandir(conf_dir, &namelist, filter_conf, alphasort);
+> +	rc =3D scandir(conf_dir, &namelist, filter_conf_files, alphasort);
+>  	if (rc =3D=3D -1) {
+>  		perror("scandir");
+>  		return;
+> diff --git a/util/parse-configs.h b/util/parse-configs.h index f70f58f..4=
+91aebb
+> 100644
+> --- a/util/parse-configs.h
+> +++ b/util/parse-configs.h
+> @@ -1,8 +1,10 @@
+>  // SPDX-License-Identifier: GPL-2.0
+>  // Copyright (C) 2021, FUJITSU LIMITED. ALL rights reserved.
+>=20
+> +#include <dirent.h>
+>  #include <stdbool.h>
+>  #include <stdint.h>
+> +#include <string.h>
+>  #include <util/util.h>
+>=20
+>  enum parse_conf_type {
+> @@ -11,6 +13,8 @@ enum parse_conf_type {
+>  	MONITOR_CALLBACK,
+>  };
+>=20
+> +int filter_conf_files(const struct dirent *dir);
+> +
+>  struct config;
+>  typedef int parse_conf_cb(const struct config *, const char *config_file=
+);
+>=20
+> diff --git a/util/parse-configs.c b/util/parse-configs.c index 44dcff4..7=
+2c4913
+> 100644
+> --- a/util/parse-configs.c
+> +++ b/util/parse-configs.c
+> @@ -6,6 +6,22 @@
+>  #include <util/strbuf.h>
+>  #include <util/iniparser.h>
+>=20
+> +int filter_conf_files(const struct dirent *dir) {
+> +	if (!dir)
+> +		return 0;
+> +
+> +	if (dir->d_type =3D=3D DT_REG) {
+> +		const char *ext =3D strrchr(dir->d_name, '.');
+> +		if ((!ext) || (ext =3D=3D dir->d_name))
+> +			return 0;
+> +		if (strcmp(ext, ".conf") =3D=3D 0)
+> +			return 1;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static void set_str_val(const char **value, const char *val)  {
+>  	struct strbuf buf =3D STRBUF_INIT;
+> diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am index
+> 25efd83..db2351e 100644
+> --- a/daxctl/lib/Makefile.am
+> +++ b/daxctl/lib/Makefile.am
+> @@ -15,6 +15,8 @@ libdaxctl_la_SOURCES =3D\
+>  	../../util/sysfs.h \
+>  	../../util/log.c \
+>  	../../util/log.h \
+> +	../../util/parse-configs.h \
+> +	../../util/parse-configs.c \
+>  	libdaxctl.c
+>=20
+>  libdaxctl_la_LIBADD =3D\
+> diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am index
+> f741c44..8020eb4 100644
+> --- a/ndctl/lib/Makefile.am
+> +++ b/ndctl/lib/Makefile.am
+> @@ -19,6 +19,8 @@ libndctl_la_SOURCES =3D\
+>  	../../util/wrapper.c \
+>  	../../util/usage.c \
+>  	../../util/fletcher.h \
+> +	../../util/parse-configs.h \
+> +	../../util/parse-configs.c \
+>  	dimm.c \
+>  	inject.c \
+>  	nfit.c \
 > --
 > 2.31.1
 
