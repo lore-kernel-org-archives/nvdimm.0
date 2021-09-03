@@ -1,31 +1,30 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5DBFD3FD5
-	for <nvdimm@lists.linux.dev>; Fri,  3 Sep 2021 13:21:21 +0000 (UTC)
-Received: from fraeml734-chm.china.huawei.com (unknown [172.18.147.206])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4H1JKt1BSWz67bLb;
-	Fri,  3 Sep 2021 21:19:30 +0800 (CST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EDC303FD5
+	for <nvdimm@lists.linux.dev>; Fri,  3 Sep 2021 13:33:47 +0000 (UTC)
+Received: from fraeml701-chm.china.huawei.com (unknown [172.18.147.201])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4H1JcD5zF2z67crW;
+	Fri,  3 Sep 2021 21:31:56 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml734-chm.china.huawei.com (10.206.15.215) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.8; Fri, 3 Sep 2021 15:21:18 +0200
+ fraeml701-chm.china.huawei.com (10.206.15.50) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2308.8; Fri, 3 Sep 2021 15:33:44 +0200
 Received: from localhost (10.52.121.127) by lhreml710-chm.china.huawei.com
  (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2308.8; Fri, 3 Sep 2021
- 14:21:17 +0100
-Date: Fri, 3 Sep 2021 14:21:18 +0100
+ 14:33:44 +0100
+Date: Fri, 3 Sep 2021 14:33:45 +0100
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, Ben Widawsky <ben.widawsky@intel.com>,
-	"kernel test robot" <lkp@intel.com>, <vishal.l.verma@intel.com>,
-	<alison.schofield@intel.com>, <nvdimm@lists.linux.dev>, <ira.weiny@intel.com>
-Subject: Re: [PATCH v3 27/28] tools/testing/cxl: Introduce a mock memory
- device + driver
-Message-ID: <20210903142118.00003ef3@Huawei.com>
-In-Reply-To: <162982126962.1124374.4032057539749435582.stgit@dwillia2-desk3.amr.corp.intel.com>
+CC: <linux-cxl@vger.kernel.org>, kernel test robot <lkp@intel.com>,
+	<vishal.l.verma@intel.com>, <alison.schofield@intel.com>,
+	<nvdimm@lists.linux.dev>, <ira.weiny@intel.com>, <ben.widawsky@intel.com>
+Subject: Re: [PATCH v3 28/28] cxl/core: Split decoder setup into alloc + add
+Message-ID: <20210903143345.00006c60@Huawei.com>
+In-Reply-To: <162982127644.1124374.2704629829686138331.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<162982126962.1124374.4032057539749435582.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<162982127644.1124374.2704629829686138331.stgit@dwillia2-desk3.amr.corp.intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
 Precedence: bulk
@@ -41,537 +40,307 @@ X-ClientProxiedBy: lhreml703-chm.china.huawei.com (10.201.108.52) To
  lhreml710-chm.china.huawei.com (10.201.108.61)
 X-CFilter-Loop: Reflected
 
-On Tue, 24 Aug 2021 09:07:49 -0700
+On Tue, 24 Aug 2021 09:07:56 -0700
 Dan Williams <dan.j.williams@intel.com> wrote:
 
-> Introduce an emulated device-set plus driver to register CXL memory
-> devices, 'struct cxl_memdev' instances, in the mock cxl_test topology.
-> This enables the development of HDM Decoder (Host-managed Device Memory
-> Decoder) programming flow (region provisioning) in an environment that
-> can be updated alongside the kernel as it gains more functionality.
+> The kbuild robot reports:
 > 
-> Whereas the cxl_pci module looks for CXL memory expanders on the 'pci'
-> bus, the cxl_mock_mem module attaches to CXL expanders on the platform
-> bus emitted by cxl_test.
+>     drivers/cxl/core/bus.c:516:1: warning: stack frame size (1032) exceeds
+>     limit (1024) in function 'devm_cxl_add_decoder'
 > 
-> Acked-by: Ben Widawsky <ben.widawsky@intel.com>
+> It is also the case the devm_cxl_add_decoder() is unwieldy to use for
+> all the different decoder types. Fix the stack usage by splitting the
+> creation into alloc and add steps. This also allows for context
+> specific construction before adding.
+> 
 > Reported-by: kernel test robot <lkp@intel.com>
-
-Perhaps say what was reported?
-
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-one query inline, otherwise I think this looks fine.
+Trivial comment inline - otherwise looks like a nice improvement.
 
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
 > ---
->  drivers/cxl/core/pmem.c       |    6 -
->  drivers/cxl/cxl.h             |    2 
->  drivers/cxl/pmem.c            |    2 
->  tools/testing/cxl/Kbuild      |    2 
->  tools/testing/cxl/mock_pmem.c |   24 ++++
->  tools/testing/cxl/test/Kbuild |    4 +
->  tools/testing/cxl/test/cxl.c  |   73 ++++++++++++
->  tools/testing/cxl/test/mem.c  |  255 +++++++++++++++++++++++++++++++++++++++++
->  8 files changed, 362 insertions(+), 6 deletions(-)
->  create mode 100644 tools/testing/cxl/mock_pmem.c
->  create mode 100644 tools/testing/cxl/test/mem.c
+>  drivers/cxl/acpi.c     |   74 ++++++++++++++++++++---------
+>  drivers/cxl/core/bus.c |  124 +++++++++++++++---------------------------------
+>  drivers/cxl/cxl.h      |   15 ++----
+>  3 files changed, 95 insertions(+), 118 deletions(-)
 > 
-> diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-> index ec3e4c642fca..68046b6a22b5 100644
-> --- a/drivers/cxl/core/pmem.c
-> +++ b/drivers/cxl/core/pmem.c
-> @@ -39,16 +39,16 @@ struct cxl_nvdimm_bridge *to_cxl_nvdimm_bridge(struct device *dev)
->  }
->  EXPORT_SYMBOL_GPL(to_cxl_nvdimm_bridge);
+
+> @@ -268,6 +275,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+>  	struct cxl_port *port;
+>  	struct cxl_dport *dport;
+>  	struct cxl_decoder *cxld;
+> +	int single_port_map[1], rc;
+>  	struct cxl_walk_context ctx;
+>  	struct acpi_pci_root *pci_root;
+>  	struct cxl_port *root_port = arg;
+> @@ -301,22 +309,42 @@ static int add_host_bridge_uport(struct device *match, void *arg)
+>  		return -ENODEV;
+>  	if (ctx.error)
+>  		return ctx.error;
+> +	if (ctx.count > 1)
+> +		return 0;
 >  
-> -static int match_nvdimm_bridge(struct device *dev, const void *data)
-> +__mock int match_nvdimm_bridge(struct device *dev, const void *data)
->  {
->  	return dev->type == &cxl_nvdimm_bridge_type;
->  }
+>  	/* TODO: Scan CHBCR for HDM Decoder resources */
 >  
-> -struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void)
-> +struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_nvdimm *cxl_nvd)
->  {
->  	struct device *dev;
->  
-> -	dev = bus_find_device(&cxl_bus_type, NULL, NULL, match_nvdimm_bridge);
-> +	dev = bus_find_device(&cxl_bus_type, NULL, cxl_nvd, match_nvdimm_bridge);
->  	if (!dev)
->  		return NULL;
->  	return to_cxl_nvdimm_bridge(dev);
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 1064427e3eb5..13e02528ddd3 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -327,7 +327,7 @@ struct cxl_nvdimm_bridge *devm_cxl_add_nvdimm_bridge(struct device *host,
->  struct cxl_nvdimm *to_cxl_nvdimm(struct device *dev);
->  bool is_cxl_nvdimm(struct device *dev);
->  int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd);
-> -struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void);
-> +struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_nvdimm *cxl_nvd);
->  
->  /* unit test build overrides this to __weak */
->  #ifndef __mock
-> diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-> index a6be72a68960..5737abe1ff05 100644
-> --- a/drivers/cxl/pmem.c
-> +++ b/drivers/cxl/pmem.c
-> @@ -43,7 +43,7 @@ static int cxl_nvdimm_probe(struct device *dev)
->  	struct nvdimm *nvdimm = NULL;
->  	int rc = -ENXIO;
->  
-> -	cxl_nvb = cxl_find_nvdimm_bridge();
-> +	cxl_nvb = cxl_find_nvdimm_bridge(cxl_nvd);
->  	if (!cxl_nvb)
->  		return -ENXIO;
->  
-> diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
-> index 63a4a07e71c4..86deba8308a1 100644
-> --- a/tools/testing/cxl/Kbuild
-> +++ b/tools/testing/cxl/Kbuild
-> @@ -33,4 +33,6 @@ cxl_core-y += $(CXL_CORE_SRC)/memdev.o
->  cxl_core-y += $(CXL_CORE_SRC)/mbox.o
->  cxl_core-y += config_check.o
->  
-> +cxl_core-y += mock_pmem.o
+>  	/*
+> -	 * In the single-port host-bridge case there are no HDM decoders
+> -	 * in the CHBCR and a 1:1 passthrough decode is implied.
+> +	 * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability
+> +	 * Structure) single ported host-bridges need not publish a decoder
+> +	 * capability when a passthrough decode can be assumed, i.e. all
+> +	 * transactions that the uport sees are claimed and passed to the single
+> +	 * dport. Default the range a 0-base 0-length until the first CXL region
+> +	 * is activated.
+>  	 */
+
+Is comment in right place or should it be up with the ctx.count > 1
+
+> -	if (ctx.count == 1) {
+> -		cxld = devm_cxl_add_passthrough_decoder(host, port);
+> -		if (IS_ERR(cxld))
+> -			return PTR_ERR(cxld);
+> +	cxld = cxl_decoder_alloc(port, 1);
+> +	if (IS_ERR(cxld))
+> +		return PTR_ERR(cxld);
 > +
->  obj-m += test/
-> diff --git a/tools/testing/cxl/mock_pmem.c b/tools/testing/cxl/mock_pmem.c
-> new file mode 100644
-> index 000000000000..f7315e6f52c0
-> --- /dev/null
-> +++ b/tools/testing/cxl/mock_pmem.c
-> @@ -0,0 +1,24 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +/* Copyright(c) 2021 Intel Corporation. All rights reserved. */
-> +#include <cxl.h>
-> +#include "test/mock.h"
-> +#include <core/core.h>
-> +
-> +int match_nvdimm_bridge(struct device *dev, const void *data)
-> +{
-> +	int index, rc = 0;
-> +	struct cxl_mock_ops *ops = get_cxl_mock_ops(&index);
-> +	const struct cxl_nvdimm *cxl_nvd = data;
-> +
-> +	if (ops) {
-> +		if (dev->type == &cxl_nvdimm_bridge_type &&
-> +		    (ops->is_mock_dev(dev->parent->parent) ==
-> +		     ops->is_mock_dev(cxl_nvd->dev.parent->parent)))
-> +			rc = 1;
-> +	} else
-> +		rc = dev->type == &cxl_nvdimm_bridge_type;
-> +
-> +	put_cxl_mock_ops(index);
-> +
-> +	return rc;
-> +}
-> diff --git a/tools/testing/cxl/test/Kbuild b/tools/testing/cxl/test/Kbuild
-> index 7de4ddecfd21..4e59e2c911f6 100644
-> --- a/tools/testing/cxl/test/Kbuild
-> +++ b/tools/testing/cxl/test/Kbuild
-> @@ -1,6 +1,10 @@
->  # SPDX-License-Identifier: GPL-2.0
-> +ccflags-y := -I$(srctree)/drivers/cxl/
-> +
->  obj-m += cxl_test.o
->  obj-m += cxl_mock.o
-> +obj-m += cxl_mock_mem.o
->  
->  cxl_test-y := cxl.o
->  cxl_mock-y := mock.o
-> +cxl_mock_mem-y := mem.o
-> diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
-> index 0710e0062e58..314b09d40333 100644
-> --- a/tools/testing/cxl/test/cxl.c
-> +++ b/tools/testing/cxl/test/cxl.c
-> @@ -17,6 +17,7 @@ static struct platform_device *cxl_acpi;
->  static struct platform_device *cxl_host_bridge[NR_CXL_HOST_BRIDGES];
->  static struct platform_device
->  	*cxl_root_port[NR_CXL_HOST_BRIDGES * NR_CXL_ROOT_PORTS];
-> +struct platform_device *cxl_mem[NR_CXL_HOST_BRIDGES * NR_CXL_ROOT_PORTS];
->  
->  static struct acpi_device acpi0017_mock;
->  static struct acpi_device host_bridge[NR_CXL_HOST_BRIDGES] = {
-> @@ -36,6 +37,11 @@ static struct acpi_device host_bridge[NR_CXL_HOST_BRIDGES] = {
->  
->  static bool is_mock_dev(struct device *dev)
->  {
-> +	int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(cxl_mem); i++)
-> +		if (dev == &cxl_mem[i]->dev)
-> +			return true;
->  	if (dev == &cxl_acpi->dev)
->  		return true;
->  	return false;
-> @@ -403,6 +409,44 @@ static void mock_companion(struct acpi_device *adev, struct device *dev)
->  #define SZ_512G (SZ_64G * 8)
->  #endif
->  
-> +static struct platform_device *alloc_memdev(int id)
-> +{
-> +	struct resource res[] = {
-> +		[0] = {
-> +			.flags = IORESOURCE_MEM,
-> +		},
-> +		[1] = {
-> +			.flags = IORESOURCE_MEM,
-> +			.desc = IORES_DESC_PERSISTENT_MEMORY,
-> +		},
+> +	cxld->interleave_ways = 1;
+> +	cxld->interleave_granularity = PAGE_SIZE;
+> +	cxld->target_type = CXL_DECODER_EXPANDER;
+> +	cxld->range = (struct range) {
+> +		.start = 0,
+> +		.end = -1,
 > +	};
-> +	struct platform_device *pdev;
-> +	int i, rc;
+>  
+> +	device_lock(&port->dev);
+> +	dport = list_first_entry(&port->dports, typeof(*dport), list);
+> +	device_unlock(&port->dev);
 > +
-> +	for (i = 0; i < ARRAY_SIZE(res); i++) {
-> +		struct cxl_mock_res *r = alloc_mock_res(SZ_256M);
+> +	single_port_map[0] = dport->port_id;
 > +
-> +		if (!r)
-> +			return NULL;
-> +		res[i].start = r->range.start;
-> +		res[i].end = r->range.end;
+> +	rc = devm_cxl_add_decoder(host, cxld, single_port_map);
+> +	if (rc == 0)
+>  		dev_dbg(host, "add: %s\n", dev_name(&cxld->dev));
+> -	}
+>  
+> -	return 0;
+> +	return rc;
+>  }
+>  
+>  static int add_host_bridge_dport(struct device *match, void *arg)
+> diff --git a/drivers/cxl/core/bus.c b/drivers/cxl/core/bus.c
+> index 9a755a37eadf..1320a996220a 100644
+> --- a/drivers/cxl/core/bus.c
+> +++ b/drivers/cxl/core/bus.c
+> @@ -453,27 +453,15 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport_dev, int port_id,
+>  }
+>  EXPORT_SYMBOL_GPL(cxl_add_dport);
+>  
+> -static struct cxl_decoder *
+> -cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
+> -		  resource_size_t base, resource_size_t len,
+> -		  int interleave_ways, int interleave_granularity,
+> -		  enum cxl_decoder_type type, unsigned long flags,
+> -		  int *target_map)
+> +struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets)
+>  {
+>  	struct cxl_decoder *cxld;
+>  	struct device *dev;
+> -	int rc = 0, i;
+> +	int rc = 0;
+>  
+> -	if (interleave_ways < 1)
+> +	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE || nr_targets < 1)
+>  		return ERR_PTR(-EINVAL);
+>  
+> -	device_lock(&port->dev);
+> -	if (list_empty(&port->dports))
+> -		rc = -EINVAL;
+> -	device_unlock(&port->dev);
+> -	if (rc)
+> -		return ERR_PTR(rc);
+> -
+>  	cxld = kzalloc(struct_size(cxld, target, nr_targets), GFP_KERNEL);
+>  	if (!cxld)
+>  		return ERR_PTR(-ENOMEM);
+> @@ -482,31 +470,8 @@ cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
+>  	if (rc < 0)
+>  		goto err;
+>  
+> -	*cxld = (struct cxl_decoder) {
+> -		.id = rc,
+> -		.range = {
+> -			.start = base,
+> -			.end = base + len - 1,
+> -		},
+> -		.flags = flags,
+> -		.interleave_ways = interleave_ways,
+> -		.interleave_granularity = interleave_granularity,
+> -		.target_type = type,
+> -	};
+> -
+> -	device_lock(&port->dev);
+> -	for (i = 0; target_map && i < nr_targets; i++) {
+> -		struct cxl_dport *dport = find_dport(port, target_map[i]);
+> -
+> -		if (!dport) {
+> -			rc = -ENXIO;
+> -			goto err;
+> -		}
+> -		dev_dbg(host, "%s: target: %d\n", dev_name(dport->dport), i);
+> -		cxld->target[i] = dport;
+> -	}
+> -	device_unlock(&port->dev);
+> -
+> +	cxld->id = rc;
+> +	cxld->nr_targets = nr_targets;
+>  	dev = &cxld->dev;
+>  	device_initialize(dev);
+>  	device_set_pm_not_required(dev);
+> @@ -524,26 +489,43 @@ cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
+>  	kfree(cxld);
+>  	return ERR_PTR(rc);
+>  }
+> +EXPORT_SYMBOL_GPL(cxl_decoder_alloc);
+>  
+> -struct cxl_decoder *
+> -devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
+> -		     resource_size_t base, resource_size_t len,
+> -		     int interleave_ways, int interleave_granularity,
+> -		     enum cxl_decoder_type type, unsigned long flags,
+> -		     int *target_map)
+> +int devm_cxl_add_decoder(struct device *host, struct cxl_decoder *cxld,
+> +			 int *target_map)
+>  {
+> -	struct cxl_decoder *cxld;
+> +	struct cxl_port *port = to_cxl_port(cxld->dev.parent);
+>  	struct device *dev;
+> -	int rc;
+> +	int rc = 0, i;
+>  
+> -	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE)
+> -		return ERR_PTR(-EINVAL);
+> +	if (!cxld)
+> +		return -EINVAL;
+>  
+> -	cxld = cxl_decoder_alloc(host, port, nr_targets, base, len,
+> -				 interleave_ways, interleave_granularity, type,
+> -				 flags, target_map);
+>  	if (IS_ERR(cxld))
+> -		return cxld;
+> +		return PTR_ERR(cxld);
+> +
+> +	if (cxld->interleave_ways < 1) {
+> +		rc = -EINVAL;
+> +		goto err;
 > +	}
 > +
-> +	pdev = platform_device_alloc("cxl_mem", id);
-> +	if (!pdev)
-> +		return NULL;
+> +	device_lock(&port->dev);
+> +	if (list_empty(&port->dports))
+> +		rc = -EINVAL;
 > +
-> +	rc = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+> +	for (i = 0; rc == 0 && target_map && i < cxld->nr_targets; i++) {
+> +		struct cxl_dport *dport = find_dport(port, target_map[i]);
+> +
+> +		if (!dport) {
+> +			rc = -ENXIO;
+> +			break;
+> +		}
+> +		dev_dbg(host, "%s: target: %d\n", dev_name(dport->dport), i);
+> +		cxld->target[i] = dport;
+> +	}
+> +	device_unlock(&port->dev);
 > +	if (rc)
 > +		goto err;
-> +
-> +	return pdev;
-> +
-> +err:
-> +	platform_device_put(pdev);
-> +	return NULL;
-> +}
-> +
->  static __init int cxl_test_init(void)
->  {
->  	int rc, i;
-> @@ -458,9 +502,27 @@ static __init int cxl_test_init(void)
->  		cxl_root_port[i] = pdev;
->  	}
 >  
-> +	BUILD_BUG_ON(ARRAY_SIZE(cxl_mem) != ARRAY_SIZE(cxl_root_port));
-> +	for (i = 0; i < ARRAY_SIZE(cxl_mem); i++) {
-> +		struct platform_device *port = cxl_root_port[i];
-> +		struct platform_device *pdev;
-> +
-> +		pdev = alloc_memdev(i);
-> +		if (!pdev)
-> +			goto err_mem;
-> +		pdev->dev.parent = &port->dev;
-> +
-> +		rc = platform_device_add(pdev);
-> +		if (rc) {
-> +			platform_device_put(pdev);
-> +			goto err_mem;
-> +		}
-> +		cxl_mem[i] = pdev;
-> +	}
-> +
->  	cxl_acpi = platform_device_alloc("cxl_acpi", 0);
->  	if (!cxl_acpi)
-> -		goto err_port;
-> +		goto err_mem;
+>  	dev = &cxld->dev;
+>  	rc = dev_set_name(dev, "decoder%d.%d", port->id, cxld->id);
+> @@ -554,43 +536,13 @@ devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
+>  	if (rc)
+>  		goto err;
 >  
->  	mock_companion(&acpi0017_mock, &cxl_acpi->dev);
->  	acpi0017_mock.dev.bus = &platform_bus_type;
-> @@ -473,6 +535,11 @@ static __init int cxl_test_init(void)
->  
->  err_add:
->  	platform_device_put(cxl_acpi);
-> +err_mem:
-> +	for (i = ARRAY_SIZE(cxl_mem) - 1; i >= 0; i--) {
-> +		platform_device_del(cxl_mem[i]);
-> +		platform_device_put(cxl_mem[i]);
-> +	}
->  err_port:
->  	for (i = ARRAY_SIZE(cxl_root_port) - 1; i >= 0; i--) {
->  		platform_device_del(cxl_root_port[i]);
-> @@ -498,6 +565,10 @@ static __exit void cxl_test_exit(void)
->  
->  	platform_device_del(cxl_acpi);
->  	platform_device_put(cxl_acpi);
-> +	for (i = ARRAY_SIZE(cxl_mem) - 1; i >= 0; i--) {
-> +		platform_device_del(cxl_mem[i]);
-> +		platform_device_put(cxl_mem[i]);
-> +	}
->  	for (i = ARRAY_SIZE(cxl_root_port) - 1; i >= 0; i--) {
->  		platform_device_del(cxl_root_port[i]);
->  		platform_device_put(cxl_root_port[i]);
-> diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-> new file mode 100644
-> index 000000000000..3ce02c2783d5
-> --- /dev/null
-> +++ b/tools/testing/cxl/test/mem.c
-> @@ -0,0 +1,255 @@
-> +// SPDX-License-Identifier: GPL-2.0-only
-> +// Copyright(c) 2021 Intel Corporation. All rights reserved.
-> +
-> +#include <linux/platform_device.h>
-> +#include <linux/mod_devicetable.h>
-> +#include <linux/module.h>
-> +#include <linux/sizes.h>
-> +#include <linux/bits.h>
-> +#include <cxlmem.h>
-> +
-> +#define LSA_SIZE SZ_128K
-> +#define EFFECT(x) (1U << x)
-> +
-> +static struct cxl_cel_entry mock_cel[] = {
-> +	{
-> +		.opcode = cpu_to_le16(CXL_MBOX_OP_GET_SUPPORTED_LOGS),
-> +		.effect = cpu_to_le16(0),
-> +	},
-> +	{
-> +		.opcode = cpu_to_le16(CXL_MBOX_OP_IDENTIFY),
-> +		.effect = cpu_to_le16(0),
-> +	},
-> +	{
-> +		.opcode = cpu_to_le16(CXL_MBOX_OP_GET_LSA),
-> +		.effect = cpu_to_le16(0),
-> +	},
-> +	{
-> +		.opcode = cpu_to_le16(CXL_MBOX_OP_SET_LSA),
-> +		.effect = cpu_to_le16(EFFECT(1) | EFFECT(2)),
-> +	},
-> +};
-> +
-> +static struct {
-> +	struct cxl_mbox_get_supported_logs gsl;
-> +	struct cxl_gsl_entry entry;
-> +} mock_gsl_payload = {
-> +	.gsl = {
-> +		.entries = cpu_to_le16(1),
-> +	},
-> +	.entry = {
-> +		.uuid = DEFINE_CXL_CEL_UUID,
-> +		.size = cpu_to_le32(sizeof(mock_cel)),
-> +	},
-> +};
-> +
-> +static int mock_gsl(struct cxl_mbox_cmd *cmd)
-> +{
-> +	if (cmd->size_out < sizeof(mock_gsl_payload))
-> +		return -EINVAL;
-> +
-> +	memcpy(cmd->payload_out, &mock_gsl_payload, sizeof(mock_gsl_payload));
-> +	cmd->size_out = sizeof(mock_gsl_payload);
-> +
-> +	return 0;
-> +}
-> +
-> +static int mock_get_log(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
-> +{
-> +	struct cxl_mbox_get_log *gl = cmd->payload_in;
-> +	u32 offset = le32_to_cpu(gl->offset);
-> +	u32 length = le32_to_cpu(gl->length);
-> +	uuid_t uuid = DEFINE_CXL_CEL_UUID;
-> +	void *data = &mock_cel;
-> +
-> +	if (cmd->size_in < sizeof(*gl))
-> +		return -EINVAL;
-> +	if (offset + length >
-> +	    (min_t(size_t, cxlm->payload_size, sizeof(mock_cel))))
-
-I assume aim here is to check we don't read from beyond end of mock_cel?
-If so why does the cxlm->payload_size matter? Say read as 4 bytes at 1.5M
-then that should be fine.
-
-Should we have a separate test of (length < cxlm->payload_size)?
-
-> +		return -EINVAL;
-> +	if (!uuid_equal(&gl->uuid, &uuid))
-> +		return -EINVAL;
-> +	if (length > cmd->size_out)
-> +		return -EINVAL;
-> +
-> +	memcpy(cmd->payload_out, data + offset, length);
-> +
-> +	return 0;
-> +}
-> +
-> +static int mock_id(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
-> +{
-> +	struct platform_device *pdev = to_platform_device(cxlm->dev);
-> +	struct cxl_mbox_identify id = {
-> +		.fw_revision = { "mock fw v1 " },
-> +		.lsa_size = cpu_to_le32(LSA_SIZE),
-> +		/* FIXME: Add partition support */
-> +		.partition_align = cpu_to_le64(0),
-> +	};
-> +	u64 capacity = 0;
-> +	int i;
-> +
-> +	if (cmd->size_out < sizeof(id))
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < 2; i++) {
-> +		struct resource *res;
-> +
-> +		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-> +		if (!res)
-> +			break;
-> +
-> +		capacity += resource_size(res) / CXL_CAPACITY_MULTIPLIER;
-> +
-> +		if (le64_to_cpu(id.partition_align))
-> +			continue;
-> +
-> +		if (res->desc == IORES_DESC_PERSISTENT_MEMORY)
-> +			id.persistent_capacity = cpu_to_le64(
-> +				resource_size(res) / CXL_CAPACITY_MULTIPLIER);
-> +		else
-> +			id.volatile_capacity = cpu_to_le64(
-> +				resource_size(res) / CXL_CAPACITY_MULTIPLIER);
-> +	}
-> +
-> +	id.total_capacity = cpu_to_le64(capacity);
-> +
-> +	memcpy(cmd->payload_out, &id, sizeof(id));
-> +
-> +	return 0;
-> +}
-> +
-> +static int mock_get_lsa(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
-> +{
-> +	struct cxl_mbox_get_lsa *get_lsa = cmd->payload_in;
-> +	void *lsa = dev_get_drvdata(cxlm->dev);
-> +	u32 offset, length;
-> +
-> +	if (sizeof(*get_lsa) > cmd->size_in)
-> +		return -EINVAL;
-> +	offset = le32_to_cpu(get_lsa->offset);
-> +	length = le32_to_cpu(get_lsa->length);
-> +	if (offset + length > LSA_SIZE)
-> +		return -EINVAL;
-> +	if (length > cmd->size_out)
-> +		return -EINVAL;
-> +
-> +	memcpy(cmd->payload_out, lsa + offset, length);
-> +	return 0;
-> +}
-> +
-> +static int mock_set_lsa(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
-> +{
-> +	struct cxl_mbox_set_lsa *set_lsa = cmd->payload_in;
-> +	void *lsa = dev_get_drvdata(cxlm->dev);
-> +	u32 offset, length;
-> +
-> +	if (sizeof(*set_lsa) > cmd->size_in)
-> +		return -EINVAL;
-> +	offset = le32_to_cpu(set_lsa->offset);
-> +	length = cmd->size_in - sizeof(*set_lsa);
-> +	if (offset + length > LSA_SIZE)
-> +		return -EINVAL;
-> +
-> +	memcpy(lsa + offset, &set_lsa->data[0], length);
-> +	return 0;
-> +}
-> +
-> +static int cxl_mock_mbox_send(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
-> +{
-> +	struct device *dev = cxlm->dev;
-> +	int rc = -EIO;
-> +
-> +	switch (cmd->opcode) {
-> +	case CXL_MBOX_OP_GET_SUPPORTED_LOGS:
-> +		rc = mock_gsl(cmd);
-> +		break;
-> +	case CXL_MBOX_OP_GET_LOG:
-> +		rc = mock_get_log(cxlm, cmd);
-> +		break;
-> +	case CXL_MBOX_OP_IDENTIFY:
-> +		rc = mock_id(cxlm, cmd);
-> +		break;
-> +	case CXL_MBOX_OP_GET_LSA:
-> +		rc = mock_get_lsa(cxlm, cmd);
-> +		break;
-> +	case CXL_MBOX_OP_SET_LSA:
-> +		rc = mock_set_lsa(cxlm, cmd);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	dev_dbg(dev, "opcode: %#x sz_in: %zd sz_out: %zd rc: %d\n", cmd->opcode,
-> +		cmd->size_in, cmd->size_out, rc);
-> +
+> -	rc = devm_add_action_or_reset(host, unregister_cxl_dev, dev);
+> -	if (rc)
+> -		return ERR_PTR(rc);
+> -	return cxld;
+> -
+> +	return devm_add_action_or_reset(host, unregister_cxl_dev, dev);
+>  err:
+>  	put_device(dev);
+> -	return ERR_PTR(rc);
 > +	return rc;
-> +}
+>  }
+>  EXPORT_SYMBOL_GPL(devm_cxl_add_decoder);
+>  
+> -/*
+> - * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability Structure)
+> - * single ported host-bridges need not publish a decoder capability when a
+> - * passthrough decode can be assumed, i.e. all transactions that the uport sees
+> - * are claimed and passed to the single dport. Default the range a 0-base
+> - * 0-length until the first CXL region is activated.
+> - */
+> -struct cxl_decoder *devm_cxl_add_passthrough_decoder(struct device *host,
+> -						     struct cxl_port *port)
+> -{
+> -	struct cxl_dport *dport;
+> -	int target_map[1];
+> -
+> -	device_lock(&port->dev);
+> -	dport = list_first_entry_or_null(&port->dports, typeof(*dport), list);
+> -	device_unlock(&port->dev);
+> -
+> -	if (!dport)
+> -		return ERR_PTR(-ENXIO);
+> -
+> -	target_map[0] = dport->port_id;
+> -	return devm_cxl_add_decoder(host, port, 1, 0, 0, 1, PAGE_SIZE,
+> -				    CXL_DECODER_EXPANDER, 0, target_map);
+> -}
+> -EXPORT_SYMBOL_GPL(devm_cxl_add_passthrough_decoder);
+> -
+>  /**
+>   * __cxl_driver_register - register a driver for the cxl bus
+>   * @cxl_drv: cxl driver structure to attach
+> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+> index 13e02528ddd3..3705b2454b66 100644
+> --- a/drivers/cxl/cxl.h
+> +++ b/drivers/cxl/cxl.h
+> @@ -195,6 +195,7 @@ enum cxl_decoder_type {
+>   * @interleave_granularity: data stride per dport
+>   * @target_type: accelerator vs expander (type2 vs type3) selector
+>   * @flags: memory type capabilities and locking
+> + * @nr_targets: number of elements in @target
+>   * @target: active ordered target list in current decoder configuration
+>   */
+>  struct cxl_decoder {
+> @@ -205,6 +206,7 @@ struct cxl_decoder {
+>  	int interleave_granularity;
+>  	enum cxl_decoder_type target_type;
+>  	unsigned long flags;
+> +	int nr_targets;
+>  	struct cxl_dport *target[];
+>  };
+>  
+> @@ -286,15 +288,10 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
+>  
+>  struct cxl_decoder *to_cxl_decoder(struct device *dev);
+>  bool is_root_decoder(struct device *dev);
+> -struct cxl_decoder *
+> -devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
+> -		     resource_size_t base, resource_size_t len,
+> -		     int interleave_ways, int interleave_granularity,
+> -		     enum cxl_decoder_type type, unsigned long flags,
+> -		     int *target_map);
+> -
+> -struct cxl_decoder *devm_cxl_add_passthrough_decoder(struct device *host,
+> -						     struct cxl_port *port);
+> +struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets);
+> +int devm_cxl_add_decoder(struct device *host, struct cxl_decoder *cxld,
+> +			 int *target_map);
 > +
-> +static void label_area_release(void *lsa)
-> +{
-> +	vfree(lsa);
-> +}
-> +
-> +static int cxl_mock_mem_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	struct cxl_memdev *cxlmd;
-> +	struct cxl_mem *cxlm;
-> +	void *lsa;
-> +	int rc;
-> +
-> +	lsa = vmalloc(LSA_SIZE);
-> +	if (!lsa)
-> +		return -ENOMEM;
-> +	rc = devm_add_action_or_reset(dev, label_area_release, lsa);
-> +	if (rc)
-> +		return rc;
-> +	dev_set_drvdata(dev, lsa);
-> +
-> +	cxlm = cxl_mem_create(dev);
-> +	if (IS_ERR(cxlm))
-> +		return PTR_ERR(cxlm);
-> +
-> +	cxlm->mbox_send = cxl_mock_mbox_send;
-> +	cxlm->payload_size = SZ_4K;
-> +
-> +	rc = cxl_mem_enumerate_cmds(cxlm);
-> +	if (rc)
-> +		return rc;
-> +
-> +	rc = cxl_mem_identify(cxlm);
-> +	if (rc)
-> +		return rc;
-> +
-> +	rc = cxl_mem_create_range_info(cxlm);
-> +	if (rc)
-> +		return rc;
-> +
-> +	cxlmd = devm_cxl_add_memdev(dev, cxlm);
-> +	if (IS_ERR(cxlmd))
-> +		return PTR_ERR(cxlmd);
-> +
-> +	if (range_len(&cxlm->pmem_range) && IS_ENABLED(CONFIG_CXL_PMEM))
-> +		rc = devm_cxl_add_nvdimm(dev, cxlmd);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct platform_device_id cxl_mock_mem_ids[] = {
-> +	{ .name = "cxl_mem", },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(platform, cxl_mock_mem_ids);
-> +
-> +static struct platform_driver cxl_mock_mem_driver = {
-> +	.probe = cxl_mock_mem_probe,
-> +	.id_table = cxl_mock_mem_ids,
-> +	.driver = {
-> +		.name = KBUILD_MODNAME,
-> +	},
-> +};
-> +
-> +module_platform_driver(cxl_mock_mem_driver);
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_IMPORT_NS(CXL);
+>  extern struct bus_type cxl_bus_type;
+>  
+>  struct cxl_driver {
 > 
 
