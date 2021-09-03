@@ -1,110 +1,168 @@
-Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82C683FC1
-	for <nvdimm@lists.linux.dev>; Fri,  3 Sep 2021 03:58:33 +0000 (UTC)
-Received: by mail-pf1-f171.google.com with SMTP id v123so3293879pfb.11
-        for <nvdimm@lists.linux.dev>; Thu, 02 Sep 2021 20:58:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4wOalAePuAJnThsQpwJBROsDRanxKLhv6aAjQVKpLCk=;
-        b=LS+dmgpAD636OwNI7DMrkDYpAhR1yT1A3WcKYbfo2x+uchmZNT4sEWaqsTJU6AeKVN
-         ouvdDOYe0d+8ohickpONYg2BYV/uv3tckR8eszW9wGyRkr28nYA25Vc4oqXtAQrHMAjD
-         e+tCOxpaHGTbry1srsJH0VR2PMijUHV2KAy5+KsxORGM9kEj6ftr5MVOU7S//QlLUGhr
-         6dPK+K7jtqybJzipkadWrg/t7w2Fnc0LtuGrkmOedIfgmch/6+RaH7kEi/bEKzYG0+Em
-         93vHzlKjrHotec9qCZkCTMcnbTNtBQOZuL7aBkYBJMNU7JHlwoFXNHaoMBVl9sCn+eOd
-         Mz9Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4wOalAePuAJnThsQpwJBROsDRanxKLhv6aAjQVKpLCk=;
-        b=cBVhFd/AjKI4Jfx1WeTOitwz3tmkV0AHycvekdEYclZuBNw67DOJTAtkTtFOqT2pRb
-         I59JF2/zymytZv7FRXXY7tuZzLq90g1pvOivMooqeTCtKyPG+PpQdcWx61XrAxr6hQxb
-         y2/+NzN7WByJeP5596q2s0sQYTolpBvRG1IMb54isE1zs+UJBZPem1ygzGPrUtnBYg/v
-         oAb7OGYuzys6/D3JLjyI0rxoDxXShJJYWHVHpH1jj2l5g3lNFi9zDb1NuDR/EUmWAEV8
-         FeOcXUtc0cPFT0jLN04aqelBW+RlONO7rkJ7tVToCZ4T7FWveLzf/Iu6nqurSI9Zz5ns
-         /zyw==
-X-Gm-Message-State: AOAM532Jqr+QQ8EViZFPE6AHKREz2+aqVIZJFIEYlpk95gYLaIEz4K2r
-	mK1OJgPc3Ociy2ir3r0jMme69+TzG52jajZAybgN7A==
-X-Google-Smtp-Source: ABdhPJzGRoF8cOmILH2aN/M/bwig3fIeWC6Qc+Z0Gjm/st5g5Ld7mmbaGMDL7QVzHdH2bf7VLZvwE3mtAwMVRkYy7j0=
-X-Received: by 2002:a65:47c6:: with SMTP id f6mr1686451pgs.450.1630641512751;
- Thu, 02 Sep 2021 20:58:32 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF18F3FC9
+	for <nvdimm@lists.linux.dev>; Fri,  3 Sep 2021 05:10:22 +0000 (UTC)
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+	by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 18355es4093505;
+	Fri, 3 Sep 2021 01:09:53 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=K5iypGu1BbZpY7zplx5iSY2p+1Vmww0hXn2ePdVwiUM=;
+ b=OzJr5PssvJLH1hnBVwpAz6yxfqOyMFZjhJbXEy4b1Vfh2n0ZYCEEczs0T7xAF1x1Uffl
+ Zc9ZLY5Pi4OC6z2WfMLVaq0dktgxLmwK/OsjOgle+ZQFsbh1Mp5rQs3VcwLBz6LXdB5M
+ L7tX0QDtbvJaS00IaY9+za6+h84pMtNQbsQUwQJjrjtAxx0Zr946D5BV+3DMgurSC7FB
+ 0jUyEXaIXBz0xDlD49h9MfnHQOStN8+4rJ/Cq4h7k3EW8b+E8PJKKgtApErZz081T41U
+ ac4QjwqyEf0b8lFigegvkI7s/psWtKiLSP8WKKB2EFtejAG1tnkeWPdxf7QVzADTFr9/ eg== 
+Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
+	by mx0b-001b2d01.pphosted.com with ESMTP id 3auc9vs73d-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 03 Sep 2021 01:09:53 -0400
+Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
+	by ppma02fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18356xFg027548;
+	Fri, 3 Sep 2021 05:09:51 GMT
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
+	by ppma02fra.de.ibm.com with ESMTP id 3au6pmtp9m-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 03 Sep 2021 05:09:51 +0000
+Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
+	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 18359m8151708244
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 3 Sep 2021 05:09:48 GMT
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1532542047;
+	Fri,  3 Sep 2021 05:09:48 +0000 (GMT)
+Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id DA0BE42045;
+	Fri,  3 Sep 2021 05:09:43 +0000 (GMT)
+Received: from localhost.localdomain.com (unknown [9.43.127.78])
+	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Fri,  3 Sep 2021 05:09:43 +0000 (GMT)
+From: Kajol Jain <kjain@linux.ibm.com>
+To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, peterz@infradead.org,
+        dan.j.williams@intel.com, ira.weiny@intel.com,
+        vishal.l.verma@intel.com
+Cc: maddy@linux.ibm.com, santosh@fossix.org, aneesh.kumar@linux.ibm.com,
+        vaibhav@linux.ibm.com, atrajeev@linux.vnet.ibm.com, tglx@linutronix.de,
+        kjain@linux.ibm.com, rnsastry@linux.ibm.com
+Subject: [RESEND PATCH v4 0/4]  Add perf interface to expose nvdimm
+Date: Fri,  3 Sep 2021 10:39:10 +0530
+Message-Id: <20210903050914.273525-1-kjain@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: 1nvoAyRcwUhd8VrFkEX528F0g9eu4eaF
+X-Proofpoint-GUID: 1nvoAyRcwUhd8VrFkEX528F0g9eu4eaF
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162982119604.1124374.8364301519543316156.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210902173602.00000272@Huawei.com> <20210902174138.000064a7@Huawei.com>
-In-Reply-To: <20210902174138.000064a7@Huawei.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 2 Sep 2021 20:58:22 -0700
-Message-ID: <CAPcyv4h8uB3fzQrCLdHa=-=15Km77A3KvoTeGEQpx2AL_zpRNw@mail.gmail.com>
-Subject: Re: [PATCH v3 13/28] libnvdimm/label: Define CXL region labels
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, Vishal L Verma <vishal.l.verma@intel.com>, 
-	"Schofield, Alison" <alison.schofield@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	"Weiny, Ira" <ira.weiny@intel.com>, Ben Widawsky <ben.widawsky@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-09-03_01:2021-09-03,2021-09-03 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ priorityscore=1501 clxscore=1011 impostorscore=0 suspectscore=0
+ mlxlogscore=999 phishscore=0 mlxscore=0 bulkscore=0 spamscore=0
+ adultscore=0 malwarescore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2108310000 definitions=main-2109030031
 
-On Thu, Sep 2, 2021 at 9:41 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Thu, 2 Sep 2021 17:36:02 +0100
-> Jonathan Cameron <Jonathan.Cameron@Huawei.com> wrote:
->
-> > On Tue, 24 Aug 2021 09:06:36 -0700
-> > Dan Williams <dan.j.williams@intel.com> wrote:
-> >
-> > > Add a definition of the CXL 2.0 region label format. Note this is done
-> > > as a separate patch to make the next patch that adds namespace label
-> > > support easier to read.
-> > >
-> > > Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > FWIW
-> > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Oops. Just noticed something below that needs fixing, so keep
-> that RB with the missing docs fixed.
->
-> >
-> > > ---
-> > >  drivers/nvdimm/label.h |   30 ++++++++++++++++++++++++++++++
-> > >  1 file changed, 30 insertions(+)
-> > >
-> > > diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
-> > > index 31f94fad7b92..76ecd0347dc2 100644
-> > > --- a/drivers/nvdimm/label.h
-> > > +++ b/drivers/nvdimm/label.h
-> > > @@ -65,6 +65,36 @@ struct nd_namespace_index {
-> > >     u8 free[];
-> > >  };
-> > >
-> > > +/**
-> > > + * struct cxl_region_label - CXL 2.0 Table 211
-> > > + * @type: uuid identifying this label format (region)
-> > > + * @uuid: uuid for the region this label describes
-> > > + * @flags: NSLABEL_FLAG_UPDATING (all other flags reserved)
->
-> nlabel docs missing here.
->
-> > > + * @position: this label's position in the set
-> > > + * @dpa: start address in device-local capacity for this label
-> > > + * @rawsize: size of this label's contribution to region
-> > > + * @hpa: mandatory system physical address to map this region
-> > > + * @slot: slot id of this label in label area
-> > > + * @ig: interleave granularity (1 << @ig) * 256 bytes
-> > > + * @align: alignment in SZ_256M blocks
->
-> Probably need to add docs for reserved to suppress warnings
-> from the kernel-doc build (unless it's clever about things called reserved?)
+Patchset adds performance stats reporting support for nvdimm.
+Added interface includes support for pmu register/unregister
+functions. A structure is added called nvdimm_pmu to be used for
+adding arch/platform specific data such as supported events, cpumask
+pmu event functions like event_init/add/read/del.
+User could use the standard perf tool to access perf
+events exposed via pmu.
 
-Nope, it complains about @reserved not being documented.
+Added implementation to expose IBM pseries platform nmem*
+device performance stats using this interface.
 
-There's some legacy kernel-doc escapes in this file, so I fix those up
-in a separate patch before this one.
+Result from power9 pseries lpar with 2 nvdimm device:
+command:# perf list nmem
+  nmem0/cchrhcnt/                                    [Kernel PMU event]
+  nmem0/cchwhcnt/                                    [Kernel PMU event]
+  nmem0/critrscu/                                    [Kernel PMU event]
+  nmem0/ctlresct/                                    [Kernel PMU event]
+  nmem0/ctlrestm/                                    [Kernel PMU event]
+  nmem0/fastwcnt/                                    [Kernel PMU event]
+  nmem0/hostlcnt/                                    [Kernel PMU event]
+  nmem0/hostldur/                                    [Kernel PMU event]
+  nmem0/hostscnt/                                    [Kernel PMU event]
+  nmem0/hostsdur/                                    [Kernel PMU event]
+  nmem0/medrcnt/                                     [Kernel PMU event]
+  nmem0/medrdur/                                     [Kernel PMU event]
+  nmem0/medwcnt/                                     [Kernel PMU event]
+  nmem0/medwdur/                                     [Kernel PMU event]
+  nmem0/memlife/                                     [Kernel PMU event]
+  nmem0/noopstat/                                    [Kernel PMU event]
+  nmem0/ponsecs/                                     [Kernel PMU event]
+  nmem1/cchrhcnt/                                    [Kernel PMU event]
+  nmem1/cchwhcnt/                                    [Kernel PMU event]
+  nmem1/critrscu/                                    [Kernel PMU event]
+  ...
+  nmem1/noopstat/                                    [Kernel PMU event]
+  nmem1/ponsecs/                                     [Kernel PMU event]
+
+Patch1:
+        Introduces the nvdimm_pmu structure
+Patch2:
+	Adds common interface to add arch/platform specific data
+	includes supported events, pmu event functions. It also
+	adds code for cpu hotplug support.
+Patch3:
+        Add code in arch/powerpc/platform/pseries/papr_scm.c to expose
+        nmem* pmu. It fills in the nvdimm_pmu structure with event attrs
+        cpumask andevent functions and then registers the pmu by adding
+        callbacks to register_nvdimm_pmu.
+Patch4:
+        Sysfs documentation patch
+
+Changelog
+---
+v3 -> v4
+- Rebase code on top of current papr_scm code without any logical
+  changes.
+
+- Added Acked-by tag from Peter Zijlstra and Reviewed by tag
+  from Madhavan Srinivasan.
+
+- Link to the patchset v3: https://lkml.org/lkml/2021/6/17/605
+
+v2 -> v3
+- Added Tested-by tag.
+
+- Fix nvdimm mailing list in the ABI Documentation.
+
+- Link to the patchset v2: https://lkml.org/lkml/2021/6/14/25
+
+v1 -> v2
+- Fix hotplug code by adding pmu migration call
+  incase current designated cpu got offline. As
+  pointed by Peter Zijlstra.
+
+- Removed the retun -1 part from cpu hotplug offline
+  function.
+
+- Link to the patchset v1: https://lkml.org/lkml/2021/6/8/500
+
+Kajol Jain (4):
+  drivers/nvdimm: Add nvdimm pmu structure
+  drivers/nvdimm: Add perf interface to expose nvdimm performance stats
+  powerpc/papr_scm: Add perf interface support
+  powerpc/papr_scm: Document papr_scm sysfs event format entries
+
+ Documentation/ABI/testing/sysfs-bus-papr-pmem |  31 ++
+ arch/powerpc/include/asm/device.h             |   5 +
+ arch/powerpc/platforms/pseries/papr_scm.c     | 365 ++++++++++++++++++
+ drivers/nvdimm/Makefile                       |   1 +
+ drivers/nvdimm/nd_perf.c                      | 230 +++++++++++
+ include/linux/nd.h                            |  46 +++
+ 6 files changed, 678 insertions(+)
+ create mode 100644 drivers/nvdimm/nd_perf.c
+
+-- 
+2.26.2
+
