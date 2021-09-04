@@ -1,142 +1,125 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8DA733FC0
-	for <nvdimm@lists.linux.dev>; Sat,  4 Sep 2021 00:27:23 +0000 (UTC)
-Received: by mail-pj1-f46.google.com with SMTP id d5so624170pjx.2
-        for <nvdimm@lists.linux.dev>; Fri, 03 Sep 2021 17:27:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=cNqDHc4DeYDGoAd0mq4iZzi3XtF93Dyr7S8yiUymZy4=;
-        b=S9eQD39d/wC1WmPQTiYTbBoL18qPM6NxOwn9akdNmjyqoOL6wDDsiNbPpEbYg8tmIV
-         Hs7+NJHyqFKV5BvwiLYhTVemIhQsCJ9AtKkNmvhhexcHmkWi8r0K7unkHnzou2Q6mrXX
-         4EhNUdjSJKL3FbKNEP4bEBIkup7X/fJsC6AqCSEPuUnIG8YGSCle9vzqV5LYpP0jogIM
-         Eufsn7kwVZT+Ijc6OljG3ChcR8IQC4DiwkztNBuiXosT+wNJXFYZzPur/WH8RVdI1sfM
-         XjERGtEqU2xMPVMREr+pBAFZsx2StTznZXnMwe7VlmVevv9emGEq7XfinN6dDQGFGFHL
-         cmjA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=cNqDHc4DeYDGoAd0mq4iZzi3XtF93Dyr7S8yiUymZy4=;
-        b=KVCo9nsuw+mJ8UoBrySSrvS3PIg32SG/dRsMYbogs17RCP8pKgkkJ0OdLcH/Be+1JQ
-         SR6nwZ/3T8L1ZnyutQ2GDVyjY5u5Dh4xHunNx8i2Lefl5JAcDCkSbwYApsAEY0jLgbKO
-         YTf6agmz29zkhEE6cRLID9CnIm7+5PUe3OOrq/NMKGYCiGXiOV33xWJxIKE3/kCcLnSa
-         afM3c6W2TFEyttmQ84fy13y1q/crkWX3pL+N898oQ68tYYW3eNDmXICCjCP4dx7lgPbK
-         e78dfTzNCvj0fGeoBon/mE5KGBLj8loSlZ/dShqRd6gPw+JjNtIwP0EZ577qro0jDDgu
-         0YJw==
-X-Gm-Message-State: AOAM532+J7k/yZ/rRjycWZRXQExFTGrKb8af6W5vYHDYbri2LBCvDbpF
-	qFJtLCJSlYe679XfXk9sV0WFRB52g97GlPOO8A/dkA==
-X-Google-Smtp-Source: ABdhPJy8buIuPi3rlRkUgeB5khkdH2y3gtKF5o9jtPNmZurcJvD0pWMBuZ6mox8x/mfA2SdT0Lx89rlJA0PLhOnKD6I=
-X-Received: by 2002:a17:902:7611:b029:12b:e55e:6ee8 with SMTP id
- k17-20020a1709027611b029012be55e6ee8mr1218794pll.4.1630715243053; Fri, 03 Sep
- 2021 17:27:23 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4170C3FC0
+	for <nvdimm@lists.linux.dev>; Sat,  4 Sep 2021 06:39:30 +0000 (UTC)
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 1846XOTW018101;
+	Sat, 4 Sep 2021 02:39:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
+ references : from : message-id : date : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=DU9459HyLfoFSrkTE5ucAOWmbmD78IKFAVxR3c5PQIc=;
+ b=o2uj8e/EgwtVfEwTJSp/BIGOHnFh+dBgSkkOnSr49aKgQUWXAHa3aP3TKF9yUbkCoeH5
+ CORsN87w1FDWFAfmkR3b83DKvGyPppG6VO78Da6KE4cp4c6jqONSXdtIwWg0ylcgDl+Z
+ 8r+XGeP9TtCKmDlNNXmXVY4Sg5t5YOR+qKXTWHf0q3IvNjb/L948sp/l9uXS8KA0KMK7
+ 70MMxGFX8t+901oekv8gZwJ2JXwKXIZSVrLY4nOO71L+2IVy/EQSOI/UpUFTkCNd1Qiy
+ 6+3i8DiV1Jmf25VpEuRu8fzTEpmGav64xcV6CvJFObRZzRKHpYgfYp8OuIMc1n57fCh2 ag== 
+Received: from ppma03dal.us.ibm.com (b.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.11])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3av3m6g2th-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 04 Sep 2021 02:39:07 -0400
+Received: from pps.filterd (ppma03dal.us.ibm.com [127.0.0.1])
+	by ppma03dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1846Y0bS026010;
+	Sat, 4 Sep 2021 06:39:07 GMT
+Received: from b03cxnp08027.gho.boulder.ibm.com (b03cxnp08027.gho.boulder.ibm.com [9.17.130.19])
+	by ppma03dal.us.ibm.com with ESMTP id 3av0e8tepe-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Sat, 04 Sep 2021 06:39:07 +0000
+Received: from b03ledav002.gho.boulder.ibm.com (b03ledav002.gho.boulder.ibm.com [9.17.130.233])
+	by b03cxnp08027.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1846d6Ah18023150
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sat, 4 Sep 2021 06:39:06 GMT
+Received: from b03ledav002.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 1D845136061;
+	Sat,  4 Sep 2021 06:39:06 +0000 (GMT)
+Received: from b03ledav002.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E74C513605D;
+	Sat,  4 Sep 2021 06:39:01 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.43.55.112])
+	by b03ledav002.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Sat,  4 Sep 2021 06:39:01 +0000 (GMT)
+Subject: Re: [RESEND PATCH v4 2/4] drivers/nvdimm: Add perf interface to
+ expose nvdimm performance stats
+To: kernel test robot <lkp@intel.com>, mpe@ellerman.id.au,
+        linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, peterz@infradead.org,
+        dan.j.williams@intel.com, ira.weiny@intel.com,
+        vishal.l.verma@intel.com
+Cc: kbuild-all@lists.01.org, maddy@linux.ibm.com, santosh@fossix.org
+References: <20210903050914.273525-3-kjain@linux.ibm.com>
+ <202109032341.mgqAHURT-lkp@intel.com>
+From: kajoljain <kjain@linux.ibm.com>
+Message-ID: <b18af051-1652-baba-5a6e-95a4194d6ef1@linux.ibm.com>
+Date: Sat, 4 Sep 2021 12:08:59 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
+In-Reply-To: <202109032341.mgqAHURT-lkp@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: GrcAAByAMKRhtspIanR6z6Pc1uPv3DoW
+X-Proofpoint-ORIG-GUID: GrcAAByAMKRhtspIanR6z6Pc1uPv3DoW
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162982127644.1124374.2704629829686138331.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210903143345.00006c60@Huawei.com> <CAPcyv4iaff7_YH1OG-yn4vnDbh-QF1DgLdGr8E4LT1bBBvX-yQ@mail.gmail.com>
- <20210903190133.000003e2@Huawei.com>
-In-Reply-To: <20210903190133.000003e2@Huawei.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 3 Sep 2021 17:27:12 -0700
-Message-ID: <CAPcyv4hTHq6BRek_5bMn0jbz2bQ=8Kd6EaBjsc6s2=snY5ws5g@mail.gmail.com>
-Subject: Re: [PATCH v3 28/28] cxl/core: Split decoder setup into alloc + add
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, kernel test robot <lkp@intel.com>, 
-	Vishal L Verma <vishal.l.verma@intel.com>, "Schofield, Alison" <alison.schofield@intel.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, "Weiny, Ira" <ira.weiny@intel.com>, 
-	Ben Widawsky <ben.widawsky@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-09-04_02:2021-09-03,2021-09-04 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 suspectscore=0
+ spamscore=0 impostorscore=0 bulkscore=0 phishscore=0 clxscore=1011
+ mlxlogscore=999 adultscore=0 priorityscore=1501 lowpriorityscore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2108310000 definitions=main-2109040044
 
-On Fri, Sep 3, 2021 at 11:01 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Fri, 3 Sep 2021 09:26:09 -0700
-> Dan Williams <dan.j.williams@intel.com> wrote:
->
-> > On Fri, Sep 3, 2021 at 6:34 AM Jonathan Cameron
-> > <Jonathan.Cameron@huawei.com> wrote:
-> > >
-> > > On Tue, 24 Aug 2021 09:07:56 -0700
-> > > Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > > The kbuild robot reports:
-> > > >
-> > > >     drivers/cxl/core/bus.c:516:1: warning: stack frame size (1032) exceeds
-> > > >     limit (1024) in function 'devm_cxl_add_decoder'
-> > > >
-> > > > It is also the case the devm_cxl_add_decoder() is unwieldy to use for
-> > > > all the different decoder types. Fix the stack usage by splitting the
-> > > > creation into alloc and add steps. This also allows for context
-> > > > specific construction before adding.
-> > > >
-> > > > Reported-by: kernel test robot <lkp@intel.com>
-> > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > >
-> > > Trivial comment inline - otherwise looks like a nice improvement.
-> > >
-> > > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> >
-> > >
-> > > > ---
-> > > >  drivers/cxl/acpi.c     |   74 ++++++++++++++++++++---------
-> > > >  drivers/cxl/core/bus.c |  124 +++++++++++++++---------------------------------
-> > > >  drivers/cxl/cxl.h      |   15 ++----
-> > > >  3 files changed, 95 insertions(+), 118 deletions(-)
-> > > >
-> > >
-> > > > @@ -268,6 +275,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
-> > > >       struct cxl_port *port;
-> > > >       struct cxl_dport *dport;
-> > > >       struct cxl_decoder *cxld;
-> > > > +     int single_port_map[1], rc;
-> > > >       struct cxl_walk_context ctx;
-> > > >       struct acpi_pci_root *pci_root;
-> > > >       struct cxl_port *root_port = arg;
-> > > > @@ -301,22 +309,42 @@ static int add_host_bridge_uport(struct device *match, void *arg)
-> > > >               return -ENODEV;
-> > > >       if (ctx.error)
-> > > >               return ctx.error;
-> > > > +     if (ctx.count > 1)
-> > > > +             return 0;
-> > > >
-> > > >       /* TODO: Scan CHBCR for HDM Decoder resources */
-> > > >
-> > > >       /*
-> > > > -      * In the single-port host-bridge case there are no HDM decoders
-> > > > -      * in the CHBCR and a 1:1 passthrough decode is implied.
-> > > > +      * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability
-> > > > +      * Structure) single ported host-bridges need not publish a decoder
-> > > > +      * capability when a passthrough decode can be assumed, i.e. all
-> > > > +      * transactions that the uport sees are claimed and passed to the single
-> > > > +      * dport. Default the range a 0-base 0-length until the first CXL region
-> > > > +      * is activated.
-> > > >        */
-> > >
-> > > Is comment in right place or should it be up with the ctx.count > 1
-> >
-> > This comment is specifically about the implicit decoder, right beneath
-> > the comment, that is registered in the ctx.count == 1 case. Perhaps
-> > you were reacting to the spec reference which is generic, but later
-> > sentences make it clear this comment is about an exception noted in
-> > that spec reference?
->
-> More that the conditional is above that leads to us getting here.
-> Probably thrown off by Diff having added the new block that follows this
-> after the removed block rather than before it.
->
-> I'm fine with how you have it here.
->
 
-Thanks, although I am going to leave your reviewed-by off for now
-because I am going to fold this with this fixup patch that arrived
-later which makes some significant changes:
 
-https://lore.kernel.org/r/163002073312.1700305.17017280228713298614.stgit@dwillia2-desk3.amr.corp.intel.com
+On 9/3/21 8:49 PM, kernel test robot wrote:
+> Hi Kajol,
+> 
+> Thank you for the patch! Perhaps something to improve:
+> 
+> [auto build test WARNING on linux-nvdimm/libnvdimm-for-next]
+> [also build test WARNING on powerpc/next linus/master v5.14 next-20210903]
+> [If your patch is applied to the wrong git tree, kindly drop us a note.
+> And when submitting patch, we suggest to use '--base' as documented in
+> https://git-scm.com/docs/git-format-patch]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Kajol-Jain/Add-perf-interface-to-expose-nvdimm/20210903-131212
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git libnvdimm-for-next
+> config: x86_64-randconfig-s021-20210903 (attached as .config)
+> compiler: gcc-9 (Debian 9.3.0-22) 9.3.0
+> reproduce:
+>         # apt-get install sparse
+>         # sparse version: v0.6.4-rc1-dirty
+>         # https://github.com/0day-ci/linux/commit/f841601cc058e6033761bd2157b886a30190fc3a
+>         git remote add linux-review https://github.com/0day-ci/linux
+>         git fetch --no-tags linux-review Kajol-Jain/Add-perf-interface-to-expose-nvdimm/20210903-131212
+>         git checkout f841601cc058e6033761bd2157b886a30190fc3a
+>         # save the attached .config to linux build tree
+>         make W=1 C=1 CF='-fdiagnostic-prefix -D__CHECK_ENDIAN__' O=build_dir ARCH=x86_64 SHELL=/bin/bash drivers/nvdimm/
+> 
+> If you fix the issue, kindly add following tag as appropriate
+> Reported-by: kernel test robot <lkp@intel.com>
+> 
+> 
+> sparse warnings: (new ones prefixed by >>)
+>>> drivers/nvdimm/nd_perf.c:159:6: sparse: sparse: symbol 'nvdimm_pmu_free_hotplug_memory' was not declared. Should it be static?
+> 
+> Please review and possibly fold the followup patch.
+
+Hi,
+  Sure I will correct it and send follow-up patchset.
+
+Thanks,
+Kajol Jain
+
+> 
+> ---
+> 0-DAY CI Kernel Test Service, Intel Corporation
+> https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+> 
