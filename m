@@ -1,209 +1,170 @@
-Received: from mail-pg1-f180.google.com (mail-pg1-f180.google.com [209.85.215.180])
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 29A8972
-	for <nvdimm@lists.linux.dev>; Tue,  7 Sep 2021 15:57:59 +0000 (UTC)
-Received: by mail-pg1-f180.google.com with SMTP id s11so10438804pgr.11
-        for <nvdimm@lists.linux.dev>; Tue, 07 Sep 2021 08:57:59 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87CE872
+	for <nvdimm@lists.linux.dev>; Tue,  7 Sep 2021 22:00:06 +0000 (UTC)
+Received: by mail-pg1-f171.google.com with SMTP id t1so298002pgv.3
+        for <nvdimm@lists.linux.dev>; Tue, 07 Sep 2021 15:00:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=eeeG0Dps7JbDocH3TygyWjfVW5Um9ryVeIM7O18tPW4=;
-        b=rYxGlvFdDtaTuEC/AsbxVNeQn8PI6ZF0b0c6mdZxyz0ZeUOQnrok5dpDKvT/FuoKVO
-         DlDBPLSSDd/Poqj7+A2bQno41+PIaxZOAKPOTqKdj9kNsUHElJroePE0aQlyZBNWiAKN
-         /mGyNLG4CwDK+rdWbRu81csRxJ7z0UXjfFJOWnSA4PW1oP6xNMdo40d4rNo9FEcMF+JQ
-         68SH4fWO7cevIQH7LdRylEMWgvp76nmjWLd4um44rRvgcdZawJGzz5Dzi3/nJT957tjW
-         CZL0jVBMKX8UzwV2etTjqOiPa8UsiulmMRKlL3lA/NJ2j+ijaJQeSgBPab1KJ2Rnkb08
-         pwww==
+        bh=eEjYbhAR02sgc7ovVsHyjAGZLSxtoc/tH2wPYp1Ypy8=;
+        b=elcY35Sre5FRsVc5U7wrWxG59izHA38dFgmaHKIrZXPYnJABcHEWwH4WRekxYV8xTl
+         72KxyD9kGd9FiJUW5mBrfPqmXaB7MxDmL/3NzRhvIoKpdxZaWEf99X1ru0Q/XLHtzFDL
+         sGIZeHs9IHxA7Lee/Gkkoh145uPlhwzHwkNlzNSP5tDnh6igl77FtJr0SzfyTd3PPxSO
+         YFlOudrMPSjcolvyPVOp+QbwxZNIWEzD3MAmIGB89LH6AIs2RV1hpD38ds8V5sh37dUK
+         1vN3GRRPQeLW2fVGN9oQOvTv7wuPTOPJljZI1PXxlA6zhShM74+qRVpdIcijDHAjiD5f
+         WX2g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=eeeG0Dps7JbDocH3TygyWjfVW5Um9ryVeIM7O18tPW4=;
-        b=tN8yuaMuYaLO61saQd5x0g63DH0oaark2tSmkAUebb9hf5avYnZIrSjkE9gnxSTZ1n
-         otMR4L+qFQPv446wSPbqMMnjcw22tI9CKoY7/Yh/vUP8Slugedntks05fZObWlq0rKJg
-         xYRoDeI7tmQAKL1a+JN7akPNtHAoiv36X8l6eQqZlYuRRzoGRZi3Bxh1X/wn2ynCv3DD
-         hbcCOU6VaJpI+uSrm+liORJcvK7GluW9xeBKgAzIlAhxY2zuEJ/W5gXKi3d0f1uHAApL
-         JZF63sRiITTzKka+T1mH6YYd5+8RGuHgoOhYumUp+TT8uF9LlDR/pXbA2Sf1MlDqEf0x
-         RiOA==
-X-Gm-Message-State: AOAM533zarnOoZYR+XQOCDjuJvarrvIogoniH9buj+XFkvQTBmeqnFmE
-	mbjBWFjt3ebu2IeHJVXdfLs3DLXIoKEdf6zZ5CJpww==
-X-Google-Smtp-Source: ABdhPJyDCFqNgmxJ6V1x16+sVXHv5g2F5t0sUOXByAqBz9/Xjty38j66cZYvY2klkiYABa3huUronGHvjKuzdN9X5tw=
-X-Received: by 2002:aa7:9255:0:b0:415:ba53:e6f5 with SMTP id
- 21-20020aa79255000000b00415ba53e6f5mr11473890pfp.78.1631030278548; Tue, 07
- Sep 2021 08:57:58 -0700 (PDT)
+        bh=eEjYbhAR02sgc7ovVsHyjAGZLSxtoc/tH2wPYp1Ypy8=;
+        b=riscDVfYz665rfc29yuEghOaEYqdDYnCGVs0IDSsSxEOJRlRK3EoMnmm6xNBqb6t9r
+         6O6PrsvAdchTURJoFL100P08ACaH02QCpZqGVKOdbS+XFyLEO63hlPwVYQ5A/7875XbJ
+         7s9zX5krc60gEZt/DEBDrfSTryLsjRIKvyeq8oEkIYwGQwSeyimjEpQC4ptuUp29/0ho
+         fgtpXqry0TCsOHfPLYFdLMh04QFzXpBLHRRgl0tlU5UXoaEq/YX+h7aDx08CoQgKEEKN
+         SUnZUjx7rmLM0mn9OhoMb0SQwaOGOJnkHOqm1djre6Eh30ioPkvNPo1oVPKOm6atXy09
+         amRw==
+X-Gm-Message-State: AOAM5304+zxlgBfPLU3h4QV0W/1drOkqsbW5IFFXRav2I5W8PCSvWLPo
+	cccKXlLVRGJa2Ru2UNVGTT0iXDqcBAsUnJJh3X9wuQ==
+X-Google-Smtp-Source: ABdhPJxx4EjbJvjL93bRoVayl6mm//Jv0BDO7s4EwjYNl8kM2qselsqA630wkktzF+3PhiHaezOvZrqOY7JxvIWmAUs=
+X-Received: by 2002:a63:1e0e:: with SMTP id e14mr452534pge.5.1631052005753;
+ Tue, 07 Sep 2021 15:00:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com>
- <162982125348.1124374.17808192318402734926.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210903135243.000064ac@Huawei.com> <CAPcyv4ik1e4rvys5x66iD1+-M4G_NdsEcs24m2y3MYzhpYsrOA@mail.gmail.com>
- <20210906093207.00006766@Huawei.com>
-In-Reply-To: <20210906093207.00006766@Huawei.com>
+References: <20210903050914.273525-1-kjain@linux.ibm.com> <20210903050914.273525-2-kjain@linux.ibm.com>
+In-Reply-To: <20210903050914.273525-2-kjain@linux.ibm.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 7 Sep 2021 08:57:47 -0700
-Message-ID: <CAPcyv4ghCftjZOKXZ8vVUpEd2nNfDGS5yk+DWP+=9XYy3iWTdg@mail.gmail.com>
-Subject: Re: [PATCH v3 24/28] tools/testing/cxl: Introduce a mocked-up CXL
- port hierarchy
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, "Schofield, Alison" <alison.schofield@intel.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, "Weiny, Ira" <ira.weiny@intel.com>
+Date: Tue, 7 Sep 2021 14:59:55 -0700
+Message-ID: <CAPcyv4jSL2cDxGiXEtyyce3eNEE_QUnnMjuLXb3iCwO8_7a7LQ@mail.gmail.com>
+Subject: Re: [RESEND PATCH v4 1/4] drivers/nvdimm: Add nvdimm pmu structure
+To: Kajol Jain <kjain@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, maddy@linux.ibm.com, 
+	Santosh Sivaraj <santosh@fossix.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
+	Vaibhav Jain <vaibhav@linux.ibm.com>, atrajeev@linux.vnet.ibm.com, 
+	Thomas Gleixner <tglx@linutronix.de>, rnsastry@linux.ibm.com
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Sep 6, 2021 at 1:32 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Fri, 3 Sep 2021 14:49:34 -0700
-> Dan Williams <dan.j.williams@intel.com> wrote:
->
-> > On Fri, Sep 3, 2021 at 5:53 AM Jonathan Cameron
-> > <Jonathan.Cameron@huawei.com> wrote:
-> > >
-> > > On Tue, 24 Aug 2021 09:07:33 -0700
-> > > Dan Williams <dan.j.williams@intel.com> wrote:
-> > >
-> > > > Create an environment for CXL plumbing unit tests. Especially when it
-> > > > comes to an algorithm for HDM Decoder (Host-managed Device Memory
-> > > > Decoder) programming, the availability of an in-kernel-tree emulation
-> > > > environment for CXL configuration complexity and corner cases speeds
-> > > > development and deters regressions.
-> > > >
-> > > > The approach taken mirrors what was done for tools/testing/nvdimm/. I.e.
-> > > > an external module, cxl_test.ko built out of the tools/testing/cxl/
-> > > > directory, provides mock implementations of kernel APIs and kernel
-> > > > objects to simulate a real world device hierarchy.
-> > > >
-> > > > One feedback for the tools/testing/nvdimm/ proposal was "why not do this
-> > > > in QEMU?". In fact, the CXL development community has developed a QEMU
-> > > > model for CXL [1]. However, there are a few blocking issues that keep
-> > > > QEMU from being a tight fit for topology + provisioning unit tests:
-> > > >
-> > > > 1/ The QEMU community has yet to show interest in merging any of this
-> > > >    support that has had patches on the list since November 2020. So,
-> > > >    testing CXL to date involves building custom QEMU with out-of-tree
-> > > >    patches.
-> > >
-> > > That's a separate discussion I've been meaning to kick off. I'd like
-> > > to get that moving because there are various things we can do there
-> > > which can't necessarily be done with this approach or at least are easier
-> > > done in QEMU. I'll raise it on the qemu list and drag a few people in
-> > > who might be able to help us get things moving + help find solutions to
-> > > the bits that we can't currently do.
-> > >
-> > > >
-> > > > 2/ CXL mechanisms like cross-host-bridge interleave do not have a clear
-> > > >    path to be emulated by QEMU without major infrastructure work. This
-> > > >    is easier to achieve with the alloc_mock_res() approach taken in this
-> > > >    patch to shortcut-define emulated system physical address ranges with
-> > > >    interleave behavior.
-> > > >
-> > > > The QEMU enabling has been critical to get the driver off the ground,
-> > > > and may still move forward, but it does not address the ongoing needs of
-> > > > a regression testing environment and test driven development.
-> > >
-> > > Different purposes, so I would see having both as beneficial
-> >
-> > Oh certainly, especially because cxl_test skips all the PCI details.
-> > This regression environment is mainly for user space ABI regressions
-> > and the PCI agnostic machinery in the subsystem. I'd love for the QEMU
-> > work to move forward.
-> >
-> > > (in principle - I haven't played with this yet :)
-> >
-> > I have wondered if having a version of DOE emulation in tools/testing/
-> > makes regression testing those protocols easier, but again that's PCI
-> > details where QEMU is more suitable.
->
-> Maybe, but I'm not convinced yet.  Particularly as the protocol complexity
-> that we are interested in can get pretty nasty and I'm not sure we want
-> the pain of implementing that anywhere near the kernel (e.g. CMA with
-> having to hook an SPDM implementation in).
->
-> Could do discovery only I guess which would exercise the basics.
-> >
-> > >
-> > > >
-> > > > This patch adds an ACPI CXL Platform definition with emulated CXL
-> > > > multi-ported host-bridges. A follow on patch adds emulated memory
-> > > > expander devices.
-> > > >
-> > > > Acked-by: Ben Widawsky <ben.widawsky@intel.com>
-> > > > Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-> > > > Link: https://lore.kernel.org/r/20210202005948.241655-1-ben.widawsky@intel.com [1]
-> > > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > > ---
->
-> ...
->
->
-> >
-> > >
-> > > > +     struct acpi_device *bridge = to_cxl_host_bridge(host, match);
-> > > >
-> > > >       if (!bridge)
-> > > >               return 0;
-> > > > @@ -319,7 +316,7 @@ static int add_host_bridge_dport(struct device *match, void *arg)
-> > > >       struct acpi_cedt_chbs *chbs;
-> > > >       struct cxl_port *root_port = arg;
-> > > >       struct device *host = root_port->dev.parent;
-> > > > -     struct acpi_device *bridge = to_cxl_host_bridge(match);
-> > > > +     struct acpi_device *bridge = to_cxl_host_bridge(host, match);
-> > > >
-> > > >       if (!bridge)
-> > > >               return 0;
-> > > > @@ -371,6 +368,17 @@ static int add_root_nvdimm_bridge(struct device *match, void *data)
-> > > >       return 1;
-> > > >  }
-> > > >
-> > > ...
-> > >
-> > >
-> > > > diff --git a/tools/testing/cxl/mock_acpi.c b/tools/testing/cxl/mock_acpi.c
-> > > > new file mode 100644
-> > > > index 000000000000..4c8a493ace56
-> > > > --- /dev/null
-> > > > +++ b/tools/testing/cxl/mock_acpi.c
-> > > > @@ -0,0 +1,109 @@
-> > >
-> > > > +static int match_add_root_port(struct pci_dev *pdev, void *data)
-> > >
-> > > Hmm. Nice not to duplicate this code, but I guess a bit tricky to
-> > > work around.  Maybe a comment next to the 'main' version so we
-> > > remember to update this one as well if it is changed?
-> >
-> > I'd like to think that the __mock annotation next to the real one is
-> > the indication that a unit test might need updating. Sufficient?
->
-> Agreed in general, but this particular function isn't annotated, the
-> caller of it is, so people have to notice that to be aware there is
-> a possible issue.  If the change is something local to this they might
-> not notice.
+Hi Kajol,
 
-The regression test will notice. Its primary function is to catch
-regressions of this nature.
+Apologies for the delay in responding to this series, some comments below:
 
-
-[..]
-> > > why that size?  Should take window_size into account I think..
-> >
-> > This *is* the window size, but you're right if ->interleave_ways is
-> > populated above and used here ->window_size can also be populated
-> > there. Then all that is left to do is dynamically populate the
-> > emulated ->base_hpa.
+On Thu, Sep 2, 2021 at 10:10 PM Kajol Jain <kjain@linux.ibm.com> wrote:
 >
-> Ok, so my confusion is that this code is alays using SZ_256M * ways
-> rather than say SZ_512M * ways.
+> A structure is added, called nvdimm_pmu, for performance
+> stats reporting support of nvdimm devices. It can be used to add
+> nvdimm pmu data such as supported events and pmu event functions
+> like event_init/add/read/del with cpu hotplug support.
 >
-> Perhaps a define at the top of the file or even a module parameter
-> to allow larger sizes?
+> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> Reviewed-by: Madhavan Srinivasan <maddy@linux.ibm.com>
+> Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
+> Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+> ---
+>  include/linux/nd.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 43 insertions(+)
+>
+> diff --git a/include/linux/nd.h b/include/linux/nd.h
+> index ee9ad76afbba..712499cf7335 100644
+> --- a/include/linux/nd.h
+> +++ b/include/linux/nd.h
+> @@ -8,6 +8,8 @@
+>  #include <linux/ndctl.h>
+>  #include <linux/device.h>
+>  #include <linux/badblocks.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/perf_event.h>
+>
+>  enum nvdimm_event {
+>         NVDIMM_REVALIDATE_POISON,
+> @@ -23,6 +25,47 @@ enum nvdimm_claim_class {
+>         NVDIMM_CCLASS_UNKNOWN,
+>  };
+>
+> +/* Event attribute array index */
+> +#define NVDIMM_PMU_FORMAT_ATTR         0
+> +#define NVDIMM_PMU_EVENT_ATTR          1
+> +#define NVDIMM_PMU_CPUMASK_ATTR                2
+> +#define NVDIMM_PMU_NULL_ATTR           3
+> +
+> +/**
+> + * struct nvdimm_pmu - data structure for nvdimm perf driver
+> + *
+> + * @name: name of the nvdimm pmu device.
+> + * @pmu: pmu data structure for nvdimm performance stats.
+> + * @dev: nvdimm device pointer.
+> + * @functions(event_init/add/del/read): platform specific pmu functions.
 
-I changed this to put the size in the table definition directly so it
-can be edited there. The intent is for this size to be static / known
-to the unit test in advance. I.e. unlike QEMU testing where the test
-would need to be told of the configuration that was specified to the
-VM.
+This is not valid kernel-doc:
+
+include/linux/nd.h:67: warning: Function parameter or member
+'event_init' not described in 'nvdimm_pmu'
+include/linux/nd.h:67: warning: Function parameter or member 'add' not
+described in 'nvdimm_pmu'
+include/linux/nd.h:67: warning: Function parameter or member 'del' not
+described in 'nvdimm_pmu'
+include/linux/nd.h:67: warning: Function parameter or member 'read'
+not described in 'nvdimm_pmu'
+
+...but I think rather than fixing those up 'struct nvdimm_pmu' should be pruned.
+
+It's not clear to me that it is worth the effort to describe these
+details to the nvdimm core which is just going to turn around and call
+the pmu core. I'd just as soon have the driver call the pmu core
+directly, optionally passing in attributes and callbacks that come
+from the nvdimm core and/or the nvdimm provider.
+
+Otherwise it's also not clear which of these structure members are
+used at runtime vs purely used as temporary storage to pass parameters
+to the pmu core.
+
+> + * @attr_groups: data structure for events, formats and cpumask
+> + * @cpu: designated cpu for counter access.
+> + * @node: node for cpu hotplug notifier link.
+> + * @cpuhp_state: state for cpu hotplug notification.
+> + * @arch_cpumask: cpumask to get designated cpu for counter access.
+> + */
+> +struct nvdimm_pmu {
+> +       const char *name;
+> +       struct pmu pmu;
+> +       struct device *dev;
+> +       int (*event_init)(struct perf_event *event);
+> +       int  (*add)(struct perf_event *event, int flags);
+> +       void (*del)(struct perf_event *event, int flags);
+> +       void (*read)(struct perf_event *event);
+> +       /*
+> +        * Attribute groups for the nvdimm pmu. Index 0 used for
+> +        * format attribute, index 1 used for event attribute,
+> +        * index 2 used for cpusmask attribute and index 3 kept as NULL.
+> +        */
+> +       const struct attribute_group *attr_groups[4];
+
+Following from above, I'd rather this was organized as static
+attributes with an is_visible() helper for the groups for any dynamic
+aspects. That mirrors the behavior of nvdimm_create() and allows for
+device drivers to compose the attribute groups from a core set and /
+or a provider specific set.
+
+> +       int cpu;
+> +       struct hlist_node node;
+> +       enum cpuhp_state cpuhp_state;
+> +
+> +       /* cpumask provided by arch/platform specific code */
+> +       struct cpumask arch_cpumask;
+> +};
+> +
+>  struct nd_device_driver {
+>         struct device_driver drv;
+>         unsigned long type;
+> --
+> 2.26.2
+>
