@@ -1,49 +1,50 @@
-Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 87CE872
-	for <nvdimm@lists.linux.dev>; Tue,  7 Sep 2021 22:00:06 +0000 (UTC)
-Received: by mail-pg1-f171.google.com with SMTP id t1so298002pgv.3
-        for <nvdimm@lists.linux.dev>; Tue, 07 Sep 2021 15:00:06 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7496672
+	for <nvdimm@lists.linux.dev>; Wed,  8 Sep 2021 01:03:59 +0000 (UTC)
+Received: by mail-pj1-f47.google.com with SMTP id m21-20020a17090a859500b00197688449c4so323261pjn.0
+        for <nvdimm@lists.linux.dev>; Tue, 07 Sep 2021 18:03:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=eEjYbhAR02sgc7ovVsHyjAGZLSxtoc/tH2wPYp1Ypy8=;
-        b=elcY35Sre5FRsVc5U7wrWxG59izHA38dFgmaHKIrZXPYnJABcHEWwH4WRekxYV8xTl
-         72KxyD9kGd9FiJUW5mBrfPqmXaB7MxDmL/3NzRhvIoKpdxZaWEf99X1ru0Q/XLHtzFDL
-         sGIZeHs9IHxA7Lee/Gkkoh145uPlhwzHwkNlzNSP5tDnh6igl77FtJr0SzfyTd3PPxSO
-         YFlOudrMPSjcolvyPVOp+QbwxZNIWEzD3MAmIGB89LH6AIs2RV1hpD38ds8V5sh37dUK
-         1vN3GRRPQeLW2fVGN9oQOvTv7wuPTOPJljZI1PXxlA6zhShM74+qRVpdIcijDHAjiD5f
-         WX2g==
+        bh=0iKng76PsWyRz/8pjKL65aYQlih1TWo8dnb6KnDDehM=;
+        b=gA2AKqSYLA1MsQE3BMExMBWz0L/kPrN0d88m681N9dDRm9y82WlVbC6+jWD0ghSlB2
+         SyFe6JEC96j2lU/x/FecVxc0WYkUZcUG9uoZpqzpweENWnSLhz5JKPTrGO9eCS27Vbvc
+         ewatD2c1ew2eWWvkKyoX+9LBmuw46PIVIINoX6SHItS4Kk47q7OabMVfkxbBnPtll2SG
+         Uqu7JK1N11ylCIyfv3MbaMrhirdiv3iPRTLfZIakN0PCojZw5OfR2W7zsOippo2Hb2UC
+         XSBHw7iAga4VdN4tdA1JthLBERWT0L+AMeMHrii+pyS1jLW0BcEpe1VSAu9txz4ZfQZo
+         Th3g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=eEjYbhAR02sgc7ovVsHyjAGZLSxtoc/tH2wPYp1Ypy8=;
-        b=riscDVfYz665rfc29yuEghOaEYqdDYnCGVs0IDSsSxEOJRlRK3EoMnmm6xNBqb6t9r
-         6O6PrsvAdchTURJoFL100P08ACaH02QCpZqGVKOdbS+XFyLEO63hlPwVYQ5A/7875XbJ
-         7s9zX5krc60gEZt/DEBDrfSTryLsjRIKvyeq8oEkIYwGQwSeyimjEpQC4ptuUp29/0ho
-         fgtpXqry0TCsOHfPLYFdLMh04QFzXpBLHRRgl0tlU5UXoaEq/YX+h7aDx08CoQgKEEKN
-         SUnZUjx7rmLM0mn9OhoMb0SQwaOGOJnkHOqm1djre6Eh30ioPkvNPo1oVPKOm6atXy09
-         amRw==
-X-Gm-Message-State: AOAM5304+zxlgBfPLU3h4QV0W/1drOkqsbW5IFFXRav2I5W8PCSvWLPo
-	cccKXlLVRGJa2Ru2UNVGTT0iXDqcBAsUnJJh3X9wuQ==
-X-Google-Smtp-Source: ABdhPJxx4EjbJvjL93bRoVayl6mm//Jv0BDO7s4EwjYNl8kM2qselsqA630wkktzF+3PhiHaezOvZrqOY7JxvIWmAUs=
-X-Received: by 2002:a63:1e0e:: with SMTP id e14mr452534pge.5.1631052005753;
- Tue, 07 Sep 2021 15:00:05 -0700 (PDT)
+        bh=0iKng76PsWyRz/8pjKL65aYQlih1TWo8dnb6KnDDehM=;
+        b=Qd3nPqIEC8Gxkf9EasMLg+/5958IZMs959YV9COnB5rkFoedXWsRJBt+NSPclO815a
+         VDj+iAi2wWZjubEuA/z4nS6QyaeimEnzWW5WuAX7W99+dijkCeIDcawQMcrSseXRUqyZ
+         HyWSCg3CoSpX0NflT1EUTojMSMcqVc9p8eXaj2Jm2+VsOReOtFQp3gNBB3OdcZ1VLSwZ
+         24CTOmz1ggi4A5Y8sjdbLk7sqpwap8geB2suz0fiAS0cFDwoTzem3+A+xXiiLTuWzzFb
+         LI1ypb2GzSedpE0OTcrzmx27wBJ726ewjePlB+USDgnwtEf7YNmDKSFhg+IsOuGezeYl
+         dVJg==
+X-Gm-Message-State: AOAM531EA6U6wacctTPoNOELVveoE/qmgBUKRW56PGFU9oxoKEoJxhBQ
+	+qHCzitZ2rmim6BEhhDCVC+eYgkhfPSW+Jpkhq2iVw==
+X-Google-Smtp-Source: ABdhPJyamM17dGx2IKarxEjJH/roNB9B0xLZUNSeDoP4i/s+QWcFqzVWNormFy+djtNq4zfCina5FNZQADngZlT7D84=
+X-Received: by 2002:a17:90b:3b84:: with SMTP id pc4mr1194364pjb.220.1631063038886;
+ Tue, 07 Sep 2021 18:03:58 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210903050914.273525-1-kjain@linux.ibm.com> <20210903050914.273525-2-kjain@linux.ibm.com>
-In-Reply-To: <20210903050914.273525-2-kjain@linux.ibm.com>
+References: <20210903050914.273525-1-kjain@linux.ibm.com> <20210903050914.273525-5-kjain@linux.ibm.com>
+In-Reply-To: <20210903050914.273525-5-kjain@linux.ibm.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 7 Sep 2021 14:59:55 -0700
-Message-ID: <CAPcyv4jSL2cDxGiXEtyyce3eNEE_QUnnMjuLXb3iCwO8_7a7LQ@mail.gmail.com>
-Subject: Re: [RESEND PATCH v4 1/4] drivers/nvdimm: Add nvdimm pmu structure
+Date: Tue, 7 Sep 2021 18:03:48 -0700
+Message-ID: <CAPcyv4h-MgZmteMSUfdeQL+XCxL5HvxK87HA3JYB0OoQUaPipQ@mail.gmail.com>
+Subject: Re: [RESEND PATCH v4 4/4] powerpc/papr_scm: Document papr_scm sysfs
+ event format entries
 To: Kajol Jain <kjain@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
 	Linux NVDIMM <nvdimm@lists.linux.dev>, 
@@ -54,117 +55,84 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozla
 	Thomas Gleixner <tglx@linutronix.de>, rnsastry@linux.ibm.com
 Content-Type: text/plain; charset="UTF-8"
 
-Hi Kajol,
-
-Apologies for the delay in responding to this series, some comments below:
-
-On Thu, Sep 2, 2021 at 10:10 PM Kajol Jain <kjain@linux.ibm.com> wrote:
+On Thu, Sep 2, 2021 at 10:11 PM Kajol Jain <kjain@linux.ibm.com> wrote:
 >
-> A structure is added, called nvdimm_pmu, for performance
-> stats reporting support of nvdimm devices. It can be used to add
-> nvdimm pmu data such as supported events and pmu event functions
-> like event_init/add/read/del with cpu hotplug support.
+> Details is added for the event, cpumask and format attributes
+> in the ABI documentation.
 >
 > Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 > Reviewed-by: Madhavan Srinivasan <maddy@linux.ibm.com>
 > Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
 > Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
 > ---
->  include/linux/nd.h | 43 +++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 43 insertions(+)
+>  Documentation/ABI/testing/sysfs-bus-papr-pmem | 31 +++++++++++++++++++
+>  1 file changed, 31 insertions(+)
 >
-> diff --git a/include/linux/nd.h b/include/linux/nd.h
-> index ee9ad76afbba..712499cf7335 100644
-> --- a/include/linux/nd.h
-> +++ b/include/linux/nd.h
-> @@ -8,6 +8,8 @@
->  #include <linux/ndctl.h>
->  #include <linux/device.h>
->  #include <linux/badblocks.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/perf_event.h>
->
->  enum nvdimm_event {
->         NVDIMM_REVALIDATE_POISON,
-> @@ -23,6 +25,47 @@ enum nvdimm_claim_class {
->         NVDIMM_CCLASS_UNKNOWN,
->  };
->
-> +/* Event attribute array index */
-> +#define NVDIMM_PMU_FORMAT_ATTR         0
-> +#define NVDIMM_PMU_EVENT_ATTR          1
-> +#define NVDIMM_PMU_CPUMASK_ATTR                2
-> +#define NVDIMM_PMU_NULL_ATTR           3
+> diff --git a/Documentation/ABI/testing/sysfs-bus-papr-pmem b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> index 95254cec92bf..4d86252448f8 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> +++ b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> @@ -61,3 +61,34 @@ Description:
+>                 * "CchRHCnt" : Cache Read Hit Count
+>                 * "CchWHCnt" : Cache Write Hit Count
+>                 * "FastWCnt" : Fast Write Count
 > +
-> +/**
-> + * struct nvdimm_pmu - data structure for nvdimm perf driver
-> + *
-> + * @name: name of the nvdimm pmu device.
-> + * @pmu: pmu data structure for nvdimm performance stats.
-> + * @dev: nvdimm device pointer.
-> + * @functions(event_init/add/del/read): platform specific pmu functions.
-
-This is not valid kernel-doc:
-
-include/linux/nd.h:67: warning: Function parameter or member
-'event_init' not described in 'nvdimm_pmu'
-include/linux/nd.h:67: warning: Function parameter or member 'add' not
-described in 'nvdimm_pmu'
-include/linux/nd.h:67: warning: Function parameter or member 'del' not
-described in 'nvdimm_pmu'
-include/linux/nd.h:67: warning: Function parameter or member 'read'
-not described in 'nvdimm_pmu'
-
-...but I think rather than fixing those up 'struct nvdimm_pmu' should be pruned.
-
-It's not clear to me that it is worth the effort to describe these
-details to the nvdimm core which is just going to turn around and call
-the pmu core. I'd just as soon have the driver call the pmu core
-directly, optionally passing in attributes and callbacks that come
-from the nvdimm core and/or the nvdimm provider.
-
-Otherwise it's also not clear which of these structure members are
-used at runtime vs purely used as temporary storage to pass parameters
-to the pmu core.
-
-> + * @attr_groups: data structure for events, formats and cpumask
-> + * @cpu: designated cpu for counter access.
-> + * @node: node for cpu hotplug notifier link.
-> + * @cpuhp_state: state for cpu hotplug notification.
-> + * @arch_cpumask: cpumask to get designated cpu for counter access.
-> + */
-> +struct nvdimm_pmu {
-> +       const char *name;
-> +       struct pmu pmu;
-> +       struct device *dev;
-> +       int (*event_init)(struct perf_event *event);
-> +       int  (*add)(struct perf_event *event, int flags);
-> +       void (*del)(struct perf_event *event, int flags);
-> +       void (*read)(struct perf_event *event);
-> +       /*
-> +        * Attribute groups for the nvdimm pmu. Index 0 used for
-> +        * format attribute, index 1 used for event attribute,
-> +        * index 2 used for cpusmask attribute and index 3 kept as NULL.
-> +        */
-> +       const struct attribute_group *attr_groups[4];
-
-Following from above, I'd rather this was organized as static
-attributes with an is_visible() helper for the groups for any dynamic
-aspects. That mirrors the behavior of nvdimm_create() and allows for
-device drivers to compose the attribute groups from a core set and /
-or a provider specific set.
-
-> +       int cpu;
-> +       struct hlist_node node;
-> +       enum cpuhp_state cpuhp_state;
+> +What:          /sys/devices/nmemX/format
+> +Date:          June 2021
+> +Contact:       linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+> +Description:   (RO) Attribute group to describe the magic bits
+> +                that go into perf_event_attr.config for a particular pmu.
+> +                (See ABI/testing/sysfs-bus-event_source-devices-format).
 > +
-> +       /* cpumask provided by arch/platform specific code */
-> +       struct cpumask arch_cpumask;
-> +};
+> +                Each attribute under this group defines a bit range of the
+> +                perf_event_attr.config. Supported attribute is listed
+> +                below::
 > +
->  struct nd_device_driver {
->         struct device_driver drv;
->         unsigned long type;
-> --
-> 2.26.2
->
+> +                   event  = "config:0-4"  - event ID
+> +
+> +               For example::
+> +                   noopstat = "event=0x1"
+> +
+> +What:          /sys/devices/nmemX/events
+
+That's not a valid sysfs path. Did you mean /sys/bus/nd/devices/nmemX?
+
+> +Date:          June 2021
+> +Contact:       linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+> +Description:    (RO) Attribute group to describe performance monitoring
+> +                events specific to papr-scm. Each attribute in this group describes
+> +                a single performance monitoring event supported by this nvdimm pmu.
+> +                The name of the file is the name of the event.
+> +                (See ABI/testing/sysfs-bus-event_source-devices-events).
+
+Given these events are in the generic namespace the ABI documentation
+should be generic as well. So I think move these entries to
+Documentation/ABI/testing/sysfs-bus-nvdimm directly.
+
+You can still mention papr-scm, but I would expect something like:
+
+What:           /sys/bus/nd/devices/nmemX/events
+Date:           September 2021
+KernelVersion:  5.16
+Contact:        Kajol Jain <kjain@linux.ibm.com>
+Description:
+                (RO) Attribute group to describe performance monitoring events
+                for the nvdimm memory device. Each attribute in this group
+                describes a single performance monitoring event supported by
+                this nvdimm pmu.  The name of the file is the name of the event.
+                (See ABI/testing/sysfs-bus-event_source-devices-events). A
+                listing of the events supported by a given nvdimm provider type
+                can be found in Documentation/driver-api/nvdimm/$provider, for
+                example: Documentation/driver-api/nvdimm/papr-scm.
+
+
+
+> +
+> +What:          /sys/devices/nmemX/cpumask
+> +Date:          June 2021
+> +Contact:       linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+> +Description:   (RO) This sysfs file exposes the cpumask which is designated to make
+> +                HCALLs to retrieve nvdimm pmu event counter data.
+
+Seems this one would be provider generic, so no need to refer to PPC
+specific concepts like HCALLs.
