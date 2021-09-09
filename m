@@ -1,108 +1,77 @@
-Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051E63FC8
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 13:09:52 +0000 (UTC)
-Received: from fraeml712-chm.china.huawei.com (unknown [172.18.147.201])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4H4znd6ZyPz67sQ7;
-	Thu,  9 Sep 2021 21:07:49 +0800 (CST)
-Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml712-chm.china.huawei.com (10.206.15.61) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.8; Thu, 9 Sep 2021 15:09:44 +0200
-Received: from localhost (10.52.120.64) by lhreml710-chm.china.huawei.com
- (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.8; Thu, 9 Sep 2021
- 14:09:43 +0100
-Date: Thu, 9 Sep 2021 14:09:42 +0100
-From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
-To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <vishal.l.verma@intel.com>,
-	<nvdimm@lists.linux.dev>, <ben.widawsky@intel.com>,
-	<alison.schofield@intel.com>, <ira.weiny@intel.com>
-Subject: Re: [PATCH v4 03/21] libnvdimm/labels: Introduce the concept of
- multi-range namespace labels
-Message-ID: <20210909140942.000025e5@Huawei.com>
-In-Reply-To: <163116430804.2460985.5482188351381597529.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<163116430804.2460985.5482188351381597529.stgit@dwillia2-desk3.amr.corp.intel.com>
-Organization: Huawei Technologies Research and Development (UK) Ltd.
-X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; i686-w64-mingw32)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894813FF0
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 15:17:09 +0000 (UTC)
+Received: by mail-pj1-f41.google.com with SMTP id w19-20020a17090aaf9300b00191e6d10a19so1690791pjq.1
+        for <nvdimm@lists.linux.dev>; Thu, 09 Sep 2021 08:17:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=AzpI9xRwH63S4sY7PZzWuRKdR4DgsYKYQ1tUCrYHpxo=;
+        b=dJ10V6/NsRo1W9cdQBMQ3kp9HeqUBGBiGonqDUGUrQA+L/9hCpOXCtlJ0JXYs2sB8w
+         Yx4b1wAxryGQ6OH96UxXMo6WhIWD2ZQ57Wlzqpzgv8Czoe6Z3nB0xVnBP0/yZUGO5//k
+         pAkusPFChxSxD2HMYcwbDANynJHFOkupRKJPfyuOUes4LzWfOXG0QYSWKAjZhHZOhDAe
+         XSVaQbZpuStkHpq7VfzNWJSGfYLR1jvvYMXyGO/5Q1H4yLUWnKwlAjqhvQ4kUd7MUPNt
+         U0ILtq36aeKM/fxEJyDEqHK0n86gJzQrp4+1rPKTjH3TeJ0ZGCUQQizchR4kneFZgDA4
+         9VZA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=AzpI9xRwH63S4sY7PZzWuRKdR4DgsYKYQ1tUCrYHpxo=;
+        b=FaeAWCJduq3OqQmV+xD53BYE7wv5obCkWjrX+oMzVPpMrxlFPy2NrGTsLiPwB14ZJt
+         YbaGXsLMkNCU/YeJ/6QfOnXa9J/KTTrFs+41jaRPW0oR82sO4/9Hpl1/IHyp9kgCLXPh
+         7i7MmElrwCQAeudyosH5rWPqTgGnte+ujfNCvIdHQV7+tFfFL+it/w1plvzhmy232L43
+         DT3bfr6f335iwEM0hyxV5OyGfjVpzCLKNtFnrzSV008mizvutkURjnUv2MY9FXihEEOW
+         qnJEHO0hRtnI6RCKecRUbD/lyjycYol1CUnacRKvHlG1J89FmGuTXGmQM1ZJ8nMMJVhE
+         cHrw==
+X-Gm-Message-State: AOAM533tTP8uxmZtmG0eq4iylY8gejF1G/5sASkcc1s7GMv76Ow18jzG
+	kzIQeANSjaxL2DMg6MNpUn02Ac9ojOWbrJvpPmZDWg==
+X-Google-Smtp-Source: ABdhPJwb3JKlDwjVI/1z+amoXzg0p9IxzGtjt02Ri3upXE1tVsq1lvKgxOb9/WOQY4kaqGujr7fVvf4WeKYHQOZCudc=
+X-Received: by 2002:a17:90a:d686:: with SMTP id x6mr4219398pju.8.1631200628814;
+ Thu, 09 Sep 2021 08:17:08 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.52.120.64]
-X-ClientProxiedBy: lhreml718-chm.china.huawei.com (10.201.108.69) To
- lhreml710-chm.china.huawei.com (10.201.108.61)
-X-CFilter-Loop: Reflected
+References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <163116430804.2460985.5482188351381597529.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20210909140942.000025e5@Huawei.com>
+In-Reply-To: <20210909140942.000025e5@Huawei.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 9 Sep 2021 08:16:58 -0700
+Message-ID: <CAPcyv4hvMzk3uaV6wRCoqpbHXRmx4HvDyvc0OovLUbAJc7bXkw@mail.gmail.com>
+Subject: Re: [PATCH v4 03/21] libnvdimm/labels: Introduce the concept of
+ multi-range namespace labels
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: linux-cxl@vger.kernel.org, Vishal L Verma <vishal.l.verma@intel.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Ben Widawsky <ben.widawsky@intel.com>, 
+	"Schofield, Alison" <alison.schofield@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 8 Sep 2021 22:11:48 -0700
-Dan Williams <dan.j.williams@intel.com> wrote:
+On Thu, Sep 9, 2021 at 6:10 AM Jonathan Cameron
+<Jonathan.Cameron@huawei.com> wrote:
+>
+> On Wed, 8 Sep 2021 22:11:48 -0700
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> > The CXL specification defines a mechanism for namespaces to be comprised
+> > of multiple dis-contiguous ranges. Introduce that concept to the legacy
+> > NVDIMM namespace implementation with a new nsl_set_nrange() helper, that
+> > sets the number of ranges to 1. Once the NVDIMM subsystem supports CXL
+> > labels and updates its namespace capacity provisioning for
+> > dis-contiguous support nsl_set_nrange() can be updated, but in the
+> > meantime CXL label validation requires nrange be non-zero.
+> >
+> > Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+>
+> (gave tag on v3 and this looks to be the same).
 
-> The CXL specification defines a mechanism for namespaces to be comprised
-> of multiple dis-contiguous ranges. Introduce that concept to the legacy
-> NVDIMM namespace implementation with a new nsl_set_nrange() helper, that
-> sets the number of ranges to 1. Once the NVDIMM subsystem supports CXL
-> labels and updates its namespace capacity provisioning for
-> dis-contiguous support nsl_set_nrange() can be updated, but in the
-> meantime CXL label validation requires nrange be non-zero.
-> 
-> Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-
-(gave tag on v3 and this looks to be the same).
-
-Thanks,
-
-Jonathan
-
-> ---
->  drivers/nvdimm/label.c |    1 +
->  drivers/nvdimm/nd.h    |   13 +++++++++++++
->  2 files changed, 14 insertions(+)
-> 
-> diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
-> index e7fdb718ebf0..7832b190efd7 100644
-> --- a/drivers/nvdimm/label.c
-> +++ b/drivers/nvdimm/label.c
-> @@ -856,6 +856,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
->  	nsl_set_name(ndd, nd_label, nspm->alt_name);
->  	nsl_set_flags(ndd, nd_label, flags);
->  	nsl_set_nlabel(ndd, nd_label, nd_region->ndr_mappings);
-> +	nsl_set_nrange(ndd, nd_label, 1);
->  	nsl_set_position(ndd, nd_label, pos);
->  	nsl_set_isetcookie(ndd, nd_label, cookie);
->  	nsl_set_rawsize(ndd, nd_label, resource_size(res));
-> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> index 036638bdb7e3..d57f95a48fe1 100644
-> --- a/drivers/nvdimm/nd.h
-> +++ b/drivers/nvdimm/nd.h
-> @@ -164,6 +164,19 @@ static inline void nsl_set_nlabel(struct nvdimm_drvdata *ndd,
->  	nd_label->nlabel = __cpu_to_le16(nlabel);
->  }
->  
-> +static inline u16 nsl_get_nrange(struct nvdimm_drvdata *ndd,
-> +				 struct nd_namespace_label *nd_label)
-> +{
-> +	/* EFI labels do not have an nrange field */
-> +	return 1;
-> +}
-> +
-> +static inline void nsl_set_nrange(struct nvdimm_drvdata *ndd,
-> +				  struct nd_namespace_label *nd_label,
-> +				  u16 nrange)
-> +{
-> +}
-> +
->  static inline u64 nsl_get_lbasize(struct nvdimm_drvdata *ndd,
->  				  struct nd_namespace_label *nd_label)
->  {
-> 
-
+Whoops, sorry about that, now recorded.
