@@ -1,27 +1,27 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 178EB3FF0
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 16:22:24 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="218977688"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 687633FF0
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 16:34:40 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="201039048"
 X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
-   d="scan'208";a="218977688"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 09:20:08 -0700
+   d="scan'208";a="201039048"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 09:34:31 -0700
 X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
-   d="scan'208";a="539695060"
+   d="scan'208";a="466576601"
 Received: from ado-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.129.108])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 09:20:06 -0700
-Date: Thu, 9 Sep 2021 09:20:05 -0700
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 09:34:30 -0700
+Date: Thu, 9 Sep 2021 09:34:29 -0700
 From: Ben Widawsky <ben.widawsky@intel.com>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>,
-	vishal.l.verma@intel.com, nvdimm@lists.linux.dev,
-	alison.schofield@intel.com, Jonathan.Cameron@huawei.com
-Subject: Re: [PATCH v4 08/21] cxl/pci: Clean up cxl_mem_get_partition_info()
-Message-ID: <20210909162005.ybqjh5xrbhg43wtr@intel.com>
+Cc: linux-cxl@vger.kernel.org, vishal.l.verma@intel.com,
+	nvdimm@lists.linux.dev, alison.schofield@intel.com,
+	ira.weiny@intel.com, Jonathan.Cameron@huawei.com
+Subject: Re: [PATCH v4 09/21] cxl/mbox: Introduce the mbox_send operation
+Message-ID: <20210909163429.ognhabdsnukkh5hc@intel.com>
 References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
- <163116433533.2460985.14299233004385504131.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <163116434098.2460985.9004760022659400540.stgit@dwillia2-desk3.amr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,137 +30,243 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <163116433533.2460985.14299233004385504131.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <163116434098.2460985.9004760022659400540.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-On 21-09-08 22:12:15, Dan Williams wrote:
-> Commit 0b9159d0ff21 ("cxl/pci: Store memory capacity values") missed
-> updating the kernel-doc for 'struct cxl_mem' leading to the following
-> warnings:
+On 21-09-08 22:12:21, Dan Williams wrote:
+> In preparation for implementing a unit test backend transport for ioctl
+> operations, and making the mailbox available to the cxl/pmem
+> infrastructure, move the existing PCI specific portion of mailbox handling
+> to an "mbox_send" operation.
 > 
-> ./scripts/kernel-doc -v drivers/cxl/cxlmem.h 2>&1 | grep warn
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'total_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'volatile_only_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'persistent_only_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'partition_align_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'active_volatile_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'active_persistent_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'next_volatile_bytes' not described in 'cxl_mem'
-> drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'next_persistent_bytes' not described in 'cxl_mem'
+> With this split all the PCI-specific transport details are comprehended
+> by a single operation and the rest of the mailbox infrastructure is
+> 'struct cxl_mem' and 'struct cxl_memdev' generic.
 > 
-> Also, it is redundant to describe those same parameters in the
-> kernel-doc for cxl_mem_get_partition_info(). Given the only user of that
-> routine updates the values in @cxlm, just do that implicitly internal to
-> the helper.
-> 
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Reported-by: Ben Widawsky <ben.widawsky@intel.com>
+> Acked-by: Ben Widawsky <ben.widawsky@intel.com>
+
+Upgrade to:
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > ---
->  drivers/cxl/cxlmem.h |   15 +++++++++++++--
->  drivers/cxl/pci.c    |   35 +++++++++++------------------------
->  2 files changed, 24 insertions(+), 26 deletions(-)
+>  drivers/cxl/cxlmem.h |   42 ++++++++++++++++++++++++++++
+>  drivers/cxl/pci.c    |   76 ++++++++++++++------------------------------------
+>  2 files changed, 63 insertions(+), 55 deletions(-)
 > 
 > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-> index d5334df83fb2..c6fce966084a 100644
+> index c6fce966084a..9be5e26c5b48 100644
 > --- a/drivers/cxl/cxlmem.h
 > +++ b/drivers/cxl/cxlmem.h
-> @@ -78,8 +78,19 @@ devm_cxl_add_memdev(struct cxl_mem *cxlm,
->   * @mbox_mutex: Mutex to synchronize mailbox access.
->   * @firmware_version: Firmware version for the memory device.
->   * @enabled_cmds: Hardware commands found enabled in CEL.
-> - * @pmem_range: Persistent memory capacity information.
-> - * @ram_range: Volatile memory capacity information.
-> + * @pmem_range: Active Persistent memory capacity configuration
-> + * @ram_range: Active Volatile memory capacity configuration
-> + * @total_bytes: sum of all possible capacities
-> + * @volatile_only_bytes: hard volatile capacity
-> + * @persistent_only_bytes: hard persistent capacity
-> + * @partition_align_bytes: soft setting for configurable capacity
-> + * @active_volatile_bytes: sum of hard + soft volatile
-> + * @active_persistent_bytes: sum of hard + soft persistent
-
-Looking at this now, probably makes sense to create some helper macros or inline
-functions to calculate these as needed, rather than storing them in the
-structure.
-
-> + * @next_volatile_bytes: volatile capacity change pending device reset
-> + * @next_persistent_bytes: persistent capacity change pending device reset
+> @@ -66,6 +66,45 @@ struct cxl_memdev *
+>  devm_cxl_add_memdev(struct cxl_mem *cxlm,
+>  		    const struct cdevm_file_operations *cdevm_fops);
+>  
+> +/**
+> + * struct cxl_mbox_cmd - A command to be submitted to hardware.
+> + * @opcode: (input) The command set and command submitted to hardware.
+> + * @payload_in: (input) Pointer to the input payload.
+> + * @payload_out: (output) Pointer to the output payload. Must be allocated by
+> + *		 the caller.
+> + * @size_in: (input) Number of bytes to load from @payload_in.
+> + * @size_out: (input) Max number of bytes loaded into @payload_out.
+> + *            (output) Number of bytes generated by the device. For fixed size
+> + *            outputs commands this is always expected to be deterministic. For
+> + *            variable sized output commands, it tells the exact number of bytes
+> + *            written.
+> + * @return_code: (output) Error code returned from hardware.
 > + *
-> + * See section 8.2.9.5.2 Capacity Configuration and Label Storage for
-> + * details on capacity parameters.
->   */
->  struct cxl_mem {
->  	struct device *dev;
+> + * This is the primary mechanism used to send commands to the hardware.
+> + * All the fields except @payload_* correspond exactly to the fields described in
+> + * Command Register section of the CXL 2.0 8.2.8.4.5. @payload_in and
+> + * @payload_out are written to, and read from the Command Payload Registers
+> + * defined in CXL 2.0 8.2.8.4.8.
+> + */
+> +struct cxl_mbox_cmd {
+> +	u16 opcode;
+> +	void *payload_in;
+> +	void *payload_out;
+> +	size_t size_in;
+> +	size_t size_out;
+> +	u16 return_code;
+> +#define CXL_MBOX_SUCCESS 0
+> +};
+> +
+> +/*
+> + * CXL 2.0 - Memory capacity multiplier
+> + * See Section 8.2.9.5
+> + *
+> + * Volatile, Persistent, and Partition capacities are specified to be in
+> + * multiples of 256MB - define a multiplier to convert to/from bytes.
+> + */
+> +#define CXL_CAPACITY_MULTIPLIER SZ_256M
+> +
+>  /**
+>   * struct cxl_mem - A CXL memory device
+>   * @dev: The device associated with this CXL device.
+> @@ -88,6 +127,7 @@ devm_cxl_add_memdev(struct cxl_mem *cxlm,
+>   * @active_persistent_bytes: sum of hard + soft persistent
+>   * @next_volatile_bytes: volatile capacity change pending device reset
+>   * @next_persistent_bytes: persistent capacity change pending device reset
+> + * @mbox_send: @dev specific transport for transmitting mailbox commands
+>   *
+>   * See section 8.2.9.5.2 Capacity Configuration and Label Storage for
+>   * details on capacity parameters.
+> @@ -115,5 +155,7 @@ struct cxl_mem {
+>  	u64 active_persistent_bytes;
+>  	u64 next_volatile_bytes;
+>  	u64 next_persistent_bytes;
+> +
+> +	int (*mbox_send)(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd);
+>  };
+>  #endif /* __CXL_MEM_H__ */
 > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> index c1e1d12e24b6..8077d907e7d3 100644
+> index 8077d907e7d3..e2f27671c6b2 100644
 > --- a/drivers/cxl/pci.c
 > +++ b/drivers/cxl/pci.c
-> @@ -1262,11 +1262,7 @@ static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_mem *cxlm)
+> @@ -64,45 +64,6 @@ enum opcode {
+>  	CXL_MBOX_OP_MAX			= 0x10000
+>  };
 >  
->  /**
->   * cxl_mem_get_partition_info - Get partition info
-> - * @cxlm: The device to act on
-> - * @active_volatile_bytes: returned active volatile capacity
-> - * @active_persistent_bytes: returned active persistent capacity
-> - * @next_volatile_bytes: return next volatile capacity
-> - * @next_persistent_bytes: return next persistent capacity
-> + * @cxlm: cxl_mem instance to update partition info
->   *
->   * Retrieve the current partition info for the device specified.  If not 0, the
->   * 'next' values are pending and take affect on next cold reset.
-> @@ -1275,11 +1271,7 @@ static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_mem *cxlm)
->   *
->   * See CXL @8.2.9.5.2.1 Get Partition Info
->   */
-> -static int cxl_mem_get_partition_info(struct cxl_mem *cxlm,
-> -				      u64 *active_volatile_bytes,
-> -				      u64 *active_persistent_bytes,
-> -				      u64 *next_volatile_bytes,
-> -				      u64 *next_persistent_bytes)
-> +static int cxl_mem_get_partition_info(struct cxl_mem *cxlm)
+> -/*
+> - * CXL 2.0 - Memory capacity multiplier
+> - * See Section 8.2.9.5
+> - *
+> - * Volatile, Persistent, and Partition capacities are specified to be in
+> - * multiples of 256MB - define a multiplier to convert to/from bytes.
+> - */
+> -#define CXL_CAPACITY_MULTIPLIER SZ_256M
+> -
+> -/**
+> - * struct mbox_cmd - A command to be submitted to hardware.
+> - * @opcode: (input) The command set and command submitted to hardware.
+> - * @payload_in: (input) Pointer to the input payload.
+> - * @payload_out: (output) Pointer to the output payload. Must be allocated by
+> - *		 the caller.
+> - * @size_in: (input) Number of bytes to load from @payload_in.
+> - * @size_out: (input) Max number of bytes loaded into @payload_out.
+> - *            (output) Number of bytes generated by the device. For fixed size
+> - *            outputs commands this is always expected to be deterministic. For
+> - *            variable sized output commands, it tells the exact number of bytes
+> - *            written.
+> - * @return_code: (output) Error code returned from hardware.
+> - *
+> - * This is the primary mechanism used to send commands to the hardware.
+> - * All the fields except @payload_* correspond exactly to the fields described in
+> - * Command Register section of the CXL 2.0 8.2.8.4.5. @payload_in and
+> - * @payload_out are written to, and read from the Command Payload Registers
+> - * defined in CXL 2.0 8.2.8.4.8.
+> - */
+> -struct mbox_cmd {
+> -	u16 opcode;
+> -	void *payload_in;
+> -	void *payload_out;
+> -	size_t size_in;
+> -	size_t size_out;
+> -	u16 return_code;
+> -#define CXL_MBOX_SUCCESS 0
+> -};
+> -
+>  static DECLARE_RWSEM(cxl_memdev_rwsem);
+>  static struct dentry *cxl_debugfs;
+>  static bool cxl_raw_allow_all;
+> @@ -266,7 +227,7 @@ static bool cxl_is_security_command(u16 opcode)
+>  }
+>  
+>  static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
+> -				 struct mbox_cmd *mbox_cmd)
+> +				 struct cxl_mbox_cmd *mbox_cmd)
 >  {
->  	struct cxl_mbox_get_partition_info {
->  		__le64 active_volatile_cap;
-> @@ -1294,15 +1286,14 @@ static int cxl_mem_get_partition_info(struct cxl_mem *cxlm,
+>  	struct device *dev = cxlm->dev;
+>  
+> @@ -297,7 +258,7 @@ static void cxl_mem_mbox_timeout(struct cxl_mem *cxlm,
+>   * mailbox.
+>   */
+>  static int __cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm,
+> -				   struct mbox_cmd *mbox_cmd)
+> +				   struct cxl_mbox_cmd *mbox_cmd)
+>  {
+>  	void __iomem *payload = cxlm->regs.mbox + CXLDEV_MBOX_PAYLOAD_OFFSET;
+>  	struct device *dev = cxlm->dev;
+> @@ -472,6 +433,20 @@ static void cxl_mem_mbox_put(struct cxl_mem *cxlm)
+>  	mutex_unlock(&cxlm->mbox_mutex);
+>  }
+>  
+> +static int cxl_pci_mbox_send(struct cxl_mem *cxlm, struct cxl_mbox_cmd *cmd)
+> +{
+> +	int rc;
+> +
+> +	rc = cxl_mem_mbox_get(cxlm);
+> +	if (rc)
+> +		return rc;
+> +
+> +	rc = __cxl_mem_mbox_send_cmd(cxlm, cmd);
+> +	cxl_mem_mbox_put(cxlm);
+> +
+> +	return rc;
+> +}
+> +
+>  /**
+>   * handle_mailbox_cmd_from_user() - Dispatch a mailbox command for userspace.
+>   * @cxlm: The CXL memory device to communicate with.
+> @@ -503,7 +478,7 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
+>  					s32 *size_out, u32 *retval)
+>  {
+>  	struct device *dev = cxlm->dev;
+> -	struct mbox_cmd mbox_cmd = {
+> +	struct cxl_mbox_cmd mbox_cmd = {
+>  		.opcode = cmd->opcode,
+>  		.size_in = cmd->info.size_in,
+>  		.size_out = cmd->info.size_out,
+> @@ -525,10 +500,6 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
+>  		}
+>  	}
+>  
+> -	rc = cxl_mem_mbox_get(cxlm);
+> -	if (rc)
+> -		goto out;
+> -
+>  	dev_dbg(dev,
+>  		"Submitting %s command for user\n"
+>  		"\topcode: %x\n"
+> @@ -539,8 +510,7 @@ static int handle_mailbox_cmd_from_user(struct cxl_mem *cxlm,
+>  	dev_WARN_ONCE(dev, cmd->info.id == CXL_MEM_COMMAND_ID_RAW,
+>  		      "raw command path used\n");
+>  
+> -	rc = __cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
+> -	cxl_mem_mbox_put(cxlm);
+> +	rc = cxlm->mbox_send(cxlm, &mbox_cmd);
+>  	if (rc)
+>  		goto out;
+>  
+> @@ -874,7 +844,7 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, u16 opcode,
+>  				 void *out, size_t out_size)
+>  {
+>  	const struct cxl_mem_command *cmd = cxl_mem_find_command(opcode);
+> -	struct mbox_cmd mbox_cmd = {
+> +	struct cxl_mbox_cmd mbox_cmd = {
+>  		.opcode = opcode,
+>  		.payload_in = in,
+>  		.size_in = in_size,
+> @@ -886,12 +856,7 @@ static int cxl_mem_mbox_send_cmd(struct cxl_mem *cxlm, u16 opcode,
+>  	if (out_size > cxlm->payload_size)
+>  		return -E2BIG;
+>  
+> -	rc = cxl_mem_mbox_get(cxlm);
+> -	if (rc)
+> -		return rc;
+> -
+> -	rc = __cxl_mem_mbox_send_cmd(cxlm, &mbox_cmd);
+> -	cxl_mem_mbox_put(cxlm);
+> +	rc = cxlm->mbox_send(cxlm, &mbox_cmd);
 >  	if (rc)
 >  		return rc;
 >  
-> -	*active_volatile_bytes = le64_to_cpu(pi.active_volatile_cap);
-> -	*active_persistent_bytes = le64_to_cpu(pi.active_persistent_cap);
-> -	*next_volatile_bytes = le64_to_cpu(pi.next_volatile_cap);
-> -	*next_persistent_bytes = le64_to_cpu(pi.next_volatile_cap);
-> -
-> -	*active_volatile_bytes *= CXL_CAPACITY_MULTIPLIER;
-> -	*active_persistent_bytes *= CXL_CAPACITY_MULTIPLIER;
-> -	*next_volatile_bytes *= CXL_CAPACITY_MULTIPLIER;
-> -	*next_persistent_bytes *= CXL_CAPACITY_MULTIPLIER;
-> +	cxlm->active_volatile_bytes =
-> +		le64_to_cpu(pi.active_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
-> +	cxlm->active_persistent_bytes =
-> +		le64_to_cpu(pi.active_persistent_cap) * CXL_CAPACITY_MULTIPLIER;
-> +	cxlm->next_volatile_bytes =
-> +		le64_to_cpu(pi.next_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
-> +	cxlm->next_persistent_bytes =
-> +		le64_to_cpu(pi.next_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
-
-Personally, I prefer the more functional style implementation. I guess if you
-wanted to make the change, my preference would be to kill
-cxl_mem_get_partition_info() entirely. Up to you though...
-
+> @@ -913,6 +878,7 @@ static int cxl_mem_setup_mailbox(struct cxl_mem *cxlm)
+>  {
+>  	const int cap = readl(cxlm->regs.mbox + CXLDEV_MBOX_CAPS_OFFSET);
 >  
->  	return 0;
->  }
-> @@ -1443,11 +1434,7 @@ static int cxl_mem_create_range_info(struct cxl_mem *cxlm)
->  		return 0;
->  	}
+> +	cxlm->mbox_send = cxl_pci_mbox_send;
+>  	cxlm->payload_size =
+>  		1 << FIELD_GET(CXLDEV_MBOX_CAP_PAYLOAD_SIZE_MASK, cap);
 >  
-> -	rc = cxl_mem_get_partition_info(cxlm,
-> -					&cxlm->active_volatile_bytes,
-> -					&cxlm->active_persistent_bytes,
-> -					&cxlm->next_volatile_bytes,
-> -					&cxlm->next_persistent_bytes);
-> +	rc = cxl_mem_get_partition_info(cxlm);
->  	if (rc < 0) {
->  		dev_err(cxlm->dev, "Failed to query partition information\n");
->  		return rc;
 > 
