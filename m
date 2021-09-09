@@ -1,35 +1,36 @@
-Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
+Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E742172
-	for <nvdimm@lists.linux.dev>; Wed,  8 Sep 2021 23:18:39 +0000 (UTC)
-Received: by mail-pg1-f175.google.com with SMTP id f129so4241393pgc.1
-        for <nvdimm@lists.linux.dev>; Wed, 08 Sep 2021 16:18:39 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 524B53FC7
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 00:50:57 +0000 (UTC)
+Received: by mail-pj1-f46.google.com with SMTP id oc9so167447pjb.4
+        for <nvdimm@lists.linux.dev>; Wed, 08 Sep 2021 17:50:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20150623.gappssmtp.com; s=20150623;
         h=mime-version:from:date:message-id:subject:to:cc;
-        bh=sW4NTlq7SSKyyy7HoR/7gu1f7/0aKhJl18M8jx83+dY=;
-        b=s33R3IfqxOpVYyZFcZ0cBjmgnfKK7bpLevNSo4k5JhEkapQc71J9n6IBQPhY9jgV3K
-         DsRqc76lt1eXDNCRB0LZ5giVDA4S/MtOHPBV5POPxC28AS4SnIqaRVtBHH6q0yuGttW+
-         7jnhJZ7h6jgcqj6/soP/npvR7JOOqM81CBfghzUGJSSOcHNDTS71M/DpIAqwtlnHV4UC
-         GxNDVfJBFyTYgKiUDIY8dFfk91E7detUxRm1IByqrm2oMsq7yGIxOl/SjO651BzLSBnJ
-         iceyoR8bM5FRH83y4hMvnXMacgufn4LdY+2ssRQPsgZVMbnKqfONPyt37c1xyvluAxJI
-         vbRA==
+        bh=st0iJaf29MZrtalRYvkDnoTyG1q3n/sls+xpkp/si68=;
+        b=k6RK5RMAWNZC0C2lACPqYAzo8ATiv7OnlyHAUTPRB0KiZlE0OAanjtSbu9dpV5RhIv
+         MdD/nxbwh6h/W1bd8o7eKZpjj+CtB2wyod4ycW97HGx2tf9r8KUjP5wjYx6rUa1aAs+M
+         ZE5qHLgG5/rN0hxcwfbu0hrN+ArVIqrmFFcE29QFYM62nCknCp61MWdsNDXiKr7DDy45
+         4orWzEQ0e99Cl5F2IzuNZEyRN5D4FmvER9nNNmRPbR5GeyzAgCS7aW1Yo2JGYi4ZYZKG
+         nOKy2ujezlgoCbt9tkrqVV2Md6XvTW8joqp5spDMRDWrWcBZPxsVfGlDPzgHj8ANlEp2
+         YAPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=sW4NTlq7SSKyyy7HoR/7gu1f7/0aKhJl18M8jx83+dY=;
-        b=1Oxu3auOXpWdPfUXC5my3zwNZjIlGY0+wHu8fm0Q8OF9gtZj7c78aX2xmgmlxrX2Fe
-         OecP0IE0QuBw6TaL5gEIRCfmZewukbD5uP8+4jxk7eQqK5SV9P+ex1Ys4HXqozrTkuOM
-         NmqwnWjTTIInNN3KfaMUsx2ELxRSyaLl/HYAFsm7vEgRqQOm8dkCikf/SS4j1ERJN/+r
-         CpxldKoAsDNkn7xXEr6aWspyt85661xnDOa4F8v4+O47LEPTOTXM+doyvf9NIeAEYWio
-         XkQThb/PnO4XY7lUcrrxhFmBgswqQZAW6cmc3dmnIunYzXvOtQKbXgTORgD+cCxkhUOV
-         cp0w==
-X-Gm-Message-State: AOAM532aWWdQ8IKG0m+7tu+nf2FfMPIgt+Mi/cc1/Ccr+oJyEXfxde+g
-	XoNK+PjNi5d2JDUKtQRU+8A8BuU08JabyUNxuLB9zA==
-X-Google-Smtp-Source: ABdhPJxEwnNqKfXQeWSlX52uT50Yab6X0/9GcmGWgPnzZ0tM2e6S8pUZvMRrb43TbvVD3jIFurQJZbdEjyhMdcOoPLo=
-X-Received: by 2002:a63:3545:: with SMTP id c66mr528820pga.377.1631143119383;
- Wed, 08 Sep 2021 16:18:39 -0700 (PDT)
+        bh=st0iJaf29MZrtalRYvkDnoTyG1q3n/sls+xpkp/si68=;
+        b=UP5DJK57sKDfkfXV1Au2/EuO88uMvvtW6FtwKR6buWxE5l7BiGXEO66O8PC/S5FcGA
+         40LMZL1ueX3JdWUqlkiwHwPdBS1OHsGwuUrv56jV7NxhEAkV/FLaxqSivSM//ukqvJQb
+         ZbPA1voB1Ob9nbMjbA4FlRlgYmIEVIKA8L8G24V7A3IhaU2aDWB8KnTL0wAq0L0842r1
+         bfwStC76/+dGz8qB+J2czKrftc/B7PrcoH8/W0kYzkOVgL6cykiEYim+eeDpoViuFcHD
+         E/RKsyA6JZDe9W8/byhDih+Dqc6IbnkOkPPYNzW0MPIdVYsOQbAfQHBQXmmGSinvt7qU
+         OEVw==
+X-Gm-Message-State: AOAM531zZyLOhufmuJAiMC+IbLeOEt1QnlgNTTQIzm4OxsDaeDP6+2eq
+	qV6J+Cf+Aqiqq2slPOIiCVxOYQw0u0nre6ywdPwFyw==
+X-Google-Smtp-Source: ABdhPJwJEDuu4qNJfcVrivy1EuQ328eYx3SxA169sGZwJwEh+lA9yQumarVbRkcy71qlz0t38c3gFPNLFhpKC3fRQ+Q=
+X-Received: by 2002:a17:902:bd8d:b0:13a:8c8:a2b2 with SMTP id
+ q13-20020a170902bd8d00b0013a08c8a2b2mr175834pls.89.1631148656565; Wed, 08 Sep
+ 2021 17:50:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -37,85 +38,121 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 8 Sep 2021 16:18:28 -0700
-Message-ID: <CAPcyv4hvzS1c01BweBkgDsjg=VGnaUUKi7b6j+1X=Rqzzm961Q@mail.gmail.com>
-Subject: [GIT PULL] libnvdimm / persistent memory update for v5.15
+Date: Wed, 8 Sep 2021 17:50:45 -0700
+Message-ID: <CAPcyv4hEtOuExY1+YdKPaffBPO6A70u+01NA4EPON2s6Ut3rHw@mail.gmail.com>
+Subject: [GIT PULL] Compute Express Link update for v5.15
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>
 Content-Type: text/plain; charset="UTF-8"
 
 Hi Linus, please pull from:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-for-5.15
+  git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-5.15
 
-...to receive the libnvdimm update for v5.15. It includes a bug fix
-for a long standing race in the driver shutdown path. More people are
-stress testing the nvdimm configuration mechanism which is a welcome
-sign. There is also a rework of the infrastructure for looking up the
-dax_device associated with a block_device.
-
-This collided (silent conflict) with the erofs updates to add dax
-support this cycle. Gao Xiang noted this as well in the erofs pull
-request. Stephen's fix [1] looked correct to me. Otherwise, it has
-been in -next for a while with no other reported issues.
+...to receive the cxl update for v5.15. This branch experienced some
+fallout from some "just in time" review and the -Werror change. Rather
+than rebase patches at the last moment the branch was simply rewound
+to a stable point and the rest will wait for v5.16. Save for the top 6
+fixes this has been in -next for several releases with no reported
+issues (beyond the ones that caused the branch to be rewound), and the
+fixes have appeared in at least one -next release.
 
 Please pull, thanks,
 Dan
 
-[1]: https://lore.kernel.org/r/20210830170938.6fd8813d@canb.auug.org.au
-
 ---
 
+The following changes since commit ff1176468d368232b684f75e82563369208bc371:
 
-The following changes since commit e22ce8eb631bdc47a4a4ea7ecf4e4ba499db4f93:
-
-  Linux 5.14-rc7 (2021-08-22 14:24:56 -0700)
+  Linux 5.14-rc3 (2021-07-25 15:35:14 -0700)
 
 are available in the Git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-for-5.15
+  git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-5.15
 
-for you to fetch changes up to 3fc3725357414636d91be1558ce8b14f228b4bda:
+for you to fetch changes up to 2b922a9d064f8e86b53b04f5819917b7a04142ed:
 
-  Merge branch 'for-5.15/fsdax-cleanups' into for-5.15/libnvdimm
-(2021-09-08 15:58:13 -0700)
+  cxl/registers: Fix Documentation warning (2021-09-07 11:39:02 -0700)
 
 ----------------------------------------------------------------
-libnvdimm for v5.15
+cxl for v5.15
 
-- Fix a race condition in the teardown path of raw mode pmem namespaces.
+- Fix detection of CXL host bridges to filter out disabled ACPI0016
+  devices in the ACPI DSDT.
 
-- Cleanup the code that filesystems use to detect filesystem-dax
-  capabilities of their underlying block device.
+- Fix kernel lockdown integration to disable raw commands when raw PCI
+  access is disabled.
+
+- Fix a broken debug message.
+
+- Add support for "Get Partition Info". I.e. enumerate the split between
+  volatile and persistent capacity on bi-modal CXL memory expanders.
+
+- Re-factor the core by subject area. This is a work in progress.
+
+- Prepare libnvdimm to understand CXL labels in addition to EFI labels.
+  This is a work in progress.
 
 ----------------------------------------------------------------
-Christoph Hellwig (9):
-      fsdax: improve the FS_DAX Kconfig description and help text
-      dax: stop using bdevname
-      dm: use fs_dax_get_by_bdev instead of dax_get_by_host
-      dax: mark dax_get_by_host static
-      dax: move the dax_read_lock() locking into dax_supported
-      dax: remove __generic_fsdax_supported
-      dax: stub out dax_supported for !CONFIG_FS_DAX
-      xfs: factor out a xfs_buftarg_is_dax helper
-      dax: remove bdev_dax_supported
+Alison Schofield (1):
+      cxl/acpi: Do not add DSDT disabled ACPI0016 host bridge ports
 
-Dan Williams (1):
-      Merge branch 'for-5.15/fsdax-cleanups' into for-5.15/libnvdimm
+Ben Widawsky (6):
+      cxl: Move cxl_core to new directory
+      cxl/core: Improve CXL core kernel docs
+      cxl/core: Move memdev management to core
+      cxl/pci: Ignore unknown register block types
+      cxl/pci: Simplify register setup
+      cxl/uapi: Fix defined but not used warnings
 
-sumiyawang (1):
-      libnvdimm/pmem: Fix crash triggered when I/O in-flight during unbind
+Dan Williams (14):
+      cxl/core: Move pmem functionality
+      cxl/core: Move register mapping infrastructure
+      cxl/pci: Introduce cdevm_file_operations
+      libnvdimm/labels: Introduce getters for namespace label fields
+      libnvdimm/labels: Add isetcookie validation helper
+      libnvdimm/labels: Introduce label setter helpers
+      libnvdimm/labels: Add a checksum calculation helper
+      libnvdimm/labels: Add blk isetcookie set / validation helpers
+      libnvdimm/labels: Add blk special cases for nlabel and position helpers
+      libnvdimm/labels: Add type-guid helpers
+      libnvdimm/labels: Add claim class helpers
+      cxl/pci: Fix lockdown level
+      cxl/pmem: Fix Documentation warning
+      cxl/registers: Fix Documentation warning
 
- drivers/dax/super.c   | 191 +++++++++++++++++++-------------------------------
- drivers/md/dm-table.c |   9 +--
- drivers/md/dm.c       |   2 +-
- drivers/nvdimm/pmem.c |   4 +-
- fs/Kconfig            |  21 +++++-
- fs/ext2/super.c       |   3 +-
- fs/ext4/super.c       |   3 +-
- fs/xfs/xfs_super.c    |  16 +++--
- include/linux/dax.h   |  41 ++---------
- 9 files changed, 119 insertions(+), 171 deletions(-)
+Ira Weiny (3):
+      cxl/pci: Store memory capacity values
+      cxl/mem: Account for partitionable space in ram/pmem ranges
+      cxl/mem: Adjust ram/pmem range to represent DPA ranges
+
+Li Qiang (Johnny Li) (1):
+      cxl/pci: Fix debug message in cxl_probe_regs()
+
+ Documentation/driver-api/cxl/memory-devices.rst |   8 +-
+ drivers/cxl/Makefile                            |   4 +-
+ drivers/cxl/acpi.c                              |  12 +-
+ drivers/cxl/core/Makefile                       |   8 +
+ drivers/cxl/{core.c => core/bus.c}              | 464 ++----------------------
+ drivers/cxl/core/core.h                         |  20 +
+ drivers/cxl/core/memdev.c                       | 246 +++++++++++++
+ drivers/cxl/core/pmem.c                         | 230 ++++++++++++
+ drivers/cxl/core/regs.c                         | 249 +++++++++++++
+ drivers/cxl/cxl.h                               |   1 -
+ drivers/cxl/{mem.h => cxlmem.h}                 |  35 +-
+ drivers/cxl/pci.c                               | 439 +++++++++-------------
+ drivers/cxl/pci.h                               |   1 +
+ drivers/cxl/pmem.c                              |   2 +-
+ drivers/nvdimm/label.c                          | 256 ++++++++-----
+ drivers/nvdimm/label.h                          |   1 -
+ drivers/nvdimm/namespace_devs.c                 | 113 +++---
+ drivers/nvdimm/nd.h                             | 150 ++++++++
+ include/uapi/linux/cxl_mem.h                    |   2 +-
+ 19 files changed, 1352 insertions(+), 889 deletions(-)
+ create mode 100644 drivers/cxl/core/Makefile
+ rename drivers/cxl/{core.c => core/bus.c} (58%)
+ create mode 100644 drivers/cxl/core/core.h
+ create mode 100644 drivers/cxl/core/memdev.c
+ create mode 100644 drivers/cxl/core/pmem.c
+ create mode 100644 drivers/cxl/core/regs.c
+ rename drivers/cxl/{mem.h => cxlmem.h} (71%)
