@@ -1,31 +1,29 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AE7772
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 05:11:33 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="242989708"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA3C72
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 05:11:38 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="217522310"
 X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
-   d="scan'208";a="242989708"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:11:32 -0700
+   d="scan'208";a="217522310"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:11:37 -0700
 X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
-   d="scan'208";a="479463971"
+   d="scan'208";a="504046886"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:11:32 -0700
-Subject: [PATCH v4 00/21] cxl_test: Enable CXL Topology and UAPI regression
- tests
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:11:37 -0700
+Subject: [PATCH v4 01/21] libnvdimm/labels: Add uuid helpers
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Ira Weiny <ira.weiny@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
- Jonathan Cameron <Jonathan.Cameron@huawei.com>,
- Vishal Verma <vishal.l.verma@intel.com>,
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
  Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
- Nathan Chancellor <nathan@kernel.org>, kernel test robot <lkp@intel.com>,
- Dan Carpenter <dan.carpenter@oracle.com>, nvdimm@lists.linux.dev,
- ben.widawsky@intel.com, alison.schofield@intel.com, vishal.l.verma@intel.com,
- ira.weiny@intel.com, Jonathan.Cameron@huawei.com
-Date: Wed, 08 Sep 2021 22:11:32 -0700
-Message-ID: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>, vishal.l.verma@intel.com,
+ nvdimm@lists.linux.dev, ben.widawsky@intel.com, alison.schofield@intel.com,
+ vishal.l.verma@intel.com, ira.weiny@intel.com, Jonathan.Cameron@huawei.com
+Date: Wed, 08 Sep 2021 22:11:37 -0700
+Message-ID: <163116429748.2460985.15659993454313919977.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -36,197 +34,768 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Changes since v3 [1]:
-- Rebase on the cxl-for-5.15 tag where some of v3 was accepted.
+In preparation for CXL labels that move the uuid to a different offset
+in the label, add nsl_{ref,get,validate}_uuid(). These helpers use the
+proper uuid_t type. That type definition predated the libnvdimm
+subsystem, so now is as a good a time as any to convert all the uuid
+handling in the subsystem to uuid_t to match the helpers.
 
-- Move the introduction of the uuid_to_nvdimm_cclass() helper to the
-  patch that uses it to avoid a "defined but not used" warning (now
-  fatal as of the -Werror upstream change).
+Note that the uuid fields in the label data and superblocks is not
+replaced per Andy's expectation that uuid_t is a kernel internal type
+not to appear in external ABI interfaces. So, in those case
+{import,export}_uuid() is used to go between the 2 types.
 
-- Fix the kernel-doc for the new CXL structure definitions in
-  drivers/nvdimm/label.h. This resulted in a lead-in patch to fix up
-  existing kernel-doc warnings. (Jonathan)
+Also note that this rework uncovered some unnecessary copies for label
+comparisons, those are cleaned up with nsl_uuid_equal().
 
-- Move the cxl_mem_get_partition_info() cleanups to their own patch
-  (Jonathan).
+As for the whitespace changes, all new code is clang-format compliant.
 
-- Fix the cxl_mem_get_partition_info() kernel-doc (Ben)
-
-- Move the idr.h include fixup to its own patch (Jonathan)
-
-- Fix the kernel-doc for struct cxl_mbox_cmd (Jonathan)
-
-- Add a note about the ABI implications of the nvdimm-bridge device-name
-  change (Jonathan)
-
-- Squash "cxl/core: Replace devm_cxl_add_decoder() with non-devm
-  version" into "cxl/core: Split decoder setup into alloc + add"
-
-- Cleanup some pointless cxlm->dev to pci_dev and back conversions
-  (Jonathan)
-
-- Drop pci.h include from core/mbox.c (Jonathan)
-
-- Drop duplicate cxl_doorbell_busy() and CXL_MAILBOX_TIMEOUT_MS
-  definitions, only pci.c needs them. (Jonathan)
-
-- Fix style violation in cxl_for_each_cmd() (Jonathan)
-
-- Move cxl_mem_create() api change to "cxl/pci: Make 'struct cxl_mem'
-  device type generic" (Jonathan)
-
-- Add a helper, decoder_populate_targets(), for initializing a decoder
-  target_list (Jonathan)
-
-- Use put_unaligned() for potential unaligned write in
-  cxl_pmem_set_config_data() (Jonathan)
-
-- Add cxl_nvdimm_remove() to explicitly handle exclusive command
-  shutdown rather than some gymnastics to handle the
-  devm_add_action_or_reset() error code vs nvdimm_create() failure.
-  (Jonathan)
-
-- Switch to platform_device_unregister() lest we wake the dragons
-  guarding platform_device_del(). (Jonathan)
-
-- Fix CEL retrieval for the case where CEL is larger than payload_size
-  in mock_get_log(). (Jonathan)
-
-- Move CFMWS size definition out of the setup code and into the static
-  table definition directly. (Jonathan)
-
-[1]: https://lore.kernel.org/r/162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com
-
+Reported-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/btt.c            |   11 +++--
+ drivers/nvdimm/btt_devs.c       |   14 +++---
+ drivers/nvdimm/core.c           |   40 ++---------------
+ drivers/nvdimm/label.c          |   34 ++++++---------
+ drivers/nvdimm/namespace_devs.c |   90 ++++++++++++++++++++++-----------------
+ drivers/nvdimm/nd-core.h        |    5 +-
+ drivers/nvdimm/nd.h             |   40 ++++++++++++++++-
+ drivers/nvdimm/pfn_devs.c       |    2 -
+ include/linux/nd.h              |    4 +-
+ 9 files changed, 124 insertions(+), 116 deletions(-)
 
-As mentioned in patch 17 in this series the response of upstream QEMU
-community to CXL device emulation has been underwhelming to date. Even
-if that picked up it still results in a situation where new driver
-features and new test capabilities for those features are split across
-multiple repositories.
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 92dec4952297..52de60b7adee 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -973,7 +973,7 @@ static int btt_arena_write_layout(struct arena_info *arena)
+ 	u64 sum;
+ 	struct btt_sb *super;
+ 	struct nd_btt *nd_btt = arena->nd_btt;
+-	const u8 *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
++	const uuid_t *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
+ 
+ 	ret = btt_map_init(arena);
+ 	if (ret)
+@@ -988,8 +988,8 @@ static int btt_arena_write_layout(struct arena_info *arena)
+ 		return -ENOMEM;
+ 
+ 	strncpy(super->signature, BTT_SIG, BTT_SIG_LEN);
+-	memcpy(super->uuid, nd_btt->uuid, 16);
+-	memcpy(super->parent_uuid, parent_uuid, 16);
++	export_uuid(super->uuid, nd_btt->uuid);
++	export_uuid(super->parent_uuid, parent_uuid);
+ 	super->flags = cpu_to_le32(arena->flags);
+ 	super->version_major = cpu_to_le16(arena->version_major);
+ 	super->version_minor = cpu_to_le16(arena->version_minor);
+@@ -1575,7 +1575,8 @@ static void btt_blk_cleanup(struct btt *btt)
+  * Pointer to a new struct btt on success, NULL on failure.
+  */
+ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+-		u32 lbasize, u8 *uuid, struct nd_region *nd_region)
++			    u32 lbasize, uuid_t *uuid,
++			    struct nd_region *nd_region)
+ {
+ 	int ret;
+ 	struct btt *btt;
+@@ -1694,7 +1695,7 @@ int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns)
+ 	}
+ 	nd_region = to_nd_region(nd_btt->dev.parent);
+ 	btt = btt_init(nd_btt, rawsize, nd_btt->lbasize, nd_btt->uuid,
+-			nd_region);
++		       nd_region);
+ 	if (!btt)
+ 		return -ENOMEM;
+ 	nd_btt->btt = btt;
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 05feb97e11ce..8b52e5144f08 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -180,8 +180,8 @@ bool is_nd_btt(struct device *dev)
+ EXPORT_SYMBOL(is_nd_btt);
+ 
+ static struct device *__nd_btt_create(struct nd_region *nd_region,
+-		unsigned long lbasize, u8 *uuid,
+-		struct nd_namespace_common *ndns)
++				      unsigned long lbasize, uuid_t *uuid,
++				      struct nd_namespace_common *ndns)
+ {
+ 	struct nd_btt *nd_btt;
+ 	struct device *dev;
+@@ -244,14 +244,16 @@ struct device *nd_btt_create(struct nd_region *nd_region)
+  */
+ bool nd_btt_arena_is_valid(struct nd_btt *nd_btt, struct btt_sb *super)
+ {
+-	const u8 *parent_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
++	const uuid_t *ns_uuid = nd_dev_to_uuid(&nd_btt->ndns->dev);
++	uuid_t parent_uuid;
+ 	u64 checksum;
+ 
+ 	if (memcmp(super->signature, BTT_SIG, BTT_SIG_LEN) != 0)
+ 		return false;
+ 
+-	if (!guid_is_null((guid_t *)&super->parent_uuid))
+-		if (memcmp(super->parent_uuid, parent_uuid, 16) != 0)
++	import_uuid(&parent_uuid, super->parent_uuid);
++	if (!uuid_is_null(&parent_uuid))
++		if (!uuid_equal(&parent_uuid, ns_uuid))
+ 			return false;
+ 
+ 	checksum = le64_to_cpu(super->checksum);
+@@ -319,7 +321,7 @@ static int __nd_btt_probe(struct nd_btt *nd_btt,
+ 		return rc;
+ 
+ 	nd_btt->lbasize = le32_to_cpu(btt_sb->external_lbasize);
+-	nd_btt->uuid = kmemdup(btt_sb->uuid, 16, GFP_KERNEL);
++	nd_btt->uuid = kmemdup(&btt_sb->uuid, sizeof(uuid_t), GFP_KERNEL);
+ 	if (!nd_btt->uuid)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 7de592d7eff4..690152d62bf0 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -206,38 +206,6 @@ struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus)
+ }
+ EXPORT_SYMBOL_GPL(to_nvdimm_bus_dev);
+ 
+-static bool is_uuid_sep(char sep)
+-{
+-	if (sep == '\n' || sep == '-' || sep == ':' || sep == '\0')
+-		return true;
+-	return false;
+-}
+-
+-static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
+-		size_t len)
+-{
+-	const char *str = buf;
+-	u8 uuid[16];
+-	int i;
+-
+-	for (i = 0; i < 16; i++) {
+-		if (!isxdigit(str[0]) || !isxdigit(str[1])) {
+-			dev_dbg(dev, "pos: %d buf[%zd]: %c buf[%zd]: %c\n",
+-					i, str - buf, str[0],
+-					str + 1 - buf, str[1]);
+-			return -EINVAL;
+-		}
+-
+-		uuid[i] = (hex_to_bin(str[0]) << 4) | hex_to_bin(str[1]);
+-		str += 2;
+-		if (is_uuid_sep(*str))
+-			str++;
+-	}
+-
+-	memcpy(uuid_out, uuid, sizeof(uuid));
+-	return 0;
+-}
+-
+ /**
+  * nd_uuid_store: common implementation for writing 'uuid' sysfs attributes
+  * @dev: container device for the uuid property
+@@ -248,21 +216,21 @@ static int nd_uuid_parse(struct device *dev, u8 *uuid_out, const char *buf,
+  * (driver detached)
+  * LOCKING: expects nd_device_lock() is held on entry
+  */
+-int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
++int nd_uuid_store(struct device *dev, uuid_t **uuid_out, const char *buf,
+ 		size_t len)
+ {
+-	u8 uuid[16];
++	uuid_t uuid;
+ 	int rc;
+ 
+ 	if (dev->driver)
+ 		return -EBUSY;
+ 
+-	rc = nd_uuid_parse(dev, uuid, buf, len);
++	rc = uuid_parse(buf, &uuid);
+ 	if (rc)
+ 		return rc;
+ 
+ 	kfree(*uuid_out);
+-	*uuid_out = kmemdup(uuid, sizeof(uuid), GFP_KERNEL);
++	*uuid_out = kmemdup(&uuid, sizeof(uuid), GFP_KERNEL);
+ 	if (!(*uuid_out))
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 7f473f9db300..e7fdb718ebf0 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -321,7 +321,8 @@ static bool preamble_index(struct nvdimm_drvdata *ndd, int idx,
+ 	return true;
+ }
+ 
+-char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags)
++char *nd_label_gen_id(struct nd_label_id *label_id, const uuid_t *uuid,
++		      u32 flags)
+ {
+ 	if (!label_id || !uuid)
+ 		return NULL;
+@@ -400,9 +401,9 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+ 		struct nvdimm *nvdimm = to_nvdimm(ndd->dev);
+ 		struct nd_namespace_label *nd_label;
+ 		struct nd_region *nd_region = NULL;
+-		u8 label_uuid[NSLABEL_UUID_LEN];
+ 		struct nd_label_id label_id;
+ 		struct resource *res;
++		uuid_t label_uuid;
+ 		u32 flags;
+ 
+ 		nd_label = to_label(ndd, slot);
+@@ -410,11 +411,11 @@ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd)
+ 		if (!slot_valid(ndd, nd_label, slot))
+ 			continue;
+ 
+-		memcpy(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
++		nsl_get_uuid(ndd, nd_label, &label_uuid);
+ 		flags = nsl_get_flags(ndd, nd_label);
+ 		if (test_bit(NDD_NOBLK, &nvdimm->flags))
+ 			flags &= ~NSLABEL_FLAG_LOCAL;
+-		nd_label_gen_id(&label_id, label_uuid, flags);
++		nd_label_gen_id(&label_id, &label_uuid, flags);
+ 		res = nvdimm_allocate_dpa(ndd, &label_id,
+ 					  nsl_get_dpa(ndd, nd_label),
+ 					  nsl_get_rawsize(ndd, nd_label));
+@@ -851,7 +852,7 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 
+ 	nd_label = to_label(ndd, slot);
+ 	memset(nd_label, 0, sizeof_namespace_label(ndd));
+-	memcpy(nd_label->uuid, nspm->uuid, NSLABEL_UUID_LEN);
++	nsl_set_uuid(ndd, nd_label, nspm->uuid);
+ 	nsl_set_name(ndd, nd_label, nspm->alt_name);
+ 	nsl_set_flags(ndd, nd_label, flags);
+ 	nsl_set_nlabel(ndd, nd_label, nd_region->ndr_mappings);
+@@ -878,9 +879,8 @@ static int __pmem_label_update(struct nd_region *nd_region,
+ 	list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+ 		if (!label_ent->label)
+ 			continue;
+-		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags)
+-				|| memcmp(nspm->uuid, label_ent->label->uuid,
+-					NSLABEL_UUID_LEN) == 0)
++		if (test_and_clear_bit(ND_LABEL_REAP, &label_ent->flags) ||
++		    nsl_uuid_equal(ndd, label_ent->label, nspm->uuid))
+ 			reap_victim(nd_mapping, label_ent);
+ 	}
+ 
+@@ -1005,7 +1005,6 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 	unsigned long *free, *victim_map = NULL;
+ 	struct resource *res, **old_res_list;
+ 	struct nd_label_id label_id;
+-	u8 uuid[NSLABEL_UUID_LEN];
+ 	int min_dpa_idx = 0;
+ 	LIST_HEAD(list);
+ 	u32 nslot, slot;
+@@ -1043,8 +1042,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		/* mark unused labels for garbage collection */
+ 		for_each_clear_bit_le(slot, free, nslot) {
+ 			nd_label = to_label(ndd, slot);
+-			memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+-			if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
++			if (!nsl_uuid_equal(ndd, nd_label, nsblk->uuid))
+ 				continue;
+ 			res = to_resource(ndd, nd_label);
+ 			if (res && is_old_resource(res, old_res_list,
+@@ -1113,7 +1111,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 
+ 		nd_label = to_label(ndd, slot);
+ 		memset(nd_label, 0, sizeof_namespace_label(ndd));
+-		memcpy(nd_label->uuid, nsblk->uuid, NSLABEL_UUID_LEN);
++		nsl_set_uuid(ndd, nd_label, nsblk->uuid);
+ 		nsl_set_name(ndd, nd_label, nsblk->alt_name);
+ 		nsl_set_flags(ndd, nd_label, NSLABEL_FLAG_LOCAL);
+ 
+@@ -1161,8 +1159,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 		if (!nd_label)
+ 			continue;
+ 		nlabel++;
+-		memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+-		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
++		if (!nsl_uuid_equal(ndd, nd_label, nsblk->uuid))
+ 			continue;
+ 		nlabel--;
+ 		list_move(&label_ent->list, &list);
+@@ -1192,8 +1189,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 	}
+ 	for_each_clear_bit_le(slot, free, nslot) {
+ 		nd_label = to_label(ndd, slot);
+-		memcpy(uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+-		if (memcmp(uuid, nsblk->uuid, NSLABEL_UUID_LEN) != 0)
++		if (!nsl_uuid_equal(ndd, nd_label, nsblk->uuid))
+ 			continue;
+ 		res = to_resource(ndd, nd_label);
+ 		res->flags &= ~DPA_RESOURCE_ADJUSTED;
+@@ -1273,12 +1269,11 @@ static int init_labels(struct nd_mapping *nd_mapping, int num_labels)
+ 	return max(num_labels, old_num_labels);
+ }
+ 
+-static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
++static int del_labels(struct nd_mapping *nd_mapping, uuid_t *uuid)
+ {
+ 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+ 	struct nd_label_ent *label_ent, *e;
+ 	struct nd_namespace_index *nsindex;
+-	u8 label_uuid[NSLABEL_UUID_LEN];
+ 	unsigned long *free;
+ 	LIST_HEAD(list);
+ 	u32 nslot, slot;
+@@ -1298,8 +1293,7 @@ static int del_labels(struct nd_mapping *nd_mapping, u8 *uuid)
+ 		if (!nd_label)
+ 			continue;
+ 		active++;
+-		memcpy(label_uuid, nd_label->uuid, NSLABEL_UUID_LEN);
+-		if (memcmp(label_uuid, uuid, NSLABEL_UUID_LEN) != 0)
++		if (!nsl_uuid_equal(ndd, nd_label, uuid))
+ 			continue;
+ 		active--;
+ 		slot = to_slot(ndd, nd_label);
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 58c76d74127a..d4959981c7d4 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -51,7 +51,7 @@ static bool is_namespace_io(const struct device *dev);
+ 
+ static int is_uuid_busy(struct device *dev, void *data)
+ {
+-	u8 *uuid1 = data, *uuid2 = NULL;
++	uuid_t *uuid1 = data, *uuid2 = NULL;
+ 
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+@@ -71,7 +71,7 @@ static int is_uuid_busy(struct device *dev, void *data)
+ 		uuid2 = nd_pfn->uuid;
+ 	}
+ 
+-	if (uuid2 && memcmp(uuid1, uuid2, NSLABEL_UUID_LEN) == 0)
++	if (uuid2 && uuid_equal(uuid1, uuid2))
+ 		return -EBUSY;
+ 
+ 	return 0;
+@@ -89,7 +89,7 @@ static int is_namespace_uuid_busy(struct device *dev, void *data)
+  * @dev: any device on a nvdimm_bus
+  * @uuid: uuid to check
+  */
+-bool nd_is_uuid_unique(struct device *dev, u8 *uuid)
++bool nd_is_uuid_unique(struct device *dev, uuid_t *uuid)
+ {
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
+ 
+@@ -192,12 +192,10 @@ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
+ }
+ EXPORT_SYMBOL(nvdimm_namespace_disk_name);
+ 
+-const u8 *nd_dev_to_uuid(struct device *dev)
++const uuid_t *nd_dev_to_uuid(struct device *dev)
+ {
+-	static const u8 null_uuid[16];
+-
+ 	if (!dev)
+-		return null_uuid;
++		return &uuid_null;
+ 
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+@@ -208,7 +206,7 @@ const u8 *nd_dev_to_uuid(struct device *dev)
+ 
+ 		return nsblk->uuid;
+ 	} else
+-		return null_uuid;
++		return &uuid_null;
+ }
+ EXPORT_SYMBOL(nd_dev_to_uuid);
+ 
+@@ -938,7 +936,8 @@ static void nd_namespace_pmem_set_resource(struct nd_region *nd_region,
+ 	res->end = res->start + size - 1;
+ }
+ 
+-static bool uuid_not_set(const u8 *uuid, struct device *dev, const char *where)
++static bool uuid_not_set(const uuid_t *uuid, struct device *dev,
++			 const char *where)
+ {
+ 	if (!uuid) {
+ 		dev_dbg(dev, "%s: uuid not set\n", where);
+@@ -957,7 +956,7 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
+ 	struct nd_label_id label_id;
+ 	u32 flags = 0, remainder;
+ 	int rc, i, id = -1;
+-	u8 *uuid = NULL;
++	uuid_t *uuid = NULL;
+ 
+ 	if (dev->driver || ndns->claim)
+ 		return -EBUSY;
+@@ -1050,7 +1049,7 @@ static ssize_t size_store(struct device *dev,
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	unsigned long long val;
+-	u8 **uuid = NULL;
++	uuid_t **uuid = NULL;
+ 	int rc;
+ 
+ 	rc = kstrtoull(buf, 0, &val);
+@@ -1147,7 +1146,7 @@ static ssize_t size_show(struct device *dev,
+ }
+ static DEVICE_ATTR(size, 0444, size_show, size_store);
+ 
+-static u8 *namespace_to_uuid(struct device *dev)
++static uuid_t *namespace_to_uuid(struct device *dev)
+ {
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+@@ -1161,10 +1160,10 @@ static u8 *namespace_to_uuid(struct device *dev)
+ 		return ERR_PTR(-ENXIO);
+ }
+ 
+-static ssize_t uuid_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
++static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
++			 char *buf)
+ {
+-	u8 *uuid = namespace_to_uuid(dev);
++	uuid_t *uuid = namespace_to_uuid(dev);
+ 
+ 	if (IS_ERR(uuid))
+ 		return PTR_ERR(uuid);
+@@ -1181,7 +1180,8 @@ static ssize_t uuid_show(struct device *dev,
+  * @old_uuid: reference to the uuid storage location in the namespace object
+  */
+ static int namespace_update_uuid(struct nd_region *nd_region,
+-		struct device *dev, u8 *new_uuid, u8 **old_uuid)
++				 struct device *dev, uuid_t *new_uuid,
++				 uuid_t **old_uuid)
+ {
+ 	u32 flags = is_namespace_blk(dev) ? NSLABEL_FLAG_LOCAL : 0;
+ 	struct nd_label_id old_label_id;
+@@ -1231,10 +1231,12 @@ static int namespace_update_uuid(struct nd_region *nd_region,
+ 		list_for_each_entry(label_ent, &nd_mapping->labels, list) {
+ 			struct nd_namespace_label *nd_label = label_ent->label;
+ 			struct nd_label_id label_id;
++			uuid_t uuid;
+ 
+ 			if (!nd_label)
+ 				continue;
+-			nd_label_gen_id(&label_id, nd_label->uuid,
++			nsl_get_uuid(ndd, nd_label, &uuid);
++			nd_label_gen_id(&label_id, &uuid,
+ 					nsl_get_flags(ndd, nd_label));
+ 			if (strcmp(old_label_id.id, label_id.id) == 0)
+ 				set_bit(ND_LABEL_REAP, &label_ent->flags);
+@@ -1251,9 +1253,9 @@ static ssize_t uuid_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+-	u8 *uuid = NULL;
++	uuid_t *uuid = NULL;
++	uuid_t **ns_uuid;
+ 	ssize_t rc = 0;
+-	u8 **ns_uuid;
+ 
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+@@ -1378,8 +1380,8 @@ static ssize_t dpa_extents_show(struct device *dev,
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	struct nd_label_id label_id;
++	uuid_t *uuid = NULL;
+ 	int count = 0, i;
+-	u8 *uuid = NULL;
+ 	u32 flags = 0;
+ 
+ 	nvdimm_bus_lock(dev);
+@@ -1831,8 +1833,8 @@ static struct device **create_namespace_io(struct nd_region *nd_region)
+ 	return devs;
+ }
+ 
+-static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
+-		u64 cookie, u16 pos)
++static bool has_uuid_at_pos(struct nd_region *nd_region, const uuid_t *uuid,
++			    u64 cookie, u16 pos)
+ {
+ 	struct nd_namespace_label *found = NULL;
+ 	int i;
+@@ -1856,7 +1858,7 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
+ 			if (!nsl_validate_isetcookie(ndd, nd_label, cookie))
+ 				continue;
+ 
+-			if (memcmp(nd_label->uuid, uuid, NSLABEL_UUID_LEN) != 0)
++			if (!nsl_uuid_equal(ndd, nd_label, uuid))
+ 				continue;
+ 
+ 			if (!nsl_validate_type_guid(ndd, nd_label,
+@@ -1881,7 +1883,7 @@ static bool has_uuid_at_pos(struct nd_region *nd_region, u8 *uuid,
+ 	return found != NULL;
+ }
+ 
+-static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
++static int select_pmem_id(struct nd_region *nd_region, const uuid_t *pmem_id)
+ {
+ 	int i;
+ 
+@@ -1900,7 +1902,7 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
+ 			nd_label = label_ent->label;
+ 			if (!nd_label)
+ 				continue;
+-			if (memcmp(nd_label->uuid, pmem_id, NSLABEL_UUID_LEN) == 0)
++			if (nsl_uuid_equal(ndd, nd_label, pmem_id))
+ 				break;
+ 			nd_label = NULL;
+ 		}
+@@ -1923,7 +1925,8 @@ static int select_pmem_id(struct nd_region *nd_region, u8 *pmem_id)
+ 			/* pass */;
+ 		else {
+ 			dev_dbg(&nd_region->dev, "%s invalid label for %pUb\n",
+-					dev_name(ndd->dev), nd_label->uuid);
++				dev_name(ndd->dev),
++				nsl_uuid_raw(ndd, nd_label));
+ 			return -EINVAL;
+ 		}
+ 
+@@ -1953,6 +1956,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	resource_size_t size = 0;
+ 	struct resource *res;
+ 	struct device *dev;
++	uuid_t uuid;
+ 	int rc = 0;
+ 	u16 i;
+ 
+@@ -1963,12 +1967,12 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 
+ 	if (!nsl_validate_isetcookie(ndd, nd_label, cookie)) {
+ 		dev_dbg(&nd_region->dev, "invalid cookie in label: %pUb\n",
+-				nd_label->uuid);
++			nsl_uuid_raw(ndd, nd_label));
+ 		if (!nsl_validate_isetcookie(ndd, nd_label, altcookie))
+ 			return ERR_PTR(-EAGAIN);
+ 
+ 		dev_dbg(&nd_region->dev, "valid altcookie in label: %pUb\n",
+-				nd_label->uuid);
++			nsl_uuid_raw(ndd, nd_label));
+ 	}
+ 
+ 	nspm = kzalloc(sizeof(*nspm), GFP_KERNEL);
+@@ -1984,9 +1988,12 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	res->flags = IORESOURCE_MEM;
+ 
+ 	for (i = 0; i < nd_region->ndr_mappings; i++) {
+-		if (has_uuid_at_pos(nd_region, nd_label->uuid, cookie, i))
++		uuid_t uuid;
++
++		nsl_get_uuid(ndd, nd_label, &uuid);
++		if (has_uuid_at_pos(nd_region, &uuid, cookie, i))
+ 			continue;
+-		if (has_uuid_at_pos(nd_region, nd_label->uuid, altcookie, i))
++		if (has_uuid_at_pos(nd_region, &uuid, altcookie, i))
+ 			continue;
+ 		break;
+ 	}
+@@ -2000,7 +2007,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 		 * find a dimm with two instances of the same uuid.
+ 		 */
+ 		dev_err(&nd_region->dev, "%s missing label for %pUb\n",
+-				nvdimm_name(nvdimm), nd_label->uuid);
++			nvdimm_name(nvdimm), nsl_uuid_raw(ndd, nd_label));
+ 		rc = -EINVAL;
+ 		goto err;
+ 	}
+@@ -2013,7 +2020,8 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 	 * the dimm being enabled (i.e. nd_label_reserve_dpa()
+ 	 * succeeded).
+ 	 */
+-	rc = select_pmem_id(nd_region, nd_label->uuid);
++	nsl_get_uuid(ndd, nd_label, &uuid);
++	rc = select_pmem_id(nd_region, &uuid);
+ 	if (rc)
+ 		goto err;
+ 
+@@ -2039,8 +2047,8 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
+ 		WARN_ON(nspm->alt_name || nspm->uuid);
+ 		nspm->alt_name = kmemdup(nsl_ref_name(ndd, label0),
+ 					 NSLABEL_NAME_LEN, GFP_KERNEL);
+-		nspm->uuid = kmemdup((void __force *) label0->uuid,
+-				NSLABEL_UUID_LEN, GFP_KERNEL);
++		nsl_get_uuid(ndd, label0, &uuid);
++		nspm->uuid = kmemdup(&uuid, sizeof(uuid_t), GFP_KERNEL);
+ 		nspm->lbasize = nsl_get_lbasize(ndd, label0);
+ 		nspm->nsio.common.claim_class =
+ 			nsl_get_claim_class(ndd, label0);
+@@ -2217,15 +2225,15 @@ static int add_namespace_resource(struct nd_region *nd_region,
+ 	int i;
+ 
+ 	for (i = 0; i < count; i++) {
+-		u8 *uuid = namespace_to_uuid(devs[i]);
++		uuid_t *uuid = namespace_to_uuid(devs[i]);
+ 		struct resource *res;
+ 
+-		if (IS_ERR_OR_NULL(uuid)) {
++		if (IS_ERR(uuid)) {
+ 			WARN_ON(1);
+ 			continue;
+ 		}
+ 
+-		if (memcmp(uuid, nd_label->uuid, NSLABEL_UUID_LEN) != 0)
++		if (!nsl_uuid_equal(ndd, nd_label, uuid))
+ 			continue;
+ 		if (is_namespace_blk(devs[i])) {
+ 			res = nsblk_add_resource(nd_region, ndd,
+@@ -2236,8 +2244,8 @@ static int add_namespace_resource(struct nd_region *nd_region,
+ 			nd_dbg_dpa(nd_region, ndd, res, "%d assign\n", count);
+ 		} else {
+ 			dev_err(&nd_region->dev,
+-					"error: conflicting extents for uuid: %pUb\n",
+-					nd_label->uuid);
++				"error: conflicting extents for uuid: %pUb\n",
++				uuid);
+ 			return -ENXIO;
+ 		}
+ 		break;
+@@ -2257,6 +2265,7 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
+ 	char name[NSLABEL_NAME_LEN];
+ 	struct device *dev = NULL;
+ 	struct resource *res;
++	uuid_t uuid;
+ 
+ 	if (!nsl_validate_type_guid(ndd, nd_label, &nd_set->type_guid))
+ 		return ERR_PTR(-EAGAIN);
+@@ -2271,7 +2280,8 @@ static struct device *create_namespace_blk(struct nd_region *nd_region,
+ 	dev->parent = &nd_region->dev;
+ 	nsblk->id = -1;
+ 	nsblk->lbasize = nsl_get_lbasize(ndd, nd_label);
+-	nsblk->uuid = kmemdup(nd_label->uuid, NSLABEL_UUID_LEN, GFP_KERNEL);
++	nsl_get_uuid(ndd, nd_label, &uuid);
++	nsblk->uuid = kmemdup(&uuid, sizeof(uuid_t), GFP_KERNEL);
+ 	nsblk->common.claim_class = nsl_get_claim_class(ndd, nd_label);
+ 	if (!nsblk->uuid)
+ 		goto blk_err;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 564faa36a3ca..a11850dd475d 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -126,8 +126,9 @@ void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
+ void nd_synchronize(void);
+ void __nd_device_register(struct device *dev);
+ struct nd_label_id;
+-char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
+-bool nd_is_uuid_unique(struct device *dev, u8 *uuid);
++char *nd_label_gen_id(struct nd_label_id *label_id, const uuid_t *uuid,
++		      u32 flags);
++bool nd_is_uuid_unique(struct device *dev, uuid_t *uuid);
+ struct nd_region;
+ struct nvdimm_drvdata;
+ struct nd_mapping;
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 5467ebbb4a6b..ec3c9aad7f50 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -177,6 +177,38 @@ static inline void nsl_set_lbasize(struct nvdimm_drvdata *ndd,
+ 	nd_label->lbasize = __cpu_to_le64(lbasize);
+ }
+ 
++static inline const uuid_t *nsl_get_uuid(struct nvdimm_drvdata *ndd,
++					 struct nd_namespace_label *nd_label,
++					 uuid_t *uuid)
++{
++	import_uuid(uuid, nd_label->uuid);
++	return uuid;
++}
++
++static inline const uuid_t *nsl_set_uuid(struct nvdimm_drvdata *ndd,
++					 struct nd_namespace_label *nd_label,
++					 const uuid_t *uuid)
++{
++	export_uuid(nd_label->uuid, uuid);
++	return uuid;
++}
++
++static inline bool nsl_uuid_equal(struct nvdimm_drvdata *ndd,
++				  struct nd_namespace_label *nd_label,
++				  const uuid_t *uuid)
++{
++	uuid_t tmp;
++
++	import_uuid(&tmp, nd_label->uuid);
++	return uuid_equal(&tmp, uuid);
++}
++
++static inline const u8 *nsl_uuid_raw(struct nvdimm_drvdata *ndd,
++				     struct nd_namespace_label *nd_label)
++{
++	return nd_label->uuid;
++}
++
+ bool nsl_validate_blk_isetcookie(struct nvdimm_drvdata *ndd,
+ 				 struct nd_namespace_label *nd_label,
+ 				 u64 isetcookie);
+@@ -335,7 +367,7 @@ struct nd_btt {
+ 	struct btt *btt;
+ 	unsigned long lbasize;
+ 	u64 size;
+-	u8 *uuid;
++	uuid_t *uuid;
+ 	int id;
+ 	int initial_offset;
+ 	u16 version_major;
+@@ -350,7 +382,7 @@ enum nd_pfn_mode {
+ 
+ struct nd_pfn {
+ 	int id;
+-	u8 *uuid;
++	uuid_t *uuid;
+ 	struct device dev;
+ 	unsigned long align;
+ 	unsigned long npfns;
+@@ -378,7 +410,7 @@ void wait_nvdimm_bus_probe_idle(struct device *dev);
+ void nd_device_register(struct device *dev);
+ void nd_device_unregister(struct device *dev, enum nd_async_mode mode);
+ void nd_device_notify(struct device *dev, enum nvdimm_event event);
+-int nd_uuid_store(struct device *dev, u8 **uuid_out, const char *buf,
++int nd_uuid_store(struct device *dev, uuid_t **uuid_out, const char *buf,
+ 		size_t len);
+ ssize_t nd_size_select_show(unsigned long current_size,
+ 		const unsigned long *supported, char *buf);
+@@ -561,6 +593,6 @@ static inline bool is_bad_pmem(struct badblocks *bb, sector_t sector,
+ 	return false;
+ }
+ resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk);
+-const u8 *nd_dev_to_uuid(struct device *dev);
++const uuid_t *nd_dev_to_uuid(struct device *dev);
+ bool pmem_should_map_pages(struct device *dev);
+ #endif /* __ND_H__ */
+diff --git a/drivers/nvdimm/pfn_devs.c b/drivers/nvdimm/pfn_devs.c
+index b499df630d4d..58eda16f5c53 100644
+--- a/drivers/nvdimm/pfn_devs.c
++++ b/drivers/nvdimm/pfn_devs.c
+@@ -452,7 +452,7 @@ int nd_pfn_validate(struct nd_pfn *nd_pfn, const char *sig)
+ 	unsigned long align, start_pad;
+ 	struct nd_pfn_sb *pfn_sb = nd_pfn->pfn_sb;
+ 	struct nd_namespace_common *ndns = nd_pfn->ndns;
+-	const u8 *parent_uuid = nd_dev_to_uuid(&ndns->dev);
++	const uuid_t *parent_uuid = nd_dev_to_uuid(&ndns->dev);
+ 
+ 	if (!pfn_sb || !ndns)
+ 		return -ENODEV;
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index ee9ad76afbba..8a8c63edb1b2 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -88,7 +88,7 @@ struct nd_namespace_pmem {
+ 	struct nd_namespace_io nsio;
+ 	unsigned long lbasize;
+ 	char *alt_name;
+-	u8 *uuid;
++	uuid_t *uuid;
+ 	int id;
+ };
+ 
+@@ -105,7 +105,7 @@ struct nd_namespace_pmem {
+ struct nd_namespace_blk {
+ 	struct nd_namespace_common common;
+ 	char *alt_name;
+-	u8 *uuid;
++	uuid_t *uuid;
+ 	int id;
+ 	unsigned long lbasize;
+ 	resource_size_t size;
 
-The "nfit_test" approach of mocking up platform resources via an
-external test module continues to yield positive results catching
-regressions early and often. So this attempts to repeat that success
-with a "cxl_test" module to inject custom crafted topologies and command
-responses into the CXL subsystem's sysfs and ioctl UAPIs.
-
-The first target for cxl_test to verify is the integration of CXL with
-LIBNVDIMM and the new support for the CXL namespace label + region-label
-format. The 6 patches in this series finish off the work that was merged
-for the v5.15 merge window to introduce support for the new label
-format.
-
-The next 10 patches rework the CXL PCI driver to move more common
-infrastructure into the core for the unit test environment to reuse. The
-largest change here is disconnecting the mailbox command processing
-infrastructure from the PCI specific transport. The unit test
-environment replaces the PCI transport with a custom backend with mocked
-responses to command requests.
-
-Patch 17 introduces just enough mocked functionality for the cxl_acpi
-driver to load against cxl_test resources. Patch 21 fixes the first bug
-discovered by this framework, namely that HDM decoder target list maps
-were not being filled out.
-
-Finally patches 19 and 20 introduce a cxl_test representation of memory
-expander devices. In this initial implementation these memory expander
-targets implement just enough command support to pass the basic driver
-init sequence and enable label command passthrough to LIBNVDIMM.
-
-The topology of cxl_test includes:
-- (4) platform fixed memory windows. One each of a x1-volatile,
-  x4-volatile, x1-persistent, and x4-persistent.
-- (4) Host bridges each with (2) root ports
-- (8) CXL memory expanders, one for each root port
-- Each memory expander device supports the GET_SUPPORTED_LOGS, GET_LOG,
-  IDENTIFY, GET_LSA, and SET_LSA commands.
-
-Going forward the expectation is that where possible new UAPI visible
-subsystem functionality comes with cxl_test emulation of the same.
-
-The build process for cxl_test is:
-
-    make M=tools/testing/cxl
-    make M=tools/testing/cxl modules_install
-
-The implementation methodology of the test module is the same as
-nfit_test where the bulk of the emulation comes from replacing symbols
-that cxl_acpi and the cxl_core import with mocked implementation of
-those symbols. See the "--wrap=" lines in tools/testing/cxl/Kbuild. Some
-symbols need to be replaced, but are local to the modules like
-match_add_root_ports(). In those cases the local symbol is marked __weak
-(via __mock) with a strong implementation coming from
-tools/testing/cxl/. The goal being to be minimally invasive to
-production code paths.
-
----
-
-Dan Williams (21):
-      libnvdimm/labels: Add uuid helpers
-      libnvdimm/label: Add a helper for nlabel validation
-      libnvdimm/labels: Introduce the concept of multi-range namespace labels
-      libnvdimm/labels: Fix kernel-doc for label.h
-      libnvdimm/label: Define CXL region labels
-      libnvdimm/labels: Introduce CXL labels
-      cxl/pci: Make 'struct cxl_mem' device type generic
-      cxl/pci: Clean up cxl_mem_get_partition_info()
-      cxl/mbox: Introduce the mbox_send operation
-      cxl/pci: Drop idr.h
-      cxl/mbox: Move mailbox and other non-PCI specific infrastructure to the core
-      cxl/pci: Use module_pci_driver
-      cxl/mbox: Convert 'enabled_cmds' to DECLARE_BITMAP
-      cxl/mbox: Add exclusive kernel command support
-      cxl/pmem: Translate NVDIMM label commands to CXL label commands
-      cxl/pmem: Add support for multiple nvdimm-bridge objects
-      tools/testing/cxl: Introduce a mocked-up CXL port hierarchy
-      cxl/bus: Populate the target list at decoder create
-      cxl/mbox: Move command definitions to common location
-      tools/testing/cxl: Introduce a mock memory device + driver
-      cxl/core: Split decoder setup into alloc + add
-
-
- Documentation/driver-api/cxl/memory-devices.rst |    3 
- drivers/cxl/acpi.c                              |  133 ++-
- drivers/cxl/core/Makefile                       |    1 
- drivers/cxl/core/bus.c                          |  114 +-
- drivers/cxl/core/core.h                         |   11 
- drivers/cxl/core/mbox.c                         |  787 +++++++++++++++++
- drivers/cxl/core/memdev.c                       |  117 ++-
- drivers/cxl/core/pmem.c                         |   39 +
- drivers/cxl/cxl.h                               |   49 +
- drivers/cxl/cxlmem.h                            |  202 ++++
- drivers/cxl/pci.c                               | 1059 +----------------------
- drivers/cxl/pmem.c                              |  172 +++-
- drivers/nvdimm/btt.c                            |   11 
- drivers/nvdimm/btt_devs.c                       |   14 
- drivers/nvdimm/core.c                           |   40 -
- drivers/nvdimm/label.c                          |  139 ++-
- drivers/nvdimm/label.h                          |   94 ++
- drivers/nvdimm/namespace_devs.c                 |   95 +-
- drivers/nvdimm/nd-core.h                        |    5 
- drivers/nvdimm/nd.h                             |  185 +++-
- drivers/nvdimm/pfn_devs.c                       |    2 
- include/linux/nd.h                              |    4 
- tools/testing/cxl/Kbuild                        |   38 +
- tools/testing/cxl/config_check.c                |   13 
- tools/testing/cxl/mock_acpi.c                   |  109 ++
- tools/testing/cxl/mock_pmem.c                   |   24 +
- tools/testing/cxl/test/Kbuild                   |   10 
- tools/testing/cxl/test/cxl.c                    |  576 +++++++++++++
- tools/testing/cxl/test/mem.c                    |  256 ++++++
- tools/testing/cxl/test/mock.c                   |  171 ++++
- tools/testing/cxl/test/mock.h                   |   27 +
- 31 files changed, 3134 insertions(+), 1366 deletions(-)
- create mode 100644 drivers/cxl/core/mbox.c
- create mode 100644 tools/testing/cxl/Kbuild
- create mode 100644 tools/testing/cxl/config_check.c
- create mode 100644 tools/testing/cxl/mock_acpi.c
- create mode 100644 tools/testing/cxl/mock_pmem.c
- create mode 100644 tools/testing/cxl/test/Kbuild
- create mode 100644 tools/testing/cxl/test/cxl.c
- create mode 100644 tools/testing/cxl/test/mem.c
- create mode 100644 tools/testing/cxl/test/mock.c
- create mode 100644 tools/testing/cxl/test/mock.h
-
-base-commit: 2b922a9d064f8e86b53b04f5819917b7a04142ed
