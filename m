@@ -1,225 +1,185 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDBE13FF0
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 17:22:28 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10102"; a="220530199"
-X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
-   d="scan'208";a="220530199"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 10:22:28 -0700
-X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
-   d="scan'208";a="504544209"
-Received: from ado-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.129.108])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 10:22:27 -0700
-Date: Thu, 9 Sep 2021 10:22:26 -0700
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org, vishal.l.verma@intel.com,
-	nvdimm@lists.linux.dev, alison.schofield@intel.com,
-	ira.weiny@intel.com, Jonathan.Cameron@huawei.com
-Subject: Re: [PATCH v4 15/21] cxl/pmem: Translate NVDIMM label commands to
- CXL label commands
-Message-ID: <20210909172226.mwj6jdmmhmxir4je@intel.com>
-References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
- <163116437437.2460985.13509423327603255812.stgit@dwillia2-desk3.amr.corp.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86DB33FF2
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 18:07:05 +0000 (UTC)
+Received: by mail-pg1-f176.google.com with SMTP id w8so2610890pgf.5
+        for <nvdimm@lists.linux.dev>; Thu, 09 Sep 2021 11:07:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=DB7d8qlsEXjW0/p+LkG3Ot1Z62d1BxqW2zd0idHHe0Q=;
+        b=eVgSeQ7F796y82CTKM+Cp2kt12L7ThBsq/xNzKztOT6g/3VY9KWlhuZGqyGyNk7fmj
+         beswRIhKQGuXNkb9M8xG5PwT7ZyJfipkE3mQKUknallBSc2YpWlS6/qpTaDoEnJUl/vp
+         tcrbHr4tCMAYPfUowT1tu8kCO8jgfb7iI3fepUoy/4YTu2St+uKVy0nQUNHy1npzvqo5
+         CL3uQvK7PDezWBPOG78OCf3Wq5Zr8xikIB6UsQq/NCPLtiOOYCiiR5T1c5IxTqvJA3dv
+         aQQjqE63ueJ91oDcyoxMlV1t+5UgIKWLfNr5B51PIP//a9byyKevXzv3uJAbvtQ7ACqi
+         Va9w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=DB7d8qlsEXjW0/p+LkG3Ot1Z62d1BxqW2zd0idHHe0Q=;
+        b=6DL/rijNbBcTHApNTmNwSr24M3idkZqfem3GQHY6qE6wTngiQxenAwBbdoGD49vT7W
+         Smn3FI0lZX2nPOxSX4YZ2RPW7vFkY5cN6qlFUj6MlBcliXvKYW+dWE3zIhOKROAhAr4Y
+         5ZuYWyOU6AXeLX26bJbzKx/h5ebRDvI4x5aHrPNcQ035JycU63K8CitNe4T8PBCWcuRV
+         NSTsM+9776l4+9vrytvt6Z/84RByl1y33QlrnSkaBXLuaJ4DhW9lmtSl3TKh6ObcyJxq
+         2urQf+p/ui4Ik4Fia524er+Qr/dKjJZ57ZbWLge/UJMovVYmvpddsZChBgpkNMEeFNhv
+         OLHg==
+X-Gm-Message-State: AOAM532XkkjjLfzCedrVYcWvzrwfZ5Yjzry2XeslV0NxClUNhco+fvxU
+	8vxB0cOGljNnfDv/zR8dP2qIKn8cZ7Wtl5hgsLiByA==
+X-Google-Smtp-Source: ABdhPJyqAkf2g/NQRuEFf1jdcFOpyadRO6oGaB4+JFa5Qz5TVO7SvGXbKcXs8Yjvowe/QcDEQxiFgTi++eb6eDOArdI=
+X-Received: by 2002:a62:1b92:0:b0:3eb:3f92:724 with SMTP id
+ b140-20020a621b92000000b003eb3f920724mr4134686pfb.3.1631210824902; Thu, 09
+ Sep 2021 11:07:04 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <163116437437.2460985.13509423327603255812.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <163116433533.2460985.14299233004385504131.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20210909162005.ybqjh5xrbhg43wtr@intel.com>
+In-Reply-To: <20210909162005.ybqjh5xrbhg43wtr@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 9 Sep 2021 11:06:53 -0700
+Message-ID: <CAPcyv4h3LmmpTt_0Om0OCxWPXo-8jucA-9p3rwhx_j2vCFEj9Q@mail.gmail.com>
+Subject: Re: [PATCH v4 08/21] cxl/pci: Clean up cxl_mem_get_partition_info()
+To: Ben Widawsky <ben.widawsky@intel.com>
+Cc: linux-cxl@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, 
+	Vishal L Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	"Schofield, Alison" <alison.schofield@intel.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On 21-09-08 22:12:54, Dan Williams wrote:
-> The LIBNVDIMM IOCTL UAPI calls back to the nvdimm-bus-provider to
-> translate the Linux command payload to the device native command format.
-> The LIBNVDIMM commands get-config-size, get-config-data, and
-> set-config-data, map to the CXL memory device commands device-identify,
-> get-lsa, and set-lsa. Recall that the label-storage-area (LSA) on an
-> NVDIMM device arranges for the provisioning of namespaces. Additionally
-> for CXL the LSA is used for provisioning regions as well.
-> 
-> The data from device-identify is already cached in the 'struct cxl_mem'
-> instance associated with @cxl_nvd, so that payload return is simply
-> crafted and no CXL command is issued. The conversion for get-lsa is
-> straightforward, but the conversion for set-lsa requires an allocation
-> to append the set-lsa header in front of the payload.
-> 
-> Acked-by: Ben Widawsky <ben.widawsky@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/cxl/pmem.c |  125 ++++++++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 121 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-> index a972af7a6e0b..29d24f13aa73 100644
-> --- a/drivers/cxl/pmem.c
-> +++ b/drivers/cxl/pmem.c
-> @@ -1,6 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0-only
->  /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
->  #include <linux/libnvdimm.h>
-> +#include <asm/unaligned.h>
->  #include <linux/device.h>
->  #include <linux/module.h>
->  #include <linux/ndctl.h>
-> @@ -48,10 +49,10 @@ static int cxl_nvdimm_probe(struct device *dev)
->  {
->  	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
->  	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-> +	unsigned long flags = 0, cmd_mask = 0;
->  	struct cxl_mem *cxlm = cxlmd->cxlm;
->  	struct cxl_nvdimm_bridge *cxl_nvb;
->  	struct nvdimm *nvdimm = NULL;
-> -	unsigned long flags = 0;
->  	int rc = -ENXIO;
->  
->  	cxl_nvb = cxl_find_nvdimm_bridge();
-> @@ -66,8 +67,11 @@ static int cxl_nvdimm_probe(struct device *dev)
->  
->  	set_bit(NDD_LABELING, &flags);
->  	rc = -ENOMEM;
-> -	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags, 0, 0,
-> -			       NULL);
-> +	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
-> +	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-> +	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-> +	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-> +			       cmd_mask, 0, NULL);
->  	dev_set_drvdata(dev, nvdimm);
->  
->  out_unlock:
-> @@ -89,11 +93,124 @@ static struct cxl_driver cxl_nvdimm_driver = {
->  	.id = CXL_DEVICE_NVDIMM,
->  };
->  
-> +static int cxl_pmem_get_config_size(struct cxl_mem *cxlm,
-> +				    struct nd_cmd_get_config_size *cmd,
-> +				    unsigned int buf_len, int *cmd_rc)
-> +{
-> +	if (sizeof(*cmd) > buf_len)
-> +		return -EINVAL;
-> +
-> +	*cmd = (struct nd_cmd_get_config_size) {
-> +		 .config_size = cxlm->lsa_size,
-> +		 .max_xfer = cxlm->payload_size,
-> +	};
-> +	*cmd_rc = 0;
-> +
-> +	return 0;
-> +}
-> +
-> +static int cxl_pmem_get_config_data(struct cxl_mem *cxlm,
-> +				    struct nd_cmd_get_config_data_hdr *cmd,
-> +				    unsigned int buf_len, int *cmd_rc)
-> +{
-> +	struct cxl_mbox_get_lsa {
-> +		u32 offset;
-> +		u32 length;
-> +	} get_lsa;
-> +	int rc;
-> +
-> +	if (sizeof(*cmd) > buf_len)
-> +		return -EINVAL;
-> +	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
-> +		return -EINVAL;
-> +
-> +	get_lsa = (struct cxl_mbox_get_lsa) {
-> +		.offset = cmd->in_offset,
-> +		.length = cmd->in_length,
-> +	};
-> +
-> +	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_GET_LSA, &get_lsa,
-> +				   sizeof(get_lsa), cmd->out_buf,
-> +				   cmd->in_length);
-> +	cmd->status = 0;
-> +	*cmd_rc = 0;
-> +
-> +	return rc;
-> +}
-> +
-> +static int cxl_pmem_set_config_data(struct cxl_mem *cxlm,
-> +				    struct nd_cmd_set_config_hdr *cmd,
-> +				    unsigned int buf_len, int *cmd_rc)
-> +{
-> +	struct cxl_mbox_set_lsa {
-> +		u32 offset;
-> +		u32 reserved;
-> +		u8 data[];
-> +	} *set_lsa;
-> +	int rc;
-> +
-> +	if (sizeof(*cmd) > buf_len)
-> +		return -EINVAL;
-> +
-> +	/* 4-byte status follows the input data in the payload */
-> +	if (struct_size(cmd, in_buf, cmd->in_length) + 4 > buf_len)
-> +		return -EINVAL;
-> +
-> +	set_lsa =
-> +		kvzalloc(struct_size(set_lsa, data, cmd->in_length), GFP_KERNEL);
-> +	if (!set_lsa)
-> +		return -ENOMEM;
-> +
-> +	*set_lsa = (struct cxl_mbox_set_lsa) {
-> +		.offset = cmd->in_offset,
-> +	};
-> +	memcpy(set_lsa->data, cmd->in_buf, cmd->in_length);
-> +
-> +	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_SET_LSA, set_lsa,
-> +				   struct_size(set_lsa, data, cmd->in_length),
-> +				   NULL, 0);
-> +
-> +	/*
-> +	 * Set "firmware" status (4-packed bytes at the end of the input
-> +	 * payload.
-> +	 */
-> +	put_unaligned(0, (u32 *) &cmd->in_buf[cmd->in_length]);
-> +	*cmd_rc = 0;
-> +	kvfree(set_lsa);
-> +
-> +	return rc;
-> +}
-> +
-> +static int cxl_pmem_nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd,
-> +			       void *buf, unsigned int buf_len, int *cmd_rc)
-> +{
-> +	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
-> +	unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
-> +	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-> +	struct cxl_mem *cxlm = cxlmd->cxlm;
-> +
-> +	if (!test_bit(cmd, &cmd_mask))
-> +		return -ENOTTY;
-> +
-> +	switch (cmd) {
-> +	case ND_CMD_GET_CONFIG_SIZE:
-> +		return cxl_pmem_get_config_size(cxlm, buf, buf_len, cmd_rc);
-> +	case ND_CMD_GET_CONFIG_DATA:
-> +		return cxl_pmem_get_config_data(cxlm, buf, buf_len, cmd_rc);
-> +	case ND_CMD_SET_CONFIG_DATA:
-> +		return cxl_pmem_set_config_data(cxlm, buf, buf_len, cmd_rc);
-> +	default:
-> +		return -ENOTTY;
-> +	}
-> +}
-> +
+On Thu, Sep 9, 2021 at 9:20 AM Ben Widawsky <ben.widawsky@intel.com> wrote:
+>
+> On 21-09-08 22:12:15, Dan Williams wrote:
+> > Commit 0b9159d0ff21 ("cxl/pci: Store memory capacity values") missed
+> > updating the kernel-doc for 'struct cxl_mem' leading to the following
+> > warnings:
+> >
+> > ./scripts/kernel-doc -v drivers/cxl/cxlmem.h 2>&1 | grep warn
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'total_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'volatile_only_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'persistent_only_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'partition_align_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'active_volatile_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'active_persistent_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'next_volatile_bytes' not described in 'cxl_mem'
+> > drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'next_persistent_bytes' not described in 'cxl_mem'
+> >
+> > Also, it is redundant to describe those same parameters in the
+> > kernel-doc for cxl_mem_get_partition_info(). Given the only user of that
+> > routine updates the values in @cxlm, just do that implicitly internal to
+> > the helper.
+> >
+> > Cc: Ira Weiny <ira.weiny@intel.com>
+> > Reported-by: Ben Widawsky <ben.widawsky@intel.com>
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> > ---
+> >  drivers/cxl/cxlmem.h |   15 +++++++++++++--
+> >  drivers/cxl/pci.c    |   35 +++++++++++------------------------
+> >  2 files changed, 24 insertions(+), 26 deletions(-)
+> >
+> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > index d5334df83fb2..c6fce966084a 100644
+> > --- a/drivers/cxl/cxlmem.h
+> > +++ b/drivers/cxl/cxlmem.h
+> > @@ -78,8 +78,19 @@ devm_cxl_add_memdev(struct cxl_mem *cxlm,
+> >   * @mbox_mutex: Mutex to synchronize mailbox access.
+> >   * @firmware_version: Firmware version for the memory device.
+> >   * @enabled_cmds: Hardware commands found enabled in CEL.
+> > - * @pmem_range: Persistent memory capacity information.
+> > - * @ram_range: Volatile memory capacity information.
+> > + * @pmem_range: Active Persistent memory capacity configuration
+> > + * @ram_range: Active Volatile memory capacity configuration
+> > + * @total_bytes: sum of all possible capacities
+> > + * @volatile_only_bytes: hard volatile capacity
+> > + * @persistent_only_bytes: hard persistent capacity
+> > + * @partition_align_bytes: soft setting for configurable capacity
+> > + * @active_volatile_bytes: sum of hard + soft volatile
+> > + * @active_persistent_bytes: sum of hard + soft persistent
+>
+> Looking at this now, probably makes sense to create some helper macros or inline
+> functions to calculate these as needed, rather than storing them in the
+> structure.
 
-Is there some intended purpose for passing cmd_rc down, if it isn't actually
-ever used? Perhaps add it when needed later?
+Perhaps, I would need to look deeper into what is worth caching vs
+what is suitable to be recalculated. Do you have a proposal here?
 
->  static int cxl_pmem_ctl(struct nvdimm_bus_descriptor *nd_desc,
->  			struct nvdimm *nvdimm, unsigned int cmd, void *buf,
->  			unsigned int buf_len, int *cmd_rc)
->  {
-> -	return -ENOTTY;
-> +	if (!nvdimm)
-> +		return -ENOTTY;
-> +	return cxl_pmem_nvdimm_ctl(nvdimm, cmd, buf, buf_len, cmd_rc);
->  }
->  
->  static bool online_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb)
-> 
+
+>
+> > + * @next_volatile_bytes: volatile capacity change pending device reset
+> > + * @next_persistent_bytes: persistent capacity change pending device reset
+> > + *
+> > + * See section 8.2.9.5.2 Capacity Configuration and Label Storage for
+> > + * details on capacity parameters.
+> >   */
+> >  struct cxl_mem {
+> >       struct device *dev;
+> > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+> > index c1e1d12e24b6..8077d907e7d3 100644
+> > --- a/drivers/cxl/pci.c
+> > +++ b/drivers/cxl/pci.c
+> > @@ -1262,11 +1262,7 @@ static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_mem *cxlm)
+> >
+> >  /**
+> >   * cxl_mem_get_partition_info - Get partition info
+> > - * @cxlm: The device to act on
+> > - * @active_volatile_bytes: returned active volatile capacity
+> > - * @active_persistent_bytes: returned active persistent capacity
+> > - * @next_volatile_bytes: return next volatile capacity
+> > - * @next_persistent_bytes: return next persistent capacity
+> > + * @cxlm: cxl_mem instance to update partition info
+> >   *
+> >   * Retrieve the current partition info for the device specified.  If not 0, the
+> >   * 'next' values are pending and take affect on next cold reset.
+> > @@ -1275,11 +1271,7 @@ static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_mem *cxlm)
+> >   *
+> >   * See CXL @8.2.9.5.2.1 Get Partition Info
+> >   */
+> > -static int cxl_mem_get_partition_info(struct cxl_mem *cxlm,
+> > -                                   u64 *active_volatile_bytes,
+> > -                                   u64 *active_persistent_bytes,
+> > -                                   u64 *next_volatile_bytes,
+> > -                                   u64 *next_persistent_bytes)
+> > +static int cxl_mem_get_partition_info(struct cxl_mem *cxlm)
+> >  {
+> >       struct cxl_mbox_get_partition_info {
+> >               __le64 active_volatile_cap;
+> > @@ -1294,15 +1286,14 @@ static int cxl_mem_get_partition_info(struct cxl_mem *cxlm,
+> >       if (rc)
+> >               return rc;
+> >
+> > -     *active_volatile_bytes = le64_to_cpu(pi.active_volatile_cap);
+> > -     *active_persistent_bytes = le64_to_cpu(pi.active_persistent_cap);
+> > -     *next_volatile_bytes = le64_to_cpu(pi.next_volatile_cap);
+> > -     *next_persistent_bytes = le64_to_cpu(pi.next_volatile_cap);
+> > -
+> > -     *active_volatile_bytes *= CXL_CAPACITY_MULTIPLIER;
+> > -     *active_persistent_bytes *= CXL_CAPACITY_MULTIPLIER;
+> > -     *next_volatile_bytes *= CXL_CAPACITY_MULTIPLIER;
+> > -     *next_persistent_bytes *= CXL_CAPACITY_MULTIPLIER;
+> > +     cxlm->active_volatile_bytes =
+> > +             le64_to_cpu(pi.active_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
+> > +     cxlm->active_persistent_bytes =
+> > +             le64_to_cpu(pi.active_persistent_cap) * CXL_CAPACITY_MULTIPLIER;
+> > +     cxlm->next_volatile_bytes =
+> > +             le64_to_cpu(pi.next_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
+> > +     cxlm->next_persistent_bytes =
+> > +             le64_to_cpu(pi.next_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
+>
+> Personally, I prefer the more functional style implementation. I guess if you
+> wanted to make the change, my preference would be to kill
+> cxl_mem_get_partition_info() entirely. Up to you though...
+
+I was bringing this function in line with the precedent we already set
+with cxl_mem_identify() that caches the result in @cxlm. Are you
+saying you want to change that style too?
+
+I feel like caching device attributes is idiomatic. Look at all the
+PCI attributes that are cached in "struct pci_device" that could be
+re-read or re-calculated rather than cached. In general I think a
+routine that returns 4 values is better off filling in a structure.
