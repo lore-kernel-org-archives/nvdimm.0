@@ -1,77 +1,96 @@
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 894813FF0
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 15:17:09 +0000 (UTC)
-Received: by mail-pj1-f41.google.com with SMTP id w19-20020a17090aaf9300b00191e6d10a19so1690791pjq.1
-        for <nvdimm@lists.linux.dev>; Thu, 09 Sep 2021 08:17:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=AzpI9xRwH63S4sY7PZzWuRKdR4DgsYKYQ1tUCrYHpxo=;
-        b=dJ10V6/NsRo1W9cdQBMQ3kp9HeqUBGBiGonqDUGUrQA+L/9hCpOXCtlJ0JXYs2sB8w
-         Yx4b1wAxryGQ6OH96UxXMo6WhIWD2ZQ57Wlzqpzgv8Czoe6Z3nB0xVnBP0/yZUGO5//k
-         pAkusPFChxSxD2HMYcwbDANynJHFOkupRKJPfyuOUes4LzWfOXG0QYSWKAjZhHZOhDAe
-         XSVaQbZpuStkHpq7VfzNWJSGfYLR1jvvYMXyGO/5Q1H4yLUWnKwlAjqhvQ4kUd7MUPNt
-         U0ILtq36aeKM/fxEJyDEqHK0n86gJzQrp4+1rPKTjH3TeJ0ZGCUQQizchR4kneFZgDA4
-         9VZA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=AzpI9xRwH63S4sY7PZzWuRKdR4DgsYKYQ1tUCrYHpxo=;
-        b=FaeAWCJduq3OqQmV+xD53BYE7wv5obCkWjrX+oMzVPpMrxlFPy2NrGTsLiPwB14ZJt
-         YbaGXsLMkNCU/YeJ/6QfOnXa9J/KTTrFs+41jaRPW0oR82sO4/9Hpl1/IHyp9kgCLXPh
-         7i7MmElrwCQAeudyosH5rWPqTgGnte+ujfNCvIdHQV7+tFfFL+it/w1plvzhmy232L43
-         DT3bfr6f335iwEM0hyxV5OyGfjVpzCLKNtFnrzSV008mizvutkURjnUv2MY9FXihEEOW
-         qnJEHO0hRtnI6RCKecRUbD/lyjycYol1CUnacRKvHlG1J89FmGuTXGmQM1ZJ8nMMJVhE
-         cHrw==
-X-Gm-Message-State: AOAM533tTP8uxmZtmG0eq4iylY8gejF1G/5sASkcc1s7GMv76Ow18jzG
-	kzIQeANSjaxL2DMg6MNpUn02Ac9ojOWbrJvpPmZDWg==
-X-Google-Smtp-Source: ABdhPJwb3JKlDwjVI/1z+amoXzg0p9IxzGtjt02Ri3upXE1tVsq1lvKgxOb9/WOQY4kaqGujr7fVvf4WeKYHQOZCudc=
-X-Received: by 2002:a17:90a:d686:: with SMTP id x6mr4219398pju.8.1631200628814;
- Thu, 09 Sep 2021 08:17:08 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 26DF43FF0
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 15:59:00 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="201025664"
+X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
+   d="scan'208";a="201025664"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 08:58:31 -0700
+X-IronPort-AV: E=Sophos;i="5.85,280,1624345200"; 
+   d="scan'208";a="525581655"
+Received: from ado-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.129.108])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 08:58:31 -0700
+Date: Thu, 9 Sep 2021 08:58:29 -0700
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-cxl@vger.kernel.org,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	vishal.l.verma@intel.com, nvdimm@lists.linux.dev,
+	alison.schofield@intel.com, ira.weiny@intel.com
+Subject: Re: [PATCH v4 05/21] libnvdimm/label: Define CXL region labels
+Message-ID: <20210909155829.vjqznxbql2fgna3q@intel.com>
+References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <163116431893.2460985.4003511000574373922.stgit@dwillia2-desk3.amr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
- <163116430804.2460985.5482188351381597529.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210909140942.000025e5@Huawei.com>
-In-Reply-To: <20210909140942.000025e5@Huawei.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 9 Sep 2021 08:16:58 -0700
-Message-ID: <CAPcyv4hvMzk3uaV6wRCoqpbHXRmx4HvDyvc0OovLUbAJc7bXkw@mail.gmail.com>
-Subject: Re: [PATCH v4 03/21] libnvdimm/labels: Introduce the concept of
- multi-range namespace labels
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, Vishal L Verma <vishal.l.verma@intel.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Ben Widawsky <ben.widawsky@intel.com>, 
-	"Schofield, Alison" <alison.schofield@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <163116431893.2460985.4003511000574373922.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-On Thu, Sep 9, 2021 at 6:10 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Wed, 8 Sep 2021 22:11:48 -0700
-> Dan Williams <dan.j.williams@intel.com> wrote:
->
-> > The CXL specification defines a mechanism for namespaces to be comprised
-> > of multiple dis-contiguous ranges. Introduce that concept to the legacy
-> > NVDIMM namespace implementation with a new nsl_set_nrange() helper, that
-> > sets the number of ranges to 1. Once the NVDIMM subsystem supports CXL
-> > labels and updates its namespace capacity provisioning for
-> > dis-contiguous support nsl_set_nrange() can be updated, but in the
-> > meantime CXL label validation requires nrange be non-zero.
-> >
-> > Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
+On 21-09-08 22:11:58, Dan Williams wrote:
+> Add a definition of the CXL 2.0 region label format. Note this is done
+> as a separate patch to make the next patch that adds namespace label
+> support easier to read.
+> 
+> Reported-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
->
-> (gave tag on v3 and this looks to be the same).
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/nvdimm/label.h |   32 ++++++++++++++++++++++++++++++++
+>  1 file changed, 32 insertions(+)
 
-Whoops, sorry about that, now recorded.
+Wondering how awkward it's going to be to use this in the cxl region driver. Is
+the intent to push all device based reads/writes to labels happen in
+drivers/nvdimm?
+
+> 
+> diff --git a/drivers/nvdimm/label.h b/drivers/nvdimm/label.h
+> index 7fa757d47846..0519aacc2926 100644
+> --- a/drivers/nvdimm/label.h
+> +++ b/drivers/nvdimm/label.h
+> @@ -66,6 +66,38 @@ struct nd_namespace_index {
+>  	u8 free[];
+>  };
+>  
+> +/**
+> + * struct cxl_region_label - CXL 2.0 Table 211
+> + * @type: uuid identifying this label format (region)
+> + * @uuid: uuid for the region this label describes
+> + * @flags: NSLABEL_FLAG_UPDATING (all other flags reserved)
+> + * @nlabel: 1 per interleave-way in the region
+> + * @position: this label's position in the set
+> + * @dpa: start address in device-local capacity for this label
+> + * @rawsize: size of this label's contribution to region
+> + * @hpa: mandatory system physical address to map this region
+> + * @slot: slot id of this label in label area
+> + * @ig: interleave granularity (1 << @ig) * 256 bytes
+> + * @align: alignment in SZ_256M blocks
+> + * @reserved: reserved
+> + * @checksum: fletcher64 sum of this label
+> + */
+> +struct cxl_region_label {
+> +	u8 type[NSLABEL_UUID_LEN];
+> +	u8 uuid[NSLABEL_UUID_LEN];
+> +	__le32 flags;
+> +	__le16 nlabel;
+> +	__le16 position;
+> +	__le64 dpa;
+> +	__le64 rawsize;
+> +	__le64 hpa;
+> +	__le32 slot;
+> +	__le32 ig;
+> +	__le32 align;
+> +	u8 reserved[0xac];
+> +	__le64 checksum;
+> +};
+> +
+>  /**
+>   * struct nd_namespace_label - namespace superblock
+>   * @uuid: UUID per RFC 4122
+> 
