@@ -1,26 +1,26 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 73F2F3FE1
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 05:12:39 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="242990002"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0FDD3FE1
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 05:12:44 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="220712476"
 X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
-   d="scan'208";a="242990002"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:12:39 -0700
+   d="scan'208";a="220712476"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:12:44 -0700
 X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
-   d="scan'208";a="696079569"
+   d="scan'208";a="580698657"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:12:38 -0700
-Subject: [PATCH v4 12/21] cxl/pci: Use module_pci_driver
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:12:44 -0700
+Subject: [PATCH v4 13/21] cxl/mbox: Convert 'enabled_cmds' to DECLARE_BITMAP
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: Ben Widawsky <ben.widawsky@intel.com>,
  Jonathan Cameron <Jonathan.Cameron@huawei.com>, vishal.l.verma@intel.com,
  nvdimm@lists.linux.dev, ben.widawsky@intel.com, alison.schofield@intel.com,
  vishal.l.verma@intel.com, ira.weiny@intel.com, Jonathan.Cameron@huawei.com
-Date: Wed, 08 Sep 2021 22:12:38 -0700
-Message-ID: <163116435825.2460985.7201322215431441130.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 08 Sep 2021 22:12:44 -0700
+Message-ID: <163116436415.2460985.10101824045493194813.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -33,61 +33,68 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Now that cxl_mem_{init,exit} no longer need to manage debugfs, switch
-back to the smaller form of the boiler plate.
+Define enabled_cmds as an embedded member of 'struct cxl_mem' rather
+than a pointer to another dynamic allocation.
+
+As this leaves only one user of cxl_cmd_count, just open code it and
+delete the helper.
 
 Acked-by: Ben Widawsky <ben.widawsky@intel.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/pci.c |   30 ++++++++----------------------
- 1 file changed, 8 insertions(+), 22 deletions(-)
+ drivers/cxl/core/mbox.c |   12 +-----------
+ drivers/cxl/cxlmem.h    |    2 +-
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-index c9f2ac134f4d..27f75b5a2ee2 100644
---- a/drivers/cxl/pci.c
-+++ b/drivers/cxl/pci.c
-@@ -517,6 +517,13 @@ static int cxl_mem_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	struct cxl_mem *cxlm;
- 	int rc;
+diff --git a/drivers/cxl/core/mbox.c b/drivers/cxl/core/mbox.c
+index 31e183991726..422999740649 100644
+--- a/drivers/cxl/core/mbox.c
++++ b/drivers/cxl/core/mbox.c
+@@ -315,8 +315,6 @@ static int cxl_validate_cmd_from_user(struct cxl_mem *cxlm,
+ 	return 0;
+ }
  
-+	/*
-+	 * Double check the anonymous union trickery in struct cxl_regs
-+	 * FIXME switch to struct_group()
-+	 */
-+	BUILD_BUG_ON(offsetof(struct cxl_regs, memdev) !=
-+		     offsetof(struct cxl_regs, device_regs.memdev));
-+
- 	rc = pcim_enable_device(pdev);
- 	if (rc)
- 		return rc;
-@@ -571,27 +578,6 @@ static struct pci_driver cxl_mem_driver = {
- 	},
- };
+-#define cxl_cmd_count ARRAY_SIZE(cxl_mem_commands)
+-
+ int cxl_query_cmd(struct cxl_memdev *cxlmd,
+ 		  struct cxl_mem_query_commands __user *q)
+ {
+@@ -332,7 +330,7 @@ int cxl_query_cmd(struct cxl_memdev *cxlmd,
  
--static __init int cxl_mem_init(void)
--{
--	int rc;
--
--	/* Double check the anonymous union trickery in struct cxl_regs */
--	BUILD_BUG_ON(offsetof(struct cxl_regs, memdev) !=
--		     offsetof(struct cxl_regs, device_regs.memdev));
--
--	rc = pci_register_driver(&cxl_mem_driver);
--	if (rc)
--		return rc;
--
--	return 0;
--}
--
--static __exit void cxl_mem_exit(void)
--{
--	pci_unregister_driver(&cxl_mem_driver);
--}
--
- MODULE_LICENSE("GPL v2");
--module_init(cxl_mem_init);
--module_exit(cxl_mem_exit);
-+module_pci_driver(cxl_mem_driver);
- MODULE_IMPORT_NS(CXL);
+ 	/* returns the total number if 0 elements are requested. */
+ 	if (n_commands == 0)
+-		return put_user(cxl_cmd_count, &q->n_commands);
++		return put_user(ARRAY_SIZE(cxl_mem_commands), &q->n_commands);
+ 
+ 	/*
+ 	 * otherwise, return max(n_commands, total commands) cxl_command_info
+@@ -794,14 +792,6 @@ struct cxl_mem *cxl_mem_create(struct device *dev)
+ 
+ 	mutex_init(&cxlm->mbox_mutex);
+ 	cxlm->dev = dev;
+-	cxlm->enabled_cmds =
+-		devm_kmalloc_array(dev, BITS_TO_LONGS(cxl_cmd_count),
+-				   sizeof(unsigned long),
+-				   GFP_KERNEL | __GFP_ZERO);
+-	if (!cxlm->enabled_cmds) {
+-		dev_err(dev, "No memory available for bitmap\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+ 
+ 	return cxlm;
+ }
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index 35fd16d12532..16201b7d82d2 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -126,7 +126,7 @@ struct cxl_mem {
+ 	size_t lsa_size;
+ 	struct mutex mbox_mutex; /* Protects device mailbox and firmware */
+ 	char firmware_version[0x10];
+-	unsigned long *enabled_cmds;
++	DECLARE_BITMAP(enabled_cmds, CXL_MEM_COMMAND_ID_MAX);
+ 
+ 	struct range pmem_range;
+ 	struct range ram_range;
 
