@@ -1,158 +1,232 @@
-Received: from mail-pj1-f46.google.com (mail-pj1-f46.google.com [209.85.216.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 524B53FC7
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 00:50:57 +0000 (UTC)
-Received: by mail-pj1-f46.google.com with SMTP id oc9so167447pjb.4
-        for <nvdimm@lists.linux.dev>; Wed, 08 Sep 2021 17:50:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=st0iJaf29MZrtalRYvkDnoTyG1q3n/sls+xpkp/si68=;
-        b=k6RK5RMAWNZC0C2lACPqYAzo8ATiv7OnlyHAUTPRB0KiZlE0OAanjtSbu9dpV5RhIv
-         MdD/nxbwh6h/W1bd8o7eKZpjj+CtB2wyod4ycW97HGx2tf9r8KUjP5wjYx6rUa1aAs+M
-         ZE5qHLgG5/rN0hxcwfbu0hrN+ArVIqrmFFcE29QFYM62nCknCp61MWdsNDXiKr7DDy45
-         4orWzEQ0e99Cl5F2IzuNZEyRN5D4FmvER9nNNmRPbR5GeyzAgCS7aW1Yo2JGYi4ZYZKG
-         nOKy2ujezlgoCbt9tkrqVV2Md6XvTW8joqp5spDMRDWrWcBZPxsVfGlDPzgHj8ANlEp2
-         YAPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=st0iJaf29MZrtalRYvkDnoTyG1q3n/sls+xpkp/si68=;
-        b=UP5DJK57sKDfkfXV1Au2/EuO88uMvvtW6FtwKR6buWxE5l7BiGXEO66O8PC/S5FcGA
-         40LMZL1ueX3JdWUqlkiwHwPdBS1OHsGwuUrv56jV7NxhEAkV/FLaxqSivSM//ukqvJQb
-         ZbPA1voB1Ob9nbMjbA4FlRlgYmIEVIKA8L8G24V7A3IhaU2aDWB8KnTL0wAq0L0842r1
-         bfwStC76/+dGz8qB+J2czKrftc/B7PrcoH8/W0kYzkOVgL6cykiEYim+eeDpoViuFcHD
-         E/RKsyA6JZDe9W8/byhDih+Dqc6IbnkOkPPYNzW0MPIdVYsOQbAfQHBQXmmGSinvt7qU
-         OEVw==
-X-Gm-Message-State: AOAM531zZyLOhufmuJAiMC+IbLeOEt1QnlgNTTQIzm4OxsDaeDP6+2eq
-	qV6J+Cf+Aqiqq2slPOIiCVxOYQw0u0nre6ywdPwFyw==
-X-Google-Smtp-Source: ABdhPJwJEDuu4qNJfcVrivy1EuQ328eYx3SxA169sGZwJwEh+lA9yQumarVbRkcy71qlz0t38c3gFPNLFhpKC3fRQ+Q=
-X-Received: by 2002:a17:902:bd8d:b0:13a:8c8:a2b2 with SMTP id
- q13-20020a170902bd8d00b0013a08c8a2b2mr175834pls.89.1631148656565; Wed, 08 Sep
- 2021 17:50:56 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AE7772
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 05:11:33 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="242989708"
+X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
+   d="scan'208";a="242989708"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:11:32 -0700
+X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
+   d="scan'208";a="479463971"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:11:32 -0700
+Subject: [PATCH v4 00/21] cxl_test: Enable CXL Topology and UAPI regression
+ tests
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Ira Weiny <ira.weiny@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
+ Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+ Vishal Verma <vishal.l.verma@intel.com>,
+ Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+ Nathan Chancellor <nathan@kernel.org>, kernel test robot <lkp@intel.com>,
+ Dan Carpenter <dan.carpenter@oracle.com>, nvdimm@lists.linux.dev,
+ ben.widawsky@intel.com, alison.schofield@intel.com, vishal.l.verma@intel.com,
+ ira.weiny@intel.com, Jonathan.Cameron@huawei.com
+Date: Wed, 08 Sep 2021 22:11:32 -0700
+Message-ID: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 8 Sep 2021 17:50:45 -0700
-Message-ID: <CAPcyv4hEtOuExY1+YdKPaffBPO6A70u+01NA4EPON2s6Ut3rHw@mail.gmail.com>
-Subject: [GIT PULL] Compute Express Link update for v5.15
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-Hi Linus, please pull from:
+Changes since v3 [1]:
+- Rebase on the cxl-for-5.15 tag where some of v3 was accepted.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-5.15
+- Move the introduction of the uuid_to_nvdimm_cclass() helper to the
+  patch that uses it to avoid a "defined but not used" warning (now
+  fatal as of the -Werror upstream change).
 
-...to receive the cxl update for v5.15. This branch experienced some
-fallout from some "just in time" review and the -Werror change. Rather
-than rebase patches at the last moment the branch was simply rewound
-to a stable point and the rest will wait for v5.16. Save for the top 6
-fixes this has been in -next for several releases with no reported
-issues (beyond the ones that caused the branch to be rewound), and the
-fixes have appeared in at least one -next release.
+- Fix the kernel-doc for the new CXL structure definitions in
+  drivers/nvdimm/label.h. This resulted in a lead-in patch to fix up
+  existing kernel-doc warnings. (Jonathan)
 
-Please pull, thanks,
-Dan
+- Move the cxl_mem_get_partition_info() cleanups to their own patch
+  (Jonathan).
+
+- Fix the cxl_mem_get_partition_info() kernel-doc (Ben)
+
+- Move the idr.h include fixup to its own patch (Jonathan)
+
+- Fix the kernel-doc for struct cxl_mbox_cmd (Jonathan)
+
+- Add a note about the ABI implications of the nvdimm-bridge device-name
+  change (Jonathan)
+
+- Squash "cxl/core: Replace devm_cxl_add_decoder() with non-devm
+  version" into "cxl/core: Split decoder setup into alloc + add"
+
+- Cleanup some pointless cxlm->dev to pci_dev and back conversions
+  (Jonathan)
+
+- Drop pci.h include from core/mbox.c (Jonathan)
+
+- Drop duplicate cxl_doorbell_busy() and CXL_MAILBOX_TIMEOUT_MS
+  definitions, only pci.c needs them. (Jonathan)
+
+- Fix style violation in cxl_for_each_cmd() (Jonathan)
+
+- Move cxl_mem_create() api change to "cxl/pci: Make 'struct cxl_mem'
+  device type generic" (Jonathan)
+
+- Add a helper, decoder_populate_targets(), for initializing a decoder
+  target_list (Jonathan)
+
+- Use put_unaligned() for potential unaligned write in
+  cxl_pmem_set_config_data() (Jonathan)
+
+- Add cxl_nvdimm_remove() to explicitly handle exclusive command
+  shutdown rather than some gymnastics to handle the
+  devm_add_action_or_reset() error code vs nvdimm_create() failure.
+  (Jonathan)
+
+- Switch to platform_device_unregister() lest we wake the dragons
+  guarding platform_device_del(). (Jonathan)
+
+- Fix CEL retrieval for the case where CEL is larger than payload_size
+  in mock_get_log(). (Jonathan)
+
+- Move CFMWS size definition out of the setup code and into the static
+  table definition directly. (Jonathan)
+
+[1]: https://lore.kernel.org/r/162982112370.1124374.2020303588105269226.stgit@dwillia2-desk3.amr.corp.intel.com
 
 ---
 
-The following changes since commit ff1176468d368232b684f75e82563369208bc371:
+As mentioned in patch 17 in this series the response of upstream QEMU
+community to CXL device emulation has been underwhelming to date. Even
+if that picked up it still results in a situation where new driver
+features and new test capabilities for those features are split across
+multiple repositories.
 
-  Linux 5.14-rc3 (2021-07-25 15:35:14 -0700)
+The "nfit_test" approach of mocking up platform resources via an
+external test module continues to yield positive results catching
+regressions early and often. So this attempts to repeat that success
+with a "cxl_test" module to inject custom crafted topologies and command
+responses into the CXL subsystem's sysfs and ioctl UAPIs.
 
-are available in the Git repository at:
+The first target for cxl_test to verify is the integration of CXL with
+LIBNVDIMM and the new support for the CXL namespace label + region-label
+format. The 6 patches in this series finish off the work that was merged
+for the v5.15 merge window to introduce support for the new label
+format.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/cxl/cxl tags/cxl-for-5.15
+The next 10 patches rework the CXL PCI driver to move more common
+infrastructure into the core for the unit test environment to reuse. The
+largest change here is disconnecting the mailbox command processing
+infrastructure from the PCI specific transport. The unit test
+environment replaces the PCI transport with a custom backend with mocked
+responses to command requests.
 
-for you to fetch changes up to 2b922a9d064f8e86b53b04f5819917b7a04142ed:
+Patch 17 introduces just enough mocked functionality for the cxl_acpi
+driver to load against cxl_test resources. Patch 21 fixes the first bug
+discovered by this framework, namely that HDM decoder target list maps
+were not being filled out.
 
-  cxl/registers: Fix Documentation warning (2021-09-07 11:39:02 -0700)
+Finally patches 19 and 20 introduce a cxl_test representation of memory
+expander devices. In this initial implementation these memory expander
+targets implement just enough command support to pass the basic driver
+init sequence and enable label command passthrough to LIBNVDIMM.
 
-----------------------------------------------------------------
-cxl for v5.15
+The topology of cxl_test includes:
+- (4) platform fixed memory windows. One each of a x1-volatile,
+  x4-volatile, x1-persistent, and x4-persistent.
+- (4) Host bridges each with (2) root ports
+- (8) CXL memory expanders, one for each root port
+- Each memory expander device supports the GET_SUPPORTED_LOGS, GET_LOG,
+  IDENTIFY, GET_LSA, and SET_LSA commands.
 
-- Fix detection of CXL host bridges to filter out disabled ACPI0016
-  devices in the ACPI DSDT.
+Going forward the expectation is that where possible new UAPI visible
+subsystem functionality comes with cxl_test emulation of the same.
 
-- Fix kernel lockdown integration to disable raw commands when raw PCI
-  access is disabled.
+The build process for cxl_test is:
 
-- Fix a broken debug message.
+    make M=tools/testing/cxl
+    make M=tools/testing/cxl modules_install
 
-- Add support for "Get Partition Info". I.e. enumerate the split between
-  volatile and persistent capacity on bi-modal CXL memory expanders.
+The implementation methodology of the test module is the same as
+nfit_test where the bulk of the emulation comes from replacing symbols
+that cxl_acpi and the cxl_core import with mocked implementation of
+those symbols. See the "--wrap=" lines in tools/testing/cxl/Kbuild. Some
+symbols need to be replaced, but are local to the modules like
+match_add_root_ports(). In those cases the local symbol is marked __weak
+(via __mock) with a strong implementation coming from
+tools/testing/cxl/. The goal being to be minimally invasive to
+production code paths.
 
-- Re-factor the core by subject area. This is a work in progress.
+---
 
-- Prepare libnvdimm to understand CXL labels in addition to EFI labels.
-  This is a work in progress.
+Dan Williams (21):
+      libnvdimm/labels: Add uuid helpers
+      libnvdimm/label: Add a helper for nlabel validation
+      libnvdimm/labels: Introduce the concept of multi-range namespace labels
+      libnvdimm/labels: Fix kernel-doc for label.h
+      libnvdimm/label: Define CXL region labels
+      libnvdimm/labels: Introduce CXL labels
+      cxl/pci: Make 'struct cxl_mem' device type generic
+      cxl/pci: Clean up cxl_mem_get_partition_info()
+      cxl/mbox: Introduce the mbox_send operation
+      cxl/pci: Drop idr.h
+      cxl/mbox: Move mailbox and other non-PCI specific infrastructure to the core
+      cxl/pci: Use module_pci_driver
+      cxl/mbox: Convert 'enabled_cmds' to DECLARE_BITMAP
+      cxl/mbox: Add exclusive kernel command support
+      cxl/pmem: Translate NVDIMM label commands to CXL label commands
+      cxl/pmem: Add support for multiple nvdimm-bridge objects
+      tools/testing/cxl: Introduce a mocked-up CXL port hierarchy
+      cxl/bus: Populate the target list at decoder create
+      cxl/mbox: Move command definitions to common location
+      tools/testing/cxl: Introduce a mock memory device + driver
+      cxl/core: Split decoder setup into alloc + add
 
-----------------------------------------------------------------
-Alison Schofield (1):
-      cxl/acpi: Do not add DSDT disabled ACPI0016 host bridge ports
 
-Ben Widawsky (6):
-      cxl: Move cxl_core to new directory
-      cxl/core: Improve CXL core kernel docs
-      cxl/core: Move memdev management to core
-      cxl/pci: Ignore unknown register block types
-      cxl/pci: Simplify register setup
-      cxl/uapi: Fix defined but not used warnings
+ Documentation/driver-api/cxl/memory-devices.rst |    3 
+ drivers/cxl/acpi.c                              |  133 ++-
+ drivers/cxl/core/Makefile                       |    1 
+ drivers/cxl/core/bus.c                          |  114 +-
+ drivers/cxl/core/core.h                         |   11 
+ drivers/cxl/core/mbox.c                         |  787 +++++++++++++++++
+ drivers/cxl/core/memdev.c                       |  117 ++-
+ drivers/cxl/core/pmem.c                         |   39 +
+ drivers/cxl/cxl.h                               |   49 +
+ drivers/cxl/cxlmem.h                            |  202 ++++
+ drivers/cxl/pci.c                               | 1059 +----------------------
+ drivers/cxl/pmem.c                              |  172 +++-
+ drivers/nvdimm/btt.c                            |   11 
+ drivers/nvdimm/btt_devs.c                       |   14 
+ drivers/nvdimm/core.c                           |   40 -
+ drivers/nvdimm/label.c                          |  139 ++-
+ drivers/nvdimm/label.h                          |   94 ++
+ drivers/nvdimm/namespace_devs.c                 |   95 +-
+ drivers/nvdimm/nd-core.h                        |    5 
+ drivers/nvdimm/nd.h                             |  185 +++-
+ drivers/nvdimm/pfn_devs.c                       |    2 
+ include/linux/nd.h                              |    4 
+ tools/testing/cxl/Kbuild                        |   38 +
+ tools/testing/cxl/config_check.c                |   13 
+ tools/testing/cxl/mock_acpi.c                   |  109 ++
+ tools/testing/cxl/mock_pmem.c                   |   24 +
+ tools/testing/cxl/test/Kbuild                   |   10 
+ tools/testing/cxl/test/cxl.c                    |  576 +++++++++++++
+ tools/testing/cxl/test/mem.c                    |  256 ++++++
+ tools/testing/cxl/test/mock.c                   |  171 ++++
+ tools/testing/cxl/test/mock.h                   |   27 +
+ 31 files changed, 3134 insertions(+), 1366 deletions(-)
+ create mode 100644 drivers/cxl/core/mbox.c
+ create mode 100644 tools/testing/cxl/Kbuild
+ create mode 100644 tools/testing/cxl/config_check.c
+ create mode 100644 tools/testing/cxl/mock_acpi.c
+ create mode 100644 tools/testing/cxl/mock_pmem.c
+ create mode 100644 tools/testing/cxl/test/Kbuild
+ create mode 100644 tools/testing/cxl/test/cxl.c
+ create mode 100644 tools/testing/cxl/test/mem.c
+ create mode 100644 tools/testing/cxl/test/mock.c
+ create mode 100644 tools/testing/cxl/test/mock.h
 
-Dan Williams (14):
-      cxl/core: Move pmem functionality
-      cxl/core: Move register mapping infrastructure
-      cxl/pci: Introduce cdevm_file_operations
-      libnvdimm/labels: Introduce getters for namespace label fields
-      libnvdimm/labels: Add isetcookie validation helper
-      libnvdimm/labels: Introduce label setter helpers
-      libnvdimm/labels: Add a checksum calculation helper
-      libnvdimm/labels: Add blk isetcookie set / validation helpers
-      libnvdimm/labels: Add blk special cases for nlabel and position helpers
-      libnvdimm/labels: Add type-guid helpers
-      libnvdimm/labels: Add claim class helpers
-      cxl/pci: Fix lockdown level
-      cxl/pmem: Fix Documentation warning
-      cxl/registers: Fix Documentation warning
-
-Ira Weiny (3):
-      cxl/pci: Store memory capacity values
-      cxl/mem: Account for partitionable space in ram/pmem ranges
-      cxl/mem: Adjust ram/pmem range to represent DPA ranges
-
-Li Qiang (Johnny Li) (1):
-      cxl/pci: Fix debug message in cxl_probe_regs()
-
- Documentation/driver-api/cxl/memory-devices.rst |   8 +-
- drivers/cxl/Makefile                            |   4 +-
- drivers/cxl/acpi.c                              |  12 +-
- drivers/cxl/core/Makefile                       |   8 +
- drivers/cxl/{core.c => core/bus.c}              | 464 ++----------------------
- drivers/cxl/core/core.h                         |  20 +
- drivers/cxl/core/memdev.c                       | 246 +++++++++++++
- drivers/cxl/core/pmem.c                         | 230 ++++++++++++
- drivers/cxl/core/regs.c                         | 249 +++++++++++++
- drivers/cxl/cxl.h                               |   1 -
- drivers/cxl/{mem.h => cxlmem.h}                 |  35 +-
- drivers/cxl/pci.c                               | 439 +++++++++-------------
- drivers/cxl/pci.h                               |   1 +
- drivers/cxl/pmem.c                              |   2 +-
- drivers/nvdimm/label.c                          | 256 ++++++++-----
- drivers/nvdimm/label.h                          |   1 -
- drivers/nvdimm/namespace_devs.c                 | 113 +++---
- drivers/nvdimm/nd.h                             | 150 ++++++++
- include/uapi/linux/cxl_mem.h                    |   2 +-
- 19 files changed, 1352 insertions(+), 889 deletions(-)
- create mode 100644 drivers/cxl/core/Makefile
- rename drivers/cxl/{core.c => core/bus.c} (58%)
- create mode 100644 drivers/cxl/core/core.h
- create mode 100644 drivers/cxl/core/memdev.c
- create mode 100644 drivers/cxl/core/pmem.c
- create mode 100644 drivers/cxl/core/regs.c
- rename drivers/cxl/{mem.h => cxlmem.h} (71%)
+base-commit: 2b922a9d064f8e86b53b04f5819917b7a04142ed
