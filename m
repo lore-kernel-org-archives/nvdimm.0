@@ -1,450 +1,223 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02BBE3FDF
-	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 05:13:27 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10101"; a="200211562"
-X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
-   d="scan'208";a="200211562"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:13:27 -0700
-X-IronPort-AV: E=Sophos;i="5.85,279,1624345200"; 
-   d="scan'208";a="606621004"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 08 Sep 2021 22:13:26 -0700
-Subject: [PATCH v4 21/21] cxl/core: Split decoder setup into alloc + add
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: kernel test robot <lkp@intel.com>, Nathan Chancellor <nathan@kernel.org>,
- Dan Carpenter <dan.carpenter@oracle.com>, vishal.l.verma@intel.com,
- nvdimm@lists.linux.dev, ben.widawsky@intel.com, alison.schofield@intel.com,
- vishal.l.verma@intel.com, ira.weiny@intel.com, Jonathan.Cameron@huawei.com
-Date: Wed, 08 Sep 2021 22:13:26 -0700
-Message-ID: <163116440612.2460985.14600637290781306289.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B7AC572
+	for <nvdimm@lists.linux.dev>; Thu,  9 Sep 2021 07:56:21 +0000 (UTC)
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 1897Whjm143815;
+	Thu, 9 Sep 2021 03:56:01 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : to : cc :
+ references : from : message-id : date : mime-version : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=PTPm0p4IxBQUznI62xHHOA822jwtiq7XV+4FXi4+I44=;
+ b=egF8pC+OWTFAYjrqprZWvQ/iYoOuQyo6u6MCvOrq3UoTbcBWtGZJBT1dQ7zllArxo6Qt
+ RlPE7XlFYdbQqKBCSibclhxV6jLgt5+PMonlMPs4tLP1V/hajMWjVpqokxntDVp57NI9
+ hujfqJ1mBTUsXk6C1gErmisuRNhu0JtuAzE6e3Y0Sr9AzoOnznCICQl9L3T2ffJjGYHp
+ 5EWAmSoP51+DL4W4yWd7hD3y9iix3caUR5pxxrOW+yUfeWLZc2h14BtMTk2DGPiZUsz8
+ ynoDQfy7f4Hx++L3ovtIw938OwXytr7tI1Q7plE/fJq42tKv73n7k3aKp57cbIDZqa6J QQ== 
+Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3ayd20su5d-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 09 Sep 2021 03:56:01 -0400
+Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
+	by ppma03wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1897pToV027760;
+	Thu, 9 Sep 2021 07:56:00 GMT
+Received: from b03cxnp08028.gho.boulder.ibm.com (b03cxnp08028.gho.boulder.ibm.com [9.17.130.20])
+	by ppma03wdc.us.ibm.com with ESMTP id 3axcnpwr72-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Thu, 09 Sep 2021 07:56:00 +0000
+Received: from b03ledav002.gho.boulder.ibm.com (b03ledav002.gho.boulder.ibm.com [9.17.130.233])
+	by b03cxnp08028.gho.boulder.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1897txMk30933342
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 9 Sep 2021 07:55:59 GMT
+Received: from b03ledav002.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E4952136055;
+	Thu,  9 Sep 2021 07:55:58 +0000 (GMT)
+Received: from b03ledav002.gho.boulder.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id E1B9B13604F;
+	Thu,  9 Sep 2021 07:55:53 +0000 (GMT)
+Received: from localhost.localdomain (unknown [9.43.32.15])
+	by b03ledav002.gho.boulder.ibm.com (Postfix) with ESMTP;
+	Thu,  9 Sep 2021 07:55:53 +0000 (GMT)
+Subject: Re: [RESEND PATCH v4 1/4] drivers/nvdimm: Add nvdimm pmu structure
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        Linux NVDIMM <nvdimm@lists.linux.dev>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        "Weiny, Ira" <ira.weiny@intel.com>,
+        Vishal L Verma <vishal.l.verma@intel.com>, maddy@linux.ibm.com,
+        Santosh Sivaraj <santosh@fossix.org>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Vaibhav Jain <vaibhav@linux.ibm.com>, atrajeev@linux.vnet.ibm.com,
+        Thomas Gleixner <tglx@linutronix.de>, rnsastry@linux.ibm.com
+References: <20210903050914.273525-1-kjain@linux.ibm.com>
+ <20210903050914.273525-2-kjain@linux.ibm.com>
+ <CAPcyv4jSL2cDxGiXEtyyce3eNEE_QUnnMjuLXb3iCwO8_7a7LQ@mail.gmail.com>
+From: kajoljain <kjain@linux.ibm.com>
+Message-ID: <d7f8bf51-059f-4496-37c4-6516a703e209@linux.ibm.com>
+Date: Thu, 9 Sep 2021 13:25:52 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+In-Reply-To: <CAPcyv4jSL2cDxGiXEtyyce3eNEE_QUnnMjuLXb3iCwO8_7a7LQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: S7uiPZdrlEIqpATK11BGtF6zHBKzKQU6
+X-Proofpoint-ORIG-GUID: S7uiPZdrlEIqpATK11BGtF6zHBKzKQU6
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-09-09_02:2021-09-07,2021-09-09 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
+ lowpriorityscore=0 mlxscore=0 suspectscore=0 spamscore=0 mlxlogscore=999
+ phishscore=0 malwarescore=0 priorityscore=1501 bulkscore=0 impostorscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2109030001 definitions=main-2109090044
 
-The kbuild robot reports:
 
-    drivers/cxl/core/bus.c:516:1: warning: stack frame size (1032) exceeds
-    limit (1024) in function 'devm_cxl_add_decoder'
 
-It is also the case the devm_cxl_add_decoder() is unwieldy to use for
-all the different decoder types. Fix the stack usage by splitting the
-creation into alloc and add steps. This also allows for context
-specific construction before adding.
+On 9/8/21 3:29 AM, Dan Williams wrote:
+> Hi Kajol,
+> 
+> Apologies for the delay in responding to this series, some comments below:
 
-With the split the caller is responsible for registering a devm callback
-to trigger device_unregister() for the decoder rather than it being
-implicit in the decoder registration. I.e. the routine that calls alloc
-is responsible for calling put_device() if the "add" operation fails.
+Hi Dan,
+    No issues, thanks for reviewing the patches.
 
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/cxl/acpi.c      |   84 +++++++++++++++++++++++++----------
- drivers/cxl/core/bus.c  |  114 ++++++++++++++---------------------------------
- drivers/cxl/core/core.h |    5 --
- drivers/cxl/core/pmem.c |    7 ++-
- drivers/cxl/cxl.h       |   16 +++----
- 5 files changed, 106 insertions(+), 120 deletions(-)
+> 
+> On Thu, Sep 2, 2021 at 10:10 PM Kajol Jain <kjain@linux.ibm.com> wrote:
+>>
+>> A structure is added, called nvdimm_pmu, for performance
+>> stats reporting support of nvdimm devices. It can be used to add
+>> nvdimm pmu data such as supported events and pmu event functions
+>> like event_init/add/read/del with cpu hotplug support.
+>>
+>> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+>> Reviewed-by: Madhavan Srinivasan <maddy@linux.ibm.com>
+>> Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
+>> Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+>> ---
+>>  include/linux/nd.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 43 insertions(+)
+>>
+>> diff --git a/include/linux/nd.h b/include/linux/nd.h
+>> index ee9ad76afbba..712499cf7335 100644
+>> --- a/include/linux/nd.h
+>> +++ b/include/linux/nd.h
+>> @@ -8,6 +8,8 @@
+>>  #include <linux/ndctl.h>
+>>  #include <linux/device.h>
+>>  #include <linux/badblocks.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/perf_event.h>
+>>
+>>  enum nvdimm_event {
+>>         NVDIMM_REVALIDATE_POISON,
+>> @@ -23,6 +25,47 @@ enum nvdimm_claim_class {
+>>         NVDIMM_CCLASS_UNKNOWN,
+>>  };
+>>
+>> +/* Event attribute array index */
+>> +#define NVDIMM_PMU_FORMAT_ATTR         0
+>> +#define NVDIMM_PMU_EVENT_ATTR          1
+>> +#define NVDIMM_PMU_CPUMASK_ATTR                2
+>> +#define NVDIMM_PMU_NULL_ATTR           3
+>> +
+>> +/**
+>> + * struct nvdimm_pmu - data structure for nvdimm perf driver
+>> + *
+>> + * @name: name of the nvdimm pmu device.
+>> + * @pmu: pmu data structure for nvdimm performance stats.
+>> + * @dev: nvdimm device pointer.
+>> + * @functions(event_init/add/del/read): platform specific pmu functions.
+> 
+> This is not valid kernel-doc:
+> 
+> include/linux/nd.h:67: warning: Function parameter or member
+> 'event_init' not described in 'nvdimm_pmu'
+> include/linux/nd.h:67: warning: Function parameter or member 'add' not
+> described in 'nvdimm_pmu'
+> include/linux/nd.h:67: warning: Function parameter or member 'del' not
+> described in 'nvdimm_pmu'
+> include/linux/nd.h:67: warning: Function parameter or member 'read'
+> not described in 'nvdimm_pmu'
+> 
+> ...but I think rather than fixing those up 'struct nvdimm_pmu' should be pruned.
+> 
+> It's not clear to me that it is worth the effort to describe these
+> details to the nvdimm core which is just going to turn around and call
+> the pmu core. I'd just as soon have the driver call the pmu core
+> directly, optionally passing in attributes and callbacks that come
+> from the nvdimm core and/or the nvdimm provider.
 
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index 9d881eacdae5..654a80547526 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -82,7 +82,6 @@ static void cxl_add_cfmws_decoders(struct device *dev,
- 	struct cxl_decoder *cxld;
- 	acpi_size len, cur = 0;
- 	void *cedt_subtable;
--	unsigned long flags;
- 	int rc;
- 
- 	len = acpi_cedt->length - sizeof(*acpi_cedt);
-@@ -119,24 +118,36 @@ static void cxl_add_cfmws_decoders(struct device *dev,
- 		for (i = 0; i < CFMWS_INTERLEAVE_WAYS(cfmws); i++)
- 			target_map[i] = cfmws->interleave_targets[i];
- 
--		flags = cfmws_to_decoder_flags(cfmws->restrictions);
--		cxld = devm_cxl_add_decoder(dev, root_port,
--					    CFMWS_INTERLEAVE_WAYS(cfmws),
--					    cfmws->base_hpa, cfmws->window_size,
--					    CFMWS_INTERLEAVE_WAYS(cfmws),
--					    CFMWS_INTERLEAVE_GRANULARITY(cfmws),
--					    CXL_DECODER_EXPANDER,
--					    flags, target_map);
--
--		if (IS_ERR(cxld)) {
-+		cxld = cxl_decoder_alloc(root_port,
-+					 CFMWS_INTERLEAVE_WAYS(cfmws));
-+		if (IS_ERR(cxld))
-+			goto next;
-+
-+		cxld->flags = cfmws_to_decoder_flags(cfmws->restrictions);
-+		cxld->target_type = CXL_DECODER_EXPANDER;
-+		cxld->range = (struct range) {
-+			.start = cfmws->base_hpa,
-+			.end = cfmws->base_hpa + cfmws->window_size - 1,
-+		};
-+		cxld->interleave_ways = CFMWS_INTERLEAVE_WAYS(cfmws);
-+		cxld->interleave_granularity =
-+			CFMWS_INTERLEAVE_GRANULARITY(cfmws);
-+
-+		rc = cxl_decoder_add(dev, cxld, target_map);
-+		if (rc)
-+			put_device(&cxld->dev);
-+		else
-+			rc = cxl_decoder_autoremove(dev, cxld);
-+		if (rc) {
- 			dev_err(dev, "Failed to add decoder for %#llx-%#llx\n",
- 				cfmws->base_hpa, cfmws->base_hpa +
- 				cfmws->window_size - 1);
--		} else {
--			dev_dbg(dev, "add: %s range %#llx-%#llx\n",
--				dev_name(&cxld->dev), cfmws->base_hpa,
--				 cfmws->base_hpa + cfmws->window_size - 1);
-+			goto next;
- 		}
-+		dev_dbg(dev, "add: %s range %#llx-%#llx\n",
-+			dev_name(&cxld->dev), cfmws->base_hpa,
-+			cfmws->base_hpa + cfmws->window_size - 1);
-+next:
- 		cur += c->length;
- 	}
- }
-@@ -268,6 +279,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
- 	struct acpi_pci_root *pci_root;
- 	struct cxl_walk_context ctx;
-+	int single_port_map[1], rc;
- 	struct cxl_decoder *cxld;
- 	struct cxl_dport *dport;
- 	struct cxl_port *port;
-@@ -303,22 +315,46 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 		return -ENODEV;
- 	if (ctx.error)
- 		return ctx.error;
-+	if (ctx.count > 1)
-+		return 0;
- 
- 	/* TODO: Scan CHBCR for HDM Decoder resources */
- 
- 	/*
--	 * In the single-port host-bridge case there are no HDM decoders
--	 * in the CHBCR and a 1:1 passthrough decode is implied.
-+	 * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability
-+	 * Structure) single ported host-bridges need not publish a decoder
-+	 * capability when a passthrough decode can be assumed, i.e. all
-+	 * transactions that the uport sees are claimed and passed to the single
-+	 * dport. Default the range a 0-base 0-length until the first CXL region
-+	 * is activated.
- 	 */
--	if (ctx.count == 1) {
--		cxld = devm_cxl_add_passthrough_decoder(host, port);
--		if (IS_ERR(cxld))
--			return PTR_ERR(cxld);
-+	cxld = cxl_decoder_alloc(port, 1);
-+	if (IS_ERR(cxld))
-+		return PTR_ERR(cxld);
-+
-+	cxld->interleave_ways = 1;
-+	cxld->interleave_granularity = PAGE_SIZE;
-+	cxld->target_type = CXL_DECODER_EXPANDER;
-+	cxld->range = (struct range) {
-+		.start = 0,
-+		.end = -1,
-+	};
- 
--		dev_dbg(host, "add: %s\n", dev_name(&cxld->dev));
--	}
-+	device_lock(&port->dev);
-+	dport = list_first_entry(&port->dports, typeof(*dport), list);
-+	device_unlock(&port->dev);
- 
--	return 0;
-+	single_port_map[0] = dport->port_id;
-+
-+	rc = cxl_decoder_add(host, cxld, single_port_map);
-+	if (rc)
-+		put_device(&cxld->dev);
-+	else
-+		rc = cxl_decoder_autoremove(host, cxld);
-+
-+	if (rc == 0)
-+		dev_dbg(host, "add: %s\n", dev_name(&cxld->dev));
-+	return rc;
- }
- 
- static int add_host_bridge_dport(struct device *match, void *arg)
-diff --git a/drivers/cxl/core/bus.c b/drivers/cxl/core/bus.c
-index 176bede30c55..be787685b13e 100644
---- a/drivers/cxl/core/bus.c
-+++ b/drivers/cxl/core/bus.c
-@@ -455,16 +455,18 @@ EXPORT_SYMBOL_GPL(cxl_add_dport);
- 
- static int decoder_populate_targets(struct device *host,
- 				    struct cxl_decoder *cxld,
--				    struct cxl_port *port, int *target_map,
--				    int nr_targets)
-+				    struct cxl_port *port, int *target_map)
- {
- 	int rc = 0, i;
- 
-+	if (list_empty(&port->dports))
-+		return -EINVAL;
-+
- 	if (!target_map)
- 		return 0;
- 
- 	device_lock(&port->dev);
--	for (i = 0; i < nr_targets; i++) {
-+	for (i = 0; i < cxld->nr_targets; i++) {
- 		struct cxl_dport *dport = find_dport(port, target_map[i]);
- 
- 		if (!dport) {
-@@ -479,27 +481,15 @@ static int decoder_populate_targets(struct device *host,
- 	return rc;
- }
- 
--static struct cxl_decoder *
--cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
--		  resource_size_t base, resource_size_t len,
--		  int interleave_ways, int interleave_granularity,
--		  enum cxl_decoder_type type, unsigned long flags,
--		  int *target_map)
-+struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets)
- {
- 	struct cxl_decoder *cxld;
- 	struct device *dev;
- 	int rc = 0;
- 
--	if (interleave_ways < 1)
-+	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE || nr_targets < 1)
- 		return ERR_PTR(-EINVAL);
- 
--	device_lock(&port->dev);
--	if (list_empty(&port->dports))
--		rc = -EINVAL;
--	device_unlock(&port->dev);
--	if (rc)
--		return ERR_PTR(rc);
--
- 	cxld = kzalloc(struct_size(cxld, target, nr_targets), GFP_KERNEL);
- 	if (!cxld)
- 		return ERR_PTR(-ENOMEM);
-@@ -508,22 +498,8 @@ cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
- 	if (rc < 0)
- 		goto err;
- 
--	*cxld = (struct cxl_decoder) {
--		.id = rc,
--		.range = {
--			.start = base,
--			.end = base + len - 1,
--		},
--		.flags = flags,
--		.interleave_ways = interleave_ways,
--		.interleave_granularity = interleave_granularity,
--		.target_type = type,
--	};
--
--	rc = decoder_populate_targets(host, cxld, port, target_map, nr_targets);
--	if (rc)
--		goto err;
--
-+	cxld->id = rc;
-+	cxld->nr_targets = nr_targets;
- 	dev = &cxld->dev;
- 	device_initialize(dev);
- 	device_set_pm_not_required(dev);
-@@ -541,72 +517,48 @@ cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
- 	kfree(cxld);
- 	return ERR_PTR(rc);
- }
-+EXPORT_SYMBOL_GPL(cxl_decoder_alloc);
- 
--struct cxl_decoder *
--devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
--		     resource_size_t base, resource_size_t len,
--		     int interleave_ways, int interleave_granularity,
--		     enum cxl_decoder_type type, unsigned long flags,
--		     int *target_map)
-+int cxl_decoder_add(struct device *host, struct cxl_decoder *cxld,
-+		    int *target_map)
- {
--	struct cxl_decoder *cxld;
-+	struct cxl_port *port;
- 	struct device *dev;
- 	int rc;
- 
--	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE)
--		return ERR_PTR(-EINVAL);
-+	if (!cxld)
-+		return -EINVAL;
- 
--	cxld = cxl_decoder_alloc(host, port, nr_targets, base, len,
--				 interleave_ways, interleave_granularity, type,
--				 flags, target_map);
- 	if (IS_ERR(cxld))
--		return cxld;
-+		return PTR_ERR(cxld);
- 
--	dev = &cxld->dev;
--	rc = dev_set_name(dev, "decoder%d.%d", port->id, cxld->id);
--	if (rc)
--		goto err;
-+	if (cxld->interleave_ways < 1)
-+		return -EINVAL;
- 
--	rc = device_add(dev);
-+	port = to_cxl_port(cxld->dev.parent);
-+	rc = decoder_populate_targets(host, cxld, port, target_map);
- 	if (rc)
--		goto err;
-+		return rc;
- 
--	rc = devm_add_action_or_reset(host, unregister_cxl_dev, dev);
-+	dev = &cxld->dev;
-+	rc = dev_set_name(dev, "decoder%d.%d", port->id, cxld->id);
- 	if (rc)
--		return ERR_PTR(rc);
--	return cxld;
-+		return rc;
- 
--err:
--	put_device(dev);
--	return ERR_PTR(rc);
-+	return device_add(dev);
- }
--EXPORT_SYMBOL_GPL(devm_cxl_add_decoder);
-+EXPORT_SYMBOL_GPL(cxl_decoder_add);
- 
--/*
-- * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability Structure)
-- * single ported host-bridges need not publish a decoder capability when a
-- * passthrough decode can be assumed, i.e. all transactions that the uport sees
-- * are claimed and passed to the single dport. Default the range a 0-base
-- * 0-length until the first CXL region is activated.
-- */
--struct cxl_decoder *devm_cxl_add_passthrough_decoder(struct device *host,
--						     struct cxl_port *port)
-+static void cxld_unregister(void *dev)
- {
--	struct cxl_dport *dport;
--	int target_map[1];
--
--	device_lock(&port->dev);
--	dport = list_first_entry_or_null(&port->dports, typeof(*dport), list);
--	device_unlock(&port->dev);
--
--	if (!dport)
--		return ERR_PTR(-ENXIO);
-+	device_unregister(dev);
-+}
- 
--	target_map[0] = dport->port_id;
--	return devm_cxl_add_decoder(host, port, 1, 0, 0, 1, PAGE_SIZE,
--				    CXL_DECODER_EXPANDER, 0, target_map);
-+int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld)
-+{
-+	return devm_add_action_or_reset(host, cxld_unregister, &cxld->dev);
- }
--EXPORT_SYMBOL_GPL(devm_cxl_add_passthrough_decoder);
-+EXPORT_SYMBOL_GPL(cxl_decoder_autoremove);
- 
- /**
-  * __cxl_driver_register - register a driver for the cxl bus
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index c85b7fbad02d..e0c9aacc4e9c 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -9,11 +9,6 @@ extern const struct device_type cxl_nvdimm_type;
- 
- extern struct attribute_group cxl_base_attribute_group;
- 
--static inline void unregister_cxl_dev(void *dev)
--{
--	device_unregister(dev);
--}
--
- struct cxl_send_command;
- struct cxl_mem_query_commands;
- int cxl_query_cmd(struct cxl_memdev *cxlmd,
-diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-index 74be5132df1c..5032f4c1c69d 100644
---- a/drivers/cxl/core/pmem.c
-+++ b/drivers/cxl/core/pmem.c
-@@ -222,6 +222,11 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
- 	return cxl_nvd;
- }
- 
-+static void cxl_nvd_unregister(void *dev)
-+{
-+	device_unregister(dev);
-+}
-+
- /**
-  * devm_cxl_add_nvdimm() - add a bridge between a cxl_memdev and an nvdimm
-  * @host: same host as @cxlmd
-@@ -251,7 +256,7 @@ int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd)
- 	dev_dbg(host, "%s: register %s\n", dev_name(dev->parent),
- 		dev_name(dev));
- 
--	return devm_add_action_or_reset(host, unregister_cxl_dev, dev);
-+	return devm_add_action_or_reset(host, cxl_nvd_unregister, dev);
- 
- err:
- 	put_device(dev);
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 9af5745ba2c0..6c7a7e9af0d4 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -195,6 +195,7 @@ enum cxl_decoder_type {
-  * @interleave_granularity: data stride per dport
-  * @target_type: accelerator vs expander (type2 vs type3) selector
-  * @flags: memory type capabilities and locking
-+ * @nr_targets: number of elements in @target
-  * @target: active ordered target list in current decoder configuration
-  */
- struct cxl_decoder {
-@@ -205,6 +206,7 @@ struct cxl_decoder {
- 	int interleave_granularity;
- 	enum cxl_decoder_type target_type;
- 	unsigned long flags;
-+	int nr_targets;
- 	struct cxl_dport *target[];
- };
- 
-@@ -286,15 +288,11 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
- 
- struct cxl_decoder *to_cxl_decoder(struct device *dev);
- bool is_root_decoder(struct device *dev);
--struct cxl_decoder *
--devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
--		     resource_size_t base, resource_size_t len,
--		     int interleave_ways, int interleave_granularity,
--		     enum cxl_decoder_type type, unsigned long flags,
--		     int *target_map);
--
--struct cxl_decoder *devm_cxl_add_passthrough_decoder(struct device *host,
--						     struct cxl_port *port);
-+struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets);
-+int cxl_decoder_add(struct device *host, struct cxl_decoder *cxld,
-+		    int *target_map);
-+int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld);
-+
- extern struct bus_type cxl_bus_type;
- 
- struct cxl_driver {
+The intend for adding these callbacks(event_init/add/del/read) is to give
+flexibility to the nvdimm core to add some common checks/routines if required
+in the future. Those checks can be common for all architecture with still having the
+ability to call arch/platform specific driver code to use its own routines.
 
+But as you said, currently we don't have any common checks and it directly
+calling platform specific code, so we can get rid of it. 
+Should we remove this part for now?
+  
+
+> 
+> Otherwise it's also not clear which of these structure members are
+> used at runtime vs purely used as temporary storage to pass parameters
+> to the pmu core.
+> 
+>> + * @attr_groups: data structure for events, formats and cpumask
+>> + * @cpu: designated cpu for counter access.
+>> + * @node: node for cpu hotplug notifier link.
+>> + * @cpuhp_state: state for cpu hotplug notification.
+>> + * @arch_cpumask: cpumask to get designated cpu for counter access.
+>> + */
+>> +struct nvdimm_pmu {
+>> +       const char *name;
+>> +       struct pmu pmu;
+>> +       struct device *dev;
+>> +       int (*event_init)(struct perf_event *event);
+>> +       int  (*add)(struct perf_event *event, int flags);
+>> +       void (*del)(struct perf_event *event, int flags);
+>> +       void (*read)(struct perf_event *event);
+>> +       /*
+>> +        * Attribute groups for the nvdimm pmu. Index 0 used for
+>> +        * format attribute, index 1 used for event attribute,
+>> +        * index 2 used for cpusmask attribute and index 3 kept as NULL.
+>> +        */
+>> +       const struct attribute_group *attr_groups[4];
+> 
+> Following from above, I'd rather this was organized as static
+> attributes with an is_visible() helper for the groups for any dynamic
+> aspects. That mirrors the behavior of nvdimm_create() and allows for
+> device drivers to compose the attribute groups from a core set and /
+> or a provider specific set.
+
+Since we don't have any common events right now, Can I use papr
+attributes directly or should we create dummy events for common thing and
+then merged it with papr event list.
+
+Thanks,
+Kajol Jain
+
+> 
+>> +       int cpu;
+>> +       struct hlist_node node;
+>> +       enum cpuhp_state cpuhp_state;
+>> +
+>> +       /* cpumask provided by arch/platform specific code */
+>> +       struct cpumask arch_cpumask;
+>> +};
+>> +
+>>  struct nd_device_driver {
+>>         struct device_driver drv;
+>>         unsigned long type;
+>> --
+>> 2.26.2
+>>
