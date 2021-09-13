@@ -1,108 +1,159 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4B9A3FD6
-	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 16:39:45 +0000 (UTC)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-	by smtp-out1.suse.de (Postfix) with ESMTP id 442AF22028;
-	Mon, 13 Sep 2021 16:30:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1631550642; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=Dfx9ZUh8IlSB114cbG4XVpLALI8W+1SZrDn37ByerEE=;
-	b=kXjOO0iCMoAKWnt6Opb8FFJugDUYZQ7DbzsDLuetsyrCbmiPllf/mkVR8VmNl9tWNWifs5
-	AoAoMzVmklJPB54/L4D4Nt4WVKMicnbLDU0dz1hPR58BymiqSOPOwFmy/LivFcuSEnZXFQ
-	kL2G2EhSzQDHiZwB4Uru3KeH19XW7Gw=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1631550642;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=Dfx9ZUh8IlSB114cbG4XVpLALI8W+1SZrDn37ByerEE=;
-	b=p64ujeY8XFsknqbEvjCTX1PfdqHjFQyxjmZkXXN2V0N30oiXhDFZdJNuK4dhWHt2m/z6RN
-	c/ccMMs18608KnBQ==
-Received: from localhost.localdomain (colyli.tcp.ovpn1.nue.suse.de [10.163.16.22])
-	by relay2.suse.de (Postfix) with ESMTP id A9A4BA3B81;
-	Mon, 13 Sep 2021 16:30:36 +0000 (UTC)
-From: Coly Li <colyli@suse.de>
-To: linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org,
-	linux-raid@vger.kernel.org,
-	nvdimm@lists.linux.dev
-Cc: antlists@youngman.org.uk,
-	Coly Li <colyli@suse.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Hannes Reinecke <hare@suse.de>,
-	Jens Axboe <axboe@kernel.dk>,
-	NeilBrown <neilb@suse.de>,
-	Vishal L Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 0/7] badblocks improvement for multiple bad block ranges 
-Date: Tue, 14 Sep 2021 00:30:09 +0800
-Message-Id: <20210913163016.10088-1-colyli@suse.de>
-X-Mailer: git-send-email 2.31.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42CA43FC4
+	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 22:19:52 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10106"; a="282809418"
+X-IronPort-AV: E=Sophos;i="5.85,290,1624345200"; 
+   d="scan'208";a="282809418"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Sep 2021 15:19:51 -0700
+X-IronPort-AV: E=Sophos;i="5.85,290,1624345200"; 
+   d="scan'208";a="609257045"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Sep 2021 15:19:50 -0700
+Subject: [PATCH v5 08/21] cxl/pci: Clean up cxl_mem_get_partition_info()
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Ira Weiny <ira.weiny@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
+ Jonathan Cameron <Jonathan.Cameron@huwei.com>, nvdimm@lists.linux.dev
+Date: Mon, 13 Sep 2021 15:19:49 -0700
+Message-ID: <163157154183.2652718.10987214856112022775.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <163116433533.2460985.14299233004385504131.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <163116433533.2460985.14299233004385504131.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-This is the second effort to improve badblocks code APIs to handle
-multiple ranges in bad block table.
+Commit 0b9159d0ff21 ("cxl/pci: Store memory capacity values") missed
+updating the kernel-doc for 'struct cxl_mem' leading to the following
+warnings:
 
-There are 2 changes from previous version,
-- Fixes 2 bugs in front_overwrite() which are detected by the user
-  space testing code.
-- Provide the user space testing code in last patch.
+./scripts/kernel-doc -v drivers/cxl/cxlmem.h 2>&1 | grep warn
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'total_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'volatile_only_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'persistent_only_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'partition_align_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'active_volatile_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'active_persistent_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'next_volatile_bytes' not described in 'cxl_mem'
+drivers/cxl/cxlmem.h:107: warning: Function parameter or member 'next_persistent_bytes' not described in 'cxl_mem'
 
-There is NO in-memory or on-disk format change in the whole series, all
-existing API and data structures are consistent. This series just only
-improve the code algorithm to handle more corner cases, the interfaces
-are same and consistency to all existing callers (md raid and nvdimm
-drivers).
+Also, it is redundant to describe those same parameters in the
+kernel-doc for cxl_mem_get_partition_info(). Given the only user of that
+routine updates the values in @cxlm, just do that implicitly internal to
+the helper.
 
-The original motivation of the change is from the requirement from our
-customer, that current badblocks routines don't handle multiple ranges.
-For example if the bad block setting range covers multiple ranges from
-bad block table, only the first two bad block ranges merged and rested
-ranges are intact. The expected behavior should be all the covered
-ranges to be handled.
-
-All the patches are tested by modified user space code and the code
-logic works as expected. The modified user space testing code is
-provided in last patch. The testing code detects 2 defects in helper
-front_overwrite() and fixed in this version.
-
-The whole change is divided into 6 patches to make the code review more
-clear and easier. If people prefer, I'd like to post a single large
-patch finally after the code review accomplished.
-
-This version is seriously tested, and so far no more defect observed.
-
-
-Coly Li
-
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Vishal L Verma <vishal.l.verma@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Reported-by: Ben Widawsky <ben.widawsky@intel.com>
+Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huwei.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+Changes since v4:
+- Update the kdoc for @partition_align_bytes (Ben)
+- Collect Jonathan's reviewed-by pending above update.
 
-Coly Li (6):
-  badblocks: add more helper structure and routines in badblocks.h
-  badblocks: add helper routines for badblock ranges handling
-  badblocks: improvement badblocks_set() for multiple ranges handling
-  badblocks: improve badblocks_clear() for multiple ranges handling
-  badblocks: improve badblocks_check() for multiple ranges handling
-  badblocks: switch to the improved badblock handling code
-Coly Li (1):
-  test: user space code to test badblocks APIs
+ drivers/cxl/cxlmem.h |   15 +++++++++++++--
+ drivers/cxl/pci.c    |   35 +++++++++++------------------------
+ 2 files changed, 24 insertions(+), 26 deletions(-)
 
- block/badblocks.c         | 1599 ++++++++++++++++++++++++++++++-------
- include/linux/badblocks.h |   32 +
- 2 files changed, 1340 insertions(+), 291 deletions(-)
-
--- 
-2.31.1
+diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+index d5334df83fb2..c6fce966084a 100644
+--- a/drivers/cxl/cxlmem.h
++++ b/drivers/cxl/cxlmem.h
+@@ -78,8 +78,19 @@ devm_cxl_add_memdev(struct cxl_mem *cxlm,
+  * @mbox_mutex: Mutex to synchronize mailbox access.
+  * @firmware_version: Firmware version for the memory device.
+  * @enabled_cmds: Hardware commands found enabled in CEL.
+- * @pmem_range: Persistent memory capacity information.
+- * @ram_range: Volatile memory capacity information.
++ * @pmem_range: Active Persistent memory capacity configuration
++ * @ram_range: Active Volatile memory capacity configuration
++ * @total_bytes: sum of all possible capacities
++ * @volatile_only_bytes: hard volatile capacity
++ * @persistent_only_bytes: hard persistent capacity
++ * @partition_align_bytes: soft setting for configurable capacity
++ * @active_volatile_bytes: sum of hard + soft volatile
++ * @active_persistent_bytes: sum of hard + soft persistent
++ * @next_volatile_bytes: volatile capacity change pending device reset
++ * @next_persistent_bytes: persistent capacity change pending device reset
++ *
++ * See section 8.2.9.5.2 Capacity Configuration and Label Storage for
++ * details on capacity parameters.
+  */
+ struct cxl_mem {
+ 	struct device *dev;
+diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+index c1e1d12e24b6..8077d907e7d3 100644
+--- a/drivers/cxl/pci.c
++++ b/drivers/cxl/pci.c
+@@ -1262,11 +1262,7 @@ static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_mem *cxlm)
+ 
+ /**
+  * cxl_mem_get_partition_info - Get partition info
+- * @cxlm: The device to act on
+- * @active_volatile_bytes: returned active volatile capacity
+- * @active_persistent_bytes: returned active persistent capacity
+- * @next_volatile_bytes: return next volatile capacity
+- * @next_persistent_bytes: return next persistent capacity
++ * @cxlm: cxl_mem instance to update partition info
+  *
+  * Retrieve the current partition info for the device specified.  If not 0, the
+  * 'next' values are pending and take affect on next cold reset.
+@@ -1275,11 +1271,7 @@ static struct cxl_mbox_get_supported_logs *cxl_get_gsl(struct cxl_mem *cxlm)
+  *
+  * See CXL @8.2.9.5.2.1 Get Partition Info
+  */
+-static int cxl_mem_get_partition_info(struct cxl_mem *cxlm,
+-				      u64 *active_volatile_bytes,
+-				      u64 *active_persistent_bytes,
+-				      u64 *next_volatile_bytes,
+-				      u64 *next_persistent_bytes)
++static int cxl_mem_get_partition_info(struct cxl_mem *cxlm)
+ {
+ 	struct cxl_mbox_get_partition_info {
+ 		__le64 active_volatile_cap;
+@@ -1294,15 +1286,14 @@ static int cxl_mem_get_partition_info(struct cxl_mem *cxlm,
+ 	if (rc)
+ 		return rc;
+ 
+-	*active_volatile_bytes = le64_to_cpu(pi.active_volatile_cap);
+-	*active_persistent_bytes = le64_to_cpu(pi.active_persistent_cap);
+-	*next_volatile_bytes = le64_to_cpu(pi.next_volatile_cap);
+-	*next_persistent_bytes = le64_to_cpu(pi.next_volatile_cap);
+-
+-	*active_volatile_bytes *= CXL_CAPACITY_MULTIPLIER;
+-	*active_persistent_bytes *= CXL_CAPACITY_MULTIPLIER;
+-	*next_volatile_bytes *= CXL_CAPACITY_MULTIPLIER;
+-	*next_persistent_bytes *= CXL_CAPACITY_MULTIPLIER;
++	cxlm->active_volatile_bytes =
++		le64_to_cpu(pi.active_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
++	cxlm->active_persistent_bytes =
++		le64_to_cpu(pi.active_persistent_cap) * CXL_CAPACITY_MULTIPLIER;
++	cxlm->next_volatile_bytes =
++		le64_to_cpu(pi.next_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
++	cxlm->next_persistent_bytes =
++		le64_to_cpu(pi.next_volatile_cap) * CXL_CAPACITY_MULTIPLIER;
+ 
+ 	return 0;
+ }
+@@ -1443,11 +1434,7 @@ static int cxl_mem_create_range_info(struct cxl_mem *cxlm)
+ 		return 0;
+ 	}
+ 
+-	rc = cxl_mem_get_partition_info(cxlm,
+-					&cxlm->active_volatile_bytes,
+-					&cxlm->active_persistent_bytes,
+-					&cxlm->next_volatile_bytes,
+-					&cxlm->next_persistent_bytes);
++	rc = cxl_mem_get_partition_info(cxlm);
+ 	if (rc < 0) {
+ 		dev_err(cxlm->dev, "Failed to query partition information\n");
+ 		return rc;
 
