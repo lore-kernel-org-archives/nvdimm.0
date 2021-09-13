@@ -1,68 +1,141 @@
-Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4575E3FD6
-	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 10:29:32 +0000 (UTC)
-Received: from zn.tnic (p200300ec2f097300647bc1aeefdcee9f.dip0.t-ipconnect.de [IPv6:2003:ec:2f09:7300:647b:c1ae:efdc:ee9f])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 8A9341EC0372;
-	Mon, 13 Sep 2021 12:29:20 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-	t=1631528960;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-	bh=IVIUZjL5dpInfeT4UHJ2BlG9ZIvelznW5/5tsIcMzEY=;
-	b=Z9cYssIV96NSTCYklKwDw1ZTBAvDiSdiVJ37N30F7xAa/JaxtRnZ5TQQg6zHwfWkO4UNbt
-	K31K3xe3mFSy2PwlmRg5KVQq4rXFIeh++6neo/pvu5Mme+fxx2xqPicvXxvYn891GBzkOv
-	by8UbXWgBsOdqFTxSsoq10mycakcJ24=
-Date: Mon, 13 Sep 2021 12:29:13 +0200
-From: Borislav Petkov <bp@alien8.de>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: nvdimm@lists.linux.dev, Jane Chu <jane.chu@oracle.com>,
-	Luis Chamberlain <mcgrof@suse.com>, Tony Luck <tony.luck@intel.com>
-Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
-Message-ID: <YT8n+ae3lBQjqoDs@zn.tnic>
-References: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58FC63FD6
+	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 16:30:49 +0000 (UTC)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+	by smtp-out2.suse.de (Postfix) with ESMTP id DF22A1FD9B;
+	Mon, 13 Sep 2021 16:30:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1631550647; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1cLnNgahnRqZc9jVnTIqodTE0s49FfRLlP6thBPVEdE=;
+	b=G4B0dKcceWAc3dPBA9v/gt34/Gyd09ih7imvIkZc6JUfO4WkjMAYL3V0yukTYjsfdOaS1f
+	l0JJMfWTM4PknivRzLiSZPAd/pzromG8sG/RmXHsy0mHAgPe1mfLEDd8XwvZ6c0/UG5ZLp
+	JEHFuuryx0xrDTHIqWFLyTq6GO6atOA=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1631550647;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=1cLnNgahnRqZc9jVnTIqodTE0s49FfRLlP6thBPVEdE=;
+	b=i46mclSR4SG/t74dq02Fjnwcq2Z/bP7MzTKIp9C1ZOgDzRiz2UK2usQSGwywbygQWpPuOw
+	sQU+3oQ+Rr/4kfDQ==
+Received: from localhost.localdomain (colyli.tcp.ovpn1.nue.suse.de [10.163.16.22])
+	by relay2.suse.de (Postfix) with ESMTP id 20EBAA3B92;
+	Mon, 13 Sep 2021 16:30:42 +0000 (UTC)
+From: Coly Li <colyli@suse.de>
+To: linux-kernel@vger.kernel.org,
+	linux-block@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Cc: antlists@youngman.org.uk,
+	Coly Li <colyli@suse.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Hannes Reinecke <hare@suse.de>,
+	Jens Axboe <axboe@kernel.dk>,
+	NeilBrown <neilb@suse.de>,
+	Vishal L Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v2 1/6] badblocks: add more helper structure and routines in badblocks.h
+Date: Tue, 14 Sep 2021 00:30:10 +0800
+Message-Id: <20210913163016.10088-2-colyli@suse.de>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210913163016.10088-1-colyli@suse.de>
+References: <20210913163016.10088-1-colyli@suse.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Transfer-Encoding: 8bit
 
-On Tue, Jul 06, 2021 at 06:01:05PM -0700, Dan Williams wrote:
-> When poison is discovered and triggers memory_failure() the physical
-> page is unmapped from all process address space. However, it is not
-> unmapped from kernel address space. Unlike a typical memory page that
-> can be retired from use in the page allocator and marked 'not present',
-> pmem needs to remain accessible given it can not be physically remapped
-> or retired.
+This patch adds the following helper structure and routines into
+badblocks.h,
+- struct badblocks_context
+  This structure is used in improved badblocks code for bad table
+  iteration.
+- BB_END()
+  The macro to culculate end LBA of a bad range record from bad
+  table.
+- badblocks_full() and badblocks_empty()
+  The inline routines to check whether bad table is full or empty.
+- set_changed() and clear_changed()
+  The inline routines to set and clear 'changed' tag from struct
+  badblocks.
 
-I'm surely missing something obvious but why does it need to remain
-accessible? Spell it out please.
+These new helper structure and routines can help to make the code more
+clear, they will be used in the improved badblocks code in following
+patches.
 
-> set_memory_uc() tries to maintain consistent nominal memtype
-> mappings for a given pfn, but memory_failure() is an exceptional
-> condition.
+Signed-off-by: Coly Li <colyli@suse.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
+---
+ include/linux/badblocks.h | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-That's not clear to me too. So looking at the failure:
-
-[10683.426147] x86/PAT: fsdax_poison_v1:5018 conflicting memory types 1850600000-1850601000  uncached-minus<->write-back
-
-set_memory_uc() marked it UC- but something? wants it to be WB. Why?
-
-I guess I need some more info on the whole memory offlining for pmem and
-why that should be done differently than with normal memory.
-
-Thx.
-
+diff --git a/include/linux/badblocks.h b/include/linux/badblocks.h
+index 2426276b9bd3..166161842d1f 100644
+--- a/include/linux/badblocks.h
++++ b/include/linux/badblocks.h
+@@ -15,6 +15,7 @@
+ #define BB_OFFSET(x)	(((x) & BB_OFFSET_MASK) >> 9)
+ #define BB_LEN(x)	(((x) & BB_LEN_MASK) + 1)
+ #define BB_ACK(x)	(!!((x) & BB_ACK_MASK))
++#define BB_END(x)	(BB_OFFSET(x) + BB_LEN(x))
+ #define BB_MAKE(a, l, ack) (((a)<<9) | ((l)-1) | ((u64)(!!(ack)) << 63))
+ 
+ /* Bad block numbers are stored sorted in a single page.
+@@ -41,6 +42,14 @@ struct badblocks {
+ 	sector_t size;		/* in sectors */
+ };
+ 
++struct badblocks_context {
++	sector_t	start;
++	sector_t	len;
++	int		ack;
++	sector_t	orig_start;
++	sector_t	orig_len;
++};
++
+ int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+ 		   sector_t *first_bad, int *bad_sectors);
+ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+@@ -63,4 +72,27 @@ static inline void devm_exit_badblocks(struct device *dev, struct badblocks *bb)
+ 	}
+ 	badblocks_exit(bb);
+ }
++
++static inline int badblocks_full(struct badblocks *bb)
++{
++	return (bb->count >= MAX_BADBLOCKS);
++}
++
++static inline int badblocks_empty(struct badblocks *bb)
++{
++	return (bb->count == 0);
++}
++
++static inline void set_changed(struct badblocks *bb)
++{
++	if (bb->changed != 1)
++		bb->changed = 1;
++}
++
++static inline void clear_changed(struct badblocks *bb)
++{
++	if (bb->changed != 0)
++		bb->changed = 0;
++}
++
+ #endif
 -- 
-Regards/Gruss,
-    Boris.
+2.31.1
 
-https://people.kernel.org/tglx/notes-about-netiquette
