@@ -1,100 +1,68 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CF463FC3
-	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 04:57:14 +0000 (UTC)
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.0.43) with SMTP id 18D49Uhd029648;
-	Mon, 13 Sep 2021 00:57:12 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : in-reply-to : references : date : message-id : content-type :
- mime-version; s=pp1; bh=3yvgybRayxMUrOmjyC0XQIGJ7qdgf+ZGA6QmT8QBEHE=;
- b=W+LQHta4aACZtuRuPMU2K4xjLpM30p4WKRl5mYRtKkJH3AA9x8sToZLupg/zNDCD3pa7
- MY0NM7A0JEFk6aB8s2BHzNfvW96dNDhygLAS8gTg4UCS36IP+jrxAnox3XSKL2suAbKm
- E5AatgllYVDsv06N9sYkrvRStxqmQMQfMAd/LYuUwwqffl/99CzDlYulIjEme6gKAsdJ
- PS3yFWHCxNmIeOY+XyI6GDPk66vgu5QkGPhIjMuBcjpO2ZUkShvXc2IH7MBVLFVp0c16
- tW1KKRAFXMl8WtZ0vW3JedSIB/KIz1t7AibDg+92UTCS/YBTDZVjqjsGkdHKLBMe5Cs4 dw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3b19j78m23-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 13 Sep 2021 00:57:12 -0400
-Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
-	by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 18D4uFH1017614;
-	Mon, 13 Sep 2021 00:57:11 -0400
-Received: from ppma04wdc.us.ibm.com (1a.90.2fa9.ip4.static.sl-reverse.com [169.47.144.26])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3b19j78m1k-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 13 Sep 2021 00:57:11 -0400
-Received: from pps.filterd (ppma04wdc.us.ibm.com [127.0.0.1])
-	by ppma04wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18D4tIvq024300;
-	Mon, 13 Sep 2021 04:57:10 GMT
-Received: from b01cxnp22036.gho.pok.ibm.com (b01cxnp22036.gho.pok.ibm.com [9.57.198.26])
-	by ppma04wdc.us.ibm.com with ESMTP id 3b0m39yv5d-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 13 Sep 2021 04:57:10 +0000
-Received: from b01ledav002.gho.pok.ibm.com (b01ledav002.gho.pok.ibm.com [9.57.199.107])
-	by b01cxnp22036.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 18D4vARp10879732
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 13 Sep 2021 04:57:10 GMT
-Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 030FE124055;
-	Mon, 13 Sep 2021 04:57:10 +0000 (GMT)
-Received: from b01ledav002.gho.pok.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 1CB4B124053;
-	Mon, 13 Sep 2021 04:57:08 +0000 (GMT)
-Received: from skywalker.linux.ibm.com (unknown [9.43.86.25])
-	by b01ledav002.gho.pok.ibm.com (Postfix) with ESMTP;
-	Mon, 13 Sep 2021 04:57:07 +0000 (GMT)
-X-Mailer: emacs 28.0.50 (via feedmail 11-beta-1 I)
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-To: Dan Williams <dan.j.williams@intel.com>, Yi Zhang <yi.zhang@redhat.com>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>,
-        Vishal L Verma <vishal.l.verma@intel.com>,
-        Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH] ndctl: Avoid confusing error message when operating on
- all the namespaces
-In-Reply-To: <CAPcyv4iP50kaPk8fVmPOMWbVngeLmEhC9nsEBnhgU0C-Er0U+w@mail.gmail.com>
-References: <20210708100104.168348-1-aneesh.kumar@linux.ibm.com>
- <CAHj4cs_t9sMw9b5XRPMkYE37BfAEMkWCFFpU1C8heKYBbRcnbA@mail.gmail.com>
- <CAPcyv4iP50kaPk8fVmPOMWbVngeLmEhC9nsEBnhgU0C-Er0U+w@mail.gmail.com>
-Date: Mon, 13 Sep 2021 10:27:05 +0530
-Message-ID: <87tuipt6n2.fsf@linux.ibm.com>
-Content-Type: text/plain
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: mUzxbBwyOMExRcVpfns5z_rRcnICgUD2
-X-Proofpoint-GUID: 0X65ZJEftunSMbOvupnhUL1RQ9untiYo
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4575E3FD6
+	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 10:29:32 +0000 (UTC)
+Received: from zn.tnic (p200300ec2f097300647bc1aeefdcee9f.dip0.t-ipconnect.de [IPv6:2003:ec:2f09:7300:647b:c1ae:efdc:ee9f])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 8A9341EC0372;
+	Mon, 13 Sep 2021 12:29:20 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+	t=1631528960;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+	bh=IVIUZjL5dpInfeT4UHJ2BlG9ZIvelznW5/5tsIcMzEY=;
+	b=Z9cYssIV96NSTCYklKwDw1ZTBAvDiSdiVJ37N30F7xAa/JaxtRnZ5TQQg6zHwfWkO4UNbt
+	K31K3xe3mFSy2PwlmRg5KVQq4rXFIeh++6neo/pvu5Mme+fxx2xqPicvXxvYn891GBzkOv
+	by8UbXWgBsOdqFTxSsoq10mycakcJ24=
+Date: Mon, 13 Sep 2021 12:29:13 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: nvdimm@lists.linux.dev, Jane Chu <jane.chu@oracle.com>,
+	Luis Chamberlain <mcgrof@suse.com>, Tony Luck <tony.luck@intel.com>
+Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+Message-ID: <YT8n+ae3lBQjqoDs@zn.tnic>
+References: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.182.1,Aquarius:18.0.687,Hydra:6.0.235,FMLib:17.0.607.475
- definitions=2020-10-13_15,2020-10-13_02,2020-04-07_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 mlxlogscore=999
- spamscore=0 clxscore=1011 priorityscore=1501 lowpriorityscore=0
- adultscore=0 impostorscore=0 mlxscore=0 phishscore=0 suspectscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2109030001 definitions=main-2109120024
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-Dan Williams <dan.j.williams@intel.com> writes:
+On Tue, Jul 06, 2021 at 06:01:05PM -0700, Dan Williams wrote:
+> When poison is discovered and triggers memory_failure() the physical
+> page is unmapped from all process address space. However, it is not
+> unmapped from kernel address space. Unlike a typical memory page that
+> can be retired from use in the page allocator and marked 'not present',
+> pmem needs to remain accessible given it can not be physically remapped
+> or retired.
 
-> On Mon, Jul 12, 2021 at 5:20 PM Yi Zhang <yi.zhang@redhat.com> wrote:
->>
->> Jeff had posted one patch to fix similar issue
->> https://lore.kernel.org/linux-nvdimm/x49r1lohpty.fsf@segfault.boston.devel.redhat.com/T/#u
->>
->> Hi Dan/Visha
->> Could we make some progress on this issue?
->
-> Apologies, we had some internal administrivia to address, but are
-> getting back to regular releases now and catching up on the backlog.
+I'm surely missing something obvious but why does it need to remain
+accessible? Spell it out please.
 
-Any update on this patch? Without this I get failures with 
-https://github.com/avocado-framework-tests/avocado-misc-tests/blob/master/memory/ndctl.py
-because the return status is 1 for disable-namespace command with only
-seed namespace.
+> set_memory_uc() tries to maintain consistent nominal memtype
+> mappings for a given pfn, but memory_failure() is an exceptional
+> condition.
 
--aneesh
+That's not clear to me too. So looking at the failure:
+
+[10683.426147] x86/PAT: fsdax_poison_v1:5018 conflicting memory types 1850600000-1850601000  uncached-minus<->write-back
+
+set_memory_uc() marked it UC- but something? wants it to be WB. Why?
+
+I guess I need some more info on the whole memory offlining for pmem and
+why that should be done differently than with normal memory.
+
+Thx.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
