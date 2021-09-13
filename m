@@ -1,28 +1,32 @@
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 656733FD6
-	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 16:38:15 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF4B33FD6
+	for <nvdimm@lists.linux.dev>; Mon, 13 Sep 2021 16:38:21 +0000 (UTC)
 Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-	by smtp-out2.suse.de (Postfix) with ESMTP id DE87020007;
-	Mon, 13 Sep 2021 16:38:13 +0000 (UTC)
+	by smtp-out2.suse.de (Postfix) with ESMTP id 73C6C20007;
+	Mon, 13 Sep 2021 16:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1631551093; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=sADq2YKr9jfwk60jmtDQWCF0BvZ5gi9wFiZf1Lzc8Rk=;
-	b=jW8FJT56suitDpb5iPieL89czU/zZON16K6rMwb+KhVmnNl2MeW3UivrZMhQowYPelB2pJ
-	X8xg4rQ9/tcIzzwSrB6O7h4Fwo3kBMtDNNJH5rlknJ02cZOZ7VcG4YMcsb65VWooxlQrL7
-	nnzhzbIGq/eEF/4TXmhtlAdq140xvXE=
+	t=1631551100; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=zRaFCkoSthGoCjkkPXvRjFDqiuQYb4slnaFkxKz+TyU=;
+	b=2HIdOUIzyKR04FClgFsoqResbuxL6Q+Tdpiu+9HFvgxg1CQL+bwWW+UJeuDlTVBgjIfQTL
+	J87c59gMvUB31cK0+FOu856SL+OJRrpOZlY6KLt/QV9BhhFonLA75UwInvKImMsGC0+wWR
+	mZVog1lDInCwqAkhx7E+3d8fl4Fywr0=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1631551093;
+	s=susede2_ed25519; t=1631551100;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
-	bh=sADq2YKr9jfwk60jmtDQWCF0BvZ5gi9wFiZf1Lzc8Rk=;
-	b=s92XzRaS0fG41KQdEwFTxkMD6AAkWySnDLncRmTsaBB4P0lfiu9JZJ4cKr7/6WvXpKGeDT
-	aXKzRPunealP20AA==
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=zRaFCkoSthGoCjkkPXvRjFDqiuQYb4slnaFkxKz+TyU=;
+	b=4wNuUlw36WyR6YGx1QOiXV6B/Cvj02g1082Fv9tzFqbukizcg4M7IvRSYcLV8vmpav2+i5
+	qv0RIRg0QxUkbNBg==
 Received: from localhost.localdomain (unknown [10.163.16.22])
-	by relay2.suse.de (Postfix) with ESMTP id 2AFCBA3B88;
-	Mon, 13 Sep 2021 16:38:07 +0000 (UTC)
+	by relay2.suse.de (Postfix) with ESMTP id 7FFDFA3B97;
+	Mon, 13 Sep 2021 16:38:14 +0000 (UTC)
 From: Coly Li <colyli@suse.de>
 To: linux-kernel@vger.kernel.org,
 	linux-block@vger.kernel.org,
@@ -36,10 +40,12 @@ Cc: antlists@youngman.org.uk,
 	NeilBrown <neilb@suse.de>,
 	Richard Fan <richard.fan@suse.com>,
 	Vishal L Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v3 0/7] badblocks improvement for multiple bad block ranges 
-Date: Tue, 14 Sep 2021 00:36:36 +0800
-Message-Id: <20210913163643.10233-1-colyli@suse.de>
+Subject: [PATCH v3 1/6] badblocks: add more helper structure and routines in badblocks.h
+Date: Tue, 14 Sep 2021 00:36:37 +0800
+Message-Id: <20210913163643.10233-2-colyli@suse.de>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210913163643.10233-1-colyli@suse.de>
+References: <20210913163643.10233-1-colyli@suse.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -48,41 +54,25 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-This is the second effort to improve badblocks code APIs to handle
-multiple ranges in bad block table.
+This patch adds the following helper structure and routines into
+badblocks.h,
+- struct badblocks_context
+  This structure is used in improved badblocks code for bad table
+  iteration.
+- BB_END()
+  The macro to culculate end LBA of a bad range record from bad
+  table.
+- badblocks_full() and badblocks_empty()
+  The inline routines to check whether bad table is full or empty.
+- set_changed() and clear_changed()
+  The inline routines to set and clear 'changed' tag from struct
+  badblocks.
 
-There are 2 changes from previous version,
-- Fixes 2 bugs in front_overwrite() which are detected by the user
-  space testing code.
-- Provide the user space testing code in last patch.
+These new helper structure and routines can help to make the code more
+clear, they will be used in the improved badblocks code in following
+patches.
 
-There is NO in-memory or on-disk format change in the whole series, all
-existing API and data structures are consistent. This series just only
-improve the code algorithm to handle more corner cases, the interfaces
-are same and consistency to all existing callers (md raid and nvdimm
-drivers).
-
-The original motivation of the change is from the requirement from our
-customer, that current badblocks routines don't handle multiple ranges.
-For example if the bad block setting range covers multiple ranges from
-bad block table, only the first two bad block ranges merged and rested
-ranges are intact. The expected behavior should be all the covered
-ranges to be handled.
-
-All the patches are tested by modified user space code and the code
-logic works as expected. The modified user space testing code is
-provided in last patch. The testing code detects 2 defects in helper
-front_overwrite() and fixed in this version.
-
-The whole change is divided into 6 patches to make the code review more
-clear and easier. If people prefer, I'd like to post a single large
-patch finally after the code review accomplished.
-
-This version is seriously tested, and so far no more defect observed.
-
-
-Coly Li
-
+Signed-off-by: Coly Li <colyli@suse.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Hannes Reinecke <hare@suse.de>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -90,26 +80,64 @@ Cc: NeilBrown <neilb@suse.de>
 Cc: Richard Fan <richard.fan@suse.com>
 Cc: Vishal L Verma <vishal.l.verma@intel.com>
 ---
-Changelog:
-v3: add tester Richard Fan <richard.fan@suse.com>
-v2: the improved version, and with testing code.
-v1: the first completed version.
+ include/linux/badblocks.h | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-
-Coly Li (6):
-  badblocks: add more helper structure and routines in badblocks.h
-  badblocks: add helper routines for badblock ranges handling
-  badblocks: improvement badblocks_set() for multiple ranges handling
-  badblocks: improve badblocks_clear() for multiple ranges handling
-  badblocks: improve badblocks_check() for multiple ranges handling
-  badblocks: switch to the improved badblock handling code
-Coly Li (1):
-  test: user space code to test badblocks APIs
-
- block/badblocks.c         | 1599 ++++++++++++++++++++++++++++++-------
- include/linux/badblocks.h |   32 +
- 2 files changed, 1340 insertions(+), 291 deletions(-)
-
+diff --git a/include/linux/badblocks.h b/include/linux/badblocks.h
+index 2426276b9bd3..166161842d1f 100644
+--- a/include/linux/badblocks.h
++++ b/include/linux/badblocks.h
+@@ -15,6 +15,7 @@
+ #define BB_OFFSET(x)	(((x) & BB_OFFSET_MASK) >> 9)
+ #define BB_LEN(x)	(((x) & BB_LEN_MASK) + 1)
+ #define BB_ACK(x)	(!!((x) & BB_ACK_MASK))
++#define BB_END(x)	(BB_OFFSET(x) + BB_LEN(x))
+ #define BB_MAKE(a, l, ack) (((a)<<9) | ((l)-1) | ((u64)(!!(ack)) << 63))
+ 
+ /* Bad block numbers are stored sorted in a single page.
+@@ -41,6 +42,14 @@ struct badblocks {
+ 	sector_t size;		/* in sectors */
+ };
+ 
++struct badblocks_context {
++	sector_t	start;
++	sector_t	len;
++	int		ack;
++	sector_t	orig_start;
++	sector_t	orig_len;
++};
++
+ int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
+ 		   sector_t *first_bad, int *bad_sectors);
+ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
+@@ -63,4 +72,27 @@ static inline void devm_exit_badblocks(struct device *dev, struct badblocks *bb)
+ 	}
+ 	badblocks_exit(bb);
+ }
++
++static inline int badblocks_full(struct badblocks *bb)
++{
++	return (bb->count >= MAX_BADBLOCKS);
++}
++
++static inline int badblocks_empty(struct badblocks *bb)
++{
++	return (bb->count == 0);
++}
++
++static inline void set_changed(struct badblocks *bb)
++{
++	if (bb->changed != 1)
++		bb->changed = 1;
++}
++
++static inline void clear_changed(struct badblocks *bb)
++{
++	if (bb->changed != 0)
++		bb->changed = 0;
++}
++
+ #endif
 -- 
 2.31.1
 
