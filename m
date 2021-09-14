@@ -1,100 +1,112 @@
-Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB09429CA
-	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 15:51:45 +0000 (UTC)
-Received: by mail-qt1-f172.google.com with SMTP id b14so11905871qtb.0
-        for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 08:51:45 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 207B72FAF
+	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 18:08:12 +0000 (UTC)
+Received: by mail-pf1-f176.google.com with SMTP id y17so13096218pfl.13
+        for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 11:08:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=wpm3EKcVYyz7LQSzWSg/19JHgrxbG8xZ10fGoXa6mFA=;
-        b=DDAhlig91/9XaQ6Ex1B8amqRl4P77Qh6wJzLlL9yX9K0IzUF+p4ztuhhey1yn9bxSZ
-         7JjQg3EEvuUO+l34US04F0v5tdxGBcMDi7JTSD/wJqdOcM3/NQFmZrt8c2A0PFTzxm79
-         QO81/MGIXBZB/AzZaoUx7lhUFUPTvgfjymY68=
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=k9PxsZ21TMFgLLF0L2gUpvlI6cDD53wFPAgaLTB+XZk=;
+        b=EtkYdovPkUAqBGYBMV/7mIUMYafZXKV7FFOx1Eo9T+DNZllqQcM08/9Aa9D2ZXNf4l
+         w1kdtl2GAzyR3vvt31PqwgQUOJDy4Jw9RBfcvx1te46XTc/5spuoa++/T9u/svVYyXxQ
+         UEE8iSjREUmHg9xaeOsO6xyKCzMCPzJzTwZK8ePPy2hVDcZqBRzVH1gg4GJHJ3xNUgMk
+         vAa97L+zRbLTFfkS978BjQpdrjSsUKvxf7bEvntsaBpTLIUAmCrayWh1f42LTdjyqrEU
+         YBtZXxChI9S8b2nlWi6zdLlo31IRr61jMeqfvanbtSO+oJ7xTTmgN8DdaNP9HDun4LLv
+         3dQw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=wpm3EKcVYyz7LQSzWSg/19JHgrxbG8xZ10fGoXa6mFA=;
-        b=04SL80M+PLN7kTF1JdFP0AY2OkL5x3O/D8B6RBaMMl1mJC/6nRyyCvAAtY+9Fyblem
-         ewcJzbSY1mUblxMcmvUGbwQ9lThqbzdJjiykLq/RA1ez5apwGvoFwVVxU3kgCpnpPae5
-         wwOSD2CUu9AurgBwKTnWOyXV1wzFNt9I9hXaTs8vRTNi8tYZuwwTQKsdPFPdW436dWu4
-         unN0TDSuq/XFJSURCXuELjWm0fuu/AJsqK79Sx+WZAET6V1hwLWJ+PhkqH0/hk7Yxkoe
-         OjwJt+E+0Sk6z7An+rf2Z6uLfR3NuIPPJUDpAtVlEY6Rr4DPPxhSCV74KlsPfYlR3HHY
-         I1oA==
-X-Gm-Message-State: AOAM532ga1ORCNYc4B7oHMW9XK9PqPu67iApQE/+eOo+lwmrkn0li/uJ
-	7U+yhLMS5KN8B+n/fkpUbh3RQQ==
-X-Google-Smtp-Source: ABdhPJyTkD7AX/OAq0MPZ7v+TkEUDhAIH8BSJ3PJuBuMuksD9qKKq6mx7wPMEQfaGXkmHTzYqcy10g==
-X-Received: by 2002:a05:622a:1792:: with SMTP id s18mr5472991qtk.136.1631634704548;
-        Tue, 14 Sep 2021 08:51:44 -0700 (PDT)
-Received: from meerkat.local (bras-base-mtrlpq5031w-grc-32-216-209-220-181.dsl.bell.ca. [216.209.220.181])
-        by smtp.gmail.com with ESMTPSA id c20sm7582006qkk.121.2021.09.14.08.51.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Sep 2021 08:51:44 -0700 (PDT)
-Date: Tue, 14 Sep 2021 11:51:42 -0400
-From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>,
-	Vishal L Verma <vishal.l.verma@intel.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	"Schofield, Alison" <alison.schofield@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>
-Subject: Re: [PATCH v4 14/21] cxl/mbox: Add exclusive kernel command support
-Message-ID: <20210914155142.sshxiqaorrmoxfna@meerkat.local>
-References: <163116429183.2460985.5040982981112374615.stgit@dwillia2-desk3.amr.corp.intel.com>
- <163116436926.2460985.1268688593156766623.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20210910103348.00005b5c@Huawei.com>
- <CAPcyv4i48AHtHOAJVsDKQ+Zg2QqnvQg1Ur8ekb6qR6cRDbkAzQ@mail.gmail.com>
- <20210914122211.5pm6h3gppwfh763t@meerkat.local>
- <CAPcyv4j5FxmDX0fjgCKs9V4Avn3JD-5JMt4MxNy3_DH_x_tGug@mail.gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=k9PxsZ21TMFgLLF0L2gUpvlI6cDD53wFPAgaLTB+XZk=;
+        b=IN/KYVBBzgnKkv/4TIRFBQ9kCKoXYEhmKchalJJMFQIF2Bzvlf1JEE3TayVI5N6/6Z
+         EnRhTf4HQ+hg0pgKexKDAXnF7bUQT7LKYgG1mEyDFraLRFUsYLol1zUPZ04gQi4a4iXR
+         kZQxyq3s/5wRd5iSQZ0ZNUanNWyh1IV5yRwaz9FqJcEwG/fMjEuKaMK7rXkN/Pa3BxLe
+         6iK7Gl67U4LjcxFzqER57jtfO3KdWRxJf7J03oF7QZDCPdLD1YuGJ5FhKK/fWnk9C6zT
+         QRoOnzlzhB2U678ILC8OOSbVVyPtTCc94pbuubCnDf3o5QuJiICmh9TyU2Wm8GAfRa6n
+         s3VA==
+X-Gm-Message-State: AOAM531fYcwOvT+mOLJKvarY4pw15jar8Erg1ui7p2k8+1hqM2f3AABM
+	yMOHFMz5N/zxt/l6D7/i4eV4OyCG2xiasrDyE3wtzA==
+X-Google-Smtp-Source: ABdhPJz9mG8P5EDTOy6LB4Hv2QFcJ1IJlbWwfVxK+eJw0erAqDCKYWGO8EbEz+7URLfC8VOWJDtNCjSo042FDpVoonc=
+X-Received: by 2002:a62:6d07:0:b0:40a:33cd:d3ea with SMTP id
+ i7-20020a626d07000000b0040a33cdd3eamr5883336pfc.61.1631642891548; Tue, 14 Sep
+ 2021 11:08:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4j5FxmDX0fjgCKs9V4Avn3JD-5JMt4MxNy3_DH_x_tGug@mail.gmail.com>
+References: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <YT8n+ae3lBQjqoDs@zn.tnic>
+In-Reply-To: <YT8n+ae3lBQjqoDs@zn.tnic>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 14 Sep 2021 11:08:00 -0700
+Message-ID: <CAPcyv4hNzR8ExvYxguvyu6N6Md1x0QVSnDF_5G1WSruK=gvgEA@mail.gmail.com>
+Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+To: Borislav Petkov <bp@alien8.de>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, Jane Chu <jane.chu@oracle.com>, 
+	Luis Chamberlain <mcgrof@suse.com>, Tony Luck <tony.luck@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Sep 14, 2021 at 07:39:47AM -0700, Dan Williams wrote:
-> > > It would also require a series resend since I can't use the in-place
-> > > update in a way that b4 will recognize.
-> >
-> > BTW, b4 0.7+ can do partial series rerolls. You can just send a single
-> > follow-up patch without needing to reroll the whole series, e.g.:
-> >
-> > [PATCH 1/3]
-> > [PATCH 2/3]
-> > \- [PATCH v2 2/3]
-> > [PATCH 3/3]
-> >
-> > This is enough for b4 to make a v2 series where only 2/3 is replaced.
-> 
-> Oh, yes, I use that liberally, istr asking for it originally. What I
-> was referring to here was feedback that alluded to injecting another
-> patch into the series, ala:
-> 
-> [PATCH 1/3]
-> [PATCH 2/3]
-> \- [PATCH v2 2/4]
->  \- [PATCH v2 3/4]
-> [PATCH 3/3]   <-- this one would be 4/4
-> 
-> I don't expect b4 to handle that case, and would expect to re-roll the
-> series with the new numbering.
+On Mon, Sep 13, 2021 at 3:29 AM Borislav Petkov <bp@alien8.de> wrote:
+>
+> On Tue, Jul 06, 2021 at 06:01:05PM -0700, Dan Williams wrote:
+> > When poison is discovered and triggers memory_failure() the physical
+> > page is unmapped from all process address space. However, it is not
+> > unmapped from kernel address space. Unlike a typical memory page that
+> > can be retired from use in the page allocator and marked 'not present',
+> > pmem needs to remain accessible given it can not be physically remapped
+> > or retired.
+>
+> I'm surely missing something obvious but why does it need to remain
+> accessible? Spell it out please.
 
-Oooh, yeah, you're right. One option is to download the mbox file and manually
-edit the patch subject to be [PATCH v2 4/4].
+Sure, I should probably include this following note in all patches
+touching the DAX-memory_failure() path, because it is a frequently
+asked question. The tl;dr is:
 
-> > (Yes, I am monitoring all mentions of "b4" on lore.kernel.org/all in a totally
-> > non-creepy way, I swear.)
-> 
-> I still need to do that for my sub-systems.
+Typical memory_failure() does not assume the physical page can be
+recovered and put back into circulation, PMEM memory_failure() allows
+for recovery of the page.
 
-I'll provide ample docs by the time plumbers rolls around next week.
+The longer description is:
+Typical memory_failure() for anonymous, or page-cache pages, has the
+flexibility to invalidate bad pages and trigger any users to request a
+new page from the page allocator to replace the quarantined one. DAX
+removes that flexibility. The page is a handle for a fixed storage
+location, i.e. no mechanism to remap a physical page to a different
+logical address. Software expects to be able to repair an error in
+PMEM by reading around the poisoned cache lines and writing zeros,
+fallocate(...FALLOC_FL_PUNCH_HOLE...), to overwrite poison. The page
+needs to remain accessible to enable recovery.
 
--K
+>
+> > set_memory_uc() tries to maintain consistent nominal memtype
+> > mappings for a given pfn, but memory_failure() is an exceptional
+> > condition.
+>
+> That's not clear to me too. So looking at the failure:
+>
+> [10683.426147] x86/PAT: fsdax_poison_v1:5018 conflicting memory types 1850600000-1850601000  uncached-minus<->write-back
+>
+> set_memory_uc() marked it UC- but something? wants it to be WB. Why?
+
+PMEM is mapped WB at the beginning of time for nominal operation.
+track_pfn_remap() records that driver setting and forwards it to any
+track_pfn_insert() of the same pfn, i.e. this is how DAX mappings
+inherit the WB cache mode. memory_failure() wants to arrange avoidance
+speculative consumption of poison, set_memory_uc() checks with the
+track_pfn_remap() setting, but we know this is an exceptional
+condition and it is ok to force it UC against the typical memtype
+expectation.
+
+> I guess I need some more info on the whole memory offlining for pmem and
+> why that should be done differently than with normal memory.
+
+Short answer, PMEM never goes "offline" because it was never "online"
+in the first place. Where "online" in this context is specifically
+referring to pfns that are under the watchful eye of the core-mm page
+allocator.
