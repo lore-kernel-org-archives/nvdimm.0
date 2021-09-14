@@ -1,28 +1,28 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD1C53FC4
-	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 19:06:08 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10107"; a="201612066"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4D853FC4
+	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 19:08:41 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10107"; a="283105339"
 X-IronPort-AV: E=Sophos;i="5.85,292,1624345200"; 
-   d="scan'208";a="201612066"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2021 12:06:08 -0700
+   d="scan'208";a="283105339"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2021 12:08:41 -0700
 X-IronPort-AV: E=Sophos;i="5.85,292,1624345200"; 
-   d="scan'208";a="609773710"
+   d="scan'208";a="481979128"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2021 12:06:07 -0700
-Subject: [PATCH v5 15/21] cxl/pmem: Translate NVDIMM label commands to CXL
- label commands
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2021 12:08:41 -0700
+Subject: [PATCH v5 16/21] cxl/pmem: Add support for multiple nvdimm-bridge
+ objects
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
 Cc: Ben Widawsky <ben.widawsky@intel.com>,
  Jonathan Cameron <Jonathan.Cameron@huawei.com>, nvdimm@lists.linux.dev,
  Jonathan.Cameron@huawei.com
-Date: Tue, 14 Sep 2021 12:06:07 -0700
-Message-ID: <163164629633.2831112.9069298210227699762.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <163116437437.2460985.13509423327603255812.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <163116437437.2460985.13509423327603255812.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Tue, 14 Sep 2021 12:08:40 -0700
+Message-ID: <163164647007.2831228.2150246954620721526.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <163116437978.2460985.6298243237502084824.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <163116437978.2460985.6298243237502084824.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -33,194 +33,159 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-The LIBNVDIMM IOCTL UAPI calls back to the nvdimm-bus-provider to
-translate the Linux command payload to the device native command format.
-The LIBNVDIMM commands get-config-size, get-config-data, and
-set-config-data, map to the CXL memory device commands device-identify,
-get-lsa, and set-lsa. Recall that the label-storage-area (LSA) on an
-NVDIMM device arranges for the provisioning of namespaces. Additionally
-for CXL the LSA is used for provisioning regions as well.
+In preparation for a mocked unit test environment for CXL objects, allow
+for multiple unique nvdimm-bridge objects.
 
-The data from device-identify is already cached in the 'struct cxl_mem'
-instance associated with @cxl_nvd, so that payload return is simply
-crafted and no CXL command is issued. The conversion for get-lsa is
-straightforward, but the conversion for set-lsa requires an allocation
-to append the set-lsa header in front of the payload.
+For now, just allow multiple bridges to be registered. Later, when there
+are multiple present, further updates are needed to
+cxl_find_nvdimm_bridge() to identify which bridge is associated with
+which CXL hierarchy for nvdimm registration.
 
-Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
+Note that this does change the kernel device-name for the bridge object.
+User space should not have any attachment to the device name at this
+point as it is still early days in the CXL driver development.
+
+Acked-by: Ben Widawsky <ben.widawsky@intel.com>
 Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
 Changes since v4:
-- rebase on [PATCH v5 14/21] cxl/mbox: Add exclusive kernel command support
 
- drivers/cxl/pmem.c |  128 ++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 124 insertions(+), 4 deletions(-)
+- rebase on "[PATCH v5 15/21] cxl/pmem: Translate NVDIMM label commands
+  to CXL label commands"
 
-diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
-index 5629289939af..bc1466b0e999 100644
---- a/drivers/cxl/pmem.c
-+++ b/drivers/cxl/pmem.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
- #include <linux/libnvdimm.h>
-+#include <asm/unaligned.h>
+ drivers/cxl/core/pmem.c |   32 +++++++++++++++++++++++++++++++-
+ drivers/cxl/cxl.h       |    2 ++
+ drivers/cxl/pmem.c      |   15 ---------------
+ 3 files changed, 33 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
+index d24570f5b8ba..9e56be3994f1 100644
+--- a/drivers/cxl/core/pmem.c
++++ b/drivers/cxl/core/pmem.c
+@@ -2,6 +2,7 @@
+ /* Copyright(c) 2020 Intel Corporation. */
  #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/ndctl.h>
-@@ -47,9 +48,9 @@ static int cxl_nvdimm_probe(struct device *dev)
+ #include <linux/slab.h>
++#include <linux/idr.h>
+ #include <cxlmem.h>
+ #include <cxl.h>
+ #include "core.h"
+@@ -20,10 +21,13 @@
+  * operations, for example, namespace label access commands.
+  */
+ 
++static DEFINE_IDA(cxl_nvdimm_bridge_ida);
++
+ static void cxl_nvdimm_bridge_release(struct device *dev)
  {
- 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
- 	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-+	unsigned long flags = 0, cmd_mask = 0;
- 	struct cxl_mem *cxlm = cxlmd->cxlm;
- 	struct cxl_nvdimm_bridge *cxl_nvb;
--	unsigned long flags = 0;
- 	struct nvdimm *nvdimm;
- 	int rc;
+ 	struct cxl_nvdimm_bridge *cxl_nvb = to_cxl_nvdimm_bridge(dev);
  
-@@ -69,8 +70,11 @@ static int cxl_nvdimm_probe(struct device *dev)
- 		goto out;
- 
- 	set_bit(NDD_LABELING, &flags);
--	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags, 0, 0,
--			       NULL);
-+	set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
-+	set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
-+	set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
-+	nvdimm = nvdimm_create(cxl_nvb->nvdimm_bus, cxl_nvd, NULL, flags,
-+			       cmd_mask, 0, NULL);
- 	if (!nvdimm) {
- 		rc = -ENOMEM;
- 		goto out;
-@@ -91,11 +95,127 @@ static struct cxl_driver cxl_nvdimm_driver = {
- 	.id = CXL_DEVICE_NVDIMM,
- };
- 
-+static int cxl_pmem_get_config_size(struct cxl_mem *cxlm,
-+				    struct nd_cmd_get_config_size *cmd,
-+				    unsigned int buf_len)
-+{
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+
-+	*cmd = (struct nd_cmd_get_config_size) {
-+		 .config_size = cxlm->lsa_size,
-+		 .max_xfer = cxlm->payload_size,
-+	};
-+
-+	return 0;
-+}
-+
-+static int cxl_pmem_get_config_data(struct cxl_mem *cxlm,
-+				    struct nd_cmd_get_config_data_hdr *cmd,
-+				    unsigned int buf_len)
-+{
-+	struct cxl_mbox_get_lsa {
-+		u32 offset;
-+		u32 length;
-+	} get_lsa;
-+	int rc;
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+	if (struct_size(cmd, out_buf, cmd->in_length) > buf_len)
-+		return -EINVAL;
-+
-+	get_lsa = (struct cxl_mbox_get_lsa) {
-+		.offset = cmd->in_offset,
-+		.length = cmd->in_length,
-+	};
-+
-+	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_GET_LSA, &get_lsa,
-+				   sizeof(get_lsa), cmd->out_buf,
-+				   cmd->in_length);
-+	cmd->status = 0;
-+
-+	return rc;
-+}
-+
-+static int cxl_pmem_set_config_data(struct cxl_mem *cxlm,
-+				    struct nd_cmd_set_config_hdr *cmd,
-+				    unsigned int buf_len)
-+{
-+	struct cxl_mbox_set_lsa {
-+		u32 offset;
-+		u32 reserved;
-+		u8 data[];
-+	} *set_lsa;
-+	int rc;
-+
-+	if (sizeof(*cmd) > buf_len)
-+		return -EINVAL;
-+
-+	/* 4-byte status follows the input data in the payload */
-+	if (struct_size(cmd, in_buf, cmd->in_length) + 4 > buf_len)
-+		return -EINVAL;
-+
-+	set_lsa =
-+		kvzalloc(struct_size(set_lsa, data, cmd->in_length), GFP_KERNEL);
-+	if (!set_lsa)
-+		return -ENOMEM;
-+
-+	*set_lsa = (struct cxl_mbox_set_lsa) {
-+		.offset = cmd->in_offset,
-+	};
-+	memcpy(set_lsa->data, cmd->in_buf, cmd->in_length);
-+
-+	rc = cxl_mem_mbox_send_cmd(cxlm, CXL_MBOX_OP_SET_LSA, set_lsa,
-+				   struct_size(set_lsa, data, cmd->in_length),
-+				   NULL, 0);
-+
-+	/*
-+	 * Set "firmware" status (4-packed bytes at the end of the input
-+	 * payload.
-+	 */
-+	put_unaligned(0, (u32 *) &cmd->in_buf[cmd->in_length]);
-+	kvfree(set_lsa);
-+
-+	return rc;
-+}
-+
-+static int cxl_pmem_nvdimm_ctl(struct nvdimm *nvdimm, unsigned int cmd,
-+			       void *buf, unsigned int buf_len)
-+{
-+	struct cxl_nvdimm *cxl_nvd = nvdimm_provider_data(nvdimm);
-+	unsigned long cmd_mask = nvdimm_cmd_mask(nvdimm);
-+	struct cxl_memdev *cxlmd = cxl_nvd->cxlmd;
-+	struct cxl_mem *cxlm = cxlmd->cxlm;
-+
-+	if (!test_bit(cmd, &cmd_mask))
-+		return -ENOTTY;
-+
-+	switch (cmd) {
-+	case ND_CMD_GET_CONFIG_SIZE:
-+		return cxl_pmem_get_config_size(cxlm, buf, buf_len);
-+	case ND_CMD_GET_CONFIG_DATA:
-+		return cxl_pmem_get_config_data(cxlm, buf, buf_len);
-+	case ND_CMD_SET_CONFIG_DATA:
-+		return cxl_pmem_set_config_data(cxlm, buf, buf_len);
-+	default:
-+		return -ENOTTY;
-+	}
-+}
-+
- static int cxl_pmem_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 			unsigned int buf_len, int *cmd_rc)
- {
--	return -ENOTTY;
-+	/*
-+	 * No firmware response to translate, let the transport error
-+	 * code take precedence.
-+	 */
-+	*cmd_rc = 0;
-+
-+	if (!nvdimm)
-+		return -ENOTTY;
-+	return cxl_pmem_nvdimm_ctl(nvdimm, cmd, buf, buf_len);
++	ida_free(&cxl_nvdimm_bridge_ida, cxl_nvb->id);
+ 	kfree(cxl_nvb);
  }
  
- static bool online_nvdimm_bus(struct cxl_nvdimm_bridge *cxl_nvb)
+@@ -47,16 +51,38 @@ struct cxl_nvdimm_bridge *to_cxl_nvdimm_bridge(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(to_cxl_nvdimm_bridge);
+ 
++static int match_nvdimm_bridge(struct device *dev, const void *data)
++{
++	return dev->type == &cxl_nvdimm_bridge_type;
++}
++
++struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void)
++{
++	struct device *dev;
++
++	dev = bus_find_device(&cxl_bus_type, NULL, NULL, match_nvdimm_bridge);
++	if (!dev)
++		return NULL;
++	return to_cxl_nvdimm_bridge(dev);
++}
++EXPORT_SYMBOL_GPL(cxl_find_nvdimm_bridge);
++
+ static struct cxl_nvdimm_bridge *
+ cxl_nvdimm_bridge_alloc(struct cxl_port *port)
+ {
+ 	struct cxl_nvdimm_bridge *cxl_nvb;
+ 	struct device *dev;
++	int rc;
+ 
+ 	cxl_nvb = kzalloc(sizeof(*cxl_nvb), GFP_KERNEL);
+ 	if (!cxl_nvb)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	rc = ida_alloc(&cxl_nvdimm_bridge_ida, GFP_KERNEL);
++	if (rc < 0)
++		goto err;
++	cxl_nvb->id = rc;
++
+ 	dev = &cxl_nvb->dev;
+ 	cxl_nvb->port = port;
+ 	cxl_nvb->state = CXL_NVB_NEW;
+@@ -67,6 +93,10 @@ cxl_nvdimm_bridge_alloc(struct cxl_port *port)
+ 	dev->type = &cxl_nvdimm_bridge_type;
+ 
+ 	return cxl_nvb;
++
++err:
++	kfree(cxl_nvb);
++	return ERR_PTR(rc);
+ }
+ 
+ static void unregister_nvb(void *_cxl_nvb)
+@@ -119,7 +149,7 @@ struct cxl_nvdimm_bridge *devm_cxl_add_nvdimm_bridge(struct device *host,
+ 		return cxl_nvb;
+ 
+ 	dev = &cxl_nvb->dev;
+-	rc = dev_set_name(dev, "nvdimm-bridge");
++	rc = dev_set_name(dev, "nvdimm-bridge%d", cxl_nvb->id);
+ 	if (rc)
+ 		goto err;
+ 
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 53927f9fa77e..1b2e816e061e 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -211,6 +211,7 @@ enum cxl_nvdimm_brige_state {
+ };
+ 
+ struct cxl_nvdimm_bridge {
++	int id;
+ 	struct device dev;
+ 	struct cxl_port *port;
+ 	struct nvdimm_bus *nvdimm_bus;
+@@ -323,4 +324,5 @@ struct cxl_nvdimm_bridge *devm_cxl_add_nvdimm_bridge(struct device *host,
+ struct cxl_nvdimm *to_cxl_nvdimm(struct device *dev);
+ bool is_cxl_nvdimm(struct device *dev);
+ int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd);
++struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void);
+ #endif /* __CXL_H__ */
+diff --git a/drivers/cxl/pmem.c b/drivers/cxl/pmem.c
+index bc1466b0e999..5ccf9aa6b3ae 100644
+--- a/drivers/cxl/pmem.c
++++ b/drivers/cxl/pmem.c
+@@ -29,21 +29,6 @@ static void unregister_nvdimm(void *nvdimm)
+ 	nvdimm_delete(nvdimm);
+ }
+ 
+-static int match_nvdimm_bridge(struct device *dev, const void *data)
+-{
+-	return strcmp(dev_name(dev), "nvdimm-bridge") == 0;
+-}
+-
+-static struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(void)
+-{
+-	struct device *dev;
+-
+-	dev = bus_find_device(&cxl_bus_type, NULL, NULL, match_nvdimm_bridge);
+-	if (!dev)
+-		return NULL;
+-	return to_cxl_nvdimm_bridge(dev);
+-}
+-
+ static int cxl_nvdimm_probe(struct device *dev)
+ {
+ 	struct cxl_nvdimm *cxl_nvd = to_cxl_nvdimm(dev);
 
