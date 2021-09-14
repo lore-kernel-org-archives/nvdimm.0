@@ -1,468 +1,175 @@
-Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E020F29CA
-	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 19:31:23 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10107"; a="218929562"
-X-IronPort-AV: E=Sophos;i="5.85,292,1624345200"; 
-   d="scan'208";a="218929562"
-Received: from fmsmga005.fm.intel.com ([10.253.24.32])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2021 12:31:23 -0700
-X-IronPort-AV: E=Sophos;i="5.85,292,1624345200"; 
-   d="scan'208";a="699629586"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Sep 2021 12:31:22 -0700
-Subject: [PATCH v5 21/21] cxl/core: Split decoder setup into alloc + add
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: kernel test robot <lkp@intel.com>, Nathan Chancellor <nathan@kernel.org>,
- Dan Carpenter <dan.carpenter@oracle.com>, nvdimm@lists.linux.dev,
- Jonathan.Cameron@huawei.com
-Date: Tue, 14 Sep 2021 12:31:22 -0700
-Message-ID: <163164780319.2831662.7853294454760344393.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <163116440612.2460985.14600637290781306289.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <163116440612.2460985.14600637290781306289.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3957B29CA
+	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 23:32:24 +0000 (UTC)
+Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18EKxh3W032058;
+	Tue, 14 Sep 2021 23:32:19 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
+ date : message-id : in-reply-to : references : content-type :
+ mime-version; s=corp-2021-07-09;
+ bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
+ b=ztEIN/iyXb74rBlX8+cyidEgj043NVtk7PYZRVUiF73bnDjMWlRvIF0lfIjM9oazwchQ
+ 3Q6Vm0ft2ZnbaGKDZ0jqTO8qENoyv1BhvuLtRDQJaQ8miDGUULl9sxs+6e7RjPLsNnzF
+ 9q/r85zpceKrd5jIEX31NaYpUzvrQCxucMdqvKPygxYs1XINOhhG/Cq7Q7GnINRQwkIQ
+ qxL1RVrmU4SUccYFaU3LOIoyq5PC+4blHi7sxr5ek34OBa4A2O8bbAupwWvQ7swCe1Cb
+ ZIolMZYknJQZ0nt2zwZCt52i4sBi8KEdbHoPhNMNbMBpd0fmHAZvRhw8yYUIk+0e2HkE Ow== 
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
+ date : message-id : in-reply-to : references : content-type :
+ mime-version; s=corp-2020-01-29;
+ bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
+ b=ZJFWcVxRz206IexIa0Wzzh2zp9yyO+IbzhGnIlVllrq+mI9UtWff1ZS//NPNg8w3ascf
+ sJUJZ7oqU05CNWx+icdYzNTUaFmhU1i1APNfk+Egng5R0X33bjfylF8bJBdWvtu1VReb
+ a2S0O3vUuMVlT3N/i2b+PMQxAa7WURYnrkoAi5vqNnmJZz/K77PgqN8sTPUv9ER3FMJn
+ t4yV5OQyZ7yVDAmDtR+P0vApxUgpt73+Z81oOm+yeBhSDYnW38x606cuaH4x8vWaTDWD
+ xg3yxs/39/tPvOI5GoYcZ9xUO2hmvO/Nd4soULPABEsELzvvh8DcNc264zX0z2lsjg6E pw== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3b2p3mk8am-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 14 Sep 2021 23:32:18 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 18ENTj3c169901;
+	Tue, 14 Sep 2021 23:32:17 GMT
+Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2170.outbound.protection.outlook.com [104.47.57.170])
+	by userp3020.oracle.com with ESMTP id 3b167ssv58-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 14 Sep 2021 23:32:16 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=IPZnHnKsV7wmBk7RT1fVoWSiB+T8TQQxjufvQnQlrAm4pWlLkvamaNPLkeV5e/Ev1dZ+HAzXd+5XezaryBviHZ8C2D3mE4g2K8AnoN11hm+OSXISswFqttkYr+O0zY/taNLVUPqvjzFJgmpbJgLkrQ7fYyDZC5UWS1DXrn7xF3vIy0FNyFEx9eO9b+Bt2WHm/z+bXvsGaTcAaWtbrTQJbh2JfAToJB+5gBDzPFXCcACQ2lHiJCrpgELTOSkuR8qvK8ouAUb13eHcLvwCWFJs35ceerHFnD0yZHkSGobZEtMHes+4shkKQwJnu7NE49h1TYmJlI5dqNBQHusqzVmqIg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
+ bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
+ b=VSTsNgyTQgim5YRd8ijtELv3SthuOmLkydl3f9K4Z0xeNtKggI7ficp9i7Kcxy6Ab0FTmTHKY2LFKMHLwImYQQESaJYBQDi6rOqSsXFB1F6gmA7sNv8gowSiag8DS1gpYHNP0g/JoldMCMu5nqwMx7rXs+lFHYKoVFEIVEvk5iDiP0pLIt4ma10g+GJDk+yR/idjWtnM+pcvZKLn/JpxJ/EVMKDtrBsrpb4R48wf5cJrbD4U/Nq5v+Ayn6u++55WomkQbjd4qXuxsVIJS8zwFi9juiGLWPyy3sBLp5grRgRRWp37KCdBy2UET6yZedvniEHFyuVg4LtMNNn2ncJN1Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
+ b=moBAtBGMzT7tEU8gobn1NIrNIsGl/lvPnfqOB3SXJOh5fCHFDIT2WC29o3wlQvv/lYNxfLUm/6aAcHO8yq+twBqHiT8acB7S6GusPxR2OUARZPBCfcKw5Wbdi2rgtIPYI0O5xa87AWJcMsuuzfTTmMno2JJM9Y89lYqswOA7a9c=
+Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=oracle.com;
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
+ by BY5PR10MB4035.namprd10.prod.outlook.com (2603:10b6:a03:1f8::33) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4523.14; Tue, 14 Sep
+ 2021 23:32:15 +0000
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::401:1df2:3e9a:66c]) by SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::401:1df2:3e9a:66c%5]) with mapi id 15.20.4500.019; Tue, 14 Sep 2021
+ 23:32:15 +0000
+From: Jane Chu <jane.chu@oracle.com>
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
+        ira.weiny@intel.com, viro@zeniv.linux.org.uk, willy@infradead.org,
+        jack@suse.cz, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org
+Subject: [PATCH 2/3] dax: introduce dax clear poison to page aligned dax pwrite operation
+Date: Tue, 14 Sep 2021 17:31:31 -0600
+Message-Id: <20210914233132.3680546-4-jane.chu@oracle.com>
+X-Mailer: git-send-email 2.18.4
+In-Reply-To: <20210914233132.3680546-1-jane.chu@oracle.com>
+References: <20210914233132.3680546-1-jane.chu@oracle.com>
+Content-Type: text/plain
+X-ClientProxiedBy: SN4PR0601CA0008.namprd06.prod.outlook.com
+ (2603:10b6:803:2f::18) To SJ0PR10MB4429.namprd10.prod.outlook.com
+ (2603:10b6:a03:2d1::14)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from brm-x62-16.us.oracle.com (2606:b400:8004:44::1b) by SN4PR0601CA0008.namprd06.prod.outlook.com (2603:10b6:803:2f::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4500.15 via Frontend Transport; Tue, 14 Sep 2021 23:32:14 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 6004b30b-3bf6-424e-14ac-08d977d7e268
+X-MS-TrafficTypeDiagnostic: BY5PR10MB4035:
+X-Microsoft-Antispam-PRVS: 
+	<BY5PR10MB40353F40F471CE4A9C21F649F3DA9@BY5PR10MB4035.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:5797;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 
+	0Kg+dytoBivXWlpmjMjzDrVjbsU4E3pSRYZCL4NSWDSMjIHszQcMGDgaXCdspvH2Cpi1Q8/1HSkIW/z+MxMcHt7ykX4w58qTa2iX3vaMXMSIbELpbP2CLrEbkkdaIC8w8ahDaKD1xSw6EW0lw1/cKonkTiIA3BdHFn1a5+JobpvF89dwggNjazY7l1B3a+mZrVM75ejKb1SjqEo2SAQcasNmcnGp513XkKMXLvT4qL478cls5RE6+iqbWZqb09NeD4wvMH0IbUrsyGBj/3PovrJuOyY7myytYv4RYG9ZpdknOB6BQPlgGZxepiG+t1fY/CzjJKuxmf8SaUp3Qq7taeNl0npAcf4p68OzXvBaI/bJiAUlrArFS/C1YPhqxM+x8N6jd6hZoA+GdxpmXzDAWv2WhYmODXhiy9PIopmHo0Vk4CqMnyjJong6x+yiqDcQhHDPxxfgjE1q5Zv5dhjHjHhpmO6k07hGz6aDWS18+jzHfmynefkkk17UkhUEcISKGzFR1F24YSAtCK+UemIBGCW63YWbuDdTr7InDCYKgpWbczqT9BcI/pv/ERa6GXdLfBUs2Fd+pwrTsvz614w8Cvw908DNRQnq7sIVrStfw0gIe9IUiHwzxAcE8tjRryliiuBzrf6bUgV52fB1kSnYluYwPd1ewS/wqgKzIshHew4HyfDkNF+5bAq/1Y+ImqOq
+X-Forefront-Antispam-Report: 
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(376002)(396003)(366004)(136003)(39850400004)(346002)(66946007)(66476007)(921005)(1076003)(7416002)(66556008)(52116002)(7696005)(36756003)(316002)(5660300002)(186003)(8676002)(38100700002)(8936002)(2906002)(83380400001)(2616005)(6666004)(44832011)(478600001)(4744005)(86362001)(6486002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: 
+	=?us-ascii?Q?9IaH4SklUzmNB36Fo63nBdf7sj0QxQMkfXO6mLffgd2yBvOtspB86yHpcus5?=
+ =?us-ascii?Q?o+ALLdel/7d8siwI4LezO2FBo3JXz4iTQUwa/0CWDlx2PI4etlwvxnJdE1mv?=
+ =?us-ascii?Q?tcDbxNOj2z6YjoHKY1t8HKrcOHHAUyznxuKW3LSolqSOAmLh5Hu4gjKkQMTE?=
+ =?us-ascii?Q?0yzvuj7JhCo8qndYSgduwfFYWqDVp8EXzZXRF14p7bPGolLg2D4/aRR5icU0?=
+ =?us-ascii?Q?ZWQIgz4UHiKVpMIpl/lpPSgUsLy924NZn5wIG6OKT6BhEq26Nrq8wJypTr9Z?=
+ =?us-ascii?Q?6ov2aUwSZX65+IaobPK+wa+Kj43BxGjUGd7t3MSqRqX0Q4OIlFMgw6cDkWfc?=
+ =?us-ascii?Q?cFmI9Luud3kODYe+0qMngZO3tmxplkOC0fAkL5V9QvRIpMy7uutIvfqFkLk5?=
+ =?us-ascii?Q?FDMZxD2i6a5JWGfGJDsTxvm6ivu4XqmPfBKfdlNadxzTZm2CMp1mp0n1f3Yg?=
+ =?us-ascii?Q?q6CAq5wQZXjKD2cq7b4JWTZMJPPqlEyObRL2ZTwY+mnmU/qFncPtu5wKvUbv?=
+ =?us-ascii?Q?u7MFnSCHqHi76rZ+uPzRo97Hsf7OxCIKy0SUU1xbutqW6uAXXuf5mslrTWSD?=
+ =?us-ascii?Q?x/64A+czcNDlzlQcpBUaXLz3JdxY+a/+KrKJ2XteKjywwvdktVx74Pw3xkK8?=
+ =?us-ascii?Q?wrX1kjwxM07OcEx9aEzS8Be5OyZJQqu0OB27wAtcXsLQ1+tV6x+/TKWNBmIb?=
+ =?us-ascii?Q?fCehzW1hi3YEhGiDFpSeCUN8aTWGd61m9iTRhm6pe4PV7xfVWs8ansmoSH3O?=
+ =?us-ascii?Q?8mODKpF+mEFc0ufwitYS16tKALdCK3YNX/2YKnANTdhTWQJvIJR0Ed7dP7vw?=
+ =?us-ascii?Q?5GWQfD/XOkjTbVuQkkFqBOMVvmY7dfxttOCixzPCGIeBivu6nuMA1Q1i07me?=
+ =?us-ascii?Q?z6FjdkaKg1kkW036q+zVzbh/oVhH94VM+qvRsHb2nCYEYW0yzPKWf2C3SI+c?=
+ =?us-ascii?Q?79AkVj+YRp1uKV98ttzk0nT3RBY9kWwbLkw66hXKCv/IhQfTrY6XRB1EfKAp?=
+ =?us-ascii?Q?fgrvX0zea2QERqVWbemRS+aoxdK/s9VGRpkjxTB+CCRfa7dXm1i5aSPrXm1E?=
+ =?us-ascii?Q?XyFJQFgUDzaNaofRaOTDY51+V0Lwf4SIrvCq1+3ApNx34W2mG7d575cN1/QF?=
+ =?us-ascii?Q?/mfsnldc+v8TPnyJTFeFYn9J4T7bDICrb3INtBNeJ2kSuzePJtV++7D1zOk9?=
+ =?us-ascii?Q?HyB5HRb7czFQ8/uE/yyV/fj42Exjavra/gDn3uqAt6P8p0lf7PsY91KUVWSd?=
+ =?us-ascii?Q?IhZC6ytnOFcm3VKfRCCJxsUjaOGuRp34cYwmGBwO4BkV9UY6y/UQ/omco6dJ?=
+ =?us-ascii?Q?eJ0Z9++J1SkAHR/h9kehB5yKf/IHOhBkdVFWOWbTjpnQ+g=3D=3D?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6004b30b-3bf6-424e-14ac-08d977d7e268
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2021 23:32:15.2131
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: dsKyt6CEn1yONeEy6HNyMD5zU5Ul4lj7Mna0wX2KdglDUwMPH68RqGUrikOkdOfbJVw6h+fICt7dO28hhl4R9Q==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR10MB4035
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10107 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 adultscore=0 suspectscore=0
+ phishscore=0 mlxlogscore=999 malwarescore=0 mlxscore=0 bulkscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2109030001
+ definitions=main-2109140134
+X-Proofpoint-GUID: wfRP3o3CMOIRref6XiIHUMONmec1UuI3
+X-Proofpoint-ORIG-GUID: wfRP3o3CMOIRref6XiIHUMONmec1UuI3
 
-The kbuild robot reports:
+Currenty, when pwrite(2) s issued to a dax range that contains poison,
+the pwrite(2) fails with EIO. Well, if the hardware backend of the
+dax device is capable of clearing poison, try that and resume the write.
 
-    drivers/cxl/core/bus.c:516:1: warning: stack frame size (1032) exceeds
-    limit (1024) in function 'devm_cxl_add_decoder'
-
-It is also the case the devm_cxl_add_decoder() is unwieldy to use for
-all the different decoder types. Fix the stack usage by splitting the
-creation into alloc and add steps. This also allows for context
-specific construction before adding.
-
-With the split the caller is responsible for registering a devm callback
-to trigger device_unregister() for the decoder rather than it being
-implicit in the decoder registration. I.e. the routine that calls alloc
-is responsible for calling put_device() if the "add" operation fails.
-
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
 ---
-Changes since v4:
-- hold the device lock over the list_empty(&port->dports) check
-  (Jonathan)
-- move the list_empty() check after the check for NULL @target_map in
-  anticipation of endpoint decoders (Ben)
+ fs/dax.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
- drivers/cxl/acpi.c      |   84 +++++++++++++++++++++++---------
- drivers/cxl/core/bus.c  |  123 +++++++++++++++--------------------------------
- drivers/cxl/core/core.h |    5 --
- drivers/cxl/core/pmem.c |    7 ++-
- drivers/cxl/cxl.h       |   15 ++----
- 5 files changed, 110 insertions(+), 124 deletions(-)
-
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index d39cc797a64e..2368a8b67698 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -82,7 +82,6 @@ static void cxl_add_cfmws_decoders(struct device *dev,
- 	struct cxl_decoder *cxld;
- 	acpi_size len, cur = 0;
- 	void *cedt_subtable;
--	unsigned long flags;
- 	int rc;
+diff --git a/fs/dax.c b/fs/dax.c
+index 99b4e78d888f..592a156abbf2 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1156,8 +1156,17 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
+ 		if (ret)
+ 			break;
  
- 	len = acpi_cedt->length - sizeof(*acpi_cedt);
-@@ -119,24 +118,36 @@ static void cxl_add_cfmws_decoders(struct device *dev,
- 		for (i = 0; i < CFMWS_INTERLEAVE_WAYS(cfmws); i++)
- 			target_map[i] = cfmws->interleave_targets[i];
- 
--		flags = cfmws_to_decoder_flags(cfmws->restrictions);
--		cxld = devm_cxl_add_decoder(dev, root_port,
--					    CFMWS_INTERLEAVE_WAYS(cfmws),
--					    cfmws->base_hpa, cfmws->window_size,
--					    CFMWS_INTERLEAVE_WAYS(cfmws),
--					    CFMWS_INTERLEAVE_GRANULARITY(cfmws),
--					    CXL_DECODER_EXPANDER,
--					    flags, target_map);
--
--		if (IS_ERR(cxld)) {
-+		cxld = cxl_decoder_alloc(root_port,
-+					 CFMWS_INTERLEAVE_WAYS(cfmws));
-+		if (IS_ERR(cxld))
-+			goto next;
-+
-+		cxld->flags = cfmws_to_decoder_flags(cfmws->restrictions);
-+		cxld->target_type = CXL_DECODER_EXPANDER;
-+		cxld->range = (struct range) {
-+			.start = cfmws->base_hpa,
-+			.end = cfmws->base_hpa + cfmws->window_size - 1,
-+		};
-+		cxld->interleave_ways = CFMWS_INTERLEAVE_WAYS(cfmws);
-+		cxld->interleave_granularity =
-+			CFMWS_INTERLEAVE_GRANULARITY(cfmws);
-+
-+		rc = cxl_decoder_add(cxld, target_map);
-+		if (rc)
-+			put_device(&cxld->dev);
-+		else
-+			rc = cxl_decoder_autoremove(dev, cxld);
-+		if (rc) {
- 			dev_err(dev, "Failed to add decoder for %#llx-%#llx\n",
- 				cfmws->base_hpa, cfmws->base_hpa +
- 				cfmws->window_size - 1);
--		} else {
--			dev_dbg(dev, "add: %s range %#llx-%#llx\n",
--				dev_name(&cxld->dev), cfmws->base_hpa,
--				 cfmws->base_hpa + cfmws->window_size - 1);
-+			goto next;
- 		}
-+		dev_dbg(dev, "add: %s range %#llx-%#llx\n",
-+			dev_name(&cxld->dev), cfmws->base_hpa,
-+			cfmws->base_hpa + cfmws->window_size - 1);
-+next:
- 		cur += c->length;
- 	}
- }
-@@ -266,6 +277,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
- 	struct acpi_pci_root *pci_root;
- 	struct cxl_walk_context ctx;
-+	int single_port_map[1], rc;
- 	struct cxl_decoder *cxld;
- 	struct cxl_dport *dport;
- 	struct cxl_port *port;
-@@ -301,22 +313,46 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 		return -ENODEV;
- 	if (ctx.error)
- 		return ctx.error;
-+	if (ctx.count > 1)
-+		return 0;
- 
- 	/* TODO: Scan CHBCR for HDM Decoder resources */
- 
- 	/*
--	 * In the single-port host-bridge case there are no HDM decoders
--	 * in the CHBCR and a 1:1 passthrough decode is implied.
-+	 * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability
-+	 * Structure) single ported host-bridges need not publish a decoder
-+	 * capability when a passthrough decode can be assumed, i.e. all
-+	 * transactions that the uport sees are claimed and passed to the single
-+	 * dport. Default the range a 0-base 0-length until the first CXL region
-+	 * is activated.
- 	 */
--	if (ctx.count == 1) {
--		cxld = devm_cxl_add_passthrough_decoder(host, port);
--		if (IS_ERR(cxld))
--			return PTR_ERR(cxld);
-+	cxld = cxl_decoder_alloc(port, 1);
-+	if (IS_ERR(cxld))
-+		return PTR_ERR(cxld);
-+
-+	cxld->interleave_ways = 1;
-+	cxld->interleave_granularity = PAGE_SIZE;
-+	cxld->target_type = CXL_DECODER_EXPANDER;
-+	cxld->range = (struct range) {
-+		.start = 0,
-+		.end = -1,
-+	};
- 
--		dev_dbg(host, "add: %s\n", dev_name(&cxld->dev));
--	}
-+	device_lock(&port->dev);
-+	dport = list_first_entry(&port->dports, typeof(*dport), list);
-+	device_unlock(&port->dev);
- 
--	return 0;
-+	single_port_map[0] = dport->port_id;
-+
-+	rc = cxl_decoder_add(cxld, single_port_map);
-+	if (rc)
-+		put_device(&cxld->dev);
-+	else
-+		rc = cxl_decoder_autoremove(host, cxld);
-+
-+	if (rc == 0)
-+		dev_dbg(host, "add: %s\n", dev_name(&cxld->dev));
-+	return rc;
- }
- 
- static int add_host_bridge_dport(struct device *match, void *arg)
-diff --git a/drivers/cxl/core/bus.c b/drivers/cxl/core/bus.c
-index 6dfdeaf999f0..396252749477 100644
---- a/drivers/cxl/core/bus.c
-+++ b/drivers/cxl/core/bus.c
-@@ -453,10 +453,8 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport_dev, int port_id,
- }
- EXPORT_SYMBOL_GPL(cxl_add_dport);
- 
--static int decoder_populate_targets(struct device *host,
--				    struct cxl_decoder *cxld,
--				    struct cxl_port *port, int *target_map,
--				    int nr_targets)
-+static int decoder_populate_targets(struct cxl_decoder *cxld,
-+				    struct cxl_port *port, int *target_map)
- {
- 	int rc = 0, i;
- 
-@@ -464,42 +462,36 @@ static int decoder_populate_targets(struct device *host,
- 		return 0;
- 
- 	device_lock(&port->dev);
--	for (i = 0; i < nr_targets; i++) {
-+	if (list_empty(&port->dports)) {
-+		rc = -EINVAL;
-+		goto out_unlock;
-+	}
-+
-+	for (i = 0; i < cxld->nr_targets; i++) {
- 		struct cxl_dport *dport = find_dport(port, target_map[i]);
- 
- 		if (!dport) {
- 			rc = -ENXIO;
--			break;
-+			goto out_unlock;
- 		}
--		dev_dbg(host, "%s: target: %d\n", dev_name(dport->dport), i);
- 		cxld->target[i] = dport;
- 	}
-+
-+out_unlock:
- 	device_unlock(&port->dev);
- 
- 	return rc;
- }
- 
--static struct cxl_decoder *
--cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
--		  resource_size_t base, resource_size_t len,
--		  int interleave_ways, int interleave_granularity,
--		  enum cxl_decoder_type type, unsigned long flags,
--		  int *target_map)
-+struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets)
- {
- 	struct cxl_decoder *cxld;
- 	struct device *dev;
- 	int rc = 0;
- 
--	if (interleave_ways < 1)
-+	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE || nr_targets < 1)
- 		return ERR_PTR(-EINVAL);
- 
--	device_lock(&port->dev);
--	if (list_empty(&port->dports))
--		rc = -EINVAL;
--	device_unlock(&port->dev);
--	if (rc)
--		return ERR_PTR(rc);
--
- 	cxld = kzalloc(struct_size(cxld, target, nr_targets), GFP_KERNEL);
- 	if (!cxld)
- 		return ERR_PTR(-ENOMEM);
-@@ -508,22 +500,8 @@ cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
- 	if (rc < 0)
- 		goto err;
- 
--	*cxld = (struct cxl_decoder) {
--		.id = rc,
--		.range = {
--			.start = base,
--			.end = base + len - 1,
--		},
--		.flags = flags,
--		.interleave_ways = interleave_ways,
--		.interleave_granularity = interleave_granularity,
--		.target_type = type,
--	};
--
--	rc = decoder_populate_targets(host, cxld, port, target_map, nr_targets);
--	if (rc)
--		goto err;
--
-+	cxld->id = rc;
-+	cxld->nr_targets = nr_targets;
- 	dev = &cxld->dev;
- 	device_initialize(dev);
- 	device_set_pm_not_required(dev);
-@@ -541,72 +519,47 @@ cxl_decoder_alloc(struct device *host, struct cxl_port *port, int nr_targets,
- 	kfree(cxld);
- 	return ERR_PTR(rc);
- }
-+EXPORT_SYMBOL_GPL(cxl_decoder_alloc);
- 
--struct cxl_decoder *
--devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
--		     resource_size_t base, resource_size_t len,
--		     int interleave_ways, int interleave_granularity,
--		     enum cxl_decoder_type type, unsigned long flags,
--		     int *target_map)
-+int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map)
- {
--	struct cxl_decoder *cxld;
-+	struct cxl_port *port;
- 	struct device *dev;
- 	int rc;
- 
--	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE)
--		return ERR_PTR(-EINVAL);
-+	if (!cxld)
-+		return -EINVAL;
- 
--	cxld = cxl_decoder_alloc(host, port, nr_targets, base, len,
--				 interleave_ways, interleave_granularity, type,
--				 flags, target_map);
- 	if (IS_ERR(cxld))
--		return cxld;
-+		return PTR_ERR(cxld);
- 
--	dev = &cxld->dev;
--	rc = dev_set_name(dev, "decoder%d.%d", port->id, cxld->id);
--	if (rc)
--		goto err;
-+	if (cxld->interleave_ways < 1)
-+		return -EINVAL;
- 
--	rc = device_add(dev);
-+	port = to_cxl_port(cxld->dev.parent);
-+	rc = decoder_populate_targets(cxld, port, target_map);
- 	if (rc)
--		goto err;
-+		return rc;
- 
--	rc = devm_add_action_or_reset(host, unregister_cxl_dev, dev);
-+	dev = &cxld->dev;
-+	rc = dev_set_name(dev, "decoder%d.%d", port->id, cxld->id);
- 	if (rc)
--		return ERR_PTR(rc);
--	return cxld;
-+		return rc;
- 
--err:
--	put_device(dev);
--	return ERR_PTR(rc);
-+	return device_add(dev);
- }
--EXPORT_SYMBOL_GPL(devm_cxl_add_decoder);
-+EXPORT_SYMBOL_GPL(cxl_decoder_add);
- 
--/*
-- * Per the CXL specification (8.2.5.12 CXL HDM Decoder Capability Structure)
-- * single ported host-bridges need not publish a decoder capability when a
-- * passthrough decode can be assumed, i.e. all transactions that the uport sees
-- * are claimed and passed to the single dport. Default the range a 0-base
-- * 0-length until the first CXL region is activated.
-- */
--struct cxl_decoder *devm_cxl_add_passthrough_decoder(struct device *host,
--						     struct cxl_port *port)
-+static void cxld_unregister(void *dev)
- {
--	struct cxl_dport *dport;
--	int target_map[1];
--
--	device_lock(&port->dev);
--	dport = list_first_entry_or_null(&port->dports, typeof(*dport), list);
--	device_unlock(&port->dev);
--
--	if (!dport)
--		return ERR_PTR(-ENXIO);
-+	device_unregister(dev);
-+}
- 
--	target_map[0] = dport->port_id;
--	return devm_cxl_add_decoder(host, port, 1, 0, 0, 1, PAGE_SIZE,
--				    CXL_DECODER_EXPANDER, 0, target_map);
-+int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld)
-+{
-+	return devm_add_action_or_reset(host, cxld_unregister, &cxld->dev);
- }
--EXPORT_SYMBOL_GPL(devm_cxl_add_passthrough_decoder);
-+EXPORT_SYMBOL_GPL(cxl_decoder_autoremove);
- 
- /**
-  * __cxl_driver_register - register a driver for the cxl bus
-diff --git a/drivers/cxl/core/core.h b/drivers/cxl/core/core.h
-index c85b7fbad02d..e0c9aacc4e9c 100644
---- a/drivers/cxl/core/core.h
-+++ b/drivers/cxl/core/core.h
-@@ -9,11 +9,6 @@ extern const struct device_type cxl_nvdimm_type;
- 
- extern struct attribute_group cxl_base_attribute_group;
- 
--static inline void unregister_cxl_dev(void *dev)
--{
--	device_unregister(dev);
--}
--
- struct cxl_send_command;
- struct cxl_mem_query_commands;
- int cxl_query_cmd(struct cxl_memdev *cxlmd,
-diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-index 74be5132df1c..5032f4c1c69d 100644
---- a/drivers/cxl/core/pmem.c
-+++ b/drivers/cxl/core/pmem.c
-@@ -222,6 +222,11 @@ static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
- 	return cxl_nvd;
- }
- 
-+static void cxl_nvd_unregister(void *dev)
-+{
-+	device_unregister(dev);
-+}
-+
- /**
-  * devm_cxl_add_nvdimm() - add a bridge between a cxl_memdev and an nvdimm
-  * @host: same host as @cxlmd
-@@ -251,7 +256,7 @@ int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd)
- 	dev_dbg(host, "%s: register %s\n", dev_name(dev->parent),
- 		dev_name(dev));
- 
--	return devm_add_action_or_reset(host, unregister_cxl_dev, dev);
-+	return devm_add_action_or_reset(host, cxl_nvd_unregister, dev);
- 
- err:
- 	put_device(dev);
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 9af5745ba2c0..7d6b011dd963 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -195,6 +195,7 @@ enum cxl_decoder_type {
-  * @interleave_granularity: data stride per dport
-  * @target_type: accelerator vs expander (type2 vs type3) selector
-  * @flags: memory type capabilities and locking
-+ * @nr_targets: number of elements in @target
-  * @target: active ordered target list in current decoder configuration
-  */
- struct cxl_decoder {
-@@ -205,6 +206,7 @@ struct cxl_decoder {
- 	int interleave_granularity;
- 	enum cxl_decoder_type target_type;
- 	unsigned long flags;
-+	int nr_targets;
- 	struct cxl_dport *target[];
- };
- 
-@@ -286,15 +288,10 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
- 
- struct cxl_decoder *to_cxl_decoder(struct device *dev);
- bool is_root_decoder(struct device *dev);
--struct cxl_decoder *
--devm_cxl_add_decoder(struct device *host, struct cxl_port *port, int nr_targets,
--		     resource_size_t base, resource_size_t len,
--		     int interleave_ways, int interleave_granularity,
--		     enum cxl_decoder_type type, unsigned long flags,
--		     int *target_map);
--
--struct cxl_decoder *devm_cxl_add_passthrough_decoder(struct device *host,
--						     struct cxl_port *port);
-+struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets);
-+int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
-+int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld);
-+
- extern struct bus_type cxl_bus_type;
- 
- struct cxl_driver {
++		/*
++		 * If WRITE operation encounters media error in a page aligned
++		 * range, try to clear the error, then resume, for just once.
++		 */
+ 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
+ 				&kaddr, NULL);
++		if ((map_len == -EIO) && (iov_iter_rw(iter) == WRITE)) {
++			if (dax_clear_poison(dax_dev, pgoff, PHYS_PFN(size)) == 0)
++				map_len = dax_direct_access(dax_dev, pgoff,
++						PHYS_PFN(size), &kaddr, NULL);
++		}
+ 		if (map_len < 0) {
+ 			ret = map_len;
+ 			break;
+-- 
+2.18.4
 
