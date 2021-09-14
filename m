@@ -1,73 +1,73 @@
 Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3957B29CA
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4070B3FD0
 	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 23:32:24 +0000 (UTC)
-Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18EKxh3W032058;
-	Tue, 14 Sep 2021 23:32:19 GMT
+Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18EL04wx011635;
+	Tue, 14 Sep 2021 23:32:05 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
  date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2021-07-09;
- bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
- b=ztEIN/iyXb74rBlX8+cyidEgj043NVtk7PYZRVUiF73bnDjMWlRvIF0lfIjM9oazwchQ
- 3Q6Vm0ft2ZnbaGKDZ0jqTO8qENoyv1BhvuLtRDQJaQ8miDGUULl9sxs+6e7RjPLsNnzF
- 9q/r85zpceKrd5jIEX31NaYpUzvrQCxucMdqvKPygxYs1XINOhhG/Cq7Q7GnINRQwkIQ
- qxL1RVrmU4SUccYFaU3LOIoyq5PC+4blHi7sxr5ek34OBa4A2O8bbAupwWvQ7swCe1Cb
- ZIolMZYknJQZ0nt2zwZCt52i4sBi8KEdbHoPhNMNbMBpd0fmHAZvRhw8yYUIk+0e2HkE Ow== 
+ bh=2tBXA9Uh3lTdHXRUc61H0CY1PM/tJaanzmGHlrAge/U=;
+ b=kxgb+xTtutmrEIJ9IKY4Xs2MaZScf+NlN2tqlFNflQgZavYpmVY4ALIH4CLMei14YXRq
+ YcZM5wDETY6h3l18kRMukyXGrLl2wnxKFoL72+ji/rGUiv94AcC2IDQRVnjT/tbJxdGY
+ KtnhTnYSwLBDQ82N2fk/GY/+CZCQ43bvLUPXqLc64R8cIWudeDcTKfIE+qQFKJVh1vCo
+ uWca5uLsDy3IZ2WLia3jWk7JQmoMJ53n03u+H4oYwWgFX37qbRYX0nSkpEcWRVlBdxfA
+ Ai2rgSABnorKXjxf5IvMoVWTX3AN5uDB5Dn9kv0dcFFi/oQ3zrnpkutrD3DzzxnLbzmZ tg== 
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
  date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2020-01-29;
- bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
- b=ZJFWcVxRz206IexIa0Wzzh2zp9yyO+IbzhGnIlVllrq+mI9UtWff1ZS//NPNg8w3ascf
- sJUJZ7oqU05CNWx+icdYzNTUaFmhU1i1APNfk+Egng5R0X33bjfylF8bJBdWvtu1VReb
- a2S0O3vUuMVlT3N/i2b+PMQxAa7WURYnrkoAi5vqNnmJZz/K77PgqN8sTPUv9ER3FMJn
- t4yV5OQyZ7yVDAmDtR+P0vApxUgpt73+Z81oOm+yeBhSDYnW38x606cuaH4x8vWaTDWD
- xg3yxs/39/tPvOI5GoYcZ9xUO2hmvO/Nd4soULPABEsELzvvh8DcNc264zX0z2lsjg6E pw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3b2p3mk8am-1
+ bh=2tBXA9Uh3lTdHXRUc61H0CY1PM/tJaanzmGHlrAge/U=;
+ b=tq2qB00kCO99kPUZTCvQQgBdBy1ZStYmxtj/jLoNpw/MBED+u+Bkz8wBidUdpYLdcY0t
+ U67fmpO2OHq/kIfayc64eDIkYyPIhChVo9WD/ILA+Fj74T4dRZkW71no+JDVxUYxYg2f
+ sTsWOBU54n54sOkBcg8J9/l0qjIHRfT0s42xkwsgB9veX1L1qvHv7ydb7/b441ttlbb6
+ 9U0jrbXJOFHI1B+qq/ryNRvE0MjlXT/wXTu9cwS+53yM9XVDTR7Z9ed8WXvo57DZRXIX
+ //yiIuGP4y4l9wJdGQWBevpaF6j9NJQSm55j91aqSkNwR0TVatxXyoUSZIxc5FTs1yQu ag== 
+Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3b2pygavgq-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 14 Sep 2021 23:32:18 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 18ENTj3c169901;
-	Tue, 14 Sep 2021 23:32:17 GMT
-Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2170.outbound.protection.outlook.com [104.47.57.170])
-	by userp3020.oracle.com with ESMTP id 3b167ssv58-1
+	Tue, 14 Sep 2021 23:32:04 +0000
+Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
+	by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 18ENUnOh024949;
+	Tue, 14 Sep 2021 23:32:03 GMT
+Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2172.outbound.protection.outlook.com [104.47.57.172])
+	by aserp3030.oracle.com with ESMTP id 3b0jgdt4kj-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 14 Sep 2021 23:32:16 +0000
+	Tue, 14 Sep 2021 23:32:03 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=IPZnHnKsV7wmBk7RT1fVoWSiB+T8TQQxjufvQnQlrAm4pWlLkvamaNPLkeV5e/Ev1dZ+HAzXd+5XezaryBviHZ8C2D3mE4g2K8AnoN11hm+OSXISswFqttkYr+O0zY/taNLVUPqvjzFJgmpbJgLkrQ7fYyDZC5UWS1DXrn7xF3vIy0FNyFEx9eO9b+Bt2WHm/z+bXvsGaTcAaWtbrTQJbh2JfAToJB+5gBDzPFXCcACQ2lHiJCrpgELTOSkuR8qvK8ouAUb13eHcLvwCWFJs35ceerHFnD0yZHkSGobZEtMHes+4shkKQwJnu7NE49h1TYmJlI5dqNBQHusqzVmqIg==
+ b=Rn+fJytbPCD9/Sywf2QiZk1EqzS9ToKaqhXwvMt0ltOgO+rJ0VCo8I5/vaq7g2F9y2FU18jFSEvw5jFnLm+HbLtsc5dwlgrAPst5wBaFtBAzJlIvMTAG0qTzLLKjEMHHDq4m7PySpFF29lnMEtl8bv+cxgfj9zTFe8fj4byABho/Hsxn8XtPvEZMS6zJUD+RTvw908kcIBoq0npsIYk+I7Ol4luYn4bcv0CFobw/pTQI9o5Jd8UteF8KH6aTKXBTOg+7oSZj6p51L8m8ou8VQP4wJAcadohcyU6/DPjEjWFZ02jXd9KLGL/44NA8pwG5sYx1GopjOtLibv+wgDp27A==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
- bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
- b=VSTsNgyTQgim5YRd8ijtELv3SthuOmLkydl3f9K4Z0xeNtKggI7ficp9i7Kcxy6Ab0FTmTHKY2LFKMHLwImYQQESaJYBQDi6rOqSsXFB1F6gmA7sNv8gowSiag8DS1gpYHNP0g/JoldMCMu5nqwMx7rXs+lFHYKoVFEIVEvk5iDiP0pLIt4ma10g+GJDk+yR/idjWtnM+pcvZKLn/JpxJ/EVMKDtrBsrpb4R48wf5cJrbD4U/Nq5v+Ayn6u++55WomkQbjd4qXuxsVIJS8zwFi9juiGLWPyy3sBLp5grRgRRWp37KCdBy2UET6yZedvniEHFyuVg4LtMNNn2ncJN1Q==
+ bh=2tBXA9Uh3lTdHXRUc61H0CY1PM/tJaanzmGHlrAge/U=;
+ b=iPDDWShnA0rM6vKEwkLVl6+7hMftJMF55xIKy+9p80A8jq5NGZogZ+dpkQv4S6/hFLTt4ELXf+W0hmecGm9j9u4/e1l5FMw6Y05coRuQ6TRH6VNeX29wKFCfpQy5mVg0aguw6mctyjeTjhqvRomZMv3QFWrVg1wRg/iylaRHBYdtT+1S0HDRXxkY6Hnm3xebviQ7k1KXTFfy6yxHx/sqBqrSAGXgeoXtD6N0id2b2MNf84pqeTHveiv65fl9hnzw6EeCyhwObpZHzLwE8Urt3hJrbTPkZUh2lekRWv5FiqgdfrtMyqk7T0i+DHGtArQPXaQIltAgls7BdfklTE2LkA==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=72n7PFMsPXdD0BofaQTPMKat9hrrYyPXpzXND92RkZY=;
- b=moBAtBGMzT7tEU8gobn1NIrNIsGl/lvPnfqOB3SXJOh5fCHFDIT2WC29o3wlQvv/lYNxfLUm/6aAcHO8yq+twBqHiT8acB7S6GusPxR2OUARZPBCfcKw5Wbdi2rgtIPYI0O5xa87AWJcMsuuzfTTmMno2JJM9Y89lYqswOA7a9c=
+ bh=2tBXA9Uh3lTdHXRUc61H0CY1PM/tJaanzmGHlrAge/U=;
+ b=Rc8iY5zhCFLf0vEoiAqtl3+RssWXe2vK+6zif1T79JR8a5rAfDp2D2T/xrmbUiX9CYlNGKqR1qkfhHuzlkNOpXH+Oi0syOMSUaz4DlJDzseKPlKKZ7OtO6rWUbGvg77k3QDDKz8EoF5yi8ofkUxc/c8GUdKMTIRF83pxiWXrLmQ=
 Authentication-Results: intel.com; dkim=none (message not signed)
  header.d=none;intel.com; dmarc=none action=none header.from=oracle.com;
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
  by BY5PR10MB4035.namprd10.prod.outlook.com (2603:10b6:a03:1f8::33) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4523.14; Tue, 14 Sep
- 2021 23:32:15 +0000
+ 2021 23:32:02 +0000
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::401:1df2:3e9a:66c]) by SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::401:1df2:3e9a:66c%5]) with mapi id 15.20.4500.019; Tue, 14 Sep 2021
- 23:32:15 +0000
+ 23:32:02 +0000
 From: Jane Chu <jane.chu@oracle.com>
 To: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
         ira.weiny@intel.com, viro@zeniv.linux.org.uk, willy@infradead.org,
         jack@suse.cz, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
         linux-fsdevel@vger.kernel.org
-Subject: [PATCH 2/3] dax: introduce dax clear poison to page aligned dax pwrite operation
-Date: Tue, 14 Sep 2021 17:31:31 -0600
-Message-Id: <20210914233132.3680546-4-jane.chu@oracle.com>
+Subject: [PATCH 1/3] dax: introduce dax_operation dax_clear_poison
+Date: Tue, 14 Sep 2021 17:31:29 -0600
+Message-Id: <20210914233132.3680546-2-jane.chu@oracle.com>
 X-Mailer: git-send-email 2.18.4
 In-Reply-To: <20210914233132.3680546-1-jane.chu@oracle.com>
 References: <20210914233132.3680546-1-jane.chu@oracle.com>
@@ -81,95 +81,124 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Received: from brm-x62-16.us.oracle.com (2606:b400:8004:44::1b) by SN4PR0601CA0008.namprd06.prod.outlook.com (2603:10b6:803:2f::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4500.15 via Frontend Transport; Tue, 14 Sep 2021 23:32:14 +0000
+Received: from brm-x62-16.us.oracle.com (2606:b400:8004:44::1b) by SN4PR0601CA0008.namprd06.prod.outlook.com (2603:10b6:803:2f::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4500.15 via Frontend Transport; Tue, 14 Sep 2021 23:32:00 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 6004b30b-3bf6-424e-14ac-08d977d7e268
+X-MS-Office365-Filtering-Correlation-Id: 50597918-d137-4a9e-c65a-08d977d7da89
 X-MS-TrafficTypeDiagnostic: BY5PR10MB4035:
 X-Microsoft-Antispam-PRVS: 
-	<BY5PR10MB40353F40F471CE4A9C21F649F3DA9@BY5PR10MB4035.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:5797;
+	<BY5PR10MB403598AE916C3A6B3C8E2DF2F3DA9@BY5PR10MB4035.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:6790;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	0Kg+dytoBivXWlpmjMjzDrVjbsU4E3pSRYZCL4NSWDSMjIHszQcMGDgaXCdspvH2Cpi1Q8/1HSkIW/z+MxMcHt7ykX4w58qTa2iX3vaMXMSIbELpbP2CLrEbkkdaIC8w8ahDaKD1xSw6EW0lw1/cKonkTiIA3BdHFn1a5+JobpvF89dwggNjazY7l1B3a+mZrVM75ejKb1SjqEo2SAQcasNmcnGp513XkKMXLvT4qL478cls5RE6+iqbWZqb09NeD4wvMH0IbUrsyGBj/3PovrJuOyY7myytYv4RYG9ZpdknOB6BQPlgGZxepiG+t1fY/CzjJKuxmf8SaUp3Qq7taeNl0npAcf4p68OzXvBaI/bJiAUlrArFS/C1YPhqxM+x8N6jd6hZoA+GdxpmXzDAWv2WhYmODXhiy9PIopmHo0Vk4CqMnyjJong6x+yiqDcQhHDPxxfgjE1q5Zv5dhjHjHhpmO6k07hGz6aDWS18+jzHfmynefkkk17UkhUEcISKGzFR1F24YSAtCK+UemIBGCW63YWbuDdTr7InDCYKgpWbczqT9BcI/pv/ERa6GXdLfBUs2Fd+pwrTsvz614w8Cvw908DNRQnq7sIVrStfw0gIe9IUiHwzxAcE8tjRryliiuBzrf6bUgV52fB1kSnYluYwPd1ewS/wqgKzIshHew4HyfDkNF+5bAq/1Y+ImqOq
+	hQ0hzQYDIQkpCyPyu8nUwfu7dNe2kgmKf0lueY93ePgrmLqlmaAFnL/LtjB31DhHtSjahKGUthGAxJC95cTxui1V4lhCGPlyWa4xEBFUXrMHu4uTNwX1kjxA0jUKVdk9xGKPnCjrII989XSfHd1+CINJOEZ24CmdeJmrR0wz2VcTiXO0gE0JPdBm8Uw9bESQgVXuqOpbcPYBHm+ibp1xA1Cg7K+zNlLorxDu8nF4O2UAFBe65vDNgLy4f2LEWuSDHeUSDkAAPWv8Bfb6MiW8SZfFuhqaFeyA2G4UySz194LJMVMDdhPGK5tu2osL0aWtEbCsywQ7JpihkrXFroNeX7FK/jUgH9xya83Bhzun9IaxEk/u3fFHUkrP5+jAa64B2oXg1cmoXAHP+5Wr9T/Ge0XJA6jJGV6FcIIOQnRp3TNTSBrqsUoznZQDeg6GKtIrqcx7imUW+puSfWRjXHDzAfah0FNyYx1vDx1og6YHE9vxgJQITwNnRAB6enmk4Zp542Hd+BCn0mZydITVrJAGGIxegJ6JD+1YfFPMiXdxXpIEZSX3IfXlZqS2DQbvkuRi+LYUuZqFAriP8m24N1YU7epfsfUx8qGHz7jwfgFW8WJPsycqccL3fit3vMut+gERD5STw3PDKdFyQB/pqagXzIAzVQ4VNGZOXqNuedPyM7Wvn30Y+3rPQlzkxQArnr8y
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(376002)(396003)(366004)(136003)(39850400004)(346002)(66946007)(66476007)(921005)(1076003)(7416002)(66556008)(52116002)(7696005)(36756003)(316002)(5660300002)(186003)(8676002)(38100700002)(8936002)(2906002)(83380400001)(2616005)(6666004)(44832011)(478600001)(4744005)(86362001)(6486002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(376002)(396003)(366004)(136003)(39850400004)(346002)(66946007)(66476007)(921005)(1076003)(7416002)(66556008)(52116002)(7696005)(36756003)(316002)(5660300002)(186003)(8676002)(38100700002)(8936002)(2906002)(83380400001)(2616005)(6666004)(44832011)(478600001)(86362001)(6486002);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?9IaH4SklUzmNB36Fo63nBdf7sj0QxQMkfXO6mLffgd2yBvOtspB86yHpcus5?=
- =?us-ascii?Q?o+ALLdel/7d8siwI4LezO2FBo3JXz4iTQUwa/0CWDlx2PI4etlwvxnJdE1mv?=
- =?us-ascii?Q?tcDbxNOj2z6YjoHKY1t8HKrcOHHAUyznxuKW3LSolqSOAmLh5Hu4gjKkQMTE?=
- =?us-ascii?Q?0yzvuj7JhCo8qndYSgduwfFYWqDVp8EXzZXRF14p7bPGolLg2D4/aRR5icU0?=
- =?us-ascii?Q?ZWQIgz4UHiKVpMIpl/lpPSgUsLy924NZn5wIG6OKT6BhEq26Nrq8wJypTr9Z?=
- =?us-ascii?Q?6ov2aUwSZX65+IaobPK+wa+Kj43BxGjUGd7t3MSqRqX0Q4OIlFMgw6cDkWfc?=
- =?us-ascii?Q?cFmI9Luud3kODYe+0qMngZO3tmxplkOC0fAkL5V9QvRIpMy7uutIvfqFkLk5?=
- =?us-ascii?Q?FDMZxD2i6a5JWGfGJDsTxvm6ivu4XqmPfBKfdlNadxzTZm2CMp1mp0n1f3Yg?=
- =?us-ascii?Q?q6CAq5wQZXjKD2cq7b4JWTZMJPPqlEyObRL2ZTwY+mnmU/qFncPtu5wKvUbv?=
- =?us-ascii?Q?u7MFnSCHqHi76rZ+uPzRo97Hsf7OxCIKy0SUU1xbutqW6uAXXuf5mslrTWSD?=
- =?us-ascii?Q?x/64A+czcNDlzlQcpBUaXLz3JdxY+a/+KrKJ2XteKjywwvdktVx74Pw3xkK8?=
- =?us-ascii?Q?wrX1kjwxM07OcEx9aEzS8Be5OyZJQqu0OB27wAtcXsLQ1+tV6x+/TKWNBmIb?=
- =?us-ascii?Q?fCehzW1hi3YEhGiDFpSeCUN8aTWGd61m9iTRhm6pe4PV7xfVWs8ansmoSH3O?=
- =?us-ascii?Q?8mODKpF+mEFc0ufwitYS16tKALdCK3YNX/2YKnANTdhTWQJvIJR0Ed7dP7vw?=
- =?us-ascii?Q?5GWQfD/XOkjTbVuQkkFqBOMVvmY7dfxttOCixzPCGIeBivu6nuMA1Q1i07me?=
- =?us-ascii?Q?z6FjdkaKg1kkW036q+zVzbh/oVhH94VM+qvRsHb2nCYEYW0yzPKWf2C3SI+c?=
- =?us-ascii?Q?79AkVj+YRp1uKV98ttzk0nT3RBY9kWwbLkw66hXKCv/IhQfTrY6XRB1EfKAp?=
- =?us-ascii?Q?fgrvX0zea2QERqVWbemRS+aoxdK/s9VGRpkjxTB+CCRfa7dXm1i5aSPrXm1E?=
- =?us-ascii?Q?XyFJQFgUDzaNaofRaOTDY51+V0Lwf4SIrvCq1+3ApNx34W2mG7d575cN1/QF?=
- =?us-ascii?Q?/mfsnldc+v8TPnyJTFeFYn9J4T7bDICrb3INtBNeJ2kSuzePJtV++7D1zOk9?=
- =?us-ascii?Q?HyB5HRb7czFQ8/uE/yyV/fj42Exjavra/gDn3uqAt6P8p0lf7PsY91KUVWSd?=
- =?us-ascii?Q?IhZC6ytnOFcm3VKfRCCJxsUjaOGuRp34cYwmGBwO4BkV9UY6y/UQ/omco6dJ?=
- =?us-ascii?Q?eJ0Z9++J1SkAHR/h9kehB5yKf/IHOhBkdVFWOWbTjpnQ+g=3D=3D?=
+	=?us-ascii?Q?0trnjnlgmfEoRwINUmGWJGEGFRHsRVf7lAKjCW1ITJl/iR6U4kRpnaG5/vQX?=
+ =?us-ascii?Q?LzYnlS55ZyXlAzS1iOdLpiWuGyvsERo8oUyEtIlfhbK8EfGjURfW5zFXt1F/?=
+ =?us-ascii?Q?NrMYY+v5X6sTRPlr8sYEchBshsYf9eNM2vwV1SmAdzROqDFiBYH8c5Zv2Zs9?=
+ =?us-ascii?Q?3FX2ZCuZaxpcVMGmO7uRvqP9VsrwP7KAeKB0x9p9dMraJRUzmh8AZBHPTexb?=
+ =?us-ascii?Q?hHKe5g49rih5DJQnCuwAsBUApuk1WCrKQxBy2hg3L3D131dyoHYVSs9x83ez?=
+ =?us-ascii?Q?qXyuT2O3DtD+OqwhY7o3BvDW3XiXEnmKj1zoLQGP/GIGX56CBTd25YOw/5Cd?=
+ =?us-ascii?Q?zwxkHlKNsYEEFHWoPbHypMMUMmH4wZtMEf5+ibQ5QR9fAx83q3Wpuozov0Xu?=
+ =?us-ascii?Q?+fsLgFEROZv1JAipzhlsMB3mYTNZ5Mw9lw0wE6YRHKUJPgjMVuIfiHgNYxNB?=
+ =?us-ascii?Q?/v/NHbbHu8ohTd2aCoKfb2LycBUtKF9Xqhvt7qBzrF7Xg2mUWiA7suBpsldp?=
+ =?us-ascii?Q?D2OUtPu3AxlvJyZ7W06pzofkp0/y1PSFEP7DBxbbDvGU9ZFO8Zhc6RuFPGX4?=
+ =?us-ascii?Q?L5NqK+dXcrFYobBIyJyGdNtE9x9rpVhnv1l5BnMIboUydV9IXzIqVCkfVfmB?=
+ =?us-ascii?Q?aHT0eVhu6j3OqaJEOHm0MdZO2G8cD8f8A1GKyGVRoPvp/hEucl1Q1Y5XPShl?=
+ =?us-ascii?Q?0IGynqJ1CErUq5O9IGbadFjeainIJYXnklbO9/1Fzkx5bqH2VKAsT+8Jm3Dm?=
+ =?us-ascii?Q?5ga/8wxbOffwemcgFkj7GwvyxpR048mvBU4iUzuevWktisEcus8En0bJpLCE?=
+ =?us-ascii?Q?q4s0GzGxCIH45PHqydJ9uQS62xmzUJ3ax+JNLJM0Hdp2pI+8mjtHye0w7105?=
+ =?us-ascii?Q?3CLvG4gQs8gc+Yng9ZXIoJ4kfnkQX47uJpt6+kKoolKb0ZenCOMUQ77cV2u4?=
+ =?us-ascii?Q?IwTwEzW/rJxzErAyYwUcIS/v25Ni3N1msH7dq8PczIt93afB6dl4xxkz/M3L?=
+ =?us-ascii?Q?JmF7Or9k0Z92s6hwNFwI9AhzYO0YGy1F6agjlheA6r8SpuaLJnQ+bCKjrfed?=
+ =?us-ascii?Q?i4KaG9hKWwFDF70+yVeFnOjFGGV3DjdigWEc0mic+VlbJblvHeOsGTSvbPcC?=
+ =?us-ascii?Q?X1GGb5gmRyJ/3W9zHyWjZUTSF+5SuRe6BxEd/4OzenjYvvk0y8kjwAmUKTRr?=
+ =?us-ascii?Q?YU9nRNBObN+KdWv8/h7KKMhQcQeFqgXnKhpDyXxVskaNXaafzYTfcyIFFXpW?=
+ =?us-ascii?Q?xAcXkaYEkXSzwe1MPqq89ZTCyqaOICX0puq0B2zEHzTcEMw56dlOlhhpH4zn?=
+ =?us-ascii?Q?Wkm9hd9d+7Egb+w+i9CrBfaWasL453TpXOmLD0FfsfLTZA=3D=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 6004b30b-3bf6-424e-14ac-08d977d7e268
+X-MS-Exchange-CrossTenant-Network-Message-Id: 50597918-d137-4a9e-c65a-08d977d7da89
 X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2021 23:32:15.2131
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2021 23:32:01.9494
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: dsKyt6CEn1yONeEy6HNyMD5zU5Ul4lj7Mna0wX2KdglDUwMPH68RqGUrikOkdOfbJVw6h+fICt7dO28hhl4R9Q==
+X-MS-Exchange-CrossTenant-UserPrincipalName: q2XulIQv9v2bYQktZei17w0bsK5wgeAmRmUmI0+dj7DJhnjMIkDj6nyJgH3Gzol9wO2zJKJOUvU2u3xqO5QHJA==
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR10MB4035
 X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10107 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 adultscore=0 suspectscore=0
- phishscore=0 mlxlogscore=999 malwarescore=0 mlxscore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2109030001
- definitions=main-2109140134
-X-Proofpoint-GUID: wfRP3o3CMOIRref6XiIHUMONmec1UuI3
-X-Proofpoint-ORIG-GUID: wfRP3o3CMOIRref6XiIHUMONmec1UuI3
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxscore=0
+ mlxlogscore=999 adultscore=0 bulkscore=0 spamscore=0 phishscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2109030001 definitions=main-2109140134
+X-Proofpoint-GUID: qWFLTsIyJOG2QaOVWQ2WLTG53j12M2nX
+X-Proofpoint-ORIG-GUID: qWFLTsIyJOG2QaOVWQ2WLTG53j12M2nX
 
-Currenty, when pwrite(2) s issued to a dax range that contains poison,
-the pwrite(2) fails with EIO. Well, if the hardware backend of the
-dax device is capable of clearing poison, try that and resume the write.
+Though not all dax backend hardware has the capability of clearing
+poison on the fly, but dax backed by Intel DCPMEM has such capability,
+and it's desirable to, first, speed up repairing by means of it;
+second, maintain backend continuity instead of fragmenting it in
+search for clean blocks.
 
 Signed-off-by: Jane Chu <jane.chu@oracle.com>
 ---
- fs/dax.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/dax/super.c | 13 +++++++++++++
+ include/linux/dax.h |  6 ++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 99b4e78d888f..592a156abbf2 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1156,8 +1156,17 @@ dax_iomap_actor(struct inode *inode, loff_t pos, loff_t length, void *data,
- 		if (ret)
- 			break;
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index 44736cbd446e..935d496fa7db 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -373,6 +373,19 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ }
+ EXPORT_SYMBOL_GPL(dax_zero_page_range);
  
-+		/*
-+		 * If WRITE operation encounters media error in a page aligned
-+		 * range, try to clear the error, then resume, for just once.
-+		 */
- 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
- 				&kaddr, NULL);
-+		if ((map_len == -EIO) && (iov_iter_rw(iter) == WRITE)) {
-+			if (dax_clear_poison(dax_dev, pgoff, PHYS_PFN(size)) == 0)
-+				map_len = dax_direct_access(dax_dev, pgoff,
-+						PHYS_PFN(size), &kaddr, NULL);
-+		}
- 		if (map_len < 0) {
- 			ret = map_len;
- 			break;
++int dax_clear_poison(struct dax_device *dax_dev, pgoff_t pgoff,
++			size_t nr_pages)
++{
++	if (!dax_alive(dax_dev))
++		return -ENXIO;
++
++	if (!dax_dev->ops->clear_poison)
++		return -EOPNOTSUPP;
++
++	return dax_dev->ops->clear_poison(dax_dev, pgoff, nr_pages);
++}
++EXPORT_SYMBOL_GPL(dax_clear_poison);
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ void arch_wb_cache_pmem(void *addr, size_t size);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index b52f084aa643..c54c1087ece1 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -36,6 +36,11 @@ struct dax_operations {
+ 			struct iov_iter *);
+ 	/* zero_page_range: required operation. Zero page range   */
+ 	int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
++	/*
++	 * clear_poison: clear media error in the given page aligned range via
++	 * vendor appropriate method. Optional operation.
++	 */
++	int (*clear_poison)(struct dax_device *, pgoff_t, size_t);
+ };
+ 
+ extern struct attribute_group dax_attribute_group;
+@@ -226,6 +231,7 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 		size_t bytes, struct iov_iter *i);
+ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ 			size_t nr_pages);
++int dax_clear_poison(struct dax_device *dax_dev, pgoff_t pgoff, size_t nr_pages);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
+ 
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
 -- 
 2.18.4
 
