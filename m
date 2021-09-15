@@ -1,186 +1,186 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f45.google.com (mail-pj1-f45.google.com [209.85.216.45])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A48453FDB
-	for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 23:32:26 +0000 (UTC)
-Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18EKxRSR007088;
-	Tue, 14 Sep 2021 23:32:22 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : in-reply-to : references : content-type :
- mime-version; s=corp-2021-07-09;
- bh=X4AZ6r9vOmPEEJsgaTOlVuG6WEl8FHwySaWrePQXINY=;
- b=Dg9nXsGJAvu0cw143n3YmNFqjjTYjTNtL7Ds5+3faEcUOmSuZF2vUhmObY8pts7RqU3U
- qdh8rnuF/lGH2YfuvGwc6NX9EiuMzqolNotJKHmM1kRBm6YGrNSj8MZrHq+Ih4hmNbnR
- v4osWpZeeJyraWU5iftnE6LANE7vv9CNXyju2+73Q+stVVLwrPUvA2XH+xD1jEXH0i98
- /l3s59KKGWYzDd3vutDzGRRGYhLjoSOGTBHkYQ9DV64bIjGczi62ga53q8bLQqjYg7XS
- XZOyavBUAhrkl9WRQSjXE7c+DJNzkhBtk2uwlix0H9FUnDTD5YBUYHvEd1AJYvpyQXDn TA== 
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : in-reply-to : references : content-type :
- mime-version; s=corp-2020-01-29;
- bh=X4AZ6r9vOmPEEJsgaTOlVuG6WEl8FHwySaWrePQXINY=;
- b=TdCb9Rk31DA9um7wKdJzJpi0c56aotUFDPRvvuMFJEzLm5q3fbO9ObiQTTpOaC7XtS7E
- MvMxem9d0G2Dyk4vwXAlVEoVWw/7dUoC1JA4F2mbOwHbGJxb03fBjgm8gMcMbZtqWcoe
- L1RJDS61tC7k78qhABWSfBXQqKDh2twsx84fNAgdpXjaF/V4hFdZ/1nwuecTHHsAO3YU
- FvEar3+l5FXO2RbjLscTyJpOINXm3pBgQpgzww3umD12aEAqFJO05nKPua9MMRNFn9KP
- zNx6XqI9YIroPDPMaPTjYS3BAF2RCc26RCJzkBuK+8aMO5cwg2ts3da8ERXiiZZx25vi aw== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3b2p4f35n7-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 14 Sep 2021 23:32:22 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 18ENTjwm169855;
-	Tue, 14 Sep 2021 23:32:21 GMT
-Received: from nam02-dm3-obe.outbound.protection.outlook.com (mail-dm3nam07lp2048.outbound.protection.outlook.com [104.47.56.48])
-	by userp3020.oracle.com with ESMTP id 3b167ssv6k-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 14 Sep 2021 23:32:20 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=BTS2DF55kpGEoCzhDbZsRsv1lihkDHx92tV8xcbN+vGgYfJ8icA2T7CslICJSdEsuOufLVO0uyZXUHcxNxet9/aeyiUpV2s1Q6848qGlS+FHT7dxTaAdJ5PD5p4K2d4haPm7EVTgVzzAtep52i8rR4zFuVwogxafWEUyZNeJbRac5HtowMW3wyTe9nvb16SPcIAbtsVFDxhCHZ16uxFGJmuaekMkkPz9NT6uOtPO6k3YDte29VDGlQ1ub/CHz6ihSSUlXQsXuRDAngA/XujQeg9b5NMpf7gzb6FnBd/5MtXQ7+7tj6sHt93UrnkQyodqwRcvQqjU9kw/vJrr8RkFoQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
- bh=X4AZ6r9vOmPEEJsgaTOlVuG6WEl8FHwySaWrePQXINY=;
- b=akfENGD8jGvIa8Kb+soE96Nv96rad6Byrec54dSQIvBwGHaZ+9QOZL+ZIaeNMc4tJC4Ozmb8It2787prfesW4o215zpzGysukScAdwNaMHJngAm6aBRrIJBroWWDPElNeUWGsJ9AHIPBOtAJ84RZtXgg+d3ZvQb//xonqv6AST9/4/SNJM7YEDQc8zGd8vi1RDiVHFjaw+1IuJa5FY8jFptYcwokScJ61EwThBaJ/rn22ufgzqVXicum9P+cTH4cIVhw1PuorqEi2AlnMTogPU6lu5viJnaBiQlhk2GZ+bVC+aOaehOrf5oK18RU4ufJnEdHT6nizEcR5URK819Gjg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 717863FD0
+	for <nvdimm@lists.linux.dev>; Wed, 15 Sep 2021 04:08:21 +0000 (UTC)
+Received: by mail-pj1-f45.google.com with SMTP id w19-20020a17090aaf9300b00191e6d10a19so1280356pjq.1
+        for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 21:08:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=X4AZ6r9vOmPEEJsgaTOlVuG6WEl8FHwySaWrePQXINY=;
- b=cdSTdj5OIhywpZEEllPSKIbzJE/UhJasrbmtVCwnW6oLSUbCZv92xY4KNwK7o/ofDOBPKb+bdIP+5d5jyGnDn7Q2fMNvRP51o0kYVhShjLuhH8hR7Q7KO1I0pWgFEO89MxOX5Ep3WelKIiUhrwD+VtGMujlKdE0aPNswrzDWKHk=
-Authentication-Results: intel.com; dkim=none (message not signed)
- header.d=none;intel.com; dmarc=none action=none header.from=oracle.com;
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by BY5PR10MB4306.namprd10.prod.outlook.com (2603:10b6:a03:211::7) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4523.14; Tue, 14 Sep
- 2021 23:32:19 +0000
-Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::401:1df2:3e9a:66c]) by SJ0PR10MB4429.namprd10.prod.outlook.com
- ([fe80::401:1df2:3e9a:66c%5]) with mapi id 15.20.4500.019; Tue, 14 Sep 2021
- 23:32:19 +0000
-From: Jane Chu <jane.chu@oracle.com>
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com,
-        ira.weiny@intel.com, viro@zeniv.linux.org.uk, willy@infradead.org,
-        jack@suse.cz, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org
-Subject: [PATCH 3/3] libnvdimm/pmem: Provide pmem_dax_clear_poison for dax operation
-Date: Tue, 14 Sep 2021 17:31:32 -0600
-Message-Id: <20210914233132.3680546-5-jane.chu@oracle.com>
-X-Mailer: git-send-email 2.18.4
-In-Reply-To: <20210914233132.3680546-1-jane.chu@oracle.com>
-References: <20210914233132.3680546-1-jane.chu@oracle.com>
-Content-Type: text/plain
-X-ClientProxiedBy: SN4PR0601CA0008.namprd06.prod.outlook.com
- (2603:10b6:803:2f::18) To SJ0PR10MB4429.namprd10.prod.outlook.com
- (2603:10b6:a03:2d1::14)
+        d=intel-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=CQDNNNFEo1X3i4ZbWhtXjvPLmTOQuS2HCDWIbVD2T9k=;
+        b=ZhFEJREKfFheqoxU3Yuv65eBxZoE6XDInKedcwQtq/qCcAAOvHlm6ZKydu7I94PYL2
+         UVXNGpOFirKknWbmqfzzfdSWdVtT3NMXIulWDhTI9gFXDzKh7SMtfsTMGPkSkuFEYgeb
+         055LPaGzuBBw9GKNuUNmOLVtbOZZzQU4rr3UGDcpGjF9sYKZbrAYSo0+fWfbBg5DcWev
+         5ALFWGzqTsz6daJ7gWjTFDX1B+y/DsNE/9YUaCCYVCVLJv758hcffSe13MtCM3yEb+6z
+         v35aDUDQ1+WjjoSlJgkfiHF1btNWkUK7QeuUCRdP69thJe6VF813nOn8eNbzE392lQpf
+         2oLw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=CQDNNNFEo1X3i4ZbWhtXjvPLmTOQuS2HCDWIbVD2T9k=;
+        b=aPQ7I2PGkl+RFhi93h0H98hoJb+kdbm6M8aSNwN0H1veC7FCm1yQM9mg8EKt6+9ibe
+         J4bIiyJHEHHvekriR3chtHAdZdIH1ixlQIC+OqpU4tJ/55DQlji3ZfN6wWGeSHxOPhFw
+         yz+oy6zowW7Q9h5vKqIOAPPKgFYk2S+ljW2cgK/UNCUaTXSkjfR9ML2zzPxp/s74dnMm
+         /YzytNkxvI6bKBTA3iazp9S99LhALsEMaMR3/PquaerhSgk8yO7BgfwGmfk9in/5OzE5
+         yLgfrFxa+nqtIOBD30k09CtaAAJv+oTJgKvbvcdKGbmnTfGxWI/6XiIIrEUjEXuqyJv0
+         aorA==
+X-Gm-Message-State: AOAM5326ZAnoQus/etk3aw0Orb2r6spj16DNNcw0jVbFyQE1Yln/5GiO
+	36qKVk92cqMwxRvjNhL0b/gsjXPov3yDQoYZrXAa8g==
+X-Google-Smtp-Source: ABdhPJz6jSy3QNZ774ZvbFCFT/locOJKKFJeswe7GHvEF4/9SaC8NfwBZ1lNaqgJ2388QzKNtHhAWeVE3LX4MRmizIA=
+X-Received: by 2002:a17:90b:3b84:: with SMTP id pc4mr6086447pjb.220.1631678900879;
+ Tue, 14 Sep 2021 21:08:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Received: from brm-x62-16.us.oracle.com (2606:b400:8004:44::1b) by SN4PR0601CA0008.namprd06.prod.outlook.com (2603:10b6:803:2f::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4500.15 via Frontend Transport; Tue, 14 Sep 2021 23:32:18 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 7701a6cf-9a0d-4ee2-b26c-08d977d7e4c6
-X-MS-TrafficTypeDiagnostic: BY5PR10MB4306:
-X-Microsoft-Antispam-PRVS: 
-	<BY5PR10MB4306789A61528D9022B047F8F3DA9@BY5PR10MB4306.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:590;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	n+R3ZZIjf8PiPcBIlhhoodUkoSsNYr9iwRgAm+0d9vS5oW7BoYr0S1C9niszfZek1yEGoem2iQtt2Z/Y+6H1UxFFtu9GzbFcwkiuZd7NGzbmvw34i6ZlE/V2D1Xi9weX0t4O//nSc/Gm7WNLRvr2njwK36rplfZUe3KLeyp+hgQUI/SisT8u7kifqzfxvNVqlXe0xJaaQWrPhpAmAsE5/WigdBGKpMDMqEiBDCANuIcfFSoJqHLYiOnifV/hq1AEKJK6q2cOHi/cCUGzoc2N0TfabwTeCOIANiXVDLqpthmKzNfQ2i2BChsHani2iXuxlzt7YdIPLA28mN1w6mMRgS/ZHpPhwRiGUQTZRJiyFKNIxumma12cH+6rgiLLe7fZo1O8oLCHT9d4N8mSJPeMO1O4B4lBzEsGqkOznE1lVvzJu1XQBIg9A354iVvcF4m63G8bZmNLHo6VqnquDZ+6E9jUGLhDINjgqvEiQaNCXtwZ2iD9/5sXxtbdKpRRhHnV3oTqU6i4/+cx+oxyfAoOtn3N57uv0DJzRMEQH+ByYpcEUdY31xBkSw04yN+0NifJt8Zfq3E9ZnKa94xK2++xd1I6Uu0+jH9mXA3Drzfm5JDpchfhfK3Jv/DMml5FHjI8WIpg/0FaEacbDpIyiNdMYK8slkNje6kWbVUrnrvGAKum8tcCjKxJAckFChzTUhMa
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(136003)(376002)(366004)(396003)(346002)(39850400004)(66946007)(66476007)(7416002)(1076003)(921005)(66556008)(36756003)(7696005)(52116002)(316002)(5660300002)(186003)(8676002)(38100700002)(8936002)(2616005)(2906002)(83380400001)(6666004)(478600001)(44832011)(86362001)(6486002);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?IWUQNaeiLu93hHcWM0QFUSQRSn/hpo476K1xxi8Z7PQ4PuN/e1VJTcniVL5o?=
- =?us-ascii?Q?kOS/NXjRZJIg4fc8kcpHl5EJMYst4yBu1I3XUum1/lxNZ20V/Pmjk0bhjXF9?=
- =?us-ascii?Q?a+T1M41vDcF5QwOCpS9LFLWKrpTCCxHznD+2gK6r9avqH+oX+G227587r2nY?=
- =?us-ascii?Q?4x1Tn8ojhug+tDmrr7TjylGHdETH6aYv5Dl5sC6c/MghP4LC5dsKOg91yQrO?=
- =?us-ascii?Q?+EY2OiYwWfsyJgUoUJlqbq1n9szf3ip7IuY21CEMKqCLs2SwGOEBxcIlKBf4?=
- =?us-ascii?Q?APWNzI4+683Nt9MlSLIFz2jJiiCiegih9AzK9TBUhim8oqEeBe+GVXqRpcOB?=
- =?us-ascii?Q?8YKHJr7WkPK0iwae9dlwMTYa6GzOXikccUEc/tirLHj9reHdOg8slI8PzX/I?=
- =?us-ascii?Q?4lcZ99menVRKpVJO1nO1Q2hF9pvEAjEvhckmyA22ZLk8SRMlMUdzWZHkdxcF?=
- =?us-ascii?Q?766UJEfcm/mwJNkX5k778UtQhyYfkmEzkNE4jVL5fvaeGeFNDsGgVcnaFRTQ?=
- =?us-ascii?Q?BZCTbKRji2zcB9206SoEmAbLWF9/WkwfqgMNerVC15XP9xb1sRTTGThy5gqO?=
- =?us-ascii?Q?/JFnpZWZB/ovvp4jJLzO0Mpm+BxAtdqTqjw3HYQmlsl9p2I06H5FSK2u24vz?=
- =?us-ascii?Q?qN7wK0AhCQLmevycyagjpP9BMJPvXhZlXpRuJdGcFOrdI+zQEOdDOAdRXZda?=
- =?us-ascii?Q?er9Wx/V5PbmarFiIfFjx9cMxZPOLjSzsDPrUSnFit2jV+tZK3qyVsa53FzB0?=
- =?us-ascii?Q?rDppYWkt+MRx0SC8UUEd5TpX1cktBsiJBcz54u5ITBes80gUGOYqHZZp6aZu?=
- =?us-ascii?Q?RmkV7c/fYsSpoSKQdrOyK0jhG3v89mVd3vQA2YcLW1YE07MFI7zZCigVTry+?=
- =?us-ascii?Q?9n26VAecP0AYcMxkgKnB7f9k9oh6EqQ1g/lPkiMZyHh3iRaXUXoIFiwumMrZ?=
- =?us-ascii?Q?mYGk5gBdzlPy56WgyIUJS5V6IX+L4r5nrfH7lPe0oY2e5n1P0siyLYVydY/g?=
- =?us-ascii?Q?CyUYZ1h+c58b9UVUR2BcCo6Z3NX1rj5O7vCVv3l1YJ7FC7KHvIWdUDPI8Ws9?=
- =?us-ascii?Q?UNHrU77tEOry8SigBjCcKUFkPiSEENkBEUMPWyYZZYdAlczTXMcHJubTeVHU?=
- =?us-ascii?Q?PNprmO7QJbkXcCOzoM8AwLEXrtflFTSp20h0/jJdJ30ud+OwKv5swphL291I?=
- =?us-ascii?Q?NfUD8wLegLAnX3VCjn9+rcO3ORRIs4RcdbjpFh2mCehr9MjmVfgOcKfSMlf7?=
- =?us-ascii?Q?M8+dqWwnKsh+UxmCRTpg8Diydq8Wmks2wLPdNhityM1Fa18LmqTAAlseiR6w?=
- =?us-ascii?Q?lX5xI6wdj0Cpe4mNPEawbRrxjEDTA0SmhPqqmk5tdaPI9g=3D=3D?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7701a6cf-9a0d-4ee2-b26c-08d977d7e4c6
-X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 14 Sep 2021 23:32:19.1657
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: w0LjDv1Zp3yHJntoYYpMbUot87kgsZE7cRutA2/PiKiQYyx/3Z63fM//L0/oUhhNCjDE0xn69JqYE8C+MpQLiw==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BY5PR10MB4306
-X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10107 signatures=668682
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 adultscore=0 suspectscore=0
- phishscore=0 mlxlogscore=999 malwarescore=0 mlxscore=0 bulkscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2109030001
- definitions=main-2109140134
-X-Proofpoint-GUID: 1hnDXXc4LumVARAo4mVeQ59E60TF0jb6
-X-Proofpoint-ORIG-GUID: 1hnDXXc4LumVARAo4mVeQ59E60TF0jb6
+References: <20210903050914.273525-1-kjain@linux.ibm.com> <20210903050914.273525-2-kjain@linux.ibm.com>
+ <CAPcyv4jSL2cDxGiXEtyyce3eNEE_QUnnMjuLXb3iCwO8_7a7LQ@mail.gmail.com> <d7f8bf51-059f-4496-37c4-6516a703e209@linux.ibm.com>
+In-Reply-To: <d7f8bf51-059f-4496-37c4-6516a703e209@linux.ibm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 14 Sep 2021 21:08:10 -0700
+Message-ID: <CAPcyv4hE4rh5R+8zy3X4gDJeuPzQ0oQHmHbe_pppgWB2_RjfAg@mail.gmail.com>
+Subject: Re: [RESEND PATCH v4 1/4] drivers/nvdimm: Add nvdimm pmu structure
+To: kajoljain <kjain@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, maddy@linux.ibm.com, 
+	Santosh Sivaraj <santosh@fossix.org>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, 
+	Vaibhav Jain <vaibhav@linux.ibm.com>, atrajeev@linux.vnet.ibm.com, 
+	Thomas Gleixner <tglx@linutronix.de>, rnsastry@linux.ibm.com
+Content-Type: text/plain; charset="UTF-8"
 
-Provide pmem_dax_clear_poison() to struct dax_operations.clear_poison.
+On Thu, Sep 9, 2021 at 12:56 AM kajoljain <kjain@linux.ibm.com> wrote:
+>
+>
+>
+> On 9/8/21 3:29 AM, Dan Williams wrote:
+> > Hi Kajol,
+> >
+> > Apologies for the delay in responding to this series, some comments below:
+>
+> Hi Dan,
+>     No issues, thanks for reviewing the patches.
+>
+> >
+> > On Thu, Sep 2, 2021 at 10:10 PM Kajol Jain <kjain@linux.ibm.com> wrote:
+> >>
+> >> A structure is added, called nvdimm_pmu, for performance
+> >> stats reporting support of nvdimm devices. It can be used to add
+> >> nvdimm pmu data such as supported events and pmu event functions
+> >> like event_init/add/read/del with cpu hotplug support.
+> >>
+> >> Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> >> Reviewed-by: Madhavan Srinivasan <maddy@linux.ibm.com>
+> >> Tested-by: Nageswara R Sastry <rnsastry@linux.ibm.com>
+> >> Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
+> >> ---
+> >>  include/linux/nd.h | 43 +++++++++++++++++++++++++++++++++++++++++++
+> >>  1 file changed, 43 insertions(+)
+> >>
+> >> diff --git a/include/linux/nd.h b/include/linux/nd.h
+> >> index ee9ad76afbba..712499cf7335 100644
+> >> --- a/include/linux/nd.h
+> >> +++ b/include/linux/nd.h
+> >> @@ -8,6 +8,8 @@
+> >>  #include <linux/ndctl.h>
+> >>  #include <linux/device.h>
+> >>  #include <linux/badblocks.h>
+> >> +#include <linux/platform_device.h>
+> >> +#include <linux/perf_event.h>
+> >>
+> >>  enum nvdimm_event {
+> >>         NVDIMM_REVALIDATE_POISON,
+> >> @@ -23,6 +25,47 @@ enum nvdimm_claim_class {
+> >>         NVDIMM_CCLASS_UNKNOWN,
+> >>  };
+> >>
+> >> +/* Event attribute array index */
+> >> +#define NVDIMM_PMU_FORMAT_ATTR         0
+> >> +#define NVDIMM_PMU_EVENT_ATTR          1
+> >> +#define NVDIMM_PMU_CPUMASK_ATTR                2
+> >> +#define NVDIMM_PMU_NULL_ATTR           3
+> >> +
+> >> +/**
+> >> + * struct nvdimm_pmu - data structure for nvdimm perf driver
+> >> + *
+> >> + * @name: name of the nvdimm pmu device.
+> >> + * @pmu: pmu data structure for nvdimm performance stats.
+> >> + * @dev: nvdimm device pointer.
+> >> + * @functions(event_init/add/del/read): platform specific pmu functions.
+> >
+> > This is not valid kernel-doc:
+> >
+> > include/linux/nd.h:67: warning: Function parameter or member
+> > 'event_init' not described in 'nvdimm_pmu'
+> > include/linux/nd.h:67: warning: Function parameter or member 'add' not
+> > described in 'nvdimm_pmu'
+> > include/linux/nd.h:67: warning: Function parameter or member 'del' not
+> > described in 'nvdimm_pmu'
+> > include/linux/nd.h:67: warning: Function parameter or member 'read'
+> > not described in 'nvdimm_pmu'
+> >
+> > ...but I think rather than fixing those up 'struct nvdimm_pmu' should be pruned.
+> >
+> > It's not clear to me that it is worth the effort to describe these
+> > details to the nvdimm core which is just going to turn around and call
+> > the pmu core. I'd just as soon have the driver call the pmu core
+> > directly, optionally passing in attributes and callbacks that come
+> > from the nvdimm core and/or the nvdimm provider.
+>
+> The intend for adding these callbacks(event_init/add/del/read) is to give
+> flexibility to the nvdimm core to add some common checks/routines if required
+> in the future. Those checks can be common for all architecture with still having the
+> ability to call arch/platform specific driver code to use its own routines.
+>
+> But as you said, currently we don't have any common checks and it directly
+> calling platform specific code, so we can get rid of it.
+> Should we remove this part for now?
 
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
----
- drivers/nvdimm/pmem.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Yes, lets go direct to the perf api for now and await the need for a
+common core wrapper to present itself.
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 1e0615b8565e..307a53aa3432 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -294,6 +294,22 @@ static int pmem_dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- 				   PAGE_SIZE));
- }
- 
-+static int pmem_dax_clear_poison(struct dax_device *dax_dev, pgoff_t pgoff,
-+					size_t nr_pages)
-+{
-+	unsigned int len = PFN_PHYS(nr_pages);
-+	sector_t sector = PFN_PHYS(pgoff) >> SECTOR_SHIFT;
-+	struct pmem_device *pmem = dax_get_private(dax_dev);
-+	phys_addr_t pmem_off = sector * 512 + pmem->data_offset;
-+	blk_status_t ret;
-+
-+	if (!is_bad_pmem(&pmem->bb, sector, len))
-+		return 0;
-+
-+	ret = pmem_clear_poison(pmem, pmem_off, len);
-+	return (ret == BLK_STS_OK) ? 0 : -EIO;
-+}
-+
- static long pmem_dax_direct_access(struct dax_device *dax_dev,
- 		pgoff_t pgoff, long nr_pages, void **kaddr, pfn_t *pfn)
- {
-@@ -326,6 +342,7 @@ static const struct dax_operations pmem_dax_ops = {
- 	.copy_from_iter = pmem_copy_from_iter,
- 	.copy_to_iter = pmem_copy_to_iter,
- 	.zero_page_range = pmem_dax_zero_page_range,
-+	.clear_poison = pmem_dax_clear_poison,
- };
- 
- static const struct attribute_group *pmem_attribute_groups[] = {
--- 
-2.18.4
+>
+>
+> >
+> > Otherwise it's also not clear which of these structure members are
+> > used at runtime vs purely used as temporary storage to pass parameters
+> > to the pmu core.
+> >
+> >> + * @attr_groups: data structure for events, formats and cpumask
+> >> + * @cpu: designated cpu for counter access.
+> >> + * @node: node for cpu hotplug notifier link.
+> >> + * @cpuhp_state: state for cpu hotplug notification.
+> >> + * @arch_cpumask: cpumask to get designated cpu for counter access.
+> >> + */
+> >> +struct nvdimm_pmu {
+> >> +       const char *name;
+> >> +       struct pmu pmu;
+> >> +       struct device *dev;
+> >> +       int (*event_init)(struct perf_event *event);
+> >> +       int  (*add)(struct perf_event *event, int flags);
+> >> +       void (*del)(struct perf_event *event, int flags);
+> >> +       void (*read)(struct perf_event *event);
+> >> +       /*
+> >> +        * Attribute groups for the nvdimm pmu. Index 0 used for
+> >> +        * format attribute, index 1 used for event attribute,
+> >> +        * index 2 used for cpusmask attribute and index 3 kept as NULL.
+> >> +        */
+> >> +       const struct attribute_group *attr_groups[4];
+> >
+> > Following from above, I'd rather this was organized as static
+> > attributes with an is_visible() helper for the groups for any dynamic
+> > aspects. That mirrors the behavior of nvdimm_create() and allows for
+> > device drivers to compose the attribute groups from a core set and /
+> > or a provider specific set.
+>
+> Since we don't have any common events right now, Can I use papr
+> attributes directly or should we create dummy events for common thing and
+> then merged it with papr event list.
 
+Just use papr events directly.
