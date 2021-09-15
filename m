@@ -1,237 +1,292 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from EUR05-VI1-obe.outbound.protection.outlook.com (mail-vi1eur05on2058.outbound.protection.outlook.com [40.107.21.58])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18CE53FD3
-	for <nvdimm@lists.linux.dev>; Wed, 15 Sep 2021 05:16:06 +0000 (UTC)
-Received: by mail-pj1-f53.google.com with SMTP id v19so1328741pjh.2
-        for <nvdimm@lists.linux.dev>; Tue, 14 Sep 2021 22:16:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=dLTGBcZj0GiroOYOwsXeB4IRrRlHOBSuTjJevLR3oGQ=;
-        b=ra+C/DC/11ZC7mZjfPLq+lXqCO3MnccAGWsrzjLMK/YTGRxjKRDJdeEociIUz1QWjR
-         4ypBGEzk4QmVQ9vvenMvFuQ/u8c7UKdojT7lQ5bkFycmImFC9IGjyqfbMeQIc2/1LDum
-         lz74ZsZH6TMCuP7El2sFCvnNgKHcXZff9lOUFOc8wemF2n9pEtNR/AFMovlITiwta6m8
-         5uMYjt6TkbUvGlip//SGGpbjtykJVX3EeJ9iSD6lSVxLyUY8b6ImIaiuVlGamPANnMSD
-         P9i3twLXpjDFXjiujpphMz0cfWZYAWcKwTkKWBT3piPh3HbQi63pyDSg4Tj+Wo+P7Zbk
-         6ccA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=dLTGBcZj0GiroOYOwsXeB4IRrRlHOBSuTjJevLR3oGQ=;
-        b=c5BlK09ZH8WIcKAZVYJJtbAR71f4HCwJtt5MLjoZ1zqth6pEA/hnCdETz3XptrU0lI
-         KXHjYIKEod8/GhopXjSSbdExulKEQA79uWFUh8Wi/Xf56upEKCV/Fw8VwDV+VRXIh8Fk
-         WUpGzyaaRMEvbV5e+sG/WMubm1YbTnkK7skghcYkaFBcWtgpvD+Kfed7IKuZsKOX445T
-         ddUjw4WZTh34Pv9Q9v50kVchVOAoodTR9PNRq8R3hsROkhbJaBv5914Za3WOpFZdds5y
-         Tam4FCYBlCQ7TDWOYXcNhqvtNR7pD7VVGcpfTd64VuquTcMca6t61bcTMUOwxrDHnQ/I
-         gplQ==
-X-Gm-Message-State: AOAM533QL9jP6xMCkuUWdNXEAZvXwC+eL/4AdNpQmwfhxQcP6JUItbEt
-	Op1NCIOpvvGEahs521hMkTYZ+1ZQ3Q7CZiW4U4cfCeD91xXWeQ==
-X-Google-Smtp-Source: ABdhPJy9a4IF29cCAlgXRi3+CMQH7qLhWTQYDNS8J74GqkpYnqQnzUdXZjsMFDQY7a7oIS69cPAnAExOkyXxwfmjSKY=
-X-Received: by 2002:a17:902:e80f:b0:13b:721d:f750 with SMTP id
- u15-20020a170902e80f00b0013b721df750mr18194024plg.18.1631682965524; Tue, 14
- Sep 2021 22:16:05 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 679D33FC4
+	for <nvdimm@lists.linux.dev>; Wed, 15 Sep 2021 06:51:12 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=armh.onmicrosoft.com;
+ s=selector2-armh-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=K4AHxdFwVCiIl/S3EO0OHNszKx0oqvAAbIR7S3BPlrA=;
+ b=rYJNqezM6VnwmunvWWn6+mio21jyTkWgo4Mr8JjMeZRObK1fS1Kp+Z0gyO/d3g4xQi1/vQPo2oor7Xo6QIrtJIUq9/SWYx5oims2rDFhFx1VKiZm6wTtgKDcc+eqxaGSBihvMiDNlIslBSpppzaA25Y0Y6JhVgW1N9BMp6waT1s=
+Received: from AS9PR06CA0271.eurprd06.prod.outlook.com (2603:10a6:20b:45a::25)
+ by AM6PR08MB4343.eurprd08.prod.outlook.com (2603:10a6:20b:ba::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4500.16; Wed, 15 Sep
+ 2021 06:51:07 +0000
+Received: from AM5EUR03FT011.eop-EUR03.prod.protection.outlook.com
+ (2603:10a6:20b:45a:cafe::e1) by AS9PR06CA0271.outlook.office365.com
+ (2603:10a6:20b:45a::25) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4523.14 via Frontend
+ Transport; Wed, 15 Sep 2021 06:51:07 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 63.35.35.123)
+ smtp.mailfrom=arm.com; lists.linux.dev; dkim=pass (signature was verified)
+ header.d=armh.onmicrosoft.com;lists.linux.dev; dmarc=pass action=none
+ header.from=arm.com;
+Received-SPF: Pass (protection.outlook.com: domain of arm.com designates
+ 63.35.35.123 as permitted sender) receiver=protection.outlook.com;
+ client-ip=63.35.35.123; helo=64aa7808-outbound-1.mta.getcheckrecipient.com;
+Received: from 64aa7808-outbound-1.mta.getcheckrecipient.com (63.35.35.123) by
+ AM5EUR03FT011.mail.protection.outlook.com (10.152.16.152) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.4500.14 via Frontend Transport; Wed, 15 Sep 2021 06:51:07 +0000
+Received: ("Tessian outbound e27daf245730:v103"); Wed, 15 Sep 2021 06:51:07 +0000
+X-CR-MTA-TID: 64aa7808
+Received: from b9216171f6e3.1
+	by 64aa7808-outbound-1.mta.getcheckrecipient.com id EEEEAED7-FB06-4A0D-ABF9-67C19763ABC7.1;
+	Wed, 15 Sep 2021 06:51:00 +0000
+Received: from EUR04-HE1-obe.outbound.protection.outlook.com
+    by 64aa7808-outbound-1.mta.getcheckrecipient.com with ESMTPS id b9216171f6e3.1
+    (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384);
+    Wed, 15 Sep 2021 06:51:00 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=i3+rNzfDhNour9IOQYWzasIpbr5feoqLSoGzIK3zrItdBlhfbRqgAKZUyVY3PaO4YqRtjjJ+IM6wwb1FKzVux55gA2yHUZzwgyGP/rONiGXzrQKmelUGf3xwvBodFVuRhMtOMG/NV2RJIuQ0n/i7FwCyMeh1j+uGWzKQUv1dppIUCaZYWbafo276phuipVTr8uUU99cq3YpoIc8KXhoed4JxJn5GNwXuzbasOl5xERxLfdwYPneDLHsTPMW9imdhw19w9wXqGhFUXGoa5nAjIK9DXKNKSagPqBf9Kyos6zsldTqJe5dE4NDgMK2iroc0ovxPHsax+Mt1eF2nb0Sh6Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
+ bh=K4AHxdFwVCiIl/S3EO0OHNszKx0oqvAAbIR7S3BPlrA=;
+ b=kmCMa1sG2wij65uJJ5kn0K5H9WNrrJSYyv+s5njA84dbMbmDy1sXW7U/o15/qxn1VTrHdX27B3X8CqbfcqbyssgZdOMXEK8CzTCqGECG5faiPYhii6Vo93U/PYOTkbmdWwxyjNoJNRrBvIbBl0xOn0dlFEwl7e7AfzbVSSepKX+BXW9BXnl63cmpJTiiwTp7kceTD08+Lq2EUyaL6SjldN9bah5JgufalysPiTegCBSF0s+zwi4MARbBqpOPtRUkAgb2/Hg6qwX44ByjN5Zdxcq+/ipzM/M8ct8USmikAsRt9nzHIW97va/q6M3tXMVpJU9ZxmBTkoblpUCVe/WvHQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=arm.com; dmarc=pass action=none header.from=arm.com; dkim=pass
+ header.d=arm.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=armh.onmicrosoft.com;
+ s=selector2-armh-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=K4AHxdFwVCiIl/S3EO0OHNszKx0oqvAAbIR7S3BPlrA=;
+ b=rYJNqezM6VnwmunvWWn6+mio21jyTkWgo4Mr8JjMeZRObK1fS1Kp+Z0gyO/d3g4xQi1/vQPo2oor7Xo6QIrtJIUq9/SWYx5oims2rDFhFx1VKiZm6wTtgKDcc+eqxaGSBihvMiDNlIslBSpppzaA25Y0Y6JhVgW1N9BMp6waT1s=
+Received: from AM6PR08MB4376.eurprd08.prod.outlook.com (2603:10a6:20b:bb::21)
+ by AM7PR08MB5479.eurprd08.prod.outlook.com (2603:10a6:20b:104::12) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4523.14; Wed, 15 Sep
+ 2021 06:50:51 +0000
+Received: from AM6PR08MB4376.eurprd08.prod.outlook.com
+ ([fe80::a443:3fd9:42c2:4b85]) by AM6PR08MB4376.eurprd08.prod.outlook.com
+ ([fe80::a443:3fd9:42c2:4b85%5]) with mapi id 15.20.4523.014; Wed, 15 Sep 2021
+ 06:50:51 +0000
+From: Justin He <Justin.He@arm.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang
+	<dave.jiang@intel.com>, David Hildenbrand <david@redhat.com>, Linux NVDIMM
+	<nvdimm@lists.linux.dev>, Linux Kernel Mailing List
+	<linux-kernel@vger.kernel.org>, nd <nd@arm.com>
+Subject: RE: [PATCH v2] device-dax: use fallback nid when numa node is invalid
+Thread-Topic: [PATCH v2] device-dax: use fallback nid when numa node is
+ invalid
+Thread-Index: AQHXpkHq3fUGFTWAeU2HoMoTrTsySKudaF6AgAViSaCAAcpYAIAAGV8A
+Date: Wed, 15 Sep 2021 06:50:51 +0000
+Message-ID:
+ <AM6PR08MB4376877792291C237AE1AE30F7DB9@AM6PR08MB4376.eurprd08.prod.outlook.com>
+References: <20210910124628.6261-1-justin.he@arm.com>
+ <CAPcyv4ie_ZzEwrrKJEVrDP19UWAgSiW3GU9f99EqX0e6BPQDPA@mail.gmail.com>
+ <AM6PR08MB4376FC35158104629C603197F7DA9@AM6PR08MB4376.eurprd08.prod.outlook.com>
+ <CAPcyv4gyCHTcXUSLcsgnX8o0JUfpSNf8B=7zbfcZcvWFCUSCvw@mail.gmail.com>
+In-Reply-To:
+ <CAPcyv4gyCHTcXUSLcsgnX8o0JUfpSNf8B=7zbfcZcvWFCUSCvw@mail.gmail.com>
+Accept-Language: en-US, zh-CN
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-ts-tracking-id: 4C874212AE244643B4FE877BE305DD17.0
+x-checkrecipientchecked: true
+Authentication-Results-Original: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=arm.com;
+x-ms-publictraffictype: Email
+X-MS-Office365-Filtering-Correlation-Id: 661809b3-a828-43fc-401b-08d9781531cc
+x-ms-traffictypediagnostic: AM7PR08MB5479:|AM6PR08MB4343:
+X-Microsoft-Antispam-PRVS:
+	<AM6PR08MB434378F637E8B7B8CE23ACFAF7DB9@AM6PR08MB4343.eurprd08.prod.outlook.com>
+x-checkrecipientrouted: true
+nodisclaimer: true
+x-ms-oob-tlc-oobclassifiers: OLM:7691;OLM:7691;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam-Untrusted: BCL:0;
+X-Microsoft-Antispam-Message-Info-Original:
+ e4k1GcqgqTwIun2fkydamKhBpxR/goEwka46LmxTZR28+T05kTSMirQOQboC5U4HSpl4mQuSgzHjRyiSQcTTyfn8mUZMX7s+lX4gtddxSWdiylCeXaIoUZC6ovoFU3HX0DHomskuTYGz/tp18m0vr4nzBsADp9iSOwO6OfyEYC9vet+6DFMPqTo5W0YbFBye68mVdAeKl9R/vDnn6iv3LyyL9AulAajpKeqTXTedJoSnCOjKROOU9XlM/IH9RFoDPzVU2qJjZ9LBorhLnhaeDN9AXDseP11gtmhOxBcpXHmtUeeZs/lDXH+Z6D9OYDJWTYVivdojv3Z8D3+uHmm7tPz3weZTGCLR8A4Hb3nI/z096ZNSYAeJp0dubdFTT0GqWGSzHtlYUEKFNPOOQNKd/2Psj4B5TznX2Ir1ykUcVmqU6gjjcZ01HYB98VYfxudJ9u8KTeCnWU0dFLcFRxk6bR95Vhz5Kz6WsEy6UEPH+UA+gT87Jwbq3MWeUP7oDph8fnrXPL+df1VZyzXYO54GCCP1UbNSDwlbnQ8kucOJ9bjEwc4R2UPSmz1CevOGYurxkBOlJZjGvEXBfy43XHwM4qcQ4nbuAo2C+tFvDNLzgPFEm5Ss6is4IqxkT0CQy/42VfGJpYKvRsJYQO/mfp3QpHcZHxwpZm2JGzKYJkEohKEsLIpEo0H55BOhag0mLXACsERpnsCNi5e9AFOODK9nyg==
+X-Forefront-Antispam-Report-Untrusted:
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR08MB4376.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(136003)(346002)(366004)(39860400002)(376002)(396003)(8676002)(38100700002)(7696005)(478600001)(55016002)(33656002)(9686003)(6506007)(71200400001)(38070700005)(6916009)(54906003)(316002)(122000001)(53546011)(86362001)(83380400001)(8936002)(64756008)(4326008)(66556008)(76116006)(66946007)(26005)(186003)(5660300002)(66476007)(52536014)(66446008)(2906002);DIR:OUT;SFP:1101;
+x-ms-exchange-transport-forked: True
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210910124628.6261-1-justin.he@arm.com> <CAPcyv4ie_ZzEwrrKJEVrDP19UWAgSiW3GU9f99EqX0e6BPQDPA@mail.gmail.com>
- <AM6PR08MB4376FC35158104629C603197F7DA9@AM6PR08MB4376.eurprd08.prod.outlook.com>
-In-Reply-To: <AM6PR08MB4376FC35158104629C603197F7DA9@AM6PR08MB4376.eurprd08.prod.outlook.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 14 Sep 2021 22:15:54 -0700
-Message-ID: <CAPcyv4gyCHTcXUSLcsgnX8o0JUfpSNf8B=7zbfcZcvWFCUSCvw@mail.gmail.com>
-Subject: Re: [PATCH v2] device-dax: use fallback nid when numa node is invalid
-To: Justin He <Justin.He@arm.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	David Hildenbrand <david@redhat.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nd <nd@arm.com>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7PR08MB5479
+Original-Authentication-Results: intel.com; dkim=none (message not signed)
+ header.d=none;intel.com; dmarc=none action=none header.from=arm.com;
+X-EOPAttributedMessage: 0
+X-MS-Exchange-Transport-CrossTenantHeadersStripped:
+ AM5EUR03FT011.eop-EUR03.prod.protection.outlook.com
+X-MS-Office365-Filtering-Correlation-Id-Prvs:
+	d4639ef9-ce92-435f-adc7-08d978152834
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info:
+	Un5KvDEG2IStDnYCMnk1X16l0qWCf3YfVWtQUEDeg3ywpVfj8fWTtrXS4Xhd8xPxq0lxqZUevckkyO5oOz5e8liwlKtciiQNPBu7qLdTbCZRpZ1ZE2Xsj9AATzrZ3f6deY5bk9QkT4LmxB5Rm1By5H9qfdNIF6zRM/IvBwTCynOtCPXb/gYNmAxH6s7WHUTImq/UMO+V3Jho64JR+HsX5sClpnPwOsgqEDwHmHTPZ7uUc971R3MWjX6XuAHs/oErYIvYKHU3nW0ALLevWBqGc8rwo4ji6dYlViWlb1P6xwY9yVPfNWQbojmUhyR2dlpwRbtnriZxcI64FgLGDtbhit1AB2FMs2sLlC2PrT+F8Xl2x6tB+UeZRVNgfMhD68MmmHY9lsSGE9Lc5Nsg4Zi8zE+UM2Sgj1Pkd1/pORPco+veBnb/NHU30CZ77s8s2ffd09diXXbt14Uukwf3easb1YdlHpbVGOF4hXu0jX5arrD0wyDue4c7h/I/DrDKXpDZj9Ux4ewbNrc+a6OixDeAHsrB/E55h+RXgpkyRU3Ktoxf+ZVBDmbjxFN1pTnPZvc1AjnWa11JuKXhzRZjMdbOhHE+NrxvNjp98DF1mTLkxEtBbjVOolRQqvQubnqyNIb76aAhBbFgO1I/5uoG2DX8KZchbWQ0J05sC+xfM6ctFPEUDM7aLaM6JKOuzQzNZiJHs2s2p15icvU2NU0pAVnpOA==
+X-Forefront-Antispam-Report:
+	CIP:63.35.35.123;CTRY:IE;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:64aa7808-outbound-1.mta.getcheckrecipient.com;PTR:ec2-63-35-35-123.eu-west-1.compute.amazonaws.com;CAT:NONE;SFS:(4636009)(396003)(346002)(136003)(376002)(39860400002)(36840700001)(46966006)(356005)(33656002)(83380400001)(26005)(336012)(4326008)(8676002)(86362001)(81166007)(478600001)(2906002)(70586007)(55016002)(316002)(6506007)(53546011)(8936002)(82310400003)(47076005)(186003)(52536014)(70206006)(82740400003)(7696005)(54906003)(36860700001)(9686003)(6862004)(5660300002);DIR:OUT;SFP:1101;
+X-OriginatorOrg: arm.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Sep 2021 06:51:07.4061
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 661809b3-a828-43fc-401b-08d9781531cc
+X-MS-Exchange-CrossTenant-Id: f34e5979-57d9-4aaa-ad4d-b122a662184d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=f34e5979-57d9-4aaa-ad4d-b122a662184d;Ip=[63.35.35.123];Helo=[64aa7808-outbound-1.mta.getcheckrecipient.com]
+X-MS-Exchange-CrossTenant-AuthSource:
+	AM5EUR03FT011.eop-EUR03.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR08MB4343
 
-On Mon, Sep 13, 2021 at 7:06 PM Justin He <Justin.He@arm.com> wrote:
->
-> Hi Dan,
->
-> > -----Original Message-----
-> > From: Dan Williams <dan.j.williams@intel.com>
-> > Sent: Friday, September 10, 2021 11:42 PM
-> > To: Justin He <Justin.He@arm.com>
-> > Cc: Vishal Verma <vishal.l.verma@intel.com>; Dave Jiang
-> > <dave.jiang@intel.com>; David Hildenbrand <david@redhat.com>; Linux NVDIMM
-> > <nvdimm@lists.linux.dev>; Linux Kernel Mailing List <linux-
-> > kernel@vger.kernel.org>
-> > Subject: Re: [PATCH v2] device-dax: use fallback nid when numa node is
-> > invalid
-> >
-> > On Fri, Sep 10, 2021 at 5:46 AM Jia He <justin.he@arm.com> wrote:
-> > >
-> > > Previously, numa_off was set unconditionally in dummy_numa_init()
-> > > even with a fake numa node. Then ACPI sets node id as NUMA_NO_NODE(-1)
-> > > after acpi_map_pxm_to_node() because it regards numa_off as turning
-> > > off the numa node. Hence dev_dax->target_node is NUMA_NO_NODE on
-> > > arm64 with fake numa case.
-> > >
-> > > Without this patch, pmem can't be probed as RAM devices on arm64 if
-> > > SRAT table isn't present:
-> > >   $ndctl create-namespace -fe namespace0.0 --mode=devdax --map=dev -s 1g
-> > -a 64K
-> > >   kmem dax0.0: rejecting DAX region [mem 0x240400000-0x2bfffffff] with
-> > invalid node: -1
-> > >   kmem: probe of dax0.0 failed with error -22
-> > >
-> > > This fixes it by using fallback memory_add_physaddr_to_nid() as nid.
-> > >
-> > > Suggested-by: David Hildenbrand <david@redhat.com>
-> > > Signed-off-by: Jia He <justin.he@arm.com>
-> > > ---
-> > > v2: - rebase it based on David's "memory group" patch.
-> > >     - drop the changes in dev_dax_kmem_remove() since nid had been
-> > >       removed in remove_memory().
-> > >  drivers/dax/kmem.c | 31 +++++++++++++++++--------------
-> > >  1 file changed, 17 insertions(+), 14 deletions(-)
-> > >
-> > > diff --git a/drivers/dax/kmem.c b/drivers/dax/kmem.c
-> > > index a37622060fff..e4836eb7539e 100644
-> > > --- a/drivers/dax/kmem.c
-> > > +++ b/drivers/dax/kmem.c
-> > > @@ -47,20 +47,7 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
-> > >         unsigned long total_len = 0;
-> > >         struct dax_kmem_data *data;
-> > >         int i, rc, mapped = 0;
-> > > -       int numa_node;
-> > > -
-> > > -       /*
-> > > -        * Ensure good NUMA information for the persistent memory.
-> > > -        * Without this check, there is a risk that slow memory
-> > > -        * could be mixed in a node with faster memory, causing
-> > > -        * unavoidable performance issues.
-> > > -        */
-> > > -       numa_node = dev_dax->target_node;
-> > > -       if (numa_node < 0) {
-> > > -               dev_warn(dev, "rejecting DAX region with invalid
-> > node: %d\n",
-> > > -                               numa_node);
-> > > -               return -EINVAL;
-> > > -       }
-> > > +       int numa_node = dev_dax->target_node;
-> > >
-> > >         for (i = 0; i < dev_dax->nr_range; i++) {
-> > >                 struct range range;
-> > > @@ -71,6 +58,22 @@ static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
-> > >                                         i, range.start, range.end);
-> > >                         continue;
-> > >                 }
-> > > +
-> > > +               /*
-> > > +                * Ensure good NUMA information for the persistent
-> > memory.
-> > > +                * Without this check, there is a risk but not fatal
-> > that slow
-> > > +                * memory could be mixed in a node with faster memory,
-> > causing
-> > > +                * unavoidable performance issues. Warn this and use
-> > fallback
-> > > +                * node id.
-> > > +                */
-> > > +               if (numa_node < 0) {
-> > > +                       int new_node =
-> > memory_add_physaddr_to_nid(range.start);
-> > > +
-> > > +                       dev_info(dev, "changing nid from %d to %d for
-> > DAX region [%#llx-%#llx]\n",
-> > > +                                numa_node, new_node, range.start,
-> > range.end);
-> > > +                       numa_node = new_node;
-> > > +               }
-> > > +
-> > >                 total_len += range_len(&range);
-> >
-> > This fallback change belongs where the parent region for the namespace
-> > adopts its target_node, because it's not clear
-> > memory_add_physaddr_to_nid() is the right fallback in all situations.
-> > Here is where this setting is happening currently:
-> >
-> > drivers/acpi/nfit/core.c:3004:          ndr_desc->target_node =
-> > pxm_to_node(spa->proximity_domain);
-> On my local arm64 guest('virt' machine type), the target_node is
-> set to -1 at this line.
-> That is:
-> The condition "spa->flags & ACPI_NFIT_PROXIMITY_VALID" is hit.
->
-> > drivers/acpi/nfit/core.c:3007:          ndr_desc->target_node =
-> > NUMA_NO_NODE;
-> > drivers/nvdimm/e820.c:29:       ndr_desc.target_node = nid;
-> > drivers/nvdimm/of_pmem.c:58:            ndr_desc.target_node =
-> > ndr_desc.numa_node;
-> > drivers/nvdimm/region_devs.c:1127:      nd_region->target_node =
-> > ndr_desc->target_node;
->
->
-> Sorry,Dan. I thought I missed your previous mail:
->
-> =========================================
-> Looks like it is the NFIT driver, thanks.
->
-> If you're getting NUMA_NO_NODE in dax_kmem from the NFIT driver in
-> means your ACPI NFIT table is failing to populate correct numa
-> information. You could try the following to fix it up, but I think the
-> real problem is that your platform BIOS needs to add the proper numa
-> data.
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index fb775b967c52..d3a0cec635b1 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -3005,15 +3005,8 @@ static int acpi_nfit_register_region(struct
-> acpi_nfit_desc *acpi_desc,
->         ndr_desc->res = &res;
->         ndr_desc->provider_data = nfit_spa;
->         ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
-> -       if (spa->flags & ACPI_NFIT_PROXIMITY_VALID) {
-> -               ndr_desc->numa_node = acpi_map_pxm_to_online_node(
-> -                                               spa->proximity_domain);
-> -               ndr_desc->target_node = acpi_map_pxm_to_node(
-> -                               spa->proximity_domain);
-> -       } else {
-> -               ndr_desc->numa_node = NUMA_NO_NODE;
-> -               ndr_desc->target_node = NUMA_NO_NODE;
-> -       }
-> +       ndr_desc->numa_node = memory_add_physaddr_to_nid(spa->address);
-> +       ndr_desc->target_node = phys_to_target_node(spa->address);
->
->         /*
->          * Persistence domain bits are hierarchical, if
-> ===================================================
->
-> Do you still suggest fixing like this?
-
-Are you saying that ACPI_NFIT_PROXIMITY_VALID is not set on your
-platform, or that pxm_to_node() returns NUMA_NO_NODE?
-
-I would expect something like this:
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a3ef6cce644c..95de7dc18ed8 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3007,6 +3007,15 @@ static int acpi_nfit_register_region(struct
-acpi_nfit_desc *acpi_desc,
-                ndr_desc->target_node = NUMA_NO_NODE;
-        }
-
-+       /*
-+        * Fallback to address based numa information if node lookup
-+        * failed
-+        */
-+       if (ndr_desc->numa_node == NUMA_NO_NODE)
-+               ndr_desc->numa_node = memory_add_physaddr_to_nid(spa->address);
-+       if (ndr_desc->target_node == NUMA_NO_NODE)
-+               phys_to_target_node(spa->address);
-+
-        /*
-         * Persistence domain bits are hierarchical, if
-         * ACPI_NFIT_CAPABILITY_CACHE_FLUSH is set then
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogRGFuIFdpbGxpYW1zIDxk
+YW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+IFNlbnQ6IFdlZG5lc2RheSwgU2VwdGVtYmVyIDE1
+LCAyMDIxIDE6MTYgUE0NCj4gVG86IEp1c3RpbiBIZSA8SnVzdGluLkhlQGFybS5jb20+DQo+IENj
+OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT47IERhdmUgSmlhbmcNCj4g
+PGRhdmUuamlhbmdAaW50ZWwuY29tPjsgRGF2aWQgSGlsZGVuYnJhbmQgPGRhdmlkQHJlZGhhdC5j
+b20+OyBMaW51eCBOVkRJTU0NCj4gPG52ZGltbUBsaXN0cy5saW51eC5kZXY+OyBMaW51eCBLZXJu
+ZWwgTWFpbGluZyBMaXN0IDxsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZz47IG5kIDxu
+ZEBhcm0uY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBkZXZpY2UtZGF4OiB1c2UgZmFs
+bGJhY2sgbmlkIHdoZW4gbnVtYSBub2RlIGlzDQo+IGludmFsaWQNCj4gDQo+IE9uIE1vbiwgU2Vw
+IDEzLCAyMDIxIGF0IDc6MDYgUE0gSnVzdGluIEhlIDxKdXN0aW4uSGVAYXJtLmNvbT4gd3JvdGU6
+DQo+ID4NCj4gPiBIaSBEYW4sDQo+ID4NCj4gPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
+DQo+ID4gPiBGcm9tOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4g
+PiA+IFNlbnQ6IEZyaWRheSwgU2VwdGVtYmVyIDEwLCAyMDIxIDExOjQyIFBNDQo+ID4gPiBUbzog
+SnVzdGluIEhlIDxKdXN0aW4uSGVAYXJtLmNvbT4NCj4gPiA+IENjOiBWaXNoYWwgVmVybWEgPHZp
+c2hhbC5sLnZlcm1hQGludGVsLmNvbT47IERhdmUgSmlhbmcNCj4gPiA+IDxkYXZlLmppYW5nQGlu
+dGVsLmNvbT47IERhdmlkIEhpbGRlbmJyYW5kIDxkYXZpZEByZWRoYXQuY29tPjsgTGludXgNCj4g
+TlZESU1NDQo+ID4gPiA8bnZkaW1tQGxpc3RzLmxpbnV4LmRldj47IExpbnV4IEtlcm5lbCBNYWls
+aW5nIExpc3QgPGxpbnV4LQ0KPiA+ID4ga2VybmVsQHZnZXIua2VybmVsLm9yZz4NCj4gPiA+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggdjJdIGRldmljZS1kYXg6IHVzZSBmYWxsYmFjayBuaWQgd2hlbiBu
+dW1hIG5vZGUgaXMNCj4gPiA+IGludmFsaWQNCj4gPiA+DQo+ID4gPiBPbiBGcmksIFNlcCAxMCwg
+MjAyMSBhdCA1OjQ2IEFNIEppYSBIZSA8anVzdGluLmhlQGFybS5jb20+IHdyb3RlOg0KPiA+ID4g
+Pg0KPiA+ID4gPiBQcmV2aW91c2x5LCBudW1hX29mZiB3YXMgc2V0IHVuY29uZGl0aW9uYWxseSBp
+biBkdW1teV9udW1hX2luaXQoKQ0KPiA+ID4gPiBldmVuIHdpdGggYSBmYWtlIG51bWEgbm9kZS4g
+VGhlbiBBQ1BJIHNldHMgbm9kZSBpZCBhcyBOVU1BX05PX05PREUoLTEpDQo+ID4gPiA+IGFmdGVy
+IGFjcGlfbWFwX3B4bV90b19ub2RlKCkgYmVjYXVzZSBpdCByZWdhcmRzIG51bWFfb2ZmIGFzIHR1
+cm5pbmcNCj4gPiA+ID4gb2ZmIHRoZSBudW1hIG5vZGUuIEhlbmNlIGRldl9kYXgtPnRhcmdldF9u
+b2RlIGlzIE5VTUFfTk9fTk9ERSBvbg0KPiA+ID4gPiBhcm02NCB3aXRoIGZha2UgbnVtYSBjYXNl
+Lg0KPiA+ID4gPg0KPiA+ID4gPiBXaXRob3V0IHRoaXMgcGF0Y2gsIHBtZW0gY2FuJ3QgYmUgcHJv
+YmVkIGFzIFJBTSBkZXZpY2VzIG9uIGFybTY0IGlmDQo+ID4gPiA+IFNSQVQgdGFibGUgaXNuJ3Qg
+cHJlc2VudDoNCj4gPiA+ID4gICAkbmRjdGwgY3JlYXRlLW5hbWVzcGFjZSAtZmUgbmFtZXNwYWNl
+MC4wIC0tbW9kZT1kZXZkYXggLS1tYXA9ZGV2IC1zDQo+IDFnDQo+ID4gPiAtYSA2NEsNCj4gPiA+
+ID4gICBrbWVtIGRheDAuMDogcmVqZWN0aW5nIERBWCByZWdpb24gW21lbSAweDI0MDQwMDAwMC0w
+eDJiZmZmZmZmZl0NCj4gd2l0aA0KPiA+ID4gaW52YWxpZCBub2RlOiAtMQ0KPiA+ID4gPiAgIGtt
+ZW06IHByb2JlIG9mIGRheDAuMCBmYWlsZWQgd2l0aCBlcnJvciAtMjINCj4gPiA+ID4NCj4gPiA+
+ID4gVGhpcyBmaXhlcyBpdCBieSB1c2luZyBmYWxsYmFjayBtZW1vcnlfYWRkX3BoeXNhZGRyX3Rv
+X25pZCgpIGFzIG5pZC4NCj4gPiA+ID4NCj4gPiA+ID4gU3VnZ2VzdGVkLWJ5OiBEYXZpZCBIaWxk
+ZW5icmFuZCA8ZGF2aWRAcmVkaGF0LmNvbT4NCj4gPiA+ID4gU2lnbmVkLW9mZi1ieTogSmlhIEhl
+IDxqdXN0aW4uaGVAYXJtLmNvbT4NCj4gPiA+ID4gLS0tDQo+ID4gPiA+IHYyOiAtIHJlYmFzZSBp
+dCBiYXNlZCBvbiBEYXZpZCdzICJtZW1vcnkgZ3JvdXAiIHBhdGNoLg0KPiA+ID4gPiAgICAgLSBk
+cm9wIHRoZSBjaGFuZ2VzIGluIGRldl9kYXhfa21lbV9yZW1vdmUoKSBzaW5jZSBuaWQgaGFkIGJl
+ZW4NCj4gPiA+ID4gICAgICAgcmVtb3ZlZCBpbiByZW1vdmVfbWVtb3J5KCkuDQo+ID4gPiA+ICBk
+cml2ZXJzL2RheC9rbWVtLmMgfCAzMSArKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tDQo+
+ID4gPiA+ICAxIGZpbGUgY2hhbmdlZCwgMTcgaW5zZXJ0aW9ucygrKSwgMTQgZGVsZXRpb25zKC0p
+DQo+ID4gPiA+DQo+ID4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2RheC9rbWVtLmMgYi9kcml2
+ZXJzL2RheC9rbWVtLmMNCj4gPiA+ID4gaW5kZXggYTM3NjIyMDYwZmZmLi5lNDgzNmViNzUzOWUg
+MTAwNjQ0DQo+ID4gPiA+IC0tLSBhL2RyaXZlcnMvZGF4L2ttZW0uYw0KPiA+ID4gPiArKysgYi9k
+cml2ZXJzL2RheC9rbWVtLmMNCj4gPiA+ID4gQEAgLTQ3LDIwICs0Nyw3IEBAIHN0YXRpYyBpbnQg
+ZGV2X2RheF9rbWVtX3Byb2JlKHN0cnVjdCBkZXZfZGF4DQo+ICpkZXZfZGF4KQ0KPiA+ID4gPiAg
+ICAgICAgIHVuc2lnbmVkIGxvbmcgdG90YWxfbGVuID0gMDsNCj4gPiA+ID4gICAgICAgICBzdHJ1
+Y3QgZGF4X2ttZW1fZGF0YSAqZGF0YTsNCj4gPiA+ID4gICAgICAgICBpbnQgaSwgcmMsIG1hcHBl
+ZCA9IDA7DQo+ID4gPiA+IC0gICAgICAgaW50IG51bWFfbm9kZTsNCj4gPiA+ID4gLQ0KPiA+ID4g
+PiAtICAgICAgIC8qDQo+ID4gPiA+IC0gICAgICAgICogRW5zdXJlIGdvb2QgTlVNQSBpbmZvcm1h
+dGlvbiBmb3IgdGhlIHBlcnNpc3RlbnQgbWVtb3J5Lg0KPiA+ID4gPiAtICAgICAgICAqIFdpdGhv
+dXQgdGhpcyBjaGVjaywgdGhlcmUgaXMgYSByaXNrIHRoYXQgc2xvdyBtZW1vcnkNCj4gPiA+ID4g
+LSAgICAgICAgKiBjb3VsZCBiZSBtaXhlZCBpbiBhIG5vZGUgd2l0aCBmYXN0ZXIgbWVtb3J5LCBj
+YXVzaW5nDQo+ID4gPiA+IC0gICAgICAgICogdW5hdm9pZGFibGUgcGVyZm9ybWFuY2UgaXNzdWVz
+Lg0KPiA+ID4gPiAtICAgICAgICAqLw0KPiA+ID4gPiAtICAgICAgIG51bWFfbm9kZSA9IGRldl9k
+YXgtPnRhcmdldF9ub2RlOw0KPiA+ID4gPiAtICAgICAgIGlmIChudW1hX25vZGUgPCAwKSB7DQo+
+ID4gPiA+IC0gICAgICAgICAgICAgICBkZXZfd2FybihkZXYsICJyZWplY3RpbmcgREFYIHJlZ2lv
+biB3aXRoIGludmFsaWQNCj4gPiA+IG5vZGU6ICVkXG4iLA0KPiA+ID4gPiAtICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIG51bWFfbm9kZSk7DQo+ID4gPiA+IC0gICAgICAgICAgICAgICBy
+ZXR1cm4gLUVJTlZBTDsNCj4gPiA+ID4gLSAgICAgICB9DQo+ID4gPiA+ICsgICAgICAgaW50IG51
+bWFfbm9kZSA9IGRldl9kYXgtPnRhcmdldF9ub2RlOw0KPiA+ID4gPg0KPiA+ID4gPiAgICAgICAg
+IGZvciAoaSA9IDA7IGkgPCBkZXZfZGF4LT5ucl9yYW5nZTsgaSsrKSB7DQo+ID4gPiA+ICAgICAg
+ICAgICAgICAgICBzdHJ1Y3QgcmFuZ2UgcmFuZ2U7DQo+ID4gPiA+IEBAIC03MSw2ICs1OCwyMiBA
+QCBzdGF0aWMgaW50IGRldl9kYXhfa21lbV9wcm9iZShzdHJ1Y3QgZGV2X2RheA0KPiAqZGV2X2Rh
+eCkNCj4gPiA+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGksIHJh
+bmdlLnN0YXJ0LCByYW5nZS5lbmQpOw0KPiA+ID4gPiAgICAgICAgICAgICAgICAgICAgICAgICBj
+b250aW51ZTsNCj4gPiA+ID4gICAgICAgICAgICAgICAgIH0NCj4gPiA+ID4gKw0KPiA+ID4gPiAr
+ICAgICAgICAgICAgICAgLyoNCj4gPiA+ID4gKyAgICAgICAgICAgICAgICAqIEVuc3VyZSBnb29k
+IE5VTUEgaW5mb3JtYXRpb24gZm9yIHRoZSBwZXJzaXN0ZW50DQo+ID4gPiBtZW1vcnkuDQo+ID4g
+PiA+ICsgICAgICAgICAgICAgICAgKiBXaXRob3V0IHRoaXMgY2hlY2ssIHRoZXJlIGlzIGEgcmlz
+ayBidXQgbm90IGZhdGFsDQo+ID4gPiB0aGF0IHNsb3cNCj4gPiA+ID4gKyAgICAgICAgICAgICAg
+ICAqIG1lbW9yeSBjb3VsZCBiZSBtaXhlZCBpbiBhIG5vZGUgd2l0aCBmYXN0ZXIgbWVtb3J5LA0K
+PiA+ID4gY2F1c2luZw0KPiA+ID4gPiArICAgICAgICAgICAgICAgICogdW5hdm9pZGFibGUgcGVy
+Zm9ybWFuY2UgaXNzdWVzLiBXYXJuIHRoaXMgYW5kIHVzZQ0KPiA+ID4gZmFsbGJhY2sNCj4gPiA+
+ID4gKyAgICAgICAgICAgICAgICAqIG5vZGUgaWQuDQo+ID4gPiA+ICsgICAgICAgICAgICAgICAg
+Ki8NCj4gPiA+ID4gKyAgICAgICAgICAgICAgIGlmIChudW1hX25vZGUgPCAwKSB7DQo+ID4gPiA+
+ICsgICAgICAgICAgICAgICAgICAgICAgIGludCBuZXdfbm9kZSA9DQo+ID4gPiBtZW1vcnlfYWRk
+X3BoeXNhZGRyX3RvX25pZChyYW5nZS5zdGFydCk7DQo+ID4gPiA+ICsNCj4gPiA+ID4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgZGV2X2luZm8oZGV2LCAiY2hhbmdpbmcgbmlkIGZyb20gJWQgdG8g
+JWQgZm9yDQo+ID4gPiBEQVggcmVnaW9uIFslI2xseC0lI2xseF1cbiIsDQo+ID4gPiA+ICsgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIG51bWFfbm9kZSwgbmV3X25vZGUsIHJhbmdlLnN0
+YXJ0LA0KPiA+ID4gcmFuZ2UuZW5kKTsNCj4gPiA+ID4gKyAgICAgICAgICAgICAgICAgICAgICAg
+bnVtYV9ub2RlID0gbmV3X25vZGU7DQo+ID4gPiA+ICsgICAgICAgICAgICAgICB9DQo+ID4gPiA+
+ICsNCj4gPiA+ID4gICAgICAgICAgICAgICAgIHRvdGFsX2xlbiArPSByYW5nZV9sZW4oJnJhbmdl
+KTsNCj4gPiA+DQo+ID4gPiBUaGlzIGZhbGxiYWNrIGNoYW5nZSBiZWxvbmdzIHdoZXJlIHRoZSBw
+YXJlbnQgcmVnaW9uIGZvciB0aGUgbmFtZXNwYWNlDQo+ID4gPiBhZG9wdHMgaXRzIHRhcmdldF9u
+b2RlLCBiZWNhdXNlIGl0J3Mgbm90IGNsZWFyDQo+ID4gPiBtZW1vcnlfYWRkX3BoeXNhZGRyX3Rv
+X25pZCgpIGlzIHRoZSByaWdodCBmYWxsYmFjayBpbiBhbGwgc2l0dWF0aW9ucy4NCj4gPiA+IEhl
+cmUgaXMgd2hlcmUgdGhpcyBzZXR0aW5nIGlzIGhhcHBlbmluZyBjdXJyZW50bHk6DQo+ID4gPg0K
+PiA+ID4gZHJpdmVycy9hY3BpL25maXQvY29yZS5jOjMwMDQ6ICAgICAgICAgIG5kcl9kZXNjLT50
+YXJnZXRfbm9kZSA9DQo+ID4gPiBweG1fdG9fbm9kZShzcGEtPnByb3hpbWl0eV9kb21haW4pOw0K
+PiA+IE9uIG15IGxvY2FsIGFybTY0IGd1ZXN0KCd2aXJ0JyBtYWNoaW5lIHR5cGUpLCB0aGUgdGFy
+Z2V0X25vZGUgaXMNCj4gPiBzZXQgdG8gLTEgYXQgdGhpcyBsaW5lLg0KPiA+IFRoYXQgaXM6DQo+
+ID4gVGhlIGNvbmRpdGlvbiAic3BhLT5mbGFncyAmIEFDUElfTkZJVF9QUk9YSU1JVFlfVkFMSUQi
+IGlzIGhpdC4NCj4gPg0KPiA+ID4gZHJpdmVycy9hY3BpL25maXQvY29yZS5jOjMwMDc6ICAgICAg
+ICAgIG5kcl9kZXNjLT50YXJnZXRfbm9kZSA9DQo+ID4gPiBOVU1BX05PX05PREU7DQo+ID4gPiBk
+cml2ZXJzL252ZGltbS9lODIwLmM6Mjk6ICAgICAgIG5kcl9kZXNjLnRhcmdldF9ub2RlID0gbmlk
+Ow0KPiA+ID4gZHJpdmVycy9udmRpbW0vb2ZfcG1lbS5jOjU4OiAgICAgICAgICAgIG5kcl9kZXNj
+LnRhcmdldF9ub2RlID0NCj4gPiA+IG5kcl9kZXNjLm51bWFfbm9kZTsNCj4gPiA+IGRyaXZlcnMv
+bnZkaW1tL3JlZ2lvbl9kZXZzLmM6MTEyNzogICAgICBuZF9yZWdpb24tPnRhcmdldF9ub2RlID0N
+Cj4gPiA+IG5kcl9kZXNjLT50YXJnZXRfbm9kZTsNCj4gPg0KPiA+DQo+ID4gU29ycnksRGFuLiBJ
+IHRob3VnaHQgSSBtaXNzZWQgeW91ciBwcmV2aW91cyBtYWlsOg0KPiA+DQo+ID4gPT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPiBMb29rcyBsaWtlIGl0IGlzIHRo
+ZSBORklUIGRyaXZlciwgdGhhbmtzLg0KPiA+DQo+ID4gSWYgeW91J3JlIGdldHRpbmcgTlVNQV9O
+T19OT0RFIGluIGRheF9rbWVtIGZyb20gdGhlIE5GSVQgZHJpdmVyIGluDQo+ID4gbWVhbnMgeW91
+ciBBQ1BJIE5GSVQgdGFibGUgaXMgZmFpbGluZyB0byBwb3B1bGF0ZSBjb3JyZWN0IG51bWENCj4g
+PiBpbmZvcm1hdGlvbi4gWW91IGNvdWxkIHRyeSB0aGUgZm9sbG93aW5nIHRvIGZpeCBpdCB1cCwg
+YnV0IEkgdGhpbmsgdGhlDQo+ID4gcmVhbCBwcm9ibGVtIGlzIHRoYXQgeW91ciBwbGF0Zm9ybSBC
+SU9TIG5lZWRzIHRvIGFkZCB0aGUgcHJvcGVyIG51bWENCj4gPiBkYXRhLg0KPiA+DQo+ID4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyBiL2RyaXZlcnMvYWNwaS9uZml0L2Nv
+cmUuYw0KPiA+IGluZGV4IGZiNzc1Yjk2N2M1Mi4uZDNhMGNlYzYzNWIxIDEwMDY0NA0KPiA+IC0t
+LSBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9uZml0
+L2NvcmUuYw0KPiA+IEBAIC0zMDA1LDE1ICszMDA1LDggQEAgc3RhdGljIGludCBhY3BpX25maXRf
+cmVnaXN0ZXJfcmVnaW9uKHN0cnVjdA0KPiA+IGFjcGlfbmZpdF9kZXNjICphY3BpX2Rlc2MsDQo+
+ID4gICAgICAgICBuZHJfZGVzYy0+cmVzID0gJnJlczsNCj4gPiAgICAgICAgIG5kcl9kZXNjLT5w
+cm92aWRlcl9kYXRhID0gbmZpdF9zcGE7DQo+ID4gICAgICAgICBuZHJfZGVzYy0+YXR0cl9ncm91
+cHMgPSBhY3BpX25maXRfcmVnaW9uX2F0dHJpYnV0ZV9ncm91cHM7DQo+ID4gLSAgICAgICBpZiAo
+c3BhLT5mbGFncyAmIEFDUElfTkZJVF9QUk9YSU1JVFlfVkFMSUQpIHsNCj4gPiAtICAgICAgICAg
+ICAgICAgbmRyX2Rlc2MtPm51bWFfbm9kZSA9IGFjcGlfbWFwX3B4bV90b19vbmxpbmVfbm9kZSgN
+Cj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcGEt
+PnByb3hpbWl0eV9kb21haW4pOw0KPiA+IC0gICAgICAgICAgICAgICBuZHJfZGVzYy0+dGFyZ2V0
+X25vZGUgPSBhY3BpX21hcF9weG1fdG9fbm9kZSgNCj4gPiAtICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgIHNwYS0+cHJveGltaXR5X2RvbWFpbik7DQo+ID4gLSAgICAgICB9IGVsc2Ugew0K
+PiA+IC0gICAgICAgICAgICAgICBuZHJfZGVzYy0+bnVtYV9ub2RlID0gTlVNQV9OT19OT0RFOw0K
+PiA+IC0gICAgICAgICAgICAgICBuZHJfZGVzYy0+dGFyZ2V0X25vZGUgPSBOVU1BX05PX05PREU7
+DQo+ID4gLSAgICAgICB9DQo+ID4gKyAgICAgICBuZHJfZGVzYy0+bnVtYV9ub2RlID0gbWVtb3J5
+X2FkZF9waHlzYWRkcl90b19uaWQoc3BhLT5hZGRyZXNzKTsNCj4gPiArICAgICAgIG5kcl9kZXNj
+LT50YXJnZXRfbm9kZSA9IHBoeXNfdG9fdGFyZ2V0X25vZGUoc3BhLT5hZGRyZXNzKTsNCj4gPg0K
+PiA+ICAgICAgICAgLyoNCj4gPiAgICAgICAgICAqIFBlcnNpc3RlbmNlIGRvbWFpbiBiaXRzIGFy
+ZSBoaWVyYXJjaGljYWwsIGlmDQo+ID4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09DQo+ID4NCj4gPiBEbyB5b3Ugc3RpbGwgc3VnZ2VzdCBmaXhpbmcg
+bGlrZSB0aGlzPw0KPiANCj4gQXJlIHlvdSBzYXlpbmcgdGhhdCBBQ1BJX05GSVRfUFJPWElNSVRZ
+X1ZBTElEIGlzIG5vdCBzZXQgb24geW91cg0KPiBwbGF0Zm9ybSwgb3IgdGhhdCBweG1fdG9fbm9k
+ZSgpIHJldHVybnMgTlVNQV9OT19OT0RFPw0KPiANCkxhdHRlciwgIEFDUElfTkZJVF9QUk9YSU1J
+VFlfVkFMSUQgaXMgKnNldCogaW4gbXkgY2FzZS4NCg0KPiBJIHdvdWxkIGV4cGVjdCBzb21ldGhp
+bmcgbGlrZSB0aGlzOg0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUu
+YyBiL2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0KPiBpbmRleCBhM2VmNmNjZTY0NGMuLjk1ZGU3
+ZGMxOGVkOCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9hY3BpL25maXQvY29yZS5jDQo+ICsrKyBi
+L2RyaXZlcnMvYWNwaS9uZml0L2NvcmUuYw0KPiBAQCAtMzAwNyw2ICszMDA3LDE1IEBAIHN0YXRp
+YyBpbnQgYWNwaV9uZml0X3JlZ2lzdGVyX3JlZ2lvbihzdHJ1Y3QNCj4gYWNwaV9uZml0X2Rlc2Mg
+KmFjcGlfZGVzYywNCj4gICAgICAgICAgICAgICAgIG5kcl9kZXNjLT50YXJnZXRfbm9kZSA9IE5V
+TUFfTk9fTk9ERTsNCj4gICAgICAgICB9DQo+IA0KPiArICAgICAgIC8qDQo+ICsgICAgICAgICog
+RmFsbGJhY2sgdG8gYWRkcmVzcyBiYXNlZCBudW1hIGluZm9ybWF0aW9uIGlmIG5vZGUgbG9va3Vw
+DQo+ICsgICAgICAgICogZmFpbGVkDQo+ICsgICAgICAgICovDQo+ICsgICAgICAgaWYgKG5kcl9k
+ZXNjLT5udW1hX25vZGUgPT0gTlVNQV9OT19OT0RFKQ0KPiArICAgICAgICAgICAgICAgbmRyX2Rl
+c2MtPm51bWFfbm9kZSA9IG1lbW9yeV9hZGRfcGh5c2FkZHJfdG9fbmlkKHNwYS0NCj4gPmFkZHJl
+c3MpOw0KPiArICAgICAgIGlmIChuZHJfZGVzYy0+dGFyZ2V0X25vZGUgPT0gTlVNQV9OT19OT0RF
+KQ0KPiArICAgICAgICAgICAgICAgcGh5c190b190YXJnZXRfbm9kZShzcGEtPmFkZHJlc3MpOw0K
+PiArDQoNCldvdWxkIGl0IGJldHRlciB0byBhZGQgYSBkZXZfaW5mbygpIGhlcmUgdG8gcmVwb3J0
+IHRoaXMgbm9kZSBpZCBjaGFuZ2luZz8NCg0KLS0NCkNoZWVycywNCkp1c3RpbiAoSmlhIEhlKQ0K
+DQo=
