@@ -1,46 +1,45 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id D212B3FD8
-	for <nvdimm@lists.linux.dev>; Wed, 15 Sep 2021 10:45:55 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3A8vwYx6lERr+phk+RMGOXIUXo5gyVJ0RdPkR7XQ2?=
- =?us-ascii?q?eYbTBsI5bpzYEz2MWXWiHb/bYYTGjc4x3at++pk8EsMXQxtQ1SwA5+CA2RRqmi?=
- =?us-ascii?q?+KfW43BcR2Y0wB+jyH7ZBs+qZ1YM7EsFehsJpPnjkrrYuWJQUVUj/nSH+KtUbO?=
- =?us-ascii?q?cYUideCc/IMsfoUM68wIGqt4w6TSJK1vlVeLa+6UzCnf8s9JHGj58B5a4lf9al?=
- =?us-ascii?q?K+aVAX0EbAJTasjUFf2zxH5BX+ETE27ByOQroJ8RoZWSwtfpYxV8F81/z91Yj+?=
- =?us-ascii?q?kur39NEMXQL/OJhXIgX1TM0SgqkEa4HVsjeBgb7xBAatUo2zhc9RZ0shEs4ehD?=
- =?us-ascii?q?wkvJbHklvkfUgVDDmd1OqguFLrveCHj7JXClxCXG5fr67A0ZK0sBqUU8/h2DUl?=
- =?us-ascii?q?A7/sdLyoHbwzFjOWzqJqkS+1ol+wiKsfxNY8Ss30myivWZd4qSJaFQePV5Ntc3?=
- =?us-ascii?q?T41nehPG+rTY4wSbj8HRBjCfBpJNX8UBYg4kePugWPwGxVetl6UoK8f52nI0Bc?=
- =?us-ascii?q?31LnrLcqTdtGULe1VlUawonnauWj0ajkAO9ubxSWU9Fq3m/TC2yj8Xeo6DrK/8?=
- =?us-ascii?q?vJ1kVu73XEIBVsaWDOTpfi/l177VclTJlIZ/gIwoqUosk+mVN/wW1u/unHslho?=
- =?us-ascii?q?dXcdAVu438geAzoLK7AuDQGsJVDhMbJohrsBebTgr0EKZ2sPnHhRxv7CPD3GQ7?=
- =?us-ascii?q?LGZqXW1Iyd9BXEDfygsXwYD4selpIA1kwKJScxsVrO25uAZsxmYLyui9XB43ut?=
- =?us-ascii?q?My5VQkfjTwLwOuBr0zrChc+L/zlu/srqZ0z5E?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AKcMqVqu7Toj1qSQ3/ShclU8r7skDE9V00zEX?=
- =?us-ascii?q?/kB9WHVpm62j9/xG88536faZslwssRIb+OxoWpPufZq0z/ccirX5VY3SPzUO01?=
- =?us-ascii?q?HFEGgN1+Xf/wE=3D?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 285D73FD8
+	for <nvdimm@lists.linux.dev>; Wed, 15 Sep 2021 10:45:58 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AyVPGmaABNUyFIRVW/1Liw5YqxClBgxIJ4g17XOL?=
+ =?us-ascii?q?fAVHr1zt302AGzDYWWGCOM/eMNGT3LtkiYYyz8x4PsZGAx9UxeLYW3SszFioV8?=
+ =?us-ascii?q?6IpJjg4wn/YZnrUdouaJK5ex512huLocYZkExcwmj/3auK49SgliPnTLlbBILW?=
+ =?us-ascii?q?s1h5ZFFYMpBgJ2UoLd94R2uaEsPDha++/kYqaT/73ZDdJ7wVJ3lc8sMpvnv/AU?=
+ =?us-ascii?q?MPa41v0tnRmDRxCUcS3e3M9VPrzLonpR5f0rxU9IwK0ewrD5OnREmLx9BFrBM6?=
+ =?us-ascii?q?nk6rgbwsBRbu60Qqm0yIQAvb9xEMZ4HFaPqUTbZLwbW9NljyPhME3xtNWqbS+V?=
+ =?us-ascii?q?AUoIrbR3u8aVnG0FgknZPEboe6ffiTXXcu7iheun2HX6/lnEkA6FYMC/eNwG2t?=
+ =?us-ascii?q?P6boTLzVlRg+Cg+an6LO9RPNliskqII/sJox3kn1py3fbS+knRZTCSqDRzd5ew?=
+ =?us-ascii?q?Do0wMtJGJ72a8gGbjxgRBfNeRtCPhEQEp1WtOG2inj6dhVcqUmJvuwz4m7O3Ep?=
+ =?us-ascii?q?93aaFGNreevSOXtkTkkvwjnjJ+GD1HQAcHMeC0jfD/n/EruvOmz7rHYwJGLCm+?=
+ =?us-ascii?q?/pCnlKe3CoQBQcQWF/9puO24ma6WtRCOwkX9zAooKwa6kOmVJ/+Uge+rXrCuQQ?=
+ =?us-ascii?q?TM/JUEusn+ESdxLH8/QmUHC4HQyRHZdhgs9U5LRQ010WOt8HkAz1x9rmUT2+Ns?=
+ =?us-ascii?q?LCOonWvOkAowcUqDcMfZVJdpYC9/8do1VSSJuuP2ZWd1rXdcQwcCRjWxMTmu4g?=
+ =?us-ascii?q?usA=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A7P1xH6NJYFm/1cBcTqSjsMiBIKoaSvp037BL?=
+ =?us-ascii?q?7SBMoHNuH/Bw+/rFoB15737JYVQqN03I8OroUMK9qBvnhP1ICOIqUYtKMjOJhF?=
+ =?us-ascii?q?eV?=
 X-IronPort-AV: E=Sophos;i="5.85,295,1624291200"; 
-   d="scan'208";a="114519059"
+   d="scan'208";a="114519074"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 15 Sep 2021 18:45:51 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 90B3A4D0DC71;
-	Wed, 15 Sep 2021 18:45:47 +0800 (CST)
+  by heian.cn.fujitsu.com with ESMTP; 15 Sep 2021 18:45:58 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 28BC94D0DC78;
+	Wed, 15 Sep 2021 18:45:55 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Wed, 15 Sep 2021 18:45:47 +0800
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Wed, 15 Sep 2021 18:45:54 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Wed, 15 Sep 2021 18:45:46 +0800
+ id 15.0.1497.23 via Frontend Transport; Wed, 15 Sep 2021 18:45:53 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <djwong@kernel.org>, <hch@lst.de>, <linux-xfs@vger.kernel.org>
 CC: <ruansy.fnst@fujitsu.com>, <dan.j.williams@intel.com>,
 	<david@fromorbit.com>, <linux-fsdevel@vger.kernel.org>,
 	<linux-kernel@vger.kernel.org>, <nvdimm@lists.linux.dev>, <rgoldwyn@suse.de>,
-	<viro@zeniv.linux.org.uk>, <willy@infradead.org>, Goldwyn Rodrigues
-	<rgoldwyn@suse.com>
-Subject: [PATCH v9 6/8] fsdax: Dedup file range to use a compare function
-Date: Wed, 15 Sep 2021 18:44:59 +0800
-Message-ID: <20210915104501.4146910-7-ruansy.fnst@fujitsu.com>
+	<viro@zeniv.linux.org.uk>, <willy@infradead.org>
+Subject: [PATCH v9 8/8] xfs: Add dax dedupe support
+Date: Wed, 15 Sep 2021 18:45:01 +0800
+Message-ID: <20210915104501.4146910-9-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.33.0
 In-Reply-To: <20210915104501.4146910-1-ruansy.fnst@fujitsu.com>
 References: <20210915104501.4146910-1-ruansy.fnst@fujitsu.com>
@@ -52,245 +51,170 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: 90B3A4D0DC71.A13F7
+X-yoursite-MailScanner-ID: 28BC94D0DC78.A0C25
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-With dax we cannot deal with readpage() etc. So, we create a dax
-comparison function which is similar with
-vfs_dedupe_file_range_compare().
-And introduce dax_remap_file_range_prep() for filesystem use.
+Introduce xfs_mmaplock_two_inodes_and_break_dax_layout() for dax files
+who are going to be deduped.  After that, call compare range function
+only when files are both DAX or not.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/dax.c             | 79 ++++++++++++++++++++++++++++++++++++++++++++
- fs/remap_range.c     | 31 ++++++++++++++---
- fs/xfs/xfs_reflink.c |  8 +++--
- include/linux/dax.h  |  8 +++++
- include/linux/fs.h   | 12 ++++---
- 5 files changed, 127 insertions(+), 11 deletions(-)
+ fs/xfs/xfs_file.c    |  2 +-
+ fs/xfs/xfs_inode.c   | 80 +++++++++++++++++++++++++++++++++++++++++---
+ fs/xfs/xfs_inode.h   |  1 +
+ fs/xfs/xfs_reflink.c |  4 +--
+ 4 files changed, 80 insertions(+), 7 deletions(-)
 
-diff --git a/fs/dax.c b/fs/dax.c
-index ca4308c85988..33b0b9f4b904 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -1815,3 +1815,82 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
- 	return dax_insert_pfn_mkwrite(vmf, pfn, order);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 2ef1930374d2..c3061723613c 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -846,7 +846,7 @@ xfs_wait_dax_page(
+ 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
  }
- EXPORT_SYMBOL_GPL(dax_finish_sync_fault);
-+
-+static loff_t dax_range_compare_iter(struct iomap_iter *it_src,
-+		struct iomap_iter *it_dest, bool *same)
-+{
-+	const struct iomap *smap = &it_src->iomap;
-+	const struct iomap *dmap = &it_dest->iomap;
-+	loff_t pos1 = it_src->pos, pos2 = it_dest->pos;
-+	loff_t len = min(smap->length, dmap->length);
-+	void *saddr, *daddr;
-+	int id, ret;
-+
-+	if (smap->type == IOMAP_HOLE && dmap->type == IOMAP_HOLE) {
-+		*same = true;
-+		return len;
-+	}
-+
-+	if (smap->type == IOMAP_HOLE || dmap->type == IOMAP_HOLE) {
-+		*same = false;
-+		return 0;
-+	}
-+
-+	id = dax_read_lock();
-+	ret = dax_iomap_direct_access(smap, pos1, ALIGN(pos1 + len, PAGE_SIZE),
-+				      &saddr, NULL);
-+	if (ret < 0)
-+		goto out_unlock;
-+
-+	ret = dax_iomap_direct_access(dmap, pos2, ALIGN(pos2 + len, PAGE_SIZE),
-+				      &daddr, NULL);
-+	if (ret < 0)
-+		goto out_unlock;
-+
-+	*same = !memcmp(saddr, daddr, len);
-+	if (!*same)
-+		len = 0;
-+	dax_read_unlock(id);
-+	return len;
-+
-+out_unlock:
-+	dax_read_unlock(id);
-+	return -EIO;
-+}
-+
-+int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+		struct inode *dst, loff_t dstoff, loff_t len, bool *same,
-+		const struct iomap_ops *ops)
-+{
-+	struct iomap_iter src_iter = {
-+		.inode		= src,
-+		.pos		= srcoff,
-+		.len		= len,
-+	};
-+	struct iomap_iter dst_iter = {
-+		.inode		= dst,
-+		.pos		= dstoff,
-+		.len		= len,
-+	};
-+	int ret;
-+
-+	while ((ret = iomap_iter(&src_iter, ops)) > 0) {
-+		while ((ret = iomap_iter(&dst_iter, ops)) > 0) {
-+			dst_iter.processed = dax_range_compare_iter(&src_iter,
-+						&dst_iter, same);
-+		}
-+		if (ret <= 0)
-+			src_iter.processed = ret;
-+	}
-+	return ret;
-+}
-+
-+int dax_remap_file_range_prep(struct file *file_in, loff_t pos_in,
-+			      struct file *file_out, loff_t pos_out,
-+			      loff_t *len, unsigned int remap_flags,
-+			      const struct iomap_ops *ops)
-+{
-+	return __generic_remap_file_range_prep(file_in, pos_in, file_out,
-+					       pos_out, len, remap_flags, ops);
-+}
-+EXPORT_SYMBOL_GPL(dax_remap_file_range_prep);
-diff --git a/fs/remap_range.c b/fs/remap_range.c
-index 6d4a9beaa097..1157169b9d79 100644
---- a/fs/remap_range.c
-+++ b/fs/remap_range.c
-@@ -14,6 +14,7 @@
- #include <linux/compat.h>
- #include <linux/mount.h>
- #include <linux/fs.h>
-+#include <linux/dax.h>
- #include "internal.h"
  
- #include <linux/uaccess.h>
-@@ -277,9 +278,11 @@ static int vfs_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-  * If there's an error, then the usual negative error code is returned.
-  * Otherwise returns 0 with *len set to the request length.
-  */
--int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
--				  struct file *file_out, loff_t pos_out,
--				  loff_t *len, unsigned int remap_flags)
+-static int
 +int
-+__generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
-+				struct file *file_out, loff_t pos_out,
-+				loff_t *len, unsigned int remap_flags,
-+				const struct iomap_ops *dax_read_ops)
- {
- 	struct inode *inode_in = file_inode(file_in);
- 	struct inode *inode_out = file_inode(file_out);
-@@ -339,8 +342,18 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 	if (remap_flags & REMAP_FILE_DEDUP) {
- 		bool		is_same = false;
- 
--		ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
--				inode_out, pos_out, *len, &is_same);
-+		if (*len == 0)
-+			return 0;
-+
-+		if (!IS_DAX(inode_in))
-+			ret = vfs_dedupe_file_range_compare(inode_in, pos_in,
-+					inode_out, pos_out, *len, &is_same);
-+		else if (dax_read_ops)
-+			ret = dax_dedupe_file_range_compare(inode_in, pos_in,
-+					inode_out, pos_out, *len, &is_same,
-+					dax_read_ops);
-+		else
-+			return -EINVAL;
- 		if (ret)
- 			return ret;
- 		if (!is_same)
-@@ -358,6 +371,14 @@ int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
- 
- 	return ret;
+ xfs_break_dax_layouts(
+ 	struct inode		*inode,
+ 	bool			*retry)
+diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
+index a4f6f034fb81..bdc084cdbf46 100644
+--- a/fs/xfs/xfs_inode.c
++++ b/fs/xfs/xfs_inode.c
+@@ -3790,6 +3790,61 @@ xfs_iolock_two_inodes_and_break_layout(
+ 	return 0;
  }
-+
-+int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
-+				  struct file *file_out, loff_t pos_out,
-+				  loff_t *len, unsigned int remap_flags)
-+{
-+	return __generic_remap_file_range_prep(file_in, pos_in, file_out,
-+					       pos_out, len, remap_flags, NULL);
-+}
- EXPORT_SYMBOL(generic_remap_file_range_prep);
  
- loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
++static int
++xfs_mmaplock_two_inodes_and_break_dax_layout(
++	struct xfs_inode	*ip1,
++	struct xfs_inode	*ip2)
++{
++	int			error, attempts = 0;
++	bool			retry;
++	struct page		*page;
++	struct xfs_log_item	*lp;
++
++	if (ip1->i_ino > ip2->i_ino)
++		swap(ip1, ip2);
++
++again:
++	retry = false;
++	/* Lock the first inode */
++	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
++	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
++	if (error || retry) {
++		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++		if (error == 0 && retry)
++			goto again;
++		return error;
++	}
++
++	if (ip1 == ip2)
++		return 0;
++
++	/* Nested lock the second inode */
++	lp = &ip1->i_itemp->ili_item;
++	if (lp && test_bit(XFS_LI_IN_AIL, &lp->li_flags)) {
++		if (!xfs_ilock_nowait(ip2,
++		    xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1))) {
++			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++			if ((++attempts % 5) == 0)
++				delay(1); /* Don't just spin the CPU */
++			goto again;
++		}
++	} else
++		xfs_ilock(ip2, xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1));
++	/*
++	 * We cannot use xfs_break_dax_layouts() directly here because it may
++	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
++	 * for this nested lock case.
++	 */
++	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
++	if (page && page_ref_count(page) != 1) {
++		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
++		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++		goto again;
++	}
++
++	return 0;
++}
++
+ /*
+  * Lock two inodes so that userspace cannot initiate I/O via file syscalls or
+  * mmap activity.
+@@ -3804,8 +3859,19 @@ xfs_ilock2_io_mmap(
+ 	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
+ 	if (ret)
+ 		return ret;
+-	filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
+-				    VFS_I(ip2)->i_mapping);
++
++	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
++		ret = xfs_mmaplock_two_inodes_and_break_dax_layout(ip1, ip2);
++		if (ret) {
++			inode_unlock(VFS_I(ip2));
++			if (ip1 != ip2)
++				inode_unlock(VFS_I(ip1));
++			return ret;
++		}
++	} else
++		filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
++					    VFS_I(ip2)->i_mapping);
++
+ 	return 0;
+ }
+ 
+@@ -3815,8 +3881,14 @@ xfs_iunlock2_io_mmap(
+ 	struct xfs_inode	*ip1,
+ 	struct xfs_inode	*ip2)
+ {
+-	filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
+-				      VFS_I(ip2)->i_mapping);
++	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
++		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
++		if (ip1 != ip2)
++			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
++	} else
++		filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
++					      VFS_I(ip2)->i_mapping);
++
+ 	inode_unlock(VFS_I(ip2));
+ 	if (ip1 != ip2)
+ 		inode_unlock(VFS_I(ip1));
+diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
+index b21b177832d1..f7e26fe31a26 100644
+--- a/fs/xfs/xfs_inode.h
++++ b/fs/xfs/xfs_inode.h
+@@ -472,6 +472,7 @@ enum xfs_prealloc_flags {
+ 
+ int	xfs_update_prealloc_flags(struct xfs_inode *ip,
+ 				  enum xfs_prealloc_flags flags);
++int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
+ int	xfs_break_layouts(struct inode *inode, uint *iolock,
+ 		enum layout_break_reason reason);
+ 
 diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 76355f293488..7ecea0311e88 100644
+index 9d876e268734..3b99c9dfcf0d 100644
 --- a/fs/xfs/xfs_reflink.c
 +++ b/fs/xfs/xfs_reflink.c
-@@ -1332,8 +1332,12 @@ xfs_reflink_remap_prep(
- 	if (IS_DAX(inode_in) || IS_DAX(inode_out))
+@@ -1327,8 +1327,8 @@ xfs_reflink_remap_prep(
+ 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
  		goto out_unlock;
  
--	ret = generic_remap_file_range_prep(file_in, pos_in, file_out, pos_out,
--			len, remap_flags);
-+	if (!IS_DAX(inode_in))
-+		ret = generic_remap_file_range_prep(file_in, pos_in, file_out,
-+				pos_out, len, remap_flags);
-+	else
-+		ret = dax_remap_file_range_prep(file_in, pos_in, file_out,
-+				pos_out, len, remap_flags, &xfs_read_iomap_ops);
- 	if (ret || *len == 0)
+-	/* Don't share DAX file data for now. */
+-	if (IS_DAX(inode_in) || IS_DAX(inode_out))
++	/* Don't share DAX file data with non-DAX file. */
++	if (IS_DAX(inode_in) != IS_DAX(inode_out))
  		goto out_unlock;
  
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 642de7ef1a10..b975629a8d5b 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -212,6 +212,14 @@ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
- int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
- 				      pgoff_t index);
- s64 dax_iomap_zero(struct iomap_iter *iter, loff_t pos, u64 length);
-+int dax_dedupe_file_range_compare(struct inode *src, loff_t srcoff,
-+				  struct inode *dest, loff_t destoff,
-+				  loff_t len, bool *is_same,
-+				  const struct iomap_ops *ops);
-+int dax_remap_file_range_prep(struct file *file_in, loff_t pos_in,
-+			      struct file *file_out, loff_t pos_out,
-+			      loff_t *len, unsigned int remap_flags,
-+			      const struct iomap_ops *ops);
- static inline bool dax_mapping(struct address_space *mapping)
- {
- 	return mapping->host && IS_DAX(mapping->host);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index e7a633353fd2..670b53c722a7 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -71,6 +71,7 @@ struct fsverity_operations;
- struct fs_context;
- struct fs_parameter_spec;
- struct fileattr;
-+struct iomap_ops;
- 
- extern void __init inode_init(void);
- extern void __init inode_init_early(void);
-@@ -2175,10 +2176,13 @@ extern ssize_t vfs_copy_file_range(struct file *, loff_t , struct file *,
- extern ssize_t generic_copy_file_range(struct file *file_in, loff_t pos_in,
- 				       struct file *file_out, loff_t pos_out,
- 				       size_t len, unsigned int flags);
--extern int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
--					 struct file *file_out, loff_t pos_out,
--					 loff_t *count,
--					 unsigned int remap_flags);
-+int __generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
-+				    struct file *file_out, loff_t pos_out,
-+				    loff_t *len, unsigned int remap_flags,
-+				    const struct iomap_ops *dax_read_ops);
-+int generic_remap_file_range_prep(struct file *file_in, loff_t pos_in,
-+				  struct file *file_out, loff_t pos_out,
-+				  loff_t *count, unsigned int remap_flags);
- extern loff_t do_clone_file_range(struct file *file_in, loff_t pos_in,
- 				  struct file *file_out, loff_t pos_out,
- 				  loff_t len, unsigned int remap_flags);
+ 	if (!IS_DAX(inode_in))
 -- 
 2.33.0
 
