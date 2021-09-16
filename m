@@ -1,50 +1,49 @@
-Received: from mail-pl1-f170.google.com (mail-pl1-f170.google.com [209.85.214.170])
+Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E8E03FC3
-	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 22:12:52 +0000 (UTC)
-Received: by mail-pl1-f170.google.com with SMTP id d18so4803604pll.11
-        for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 15:12:52 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CDB73FC9
+	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 22:47:26 +0000 (UTC)
+Received: by mail-pf1-f169.google.com with SMTP id q22so7413184pfu.0
+        for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 15:47:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=5XlA8VV13MfPhro9gy26jzMbGkydoQynKRNbCKEdbhc=;
-        b=hu+7fpttduQD2uX0BL9gsSpk8Ym/D+4/sIXreVYPrpTJtol0g7XvbrfHfvY4zbGnhY
-         U7xTyREsC3/pV/TGGw3LJQLouqSAR0vhUqFdQxzV8IuCUwuVpa+TE0Z8iNntZ0G9UDHy
-         R84NwAb1xtLNCqFaBWj6RJgx8rNFKUq4BG+lwaYhSZz3pyUYa/WtoPevyrZo6swBgRl3
-         Dke3gycKGQJj4yt6PL58hts4/YaWmeZQsV7981JAVeiF3fx1C1V8g8u+i+tTS5ziebAe
-         66ye4pupmnuBLO/czYUKu7tOS15UaXZDYu/E4JFRBKMehte6D6QJHGwrs0Ya6aWncWHd
-         h6Jw==
+        bh=FAccf6OrsNm3eUiH8JmDkz4BW/d3XqteH8DeF8Wi55M=;
+        b=A6wWAfvX1qE7HRUSuwkYrDXna73MLs5M/lSag4Azz+A4hMshiFdJhB5au1QioJefcU
+         s/ucfr8rrlhatmVcLrmyooSX8MfJazr0Y9QYzLSOVohU3rPQpQaRZ8okvvo+Zd8misgN
+         zyiCAzKdY5ygsKalMKC9bpyG7CV8ffAAenwZVdysBMXaGJlDXITWho2HL1wECLghbaiy
+         QxDg6CpA7O0yV7tLyzDG/u2xwn8+P8hkNnsnulA/vJd2T7eigw9fnDDHbeFS9JsMuOc7
+         C+mT5ChNgMRZLdpxg+vFXdukJqh4PfOMukN4OhruNijA9qFcN7vd7zp2gTiNJepM9/7x
+         HHkw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=5XlA8VV13MfPhro9gy26jzMbGkydoQynKRNbCKEdbhc=;
-        b=AxtxEyGpr9Cs/ntTCyRzh7n4k/uqop+W1DWFG255Wbys24Zqvia00P6Y19Sl31SsTs
-         pQGX3DlfOXRNmrHVu2+8UkV8hh3GHoAEGG7rDy5t6jitMrcIFrxQaO6NDLZj6N47KKea
-         G05TGMwRyaLNsrB2kn4H/X7PSguL3extdt01lQqKhHu2+TlXZRLUvHPXXAxpQq4dudb8
-         dMIz/l+UgyH2w2EVFwu7NjIUIZTJt4k1Yy2LS6r9ivAs3vyh7T0Zn1zx3vALsRl3tLdW
-         zLG1bEW0PYIQ103rXbtCZZe0xMQwpFsmZl9clO94SOtO/pL6QFKkYYgmNbvcIpcCMEcM
-         1mNA==
-X-Gm-Message-State: AOAM532nvLG6qI3dANNf1FmLArlkor9AO0ppBWYoSuHzbmf3KCwJ2AmP
-	u8B4EUrd78I0GmlCXMbRydgXprUnsfujh+zObBpu4w==
-X-Google-Smtp-Source: ABdhPJyzq/C34sTzxSleFHWDluZ7c97wGApxWqlTUIy00eOLZU9oT0NJJL21bfGeSOxi13zbUppPcra5EX42jKDi8fg=
-X-Received: by 2002:a17:902:bd8d:b0:13a:8c8:a2b2 with SMTP id
- q13-20020a170902bd8d00b0013a08c8a2b2mr6647168pls.89.1631830371892; Thu, 16
- Sep 2021 15:12:51 -0700 (PDT)
+        bh=FAccf6OrsNm3eUiH8JmDkz4BW/d3XqteH8DeF8Wi55M=;
+        b=xiwt90BLqWhvY10XPqUet3dNJLe3oSRTQJkdPCiredNvDLKGvI0+7DqO80/LWUrweI
+         UXT4FrW1tbC7YVz9gwwKr3nlGD1jspDQ576oHOSmAxQuyFdhr+RyMOY/dt0t+o6Hew88
+         xoU3BedGO70AneIunIRVmEqomzqsddZ0v7XydKwigD/j5EB7GhTEcGI8dDnRuR0UZXVP
+         8yVHgw+8FGwC2MBaaPN3uK7wVPKmGSS4PVQrX0/f1IweNNsaDl4p4eVmSbuqpeZJOs+9
+         +H3yTlkJp+zwDHrqdSoRQGmmL565tBQ5PbQMPbn8QBMZn+6INFAwpFSn3sYF5cZ9CrQq
+         jgwg==
+X-Gm-Message-State: AOAM532Mtc3tAhAf8FCu/483/hJ/xXeoaFMGflqH+i1dQqpOXYf+rgtN
+	MrwX+nmqftdafboZbhp/cvDNyLUWVBCP2Rcyj4vSfHkk3DqPPQ==
+X-Google-Smtp-Source: ABdhPJw6WgKGw8kbcGPGH62owFI4a8R/cpD95wKiUgXC7jx0hwi3iOYtyWrYbTfHAZKJ0yRUgDdHXr3ZsekRa3IyxZQ=
+X-Received: by 2002:a63:1262:: with SMTP id 34mr7045610pgs.356.1631832445707;
+ Thu, 16 Sep 2021 15:47:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210831090459.2306727-1-vishal.l.verma@intel.com>
-In-Reply-To: <20210831090459.2306727-1-vishal.l.verma@intel.com>
+References: <20210831090459.2306727-1-vishal.l.verma@intel.com> <20210831090459.2306727-3-vishal.l.verma@intel.com>
+In-Reply-To: <20210831090459.2306727-3-vishal.l.verma@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 16 Sep 2021 15:12:41 -0700
-Message-ID: <CAPcyv4jGs9t6zKdzOJL1watQ7RvC0qdbT=jB2Cn948iM+0eLQw@mail.gmail.com>
-Subject: Re: [ndctl PATCH 0/7] Policy based reconfiguration for daxctl
+Date: Thu, 16 Sep 2021 15:47:14 -0700
+Message-ID: <CAPcyv4iACg+5v=T5sqarNEfR0qChMOG0y64gzY22mtaNZVJYWg@mail.gmail.com>
+Subject: Re: [ndctl PATCH 2/7] daxctl: Documentation updates for persistent reconfiguration
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, QI Fuli <qi.fuli@jp.fujitsu.com>, 
 	"Hu, Fenghua" <fenghua.hu@intel.com>
@@ -52,65 +51,134 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Tue, Aug 31, 2021 at 2:05 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
 >
-> These patches add policy (config file) support to daxctl. The
-> introductory user is daxctl-reconfigure-device. Sysadmins may wish to
-> use daxctl devices as system-ram, but it may be cumbersome to automate
-> the reconfiguration step for every device upon boot.
+> Add a man page update describing how daxctl-reconfigure-device(1) can
+> be used for persistent reconfiguration of a daxctl device using a
+> config file.
 >
-> Introduce a new option for daxctl-reconfigure-device, --check-config.
-> This is at the heart of policy based reconfiguration, as it allows
-> daxctl to look up reconfiguration parameters for a given device from the
-> config system instead of the command line.
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  .../daxctl/daxctl-reconfigure-device.txt      | 67 +++++++++++++++++++
+>  1 file changed, 67 insertions(+)
 >
-> Some systemd and udev glue then automates this for every new dax device
-> that shows up, providing a way for the administrator to simply list all
-> the 'system-ram' UUIDs in a config file, and not have to worry about
-> anything else.
+> diff --git a/Documentation/daxctl/daxctl-reconfigure-device.txt b/Documentation/daxctl/daxctl-reconfigure-device.txt
+> index f112b3c..1e2d380 100644
+> --- a/Documentation/daxctl/daxctl-reconfigure-device.txt
+> +++ b/Documentation/daxctl/daxctl-reconfigure-device.txt
+> @@ -162,6 +162,15 @@ include::region-option.txt[]
+>         brought online automatically and immediately with the 'online_movable'
+>         policy. Use this option to disable the automatic onlining behavior.
 >
-> An example config file can be:
+> +-C::
+> +--check-config::
+> +       Get reconfiguration parameters from the global daxctl config file.
+> +       This is typically used when daxctl-reconfigure-device is called from
+> +       a systemd-udevd device unit file. The reconfiguration proceeds only
+> +       if the UUID of the dax device passed in on the command line matches
+> +       a UUID listed in the auto-online section of the config. See the
+> +       'PERSISTENT RECONFIGURATION' section for more details.
+
+There's going to be other match parameters in the future, so this can
+probably say something like:
+
+"The reconfiguration proceeds only if the match parameters in a
+'reconfigure-device' section of the config match dax device specified
+on the command line"
+
+> +
+>  include::movable-options.txt[]
 >
->   # cat /etc/ndctl/daxctl.conf
-
-Take these comments as provisional until I read through the rest, but
-this is just a reaction to the proposed ini format.
-
+>  -f::
+> @@ -183,6 +192,64 @@ include::human-option.txt[]
 >
->   [auto-online unique_identifier_foo]
+>  include::verbose-option.txt[]
+>
+> +PERSISTENT RECONFIGURATION
+> +--------------------------
+> +
+> +The 'mode' of a daxctl device is not persistent across reboots by default. This
+> +is because the device itself may hold any metadata that hints at what mode it
 
-I am thinking this section name should be "reconfigure-device
-unique_identifier_foo" if only because resize might also be something
-someone wants to do, and if other commands get config automation it
-makes it clearer which config snippets apply to which command.
+s/may hold any/does not hold/
 
->   uuid = 48d8e42c-a2f0-4312-9e70-a837faafe862
+> +was set to, or is intended to be used in. The default mode for such a device
 
-I think this should be called:
+s/in//
 
-"nvdimm.uuid"
+> +is 'devdax', and on reboot, that is the mode devices appear in by default.
 
-...or something like that to make it clear this depends on dax devices
-emitted by libnvdimm, and not those that come from "soft-reserved"
-memory. It also helps distinguish if we ever get UUIDs in the HMAT
-which is something I have been meaning to propose.
+s/, that is the mode devices appear in by default//
 
->   mode = system-ram
+i.e. redundant.
 
-I can see this being "mode = devdax" if feature was being used to
-change size or alignment.
+> +
+> +The administrator may desire to configure the system in a way that certain
 
->   online = true
->   movable = false
+How about:
 
-I wonder if these keys should be prefixed by the mode name:
+"The administrator may set policy such that certain dax devices are
+always reconfigured into a target configuration every boot."
 
-system-ram.online = true
-system-ram.movable = false
+> +dax devices are always reconfigured into a certain mode every time on boot.
+> +This is accomplished via a daxctl config file located at [location TBD].
+> +
+> +The config file may have multiple sections influencing different aspects of
+> +daxctl operation. The section of interest for persistent reconfiguration is
+> +'auto-online'. The format of this is as follows:
+> +
+> +----
+> +[auto-online <subsection_name>]
+> +uuid = <namespace uuid>
+> +mode = <desired reconfiguration mode> (default: system-ram)
+> +online = <true|false> (default: true)
+> +movable = <true|false> (default: true)
+> +----
+> +
+> +Here is an example of a config snippet for managing three devdax namespaces,
+> +one is left in devdax mode, the second is changed to system-ram mode with
+> +default options (online, movable), and the third is set to system-ram mode,
+> +the memory is onlined, but not movable.
+> +
+> +Note that the 'subsection name' can be arbitrary, and is only used to
+> +identify a specific config section. It does not have to match the 'device
+> +name' (e.g. 'dax0.0' etc).
+> +
+> +----
+> +[auto-online dax0]
+> +uuid = ed93e918-e165-49d8-921d-383d7b9660c5
+> +mode = devdax
+> +
+> +[auto-online dax1]
+> +uuid = f36d02ff-1d9f-4fb9-a5b9-8ceb10a00fe3
+> +mode = system-ram
+> +
+> +[auto-online dax2]
+> +uuid = f36d02ff-1d9f-4fb9-a5b9-8ceb10a00fe3
+> +mode = system-ram
+> +online = true
+> +movable = false
 
-...so it's a bit more self documenting about which parameters are
-sub-options, and delineates them from generic options like size.
+One of the tasks I envisioned with persistent configurations was
+recalling resize and create device operations. Not saying that needs
+to be included now, but I can assume that these reconfiguration steps
+are performed in order... Hmm, as I ask that I realize it may depend
+on device arrival. Ok, assuming the devices have all arrived by the
+time this runs is there a guarantee that these are processed in order?
 
-> Any file under '/etc/ndctl/' can be used - all files with a '.conf' suffix
-> will be considered when looking for matches.
-
-any concern about name collisions between ndctl, daxctl, and cxl-cli
-section names?
+> +----
+> +
+> +The following example can be used to create a devdax mode namespace, and
+> +simultaneously add the newly created namespace to the config file for
+> +system-ram conversion.
+> +
+> +----
+> +ndctl create-namespace --mode=devdax | \
+> +       jq -r "\"[auto-online $(uuidgen)]\", \"uuid = \(.uuid)\", \"mode = system-ram\"" >> $config_path
+> +----
+> +
+>  include::../copyright.txt[]
+>
+>  SEE ALSO
+> --
+> 2.31.1
+>
