@@ -1,92 +1,90 @@
-Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 197D93FC3
-	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 07:12:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=VfwB0VmftNDQd6y4aXaAqhBjlfbTQ/OFHN+xTApc8gs=; b=DsoV0b3HNBIlGr+GxiEumtpSDq
-	JiOkrBKaFQfhHLKqwzQs8mk8MkY4v+YlDMaFtzvPpoo7QnrTEBKh/9c7TKaavub88pASLyp9pZtHy
-	YQeYen6mmgH6JS5h380iv1K9328nIe6NzWGX2SbF396xIVxG8m5IImv3dYEqSxsrhQEu+wWIJwngf
-	Q0IA3T9WyEG8p3yQEGl5spbSnshUKhaOdZNF6PzORcSthAxGHMB9kxLj1MNftSCWj4PG/t0Y0ujF1
-	X5TD88sqTAi5dwPU2Bn04oRqGW0RlJWjQuy59uiOI7TmqxoX8gNh1og9ZdDwOBaVxPXj26nTglaof
-	s5zneXzA==;
-Received: from hch by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mQlYf-00GPH6-0D; Thu, 16 Sep 2021 07:11:51 +0000
-Date: Thu, 16 Sep 2021 08:11:44 +0100
-From: Christoph Hellwig <hch@infradead.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Jane Chu <jane.chu@oracle.com>,
-	Vishal L Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH 0/3] dax: clear poison on the fly along pwrite
-Message-ID: <YULuMO86NrQAPcpf@infradead.org>
-References: <20210914233132.3680546-1-jane.chu@oracle.com>
- <CAPcyv4h3KpOKgy_Cwi5fNBZmR=n1hB33mVzA3fqOY7c3G+GrMA@mail.gmail.com>
- <516ecedc-38b9-1ae3-a784-289a30e5f6df@oracle.com>
- <20210915161510.GA34830@magnolia>
- <CAPcyv4jaCiSXU61gsQTaoN_cdDTDMvFSfMYfBz2yLKx11fdwOQ@mail.gmail.com>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9D7A53FD0
+	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 08:49:29 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3A4RFknata6+LEC8JdMQgqKSy4i+fnVEZfMUV32f8?=
+ =?us-ascii?q?akzHdYEJGY0x3zGAYWm6HPv3Za2SmL99/boy/9ktQuJGGx4c2TQBvqS9gHilAw?=
+ =?us-ascii?q?SbnLY7Hdx+vZUt+DSFioHpPtpxYMp+ZRCwNZie0SiyFb/6x8BGQ6YnSHuClUL+?=
+ =?us-ascii?q?dZHgoLeNZYHxJZSxLyrdRbrFA0YDR7zOl4bsekuWHULOX82cc3lE8t8pvnChSU?=
+ =?us-ascii?q?MHa41v0iLCRicdj5zcyn1FNZH4WyDrYw3HQGuG4FcbiLwrPIS3Qw4/Xw/stIov?=
+ =?us-ascii?q?NfrfTeUtMTKPQPBSVlzxdXK3Kbhpq/3R0i/hkcqFHLxo/ZzahxridzP1XqJW2U?=
+ =?us-ascii?q?hZvMKvXhMwTThtZDzpje6ZB/dcrJFDm6JDOkRGbKyWEL/JGSRte0Zcj0up+H2B?=
+ =?us-ascii?q?C3fICLzUKdBqCm6S9x7fTYvZtgsAyBMjtMpkWtnxpwXfeF/lOaZzKRePIo8BZ2?=
+ =?us-ascii?q?DMxj8VVNffYe8cdLzFoaXzobx9QPVEYIJEzhuGlgj/4aTIwgEiUuacs42j7yA1?=
+ =?us-ascii?q?3zairMdDQPNeNQK19mFiUp2fD12D4GQ0BctiezyeVtH6hmIfnnSj7cIYJCPu0+?=
+ =?us-ascii?q?5ZCmlKUwmAMGRs+TkagrL+1hyaWX9NZNlxR9DEioLY/8GS1QdTnGR61uniJulg?=
+ =?us-ascii?q?bQdU4O+k77hydj6nZ+QCUAkAaQTNbLt8rrsk7QXotzFDht9foAyF/9a2bUlqD+?=
+ =?us-ascii?q?bqO6zC/Iy4YKSkFfyBsZRUE+d7Lsow1jwyJStdlDb7zicf6Xyzzqw1mBgBWa64?=
+ =?us-ascii?q?71JZNjvvkuwucxW/Em3QAdSZtji2/Y45vxloRiFaZWrGV?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ATIgbQa5lZdAbEfTAlwPXwPTXdLJyesId70hD?=
+ =?us-ascii?q?6qkRc20wTiX8ra2TdZsguyMc9wx6ZJhNo7G90cq7MBbhHPxOkOos1N6ZNWGIhI?=
+ =?us-ascii?q?LCFvAB0WKN+V3dMhy73utc+IMlSKJmFeD3ZGIQse/KpCW+DPYsqePqzJyV?=
+X-IronPort-AV: E=Sophos;i="5.85,297,1624291200"; 
+   d="scan'208";a="114564506"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 16 Sep 2021 16:49:26 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id D7E564D0DC71;
+	Thu, 16 Sep 2021 16:49:21 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 16 Sep 2021 16:49:22 +0800
+Received: from [127.0.0.1] (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Thu, 16 Sep 2021 16:49:20 +0800
+Subject: Re: [PATCH v9 5/8] fsdax: Add dax_iomap_cow_copy() for dax_iomap_zero
+To: Christoph Hellwig <hch@lst.de>
+CC: <djwong@kernel.org>, <linux-xfs@vger.kernel.org>,
+	<dan.j.williams@intel.com>, <david@fromorbit.com>,
+	<linux-fsdevel@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <rgoldwyn@suse.de>, <viro@zeniv.linux.org.uk>,
+	<willy@infradead.org>, Ritesh Harjani <riteshh@linux.ibm.com>
+References: <20210915104501.4146910-1-ruansy.fnst@fujitsu.com>
+ <20210915104501.4146910-6-ruansy.fnst@fujitsu.com>
+ <20210916061654.GB13306@lst.de>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Message-ID: <9fb0c82f-b2ae-82e3-62df-f0a473ed6395@fujitsu.com>
+Date: Thu, 16 Sep 2021 16:49:19 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jaCiSXU61gsQTaoN_cdDTDMvFSfMYfBz2yLKx11fdwOQ@mail.gmail.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20210916061654.GB13306@lst.de>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-yoursite-MailScanner-ID: D7E564D0DC71.A0D63
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-On Wed, Sep 15, 2021 at 01:27:47PM -0700, Dan Williams wrote:
-> > Yeah, Christoph suggested that we make the clearing operation explicit
-> > in a related thread a few weeks ago:
-> > https://lore.kernel.org/linux-fsdevel/YRtnlPERHfMZ23Tr@infradead.org/
+
+
+On 2021/9/16 14:16, Christoph Hellwig wrote:
+> On Wed, Sep 15, 2021 at 06:44:58PM +0800, Shiyang Ruan wrote:
+>> +	rc = dax_direct_access(iomap->dax_dev, pgoff, 1, &kaddr, NULL);
+>> +	if (rc < 0)
+>> +		goto out;
+>> +	memset(kaddr + offset, 0, size);
+>> +	if (srcmap->addr != IOMAP_HOLE && srcmap->addr != iomap->addr) {
 > 
-> That seemed to be tied to a proposal to plumb it all the way out to an
-> explicit fallocate() mode, not make it a silent side effect of
-> pwrite().
+> Should we also check that ->dax_dev for iomap and srcmap are different
+> first to deal with case of file system with multiple devices?
 
-Yes.
+I have not thought of this case.  Isn't it possible to CoW between 
+different devices?
 
-> >
-> > Each of the dm drivers has to add their own ->clear_poison operation
-> > that remaps the incoming (sector, len) parameters as appropriate for
-> > that device and then calls the lower device's ->clear_poison with the
-> > translated parameters.
-> >
-> > This (AFAICT) has already been done for dax_zero_page_range, so I sense
-> > that Dan is trying to save you a bunch of code plumbing work by nudging
-> > you towards doing s/dax_clear_poison/dax_zero_page_range/ to this series
-> > and then you only need patches 2-3.
-> 
-> Yes, but it sounds like Christoph was saying don't overload
-> dax_zero_page_range(). I'd be ok splitting the difference and having a
-> new fallocate clear poison mode map to dax_zero_page_range()
-> internally.
 
-That was my gut feeling.  If everyone feels 100% comfortable with
-zeroingas the mechanism to clear poisoning I'll cave in.  The most
-important bit is that we do that through a dedicated DAX path instead
-of abusing the block layer even more.
+--
+Thanks,
+Ruan
 
 > 
-> >
-> > > BTW, our customer doesn't care about creating dax volume thru DM, so.
-> >
-> > They might not care, but anything going upstream should work in the
-> > general case.
+> Otherwise looks good:
 > 
-> Agree.
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> 
 
-I'm really worried about both patartitions on DAX and DM passing through
-DAX because they deeply bind DAX to the block layer, which is just a bad
-idea.  I think we also need to sort that whole story out before removing
-the EXPERIMENTAL tags.
+
