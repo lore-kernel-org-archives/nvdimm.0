@@ -1,218 +1,157 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CDDAE3FC5
-	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 00:30:09 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 491556108F;
-	Thu, 16 Sep 2021 00:30:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1631752209;
-	bh=RTxTQggqSxSYdn2y3gMxq6FoxSHAqy63/h21L2l9IRg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=d+iusVMvz3jRSfTsKEk2750zrmp+bxGU83YcFVS3zgJJY5KNuTGrUus6hqAv7NRus
-	 xZfemHe3GZfd+wXGEqUFpr93ea9KMDDhMKnxH9pTnv0pFol/ghTqhYfDzKPcFsSf45
-	 3IOB1ZGILT3odwkmYwsPu3Krw8H9nLaz7iWSQ/Vw/dgyK260mVocdG1x0f9b+YYbNB
-	 k5qPED0BYUc+bh98JIkb9OUgZUpJzqi01zisxEbENjTEaPzz/LrDz0rgteAzBNlVLX
-	 HtAAk57VS16JzM2BI/vl7SSWEaaH6y1EPxPP2KqqEzfOif1kxTsbWo2AyHcAPEwR9s
-	 otHt644RlBSDQ==
-Date: Wed, 15 Sep 2021 17:30:08 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: hch@lst.de, linux-xfs@vger.kernel.org, dan.j.williams@intel.com,
-	david@fromorbit.com, linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	rgoldwyn@suse.de, viro@zeniv.linux.org.uk, willy@infradead.org
-Subject: Re: [PATCH v9 8/8] xfs: Add dax dedupe support
-Message-ID: <20210916003008.GE34830@magnolia>
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id C85933FC5
+	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 01:36:33 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AQUX/BaAjjTIk4RVW/zniw5YqxClBgxIJ4g17XOL?=
+ =?us-ascii?q?fBwa802si12cBmDQdWjiAPPqKNmX3eNh1bo219UIDu56Ax9UxeLYW3SszFioV8?=
+ =?us-ascii?q?6IpJjg4wn/YZnrUdouaJK5ex512huLocYZkExcwmj/3auK49SgliPnULlbBILW?=
+ =?us-ascii?q?s1h5ZFFYMpBgJ2UoLd94R2uaEsPDha++/kYqaT/73ZDdJ7wVJ3lc8sMpvnv/AU?=
+ =?us-ascii?q?MPa41v0tnRmDRxCUcS3e3M9VPrzLonpR5f0rxU9IwK0ewrD5OnREmLx9BFrBM6?=
+ =?us-ascii?q?nk6rgbwsBRbu60Qqm0yIQAvb9xEMZ4HFaPqUTbZLwbW9NljyPhME3xtNWqbS+V?=
+ =?us-ascii?q?AUoIrbR3u8aVnG0FgknZPEbpOCacCjXXcu7iheun2HX6/lnEkA6FYMC/eNwG2t?=
+ =?us-ascii?q?P6boTLzVlRg+Cg+an6LO9RPNliskqII/sJox3kn1py3fbS+knRZTCSqDRzd5ew?=
+ =?us-ascii?q?Do0wMtJGJ72a8gGbjxgRBfNeRtCPhEQEp1WtP2pmnTkcz1wrFOTuLpx4mLWigd?=
+ =?us-ascii?q?21dDFNsTZe9mPbcFUhVqD4GbH+XnpRB0XKrS3yTGF2na3mqnDkEvTQo0VELGn5?=
+ =?us-ascii?q?/hCm0CIyyofBXU+UVq9vOn8hFWyVsxSL2QK9Sc066s/7kqmSp/6RRLQiHqFuAM?=
+ =?us-ascii?q?MHtldCes37CmTxafOpQWUHG4JSnhGctNOnMs3QyE6k0+HhPv3CjF19r6YU3SQ8?=
+ =?us-ascii?q?vGTtzzaETYUN2gqdyICTBVD59jlvZF1iQjACMtgeJNZJPWd9SrYmmjM9XZhwe5?=
+ =?us-ascii?q?Iy5Nj6klyxnif6xrEm3QDZlddCt3rY1+Y?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A/IP3/qkyQcrg23AZVPtrV8UvnSLpDfIQ3DAb?=
+ =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
+ =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
+ =?us-ascii?q?o0tQcQ=3D=3D?=
+X-IronPort-AV: E=Sophos;i="5.85,296,1624291200"; 
+   d="scan'208";a="114547598"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 16 Sep 2021 09:36:30 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+	by cn.fujitsu.com (Postfix) with ESMTP id 8FD7F4D0D9CE;
+	Thu, 16 Sep 2021 09:36:28 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 16 Sep 2021 09:36:27 +0800
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 16 Sep 2021 09:36:27 +0800
+Received: from [127.0.0.1] (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Thu, 16 Sep 2021 09:36:26 +0800
+Subject: Re: [PATCH v9 1/8] fsdax: Output address in dax_iomap_pfn() and
+ rename it
+To: "Darrick J. Wong" <djwong@kernel.org>
+CC: <hch@lst.de>, <linux-xfs@vger.kernel.org>, <dan.j.williams@intel.com>,
+	<david@fromorbit.com>, <linux-fsdevel@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <nvdimm@lists.linux.dev>, <rgoldwyn@suse.de>,
+	<viro@zeniv.linux.org.uk>, <willy@infradead.org>, Ritesh Harjani
+	<riteshh@linux.ibm.com>
 References: <20210915104501.4146910-1-ruansy.fnst@fujitsu.com>
- <20210915104501.4146910-9-ruansy.fnst@fujitsu.com>
+ <20210915104501.4146910-2-ruansy.fnst@fujitsu.com>
+ <20210916000914.GB34830@magnolia>
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Message-ID: <212112d3-8b4d-1539-f133-22b321934b87@fujitsu.com>
+Date: Thu, 16 Sep 2021 09:36:25 +0800
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.14.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210915104501.4146910-9-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20210916000914.GB34830@magnolia>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+X-yoursite-MailScanner-ID: 8FD7F4D0D9CE.A6461
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-On Wed, Sep 15, 2021 at 06:45:01PM +0800, Shiyang Ruan wrote:
-> Introduce xfs_mmaplock_two_inodes_and_break_dax_layout() for dax files
-> who are going to be deduped.  After that, call compare range function
-> only when files are both DAX or not.
+
+
+On 2021/9/16 8:09, Darrick J. Wong wrote:
+> On Wed, Sep 15, 2021 at 06:44:54PM +0800, Shiyang Ruan wrote:
+>> Add address output in dax_iomap_pfn() in order to perform a memcpy() in
+>> CoW case.  Since this function both output address and pfn, rename it to
+>> dax_iomap_direct_access().
+>>
+>> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+>> Reviewed-by: Christoph Hellwig <hch@lst.de>
+>> Reviewed-by: Ritesh Harjani <riteshh@linux.ibm.com>
+>> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 > 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> Could've sworn I reviewed this a few revisions ago...
+
+Oh, sorry, Maybe I missed that.
+
 > Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-> Reviewed-by: Christoph Hellwig <hch@lst.de>
-> ---
->  fs/xfs/xfs_file.c    |  2 +-
->  fs/xfs/xfs_inode.c   | 80 +++++++++++++++++++++++++++++++++++++++++---
->  fs/xfs/xfs_inode.h   |  1 +
->  fs/xfs/xfs_reflink.c |  4 +--
->  4 files changed, 80 insertions(+), 7 deletions(-)
+
+Thanks!
+
+--
+Ruan
+
 > 
-> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> index 2ef1930374d2..c3061723613c 100644
-> --- a/fs/xfs/xfs_file.c
-> +++ b/fs/xfs/xfs_file.c
-> @@ -846,7 +846,7 @@ xfs_wait_dax_page(
->  	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
->  }
->  
-> -static int
-> +int
->  xfs_break_dax_layouts(
->  	struct inode		*inode,
->  	bool			*retry)
-> diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
-> index a4f6f034fb81..bdc084cdbf46 100644
-> --- a/fs/xfs/xfs_inode.c
-> +++ b/fs/xfs/xfs_inode.c
-> @@ -3790,6 +3790,61 @@ xfs_iolock_two_inodes_and_break_layout(
->  	return 0;
->  }
->  
-> +static int
-> +xfs_mmaplock_two_inodes_and_break_dax_layout(
-> +	struct xfs_inode	*ip1,
-> +	struct xfs_inode	*ip2)
-> +{
-> +	int			error, attempts = 0;
-> +	bool			retry;
-> +	struct page		*page;
-> +	struct xfs_log_item	*lp;
-> +
-> +	if (ip1->i_ino > ip2->i_ino)
-> +		swap(ip1, ip2);
-> +
-> +again:
-> +	retry = false;
-> +	/* Lock the first inode */
-> +	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
-> +	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
-> +	if (error || retry) {
-> +		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-> +		if (error == 0 && retry)
-> +			goto again;
-> +		return error;
-> +	}
-> +
-> +	if (ip1 == ip2)
-> +		return 0;
-> +
-> +	/* Nested lock the second inode */
-> +	lp = &ip1->i_itemp->ili_item;
-> +	if (lp && test_bit(XFS_LI_IN_AIL, &lp->li_flags)) {
-> +		if (!xfs_ilock_nowait(ip2,
-> +		    xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1))) {
-> +			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-> +			if ((++attempts % 5) == 0)
-> +				delay(1); /* Don't just spin the CPU */
-> +			goto again;
-> +		}
-
-I suspect we don't need this part for grabbing the MMAPLOCK^W pagecache
-invalidatelock.  The AIL only grabs the ILOCK, never the IOLOCK or the
-MMAPLOCK.
-
-> +	} else
-> +		xfs_ilock(ip2, xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1));
-> +	/*
-> +	 * We cannot use xfs_break_dax_layouts() directly here because it may
-> +	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
-> +	 * for this nested lock case.
-> +	 */
-> +	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
-> +	if (page && page_ref_count(page) != 1) {
-
-Do you think the patch "ext4/xfs: add page refcount helper" would be a
-good cleanup to head this series?
-
-https://lore.kernel.org/linux-xfs/20210913161604.31981-1-alex.sierra@amd.com/T/#m59cf7cd5c0d521ad487fa3a15d31c3865db88bdf
-
-The rest of the logic looks ok.
-
---D
-
-> +		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
-> +		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-> +		goto again;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  /*
->   * Lock two inodes so that userspace cannot initiate I/O via file syscalls or
->   * mmap activity.
-> @@ -3804,8 +3859,19 @@ xfs_ilock2_io_mmap(
->  	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
->  	if (ret)
->  		return ret;
-> -	filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
-> -				    VFS_I(ip2)->i_mapping);
-> +
-> +	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
-> +		ret = xfs_mmaplock_two_inodes_and_break_dax_layout(ip1, ip2);
-> +		if (ret) {
-> +			inode_unlock(VFS_I(ip2));
-> +			if (ip1 != ip2)
-> +				inode_unlock(VFS_I(ip1));
-> +			return ret;
-> +		}
-> +	} else
-> +		filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
-> +					    VFS_I(ip2)->i_mapping);
-> +
->  	return 0;
->  }
->  
-> @@ -3815,8 +3881,14 @@ xfs_iunlock2_io_mmap(
->  	struct xfs_inode	*ip1,
->  	struct xfs_inode	*ip2)
->  {
-> -	filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
-> -				      VFS_I(ip2)->i_mapping);
-> +	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
-> +		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
-> +		if (ip1 != ip2)
-> +			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-> +	} else
-> +		filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
-> +					      VFS_I(ip2)->i_mapping);
-> +
->  	inode_unlock(VFS_I(ip2));
->  	if (ip1 != ip2)
->  		inode_unlock(VFS_I(ip1));
-> diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-> index b21b177832d1..f7e26fe31a26 100644
-> --- a/fs/xfs/xfs_inode.h
-> +++ b/fs/xfs/xfs_inode.h
-> @@ -472,6 +472,7 @@ enum xfs_prealloc_flags {
->  
->  int	xfs_update_prealloc_flags(struct xfs_inode *ip,
->  				  enum xfs_prealloc_flags flags);
-> +int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
->  int	xfs_break_layouts(struct inode *inode, uint *iolock,
->  		enum layout_break_reason reason);
->  
-> diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-> index 9d876e268734..3b99c9dfcf0d 100644
-> --- a/fs/xfs/xfs_reflink.c
-> +++ b/fs/xfs/xfs_reflink.c
-> @@ -1327,8 +1327,8 @@ xfs_reflink_remap_prep(
->  	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
->  		goto out_unlock;
->  
-> -	/* Don't share DAX file data for now. */
-> -	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-> +	/* Don't share DAX file data with non-DAX file. */
-> +	if (IS_DAX(inode_in) != IS_DAX(inode_out))
->  		goto out_unlock;
->  
->  	if (!IS_DAX(inode_in))
-> -- 
-> 2.33.0
+> --D
 > 
-> 
-> 
+>> ---
+>>   fs/dax.c | 16 ++++++++++++----
+>>   1 file changed, 12 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/fs/dax.c b/fs/dax.c
+>> index 4e3e5a283a91..8b482a58acae 100644
+>> --- a/fs/dax.c
+>> +++ b/fs/dax.c
+>> @@ -1010,8 +1010,8 @@ static sector_t dax_iomap_sector(const struct iomap *iomap, loff_t pos)
+>>   	return (iomap->addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
+>>   }
+>>   
+>> -static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+>> -			 pfn_t *pfnp)
+>> +static int dax_iomap_direct_access(const struct iomap *iomap, loff_t pos,
+>> +		size_t size, void **kaddr, pfn_t *pfnp)
+>>   {
+>>   	const sector_t sector = dax_iomap_sector(iomap, pos);
+>>   	pgoff_t pgoff;
+>> @@ -1023,11 +1023,13 @@ static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+>>   		return rc;
+>>   	id = dax_read_lock();
+>>   	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
+>> -				   NULL, pfnp);
+>> +				   kaddr, pfnp);
+>>   	if (length < 0) {
+>>   		rc = length;
+>>   		goto out;
+>>   	}
+>> +	if (!pfnp)
+>> +		goto out_check_addr;
+>>   	rc = -EINVAL;
+>>   	if (PFN_PHYS(length) < size)
+>>   		goto out;
+>> @@ -1037,6 +1039,12 @@ static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+>>   	if (length > 1 && !pfn_t_devmap(*pfnp))
+>>   		goto out;
+>>   	rc = 0;
+>> +
+>> +out_check_addr:
+>> +	if (!kaddr)
+>> +		goto out;
+>> +	if (!*kaddr)
+>> +		rc = -EFAULT;
+>>   out:
+>>   	dax_read_unlock(id);
+>>   	return rc;
+>> @@ -1401,7 +1409,7 @@ static vm_fault_t dax_fault_iter(struct vm_fault *vmf,
+>>   		return pmd ? VM_FAULT_FALLBACK : VM_FAULT_SIGBUS;
+>>   	}
+>>   
+>> -	err = dax_iomap_pfn(&iter->iomap, pos, size, &pfn);
+>> +	err = dax_iomap_direct_access(&iter->iomap, pos, size, NULL, &pfn);
+>>   	if (err)
+>>   		return pmd ? VM_FAULT_FALLBACK : dax_fault_return(err);
+>>   
+>> -- 
+>> 2.33.0
+>>
+>>
+>>
+
+
