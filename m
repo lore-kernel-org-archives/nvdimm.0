@@ -1,11 +1,11 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCEAA3FC9
-	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 06:23:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBAF52FAE
+	for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 06:24:00 +0000 (UTC)
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id DFDE767357; Thu, 16 Sep 2021 08:15:23 +0200 (CEST)
-Date: Thu, 16 Sep 2021 08:15:22 +0200
+	id D143267357; Thu, 16 Sep 2021 08:23:57 +0200 (CEST)
+Date: Thu, 16 Sep 2021 08:23:57 +0200
 From: Christoph Hellwig <hch@lst.de>
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 Cc: djwong@kernel.org, hch@lst.de, linux-xfs@vger.kernel.org,
@@ -13,9 +13,9 @@ Cc: djwong@kernel.org, hch@lst.de, linux-xfs@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
 	nvdimm@lists.linux.dev, rgoldwyn@suse.de, viro@zeniv.linux.org.uk,
 	willy@infradead.org
-Subject: Re: [PATCH v9 4/8] fsdax: Convert dax_iomap_zero to iter model
-Message-ID: <20210916061522.GA13306@lst.de>
-References: <20210915104501.4146910-1-ruansy.fnst@fujitsu.com> <20210915104501.4146910-5-ruansy.fnst@fujitsu.com>
+Subject: Re: [PATCH v9 7/8] xfs: support CoW in fsdax mode
+Message-ID: <20210916062357.GD13306@lst.de>
+References: <20210915104501.4146910-1-ruansy.fnst@fujitsu.com> <20210915104501.4146910-8-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -24,14 +24,69 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210915104501.4146910-5-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20210915104501.4146910-8-ruansy.fnst@fujitsu.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-> -s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
-> +s64 dax_iomap_zero(struct iomap_iter *iter, loff_t pos, u64 length)
+On Wed, Sep 15, 2021 at 06:45:00PM +0800, Shiyang Ruan wrote:
+> +static int
+> +xfs_dax_write_iomap_end(
+> +	struct inode 		*inode,
+> +	loff_t 			pos,
+> +	loff_t 			length,
+> +	ssize_t 		written,
+> +	unsigned 		flags,
+> +	struct iomap 		*iomap)
+> +{
+> +	struct xfs_inode	*ip = XFS_I(inode);
+> +	/*
+> +	 * Usually we use @written to indicate whether the operation was
+> +	 * successful.  But it is always positive or zero.  The CoW needs the
+> +	 * actual error code from actor().  So, get it from
+> +	 * iomap_iter->processed.
+> +	 */
+> +	const struct iomap_iter *iter =
+> +				container_of(iomap, typeof(*iter), iomap);
+> +
+> +	if (!xfs_is_cow_inode(ip))
+> +		return 0;
+> +
+> +	if (iter->processed <= 0) {
+> +		xfs_reflink_cancel_cow_range(ip, pos, length, true);
+> +		return 0;
+> +	}
+> +
+> +	return xfs_reflink_end_cow(ip, pos, iter->processed);
 
-I think we can also mark the iter const.
+Didn't we come to the conflusion last time that we don't actually
+need to poke into the iomap_iter here as the written argument is equal
+to iter->processed if it is > 0:
 
-Otherwise looks good:
+	if (iter->iomap.length && ops->iomap_end) {
+		ret = ops->iomap_end(iter->inode, iter->pos, iomap_length(iter),
+				iter->processed > 0 ? iter->processed : 0,
+				iter->flags, &iter->iomap);
+		..
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+So should be able to just do:
+
+static int
+xfs_dax_write_iomap_end(
+	struct inode 		*inode,
+	loff_t 			pos,
+	loff_t 			length,
+	ssize_t 		written,
+	unsigned 		flags,
+	struct iomap 		*iomap)
+{
+	struct xfs_inode	*ip = XFS_I(inode);
+
+	if (!xfs_is_cow_inode(ip))
+		return 0;
+
+	if (!written) {
+		xfs_reflink_cancel_cow_range(ip, pos, length, true);
+		return 0;
+	}
+
+	return xfs_reflink_end_cow(ip, pos, written);
+}
