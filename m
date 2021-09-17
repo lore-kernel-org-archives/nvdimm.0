@@ -1,316 +1,122 @@
-Received: from mail-pg1-f177.google.com (mail-pg1-f177.google.com [209.85.215.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC5D3FC3
-	for <nvdimm@lists.linux.dev>; Fri, 17 Sep 2021 01:59:22 +0000 (UTC)
-Received: by mail-pg1-f177.google.com with SMTP id n18so8046434pgm.12
-        for <nvdimm@lists.linux.dev>; Thu, 16 Sep 2021 18:59:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=7tmJkHE9ZnhLhr7IuDmZ4S5i+U1EL61djJboo2rzluc=;
-        b=WlCuDzy4YpytTQFh9BDGS6Azk9SSbF9WpZ8d0vM8V/BupkkmPblPiCqBNQpdf5I9ur
-         xDlhxc4mG6miX+TEVRVkbQs8J8Jd4fwlbflmw52Rx09HsvaPllm60yO0+D3c6auEPhSs
-         0s5+P56UbKgjjv2nFPYRjkhG60DqN4wtaHnY9D2HH6ZWeSxepkQ8E9JLMyE7xSwJgiag
-         Z9GJnoRmWBIXLqoiEisXO9oLXPzkMXEucmprlvJtuHf+Rvls6aj5tLSY+yDlzDztMy39
-         u8tvNs/STHYjKGK5jCNk/YO85WCNpudr1fGzqZfq/EXhoyRA3glMcKVxeDW4IDvId5ze
-         gtEQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=7tmJkHE9ZnhLhr7IuDmZ4S5i+U1EL61djJboo2rzluc=;
-        b=uCrSarlriQ15fQXfcmmpDhAUZQftClRBv644ji9ISNbDLwNPA5SZvL56Pv8eoqix5y
-         EU7Zcnnxhv6+gGmAh2ZVq1LQwhwH4V8k3cBkfD0jtXH8Zk99oDLKz6u1bSnDhSEpNaqZ
-         Gx88HGLJ6ZEc07HpL9DVqptpnBzSARFRWnXwcpxgC9vgaZYzDrvP/Ay0waq30LqYJhXe
-         yaaKCphfL4VdVAnip1gvrQNLkPSA9D2N3N4pXD9IZVlbeJkpCJz496vifZGqXOmqVxhx
-         pCEUj1mw0/BC+TF5r9zbVs0yU1G06v+efavRYGQj+HyuXir5nsahyKJ+2P4A6mh7etg/
-         6j7Q==
-X-Gm-Message-State: AOAM531es4M+1W/hrFJwzsF1bfPEjYlRvpYwbs0j5ue3dOYTybiQFW9s
-	GEc1hR2LokNqK3BIHgeO3ZUUH9xz/TCmdwAwJUOVCQ==
-X-Google-Smtp-Source: ABdhPJzXhrTVxa7qPxA36VXSe6bdCx2s/aRq/ZXyB1wPw3DdTFo6kDsJEtgOzO7rfN8mf8Nnasq0F0qs9iaLB6CWgxo=
-X-Received: by 2002:a62:1b92:0:b0:3eb:3f92:724 with SMTP id
- b140-20020a621b92000000b003eb3f920724mr8104210pfb.3.1631843961914; Thu, 16
- Sep 2021 18:59:21 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A150F3FC5
+	for <nvdimm@lists.linux.dev>; Fri, 17 Sep 2021 11:30:25 +0000 (UTC)
+Received: from zn.tnic (p200300ec2f127e008eb9261aa740485d.dip0.t-ipconnect.de [IPv6:2003:ec:2f12:7e00:8eb9:261a:a740:485d])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id BB38B1EC04D1;
+	Fri, 17 Sep 2021 13:30:19 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+	t=1631878219;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+	bh=kz340oLLW1OXGW+dC8d0wzplbyr1JWHig//GGVFPcLE=;
+	b=Gg1vcytG7SXBKNOqPvo5s4llzQV7UJ2AZd1Vt6tk5p67I4Xmdx1mH+95zSLTqtI1cRph1C
+	pFx43uiw3qwTq0XCztK/+B6bLKAM3csDXqsPkWQ5AV66/06lQjgwRcmYghsxRelMO2fEUs
+	s2NJiD6nq8ramvSdAU9pZxeneVzW2vM=
+Date: Fri, 17 Sep 2021 13:30:13 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, Jane Chu <jane.chu@oracle.com>,
+	Luis Chamberlain <mcgrof@suse.com>, Tony Luck <tony.luck@intel.com>
+Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+Message-ID: <YUR8RTx9blI2ezvQ@zn.tnic>
+References: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <YT8n+ae3lBQjqoDs@zn.tnic>
+ <CAPcyv4hNzR8ExvYxguvyu6N6Md1x0QVSnDF_5G1WSruK=gvgEA@mail.gmail.com>
+ <YUHN1DqsgApckZ/R@zn.tnic>
+ <CAPcyv4hABimEQ3z7HNjaQBWNtq7yhEXe=nbRx-N_xCuTZ1D_-g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210831090459.2306727-1-vishal.l.verma@intel.com> <20210831090459.2306727-7-vishal.l.verma@intel.com>
-In-Reply-To: <20210831090459.2306727-7-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 16 Sep 2021 18:59:10 -0700
-Message-ID: <CAPcyv4iR3CSPBQrcU6JLLqKRaAChcfd=REQR+1NEthNZsDmTBQ@mail.gmail.com>
-Subject: Re: [ndctl PATCH 6/7] daxctl/device.c: add an option for getting
- params from a config file
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, QI Fuli <qi.fuli@jp.fujitsu.com>, 
-	"Hu, Fenghua" <fenghua.hu@intel.com>, QI Fuli <qi.fuli@fujitsu.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hABimEQ3z7HNjaQBWNtq7yhEXe=nbRx-N_xCuTZ1D_-g@mail.gmail.com>
 
-On Tue, Aug 31, 2021 at 2:05 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> Add a new option to daxctl-reconfigure-device that allows it to
-> comprehend the new global config system in ndctl/daxctl. With this, the
-> reconfigure-device command can query the config to match a specific
-> device UUID, and operate using the parameters supplied in that INI
-> section.
->
-> This is in preparation to make daxctl device reconfiguration (usually
-> as system-ram) policy based, so that reconfiguration can happen
-> automatically on boot.
->
-> Cc: QI Fuli <qi.fuli@fujitsu.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  daxctl/daxctl.c    |   1 +
->  daxctl/device.c    | 141 ++++++++++++++++++++++++++++++++++++++++++++-
->  daxctl/Makefile.am |   1 +
->  3 files changed, 142 insertions(+), 1 deletion(-)
->
-> diff --git a/daxctl/daxctl.c b/daxctl/daxctl.c
-> index 928814c..dc7ac5f 100644
-> --- a/daxctl/daxctl.c
-> +++ b/daxctl/daxctl.c
-> @@ -95,6 +95,7 @@ int main(int argc, const char **argv)
->         rc = daxctl_new(&ctx);
->         if (rc)
->                 goto out;
-> +       daxctl_set_configs(&ctx, DAXCTL_CONF_DIR);
+On Thu, Sep 16, 2021 at 01:33:42PM -0700, Dan Williams wrote:
+> I am specifically talking about the memory_failure_dev_pagemap() path
+> taken from memory_failure().
+> 
+> > But then I have no clue what the "DAX-memory_failure()" path is.
+> 
+> Sorry, I should not have lazily used {PMEM,DAX} memory_failure() to
+> refer to the exact routine in question: memory_failure_dev_pagemap().
+> That path is taken when memory_failure() sees that a pfn was mapped by
+> memremap_pages(). It determines that the pfn does not represent a
+> dynamic page allocator page and may refer to a static page of storage
+> from a device like /dev/pmem, or /dev/dax.
 
-Now that I see how this is used, I think this wants to be called:
+Aaaha, that's that innocent-looking pfn_to_online_page() call there in
+memory_failure() which would return NULL for pmem/dax pages.
 
-daxctl_ctx_add_configs()
+> The zeroing of the poison comes optionally later if userspace
+> explicitly asks for it to be cleared.
 
-...because the operation is populating the context with all the
-configuration fragments found in the given directory.
+I see.
 
-I would also have an option to specify an override for the config
-directory, maybe that could be an environment variable?
+> Yes. The device driver avoids reconsumption of the same error by
+> recording the error in a "badblocks" structure (block/badblocks.c).
+> The driver consults its badblocks instance on every subsequent access
+> and preemptively returns EIO. The driver registers for machine-check
+> notifications and translates those events into badblocks entries. So,
+> repeat consumption is avoided unless/until the babblocks entry can be
+> cleared along with the poison itself.
 
->         main_handle_internal_command(argc, argv, ctx, commands,
->                         ARRAY_SIZE(commands), PROG_DAXCTL);
->         daxctl_unref(ctx);
-> diff --git a/daxctl/device.c b/daxctl/device.c
-> index a427b7d..99a4548 100644
-> --- a/daxctl/device.c
-> +++ b/daxctl/device.c
-> @@ -14,8 +14,10 @@
->  #include <util/filter.h>
->  #include <json-c/json.h>
->  #include <json-c/json_util.h>
-> +#include <ndctl/libndctl.h>
->  #include <daxctl/libdaxctl.h>
->  #include <util/parse-options.h>
-> +#include <util/parse-configs.h>
->  #include <ccan/array_size/array_size.h>
->
->  static struct {
-> @@ -25,6 +27,7 @@ static struct {
->         const char *size;
->         const char *align;
->         const char *input;
-> +       bool check_config;
->         bool no_online;
->         bool no_movable;
->         bool force;
-> @@ -75,7 +78,9 @@ OPT_STRING('m', "mode", &param.mode, "mode", "mode to switch the device to"), \
->  OPT_BOOLEAN('N', "no-online", &param.no_online, \
->         "don't auto-online memory sections"), \
->  OPT_BOOLEAN('f', "force", &param.force, \
-> -               "attempt to offline memory sections before reconfiguration")
-> +               "attempt to offline memory sections before reconfiguration"), \
-> +OPT_BOOLEAN('C', "check-config", &param.check_config, \
-> +               "use config files to determine parameters for the operation")
->
->  #define CREATE_OPTIONS() \
->  OPT_STRING('s', "size", &param.size, "size", "size to switch the device to"), \
-> @@ -218,6 +223,130 @@ err:
->         return rc;
->  }
->
-> +static int conf_string_to_bool(const char *str)
-> +{
-> +       if (!str)
-> +               return INT_MAX;
-> +       if (strncmp(str, "t", 1) == 0 ||
-> +                       strncmp(str, "T", 1) == 0 ||
-> +                       strncmp(str, "y", 1) == 0 ||
-> +                       strncmp(str, "Y", 1) == 0 ||
-> +                       strncmp(str, "1", 1) == 0)
-> +               return true;
-> +       if (strncmp(str, "f", 1) == 0 ||
-> +                       strncmp(str, "F", 1) == 0 ||
-> +                       strncmp(str, "n", 1) == 0 ||
-> +                       strncmp(str, "N", 1) == 0 ||
-> +                       strncmp(str, "0", 1) == 0)
-> +               return false;
+Sounds good.
 
-Doesn't iniparser_getboolean() already do this conversion for you?
+> I'll note that going forward the filesystem wants to be more involved
+> in tracking and managing these errors so the driver will grow the
+> ability to forward those notifications up the stack.
 
-> +       return INT_MAX;
-> +}
-> +
-> +#define conf_assign_inverted_bool(p, conf_var) \
-> +do { \
-> +       if (conf_string_to_bool(conf_var) != INT_MAX) \
-> +               param.p = !conf_string_to_bool(conf_var); \
-> +} while(0)
-> +
-> +static int parse_config_reconfig_set_params(struct daxctl_ctx *ctx, const char *device,
-> +                                           const char *uuid)
-> +{
-> +       const char *conf_online = NULL, *conf_movable = NULL;
-> +       const struct config configs[] = {
-> +               CONF_SEARCH("auto-online", "uuid", uuid, "mode", &param.mode, NULL),
-> +               CONF_SEARCH("auto-online", "uuid", uuid, "online", &conf_online, NULL),
-> +               CONF_SEARCH("auto-online", "uuid", uuid, "movable", &conf_movable, NULL),
-> +               CONF_END(),
-> +       };
-> +       const char *prefix = "./";
-> +       int rc;
-> +
-> +       rc = parse_configs_prefix(daxctl_get_configs(ctx), prefix, configs);
-> +       if (rc < 0)
-> +               return rc;
-> +
-> +       conf_assign_inverted_bool(no_online, conf_online);
-> +       conf_assign_inverted_bool(no_movable, conf_movable);
-> +
-> +       return 0;
-> +}
-> +
-> +static bool daxctl_ndns_has_device(struct ndctl_namespace *ndns,
-> +                                   const char *device)
-> +{
-> +       struct daxctl_region *dax_region;
-> +       struct ndctl_dax *dax;
-> +
-> +       dax = ndctl_namespace_get_dax(ndns);
-> +       if (!dax)
-> +               return false;
-> +
-> +       dax_region = ndctl_dax_get_daxctl_region(dax);
-> +       if (dax_region) {
-> +               struct daxctl_dev *dev;
-> +
-> +               dev = daxctl_dev_get_first(dax_region);
-> +               if (dev) {
-> +                       if (strcmp(daxctl_dev_get_devname(dev), device) == 0)
-> +                               return true;
-> +               }
-> +       }
-> +       return false;
-> +}
-> +
-> +static int parse_config_reconfig(struct daxctl_ctx *ctx, const char *device)
-> +{
-> +       struct ndctl_namespace *ndns;
-> +       struct ndctl_ctx *ndctl_ctx;
-> +       struct ndctl_region *region;
-> +       struct ndctl_bus *bus;
-> +       struct ndctl_dax *dax;
-> +       int rc, found = 0;
-> +       char uuid_buf[40];
-> +       uuid_t uuid;
-> +
-> +       if (strcmp(device, "all") == 0)
-> +               return 0;
-> +
-> +       rc = ndctl_new(&ndctl_ctx);
-> +       if (rc < 0)
-> +               return rc;
-> +
-> +        ndctl_bus_foreach(ndctl_ctx, bus) {
-> +               ndctl_region_foreach(bus, region) {
-> +                       ndctl_namespace_foreach(region, ndns) {
-> +                               if (daxctl_ndns_has_device(ndns, device)) {
-> +                                       dax = ndctl_namespace_get_dax(ndns);
-> +                                       if (!dax)
-> +                                               continue;
-> +                                       ndctl_dax_get_uuid(dax, uuid);
-> +                                       found = 1;
-> +                               }
-> +                       }
-> +               }
-> +       }
-> +
-> +       if (!found) {
-> +               fprintf(stderr, "no UUID match for %s found in config files\n",
-> +                       device);
-> +               return 0;
-> +       }
-> +
-> +       uuid_unparse(uuid, uuid_buf);
-> +       return parse_config_reconfig_set_params(ctx, device, uuid_buf);
-> +}
-> +
-> +static int parse_device_config(struct daxctl_ctx *ctx, const char *device,
-> +                              enum device_action action)
-> +{
-> +       switch (action) {
-> +       case ACTION_RECONFIG:
-> +               return parse_config_reconfig(ctx, device);
-> +       default:
-> +               return 0;
-> +       }
-> +}
-> +
->  static const char *parse_device_options(int argc, const char **argv,
->                 enum device_action action, const struct option *options,
->                 const char *usage, struct daxctl_ctx *ctx)
-> @@ -279,6 +408,16 @@ static const char *parse_device_options(int argc, const char **argv,
->         if (param.human)
->                 flags |= UTIL_JSON_HUMAN;
->
-> +       /* Scan config file(s) for options. This sets param.foo accordingly */
-> +       if (param.check_config) {
-> +               rc = parse_device_config(ctx, argv[0], action);
+... which would save the ask-the-driver each time thing. Yap.
 
-What happens if someone does:
+> It does. In addition to machine-check synchronous notification of
+> poison, there are asynchronous scanning mechanisms that prepopulate
+> the badblocks entries to get ahead of consumption events.
 
-daxctl reconfigure-device -C --no-online /dev/dax0.0
+Probably something similar to patrol scrubbing on normal DRAM.
 
-...and it matches an entry in the configuration file that has
-"system-ram.online = true".
+> ... Because the entire page is dead there is no need for UC because all
+> the cachelines are gone, nothing to read-around in this page. In short
+> DRAM and PMEM want to share the exact same policy here and use NP for
+> whole_page() and UC for not. Just the small matter of ignoring the
+> memtype by using _set_memory_uc().
 
-My expectation is that precedence ordering is:
+Hmm, so looking at this more:
 
-built-in defaults
-configuration file settings
-command line options
+        else
+                rc = set_memory_uc(decoy_addr, 1);
 
-Where later entries in that list override settings from the previous
-entry. That said, I don't see an easy way to achieve this with parse
-options, so might need to fail if anything but -C is specified as an
-option until we can fix that conflict.
+->  memtype_reserve(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
 
-> +               if (rc) {
-> +                       fprintf(stderr, "error parsing config file: %s\n",
-> +                               strerror(-rc));
-> +                       return NULL;
-> +               }
-> +       }
-> +
->         /* Handle action-specific options */
->         switch (action) {
->         case ACTION_RECONFIG:
-> diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-> index a9845a0..f30c485 100644
-> --- a/daxctl/Makefile.am
-> +++ b/daxctl/Makefile.am
-> @@ -23,6 +23,7 @@ daxctl_SOURCES =\
->
->  daxctl_LDADD =\
->         lib/libdaxctl.la \
-> +       ../ndctl/lib/libndctl.la \
->         ../libutil.a \
->         $(UUID_LIBS) \
->         $(KMOD_LIBS) \
-> --
-> 2.31.1
->
+->  memtype_reserve(__pa(addr), __pa(addr) + 1,
+
+Looking at
+
+  17fae1294ad9 ("x86/{mce,mm}: Unmap the entire page if the whole page is affected and poisoned")
+
+it says
+
+    Fix is to check the scope of the poison by checking the MCi_MISC register.
+    If the entire page is affected, then unmap the page. If only part of the
+    page is affected, then mark the page as uncacheable.
+
+so I guess for normal DRAM we still want to map the page uncacheable so
+that other parts except that cacheline can still be read.
+
+And PMEM should be excluded from that treatise here because it needs to
+be WB, as you said earlier.
+
+Right?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+https://people.kernel.org/tglx/notes-about-netiquette
