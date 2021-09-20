@@ -1,29 +1,28 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0FD072
-	for <nvdimm@lists.linux.dev>; Mon, 20 Sep 2021 22:51:26 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10113"; a="203398951"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E725272
+	for <nvdimm@lists.linux.dev>; Mon, 20 Sep 2021 22:52:18 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10113"; a="223294443"
 X-IronPort-AV: E=Sophos;i="5.85,309,1624345200"; 
-   d="scan'208";a="203398951"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Sep 2021 15:51:25 -0700
+   d="scan'208";a="223294443"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Sep 2021 15:52:18 -0700
 X-IronPort-AV: E=Sophos;i="5.85,309,1624345200"; 
-   d="scan'208";a="511562553"
+   d="scan'208";a="556519811"
 Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Sep 2021 15:51:25 -0700
-Date: Mon, 20 Sep 2021 15:51:25 -0700
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Sep 2021 15:52:18 -0700
+Date: Mon, 20 Sep 2021 15:52:18 -0700
 From: Ira Weiny <ira.weiny@intel.com>
-To: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>
+To: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	Dave Jiang <dave.jiang@intel.com>, linux-block@vger.kernel.org,
 	nvdimm@lists.linux.dev
-Subject: Re: [PATCH 2/3] nvdimm/pmem: move dax_attribute_group from dax to
- pmem
-Message-ID: <20210920225125.GY3169279@iweiny-DESK2.sc.intel.com>
+Subject: Re: [PATCH 1/3] nvdimm/pmem: fix creating the dax group
+Message-ID: <20210920225216.GZ3169279@iweiny-DESK2.sc.intel.com>
 References: <20210920072726.1159572-1-hch@lst.de>
- <20210920072726.1159572-3-hch@lst.de>
+ <20210920072726.1159572-2-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -32,47 +31,47 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210920072726.1159572-3-hch@lst.de>
+In-Reply-To: <20210920072726.1159572-2-hch@lst.de>
 User-Agent: Mutt/1.11.1 (2018-12-01)
 
-On Mon, Sep 20, 2021 at 09:27:25AM +0200, Christoph Hellwig wrote:
+On Mon, Sep 20, 2021 at 09:27:24AM +0200, Christoph Hellwig wrote:
+> The recent block layer refactoring broke the way how the pmem driver
+> abused device_add_disk.  Fix this by properly passing the attribute groups
+> to device_add_disk.
+> 
+> Fixes: 52b85909f85d ("block: fold register_disk into device_add_disk")
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-...
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 
+> ---
+>  drivers/nvdimm/pmem.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+> 
 > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-> index ef4950f808326..bbeb3f46db157 100644
+> index 72de88ff0d30d..ef4950f808326 100644
 > --- a/drivers/nvdimm/pmem.c
 > +++ b/drivers/nvdimm/pmem.c
-> @@ -328,6 +328,49 @@ static const struct dax_operations pmem_dax_ops = {
->  	.zero_page_range = pmem_dax_zero_page_range,
->  };
+> @@ -380,7 +380,6 @@ static int pmem_attach_disk(struct device *dev,
+>  	struct nd_pfn_sb *pfn_sb;
+>  	struct pmem_device *pmem;
+>  	struct request_queue *q;
+> -	struct device *gendev;
+>  	struct gendisk *disk;
+>  	void *addr;
+>  	int rc;
+> @@ -489,10 +488,8 @@ static int pmem_attach_disk(struct device *dev,
+>  	}
+>  	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+>  	pmem->dax_dev = dax_dev;
+> -	gendev = disk_to_dev(disk);
+> -	gendev->groups = pmem_attribute_groups;
 >  
-> +static ssize_t write_cache_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	struct pmem_device *pmem = dev_to_disk(dev)->private_data;
-
-I want to say this should be dax_get_private()...  However, looking at the use
-of dax_get_private() not a single caller checks for NULL!  :-(
-
-So now I wonder why dax_get_private() exists...  :-/
-
-A quick history search does not make anything apparent.  When the DAXDEV_ALIVE
-check was added to dax_get_private() no callers were changed to account for a
-potential NULL return.
-
-Dan?
-
-> +
-> +	return sprintf(buf, "%d\n", !!dax_write_cache_enabled(pmem->dax_dev));
-> +}
-> +
-> +static ssize_t write_cache_store(struct device *dev,
-> +		struct device_attribute *attr, const char *buf, size_t len)
-> +{
-> +	struct pmem_device *pmem = dev_to_disk(dev)->private_data;
-
-Same here...
-
-Ira
-
+> -	device_add_disk(dev, disk, NULL);
+> +	device_add_disk(dev, disk, pmem_attribute_groups);
+>  	if (devm_add_action_or_reset(dev, pmem_release_disk, pmem))
+>  		return -ENOMEM;
+>  
+> -- 
+> 2.30.2
+> 
