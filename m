@@ -1,93 +1,150 @@
-Received: from mail-pl1-f178.google.com (mail-pl1-f178.google.com [209.85.214.178])
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B10F72
-	for <nvdimm@lists.linux.dev>; Mon, 20 Sep 2021 23:50:15 +0000 (UTC)
-Received: by mail-pl1-f178.google.com with SMTP id w6so12145964pll.3
-        for <nvdimm@lists.linux.dev>; Mon, 20 Sep 2021 16:50:15 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E71C3FCB
+	for <nvdimm@lists.linux.dev>; Tue, 21 Sep 2021 02:05:02 +0000 (UTC)
+Received: by mail-pg1-f176.google.com with SMTP id t1so19294557pgv.3
+        for <nvdimm@lists.linux.dev>; Mon, 20 Sep 2021 19:05:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=OIoT3CHcF6Ui6SUKTLSeS0m12Ndh8eiq7ywYH+1sD+8=;
-        b=XrS/I4JfqWkCKG8V0E5V7TUsfi4r56XeofNU3jWswDlz+IdF93Kj/PTaFLuvC7QgK9
-         DUBwWm+2vL7riPfws29ww+AwWsypwgSIm8sz4IX8C4bJVp3lWDJFORZFHFjbwPn5mxYR
-         Br5U/2fRwRcLcjWl3onWZ4KgpuNH0IWRLVD4IL4QdWCAK2Pp73dzL/+NSxCQVOe7wlRQ
-         LLOTdy/m78Ii2ccdfTWWpUr31N0HME/kAKd7VOAXaPY2vB5C7w00QbP8P81wjPnQofGn
-         l/G3WVeRF+GTgDOwEtOjLyErYWnL840cltdtInJuw3AvhiJiMUyx8b2PIdbGrj1DOhQ1
-         NXbg==
+        bh=FYrM/RzmYkooaIgiaBS+xzc+ouPWh3U85lPQJ64IViw=;
+        b=K9vEjPqLTDcznukBNO9tBFRvGlY2hgu3nvAMKqu01b+khPED8fHMEGirh2wukqJsSk
+         9MnKeL2LuGxmYiHKnX4QmN9H3zF5DMhQF1XY1A9t8J73A8JbXb4ioKxPS0+id29m3R1y
+         KPtnwAW+UZ8wxbW33bWEC2WUB2qpGIM1ZrS72E/OjSH1uMmGcIYtb0C8ok0PjU8XP4bY
+         SWcFYzitNcCoH2jQlDm9BU/EerH8JXEJZT3xI2cIGZaXKZVaO7OfssZvo+Oz3l94oyYe
+         JSuLcb7OaDahXu1VSI0uwBP18EdcXOU7AiOf3CX3g4WOW2BdKkgQWz8Y6Qo0qwk6u8un
+         M9/Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=OIoT3CHcF6Ui6SUKTLSeS0m12Ndh8eiq7ywYH+1sD+8=;
-        b=sicmmyx1eELGJLGresz5TpUZ4QHjskQ+92kUaVIKKtIpeIn0QrlheaPIEg1jQ0+Cea
-         yA0XMHwu6WII8xNmZ3wy7KUel2Bc+VPIOHbHJfQ0WjRPged6V9FpCcgnthHpN+Ad43E3
-         gDIl8TbSSF43ZBOrSrwLfHMia1FQLQUzMdlwU2d28DmWwmRNqcxWUYE3ipSF+ULrNQBu
-         9nTvOoKY5aGXrfhKllY8uoKb4OEjITHx/vuXNy2xb9VKxanOFHt0+mW8DvENWU/ta0sm
-         1+xynsztuqV63sYqepDuugAb2x0ZFAsTfS+xwtdlcytiKzGlMzn/C545yzYNoiQEDJqD
-         euhA==
-X-Gm-Message-State: AOAM531T9BxLj6Yh16Gpu1mdbNJ03lV1xqrCk72rjhOoe3nel9uzgTlX
-	dPmfZH1fuIUsmebJBI1ihXi3esge1CW2qLNejUS/oQ==
-X-Google-Smtp-Source: ABdhPJwiPF8vZVbVc35Iub4ypV+u11zyGNfpowHKQKuKj6XlQ+gogtNtDHMHWMfKf9ZJPTPqzwoOIQXgvVfgvCvtytI=
-X-Received: by 2002:a17:902:cec8:b0:13b:9ce1:b3ef with SMTP id
- d8-20020a170902cec800b0013b9ce1b3efmr24874704plg.4.1632181814749; Mon, 20 Sep
- 2021 16:50:14 -0700 (PDT)
+        bh=FYrM/RzmYkooaIgiaBS+xzc+ouPWh3U85lPQJ64IViw=;
+        b=IIeKsAXtuRcFRXW80bHAYJLypXe7FOAYLxcSnp0cCDvdscWSr9uyffTfHEfE88Kvj2
+         JnEt3MSFtZyR6rK9T0gCbhrUvKmVaMZv08GrfO43oErNOHYOdWWTMSjFkufp33j5NYpO
+         FQTvs10jlP4rjHwENaGf9A7nVk9/0ImMrTN9alNrM0GFXssa9VM79DRAwOf3UHQxy8BV
+         hqGbLlYfDc1S5GtjfIpiGnqyMXh8y+HuI/sxOckKmY1ZqZQTblTH8FVYvtp8a7/4Wvfx
+         L3Sk0WJ8NQdrq8Uecal3eT2x9XiRhuNhlIQS/HQW6J4hRcxk4byvFZ9m3eeWRf35VdvK
+         tcXA==
+X-Gm-Message-State: AOAM5316VUkkWFC6B8HxqnlOIGVIxq4gcinJCxJpT0XA72sbYt7EuNAu
+	6czoYU26eLS6WW+ibjVLXrTZ7kWSHt5vLBkZX5BTwg==
+X-Google-Smtp-Source: ABdhPJyC1RFA56n7jX4OaZitCuQ5VoFk7iom3j+Ez4Z9MCXFdonTHD2S2VHVDlI+ktsWQCMV2XY/yvTK6mgDrGuL3Zg=
+X-Received: by 2002:aa7:9d84:0:b0:447:c2f4:4a39 with SMTP id
+ f4-20020aa79d84000000b00447c2f44a39mr6611401pfq.86.1632189901949; Mon, 20 Sep
+ 2021 19:05:01 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210920072726.1159572-1-hch@lst.de> <20210920072726.1159572-4-hch@lst.de>
-In-Reply-To: <20210920072726.1159572-4-hch@lst.de>
+References: <162561960776.1149519.9267511644788011712.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <YT8n+ae3lBQjqoDs@zn.tnic> <CAPcyv4hNzR8ExvYxguvyu6N6Md1x0QVSnDF_5G1WSruK=gvgEA@mail.gmail.com>
+ <YUHN1DqsgApckZ/R@zn.tnic> <CAPcyv4hABimEQ3z7HNjaQBWNtq7yhEXe=nbRx-N_xCuTZ1D_-g@mail.gmail.com>
+ <YUR8RTx9blI2ezvQ@zn.tnic>
+In-Reply-To: <YUR8RTx9blI2ezvQ@zn.tnic>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 20 Sep 2021 16:50:03 -0700
-Message-ID: <CAPcyv4iVL7bevm_MeFnkRK12SkwO4k5aR3-4KOAGMxThmJwOuA@mail.gmail.com>
-Subject: Re: [PATCH 3/3] block: warn if ->groups is set when calling add_disk
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, linux-block@vger.kernel.org, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
+Date: Mon, 20 Sep 2021 19:04:50 -0700
+Message-ID: <CAPcyv4jOk_Ej5op9ZZM+=OCitUsmp0RCZNH=PFqYTCoUeXXCCg@mail.gmail.com>
+Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+To: Borislav Petkov <bp@alien8.de>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, Jane Chu <jane.chu@oracle.com>, 
+	Luis Chamberlain <mcgrof@suse.com>, Tony Luck <tony.luck@intel.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Sep 20, 2021 at 12:30 AM Christoph Hellwig <hch@lst.de> wrote:
+On Fri, Sep 17, 2021 at 4:30 AM Borislav Petkov <bp@alien8.de> wrote:
 >
-> The proper API is to pass the groups to device_add_disk, but the code
-> used to also allow groups being set before calling *add_disk.  Warn
-> about that but keep the group pointer intact for now so that it can
-> be removed again after a grace period.
+> On Thu, Sep 16, 2021 at 01:33:42PM -0700, Dan Williams wrote:
+> > I am specifically talking about the memory_failure_dev_pagemap() path
+> > taken from memory_failure().
+> >
+> > > But then I have no clue what the "DAX-memory_failure()" path is.
+> >
+> > Sorry, I should not have lazily used {PMEM,DAX} memory_failure() to
+> > refer to the exact routine in question: memory_failure_dev_pagemap().
+> > That path is taken when memory_failure() sees that a pfn was mapped by
+> > memremap_pages(). It determines that the pfn does not represent a
+> > dynamic page allocator page and may refer to a static page of storage
+> > from a device like /dev/pmem, or /dev/dax.
 >
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Fixes: 52b85909f85d ("block: fold register_disk into device_add_disk")
-> ---
->  block/genhd.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+> Aaaha, that's that innocent-looking pfn_to_online_page() call there in
+> memory_failure() which would return NULL for pmem/dax pages.
+
+Exactly.
+
 >
-> diff --git a/block/genhd.c b/block/genhd.c
-> index 7b6e5e1cf9564..409cf608cc5bd 100644
-> --- a/block/genhd.c
-> +++ b/block/genhd.c
-> @@ -439,7 +439,8 @@ int device_add_disk(struct device *parent, struct gendisk *disk,
->         dev_set_uevent_suppress(ddev, 1);
+> > The zeroing of the poison comes optionally later if userspace
+> > explicitly asks for it to be cleared.
 >
->         ddev->parent = parent;
-> -       ddev->groups = groups;
-> +       if (!WARN_ON_ONCE(ddev->groups))
-> +               ddev->groups = groups;
+> I see.
+>
+> > Yes. The device driver avoids reconsumption of the same error by
+> > recording the error in a "badblocks" structure (block/badblocks.c).
+> > The driver consults its badblocks instance on every subsequent access
+> > and preemptively returns EIO. The driver registers for machine-check
+> > notifications and translates those events into badblocks entries. So,
+> > repeat consumption is avoided unless/until the babblocks entry can be
+> > cleared along with the poison itself.
+>
+> Sounds good.
+>
+> > I'll note that going forward the filesystem wants to be more involved
+> > in tracking and managing these errors so the driver will grow the
+> > ability to forward those notifications up the stack.
+>
+> ... which would save the ask-the-driver each time thing. Yap.
+>
+> > It does. In addition to machine-check synchronous notification of
+> > poison, there are asynchronous scanning mechanisms that prepopulate
+> > the badblocks entries to get ahead of consumption events.
+>
+> Probably something similar to patrol scrubbing on normal DRAM.
 
-That feels too compact to me, and dev_WARN_ONCE() might save someone a
-git blame to look up the reason for the warning:
+Yes, although I believe that DRAM patrol scrubbing is being done from
+the host memory controller, these PMEM DIMMs have firmware and DMA
+engines *in the DIMM* to do this scrub work.
 
-    dev_WARN_ONCE(parent, ddev->groups, "unexpected pre-populated
-attribute group\n");
-    if (!ddev->groups)
-        ddev->groups = groups;
+> > ... Because the entire page is dead there is no need for UC because all
+> > the cachelines are gone, nothing to read-around in this page. In short
+> > DRAM and PMEM want to share the exact same policy here and use NP for
+> > whole_page() and UC for not. Just the small matter of ignoring the
+> > memtype by using _set_memory_uc().
+>
+> Hmm, so looking at this more:
+>
+>         else
+>                 rc = set_memory_uc(decoy_addr, 1);
+>
+> ->  memtype_reserve(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
+>
+> ->  memtype_reserve(__pa(addr), __pa(addr) + 1,
+>
+> Looking at
+>
+>   17fae1294ad9 ("x86/{mce,mm}: Unmap the entire page if the whole page is affected and poisoned")
+>
+> it says
+>
+>     Fix is to check the scope of the poison by checking the MCi_MISC register.
+>     If the entire page is affected, then unmap the page. If only part of the
+>     page is affected, then mark the page as uncacheable.
+>
+> so I guess for normal DRAM we still want to map the page uncacheable so
+> that other parts except that cacheline can still be read.
 
-...but not a deal breaker. Either way you can add:
+Perhaps, but I don't know how you do that if memory_failure() has
+"offlined" the DRAM page, in the case of PMEM you can issue a
+byte-aligned direct-I/O access to the exact storage locations around
+the poisoned cachelines.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> And PMEM should be excluded from that treatise here because it needs to
+> be WB, as you said earlier.
+>
+> Right?
 
-Jens, I'm ok for the final spin of this series to go through block.git
-since the referenced commits in Fixes: went that route, just let me
-know if you want me to take them.
+PMEM can still go NP if the entire page is failed, so no need to
+exclude PMEM from the treatise because the driver's badblocks
+implementation will cover the NP page, and the driver can use
+clear_mce_nospec() to recover the WB mapping / access after the poison
+has been cleared.
