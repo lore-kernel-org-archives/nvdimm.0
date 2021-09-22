@@ -1,77 +1,104 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 527873FCB
-	for <nvdimm@lists.linux.dev>; Wed, 22 Sep 2021 17:55:12 +0000 (UTC)
-Received: by mail-pj1-f54.google.com with SMTP id k23-20020a17090a591700b001976d2db364so2942849pji.2
-        for <nvdimm@lists.linux.dev>; Wed, 22 Sep 2021 10:55:12 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ADDC93FCB
+	for <nvdimm@lists.linux.dev>; Wed, 22 Sep 2021 18:02:43 +0000 (UTC)
+Received: by mail-pg1-f176.google.com with SMTP id 81so13458pgb.0
+        for <nvdimm@lists.linux.dev>; Wed, 22 Sep 2021 11:02:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=N8+jps3A14GynJSmzw6LICUadjrSD3zVUsUJsLV0rZk=;
-        b=WEcDd3eyNLlpTBr5G2w6/U3ACRbzvqkURm/T54pVZ+ceKtWFyz/x6J/QBF0iuPstI0
-         1j3TF0GlIoCp7/8Gtpg5SUC2Z8lXRey+3ZSd0qP+bgpH4hvRdZ1eOTYTnDA2kLhJV2cm
-         GRk3lliL6TVYocTBnXxg+aM88nDKCNWeLAk17R3QoD1Ex6ff43CPVBz9J/umHz4iRr4t
-         ujejwc7J+kLTEOfVRs4pdFl7ZL08fpR1kKMcT8dcabFhV/KeLTqixR4pnnJYCkPilrWu
-         wqd+UZ0QdBW29D/8b95V/HVgg8egLQHf//AegMC/8d1bHR0TitPJsMVNEegYPonB3lP1
-         +6AQ==
+        bh=an6XTyp8uBzrGIm8VthzqOaurFhFc1KyG06IOfAStAA=;
+        b=EwqISUaWBJ8O5geTpZwGyi7fQL+1ypivOGpEWay2ffpMgSyrQ/R+Mw2qWV7wfQVmhF
+         GtM9v1WUE4U9ys8rICKPHNwbQ60714zTq3ZlQMokC/BQa7P0uTnYfstsA2XrXP7V9zPd
+         CTf+5xFq62zey6lfmMfQIEORp13sh9EIX+dqLzwZnQo7PCXWvGckQSLV1oPwpsguDpwu
+         1gnSkO0ocJnjH3dt4gv6QSeO/SgqbJkFaO2wEfdMx32vJyusQEydSmDwDWMRHYopk5j8
+         qSLro7xL06koQ84b7V6QLizDTH/JMdNv6RmNX6QM3AP/fmwDf86XcsfJY2aWFljX75UF
+         lBig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=N8+jps3A14GynJSmzw6LICUadjrSD3zVUsUJsLV0rZk=;
-        b=I3A7hpNIHD8Rbl/huFqC2QpOzWh/3Mqc/oJd2jpxZ2+RDaYCULhXAI7sfBe91ZewcX
-         1JfiXyiqRptRGTjd5QxaVuhhXNPNRJ3knioyrJqQykf9gYiHEbgFE3zfMOO9HhV0g9zG
-         tyvyuhi7H03nc7biTCo2glxPDBgItA+XlOwArg4TPleN4kAK5xKzZOmqf6l4wLGZ2GUL
-         fIo/nzd4GcK+R3CQ6DO3SHy7FExmR9OCi5hGjPW4KoUmvFaynzpUQ+J43O2EjbfZ/mGl
-         vmAxwCCzdrDP56OTLDMJUF984xw1pqPNmAUORpN2ug+kqi0qJZORWai1hwdUV2jUh376
-         xxWA==
-X-Gm-Message-State: AOAM532YDdZQwPt0ITHL/atpzR2Z63bce402PGE8O1qEMsqXc8UdOpzR
-	saiOUDbFPhFkeG2FAUBlZA+x8ePLd5aupRJq76a2sA==
-X-Google-Smtp-Source: ABdhPJxDpETDisB1tJJJ3uVbr3cMcT+3v7yQjIsumtaYD7TRgjGOZKPn8Hi8Ai2wCoWFgFR5Pq9dPHOWjA1n+IRsAWM=
-X-Received: by 2002:a17:90a:f18f:: with SMTP id bv15mr307453pjb.93.1632333311632;
- Wed, 22 Sep 2021 10:55:11 -0700 (PDT)
+        bh=an6XTyp8uBzrGIm8VthzqOaurFhFc1KyG06IOfAStAA=;
+        b=SyQZ8LONKs/196ZhhBqXi/H3ayEke5exhqVsA5fmfp1gmLkQKZKCduHTRf0zsdIEnR
+         n6PJJfXD3KanlxfL74XJsRExp7iwJ2/bPoTZ1a2ZCoLiieI3lPpuQKITs7vT8OA6oWYn
+         o+8TLg1zSra6lpJyvc0fst5TujyWcKJ8tE+HkqPTYxZ6d5JnJWiJQqwceiKY+CQO49jZ
+         7L4Ypj28WfoRlqxVxTVQuJJ7hXtRymL9cmoVmIfJj0BTrDYIHG08Ti7cAK2s60hV/Jgf
+         mEGSLr8Nx9w/SIIkcX5r08vcsXy/pBJz+Hc9ulxL0MdSjpY/+9TdXWrJlbtbcmA1+WYX
+         kjJg==
+X-Gm-Message-State: AOAM532lBNl7ZrGPlqfKnClGXbbLkCpJbT/pCMoFEg1lYpLE+w57ryQP
+	OcwVpk9ZUjL5NoYA0V1Ie0iaVHmVziPbSfo+Etwhmw==
+X-Google-Smtp-Source: ABdhPJw0SmYwBNzhTX9tMVeKLmcFAe2cJ59lQc/vwN6mFo19kXHNTh9pxMz/Ay8xJNhJvOlvtfHXiz0+HEErn0y13ME=
+X-Received: by 2002:a63:68c6:: with SMTP id d189mr150299pgc.377.1632333763202;
+ Wed, 22 Sep 2021 11:02:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210922173431.2454024-1-hch@lst.de>
-In-Reply-To: <20210922173431.2454024-1-hch@lst.de>
+References: <20210922152919.6940-1-justin.he@arm.com>
+In-Reply-To: <20210922152919.6940-1-justin.he@arm.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 22 Sep 2021 10:55:01 -0700
-Message-ID: <CAPcyv4jpTyzofDyUPi7ADbGcV+cJHSohctwxu5yDNTF34KWeOg@mail.gmail.com>
-Subject: Re: dax_supported() related cleanups v2
-To: Christoph Hellwig <hch@lst.de>
+Date: Wed, 22 Sep 2021 11:02:32 -0700
+Message-ID: <CAPcyv4giSfXxf-GzmvKBvUExfuYZTjfjOSzK74PzQb3jmv6H=w@mail.gmail.com>
+Subject: Re: [PATCH] ACPI: NFIT: Use fallback node id when numa info in NFIT
+ table is incorrect
+To: Jia He <justin.he@arm.com>
 Cc: Vishal Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
-	Mike Snitzer <snitzer@redhat.com>, Matthew Wilcox <willy@infradead.org>, 
-	linux-xfs <linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>
+	Ira Weiny <ira.weiny@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux ACPI <linux-acpi@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Sep 22, 2021 at 10:37 AM Christoph Hellwig <hch@lst.de> wrote:
+On Wed, Sep 22, 2021 at 8:29 AM Jia He <justin.he@arm.com> wrote:
 >
-> Hi all,
+> When ACPI NFIT table is failing to populate correct numa information
+> on arm64, dax_kmem will get NUMA_NO_NODE from the NFIT driver.
 >
-> this series first clarifies how to use fsdax in the Kconfig help a bit,
-> and then untangles the code path that checks if fsdax is supported.
->
-> Changes since v1:
->  - improve the FS_DAX Kconfig help text further
->  - write a proper commit log for a patch missing it
+> Without this patch, pmem can't be probed as RAM devices on arm64 guest:
+>   $ndctl create-namespace -fe namespace0.0 --mode=devdax --map=dev -s 1g -a 128M
+>   kmem dax0.0: rejecting DAX region [mem 0x240400000-0x2bfffffff] with invalid node: -1
+>   kmem: probe of dax0.0 failed with error -22
 >
 
-This looks like your send script picked up the wrong cover letter?
+I'll add:
 
-> Diffstat
->  drivers/dax/super.c   |  191 +++++++++++++++++++-------------------------------
->  drivers/md/dm-table.c |    9 --
->  drivers/md/dm.c       |    2
->  fs/Kconfig            |   21 ++++-
->  fs/ext2/super.c       |    3
->  fs/ext4/super.c       |    3
->  fs/xfs/xfs_super.c    |   16 +++-
->  include/linux/dax.h   |   41 +---------
->  8 files changed, 117 insertions(+), 169 deletions(-)
+Cc: <stable@vger.kernel.org>
+Fixes: c221c0b0308f ("device-dax: "Hotplug" persistent memory for use
+like normal RAM")
+
+...other than that, looks good to me.
+
+> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Jia He <justin.he@arm.com>
+> ---
+>  drivers/acpi/nfit/core.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index a3ef6cce644c..7dd80acf92c7 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3007,6 +3007,18 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+>                 ndr_desc->target_node = NUMA_NO_NODE;
+>         }
+>
+> +       /* Fallback to address based numa information if node lookup failed */
+> +       if (ndr_desc->numa_node == NUMA_NO_NODE) {
+> +               ndr_desc->numa_node = memory_add_physaddr_to_nid(spa->address);
+> +               dev_info(acpi_desc->dev, "changing numa node from %d to %d for nfit region [%pa-%pa]",
+> +                       NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
+> +       }
+> +       if (ndr_desc->target_node == NUMA_NO_NODE) {
+> +               ndr_desc->target_node = phys_to_target_node(spa->address);
+> +               dev_info(acpi_desc->dev, "changing target node from %d to %d for nfit region [%pa-%pa]",
+> +                       NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
+> +       }
+> +
+>         /*
+>          * Persistence domain bits are hierarchical, if
+>          * ACPI_NFIT_CAPABILITY_CACHE_FLUSH is set then
+> --
+> 2.17.1
+>
