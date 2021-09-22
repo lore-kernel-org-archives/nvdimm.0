@@ -1,69 +1,60 @@
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 32B8E3FC7
-	for <nvdimm@lists.linux.dev>; Wed, 22 Sep 2021 15:35:28 +0000 (UTC)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-	by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 8EF98113E;
-	Wed, 22 Sep 2021 08:29:31 -0700 (PDT)
-Received: from entos-ampere-02.shanghai.arm.com (entos-ampere-02.shanghai.arm.com [10.169.214.103])
-	by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id B135F3F718;
-	Wed, 22 Sep 2021 08:29:28 -0700 (PDT)
-From: Jia He <justin.he@arm.com>
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 346AF3FCB
+	for <nvdimm@lists.linux.dev>; Wed, 22 Sep 2021 17:37:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=ARgc5BTNEQt9FG8904QxPv30VGpYKOfYo9r3bA9lDKg=; b=WlNfNytjOVO7nSmbZow+kLL5Bv
+	QPQCXq6UGc8G/xHRilX5R+ZKUS3aUd5BN4wUMDXyVmSCGgVflBgsJtunv2ZBqe3yDium0DTkrLDiV
+	Zn30Roqv3z5VvhpTS0DKThiJQ+oUjF8sq4YPDPedTh+IcsTa/L5kYrHXvyCswlo074FOdjtqzAq/x
+	jJ5JAPTRsmJSVTDql+KqOD7FBVqZoxzWli44Ta5ZW/J+IIr6wVNR9LqRJDUc/lJKO+Og2a3BWhWmN
+	3BnxXzhifhAKuzy3W+rL8B/QNHTo0urx5ynSL/omjsIM5speYb3PRLxlLeflxcyJ+LHGiW6gF3AQ4
+	+pmHFLMA==;
+Received: from [2001:4bb8:184:72db:3a8e:1992:6715:6960] (helo=localhost)
+	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mT68e-004zdc-Mh; Wed, 22 Sep 2021 17:34:58 +0000
+From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
+	Dave Jiang <dave.jiang@intel.com>
+Cc: Mike Snitzer <snitzer@redhat.com>,
+	Matthew Wilcox <willy@infradead.org>,
+	linux-xfs@vger.kernel.org,
 	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	Jia He <justin.he@arm.com>
-Subject: [PATCH] ACPI: NFIT: Use fallback node id when numa info in NFIT table is incorrect
-Date: Wed, 22 Sep 2021 23:29:19 +0800
-Message-Id: <20210922152919.6940-1-justin.he@arm.com>
-X-Mailer: git-send-email 2.17.1
+	linux-fsdevel@vger.kernel.org,
+	linux-ext4@vger.kernel.org
+Subject: dax_supported() related cleanups v2
+Date: Wed, 22 Sep 2021 19:34:28 +0200
+Message-Id: <20210922173431.2454024-1-hch@lst.de>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-When ACPI NFIT table is failing to populate correct numa information
-on arm64, dax_kmem will get NUMA_NO_NODE from the NFIT driver.
+Hi all,
 
-Without this patch, pmem can't be probed as RAM devices on arm64 guest:
-  $ndctl create-namespace -fe namespace0.0 --mode=devdax --map=dev -s 1g -a 128M
-  kmem dax0.0: rejecting DAX region [mem 0x240400000-0x2bfffffff] with invalid node: -1
-  kmem: probe of dax0.0 failed with error -22
+this series first clarifies how to use fsdax in the Kconfig help a bit,
+and then untangles the code path that checks if fsdax is supported.
 
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Jia He <justin.he@arm.com>
----
- drivers/acpi/nfit/core.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+Changes since v1:
+ - improve the FS_DAX Kconfig help text further
+ - write a proper commit log for a patch missing it
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index a3ef6cce644c..7dd80acf92c7 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3007,6 +3007,18 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 		ndr_desc->target_node = NUMA_NO_NODE;
- 	}
- 
-+	/* Fallback to address based numa information if node lookup failed */
-+	if (ndr_desc->numa_node == NUMA_NO_NODE) {
-+		ndr_desc->numa_node = memory_add_physaddr_to_nid(spa->address);
-+		dev_info(acpi_desc->dev, "changing numa node from %d to %d for nfit region [%pa-%pa]",
-+			NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
-+	}
-+	if (ndr_desc->target_node == NUMA_NO_NODE) {
-+		ndr_desc->target_node = phys_to_target_node(spa->address);
-+		dev_info(acpi_desc->dev, "changing target node from %d to %d for nfit region [%pa-%pa]",
-+			NUMA_NO_NODE, ndr_desc->numa_node, &res.start, &res.end);
-+	}
-+
- 	/*
- 	 * Persistence domain bits are hierarchical, if
- 	 * ACPI_NFIT_CAPABILITY_CACHE_FLUSH is set then
--- 
-2.17.1
-
+Diffstat
+ drivers/dax/super.c   |  191 +++++++++++++++++++-------------------------------
+ drivers/md/dm-table.c |    9 --
+ drivers/md/dm.c       |    2 
+ fs/Kconfig            |   21 ++++-
+ fs/ext2/super.c       |    3 
+ fs/ext4/super.c       |    3 
+ fs/xfs/xfs_super.c    |   16 +++-
+ include/linux/dax.h   |   41 +---------
+ 8 files changed, 117 insertions(+), 169 deletions(-)
