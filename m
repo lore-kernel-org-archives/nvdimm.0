@@ -1,160 +1,160 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 804963FC8
-	for <nvdimm@lists.linux.dev>; Thu, 23 Sep 2021 09:57:16 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9647B6124C;
-	Thu, 23 Sep 2021 09:57:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1632391036;
-	bh=wZghjeZMmeRhet9HPhnAN6w0LewUCrC6CdWlnBZb/Mc=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=PcJ/45EPIxi5D0pJE0jiBUxa2jnVJC9G8dc9k3Qf8d/bwY8Z67JIU8ygTClmwULSh
-	 uA7HmqIldXbjs1nQw0E1CeQMw3s9O4NtorBJCSK0jaQdlKAgXxE4jFra9zsDPsBjdI
-	 1T7Nog4LQswRF/LB5mISAFzaWVgB8+nfNXKbTMic=
-Date: Thu, 23 Sep 2021 11:57:13 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Hannes Reinecke <hare@suse.de>
-Cc: Coly Li <colyli@suse.de>, linux-kernel@vger.kernel.org,
-	linux-block@vger.kernel.org, linux-raid@vger.kernel.org,
-	nvdimm@lists.linux.dev, antlists@youngman.org.uk,
-	Dan Williams <dan.j.williams@intel.com>,
-	Jens Axboe <axboe@kernel.dk>, NeilBrown <neilb@suse.de>,
-	Richard Fan <richard.fan@suse.com>,
-	Vishal L Verma <vishal.l.verma@intel.com>, rafael@kernel.org
-Subject: Re: Too large badblocks sysfs file (was: [PATCH v3 0/7] badblocks
- improvement for multiple bad block ranges)
-Message-ID: <YUxPeQR/k5AGO2RH@kroah.com>
-References: <20210913163643.10233-1-colyli@suse.de>
- <a0f7b021-4816-6785-a9a4-507464b55895@suse.de>
- <6bd61a93-6fb6-2bd5-c1a6-b782e87845a4@suse.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 576823FC8
+	for <nvdimm@lists.linux.dev>; Thu, 23 Sep 2021 10:09:30 +0000 (UTC)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id D456422354;
+	Thu, 23 Sep 2021 10:09:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1632391768; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ugzVRDY4GJO3tkMDXbBZu2/7GmHRo380Iie1VN7S8nA=;
+	b=G5uA/In7HQMqEfzBt+roWPVivoIgGjvuVYI+UuOL0b3028M7C0nQoA4UTKeDm0nNeNirp1
+	SVpQjkbAuGkz/e4chZSRPpSb7NZWFj3/PdoaOcrmv8W55+SDAEPbjRmuWOmeDs+9f5wPcA
+	Dq+Fm9V0AbZqJ6Ehy5f1igmDuqdcMMc=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1632391768;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ugzVRDY4GJO3tkMDXbBZu2/7GmHRo380Iie1VN7S8nA=;
+	b=i72M3Ab9PRVBtP9J+e/c8Kky/kRyjU+TPcQ9Kvl0w7RktpiBQ/uFnZSrJivEOQ0ZjJ4wzs
+	AQeEXQUs5chSLoDA==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 1E44313DCE;
+	Thu, 23 Sep 2021 10:09:24 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+	by imap2.suse-dmz.suse.de with ESMTPSA
+	id CMOiM1RSTGFMVQAAMHmgww
+	(envelope-from <neilb@suse.de>); Thu, 23 Sep 2021 10:09:24 +0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6bd61a93-6fb6-2bd5-c1a6-b782e87845a4@suse.de>
+From: "NeilBrown" <neilb@suse.de>
+To: "Coly Li" <colyli@suse.de>
+Cc: linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+ linux-raid@vger.kernel.org, nvdimm@lists.linux.dev, antlists@youngman.org.uk,
+ "Dan Williams" <dan.j.williams@intel.com>, "Hannes Reinecke" <hare@suse.de>,
+ "Jens Axboe" <axboe@kernel.dk>, "Richard Fan" <richard.fan@suse.com>,
+ "Vishal L Verma" <vishal.l.verma@intel.com>,
+ "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>, rafael@kernel.org
+Subject: Re: Too large badblocks sysfs file (was: [PATCH v3 0/7] badblocks
+ improvement for multiple bad block ranges)
+In-reply-to: <a0f7b021-4816-6785-a9a4-507464b55895@suse.de>
+References: <20210913163643.10233-1-colyli@suse.de>,
+ <a0f7b021-4816-6785-a9a4-507464b55895@suse.de>
+Date: Thu, 23 Sep 2021 20:09:21 +1000
+Message-id: <163239176137.2580.11220971146920860651@noble.neil.brown.name>
 
-On Thu, Sep 23, 2021 at 11:40:30AM +0200, Hannes Reinecke wrote:
-> On 9/23/21 7:59 AM, Coly Li wrote:
-> > Hi all the kernel gurus, and folks in mailing lists,
-> > 
-> > This is a question about exporting 4KB+ text information via sysfs
-> > interface. I need advice on how to handle the problem.
-> > 
-> > Recently I work on the bad blocks API (block/badblocks.c) improvement,
-> > there is a sysfs file to export the bad block ranges for me raid. E.g
-> > for a md raid1 device, file
-> >     /sys/block/md0/md/rd0/bad_blocks
-> > may contain the following text content,
-> >     64 32
-> >    128 8
-> > The above lines mean there are two bad block ranges, one starts at LBA
-> > 64, length 32 sectors, another one starts at LBA 128 and length 8
-> > sectors. All the content is generated from the internal bad block
-> > records with 512 elements. In my testing the worst case only 185 from
-> > 512 records can be displayed via the sysfs file if the LBA string is
-> > very long, e.g.the following content,
-> >   17668164135030776 512
-> >   17668164135029776 512
-> >   17668164135028776 512
-> >   17668164135027776 512
-> >   ... ...
-> > The bad block ranges stored in internal bad blocks array are correct,
-> > but the output message is truncated. This is the problem I encountered.
-> > 
-> > I don't see sysfs has seq_file support (correct me if I am wrong), and I
-> > know it is improper to transfer 4KB+ text via sysfs interface, but the
-> > code is here already for long time.
-> > 
-> > There are 2 ideas to fix showing up in my brain,
-> > 1) Do not fix the problem
-> >     Normally it is rare that a storage media has 100+ bad block ranges,
-> > maybe in real world all the existing bad blocks information won't exceed
-> > the page size limitation of sysfs file.
-> > 2) Add seq_file support to sysfs interface if there is no
-> > 
-> > It is probably there is other better solution to fix. So I do want to
-> > get hint/advice from you.
-> > 
-> > Thanks in advance for any comment :-)
-> > 
-> > Coly Li
-> > 
-> > On 9/14/21 12:36 AM, Coly Li wrote:
-> >> This is the second effort to improve badblocks code APIs to handle
-> >> multiple ranges in bad block table.
-> >>
-> >> There are 2 changes from previous version,
-> >> - Fixes 2 bugs in front_overwrite() which are detected by the user
-> >>    space testing code.
-> >> - Provide the user space testing code in last patch.
-> >>
-> >> There is NO in-memory or on-disk format change in the whole series, all
-> >> existing API and data structures are consistent. This series just only
-> >> improve the code algorithm to handle more corner cases, the interfaces
-> >> are same and consistency to all existing callers (md raid and nvdimm
-> >> drivers).
-> >>
-> >> The original motivation of the change is from the requirement from our
-> >> customer, that current badblocks routines don't handle multiple ranges.
-> >> For example if the bad block setting range covers multiple ranges from
-> >> bad block table, only the first two bad block ranges merged and rested
-> >> ranges are intact. The expected behavior should be all the covered
-> >> ranges to be handled.
-> >>
-> >> All the patches are tested by modified user space code and the code
-> >> logic works as expected. The modified user space testing code is
-> >> provided in last patch. The testing code detects 2 defects in helper
-> >> front_overwrite() and fixed in this version.
-> >>
-> >> The whole change is divided into 6 patches to make the code review more
-> >> clear and easier. If people prefer, I'd like to post a single large
-> >> patch finally after the code review accomplished.
-> >>
-> >> This version is seriously tested, and so far no more defect observed.
-> >>
-> >>
-> >> Coly Li
-> >>
-> >> Cc: Dan Williams <dan.j.williams@intel.com>
-> >> Cc: Hannes Reinecke <hare@suse.de>
-> >> Cc: Jens Axboe <axboe@kernel.dk>
-> >> Cc: NeilBrown <neilb@suse.de>
-> >> Cc: Richard Fan <richard.fan@suse.com>
-> >> Cc: Vishal L Verma <vishal.l.verma@intel.com>
-> >> ---
-> >> Changelog:
-> >> v3: add tester Richard Fan <richard.fan@suse.com>
-> >> v2: the improved version, and with testing code.
-> >> v1: the first completed version.
-> >>
-> >>
-> >> Coly Li (6):
-> >>    badblocks: add more helper structure and routines in badblocks.h
-> >>    badblocks: add helper routines for badblock ranges handling
-> >>    badblocks: improvement badblocks_set() for multiple ranges handling
-> >>    badblocks: improve badblocks_clear() for multiple ranges handling
-> >>    badblocks: improve badblocks_check() for multiple ranges handling
-> >>    badblocks: switch to the improved badblock handling code
-> >> Coly Li (1):
-> >>    test: user space code to test badblocks APIs
-> >>
-> >>   block/badblocks.c         | 1599 ++++++++++++++++++++++++++++++-------
-> >>   include/linux/badblocks.h |   32 +
-> >>   2 files changed, 1340 insertions(+), 291 deletions(-)
-> >>
-> > 
-> 
-> Please have a look at the patchset 'start switching sysfs attributes to
-> expose the seq_file' from Christoph Hellwig on linux-block; that seems
-> to be the approach you are looking for.
-
-No, I rejected the seq_file api for sysfs files, as it encourages abuse
-like this, sorry.
-
-greg k-h
+T24gVGh1LCAyMyBTZXAgMjAyMSwgQ29seSBMaSB3cm90ZToKPiBIaSBhbGwgdGhlIGtlcm5lbCBn
+dXJ1cywgYW5kIGZvbGtzIGluIG1haWxpbmcgbGlzdHMsCj4gCj4gVGhpcyBpcyBhIHF1ZXN0aW9u
+IGFib3V0IGV4cG9ydGluZyA0S0IrIHRleHQgaW5mb3JtYXRpb24gdmlhIHN5c2ZzIAo+IGludGVy
+ZmFjZS4gSSBuZWVkIGFkdmljZSBvbiBob3cgdG8gaGFuZGxlIHRoZSBwcm9ibGVtLgoKV2h5IGRv
+IHlvdSB0aGluayB0aGVyZSBpcyBhIHByb2JsZW0/CkFzIGRvY3VtZW50ZWQgaW4gRG9jdW1lbnRh
+dGlvbi9hZG1pbi1ndWlkZS9tZC5yc3QsIHRoZSB0cnVuY2F0aW9uIGF0IDEKcGFnZSBpcyBleHBl
+Y3RlZCBhbmQgYnkgZGVzaWduLgoKVGhlICJ1bmFja25vd2xlZGdlLWJhZC1ibG9ja3MiIGZpbGUg
+aXMgdGhlIGltcG9ydGFudCBvbmUgdGhhdCBpcyBuZWVkZWQKZm9yIGNvcnJlY3QgYmVoYXZpb3Vy
+LiAgQmVpbmcgYWJsZSB0byByZWFkIGEgc2luZ2xlIGJsb2NrIGlzIHN1ZmZpY2llbnQsCnRob3Vn
+aCBiZWluZyBhYmxlIHRvIHJlYWQgbW9yZSB0aGFuIG9uZSBjb3VsZCBwcm92aWRlIGJldHRlciBw
+ZXJmb3JtYW5jZQppbiBzb21lIGNhc2VzLgoKVGhlICJiYWQtYmxvY2tzIiBmaWxlIHByaW1hcmls
+eSBleGlzdCB0byBwcm92aWRlIHZpc2liaWxpdHkgaW50byB0aGUKc3RhdGUgb2YgdGhlIHN5c3Rl
+bSAtIHVzZWZ1bCBkdXJpbmcgZGV2ZWxvcG1lbnQuICBJdCBjYW4gYmUgd3JpdHRlbiB0bwp0byBh
+ZGQgYmFkIGJsb2Nrcy4gIEkgbmV2ZXIgKm5lZWRzKiB0byBiZSByZWFkIGZyb20uCgpUaGUgYXV0
+aG9yaXRhdGl2ZSBzb3VyY2Ugb2YgaW5mb3JtYXRpb24gYWJvdXQgdGhlIHNldCBvZiBiYWQgYmxv
+Y2tzIGlzCnRoZSBvbi1kaXNrIGRhdGEgdGhlIGNhbiBiZSBhbmQgc2hvdWxkIGJlIHJlYWQgZGly
+ZWN0bHkuLi4KCkV4Y2VwdCB0aGF0IG1kYWRtIGRvZXMuICBUaGF0IHdhcyBhIG1pc3Rha2UuICBj
+aGVja19mb3JfY2xlYXJlZF9iYigpIGlzCndyb25nLiAgSSB3b25kZXIgd2h5IGl0IHdhcyBhZGRl
+ZC4gIFRoZSBjb21taXQgbWVzc2FnZSBkb2Vzbid0IGdpdmUgYW55Cmp1c3RpZmljYXRpb24uCgpO
+ZWlsQnJvd24KCgo+IAo+IFJlY2VudGx5IEkgd29yayBvbiB0aGUgYmFkIGJsb2NrcyBBUEkgKGJs
+b2NrL2JhZGJsb2Nrcy5jKSBpbXByb3ZlbWVudCwgCj4gdGhlcmUgaXMgYSBzeXNmcyBmaWxlIHRv
+IGV4cG9ydCB0aGUgYmFkIGJsb2NrIHJhbmdlcyBmb3IgbWUgcmFpZC4gRS5nIAo+IGZvciBhIG1k
+IHJhaWQxIGRldmljZSwgZmlsZQo+ICDCoMKgwqAgL3N5cy9ibG9jay9tZDAvbWQvcmQwL2JhZF9i
+bG9ja3MKPiBtYXkgY29udGFpbiB0aGUgZm9sbG93aW5nIHRleHQgY29udGVudCwKPiAgwqDCoMKg
+IDY0IDMyCj4gIMKgwqAgMTI4IDgKPiBUaGUgYWJvdmUgbGluZXMgbWVhbiB0aGVyZSBhcmUgdHdv
+IGJhZCBibG9jayByYW5nZXMsIG9uZSBzdGFydHMgYXQgTEJBIAo+IDY0LCBsZW5ndGggMzIgc2Vj
+dG9ycywgYW5vdGhlciBvbmUgc3RhcnRzIGF0IExCQSAxMjggYW5kIGxlbmd0aCA4IAo+IHNlY3Rv
+cnMuIEFsbCB0aGUgY29udGVudCBpcyBnZW5lcmF0ZWQgZnJvbSB0aGUgaW50ZXJuYWwgYmFkIGJs
+b2NrIAo+IHJlY29yZHMgd2l0aCA1MTIgZWxlbWVudHMuIEluIG15IHRlc3RpbmcgdGhlIHdvcnN0
+IGNhc2Ugb25seSAxODUgZnJvbSAKPiA1MTIgcmVjb3JkcyBjYW4gYmUgZGlzcGxheWVkIHZpYSB0
+aGUgc3lzZnMgZmlsZSBpZiB0aGUgTEJBIHN0cmluZyBpcyAKPiB2ZXJ5IGxvbmcsIGUuZy50aGUg
+Zm9sbG93aW5nIGNvbnRlbnQsCj4gIMKgIDE3NjY4MTY0MTM1MDMwNzc2IDUxMgo+ICDCoCAxNzY2
+ODE2NDEzNTAyOTc3NiA1MTIKPiAgwqAgMTc2NjgxNjQxMzUwMjg3NzYgNTEyCj4gIMKgIDE3NjY4
+MTY0MTM1MDI3Nzc2IDUxMgo+ICDCoCAuLi4gLi4uCj4gVGhlIGJhZCBibG9jayByYW5nZXMgc3Rv
+cmVkIGluIGludGVybmFsIGJhZCBibG9ja3MgYXJyYXkgYXJlIGNvcnJlY3QsIAo+IGJ1dCB0aGUg
+b3V0cHV0IG1lc3NhZ2UgaXMgdHJ1bmNhdGVkLiBUaGlzIGlzIHRoZSBwcm9ibGVtIEkgZW5jb3Vu
+dGVyZWQuCj4gCj4gSSBkb24ndCBzZWUgc3lzZnMgaGFzIHNlcV9maWxlIHN1cHBvcnQgKGNvcnJl
+Y3QgbWUgaWYgSSBhbSB3cm9uZyksIGFuZCBJIAo+IGtub3cgaXQgaXMgaW1wcm9wZXIgdG8gdHJh
+bnNmZXIgNEtCKyB0ZXh0IHZpYSBzeXNmcyBpbnRlcmZhY2UsIGJ1dCB0aGUgCj4gY29kZSBpcyBo
+ZXJlIGFscmVhZHkgZm9yIGxvbmcgdGltZS4KPiAKPiBUaGVyZSBhcmUgMiBpZGVhcyB0byBmaXgg
+c2hvd2luZyB1cCBpbiBteSBicmFpbiwKPiAxKSBEbyBub3QgZml4IHRoZSBwcm9ibGVtCj4gIMKg
+wqDCoCBOb3JtYWxseSBpdCBpcyByYXJlIHRoYXQgYSBzdG9yYWdlIG1lZGlhIGhhcyAxMDArIGJh
+ZCBibG9jayByYW5nZXMsIAo+IG1heWJlIGluIHJlYWwgd29ybGQgYWxsIHRoZSBleGlzdGluZyBi
+YWQgYmxvY2tzIGluZm9ybWF0aW9uIHdvbid0IGV4Y2VlZCAKPiB0aGUgcGFnZSBzaXplIGxpbWl0
+YXRpb24gb2Ygc3lzZnMgZmlsZS4KPiAyKSBBZGQgc2VxX2ZpbGUgc3VwcG9ydCB0byBzeXNmcyBp
+bnRlcmZhY2UgaWYgdGhlcmUgaXMgbm8KPiAKPiBJdCBpcyBwcm9iYWJseSB0aGVyZSBpcyBvdGhl
+ciBiZXR0ZXIgc29sdXRpb24gdG8gZml4LiBTbyBJIGRvIHdhbnQgdG8gCj4gZ2V0IGhpbnQvYWR2
+aWNlIGZyb20geW91Lgo+IAo+IFRoYW5rcyBpbiBhZHZhbmNlIGZvciBhbnkgY29tbWVudCA6LSkK
+PiAKPiBDb2x5IExpCj4gCj4gT24gOS8xNC8yMSAxMjozNiBBTSwgQ29seSBMaSB3cm90ZToKPiA+
+IFRoaXMgaXMgdGhlIHNlY29uZCBlZmZvcnQgdG8gaW1wcm92ZSBiYWRibG9ja3MgY29kZSBBUElz
+IHRvIGhhbmRsZQo+ID4gbXVsdGlwbGUgcmFuZ2VzIGluIGJhZCBibG9jayB0YWJsZS4KPiA+Cj4g
+PiBUaGVyZSBhcmUgMiBjaGFuZ2VzIGZyb20gcHJldmlvdXMgdmVyc2lvbiwKPiA+IC0gRml4ZXMg
+MiBidWdzIGluIGZyb250X292ZXJ3cml0ZSgpIHdoaWNoIGFyZSBkZXRlY3RlZCBieSB0aGUgdXNl
+cgo+ID4gICAgc3BhY2UgdGVzdGluZyBjb2RlLgo+ID4gLSBQcm92aWRlIHRoZSB1c2VyIHNwYWNl
+IHRlc3RpbmcgY29kZSBpbiBsYXN0IHBhdGNoLgo+ID4KPiA+IFRoZXJlIGlzIE5PIGluLW1lbW9y
+eSBvciBvbi1kaXNrIGZvcm1hdCBjaGFuZ2UgaW4gdGhlIHdob2xlIHNlcmllcywgYWxsCj4gPiBl
+eGlzdGluZyBBUEkgYW5kIGRhdGEgc3RydWN0dXJlcyBhcmUgY29uc2lzdGVudC4gVGhpcyBzZXJp
+ZXMganVzdCBvbmx5Cj4gPiBpbXByb3ZlIHRoZSBjb2RlIGFsZ29yaXRobSB0byBoYW5kbGUgbW9y
+ZSBjb3JuZXIgY2FzZXMsIHRoZSBpbnRlcmZhY2VzCj4gPiBhcmUgc2FtZSBhbmQgY29uc2lzdGVu
+Y3kgdG8gYWxsIGV4aXN0aW5nIGNhbGxlcnMgKG1kIHJhaWQgYW5kIG52ZGltbQo+ID4gZHJpdmVy
+cykuCj4gPgo+ID4gVGhlIG9yaWdpbmFsIG1vdGl2YXRpb24gb2YgdGhlIGNoYW5nZSBpcyBmcm9t
+IHRoZSByZXF1aXJlbWVudCBmcm9tIG91cgo+ID4gY3VzdG9tZXIsIHRoYXQgY3VycmVudCBiYWRi
+bG9ja3Mgcm91dGluZXMgZG9uJ3QgaGFuZGxlIG11bHRpcGxlIHJhbmdlcy4KPiA+IEZvciBleGFt
+cGxlIGlmIHRoZSBiYWQgYmxvY2sgc2V0dGluZyByYW5nZSBjb3ZlcnMgbXVsdGlwbGUgcmFuZ2Vz
+IGZyb20KPiA+IGJhZCBibG9jayB0YWJsZSwgb25seSB0aGUgZmlyc3QgdHdvIGJhZCBibG9jayBy
+YW5nZXMgbWVyZ2VkIGFuZCByZXN0ZWQKPiA+IHJhbmdlcyBhcmUgaW50YWN0LiBUaGUgZXhwZWN0
+ZWQgYmVoYXZpb3Igc2hvdWxkIGJlIGFsbCB0aGUgY292ZXJlZAo+ID4gcmFuZ2VzIHRvIGJlIGhh
+bmRsZWQuCj4gPgo+ID4gQWxsIHRoZSBwYXRjaGVzIGFyZSB0ZXN0ZWQgYnkgbW9kaWZpZWQgdXNl
+ciBzcGFjZSBjb2RlIGFuZCB0aGUgY29kZQo+ID4gbG9naWMgd29ya3MgYXMgZXhwZWN0ZWQuIFRo
+ZSBtb2RpZmllZCB1c2VyIHNwYWNlIHRlc3RpbmcgY29kZSBpcwo+ID4gcHJvdmlkZWQgaW4gbGFz
+dCBwYXRjaC4gVGhlIHRlc3RpbmcgY29kZSBkZXRlY3RzIDIgZGVmZWN0cyBpbiBoZWxwZXIKPiA+
+IGZyb250X292ZXJ3cml0ZSgpIGFuZCBmaXhlZCBpbiB0aGlzIHZlcnNpb24uCj4gPgo+ID4gVGhl
+IHdob2xlIGNoYW5nZSBpcyBkaXZpZGVkIGludG8gNiBwYXRjaGVzIHRvIG1ha2UgdGhlIGNvZGUg
+cmV2aWV3IG1vcmUKPiA+IGNsZWFyIGFuZCBlYXNpZXIuIElmIHBlb3BsZSBwcmVmZXIsIEknZCBs
+aWtlIHRvIHBvc3QgYSBzaW5nbGUgbGFyZ2UKPiA+IHBhdGNoIGZpbmFsbHkgYWZ0ZXIgdGhlIGNv
+ZGUgcmV2aWV3IGFjY29tcGxpc2hlZC4KPiA+Cj4gPiBUaGlzIHZlcnNpb24gaXMgc2VyaW91c2x5
+IHRlc3RlZCwgYW5kIHNvIGZhciBubyBtb3JlIGRlZmVjdCBvYnNlcnZlZC4KPiA+Cj4gPgo+ID4g
+Q29seSBMaQo+ID4KPiA+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNv
+bT4KPiA+IENjOiBIYW5uZXMgUmVpbmVja2UgPGhhcmVAc3VzZS5kZT4KPiA+IENjOiBKZW5zIEF4
+Ym9lIDxheGJvZUBrZXJuZWwuZGs+Cj4gPiBDYzogTmVpbEJyb3duIDxuZWlsYkBzdXNlLmRlPgo+
+ID4gQ2M6IFJpY2hhcmQgRmFuIDxyaWNoYXJkLmZhbkBzdXNlLmNvbT4KPiA+IENjOiBWaXNoYWwg
+TCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPgo+ID4gLS0tCj4gPiBDaGFuZ2Vsb2c6
+Cj4gPiB2MzogYWRkIHRlc3RlciBSaWNoYXJkIEZhbiA8cmljaGFyZC5mYW5Ac3VzZS5jb20+Cj4g
+PiB2MjogdGhlIGltcHJvdmVkIHZlcnNpb24sIGFuZCB3aXRoIHRlc3RpbmcgY29kZS4KPiA+IHYx
+OiB0aGUgZmlyc3QgY29tcGxldGVkIHZlcnNpb24uCj4gPgo+ID4KPiA+IENvbHkgTGkgKDYpOgo+
+ID4gICAgYmFkYmxvY2tzOiBhZGQgbW9yZSBoZWxwZXIgc3RydWN0dXJlIGFuZCByb3V0aW5lcyBp
+biBiYWRibG9ja3MuaAo+ID4gICAgYmFkYmxvY2tzOiBhZGQgaGVscGVyIHJvdXRpbmVzIGZvciBi
+YWRibG9jayByYW5nZXMgaGFuZGxpbmcKPiA+ICAgIGJhZGJsb2NrczogaW1wcm92ZW1lbnQgYmFk
+YmxvY2tzX3NldCgpIGZvciBtdWx0aXBsZSByYW5nZXMgaGFuZGxpbmcKPiA+ICAgIGJhZGJsb2Nr
+czogaW1wcm92ZSBiYWRibG9ja3NfY2xlYXIoKSBmb3IgbXVsdGlwbGUgcmFuZ2VzIGhhbmRsaW5n
+Cj4gPiAgICBiYWRibG9ja3M6IGltcHJvdmUgYmFkYmxvY2tzX2NoZWNrKCkgZm9yIG11bHRpcGxl
+IHJhbmdlcyBoYW5kbGluZwo+ID4gICAgYmFkYmxvY2tzOiBzd2l0Y2ggdG8gdGhlIGltcHJvdmVk
+IGJhZGJsb2NrIGhhbmRsaW5nIGNvZGUKPiA+IENvbHkgTGkgKDEpOgo+ID4gICAgdGVzdDogdXNl
+ciBzcGFjZSBjb2RlIHRvIHRlc3QgYmFkYmxvY2tzIEFQSXMKPiA+Cj4gPiAgIGJsb2NrL2JhZGJs
+b2Nrcy5jICAgICAgICAgfCAxNTk5ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0t
+LS0KPiA+ICAgaW5jbHVkZS9saW51eC9iYWRibG9ja3MuaCB8ICAgMzIgKwo+ID4gICAyIGZpbGVz
+IGNoYW5nZWQsIDEzNDAgaW5zZXJ0aW9ucygrKSwgMjkxIGRlbGV0aW9ucygtKQo+ID4KPiAKPiAK
