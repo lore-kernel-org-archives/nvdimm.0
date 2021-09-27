@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A01BB3FEC
-	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 22:00:49 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80EC03FF9
+	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 22:00:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=n0t709e+/n6TLkwKfO+OryH6p8FtdPpV7nSeauOqbbE=; b=TLHZvka2DfAcoJlgj2gIUo2wwQ
-	kBYYzdPNPYZC/AnRdkDO1kXKwqIG4rX1TuRVaeYtm8g8FZZLnXZznHA97zWn40Cv+a49q1z7q0fZa
-	slzU1wKKIiAjk3kitEZmW44QvUwxkBOqzr/j2l5uAv8zMAnIa38hcxTP2ODG/t5RHM9iNanZDHu/7
-	ZE0n1Z2FLyslzo/QQ7+mSDhGkk2EDFgc4z39HCJ9EZKnv11bxOqtIBEY2UOuJM8Cw3/2GicMyHVGG
-	QLkdR4EXXZuimuvP3kbLVXuTIVA1Zlt1Xfds0uWdLzXPM0UJNwE3jIdqAPP3/+yI4lDSsg6Ur4uif
-	adlVMKew==;
+	bh=hYL8LO+ietZVLiEWE2oEBW5mwRVdCiTP81FH5yaWaJI=; b=1BIITuUWUphtncAHlR3onSNJxl
+	M6CmnasxwYUC18J5dAsyxcU45RRwAvsUth2gvXvlZCPWdpLhxADiTdWmmJnwp3Uk6w06QS7PX+wFY
+	xppaHnOXRVB6MSKkNlcAfcp3c19hINrak2wAZGn+6pA7bP0hbBcVLP+ysEnGBFB8hzMRoaOxh9d8N
+	EmHK04hOyMeu/LPfTOWs+mRlcoafAuyFpBBN3nOB+ukUTwMoJKSfcf/9HcGCwOOXot+mH5FL/B6ke
+	PyL9SssBEH7fnKGJu6Uq+ETgRscCbWtIhSkBzmnno/dRwxrZeb5mjc5Tr1f/Pm86EFqDvRow06OXL
+	BrqrshjA==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mUyfw-004SvT-Oa; Mon, 27 Sep 2021 22:00:40 +0000
+	id 1mUyfw-004Sue-Cr; Mon, 27 Sep 2021 22:00:40 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	colyli@suse.de,
@@ -40,9 +40,9 @@ Cc: xen-devel@lists.xenproject.org,
 	linux-block@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH v2 09/10] xen-blkfront: add error handling support for add_disk()
-Date: Mon, 27 Sep 2021 15:00:38 -0700
-Message-Id: <20210927220039.1064193-10-mcgrof@kernel.org>
+Subject: [PATCH v2 02/10] bcache: add error handling support for add_disk()
+Date: Mon, 27 Sep 2021 15:00:31 -0700
+Message-Id: <20210927220039.1064193-3-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210927220039.1064193-1-mcgrof@kernel.org>
 References: <20210927220039.1064193-1-mcgrof@kernel.org>
@@ -55,41 +55,73 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: Luis Chamberlain <mcgrof@infradead.org>
 
-We never checked for errors on device_add_disk() as this function
-returned void. Now that this is fixed, use the shiny new error
-handling. The function xlvbd_alloc_gendisk() typically does the
-unwinding on error on allocating the disk and creating the tag,
-but since all that error handling was stuffed inside
-xlvbd_alloc_gendisk() we must repeat the tag free'ing as well.
+We never checked for errors on add_disk() as this function
+returned void. Now that this is fixed, use the shiny new
+error handling.
 
-We set the info->rq to NULL to ensure blkif_free() doesn't crash
-on blk_mq_stop_hw_queues() on device_add_disk() error as the queue
-will be long gone by then.
+This driver doesn't do any unwinding with blk_cleanup_disk()
+even on errors after add_disk() and so we follow that
+tradition.
 
+Acked-by: Coly Li <colyli@suse.de>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/block/xen-blkfront.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/md/bcache/super.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
-index 72902104f111..86440b051766 100644
---- a/drivers/block/xen-blkfront.c
-+++ b/drivers/block/xen-blkfront.c
-@@ -2385,7 +2385,13 @@ static void blkfront_connect(struct blkfront_info *info)
- 	for_each_rinfo(info, rinfo, i)
- 		kick_pending_request_queues(rinfo);
+diff --git a/drivers/md/bcache/super.c b/drivers/md/bcache/super.c
+index f2874c77ff79..f0c32cdd6594 100644
+--- a/drivers/md/bcache/super.c
++++ b/drivers/md/bcache/super.c
+@@ -1082,7 +1082,9 @@ int bch_cached_dev_run(struct cached_dev *dc)
+ 		closure_sync(&cl);
+ 	}
  
--	device_add_disk(&info->xbdev->dev, info->gd, NULL);
-+	err = device_add_disk(&info->xbdev->dev, info->gd, NULL);
-+	if (err) {
-+		blk_cleanup_disk(info->gd);
-+		blk_mq_free_tag_set(&info->tag_set);
-+		info->rq = NULL;
-+		goto fail;
-+	}
+-	add_disk(d->disk);
++	ret = add_disk(d->disk);
++	if (ret)
++		goto out;
+ 	bd_link_disk_holder(dc->bdev, dc->disk.disk);
+ 	/*
+ 	 * won't show up in the uevent file, use udevadm monitor -e instead
+@@ -1534,10 +1536,11 @@ static void flash_dev_flush(struct closure *cl)
  
- 	info->is_ready = 1;
- 	return;
+ static int flash_dev_run(struct cache_set *c, struct uuid_entry *u)
+ {
++	int err = -ENOMEM;
+ 	struct bcache_device *d = kzalloc(sizeof(struct bcache_device),
+ 					  GFP_KERNEL);
+ 	if (!d)
+-		return -ENOMEM;
++		goto err_ret;
+ 
+ 	closure_init(&d->cl, NULL);
+ 	set_closure_fn(&d->cl, flash_dev_flush, system_wq);
+@@ -1551,9 +1554,12 @@ static int flash_dev_run(struct cache_set *c, struct uuid_entry *u)
+ 	bcache_device_attach(d, c, u - c->uuids);
+ 	bch_sectors_dirty_init(d);
+ 	bch_flash_dev_request_init(d);
+-	add_disk(d->disk);
++	err = add_disk(d->disk);
++	if (err)
++		goto err;
+ 
+-	if (kobject_add(&d->kobj, &disk_to_dev(d->disk)->kobj, "bcache"))
++	err = kobject_add(&d->kobj, &disk_to_dev(d->disk)->kobj, "bcache");
++	if (err)
+ 		goto err;
+ 
+ 	bcache_device_link(d, c, "volume");
+@@ -1567,7 +1573,8 @@ static int flash_dev_run(struct cache_set *c, struct uuid_entry *u)
+ 	return 0;
+ err:
+ 	kobject_put(&d->kobj);
+-	return -ENOMEM;
++err_ret:
++	return err;
+ }
+ 
+ static int flash_devs_run(struct cache_set *c)
 -- 
 2.30.2
 
