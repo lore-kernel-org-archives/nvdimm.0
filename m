@@ -1,63 +1,57 @@
-Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from d2-forwarder.nctu.edu.tw (d2-forwarder.nctu.edu.tw [140.113.2.79])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id DB40472
+	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 19:46:48 +0000 (UTC)
+Received: from d2-forwarder.nctu.edu.tw (localhost [127.0.0.1])
+	by d2-forwarder.nctu.edu.tw (Postfix) with ESMTP id 0605459092
+	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 03:53:40 +0800 (CST)
+X-Virus-Scanned: amavisd-new at d2-forwarder.nctu.edu.tw
+Received: from d2-forwarder.nctu.edu.tw ([127.0.0.1])
+	by d2-forwarder.nctu.edu.tw (amavisd.cc.nctu.edu.tw [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 1-XjP9zWEbCU for <nvdimm@lists.linux.dev>;
+	Tue, 28 Sep 2021 03:53:36 +0800 (CST)
+Received: from smtp.nctu.edu.tw (unknown [140.113.250.93])
+	by d2-forwarder.nctu.edu.tw (Postfix) with ESMTP id 788155A22A
+	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 03:39:59 +0800 (CST)
+Received: from [77.247.110.160] (unknown [77.247.110.160])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A7293FCF
-	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 18:19:35 +0000 (UTC)
-Received: by mail-pl1-f169.google.com with SMTP id w11so12324295plz.13
-        for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 11:19:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=/zKrL812IZj983CDNoTAXGWrzyYsFXUo70xd8d5OVRw=;
-        b=Jsb0eKvqCXj6YljT8mnNPPjr3BIta8VJgkFwUhes6b/1qGEctJiqdGoU7reuK1AZM/
-         dRzwyM05Kp1f84uAdAfp6lpa6Kk6KrCctynYJjcNFlJqW67E/6X+ki37v3QUWU0m1/u9
-         TcXQwmHrrC+9oANWkZnWvfG0vHePNl6ImGj+TPhUqDGEZvuThtKyx/QVWv+BDBO5CxEH
-         nrnvSk8H17UdAOfIRs/v4MaCJiFlW6Utx65qH2WPjcTKzOWfyynuYxqSqy7z5IXJyz+K
-         HWDDhB4TmrlY5XL9sfDfM16NI7TUx5PNG6Ocitq0UJCYq9SmfPkhVoCkM5WUHXeUawcz
-         7uLA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=/zKrL812IZj983CDNoTAXGWrzyYsFXUo70xd8d5OVRw=;
-        b=qlpTyr/nzFrI0e8IRj6zWdiY56ZosHUtofEJd0piG2tAZI4h6o37nn3nlopHys8NaH
-         V4q/YJxyuICasPFZNtIzc5DekHrDGpcp3D3GDrDRmYqgGrqkddqct559Ea2wdS9eevOF
-         wfBo2sN4HHCKNwx5n/1ngOtrKeM/9i8I4HIeUzO9kbhAJl6HfOP6X4pkx55s3kV3Mfr/
-         T4J5Z0UwhJTOy1Sev/FRpOv28sl7bQvo4ZZC5/6Gd6N7y/tnSh0eYUzgg33agQ/qxvdo
-         n6ijU0zJmx0i/MGgKQnrhMmLQFv3B+060x07TscokR5rsf9URqtMHYocAmPMTQU5ypwg
-         k+7A==
-X-Gm-Message-State: AOAM53166V+2EUjeJLSiwLScrSAhxOi8rWOwUKILaq0+qcHsJczLEmuH
-	mhMADiyXmzhUN8C/2AT1orKjl8JmNBhb1pRlNkDh3g==
-X-Google-Smtp-Source: ABdhPJzYACAhNeBki+5sxnyzl/I1D8hsXspGBbTtTNOTP9ryqsZwhQMC1+Cl+YsUD0Vcn6/Cm7DGttsgpUvEDzyH18I=
-X-Received: by 2002:a17:90a:d686:: with SMTP id x6mr573260pju.8.1632766774563;
- Mon, 27 Sep 2021 11:19:34 -0700 (PDT)
+	(Authenticated sender: flannery0123.ep07)
+	by smtp.nctu.edu.tw (Postfix) with ESMTPSA id 134A74BD77
+	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 03:34:39 +0800 (CST)
+Content-Type: text/plain; charset="utf-8"
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20210922183331.2455043-1-hch@lst.de>
-In-Reply-To: <20210922183331.2455043-1-hch@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Sep 2021 11:19:26 -0700
-Message-ID: <CAPcyv4g-H20sh_CLmNFycQ28BYGmVK8q_v6-8k2-YoctqwwUNQ@mail.gmail.com>
-Subject: Re: fix a dax/block device attribute registration regression
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, linux-block@vger.kernel.org, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
+Subject: IMPORTANT,
+To: nvdimm@lists.linux.dev
+From: "Mr. James Khumalo"<flannery0123.ep07@nctu.edu.tw>
+Date: Mon, 27 Sep 2021 21:34:38 +0200
+Reply-To: khumalojameskhumalo@gmail.com
+Message-Id: <20210927195340.0605459092@d2-forwarder.nctu.edu.tw>
 
-On Wed, Sep 22, 2021 at 11:34 AM Christoph Hellwig <hch@lst.de> wrote:
->
-> Hi Dan and Jens,
->
-> this series fixed a regression in how the dax/write_cache attribute of the
-> pmem devices was registere.  It does so by both fixing the API abuse in the
-> driver and (temporarily) the behavior change in the block layer that made
-> this API abuse not work anymore.
+Good Day,
+ =
 
-I took patch1 into for-5.15/libnvdimm, patch2 into for-5.16/libnvdimm,
-and I'll leave patch3 for Jens.
+I know this email might come to you as a surprise as first coming from one =
+you haven=E2=80=99t met with before.
+I am Mr. James Khumalo, the bank manager with ABSA bank of South Africa,  a=
+nd a personal banker of Dr.Mohamed Farouk Ibrahim, an Egyptian who happened=
+ to be a medical contractor attached to the overthrown Afghan government by=
+ the Taliban government.   =
+
+Dr.Mohamed Farouk Ibrahim deposits some sum of money with our bank but pass=
+ed away with his family while trying to escape from Kandahar.
+The said sum can be used for an investment if you are interested.  Details =
+relating to the funds are in my position and will present you as the Next-o=
+f-Kin because there was none, and I shall furnish you with more detail once=
+ your response.
+
+Regards,
+Mr. James Khumalo
+Tel: 27-632696383
+South Africa
