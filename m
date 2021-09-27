@@ -1,45 +1,63 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D948C3FC8
-	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 11:51:24 +0000 (UTC)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 566C667373; Mon, 27 Sep 2021 13:51:16 +0200 (CEST)
-Date: Mon, 27 Sep 2021 13:51:16 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Murphy Zhou <jencce.kernel@gmail.com>
-Cc: nvdimm@lists.linux.dev, hch@lst.de, linux-fsdevel@vger.kernel.org
-Subject: Re: [regression] fs dax xfstests panic
-Message-ID: <20210927115116.GB23909@lst.de>
-References: <20210927061747.rijhtovxafsot32z@xzhoux.usersys.redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A7293FCF
+	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 18:19:35 +0000 (UTC)
+Received: by mail-pl1-f169.google.com with SMTP id w11so12324295plz.13
+        for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 11:19:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/zKrL812IZj983CDNoTAXGWrzyYsFXUo70xd8d5OVRw=;
+        b=Jsb0eKvqCXj6YljT8mnNPPjr3BIta8VJgkFwUhes6b/1qGEctJiqdGoU7reuK1AZM/
+         dRzwyM05Kp1f84uAdAfp6lpa6Kk6KrCctynYJjcNFlJqW67E/6X+ki37v3QUWU0m1/u9
+         TcXQwmHrrC+9oANWkZnWvfG0vHePNl6ImGj+TPhUqDGEZvuThtKyx/QVWv+BDBO5CxEH
+         nrnvSk8H17UdAOfIRs/v4MaCJiFlW6Utx65qH2WPjcTKzOWfyynuYxqSqy7z5IXJyz+K
+         HWDDhB4TmrlY5XL9sfDfM16NI7TUx5PNG6Ocitq0UJCYq9SmfPkhVoCkM5WUHXeUawcz
+         7uLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/zKrL812IZj983CDNoTAXGWrzyYsFXUo70xd8d5OVRw=;
+        b=qlpTyr/nzFrI0e8IRj6zWdiY56ZosHUtofEJd0piG2tAZI4h6o37nn3nlopHys8NaH
+         V4q/YJxyuICasPFZNtIzc5DekHrDGpcp3D3GDrDRmYqgGrqkddqct559Ea2wdS9eevOF
+         wfBo2sN4HHCKNwx5n/1ngOtrKeM/9i8I4HIeUzO9kbhAJl6HfOP6X4pkx55s3kV3Mfr/
+         T4J5Z0UwhJTOy1Sev/FRpOv28sl7bQvo4ZZC5/6Gd6N7y/tnSh0eYUzgg33agQ/qxvdo
+         n6ijU0zJmx0i/MGgKQnrhMmLQFv3B+060x07TscokR5rsf9URqtMHYocAmPMTQU5ypwg
+         k+7A==
+X-Gm-Message-State: AOAM53166V+2EUjeJLSiwLScrSAhxOi8rWOwUKILaq0+qcHsJczLEmuH
+	mhMADiyXmzhUN8C/2AT1orKjl8JmNBhb1pRlNkDh3g==
+X-Google-Smtp-Source: ABdhPJzYACAhNeBki+5sxnyzl/I1D8hsXspGBbTtTNOTP9ryqsZwhQMC1+Cl+YsUD0Vcn6/Cm7DGttsgpUvEDzyH18I=
+X-Received: by 2002:a17:90a:d686:: with SMTP id x6mr573260pju.8.1632766774563;
+ Mon, 27 Sep 2021 11:19:34 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210927061747.rijhtovxafsot32z@xzhoux.usersys.redhat.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+References: <20210922183331.2455043-1-hch@lst.de>
+In-Reply-To: <20210922183331.2455043-1-hch@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 27 Sep 2021 11:19:26 -0700
+Message-ID: <CAPcyv4g-H20sh_CLmNFycQ28BYGmVK8q_v6-8k2-YoctqwwUNQ@mail.gmail.com>
+Subject: Re: fix a dax/block device attribute registration regression
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jens Axboe <axboe@kernel.dk>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, linux-block@vger.kernel.org, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Sep 27, 2021 at 02:17:47PM +0800, Murphy Zhou wrote:
-> Hi folks,
-> 
-> Since this commit:
-> 
-> commit edb0872f44ec9976ea6d052cb4b93cd2d23ac2ba
-> Author: Christoph Hellwig <hch@lst.de>
-> Date:   Mon Aug 9 16:17:43 2021 +0200
-> 
->     block: move the bdi from the request_queue to the gendisk
-> 
-> 
-> Looping xfstests generic/108 or xfs/279 on mountpoints with fsdax
-> enabled can lead to panic like this:
+On Wed, Sep 22, 2021 at 11:34 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> Hi Dan and Jens,
+>
+> this series fixed a regression in how the dax/write_cache attribute of the
+> pmem devices was registere.  It does so by both fixing the API abuse in the
+> driver and (temporarily) the behavior change in the block layer that made
+> this API abuse not work anymore.
 
-Does this still happen with this series:
-
-https://lore.kernel.org/linux-block/20210922172222.2453343-1-hch@lst.de/T/#m8dc646a4dfc40f443227da6bb1c77d9daec524db
-
-?
+I took patch1 into for-5.15/libnvdimm, patch2 into for-5.16/libnvdimm,
+and I'll leave patch3 for Jens.
