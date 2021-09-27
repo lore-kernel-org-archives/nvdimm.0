@@ -1,57 +1,57 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C437129CA
-	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 08:16:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CAD829CA
+	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 08:18:00 +0000 (UTC)
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
 	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id A909F1FF54;
-	Mon, 27 Sep 2021 08:16:31 +0000 (UTC)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 9CC9A220B7;
+	Mon, 27 Sep 2021 08:17:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1632730591; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	t=1632730673; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=EX5b2PoTJyve491JeLW2N7TfMIYrD37foMnGr9CA/0w=;
-	b=rKyLH5uL9Cj+5X6l5/QRZY/PiRqBJ6UzOmpYP9JzcNqrrqHcOeoCVYhbJl7TBs004Qdqua
-	MSuqFPVfF0N7/YfniGlmwGi14iA3E6hEQlFg2ObxCUmQ31vQ3NvKubTC84FjuNlzRPoc2a
-	1RHgzsPF8Wt9JpJasJP6vrgajSAEhLY=
+	bh=zGL/AMe26hmAIklf9HbbaB1fkOCI1nKEMJa0VhuyrZg=;
+	b=VP+ovcQ35C+CrLSKQ3QLLeawqkoxFoBvpKmZYgQ1zKhEmObNj8c6BO+aaWkiFkW0DTu0eq
+	QgPhEU/v3WpVe2jdupbqwcleCICMaXAhNLYTC0lRMu+Bvt1lpyT8spT9PqT1rZKVnhS/41
+	4RkzhpPseqqDtrkEtFZkhOUshikFLto=
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1632730591;
+	s=susede2_ed25519; t=1632730673;
 	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
 	 mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=EX5b2PoTJyve491JeLW2N7TfMIYrD37foMnGr9CA/0w=;
-	b=VJUy5/syye5jIsbJ3kProycBldLTpI2ktTMoIrZxxKZk1/fykHONwU6+Bc7FaE4N8/BgOP
-	xoBKI72jxh64cDBA==
+	bh=zGL/AMe26hmAIklf9HbbaB1fkOCI1nKEMJa0VhuyrZg=;
+	b=Zck/hcOT5GU0qM+t7QHk+KwnLsbOtRs64yLXCIeBds7UZ/fTeZmiJHmH0DlswYLo4cDcI9
+	NTU9Cxpca+qHaIAQ==
 Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
 	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
 	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
 	(No client certificate requested)
-	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 461EC13A42;
-	Mon, 27 Sep 2021 08:16:29 +0000 (UTC)
+	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id AEEEC13A42;
+	Mon, 27 Sep 2021 08:17:50 +0000 (UTC)
 Received: from dovecot-director2.suse.de ([192.168.254.65])
 	by imap2.suse-dmz.suse.de with ESMTPSA
-	id aiz+BN19UWEsRwAAMHmgww
-	(envelope-from <colyli@suse.de>); Mon, 27 Sep 2021 08:16:29 +0000
-Subject: Re: [PATCH v3 3/6] badblocks: improvement badblocks_set() for
- multiple ranges handling
+	id zO+cHi5+UWHlRwAAMHmgww
+	(envelope-from <colyli@suse.de>); Mon, 27 Sep 2021 08:17:50 +0000
+Subject: Re: [PATCH v3 2/6] badblocks: add helper routines for badblock ranges
+ handling
 To: Geliang Tang <geliangtang@gmail.com>
-Cc: antlists@youngman.org.uk, Dan Williams <dan.j.williams@intel.com>,
+Cc: antlists@youngman.org.uk, linux-kernel@vger.kernel.org,
  nvdimm@lists.linux.dev, linux-raid@vger.kernel.org,
- linux-kernel@vger.kernel.org, Hannes Reinecke <hare@suse.de>,
- linux-block@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+ linux-block@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>,
+ Hannes Reinecke <hare@suse.de>, Jens Axboe <axboe@kernel.dk>,
  NeilBrown <neilb@suse.de>, Richard Fan <richard.fan@suse.com>,
  Vishal L Verma <vishal.l.verma@intel.com>
 References: <20210913163643.10233-1-colyli@suse.de>
- <20210913163643.10233-4-colyli@suse.de>
- <8efbe758-74e4-32ea-d41e-639b750b27c0@gmail.com>
+ <20210913163643.10233-3-colyli@suse.de>
+ <eab6a9b0-d934-77e4-519c-cefc510b183a@gmail.com>
 From: Coly Li <colyli@suse.de>
-Message-ID: <8c1f4bc4-20c9-4711-4038-c23be7ae9a80@suse.de>
-Date: Mon, 27 Sep 2021 16:16:27 +0800
+Message-ID: <e1becb07-00a2-db5a-e8a5-89db2fcd25ad@suse.de>
+Date: Mon, 27 Sep 2021 16:17:47 +0800
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
  Gecko/20100101 Thunderbird/78.14.0
 Precedence: bulk
@@ -60,81 +60,103 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <8efbe758-74e4-32ea-d41e-639b750b27c0@gmail.com>
+In-Reply-To: <eab6a9b0-d934-77e4-519c-cefc510b183a@gmail.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Content-Language: en-US
 
-On 9/27/21 3:30 PM, Geliang Tang wrote:
+On 9/27/21 3:25 PM, Geliang Tang wrote:
 > On 9/14/21 00:36, Coly Li wrote:
-
-[snipped]
->> + * 2.1.1) If S and E are both acked or unacked range, the setting 
->> range S can
->> + *    be merged into existing bad range E. The result is,
->> + *        +-------------+
->> + *        |      S      |
->> + *        +-------------+
->> + * 2.1.2) If S is uncked setting and E is acked, the setting will be 
->> dinied, and
->
-> uncked -> unacked
-> dinied?
->
-
-You are correct, it should be unacked.
-
->> + *    the result is,
->> + *        +-------------+
->> + *        |      E      |
->> + *        +-------------+
->> + * 2.1.3) If S is acked setting and E is unacked, range S can 
->> overwirte on E.
->> + *    An extra slot from the bad blocks table will be allocated for 
->> S, and head
->> + *    of E will move to end of the inserted range E. The result is,
->> + *        +--------+----+
->> + *        |    S   | E  |
->> + *        +--------+----+
->> + * 2.2) The setting range size == already set range size
->> + * 2.2.1) If S and E are both acked or unacked range, the setting 
->> range S can
->> + *    be merged into existing bad range E. The result is,
->> + *        +-------------+
->> + *        |      S      |
->> + *        +-------------+
->> + * 2.2.2) If S is uncked setting and E is acked, the setting will be 
->> dinied, and
->
-> uncked -> unacked
-
-Yes, thanks for pointing out the typo. I will fix them in next version.
-
-[snipped]
->> +/* Do exact work to set bad block range into the bad block table */
->> +static int _badblocks_set(struct badblocks *bb, sector_t s, int 
->> sectors,
->> +              int acknowledged)
+>> This patch adds several helper routines to improve badblock ranges
+>> handling. These helper routines will be used later in the improved
+>> version of badblocks_set()/badblocks_clear()/badblocks_check().
+>>
+>> - Helpers prev_by_hint() and prev_badblocks() are used to find the bad
+>>    range from bad table which the searching range starts at or after.
+>>
+>> - The following helpers are to decide the relative layout between the
+>>    manipulating range and existing bad block range from bad table.
+>>    - can_merge_behind()
+>>      Return 'true' if the manipulating range can backward merge with the
+>>      bad block range.
+>>    - can_merge_front()
+>>      Return 'true' if the manipulating range can forward merge with the
+>>      bad block range.
+>>    - can_combine_front()
+>>      Return 'true' if two adjacent bad block ranges before the
+>>      manipulating range can be merged.
+>>    - overlap_front()
+>>      Return 'true' if the manipulating range exactly overlaps with the
+>>      bad block range in front of its range.
+>>    - overlap_behind()
+>>      Return 'true' if the manipulating range exactly overlaps with the
+>>      bad block range behind its range.
+>>    - can_front_overwrite()
+>>      Return 'true' if the manipulating range can forward overwrite the
+>>      bad block range in front of its range.
+>>
+>> - The following helpers are to add the manipulating range into the bad
+>>    block table. Different routine is called with the specific relative
+>>    layout between the maniplating range and other bad block range in the
+>>    bad block table.
+>>    - behind_merge()
+>>      Merge the maniplating range with the bad block range behind its
+>>      range, and return the number of merged length in unit of sector.
+>>    - front_merge()
+>>      Merge the maniplating range with the bad block range in front of
+>>      its range, and return the number of merged length in unit of 
+>> sector.
+>>    - front_combine()
+>>      Combine the two adjacent bad block ranges before the manipulating
+>>      range into a larger one.
+>>    - front_overwrite()
+>>      Overwrite partial of whole bad block range which is in front of the
+>>      manipulating range. The overwrite may split existing bad block 
+>> range
+>>      and generate more bad block ranges into the bad block table.
+>>    - insert_at()
+>>      Insert the manipulating range at a specific location in the bad
+>>      block table.
+>>
+>> All the above helpers are used in later patches to improve the bad block
+>> ranges handling for badblocks_set()/badblocks_clear()/badblocks_check().
+>>
+>> Signed-off-by: Coly Li <colyli@suse.de>
+>> Cc: Dan Williams <dan.j.williams@intel.com>
+>> Cc: Hannes Reinecke <hare@suse.de>
+>> Cc: Jens Axboe <axboe@kernel.dk>
+>> Cc: NeilBrown <neilb@suse.de>
+>> Cc: Richard Fan <richard.fan@suse.com>
+>> Cc: Vishal L Verma <vishal.l.verma@intel.com>
+>> ---
+>>   block/badblocks.c | 374 ++++++++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 374 insertions(+)
+>>
+>> diff --git a/block/badblocks.c b/block/badblocks.c
+>> index d39056630d9c..efe316181e05 100644
+>> --- a/block/badblocks.c
+>> +++ b/block/badblocks.c
+>> @@ -16,6 +16,380 @@
+>>   #include <linux/types.h>
+>>   #include <linux/slab.h>
+>>   +/*
+>> + * Find the range starts at-or-before 's' from bad table. The search
+>> + * starts from index 'hint' and stops at index 'hint_end' from the bad
+>> + * table.
+>> + */
+>> +static int prev_by_hint(struct badblocks *bb, sector_t s, int hint)
 >> +{
->> +    u64 *p;
->> +    struct badblocks_context bad;
->> +    int prev = -1, hint = -1;
->> +    int len = 0, added = 0;
->> +    int retried = 0, space_desired = 0;
->> +    int rv = 0;
->> +    unsigned long flags;
+>> +    u64 *p = bb->page;
+>> +    int ret = -1;
+>> +    int hint_end = hint + 2;
 >
-> orig_start and orig_len are used in _badblocks_set() only, we can drop 
-> them from struct badblocks_context, declare two local variables instead:
->
->         sector_t orig_start;
->         int orig_len;
+> How about declaring these variables following the "reverse Xmas tree" 
+> order.
 >
 
-It's fair, let me change it in next version.
+It makes sense. I will do this in whole set for next version.
 
-[snipped]
-
-Thanks for your review!
+Thanks for your review.
 
 Coly Li
+
