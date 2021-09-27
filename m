@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBC746D22
-	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 22:00:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 430E63FF1
+	for <nvdimm@lists.linux.dev>; Mon, 27 Sep 2021 22:00:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=vzfFGe77MiDtDAcsNEd4FFV6XUqpkLp7v2/+XiGswys=; b=1IjRffMWToIuI5hlT0QDQQle10
-	h2cmW94BFoi6hungxxRyemGHngj6jAyo6qgzCDtNwyoUIWdx8yZsIACgBw+d6Nd4692A4UqE77TGE
-	FCZRmyjQTpFaOofQoJtOcS2Pkb2YvtxiwdI6lkhFHGjLfTo7fvE2zEi7m6m4dPHjKrCOvij4KUPWH
-	DSYAexzPrZhtGZMXRAVrRoXp4+plHqrbeuTjWRI7g5ndnkdAFIDfDHEv6r0wdbAfWet/1/8nTrT68
-	8nOiI5xCjxlwlC2oda7p9NvctMKAA8h8pcRZ7GYw/ktOiSjdKEDnnDoQuyC514ICPIyH9sAgE7omc
-	UHhUFlIg==;
+	bh=vLYLL0oFZhxGylgSJPWXsGjPK2psQoUWyxkb9au47Xw=; b=vFdtNbirDyd+cqwuiMxjiJzgLG
+	Jt0ChJnf2JuPRFu4a+wlNaF4kthrKz7PxnttkR0Ds40s2EhZvp4JmkbSX6L3ADzaVDhCnLDp3cCs/
+	l0Ao4N5wA1GF1nIHrrOdTV9k0vDEX8dt7ZIGbkn5jeXk4By4iFu7i+TmcRDENgYIuV6M0/X0COZJ8
+	PTZwba2aQr3+WagO31hkbEZG4Js9Hr92YGi4M//TLw0Zk2t95HtZSK54Goe3CUTOj1kxdO0jr9W83
+	2Y8mWhaksDHH+sEiqrhCSZnBTG/J8tSzqfz5X0PYVM21EAFDp2zVD0/Chb9dwkwaSbB31hydbvvRb
+	1P5EOUhg==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mUyfw-004Sua-BV; Mon, 27 Sep 2021 22:00:40 +0000
+	id 1mUyfw-004SvO-N8; Mon, 27 Sep 2021 22:00:40 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	colyli@suse.de,
@@ -40,9 +40,9 @@ Cc: xen-devel@lists.xenproject.org,
 	linux-block@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH v2 01/10] block/brd: add error handling support for add_disk()
-Date: Mon, 27 Sep 2021 15:00:30 -0700
-Message-Id: <20210927220039.1064193-2-mcgrof@kernel.org>
+Subject: [PATCH v2 08/10] nvdimm/blk: add error handling support for add_disk()
+Date: Mon, 27 Sep 2021 15:00:37 -0700
+Message-Id: <20210927220039.1064193-9-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210927220039.1064193-1-mcgrof@kernel.org>
 References: <20210927220039.1064193-1-mcgrof@kernel.org>
@@ -59,45 +59,36 @@ We never checked for errors on add_disk() as this function
 returned void. Now that this is fixed, use the shiny new
 error handling.
 
+Since nvdimm/blk uses devm we just need to move the devm
+registration towards the end. And in hindsight, that seems
+to also provide a fix given del_gendisk() should not be
+called unless the disk was already added via add_disk().
+The probably of that issue happening is low though, like
+OOM while calling devm_add_action(), so the fix is minor.
+
+We manually unwind in case of add_disk() failure prior
+to the devm registration.
+
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/block/brd.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/nvdimm/blk.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/block/brd.c b/drivers/block/brd.c
-index 58ec167aa018..c2bf4946f4e3 100644
---- a/drivers/block/brd.c
-+++ b/drivers/block/brd.c
-@@ -372,6 +372,7 @@ static int brd_alloc(int i)
- 	struct brd_device *brd;
- 	struct gendisk *disk;
- 	char buf[DISK_NAME_LEN];
-+	int err = -ENOMEM;
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index 591fa1f86f1e..9f1eb41404ac 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -265,7 +265,9 @@ static int nsblk_attach_disk(struct nd_namespace_blk *nsblk)
+ 	}
  
- 	brd = kzalloc(sizeof(*brd), GFP_KERNEL);
- 	if (!brd)
-@@ -410,14 +411,19 @@ static int brd_alloc(int i)
- 	/* Tell the block layer that this is not a rotational device */
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, disk->queue);
- 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, disk->queue);
--	add_disk(disk);
-+	err = add_disk(disk);
-+	if (err)
-+		goto out_cleanup_disk;
-+
- 	list_add_tail(&brd->brd_list, &brd_devices);
+ 	set_capacity(disk, available_disk_size >> SECTOR_SHIFT);
+-	device_add_disk(dev, disk, NULL);
++	rc = device_add_disk(dev, disk, NULL);
++	if (rc)
++		goto out_before_devm_err;
  
- 	return 0;
- 
-+out_cleanup_disk:
-+	blk_cleanup_disk(disk);
- out_free_dev:
- 	kfree(brd);
--	return -ENOMEM;
-+	return err;
- }
- 
- static void brd_probe(dev_t dev)
+ 	/* nd_blk_release_disk() is called if this fails */
+ 	if (devm_add_action_or_reset(dev, nd_blk_release_disk, disk))
 -- 
 2.30.2
 
