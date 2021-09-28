@@ -1,49 +1,55 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 793B872
-	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 06:24:04 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AM+p0O69uN1adIemA41NLDrUD+3+TJUtcMsCJ2f8?=
- =?us-ascii?q?bfWQNrUoigTwAzmNMWDzVaarcZmvzcth/O9608RxQ78XTyoNgSVdlrnsFo1Bi8?=
- =?us-ascii?q?5ScXYvDRqvT04J+FuWaFQQ/qZx2huDodKjYdVeB4EfwWlTdhSMkj/jQF+CsULe?=
- =?us-ascii?q?s1h1ZHmeIdg9w0HqPpMZp2uaEsfDha++8kYuaT//3YTdJ6BYoWo4g0J9vnTs01?=
- =?us-ascii?q?BjEVJz0iXRlDRxDlAe2e3D4l/vzL4npR5fzatE88uJX24/+IL+FEmPxp3/BC/u?=
- =?us-ascii?q?ulPD1b08LXqXPewOJjxK6WYD72l4b+HN0if19aZLwam8O49mNt8pswdNWpNq+T?=
- =?us-ascii?q?xw1FqPRmuUBSAQeGCZ7VUFD0OaefCDu7pTJliUqdFOpmZ2CFnoeMYQG++pfD3t?=
- =?us-ascii?q?J8PsCIjERKBuEgoqe37O/TvhEh8ItNsDnMYoT/HZ6wlnxAf8gB5KFXKTO4d5R2?=
- =?us-ascii?q?SwYh8ZSEPKYbM0cARJjbgvHZRJnOVoNDp862uCyiRHXdSNUqVeQja42+HTIigh?=
- =?us-ascii?q?w1qX9dtbYZLSiRc5VtkKDuiTK8gzRGB4dMNCA2Dyt6W+3i6nDkEvTXIMUCa39+?=
- =?us-ascii?q?OVmjUOewkQNBxAME1i2u/+0jgi5Qd03A0gV/Dc+6Ks/7kqmSvHjUBCi5n2JpBg?=
- =?us-ascii?q?RX5xXCeJSwAWMzLfEphaXHUAaQTNbLt8rrsk7QXotzFDht83oHztHorCTSGzb8?=
- =?us-ascii?q?raSsCP0PjIaa3IBDRLo5yNtD8LL+dl110yQCI04VvPdszE8IhmoqxjikcT0r+t?=
- =?us-ascii?q?7YRY36piG?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AViJ5daNsm6Qwg8BcTv2jsMiBIKoaSvp037BL?=
- =?us-ascii?q?7TEUdfUxSKGlfq+V8sjzqiWftN98YhAdcLO7Scy9qBHnhP1ICOAqVN/MYOCMgh?=
- =?us-ascii?q?rLEGgN1+vf6gylMyj/28oY7q14bpV5YeeaMXFKyer8/ym0euxN/OW6?=
-X-IronPort-AV: E=Sophos;i="5.85,328,1624291200"; 
-   d="scan'208";a="115097021"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 28 Sep 2021 14:24:04 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 3D3194D0DC7C;
-	Tue, 28 Sep 2021 14:23:58 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Tue, 28 Sep 2021 14:23:57 +0800
-Received: from irides.mr.mr.mr (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Tue, 28 Sep 2021 14:23:56 +0800
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <dan.j.williams@intel.com>, <djwong@kernel.org>, <hch@lst.de>,
-	<linux-xfs@vger.kernel.org>
-CC: <ruansy.fnst@fujitsu.com>, <david@fromorbit.com>,
-	<linux-fsdevel@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <rgoldwyn@suse.de>, <viro@zeniv.linux.org.uk>,
-	<willy@infradead.org>
-Subject: [PATCH v10 8/8] xfs: Add dax dedupe support
-Date: Tue, 28 Sep 2021 14:23:11 +0800
-Message-ID: <20210928062311.4012070-9-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20210928062311.4012070-1-ruansy.fnst@fujitsu.com>
-References: <20210928062311.4012070-1-ruansy.fnst@fujitsu.com>
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BE5F2FB2
+	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 12:47:51 +0000 (UTC)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18SCCXSq003391;
+	Tue, 28 Sep 2021 08:47:41 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=5VRyKc8Dl36o15virRnUGPJzR7j1xnZTwlYyV+z/rhQ=;
+ b=eI17a/lntV9hUR5sTP5xRChuBievGN4wCaFc8xtzenya5d1jUscSJKQqhaBGso1Cx3fu
+ Ez1/TjBX2PY1EkkyHmRgGpNifw50uKBgQZuFQxQY1hqEl1ujS0fxXFuS5BgxpCn2twi6
+ woGK9TS74acjzDwsYvDYqrw5FkBotcsfUU1l50upsoizTl//Z0wANg1hZJ6APk3gtDX+
+ jYlYGNr1O7UmjyzbpTepyHou2PrW++9rbPfARuCEDtJOEzMF/UOpeMSdS3AQLuAlJCi2
+ sLUInm6WUjpTvXIY5hRhAU1BA3knmv//e15BuF1eK/eAhTuyUQSkvuklKWNE+NbCJGEl ug== 
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3bbws67qs8-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 28 Sep 2021 08:47:40 -0400
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+	by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18SChGSU030281;
+	Tue, 28 Sep 2021 12:47:38 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma06ams.nl.ibm.com with ESMTP id 3b9u1je205-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 28 Sep 2021 12:47:38 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 18SClYXQ38535482
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 28 Sep 2021 12:47:34 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id AA559AE053;
+	Tue, 28 Sep 2021 12:47:34 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 46E71AE057;
+	Tue, 28 Sep 2021 12:47:29 +0000 (GMT)
+Received: from li-e8dccbcc-2adc-11b2-a85c-bc1f33b9b810.ibm.com.com (unknown [9.43.50.245])
+	by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+	Tue, 28 Sep 2021 12:47:28 +0000 (GMT)
+From: Kajol Jain <kjain@linux.ibm.com>
+To: mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, peterz@infradead.org,
+        dan.j.williams@intel.com, ira.weiny@intel.com,
+        vishal.l.verma@intel.com
+Cc: maddy@linux.ibm.com, santosh@fossix.org, aneesh.kumar@linux.ibm.com,
+        vaibhav@linux.ibm.com, atrajeev@linux.vnet.ibm.com, tglx@linutronix.de,
+        rnsastry@linux.ibm.com, kjain@linux.ibm.com
+Subject: [PATCH v5 1/4] drivers/nvdimm: Add nvdimm pmu structure
+Date: Tue, 28 Sep 2021 18:17:24 +0530
+Message-Id: <20210928124724.146614-1-kjain@linux.ibm.com>
+X-Mailer: git-send-email 2.27.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -51,162 +57,66 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-yoursite-MailScanner-ID: 3D3194D0DC7C.A0ED8
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: HAHvwjJwGIWBr1H_Knf9nIx9bPsTcCfk
+X-Proofpoint-GUID: HAHvwjJwGIWBr1H_Knf9nIx9bPsTcCfk
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.182.1,Aquarius:18.0.790,Hydra:6.0.391,FMLib:17.0.607.475
+ definitions=2021-09-28_05,2021-09-28_01,2020-04-07_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
+ mlxlogscore=954 impostorscore=0 lowpriorityscore=0 clxscore=1015
+ spamscore=0 mlxscore=0 adultscore=0 bulkscore=0 priorityscore=1501
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2109230001 definitions=main-2109280071
 
-Introduce xfs_mmaplock_two_inodes_and_break_dax_layout() for dax files
-who are going to be deduped.  After that, call compare range function
-only when files are both DAX or not.
+A structure is added called nvdimm_pmu, for performance
+stats reporting support of nvdimm devices. It can be used to add
+device pmu data such as pmu data structure for performance
+stats, nvdimm device pointer along with cpumask attributes.
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Kajol Jain <kjain@linux.ibm.com>
 ---
- fs/xfs/xfs_file.c    |  2 +-
- fs/xfs/xfs_inode.c   | 69 +++++++++++++++++++++++++++++++++++++++++---
- fs/xfs/xfs_inode.h   |  1 +
- fs/xfs/xfs_reflink.c |  4 +--
- 4 files changed, 69 insertions(+), 7 deletions(-)
+ include/linux/nd.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index afde4fbefb6f..97d03bc25fda 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -846,7 +846,7 @@ xfs_wait_dax_page(
- 	xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- }
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index ee9ad76afbba..f5ed4db2d859 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -8,6 +8,7 @@
+ #include <linux/ndctl.h>
+ #include <linux/device.h>
+ #include <linux/badblocks.h>
++#include <linux/perf_event.h>
  
--static int
-+int
- xfs_break_dax_layouts(
- 	struct inode		*inode,
- 	bool			*retry)
-diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
-index a4f6f034fb81..8e03cca4ce61 100644
---- a/fs/xfs/xfs_inode.c
-+++ b/fs/xfs/xfs_inode.c
-@@ -3790,6 +3790,50 @@ xfs_iolock_two_inodes_and_break_layout(
- 	return 0;
- }
+ enum nvdimm_event {
+ 	NVDIMM_REVALIDATE_POISON,
+@@ -23,6 +24,25 @@ enum nvdimm_claim_class {
+ 	NVDIMM_CCLASS_UNKNOWN,
+ };
  
-+static int
-+xfs_mmaplock_two_inodes_and_break_dax_layout(
-+	struct xfs_inode	*ip1,
-+	struct xfs_inode	*ip2)
-+{
-+	int			error;
-+	bool			retry;
-+	struct page		*page;
++/**
++ * struct nvdimm_pmu - data structure for nvdimm perf driver
++ * @pmu: pmu data structure for nvdimm performance stats.
++ * @dev: nvdimm device pointer.
++ * @cpu: designated cpu for counter access.
++ * @node: node for cpu hotplug notifier link.
++ * @cpuhp_state: state for cpu hotplug notification.
++ * @arch_cpumask: cpumask to get designated cpu for counter access.
++ */
++struct nvdimm_pmu {
++	struct pmu pmu;
++	struct device *dev;
++	int cpu;
++	struct hlist_node node;
++	enum cpuhp_state cpuhp_state;
++	/* cpumask provided by arch/platform specific code */
++	struct cpumask arch_cpumask;
++};
 +
-+	if (ip1->i_ino > ip2->i_ino)
-+		swap(ip1, ip2);
-+
-+again:
-+	retry = false;
-+	/* Lock the first inode */
-+	xfs_ilock(ip1, XFS_MMAPLOCK_EXCL);
-+	error = xfs_break_dax_layouts(VFS_I(ip1), &retry);
-+	if (error || retry) {
-+		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-+		if (error == 0 && retry)
-+			goto again;
-+		return error;
-+	}
-+
-+	if (ip1 == ip2)
-+		return 0;
-+
-+	/* Nested lock the second inode */
-+	xfs_ilock(ip2, xfs_lock_inumorder(XFS_MMAPLOCK_EXCL, 1));
-+	/*
-+	 * We cannot use xfs_break_dax_layouts() directly here because it may
-+	 * need to unlock & lock the XFS_MMAPLOCK_EXCL which is not suitable
-+	 * for this nested lock case.
-+	 */
-+	page = dax_layout_busy_page(VFS_I(ip2)->i_mapping);
-+	if (page && page_ref_count(page) != 1) {
-+		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
-+		xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-+		goto again;
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * Lock two inodes so that userspace cannot initiate I/O via file syscalls or
-  * mmap activity.
-@@ -3804,8 +3848,19 @@ xfs_ilock2_io_mmap(
- 	ret = xfs_iolock_two_inodes_and_break_layout(VFS_I(ip1), VFS_I(ip2));
- 	if (ret)
- 		return ret;
--	filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
--				    VFS_I(ip2)->i_mapping);
-+
-+	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
-+		ret = xfs_mmaplock_two_inodes_and_break_dax_layout(ip1, ip2);
-+		if (ret) {
-+			inode_unlock(VFS_I(ip2));
-+			if (ip1 != ip2)
-+				inode_unlock(VFS_I(ip1));
-+			return ret;
-+		}
-+	} else
-+		filemap_invalidate_lock_two(VFS_I(ip1)->i_mapping,
-+					    VFS_I(ip2)->i_mapping);
-+
- 	return 0;
- }
- 
-@@ -3815,8 +3870,14 @@ xfs_iunlock2_io_mmap(
- 	struct xfs_inode	*ip1,
- 	struct xfs_inode	*ip2)
- {
--	filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
--				      VFS_I(ip2)->i_mapping);
-+	if (IS_DAX(VFS_I(ip1)) && IS_DAX(VFS_I(ip2))) {
-+		xfs_iunlock(ip2, XFS_MMAPLOCK_EXCL);
-+		if (ip1 != ip2)
-+			xfs_iunlock(ip1, XFS_MMAPLOCK_EXCL);
-+	} else
-+		filemap_invalidate_unlock_two(VFS_I(ip1)->i_mapping,
-+					      VFS_I(ip2)->i_mapping);
-+
- 	inode_unlock(VFS_I(ip2));
- 	if (ip1 != ip2)
- 		inode_unlock(VFS_I(ip1));
-diff --git a/fs/xfs/xfs_inode.h b/fs/xfs/xfs_inode.h
-index b21b177832d1..f7e26fe31a26 100644
---- a/fs/xfs/xfs_inode.h
-+++ b/fs/xfs/xfs_inode.h
-@@ -472,6 +472,7 @@ enum xfs_prealloc_flags {
- 
- int	xfs_update_prealloc_flags(struct xfs_inode *ip,
- 				  enum xfs_prealloc_flags flags);
-+int	xfs_break_dax_layouts(struct inode *inode, bool *retry);
- int	xfs_break_layouts(struct inode *inode, uint *iolock,
- 		enum layout_break_reason reason);
- 
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index 9d876e268734..3b99c9dfcf0d 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1327,8 +1327,8 @@ xfs_reflink_remap_prep(
- 	if (XFS_IS_REALTIME_INODE(src) || XFS_IS_REALTIME_INODE(dest))
- 		goto out_unlock;
- 
--	/* Don't share DAX file data for now. */
--	if (IS_DAX(inode_in) || IS_DAX(inode_out))
-+	/* Don't share DAX file data with non-DAX file. */
-+	if (IS_DAX(inode_in) != IS_DAX(inode_out))
- 		goto out_unlock;
- 
- 	if (!IS_DAX(inode_in))
+ struct nd_device_driver {
+ 	struct device_driver drv;
+ 	unsigned long type;
 -- 
-2.33.0
-
-
+2.26.2
 
