@@ -1,58 +1,128 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0764572
-	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 05:20:09 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C7AC611BD;
-	Tue, 28 Sep 2021 05:20:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1632806409;
-	bh=2uKzvK51puF8Oln5IF2YPCjjVN+UTh5PJAVkJSe8xHg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ELgHhzP4h2m0fkP2fCsWa3kOw0bayp3BJ51OLRc7Ka+XnfLRtSLByu+zlYI4sGBnc
-	 m8NOUrhz4MCc+NmtT7INetbPW2fTRKuRQWcK0vUusW7NJVVmja96SefhVhtKQ39idJ
-	 oro8vrVxzJFgBV3TE6yc88q5URpXCuy6ULAl00u3qnKFTTJhXHJ1X3GQdsfJnv+m8R
-	 fOOI9xUb/qIY4kGUSPtehW5ImAzDYEr9R3XYYvTLAHvCdgPtRZiXyeeajAQPD0wnjz
-	 2l+oOSjraoG96LPkWE4ciDWEET/7iv5NqBkTVdTvMdyXXoj+7wtAHnCFZktSuHE9Mb
-	 6YHWQ+QGGvtdA==
-Date: Mon, 27 Sep 2021 22:20:09 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Murphy Zhou <jencce.kernel@gmail.com>, nvdimm@lists.linux.dev,
-	linux-fsdevel@vger.kernel.org
-Subject: Re: [regression] fs dax xfstests panic
-Message-ID: <20210928052009.GB2706839@magnolia>
-References: <20210927061747.rijhtovxafsot32z@xzhoux.usersys.redhat.com>
- <20210927115116.GB23909@lst.de>
- <20210927230259.GA2706839@magnolia>
- <20210928043426.GA28185@lst.de>
- <20210928051610.GI570642@magnolia>
- <20210928051700.GA28820@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C86F772
+	for <nvdimm@lists.linux.dev>; Tue, 28 Sep 2021 05:39:56 +0000 (UTC)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id 0C7BD201BB;
+	Tue, 28 Sep 2021 05:39:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1632807595; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=13TnURwhS8h4t01lwoZLD/d/5oPL9agrfycanDfeTRQ=;
+	b=PT9kgFrx9DkgIx21N+ey4rvrG+p5lgzclkflex7M8ulg7b/MPe/8YBUPSSqsTo2GTahbjJ
+	Gey5RuOSF1hNpbYAFgKbf2oL0K4d67fdRAt+eRdY+iU4RsWpBKefK/X7oBdujgebC7iQbz
+	cH9ujOHUnez6nwSvlDTdjkQYCRSdxBg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1632807595;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=13TnURwhS8h4t01lwoZLD/d/5oPL9agrfycanDfeTRQ=;
+	b=VnyBApxFuoR87JCq7TgLnoYycKzbt1M/1osAF+bIrqg5sP1C+l/tWJFxYA8+084TxkpCY5
+	Hr8IhCD3XymifdAw==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	(No client certificate requested)
+	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id AB01913A98;
+	Tue, 28 Sep 2021 05:39:54 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+	by imap2.suse-dmz.suse.de with ESMTPSA
+	id JO5JKKqqUmHUNQAAMHmgww
+	(envelope-from <hare@suse.de>); Tue, 28 Sep 2021 05:39:54 +0000
+Subject: Re: [PATCH v2 03/10] nvme-multipath: add error handling support for
+ add_disk()
+To: Luis Chamberlain <mcgrof@kernel.org>, axboe@kernel.dk, colyli@suse.de,
+ kent.overstreet@gmail.com, kbusch@kernel.org, sagi@grimberg.me,
+ vishal.l.verma@intel.com, dan.j.williams@intel.com, dave.jiang@intel.com,
+ ira.weiny@intel.com, konrad.wilk@oracle.com, roger.pau@citrix.com,
+ boris.ostrovsky@oracle.com, jgross@suse.com, sstabellini@kernel.org,
+ minchan@kernel.org, ngupta@vflare.org, senozhatsky@chromium.org
+Cc: xen-devel@lists.xenproject.org, nvdimm@lists.linux.dev,
+ linux-nvme@lists.infradead.org, linux-bcache@vger.kernel.org,
+ linux-block@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20210927220039.1064193-1-mcgrof@kernel.org>
+ <20210927220039.1064193-4-mcgrof@kernel.org>
+From: Hannes Reinecke <hare@suse.de>
+Message-ID: <85d33b80-1d54-67ba-47f9-0298093b6d80@suse.de>
+Date: Tue, 28 Sep 2021 07:39:54 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.12.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210928051700.GA28820@lst.de>
+In-Reply-To: <20210927220039.1064193-4-mcgrof@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 
-On Tue, Sep 28, 2021 at 07:17:00AM +0200, Christoph Hellwig wrote:
-> On Mon, Sep 27, 2021 at 10:16:10PM -0700, Darrick J. Wong wrote:
-> > > > My test machinse all hit this when writeback throttling is enabled, so
-> > > > 
-> > > > Tested-by: Darrick J. Wong <djwong@kernel.org>
-> > > 
-> > > Do you mean the series fixed it for you?
-> > 
-> > Yes.
+On 9/28/21 12:00 AM, Luis Chamberlain wrote:
+> We never checked for errors on add_disk() as this function
+> returned void. Now that this is fixed, use the shiny new
+> error handling.
 > 
-> Thanks!  I was just a little confused this came in in this thread.
+> Since we now can tell for sure when a disk was added, move
+> setting the bit NVME_NSHEAD_DISK_LIVE only when we did
+> add the disk successfully.
+> 
+> Nothing to do here as the cleanup is done elsewhere. We take
+> care and use test_and_set_bit() because it is protects against
+> two nvme paths simultaneously calling device_add_disk() on the
+> same namespace head.
+> 
+> Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+> ---
+>   drivers/nvme/host/multipath.c | 13 +++++++++++--
+>   1 file changed, 11 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/nvme/host/multipath.c b/drivers/nvme/host/multipath.c
+> index e8ccdd398f78..35cace4f3f5f 100644
+> --- a/drivers/nvme/host/multipath.c
+> +++ b/drivers/nvme/host/multipath.c
+> @@ -496,13 +496,22 @@ int nvme_mpath_alloc_disk(struct nvme_ctrl *ctrl, struct nvme_ns_head *head)
+>   static void nvme_mpath_set_live(struct nvme_ns *ns)
+>   {
+>   	struct nvme_ns_head *head = ns->head;
+> +	int rc;
+>   
+>   	if (!head->disk)
+>   		return;
+>   
+> +	/*
+> +	 * test_and_set_bit() is used because it is protecting against two nvme
+> +	 * paths simultaneously calling device_add_disk() on the same namespace
+> +	 * head.
+> +	 */
+>   	if (!test_and_set_bit(NVME_NSHEAD_DISK_LIVE, &head->flags)) {
+> -		device_add_disk(&head->subsys->dev, head->disk,
+> -				nvme_ns_id_attr_groups);
+> +		rc = device_add_disk(&head->subsys->dev, head->disk,
+> +				     nvme_ns_id_attr_groups);
+> +		if (rc)
+> +			return;
+> +		set_bit(NVME_NSHEAD_DISK_LIVE, &head->flags);
+>   		nvme_add_ns_head_cdev(head);
+>   	}
+>   
+> Errm.
+Setting the same bit twice?
+And shouldn't you unset the bit if 'device_add_disk()' fails?
 
-Yeah, I was too incoherent after arguing on #xfs to be able to form
-complete sentences, sorry about that.
+Cheers,
 
-Also thank you for fixing this problem. :)
-
---D
+Hannes
+-- 
+Dr. Hannes Reinecke                Kernel Storage Architect
+hare@suse.de                              +49 911 74053 688
+SUSE Software Solutions GmbH, Maxfeldstr. 5, 90409 Nürnberg
+HRB 36809 (AG Nürnberg), Geschäftsführer: Felix Imendörffer
