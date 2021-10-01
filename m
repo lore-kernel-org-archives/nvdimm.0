@@ -1,32 +1,31 @@
 Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CC6702FAE
-	for <nvdimm@lists.linux.dev>; Fri,  1 Oct 2021 10:41:53 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE67E2FAE
+	for <nvdimm@lists.linux.dev>; Fri,  1 Oct 2021 10:50:07 +0000 (UTC)
 Received: from zn.tnic (p200300ec2f0e8e0006425ffdb1062ac0.dip0.t-ipconnect.de [IPv6:2003:ec:2f0e:8e00:642:5ffd:b106:2ac0])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 0299C1EC05B9;
-	Fri,  1 Oct 2021 12:41:51 +0200 (CEST)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 00B621EC05BB;
+	Fri,  1 Oct 2021 12:50:05 +0200 (CEST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-	t=1633084912;
+	t=1633085406;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-	bh=dcikHcyXe/7/TSUAI8MjQnT4P3eZBZCNDHyq0whYCPc=;
-	b=SijhU3onBhoAgrH/ZXUI/iAZaYh8bPDNU+nWpovHgf39EVR8g2FghMIAahWdpNLYEYKdxt
-	3udk0UbaNhWx82cR2gWmEZqdBOnNlmgRAj8XnOCAAwvg6KybMe6u2HCxSBDgWNU8iIz+KI
-	Zh+cIN4Pj5LuoU+wZ/7auJ6wz7fiJG8=
-Date: Fri, 1 Oct 2021 12:41:47 +0200
+	bh=Fa5/YHzYhW52c3YQw/tIykXLtItNPDQZwrKlf9nDxLw=;
+	b=PUInDgC6XF9Vu16fDfgya7m7BShimyZxhHzc5nDUyoZNqGnhG9P/WGyRbtk8+x7z70Z8nK
+	u3z1vaN/8C7+yIhKl0g8xxSBPSxq6m/Rhaeet2Lec7Fvs0LRD6ZBbonhmok9dwAOH/SEDS
+	VChAoHQ2lJKMg0eqNPnWtipBzFt7SAs=
+Date: Fri, 1 Oct 2021 12:50:06 +0200
 From: Borislav Petkov <bp@alien8.de>
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>,
+Cc: Jane Chu <jane.chu@oracle.com>, "Luck, Tony" <tony.luck@intel.com>,
 	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	Jane Chu <jane.chu@oracle.com>, Luis Chamberlain <mcgrof@suse.com>
+	Luis Chamberlain <mcgrof@suse.com>
 Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
-Message-ID: <YVbl6wkUvbk8vsn7@zn.tnic>
-References: <YVYXjoP0n1VTzCV7@zn.tnic>
- <2c4ccae722024a2fbfb9af4f877f4cbf@intel.com>
+Message-ID: <YVbn3ohRhYkTNdEK@zn.tnic>
+References: <2c4ccae722024a2fbfb9af4f877f4cbf@intel.com>
  <YVYe9xrXiwF3IqB2@zn.tnic>
  <CAPcyv4iHmcYV6Dc35Rfp_k9oMsr9qWEdALFs70-bNOvZK00f9A@mail.gmail.com>
  <YVYj8PpzIIo1qu1U@zn.tnic>
@@ -34,7 +33,8 @@ References: <YVYXjoP0n1VTzCV7@zn.tnic>
  <YVYqJZhBiTMXezZJ@zn.tnic>
  <CAPcyv4heNPRqA-2SMsMVc4w7xGo=xgu05yD2nsVbCwGELa-0hQ@mail.gmail.com>
  <YVY7wY/mhMiRLATk@zn.tnic>
- <CAPcyv4jV_8JCNSXg9W3ZNDhZEd=z2QyLWPgLUiVN92rp7zWReA@mail.gmail.com>
+ <ba3b12bf-c71e-7422-e205-258e96f29be5@oracle.com>
+ <CAPcyv4j9KH+Y4hperuCwBMLOSPHKfbbku_T8uFNoqiNYrvfRdA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -43,33 +43,69 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4jV_8JCNSXg9W3ZNDhZEd=z2QyLWPgLUiVN92rp7zWReA@mail.gmail.com>
+In-Reply-To: <CAPcyv4j9KH+Y4hperuCwBMLOSPHKfbbku_T8uFNoqiNYrvfRdA@mail.gmail.com>
 
-On Thu, Sep 30, 2021 at 03:44:40PM -0700, Dan Williams wrote:
-> The driver uses the direct-map to do the access. It uses the
-> direct-map because it has also arranged for pfn_to_page() to work for
-> PMEM pages. So if PMEM is in the direct-map is marked NP then the
-> sub-page accesses will fault.
+On Thu, Sep 30, 2021 at 07:02:13PM -0700, Dan Williams wrote:
+> If I understand the proposal correctly Boris is basically saying
+> "figure out how to do your special PMEM stuff in the driver directly
+> and make it so MCE code has no knowledge of the PMEM case".
 
-Well, the driver has special knowledge so *actually* it could go and use
-the NP marking as "this page has been poisoned" and mark it NC only for
-itself, so that it gets the job done. Dunno if that would end up being
-too ugly to live and turn into a layering violation or so.
+I don't mind if it has to because of a good reason X - I'm just trying
+to simplify things and not do stuff which is practically unnecessary.
 
-Or we can mark the page NC - that should stop the speculative access for
-DRAM and the PMEM driver can do its job. The NC should take care so that
-no cachelines are in the cache hierarchy.
+> The flow
+> is:
+> 
+> memory_failure(pfn, flags)
+> nfit_handle_mce(...) <--- right now this on mce notifier chain
+> set_mce_nospec(pfn) <--- drop the "whole page" concept
+> 
+> This poses a problem because not all memory_failure() paths trigger
+> set_mce_nospec() or the mce notifier chain.
 
-> Now, the driver could set up and tear down page tables for the pfn
-> whenever it is asked to do I/O over a potentially poisoned pfn. Is
-> that what you are suggesting? It seems like a significant amount of
-> overhead, but it would at least kick this question out of the purview
-> of the MCE code.
+Hmm, so this sounds like more is needed than this small patch.
 
-Yeah, I'm looking for the simplest solution first which satisfies
-everyone. Let's keep that one on the bag for now...
+> If that disconnect happens, attempts to read PMEM pages that have been
+> signalled to memory_failure() will now crash in the driver without
+> workarounds for NP pages.
+>
+> So memory_failure() needs to ensure that it communicates with the
+> driver before any possible NP page attribute changes. I.e. the driver
+> needs to know that regardless of how many cachelines are poisoned the
+> entire page is always unmapped in the direct map.
 
-:-)
+Ok, so those errors do get reported through MCE so MCE code does need to
+know about them.
+
+So the question is, how should MCE mark them so that the driver can deal
+with them properly.
+
+> Then, when the driver is called with the new RWF_RECOVER_DATA flag, it
+> can set up a new UC alias mapping for the pfn and access the good data
+> in the page while being careful to read around the poisoned cache
+> lines.
+
+See my other mail - that sounds good.
+
+> In my mind this moves the RWF_RECOVER_DATA flag proposal from "nice to
+> have" to "critical for properly coordinating with memory_failure() and
+> mce expectations"
+
+Right, so to reiterate: I don't mind if the MCE code knows about this -
+in the end of the day, it is that code which does the error reporting.
+My goal is to make that reporting and marking optimal so that the driver
+can work with that marking and simplify and document *why* we're doing
+that so that future MCE changes can keep that in mind.
+
+So to sum up: it sounds to me like it should simply mark *whole* pages
+as NC:
+
+1. this should prevent the spec. access for DRAM.
+2. PMEM can do UC alias mapping and do sub-page access to salvage data.
+
+How's that?
+
+Thx.
 
 -- 
 Regards/Gruss,
