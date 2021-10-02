@@ -1,94 +1,88 @@
-Received: from mail-pl1-f182.google.com (mail-pl1-f182.google.com [209.85.214.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.skyhub.de (mail.skyhub.de [5.9.137.197])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04CD52F80
-	for <nvdimm@lists.linux.dev>; Sat,  2 Oct 2021 01:19:21 +0000 (UTC)
-Received: by mail-pl1-f182.google.com with SMTP id n2so7344668plk.12
-        for <nvdimm@lists.linux.dev>; Fri, 01 Oct 2021 18:19:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=aXTpsgwefS9FjUBmruzpl69mLwyzpoyIy9pYOBOwR6E=;
-        b=isQPBvIbRcj7jMCawK8NBi6iXKFkgh7LMYGFehd/UVjbT/KT4vJLmr+KQhi8dm5Nd+
-         QUaqn1gsiad9y3m48SiPTEi+ynUTJlJOIUJGkf4O9awIEKgIDr9DCkULV3LEl1hXoo+9
-         Yng+of4AtymWeKnwgLS8ycd+FGBIpI7G/pIuC7qKZfKMQIMlH0aqAF7ubKT1tgCJgT8i
-         c+8yFignuCOZnHJj+JzVTAZ6mBC/MxDyQHJSXt7VIa5YrxMTRDyKwXjM5V9Q0Bc9MKJF
-         /SEoTqKHttkZF93Tuxnlgs/k+n9C9ZzFS5jyIZcWA1xUwBvpQFsUS5NE/Yy8i8jBUcBn
-         yUSg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=aXTpsgwefS9FjUBmruzpl69mLwyzpoyIy9pYOBOwR6E=;
-        b=VxGqNs9zLkgxLdm63E+55upqwNi6FTUUgmrAArzXiNa46wBzGIw2WxkYGBZcbXy9kq
-         yWFPn4Cep6eMYBEj87Z5xQ9zcnTEwCXdN0s+XkAz11eA10AFcnfEChQEu+C+o9ih40So
-         73AdXQ7EgIx8PWRxJtgI9tlaymRCcNiM0695AJ4clv+1047IhA1R71JeAZuzw0YV2h/a
-         Qyf0MsNX8zmc0FVThgHKdHEPtvz05Ls7IhP97FCm6+Mk/MAb8hQevgjg0I6aGYsF4tU9
-         1hxXGxh4SBufpcm4k/oDZogw/UBLxCQoTWnCODuBx606+t+VghtX0j0dmvZQmtdAS0P3
-         I62g==
-X-Gm-Message-State: AOAM532pFDyvKoxE/qQYYwPy/DK7OS2wAIpyoX4AGjbViNXN+U+4qZxq
-	A7jCwVFiOBy6hTIJCBjDEyPKg8CALVllWbxevXUINQ==
-X-Google-Smtp-Source: ABdhPJy8why/nFvpoAdWHRvrYyGtF5XaGSuamMCitKXoR2UFihU44ob4ierB9fkn1vARcWPZkaIyQMNNGhXAFjf/M1k=
-X-Received: by 2002:a17:90b:3b84:: with SMTP id pc4mr16605771pjb.220.1633137561353;
- Fri, 01 Oct 2021 18:19:21 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 421303FC9
+	for <nvdimm@lists.linux.dev>; Sat,  2 Oct 2021 10:17:06 +0000 (UTC)
+Received: from zn.tnic (p200300ec2f1da300fd384e36289cf098.dip0.t-ipconnect.de [IPv6:2003:ec:2f1d:a300:fd38:4e36:289c:f098])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 625101EC0608;
+	Sat,  2 Oct 2021 12:17:04 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+	t=1633169824;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
+	bh=U5swqrM58d+ksRq5QB2mxFpSgXQzWwDCi9QtvHCzYTI=;
+	b=Ira+/LKxt19MytpLI4eiMY7ycxSXN8fVqhIB3r1QSRw98S8oTE5+VAC06QxS/sNlgpwKm5
+	SAQslVw87qYaunhWg4/nxkSUhXS002X6fkFl/J7mWmLzSAZ0hP9IASycJS3EvAwuVlOjSi
+	2KB9lKCAbyW999AQs9fZ6XaBX1OD+80=
+Date: Sat, 2 Oct 2021 12:17:00 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jane Chu <jane.chu@oracle.com>, "Luck, Tony" <tony.luck@intel.com>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Luis Chamberlain <mcgrof@suse.com>
+Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+Message-ID: <YVgxnPWX2xCcbv19@zn.tnic>
+References: <CAPcyv4jEby_ifqgPyfbSgouLJKseNRCCN=rcLHze_Y4X8BZC7g@mail.gmail.com>
+ <YVYqJZhBiTMXezZJ@zn.tnic>
+ <CAPcyv4heNPRqA-2SMsMVc4w7xGo=xgu05yD2nsVbCwGELa-0hQ@mail.gmail.com>
+ <YVY7wY/mhMiRLATk@zn.tnic>
+ <ba3b12bf-c71e-7422-e205-258e96f29be5@oracle.com>
+ <CAPcyv4j9KH+Y4hperuCwBMLOSPHKfbbku_T8uFNoqiNYrvfRdA@mail.gmail.com>
+ <YVbn3ohRhYkTNdEK@zn.tnic>
+ <CAPcyv4i4r5-0i3gpZxwP7ojndqbrSmebtDcGbo8JR346B-2NpQ@mail.gmail.com>
+ <YVdPWcggek5ykbft@zn.tnic>
+ <CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 1 Oct 2021 18:19:12 -0700
-Message-ID: <CAPcyv4iEHttW7fDzaKYdAr2t4w3YJQ7t7QtadO0bZKDWPuK0Ag@mail.gmail.com>
-Subject: [GIT PULL] nvdimm fixes for v5.15-rc4
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com>
 
-Hi Linus, please pull from:
+On Fri, Oct 01, 2021 at 11:29:43AM -0700, Dan Williams wrote:
+> My read is that the guest gets virtual #MC on an access to that page.
+> When the guest tries to do set_memory_uc() and instructs cpa_flush()
+> to do clean caches that results in taking another fault / exception
+> perhaps because the VMM unmapped the page from the guest? If the guest
+> had flipped the page to NP then cpa_flush() says "oh, no caching
+> change, skip the clflush() loop".
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.15-rc4
+... and the CLFLUSH is the insn which caused the second MCE because it
+"appeared that the guest was accessing the bad page."
 
-...to receive a fix for a regression added this cycle in the pmem
-driver, and for a long standing bug for failed NUMA node lookups on
-ARM64.
+Uuf, that could be. Nasty.
 
-This has appeared in -next for several days with no reported issues.
+> Yeah, I thought UC would make the PMEM driver's life easier, but if it
+> has to contend with an NP case at all, might as well make it handle
+> that case all the time.
+> 
+> Safe to say this patch of mine is woefully insufficient and I need to
+> go look at how to make the guarantees needed by the PMEM driver so it
+> can handle NP and set up alias maps.
+> 
+> This was a useful discussion.
 
-Please pull, thanks.
+Oh yeah, thanks for taking the time!
 
----
+> It proves that my commit:
+> 
+> 284ce4011ba6 x86/memory_failure: Introduce {set, clear}_mce_nospec()
+> 
+> ...was broken from the outset.
 
-The following changes since commit 5816b3e6577eaa676ceb00a848f0fd65fe2adc29:
+Well, the problem with hw errors is that it is always very hard to test
+the code. But I hear injection works now soo... :-)
 
-  Linux 5.15-rc3 (2021-09-26 14:08:19 -0700)
+Thx.
 
-are available in the Git repository at:
+-- 
+Regards/Gruss,
+    Boris.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.15-rc4
-
-for you to fetch changes up to d55174cccac2e4c2a58ff68b6b573fc0836f73bd:
-
-  nvdimm/pmem: fix creating the dax group (2021-09-27 11:40:43 -0700)
-
-----------------------------------------------------------------
-libnvdimm fixes for v5.15-rc4
-
-- Fix a regression that caused the sysfs ABI for pmem block devices to
-  not be registered. This fails the nvdimm unit tests and dax xfstests.
-
-- Fix numa node lookups for dax-kmem memory (device-dax memory assigned
-  to the page allocator) on ARM64.
-
-----------------------------------------------------------------
-Christoph Hellwig (1):
-      nvdimm/pmem: fix creating the dax group
-
-Jia He (1):
-      ACPI: NFIT: Use fallback node id when numa info in NFIT table is incorrect
-
- drivers/acpi/nfit/core.c | 12 ++++++++++++
- drivers/nvdimm/pmem.c    |  5 +----
- 2 files changed, 13 insertions(+), 4 deletions(-)
+https://people.kernel.org/tglx/notes-about-netiquette
