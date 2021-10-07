@@ -1,175 +1,144 @@
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F3A02C80
-	for <nvdimm@lists.linux.dev>; Thu,  7 Oct 2021 08:21:54 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="249511701"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A19642C95
+	for <nvdimm@lists.linux.dev>; Thu,  7 Oct 2021 08:21:56 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="249511708"
 X-IronPort-AV: E=Sophos;i="5.85,354,1624345200"; 
-   d="scan'208";a="249511701"
+   d="scan'208";a="249511708"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:53 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:54 -0700
 X-IronPort-AV: E=Sophos;i="5.85,354,1624345200"; 
-   d="scan'208";a="568555073"
+   d="scan'208";a="568555091"
 Received: from abishekh-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.133.239])
-  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:53 -0700
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:54 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>,
 	Ben Widawsky <ben.widawsky@intel.com>,
 	<nvdimm@lists.linux.dev>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 00/17] Initial CXL support
-Date: Thu,  7 Oct 2021 02:21:22 -0600
-Message-Id: <20211007082139.3088615-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 04/17] util: add the struct_size() helper from the kernel
+Date: Thu,  7 Oct 2021 02:21:26 -0600
+Message-Id: <20211007082139.3088615-5-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20211007082139.3088615-1-vishal.l.verma@intel.com>
+References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6502; h=from:subject; bh=of5rUB96XbBWvsbnML3DYWLhtbtCSVQfzrwEb9NRE88=; b=owGbwMvMwCHGf25diOft7jLG02pJDIlxa/+de3B0f95mDXbTE3fXT5kjv7wwL7JoWp+Ynv/hJ5fd vu9/0lHKwiDGwSArpsjyd89HxmNy2/N5AhMcYeawMoEMYeDiFICJKP9kZDiy607jGgbH90p7woKnit ySPHL3+9vk2Wu23JjY/e7Ik73PGRmmKV1rb/2w5CVjDYvf1It7JOLvLGT8v+Pxv8kbzxVz7WnjAQA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3332; h=from:subject; bh=YkRGTFHHdoX3rdMS+/L06iwNIwujBkZUCLV48B1IXOo=; b=owGbwMvMwCHGf25diOft7jLG02pJDIlx65jlTtg/e5F5+U3R/l2MmT/F9uwosyiKXHY6d47nPnHl mHVSHaUsDGIcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZhImS4jw87K6+VSHg4BqzUTc56/2T nr0d7JBQyOglWrXiz8prYkWZ6R4ZrR4pe6lh9Xeh08X71nmfrDaQdVVR+cVRPtuCj96F3icWYA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Changes since v3[1]:
+Add struct_size() from include/linux/overflow.h which calculates the
+size of a struct with a trailing variable length array.
 
-- Collect review tags
-- Add the kernel's struct_size() helper for trailing array struct
-  calculations (Dan)
-- Drop test/libcxl - to be re-added after switching to an in-kernel
-  emulation/unit test regime 'cxl_test', similar to 'nfit_test' (Dan)
-- Rename some verb_X_verb instances to drop the double verb (Dan)
-- Rename '{get,set}_lsa' to '{read,write}_labels' in libcxl APIs (Dan)
-- Add accessor APIs for health flags instead of leaking binary
-  representations to library users (Dan)
-- Rename '{get,set,zero}_lsa' APIs to '{read,write,zero}_label' (Dan)
-- Add health info to cxl-list
-- Fix a bug where a newly minted cmd struct didn't have a non-zero status
-  (This allowed a flow like cxl_cmd_new_<foo> followed by
-  cxl_cmd_<foo>_get_<field>() to silently succeed, where the second
-  accessor call should've failed because cxl_cmd_submit was omitted.
-- Change the cxl_cmd_read_label_get_payload() API to refrain from simply
-  returning a void pointer, that is easy to access out of bounds. Instead,
-  expect a buf/len pair that libcxl then copies the payload into (Dan)
-
-[1]: https://lore.kernel.org/linux-cxl/a86b057ccdd8e0a087d300dfc7dc315a3bf32e95.camel@intel.com/
-
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
+ util/size.h | 62 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ util/util.h |  6 ++++++
+ 2 files changed, 68 insertions(+)
 
-These patches add a new utility and library to support CXL devices.
-This comprehends the kernel's sysfs layout for CXL devices, and
-implements a command submission harness for CXL mailbox commands via
-ioctl()s defined by the cxl_mem driver. 
-
-These patches include:
-- libcxl representation of cxl_mem devices
-- A command submission harness through libcxl
-- A 'cxl-list' command which displays information about a device
-- cxl-{read,write,zero}-labels commands for Label Storage Area
-  manipulation
-
-An ndctl branch with these patches is also available at [2]
-
-[2]: https://github.com/pmem/ndctl/tree/cxl-2.0v4
-
-Ira Weiny (1):
-  ndctl: Add CXL packages to the RPM spec
-
-Vishal Verma (16):
-  ndctl: add .clang-format
-  cxl: add a cxl utility and libcxl library
-  cxl: add a local copy of the cxl_mem UAPI header
-  util: add the struct_size() helper from the kernel
-  libcxl: add support for command query and submission
-  libcxl: add support for the 'Identify Device' command
-  libcxl: add GET_HEALTH_INFO mailbox command and accessors
-  libcxl: add support for the 'GET_LSA' command
-  util/hexdump: Add a util helper to print a buffer in hex
-  libcxl: add label_size to cxl_memdev, and an API to retrieve it
-  libcxl: add a stub interface to determine whether a memdev is active
-  libcxl: add interfaces for label operations
-  cxl: add commands to read, write, and zero labels
-  Documentation/cxl: add library API documentation
-  cxl-cli: add bash completion
-  cxl: add health information to cxl-list
-
- Documentation/cxl/cxl-list.txt           |   68 ++
- Documentation/cxl/cxl-read-labels.txt    |   33 +
- Documentation/cxl/cxl-write-labels.txt   |   32 +
- Documentation/cxl/cxl-zero-labels.txt    |   29 +
- Documentation/cxl/cxl.txt                |   34 +
- Documentation/cxl/human-option.txt       |    8 +
- Documentation/cxl/labels-description.txt |    8 +
- Documentation/cxl/labels-options.txt     |   17 +
- Documentation/cxl/lib/cxl_new.txt        |   43 +
- Documentation/cxl/lib/libcxl.txt         |   56 +
- Documentation/cxl/memdev-option.txt      |    4 +
- Documentation/cxl/verbose-option.txt     |    5 +
- configure.ac                             |    4 +
- Makefile.am                              |   14 +-
- Makefile.am.in                           |    5 +
- cxl/lib/private.h                        |  140 +++
- cxl/lib/libcxl.c                         | 1265 ++++++++++++++++++++++
- cxl/builtin.h                            |   13 +
- cxl/cxl_mem.h                            |  189 ++++
- cxl/libcxl.h                             |  116 ++
- util/bitmap.h                            |   23 +
- util/filter.h                            |    2 +
- util/hexdump.h                           |    8 +
- util/json.h                              |    4 +
- util/main.h                              |    3 +
- util/size.h                              |   62 ++
- util/util.h                              |    6 +
- cxl/cxl.c                                |   99 ++
- cxl/list.c                               |  118 ++
- cxl/memdev.c                             |  314 ++++++
- util/filter.c                            |   20 +
- util/hexdump.c                           |   53 +
- util/json.c                              |  215 ++++
- .clang-format                            |  162 +++
- .gitignore                               |    7 +-
- Documentation/cxl/Makefile.am            |   61 ++
- Documentation/cxl/lib/Makefile.am        |   58 +
- contrib/ndctl                            |  109 ++
- cxl/Makefile.am                          |   22 +
- cxl/lib/Makefile.am                      |   32 +
- cxl/lib/libcxl.pc.in                     |   11 +
- cxl/lib/libcxl.sym                       |   87 ++
- ndctl.spec.in                            |   49 +
- 43 files changed, 3604 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/cxl/cxl-list.txt
- create mode 100644 Documentation/cxl/cxl-read-labels.txt
- create mode 100644 Documentation/cxl/cxl-write-labels.txt
- create mode 100644 Documentation/cxl/cxl-zero-labels.txt
- create mode 100644 Documentation/cxl/cxl.txt
- create mode 100644 Documentation/cxl/human-option.txt
- create mode 100644 Documentation/cxl/labels-description.txt
- create mode 100644 Documentation/cxl/labels-options.txt
- create mode 100644 Documentation/cxl/lib/cxl_new.txt
- create mode 100644 Documentation/cxl/lib/libcxl.txt
- create mode 100644 Documentation/cxl/memdev-option.txt
- create mode 100644 Documentation/cxl/verbose-option.txt
- create mode 100644 cxl/lib/private.h
- create mode 100644 cxl/lib/libcxl.c
- create mode 100644 cxl/builtin.h
- create mode 100644 cxl/cxl_mem.h
- create mode 100644 cxl/libcxl.h
- create mode 100644 util/hexdump.h
- create mode 100644 cxl/cxl.c
- create mode 100644 cxl/list.c
- create mode 100644 cxl/memdev.c
- create mode 100644 util/hexdump.c
- create mode 100644 .clang-format
- create mode 100644 Documentation/cxl/Makefile.am
- create mode 100644 Documentation/cxl/lib/Makefile.am
- create mode 100644 cxl/Makefile.am
- create mode 100644 cxl/lib/Makefile.am
- create mode 100644 cxl/lib/libcxl.pc.in
- create mode 100644 cxl/lib/libcxl.sym
-
-
-base-commit: 4e646fa490ba4b782afa188dd8818b94c419924e
+diff --git a/util/size.h b/util/size.h
+index 646edae..a0f3593 100644
+--- a/util/size.h
++++ b/util/size.h
+@@ -4,6 +4,8 @@
+ #ifndef _NDCTL_SIZE_H_
+ #define _NDCTL_SIZE_H_
+ #include <stdbool.h>
++#include <stdint.h>
++#include <util/util.h>
+ 
+ #define SZ_1K     0x00000400
+ #define SZ_4K     0x00001000
+@@ -30,4 +32,64 @@ static inline bool is_power_of_2(unsigned long long v)
+ #define BITS_PER_LONG (sizeof(unsigned long) * 8)
+ #define HPAGE_SIZE (2 << 20)
+ 
++/*
++ * Helpers for struct_size() copied from include/linux/overflow.h (GPL-2.0)
++ *
++ * For simplicity and code hygiene, the fallback code below insists on
++ * a, b and *d having the same type (similar to the min() and max()
++ * macros), whereas gcc's type-generic overflow checkers accept
++ * different types. Hence we don't just make check_add_overflow an
++ * alias for __builtin_add_overflow, but add type checks similar to
++ * below.
++ */
++#define check_add_overflow(a, b, d) (({	\
++	typeof(a) __a = (a);			\
++	typeof(b) __b = (b);			\
++	typeof(d) __d = (d);			\
++	(void) (&__a == &__b);			\
++	(void) (&__a == __d);			\
++	__builtin_add_overflow(__a, __b, __d);	\
++}))
++
++#define check_mul_overflow(a, b, d) (({	\
++	typeof(a) __a = (a);			\
++	typeof(b) __b = (b);			\
++	typeof(d) __d = (d);			\
++	(void) (&__a == &__b);			\
++	(void) (&__a == __d);			\
++	__builtin_mul_overflow(__a, __b, __d);	\
++}))
++
++/*
++ * Compute a*b+c, returning SIZE_MAX on overflow. Internal helper for
++ * struct_size() below.
++ */
++static inline size_t __ab_c_size(size_t a, size_t b, size_t c)
++{
++	size_t bytes;
++
++	if (check_mul_overflow(a, b, &bytes))
++		return SIZE_MAX;
++	if (check_add_overflow(bytes, c, &bytes))
++		return SIZE_MAX;
++
++	return bytes;
++}
++
++/**
++ * struct_size() - Calculate size of structure with trailing array.
++ * @p: Pointer to the structure.
++ * @member: Name of the array member.
++ * @count: Number of elements in the array.
++ *
++ * Calculates size of memory needed for structure @p followed by an
++ * array of @count number of @member elements.
++ *
++ * Return: number of bytes needed or SIZE_MAX on overflow.
++ */
++#define struct_size(p, member, count)					\
++	__ab_c_size(count,						\
++		    sizeof(*(p)->member) + __must_be_array((p)->member),\
++		    sizeof(*(p)))
++
+ #endif /* _NDCTL_SIZE_H_ */
+diff --git a/util/util.h b/util/util.h
+index ae0e4e1..b2b4ae6 100644
+--- a/util/util.h
++++ b/util/util.h
+@@ -63,6 +63,12 @@
+ #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
+ #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
+ 
++/* Are two types/vars the same type (ignoring qualifiers)? */
++#define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
++
++/* &a[0] degrades to a pointer: a different type from an array */
++#define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
++
+ enum {
+ 	READ, WRITE,
+ };
 -- 
 2.31.1
 
