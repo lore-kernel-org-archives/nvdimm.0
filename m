@@ -1,15 +1,15 @@
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A27682CA5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA2142CA1
 	for <nvdimm@lists.linux.dev>; Thu,  7 Oct 2021 08:22:00 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="249511722"
+X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="249511723"
 X-IronPort-AV: E=Sophos;i="5.85,354,1624345200"; 
-   d="scan'208";a="249511722"
+   d="scan'208";a="249511723"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:56 -0700
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:57 -0700
 X-IronPort-AV: E=Sophos;i="5.85,354,1624345200"; 
-   d="scan'208";a="568555114"
+   d="scan'208";a="568555118"
 Received: from abishekh-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.133.239])
   by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:56 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
@@ -18,9 +18,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Ben Widawsky <ben.widawsky@intel.com>,
 	<nvdimm@lists.linux.dev>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 10/17] libcxl: add label_size to cxl_memdev, and an API to retrieve it
-Date: Thu,  7 Oct 2021 02:21:32 -0600
-Message-Id: <20211007082139.3088615-11-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 11/17] libcxl: add a stub interface to determine whether a memdev is active
+Date: Thu,  7 Oct 2021 02:21:33 -0600
+Message-Id: <20211007082139.3088615-12-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20211007082139.3088615-1-vishal.l.verma@intel.com>
 References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
@@ -30,89 +30,68 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2551; h=from:subject; bh=o1C6jkiUTlpPWcct6xVgo5MVjoHuL/SHE7mDaFnRkng=; b=owGbwMvMwCHGf25diOft7jLG02pJDIlx6ziX6EszTfrIcGL7XI/c0k+6O38XqX2b4mLzM+PADdnE uMvLO0pZGMQ4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjCRcHlGhulMChPKtgfPaGc6c+Wm86 21p22TlY9wV0+Z8vrnodqVP48zMmyN++XUEhK6evqPNzPPrBFePHd2n2aCmrrJtzVVRvlFi1kB
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1964; h=from:subject; bh=NPfWs2gFlIShVnWwf2ZzJSQqfH909RKCgpKdC2hastM=; b=owGbwMvMwCHGf25diOft7jLG02pJDIlx67h2+Fr9yXiUf13ng+c7H8UnRVkWUX2raw/trlPbYqfd UbGwo5SFQYyDQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABNZeoSR4dybwHdrMyzOGe8TNFgwzS JA7Ya4qfIJC92Je5+4dFrcSmBkOMwgkN12vfSmcqnbPVHDczNyNrLkXA3v3Ljm3GeHb/EiXAA=
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Size of the Label Storage Area (LSA) is available as a sysfs attribute
-called 'label_storage_size'. Add that to libcxl's memdev so that it is available
-for label related commands.
+Add an interface to determine whether a memdev is bound to a region
+driver and therefore is currently active.
 
+For now, this just returns '0' all the time - i.e. devices are always
+considered inactive. Flesh this out fully once the region driver is
+available.
+
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- cxl/lib/private.h  |  1 +
- cxl/lib/libcxl.c   | 12 ++++++++++++
+ cxl/lib/libcxl.c   | 10 ++++++++++
  cxl/libcxl.h       |  1 +
- cxl/lib/libcxl.sym |  5 +++++
- 4 files changed, 19 insertions(+)
+ cxl/lib/libcxl.sym |  1 +
+ 3 files changed, 12 insertions(+)
 
-diff --git a/cxl/lib/private.h b/cxl/lib/private.h
-index 9c6317b..671f12f 100644
---- a/cxl/lib/private.h
-+++ b/cxl/lib/private.h
-@@ -21,6 +21,7 @@ struct cxl_memdev {
- 	unsigned long long pmem_size;
- 	unsigned long long ram_size;
- 	int payload_max;
-+	size_t lsa_size;
- 	struct kmod_module *module;
- };
- 
 diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index 33cc462..de3a8f7 100644
+index de3a8f7..59d091c 100644
 --- a/cxl/lib/libcxl.c
 +++ b/cxl/lib/libcxl.c
-@@ -247,6 +247,13 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
- 	if (memdev->payload_max < 0)
- 		goto err_read;
- 
-+	sprintf(path, "%s/label_storage_size", cxlmem_base);
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
-+		goto err_read;
-+	memdev->lsa_size = strtoull(buf, NULL, 0);
-+	if (memdev->lsa_size == ULLONG_MAX)
-+		goto err_read;
-+
- 	memdev->dev_path = strdup(cxlmem_base);
- 	if (!memdev->dev_path)
- 		goto err_read;
-@@ -350,6 +357,11 @@ CXL_EXPORT const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev
- 	return memdev->firmware_version;
+@@ -362,6 +362,16 @@ CXL_EXPORT size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev)
+ 	return memdev->lsa_size;
  }
  
-+CXL_EXPORT size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev)
++CXL_EXPORT int cxl_memdev_is_active(struct cxl_memdev *memdev)
 +{
-+	return memdev->lsa_size;
++	/*
++	 * TODO: Currently memdevs are always considered inactive. Once we have
++	 * cxl_bus drivers that are bound/unbound to memdevs, we'd use that to
++	 * determine the active/inactive state.
++	 */
++	return 0;
 +}
 +
  CXL_EXPORT void cxl_cmd_unref(struct cxl_cmd *cmd)
  {
  	if (!cmd)
 diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 7408745..d3b97a1 100644
+index d3b97a1..2e24371 100644
 --- a/cxl/libcxl.h
 +++ b/cxl/libcxl.h
-@@ -42,6 +42,7 @@ struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
- unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
+@@ -43,6 +43,7 @@ unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
  unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
  const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
-+size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev);
+ size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev);
++int cxl_memdev_is_active(struct cxl_memdev *memdev);
  
  #define cxl_memdev_foreach(ctx, memdev) \
          for (memdev = cxl_memdev_get_first(ctx); \
 diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 1b608d8..b9feb93 100644
+index b9feb93..0e82030 100644
 --- a/cxl/lib/libcxl.sym
 +++ b/cxl/lib/libcxl.sym
-@@ -75,3 +75,8 @@ global:
- 	cxl_cmd_new_read_label;
- 	cxl_cmd_read_label_get_payload;
- } LIBCXL_2;
-+
-+LIBCXL_4 {
-+global:
-+	cxl_memdev_get_label_size;
-+} LIBCXL_3;
+@@ -79,4 +79,5 @@ global:
+ LIBCXL_4 {
+ global:
+ 	cxl_memdev_get_label_size;
++	cxl_memdev_is_active;
+ } LIBCXL_3;
 -- 
 2.31.1
 
