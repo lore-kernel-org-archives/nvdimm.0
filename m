@@ -1,15 +1,15 @@
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A19642C95
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 915852C8E
 	for <nvdimm@lists.linux.dev>; Thu,  7 Oct 2021 08:21:56 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="249511708"
+X-IronPort-AV: E=McAfee;i="6200,9189,10129"; a="249511706"
 X-IronPort-AV: E=Sophos;i="5.85,354,1624345200"; 
-   d="scan'208";a="249511708"
+   d="scan'208";a="249511706"
 Received: from fmsmga002.fm.intel.com ([10.253.24.26])
   by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:54 -0700
 X-IronPort-AV: E=Sophos;i="5.85,354,1624345200"; 
-   d="scan'208";a="568555091"
+   d="scan'208";a="568555083"
 Received: from abishekh-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.133.239])
   by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Oct 2021 01:21:54 -0700
 From: Vishal Verma <vishal.l.verma@intel.com>
@@ -18,9 +18,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	Ben Widawsky <ben.widawsky@intel.com>,
 	<nvdimm@lists.linux.dev>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v4 04/17] util: add the struct_size() helper from the kernel
-Date: Thu,  7 Oct 2021 02:21:26 -0600
-Message-Id: <20211007082139.3088615-5-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v4 03/17] cxl: add a local copy of the cxl_mem UAPI header
+Date: Thu,  7 Oct 2021 02:21:25 -0600
+Message-Id: <20211007082139.3088615-4-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20211007082139.3088615-1-vishal.l.verma@intel.com>
 References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
@@ -30,115 +30,258 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3332; h=from:subject; bh=YkRGTFHHdoX3rdMS+/L06iwNIwujBkZUCLV48B1IXOo=; b=owGbwMvMwCHGf25diOft7jLG02pJDIlx65jlTtg/e5F5+U3R/l2MmT/F9uwosyiKXHY6d47nPnHl mHVSHaUsDGIcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZhImS4jw87K6+VSHg4BqzUTc56/2T nr0d7JBQyOglWrXiz8prYkWZ6R4ZrR4pe6lh9Xeh08X71nmfrDaQdVVR+cVRPtuCj96F3icWYA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=8793; h=from:subject; bh=KxiFIN4RS8jxlyKMgzQu0KMUO0nV9BgVtiYIfXdGDaU=; b=owGbwMvMwCHGf25diOft7jLG02pJDIlx65gmbWwpyt98d5rS+svyHDMu5pjduRJ7T85spc+qrCmG GlY8HaUsDGIcDLJiiix/93xkPCa3PZ8nMMERZg4rE8gQBi5OAZjI5pcM/+v26V64Jbdr55unOdviBV c4VvqeE5v3yCjU+5PEEsbA+gRGhl9mx7M+KnrGtjAssZxx7e3U6C2RUyadCrzktSqnLu/uF04A
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Add struct_size() from include/linux/overflow.h which calculates the
-size of a struct with a trailing variable length array.
+While CXL functionality is under development, it is useful to have a
+local copy of the UAPI header for cxl_mem definitions. This allows
+building cxl and libcxl on systems where the appropriate kernel headers
+are not installed in the usual locations.
 
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- util/size.h | 62 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- util/util.h |  6 ++++++
- 2 files changed, 68 insertions(+)
+ Makefile.am         |   3 +-
+ Makefile.am.in      |   1 +
+ cxl/cxl_mem.h       | 189 ++++++++++++++++++++++++++++++++++++++++++++
+ cxl/lib/Makefile.am |   2 +-
+ 4 files changed, 193 insertions(+), 2 deletions(-)
+ create mode 100644 cxl/cxl_mem.h
 
-diff --git a/util/size.h b/util/size.h
-index 646edae..a0f3593 100644
---- a/util/size.h
-+++ b/util/size.h
-@@ -4,6 +4,8 @@
- #ifndef _NDCTL_SIZE_H_
- #define _NDCTL_SIZE_H_
- #include <stdbool.h>
-+#include <stdint.h>
-+#include <util/util.h>
+diff --git a/Makefile.am b/Makefile.am
+index 428fd40..4904ee7 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -89,4 +89,5 @@ libutil_a_SOURCES = \
  
- #define SZ_1K     0x00000400
- #define SZ_4K     0x00001000
-@@ -30,4 +32,64 @@ static inline bool is_power_of_2(unsigned long long v)
- #define BITS_PER_LONG (sizeof(unsigned long) * 8)
- #define HPAGE_SIZE (2 << 20)
- 
+ nobase_include_HEADERS = \
+ 	daxctl/libdaxctl.h \
+-	cxl/libcxl.h
++	cxl/libcxl.h \
++	cxl/cxl_mem.h
+diff --git a/Makefile.am.in b/Makefile.am.in
+index aaeee53..a748128 100644
+--- a/Makefile.am.in
++++ b/Makefile.am.in
+@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
+ 	-DNDCTL_MAN_PATH=\""$(mandir)"\" \
+ 	-I${top_srcdir}/ndctl/lib \
+ 	-I${top_srcdir}/ndctl \
++	-I${top_srcdir}/cxl \
+ 	-I${top_srcdir}/ \
+ 	$(KMOD_CFLAGS) \
+ 	$(UDEV_CFLAGS) \
+diff --git a/cxl/cxl_mem.h b/cxl/cxl_mem.h
+new file mode 100644
+index 0000000..d38cc9c
+--- /dev/null
++++ b/cxl/cxl_mem.h
+@@ -0,0 +1,189 @@
++/* SPDX-License-Identifier: LGPL-2.1 */
++/* Copyright (C) 2020-2021, Intel Corporation. All rights reserved. */
 +/*
-+ * Helpers for struct_size() copied from include/linux/overflow.h (GPL-2.0)
-+ *
-+ * For simplicity and code hygiene, the fallback code below insists on
-+ * a, b and *d having the same type (similar to the min() and max()
-+ * macros), whereas gcc's type-generic overflow checkers accept
-+ * different types. Hence we don't just make check_add_overflow an
-+ * alias for __builtin_add_overflow, but add type checks similar to
-+ * below.
++ * CXL IOCTLs for Memory Devices
 + */
-+#define check_add_overflow(a, b, d) (({	\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	__builtin_add_overflow(__a, __b, __d);	\
-+}))
 +
-+#define check_mul_overflow(a, b, d) (({	\
-+	typeof(a) __a = (a);			\
-+	typeof(b) __b = (b);			\
-+	typeof(d) __d = (d);			\
-+	(void) (&__a == &__b);			\
-+	(void) (&__a == __d);			\
-+	__builtin_mul_overflow(__a, __b, __d);	\
-+}))
++#ifndef _UAPI_CXL_MEM_H_
++#define _UAPI_CXL_MEM_H_
 +
-+/*
-+ * Compute a*b+c, returning SIZE_MAX on overflow. Internal helper for
-+ * struct_size() below.
-+ */
-+static inline size_t __ab_c_size(size_t a, size_t b, size_t c)
-+{
-+	size_t bytes;
++#include <linux/types.h>
++#include <sys/user.h>
++#include <unistd.h>
 +
-+	if (check_mul_overflow(a, b, &bytes))
-+		return SIZE_MAX;
-+	if (check_add_overflow(bytes, c, &bytes))
-+		return SIZE_MAX;
-+
-+	return bytes;
-+}
++#define __user
 +
 +/**
-+ * struct_size() - Calculate size of structure with trailing array.
-+ * @p: Pointer to the structure.
-+ * @member: Name of the array member.
-+ * @count: Number of elements in the array.
++ * DOC: UAPI
 + *
-+ * Calculates size of memory needed for structure @p followed by an
-+ * array of @count number of @member elements.
-+ *
-+ * Return: number of bytes needed or SIZE_MAX on overflow.
++ * Not all of all commands that the driver supports are always available for use
++ * by userspace. Userspace must check the results from the QUERY command in
++ * order to determine the live set of commands.
 + */
-+#define struct_size(p, member, count)					\
-+	__ab_c_size(count,						\
-+		    sizeof(*(p)->member) + __must_be_array((p)->member),\
-+		    sizeof(*(p)))
 +
- #endif /* _NDCTL_SIZE_H_ */
-diff --git a/util/util.h b/util/util.h
-index ae0e4e1..b2b4ae6 100644
---- a/util/util.h
-+++ b/util/util.h
-@@ -63,6 +63,12 @@
- #define BUILD_BUG_ON_ZERO(e) (sizeof(struct { int:-!!(e); }))
- #define BUILD_BUG_ON(condition) ((void)sizeof(char[1 - 2*!!(condition)]))
++#define CXL_MEM_QUERY_COMMANDS _IOR(0xCE, 1, struct cxl_mem_query_commands)
++#define CXL_MEM_SEND_COMMAND _IOWR(0xCE, 2, struct cxl_send_command)
++
++#define CXL_CMDS                                                          \
++	___C(INVALID, "Invalid Command"),                                 \
++	___C(IDENTIFY, "Identify Command"),                               \
++	___C(RAW, "Raw device command"),                                  \
++	___C(GET_SUPPORTED_LOGS, "Get Supported Logs"),                   \
++	___C(GET_FW_INFO, "Get FW Info"),                                 \
++	___C(GET_PARTITION_INFO, "Get Partition Information"),            \
++	___C(GET_LSA, "Get Label Storage Area"),                          \
++	___C(GET_HEALTH_INFO, "Get Health Info"),                         \
++	___C(GET_LOG, "Get Log"),                                         \
++	___C(SET_PARTITION_INFO, "Set Partition Information"),            \
++	___C(SET_LSA, "Set Label Storage Area"),                          \
++	___C(GET_ALERT_CONFIG, "Get Alert Configuration"),                \
++	___C(SET_ALERT_CONFIG, "Set Alert Configuration"),                \
++	___C(GET_SHUTDOWN_STATE, "Get Shutdown State"),                   \
++	___C(SET_SHUTDOWN_STATE, "Set Shutdown State"),                   \
++	___C(GET_POISON, "Get Poison List"),                              \
++	___C(INJECT_POISON, "Inject Poison"),                             \
++	___C(CLEAR_POISON, "Clear Poison"),                               \
++	___C(GET_SCAN_MEDIA_CAPS, "Get Scan Media Capabilities"),         \
++	___C(SCAN_MEDIA, "Scan Media"),                                   \
++	___C(GET_SCAN_MEDIA, "Get Scan Media Results"),                   \
++	___C(MAX, "invalid / last command")
++
++#define ___C(a, b) CXL_MEM_COMMAND_ID_##a
++enum { CXL_CMDS };
++
++#undef ___C
++#define ___C(a, b) { b }
++static const struct {
++	const char *name;
++} cxl_command_names[] = { CXL_CMDS };
++
++/*
++ * Here's how this actually breaks out:
++ * cxl_command_names[] = {
++ *	[CXL_MEM_COMMAND_ID_INVALID] = { "Invalid Command" },
++ *	[CXL_MEM_COMMAND_ID_IDENTIFY] = { "Identify Command" },
++ *	...
++ *	[CXL_MEM_COMMAND_ID_MAX] = { "invalid / last command" },
++ * };
++ */
++
++#undef ___C
++
++/**
++ * struct cxl_command_info - Command information returned from a query.
++ * @id: ID number for the command.
++ * @flags: Flags that specify command behavior.
++ * @size_in: Expected input size, or -1 if variable length.
++ * @size_out: Expected output size, or -1 if variable length.
++ *
++ * Represents a single command that is supported by both the driver and the
++ * hardware. This is returned as part of an array from the query ioctl. The
++ * following would be a command that takes a variable length input and returns 0
++ * bytes of output.
++ *
++ *  - @id = 10
++ *  - @flags = 0
++ *  - @size_in = -1
++ *  - @size_out = 0
++ *
++ * See struct cxl_mem_query_commands.
++ */
++struct cxl_command_info {
++	__u32 id;
++
++	__u32 flags;
++#define CXL_MEM_COMMAND_FLAG_MASK GENMASK(0, 0)
++
++	__s32 size_in;
++	__s32 size_out;
++};
++
++/**
++ * struct cxl_mem_query_commands - Query supported commands.
++ * @n_commands: In/out parameter. When @n_commands is > 0, the driver will
++ *		return min(num_support_commands, n_commands). When @n_commands
++ *		is 0, driver will return the number of total supported commands.
++ * @rsvd: Reserved for future use.
++ * @commands: Output array of supported commands. This array must be allocated
++ *            by userspace to be at least min(num_support_commands, @n_commands)
++ *
++ * Allow userspace to query the available commands supported by both the driver,
++ * and the hardware. Commands that aren't supported by either the driver, or the
++ * hardware are not returned in the query.
++ *
++ * Examples:
++ *
++ *  - { .n_commands = 0 } // Get number of supported commands
++ *  - { .n_commands = 15, .commands = buf } // Return first 15 (or less)
++ *    supported commands
++ *
++ *  See struct cxl_command_info.
++ */
++struct cxl_mem_query_commands {
++	/*
++	 * Input: Number of commands to return (space allocated by user)
++	 * Output: Number of commands supported by the driver/hardware
++	 *
++	 * If n_commands is 0, kernel will only return number of commands and
++	 * not try to populate commands[], thus allowing userspace to know how
++	 * much space to allocate
++	 */
++	__u32 n_commands;
++	__u32 rsvd;
++
++	struct cxl_command_info __user commands[]; /* out: supported commands */
++};
++
++/**
++ * struct cxl_send_command - Send a command to a memory device.
++ * @id: The command to send to the memory device. This must be one of the
++ *	commands returned by the query command.
++ * @flags: Flags for the command (input).
++ * @raw: Special fields for raw commands
++ * @raw.opcode: Opcode passed to hardware when using the RAW command.
++ * @raw.rsvd: Must be zero.
++ * @rsvd: Must be zero.
++ * @retval: Return value from the memory device (output).
++ * @in: Parameters associated with input payload.
++ * @in.size: Size of the payload to provide to the device (input).
++ * @in.rsvd: Must be zero.
++ * @in.payload: Pointer to memory for payload input, payload is little endian.
++ * @out: Parameters associated with output payload.
++ * @out.size: Size of the payload received from the device (input/output). This
++ *	      field is filled in by userspace to let the driver know how much
++ *	      space was allocated for output. It is populated by the driver to
++ *	      let userspace know how large the output payload actually was.
++ * @out.rsvd: Must be zero.
++ * @out.payload: Pointer to memory for payload output, payload is little endian.
++ *
++ * Mechanism for userspace to send a command to the hardware for processing. The
++ * driver will do basic validation on the command sizes. In some cases even the
++ * payload may be introspected. Userspace is required to allocate large enough
++ * buffers for size_out which can be variable length in certain situations.
++ */
++struct cxl_send_command {
++	__u32 id;
++	__u32 flags;
++	union {
++		struct {
++			__u16 opcode;
++			__u16 rsvd;
++		} raw;
++		__u32 rsvd;
++	};
++	__u32 retval;
++
++	struct {
++		__s32 size;
++		__u32 rsvd;
++		__u64 payload;
++	} in;
++
++	struct {
++		__s32 size;
++		__u32 rsvd;
++		__u64 payload;
++	} out;
++};
++
++#endif
+diff --git a/cxl/lib/Makefile.am b/cxl/lib/Makefile.am
+index 277f0cd..72c9ccd 100644
+--- a/cxl/lib/Makefile.am
++++ b/cxl/lib/Makefile.am
+@@ -3,7 +3,7 @@ include $(top_srcdir)/Makefile.am.in
+ %.pc: %.pc.in Makefile
+ 	$(SED_PROCESS)
  
-+/* Are two types/vars the same type (ignoring qualifiers)? */
-+#define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
-+
-+/* &a[0] degrades to a pointer: a different type from an array */
-+#define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
-+
- enum {
- 	READ, WRITE,
- };
+-pkginclude_HEADERS = ../libcxl.h
++pkginclude_HEADERS = ../libcxl.h ../cxl_mem.h
+ lib_LTLIBRARIES = libcxl.la
+ 
+ libcxl_la_SOURCES =\
 -- 
 2.31.1
 
