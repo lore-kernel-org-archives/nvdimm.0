@@ -1,33 +1,43 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68A2A2C81
-	for <nvdimm@lists.linux.dev>; Wed, 13 Oct 2021 13:16:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1634130993;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=3UweUBspHinuJSQhguEdx6WU40R4nh4wg670z3EQDCs=;
-	b=N9DOpLi6ciGUwBrxKQ9ffOhc5mGMwOI3tkVi5n7Wnt101pu2mf6nRDse+lTnviWvJ77Gtm
-	BUkSyFQdDSFqg6EKfj+ifNOS4dVdzHFtQJNBN2kv/ZipH9hhhvNvJTcYyXsAyHLhwLnd2u
-	0BwmIpNaoMZu6+GATu1hON/hRB1f9CA=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-54-lYDb9o67Mf-rDMq57zxd3g-1; Wed, 13 Oct 2021 09:16:31 -0400
-X-MC-Unique: lYDb9o67Mf-rDMq57zxd3g-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 41EC3100CCC0;
-	Wed, 13 Oct 2021 13:16:24 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.22.33.167])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 9599DADD0;
-	Wed, 13 Oct 2021 13:16:20 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id DEFAB22023A; Wed, 13 Oct 2021 09:16:19 -0400 (EDT)
-Date: Wed, 13 Oct 2021 09:16:19 -0400
-From: Vivek Goyal <vgoyal@redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA5712C80
+	for <nvdimm@lists.linux.dev>; Wed, 13 Oct 2021 15:46:10 +0000 (UTC)
+Received: by mail-pf1-f175.google.com with SMTP id q19so2842694pfl.4
+        for <nvdimm@lists.linux.dev>; Wed, 13 Oct 2021 08:46:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=5P0ocxXM0vPODGkh8na4Mfy39/EYyFv4GMRrvhNNOUo=;
+        b=gfAizaxTiwRe31oPHuSEfCuoU3UyNzjvSGFjRtR0+20ybGnOJHR2SNvIUYXuMY2xpD
+         gjbOwicFvptk+HxbA9gztDS/NFb/B9PCmms4ywTb+W6ZfybGlSGnqIF9BrEyW3lnzugF
+         1xOsRizGgXSxqW3rE2o7H3pOyE6LnVUrXJS6JM8CS2LKu70yomZ+jIXvV9GC/9hEoAdh
+         pZgLdZj46NdkkNldf1y6Zal4VF0OHZO5HByoWBC8S5+MsG5/UJx0h6V+EfRdjNyAV2md
+         QHEhpyLmWUQN/xdLKYedMbdiT11toyum2MbaAnr8R6GfEwVc/Pi4akUF4ElQql0esd+K
+         tzhQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=5P0ocxXM0vPODGkh8na4Mfy39/EYyFv4GMRrvhNNOUo=;
+        b=XoFZ89RaS03XCz+s3JGe2lWJDFzXsDh2TXgQykLObEBdFwPn9orAgxZKh6+Tb7qcW7
+         x5bq2EzN6iTqDVVKil7e/dV9/+htMBuBwAgHS4Qrw4MABCMWeLWpt/4+DtCZh1JKDfZE
+         59QV0PnKji1JSE/OipVfxGOCiy621efcHwtIBH0uW9W1fSFH218FcykoZ4LAoOe7HCq7
+         CoRFv3XWKBZHmUyfWQN3bGCqcRoNqXNDpRRnR6dpfZ43kP3tY29zvogjZ7u4ZTT+BBch
+         cIpSHgEmk/gB8S+RhkSrdWQMGbzPj04Xrc26OVpLF8sSHdH55c9VsKeyWIbyC/j+ceu6
+         u2Eg==
+X-Gm-Message-State: AOAM531Z/u4UHFkXO4ckKpq0eKc8M4NnLg65P+Dpj9HfzGB4s8r0k2hO
+	I3Rb9xe0qPy8l87M3n87Sg1YUA==
+X-Google-Smtp-Source: ABdhPJxOS97EPwZsGm56NgXmycC48sC/ZWo8Q8DTT9IZBXIVEcdfskLSNijWrQkjT1bVWFJiZLyKew==
+X-Received: by 2002:aa7:949c:0:b0:44c:a0df:2c7f with SMTP id z28-20020aa7949c000000b0044ca0df2c7fmr128668pfk.34.1634139970091;
+        Wed, 13 Oct 2021 08:46:10 -0700 (PDT)
+Received: from p14s (S0106889e681aac74.cg.shawcable.net. [68.147.0.187])
+        by smtp.gmail.com with ESMTPSA id x27sm2452841pfo.90.2021.10.13.08.46.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 Oct 2021 08:46:09 -0700 (PDT)
+Date: Wed, 13 Oct 2021 09:46:04 -0600
+From: Mathieu Poirier <mathieu.poirier@linaro.org>
 To: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: linux-kernel@vger.kernel.org, Jeff Dike <jdike@addtoit.com>,
 	Richard Weinberger <richard@nod.at>,
@@ -62,11 +72,10 @@ Cc: linux-kernel@vger.kernel.org, Jeff Dike <jdike@addtoit.com>,
 	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
 	Ohad Ben-Cohen <ohad@wizery.com>,
 	Bjorn Andersson <bjorn.andersson@linaro.org>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
 	"James E.J. Bottomley" <jejb@linux.ibm.com>,
 	"Martin K. Petersen" <martin.petersen@oracle.com>,
 	David Hildenbrand <david@redhat.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
+	Vivek Goyal <vgoyal@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>,
 	Eric Van Hensbergen <ericvh@gmail.com>,
 	Latchesar Ionkov <lucho@ionkov.net>,
 	Dominique Martinet <asmadeus@codewreck.org>,
@@ -85,7 +94,7 @@ Cc: linux-kernel@vger.kernel.org, Jeff Dike <jdike@addtoit.com>,
 	v9fs-developer@lists.sourceforge.net, kvm@vger.kernel.org,
 	alsa-devel@alsa-project.org
 Subject: Re: [PATCH RFC] virtio: wrap config->reset calls
-Message-ID: <YWbcI15YOkhnPh5x@redhat.com>
+Message-ID: <20211013154604.GB4135908@p14s>
 References: <20211013105226.20225-1-mst@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -93,14 +102,9 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20211013105226.20225-1-mst@redhat.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=vgoyal@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20211013105226.20225-1-mst@redhat.com>
 
 On Wed, Oct 13, 2021 at 06:55:31AM -0400, Michael S. Tsirkin wrote:
 > This will enable cleanups down the road.
@@ -132,38 +136,26 @@ On Wed, Oct 13, 2021 at 06:55:31AM -0400, Michael S. Tsirkin wrote:
 >  drivers/virtio/virtio_input.c              | 2 +-
 >  drivers/virtio/virtio_mem.c                | 2 +-
 >  fs/fuse/virtio_fs.c                        | 4 ++--
-
-fs/fuse/virtio_fs.c changes look good to me.
-
-Reviewed-by: Vivek Goyal <vgoyal@redhat.com>
-
-Vivek
-
-[..]
-> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
-> index 0ad89c6629d7..27c3b74070a2 100644
-> --- a/fs/fuse/virtio_fs.c
-> +++ b/fs/fuse/virtio_fs.c
-> @@ -895,7 +895,7 @@ static int virtio_fs_probe(struct virtio_device *vdev)
->  	return 0;
+>  include/linux/virtio.h                     | 1 +
+>  net/9p/trans_virtio.c                      | 2 +-
+>  net/vmw_vsock/virtio_transport.c           | 4 ++--
+>  sound/virtio/virtio_card.c                 | 4 ++--
+>  26 files changed, 39 insertions(+), 33 deletions(-)
+> 
+>  static struct virtio_driver virtio_pmem_driver = {
+> diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+> index 8e49a3bacfc7..6a11952822df 100644
+> --- a/drivers/rpmsg/virtio_rpmsg_bus.c
+> +++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+> @@ -1015,7 +1015,7 @@ static void rpmsg_remove(struct virtio_device *vdev)
+>  	size_t total_buf_space = vrp->num_bufs * vrp->buf_size;
+>  	int ret;
 >  
->  out_vqs:
 > -	vdev->config->reset(vdev);
 > +	virtio_reset_device(vdev);
->  	virtio_fs_cleanup_vqs(vdev, fs);
->  	kfree(fs->vqs);
->  
-> @@ -927,7 +927,7 @@ static void virtio_fs_remove(struct virtio_device *vdev)
->  	list_del_init(&fs->list);
->  	virtio_fs_stop_all_queues(fs);
->  	virtio_fs_drain_all_queues_locked(fs);
-> -	vdev->config->reset(vdev);
-> +	virtio_reset_device(vdev);
->  	virtio_fs_cleanup_vqs(vdev, fs);
->  
->  	vdev->priv = NULL;
+> 
 
+Reviewed-by: Mathieu Poirier <mathieu.poirier@linaro.org>
 
-Thanks
-Vivek
-
+>  	ret = device_for_each_child(&vdev->dev, NULL, rpmsg_remove_device);
+>  	if (ret)
