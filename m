@@ -1,153 +1,260 @@
-Received: from mail-pg1-f173.google.com (mail-pg1-f173.google.com [209.85.215.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 448122C80
-	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 16:48:30 +0000 (UTC)
-Received: by mail-pg1-f173.google.com with SMTP id 133so6097443pgb.1
-        for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 09:48:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=1RwGIFYqIcTa4h7PEF9eSckj/8EEJrGq1do1E24wPDg=;
-        b=fXs02Ecy0zNBoaQ/S/ON33Glt1oyRADv0YHdmLLBrNF4BM/O5Kz1y5GJTvkXcFyQOe
-         5d8dh8XPCbz12wQFIRx9vHoEJD7nnEkOt9ZuW6hbhxFjL0XuYm0xRUiRus5w1DvPCaVZ
-         452Q0SSgsZmEJhgLVj8BUcfnbuOC5ubumYtXxRtcfFlflVHUT7zJujMTH068yVRBAr8Q
-         SehXk5trabX0x0D43nON8rkTGhFYCz/qUv5mCzMII8RoCrvcStTv/p6ZTnsv4oQpJc3W
-         D/ycj8RlNzcFYZk0vuhMZ+np/r3kYZrKENyqgVy+AjTvRzzeKzcetetmZTKv+1/sMVgj
-         /RlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=1RwGIFYqIcTa4h7PEF9eSckj/8EEJrGq1do1E24wPDg=;
-        b=vjcnHTPgWglANoUDclGP6v9XPHuzkBvaFUZ+65TDJ1sT7ClmV1PLom+zKBkHoycaIK
-         Z2nZjvAD3s0+mZeRFFzS8SXD/xN+pWSaXCuNmSau7dI1PO3iiMfwy/WZ2cHVTFVgoeqf
-         Jy9jyTyDYhRxdO06c7+AFVlIxFynRf2kqcfXZFD/04Xwd0MfnDb7nBwdnh3daXs8RMPy
-         ERPRlMqcOtKxAVcQzb5qkgUxq51fJDOhH5rwkzwXap2bp6XMYypRgdBp0kNN7HNf9jGa
-         QHxpUQ1uP+d3O607/VmMr0aYlB+edWOjRm7akLK2pDZq9iQpyqx2znQrVcMhsR/ZLLQW
-         EHCw==
-X-Gm-Message-State: AOAM531JHib4NNgi6sURBbb7UGRx8k74Ki4dhEJTJUZuE4lz2yoAjjD5
-	+YN5E+J675OSx+aTNNhmU/i7lseK3OEJshWeuD8hbw==
-X-Google-Smtp-Source: ABdhPJzhwOQcDTklJnUiXHmt0mYtwIR5itIrTG7nLK/3IfH20FNjtS9cnabwkC5qSseYoVL15mFmSQquHO03SlT8cb4=
-X-Received: by 2002:a62:1b92:0:b0:3eb:3f92:724 with SMTP id
- b140-20020a621b92000000b003eb3f920724mr6158723pfb.3.1634230109724; Thu, 14
- Oct 2021 09:48:29 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92B3F2C80
+	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 17:06:23 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2175761152;
+	Thu, 14 Oct 2021 17:06:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1634231183;
+	bh=gHRFogiS7ENQ7g40ZXO7645Y7MTCDeTBdUTC9wUMGTw=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=m3sQXvBJ4t8iKB6QoTZGaZtSHLZQRO33s6kuXRUHqgE+plVGXl3/hRmp0inrfOSEQ
+	 WG4JHMRngdQVNjCs5casGqGtT1PBIN+VMFs9uIURw61QVhtt64/0hCiBlXVNFciC0Y
+	 uhUbsUPoQrVG2e0HkopGtEabRcJY1aZKlJcFkeoFTtuwQRV4ZSKvmNajVa3pkUrJpa
+	 lXt8sU8JKJlv+fXYcNgrrp8gW1Dr+YfedI3C9eDcdMuZ+mJrjbdtB0dmADovxPzhWg
+	 wm2MCXvPIaRswW/LMoitUorAH6PJnClFC09yNnuRp2tqIX42t8T0NEX37KmhOAC/wH
+	 ZwNnyOdxxTTdg==
+Date: Thu, 14 Oct 2021 10:06:22 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: dan.j.williams@intel.com, hch@lst.de, linux-xfs@vger.kernel.org,
+	david@fromorbit.com, linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
+	rgoldwyn@suse.de, viro@zeniv.linux.org.uk, willy@infradead.org
+Subject: Re: [PATCH v10 7/8] xfs: support CoW in fsdax mode
+Message-ID: <20211014170622.GB24333@magnolia>
+References: <20210928062311.4012070-1-ruansy.fnst@fujitsu.com>
+ <20210928062311.4012070-8-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211007082139.3088615-1-vishal.l.verma@intel.com> <20211007082139.3088615-10-vishal.l.verma@intel.com>
-In-Reply-To: <20211007082139.3088615-10-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 14 Oct 2021 09:48:19 -0700
-Message-ID: <CAPcyv4gRM_3UxQkKxLg_up-zNecyTjrvG1CAuJyF1Wd+9bwfUA@mail.gmail.com>
-Subject: Re: [ndctl PATCH v4 09/17] util/hexdump: Add a util helper to print a
- buffer in hex
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210928062311.4012070-8-ruansy.fnst@fujitsu.com>
 
-On Thu, Oct 7, 2021 at 1:22 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> In preparation for tests that may need to set, retrieve, and display
-> opaque data, add a hexdump function in util/
->
-> Cc: Ben Widawsky <ben.widawsky@intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+On Tue, Sep 28, 2021 at 02:23:10PM +0800, Shiyang Ruan wrote:
+> In fsdax mode, WRITE and ZERO on a shared extent need CoW performed.
+> After that, new allocated extents needs to be remapped to the file.
+> So, add a CoW identification in ->iomap_begin(), and implement
+> ->iomap_end() to do the remapping work.
+> 
+> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+
+I think this patch looks good, so:
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+
+A big thank you to Shiyang for persisting in getting this series
+finished! :)
+
+Judging from the conversation Christoph and I had the last time this
+patchset was submitted, I gather the last big remaining issue is the use
+of page->mapping for hw poison.  So I'll go take a look at "fsdax:
+introduce FS query interface to support reflink" now.
+
+--D
+
 > ---
->  util/hexdump.h |  8 ++++++++
->  util/hexdump.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++
-
-If this is just for tests shouldn't it go in tests/ with the other
-common test helpers? If it stays in util/ I would kind of expect it to
-use the log infrastructure, no?
-
-Other than that looks ok to me:
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-
->  2 files changed, 61 insertions(+)
->  create mode 100644 util/hexdump.h
->  create mode 100644 util/hexdump.c
->
-> diff --git a/util/hexdump.h b/util/hexdump.h
-> new file mode 100644
-> index 0000000..d322b6a
-> --- /dev/null
-> +++ b/util/hexdump.h
-> @@ -0,0 +1,8 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +/* Copyright (C) 2021 Intel Corporation. All rights reserved. */
-> +#ifndef _UTIL_HEXDUMP_H_
-> +#define _UTIL_HEXDUMP_H_
-> +
-> +void hex_dump_buf(unsigned char *buf, int size);
-> +
-> +#endif /* _UTIL_HEXDUMP_H_*/
-> diff --git a/util/hexdump.c b/util/hexdump.c
-> new file mode 100644
-> index 0000000..1ab0118
-> --- /dev/null
-> +++ b/util/hexdump.c
-> @@ -0,0 +1,53 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/* Copyright (C) 2015-2021 Intel Corporation. All rights reserved. */
-> +#include <stdio.h>
-> +#include <util/hexdump.h>
-> +
-> +static void print_separator(int len)
+>  fs/xfs/xfs_bmap_util.c |  3 +--
+>  fs/xfs/xfs_file.c      |  7 ++-----
+>  fs/xfs/xfs_iomap.c     | 30 +++++++++++++++++++++++++++-
+>  fs/xfs/xfs_iomap.h     | 44 ++++++++++++++++++++++++++++++++++++++++++
+>  fs/xfs/xfs_iops.c      |  7 +++----
+>  fs/xfs/xfs_reflink.c   |  3 +--
+>  6 files changed, 80 insertions(+), 14 deletions(-)
+> 
+> diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
+> index 73a36b7be3bd..0681250e0a5d 100644
+> --- a/fs/xfs/xfs_bmap_util.c
+> +++ b/fs/xfs/xfs_bmap_util.c
+> @@ -1009,8 +1009,7 @@ xfs_free_file_space(
+>  		return 0;
+>  	if (offset + len > XFS_ISIZE(ip))
+>  		len = XFS_ISIZE(ip) - offset;
+> -	error = iomap_zero_range(VFS_I(ip), offset, len, NULL,
+> -			&xfs_buffered_write_iomap_ops);
+> +	error = xfs_iomap_zero_range(ip, offset, len, NULL);
+>  	if (error)
+>  		return error;
+>  
+> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+> index 7aa943edfc02..afde4fbefb6f 100644
+> --- a/fs/xfs/xfs_file.c
+> +++ b/fs/xfs/xfs_file.c
+> @@ -704,7 +704,7 @@ xfs_file_dax_write(
+>  	pos = iocb->ki_pos;
+>  
+>  	trace_xfs_file_dax_write(iocb, from);
+> -	ret = dax_iomap_rw(iocb, from, &xfs_direct_write_iomap_ops);
+> +	ret = dax_iomap_rw(iocb, from, &xfs_dax_write_iomap_ops);
+>  	if (ret > 0 && iocb->ki_pos > i_size_read(inode)) {
+>  		i_size_write(inode, iocb->ki_pos);
+>  		error = xfs_setfilesize(ip, pos, ret);
+> @@ -1327,10 +1327,7 @@ __xfs_filemap_fault(
+>  		pfn_t pfn;
+>  
+>  		xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> -		ret = dax_iomap_fault(vmf, pe_size, &pfn, NULL,
+> -				(write_fault && !vmf->cow_page) ?
+> -				 &xfs_direct_write_iomap_ops :
+> -				 &xfs_read_iomap_ops);
+> +		ret = xfs_dax_iomap_fault(vmf, pe_size, write_fault, &pfn);
+>  		if (ret & VM_FAULT_NEEDDSYNC)
+>  			ret = dax_finish_sync_fault(vmf, pe_size, pfn);
+>  		xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+> diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+> index 093758440ad5..51cb5b713521 100644
+> --- a/fs/xfs/xfs_iomap.c
+> +++ b/fs/xfs/xfs_iomap.c
+> @@ -761,7 +761,8 @@ xfs_direct_write_iomap_begin(
+>  
+>  		/* may drop and re-acquire the ilock */
+>  		error = xfs_reflink_allocate_cow(ip, &imap, &cmap, &shared,
+> -				&lockmode, flags & IOMAP_DIRECT);
+> +				&lockmode,
+> +				(flags & IOMAP_DIRECT) || IS_DAX(inode));
+>  		if (error)
+>  			goto out_unlock;
+>  		if (shared)
+> @@ -854,6 +855,33 @@ const struct iomap_ops xfs_direct_write_iomap_ops = {
+>  	.iomap_begin		= xfs_direct_write_iomap_begin,
+>  };
+>  
+> +static int
+> +xfs_dax_write_iomap_end(
+> +	struct inode		*inode,
+> +	loff_t			pos,
+> +	loff_t			length,
+> +	ssize_t			written,
+> +	unsigned		flags,
+> +	struct iomap		*iomap)
 > +{
-> +       int i;
+> +	struct xfs_inode	*ip = XFS_I(inode);
 > +
-> +       for (i = 0; i < len; i++)
-> +               fprintf(stderr, "-");
-> +       fprintf(stderr, "\n");
+> +	if (!xfs_is_cow_inode(ip))
+> +		return 0;
+> +
+> +	if (!written) {
+> +		xfs_reflink_cancel_cow_range(ip, pos, length, true);
+> +		return 0;
+> +	}
+> +
+> +	return xfs_reflink_end_cow(ip, pos, written);
 > +}
 > +
-> +void hex_dump_buf(unsigned char *buf, int size)
+> +const struct iomap_ops xfs_dax_write_iomap_ops = {
+> +	.iomap_begin	= xfs_direct_write_iomap_begin,
+> +	.iomap_end	= xfs_dax_write_iomap_end,
+> +};
+> +
+>  static int
+>  xfs_buffered_write_iomap_begin(
+>  	struct inode		*inode,
+> diff --git a/fs/xfs/xfs_iomap.h b/fs/xfs/xfs_iomap.h
+> index 7d3703556d0e..81726bfbf890 100644
+> --- a/fs/xfs/xfs_iomap.h
+> +++ b/fs/xfs/xfs_iomap.h
+> @@ -7,6 +7,7 @@
+>  #define __XFS_IOMAP_H__
+>  
+>  #include <linux/iomap.h>
+> +#include <linux/dax.h>
+>  
+>  struct xfs_inode;
+>  struct xfs_bmbt_irec;
+> @@ -45,5 +46,48 @@ extern const struct iomap_ops xfs_direct_write_iomap_ops;
+>  extern const struct iomap_ops xfs_read_iomap_ops;
+>  extern const struct iomap_ops xfs_seek_iomap_ops;
+>  extern const struct iomap_ops xfs_xattr_iomap_ops;
+> +extern const struct iomap_ops xfs_dax_write_iomap_ops;
+> +
+> +static inline int
+> +xfs_iomap_zero_range(
+> +	struct xfs_inode	*ip,
+> +	loff_t			pos,
+> +	loff_t			len,
+> +	bool			*did_zero)
 > +{
-> +       int i;
-> +       const int grp = 4;  /* Number of bytes in a group */
-> +       const int wid = 16; /* Bytes per line. Should be a multiple of grp */
-> +       char ascii[wid + 1];
+> +	struct inode		*inode = VFS_I(ip);
 > +
-> +       /* Generate header */
-> +       print_separator((wid * 4) + (wid / grp) + 12);
-> +
-> +       fprintf(stderr, "Offset    ");
-> +       for (i = 0; i < wid; i++) {
-> +               if (i % grp == 0) fprintf(stderr, " ");
-> +               fprintf(stderr, "%02x ", i);
-> +       }
-> +       fprintf(stderr, "  Ascii\n");
-> +
-> +       print_separator((wid * 4) + (wid / grp) + 12);
-> +
-> +       /* Generate hex dump */
-> +       for (i = 0; i < size; i++) {
-> +               if (i % wid == 0) fprintf(stderr, "%08x  ", i);
-> +               ascii[i % wid] =
-> +                   ((buf[i] >= ' ') && (buf[i] <= '~')) ? buf[i] : '.';
-> +               if (i % grp == 0) fprintf(stderr, " ");
-> +               fprintf(stderr, "%02x ", buf[i]);
-> +               if ((i == size - 1) && (size % wid != 0)) {
-> +                       int j;
-> +                       int done = size % wid;
-> +                       int grps_done = (done / grp) + ((done % grp) ? 1 : 0);
-> +                       int spaces = wid / grp - grps_done + ((wid - done) * 3);
-> +
-> +                       for (j = 0; j < spaces; j++) fprintf(stderr, " ");
-> +               }
-> +               if ((i % wid == wid - 1) || (i == size - 1))
-> +                       fprintf(stderr, "  %.*s\n", (i % wid) + 1, ascii);
-> +       }
-> +       print_separator((wid * 4) + (wid / grp) + 12);
+> +	return iomap_zero_range(inode, pos, len, did_zero,
+> +			IS_DAX(inode) ?
+> +				&xfs_dax_write_iomap_ops :
+> +				&xfs_buffered_write_iomap_ops);
 > +}
-> --
-> 2.31.1
->
+> +
+> +static inline int
+> +xfs_iomap_truncate_page(
+> +	struct xfs_inode	*ip,
+> +	loff_t			pos,
+> +	bool			*did_zero)
+> +{
+> +	struct inode		*inode = VFS_I(ip);
+> +
+> +	return iomap_truncate_page(inode, pos, did_zero,
+> +			IS_DAX(inode) ?
+> +				&xfs_dax_write_iomap_ops :
+> +				&xfs_buffered_write_iomap_ops);
+> +}
+> +
+> +static inline int
+> +xfs_dax_iomap_fault(
+> +	struct vm_fault		*vmf,
+> +	enum page_entry_size	pe_size,
+> +	bool			write_fault,
+> +	pfn_t			*pfn)
+> +{
+> +	return dax_iomap_fault(vmf, pe_size, pfn, NULL,
+> +			(write_fault && !vmf->cow_page) ?
+> +				&xfs_dax_write_iomap_ops :
+> +				&xfs_read_iomap_ops);
+> +}
+>  
+>  #endif /* __XFS_IOMAP_H__*/
+> diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+> index a607d6aca5c4..332e6208dffd 100644
+> --- a/fs/xfs/xfs_iops.c
+> +++ b/fs/xfs/xfs_iops.c
+> @@ -911,8 +911,8 @@ xfs_setattr_size(
+>  	 */
+>  	if (newsize > oldsize) {
+>  		trace_xfs_zero_eof(ip, oldsize, newsize - oldsize);
+> -		error = iomap_zero_range(inode, oldsize, newsize - oldsize,
+> -				&did_zeroing, &xfs_buffered_write_iomap_ops);
+> +		error = xfs_iomap_zero_range(ip, oldsize, newsize - oldsize,
+> +				&did_zeroing);
+>  	} else {
+>  		/*
+>  		 * iomap won't detect a dirty page over an unwritten block (or a
+> @@ -924,8 +924,7 @@ xfs_setattr_size(
+>  						     newsize);
+>  		if (error)
+>  			return error;
+> -		error = iomap_truncate_page(inode, newsize, &did_zeroing,
+> -				&xfs_buffered_write_iomap_ops);
+> +		error = xfs_iomap_truncate_page(ip, newsize, &did_zeroing);
+>  	}
+>  
+>  	if (error)
+> diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
+> index 7ecea0311e88..9d876e268734 100644
+> --- a/fs/xfs/xfs_reflink.c
+> +++ b/fs/xfs/xfs_reflink.c
+> @@ -1269,8 +1269,7 @@ xfs_reflink_zero_posteof(
+>  		return 0;
+>  
+>  	trace_xfs_zero_eof(ip, isize, pos - isize);
+> -	return iomap_zero_range(VFS_I(ip), isize, pos - isize, NULL,
+> -			&xfs_buffered_write_iomap_ops);
+> +	return xfs_iomap_zero_range(ip, isize, pos - isize, NULL);
+>  }
+>  
+>  /*
+> -- 
+> 2.33.0
+> 
+> 
+> 
