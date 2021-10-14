@@ -1,260 +1,134 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA50672
-	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 19:32:41 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 79D2860EFF;
-	Thu, 14 Oct 2021 19:32:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1634239961;
-	bh=rxi08ohLQ8FMRrydTQRximJyIVu+hc0/kt8nU4Fzuk4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Xu215UGyrAM2S57vEgW97n9nsfiNTBDoEl629EN6fyRULDDoc9kPGDHhrnYssM99h
-	 ZpZHHh9d1Tu9LVQmXfjfrcxAcJmB1ogLPFVtH9FQNyytpZ4N5qhQHQSp9JiTX5kgN6
-	 xM7ByubqqqGgLXoSNaLCfhrX9FTuAkGXQxHfOGoqjamr5kIaUcD5pruilVkyDhMgZN
-	 Z1JQIh+JfnqSdHuE1XKVKnz4j7aE/GcN+oXCg/7z5TEuSgCPXmBm8AKCC/N0q064JY
-	 xSqqV++YgMBWsyqECUTtmGvZMDgcpAgDPH3bz/QTbwZ7kTjjAp0ZXLBgG05eXLcgO0
-	 +YACOfIkQbM5Q==
-Date: Thu, 14 Oct 2021 12:32:41 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
-	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
-Subject: Re: [PATCH v7 6/8] mm: Introduce mf_dax_kill_procs() for fsdax case
-Message-ID: <20211014193241.GK24307@magnolia>
-References: <20210924130959.2695749-1-ruansy.fnst@fujitsu.com>
- <20210924130959.2695749-7-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6350072
+	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 19:59:48 +0000 (UTC)
+Received: by mail-pl1-f180.google.com with SMTP id g5so4913321plg.1
+        for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 12:59:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=pRxO7pEcWaFAN3H/Vkdkhf6TU9ZHNhgzj7NEna7LxnI=;
+        b=jmmf0SaTMM2bM4h7kW7VAf0QQx3SCkMM8LbF7A8kr5lPo/EVAqm5rmJtBtwgCC4LFO
+         7XYbN2Qr5H3nW9nQasX52WGJWUj2pb3tp6xt6zCI7CsQi4n5Ynyrg4+/AipaFwQAPism
+         QtOwkPEuJE/rC/kBczOG5gOys0Nrfpap2IWy7EzoDFiBEM9UuF5Z+cb0uij2/cFnPwEE
+         rzuaaY6xrFUSsjoJuQyjM3ASX+azv9n2c+VFhX+FO7y57d1A0BSRcJRsymwDlNG8UWuA
+         klVHl3W6/OLvqUS5rYP03EmgkdZFVcGlQeVl9CGkptcvvVQIW079PGOZ4Vr/HVYQasSj
+         KdKQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=pRxO7pEcWaFAN3H/Vkdkhf6TU9ZHNhgzj7NEna7LxnI=;
+        b=SnAK7Q3w6BR5a68cX37vmIo1AxZkLChdAWYDcAIgTke7/XlFl0ghA30JvUYCrF/lqM
+         6dlxXDuDZciIX1yIEAu2OzgoD5Xgq50g+c47I+Jil8Rfc5Zi23ChRt+hzdjIht9pfCuH
+         AKZFLbd5o0iW+Tf0kSQIaZN9RT01u5Xat228G+xFTmi9iNC4yYnz3GmWTsKzkTzEG0D0
+         rW1xepD72MC1rcE8R8Sg+AmTi5RudU4i2vDdTUGl7XhXfkpeYlPDYgTi6K82cmNS2yWU
+         2qvAJ+3goDEPPfrR9MDuDQaRArPEvgEbGyzoHAm28XeJMrE73AJQ05ApeFkC9SNV1vzt
+         /onw==
+X-Gm-Message-State: AOAM531oB5IHN85n0/QkhGI1GLARFFZSvx9QpwJuM6YhuOvDoZiXk7BS
+	d60SkXAwg6yJ0KHwUGkJoZOp2G9CTaImZdR23J9T7w==
+X-Google-Smtp-Source: ABdhPJzAQmOuZqqjlFs10QKbcPpR2s4cDGEru7akZ4yyhi5nWW2d2GQNpcsmh+MYUqPWsz1j0VZLJVU+cn7vjftwYDw=
+X-Received: by 2002:a17:902:ab50:b0:13f:4c70:9322 with SMTP id
+ ij16-20020a170902ab5000b0013f4c709322mr6821007plb.89.1634241587765; Thu, 14
+ Oct 2021 12:59:47 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210924130959.2695749-7-ruansy.fnst@fujitsu.com>
+References: <20211007082139.3088615-1-vishal.l.verma@intel.com> <20211007082139.3088615-12-vishal.l.verma@intel.com>
+In-Reply-To: <20211007082139.3088615-12-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Oct 2021 12:59:37 -0700
+Message-ID: <CAPcyv4hzozQnG-s1G_vf=Ej_sgOS+9=bRNbOn6v_fm_RiEdbMg@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 11/17] libcxl: add a stub interface to determine
+ whether a memdev is active
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Sep 24, 2021 at 09:09:57PM +0800, Shiyang Ruan wrote:
-> This function is called at the end of RMAP routine, i.e. filesystem
-> recovery function, to collect and kill processes using a shared page of
-> DAX file.  The difference between mf_generic_kill_procs() is,
-> it accepts file's mapping,offset instead of struct page.  Because
-> different file's mappings and offsets may share the same page in fsdax
-> mode.  So, it is called when filesystem RMAP results are found.
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+On Thu, Oct 7, 2021 at 1:22 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> Add an interface to determine whether a memdev is bound to a region
+> driver and therefore is currently active.
+>
+> For now, this just returns '0' all the time - i.e. devices are always
+> considered inactive. Flesh this out fully once the region driver is
+> available.
+>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
->  fs/dax.c            | 10 ------
->  include/linux/dax.h |  9 +++++
->  include/linux/mm.h  |  2 ++
->  mm/memory-failure.c | 83 ++++++++++++++++++++++++++++++++++++++++-----
->  4 files changed, 86 insertions(+), 18 deletions(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 509b65e60478..2536c105ec7f 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -852,16 +852,6 @@ static void *dax_insert_entry(struct xa_state *xas,
->  	return entry;
+>  cxl/lib/libcxl.c   | 10 ++++++++++
+>  cxl/libcxl.h       |  1 +
+>  cxl/lib/libcxl.sym |  1 +
+>  3 files changed, 12 insertions(+)
+>
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index de3a8f7..59d091c 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -362,6 +362,16 @@ CXL_EXPORT size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev)
+>         return memdev->lsa_size;
 >  }
->  
-> -static inline
-> -unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
-> -{
-> -	unsigned long address;
-> -
-> -	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-> -	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-> -	return address;
-> -}
-> -
->  /* Walk all mappings of a given index of a file and writeprotect them */
->  static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
->  		unsigned long pfn)
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 65411bee4312..3d90becbd160 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -258,6 +258,15 @@ static inline bool dax_mapping(struct address_space *mapping)
->  {
->  	return mapping->host && IS_DAX(mapping->host);
->  }
-> +static inline unsigned long pgoff_address(pgoff_t pgoff,
-> +		struct vm_area_struct *vma)
+>
+> +CXL_EXPORT int cxl_memdev_is_active(struct cxl_memdev *memdev)
 > +{
-> +	unsigned long address;
-> +
-> +	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
-> +	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
-> +	return address;
-> +}
->  
->  #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
->  void hmem_register_device(int target_nid, struct resource *r);
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 73a52aba448f..d06af0051e53 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3114,6 +3114,8 @@ enum mf_flags {
->  	MF_MUST_KILL = 1 << 2,
->  	MF_SOFT_OFFLINE = 1 << 3,
->  };
-> +extern int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
-> +			     size_t size, int flags);
->  extern int memory_failure(unsigned long pfn, int flags);
->  extern void memory_failure_queue(unsigned long pfn, int flags);
->  extern void memory_failure_queue_kick(int cpu);
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-> index 85eab206b68f..a9d0d487d205 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -302,10 +302,9 @@ void shake_page(struct page *p)
->  }
->  EXPORT_SYMBOL_GPL(shake_page);
->  
-> -static unsigned long dev_pagemap_mapping_shift(struct page *page,
-> +static unsigned long dev_pagemap_mapping_shift(unsigned long address,
->  		struct vm_area_struct *vma)
->  {
-> -	unsigned long address = vma_address(page, vma);
->  	pgd_t *pgd;
->  	p4d_t *p4d;
->  	pud_t *pud;
-> @@ -345,7 +344,7 @@ static unsigned long dev_pagemap_mapping_shift(struct page *page,
->   * Schedule a process for later kill.
->   * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
->   */
-> -static void add_to_kill(struct task_struct *tsk, struct page *p,
-> +static void add_to_kill(struct task_struct *tsk, struct page *p, pgoff_t pgoff,
+> +       /*
+> +        * TODO: Currently memdevs are always considered inactive. Once we have
+> +        * cxl_bus drivers that are bound/unbound to memdevs, we'd use that to
+> +        * determine the active/inactive state.
+> +        */
 
-Hm, so I guess you're passing the page and the pgoff now because
-page->index is meaningless for shared dax pages?  Ok.
+So I jumped ahead to look at the use case for this and it brings up
+questions if this is the right check for the label helpers to be
+using. Note that the LSA commands may still be disabled even if the
+memdev is inactive. This is because the NVDIMM bridge might be up and
+have claimed the label operations for exclusive access via /dev/nmemX.
 
->  		       struct vm_area_struct *vma,
->  		       struct list_head *to_kill)
->  {
-> @@ -358,9 +357,15 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
->  	}
->  
->  	tk->addr = page_address_in_vma(p, vma);
-> -	if (is_zone_device_page(p))
-> -		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
-> -	else
-> +	if (is_zone_device_page(p)) {
-> +		/*
-> +		 * Since page->mapping is no more used for fsdax, we should
-> +		 * calculate the address in a fsdax way.
-> +		 */
-> +		if (p->pgmap->type == MEMORY_DEVICE_FS_DAX)
-> +			tk->addr = pgoff_address(pgoff, vma);
-> +		tk->size_shift = dev_pagemap_mapping_shift(tk->addr, vma);
-> +	} else
->  		tk->size_shift = page_shift(compound_head(p));
->  
->  	/*
-> @@ -508,7 +513,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
->  			if (!page_mapped_in_vma(page, vma))
->  				continue;
->  			if (vma->vm_mm == t->mm)
-> -				add_to_kill(t, page, vma, to_kill);
-> +				add_to_kill(t, page, 0, vma, to_kill);
->  		}
->  	}
->  	read_unlock(&tasklist_lock);
-> @@ -544,7 +549,32 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
->  			 * to be informed of all such data corruptions.
->  			 */
->  			if (vma->vm_mm == t->mm)
-> -				add_to_kill(t, page, vma, to_kill);
-> +				add_to_kill(t, page, 0, vma, to_kill);
-> +		}
-> +	}
-> +	read_unlock(&tasklist_lock);
-> +	i_mmap_unlock_read(mapping);
+So perhaps this should become a narrower focused
+cxl_memdev_label_area_active() or cxl_memdev_nvdimm_bridge_active().
+
+I think Ben and I still need to arm wrestle how to mediate the label
+area, but my going-in position is that the CXL subsystem works through
+the NVDIMM subsystem to coordinate label updates. So
+cxl_memdev_nvdimm_bridge_active() should be a sufficient check for
+now. That's determined simply by the existence of a pmemX device as a
+child of a memX device.
+
+
+> +       return 0;
 > +}
 > +
-> +/*
-> + * Collect processes when the error hit a fsdax page.
-> + */
-> +static void collect_procs_fsdax(struct page *page, struct address_space *mapping,
-> +		pgoff_t pgoff, struct list_head *to_kill)
-> +{
-> +	struct vm_area_struct *vma;
-> +	struct task_struct *tsk;
-> +
-> +	i_mmap_lock_read(mapping);
-> +	read_lock(&tasklist_lock);
-> +	for_each_process(tsk) {
-> +		struct task_struct *t = task_early_kill(tsk, true);
-> +
-> +		if (!t)
-> +			continue;
-> +		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-> +			if (vma->vm_mm == t->mm)
-> +				add_to_kill(t, page, pgoff, vma, to_kill);
->  		}
->  	}
->  	read_unlock(&tasklist_lock);
-> @@ -1503,6 +1533,43 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
->  	return 0;
->  }
->  
-> +/**
-> + * mf_dax_kill_procs - Collect and kill processes who are using this file range
-> + * @mapping:	the file in use
-> + * @index:	start offset of the range
-> + * @size:	length of the range
-
-It feels odd that one argument is in units of pgoff_t but the other is
-in bytes.
-
-> + * @flags:	memory failure flags
-> + */
-> +int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
-> +		size_t size, int flags)
-> +{
-> +	LIST_HEAD(to_kill);
-> +	dax_entry_t cookie;
-> +	struct page *page;
-> +	size_t end = (index << PAGE_SHIFT) + size;
-> +
-> +	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
-
-Hm.  What flags will we be passing to the xfs_dax_notify_failure_fn?
-Does XFS itself have to care about what's in the flags values, or is it
-really just a magic cookie to be passed from the mm layer into the fs
-and back to mf_dax_kill_procs?
-
---D
-
-> +
-> +	for (; (index << PAGE_SHIFT) < end; index++) {
-> +		page = NULL;
-> +		cookie = dax_lock_mapping_entry(mapping, index, &page);
-> +		if (!cookie)
-> +			return -EBUSY;
-> +		if (!page)
-> +			goto unlock;
-> +
-> +		SetPageHWPoison(page);
-> +
-> +		collect_procs_fsdax(page, mapping, index, &to_kill);
-> +		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
-> +				index, flags);
-> +unlock:
-> +		dax_unlock_mapping_entry(mapping, index, cookie);
-> +	}
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
-> +
->  static int memory_failure_hugetlb(unsigned long pfn, int flags)
+>  CXL_EXPORT void cxl_cmd_unref(struct cxl_cmd *cmd)
 >  {
->  	struct page *p = pfn_to_page(pfn);
-> -- 
-> 2.33.0
-> 
-> 
-> 
+>         if (!cmd)
+> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+> index d3b97a1..2e24371 100644
+> --- a/cxl/libcxl.h
+> +++ b/cxl/libcxl.h
+> @@ -43,6 +43,7 @@ unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
+>  unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
+>  const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
+>  size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev);
+> +int cxl_memdev_is_active(struct cxl_memdev *memdev);
+>
+>  #define cxl_memdev_foreach(ctx, memdev) \
+>          for (memdev = cxl_memdev_get_first(ctx); \
+> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+> index b9feb93..0e82030 100644
+> --- a/cxl/lib/libcxl.sym
+> +++ b/cxl/lib/libcxl.sym
+> @@ -79,4 +79,5 @@ global:
+>  LIBCXL_4 {
+>  global:
+>         cxl_memdev_get_label_size;
+> +       cxl_memdev_is_active;
+>  } LIBCXL_3;
+> --
+> 2.31.1
+>
