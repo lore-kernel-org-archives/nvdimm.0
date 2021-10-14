@@ -1,183 +1,139 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f169.google.com (mail-pf1-f169.google.com [209.85.210.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36D872C82
-	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 18:17:06 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D7E8760EBB;
-	Thu, 14 Oct 2021 18:17:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1634235425;
-	bh=nk2O1INGQJeoYK2hz0/chQbDTBJGcPDWQbYrayE/aaM=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=i+GrwntAyD87EpYdHQzMGU2dlEGyPdLmLrRmggCA7m4PKbBfzhbxM9H54jEdEt4kF
-	 LwrGHNmrP8B77ITYnhupmqdyqnYbspZYu1KEpKMRBa2L3NZ5+efhGHMF9wTFm6sdPt
-	 4SwK0t0pfsOslTSXJO76mpfsxC13CDfQs+C2TmrdyW3MpPwomgxD5iVmaVWzIsLGze
-	 nANB+3Ao+C53dm0OvlLJGSPRppCYDIRaTQUxc4CewrH91C3m32y3RyHBX8l+VarIii
-	 QivlIQhM6K0c/F1/qguP1EPvZPZjKp7CpcrxhwEBod+TS+9soi3Y6mOffwsz8gN6Nm
-	 nOiIxQWIeqLVA==
-Date: Thu, 14 Oct 2021 11:17:05 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, dan.j.williams@intel.com,
-	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
-Subject: Re: [PATCH v7 5/8] fsdax: Introduce dax_lock_mapping_entry()
-Message-ID: <20211014181705.GH24307@magnolia>
-References: <20210924130959.2695749-1-ruansy.fnst@fujitsu.com>
- <20210924130959.2695749-6-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E763E2C80
+	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 18:25:02 +0000 (UTC)
+Received: by mail-pf1-f169.google.com with SMTP id v8so2051303pfu.11
+        for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 11:25:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ZrwusMQgn7Kh5ZWmzery+mEysHznYixIAxkraeYDT8I=;
+        b=JlgglDk2moNFtf4OKCiOZgtJWM4sHhKsi1gizW7ywm488nbnm8LGggBhoTDozcIDuK
+         o3oaErlTWwe8AXwwSp+T9zG6au6KofLizn8EGDcpWF2cokP3E6aDyL7NnemOErJeI6T3
+         pVq7yA2MG52TMp2WDBaeDKpVaWEhGPJl39Lgl26xLaRzIU4U0LVc5Ql77xnULeUjqjHY
+         ssXwo5vnvc2iw+en6bf3zYjFspezqN/dz4MtQj80Qj2EmzrJhfQBsOJqaqqkwH7casNZ
+         wba3G6DVVPSp0kFdvaP9fJ5074t4LH3Xs81nH3Qu2Zw9ap4AsZIvokuEAaD4nvvk1xgs
+         Z8pw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ZrwusMQgn7Kh5ZWmzery+mEysHznYixIAxkraeYDT8I=;
+        b=u4h5fRJNspwCrf+50LMtK5OPrqYU9VlQpvcTs26gP94qLpcSt38qlu3uzTsx5Nt6aE
+         idNtP3T0DZX+jmRsJ6WWZ9ccpfVPrvBOOx73hODH7C+NpEUYo9Dc1vlrpC2+TY9j0DML
+         BP1+mxmP6LzcWIXGwonwNYEAFhzEagft6ssrbpZvczH637Jb9QbZ6TXraI2jtNM0YYne
+         lfmy1wJr36fXeaV6hmwY3K+k4fplAsYU2gn2BCGLnVRj9/ruzCxu02WqotRTJdHprqWW
+         +uFSsbuf7PkEkeVh6ptB15fwfx+/FcdjRccSadL4gjj3jhf6TLnPvWaRVFoPsvlPHzm8
+         aMCA==
+X-Gm-Message-State: AOAM530shvqW0xy6POj6myWcKOjM9fYtxKPW7DZUKZxu+E6WD6uwNjV3
+	uX/A5oty5sq+NcABev46ueOWZRxFt+M1ZYxEPfo/7g==
+X-Google-Smtp-Source: ABdhPJztKmJOesXMRk6BKGtvmpjvsfAdSSn0+uARW4b3Fc8fmLRB8vYSVOMFIX/qFzu+IiqYQbW4FG1jMRSX9TvP2q0=
+X-Received: by 2002:a05:6a00:1a01:b0:44c:1ec3:364f with SMTP id
+ g1-20020a056a001a0100b0044c1ec3364fmr7117844pfv.86.1634235902347; Thu, 14 Oct
+ 2021 11:25:02 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210924130959.2695749-6-ruansy.fnst@fujitsu.com>
+References: <20211007082139.3088615-1-vishal.l.verma@intel.com> <20211007082139.3088615-11-vishal.l.verma@intel.com>
+In-Reply-To: <20211007082139.3088615-11-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Oct 2021 11:24:52 -0700
+Message-ID: <CAPcyv4h64LkFS1T_YqoRDz-7jDfkycNxBEkSzRxs-eUe4Y=LVg@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 10/17] libcxl: add label_size to cxl_memdev, and
+ an API to retrieve it
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Sep 24, 2021 at 09:09:56PM +0800, Shiyang Ruan wrote:
-> The current dax_lock_page() locks dax entry by obtaining mapping and
-> index in page.  To support 1-to-N RMAP in NVDIMM, we need a new function
-> to lock a specific dax entry corresponding to this file's mapping,index.
-> And BTW, output the page corresponding to the specific dax entry for
-> caller use.
-> 
-> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+On Thu, Oct 7, 2021 at 1:22 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> Size of the Label Storage Area (LSA) is available as a sysfs attribute
+> called 'label_storage_size'. Add that to libcxl's memdev so that it is available
+> for label related commands.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 > ---
->  fs/dax.c            | 65 ++++++++++++++++++++++++++++++++++++++++++++-
->  include/linux/dax.h | 15 +++++++++++
->  2 files changed, 79 insertions(+), 1 deletion(-)
-> 
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 798c43f09eee..509b65e60478 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -390,7 +390,7 @@ static struct page *dax_busy_page(void *entry)
+>  cxl/lib/private.h  |  1 +
+>  cxl/lib/libcxl.c   | 12 ++++++++++++
+>  cxl/libcxl.h       |  1 +
+>  cxl/lib/libcxl.sym |  5 +++++
+>  4 files changed, 19 insertions(+)
+>
+> diff --git a/cxl/lib/private.h b/cxl/lib/private.h
+> index 9c6317b..671f12f 100644
+> --- a/cxl/lib/private.h
+> +++ b/cxl/lib/private.h
+> @@ -21,6 +21,7 @@ struct cxl_memdev {
+>         unsigned long long pmem_size;
+>         unsigned long long ram_size;
+>         int payload_max;
+> +       size_t lsa_size;
+>         struct kmod_module *module;
+>  };
+>
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index 33cc462..de3a8f7 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -247,6 +247,13 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+>         if (memdev->payload_max < 0)
+>                 goto err_read;
+>
+> +       sprintf(path, "%s/label_storage_size", cxlmem_base);
+> +       if (sysfs_read_attr(ctx, path, buf) < 0)
+> +               goto err_read;
+> +       memdev->lsa_size = strtoull(buf, NULL, 0);
+> +       if (memdev->lsa_size == ULLONG_MAX)
+> +               goto err_read;
+> +
+>         memdev->dev_path = strdup(cxlmem_base);
+>         if (!memdev->dev_path)
+>                 goto err_read;
+> @@ -350,6 +357,11 @@ CXL_EXPORT const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev
+>         return memdev->firmware_version;
 >  }
->  
->  /*
-> - * dax_lock_mapping_entry - Lock the DAX entry corresponding to a page
-> + * dax_lock_page - Lock the DAX entry corresponding to a page
->   * @page: The page whose entry we want to lock
->   *
->   * Context: Process context.
-> @@ -455,6 +455,69 @@ void dax_unlock_page(struct page *page, dax_entry_t cookie)
->  	dax_unlock_entry(&xas, (void *)cookie);
->  }
->  
-> +/*
-> + * dax_lock_mapping_entry - Lock the DAX entry corresponding to a mapping
-> + * @mapping: the file's mapping whose entry we want to lock
-> + * @index: the offset within this file
-> + * @page: output the dax page corresponding to this dax entry
-> + *
-> + * Return: A cookie to pass to dax_unlock_mapping_entry() or 0 if the entry
-> + * could not be locked.
-> + */
-> +dax_entry_t dax_lock_mapping_entry(struct address_space *mapping, pgoff_t index,
-> +		struct page **page)
+>
+> +CXL_EXPORT size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev)
 > +{
-> +	XA_STATE(xas, NULL, 0);
-> +	void *entry;
-> +
-> +	rcu_read_lock();
-> +	for (;;) {
-> +		entry = NULL;
-> +		if (!dax_mapping(mapping))
-> +			break;
-> +
-> +		xas.xa = &mapping->i_pages;
-> +		xas_lock_irq(&xas);
-> +		xas_set(&xas, index);
-> +		entry = xas_load(&xas);
-> +		if (dax_is_locked(entry)) {
-> +			rcu_read_unlock();
-> +			wait_entry_unlocked(&xas, entry);
-> +			rcu_read_lock();
-> +			continue;
-> +		}
-> +		if (!entry ||
-> +		    dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
-> +			/*
-> +			 * Because we are looking for entry from file's mapping
-> +			 * and index, so the entry may not be inserted for now,
-> +			 * or even a zero/empty entry.  We don't think this is
-> +			 * an error case.  So, return a special value and do
-> +			 * not output @page.
-> +			 */
-> +			entry = (void *)~0UL;
-
-I kinda wonder if these open-coded magic values ~0UL (no entry) and 0
-(cannot lock) should be #defines that force-cast the magic value to
-dax_entry_t...
-
-...but then I'm not really an expert in the design behind fs/dax.c --
-this part looks reasonable enough to me, but I think Dan or Matthew
-ought to look this over.
-
---D
-
-> +		} else {
-> +			*page = pfn_to_page(dax_to_pfn(entry));
-> +			dax_lock_entry(&xas, entry);
-> +		}
-> +		xas_unlock_irq(&xas);
-> +		break;
-> +	}
-> +	rcu_read_unlock();
-> +	return (dax_entry_t)entry;
+> +       return memdev->lsa_size;
 > +}
 > +
-> +void dax_unlock_mapping_entry(struct address_space *mapping, pgoff_t index,
-> +		dax_entry_t cookie)
-> +{
-> +	XA_STATE(xas, &mapping->i_pages, index);
-> +
-> +	if (cookie == ~0UL)
-> +		return;
-> +
-> +	dax_unlock_entry(&xas, (void *)cookie);
-> +}
-> +
->  /*
->   * Find page cache entry at given index. If it is a DAX entry, return it
->   * with the entry locked. If the page cache doesn't contain an entry at
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index d273d59723cd..65411bee4312 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -156,6 +156,10 @@ struct page *dax_layout_busy_page(struct address_space *mapping);
->  struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
->  dax_entry_t dax_lock_page(struct page *page);
->  void dax_unlock_page(struct page *page, dax_entry_t cookie);
-> +dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-> +		unsigned long index, struct page **page);
-> +void dax_unlock_mapping_entry(struct address_space *mapping,
-> +		unsigned long index, dax_entry_t cookie);
->  #else
->  #define generic_fsdax_supported		NULL
->  
-> @@ -201,6 +205,17 @@ static inline dax_entry_t dax_lock_page(struct page *page)
->  static inline void dax_unlock_page(struct page *page, dax_entry_t cookie)
+>  CXL_EXPORT void cxl_cmd_unref(struct cxl_cmd *cmd)
 >  {
->  }
+>         if (!cmd)
+> diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+> index 7408745..d3b97a1 100644
+> --- a/cxl/libcxl.h
+> +++ b/cxl/libcxl.h
+> @@ -42,6 +42,7 @@ struct cxl_ctx *cxl_memdev_get_ctx(struct cxl_memdev *memdev);
+>  unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
+>  unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
+>  const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
+> +size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev);
+>
+>  #define cxl_memdev_foreach(ctx, memdev) \
+>          for (memdev = cxl_memdev_get_first(ctx); \
+> diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+> index 1b608d8..b9feb93 100644
+> --- a/cxl/lib/libcxl.sym
+> +++ b/cxl/lib/libcxl.sym
+> @@ -75,3 +75,8 @@ global:
+>         cxl_cmd_new_read_label;
+>         cxl_cmd_read_label_get_payload;
+>  } LIBCXL_2;
 > +
-> +static inline dax_entry_t dax_lock_mapping_entry(struct address_space *mapping,
-> +		unsigned long index, struct page **page)
-> +{
-> +	return 0;
-> +}
-> +
-> +static inline void dax_unlock_mapping_entry(struct address_space *mapping,
-> +		unsigned long index, dax_entry_t cookie)
-> +{
-> +}
->  #endif
->  
->  #if IS_ENABLED(CONFIG_DAX)
-> -- 
-> 2.33.0
-> 
-> 
-> 
+> +LIBCXL_4 {
+> +global:
+> +       cxl_memdev_get_label_size;
+
+Since we never made a release with the v2 symbols, why do we need a new v3 set?
+
+Other than that, looks good to me:
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
