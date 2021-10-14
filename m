@@ -1,38 +1,38 @@
 Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B4DF92C83
-	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 22:40:03 +0000 (UTC)
-Received: by mail-pg1-f171.google.com with SMTP id j190so93282pgd.0
-        for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 15:40:03 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62BF129CA
+	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 22:45:43 +0000 (UTC)
+Received: by mail-pg1-f171.google.com with SMTP id 66so6832438pgc.9
+        for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 15:45:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=u9KSacPX0YLBd/Q4rz2kk8ZGHcfdRztuQaRQoTcyIx0=;
-        b=COL/0CBbHLXxLxsHHWC3ZtTTtblqhcbhTbeyyJlDB8OovqrVkVlbCorjdhIet0coTF
-         fJQma8IsI5jQwbP8z7q5xenD8bViIJoAeiIoQMuAVmQHFv32QHRNlnmPMNJ+jLghwZFg
-         5YIb56BITx5tPU+4xDTHS5wc0BXtGriyJgmDS8Z8YnXl2mMLJV0yFbBAOpjJi7U/yz6F
-         o9/swR+glhR0rNNS61LGwdQi6lfIQAOqlK9/85Z3m4HFqOojDs3tmdR+bGP/sPsyRdaW
-         x9pKIEBnEL/Cu0KB0hV/2xMyPD2wp/51YuqexXhXKKzwL8tHcwWWo1QRNjOTiqCEUM4M
-         P1qg==
+        bh=BpiXG1Yl0ThCLgVz+F0jOoMh/5lNAaOmGG+RbsQZLSc=;
+        b=MfoH1/ifaw+6wvCrMF4O5wCotwtpyE9bkjv0KFgCxM9eVFR2UHt7t1ks9/BK4sh/oe
+         Zy8t1jc4VqM0EWYCuWGVsW0mlyvVRWourQInL4M2uTZwSaywmSUWHK56Uvv9C50G6AYI
+         fxJdM5q6UnGji7TERwiIn4Um7nh7HqHhkME3miDDTGX1EZePhpjGE67JldiMTxVHa77G
+         gFpyWTwAejFigmSNCQiO0LPjpdl7VX9cWQ7/Hbi8ac3LdJkBIpJqq0Fd0JplUoYOhDi9
+         moUs2ZkTAMH2ZAukZTaJI0Cusjbs36IJUtNH5rfOZE+ZavWMW9HE7uR4ddVpx0/uyYVb
+         JEew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=u9KSacPX0YLBd/Q4rz2kk8ZGHcfdRztuQaRQoTcyIx0=;
-        b=6gRarBPZo0aTzpnvpMSzUf/VPDSsBQO/ZBdmXK/9iClR4ZvAgEflqMy1W2cGLCBYSK
-         LTIi+5zF3/ZaQwYghLhh/ulz2T1v8otJK9oTc7YBgCiS3Fp73v1y82Pa1RqcLkAfH3YK
-         tpxVwheLIvyjks1y9N36t6oMkhGK/MqInsEcg4gbq8AHHLUxMVUjCkty2JWQ6jyjyZUv
-         Q2nHpc7sVGnkO5okaZ6hVZDJ/x3yCppf/Jwabhv+1BzgQxWHLGVxQDZVZcHQMxSTaPAT
-         0MIlR81fWxFr/Z2QcjwlWYrFn9Ubo5gX1nWC0/1d1W1R33BCZG2Yyo0fSrzMa3cygxqI
-         lTMQ==
-X-Gm-Message-State: AOAM530hQDBH/I75By445De5aNJAKko6QnK9oiB7/D9q2BZBFWfcYy2I
-	T+lXPx7Hm6RhpnA1ukbNtP7+8Cmg2hdgG2KH0cccCw==
-X-Google-Smtp-Source: ABdhPJyUBUypi8lCkjhVcZXkvYTm4V+DBHyLxb+8Qn46ZzEncN5bo1bUCABityche0LT9LteCi4nqY3LDwzLx8DhCQE=
-X-Received: by 2002:a62:1b92:0:b0:3eb:3f92:724 with SMTP id
- b140-20020a621b92000000b003eb3f920724mr7800995pfb.3.1634251203204; Thu, 14
- Oct 2021 15:40:03 -0700 (PDT)
+        bh=BpiXG1Yl0ThCLgVz+F0jOoMh/5lNAaOmGG+RbsQZLSc=;
+        b=fVN5NPGJ9BAjIvwWOy3F7MhYp0K9mIGOHIqfq6JnS1FNNNqO+31ckZTkL+1MdiSr5T
+         Acrc03pdQDvkgmK5VJ9+ddLEFez7VFPBhXvayB13CZwb0/4RNZ0FLzcCcuRcxYrzuHWc
+         jCJcdsclYVtgfHJgpZipZqoArpYdR6ZlO21f38fawAaYxLNmS1bTrB7H4+vwNbvEVIr4
+         1OwsjIhDKybxfaDih+qcaIgJkOxgFexm9VTwZWUdyc/U3bj7cbc+PvYGvmM4uEEVMN5V
+         gCETz0P701WG2dtRk6FFB5AOzRY2eeCSGOTxITsB+qeAHM4XUqhb6KUnBZSPPXJ1+nrV
+         tNQA==
+X-Gm-Message-State: AOAM532oIev9A0tWtZqIEsWeuv2vG2QjLu9/Zd5toMUlXpHOjuhO5stJ
+	tKkUrTOa7/of/lThtS7RFPkr//yU+EAgb+rMDvV9Tw==
+X-Google-Smtp-Source: ABdhPJxEWCZAmSI63PU1P62Yhzt4TaQZl1QPxVezai1VO1FI0Gtcu3LKSlZGQCDetWEA91ivAKroX+TdthBatDUJ1tM=
+X-Received: by 2002:a05:6a00:140e:b0:444:b077:51ef with SMTP id
+ l14-20020a056a00140e00b00444b07751efmr7592708pfu.61.1634251542563; Thu, 14
+ Oct 2021 15:45:42 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -40,52 +40,74 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
- <20211007082139.3088615-10-vishal.l.verma@intel.com> <CAPcyv4gRM_3UxQkKxLg_up-zNecyTjrvG1CAuJyF1Wd+9bwfUA@mail.gmail.com>
- <39a3f49daff50d8065e95cf4cd5ef4268d3a1c18.camel@intel.com>
-In-Reply-To: <39a3f49daff50d8065e95cf4cd5ef4268d3a1c18.camel@intel.com>
+ <20211007082139.3088615-13-vishal.l.verma@intel.com> <CAPcyv4h49Cei27qLAL8oUmcpa=Su_VArrAEzGwt3VSbpCoxYTw@mail.gmail.com>
+ <6637d78d46c03296b7c31452becbeed6236a8c83.camel@intel.com>
+In-Reply-To: <6637d78d46c03296b7c31452becbeed6236a8c83.camel@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 14 Oct 2021 15:39:53 -0700
-Message-ID: <CAPcyv4gH02T29-WQeRORgk6nfn250fY8q00x3aNh0c46V4YXEQ@mail.gmail.com>
-Subject: Re: [ndctl PATCH v4 09/17] util/hexdump: Add a util helper to print a
- buffer in hex
+Date: Thu, 14 Oct 2021 15:45:32 -0700
+Message-ID: <CAPcyv4iqdcyAs_vv8Vtg5iC5OSuJEP6zbTjtZKV7o3K6M6iiUA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 12/17] libcxl: add interfaces for label operations
 To: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Cc: "Widawsky, Ben" <ben.widawsky@intel.com>, 
 	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, 
 	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
 Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Oct 14, 2021 at 1:33 PM Verma, Vishal L
+On Thu, Oct 14, 2021 at 3:25 PM Verma, Vishal L
 <vishal.l.verma@intel.com> wrote:
 >
-> On Thu, 2021-10-14 at 09:48 -0700, Dan Williams wrote:
+> On Thu, 2021-10-14 at 14:27 -0700, Dan Williams wrote:
 > > On Thu, Oct 7, 2021 at 1:22 AM Vishal Verma <vishal.l.verma@intel.com> wrote:
-> > >
-> > > In preparation for tests that may need to set, retrieve, and display
-> > > opaque data, add a hexdump function in util/
-> > >
-> > > Cc: Ben Widawsky <ben.widawsky@intel.com>
-> > > Cc: Dan Williams <dan.j.williams@intel.com>
-> > > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-> > > ---
-> > >  util/hexdump.h |  8 ++++++++
-> > >  util/hexdump.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++
 > >
-> > If this is just for tests shouldn't it go in tests/ with the other
-> > common test helpers? If it stays in util/ I would kind of expect it to
-> > use the log infrastructure, no?
 >
-> Agreed on using the log infra. I was originally using it in the old
-> test stuff, but right now there's no user for it.. However having
-> something like this was nice when developing the early cmd submission
-> stuff. Do you think it would be good to always do a hexdump with dbg()
-> when under --verbose for evert cxl_cmd_submit? (and maybe even add it
-> for ndctl_cmd_submit later too) Or is that too noisy?
+> [..]
+>
+> > > +
+> > > +CXL_EXPORT struct cxl_cmd *cxl_cmd_new_write_label(struct cxl_memdev *memdev,
+> > > +               void *lsa_buf, unsigned int offset, unsigned int length)
+> > > +{
+> > > +       struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
+> > > +       struct cxl_cmd_set_lsa *set_lsa;
+> > > +       struct cxl_cmd *cmd;
+> > > +       int rc;
+> > > +
+> > > +       cmd = cxl_cmd_new_generic(memdev, CXL_MEM_COMMAND_ID_SET_LSA);
+> > > +       if (!cmd)
+> > > +               return NULL;
+> > > +
+> > > +       /* this will allocate 'in.payload' */
+> > > +       rc = cxl_cmd_set_input_payload(cmd, NULL, sizeof(*set_lsa) + length);
+> > > +       if (rc) {
+> > > +               err(ctx, "%s: cmd setup failed: %s\n",
+> > > +                       cxl_memdev_get_devname(memdev), strerror(-rc));
+> > > +               goto out_fail;
+> > > +       }
+> > > +       set_lsa = (void *)cmd->send_cmd->in.payload;
+> >
+> > ...the cast is still nagging at me especially when this knows what the
+> > payload is supposed to be. What about a helper per command type of the
+> > form:
+> >
+> > struct cxl_cmd_$name *to_cxl_cmd_$name(struct cxl_cmd *cmd)
+> > {
+> >     if (cmd->send_cmd->id != CXL_MEM_COMMAND_ID_$NAME)
+> >         return NULL;
+> >     return (struct cxl_cmd_$name *) cmd->send_cmd->in.payload;
+> > }
+> >
+> Is the nag just from using a void cast, or having to cast at all? I
+> think the void cast was just laziness - it should be cast to
+> (struct cxl_cmd_$name *) instead of (void *).
 
-It sounds good as an extra-verbose debug option. At least it would be
-more personal preference that -v does not get any more noisy by
-default and require -vv to get hexdumps.
+I'd feel better about that to have one explicit cast, then an explicit
+'void *' cast just to get default implicit cast behavior.
 
-> If we want to do that then it makes sense to redo with the logging api,
-> else maybe jsut drop this until we have a real in-tree user?
+>
+> Having a helper for to_cxl_cmd_$name() does look cleaner, but do we
+> need the validation step there? In all these cases, the cmd would've
+> been allocated just a few lines above, with cxl_cmd_new_generic(memdev,
+> CXL_MEM_COMMAND_ID_$NAME) - so it seems unnecessary?
 
-That's always ok in my book.
+Yeah, if there's never any other users of it outside of the
+'cxl_cmd_new_$name' then the validation and even the helper are
+unnecessary if you do the strict type conversion.
