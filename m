@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E8A2C89
-	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 23:53:01 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 88A122C85
+	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 23:53:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=bWrYy27/Ft+aLDChsLBGCGZJ9I29Pbmku4dc9v02/r0=; b=IY2ti5CFu7tk7l/1b1dOBrzqFV
-	aY9UvoJKkeTLc2QMRNWX6uc1JjZmitgQWYAqCJrHP3ukaJAS1Znz/MF42OZxUAt/7nUAnIiAlaBdw
-	qxqWz+L6WdoNhUxemK8IqK8TTz5PiYshQ9/0IYTCEPZsgX8UFxP25gp3gw4mI5zwxPE0jpzsJMdNF
-	piTCgmlnkXlxAQxhoX2yeSSTMZLJghSLJlHFu34Sux+hr4llFOQyl8BtkdxpGRy5hn40pVSQcZxr9
-	8NMljnWNJV+SY+YkxBhw9vXuVPxdhVfyQszbzyQE3EdW1D1TeSngbhl2jloBhz2cfG6cuZlUSHqj0
-	9sJQoaow==;
+	bh=IGHq/zn5r0bFrYNjymK6TXitnBNWw/sSmMius/3bC28=; b=rbJob0wAmG/PeQWeRRrtcYxYFJ
+	YRzLLYnhKrbq9c5C3ei247lq9ND1TVEr+sI9h97FxuA1tDfOtKvVSODpgJJ/i5ca6MJz5xP4IMZD0
+	k8GLy6j5oqZLDBGq6gK+63F5oR4QWzhbpUf2yaRiQDDfd4AeZudkLHLPi6u++tOTgiZ1+ocHLyxwm
+	NPrl9ADXuHopptXncDabSkoGhP5reCekk4mql+zkVM2KP3vBJufj+i8EcsZ3KxkVw2szdVftlSWsC
+	5jb2rMt8UQgpZTbkrS1+3YEmXkD2hhNaGQp9g1hn3QxwQHZoeI5/vA1VNosR6YWl+x1OyPfZeZ/mg
+	VZqAqmPQ==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mbWzt-009C2x-0D; Fri, 15 Oct 2021 23:52:21 +0000
+	id 1mbWzt-009C3F-AU; Fri, 15 Oct 2021 23:52:21 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	geoff@infradead.org,
@@ -42,9 +42,9 @@ Cc: linux-block@vger.kernel.org,
 	linux-nvme@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH 02/13] nvme-multipath: add error handling support for add_disk()
-Date: Fri, 15 Oct 2021 16:52:08 -0700
-Message-Id: <20211015235219.2191207-3-mcgrof@kernel.org>
+Subject: [PATCH 10/13] ps3disk: add error handling support for add_disk()
+Date: Fri, 15 Oct 2021 16:52:16 -0700
+Message-Id: <20211015235219.2191207-11-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20211015235219.2191207-1-mcgrof@kernel.org>
 References: <20211015235219.2191207-1-mcgrof@kernel.org>
@@ -61,50 +61,31 @@ We never checked for errors on add_disk() as this function
 returned void. Now that this is fixed, use the shiny new
 error handling.
 
-Since we now can tell for sure when a disk was added, move
-setting the bit NVME_NSHEAD_DISK_LIVE only when we did
-add the disk successfully.
-
-Nothing to do here as the cleanup is done elsewhere. We take
-care and use test_and_set_bit() because it is protects against
-two nvme paths simultaneously calling device_add_disk() on the
-same namespace head.
-
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/nvme/host/multipath.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/block/ps3disk.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvme/host/multipath.c b/drivers/nvme/host/multipath.c
-index e8ccdd398f78..022837f7be41 100644
---- a/drivers/nvme/host/multipath.c
-+++ b/drivers/nvme/host/multipath.c
-@@ -496,13 +496,23 @@ int nvme_mpath_alloc_disk(struct nvme_ctrl *ctrl, struct nvme_ns_head *head)
- static void nvme_mpath_set_live(struct nvme_ns *ns)
- {
- 	struct nvme_ns_head *head = ns->head;
-+	int rc;
+diff --git a/drivers/block/ps3disk.c b/drivers/block/ps3disk.c
+index 8d51efbe045d..3054adf77460 100644
+--- a/drivers/block/ps3disk.c
++++ b/drivers/block/ps3disk.c
+@@ -467,9 +467,13 @@ static int ps3disk_probe(struct ps3_system_bus_device *_dev)
+ 		 gendisk->disk_name, priv->model, priv->raw_capacity >> 11,
+ 		 get_capacity(gendisk) >> 11);
  
- 	if (!head->disk)
- 		return;
+-	device_add_disk(&dev->sbd.core, gendisk, NULL);
+-	return 0;
++	error = device_add_disk(&dev->sbd.core, gendisk, NULL);
++	if (error)
++		goto fail_cleanup_disk;
  
-+	/*
-+	 * test_and_set_bit() is used because it is protecting against two nvme
-+	 * paths simultaneously calling device_add_disk() on the same namespace
-+	 * head.
-+	 */
- 	if (!test_and_set_bit(NVME_NSHEAD_DISK_LIVE, &head->flags)) {
--		device_add_disk(&head->subsys->dev, head->disk,
--				nvme_ns_id_attr_groups);
-+		rc = device_add_disk(&head->subsys->dev, head->disk,
-+				     nvme_ns_id_attr_groups);
-+		if (rc) {
-+			clear_bit(NVME_NSHEAD_DISK_LIVE, &ns->flags);
-+			return;
-+		}
- 		nvme_add_ns_head_cdev(head);
- 	}
- 
++	return 0;
++fail_cleanup_disk:
++	blk_cleanup_disk(gendisk);
+ fail_free_tag_set:
+ 	blk_mq_free_tag_set(&priv->tag_set);
+ fail_teardown:
 -- 
 2.30.2
 
