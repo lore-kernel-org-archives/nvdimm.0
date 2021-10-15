@@ -1,200 +1,323 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 249E02C83
-	for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 23:42:17 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10137"; a="251255494"
-X-IronPort-AV: E=Sophos;i="5.85,374,1624345200"; 
-   d="scan'208";a="251255494"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2021 16:42:16 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.85,374,1624345200"; 
-   d="scan'208";a="442317039"
-Received: from fmsmsx605.amr.corp.intel.com ([10.18.126.85])
-  by orsmga006.jf.intel.com with ESMTP; 14 Oct 2021 16:42:14 -0700
-Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
- fmsmsx605.amr.corp.intel.com (10.18.126.85) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2242.12; Thu, 14 Oct 2021 16:42:13 -0700
-Received: from fmsedg601.ED.cps.intel.com (10.1.192.135) by
- fmsmsx610.amr.corp.intel.com (10.18.126.90) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2242.12 via Frontend Transport; Thu, 14 Oct 2021 16:42:13 -0700
-Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.100)
- by edgegateway.intel.com (192.55.55.70) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2242.12; Thu, 14 Oct 2021 16:42:13 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=RZuTF9ml+E3nksO4bSUGwCgsjibGhBUWBAs2wWegeVaA42sBY16Cs1kM5O2ZfmQWgwnFbAh2dts4BLRrsn8n7sz/GVel/kvu3fiF6Vohxz9f5C/zZQhgTXg7KqA3aNVDH3GHjyQch5oHh23o4mAIS/umGdMcNKrgtsUXpoWi4Unkn4tILjrloenn9U0Rmcgs2I5n5Qys8ElGffa+d/dCvGb/mX9Go5maqlL3zQa5ezsD2Xk+0tIz71t+qoCZC3EUr/9nIjgpI5ki+LO/Rov+u0rgcDcPNKp57vYdhZ8l9/91IiZaB8NGykiIoOvZ1QdbIhoZ5rNhLUOzHAarKJlTTA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=2UKEruJoh9zNz8rq5KdnQ/BDVMa0EIi4R6/FQPWtoHk=;
- b=NCTdVob9Zbjjsh4pewyGEiNCv7JJM5HQaoItdX3yhcICcx5yqFe16lnGiZINudwO7ckwCXpFp7Rfi5KriUhRUo8NQyb8fSTKtjIuTuiXaKjeAsFa5Ry8WvdzHnrmtql/sWcpBTZn0LHe5jW/z9dDLAtymI3MusJFNDzTKiJ1ZJ6Yd+UWN9zaaZEvEXxsGYzcdu1lL4EcN7731e5h1if7eUfTvcYynzpLB6DD/d9JiE1diFxLtJIkF+/S7SmqTdMiGmQ2mH0NDNmWzfaf24kRYS5YitWwL0XVJXUD7Mwbe+QMEB5/P5JFDLDnBUX6JtCvvxOkQ7UI7TFvmd0zQiWNWw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
- s=selector2-intel-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=2UKEruJoh9zNz8rq5KdnQ/BDVMa0EIi4R6/FQPWtoHk=;
- b=uHzRQw0mC36LopPKLK8fyCcekgO0GNk3ncGuuPW/P+Lo3cf/fi+Lyr+B4gphqVbJo+aY/3/VqLKL9ZW45ohaIdL3wzmop2viZ1IEVjAbFbJI5W7dwR59O+ZKPY3A+7B2P+Jkm+y5STFfJf4o7/wynBTd3ZFh2Z2Fe5yf+oh3jRA=
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
- by MN2PR11MB3661.namprd11.prod.outlook.com (2603:10b6:208:f0::33) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.16; Thu, 14 Oct
- 2021 23:42:11 +0000
-Received: from MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::d8a5:47b2:8750:11df]) by MN2PR11MB3999.namprd11.prod.outlook.com
- ([fe80::d8a5:47b2:8750:11df%7]) with mapi id 15.20.4587.030; Thu, 14 Oct 2021
- 23:42:11 +0000
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-To: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
-CC: "Williams, Dan J" <dan.j.williams@intel.com>, "Widawsky, Ben"
-	<ben.widawsky@intel.com>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
-Subject: Re: [ndctl PATCH v4 17/17] cxl: add health information to cxl-list
-Thread-Topic: [ndctl PATCH v4 17/17] cxl: add health information to cxl-list
-Thread-Index: AQHXu1Rpl5ks0eSAW02s2S2kPdlO/qvTM4oA
-Date: Thu, 14 Oct 2021 23:42:10 +0000
-Message-ID: <d20b7fd17067aa49a5ccdd2c649f345ab17cb12e.camel@intel.com>
-References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
-	 <20211007082139.3088615-18-vishal.l.verma@intel.com>
-In-Reply-To: <20211007082139.3088615-18-vishal.l.verma@intel.com>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-user-agent: Evolution 3.40.4 (3.40.4-1.fc34) 
-authentication-results: vger.kernel.org; dkim=none (message not signed)
- header.d=none;vger.kernel.org; dmarc=none action=none header.from=intel.com;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 05f51502-1b76-4c88-c5f0-08d98f6c3e1f
-x-ms-traffictypediagnostic: MN2PR11MB3661:
-x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
-x-ms-exchange-transport-forked: True
-x-microsoft-antispam-prvs: <MN2PR11MB3661983DF5B62C00FFE6EDA1C7B89@MN2PR11MB3661.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:561;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: PPHxU0YJpiUghgFdzJv2b8oMfatZz3bYy0wkqdRB+0/rw5c/hoqnKig+GSerC5/SIGaIJhMQu4iMhghBFClPmhlfiq42yH+9/WvFxC+NCOPMexy6z8WV020M5TY7mqLsxMRCmeGpUsGdz96U/b+GcsTvsC9NgEfWntmJZHi7oqeYDPGK4CIZm0YAl3qa9STmU0IJQXbRiCA5kSvQbIqQasDezmTP+TIu3eWTvIbSPhnw8dJiMcuvsbrlxqYFpEaja8N5jAIFCl8ty0kdHtWJ9bWbMFFSezsh6fc23u3PlKhGyUt2v6c6ty546RUBIpyTBOMczvge0hbF1VU0MfsvZWCbb3Lg8EIz98LCJyvND6xbmeqF/PDgoUplgMDzJdRLkSoa1ULBFVAljl2/i9zp/0q3Qa5MhayvBMDKza53MLuR0bIv06WmkweiTvx2FeLXbzq8d4EV21MOyhCfXmz70qzEz3mn8usKJZlS6FCdq+j6uEWQhHk6eePpUT4P2uEFkieF3fAoNe39l5S10wnD0uz9rawXVUcgQ8zGyPHOCNl8i6HPUTlwovRKz8F8EFb9LaPo8lubMrJbmFReFE1yn93kFIoh5+gtKMHodas12LmgbHpcYI/2RKPvBXa0IdfhsagqsFeyb1k09i6nGzuMMe8glFjVF7MWt+gMH7qVLr384j0rnD/D7ctqSZnL+B+guHGh/B4Nj5RaAPgYrVK0Ow==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(38100700002)(122000001)(83380400001)(6506007)(5660300002)(26005)(6512007)(6486002)(38070700005)(186003)(71200400001)(2616005)(8936002)(66946007)(2906002)(508600001)(8676002)(316002)(91956017)(66476007)(4326008)(66446008)(66556008)(54906003)(64756008)(76116006)(82960400001)(36756003)(6916009)(86362001);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?VnJEbXova2hpcGFGa3l1bWNzMEJBQ3EyMmJqSHJ6MHBYVjhNZmsrZDVFWmxu?=
- =?utf-8?B?ckxSdzVGcnFXZFk4SjhaWlIxbEwvUmJmSm9kTHNKbkliMTV5TURWUHdSREZq?=
- =?utf-8?B?QU11Zy9FVWdzRldpcSsyRU1OaHdOcDdXWm1PQ01VMFprM2hrWGljRVIzRFVY?=
- =?utf-8?B?MEdWajVHUXRwc2RJRkU0UHllSVZoU2t3N0pZWURTaXJ4Z0RLbmVOd3AzWmNS?=
- =?utf-8?B?cDJ5S1Njd0tUMkczVmRZRjY0bndMVENlS0IwTUYvZXI0ZjNaVWtXZG8xZ0xl?=
- =?utf-8?B?UGR5TzE1V2JKdmE1aW1WeUd0K0Nzb1RiRjdEMytTQ0loZGlNbE9lUE1PaVpl?=
- =?utf-8?B?bG83eVZYazZRL21ZSjFtV1RWeWY1TDQxcWtjRVc3RmVRc0ZCN2NVbWNJMXkr?=
- =?utf-8?B?QXY2THRQajBYeHJvdjJaM3lVcnZCcTNSWDduQUFKbGJmSjlaNnNWUmErZFIv?=
- =?utf-8?B?a1A4d05SZmlDZlc4SFNrdWVyNXRmSGNGMElZR0VwMGRWQnRNZWw1WUI2WUNI?=
- =?utf-8?B?V0E0OStDZ1RaUVpwRzVvTVBjVml6bXU0M2RkU0lnWGpnTloxOW00d1J1a3VL?=
- =?utf-8?B?RXBPOVdCWGRWczF0YkJyMFNKanRSN3o2UUtoRTRmUFo0cDIwNmQ5bG9OWGJ0?=
- =?utf-8?B?QTRpVlBaZ3RkZU1OdkNYSHlZcUM2YytVZ0hqVzJGKzBvTE1mOXZ3ZEhqdHdL?=
- =?utf-8?B?aXB2dWlmSnA5WEhXcHFxMWkzbTVkYXNaQy9mNjc3RkNsRGpuZTUyTVpLaWlm?=
- =?utf-8?B?V1I3Wnp6am5FVHk4eHd5bEFxSHBkRU5PNzlsNWZDN3l0TEUyYnFoMlJsZlRG?=
- =?utf-8?B?eWVDYlpQckVJdmgxVmd0RWFlVFBQV3B5RjB1TEdwV1RpZDg0cmN2UGY2MFhz?=
- =?utf-8?B?QTJET1JDeDNnRmRQNzZ1aS9XQkhEdVZUa2lTNDhzNnVBN25Ia0NLdThwa0xv?=
- =?utf-8?B?TXpzQzV1MHMyNEtJS09pbjdOcmVOMXM0YTFWZ05MODRDdVZmemhMY0VWZEFG?=
- =?utf-8?B?VHRGalJjdGJtNHFUVXMxeWNpYm5UTEd4R1ZJbFFjZXY5V1AwMmNtV09Ld1p4?=
- =?utf-8?B?amRXYnk3Q3RsU01hRmhtQWJsQXV1TFpIM1RNSHRUUEt0VDBOUVNJQjVmRnM2?=
- =?utf-8?B?NDZzYUdrQ2NlUmQ1RmRzNjBOTWtDcHlEZWZYNG53VmhMOE1oUmJmV1hJeEh1?=
- =?utf-8?B?SjZ6aXo4YUh6aWVZemN2WWJDakFhcU1SVUFEUFdtUlV5VjRjTDY5NHQ0emxF?=
- =?utf-8?B?c2tnZFRjZ3lDQ3dmc2d1VTE0T3RCbDJtM1V3blNpTnRtWTNRUVVra3gxd1Ev?=
- =?utf-8?B?cW4yMXBoSjM4YXIrVVdaeW41WUlrb3o3eStNdnU3TGwyVjI2UVNVUWhXYTg2?=
- =?utf-8?B?clIwSGhVR3VyWEZnUmJ6NENabXE2QW9SSlR0QlBoNVl2VzZGLy9XZHJSUlg2?=
- =?utf-8?B?UW9USXE1M1laV1VnZzF0YmR6UWgzalM5djRlemdZSjZRK1FuYkRsUHQ2Rmtw?=
- =?utf-8?B?STl2bE9wT3kzRzVNbnh5ZW5XZXF0elhrV1NQcjV3YTRtSDBJRmpOcHg1K0dT?=
- =?utf-8?B?MWhZVm0zVzZXZVVoclkybDlJTE55SUxTQndBWS9FUjd5TUNObDFxWFRVS1lY?=
- =?utf-8?B?S0srQmRJNmVMdDRCMFdWcS9XQVlMelR4RHhTN1V6S1FQNjJQaWlWN3RzTHB4?=
- =?utf-8?B?NENJNTJVRi9oVnhJdnhaS0JPV2N6b3FEUGh3dGRMQXNsdjRwM1IrVUlwQ094?=
- =?utf-8?B?Vm94UFdWVUZhZ20xTEEra2cvTSszOU0zNkNnWjBJTFhYSUwyYnREL2RoMEdO?=
- =?utf-8?B?OXBycElHMGdOMS92L1ovZz09?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <DDF23564FD08BC42B4FC4677F0400F4C@namprd11.prod.outlook.com>
-Content-Transfer-Encoding: base64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8CC92C83
+	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 00:09:48 +0000 (UTC)
+Received: by mail-pj1-f53.google.com with SMTP id pi19-20020a17090b1e5300b0019fdd3557d3so5972980pjb.5
+        for <nvdimm@lists.linux.dev>; Thu, 14 Oct 2021 17:09:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=eax0i+Emf2DSekUFPitc2WNCYRA37HTROoGfceUiop4=;
+        b=fL+AoSGDlhYovg8TYeYb41Pzz9ZlBL6zaLf/d5CwK/gDp8ptigweC8vb7EKk5TbeKp
+         QvAaIypK7FsjSeCGunAigbJW7dFcCDORSD0XygN5UMmHpPJpAETO6qw3JPsx4lYTqTwm
+         m/VE1SRdkH7pUM5YKsW3kOpZk7DtQupQ3mWnqekThWwS+fJAf8koBZM3d6oQGH4WLVuY
+         KblitKdn1u9d+keJhjh9kjfbJ4lyFJ/AeqEvD3sK1+2MuWEQcs4eSAjwUPuDSFgvaQWS
+         McBp4vEv/CnladpJQFB39ZDejSry9FxaChBzeHt1sYccr9AxPpDUvph3u9lk/w7JZPTm
+         JfcA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=eax0i+Emf2DSekUFPitc2WNCYRA37HTROoGfceUiop4=;
+        b=2OiGqxeUXpIlIYJu9YNUWVL5ux2aJS7CP2xNnGQ94evatLQyIaStK/s5k0HfHdiVhV
+         QZK2gqFr7wszcpcIoDApie5YsWt3NzwKzA5PX3XAGncVBPst3O/IIf45ksjJqqFpTiS2
+         ec+nv5EOML8Ohx9soURuPa2yVMbuNMMAMHgQfb2rKda5/h/14avzm06McDkVOHb+/Btk
+         Gg5coYp6tyvNE+rIYaT9Bv82yFWdW/CyYxIS0IFTCI7jlhdB1KS/b9QG7uApqpHWZbJl
+         4Y6RreWyaDX5RYPBfEgplB+kVaO6JJk3GAUXZ/6EGVIUpNS2qjjq1EGSKYuvDiBazknu
+         Z6CQ==
+X-Gm-Message-State: AOAM530Zv/qU3TORtZf4qUjmL3NUSC92gpiu57MHtWqcd3eqnHp3pX+g
+	tGnASXpSKatUk+7e9ut73J6Oo9dTBoPjq4zkBdLwXcnOqGEe6g==
+X-Google-Smtp-Source: ABdhPJztxcNpm9n5KLSzYP9Wx+J3szqQeK65/JAFrjTtoGjGTIClqb9YnFQ5R5AXtjjSGZuFzKaEeA4CsI9oshiYqm4=
+X-Received: by 2002:a17:90a:a085:: with SMTP id r5mr23781136pjp.8.1634256588166;
+ Thu, 14 Oct 2021 17:09:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 05f51502-1b76-4c88-c5f0-08d98f6c3e1f
-X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Oct 2021 23:42:10.9986
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: 1y5AeZl2Qb6fwed0/dDdEDvpJFD8xTs7oPe5FSztik9k9fayNRxEiPOrqoWyiGmla1Chhr5FvYkiOkQ1WRYp12qJ5lZMxZNuQ48aEaBUyw0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB3661
-X-OriginatorOrg: intel.com
+References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
+ <20211007082139.3088615-18-vishal.l.verma@intel.com> <8144d0576ce15828456a0ba0c8461162f604bc38.camel@intel.com>
+In-Reply-To: <8144d0576ce15828456a0ba0c8461162f604bc38.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 14 Oct 2021 17:09:38 -0700
+Message-ID: <CAPcyv4jCye=C76m52EcxhZMbRdaTLV47VTyxdi-pGxf4aMfZaA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 17/17] cxl: add health information to cxl-list
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "Widawsky, Ben" <ben.widawsky@intel.com>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-T24gVGh1LCAyMDIxLTEwLTA3IGF0IDAyOjIxIC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
-IEFkZCBKU09OIG91dHB1dCBmb3IgZmllbGRzIGZyb20gdGhlICdHRVRfSEVBTFRIX0lORk8nIG1h
-aWxib3ggY29tbWFuZA0KPiB0byBtZW1vcnkgZGV2aWNlIGxpc3RpbmdzLg0KPiANCj4gU2lnbmVk
-LW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IC0tLQ0K
-PiAgRG9jdW1lbnRhdGlvbi9jeGwvY3hsLWxpc3QudHh0IHwgICA0ICsNCj4gIHV0aWwvanNvbi5o
-ICAgICAgICAgICAgICAgICAgICB8ICAgMSArDQo+ICBjeGwvbGlzdC5jICAgICAgICAgICAgICAg
-ICAgICAgfCAgIDUgKw0KPiAgdXRpbC9qc29uLmMgICAgICAgICAgICAgICAgICAgIHwgMTg5ICsr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiAgNCBmaWxlcyBjaGFuZ2VkLCAxOTkg
-aW5zZXJ0aW9ucygrKQ0KPiANCj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vY3hsL2N4bC1s
-aXN0LnR4dCBiL0RvY3VtZW50YXRpb24vY3hsL2N4bC1saXN0LnR4dA0KPiBpbmRleCBiZDM3N2Iz
-Li5kYzg2NjUxIDEwMDY0NA0KPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2N4bC9jeGwtbGlzdC50eHQN
-Cj4gKysrIGIvRG9jdW1lbnRhdGlvbi9jeGwvY3hsLWxpc3QudHh0DQo+IEBAIC01Myw2ICs1Mywx
-MCBAQCBPUFRJT05TDQo+ICAtLWlkbGU6Og0KPiAgCUluY2x1ZGUgaWRsZSAobm90IGVuYWJsZWQg
-LyB6ZXJvLXNpemVkKSBkZXZpY2VzIGluIHRoZSBsaXN0aW5nDQo+ICANCj4gKy1IOjoNCj4gKy0t
-aGVhbHRoOjoNCj4gKwlJbmNsdWRlIGhlYWx0aCBpbmZvcm1hdGlvbiBpbiB0aGUgbWVtZGV2IGxp
-c3RpbmcNCj4gKw0KPiAgaW5jbHVkZTo6aHVtYW4tb3B0aW9uLnR4dFtdDQo+ICANCj4gIGluY2x1
-ZGU6OnZlcmJvc2Utb3B0aW9uLnR4dFtdDQo+IGRpZmYgLS1naXQgYS91dGlsL2pzb24uaCBiL3V0
-aWwvanNvbi5oDQo+IGluZGV4IDkxOTE4YzguLmNlNTc1ZTYgMTAwNjQ0DQo+IC0tLSBhL3V0aWwv
-anNvbi5oDQo+ICsrKyBiL3V0aWwvanNvbi5oDQo+IEBAIC0xOSw2ICsxOSw3IEBAIGVudW0gdXRp
-bF9qc29uX2ZsYWdzIHsNCj4gIAlVVElMX0pTT05fQ09ORklHVVJFRAk9ICgxIDw8IDcpLA0KPiAg
-CVVUSUxfSlNPTl9GSVJNV0FSRQk9ICgxIDw8IDgpLA0KPiAgCVVUSUxfSlNPTl9EQVhfTUFQUElO
-R1MJPSAoMSA8PCA5KSwNCj4gKwlVVElMX0pTT05fSEVBTFRICT0gKDEgPDwgMTApLA0KPiAgfTsN
-Cj4gIA0KPiAgc3RydWN0IGpzb25fb2JqZWN0Ow0KPiBkaWZmIC0tZ2l0IGEvY3hsL2xpc3QuYyBi
-L2N4bC9saXN0LmMNCj4gaW5kZXggM2RlYTczZi4uMmZhMTU1YSAxMDA2NDQNCj4gLS0tIGEvY3hs
-L2xpc3QuYw0KPiArKysgYi9jeGwvbGlzdC5jDQo+IEBAIC0xNiw2ICsxNiw3IEBAIHN0YXRpYyBz
-dHJ1Y3Qgew0KPiAgCWJvb2wgbWVtZGV2czsNCj4gIAlib29sIGlkbGU7DQo+ICAJYm9vbCBodW1h
-bjsNCj4gKwlib29sIGhlYWx0aDsNCj4gIH0gbGlzdDsNCj4gIA0KPiAgc3RhdGljIHVuc2lnbmVk
-IGxvbmcgbGlzdG9wdHNfdG9fZmxhZ3Modm9pZCkNCj4gQEAgLTI2LDYgKzI3LDggQEAgc3RhdGlj
-IHVuc2lnbmVkIGxvbmcgbGlzdG9wdHNfdG9fZmxhZ3Modm9pZCkNCj4gIAkJZmxhZ3MgfD0gVVRJ
-TF9KU09OX0lETEU7DQo+ICAJaWYgKGxpc3QuaHVtYW4pDQo+ICAJCWZsYWdzIHw9IFVUSUxfSlNP
-Tl9IVU1BTjsNCj4gKwlpZiAobGlzdC5oZWFsdGgpDQo+ICsJCWZsYWdzIHw9IFVUSUxfSlNPTl9I
-RUFMVEg7DQo+ICAJcmV0dXJuIGZsYWdzOw0KPiAgfQ0KPiAgDQo+IEBAIC01Nyw2ICs2MCw4IEBA
-IGludCBjbWRfbGlzdChpbnQgYXJnYywgY29uc3QgY2hhciAqKmFyZ3YsIHN0cnVjdCBjeGxfY3R4
-ICpjdHgpDQo+ICAJCU9QVF9CT09MRUFOKCdpJywgImlkbGUiLCAmbGlzdC5pZGxlLCAiaW5jbHVk
-ZSBpZGxlIGRldmljZXMiKSwNCj4gIAkJT1BUX0JPT0xFQU4oJ3UnLCAiaHVtYW4iLCAmbGlzdC5o
-dW1hbiwNCj4gIAkJCQkidXNlIGh1bWFuIGZyaWVuZGx5IG51bWJlciBmb3JtYXRzICIpLA0KPiAr
-CQlPUFRfQk9PTEVBTignSCcsICJoZWFsdGgiLCAmbGlzdC5oZWFsdGgsDQo+ICsJCQkJImluY2x1
-ZGUgbWVtb3J5IGRldmljZSBoZWFsdGggaW5mb3JtYXRpb24gIiksDQo+ICAJCU9QVF9FTkQoKSwN
-Cj4gIAl9Ow0KPiAgCWNvbnN0IGNoYXIgKiBjb25zdCB1W10gPSB7DQo+IGRpZmYgLS1naXQgYS91
-dGlsL2pzb24uYyBiL3V0aWwvanNvbi5jDQo+IGluZGV4IDNiZTNhOTIuLmRmYzdiOGUgMTAwNjQ0
-DQo+IC0tLSBhL3V0aWwvanNvbi5jDQo+ICsrKyBiL3V0aWwvanNvbi5jDQo+IEBAIC0xNDQyLDYg
-KzE0NDIsMTkwIEBAIHN0cnVjdCBqc29uX29iamVjdCAqdXRpbF9iYWRibG9ja19yZWNfdG9fanNv
-bih1NjQgYmxvY2ssIHU2NCBjb3VudCwNCj4gIAlyZXR1cm4gTlVMTDsNCj4gIH0NCj4gIA0KPiAr
-c3RhdGljIHN0cnVjdCBqc29uX29iamVjdCAqdXRpbF9jeGxfbWVtZGV2X2hlYWx0aF90b19qc29u
-KA0KPiArCQlzdHJ1Y3QgY3hsX21lbWRldiAqbWVtZGV2LCB1bnNpZ25lZCBsb25nIGZsYWdzKQ0K
-PiArew0KPiArCWNvbnN0IGNoYXIgKmRldm5hbWUgPSBjeGxfbWVtZGV2X2dldF9kZXZuYW1lKG1l
-bWRldik7DQo+ICsJc3RydWN0IGpzb25fb2JqZWN0ICpqaGVhbHRoOw0KPiArCXN0cnVjdCBqc29u
-X29iamVjdCAqam9iajsNCj4gKwlzdHJ1Y3QgY3hsX2NtZCAqY21kOw0KPiArCXUzMiBmaWVsZDsN
-Cj4gKwlpbnQgcmM7DQo+ICsNCj4gKwlqaGVhbHRoID0ganNvbl9vYmplY3RfbmV3X29iamVjdCgp
-Ow0KPiArCWlmICghamhlYWx0aCkNCj4gKwkJcmV0dXJuIE5VTEw7DQo+ICsJaWYgKCFtZW1kZXYp
-DQo+ICsJCWdvdG8gZXJyX2pvYmo7DQo+ICsNCj4gKwljbWQgPSBjeGxfY21kX25ld19nZXRfaGVh
-bHRoX2luZm8obWVtZGV2KTsNCj4gKwlpZiAoIWNtZCkNCj4gKwkJZ290byBlcnJfam9iajsNCj4g
-Kw0KPiArCXJjID0gY3hsX2NtZF9zdWJtaXQoY21kKTsNCj4gKwkvKiBFTk9UVFkgLSBjb21tYW5k
-IG5vdCBzdXBwb3J0ZWQgYnkgdGhlIG1lbWRldiAqLw0KPiArCWlmIChyYyA9PSAtRU5PVFRZKQ0K
-PiArCQlnb3RvIGVycl9jbWQ7DQoNCkknbGwgcmVtb3ZlIHRoaXMgc3BlY2lhbCBjYXNlLCBhcyB3
-ZWxsIGFzIHRoZSBlcnJvciBwcmludHMgYmVsb3cuIFRoZQ0KY21kIHN1Ym1pc3Npb24gY291bGQg
-ZmFpbCBmb3IgYW55IG51bWJlciBvZiByZWFzb25zLCBpbmNsdWRpbmcNCnVuc3VwcG9ydGVkIGJ5
-IGhhcmR3YXJlIC0gSSB0aGluayBmb3IgYW55IG9mIHRob3NlIGNhc2VzLCB3ZSBjYW4ganVzdA0K
-c2lsZW50bHkgc2tpcCBwcmludGluZyB0aGUganNvbiBmaWVsZHMgaGVyZS4NCg0KPiArCWlmIChy
-YyA8IDApIHsNCj4gKwkJZnByaW50ZihzdGRlcnIsICIlczogY21kIHN1Ym1pc3Npb24gZmFpbGVk
-OiAlc1xuIiwgZGV2bmFtZSwNCj4gKwkJICAgIHN0cmVycm9yKC1yYykpOw0KPiArCQlnb3RvIGVy
-cl9jbWQ7DQo+ICsJfQ0KPiArCXJjID0gY3hsX2NtZF9nZXRfbWJveF9zdGF0dXMoY21kKTsNCj4g
-KwlpZiAocmMgIT0gMCkgew0KPiArCQlmcHJpbnRmKHN0ZGVyciwgIiVzOiBmaXJtd2FyZSBzdGF0
-dXM6ICVkXG4iLCBkZXZuYW1lLCByYyk7DQo+ICsJCXJjID0gLUVOWElPOw0KPiArCQlnb3RvIGVy
-cl9jbWQ7DQo+ICsJfQ0KPiArDQo+IA0K
+On Mon, Oct 11, 2021 at 3:07 PM Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+> On Thu, 2021-10-07 at 02:21 -0600, Vishal Verma wrote:
+> > Add JSON output for fields from the 'GET_HEALTH_INFO' mailbox command
+> > to memory device listings.
+> >
+> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > ---
+> >  Documentation/cxl/cxl-list.txt |   4 +
+> >  util/json.h                    |   1 +
+> >  cxl/list.c                     |   5 +
+> >  util/json.c                    | 189 +++++++++++++++++++++++++++++++++
+> >  4 files changed, 199 insertions(+)
+> >
+> > diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+> > index bd377b3..dc86651 100644
+> > --- a/Documentation/cxl/cxl-list.txt
+> > +++ b/Documentation/cxl/cxl-list.txt
+> > @@ -53,6 +53,10 @@ OPTIONS
+> >  --idle::
+> >       Include idle (not enabled / zero-sized) devices in the listing
+> >
+> > +-H::
+> > +--health::
+> > +     Include health information in the memdev listing
+> > +
+> >  include::human-option.txt[]
+> >
+> >  include::verbose-option.txt[]
+> > diff --git a/util/json.h b/util/json.h
+> > index 91918c8..ce575e6 100644
+> > --- a/util/json.h
+> > +++ b/util/json.h
+> > @@ -19,6 +19,7 @@ enum util_json_flags {
+> >       UTIL_JSON_CONFIGURED    = (1 << 7),
+> >       UTIL_JSON_FIRMWARE      = (1 << 8),
+> >       UTIL_JSON_DAX_MAPPINGS  = (1 << 9),
+> > +     UTIL_JSON_HEALTH        = (1 << 10),
+> >  };
+> >
+> >  struct json_object;
+> > diff --git a/cxl/list.c b/cxl/list.c
+> > index 3dea73f..2fa155a 100644
+> > --- a/cxl/list.c
+> > +++ b/cxl/list.c
+> > @@ -16,6 +16,7 @@ static struct {
+> >       bool memdevs;
+> >       bool idle;
+> >       bool human;
+> > +     bool health;
+> >  } list;
+> >
+> >  static unsigned long listopts_to_flags(void)
+> > @@ -26,6 +27,8 @@ static unsigned long listopts_to_flags(void)
+> >               flags |= UTIL_JSON_IDLE;
+> >       if (list.human)
+> >               flags |= UTIL_JSON_HUMAN;
+> > +     if (list.health)
+> > +             flags |= UTIL_JSON_HEALTH;
+> >       return flags;
+> >  }
+> >
+> > @@ -57,6 +60,8 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+> >               OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
+> >               OPT_BOOLEAN('u', "human", &list.human,
+> >                               "use human friendly number formats "),
+> > +             OPT_BOOLEAN('H', "health", &list.health,
+> > +                             "include memory device health information "),
+> >               OPT_END(),
+> >       };
+> >       const char * const u[] = {
+> > diff --git a/util/json.c b/util/json.c
+> > index 3be3a92..dfc7b8e 100644
+> > --- a/util/json.c
+> > +++ b/util/json.c
+> > @@ -1442,6 +1442,190 @@ struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
+> >       return NULL;
+> >  }
+> >
+> > +static struct json_object *util_cxl_memdev_health_to_json(
+> > +             struct cxl_memdev *memdev, unsigned long flags)
+> > +{
+> > +     const char *devname = cxl_memdev_get_devname(memdev);
+> > +     struct json_object *jhealth;
+> > +     struct json_object *jobj;
+> > +     struct cxl_cmd *cmd;
+> > +     u32 field;
+> > +     int rc;
+> > +
+> > +     jhealth = json_object_new_object();
+> > +     if (!jhealth)
+> > +             return NULL;
+> > +     if (!memdev)
+> > +             goto err_jobj;
+> > +
+> > +     cmd = cxl_cmd_new_get_health_info(memdev);
+> > +     if (!cmd)
+> > +             goto err_jobj;
+> > +
+> > +     rc = cxl_cmd_submit(cmd);
+> > +     /* ENOTTY - command not supported by the memdev */
+> > +     if (rc == -ENOTTY)
+> > +             goto err_cmd;
+> > +     if (rc < 0) {
+> > +             fprintf(stderr, "%s: cmd submission failed: %s\n", devname,
+> > +                 strerror(-rc));
+> > +             goto err_cmd;
+> > +     }
+> > +     rc = cxl_cmd_get_mbox_status(cmd);
+> > +     if (rc != 0) {
+> > +             fprintf(stderr, "%s: firmware status: %d\n", devname, rc);
+> > +             rc = -ENXIO;
+> > +             goto err_cmd;
+> > +     }
+> > +
+> > +     /* health_status fields */
+> > +     rc = cxl_cmd_health_info_get_maintenance_needed(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "maintenance_needed", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_performance_degraded(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "performance_degraded", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_hw_replacement_needed(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "hw_replacement_needed", jobj);
+> > +
+> > +     /* media_status fields */
+> > +     rc = cxl_cmd_health_info_get_media_normal(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_normal", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_not_ready(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_not_ready", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_persistence_lost(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_persistence_lost", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_data_lost(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_data_lost", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_powerloss_persistence_loss(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_powerloss_persistence_loss", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_shutdown_persistence_loss(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_shutdown_persistence_loss", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_persistence_loss_imminent(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_persistence_loss_imminent", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_powerloss_data_loss(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_powerloss_data_loss", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_shutdown_data_loss(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_shutdown_data_loss", jobj);
+> > +
+> > +     rc = cxl_cmd_health_info_get_media_data_loss_imminent(cmd);
+> > +     jobj = json_object_new_boolean(rc);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "media_data_loss_imminent", jobj);
+> > +
+> > +     /* ext_status fields */
+> > +     if (cxl_cmd_health_info_get_ext_life_used_normal(cmd))
+> > +             jobj = json_object_new_string("normal");
+> > +     else if (cxl_cmd_health_info_get_ext_life_used_warning(cmd))
+> > +             jobj = json_object_new_string("warning");
+> > +     else if (cxl_cmd_health_info_get_ext_life_used_critical(cmd))
+> > +             jobj = json_object_new_string("critical");
+> > +     else
+> > +             jobj = json_object_new_string("unknown");
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "ext_life_used", jobj);
+> > +
+> > +     if (cxl_cmd_health_info_get_ext_temperature_normal(cmd))
+> > +             jobj = json_object_new_string("normal");
+> > +     else if (cxl_cmd_health_info_get_ext_temperature_warning(cmd))
+> > +             jobj = json_object_new_string("warning");
+> > +     else if (cxl_cmd_health_info_get_ext_temperature_critical(cmd))
+> > +             jobj = json_object_new_string("critical");
+> > +     else
+> > +             jobj = json_object_new_string("unknown");
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "ext_temperature", jobj);
+> > +
+> > +     if (cxl_cmd_health_info_get_ext_corrected_volatile_normal(cmd))
+> > +             jobj = json_object_new_string("normal");
+> > +     else if (cxl_cmd_health_info_get_ext_corrected_volatile_warning(cmd))
+> > +             jobj = json_object_new_string("warning");
+> > +     else
+> > +             jobj = json_object_new_string("unknown");
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "ext_corrected_volatile", jobj);
+> > +
+> > +     if (cxl_cmd_health_info_get_ext_corrected_persistent_normal(cmd))
+> > +             jobj = json_object_new_string("normal");
+> > +     else if (cxl_cmd_health_info_get_ext_corrected_persistent_warning(cmd))
+> > +             jobj = json_object_new_string("warning");
+> > +     else
+> > +             jobj = json_object_new_string("unknown");
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "ext_corrected_persistent", jobj);
+> > +
+> > +     /* other fields */
+> > +     field = cxl_cmd_health_info_get_life_used(cmd);
+> > +     if (field != 0xff) {
+> > +             jobj = json_object_new_int(field);
+> > +             if (jobj)
+> > +                     json_object_object_add(jhealth, "life_used_percent", jobj);
+> > +     }
+> > +
+> > +     field = cxl_cmd_health_info_get_temperature(cmd);
+> > +     if (field != 0xffff) {
+> > +             jobj = json_object_new_int(field);
+> > +             if (jobj)
+> > +                     json_object_object_add(jhealth, "temperature", jobj);
+> > +     }
+> > +
+> > +     field = cxl_cmd_health_info_get_dirty_shutdowns(cmd);
+> > +     jobj = json_object_new_uint64(field);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "dirty_shutdowns", jobj);
+> > +
+> > +     field = cxl_cmd_health_info_get_volatile_errors(cmd);
+> > +     jobj = json_object_new_uint64(field);
+> > +     if (jobj)
+> > +             json_object_object_add(jhealth, "volatile_errors", jobj);
+> > +
+> > +     field = cxl_cmd_health_info_get_pmem_errors(cmd);
+> > +     jobj = json_object_new_uint64(field);
+>
+> json_object_new_uint64() seems to be a relatively new interface in
+> json-c - Some Ubuntu LTS and CentOS 8 distros dont' have a recent
+> enough json-c to have this.
+>
+> I'm thinking I'll switch these three above to json_object_new_int64.
+> I'd originally chosen the uint64 variant because that seemsed to be the
+> only unsigned int option available. The fields we're trying to print
+> are all u32's. So I think using int64 should be sufficient that we
+> won't end up with spurious negative listings.
+>
+> Thoughts?
+>
+
+We do have util_json_object_hex() to work around the earlier
+unavailability of an unsigned 64-bit quantity. I think to move to
+json_object_new_uint64() it would need to have build system
+auto-detect support and likely a compat fallback for environments that
+are already expecting that ndctl 64-bit integers might be negative. So
+json_object_new_int64() in the near term sounds good to me.
