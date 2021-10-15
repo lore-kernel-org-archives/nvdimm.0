@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FAC42C87
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89E8A2C89
 	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 23:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=vLYLL0oFZhxGylgSJPWXsGjPK2psQoUWyxkb9au47Xw=; b=VKj0PyAggUPHY58Y64VhZFHAZk
-	FhpZFFJ2m6Cm3SHaekc0CDiJyLp+OD6ip4tp6f0fm0KLP8DzK5r4zUN+TBF+Zr9exRvHYoP1U4ZSo
-	xvSMZDGCzyHG9yaWXd/DzzmwcgGlruPb5+CD0ctA68F79eEVs002wvsQCyuEyhihClXsJYS97NwsL
-	0m5eBo0Qkmdn5r8hNV7zk/1puPeJ1cjcM3zzlg31bplOURK1wIXcWSlBuo2kj1ISDbTfOi3ggEGBn
-	h4r+mufchQFxCHDsxXaWIpgxoqkHJHOwvHKOU/0fa0aDDgmXK1any8EXm3niZiuki8Z2zds4ZpISB
-	ehigutRw==;
+	bh=bWrYy27/Ft+aLDChsLBGCGZJ9I29Pbmku4dc9v02/r0=; b=IY2ti5CFu7tk7l/1b1dOBrzqFV
+	aY9UvoJKkeTLc2QMRNWX6uc1JjZmitgQWYAqCJrHP3ukaJAS1Znz/MF42OZxUAt/7nUAnIiAlaBdw
+	qxqWz+L6WdoNhUxemK8IqK8TTz5PiYshQ9/0IYTCEPZsgX8UFxP25gp3gw4mI5zwxPE0jpzsJMdNF
+	piTCgmlnkXlxAQxhoX2yeSSTMZLJghSLJlHFu34Sux+hr4llFOQyl8BtkdxpGRy5hn40pVSQcZxr9
+	8NMljnWNJV+SY+YkxBhw9vXuVPxdhVfyQszbzyQE3EdW1D1TeSngbhl2jloBhz2cfG6cuZlUSHqj0
+	9sJQoaow==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mbWzt-009C37-6Y; Fri, 15 Oct 2021 23:52:21 +0000
+	id 1mbWzt-009C2x-0D; Fri, 15 Oct 2021 23:52:21 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	geoff@infradead.org,
@@ -42,9 +42,9 @@ Cc: linux-block@vger.kernel.org,
 	linux-nvme@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH 07/13] nvdimm/blk: add error handling support for add_disk()
-Date: Fri, 15 Oct 2021 16:52:13 -0700
-Message-Id: <20211015235219.2191207-8-mcgrof@kernel.org>
+Subject: [PATCH 02/13] nvme-multipath: add error handling support for add_disk()
+Date: Fri, 15 Oct 2021 16:52:08 -0700
+Message-Id: <20211015235219.2191207-3-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20211015235219.2191207-1-mcgrof@kernel.org>
 References: <20211015235219.2191207-1-mcgrof@kernel.org>
@@ -61,36 +61,50 @@ We never checked for errors on add_disk() as this function
 returned void. Now that this is fixed, use the shiny new
 error handling.
 
-Since nvdimm/blk uses devm we just need to move the devm
-registration towards the end. And in hindsight, that seems
-to also provide a fix given del_gendisk() should not be
-called unless the disk was already added via add_disk().
-The probably of that issue happening is low though, like
-OOM while calling devm_add_action(), so the fix is minor.
+Since we now can tell for sure when a disk was added, move
+setting the bit NVME_NSHEAD_DISK_LIVE only when we did
+add the disk successfully.
 
-We manually unwind in case of add_disk() failure prior
-to the devm registration.
+Nothing to do here as the cleanup is done elsewhere. We take
+care and use test_and_set_bit() because it is protects against
+two nvme paths simultaneously calling device_add_disk() on the
+same namespace head.
 
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/nvdimm/blk.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/nvme/host/multipath.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index 591fa1f86f1e..9f1eb41404ac 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -265,7 +265,9 @@ static int nsblk_attach_disk(struct nd_namespace_blk *nsblk)
+diff --git a/drivers/nvme/host/multipath.c b/drivers/nvme/host/multipath.c
+index e8ccdd398f78..022837f7be41 100644
+--- a/drivers/nvme/host/multipath.c
++++ b/drivers/nvme/host/multipath.c
+@@ -496,13 +496,23 @@ int nvme_mpath_alloc_disk(struct nvme_ctrl *ctrl, struct nvme_ns_head *head)
+ static void nvme_mpath_set_live(struct nvme_ns *ns)
+ {
+ 	struct nvme_ns_head *head = ns->head;
++	int rc;
+ 
+ 	if (!head->disk)
+ 		return;
+ 
++	/*
++	 * test_and_set_bit() is used because it is protecting against two nvme
++	 * paths simultaneously calling device_add_disk() on the same namespace
++	 * head.
++	 */
+ 	if (!test_and_set_bit(NVME_NSHEAD_DISK_LIVE, &head->flags)) {
+-		device_add_disk(&head->subsys->dev, head->disk,
+-				nvme_ns_id_attr_groups);
++		rc = device_add_disk(&head->subsys->dev, head->disk,
++				     nvme_ns_id_attr_groups);
++		if (rc) {
++			clear_bit(NVME_NSHEAD_DISK_LIVE, &ns->flags);
++			return;
++		}
+ 		nvme_add_ns_head_cdev(head);
  	}
  
- 	set_capacity(disk, available_disk_size >> SECTOR_SHIFT);
--	device_add_disk(dev, disk, NULL);
-+	rc = device_add_disk(dev, disk, NULL);
-+	if (rc)
-+		goto out_before_devm_err;
- 
- 	/* nd_blk_release_disk() is called if this fails */
- 	if (devm_add_action_or_reset(dev, nd_blk_release_disk, disk))
 -- 
 2.30.2
 
