@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7597E2C81
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8FC229CA
 	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 23:52:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
-	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=HyZ2KI/h/gpVdjlPSyGH7uhBE8wL3JrrLi6b2qQqvAU=; b=yj5zwz6Fs1lJD22XifEcv2Orrv
-	prK+DP1Qo/XEWtRbfWO8+3LeJ2D/W40Mrnlx/po3H3Bj1sdJ7LjC46VZzVbijZLDUfyDQ0lcraB4A
-	O1+ZnXCViST9WOLXPEp6QEw5iFwg7Nl2NTJjTFNWAiBSCkRT/eFF+ufsLZ35VSvWT+Me6Bl5b+zW4
-	qnUeG+hWSyDlJEc6UGDHcC2VRpwbRbnamAoY23a1KoJTax19zGzqc5vZVqn6CEFYHaBNHVowexejt
-	7tFP6vpdjs9kA32INEEkgOr2mGidDR806UqktII1c799hggCz3zG9h/QDk29AdLY2mx1RJDCSEpjY
-	mzPuYCUA==;
+	MIME-Version:Message-Id:Date:Subject:Cc:To:From:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=qipf6So8PiT9INdx54i/oyCsyup0P8n0B263b/OsQJ4=; b=t3gCfbHNlbboUocETcAM5VOV6d
+	AJLTHpezByfiDQMOqnTlcXwpgyT05T23oSIBWBKgLRQ72ton2E1A2ljGdUfJTlvzgdQhPekg7nKHM
+	klgH7xbJSKVzjdx5UC+DtcocBxWXLSTv11aoSHl2Q7APe4B4bC/miatiJIqZ70W2Egz4HlHMilNQL
+	Z9LySleaw0wZqkEeqaykCp4znP22IegCeRAPKQMl57XDPNGq/lsCmt+xlrhVUkM99cEjMftqcmhAm
+	WN144g0qC1mqMuA5h3bZoI8WPC4u/acsbiZ4qEi6hSp7C7X3LT2OmZacYin/LyeOYhehZilzxmS8v
+	HJc4llZw==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mbWzt-009C3J-DB; Fri, 15 Oct 2021 23:52:21 +0000
+	id 1mbWzs-009C2t-UH; Fri, 15 Oct 2021 23:52:20 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	geoff@infradead.org,
@@ -42,12 +42,10 @@ Cc: linux-block@vger.kernel.org,
 	linux-nvme@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH 12/13] block/sunvdc: add error handling support for add_disk()
-Date: Fri, 15 Oct 2021 16:52:18 -0700
-Message-Id: <20211015235219.2191207-13-mcgrof@kernel.org>
+Subject: [PATCH 00/13] block: add_disk() error handling stragglers
+Date: Fri, 15 Oct 2021 16:52:06 -0700
+Message-Id: <20211015235219.2191207-1-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20211015235219.2191207-1-mcgrof@kernel.org>
-References: <20211015235219.2191207-1-mcgrof@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -57,52 +55,39 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: Luis Chamberlain <mcgrof@infradead.org>
 
-We never checked for errors on add_disk() as this function
-returned void. Now that this is fixed, use the shiny new
-error handling.
+This patch set consists of al the straggler drivers for which we have
+have no patch reviews done for yet. I'd like to ask for folks to please
+consider chiming in, specially if you're the maintainer for the driver.
+Additionally if you can specify if you'll take the patch in yourself or
+if you want Jens to take it, that'd be great too.
 
-We re-use the same free tag call, so we also add a label for
-that as well.
+Luis Chamberlain (13):
+  block/brd: add error handling support for add_disk()
+  nvme-multipath: add error handling support for add_disk()
+  nvdimm/btt: do not call del_gendisk() if not needed
+  nvdimm/btt: use goto error labels on btt_blk_init()
+  nvdimm/btt: add error handling support for add_disk()
+  nvdimm/blk: avoid calling del_gendisk() on early failures
+  nvdimm/blk: add error handling support for add_disk()
+  zram: add error handling support for add_disk()
+  z2ram: add error handling support for add_disk()
+  ps3disk: add error handling support for add_disk()
+  ps3vram: add error handling support for add_disk()
+  block/sunvdc: add error handling support for add_disk()
+  mtd/ubi/block: add error handling support for add_disk()
 
-Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
----
- drivers/block/sunvdc.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/block/brd.c           |  9 +++++++--
+ drivers/block/ps3disk.c       |  8 ++++++--
+ drivers/block/ps3vram.c       |  7 ++++++-
+ drivers/block/sunvdc.c        | 14 +++++++++++---
+ drivers/block/z2ram.c         |  7 +++++--
+ drivers/block/zram/zram_drv.c |  6 +++++-
+ drivers/mtd/ubi/block.c       |  8 +++++++-
+ drivers/nvdimm/blk.c          | 21 +++++++++++++++------
+ drivers/nvdimm/btt.c          | 24 +++++++++++++++---------
+ drivers/nvme/host/multipath.c | 14 ++++++++++++--
+ 10 files changed, 89 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
-index 4d4bb810c2ae..6f45a53f7cbf 100644
---- a/drivers/block/sunvdc.c
-+++ b/drivers/block/sunvdc.c
-@@ -826,8 +826,8 @@ static int probe_disk(struct vdc_port *port)
- 	if (IS_ERR(g)) {
- 		printk(KERN_ERR PFX "%s: Could not allocate gendisk.\n",
- 		       port->vio.name);
--		blk_mq_free_tag_set(&port->tag_set);
--		return PTR_ERR(g);
-+		err = PTR_ERR(g);
-+		goto out_free_tag;
- 	}
- 
- 	port->disk = g;
-@@ -879,9 +879,17 @@ static int probe_disk(struct vdc_port *port)
- 	       port->vdisk_size, (port->vdisk_size >> (20 - 9)),
- 	       port->vio.ver.major, port->vio.ver.minor);
- 
--	device_add_disk(&port->vio.vdev->dev, g, NULL);
-+	err = device_add_disk(&port->vio.vdev->dev, g, NULL);
-+	if (err)
-+		goto out_cleanup_disk;
- 
- 	return 0;
-+
-+out_cleanup_disk:
-+	blk_cleanup_disk(g);
-+out_free_tag:
-+	blk_mq_free_tag_set(&port->tag_set);
-+	return err;
- }
- 
- static struct ldc_channel_config vdc_ldc_cfg = {
 -- 
 2.30.2
 
