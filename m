@@ -1,83 +1,165 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 796E12C82
-	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 06:41:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=G5S9y2nrrDptxuOLoJNOSSyaTHp02MaC9gd62byHcIA=; b=R+dIUYtEXxFA2exYyciVgSKT8P
-	qzqHlPTAFgWqgf9++8AocTdLtaWHaPNsLR3dk6Ywj4i49KnXkndgi53DN/al/ZisyhTWfAIXnxZWP
-	HyE6FiUSRwVvz2C5cULLmG1HQ6yEJhFIazKoRlVz3eJEBkP9O09nsq5DE4Gv54sUuA+hIH9i4UcHc
-	gEQSuRUBTFRb/eBYssnKtdYgbFe9Yu6Y9n4YcSruMyGYKcQIoJ9Y+iWBmn3SocGFHdgfH7ZI2YBDx
-	qOaIp8PE0trLuxiaZO6/VNmeJlug089okBR/79IBjBJ8YVQMnTWqt2bLFDXZtdQLvN6FXm/RfdwtF
-	eg4yBWfg==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mbGuO-005Zjs-AH; Fri, 15 Oct 2021 06:41:36 +0000
-Date: Thu, 14 Oct 2021 23:41:36 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-fsdevel@vger.kernel.org, djwong@kernel.org,
-	dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org,
-	jane.chu@oracle.com
-Subject: Re: [PATCH v7 7/8] xfs: Implement ->notify_failure() for XFS
-Message-ID: <YWkioFQrfKAL8PvR@infradead.org>
-References: <20210924130959.2695749-1-ruansy.fnst@fujitsu.com>
- <20210924130959.2695749-8-ruansy.fnst@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9D24972
+	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 21:15:56 +0000 (UTC)
+Received: by mail-pg1-f178.google.com with SMTP id r2so9665665pgl.10
+        for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 14:15:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=uVxjIXB320G0utlagZyh71XBvtZ8hGEI7ml4ZXDQLYY=;
+        b=8F/jlLx3H/ai61cbaiyD8fsL8LSIY+NEhqNYZ5VHqwvg+4s5vFLg+BpfVpcvtQG0mp
+         WNIOGKanog95rHFfnzU8kZuG2G60duDdDlCZ/0Kc//8UHtuccaYeaEXlfZHuwqdC4VPi
+         RgQbuVPLiuzSnxeINN3QkqM/k/9lhuM5O+KOUemkfL6EmrtPwUqKszO0cs+cu8pFeBfn
+         PZO3gMPckkQssS+Izrpb2kxNG6ar2jGYjYZ885J5sEKi89ZuEWWeK9l+fNJdQSDVhQxs
+         clJapaoMw3xqe8kV38xm8c0nGCAemXCZJmD1zAlNLUgPTk2uTbNCh8+7K1W+JpQn/eDj
+         E0zQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=uVxjIXB320G0utlagZyh71XBvtZ8hGEI7ml4ZXDQLYY=;
+        b=KH8bjxLQ+G3mPdYtJy1skhQZ5utaviVj8zX+Z92rNGosxRwq5vOSfMx6ghvMrhjcDx
+         H7gJtw2yfvcXmK6KIobYKkDncvE4uQX8NwSsACvITBm1swUraZf4XZSedeUFIildED6a
+         oGp4BfWNvNmZl4KAmblvxJoctkmjg8EdAdqxQDc7fobRmxHXda4r/h3kJ/tUcumke66r
+         Q+hQpAes7OFeMYJEaVUrbkM0RdrbB578tD4QlFUM7/xx9jREKYp0bJQEJmWsppdP7iFN
+         7ZYqPWBDW0i1tUnlhNNOx6LmhhY71jyy694GAn0FMtaTP1J9IBdYwx3Fu/OH0pDl4m0b
+         xe6w==
+X-Gm-Message-State: AOAM532nncKS38qv4t3Hca0YQ0J4zvwmDpHnZXLhcLMdV0p8MKxRkPZX
+	/e61cugeXtfkQurLCNbp6vrgfiI8hKmCzvP2KB77jx9e
+X-Google-Smtp-Source: ABdhPJxg8UyfYiobupsrYJQASYUkON3lKi4grucUkPOxIj6dEkJFzgu/tHduON6DhchCYWFobryx5JgxUJVGk3hIxK0=
+X-Received: by 2002:a62:1b92:0:b0:3eb:3f92:724 with SMTP id
+ b140-20020a621b92000000b003eb3f920724mr13773526pfb.3.1634332556001; Fri, 15
+ Oct 2021 14:15:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210924130959.2695749-8-ruansy.fnst@fujitsu.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20211007082139.3088615-1-vishal.l.verma@intel.com>
+ <20211007082139.3088615-18-vishal.l.verma@intel.com> <d20b7fd17067aa49a5ccdd2c649f345ab17cb12e.camel@intel.com>
+In-Reply-To: <d20b7fd17067aa49a5ccdd2c649f345ab17cb12e.camel@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Oct 2021 14:15:47 -0700
+Message-ID: <CAPcyv4joKOhTdaRBJVeoOtqhRjBvdtt9902TS=c39=zWTZXvuw@mail.gmail.com>
+Subject: Re: [ndctl PATCH v4 17/17] cxl: add health information to cxl-list
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>, "Widawsky, Ben" <ben.widawsky@intel.com>, 
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Sep 24, 2021 at 09:09:58PM +0800, Shiyang Ruan wrote:
-> +void fs_dax_register_holder(struct dax_device *dax_dev, void *holder,
-> +		const struct dax_holder_operations *ops)
-> +{
-> +	dax_set_holder(dax_dev, holder, ops);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_register_holder);
-> +
-> +void fs_dax_unregister_holder(struct dax_device *dax_dev)
-> +{
-> +	dax_set_holder(dax_dev, NULL, NULL);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_unregister_holder);
-> +
-> +void *fs_dax_get_holder(struct dax_device *dax_dev)
-> +{
-> +	return dax_get_holder(dax_dev);
-> +}
-> +EXPORT_SYMBOL_GPL(fs_dax_get_holder);
+On Thu, Oct 14, 2021 at 4:42 PM Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+>
+> On Thu, 2021-10-07 at 02:21 -0600, Vishal Verma wrote:
+> > Add JSON output for fields from the 'GET_HEALTH_INFO' mailbox command
+> > to memory device listings.
+> >
+> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> > ---
+> >  Documentation/cxl/cxl-list.txt |   4 +
+> >  util/json.h                    |   1 +
+> >  cxl/list.c                     |   5 +
+> >  util/json.c                    | 189 +++++++++++++++++++++++++++++++++
+> >  4 files changed, 199 insertions(+)
+> >
+> > diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+> > index bd377b3..dc86651 100644
+> > --- a/Documentation/cxl/cxl-list.txt
+> > +++ b/Documentation/cxl/cxl-list.txt
+> > @@ -53,6 +53,10 @@ OPTIONS
+> >  --idle::
+> >       Include idle (not enabled / zero-sized) devices in the listing
+> >
+> > +-H::
+> > +--health::
+> > +     Include health information in the memdev listing
+> > +
+> >  include::human-option.txt[]
+> >
+> >  include::verbose-option.txt[]
+> > diff --git a/util/json.h b/util/json.h
+> > index 91918c8..ce575e6 100644
+> > --- a/util/json.h
+> > +++ b/util/json.h
+> > @@ -19,6 +19,7 @@ enum util_json_flags {
+> >       UTIL_JSON_CONFIGURED    = (1 << 7),
+> >       UTIL_JSON_FIRMWARE      = (1 << 8),
+> >       UTIL_JSON_DAX_MAPPINGS  = (1 << 9),
+> > +     UTIL_JSON_HEALTH        = (1 << 10),
+> >  };
+> >
+> >  struct json_object;
+> > diff --git a/cxl/list.c b/cxl/list.c
+> > index 3dea73f..2fa155a 100644
+> > --- a/cxl/list.c
+> > +++ b/cxl/list.c
+> > @@ -16,6 +16,7 @@ static struct {
+> >       bool memdevs;
+> >       bool idle;
+> >       bool human;
+> > +     bool health;
+> >  } list;
+> >
+> >  static unsigned long listopts_to_flags(void)
+> > @@ -26,6 +27,8 @@ static unsigned long listopts_to_flags(void)
+> >               flags |= UTIL_JSON_IDLE;
+> >       if (list.human)
+> >               flags |= UTIL_JSON_HUMAN;
+> > +     if (list.health)
+> > +             flags |= UTIL_JSON_HEALTH;
+> >       return flags;
+> >  }
+> >
+> > @@ -57,6 +60,8 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+> >               OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
+> >               OPT_BOOLEAN('u', "human", &list.human,
+> >                               "use human friendly number formats "),
+> > +             OPT_BOOLEAN('H', "health", &list.health,
+> > +                             "include memory device health information "),
+> >               OPT_END(),
+> >       };
+> >       const char * const u[] = {
+> > diff --git a/util/json.c b/util/json.c
+> > index 3be3a92..dfc7b8e 100644
+> > --- a/util/json.c
+> > +++ b/util/json.c
+> > @@ -1442,6 +1442,190 @@ struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
+> >       return NULL;
+> >  }
+> >
+> > +static struct json_object *util_cxl_memdev_health_to_json(
+> > +             struct cxl_memdev *memdev, unsigned long flags)
+> > +{
+> > +     const char *devname = cxl_memdev_get_devname(memdev);
+> > +     struct json_object *jhealth;
+> > +     struct json_object *jobj;
+> > +     struct cxl_cmd *cmd;
+> > +     u32 field;
+> > +     int rc;
+> > +
+> > +     jhealth = json_object_new_object();
+> > +     if (!jhealth)
+> > +             return NULL;
+> > +     if (!memdev)
+> > +             goto err_jobj;
+> > +
+> > +     cmd = cxl_cmd_new_get_health_info(memdev);
+> > +     if (!cmd)
+> > +             goto err_jobj;
+> > +
+> > +     rc = cxl_cmd_submit(cmd);
+> > +     /* ENOTTY - command not supported by the memdev */
+> > +     if (rc == -ENOTTY)
+> > +             goto err_cmd;
+>
+> I'll remove this special case, as well as the error prints below. The
+> cmd submission could fail for any number of reasons, including
+> unsupported by hardware - I think for any of those cases, we can just
+> silently skip printing the json fields here.
 
-These should not be in a XFS patch.  But why do we even need this
-wrappers?
-
-> @@ -377,6 +385,8 @@ xfs_close_devices(
->  
->  		xfs_free_buftarg(mp->m_logdev_targp);
->  		xfs_blkdev_put(logdev);
-> +		if (dax_logdev)
-> +			fs_dax_unregister_holder(dax_logdev);
->  		fs_put_dax(dax_logdev);
-
-I'd prefer to include the fs_dax_unregister_holder in the fs_put_dax
-call to avoid callers failing to unregister it.
-
-> @@ -411,6 +425,9 @@ xfs_open_devices(
->  	struct block_device	*logdev = NULL, *rtdev = NULL;
->  	int			error;
->  
-> +	if (dax_ddev)
-> +		fs_dax_register_holder(dax_ddev, mp,
-> +				&xfs_dax_holder_operations);
-
-I'd include the holder registration with fs_dax_get_by_bdev as well.
+Sounds good. If someone really cares, the debug prints inside
+cxl_cmd_submit() should be enough to indicate what went wrong.
