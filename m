@@ -1,20 +1,20 @@
 Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 266652C88
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D207E2C96
 	for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 23:53:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=bombadil.20210309; h=Sender:Content-Transfer-Encoding:
 	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:
 	Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=vmoV/2yvLiwBFQQklXCjpC+/vAkb2GZd/kil2P+K9LY=; b=k0iIsRd4etFUTdob28o4ORiDN4
-	+B5FyF731o7hr+GINXvlvMEAMpsLwW5pC/OKgrZhFwyicCWbpFYSPPBTrBIjvSuVnrLjhUSLYS++y
-	oRkzDGAOTsEh93X+qg4nyS4uWEdS1lTDNed0oMklQ8zbFZvEmtlBlaap7C7u4S3ktr+flejwhLn6v
-	kgxKkRW5rGqDNa6Cku4cssrBYgKN0s5RFNPfDoSHCSG9iQEucDFOEf6fvVjlMBFP7jCkT/hLFNSOo
-	cpEoBq/XBYeFkTadkfricUfOXARU2LfOTVXw3vn1MHJ8F/i5S8b+Km/fw6MNqjRctXbmhviSiCcL6
-	I9TcNhtA==;
+	bh=7R5PYVFPXskQk20vzfFqzumtxD4zBhl8b3RLHCGuP34=; b=bA1zIwdhWBpvlfjPHf65YiWw1w
+	wNKSsZycfKU6wTo+TriKrwHhsylyC8eMhzSF0i7XqaBSV9dMtcoJk5uBzoLZCuWHqAJPs4dhdPV+q
+	S0GVi7stXEDsLti3GghX0YK306V30lxJcY2QeyKFi5sry6O3IOwJdxPd1N4J0z6KXmrD0rOVcpCn3
+	yvEnSxF2UYqoZdvec8gr0V7GX1sNtN9FOWzqjb1O5OqYYjndYWTsx0gJJlK8uyVSJ12gIWFem2lsk
+	h2GuzJdczHuexPRYg/FSSqNpsJTDLZbJXCRvYTM13PUle1YJcEgXxka426Nkl54BSAznT4EB7w/RK
+	xoviz0/Q==;
 Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mbWzt-009C31-2Y; Fri, 15 Oct 2021 23:52:21 +0000
+	id 1mbWzt-009C3D-99; Fri, 15 Oct 2021 23:52:21 +0000
 From: Luis Chamberlain <mcgrof@kernel.org>
 To: axboe@kernel.dk,
 	geoff@infradead.org,
@@ -42,9 +42,9 @@ Cc: linux-block@vger.kernel.org,
 	linux-nvme@lists.infradead.org,
 	linux-kernel@vger.kernel.org,
 	Luis Chamberlain <mcgrof@kernel.org>
-Subject: [PATCH 04/13] nvdimm/btt: use goto error labels on btt_blk_init()
-Date: Fri, 15 Oct 2021 16:52:10 -0700
-Message-Id: <20211015235219.2191207-5-mcgrof@kernel.org>
+Subject: [PATCH 09/13] z2ram: add error handling support for add_disk()
+Date: Fri, 15 Oct 2021 16:52:15 -0700
+Message-Id: <20211015235219.2191207-10-mcgrof@kernel.org>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20211015235219.2191207-1-mcgrof@kernel.org>
 References: <20211015235219.2191207-1-mcgrof@kernel.org>
@@ -57,60 +57,41 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: Luis Chamberlain <mcgrof@infradead.org>
 
-This will make it easier to share common error paths.
+We never checked for errors on add_disk() as this function
+returned void. Now that this is fixed, use the shiny new
+error handling. Only the disk is cleaned up inside
+z2ram_register_disk() as the caller deals with the rest.
 
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 ---
- drivers/nvdimm/btt.c | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ drivers/block/z2ram.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 29cc7325e890..23ee8c005db5 100644
---- a/drivers/nvdimm/btt.c
-+++ b/drivers/nvdimm/btt.c
-@@ -1520,10 +1520,11 @@ static int btt_blk_init(struct btt *btt)
+diff --git a/drivers/block/z2ram.c b/drivers/block/z2ram.c
+index 4eef218108c6..ccc52c935faf 100644
+--- a/drivers/block/z2ram.c
++++ b/drivers/block/z2ram.c
+@@ -318,6 +318,7 @@ static const struct blk_mq_ops z2_mq_ops = {
+ static int z2ram_register_disk(int minor)
  {
- 	struct nd_btt *nd_btt = btt->nd_btt;
- 	struct nd_namespace_common *ndns = nd_btt->ndns;
-+	int rc = -ENOMEM;
+ 	struct gendisk *disk;
++	int err;
  
- 	btt->btt_disk = blk_alloc_disk(NUMA_NO_NODE);
- 	if (!btt->btt_disk)
--		return -ENOMEM;
-+		goto out;
+ 	disk = blk_mq_alloc_disk(&tag_set, NULL);
+ 	if (IS_ERR(disk))
+@@ -333,8 +334,10 @@ static int z2ram_register_disk(int minor)
+ 		sprintf(disk->disk_name, "z2ram");
  
- 	nvdimm_namespace_disk_name(ndns, btt->btt_disk->disk_name);
- 	btt->btt_disk->first_minor = 0;
-@@ -1535,19 +1536,23 @@ static int btt_blk_init(struct btt *btt)
- 	blk_queue_flag_set(QUEUE_FLAG_NONROT, btt->btt_disk->queue);
- 
- 	if (btt_meta_size(btt)) {
--		int rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
--
--		if (rc) {
--			blk_cleanup_disk(btt->btt_disk);
--			return rc;
--		}
-+		rc = nd_integrity_init(btt->btt_disk, btt_meta_size(btt));
-+		if (rc)
-+			goto out_cleanup_disk;
- 	}
-+
- 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
- 	device_add_disk(&btt->nd_btt->dev, btt->btt_disk, NULL);
-+
- 	btt->nd_btt->size = btt->nlba * (u64)btt->sector_size;
- 	nvdimm_check_and_set_ro(btt->btt_disk);
- 
- 	return 0;
-+
-+out_cleanup_disk:
-+	blk_cleanup_disk(btt->btt_disk);
-+out:
-+	return rc;
+ 	z2ram_gendisk[minor] = disk;
+-	add_disk(disk);
+-	return 0;
++	err = add_disk(disk);
++	if (err)
++		blk_cleanup_disk(disk);
++	return err;
  }
  
- static void btt_blk_cleanup(struct btt *btt)
+ static int __init z2_init(void)
 -- 
 2.30.2
 
