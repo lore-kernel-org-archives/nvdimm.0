@@ -1,62 +1,76 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f181.google.com (mail-pg1-f181.google.com [209.85.215.181])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8995B2C81
-	for <nvdimm@lists.linux.dev>; Sat, 16 Oct 2021 00:01:22 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 18BA3611C3;
-	Sat, 16 Oct 2021 00:01:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1634342482;
-	bh=zERYufNJ1MZk5CclnMi+gL/h2WeGYYoy9Om0aXiHGLA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=lAd5BhR7dX0bhUFdgALWUXGCQ+v5W0tvJIwfUWbRKvGKqR2h6V0I6ukKcRF5Dj+Nw
-	 0dFWCYUmBg7S2Rodk9yCf0H1+kehM9Vr5MyDW3E957s4BJA3cyS4uAhz4e17bCP29s
-	 II0rzTuzcoBkDSvXr4ZGRWsUKw8yktjg7TyZT5pwSjCguTcC1658+kFky8M1STBicA
-	 7fLq43tAQkTcs+sDRgIw1Gv5v7j5U3hjGyPw8mDDVxsn00Q51dQWLT/IESbUsSNm65
-	 nxOHSWjB0mZ+Ve03BmVAuGYwTgnYAMB4qLl+33yxh5AlIshuEdLL26zAeBOF+sdd/j
-	 wOOh/LnbCmJTQ==
-Date: Fri, 15 Oct 2021 18:01:18 -0600
-From: Keith Busch <kbusch@kernel.org>
-To: Luis Chamberlain <mcgrof@kernel.org>
-Cc: axboe@kernel.dk, geoff@infradead.org, mpe@ellerman.id.au,
-	benh@kernel.crashing.org, paulus@samba.org, jim@jtan.com,
-	minchan@kernel.org, ngupta@vflare.org, senozhatsky@chromium.org,
-	richard@nod.at, miquel.raynal@bootlin.com, vigneshr@ti.com,
-	dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, ira.weiny@intel.com, hch@lst.de,
-	sagi@grimberg.me, linux-block@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-mtd@lists.infradead.org,
-	nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 02/13] nvme-multipath: add error handling support for
- add_disk()
-Message-ID: <20211016000118.GA50317@C02WT3WMHTD6>
-References: <20211015235219.2191207-1-mcgrof@kernel.org>
- <20211015235219.2191207-3-mcgrof@kernel.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B99CF29CA
+	for <nvdimm@lists.linux.dev>; Sat, 16 Oct 2021 00:13:57 +0000 (UTC)
+Received: by mail-pg1-f181.google.com with SMTP id 75so10004121pga.3
+        for <nvdimm@lists.linux.dev>; Fri, 15 Oct 2021 17:13:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=rQCqnCKj+Qob3RGhvKowF7vjQkMvz3jzVYQ6ojJDBgk=;
+        b=22FCMxDjuptu5z2WXUhWAGeGxsQDD/V8j37BH7gzChQavhMTsYfwOs16+0368VAEwm
+         H9Kn5GtjOlGOoLtQHyP63Q2TpGtOd+bYEeoJ7yrQrZF8Gd5SjSTBe4bjtPPHCkHVAMnX
+         IKOrAb7pR6jb0J/r9z7kk4abkd4nzTZJqkNyspbONodFaBFVZGgHceRMhIUL1AnjE8EE
+         QtZ+EolKR2dxl4bSkgWIlNfGf3FEfjjORJKFElmg1CgQAa4omqi87tX+bb0lzqw7atj/
+         9H8nfrhpQOc6LGhupM+SVewu7XdQegTluU6pnHJSo4uAockAmkpsZzfTuVIRBEfs5F0h
+         AY8w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=rQCqnCKj+Qob3RGhvKowF7vjQkMvz3jzVYQ6ojJDBgk=;
+        b=HM5guwhz/9uSERGDiaHP5BWFJ5Lut2usUBUXkkficHj0mAj9uMx2o610kaDNTnxJXn
+         DOMAAzoU4qO8+bq/k61g6kYU5djJoG/HKDxnzBe6g/bmcbEfVdRuwFECXX73NBqZgmuO
+         ZemxiFtAdzD7spvSe+KXNgUX65pji8ntxrBTFnLedki/cIV9geJxB8D9ouZe0w5isl3z
+         wJ9Jtia7OcJq+nC9nLDqfO+qS0HACLm5ZyC09jwwr+5U23/3OkwRTn8yArT+jggkI3E7
+         PnYpJv5OL5YcjvMybB1I4br/nBndJDZwwRNsDgIm8ZoQ+pksHmZGLbQ6YFse+OnSn1bH
+         mVrQ==
+X-Gm-Message-State: AOAM530ywicMHjQOO91JJIQEzVooiLf+ZYzCKBOHqXQtvdDxFiUOAfm+
+	98PjhCWSf9wAJDqInr5egU4kmZo1LtlVlfpfs+UpNg==
+X-Google-Smtp-Source: ABdhPJyHjqiChiYGgEV/QjEsOo/jEjfBLMsWIS4VVM51yMBTI+afNI+/nTgDPsjRchZ2uu+6VeHhZ/gjMvW7ySA684s=
+X-Received: by 2002:a63:6bc2:: with SMTP id g185mr6607076pgc.356.1634343237273;
+ Fri, 15 Oct 2021 17:13:57 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211015235219.2191207-3-mcgrof@kernel.org>
+References: <20211015235219.2191207-1-mcgrof@kernel.org> <20211015235219.2191207-7-mcgrof@kernel.org>
+In-Reply-To: <20211015235219.2191207-7-mcgrof@kernel.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 15 Oct 2021 17:13:48 -0700
+Message-ID: <CAPcyv4j+xLT=5RUodHWgnPjNq6t5OcmX1oM2zK2ML0U+OS_16Q@mail.gmail.com>
+Subject: Re: [PATCH 06/13] nvdimm/blk: avoid calling del_gendisk() on early failures
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Geoff Levand <geoff@infradead.org>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, 
+	Paul Mackerras <paulus@samba.org>, Jim Paris <jim@jtan.com>, Minchan Kim <minchan@kernel.org>, 
+	Nitin Gupta <ngupta@vflare.org>, senozhatsky@chromium.org, 
+	Richard Weinberger <richard@nod.at>, miquel.raynal@bootlin.com, vigneshr@ti.com, 
+	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
+	Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, 
+	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-mtd@lists.infradead.org, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-nvme@lists.infradead.org, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Oct 15, 2021 at 04:52:08PM -0700, Luis Chamberlain wrote:
-> We never checked for errors on add_disk() as this function
-> returned void. Now that this is fixed, use the shiny new
-> error handling.
-> 
-> Since we now can tell for sure when a disk was added, move
-> setting the bit NVME_NSHEAD_DISK_LIVE only when we did
-> add the disk successfully.
-> 
-> Nothing to do here as the cleanup is done elsewhere. We take
-> care and use test_and_set_bit() because it is protects against
-> two nvme paths simultaneously calling device_add_disk() on the
-> same namespace head.
+On Fri, Oct 15, 2021 at 4:53 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+>
+> If nd_integrity_init() fails we'd get del_gendisk() called,
+> but that's not correct as we should only call that if we're
+> done with device_add_disk(). Fix this by providing unwinding
+> prior to the devm call being registered and moving the devm
+> registration to the very end.
+>
+> This should fix calling del_gendisk() if nd_integrity_init()
+> fails. I only spotted this issue through code inspection. It
+> does not fix any real world bug.
+>
 
-Looks good, thank you.
-
-Reviewed-by: Keith Busch <kbusch@kernel.org>
+Just fyi, I'm preparing patches to delete this driver completely as it
+is unused by any shipping platform. I hope to get that removal into
+v5.16.
