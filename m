@@ -1,37 +1,34 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33FBC29CA
-	for <nvdimm@lists.linux.dev>; Mon, 18 Oct 2021 16:16:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=d+JJm4oOxq5DwxbgVcq/OaoV+BL6oX8jKgPcci4Cxx8=; b=EdB/cP4eAG6COf0OroQ/fEGY/b
-	J9xBV+A2WVoXv/JiuFNH4oPk/p7/O8vaIpon9fnvstGLsrkMowQAYbrtLX2BYuqhMfZpBc/dqtWsR
-	E6yrsqwN6KEmhcgdvOViHTkp99X1oIkJtVcBjt7MS/zXUEGYPsFeCtG+10DMYjeSUW3Du7yZU2owG
-	/P1GwmyKmfSMHBffRrHs2U2bGy9RnwW8IaJycSpOHQt8YLJZhr3K1vrizKHkgVVXxEXEOFkje+enA
-	4vDkbaraarOFgcmqFe/0gV//vX9rYdz/YDc2fz7HIdQhMgXfzgOR/Mp//MJMYJ8GSqCiC8dRO+FyY
-	xzlpOZNQ==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mcVIn-00GToq-Uz; Mon, 18 Oct 2021 16:15:53 +0000
-Date: Mon, 18 Oct 2021 09:15:53 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Geoff Levand <geoff@infradead.org>
-Cc: axboe@kernel.dk, mpe@ellerman.id.au, benh@kernel.crashing.org,
-	paulus@samba.org, jim@jtan.com, minchan@kernel.org,
-	ngupta@vflare.org, senozhatsky@chromium.org, richard@nod.at,
-	miquel.raynal@bootlin.com, vigneshr@ti.com,
-	dan.j.williams@intel.com, vishal.l.verma@intel.com,
-	dave.jiang@intel.com, ira.weiny@intel.com, kbusch@kernel.org,
-	hch@lst.de, sagi@grimberg.me, linux-block@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-mtd@lists.infradead.org,
-	nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 00/13] block: add_disk() error handling stragglers
-Message-ID: <YW2duaTqf3qUbTIm@bombadil.infradead.org>
-References: <20211015235219.2191207-1-mcgrof@kernel.org>
- <a31970d6-8631-9d9d-a36f-8f4fcebfb1e6@infradead.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85B772C81
+	for <nvdimm@lists.linux.dev>; Mon, 18 Oct 2021 16:43:53 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1030561002;
+	Mon, 18 Oct 2021 16:43:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1634575432;
+	bh=ndzn/cgjnN1D+UBSRO9lROqzj4w1+JVpStrCpNeonJE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=SgG+zrgJcn47VIYSj3YzilH6qamtpHX2Ydp79Qvx7Wxh6NdjQiLSe39pSdPAG2gBz
+	 IyxCQUVQzJ7XUZ4gtcs8WceCSB2NahePCfq66/Layc7hZxqlzYYOLBySW2QWtd7P7M
+	 TTv9nwNV9Ot5ruqQa6nxmusgQhVkFVVmpNt1tauFIB7/jvVSfDklt+vkFLgpLGy0lJ
+	 +AibGWL+8y7C64Zr6vQ804z2SbwOAX8zyNdWSPM+gu5OGkgGT5cyj6rh8WNlMrRtOc
+	 OdYtkuBHsYZZXXsOcYayNw+dnkTsRyfLkUPd1u7mzxEa6negBF89Xl4tfDqAGgWd+h
+	 ZeVsLLSKK4Viw==
+Date: Mon, 18 Oct 2021 09:43:51 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: no To-header on input <;, Dan Williams <dan.j.williams@intel.com>,
+	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
+	dm-devel@redhat.com, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+	linux-ext4@vger.kernel.org,
+	virtualization@lists.linux-foundation.org
+Subject: Re: [PATCH 06/11] xfs: factor out a xfs_setup_dax helper
+Message-ID: <20211018164351.GT24307@magnolia>
+References: <20211018044054.1779424-1-hch@lst.de>
+ <20211018044054.1779424-7-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -40,25 +37,99 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a31970d6-8631-9d9d-a36f-8f4fcebfb1e6@infradead.org>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+In-Reply-To: <20211018044054.1779424-7-hch@lst.de>
 
-On Sun, Oct 17, 2021 at 08:26:33AM -0700, Geoff Levand wrote:
-> Hi Luis,
+On Mon, Oct 18, 2021 at 06:40:49AM +0200, Christoph Hellwig wrote:
+> Factor out another DAX setup helper to simplify future changes.  Also
+> move the experimental warning after the checks to not clutter the log
+> too much if the setup failed.
 > 
-> On 10/15/21 4:52 PM, Luis Chamberlain wrote:
-> > This patch set consists of al the straggler drivers for which we have
-> > have no patch reviews done for yet. I'd like to ask for folks to please
-> > consider chiming in, specially if you're the maintainer for the driver.
-> > Additionally if you can specify if you'll take the patch in yourself or
-> > if you want Jens to take it, that'd be great too.
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  fs/xfs/xfs_super.c | 47 +++++++++++++++++++++++++++-------------------
+>  1 file changed, 28 insertions(+), 19 deletions(-)
 > 
-> Do you have a git repo with the patch set applied that I can use to test with?
+> diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+> index c4e0cd1c1c8ca..d07020a8eb9e3 100644
+> --- a/fs/xfs/xfs_super.c
+> +++ b/fs/xfs/xfs_super.c
+> @@ -339,6 +339,32 @@ xfs_buftarg_is_dax(
+>  			bdev_nr_sectors(bt->bt_bdev));
+>  }
+>  
+> +static int
+> +xfs_setup_dax(
 
-Sure, although the second to last patch is in a state of flux given
-the ataflop driver currently is broken and so we're seeing how to fix
-that first:
+/me wonders if this should be named xfs_setup_dax_always, since this
+doesn't handle the dax=inode mode?
 
-https://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/linux-next.git/log/?h=20211011-for-axboe-add-disk-error-handling
+The only reason I bring that up is that Eric reminded me a while ago
+that we don't actually print any kind of EXPERIMENTAL warning for the
+auto-detection behavior.
 
-  Luis
+That said, I never liked looking at the nested backwards logic of the
+old code, so:
+
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+
+--D
+
+> +	struct xfs_mount	*mp)
+> +{
+> +	struct super_block	*sb = mp->m_super;
+> +
+> +	if (!xfs_buftarg_is_dax(sb, mp->m_ddev_targp) &&
+> +	   (!mp->m_rtdev_targp || !xfs_buftarg_is_dax(sb, mp->m_rtdev_targp))) {
+> +		xfs_alert(mp,
+> +			"DAX unsupported by block device. Turning off DAX.");
+> +		goto disable_dax;
+> +	}
+> +
+> +	if (xfs_has_reflink(mp)) {
+> +		xfs_alert(mp, "DAX and reflink cannot be used together!");
+> +		return -EINVAL;
+> +	}
+> +
+> +	xfs_warn(mp, "DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> +	return 0;
+> +
+> +disable_dax:
+> +	xfs_mount_set_dax_mode(mp, XFS_DAX_NEVER);
+> +	return 0;
+> +}
+> +
+>  STATIC int
+>  xfs_blkdev_get(
+>  	xfs_mount_t		*mp,
+> @@ -1592,26 +1618,9 @@ xfs_fs_fill_super(
+>  		sb->s_flags |= SB_I_VERSION;
+>  
+>  	if (xfs_has_dax_always(mp)) {
+> -		bool rtdev_is_dax = false, datadev_is_dax;
+> -
+> -		xfs_warn(mp,
+> -		"DAX enabled. Warning: EXPERIMENTAL, use at your own risk");
+> -
+> -		datadev_is_dax = xfs_buftarg_is_dax(sb, mp->m_ddev_targp);
+> -		if (mp->m_rtdev_targp)
+> -			rtdev_is_dax = xfs_buftarg_is_dax(sb,
+> -						mp->m_rtdev_targp);
+> -		if (!rtdev_is_dax && !datadev_is_dax) {
+> -			xfs_alert(mp,
+> -			"DAX unsupported by block device. Turning off DAX.");
+> -			xfs_mount_set_dax_mode(mp, XFS_DAX_NEVER);
+> -		}
+> -		if (xfs_has_reflink(mp)) {
+> -			xfs_alert(mp,
+> -		"DAX and reflink cannot be used together!");
+> -			error = -EINVAL;
+> +		error = xfs_setup_dax(mp);
+> +		if (error)
+>  			goto out_filestream_unmount;
+> -		}
+>  	}
+>  
+>  	if (xfs_has_discard(mp)) {
+> -- 
+> 2.30.2
+> 
