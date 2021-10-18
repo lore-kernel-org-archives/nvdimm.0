@@ -1,162 +1,200 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+Received: from mail-pj1-f47.google.com (mail-pj1-f47.google.com [209.85.216.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77D082C89
-	for <nvdimm@lists.linux.dev>; Mon, 18 Oct 2021 18:37:51 +0000 (UTC)
-Received: by mail-qk1-f170.google.com with SMTP id x123so2421598qke.7
-        for <nvdimm@lists.linux.dev>; Mon, 18 Oct 2021 11:37:51 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E3E2C2C89
+	for <nvdimm@lists.linux.dev>; Mon, 18 Oct 2021 19:37:37 +0000 (UTC)
+Received: by mail-pj1-f47.google.com with SMTP id ls18so12932898pjb.3
+        for <nvdimm@lists.linux.dev>; Mon, 18 Oct 2021 12:37:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=wJNcqyK0rI+evQwD2jibSP3vMmIjKUzQYxLr4+LBMxw=;
-        b=mHTSwxuHIb35EXaVeJxHacMsxHXRiwRrzFlTIzu95R4xpKwQjwTi98YJDiO/ogOyVM
-         1V7to07GJw+HEy22WjoZpWwQLvne2PqoTaWujVU221XSQ58bOy/UsmRz4R02QewOXFks
-         acre2QabSw5LHCBI+pv5SpreClVFg/bJ6nlQ/VS75gnqpOpQ72VMWJUgtPfdSaVZ2NRR
-         aR9NXBrEKrOwNVxyGUgJ3GgJi4d5JiOV3jk9t3w19Mx1HFZ37As2BIG1ofkgahbOsDOr
-         Ld9w6HJk+P8TZXAQcbI/asl8w6v8xhjwIELLnYWoSLB09w6bhkGIiXfr0SSCeYn6edEm
-         cAIA==
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vcN/e9Q2mjWOnFTpFF8+nbpf301tV4lfvmN50Si5mpg=;
+        b=38g+XN93W/PLq/Nexn/X8vXGCmM4WtMbeRf9TKHl4Ppsj4GJHBOwMyjyiCz98QBSLr
+         o31EN+SyDgOHPAfxftOZxpOxuH0eJaSjfGbKMGZSg9P2ELIaE0VAakmTFBcqJ+aetP6t
+         NjAiB5KnHHgXuv6B57ayt4SuV/hQ/UXGrFbevmi9ZnJherSgr4WK/Qe4Yd55rhHZKiQO
+         I89WlzsDwvI5meoe80VV7ajAudpXN7A0WxmgFQuh+6HYUuoyP/0TkzoVGDMYzbivgVRG
+         y7wjDezrYRE8vnELGW9ksbJQTPsu0kV9r79I12T5ISHLVcQDeo8mAqDDeoyMt+Lcuk3F
+         MZJg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=wJNcqyK0rI+evQwD2jibSP3vMmIjKUzQYxLr4+LBMxw=;
-        b=XoHnpnyDG9h0wDDNYDktUA/Kgs++dkfuUlSlYDh27E8XdTf98D04vkuTlW9t/Jf7Nz
-         x3+0j/fjsWLyJ90Wz3LaswasR64A66luGo2cx002yusyconsxORTccsQJKfmt4kxUdiE
-         Vf0TbJnYTFMqvp01QZ28bGGAjcUwe19snT5BFgLE7fI7zWX7HJzwgGaIhdyPFhqxWDLq
-         8hDBjKsUOBR600laPu7KCQo7SgTe2b2QehwRd3u1sNDLh5m6wyFFjRo4ayF98oiMVdhi
-         hdhij8asinJSYRP/EaNglPHVCcOs8MKLNae9bWfM297S2iweUDsPcWjj7E1PR+/SsPYv
-         9dng==
-X-Gm-Message-State: AOAM531voOUEprRUKJTZVl1194HqKhDAbSueM1ioh5/Be611KCsayQNJ
-	c2idco8OrP8Cwju9fflTWuoOvA==
-X-Google-Smtp-Source: ABdhPJwqYNU955h8X5OyxNzk5+v0MXjssNIi2HrA1CNfbfl5up52FXcbIilaAETYLXx/PoOFN5pYfg==
-X-Received: by 2002:a05:620a:1a28:: with SMTP id bk40mr15176090qkb.224.1634582270558;
-        Mon, 18 Oct 2021 11:37:50 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
-        by smtp.gmail.com with ESMTPSA id bk7sm5189997qkb.72.2021.10.18.11.37.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 18 Oct 2021 11:37:50 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1mcXW9-00GLve-Gq; Mon, 18 Oct 2021 15:37:49 -0300
-Date: Mon, 18 Oct 2021 15:37:49 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Naoya Horiguchi <naoya.horiguchi@nec.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>,
-	Muchun Song <songmuchun@bytedance.com>,
-	Mike Kravetz <mike.kravetz@oracle.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
-	nvdimm@lists.linux.dev, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v4 08/14] mm/gup: grab head page refcount once for group
- of subpages
-Message-ID: <20211018183749.GE3686969@ziepe.ca>
-References: <20210827145819.16471-1-joao.m.martins@oracle.com>
- <20210827145819.16471-9-joao.m.martins@oracle.com>
- <20210827162552.GK1200268@ziepe.ca>
- <da90638d-d97f-bacb-f0fa-01f5fd9f2504@oracle.com>
- <20210830130741.GO1200268@ziepe.ca>
- <cda6d8fb-bd48-a3de-9d4e-96e4a43ebe58@oracle.com>
- <20210831170526.GP1200268@ziepe.ca>
- <8c23586a-eb3b-11a6-e72a-dcc3faad4e96@oracle.com>
- <20210928180150.GI3544071@ziepe.ca>
- <3f35cc33-7012-5230-a771-432275e6a21e@oracle.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vcN/e9Q2mjWOnFTpFF8+nbpf301tV4lfvmN50Si5mpg=;
+        b=JTrjimDC3Rtc16yzxgZove3IwUGRchZFZc9yU0uSdWlAB4Ocsic7uWAolGK4o71g4O
+         l/c6OvcXivEkKCa7pTsxPE5K19i0Qll+7VLHgEC7vnDSGwBaV28ZNSgv8UXb8P57sehK
+         zLesAwdZmn9ygOB4q0GAL7pB0hpsYUq5Eyid617nauDSSbdSqIpasASFuVgrXZNaFjAp
+         pmnMvyXSGxHg46oJRoZA4QvghVWSNMUAglvfs0+T3uY8P0I6OucE1dP63OZfuCNvua3K
+         o2MixLh3a6xB2jViiKHmk+X6EW52LtpExCTzUbn5tldHwGumIL7+ZQAfqhgYQrRbJCJV
+         e7/Q==
+X-Gm-Message-State: AOAM5331vcn1KPnKx6DzMlJBWD9DfxA2i9IJGPUoonkNlZZdgRaQFy8W
+	hxgGm06xnFfuKydMxCaFkHBlNWownwRlYUWzYiSmpg==
+X-Google-Smtp-Source: ABdhPJyFE9yWji3O4oSu/RuiAk4z6lxIzSSSytSMy4gnkcyUbGH1NVDJSqyiMSVcJ4yyecBDh5dF2zDhb6bddsIkbHE=
+X-Received: by 2002:a17:90b:350f:: with SMTP id ls15mr1002201pjb.220.1634585857145;
+ Mon, 18 Oct 2021 12:37:37 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3f35cc33-7012-5230-a771-432275e6a21e@oracle.com>
+References: <20211014153928.16805-1-alex.sierra@amd.com> <20211014153928.16805-3-alex.sierra@amd.com>
+ <20211014170634.GV2744544@nvidia.com> <YWh6PL7nvh4DqXCI@casper.infradead.org>
+ <CAPcyv4hBdSwdtG6Hnx9mDsRXiPMyhNH=4hDuv8JZ+U+Jj4RUWg@mail.gmail.com>
+ <20211014230606.GZ2744544@nvidia.com> <CAPcyv4hC4qxbO46hp=XBpDaVbeh=qdY6TgvacXRprQ55Qwe-Dg@mail.gmail.com>
+ <20211016154450.GJ2744544@nvidia.com> <CAPcyv4j0kHREAOG6_07E2foz6e4FP8D72mZXH6ivsiUBu_8c6g@mail.gmail.com>
+ <20211018182559.GC3686969@ziepe.ca>
+In-Reply-To: <20211018182559.GC3686969@ziepe.ca>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 18 Oct 2021 12:37:30 -0700
+Message-ID: <CAPcyv4jvZjeMcKLVuOEQ_gXRd87i3NUX5D=MmsJ++rWafnK-NQ@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] mm: remove extra ZONE_DEVICE struct page refcount
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Matthew Wilcox <willy@infradead.org>, Alex Sierra <alex.sierra@amd.com>, 
+	Andrew Morton <akpm@linux-foundation.org>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, 
+	Linux MM <linux-mm@kvack.org>, Ralph Campbell <rcampbell@nvidia.com>, 
+	linux-ext4 <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	amd-gfx list <amd-gfx@lists.freedesktop.org>, 
+	Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Christoph Hellwig <hch@lst.de>, 
+	=?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, 
+	Alistair Popple <apopple@nvidia.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	David Hildenbrand <david@redhat.com>, Joao Martins <joao.m.martins@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Sep 29, 2021 at 12:50:15PM +0100, Joao Martins wrote:
-> On 9/28/21 19:01, Jason Gunthorpe wrote:
-> > On Thu, Sep 23, 2021 at 05:51:04PM +0100, Joao Martins wrote:
-> >> So ... if pgmap accounting was removed from gup-fast then this patch
-> >> would be a lot simpler and we could perhaps just fallback to the regular
-> >> hugepage case (THP, HugeTLB) like your suggestion at the top. See at the
-> >> end below scissors mark as the ballpark of changes.
-> >>
-> >> So far my options seem to be: 1) this patch which leverages the existing
-> >> iteration logic or 2) switching to for_each_compound_range() -- see my previous
-> >> reply 3) waiting for Dan to remove @pgmap accounting in gup-fast and use
-> >> something similar to below scissors mark.
-> >>
-> >> What do you think would be the best course of action?
-> > 
-> > I still think the basic algorithm should be to accumulate physicaly
-> > contiguous addresses when walking the page table and then flush them
-> > back to struct pages once we can't accumulate any more.
-> > 
-> > That works for both the walkers and all the page types?
-> > 
-> 
-> The logic already handles all page types -- I was trying to avoid the extra
-> complexity in regular hugetlb/THP path by not merging the handling of the
-> oddball case that is devmap (or fundamentally devmap
-> non-compound case in the future).
+On Mon, Oct 18, 2021 at 11:26 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Sun, Oct 17, 2021 at 11:35:35AM -0700, Dan Williams wrote:
+>
+> > > DAX is stuffing arrays of 4k pages into the PUD/PMDs. Aligning with
+> > > THP would make using normal refconting much simpler. I looked at
+> > > teaching the mm core to deal with page arrays - it is certainly
+> > > doable, but it is quite inefficient and ugly mm code.
+> >
+> > THP does not support PUD, and neither does FSDAX, so it's only PMDs we
+> > need to worry about.
+>
+> device-dax uses PUD, along with TTM, they are the only places. I'm not
+> sure TTM is a real place though.
 
-FYI, this untested thing is what I came to when I tried to make
-something like this:
+I was setting device-dax aside because it can use Joao's changes to
+get compound-page support.
 
-/*
- * A large page entry such as PUD/PMD can point to a struct page. In cases like
- * THP this struct page will be a compound page of the same order as the page
- * table level. However, in cases like DAX or more generally pgmap ZONE_DEVICE,
- * the PUD/PMD may point at the first pfn in a string of pages.
- *
- * This helper iterates over all head pages or all the non-compound base pages.
- */
-static pt_entry_iter_state
-{
-	struct page *head;
-	unsigned long compound_nr;
-	unsigned long pfn;
-	unsigned long end_pfn;
-};
+>
+> > > So, can we fix DAX and TTM - the only uses of PUD/PMDs I could find?
+> > >
+> > > Joao has a series that does this to device-dax:
+> > >
+> > > https://lore.kernel.org/all/20210827145819.16471-1-joao.m.martins@oracle.com/
+> >
+> > That assumes there's never any need to fracture a huge page which
+> > FSDAX could not support unless the filesystem was built with 2MB block
+> > size.
+>
+> As I understand things, something like FSDAX post-folio should
+> generate maximal compound pages for extents in the page cache that are
+> physically contiguous.
+>
+> A high order folio can be placed in any lower order in the page
+> tables, so we never have to fracture it, unless the underlying page
+> are moved around - which requires an unmap_mapping_range() cycle..
 
-static inline struct page *__pt_start_iter(struct iter_state *state,
-					   struct page *page, unsigned long pfn,
-					   unsigned int entry_size)
-{
-	state->head = compound_head(page);
-	state->compound_nr = compound_nr(page);
-	state->pfn = pfn & (~(state->compound_nr - 1));
-	state->end_pfn = pfn + entry_size / PAGE_SIZE;
-	return state->head;
-}
+That would be useful to disconnect the compound-page size from the
+page-table-entry installed for the page. However, don't we need
+typical compound page fracturing in the near term until folios move
+ahead?
 
-static inline struct page *__pt_next_page(struct iter_state *state)
-{
-	state->pfn += state->compound_nr;
-	if (state->end_pfn <= state->pfn)
-		return NULL;
-	state->head = pfn_to_page(state->pfn);
-	state->compound_nr = compound_nr(page);
-	return state->head;
-}
+>
+> > > Assuming changing FSDAX is hard.. How would DAX people feel about just
+> > > deleting the PUD/PMD support until it can be done with compound pages?
+> >
+> > There are end users that would notice the PMD regression, and I think
+> > FSDAX PMDs with proper compound page metadata is on the same order of
+> > work as fixing the refcount.
+>
+> Hmm, I don't know.. I sketched out the refcount stuff and the code is
+> OK but ugly and will add a conditional to some THP cases
 
-#define for_each_page_in_pt_entry(state, page, pfn, entry_size)                \
-	for (page = __pt_start_iter(state, page, pfn, entry_size); page;       \
-	     page = __pt_next_page(&state))
+That reminds me that there are several places that do:
 
-static bool remove_pages_from_page_table(struct vm_area_struct *vma,
-					 struct page *page, unsigned long pfn,
-					 unsigned int entry_size, bool is_dirty,
-					 bool is_young)
-{
-	struct iter_state state;
+pmd_devmap(pmd) || pmd_trans_huge(pmd)
 
-	for_each_page_in_pt_entry(&state, page, pfn, entry_size)
-		remove_page_from_page_table(vma, page, is_dirty, is_young);
-}
+...for the common cases where a THP and DEVMAP page are equivalent,
+but there are a few places where those paths are not shared when the
+THP path expects that the page came from the page allocator. So while
+DEVMAP is not needed in GUP after this conversion, there still needs
+to be an audit of when THP needs to be careful of DAX mappings.
 
+> On the other hand, making THP unmap cases a bit slower is probably a
+> net win compared to making put_page a bit slower.. Considering unmap
+> is already quite heavy.
 
-Jason
+FSDAX eventually learned how to replace 'struct page' with xarray for
+several paths, so "how hard could it be" (/famous last words) to
+replace xarray with 'struct page'? I think the end result will be
+cleaner, but yes, I expect some dragons in the conversion.
+
+>
+> > > 4) Ask what the pgmap owner wants to do:
+> > >
+> > >     if (head->pgmap->deny_foll_longterm)
+> > >           return FAIL
+> >
+> > The pgmap itself does not know, but the "holder" could specify this
+> > policy.
+>
+> Here I imagine the thing that creates the pgmap would specify the
+> policy it wants. In most cases the policy is tightly coupled to what
+> the free function in the the provided dev_pagemap_ops does..
+
+The thing that creates the pgmap is the device-driver, and
+device-driver does not implement truncate or reclaim. It's not until
+the FS mounts that the pgmap needs to start enforcing pin lifetime
+guarantees.
+
+>
+> > Which is in line with the 'dax_holder_ops' concept being introduced
+> > for reverse mapping support. I.e. when the FS claims the dax-device
+> > it can specify at that point that it wants to forbid longterm.
+>
+> Which is a reasonable refinment if we think there are cases where two
+> nvdim users would want different things.
+>
+
+It's already the case that device-dax does not enforce transient pin lifetimes.
+
+> Anyhow, I'm wondering on a way forward. There are many balls in the
+> air, all linked:
+>  - Joao's compound page support for device_dax and more
+>  - Alex's DEVICE_COHERENT
+
+I have not seen these patches.
+
+/me notices no MAINTAINERS mention for include/linux/memremap.h
+
+>  - The refcount normalization
+>  - Removing the pgmap test from GUP
+>  - Removing the need for the PUD/PMD/PTE special bit
+>  - Removing the need for the PUD/PMD/PTE devmap bit
+
+It's not clear that this anything but pure cleanup once the special
+bit can be used for architectures that don't have devmap. Those same
+archs presumably don't care about the THP collisions with DAX.
+
+>  - Remove PUD/PMD vma_is_special
+>  - folios for fsdax
+>  - shootdown for fsdax
+>
+> Frankly I'm leery to see more ZONE_DEVICE users crop up that depend on
+> the current semantics as that will only make it even harder to fix..
+>
+> I think it would be good to see Joao's compound page support move
+> ahead..
+>
+> So.. Does anyone want to work on finishing this patch series?? I can
+> give some guidance on how I think it should work at least
+
+Completing the DAX reflink work is in my near term goals and that
+includes "shootdown for fsdax and removing the pgmap test from GUP",
+but probably not in the order that "refcount normalization" folks
+would prefer.
