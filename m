@@ -1,37 +1,49 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D329F72
-	for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 07:36:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-	MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-	:Reply-To:Content-Type:Content-ID:Content-Description;
-	bh=CYNxRQ01pKOwVYHa06L+8e98u7Vn+1wScPdYwItVY+s=; b=19fOJrqxoRvezDB5PLNjHendDt
-	UMLV7KEq8MwKXqQGhk9dtI+aDHgNd24RrxO9B6eXd84yuaRPBXm/JPcGxqtfgD8+MnFSACtKiP0NA
-	WAxjX6e8ruk/h0XtBmwwwJvDK7uqoLoblrP/mNC3mCPeenmwEepQsRrUjKF79NfIYCLttqx434QN4
-	DyRddrLV1Bq6FougUkDPddZtVxzCvJ6Bxns31bnb8cn+YPStkkJ4XZu/lKu56HUHtJIZG0cPjRl7p
-	VDH11mcl4QvbIV/PziL/g5GF4R2GVD48/Xt3hgig/X80GKehiS4xYHywHWhHPojviTKwkRiVzpuQc
-	mSLdFnWQ==;
-Received: from 089144192247.atnat0001.highway.a1.net ([89.144.192.247] helo=localhost)
-	by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mcjg5-000QWr-CW; Tue, 19 Oct 2021 07:36:54 +0000
-From: Christoph Hellwig <hch@lst.de>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jens Axboe <axboe@kernel.dk>,
-	Yi Zhang <yi.zhang@redhat.com>,
-	linux-block@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-mm@kvack.org
-Subject: [PATCH 2/2] memremap: remove support for external pgmap refcounts
-Date: Tue, 19 Oct 2021 09:36:41 +0200
-Message-Id: <20211019073641.2323410-3-hch@lst.de>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20211019073641.2323410-1-hch@lst.de>
-References: <20211019073641.2323410-1-hch@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC9012C88
+	for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 09:49:48 +0000 (UTC)
+Received: by mail-pl1-f176.google.com with SMTP id s1so11484258plg.12
+        for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 02:49:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=+TkWgYayAqA1N78B6sSsdHP9plKG2QD+oGHbJ5CtYzQ=;
+        b=m3HHQ244JZcfBV4yayxuPXIIHn8jzm/+dKCpjH1czmAdXvJ7NHYTvwhK+o+sK3DGcw
+         15ETtdDsCu686pOq9aka3Q8zHJmQjqkAtyeMDi9B8i10VUrEFz/7g4fCh9iDpu006vfQ
+         pfR5e6UU3pjH9x3iVthflT/UVKkT9CQ6MwsmtJdPGCPwosXPZrNxBK51x2y6+6Kvifnk
+         U8pA+KQooeflyAx75vEiXJYbWuZn3SI/l1ExvRktEHxcLi/HOEo3qUfJMAJOOJ9w2pod
+         5cZ4QrQ9hTh3/s3FF21fdfgWhmIPQjuPbby5htVtd7BILtZ/o1BgTpPfxvKtsoVyKHcY
+         29Iw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=+TkWgYayAqA1N78B6sSsdHP9plKG2QD+oGHbJ5CtYzQ=;
+        b=1xUBs7t1lv+T0tckIloKqHuNqr62gfAxi9Q5gkxvANdMyxAXX409KGsu/YVV6yWVU4
+         nzaaG/CL7Un3gYR2kPVLKTPxMtCjosrGqi5PL3CDWNclMNtDM33kYSIwHJOf0A+yT5CV
+         GLlmDQAr37Gii1bdyARnT6D2LBLbWVYuVpN3H4KkfVu1KsZ6Dev7aaHUL/TkWYYWsJR6
+         1uI6njIi66Ns5RqywmC7VF1z5haRJP1C2e4iNBEYoyOug+ALOeZxSAlzcjRO4Lks6Ll1
+         46Q0PHZ7m9ZPFbFC58WywnlI7akrKJKCCSaj+38Y8CgFVxOuk9kXSO5xMOv5fqguqWSa
+         hZxg==
+X-Gm-Message-State: AOAM5333JBp5CCxfINyffXp7tYLGit04PCMAAnqi9fjFxkSOHojEGaX/
+	UpVs3zEAQ6kEkEPEW0SjLsMByfkJMJjUqA==
+X-Google-Smtp-Source: ABdhPJz+uBKC1bVwE9j+5reNsHLMTZxlluW6eNqfAvjnGDcR9LW9FQbF91y4OrG3hB+Y8FrB63TjOQ==
+X-Received: by 2002:a17:90b:388a:: with SMTP id mu10mr5506047pjb.0.1634636988444;
+        Tue, 19 Oct 2021 02:49:48 -0700 (PDT)
+Received: from fedora34.. (125x103x255x1.ap125.ftth.ucom.ne.jp. [125.103.255.1])
+        by smtp.gmail.com with ESMTPSA id q8sm2100331pja.52.2021.10.19.02.49.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 19 Oct 2021 02:49:48 -0700 (PDT)
+From: QI Fuli <fukuri.sai@gmail.com>
+X-Google-Original-From: QI Fuli <qi.fuli@fujitsu.com>
+To: nvdimm@lists.linux.dev
+Cc: QI Fuli <qi.fuli@fujitsu.com>
+Subject: [RFC ndctl PATCH] monitor: Add "run" to call a bash script
+Date: Tue, 19 Oct 2021 18:49:37 +0900
+Message-Id: <20211019094937.11923-1-qi.fuli@fujitsu.com>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,241 +51,87 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-No driver is left using the external pgmap refcount, so remove the
-code to support it.
+From: QI Fuli <qi.fuli@fujitsu.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Currently, ndctl monitor only can write the smart event to log.
+If users do not read the log on time or the log analysis tools miss
+the smart event information, it will cause huge losses.
+
+For example, if the smart health event dimm-spares-remaining takes
+place and users do not back up the data on time, it is largely
+possible to lose the data. If a bash script used to back up
+can be called, this problem will be avoided.
+
+This patch adds a new argument named "run" to ndctl monitor command
+to set a bash script. When a smart event is monitored, the bash
+script can be run immediately.
+
+The following is the sample code for implementation. If it makes
+sense, I will continue to work on the patch. I will appreciate
+any comments.
+
+Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
 ---
- include/linux/memremap.h          | 18 ++--------
- mm/memremap.c                     | 59 +++++++------------------------
- tools/testing/nvdimm/test/iomap.c | 43 +++++++---------------
- 3 files changed, 27 insertions(+), 93 deletions(-)
+ ndctl/monitor.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-index c0e9d35889e8d..a8bc588fe7aa8 100644
---- a/include/linux/memremap.h
-+++ b/include/linux/memremap.h
-@@ -72,16 +72,6 @@ struct dev_pagemap_ops {
- 	 */
- 	void (*page_free)(struct page *page);
+diff --git a/ndctl/monitor.c b/ndctl/monitor.c
+index e944c90..ff4513a 100644
+--- a/ndctl/monitor.c
++++ b/ndctl/monitor.c
+@@ -38,6 +38,7 @@ static struct monitor {
+ 	unsigned int poll_timeout;
+ 	unsigned int event_flags;
+ 	struct log_ctx ctx;
++	const char *run;
+ } monitor;
  
--	/*
--	 * Transition the refcount in struct dev_pagemap to the dead state.
--	 */
--	void (*kill)(struct dev_pagemap *pgmap);
--
--	/*
--	 * Wait for refcount in struct dev_pagemap to be idle and reap it.
--	 */
--	void (*cleanup)(struct dev_pagemap *pgmap);
--
- 	/*
- 	 * Used for private (un-addressable) device memory only.  Must migrate
- 	 * the page back to a CPU accessible page.
-@@ -95,8 +85,7 @@ struct dev_pagemap_ops {
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-  * @altmap: pre-allocated/reserved memory for vmemmap allocations
-  * @ref: reference count that pins the devm_memremap_pages() mapping
-- * @internal_ref: internal reference if @ref is not provided by the caller
-- * @done: completion for @internal_ref
-+ * @done: completion for @ref
-  * @type: memory type: see MEMORY_* in memory_hotplug.h
-  * @flags: PGMAP_* flags to specify defailed behavior
-  * @ops: method table
-@@ -109,8 +98,7 @@ struct dev_pagemap_ops {
-  */
- struct dev_pagemap {
- 	struct vmem_altmap altmap;
--	struct percpu_ref *ref;
--	struct percpu_ref internal_ref;
-+	struct percpu_ref ref;
- 	struct completion done;
- 	enum memory_type type;
- 	unsigned int flags;
-@@ -191,7 +179,7 @@ static inline unsigned long memremap_compat_align(void)
- static inline void put_dev_pagemap(struct dev_pagemap *pgmap)
- {
- 	if (pgmap)
--		percpu_ref_put(pgmap->ref);
-+		percpu_ref_put(&pgmap->ref);
- }
+ struct monitor_dimm {
+@@ -389,6 +390,8 @@ static int monitor_event(struct ndctl_ctx *ctx,
+ 		for (i = 0; i < nfds; i++) {
+ 			mdimm = events[i].data.ptr;
+ 			if (util_dimm_event_filter(mdimm, monitor.event_flags)) {
++				rc = system(monitor.run);
++				...
+ 				rc = notify_dimm_event(mdimm);
+ 				if (rc) {
+ 					err(&monitor, "%s: notify dimm event failed\n",
+@@ -546,6 +549,7 @@ static int parse_monitor_config(const struct config *configs,
+ 		set_monitor_conf(&param.region, "region", value, seek);
+ 		set_monitor_conf(&param.namespace, "namespace", value, seek);
+ 		set_monitor_conf(&monitor.dimm_event, "dimm-event", value, seek);
++		set_monitor_conf(&monitor.run, "run", value, seek);
  
- #endif /* _LINUX_MEMREMAP_H_ */
-diff --git a/mm/memremap.c b/mm/memremap.c
-index ed593bf87109a..d7034c55d0a24 100644
---- a/mm/memremap.c
-+++ b/mm/memremap.c
-@@ -112,30 +112,6 @@ static unsigned long pfn_next(unsigned long pfn)
- #define for_each_device_pfn(pfn, map, i) \
- 	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(pfn))
- 
--static void dev_pagemap_kill(struct dev_pagemap *pgmap)
--{
--	if (pgmap->ops && pgmap->ops->kill)
--		pgmap->ops->kill(pgmap);
--	else
--		percpu_ref_kill(pgmap->ref);
--}
--
--static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
--{
--	if (pgmap->ops && pgmap->ops->cleanup) {
--		pgmap->ops->cleanup(pgmap);
--	} else {
--		wait_for_completion(&pgmap->done);
--		percpu_ref_exit(pgmap->ref);
--	}
--	/*
--	 * Undo the pgmap ref assignment for the internal case as the
--	 * caller may re-enable the same pgmap.
--	 */
--	if (pgmap->ref == &pgmap->internal_ref)
--		pgmap->ref = NULL;
--}
--
- static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
- {
- 	struct range *range = &pgmap->ranges[range_id];
-@@ -167,11 +143,12 @@ void memunmap_pages(struct dev_pagemap *pgmap)
- 	unsigned long pfn;
- 	int i;
- 
--	dev_pagemap_kill(pgmap);
-+	percpu_ref_kill(&pgmap->ref);
- 	for (i = 0; i < pgmap->nr_range; i++)
- 		for_each_device_pfn(pfn, pgmap, i)
- 			put_page(pfn_to_page(pfn));
--	dev_pagemap_cleanup(pgmap);
-+	wait_for_completion(&pgmap->done);
-+	percpu_ref_exit(&pgmap->ref);
- 
- 	for (i = 0; i < pgmap->nr_range; i++)
- 		pageunmap_range(pgmap, i);
-@@ -188,8 +165,7 @@ static void devm_memremap_pages_release(void *data)
- 
- static void dev_pagemap_percpu_release(struct percpu_ref *ref)
- {
--	struct dev_pagemap *pgmap =
--		container_of(ref, struct dev_pagemap, internal_ref);
-+	struct dev_pagemap *pgmap = container_of(ref, struct dev_pagemap, ref);
- 
- 	complete(&pgmap->done);
- }
-@@ -295,8 +271,8 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
- 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				PHYS_PFN(range->start),
- 				PHYS_PFN(range_len(range)), pgmap);
--	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
--			- pfn_first(pgmap, range_id));
-+	percpu_ref_get_many(&pgmap->ref,
-+		pfn_end(pgmap, range_id) - pfn_first(pgmap, range_id));
- 	return 0;
- 
- err_add_memory:
-@@ -362,22 +338,11 @@ void *memremap_pages(struct dev_pagemap *pgmap, int nid)
- 		break;
+ 		if (!monitor.log)
+ 			set_monitor_conf(&monitor.log, "log", value, seek);
+@@ -581,6 +585,8 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 				"emit extra debug messages to log"),
+ 		OPT_UINTEGER('p', "poll", &monitor.poll_timeout,
+ 			     "poll and report events/status every <n> seconds"),
++		OPT_STRING('\0', "run", &monitor.run, "bash script",
++			"run a script when the smart event is monitored"),
+ 		OPT_END(),
+ 	};
+ 	const char * const u[] = {
+@@ -598,6 +604,7 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		CONF_STR("monitor:dimm", &param.dimm, NULL),
+ 		CONF_STR("monitor:namespace", &param.namespace, NULL),
+ 		CONF_STR("monitor:dimm-event", &monitor.dimm_event, NULL),
++		CONF_STR("monitor:run", &monitor.run, NULL),
+ 		CONF_END(),
+ 	};
+ 	const char *prefix = "./";
+@@ -646,6 +653,9 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
+ 		}
  	}
  
--	if (!pgmap->ref) {
--		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
--			return ERR_PTR(-EINVAL);
--
--		init_completion(&pgmap->done);
--		error = percpu_ref_init(&pgmap->internal_ref,
--				dev_pagemap_percpu_release, 0, GFP_KERNEL);
--		if (error)
--			return ERR_PTR(error);
--		pgmap->ref = &pgmap->internal_ref;
--	} else {
--		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
--			WARN(1, "Missing reference count teardown definition\n");
--			return ERR_PTR(-EINVAL);
--		}
--	}
-+	init_completion(&pgmap->done);
-+	error = percpu_ref_init(&pgmap->ref, dev_pagemap_percpu_release, 0,
-+				GFP_KERNEL);
-+	if (error)
-+		return ERR_PTR(error);
- 
- 	devmap_managed_enable_get(pgmap);
- 
-@@ -486,7 +451,7 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
- 	/* fall back to slow path lookup */
- 	rcu_read_lock();
- 	pgmap = xa_load(&pgmap_array, PHYS_PFN(phys));
--	if (pgmap && !percpu_ref_tryget_live(pgmap->ref))
-+	if (pgmap && !percpu_ref_tryget_live(&pgmap->ref))
- 		pgmap = NULL;
- 	rcu_read_unlock();
- 
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index ed563bdd88f39..b752ce47ead3c 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -100,25 +100,17 @@ static void nfit_test_kill(void *_pgmap)
- {
- 	struct dev_pagemap *pgmap = _pgmap;
- 
--	WARN_ON(!pgmap || !pgmap->ref);
--
--	if (pgmap->ops && pgmap->ops->kill)
--		pgmap->ops->kill(pgmap);
--	else
--		percpu_ref_kill(pgmap->ref);
--
--	if (pgmap->ops && pgmap->ops->cleanup) {
--		pgmap->ops->cleanup(pgmap);
--	} else {
--		wait_for_completion(&pgmap->done);
--		percpu_ref_exit(pgmap->ref);
--	}
-+	WARN_ON(!pgmap);
++	if (monitor.run && (strncmp(monitor.run, "./", 2) != 0))
++		fix_filename(prefix, (const char **)&monitor.run);
 +
-+	percpu_ref_kill(&pgmap->ref);
-+
-+	wait_for_completion(&pgmap->done);
-+	percpu_ref_exit(&pgmap->ref);
- }
- 
- static void dev_pagemap_percpu_release(struct percpu_ref *ref)
- {
--	struct dev_pagemap *pgmap =
--		container_of(ref, struct dev_pagemap, internal_ref);
-+	struct dev_pagemap *pgmap = container_of(ref, struct dev_pagemap, ref);
- 
- 	complete(&pgmap->done);
- }
-@@ -132,22 +124,11 @@ void *__wrap_devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
- 	if (!nfit_res)
- 		return devm_memremap_pages(dev, pgmap);
- 
--	if (!pgmap->ref) {
--		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
--			return ERR_PTR(-EINVAL);
--
--		init_completion(&pgmap->done);
--		error = percpu_ref_init(&pgmap->internal_ref,
--				dev_pagemap_percpu_release, 0, GFP_KERNEL);
--		if (error)
--			return ERR_PTR(error);
--		pgmap->ref = &pgmap->internal_ref;
--	} else {
--		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
--			WARN(1, "Missing reference count teardown definition\n");
--			return ERR_PTR(-EINVAL);
--		}
--	}
-+	init_completion(&pgmap->done);
-+	error = percpu_ref_init(&pgmap->ref, dev_pagemap_percpu_release, 0,
-+				GFP_KERNEL);
-+	if (error)
-+		return ERR_PTR(error);
- 
- 	error = devm_add_action_or_reset(dev, nfit_test_kill, pgmap);
- 	if (error)
+ 	if (monitor.daemon) {
+ 		if (!monitor.log || strncmp(monitor.log, "./", 2) == 0)
+ 			monitor.ctx.log_fn = log_syslog;
 -- 
-2.30.2
+2.31.1
 
