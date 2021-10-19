@@ -1,115 +1,133 @@
-Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
+Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BEFB72
-	for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 17:54:10 +0000 (UTC)
-Received: by mail-qt1-f173.google.com with SMTP id z24so704084qtv.9
-        for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 10:54:10 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 930E929CA
+	for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 19:21:19 +0000 (UTC)
+Received: by mail-pl1-f176.google.com with SMTP id s1so12585885plg.12
+        for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 12:21:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=k4EO566ZbpDs//uEG0jbVR7BFdP1GfXfmKzfi4PdmWw=;
-        b=HB4JP5njikOn5AfAjstCyQb2U7X3CujnisIyXaASRNun6gILVZvON+Yk48mBRHPRQR
-         RY1+sRlgsr4BKrj236S0iTZsTOsNkkZjZ77O+6H/cvjckutVQZ3lo8RY8U232+LTDoYD
-         wrihaSgZz2EistaLinuluW7+Nf7Q1gmULkotO5by0ezt3trLunAM+NZd9jcsJb3f3Wi4
-         z9wh4z0QqPvbnullfeEX1bvb04TiS8B3jP4X5b6vkUqhm2JFdw/xlnQqiRMTT8tECovZ
-         H5OJfA5xdR7xDlsP6Q3ZnFWs3v7A5Erau3MMcunjF2p/JVcC2lBzQ800djcevSsut0s3
-         fsqg==
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=A0ozvNXsQJNcX/pewDd9ckpqp0ETylCl5PX4CkgxTjA=;
+        b=dIpN/4YGGNH4r1EZENPOoUM36qbNMxX0AlEbDXR+QAUuWgDJulDqEi3wGiq/1+ers/
+         MtNK0sg7f9C/QkJyKAJlFRYKqMBrTfln8PJngSh8ITqopx0o8J1obkFmoFdux9294FXa
+         0ool0au7ytqQW+k+FPfqnMPWwg5vnKGiVhNgNjwxlfxeranZOVIdAnN2DTdpI6wVKD3S
+         78DmFolU0SXPPnnv6NF8puovRVgO1rRm/SJEGKuOaaGFJvzVcaTz85rlz8++NBOOAXd7
+         t/YIuxqKfUmA5B4vTl9lTDomRDwyKSQWYZDfBGBNdaXHm7+cgFxwO+idryj4IONEZqwU
+         vC2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=k4EO566ZbpDs//uEG0jbVR7BFdP1GfXfmKzfi4PdmWw=;
-        b=VYIug0znZwNxu7m109VEr7WtPmyu8KJCdOsCJbOQqRWEyE651cSWFZUTZgiij4TMIB
-         RW58Q7u4Ux/qShjno6SK8hIlkOUK/6gOar3z3x45MtvZsI/x/B81lZe/LxegngnBU/mN
-         K73qf+7GLXDCX501uC1L+sdR/H00Bw7nLFDnHKiKDmO2KruLFIsAAXvIRGGuvyqWEPYX
-         rwbXm/lQ1J3dmpcK7j/e02+ybhx9zTLBirZeR1Z1FwO405FS0fNBqvluZ9kHgHOzwemy
-         q65wFFHRzsWSw3cGDreie8xuirTPztOvo9KRTT5wJ06b0Vh6G07S2yhIzqbl4BPFI3VM
-         FnFQ==
-X-Gm-Message-State: AOAM530+mlg/s05icOdoguOwEDRHc5pX4k0aLFYxa9cYC2ezk38QUSN+
-	JwdQZGDZyQJVmemdy6U3vcNryw==
-X-Google-Smtp-Source: ABdhPJz54D+TH75Ir6oqy79nFFUrYbmeO/WH3eSFZrTLNjPikl0roL2ySe8DOGvYpxXiO4sh+slelQ==
-X-Received: by 2002:ac8:74c7:: with SMTP id j7mr1578684qtr.118.1634666049948;
-        Tue, 19 Oct 2021 10:54:09 -0700 (PDT)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
-        by smtp.gmail.com with ESMTPSA id u189sm8144732qkh.14.2021.10.19.10.54.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Oct 2021 10:54:09 -0700 (PDT)
-Received: from jgg by mlx with local (Exim 4.94)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1mctJQ-00GuaZ-PR; Tue, 19 Oct 2021 14:54:08 -0300
-Date: Tue, 19 Oct 2021 14:54:08 -0300
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Joao Martins <joao.m.martins@oracle.com>,
-	Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-	Christoph Hellwig <hch@lst.de>, Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@de.ibm.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	linux-s390 <linux-s390@vger.kernel.org>,
-	Matthew Wilcox <willy@infradead.org>,
-	Alex Sierra <alex.sierra@amd.com>,
-	"Kuehling, Felix" <Felix.Kuehling@amd.com>,
-	Linux MM <linux-mm@kvack.org>,
-	Ralph Campbell <rcampbell@nvidia.com>,
-	Alistair Popple <apopple@nvidia.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>
-Subject: Re: can we finally kill off CONFIG_FS_DAX_LIMITED
-Message-ID: <20211019175408.GJ3686969@ziepe.ca>
-References: <e250feab-1873-c91d-5ea9-39ac6ef26458@oracle.com>
- <CAPcyv4jYXPWmT2EzroTa7RDz1Z68Qz8Uj4MeheQHPbBXdfS4pA@mail.gmail.com>
- <20210824202449.19d524b5@thinkpad>
- <CAPcyv4iFeVDVPn6uc=aKsyUvkiu3-fK-N16iJVZQ3N8oT00hWA@mail.gmail.com>
- <20211014230439.GA3592864@nvidia.com>
- <5ca908e3-b4ad-dfef-d75f-75073d4165f7@oracle.com>
- <20211018233045.GQ2744544@nvidia.com>
- <CAPcyv4i=Rsv3nNTH9LTc2BwCoMyDU639vdd9kVEzZXvuSY+dWA@mail.gmail.com>
- <20211019142032.GT2744544@nvidia.com>
- <CAPcyv4jAQVSKB7rts5Mfu0JRtB-b1NGFgu03+8-ja8o11d1vQA@mail.gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=A0ozvNXsQJNcX/pewDd9ckpqp0ETylCl5PX4CkgxTjA=;
+        b=2g2kZ+aR4fAKwmenNFuZhp3JIuSpehhPV/WyCCbqhyY3cbL1MtzbG1U0ryjRqvr8iR
+         GCUtL9NzNd4f2U6AFjYHLl3uRn6a9+9zZurqSfguVd0igLAzX+bn7BdAoqNJzXpwBcyv
+         OuFeOMrw4vhYFoEDeY67EIaK5sYGmfptY7HILi62eG0z1CQQyf/HhUtnC5aaMwxWMlTa
+         gI7W1bdqkkokewn3LEN1mnfVoMZ8OMJCGbDGEnQb9NwoxzdHyfooF+64vf90Zxat935j
+         m4vdE/YlkiD2L5d5IKosBCEe8eCRSR/TExRcm5ffOYXamFUtPlZF08gFKq89Akf/3tgk
+         6doQ==
+X-Gm-Message-State: AOAM532E678iwQHDBJ2LuX6gmF5WrW8JtxZDvXy6YAp6UsgWxKPrRinq
+	Vz9wUnLDkUV+NbbP3TEsgtXFlQhcaWiT0slnEhDIkA==
+X-Google-Smtp-Source: ABdhPJxnZNNxl4GB/nPoKZm/Jigqlqq+b5Yi5opJ2SeB60SRKWrnwAOzNK7EVcYCxhzXA3M9GeWcrmYdSBdgg3eEB9o=
+X-Received: by 2002:a17:90b:350f:: with SMTP id ls15mr1918933pjb.220.1634671278933;
+ Tue, 19 Oct 2021 12:21:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jAQVSKB7rts5Mfu0JRtB-b1NGFgu03+8-ja8o11d1vQA@mail.gmail.com>
+References: <YWh6PL7nvh4DqXCI@casper.infradead.org> <CAPcyv4hBdSwdtG6Hnx9mDsRXiPMyhNH=4hDuv8JZ+U+Jj4RUWg@mail.gmail.com>
+ <20211014230606.GZ2744544@nvidia.com> <CAPcyv4hC4qxbO46hp=XBpDaVbeh=qdY6TgvacXRprQ55Qwe-Dg@mail.gmail.com>
+ <20211016154450.GJ2744544@nvidia.com> <CAPcyv4j0kHREAOG6_07E2foz6e4FP8D72mZXH6ivsiUBu_8c6g@mail.gmail.com>
+ <20211018182559.GC3686969@ziepe.ca> <CAPcyv4jvZjeMcKLVuOEQ_gXRd87i3NUX5D=MmsJ++rWafnK-NQ@mail.gmail.com>
+ <20211018230614.GF3686969@ziepe.ca> <499043a0-b3d8-7a42-4aee-84b81f5b633f@oracle.com>
+ <20211019160136.GH3686969@ziepe.ca>
+In-Reply-To: <20211019160136.GH3686969@ziepe.ca>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 19 Oct 2021 12:21:09 -0700
+Message-ID: <CAPcyv4gmvxi5tpT+xgxPLMPGZiLqKsft_5PzpMQZ-aCvwpbCvw@mail.gmail.com>
+Subject: Re: [PATCH v1 2/2] mm: remove extra ZONE_DEVICE struct page refcount
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Joao Martins <joao.m.martins@oracle.com>, Matthew Wilcox <willy@infradead.org>, 
+	Alex Sierra <alex.sierra@amd.com>, Andrew Morton <akpm@linux-foundation.org>, 
+	"Kuehling, Felix" <Felix.Kuehling@amd.com>, Linux MM <linux-mm@kvack.org>, 
+	Ralph Campbell <rcampbell@nvidia.com>, linux-ext4 <linux-ext4@vger.kernel.org>, 
+	linux-xfs <linux-xfs@vger.kernel.org>, amd-gfx list <amd-gfx@lists.freedesktop.org>, 
+	Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Christoph Hellwig <hch@lst.de>, 
+	=?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, 
+	Alistair Popple <apopple@nvidia.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	David Hildenbrand <david@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Oct 19, 2021 at 10:38:42AM -0700, Dan Williams wrote:
+On Tue, Oct 19, 2021 at 9:02 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Tue, Oct 19, 2021 at 04:13:34PM +0100, Joao Martins wrote:
+> > On 10/19/21 00:06, Jason Gunthorpe wrote:
+> > > On Mon, Oct 18, 2021 at 12:37:30PM -0700, Dan Williams wrote:
+> > >
+> > >>> device-dax uses PUD, along with TTM, they are the only places. I'm not
+> > >>> sure TTM is a real place though.
+> > >>
+> > >> I was setting device-dax aside because it can use Joao's changes to
+> > >> get compound-page support.
+> > >
+> > > Ideally, but that ideas in that patch series have been floating around
+> > > for a long time now..
+> > >
+> > The current status of the series misses a Rb on patches 6,7,10,12-14.
+> > Well, patch 8 too should now drop its tag, considering the latest
+> > discussion.
+> >
+> > If it helps moving things forward I could split my series further into:
+> >
+> > 1) the compound page introduction (patches 1-7) of my aforementioned series
+> > 2) vmemmap deduplication for memory gains (patches 9-14)
+> > 3) gup improvements (patch 8 and gup-slow improvements)
+>
+> I would split it, yes..
+>
+> I think we can see a general consensus that making compound_head/etc
+> work consistently with how THP uses it will provide value and
+> opportunity for optimization going forward.
+>
+> > Whats the benefit between preventing longterm at start
+> > versus only after mounting the filesystem? Or is the intended future purpose
+> > to pass more context into an holder potential future callback e.g. nack longterm
+> > pins on a page basis?
+>
+> I understood Dan's remark that the device-dax path allows
+> FOLL_LONGTERM and the FSDAX path does not ?
+>
+> Which, IIRC, today is signaled basd on vma properties and in all cases
+> fast-gup is denied.
 
-> > So we can just delete the detection of the page size and rely on the
-> > zap code to wipe out the entire level, not split it. Which is what we
-> > have today already.
-> 
-> As Joao points out, userspace wants to know the blast radius of the
-> unmap for historical reasons. I do think it's worth deprecating that
-> somehow... providing a better error management interface is part of
-> the DAX-reflink enabling.
+Yeah, I forgot that 7af75561e171 eliminated any possibility of
+longterm-gup-fast for device-dax, let's not disturb that status quo.
 
-OK, it makes sense.
+> > Maybe we can start by at least not add any flags and just prevent
+> > FOLL_LONGTERM on fsdax -- which I guess was the original purpose of
+> > commit 7af75561e171 ("mm/gup: add FOLL_LONGTERM capability to GUP fast").
+> > This patch (which I can formally send) has a sketch of that (below scissors mark):
+> >
+> > https://lore.kernel.org/linux-mm/6a18179e-65f7-367d-89a9-d5162f10fef0@oracle.com/
+>
+> Yes, basically, whatever test we want for 'deny fast gup foll
+> longterm' is fine.
+>
+> Personally I'd like to see us move toward a set of flag specifying
+> each special behavior and not a collection of types that imply special
+> behaviors.
+>
+> Eg we have at least:
+>  - Block gup fast on foll_longterm
+>  - Capture the refcount ==1 and use the pgmap free hook
+>    (confusingly called page_is_devmap_managed())
+>  - Always use a swap entry
+>  - page->index/mapping are used in the usual file based way?
+>
+> Probably more things..
 
-I have a less invasive idea though - emulate what zap is doing:
-
-      if (!pud_present(*pud))
-               return 0;
-      if (pud_leaf(*pud))
-             return PUD_SHIFT;
-
-      if (!pmd_present(*pud))
-               return 0;
-      if (pmd_leaf(*pud))
-             return PMD_SHIFT;
-      return PAGE_SHIFT;
-
-Which would return the "blast radius" of the unmap_mapping_range()
-when it rounds up to the left page level that contains the VA.
-
-Now it doesn't need the pte_devmap test..
-
-And when both DAX's learn to use compound_head this can be deleted.
-
-Jason
+Yes, agree with the principle of reducing type-implied special casing.
