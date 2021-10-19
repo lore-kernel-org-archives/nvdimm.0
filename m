@@ -1,77 +1,47 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from NAM11-DM6-obe.outbound.protection.outlook.com (mail-dm6nam11on2087.outbound.protection.outlook.com [40.107.223.87])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82B2529CA
-	for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 15:22:05 +0000 (UTC)
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 19JEG3tI004740;
-	Tue, 19 Oct 2021 15:21:47 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=k3FUUWJUpY4WWUbpRACVAFwltoRFmtWlt3rt/0xhAqU=;
- b=WDZfGiVclEajxS7uqXrXSdC/ULnn/dADtJL3LWR/PYEPA0gM7rSBGdkFDFaR0ABQZ672
- OwurMY7QwkyY1/IK4Z/trfMpP6Nu8Cq7kiK9jmYELqYaIuS88ze23mPixyOsa9aULRWi
- vGVJqxOl15hrospAz9vuWfYq39XzWx8AsBxMveA3BmwxjiE8opn918rWUXQEM7DRNwjn
- vumrzUDT2EQorobLSGHabXcbUA2k7AeXBb/QgGKn+vWHOwzm9DzQMGul9Y+GrtRsFPZZ
- rtnT60PPGfu5mrdZTlzHYqp97OxFLEXOV7fXCQ6X5r4FYERSh5BMVtvNF9xeWfYwTCJb gA== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3bsqgmk7sf-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 19 Oct 2021 15:21:43 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 19JFFXCA012850;
-	Tue, 19 Oct 2021 15:20:28 GMT
-Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11lp2175.outbound.protection.outlook.com [104.47.58.175])
-	by userp3020.oracle.com with ESMTP id 3br8gsjcdn-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 19 Oct 2021 15:20:28 +0000
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7245F2C80
+	for <nvdimm@lists.linux.dev>; Tue, 19 Oct 2021 15:38:41 +0000 (UTC)
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=MBZqijgIRUyjPKhcozJ1DyJwixjkrIhhqNczSXdzTrhg4APv263D/Ge4G5IFTDMjSpbuD7/qwGiU/ZGzH2GL8W3wn40yT5KaFIbI4w2lIBkcrZU4XiCtSeo4csCnZ6dIz0CnqfzxzVy/IaMQ0f49HadoFao8j5l+pvZdCUZvKIvZZpM1r3XJoWgu+4jRwRUW1DwtBLhqerNj1vY0G9LmLg+bAPiUA49vK993XwbGBz8qicQxxcJel4GdGgxw3oHXDIxTYSHhCaD6aoEC2iicKAh60K975PD+E9GX9SKZVTDEcXanxBnSSQDZtlMBBFdOpUo2jA9xHSUNVKilcKZ7hA==
+ b=jRDzYIFq5qoCPQ4vyetdvlICQ8h9MykL8/MBQS3qmRZMa3kF5EVyILy/GPPBbYBjea81MgGto9LIz00gSM8k1Zpuq93vF2PP/P96Wbq3pfLJX7nu9UY/NaOP4KISDEjV56YRbh7w2jSb37XWPz5yqGGIU5LmFA1q40Eg8Oxqci9RPn7b/T0cKQvbrvVs0tsEQaqM2Ox8bmmg+BcuLXr4ekiNXXbn4nqEDLRQ9P2IB72G8bYtyZAiQJsmvLQzi9y91IaCejGH9U+DGvvfb591SJ/PVDB0YoTGa5axg84rY0ZkLJXQbtYp/ynDQ3omE2teGUpoEQJjoXQRqScVhyKfYg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=k3FUUWJUpY4WWUbpRACVAFwltoRFmtWlt3rt/0xhAqU=;
- b=N5GcVFsJ962wjKdqM/mKzpoG+rGSzDXgcWdb9eRyHp+za905ItjoHPJHOA9b28dCcXgQ7qlhOEaWDhHIe24LOpZ4Fi2g2yNxnjVdIFjXu3uyfDmrgZNDezJnWVJd9O6fvgNsUN79Xv2DHO8+clxMRbabVIQHGT9Lw/D5dvfgpQoljZbO7PhZmj2fMjg8dOv/6rSr+utIXlvNiiVBo/+V59btdrkZbM6MT1v54XL/PpzHH9IiPW8setTc3/jnlUyt6OiPcKEOCeJejEQZBdyVZUUauz3y7dXaNTdH1yspHV20Sae66O752MekEN0OP4uXMUHRRFvjR4Fnp2+sHTjJ/A==
+ bh=DJEH1lhGPqWAhCW7rK7+jP+0CAeP1+7HZWhLGTWtWT8=;
+ b=l0FgxMaxETU73o8e1Prtu6eMiSYR3q3OvPVL9rVQoJ9zVCIt5xvpUio0xBgvIbzXyi71upqAQbaXbn6Wx5wT/Fjz0t1QxDfQdnVtPJVljeftxV6KjqL1Rurdkgkc+djiYTrHgoh2ylvaHPosDGCs+7RdDeRRW3Krx7SbzW9+6UgvPWJkKT+vADiqy67fOo8WWxg+WuIHJY9bIr6+OJeEU2JbladQ6VU7i/mLMbDiHRWzZyx1dF0TY356QxZa+Sfji++wBCixd3bNAUPOfi5LyEOo/exnR9yHclZIKxmZUNHyszNsMllX2ysBWe38YogjslfG5lJoV2i8yQkgahJi+A==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=k3FUUWJUpY4WWUbpRACVAFwltoRFmtWlt3rt/0xhAqU=;
- b=QjwAtCa8QMqTfPxmi/Ob+/wVpW+1HO5QgIj9HfvPdBM7IuCWLyctXnNsbwbQcc4YJq9WHIRAscte/QDQTR3kKGLPa3D+QMPdoEJM86aW0dWlAA/fMc1h1+e66RYm8JzSdy878ci1SoAJIj+Aii5ub47yGu4X3CilTH7vFhNFToc=
-Authentication-Results: nvidia.com; dkim=none (message not signed)
- header.d=none;nvidia.com; dmarc=none action=none header.from=oracle.com;
-Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
- by MN2PR10MB4045.namprd10.prod.outlook.com (2603:10b6:208:1b7::31) with
+ bh=DJEH1lhGPqWAhCW7rK7+jP+0CAeP1+7HZWhLGTWtWT8=;
+ b=ufuC+XdfliCcJH557x75cDX0R97MAo9lmvA7bWlv+4J0oFosf7amEJIvtNWL3/YTPCard4iL+3vGP0N6zGOemmIP39Q+5Nebig8oJRrjoKs1igKBr5JeZieuiVDPyEP9cEKAFA2FclU6Pay3EQsEAvjz7FeX/ejogzha/fZ/tzg=
+Authentication-Results: amd.com; dkim=none (message not signed)
+ header.d=none;amd.com; dmarc=none action=none header.from=amd.com;
+Received: from DM5PR1201MB2491.namprd12.prod.outlook.com (2603:10b6:3:eb::23)
+ by DM5PR12MB2485.namprd12.prod.outlook.com (2603:10b6:4:bb::29) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.17; Tue, 19 Oct
- 2021 15:20:25 +0000
-Received: from BLAPR10MB4835.namprd10.prod.outlook.com
- ([fe80::d809:9016:4511:2bc6]) by BLAPR10MB4835.namprd10.prod.outlook.com
- ([fe80::d809:9016:4511:2bc6%8]) with mapi id 15.20.4608.018; Tue, 19 Oct 2021
- 15:20:25 +0000
-Message-ID: <a0001855-4f08-78b7-64ae-80ebbbb04f8d@oracle.com>
-Date: Tue, 19 Oct 2021 16:20:16 +0100
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.18; Tue, 19 Oct
+ 2021 15:38:38 +0000
+Received: from DM5PR1201MB2491.namprd12.prod.outlook.com
+ ([fe80::d153:3aa6:4677:e29]) by DM5PR1201MB2491.namprd12.prod.outlook.com
+ ([fe80::d153:3aa6:4677:e29%7]) with mapi id 15.20.4608.018; Tue, 19 Oct 2021
+ 15:38:38 +0000
 Subject: Re: can we finally kill off CONFIG_FS_DAX_LIMITED
-Content-Language: en-US
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Christoph Hellwig <hch@lst.de>, Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Linux NVDIMM <nvdimm@lists.linux.dev>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Matthew Wilcox
- <willy@infradead.org>,
-        Alex Sierra <alex.sierra@amd.com>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        Linux MM <linux-mm@kvack.org>, Ralph Campbell <rcampbell@nvidia.com>,
-        Alistair Popple <apopple@nvidia.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Dan Williams <dan.j.williams@intel.com>
+To: Jason Gunthorpe <jgg@nvidia.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Joao Martins <joao.m.martins@oracle.com>,
+ Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+ Christoph Hellwig <hch@lst.de>, Heiko Carstens <hca@linux.ibm.com>,
+ Vasily Gorbik <gor@linux.ibm.com>,
+ Christian Borntraeger <borntraeger@de.ibm.com>,
+ Linux NVDIMM <nvdimm@lists.linux.dev>,
+ linux-s390 <linux-s390@vger.kernel.org>, Matthew Wilcox
+ <willy@infradead.org>, Alex Sierra <alex.sierra@amd.com>,
+ Linux MM <linux-mm@kvack.org>, Ralph Campbell <rcampbell@nvidia.com>,
+ Alistair Popple <apopple@nvidia.com>, Vishal Verma
+ <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>,
+ "Phillips, Daniel" <Daniel.Phillips@amd.com>
 References: <20210823214708.77979b3f@thinkpad>
  <CAPcyv4jijqrb1O5OOTd5ftQ2Q-5SVwNRM7XMQ+N3MAFxEfvxpA@mail.gmail.com>
  <e250feab-1873-c91d-5ea9-39ac6ef26458@oracle.com>
@@ -83,88 +53,151 @@ References: <20210823214708.77979b3f@thinkpad>
  <20211018233045.GQ2744544@nvidia.com>
  <CAPcyv4i=Rsv3nNTH9LTc2BwCoMyDU639vdd9kVEzZXvuSY+dWA@mail.gmail.com>
  <20211019142032.GT2744544@nvidia.com>
-From: Joao Martins <joao.m.martins@oracle.com>
+From: Felix Kuehling <felix.kuehling@amd.com>
+Message-ID: <d5a7e72d-b366-4fb4-8c41-100e5d8ce020@amd.com>
+Date: Tue, 19 Oct 2021 11:38:36 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
 In-Reply-To: <20211019142032.GT2744544@nvidia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO2P265CA0134.GBRP265.PROD.OUTLOOK.COM
- (2603:10a6:600:9f::26) To BLAPR10MB4835.namprd10.prod.outlook.com
- (2603:10b6:208:331::11)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-ClientProxiedBy: YTOPR0101CA0027.CANPRD01.PROD.OUTLOOK.COM
+ (2603:10b6:b00:15::40) To DM5PR1201MB2491.namprd12.prod.outlook.com
+ (2603:10b6:3:eb::23)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Received: from [10.175.162.43] (138.3.204.43) by LO2P265CA0134.GBRP265.PROD.OUTLOOK.COM (2603:10a6:600:9f::26) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.15 via Frontend Transport; Tue, 19 Oct 2021 15:20:22 +0000
+Received: from [192.168.2.100] (142.118.126.231) by YTOPR0101CA0027.CANPRD01.PROD.OUTLOOK.COM (2603:10b6:b00:15::40) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.15 via Frontend Transport; Tue, 19 Oct 2021 15:38:37 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 5a66a871-33a0-4289-86e2-08d99313f990
-X-MS-TrafficTypeDiagnostic: MN2PR10MB4045:
-X-Microsoft-Antispam-PRVS: 
-	<MN2PR10MB404539B345B8F09B06129FCFBBBD9@MN2PR10MB4045.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-MS-Office365-Filtering-Correlation-Id: 9457368b-ed04-4dfb-1e8e-08d99316855d
+X-MS-TrafficTypeDiagnostic: DM5PR12MB2485:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS:
+	<DM5PR12MB24856A05B64FDA143C6EAB2692BD9@DM5PR12MB2485.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	IDlMGE8yfNOyB4TrnYb8nz9vHe6oyx6P5zEDE4wXErm4FpxEFMNOkOUd0Vz4yDKh/a54esqkknflSv35fU1eBMT87ODAsuDgUpmHsDHnrFU752EtfARZrfljzgyW3bKH8wUixUsXVh4TzaTk/VZzDY9MmA+PP3yWIOcjxPr9Sl/zVcT/Ay6gPE0oQ+vS5eq5NS97CPbWQayEE/+uFUiGN+fMszAd4MBu+VN1RrPh3+etjd99dAOUMxuve9W8BGBDopPZobLhmmyiMXxZb5P2yivIgYnsbarajQQiTdoSlyENSCyspyZzLNJq9CrNaWqbH3NOEQw2Zn4VWzN4Z3aBPQaBqGZYRpPVhQJl4xverNWqtSCvmLovDOJ57ElGFxYkpbtEu82zGAYnYrEfRfp4FBczcb9rrMrcVExNPthrutSSr/GHAtU55ublf9pqSmHV0WJHeuVSaIHOcR2pL12A6E3iMYL0qjgz7ctEZn1eXqewuMlvl2DmEi+4AgGrI6UiOdwx8md9R45dUatO9ANP3Cs7QZjqa7dAwCRScGGHeVkJPepZywcCY269NvXCZ5Adbmm/a83YDBltetN2+tvcivjMee8zLOo2XZPn8U1glmp3aIxlYIixXlr4ALU32v32VpgHsHYc9Aj5u/eeuU3n68Hu2L4zVgqve1UUhYzFgtXmCplxgEIM8hxj2R22vNj5ftw7FUU8QcvfAcQcur2k7A==
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(66946007)(316002)(31686004)(8936002)(5660300002)(66476007)(2906002)(8676002)(508600001)(16576012)(26005)(956004)(2616005)(38100700002)(53546011)(186003)(6486002)(36756003)(83380400001)(31696002)(66556008)(7416002)(4326008)(6916009)(86362001)(6666004)(54906003)(45980500001);DIR:OUT;SFP:1101;
+X-Microsoft-Antispam-Message-Info:
+	yyOwZywtvobXeAJSn1oRFVE595JqXWV9QR7DBTlfRds5wjSp8zMhr2P8DRk6v6TPNJoMTh6jnNIU8jb+QTSLaeEEI4KkRsBgd+ZmZ+1gVIIjCT4Iyd3PWh5zGrLrCTdj2pseRsmZcIGuC4rBsxgXI8JdVATo5BVNQCGz7zAlgI6ZkeGjxIN712TR2w/tGH0dRHHsYBQO6S6C5J+3ahiISLQGZKcL5/cXKfGABCar6RxSw3ZV6Xo2AI3+62Aou+KzlraqUjXGOLNnwfU8bmqM3DrWDZFoINkduCE7Y+k/frF53pauhPD6YFP/JrSaAjZC2ENAZOPx7S37iiq5vrzp/7YmhfCKpENTwIvI28FzaBfDsFvl7VKWpNe5y4j68gIxnd964IywGGzzhLzn3gIPWIdToz21amzabOp2F3BJEaSepvi8RJEKVZbYgPlxc7RjBqcZXz9fx7kyoQBR5eBcSToXSYRHuXsGvbDPc1wBjmDZWUqjD271+jBwrI2yR2Cp/zdy4IYYUM/3q9HVyVm3Rb/ptlFyu1eWWnKl8TJXyvNwj7F2gWWxoEXnPSrh/TeSpJUV4fbzQFL7LMheUMg3QXSZHKYte4lRA1GcncNSQxVI3i6fVv4MDSJ2dyxDD8TyjMNJev5J3ntS6e50jvMUyHwkfwcgu2KN+gegfRenMhwrC2ZmljKl8rxExffU7R9n5g6zkRVPSlcrNcRt5i2Ig0Kg8yKfUbZ9/QoJPXoSyaCCrOm9VjFbDWWxNaIv92L/
+X-Forefront-Antispam-Report:
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DM5PR1201MB2491.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(6486002)(31696002)(2906002)(7416002)(2616005)(316002)(44832011)(5660300002)(110136005)(31686004)(54906003)(16576012)(36756003)(956004)(83380400001)(86362001)(66556008)(508600001)(38100700002)(4001150100001)(8936002)(26005)(186003)(66946007)(66476007)(4326008)(8676002)(53546011)(43740500002)(45980500001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?alpBSXNNTDZlb1MyUnNhZEhRdnhnY1hsYWtBL3ArOVUvM2QyVkNpWEFiU0Ur?=
- =?utf-8?B?ZzBTdmo1Szdta0ZLakl5QnBqOE5oNWI1MkVhVEJSdkdMZ1lkSWpJQll3T1Bo?=
- =?utf-8?B?Um1PQlVuc1ExeFIrUlVBLzZuL24vbm95MHhhZUxNVko0enZrTnBoazZDc1Y5?=
- =?utf-8?B?TkVaTHdiR3ppMVRzL3lZMXZPVDhCR3NOeWpKZ0pWdmVXRFJDeU9jYXhUVm1s?=
- =?utf-8?B?NTU5cFZZU01jTnFMNXgzTWhrUjJhUkZWZmsrZFg0TW10WkpqYXpyTVRWTDUz?=
- =?utf-8?B?aXpXUTQvY3c3dXJrZTZPTjgxSmk1dTJITFFCYjI4M3k4OEZzWGFIYi8yM3Vy?=
- =?utf-8?B?WitkOEJEMUFaVnFUcWI2bWtEMDBLQnQ4WTV5UUhhZ2ZzeTVQZlR5VHpraVVr?=
- =?utf-8?B?TVZsZ2o1cnFReHRyRzA4aGk0aXFXN2lNOEZ0T0NvWnpkcCtTRWZySXRTMkIw?=
- =?utf-8?B?Ni9OOVZWd2hEM25LTG00VHhDbTgybk5EUk55V1B0L0FLVHhOK0xGVUphRmFB?=
- =?utf-8?B?QlFCVEJabDl4RXBkeW1mNnBEYkhkZzJjUWNvZnU1UGY5WlI1eXBGTjdZTE5H?=
- =?utf-8?B?YkZ2Ujlydm5TQUNET2tJTDE2Y3ZQY2JiYVlzcGphSzZmL28xUDVQL0UvMXZy?=
- =?utf-8?B?bzVxV3BXZkU4MVE3SERaMy91VzlkMnRuczJuRENWcUJZTGJjYkJqQ093VWlx?=
- =?utf-8?B?MGVZclZFYmZHT2dPQTlyZlJ4QTVCQUh4KzJCQ1FGVWlhSGh3TFN1SWZ5ems2?=
- =?utf-8?B?T29idXQxZ2R3VzUvRm9UTUY0cTRMczlGeWpYMlFMZ2VTcE1OMVQ4VzRhejN4?=
- =?utf-8?B?YnJMM1dOK2k0Q3pFQkVxR3dSL1lLOTJzekEyaS9zRXA2QnFxU1JpWndyQ21v?=
- =?utf-8?B?ZXVKTEZudUc4SnQrMkUzNnBZNW5FV01waUVGdHFpMFJzS28zQ0swMWE5UGpB?=
- =?utf-8?B?YWRDb1BZeGlKNDg0S1hsaGxQWWxJUnE4eVo2MnhuQnVnUXpIbjZlZHNzZ0d6?=
- =?utf-8?B?MjVQdGozem5LUHBLdGxNVHZJcDlJZmk2N2VkK1ZIRWthN2thSnhmV2hNRis0?=
- =?utf-8?B?UXp5c1dtd0tlTnEyS2tXeFJhUFI0VDR5a1pqbUFZRE14UUpaTlhYTFk3TCta?=
- =?utf-8?B?SENaa0w3bm5sWHZSaUo3enliTWdGNndKdW53bGhZNmptODgxVHZiNVI5WEwx?=
- =?utf-8?B?ZTFXU1JlakQzazRhWnFEL0QxeE82bGxUZm4ydHo1V051WWN6SEJVMzZLUFdJ?=
- =?utf-8?B?NVZkRHFaeEZEOEhpSUVCZHlVYzVIYmlENWNEZnRsbE56eTc2M21xWUZ6UEZr?=
- =?utf-8?B?cC9BNmhIamhxQys1SWxVaWE2S2ZIWWxIMXhkeWZyQmhVVFJBRUk1NnVOYzA4?=
- =?utf-8?B?ZWdvU2pFS1ZHamZERVZ0aVFGV3JVNXp5bWlHeGNyRlMvM1JLSEw1U0xqVjFk?=
- =?utf-8?B?a2dtcmZKdm9IbzhQMTQ0REVmMzNIS3pPNkRzVGxjZmRIc1dLRmNOL2JZeVcy?=
- =?utf-8?B?dlE4VHVHVE1haEZORHo3ZHN0cXc5VGlDbFRSRDFDeC9rbWgrRGkza1U4Y1h2?=
- =?utf-8?B?ZXBLdWtYcGpYTWZtb3E2M05raHJpS1Vhb1N1aDhsdGIrcStKdCt0bU5RSXhT?=
- =?utf-8?B?Y0RVdlRmeHkyNCtHOVM1clRvVENHTVIzNnVtSmp1OEV1OXhFcklBUWFuQ2lu?=
- =?utf-8?B?dUpQUFVJL2dLTzlwVWhBV2xyV28vV1BBYkEvMGJ4YU9RZXgwNmIzNW1rcEZp?=
- =?utf-8?Q?lYE7zaw2uDncMC9cFiqZyRrwfQ8TDhPMDHJH2x7?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 5a66a871-33a0-4289-86e2-08d99313f990
-X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
+X-MS-Exchange-AntiSpam-MessageData-0:
+	=?utf-8?B?Tkd2M3pIbDBNQjBJTmxRZkNPMDhhR0FPSkNZVEFEdlI5bWtYZTc2S09sTENW?=
+ =?utf-8?B?a3BocWVkNFBqM0F5VjFmVE9QcFpRZUlLcjRDZHE1cDhsem01QTI1VTl0Q3dW?=
+ =?utf-8?B?T1k1UHFzbjljTTZYdlU3VmI5cnFWTzlOcXh5TnlRTmhRK0J3TnFicTVWL2lh?=
+ =?utf-8?B?OVBnSlJ3M255WjdFckNJcSsyUGFXL0VUNFByYnNvVU45WHArSzVFTWRIbnd1?=
+ =?utf-8?B?NnQveDZvQXF3WnBkYXZrWjFEb3EvRUY5WHlIYWpvR2FIMTVGYzJHais1RXVD?=
+ =?utf-8?B?UDN1ejdFYUcvYjY0azd1azlxaklYM05Xc1F1WVp3ZEtWc1VEN1NKejg1TE41?=
+ =?utf-8?B?Qmc4RXFvNW5ZZ0JtWkxoK3FmMld1TFBkeG9hSHI5cDJ5eGlZUEFkTnVPOFox?=
+ =?utf-8?B?L0pIdi9sbDR5a0VZRkZYUEJMbDVhZ2RaOUx6T3FPTzNhUXJRNytPTVZvb3kx?=
+ =?utf-8?B?UEZmZWVCVjhSWW5kOEZTSkRiQXJyTGhNeXdLTjBKcEtnVkNVOVlSTWd0Mlor?=
+ =?utf-8?B?NVArUXZKdVBIOGRCdDhQdDhQUjIybE9pdG43ODdWUGEydTR5aWt1aElNaHps?=
+ =?utf-8?B?aGdJdHFRWVg1bnFFZnlZKzVvV2tGcE0zZDNBcnNQRjBKTmtBdmdzS0s5OU4y?=
+ =?utf-8?B?ZGp6NkoxUkw1elNqVXpySDM1eUNjTWhFZzBaZlVzNXgrclErWDJwNzU2aXow?=
+ =?utf-8?B?bTd6Q0tWUGR0ZGF5UndQVVE5eVZWOHgzTGszTktkSTVCOTIwc1pjNkpReWd6?=
+ =?utf-8?B?L2tycGhnYy8zdmQ2WGM2MWpIUldOTzlkRnhLRDBkNnk1Uk9YdFhsb3JYSWF1?=
+ =?utf-8?B?M0hFT1NjMTFZOUZNYktOLzhrQkVSbjdhOVlpZms4S3JFUlVzTTZ1M3lKeGZv?=
+ =?utf-8?B?RHQ5Ly84N29iNnU3NERMRFBHRkZOdkNXbm1kdUZvRFNRWE1EY3NDYjV6SEx5?=
+ =?utf-8?B?Q1hPamcwWHJ1aU9OT0RuZFBHekRxMmlqakpDeFYzSDlGN0t2d2JqemJ5THFv?=
+ =?utf-8?B?OTlvS2ExNnUvNEd6dVhHai9Vak1vTzdmaDBXd1ZNSEpBRkR4aGord1hWem1B?=
+ =?utf-8?B?T3FzUmt0TFpFcUQ0WEdkajB5ekRBZE1iY1hsNm8xSDNHM1R6YnRGaS9PUzNE?=
+ =?utf-8?B?ckRyMGNWZlBrL0xVTDdvVWVVSmhqWEs0WUsxSGRPeUphYUxSdngvdzVSRmFy?=
+ =?utf-8?B?QXFPbkkvTWlMYXUvaGcxOU50UnJIRXV2L2RJbHIzS1Y5UHFXSzNTUW5sd1Ew?=
+ =?utf-8?B?VU1ZeDVZdENmb2d5UjBUeTZ1WVZMalovRytDMFIvdW5MRExBS2xXVXBZaXBh?=
+ =?utf-8?B?UWRVYUNXSnlFYjdjM1hRNW1GenVKWjFybDhyamlXWk1POVVDU3pxSFQxSDNV?=
+ =?utf-8?B?WFNta1IrRmo1NHBqNzN3ZnczVFRNWEZ0c0tKSE9lclpYaUZTbmh4VzlXbTZu?=
+ =?utf-8?B?YnVTYW92elljWi9LajdrZGhGNWdwRkpUUlpkOGozaEhKekRHamxYT011T2lj?=
+ =?utf-8?B?MWMzTHhSVjZWMWcycTFMMHNqemM5Nlptd1hONkhndnQ3TXQ4dGRzZlVCMEhH?=
+ =?utf-8?B?cGZRQ3NxZnBzV1hVZUNBNVFmeHQyUm5uZGNTSThDSTAwc24zci9CNG1EWGpt?=
+ =?utf-8?B?T1lhWWFTMCtiNnhRdTBQSmtGTzU3TlI4cFJXQ3FXMnc2Q21ZbnZsOFhNcisx?=
+ =?utf-8?B?OCtWWFhwQ0IwV2RoR2NrOUtqYXBNSHllTm13eDJLMExOZUZTS1diekwvL3JP?=
+ =?utf-8?B?a3A5SXY0Ykh1TEhCc1M1d2VQdmhZdUNQWHV0QXF5bUp6M3RYWG1QSUdyN3NZ?=
+ =?utf-8?B?VmVRVXNEZEl6eTRBWHJZZz09?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9457368b-ed04-4dfb-1e8e-08d99316855d
+X-MS-Exchange-CrossTenant-AuthSource: DM5PR1201MB2491.namprd12.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Oct 2021 15:20:25.2536
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Oct 2021 15:38:38.7830
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: wQAsI3XNt79S/M0sYTuDP7gkXa2PNIEoOqXZXIq9HfBziWKpEV0tQ6HYosnM1eG5+1QP2PI2iSzA1mWrbG8/O1RiB0RZfvJeX+KStJDivfw=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR10MB4045
-X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10142 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 mlxscore=0 adultscore=0
- spamscore=0 phishscore=0 bulkscore=0 suspectscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2109230001
- definitions=main-2110190092
-X-Proofpoint-GUID: -xgAQ9qHhr7YPnpMS2bNkhNwCeOVXqiA
-X-Proofpoint-ORIG-GUID: -xgAQ9qHhr7YPnpMS2bNkhNwCeOVXqiA
+X-MS-Exchange-CrossTenant-UserPrincipalName: wCsXS2JNGZvDJPTXY/KTS/+vk+Hp5+ddjuTjv0IqSvh4fK4j86BSXevUbbYHW6nPUaXgyfKgs8O5XgQs4oELrA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR12MB2485
 
-On 10/19/21 15:20, Jason Gunthorpe wrote:
+Am 2021-10-19 um 10:20 a.m. schrieb Jason Gunthorpe:
 > On Mon, Oct 18, 2021 at 09:26:24PM -0700, Dan Williams wrote:
 >> On Mon, Oct 18, 2021 at 4:31 PM Jason Gunthorpe <jgg@nvidia.com> wrote:
 >>> On Fri, Oct 15, 2021 at 01:22:41AM +0100, Joao Martins wrote:
+>>>
+>>>> dev_pagemap_mapping_shift() does a lookup to figure out
+>>>> which order is the page table entry represents. is_zone_device_page()
+>>>> is already used to gate usage of dev_pagemap_mapping_shift(). I think
+>>>> this might be an artifact of the same issue as 3) in which PMDs/PUDs
+>>>> are represented with base pages and hence you can't do what the rest
+>>>> of the world does with:
+>>> This code is looks broken as written.
+>>>
+>>> vma_address() relies on certain properties that I maybe DAX (maybe
+>>> even only FSDAX?) sets on its ZONE_DEVICE pages, and
+>>> dev_pagemap_mapping_shift() does not handle the -EFAULT return. It
+>>> will crash if a memory failure hits any other kind of ZONE_DEVICE
+>>> area.
+>> That case is gated with a TODO in memory_failure_dev_pagemap(). I
+>> never got any response to queries about what to do about memory
+>> failure vs HMM.
+> Unfortunately neither Logan nor Felix noticed that TODO conditional
+> when adding new types..
+
+You mean this?
+
+        if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
+                /*
+                 * TODO: Handle HMM pages which may need coordination
+                 * with device-side memory.
+                 */
+                goto unlock;
+        }
+
+Yeah, I never looked at that. Alex, we'll need to add || pgmap->type ==
+MEMORY_DEVICE_COHERENT here. Or should we change this into a test that
+looks for the pgmap->types that are actually handled by
+memory_failure_dev_pagemap? E.g.
+
+        if (pgmap->type != MEMORY_DEVICE_FS_DAX)
+                goto unlock;
+
+I think in case of a real HW error, our driver should be calling
+memory_failure. But then a callback from here back into the driver
+wouldn't make sense.
+
+For MADV_HWPOISON we may need a callback to the driver, if we want the
+driver to treat it like an actual HW error and retire the page.
+
+
+>
+> But maybe it is dead code anyhow as it already has this:
+>
+> 	cookie = dax_lock_page(page);
+> 	if (!cookie)
+> 		goto out;
+>
+> Right before? Doesn't that already always fail for anything that isn't
+> a DAX?
+
+I guess the check for the pgmap->type should come before this.
+
+Regards,
+  Felix
+
+
+>
 >>> I'm not sure the comment is correct anyhow:
 >>>
 >>>                 /*
@@ -197,24 +230,18 @@ On 10/19/21 15:20, Jason Gunthorpe wrote:
 >>>>       tk->size_shift = page_shift(compound_head(p));
 >>>>
 >>>> ... as page_shift() would just return PAGE_SHIFT (as compound_order() is 0).
->>>
 >>> And what would be so wrong with memory failure doing this as a 4k
 >>> page?
->>
 >> device-dax does not support misaligned mappings. It makes hard
 >> guarantees for applications that can not afford the page table
 >> allocation overhead of sub-1GB mappings.
-> 
 > memory-failure is the wrong layer to enforce this anyhow - if someday
 > unmap_mapping_range() did learn to break up the 1GB pages then we'd
 > want to put the condition to preserve device-dax mappings there, not
 > way up in memory-failure.
-> 
+>
 > So we can just delete the detection of the page size and rely on the
 > zap code to wipe out the entire level, not split it. Which is what we
 > have today already.
-
-On a quick note, wrt to @size_shift: memory-failure reflects it back to
-userspace as contextual information (::addr_lsb) of the signal, when delivering
-the intended SIGBUS(code=BUS_MCEERR_*). So the size needs to be reported
-somehow.
+>
+> Jason
