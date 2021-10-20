@@ -1,307 +1,155 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id BD9562C8B
-	for <nvdimm@lists.linux.dev>; Wed, 20 Oct 2021 05:47:56 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AEOAS+K1vFuavyONW+PbD5bhwkn2cJEfYwER7XOP?=
- =?us-ascii?q?LsXnJhzhz1mMCmGUbUGnSPqmDNmf8f4sgaom+pxwDsJTdztU2QQE+nZ1PZygU8?=
- =?us-ascii?q?JKaX7x1DatR0xu6d5SFFAQ+hyknQoGowPscEzmM+X9BDpC79SMljPnSHuKlYAL?=
- =?us-ascii?q?5EnsZqTFMGX5JZS1Ly7ZRbr5A2bBVMivV0T/Ai5S31GyNh1aYBlkpB5er83uDi?=
- =?us-ascii?q?hhdVAQw5TTSbdgT1LPXeuJ84Jg3fcldJFOgKmVY83LTegrN8F251juxExYFAdX?=
- =?us-ascii?q?jnKv5c1ERX/jZOg3mZnh+AvDk20Yd4HdplPtT2Pk0MC+7jx2Tgtl308QLu5qrV?=
- =?us-ascii?q?S8nI6/NhP8AFRJfFkmSOIUfoeGefCLg4Jz7I0ruNiGEL+9VJE0/I4wU0uhtBmR?=
- =?us-ascii?q?J7/YZNHYGaRXrr+K9wJq6TOd2j8guJcWtO5kQ0llsxDefD7A5QJTHQqzP/vdZ2?=
- =?us-ascii?q?is9goZFGvO2T8Ybdj1pYzzDbgdJN1NRD4gx9M+sh3/iY3hdrXqWu6M84C7U1gM?=
- =?us-ascii?q?Z+L7zPNvQf/SORN5JhQCcp2Tb7yL1Dw9yHN6WzzfD+XKxrujVlCj/VcQZE7jQ3?=
- =?us-ascii?q?vprhkCDg2IIBBAIWF+Tv/a0kAi9VshZJkhS/TAhxYA29Uq2Xpz+Uge+rXqsoBE?=
- =?us-ascii?q?RQZxTHvc85QXLzbDbiy6dB24ZXntRZscOqsA7X3op20WPktevAiZg2IB541r1G?=
- =?us-ascii?q?qy89Gv0YHZKazRZI3JscOfM2PG7yKlbs/4FZowL/HaJs+DI?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ARHDas65JxaMIjv9QSQPXwCzXdLJyesId70hD?=
- =?us-ascii?q?6qhwISY6TiX+rbHWoB17726TtN9/YgBDpTntAsm9qDbnhPlICOoqTNOftWvdyQ?=
- =?us-ascii?q?iVxehZhOOIqVDd8m/Fl9K1vp0NT0ERMrLN5BRB/KPHCReDYqsd6ejC4Ka1nv3f?=
- =?us-ascii?q?0nsoaQlrbptr5wB/Bh3zKDwMeCB2QYo+CIGH5tdK4x6peXEsZMy9AXUfG8fZod?=
- =?us-ascii?q?mjruOdXTc2Qw4g9BKVjS6lrJrzEx2j1B8YVD9VhZcOmFK16zDE2g=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.87,166,1631548800"; 
-   d="scan'208";a="116152798"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 20 Oct 2021 13:47:55 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 52BD24D100E9;
-	Wed, 20 Oct 2021 13:47:51 +0800 (CST)
-Received: from G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.80) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Wed, 20 Oct 2021 13:47:51 +0800
-Received: from [10.167.216.64] (10.167.216.64) by
- G08CNEXCHPEKD07.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Wed, 20 Oct 2021 13:47:50 +0800
-Subject: Re: [PATCH v7 6/8] mm: Introduce mf_dax_kill_procs() for fsdax case
-To: "Darrick J. Wong" <djwong@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>, <dan.j.williams@intel.com>,
-	<david@fromorbit.com>, <hch@infradead.org>, <jane.chu@oracle.com>
-References: <20210924130959.2695749-1-ruansy.fnst@fujitsu.com>
- <20210924130959.2695749-7-ruansy.fnst@fujitsu.com>
- <20211014193241.GK24307@magnolia>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Message-ID: <25f86782-ff1f-db4d-d5da-fd1e5bee45f6@fujitsu.com>
-Date: Wed, 20 Oct 2021 13:47:50 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C9762C8B
+	for <nvdimm@lists.linux.dev>; Wed, 20 Oct 2021 06:21:12 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10142"; a="208804893"
+X-IronPort-AV: E=Sophos;i="5.87,166,1631602800"; 
+   d="scan'208";a="208804893"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Oct 2021 23:21:11 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,166,1631602800"; 
+   d="scan'208";a="720312605"
+Received: from orsmsx605.amr.corp.intel.com ([10.22.229.18])
+  by fmsmga005.fm.intel.com with ESMTP; 19 Oct 2021 23:21:10 -0700
+Received: from orsmsx610.amr.corp.intel.com (10.22.229.23) by
+ ORSMSX605.amr.corp.intel.com (10.22.229.18) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12; Tue, 19 Oct 2021 23:21:10 -0700
+Received: from orsmsx604.amr.corp.intel.com (10.22.229.17) by
+ ORSMSX610.amr.corp.intel.com (10.22.229.23) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12; Tue, 19 Oct 2021 23:21:09 -0700
+Received: from ORSEDG601.ED.cps.intel.com (10.7.248.6) by
+ orsmsx604.amr.corp.intel.com (10.22.229.17) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2242.12 via Frontend Transport; Tue, 19 Oct 2021 23:21:09 -0700
+Received: from NAM10-MW2-obe.outbound.protection.outlook.com (104.47.55.103)
+ by edgegateway.intel.com (134.134.137.102) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2242.12; Tue, 19 Oct 2021 23:21:09 -0700
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=FotFw7D+rNcCI87adIaEqCmFP9rHD9huVfrYZZEgwu1YMwwNTllXtbDBGkhZ+5RpSv8GNJs3XJAzjz8qXYlY+v1d9o9YIeVckJNb1fSvs5S0uZOnYdyzGnCHNRJmCrAGAxxPrz2PAZAFuNgOdur/JOC0u72905G1C6w/N0m5sq7Z23mbaA5yxywSDJsb2/mFXPZS28I99nNgmVoRXsQizI+srz+BhackJdYeCuPgBi5Wq3adr1g5rg5elAfSNECdCK9bsbIXlrdmz48IC5QeUSwoQsldSDqTV9324cwhjH1YD+czRo3KnqtRSy43pCO3QtOsluFMfUozBCOGDn3WgA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=0EzRgw+DhvtalJP/4r8z1M+N9qxFyXkKi/1yA+nbmsc=;
+ b=l11RDKJT5JZhCYjV0aXSHDxi+CDQber5XwbR1dFI5KvODCwIex8sG6sZH/ui9bk4Oa5ph/flsWeINJBLzk8gaTOJYFgd3idL7BFY0PpRiX1q4f1RcgSP2i9Trclz6KV80RgJ9tjOeRHDhtRZW6Nhlaw2P/7HvXv88qZodULoE8QatBsQ7Y/Ypa88HhQ5Xz1YF6kLz9IiYawpcdy0QnQTR46SBwzloB8+l+5SBuyQwbKY6T0QRJhsfYm0x58maHX/NOyfsj4GCfqr+s307dMOfRQz9BBkEmKdhaLfQ/i7qyHnYIUR5HXhqqLDEHAgnIjMNkVHDpaeg7DqNQI+pJbM4g==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=0EzRgw+DhvtalJP/4r8z1M+N9qxFyXkKi/1yA+nbmsc=;
+ b=VLBRfY1YUu+a8hW1GXsxg7WZHK4iHWUJTS/1I+1dHYYOqVT33Zla3n31dhVzVVP7YTWP7IncnJ1dZIoor8tVm45Z6xIj+WIwSyceIBvm06qZiN4YTRcJRbuak0XoH1Ymk98+KBkXiL/y+UD8DNLzr6tAMnU05wYVHVF0bZ2m3sc=
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
+ by MN2PR11MB3887.namprd11.prod.outlook.com (2603:10b6:208:156::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4608.16; Wed, 20 Oct
+ 2021 06:21:08 +0000
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::d8a5:47b2:8750:11df]) by MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::d8a5:47b2:8750:11df%7]) with mapi id 15.20.4608.018; Wed, 20 Oct 2021
+ 06:21:08 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "johnny.li@montage-tech.com" <johnny.li@montage-tech.com>,
+	"linux-cxl@vger.kernel.org" <linux-cxl@vger.kernel.org>
+CC: "Williams, Dan J" <dan.j.williams@intel.com>, "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>
+Subject: Re: can call libcxl function outside ndctl tool?
+Thread-Topic: can call libcxl function outside ndctl tool?
+Thread-Index: AQHXxK6HxRNjljCbT0GAsng/nfViFavba/cA
+Date: Wed, 20 Oct 2021 06:21:07 +0000
+Message-ID: <78e901122fa889e595e709d69a303446351540f4.camel@intel.com>
+References: <20211019175518.GB47179@montage-desktop>
+In-Reply-To: <20211019175518.GB47179@montage-desktop>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.40.4 (3.40.4-1.fc34) 
+authentication-results: montage-tech.com; dkim=none (message not signed)
+ header.d=none;montage-tech.com; dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: a1996a4b-fcc0-4541-5077-08d99391cdcc
+x-ms-traffictypediagnostic: MN2PR11MB3887:
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
+x-ms-exchange-transport-forked: True
+x-microsoft-antispam-prvs: <MN2PR11MB3887356C26628D02AF3B3878C7BE9@MN2PR11MB3887.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:9508;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: XCfmLyfz3gTZHKt9RNmRunB8pJb3xNIK6bmFWBY991LPeYpfxGDltWSCSHTdiz3yXSaA/IYgRXxU0zTbwg2yv176QxwwW2NsLTbEyNmvFHhfMLNUV/yGCWwga71qoip2D00PYfvsPiBwH64YprrQ+z/yK527ofolMWlpmCp0uoZPUQeQauZ3M71MnexAQdFbjIlJYJuI0j3Afk7DNjMGtuKfZzr6WYan+ENERdNH99eLJB4NQLnK5bB0T910NDXRDI65U+w1v1zkFqNxqSvz4CAtfNhOtccztgw+wRqJM0xU+XR/d1xSxieVwPgH7IKpXzl9gwEJYIBp3uudvaOGcjMARKzALMPC1HMKwD5WDpYtCM2B64LtmKAlYcY0nedy1eaSBDcuOYPKCnHvmLWME+tb2G6c+xB0Ty4tIpjTE7Za6b9i0v4JQqMFB44omTilTW+365q7GKo/TtrHvebLCwOvlDfSWnU+5ayWSvczQ93X6olBa443UpSnIY56EDFw1JOLXGnxzYRo//kR/lHdOA4FuA8HYCYBZNs1/5orwFy8Xk9W36MliNRyqvAeAhM4xccEUzF6/YhIIWwkB9Dn8UmCUkZ/I+20C5r6q2PLhRg1JdPYGvQRM4EtQ4+eSDaxlVr2rbvuJpzEz7nGTxmtj/VxHzTHAcCxXhOAHxqeD6pBAogFQYeXBEpMSP1BIOrANVwDH1YQ1Yym4Ib8Q90Ttg==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(6512007)(54906003)(8676002)(6506007)(4001150100001)(36756003)(26005)(4744005)(110136005)(8936002)(2616005)(4326008)(5660300002)(86362001)(66946007)(316002)(186003)(71200400001)(38070700005)(66556008)(38100700002)(83380400001)(66446008)(6486002)(122000001)(66476007)(64756008)(2906002)(508600001)(91956017)(82960400001)(76116006);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?aWU0WVdEZXE5ZnFCRmp4K2ZCQVB2a0RqK2JVT3E0cFRwOUkreU03bEwxRWN4?=
+ =?utf-8?B?cGlLK0p6OTdkWTNzbVd3MFZmK0tYc0J1N3ZyUk9NRFU3dGxwaE9MUXhaRm9p?=
+ =?utf-8?B?K25LemMxYzVkbzN4bEVOZWlTMWJ1TjNpMkZJamVrYzNKN0UwYldZTGhGOS9D?=
+ =?utf-8?B?VUNHbzBmSTZnd0pUZWEyakg0eVE3alRDTXBxdkJrNld2aUQ3QXFWWnRFTVJh?=
+ =?utf-8?B?SGYrVzFmRnNhVk9nR0xoVE5jWUI4UlZYWEcwNXNJaSs0eDErQkFCSGd6S3E1?=
+ =?utf-8?B?RFloV2d6eW41N3lTdGNpTUlNcW9PUUExTEk1L25aRWQrVitnY3BrV3d0U054?=
+ =?utf-8?B?Ujl0WnhmTUZFb2RlSHdOeENEOFZkOVdoakp5V0R1aHJ5ZURMdUJ4NXRTcndU?=
+ =?utf-8?B?cHJRMExMcEtSMk9lM01WZTFLNXNoTEhjclhtVkFZZEk1TDJhWkJSTHo0N201?=
+ =?utf-8?B?UDdqeDF0b0pxQnZSOFlvTThKS25NcURsbWVOL0pTM2hodlFVd3c4U09BRlNL?=
+ =?utf-8?B?NWNZMndoRlBndFdoclhQSzdnUVFWRFFvSUlwUXIyTytSc1NvVHh0djA1V0py?=
+ =?utf-8?B?ZjNmTk16MHNKMmJNRDhjQWdlamx3ZjdZd3JxeThSeWRQUjVqWVlOcnpJWkIr?=
+ =?utf-8?B?ZFo1Rkt2ZXNkNTl1RlQxK1BTU05nalEvbDdOZlRpZXowOGM0U093TUtPeXhn?=
+ =?utf-8?B?VXRETVE3ZkNnb21mQXB6UGxFV2JDdm8wY2pFaDJXdWFvNHRVQnBHa2MvZTda?=
+ =?utf-8?B?RnVEU05IWUJsbi81bzE2SVA2K2RCMEVqMXpJbDZWazJadDZtSWh2dElkcElQ?=
+ =?utf-8?B?OVZvdHJQSERiZ2orZXhhQVVpdThWeWNtais0OU1KL0hJR01uOHh4N0IyQzNw?=
+ =?utf-8?B?Vmtja01QWU12RDBadFBVYy9BZnJyMHlXdVBBT1orbmFFMlo1SmFIdXpjblYx?=
+ =?utf-8?B?OWNqY1dPL0RTNllzcDgwSzZ4QXBtUVFFeVpjRVVRU3FoTGduRm03UHJzVTV0?=
+ =?utf-8?B?S005UC9vTTBaSlkwK0pqa053dlZuTjNmY3AwZXV3WGRRRDNwMjFWYllMaEEy?=
+ =?utf-8?B?YTNqTjIrVERyaW9CZmdqTzFtdnppR09jK2RiODlLbmJJckdQeDIvYWY2YVds?=
+ =?utf-8?B?NW9rVlJWZGJvUVZIRERva2RNbjBuTXYzMWF3K1I3RFRyRUxHd2wva2ZacVdV?=
+ =?utf-8?B?V3ZZQ0U3emQ4Q2RkbzB0NEdWa0d3M1ZTbU12aE12QzdLSFFrRlNsME55c2Fw?=
+ =?utf-8?B?NjJ1QjVBdkZIOUdLMGhLNlUvMnBYR2pWN1dXT1hyVnIwS05OMWh2TVhvR0tK?=
+ =?utf-8?B?REp1dlBNQ1hSeTErMFFGWXdVWUJKOWVFTmRrSjJWVU1YbXZXTUlKQU5iRDhp?=
+ =?utf-8?B?cE5rTGRPeWk3TzkvTXdtTTdaaExSYnU5L21mTVJCQ2ZwQ21IcXB0Z0Q5YnZn?=
+ =?utf-8?B?TGJzNGRaaHZJK2hndVZxb3FubkVDRGcvZGRiN24wNGU4U0FwbW80SWFWYWkw?=
+ =?utf-8?B?Tk5zY1ZxWHRwUFpQTTIrdFZwbFp1ZnpCMlBaQm1mMHRHQjY0UzllQklVajhQ?=
+ =?utf-8?B?amtXZUw0UEVEbXhSTnZvWEdwZEdFZUJobjZLSDl6MGNWZmp2WFZVZG1KaDNz?=
+ =?utf-8?B?Y3R6YXJsQXBTVmw0RDdlb25CNCsxYjRrclFhZ3Q1eFkrNjhJTktxTnZGRjdR?=
+ =?utf-8?B?c1FWWkhmY1ZKWUNLV3FXZ2dhTCtvbWJiNldudkR3eWxTNGY4WTVRbWJnU2lQ?=
+ =?utf-8?B?a2NXdWNtd1dnQ24wTXlXcTRhZVlKc25nUklEYzBOMjlFWkNtVDlmaUJ3ZUNn?=
+ =?utf-8?B?eFIyd2t5N1JVRzNrSXJqdz09?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <02F9F0F9C0C3AE4D8E5C4A0C5F66EBF7@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20211014193241.GK24307@magnolia>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 52BD24D100E9.A140D
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a1996a4b-fcc0-4541-5077-08d99391cdcc
+X-MS-Exchange-CrossTenant-originalarrivaltime: 20 Oct 2021 06:21:07.9867
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 1PRAULPa5ohFKvTCYyPm9cdPs4gAotBaW2TbyAtGfXDlrQ4wHryQ2bcq3yMjcrE4wjyJVGqzi0HWmh/WsEoYDkt2vRGd1lGcnHZOp7+4zrM=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB3887
+X-OriginatorOrg: intel.com
 
-
-
-在 2021/10/15 3:32, Darrick J. Wong 写道:
-> On Fri, Sep 24, 2021 at 09:09:57PM +0800, Shiyang Ruan wrote:
->> This function is called at the end of RMAP routine, i.e. filesystem
->> recovery function, to collect and kill processes using a shared page of
->> DAX file.  The difference between mf_generic_kill_procs() is,
->> it accepts file's mapping,offset instead of struct page.  Because
->> different file's mappings and offsets may share the same page in fsdax
->> mode.  So, it is called when filesystem RMAP results are found.
->>
->> Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
->> ---
->>   fs/dax.c            | 10 ------
->>   include/linux/dax.h |  9 +++++
->>   include/linux/mm.h  |  2 ++
->>   mm/memory-failure.c | 83 ++++++++++++++++++++++++++++++++++++++++-----
->>   4 files changed, 86 insertions(+), 18 deletions(-)
->>
->> diff --git a/fs/dax.c b/fs/dax.c
->> index 509b65e60478..2536c105ec7f 100644
->> --- a/fs/dax.c
->> +++ b/fs/dax.c
->> @@ -852,16 +852,6 @@ static void *dax_insert_entry(struct xa_state *xas,
->>   	return entry;
->>   }
->>   
->> -static inline
->> -unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
->> -{
->> -	unsigned long address;
->> -
->> -	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
->> -	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
->> -	return address;
->> -}
->> -
->>   /* Walk all mappings of a given index of a file and writeprotect them */
->>   static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
->>   		unsigned long pfn)
->> diff --git a/include/linux/dax.h b/include/linux/dax.h
->> index 65411bee4312..3d90becbd160 100644
->> --- a/include/linux/dax.h
->> +++ b/include/linux/dax.h
->> @@ -258,6 +258,15 @@ static inline bool dax_mapping(struct address_space *mapping)
->>   {
->>   	return mapping->host && IS_DAX(mapping->host);
->>   }
->> +static inline unsigned long pgoff_address(pgoff_t pgoff,
->> +		struct vm_area_struct *vma)
->> +{
->> +	unsigned long address;
->> +
->> +	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
->> +	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
->> +	return address;
->> +}
->>   
->>   #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
->>   void hmem_register_device(int target_nid, struct resource *r);
->> diff --git a/include/linux/mm.h b/include/linux/mm.h
->> index 73a52aba448f..d06af0051e53 100644
->> --- a/include/linux/mm.h
->> +++ b/include/linux/mm.h
->> @@ -3114,6 +3114,8 @@ enum mf_flags {
->>   	MF_MUST_KILL = 1 << 2,
->>   	MF_SOFT_OFFLINE = 1 << 3,
->>   };
->> +extern int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->> +			     size_t size, int flags);
->>   extern int memory_failure(unsigned long pfn, int flags);
->>   extern void memory_failure_queue(unsigned long pfn, int flags);
->>   extern void memory_failure_queue_kick(int cpu);
->> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
->> index 85eab206b68f..a9d0d487d205 100644
->> --- a/mm/memory-failure.c
->> +++ b/mm/memory-failure.c
->> @@ -302,10 +302,9 @@ void shake_page(struct page *p)
->>   }
->>   EXPORT_SYMBOL_GPL(shake_page);
->>   
->> -static unsigned long dev_pagemap_mapping_shift(struct page *page,
->> +static unsigned long dev_pagemap_mapping_shift(unsigned long address,
->>   		struct vm_area_struct *vma)
->>   {
->> -	unsigned long address = vma_address(page, vma);
->>   	pgd_t *pgd;
->>   	p4d_t *p4d;
->>   	pud_t *pud;
->> @@ -345,7 +344,7 @@ static unsigned long dev_pagemap_mapping_shift(struct page *page,
->>    * Schedule a process for later kill.
->>    * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
->>    */
->> -static void add_to_kill(struct task_struct *tsk, struct page *p,
->> +static void add_to_kill(struct task_struct *tsk, struct page *p, pgoff_t pgoff,
-> 
-> Hm, so I guess you're passing the page and the pgoff now because
-> page->index is meaningless for shared dax pages?  Ok.
-
-Yes, it is for that case.
-
-> 
->>   		       struct vm_area_struct *vma,
->>   		       struct list_head *to_kill)
->>   {
->> @@ -358,9 +357,15 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
->>   	}
->>   
->>   	tk->addr = page_address_in_vma(p, vma);
->> -	if (is_zone_device_page(p))
->> -		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
->> -	else
->> +	if (is_zone_device_page(p)) {
->> +		/*
->> +		 * Since page->mapping is no more used for fsdax, we should
->> +		 * calculate the address in a fsdax way.
->> +		 */
->> +		if (p->pgmap->type == MEMORY_DEVICE_FS_DAX)
->> +			tk->addr = pgoff_address(pgoff, vma);
->> +		tk->size_shift = dev_pagemap_mapping_shift(tk->addr, vma);
->> +	} else
->>   		tk->size_shift = page_shift(compound_head(p));
->>   
->>   	/*
->> @@ -508,7 +513,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
->>   			if (!page_mapped_in_vma(page, vma))
->>   				continue;
->>   			if (vma->vm_mm == t->mm)
->> -				add_to_kill(t, page, vma, to_kill);
->> +				add_to_kill(t, page, 0, vma, to_kill);
->>   		}
->>   	}
->>   	read_unlock(&tasklist_lock);
->> @@ -544,7 +549,32 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
->>   			 * to be informed of all such data corruptions.
->>   			 */
->>   			if (vma->vm_mm == t->mm)
->> -				add_to_kill(t, page, vma, to_kill);
->> +				add_to_kill(t, page, 0, vma, to_kill);
->> +		}
->> +	}
->> +	read_unlock(&tasklist_lock);
->> +	i_mmap_unlock_read(mapping);
->> +}
->> +
->> +/*
->> + * Collect processes when the error hit a fsdax page.
->> + */
->> +static void collect_procs_fsdax(struct page *page, struct address_space *mapping,
->> +		pgoff_t pgoff, struct list_head *to_kill)
->> +{
->> +	struct vm_area_struct *vma;
->> +	struct task_struct *tsk;
->> +
->> +	i_mmap_lock_read(mapping);
->> +	read_lock(&tasklist_lock);
->> +	for_each_process(tsk) {
->> +		struct task_struct *t = task_early_kill(tsk, true);
->> +
->> +		if (!t)
->> +			continue;
->> +		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
->> +			if (vma->vm_mm == t->mm)
->> +				add_to_kill(t, page, pgoff, vma, to_kill);
->>   		}
->>   	}
->>   	read_unlock(&tasklist_lock);
->> @@ -1503,6 +1533,43 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
->>   	return 0;
->>   }
->>   
->> +/**
->> + * mf_dax_kill_procs - Collect and kill processes who are using this file range
->> + * @mapping:	the file in use
->> + * @index:	start offset of the range
->> + * @size:	length of the range
-> 
-> It feels odd that one argument is in units of pgoff_t but the other is
-> in bytes.
-
-The index is page aligned but @size may not be.  I will explain it in 
-detail in the comments.
-
-> 
->> + * @flags:	memory failure flags
->> + */
->> +int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
->> +		size_t size, int flags)
->> +{
->> +	LIST_HEAD(to_kill);
->> +	dax_entry_t cookie;
->> +	struct page *page;
->> +	size_t end = (index << PAGE_SHIFT) + size;
->> +
->> +	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
-> 
-> Hm.  What flags will we be passing to the xfs_dax_notify_failure_fn?
-> Does XFS itself have to care about what's in the flags values, or is it
-> really just a magic cookie to be passed from the mm layer into the fs
-> and back to mf_dax_kill_procs?
-> 
-
-Just to pass the flag from mm layer to mf_dax_kill_procs().  No one 
-inside this RMAP progress will care about or change it.  As you 
-mentioned in the next patch, I think this should be named with a "mf_" 
-prefix to make it easier to understand.
-
-
---
-Thanks,
-Ruan.
-
-> --D
-> 
->> +
->> +	for (; (index << PAGE_SHIFT) < end; index++) {
->> +		page = NULL;
->> +		cookie = dax_lock_mapping_entry(mapping, index, &page);
->> +		if (!cookie)
->> +			return -EBUSY;
->> +		if (!page)
->> +			goto unlock;
->> +
->> +		SetPageHWPoison(page);
->> +
->> +		collect_procs_fsdax(page, mapping, index, &to_kill);
->> +		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
->> +				index, flags);
->> +unlock:
->> +		dax_unlock_mapping_entry(mapping, index, cookie);
->> +	}
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
->> +
->>   static int memory_failure_hugetlb(unsigned long pfn, int flags)
->>   {
->>   	struct page *p = pfn_to_page(pfn);
->> -- 
->> 2.33.0
->>
->>
->>
-
-
+T24gVHVlLCAyMDIxLTEwLTE5IGF0IDEzOjU1IC0wNDAwLCBMaSBRaWFuZyB3cm90ZToNCj4gVGFr
+ZSBjeGxfY21kX25ld19pZGVudGlmeSBhcyBleGFtcGxlLg0KPiBUaGVyZSBpcyBDWExfRVhQT1JU
+IHByZWZpeCwgaXQgc2VlbXMgY2FuIGJlIGNhbGxlZCBvdXRzaWRlIG5kY3RsIHRvb2wuDQoNClll
+cyBpdCBjYW4gYmUgbGlua2VkIHRvIGxpa2UgYW55IG90aGVyIGxpYnJhcnkuDQoNCj4gV2hpbGUg
+dGhlIGludHB1dCBhbmQgb3V0cHVzdCBzdHJ1Y3QgY3hsX21lbWRldiBhbmQgY3hsX2NtZCBhcmUg
+cHJpdmF0ZS4NCj4gDQo+IGBgYA0KPiANCj4gQ1hMX0VYUE9SVCBzdHJ1Y3QgY3hsX2NtZCAqY3hs
+X2NtZF9uZXdfaWRlbnRpZnkoc3RydWN0IGN4bF9tZW1kZXYgKm1lbWRldikNCj4gew0KPiAJcmV0
+dXJuIGN4bF9jbWRfbmV3X2dlbmVyaWMobWVtZGV2LCBDWExfTUVNX0NPTU1BTkRfSURfSURFTlRJ
+RlkpOw0KPiB9DQo+IA0KPiBgYGANCg0KUmlnaHQgLSB0aGUgaW50ZW50aW9uIGlzIHRoYXQgdGhv
+c2Ugc3RydWN0cyBhbHdheXMgcmVtYWluIHByaXZhdGUuDQpJbnN0ZWFkIHdlIHByb3ZpZGUgYWNj
+ZXNzb3IgQVBJcyB0byBnZXQgZmllbGRzIG91dCBvZiB0aGUgZGlmZmVyZW50DQpjb21tYW5kIHN0
+cnVjdHVyZXMuIGUuZy4gZm9yICdpZGVudGlmeScgd2UgaGF2ZQ0KY3hsX2NtZF9pZGVudGlmeV9n
+ZXRfZndfcmV2LCBhbmQgc28gb24uIElmIHRoZXJlIGFyZSBvdGhlciBmaWVsZHMgdGhhdA0KbGFj
+ayB0aGVzZSBnZXR0ZXIgQVBJcywgd2UgY2FuIGRlZmluaXRlbHkgYWRkIHRoZW0uIGUuZy4gVGhl
+DQpoZWFsdGhfaW5mbyBjb21tYW5kIGhhcyBhbiBleGhhdXN0aXZlIHNldCBvZiBnZXR0ZXIgQVBJ
+cy4NCg0KPiANCj4gDQo+IFRoYW5rcw0KPiBKb2hubnkNCj4gDQo+IA0KDQo=
