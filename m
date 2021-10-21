@@ -1,44 +1,62 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from tartarus.angband.pl (tartarus.angband.pl [51.83.246.204])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F34302C8F
-	for <nvdimm@lists.linux.dev>; Thu, 21 Oct 2021 11:31:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=6z9iwoyDbMTCjGFW73yfcNKAqTQILctqsZjjZI0Dwcs=; b=BdKkN+FRK6bMlY4rj14koEYCOD
-	FVkxPgZWZtZwtMbXM8rqbEj3ViPo1UKzkbuv9b3I9SndM+ZA42a9QaHBM4KjjhRJVQCtxEyfe9FLc
-	2555orMj3GSv4hT9BTemQWoxHS0c/jgoahX78E+WEgKDPYgagLMruCv9OCaPfYIOpDmAT7KTMCfP5
-	qHiFDZPrf2PRUPpMLQI0fW57qA8ms5T5XsRpR77WNOSL7up1nsBMhjJe5KuH9/cQ8JL1Biv4u4uRs
-	FyRPqf80Nod7xRy7jqAfoir+78uKN2OHph3R/2Z4VcoIuxPNsq0eWsA5YhEqdXs6oErxUHD2yHr+l
-	j6Lw2S5Q==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mdWHs-007MQC-E3; Thu, 21 Oct 2021 11:31:08 +0000
-Date: Thu, 21 Oct 2021 04:31:08 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Jane Chu <jane.chu@oracle.com>
-Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
-	hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
-	agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com,
-	ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
-	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
- RWF_RECOVERY_DATA flag
-Message-ID: <YXFPfEGjoUaajjL4@infradead.org>
-References: <20211021001059.438843-1-jane.chu@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4831B2C81
+	for <nvdimm@lists.linux.dev>; Thu, 21 Oct 2021 13:42:41 +0000 (UTC)
+Received: from kilobyte by tartarus.angband.pl with local (Exim 4.94.2)
+	(envelope-from <kilobyte@angband.pl>)
+	id 1mdYIr-005EKC-4x; Thu, 21 Oct 2021 15:40:17 +0200
+Date: Thu, 21 Oct 2021 15:40:17 +0200
+From: Adam Borowski <kilobyte@angband.pl>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Jens Axboe <axboe@kernel.dk>, Yi Zhang <yi.zhang@redhat.com>,
+	linux-block@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-mm@kvack.org
+Subject: Re: [PATCH 2/2] memremap: remove support for external pgmap refcounts
+Message-ID: <YXFtwcAC0WyxIWIC@angband.pl>
+References: <20211019073641.2323410-1-hch@lst.de>
+ <20211019073641.2323410-3-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20211021001059.438843-1-jane.chu@oracle.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20211019073641.2323410-3-hch@lst.de>
+X-Junkbait: aaron@angband.pl, zzyx@angband.pl
+X-SA-Exim-Connect-IP: <locally generated>
+X-SA-Exim-Mail-From: kilobyte@angband.pl
+X-SA-Exim-Scanned: No (on tartarus.angband.pl); SAEximRunCond expanded to false
 
-Looking over the series I have serious doubts that overloading the
-slow path clear poison operation over the fast path read/write
-path is such a great idea.
+On Tue, Oct 19, 2021 at 09:36:41AM +0200, Christoph Hellwig wrote:
+> No driver is left using the external pgmap refcount, so remove the
+> code to support it.
+
+> --- a/include/linux/memremap.h
+> +++ b/include/linux/memremap.h
+> @@ -109,8 +98,7 @@ struct dev_pagemap_ops {
+>   */
+>  struct dev_pagemap {
+>  	struct vmem_altmap altmap;
+> -	struct percpu_ref *ref;
+> -	struct percpu_ref internal_ref;
+> +	struct percpu_ref ref;
+>  	struct completion done;
+>  	enum memory_type type;
+>  	unsigned int flags;
+
+This breaks at least drivers/pci/p2pdma.c:222
+
+
+Meow!
+-- 
+⢀⣴⠾⠻⢶⣦⠀
+⣾⠁⢠⠒⠀⣿⡁
+⢿⡄⠘⠷⠚⠋⠀ Certified airhead; got the CT scan to prove that!
+⠈⠳⣄⠀⠀⠀⠀
