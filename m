@@ -1,127 +1,60 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7116F2C81
-	for <nvdimm@lists.linux.dev>; Thu, 21 Oct 2021 01:38:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1634780331;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=n49Ebg7hJsbpmo8GxTO0/87u2/R5z7xkI3cR50VOP44=;
-	b=apmj2yzm83II6x+jfrd1skbARrWk9O64YLkxsZ865/Cyp1RYYqREF2tkPDdbekeo1oPezZ
-	XJHSeLDl03PWZ7pp9achhnR8qb0J3WBLIXgxWO8Nc/mubB4C+hBsdKI8mgG+7HAfNgklW3
-	zW7YiE0udNwkBQ3TJQpUCoLmmchVfn8=
-Received: from mail-yb1-f197.google.com (mail-yb1-f197.google.com
- [209.85.219.197]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-64-wfJI85qXPHKJuX4LxI5IDQ-1; Wed, 20 Oct 2021 21:38:49 -0400
-X-MC-Unique: wfJI85qXPHKJuX4LxI5IDQ-1
-Received: by mail-yb1-f197.google.com with SMTP id e189-20020a2569c6000000b005be95530997so2513869ybc.6
-        for <nvdimm@lists.linux.dev>; Wed, 20 Oct 2021 18:38:49 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=n49Ebg7hJsbpmo8GxTO0/87u2/R5z7xkI3cR50VOP44=;
-        b=FpN02e1EwRBEtXNo+obV6c/R5Djf+7hWengpZzhcIILVYpykpZTg5ikvWvyPf0xefk
-         vsK4GXyAZNSE7xormM6Haem+qS8xiWYVWzhHZjg+zWKx9WAlGSLMgCJzCKeq+vocstWc
-         xjjdl7O3psV/U1z0f21wLGrETYApHfI+POyhbKLXBpUZPhRa7jTFOqJn32wkkUZT8g5N
-         n1jwQuV40zfX0erQq52Xx7ZpiLJxvaFa/amtnqEsi2gC09sAtY73Ayek+GzdzvgBj8Ks
-         8kX7Dz6XI6e0f7Jy/2Ka7cLGCWst4ekpKLZ/xPFhA1ZH6EcbdXQhj9fyz8UHcmaQKYOZ
-         +5Zw==
-X-Gm-Message-State: AOAM530AOcFpMnhnsipumvhVQlQuX+nLNysXZI7Q0TDme8INwh3U3Rqk
-	yz3X6tKjo+V8U/eVfQGDaA9GTqC0Ek5YiT0fUGWUkoiwfVVvjgFVdmytIe2AmA25u+AfWgGVjLC
-	28ZMbrTRBET8xZ8AQV4e6MBW6LgOnP+HF
-X-Received: by 2002:a25:ab61:: with SMTP id u88mr2590212ybi.241.1634780329493;
-        Wed, 20 Oct 2021 18:38:49 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyVo0pkDLJPjgqzPt2KK+wocH0qv3UHKcXreEhQUbwWEMGJW8p8Piza05CRZ016U0Lmps0ksZu5R9P5V0S+aEc=
-X-Received: by 2002:a25:ab61:: with SMTP id u88mr2590197ybi.241.1634780329301;
- Wed, 20 Oct 2021 18:38:49 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B0322C8F
+	for <nvdimm@lists.linux.dev>; Thu, 21 Oct 2021 11:20:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=M0rGryBEzzZjhmAi4X1KijO5IeZtO8wnm5ufeDUGYIk=; b=2Mms4J2lVeSKufy9yFdNswsyye
+	2AsR+X5xVhPSAi4aQpIQzgqxqGKeFtYax7tGSuQdJYJ/PR+xx1yvJi4ILRyRtXv7ry23EP6KldqOg
+	ZIB64KTzT/lvLK5e0PlfnobqN6k/btromer+WlPZYlJ2npvVSW7EuolY10LqykgCiwde7h8hyQAPT
+	QPaK0aF8zEI9kA4z5vXtj21xafnTWI9MqGVHhSbu5gaukRQWUz3lqq7R89p1VJHZXVDvIPBvmxMQW
+	kSny0vZxrtKEVnvfMAN1BJxmfDOTPg1GdYDe1q8RzhhEhaNRunhxb8O3axpkEZkInEeGGIPzHvN5q
+	utXpNR6g==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mdW7H-007KJP-3a; Thu, 21 Oct 2021 11:20:11 +0000
+Date: Thu, 21 Oct 2021 04:20:11 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Jane Chu <jane.chu@oracle.com>
+Cc: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
+	hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+	agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com,
+	ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
+Subject: Re: [PATCH 2/6] dax: prepare dax_direct_access() API with
+ DAXDEV_F_RECOVERY flag
+Message-ID: <YXFM64mFLN8dagrY@infradead.org>
+References: <20211021001059.438843-1-jane.chu@oracle.com>
+ <20211021001059.438843-3-jane.chu@oracle.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <YXAYPK/oZNAXBs0R@angband.pl> <YXAhzF9qQsTPDfWU@angband.pl> <BY5PR11MB3989976BB2AE9F2B31E55B1695BE9@BY5PR11MB3989.namprd11.prod.outlook.com>
-In-Reply-To: <BY5PR11MB3989976BB2AE9F2B31E55B1695BE9@BY5PR11MB3989.namprd11.prod.outlook.com>
-From: Yi Zhang <yi.zhang@redhat.com>
-Date: Thu, 21 Oct 2021 09:38:37 +0800
-Message-ID: <CAHj4cs-CHKgcUyB54sBCGdzbTe-QhsGOjXL8TJ67n+L+WzdqTQ@mail.gmail.com>
-Subject: Re: ndctl hangs with big memmap=! fakepmem
-To: "Scargall, Steve" <steve.scargall@intel.com>
-Cc: Adam Borowski <kilobyte@angband.pl>, "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"Williams, Dan J" <dan.j.williams@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=yizhan@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211021001059.438843-3-jane.chu@oracle.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Wed, Oct 20, 2021 at 11:11 PM Scargall, Steve
-<steve.scargall@intel.com> wrote:
->
-> Hi Adam,
->
-> This is likely related to an issue that was reported to the Linux NVDIMM =
-email list (https://lore.kernel.org/linux-block/CAHj4cs87BapQJcV0a=3DM6=3Dd=
-c9PrsGH6qzqJEt9fbjLK1aShnMPg@mail.gmail.com/)
->
-This issue was fixed by this
-patchset:https://lore.kernel.org/nvdimm/20211019073641.2323410-1-hch@lst.de=
-/
+On Wed, Oct 20, 2021 at 06:10:55PM -0600, Jane Chu wrote:
+> @@ -156,8 +156,8 @@ bool generic_fsdax_supported(struct dax_device *dax_dev,
+>  	}
+>  
+>  	id = dax_read_lock();
+> -	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn);
+> -	len2 = dax_direct_access(dax_dev, pgoff_end, 1, &end_kaddr, &end_pfn);
+> +	len = dax_direct_access(dax_dev, pgoff, 1, &kaddr, &pfn, 0);
+> +	len2 = dax_direct_access(dax_dev, pgoff_end, 1, &end_kaddr, &end_pfn, 0);
 
-And they are still in the review process.
+FYI, I have a series killing this code.  But either way please avoid
+these overly long lines.
 
-> So the bisecting shows it was introduced with below commit:
->
-> commit 8e141f9eb803e209714a80aa6ec073893f94c526
-> Author: Christoph Hellwig <hch@lst.de>
-> Date:   Wed Sep 29 09:12:40 2021 +0200
->
->     block: drain file system I/O on del_gendisk
->
-> /Steve
->
-> -----Original Message-----
-> From: Adam Borowski <kilobyte@angband.pl>
-> Sent: Wednesday, October 20, 2021 8:04 AM
-> To: nvdimm@lists.linux.dev; Williams, Dan J <dan.j.williams@intel.com>; V=
-erma, Vishal L <vishal.l.verma@intel.com>
-> Subject: Re: ndctl hangs with big memmap=3D! fakepmem
->
-> On Wed, Oct 20, 2021 at 03:23:08PM +0200, Adam Borowski wrote:
-> > Hi!
-> > After bumping fakepmem sizes from 4G!20G 4G!36G to 32G!20G 32G!192G,
-> > ndctl hangs.  Eg, at boot:
-> >
-> > [  725.642546] INFO: task ndctl:2486 blocked for more than 604 seconds.
-> > [  725.649586]       Not tainted 5.15.0-rc6-vanilla-00020-gd9abdee5fd5a=
- #1
->
-> > [  725.677539]  ? __schedule+0x30b/0x14e0 [  725.681975]  ?
-> > kernfs_put.part.0+0xd4/0x1a0 [  725.686841]  ?
-> > kmem_cache_free+0x28b/0x2b0 [  725.691622]  ? schedule+0x44/0xb0 [
-> > 725.695622]  ? blk_mq_freeze_queue_wait+0x62/0x90
-> > [  725.701009]  ? do_wait_intr_irq+0xc0/0xc0 [  725.705703]  ?
-> > del_gendisk+0xcf/0x220 [  725.710050]  ? release_nodes+0x38/0xa0
->
-> On 5.14.14 all is fine.  Should I bisect?
->
->
-> Meow!
-> --
-> =E2=A2=80=E2=A3=B4=E2=A0=BE=E2=A0=BB=E2=A2=B6=E2=A3=A6=E2=A0=80
-> =E2=A3=BE=E2=A0=81=E2=A2=A0=E2=A0=92=E2=A0=80=E2=A3=BF=E2=A1=81 Remember,=
- the S in "IoT" stands for Security, while P stands =E2=A2=BF=E2=A1=84=E2=
-=A0=98=E2=A0=B7=E2=A0=9A=E2=A0=8B=E2=A0=80 for Privacy.
-> =E2=A0=88=E2=A0=B3=E2=A3=84=E2=A0=80=E2=A0=80=E2=A0=80=E2=A0=80
->
+>  long dax_direct_access(struct dax_device *dax_dev, pgoff_t pgoff, long nr_pages,
+> -		void **kaddr, pfn_t *pfn)
+> +		void **kaddr, pfn_t *pfn, unsigned long flags)
 
-
---=20
-Best Regards,
-  Yi Zhang
-
+API design: I'd usually expect flags before output paramters.
