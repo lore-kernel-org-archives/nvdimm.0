@@ -1,100 +1,79 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86EF268
-	for <nvdimm@lists.linux.dev>; Fri, 22 Oct 2021 01:58:18 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED74B610A4;
-	Fri, 22 Oct 2021 01:58:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1634867898;
-	bh=c8L9yqtOQno8QSB3ULMQffUkwUDJVg6kdYBJfcJdcMA=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=g96XX9a9mSzi+2Kx8RQ65PHbUXgZ2eHNAQIWuMSIRrTBzOUvQPgi5vg7LPK9jBGam
-	 lhTH6OnHe8C4q0Z0fffRat2tjJm11r4Xl3d1NN3AtZ/bcJsob4EBmVShieUBmddcQC
-	 JnE8VxHAUpAJ2fpmr//vA/LJG/GzeUD+AyrZnVWFMo1H4oneozj04Es+3/SQuZ0S6a
-	 TYQiwROwM/MjigR9TyUx0DfDMbS1p67KpKym7AGZUF/QgzOdMtAyXjl99x9/YoDQuo
-	 Y7iuj0g//1S/3IbkzGZ2auNMbJoHshMwMUyWtSyav15RFt3KksZ4m+wBYIA/tMw03e
-	 UIYh/NQ7wXFUg==
-Date: Thu, 21 Oct 2021 18:58:17 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Jane Chu <jane.chu@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
-	"dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"agk@redhat.com" <agk@redhat.com>,
-	"snitzer@redhat.com" <snitzer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"ira.weiny@intel.com" <ira.weiny@intel.com>,
-	"willy@infradead.org" <willy@infradead.org>,
-	"vgoyal@redhat.com" <vgoyal@redhat.com>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
- RWF_RECOVERY_DATA flag
-Message-ID: <20211022015817.GY24307@magnolia>
-References: <20211021001059.438843-1-jane.chu@oracle.com>
- <YXFPfEGjoUaajjL4@infradead.org>
- <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C90432C8B
+	for <nvdimm@lists.linux.dev>; Fri, 22 Oct 2021 03:12:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:Sender
+	:Reply-To:Content-ID:Content-Description;
+	bh=W0LD9iPvxxhEJ3MC2BpmyEY64d7qaINAGgTsXYSy428=; b=cYDUUwCiDlFw5AzyRMN9tlggeH
+	9bieqFxqnVXkwZshKFtrCWiWTRj42Do3v3duec5Oh2NeBr/KtY2JFs19YrFYe0pjKgkjitbcJVU74
+	3L08/bDkVn1tUvxtnfojRZTI4YQuqf0qGPiYnvURf63sODp5N4b02/KHuPw9GCLRd3M6EmVk8Ojgu
+	oBS83rFU7lxFzpRkPtkVGxQiFpQdqzIyU3p0je/yXb3QsaRNe4eexfYRYdsHlsX8Pbp3yHsoQjWpz
+	Wurr52oXnhVFBC7Wm/ZyMZRdkLB1Q5ijXqsDPwyM11+aSkVj9GJTqnh7As2hIZpDy+Zf5omesnM5z
+	tH6JZAqw==;
+Received: from [2602:306:c5a2:a380:b27b:25ff:fe2c:51a8]
+	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mdkxM-00DffH-LH; Fri, 22 Oct 2021 03:11:19 +0000
+Subject: Re: [PATCH 00/13] block: add_disk() error handling stragglers
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: axboe@kernel.dk, mpe@ellerman.id.au, benh@kernel.crashing.org,
+ paulus@samba.org, jim@jtan.com, minchan@kernel.org, ngupta@vflare.org,
+ senozhatsky@chromium.org, richard@nod.at, miquel.raynal@bootlin.com,
+ vigneshr@ti.com, dan.j.williams@intel.com, vishal.l.verma@intel.com,
+ dave.jiang@intel.com, ira.weiny@intel.com, kbusch@kernel.org, hch@lst.de,
+ sagi@grimberg.me, linux-block@vger.kernel.org,
+ linuxppc-dev@lists.ozlabs.org, linux-mtd@lists.infradead.org,
+ nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
+ linux-kernel@vger.kernel.org
+References: <20211015235219.2191207-1-mcgrof@kernel.org>
+ <a31970d6-8631-9d9d-a36f-8f4fcebfb1e6@infradead.org>
+ <YW2duaTqf3qUbTIm@bombadil.infradead.org>
+From: Geoff Levand <geoff@infradead.org>
+Message-ID: <24bc86d0-9d8d-8c8a-7f74-a87f9089342b@infradead.org>
+Date: Thu, 21 Oct 2021 20:10:49 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+In-Reply-To: <YW2duaTqf3qUbTIm@bombadil.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 
-On Fri, Oct 22, 2021 at 01:37:28AM +0000, Jane Chu wrote:
-> On 10/21/2021 4:31 AM, Christoph Hellwig wrote:
-> > Looking over the series I have serious doubts that overloading the
-> > slow path clear poison operation over the fast path read/write
-> > path is such a great idea.
+Hi Luis,
 
-Why would data recovery after a media error ever be considered a
-fast/hot path?  A normal read/write to a fsdax file would not pass the
-flag, which skips the poison checking with whatever MCE consequences
-that has, right?
-
-pwritev2(..., RWF_RECOVER_DATA) should be infrequent enough that
-carefully stepping around dax_direct_access only has to be faster than
-restoring from backup, I hope?
-
-> Understood, sounds like a concern on principle. But it seems to me
-> that the task of recovery overlaps with the normal write operation
-> on the write part. Without overloading some write operation for
-> 'recovery', I guess we'll need to come up with a new userland
-> command coupled with a new dax API ->clear_poison and propagate the
-> new API support to each dm targets that support dax which, again,
-> is an idea that sounds too bulky if I recall Dan's earlier rejection
-> correctly.
+On 10/18/21 9:15 AM, Luis Chamberlain wrote:
+> On Sun, Oct 17, 2021 at 08:26:33AM -0700, Geoff Levand wrote:
+>> Hi Luis,
+>>
+>> On 10/15/21 4:52 PM, Luis Chamberlain wrote:
+>>> This patch set consists of al the straggler drivers for which we have
+>>> have no patch reviews done for yet. I'd like to ask for folks to please
+>>> consider chiming in, specially if you're the maintainer for the driver.
+>>> Additionally if you can specify if you'll take the patch in yourself or
+>>> if you want Jens to take it, that'd be great too.
+>>
+>> Do you have a git repo with the patch set applied that I can use to test with?
 > 
-> It is in my plan though, to provide pwritev2(2) and preadv2(2) man pages
-> with description about the RWF_RECOVERY_DATA flag and specifically not
-> recommending the flag for normal read/write operation - due to potential
-> performance impact from searching badblocks in the range.
-
-Yes, this will help much. :)
-
-> That said, the badblock searching is turned on only if the pmem device
-> contains badblocks(i.e. bb->count > 0), otherwise, the performance
-> impact is next to none. And once the badblock search starts,
-> it is a binary search over user provided range. The unwanted impact
-> happens to be the case when the pmem device contains badblocks
-> that do not fall in the user specified range, and in that case, the
-> search would end in O(1).
-
-(I wonder about improving badblocks to be less sector-oriented and not
-have that weird 16-records-max limit, but that can be a later
-optimization.)
-
---D
-
-> Thanks!
-> -jane
+> Sure, although the second to last patch is in a state of flux given
+> the ataflop driver currently is broken and so we're seeing how to fix
+> that first:
 > 
-> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/linux-next.git/log/?h=20211011-for-axboe-add-disk-error-handling
+
+That branch has so many changes applied on top of the base v5.15-rc4
+that the patches I need to apply to test on PS3 with don't apply.
+
+Do you have something closer to say v5.15-rc5?  Preferred would be
+just your add_disk() error handling patches plus what they depend
+on.
+
+Thanks.
+
+-Geoff
