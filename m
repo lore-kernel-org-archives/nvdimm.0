@@ -1,25 +1,47 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f169.google.com (mail-pl1-f169.google.com [209.85.214.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C1CC29CA
-	for <nvdimm@lists.linux.dev>; Mon, 25 Oct 2021 15:59:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=5y7mYSiruE0cjysowYo7+0jNcIRmxjtJRrRLlmuIF+o=; b=QXT6Sw24DXrC/psY8+sN1Li2XS
-	X1huPXRn/qDo1HnmsuBUFcbunf0kWqQXlhN+z6chxaTIdt8hxz9nWytKt2DlAZ5gzqr1qxaxImfyf
-	PxnxGk7tzyTkUTccZB0NvwsVeqKo3xbXVggsekcvOCJAaHSupHm5jwR4CeHW+ehwW4L/YkVFA7fxw
-	xncOolmkjmCZPKRfNvPHankG+wrRBFDL01kPxYO/ulAIE2zRZqyKIYT1QqWJIWw4STAH9KhE78KS8
-	Vh7eDzj6hKkoRmOoOldUn6jqiCS3HVz1L+ZoY+GXq/eWoCJ5nYU9/tuL8umRjUTHSIFqo/FGLINHE
-	DhnolPJw==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mf2Mu-00GwhK-7N; Mon, 25 Oct 2021 15:58:36 +0000
-Date: Mon, 25 Oct 2021 08:58:36 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Geoff Levand <geoff@infradead.org>
-Cc: axboe@kernel.dk, mpe@ellerman.id.au, benh@kernel.crashing.org,
-	paulus@samba.org, jim@jtan.com, minchan@kernel.org,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0399C72
+	for <nvdimm@lists.linux.dev>; Mon, 25 Oct 2021 16:55:06 +0000 (UTC)
+Received: by mail-pl1-f169.google.com with SMTP id t11so8337427plq.11
+        for <nvdimm@lists.linux.dev>; Mon, 25 Oct 2021 09:55:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=34KqGsADswDnjonTJQq114bRqQgkKcPCrw08YN12k1U=;
+        b=ArdZ9P7fyJ7zJHFYx1+AQE02HbDLJAUvr4erZl2mwbBhtH4+TimE4u+ugqvNFdwh8d
+         3/k33Em4/TsoIsweBaglse1QZQgHs7wcFn8ECUkcngi4ODPtbQO4Nm9N6HsFFQgfLYjO
+         RePbywXUgZ4jXqcZxI7CJfFNDy98/HjjX5D5DC2BF8G+I/IOB9VG5SIpJ3tDITv0dJRl
+         sUJ6d+ibD4KBuChDdczeAcIBzNl30xwnxblX9PJBRPoGnixLoKyw7+/sPO6a5ErIzVMp
+         go4JYUYLmAuef1oHBLR/IOfONu/74SlIlF3dwUs57Wqyht+Hr5rXw+CnNSGJhGpEkKIr
+         iTbA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=34KqGsADswDnjonTJQq114bRqQgkKcPCrw08YN12k1U=;
+        b=tljeeO4NH1fy9J1hybabj92Vory+YDzQmEZkAPfbo8Oy+mb2UVKXRA8Ghy6u/1rasN
+         IfJaqhRnyyan7saAY5ldiUeNUnack+6sOjI9eAJhkq1grvQuBsB3aLN4Wl26VmSTmBuy
+         eNIOh/Tt8CoVnRQLaFRktdGtBna8lqugKuFncSsaDtNsN7XC9yyBhRefUa7pG/J2ovMr
+         h7AJAR0LxdtlMs8xovrDZ+Ma3NjGYSm6zeXZNUWabWYUPxHm1lmhqAvljIoCxi/Rkjzl
+         VbU3NUrB+VGhkcHWmWpZy0NZQzJS7bLHFGiipozk+nYjOfVJFXqpcmwLPZY199+5Grwm
+         XVeg==
+X-Gm-Message-State: AOAM530/VJfbFm4Lg/GdilsMJXeBOdekl4D25M5hu1CcWMQLEHztSsvb
+	WAsbDC5mefn0pr2+Hv76R3Q=
+X-Google-Smtp-Source: ABdhPJwnOC5S77AdBEAZhaiGNLZ1LAMQYdWuNPBpW15141iALB0JrDnj2gFivuKTGQtzXuB/cou/UQ==
+X-Received: by 2002:a17:90b:1b49:: with SMTP id nv9mr21773068pjb.134.1635180906379;
+        Mon, 25 Oct 2021 09:55:06 -0700 (PDT)
+Received: from google.com ([2620:15c:211:201:676:677c:1b95:77a5])
+        by smtp.gmail.com with ESMTPSA id c15sm9853456pfv.66.2021.10.25.09.55.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 25 Oct 2021 09:55:05 -0700 (PDT)
+Sender: Minchan Kim <minchan.kim@gmail.com>
+Date: Mon, 25 Oct 2021 09:55:04 -0700
+From: Minchan Kim <minchan@kernel.org>
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: axboe@kernel.dk, geoff@infradead.org, mpe@ellerman.id.au,
+	benh@kernel.crashing.org, paulus@samba.org, jim@jtan.com,
 	ngupta@vflare.org, senozhatsky@chromium.org, richard@nod.at,
 	miquel.raynal@bootlin.com, vigneshr@ti.com,
 	dan.j.williams@intel.com, vishal.l.verma@intel.com,
@@ -28,12 +50,10 @@ Cc: axboe@kernel.dk, mpe@ellerman.id.au, benh@kernel.crashing.org,
 	linuxppc-dev@lists.ozlabs.org, linux-mtd@lists.infradead.org,
 	nvdimm@lists.linux.dev, linux-nvme@lists.infradead.org,
 	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 00/13] block: add_disk() error handling stragglers
-Message-ID: <YXbULG63hZcBdoQD@bombadil.infradead.org>
+Subject: Re: [PATCH 08/13] zram: add error handling support for add_disk()
+Message-ID: <YXbhaO5QAOi96E8j@google.com>
 References: <20211015235219.2191207-1-mcgrof@kernel.org>
- <a31970d6-8631-9d9d-a36f-8f4fcebfb1e6@infradead.org>
- <YW2duaTqf3qUbTIm@bombadil.infradead.org>
- <24bc86d0-9d8d-8c8a-7f74-a87f9089342b@infradead.org>
+ <20211015235219.2191207-9-mcgrof@kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -42,41 +62,12 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <24bc86d0-9d8d-8c8a-7f74-a87f9089342b@infradead.org>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+In-Reply-To: <20211015235219.2191207-9-mcgrof@kernel.org>
 
-On Thu, Oct 21, 2021 at 08:10:49PM -0700, Geoff Levand wrote:
-> Hi Luis,
+On Fri, Oct 15, 2021 at 04:52:14PM -0700, Luis Chamberlain wrote:
+> We never checked for errors on add_disk() as this function
+> returned void. Now that this is fixed, use the shiny new
+> error handling.
 > 
-> On 10/18/21 9:15 AM, Luis Chamberlain wrote:
-> > On Sun, Oct 17, 2021 at 08:26:33AM -0700, Geoff Levand wrote:
-> >> Hi Luis,
-> >>
-> >> On 10/15/21 4:52 PM, Luis Chamberlain wrote:
-> >>> This patch set consists of al the straggler drivers for which we have
-> >>> have no patch reviews done for yet. I'd like to ask for folks to please
-> >>> consider chiming in, specially if you're the maintainer for the driver.
-> >>> Additionally if you can specify if you'll take the patch in yourself or
-> >>> if you want Jens to take it, that'd be great too.
-> >>
-> >> Do you have a git repo with the patch set applied that I can use to test with?
-> > 
-> > Sure, although the second to last patch is in a state of flux given
-> > the ataflop driver currently is broken and so we're seeing how to fix
-> > that first:
-> > 
-> > https://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/linux-next.git/log/?h=20211011-for-axboe-add-disk-error-handling
-> 
-> That branch has so many changes applied on top of the base v5.15-rc4
-> that the patches I need to apply to test on PS3 with don't apply.
-> 
-> Do you have something closer to say v5.15-rc5?  Preferred would be
-> just your add_disk() error handling patches plus what they depend
-> on.
-
-If you just want to test the ps3 changes, I've put this branch together
-just for yo, its based on v5.15-rc6:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/mcgrof/linux.git/log/?h=20211025-ps3-add-disk
-
-  Luis
+> Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
