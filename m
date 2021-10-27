@@ -1,79 +1,78 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 124B32C82
-	for <nvdimm@lists.linux.dev>; Wed, 27 Oct 2021 06:50:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=yjuWgGmhQsdJLTs6v2WuNddPxXE6Sp4DzBaIzpvmDxI=; b=C5iwMARf+IMLZdYCmk6ZUrqOkO
-	8BwoK3oTNJDlvSjeimyONSspbVA1scvfDU+66PFDD3dLzT6NFr3opsayEOwR2nXD/UQNuiKmxo1Y8
-	9VcCSxCnK4544hxrLn1Q+6+3xqaFirt088Fy912wVD5q14DRRDCT6srIfw1ruVTyctXhFZZhiFiiF
-	v3k4kTFZf60t1bQi5bkepl9c7guEHtbzZrmP2UDqOqIcHSJmlbb9ssd+eqmErkz5Oam+1MMNKVMbU
-	tl3E0Q/zIWt1tEbckfFO0WIFCqAS2kD/IXbdMRtpnXHodSv/GpTla3Ask2eTyW0X1NaJU8B3iaS/N
-	JRm0MBZg==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mfcl5-0043Vr-Rj; Wed, 27 Oct 2021 06:49:59 +0000
-Date: Tue, 26 Oct 2021 23:49:59 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Jane Chu <jane.chu@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"djwong@kernel.org" <djwong@kernel.org>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
-	"dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"agk@redhat.com" <agk@redhat.com>,
-	"snitzer@redhat.com" <snitzer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"ira.weiny@intel.com" <ira.weiny@intel.com>,
-	"willy@infradead.org" <willy@infradead.org>,
-	"vgoyal@redhat.com" <vgoyal@redhat.com>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
- RWF_RECOVERY_DATA flag
-Message-ID: <YXj2lwrxRxHdr4hb@infradead.org>
-References: <20211021001059.438843-1-jane.chu@oracle.com>
- <YXFPfEGjoUaajjL4@infradead.org>
- <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
- <YXJN4s1HC/Y+KKg1@infradead.org>
- <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E6C12C87
+	for <nvdimm@lists.linux.dev>; Wed, 27 Oct 2021 12:09:41 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10149"; a="290980263"
+X-IronPort-AV: E=Sophos;i="5.87,186,1631602800"; 
+   d="scan'208";a="290980263"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 05:09:40 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.87,186,1631602800"; 
+   d="scan'208";a="486649975"
+Received: from dev01.bj.intel.com ([10.238.158.57])
+  by orsmga007.jf.intel.com with ESMTP; 27 Oct 2021 05:09:38 -0700
+From: Huaisheng Ye <huaisheng.ye@intel.com>
+To: dan.j.williams@intel.com,
+	hch@lst.de,
+	vishal.l.verma@intel.com,
+	dave.jiang@intel.com,
+	ira.weiny@intel.com
+Cc: nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org,
+	Huaisheng Ye <huaisheng.ye@intel.com>
+Subject: [PATCH 0/4] add ro state control function for nvdimm drivers
+Date: Wed, 27 Oct 2021 20:09:33 +0800
+Message-Id: <20211027120937.1163744-1-huaisheng.ye@intel.com>
+X-Mailer: git-send-email 2.27.0
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
 
-On Fri, Oct 22, 2021 at 08:52:55PM +0000, Jane Chu wrote:
-> Thanks - I try to be honest.  As far as I can tell, the argument
-> about the flag is a philosophical argument between two views.
-> One view assumes design based on perfect hardware, and media error
-> belongs to the category of brokenness. Another view sees media
-> error as a build-in hardware component and make design to include
-> dealing with such errors.
+libndctl failed to pass for the reason of writing pmem disk when running
+ndctl testing.
 
-No, I don't think so.  Bit errors do happen in all media, which is
-why devices are built to handle them.  It is just the Intel-style
-pmem interface to handle them which is completely broken.  
+Here is the error message below,
 
-> errors in mind from start.  I guess I'm trying to articulate why
-> it is acceptable to include the RWF_DATA_RECOVERY flag to the
-> existing RWF_ flags. - this way, pwritev2 remain fast on fast path,
-> and its slow path (w/ error clearing) is faster than other alternative.
-> Other alternative being 1 system call to clear the poison, and
-> another system call to run the fast pwrite for recovery, what
-> happens if something happened in between?
+    namespace6.0: failed to write /dev/pmem6
+    check_namespaces: namespace6.0 validate_bdev failed
+    ndctl-test1 failed: -6
 
-Well, my point is doing recovery from bit errors is by definition not
-the fast path.  Which is why I'd rather keep it away from the pmem
-read/write fast path, which also happens to be the (much more important)
-non-pmem read/write path.
+Commit 98f49b63e84d4ee1a5c327d0b5f4e8699f6c70fe removes set_device_ro and
+e00adcadf3af7a8335026d71ab9f0e0a922191ac adds a new set_read_only method
+to allow for driver-specific processing when changing the block device's
+read-only state.
+
+Current drivers nd_pmem, nd_blk and nd_btt don't have the capability to
+enable or disable write protect (read-only) state. Without that,
+blkdev_roset just modifies the value of bd_read_only of struct block_device
+and returns success to ioctl of block device. Error would happen when writing
+read-only disk next.
+
+Add ro state control function in libnvdimm for this purpose, and implement
+set_read_only for BLKROSET.
+
+Huaisheng Ye (4):
+  libnvdimm: add a ro state control function for nvdimm
+  libnvdimm/pmem: implement ->set_read_only to hook into BLKROSET
+    processing
+  libnvdimm/blk: implement ->set_read_only to hook into BLKROSET
+    processing
+  libnvdimm/btt: implement ->set_read_only to hook into BLKROSET
+    processing
+
+ drivers/nvdimm/blk.c  |  1 +
+ drivers/nvdimm/btt.c  |  1 +
+ drivers/nvdimm/bus.c  | 17 +++++++++++++++++
+ drivers/nvdimm/nd.h   |  1 +
+ drivers/nvdimm/pmem.c |  1 +
+ 5 files changed, 21 insertions(+)
+
+-- 
+2.27.0
+
