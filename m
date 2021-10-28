@@ -1,146 +1,112 @@
-Received: from mail-pj1-f41.google.com (mail-pj1-f41.google.com [209.85.216.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0D39A2C83
-	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 01:44:17 +0000 (UTC)
-Received: by mail-pj1-f41.google.com with SMTP id x1-20020a17090a530100b001a1efa4ebe6so4390266pjh.0
-        for <nvdimm@lists.linux.dev>; Wed, 27 Oct 2021 18:44:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=X1wiwLbjvMr0fUU/Ik7bpLL2xq562nKRBks78M/tbQ0=;
-        b=NwrWjK1zEgkC/h0OltkWmV8v6U9kycWNkAzFyZ2UqlXn15yubZLd83LVcZWNlLL1f0
-         Fv5BW1FJAtxuVzU9kXByXaxfMtmiH5UDaukXhF9R+cJyfOGMfQT6zf04USpHM9TDLMLF
-         8zm7+00diA9rU2lDu/DTfvUOEu2zCMioGVYImhjXSkJTydRCIKV9cRbUQapJjcrGiqMK
-         QnZf8nIfPhTNHOoqGDCmmZuYu6PaW3nbxj784zhi1I6uIMMPp2z6oTqTZJk+LfG12Qzb
-         jA/Y5wJffgH2J2qLufj0bLW03BgfGI/buoZEjp4mtmSwLrMRhWqThDSfNCSg+TsSc0DH
-         V6Cg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=X1wiwLbjvMr0fUU/Ik7bpLL2xq562nKRBks78M/tbQ0=;
-        b=sDgdhRRtqV6DafYQPYF5jqd+EI9/wAYxuNLvB9MRM2E+wyVIGX2c1zTWXwcIWml49/
-         uGx4OvnlR3OEXBmSvcd00IxJkqgh5FZvi9o8bPp3olXOkpofuqlEsN/ecyuNa+CQ/hOT
-         XtiK5QY9GzKs+rPOFM3F0y39uChGSF45toG2nsGuMphKjY7+jpnMUzQELS453W1eWvMp
-         p2qrq/MvUdjQOpOvr30FgoHWhiuYJ2HkHDkuOcCjoRoN1mYGY4qXJqw5VLrGaN1is6U2
-         JeLB2Wpv0eF5hdmviwPt1y5GVzShdZ0F6JtOyqnZD4aKHX3O9kAYkBStk8c3dMO39vYa
-         9uOA==
-X-Gm-Message-State: AOAM531CqXxVPZOCvMTSj+ynRZpU2+2rOvpKSvi3kYhBq+fTKE32ku0K
-	YEuxuk6nlfl3EaTa00ANe1spu8RFlJFqhaGZDwaTWg==
-X-Google-Smtp-Source: ABdhPJyk8c8xZHfkX0RONmluScnz61A4HGhWerdM4JYgASaD4FzedQ2nCFUwr5W/5xCzT57VlrSOf0tWDKABqHHbWT8=
-X-Received: by 2002:a17:902:8a97:b0:13e:6e77:af59 with SMTP id
- p23-20020a1709028a9700b0013e6e77af59mr1240292plo.4.1635385456643; Wed, 27 Oct
- 2021 18:44:16 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 58A002C83
+	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 04:45:41 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10150"; a="217498536"
+X-IronPort-AV: E=Sophos;i="5.87,188,1631602800"; 
+   d="scan'208";a="217498536"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 21:45:40 -0700
+X-IronPort-AV: E=Sophos;i="5.87,188,1631602800"; 
+   d="scan'208";a="486974095"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 21:45:40 -0700
+Date: Wed, 27 Oct 2021 21:45:39 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Cc: nvdimm@lists.linux.dev, aneesh.kumar@linux.ibm.com,
+	vaibhav@linux.ibm.com, dan.j.williams@intel.com,
+	vishal.l.verma@intel.com
+Subject: Re: [REPOST PATCH v2 1/2] libndctl, intel: Indicate supported
+ smart-inject types
+Message-ID: <20211028044539.GC3538886@iweiny-DESK2.sc.intel.com>
+References: <163491461011.1641479.7752723100626280911.stgit@lep8c.aus.stglabs.ibm.com>
+ <163491461724.1641479.6370717053054036222.stgit@lep8c.aus.stglabs.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211018044054.1779424-1-hch@lst.de> <20211018044054.1779424-12-hch@lst.de>
-In-Reply-To: <20211018044054.1779424-12-hch@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 Oct 2021 18:44:04 -0700
-Message-ID: <CAPcyv4ht6fZOdx4YN9FRCnmD2Wy4zzG7nJPQSdSPAgvZNHxoFw@mail.gmail.com>
-Subject: Re: [PATCH 11/11] dax: move bdev_dax_pgoff to fs/dax.c
-To: Christoph Hellwig <hch@lst.de>
-Cc: Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>, 
-	device-mapper development <dm-devel@redhat.com>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390 <linux-s390@vger.kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-erofs@lists.ozlabs.org, 
-	linux-ext4 <linux-ext4@vger.kernel.org>, virtualization@lists.linux-foundation.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <163491461724.1641479.6370717053054036222.stgit@lep8c.aus.stglabs.ibm.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 
-On Sun, Oct 17, 2021 at 9:41 PM Christoph Hellwig <hch@lst.de> wrote:
->
-> No functional changet, but this will allow for a tighter integration
+On Fri, Oct 22, 2021 at 09:57:07AM -0500, Shivaprasad G Bhat wrote:
+> From: Vaibhav Jain <vaibhav@linux.ibm.com>
+> 
 
-s/changet/changes/
+[snip]
 
-> with the iomap code, including possible passing the partition offset
-
-s/possible/possibly/
-
-> in the iomap in the future.  For now it mostly avoids growing more
-
-s/now/now,/
-
-...all of the above fixed up locally.
-
-Other than that, it looks good to me.
-
-> callers outside of fs/dax.c.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/dax/super.c | 14 --------------
->  fs/dax.c            | 13 +++++++++++++
->  include/linux/dax.h |  1 -
->  3 files changed, 13 insertions(+), 15 deletions(-)
->
-> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> index 803942586d1b6..c0910687fbcb2 100644
-> --- a/drivers/dax/super.c
-> +++ b/drivers/dax/super.c
-> @@ -67,20 +67,6 @@ void dax_remove_host(struct gendisk *disk)
->  }
->  EXPORT_SYMBOL_GPL(dax_remove_host);
->
-> -int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
-> -               pgoff_t *pgoff)
-> -{
-> -       sector_t start_sect = bdev ? get_start_sect(bdev) : 0;
-> -       phys_addr_t phys_off = (start_sect + sector) * 512;
-> -
-> -       if (pgoff)
-> -               *pgoff = PHYS_PFN(phys_off);
-> -       if (phys_off % PAGE_SIZE || size % PAGE_SIZE)
-> -               return -EINVAL;
-> -       return 0;
-> -}
-> -EXPORT_SYMBOL(bdev_dax_pgoff);
-> -
->  /**
->   * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
->   * @bdev: block device to find a dax_device for
-> diff --git a/fs/dax.c b/fs/dax.c
-> index 4e3e5a283a916..eb715363fd667 100644
-> --- a/fs/dax.c
-> +++ b/fs/dax.c
-> @@ -709,6 +709,19 @@ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
->         return __dax_invalidate_entry(mapping, index, false);
->  }
->
-> +static int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
-> +               pgoff_t *pgoff)
-> +{
-> +       sector_t start_sect = bdev ? get_start_sect(bdev) : 0;
-> +       phys_addr_t phys_off = (start_sect + sector) * 512;
-> +
-> +       if (pgoff)
-> +               *pgoff = PHYS_PFN(phys_off);
-> +       if (phys_off % PAGE_SIZE || size % PAGE_SIZE)
-> +               return -EINVAL;
-> +       return 0;
-> +}
-> +
->  static int copy_cow_page_dax(struct block_device *bdev, struct dax_device *dax_dev,
->                              sector_t sector, struct page *to, unsigned long vaddr)
+>  
+> -static int smart_inject(struct ndctl_dimm *dimm)
+> +static int smart_inject(struct ndctl_dimm *dimm, unsigned int inject_types)
 >  {
-> diff --git a/include/linux/dax.h b/include/linux/dax.h
-> index 439c3c70e347b..324363b798ecd 100644
-> --- a/include/linux/dax.h
-> +++ b/include/linux/dax.h
-> @@ -107,7 +107,6 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
->  #endif
->
->  struct writeback_control;
-> -int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
->  #if IS_ENABLED(CONFIG_FS_DAX)
->  int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk);
->  void dax_remove_host(struct gendisk *disk);
-> --
-> 2.30.2
->
+>  	const char *name = ndctl_dimm_get_devname(dimm);
+>  	struct ndctl_cmd *si_cmd = NULL;
+>  	int rc = -EOPNOTSUPP;
+>  
+> -	send_inject_val(media_temperature)
+> -	send_inject_val(ctrl_temperature)
+> -	send_inject_val(spares)
+> -	send_inject_bool(fatal)
+> -	send_inject_bool(unsafe_shutdown)
+> +	if (inject_types & ND_SMART_INJECT_MEDIA_TEMPERATURE)
+> +		send_inject_val(media_temperature);
+>  
+> +	if (inject_types & ND_SMART_INJECT_CTRL_TEMPERATURE)
+> +		send_inject_val(ctrl_temperature);
+> +
+> +	if (inject_types & ND_SMART_INJECT_SPARES_REMAINING)
+> +		send_inject_val(spares);
+> +
+> +	if (inject_types & ND_SMART_INJECT_HEALTH_STATE)
+> +		send_inject_bool(fatal);
+> +
+> +	if (inject_types & ND_SMART_INJECT_UNCLEAN_SHUTDOWN)
+> +		send_inject_bool(unsafe_shutdown);
+>  out:
+>  	ndctl_cmd_unref(si_cmd);
+>  	return rc;
+> @@ -415,8 +423,10 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
+>  	struct json_object *jhealth;
+>  	struct json_object *jdimms;
+>  	struct json_object *jdimm;
+> +	unsigned int supported_types;
+>  	int rc;
+>  
+> +	/* Get supported smart injection types */
+
+NIT: this comment is probably unnecessary.
+
+>  	rc = ndctl_dimm_smart_inject_supported(dimm);
+>  	switch (rc) {
+>  	case -ENOTTY:
+> @@ -431,6 +441,15 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
+>  		error("%s: smart injection not supported by either platform firmware or the kernel.",
+>  			ndctl_dimm_get_devname(dimm));
+>  		return rc;
+> +	default:
+> +		if (rc < 0) {
+> +			error("%s: Unknown error %d while checking for smart injection support",
+> +			      ndctl_dimm_get_devname(dimm), rc);
+> +			return rc;
+> +		}
+> +		/* Assigning to an unsigned type since rc < 0 */
+
+Comment wrong?
+
+> +		supported_types = rc;
+> +		break;
+>  	}
+>  
+>  	if (sctx.op_mask & (1 << OP_SET)) {
+
+[snip]
+
+Other than the comment it looks fine.
+
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+
