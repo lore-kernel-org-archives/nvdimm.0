@@ -1,104 +1,157 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f43.google.com (mail-pj1-f43.google.com [209.85.216.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B9D572
-	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 00:24:52 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AF4FB60F9B;
-	Thu, 28 Oct 2021 00:24:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1635380691;
-	bh=FiS4PSp9dq5XSaCsWhfnvL9XlrVWGShYyfrLJTdu9vE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=LLiu9hL0Nnfj0wrmhGnnxL5+8GTJJbXO4vG40Y4IEyaBbUa88fsVA0M+rE2wPP55K
-	 VLA6cRwCiUhxECHQOahortB3Yo2VP+oFbMEG0uElQs81v4jqhfp8kRYJAeUnnA16zJ
-	 b+HS7hPoUelooieVdCl2Nx6xZkxw/UW2E15yHmAfP3nhWY0ybavp+pTPnAHxX+G4UW
-	 F0ZV+G9Tqf5vDpTUtdu8DAFnC69xwsGEyN/qag6omHGpOOd3XLSLw822wOCWuz45t8
-	 xD8mrOpLmMT4K4s0abdIP5Oo4QMzSeb0EDc/7elPxTr+C57KbXjFo3PtV8fNtBQS9d
-	 bD3r72wnTUFYA==
-Date: Wed, 27 Oct 2021 17:24:51 -0700
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Jane Chu <jane.chu@oracle.com>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
-	"dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"agk@redhat.com" <agk@redhat.com>,
-	"snitzer@redhat.com" <snitzer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"ira.weiny@intel.com" <ira.weiny@intel.com>,
-	"willy@infradead.org" <willy@infradead.org>,
-	"vgoyal@redhat.com" <vgoyal@redhat.com>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
- RWF_RECOVERY_DATA flag
-Message-ID: <20211028002451.GB2237511@magnolia>
-References: <20211021001059.438843-1-jane.chu@oracle.com>
- <YXFPfEGjoUaajjL4@infradead.org>
- <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
- <YXJN4s1HC/Y+KKg1@infradead.org>
- <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
- <YXj2lwrxRxHdr4hb@infradead.org>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCB7C2C83
+	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 01:33:10 +0000 (UTC)
+Received: by mail-pj1-f43.google.com with SMTP id t5-20020a17090a4e4500b001a0a284fcc2so6649800pjl.2
+        for <nvdimm@lists.linux.dev>; Wed, 27 Oct 2021 18:33:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=pAiaBNCk1xnEBH3C9EMpKzrgqAPJnlmXDrtIiJ0dt1I=;
+        b=pAV9PI3uqSjbwl4ehA+e1fD0AmJsR9RObZKjbvBijn3hthsC3BOWhi8AwEhKayTbAn
+         +kULxKOjbDPkdJvduTRaYnTinwRQ3sTGC3RmXxOu+ZBFQAZP2dCfU0u+xx+MyQD5sCXu
+         juQ8/OlFDYxVdxNYORCgy1YjcIYTJ/VbxjTb7UxVpCGr1z8kM8Yws8W6G4x0NWwc6hyB
+         NrmNiLX5o2T12KN42PUJoRgcExOicwbK7jy2OCO7u+1RAggFonc1ris6SaZqTakBedPe
+         +KiIfancYaA+JSRyfWPQcobeLcn00lylDFmKvFb7FlRzM0bgeIYcMRtTDSe9GGiatzrv
+         LAlg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=pAiaBNCk1xnEBH3C9EMpKzrgqAPJnlmXDrtIiJ0dt1I=;
+        b=SSmpV6NrbXJA0HWDlbDSQqKVhnGeO3UcaY883M3pfpQ7eiqBUGffjLHg8EUKNE6cv1
+         d59pflIadjY9Um0h7KMrUUUfzSW8qIBsyGaYykDhfZbdB3oIRyMAl7LIz26p8iuA5GLG
+         1CbpXz82kPg+hS8ISJhRw6CDgsAUGPbp7xRE23EWlecrTafCDIvFmHoPtYG+pgpjnrVU
+         6yE+0xOqpFEsdqGpzG8jXNgXq3blsAsvFXf0M8WWBXJEbLTleUblW8NGkeWj1FXrZf9U
+         g2JR03DmwjWjqxI3DwajhXp67KVkyr5h3LgF4Psq8GoJBBN4yjsOeBG8z+VavvzHpAXl
+         4ibA==
+X-Gm-Message-State: AOAM531s2vF/791tAXabhauuuy+K9udnwTaq9cF/J20Kr+IHWFGCRUnz
+	AzRSEZs5FBMHnu84eTRxTHamPyjA6zwoLd875cMCNA==
+X-Google-Smtp-Source: ABdhPJxm6eCpHzum4moJkAnlQxDuj0JlmT3Vix8IBxxMECN3GUzGEt1VHXlaU6FsHMYZFBw/KnWLJLzVXyU36Brr9pk=
+X-Received: by 2002:a17:90b:3b88:: with SMTP id pc8mr1221700pjb.93.1635384790364;
+ Wed, 27 Oct 2021 18:33:10 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YXj2lwrxRxHdr4hb@infradead.org>
+References: <20211018044054.1779424-1-hch@lst.de> <20211018044054.1779424-9-hch@lst.de>
+In-Reply-To: <20211018044054.1779424-9-hch@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 27 Oct 2021 18:32:58 -0700
+Message-ID: <CAPcyv4iK-Op9Nxoq91YLv0aRj6PkGF64UY0Z_kfovF0cpuJ_JQ@mail.gmail.com>
+Subject: Re: [PATCH 08/11] dm-linear: add a linear_dax_pgoff helper
+To: Christoph Hellwig <hch@lst.de>, Mike Snitzer <snitzer@redhat.com>
+Cc: Ira Weiny <ira.weiny@intel.com>, device-mapper development <dm-devel@redhat.com>, 
+	linux-xfs <linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	linux-s390 <linux-s390@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
+	linux-erofs@lists.ozlabs.org, linux-ext4 <linux-ext4@vger.kernel.org>, 
+	virtualization@lists.linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Oct 26, 2021 at 11:49:59PM -0700, Christoph Hellwig wrote:
-> On Fri, Oct 22, 2021 at 08:52:55PM +0000, Jane Chu wrote:
-> > Thanks - I try to be honest.  As far as I can tell, the argument
-> > about the flag is a philosophical argument between two views.
-> > One view assumes design based on perfect hardware, and media error
-> > belongs to the category of brokenness. Another view sees media
-> > error as a build-in hardware component and make design to include
-> > dealing with such errors.
-> 
-> No, I don't think so.  Bit errors do happen in all media, which is
-> why devices are built to handle them.  It is just the Intel-style
-> pmem interface to handle them which is completely broken.  
+On Sun, Oct 17, 2021 at 9:41 PM Christoph Hellwig <hch@lst.de> wrote:
+>
+> Add a helper to perform the entire remapping for DAX accesses.  This
+> helper open codes bdev_dax_pgoff given that the alignment checks have
+> already been done by the submitting file system and don't need to be
+> repeated.
 
-Yeah, I agree, this takes me back to learning how to use DISKEDIT to
-work around a hole punched in a file (with a pen!) in the 1980s...
+Looks good.
 
-...so would you happen to know if anyone's working on solving this
-problem for us by putting the memory controller in charge of dealing
-with media errors?
+Mike, ack?
 
-> > errors in mind from start.  I guess I'm trying to articulate why
-> > it is acceptable to include the RWF_DATA_RECOVERY flag to the
-> > existing RWF_ flags. - this way, pwritev2 remain fast on fast path,
-> > and its slow path (w/ error clearing) is faster than other alternative.
-> > Other alternative being 1 system call to clear the poison, and
-> > another system call to run the fast pwrite for recovery, what
-> > happens if something happened in between?
-> 
-> Well, my point is doing recovery from bit errors is by definition not
-> the fast path.  Which is why I'd rather keep it away from the pmem
-> read/write fast path, which also happens to be the (much more important)
-> non-pmem read/write path.
-
-The trouble is, we really /do/ want to be able to (re)write the failed
-area, and we probably want to try to read whatever we can.  Those are
-reads and writes, not {pre,f}allocation activities.  This is where Dave
-and I arrived at a month ago.
-
-Unless you'd be ok with a second IO path for recovery where we're
-allowed to be slow?  That would probably have the same user interface
-flag, just a different path into the pmem driver.
-
-Ha, how about a int fd2 = recoveryfd(fd); call where you'd get whatever
-speshul options (retry raid mirrors!  scrape the film off the disk if
-you have to!) you want that can take forever, leaving the fast paths
-alone?
-
-(Ok, that wasn't entirely serious...)
-
---D
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/md/dm-linear.c | 49 +++++++++++++-----------------------------
+>  1 file changed, 15 insertions(+), 34 deletions(-)
+>
+> diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
+> index 32fbab11bf90c..bf03f73fd0f36 100644
+> --- a/drivers/md/dm-linear.c
+> +++ b/drivers/md/dm-linear.c
+> @@ -164,63 +164,44 @@ static int linear_iterate_devices(struct dm_target *ti,
+>  }
+>
+>  #if IS_ENABLED(CONFIG_FS_DAX)
+> +static struct dax_device *linear_dax_pgoff(struct dm_target *ti, pgoff_t *pgoff)
+> +{
+> +       struct linear_c *lc = ti->private;
+> +       sector_t sector = linear_map_sector(ti, *pgoff << PAGE_SECTORS_SHIFT);
+> +
+> +       *pgoff = (get_start_sect(lc->dev->bdev) + sector) >> PAGE_SECTORS_SHIFT;
+> +       return lc->dev->dax_dev;
+> +}
+> +
+>  static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
+>                 long nr_pages, void **kaddr, pfn_t *pfn)
+>  {
+> -       long ret;
+> -       struct linear_c *lc = ti->private;
+> -       struct block_device *bdev = lc->dev->bdev;
+> -       struct dax_device *dax_dev = lc->dev->dax_dev;
+> -       sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+> -
+> -       dev_sector = linear_map_sector(ti, sector);
+> -       ret = bdev_dax_pgoff(bdev, dev_sector, nr_pages * PAGE_SIZE, &pgoff);
+> -       if (ret)
+> -               return ret;
+> +       struct dax_device *dax_dev = linear_dax_pgoff(ti, &pgoff);
+> +
+>         return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
+>  }
+>
+>  static size_t linear_dax_copy_from_iter(struct dm_target *ti, pgoff_t pgoff,
+>                 void *addr, size_t bytes, struct iov_iter *i)
+>  {
+> -       struct linear_c *lc = ti->private;
+> -       struct block_device *bdev = lc->dev->bdev;
+> -       struct dax_device *dax_dev = lc->dev->dax_dev;
+> -       sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+> +       struct dax_device *dax_dev = linear_dax_pgoff(ti, &pgoff);
+>
+> -       dev_sector = linear_map_sector(ti, sector);
+> -       if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
+> -               return 0;
+>         return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
+>  }
+>
+>  static size_t linear_dax_copy_to_iter(struct dm_target *ti, pgoff_t pgoff,
+>                 void *addr, size_t bytes, struct iov_iter *i)
+>  {
+> -       struct linear_c *lc = ti->private;
+> -       struct block_device *bdev = lc->dev->bdev;
+> -       struct dax_device *dax_dev = lc->dev->dax_dev;
+> -       sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+> +       struct dax_device *dax_dev = linear_dax_pgoff(ti, &pgoff);
+>
+> -       dev_sector = linear_map_sector(ti, sector);
+> -       if (bdev_dax_pgoff(bdev, dev_sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
+> -               return 0;
+>         return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
+>  }
+>
+>  static int linear_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
+>                                       size_t nr_pages)
+>  {
+> -       int ret;
+> -       struct linear_c *lc = ti->private;
+> -       struct block_device *bdev = lc->dev->bdev;
+> -       struct dax_device *dax_dev = lc->dev->dax_dev;
+> -       sector_t dev_sector, sector = pgoff * PAGE_SECTORS;
+> -
+> -       dev_sector = linear_map_sector(ti, sector);
+> -       ret = bdev_dax_pgoff(bdev, dev_sector, nr_pages << PAGE_SHIFT, &pgoff);
+> -       if (ret)
+> -               return ret;
+> +       struct dax_device *dax_dev = linear_dax_pgoff(ti, &pgoff);
+> +
+>         return dax_zero_page_range(dax_dev, pgoff, nr_pages);
+>  }
+>
+> --
+> 2.30.2
+>
