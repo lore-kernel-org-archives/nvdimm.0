@@ -1,218 +1,291 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B3EC2C83
-	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 04:52:03 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10150"; a="253881941"
-X-IronPort-AV: E=Sophos;i="5.87,188,1631602800"; 
-   d="scan'208";a="253881941"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 21:52:02 -0700
-X-IronPort-AV: E=Sophos;i="5.87,188,1631602800"; 
-   d="scan'208";a="498212206"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Oct 2021 21:52:01 -0700
-Date: Wed, 27 Oct 2021 21:52:01 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Cc: nvdimm@lists.linux.dev, aneesh.kumar@linux.ibm.com,
-	vaibhav@linux.ibm.com, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com
-Subject: Re: [REPOST PATCH v2 2/2] libndctl/papr: Add limited support for
- inject-smart
-Message-ID: <20211028045201.GD3538886@iweiny-DESK2.sc.intel.com>
-References: <163491461011.1641479.7752723100626280911.stgit@lep8c.aus.stglabs.ibm.com>
- <163491463468.1641479.2722334385346179478.stgit@lep8c.aus.stglabs.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E34C2C82
+	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 15:10:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+	MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+	Content-ID:Content-Description:In-Reply-To:References;
+	bh=0d1xRoNq+T8oxWvDQH/sCMyYjPJBW5ePy4wjDgpjUfw=; b=O4S7sR1otMJUaTNrG8rJafO2LU
+	ntSKQpdzDeF6Y50VLoiX7FV1AQsjEHeLKTut+w8SelHOwdoOu4/RfBwZJTtbJGYx1TcKvPf5OtMQt
+	2UrX33MNYkXKz94meIYMVaPx6a++pKHG2TgHrhDYYIVwZP8YkJJ7sg0uVNehHRUuq3o6xzUbbXmoe
+	EUKgZfUDSfR0SjPeHHDWE4+175NIKaKXKsclRMYKfs4pIdye/4nkHDCmFgHH2VDkGQxeIrTe+vmZv
+	mocjDE8x1WuhQHDI6DB2C9C894XZdGaCAcPBuFV9sPcAFH/d4WO9Cmzx0Gx4uvqApbRtZQgFQWGXu
+	bpNABn7w==;
+Received: from [2001:4bb8:199:7b1d:487c:3190:e387:3394] (helo=localhost)
+	by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mg72q-008NA1-1N; Thu, 28 Oct 2021 15:10:20 +0000
+From: Christoph Hellwig <hch@lst.de>
+To: dan.j.williams@intel.com
+Cc: nvdimm@lists.linux.dev,
+	linux-mm@kvack.org,
+	linux-pci@vger.kernel.org
+Subject: [PATCH v2] memremap: remove support for external pgmap refcounts
+Date: Thu, 28 Oct 2021 17:10:17 +0200
+Message-Id: <20211028151017.50234-1-hch@lst.de>
+X-Mailer: git-send-email 2.30.2
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <163491463468.1641479.2722334385346179478.stgit@lep8c.aus.stglabs.ibm.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+Content-Transfer-Encoding: 8bit
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Fri, Oct 22, 2021 at 09:58:10AM -0500, Shivaprasad G Bhat wrote:
-> From: Vaibhav Jain <vaibhav@linux.ibm.com>
-> 
-> Implements support for ndctl inject-smart command by providing an
-> implementation of 'smart_inject*' dimm-ops callbacks. Presently only
-> support for injecting unsafe-shutdown and fatal-health states is
-> available.
-> 
-> The patch also introduce various PAPR PDSM structures that are used to
-> communicate the inject-smart errors to the papr_scm kernel
-> module. This is done via SMART_INJECT PDSM which sends a payload of
-> type 'struct nd_papr_pdsm_smart_inject'.
-> 
-> With the patch following output from ndctl inject-smart command is
-> expected for PAPR NVDIMMs:
-> 
-> $ sudo ndctl inject-smart -fU nmem0
-> [
->   {
->     "dev":"nmem0",
->     "flag_failed_flush":true,
->     "flag_smart_event":true,
->     "health":{
->       "health_state":"fatal",
->       "shutdown_state":"dirty",
->       "shutdown_count":0
->     }
->   }
-> ]
-> 
-> $ sudo ndctl inject-smart -N nmem0
-> [
->   {
->     "dev":"nmem0",
->     "health":{
->       "health_state":"ok",
->       "shutdown_state":"clean",
->       "shutdown_count":0
->     }
->   }
-> ]
-> 
-> The patch depends on the kernel PAPR PDSM implementation for
-> PDSM_SMART_INJECT posted at [1].
-> 
-> [1] : https://patchwork.kernel.org/project/linux-nvdimm/patch/163091917031.334.16212158243308361834.stgit@82313cf9f602/
-> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+No driver is left using the external pgmap refcount, so remove the
+code to support it.
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
 
-> ---
-> Changelog:
-> 
-> Since v1:
-> Link: https://lore.kernel.org/nvdimm/20210712173132.1205192-3-vaibhav@linux.ibm.com/
-> * Updates to patch description.
-> 
->  ndctl/lib/papr.c      |   61 +++++++++++++++++++++++++++++++++++++++++++++++++
->  ndctl/lib/papr_pdsm.h |   17 ++++++++++++++
->  2 files changed, 78 insertions(+)
-> 
-> diff --git a/ndctl/lib/papr.c b/ndctl/lib/papr.c
-> index 42ff200d..b797e1e5 100644
-> --- a/ndctl/lib/papr.c
-> +++ b/ndctl/lib/papr.c
-> @@ -221,6 +221,41 @@ static unsigned int papr_smart_get_shutdown_state(struct ndctl_cmd *cmd)
->  	return health.dimm_bad_shutdown;
->  }
->  
-> +static int papr_smart_inject_supported(struct ndctl_dimm *dimm)
-> +{
-> +	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL))
-> +		return -EOPNOTSUPP;
-> +
-> +	if (!test_dimm_dsm(dimm, PAPR_PDSM_SMART_INJECT))
-> +		return -EIO;
-> +
-> +	return ND_SMART_INJECT_HEALTH_STATE | ND_SMART_INJECT_UNCLEAN_SHUTDOWN;
-> +}
-> +
-> +static int papr_smart_inject_valid(struct ndctl_cmd *cmd)
-> +{
-> +	if (cmd->type != ND_CMD_CALL ||
-> +	    to_pdsm(cmd)->cmd_status != 0 ||
-> +	    to_pdsm_cmd(cmd) != PAPR_PDSM_SMART_INJECT)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static struct ndctl_cmd *papr_new_smart_inject(struct ndctl_dimm *dimm)
-> +{
-> +	struct ndctl_cmd *cmd;
-> +
-> +	cmd = allocate_cmd(dimm, PAPR_PDSM_SMART_INJECT,
-> +			sizeof(struct nd_papr_pdsm_smart_inject));
-> +	if (!cmd)
-> +		return NULL;
-> +	/* Set the input payload size */
-> +	to_ndcmd(cmd)->nd_size_in = ND_PDSM_HDR_SIZE +
-> +		sizeof(struct nd_papr_pdsm_smart_inject);
-> +	return cmd;
-> +}
-> +
->  static unsigned int papr_smart_get_life_used(struct ndctl_cmd *cmd)
->  {
->  	struct nd_papr_pdsm_health health;
-> @@ -255,11 +290,37 @@ static unsigned int papr_smart_get_shutdown_count(struct ndctl_cmd *cmd)
->  
->  	return (health.extension_flags & PDSM_DIMM_DSC_VALID) ?
->  		(health.dimm_dsc) : 0;
-> +}
-> +
-> +static int papr_cmd_smart_inject_fatal(struct ndctl_cmd *cmd, bool enable)
-> +{
-> +	if (papr_smart_inject_valid(cmd) < 0)
-> +		return -EINVAL;
-> +
-> +	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
-> +	to_payload(cmd)->inject.fatal_enable = enable;
->  
-> +	return 0;
-> +}
-> +
-> +static int papr_cmd_smart_inject_unsafe_shutdown(struct ndctl_cmd *cmd,
-> +						 bool enable)
-> +{
-> +	if (papr_smart_inject_valid(cmd) < 0)
-> +		return -EINVAL;
-> +
-> +	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
-> +	to_payload(cmd)->inject.unsafe_shutdown_enable = enable;
-> +
-> +	return 0;
->  }
->  
->  struct ndctl_dimm_ops * const papr_dimm_ops = &(struct ndctl_dimm_ops) {
->  	.cmd_is_supported = papr_cmd_is_supported,
-> +	.new_smart_inject = papr_new_smart_inject,
-> +	.smart_inject_supported = papr_smart_inject_supported,
-> +	.smart_inject_fatal = papr_cmd_smart_inject_fatal,
-> +	.smart_inject_unsafe_shutdown = papr_cmd_smart_inject_unsafe_shutdown,
->  	.smart_get_flags = papr_smart_get_flags,
->  	.get_firmware_status =  papr_get_firmware_status,
->  	.xlat_firmware_status = papr_xlat_firmware_status,
-> diff --git a/ndctl/lib/papr_pdsm.h b/ndctl/lib/papr_pdsm.h
-> index f45b1e40..20ac20f8 100644
-> --- a/ndctl/lib/papr_pdsm.h
-> +++ b/ndctl/lib/papr_pdsm.h
-> @@ -121,12 +121,29 @@ struct nd_papr_pdsm_health {
->  enum papr_pdsm {
->  	PAPR_PDSM_MIN = 0x0,
->  	PAPR_PDSM_HEALTH,
-> +	PAPR_PDSM_SMART_INJECT,
->  	PAPR_PDSM_MAX,
->  };
-> +/* Flags for injecting specific smart errors */
-> +#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
-> +#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
-> +
-> +struct nd_papr_pdsm_smart_inject {
-> +	union {
-> +		struct {
-> +			/* One or more of PDSM_SMART_INJECT_ */
-> +			__u32 flags;
-> +			__u8 fatal_enable;
-> +			__u8 unsafe_shutdown_enable;
-> +		};
-> +		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
-> +	};
-> +};
->  
->  /* Maximal union that can hold all possible payload types */
->  union nd_pdsm_payload {
->  	struct nd_papr_pdsm_health health;
-> +	struct nd_papr_pdsm_smart_inject inject;
->  	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
->  } __attribute__((packed));
->  
-> 
-> 
+Changes since v1:
+ - fix compile in p2pdma.c
+ - drop the alredy merged first patch
+
+ drivers/pci/p2pdma.c              |  2 +-
+ include/linux/memremap.h          | 18 ++--------
+ mm/memremap.c                     | 59 +++++++------------------------
+ tools/testing/nvdimm/test/iomap.c | 43 +++++++---------------
+ 4 files changed, 28 insertions(+), 94 deletions(-)
+
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 50cdde3e9a8b2..316fd2f44df45 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -219,7 +219,7 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+ 	error = gen_pool_add_owner(p2pdma->pool, (unsigned long)addr,
+ 			pci_bus_address(pdev, bar) + offset,
+ 			range_len(&pgmap->range), dev_to_node(&pdev->dev),
+-			pgmap->ref);
++			&pgmap->ref);
+ 	if (error)
+ 		goto pages_free;
+ 
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index c0e9d35889e8d..a8bc588fe7aa8 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -72,16 +72,6 @@ struct dev_pagemap_ops {
+ 	 */
+ 	void (*page_free)(struct page *page);
+ 
+-	/*
+-	 * Transition the refcount in struct dev_pagemap to the dead state.
+-	 */
+-	void (*kill)(struct dev_pagemap *pgmap);
+-
+-	/*
+-	 * Wait for refcount in struct dev_pagemap to be idle and reap it.
+-	 */
+-	void (*cleanup)(struct dev_pagemap *pgmap);
+-
+ 	/*
+ 	 * Used for private (un-addressable) device memory only.  Must migrate
+ 	 * the page back to a CPU accessible page.
+@@ -95,8 +85,7 @@ struct dev_pagemap_ops {
+  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
+  * @ref: reference count that pins the devm_memremap_pages() mapping
+- * @internal_ref: internal reference if @ref is not provided by the caller
+- * @done: completion for @internal_ref
++ * @done: completion for @ref
+  * @type: memory type: see MEMORY_* in memory_hotplug.h
+  * @flags: PGMAP_* flags to specify defailed behavior
+  * @ops: method table
+@@ -109,8 +98,7 @@ struct dev_pagemap_ops {
+  */
+ struct dev_pagemap {
+ 	struct vmem_altmap altmap;
+-	struct percpu_ref *ref;
+-	struct percpu_ref internal_ref;
++	struct percpu_ref ref;
+ 	struct completion done;
+ 	enum memory_type type;
+ 	unsigned int flags;
+@@ -191,7 +179,7 @@ static inline unsigned long memremap_compat_align(void)
+ static inline void put_dev_pagemap(struct dev_pagemap *pgmap)
+ {
+ 	if (pgmap)
+-		percpu_ref_put(pgmap->ref);
++		percpu_ref_put(&pgmap->ref);
+ }
+ 
+ #endif /* _LINUX_MEMREMAP_H_ */
+diff --git a/mm/memremap.c b/mm/memremap.c
+index ed593bf87109a..d7034c55d0a24 100644
+--- a/mm/memremap.c
++++ b/mm/memremap.c
+@@ -112,30 +112,6 @@ static unsigned long pfn_next(unsigned long pfn)
+ #define for_each_device_pfn(pfn, map, i) \
+ 	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(pfn))
+ 
+-static void dev_pagemap_kill(struct dev_pagemap *pgmap)
+-{
+-	if (pgmap->ops && pgmap->ops->kill)
+-		pgmap->ops->kill(pgmap);
+-	else
+-		percpu_ref_kill(pgmap->ref);
+-}
+-
+-static void dev_pagemap_cleanup(struct dev_pagemap *pgmap)
+-{
+-	if (pgmap->ops && pgmap->ops->cleanup) {
+-		pgmap->ops->cleanup(pgmap);
+-	} else {
+-		wait_for_completion(&pgmap->done);
+-		percpu_ref_exit(pgmap->ref);
+-	}
+-	/*
+-	 * Undo the pgmap ref assignment for the internal case as the
+-	 * caller may re-enable the same pgmap.
+-	 */
+-	if (pgmap->ref == &pgmap->internal_ref)
+-		pgmap->ref = NULL;
+-}
+-
+ static void pageunmap_range(struct dev_pagemap *pgmap, int range_id)
+ {
+ 	struct range *range = &pgmap->ranges[range_id];
+@@ -167,11 +143,12 @@ void memunmap_pages(struct dev_pagemap *pgmap)
+ 	unsigned long pfn;
+ 	int i;
+ 
+-	dev_pagemap_kill(pgmap);
++	percpu_ref_kill(&pgmap->ref);
+ 	for (i = 0; i < pgmap->nr_range; i++)
+ 		for_each_device_pfn(pfn, pgmap, i)
+ 			put_page(pfn_to_page(pfn));
+-	dev_pagemap_cleanup(pgmap);
++	wait_for_completion(&pgmap->done);
++	percpu_ref_exit(&pgmap->ref);
+ 
+ 	for (i = 0; i < pgmap->nr_range; i++)
+ 		pageunmap_range(pgmap, i);
+@@ -188,8 +165,7 @@ static void devm_memremap_pages_release(void *data)
+ 
+ static void dev_pagemap_percpu_release(struct percpu_ref *ref)
+ {
+-	struct dev_pagemap *pgmap =
+-		container_of(ref, struct dev_pagemap, internal_ref);
++	struct dev_pagemap *pgmap = container_of(ref, struct dev_pagemap, ref);
+ 
+ 	complete(&pgmap->done);
+ }
+@@ -295,8 +271,8 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
+ 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
+ 				PHYS_PFN(range->start),
+ 				PHYS_PFN(range_len(range)), pgmap);
+-	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
+-			- pfn_first(pgmap, range_id));
++	percpu_ref_get_many(&pgmap->ref,
++		pfn_end(pgmap, range_id) - pfn_first(pgmap, range_id));
+ 	return 0;
+ 
+ err_add_memory:
+@@ -362,22 +338,11 @@ void *memremap_pages(struct dev_pagemap *pgmap, int nid)
+ 		break;
+ 	}
+ 
+-	if (!pgmap->ref) {
+-		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
+-			return ERR_PTR(-EINVAL);
+-
+-		init_completion(&pgmap->done);
+-		error = percpu_ref_init(&pgmap->internal_ref,
+-				dev_pagemap_percpu_release, 0, GFP_KERNEL);
+-		if (error)
+-			return ERR_PTR(error);
+-		pgmap->ref = &pgmap->internal_ref;
+-	} else {
+-		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
+-			WARN(1, "Missing reference count teardown definition\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-	}
++	init_completion(&pgmap->done);
++	error = percpu_ref_init(&pgmap->ref, dev_pagemap_percpu_release, 0,
++				GFP_KERNEL);
++	if (error)
++		return ERR_PTR(error);
+ 
+ 	devmap_managed_enable_get(pgmap);
+ 
+@@ -486,7 +451,7 @@ struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
+ 	/* fall back to slow path lookup */
+ 	rcu_read_lock();
+ 	pgmap = xa_load(&pgmap_array, PHYS_PFN(phys));
+-	if (pgmap && !percpu_ref_tryget_live(pgmap->ref))
++	if (pgmap && !percpu_ref_tryget_live(&pgmap->ref))
+ 		pgmap = NULL;
+ 	rcu_read_unlock();
+ 
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index ed563bdd88f39..b752ce47ead3c 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -100,25 +100,17 @@ static void nfit_test_kill(void *_pgmap)
+ {
+ 	struct dev_pagemap *pgmap = _pgmap;
+ 
+-	WARN_ON(!pgmap || !pgmap->ref);
+-
+-	if (pgmap->ops && pgmap->ops->kill)
+-		pgmap->ops->kill(pgmap);
+-	else
+-		percpu_ref_kill(pgmap->ref);
+-
+-	if (pgmap->ops && pgmap->ops->cleanup) {
+-		pgmap->ops->cleanup(pgmap);
+-	} else {
+-		wait_for_completion(&pgmap->done);
+-		percpu_ref_exit(pgmap->ref);
+-	}
++	WARN_ON(!pgmap);
++
++	percpu_ref_kill(&pgmap->ref);
++
++	wait_for_completion(&pgmap->done);
++	percpu_ref_exit(&pgmap->ref);
+ }
+ 
+ static void dev_pagemap_percpu_release(struct percpu_ref *ref)
+ {
+-	struct dev_pagemap *pgmap =
+-		container_of(ref, struct dev_pagemap, internal_ref);
++	struct dev_pagemap *pgmap = container_of(ref, struct dev_pagemap, ref);
+ 
+ 	complete(&pgmap->done);
+ }
+@@ -132,22 +124,11 @@ void *__wrap_devm_memremap_pages(struct device *dev, struct dev_pagemap *pgmap)
+ 	if (!nfit_res)
+ 		return devm_memremap_pages(dev, pgmap);
+ 
+-	if (!pgmap->ref) {
+-		if (pgmap->ops && (pgmap->ops->kill || pgmap->ops->cleanup))
+-			return ERR_PTR(-EINVAL);
+-
+-		init_completion(&pgmap->done);
+-		error = percpu_ref_init(&pgmap->internal_ref,
+-				dev_pagemap_percpu_release, 0, GFP_KERNEL);
+-		if (error)
+-			return ERR_PTR(error);
+-		pgmap->ref = &pgmap->internal_ref;
+-	} else {
+-		if (!pgmap->ops || !pgmap->ops->kill || !pgmap->ops->cleanup) {
+-			WARN(1, "Missing reference count teardown definition\n");
+-			return ERR_PTR(-EINVAL);
+-		}
+-	}
++	init_completion(&pgmap->done);
++	error = percpu_ref_init(&pgmap->ref, dev_pagemap_percpu_release, 0,
++				GFP_KERNEL);
++	if (error)
++		return ERR_PTR(error);
+ 
+ 	error = devm_add_action_or_reset(dev, nfit_test_kill, pgmap);
+ 	if (error)
+-- 
+2.30.2
+
