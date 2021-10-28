@@ -1,85 +1,149 @@
-Received: from mail-pf1-f173.google.com (mail-pf1-f173.google.com [209.85.210.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C2132C87
-	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 22:32:13 +0000 (UTC)
-Received: by mail-pf1-f173.google.com with SMTP id 127so7364777pfu.1
-        for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 15:32:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=NX4oKzsdtiCBcjkv0ooeUdxijzvTNPbKKtZXJyEL5SI=;
-        b=iDJla/Vp669Z4iMSGfge1FP4VjHEtFHttByF+7j6E+kHIIIqmXbCf92jD4wj0SNwif
-         37YAod19jRKiDYARSC5kzBEVrfXiCdOxKPUrrUGofMS1PDsHCBc9Yfotjpyu3A9DMt+S
-         f3mJKPeO1QRqTEQ873OW4ZBZEW6KwGTAl6y7IGbsHSeaXEBiBIdwNZKJYk62/azTDuyh
-         Gi1cTysDt4kK4JAb3nXYzveN+gD5DkP3X+KW+kY2YXo6+tB00eqiDwp9yhEtZXhqIDrL
-         vY/nGOHxEGEaMj9XvFKYudgQKLPWheRezbs79qx7Ydpm+bMUZRuQaMq3m11sqi6v1CIT
-         TqAw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=NX4oKzsdtiCBcjkv0ooeUdxijzvTNPbKKtZXJyEL5SI=;
-        b=Q/Kt0IjeHjBgP7ILDza1Is7WihXJSCD8jMSFrO4GlI/dqK7oqyDpFDBzRK9xtaUpG3
-         x2FhHEwLKk/HR+CVFMuntItjJfEnMxGUpXnSGA0+PMm32RBSDZ4XVr8Jqcubt0z/t+oy
-         CafENDIC1rpHmL61p5zHsgpl7Tei4Rsfz6GkjMxWeO8+Yvl57D/E/CEEY0y1J+FnQ5Xn
-         DsWBuJBP65mG/btwA9YgYV40temqDjhaAfxN4EGgoZSe4BKj3XKPJZVDkmcbIK86DYME
-         23x+d/PfNBxhmj3iufk1RPZvvkanqUDfRBVYOIS1BiQ0YcgJXRwgCXKXfbB4BJeD3WVc
-         eC6g==
-X-Gm-Message-State: AOAM533osiIfuMfDUZbH/m7ZHigW3fy+G/7hIyC8oRHrBK1vtEul3qPM
-	adF+mQQvOYKK6938PVdgTFdZyBjxfm1kzVjVTSQEzL/wyzEBJQ==
-X-Google-Smtp-Source: ABdhPJzwnFQBq6X59wQZ609TtUucj3VzBMCa8RdpPTm4uLLJzsotg3u+U5r/sTtyBpCTPLxAO0BtmWOhsa/GcXHTN+A=
-X-Received: by 2002:a63:6bc2:: with SMTP id g185mr5242961pgc.356.1635460332811;
- Thu, 28 Oct 2021 15:32:12 -0700 (PDT)
+Received: from mail110.syd.optusnet.com.au (mail110.syd.optusnet.com.au [211.29.132.97])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0CE3E2C87
+	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 23:22:37 +0000 (UTC)
+Received: from dread.disaster.area (pa49-180-20-157.pa.nsw.optusnet.com.au [49.180.20.157])
+	by mail110.syd.optusnet.com.au (Postfix) with ESMTPS id 233FD10911C;
+	Fri, 29 Oct 2021 09:59:56 +1100 (AEDT)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+	(envelope-from <david@fromorbit.com>)
+	id 1mgENH-002C7K-TH; Fri, 29 Oct 2021 09:59:55 +1100
+Date: Fri, 29 Oct 2021 09:59:55 +1100
+From: Dave Chinner <david@fromorbit.com>
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>,
+	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+	"dave.jiang@intel.com" <dave.jiang@intel.com>,
+	"agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"ira.weiny@intel.com" <ira.weiny@intel.com>,
+	"willy@infradead.org" <willy@infradead.org>,
+	"vgoyal@redhat.com" <vgoyal@redhat.com>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
+Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
+ RWF_RECOVERY_DATA flag
+Message-ID: <20211028225955.GA449541@dread.disaster.area>
+References: <20211021001059.438843-1-jane.chu@oracle.com>
+ <YXFPfEGjoUaajjL4@infradead.org>
+ <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+ <YXJN4s1HC/Y+KKg1@infradead.org>
+ <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+ <YXj2lwrxRxHdr4hb@infradead.org>
+ <20211028002451.GB2237511@magnolia>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 28 Oct 2021 15:32:00 -0700
-Message-ID: <CAPcyv4igx1BJpp+Z3jvjTxahPYp8TBLSZY=jU7vsBWF34XHDOA@mail.gmail.com>
-Subject: [GIT PULL] nvdimm fixes v5.15-rc8
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211028002451.GB2237511@magnolia>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.4 cv=VuxAv86n c=1 sm=1 tr=0 ts=617b2b6f
+	a=t5ERiztT/VoIE8AqcczM6g==:117 a=t5ERiztT/VoIE8AqcczM6g==:17
+	a=kj9zAlcOel0A:10 a=8gfv0ekSlNoA:10 a=7-415B0cAAAA:8
+	a=k1Z2RRqN3eVEGd4K9SgA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
 
-Hi Linus, please pull from:
+On Wed, Oct 27, 2021 at 05:24:51PM -0700, Darrick J. Wong wrote:
+> On Tue, Oct 26, 2021 at 11:49:59PM -0700, Christoph Hellwig wrote:
+> > On Fri, Oct 22, 2021 at 08:52:55PM +0000, Jane Chu wrote:
+> > > Thanks - I try to be honest.  As far as I can tell, the argument
+> > > about the flag is a philosophical argument between two views.
+> > > One view assumes design based on perfect hardware, and media error
+> > > belongs to the category of brokenness. Another view sees media
+> > > error as a build-in hardware component and make design to include
+> > > dealing with such errors.
+> > 
+> > No, I don't think so.  Bit errors do happen in all media, which is
+> > why devices are built to handle them.  It is just the Intel-style
+> > pmem interface to handle them which is completely broken.  
+> 
+> Yeah, I agree, this takes me back to learning how to use DISKEDIT to
+> work around a hole punched in a file (with a pen!) in the 1980s...
+> 
+> ...so would you happen to know if anyone's working on solving this
+> problem for us by putting the memory controller in charge of dealing
+> with media errors?
+> 
+> > > errors in mind from start.  I guess I'm trying to articulate why
+> > > it is acceptable to include the RWF_DATA_RECOVERY flag to the
+> > > existing RWF_ flags. - this way, pwritev2 remain fast on fast path,
+> > > and its slow path (w/ error clearing) is faster than other alternative.
+> > > Other alternative being 1 system call to clear the poison, and
+> > > another system call to run the fast pwrite for recovery, what
+> > > happens if something happened in between?
+> > 
+> > Well, my point is doing recovery from bit errors is by definition not
+> > the fast path.  Which is why I'd rather keep it away from the pmem
+> > read/write fast path, which also happens to be the (much more important)
+> > non-pmem read/write path.
+> 
+> The trouble is, we really /do/ want to be able to (re)write the failed
+> area, and we probably want to try to read whatever we can.  Those are
+> reads and writes, not {pre,f}allocation activities.  This is where Dave
+> and I arrived at a month ago.
+> 
+> Unless you'd be ok with a second IO path for recovery where we're
+> allowed to be slow?  That would probably have the same user interface
+> flag, just a different path into the pmem driver.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.15-rc8
+I just don't see how 4 single line branches to propage RWF_RECOVERY
+down to the hardware is in any way an imposition on the fast path.
+It's no different for passing RWF_HIPRI down to the hardware *in the
+fast path* so that the IO runs the hardware in polling mode because
+it's faster for some hardware.
 
-...to receive a regression fix for v5.15-rc8. It has been in -next for
-a few days now with no reported issues. Yi sent his tested-by, but I
-had already committed the branch, so here it is for the merge message.
+IOWs, saying that we shouldn't implement RWF_RECOVERY because it
+adds a handful of branches to the fast path is like saying that we
+shouldn't implement RWF_HIPRI because it slows down the fast path
+for non-polled IO....
 
-Tested-by: Yi Zhang <yi.zhang@redhat.com>
+Just factor the actual recovery operations out into a separate
+function like:
 
----
+static void noinline
+pmem_media_recovery(...)
+{
+}
 
-The following changes since commit 3906fe9bb7f1a2c8667ae54e967dc8690824f4ea:
+pmem_copy_from_iter()
+{
+	if ((unlikely)(flag & RECOVERY))
+		pmem_media_recovery(...);
+	return _copy_from_iter_flushcache(addr, bytes, i);
+}
+....
 
-  Linux 5.15-rc7 (2021-10-25 11:30:31 -0700)
+And there's basically zero overhead in the fast paths for normal
+data IO operations, whilst supporting a simple, easy to use data
+recovery IO operations for regions that have bad media...
 
-are available in the Git repository at:
+> Ha, how about a int fd2 = recoveryfd(fd); call where you'd get whatever
+> speshul options (retry raid mirrors!  scrape the film off the disk if
+> you have to!) you want that can take forever, leaving the fast paths
+> alone?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-fixes-5.15-rc8
+Why wouldn't we just pass RWF_RECOVERY down to a REQ_RECOVERY bio
+flag and have raid devices use that to trigger scraping whatever
+they can if there are errors? The io path through the VFS and
+filesystem to get the scraped data out to the user *is exactly the
+same*, so we're going to have to plumb this functionality into fast
+paths *somewhere along the line*.
 
-for you to fetch changes up to 3dd60fb9d95db9c78fec86ba4df20852a7b974ba:
+Really, I think this whole "flag propagation is too much overhead
+for the fast path" argument is completely invalid - if 4 conditional
+branches is too much overhead to add to the fast path, then we can't
+add *anything ever again* to the IO path because it has too much
+overhead and impact on the fast path.
 
-  nvdimm/pmem: stop using q_usage_count as external pgmap refcount
-(2021-10-25 16:12:32 -0700)
+Cheers,
 
-----------------------------------------------------------------
-libnvdimm fixes for v5.15-rc8
-
-- Fix a regression introduced in v5.15-rc6 that caused nvdimm namespace
-  shutdown to hang due to reworks in the block layer q_usage_count.
-
-----------------------------------------------------------------
-Christoph Hellwig (1):
-      nvdimm/pmem: stop using q_usage_count as external pgmap refcount
-
- drivers/nvdimm/pmem.c | 33 ++-------------------------------
- 1 file changed, 2 insertions(+), 31 deletions(-)
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
