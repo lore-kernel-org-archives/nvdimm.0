@@ -1,89 +1,104 @@
-Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32CE072
-	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 00:20:52 +0000 (UTC)
-Received: by mail-pj1-f54.google.com with SMTP id nn3-20020a17090b38c300b001a03bb6c4ebso3342243pjb.1
-        for <nvdimm@lists.linux.dev>; Wed, 27 Oct 2021 17:20:52 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=thFpqdlxLVjcGfDZPprDTzPo9iTzt5bk9dqhDCzY+u0=;
-        b=Bp5byUxxNEOGWx1LiYKcSiES+UNWDp5D/cMWZdjtl33fGWM9mdrZIzgn/KeGW66w48
-         HLlosh7rVoB0KWLzJNIesUqmq7HyWnrZDWPZXtEInbmdYlimOId2CvHzX4NDal8E2jsZ
-         NIOS1NWX2Og4zHktLs8Z73ffbx1VrB4tMgXBr+cAXsS3m4YEPwio+BMFFkGVGFDC70ho
-         bg5uNNY9RzCmq9k8vu68K0vdjkKG8QMiqL+5O7IERSfZ90owTTf78IF/SLmMshLsv0gn
-         algtrVwvBQo2E9HZ/GOG94ZMah+I89z5KkLKLbHkHit8m9WqG6x8NqMi8PHespkOBUpP
-         20MA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=thFpqdlxLVjcGfDZPprDTzPo9iTzt5bk9dqhDCzY+u0=;
-        b=OWyQrnXmox+7OgiRTzYwkAaYATkncKzKxjsGSbGtuTM7HXfqbG4bBR/ycB8gsK2fw2
-         wMYNMWJgtLfsSo80PPdnYulUimg3++Sk/9Fk8mY/ddTHUWbyCfLK8qrFaJs5Y1djJvYE
-         JrxrI28y+kSrh1Pe21OsVKGqXdwe2rHNYSMHXAWyq27DW9sMSQbFUxAihXIra0Pu/4AP
-         1enmDFXS5e2EXdsej/paRE3xHdU/D0tpqRo1YN/hctVmGkiGvouO6AJlhJQDtm2SzTdA
-         AeSwRtlOHs4QbJwIxmN0Z/xMfGzl4Of3Qu3pooeACFkvRU+oBAVSNt4XusUeNb6MCwU8
-         ZCEQ==
-X-Gm-Message-State: AOAM533FJwtuPFf2xgppAVpR3Si+DT9AAttCMrF9VVb8F5bmJEgDi+nL
-	heiraoHtc6MB8hnEJvsVZ/yGH7uOrLNMPLkXx42qgg==
-X-Google-Smtp-Source: ABdhPJzDJ7G0OO0ihyu2DGXMx9nVI+vhdbJMigLbokXMw0jK9Xiqd7lMu/pWH/LSzIK1m8uglUBBOlGG+XCxTCXb4vQ=
-X-Received: by 2002:a17:90b:350f:: with SMTP id ls15mr942901pjb.220.1635380451659;
- Wed, 27 Oct 2021 17:20:51 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B9D572
+	for <nvdimm@lists.linux.dev>; Thu, 28 Oct 2021 00:24:52 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF4FB60F9B;
+	Thu, 28 Oct 2021 00:24:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1635380691;
+	bh=FiS4PSp9dq5XSaCsWhfnvL9XlrVWGShYyfrLJTdu9vE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=LLiu9hL0Nnfj0wrmhGnnxL5+8GTJJbXO4vG40Y4IEyaBbUa88fsVA0M+rE2wPP55K
+	 VLA6cRwCiUhxECHQOahortB3Yo2VP+oFbMEG0uElQs81v4jqhfp8kRYJAeUnnA16zJ
+	 b+HS7hPoUelooieVdCl2Nx6xZkxw/UW2E15yHmAfP3nhWY0ybavp+pTPnAHxX+G4UW
+	 F0ZV+G9Tqf5vDpTUtdu8DAFnC69xwsGEyN/qag6omHGpOOd3XLSLw822wOCWuz45t8
+	 xD8mrOpLmMT4K4s0abdIP5Oo4QMzSeb0EDc/7elPxTr+C57KbXjFo3PtV8fNtBQS9d
+	 bD3r72wnTUFYA==
+Date: Wed, 27 Oct 2021 17:24:51 -0700
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Jane Chu <jane.chu@oracle.com>,
+	"david@fromorbit.com" <david@fromorbit.com>,
+	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+	"dave.jiang@intel.com" <dave.jiang@intel.com>,
+	"agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"ira.weiny@intel.com" <ira.weiny@intel.com>,
+	"willy@infradead.org" <willy@infradead.org>,
+	"vgoyal@redhat.com" <vgoyal@redhat.com>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
+Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
+ RWF_RECOVERY_DATA flag
+Message-ID: <20211028002451.GB2237511@magnolia>
+References: <20211021001059.438843-1-jane.chu@oracle.com>
+ <YXFPfEGjoUaajjL4@infradead.org>
+ <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+ <YXJN4s1HC/Y+KKg1@infradead.org>
+ <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+ <YXj2lwrxRxHdr4hb@infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211018044054.1779424-1-hch@lst.de> <20211018044054.1779424-8-hch@lst.de>
- <20211019154447.GL24282@magnolia>
-In-Reply-To: <20211019154447.GL24282@magnolia>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 27 Oct 2021 17:20:40 -0700
-Message-ID: <CAPcyv4g0yC3S8X6_DPtSjgFu3XFOHwu1KDy1HQP9eWk-EnDaxA@mail.gmail.com>
-Subject: Re: [dm-devel] [PATCH 07/11] dax: remove dax_capable
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Mike Snitzer <snitzer@redhat.com>, linux-s390 <linux-s390@vger.kernel.org>, 
-	linux-erofs@lists.ozlabs.org, virtualization@lists.linux-foundation.org, 
-	linux-xfs <linux-xfs@vger.kernel.org>, device-mapper development <dm-devel@redhat.com>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, 
-	Ira Weiny <ira.weiny@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YXj2lwrxRxHdr4hb@infradead.org>
 
-On Tue, Oct 19, 2021 at 8:45 AM Darrick J. Wong <djwong@kernel.org> wrote:
->
-> On Mon, Oct 18, 2021 at 06:40:50AM +0200, Christoph Hellwig wrote:
-> > Just open code the block size and dax_dev == NULL checks in the callers.
-> >
-> > Signed-off-by: Christoph Hellwig <hch@lst.de>
-> > ---
-> >  drivers/dax/super.c          | 36 ------------------------------------
-> >  drivers/md/dm-table.c        | 22 +++++++++++-----------
-> >  drivers/md/dm.c              | 21 ---------------------
-> >  drivers/md/dm.h              |  4 ----
-> >  drivers/nvdimm/pmem.c        |  1 -
-> >  drivers/s390/block/dcssblk.c |  1 -
-> >  fs/erofs/super.c             | 11 +++++++----
-> >  fs/ext2/super.c              |  6 ++++--
-> >  fs/ext4/super.c              |  9 ++++++---
-> >  fs/xfs/xfs_super.c           | 21 ++++++++-------------
-> >  include/linux/dax.h          | 14 --------------
-> >  11 files changed, 36 insertions(+), 110 deletions(-)
-> >
-[..]               if (ext4_has_feature_inline_data(sb)) {
-> > diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
-> > index d07020a8eb9e3..163ceafbd8fd2 100644
-> > --- a/fs/xfs/xfs_super.c
-> > +++ b/fs/xfs/xfs_super.c
-[..]
-> > +     if (mp->m_super->s_blocksize != PAGE_SIZE) {
-> > +             xfs_alert(mp,
-> > +                     "DAX not supported for blocksize. Turning off DAX.\n");
->
-> Newlines aren't needed at the end of extX_msg/xfs_alert format strings.
+On Tue, Oct 26, 2021 at 11:49:59PM -0700, Christoph Hellwig wrote:
+> On Fri, Oct 22, 2021 at 08:52:55PM +0000, Jane Chu wrote:
+> > Thanks - I try to be honest.  As far as I can tell, the argument
+> > about the flag is a philosophical argument between two views.
+> > One view assumes design based on perfect hardware, and media error
+> > belongs to the category of brokenness. Another view sees media
+> > error as a build-in hardware component and make design to include
+> > dealing with such errors.
+> 
+> No, I don't think so.  Bit errors do happen in all media, which is
+> why devices are built to handle them.  It is just the Intel-style
+> pmem interface to handle them which is completely broken.  
 
-Thanks Darrick, I fixed those up.
+Yeah, I agree, this takes me back to learning how to use DISKEDIT to
+work around a hole punched in a file (with a pen!) in the 1980s...
+
+...so would you happen to know if anyone's working on solving this
+problem for us by putting the memory controller in charge of dealing
+with media errors?
+
+> > errors in mind from start.  I guess I'm trying to articulate why
+> > it is acceptable to include the RWF_DATA_RECOVERY flag to the
+> > existing RWF_ flags. - this way, pwritev2 remain fast on fast path,
+> > and its slow path (w/ error clearing) is faster than other alternative.
+> > Other alternative being 1 system call to clear the poison, and
+> > another system call to run the fast pwrite for recovery, what
+> > happens if something happened in between?
+> 
+> Well, my point is doing recovery from bit errors is by definition not
+> the fast path.  Which is why I'd rather keep it away from the pmem
+> read/write fast path, which also happens to be the (much more important)
+> non-pmem read/write path.
+
+The trouble is, we really /do/ want to be able to (re)write the failed
+area, and we probably want to try to read whatever we can.  Those are
+reads and writes, not {pre,f}allocation activities.  This is where Dave
+and I arrived at a month ago.
+
+Unless you'd be ok with a second IO path for recovery where we're
+allowed to be slow?  That would probably have the same user interface
+flag, just a different path into the pmem driver.
+
+Ha, how about a int fd2 = recoveryfd(fd); call where you'd get whatever
+speshul options (retry raid mirrors!  scrape the film off the disk if
+you have to!) you want that can take forever, leaving the fast paths
+alone?
+
+(Ok, that wasn't entirely serious...)
+
+--D
