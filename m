@@ -1,49 +1,49 @@
-Received: from mail-io1-f44.google.com (mail-io1-f44.google.com [209.85.166.44])
+Received: from mail-io1-f51.google.com (mail-io1-f51.google.com [209.85.166.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D6A22C81
-	for <nvdimm@lists.linux.dev>; Sat, 30 Oct 2021 17:03:47 +0000 (UTC)
-Received: by mail-io1-f44.google.com with SMTP id i14so16358102ioa.13
-        for <nvdimm@lists.linux.dev>; Sat, 30 Oct 2021 10:03:47 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F5C2C81
+	for <nvdimm@lists.linux.dev>; Sat, 30 Oct 2021 17:07:48 +0000 (UTC)
+Received: by mail-io1-f51.google.com with SMTP id n11so3213570iod.9
+        for <nvdimm@lists.linux.dev>; Sat, 30 Oct 2021 10:07:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=kernel-dk.20210112.gappssmtp.com; s=20210112;
         h=from:to:cc:in-reply-to:references:subject:message-id:date
          :mime-version:content-transfer-encoding;
-        bh=mxOtNLa1eAMR0wpGD1VMaJkJmBISmLqnmjVIAsRcHvc=;
-        b=TxRznXHiVxPacqnwtNIIT0ht6nYzSE2RDLvhKozr3LBin/ehB9sdFZDpWWjj4OSd+b
-         wNVCVAvLw46JGTiAgUNZvEmvOxN66IADWaxYxM1QrR9lkXlSakotxqRDVZM1H74gZzC3
-         dptCLtGLLsAefANWtuy2n0rGMRlWfacf/IHiKhBgdqwAXaaJe6kpIkKpb32JNyUJDsPQ
-         h2JfNkORS5+nxcLRKrwXOlVNT9+6p7ra3ZV/bu0Di5bdLiqfxKarFy4zEtd9fllr2oYp
-         7Q6VyWuncWNiiodyabAkyjZysJUsC526HyMFP48mdzk4scwMLVB6FI1dgulKgRvL0IOy
-         PuLw==
+        bh=cj7b4WzzJcmZ+tVCjhkRXyXcKv7YSLzrxMjWUHMImLY=;
+        b=Wopv4tcWqOAJZGqYx1oWAbH++R5QUK3biTMI/xiKmgq8kzd4BjfbTwqyki2cw/dKMZ
+         zMePBAMmf+SLZ1e8obk5O2B8EqEDPivRKlRqkehfknMQ8MNLufX0ul/cJWZhewILt5Oh
+         6lHlndFiey7eEaiN0hgGC39LpO35JqvHs71OpDs0TY9XL4bVtIavn6nIEfmea/hq+LZm
+         LUd2MMSVR+UBeThxm8no9AVI+Lkwbvjh/Wd3YPAJax1gQlPv8O8NjJriy/LoIbj10SRd
+         9zfUre2XtVMt8acixbfHpVQ/bS6vxPEHVT/7jgMGiywvDrcUkISQerA52lYJTtjCW/Wj
+         XOoA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:in-reply-to:references:subject
          :message-id:date:mime-version:content-transfer-encoding;
-        bh=mxOtNLa1eAMR0wpGD1VMaJkJmBISmLqnmjVIAsRcHvc=;
-        b=Zvh3en93d/WsqXkYhIDU4D5Cdgcym0PELvUL7TeZVLlI1PqZVMC87ntgxjgi5LAWt0
-         x9v5wGvXRWSxbfz7MzFlQetoLz90k1BTCzfSdV2paHpfbfiCVr6JhcqYE9TTGE8l8KOn
-         5dmGB8399Mg7HhIaSeu+gCPWIZgnk5NxJlwRzf3X0OnLR1ymD0PPyaT9SUpIktc/K8in
-         +QKfEEwCbbqmJTt7HRvcQdwU6z6I8cjI4AtzmWRsoIh9hmqH8AgdC2DErPywja8JPMbE
-         CySMj0XiHHnT/+QBln6uP/7FasMmTbERBQOyMKnkyyv0d7bHhiZi+qlTtLMVKN05bL3I
-         pcZg==
-X-Gm-Message-State: AOAM533HHaf0mjDIar82QDYpgbCVo+ZEEQDrwO3EecFjk6ywSP5SCbmJ
-	NDTzjqK6eEun9cN83elozTAEsA==
-X-Google-Smtp-Source: ABdhPJzMkwx+8CSrFVSVUQuPKJKJNsEs+j3d0vp9XLDv6RRzhAFgLrCeu1vNWGVlfsmYjr2iZBeQpQ==
-X-Received: by 2002:a05:6602:2a44:: with SMTP id k4mr13067137iov.56.1635613426348;
-        Sat, 30 Oct 2021 10:03:46 -0700 (PDT)
+        bh=cj7b4WzzJcmZ+tVCjhkRXyXcKv7YSLzrxMjWUHMImLY=;
+        b=7n8yzqyvd2Y72G6Frnmn43orNABb9jZ1seYMQGZRUDxNzxmtKqhzLyLG7leUxXNq/9
+         qwSgY8Zb4zvXrxNcTedTl9L0ymHYsVEuZQdIzttfOPUNbdKBfDzWzooo/5gUTVIEG9ka
+         LeG9p5sTchwfTiJAZ6rcMjWb7zMMGZV6Z+A44Jh+6bK0z00Gn8yOo78SVFLPQ57jPHwa
+         AGf/G4PotqtNm5c42bdequNgYBrDwO4Msc76TgKcG40DtDtwtkFrrV6Iw6CzIIX+eVQU
+         OzvJ8W7ogT4MOtk7ZwvwWcP4eVISidvV/sQ1GXjN81OPYWtrpuypauK3paghEsp7LbzW
+         18PA==
+X-Gm-Message-State: AOAM532wF9FFI0zvgF8zqNOPsrN9+J3oDfkoFGQS4jha+dRmDaAenOBV
+	qUOdq5f5NFxKrO+p2Tx3wonKgg==
+X-Google-Smtp-Source: ABdhPJzTVX/ZyGI7Pmdgi3Ji0UX3geoz9OnmwOkoYIKCEwZOPpGwJ2EvLzYUymZf8Uzb5XEpGHWwDg==
+X-Received: by 2002:a02:cbb1:: with SMTP id v17mr13623686jap.51.1635613667880;
+        Sat, 30 Oct 2021 10:07:47 -0700 (PDT)
 Received: from [127.0.1.1] ([66.219.217.159])
-        by smtp.gmail.com with ESMTPSA id z26sm4948483ioe.9.2021.10.30.10.03.45
+        by smtp.gmail.com with ESMTPSA id o8sm5504963ilu.2.2021.10.30.10.07.46
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 30 Oct 2021 10:03:45 -0700 (PDT)
+        Sat, 30 Oct 2021 10:07:47 -0700 (PDT)
 From: Jens Axboe <axboe@kernel.dk>
-To: kbusch@kernel.org, dan.j.williams@intel.com, richard@nod.at, jim@jtan.com, vishal.l.verma@intel.com, dave.jiang@intel.com, miquel.raynal@bootlin.com, vigneshr@ti.com, ngupta@vflare.org, ira.weiny@intel.com, senozhatsky@chromium.org, hch@lst.de, paulus@samba.org, Luis Chamberlain <mcgrof@kernel.org>, sagi@grimberg.me, mpe@ellerman.id.au, minchan@kernel.org, geoff@infradead.org, benh@kernel.crashing.org
-Cc: linux-mtd@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-nvme@lists.infradead.org, nvdimm@lists.linux.dev, linux-block@vger.kernel.org
+To: vigneshr@ti.com, richard@nod.at, geoff@infradead.org, vishal.l.verma@intel.com, kbusch@kernel.org, sagi@grimberg.me, minchan@kernel.org, mpe@ellerman.id.au, ira.weiny@intel.com, hch@lst.de, senozhatsky@chromium.org, dave.jiang@intel.com, miquel.raynal@bootlin.com, paulus@samba.org, dan.j.williams@intel.com, benh@kernel.crashing.org, jim@jtan.com, ngupta@vflare.org, Luis Chamberlain <mcgrof@kernel.org>
+Cc: linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-mtd@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
 In-Reply-To: <20211015235219.2191207-1-mcgrof@kernel.org>
 References: <20211015235219.2191207-1-mcgrof@kernel.org>
 Subject: Re: (subset) [PATCH 00/13] block: add_disk() error handling stragglers
-Message-Id: <163561342513.76453.10042066842818606438.b4-ty@kernel.dk>
-Date: Sat, 30 Oct 2021 11:03:45 -0600
+Message-Id: <163561366669.77445.6593243934116934390.b4-ty@kernel.dk>
+Date: Sat, 30 Oct 2021 11:07:46 -0600
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -79,12 +79,8 @@ On Fri, 15 Oct 2021 16:52:06 -0700, Luis Chamberlain wrote:
 
 Applied, thanks!
 
-[08/13] zram: add error handling support for add_disk()
-        commit: 5e2e1cc4131cf4d21629c94331f2351b7dc8b87c
-[10/13] ps3disk: add error handling support for add_disk()
-        commit: ff4cbe0fcf5d749f76040f782f0618656cd23e33
-[11/13] ps3vram: add error handling support for add_disk()
-        commit: 3c30883acab1d20ecbd3c48dc12b147b51548742
+[01/13] block/brd: add error handling support for add_disk()
+        commit: e1528830bd4ebf435d91c154e309e6e028336210
 
 Best regards,
 -- 
