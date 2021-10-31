@@ -1,89 +1,219 @@
-Received: from mail-io1-f51.google.com (mail-io1-f51.google.com [209.85.166.51])
+Received: from mail-wr1-f43.google.com (mail-wr1-f43.google.com [209.85.221.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4F5C2C81
-	for <nvdimm@lists.linux.dev>; Sat, 30 Oct 2021 17:07:48 +0000 (UTC)
-Received: by mail-io1-f51.google.com with SMTP id n11so3213570iod.9
-        for <nvdimm@lists.linux.dev>; Sat, 30 Oct 2021 10:07:48 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AACFC2C85
+	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 13:22:59 +0000 (UTC)
+Received: by mail-wr1-f43.google.com with SMTP id p14so24194288wrd.10
+        for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 06:22:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernel-dk.20210112.gappssmtp.com; s=20210112;
-        h=from:to:cc:in-reply-to:references:subject:message-id:date
-         :mime-version:content-transfer-encoding;
-        bh=cj7b4WzzJcmZ+tVCjhkRXyXcKv7YSLzrxMjWUHMImLY=;
-        b=Wopv4tcWqOAJZGqYx1oWAbH++R5QUK3biTMI/xiKmgq8kzd4BjfbTwqyki2cw/dKMZ
-         zMePBAMmf+SLZ1e8obk5O2B8EqEDPivRKlRqkehfknMQ8MNLufX0ul/cJWZhewILt5Oh
-         6lHlndFiey7eEaiN0hgGC39LpO35JqvHs71OpDs0TY9XL4bVtIavn6nIEfmea/hq+LZm
-         LUd2MMSVR+UBeThxm8no9AVI+Lkwbvjh/Wd3YPAJax1gQlPv8O8NjJriy/LoIbj10SRd
-         9zfUre2XtVMt8acixbfHpVQ/bS6vxPEHVT/7jgMGiywvDrcUkISQerA52lYJTtjCW/Wj
-         XOoA==
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=Jf6SDTWkMqXzv0QqQSCH2GQMbJgZyWWXdFXwIRei+eA=;
+        b=gRl4NUUm+ZjWcPR6a1WSH7orW20Fy105Gy38h+d1NIaoQURLOgTDo61OOXdXFVyHO7
+         vs43vfSzhyRoR/vGKgWiDNv/KNAkGN7obYDDsYPrasHvv84VIbJKMnLBUiDawF4HUtRc
+         sR2syMI1dn9QBhjJRuaBaxxn8waiROWktV13D+oAAKSBx8xC2BKt2NCFJagksddbMU4g
+         tsytzz6dDckC5oSYrMzPnY38LJbg2Dxm+ewCY5fxHs31nZEAp3Y+H0GMKwgb+PQKB1K2
+         jpuTkmjS61DwHAeg7yU1Z6czYQDJlPeKZ3eIA7EcWN5/43eJbr/JkpEG/NHMoOknJrVI
+         IoPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:in-reply-to:references:subject
-         :message-id:date:mime-version:content-transfer-encoding;
-        bh=cj7b4WzzJcmZ+tVCjhkRXyXcKv7YSLzrxMjWUHMImLY=;
-        b=7n8yzqyvd2Y72G6Frnmn43orNABb9jZ1seYMQGZRUDxNzxmtKqhzLyLG7leUxXNq/9
-         qwSgY8Zb4zvXrxNcTedTl9L0ymHYsVEuZQdIzttfOPUNbdKBfDzWzooo/5gUTVIEG9ka
-         LeG9p5sTchwfTiJAZ6rcMjWb7zMMGZV6Z+A44Jh+6bK0z00Gn8yOo78SVFLPQ57jPHwa
-         AGf/G4PotqtNm5c42bdequNgYBrDwO4Msc76TgKcG40DtDtwtkFrrV6Iw6CzIIX+eVQU
-         OzvJ8W7ogT4MOtk7ZwvwWcP4eVISidvV/sQ1GXjN81OPYWtrpuypauK3paghEsp7LbzW
-         18PA==
-X-Gm-Message-State: AOAM532wF9FFI0zvgF8zqNOPsrN9+J3oDfkoFGQS4jha+dRmDaAenOBV
-	qUOdq5f5NFxKrO+p2Tx3wonKgg==
-X-Google-Smtp-Source: ABdhPJzTVX/ZyGI7Pmdgi3Ji0UX3geoz9OnmwOkoYIKCEwZOPpGwJ2EvLzYUymZf8Uzb5XEpGHWwDg==
-X-Received: by 2002:a02:cbb1:: with SMTP id v17mr13623686jap.51.1635613667880;
-        Sat, 30 Oct 2021 10:07:47 -0700 (PDT)
-Received: from [127.0.1.1] ([66.219.217.159])
-        by smtp.gmail.com with ESMTPSA id o8sm5504963ilu.2.2021.10.30.10.07.46
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 30 Oct 2021 10:07:47 -0700 (PDT)
-From: Jens Axboe <axboe@kernel.dk>
-To: vigneshr@ti.com, richard@nod.at, geoff@infradead.org, vishal.l.verma@intel.com, kbusch@kernel.org, sagi@grimberg.me, minchan@kernel.org, mpe@ellerman.id.au, ira.weiny@intel.com, hch@lst.de, senozhatsky@chromium.org, dave.jiang@intel.com, miquel.raynal@bootlin.com, paulus@samba.org, dan.j.williams@intel.com, benh@kernel.crashing.org, jim@jtan.com, ngupta@vflare.org, Luis Chamberlain <mcgrof@kernel.org>
-Cc: linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-mtd@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org
-In-Reply-To: <20211015235219.2191207-1-mcgrof@kernel.org>
-References: <20211015235219.2191207-1-mcgrof@kernel.org>
-Subject: Re: (subset) [PATCH 00/13] block: add_disk() error handling stragglers
-Message-Id: <163561366669.77445.6593243934116934390.b4-ty@kernel.dk>
-Date: Sat, 30 Oct 2021 11:07:46 -0600
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=Jf6SDTWkMqXzv0QqQSCH2GQMbJgZyWWXdFXwIRei+eA=;
+        b=YkiuZLAFlNF/mNqCHfoYEycf0M1YQt8r0G3zpUGqcZqos/aZ34g+aYF7q3+andgd3V
+         ED8Lyt4GXQgi7Y+XWWxnUm3Htk+HqkXZyW0rGMX9k3Jz7sA5WBDacl/hk/5YQUUMjArv
+         sArkDGzamJ5xNfKuhb51dfeGKNSVlkc39tphvxxvtD5t/YhM3WpHHpazwDAtZL/wDliN
+         r+Gg15xGbImhD5oSn7syAN5yoARTc9vkFrIJjJGw4JRYDrKwe3IqDBHZu/O/Ky4uKLxA
+         EicGC4i37wzPHA+McJXZhMCiwzeL+TZeEk675wOZ/bWsBNGqulNSatinx6P9s5x19VWX
+         HizA==
+X-Gm-Message-State: AOAM532HYkbRcfeCZ9sxkDso3Kh+rImpSXslfRtNOFSl5aoo/QZOd7kW
+	lK0Xz83bartyD6che1UJ0DI=
+X-Google-Smtp-Source: ABdhPJwe81NiP2m6SZsYCxtthQKFwaV9/lqDLxmxy8VMxp0zyRIKyCnNwIjAhtz/toMYpXnKWoP/Ug==
+X-Received: by 2002:a05:6000:15c6:: with SMTP id y6mr29561346wry.382.1635686578008;
+        Sun, 31 Oct 2021 06:22:58 -0700 (PDT)
+Received: from [192.168.8.198] ([85.255.232.29])
+        by smtp.gmail.com with ESMTPSA id a4sm9477733wmb.39.2021.10.31.06.22.56
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 31 Oct 2021 06:22:57 -0700 (PDT)
+Message-ID: <1a76314d-9b62-82a3-2787-96e6b83720fc@gmail.com>
+Date: Sun, 31 Oct 2021 13:19:48 +0000
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.2.0
+Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with RWF_RECOVERY_DATA
+ flag
+Content-Language: en-US
+To: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>,
+ Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>,
+ "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+ "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+ "dave.jiang@intel.com" <dave.jiang@intel.com>,
+ "agk@redhat.com" <agk@redhat.com>, "snitzer@redhat.com"
+ <snitzer@redhat.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>,
+ "ira.weiny@intel.com" <ira.weiny@intel.com>,
+ "willy@infradead.org" <willy@infradead.org>,
+ "vgoyal@redhat.com" <vgoyal@redhat.com>,
+ "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+ "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+ "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+ "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
+References: <20211021001059.438843-1-jane.chu@oracle.com>
+ <YXFPfEGjoUaajjL4@infradead.org>
+ <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+ <YXJN4s1HC/Y+KKg1@infradead.org>
+ <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+ <YXj2lwrxRxHdr4hb@infradead.org> <20211028002451.GB2237511@magnolia>
+ <20211028225955.GA449541@dread.disaster.area>
+ <22255117-52de-4b2d-822e-b4bc50bbc52b@gmail.com>
+ <20211029223233.GB449541@dread.disaster.area>
+From: Pavel Begunkov <asml.silence@gmail.com>
+In-Reply-To: <20211029223233.GB449541@dread.disaster.area>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Fri, 15 Oct 2021 16:52:06 -0700, Luis Chamberlain wrote:
-> This patch set consists of al the straggler drivers for which we have
-> have no patch reviews done for yet. I'd like to ask for folks to please
-> consider chiming in, specially if you're the maintainer for the driver.
-> Additionally if you can specify if you'll take the patch in yourself or
-> if you want Jens to take it, that'd be great too.
+On 10/29/21 23:32, Dave Chinner wrote:
+> On Fri, Oct 29, 2021 at 12:46:14PM +0100, Pavel Begunkov wrote:
+>> On 10/28/21 23:59, Dave Chinner wrote:
+>> [...]
+>>>>> Well, my point is doing recovery from bit errors is by definition not
+>>>>> the fast path.  Which is why I'd rather keep it away from the pmem
+>>>>> read/write fast path, which also happens to be the (much more important)
+>>>>> non-pmem read/write path.
+>>>>
+>>>> The trouble is, we really /do/ want to be able to (re)write the failed
+>>>> area, and we probably want to try to read whatever we can.  Those are
+>>>> reads and writes, not {pre,f}allocation activities.  This is where Dave
+>>>> and I arrived at a month ago.
+>>>>
+>>>> Unless you'd be ok with a second IO path for recovery where we're
+>>>> allowed to be slow?  That would probably have the same user interface
+>>>> flag, just a different path into the pmem driver.
+>>>
+>>> I just don't see how 4 single line branches to propage RWF_RECOVERY
+>>> down to the hardware is in any way an imposition on the fast path.
+>>> It's no different for passing RWF_HIPRI down to the hardware *in the
+>>> fast path* so that the IO runs the hardware in polling mode because
+>>> it's faster for some hardware.
+>>
+>> Not particularly about this flag, but it is expensive. Surely looks
+>> cheap when it's just one feature, but there are dozens of them with
+>> limited applicability, default config kernels are already sluggish
+>> when it comes to really fast devices and it's not getting better.
+>> Also, pretty often every of them will add a bunch of extra checks
+>> to fix something of whatever it would be.
+>>
+>> So let's add a bit of pragmatism to the picture, if there is just one
+>> user of a feature but it adds overhead for millions of machines that
+>> won't ever use it, it's expensive.
 > 
-> Luis Chamberlain (13):
->   block/brd: add error handling support for add_disk()
->   nvme-multipath: add error handling support for add_disk()
->   nvdimm/btt: do not call del_gendisk() if not needed
->   nvdimm/btt: use goto error labels on btt_blk_init()
->   nvdimm/btt: add error handling support for add_disk()
->   nvdimm/blk: avoid calling del_gendisk() on early failures
->   nvdimm/blk: add error handling support for add_disk()
->   zram: add error handling support for add_disk()
->   z2ram: add error handling support for add_disk()
->   ps3disk: add error handling support for add_disk()
->   ps3vram: add error handling support for add_disk()
->   block/sunvdc: add error handling support for add_disk()
->   mtd/ubi/block: add error handling support for add_disk()
+> Yup, you just described RWF_HIPRI! Seriously, Pavel, did you read
+> past this?  I'll quote what I said again, because I've already
+> addressed this argument to point out how silly it is:
+
+And you almost got to the initial point in your penult paragraph. A
+single if for a single flag is not an issue, what is the problem is
+when there are dozens of them and the overhead for it is not isolated,
+so the kernel has to jump through dozens of those.
+
+And just to be clear I'll outline again, that's a general problem,
+I have no relation to the layers touched and it's up to relevant
+people, obviously. Even though I'd expect but haven't found the flag
+being rejected in other places, but well I may have missed something.
+
+
+>>> IOWs, saying that we shouldn't implement RWF_RECOVERY because it
+>>> adds a handful of branches to the fast path is like saying that we
+>>> shouldn't implement RWF_HIPRI because it slows down the fast path
+>>> for non-polled IO....
 > 
-> [...]
+>   RWF_HIPRI functionality represents a *tiny* niche in the wider
+> Linux ecosystem, so by your reasoning it is too expensive to
+> implement because millions (billions!) of machines don't need or use
+> it. Do you now see how silly your argument is?
+> 
+> Seriously, this "optimise the IO fast path at the cost of everything
+> else" craziness has gotten out of hand. Nobody in the filesystem or
+> application world cares if you can do 10M IOPS per core when all the
+> CPU is doing is sitting in a tight loop inside the kernel repeatedly
+> overwriting data in the same memory buffers, essentially tossing the
+> old away the data without ever accessing it or doing anything with
+> it.  Such speed racer games are *completely meaningless* as an
+> optimisation goal - it's what we've called "benchmarketing" for a
+> couple of decades now.
 
-Applied, thanks!
+10M you mentioned is just a way to measure, there is nothing wrong
+with it. And considering that there are enough of users considering
+or already switching to spdk because of performance, the approach
+is not wrong. And it goes not only for IO polling, normal irq IO
+suffers from the same problems.
 
-[01/13] block/brd: add error handling support for add_disk()
-        commit: e1528830bd4ebf435d91c154e309e6e028336210
+A related story is that this number is for a pretty reduced config,
+it'll go down with a more default-ish kernel.
 
-Best regards,
+> If all we focus on is bragging rights because "bigger number is
+> always better", then we'll end up with iand IO path that looks like
+> the awful mess that the fs/direct-io.c turned into. That ended up
+> being hyper-optimised for CPU performance right down to single
+> instructions and cacheline load orders that the code became
+> extremely fragile and completely unmaintainable.
+> 
+> We ended up *reimplementing the direct IO code from scratch* so that
+> XFS could build and submit direct IO smarter and faster because it
+> simply couldn't be done to the old code.  That's how iomap came
+> about, and without *any optimisation at all* iomap was 20-30% faster
+> than the old, hyper-optimised fs/direct-io.c code.  IOWs, we always
+> knew we could do direct IO faster than fs/direct-io.c, but we
+> couldn't make the fs/direct-io.c faster because of the
+> hyper-optimisation of the code paths made it impossible to modify
+> and maintain.> The current approach of hyper-optimising the IO path for maximum
+> per-core IOPS at the expensive of everything else has been proven in
+> the past to be exactly the wrong approach to be taking for IO path
+> development. Yes, we need to be concerned about performance and work
+> to improve it, but we should not be doing that at the cost of
+> everything else that the IO stack needs to be able to do.
+
+And iomap is great, what you described is a good typical example
+of unmaintainable code. I may get wrong what you exactly refer
+to, but I don't see maintainability not being considered.
+
+Even more interesting to notice that more often than not extra
+features (and flags) almost always hurt maintainability of the
+kernel, but then other benefits outweigh (hopefully).
+
+> Fundamentally, optimisation is something we do *after* we provide
+> the functionality that is required; using "fast path optimisation"
+> as a blunt force implement to prevent new features from being
+> implemented is just ...  obnoxious.
+> 
+>> This one doesn't spill yet into paths I care about, but in general
+>> it'd be great if we start thinking more about such stuff instead of
+>> throwing yet another if into the path, e.g. by shifting the overhead
+>> from linear to a constant for cases that don't use it, for instance
+>> with callbacks or bit masks.
+> 
+> This is orthogonal to providing data recovery functionality.
+> If the claims that flag propagation is too expensive are true, then
+> fixing this problem this will also improve RWF_HIPRI performance
+> regardless of whether RWF_DATA_RECOVERY exists or not...
+> 
+> IOWs, *if* there is a fast path performance degradation as a result
+> of flag propagation, then *go measure it* and show us how much
+> impact it has on _real world applications_.  *Show us the numbers*
+> and document how much each additional flag propagation actually
+> costs so we can talk about whether it is acceptible, mitigation
+> strategies and/or alternative implementations.  Flag propagation
+> overhead is just not a valid reason for preventing us adding new
+> flags to the IO path. Fix the flag propagation overhead if it's a
+> problem for you, don't use it as an excuse for preventing people
+> from adding new functionality that uses flag propagation...
+
 -- 
-Jens Axboe
-
-
+Pavel Begunkov
