@@ -1,240 +1,89 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 313DB2C87
-	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 15:21:58 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AE7mGwahOrdyqyVfhNPUf8IxlX161CxEKZh0ujC4?=
- =?us-ascii?q?5NGQNrF6WrkVUzmAfWG2CM6mCZzPxfNB1bo+2/B5QvJHSxtRkQVA6pXw8FHgiR?=
- =?us-ascii?q?ejtX4rAdhiqV8+xwmwvdGo+toNGLICowPkcFhcwnT/wdOi+xZVA/fvQHOOlULW?=
- =?us-ascii?q?dYnkZqTJME0/NtzoywobVvaY42bBVMyvV0T/Di5W31G2NglaYAUpIg063ky6Di?=
- =?us-ascii?q?dyp0N8uUvPSUtgQ1LPWvyF94JvyvshdJVOgKmVfNrbSq+ouUNiEEm3lExcFUrt?=
- =?us-ascii?q?Jk57wdAsEX7zTIROTzHFRXsBOgDAb/mprjPl9b6FaNC+7iB3Q9zx14M9QvJqrW?=
- =?us-ascii?q?EEnOLbQsOoAURhECDw4NqpDkFPCCSHm75LMkByZKRMAxN0rVinaJ7Yw9u9pAG1?=
- =?us-ascii?q?m++YfLTcXZBGfwemxxdqTSuJsrsUlItPiMI4Wtjdn1z6xJfovR9bBBbrL4dtZ1?=
- =?us-ascii?q?TIrrsFIAfvaIcEebFJHYBbfZBtAElQaEpQzmKGvnHaXWzlZrk+F4K8yy2vNxQd?=
- =?us-ascii?q?ylr/3P7L9fMKGRMBQtkKZvX7duWD4BAwKctCS11Kt8Huqi6nEnT7TX5gbH7m1s?=
- =?us-ascii?q?PVthTW7wm0VFQ1TW0C3rOe0jmagVN9FbU8Z4Cwjqe417kPDZt38WQCo5X2JpBg?=
- =?us-ascii?q?RX/JOHOAgrgKA0KzZ50CeHGdsZjpAbsE28d84XhQ02VKT2dDkHzpitPuSU331y?=
- =?us-ascii?q?1s+hVteIgBMdSlbO3BCFlBDvrHeTEgIpkqnZr5e/GSd1bUZwQ3N/g0=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ACbxiBqi/Dr4z+v7x+tiPNg5CfHBQXuYji2hC?=
- =?us-ascii?q?6mlwRA09TyX4rbHLoB1/73LJYVkqNk3I5urrBEDtexLhHP1OkOws1NWZLWrbUQ?=
- =?us-ascii?q?KTRekM0WKI+UyDJ8SRzI5g/JYlW61/Jfm1NlJikPv9iTPSL/8QhPWB74Ck7N2z?=
- =?us-ascii?q?80tQ?=
-X-IronPort-AV: E=Sophos;i="5.87,197,1631548800"; 
-   d="scan'208";a="116677972"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 31 Oct 2021 23:20:53 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id A23484D0F90E;
-	Sun, 31 Oct 2021 23:20:47 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Sun, 31 Oct 2021 23:20:43 +0800
-Received: from irides.mr.mr.mr (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Sun, 31 Oct 2021 23:20:40 +0800
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
-	<hch@infradead.org>, <jane.chu@oracle.com>
-Subject: [PATCH v8 2/8] dax: Introduce holder for dax_device
-Date: Sun, 31 Oct 2021 23:20:22 +0800
-Message-ID: <20211031152028.3724121-3-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
-References: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
+Received: from mail-pj1-f54.google.com (mail-pj1-f54.google.com [209.85.216.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 155622C81
+	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 17:47:32 +0000 (UTC)
+Received: by mail-pj1-f54.google.com with SMTP id na16-20020a17090b4c1000b0019f5bb661f9so10929377pjb.0
+        for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 10:47:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=7MuoEHjjO8VeJaVuFed8XWzS0lEfBBHPNJTbN9pP/Kk=;
+        b=4tOJMdKFSRsgNH+AUIYaqm2kjoYMRFX1rF2DJJ+SkN3TxFcC6WFZTlfZ/p19kQbT9K
+         3ucowaD3UjTRl1wxq0AhkO2grIrwJ1CUzZL9iaOW9qQruYwZiNTLyT8xPdcntcGZTnKO
+         oHouSuIItcBdIuUQi3se1/cFTWoJaoIMfatJqvTJNtdVS5k8eQGd7+SN6PbVUPLsaGtZ
+         l1ZNkN5xiSBdq4V2xHL4j3AS7JUzTTQy6aixWFwT8tGnH7btlFyMUA6OKqRZ3rOIuHsc
+         1ZLLqjh17RQWY85HyaOON7GqX1MfrrlXjw7ctSAkgQItKO1cowEaIPOliTgHjuC8pBHM
+         Mnbg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=7MuoEHjjO8VeJaVuFed8XWzS0lEfBBHPNJTbN9pP/Kk=;
+        b=7IJswX5tBTB4K7dfhcuxT1BIuSwtdjwcJMBBoQdWvcAu2jMUMum0H8BlYasZhrazyC
+         P9NxG+DVO20C72hZ3z28KTTtcTgbbgDSMd1GI7Tk/3K99h1gSCtWS0q6dr4DJQnou4V9
+         XZ53KY7H5jOawzZyKYTrzJgJAMSIm1CuzXv1tUBVO2x2Z9ia7y900ybKfgVqdKHXkc8A
+         o40B7HSij3qeohhk8217SSke5NbdeWEnRSMLgFCdZT2/V/cPfvaAqG3UZxvWjuLNgRF+
+         Mx/OWHrrtUF580UFM9TJ8rXbJ7wlLKGEXoHOBFO/zQkuGwktKapqYN4NZry5UY4bqsP/
+         SOyw==
+X-Gm-Message-State: AOAM530dwVWuOrzLCwfhDlxASWUcJxGiZc3TjMyuY3aYCaYIErFPR2PY
+	krM71C5rpYZdZckQ5/R1M/+Nf9OCoPGmy4lqA92UrA==
+X-Google-Smtp-Source: ABdhPJyA7Laj0AUg2FKVlcU7XOrNA0zdW+Ju6E23SLHq82Op6ARxl3h9QltxEajuidxiYWqVOR7E35WaYaY6PyVeaf4=
+X-Received: by 2002:a17:902:8a97:b0:13e:6e77:af59 with SMTP id
+ p23-20020a1709028a9700b0013e6e77af59mr20648644plo.4.1635702452583; Sun, 31
+ Oct 2021 10:47:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-yoursite-MailScanner-ID: A23484D0F90E.A1C55
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+References: <20211015235219.2191207-1-mcgrof@kernel.org> <20211015235219.2191207-4-mcgrof@kernel.org>
+In-Reply-To: <20211015235219.2191207-4-mcgrof@kernel.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Sun, 31 Oct 2021 10:47:22 -0700
+Message-ID: <CAPcyv4gU0q=UhDhGoDjK1mwS8WNcWYUXgEb7Rd8Amqr1XFs6ow@mail.gmail.com>
+Subject: Re: [PATCH 03/13] nvdimm/btt: do not call del_gendisk() if not needed
+To: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>, Geoff Levand <geoff@infradead.org>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, 
+	Paul Mackerras <paulus@samba.org>, Jim Paris <jim@jtan.com>, Minchan Kim <minchan@kernel.org>, 
+	Nitin Gupta <ngupta@vflare.org>, senozhatsky@chromium.org, 
+	Richard Weinberger <richard@nod.at>, miquel.raynal@bootlin.com, vigneshr@ti.com, 
+	Vishal L Verma <vishal.l.verma@intel.com>, Dave Jiang <dave.jiang@intel.com>, 
+	"Weiny, Ira" <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>, Christoph Hellwig <hch@lst.de>, 
+	Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, 
+	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-mtd@lists.infradead.org, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-nvme@lists.infradead.org, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-To easily track filesystem from a pmem device, we introduce a holder for
-dax_device structure, and also its operation.  This holder is used to
-remember who is using this dax_device:
- - When it is the backend of a filesystem, the holder will be the
-   superblock of this filesystem.
- - When this pmem device is one of the targets in a mapped device, the
-   holder will be this mapped device.  In this case, the mapped device
-   has its own dax_device and it will follow the first rule.  So that we
-   can finally track to the filesystem we needed.
+On Fri, Oct 15, 2021 at 4:53 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
+>
+> We know we don't need del_gendisk() if we haven't added
+> the disk, so just skip it. This should fix a bug on older
+> kernels, as del_gendisk() became able to deal with
+> disks not added only recently, after the patch titled
+> "block: add flag for add_disk() completion notation".
 
-The holder and holder_ops will be set when filesystem is being mounted,
-or an target device is being activated.
+Perhaps put this in:
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
----
- drivers/dax/super.c | 63 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h | 25 ++++++++++++++++++
- 2 files changed, 88 insertions(+)
+    commit $abbrev_commit ("block: add flag for add_disk() completion notation")
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index f7701e943019..ed1b27198382 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -23,7 +23,10 @@
-  * @cdev: optional character interface for "device dax"
-  * @host: optional name for lookups where the device path is not available
-  * @private: dax driver private data
-+ * @holder_data: holder of a dax_device: could be filesystem or mapped device
-  * @flags: state and boolean properties
-+ * @ops: operations for dax_device
-+ * @holder_ops: operations for the inner holder
-  */
- struct dax_device {
- 	struct hlist_node list;
-@@ -32,8 +35,10 @@ struct dax_device {
- 	const char *host;
- 	void *private;
- 	struct percpu_rw_semaphore rwsem;
-+	void *holder_data;
- 	unsigned long flags;
- 	const struct dax_operations *ops;
-+	const struct dax_holder_operations *holder_ops;
- };
- 
- static dev_t dax_devt;
-@@ -376,6 +381,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- }
- EXPORT_SYMBOL_GPL(dax_zero_page_range);
- 
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
-+			      u64 len, int mf_flags)
-+{
-+	int rc;
-+
-+	dax_read_lock(dax_dev);
-+	if (!dax_alive(dax_dev)) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	if (!dax_dev->holder_ops) {
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	}
-+
-+	rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
-+out:
-+	dax_read_unlock(dax_dev);
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
-+
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-@@ -438,6 +466,10 @@ void kill_dax(struct dax_device *dax_dev)
- 		return;
- 	dax_write_lock(dax_dev);
- 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
-+
-+	/* clear holder data */
-+	dax_dev->holder_ops = NULL;
-+	dax_dev->holder_data = NULL;
- 	dax_write_unlock(dax_dev);
- 
- 	spin_lock(&dax_host_lock);
-@@ -622,6 +654,37 @@ void put_dax(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(put_dax);
- 
-+void dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+	dax_write_lock(dax_dev);
-+	if (!dax_alive(dax_dev)) {
-+		dax_write_unlock(dax_dev);
-+		return;
-+	}
-+
-+	dax_dev->holder_data = holder;
-+	dax_dev->holder_ops = ops;
-+	dax_write_unlock(dax_dev);
-+}
-+EXPORT_SYMBOL_GPL(dax_set_holder);
-+
-+void *dax_get_holder(struct dax_device *dax_dev)
-+{
-+	void *holder;
-+
-+	dax_read_lock(dax_dev);
-+	if (!dax_alive(dax_dev)) {
-+		dax_read_unlock(dax_dev);
-+		return NULL;
-+	}
-+
-+	holder = dax_dev->holder_data;
-+	dax_read_unlock(dax_dev);
-+	return holder;
-+}
-+EXPORT_SYMBOL_GPL(dax_get_holder);
-+
- /**
-  * inode_dax: convert a public inode into its dax_dev
-  * @inode: An inode with i_cdev pointing to a dax_dev
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index e38711d6c519..891c3e8a40e6 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -38,9 +38,24 @@ struct dax_operations {
- 	int (*zero_page_range)(struct dax_device *, pgoff_t, size_t);
- };
- 
-+struct dax_holder_operations {
-+	/*
-+	 * notify_failure - notify memory failure into inner holder device
-+	 * @dax_dev: the dax device which contains the holder
-+	 * @offset: offset on this dax device where memory failure occurs
-+	 * @len: length of this memory failure event
-+	 * @flags: action flags for memory failure handler
-+	 */
-+	int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
-+			u64 len, int mf_flags);
-+};
-+
- extern struct attribute_group dax_attribute_group;
- 
- #if IS_ENABLED(CONFIG_DAX)
-+void dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops);
-+void *dax_get_holder(struct dax_device *dax_dev);
- struct dax_device *alloc_dax(void *private, const char *host,
- 		const struct dax_operations *ops, unsigned long flags);
- void put_dax(struct dax_device *dax_dev);
-@@ -70,6 +85,14 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
- 	return dax_synchronous(dax_dev);
- }
- #else
-+static inline void dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+}
-+static inline void *dax_get_holder(struct dax_device *dax_dev)
-+{
-+	return NULL;
-+}
- static inline struct dax_device *alloc_dax(void *private, const char *host,
- 		const struct dax_operations *ops, unsigned long flags)
- {
-@@ -198,6 +221,8 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
- int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- 			size_t nr_pages);
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off, u64 len,
-+		int mf_flags);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
- 
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
--- 
-2.33.0
+...format, but I can't seem to find that commit?
 
+If you're touching the changelog how about one that clarifies the
+impact and drops "we"?
 
+"del_gendisk() is not required if the disk has not been added. On
+kernels prior to commit $abbrev_commit ("block: add flag for
+add_disk() completion notation")
+it is mandatory to not call del_gendisk() if the underlying device has
+not been through device_add()."
 
+Fixes: 41cd8b70c37a ("libnvdimm, btt: add support for blk integrity")
+
+With that you can add:
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
