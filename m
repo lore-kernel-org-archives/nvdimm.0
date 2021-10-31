@@ -1,48 +1,48 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 0645772
-	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 15:21:12 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3Ae9Apf67tO1ATjGDKYUXl0gxRtFPGchMFZxGqfqr?=
- =?us-ascii?q?LsXjdYENShWQAmGEfWzvUb6vfMGH9KtgnPYm090MO6MDXn9NgTQQ5pCpnJ55og?=
- =?us-ascii?q?ZCbXIzGdC8cHM8zwvXrFRsht4NHAjX5BJhcokT0+1H9bdANkVEmjfvRH+KnUba?=
- =?us-ascii?q?dUsxMbVQMpBkJ2EsLd9ER0tYAbeiRW2thiPuqyyHtEAbNNw1cbgr435m+RCZH5?=
- =?us-ascii?q?5wejt+3UmsWPpintHeG/5Uc4Ql2yauZdxMUSaEMdgK2qnqq8V23wo/Z109F5tK?=
- =?us-ascii?q?NmbC9fFAIQ6LJIE6FjX8+t6qK20AE/3JtlP1gcqd0hUR/0l1lm/hr1dxLro32R?=
- =?us-ascii?q?wEyIoXCheYcTwJFVSp5OMWq/ZeeeCbh7pzLlhSun3zEhq8G4FsNFYER5Od7KW9?=
- =?us-ascii?q?U8vkfMjoMclaIgOfe6LKwSsFtgMo5JcXmNY9ZvWtvpRnVBPBgQ9bcQqHO5NZdx?=
- =?us-ascii?q?x8xgNxDGbDVYM9xQTZtcxPGbDVMN00RBZZ4m/2n7lH7cjtFuBeQoII0/WHYz0p?=
- =?us-ascii?q?2yreFGNzLdt2PQO1Rn12EvSTC/mLkElcWOcL34TiM9H/qje/StSThUYkWGfuz8?=
- =?us-ascii?q?fsCqFmSwHEDTRMNWValrP2RlEGzQZRcJlYS9y5oqrI9nGSvT9/gT1i7rWSCsxo?=
- =?us-ascii?q?0RdVdCas55RuLx66S5ByWbkAATzhceJk2utQeWzMnzBmKksnvCDgpt6eaIU9xX?=
- =?us-ascii?q?J/8QSiaYHBTdDFdI3RfC1Zt3jUqm6lr5jqnczqpOPLdYgXJJAzN?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A5EirjaiuCW+F451mwdZbVwy6D3BQXuYji2hC?=
- =?us-ascii?q?6mlwRA09TyX4rbHLoB1/73LJYVkqNk3I5urrBEDtexLhHP1OkOws1NWZLWrbUQ?=
- =?us-ascii?q?KTRekM0WKI+UyDJ8SRzI5g/JYlW61/Jfm1NlJikPv9iTPSL/8QhPWB74Ck7N2z?=
- =?us-ascii?q?80tQ?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id BE3EE72
+	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 15:21:53 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AaZa+X6BTL0XmRBVW/0Liw5YqxClBgxIJ4g17XOL?=
+ =?us-ascii?q?fBgnv1Gsm0DwGm2RLXj3XPvuLZGD8Ld1/aYqz9x4FucSAx9UxeLYW3SszFioV8?=
+ =?us-ascii?q?6IpJjg4wn/YZnrUdouaJK5ex512huLocYZkERcwmj/3auK49CEnjPnRLlbBILW?=
+ =?us-ascii?q?s1h5ZFFYMpBgJ2UoLd94R2uaEsPDha++/kYqaT/73ZDdJ7wVJ3lc8sMpvnv/AU?=
+ =?us-ascii?q?MPa41v0tnRmDRxCUcS3e3M9VPrzLonpR5f0rxU9IwK0ewrD5OnREmLx9BFrBM6?=
+ =?us-ascii?q?nk6rgbwsBRbu60Qqm0yIQAvb9xEMZ4HFaPqUTbZLwbW9NljyPhME3xtNWqbS+V?=
+ =?us-ascii?q?AUoIrbR3u8aVnG0FgknZPMYp+CWfyHXXcu7iheun2HX6/lnEkA6FYMC/eNwG2t?=
+ =?us-ascii?q?P6boTLzVlRhCIh8q3xryhQ+Vhj8hlK9PkVKsTs3cmz3fGDPIiQJnGWI3L48NV2?=
+ =?us-ascii?q?HE7gcUmNfrceM0fZhJsYQ7GbhkJPU0YYLo6neG1ljz6dhVbtluepuww+We75Ap?=
+ =?us-ascii?q?v3LnoNfLRe8eWXoNRn0CFtiTK8nqRKhMTMtHZwjqY2nW2j+TLkGXwX4d6PLm58?=
+ =?us-ascii?q?ON6xVOIymENBRk+S1S2u7+6h1S4VtYZLFYbkgIqrK4v5AmoQ8P7UhmQvnGJpFg?=
+ =?us-ascii?q?fVsBWHul87xuCooLQ4gCEFi0UQCVpdtMrrok1SCYs21vPmMnmbQGDGpX9pWm1r?=
+ =?us-ascii?q?+/S9G3tf3NOazJqWMPNdiNdi/GLnW35pkunog5fLZOI?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AKVah96PMLSKxg8BcTv2jsMiBIKoaSvp037BL?=
+ =?us-ascii?q?7TEUdfUxSKGlfq+V8sjzqiWftN98YhAdcLO7Scy9qBHnhP1ICOAqVN/MYOCMgh?=
+ =?us-ascii?q?rLEGgN1+vf6gylMyj/28oY7q14bpV5YeeaMXFKyer8/ym0euxN/OW6?=
 X-IronPort-AV: E=Sophos;i="5.87,197,1631548800"; 
-   d="scan'208";a="116678011"
+   d="scan'208";a="116677961"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 31 Oct 2021 23:21:11 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 4CF1C4D0F90F;
-	Sun, 31 Oct 2021 23:21:09 +0800 (CST)
+  by heian.cn.fujitsu.com with ESMTP; 31 Oct 2021 23:20:41 +0800
+Received: from G08CNEXMBPEKD06.g08.fujitsu.local (unknown [10.167.33.206])
+	by cn.fujitsu.com (Postfix) with ESMTP id C4B004D0DC6D;
+	Sun, 31 Oct 2021 23:20:35 +0800 (CST)
+Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
+ G08CNEXMBPEKD06.g08.fujitsu.local (10.167.33.206) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 31 Oct 2021 23:20:34 +0800
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Sun, 31 Oct 2021 23:21:00 +0800
+ G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 31 Oct 2021 23:20:36 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Sun, 31 Oct 2021 23:20:57 +0800
+ id 15.0.1497.23 via Frontend Transport; Sun, 31 Oct 2021 23:20:33 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>
 CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
 	<hch@infradead.org>, <jane.chu@oracle.com>
-Subject: [PATCH v8 8/8] fsdax: add exception for reflinked files
-Date: Sun, 31 Oct 2021 23:20:28 +0800
-Message-ID: <20211031152028.3724121-9-ruansy.fnst@fujitsu.com>
+Subject: [PATCH v8 0/8] fsdax: introduce fs query to support reflink
+Date: Sun, 31 Oct 2021 23:20:20 +0800
+Message-ID: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
-References: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -51,115 +51,82 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: 4CF1C4D0F90F.A4FE0
+X-yoursite-MailScanner-ID: C4B004D0DC6D.A123B
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-For reflinked files, one dax page may be associated more than once with
-different fime mapping and index.  It will report warning.  Now, since
-we have introduced dax-RMAP for this case and also have to keep its
-functionality for other filesystems who are not support rmap, we add a
-is cow flag, which is set true when it is CoW operation, for reflink
-case.  Normal cases work as before.
+This patchset is aimed to support shared pages tracking for fsdax.
 
-We will get the cow flag in the dax-reflink(v10) patchset.  So, always
-set false here for now.
+Changes from V7:
+  - Change dax lock from global rwsem to per-device percpu_rwsem
+  - Change type of range length from size_t to u64
+  - Rename 'flags' to 'mf_flags'
+  - Fix mistakes in XFS code
+  - Add cow branch for dax_assocaite_entry()
+  - Rebased to v5.15-rc7
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
----
- fs/dax.c | 39 +++++++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 12 deletions(-)
+This patchset moves owner tracking from dax_assocaite_entry() to pmem
+device driver, by introducing an interface ->memory_failure() for struct
+pagemap.  This interface is called by memory_failure() in mm, and
+implemented by pmem device.
 
-diff --git a/fs/dax.c b/fs/dax.c
-index 7e46569c6129..bc269852d91a 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -340,7 +340,7 @@ static unsigned long dax_end_pfn(void *entry)
-  * offsets.
-  */
- static void dax_associate_entry(void *entry, struct address_space *mapping,
--		struct vm_area_struct *vma, unsigned long address)
-+		struct vm_area_struct *vma, unsigned long address, bool cow)
- {
- 	unsigned long size = dax_entry_size(entry), pfn, index;
- 	int i = 0;
-@@ -352,14 +352,21 @@ static void dax_associate_entry(void *entry, struct address_space *mapping,
- 	for_each_mapped_pfn(entry, pfn) {
- 		struct page *page = pfn_to_page(pfn);
- 
--		WARN_ON_ONCE(page->mapping);
--		page->mapping = mapping;
--		page->index = index + i++;
-+		if (cow) {
-+			if (!page->mapping) {
-+				page->mapping = mapping;
-+				page->index = index + i++;
-+			}
-+		} else {
-+			WARN_ON_ONCE(page->mapping);
-+			page->mapping = mapping;
-+			page->index = index + i++;
-+		}
- 	}
- }
- 
- static void dax_disassociate_entry(void *entry, struct address_space *mapping,
--		bool trunc)
-+		bool trunc, bool cow)
- {
- 	unsigned long pfn;
- 
-@@ -370,9 +377,16 @@ static void dax_disassociate_entry(void *entry, struct address_space *mapping,
- 		struct page *page = pfn_to_page(pfn);
- 
- 		WARN_ON_ONCE(trunc && page_ref_count(page) > 1);
--		WARN_ON_ONCE(page->mapping && page->mapping != mapping);
--		page->mapping = NULL;
--		page->index = 0;
-+		if (cow) {
-+			if (page->mapping == mapping) {
-+				page->mapping = NULL;
-+				page->index = 0;
-+			}
-+		} else {
-+			WARN_ON_ONCE(page->mapping && page->mapping != mapping);
-+			page->mapping = NULL;
-+			page->index = 0;
-+		}
- 	}
- }
- 
-@@ -597,7 +611,7 @@ static void *grab_mapping_entry(struct xa_state *xas,
- 			xas_lock_irq(xas);
- 		}
- 
--		dax_disassociate_entry(entry, mapping, false);
-+		dax_disassociate_entry(entry, mapping, false, false);
- 		xas_store(xas, NULL);	/* undo the PMD join */
- 		dax_wake_entry(xas, entry, WAKE_ALL);
- 		mapping->nrpages -= PG_PMD_NR;
-@@ -734,7 +748,7 @@ static int __dax_invalidate_entry(struct address_space *mapping,
- 	    (xas_get_mark(&xas, PAGECACHE_TAG_DIRTY) ||
- 	     xas_get_mark(&xas, PAGECACHE_TAG_TOWRITE)))
- 		goto out;
--	dax_disassociate_entry(entry, mapping, trunc);
-+	dax_disassociate_entry(entry, mapping, trunc, false);
- 	xas_store(&xas, NULL);
- 	mapping->nrpages -= 1UL << dax_entry_order(entry);
- 	ret = 1;
-@@ -827,8 +841,9 @@ static void *dax_insert_entry(struct xa_state *xas,
- 	if (dax_is_zero_entry(entry) || dax_is_empty_entry(entry)) {
- 		void *old;
- 
--		dax_disassociate_entry(entry, mapping, false);
--		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address);
-+		dax_disassociate_entry(entry, mapping, false, false);
-+		dax_associate_entry(new_entry, mapping, vmf->vma, vmf->address,
-+				false);
- 		/*
- 		 * Only swap our new entry into the page cache if the current
- 		 * entry is a zero page or an empty entry.  If a normal PTE or
+Then call holder operations to find the filesystem which the corrupted
+data located in, and call filesystem handler to track files or metadata
+associated with this page.
+
+Finally we are able to try to fix the corrupted data in filesystem and
+do other necessary processing, such as killing processes who are using
+the files affected.
+
+The call trace is like this:
+memory_failure()
+|* fsdax case
+|------------
+|pgmap->ops->memory_failure()      => pmem_pgmap_memory_failure()
+| dax_holder_notify_failure()      =>
+|  dax_device->holder_ops->notify_failure() =>
+|                                     - xfs_dax_notify_failure()
+|  |* xfs_dax_notify_failure()
+|  |--------------------------
+|  |   xfs_rmap_query_range()
+|  |    xfs_dax_notify_failure_fn()
+|  |    * corrupted on metadata
+|  |       try to recover data, call xfs_force_shutdown()
+|  |    * corrupted on file data
+|  |       try to recover data, call mf_dax_kill_procs()
+|* normal case
+|-------------
+ mf_generic_kill_procs()
+
+The fsdax & reflink support for XFS is not contained in this patchset.
+
+(Rebased on v5.15-rc7)
+==
+Shiyang Ruan (8):
+  dax: Use rwsem for dax_{read,write}_lock()
+  dax: Introduce holder for dax_device
+  mm: factor helpers for memory_failure_dev_pagemap
+  pagemap,pmem: Introduce ->memory_failure()
+  fsdax: Introduce dax_lock_mapping_entry()
+  mm: Introduce mf_dax_kill_procs() for fsdax case
+  xfs: Implement ->notify_failure() for XFS
+  fsdax: add exception for reflinked files
+
+ drivers/dax/device.c       |  11 +-
+ drivers/dax/super.c        | 131 +++++++++++++++++----
+ drivers/md/dm-writecache.c |   7 +-
+ drivers/nvdimm/pmem.c      |  11 ++
+ fs/dax.c                   | 140 +++++++++++++++++------
+ fs/xfs/xfs_fsops.c         |   3 +
+ fs/xfs/xfs_mount.h         |   1 +
+ fs/xfs/xfs_super.c         | 207 +++++++++++++++++++++++++++++++++
+ include/linux/dax.h        |  76 ++++++++++++-
+ include/linux/memremap.h   |   9 ++
+ include/linux/mm.h         |   2 +
+ mm/memory-failure.c        | 226 ++++++++++++++++++++++++++-----------
+ 12 files changed, 687 insertions(+), 137 deletions(-)
+
 -- 
 2.33.0
 
