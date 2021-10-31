@@ -1,193 +1,264 @@
-Received: from mail-wr1-f49.google.com (mail-wr1-f49.google.com [209.85.221.49])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80C5C2C85
-	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 13:30:20 +0000 (UTC)
-Received: by mail-wr1-f49.google.com with SMTP id p14so24212435wrd.10
-        for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 06:30:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=h+YIJYU/CGpYORXj2rCNOHj6NcB2hgHRFq3Y9666r90=;
-        b=LD28/wA2KmhiC3i90xJLFb78E+2twkKR1B8iIGy1bnvuIaJQhWM4XXT8HawRT0uG0h
-         sykupdQV6oTshxzHi9W1gdlJfRWgXvXX4SDjBfT6ZmNaFF09cslX6St4nmUWpz+vmKYb
-         lHDfh+1JS6iLdVXo+WoMvz6Q5cGgFWacIL0hzOvrw82blmJpXE5mqSOQnaBHorvcFMav
-         TgefEQcBGp6/Lv4W7MKXndAI4WqzvgC+ZM4Yi/ycp878O89txr6idexRhUBq7Mw+pZpp
-         rjOW7Q9cr8EClzi8oC656CkqoWLNwDjdh2wvWvpeknDmm8m3dt+Rqqr1KuKPfbH9cfRB
-         bPYw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=h+YIJYU/CGpYORXj2rCNOHj6NcB2hgHRFq3Y9666r90=;
-        b=7GqX779pXeDSS52YLoJBPdhZ3cf27MaR3QiA0ZYyq+ju7Ho9vTsS8qbALxppTwgjQj
-         40yX7abaVJzX1CQ4zg3MtGZOs2dJkY1qIIudEsdwkRvwR/tnlh1MMBN1zHXnGYda1IqC
-         jSAVo7FPn6lDi0oLpgBT0xYZv+Jvx49z61Qh/ETZqwQ+bEwEItrrcq4NneAjPZHx7Ed9
-         KpI5oEUScB/kmFDGs3BvGq3oTsVqsY7BH0X1b6ToCeUakgG4eH4xcrKeXny2E87QZSDn
-         Kwh9YvD0z52v+OJ6r7Hxylx5kaNwT9HvDm2SwghcSOSMtluDJc3xF0tgebUf/nC8Xm61
-         gz4Q==
-X-Gm-Message-State: AOAM5305wNDe7D008qZ3YeCVbdjq2cIz192zgSNVhcgDhBuuvRbo2beL
-	IreXxHQUYrGm05IVo/X46bg=
-X-Google-Smtp-Source: ABdhPJyMAWA1Sez2ro/vxgbmSjihRwHdwamFfBYiCrFoLhmm0D7ZUE8z8CTE6ZXwZnPzfddj0lZYow==
-X-Received: by 2002:a5d:5287:: with SMTP id c7mr31452951wrv.236.1635687018879;
-        Sun, 31 Oct 2021 06:30:18 -0700 (PDT)
-Received: from [192.168.8.198] ([85.255.232.29])
-        by smtp.gmail.com with ESMTPSA id n9sm10326016wmq.6.2021.10.31.06.30.17
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 31 Oct 2021 06:30:18 -0700 (PDT)
-Message-ID: <5f295bd5-8440-267e-f2e8-01572eddbbd6@gmail.com>
-Date: Sun, 31 Oct 2021 13:27:08 +0000
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 75B1072
+	for <nvdimm@lists.linux.dev>; Sun, 31 Oct 2021 15:21:01 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3A7UwfnKnd9h2PxXT5t+jIB9vo5gzqJ0RdPkR7XQ2?=
+ =?us-ascii?q?eYbTBsI5bpz0Ez2sYDGqDOfrcazekf9B3b96w/R4F7ZCEztJqSwpp+CA2RRqmi?=
+ =?us-ascii?q?+KfW43BcR2Y0wB+jyH7ZBs+qZ1YM7EsFehsJpPnjkrrYueJQUVUj/nSH+OkU7e?=
+ =?us-ascii?q?cY0ideCc/IMsfoUM68wIGqt4w6TSJK1vlVeLa+6UzCnf8s9JHGj58B5a4lf9al?=
+ =?us-ascii?q?K+aVAX0EbAJTasjUFf2zxH5BX+ETE27ByOQroJ8RoZWSwtfpYxV8F81/z91Yj+?=
+ =?us-ascii?q?kur39NEMXQL/OJhXIgX1TM0SgqkEa4HVsjeBgb7xBAatUo2zhc9RZ0shEs4ehD?=
+ =?us-ascii?q?wkvJbHklvkfUgVDDmd1OqguFLrveCHh75PMnh2dG5fr67A0ZK0sBqUU8/h2DUl?=
+ =?us-ascii?q?A7/sdLyoHbwzFjOWzqJq7QelEh8ItNsDnMYoT/HZ6wlnxAf8gB5KFXKTO4d5R2?=
+ =?us-ascii?q?SwYh8ZSEPKYbM0cARJjbgvHZRJnOVoNDp862uCyiRHXdzxetULQoK8f4Hbaxw8?=
+ =?us-ascii?q?316LiWPLTZNCLQMB9mkeDunmA+2X/HwFcONGBoRKH+3ShwOTPgAv8QosZELD+/?=
+ =?us-ascii?q?flv6HWXx2oOGFgYTle2v/S9olCxVsgZKEEO/Ccq668o+ySDStj7Qg39o3OeuBM?=
+ =?us-ascii?q?Yc8RfHvd86wyXzKfQpQGDCQAsSj9HdcxjpMEtbSIl20XPnN7zAzFr9rqPRhqgG?=
+ =?us-ascii?q?h28xd+pEXFNazZcOmlfFk1Yi+QPabob1nrnJuuP2obo5jEtJQzN/g=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A68iGGawOrsdGlax08Ge0KrPwyL1zdoMgy1kn?=
+ =?us-ascii?q?xilNoRw8SKKlfqeV7ZImPH7P+U8ssR4b+exoVJPtfZqYz+8R3WBzB8bEYOCFgh?=
+ =?us-ascii?q?rKEGgK1+KLqFeMJ8S9zJ846U4KSclD4bPLYmSS9fyKgjVQDexQveWvweS5g/vE?=
+ =?us-ascii?q?1XdxQUVPY6Fk1Q1wDQGWCSRNNXJ7LKt8BJyB/dBGujblXXwWa/6wDn4DU/OGiM?=
+ =?us-ascii?q?bMkPvdEGQ7Li9i+A+Tlimp9bK/NxCZ2y0VWzRJzaxn0UWtqX2A2pme?=
+X-IronPort-AV: E=Sophos;i="5.87,197,1631548800"; 
+   d="scan'208";a="116677983"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 31 Oct 2021 23:20:59 +0800
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id 0A4F24D0F914;
+	Sun, 31 Oct 2021 23:20:57 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 31 Oct 2021 23:20:57 +0800
+Received: from irides.mr.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Sun, 31 Oct 2021 23:20:55 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
+	<hch@infradead.org>, <jane.chu@oracle.com>
+Subject: [PATCH v8 6/8] mm: Introduce mf_dax_kill_procs() for fsdax case
+Date: Sun, 31 Oct 2021 23:20:26 +0800
+Message-ID: <20211031152028.3724121-7-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.33.0
+In-Reply-To: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
+References: <20211031152028.3724121-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.0
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with RWF_RECOVERY_DATA
- flag
-Content-Language: en-US
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>, Christoph Hellwig
- <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>,
- "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
- "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
- "dave.jiang@intel.com" <dave.jiang@intel.com>,
- "agk@redhat.com" <agk@redhat.com>, "snitzer@redhat.com"
- <snitzer@redhat.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>,
- "ira.weiny@intel.com" <ira.weiny@intel.com>,
- "willy@infradead.org" <willy@infradead.org>,
- "vgoyal@redhat.com" <vgoyal@redhat.com>,
- "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
- "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
- "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
- "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-References: <YXFPfEGjoUaajjL4@infradead.org>
- <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
- <YXJN4s1HC/Y+KKg1@infradead.org>
- <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
- <YXj2lwrxRxHdr4hb@infradead.org> <20211028002451.GB2237511@magnolia>
- <20211028225955.GA449541@dread.disaster.area>
- <22255117-52de-4b2d-822e-b4bc50bbc52b@gmail.com>
- <20211029165747.GC2237511@magnolia>
- <f3e14569-a399-f6da-fd3e-993b579eaf74@gmail.com>
- <20211029200857.GD2237511@magnolia>
-From: Pavel Begunkov <asml.silence@gmail.com>
-In-Reply-To: <20211029200857.GD2237511@magnolia>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-yoursite-MailScanner-ID: 0A4F24D0F914.A583D
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-On 10/29/21 21:08, Darrick J. Wong wrote:
-> On Fri, Oct 29, 2021 at 08:23:53PM +0100, Pavel Begunkov wrote:
->> On 10/29/21 17:57, Darrick J. Wong wrote:
->>> On Fri, Oct 29, 2021 at 12:46:14PM +0100, Pavel Begunkov wrote:
->>>> On 10/28/21 23:59, Dave Chinner wrote:
->>>> [...]
->>>>>>> Well, my point is doing recovery from bit errors is by definition not
->>>>>>> the fast path.  Which is why I'd rather keep it away from the pmem
->>>>>>> read/write fast path, which also happens to be the (much more important)
->>>>>>> non-pmem read/write path.
->>>>>>
->>>>>> The trouble is, we really /do/ want to be able to (re)write the failed
->>>>>> area, and we probably want to try to read whatever we can.  Those are
->>>>>> reads and writes, not {pre,f}allocation activities.  This is where Dave
->>>>>> and I arrived at a month ago.
->>>>>>
->>>>>> Unless you'd be ok with a second IO path for recovery where we're
->>>>>> allowed to be slow?  That would probably have the same user interface
->>>>>> flag, just a different path into the pmem driver.
->>>>>
->>>>> I just don't see how 4 single line branches to propage RWF_RECOVERY
->>>>> down to the hardware is in any way an imposition on the fast path.
->>>>> It's no different for passing RWF_HIPRI down to the hardware *in the
->>>>> fast path* so that the IO runs the hardware in polling mode because
->>>>> it's faster for some hardware.
->>>>
->>>> Not particularly about this flag, but it is expensive. Surely looks
->>>> cheap when it's just one feature, but there are dozens of them with
->>>> limited applicability, default config kernels are already sluggish
->>>> when it comes to really fast devices and it's not getting better.
->>>> Also, pretty often every of them will add a bunch of extra checks
->>>> to fix something of whatever it would be.
->>>
->>> So we can't have data recovery because moving fast the only goal?
->>
->> That's not what was said and you missed the point, which was in
->> the rest of the message.
-> 
-> ...whatever point you were trying to make was so vague that it was
-> totally uninformative and I completely missed it.
-> 
-> What does "callbacks or bit masks" mean, then, specifically?  How
-> *exactly* would you solve the problem that Jane is seeking to solve by
-> using callbacks?
-> 
-> Actually, you know what?  I'm so fed up with every single DAX
-> conversation turning into a ****storm of people saying NO NO NO NO NO NO
-> NO NO to everything proposed that I'm actually going to respond to
-> whatever I think your point is, and you can defend whatever I come up
-> with.
+This function is called at the end of RMAP routine, i.e. filesystem
+recovery function, to collect and kill processes using a shared page of
+DAX file.  The difference between mf_generic_kill_procs() is,
+it accepts file's mapping,offset instead of struct page.  Because
+different file's mappings and offsets may share the same page in fsdax
+mode.  So, it is called when filesystem RMAP results are found.
 
-Interesting, I don't want to break it to you but nobody is going to
-defend against yours made up out of thin air interpretations. I think
-there is one thing we can relate, I wonder as well what the bloody
-hell that opus of yours was
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+---
+ fs/dax.c            | 10 ------
+ include/linux/dax.h |  9 +++++
+ include/linux/mm.h  |  2 ++
+ mm/memory-failure.c | 83 ++++++++++++++++++++++++++++++++++++++++-----
+ 4 files changed, 86 insertions(+), 18 deletions(-)
 
-
-> 
->>>
->>> That's so meta.
->>>
->>> --D
->>>
->>>> So let's add a bit of pragmatism to the picture, if there is just one
->>>> user of a feature but it adds overhead for millions of machines that
->>>> won't ever use it, it's expensive.
-> 
-> Errors are infrequent, and since everything is cloud-based and disposble
-> now, we can replace error handling with BUG_ON().  This will reduce code
-> complexity, which will reduce code size, and improve icache usage.  Win!
-> 
->>>> This one doesn't spill yet into paths I care about,
-> 
-> ...so you sail in and say 'no' even though you don't yet care...
-> 
->>>> but in general
->>>> it'd be great if we start thinking more about such stuff instead of
->>>> throwing yet another if into the path, e.g. by shifting the overhead
->>>> from linear to a constant for cases that don't use it, for instance
->>>> with callbacks
-> 
-> Ok so after userspace calls into pread to access a DAX file, hits the
-> poisoned memory line and the machinecheck fires, what then?  I guess we
-> just have to figure out how to get from the MCA handler (assuming the
-> machine doesn't just reboot instantly) all the way back into memcpy?
-> Ok, you're in charge of figuring that out because I don't know how to do
-> that.
-> 
-> Notably, RWF_DATA_RECOVERY is the flag that we're calling *from* a
-> callback that happens after memory controller realizes it's lost
-> something, kicks a notification to the OS kernel through ACPI, and the
-> kernel signal userspace to do something about it.  Yeah, that's dumb
-> since spinning rust already does all this for us, but that's pmem.
-> 
->>>> or bit masks.
-> 
-> WTF does this even mean?
-> 
-> --D
-> 
->>>>
->>>>> IOWs, saying that we shouldn't implement RWF_RECOVERY because it
->>>>> adds a handful of branches 	 the fast path is like saying that we
->>>>> shouldn't implement RWF_HIPRI because it slows down the fast path
->>>>> for non-polled IO....
->>>>>
->>>>> Just factor the actual recovery operations out into a separate
->>>>> function like:
-
+diff --git a/fs/dax.c b/fs/dax.c
+index 59e02c9f169c..7e46569c6129 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -852,16 +852,6 @@ static void *dax_insert_entry(struct xa_state *xas,
+ 	return entry;
+ }
+ 
+-static inline
+-unsigned long pgoff_address(pgoff_t pgoff, struct vm_area_struct *vma)
+-{
+-	unsigned long address;
+-
+-	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
+-	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
+-	return address;
+-}
+-
+ /* Walk all mappings of a given index of a file and writeprotect them */
+ static void dax_entry_mkclean(struct address_space *mapping, pgoff_t index,
+ 		unsigned long pfn)
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index c78ca4f8285a..e652a5ae3cc0 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -254,6 +254,15 @@ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+ }
++static inline unsigned long pgoff_address(pgoff_t pgoff,
++		struct vm_area_struct *vma)
++{
++	unsigned long address;
++
++	address = vma->vm_start + ((pgoff - vma->vm_pgoff) << PAGE_SHIFT);
++	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
++	return address;
++}
+ 
+ #ifdef CONFIG_DEV_DAX_HMEM_DEVICES
+ void hmem_register_device(int target_nid, struct resource *r);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 73a52aba448f..c94ba51e64c1 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -3114,6 +3114,8 @@ enum mf_flags {
+ 	MF_MUST_KILL = 1 << 2,
+ 	MF_SOFT_OFFLINE = 1 << 3,
+ };
++extern int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
++			     unsigned long count, int mf_flags);
+ extern int memory_failure(unsigned long pfn, int flags);
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+ extern void memory_failure_queue_kick(int cpu);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 8bf6f54b5705..74059c6f4235 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -302,10 +302,9 @@ void shake_page(struct page *p)
+ }
+ EXPORT_SYMBOL_GPL(shake_page);
+ 
+-static unsigned long dev_pagemap_mapping_shift(struct page *page,
++static unsigned long dev_pagemap_mapping_shift(unsigned long address,
+ 		struct vm_area_struct *vma)
+ {
+-	unsigned long address = vma_address(page, vma);
+ 	unsigned long ret = 0;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+@@ -345,7 +344,7 @@ static unsigned long dev_pagemap_mapping_shift(struct page *page,
+  * Schedule a process for later kill.
+  * Uses GFP_ATOMIC allocations to avoid potential recursions in the VM.
+  */
+-static void add_to_kill(struct task_struct *tsk, struct page *p,
++static void add_to_kill(struct task_struct *tsk, struct page *p, pgoff_t pgoff,
+ 		       struct vm_area_struct *vma,
+ 		       struct list_head *to_kill)
+ {
+@@ -358,9 +357,15 @@ static void add_to_kill(struct task_struct *tsk, struct page *p,
+ 	}
+ 
+ 	tk->addr = page_address_in_vma(p, vma);
+-	if (is_zone_device_page(p))
+-		tk->size_shift = dev_pagemap_mapping_shift(p, vma);
+-	else
++	if (is_zone_device_page(p)) {
++		/*
++		 * Since page->mapping is no more used for fsdax, we should
++		 * calculate the address in a fsdax way.
++		 */
++		if (p->pgmap->type == MEMORY_DEVICE_FS_DAX)
++			tk->addr = pgoff_address(pgoff, vma);
++		tk->size_shift = dev_pagemap_mapping_shift(tk->addr, vma);
++	} else
+ 		tk->size_shift = page_shift(compound_head(p));
+ 
+ 	/*
+@@ -508,7 +513,7 @@ static void collect_procs_anon(struct page *page, struct list_head *to_kill,
+ 			if (!page_mapped_in_vma(page, vma))
+ 				continue;
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, vma, to_kill);
++				add_to_kill(t, page, 0, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -544,7 +549,32 @@ static void collect_procs_file(struct page *page, struct list_head *to_kill,
+ 			 * to be informed of all such data corruptions.
+ 			 */
+ 			if (vma->vm_mm == t->mm)
+-				add_to_kill(t, page, vma, to_kill);
++				add_to_kill(t, page, 0, vma, to_kill);
++		}
++	}
++	read_unlock(&tasklist_lock);
++	i_mmap_unlock_read(mapping);
++}
++
++/*
++ * Collect processes when the error hit a fsdax page.
++ */
++static void collect_procs_fsdax(struct page *page, struct address_space *mapping,
++		pgoff_t pgoff, struct list_head *to_kill)
++{
++	struct vm_area_struct *vma;
++	struct task_struct *tsk;
++
++	i_mmap_lock_read(mapping);
++	read_lock(&tasklist_lock);
++	for_each_process(tsk) {
++		struct task_struct *t = task_early_kill(tsk, true);
++
++		if (!t)
++			continue;
++		vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
++			if (vma->vm_mm == t->mm)
++				add_to_kill(t, page, pgoff, vma, to_kill);
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+@@ -1504,6 +1534,43 @@ static int mf_generic_kill_procs(unsigned long long pfn, int flags,
+ 	return 0;
+ }
+ 
++/**
++ * mf_dax_kill_procs - Collect and kill processes who are using this file range
++ * @mapping:	the file in use
++ * @index:	start pgoff of the range within the file
++ * @count:	length of the range, in unit of PAGE_SIZE
++ * @mf_flags:	memory failure flags
++ */
++int mf_dax_kill_procs(struct address_space *mapping, pgoff_t index,
++		unsigned long count, int mf_flags)
++{
++	LIST_HEAD(to_kill);
++	dax_entry_t cookie;
++	struct page *page;
++	size_t end = index + count;
++
++	mf_flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++
++	for (; index < end; index++) {
++		page = NULL;
++		cookie = dax_lock_mapping_entry(mapping, index, &page);
++		if (!cookie)
++			return -EBUSY;
++		if (!page)
++			goto unlock;
++
++		SetPageHWPoison(page);
++
++		collect_procs_fsdax(page, mapping, index, &to_kill);
++		unmap_and_kill(&to_kill, page_to_pfn(page), mapping,
++				index, mf_flags);
++unlock:
++		dax_unlock_mapping_entry(mapping, index, cookie);
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mf_dax_kill_procs);
++
+ static int memory_failure_hugetlb(unsigned long pfn, int flags)
+ {
+ 	struct page *p = pfn_to_page(pfn);
 -- 
-Pavel Begunkov
+2.33.0
+
+
+
