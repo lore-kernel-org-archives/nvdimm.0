@@ -1,111 +1,60 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AF5A68
-	for <nvdimm@lists.linux.dev>; Mon,  1 Nov 2021 16:28:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1635784122;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vSSeiEsgy4ZRAwPPYMh123Zf4LHs8XHr2NNVii6Qq7o=;
-	b=AvCPbg1FTPfLMjWc7ypl3iG98diUCbhNwGIK33qkzkphpEsehtLzuq/IYpiYpQgrCy2L7+
-	c3v1KDixloqG3Ng3ccyy3cjQGIe8vA5LCddSAnMrItTSCPBgIsoibsijzZcddq7PkRalMS
-	2V2TvGAHoAUFgWvumnraXAfhel7N1zI=
-Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
- [209.85.160.199]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-155-O4oMTBzlNL2mefWN-pjPyQ-1; Mon, 01 Nov 2021 12:28:41 -0400
-X-MC-Unique: O4oMTBzlNL2mefWN-pjPyQ-1
-Received: by mail-qt1-f199.google.com with SMTP id b9-20020ac87fc9000000b002ac69ae062bso5521892qtk.7
-        for <nvdimm@lists.linux.dev>; Mon, 01 Nov 2021 09:28:41 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=vSSeiEsgy4ZRAwPPYMh123Zf4LHs8XHr2NNVii6Qq7o=;
-        b=pvXJVUdBdXNoS4taf6z7CuDhCcZt83TfGhQgZUP6hO4MAdEQUOiUDyQTFsBLnmLvm8
-         T736WUc8OtDqqMUdasOe7ae7AXnLYHRsxqQ2mBiew/rN6/xZ4l6lPJ9StD//w/7WJTqu
-         mrhIBrLV6znO2QMPEytrYNk9qrYCl5BzPQF1IafAeIWoqhzzMrkK4Gs5P2zwvEFbiFeD
-         75XJv74AKVDl6jDe9sGBRFSxYyqTRLlVsvpKxdd7WiDHfXzKQfqIuZoUMdoA2icdeeSL
-         ReWOyE0bfH2aMO00xuj3AgaH/h+pjoHUsKD26XQq6hhxCgUtXjtsSz9J950qEFBa0DPu
-         xLrg==
-X-Gm-Message-State: AOAM532hVZLhWUvl1uyMPBbN/uZ0banxRutJ/DGz3WOkz51Dasfa9DK+
-	dpkg0qHL4AfHmL7MX4oh0i50bPW5S1tMupwQY46zsEC8QVlFG72ST3bxES/900Vz9Qa8E5hrWim
-	oEJSzIuGO1DHPGhE=
-X-Received: by 2002:a05:6214:e4a:: with SMTP id o10mr29863861qvc.58.1635784120280;
-        Mon, 01 Nov 2021 09:28:40 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJwnnToYfIdlwewHO/8stJwOwIrIwZDJizj1Vl7BOinzg8bNzbcfCyJ9R9K4APUV9a9jX59VOw==
-X-Received: by 2002:a05:6214:e4a:: with SMTP id o10mr29863844qvc.58.1635784120140;
-        Mon, 01 Nov 2021 09:28:40 -0700 (PDT)
-Received: from localhost (pool-68-160-176-52.bstnma.fios.verizon.net. [68.160.176.52])
-        by smtp.gmail.com with ESMTPSA id u185sm10250817qkd.48.2021.11.01.09.28.39
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 Nov 2021 09:28:39 -0700 (PDT)
-Date: Mon, 1 Nov 2021 12:28:38 -0400
-From: Mike Snitzer <snitzer@redhat.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9045C2C86
+	for <nvdimm@lists.linux.dev>; Mon,  1 Nov 2021 21:50:58 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EE86B60EE3;
+	Mon,  1 Nov 2021 21:50:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1635803458;
+	bh=LjQ+jv2pb1lXnkT/NVcDdURxhVA9PsUtmE/QNpSNqg4=;
+	h=Date:From:To:Cc:Subject:In-Reply-To:From;
+	b=N6FQT6aVm4GMhI9nzrGsysH7nvafcXJaJ68z06dNDXo9ZYtqm7kQwr7/6hgLvth97
+	 B2cDyAu7xEEWRlY/E5USrwrSW/MbV6+60CBtUR1Dz0KV3yE9KjvupadXKDPiUVb87K
+	 r/lTvbZ5bvD8SEQ6/nfn/oEN26qQNqCie9q2OvJFP6oNHNjTCLkDjRNEbP32uibVRp
+	 6RhNQUpmKoKnZoplursOROiGTZSORTMFfE6/q+jOHbTVZf2QYiba5GV/5YWankapHg
+	 tDNDo9Wxgm3UiilWVJddCweCqsEjdS+Lh+ZqjoRR209vsLWIdGqBPJKFJpOUSWuGlJ
+	 VYbSRfM/eKqig==
+Date: Mon, 1 Nov 2021 16:50:56 -0500
+From: Bjorn Helgaas <helgaas@kernel.org>
 To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>, dm-devel@redhat.com,
-	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-s390@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-	virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH 03/11] dax: simplify the dax_device <-> gendisk
- association
-Message-ID: <YYAVtv6kiqVHDjQH@redhat.com>
-References: <20211018044054.1779424-1-hch@lst.de>
- <20211018044054.1779424-4-hch@lst.de>
+Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-pci@vger.kernel.org
+Subject: Re: [PATCH v2] memremap: remove support for external pgmap refcounts
+Message-ID: <20211101215056.GA552989@bhelgaas>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20211018044054.1779424-4-hch@lst.de>
-Authentication-Results: relay.mimecast.com;
-	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=snitzer@redhat.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: redhat.com
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20211028151017.50234-1-hch@lst.de>
 
-On Mon, Oct 18 2021 at 12:40P -0400,
-Christoph Hellwig <hch@lst.de> wrote:
-
-> Replace the dax_host_hash with an xarray indexed by the pointer value
-> of the gendisk, and require explicitl calls from the block drivers that
-> want to associate their gendisk with a dax_device.
+On Thu, Oct 28, 2021 at 05:10:17PM +0200, Christoph Hellwig wrote:
+> No driver is left using the external pgmap refcount, so remove the
+> code to support it.
 > 
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-...
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-> index 79737aee516b1..a0a4703620650 100644
-> --- a/drivers/md/dm.c
-> +++ b/drivers/md/dm.c
-> @@ -1683,6 +1683,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
->  	bioset_exit(&md->io_bs);
->  
->  	if (md->dax_dev) {
-> +		dax_remove_host(md->disk);
->  		kill_dax(md->dax_dev);
->  		put_dax(md->dax_dev);
->  		md->dax_dev = NULL;
-> @@ -1784,10 +1785,11 @@ static struct mapped_device *alloc_dev(int minor)
->  	sprintf(md->disk->disk_name, "dm-%d", minor);
->  
->  	if (IS_ENABLED(CONFIG_FS_DAX)) {
-> -		md->dax_dev = alloc_dax(md, md->disk->disk_name,
-> -					&dm_dax_ops, 0);
-> +		md->dax_dev = alloc_dax(md, &dm_dax_ops, 0);
->  		if (IS_ERR(md->dax_dev))
->  			goto bad;
-> +		if (dax_add_host(md->dax_dev, md->disk))
-> +			goto bad;
->  	}
->  
->  	format_dev_t(md->name, MKDEV(_major, minor));
+> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+> index 50cdde3e9a8b2..316fd2f44df45 100644
+> --- a/drivers/pci/p2pdma.c
+> +++ b/drivers/pci/p2pdma.c
+> @@ -219,7 +219,7 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+>  	error = gen_pool_add_owner(p2pdma->pool, (unsigned long)addr,
+>  			pci_bus_address(pdev, bar) + offset,
+>  			range_len(&pgmap->range), dev_to_node(&pdev->dev),
+> -			pgmap->ref);
+> +			&pgmap->ref);
 
-Acked-by: Mike Snitzer <snitzer@redhat.com>
+I assume the change above is safe because of the one below.
 
+>  struct dev_pagemap {
+>  	struct vmem_altmap altmap;
+> -	struct percpu_ref *ref;
+> -	struct percpu_ref internal_ref;
+> +	struct percpu_ref ref;
