@@ -1,27 +1,48 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9045C2C86
-	for <nvdimm@lists.linux.dev>; Mon,  1 Nov 2021 21:50:58 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EE86B60EE3;
-	Mon,  1 Nov 2021 21:50:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1635803458;
-	bh=LjQ+jv2pb1lXnkT/NVcDdURxhVA9PsUtmE/QNpSNqg4=;
-	h=Date:From:To:Cc:Subject:In-Reply-To:From;
-	b=N6FQT6aVm4GMhI9nzrGsysH7nvafcXJaJ68z06dNDXo9ZYtqm7kQwr7/6hgLvth97
-	 B2cDyAu7xEEWRlY/E5USrwrSW/MbV6+60CBtUR1Dz0KV3yE9KjvupadXKDPiUVb87K
-	 r/lTvbZ5bvD8SEQ6/nfn/oEN26qQNqCie9q2OvJFP6oNHNjTCLkDjRNEbP32uibVRp
-	 6RhNQUpmKoKnZoplursOROiGTZSORTMFfE6/q+jOHbTVZf2QYiba5GV/5YWankapHg
-	 tDNDo9Wxgm3UiilWVJddCweCqsEjdS+Lh+ZqjoRR209vsLWIdGqBPJKFJpOUSWuGlJ
-	 VYbSRfM/eKqig==
-Date: Mon, 1 Nov 2021 16:50:56 -0500
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: dan.j.williams@intel.com, nvdimm@lists.linux.dev, linux-mm@kvack.org,
-	linux-pci@vger.kernel.org
-Subject: Re: [PATCH v2] memremap: remove support for external pgmap refcounts
-Message-ID: <20211101215056.GA552989@bhelgaas>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 260652C85
+	for <nvdimm@lists.linux.dev>; Tue,  2 Nov 2021 06:19:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=KdIhbeTBoLRUYR2IAPFmlM4VoN/TtUZV3//iIpzahwM=; b=gEliM4LypGip4U+QMQe7n5WPg+
+	8eF6rmeTZnEHXk8zsn5+LTsHo0ig9kZOyN4e+FFEa6YZuPTo4iSXZQcldSvGmvKpllSlorZqwbgkT
+	HKffEXvbAOcbwfsYA2+uU33ejwxMPoLiSRNY+d4hmrEY3vg4fS1/7E6nKilyDH/PiQvr7n9mSYnNs
+	jikQKAvqUFNTxA184hcFBlOilNj0XyLf3a0Uy2RsW8ZONVAYEDmx+GxVHvRm0MqozQH3lYB1ZPVt5
+	LxffLGlx8Gc5jttGyxDUerEAc3tqqv3LLUkq8lU5Hg3zMTTpnUOVYjoNmero8H6QeZnp+UkWZVzeg
+	THCpn1ug==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mhn8K-000eBZ-KX; Tue, 02 Nov 2021 06:18:56 +0000
+Date: Mon, 1 Nov 2021 23:18:56 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>,
+	"david@fromorbit.com" <david@fromorbit.com>,
+	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+	"dave.jiang@intel.com" <dave.jiang@intel.com>,
+	"agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"ira.weiny@intel.com" <ira.weiny@intel.com>,
+	"willy@infradead.org" <willy@infradead.org>,
+	"vgoyal@redhat.com" <vgoyal@redhat.com>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
+Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
+ RWF_RECOVERY_DATA flag
+Message-ID: <YYDYUCCiEPXhZEw0@infradead.org>
+References: <20211021001059.438843-1-jane.chu@oracle.com>
+ <YXFPfEGjoUaajjL4@infradead.org>
+ <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+ <YXJN4s1HC/Y+KKg1@infradead.org>
+ <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+ <YXj2lwrxRxHdr4hb@infradead.org>
+ <20211028002451.GB2237511@magnolia>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,31 +51,60 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211028151017.50234-1-hch@lst.de>
+In-Reply-To: <20211028002451.GB2237511@magnolia>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Thu, Oct 28, 2021 at 05:10:17PM +0200, Christoph Hellwig wrote:
-> No driver is left using the external pgmap refcount, so remove the
-> code to support it.
+On Wed, Oct 27, 2021 at 05:24:51PM -0700, Darrick J. Wong wrote:
+> ...so would you happen to know if anyone's working on solving this
+> problem for us by putting the memory controller in charge of dealing
+> with media errors?
+
+The only one who could know is Intel..
+
+> The trouble is, we really /do/ want to be able to (re)write the failed
+> area, and we probably want to try to read whatever we can.  Those are
+> reads and writes, not {pre,f}allocation activities.  This is where Dave
+> and I arrived at a month ago.
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Unless you'd be ok with a second IO path for recovery where we're
+> allowed to be slow?  That would probably have the same user interface
+> flag, just a different path into the pmem driver.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Which is fine with me.  If you look at the API here we do have the
+RWF_ API, which them maps to the IOMAP API, which maps to the DAX_
+API which then gets special casing over three methods.
 
-> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-> index 50cdde3e9a8b2..316fd2f44df45 100644
-> --- a/drivers/pci/p2pdma.c
-> +++ b/drivers/pci/p2pdma.c
-> @@ -219,7 +219,7 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
->  	error = gen_pool_add_owner(p2pdma->pool, (unsigned long)addr,
->  			pci_bus_address(pdev, bar) + offset,
->  			range_len(&pgmap->range), dev_to_node(&pdev->dev),
-> -			pgmap->ref);
-> +			&pgmap->ref);
+And while Pavel pointed out that he and Jens are now optimizing for
+single branches like this.  I think this actually is silly and it is
+not my point.
 
-I assume the change above is safe because of the one below.
+The point is that the DAX in-kernel API is a mess, and before we make
+it even worse we need to sort it first.  What is directly relevant
+here is that the copy_from_iter and copy_to_iter APIs do not make
+sense.  Most of the DAX API is based around getting a memory mapping
+using ->direct_access, it is just the read/write path which is a slow
+path that actually uses this.  I have a very WIP patch series to try
+to sort this out here:
 
->  struct dev_pagemap {
->  	struct vmem_altmap altmap;
-> -	struct percpu_ref *ref;
-> -	struct percpu_ref internal_ref;
-> +	struct percpu_ref ref;
+http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dax-devirtualize
+
+But back to this series.  The basic DAX model is that the callers gets a
+memory mapping an just works on that, maybe calling a sync after a write
+in a few cases.  So any kind of recovery really needs to be able to
+work with that model as going forward the copy_to/from_iter path will
+be used less and less.  i.e. file systems can and should use
+direct_access directly instead of using the block layer implementation
+in the pmem driver.  As an example the dm-writecache driver, the pending
+bcache nvdimm support and the (horribly and out of tree) nova file systems
+won't even use this path.  We need to find a way to support recovery
+for them.  And overloading it over the read/write path which is not
+the main path for DAX, but the absolutely fast path for 99% of the
+kernel users is a horrible idea.
+
+So how can we work around the horrible nvdimm design for data recovery
+in a way that:
+
+   a) actually works with the intended direct memory map use case
+   b) doesn't really affect the normal kernel too much
+
+?
