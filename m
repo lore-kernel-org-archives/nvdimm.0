@@ -1,127 +1,94 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B42172C85
-	for <nvdimm@lists.linux.dev>; Tue,  2 Nov 2021 16:12:59 +0000 (UTC)
-Received: by mail-pl1-f181.google.com with SMTP id v20so17016440plo.7
-        for <nvdimm@lists.linux.dev>; Tue, 02 Nov 2021 09:12:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=pIALiqswCfSwk+/MEarCA9yLgBnLpJVqWRaUmM6jp5w=;
-        b=YDMPEv8WJX5C5t8J+KvkqjymPpcW6bISPU13EEZn9i3ppfDrXqCBOkIiZ+qG6d/0W9
-         oMQLSczBNDPwvPGAeBCQCFCpFym+2LBzFX/2J1emFCX8/PiT0sSrN/EKaU5MKnn4a0Kp
-         2TPNyYUqhhBEvMdCFQyeipttIkdwn8Tm3bBSASjQz/q8pbYMW+PXgXDYQ9zDnbsNtNKj
-         tEA+auAFo01awfsN/txIuLZzv2x3qAeCbidvO2qL7Rnrtfwe8Rz+IyyDyOLljZkYawzP
-         JPuyPodJwGTYZZ1N8kC66Kge83QF/+vX/h8zKe7PGTocddZq4FaAT4hFeKM3Pxy/O7TW
-         pClQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pIALiqswCfSwk+/MEarCA9yLgBnLpJVqWRaUmM6jp5w=;
-        b=2CLcCO4gpMoDbWHwg7POL09IqUw0uW3NitH8Lq+/lqy83Gq6ZzIK+GG/OoxbyYulTd
-         c1WadceYePPKOkDofDZztYXhTaB0UNHUOA203I0et+XNEso5720MN8P/GaoZrb7/eEh0
-         kUBrkMPoSrRInflRM//EYpwJ9oU5MOBL3bJ0omBrr9kMnZrne9s2s97ytEcEWYNMfNwI
-         NrEmi9mG2A2NtnSjZuXy24WXKYmvhBY68aI8clgWh7d+NZA7patab5gDu6wJDGQggdxC
-         GsyyG+z67VhCcIJtsxPfcLC914SMsuM2dmJ10UpbOMUa+kbMluEMJ3O7thL1K8ZzeX4D
-         mcvg==
-X-Gm-Message-State: AOAM531clwEzPMrMyjTD2riJLOUvwOuWNIpE7GjS4wcW/mGWcrzyu/kJ
-	36wp83wSKkudj5/IutznMAWTaLTL7eF7TwnuXluaB8Q0qRA=
-X-Google-Smtp-Source: ABdhPJyUerhRmPa3p6Y+5F6zaaUU9FmrqYmMRvdoPUtNZXczvAj1BoJWZcyxx8lp/uHInRyxjBoZleDZuAuNEyTgQ/Q=
-X-Received: by 2002:a17:902:ab50:b0:13f:4c70:9322 with SMTP id
- ij16-20020a170902ab5000b0013f4c709322mr32351492plb.89.1635869579139; Tue, 02
- Nov 2021 09:12:59 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3007068
+	for <nvdimm@lists.linux.dev>; Tue,  2 Nov 2021 17:04:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=3bBcvFcyfbMgkxTabHoDugt0QDDF2AsVik61xYhcvY8=; b=cU09DI26n/HuOfXSGqvnoYXccm
+	btgFjQftFTj8uFw/bdPpySJs8e+7RKCufouvPj8a9PRomwNJZ3mL7eaNJtneuS1VWToYH1yLqjBv3
+	m89b5NUiMX3cVF/rKxoTsV8LwGO8QEm/5XlTbBHx1DxbIwX0xAm8IdwOBHVoMxAqZi3cy2/MNriKS
+	iDCYoYwhK8cO4awe/SWrQE/T8ddEIozAommDi/x5RAG4+JdgOojsx3aHaZEyweML/LrElyOIzTu2F
+	95JZDncYEgYlEMqo7AMW2+I/jpyu82tBawT5t7eMueYiE+khoi9NEjHbk0Y0jwGwUSoFnlgMokg/R
+	ig+ZPcrg==;
+Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mhxCQ-002RP3-6N; Tue, 02 Nov 2021 17:03:50 +0000
+Date: Tue, 2 Nov 2021 10:03:50 -0700
+From: Luis Chamberlain <mcgrof@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>, Geoff Levand <geoff@infradead.org>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Paul Mackerras <paulus@samba.org>, Jim Paris <jim@jtan.com>,
+	Minchan Kim <minchan@kernel.org>, Nitin Gupta <ngupta@vflare.org>,
+	senozhatsky@chromium.org, Richard Weinberger <richard@nod.at>,
+	miquel.raynal@bootlin.com, vigneshr@ti.com,
+	Vishal L Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>,
+	"Weiny, Ira" <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>,
+	Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
+	linux-block@vger.kernel.org,
+	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+	linux-mtd@lists.infradead.org,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	linux-nvme@lists.infradead.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 03/13] nvdimm/btt: do not call del_gendisk() if not needed
+Message-ID: <YYFvdiOYoqRPx8JE@bombadil.infradead.org>
+References: <20211015235219.2191207-1-mcgrof@kernel.org>
+ <20211015235219.2191207-4-mcgrof@kernel.org>
+ <CAPcyv4gU0q=UhDhGoDjK1mwS8WNcWYUXgEb7Rd8Amqr1XFs6ow@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211021001059.438843-1-jane.chu@oracle.com> <YXFPfEGjoUaajjL4@infradead.org>
- <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com> <YXJN4s1HC/Y+KKg1@infradead.org>
- <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com> <YXj2lwrxRxHdr4hb@infradead.org>
- <20211028002451.GB2237511@magnolia>
-In-Reply-To: <20211028002451.GB2237511@magnolia>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 2 Nov 2021 09:12:48 -0700
-Message-ID: <CAPcyv4ge8ebFn2tBtc9_ThEYXjCczLW4H8NYrOJKbGF_Y-Wg5w@mail.gmail.com>
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with RWF_RECOVERY_DATA flag
-To: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>, 
-	"david@fromorbit.com" <david@fromorbit.com>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>, 
-	"dave.jiang@intel.com" <dave.jiang@intel.com>, "agk@redhat.com" <agk@redhat.com>, 
-	"snitzer@redhat.com" <snitzer@redhat.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>, 
-	"ira.weiny@intel.com" <ira.weiny@intel.com>, "willy@infradead.org" <willy@infradead.org>, 
-	"vgoyal@redhat.com" <vgoyal@redhat.com>, 
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gU0q=UhDhGoDjK1mwS8WNcWYUXgEb7Rd8Amqr1XFs6ow@mail.gmail.com>
+Sender: Luis Chamberlain <mcgrof@infradead.org>
 
-On Wed, Oct 27, 2021 at 5:25 PM Darrick J. Wong <djwong@kernel.org> wrote:
->
-> On Tue, Oct 26, 2021 at 11:49:59PM -0700, Christoph Hellwig wrote:
-> > On Fri, Oct 22, 2021 at 08:52:55PM +0000, Jane Chu wrote:
-> > > Thanks - I try to be honest.  As far as I can tell, the argument
-> > > about the flag is a philosophical argument between two views.
-> > > One view assumes design based on perfect hardware, and media error
-> > > belongs to the category of brokenness. Another view sees media
-> > > error as a build-in hardware component and make design to include
-> > > dealing with such errors.
+On Sun, Oct 31, 2021 at 10:47:22AM -0700, Dan Williams wrote:
+> On Fri, Oct 15, 2021 at 4:53 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
 > >
-> > No, I don't think so.  Bit errors do happen in all media, which is
-> > why devices are built to handle them.  It is just the Intel-style
-> > pmem interface to handle them which is completely broken.
->
-> Yeah, I agree, this takes me back to learning how to use DISKEDIT to
-> work around a hole punched in a file (with a pen!) in the 1980s...
->
-> ...so would you happen to know if anyone's working on solving this
-> problem for us by putting the memory controller in charge of dealing
-> with media errors?
+> > We know we don't need del_gendisk() if we haven't added
+> > the disk, so just skip it. This should fix a bug on older
+> > kernels, as del_gendisk() became able to deal with
+> > disks not added only recently, after the patch titled
+> > "block: add flag for add_disk() completion notation".
+> 
+> Perhaps put this in:
+> 
+>     commit $abbrev_commit ("block: add flag for add_disk() completion notation")
+> 
+> ...format, but I can't seem to find that commit?
 
-What are you guys going on about? ECC memory corrects single-bit
-errors in the background, multi-bit errors cause the memory controller
-to signal that data is gone. This is how ECC memory has worked since
-forever. Typically the kernel's memory-failure path is just throwing
-away pages that signal data loss. Throwing away pmem pages is harder
-because unlike DRAM the physical address of the page matters to upper
-layers.
+Indeed, that patch got dropped and it would seem Christoph preferred
+a simpler approach with the new disk_live()
 
->
-> > > errors in mind from start.  I guess I'm trying to articulate why
-> > > it is acceptable to include the RWF_DATA_RECOVERY flag to the
-> > > existing RWF_ flags. - this way, pwritev2 remain fast on fast path,
-> > > and its slow path (w/ error clearing) is faster than other alternative.
-> > > Other alternative being 1 system call to clear the poison, and
-> > > another system call to run the fast pwrite for recovery, what
-> > > happens if something happened in between?
-> >
-> > Well, my point is doing recovery from bit errors is by definition not
-> > the fast path.  Which is why I'd rather keep it away from the pmem
-> > read/write fast path, which also happens to be the (much more important)
-> > non-pmem read/write path.
->
-> The trouble is, we really /do/ want to be able to (re)write the failed
-> area, and we probably want to try to read whatever we can.  Those are
-> reads and writes, not {pre,f}allocation activities.  This is where Dave
-> and I arrived at a month ago.
->
-> Unless you'd be ok with a second IO path for recovery where we're
-> allowed to be slow?  That would probably have the same user interface
-> flag, just a different path into the pmem driver.
->
-> Ha, how about a int fd2 = recoveryfd(fd); call where you'd get whatever
-> speshul options (retry raid mirrors!  scrape the film off the disk if
-> you have to!) you want that can take forever, leaving the fast paths
-> alone?
+commit 40b3a52ffc5bc3b5427d5d35b035cfb19d03fdd6
+Author: Christoph Hellwig <hch@lst.de>
+Date:   Wed Aug 18 16:45:32 2021 +0200
 
-I am still failing to see the technical argument for why
-RWF_RECOVER_DATA significantly impacts the fast path, and why you
-think this is somehow specific to pmem. In fact the pmem effort is
-doing the responsible thing and trying to plumb this path while other
-storage drivers just seem to be pretending that memory errors never
-happen.
+    block: add a sanity check for a live disk in del_gendisk
+
+> If you're touching the changelog how about one that clarifies the
+> impact and drops "we"?
+> "del_gendisk() is not required if the disk has not been added. On
+> kernels prior to commit $abbrev_commit ("block: add flag for
+> add_disk() completion notation")
+> it is mandatory to not call del_gendisk() if the underlying device has
+> not been through device_add()."
+> 
+> Fixes: 41cd8b70c37a ("libnvdimm, btt: add support for blk integrity")
+> 
+> With that you can add:
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+
+You got it.
+
+  Luis
