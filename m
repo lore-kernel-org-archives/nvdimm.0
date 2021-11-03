@@ -1,30 +1,48 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEDB22C98
-	for <nvdimm@lists.linux.dev>; Wed,  3 Nov 2021 16:45:32 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10157"; a="218448371"
-X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
-   d="scan'208";a="218448371"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 09:45:28 -0700
-X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
-   d="scan'208";a="667593015"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 09:45:25 -0700
-Date: Wed, 3 Nov 2021 09:45:25 -0700
-From: Ira Weiny <ira.weiny@intel.com>
-To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Cc: nvdimm@lists.linux.dev, aneesh.kumar@linux.ibm.com,
-	vaibhav@linux.ibm.com, dan.j.williams@intel.com,
-	vishal.l.verma@intel.com
-Subject: Re: [REPOST PATCH v2 1/2] libndctl, intel: Indicate supported
- smart-inject types
-Message-ID: <20211103164524.GV3538886@iweiny-DESK2.sc.intel.com>
-References: <163491461011.1641479.7752723100626280911.stgit@lep8c.aus.stglabs.ibm.com>
- <163491461724.1641479.6370717053054036222.stgit@lep8c.aus.stglabs.ibm.com>
- <20211028044539.GC3538886@iweiny-DESK2.sc.intel.com>
- <78cf83c5-6df3-a02b-f081-d6f028c3ef23@linux.ibm.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 787B32C98
+	for <nvdimm@lists.linux.dev>; Wed,  3 Nov 2021 16:53:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=ySf8hnRGgcGBFPw1OqHjYfFXWjAWp6d1U3iHxpW19Ys=; b=ldSzTLqtpw/28nPKVoQb8qdoIl
+	adNO9XYwY4XgBBEak4LtLCfJawj4TSHN1Zs1ixHSOgc9FVO2phfzsIPyw7GhYQHx9Ip/VTlSKHepv
+	9JoeYyoxUB8qpgUiLTH+CFDqvflsyuoCMgCWDQpoOgmRvESUSiaGVSm90mSXGWiG0rQrXPd6eq2n/
+	WS0RM0xU89huiOSx4wU5D5N+09BOBbDCOjPyDYyOQOMcTnikykET90sbRn+DNK8WXwWQDTswR1iTL
+	RUddkojWuOMhQTYIT33jxUp03PILjo25IBZW8Nj6+xtkJ2LboKVAHqbZyfpfKgaj83OHbb/24fWJM
+	1v8+APyA==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1miJVt-005rED-HI; Wed, 03 Nov 2021 16:53:25 +0000
+Date: Wed, 3 Nov 2021 09:53:25 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>,
+	"david@fromorbit.com" <david@fromorbit.com>,
+	"djwong@kernel.org" <djwong@kernel.org>,
+	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+	"dave.jiang@intel.com" <dave.jiang@intel.com>,
+	"agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"ira.weiny@intel.com" <ira.weiny@intel.com>,
+	"willy@infradead.org" <willy@infradead.org>,
+	"vgoyal@redhat.com" <vgoyal@redhat.com>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
+Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
+ RWF_RECOVERY_DATA flag
+Message-ID: <YYK+hfmB05URYO75@infradead.org>
+References: <20211021001059.438843-1-jane.chu@oracle.com>
+ <YXFPfEGjoUaajjL4@infradead.org>
+ <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
+ <YXJN4s1HC/Y+KKg1@infradead.org>
+ <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+ <YXj2lwrxRxHdr4hb@infradead.org>
+ <CAPcyv4hK18DetEf9+NcDqM5y07Vp-=nhysHJ3JSnKbS-ET2ppw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -33,91 +51,32 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <78cf83c5-6df3-a02b-f081-d6f028c3ef23@linux.ibm.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+In-Reply-To: <CAPcyv4hK18DetEf9+NcDqM5y07Vp-=nhysHJ3JSnKbS-ET2ppw@mail.gmail.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Wed, Nov 03, 2021 at 02:33:37PM +0530, Shivaprasad G Bhat wrote:
->    Thanks for the comments Ira. Replies inline..
+On Tue, Nov 02, 2021 at 09:03:55AM -0700, Dan Williams wrote:
+> > why devices are built to handle them.  It is just the Intel-style
+> > pmem interface to handle them which is completely broken.
 > 
->    On 10/28/21 10:15, Ira Weiny wrote:
-> 
->  On Fri, Oct 22, 2021 at 09:57:07AM -0500, Shivaprasad G Bhat wrote:
-> 
->  From: Vaibhav Jain [1]<vaibhav@linux.ibm.com>
-> 
-> 
->  [snip]
-> 
->  < snip>
-> 
->          ndctl_cmd_unref(si_cmd);
->          return rc;
->  @@ -415,8 +423,10 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
->          struct json_object *jhealth;
->          struct json_object *jdimms;
->          struct json_object *jdimm;
->  +   unsigned int supported_types;
->          int rc;
-> 
->  +   /* Get supported smart injection types */
-> 
->  NIT: this comment is probably unnecessary.
-> 
->    The code changes definition of the return value hence wanted to
-> 
->    clarify that, it indicates a set of flags instead of a boolean.
-> 
->    From that pov, the comment helps avoiding the confusion.
-> 
->    Please let me know If you think the otherway.
+> No, any media can report checksum / parity errors. NVME also seems to
+> do a poor job with multi-bit ECC errors consumed from DRAM. There is
+> nothing "pmem" or "Intel" specific here.
 
-But that change is documented in the change log.  When reading the code after
-the change the function is pretty self documenting.
+If you do get data corruption from NVMe (which yes can happen despite
+the typical very good UBER rate) you just write over it again.  You
+don't need to magically whack the underlying device.  Same for hard
+drives.
 
-And if you want to document the call, that should be done with the definition
-in the *.c file.  Not at the call sites.
+> > Well, my point is doing recovery from bit errors is by definition not
+> > the fast path.  Which is why I'd rather keep it away from the pmem
+> > read/write fast path, which also happens to be the (much more important)
+> > non-pmem read/write path.
+> 
+> I would expect this interface to be useful outside of pmem as a
+> "failfast" or "try harder to recover" flag for reading over media
+> errors.
 
-Ira
-
-> 
->          rc = ndctl_dimm_smart_inject_supported(dimm);
->          switch (rc) {
->          case -ENOTTY:
->  @@ -431,6 +441,15 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
->                  error("%s: smart injection not supported by either platform firmware or the kernel.",
->                          ndctl_dimm_get_devname(dimm));
->                  return rc;
->  +   default:
->  +           if (rc < 0) {
->  +                   error("%s: Unknown error %d while checking for smart injection support",
->  +                         ndctl_dimm_get_devname(dimm), rc);
->  +                   return rc;
->  +           }
->  +           /* Assigning to an unsigned type since rc < 0 */
-> 
->  Comment wrong?
-> 
->    Will get rid of it.
-> 
->  +           supported_types = rc;
->  +           break;
->          }
-> 
->          if (sctx.op_mask & (1 << OP_SET)) {
-> 
->  [snip]
-> 
->  Other than the comment it looks fine.
-> 
->  Reviewed-by: Ira Weiny [2]<ira.weiny@intel.com>
-> 
-> 
->    Thanks!
-> 
->    -Shivaprasad
-> 
-> References
-> 
->    Visible links
->    1. mailto:vaibhav@linux.ibm.com
->    2. mailto:ira.weiny@intel.com
+Maybe we need to sit down and define useful semantics then?  The problem
+on the write side isn't really that the behavior with the flag is
+undefined, it is more that writes without the flag have horrible
+semantics if they don't just clear the error.
