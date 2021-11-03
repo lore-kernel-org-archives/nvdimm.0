@@ -1,50 +1,30 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68D0B2C80
-	for <nvdimm@lists.linux.dev>; Wed,  3 Nov 2021 12:09:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=CjPiVZ6CEwcX8p9oXTmszPrcj/hHgUiyD1EHf7MNfJ0=; b=XzurOMddznm+TyCj4XwsbSfH2s
-	1YvfP1uoDLueWcdGH6UKl91Nyt8gDKHB0EJZ9p8GXoSZkeyuoSw8ro4Qpg/tDKhMXt+c9mW+5gvig
-	1va8ZDP9Nh1ngmnObtCgD9fU47k2fhRPj3dXSX7Q+lTu01AKUdRC9it3Sa+tHTmhK+XCPW1Cv90gO
-	R7V7DN8rv4o6RTbex5YLZcw3/fTiPGmDhJ63Nqpe7IxNAF3+ifnr4KV8D9upZ1LHWc4QF6we1wMvN
-	WLVU2pP8uA+m+xTONlFSZ1fqKx40wQtgin3/iIOHuvwTzaVliOxqefui88Q0pUzR6ZvdAPQHMeiq9
-	WniQlaUA==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1miF4r-0053yg-Mm; Wed, 03 Nov 2021 12:09:13 +0000
-Date: Wed, 3 Nov 2021 05:09:13 -0700
-From: Luis Chamberlain <mcgrof@kernel.org>
-To: Jens Axboe <axboe@kernel.dk>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Geoff Levand <geoff@infradead.org>,
-	Michael Ellerman <mpe@ellerman.id.au>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Paul Mackerras <paulus@samba.org>, Jim Paris <jim@jtan.com>,
-	Minchan Kim <minchan@kernel.org>, Nitin Gupta <ngupta@vflare.org>,
-	senozhatsky@chromium.org, Richard Weinberger <richard@nod.at>,
-	miquel.raynal@bootlin.com, vigneshr@ti.com,
-	Vishal L Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	"Weiny, Ira" <ira.weiny@intel.com>, Keith Busch <kbusch@kernel.org>,
-	Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>,
-	linux-block@vger.kernel.org,
-	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-	linux-mtd@lists.infradead.org,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	linux-nvme@lists.infradead.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 06/13] nvdimm/blk: avoid calling del_gendisk() on early
- failures
-Message-ID: <YYJ76awe81sC9CHw@bombadil.infradead.org>
-References: <20211015235219.2191207-1-mcgrof@kernel.org>
- <20211015235219.2191207-7-mcgrof@kernel.org>
- <CAPcyv4j+xLT=5RUodHWgnPjNq6t5OcmX1oM2zK2ML0U+OS_16Q@mail.gmail.com>
- <YYHTejXKvsGoDlOa@bombadil.infradead.org>
- <CAPcyv4h1dqBm71OQ_A5Qv4agT3PhV7uoojmSB1pEpS-CXaWb5w@mail.gmail.com>
- <51f86768-04ca-bc7d-c17c-3d0357d84271@kernel.dk>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BEDB22C98
+	for <nvdimm@lists.linux.dev>; Wed,  3 Nov 2021 16:45:32 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10157"; a="218448371"
+X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
+   d="scan'208";a="218448371"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 09:45:28 -0700
+X-IronPort-AV: E=Sophos;i="5.87,206,1631602800"; 
+   d="scan'208";a="667593015"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2021 09:45:25 -0700
+Date: Wed, 3 Nov 2021 09:45:25 -0700
+From: Ira Weiny <ira.weiny@intel.com>
+To: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Cc: nvdimm@lists.linux.dev, aneesh.kumar@linux.ibm.com,
+	vaibhav@linux.ibm.com, dan.j.williams@intel.com,
+	vishal.l.verma@intel.com
+Subject: Re: [REPOST PATCH v2 1/2] libndctl, intel: Indicate supported
+ smart-inject types
+Message-ID: <20211103164524.GV3538886@iweiny-DESK2.sc.intel.com>
+References: <163491461011.1641479.7752723100626280911.stgit@lep8c.aus.stglabs.ibm.com>
+ <163491461724.1641479.6370717053054036222.stgit@lep8c.aus.stglabs.ibm.com>
+ <20211028044539.GC3538886@iweiny-DESK2.sc.intel.com>
+ <78cf83c5-6df3-a02b-f081-d6f028c3ef23@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -53,45 +33,91 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <51f86768-04ca-bc7d-c17c-3d0357d84271@kernel.dk>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+In-Reply-To: <78cf83c5-6df3-a02b-f081-d6f028c3ef23@linux.ibm.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 
-On Tue, Nov 02, 2021 at 07:28:02PM -0600, Jens Axboe wrote:
-> On 11/2/21 6:49 PM, Dan Williams wrote:
-> > On Tue, Nov 2, 2021 at 5:10 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
-> >>
-> >> On Fri, Oct 15, 2021 at 05:13:48PM -0700, Dan Williams wrote:
-> >>> On Fri, Oct 15, 2021 at 4:53 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
-> >>>>
-> >>>> If nd_integrity_init() fails we'd get del_gendisk() called,
-> >>>> but that's not correct as we should only call that if we're
-> >>>> done with device_add_disk(). Fix this by providing unwinding
-> >>>> prior to the devm call being registered and moving the devm
-> >>>> registration to the very end.
-> >>>>
-> >>>> This should fix calling del_gendisk() if nd_integrity_init()
-> >>>> fails. I only spotted this issue through code inspection. It
-> >>>> does not fix any real world bug.
-> >>>>
-> >>>
-> >>> Just fyi, I'm preparing patches to delete this driver completely as it
-> >>> is unused by any shipping platform. I hope to get that removal into
-> >>> v5.16.
-> >>
-> >> Curious if are you going to nuking it on v5.16? Otherwise it would stand
-> >> in the way of the last few patches to add __must_check for the final
-> >> add_disk() error handling changes.
-> > 
-> > True, I don't think I can get it nuked in time, so you can add my
-> > Reviewed-by for this one.
+On Wed, Nov 03, 2021 at 02:33:37PM +0530, Shivaprasad G Bhat wrote:
+>    Thanks for the comments Ira. Replies inline..
 > 
-> Luis, I lost track of the nv* patches from this discussion. If you want
-> them in 5.16 and they are reviewed, please do resend and I'll pick them
-> up for the middle-of-merge-window push.
+>    On 10/28/21 10:15, Ira Weiny wrote:
+> 
+>  On Fri, Oct 22, 2021 at 09:57:07AM -0500, Shivaprasad G Bhat wrote:
+> 
+>  From: Vaibhav Jain [1]<vaibhav@linux.ibm.com>
+> 
+> 
+>  [snip]
+> 
+>  < snip>
+> 
+>          ndctl_cmd_unref(si_cmd);
+>          return rc;
+>  @@ -415,8 +423,10 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
+>          struct json_object *jhealth;
+>          struct json_object *jdimms;
+>          struct json_object *jdimm;
+>  +   unsigned int supported_types;
+>          int rc;
+> 
+>  +   /* Get supported smart injection types */
+> 
+>  NIT: this comment is probably unnecessary.
+> 
+>    The code changes definition of the return value hence wanted to
+> 
+>    clarify that, it indicates a set of flags instead of a boolean.
+> 
+>    From that pov, the comment helps avoiding the confusion.
+> 
+>    Please let me know If you think the otherway.
 
-Sure thing, I'll resend whatever is left. I also noticed for some reason
-I forgot to convert nvdimm/pmem and so I'll roll those new patches in,
-but I suspect that those might be too late unless we get them reviewed
-in time.
+But that change is documented in the change log.  When reading the code after
+the change the function is pretty self documenting.
 
-  Luis
+And if you want to document the call, that should be done with the definition
+in the *.c file.  Not at the call sites.
+
+Ira
+
+> 
+>          rc = ndctl_dimm_smart_inject_supported(dimm);
+>          switch (rc) {
+>          case -ENOTTY:
+>  @@ -431,6 +441,15 @@ static int dimm_inject_smart(struct ndctl_dimm *dimm)
+>                  error("%s: smart injection not supported by either platform firmware or the kernel.",
+>                          ndctl_dimm_get_devname(dimm));
+>                  return rc;
+>  +   default:
+>  +           if (rc < 0) {
+>  +                   error("%s: Unknown error %d while checking for smart injection support",
+>  +                         ndctl_dimm_get_devname(dimm), rc);
+>  +                   return rc;
+>  +           }
+>  +           /* Assigning to an unsigned type since rc < 0 */
+> 
+>  Comment wrong?
+> 
+>    Will get rid of it.
+> 
+>  +           supported_types = rc;
+>  +           break;
+>          }
+> 
+>          if (sctx.op_mask & (1 << OP_SET)) {
+> 
+>  [snip]
+> 
+>  Other than the comment it looks fine.
+> 
+>  Reviewed-by: Ira Weiny [2]<ira.weiny@intel.com>
+> 
+> 
+>    Thanks!
+> 
+>    -Shivaprasad
+> 
+> References
+> 
+>    Visible links
+>    1. mailto:vaibhav@linux.ibm.com
+>    2. mailto:ira.weiny@intel.com
