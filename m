@@ -1,51 +1,23 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFF992C8B
-	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 08:21:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=NUHSkPZKdCeYjtK4gysRgJLuWX7RQNT/5Sx0eDpMchA=; b=4xLVQ8osQ9u7MwgQvsr3sqrJeD
-	9TeLt91+NwT0iLut4BXjRJBcxw0lMeMSqiRjYh4XgkE1PQrRNl08jVT9JyFpmlQhBpgZwpNzC7xMI
-	hiC6iZUM3mkSSQST7ZxjYHy/5jXDxo6QvvmqFEvKsvTfyAex0tERVVtpRaOXUU61g/oG5RkjZoFeB
-	TZrKDRAjsajsqkt0olW0LX+JQ39We/7NFqZyULyX2fndDMXdWifE2lk1vC5WUjxhfmhGKc/1zjGn3
-	QYyApkpEieQ+jUMzVI3qcKfDa/jRt9Z2WGjepJzjmpfamFUU+6n6un4hPFOb/Yv5OXa76e+SB76Db
-	LPxk7IwQ==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1miY00-008HaJ-Ih; Thu, 04 Nov 2021 08:21:28 +0000
-Date: Thu, 4 Nov 2021 01:21:28 -0700
-From: Christoph Hellwig <hch@infradead.org>
-To: Jane Chu <jane.chu@oracle.com>
-Cc: Christoph Hellwig <hch@infradead.org>,
-	"Darrick J. Wong" <djwong@kernel.org>,
-	"david@fromorbit.com" <david@fromorbit.com>,
-	"dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
-	"dave.jiang@intel.com" <dave.jiang@intel.com>,
-	"agk@redhat.com" <agk@redhat.com>,
-	"snitzer@redhat.com" <snitzer@redhat.com>,
-	"dm-devel@redhat.com" <dm-devel@redhat.com>,
-	"ira.weiny@intel.com" <ira.weiny@intel.com>,
-	"willy@infradead.org" <willy@infradead.org>,
-	"vgoyal@redhat.com" <vgoyal@redhat.com>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
- RWF_RECOVERY_DATA flag
-Message-ID: <YYOYCMqc5kOoRvcE@infradead.org>
-References: <20211021001059.438843-1-jane.chu@oracle.com>
- <YXFPfEGjoUaajjL4@infradead.org>
- <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com>
- <YXJN4s1HC/Y+KKg1@infradead.org>
- <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
- <YXj2lwrxRxHdr4hb@infradead.org>
- <20211028002451.GB2237511@magnolia>
- <YYDYUCCiEPXhZEw0@infradead.org>
- <dfca8558-ad70-41d5-1131-63db66b70542@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33FFD2C8B
+	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 08:27:50 +0000 (UTC)
+Received: by verein.lst.de (Postfix, from userid 2407)
+	id 9396E68AA6; Thu,  4 Nov 2021 09:17:40 +0100 (CET)
+Date: Thu, 4 Nov 2021 09:17:40 +0100
+From: Christoph Hellwig <hch@lst.de>
+To: Eric Sandeen <sandeen@sandeen.net>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>,
+	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
+	dm-devel@redhat.com, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+	linux-ext4@vger.kernel.org,
+	virtualization@lists.linux-foundation.org
+Subject: Re: futher decouple DAX from block devices
+Message-ID: <20211104081740.GA23111@lst.de>
+References: <20211018044054.1779424-1-hch@lst.de> <21ff4333-e567-2819-3ae0-6a2e83ec7ce6@sandeen.net>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,22 +26,17 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <dfca8558-ad70-41d5-1131-63db66b70542@oracle.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <21ff4333-e567-2819-3ae0-6a2e83ec7ce6@sandeen.net>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Wed, Nov 03, 2021 at 06:09:57PM +0000, Jane Chu wrote:
-> This is clearer, I've looked at your 'dax-devirtualize' patch which 
-> removes pmem_copy_to/from_iter, and as you mentioned before,
-> a separate API for poison-clearing is needed. So how about I go ahead
-> rebase my earlier patch
->  
-> https://lore.kernel.org/lkml/20210914233132.3680546-2-jane.chu@oracle.com/
-> on 'dax-devirtualize', provide dm support for clear-poison?
-> That way, the non-dax 99% of the pwrite use-cases aren't impacted at all
-> and we resolve the urgent pmem poison-clearing issue?
+On Wed, Nov 03, 2021 at 12:59:31PM -0500, Eric Sandeen wrote:
+> Christoph, can I ask what the end game looks like, here? If dax is completely
+> decoupled from block devices, are there user-visible changes?
 
-FYI, I really do like the in-kernel interface in that series.  And
-now that we discussed all the effects I also think that automatically
-doing the clear on EIO is a good idea.
+Yes.
 
-I'll go back to the series and will reply with a few nitpicks.
+> If I want to
+> run fs-dax on a pmem device - what do I point mkfs at, if not a block device?
+
+The rough plan is to use the device dax character devices.  I'll hopefully
+have a draft version in the next days.
