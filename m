@@ -1,79 +1,138 @@
-Received: from mail-pl1-f173.google.com (mail-pl1-f173.google.com [209.85.214.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 176FE2C96
-	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 16:00:12 +0000 (UTC)
-Received: by mail-pl1-f173.google.com with SMTP id p18so7885614plf.13
-        for <nvdimm@lists.linux.dev>; Thu, 04 Nov 2021 09:00:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=eSifGIqsCTP9GBlZp4CuNfkuWtTxzcVl3sD9B5/yv/c=;
-        b=LQcB0O9OwdWpiQu2T5EPFRgOOeANm7N+m8/++ElmVo/b8Q+297K8ZhI/tDyKTVF/me
-         eAwEQAkItmWLsUfiyKXrmAN9S7vhAcqAdg1FdguSKDlBsWe2o0FafXj4IgAdSnAY9/Rx
-         jjK7DHdjiLx34R5o53fu42m4oElUxvc0Etztwkx4R6Fjq/eWUK53z3GMf9vzS9mZkqzv
-         sGNsFiIJlJmAPntOj3n/hW3EdUQzqjCXgWOH9TZ3uE/GlbrKZ65ct4boW1QeplflbpOZ
-         xKZfpkNnE4PBA4o47CcRXpyc5+s+rYF1wx/V6lpiZCMkYOBXu6Ivd2FHYvqFbe9ZP9SQ
-         n4+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=eSifGIqsCTP9GBlZp4CuNfkuWtTxzcVl3sD9B5/yv/c=;
-        b=u+HozaqhwTFhYXJIE2d6nd5ujjY1EkLmGO6eiPWdEoz8c4Xs1JIRK6K7c45FFcPEno
-         eRfeI3rCEnIO3jELx+jBwUDQzF9pcE4glTvUb6kExCohfa8uLsHZJU7bWeJmNVMt7d01
-         hV+S5Hi51qzCWo5RWahgP6f4jBXkRJZwkrtlR8HU9ekO1FB3o008tvPo4mYkPhf2FEjK
-         0GP/nbdFCcs10DmHM0kSV01P8PCltzLUju6vqhIJLBUQzwQLl3v/oyyev6YmujZN2Twv
-         nNYGLdhigk86cGswzWmIRl295a5mgH2fCIV6gUOhzqDUd+WAYWZzWLTjlFB3HVVpcHh6
-         wvuQ==
-X-Gm-Message-State: AOAM530lWjEh1GkzECKTb7rb2EhDGdBHUXikVU2WC6U3JCTW6Lt3mOjh
-	xITVEzW7SmL2Cx3n5VraqwYqjXtW7k6DtMm9Q8JocQ==
-X-Google-Smtp-Source: ABdhPJyxrVmYq/Lvt1py6er+G3/6lxPJMwW3pzaFwsX20J42FdKHzlPXdThqmYg6rvrfrUengCpdiEzeDeO2c4zpT/o=
-X-Received: by 2002:a17:902:8a97:b0:13e:6e77:af59 with SMTP id
- p23-20020a1709028a9700b0013e6e77af59mr44854573plo.4.1636041612436; Thu, 04
- Nov 2021 09:00:12 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C7F8B2C96
+	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 16:04:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=rs5XFE2p3p3CMKTDl6TOuIxFYCbdl7avFTlYX31+tUc=; b=iRIygY7BD5DScAJoQTqjyvK7QG
+	+tLqNCE/gjyDz1wqK4+SnUYXRTw8XEhgHirqlTXplM0Hb8wLAYsULS7xWUbFgEl4KnTd432rrF2vb
+	Vtrl1ugChnuuQeD2kXe/YjoVxEzxrAoPSvZowXBCyti6X1U7D0pwVn+w+J4sA/86CZuLDVE+/Avqq
+	9h6GKkdJOoDv3OK8s4wrN72+gytYad/p8MSDrXre2Tx0K242cAQFbf8PRmKSUbMiA9FO4iPZNiJQG
+	fcCy2AENe/ZqFhp7If7l2MFpIYMKZk+krmdIKwLnXvHnUXOgD9chjcPkvnalXR2tl1D3BkXb6EiEb
+	DAxwDzdQ==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mifDs-009MJg-0A; Thu, 04 Nov 2021 16:04:16 +0000
+Date: Thu, 4 Nov 2021 09:04:15 -0700
+From: Christoph Hellwig <hch@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@infradead.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Subject: Re: qemu-emulated nfit devices disappeared
+Message-ID: <YYQEfxpVlxWjXgAU@infradead.org>
+References: <YYOLRW7yx9IFn9mG@infradead.org>
+ <CAPcyv4hU+dFYc3fXnGhBPAsid03yFYZSym_sTBjHeUUrt6s5gQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <YYOLRW7yx9IFn9mG@infradead.org>
-In-Reply-To: <YYOLRW7yx9IFn9mG@infradead.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 4 Nov 2021 09:00:01 -0700
-Message-ID: <CAPcyv4hU+dFYc3fXnGhBPAsid03yFYZSym_sTBjHeUUrt6s5gQ@mail.gmail.com>
-Subject: Re: qemu-emulated nfit devices disappeared
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hU+dFYc3fXnGhBPAsid03yFYZSym_sTBjHeUUrt6s5gQ@mail.gmail.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Thu, Nov 4, 2021 at 12:27 AM Christoph Hellwig <hch@infradead.org> wrote=
-:
->
-> I've update my typical test configs last week without saving the old
-> ones, and now the Qemu emulated NFIT devices don't show anyway more
-> despite the kernel showing a NFIT table:
->
-> # mesg | grep -i nfit
-> [    0.009184] ACPI: NFIT 0x00000000BFFE02FA 000198 (v01 BOCHS BXPCNFIT 0=
-0000001 BXPC 00000001)
-> [    0.009206] ACPI: Reserving NFIT table memory at [mem 0xbffe02fa-0xbff=
-e0491]
->
-> # lsblk
-> NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-> sda      8:0    0    8M  0 disk
-> sr0     11:0    1 1024M  0 rom
-> nullb0 250:0    0  250G  0 disk
-> vda    252:0    0   10G  0 disk
-> =E2=94=94=E2=94=80vda1 252:1    0   10G  0 part /
->
-> Any idea what might be missing in the attached config?  This seems to
-> be independent of the tested kernel version (5.14, 5.15, master).
+On Thu, Nov 04, 2021 at 09:00:01AM -0700, Dan Williams wrote:
+> > Any idea what might be missing in the attached config?  This seems to
+> > be independent of the tested kernel version (5.14, 5.15, master).
+> 
+> Can you share your qemu command line
 
-Can you share your qemu command line and the output of:
+qemu-system-x86_64 -enable-kvm \
+	-machine pc,nvdimm=on \
+	-m 4096,slots=8,maxmem=32G \
+	-smp 4 \
+	-kernel arch/x86/boot/bzImage \
+	-append "root=/dev/vda1 console=ttyS0,115200n8" \
+	-nographic \
+	-drive if=virtio,file=/home/hch/images/jessie.img,cache=none \
+	-object	memory-backend-file,id=mem0,mem-path=/home/hch/images/test.img,share=yes,prealloc=no,align=128M,size=10G \
+	-device nvdimm,id=nvdimm0,memdev=mem0,slot=0,label-size=2M \
+	-object memory-backend-file,id=mem1,mem-path=/home/hch/images/scratch.img,share=yes,prealloc=no,align=128M,size=10G \
+	-device nvdimm,id=nvdimm1,memdev=mem1,slot=1,label-size=2M \
 
-ndctl list -vvv
+
+> and the output of:
+> 
+> ndctl list -vvv
+
+
+[
+  {
+    "provider":"ACPI.NFIT",
+    "dev":"ndbus0",
+    "dimms":[
+      {
+        "dev":"nmem1",
+        "id":"8680-57341200",
+        "handle":2,
+        "phys_id":0
+      },
+      {
+        "dev":"nmem0",
+        "id":"8680-56341200",
+        "handle":1,
+        "phys_id":0
+      }
+    ],
+    "regions":[
+      {
+        "dev":"region1",
+        "size":10603200512,
+        "available_size":10603200512,
+        "max_available_extent":10603200512,
+        "type":"pmem",
+        "iset_id":52512795602891997,
+        "mappings":[
+          {
+            "dimm":"nmem1",
+            "offset":0,
+            "length":10603200512,
+            "position":0
+          }
+        ],
+        "persistence_domain":"unknown",
+        "namespaces":[
+          {
+            "dev":"namespace1.0",
+            "mode":"raw",
+            "size":0,
+            "uuid":"00000000-0000-0000-0000-000000000000",
+            "sector_size":512,
+            "state":"disabled"
+          }
+        ]
+      },
+      {
+        "dev":"region0",
+        "size":10603200512,
+        "available_size":10603200512,
+        "max_available_extent":10603200512,
+        "type":"pmem",
+        "iset_id":52512752653219036,
+        "mappings":[
+          {
+            "dimm":"nmem0",
+            "offset":0,
+            "length":10603200512,
+            "position":0
+          }
+        ],
+        "persistence_domain":"unknown",
+        "namespaces":[
+          {
+            "dev":"namespace0.0",
+            "mode":"raw",
+            "size":0,
+            "uuid":"00000000-0000-0000-0000-000000000000",
+            "sector_size":512,
+            "state":"disabled"
+          }
+        ]
+      }
+    ]
+  }
+]
