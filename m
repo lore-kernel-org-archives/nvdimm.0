@@ -1,37 +1,37 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
+Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A56A22C80
-	for <nvdimm@lists.linux.dev>; Wed,  3 Nov 2021 20:34:08 +0000 (UTC)
-Received: by mail-pl1-f180.google.com with SMTP id u11so3538339plf.3
-        for <nvdimm@lists.linux.dev>; Wed, 03 Nov 2021 13:34:08 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD6DE2C96
+	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 06:21:50 +0000 (UTC)
+Received: by mail-pl1-f171.google.com with SMTP id v20so5568055plo.7
+        for <nvdimm@lists.linux.dev>; Wed, 03 Nov 2021 23:21:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=yInAWWmX6IbmZJ/wlq7G3j0MiE3+bSNug2mSaBSOXp8=;
-        b=76cN/dMP7BqwBLUJnpcvyKqVcG+CC88CrdxlxKbuWcqgSNC4iPTXsV5pEiM/szthaN
-         Xo89SOuuPuU5YXp+WcuZ7SKey/WjFrMFEsRcbrumh+FON7X9feOrs8wybo/qwPSQmfa3
-         towr9do08xJMA1zWOME1jqPr3A7hxpwtRbDrM1SInoR0fsYb7PLlPGkUhsefH52nHFwO
-         TVwBYtIuUDXEdU3dCPmJVGhNoO7PsHy0XvRS6W8OZhZcXv6RWtmKPrCPEmoZLTI+a1Oo
-         qWr6rSOMVbiRYE8S0AYAKP1ze/0ZLmJst3S16f7RqQsq0qA65YaSBt0SYocldMoku4dm
-         5CAQ==
+        bh=ZyuA6ddRdNnvNpvSUsN4hZr4Uf2uGmRKXvml9zPHv3U=;
+        b=LZQMkMEgCvdpUn1y3IGr6TRctr3Q9zUor3iSBVXWEwdAP54SnFBy+WF/4Ebp9InWiZ
+         82EJ07KkJqO1IXAjeb5tQuOwY1ckueHAnmH/o6R5PLxqRYs7VaaskeCn1nugf4y2mqcY
+         E6yt7u/txZYD8jXP/DpSBx32wbdzRNzBp4YXA0WR06xzBm2Tz82m9R7MZkgsmA0yPcMZ
+         ToDGBKl9+nZ9SgaoC7yR0jgPCp3Cx6s1akPqKynUiynPbM1vR9RHDbsWDBq4+aqq/5sp
+         U+yyphazc5dywiF0swD7YL24mIehmRIY8zog0Mlsw1WKup+EjujksqX34ab7rjp8ivql
+         LdNg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=yInAWWmX6IbmZJ/wlq7G3j0MiE3+bSNug2mSaBSOXp8=;
-        b=pdbrI7ChXg64CtEwjOCzBMGJH8FEa6IKFH0Y6xHhaCgJu6ofjBpzelZLD6yaTrM0yx
-         C0Xl07Z0753oOg9sEhSUKtHwC4MfwJNt5S+WyCu9UKMNQKMpmMY0aCTtbtw+VknRqePt
-         vlO23LNZXqTqLjp4VMk3NkUIUfiwJlmqucaa3sSX8x1DMP1DMjuZ7GQqTDDJBdDhZjP+
-         kpt3Ws8kr6A4rFcGlsYso6tZLROyTqY+88xEP+CjoHEIGaTumTq6m0hYl9YgEWxCnhTV
-         L+BeyhInX4Uc1agfVDOh4kJxQVumbqAiA3OE05BxouNiqwEJJgHypLzPoVoUGAdvr1qh
-         6J9w==
-X-Gm-Message-State: AOAM5325l3n5X5UxtF6GrvGjFzpLBHohyBqL2Di0X1z0VvWxY6ZJcFeP
-	Y19KQslU3cNF1J2z7S+Fwu/tkVkbTnQI9Po1CV8tcQ==
-X-Google-Smtp-Source: ABdhPJzd7Z8lZ96OuyBaVsmPkzvXvAiMBjG+8ylo9BgB66C56AZdzDtCJhUvR3LVHaBpBpz3Mis5HNJMl34JvAiOnPA=
-X-Received: by 2002:a17:90b:350f:: with SMTP id ls15mr17053980pjb.220.1635971648063;
- Wed, 03 Nov 2021 13:34:08 -0700 (PDT)
+        bh=ZyuA6ddRdNnvNpvSUsN4hZr4Uf2uGmRKXvml9zPHv3U=;
+        b=ClTMT/kpIE7XXjCoevbtYwEnRLVyqeUto8UpToQqMS8ef1bzgcs+oGGtfvyHSifjwi
+         u0awJPYC3zKOi8ijCtLLnr8GOXgZvJvUYdqW9JihHNGRQ7OjImYF7F+dNdvMPDDmkUtp
+         MwtDc0xxPDb6sA4G2RBT+GUuh/KCd2KurS4wILCsvDPAtZVrxG0Kh24fqqShk6yaXyWL
+         Idvxr+5feDFxrOv4r8bu7pIEUiHH6PmoAYBieONiSNe8kh7LwE5QTKQXIyFS03WF9LvP
+         SgYNm35+lB0sVsoEMWbDPcqGOi9kzu6vJ3Pnqb6G5inBm4ZImmgpLAlsLcu4/JbxSKZd
+         Gswg==
+X-Gm-Message-State: AOAM53018UMGgbuT1LdfRCqPZItUgOlxvcDR0YoyzWPNaeO++ybL1XS8
+	o8ypZRoGSSv9MHxLaog/gWXhsHmDWMcIm4Y4ZhimRQ==
+X-Google-Smtp-Source: ABdhPJx4n/3hi5QSqYsscdoJBCM1f/g8m0p4vAuABjz6+mE+bZ+8hWcuD6Y6gRvy3XYJHICi5mkaZySCeaB3JPBO+/Q=
+X-Received: by 2002:a17:90a:6c47:: with SMTP id x65mr3577541pjj.8.1636006910291;
+ Wed, 03 Nov 2021 23:21:50 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -41,15 +41,14 @@ MIME-Version: 1.0
 References: <20211021001059.438843-1-jane.chu@oracle.com> <YXFPfEGjoUaajjL4@infradead.org>
  <e89a2b17-3f03-a43e-e0b9-5d2693c3b089@oracle.com> <YXJN4s1HC/Y+KKg1@infradead.org>
  <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com> <YXj2lwrxRxHdr4hb@infradead.org>
- <20211028002451.GB2237511@magnolia> <YYDYUCCiEPXhZEw0@infradead.org>
- <CAPcyv4j8snuGpy=z6BAXogQkP5HmTbqzd6e22qyERoNBvFKROw@mail.gmail.com> <YYK/tGfpG0CnVIO4@infradead.org>
-In-Reply-To: <YYK/tGfpG0CnVIO4@infradead.org>
+ <20211028002451.GB2237511@magnolia> <YYDYUCCiEPXhZEw0@infradead.org> <dfca8558-ad70-41d5-1131-63db66b70542@oracle.com>
+In-Reply-To: <dfca8558-ad70-41d5-1131-63db66b70542@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 3 Nov 2021 13:33:58 -0700
-Message-ID: <CAPcyv4it2_PVaM8z216AXm6+h93frg79WM-ziS9To59UtEQJTA@mail.gmail.com>
+Date: Wed, 3 Nov 2021 23:21:39 -0700
+Message-ID: <CAPcyv4jLn4_SYxLtp_cUT=mm6Y3An22BA+sqex1S-CBnAm6qGA@mail.gmail.com>
 Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with RWF_RECOVERY_DATA flag
-To: Christoph Hellwig <hch@infradead.org>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Jane Chu <jane.chu@oracle.com>, 
+To: Jane Chu <jane.chu@oracle.com>
+Cc: Christoph Hellwig <hch@infradead.org>, "Darrick J. Wong" <djwong@kernel.org>, 
 	"david@fromorbit.com" <david@fromorbit.com>, "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>, 
 	"dave.jiang@intel.com" <dave.jiang@intel.com>, "agk@redhat.com" <agk@redhat.com>, 
 	"snitzer@redhat.com" <snitzer@redhat.com>, "dm-devel@redhat.com" <dm-devel@redhat.com>, 
@@ -61,100 +60,85 @@ Cc: "Darrick J. Wong" <djwong@kernel.org>, Jane Chu <jane.chu@oracle.com>,
 	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Nov 3, 2021 at 9:58 AM Christoph Hellwig <hch@infradead.org> wrote:
+On Wed, Nov 3, 2021 at 11:10 AM Jane Chu <jane.chu@oracle.com> wrote:
 >
-> On Tue, Nov 02, 2021 at 12:57:10PM -0700, Dan Williams wrote:
-> > This goes back to one of the original DAX concerns of wanting a kernel
-> > library for coordinating PMEM mmap I/O vs leaving userspace to wrap
-> > PMEM semantics on top of a DAX mapping. The problem is that mmap-I/O
-> > has this error-handling-API issue whether it is a DAX mapping or not.
+> On 11/1/2021 11:18 PM, Christoph Hellwig wrote:
+> > On Wed, Oct 27, 2021 at 05:24:51PM -0700, Darrick J. Wong wrote:
+> >> ...so would you happen to know if anyone's working on solving this
+> >> problem for us by putting the memory controller in charge of dealing
+> >> with media errors?
+> >
+> > The only one who could know is Intel..
+> >
+> >> The trouble is, we really /do/ want to be able to (re)write the failed
+> >> area, and we probably want to try to read whatever we can.  Those are
+> >> reads and writes, not {pre,f}allocation activities.  This is where Dave
+> >> and I arrived at a month ago.
+> >>
+> >> Unless you'd be ok with a second IO path for recovery where we're
+> >> allowed to be slow?  That would probably have the same user interface
+> >> flag, just a different path into the pmem driver.
+> >
+> > Which is fine with me.  If you look at the API here we do have the
+> > RWF_ API, which them maps to the IOMAP API, which maps to the DAX_
+> > API which then gets special casing over three methods.
+> >
+> > And while Pavel pointed out that he and Jens are now optimizing for
+> > single branches like this.  I think this actually is silly and it is
+> > not my point.
+> >
+> > The point is that the DAX in-kernel API is a mess, and before we make
+> > it even worse we need to sort it first.  What is directly relevant
+> > here is that the copy_from_iter and copy_to_iter APIs do not make
+> > sense.  Most of the DAX API is based around getting a memory mapping
+> > using ->direct_access, it is just the read/write path which is a slow
+> > path that actually uses this.  I have a very WIP patch series to try
+> > to sort this out here:
+> >
+> > http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dax-devirtualize
+> >
+> > But back to this series.  The basic DAX model is that the callers gets a
+> > memory mapping an just works on that, maybe calling a sync after a write
+> > in a few cases.  So any kind of recovery really needs to be able to
+> > work with that model as going forward the copy_to/from_iter path will
+> > be used less and less.  i.e. file systems can and should use
+> > direct_access directly instead of using the block layer implementation
+> > in the pmem driver.  As an example the dm-writecache driver, the pending
+> > bcache nvdimm support and the (horribly and out of tree) nova file systems
+> > won't even use this path.  We need to find a way to support recovery
+> > for them.  And overloading it over the read/write path which is not
+> > the main path for DAX, but the absolutely fast path for 99% of the
+> > kernel users is a horrible idea.
+> >
+> > So how can we work around the horrible nvdimm design for data recovery
+> > in a way that:
+> >
+> >     a) actually works with the intended direct memory map use case
+> >     b) doesn't really affect the normal kernel too much
+> >
+> > ?
+> >
 >
-> Semantics of writes through shared mmaps are a nightmare.  Agreed,
-> including agreeing that this is neither new nor pmem specific.  But
-> it also has absolutely nothing to do with the new RWF_ flag.
-
-Ok.
-
-> > CONFIG_ARCH_SUPPORTS_MEMORY_FAILURE implies that processes will
-> > receive SIGBUS + BUS_MCEERR_A{R,O} when memory failure is signalled
-> > and then rely on readv(2)/writev(2) to recover. Do you see a readily
-> > available way to improve upon that model without CPU instruction
-> > changes? Even with CPU instructions changes, do you think it could
-> > improve much upon the model of interrupting the process when a load
-> > instruction aborts?
+> This is clearer, I've looked at your 'dax-devirtualize' patch which
+> removes pmem_copy_to/from_iter, and as you mentioned before,
+> a separate API for poison-clearing is needed. So how about I go ahead
+> rebase my earlier patch
 >
-> The "only" think we need is something like the exception table we
-> use in the kernel for the uaccess helpers (and the new _nofault
-> kernel access helper).  But I suspect refitting that into userspace
-> environments is probably non-trivial.
-
-Is the exception table requirement not already fulfilled by:
-
-sigaction(SIGBUS, &act, 0);
-...
-if (sigsetjmp(sj_env, 1)) {
-...
-
-...but yes, that's awkward when all you want is an error return from a
-copy operation.
-
-For _nofault I'll note that on the kernel side Linus was explicit
-about not mixing fault handling and memory error exception handling in
-the same accessor. That's why copy_mc_to_kernel() and
-copy_{to,from}_kernel_nofault() are distinct. I only say that to probe
-deeper about what a "copy_mc()" looks like in userspace? Perhaps an
-interface to suppress SIGBUS generation and register a ring buffer
-that gets filled with error-event records encountered over a given
-MMAP I/O code sequence?
-
-> > I do agree with you that DAX needs to separate itself from block, but
-> > I don't think it follows that DAX also needs to separate itself from
-> > readv/writev for when a kernel slow-path needs to get involved because
-> > mmap I/O (just CPU instructions) does not have the proper semantics.
-> > Even if you got one of the ARCH_SUPPORTS_MEMORY_FAILURE to implement
-> > those semantics in new / augmented CPU instructions you will likely
-> > not get all of them to move and certainly not in any near term
-> > timeframe, so the kernel path will be around indefinitely.
+> https://lore.kernel.org/lkml/20210914233132.3680546-2-jane.chu@oracle.com/
+> on 'dax-devirtualize', provide dm support for clear-poison?
+> That way, the non-dax 99% of the pwrite use-cases aren't impacted at all
+> and we resolve the urgent pmem poison-clearing issue?
 >
-> I think you misunderstood me.  I don't think pmem needs to be
-> decoupled from the read/write path.  But I'm very skeptical of adding
-> a new flag to the common read/write path for the special workaround
-> that a plain old write will not actually clear errors unlike every
-> other store interfac.
+> Dan, are you okay with this?  I am getting pressure from our customers
+> who are basically stuck at the moment.
 
-Ah, ok, yes, I agree with you there that needing to redirect writes to
-a platform firmware call to clear errors, and notify the device that
-its error-list has changed is exceedingly awkward. That said, even if
-the device-side error-list auto-updated on write (like the promise of
-MOVDIR64B) there's still the question about when to do management on
-the software error lists in the driver and/or filesytem. I.e. given
-that XFS at least wants to be aware of the error lists for block
-allocation and "list errors" type features. More below...
+The concern I have with dax_clear_poison() is that it precludes atomic
+error clearing. Also, as Boris and I discussed, poisoned pages should
+be marked NP (not present) rather than UC (uncacheable) [1]. With
+those 2 properties combined I think that wants a custom pmem fault
+handler that knows how to carefully write to pmem pages with poison
+present, rather than an additional explicit dax-operation. That also
+meets Christoph's requirement of "works with the intended direct
+memory map use case".
 
-> > Meanwhile, I think RWF_RECOVER_DATA is generically useful for other
-> > storage besides PMEM and helps storage-drivers do better than large
-> > blast radius "I/O error" completions with no other recourse.
->
-> How?
-
-Hasn't this been a perennial topic at LSF/MM, i.e. how to get an
-interface for the filesystem to request "try harder" to return data?
-If the device has a recovery slow-path, or error tracking granularity
-is smaller than the I/O size, then RWF_RECOVER_DATA gives the
-device/driver leeway to do better than the typical fast path. For
-writes though, I can only come up with the use case of this being a
-signal to the driver to take the opportunity to do error-list
-management relative to the incoming write data.
-
-However, if signaling that "now is the time to update error-lists" is
-the requirement, I imagine the @kaddr returned from
-dax_direct_access() could be made to point to an unmapped address
-representing the poisoned page. Then, arrange for a pmem-driver fault
-handler to emulate the copy operation and do the slow path updates
-that would otherwise have been gated by RWF_RECOVER_DATA.
-
-Although, I'm not excited about teaching every PMEM arch's fault
-handler about this new source of kernel faults. Other ideas?
-RWF_RECOVER_DATA still seems the most viable / cleanest option, but
-I'm willing to do what it takes to move this error management
-capability forward.
+[1]: https://lore.kernel.org/r/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com
