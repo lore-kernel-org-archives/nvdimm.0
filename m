@@ -1,78 +1,75 @@
-Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E52842C8B
-	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 18:10:30 +0000 (UTC)
-Received: by mail-pl1-f179.google.com with SMTP id b13so8626674plg.2
-        for <nvdimm@lists.linux.dev>; Thu, 04 Nov 2021 11:10:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=7mdrEIaynFJhMAYVbY2RCFSQ3xBs/5manpadoyeA8Jg=;
-        b=0YEcomScst+1AzYcEtB+P3/DmeUM77501UDi4utLMr5xdKJlnd8UevBd12j9FnZ3vM
-         pfReEE9Mys+ZVEwliSTF7urxA8Wo0+Hi1QGvdNyLT71G18SgBjzWHXiXc01F/GMcT30o
-         4sj59niVU83geSVU+jTxOcRmF241hREk19CsoBH8kxr2RQdc6rHN1RFVCxVTxuFK53C5
-         ubx4NqJpME+C1zDILd+MfHjSjbqUFn2nDpjUaVUu+wM8te1yVWJyRStj28nUJ7WDbMUk
-         H2RDjE1nkFNI+5JNwfhWiSHo+ZLBnVukougjDJ/S9PImKe7sfLSLlzrr4uAIBYjBE48z
-         eouQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=7mdrEIaynFJhMAYVbY2RCFSQ3xBs/5manpadoyeA8Jg=;
-        b=35W3CdZHod4IM2fUt1+c3ho57EKwwVG2f8XQn5yLZLFfb89+2FYan+UFGsvvta43Sn
-         5Z9u+aOMO/ifz2E3vYAobF6Y7DQAOxh5m/g4m3egJ7kSA/1mASikmhcMIwTbFkUslYc1
-         2b/STHs6/heEmtnlLB6o9lLns8tYZjbjIXOZHJW1akSDPpHnhMZLG9i8Qgqcp0elc9Ub
-         CgGYtJggLY3zCiNloNqOCAm3xR/T57mkvrVyDcoSjNzJYtOkODZv5hTUfqxaa09EZ2bq
-         XGYFQB1cZOyLiZ6UTFCWiAUUVGiZMNQ/YlMTfmshXc8E9vXnN7uNwSErmt6FJDy+SWUR
-         8qXg==
-X-Gm-Message-State: AOAM533LJc6RaEyi5iFIetOythNv65O0+XO1VshJVSI80x/pviX2CMtd
-	o/WAP6rBxi+WvzG6StwzK9WylvFid7d5+SyJjETqXA==
-X-Google-Smtp-Source: ABdhPJxpE7179nYWnBAffbsem/btoh3olrocKEPy5McMuIBWtGLmZ02iwXqFLVvSNceMnE3VXVk1wLsDAvNCq2GAmrQ=
-X-Received: by 2002:a17:902:b697:b0:141:c7aa:e10f with SMTP id
- c23-20020a170902b69700b00141c7aae10fmr33445935pls.18.1636049430346; Thu, 04
- Nov 2021 11:10:30 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2883C2C8B
+	for <nvdimm@lists.linux.dev>; Thu,  4 Nov 2021 18:11:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=X/zx02lrok+YXE3fHYCnesmy30oZEd5gQFjWswEssO8=; b=Sbg76vqBUrKRwSH8VKRkJgiUCC
+	r1oyKJ79d1QE9fOCCZaLTLXMc2ew6uKuULTjgBflx8d78VPVr2homn7rL3kQVHvP7Ak9/wM0MbpSy
+	YSrJUXTFHpxtX4i3XpHfoy8u4fm08G+Cx16cTwYn/LBCFS7Lv3f39xVI6zKCrHqps5FJzI6XW50qi
+	8xgjF5t15JvLZTKg6czUDnDkLd8NyrCoKV5fYiMDj6WPdVlgUuSxgdjCS10DIR/kWUthyM54DNI3M
+	3ulIl7eI4ED25BAW7Mc3MlXqYoWF5f6UgyROaM1IDdmMYVmXaRrN/V/m7JIC73SF58NYKDj27R5M0
+	Cc4GufhA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mih7J-0062bO-LC; Thu, 04 Nov 2021 18:06:22 +0000
+Date: Thu, 4 Nov 2021 18:05:37 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Jane Chu <jane.chu@oracle.com>,
+	"david@fromorbit.com" <david@fromorbit.com>,
+	"vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+	"dave.jiang@intel.com" <dave.jiang@intel.com>,
+	"agk@redhat.com" <agk@redhat.com>,
+	"snitzer@redhat.com" <snitzer@redhat.com>,
+	"dm-devel@redhat.com" <dm-devel@redhat.com>,
+	"ira.weiny@intel.com" <ira.weiny@intel.com>,
+	"vgoyal@redhat.com" <vgoyal@redhat.com>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
+Subject: Re: [dm-devel] [PATCH 0/6] dax poison recovery with
+ RWF_RECOVERY_DATA flag
+Message-ID: <YYQg8X9VAuWYekD4@casper.infradead.org>
+References: <2102a2e6-c543-2557-28a2-8b0bdc470855@oracle.com>
+ <YXj2lwrxRxHdr4hb@infradead.org>
+ <20211028002451.GB2237511@magnolia>
+ <YYDYUCCiEPXhZEw0@infradead.org>
+ <CAPcyv4j8snuGpy=z6BAXogQkP5HmTbqzd6e22qyERoNBvFKROw@mail.gmail.com>
+ <YYK/tGfpG0CnVIO4@infradead.org>
+ <CAPcyv4it2_PVaM8z216AXm6+h93frg79WM-ziS9To59UtEQJTA@mail.gmail.com>
+ <YYOaOBKgFQYzT/s/@infradead.org>
+ <CAPcyv4jKHH7H+PmcsGDxsWA5CS_U3USHM8cT1MhoLk72fa9z8Q@mail.gmail.com>
+ <YYQbu6dOCVB7yS02@infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211018044054.1779424-1-hch@lst.de> <21ff4333-e567-2819-3ae0-6a2e83ec7ce6@sandeen.net>
- <20211104081740.GA23111@lst.de> <20211104173417.GJ2237511@magnolia> <20211104173559.GB31740@lst.de>
-In-Reply-To: <20211104173559.GB31740@lst.de>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 4 Nov 2021 11:10:19 -0700
-Message-ID: <CAPcyv4jbjc+XtX5RX5OL3vPadsYZwoK1NG1qC5AcpySBu5tL4g@mail.gmail.com>
-Subject: Re: futher decouple DAX from block devices
-To: Christoph Hellwig <hch@lst.de>
-Cc: "Darrick J. Wong" <djwong@kernel.org>, Eric Sandeen <sandeen@sandeen.net>, 
-	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>, 
-	device-mapper development <dm-devel@redhat.com>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390 <linux-s390@vger.kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-erofs@lists.ozlabs.org, 
-	linux-ext4 <linux-ext4@vger.kernel.org>, virtualization@lists.linux-foundation.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YYQbu6dOCVB7yS02@infradead.org>
 
-On Thu, Nov 4, 2021 at 10:36 AM Christoph Hellwig <hch@lst.de> wrote:
->
-> On Thu, Nov 04, 2021 at 10:34:17AM -0700, Darrick J. Wong wrote:
-> > /me wonders, are block devices going away?  Will mkfs.xfs have to learn
-> > how to talk to certain chardevs?  I guess jffs2 and others already do
-> > that kind of thing... but I suppose I can wait for the real draft to
-> > show up to ramble further. ;)
->
-> Right now I've mostly been looking into the kernel side.  An no, I
-> do not expect /dev/pmem* to go away as you'll still need it for a
-> not DAX aware file system and/or application (such as mkfs initially).
->
-> But yes, just pointing mkfs to the chardev should be doable with very
-> little work.  We can point it to a regular file after all.
+On Thu, Nov 04, 2021 at 10:43:23AM -0700, Christoph Hellwig wrote:
+> Well, the answer for other interfaces (at least at the gold plated
+> cost option) is so strong internal CRCs that user visible bits clobbered
+> by cosmic rays don't realisticly happen.  But it is a problem with the
+> cheaper ones, and at least SCSI and NVMe offer the error list through
+> the Get LBA status command (and I bet ATA too, but I haven't looked into
+> that).  Oddly enough there has never been much interested from the
+> fs community for those.
 
-Note that I've avoided implementing read/write fops for dax devices
-partly out of concern for not wanting to figure out shared-mmap vs
-write coherence issues, but also because of a bet with Dave Hansen
-that device-dax not grow features like what happened to hugetlbfs. So
-it would seem mkfs would need to switch to mmap I/O, or bite the
-bullet and implement read/write fops in the driver.
+"don't realistically happen" is different when you're talking about
+"doesn't happen within the warranty period of my laptop's SSD" and
+"doesn't happen on my fleet of 10k servers before they're taken out of
+service".  There's also a big difference in speeds between an NVMe drive
+(7GB/s) and a memory device (20-50GB/s).  The UBER being talked about
+when I was still at Intel was similar to / slightly better than DRAM,
+but that's still several failures per year across an entire data centre
+that's using pmem flat-out.
