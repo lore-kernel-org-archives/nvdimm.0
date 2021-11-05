@@ -1,37 +1,38 @@
-Received: from mail-pg1-f176.google.com (mail-pg1-f176.google.com [209.85.215.176])
+Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DE44C2C80
-	for <nvdimm@lists.linux.dev>; Fri,  5 Nov 2021 16:41:26 +0000 (UTC)
-Received: by mail-pg1-f176.google.com with SMTP id q126so4894060pgq.13
-        for <nvdimm@lists.linux.dev>; Fri, 05 Nov 2021 09:41:26 -0700 (PDT)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C1502C80
+	for <nvdimm@lists.linux.dev>; Fri,  5 Nov 2021 16:46:14 +0000 (UTC)
+Received: by mail-pg1-f171.google.com with SMTP id g28so199524pgg.3
+        for <nvdimm@lists.linux.dev>; Fri, 05 Nov 2021 09:46:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=5amwjTWIRqLe2fTBGlO6hAxlM9gBL72qHsZ42zn9EgA=;
-        b=w2UkjvmMa0b3Jj3bRnCOzLOOnJhzHram0qUr+hyVoF7QF9wO0sS98CValsAS4SqqGs
-         bJ9t/C20kldIAxthpkaMWhjpJgzWIlNQDDNN5E+rqF+YU7F1SGGuyX8PDpHk8SudRGlQ
-         zw2wsAtBlstMfy+CtBPresI5dAl4hU2isZxvNFFptJ4pa4O4izJIV2fD2GUXU6eS+jah
-         kKKiufRF1OgboBlVcSu8bleHvoc0e/emRjRHSuPKNAtlXDaPJ9MCPEgbxIWIxEzZJCSE
-         0JrTPTicicUFnp/AAJ/njGjb9Bl+Ka1UvAchQ2vB4em9ZYUfNBe/4jBKFac75OxFICzw
-         XrnQ==
+        bh=lXU1evVAtDIYyxpbCVG0DKdvWGgW3AUmmshhDnEptSc=;
+        b=LsB4X3FHyFmj4FScAj3ADT6Cv3U/YQ+CYnlGk/TRdD0Wo4eaAe/NQJ5eAqUQtQgcNP
+         F5RS81yLntbRtk8bO3pTr1RG/zTzjk21q2M7ulejuN4g0IhN5yAI/7dl+nSLzE1vGqNZ
+         oNA7uFJP+z4ZvrsW+XQe0C8JdZ/DoAESnyPDy/M2bWkV+kIDXafExBtXsCTx0KWO5kyn
+         cVDItLClvTf/xy2/pmGJP/TG5jpxzz1q6QCQaFtblHBglmHQzmeq0EFWeUtVX8FhYmXQ
+         6LDczPvQBm83iiy6zp4YG6P9k7K6bKcCiCDSZsliZVQmMIcj16qbuYnsquQk7lCLrO5l
+         hgEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=5amwjTWIRqLe2fTBGlO6hAxlM9gBL72qHsZ42zn9EgA=;
-        b=uuaJcxQPvhPZ3hs2fyZKdY5QrilLsZePNMQNMdz3rWhakS5KzDk/HPe8q49QtTU8x9
-         slCNgFO+h9uhshJiV3KE13r2wbBjBuvrwANaBP7Dm1Nw01lCnSO3TgL4hm2NeM2xL5wS
-         silBu9wtRWj2xzED+Pxo8lI2J4s3FamjKfvw6kixBqNQpZ8G/bS3HdJ2pB57JjDZOpXJ
-         6t4OX+8OhojX8s94S750py2TOrFQONSCq3IuWXOb+iXDbx8nHvtMuTupl2VyjlFACRiA
-         He07z/Jalp+7trFbMmHeNvNPgk1ZrfdF5pFXn3kC2dPm1U7V5i/mVnI6M1V0uT3QAmLG
-         eh7Q==
-X-Gm-Message-State: AOAM533xMj3c4iZaSsp6ova9cp931ING3BOPO+dNlErbVXBbLeHY3Pft
-	4iaxswl197bDlNgmURlCgEx3LYQoKdBy+Pt2w1ovEg==
-X-Google-Smtp-Source: ABdhPJy88KlTg/YTg27YWTdBpEzIk+qBEUkjukz8u9LiS5ucVjPUeY/wW29fEVui4yjEuSG2RwuDHI2MPSDUqYsWP6o=
-X-Received: by 2002:a63:6302:: with SMTP id x2mr27989241pgb.5.1636130486183;
- Fri, 05 Nov 2021 09:41:26 -0700 (PDT)
+        bh=lXU1evVAtDIYyxpbCVG0DKdvWGgW3AUmmshhDnEptSc=;
+        b=7wucHC/egQVh+nHJBDrYRLxxUK3Z5PCD+d+1vcnMAH9lnfPlrglo9NpAkiudU8EsYd
+         A4mpEGKMlA2KHmqO6ZckRxiBRtRyyDHu7lrGS85V2MLK24m1F3+DgN1Wj/KfuaCDOBY/
+         GM5XmsusPuRLFixoLDiZHTQXwnEDlbCH7A61/fSHyZp7FD3GEqdeEb++bNt4wAnXV0Jv
+         tBOJH5Nx/eGoSt3n+p24HAfXZ09BvN20qc5RTKQNAE+RT7eKv1lwPpJao3tfVWgO6Bwr
+         yPy5wotiC5zscnanMXiavma3lVunoaro6++ACKAwror5cU8PlK3CvaoGKZ3X004Bw3ou
+         4oVQ==
+X-Gm-Message-State: AOAM532vj4exoxOxnC+M+XKbK++BAPX8Ha9n35hNHri4MUUGrSrSMolp
+	QAspkHF52F4wEMLmwUYa7Mm4bpJT7fTr1HhHWto9Yg==
+X-Google-Smtp-Source: ABdhPJyP+Tlavfs5UgcKqdZzIi2pYsL42ZA8z+xuldwRIwTUXlZ2TpvryXxER7FVnULaBckuqqFV+WEiNd/HzsnFwh4=
+X-Received: by 2002:aa7:8019:0:b0:44d:d761:6f79 with SMTP id
+ j25-20020aa78019000000b0044dd7616f79mr61073475pfi.3.1636130773706; Fri, 05
+ Nov 2021 09:46:13 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,13 +40,14 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20210827145819.16471-1-joao.m.martins@oracle.com>
- <20210827145819.16471-8-joao.m.martins@oracle.com> <CAPcyv4jqdPaLPOydb_GWvVP4d+hRkcu7CnP_Ud-CQXHcqTLWKw@mail.gmail.com>
- <bfc9f754-e927-f6fa-7da8-2811fe5c8808@oracle.com>
-In-Reply-To: <bfc9f754-e927-f6fa-7da8-2811fe5c8808@oracle.com>
+ <20210827145819.16471-7-joao.m.martins@oracle.com> <CAPcyv4hPV9Vur1uvga7S4krQAmKZK5jrBrdOuK1AFHVE8Zk1DA@mail.gmail.com>
+ <f33c2037-4bee-3564-75c0-c87f99325c02@oracle.com>
+In-Reply-To: <f33c2037-4bee-3564-75c0-c87f99325c02@oracle.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 5 Nov 2021 09:41:15 -0700
-Message-ID: <CAPcyv4gXHaH=wHTbA3GsUgGvrcoXHxtrnD55iFtg7ZGHD8cMxg@mail.gmail.com>
-Subject: Re: [PATCH v4 07/14] device-dax: compound devmap support
+Date: Fri, 5 Nov 2021 09:46:04 -0700
+Message-ID: <CAPcyv4hE86SXyamXWhZEDHnhAZ_wty-DqD6t4cmkEdKdDwhpMw@mail.gmail.com>
+Subject: Re: [PATCH v4 06/14] device-dax: ensure dev_dax->pgmap is valid for
+ dynamic devices
 To: Joao Martins <joao.m.martins@oracle.com>
 Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>, 
 	Dave Jiang <dave.jiang@intel.com>, Naoya Horiguchi <naoya.horiguchi@nec.com>, 
@@ -56,51 +58,178 @@ Cc: Linux MM <linux-mm@kvack.org>, Vishal Verma <vishal.l.verma@intel.com>,
 	Linux Doc Mailing List <linux-doc@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Nov 5, 2021 at 7:10 AM Joao Martins <joao.m.martins@oracle.com> wrote:
+On Fri, Nov 5, 2021 at 5:10 AM Joao Martins <joao.m.martins@oracle.com> wrote:
 >
-> On 11/5/21 00:38, Dan Williams wrote:
+> On 11/5/21 00:31, Dan Williams wrote:
 > > On Fri, Aug 27, 2021 at 7:59 AM Joao Martins <joao.m.martins@oracle.com> wrote:
 > >>
-> >> Use the newly added compound devmap facility which maps the assigned dax
-> >> ranges as compound pages at a page size of @align. Currently, this means,
-> >> that region/namespace bootstrap would take considerably less, given that
-> >> you would initialize considerably less pages.
+> >> Right now, only static dax regions have a valid @pgmap pointer in its
+> >> struct dev_dax. Dynamic dax case however, do not.
 > >>
-> >> On setups with 128G NVDIMMs the initialization with DRAM stored struct
-> >> pages improves from ~268-358 ms to ~78-100 ms with 2M pages, and to less
-> >> than a 1msec with 1G pages.
+> >> In preparation for device-dax compound devmap support, make sure that
+> >> dev_dax pgmap field is set after it has been allocated and initialized.
 > >>
-> >> dax devices are created with a fixed @align (huge page size) which is
-> >> enforced through as well at mmap() of the device. Faults, consequently
-> >> happen too at the specified @align specified at the creation, and those
-> >> don't change through out dax device lifetime.
+> >> dynamic dax device have the @pgmap is allocated at probe() and it's
+> >> managed by devm (contrast to static dax region which a pgmap is provided
+> >> and dax core kfrees it). So in addition to ensure a valid @pgmap, clear
+> >> the pgmap when the dynamic dax device is released to avoid the same
+> >> pgmap ranges to be re-requested across multiple region device reconfigs.
+> >>
+> >> Suggested-by: Dan Williams <dan.j.williams@intel.com>
+> >> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+> >> ---
+> >>  drivers/dax/bus.c    | 8 ++++++++
+> >>  drivers/dax/device.c | 2 ++
+> >>  2 files changed, 10 insertions(+)
+> >>
+> >> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> >> index 6cc4da4c713d..49dbff9ba609 100644
+> >> --- a/drivers/dax/bus.c
+> >> +++ b/drivers/dax/bus.c
+> >> @@ -363,6 +363,14 @@ void kill_dev_dax(struct dev_dax *dev_dax)
+> >>
+> >>         kill_dax(dax_dev);
+> >>         unmap_mapping_range(inode->i_mapping, 0, 0, 1);
+> >> +
+> >> +       /*
+> >> +        * Dynamic dax region have the pgmap allocated via dev_kzalloc()
+> >> +        * and thus freed by devm. Clear the pgmap to not have stale pgmap
+> >> +        * ranges on probe() from previous reconfigurations of region devices.
+> >> +        */
+> >> +       if (!is_static(dev_dax->region))
+> >> +               dev_dax->pgmap = NULL;
+> >>  }
+> >>  EXPORT_SYMBOL_GPL(kill_dev_dax);
+> >>
+> >> diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> >> index 0b82159b3564..6e348b5f9d45 100644
+> >> --- a/drivers/dax/device.c
+> >> +++ b/drivers/dax/device.c
+> >> @@ -426,6 +426,8 @@ int dev_dax_probe(struct dev_dax *dev_dax)
+> >>         }
+> >>
+> >>         pgmap->type = MEMORY_DEVICE_GENERIC;
+> >> +       dev_dax->pgmap = pgmap;
 > >
-> > s/through out/throughout/
+> > So I think I'd rather see a bigger patch that replaces some of the
+> > implicit dev_dax->pgmap == NULL checks with explicit is_static()
+> > checks. Something like the following only compile and boot tested...
+> > Note the struct_size() change probably wants to be its own cleanup,
+> > and the EXPORT_SYMBOL_NS_GPL(..., DAX) probably wants to be its own
+> > patch converting over the entirety of drivers/dax/. Thoughts?
 > >
-> >> MCEs poisons a whole dax huge page, as well as splits occurring at the configured page size.
-> >
-> > A clarification here, MCEs trigger memory_failure() to *unmap* a whole
-> > dax huge page, the poison stays limited to a single cacheline.
-> >
-> Ah, yes. I'll fix it for v5.
+> It's a good idea. Certainly the implicit pgmap == NULL made it harder
+> than the necessary to find where the problem was. So turning those checks
+> into explicit checks that differentiate static vs dynamic dax will help
 >
-> > Otherwise the patch looks good to me.
-> >
-> Thanks!
->
-> Btw, does 'looks good' == Reviewed-by (with the commit message clarification above) or is
-> it that 'should be good with the ammend above and you get the tag in the next round' ?
+> With respect to this series converting those pgmap == NULL is going to need
+> to made me export the symbol (provided dax core and dax device can be built
+> as modules). So I don't know how this can be a patch converting entirety of
+> dax. Perhaps you mean that I would just EXPORT_SYMBOL() and then a bigger
+> patch introduces the MODULE_NS_IMPORT() And EXPORT_SYMBOL_NS*() separately.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Yeah, either a lead-in patch to do the conversion, or a follow on to
+convert everything after the fact. Either way works for me, but I have
+a small preference for the lead-in patch.
 
-> Asking as IIRC you mentioned this too some other time(s) (in the simpler sparse-vmemmap
-> patches) hence just clarifying to understand your expected 'process' better.
 >
-> Also, I will be splitting this series as mentioned in the other discussion ...
->
-> https://lore.kernel.org/linux-mm/20211019160136.GH3686969@ziepe.ca/
->
-> ... So this patch and the previous one should be the last two patches of the series
-> and the rest (gup, sparse-vmemmmap) will go in parallel.
+> The struct_size, yeah, should be a separate patch much like commit 7d18dd75a8af
+> ("device-dax/kmem: use struct_size()").
 
-Sounds good.
+Yeah.
+
+>
+> minor comment below on your snippet.
+>
+> >
+> > diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> > index 6cc4da4c713d..67ab7e05b340 100644
+> > --- a/drivers/dax/bus.c
+> > +++ b/drivers/dax/bus.c
+> > @@ -134,6 +134,12 @@ static bool is_static(struct dax_region *dax_region)
+> >         return (dax_region->res.flags & IORESOURCE_DAX_STATIC) != 0;
+> >  }
+> >
+> > +bool static_dev_dax(struct dev_dax *dev_dax)
+> > +{
+> > +       return is_static(dev_dax->region);
+> > +}
+> > +EXPORT_SYMBOL_NS_GPL(static_dev_dax, DAX);
+> > +
+> >  static u64 dev_dax_size(struct dev_dax *dev_dax)
+> >  {
+> >         u64 size = 0;
+> > @@ -363,6 +369,8 @@ void kill_dev_dax(struct dev_dax *dev_dax)
+> >
+> >         kill_dax(dax_dev);
+> >         unmap_mapping_range(inode->i_mapping, 0, 0, 1);
+> > +       if (static_dev_dax(dev_dax))
+> > +               dev_dax->pgmap = NULL;
+> >  }
+>
+> Here you probably meant !static_dev_dax() per my patch.
+
+Oops, yes.
+
+>
+> >  EXPORT_SYMBOL_GPL(kill_dev_dax);
+> >
+> > diff --git a/drivers/dax/bus.h b/drivers/dax/bus.h
+> > index 1e946ad7780a..4acdfee7dd59 100644
+> > --- a/drivers/dax/bus.h
+> > +++ b/drivers/dax/bus.h
+> > @@ -48,6 +48,7 @@ int __dax_driver_register(struct dax_device_driver *dax_drv,
+> >         __dax_driver_register(driver, THIS_MODULE, KBUILD_MODNAME)
+> >  void dax_driver_unregister(struct dax_device_driver *dax_drv);
+> >  void kill_dev_dax(struct dev_dax *dev_dax);
+> > +bool static_dev_dax(struct dev_dax *dev_dax);
+> >
+> >  #if IS_ENABLED(CONFIG_DEV_DAX_PMEM_COMPAT)
+> >  int dev_dax_probe(struct dev_dax *dev_dax);
+> > diff --git a/drivers/dax/device.c b/drivers/dax/device.c
+> > index dd8222a42808..87507aff2b10 100644
+> > --- a/drivers/dax/device.c
+> > +++ b/drivers/dax/device.c
+> > @@ -398,31 +398,43 @@ int dev_dax_probe(struct dev_dax *dev_dax)
+> >         void *addr;
+> >         int rc, i;
+> >
+> > -       pgmap = dev_dax->pgmap;
+> > -       if (dev_WARN_ONCE(dev, pgmap && dev_dax->nr_range > 1,
+> > -                       "static pgmap / multi-range device conflict\n"))
+> > +       if (static_dev_dax(dev_dax) && dev_dax->nr_range > 1) {
+> > +               dev_warn(dev, "static pgmap / multi-range device conflict\n");
+> >                 return -EINVAL;
+> > +       }
+> >
+> > -       if (!pgmap) {
+> > -               pgmap = devm_kzalloc(dev, sizeof(*pgmap) + sizeof(struct range)
+> > -                               * (dev_dax->nr_range - 1), GFP_KERNEL);
+> > +       if (static_dev_dax(dev_dax)) {
+> > +               pgmap = dev_dax->pgmap;
+> > +       } else {
+> > +               if (dev_dax->pgmap) {
+> > +                       dev_warn(dev,
+> > +                                "dynamic-dax with pre-populated page map!?\n");
+> > +                       return -EINVAL;
+> > +               }
+> > +               pgmap = devm_kzalloc(
+> > +                       dev, struct_size(pgmap, ranges, dev_dax->nr_range - 1),
+> > +                       GFP_KERNEL);
+> >                 if (!pgmap)
+> >                         return -ENOMEM;
+> >                 pgmap->nr_range = dev_dax->nr_range;
+> > +               dev_dax->pgmap = pgmap;
+> > +               for (i = 0; i < dev_dax->nr_range; i++) {
+> > +                       struct range *range = &dev_dax->ranges[i].range;
+> > +
+> > +                       pgmap->ranges[i] = *range;
+> > +               }
+> >         }
+> >
+> This code move is probably not needed unless your point is to have a more clear
+> separation on what's initialization versus the mem region request (that's
+> applicable to both dynamic and static).
+
+It was more of an RFC cleanup idea and yes, should be its own patch if
+you think it helps make the init path clearer.
