@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7104E3FD4
-	for <nvdimm@lists.linux.dev>; Tue,  9 Nov 2021 08:33:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EC183FDB
+	for <nvdimm@lists.linux.dev>; Tue,  9 Nov 2021 08:33:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=P/8+pIo0FkVrwtgDFpUPsLsJeUvAQkFqHJLVpzBiSE4=; b=K49oBVrSLZdtEDaLNPTd3Uclln
-	/9ocK6KkEBNIiyPzSxQHVXJemAQ7VukCJ1yGxH2Xes6qwKhj9vU9bn1KvF19X2GQZ1vHpYpT4xrut
-	qlCzEOLO/Jl07wPByZYsVz8afW3RS7DwgW+1MQMnvt6dqInODE1pWz88j40j3cuufV8Tdl74NGdXb
-	h2+EfpqeEkCL7XqYfeemxVjTjsThQ/lXsLR9vFVCNb9KPXHYweRlU8d25tzAA1Y6cBJLKyQhFQ/8U
-	4cBf6QBNHfSUxPEneQ8PlvKVahItYz6XLqr8dfF2aJxxSC0uaKxt8D0IHjB+TLsiS5ASl2ykq0ZB9
-	u2YN5PYg==;
+	bh=mfMDb5n97/RHD98fzJck6QJCWRVIOtc8ifMZjDMd/kQ=; b=Jeyxv3tsyyzZnJxRVCO2TB86Ws
+	w+QW/DSGu6mPXAbKWCOMHiAmNN5rK3FhaDN94URftiwooYE6Kz+gz8a1HfSlssB02QBDy9aJwX46c
+	NDXerTZam1l2Ml3fw83VloMPreSlSXJm/jzRom9zjYEnt43pMde3L43bArtupfVvuk4O+f8AQph7l
+	Kj3jYG42Lvn+DXbfwPw5jj3lpKQh72Cd06FD0JbEYC1NX2yES5mwAwZHyF2oVjSOtBAbNtBoXMeDR
+	vbug0yVOpp8HDFIdvP9bfctKCkHC9LPNUxlsH4CvmgS1IONxvcj5qU2yhGCBnm1dXQO4vmrrrzMZ9
+	YK5BQzmw==;
 Received: from [2001:4bb8:19a:7ee7:fb46:2fe1:8652:d9d4] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mkMZY-000s4w-LX; Tue, 09 Nov 2021 08:33:41 +0000
+	id 1mkMZd-000s62-5h; Tue, 09 Nov 2021 08:33:46 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Snitzer <snitzer@redhat.com>,
@@ -27,11 +27,10 @@ Cc: Mike Snitzer <snitzer@redhat.com>,
 	linux-fsdevel@vger.kernel.org,
 	linux-erofs@lists.ozlabs.org,
 	linux-ext4@vger.kernel.org,
-	virtualization@lists.linux-foundation.org,
-	Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Subject: [PATCH 15/29] xfs: add xfs_zero_range and xfs_truncate_page helpers
-Date: Tue,  9 Nov 2021 09:32:55 +0100
-Message-Id: <20211109083309.584081-16-hch@lst.de>
+	virtualization@lists.linux-foundation.org
+Subject: [PATCH 18/29] fsdax: decouple zeroing from the iomap buffered I/O code
+Date: Tue,  9 Nov 2021 09:32:58 +0100
+Message-Id: <20211109083309.584081-19-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211109083309.584081-1-hch@lst.de>
 References: <20211109083309.584081-1-hch@lst.de>
@@ -44,154 +43,257 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Unshare the DAX and iomap buffered I/O page zeroing code.  This code
+previously did a IS_DAX check deep inside the iomap code, which in
+fact was the only DAX check in the code.  Instead move these checks
+into the callers.  Most callers already have DAX special casing anyway
+and XFS will need it for reflink support as well.
 
-Add helpers to prepare for using different DAX operations.
-
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-[hch: split from a larger patch + slight cleanups]
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/xfs/xfs_bmap_util.c |  7 +++----
- fs/xfs/xfs_file.c      |  3 +--
- fs/xfs/xfs_iomap.c     | 25 +++++++++++++++++++++++++
- fs/xfs/xfs_iomap.h     |  4 ++++
- fs/xfs/xfs_iops.c      |  7 +++----
- fs/xfs/xfs_reflink.c   |  3 +--
- 6 files changed, 37 insertions(+), 12 deletions(-)
+ fs/dax.c               | 77 ++++++++++++++++++++++++++++++++++--------
+ fs/ext2/inode.c        |  6 ++--
+ fs/ext4/inode.c        |  4 +--
+ fs/iomap/buffered-io.c | 35 +++++++------------
+ fs/xfs/xfs_iomap.c     |  6 ++++
+ include/linux/dax.h    |  6 +++-
+ 6 files changed, 91 insertions(+), 43 deletions(-)
 
-diff --git a/fs/xfs/xfs_bmap_util.c b/fs/xfs/xfs_bmap_util.c
-index 73a36b7be3bd1..797ea0c8b14e1 100644
---- a/fs/xfs/xfs_bmap_util.c
-+++ b/fs/xfs/xfs_bmap_util.c
-@@ -1001,7 +1001,7 @@ xfs_free_file_space(
- 
- 	/*
- 	 * Now that we've unmap all full blocks we'll have to zero out any
--	 * partial block at the beginning and/or end.  iomap_zero_range is smart
-+	 * partial block at the beginning and/or end.  xfs_zero_range is smart
- 	 * enough to skip any holes, including those we just created, but we
- 	 * must take care not to zero beyond EOF and enlarge i_size.
- 	 */
-@@ -1009,15 +1009,14 @@ xfs_free_file_space(
- 		return 0;
- 	if (offset + len > XFS_ISIZE(ip))
- 		len = XFS_ISIZE(ip) - offset;
--	error = iomap_zero_range(VFS_I(ip), offset, len, NULL,
--			&xfs_buffered_write_iomap_ops);
-+	error = xfs_zero_range(ip, offset, len, NULL);
- 	if (error)
- 		return error;
- 
- 	/*
- 	 * If we zeroed right up to EOF and EOF straddles a page boundary we
- 	 * must make sure that the post-EOF area is also zeroed because the
--	 * page could be mmap'd and iomap_zero_range doesn't do that for us.
-+	 * page could be mmap'd and xfs_zero_range doesn't do that for us.
- 	 * Writeback of the eof page will do this, albeit clumsily.
- 	 */
- 	if (offset + len >= XFS_ISIZE(ip) && offset_in_page(offset + len) > 0) {
-diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-index 27594738b0d18..8d4c5ca261bd7 100644
---- a/fs/xfs/xfs_file.c
-+++ b/fs/xfs/xfs_file.c
-@@ -437,8 +437,7 @@ xfs_file_write_checks(
- 		}
- 
- 		trace_xfs_zero_eof(ip, isize, iocb->ki_pos - isize);
--		error = iomap_zero_range(inode, isize, iocb->ki_pos - isize,
--				NULL, &xfs_buffered_write_iomap_ops);
-+		error = xfs_zero_range(ip, isize, iocb->ki_pos - isize, NULL);
- 		if (error)
- 			return error;
- 	} else
-diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
-index 093758440ad53..d6d71ae9f2ae4 100644
---- a/fs/xfs/xfs_iomap.c
-+++ b/fs/xfs/xfs_iomap.c
-@@ -1311,3 +1311,28 @@ xfs_xattr_iomap_begin(
- const struct iomap_ops xfs_xattr_iomap_ops = {
- 	.iomap_begin		= xfs_xattr_iomap_begin,
- };
-+
-+int
-+xfs_zero_range(
-+	struct xfs_inode	*ip,
-+	loff_t			pos,
-+	loff_t			len,
-+	bool			*did_zero)
-+{
-+	struct inode		*inode = VFS_I(ip);
-+
-+	return iomap_zero_range(inode, pos, len, did_zero,
-+				&xfs_buffered_write_iomap_ops);
-+}
-+
-+int
-+xfs_truncate_page(
-+	struct xfs_inode	*ip,
-+	loff_t			pos,
-+	bool			*did_zero)
-+{
-+	struct inode		*inode = VFS_I(ip);
-+
-+	return iomap_truncate_page(inode, pos, did_zero,
-+				   &xfs_buffered_write_iomap_ops);
-+}
-diff --git a/fs/xfs/xfs_iomap.h b/fs/xfs/xfs_iomap.h
-index 7d3703556d0e0..f1a281ab9328c 100644
---- a/fs/xfs/xfs_iomap.h
-+++ b/fs/xfs/xfs_iomap.h
-@@ -20,6 +20,10 @@ xfs_fileoff_t xfs_iomap_eof_align_last_fsb(struct xfs_inode *ip,
- int xfs_bmbt_to_iomap(struct xfs_inode *, struct iomap *,
- 		struct xfs_bmbt_irec *, u16);
- 
-+int xfs_zero_range(struct xfs_inode *ip, loff_t pos, loff_t len,
-+		bool *did_zero);
-+int xfs_truncate_page(struct xfs_inode *ip, loff_t pos, bool *did_zero);
-+
- static inline xfs_filblks_t
- xfs_aligned_fsb_count(
- 	xfs_fileoff_t		offset_fsb,
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index a607d6aca5c4d..ab5ef52b2a9ff 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -911,8 +911,8 @@ xfs_setattr_size(
- 	 */
- 	if (newsize > oldsize) {
- 		trace_xfs_zero_eof(ip, oldsize, newsize - oldsize);
--		error = iomap_zero_range(inode, oldsize, newsize - oldsize,
--				&did_zeroing, &xfs_buffered_write_iomap_ops);
-+		error = xfs_zero_range(ip, oldsize, newsize - oldsize,
-+				&did_zeroing);
- 	} else {
- 		/*
- 		 * iomap won't detect a dirty page over an unwritten block (or a
-@@ -924,8 +924,7 @@ xfs_setattr_size(
- 						     newsize);
- 		if (error)
- 			return error;
--		error = iomap_truncate_page(inode, newsize, &did_zeroing,
--				&xfs_buffered_write_iomap_ops);
-+		error = xfs_truncate_page(ip, newsize, &did_zeroing);
- 	}
- 
- 	if (error)
-diff --git a/fs/xfs/xfs_reflink.c b/fs/xfs/xfs_reflink.c
-index cb0edb1d68ef1..facce5c076d83 100644
---- a/fs/xfs/xfs_reflink.c
-+++ b/fs/xfs/xfs_reflink.c
-@@ -1269,8 +1269,7 @@ xfs_reflink_zero_posteof(
- 		return 0;
- 
- 	trace_xfs_zero_eof(ip, isize, pos - isize);
--	return iomap_zero_range(VFS_I(ip), isize, pos - isize, NULL,
--			&xfs_buffered_write_iomap_ops);
-+	return xfs_zero_range(ip, isize, pos - isize, NULL);
+diff --git a/fs/dax.c b/fs/dax.c
+index dc9ebeff850ab..5b52b878124ac 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1135,24 +1135,73 @@ static int dax_memzero(struct dax_device *dax_dev, pgoff_t pgoff,
+ 	return rc;
  }
  
- /*
+-s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
++static loff_t dax_zero_iter(struct iomap_iter *iter, bool *did_zero)
+ {
+-	pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
+-	long rc, id;
+-	unsigned offset = offset_in_page(pos);
+-	unsigned size = min_t(u64, PAGE_SIZE - offset, length);
++	const struct iomap *iomap = &iter->iomap;
++	const struct iomap *srcmap = iomap_iter_srcmap(iter);
++	loff_t pos = iter->pos;
++	loff_t length = iomap_length(iter);
++	loff_t written = 0;
++
++	/* already zeroed?  we're done. */
++	if (srcmap->type == IOMAP_HOLE || srcmap->type == IOMAP_UNWRITTEN)
++		return length;
++
++	do {
++		unsigned offset = offset_in_page(pos);
++		unsigned size = min_t(u64, PAGE_SIZE - offset, length);
++		pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
++		long rc;
++		int id;
+ 
+-	id = dax_read_lock();
+-	if (IS_ALIGNED(pos, PAGE_SIZE) && size == PAGE_SIZE)
+-		rc = dax_zero_page_range(iomap->dax_dev, pgoff, 1);
+-	else
+-		rc = dax_memzero(iomap->dax_dev, pgoff, offset, size);
+-	dax_read_unlock(id);
++		id = dax_read_lock();
++		if (IS_ALIGNED(pos, PAGE_SIZE) && size == PAGE_SIZE)
++			rc = dax_zero_page_range(iomap->dax_dev, pgoff, 1);
++		else
++			rc = dax_memzero(iomap->dax_dev, pgoff, offset, size);
++		dax_read_unlock(id);
+ 
+-	if (rc < 0)
+-		return rc;
+-	return size;
++		if (rc < 0)
++			return rc;
++		pos += size;
++		length -= size;
++		written += size;
++		if (did_zero)
++			*did_zero = true;
++	} while (length > 0);
++
++	return written;
++}
++
++int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
++		const struct iomap_ops *ops)
++{
++	struct iomap_iter iter = {
++		.inode		= inode,
++		.pos		= pos,
++		.len		= len,
++		.flags		= IOMAP_ZERO,
++	};
++	int ret;
++
++	while ((ret = iomap_iter(&iter, ops)) > 0)
++		iter.processed = dax_zero_iter(&iter, did_zero);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(dax_zero_range);
++
++int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
++		const struct iomap_ops *ops)
++{
++	unsigned int blocksize = i_blocksize(inode);
++	unsigned int off = pos & (blocksize - 1);
++
++	/* Block boundary? Nothing to do */
++	if (!off)
++		return 0;
++	return dax_zero_range(inode, pos, blocksize - off, did_zero, ops);
+ }
++EXPORT_SYMBOL_GPL(dax_truncate_page);
+ 
+ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 		struct iov_iter *iter)
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 333fa62661d56..ae9993018a015 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -1297,9 +1297,9 @@ static int ext2_setsize(struct inode *inode, loff_t newsize)
+ 	inode_dio_wait(inode);
+ 
+ 	if (IS_DAX(inode)) {
+-		error = iomap_zero_range(inode, newsize,
+-					 PAGE_ALIGN(newsize) - newsize, NULL,
+-					 &ext2_iomap_ops);
++		error = dax_zero_range(inode, newsize,
++				       PAGE_ALIGN(newsize) - newsize, NULL,
++				       &ext2_iomap_ops);
+ 	} else if (test_opt(inode->i_sb, NOBH))
+ 		error = nobh_truncate_page(inode->i_mapping,
+ 				newsize, ext2_get_block);
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 0f06305167d5a..8c443b753b815 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3783,8 +3783,8 @@ static int ext4_block_zero_page_range(handle_t *handle,
+ 		length = max;
+ 
+ 	if (IS_DAX(inode)) {
+-		return iomap_zero_range(inode, from, length, NULL,
+-					&ext4_iomap_ops);
++		return dax_zero_range(inode, from, length, NULL,
++				      &ext4_iomap_ops);
+ 	}
+ 	return __ext4_block_zero_page_range(handle, mapping, from, length);
+ }
+diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+index 1753c26c8e76e..b1511255b4df8 100644
+--- a/fs/iomap/buffered-io.c
++++ b/fs/iomap/buffered-io.c
+@@ -870,26 +870,8 @@ iomap_file_unshare(struct inode *inode, loff_t pos, loff_t len,
+ }
+ EXPORT_SYMBOL_GPL(iomap_file_unshare);
+ 
+-static s64 __iomap_zero_iter(struct iomap_iter *iter, loff_t pos, u64 length)
+-{
+-	struct page *page;
+-	int status;
+-	unsigned offset = offset_in_page(pos);
+-	unsigned bytes = min_t(u64, PAGE_SIZE - offset, length);
+-
+-	status = iomap_write_begin(iter, pos, bytes, &page);
+-	if (status)
+-		return status;
+-
+-	zero_user(page, offset, bytes);
+-	mark_page_accessed(page);
+-
+-	return iomap_write_end(iter, pos, bytes, bytes, page);
+-}
+-
+ static loff_t iomap_zero_iter(struct iomap_iter *iter, bool *did_zero)
+ {
+-	struct iomap *iomap = &iter->iomap;
+ 	const struct iomap *srcmap = iomap_iter_srcmap(iter);
+ 	loff_t pos = iter->pos;
+ 	loff_t length = iomap_length(iter);
+@@ -900,12 +882,19 @@ static loff_t iomap_zero_iter(struct iomap_iter *iter, bool *did_zero)
+ 		return length;
+ 
+ 	do {
+-		s64 bytes;
++		unsigned offset = offset_in_page(pos);
++		size_t bytes = min_t(u64, PAGE_SIZE - offset, length);
++		struct page *page;
++		int status;
+ 
+-		if (IS_DAX(iter->inode))
+-			bytes = dax_iomap_zero(pos, length, iomap);
+-		else
+-			bytes = __iomap_zero_iter(iter, pos, length);
++		status = iomap_write_begin(iter, pos, bytes, &page);
++		if (status)
++			return status;
++
++		zero_user(page, offset, bytes);
++		mark_page_accessed(page);
++
++		bytes = iomap_write_end(iter, pos, bytes, bytes, page);
+ 		if (bytes < 0)
+ 			return bytes;
+ 
+diff --git a/fs/xfs/xfs_iomap.c b/fs/xfs/xfs_iomap.c
+index d6d71ae9f2ae4..604000b6243ec 100644
+--- a/fs/xfs/xfs_iomap.c
++++ b/fs/xfs/xfs_iomap.c
+@@ -1321,6 +1321,9 @@ xfs_zero_range(
+ {
+ 	struct inode		*inode = VFS_I(ip);
+ 
++	if (IS_DAX(inode))
++		return dax_zero_range(inode, pos, len, did_zero,
++				      &xfs_buffered_write_iomap_ops);
+ 	return iomap_zero_range(inode, pos, len, did_zero,
+ 				&xfs_buffered_write_iomap_ops);
+ }
+@@ -1333,6 +1336,9 @@ xfs_truncate_page(
+ {
+ 	struct inode		*inode = VFS_I(ip);
+ 
++	if (IS_DAX(inode))
++		return dax_truncate_page(inode, pos, did_zero,
++					&xfs_buffered_write_iomap_ops);
+ 	return iomap_truncate_page(inode, pos, did_zero,
+ 				   &xfs_buffered_write_iomap_ops);
+ }
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index 324363b798ecd..a5cc2f1aa840e 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -14,6 +14,7 @@ typedef unsigned long dax_entry_t;
+ struct dax_device;
+ struct gendisk;
+ struct iomap_ops;
++struct iomap_iter;
+ struct iomap;
+ 
+ struct dax_operations {
+@@ -124,6 +125,10 @@ struct page *dax_layout_busy_page(struct address_space *mapping);
+ struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t start, loff_t end);
+ dax_entry_t dax_lock_page(struct page *page);
+ void dax_unlock_page(struct page *page, dax_entry_t cookie);
++int dax_zero_range(struct inode *inode, loff_t pos, loff_t len, bool *did_zero,
++		const struct iomap_ops *ops);
++int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
++		const struct iomap_ops *ops);
+ #else
+ static inline int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk)
+ {
+@@ -204,7 +209,6 @@ vm_fault_t dax_finish_sync_fault(struct vm_fault *vmf,
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 				      pgoff_t index);
+-s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap);
+ static inline bool dax_mapping(struct address_space *mapping)
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
 -- 
 2.30.2
 
