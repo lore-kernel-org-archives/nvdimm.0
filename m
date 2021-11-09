@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D01572C99
-	for <nvdimm@lists.linux.dev>; Tue,  9 Nov 2021 08:33:38 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AFD4268
+	for <nvdimm@lists.linux.dev>; Tue,  9 Nov 2021 08:33:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=Vpkz3086VxLuagYIc2khh5tOTNYNsy927IaI4zhihik=; b=qHZxorqKwiVe5rY3M9gXhiU1hj
-	OME5ZF3yPwHeDDxGTubHix4+Uzd8rNpPiP24KRvT1Abk8A1oFTmAfVIZQ91+MzAdr2eV8T2oL/XME
-	j10hqNYZB2d5bfxBuxK9qPaRKafes9QwI9IFhRkI9sST116xIz7Zmh6XD5n2aHM39BR7uuEShbw/7
-	v4TPZ75iMiLGvI6v+VEyoUvuZJQTDob6gMHHgZKTqi90OkjTP+EeUor0tQ8RZzXsWWxz2633m7y22
-	DVuuPCl/ghcXrHywBoMmUOhphbi4XRJXPLWwcgbZ+21ddufDVMXugEZ3ioiVbBwxvjN5yGnJpCm5j
-	YcrE7+jg==;
+	bh=GFhvoqOvL9OJvQf8+jTjW82TnTUOvEd+75/q2F+O9PE=; b=skBgYHYjavMuoPq2CV+3MX/Hg3
+	N0ec6jUVnP3dTGwezupk6zCDVbBZpXVnnkz2V1hkxkmqrKJSgR0xhtkALlVZvJtYBEiEhfIWlBAKK
+	BC7m73sgtzTm5SOhafl9DgiuxDS6wK6jJq6TtnTNhuFgXa7mVCaRWvYtE9Z0pFIDQGcniQntwbtzp
+	VL1vMQMckVa3zEij5h0NcvaLDA6J8imgtaEBv4iiTmwIiEYegUYnbbtmVEn9zhY8R99+J1WWGh5J+
+	qMY3LBjBWS5k/isgkkDvO1c/87syeC7Cwd7SmnLK1Fif4MEuSuYTPq+uejut0GwzwpVuXr5aRz6g9
+	Ga0NH+ww==;
 Received: from [2001:4bb8:19a:7ee7:fb46:2fe1:8652:d9d4] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mkMZP-000s1P-HH; Tue, 09 Nov 2021 08:33:32 +0000
+	id 1mkMZU-000s3V-Sg; Tue, 09 Nov 2021 08:33:37 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Snitzer <snitzer@redhat.com>,
@@ -28,9 +28,9 @@ Cc: Mike Snitzer <snitzer@redhat.com>,
 	linux-erofs@lists.ozlabs.org,
 	linux-ext4@vger.kernel.org,
 	virtualization@lists.linux-foundation.org
-Subject: [PATCH 10/29] dm-log-writes: add a log_writes_dax_pgoff helper
-Date: Tue,  9 Nov 2021 09:32:50 +0100
-Message-Id: <20211109083309.584081-11-hch@lst.de>
+Subject: [PATCH 13/29] fsdax: use a saner calling convention for copy_cow_page_dax
+Date: Tue,  9 Nov 2021 09:32:53 +0100
+Message-Id: <20211109083309.584081-14-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211109083309.584081-1-hch@lst.de>
 References: <20211109083309.584081-1-hch@lst.de>
@@ -43,103 +43,90 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-Add a helper to perform the entire remapping for DAX accesses.  This
-helper open codes bdev_dax_pgoff given that the alignment checks have
-already been done by the submitting file system and don't need to be
-repeated.
+Just pass the vm_fault and iomap_iter structures, and figure out the rest
+locally.  Note that this requires moving dax_iomap_sector up in the file.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Mike Snitzer <snitzer@redhat.com>
 ---
- drivers/md/dm-log-writes.c | 42 +++++++++++++++-----------------------
- 1 file changed, 17 insertions(+), 25 deletions(-)
+ fs/dax.c | 29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-index 524bc536922eb..df3cd78223fb2 100644
---- a/drivers/md/dm-log-writes.c
-+++ b/drivers/md/dm-log-writes.c
-@@ -949,17 +949,21 @@ static int log_dax(struct log_writes_c *lc, sector_t sector, size_t bytes,
- 	return 0;
+diff --git a/fs/dax.c b/fs/dax.c
+index 73bd1439d8089..e51b4129d1b65 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -709,26 +709,31 @@ int dax_invalidate_mapping_entry_sync(struct address_space *mapping,
+ 	return __dax_invalidate_entry(mapping, index, false);
  }
  
-+static struct dax_device *log_writes_dax_pgoff(struct dm_target *ti,
-+		pgoff_t *pgoff)
-+{
-+	struct log_writes_c *lc = ti->private;
-+
-+	*pgoff += (get_start_sect(lc->dev->bdev) >> PAGE_SECTORS_SHIFT);
-+	return lc->dev->dax_dev;
+-static int copy_cow_page_dax(struct block_device *bdev, struct dax_device *dax_dev,
+-			     sector_t sector, struct page *to, unsigned long vaddr)
++static sector_t dax_iomap_sector(const struct iomap *iomap, loff_t pos)
+ {
++	return (iomap->addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
 +}
 +
- static long log_writes_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 					 long nr_pages, void **kaddr, pfn_t *pfn)
- {
--	struct log_writes_c *lc = ti->private;
--	sector_t sector = pgoff * PAGE_SECTORS;
--	int ret;
-+	struct dax_device *dax_dev = log_writes_dax_pgoff(ti, &pgoff);
++static int copy_cow_page_dax(struct vm_fault *vmf, const struct iomap_iter *iter)
++{
++	sector_t sector = dax_iomap_sector(&iter->iomap, iter->pos);
+ 	void *vto, *kaddr;
+ 	pgoff_t pgoff;
+ 	long rc;
+ 	int id;
  
--	ret = bdev_dax_pgoff(lc->dev->bdev, sector, nr_pages * PAGE_SIZE, &pgoff);
--	if (ret)
--		return ret;
--	return dax_direct_access(lc->dev->dax_dev, pgoff, nr_pages, kaddr, pfn);
-+	return dax_direct_access(dax_dev, pgoff, nr_pages, kaddr, pfn);
- }
+-	rc = bdev_dax_pgoff(bdev, sector, PAGE_SIZE, &pgoff);
++	rc = bdev_dax_pgoff(iter->iomap.bdev, sector, PAGE_SIZE, &pgoff);
+ 	if (rc)
+ 		return rc;
  
- static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
-@@ -968,11 +972,9 @@ static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
- {
- 	struct log_writes_c *lc = ti->private;
- 	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dax_device *dax_dev = log_writes_dax_pgoff(ti, &pgoff);
- 	int err;
- 
--	if (bdev_dax_pgoff(lc->dev->bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
--		return 0;
--
- 	/* Don't bother doing anything if logging has been disabled */
- 	if (!lc->logging_enabled)
- 		goto dax_copy;
-@@ -983,34 +985,24 @@ static size_t log_writes_dax_copy_from_iter(struct dm_target *ti,
- 		return 0;
+ 	id = dax_read_lock();
+-	rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
++	rc = dax_direct_access(iter->iomap.dax_dev, pgoff, 1, &kaddr, NULL);
+ 	if (rc < 0) {
+ 		dax_read_unlock(id);
+ 		return rc;
  	}
- dax_copy:
--	return dax_copy_from_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
-+	return dax_copy_from_iter(dax_dev, pgoff, addr, bytes, i);
+-	vto = kmap_atomic(to);
+-	copy_user_page(vto, kaddr, vaddr, to);
++	vto = kmap_atomic(vmf->cow_page);
++	copy_user_page(vto, kaddr, vmf->address, vmf->cow_page);
+ 	kunmap_atomic(vto);
+ 	dax_read_unlock(id);
+ 	return 0;
+@@ -1005,11 +1010,6 @@ int dax_writeback_mapping_range(struct address_space *mapping,
  }
+ EXPORT_SYMBOL_GPL(dax_writeback_mapping_range);
  
- static size_t log_writes_dax_copy_to_iter(struct dm_target *ti,
- 					  pgoff_t pgoff, void *addr, size_t bytes,
- 					  struct iov_iter *i)
+-static sector_t dax_iomap_sector(const struct iomap *iomap, loff_t pos)
+-{
+-	return (iomap->addr + (pos & PAGE_MASK) - iomap->offset) >> 9;
+-}
+-
+ static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+ 			 pfn_t *pfnp)
  {
--	struct log_writes_c *lc = ti->private;
--	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dax_device *dax_dev = log_writes_dax_pgoff(ti, &pgoff);
- 
--	if (bdev_dax_pgoff(lc->dev->bdev, sector, ALIGN(bytes, PAGE_SIZE), &pgoff))
--		return 0;
--	return dax_copy_to_iter(lc->dev->dax_dev, pgoff, addr, bytes, i);
-+	return dax_copy_to_iter(dax_dev, pgoff, addr, bytes, i);
- }
- 
- static int log_writes_dax_zero_page_range(struct dm_target *ti, pgoff_t pgoff,
- 					  size_t nr_pages)
+@@ -1332,19 +1332,16 @@ static vm_fault_t dax_fault_synchronous_pfnp(pfn_t *pfnp, pfn_t pfn)
+ static vm_fault_t dax_fault_cow_page(struct vm_fault *vmf,
+ 		const struct iomap_iter *iter)
  {
--	int ret;
--	struct log_writes_c *lc = ti->private;
--	sector_t sector = pgoff * PAGE_SECTORS;
-+	struct dax_device *dax_dev = log_writes_dax_pgoff(ti, &pgoff);
+-	sector_t sector = dax_iomap_sector(&iter->iomap, iter->pos);
+-	unsigned long vaddr = vmf->address;
+ 	vm_fault_t ret;
+ 	int error = 0;
  
--	ret = bdev_dax_pgoff(lc->dev->bdev, sector, nr_pages << PAGE_SHIFT,
--			     &pgoff);
--	if (ret)
--		return ret;
--	return dax_zero_page_range(lc->dev->dax_dev, pgoff,
--				   nr_pages << PAGE_SHIFT);
-+	return dax_zero_page_range(dax_dev, pgoff, nr_pages << PAGE_SHIFT);
- }
- 
- #else
+ 	switch (iter->iomap.type) {
+ 	case IOMAP_HOLE:
+ 	case IOMAP_UNWRITTEN:
+-		clear_user_highpage(vmf->cow_page, vaddr);
++		clear_user_highpage(vmf->cow_page, vmf->address);
+ 		break;
+ 	case IOMAP_MAPPED:
+-		error = copy_cow_page_dax(iter->iomap.bdev, iter->iomap.dax_dev,
+-					  sector, vmf->cow_page, vaddr);
++		error = copy_cow_page_dax(vmf, iter);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
 -- 
 2.30.2
 
