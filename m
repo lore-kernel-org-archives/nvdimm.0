@@ -1,338 +1,214 @@
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 33E8A68
-	for <nvdimm@lists.linux.dev>; Fri, 12 Nov 2021 21:52:49 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10166"; a="294037112"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6C84F68
+	for <nvdimm@lists.linux.dev>; Fri, 12 Nov 2021 21:53:12 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10166"; a="231935208"
 X-IronPort-AV: E=Sophos;i="5.87,230,1631602800"; 
-   d="scan'208";a="294037112"
-Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 13:52:48 -0800
+   d="scan'208";a="231935208"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 13:53:03 -0800
 X-IronPort-AV: E=Sophos;i="5.87,230,1631602800"; 
-   d="scan'208";a="471283861"
+   d="scan'208";a="584106630"
 Received: from gjmorale-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.137.106])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 13:52:48 -0800
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 13:53:02 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <linux-cxl@vger.kernel.org>
 Cc: Dan Williams <dan.j.williams@intel.com>,
 	Ben Widawsky <ben.widawsky@intel.com>,
 	<nvdimm@lists.linux.dev>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v6 16/16] cxl: add health information to cxl-list
-Date: Fri, 12 Nov 2021 14:52:45 -0700
-Message-Id: <20211112215245.1887356-1-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v6 10/16] libcxl: add representation for an nvdimm bridge object
+Date: Fri, 12 Nov 2021 14:52:59 -0700
+Message-Id: <20211112215259.1887583-1-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20211111204436.1560365-17-vishal.l.verma@intel.com>
-References: <20211111204436.1560365-17-vishal.l.verma@intel.com>
+In-Reply-To: <20211111204436.1560365-11-vishal.l.verma@intel.com>
+References: <20211111204436.1560365-11-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=9561; h=from:subject; bh=8ZYI7ATPwJQglcg+9mSE51jo9xWDuD3lTULe2WQJROA=; b=owGbwMvMwCHGf25diOft7jLG02pJDIl9jxTNEn/XHV5xIDP7vP8F3/q7vN8PTPFlNqs++u79umzP LV8DOkpZGMQ4GGTFFFn+7vnIeExuez5PYIIjzBxWJpAhDFycAjCR28cY/nDxdnvL/ZkXsf2VZvTfop xLq6/2bNlq0n1EZh3vBpmfk+4x/BVvMmFN5X95ff+6hQfLZvW+5lg3bVn40fYlCxSb36+uV2cEAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5058; h=from:subject; bh=VKhcPmwcsIMBOidgxz3YvNP7c1RsIXghnwOqKeTLtus=; b=owGbwMvMwCHGf25diOft7jLG02pJDIl9j6zbitdn901X375i4f3ZHHUVtRN/fxX6nHVm2oWb4jsX 9Sq5dpSyMIhxMMiKKbL83fOR8Zjc9nyewARHmDmsTCBDGLg4BWAiJxgYGa7f27vH4eJal3Nf3Xmn6Y sfm5www2FBTcIjN1bJuEKx9aKMDFuX/GN9EcvyrIdF4NabwEOfw8SajkW9kT4tte+7UpBYHg8A
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Add JSON output for fields from the 'GET_HEALTH_INFO' mailbox command
-to memory device listings.
+Add an nvdimm bridge object representation internal to libcxl. A bridge
+object is tied to its parent memdev object, and this patch adds its
+first interface, which checks whether a bridge is 'active' - i.e.
+implying the label space on the memdev is owned by the kernel.
 
 Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/cxl/cxl-list.txt |  38 +++++++
- util/json.h                    |   1 +
- cxl/list.c                     |   5 +
- util/json.c                    | 179 +++++++++++++++++++++++++++++++++
- 4 files changed, 223 insertions(+)
+ cxl/lib/private.h  |  8 +++++
+ cxl/lib/libcxl.c   | 73 ++++++++++++++++++++++++++++++++++++++++++++++
+ cxl/libcxl.h       |  1 +
+ cxl/lib/libcxl.sym |  1 +
+ 4 files changed, 83 insertions(+)
 
-diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-index e761cfa..d305a37 100644
---- a/Documentation/cxl/cxl-list.txt
-+++ b/Documentation/cxl/cxl-list.txt
-@@ -53,6 +53,44 @@ OPTIONS
- --idle::
- 	Include idle (not enabled / zero-sized) devices in the listing
+diff --git a/cxl/lib/private.h b/cxl/lib/private.h
+index c4ed741..525c41e 100644
+--- a/cxl/lib/private.h
++++ b/cxl/lib/private.h
+@@ -10,6 +10,13 @@
  
-+-H::
-+--health::
-+	Include health information in the memdev listing. Example listing:
-+----
-+# cxl list -m mem0 -H
-+[
-+  {
-+    "memdev":"mem0",
-+    "pmem_size":268435456,
-+    "ram_size":268435456,
-+    "health":{
-+      "maintenance_needed":true,
-+      "performance_degraded":true,
-+      "hw_replacement_needed":true,
-+      "media_normal":false,
-+      "media_not_ready":false,
-+      "media_persistence_lost":false,
-+      "media_data_lost":true,
-+      "media_powerloss_persistence_loss":false,
-+      "media_shutdown_persistence_loss":false,
-+      "media_persistence_loss_imminent":false,
-+      "media_powerloss_data_loss":false,
-+      "media_shutdown_data_loss":false,
-+      "media_data_loss_imminent":false,
-+      "ext_life_used":"normal",
-+      "ext_temperature":"critical",
-+      "ext_corrected_volatile":"warning",
-+      "ext_corrected_persistent":"normal",
-+      "life_used_percent":15,
-+      "temperature":25,
-+      "dirty_shutdowns":10,
-+      "volatile_errors":20,
-+      "pmem_errors":30
-+    }
-+  }
-+]
-+----
+ #define CXL_EXPORT __attribute__ ((visibility("default")))
+ 
++struct cxl_nvdimm_bridge {
++	int id;
++	void *dev_buf;
++	size_t buf_len;
++	char *dev_path;
++};
 +
- include::human-option.txt[]
- 
- include::verbose-option.txt[]
-diff --git a/util/json.h b/util/json.h
-index 91918c8..ce575e6 100644
---- a/util/json.h
-+++ b/util/json.h
-@@ -19,6 +19,7 @@ enum util_json_flags {
- 	UTIL_JSON_CONFIGURED	= (1 << 7),
- 	UTIL_JSON_FIRMWARE	= (1 << 8),
- 	UTIL_JSON_DAX_MAPPINGS	= (1 << 9),
-+	UTIL_JSON_HEALTH	= (1 << 10),
+ struct cxl_memdev {
+ 	int id, major, minor;
+ 	void *dev_buf;
+@@ -23,6 +30,7 @@ struct cxl_memdev {
+ 	int payload_max;
+ 	size_t lsa_size;
+ 	struct kmod_module *module;
++	struct cxl_nvdimm_bridge *bridge;
  };
  
- struct json_object;
-diff --git a/cxl/list.c b/cxl/list.c
-index 7c1d2eb..931606a 100644
---- a/cxl/list.c
-+++ b/cxl/list.c
-@@ -16,6 +16,7 @@ static struct {
- 	bool memdevs;
- 	bool idle;
- 	bool human;
-+	bool health;
- } list;
+ enum cxl_cmd_query_status {
+diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+index def3a97..60ed646 100644
+--- a/cxl/lib/libcxl.c
++++ b/cxl/lib/libcxl.c
+@@ -45,11 +45,19 @@ struct cxl_ctx {
+ 	void *private_data;
+ };
  
- static unsigned long listopts_to_flags(void)
-@@ -26,6 +27,8 @@ static unsigned long listopts_to_flags(void)
- 		flags |= UTIL_JSON_IDLE;
- 	if (list.human)
- 		flags |= UTIL_JSON_HUMAN;
-+	if (list.health)
-+		flags |= UTIL_JSON_HEALTH;
- 	return flags;
- }
- 
-@@ -57,6 +60,8 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
- 		OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
- 		OPT_BOOLEAN('u', "human", &list.human,
- 				"use human friendly number formats "),
-+		OPT_BOOLEAN('H', "health", &list.health,
-+				"include memory device health information "),
- 		OPT_END(),
- 	};
- 	const char * const u[] = {
-diff --git a/util/json.c b/util/json.c
-index 3be3a92..f97cf07 100644
---- a/util/json.c
-+++ b/util/json.c
-@@ -1442,6 +1442,180 @@ struct json_object *util_badblock_rec_to_json(u64 block, u64 count,
- 	return NULL;
- }
- 
-+static struct json_object *util_cxl_memdev_health_to_json(
-+		struct cxl_memdev *memdev, unsigned long flags)
++static void free_bridge(struct cxl_nvdimm_bridge *bridge)
 +{
-+	struct json_object *jhealth;
-+	struct json_object *jobj;
-+	struct cxl_cmd *cmd;
-+	u32 field;
-+	int rc;
++	free(bridge->dev_buf);
++	free(bridge->dev_path);
++	free(bridge);
++}
 +
-+	jhealth = json_object_new_object();
-+	if (!jhealth)
-+		return NULL;
-+	if (!memdev)
-+		goto err_jobj;
+ static void free_memdev(struct cxl_memdev *memdev, struct list_head *head)
+ {
+ 	if (head)
+ 		list_del_from(head, &memdev->list);
+ 	kmod_module_unref(memdev->module);
++	free_bridge(memdev->bridge);
+ 	free(memdev->firmware_version);
+ 	free(memdev->dev_buf);
+ 	free(memdev->dev_path);
+@@ -205,6 +213,40 @@ CXL_EXPORT void cxl_set_log_priority(struct cxl_ctx *ctx, int priority)
+ 	ctx->ctx.log_priority = priority;
+ }
+ 
++static void *add_cxl_bridge(void *parent, int id, const char *br_base)
++{
++	const char *devname = devpath_to_devname(br_base);
++	struct cxl_memdev *memdev = parent;
++	struct cxl_ctx *ctx = memdev->ctx;
++	struct cxl_nvdimm_bridge *bridge;
 +
-+	cmd = cxl_cmd_new_get_health_info(memdev);
-+	if (!cmd)
-+		goto err_jobj;
++	dbg(ctx, "%s: bridge_base: \'%s\'\n", devname, br_base);
 +
-+	rc = cxl_cmd_submit(cmd);
-+	if (rc < 0)
-+		goto err_cmd;
-+	rc = cxl_cmd_get_mbox_status(cmd);
-+	if (rc != 0)
-+		goto err_cmd;
++	bridge = calloc(1, sizeof(*bridge));
++	if (!bridge)
++		goto err_dev;
++	bridge->id = id;
 +
-+	/* health_status fields */
-+	rc = cxl_cmd_health_info_get_maintenance_needed(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "maintenance_needed", jobj);
++	bridge->dev_path = strdup(br_base);
++	if (!bridge->dev_path)
++		goto err_read;
 +
-+	rc = cxl_cmd_health_info_get_performance_degraded(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "performance_degraded", jobj);
++	bridge->dev_buf = calloc(1, strlen(br_base) + 50);
++	if (!bridge->dev_buf)
++		goto err_read;
++	bridge->buf_len = strlen(br_base) + 50;
 +
-+	rc = cxl_cmd_health_info_get_hw_replacement_needed(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "hw_replacement_needed", jobj);
++	memdev->bridge = bridge;
++	return bridge;
 +
-+	/* media_status fields */
-+	rc = cxl_cmd_health_info_get_media_normal(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_normal", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_not_ready(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_not_ready", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_persistence_lost(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_persistence_lost", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_data_lost(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_data_lost", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_powerloss_persistence_loss(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_powerloss_persistence_loss", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_shutdown_persistence_loss(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_shutdown_persistence_loss", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_persistence_loss_imminent(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_persistence_loss_imminent", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_powerloss_data_loss(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_powerloss_data_loss", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_shutdown_data_loss(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_shutdown_data_loss", jobj);
-+
-+	rc = cxl_cmd_health_info_get_media_data_loss_imminent(cmd);
-+	jobj = json_object_new_boolean(rc);
-+	if (jobj)
-+		json_object_object_add(jhealth, "media_data_loss_imminent", jobj);
-+
-+	/* ext_status fields */
-+	if (cxl_cmd_health_info_get_ext_life_used_normal(cmd))
-+		jobj = json_object_new_string("normal");
-+	else if (cxl_cmd_health_info_get_ext_life_used_warning(cmd))
-+		jobj = json_object_new_string("warning");
-+	else if (cxl_cmd_health_info_get_ext_life_used_critical(cmd))
-+		jobj = json_object_new_string("critical");
-+	else
-+		jobj = json_object_new_string("unknown");
-+	if (jobj)
-+		json_object_object_add(jhealth, "ext_life_used", jobj);
-+
-+	if (cxl_cmd_health_info_get_ext_temperature_normal(cmd))
-+		jobj = json_object_new_string("normal");
-+	else if (cxl_cmd_health_info_get_ext_temperature_warning(cmd))
-+		jobj = json_object_new_string("warning");
-+	else if (cxl_cmd_health_info_get_ext_temperature_critical(cmd))
-+		jobj = json_object_new_string("critical");
-+	else
-+		jobj = json_object_new_string("unknown");
-+	if (jobj)
-+		json_object_object_add(jhealth, "ext_temperature", jobj);
-+
-+	if (cxl_cmd_health_info_get_ext_corrected_volatile_normal(cmd))
-+		jobj = json_object_new_string("normal");
-+	else if (cxl_cmd_health_info_get_ext_corrected_volatile_warning(cmd))
-+		jobj = json_object_new_string("warning");
-+	else
-+		jobj = json_object_new_string("unknown");
-+	if (jobj)
-+		json_object_object_add(jhealth, "ext_corrected_volatile", jobj);
-+
-+	if (cxl_cmd_health_info_get_ext_corrected_persistent_normal(cmd))
-+		jobj = json_object_new_string("normal");
-+	else if (cxl_cmd_health_info_get_ext_corrected_persistent_warning(cmd))
-+		jobj = json_object_new_string("warning");
-+	else
-+		jobj = json_object_new_string("unknown");
-+	if (jobj)
-+		json_object_object_add(jhealth, "ext_corrected_persistent", jobj);
-+
-+	/* other fields */
-+	field = cxl_cmd_health_info_get_life_used(cmd);
-+	if (field != 0xff) {
-+		jobj = json_object_new_int(field);
-+		if (jobj)
-+			json_object_object_add(jhealth, "life_used_percent", jobj);
-+	}
-+
-+	field = cxl_cmd_health_info_get_temperature(cmd);
-+	if (field != 0xffff) {
-+		jobj = json_object_new_int(field);
-+		if (jobj)
-+			json_object_object_add(jhealth, "temperature", jobj);
-+	}
-+
-+	field = cxl_cmd_health_info_get_dirty_shutdowns(cmd);
-+	jobj = json_object_new_int64(field);
-+	if (jobj)
-+		json_object_object_add(jhealth, "dirty_shutdowns", jobj);
-+
-+	field = cxl_cmd_health_info_get_volatile_errors(cmd);
-+	jobj = json_object_new_int64(field);
-+	if (jobj)
-+		json_object_object_add(jhealth, "volatile_errors", jobj);
-+
-+	field = cxl_cmd_health_info_get_pmem_errors(cmd);
-+	jobj = json_object_new_int64(field);
-+	if (jobj)
-+		json_object_object_add(jhealth, "pmem_errors", jobj);
-+
-+	cxl_cmd_unref(cmd);
-+	return jhealth;
-+
-+err_cmd:
-+	cxl_cmd_unref(cmd);
-+err_jobj:
-+	json_object_put(jhealth);
++ err_read:
++	free(bridge->dev_buf);
++	free(bridge->dev_path);
++	free(bridge);
++ err_dev:
 +	return NULL;
 +}
 +
- struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
- 		unsigned long flags)
+ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
  {
-@@ -1464,5 +1638,10 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
- 	if (jobj)
- 		json_object_object_add(jdev, "ram_size", jobj);
+ 	const char *devname = devpath_to_devname(cxlmem_base);
+@@ -271,6 +313,8 @@ static void *add_cxl_memdev(void *parent, int id, const char *cxlmem_base)
+ 		goto err_read;
+ 	memdev->buf_len = strlen(cxlmem_base) + 50;
  
-+	if (flags & UTIL_JSON_HEALTH) {
-+		jobj = util_cxl_memdev_health_to_json(memdev, flags);
-+		if (jobj)
-+			json_object_object_add(jdev, "health", jobj);
-+	}
- 	return jdev;
++	sysfs_device_parse(ctx, cxlmem_base, "pmem", memdev, add_cxl_bridge);
++
+ 	cxl_memdev_foreach(ctx, memdev_dup)
+ 		if (memdev_dup->id == memdev->id) {
+ 			free_memdev(memdev, NULL);
+@@ -362,6 +406,35 @@ CXL_EXPORT size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev)
+ 	return memdev->lsa_size;
  }
+ 
++static int is_enabled(const char *drvpath)
++{
++	struct stat st;
++
++	if (lstat(drvpath, &st) < 0 || !S_ISLNK(st.st_mode))
++		return 0;
++	else
++		return 1;
++}
++
++CXL_EXPORT int cxl_memdev_nvdimm_bridge_active(struct cxl_memdev *memdev)
++{
++	struct cxl_ctx *ctx = cxl_memdev_get_ctx(memdev);
++	struct cxl_nvdimm_bridge *bridge = memdev->bridge;
++	char *path = bridge->dev_buf;
++	int len = bridge->buf_len;
++
++	if (!bridge)
++		return 0;
++
++	if (snprintf(path, len, "%s/driver", bridge->dev_path) >= len) {
++		err(ctx, "%s: nvdimm bridge buffer too small!\n",
++				cxl_memdev_get_devname(memdev));
++		return 0;
++	}
++
++	return is_enabled(path);
++}
++
+ CXL_EXPORT void cxl_cmd_unref(struct cxl_cmd *cmd)
+ {
+ 	if (!cmd)
+diff --git a/cxl/libcxl.h b/cxl/libcxl.h
+index d3b97a1..535e349 100644
+--- a/cxl/libcxl.h
++++ b/cxl/libcxl.h
+@@ -43,6 +43,7 @@ unsigned long long cxl_memdev_get_pmem_size(struct cxl_memdev *memdev);
+ unsigned long long cxl_memdev_get_ram_size(struct cxl_memdev *memdev);
+ const char *cxl_memdev_get_firmware_verison(struct cxl_memdev *memdev);
+ size_t cxl_memdev_get_label_size(struct cxl_memdev *memdev);
++int cxl_memdev_nvdimm_bridge_active(struct cxl_memdev *memdev);
+ 
+ #define cxl_memdev_foreach(ctx, memdev) \
+         for (memdev = cxl_memdev_get_first(ctx); \
+diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
+index 858e953..f3b0c63 100644
+--- a/cxl/lib/libcxl.sym
++++ b/cxl/lib/libcxl.sym
+@@ -65,6 +65,7 @@ global:
+ 	cxl_cmd_new_read_label;
+ 	cxl_cmd_read_label_get_payload;
+ 	cxl_memdev_get_label_size;
++	cxl_memdev_nvdimm_bridge_active;
+ local:
+         *;
+ };
 -- 
 2.31.1
 
