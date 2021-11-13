@@ -1,567 +1,277 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 892942C83
-	for <nvdimm@lists.linux.dev>; Sat, 13 Nov 2021 00:50:53 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10166"; a="213954006"
-X-IronPort-AV: E=Sophos;i="5.87,230,1631602800"; 
-   d="scan'208";a="213954006"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 16:50:52 -0800
-X-IronPort-AV: E=Sophos;i="5.87,230,1631602800"; 
-   d="scan'208";a="670841155"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Nov 2021 16:50:52 -0800
-Date: Fri, 12 Nov 2021 16:50:52 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Dave Hansen <dave.hansen@linux.intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, x86@kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org
-Subject: Re: [PATCH V7 08/18] x86/entry: Preserve PKRS MSR across exceptions
-Message-ID: <20211113005051.GN3538886@iweiny-DESK2.sc.intel.com>
-References: <20210804043231.2655537-1-ira.weiny@intel.com>
- <20210804043231.2655537-9-ira.weiny@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA8BA2C85
+	for <nvdimm@lists.linux.dev>; Sat, 13 Nov 2021 05:50:12 +0000 (UTC)
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 1AD4Tx4U014038;
+	Sat, 13 Nov 2021 05:50:05 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-id : content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=Qwt9oWznHeWclZ/kxxol/NwQPEu/t3MTWZTJaM2yvDI=;
+ b=c0MZ2C1Vcm0Hff45qHMAmcTJm4evXLchyAPWQDZwBBMA9+zsveJ6axiZhn9PmAXe8llH
+ K3x3qdBD3lKfmfC05xNj56TQ1QGjTloSj3SUWSOyWyNdZnPn0EqapSkQRR8pdUL73NMD
+ OjXtM0yK3152EyJ4Y2pmKH9CBf+HQBdxZvpdOqDkgEhLtZwC8tM/8wItYDcLl5/bt1Jt
+ r3Z3YoR7vBV+I5rBocSU1RT6W+JkwusbpE7mtAEKdzHDq1a2yTcTWMslm01D7BVzrLNf
+ pzNI53SrB1Y9K4EzE1tYtRrP+drxO6qiZhv5brZlokrkGAqj1VBIqDGyzFFX+EDCpAzR Kw== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3ca3sd8brb-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sat, 13 Nov 2021 05:50:05 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 1AD5g0cd092812;
+	Sat, 13 Nov 2021 05:50:04 GMT
+Received: from nam11-dm6-obe.outbound.protection.outlook.com (mail-dm6nam11lp2169.outbound.protection.outlook.com [104.47.57.169])
+	by userp3030.oracle.com with ESMTP id 3ca2fsfbj1-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Sat, 13 Nov 2021 05:50:03 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Ex1e/YvdBaYb8qrLcW1ao+7igLiJD7NfVssq1h9Gfi2XIfNk2BU0x1Do+PMzGTPAyuaPYEdJQrJNS+yYvBLElEWjD5hpZMoUIZHyICC6LyXOjAv4Sih1aDXAA5ijUPnOv1ZqqjHWHGZP221Bqfgk37U9SXCXpca+YVHKrpxcd+Zwit/z+5Z+O3ofvM8Gfpok6pjVJksybN33YErNeH6fvKbBTDfs3siXeRJrkChkj0A6YWhLZogCmF8gmog7XVFOWWdZ6fGWG/AYM5xG8Fa77nqfUODqKvjxYPcZb5RTxTzfHuSazqImMon7OAUb+HAdIvSgSX+nGjjhTwxh5bGsIg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Qwt9oWznHeWclZ/kxxol/NwQPEu/t3MTWZTJaM2yvDI=;
+ b=CUidpRo+Ybou0ZH8b67tBwXEQaF7KhGO+AfdBIFCrqT56LtE4XRV6xN8Gs+viJVKTePxnZJxgM8azU2X3ORrJineViMIDlXEXbt8X7dj1vCgG2J0H8sdYGySeQdr1+SRY7l7GGcGb7OJ29Qvv3Tl0Iy3Go2lOV7FSJQ4ka9XjqD3xcgXTqjR2THoXCUM8sczskkuztQQf+g1WMSKwfsaCuOGFeHn/Y5kGuHoFdT0545O9ZSPhvH5Li3ng9TbxLEC8tKmiq/Q6PBan7/4ipECp4MjyU0nj141mR0uDVJg0/ZnJG5q60f1GYwh23dHEDtpOD3f8kl2rYF7e/IwRnmDwQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Qwt9oWznHeWclZ/kxxol/NwQPEu/t3MTWZTJaM2yvDI=;
+ b=PybIwyNj2kh84Xv4D0aRzWiItZjZsS7zkaK4h4/ciivewsJtsaKHlgKXyt0Y+vwUFdTdWOYnJ1D/Icm7NKlHrOG3dXSCO2vPFE9OqqL6S+j+GTw1j6gWjokbRAh+692isTxADimJHiYv9jwa4I6/rR24rsp/lE8lfylmrgnOikM=
+Received: from CO1PR10MB4418.namprd10.prod.outlook.com (2603:10b6:303:9c::17)
+ by MWHPR10MB1807.namprd10.prod.outlook.com (2603:10b6:300:109::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4690.19; Sat, 13 Nov
+ 2021 05:50:02 +0000
+Received: from CO1PR10MB4418.namprd10.prod.outlook.com
+ ([fe80::f12e:1d7a:66a3:3b1b]) by CO1PR10MB4418.namprd10.prod.outlook.com
+ ([fe80::f12e:1d7a:66a3:3b1b%5]) with mapi id 15.20.4690.026; Sat, 13 Nov 2021
+ 05:50:01 +0000
+From: Jane Chu <jane.chu@oracle.com>
+To: Dan Williams <dan.j.williams@intel.com>
+CC: Borislav Petkov <bp@alien8.de>, "Luck, Tony" <tony.luck@intel.com>,
+        Linux
+ NVDIMM <nvdimm@lists.linux.dev>,
+        Luis Chamberlain <mcgrof@suse.com>
+Subject: Re: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+Thread-Topic: [RFT PATCH] x86/pat: Fix set_mce_nospec() for pmem
+Thread-Index: 
+ AQHXcsuUGdCdj5TLi0qPljMZ83rdmquiLs2AgAISgwCAARWOAIACN9EAgAD6fICABatcAIAPJJmAgAACXwCAACIPAIAABBsAgAAEnACAAAQRgIAABMWAgAABtoCAAAQ3AIAAA0SAgAAEIoCAAAXwAIAADw6AgAAjpgCAABYKgIAAk30AgABlNoCAABYmgIAABQ6AgAEIqwCAPjKpgIABmROAgAAF4YCAAR65gIAAGD6AgAA1W4CAAAkygIAAcDKA
+Date: Sat, 13 Nov 2021 05:50:01 +0000
+Message-ID: <1b1600b0-b50b-3e35-3609-9503b8b960b8@oracle.com>
+References: 
+ <CAPcyv4jEby_ifqgPyfbSgouLJKseNRCCN=rcLHze_Y4X8BZC7g@mail.gmail.com>
+ <YVYqJZhBiTMXezZJ@zn.tnic>
+ <CAPcyv4heNPRqA-2SMsMVc4w7xGo=xgu05yD2nsVbCwGELa-0hQ@mail.gmail.com>
+ <YVY7wY/mhMiRLATk@zn.tnic> <ba3b12bf-c71e-7422-e205-258e96f29be5@oracle.com>
+ <CAPcyv4j9KH+Y4hperuCwBMLOSPHKfbbku_T8uFNoqiNYrvfRdA@mail.gmail.com>
+ <YVbn3ohRhYkTNdEK@zn.tnic>
+ <CAPcyv4i4r5-0i3gpZxwP7ojndqbrSmebtDcGbo8JR346B-2NpQ@mail.gmail.com>
+ <YVdPWcggek5ykbft@zn.tnic>
+ <CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com>
+ <YVgxnPWX2xCcbv19@zn.tnic> <48c47c52-499a-8721-350a-5ac55a9a70de@oracle.com>
+ <7ae58b24-ad48-7afa-c023-23ccf28e3994@oracle.com>
+ <CAPcyv4imjWNuwsQKhWinq+vtuSgXAznhLXVfsy69Dq7q7eiXbA@mail.gmail.com>
+ <f80d03c6-e650-49df-81d1-309dd138de8f@oracle.com>
+ <CAPcyv4hPRyPtAJoDdOn+UnJQYgQW7XQTnMveKu9YdYXxekUg8A@mail.gmail.com>
+ <a3c07537-f623-17fb-d2b7-45500093c337@oracle.com>
+ <CAPcyv4iF0bQx0J0qrXVdCfRcS4QWaCyR1-DuXaoe59ofzH-FEw@mail.gmail.com>
+In-Reply-To: 
+ <CAPcyv4iF0bQx0J0qrXVdCfRcS4QWaCyR1-DuXaoe59ofzH-FEw@mail.gmail.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.2.1
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: a760b8a1-12ac-4b91-9a71-08d9a6696f5c
+x-ms-traffictypediagnostic: MWHPR10MB1807:
+x-microsoft-antispam-prvs: 
+ <MWHPR10MB18079C25F2C4BF352D67F2ADF3969@MWHPR10MB1807.namprd10.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:10000;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 
+ TglROMUsQnzUsNMpWuIfoBR8yLVQT6Fr13/c3ksKVby/is4WDbkVrORJjARmCeDuCdUxlrqZ9mJg4E8UZ/6XbqOqffbT33GeRP8Jff6p9GLlCbmQhX0+jxbWZOghVAFGablV4SICInXQvWxwIEE5Hi8D3Bi2R5zFD+YT84FTAMv/3F+y6Qf9n+PCXb2TeSq04JYbR+f8qY6M5d6DJck/Ywv7sINqSVze9rQ6M/RFlnJFjsmFLVQLHQ92ih7V/RzGlz83gCpy/n7qCQDXP5YJ39RVF3nbKHzWPmmNcYlLqM53+N4YrhCh089sC/95GbRuZgnrUXO1rfZ4OSoimGMR0ovDbzvix+HrvvTIl9cOMF+SoL48ZXnM41H5kFue8s9/EGtALxa9ziiCYj3lv1kBWqhwps3ViaImESGS1oY7XKnnuGN9HsWXYUOx+gkE27K7FW4iH5aazYCRvfjXlmN1yoZmNIcGgDM8VTsXRuF7VU3v8J/cDytkq1yIyx5FtQDH7l8q3CfhvZhdY5+d+5PK3l09VtI+gWuV6q2vBiQDv/DP1qvILJBjcyseA9Xpi0iZwd0kpNxiXdikrD7ZGYDC5EMBqMyfEZiqiuH0i4PBoLF9JXVCMhoWh1+qIu6hie5Lah4iW0cilJH2c5AmvRQZJ3ClqF2qYW5HDDl8mL+y08fmDS7DYsz16iYbdy4t3AQ9iiv0bIPyrYSfV3gmPYUudON9PF24HUr+iemoxl4oy2s2z/S/ckWK15rNFroqb+zUJICF0Njwe615SP8VBXeHbQ==
+x-forefront-antispam-report: 
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:CO1PR10MB4418.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(186003)(6486002)(86362001)(36756003)(38100700002)(38070700005)(316002)(122000001)(4326008)(8676002)(6512007)(6916009)(31696002)(26005)(31686004)(2616005)(5660300002)(54906003)(508600001)(76116006)(66446008)(66556008)(64756008)(66476007)(66946007)(44832011)(6506007)(53546011)(8936002)(83380400001)(2906002)(71200400001)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: 
+ =?utf-8?B?aEZuRUEwTFZUVC9MeTZmS0JRRVR6RzZZV25iQ0FreWN1aUJUdWZRSkdlenB0?=
+ =?utf-8?B?NjhnMFJaYm95YmZPN1EyM3VBRXlwYkYvSHZTSVR5M1JqRXE0RHVIV0Zsck0x?=
+ =?utf-8?B?TFNKbzA1NEd1WDZMWVBvM09LNHc1ak5TSmxXd2c5SmwwaDBMUlI5aDR0Mkxh?=
+ =?utf-8?B?YkxEQVgxS0pFUlV1dnR6ZmdwQVRnUnhwRHg4MU9SMWsxUXpUV3ZpR3VxWk1y?=
+ =?utf-8?B?ZkphOXZ1T1A3MllYNndOb3pVUXM1ZmVZbzg1bmlUVitJcStZY0JZN3BCNjVp?=
+ =?utf-8?B?ZllhVUptR0dNSWhJSVhmclVrdURpeGN6VVcwZWpYREx5OUVQeG9XcW9pakxn?=
+ =?utf-8?B?RThIYjEwWFdIeG5jSXdlem1LL0d3TFRiMFdPWDJnenIweW04RG5ydlVHRCsv?=
+ =?utf-8?B?YTZ5QVI4bWpPTDZRdStuU0hiVlg1SUJCOEp5N3RUa3pxSWs0TndJbitYUmc3?=
+ =?utf-8?B?dXpkaFp1N211Y3lyMkp5UlExV3drNEl0Z3l0NDEwWjlxcElXV3piOVJlY1lT?=
+ =?utf-8?B?MXkwQTNBVG9QaHFaZjRUaWxIZU51RkovU1JlTTNMUE03NU13M1ByMEhnZE15?=
+ =?utf-8?B?SFNLdU1DSzZ6TVJkVnFWR29JMUlra0tMZmtpZ2NnZ09TUW11S0k1WXUzRDVG?=
+ =?utf-8?B?TUJaWDl2eFRobHlEZDRyekVDMDNMcjNNZllkMmN3c0NuOU5zWGs0ZU5zR2VK?=
+ =?utf-8?B?N0FkNjl6V2JVY2JZYWRrd2hVY1R4UU01c2ZVYjhzSFJ5cW9LN052SDF1MnVM?=
+ =?utf-8?B?UFg0Vkp6L2lxSlJ6d0hvYWpnZXUxQ0w2YUNvUkNNaXhCNHV5WTRiSzZNaVhB?=
+ =?utf-8?B?TW9CdDVYakswbWJzMU9TYU1UaDJ3ck1GOTE1VnE1Wjd3SWZhVk9CbHA3dDZF?=
+ =?utf-8?B?bGJabUZtMjA2L2pvSDZvakRleGNqK0x0eHlYZTd0N003QmRnaW9PbmtPTWY0?=
+ =?utf-8?B?cFdBd3l5dFFZek1EL1ViVzhOdzcrb2JyVDdGRDB5Y0RxQ0ZKUlBEc1lEL3Y5?=
+ =?utf-8?B?Uit6Q1VoVGcyblMzZEpqTjBRUEV1NldxVGJFM0tuK0s0Ni9BVWdSK1pmaFo5?=
+ =?utf-8?B?RSszbWcyQytXdVRsYkNIREF2dzFXdFpLYUdsejlyaHYxa0VsQlN1ZUZkSDhL?=
+ =?utf-8?B?UGNtbUNuVURZYTFRamJoSzVUSWJNLzNFYnV0Y3VPOVFqSUk0SFl3bE9YaSti?=
+ =?utf-8?B?VTRjenhCQkd3SFp1UHRNdFdtUmpldzdqWWNXV090bHpVaE0vdHhHYWJBcmdk?=
+ =?utf-8?B?QzVVYWVtM1E4YlRqWFZITzBiMU9qQmluVnNJOExwS2puamRCZ1dZVjcydkdy?=
+ =?utf-8?B?MzVmaEFWK0d3NytaZk1ETFBsZitEVWlWQkRKUDk0QnhmOWdsNzZsUmFyRW5X?=
+ =?utf-8?B?RW5aSmJlRU9ROUVCd1RvYkhCbnAvZGd1cStsMjR2VlY4UFpGdWZIbW1pVDFw?=
+ =?utf-8?B?WnRIS2QyQkZwSkVoMHdQUklRNTRnM2Z6WnAxaUVjY3hBcFJEWk1nYlRTQWhy?=
+ =?utf-8?B?YTRPeWE1VkJEMFRkQ25wNER6dk1TWmdTS1ZpbEFTdTBZY2pubmZUOUhqYTlY?=
+ =?utf-8?B?RW5TNW5KTWlBWFNSRmhrbTRrOXoxYTRNTzVlQU1TeUd4MEJnanpDR3ROWmNY?=
+ =?utf-8?B?bFlzNDFVZVU3RTZ4aG1UbVU3cUdJUTF1VXZsZGw4dDFIUW5QT0F2b2plZ05J?=
+ =?utf-8?B?MG5GTHpOdDgxalVqTkF4azNtOFhUczBJQXNJN1JiODNsMDVmWnpORTBuUmZu?=
+ =?utf-8?B?enQyVE5qT2xkY01zN2srRXpLVnphcHM0SmhzcXZnbXJSU0RoeFVGS01wZ2dt?=
+ =?utf-8?B?aE9PMkUwbTVLYXhQbjZRNndDUWQ4emtwbVlFb3ZGSzNacDZhK0dHQSt2ZGp3?=
+ =?utf-8?B?R0ErYm1Oa3VJUFFpTUxyZ1hqSW9nb0dRN0tiRU5qOUdmbmlmMGNHUUo4ODZa?=
+ =?utf-8?B?ZVgySEkvbWVrYXc1QW5ZR0xYb2ZxSDhvbUxuS0I3UnlDSVAvbmxCRzVhcTVY?=
+ =?utf-8?B?YWNCaVJzalJXZlJWY0d2bDErYUVLMHlFTnUzaDdjQnRUMU9VOVcrZVkvMlRO?=
+ =?utf-8?B?dW9uNzlQRFlaVTBlZlkyR05pSUo1aXlCb3VjallhWXJNdXN6QjU2TUJkNHlM?=
+ =?utf-8?B?b1gvOFAvS0dFakp0YUQ5azA4MzYyYTBobVdDcHZUeUFkdFcwVXNwTzU1OFRs?=
+ =?utf-8?B?RkE9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <E0F621EEDD211046B796B2377BCB5F70@namprd10.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210804043231.2655537-9-ira.weiny@intel.com>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: CO1PR10MB4418.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a760b8a1-12ac-4b91-9a71-08d9a6696f5c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 13 Nov 2021 05:50:01.8966
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: L1fL/lZodkDgPV56OSSJU3cGMXAI8CJ1Y66q8zyxGyc52GAKBh5piEgm1PggOLowhcCpQwwB8eW8/0KFrl7rzw==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MWHPR10MB1807
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10166 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 spamscore=0 phishscore=0 bulkscore=0
+ adultscore=0 mlxlogscore=999 malwarescore=0 mlxscore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2110150000
+ definitions=main-2111130028
+X-Proofpoint-GUID: ec6dNm8F7QaliE_9YEYJ99yup4AxCOkz
+X-Proofpoint-ORIG-GUID: ec6dNm8F7QaliE_9YEYJ99yup4AxCOkz
 
-On Tue, Aug 03, 2021 at 09:32:21PM -0700, 'Ira Weiny' wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> The PKRS MSR is not managed by XSAVE.  It is preserved through a context
-> switch but this support leaves exception handling code open to memory
-> accesses during exceptions.
-> 
-> 2 possible places for preserving this state were considered,
-> irqentry_state_t or pt_regs.[1]  pt_regs was much more complicated and
-> was potentially fraught with unintended consequences.[2]  However, Andy
-> came up with a way to hide additional values on the stack which could be
-> accessed as "extended_pt_regs".[3]
-
-Andy,
-
-I'm preparing to send V8 of this PKS work.  But I have not seen any feed back
-since I originally implemented this in V4[1].
-
-Does this meets your expectations?  Are there any issues you can see with this
-code?
-
-I would appreciate your feedback.
-
-Thanks,
-Ira
-
-[1] https://lore.kernel.org/lkml/20210322053020.2287058-9-ira.weiny@intel.com/
-
-> This method allows for; any place
-> which has struct pt_regs can get access to the extra information; no
-> extra information is added to irq_state; and pt_regs is left intact for
-> compatibility with outside tools like BPF.
-> 
-> To simplify, the assembly code only adds space on the stack.  The
-> setting or use of any needed values are left to the C code.  While some
-> entry points may not use this space it is still added where ever pt_regs
-> is passed to the C code for consistency.
-> 
-> Each nested exception gets another copy of this extended space allowing
-> for any number of levels of exception handling.
-> 
-> In the assembly, a macro is defined to allow a central place to add
-> space for other uses should the need arise.
-> 
-> Finally export pkrs_{save|restore}_irq to the common code to allow
-> it to preserve the current task's PKRS in the new extended pt_regs if
-> enabled.
-> 
-> Peter, Thomas, Andy, Dave, and Dan all suggested parts of the patch or
-> aided in the development of the patch..
-> 
-> [1] https://lore.kernel.org/lkml/CALCETrVe1i5JdyzD_BcctxQJn+ZE3T38EFPgjxN1F577M36g+w@mail.gmail.com/
-> [2] https://lore.kernel.org/lkml/874kpxx4jf.fsf@nanos.tec.linutronix.de/#t
-> [3] https://lore.kernel.org/lkml/CALCETrUHwZPic89oExMMe-WyDY8-O3W68NcZvse3=PGW+iW5=w@mail.gmail.com/
-> 
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Suggested-by: Dave Hansen <dave.hansen@linux.intel.com>
-> Suggested-by: Dan Williams <dan.j.williams@intel.com>
-> Suggested-by: Peter Zijlstra <peterz@infradead.org>
-> Suggested-by: Thomas Gleixner <tglx@linutronix.de>
-> Suggested-by: Andy Lutomirski <luto@kernel.org>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> 
-> ---
-> Changes for V7:
-> 	Rebased to 5.14 entry code
-> 	declare write_pkrs() in pks.h
-> 	s/INIT_PKRS_VALUE/pkrs_init_value
-> 	Remove unnecessary INIT_PKRS_VALUE def
-> 	s/pkrs_save_set_irq/pkrs_save_irq/
-> 		The inital value for exceptions is best managed
-> 		completely within the pkey code.
-> ---
->  arch/x86/entry/calling.h               | 26 +++++++++++++
->  arch/x86/entry/common.c                | 54 ++++++++++++++++++++++++++
->  arch/x86/entry/entry_64.S              | 22 ++++++-----
->  arch/x86/entry/entry_64_compat.S       |  6 +--
->  arch/x86/include/asm/pks.h             | 18 +++++++++
->  arch/x86/include/asm/processor-flags.h |  2 +
->  arch/x86/kernel/head_64.S              |  7 ++--
->  arch/x86/mm/fault.c                    |  3 ++
->  include/linux/pkeys.h                  | 11 +++++-
->  kernel/entry/common.c                  | 14 ++++++-
->  10 files changed, 143 insertions(+), 20 deletions(-)
-> 
-> diff --git a/arch/x86/entry/calling.h b/arch/x86/entry/calling.h
-> index a4c061fb7c6e..a2f94677c3fd 100644
-> --- a/arch/x86/entry/calling.h
-> +++ b/arch/x86/entry/calling.h
-> @@ -63,6 +63,32 @@ For 32-bit we have the following conventions - kernel is built with
->   * for assembly code:
->   */
->  
-> +/*
-> + * __call_ext_ptregs - Helper macro to call into C with extended pt_regs
-> + * @cfunc:		C function to be called
-> + *
-> + * This will ensure that extended_ptregs is added and removed as needed during
-> + * a call into C code.
-> + */
-> +.macro __call_ext_ptregs cfunc annotate_retpoline_safe:req
-> +#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-> +	/* add space for extended_pt_regs */
-> +	subq    $EXTENDED_PT_REGS_SIZE, %rsp
-> +#endif
-> +	.if \annotate_retpoline_safe == 1
-> +		ANNOTATE_RETPOLINE_SAFE
-> +	.endif
-> +	call	\cfunc
-> +#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-> +	/* remove space for extended_pt_regs */
-> +	addq    $EXTENDED_PT_REGS_SIZE, %rsp
-> +#endif
-> +.endm
-> +
-> +.macro call_ext_ptregs cfunc
-> +	__call_ext_ptregs \cfunc, annotate_retpoline_safe=0
-> +.endm
-> +
->  .macro PUSH_REGS rdx=%rdx rax=%rax save_ret=0
->  	.if \save_ret
->  	pushq	%rsi		/* pt_regs->si */
-> diff --git a/arch/x86/entry/common.c b/arch/x86/entry/common.c
-> index 6c2826417b33..a0d1d5519dba 100644
-> --- a/arch/x86/entry/common.c
-> +++ b/arch/x86/entry/common.c
-> @@ -19,6 +19,7 @@
->  #include <linux/nospec.h>
->  #include <linux/syscalls.h>
->  #include <linux/uaccess.h>
-> +#include <linux/pkeys.h>
->  
->  #ifdef CONFIG_XEN_PV
->  #include <xen/xen-ops.h>
-> @@ -34,6 +35,7 @@
->  #include <asm/io_bitmap.h>
->  #include <asm/syscall.h>
->  #include <asm/irq_stack.h>
-> +#include <asm/pks.h>
->  
->  #ifdef CONFIG_X86_64
->  
-> @@ -252,6 +254,56 @@ SYSCALL_DEFINE0(ni_syscall)
->  	return -ENOSYS;
->  }
->  
-> +#ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
-> +
-> +void show_extended_regs_oops(struct pt_regs *regs, unsigned long error_code)
-> +{
-> +	struct extended_pt_regs *ept_regs = extended_pt_regs(regs);
-> +
-> +	if (cpu_feature_enabled(X86_FEATURE_PKS) && (error_code & X86_PF_PK))
-> +		pr_alert("PKRS: 0x%x\n", ept_regs->thread_pkrs);
-> +}
-> +
-> +/*
-> + * PKRS is a per-logical-processor MSR which overlays additional protection for
-> + * pages which have been mapped with a protection key.
-> + *
-> + * Context switches save the MSR in the task struct thus taking that value to
-> + * other processors if necessary.
-> + *
-> + * To protect against exceptions having access to this memory save the current
-> + * thread value and set the PKRS value to be used during the exception.
-> + */
-> +void pkrs_save_irq(struct pt_regs *regs)
-> +{
-> +	struct extended_pt_regs *ept_regs;
-> +
-> +	BUILD_BUG_ON(sizeof(struct extended_pt_regs)
-> +			!= EXTENDED_PT_REGS_SIZE
-> +				+ sizeof(struct pt_regs));
-> +
-> +	if (!cpu_feature_enabled(X86_FEATURE_PKS))
-> +		return;
-> +
-> +	ept_regs = extended_pt_regs(regs);
-> +	ept_regs->thread_pkrs = current->thread.saved_pkrs;
-> +	write_pkrs(pkrs_init_value);
-> +}
-> +
-> +void pkrs_restore_irq(struct pt_regs *regs)
-> +{
-> +	struct extended_pt_regs *ept_regs;
-> +
-> +	if (!cpu_feature_enabled(X86_FEATURE_PKS))
-> +		return;
-> +
-> +	ept_regs = extended_pt_regs(regs);
-> +	write_pkrs(ept_regs->thread_pkrs);
-> +	current->thread.saved_pkrs = ept_regs->thread_pkrs;
-> +}
-> +
-> +#endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
-> +
->  #ifdef CONFIG_XEN_PV
->  #ifndef CONFIG_PREEMPTION
->  /*
-> @@ -309,6 +361,8 @@ __visible noinstr void xen_pv_evtchn_do_upcall(struct pt_regs *regs)
->  
->  	inhcall = get_and_clear_inhcall();
->  	if (inhcall && !WARN_ON_ONCE(state.exit_rcu)) {
-> +		/* Normally called by irqentry_exit, restore pkrs here */
-> +		pkrs_restore_irq(regs);
->  		irqentry_exit_cond_resched();
->  		instrumentation_end();
->  		restore_inhcall(inhcall);
-> diff --git a/arch/x86/entry/entry_64.S b/arch/x86/entry/entry_64.S
-> index e38a4cf795d9..1c390975a3de 100644
-> --- a/arch/x86/entry/entry_64.S
-> +++ b/arch/x86/entry/entry_64.S
-> @@ -332,7 +332,7 @@ SYM_CODE_END(ret_from_fork)
->  		movq	$-1, ORIG_RAX(%rsp)	/* no syscall to restart */
->  	.endif
->  
-> -	call	\cfunc
-> +	call_ext_ptregs \cfunc
->  
->  	jmp	error_return
->  .endm
-> @@ -435,7 +435,7 @@ SYM_CODE_START(\asmsym)
->  
->  	movq	%rsp, %rdi		/* pt_regs pointer */
->  
-> -	call	\cfunc
-> +	call_ext_ptregs \cfunc
->  
->  	jmp	paranoid_exit
->  
-> @@ -496,7 +496,7 @@ SYM_CODE_START(\asmsym)
->  	 * stack.
->  	 */
->  	movq	%rsp, %rdi		/* pt_regs pointer */
-> -	call	vc_switch_off_ist
-> +	call_ext_ptregs vc_switch_off_ist
->  	movq	%rax, %rsp		/* Switch to new stack */
->  
->  	UNWIND_HINT_REGS
-> @@ -507,7 +507,7 @@ SYM_CODE_START(\asmsym)
->  
->  	movq	%rsp, %rdi		/* pt_regs pointer */
->  
-> -	call	kernel_\cfunc
-> +	call_ext_ptregs kernel_\cfunc
->  
->  	/*
->  	 * No need to switch back to the IST stack. The current stack is either
-> @@ -542,7 +542,7 @@ SYM_CODE_START(\asmsym)
->  	movq	%rsp, %rdi		/* pt_regs pointer into first argument */
->  	movq	ORIG_RAX(%rsp), %rsi	/* get error code into 2nd argument*/
->  	movq	$-1, ORIG_RAX(%rsp)	/* no syscall to restart */
-> -	call	\cfunc
-> +	call_ext_ptregs \cfunc
->  
->  	jmp	paranoid_exit
->  
-> @@ -781,7 +781,7 @@ SYM_CODE_START_LOCAL(exc_xen_hypervisor_callback)
->  	movq	%rdi, %rsp			/* we don't return, adjust the stack frame */
->  	UNWIND_HINT_REGS
->  
-> -	call	xen_pv_evtchn_do_upcall
-> +	call_ext_ptregs xen_pv_evtchn_do_upcall
->  
->  	jmp	error_return
->  SYM_CODE_END(exc_xen_hypervisor_callback)
-> @@ -987,7 +987,7 @@ SYM_CODE_START_LOCAL(error_entry)
->  	/* Put us onto the real thread stack. */
->  	popq	%r12				/* save return addr in %12 */
->  	movq	%rsp, %rdi			/* arg0 = pt_regs pointer */
-> -	call	sync_regs
-> +	call_ext_ptregs sync_regs
->  	movq	%rax, %rsp			/* switch stack */
->  	ENCODE_FRAME_POINTER
->  	pushq	%r12
-> @@ -1042,7 +1042,7 @@ SYM_CODE_START_LOCAL(error_entry)
->  	 * as if we faulted immediately after IRET.
->  	 */
->  	mov	%rsp, %rdi
-> -	call	fixup_bad_iret
-> +	call_ext_ptregs fixup_bad_iret
->  	mov	%rax, %rsp
->  	jmp	.Lerror_entry_from_usermode_after_swapgs
->  SYM_CODE_END(error_entry)
-> @@ -1148,7 +1148,7 @@ SYM_CODE_START(asm_exc_nmi)
->  
->  	movq	%rsp, %rdi
->  	movq	$-1, %rsi
-> -	call	exc_nmi
-> +	call_ext_ptregs exc_nmi
->  
->  	/*
->  	 * Return back to user mode.  We must *not* do the normal exit
-> @@ -1184,6 +1184,8 @@ SYM_CODE_START(asm_exc_nmi)
->  	 * +---------------------------------------------------------+
->  	 * | pt_regs                                                 |
->  	 * +---------------------------------------------------------+
-> +	 * | (Optionally) extended_pt_regs                           |
-> +	 * +---------------------------------------------------------+
->  	 *
->  	 * The "original" frame is used by hardware.  Before re-enabling
->  	 * NMIs, we need to be done with it, and we need to leave enough
-> @@ -1360,7 +1362,7 @@ end_repeat_nmi:
->  
->  	movq	%rsp, %rdi
->  	movq	$-1, %rsi
-> -	call	exc_nmi
-> +	call_ext_ptregs exc_nmi
->  
->  	/* Always restore stashed CR3 value (see paranoid_entry) */
->  	RESTORE_CR3 scratch_reg=%r15 save_reg=%r14
-> diff --git a/arch/x86/entry/entry_64_compat.S b/arch/x86/entry/entry_64_compat.S
-> index 0051cf5c792d..53254d29d5c7 100644
-> --- a/arch/x86/entry/entry_64_compat.S
-> +++ b/arch/x86/entry/entry_64_compat.S
-> @@ -136,7 +136,7 @@ SYM_INNER_LABEL(entry_SYSENTER_compat_after_hwframe, SYM_L_GLOBAL)
->  .Lsysenter_flags_fixed:
->  
->  	movq	%rsp, %rdi
-> -	call	do_SYSENTER_32
-> +	call_ext_ptregs do_SYSENTER_32
->  	/* XEN PV guests always use IRET path */
->  	ALTERNATIVE "testl %eax, %eax; jz swapgs_restore_regs_and_return_to_usermode", \
->  		    "jmp swapgs_restore_regs_and_return_to_usermode", X86_FEATURE_XENPV
-> @@ -253,7 +253,7 @@ SYM_INNER_LABEL(entry_SYSCALL_compat_after_hwframe, SYM_L_GLOBAL)
->  	UNWIND_HINT_REGS
->  
->  	movq	%rsp, %rdi
-> -	call	do_fast_syscall_32
-> +	call_ext_ptregs do_fast_syscall_32
->  	/* XEN PV guests always use IRET path */
->  	ALTERNATIVE "testl %eax, %eax; jz swapgs_restore_regs_and_return_to_usermode", \
->  		    "jmp swapgs_restore_regs_and_return_to_usermode", X86_FEATURE_XENPV
-> @@ -410,6 +410,6 @@ SYM_CODE_START(entry_INT80_compat)
->  	cld
->  
->  	movq	%rsp, %rdi
-> -	call	do_int80_syscall_32
-> +	call_ext_ptregs do_int80_syscall_32
->  	jmp	swapgs_restore_regs_and_return_to_usermode
->  SYM_CODE_END(entry_INT80_compat)
-> diff --git a/arch/x86/include/asm/pks.h b/arch/x86/include/asm/pks.h
-> index e7727086cec2..76960ec71b4b 100644
-> --- a/arch/x86/include/asm/pks.h
-> +++ b/arch/x86/include/asm/pks.h
-> @@ -4,15 +4,33 @@
->  
->  #ifdef CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS
->  
-> +struct extended_pt_regs {
-> +	u32 thread_pkrs;
-> +	/* Keep stack 8 byte aligned */
-> +	u32 pad;
-> +	struct pt_regs pt_regs;
-> +};
-> +
->  void setup_pks(void);
->  void pkrs_write_current(void);
->  void pks_init_task(struct task_struct *task);
-> +void write_pkrs(u32 new_pkrs);
-> +
-> +static inline struct extended_pt_regs *extended_pt_regs(struct pt_regs *regs)
-> +{
-> +	return container_of(regs, struct extended_pt_regs, pt_regs);
-> +}
-> +
-> +void show_extended_regs_oops(struct pt_regs *regs, unsigned long error_code);
->  
->  #else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
->  
->  static inline void setup_pks(void) { }
->  static inline void pkrs_write_current(void) { }
->  static inline void pks_init_task(struct task_struct *task) { }
-> +static inline void write_pkrs(u32 new_pkrs) { }
-> +static inline void show_extended_regs_oops(struct pt_regs *regs,
-> +					   unsigned long error_code) { }
->  
->  #endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
->  
-> diff --git a/arch/x86/include/asm/processor-flags.h b/arch/x86/include/asm/processor-flags.h
-> index 02c2cbda4a74..4a41fc4cf028 100644
-> --- a/arch/x86/include/asm/processor-flags.h
-> +++ b/arch/x86/include/asm/processor-flags.h
-> @@ -53,4 +53,6 @@
->  # define X86_CR3_PTI_PCID_USER_BIT	11
->  #endif
->  
-> +#define EXTENDED_PT_REGS_SIZE 8
-> +
->  #endif /* _ASM_X86_PROCESSOR_FLAGS_H */
-> diff --git a/arch/x86/kernel/head_64.S b/arch/x86/kernel/head_64.S
-> index d8b3ebd2bb85..90e76178b6b4 100644
-> --- a/arch/x86/kernel/head_64.S
-> +++ b/arch/x86/kernel/head_64.S
-> @@ -319,8 +319,7 @@ SYM_CODE_START_NOALIGN(vc_boot_ghcb)
->  	movq    %rsp, %rdi
->  	movq	ORIG_RAX(%rsp), %rsi
->  	movq	initial_vc_handler(%rip), %rax
-> -	ANNOTATE_RETPOLINE_SAFE
-> -	call	*%rax
-> +	__call_ext_ptregs *%rax, annotate_retpoline_safe=1
->  
->  	/* Unwind pt_regs */
->  	POP_REGS
-> @@ -397,7 +396,7 @@ SYM_CODE_START_LOCAL(early_idt_handler_common)
->  	UNWIND_HINT_REGS
->  
->  	movq %rsp,%rdi		/* RDI = pt_regs; RSI is already trapnr */
-> -	call do_early_exception
-> +	call_ext_ptregs do_early_exception
->  
->  	decl early_recursion_flag(%rip)
->  	jmp restore_regs_and_return_to_kernel
-> @@ -421,7 +420,7 @@ SYM_CODE_START_NOALIGN(vc_no_ghcb)
->  	/* Call C handler */
->  	movq    %rsp, %rdi
->  	movq	ORIG_RAX(%rsp), %rsi
-> -	call    do_vc_no_ghcb
-> +	call_ext_ptregs do_vc_no_ghcb
->  
->  	/* Unwind pt_regs */
->  	POP_REGS
-> diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
-> index e133c0ed72a0..a4ce7cef0260 100644
-> --- a/arch/x86/mm/fault.c
-> +++ b/arch/x86/mm/fault.c
-> @@ -32,6 +32,7 @@
->  #include <asm/pgtable_areas.h>		/* VMALLOC_START, ...		*/
->  #include <asm/kvm_para.h>		/* kvm_handle_async_pf		*/
->  #include <asm/vdso.h>			/* fixup_vdso_exception()	*/
-> +#include <asm/pks.h>
->  
->  #define CREATE_TRACE_POINTS
->  #include <asm/trace/exceptions.h>
-> @@ -547,6 +548,8 @@ show_fault_oops(struct pt_regs *regs, unsigned long error_code, unsigned long ad
->  		 (error_code & X86_PF_PK)    ? "protection keys violation" :
->  					       "permissions violation");
->  
-> +	show_extended_regs_oops(regs, error_code);
-> +
->  	if (!(error_code & X86_PF_USER) && user_mode(regs)) {
->  		struct desc_ptr idt, gdt;
->  		u16 ldtr, tr;
-> diff --git a/include/linux/pkeys.h b/include/linux/pkeys.h
-> index 580238388f0c..76eb19a37942 100644
-> --- a/include/linux/pkeys.h
-> +++ b/include/linux/pkeys.h
-> @@ -52,6 +52,15 @@ enum pks_pkey_consumers {
->  	PKS_KEY_NR_CONSUMERS
->  };
->  extern u32 pkrs_init_value;
-> -#endif
-> +
-> +void pkrs_save_irq(struct pt_regs *regs);
-> +void pkrs_restore_irq(struct pt_regs *regs);
-> +
-> +#else /* !CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
-> +
-> +static inline void pkrs_save_irq(struct pt_regs *regs) { }
-> +static inline void pkrs_restore_irq(struct pt_regs *regs) { }
-> +
-> +#endif /* CONFIG_ARCH_ENABLE_SUPERVISOR_PKEYS */
->  
->  #endif /* _LINUX_PKEYS_H */
-> diff --git a/kernel/entry/common.c b/kernel/entry/common.c
-> index bf16395b9e13..aa0b1e8dd742 100644
-> --- a/kernel/entry/common.c
-> +++ b/kernel/entry/common.c
-> @@ -6,6 +6,7 @@
->  #include <linux/livepatch.h>
->  #include <linux/audit.h>
->  #include <linux/tick.h>
-> +#include <linux/pkeys.h>
->  
->  #include "common.h"
->  
-> @@ -364,7 +365,7 @@ noinstr irqentry_state_t irqentry_enter(struct pt_regs *regs)
->  		instrumentation_end();
->  
->  		ret.exit_rcu = true;
-> -		return ret;
-> +		goto done;
->  	}
->  
->  	/*
-> @@ -379,6 +380,8 @@ noinstr irqentry_state_t irqentry_enter(struct pt_regs *regs)
->  	trace_hardirqs_off_finish();
->  	instrumentation_end();
->  
-> +done:
-> +	pkrs_save_irq(regs);
->  	return ret;
->  }
->  
-> @@ -404,7 +407,12 @@ noinstr void irqentry_exit(struct pt_regs *regs, irqentry_state_t state)
->  	/* Check whether this returns to user mode */
->  	if (user_mode(regs)) {
->  		irqentry_exit_to_user_mode(regs);
-> -	} else if (!regs_irqs_disabled(regs)) {
-> +		return;
-> +	}
-> +
-> +	pkrs_restore_irq(regs);
-> +
-> +	if (!regs_irqs_disabled(regs)) {
->  		/*
->  		 * If RCU was not watching on entry this needs to be done
->  		 * carefully and needs the same ordering of lockdep/tracing
-> @@ -458,11 +466,13 @@ irqentry_state_t noinstr irqentry_nmi_enter(struct pt_regs *regs)
->  	ftrace_nmi_enter();
->  	instrumentation_end();
->  
-> +	pkrs_save_irq(regs);
->  	return irq_state;
->  }
->  
->  void noinstr irqentry_nmi_exit(struct pt_regs *regs, irqentry_state_t irq_state)
->  {
-> +	pkrs_restore_irq(regs);
->  	instrumentation_begin();
->  	ftrace_nmi_exit();
->  	if (irq_state.lockdep) {
-> -- 
-> 2.28.0.rc0.12.gb6a658bd00c9
-> 
+T24gMTEvMTIvMjAyMSAzOjA4IFBNLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+IE9uIEZyaSwgTm92
+IDEyLCAyMDIxIGF0IDI6MzUgUE0gSmFuZSBDaHUgPGphbmUuY2h1QG9yYWNsZS5jb20+IHdyb3Rl
+Og0KPj4NCj4+IE9uIDExLzEyLzIwMjEgMTE6MjQgQU0sIERhbiBXaWxsaWFtcyB3cm90ZToNCj4+
+PiBPbiBGcmksIE5vdiAxMiwgMjAyMSBhdCA5OjU4IEFNIEphbmUgQ2h1IDxqYW5lLmNodUBvcmFj
+bGUuY29tPiB3cm90ZToNCj4+Pj4NCj4+Pj4gT24gMTEvMTEvMjAyMSA0OjUxIFBNLCBEYW4gV2ls
+bGlhbXMgd3JvdGU6DQo+Pj4+PiBPbiBUaHUsIE5vdiAxMSwgMjAyMSBhdCA0OjMwIFBNIEphbmUg
+Q2h1IDxqYW5lLmNodUBvcmFjbGUuY29tPiB3cm90ZToNCj4+Pj4+Pg0KPj4+Pj4+IEp1c3QgYSBx
+dWljayB1cGRhdGUgLQ0KPj4+Pj4+DQo+Pj4+Pj4gSSBtYW5hZ2VkIHRvIHRlc3QgdGhlICdOUCcg
+YW5kICdVQycgZWZmZWN0IG9uIGEgcG1lbSBkYXggZmlsZS4NCj4+Pj4+PiBUaGUgcmVzdWx0IGlz
+LCBhcyBleHBlY3RlZCwgYm90aCBzZXR0aW5nICdOUCcgYW5kICdVQycgd29ya3MNCj4+Pj4+PiB3
+ZWxsIGluIHByZXZlbnRpbmcgdGhlIHByZWZldGNoZXIgZnJvbSBhY2Nlc3NpbmcgdGhlIHBvaXNv
+bmVkDQo+Pj4+Pj4gcG1lbSBwYWdlLg0KPj4+Pj4+DQo+Pj4+Pj4gSSBpbmplY3RlZCBiYWNrLXRv
+LWJhY2sgcG9pc29ucyB0byB0aGUgM3JkIGJsb2NrKDUxMkIpIG9mDQo+Pj4+Pj4gdGhlIDNyZCBw
+YWdlIGluIG15IGRheCBmaWxlLiAgV2l0aCAnTlAnLCB0aGUgJ21jX3NhZmUgcmVhZCcNCj4+Pj4+
+PiBzdG9wcyAgYWZ0ZXIgcmVhZGluZyB0aGUgMXN0IGFuZCAybmQgcGFnZXMsIHdpdGggJ1VDJywN
+Cj4+Pj4+PiB0aGUgJ21jX3NhZmUgcmVhZCcgd2FzIGFibGUgdG8gcmVhZCBbMiBwYWdlcyArIDIg
+YmxvY2tzXSBvbg0KPj4+Pj4+IG15IHRlc3QgbWFjaGluZS4NCj4+Pj4+DQo+Pj4+PiBNeSBleHBl
+Y3RhdGlvbiBpcyB0aGF0IGRheF9kaXJlY3RfYWNjZXNzKCkgLyBkYXhfcmVjb3ZlcnlfcmVhZCgp
+IGhhcw0KPj4+Pj4gaW5zdGFsbGVkIGEgdGVtcG9yYXJ5IFVDIGFsaWFzIGZvciB0aGUgcGZuLCBv
+ciBoYXMgdGVtcG9yYXJpbHkgZmxpcHBlZA0KPj4+Pj4gTlAgdG8gVUMuIE91dHNpZGUgb2YgZGF4
+X3JlY292ZXJ5X3JlYWQoKSB0aGUgcGFnZSB3aWxsIGFsd2F5cyBiZSBOUC4NCj4+Pj4+DQo+Pj4+
+DQo+Pj4+IE9rYXkuICBDb3VsZCB3ZSBvbmx5IGZsaXAgdGhlIG1lbXR5cGUgd2l0aGluIGRheF9y
+ZWNvdmVyeV9yZWFkLCBhbmQNCj4+Pj4gbm90IHdpdGhpbiBkYXhfZGlyZWN0X2FjY2Vzcz8gIGRh
+eF9kaXJlY3RfYWNjZXNzIGRvZXMgbm90IG5lZWQgdG8NCj4+Pj4gYWNjZXNzIHRoZSBwYWdlLg0K
+Pj4+DQo+Pj4gVHJ1ZSwgZGF4X2RpcmVjdF9hY2Nlc3MoKSBkb2VzIG5vdCBuZWVkIHRvIGRvIHRo
+ZSBwYWdlIHBlcm1pc3Npb24NCj4+PiBjaGFuZ2UsIGl0IGp1c3QgbmVlZHMgdG8gaW5kaWNhdGUg
+aWYgZGF4X3JlY292ZXJ5X3tyZWFkLHdyaXRlfSgpIG1heQ0KPj4+IGJlIGF0dGVtcHRlZC4gSSB3
+YXMgdGhpbmtpbmcgdGhhdCB0aGUgREFYIHBhZ2VzIG9ubHkgZmxvYXQgYmV0d2VlbiBOUA0KPj4+
+IGFuZCBXQiBkZXBlbmRpbmcgb24gd2hldGhlciBwb2lzb24gaXMgcHJlc2VudCBpbiB0aGUgcGFn
+ZS4gSWYNCj4+PiBkYXhfcmVjb3ZlcnlfcmVhZCgpIHdhbnRzIHRvIGRvIFVDIHJlYWRzIGFyb3Vu
+ZCB0aGUgcG9pc29uIGl0IGNhbiB1c2UNCj4+PiBpb3JlbWFwKCkgb3Igdm1hcCgpIHRvIGNyZWF0
+ZSBhIHRlbXBvcmFyeSBVQyBhbGlhcy4gVGhlIHRlbXBvcmFyeSBVQw0KPj4+IGFsaWFzIGlzIG9u
+bHkgcG9zc2libGUgaWYgdGhlcmUgbWlnaHQgYmUgbm9uLWNsb2JiZXJlZCBkYXRhIHJlbWFpbmlu
+Zw0KPj4+IGluIHRoZSBwYWdlLiBJLmUuIHRoZSBjdXJyZW50ICJ3aG9sZV9wYWdlKCkiIGRldGVy
+bWluYXRpb24gaW4NCj4+PiB1Y19kZWNvZGVfbm90aWZpZXIoKSBuZWVkcyB0byBiZSBwbHVtYmVk
+IGludG8gdGhlIFBNRU0gZHJpdmVyIHNvIHRoYXQNCj4+PiBpdCBjYW4gY29vcGVyYXRlIHdpdGgg
+YSB2aXJ0dWFsaXplZCBlbnZpcm9ubWVudCB0aGF0IGluamVjdHMgdmlydHVhbA0KPj4+ICNNQyBh
+dCBwYWdlIGdyYW51bGFyaXR5LiBJLmUuIG5maXRfaGFuZGxlX21jZSgpIGlzIGJyb2tlbiBpbiB0
+aGF0IGl0DQo+Pj4gb25seSBhc3N1bWVzIGEgc2luZ2xlIGNhY2hlbGluZSBhcm91bmQgdGhlIGZh
+aWx1cmUgYWRkcmVzcyBpcw0KPj4+IHBvaXNvbmVkLCBpdCBuZWVkcyB0aGF0IHNhbWUgd2hvbGVf
+cGFnZSgpIGxvZ2ljLg0KPj4+DQo+Pg0KPj4gSSdsbCBoYXZlIHRvIHRha2Ugc29tZSB0aW1lIHRv
+IGRpZ2VzdCB3aGF0IHlvdSBwcm9wb3NlZCwgYnV0IGFsYXMsIHdoeQ0KPj4gY291bGRuJ3Qgd2Ug
+bGV0IHRoZSBjb3JyZWN0IGRlY2lzaW9uIChhYm91dCBOUCB2cyBVQykgYmVpbmcgbWFkZSB3aGVu
+DQo+PiB0aGUgJ3dob2xlX3BhZ2UnIHRlc3QgaGFzIGFjY2VzcyB0byB0aGUgTVNpX01JU0MgcmVn
+aXN0ZXIsIGluc3RlYWQgb2YNCj4+IGhhdmluZyB0byByaXNrIG1pc3Rha2VubHkgY2hhbmdlIE5Q
+LT5VQyBpbiBkYXhfcmVjb3ZlcnlfcmVhZCgpIGFuZA0KPj4gcmlzayB0byByZXBlYXQgdGhlIGJ1
+ZyB0aGF0IFRvbnkgaGFzIGZpeGVkPyAgSSBtZWFuIGEgUE1FTSBwYWdlIG1pZ2h0DQo+PiBiZSBs
+ZWdpdGltYXRlbHkgbm90LWFjY2Vzc2libGUgZHVlIHRvIGl0IG1pZ2h0IGhhdmUgYmVlbiB1bm1h
+cHBlZCBieQ0KPj4gdGhlIGhvc3QsIGJ1dCBkYXhfcmVjb3ZlcnlfcmVhZCgpIGhhcyBubyB3YXkg
+dG8ga25vdywgcmlnaHQ/DQo+IA0KPiBJdCBzaG91bGQga25vdyBiZWNhdXNlIHRoZSBNQ0UgdGhh
+dCB1bm1hcHBlZCB0aGUgcGFnZSB3aWxsIGhhdmUNCj4gY29tbXVuaWNhdGVkIGEgIndob2xlX3Bh
+Z2UoKSIgTUNFLiBXaGVuIGRheF9yZWNvdmVyeV9yZWFkKCkgZ29lcyB0bw0KPiBjb25zdWx0IHRo
+ZSBiYWRibG9ja3MgbGlzdCB0byB0cnkgdG8gcmVhZCB0aGUgcmVtYWluaW5nIGdvb2QgZGF0YSBp
+dA0KPiB3aWxsIHNlZSB0aGF0IGV2ZXJ5IHNpbmdsZSBjYWNoZWxpbmUgaXMgY292ZXJlZCBieSBi
+YWRibG9ja3MsIHNvDQo+IG5vdGhpbmcgdG8gcmVhZCwgYW5kIG5vIG5lZWQgdG8gZXN0YWJsaXNo
+IHRoZSBVQyBtYXBwaW5nLiBTbyB0aGUgdGhlDQo+ICJUb255IGZpeCIgd2FzIGluY29tcGxldGUg
+aW4gcmV0cm9zcGVjdC4gSXQgbmVnbGVjdGVkIHRvIHVwZGF0ZSB0aGUNCj4gTlZESU1NIGJhZGJs
+b2NrcyB0cmFja2luZyBmb3IgdGhlIHdob2xlIHBhZ2UgY2FzZS4NCg0KU28gdGhlIGNhbGwgaW4g
+bmZpdF9oYW5kbGVfbWNlKCk6DQogICBudmRpbW1fYnVzX2FkZF9iYWRyYW5nZShhY3BpX2Rlc2Mt
+Pm52ZGltbV9idXMsDQogICAgICAgICAgICAgICAgIEFMSUdOKG1jZS0+YWRkciwgTDFfQ0FDSEVf
+QllURVMpLA0KICAgICAgICAgICAgICAgICBMMV9DQUNIRV9CWVRFUyk7DQpzaG91bGQgYmUgcmVw
+bGFjZWQgYnkNCiAgIG52ZGltbV9idXNfYWRkX2JhZHJhbmdlKGFjcGlfZGVzYy0+bnZkaW1tX2J1
+cywNCiAgICAgICAgICAgICAgICAgQUxJR04obWNlLT5hZGRyLCBMMV9DQUNIRV9CWVRFUyksDQog
+ICAgICAgICAgICAgICAgICgxIDw8IE1DSV9NSVNDX0FERFJfTFNCKG0tPm1pc2MpKSk7DQpyaWdo
+dD8NCg0KQW5kIHdoZW4gZGF4X3JlY292ZXJ5X3JlYWQoKSBjYWxscw0KICAgYmFkYmxvY2tzX2No
+ZWNrKGJiLCBzZWN0b3IsIGxlbiAvIDUxMiwgJmZpcnN0X2JhZCwgJm51bV9iYWQpDQppdCBzaG91
+bGQgYWx3YXlzLCBpbiBjYXNlIG9mICdOUCcsIGRpc2NvdmVyIHRoYXQgJ2ZpcnN0X2JhZCcNCmlz
+IHRoZSBmaXJzdCBzZWN0b3IgaW4gdGhlIHBvaXNvbmVkIHBhZ2UsICBoZW5jZSBubyBuZWVkDQp0
+byBzd2l0Y2ggdG8gJ1VDJywgcmlnaHQ/DQoNCkluIGNhc2UgdGhlICdmaXJzdF9iYWQnIGlzIGlu
+IHRoZSBtaWRkbGUgb2YgdGhlIHBvaXNvbmVkIHBhZ2UsDQp0aGF0IGlzLCBkYXhfcmVjb3Zlcl9y
+ZWFkKCkgY291bGQgcG90ZW50aWFsbHkgcmVhZCBzb21lIGNsZWFuDQpzZWN0b3JzLCBpcyB0aGVy
+ZSBwcm9ibGVtIHRvDQogICBjYWxsIF9zZXRfbWVtb3J5X1VDKHBmbiwgMSksDQogICBkbyB0aGUg
+bWNfc2FmZSByZWFkLA0KICAgYW5kIHRoZW4gY2FsbCBzZXRfbWVtb3J5X05QKHBmbiwgMSkNCj8N
+CldoeSBkbyB3ZSBuZWVkIHRvIGNhbGwgaW9yZW1hcCgpIG9yIHZtYXAoKT8NCg0KPiANCj4+IFRo
+ZSB3aG9sZSBVQyA8PiBOUCBhcmd1bWVudHMgdG8gbWUgc2VlbXMgdG8gYmUgYQ0KPj4gICAgIlVD
+IGJlaW5nIGhhcm1sZXNzL3dvcmthYmxlIHNvbHV0aW9uIHRvIERSQU0gYW5kIFBNRU0iICB2ZXJz
+dXMNCj4+ICAgICJOUCBiZWluZyBzaW1wbGVyIHJlZ2FyZGxlc3Mgd2hhdCByaXNrIGl0IGJyaW5n
+cyB0byBQTUVNIi4NCj4+IFRvIHVzLCBQTUVNIGlzIG5vdCBqdXN0IGFub3RoZXIgZHJpdmVyLCBp
+dCBpcyB0cmVhdGVkIGFzIG1lbW9yeSBieSBvdXINCj4+IGN1c3RvbWVyLCBzbyB3aHk/DQo+IA0K
+PiBJdCdzIHJlYWxseSBub3QgYSBxdWVzdGlvbiBvZiBVQyB2cyBOUCwgaXQncyBhIHF1ZXN0aW9u
+IG9mIGFjY3VyYXRlbHkNCj4gdHJhY2tpbmcgaG93IG1hbnkgY2FjaGVsaW5lcyBhcmUgY2xvYmJl
+cmVkIGluIGFuIE1DRSBldmVudCBzbyB0aGF0DQo+IGh5cGVydmlzb3JzIGNhbiBwdW5jaCBvdXQg
+ZW50aXJlIHBhZ2VzIGZyb20gYW55IGZ1dHVyZSBndWVzdCBhY2Nlc3MuDQo+IFRoaXMgYWxzbyBy
+YWlzZXMgYW5vdGhlciBwcm9ibGVtIGluIG15IG1pbmQsIGhvdyBkb2VzIHRoZSBoeXBlcnZpc29y
+DQo+IGxlYXJuIHRoYXQgdGhlIHBvaXNvbiB3YXMgcmVwYWlyZWQ/IA0KDQpHb29kIHF1ZXN0aW9u
+IQ0KDQpQcmVzdW1hYmx5IHRoZSAiVG9ueSBmaXgiIHdhcyBmb3INCj4gYSBjYXNlIHdoZXJlIHRo
+ZSBndWVzdCB0aG91Z2h0IHRoZSBwYWdlIHdhcyBzdGlsbCBhY2Nlc3NpYmxlLCBidXQgdGhlDQo+
+IGh5cGVydmlzb3Igd2FudGVkIHRoZSB3aG9sZSB0aGluZyB0cmVhdGVkIGFzIHBvaXNvbi4gSXQg
+bWF5IGJlIHRoZQ0KPiBjYXNlIHRoYXQgd2UncmUgbWlzc2luZyBhIG1lY2hhbmlzbSB0byBhc2sg
+dGhlIGh5cGVydmlzb3IgdG8gY29uc2lkZXINCj4gdGhhdCB0aGUgZ3Vlc3QgaGFzIGNsZWFyZWQg
+dGhlIHBvaXNvbi4gQXQgbGVhc3QgZm9yIFBNRU0gZGVzY3JpYmVkIGJ5DQo+IEFDUEkgdGhlIGV4
+aXN0aW5nIENsZWFyRXJyb3IgRFNNIGluIHRoZSBndWVzdCBjb3VsZCBiZSB0cmFwcGVkIGJ5IHRo
+ZQ0KPiBoeXBlcnZpc29yIHRvIGhhbmRsZSB0aGlzIGNhc2UsIA0KDQpJIGRpZG4ndCBldmVuIGtu
+b3cgdGhhdCBndWVzdCBjb3VsZCBjbGVhciBwb2lzb24gYnkgdHJhcHBpbmcgaHlwZXJ2aXNvcg0K
+d2l0aCB0aGUgQ2xlYXJFcnJvciBEU00gbWV0aG9kLCBJIHRob3VnaHQgZ3Vlc3QgaXNuJ3QgcHJp
+dmlsZWdlZCB3aXRoDQp0aGF0LiBXb3VsZCB5b3UgbWluZCB0byBlbGFib3JhdGUgYWJvdXQgdGhl
+IG1lY2hhbmlzbSBhbmQgbWF5YmUgcG9pbnQNCm91dCB0aGUgY29kZSwgYW5kIHBlcmhhcHMgaWYg
+eW91IGhhdmUgdGVzdCBjYXNlIHRvIHNoYXJlPw0KDQpidXQgSSdtIG5vdCBzdXJlIHdoYXQgdG8g
+ZG8gYWJvdXQNCj4gZ3Vlc3RzIHRoYXQgbGF0ZXIgd2FudCB0byB1c2UgTU9WRElSNjRCIHRvIGNs
+ZWFyIGVycm9ycy4NCj4gDQoNClllYWgsIHBlcmhhcHMgdGhlcmUgaXMgbm8gd2F5IHRvIHByZXZl
+bnQgZ3Vlc3QgZnJvbSBhY2NpZGVudGFsbHkNCmNsZWFyIGVycm9yIHZpYSBNT1ZESVI2NEIsIGdp
+dmVuIHNvbWUgYXBwbGljYXRpb24gcmVseSBvbiBNT1ZESVI2NEINCmZvciBmYXN0IGRhdGEgbW92
+ZW1lbnQgKHN0cmFpZ2h0IHRvIHRoZSBtZWRpYSkuIEkgZ3Vlc3MgaW4gdGhhdCBjYXNlLA0KdGhl
+IGNvbnNlcXVlbmNlIGlzIGZhbHNlIGFsYXJtLCBub3RoaW5nIGRpc2FzdHJvdXMsIHJpZ2h0Pw0K
+DQpIb3cgYWJvdXQgYWxsb3dpbmcgdGhlIHBvdGVudGlhbCBiYWQtYmxvY2sgYm9va2tlZXBpbmcg
+Z2FwLCBhbmQNCm1hbmFnZSB0byBjbG9zZSB0aGUgZ2FwIGF0IGNlcnRhaW4gY2hlY2twb2ludHM/
+IEkgZ3Vlc3Mgb25lIG9mDQp0aGUgY2hlY2twb2ludHMgbWlnaHQgYmUgd2hlbiBwYWdlIGZhdWx0
+IGRpc2NvdmVycyBhIHBvaXNvbmVkDQpwYWdlPw0KDQp0aGFua3MhDQotamFuZQ0KDQoNCg==
