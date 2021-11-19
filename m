@@ -1,95 +1,86 @@
-Received: from mail-qk1-f180.google.com (mail-qk1-f180.google.com [209.85.222.180])
+Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DFEE42C82
-	for <nvdimm@lists.linux.dev>; Fri, 19 Nov 2021 16:55:33 +0000 (UTC)
-Received: by mail-qk1-f180.google.com with SMTP id 132so10788676qkj.11
-        for <nvdimm@lists.linux.dev>; Fri, 19 Nov 2021 08:55:33 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BDCC22C82
+	for <nvdimm@lists.linux.dev>; Fri, 19 Nov 2021 17:21:20 +0000 (UTC)
+Received: by mail-pj1-f53.google.com with SMTP id gt5so8443696pjb.1
+        for <nvdimm@lists.linux.dev>; Fri, 19 Nov 2021 09:21:20 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=j4dfJtf70H4e5UXonwq16orQKWpXO+x06fxvhJKJ7d8=;
-        b=d87IlRRZKxrvd7rCs0G5HYyKNpAqIXCVJoLZSm40EGxgBivy7DVYHW9jl8PdV3f0t9
-         uwh/0iLvXQfUE7gyV+yNM/B1VnvpEjlz94DfCQigJ+VVzR4T2y7neyZ1lkAmoNsCOWH6
-         oTZ5n6l+382na/fld2stLaq6r5mpXpViiMsdXA+yCjNagxbTD7ViK7JyltyY4cVIWVU2
-         T5fgYQWE0dQuWycS+LyQbQdaOsrC/7FUGemwET72O3Mn/EdKwGEX3ycQoJe0r801wXfw
-         XgUuUYuo2ScFvmkD3BmxdnfomW4S3/fBTbfTxFKjmhk7E+ZAgCVCyg+IkHNk6QUPHgiv
-         FYvQ==
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=2U/4HYKnAZR7qNMIeDCg5S//595luEluzFk14uv4gBU=;
+        b=FQ6M7eMMvPf80QsdTpoBZi0VrX8bn7QeX7OvbRABdgkNvCMNjXzl7/FKjSfSUjRkzX
+         F1usfPnFQYNtajLRg0QRwSSgzt8mzXj0XCG2cnk0+F0m/6Zhw3KmrGwYuAHqWjDxU8h7
+         LoqDBYl4kQUeXb8kAZzT8ViJ+hkv5vLV1Goy6Yaluym7CVIoftX3Jldatma/nAYXl27p
+         pclrbJHG5C0Blu/232w4rLGJUG53x/PsyFdu4/UMHnSQZ8XMlr5FFqwE0la2E0Wy9pBi
+         QLaClBcQjJDmbuAEv+kCOvcY8AEg2J0pE5d377NWsFamWj8v0zJjbYMN2j8PjhK8WH2h
+         Pe+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=j4dfJtf70H4e5UXonwq16orQKWpXO+x06fxvhJKJ7d8=;
-        b=nfksuTeINbVDqoIUJE5yQZfvIKIC80vh5t1ykdpfMSzBi6j34lWfqhwdAr3waDe0CT
-         qTsVFTg7jLsfQ5RjaX3PBPD4IDBEWfWyW37KTsis0Iw/yT6vg/LY89Q84Z4mZy3X/z8d
-         L/E3bkdiWPZVJf40QEhDaC1neAUe3yMuYTWMiEu45ChZkHCaz5kO4hJzBKE5vuruWbmH
-         IfgLwN0jn9ijdVvsvXdZo/Z1KQ4yJb735Q+K7igAzGus+l2JFbWUvb7fiePVDnSmeULg
-         0ViNx+CoWQsAo1+3BnJtdSejmiN6ekN809oJn+laIDdAPXzWnk8MWZp8DNb0kS3SLft/
-         anDw==
-X-Gm-Message-State: AOAM530Kz5N/mD+KydwgAYCHNS0e8X+1QP0/mntT2VAsCnUnLZ2F2JoV
-	xRh6WTsMbfrB8ToWGK9izwSTQA==
-X-Google-Smtp-Source: ABdhPJxfzDa4XFzVN+Q5DxUZdjyMbl60WnM/StRJKUaZ2kCpuPhcN98F/USjrTo6H/4XkB1Jf6THKw==
-X-Received: by 2002:a05:620a:2805:: with SMTP id f5mr29033952qkp.151.1637340932761;
-        Fri, 19 Nov 2021 08:55:32 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-142-162-113-129.dhcp-dynamic.fibreop.ns.bellaliant.net. [142.162.113.129])
-        by smtp.gmail.com with ESMTPSA id k8sm123840qko.130.2021.11.19.08.55.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 19 Nov 2021 08:55:31 -0800 (PST)
-Received: from jgg by mlx with local (Exim 4.94)
-	(envelope-from <jgg@ziepe.ca>)
-	id 1mo7Ag-00CLb6-N5; Fri, 19 Nov 2021 12:55:30 -0400
-Date: Fri, 19 Nov 2021 12:55:30 -0400
-From: Jason Gunthorpe <jgg@ziepe.ca>
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Naoya Horiguchi <naoya.horiguchi@nec.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>,
-	Muchun Song <songmuchun@bytedance.com>,
-	Mike Kravetz <mike.kravetz@oracle.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
-	nvdimm@lists.linux.dev, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v5 8/8] device-dax: compound devmap support
-Message-ID: <20211119165530.GJ876299@ziepe.ca>
-References: <20211112150824.11028-1-joao.m.martins@oracle.com>
- <20211112150824.11028-9-joao.m.martins@oracle.com>
- <20211112153404.GD876299@ziepe.ca>
- <01f36268-4010-ecea-fee5-c128dd8bb179@oracle.com>
- <20211115164909.GF876299@ziepe.ca>
- <4d74bfb8-2cff-237b-321b-05aff34c1e5d@oracle.com>
- <3b7f9516-a35a-e46e-83d4-3059a959d221@oracle.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=2U/4HYKnAZR7qNMIeDCg5S//595luEluzFk14uv4gBU=;
+        b=VALmImNKEcVte8GOiS1jwtXdXFO7iiVAnr+00JGbDNswVJlm6rS0Ko5GWFtKgtftGm
+         OerLDu5yvWdOhUGHjP5+7O0lHoPnRdmqsgbTQp5Pw/TNkbujis83Zm9FrY/D1dymI8UF
+         VDQgnxFC/3kF7mxYX4W6bc2ikCSMGbepyiEHyVvoDkq78zluyElhykwnXN43tUahFGos
+         +kXCl8GyYT5OOEArA6zPizN6qbU95hSIhUkUyUsiMEs6uaoYv74hqmW4YCIe6IQRdhcv
+         daSBuAlWSM7B4sxA0IN8T2OIoHawHq+wHxkePPsr+pbuG2YH5PWfJoa4nVF3f8+dvcXC
+         7+ZA==
+X-Gm-Message-State: AOAM532QQ8LGch8L/EaqrkCxPEzdxh2iWRvrTLZXoEoK2USEp/4lCFLp
+	HuMw9xBqsD92pH/JYP2j66RaEk4MOh1+TyvutGPyaA==
+X-Google-Smtp-Source: ABdhPJxOTsb7kpZ1mbQBZyHvrw/GjkoPNdlC1Mnmi7QTa5v33P77eZ447VYbGdz8Hsj3aBiYzZhGTejFWOktm98P3BA=
+X-Received: by 2002:a17:90b:1e49:: with SMTP id pi9mr1505670pjb.220.1637342480174;
+ Fri, 19 Nov 2021 09:21:20 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3b7f9516-a35a-e46e-83d4-3059a959d221@oracle.com>
+References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-2-hch@lst.de>
+ <CAPcyv4ijKTcABMs2tZEuPWo1WDOux+4XWN=DNF5v8SrQRSbfDg@mail.gmail.com> <20211119065645.GB15524@lst.de>
+In-Reply-To: <20211119065645.GB15524@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 19 Nov 2021 09:21:09 -0800
+Message-ID: <CAPcyv4iFG0n-vdaEi4h5ken6mPrgW6Kz6UXCTRfaHi-c99GBnw@mail.gmail.com>
+Subject: Re: [PATCH 01/29] nvdimm/pmem: move dax_attribute_group from dax to pmem
+To: Christoph Hellwig <hch@lst.de>
+Cc: Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>, 
+	device-mapper development <dm-devel@redhat.com>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390 <linux-s390@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-erofs@lists.ozlabs.org, 
+	linux-ext4 <linux-ext4@vger.kernel.org>, virtualization@lists.linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Nov 19, 2021 at 04:12:18PM +0000, Joao Martins wrote:
+On Thu, Nov 18, 2021 at 10:56 PM Christoph Hellwig <hch@lst.de> wrote:
+>
+> On Wed, Nov 17, 2021 at 09:44:25AM -0800, Dan Williams wrote:
+> > On Tue, Nov 9, 2021 at 12:33 AM Christoph Hellwig <hch@lst.de> wrote:
+> > >
+> > > dax_attribute_group is only used by the pmem driver, and can avoid the
+> > > completely pointless lookup by the disk name if moved there.  This
+> > > leaves just a single caller of dax_get_by_host, so move dax_get_by_host
+> > > into the same ifdef block as that caller.
+> > >
+> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> > > Link: https://lore.kernel.org/r/20210922173431.2454024-3-hch@lst.de
+> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> >
+> > This one already made v5.16-rc1.
+>
+> Yes, but 5.16-rc1 did not exist yet when I pointed the series.
+>
+> Note that the series also has a conflict against 5.16-rc1 in pmem.c,
+> and buildbot pointed out the file systems need explicit dax.h
+> includes in a few files for some configurations.
+>
+> The current branch is here, I just did not bother to repost without
+> any comments:
+>
+>    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dax-block-cleanup
+>
+> no functional changes.
 
-> > Dan, any thoughts (see also below) ? You probably hold all that
-> > history since its inception on commit 2232c6382a4 ("device-dax: Enable page_mapping()")
-> > and commit 35de299547d1 ("device-dax: Set page->index").
-> > 
-> Below is what I have staged so far as a percursor patch (see below scissors mark).
-> 
-> It also lets me simplify compound page case for __dax_set_mapping() in this patch,
-> like below diff.
-> 
-> But I still wonder whether this ordering adjustment of @mapping setting is best placed
-> as a percursor patch whenever pgmap/page refcount changes happen. Anyways it's just a
-> thought.
-
-naively I would have thought you'd set the mapping on all pages when
-you create the address_space and allocate pages into it. AFAIK devmap
-assigns all pages to a single address_space, so shouldn't the mapping
-just be done once?
-
-Jason
+Do you just want to send me a pull request after you add all the acks?
