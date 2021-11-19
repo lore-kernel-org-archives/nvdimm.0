@@ -1,11 +1,11 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A8A768
-	for <nvdimm@lists.linux.dev>; Fri, 19 Nov 2021 06:55:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8548768
+	for <nvdimm@lists.linux.dev>; Fri, 19 Nov 2021 06:56:49 +0000 (UTC)
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id BAD8C68AFE; Fri, 19 Nov 2021 07:54:57 +0100 (CET)
-Date: Fri, 19 Nov 2021 07:54:57 +0100
+	id F18E168AFE; Fri, 19 Nov 2021 07:56:45 +0100 (CET)
+Date: Fri, 19 Nov 2021 07:56:45 +0100
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>, Mike Snitzer <snitzer@redhat.com>,
@@ -18,10 +18,10 @@ Cc: Christoph Hellwig <hch@lst.de>, Mike Snitzer <snitzer@redhat.com>,
 	linux-erofs@lists.ozlabs.org,
 	linux-ext4 <linux-ext4@vger.kernel.org>,
 	virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH 02/29] dm: make the DAX support dependend on
- CONFIG_FS_DAX
-Message-ID: <20211119065457.GA15524@lst.de>
-References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-3-hch@lst.de> <CAPcyv4iPOcD8OsimpSZMnbTEsGZKj-GqSY=cWC0tPvoVs6DE1Q@mail.gmail.com>
+Subject: Re: [PATCH 01/29] nvdimm/pmem: move dax_attribute_group from dax
+ to pmem
+Message-ID: <20211119065645.GB15524@lst.de>
+References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-2-hch@lst.de> <CAPcyv4ijKTcABMs2tZEuPWo1WDOux+4XWN=DNF5v8SrQRSbfDg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,16 +30,33 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4iPOcD8OsimpSZMnbTEsGZKj-GqSY=cWC0tPvoVs6DE1Q@mail.gmail.com>
+In-Reply-To: <CAPcyv4ijKTcABMs2tZEuPWo1WDOux+4XWN=DNF5v8SrQRSbfDg@mail.gmail.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Wed, Nov 17, 2021 at 09:23:44AM -0800, Dan Williams wrote:
-> Applied, fixed the spelling of 'dependent' in the subject and picked
-> up Mike's Ack from the previous send:
+On Wed, Nov 17, 2021 at 09:44:25AM -0800, Dan Williams wrote:
+> On Tue, Nov 9, 2021 at 12:33 AM Christoph Hellwig <hch@lst.de> wrote:
+> >
+> > dax_attribute_group is only used by the pmem driver, and can avoid the
+> > completely pointless lookup by the disk name if moved there.  This
+> > leaves just a single caller of dax_get_by_host, so move dax_get_by_host
+> > into the same ifdef block as that caller.
+> >
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> > Link: https://lore.kernel.org/r/20210922173431.2454024-3-hch@lst.de
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 > 
-> https://lore.kernel.org/r/YYASBVuorCedsnRL@redhat.com
-> 
-> Christoph, any particular reason you did not pick up the tags from the
-> last posting?
+> This one already made v5.16-rc1.
 
-I thought I did, but apparently I've missed some.
+Yes, but 5.16-rc1 did not exist yet when I pointed the series.
+
+Note that the series also has a conflict against 5.16-rc1 in pmem.c,
+and buildbot pointed out the file systems need explicit dax.h
+includes in a few files for some configurations.
+
+The current branch is here, I just did not bother to repost without
+any comments:
+
+   http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dax-block-cleanup
+
+no functional changes.
