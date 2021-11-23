@@ -1,49 +1,49 @@
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53])
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6D4EF2C88
-	for <nvdimm@lists.linux.dev>; Tue, 23 Nov 2021 03:35:47 +0000 (UTC)
-Received: by mail-pj1-f53.google.com with SMTP id gb13-20020a17090b060d00b001a674e2c4a8so1690223pjb.4
-        for <nvdimm@lists.linux.dev>; Mon, 22 Nov 2021 19:35:47 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B7B52C88
+	for <nvdimm@lists.linux.dev>; Tue, 23 Nov 2021 03:41:13 +0000 (UTC)
+Received: by mail-pj1-f50.google.com with SMTP id j5-20020a17090a318500b001a6c749e697so1200820pjb.1
+        for <nvdimm@lists.linux.dev>; Mon, 22 Nov 2021 19:41:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=ciNARavW8blBNA0+Xvi8Iqp5SUe+gHu1UDO5Z2Om1Uw=;
-        b=qv3CnJ11m0PYkOHoQ0rgeVwNALQf3M43R9jDn4noWbPwiyV5PFAUAobozTfJVM6jMN
-         gGOMgeqNRIErcKP2vDX0zyTVsNeLTY8lzpDrTr9FaVXz7Nyuss7duyWWUC0w+OEpk0Y3
-         wvFH7hCTeTDTzwtCf3LKbmurKbK1zzBM5VImDQVIB5KEn/Ze3QrYkkB8uns0eG1gogCu
-         IMFX3s7C31lnzF9JxLo5DwiOin4O3xPlpFSzS/8STpqCkYOQubL9wZiMJBM7MgXl2Mw3
-         PQRBvA8Ue2rAduBgzFAmSH8HYxXYHYxgpo2RnZmBQjB4Z5gLkF+OPLhfOEwFkjXAcpRy
-         xi7w==
+        bh=yuisy9zT1caIpoCJEL+LfomruK38WXIi70xmI7lYDdI=;
+        b=Y08/be2uy1a6FHo2yuq5V6dIERIFe+eeTyXLXTKFjFxfAYARUBwDdqRv9XulygxcF5
+         4zZfKtYGqV6eckQSPyIqI+Gn3GMQFWIP9FXR6DHHwN+9GDnZm18bVZGFa88rvhT3Zhp8
+         eBxG8SJu0LWqmuhUvXdN5Q8E0N7Fv2c7+1ZOSnPpTxrI3q5JIXNMGFvAj0k+TWuhQgQG
+         tLoyO8DVm7L0ndxV5dBnp+whJ587dE90ANm0vqzPKJbxSHtsEtd3ERFpgMcAPItk+09G
+         dbm69RRAjzWoV6a6vlvEHV0tkZfEJqiOGj5p0uoKbINk6WBGJnIFfCSAm3gIT8TG78mL
+         kVoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=ciNARavW8blBNA0+Xvi8Iqp5SUe+gHu1UDO5Z2Om1Uw=;
-        b=oMULFbk4OzZCP7KXaoluRVkfT+xTZH2PHRm49nSTML7OHmxpXLs1h8TuflqAzRoGgb
-         pMeqqcaXmaGj099lnTI+gzRe1caXnNwG5EjQYX90BOA/vuSujnmVFVY6auAoTrmasGPA
-         JP84Jk1PIF2ZJBhmw2EGl3hBSeldjmnAUiOhODus8SLxvtK+exOVMCVjgPevFszc+OyS
-         6cQaBI83Ngqcf9l1Wks73yOkpvbXmS1ZLvVNe8+fIoj3Q0s1iW9aPwjR0gDOABYS0yo3
-         1Lyd8uwBlGwaZvCgNlbyHW8DgvAdHJ/SU8RdYPDsiX1yG1Fe7ZJMcKdGNPUjGQg3z0rw
-         CGOA==
-X-Gm-Message-State: AOAM5323ekGmGlUVELU97KlClUgjEw1GsSK/fo0w41E6uAYNv+qkjDB7
-	SDnFzy/MLJlmEVmis8Za6iLzdjiPT1UtJzxOSa5BwQ==
-X-Google-Smtp-Source: ABdhPJxIzgcp9HElKDkpBTZbaiahamawtMq8srzUwJcfkFqOm9FQKmJevZaNWPkBJ7GMZd7Eb5XWuI6lWDv1nhHZNS4=
-X-Received: by 2002:a17:90a:e7ca:: with SMTP id kb10mr38062347pjb.8.1637638546993;
- Mon, 22 Nov 2021 19:35:46 -0800 (PST)
+        bh=yuisy9zT1caIpoCJEL+LfomruK38WXIi70xmI7lYDdI=;
+        b=R6t2P8OzeTh0DC8IwTPtduuP+cUJIi+MzCsk4PxIYCZbbihPlXZOsz3OvEBvGpSjRz
+         y3C8ryYHOxkpCwcZgSloB8M2+nqAynOO10HL7YRk7IaDV8C35h/vEWZNs5GMSECM2sM+
+         DH9SzViOyePvYKPJiGo9x0OAIhXhVrild0dDJUNQOneY2XXQHEHUr2eDl004vsGOuRtM
+         0wzf571xWxPxkXNDMNkeSdQbfvNqr76r3W8cyT/qcu6olv/FwvDpFUeQNXickc3swUVp
+         HR3VOQBt19QEkuOMI/S4oNjqy6oxxJmT7lKZcRATV0IY125ak4o3eUnq6NcWXi5SUt2m
+         FFoA==
+X-Gm-Message-State: AOAM530sEYbfF93z5CnTXgN8Z54F1pplSHDZLNTqd3tWANgHCpzy8XSv
+	fGaReHAHuK89BpMeCUinWvq4d4aUdteFj172ue5a+A==
+X-Google-Smtp-Source: ABdhPJwgBzEQtBEEt5JgwawqvX/CZbZsaXh/qAQWeeflxeagBI6MsJ+fyqKdfOXHrkiL5G4d5gMRZlq/mNM2Mj9gTds=
+X-Received: by 2002:a17:90b:1e07:: with SMTP id pg7mr2525502pjb.93.1637638872640;
+ Mon, 22 Nov 2021 19:41:12 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-6-hch@lst.de>
-In-Reply-To: <20211109083309.584081-6-hch@lst.de>
+References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-7-hch@lst.de>
+In-Reply-To: <20211109083309.584081-7-hch@lst.de>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 22 Nov 2021 19:35:36 -0800
-Message-ID: <CAPcyv4hQ+=_8_6O77Ayv6Y2suxCKM+8bpBoqKTjjYjBLBp=GZg@mail.gmail.com>
-Subject: Re: [PATCH 05/29] dax: remove the pgmap sanity checks in generic_fsdax_supported
+Date: Mon, 22 Nov 2021 19:41:01 -0800
+Message-ID: <CAPcyv4imYR=NLizABpZA+gKH+amNQ6jcVNQhtF+1jyevdWzmBw@mail.gmail.com>
+Subject: Re: [PATCH 06/29] dax: move the partition alignment check into fs_dax_get_by_bdev
 To: Christoph Hellwig <hch@lst.de>
 Cc: Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>, 
 	device-mapper development <dm-devel@redhat.com>, linux-xfs <linux-xfs@vger.kernel.org>, 
@@ -54,10 +54,9 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Tue, Nov 9, 2021 at 12:33 AM Christoph Hellwig <hch@lst.de> wrote:
 >
-> Drivers that register a dax_dev should make sure it works, no need
-> to double check from the file system.
+> fs_dax_get_by_bdev is the primary interface to find a dax device for a
+> block device, so move the partition alignment check there instead of
+> wiring it up through ->dax_supported.
+>
 
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-
-...with a self-reminder to migrate this validation to a unit test to
-backstop any future refactoring of the memmap reservation code.
