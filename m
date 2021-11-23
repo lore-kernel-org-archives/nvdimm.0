@@ -1,49 +1,50 @@
 Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B7B52C88
-	for <nvdimm@lists.linux.dev>; Tue, 23 Nov 2021 03:41:13 +0000 (UTC)
-Received: by mail-pj1-f50.google.com with SMTP id j5-20020a17090a318500b001a6c749e697so1200820pjb.1
-        for <nvdimm@lists.linux.dev>; Mon, 22 Nov 2021 19:41:13 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B3682C88
+	for <nvdimm@lists.linux.dev>; Tue, 23 Nov 2021 03:51:27 +0000 (UTC)
+Received: by mail-pj1-f50.google.com with SMTP id gx15-20020a17090b124f00b001a695f3734aso1760336pjb.0
+        for <nvdimm@lists.linux.dev>; Mon, 22 Nov 2021 19:51:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=yuisy9zT1caIpoCJEL+LfomruK38WXIi70xmI7lYDdI=;
-        b=Y08/be2uy1a6FHo2yuq5V6dIERIFe+eeTyXLXTKFjFxfAYARUBwDdqRv9XulygxcF5
-         4zZfKtYGqV6eckQSPyIqI+Gn3GMQFWIP9FXR6DHHwN+9GDnZm18bVZGFa88rvhT3Zhp8
-         eBxG8SJu0LWqmuhUvXdN5Q8E0N7Fv2c7+1ZOSnPpTxrI3q5JIXNMGFvAj0k+TWuhQgQG
-         tLoyO8DVm7L0ndxV5dBnp+whJ587dE90ANm0vqzPKJbxSHtsEtd3ERFpgMcAPItk+09G
-         dbm69RRAjzWoV6a6vlvEHV0tkZfEJqiOGj5p0uoKbINk6WBGJnIFfCSAm3gIT8TG78mL
-         kVoQ==
+        bh=set6lIbZWt1UwkjEncJQUmHWp82483Zo0VHgKUnBt0w=;
+        b=jaUppntJAg9/mAuYY2fdr9gBd/oPSVvQjQU9MV63keKS4G12JP+nEpEbf/XFgQhTnX
+         lYhroHBz4A/n/ueNjXRdi4PGz3IaMMWx7LGsyQ+k3PmsLBwgA59MgQmr1YDS9DWkwjiz
+         h84Lz9nQApqhFCv5vhWhKtFCwv3whkuknXHpmp6xY5puSg20rPurJJzE+22u3JyTEE6e
+         V2urCXYlCDQCwVaaqgneBsM+4H995+ijZVTqf+fHfdEatR6QlNecFf1J/UGHfHqEPUgZ
+         uA/eGzna5QhHm2jHR+WAFoVlyr/aaF9uDy12SjgTOzdukRcbvTwMgK4DzpeCeqXvlNDK
+         as+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=yuisy9zT1caIpoCJEL+LfomruK38WXIi70xmI7lYDdI=;
-        b=R6t2P8OzeTh0DC8IwTPtduuP+cUJIi+MzCsk4PxIYCZbbihPlXZOsz3OvEBvGpSjRz
-         y3C8ryYHOxkpCwcZgSloB8M2+nqAynOO10HL7YRk7IaDV8C35h/vEWZNs5GMSECM2sM+
-         DH9SzViOyePvYKPJiGo9x0OAIhXhVrild0dDJUNQOneY2XXQHEHUr2eDl004vsGOuRtM
-         0wzf571xWxPxkXNDMNkeSdQbfvNqr76r3W8cyT/qcu6olv/FwvDpFUeQNXickc3swUVp
-         HR3VOQBt19QEkuOMI/S4oNjqy6oxxJmT7lKZcRATV0IY125ak4o3eUnq6NcWXi5SUt2m
-         FFoA==
-X-Gm-Message-State: AOAM530sEYbfF93z5CnTXgN8Z54F1pplSHDZLNTqd3tWANgHCpzy8XSv
-	fGaReHAHuK89BpMeCUinWvq4d4aUdteFj172ue5a+A==
-X-Google-Smtp-Source: ABdhPJwgBzEQtBEEt5JgwawqvX/CZbZsaXh/qAQWeeflxeagBI6MsJ+fyqKdfOXHrkiL5G4d5gMRZlq/mNM2Mj9gTds=
-X-Received: by 2002:a17:90b:1e07:: with SMTP id pg7mr2525502pjb.93.1637638872640;
- Mon, 22 Nov 2021 19:41:12 -0800 (PST)
+        bh=set6lIbZWt1UwkjEncJQUmHWp82483Zo0VHgKUnBt0w=;
+        b=b/7kzjTSif1kB2gR3Pwef7U2o527mi5J3F3mtn6DTpWVQd8bG+GtW1nvuvB74ouJso
+         s+eeKhO7jJaGHypCP+5b0llQS22yMbovmw0JnQULyUrkKDHE/Q7r2BLY0kF4+BDm0Blq
+         0lDYcmdBLAGkKnyc2/Hc5FSApaj4eIJkp0yAkPCOudtgLmyQsj/QhrFVmHdRAZJO+C0Y
+         3oz4USMeQhVW3Zq8caGLamRhJpA0GBe4dFgDzftE/w5N8WyfWGOo0s8RBWjfVfyEHyAT
+         F3aH+uYy2LQ2hNhfKFfCXVpU7MvHlMMW1LXmfzsj93bqT2AbCsytjTCHcZTjCVAtBQUA
+         XpEQ==
+X-Gm-Message-State: AOAM530wuI00wyGFvSALGG62/bxnnEcYJIcVktw3kXYdg92pux6XEcga
+	Vb34voxRLChvAsz3h27+vhcwfKi5TwiODsNiddaqWA==
+X-Google-Smtp-Source: ABdhPJwgdeM7vJZ2DKKwalEr7KeonINU2K18nZr67CpB7ixzXQKpSb7Eol7dgHhzUPEgLb+CGDYy92xBtwbeaxDZs1M=
+X-Received: by 2002:a17:902:6acb:b0:142:76c3:d35f with SMTP id
+ i11-20020a1709026acb00b0014276c3d35fmr2967201plt.89.1637639486743; Mon, 22
+ Nov 2021 19:51:26 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-7-hch@lst.de>
-In-Reply-To: <20211109083309.584081-7-hch@lst.de>
+References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-8-hch@lst.de>
+In-Reply-To: <20211109083309.584081-8-hch@lst.de>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 22 Nov 2021 19:41:01 -0800
-Message-ID: <CAPcyv4imYR=NLizABpZA+gKH+amNQ6jcVNQhtF+1jyevdWzmBw@mail.gmail.com>
-Subject: Re: [PATCH 06/29] dax: move the partition alignment check into fs_dax_get_by_bdev
+Date: Mon, 22 Nov 2021 19:51:15 -0800
+Message-ID: <CAPcyv4jnLdFaDwLTeRhJcTzyjd-psZRgWqVDqzOAZr3EGLbF2w@mail.gmail.com>
+Subject: Re: [PATCH 07/29] xfs: factor out a xfs_setup_dax_always helper
 To: Christoph Hellwig <hch@lst.de>
 Cc: Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>, 
 	device-mapper development <dm-devel@redhat.com>, linux-xfs <linux-xfs@vger.kernel.org>, 
@@ -54,9 +55,10 @@ Content-Type: text/plain; charset="UTF-8"
 
 On Tue, Nov 9, 2021 at 12:33 AM Christoph Hellwig <hch@lst.de> wrote:
 >
-> fs_dax_get_by_bdev is the primary interface to find a dax device for a
-> block device, so move the partition alignment check there instead of
-> wiring it up through ->dax_supported.
+> Factor out another DAX setup helper to simplify future changes.  Also
+> move the experimental warning after the checks to not clutter the log
+> too much if the setup failed.
 >
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
