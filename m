@@ -1,11 +1,11 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D93742C81
-	for <nvdimm@lists.linux.dev>; Wed, 24 Nov 2021 06:59:41 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3C85B2C81
+	for <nvdimm@lists.linux.dev>; Wed, 24 Nov 2021 07:10:32 +0000 (UTC)
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 2A62068AFE; Wed, 24 Nov 2021 07:59:38 +0100 (CET)
-Date: Wed, 24 Nov 2021 07:59:38 +0100
+	id 9250868AFE; Wed, 24 Nov 2021 08:10:28 +0100 (CET)
+Date: Wed, 24 Nov 2021 08:10:28 +0100
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>, Mike Snitzer <snitzer@redhat.com>,
@@ -18,10 +18,9 @@ Cc: Christoph Hellwig <hch@lst.de>, Mike Snitzer <snitzer@redhat.com>,
 	linux-erofs@lists.ozlabs.org,
 	linux-ext4 <linux-ext4@vger.kernel.org>,
 	virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH 25/29] dax: return the partition offset from
- fs_dax_get_by_bdev
-Message-ID: <20211124065938.GB7229@lst.de>
-References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-26-hch@lst.de> <CAPcyv4jtWzd3c_S1_4fYA1SXTJZfBzP_1xk_OwYkeNp0UhxwSg@mail.gmail.com>
+Subject: Re: [PATCH 22/29] iomap: add a IOMAP_DAX flag
+Message-ID: <20211124071028.GC7229@lst.de>
+References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-23-hch@lst.de> <CAPcyv4gQO6F5-8Ux8ye5cU-W3ZQVDjj5614Xb8EsTvH9UhfAfg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -30,25 +29,16 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4jtWzd3c_S1_4fYA1SXTJZfBzP_1xk_OwYkeNp0UhxwSg@mail.gmail.com>
+In-Reply-To: <CAPcyv4gQO6F5-8Ux8ye5cU-W3ZQVDjj5614Xb8EsTvH9UhfAfg@mail.gmail.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Tue, Nov 23, 2021 at 06:56:29PM -0800, Dan Williams wrote:
+On Tue, Nov 23, 2021 at 06:47:10PM -0800, Dan Williams wrote:
 > On Tue, Nov 9, 2021 at 12:34 AM Christoph Hellwig <hch@lst.de> wrote:
 > >
-> > Prepare from removing the block_device from the DAX I/O path by returning
+> > Add a flag so that the file system can easily detect DAX operations.
 > 
-> s/from removing/for the removal of/
+> Looks ok, but I would have preferred a quick note about the rationale
+> here before needing to read other patches to figure that out.
 
-Fixed.
-
-> >         td->dm_dev.bdev = bdev;
-> > -       td->dm_dev.dax_dev = fs_dax_get_by_bdev(bdev);
-> > +       td->dm_dev.dax_dev = fs_dax_get_by_bdev(bdev, &part_off);
-> 
-> Perhaps allow NULL as an argument for callers that do not care about
-> the start offset?
-
-All callers currently care, dm just has another way to get at the
-information.  So for now I'd like to not add the NULL special case,
-but we can reconsider that as needed if/when more callers show up.
+The reason is to only apply the DAX partition offsets to actual DAX
+operations, and not to e.g. fiemap.  I'll document that more clearly.
