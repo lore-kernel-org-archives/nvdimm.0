@@ -1,81 +1,65 @@
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f169.google.com (mail-pg1-f169.google.com [209.85.215.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 937822C81
-	for <nvdimm@lists.linux.dev>; Tue, 23 Nov 2021 23:13:43 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0598E60FC1;
-	Tue, 23 Nov 2021 23:13:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1637709223;
-	bh=0lx8GFaumCvYFKCqIo5atmiVFp/pn2IMyOP4olSlTJg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=YmrMJlCXXOUq098AjY55dEGQriwsEd/zsWv3kkKPJgdshScXkfBUmLoy/XMwhVsc9
-	 O/mlmEayflyVLaWvLIyFQcOF0OFYTa4CSjHFlZ/YU8LirvRyA12SC/tupkmtai7wmG
-	 xh9+tR6CqjsTkxNXjN2maqJxgIgDZRZ+JjVRIYiFZA8Ub74VLy5HtaTClmtPWXFeQM
-	 mtsNdJ0bO5jpxRPNMzE1EEd7DT2lltp3eu8XNwz66KKDFZFvJaM7mm4bD3I9uIrHad
-	 XpEKdq/bOnmFUZBItfTvQx/+CiGS1lCeim+CdWb86PECfthdvijctiMnO8k/Jrk9d+
-	 gKMaIHNoxpuiQ==
-Date: Tue, 23 Nov 2021 15:13:42 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
-	dm-devel@redhat.com, linux-xfs@vger.kernel.org,
-	nvdimm@lists.linux.dev, linux-s390@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org,
-	linux-ext4@vger.kernel.org,
-	virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH 29/29] fsdax: don't require CONFIG_BLOCK
-Message-ID: <20211123231342.GW266024@magnolia>
-References: <20211109083309.584081-1-hch@lst.de>
- <20211109083309.584081-30-hch@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06F9F2C82
+	for <nvdimm@lists.linux.dev>; Wed, 24 Nov 2021 02:40:58 +0000 (UTC)
+Received: by mail-pg1-f169.google.com with SMTP id h63so750552pgc.12
+        for <nvdimm@lists.linux.dev>; Tue, 23 Nov 2021 18:40:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=XY5RlfJ4wk969SAhdu0eeba/cRDcEGFX6BIC3EnLQt8=;
+        b=u4emMr/x1DnGrylyXG/XED1B0JAzKJIqIDcJvC7Dltb93SI0bgLALNc/xx3fE/eqZ+
+         JLZdSBXcBeUsE3gYFy2qkeo6t2y2XuFS7FedCduv1RHpO8vyWXlQcx11qWzGXljZ4Nta
+         5OYO1lIxqTIseUFqkypGfAJj577OlmYBnt7dfkNQv9WXesT9Vr2pO7qsjUMO6hVcoGvW
+         LWz11ROd5H62YcZRNEwDlvUMRryoYOk1DV1Dg4YBgp+MSllvRl7B5PMc3nehblVandHp
+         KDygLbglHM1zSoblBzsW1nhsjCF5iPULo9A3DjLMb5w2hx0fDJrK0R8dTmPxHRAXcCgM
+         L96w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=XY5RlfJ4wk969SAhdu0eeba/cRDcEGFX6BIC3EnLQt8=;
+        b=WBq+VYfKgedNUh4bVhxAO2gCdtiTThkGM9Be1li2UdBd86wVqgGPZyQNj/dRxKZGsy
+         vKwV+tpzMEVHR1ng/ZEeg14yKaEDviyI3UFi51HSPbM5ahRvmUMjI5tSHbEQ2KRKSd7p
+         ymsJcsIFI6ehi8T2MHhh3wnhQy7d5pHemnuQZTfHwWpZeMeWhKd4McLlmapnYXzzGj+Q
+         TEUxfcBwRTIA6bU+Kv2uy43JZczBHAdD7/Lruq6I55+NBCkr61BwMxew1Af4muiEjDqV
+         pgFUTBMkMx011zbSKfMFo0A9JB8ibHwI0KpCbz2TfLvXW50+hWwuOc7Buqhxa/O5AfvF
+         oLcw==
+X-Gm-Message-State: AOAM5332HephOd2yNBNiv+xOUYRYfp5fPvgY0FHjxbyrXjWftdf3VIye
+	lMoGQjp7HlRCLK/O+I0Ouhbtx2x/zPGVx5r6/jvMYA==
+X-Google-Smtp-Source: ABdhPJzf7x9CNNO+bnTL7ccWPdJMGj5rcrJdH+gi4z67GahFamuGnCABtN5RCIhrCvjUMVb9BfOrAHDXXr0x3X1l1Pc=
+X-Received: by 2002:a63:88c3:: with SMTP id l186mr1768633pgd.377.1637721658407;
+ Tue, 23 Nov 2021 18:40:58 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211109083309.584081-30-hch@lst.de>
+References: <20211109083309.584081-1-hch@lst.de> <20211109083309.584081-22-hch@lst.de>
+In-Reply-To: <20211109083309.584081-22-hch@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 23 Nov 2021 18:40:47 -0800
+Message-ID: <CAPcyv4hY4g82PrjMPO=1kiM5sL=3=yR66r6LeG8RS3Ha2k1eUw@mail.gmail.com>
+Subject: Re: [PATCH 21/29] xfs: move dax device handling into xfs_{alloc,free}_buftarg
+To: Christoph Hellwig <hch@lst.de>
+Cc: Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>, 
+	device-mapper development <dm-devel@redhat.com>, linux-xfs <linux-xfs@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390 <linux-s390@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, linux-erofs@lists.ozlabs.org, 
+	linux-ext4 <linux-ext4@vger.kernel.org>, virtualization@lists.linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Nov 09, 2021 at 09:33:09AM +0100, Christoph Hellwig wrote:
-> The file system DAX code now does not require the block code.  So allow
-> building a kernel with fuse DAX but not block layer.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+On Tue, Nov 9, 2021 at 12:34 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> Hide the DAX device lookup from the xfs_super.c code.
+>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
 
-Looks good,
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+That's an interesting spelling of "Signed-off-by", but patch looks
+good to me too. I would have expected a robot to complain about
+missing sign-off?
 
---D
-
-> ---
->  fs/Kconfig | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/fs/Kconfig b/fs/Kconfig
-> index 6d608330a096e..7a2b11c0b8036 100644
-> --- a/fs/Kconfig
-> +++ b/fs/Kconfig
-> @@ -42,6 +42,8 @@ source "fs/nilfs2/Kconfig"
->  source "fs/f2fs/Kconfig"
->  source "fs/zonefs/Kconfig"
->  
-> +endif # BLOCK
-> +
->  config FS_DAX
->  	bool "File system based Direct Access (DAX) support"
->  	depends on MMU
-> @@ -89,8 +91,6 @@ config FS_DAX_PMD
->  config FS_DAX_LIMITED
->  	bool
->  
-> -endif # BLOCK
-> -
->  # Posix ACL utility routines
->  #
->  # Note: Posix ACLs can be implemented without these helpers.  Never use
-> -- 
-> 2.30.2
-> 
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
