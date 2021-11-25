@@ -1,69 +1,76 @@
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+Received: from galois.linutronix.de (Galois.linutronix.de [193.142.43.55])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6530B68
-	for <nvdimm@lists.linux.dev>; Thu, 25 Nov 2021 06:11:36 +0000 (UTC)
-Received: by verein.lst.de (Postfix, from userid 2407)
-	id 0B8A268B05; Thu, 25 Nov 2021 07:11:31 +0100 (CET)
-Date: Thu, 25 Nov 2021 07:11:30 +0100
-From: Christoph Hellwig <hch@lst.de>
-To: Joao Martins <joao.m.martins@oracle.com>
-Cc: linux-mm@kvack.org, Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Naoya Horiguchi <naoya.horiguchi@nec.com>,
-	Matthew Wilcox <willy@infradead.org>,
-	Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
-	Jane Chu <jane.chu@oracle.com>,
-	Muchun Song <songmuchun@bytedance.com>,
-	Mike Kravetz <mike.kravetz@oracle.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
-	nvdimm@lists.linux.dev, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v6 04/10] mm/memremap: add ZONE_DEVICE support for
- compound pages
-Message-ID: <20211125061130.GA682@lst.de>
-References: <20211124191005.20783-1-joao.m.martins@oracle.com> <20211124191005.20783-5-joao.m.martins@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 019C072
+	for <nvdimm@lists.linux.dev>; Thu, 25 Nov 2021 11:30:17 +0000 (UTC)
+From: Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020; t=1637839167;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/ma5VbatWNFQZCLFlfHQQnL8bQbyHFoYfeKADC16NCw=;
+	b=4ePzyve3BV8W3Ri0w2FAt94m/sR5E2beQ9Uzi+snKcGE1+C9sSemwZdCWvyOdNjoJOG9tc
+	L5/g99loi2VqkMdpDQ8IdFbluX4ZM/ugzVUhvMjE+QintyM0hWvSUlxwGrs5/Q05fS6YDR
+	nWcKWslu0wvP6/Cq/wEe9IFSOxVCcWbvmx1OGDMH/1z4nbz84KP/gysD5enVRBaLP2pffu
+	1KO/uSL7KpyKmJD7meAq9RdoU1eBZ5WQoQ2LLsOYyEcesTjMHz7lG3A9C6rc1d7FFvIJGv
+	mdp+iWt3SkrHeBODGzbJqr5fFflFFFYW8wIEr6ltneHooGZQd02seIViPWBCMg==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+	s=2020e; t=1637839167;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=/ma5VbatWNFQZCLFlfHQQnL8bQbyHFoYfeKADC16NCw=;
+	b=NXTbV8DDLwaeOj+cBZrvOlV2D4CmfDV75T/cGw6iKtVmqnEoQEAFdJ/LixPiuBWQtghkmD
+	+xPVaQ4L7mjRytCw==
+To: Ira Weiny <ira.weiny@intel.com>, Dave Hansen
+ <dave.hansen@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>,
+ Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>,
+ Borislav Petkov <bp@alien8.de>, Fenghua Yu <fenghua.yu@intel.com>, Rick
+ Edgecombe <rick.p.edgecombe@intel.com>, x86@kernel.org,
+ linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev, linux-mm@kvack.org
+Subject: Re: [PATCH V7 08/18] x86/entry: Preserve PKRS MSR across exceptions
+In-Reply-To: <20211113005051.GN3538886@iweiny-DESK2.sc.intel.com>
+References: <20210804043231.2655537-1-ira.weiny@intel.com>
+ <20210804043231.2655537-9-ira.weiny@intel.com>
+ <20211113005051.GN3538886@iweiny-DESK2.sc.intel.com>
+Date: Thu, 25 Nov 2021 12:19:26 +0100
+Message-ID: <8735nkmqip.ffs@tglx>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211124191005.20783-5-joao.m.martins@oracle.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Type: text/plain
 
-On Wed, Nov 24, 2021 at 07:09:59PM +0000, Joao Martins wrote:
-> Add a new @vmemmap_shift property for struct dev_pagemap which specifies that a
-> devmap is composed of a set of compound pages of order @vmemmap_shift, instead of
-> base pages. When a compound page devmap is requested, all but the first
-> page are initialised as tail pages instead of order-0 pages.
+On Fri, Nov 12 2021 at 16:50, Ira Weiny wrote:
+> On Tue, Aug 03, 2021 at 09:32:21PM -0700, 'Ira Weiny' wrote:
+>> From: Ira Weiny <ira.weiny@intel.com>
+>> 
+>> The PKRS MSR is not managed by XSAVE.  It is preserved through a context
+>> switch but this support leaves exception handling code open to memory
+>> accesses during exceptions.
+>> 
+>> 2 possible places for preserving this state were considered,
+>> irqentry_state_t or pt_regs.[1]  pt_regs was much more complicated and
+>> was potentially fraught with unintended consequences.[2]  However, Andy
+>> came up with a way to hide additional values on the stack which could be
+>> accessed as "extended_pt_regs".[3]
+>
+> Andy,
+>
+> I'm preparing to send V8 of this PKS work.  But I have not seen any feed back
+> since I originally implemented this in V4[1].
+>
+> Does this meets your expectations?  Are there any issues you can see with this
+> code?
+>
+> I would appreciate your feedback.
 
-Please wrap commit log lines after 73 characters.
+Not Andy here, but I'll respond to the patch in a minute.
 
->  #define for_each_device_pfn(pfn, map, i) \
-> -	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(pfn))
-> +	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(map, pfn))
+Thanks,
 
-It would be nice to fix up this long line while you're at it.
-
->  static void dev_pagemap_kill(struct dev_pagemap *pgmap)
->  {
-> @@ -315,8 +315,8 @@ static int pagemap_range(struct dev_pagemap *pgmap, struct mhp_params *params,
->  	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
->  				PHYS_PFN(range->start),
->  				PHYS_PFN(range_len(range)), pgmap);
-> -	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
-> -			- pfn_first(pgmap, range_id));
-> +	percpu_ref_get_many(pgmap->ref, (pfn_end(pgmap, range_id)
-> +			- pfn_first(pgmap, range_id)) >> pgmap->vmemmap_shift);
-
-In the Linux coding style the - goes ointo the first line.
-
-But it would be really nice to clean this up with a helper ala pfn_len
-anyway:
-
-	percpu_ref_get_many(pgmap->ref,
-			    pfn_len(pgmap, range_id) >> pgmap->vmemmap_shift);
+        tglx
