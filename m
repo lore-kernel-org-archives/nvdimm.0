@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8B2232CB6
-	for <nvdimm@lists.linux.dev>; Mon, 29 Nov 2021 10:22:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 580B92CB9
+	for <nvdimm@lists.linux.dev>; Mon, 29 Nov 2021 10:22:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=SFLYg18cvij6fU/3A8zFWrjXsu/Zx4DYVn4elv8lvPs=; b=uB944Rw+yKwWNNyIUgm2y7f92e
-	nNzmWSGyjlKa1IN1nAvs4ne0Kq2Je3alGtGlu7CyfQckv73HtbRv78vo0UbB4VQ4kH0bGG/7TrSQl
-	lF5vs7LCw65hs31wWSArmMuopqBCYmTmPm0Mc/4zraDKVFzFN0hShN6O+rZOWU1WVRq2kc3kT8AOb
-	Kxm/r6DwhK6yetiqjs02YbQail0yT68daR+d6LLKvj8Ln9M3K/R41h23aSDikFSwt7HUJy8JzBTMC
-	+gUWf24Ik0bwO/HMS9mSAmHzTn7FHgcEkqbIM0mF3ttEnHkPf0HTn6znk9hCSSPyBMxNI8m3Yfx9C
-	pVDFv2AA==;
+	bh=U05m0uvMr1dYJz1lFGG5yB/r2XP3HjP96H1ucFxFNjg=; b=TmMVPs93egmO+yQCIFCO4JBd6L
+	Iu6QXcaWPpKCjhAaAvkZH0L/sY5AJ+IwgWPnE3gU/NHTlZxRFIuV/Qrmhlzpn5tHPY0CR4HUClojA
+	gDggyM0tJBjKhOZ4Zd5KJ3C4DJbJR+2KfxMyjQ2qYpBzK8k3ieuNN3BUdM8V3jbv7/Va/zFwiDDxN
+	18OJ1rJ0B+4wlqQWEXLu58rtO8Th6SVLhHxWmlsVTSjlzzZ2mtQQdmDmulYJyrl+sd473wwFwemHJ
+	fAiYPy8tan9xVHqJVSDHOrPsjNy1QQ6moDpMsT2UvG9v1mQ1ydYkiW+pM31CRjkh8lOqAZPblSc7T
+	C6VDPMSQ==;
 Received: from [2001:4bb8:184:4a23:724a:c057:c7bf:4643] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mrdnm-0073Qh-SZ; Mon, 29 Nov 2021 10:22:28 +0000
+	id 1mrdnl-0073Q9-G3; Mon, 29 Nov 2021 10:22:26 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Snitzer <snitzer@redhat.com>,
@@ -29,9 +29,9 @@ Cc: Mike Snitzer <snitzer@redhat.com>,
 	linux-ext4@vger.kernel.org,
 	virtualization@lists.linux-foundation.org,
 	"Darrick J . Wong" <djwong@kernel.org>
-Subject: [PATCH 17/29] fsdax: factor out a dax_memzero helper
-Date: Mon, 29 Nov 2021 11:21:51 +0100
-Message-Id: <20211129102203.2243509-18-hch@lst.de>
+Subject: [PATCH 16/29] fsdax: simplify the offset check in dax_iomap_zero
+Date: Mon, 29 Nov 2021 11:21:50 +0100
+Message-Id: <20211129102203.2243509-17-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211129102203.2243509-1-hch@lst.de>
 References: <20211129102203.2243509-1-hch@lst.de>
@@ -44,74 +44,38 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-Factor out a helper for the "manual" zeroing of a DAX range to clean
-up dax_iomap_zero a lot.
+The file relative offset must have the same alignment as the storage
+offset, so use that and get rid of the call to iomap_sector.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 ---
- fs/dax.c | 36 +++++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 17 deletions(-)
+ fs/dax.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/fs/dax.c b/fs/dax.c
-index d7a923d152240..d5db1297a0bb6 100644
+index 5364549d67a48..d7a923d152240 100644
 --- a/fs/dax.c
 +++ b/fs/dax.c
-@@ -1121,34 +1121,36 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
- }
- #endif /* CONFIG_FS_DAX_PMD */
+@@ -1123,7 +1123,6 @@ static vm_fault_t dax_pmd_load_hole(struct xa_state *xas, struct vm_fault *vmf,
  
-+static int dax_memzero(struct dax_device *dax_dev, pgoff_t pgoff,
-+		unsigned int offset, size_t size)
-+{
-+	void *kaddr;
-+	long ret;
-+
-+	ret = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
-+	if (ret > 0) {
-+		memset(kaddr + offset, 0, size);
-+		dax_flush(dax_dev, kaddr + offset, size);
-+	}
-+	return ret;
-+}
-+
  s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
  {
+-	sector_t sector = iomap_sector(iomap, pos & PAGE_MASK);
  	pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
  	long rc, id;
--	void *kaddr;
--	bool page_aligned = false;
+ 	void *kaddr;
+@@ -1131,8 +1130,7 @@ s64 dax_iomap_zero(loff_t pos, u64 length, struct iomap *iomap)
  	unsigned offset = offset_in_page(pos);
  	unsigned size = min_t(u64, PAGE_SIZE - offset, length);
  
--	if (IS_ALIGNED(pos, PAGE_SIZE) && size == PAGE_SIZE)
--		page_aligned = true;
--
- 	id = dax_read_lock();
--
--	if (page_aligned)
+-	if (IS_ALIGNED(sector << SECTOR_SHIFT, PAGE_SIZE) &&
+-	    (size == PAGE_SIZE))
 +	if (IS_ALIGNED(pos, PAGE_SIZE) && size == PAGE_SIZE)
- 		rc = dax_zero_page_range(iomap->dax_dev, pgoff, 1);
- 	else
--		rc = dax_direct_access(iomap->dax_dev, pgoff, 1, &kaddr, NULL);
--	if (rc < 0) {
--		dax_read_unlock(id);
--		return rc;
--	}
--
--	if (!page_aligned) {
--		memset(kaddr + offset, 0, size);
--		dax_flush(iomap->dax_dev, kaddr + offset, size);
--	}
-+		rc = dax_memzero(iomap->dax_dev, pgoff, offset, size);
- 	dax_read_unlock(id);
-+
-+	if (rc < 0)
-+		return rc;
- 	return size;
- }
+ 		page_aligned = true;
  
+ 	id = dax_read_lock();
 -- 
 2.30.2
 
