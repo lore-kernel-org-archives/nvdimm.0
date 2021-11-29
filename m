@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 875F42C83
-	for <nvdimm@lists.linux.dev>; Mon, 29 Nov 2021 10:22:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B10472
+	for <nvdimm@lists.linux.dev>; Mon, 29 Nov 2021 10:22:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=ym5SXKSkcY5yjLbafTLHLzk4qEufBPEYqn+LUGRKebE=; b=Qve86oEPdKU6yZByQUGE4uqGPA
-	wN+dDIkYeCU7y0Cte07Z374R1rna6LpLf5af55YHgc1/QzuJcMODUy9ei8PtiyR/anY7k4yIUy4VY
-	6Iml7QYYTSm/bwwgikdJ33U7a9LiicsvPguD+abweOH0v67YEQUyJHoVh4hexAY5AJ6X2hlsL9rKx
-	c0CuD33WmCK9CpPaM+Jf+eyz18qikAssrnaD9y2DhlWXeTB9N4TGD524xTtvQJESe/XzCXTM+crrj
-	I/3VUu9nLh/HZQBL2BRRZ5lxYYSybfX+HuB2ZVVgEeWHNP5NrQ+lY3zfAQDpQjqwTTIrLye4VvBF5
-	tataXuMQ==;
+	bh=ZI8fdJdAHvC2/8mTH+7pB1lSA27KsqbHwcacuu5ur0Y=; b=ONr3+Hqhtmlw3mDkcAWneercGq
+	rt6I893UuowUX/zXeALoSjQCy/x0sEwKWPAtbKgul2jhM//AAJ50ZfaX5683gI4sBwbXMSyAATkT/
+	SNX+V/PjIZmsMIGQhQTl/xuRKuNf3I55iQy4OK3aEHxl0L159LvqS3w0Iklm5jB0Lh5kMAtlDQfBc
+	7nkMbOC8pA6bEgwfn/eSwOZplpeGO13m5ytFJAIwNED0TUpotITZACvM0X9kWZoPw2kDHf+8w+1mX
+	gziZR5lkN5mnJL+xEkocYcOZDVSJXOxruOgnTe7Cm3Q5xPbByWN7PeYVnTsIHbOOCVv7dQfA0yJzt
+	nYhtSfpw==;
 Received: from [2001:4bb8:184:4a23:724a:c057:c7bf:4643] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mrdnS-0073J2-IG; Mon, 29 Nov 2021 10:22:07 +0000
+	id 1mrdng-0073O9-Bb; Mon, 29 Nov 2021 10:22:21 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Mike Snitzer <snitzer@redhat.com>,
@@ -27,10 +27,11 @@ Cc: Mike Snitzer <snitzer@redhat.com>,
 	linux-fsdevel@vger.kernel.org,
 	linux-erofs@lists.ozlabs.org,
 	linux-ext4@vger.kernel.org,
-	virtualization@lists.linux-foundation.org
-Subject: [PATCH 02/29] dm: make the DAX support depend on CONFIG_FS_DAX
-Date: Mon, 29 Nov 2021 11:21:36 +0100
-Message-Id: <20211129102203.2243509-3-hch@lst.de>
+	virtualization@lists.linux-foundation.org,
+	"Darrick J . Wong" <djwong@kernel.org>
+Subject: [PATCH 12/29] fsdax: remove a pointless __force cast in copy_cow_page_dax
+Date: Mon, 29 Nov 2021 11:21:46 +0100
+Message-Id: <20211129102203.2243509-13-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211129102203.2243509-1-hch@lst.de>
 References: <20211129102203.2243509-1-hch@lst.de>
@@ -43,118 +44,29 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-The device mapper DAX support is all hanging off a block device and thus
-can't be used with device dax.  Make it depend on CONFIG_FS_DAX instead
-of CONFIG_DAX_DRIVER.  This also means that bdev_dax_pgoff only needs to
-be built under CONFIG_FS_DAX now.
+Despite its name copy_user_page expected kernel addresses, which is what
+we already have.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Mike Snitzer <snitzer@redhat.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 ---
- drivers/dax/super.c        | 6 ++----
- drivers/md/dm-linear.c     | 2 +-
- drivers/md/dm-log-writes.c | 2 +-
- drivers/md/dm-stripe.c     | 2 +-
- drivers/md/dm-writecache.c | 2 +-
- drivers/md/dm.c            | 2 +-
- 6 files changed, 7 insertions(+), 9 deletions(-)
+ fs/dax.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index b882cf8106ea3..e20d0cef10a18 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -63,7 +63,7 @@ static int dax_host_hash(const char *host)
- 	return hashlen_hash(hashlen_string("DAX", host)) % DAX_HASH_SIZE;
- }
- 
--#ifdef CONFIG_BLOCK
-+#if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
- #include <linux/blkdev.h>
- 
- int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
-@@ -80,7 +80,6 @@ int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
- }
- EXPORT_SYMBOL(bdev_dax_pgoff);
- 
--#if IS_ENABLED(CONFIG_FS_DAX)
- /**
-  * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
-  * @host: alternate name for the device registered by a dax driver
-@@ -219,8 +218,7 @@ bool dax_supported(struct dax_device *dax_dev, struct block_device *bdev,
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(dax_supported);
--#endif /* CONFIG_FS_DAX */
--#endif /* CONFIG_BLOCK */
-+#endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
- 
- enum dax_device_flags {
- 	/* !alive + rcu grace period == no new operations / mappings */
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 66ba16713f696..0a260c35aeeed 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -162,7 +162,7 @@ static int linear_iterate_devices(struct dm_target *ti,
- 	return fn(ti, lc->dev, lc->start, ti->len, data);
- }
- 
--#if IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_FS_DAX)
- static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
-diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-index 0b3ef977ceeba..3155875d4e5b0 100644
---- a/drivers/md/dm-log-writes.c
-+++ b/drivers/md/dm-log-writes.c
-@@ -901,7 +901,7 @@ static void log_writes_io_hints(struct dm_target *ti, struct queue_limits *limit
- 	limits->io_min = limits->physical_block_size;
- }
- 
--#if IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_FS_DAX)
- static int log_dax(struct log_writes_c *lc, sector_t sector, size_t bytes,
- 		   struct iov_iter *i)
- {
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index 6660b6b53d5bf..f084607220293 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -300,7 +300,7 @@ static int stripe_map(struct dm_target *ti, struct bio *bio)
- 	return DM_MAPIO_REMAPPED;
- }
- 
--#if IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_FS_DAX)
- static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
-diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-index 4b8991cde223d..4f31591d2d25e 100644
---- a/drivers/md/dm-writecache.c
-+++ b/drivers/md/dm-writecache.c
-@@ -38,7 +38,7 @@
- #define BITMAP_GRANULARITY	PAGE_SIZE
- #endif
- 
--#if IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && IS_ENABLED(CONFIG_FS_DAX)
- #define DM_WRITECACHE_HAS_PMEM
- #endif
- 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index acc84dc1bded5..b93fcc91176e5 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1783,7 +1783,7 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
--	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
-+	if (IS_ENABLED(CONFIG_FS_DAX)) {
- 		md->dax_dev = alloc_dax(md, md->disk->disk_name,
- 					&dm_dax_ops, 0);
- 		if (IS_ERR(md->dax_dev)) {
+diff --git a/fs/dax.c b/fs/dax.c
+index 4e3e5a283a916..73bd1439d8089 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -728,7 +728,7 @@ static int copy_cow_page_dax(struct block_device *bdev, struct dax_device *dax_d
+ 		return rc;
+ 	}
+ 	vto = kmap_atomic(to);
+-	copy_user_page(vto, (void __force *)kaddr, vaddr, to);
++	copy_user_page(vto, kaddr, vaddr, to);
+ 	kunmap_atomic(vto);
+ 	dax_read_unlock(id);
+ 	return 0;
 -- 
 2.30.2
 
