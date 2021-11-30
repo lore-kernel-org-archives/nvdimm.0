@@ -1,303 +1,480 @@
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5555872
-	for <nvdimm@lists.linux.dev>; Mon, 29 Nov 2021 17:20:45 +0000 (UTC)
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 1ATHEhh8025169;
-	Mon, 29 Nov 2021 17:20:29 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
- subject : from : to : cc : references : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=corp-2021-07-09;
- bh=z2mXQHaZN/dBWzFXb4SOG+ANGzeeNjA4ZwGiXpvgu8k=;
- b=C49enFRM7UYkLneoF9wfdgnp9qYJnnp0/g1D5CMjYEBKn/PxivFxZapRsEolxNaDsM/G
- aaB9SFngXEFmLh9tpsEcZ08vV4wfrvrNAt7nMGlsNP5IUIjGvo+BkEB0//q7oAuoIyQk
- NoOV7QBXuuhlH2hw8yWmmMO/CfIAc2XvdyMXzjTfKMrClt1WbIGGWQ1/C4BSpXmS8L2e
- 9kPP5XdMMURVJ/8Lu3rV9aqPRb7wVBkeOdl/ysCiWCmTUT6E/g84+GGcG51BzD9hxthv
- mJXN2E0I0WyvA7lapQtBFXtmvtQxQj2AOB3/5RmLDParxxNLWh8rLOeEWuVeJZfCMq4J zA== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3cmrt7uj8y-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 29 Nov 2021 17:20:28 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 1ATGtg0u187376;
-	Mon, 29 Nov 2021 17:20:21 GMT
-Received: from nam02-sn1-obe.outbound.protection.outlook.com (mail-sn1anam02lp2044.outbound.protection.outlook.com [104.47.57.44])
-	by userp3030.oracle.com with ESMTP id 3ck9swr28w-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 29 Nov 2021 17:20:21 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=iaKPnFcM0Is/JQkrZddbKlWHZ6TSvgzcWvZvbm7ES5Wcs1gVoBy7BoAdrLiRaKrqXBXCfYvIfjAdG8RKXbebfmd8F644qenZgiZ9bGJbjl5GorFQTDR1LHcxb+wXHMFZvTJb5qN8pHAP8z/AoLActirVQRIjhvDnyG03HVqv3bxLBoxQJjATeElG0aXcfHYR4YgAk44dSrxfEzj1fQ4newti1zi7fAfq4kAsFbCe+oEwzJom4A9y6EDce8HgSYQMUgGD2ROgrpW24NlAg7KB62YcbxCDWt84l2VSF5RUGFXHP9+eTbKHZ3rURrhgjgbGljriUsXVwfzZIPIPFivCDQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=z2mXQHaZN/dBWzFXb4SOG+ANGzeeNjA4ZwGiXpvgu8k=;
- b=Vwl1QuEqWwSHolJqiH0Lr9ocGQPMIcOuxs+JY5wCgdix2ItEtUuphfmr0OprCtDCT25LwId3RA4nUOA7gFQsMBugidxiwMxPDLDimzzQ0Kg/yXv8zJOXyvYsBkoQefgdtRYyin3v0CxovJExf9L861sjlESjaMOC70jYuy82tMrbMFgl+9nveLNUSuK7iPeB88epjEIgCZ03s9+B1k+4YQdaHK4Ka4tnBrs/GIuVf9ANg7I3Pn7+UwMAxQ5F8+RoFfpSHvS5fTcNyMyAiacZChkmtXNpueJ5lx5n1bmk0nEfYQMqt7Thzp1jux+MUzhFd4JWZZeV9B//g5bS2XRIsA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=z2mXQHaZN/dBWzFXb4SOG+ANGzeeNjA4ZwGiXpvgu8k=;
- b=fR0bKok1wDCuDypDqgnSNJpSwEwhu6yJ56PZLGf7c9mkq8ILlU4ixvpwEe8rCGPWzjZYMLGC4LE5mL/RRr2uFETpnwh7y/eL/krB5zFghZcYvN/u1P9TPpnjaQidVMgwbX/v7S33+/2XfzA3ce+Hmj8fFZvTqh/aQnh2XGrMNyk=
-Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
- by MN2PR10MB3775.namprd10.prod.outlook.com (2603:10b6:208:186::24) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4734.22; Mon, 29 Nov
- 2021 17:20:19 +0000
-Received: from BLAPR10MB4835.namprd10.prod.outlook.com
- ([fe80::d809:9016:4511:2bc6]) by BLAPR10MB4835.namprd10.prod.outlook.com
- ([fe80::d809:9016:4511:2bc6%7]) with mapi id 15.20.4734.024; Mon, 29 Nov 2021
- 17:20:18 +0000
-Message-ID: <a3e8da96-2895-753a-4d4c-61e86a4306e0@oracle.com>
-Date: Mon, 29 Nov 2021 17:20:07 +0000
-Subject: Re: [PATCH v6 09/10] device-dax: set mapping prior to
- vmf_insert_pfn{,_pmd,pud}()
-Content-Language: en-US
-From: Joao Martins <joao.m.martins@oracle.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C01EA2C80
+	for <nvdimm@lists.linux.dev>; Tue, 30 Nov 2021 17:26:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 698F9C53FC1;
+	Tue, 30 Nov 2021 17:26:37 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1638293197;
+	bh=BMG4z10Kn+4IsBnm0eMRsV0qjHiN0yQ30zDqbBy45SM=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=sNtLoYDY2zHtXbW7e9UQt9r80pIhCvB+EQzY2o7of+YWnfcOK4MYRcb2KtOQ+hjzc
+	 QWqWVxm6s+B1XWsdG1z4li4cve6WfhsS9kQdh0j8NjeMZIJIAJtyMbWFuqyjsfTMwU
+	 gEvC/UJ38a2NUjmDdRsprA6KFnpNAeyJzkiwRjrEFGVJbVTgarZrAk1ShyIUfwhV3I
+	 Jr2TX4J1lNr8G4q9yrjKraUEMRFgu3+8VrrzWCeJrMkjv2MQ06tfR0EP9WMOWB6izB
+	 j7ZObSOK4eSJ5ewSukvjrEuh2qW7bMGBnjpcwDz/Q7OYh+t+ILVcujeRwHG4b6jRxL
+	 jKmLZL0ruYLqQ==
+Date: Tue, 30 Nov 2021 09:26:36 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
 To: Christoph Hellwig <hch@lst.de>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Vishal Verma <vishal.l.verma@intel.com>,
-        Dave Jiang <dave.jiang@intel.com>,
-        Naoya Horiguchi <naoya.horiguchi@nec.com>,
-        Matthew Wilcox <willy@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>,
-        John Hubbard <jhubbard@nvidia.com>, Jane Chu <jane.chu@oracle.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Jonathan Corbet <corbet@lwn.net>, nvdimm@lists.linux.dev,
-        linux-doc@vger.kernel.org
-References: <20211124191005.20783-1-joao.m.martins@oracle.com>
- <20211124191005.20783-10-joao.m.martins@oracle.com>
- <0439eb48-1688-a4f4-5feb-8eb2680d652f@oracle.com>
- <96b53b3c-5c18-5f93-c595-a7d509d58f92@oracle.com>
- <20211129073235.GA23843@lst.de>
- <b8056071-d0fe-b8ef-5fe3-85ab639f4bf7@oracle.com>
-In-Reply-To: <b8056071-d0fe-b8ef-5fe3-85ab639f4bf7@oracle.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: LO4P123CA0214.GBRP123.PROD.OUTLOOK.COM
- (2603:10a6:600:1a5::21) To BLAPR10MB4835.namprd10.prod.outlook.com
- (2603:10b6:208:331::11)
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
+	dm-devel@redhat.com, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+	linux-ext4@vger.kernel.org,
+	virtualization@lists.linux-foundation.org
+Subject: Re: [PATCH 04/29] dax: simplify the dax_device <-> gendisk
+ association
+Message-ID: <20211130172636.GC8467@magnolia>
+References: <20211129102203.2243509-1-hch@lst.de>
+ <20211129102203.2243509-5-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Received: from [10.175.187.247] (138.3.204.55) by LO4P123CA0214.GBRP123.PROD.OUTLOOK.COM (2603:10a6:600:1a5::21) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4734.19 via Frontend Transport; Mon, 29 Nov 2021 17:20:16 +0000
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 59d4df88-3669-4229-b562-08d9b35c8438
-X-MS-TrafficTypeDiagnostic: MN2PR10MB3775:
-X-Microsoft-Antispam-PRVS: 
-	<MN2PR10MB3775052380B348C98306FEC8BB669@MN2PR10MB3775.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:2582;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 
-	cVN0PFHNrsq/hoCrxWDgSULFJMr+e85RkbiH/bU0cdJVvsjCQui/l9XTjLRuoS9IrHCOLKd+NxWP7fA+5x5tdy7O+8KUWg1XlZYCzEN0QzGAo4XEXOvGzaBNf+aATqw7zaOriDSn6J73iS8/5rs5LgkBdol/L6yNOTD81SjvKWlXaLD0eoph8Qn+thROJuou7GqByhbhviq+0+XAC7zteqq9panRbxgIedO6kG9Rhip5h0aLJB0Q2wUJuXFh0OZIGQrBhtgUti7mxswKsAQ+0N00UM7tvRWh0IQYgaOj/nhlLjDc9ZulOSH8Zus98QsXbQq5+Ahv6DbuuUlvgF7bzKGenpVz+sIAFzltEkEbvCOStYqk41nn7HXQ3jkrIzhhigjfMMBLXhWXtzHWEcGERkm3wVpIJ1lh7jJfRhI2hJBD9GiaOniztRvoD3KZT0ZBTfoFU+NUqw6KTX4dLQKEonxeAM3E1d1UvKQ/0TkhDdd6SfxS0N+FMx090YuH1z1tMSjSMG2Kqj8rB05CpDfc2knDOpLdtzOjm/wimySws2DpF8VganUbIj6dQSbhvv02m1ayadenIwH4d0jP/zcct7Ru+H+KNplFiIkUdZeJKunRzGJMpYwWF7rSUAaTwf/D6+QeUf6cROD1WRXlbSDWue5ein8q8ZQBo0Z464ascBj3rN1FKiJg1qGrA0EmxkEk5fXncnIfuSklZy+WGmg9mQ==
-X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(186003)(2616005)(4326008)(508600001)(956004)(7416002)(8676002)(66556008)(6666004)(66946007)(31696002)(86362001)(316002)(66476007)(16576012)(54906003)(38100700002)(8936002)(83380400001)(2906002)(36756003)(31686004)(6916009)(6486002)(53546011)(26005)(5660300002)(45980500001);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?utf-8?B?SjI0OC9sMFVnT0RXVWVtWFJTdlNqQS93YnBXMXl4TzhoamMvT2ZUR1lSVFVO?=
- =?utf-8?B?MVRCc2Qrak9LMmQyUkhzaUMzNzJLdUhIazRIT0tLVWJvVjBKTkJXRE9TQytU?=
- =?utf-8?B?RGxRZnFLMHVvcmlteExVSE4rSkhSbHRPYjdQSnlWaHJkZEpJeHFaRkZlOUdI?=
- =?utf-8?B?WFFUdzVyUjdBcUNYWlA1azVRbTlBak1yc01GYWtsODZyYnNBRU91T2l3TjF5?=
- =?utf-8?B?dEYzTUFqbEFvREQ0V2FwSzB0OVVQTmFGTXlaUzdBM3FvdXZFakI2WElUaS90?=
- =?utf-8?B?SDVFa1FoYkxOMS80T3NqWUlWMHowd0Z1Qm5zQUFmMVBteVM4UHpQS0pacnVW?=
- =?utf-8?B?YmVlUlV1Qm9lczJIbTZYSlNQazg0RUFIZEtaVHExQTY2bmlBMDJvLzJaamRD?=
- =?utf-8?B?cjdaTE82dnUzUzQ0MFQxRjNrT21mNUt0Qy8zQU9nZEhpWmRVOUFDSWpha0Fo?=
- =?utf-8?B?SHJBWGlZV0VOTllUN2lJQkdOOGoxNUxFS0ZSZE41aU5naWxxcUo0UWlUM2RG?=
- =?utf-8?B?VUZSYnp5aGUzM01oS3F5Q3BVUmpibHB3SnVwRjBycFdtaUsza0VHMFRaNk5W?=
- =?utf-8?B?OE1uc1Q3VnBXQkNBL2NGcEg4U0tScWlqZUtBMzhsa25GUlVFU0tIL3J3b3Vm?=
- =?utf-8?B?Y01UU1VMZGNaOW5WeEtOenFHL012UlNrQXNkR090YkhyRXFWNjBkUXJLaGpZ?=
- =?utf-8?B?RWNPb2RZUjlGb2Q1NGJyc2k2bkdlczBMdXFSMkNaRlRIZjVISjdidjkxS3B4?=
- =?utf-8?B?LzZ0Tm9IZ0tFckxEeXZRQ0krSFNNSWtwTmVIby8yUzdmK3VzM2EzK1NlcjR3?=
- =?utf-8?B?eTZEV01lRWxUN1duWlQzNUJRZXBraml0OHpLenI1ZTk3NXBmeFF1R1YvT0do?=
- =?utf-8?B?SDJHblhPcVRlNHJWZ2VrTkJ6TVpWMnJvVEFDLzRmZjhrdUJFNVRQSXFVd3l1?=
- =?utf-8?B?akdsMkVwVGNyeG9FU2lLS0d4RkVURG1tMVB6N3FsNGZxYjNPaS93cVZ4aENJ?=
- =?utf-8?B?bjBzdWJiRlczUGdkQ3hUVFgwYmwrQkx4cWpBeG9XdFdkMkZxaHBzNFBPcFZP?=
- =?utf-8?B?LzI2MVkrcHozSEQrb21iU2FvaG42eHlkalViSUMwNUtIOXpSNkJhcUJwTFRr?=
- =?utf-8?B?aWk0cGcrbEpXU2RoeXd3VW92Y3BmdzNndFBWd000OWxreWsxaWV4N3ZYckJS?=
- =?utf-8?B?WWMvWUZ6YlV4cHM2NGRvS001TmJZU3B1OXBCMXFGS0hjNktaU2hWYk15bHF4?=
- =?utf-8?B?SVpZU1dLTlg1NGJsSDMvYjNMdS90Uzh3dTlmTjM1Zi84aGh6NlR5cVFOamoy?=
- =?utf-8?B?QzBaQm1hWEdtanN4ZnV3WTRDbmY1QVRJTlFaUUlqZUlUaWE0UnFMOE5nc0Jm?=
- =?utf-8?B?ZitkRG5ya01iNzQ2MFZnNXM3MTJabnBMcG9ZWm9sbzI0aXF4bFN0TiszN0hl?=
- =?utf-8?B?VXpaTHZpR3JpeHpyZmFMV1dSZUFRd1Y4SWNKUW8wVzBITzhUT0w4ODJyeCsx?=
- =?utf-8?B?bHp4ci9HbGtTQ3dmdFJTUnhLbEVNRXhnZ0xxamZtdWNiUS82Y1FEaXl2aE1h?=
- =?utf-8?B?TnZqLzJHeWRteTByQ1ZDN2FlM1lrRHEyWVFTOGRhQ08wSzY0L21uY1htYXNv?=
- =?utf-8?B?em1qbDZJeFlweTJZbnp2SkFwVGg3bnZnVGZ4MldxNmcwQmVvVFRUREw1V3Bj?=
- =?utf-8?B?dXpqY25FQTZIZUtJMkh2cGxyNVYxUDc5QlNjemFjeWJneFBxVE42MmhaNnpP?=
- =?utf-8?B?MzRKYmJjYU1qNVBXVU9nTVlYa0FuWkVpUURRSE4wbVByY2krcFNLb05kanF5?=
- =?utf-8?B?NlZIQ2RaakJiZEF4ZXZQeElZNHlVQUJQV1dyQnBBUVNUaldRc2Q4T1dERHNV?=
- =?utf-8?B?ajdsMW41THM2MlpwN0pPWkJRUnRHdFhESlV3TGR0RkowL00zMFFzSnVheGF0?=
- =?utf-8?B?NDEvWnNsb3llVXZxQjJjL05zSnZDREY1QmNvUUJKUzFNREUvN2Z0dXAvNTBN?=
- =?utf-8?B?bGVjSFlVeVpadDE0MHFlcEF5YUJnV3V6NURtYWl6TW1IYU84MWtSb0Y0YTUx?=
- =?utf-8?B?M1FoR2dKRGJ1UWFCclRpNlg2Qy9NUWJDcTI0cTJWQzVFYVBqVEY4Wk1KamNG?=
- =?utf-8?B?NjNySWFmYjc2TnFMdTQ5dmhjYnVBK0tXeUxSMWRNUm5tTEM0aVlUMlF3b0lt?=
- =?utf-8?B?OHZYWVY0LzVvak0rODN0dWZoZ0pVZFBNL3JQODZ2bDdWcU1EZUhxbXpiV3lh?=
- =?utf-8?B?SVUvd0FFbW9pRnk1bk5JbjNsNExBPT0=?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 59d4df88-3669-4229-b562-08d9b35c8438
-X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Nov 2021 17:20:18.8388
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: x9RgxlRh+tRN1dDBMQDIUH9Mb3iBvG6iecOXtlpRZby4ScyMxvzMnSxkwCr0ZmHHlSzhmquffglvfFN2MG9vbgHmDUrzdITVM9gLkjpEKSQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR10MB3775
-X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10183 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 mlxscore=0 malwarescore=0
- spamscore=0 bulkscore=0 mlxlogscore=999 suspectscore=0 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2110150000
- definitions=main-2111290081
-X-Proofpoint-ORIG-GUID: u_QwepFdWgINkawH-4ufcYuAu4rfoBXx
-X-Proofpoint-GUID: u_QwepFdWgINkawH-4ufcYuAu4rfoBXx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211129102203.2243509-5-hch@lst.de>
 
-On 11/29/21 15:49, Joao Martins wrote:
-> On 11/29/21 07:32, Christoph Hellwig wrote:
->> On Fri, Nov 26, 2021 at 06:39:39PM +0000, Joao Martins wrote:
->> Aso it seems like pfn is only an input
->> parameter now and doesn't need to be passed by reference.
->>
-> It's actually just an output parameter (that dax_set_mapping would then use).
+On Mon, Nov 29, 2021 at 11:21:38AM +0100, Christoph Hellwig wrote:
+> Replace the dax_host_hash with an xarray indexed by the pointer value
+> of the gendisk, and require explicitly calls from the block drivers that
+> want to associate their gendisk with a dax_device.
 > 
-> The fault handlers in device-dax use vmf->address to calculate pfn that they
-> insert in the page table entry. After this patch we can actually just remove
-> @pfn argument.
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Acked-by: Mike Snitzer <snitzer@redhat.com>
 
-I've added your suggestion as a cleanup patch between 9 and current 10 (11 in v7):
+Nice cleanup from the fs side!
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
 
----->8----
+--D
 
-From 999cec9efa757b82f435124518b042caeb51bde6 Mon Sep 17 00:00:00 2001
-From: Joao Martins <joao.m.martins@oracle.com>
-Date: Mon, 29 Nov 2021 11:12:00 -0500
-Subject: [PATCH] device-dax: remove pfn from __dev_dax_{pte,pmd,pud}_fault()
-
-After moving the page mapping to be set prior to pte insertion, the pfn
-in dev_dax_huge_fault() no longer is necessary.  Remove it, as well as
-the @pfn argument passed to the internal fault handler helpers.
-
-Suggested-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
----
- drivers/dax/device.c | 34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 19a6b86486ce..914368164e05 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -95,10 +95,11 @@ static void dax_set_mapping(struct vm_fault *vmf, pfn_t pfn,
- }
-
- static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
--                               struct vm_fault *vmf, pfn_t *pfn)
-+                               struct vm_fault *vmf)
- {
-        struct device *dev = &dev_dax->dev;
-        phys_addr_t phys;
-+       pfn_t pfn;
-        unsigned int fault_size = PAGE_SIZE;
-
-        if (check_vma(dev_dax, vmf->vma, __func__))
-@@ -119,20 +120,21 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
-                return VM_FAULT_SIGBUS;
-        }
-
--       *pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+       pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-
--       dax_set_mapping(vmf, *pfn, fault_size);
-+       dax_set_mapping(vmf, pfn, fault_size);
-
--       return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
-+       return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
- }
-
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
--                               struct vm_fault *vmf, pfn_t *pfn)
-+                               struct vm_fault *vmf)
- {
-        unsigned long pmd_addr = vmf->address & PMD_MASK;
-        struct device *dev = &dev_dax->dev;
-        phys_addr_t phys;
-        pgoff_t pgoff;
-+       pfn_t pfn;
-        unsigned int fault_size = PMD_SIZE;
-
-        if (check_vma(dev_dax, vmf->vma, __func__))
-@@ -161,21 +163,22 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
-                return VM_FAULT_SIGBUS;
-        }
-
--       *pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+       pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-
--       dax_set_mapping(vmf, *pfn, fault_size);
-+       dax_set_mapping(vmf, pfn, fault_size);
-
--       return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
-+       return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
- }
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--                               struct vm_fault *vmf, pfn_t *pfn)
-+                               struct vm_fault *vmf)
- {
-        unsigned long pud_addr = vmf->address & PUD_MASK;
-        struct device *dev = &dev_dax->dev;
-        phys_addr_t phys;
-        pgoff_t pgoff;
-+       pfn_t pfn;
-        unsigned int fault_size = PUD_SIZE;
-
-
-@@ -205,11 +208,11 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-                return VM_FAULT_SIGBUS;
-        }
-
--       *pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+       pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-
--       dax_set_mapping(vmf, *pfn, fault_size);
-+       dax_set_mapping(vmf, pfn, fault_size);
-
--       return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
-+       return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-@@ -225,7 +228,6 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
-        struct file *filp = vmf->vma->vm_file;
-        vm_fault_t rc = VM_FAULT_SIGBUS;
-        int id;
--       pfn_t pfn;
-        struct dev_dax *dev_dax = filp->private_data;
-
-        dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
-@@ -235,13 +237,13 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
-        id = dax_read_lock();
-        switch (pe_size) {
-        case PE_SIZE_PTE:
--               rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
-+               rc = __dev_dax_pte_fault(dev_dax, vmf);
-                break;
-        case PE_SIZE_PMD:
--               rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
-+               rc = __dev_dax_pmd_fault(dev_dax, vmf);
-                break;
-        case PE_SIZE_PUD:
--               rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
-+               rc = __dev_dax_pud_fault(dev_dax, vmf);
-                break;
-        default:
-                rc = VM_FAULT_SIGBUS;
---
-2.17.2
+> ---
+>  drivers/dax/bus.c            |   6 +-
+>  drivers/dax/super.c          | 109 +++++++++--------------------------
+>  drivers/md/dm.c              |   6 +-
+>  drivers/nvdimm/pmem.c        |  10 +++-
+>  drivers/s390/block/dcssblk.c |  11 +++-
+>  fs/fuse/virtio_fs.c          |   2 +-
+>  include/linux/dax.h          |  19 ++++--
+>  7 files changed, 66 insertions(+), 97 deletions(-)
+> 
+> diff --git a/drivers/dax/bus.c b/drivers/dax/bus.c
+> index 6cc4da4c713d9..bd7af2f7c5b0a 100644
+> --- a/drivers/dax/bus.c
+> +++ b/drivers/dax/bus.c
+> @@ -1323,10 +1323,10 @@ struct dev_dax *devm_create_dev_dax(struct dev_dax_data *data)
+>  	}
+>  
+>  	/*
+> -	 * No 'host' or dax_operations since there is no access to this
+> -	 * device outside of mmap of the resulting character device.
+> +	 * No dax_operations since there is no access to this device outside of
+> +	 * mmap of the resulting character device.
+>  	 */
+> -	dax_dev = alloc_dax(dev_dax, NULL, NULL, DAXDEV_F_SYNC);
+> +	dax_dev = alloc_dax(dev_dax, NULL, DAXDEV_F_SYNC);
+>  	if (IS_ERR(dax_dev)) {
+>  		rc = PTR_ERR(dax_dev);
+>  		goto err_alloc_dax;
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index e20d0cef10a18..bf77c3da5d56d 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -7,10 +7,8 @@
+>  #include <linux/mount.h>
+>  #include <linux/pseudo_fs.h>
+>  #include <linux/magic.h>
+> -#include <linux/genhd.h>
+>  #include <linux/pfn_t.h>
+>  #include <linux/cdev.h>
+> -#include <linux/hash.h>
+>  #include <linux/slab.h>
+>  #include <linux/uio.h>
+>  #include <linux/dax.h>
+> @@ -21,15 +19,12 @@
+>   * struct dax_device - anchor object for dax services
+>   * @inode: core vfs
+>   * @cdev: optional character interface for "device dax"
+> - * @host: optional name for lookups where the device path is not available
+>   * @private: dax driver private data
+>   * @flags: state and boolean properties
+>   */
+>  struct dax_device {
+> -	struct hlist_node list;
+>  	struct inode inode;
+>  	struct cdev cdev;
+> -	const char *host;
+>  	void *private;
+>  	unsigned long flags;
+>  	const struct dax_operations *ops;
+> @@ -42,10 +37,6 @@ static DEFINE_IDA(dax_minor_ida);
+>  static struct kmem_cache *dax_cache __read_mostly;
+>  static struct super_block *dax_superblock __read_mostly;
+>  
+> -#define DAX_HASH_SIZE (PAGE_SIZE / sizeof(struct hlist_head))
+> -static struct hlist_head dax_host_list[DAX_HASH_SIZE];
+> -static DEFINE_SPINLOCK(dax_host_lock);
+> -
+>  int dax_read_lock(void)
+>  {
+>  	return srcu_read_lock(&dax_srcu);
+> @@ -58,13 +49,22 @@ void dax_read_unlock(int id)
+>  }
+>  EXPORT_SYMBOL_GPL(dax_read_unlock);
+>  
+> -static int dax_host_hash(const char *host)
+> +#if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
+> +#include <linux/blkdev.h>
+> +
+> +static DEFINE_XARRAY(dax_hosts);
+> +
+> +int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk)
+>  {
+> -	return hashlen_hash(hashlen_string("DAX", host)) % DAX_HASH_SIZE;
+> +	return xa_insert(&dax_hosts, (unsigned long)disk, dax_dev, GFP_KERNEL);
+>  }
+> +EXPORT_SYMBOL_GPL(dax_add_host);
+>  
+> -#if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
+> -#include <linux/blkdev.h>
+> +void dax_remove_host(struct gendisk *disk)
+> +{
+> +	xa_erase(&dax_hosts, (unsigned long)disk);
+> +}
+> +EXPORT_SYMBOL_GPL(dax_remove_host);
+>  
+>  int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
+>  		pgoff_t *pgoff)
+> @@ -81,41 +81,24 @@ int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
+>  EXPORT_SYMBOL(bdev_dax_pgoff);
+>  
+>  /**
+> - * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
+> - * @host: alternate name for the device registered by a dax driver
+> + * fs_dax_get_by_bdev() - temporary lookup mechanism for filesystem-dax
+> + * @bdev: block device to find a dax_device for
+>   */
+> -static struct dax_device *dax_get_by_host(const char *host)
+> +struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+>  {
+> -	struct dax_device *dax_dev, *found = NULL;
+> -	int hash, id;
+> +	struct dax_device *dax_dev;
+> +	int id;
+>  
+> -	if (!host)
+> +	if (!blk_queue_dax(bdev->bd_disk->queue))
+>  		return NULL;
+>  
+> -	hash = dax_host_hash(host);
+> -
+>  	id = dax_read_lock();
+> -	spin_lock(&dax_host_lock);
+> -	hlist_for_each_entry(dax_dev, &dax_host_list[hash], list) {
+> -		if (!dax_alive(dax_dev)
+> -				|| strcmp(host, dax_dev->host) != 0)
+> -			continue;
+> -
+> -		if (igrab(&dax_dev->inode))
+> -			found = dax_dev;
+> -		break;
+> -	}
+> -	spin_unlock(&dax_host_lock);
+> +	dax_dev = xa_load(&dax_hosts, (unsigned long)bdev->bd_disk);
+> +	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode))
+> +		dax_dev = NULL;
+>  	dax_read_unlock(id);
+>  
+> -	return found;
+> -}
+> -
+> -struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev)
+> -{
+> -	if (!blk_queue_dax(bdev->bd_disk->queue))
+> -		return NULL;
+> -	return dax_get_by_host(bdev->bd_disk->disk_name);
+> +	return dax_dev;
+>  }
+>  EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
+>  
+> @@ -361,12 +344,7 @@ void kill_dax(struct dax_device *dax_dev)
+>  		return;
+>  
+>  	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
+> -
+>  	synchronize_srcu(&dax_srcu);
+> -
+> -	spin_lock(&dax_host_lock);
+> -	hlist_del_init(&dax_dev->list);
+> -	spin_unlock(&dax_host_lock);
+>  }
+>  EXPORT_SYMBOL_GPL(kill_dax);
+>  
+> @@ -398,8 +376,6 @@ static struct dax_device *to_dax_dev(struct inode *inode)
+>  static void dax_free_inode(struct inode *inode)
+>  {
+>  	struct dax_device *dax_dev = to_dax_dev(inode);
+> -	kfree(dax_dev->host);
+> -	dax_dev->host = NULL;
+>  	if (inode->i_rdev)
+>  		ida_simple_remove(&dax_minor_ida, iminor(inode));
+>  	kmem_cache_free(dax_cache, dax_dev);
+> @@ -474,54 +450,25 @@ static struct dax_device *dax_dev_get(dev_t devt)
+>  	return dax_dev;
+>  }
+>  
+> -static void dax_add_host(struct dax_device *dax_dev, const char *host)
+> -{
+> -	int hash;
+> -
+> -	/*
+> -	 * Unconditionally init dax_dev since it's coming from a
+> -	 * non-zeroed slab cache
+> -	 */
+> -	INIT_HLIST_NODE(&dax_dev->list);
+> -	dax_dev->host = host;
+> -	if (!host)
+> -		return;
+> -
+> -	hash = dax_host_hash(host);
+> -	spin_lock(&dax_host_lock);
+> -	hlist_add_head(&dax_dev->list, &dax_host_list[hash]);
+> -	spin_unlock(&dax_host_lock);
+> -}
+> -
+> -struct dax_device *alloc_dax(void *private, const char *__host,
+> -		const struct dax_operations *ops, unsigned long flags)
+> +struct dax_device *alloc_dax(void *private, const struct dax_operations *ops,
+> +		unsigned long flags)
+>  {
+>  	struct dax_device *dax_dev;
+> -	const char *host;
+>  	dev_t devt;
+>  	int minor;
+>  
+> -	if (ops && !ops->zero_page_range) {
+> -		pr_debug("%s: error: device does not provide dax"
+> -			 " operation zero_page_range()\n",
+> -			 __host ? __host : "Unknown");
+> +	if (WARN_ON_ONCE(ops && !ops->zero_page_range))
+>  		return ERR_PTR(-EINVAL);
+> -	}
+> -
+> -	host = kstrdup(__host, GFP_KERNEL);
+> -	if (__host && !host)
+> -		return ERR_PTR(-ENOMEM);
+>  
+>  	minor = ida_simple_get(&dax_minor_ida, 0, MINORMASK+1, GFP_KERNEL);
+>  	if (minor < 0)
+> -		goto err_minor;
+> +		return ERR_PTR(-ENOMEM);
+>  
+>  	devt = MKDEV(MAJOR(dax_devt), minor);
+>  	dax_dev = dax_dev_get(devt);
+>  	if (!dax_dev)
+>  		goto err_dev;
+>  
+> -	dax_add_host(dax_dev, host);
+>  	dax_dev->ops = ops;
+>  	dax_dev->private = private;
+>  	if (flags & DAXDEV_F_SYNC)
+> @@ -531,8 +478,6 @@ struct dax_device *alloc_dax(void *private, const char *__host,
+>  
+>   err_dev:
+>  	ida_simple_remove(&dax_minor_ida, minor);
+> - err_minor:
+> -	kfree(host);
+>  	return ERR_PTR(-ENOMEM);
+>  }
+>  EXPORT_SYMBOL_GPL(alloc_dax);
+> diff --git a/drivers/md/dm.c b/drivers/md/dm.c
+> index b93fcc91176e5..a8c650276b321 100644
+> --- a/drivers/md/dm.c
+> +++ b/drivers/md/dm.c
+> @@ -1683,6 +1683,7 @@ static void cleanup_mapped_device(struct mapped_device *md)
+>  	bioset_exit(&md->io_bs);
+>  
+>  	if (md->dax_dev) {
+> +		dax_remove_host(md->disk);
+>  		kill_dax(md->dax_dev);
+>  		put_dax(md->dax_dev);
+>  		md->dax_dev = NULL;
+> @@ -1784,12 +1785,13 @@ static struct mapped_device *alloc_dev(int minor)
+>  	sprintf(md->disk->disk_name, "dm-%d", minor);
+>  
+>  	if (IS_ENABLED(CONFIG_FS_DAX)) {
+> -		md->dax_dev = alloc_dax(md, md->disk->disk_name,
+> -					&dm_dax_ops, 0);
+> +		md->dax_dev = alloc_dax(md, &dm_dax_ops, 0);
+>  		if (IS_ERR(md->dax_dev)) {
+>  			md->dax_dev = NULL;
+>  			goto bad;
+>  		}
+> +		if (dax_add_host(md->dax_dev, md->disk))
+> +			goto bad;
+>  	}
+>  
+>  	format_dev_t(md->name, MKDEV(_major, minor));
+> diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+> index fe7ece1534e1e..1018f0d44acb8 100644
+> --- a/drivers/nvdimm/pmem.c
+> +++ b/drivers/nvdimm/pmem.c
+> @@ -379,6 +379,7 @@ static void pmem_release_disk(void *__pmem)
+>  {
+>  	struct pmem_device *pmem = __pmem;
+>  
+> +	dax_remove_host(pmem->disk);
+>  	kill_dax(pmem->dax_dev);
+>  	put_dax(pmem->dax_dev);
+>  	del_gendisk(pmem->disk);
+> @@ -497,17 +498,20 @@ static int pmem_attach_disk(struct device *dev,
+>  
+>  	if (is_nvdimm_sync(nd_region))
+>  		flags = DAXDEV_F_SYNC;
+> -	dax_dev = alloc_dax(pmem, disk->disk_name, &pmem_dax_ops, flags);
+> +	dax_dev = alloc_dax(pmem, &pmem_dax_ops, flags);
+>  	if (IS_ERR(dax_dev)) {
+>  		rc = PTR_ERR(dax_dev);
+>  		goto out;
+>  	}
+> +	rc = dax_add_host(dax_dev, disk);
+> +	if (rc)
+> +		goto out_cleanup_dax;
+>  	dax_write_cache(dax_dev, nvdimm_has_cache(nd_region));
+>  	pmem->dax_dev = dax_dev;
+>  
+>  	rc = device_add_disk(dev, disk, pmem_attribute_groups);
+>  	if (rc)
+> -		goto out_cleanup_dax;
+> +		goto out_remove_host;
+>  	if (devm_add_action_or_reset(dev, pmem_release_disk, pmem))
+>  		return -ENOMEM;
+>  
+> @@ -519,6 +523,8 @@ static int pmem_attach_disk(struct device *dev,
+>  		dev_warn(dev, "'badblocks' notification disabled\n");
+>  	return 0;
+>  
+> +out_remove_host:
+> +	dax_remove_host(pmem->disk);
+>  out_cleanup_dax:
+>  	kill_dax(pmem->dax_dev);
+>  	put_dax(pmem->dax_dev);
+> diff --git a/drivers/s390/block/dcssblk.c b/drivers/s390/block/dcssblk.c
+> index 27ab888b44d0a..657e492f2bc26 100644
+> --- a/drivers/s390/block/dcssblk.c
+> +++ b/drivers/s390/block/dcssblk.c
+> @@ -687,18 +687,21 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+>  	if (rc)
+>  		goto put_dev;
+>  
+> -	dev_info->dax_dev = alloc_dax(dev_info, dev_info->gd->disk_name,
+> -			&dcssblk_dax_ops, DAXDEV_F_SYNC);
+> +	dev_info->dax_dev = alloc_dax(dev_info, &dcssblk_dax_ops,
+> +			DAXDEV_F_SYNC);
+>  	if (IS_ERR(dev_info->dax_dev)) {
+>  		rc = PTR_ERR(dev_info->dax_dev);
+>  		dev_info->dax_dev = NULL;
+>  		goto put_dev;
+>  	}
+> +	rc = dax_add_host(dev_info->dax_dev, dev_info->gd);
+> +	if (rc)
+> +		goto out_dax;
+>  
+>  	get_device(&dev_info->dev);
+>  	rc = device_add_disk(&dev_info->dev, dev_info->gd, NULL);
+>  	if (rc)
+> -		goto out_dax;
+> +		goto out_dax_host;
+>  
+>  	switch (dev_info->segment_type) {
+>  		case SEG_TYPE_SR:
+> @@ -714,6 +717,8 @@ dcssblk_add_store(struct device *dev, struct device_attribute *attr, const char
+>  	rc = count;
+>  	goto out;
+>  
+> +out_dax_host:
+> +	dax_remove_host(dev_info->gd);
+>  out_dax:
+>  	put_device(&dev_info->dev);
+>  	kill_dax(dev_info->dax_dev);
+> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+> index 4cfa4bc1f5794..242cc1c0d7ed7 100644
+> --- a/fs/fuse/virtio_fs.c
+> +++ b/fs/fuse/virtio_fs.c
+> @@ -850,7 +850,7 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+>  	dev_dbg(&vdev->dev, "%s: window kaddr 0x%px phys_addr 0x%llx len 0x%llx\n",
+>  		__func__, fs->window_kaddr, cache_reg.addr, cache_reg.len);
+>  
+> -	fs->dax_dev = alloc_dax(fs, NULL, &virtio_fs_dax_ops, 0);
+> +	fs->dax_dev = alloc_dax(fs, &virtio_fs_dax_ops, 0);
+>  	if (IS_ERR(fs->dax_dev))
+>  		return PTR_ERR(fs->dax_dev);
+>  
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 8623caa673889..e2e9a67004cbd 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -11,9 +11,11 @@
+>  
+>  typedef unsigned long dax_entry_t;
+>  
+> +struct dax_device;
+> +struct gendisk;
+>  struct iomap_ops;
+>  struct iomap;
+> -struct dax_device;
+> +
+>  struct dax_operations {
+>  	/*
+>  	 * direct_access: translate a device-relative
+> @@ -39,8 +41,8 @@ struct dax_operations {
+>  };
+>  
+>  #if IS_ENABLED(CONFIG_DAX)
+> -struct dax_device *alloc_dax(void *private, const char *host,
+> -		const struct dax_operations *ops, unsigned long flags);
+> +struct dax_device *alloc_dax(void *private, const struct dax_operations *ops,
+> +		unsigned long flags);
+>  void put_dax(struct dax_device *dax_dev);
+>  void kill_dax(struct dax_device *dax_dev);
+>  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+> @@ -68,7 +70,7 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+>  	return dax_synchronous(dax_dev);
+>  }
+>  #else
+> -static inline struct dax_device *alloc_dax(void *private, const char *host,
+> +static inline struct dax_device *alloc_dax(void *private,
+>  		const struct dax_operations *ops, unsigned long flags)
+>  {
+>  	/*
+> @@ -107,6 +109,8 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+>  struct writeback_control;
+>  int bdev_dax_pgoff(struct block_device *, sector_t, size_t, pgoff_t *pgoff);
+>  #if IS_ENABLED(CONFIG_FS_DAX)
+> +int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk);
+> +void dax_remove_host(struct gendisk *disk);
+>  bool generic_fsdax_supported(struct dax_device *dax_dev,
+>  		struct block_device *bdev, int blocksize, sector_t start,
+>  		sector_t sectors);
+> @@ -128,6 +132,13 @@ struct page *dax_layout_busy_page_range(struct address_space *mapping, loff_t st
+>  dax_entry_t dax_lock_page(struct page *page);
+>  void dax_unlock_page(struct page *page, dax_entry_t cookie);
+>  #else
+> +static inline int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk)
+> +{
+> +	return 0;
+> +}
+> +static inline void dax_remove_host(struct gendisk *disk)
+> +{
+> +}
+>  #define generic_fsdax_supported		NULL
+>  
+>  static inline bool dax_supported(struct dax_device *dax_dev,
+> -- 
+> 2.30.2
+> 
