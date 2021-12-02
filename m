@@ -1,49 +1,44 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 730132CA6
-	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 08:50:21 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AdXWASKoSZNmG7pwV+jQyX1vYGzFeBmJzZBIvgKr?=
- =?us-ascii?q?LsJaIsI5as4F+vmAfD2+EaP+MNGv9e9l/bo+3oB8CsZWEm9NgHgE//3w0QiMRo?=
- =?us-ascii?q?6IpJ/zDcB6oYHn6wu4v7a5fx5xHLIGGdajYd1eEzvuWGuWn/SYUOZ2gHOKmUbe?=
- =?us-ascii?q?eYnopHGeIdQ964f5ds79g6mJXqYjha++9kYuaT/z3YDdJ6RYtWo4nw/7rRCdUg?=
- =?us-ascii?q?RjHkGhwUmrSyhx8lAS2e3E9VPrzLEwqRpfyatE88uWSH44vwFwll1418SvBCvv?=
- =?us-ascii?q?9+lr6WkYMBLDPPwmSkWcQUK+n6vRAjnVqlP9la7xHMgEK49mKt4kZJNFlr4G5T?=
- =?us-ascii?q?xw4eKPKg/g1XQRaEj1lIOtN/7qvzX2X6JXDlBSXKiKwqxlpJARsVWECwc57CH9?=
- =?us-ascii?q?P+dQWMjcIaQqJhv7wy7W+IsFsjcQLLc/lJooTt3hsizbDAp4OTZnFBaeM+t5c2?=
- =?us-ascii?q?DY5g9tmHPDCas5fYj1qBDzMYQJIPFg/C58kmuqswH7lfFVwrFOTuLpy5m37zxJ?=
- =?us-ascii?q?427urN8DaEvSMW8lUm0OwomPd43+/BhAcKczZxTebmlquj+nC2yj7RaoVDrSz8?=
- =?us-ascii?q?vMsi1qWrkQXCRsLRR61uvW0lEO6c8xQJlZS+Sc0q6U2skuxQbHVWxy+vW7BvRM?=
- =?us-ascii?q?GXddUO/M15RvLyafO5QudQG8eQVZpbN0gqd9zVTIx/kGGksmvBjF1trCRD3WH+?=
- =?us-ascii?q?d+pQZmaUcQOBTZaI3ZaEk1euJ++yLzfRynnFr5LeJNZRPWocd0o/w23kQ=3D?=
- =?us-ascii?q?=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AcjlupKnfX2IkJjrHdHw2T1GfUgbpDfIQ3DAb?=
- =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
- =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
- =?us-ascii?q?o0tQcQ=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.87,281,1631548800"; 
-   d="scan'208";a="118319114"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 02 Dec 2021 16:49:10 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 739B74D13A1C;
-	Thu,  2 Dec 2021 16:49:05 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 2 Dec 2021 16:49:07 +0800
-Received: from irides.mr.mr.mr (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 2 Dec 2021 16:49:03 +0800
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
-	<hch@infradead.org>, <jane.chu@oracle.com>
-Subject: [PATCH v8 7/9] dax: add dax holder helper for filesystems
-Date: Thu, 2 Dec 2021 16:48:54 +0800
-Message-ID: <20211202084856.1285285-8-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 2.34.0
-In-Reply-To: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
-References: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2BC8C68
+	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 12:53:32 +0000 (UTC)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+	by smtp-out1.suse.de (Postfix) with ESMTP id 7E9B2212BB;
+	Thu,  2 Dec 2021 12:53:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1638449610; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=tozQ3FNeLVowsYJRhf4dwsswyJBrxvHat2NWcE581HQ=;
+	b=P21t5RA/efJHAtipUyrFbPNOA6SefEdPBMUWOQZzhpvmiF54kniCdn6o9bgDmGEWBJirEO
+	vF1JbUIRncfspL3RmNq/PLY8Nwpr9mw/05l+jo9yDcw/8H7NrAMpbwV7SE7PXELOhZ8Udh
+	Onbhj7kVktR+y+fczgqFopIQr22K0k4=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1638449610;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+	bh=tozQ3FNeLVowsYJRhf4dwsswyJBrxvHat2NWcE581HQ=;
+	b=EyfHgnFC/DpTfyvre9Z4D4S4Jn1yAub5zpiNUctGnEpeIb+xG2N/Lg0uapK0y9QLfNkjb9
+	FIq7d51ZQEdPhEDg==
+Received: from suse.localdomain (colyli.tcp.ovpn1.nue.suse.de [10.163.16.22])
+	by relay2.suse.de (Postfix) with ESMTP id D62F7A3C0C;
+	Thu,  2 Dec 2021 12:53:24 +0000 (UTC)
+From: Coly Li <colyli@suse.de>
+To: dan.j.williams@intel.com
+Cc: nvdimm@lists.linux.dev,
+	linux-block@vger.kernel.org,
+	linux-raid@vger.kernel.org,
+	Coly Li <colyli@suse.de>,
+	Geliang Tang <geliang.tang@suse.com>,
+	Hannes Reinecke <hare@suse.de>,
+	Jens Axboe <axboe@kernel.dk>,
+	NeilBrown <neilb@suse.de>,
+	Richard Fan <richard.fan@suse.com>,
+	Vishal L Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v4 0/6] badblocks improvement for multiple bad block ranges
+Date: Thu,  2 Dec 2021 20:52:38 +0800
+Message-Id: <20211202125245.76699-1-colyli@suse.de>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -51,85 +46,69 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-yoursite-MailScanner-ID: 739B74D13A1C.A1DDA
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
 
-Add these helper functions, and export them for filesystem use.
+Hi Dan,
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+This is the v4 effort to improve badblocks code APIs to handle multiple
+ranges in bad block table.
+
+Comparing to v3 series, the v4 series modification is for code review
+comments from Geliang Tang,
+- Declare local variables in reverse Xmas tree order.
+- Drop orig_start and orig_len from struct badblocks_context.
+- Fix typos in code comments.
+- in badblocks_set() avoid one unnecessary loop by setting variable
+  hint by prev (was prev - 1 in v3 series).
+
+There is NO in-memory or on-disk format change in the whole series, all
+existing API and data structures are consistent. This series just only
+improve the code algorithm to handle more corner cases, the interfaces
+are same and consistency to all existing callers (md raid and nvdimm
+drivers).
+
+The original motivation of the change is from the requirement from our
+customer, that current badblocks routines don't handle multiple ranges.
+For example if the bad block setting range covers multiple ranges from
+bad block table, only the first two bad block ranges merged and rested
+ranges are intact. The expected behavior should be all the covered
+ranges to be handled.
+
+All the patches are tested by modified user space code and the code
+logic works as expected. The modified user space testing code is
+provided in last patch. The testing code is an example how the improved
+code is tested.
+
+The whole change is divided into 6 patches to make the code review more
+clear and easier. If people prefer, I'd like to post a single large
+patch finally after the code review accomplished.
+
+Please review the code and response. Thank you all in advance.
+
+Coly Li
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Geliang Tang <geliang.tang@suse.com>
+Cc: Hannes Reinecke <hare@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Richard Fan <richard.fan@suse.com>
+Cc: Vishal L Verma <vishal.l.verma@intel.com>
 ---
- drivers/dax/super.c | 19 +++++++++++++++++++
- include/linux/dax.h | 15 +++++++++++++++
- 2 files changed, 34 insertions(+)
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index a19fcc0a54f3..acbe7078ce4c 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -114,6 +114,25 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off)
- 	return dax_dev;
- }
- EXPORT_SYMBOL_GPL(fs_dax_get_by_bdev);
-+
-+void fs_dax_register_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+	dax_set_holder(dax_dev, holder, ops);
-+}
-+EXPORT_SYMBOL_GPL(fs_dax_register_holder);
-+
-+void fs_dax_unregister_holder(struct dax_device *dax_dev)
-+{
-+	dax_set_holder(dax_dev, NULL, NULL);
-+}
-+EXPORT_SYMBOL_GPL(fs_dax_unregister_holder);
-+
-+void *fs_dax_get_holder(struct dax_device *dax_dev)
-+{
-+	return dax_get_holder(dax_dev);
-+}
-+EXPORT_SYMBOL_GPL(fs_dax_get_holder);
- #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
- 
- enum dax_device_flags {
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 500d048d444e..15a0ad4c248d 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -140,6 +140,10 @@ static inline void fs_put_dax(struct dax_device *dax_dev)
- {
- 	put_dax(dax_dev);
- }
-+void fs_dax_register_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops);
-+void fs_dax_unregister_holder(struct dax_device *dax_dev);
-+void *fs_dax_get_holder(struct dax_device *dax_dev);
- #else
- static inline int dax_add_host(struct dax_device *dax_dev, struct gendisk *disk)
- {
-@@ -156,6 +160,17 @@ static inline struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev,
- static inline void fs_put_dax(struct dax_device *dax_dev)
- {
- }
-+static inline void fs_dax_register_holder(struct dax_device *dax_dev,
-+		void *holder, const struct dax_holder_operations *ops)
-+{
-+}
-+static inline void fs_dax_unregister_holder(struct dax_device *dax_dev)
-+{
-+}
-+static inline void *fs_dax_get_holder(struct dax_device *dax_dev)
-+{
-+	return NULL;
-+}
- #endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
- 
- #if IS_ENABLED(CONFIG_FS_DAX)
+Coly Li (6):
+  badblocks: add more helper structure and routines in badblocks.h
+  badblocks: add helper routines for badblock ranges handling
+  badblocks: improvement badblocks_set() for multiple ranges handling
+  badblocks: improve badblocks_clear() for multiple ranges handling
+  badblocks: improve badblocks_check() for multiple ranges handling
+  badblocks: switch to the improved badblock handling code
+Coly Li (1):
+  test: user space code to test badblocks APIs
+
+ block/badblocks.c         | 1602 ++++++++++++++++++++++++++++++-------
+ include/linux/badblocks.h |   30 +
+ 2 files changed, 1337 insertions(+), 295 deletions(-)
+
 -- 
-2.34.0
-
-
+2.31.1
 
