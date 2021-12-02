@@ -1,55 +1,55 @@
 Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 55F002CAB
-	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 20:45:20 +0000 (UTC)
-Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 1B2KP5XR019803;
-	Thu, 2 Dec 2021 20:45:14 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 66C7C2CAB
+	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 20:45:23 +0000 (UTC)
+Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 1B2KONJn023249;
+	Thu, 2 Dec 2021 20:45:18 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
  subject : date : message-id : in-reply-to : references : content-type :
  mime-version; s=corp-2021-07-09;
- bh=Pew2mxU+sAsmKJle5Hl2pyvwyQTkMrQLauVDtE4DxlA=;
- b=gMVbDO6ZPO6WbZXkRQCXRau+U5tGMhz93ST2tJsdXHKnrY/+0JIV72As2hVDRajwaqjf
- OdID4DrV8FN7JIapYffG/OwPEuy7/ruMX2TW4+Himc/X8q9F2zwXmou+K7SBJ8wSyYUY
- UdXXQC7tRNLz+sVm1uuOpMZ0oflte9GGkigF9EQKhMgbheB1aTnZ5xo1jRim8dZrNJGv
- JI6vi7/FHdrQ/a/eNsjbUQ8kc3Dw4hBqg3JtaBdoTTvKCmyMI3c7UhSDXfg2tTEptxkH
- 2eV/aG/qAGA174aOwmqPVamU9oaN0q5a5u50z+Krn7QtK/F6Q2w211OyMPvKwsax2QSf VA== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3cp7weud6j-1
+ bh=3q6V4tgPIyw7c/7R8KMq4uY3+XZ+wyYfe/wFopasDvk=;
+ b=QDz7aHDCPvXP63Lhlgxs+xJnbCoqYpDBrItoaCSaKvIKEUtrTq4aLKjrA1iFED5Bi/nQ
+ Vst67ita4IK9DilrTcz5ArtLZhFE6ZJoTJrrhrLjNWCnEoKI2zj//Lgf4QUF/T4RI56w
+ 4xKihzvFiVdAOVGTeLTIplo4+IgY/hA+QDkPNISZehEPbH2RLSgp8ruD1ffV9nYMx/Pa
+ eJzLw6C1Hg6LYBmW+B3wrb6vknVCPAIrWcgz7XGjWkF8A5MBNCittuhjfTLvEQD9x1Pd
+ WSUgQUOj6JOAlhhxm61OXuNSJXV+BbXBvOuXeTlVawtGokhLKHMF38iEfX5zf35NgaET cg== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3cpb70b16a-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 02 Dec 2021 20:45:13 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 1B2KeuWE121646;
-	Thu, 2 Dec 2021 20:45:12 GMT
-Received: from nam12-mw2-obe.outbound.protection.outlook.com (mail-mw2nam12lp2048.outbound.protection.outlook.com [104.47.66.48])
-	by userp3030.oracle.com with ESMTP id 3ck9t4v59a-1
+	Thu, 02 Dec 2021 20:45:17 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 1B2KeWCK048020;
+	Thu, 2 Dec 2021 20:45:15 GMT
+Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11lp2176.outbound.protection.outlook.com [104.47.58.176])
+	by userp3020.oracle.com with ESMTP id 3cke4ux1ap-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 02 Dec 2021 20:45:12 +0000
+	Thu, 02 Dec 2021 20:45:15 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Vo+XKzoo6wiGWW6PEyFLNZ0sIs8fSkhBsqNDwrSlpQNtrR4uF3UKfkwnLnLTwlQMEB3qPJC0D01MCUJXn79JPt0hbWcAHEuZnBkEKIj/QSZFXMabma5t5N/Mz8FPnGw5FgHxloq3jVJ8+e2paHFQqM6N3Vyuzbz6S+9N9fSTYzaZYOoTiGD+BBIiOpRK3xRd//7PjW3rR8DqHL4oLqLP2oe6wAZ8NNXJ29vQRuzDBgOU5x1LaMHESC9LmBctMEprZC1fGDuLzTGDsrnDLO7o6muSxJnOKjQPVNiLb+CyNkU2KmG7TUfvb1suNjsj8VX9PWPA4VmLTazxWYjny5CxMQ==
+ b=gLHOeDr9YQIkPrGNuKWtKX+YpNv5ITxGbcw3NOdDr4yVhDQV5zRs0nNZnNZjGxMiqGSMykAOtSeykzuzGAS9vsECfUZjobm7tUwIs2mYv9cy2HTXl0gI5xQtK1V2HqwdAC0CWmgheS697dxYS3rpkJOu5jsG+xd8f6XjaGI0n0meWLd6WQX4yYqiNp7q8hWKr16DS8T8a/XYILMuFUJpwhsp24DPzqbAnIz+BsATZGKpIn0B0gN/6frEa4l0IIL+5NM89BGgtb+TasKjhq0MUwoK6jPiPziIwKWbgSt944ZGrpcQp2qqkAN+MdR86LdE6VRME/2CdCabMK66AE9QHg==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=Pew2mxU+sAsmKJle5Hl2pyvwyQTkMrQLauVDtE4DxlA=;
- b=hJInDDZKq+fVKFK9St0qNgCCFFNe1n/sJ3T/I2wjrUGk7XQcpRgp99kWvyS5k58OE3nrJ+7UF3C2fv+uwKCHv+5q4spv7tWULW0qj0R2wOWt1J+qWHfQSiqipFBT5O8Pid5rpNWhmotzvY7G8jMkILQfix838GY5kcfisXVPDiBnv+bY9Zdj2iOfuxoXb5f0RhGmZYclWkPwnWlohiSQLdTehGTDgvdJq5BBUrsrWkkp7b4UJFfHnbYdh48eoc0f4uyWSnTX29D7qmAX/mxWxsbYTKxYyRrMXLVAS0cIma5NxofqCHjd3H0MTtlzUXXsqN77BtaEhAKwTM9FHFvDuw==
+ bh=3q6V4tgPIyw7c/7R8KMq4uY3+XZ+wyYfe/wFopasDvk=;
+ b=I5r497G1kiii7YT0Luw2TlSuSthZU9QU4GVvAFfCq+cnSeAjOD1UfI8e+NPYh1/4NJiaLlyp8mIMte+omPhOptjI6soHohW9NZyFarIwz0Y+BEZp5s2/y6N+uUVV4ERo7xQBrqSmaOmTxWwKeNfR2xGV52zbZOtipvuYl0khA1o1zJr5hLTXAaNSpWxdm+d5v8e7ceEcgWDo5ybbdPzBWdQ+ZtxpdFVc8f34p8NOfIoR+v50keJGUINmv6up4S/6U9Y1Ur5NsGLY107adZc1YmTxGBFoa/Dn5/KN7jd8z66r7UKSLtB5k4XGqKSvuR3ShhZ0NrVF/h4Y5V1ZFAAdKg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=Pew2mxU+sAsmKJle5Hl2pyvwyQTkMrQLauVDtE4DxlA=;
- b=ZplXFQ2Af+N0Qoj5/e/SM9FOn8KmvRIovdaisy+8EHkX4vjTYr3ny1njXc4KwjtLBn7I+JcX019gsYpAroVD0uH1zkA68oFcX6mzGr+cVBbo4UNG+MEFiAezDRqRpj5phEWIQ/DGTdeCitNyaEZKm4eCICrrVtUB93XJpaxCNvA=
+ bh=3q6V4tgPIyw7c/7R8KMq4uY3+XZ+wyYfe/wFopasDvk=;
+ b=N3E6y7B7OgU4xxEYV1DVOUXd/TdvYLwfqqjV84Pi8Ft/fENqGsgG5/cCnr3qn05MKjHMGLNIPXLW1q7VJQ4IfoXdFnSxjAXup8oovSuIvDScyYQXFG49v2Wb4kGvpjPc0Y8PIUsu5U+WCVC+l0VBdD2u7bbDVir9BFkD5pxHYHY=
 Received: from BLAPR10MB4835.namprd10.prod.outlook.com (2603:10b6:208:331::11)
  by MN2PR10MB4351.namprd10.prod.outlook.com (2603:10b6:208:1d7::23) with
  Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4734.24; Thu, 2 Dec
- 2021 20:45:09 +0000
+ 2021 20:45:13 +0000
 Received: from BLAPR10MB4835.namprd10.prod.outlook.com
  ([fe80::693f:564:30a5:2b09]) by BLAPR10MB4835.namprd10.prod.outlook.com
  ([fe80::693f:564:30a5:2b09%5]) with mapi id 15.20.4755.016; Thu, 2 Dec 2021
- 20:45:09 +0000
+ 20:45:13 +0000
 From: Joao Martins <joao.m.martins@oracle.com>
 To: linux-mm@kvack.org
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -64,9 +64,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
         Jonathan Corbet <corbet@lwn.net>, Christoph Hellwig <hch@lst.de>,
         nvdimm@lists.linux.dev, linux-doc@vger.kernel.org,
         Joao Martins <joao.m.martins@oracle.com>
-Subject: [PATCH v7 09/11] device-dax: set mapping prior to vmf_insert_pfn{,_pmd,pud}()
-Date: Thu,  2 Dec 2021 20:44:20 +0000
-Message-Id: <20211202204422.26777-10-joao.m.martins@oracle.com>
+Subject: [PATCH v7 10/11] device-dax: remove pfn from __dev_dax_{pte,pmd,pud}_fault()
+Date: Thu,  2 Dec 2021 20:44:21 +0000
+Message-Id: <20211202204422.26777-11-joao.m.martins@oracle.com>
 X-Mailer: git-send-email 2.11.0
 In-Reply-To: <20211202204422.26777-1-joao.m.martins@oracle.com>
 References: <20211202204422.26777-1-joao.m.martins@oracle.com>
@@ -80,148 +80,190 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Received: from paddy.uk.oracle.com (138.3.204.24) by AM0PR10CA0049.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:150::29) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.4755.16 via Frontend Transport; Thu, 2 Dec 2021 20:45:06 +0000
+Received: from paddy.uk.oracle.com (138.3.204.24) by AM0PR10CA0049.EURPRD10.PROD.OUTLOOK.COM (2603:10a6:20b:150::29) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.20.4755.16 via Frontend Transport; Thu, 2 Dec 2021 20:45:10 +0000
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 4447e735-7b96-4f13-09e4-08d9b5d4a156
+X-MS-Office365-Filtering-Correlation-Id: d1e8a8b9-4e58-4221-aacf-08d9b5d4a36f
 X-MS-TrafficTypeDiagnostic: MN2PR10MB4351:
 X-Microsoft-Antispam-PRVS: 
-	<MN2PR10MB43518D7A08B9738C305EEE59BB699@MN2PR10MB4351.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:3826;
+	<MN2PR10MB4351B283FE272F9560574000BB699@MN2PR10MB4351.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:813;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	uhxu+NY+vvEz+g+lbBHEtnr74TGufq2DWSe7iHGS5bpeZs1EoxNAGVpD82uaqLEupsHzGRYpfFj7+E+3GF3Cr+qOeoRhywQwbpgy9ErzIjcFEjD8Zj/wVnuanqCsuY8ir8fA8JF9KVN+jkQOiLGsmmHhJ1NcywTDEkACntVeJFYEk//GO7RwpDP9SItgykrzv37K0WfnUwEZs1d4seKpC0yz14jRffXcjoZkvmM3W17HSUJKsh2KUNvgt+skF2QPohjYCT6RsCEoVnjV1Zb57tS6zVRPHY/3YrYgvOGhzDTSVxhfis9ZXTHywzVy+cjXgH/Eu7Kj72lWOvNWUkDwX+v+g7UJicIQ/DDy0BjVy3SrSwcpKi2c5q/1RLPVfPrCaXe1jJyh00hYfCHx3ol1mlfhxn3cMByIExKO62/bnjIeETnf2J7U3bnk4TewQS+fRNbW62p6dI0q+V00hhb4I9u0/JzWoED6tFLKqjahAfZ08HK28/GUpr6k4mFjUvk9nulo6m78a84XGuHIJelrzmDh8kJiVmykPIa3LcYiZWWZ6hNQJD1Tq1c9Ig4Sx3prHbxBk5yg4k4EwrwZoMVhTiy76b03RWVzzW5rfWVujSW+uuf2sRV5c6IzObg70waVcm6Gy+KTqBieRigtGC5TZ3VtcVgWe/AqPCb19OzoP8YMOZi3g3lIspVF4uPxOekG/M99RiSE/U/yI5zGLk8tsQ==
+	66bRGzYoPEBq5N4uybUrlE6a4pKrGpVhetEQxGsqePD0+JKXyQxp+gHsLs+nCH+vSc0z7sIf2RconlF8ll+1Rrw+Ob+/87v2n8er7ozRDmj5LToDS3APY4RNIWrTGlPVWQ8Mpa6sRnVItOKEpJVpJlTmc9f9MV9OWoBhMQ/lfiwrB3TPSL81eZnZ3WFoY4u5/7mGCdBdSqiBjKkT5EsZAoiQESRGQNJ91iPslqPHfHRyHj1LjGMYMBsBwGsHPWZx8ZWfwAnYBHT1lbyJTAP0Jk1KyY8fniug0doAw0RknwgJlQCOobuYgVih6isZfiamlrq5o9iDDY3x7fWESNSEwnAedfpn2A+CYjferOR+SvOmRDnG1aXWJ8EutYz0bE/zW0nb+chZ3yITuzEbiPbAzNTfrUTthoTLSgtiNvdSWGw+lRoZtI3pRovVtv1SFcLnf38ClpVTVmk6VF1TS49tqtUsh7nwmzKmIEGWg2eH0wKxwky39K4SlGJKKipyMrsIjjL3VULNhrQXYjtPVkVeqTB1QgBgxLJbzKeguEzRWYMH2NwiVTuykG9WrakBuKE/0vCiIdiy+dxl0YBfeA18/f3ZIb+MMV4rsWQ1hTA9MESDkW6ENpIVa3Neuj8LbpHacqefcnsru6ra5DK9VCleR0x9Y7YfBWcchFkvoMXToI3d0GH7sNRiT8tEiipD4gg6nxBdbQrXXponW4OWdiNJMQ==
 X-Forefront-Antispam-Report: 
 	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB4835.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(66556008)(66476007)(66946007)(1076003)(7416002)(2616005)(6666004)(38350700002)(7696005)(186003)(8936002)(956004)(4326008)(38100700002)(26005)(83380400001)(52116002)(103116003)(54906003)(107886003)(6486002)(36756003)(86362001)(316002)(8676002)(508600001)(5660300002)(2906002)(6916009);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?/2cMk5uXqcath2CI77aYHyFQspG2j+iAY2rWNngfgMPO9funjOZeMuw/yzVh?=
- =?us-ascii?Q?JTEBoQ5l2FCWx8Rt8M3dKf5YXhExPDCum1zp0FvojNDZBdnaoLd7soaSK7xC?=
- =?us-ascii?Q?1Y1v6TG0MLF6Tfw6N9pzco5SeC1Y6UbdbaTX18nXMHP1kGu2Z4+o9S+QxLMU?=
- =?us-ascii?Q?2dZShozKjIdustGCMSAKaAjX2KWS+sA9eTByzuPXg3CVIj5rGataQ9vnz64k?=
- =?us-ascii?Q?2ULOEudPZymHxZnO0U+k20q/OOvCLDTx+uEQhB9JZXKTkjfsMVsz9SBNSaqV?=
- =?us-ascii?Q?nnuos53bDwSs0f+4NFrbCW4Q1ltm5hP7YqmsnLuk+aJrBe0QXrhUzGlgYqLm?=
- =?us-ascii?Q?M7GaIMhTEw8DmqFwWoP/m9cvOT4GZmyMQ2kQBV6IKmfI7izIZrt3vnwlX+Eo?=
- =?us-ascii?Q?dmXVF/NyAsr1XtVyQ5CiomnQs5nY+Zeg1Hg8HVZ7RdSBtLhdGwALwOWG5SLp?=
- =?us-ascii?Q?24Cb+OcUpCZVXt43SZqNIKIueciuogbSN6esLCGY5fV74ugRv/cKWlFoswAG?=
- =?us-ascii?Q?ErjzhMzy0pYi8YtZlj13oh6rFqx+AM1zngVgjmb+9rsLlp7g8SOQf3kGYWp4?=
- =?us-ascii?Q?ztzgTASAvTylYluaUztLOdgmvVC01z/JIA5meEhID8iHzfnBZ2/34PfQO3TH?=
- =?us-ascii?Q?whvkL7OHdiIQ3RNGJ3Ng8iEH2sTz23pZAdMZOZcQvBJhiyvpbazFMEet/nwH?=
- =?us-ascii?Q?YxVOFnTcqBppZWJiJmLWI/eM6SAuMAck3aa8DUjhjlD6LwmQt4JbxydSuWp5?=
- =?us-ascii?Q?vCvj1Tpss46M99WTrX9iTFFLcHhS1PTTl7G9crgMZUd5+h84UjtsCLytW/+r?=
- =?us-ascii?Q?rErPgaV+e7moajoh1c8uYKssUxyOZ4bmwFpJ1pbOA/QBcKwMEKYvkzCf06fR?=
- =?us-ascii?Q?J+OABK8yZKT2MmWzPvcKLqqPvI0eogWF90qjWawyQmqnyeJCBIIcD0x9dO9Q?=
- =?us-ascii?Q?hPS7e4baQvH4sbnxkiRPq2tDLynWcYQYv8Jta8hRiI3Qk0F3vkGUmwdS8Dp8?=
- =?us-ascii?Q?mjHnFjEevoTV+1PpfEbR1bzOvVCIWbEx1tr59faj7MHuKrv+dyYFv1iHBXI4?=
- =?us-ascii?Q?/Zql+dn098pEo0tPp+w2neSDd1Tp5dNKs5YIxMEEVcD5tfyNhaet6qJmruiv?=
- =?us-ascii?Q?GnQbw4bLoue2xyGxMA5IuY0Nx/O80vwLZrXPLIsDEXaL2Te/nnhWIkLnCgK9?=
- =?us-ascii?Q?za7Q5c74mxszHvXcey83lkCKCasGRB9M6jYOYulzd9xKap4nPu5ujAIoetmQ?=
- =?us-ascii?Q?3Hw+q6MiCo9PNFwRAH4pkJ9z8nFpby/ah6f5Ob+H+wlOQC20kIDQRDqCkLMh?=
- =?us-ascii?Q?GBnrcw5Zh13OANx9wQ8PiZHmk5Uvy8mAB61OqZkBqIbvfqAwR6SSg+pt09RK?=
- =?us-ascii?Q?pOtSmBVNvpnjyfq/UZQEOadOdBJdwbyOoh+/VPdBE3ZNC0/ZH2x0JdlR7RgR?=
- =?us-ascii?Q?78OaViObpcfTf7f9ggE0vyI7aQeVYfWwwR2PP7YN534NPyZZRZZXTNTLhWaz?=
- =?us-ascii?Q?sjnQlAeP2BV0si/T51/yDmQtV45COxJ1SVH4evPYpWSf6fpuxxMRctXCAMXx?=
- =?us-ascii?Q?tPNj791kAxvmqjjy3ANS3W71QnDTDA3faZq77QAai84md3e5nb9ijQIDyX95?=
- =?us-ascii?Q?6R43BiL9YJG13s0/G43Fy8WioXWpMHQIkOf5/1hVk0SvM5BSRvbjHm93y0mT?=
- =?us-ascii?Q?PanfNg=3D=3D?=
+	=?us-ascii?Q?mo/LCGQF07wCUN2rH+JQJ5LBGKpx+x3OZp3rcCOOFXsMxbzRnQUHZD89QpvW?=
+ =?us-ascii?Q?gStAgvWRGrexznKIw/YmWh+sogvzmluFjbXlhD3u/v90cNPCJZk7nzxdU6+Z?=
+ =?us-ascii?Q?qd9xsWZdhivVXjecNFLpVrlCEWp8Js1zWLO/DKzTD+gCo5D6jyl9OKm6qmu2?=
+ =?us-ascii?Q?pcYqZZ3VdosLp+rPp5HArVRQ99whXZe1NEyrfDip8s+tJhAmzQrV/u8Lo6Zf?=
+ =?us-ascii?Q?5hOfnv7O6QDd6gCsZfoaXPjIiPXLoVhiwo+i5ZiEoeSfLHAafGmSwYM5XKQ4?=
+ =?us-ascii?Q?PJk40JEKQN40cRuYvipgDOTIc8KgJF+NdUn9A/7JnZeJnmdd5kck40axagJC?=
+ =?us-ascii?Q?NrzbQx6pyqMKF6vyTfjEZB5/0uf9HNLUTvyWtVZ2Nk/A2GHSbYN2N3WrIV99?=
+ =?us-ascii?Q?NRg9YLWres+ZuCIp8Eq3Xh9wssEZto/EotPpGG9NVBF0tzRfAdY3avDiWfec?=
+ =?us-ascii?Q?H5vqyRyPZyHFAUyjKC9JAB7yWQw9LIX+TXfV8NPZpq58ZYDimevMbIfzFtFP?=
+ =?us-ascii?Q?TO4TfAUN3CnbDag5Jdg3gEjohvShPKQ3NazHP5nW1kK2sSwyO6HF90JWQOWk?=
+ =?us-ascii?Q?DIrzIoCRWHOe9jV61KTBH3/1+YQ7xf8B3EohCxOVw/FSD7p4ydyn2cQNBmzi?=
+ =?us-ascii?Q?i7WiPmpT6prtusXlnno5DgQhU+iVRBD+EK5sPdnaFO3mVfLvyhheS+noqwYw?=
+ =?us-ascii?Q?BOT387am29stgQBuoIH14EPDH8PIfEjSztalHJaG3hU6dw49kUfkk40sGccK?=
+ =?us-ascii?Q?OGqY2nIU886hbsB5WJ4n0uDuoeHRK8uSordSrw9obo20TUkivxgSUCYM+7oA?=
+ =?us-ascii?Q?BP528cXiEa+tmOUutpq2JSNLgUnMGr5b9z/1FdoeO4+WB3hpoCEGCjuWKXCD?=
+ =?us-ascii?Q?LU/rJr07p9WgX2hW2q8TVPQXOdmVfGD4MUM+odvQ76WkTmBALGT8b7O50yn2?=
+ =?us-ascii?Q?Y4vejMSxnCyGvjKAbNrhDm1FqDxNF/lIJJ4+L8Lbl0NxvWFlt2KxPchKAqEh?=
+ =?us-ascii?Q?wtTWxfBhMhN+sJoFq9PXWEB6fbC+jgjteFp/NIwi08WNTGKsQG7y1aVGRl26?=
+ =?us-ascii?Q?VdLC0axIDijrEXv4nRthqLRbBl5XKTz5kV5TecrRJEfPEt/2NNZx4dsdO4xv?=
+ =?us-ascii?Q?msYxxzIHuBeOj7mk9EpwrmGoeezdw4lKgQnBQUXuybT2dvkX/grc8fbQf5ND?=
+ =?us-ascii?Q?0bfyd5qo3q57imWKeMxdrWjdsEsseHG6zMx4ZMfQT3YIyxCvcxiql7FjXegc?=
+ =?us-ascii?Q?acPi2kdqDhr3j31Fa4ArS7X2WTnpZTyME09RxWRTaPOIPqLumWujPDCWtggc?=
+ =?us-ascii?Q?f3yT2mT++RsN21m94LiUW2b/Z54VjMmSt1pj+5tS9pIU7mQjm7HOGjAuoygl?=
+ =?us-ascii?Q?shrREt9i+p4XFd5Q9epy8ASXC4F4nWIRZqcZa7btWy2un1ZzuqCnTb9Pi1wX?=
+ =?us-ascii?Q?LFKMgMK5HoIK0glu4iUs7to4uXRiJY8MosGaSdSz8wFdAhYCTLdQMApoNDD5?=
+ =?us-ascii?Q?vqY6RB0tRovgKqLg2cU8zg1wT4sztMh8MfwnrCEjEe2P6633tvMeRa6xwwhw?=
+ =?us-ascii?Q?0Mqa1C9a5jipV24eN05xj/m6jGvIZvL8FwvnHwM3Aejbrnq7IVLqINOCGeQo?=
+ =?us-ascii?Q?Bu8RmvOUapyDE1pqnyXZ/fr2nKghwn3JQiLhV4uHXDGMUwKuTdcbq5C0YCIq?=
+ =?us-ascii?Q?yEhP/Q=3D=3D?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 4447e735-7b96-4f13-09e4-08d9b5d4a156
+X-MS-Exchange-CrossTenant-Network-Message-Id: d1e8a8b9-4e58-4221-aacf-08d9b5d4a36f
 X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB4835.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Dec 2021 20:45:09.7068
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Dec 2021 20:45:13.6208
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 9jCh1GmIbVxglZihkOgP0l8xOqCRE4D2+R+r+Wt0RAb0sHZQm6jkVSDCmiJ+QvkOVXasHqryIAxXnXsMP7iF/ESFQqEFeY7LYE4WqLSJqhQ=
+X-MS-Exchange-CrossTenant-UserPrincipalName: 83+6BzongsbTwAGY+p8Y7S4YjrkQ4iqxq9HF/+uPkRXTSI0tHBG6yWXugH1I2qsIZFO8GpvQXaM9G02Mx1ZG0fkcTVaXSlz9Qgn/jsqtn7U=
 X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR10MB4351
 X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10186 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 phishscore=0 mlxscore=0 malwarescore=0
- spamscore=0 bulkscore=0 mlxlogscore=999 suspectscore=0 adultscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2110150000
- definitions=main-2112020130
-X-Proofpoint-ORIG-GUID: D-O77wjrGsjcRVAg0Rn8a8__Pj5iOpDg
-X-Proofpoint-GUID: D-O77wjrGsjcRVAg0Rn8a8__Pj5iOpDg
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxlogscore=999
+ phishscore=0 suspectscore=0 spamscore=0 adultscore=0 mlxscore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2110150000 definitions=main-2112020131
+X-Proofpoint-ORIG-GUID: 8h73Prh6ppfjbKDouM5bVDZVnqNkcAz9
+X-Proofpoint-GUID: 8h73Prh6ppfjbKDouM5bVDZVnqNkcAz9
 
-Normally, the @page mapping is set prior to inserting the page into a
-page table entry. Make device-dax adhere to the same ordering, rather
-than setting mapping after the PTE is inserted.
+After moving the page mapping to be set prior to pte insertion, the pfn
+in dev_dax_huge_fault() no longer is necessary.  Remove it, as well as
+the @pfn argument passed to the internal fault handler helpers.
 
-The address_space never changes and it is always associated with the
-same inode and underlying pages. So, the page mapping is set once but
-cleared when the struct pages are removed/freed (i.e. after
-{devm_}memunmap_pages()).
-
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+Suggested-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 ---
- drivers/dax/device.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/dax/device.c | 34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index 9c87927d4bc2..19a6b86486ce 100644
+index 19a6b86486ce..914368164e05 100644
 --- a/drivers/dax/device.c
 +++ b/drivers/dax/device.c
-@@ -121,6 +121,8 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
- 
- 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
-+	dax_set_mapping(vmf, *pfn, fault_size);
-+
- 	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
+@@ -95,10 +95,11 @@ static void dax_set_mapping(struct vm_fault *vmf, pfn_t pfn,
  }
  
-@@ -161,6 +163,8 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf, pfn_t *pfn)
++				struct vm_fault *vmf)
+ {
+ 	struct device *dev = &dev_dax->dev;
+ 	phys_addr_t phys;
++	pfn_t pfn;
+ 	unsigned int fault_size = PAGE_SIZE;
  
- 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+@@ -119,20 +120,21 @@ static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
-+	dax_set_mapping(vmf, *pfn, fault_size);
-+
- 	return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
+-	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
++	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+-	dax_set_mapping(vmf, *pfn, fault_size);
++	dax_set_mapping(vmf, pfn, fault_size);
+ 
+-	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
++	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
  }
  
-@@ -203,6 +207,8 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf, pfn_t *pfn)
++				struct vm_fault *vmf)
+ {
+ 	unsigned long pmd_addr = vmf->address & PMD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
++	pfn_t pfn;
+ 	unsigned int fault_size = PMD_SIZE;
  
- 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 	if (check_vma(dev_dax, vmf->vma, __func__))
+@@ -161,21 +163,22 @@ static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
  
-+	dax_set_mapping(vmf, *pfn, fault_size);
-+
- 	return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
+-	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
++	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+-	dax_set_mapping(vmf, *pfn, fault_size);
++	dax_set_mapping(vmf, pfn, fault_size);
+ 
+-	return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
++	return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+-				struct vm_fault *vmf, pfn_t *pfn)
++				struct vm_fault *vmf)
+ {
+ 	unsigned long pud_addr = vmf->address & PUD_MASK;
+ 	struct device *dev = &dev_dax->dev;
+ 	phys_addr_t phys;
+ 	pgoff_t pgoff;
++	pfn_t pfn;
+ 	unsigned int fault_size = PUD_SIZE;
+ 
+ 
+@@ -205,11 +208,11 @@ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+ 		return VM_FAULT_SIGBUS;
+ 	}
+ 
+-	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
++	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
+-	dax_set_mapping(vmf, *pfn, fault_size);
++	dax_set_mapping(vmf, pfn, fault_size);
+ 
+-	return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
++	return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
  }
  #else
-@@ -217,7 +223,6 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 		enum page_entry_size pe_size)
- {
+ static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
+@@ -225,7 +228,6 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
  	struct file *filp = vmf->vma->vm_file;
--	unsigned long fault_size;
  	vm_fault_t rc = VM_FAULT_SIGBUS;
  	int id;
- 	pfn_t pfn;
-@@ -230,23 +235,18 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
+-	pfn_t pfn;
+ 	struct dev_dax *dev_dax = filp->private_data;
+ 
+ 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
+@@ -235,13 +237,13 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
  	id = dax_read_lock();
  	switch (pe_size) {
  	case PE_SIZE_PTE:
--		fault_size = PAGE_SIZE;
- 		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
+-		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
++		rc = __dev_dax_pte_fault(dev_dax, vmf);
  		break;
  	case PE_SIZE_PMD:
--		fault_size = PMD_SIZE;
- 		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
+-		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
++		rc = __dev_dax_pmd_fault(dev_dax, vmf);
  		break;
  	case PE_SIZE_PUD:
--		fault_size = PUD_SIZE;
- 		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
+-		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
++		rc = __dev_dax_pud_fault(dev_dax, vmf);
  		break;
  	default:
  		rc = VM_FAULT_SIGBUS;
- 	}
- 
--	if (rc == VM_FAULT_NOPAGE)
--		dax_set_mapping(vmf, pfn, fault_size);
- 	dax_read_unlock(id);
- 
- 	return rc;
 -- 
 2.17.2
 
