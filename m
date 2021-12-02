@@ -1,51 +1,45 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 6F3B82C80
-	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 08:50:15 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3Ak4mbcKNBwi0KcNzvrR3OlsFynXyQoLVcMsFnjC/?=
- =?us-ascii?q?WdQW40zJ00mFSz2IaDGyBafncNzCnf4t3at6xpkMAupXSm99gGjLY11k3ESsS9?=
- =?us-ascii?q?pCt6fd1j6vIF3rLaJWFFSqL1u1GAjX7BJ1yHiC0SiuFaOC79CAmjfvQH9IQNca?=
- =?us-ascii?q?fUsxPbV49IMseoUI78wIJqtYAbemRW2thi/uryyHsEAPNNwpPD44hw/nrRCWDE?=
- =?us-ascii?q?xjFkGhwUlQWPZintbJF/pUfJMp3yaqZdxMUTmTId9NWSdovzJnhlo/Y1xwrTN2?=
- =?us-ascii?q?4kLfnaVBMSbnXVeSMoiMOHfH83V4Z/Wpvuko4HKN0hUN/kSiAmctgjttLroCYR?=
- =?us-ascii?q?xorP7HXhaIWVBww/yRWZPQWo+aWeCDk2SCU5wicG5f2+N1iBV83MaUW4OFyBnt?=
- =?us-ascii?q?E9OBeIzcIBjiDjOKewbS1UOBgi80vas7xM+s3tnhmizOfEvciRZHKRr7i5NlE0?=
- =?us-ascii?q?TN2jcdLdd7SZdUebzVHbxnaZRBLfFANB/oWmOaum2m6djhwq0ycrqlx5HLcpCR?=
- =?us-ascii?q?3zrTsNd/9ft2RWd4Tmkeeu3KA82nnajkYPdqSjzGF71qrnObEmS69U4UXfJW89?=
- =?us-ascii?q?/h3kBid3WAeFhASfUW0rOP/iUOkXd9bbUsO9UIGqak06VzuTdTnWRC8iGCLswR?=
- =?us-ascii?q?aWNdKFeA+rgaXxcL85wefG3hBXjBaQMIpudVwRjEw0FKN2dTzClRSXBe9IZ6G3?=
- =?us-ascii?q?u7M62rsZm5OdilfDRLohDAtu7HLyLzfRDqWJjq7LJOIsw=3D=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AXb/LG6m7Rk7likBGoc1jbLHNzc7pDfIQ3DAb?=
- =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
- =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
- =?us-ascii?q?o0tQcQ=3D=3D?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 89EE22C80
+	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 08:50:17 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3ALXqL0qlJ5BP5P7dvvAs162/o5gzqJ0RdPkR7XQ2?=
+ =?us-ascii?q?eYbTBsI5bpzwPz2IcUG6BbPmLazf1c9snOoXn9U5QvZPUnNBqHlFr+CA2RRqmi?=
+ =?us-ascii?q?+KfW43BcR2Y0wB+jyH7ZBs+qZ1YM7EsFehsJpPnjkrrYueJQUVUj/nSH+OmULS?=
+ =?us-ascii?q?cY0ideCc/IMsfoUM68wIGqt4w6TSJK1vlVeLa+6UzCnf8s9JHGj58B5a4lf9al?=
+ =?us-ascii?q?K+aVAX0EbAJTasjUFf2zxH5BX+ETE27ByOQroJ8RoZWSwtfpYxV8F81/z91Yj+?=
+ =?us-ascii?q?kur39NEMXQL/OJhXIgX1TM0SgqkEa4HVsjeBgb7xBAatUo2zhc9RZ0shEs4ehD?=
+ =?us-ascii?q?wkvJbHklvkfUgVDDmd1OqguFLrveCHv6pXClhWaG5fr67A0ZK0sBqUU8/h2DUl?=
+ =?us-ascii?q?A7/sdLyoHbwzFjOWzqJq7QelEh8ItNsDnMYoT/HZ6wlnxAf8gB5KFXKTO4d5R2?=
+ =?us-ascii?q?SwYh8ZSEPKYbM0cARJjbgvHZRJnOVoNDp862uCyiRHXdzxetULQoK8f4Hbaxw8?=
+ =?us-ascii?q?316LiWPLTZNCLQMB9mkeDunmA+2X/HwFcONGBoRKH+3ShwOTPgAv8QosZELD+/?=
+ =?us-ascii?q?flv6HWXx2oOGFgYTle2v/S9olCxVsgZKEEO/Ccq668o+ySDStj7Qg39o3OeuBM?=
+ =?us-ascii?q?Yc8RfHvd86wyXzKfQpQGDCQAsSj9HdcxjpMEtbSIl20XPnN7zAzFr9rqPRhqgG?=
+ =?us-ascii?q?h28xd+pEXFNazZcOmlfFk1Yi+QPabob1nrnJuuP2obv5jEtJQzN/g=3D=3D?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AfTq0Zq11/TLF874yE6mKAgqjBI4kLtp133Aq?=
+ =?us-ascii?q?2lEZdPU1SL39qynKppkmPHDP5gr5J0tLpTntAsi9qBDnhPtICOsqTNSftWDd0Q?=
+ =?us-ascii?q?PGEGgI1/qB/9SPIU3D398Y/aJhXow7M9foEGV95PyQ3CCIV/om3/mLmZrFudvj?=
 X-IronPort-AV: E=Sophos;i="5.87,281,1631548800"; 
-   d="scan'208";a="118319103"
+   d="scan'208";a="118319104"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 02 Dec 2021 16:49:04 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id 7EA424D13A1D;
-	Thu,  2 Dec 2021 16:49:02 +0800 (CST)
-Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 2 Dec 2021 16:49:04 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id BBB024D13A13;
+	Thu,  2 Dec 2021 16:49:00 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 2 Dec 2021 16:49:02 +0800
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 2 Dec 2021 16:49:01 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 2 Dec 2021 16:49:00 +0800
+ id 15.0.1497.23 via Frontend Transport; Thu, 2 Dec 2021 16:48:58 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>
 CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
 	<hch@infradead.org>, <jane.chu@oracle.com>
-Subject: [PATCH v8 2/9] dax: Introduce holder for dax_device
-Date: Thu, 2 Dec 2021 16:48:49 +0800
-Message-ID: <20211202084856.1285285-3-ruansy.fnst@fujitsu.com>
+Subject: [RESEND PATCH v8 0/9] fsdax: introduce fs query to support reflink
+Date: Thu, 2 Dec 2021 16:48:47 +0800
+Message-ID: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.34.0
-In-Reply-To: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
-References: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -54,182 +48,94 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: 7EA424D13A1D.A1B20
+X-yoursite-MailScanner-ID: BBB024D13A13.A0354
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-To easily track filesystem from a pmem device, we introduce a holder for
-dax_device structure, and also its operation.  This holder is used to
-remember who is using this dax_device:
- - When it is the backend of a filesystem, the holder will be the
-   superblock of this filesystem.
- - When this pmem device is one of the targets in a mapped device, the
-   holder will be this mapped device.  In this case, the mapped device
-   has its own dax_device and it will follow the first rule.  So that we
-   can finally track to the filesystem we needed.
+This patchset is aimed to support shared pages tracking for fsdax.
 
-The holder and holder_ops will be set when filesystem is being mounted,
-or an target device is being activated.
+Christoph has posted "decouple DAX from block devices v2", I need to
+rebase to his tree.  And since my v8 patchset sent before hasn't been
+reviewed yet.  So, I send this patchset as a RESEND of v8.
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
----
- drivers/dax/super.c | 61 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dax.h | 25 +++++++++++++++++++
- 2 files changed, 86 insertions(+)
+Changes from V8:
+  - Rebased to "decouple DAX from block devices v2"
+  - Patch8(implementation in XFS): Separate dax part to Patch7
+  - Patch9: add FS_DAX_MAPPING_COW flag to distinguish CoW with normal
 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index 719e77b2c2d4..a19fcc0a54f3 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -20,15 +20,20 @@
-  * @inode: core vfs
-  * @cdev: optional character interface for "device dax"
-  * @private: dax driver private data
-+ * @holder_data: holder of a dax_device: could be filesystem or mapped device
-  * @flags: state and boolean properties
-+ * @ops: operations for dax_device
-+ * @holder_ops: operations for the inner holder
-  */
- struct dax_device {
- 	struct inode inode;
- 	struct cdev cdev;
- 	void *private;
- 	struct percpu_rw_semaphore rwsem;
-+	void *holder_data;
- 	unsigned long flags;
- 	const struct dax_operations *ops;
-+	const struct dax_holder_operations *holder_ops;
- };
- 
- static dev_t dax_devt;
-@@ -190,6 +195,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- }
- EXPORT_SYMBOL_GPL(dax_zero_page_range);
- 
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
-+			      u64 len, int mf_flags)
-+{
-+	int rc;
-+
-+	dax_read_lock(dax_dev);
-+	if (!dax_alive(dax_dev)) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	if (!dax_dev->holder_ops) {
-+		rc = -EOPNOTSUPP;
-+		goto out;
-+	}
-+
-+	rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
-+out:
-+	dax_read_unlock(dax_dev);
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
-+
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- void arch_wb_cache_pmem(void *addr, size_t size);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-@@ -252,6 +280,10 @@ void kill_dax(struct dax_device *dax_dev)
- 		return;
- 	dax_write_lock(dax_dev);
- 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
-+
-+	/* clear holder data */
-+	dax_dev->holder_ops = NULL;
-+	dax_dev->holder_data = NULL;
- 	dax_write_unlock(dax_dev);
- }
- EXPORT_SYMBOL_GPL(kill_dax);
-@@ -399,6 +431,35 @@ void put_dax(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(put_dax);
- 
-+void dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+	dax_write_lock(dax_dev);
-+	if (!dax_alive(dax_dev))
-+		goto out;
-+
-+	dax_dev->holder_data = holder;
-+	dax_dev->holder_ops = ops;
-+out:
-+	dax_write_unlock(dax_dev);
-+}
-+EXPORT_SYMBOL_GPL(dax_set_holder);
-+
-+void *dax_get_holder(struct dax_device *dax_dev)
-+{
-+	void *holder = NULL;
-+
-+	dax_read_lock(dax_dev);
-+	if (!dax_alive(dax_dev))
-+		goto out;
-+
-+	holder = dax_dev->holder_data;
-+out:
-+	dax_read_unlock(dax_dev);
-+	return holder;
-+}
-+EXPORT_SYMBOL_GPL(dax_get_holder);
-+
- /**
-  * inode_dax: convert a public inode into its dax_dev
-  * @inode: An inode with i_cdev pointing to a dax_dev
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 8414a08dcbea..f01684a63447 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -44,6 +44,21 @@ struct dax_operations {
- #if IS_ENABLED(CONFIG_DAX)
- struct dax_device *alloc_dax(void *private, const struct dax_operations *ops,
- 		unsigned long flags);
-+struct dax_holder_operations {
-+	/*
-+	 * notify_failure - notify memory failure into inner holder device
-+	 * @dax_dev: the dax device which contains the holder
-+	 * @offset: offset on this dax device where memory failure occurs
-+	 * @len: length of this memory failure event
-+	 * @flags: action flags for memory failure handler
-+	 */
-+	int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
-+			u64 len, int mf_flags);
-+};
-+
-+void dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops);
-+void *dax_get_holder(struct dax_device *dax_dev);
- void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
-@@ -71,6 +86,14 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
- 	return dax_synchronous(dax_dev);
- }
- #else
-+static inline void dax_set_holder(struct dax_device *dax_dev, void *holder,
-+		const struct dax_holder_operations *ops)
-+{
-+}
-+static inline void *dax_get_holder(struct dax_device *dax_dev)
-+{
-+	return NULL;
-+}
- static inline struct dax_device *alloc_dax(void *private,
- 		const struct dax_operations *ops, unsigned long flags)
- {
-@@ -199,6 +222,8 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
- 		size_t bytes, struct iov_iter *i);
- int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
- 			size_t nr_pages);
-+int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off, u64 len,
-+		int mf_flags);
- void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
- 
- ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+Changes from V7:
+  - Change dax lock from global rwsem to per-device percpu_rwsem
+  - Change type of range length from size_t to u64
+  - Rename 'flags' to 'mf_flags'
+  - Fix mistakes in XFS code
+  - Add cow branch for dax_assocaite_entry()
+
+This patchset moves owner tracking from dax_assocaite_entry() to pmem
+device driver, by introducing an interface ->memory_failure() for struct
+pagemap.  This interface is called by memory_failure() in mm, and
+implemented by pmem device.
+
+Then call holder operations to find the filesystem which the corrupted
+data located in, and call filesystem handler to track files or metadata
+associated with this page.
+
+Finally we are able to try to fix the corrupted data in filesystem and
+do other necessary processing, such as killing processes who are using
+the files affected.
+
+The call trace is like this:
+memory_failure()
+|* fsdax case
+|------------
+|pgmap->ops->memory_failure()      => pmem_pgmap_memory_failure()
+| dax_holder_notify_failure()      =>
+|  dax_device->holder_ops->notify_failure() =>
+|                                     - xfs_dax_notify_failure()
+|  |* xfs_dax_notify_failure()
+|  |--------------------------
+|  |   xfs_rmap_query_range()
+|  |    xfs_dax_notify_failure_fn()
+|  |    * corrupted on metadata
+|  |       try to recover data, call xfs_force_shutdown()
+|  |    * corrupted on file data
+|  |       try to recover data, call mf_dax_kill_procs()
+|* normal case
+|-------------
+|mf_generic_kill_procs()
+
+==
+Shiyang Ruan (9):
+  dax: Use percpu rwsem for dax_{read,write}_lock()
+  dax: Introduce holder for dax_device
+  mm: factor helpers for memory_failure_dev_pagemap
+  pagemap,pmem: Introduce ->memory_failure()
+  fsdax: Introduce dax_lock_mapping_entry()
+  mm: Introduce mf_dax_kill_procs() for fsdax case
+  dax: add dax holder helper for filesystems
+  xfs: Implement ->notify_failure() for XFS
+  fsdax: set a CoW flag when associate reflink mappings
+
+ drivers/dax/device.c        |  11 +-
+ drivers/dax/super.c         | 120 ++++++++++++++++---
+ drivers/md/dm-writecache.c  |   7 +-
+ drivers/nvdimm/pmem.c       |  16 +++
+ fs/dax.c                    | 172 +++++++++++++++++++++------
+ fs/fuse/dax.c               |   6 +-
+ fs/xfs/Makefile             |   1 +
+ fs/xfs/xfs_buf.c            |   4 +
+ fs/xfs/xfs_fsops.c          |   3 +
+ fs/xfs/xfs_mount.h          |   1 +
+ fs/xfs/xfs_notify_failure.c | 224 +++++++++++++++++++++++++++++++++++
+ fs/xfs/xfs_notify_failure.h |  15 +++
+ include/linux/dax.h         |  73 +++++++++++-
+ include/linux/memremap.h    |   9 ++
+ include/linux/mm.h          |   2 +
+ mm/memory-failure.c         | 226 +++++++++++++++++++++++++-----------
+ 16 files changed, 757 insertions(+), 133 deletions(-)
+ create mode 100644 fs/xfs/xfs_notify_failure.c
+ create mode 100644 fs/xfs/xfs_notify_failure.h
+
 -- 
 2.34.0
 
