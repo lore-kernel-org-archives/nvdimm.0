@@ -1,45 +1,46 @@
 Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 93C8F2CA6
-	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 08:50:17 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3ATBct2q1aU1Lrz/O2GPbD5bhwkn2cJEfYwER7XOP?=
- =?us-ascii?q?LsXnJ1mh03mdRnWIaCz2HOPbfYGT9c9B/Otzn9UIOvsDczNE2QQE+nZ1PZygU8?=
- =?us-ascii?q?JKaX7x1DatR0xu6d5SFFAQ+hyknQoGowPscEzmM+X9BDpC79SMljPvQHOKlYAL?=
- =?us-ascii?q?5EnsZqTFMGX5JZS1Ly7ZRbr5A2bBVMivV0T/Ai5S31GyNh1aYBlkpB5er83uDi?=
- =?us-ascii?q?hhdVAQw5TTSbdgT1LPXeuJ84Jg3fcldJFOgKmVY83LTegrN8F251juxExYFAdX?=
- =?us-ascii?q?jnKv5c1ERX/jZOg3mZnh+AvDk20Yd4HdplPtT2Pk0MC+7jx2Tgtl308QLu5qrV?=
- =?us-ascii?q?S8nI6/NhP8AFRJfFkmSOIUfoe+ceCnm6ZL7I0ruNiGEL+9VJE0/I4wU0uhtBmR?=
- =?us-ascii?q?J7/YZNHYGaRXrr+K9wJq6TOd2j8guJcWtO5kQ0llsxDefD7A5QJTHQqzP/vdZ2?=
- =?us-ascii?q?is9goZFGvO2T8Ybdj1pYzzDbgdJN1NRD4gx9M+sh3/iY3hdrXqWu6M84C7U1gM?=
- =?us-ascii?q?Z+L7zPNvQf/SORN5JhQCcp2Tb7yL1Dw9yHN6WzzfD+XKxrujVlCj/VcQZE7jQ3?=
- =?us-ascii?q?vprhkCDg2IIBBAIWF+Tv/a0kAi9VshZJkhS/TAhxYA29Uq2Xpz+Uge+rXqsoBE?=
- =?us-ascii?q?RQZxTHvc85QXLzbDbiy6dB24ZXntRZscOqsA7X3op20WPktevAiZg2IB541r1G?=
- =?us-ascii?q?qy89Gv0YHZKazRZI3JscOfM2PG7yKlbs/4FZooL/HaJs+DI?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A/AnR1awvMRzw7ij5VFnRKrPwEL1zdoMgy1kn?=
- =?us-ascii?q?xilNoH1uA6ilfqWV8cjzuiWbtN9vYhsdcLy7WZVoIkmskKKdg7NhXotKNTOO0A?=
- =?us-ascii?q?SVxepZnOnfKlPbexHWx6p00KdMV+xEAsTsMF4St63HyTj9P9E+4NTvysyVuds?=
- =?us-ascii?q?=3D?=
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id 531CF2C80
+	for <nvdimm@lists.linux.dev>; Thu,  2 Dec 2021 08:50:19 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3ABSmbaav0vhXQaC/4pzhXpuL+cefnVClfMUV32f8?=
+ =?us-ascii?q?akzHdYEJGY0x3y2tNXWHTOPmJYjP1Ld5yYNuy80wOupODydBiHQE9+y9gHilAw?=
+ =?us-ascii?q?SbnLY7Hdx+vZUt+DSFioHpPtpxYMp+ZRCwNZie0SiyFb/6x8hGQ6YnSHuClUbS?=
+ =?us-ascii?q?cYHgoLeNZYHxJZSxLyrdRbrFA0YDR7zOl4bsekuWHULOX82cc3lE8t8pvnChSU?=
+ =?us-ascii?q?MHa41v0iLCRicdj5zcyn1FNZH4WyDrYw3HQGuG4FcbiLwrPIS3Qw4/Xw/stIov?=
+ =?us-ascii?q?NfrfTeUtMTKPQPBSVlzxdXK3Kbhpq/3R0i/hkcqFHLxo/ZzahxridzP1XqJW2U?=
+ =?us-ascii?q?hZvMKvXhMwTThtZDzpje6ZB/dcrJFDm6JzIlhyfKyaEL/JGSRte0Zcj0up+H2B?=
+ =?us-ascii?q?C3fICLzUKdBqCm6S9x7fTYulnhuwiKsfxNY8Ss30myivWZd4qSJaFQePV5Ntc3?=
+ =?us-ascii?q?T41nehPG+rTY4wSbj8HRBjCfBpJNX8UBYg4kePugWPwGxVcqVSIte8y5kDQ0gV?=
+ =?us-ascii?q?60/7qKtW9UtqUScRQm26cp3na5CL9AxcHJJqTxCTt2nKnhsfLhj+9VI96PL+x8?=
+ =?us-ascii?q?PMsi12O7msJARYSWB2wpvzRokq/Xc9PbkIP9icwoKwa6kOmVJ/+Uge+rXrCuQQ?=
+ =?us-ascii?q?TM/JUEusn+ESOx7DS7gKxGGcJVHhCZcYguctwQiYlvneNntX0FXl/vqa9V32Q7?=
+ =?us-ascii?q?PGXoCm0NCxTKnUNDRLo5yNtD8LL+dl110yQCI04VvPdszE8IhmoqxjikcT0r+l?=
+ =?us-ascii?q?7YRY36piG?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3AEK1hoajNiTqo1cM48Klze3JCUXBQXuYji2hC?=
+ =?us-ascii?q?6mlwRA09TyX4rbHLoB1/73LJYVkqNk3I5urrBEDtexLhHP1OkOws1NWZLWrbUQ?=
+ =?us-ascii?q?KTRekM0WKI+UyDJ8SRzI5g/JYlW61/Jfm1NlJikPv9iTPSL/8QhPWB74Ck7N2z?=
+ =?us-ascii?q?80tQ?=
 X-IronPort-AV: E=Sophos;i="5.87,281,1631548800"; 
-   d="scan'208";a="118319106"
+   d="scan'208";a="118319105"
 Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
   by heian.cn.fujitsu.com with ESMTP; 02 Dec 2021 16:49:04 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id B53974D13A1B;
-	Thu,  2 Dec 2021 16:49:01 +0800 (CST)
+Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
+	by cn.fujitsu.com (Postfix) with ESMTP id EFD9A4D13A1E;
+	Thu,  2 Dec 2021 16:49:02 +0800 (CST)
 Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 2 Dec 2021 16:49:02 +0800
+ G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Thu, 2 Dec 2021 16:49:04 +0800
 Received: from irides.mr.mr.mr (10.167.225.141) by
  G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 2 Dec 2021 16:48:59 +0800
+ id 15.0.1497.23 via Frontend Transport; Thu, 2 Dec 2021 16:49:00 +0800
 From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
 	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
 	<linux-fsdevel@vger.kernel.org>
 CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
-	<hch@infradead.org>, <jane.chu@oracle.com>
-Subject: [PATCH v8 1/9] dax: Use percpu rwsem for dax_{read,write}_lock()
-Date: Thu, 2 Dec 2021 16:48:48 +0800
-Message-ID: <20211202084856.1285285-2-ruansy.fnst@fujitsu.com>
+	<hch@infradead.org>, <jane.chu@oracle.com>, Christoph Hellwig <hch@lst.de>
+Subject: [PATCH v8 3/9] mm: factor helpers for memory_failure_dev_pagemap
+Date: Thu, 2 Dec 2021 16:48:50 +0800
+Message-ID: <20211202084856.1285285-4-ruansy.fnst@fujitsu.com>
 X-Mailer: git-send-email 2.34.0
 In-Reply-To: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
 References: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
@@ -51,376 +52,191 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-yoursite-MailScanner-ID: B53974D13A1B.A295C
+X-yoursite-MailScanner-ID: EFD9A4D13A1E.A4710
 X-yoursite-MailScanner: Found to be clean
 X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
 X-Spam-Status: No
 
-In order to introduce dax holder registration, we need a write lock for
-dax.  Change the current lock to percpu_rw_semaphore and introduce a
-write lock for registration.
+memory_failure_dev_pagemap code is a bit complex before introduce RMAP
+feature for fsdax.  So it is needed to factor some helper functions to
+simplify these code.
 
 Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Reviewed-by: Darrick J. Wong <djwong@kernel.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/dax/device.c       | 11 +++++------
- drivers/dax/super.c        | 40 +++++++++++++++++++++++++-------------
- drivers/md/dm-writecache.c |  7 +++----
- fs/dax.c                   | 31 ++++++++++++++---------------
- fs/fuse/dax.c              |  6 +++---
- include/linux/dax.h        |  9 ++++-----
- 6 files changed, 57 insertions(+), 47 deletions(-)
+ mm/memory-failure.c | 141 ++++++++++++++++++++++++--------------------
+ 1 file changed, 77 insertions(+), 64 deletions(-)
 
-diff --git a/drivers/dax/device.c b/drivers/dax/device.c
-index dd8222a42808..041345f9956d 100644
---- a/drivers/dax/device.c
-+++ b/drivers/dax/device.c
-@@ -198,7 +198,6 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 	struct file *filp = vmf->vma->vm_file;
- 	unsigned long fault_size;
- 	vm_fault_t rc = VM_FAULT_SIGBUS;
--	int id;
- 	pfn_t pfn;
- 	struct dev_dax *dev_dax = filp->private_data;
- 
-@@ -206,7 +205,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 			(vmf->flags & FAULT_FLAG_WRITE) ? "write" : "read",
- 			vmf->vma->vm_start, vmf->vma->vm_end, pe_size);
- 
--	id = dax_read_lock();
-+	dax_read_lock(dev_dax->dax_dev);
- 	switch (pe_size) {
- 	case PE_SIZE_PTE:
- 		fault_size = PAGE_SIZE;
-@@ -246,7 +245,7 @@ static vm_fault_t dev_dax_huge_fault(struct vm_fault *vmf,
- 			page->index = pgoff + i;
- 		}
- 	}
--	dax_read_unlock(id);
-+	dax_read_unlock(dev_dax->dax_dev);
- 
- 	return rc;
- }
-@@ -284,7 +283,7 @@ static const struct vm_operations_struct dax_vm_ops = {
- static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- {
- 	struct dev_dax *dev_dax = filp->private_data;
--	int rc, id;
-+	int rc;
- 
- 	dev_dbg(&dev_dax->dev, "trace\n");
- 
-@@ -292,9 +291,9 @@ static int dax_mmap(struct file *filp, struct vm_area_struct *vma)
- 	 * We lock to check dax_dev liveness and will re-check at
- 	 * fault time.
- 	 */
--	id = dax_read_lock();
-+	dax_read_lock(dev_dax->dax_dev);
- 	rc = check_vma(dev_dax, vma, __func__);
--	dax_read_unlock(id);
-+	dax_read_unlock(dev_dax->dax_dev);
- 	if (rc)
- 		return rc;
- 
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index e7152a6c4cc4..719e77b2c2d4 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -26,29 +26,39 @@ struct dax_device {
- 	struct inode inode;
- 	struct cdev cdev;
- 	void *private;
-+	struct percpu_rw_semaphore rwsem;
- 	unsigned long flags;
- 	const struct dax_operations *ops;
- };
- 
- static dev_t dax_devt;
--DEFINE_STATIC_SRCU(dax_srcu);
- static struct vfsmount *dax_mnt;
- static DEFINE_IDA(dax_minor_ida);
- static struct kmem_cache *dax_cache __read_mostly;
- static struct super_block *dax_superblock __read_mostly;
- 
--int dax_read_lock(void)
-+void dax_read_lock(struct dax_device *dax_dev)
- {
--	return srcu_read_lock(&dax_srcu);
-+	percpu_down_read(&dax_dev->rwsem);
- }
- EXPORT_SYMBOL_GPL(dax_read_lock);
- 
--void dax_read_unlock(int id)
-+void dax_read_unlock(struct dax_device *dax_dev)
- {
--	srcu_read_unlock(&dax_srcu, id);
-+	percpu_up_read(&dax_dev->rwsem);
- }
- EXPORT_SYMBOL_GPL(dax_read_unlock);
- 
-+void dax_write_lock(struct dax_device *dax_dev)
-+{
-+	percpu_down_write(&dax_dev->rwsem);
-+}
-+
-+void dax_write_unlock(struct dax_device *dax_dev)
-+{
-+	percpu_up_write(&dax_dev->rwsem);
-+}
-+
- #if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
- #include <linux/blkdev.h>
- 
-@@ -75,7 +85,7 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off)
- {
- 	struct dax_device *dax_dev;
- 	u64 part_size;
--	int id;
-+	bool not_found;
- 
- 	if (!blk_queue_dax(bdev->bd_disk->queue))
- 		return NULL;
-@@ -87,11 +97,14 @@ struct dax_device *fs_dax_get_by_bdev(struct block_device *bdev, u64 *start_off)
- 		return NULL;
- 	}
- 
--	id = dax_read_lock();
- 	dax_dev = xa_load(&dax_hosts, (unsigned long)bdev->bd_disk);
--	if (!dax_dev || !dax_alive(dax_dev) || !igrab(&dax_dev->inode))
--		dax_dev = NULL;
--	dax_read_unlock(id);
-+	if (dax_dev) {
-+		dax_read_lock(dax_dev);
-+		not_found = !dax_alive(dax_dev) || !igrab(&dax_dev->inode);
-+		dax_read_unlock(dax_dev);
-+		if (not_found)
-+			dax_dev = NULL;
-+	}
- 
- 	return dax_dev;
- }
-@@ -222,7 +235,7 @@ EXPORT_SYMBOL_GPL(__set_dax_synchronous);
- 
- bool dax_alive(struct dax_device *dax_dev)
- {
--	lockdep_assert_held(&dax_srcu);
-+	lockdep_assert_held(&dax_dev->rwsem);
- 	return test_bit(DAXDEV_ALIVE, &dax_dev->flags);
- }
- EXPORT_SYMBOL_GPL(dax_alive);
-@@ -237,9 +250,9 @@ void kill_dax(struct dax_device *dax_dev)
- {
- 	if (!dax_dev)
- 		return;
--
-+	dax_write_lock(dax_dev);
- 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
--	synchronize_srcu(&dax_srcu);
-+	dax_write_unlock(dax_dev);
- }
- EXPORT_SYMBOL_GPL(kill_dax);
- 
-@@ -366,6 +379,7 @@ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops,
- 
- 	dax_dev->ops = ops;
- 	dax_dev->private = private;
-+	percpu_init_rwsem(&dax_dev->rwsem);
- 	if (flags & DAXDEV_F_SYNC)
- 		set_dax_synchronous(dax_dev);
- 
-diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-index 4f31591d2d25..ebe1ec345d1d 100644
---- a/drivers/md/dm-writecache.c
-+++ b/drivers/md/dm-writecache.c
-@@ -260,7 +260,6 @@ static int persistent_memory_claim(struct dm_writecache *wc)
- 	loff_t s;
- 	long p, da;
- 	pfn_t pfn;
--	int id;
- 	struct page **pages;
- 	sector_t offset;
- 
-@@ -284,7 +283,7 @@ static int persistent_memory_claim(struct dm_writecache *wc)
- 	}
- 	offset >>= PAGE_SHIFT - 9;
- 
--	id = dax_read_lock();
-+	dax_read_lock(wc->ssd_dev->dax_dev);
- 
- 	da = dax_direct_access(wc->ssd_dev->dax_dev, offset, p, &wc->memory_map, &pfn);
- 	if (da < 0) {
-@@ -334,7 +333,7 @@ static int persistent_memory_claim(struct dm_writecache *wc)
- 		wc->memory_vmapped = true;
- 	}
- 
--	dax_read_unlock(id);
-+	dax_read_unlock(wc->ssd_dev->dax_dev);
- 
- 	wc->memory_map += (size_t)wc->start_sector << SECTOR_SHIFT;
- 	wc->memory_map_size -= (size_t)wc->start_sector << SECTOR_SHIFT;
-@@ -343,7 +342,7 @@ static int persistent_memory_claim(struct dm_writecache *wc)
- err3:
- 	kvfree(pages);
- err2:
--	dax_read_unlock(id);
-+	dax_read_unlock(wc->ssd_dev->dax_dev);
- err1:
- 	return r;
- }
-diff --git a/fs/dax.c b/fs/dax.c
-index e0eecd8e3a8f..1f46810d4b68 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -717,20 +717,20 @@ static pgoff_t dax_iomap_pgoff(const struct iomap *iomap, loff_t pos)
- static int copy_cow_page_dax(struct vm_fault *vmf, const struct iomap_iter *iter)
- {
- 	pgoff_t pgoff = dax_iomap_pgoff(&iter->iomap, iter->pos);
-+	struct dax_device *dax_dev = iter->iomap.dax_dev;
- 	void *vto, *kaddr;
- 	long rc;
--	int id;
- 
--	id = dax_read_lock();
--	rc = dax_direct_access(iter->iomap.dax_dev, pgoff, 1, &kaddr, NULL);
-+	dax_read_lock(dax_dev);
-+	rc = dax_direct_access(dax_dev, pgoff, 1, &kaddr, NULL);
- 	if (rc < 0) {
--		dax_read_unlock(id);
-+		dax_read_unlock(dax_dev);
- 		return rc;
- 	}
- 	vto = kmap_atomic(vmf->cow_page);
- 	copy_user_page(vto, kaddr, vmf->address, vmf->cow_page);
- 	kunmap_atomic(vto);
--	dax_read_unlock(id);
-+	dax_read_unlock(dax_dev);
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 07c875fdeaf0..1ee7d626fed7 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1449,6 +1449,80 @@ static int try_to_split_thp_page(struct page *page, const char *msg)
  	return 0;
  }
  
-@@ -1009,10 +1009,10 @@ static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
- 			 pfn_t *pfnp)
++static void unmap_and_kill(struct list_head *to_kill, unsigned long pfn,
++		struct address_space *mapping, pgoff_t index, int flags)
++{
++	struct to_kill *tk;
++	unsigned long size = 0;
++
++	list_for_each_entry(tk, to_kill, nd)
++		if (tk->size_shift)
++			size = max(size, 1UL << tk->size_shift);
++
++	if (size) {
++		/*
++		 * Unmap the largest mapping to avoid breaking up device-dax
++		 * mappings which are constant size. The actual size of the
++		 * mapping being torn down is communicated in siginfo, see
++		 * kill_proc()
++		 */
++		loff_t start = (index << PAGE_SHIFT) & ~(size - 1);
++
++		unmap_mapping_range(mapping, start, size, 0);
++	}
++
++	kill_procs(to_kill, flags & MF_MUST_KILL, false, pfn, flags);
++}
++
++static int mf_generic_kill_procs(unsigned long long pfn, int flags,
++		struct dev_pagemap *pgmap)
++{
++	struct page *page = pfn_to_page(pfn);
++	LIST_HEAD(to_kill);
++	dax_entry_t cookie;
++
++	/*
++	 * Prevent the inode from being freed while we are interrogating
++	 * the address_space, typically this would be handled by
++	 * lock_page(), but dax pages do not use the page lock. This
++	 * also prevents changes to the mapping of this pfn until
++	 * poison signaling is complete.
++	 */
++	cookie = dax_lock_page(page);
++	if (!cookie)
++		return -EBUSY;
++
++	if (hwpoison_filter(page))
++		return 0;
++
++	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
++		/*
++		 * TODO: Handle HMM pages which may need coordination
++		 * with device-side memory.
++		 */
++		return -EBUSY;
++	}
++
++	/*
++	 * Use this flag as an indication that the dax page has been
++	 * remapped UC to prevent speculative consumption of poison.
++	 */
++	SetPageHWPoison(page);
++
++	/*
++	 * Unlike System-RAM there is no possibility to swap in a
++	 * different physical page at a given virtual address, so all
++	 * userspace consumption of ZONE_DEVICE memory necessitates
++	 * SIGBUS (i.e. MF_MUST_KILL)
++	 */
++	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
++	collect_procs(page, &to_kill, true);
++
++	unmap_and_kill(&to_kill, pfn, page->mapping, page->index, flags);
++	dax_unlock_page(page, cookie);
++	return 0;
++}
++
+ static int memory_failure_hugetlb(unsigned long pfn, int flags)
  {
- 	pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
--	int id, rc;
-+	int rc;
- 	long length;
+ 	struct page *p = pfn_to_page(pfn);
+@@ -1538,12 +1612,8 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		struct dev_pagemap *pgmap)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+-	unsigned long size = 0;
+-	struct to_kill *tk;
+ 	LIST_HEAD(tokill);
+-	int rc = -EBUSY;
+-	loff_t start;
+-	dax_entry_t cookie;
++	int rc = -ENXIO;
  
--	id = dax_read_lock();
-+	dax_read_lock(iomap->dax_dev);
- 	length = dax_direct_access(iomap->dax_dev, pgoff, PHYS_PFN(size),
- 				   NULL, pfnp);
- 	if (length < 0) {
-@@ -1029,7 +1029,7 @@ static int dax_iomap_pfn(const struct iomap *iomap, loff_t pos, size_t size,
+ 	if (flags & MF_COUNT_INCREASED)
+ 		/*
+@@ -1552,67 +1622,10 @@ static int memory_failure_dev_pagemap(unsigned long pfn, int flags,
+ 		put_page(page);
+ 
+ 	/* device metadata space is not recoverable */
+-	if (!pgmap_pfn_valid(pgmap, pfn)) {
+-		rc = -ENXIO;
+-		goto out;
+-	}
+-
+-	/*
+-	 * Prevent the inode from being freed while we are interrogating
+-	 * the address_space, typically this would be handled by
+-	 * lock_page(), but dax pages do not use the page lock. This
+-	 * also prevents changes to the mapping of this pfn until
+-	 * poison signaling is complete.
+-	 */
+-	cookie = dax_lock_page(page);
+-	if (!cookie)
++	if (!pgmap_pfn_valid(pgmap, pfn))
  		goto out;
- 	rc = 0;
+ 
+-	if (hwpoison_filter(page)) {
+-		rc = 0;
+-		goto unlock;
+-	}
+-
+-	if (pgmap->type == MEMORY_DEVICE_PRIVATE) {
+-		/*
+-		 * TODO: Handle HMM pages which may need coordination
+-		 * with device-side memory.
+-		 */
+-		goto unlock;
+-	}
+-
+-	/*
+-	 * Use this flag as an indication that the dax page has been
+-	 * remapped UC to prevent speculative consumption of poison.
+-	 */
+-	SetPageHWPoison(page);
+-
+-	/*
+-	 * Unlike System-RAM there is no possibility to swap in a
+-	 * different physical page at a given virtual address, so all
+-	 * userspace consumption of ZONE_DEVICE memory necessitates
+-	 * SIGBUS (i.e. MF_MUST_KILL)
+-	 */
+-	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+-	collect_procs(page, &tokill, flags & MF_ACTION_REQUIRED);
+-
+-	list_for_each_entry(tk, &tokill, nd)
+-		if (tk->size_shift)
+-			size = max(size, 1UL << tk->size_shift);
+-	if (size) {
+-		/*
+-		 * Unmap the largest mapping to avoid breaking up
+-		 * device-dax mappings which are constant size. The
+-		 * actual size of the mapping being torn down is
+-		 * communicated in siginfo, see kill_proc()
+-		 */
+-		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+-		unmap_mapping_range(page->mapping, start, size, 0);
+-	}
+-	kill_procs(&tokill, flags & MF_MUST_KILL, false, pfn, flags);
+-	rc = 0;
+-unlock:
+-	dax_unlock_page(page, cookie);
++	rc = mf_generic_kill_procs(pfn, flags, pgmap);
  out:
--	dax_read_unlock(id);
-+	dax_read_unlock(iomap->dax_dev);
- 	return rc;
- }
- 
-@@ -1135,6 +1135,7 @@ static s64 dax_zero_iter(struct iomap_iter *iter, bool *did_zero)
- {
- 	const struct iomap *iomap = &iter->iomap;
- 	const struct iomap *srcmap = iomap_iter_srcmap(iter);
-+	struct dax_device *dax_dev = iomap->dax_dev;
- 	loff_t pos = iter->pos;
- 	u64 length = iomap_length(iter);
- 	s64 written = 0;
-@@ -1148,14 +1149,13 @@ static s64 dax_zero_iter(struct iomap_iter *iter, bool *did_zero)
- 		unsigned size = min_t(u64, PAGE_SIZE - offset, length);
- 		pgoff_t pgoff = dax_iomap_pgoff(iomap, pos);
- 		long rc;
--		int id;
- 
--		id = dax_read_lock();
-+		dax_read_lock(dax_dev);
- 		if (IS_ALIGNED(pos, PAGE_SIZE) && size == PAGE_SIZE)
--			rc = dax_zero_page_range(iomap->dax_dev, pgoff, 1);
-+			rc = dax_zero_page_range(dax_dev, pgoff, 1);
- 		else
--			rc = dax_memzero(iomap->dax_dev, pgoff, offset, size);
--		dax_read_unlock(id);
-+			rc = dax_memzero(dax_dev, pgoff, offset, size);
-+		dax_read_unlock(dax_dev);
- 
- 		if (rc < 0)
- 			return rc;
-@@ -1209,7 +1209,6 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
- 	loff_t end = pos + length, done = 0;
- 	ssize_t ret = 0;
- 	size_t xfer;
--	int id;
- 
- 	if (iov_iter_rw(iter) == READ) {
- 		end = min(end, i_size_read(iomi->inode));
-@@ -1234,7 +1233,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
- 					      (end - 1) >> PAGE_SHIFT);
- 	}
- 
--	id = dax_read_lock();
-+	dax_read_lock(dax_dev);
- 	while (pos < end) {
- 		unsigned offset = pos & (PAGE_SIZE - 1);
- 		const size_t size = ALIGN(length + offset, PAGE_SIZE);
-@@ -1281,7 +1280,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
- 		if (xfer < map_len)
- 			break;
- 	}
--	dax_read_unlock(id);
-+	dax_read_unlock(dax_dev);
- 
- 	return done ? done : ret;
- }
-diff --git a/fs/fuse/dax.c b/fs/fuse/dax.c
-index 713818d74de6..00a419acab79 100644
---- a/fs/fuse/dax.c
-+++ b/fs/fuse/dax.c
-@@ -1231,7 +1231,7 @@ static int fuse_dax_mem_range_init(struct fuse_conn_dax *fcd)
- {
- 	long nr_pages, nr_ranges;
- 	struct fuse_dax_mapping *range;
--	int ret, id;
-+	int ret;
- 	size_t dax_size = -1;
- 	unsigned long i;
- 
-@@ -1240,10 +1240,10 @@ static int fuse_dax_mem_range_init(struct fuse_conn_dax *fcd)
- 	INIT_LIST_HEAD(&fcd->busy_ranges);
- 	INIT_DELAYED_WORK(&fcd->free_work, fuse_dax_free_mem_worker);
- 
--	id = dax_read_lock();
-+	dax_read_lock(fcd->dev);
- 	nr_pages = dax_direct_access(fcd->dev, 0, PHYS_PFN(dax_size), NULL,
- 				     NULL);
--	dax_read_unlock(id);
-+	dax_read_unlock(fcd->dev);
- 	if (nr_pages < 0) {
- 		pr_debug("dax_direct_access() returned %ld\n", nr_pages);
- 		return nr_pages;
-diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 87ae4c9b1d65..8414a08dcbea 100644
---- a/include/linux/dax.h
-+++ b/include/linux/dax.h
-@@ -178,15 +178,14 @@ int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
- 		const struct iomap_ops *ops);
- 
- #if IS_ENABLED(CONFIG_DAX)
--int dax_read_lock(void);
--void dax_read_unlock(int id);
-+void dax_read_lock(struct dax_device *dax_dev);
-+void dax_read_unlock(struct dax_device *dax_dev);
- #else
--static inline int dax_read_lock(void)
-+static inline void dax_read_lock(struct dax_device *dax_dev)
- {
--	return 0;
- }
- 
--static inline void dax_read_unlock(int id)
-+static inline void dax_read_unlock(struct dax_device *dax_dev)
- {
- }
- #endif /* CONFIG_DAX */
+ 	/* drop pgmap ref acquired in caller */
+ 	put_dev_pagemap(pgmap);
 -- 
 2.34.0
 
