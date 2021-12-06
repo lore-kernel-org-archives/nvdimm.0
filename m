@@ -1,15 +1,15 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD77F2CA6
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 029F62CA8
 	for <nvdimm@lists.linux.dev>; Mon,  6 Dec 2021 22:28:43 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="300804830"
+X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="261484506"
 X-IronPort-AV: E=Sophos;i="5.87,292,1631602800"; 
-   d="scan'208";a="300804830"
+   d="scan'208";a="261484506"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:43 -0800
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:43 -0800
 X-IronPort-AV: E=Sophos;i="5.87,292,1631602800"; 
-   d="scan'208";a="502310438"
+   d="scan'208";a="502310431"
 Received: from ponufryk-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.133.29])
   by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:42 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
@@ -19,9 +19,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	fenghua.hu@intel.com,
 	QI Fuli <qi.fuli@fujitsu.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 05/12] ndctl, monitor: refator monitor for supporting multiple config files
-Date: Mon,  6 Dec 2021 15:28:23 -0700
-Message-Id: <20211206222830.2266018-6-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 04/12] ndctl, config: add the default ndctl configuration file
+Date: Mon,  6 Dec 2021 15:28:22 -0700
+Message-Id: <20211206222830.2266018-5-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211206222830.2266018-1-vishal.l.verma@intel.com>
 References: <20211206222830.2266018-1-vishal.l.verma@intel.com>
@@ -31,214 +31,123 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7030; i=vishal.l.verma@intel.com; h=from:subject; bh=0FNwwOkFG0eXJo4s9p4HFwxBhDNBFB7cH2qRCHR5rwc=; b=owGbwMvMwCXGf25diOft7jLG02pJDInr+nq2sWZFH6vjfP59blToriDJQ9u42YvWnZzkb/7DceVb m2K/jlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEzkhgEjwyMT18Bgvrqsc52WCzasex qeKFA0c/pJnmVCdloN3psM1Bj+FwrUh0/e7vLI3D9NxPPH7X+VbJ+c57311A8OOi5XotTMDQA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4289; i=vishal.l.verma@intel.com; h=from:subject; bh=i5SzAjuKS7AdOmKikpy/Xy3eB+AxbULX34tPxzRIvI0=; b=owGbwMvMwCXGf25diOft7jLG02pJDInr+nr27glS7+avmnIgpqedhT8uysCVp1AsatN58Y8urpde rfXuKGVhEONikBVTZPm75yPjMbnt+TyBCY4wc1iZQIYwcHEKwEQ+PGH4KyD//HqFAcdMxUnaOSfEDm 2cGH3N5uFCyQCTS92BH9abVDH89/3R0zljSqjoncAA8fY9O78sy+wVe7Bw/dxM7bbN0S3zWAA=
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
 From: QI Fuli <qi.fuli@fujitsu.com>
 
-Refactor ndctl monitor by using parse-configs helper to support multiple
-configuration files.
+Install ndctl/ndctl.conf as the default ndctl configuration file.
 
-Link: https://lore.kernel.org/r/20210824095106.104808-6-qi.fuli@fujitsu.com
+Link: https://lore.kernel.org/r/20210824095106.104808-5-qi.fuli@fujitsu.com
 Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- Documentation/ndctl/ndctl-monitor.txt |  8 +--
- ndctl/monitor.c                       | 73 ++++++++++++++-------------
- Documentation/ndctl/Makefile.am       |  2 +-
- 3 files changed, 44 insertions(+), 39 deletions(-)
+ configure.ac      |  2 ++
+ ndctl/Makefile.am |  4 +++-
+ ndctl/ndctl.conf  | 56 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 61 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl.conf
 
-diff --git a/Documentation/ndctl/ndctl-monitor.txt b/Documentation/ndctl/ndctl-monitor.txt
-index dbc9070..8c8c35b 100644
---- a/Documentation/ndctl/ndctl-monitor.txt
-+++ b/Documentation/ndctl/ndctl-monitor.txt
-@@ -21,8 +21,8 @@ objects and dumping the json format notifications to syslog, standard
- output or a logfile.
+diff --git a/configure.ac b/configure.ac
+index 42a66e1..9e1c6db 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -172,8 +172,10 @@ AC_SUBST([systemd_unitdir])
+ AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" = "xyes"])
  
- The objects to monitor and smart events to notify can be selected by
--setting options and/or the configuration file at
--{ndctl_monitorconfdir}/{ndctl_monitorconf}
-+setting options and/or configuration files with .conf suffix under
-+{ndctl_confdir}
+ ndctl_confdir=${sysconfdir}/ndctl
++ndctl_conf=ndctl.conf
+ ndctl_monitorconf=monitor.conf
+ AC_SUBST([ndctl_confdir])
++AC_SUBST([ndctl_conf])
+ AC_SUBST([ndctl_monitorconf])
  
- Both, the values in configuration file and in options will work. If
- there is a conflict, the values in options will override the values in
-@@ -81,8 +81,8 @@ will not work if "--daemon" is specified.
+ daxctl_modprobe_datadir=${datadir}/daxctl
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 1caa031..fceb3ab 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -43,7 +43,7 @@ keys_configdir = $(ndctl_keysdir)
+ keys_config_DATA = $(ndctl_keysreadme)
+ endif
  
- -c::
- --config-file=::
--	Provide the config file to use. This overrides the default config
--	typically found in {ndctl_monitorconfdir}
-+	Provide the config file(s) to use. This overrides the default config
-+	typically found in {ndctl_confdir}
+-EXTRA_DIST += keys.readme monitor.conf ndctl-monitor.service
++EXTRA_DIST += keys.readme monitor.conf ndctl-monitor.service ndctl.conf
  
- --daemon::
- 	Run a monitor as a daemon.
-diff --git a/ndctl/monitor.c b/ndctl/monitor.c
-index ca36179..6bf3160 100644
---- a/ndctl/monitor.c
-+++ b/ndctl/monitor.c
-@@ -10,6 +10,7 @@
- #include <util/filter.h>
- #include <util/util.h>
- #include <util/parse-options.h>
-+#include <util/parse-configs.h>
- #include <util/strbuf.h>
- #include <ndctl/config.h>
- #include <ndctl/ndctl.h>
-@@ -28,7 +29,7 @@
+ if ENABLE_DESTRUCTIVE
+ ndctl_SOURCES += ../test/blk_namespaces.c \
+@@ -74,6 +74,8 @@ ndctl_SOURCES += ../test/libndctl.c \
+ 		 test.c
+ endif
  
- static struct monitor {
- 	const char *log;
--	const char *config_file;
-+	const char *configs;
- 	const char *dimm_event;
- 	FILE *log_file;
- 	bool daemon;
-@@ -463,7 +464,7 @@ out:
- 	return rc;
- }
++ndctl_configdir = $(ndctl_confdir)
++ndctl_config_DATA = $(ndctl_conf)
+ monitor_configdir = $(ndctl_confdir)
+ monitor_config_DATA = $(ndctl_monitorconf)
  
--static void parse_config(const char **arg, char *key, char *val, char *ident)
-+static void set_monitor_conf(const char **arg, char *key, char *val, char *ident)
- {
- 	struct strbuf value = STRBUF_INIT;
- 	size_t arg_len = *arg ? strlen(*arg) : 0;
-@@ -479,39 +480,25 @@ static void parse_config(const char **arg, char *key, char *val, char *ident)
- 	*arg = strbuf_detach(&value, NULL);
- }
- 
--static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
--		struct util_filter_params *_param)
-+static int parse_monitor_config(const struct config *configs,
-+					const char *config_file)
- {
- 	FILE *f;
- 	size_t len = 0;
- 	int line = 0, rc = 0;
--	char *buf = NULL, *seek, *value, *config_file;
--
--	if (_monitor->config_file)
--		config_file = strdup(_monitor->config_file);
--	else
--		config_file = strdup(NDCTL_CONF_FILE);
--	if (!config_file) {
--		fail("strdup default config file failed\n");
--		rc = -ENOMEM;
--		goto out;
--	}
-+	char *buf = NULL, *seek, *value;
- 
- 	buf = malloc(BUF_SIZE);
- 	if (!buf) {
- 		fail("malloc read config-file buf error\n");
--		rc = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 	seek = buf;
- 
- 	f = fopen(config_file, "r");
- 	if (!f) {
--		if (_monitor->config_file) {
--			err(&monitor, "config-file: %s cannot be opened\n",
--				config_file);
--			rc = -errno;
--		}
-+		err(&monitor, "%s cannot be opened\n", config_file);
-+		rc = -errno;
- 		goto out;
- 	}
- 
-@@ -554,19 +541,18 @@ static int read_config_file(struct ndctl_ctx *ctx, struct monitor *_monitor,
- 		if (len == 0)
- 			continue;
- 
--		parse_config(&_param->bus, "bus", value, seek);
--		parse_config(&_param->dimm, "dimm", value, seek);
--		parse_config(&_param->region, "region", value, seek);
--		parse_config(&_param->namespace, "namespace", value, seek);
--		parse_config(&_monitor->dimm_event, "dimm-event", value, seek);
-+		set_monitor_conf(&param.bus, "bus", value, seek);
-+		set_monitor_conf(&param.dimm, "dimm", value, seek);
-+		set_monitor_conf(&param.region, "region", value, seek);
-+		set_monitor_conf(&param.namespace, "namespace", value, seek);
-+		set_monitor_conf(&monitor.dimm_event, "dimm-event", value, seek);
- 
--		if (!_monitor->log)
--			parse_config(&_monitor->log, "log", value, seek);
-+		if (!monitor.log)
-+			set_monitor_conf(&monitor.log, "log", value, seek);
- 	}
- 	fclose(f);
- out:
- 	free(buf);
--	free(config_file);
- 	return rc;
- }
- 
-@@ -585,8 +571,8 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
- 		OPT_FILENAME('l', "log", &monitor.log,
- 				"<file> | syslog | standard",
- 				"where to output the monitor's notification"),
--		OPT_FILENAME('c', "config-file", &monitor.config_file,
--				"config-file", "override the default config"),
-+		OPT_STRING('c', "config-file", &monitor.configs,
-+				"config-file", "override default configs"),
- 		OPT_BOOLEAN('\0', "daemon", &monitor.daemon,
- 				"run ndctl monitor as a daemon"),
- 		OPT_BOOLEAN('u', "human", &monitor.human,
-@@ -601,7 +587,20 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
- 		"ndctl monitor [<options>]",
- 		NULL
- 	};
--	const char *prefix = "./";
-+	const struct config configs[] = {
-+		CONF_MONITOR(NDCTL_CONF_FILE, parse_monitor_config),
-+		CONF_STR("core:bus", &param.bus, NULL),
-+		CONF_STR("core:region", &param.region, NULL),
-+		CONF_STR("core:dimm", &param.dimm, NULL),
-+		CONF_STR("core:namespace", &param.namespace, NULL),
-+		CONF_STR("monitor:bus", &param.bus, NULL),
-+		CONF_STR("monitor:region", &param.region, NULL),
-+		CONF_STR("monitor:dimm", &param.dimm, NULL),
-+		CONF_STR("monitor:namespace", &param.namespace, NULL),
-+		CONF_STR("monitor:dimm-event", &monitor.dimm_event, NULL),
-+		CONF_END(),
-+	};
-+	const char *prefix = "./", *ndctl_configs;
- 	struct util_filter_ctx fctx = { 0 };
- 	struct monitor_filter_arg mfa = { 0 };
- 	int i, rc;
-@@ -621,7 +620,13 @@ int cmd_monitor(int argc, const char **argv, struct ndctl_ctx *ctx)
- 	else
- 		monitor.ctx.log_priority = LOG_INFO;
- 
--	rc = read_config_file(ctx, &monitor, &param);
-+	ndctl_configs = ndctl_get_configs_dir(ctx);
-+	if (monitor.configs)
-+		rc = parse_configs_prefix(monitor.configs, prefix, configs);
-+	else if (ndctl_configs)
-+		rc = parse_configs_prefix(ndctl_configs, prefix, configs);
-+	else
-+		rc = 0;
- 	if (rc)
- 		goto out;
- 
-diff --git a/Documentation/ndctl/Makefile.am b/Documentation/ndctl/Makefile.am
-index f0d5b21..37855cc 100644
---- a/Documentation/ndctl/Makefile.am
-+++ b/Documentation/ndctl/Makefile.am
-@@ -59,7 +59,7 @@ CLEANFILES = $(man1_MANS)
- .ONESHELL:
- attrs.adoc: $(srcdir)/Makefile.am
- 	$(AM_V_GEN) cat <<- EOF >$@
--		:ndctl_monitorconfdir: $(ndctl_monitorconfdir)
-+		:ndctl_confdir: $(ndctl_confdir)
- 		:ndctl_monitorconf: $(ndctl_monitorconf)
- 		:ndctl_keysdir: $(ndctl_keysdir)
- 		EOF
+diff --git a/ndctl/ndctl.conf b/ndctl/ndctl.conf
+new file mode 100644
+index 0000000..04d322d
+--- /dev/null
++++ b/ndctl/ndctl.conf
+@@ -0,0 +1,56 @@
++# This is the default ndctl configuration file. It contains the
++# configuration directives that give ndctl instructions.
++# Ndctl supports multiple configuration files. All files with the
++# .conf suffix under {sysconfdir}/ndctl can be regarded as ndctl
++# configuration files.
++
++# In this file, lines starting with a hash (#) are comments.
++# The configurations should be in a [section] and follow <key> = <value>
++# style. Multiple space-separated values are allowed, but except the
++# following characters: : ? / \ % " ' $ & ! * { } [ ] ( ) = < > @
++
++[core]
++# The values in [core] section work for all ndctl sub commands.
++# dimm = all
++# bus = all
++# region = all
++# namespace = all
++
++[monitor]
++# The values in [monitor] section work for ndctl monitor.
++# You can change the configuration of ndctl monitor by editing this
++# file or use [--config-file=<file>] option to override this one.
++# The changed value will work after restart ndctl monitor service.
++
++# The objects to monitor are filtered via dimm's name by setting key "dimm".
++# If this value is different from the value of [--dimm=<value>] option,
++# both of the values will work.
++# dimm = all
++
++# The objects to monitor are filtered via its parent bus by setting key "bus".
++# If this value is different from the value of [--bus=<value>] option,
++# both of the values will work.
++# bus = all
++
++# The objects to monitor are filtered via region by setting key "region".
++# If this value is different from the value of [--region=<value>] option,
++# both of the values will work.
++# region = all
++
++# The objects to monitor are filtered via namespace by setting key "namespace".
++# If this value is different from the value of [--namespace=<value>] option,
++# both of the values will work.
++# namespace = all
++
++# The DIMM events to monitor are filtered via event type by setting key
++# "dimm-event". If this value is different from the value of
++# [--dimm-event=<value>] option, both of the values will work.
++# dimm-event = all
++
++# Users can choose to output the notifications to syslog (log=syslog),
++# to standard output (log=standard) or to write into a special file (log=<file>)
++# by setting key "log". If this value is in conflict with the value of
++# [--log=<value>] option, this value will be ignored.
++# Note: Setting value to "standard" or relative path for <file> will not work
++# when running moniotr as a daemon.
++# log = /var/log/ndctl/monitor.log
 -- 
 2.33.1
 
