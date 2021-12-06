@@ -1,162 +1,158 @@
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1380B2CA8
-	for <nvdimm@lists.linux.dev>; Mon,  6 Dec 2021 22:28:48 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="300804844"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E8B372CA6
+	for <nvdimm@lists.linux.dev>; Mon,  6 Dec 2021 22:29:00 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="236159408"
 X-IronPort-AV: E=Sophos;i="5.87,292,1631602800"; 
-   d="scan'208";a="300804844"
+   d="scan'208";a="236159408"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:46 -0800
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:40 -0800
 X-IronPort-AV: E=Sophos;i="5.87,292,1631602800"; 
-   d="scan'208";a="502310473"
+   d="scan'208";a="502310409"
 Received: from ponufryk-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.133.29])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:46 -0800
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:40 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>
 Cc: Dan Williams <dan.j.williams@intel.com>,
 	QI Fuli <qi.fuli@jp.fujitsu.com>,
 	fenghua.hu@intel.com,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	QI Fuli <qi.fuli@fujitsu.com>
-Subject: [ndctl PATCH v2 12/12] daxctl: add systemd service and udev rule for automatic reconfiguration
-Date: Mon,  6 Dec 2021 15:28:30 -0700
-Message-Id: <20211206222830.2266018-13-vishal.l.verma@intel.com>
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v2 00/12] Policy based reconfiguration for daxctl
+Date: Mon,  6 Dec 2021 15:28:18 -0700
+Message-Id: <20211206222830.2266018-1-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20211206222830.2266018-1-vishal.l.verma@intel.com>
-References: <20211206222830.2266018-1-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4207; h=from:subject; bh=CwjCJ5OMhaZPhOB/59KJO8aVDvUQ4RNpyfO3a3jflO0=; b=owGbwMvMwCXGf25diOft7jLG02pJDInr+vry8/hqF9yfFPhx8l4WaflE+3lsFXcvtbZ81r1yMd77 8IusjlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAExE6w/Df9/ZDt+qvr5glk96bTJ96V HOt5oihdOyV/M+m7zYV9+9PZ7hf/i8W+23r8RFP5yUMknsZN0SJ0tP83tx2b+2ackkiCp3sAMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5652; h=from:subject; bh=LYaTqzktrAuHEtLLKqhl1gtf5ZGTDAQhawV7fbedByM=; b=owGbwMvMwCXGf25diOft7jLG02pJDInr+tqZ5FkWZxU9nhKwJq01LXtXQ/9uxpqLMkzKFz/+3VR8 0edpRykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACai8IiR4ed/uXvMZ0/Y8H31Smp5nH FaeXfpywwdthzm0PMGv5/qtzD8L42xn+kgcyLle0ZXX1lyR0fr84tevT6LnjYJ7OzvuJXPBgA=
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Install a systemd service that calls "daxctl-reconfigure-device
---check-config"  with a daxctl device passed in to it via the
-environment.
+Changes since v1[1]:
+- Collect review tags
+- Fix 'make clean' removing the reconfigure script from the source tree
+  (Fenghua, Qi)
+- Documentation wordsmithing (Dan)
+- Fix line break after declarations in parse-configs.c (Dan)
+- Move daxctl config files to its own directory, /etc/daxctl/ (Dan)
+- Improve failure mode in the absence of a configs directory
+- Rename {nd,dax}ctl_{get|set}_configs to
+  {nd,dax}ctl_{get|set}_configs_dir
+- Exit with success if -C is specified, but no matching config section
+  is found.
+- Refuse to proceed if CLI options are passed in along with -C (Dan)
+- In the config file, rename: s/[auto-online foo]/[reconfigure-device foo/
+  and s/uuid/nvdimm.uuid/ (Dan)
+- Teach device.c to accept /dev/daxX.Y instead of only daxX.Y and thus
+  remove the need for a wrapper script that systemd invokes (Dan)
 
-Install a udev rule that is triggered for every daxctl device, and
-triggers the above oneshot systemd service.
+These patches add policy (config file) support to daxctl. The
+introductory user is daxctl-reconfigure-device. Sysadmins may wish to
+use daxctl devices as system-ram, but it may be cumbersome to automate
+the reconfiguration step for every device upon boot.
 
-On boot, whenever a daxctl device is found, udev triggers a
-device-specific systemd service called, for example:
+Introduce a new option for daxctl-reconfigure-device, --check-config.
+This is at the heart of policy based reconfiguration, as it allows
+daxctl to look up reconfiguration parameters for a given device from the
+config system instead of the command line.
 
-  daxdev-reconfigure@-dev-dax0.0.service
+Some systemd and udev glue then automates this for every new dax device
+that shows up, providing a way for the administrator to simply list all
+the 'system-ram' UUIDs in a config file, and not have to worry about
+anything else.
 
-This initiates a daxctl-reconfigure-device with a config lookup for the
-'dax0.0' device. If the config has a '[reconfigure-device <unique_id>]'
-section, it uses the information in that to set the operating mode of
-the device.
+An example config file can be:
 
-If any device is in an unexpected status, 'journalctl' can be used to
-view the reconfiguration log for that device, for example:
+  # cat /etc/ndctl/daxctl.conf
 
-  journalctl --unit daxdev-reconfigure@-dev-dax0.0.service
+  [reconfigure-device unique_identifier_foo]
+  nvdimm.uuid = 48d8e42c-a2f0-4312-9e70-a837faafe862
+  mode = system-ram
+  online = true
+  movable = false
 
-Update the RPM spec file to include the newly added files to the RPM
-build.
+Any file under '/etc/ndctl/' can be used - all files with a '.conf' suffix
+will be considered when looking for matches.
 
-Cc: QI Fuli <qi.fuli@fujitsu.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- configure.ac                       | 9 ++++++++-
- daxctl/90-daxctl-device.rules      | 1 +
- daxctl/Makefile.am                 | 7 +++++++
- daxctl/daxdev-reconfigure@.service | 8 ++++++++
- ndctl.spec.in                      | 3 +++
- 5 files changed, 27 insertions(+), 1 deletion(-)
+These patches depend on the initial config file support from Qi Fuli[2].
+
+I've re-rolled Qi's original patches as the first five patches in this
+series because of a change I made for graceful handling in the case of a
+missing configs directory, and also to incorporate review feedback that
+applied to the dependant patches. Patch 6 onwards is the actual v2 of
+the daxctl policy work.
+
+A branch containing these patches is available at [3].
+
+[1]: https://lore.kernel.org/nvdimm/20210831090459.2306727-1-vishal.l.verma@intel.com/
+[2]: https://lore.kernel.org/nvdimm/20210824095106.104808-1-qi.fuli@fujitsu.com/
+[3]: https://github.com/pmem/ndctl/tree/vv/daxctl_config_v2
+
+QI Fuli (5):
+  ndctl, util: add iniparser helper
+  ndctl, util: add parse-configs helper
+  ndctl: make ndctl support configuration files
+  ndctl, config: add the default ndctl configuration file
+  ndctl, monitor: refator monitor for supporting multiple config files
+
+Vishal Verma (7):
+  ndctl: Update ndctl.spec.in for 'ndctl.conf'
+  daxctl: Documentation updates for persistent reconfiguration
+  util/parse-config: refactor filter_conf_files into util/
+  daxctl: add basic config parsing support
+  util/parse-configs: add a key/value search helper
+  daxctl/device.c: add an option for getting params from a config file
+  daxctl: add systemd service and udev rule for automatic
+    reconfiguration
+
+ .../daxctl/daxctl-reconfigure-device.txt      |  75 ++
+ Documentation/ndctl/ndctl-monitor.txt         |   8 +-
+ configure.ac                                  |  18 +-
+ Makefile.am                                   |   8 +-
+ ndctl/lib/private.h                           |   1 +
+ daxctl/lib/libdaxctl.c                        |  39 +
+ ndctl/lib/libndctl.c                          |  39 +
+ daxctl/libdaxctl.h                            |   2 +
+ ndctl/libndctl.h                              |   2 +
+ util/dictionary.h                             | 175 ++++
+ util/iniparser.h                              | 360 ++++++++
+ util/parse-configs.h                          |  53 ++
+ daxctl/daxctl.c                               |   1 +
+ daxctl/device.c                               | 174 +++-
+ ndctl/monitor.c                               |  73 +-
+ ndctl/ndctl.c                                 |   1 +
+ util/dictionary.c                             | 383 ++++++++
+ util/iniparser.c                              | 838 ++++++++++++++++++
+ util/parse-configs.c                          | 150 ++++
+ Documentation/daxctl/Makefile.am              |  11 +-
+ Documentation/ndctl/Makefile.am               |   2 +-
+ daxctl/90-daxctl-device.rules                 |   1 +
+ daxctl/Makefile.am                            |   9 +
+ daxctl/daxdev-reconfigure@.service            |   8 +
+ daxctl/lib/Makefile.am                        |   6 +
+ daxctl/lib/libdaxctl.sym                      |   2 +
+ ndctl.spec.in                                 |   4 +
+ ndctl/Makefile.am                             |   9 +-
+ ndctl/lib/Makefile.am                         |   6 +
+ ndctl/lib/libndctl.sym                        |   2 +
+ ndctl/ndctl.conf                              |  56 ++
+ 31 files changed, 2467 insertions(+), 49 deletions(-)
+ create mode 100644 util/dictionary.h
+ create mode 100644 util/iniparser.h
+ create mode 100644 util/parse-configs.h
+ create mode 100644 util/dictionary.c
+ create mode 100644 util/iniparser.c
+ create mode 100644 util/parse-configs.c
  create mode 100644 daxctl/90-daxctl-device.rules
  create mode 100644 daxctl/daxdev-reconfigure@.service
+ create mode 100644 ndctl/ndctl.conf
 
-diff --git a/configure.ac b/configure.ac
-index e779b51..dcdc15f 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -160,7 +160,7 @@ AC_CHECK_FUNCS([ \
- 
- AC_ARG_WITH([systemd],
- 	AS_HELP_STRING([--with-systemd],
--		[Enable systemd functionality (monitor). @<:@default=yes@:>@]),
-+		[Enable systemd functionality. @<:@default=yes@:>@]),
- 	[], [with_systemd=yes])
- 
- if test "x$with_systemd" = "xyes"; then
-@@ -186,6 +186,13 @@ daxctl_modprobe_data=daxctl.conf
- AC_SUBST([daxctl_modprobe_datadir])
- AC_SUBST([daxctl_modprobe_data])
- 
-+AC_ARG_WITH(udevrulesdir,
-+    [AS_HELP_STRING([--with-udevrulesdir=DIR], [udev rules.d directory])],
-+    [UDEVRULESDIR="$withval"],
-+    [UDEVRULESDIR='${prefix}/lib/udev/rules.d']
-+)
-+AC_SUBST(UDEVRULESDIR)
-+
- AC_ARG_WITH([keyutils],
- 	    AS_HELP_STRING([--with-keyutils],
- 			[Enable keyutils functionality (security).  @<:@default=yes@:>@]), [], [with_keyutils=yes])
-diff --git a/daxctl/90-daxctl-device.rules b/daxctl/90-daxctl-device.rules
-new file mode 100644
-index 0000000..ee0670f
---- /dev/null
-+++ b/daxctl/90-daxctl-device.rules
-@@ -0,0 +1 @@
-+ACTION=="add", SUBSYSTEM=="dax", TAG+="systemd", ENV{SYSTEMD_WANTS}="daxdev-reconfigure@$env{DEVNAME}.service"
-diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-index ac97cd1..6d41016 100644
---- a/daxctl/Makefile.am
-+++ b/daxctl/Makefile.am
-@@ -28,3 +28,10 @@ daxctl_LDADD =\
- 	$(UUID_LIBS) \
- 	$(KMOD_LIBS) \
- 	$(JSON_LIBS)
-+
-+udevrulesdir = $(UDEVRULESDIR)
-+udevrules_DATA = 90-daxctl-device.rules
-+
-+if ENABLE_SYSTEMD_UNITS
-+systemd_unit_DATA = daxdev-reconfigure@.service
-+endif
-diff --git a/daxctl/daxdev-reconfigure@.service b/daxctl/daxdev-reconfigure@.service
-new file mode 100644
-index 0000000..13d570c
---- /dev/null
-+++ b/daxctl/daxdev-reconfigure@.service
-@@ -0,0 +1,8 @@
-+[Unit]
-+Description=Automatic daxctl device reconfiguration
-+Documentation=man:daxctl-reconfigure-device(1)
-+
-+[Service]
-+Type=forking
-+GuessMainPID=false
-+ExecStart=/bin/sh -c "exec daxctl reconfigure-device --check-config %I"
-diff --git a/ndctl.spec.in b/ndctl.spec.in
-index 07c36ec..2c33664 100644
---- a/ndctl.spec.in
-+++ b/ndctl.spec.in
-@@ -26,6 +26,7 @@ BuildRequires:	pkgconfig(json-c)
- BuildRequires:	pkgconfig(bash-completion)
- BuildRequires:	pkgconfig(systemd)
- BuildRequires:	keyutils-libs-devel
-+BuildRequires:	systemd-rpm-macros
- 
- %description
- Utility library for managing the "libnvdimm" subsystem.  The "libnvdimm"
-@@ -126,6 +127,8 @@ make check
- %{_bindir}/daxctl
- %{_mandir}/man1/daxctl*
- %{_datadir}/daxctl/daxctl.conf
-+%{_unitdir}/daxdev-reconfigure@.service
-+%config %{_udevrulesdir}/90-daxctl-device.rules
- 
- %files -n LNAME
- %defattr(-,root,root)
+
+base-commit: 4e646fa490ba4b782afa188dd8818b94c419924e
 -- 
 2.33.1
 
