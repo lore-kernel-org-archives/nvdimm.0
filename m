@@ -1,1856 +1,250 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 98D0E2CA6
-	for <nvdimm@lists.linux.dev>; Mon,  6 Dec 2021 22:29:02 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="236159413"
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DAF02C80
+	for <nvdimm@lists.linux.dev>; Mon,  6 Dec 2021 23:11:01 +0000 (UTC)
+X-IronPort-AV: E=McAfee;i="6200,9189,10190"; a="218114933"
 X-IronPort-AV: E=Sophos;i="5.87,292,1631602800"; 
-   d="scan'208";a="236159413"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:41 -0800
+   d="scan'208";a="218114933"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 15:11:01 -0800
+X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.87,292,1631602800"; 
-   d="scan'208";a="502310415"
-Received: from ponufryk-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.133.29])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Dec 2021 14:28:40 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <nvdimm@lists.linux.dev>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	QI Fuli <qi.fuli@jp.fujitsu.com>,
-	fenghua.hu@intel.com,
-	QI Fuli <qi.fuli@fujitsu.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v2 01/12] ndctl, util: add iniparser helper
-Date: Mon,  6 Dec 2021 15:28:19 -0700
-Message-Id: <20211206222830.2266018-2-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <20211206222830.2266018-1-vishal.l.verma@intel.com>
+   d="scan'208";a="611422682"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by orsmga004.jf.intel.com with ESMTP; 06 Dec 2021 15:11:00 -0800
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Mon, 6 Dec 2021 15:11:00 -0800
+Received: from fmsmsx604.amr.corp.intel.com (10.18.126.84) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Mon, 6 Dec 2021 15:11:00 -0800
+Received: from fmsedg602.ED.cps.intel.com (10.1.192.136) by
+ fmsmsx604.amr.corp.intel.com (10.18.126.84) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20 via Frontend Transport; Mon, 6 Dec 2021 15:11:00 -0800
+Received: from NAM02-DM3-obe.outbound.protection.outlook.com (104.47.56.49) by
+ edgegateway.intel.com (192.55.55.71) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.1.2308.20; Mon, 6 Dec 2021 15:10:59 -0800
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=cqjpmZqx7BmfzNuk0iUJrI9ltvgXDtz//EVTvax2QbNd9Ls7Epv7qcIZqGsvwvusCkOnt+GiBLIA3ps/uKriT0CAorZAOsH7S/xvIRy0XtNLKlHNulAXf+CMPMWWq0dS4XxXb1k2LK76th5E0hGCA7eEqczPa/ZigYoseqauK2v1RyibaOCUhjeVvuFt02i3/3lIfZJ4O6XJo8EOS2rgLpQPlfhND6iruXKk/bcWpuDtknH736k2qJjE1L3noSijPRvKPhrDLWpKz2dUwTtPpATRPEVx+SSOlsOs9FbOEJGpwzda72ZP1ta9XEBq40aOo2lk5Bb00vf3IoalAc6LOA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=JE8dh79iTd+uFXgY5lj5eXWGCm5sTUkhcJIWJb1xqVo=;
+ b=BNN0RAxyGMJZ4o1ea5E61ld6Dv2ThokIbWSmxRtEywfL4QSDHS1nEUFh2Wqpp5HNoJAh6g4HkDjXM1FoD8524z8aNdCLFRQaa0liVFUd4NnoyVaOD0vFpucUPM3dfzqs6dIyJC6cxvhgyb1iOUm0tzMP1YrBnFo6MR9HuK/mFdNDXCELjPVP62ubkTXpCnE64ExqwQ2Ab9uc4ZYMkwSCivSGthcppCSp4vDspi2gZGruxTO6epIXPYsDP68VMMnvY8CGGUjJx7xuy86OqLDtJ68rZ8tKy1YrdHu8N2PM03KGZm46qmkCuBAwkBqIKjDCB8pXNDC+ZhDghYQNYKZVSw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
+ dkim=pass header.d=intel.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
+ s=selector2-intel-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=JE8dh79iTd+uFXgY5lj5eXWGCm5sTUkhcJIWJb1xqVo=;
+ b=iGAyjt37Ug2ONdrxee/1+Kj0ZIiEimOzXMgsLoOAIEU2TFg6BG422wPlQQZ0X3BAZq6Isk/3ouNeKcb+5y8B/xftVCNh0JczVcJl930YbsJnswoE39VfClcYOvHSWFA0+F5aWRSLJuzdov04IUKj2m2A3KmmxKJts0GGpjPSA3c=
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com (2603:10b6:208:154::32)
+ by MN2PR11MB3871.namprd11.prod.outlook.com (2603:10b6:208:13c::31) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4755.21; Mon, 6 Dec
+ 2021 23:10:58 +0000
+Received: from MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::114d:f87:eeb5:b6be]) by MN2PR11MB3999.namprd11.prod.outlook.com
+ ([fe80::114d:f87:eeb5:b6be%4]) with mapi id 15.20.4755.022; Mon, 6 Dec 2021
+ 23:10:58 +0000
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+To: "nvdimm@lists.linux.dev" <nvdimm@lists.linux.dev>
+CC: "Williams, Dan J" <dan.j.williams@intel.com>, "Hu, Fenghua"
+	<fenghua.hu@intel.com>, "qi.fuli@jp.fujitsu.com" <qi.fuli@jp.fujitsu.com>
+Subject: Re: [ndctl PATCH v2 00/12] Policy based reconfiguration for daxctl
+Thread-Topic: [ndctl PATCH v2 00/12] Policy based reconfiguration for daxctl
+Thread-Index: AQHX6vCmi7ScPiO9TU6cyRQO6ymY4qwmFymA
+Date: Mon, 6 Dec 2021 23:10:58 +0000
+Message-ID: <a99313fe975700d548f5a689cd6b5316356571d4.camel@intel.com>
 References: <20211206222830.2266018-1-vishal.l.verma@intel.com>
+In-Reply-To: <20211206222830.2266018-1-vishal.l.verma@intel.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+user-agent: Evolution 3.42.1 (3.42.1-1.fc35) 
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=intel.com;
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: 67cd576d-5eee-43de-918e-08d9b90da9c5
+x-ms-traffictypediagnostic: MN2PR11MB3871:EE_
+x-ld-processed: 46c98d88-e344-4ed4-8496-4ed7712e255d,ExtAddr,ExtFwd
+x-microsoft-antispam-prvs: <MN2PR11MB3871D27D96515DEB1B99EAADC76D9@MN2PR11MB3871.namprd11.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:489;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 09iFAd96FpgT3EUuhwQaiPze1c0NwS/zX2bS+ILPw/pUpBgRCTzZjpo2yWW6/brD5NxIgY/OP7UAzOv3Hpto4TN/GW+SrkAYH0ONjxk2T1UtKOwl5DkhRaU65lGVV/dvZC2P6IKmwylj2bEtmXDRzUi43cWIzirBQP8GkXBnHugTKrwUo+R7oar5iVCcsLOvK1IReto8hLewmluXV6NbrFooUZUSrvyxmEptb0LNrMHDknqJlQUBuhVca4Mh9/11PznCZ+S5IzlxKsJU5pr9aA4A0SaIoRWm00uJBQbZabH0TaGz9NnxjSvi4dKqwJjBKRJ3YkAMzT+xZhkn9ng1UE+T+aRiRgpxEqAtxQNy0uu8aL6dvIBzDHU4qdDgd55U5WJTeKgWvRJWNTtWz2iUzZxvzEURG3kdJ8pVFIYLZ2bYD5x8M59QRC/ghG/3cZChgliRsTWw9jfjRgWlO91rd5YVmylyGFcGG111x7/UO8Sdw/dcFJ4RKlqtt3BXGxttiema8DMe4pNJYGT4qqsMO0qj3gFGIV1fjJ/7npWmePB/kH/qcnw3YykyApKuuWgaRzu3AMrnQ++KMzCM8kzOZMsN6foDOe/UiWYJUzyL76yOKOHYzVmdaeyUXLTmuZnzyHqgHYzcdNv/gbu5EUilFuPaFMUxcgkfMQm4tmsRRwQtmeXb9/sYjkX/oRVWh36R21MbMqHX/IfUGQLNBvGTKDNoYG4j+waiZ57il6hwxRQWSSJqulx2BJmDYaBAJyEc8ka2eoKEer50Q6u8BT7jFj6RhUsWYl5ubABs67zo9Hc/r1t1pxEAkJ86BI7FoFVjc+cTqWj3yD7R9eT3/qAcKA==
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR11MB3999.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(38070700005)(66556008)(66476007)(6486002)(6506007)(83380400001)(76116006)(91956017)(26005)(66446008)(316002)(71200400001)(86362001)(6512007)(36756003)(186003)(66946007)(64756008)(6916009)(54906003)(8936002)(4326008)(82960400001)(5660300002)(2616005)(8676002)(38100700002)(122000001)(966005)(2906002)(508600001);DIR:OUT;SFP:1102;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?QnZSbmRqRVZ2QXNKRVp6aGV4Zi9KaFFJWEdpRHFrUzZ6aFBrTFVnS1FYRWpT?=
+ =?utf-8?B?Qm5iRUl3aFVCclEwRjZjZFY1d05XN0k5b0w1RXBSNFFkdVNDTUM1N3dpeTJm?=
+ =?utf-8?B?SlBkY3o5dHVpN3V5TXBOUVA4ZENTMVk4dWh3c1M3VWhmdnhKb2JPeEE5OU9o?=
+ =?utf-8?B?MmZRMUlsMnBWdkdBOG9yanpvR1A4aS8wWjVHdkI3QVZhNlkyMDJBWnZaK2Qx?=
+ =?utf-8?B?a3pyQmxOeldocWU5b24wbUhGcExyNWdpRWtMbkNmb2J5azdxcWFBeGJxdk1p?=
+ =?utf-8?B?bUFRSFpqb1VVT1pJYXJoL2tmbFNJZVpybDhqdTIyNnhmbG5VN1ZkN0Vxb1dM?=
+ =?utf-8?B?Q3FUMzNld0RmWWcvVFgwMTVzUysxR3g0ZXFxVjh1Y1FlbTQxY3hnM012R1VS?=
+ =?utf-8?B?U3gvd1RYd3NISnNHQVdVRUtPcTkrdEJPcklKM0U0WitPTFRlV2oxb2VYNVhH?=
+ =?utf-8?B?eE1tU1BmSTUxM1lZVEZIdzJFMU54VnZwWWk2YmhxT0VjZVF6NkhEZ3Q0bHRq?=
+ =?utf-8?B?ZHpTazhRSzJGM1pSaXpuS01DNmFubzNKT1ZZZXlSS3Q0MnBZQm5BTWdUMEZk?=
+ =?utf-8?B?eWRIbmV1d1dJSWR2SGtlNlZpRHhQSHhpbjlOSDgxVW16SlhqSGJGUVE0Zm9k?=
+ =?utf-8?B?dGtHWUczYUxhdzJHSUhYVFlzQy80MDQ2UGhVTERTM1NuOWd0ZlFBTlUvZVFL?=
+ =?utf-8?B?R09saEFEWmpqYWw5WDFhU0R6bk45NUt5bUI4L04rdlJZZ1hVdENuaFc2OTNs?=
+ =?utf-8?B?b3RzZDJEV1lVT255bVhJSjNJUWNjRDdtaFJEUndYcVZqdUwzek5mSUladlhR?=
+ =?utf-8?B?N1pmc0JqaHFHWkNDeDdHS3M3RmkwMXBOWnV5eFhmZ1R0ZHl3Z2xYWXFuWVpE?=
+ =?utf-8?B?VkhibzdpZmlWYmZlYk8xVkt6aVNKV3Nsc00raUJQZEx4dTdVb2FWZ3NqaHJL?=
+ =?utf-8?B?NEtGWEZ1Y0tXeGhYbEprOWNreG9IUldUOW4vYVRCVTYyVE91bkduUDRXanJ4?=
+ =?utf-8?B?ODFzUVRqOVRpVW83UzJTT0ZtV0VnRkozRkkzMGU2Zm1zYW1nN3BEak5IRi80?=
+ =?utf-8?B?V1FqTndlZHlNWjc3Tk1pN0hhc1h6a1puTnU4Q0RsOGVpNm44a2czaFhaR2h0?=
+ =?utf-8?B?RjdqTnZlY0tmZjllL0FwTElUWEdhbGVBOUpCdDU3MW5GdmNJd0hWZ3ZQc0wx?=
+ =?utf-8?B?SXg4SG90S1A3OUVVc01MT1Vjek1UUUlwVm9Jc216RWtIYTNvV0VYRWpYelhv?=
+ =?utf-8?B?UDBxM3JqL0NZcUhHVEd6OGs5VG52YklFQno5bmJxUEpVZVB2OGxqZ3gxVkdU?=
+ =?utf-8?B?VThiNEVacWdxWHN2Tm5tMVNpc0l1UzlXZ3ZjakJWcE0yY3JKOEJuU1RSNnN6?=
+ =?utf-8?B?d2VEbWFjWnFianhwdm1TWDFtOTZhRlRQS3NNMjgwT0RmdTB1TWhTMTNvdTlI?=
+ =?utf-8?B?ZkwwWng0RnkwMWZJclFXVnRoZDV5emZLVC9mQkRQVEpSNzJTdjRHc3VRNy9J?=
+ =?utf-8?B?QnBmZWc4cTExYUJDb01UL2llNUpkcis3MEJsL0pUVTJPQXBGUTVBOFQrMVFW?=
+ =?utf-8?B?amdJQjR4c1lQSGFrZ0cxRThCQkVDZlp5dGxqSU5YSFBtdVVsZzVDZjdTMk51?=
+ =?utf-8?B?OEthbEFSbG9WaHAxcng2NnJRZHlTVEJWTWtsVXJ1MjRaaVNiMjRPRDNzajBp?=
+ =?utf-8?B?aDJOMytDdmxZU3F5cy9sQnBsbXV6NDVvTVhHT0ltdDB1d0ZFNHhnWDMvaFRw?=
+ =?utf-8?B?bFo0VXBsUndlOC9XWmVxNSszT2ZsNFphNy80UFMzKzJOdTBWOUhMVUZ0SW5R?=
+ =?utf-8?B?cU11Z0pleENXZ3RzdERBYmpNOGplQyt1aHRlR29JSU5tU2RoU09DNXZSMDFk?=
+ =?utf-8?B?VXJiTDJUdlc4dWtKYnZXVGxqU2dtVG5XSWF2aUhqZmtpSURlWUtoWVlyUXY4?=
+ =?utf-8?B?OHErdXpyY2swcEQ0dHhKV3hCb1N1QnhPREhxYUVoTFh2cWpkWjE2Nk5tYTVR?=
+ =?utf-8?B?Tm9nbW5XUkJNZjVHaHpDcEhjZ3hBZ2dEcmo4SXJqbFE3aE0yNnF5T3hlREIz?=
+ =?utf-8?B?b25KOGoyR09RRThHRmt5Z3lnQU9zWE1iKzJJS2NnbEt4SDBVZWM1S1dYYkFj?=
+ =?utf-8?B?RjJSUzJCT1k5a0xyaEtBYkFHYmN1TDNKQ0RaRGtyMmJEMDVRTWVuREVIZnFl?=
+ =?utf-8?B?ZGR1c05YdGxFYmVoZVlaTnFNQ0gzZnBSU2JxTW1YdWNCOUZQNFJGeHZMQnQ2?=
+ =?utf-8?Q?vlrWYydtf+4oIOErKXZ3qTy4Ip7LMUjpRe3fRu0TLY=3D?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <7B96A508C07D07438DD07B3ED660893B@namprd11.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=63806; i=vishal.l.verma@intel.com; h=from:subject; bh=OuIPresmws/xx9zoiHunkfC+h5PmCYYLHpA3Q/qd4YE=; b=owGbwMvMwCXGf25diOft7jLG02pJDInr+rp/l4sePK0rdM958ZGbItmFG2IPPNjXs13pcvUs6d+v dCRvdpSyMIhxMciKKbL83fOR8Zjc9nyewARHmDmsTCBDGLg4BWAinG8Z/tff+v6Hu+TxLcfESTFT05 5UvMyTq7ZPZjV7ffvPxKR8o3JGhjcJ91wYjm45IeMg+9S9jpHpkOnnldHvlsec473iazV7BysA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
-Content-Transfer-Encoding: 8bit
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR11MB3999.namprd11.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 67cd576d-5eee-43de-918e-08d9b90da9c5
+X-MS-Exchange-CrossTenant-originalarrivaltime: 06 Dec 2021 23:10:58.2027
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: OqFF27RIB7yANTsNxuaMXHW7XXDtTQnF5NK8JxuysJE3HnC/eNVsPQMujVD7Wc/htVIGxZab96ncuX5NMrq3Og22f8Svq/jcwKLO1ucUsic=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR11MB3871
+X-OriginatorOrg: intel.com
 
-From: QI Fuli <qi.fuli@fujitsu.com>
-
-Add iniparser[1] helper for parsing ndctl global configuration files.
-[1] https://github.com/ndevilla/iniparser
-
-Link: https://lore.kernel.org/r/20210824095106.104808-2-qi.fuli@fujitsu.com
-Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- Makefile.am       |   6 +-
- util/dictionary.h | 175 ++++++++++
- util/iniparser.h  | 360 ++++++++++++++++++++
- util/dictionary.c | 383 +++++++++++++++++++++
- util/iniparser.c  | 838 ++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 1761 insertions(+), 1 deletion(-)
- create mode 100644 util/dictionary.h
- create mode 100644 util/iniparser.h
- create mode 100644 util/dictionary.c
- create mode 100644 util/iniparser.c
-
-diff --git a/Makefile.am b/Makefile.am
-index 60a1998..235c362 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -85,6 +85,10 @@ libutil_a_SOURCES = \
- 	util/size.h \
- 	util/main.h \
- 	util/filter.h \
--	util/bitmap.h
-+	util/bitmap.h \
-+	util/dictionary.c \
-+	util/dictionary.h \
-+	util/iniparser.c \
-+	util/iniparser.h
- 
- nobase_include_HEADERS = daxctl/libdaxctl.h
-diff --git a/util/dictionary.h b/util/dictionary.h
-new file mode 100644
-index 0000000..4678e38
---- /dev/null
-+++ b/util/dictionary.h
-@@ -0,0 +1,175 @@
-+/* SPDX-License-Identifier: MIT */
-+/* originally copied from https://github.com/ndevilla/iniparser */
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+   @file    dictionary.h
-+   @author  N. Devillard
-+   @brief   Implements a dictionary for string variables.
-+
-+   This module implements a simple dictionary object, i.e. a list
-+   of string/string associations. This object is useful to store e.g.
-+   informations retrieved from a configuration file (ini files).
-+*/
-+/*--------------------------------------------------------------------------*/
-+
-+#ifndef _DICTIONARY_H_
-+#define _DICTIONARY_H_
-+
-+/*---------------------------------------------------------------------------
-+                                Includes
-+ ---------------------------------------------------------------------------*/
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+/*---------------------------------------------------------------------------
-+                                New types
-+ ---------------------------------------------------------------------------*/
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Dictionary object
-+
-+  This object contains a list of string/string associations. Each
-+  association is identified by a unique string key. Looking up values
-+  in the dictionary is speeded up by the use of a (hopefully collision-free)
-+  hash function.
-+ */
-+/*-------------------------------------------------------------------------*/
-+typedef struct _dictionary_ {
-+    int             n ;     /** Number of entries in dictionary */
-+    ssize_t         size ;  /** Storage size */
-+    char        **  val ;   /** List of string values */
-+    char        **  key ;   /** List of string keys */
-+    unsigned     *  hash ;  /** List of hash values for keys */
-+} dictionary ;
-+
-+
-+/*---------------------------------------------------------------------------
-+                            Function prototypes
-+ ---------------------------------------------------------------------------*/
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Compute the hash key for a string.
-+  @param    key     Character string to use for key.
-+  @return   1 unsigned int on at least 32 bits.
-+
-+  This hash function has been taken from an Article in Dr Dobbs Journal.
-+  This is normally a collision-free function, distributing keys evenly.
-+  The key is stored anyway in the struct so that collision can be avoided
-+  by comparing the key itself in last resort.
-+ */
-+/*--------------------------------------------------------------------------*/
-+unsigned dictionary_hash(const char * key);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Create a new dictionary object.
-+  @param    size    Optional initial size of the dictionary.
-+  @return   1 newly allocated dictionary object.
-+
-+  This function allocates a new dictionary object of given size and returns
-+  it. If you do not know in advance (roughly) the number of entries in the
-+  dictionary, give size=0.
-+ */
-+/*--------------------------------------------------------------------------*/
-+dictionary * dictionary_new(size_t size);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Delete a dictionary object
-+  @param    d   dictionary object to deallocate.
-+  @return   void
-+
-+  Deallocate a dictionary object and all memory associated to it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void dictionary_del(dictionary * vd);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get a value from a dictionary.
-+  @param    d       dictionary object to search.
-+  @param    key     Key to look for in the dictionary.
-+  @param    def     Default value to return if key not found.
-+  @return   1 pointer to internally allocated character string.
-+
-+  This function locates a key in a dictionary and returns a pointer to its
-+  value, or the passed 'def' pointer if no such key can be found in
-+  dictionary. The returned character pointer points to data internal to the
-+  dictionary object, you should not try to free it or modify it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char * dictionary_get(const dictionary * d, const char * key, const char * def);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Set a value in a dictionary.
-+  @param    d       dictionary object to modify.
-+  @param    key     Key to modify or add.
-+  @param    val     Value to add.
-+  @return   int     0 if Ok, anything else otherwise
-+
-+  If the given key is found in the dictionary, the associated value is
-+  replaced by the provided one. If the key cannot be found in the
-+  dictionary, it is added to it.
-+
-+  It is Ok to provide a NULL value for val, but NULL values for the dictionary
-+  or the key are considered as errors: the function will return immediately
-+  in such a case.
-+
-+  Notice that if you dictionary_set a variable to NULL, a call to
-+  dictionary_get will return a NULL value: the variable will be found, and
-+  its value (NULL) is returned. In other words, setting the variable
-+  content to NULL is equivalent to deleting the variable from the
-+  dictionary. It is not possible (in this implementation) to have a key in
-+  the dictionary without value.
-+
-+  This function returns non-zero in case of failure.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int dictionary_set(dictionary * vd, const char * key, const char * val);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Delete a key in a dictionary
-+  @param    d       dictionary object to modify.
-+  @param    key     Key to remove.
-+  @return   void
-+
-+  This function deletes a key in a dictionary. Nothing is done if the
-+  key cannot be found.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void dictionary_unset(dictionary * d, const char * key);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Dump a dictionary to an opened file pointer.
-+  @param    d   Dictionary to dump
-+  @param    f   Opened file pointer.
-+  @return   void
-+
-+  Dumps a dictionary onto an opened file pointer. Key pairs are printed out
-+  as @c [Key]=[Value], one per line. It is Ok to provide stdout or stderr as
-+  output file pointers.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void dictionary_dump(const dictionary * d, FILE * out);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/util/iniparser.h b/util/iniparser.h
-new file mode 100644
-index 0000000..9e30119
---- /dev/null
-+++ b/util/iniparser.h
-@@ -0,0 +1,360 @@
-+/* SPDX-License-Identifier: MIT */
-+/* originally copied from https://github.com/ndevilla/iniparser */
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+   @file    iniparser.h
-+   @author  N. Devillard
-+   @brief   Parser for ini files.
-+*/
-+/*--------------------------------------------------------------------------*/
-+
-+#ifndef _INIPARSER_H_
-+#define _INIPARSER_H_
-+
-+/*---------------------------------------------------------------------------
-+                                Includes
-+ ---------------------------------------------------------------------------*/
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+/*
-+ * The following #include is necessary on many Unixes but not Linux.
-+ * It is not needed for Windows platforms.
-+ * Uncomment it if needed.
-+ */
-+/* #include <unistd.h> */
-+
-+#include "dictionary.h"
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Configure a function to receive the error messages.
-+  @param    errback  Function to call.
-+
-+  By default, the error will be printed on stderr. If a null pointer is passed
-+  as errback the error callback will be switched back to default.
-+ */
-+/*--------------------------------------------------------------------------*/
-+
-+void iniparser_set_error_callback(int (*errback)(const char *, ...));
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get number of sections in a dictionary
-+  @param    d   Dictionary to examine
-+  @return   int Number of sections found in dictionary
-+
-+  This function returns the number of sections found in a dictionary.
-+  The test to recognize sections is done on the string stored in the
-+  dictionary: a section name is given as "section" whereas a key is
-+  stored as "section:key", thus the test looks for entries that do not
-+  contain a colon.
-+
-+  This clearly fails in the case a section name contains a colon, but
-+  this should simply be avoided.
-+
-+  This function returns -1 in case of error.
-+ */
-+/*--------------------------------------------------------------------------*/
-+
-+int iniparser_getnsec(const dictionary * d);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get name for section n in a dictionary.
-+  @param    d   Dictionary to examine
-+  @param    n   Section number (from 0 to nsec-1).
-+  @return   Pointer to char string
-+
-+  This function locates the n-th section in a dictionary and returns
-+  its name as a pointer to a string statically allocated inside the
-+  dictionary. Do not free or modify the returned string!
-+
-+  This function returns NULL in case of error.
-+ */
-+/*--------------------------------------------------------------------------*/
-+
-+const char * iniparser_getsecname(const dictionary * d, int n);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Save a dictionary to a loadable ini file
-+  @param    d   Dictionary to dump
-+  @param    f   Opened file pointer to dump to
-+  @return   void
-+
-+  This function dumps a given dictionary into a loadable ini file.
-+  It is Ok to specify @c stderr or @c stdout as output files.
-+ */
-+/*--------------------------------------------------------------------------*/
-+
-+void iniparser_dump_ini(const dictionary * d, FILE * f);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Save a dictionary section to a loadable ini file
-+  @param    d   Dictionary to dump
-+  @param    s   Section name of dictionary to dump
-+  @param    f   Opened file pointer to dump to
-+  @return   void
-+
-+  This function dumps a given section of a given dictionary into a loadable ini
-+  file.  It is Ok to specify @c stderr or @c stdout as output files.
-+ */
-+/*--------------------------------------------------------------------------*/
-+
-+void iniparser_dumpsection_ini(const dictionary * d, const char * s, FILE * f);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Dump a dictionary to an opened file pointer.
-+  @param    d   Dictionary to dump.
-+  @param    f   Opened file pointer to dump to.
-+  @return   void
-+
-+  This function prints out the contents of a dictionary, one element by
-+  line, onto the provided file pointer. It is OK to specify @c stderr
-+  or @c stdout as output files. This function is meant for debugging
-+  purposes mostly.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_dump(const dictionary * d, FILE * f);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the number of keys in a section of a dictionary.
-+  @param    d   Dictionary to examine
-+  @param    s   Section name of dictionary to examine
-+  @return   Number of keys in section
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getsecnkeys(const dictionary * d, const char * s);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the number of keys in a section of a dictionary.
-+  @param    d    Dictionary to examine
-+  @param    s    Section name of dictionary to examine
-+  @param    keys Already allocated array to store the keys in
-+  @return   The pointer passed as `keys` argument or NULL in case of error
-+
-+  This function queries a dictionary and finds all keys in a given section.
-+  The keys argument should be an array of pointers which size has been
-+  determined by calling `iniparser_getsecnkeys` function prior to this one.
-+
-+  Each pointer in the returned char pointer-to-pointer is pointing to
-+  a string allocated in the dictionary; do not free or modify them.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char ** iniparser_getseckeys(const dictionary * d, const char * s, const char ** keys);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key
-+  @param    d       Dictionary to search
-+  @param    key     Key string to look for
-+  @param    def     Default value to return if key not found.
-+  @return   pointer to statically allocated character string
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the pointer passed as 'def' is returned.
-+  The returned char pointer is pointing to a string allocated in
-+  the dictionary, do not free or modify it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char * iniparser_getstring(const dictionary * d, const char * key, const char * def);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to an int
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   integer
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+
-+  Supported values for integers include the usual C notation
-+  so decimal, octal (starting with 0) and hexadecimal (starting with 0x)
-+  are supported. Examples:
-+
-+  - "42"      ->  42
-+  - "042"     ->  34 (octal -> decimal)
-+  - "0x42"    ->  66 (hexa  -> decimal)
-+
-+  Warning: the conversion may overflow in various ways. Conversion is
-+  totally outsourced to strtol(), see the associated man page for overflow
-+  handling.
-+
-+  Credits: Thanks to A. Becker for suggesting strtol()
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getint(const dictionary * d, const char * key, int notfound);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to an long int
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   integer
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+
-+  Supported values for integers include the usual C notation
-+  so decimal, octal (starting with 0) and hexadecimal (starting with 0x)
-+  are supported. Examples:
-+
-+  - "42"      ->  42
-+  - "042"     ->  34 (octal -> decimal)
-+  - "0x42"    ->  66 (hexa  -> decimal)
-+
-+  Warning: the conversion may overflow in various ways. Conversion is
-+  totally outsourced to strtol(), see the associated man page for overflow
-+  handling.
-+ */
-+/*--------------------------------------------------------------------------*/
-+long int iniparser_getlongint(const dictionary * d, const char * key, long int notfound);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to a double
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   double
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+ */
-+/*--------------------------------------------------------------------------*/
-+double iniparser_getdouble(const dictionary * d, const char * key, double notfound);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to a boolean
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   integer
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+
-+  A true boolean is found if one of the following is matched:
-+
-+  - A string starting with 'y'
-+  - A string starting with 'Y'
-+  - A string starting with 't'
-+  - A string starting with 'T'
-+  - A string starting with '1'
-+
-+  A false boolean is found if one of the following is matched:
-+
-+  - A string starting with 'n'
-+  - A string starting with 'N'
-+  - A string starting with 'f'
-+  - A string starting with 'F'
-+  - A string starting with '0'
-+
-+  The notfound value returned if no boolean is identified, does not
-+  necessarily have to be 0 or 1.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getboolean(const dictionary * d, const char * key, int notfound);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Set an entry in a dictionary.
-+  @param    ini     Dictionary to modify.
-+  @param    entry   Entry to modify (entry name)
-+  @param    val     New value to associate to the entry.
-+  @return   int     0 if Ok, -1 otherwise.
-+
-+  If the given entry can be found in the dictionary, it is modified to
-+  contain the provided value. If it cannot be found, the entry is created.
-+  It is Ok to set val to NULL.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_set(dictionary * ini, const char * entry, const char * val);
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Delete an entry in a dictionary
-+  @param    ini     Dictionary to modify
-+  @param    entry   Entry to delete (entry name)
-+  @return   void
-+
-+  If the given entry can be found, it is deleted from the dictionary.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_unset(dictionary * ini, const char * entry);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Finds out if a given entry exists in a dictionary
-+  @param    ini     Dictionary to search
-+  @param    entry   Name of the entry to look for
-+  @return   integer 1 if entry exists, 0 otherwise
-+
-+  Finds out if a given entry exists in the dictionary. Since sections
-+  are stored as keys with NULL associated values, this is the only way
-+  of querying for the presence of sections in a dictionary.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_find_entry(const dictionary * ini, const char * entry) ;
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Parse an ini file and return an allocated dictionary object
-+  @param    ininame Name of the ini file to read.
-+  @return   Pointer to newly allocated dictionary
-+
-+  This is the parser for ini files. This function is called, providing
-+  the name of the file to be read. It returns a dictionary object that
-+  should not be accessed directly, but through accessor functions
-+  instead.
-+
-+  The returned dictionary must be freed using iniparser_freedict().
-+ */
-+/*--------------------------------------------------------------------------*/
-+dictionary * iniparser_load(const char * ininame);
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Free all memory associated to an ini dictionary
-+  @param    d Dictionary to free
-+  @return   void
-+
-+  Free all memory associated to an ini dictionary.
-+  It is mandatory to call this function before the dictionary object
-+  gets out of the current context.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_freedict(dictionary * d);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/util/dictionary.c b/util/dictionary.c
-new file mode 100644
-index 0000000..55d63ff
---- /dev/null
-+++ b/util/dictionary.c
-@@ -0,0 +1,383 @@
-+/* SPDX-License-Identifier: MIT */
-+/* originally copied from https://github.com/ndevilla/iniparser */
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+   @file    dictionary.c
-+   @author  N. Devillard
-+   @brief   Implements a dictionary for string variables.
-+
-+   This module implements a simple dictionary object, i.e. a list
-+   of string/string associations. This object is useful to store e.g.
-+   informations retrieved from a configuration file (ini files).
-+*/
-+/*--------------------------------------------------------------------------*/
-+
-+/*---------------------------------------------------------------------------
-+                                Includes
-+ ---------------------------------------------------------------------------*/
-+#include "dictionary.h"
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+
-+/** Maximum value size for integers and doubles. */
-+#define MAXVALSZ    1024
-+
-+/** Minimal allocated number of entries in a dictionary */
-+#define DICTMINSZ   128
-+
-+/** Invalid key token */
-+#define DICT_INVALID_KEY    ((char*)-1)
-+
-+/*---------------------------------------------------------------------------
-+                            Private functions
-+ ---------------------------------------------------------------------------*/
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Duplicate a string
-+  @param    s String to duplicate
-+  @return   Pointer to a newly allocated string, to be freed with free()
-+
-+  This is a replacement for strdup(). This implementation is provided
-+  for systems that do not have it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+static char * xstrdup(const char * s)
-+{
-+    char * t ;
-+    size_t len ;
-+    if (!s)
-+        return NULL ;
-+
-+    len = strlen(s) + 1 ;
-+    t = (char*) malloc(len) ;
-+    if (t) {
-+        memcpy(t, s, len) ;
-+    }
-+    return t ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Double the size of the dictionary
-+  @param    d Dictionary to grow
-+  @return   This function returns non-zero in case of failure
-+ */
-+/*--------------------------------------------------------------------------*/
-+static int dictionary_grow(dictionary * d)
-+{
-+    char        ** new_val ;
-+    char        ** new_key ;
-+    unsigned     * new_hash ;
-+
-+    new_val  = (char**) calloc(d->size * 2, sizeof *d->val);
-+    new_key  = (char**) calloc(d->size * 2, sizeof *d->key);
-+    new_hash = (unsigned*) calloc(d->size * 2, sizeof *d->hash);
-+    if (!new_val || !new_key || !new_hash) {
-+        /* An allocation failed, leave the dictionary unchanged */
-+        if (new_val)
-+            free(new_val);
-+        if (new_key)
-+            free(new_key);
-+        if (new_hash)
-+            free(new_hash);
-+        return -1 ;
-+    }
-+    /* Initialize the newly allocated space */
-+    memcpy(new_val, d->val, d->size * sizeof(char *));
-+    memcpy(new_key, d->key, d->size * sizeof(char *));
-+    memcpy(new_hash, d->hash, d->size * sizeof(unsigned));
-+    /* Delete previous data */
-+    free(d->val);
-+    free(d->key);
-+    free(d->hash);
-+    /* Actually update the dictionary */
-+    d->size *= 2 ;
-+    d->val = new_val;
-+    d->key = new_key;
-+    d->hash = new_hash;
-+    return 0 ;
-+}
-+
-+/*---------------------------------------------------------------------------
-+                            Function codes
-+ ---------------------------------------------------------------------------*/
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Compute the hash key for a string.
-+  @param    key     Character string to use for key.
-+  @return   1 unsigned int on at least 32 bits.
-+
-+  This hash function has been taken from an Article in Dr Dobbs Journal.
-+  This is normally a collision-free function, distributing keys evenly.
-+  The key is stored anyway in the struct so that collision can be avoided
-+  by comparing the key itself in last resort.
-+ */
-+/*--------------------------------------------------------------------------*/
-+unsigned dictionary_hash(const char * key)
-+{
-+    size_t      len ;
-+    unsigned    hash ;
-+    size_t      i ;
-+
-+    if (!key)
-+        return 0 ;
-+
-+    len = strlen(key);
-+    for (hash=0, i=0 ; i<len ; i++) {
-+        hash += (unsigned)key[i] ;
-+        hash += (hash<<10);
-+        hash ^= (hash>>6) ;
-+    }
-+    hash += (hash <<3);
-+    hash ^= (hash >>11);
-+    hash += (hash <<15);
-+    return hash ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Create a new dictionary object.
-+  @param    size    Optional initial size of the dictionary.
-+  @return   1 newly allocated dictionary object.
-+
-+  This function allocates a new dictionary object of given size and returns
-+  it. If you do not know in advance (roughly) the number of entries in the
-+  dictionary, give size=0.
-+ */
-+/*-------------------------------------------------------------------------*/
-+dictionary * dictionary_new(size_t size)
-+{
-+    dictionary  *   d ;
-+
-+    /* If no size was specified, allocate space for DICTMINSZ */
-+    if (size<DICTMINSZ) size=DICTMINSZ ;
-+
-+    d = (dictionary*) calloc(1, sizeof *d) ;
-+
-+    if (d) {
-+        d->size = size ;
-+        d->val  = (char**) calloc(size, sizeof *d->val);
-+        d->key  = (char**) calloc(size, sizeof *d->key);
-+        d->hash = (unsigned*) calloc(size, sizeof *d->hash);
-+    }
-+    return d ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Delete a dictionary object
-+  @param    d   dictionary object to deallocate.
-+  @return   void
-+
-+  Deallocate a dictionary object and all memory associated to it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void dictionary_del(dictionary * d)
-+{
-+    ssize_t  i ;
-+
-+    if (d==NULL) return ;
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]!=NULL)
-+            free(d->key[i]);
-+        if (d->val[i]!=NULL)
-+            free(d->val[i]);
-+    }
-+    free(d->val);
-+    free(d->key);
-+    free(d->hash);
-+    free(d);
-+    return ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get a value from a dictionary.
-+  @param    d       dictionary object to search.
-+  @param    key     Key to look for in the dictionary.
-+  @param    def     Default value to return if key not found.
-+  @return   1 pointer to internally allocated character string.
-+
-+  This function locates a key in a dictionary and returns a pointer to its
-+  value, or the passed 'def' pointer if no such key can be found in
-+  dictionary. The returned character pointer points to data internal to the
-+  dictionary object, you should not try to free it or modify it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char * dictionary_get(const dictionary * d, const char * key, const char * def)
-+{
-+    unsigned    hash ;
-+    ssize_t      i ;
-+
-+    hash = dictionary_hash(key);
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]==NULL)
-+            continue ;
-+        /* Compare hash */
-+        if (hash==d->hash[i]) {
-+            /* Compare string, to avoid hash collisions */
-+            if (!strcmp(key, d->key[i])) {
-+                return d->val[i] ;
-+            }
-+        }
-+    }
-+    return def ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Set a value in a dictionary.
-+  @param    d       dictionary object to modify.
-+  @param    key     Key to modify or add.
-+  @param    val     Value to add.
-+  @return   int     0 if Ok, anything else otherwise
-+
-+  If the given key is found in the dictionary, the associated value is
-+  replaced by the provided one. If the key cannot be found in the
-+  dictionary, it is added to it.
-+
-+  It is Ok to provide a NULL value for val, but NULL values for the dictionary
-+  or the key are considered as errors: the function will return immediately
-+  in such a case.
-+
-+  Notice that if you dictionary_set a variable to NULL, a call to
-+  dictionary_get will return a NULL value: the variable will be found, and
-+  its value (NULL) is returned. In other words, setting the variable
-+  content to NULL is equivalent to deleting the variable from the
-+  dictionary. It is not possible (in this implementation) to have a key in
-+  the dictionary without value.
-+
-+  This function returns non-zero in case of failure.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int dictionary_set(dictionary * d, const char * key, const char * val)
-+{
-+    ssize_t         i ;
-+    unsigned       hash ;
-+
-+    if (d==NULL || key==NULL) return -1 ;
-+
-+    /* Compute hash for this key */
-+    hash = dictionary_hash(key) ;
-+    /* Find if value is already in dictionary */
-+    if (d->n>0) {
-+        for (i=0 ; i<d->size ; i++) {
-+            if (d->key[i]==NULL)
-+                continue ;
-+            if (hash==d->hash[i]) { /* Same hash value */
-+                if (!strcmp(key, d->key[i])) {   /* Same key */
-+                    /* Found a value: modify and return */
-+                    if (d->val[i]!=NULL)
-+                        free(d->val[i]);
-+                    d->val[i] = (val ? xstrdup(val) : NULL);
-+                    /* Value has been modified: return */
-+                    return 0 ;
-+                }
-+            }
-+        }
-+    }
-+    /* Add a new value */
-+    /* See if dictionary needs to grow */
-+    if (d->n==d->size) {
-+        /* Reached maximum size: reallocate dictionary */
-+        if (dictionary_grow(d) != 0)
-+            return -1;
-+    }
-+
-+    /* Insert key in the first empty slot. Start at d->n and wrap at
-+       d->size. Because d->n < d->size this will necessarily
-+       terminate. */
-+    for (i=d->n ; d->key[i] ; ) {
-+        if(++i == d->size) i = 0;
-+    }
-+    /* Copy key */
-+    d->key[i]  = xstrdup(key);
-+    d->val[i]  = (val ? xstrdup(val) : NULL) ;
-+    d->hash[i] = hash;
-+    d->n ++ ;
-+    return 0 ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Delete a key in a dictionary
-+  @param    d       dictionary object to modify.
-+  @param    key     Key to remove.
-+  @return   void
-+
-+  This function deletes a key in a dictionary. Nothing is done if the
-+  key cannot be found.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void dictionary_unset(dictionary * d, const char * key)
-+{
-+    unsigned    hash ;
-+    ssize_t      i ;
-+
-+    if (key == NULL || d == NULL) {
-+        return;
-+    }
-+
-+    hash = dictionary_hash(key);
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]==NULL)
-+            continue ;
-+        /* Compare hash */
-+        if (hash==d->hash[i]) {
-+            /* Compare string, to avoid hash collisions */
-+            if (!strcmp(key, d->key[i])) {
-+                /* Found key */
-+                break ;
-+            }
-+        }
-+    }
-+    if (i>=d->size)
-+        /* Key not found */
-+        return ;
-+
-+    free(d->key[i]);
-+    d->key[i] = NULL ;
-+    if (d->val[i]!=NULL) {
-+        free(d->val[i]);
-+        d->val[i] = NULL ;
-+    }
-+    d->hash[i] = 0 ;
-+    d->n -- ;
-+    return ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Dump a dictionary to an opened file pointer.
-+  @param    d   Dictionary to dump
-+  @param    f   Opened file pointer.
-+  @return   void
-+
-+  Dumps a dictionary onto an opened file pointer. Key pairs are printed out
-+  as @c [Key]=[Value], one per line. It is Ok to provide stdout or stderr as
-+  output file pointers.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void dictionary_dump(const dictionary * d, FILE * out)
-+{
-+    ssize_t  i ;
-+
-+    if (d==NULL || out==NULL) return ;
-+    if (d->n<1) {
-+        fprintf(out, "empty dictionary\n");
-+        return ;
-+    }
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]) {
-+            fprintf(out, "%20s\t[%s]\n",
-+                    d->key[i],
-+                    d->val[i] ? d->val[i] : "UNDEF");
-+        }
-+    }
-+    return ;
-+}
-diff --git a/util/iniparser.c b/util/iniparser.c
-new file mode 100644
-index 0000000..9e2023a
---- /dev/null
-+++ b/util/iniparser.c
-@@ -0,0 +1,838 @@
-+/* SPDX-License-Identifier: MIT */
-+/* originally copied from https://github.com/ndevilla/iniparser */
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+   @file    iniparser.c
-+   @author  N. Devillard
-+   @brief   Parser for ini files.
-+*/
-+/*--------------------------------------------------------------------------*/
-+/*---------------------------- Includes ------------------------------------*/
-+#include <ctype.h>
-+#include <stdarg.h>
-+#include "iniparser.h"
-+
-+/*---------------------------- Defines -------------------------------------*/
-+#define ASCIILINESZ         (1024)
-+#define INI_INVALID_KEY     ((char*)-1)
-+
-+/*---------------------------------------------------------------------------
-+                        Private to this module
-+ ---------------------------------------------------------------------------*/
-+/**
-+ * This enum stores the status for each parsed line (internal use only).
-+ */
-+typedef enum _line_status_ {
-+    LINE_UNPROCESSED,
-+    LINE_ERROR,
-+    LINE_EMPTY,
-+    LINE_COMMENT,
-+    LINE_SECTION,
-+    LINE_VALUE
-+} line_status ;
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Convert a string to lowercase.
-+  @param    in   String to convert.
-+  @param    out Output buffer.
-+  @param    len Size of the out buffer.
-+  @return   ptr to the out buffer or NULL if an error occured.
-+
-+  This function convert a string into lowercase.
-+  At most len - 1 elements of the input string will be converted.
-+ */
-+/*--------------------------------------------------------------------------*/
-+static const char * strlwc(const char * in, char *out, unsigned len)
-+{
-+    unsigned i ;
-+
-+    if (in==NULL || out == NULL || len==0) return NULL ;
-+    i=0 ;
-+    while (in[i] != '\0' && i < len-1) {
-+        out[i] = (char)tolower((int)in[i]);
-+        i++ ;
-+    }
-+    out[i] = '\0';
-+    return out ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Duplicate a string
-+  @param    s String to duplicate
-+  @return   Pointer to a newly allocated string, to be freed with free()
-+
-+  This is a replacement for strdup(). This implementation is provided
-+  for systems that do not have it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+static char * xstrdup(const char * s)
-+{
-+    char * t ;
-+    size_t len ;
-+    if (!s)
-+        return NULL ;
-+
-+    len = strlen(s) + 1 ;
-+    t = (char*) malloc(len) ;
-+    if (t) {
-+        memcpy(t, s, len) ;
-+    }
-+    return t ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Remove blanks at the beginning and the end of a string.
-+  @param    str  String to parse and alter.
-+  @return   unsigned New size of the string.
-+ */
-+/*--------------------------------------------------------------------------*/
-+static unsigned strstrip(char * s)
-+{
-+    char *last = NULL ;
-+    char *dest = s;
-+
-+    if (s==NULL) return 0;
-+
-+    last = s + strlen(s);
-+    while (isspace((int)*s) && *s) s++;
-+    while (last > s) {
-+        if (!isspace((int)*(last-1)))
-+            break ;
-+        last -- ;
-+    }
-+    *last = (char)0;
-+
-+    memmove(dest,s,last - s + 1);
-+    return last - s;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Default error callback for iniparser: wraps `fprintf(stderr, ...)`.
-+ */
-+/*--------------------------------------------------------------------------*/
-+static int default_error_callback(const char *format, ...)
-+{
-+  int ret;
-+  va_list argptr;
-+  va_start(argptr, format);
-+  ret = vfprintf(stderr, format, argptr);
-+  va_end(argptr);
-+  return ret;
-+}
-+
-+static int (*iniparser_error_callback)(const char*, ...) = default_error_callback;
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Configure a function to receive the error messages.
-+  @param    errback  Function to call.
-+
-+  By default, the error will be printed on stderr. If a null pointer is passed
-+  as errback the error callback will be switched back to default.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_set_error_callback(int (*errback)(const char *, ...))
-+{
-+  if (errback) {
-+    iniparser_error_callback = errback;
-+  } else {
-+    iniparser_error_callback = default_error_callback;
-+  }
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get number of sections in a dictionary
-+  @param    d   Dictionary to examine
-+  @return   int Number of sections found in dictionary
-+
-+  This function returns the number of sections found in a dictionary.
-+  The test to recognize sections is done on the string stored in the
-+  dictionary: a section name is given as "section" whereas a key is
-+  stored as "section:key", thus the test looks for entries that do not
-+  contain a colon.
-+
-+  This clearly fails in the case a section name contains a colon, but
-+  this should simply be avoided.
-+
-+  This function returns -1 in case of error.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getnsec(const dictionary * d)
-+{
-+    int i ;
-+    int nsec ;
-+
-+    if (d==NULL) return -1 ;
-+    nsec=0 ;
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]==NULL)
-+            continue ;
-+        if (strchr(d->key[i], ':')==NULL) {
-+            nsec ++ ;
-+        }
-+    }
-+    return nsec ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get name for section n in a dictionary.
-+  @param    d   Dictionary to examine
-+  @param    n   Section number (from 0 to nsec-1).
-+  @return   Pointer to char string
-+
-+  This function locates the n-th section in a dictionary and returns
-+  its name as a pointer to a string statically allocated inside the
-+  dictionary. Do not free or modify the returned string!
-+
-+  This function returns NULL in case of error.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char * iniparser_getsecname(const dictionary * d, int n)
-+{
-+    int i ;
-+    int foundsec ;
-+
-+    if (d==NULL || n<0) return NULL ;
-+    foundsec=0 ;
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]==NULL)
-+            continue ;
-+        if (strchr(d->key[i], ':')==NULL) {
-+            foundsec++ ;
-+            if (foundsec>n)
-+                break ;
-+        }
-+    }
-+    if (foundsec<=n) {
-+        return NULL ;
-+    }
-+    return d->key[i] ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Dump a dictionary to an opened file pointer.
-+  @param    d   Dictionary to dump.
-+  @param    f   Opened file pointer to dump to.
-+  @return   void
-+
-+  This function prints out the contents of a dictionary, one element by
-+  line, onto the provided file pointer. It is OK to specify @c stderr
-+  or @c stdout as output files. This function is meant for debugging
-+  purposes mostly.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_dump(const dictionary * d, FILE * f)
-+{
-+    int     i ;
-+
-+    if (d==NULL || f==NULL) return ;
-+    for (i=0 ; i<d->size ; i++) {
-+        if (d->key[i]==NULL)
-+            continue ;
-+        if (d->val[i]!=NULL) {
-+            fprintf(f, "[%s]=[%s]\n", d->key[i], d->val[i]);
-+        } else {
-+            fprintf(f, "[%s]=UNDEF\n", d->key[i]);
-+        }
-+    }
-+    return ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Save a dictionary to a loadable ini file
-+  @param    d   Dictionary to dump
-+  @param    f   Opened file pointer to dump to
-+  @return   void
-+
-+  This function dumps a given dictionary into a loadable ini file.
-+  It is Ok to specify @c stderr or @c stdout as output files.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_dump_ini(const dictionary * d, FILE * f)
-+{
-+    int          i ;
-+    int          nsec ;
-+    const char * secname ;
-+
-+    if (d==NULL || f==NULL) return ;
-+
-+    nsec = iniparser_getnsec(d);
-+    if (nsec<1) {
-+        /* No section in file: dump all keys as they are */
-+        for (i=0 ; i<d->size ; i++) {
-+            if (d->key[i]==NULL)
-+                continue ;
-+            fprintf(f, "%s = %s\n", d->key[i], d->val[i]);
-+        }
-+        return ;
-+    }
-+    for (i=0 ; i<nsec ; i++) {
-+        secname = iniparser_getsecname(d, i) ;
-+        iniparser_dumpsection_ini(d, secname, f);
-+    }
-+    fprintf(f, "\n");
-+    return ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Save a dictionary section to a loadable ini file
-+  @param    d   Dictionary to dump
-+  @param    s   Section name of dictionary to dump
-+  @param    f   Opened file pointer to dump to
-+  @return   void
-+
-+  This function dumps a given section of a given dictionary into a loadable ini
-+  file.  It is Ok to specify @c stderr or @c stdout as output files.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_dumpsection_ini(const dictionary * d, const char * s, FILE * f)
-+{
-+    int     j ;
-+    char    keym[ASCIILINESZ+1];
-+    int     seclen ;
-+
-+    if (d==NULL || f==NULL) return ;
-+    if (! iniparser_find_entry(d, s)) return ;
-+
-+    seclen  = (int)strlen(s);
-+    fprintf(f, "\n[%s]\n", s);
-+    sprintf(keym, "%s:", s);
-+    for (j=0 ; j<d->size ; j++) {
-+        if (d->key[j]==NULL)
-+            continue ;
-+        if (!strncmp(d->key[j], keym, seclen+1)) {
-+            fprintf(f,
-+                    "%-30s = %s\n",
-+                    d->key[j]+seclen+1,
-+                    d->val[j] ? d->val[j] : "");
-+        }
-+    }
-+    fprintf(f, "\n");
-+    return ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the number of keys in a section of a dictionary.
-+  @param    d   Dictionary to examine
-+  @param    s   Section name of dictionary to examine
-+  @return   Number of keys in section
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getsecnkeys(const dictionary * d, const char * s)
-+{
-+    int     seclen, nkeys ;
-+    char    keym[ASCIILINESZ+1];
-+    int j ;
-+
-+    nkeys = 0;
-+
-+    if (d==NULL) return nkeys;
-+    if (! iniparser_find_entry(d, s)) return nkeys;
-+
-+    seclen  = (int)strlen(s);
-+    strlwc(s, keym, sizeof(keym));
-+    keym[seclen] = ':';
-+
-+    for (j=0 ; j<d->size ; j++) {
-+        if (d->key[j]==NULL)
-+            continue ;
-+        if (!strncmp(d->key[j], keym, seclen+1))
-+            nkeys++;
-+    }
-+
-+    return nkeys;
-+
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the number of keys in a section of a dictionary.
-+  @param    d    Dictionary to examine
-+  @param    s    Section name of dictionary to examine
-+  @param    keys Already allocated array to store the keys in
-+  @return   The pointer passed as `keys` argument or NULL in case of error
-+
-+  This function queries a dictionary and finds all keys in a given section.
-+  The keys argument should be an array of pointers which size has been
-+  determined by calling `iniparser_getsecnkeys` function prior to this one.
-+
-+  Each pointer in the returned char pointer-to-pointer is pointing to
-+  a string allocated in the dictionary; do not free or modify them.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char ** iniparser_getseckeys(const dictionary * d, const char * s, const char ** keys)
-+{
-+    int i, j, seclen ;
-+    char keym[ASCIILINESZ+1];
-+
-+    if (d==NULL || keys==NULL) return NULL;
-+    if (! iniparser_find_entry(d, s)) return NULL;
-+
-+    seclen  = (int)strlen(s);
-+    strlwc(s, keym, sizeof(keym));
-+    keym[seclen] = ':';
-+
-+    i = 0;
-+
-+    for (j=0 ; j<d->size ; j++) {
-+        if (d->key[j]==NULL)
-+            continue ;
-+        if (!strncmp(d->key[j], keym, seclen+1)) {
-+            keys[i] = d->key[j];
-+            i++;
-+        }
-+    }
-+
-+    return keys;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key
-+  @param    d       Dictionary to search
-+  @param    key     Key string to look for
-+  @param    def     Default value to return if key not found.
-+  @return   pointer to statically allocated character string
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the pointer passed as 'def' is returned.
-+  The returned char pointer is pointing to a string allocated in
-+  the dictionary, do not free or modify it.
-+ */
-+/*--------------------------------------------------------------------------*/
-+const char * iniparser_getstring(const dictionary * d, const char * key, const char * def)
-+{
-+    const char * lc_key ;
-+    const char * sval ;
-+    char tmp_str[ASCIILINESZ+1];
-+
-+    if (d==NULL || key==NULL)
-+        return def ;
-+
-+    lc_key = strlwc(key, tmp_str, sizeof(tmp_str));
-+    sval = dictionary_get(d, lc_key, def);
-+    return sval ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to an long int
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   long integer
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+
-+  Supported values for integers include the usual C notation
-+  so decimal, octal (starting with 0) and hexadecimal (starting with 0x)
-+  are supported. Examples:
-+
-+  "42"      ->  42
-+  "042"     ->  34 (octal -> decimal)
-+  "0x42"    ->  66 (hexa  -> decimal)
-+
-+  Warning: the conversion may overflow in various ways. Conversion is
-+  totally outsourced to strtol(), see the associated man page for overflow
-+  handling.
-+
-+  Credits: Thanks to A. Becker for suggesting strtol()
-+ */
-+/*--------------------------------------------------------------------------*/
-+long int iniparser_getlongint(const dictionary * d, const char * key, long int notfound)
-+{
-+    const char * str ;
-+
-+    str = iniparser_getstring(d, key, INI_INVALID_KEY);
-+    if (str==INI_INVALID_KEY) return notfound ;
-+    return strtol(str, NULL, 0);
-+}
-+
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to an int
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   integer
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+
-+  Supported values for integers include the usual C notation
-+  so decimal, octal (starting with 0) and hexadecimal (starting with 0x)
-+  are supported. Examples:
-+
-+  "42"      ->  42
-+  "042"     ->  34 (octal -> decimal)
-+  "0x42"    ->  66 (hexa  -> decimal)
-+
-+  Warning: the conversion may overflow in various ways. Conversion is
-+  totally outsourced to strtol(), see the associated man page for overflow
-+  handling.
-+
-+  Credits: Thanks to A. Becker for suggesting strtol()
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getint(const dictionary * d, const char * key, int notfound)
-+{
-+    return (int)iniparser_getlongint(d, key, notfound);
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to a double
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   double
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+ */
-+/*--------------------------------------------------------------------------*/
-+double iniparser_getdouble(const dictionary * d, const char * key, double notfound)
-+{
-+    const char * str ;
-+
-+    str = iniparser_getstring(d, key, INI_INVALID_KEY);
-+    if (str==INI_INVALID_KEY) return notfound ;
-+    return atof(str);
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Get the string associated to a key, convert to a boolean
-+  @param    d Dictionary to search
-+  @param    key Key string to look for
-+  @param    notfound Value to return in case of error
-+  @return   integer
-+
-+  This function queries a dictionary for a key. A key as read from an
-+  ini file is given as "section:key". If the key cannot be found,
-+  the notfound value is returned.
-+
-+  A true boolean is found if one of the following is matched:
-+
-+  - A string starting with 'y'
-+  - A string starting with 'Y'
-+  - A string starting with 't'
-+  - A string starting with 'T'
-+  - A string starting with '1'
-+
-+  A false boolean is found if one of the following is matched:
-+
-+  - A string starting with 'n'
-+  - A string starting with 'N'
-+  - A string starting with 'f'
-+  - A string starting with 'F'
-+  - A string starting with '0'
-+
-+  The notfound value returned if no boolean is identified, does not
-+  necessarily have to be 0 or 1.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_getboolean(const dictionary * d, const char * key, int notfound)
-+{
-+    int          ret ;
-+    const char * c ;
-+
-+    c = iniparser_getstring(d, key, INI_INVALID_KEY);
-+    if (c==INI_INVALID_KEY) return notfound ;
-+    if (c[0]=='y' || c[0]=='Y' || c[0]=='1' || c[0]=='t' || c[0]=='T') {
-+        ret = 1 ;
-+    } else if (c[0]=='n' || c[0]=='N' || c[0]=='0' || c[0]=='f' || c[0]=='F') {
-+        ret = 0 ;
-+    } else {
-+        ret = notfound ;
-+    }
-+    return ret;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Finds out if a given entry exists in a dictionary
-+  @param    ini     Dictionary to search
-+  @param    entry   Name of the entry to look for
-+  @return   integer 1 if entry exists, 0 otherwise
-+
-+  Finds out if a given entry exists in the dictionary. Since sections
-+  are stored as keys with NULL associated values, this is the only way
-+  of querying for the presence of sections in a dictionary.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_find_entry(const dictionary * ini, const char * entry)
-+{
-+    int found=0 ;
-+    if (iniparser_getstring(ini, entry, INI_INVALID_KEY)!=INI_INVALID_KEY) {
-+        found = 1 ;
-+    }
-+    return found ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Set an entry in a dictionary.
-+  @param    ini     Dictionary to modify.
-+  @param    entry   Entry to modify (entry name)
-+  @param    val     New value to associate to the entry.
-+  @return   int 0 if Ok, -1 otherwise.
-+
-+  If the given entry can be found in the dictionary, it is modified to
-+  contain the provided value. If it cannot be found, the entry is created.
-+  It is Ok to set val to NULL.
-+ */
-+/*--------------------------------------------------------------------------*/
-+int iniparser_set(dictionary * ini, const char * entry, const char * val)
-+{
-+    char tmp_str[ASCIILINESZ+1];
-+    return dictionary_set(ini, strlwc(entry, tmp_str, sizeof(tmp_str)), val) ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Delete an entry in a dictionary
-+  @param    ini     Dictionary to modify
-+  @param    entry   Entry to delete (entry name)
-+  @return   void
-+
-+  If the given entry can be found, it is deleted from the dictionary.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_unset(dictionary * ini, const char * entry)
-+{
-+    char tmp_str[ASCIILINESZ+1];
-+    dictionary_unset(ini, strlwc(entry, tmp_str, sizeof(tmp_str)));
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Load a single line from an INI file
-+  @param    input_line  Input line, may be concatenated multi-line input
-+  @param    section     Output space to store section
-+  @param    key         Output space to store key
-+  @param    value       Output space to store value
-+  @return   line_status value
-+ */
-+/*--------------------------------------------------------------------------*/
-+static line_status iniparser_line(
-+    const char * input_line,
-+    char * section,
-+    char * key,
-+    char * value)
-+{
-+    line_status sta ;
-+    char * line = NULL;
-+    size_t      len ;
-+
-+    line = xstrdup(input_line);
-+    len = strstrip(line);
-+
-+    sta = LINE_UNPROCESSED ;
-+    if (len<1) {
-+        /* Empty line */
-+        sta = LINE_EMPTY ;
-+    } else if (line[0]=='#' || line[0]==';') {
-+        /* Comment line */
-+        sta = LINE_COMMENT ;
-+    } else if (line[0]=='[' && line[len-1]==']') {
-+        /* Section name */
-+        sscanf(line, "[%[^]]", section);
-+        strstrip(section);
-+        strlwc(section, section, len);
-+        sta = LINE_SECTION ;
-+    } else if (sscanf (line, "%[^=] = \"%[^\"]\"", key, value) == 2
-+           ||  sscanf (line, "%[^=] = '%[^\']'",   key, value) == 2) {
-+        /* Usual key=value with quotes, with or without comments */
-+        strstrip(key);
-+        strlwc(key, key, len);
-+        /* Don't strip spaces from values surrounded with quotes */
-+        sta = LINE_VALUE ;
-+    } else if (sscanf (line, "%[^=] = %[^;#]", key, value) == 2) {
-+        /* Usual key=value without quotes, with or without comments */
-+        strstrip(key);
-+        strlwc(key, key, len);
-+        strstrip(value);
-+        /*
-+         * sscanf cannot handle '' or "" as empty values
-+         * this is done here
-+         */
-+        if (!strcmp(value, "\"\"") || (!strcmp(value, "''"))) {
-+            value[0]=0 ;
-+        }
-+        sta = LINE_VALUE ;
-+    } else if (sscanf(line, "%[^=] = %[;#]", key, value)==2
-+           ||  sscanf(line, "%[^=] %[=]", key, value) == 2) {
-+        /*
-+         * Special cases:
-+         * key=
-+         * key=;
-+         * key=#
-+         */
-+        strstrip(key);
-+        strlwc(key, key, len);
-+        value[0]=0 ;
-+        sta = LINE_VALUE ;
-+    } else {
-+        /* Generate syntax error */
-+        sta = LINE_ERROR ;
-+    }
-+
-+    free(line);
-+    return sta ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Parse an ini file and return an allocated dictionary object
-+  @param    ininame Name of the ini file to read.
-+  @return   Pointer to newly allocated dictionary
-+
-+  This is the parser for ini files. This function is called, providing
-+  the name of the file to be read. It returns a dictionary object that
-+  should not be accessed directly, but through accessor functions
-+  instead.
-+
-+  The returned dictionary must be freed using iniparser_freedict().
-+ */
-+/*--------------------------------------------------------------------------*/
-+dictionary * iniparser_load(const char * ininame)
-+{
-+    FILE * in ;
-+
-+    char line    [ASCIILINESZ+1] ;
-+    char section [ASCIILINESZ+1] ;
-+    char key     [ASCIILINESZ+1] ;
-+    char tmp     [(ASCIILINESZ * 2) + 2] ;
-+    char val     [ASCIILINESZ+1] ;
-+
-+    int  last=0 ;
-+    int  len ;
-+    int  lineno=0 ;
-+    int  errs=0;
-+    int  mem_err=0;
-+
-+    dictionary * dict ;
-+
-+    if ((in=fopen(ininame, "r"))==NULL) {
-+        iniparser_error_callback("iniparser: cannot open %s\n", ininame);
-+        return NULL ;
-+    }
-+
-+    dict = dictionary_new(0) ;
-+    if (!dict) {
-+        fclose(in);
-+        return NULL ;
-+    }
-+
-+    memset(line,    0, ASCIILINESZ);
-+    memset(section, 0, ASCIILINESZ);
-+    memset(key,     0, ASCIILINESZ);
-+    memset(val,     0, ASCIILINESZ);
-+    last=0 ;
-+
-+    while (fgets(line+last, ASCIILINESZ-last, in)!=NULL) {
-+        lineno++ ;
-+        len = (int)strlen(line)-1;
-+        if (len<=0)
-+            continue;
-+        /* Safety check against buffer overflows */
-+        if (line[len]!='\n' && !feof(in)) {
-+            iniparser_error_callback(
-+              "iniparser: input line too long in %s (%d)\n",
-+              ininame,
-+              lineno);
-+            dictionary_del(dict);
-+            fclose(in);
-+            return NULL ;
-+        }
-+        /* Get rid of \n and spaces at end of line */
-+        while ((len>=0) &&
-+                ((line[len]=='\n') || (isspace(line[len])))) {
-+            line[len]=0 ;
-+            len-- ;
-+        }
-+        if (len < 0) { /* Line was entirely \n and/or spaces */
-+            len = 0;
-+        }
-+        /* Detect multi-line */
-+        if (line[len]=='\\') {
-+            /* Multi-line value */
-+            last=len ;
-+            continue ;
-+        } else {
-+            last=0 ;
-+        }
-+        switch (iniparser_line(line, section, key, val)) {
-+            case LINE_EMPTY:
-+            case LINE_COMMENT:
-+            break ;
-+
-+            case LINE_SECTION:
-+            mem_err = dictionary_set(dict, section, NULL);
-+            break ;
-+
-+            case LINE_VALUE:
-+            sprintf(tmp, "%s:%s", section, key);
-+            mem_err = dictionary_set(dict, tmp, val);
-+            break ;
-+
-+            case LINE_ERROR:
-+            iniparser_error_callback(
-+              "iniparser: syntax error in %s (%d):\n-> %s\n",
-+              ininame,
-+              lineno,
-+              line);
-+            errs++ ;
-+            break;
-+
-+            default:
-+            break ;
-+        }
-+        memset(line, 0, ASCIILINESZ);
-+        last=0;
-+        if (mem_err<0) {
-+            iniparser_error_callback("iniparser: memory allocation failure\n");
-+            break ;
-+        }
-+    }
-+    if (errs) {
-+        dictionary_del(dict);
-+        dict = NULL ;
-+    }
-+    fclose(in);
-+    return dict ;
-+}
-+
-+/*-------------------------------------------------------------------------*/
-+/**
-+  @brief    Free all memory associated to an ini dictionary
-+  @param    d Dictionary to free
-+  @return   void
-+
-+  Free all memory associated to an ini dictionary.
-+  It is mandatory to call this function before the dictionary object
-+  gets out of the current context.
-+ */
-+/*--------------------------------------------------------------------------*/
-+void iniparser_freedict(dictionary * d)
-+{
-+    dictionary_del(d);
-+}
--- 
-2.33.1
-
+T24gTW9uLCAyMDIxLTEyLTA2IGF0IDE1OjI4IC0wNzAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
+IENoYW5nZXMgc2luY2UgdjFbMV06DQo+IC0gQ29sbGVjdCByZXZpZXcgdGFncw0KPiAtIEZpeCAn
+bWFrZSBjbGVhbicgcmVtb3ZpbmcgdGhlIHJlY29uZmlndXJlIHNjcmlwdCBmcm9tIHRoZSBzb3Vy
+Y2UgdHJlZQ0KPiAgIChGZW5naHVhLCBRaSkNCj4gLSBEb2N1bWVudGF0aW9uIHdvcmRzbWl0aGlu
+ZyAoRGFuKQ0KPiAtIEZpeCBsaW5lIGJyZWFrIGFmdGVyIGRlY2xhcmF0aW9ucyBpbiBwYXJzZS1j
+b25maWdzLmMgKERhbikNCj4gLSBNb3ZlIGRheGN0bCBjb25maWcgZmlsZXMgdG8gaXRzIG93biBk
+aXJlY3RvcnksIC9ldGMvZGF4Y3RsLyAoRGFuKQ0KPiAtIEltcHJvdmUgZmFpbHVyZSBtb2RlIGlu
+IHRoZSBhYnNlbmNlIG9mIGEgY29uZmlncyBkaXJlY3RvcnkNCj4gLSBSZW5hbWUge25kLGRheH1j
+dGxfe2dldHxzZXR9X2NvbmZpZ3MgdG8NCj4gICB7bmQsZGF4fWN0bF97Z2V0fHNldH1fY29uZmln
+c19kaXINCj4gLSBFeGl0IHdpdGggc3VjY2VzcyBpZiAtQyBpcyBzcGVjaWZpZWQsIGJ1dCBubyBt
+YXRjaGluZyBjb25maWcgc2VjdGlvbg0KPiAgIGlzIGZvdW5kLg0KPiAtIFJlZnVzZSB0byBwcm9j
+ZWVkIGlmIENMSSBvcHRpb25zIGFyZSBwYXNzZWQgaW4gYWxvbmcgd2l0aCAtQyAoRGFuKQ0KPiAt
+IEluIHRoZSBjb25maWcgZmlsZSwgcmVuYW1lOiBzL1thdXRvLW9ubGluZSBmb29dL1tyZWNvbmZp
+Z3VyZS1kZXZpY2UgZm9vLw0KPiAgIGFuZCBzL3V1aWQvbnZkaW1tLnV1aWQvIChEYW4pDQo+IC0g
+VGVhY2ggZGV2aWNlLmMgdG8gYWNjZXB0IC9kZXYvZGF4WC5ZIGluc3RlYWQgb2Ygb25seSBkYXhY
+LlkgYW5kIHRodXMNCj4gICByZW1vdmUgdGhlIG5lZWQgZm9yIGEgd3JhcHBlciBzY3JpcHQgdGhh
+dCBzeXN0ZW1kIGludm9rZXMgKERhbikNCj4gDQo+IFRoZXNlIHBhdGNoZXMgYWRkIHBvbGljeSAo
+Y29uZmlnIGZpbGUpIHN1cHBvcnQgdG8gZGF4Y3RsLiBUaGUNCj4gaW50cm9kdWN0b3J5IHVzZXIg
+aXMgZGF4Y3RsLXJlY29uZmlndXJlLWRldmljZS4gU3lzYWRtaW5zIG1heSB3aXNoIHRvDQo+IHVz
+ZSBkYXhjdGwgZGV2aWNlcyBhcyBzeXN0ZW0tcmFtLCBidXQgaXQgbWF5IGJlIGN1bWJlcnNvbWUg
+dG8gYXV0b21hdGUNCj4gdGhlIHJlY29uZmlndXJhdGlvbiBzdGVwIGZvciBldmVyeSBkZXZpY2Ug
+dXBvbiBib290Lg0KPiANCj4gSW50cm9kdWNlIGEgbmV3IG9wdGlvbiBmb3IgZGF4Y3RsLXJlY29u
+ZmlndXJlLWRldmljZSwgLS1jaGVjay1jb25maWcuDQo+IFRoaXMgaXMgYXQgdGhlIGhlYXJ0IG9m
+IHBvbGljeSBiYXNlZCByZWNvbmZpZ3VyYXRpb24sIGFzIGl0IGFsbG93cw0KPiBkYXhjdGwgdG8g
+bG9vayB1cCByZWNvbmZpZ3VyYXRpb24gcGFyYW1ldGVycyBmb3IgYSBnaXZlbiBkZXZpY2UgZnJv
+bSB0aGUNCj4gY29uZmlnIHN5c3RlbSBpbnN0ZWFkIG9mIHRoZSBjb21tYW5kIGxpbmUuDQo+IA0K
+PiBTb21lIHN5c3RlbWQgYW5kIHVkZXYgZ2x1ZSB0aGVuIGF1dG9tYXRlcyB0aGlzIGZvciBldmVy
+eSBuZXcgZGF4IGRldmljZQ0KPiB0aGF0IHNob3dzIHVwLCBwcm92aWRpbmcgYSB3YXkgZm9yIHRo
+ZSBhZG1pbmlzdHJhdG9yIHRvIHNpbXBseSBsaXN0IGFsbA0KPiB0aGUgJ3N5c3RlbS1yYW0nIFVV
+SURzIGluIGEgY29uZmlnIGZpbGUsIGFuZCBub3QgaGF2ZSB0byB3b3JyeSBhYm91dA0KPiBhbnl0
+aGluZyBlbHNlLg0KPiANCj4gQW4gZXhhbXBsZSBjb25maWcgZmlsZSBjYW4gYmU6DQo+IA0KPiAg
+ICMgY2F0IC9ldGMvbmRjdGwvZGF4Y3RsLmNvbmYNCg0KTWlzc2VkIHVwZGF0aW5nIHRoaXMsIGl0
+IHNob3VsZCBiZSAvZXRjL2RheGN0bC9kYXhjdGwuY29uZg0KDQo+IA0KPiAgIFtyZWNvbmZpZ3Vy
+ZS1kZXZpY2UgdW5pcXVlX2lkZW50aWZpZXJfZm9vXQ0KPiAgIG52ZGltbS51dWlkID0gNDhkOGU0
+MmMtYTJmMC00MzEyLTllNzAtYTgzN2ZhYWZlODYyDQo+ICAgbW9kZSA9IHN5c3RlbS1yYW0NCj4g
+ICBvbmxpbmUgPSB0cnVlDQo+ICAgbW92YWJsZSA9IGZhbHNlDQo+IA0KPiBBbnkgZmlsZSB1bmRl
+ciAnL2V0Yy9uZGN0bC8nIGNhbiBiZSB1c2VkIC0gYWxsIGZpbGVzIHdpdGggYSAnLmNvbmYnIHN1
+ZmZpeA0KDQpBbmQgdGhpcyBzaG91bGQgYmUgJy9ldGMvZGF4Y3RsLycNCg0KPiB3aWxsIGJlIGNv
+bnNpZGVyZWQgd2hlbiBsb29raW5nIGZvciBtYXRjaGVzLg0KPiANCj4gVGhlc2UgcGF0Y2hlcyBk
+ZXBlbmQgb24gdGhlIGluaXRpYWwgY29uZmlnIGZpbGUgc3VwcG9ydCBmcm9tIFFpIEZ1bGlbMl0u
+DQo+IA0KPiBJJ3ZlIHJlLXJvbGxlZCBRaSdzIG9yaWdpbmFsIHBhdGNoZXMgYXMgdGhlIGZpcnN0
+IGZpdmUgcGF0Y2hlcyBpbiB0aGlzDQo+IHNlcmllcyBiZWNhdXNlIG9mIGEgY2hhbmdlIEkgbWFk
+ZSBmb3IgZ3JhY2VmdWwgaGFuZGxpbmcgaW4gdGhlIGNhc2Ugb2YgYQ0KPiBtaXNzaW5nIGNvbmZp
+Z3MgZGlyZWN0b3J5LCBhbmQgYWxzbyB0byBpbmNvcnBvcmF0ZSByZXZpZXcgZmVlZGJhY2sgdGhh
+dA0KPiBhcHBsaWVkIHRvIHRoZSBkZXBlbmRhbnQgcGF0Y2hlcy4gUGF0Y2ggNiBvbndhcmRzIGlz
+IHRoZSBhY3R1YWwgdjIgb2YNCj4gdGhlIGRheGN0bCBwb2xpY3kgd29yay4NCj4gDQo+IEEgYnJh
+bmNoIGNvbnRhaW5pbmcgdGhlc2UgcGF0Y2hlcyBpcyBhdmFpbGFibGUgYXQgWzNdLg0KPiANCj4g
+WzFdOiBodHRwczovL2xvcmUua2VybmVsLm9yZy9udmRpbW0vMjAyMTA4MzEwOTA0NTkuMjMwNjcy
+Ny0xLXZpc2hhbC5sLnZlcm1hQGludGVsLmNvbS8NCj4gWzJdOiBodHRwczovL2xvcmUua2VybmVs
+Lm9yZy9udmRpbW0vMjAyMTA4MjQwOTUxMDYuMTA0ODA4LTEtcWkuZnVsaUBmdWppdHN1LmNvbS8N
+Cj4gWzNdOiBodHRwczovL2dpdGh1Yi5jb20vcG1lbS9uZGN0bC90cmVlL3Z2L2RheGN0bF9jb25m
+aWdfdjINCj4gDQo+IFFJIEZ1bGkgKDUpOg0KPiAgIG5kY3RsLCB1dGlsOiBhZGQgaW5pcGFyc2Vy
+IGhlbHBlcg0KPiAgIG5kY3RsLCB1dGlsOiBhZGQgcGFyc2UtY29uZmlncyBoZWxwZXINCj4gICBu
+ZGN0bDogbWFrZSBuZGN0bCBzdXBwb3J0IGNvbmZpZ3VyYXRpb24gZmlsZXMNCj4gICBuZGN0bCwg
+Y29uZmlnOiBhZGQgdGhlIGRlZmF1bHQgbmRjdGwgY29uZmlndXJhdGlvbiBmaWxlDQo+ICAgbmRj
+dGwsIG1vbml0b3I6IHJlZmF0b3IgbW9uaXRvciBmb3Igc3VwcG9ydGluZyBtdWx0aXBsZSBjb25m
+aWcgZmlsZXMNCj4gDQo+IFZpc2hhbCBWZXJtYSAoNyk6DQo+ICAgbmRjdGw6IFVwZGF0ZSBuZGN0
+bC5zcGVjLmluIGZvciAnbmRjdGwuY29uZicNCj4gICBkYXhjdGw6IERvY3VtZW50YXRpb24gdXBk
+YXRlcyBmb3IgcGVyc2lzdGVudCByZWNvbmZpZ3VyYXRpb24NCj4gICB1dGlsL3BhcnNlLWNvbmZp
+ZzogcmVmYWN0b3IgZmlsdGVyX2NvbmZfZmlsZXMgaW50byB1dGlsLw0KPiAgIGRheGN0bDogYWRk
+IGJhc2ljIGNvbmZpZyBwYXJzaW5nIHN1cHBvcnQNCj4gICB1dGlsL3BhcnNlLWNvbmZpZ3M6IGFk
+ZCBhIGtleS92YWx1ZSBzZWFyY2ggaGVscGVyDQo+ICAgZGF4Y3RsL2RldmljZS5jOiBhZGQgYW4g
+b3B0aW9uIGZvciBnZXR0aW5nIHBhcmFtcyBmcm9tIGEgY29uZmlnIGZpbGUNCj4gICBkYXhjdGw6
+IGFkZCBzeXN0ZW1kIHNlcnZpY2UgYW5kIHVkZXYgcnVsZSBmb3IgYXV0b21hdGljDQo+ICAgICBy
+ZWNvbmZpZ3VyYXRpb24NCj4gDQo+ICAuLi4vZGF4Y3RsL2RheGN0bC1yZWNvbmZpZ3VyZS1kZXZp
+Y2UudHh0ICAgICAgfCAgNzUgKysNCj4gIERvY3VtZW50YXRpb24vbmRjdGwvbmRjdGwtbW9uaXRv
+ci50eHQgICAgICAgICB8ICAgOCArLQ0KPiAgY29uZmlndXJlLmFjICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIHwgIDE4ICstDQo+ICBNYWtlZmlsZS5hbSAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgfCAgIDggKy0NCj4gIG5kY3RsL2xpYi9wcml2YXRlLmggICAgICAg
+ICAgICAgICAgICAgICAgICAgICB8ICAgMSArDQo+ICBkYXhjdGwvbGliL2xpYmRheGN0bC5jICAg
+ICAgICAgICAgICAgICAgICAgICAgfCAgMzkgKw0KPiAgbmRjdGwvbGliL2xpYm5kY3RsLmMgICAg
+ICAgICAgICAgICAgICAgICAgICAgIHwgIDM5ICsNCj4gIGRheGN0bC9saWJkYXhjdGwuaCAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArDQo+ICBuZGN0bC9saWJuZGN0bC5oICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDIgKw0KPiAgdXRpbC9kaWN0aW9uYXJ5LmggICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTc1ICsrKysNCj4gIHV0aWwvaW5pcGFyc2VyLmgg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8IDM2MCArKysrKysrKw0KPiAgdXRpbC9wYXJz
+ZS1jb25maWdzLmggICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDUzICsrDQo+ICBkYXhjdGwv
+ZGF4Y3RsLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDEgKw0KPiAgZGF4Y3Rs
+L2RldmljZS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTc0ICsrKy0NCj4gIG5k
+Y3RsL21vbml0b3IuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICA3MyArLQ0KPiAg
+bmRjdGwvbmRjdGwuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAxICsNCj4g
+IHV0aWwvZGljdGlvbmFyeS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8IDM4MyArKysr
+KysrKw0KPiAgdXRpbC9pbmlwYXJzZXIuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwg
+ODM4ICsrKysrKysrKysrKysrKysrKw0KPiAgdXRpbC9wYXJzZS1jb25maWdzLmMgICAgICAgICAg
+ICAgICAgICAgICAgICAgIHwgMTUwICsrKysNCj4gIERvY3VtZW50YXRpb24vZGF4Y3RsL01ha2Vm
+aWxlLmFtICAgICAgICAgICAgICB8ICAxMSArLQ0KPiAgRG9jdW1lbnRhdGlvbi9uZGN0bC9NYWtl
+ZmlsZS5hbSAgICAgICAgICAgICAgIHwgICAyICstDQo+ICBkYXhjdGwvOTAtZGF4Y3RsLWRldmlj
+ZS5ydWxlcyAgICAgICAgICAgICAgICAgfCAgIDEgKw0KPiAgZGF4Y3RsL01ha2VmaWxlLmFtICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgICA5ICsNCj4gIGRheGN0bC9kYXhkZXYtcmVjb25m
+aWd1cmVALnNlcnZpY2UgICAgICAgICAgICB8ICAgOCArDQo+ICBkYXhjdGwvbGliL01ha2VmaWxl
+LmFtICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDYgKw0KPiAgZGF4Y3RsL2xpYi9saWJkYXhj
+dGwuc3ltICAgICAgICAgICAgICAgICAgICAgIHwgICAyICsNCj4gIG5kY3RsLnNwZWMuaW4gICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgNCArDQo+ICBuZGN0bC9NYWtlZmlsZS5h
+bSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDkgKy0NCj4gIG5kY3RsL2xpYi9NYWtl
+ZmlsZS5hbSAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgNiArDQo+ICBuZGN0bC9saWIvbGli
+bmRjdGwuc3ltICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDIgKw0KPiAgbmRjdGwvbmRjdGwu
+Y29uZiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDU2ICsrDQo+ICAzMSBmaWxlcyBj
+aGFuZ2VkLCAyNDY3IGluc2VydGlvbnMoKyksIDQ5IGRlbGV0aW9ucygtKQ0KPiAgY3JlYXRlIG1v
+ZGUgMTAwNjQ0IHV0aWwvZGljdGlvbmFyeS5oDQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgdXRpbC9p
+bmlwYXJzZXIuaA0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IHV0aWwvcGFyc2UtY29uZmlncy5oDQo+
+ICBjcmVhdGUgbW9kZSAxMDA2NDQgdXRpbC9kaWN0aW9uYXJ5LmMNCj4gIGNyZWF0ZSBtb2RlIDEw
+MDY0NCB1dGlsL2luaXBhcnNlci5jDQo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgdXRpbC9wYXJzZS1j
+b25maWdzLmMNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkYXhjdGwvOTAtZGF4Y3RsLWRldmljZS5y
+dWxlcw0KPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRheGN0bC9kYXhkZXYtcmVjb25maWd1cmVALnNl
+cnZpY2UNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBuZGN0bC9uZGN0bC5jb25mDQo+IA0KPiANCj4g
+YmFzZS1jb21taXQ6IDRlNjQ2ZmE0OTBiYTRiNzgyYWZhMTg4ZGQ4ODE4Yjk0YzQxOTkyNGUNCg0K
