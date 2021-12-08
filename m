@@ -1,100 +1,112 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E84D52CA6
-	for <nvdimm@lists.linux.dev>; Wed,  8 Dec 2021 00:51:07 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10191"; a="323982333"
-X-IronPort-AV: E=Sophos;i="5.87,295,1631602800"; 
-   d="scan'208";a="323982333"
-Received: from fmsmga004.fm.intel.com ([10.253.24.48])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2021 16:51:07 -0800
-X-IronPort-AV: E=Sophos;i="5.87,295,1631602800"; 
-   d="scan'208";a="580353148"
-Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
-  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Dec 2021 16:51:07 -0800
-Date: Tue, 7 Dec 2021 16:51:06 -0800
-From: Ira Weiny <ira.weiny@intel.com>
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-	Fenghua Yu <fenghua.yu@intel.com>,
-	Rick Edgecombe <rick.p.edgecombe@intel.com>, x86@kernel.org,
-	linux-kernel@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org
-Subject: Re: [PATCH V7 03/18] x86/pks: Add additional PKEY helper macros
-Message-ID: <20211208005106.GJ3538886@iweiny-DESK2.sc.intel.com>
-References: <20210804043231.2655537-1-ira.weiny@intel.com>
- <20210804043231.2655537-4-ira.weiny@intel.com>
- <87lf1cl3cq.ffs@tglx>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F0B7868
+	for <nvdimm@lists.linux.dev>; Wed,  8 Dec 2021 05:12:15 +0000 (UTC)
+Received: by mail-pj1-f51.google.com with SMTP id gf14-20020a17090ac7ce00b001a7a2a0b5c3so3523772pjb.5
+        for <nvdimm@lists.linux.dev>; Tue, 07 Dec 2021 21:12:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=U9Sm+CJj+k97c2G0Smxb6+UAPlWADPCiIL9dHkctAHo=;
+        b=vaU8gj1feFuClW2Z6UMKFtOCODGZiaYDtUstYrXqS7au42szcbAIi2kyXk5vViHxFa
+         RwKG9yEw1e0COtPjeMGZ58HuaRTqLj0GOXE7/q7i9J+NIla5djncLqdGUR/rFuZVuCDO
+         JqBAhyV3YZdGDel246lmCZkMX2JpP3VvN+ABtz8+XINAYE8Hk2/jErC4VUEHA8dB5fhG
+         ARr6RtX8EeZBEF2miwpZBhZt/3ifm/BBjz+8tdie04Scm8FjxWR1WPUOStFU5uM3V8qo
+         /+j+IcQzNED+C6rRJ7K3eJNKJDW+HE/Yp5ZZszmPQYeXzOi1N2+fwjjHQfIh/U1eo05l
+         Yw/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=U9Sm+CJj+k97c2G0Smxb6+UAPlWADPCiIL9dHkctAHo=;
+        b=OYvZ3RKzbA1Br0PDr1+MfUFjSt36ymFOc5O02DCQd2vws/b8S0GV79zrAvV8Uir5bU
+         8LEe7k2TdiXAinpqSJsf5eb9Lm9MlHa5zqhUtl2U/qewXyei7FK/8MyA4T5NflcRiA26
+         SOE9uFjLT/YGZjRJkLgaCbNZ+L+Pb8llZalY3agDZSj2Nvc2Uzr5GFnekFbiZ0OJx/yl
+         VEzOjHXqRQPFntkIDGr/hUXYz5l+AghlXytBYRDzEdKgtbdKsUgJT7Jb4mTSX9MTiVCr
+         R9TZi7JGOwZuHceQdv6Tgm+ArY3a/+FafEauNxF+BhRqqXxMdckkRwO+nkLw6VMK5ooS
+         H8Xg==
+X-Gm-Message-State: AOAM533symHdltl3MUceKONBvCAq9qCbESwaliZz6fcgBVNqS4L9aCre
+	dgkB1d4C5vOg/yH2e5mYziY4tvNuFyQOznMFyCE2lw==
+X-Google-Smtp-Source: ABdhPJzny71lJbtdinrKM61/8j9NMWVL9fklbA7/j/YKiNIdhokDCNcxS3st0TVnv+CDtswukl5IdQLTi/dOCl1twZ4=
+X-Received: by 2002:a17:90b:1e07:: with SMTP id pg7mr4424098pjb.93.1638940335434;
+ Tue, 07 Dec 2021 21:12:15 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87lf1cl3cq.ffs@tglx>
-User-Agent: Mutt/1.11.1 (2018-12-01)
+References: <20211111204436.1560365-1-vishal.l.verma@intel.com> <20211111204436.1560365-3-vishal.l.verma@intel.com>
+In-Reply-To: <20211111204436.1560365-3-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 7 Dec 2021 21:12:04 -0800
+Message-ID: <CAPcyv4g=Zc=KizTvVVeyA4gFJi=K8Amuok-kjBM6UqkVZHwd2g@mail.gmail.com>
+Subject: Re: [ndctl PATCH v5 02/16] cxl: add a cxl utility and libcxl library
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-cxl@vger.kernel.org, Ben Widawsky <ben.widawsky@intel.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Nov 25, 2021 at 03:25:09PM +0100, Thomas Gleixner wrote:
-> On Tue, Aug 03 2021 at 21:32, ira weiny wrote:
-> > @@ -200,16 +200,14 @@ __setup("init_pkru=", setup_init_pkru);
-> >   */
-> >  u32 update_pkey_val(u32 pk_reg, int pkey, unsigned int flags)
-> >  {
-> > -	int pkey_shift = pkey * PKR_BITS_PER_PKEY;
-> > -
-> >  	/*  Mask out old bit values */
-> > -	pk_reg &= ~(((1 << PKR_BITS_PER_PKEY) - 1) << pkey_shift);
-> > +	pk_reg &= ~PKR_PKEY_MASK(pkey);
-> >  
-> >  	/*  Or in new values */
-> >  	if (flags & PKEY_DISABLE_ACCESS)
-> > -		pk_reg |= PKR_AD_BIT << pkey_shift;
-> > +		pk_reg |= PKR_AD_KEY(pkey);
-> >  	if (flags & PKEY_DISABLE_WRITE)
-> > -		pk_reg |= PKR_WD_BIT << pkey_shift;
-> > +		pk_reg |= PKR_WD_KEY(pkey);
-> 
-> I'm not seeing how this is improving that code. Quite the contrary.
+On Thu, Nov 11, 2021 at 12:45 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> CXL - or Compute eXpress Link - is a new interconnect that extends PCIe
+> to support a wide range of devices, including cache coherent memory
+> expanders. As such, these devices can be new sources of 'persistent
+> memory', and the 'ndctl' umbrella of tools and libraries needs to be able
+> to interact with them.
+>
+> Add a new utility and library for managing these CXL memory devices. This
+> is an initial bring-up for interacting with CXL devices, and only includes
+> adding the utility and library infrastructure, parsing device information
+> from sysfs for CXL devices, and providing a 'cxl-list' command to
+> display this information in JSON formatted output.
+>
+> Cc: Ben Widawsky <ben.widawsky@intel.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+[..]
+> +int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+> +{
+> +       const struct option options[] = {
+> +               OPT_STRING('d', "memdev", &param.memdev, "memory device name",
+> +                          "filter by CXL memory device name"),
+> +               OPT_BOOLEAN('D', "memdevs", &list.memdevs,
+> +                           "include CXL memory device info"),
+> +               OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
+> +               OPT_BOOLEAN('u', "human", &list.human,
+> +                               "use human friendly number formats "),
+> +               OPT_END(),
+> +       };
+> +       const char * const u[] = {
+> +               "cxl list [<options>]",
+> +               NULL
+> +       };
+> +       struct json_object *jdevs = NULL;
+> +       unsigned long list_flags;
+> +       struct cxl_memdev *memdev;
+> +       int i;
+> +
+> +       argc = parse_options(argc, argv, options, u, 0);
+> +       for (i = 0; i < argc; i++)
+> +               error("unknown parameter \"%s\"\n", argv[i]);
+> +
+> +       if (argc)
+> +               usage_with_options(u, options);
+> +
+> +       if (num_list_flags() == 0)
+> +               list.memdevs = true;
 
-Fair enough.  Even more so when using the code you suggested for pkey_update_pkval().
-
-In that case it boils down to:
-
-diff --git a/arch/x86/mm/pkeys.c b/arch/x86/mm/pkeys.c
-index eb6d6b872652..b7127329d115 100644
---- a/arch/x86/mm/pkeys.c
-+++ b/arch/x86/mm/pkeys.c
-@@ -198,7 +198,7 @@ __setup("init_pkru=", setup_init_pkru);
-  */
- u32 pkey_update_pkval(u32 pkval, int pkey, u32 accessbits)
- {
--        int shift = pkey * PKR_BITS_PER_PKEY;
-+        int shift = PKR_PKEY_SHIFT(pkey);
- 
-         if (WARN_ON_ONCE(accessbits & ~PKEY_ACCESS_MASK))
-                 accessbits &= PKEY_ACCESS_MASK;
-
-
-Better?
-
-As to the reason of why to put this patch after the other one.  Why would I
-improve the old pre-refactoring code only to throw it away when moving it to
-pkey_update_pkval()?  This reasoning is even stronger when pkey_update_pkval()
-is implemented.
-
-I agree with Dan regarding the macros though.  I think they make it easier to
-see what is going on without dealing with masks and shifts directly.  But I can
-remove this patch if you feel that strongly about it.
-
-Ira
-
-> 
-> Thanks,
-> 
->         tglx
+It strikes me that we may regret this default. In the interest of
+giving us flexibility to pick a new default later (i.e. to not grow
+any maintenance dependencies on this default), let's fail for now if
+no list options are specified. I expect "cxl list" to enumerate the
+active and most relevant end user devices by default. For ndctl its
+namespaces, but for cxl-cli I expect it should be regions by default
+to show all the CXL address ranges. Likely it should be "--regions
+--namespaces" by default since regions are the primary user relevant
+devices for volatile memory and namespaces are the end user relevant
+devices for persistent memory, but the "--regions" vs "--regions
+--namespaces" decision can be made later.
