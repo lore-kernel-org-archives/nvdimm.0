@@ -1,294 +1,118 @@
-Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+Received: from mail-io1-f51.google.com (mail-io1-f51.google.com [209.85.166.51])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 60E1A68
-	for <nvdimm@lists.linux.dev>; Thu,  9 Dec 2021 20:40:24 +0000 (UTC)
-Received: by mail-pj1-f48.google.com with SMTP id f18-20020a17090aa79200b001ad9cb23022so5803526pjq.4
-        for <nvdimm@lists.linux.dev>; Thu, 09 Dec 2021 12:40:24 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D727D68
+	for <nvdimm@lists.linux.dev>; Thu,  9 Dec 2021 21:03:32 +0000 (UTC)
+Received: by mail-io1-f51.google.com with SMTP id z18so8194821iof.5
+        for <nvdimm@lists.linux.dev>; Thu, 09 Dec 2021 13:03:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=rbnZ/E4URHihgtZHF4wqH4/5cWskuEx8+U6VvgZmQXk=;
-        b=jYdP8ut7OAkLsjT13nB0NrCaf8Vt3nhEFOVhNEKwp4ZyJXtR7C0m2JNfc6A2QBcD9H
-         Do1fziV61QPuiBRifMS3vOYRiBpstfMnJtdOn7UuFVhekqWz/tHvC0XE10yhongh0kgS
-         j5vU/Y/SgAjalYEPYThZr3FW/SmYqte2VlHwIqHzrCe/kOSmFOTaYJPPJWwN17jXM0mn
-         fw2zZnFnPt7fKP0hhIEPSRtskRotBZGMFxEyzTSa+tC5VOw8Z6cpjhQzbX1EIgAvP4Gc
-         zUpuo3eYIJaMt4Ru7stECN/HGsQ8N7+EX3+Sbonk0ckdOpuLfn59f079coCU7+z8QA9u
-         b2gw==
+        bh=OQHy1bXS7MSNc4y1X7Ea+FIUv0jLINhYPtZYDEpKbkE=;
+        b=FhQ85vNKHELwZo0nkCQibyvUxqFyQZ8r9HhGYfEqeBcJI5OgQpd0zTKTiwqZYvh60i
+         qjsAhP03ZKxoU9+cHeJdrlXQrxI+whAiA8lqzhwWYF7zlQ/xjje85v1RkkUo3ZEHOSU+
+         9aOs6BBudIhoml99lowBeByulXk0Es3Y9YbPTlP8wTMzapdGRmBVlUXcHGklztQKEk9l
+         n9VVb4s/5cRwmt+E97QAUaDArG1yQX/2JdE/Xl0qJn1eE+v9eN2zMLnWvIjnFO4Iz0Q9
+         d+5IriPiiRSFMD/LfCZIy5obLpKahKrTu5KcJICfwM/PMAhTUuC/dyJo9L1nwXhJdyPg
+         E4cA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=rbnZ/E4URHihgtZHF4wqH4/5cWskuEx8+U6VvgZmQXk=;
-        b=7Vn2d2R36hMplVWh3Mfb7VtLbg0GiKHU+sV3Lvx3vgDyLT7SnwdTrxApbekhB3BzW1
-         IH3iBFHS2yLzXmlbYAZ/tZq7aJyBwz8QVVM0yFhFcnlUs+DdMXz2kFBwFLXPz7R+bzaP
-         CKgNR2n/LRpLnEeAV6w4cVBrtp4gDMrPx4l9VI0C9A9JcpWbKjC3e1H5pR0/maW5k8Cd
-         /3SMWG3/G2JcolqVHBS8qfE2y8i39X7daVFamEF8XHRdKEs6ChMB4WXJfQUHne+wbjUd
-         CmzRlVXFWFxAaOQlZT2aodQjQaVMXBzECKstcb2P7p5YH67TfjBcGqmlUmmGPYUJoo+a
-         oZ+Q==
-X-Gm-Message-State: AOAM530ZJxc8r727vbmsIsLfeu2mKNZm8IFIyg3zW/CtQ5eq4iMogn0D
-	/ap1e6UrAQoZ4SNA7pHJh+wMrHcvUmYoFuu5v/jHgw==
-X-Google-Smtp-Source: ABdhPJzeh5u2t+dJ13X9HlGpTj/a4Jy30c/oz5xsNaIdMp1ws38HqPRA/0oTQGBvT+5ii8RQTCnxLpnUm1Lo84Lk2gg=
-X-Received: by 2002:a17:902:a50f:b0:143:7dec:567 with SMTP id
- s15-20020a170902a50f00b001437dec0567mr70599649plq.18.1639082423753; Thu, 09
- Dec 2021 12:40:23 -0800 (PST)
+        bh=OQHy1bXS7MSNc4y1X7Ea+FIUv0jLINhYPtZYDEpKbkE=;
+        b=fUwNeDNH2y0CBO3efM5m7el/PVm4w6KhJCyz1OD+MwQj9A/9Uob5aQ1j44WUm2UJ3l
+         a8vq5kErxvrUBX3WqY2D9vGFpOBCSDtHWtgduWp1jLUXK7L6m9+XR0Y5dYPAqp/swslz
+         EXmdcGGoW1b0qCIGnNrgTrHoSirAesxNJYbIJYkNmTxe7Wj0VkDPJWpnPmvCt9KMOj8U
+         FVWrgIE2qLlr8+B3UfleoI4HpZvgWDLuPU0F3TtJEgin3ZjliCOateX9/2yJFR5AT7bi
+         dhO/yg/gdBDCxRDqIeUFhWte5AXGz4WsYevfVfIUiTIF7YfQZpDrb2bhKh/fNim6FiBq
+         JVtQ==
+X-Gm-Message-State: AOAM532Dcp1UC1ayHPtUezrQq5D49BrMXKFrsZbqsVbFppXaDda+ChZI
+	493SsVtoEhK32cax7sPmy02UlCVrWwf9N+WQp0w=
+X-Google-Smtp-Source: ABdhPJzdR8/xxlTzc1bhOu3h5WQNw3hb9R+B7FFn/3yf7TVl7aIyML2KG3xS+LK6+egSaCHAjnHNjsBgCItR+Bz7wsI=
+X-Received: by 2002:a6b:7711:: with SMTP id n17mr16789543iom.21.1639083811769;
+ Thu, 09 Dec 2021 13:03:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <CAPcyv4g=Zc=KizTvVVeyA4gFJi=K8Amuok-kjBM6UqkVZHwd2g@mail.gmail.com>
- <20211209202337.3503757-1-vishal.l.verma@intel.com>
-In-Reply-To: <20211209202337.3503757-1-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 9 Dec 2021 12:40:12 -0800
-Message-ID: <CAPcyv4hMzLsfCoKc7fD5NLNOfaRTddb42BVdhyN50PM3dSDM9w@mail.gmail.com>
-Subject: Re: [ndctl PATCH v6] cxl: add a cxl utility and libcxl library
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-cxl@vger.kernel.org, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Ben Widawsky <ben.widawsky@intel.com>
+References: <20211209063828.18944-1-hch@lst.de> <20211209063828.18944-3-hch@lst.de>
+In-Reply-To: <20211209063828.18944-3-hch@lst.de>
+From: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date: Thu, 9 Dec 2021 22:03:20 +0100
+Message-ID: <CAM9Jb+j2Gu8MCyV1w-E=C-MPFW6zQLTi1M9kM+36efrbFZRPtQ@mail.gmail.com>
+Subject: Re: [PATCH 2/5] dax: simplify dax_synchronous and set_dax_synchronous
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, 
+	Vivek Goyal <vgoyal@redhat.com>, Stefan Hajnoczi <stefanha@redhat.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Matthew Wilcox <willy@infradead.org>, dm-devel@redhat.com, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org
 Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Dec 9, 2021 at 12:23 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+> Remove the pointless wrappers.
 >
-> CXL - or Compute eXpress Link - is a new interconnect that extends PCIe
-> to support a wide range of devices, including cache coherent memory
-> expanders. As such, these devices can be new sources of 'persistent
-> memory', and the 'ndctl' umbrella of tools and libraries needs to be able
-> to interact with them.
->
-> Add a new utility and library for managing these CXL memory devices. This
-> is an initial bring-up for interacting with CXL devices, and only includes
-> adding the utility and library infrastructure, parsing device information
-> from sysfs for CXL devices, and providing a 'cxl-list' command to
-> display this information in JSON formatted output.
->
-> Cc: Ben Widawsky <ben.widawsky@intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 > ---
+>  drivers/dax/super.c |  8 ++++----
+>  include/linux/dax.h | 12 ++----------
+>  2 files changed, 6 insertions(+), 14 deletions(-)
 >
-> Changes in v6:
-> - Remove the cxl-list default of listing memdevs as we may want to list
->   regions by default, once that support is available. For now just error
->   out if memdevs are not explicitly asked for. (Dan)
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index e7152a6c4cc40..e18155f43a635 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -208,17 +208,17 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
+>  }
+>  EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
 >
->  Documentation/cxl/cxl-list.txt       |  64 +++++
->  Documentation/cxl/cxl.txt            |  34 +++
->  Documentation/cxl/human-option.txt   |   8 +
->  Documentation/cxl/verbose-option.txt |   5 +
->  configure.ac                         |   3 +
->  Makefile.am                          |   8 +-
->  Makefile.am.in                       |   4 +
->  cxl/lib/private.h                    |  29 +++
->  cxl/lib/libcxl.c                     | 345 +++++++++++++++++++++++++++
->  cxl/builtin.h                        |   8 +
->  cxl/libcxl.h                         |  55 +++++
->  util/filter.h                        |   2 +
->  util/json.h                          |   3 +
->  util/main.h                          |   3 +
->  cxl/cxl.c                            |  96 ++++++++
->  cxl/list.c                           | 121 ++++++++++
->  util/filter.c                        |  20 ++
->  util/json.c                          |  26 ++
->  .clang-format                        |   1 +
->  .gitignore                           |   4 +-
->  Documentation/cxl/Makefile.am        |  58 +++++
->  cxl/Makefile.am                      |  21 ++
->  cxl/lib/Makefile.am                  |  32 +++
->  cxl/lib/libcxl.pc.in                 |  11 +
->  cxl/lib/libcxl.sym                   |  25 ++
->  25 files changed, 982 insertions(+), 4 deletions(-)
->  create mode 100644 Documentation/cxl/cxl-list.txt
->  create mode 100644 Documentation/cxl/cxl.txt
->  create mode 100644 Documentation/cxl/human-option.txt
->  create mode 100644 Documentation/cxl/verbose-option.txt
->  create mode 100644 cxl/lib/private.h
->  create mode 100644 cxl/lib/libcxl.c
->  create mode 100644 cxl/builtin.h
->  create mode 100644 cxl/libcxl.h
->  create mode 100644 cxl/cxl.c
->  create mode 100644 cxl/list.c
->  create mode 100644 Documentation/cxl/Makefile.am
->  create mode 100644 cxl/Makefile.am
->  create mode 100644 cxl/lib/Makefile.am
->  create mode 100644 cxl/lib/libcxl.pc.in
->  create mode 100644 cxl/lib/libcxl.sym
+> -bool __dax_synchronous(struct dax_device *dax_dev)
+> +bool dax_synchronous(struct dax_device *dax_dev)
+>  {
+>         return test_bit(DAXDEV_SYNC, &dax_dev->flags);
+>  }
+> -EXPORT_SYMBOL_GPL(__dax_synchronous);
+> +EXPORT_SYMBOL_GPL(dax_synchronous);
 >
-> diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
-> new file mode 100644
-> index 0000000..e761cfa
-> --- /dev/null
-> +++ b/Documentation/cxl/cxl-list.txt
-> @@ -0,0 +1,64 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +
-> +cxl-list(1)
-> +===========
-> +
-> +NAME
-> +----
-> +cxl-list - List CXL capable memory devices, and their attributes in json.
-> +
-> +SYNOPSIS
-> +--------
-> +[verse]
-> +'cxl list' [<options>]
-> +
-> +Walk the CXL capable device hierarchy in the system and list all device
-> +instances along with some of their major attributes.
-> +
-> +Options can be specified to limit the output to specific memdevs.
-> +By default, 'cxl list' with no options is equivalent to:
-> +[verse]
-> +cxl list --memdevs
+> -void __set_dax_synchronous(struct dax_device *dax_dev)
+> +void set_dax_synchronous(struct dax_device *dax_dev)
+>  {
+>         set_bit(DAXDEV_SYNC, &dax_dev->flags);
+>  }
+> -EXPORT_SYMBOL_GPL(__set_dax_synchronous);
+> +EXPORT_SYMBOL_GPL(set_dax_synchronous);
+>
+>  bool dax_alive(struct dax_device *dax_dev)
+>  {
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index 87ae4c9b1d65b..3bd1fdb5d5f4b 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -48,16 +48,8 @@ void put_dax(struct dax_device *dax_dev);
+>  void kill_dax(struct dax_device *dax_dev);
+>  void dax_write_cache(struct dax_device *dax_dev, bool wc);
+>  bool dax_write_cache_enabled(struct dax_device *dax_dev);
+> -bool __dax_synchronous(struct dax_device *dax_dev);
+> -static inline bool dax_synchronous(struct dax_device *dax_dev)
+> -{
+> -       return  __dax_synchronous(dax_dev);
+> -}
+> -void __set_dax_synchronous(struct dax_device *dax_dev);
+> -static inline void set_dax_synchronous(struct dax_device *dax_dev)
+> -{
+> -       __set_dax_synchronous(dax_dev);
+> -}
+> +bool dax_synchronous(struct dax_device *dax_dev);
+> +void set_dax_synchronous(struct dax_device *dax_dev);
+>  /*
+>   * Check if given mapping is supported by the file / underlying device.
+>   */
 
-With the default change these last 4 lines can be trimmed.
+Looks good to me.
 
-> +
-> +EXAMPLE
-> +-------
-> +----
-> +# cxl list --memdevs
-> +{
-> +  "memdev":"mem0",
-> +  "pmem_size":268435456,
-> +  "ram_size":0,
-> +}
-> +----
-> +
-> +OPTIONS
-> +-------
-> +-m::
-> +--memdev=::
-> +       Specify a cxl memory device name to filter the listing. For example:
-> +----
-> +# cxl list --memdev=mem0
-> +{
-> +  "memdev":"mem0",
-> +  "pmem_size":268435456,
-> +  "ram_size":0,
-> +}
-> +----
-> +
-> +-M::
-> +--memdevs::
-> +       Include all CXL memory devices in the listing
-
-The -m is a filter so I think this can be: s/all//
-
-> +
-> +-i::
-> +--idle::
-> +       Include idle (not enabled / zero-sized) devices in the listing
-> +
-> +include::human-option.txt[]
-> +
-> +include::verbose-option.txt[]
-> +
-> +include::../copyright.txt[]
-> +
-> +SEE ALSO
-> +--------
-> +linkcxl:ndctl-list[1]
-[..]
-> diff --git a/cxl/list.c b/cxl/list.c
-> new file mode 100644
-> index 0000000..69201d9
-> --- /dev/null
-> +++ b/cxl/list.c
-> @@ -0,0 +1,121 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/* Copyright (C) 2020-2021 Intel Corporation. All rights reserved. */
-> +#include <stdio.h>
-> +#include <errno.h>
-> +#include <stdlib.h>
-> +#include <unistd.h>
-> +#include <limits.h>
-> +#include <util/json.h>
-> +#include <util/filter.h>
-> +#include <json-c/json.h>
-> +#include <cxl/libcxl.h>
-> +#include <util/parse-options.h>
-> +#include <ccan/array_size/array_size.h>
-> +
-> +static struct {
-> +       bool memdevs;
-> +       bool idle;
-> +       bool human;
-> +} list;
-> +
-> +static unsigned long listopts_to_flags(void)
-> +{
-> +       unsigned long flags = 0;
-> +
-> +       if (list.idle)
-> +               flags |= UTIL_JSON_IDLE;
-> +       if (list.human)
-> +               flags |= UTIL_JSON_HUMAN;
-> +       return flags;
-> +}
-> +
-> +static struct {
-> +       const char *memdev;
-> +} param;
-> +
-> +static int did_fail;
-> +
-> +#define fail(fmt, ...) \
-> +do { \
-> +       did_fail = 1; \
-> +       fprintf(stderr, "cxl-%s:%s:%d: " fmt, \
-> +                       VERSION, __func__, __LINE__, ##__VA_ARGS__); \
-> +} while (0)
-> +
-> +static int num_list_flags(void)
-> +{
-> +       return list.memdevs;
-> +}
-> +
-> +int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
-> +{
-> +       const struct option options[] = {
-> +               OPT_STRING('m', "memdev", &param.memdev, "memory device name",
-> +                          "filter by CXL memory device name"),
-> +               OPT_BOOLEAN('M', "memdevs", &list.memdevs,
-> +                           "include CXL memory device info"),
-> +               OPT_BOOLEAN('i', "idle", &list.idle, "include idle devices"),
-> +               OPT_BOOLEAN('u', "human", &list.human,
-> +                               "use human friendly number formats "),
-> +               OPT_END(),
-> +       };
-> +       const char * const u[] = {
-> +               "cxl list [<options>]",
-> +               NULL
-> +       };
-> +       struct json_object *jdevs = NULL;
-> +       unsigned long list_flags;
-> +       struct cxl_memdev *memdev;
-> +       int i;
-> +
-> +       argc = parse_options(argc, argv, options, u, 0);
-> +       for (i = 0; i < argc; i++)
-> +               error("unknown parameter \"%s\"\n", argv[i]);
-> +
-> +       if (argc)
-> +               usage_with_options(u, options);
-> +
-> +       if (num_list_flags() == 0) {
-> +               /*
-> +                * TODO: We likely want to list regions by default if nothing
-> +                * was explicitly asked for. But until we have region support,
-> +                * print this error asking for devices explicitly.
-> +                * Once region support is added, this TODO can be removed.
-> +                */
-> +               fprintf(stderr,
-
-Should this be error() instead like the "unknown parameter" print above?
-
-> +                       "please specify entities to list, e.g. using -m/-M\n");
-
-Add a usage_with_options() call here to abort?
+Reviewed-by: Pankaj Gupta <pankaj.gupta@ionos.com>
