@@ -1,21 +1,21 @@
 Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7AD9173
-	for <nvdimm@lists.linux.dev>; Thu,  9 Dec 2021 06:38:50 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5281D2C9E
+	for <nvdimm@lists.linux.dev>; Thu,  9 Dec 2021 06:38:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
 	References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:
 	Content-Type:Content-ID:Content-Description;
-	bh=e/I3Z/fVcm8ka4/7bniQ5z4YGZD4AAd7c/qW0XirAZ0=; b=i2hlpPdNZAF/hm4qW1s8FKFDEF
-	6t7Mpr8ZkJc3YEVm6S/h5xB7Wst5GfUBeGFc+s8+1Uqfls+HOzKeRqeMd1SumX+4QYxwl5N0xpHrB
-	nRSX4gsuF2aEn++FK4s7wqTgBswNC5OcT97Ip3IetmDgJgFwGOMUx8akFcn93DPeZ5z/PBikxKIZu
-	7Ai7Y6Qf51aB7twOPUE4CWL+s85DVLBRc+gjMbPpmza3WWUlzft52RhVFQYWRG9aXS1BgivWqvYeT
-	W8vJ1lEmo6iVbu2v034XT44vZ7eGoqwicAfgdn0c2ORzD1pawsY0Sd+2w9nTJxnwMQgXmB9srFy0L
-	/SA4MbRw==;
+	bh=ouNiv2rrKa9k8QRwbohahE8DrswboT5nHLE2typSANU=; b=N7Rsz6p6yt49RTrhwjWPSlhceD
+	CALFi9S5eAp1bh236cOyKU8rTo3i9jM0Ve/65KnR7XyWCSozmquN1bNVDtfmGmbwJP2yH6h0GCbS7
+	yQDwr9YDSUqRlAuXlee/lzt5Rki0HjojpUSkLQVkrFwVgj/B7pr6Ul1Ju7cdbWRe25k/i9bCL71kc
+	CrSPLQwg91Sok6ItP+daavYVhqBKZ+cqG3qs2Xi5SfzJgfcuPbNIzXp0hJKw4bz1ndQM7ykVSg47z
+	1Fh133uaXd+HQEyu6Xe83YWZwtNGAdulTN089HddpxlBD1XQzIk2ner0wPishkUQppK8mKpuTxdUg
+	TWY3Sgag==;
 Received: from [2001:4bb8:180:a1c8:2d0e:135:af53:41f8] (helo=localhost)
 	by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mvD4Y-0096hS-Sr; Thu, 09 Dec 2021 06:38:31 +0000
+	id 1mvD4d-0096hv-8z; Thu, 09 Dec 2021 06:38:36 +0000
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>,
 	Vishal Verma <vishal.l.verma@intel.com>,
@@ -35,9 +35,9 @@ Cc: Alasdair Kergon <agk@redhat.com>,
 	linux-s390@vger.kernel.org,
 	linux-fsdevel@vger.kernel.org,
 	virtualization@lists.linux-foundation.org
-Subject: [PATCH 2/5] dax: simplify dax_synchronous and set_dax_synchronous
-Date: Thu,  9 Dec 2021 07:38:25 +0100
-Message-Id: <20211209063828.18944-3-hch@lst.de>
+Subject: [PATCH 5/5] dax: always use _copy_mc_to_iter in dax_copy_to_iter
+Date: Thu,  9 Dec 2021 07:38:28 +0100
+Message-Id: <20211209063828.18944-6-hch@lst.de>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20211209063828.18944-1-hch@lst.de>
 References: <20211209063828.18944-1-hch@lst.de>
@@ -50,63 +50,76 @@ MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
 
-Remove the pointless wrappers.
+While using the MC-safe copy routines is rather pointless on a virtual device
+like virtiofs, it also isn't harmful at all.  So just use _copy_mc_to_iter
+unconditionally to simplify the code.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/dax/super.c |  8 ++++----
- include/linux/dax.h | 12 ++----------
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ drivers/dax/super.c | 10 ----------
+ fs/fuse/virtio_fs.c |  1 -
+ include/linux/dax.h |  1 -
+ 3 files changed, 12 deletions(-)
 
 diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index e7152a6c4cc40..e18155f43a635 100644
+index ff676a07480c8..fe783234ca669 100644
 --- a/drivers/dax/super.c
 +++ b/drivers/dax/super.c
-@@ -208,17 +208,17 @@ bool dax_write_cache_enabled(struct dax_device *dax_dev)
- }
- EXPORT_SYMBOL_GPL(dax_write_cache_enabled);
+@@ -107,8 +107,6 @@ enum dax_device_flags {
+ 	DAXDEV_SYNC,
+ 	/* do not use uncached operations to write data */
+ 	DAXDEV_CACHED,
+-	/* do not use mcsafe operations to read data */
+-	DAXDEV_NOMCSAFE,
+ };
  
--bool __dax_synchronous(struct dax_device *dax_dev)
-+bool dax_synchronous(struct dax_device *dax_dev)
- {
- 	return test_bit(DAXDEV_SYNC, &dax_dev->flags);
+ /**
+@@ -171,8 +169,6 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 	 * via access_ok() in vfs_red, so use the 'no check' version to bypass
+ 	 * the HARDENED_USERCOPY overhead.
+ 	 */
+-	if (test_bit(DAXDEV_NOMCSAFE, &dax_dev->flags))
+-		return _copy_to_iter(addr, bytes, i);
+ 	return _copy_mc_to_iter(addr, bytes, i);
  }
--EXPORT_SYMBOL_GPL(__dax_synchronous);
-+EXPORT_SYMBOL_GPL(dax_synchronous);
  
--void __set_dax_synchronous(struct dax_device *dax_dev)
-+void set_dax_synchronous(struct dax_device *dax_dev)
- {
- 	set_bit(DAXDEV_SYNC, &dax_dev->flags);
+@@ -242,12 +238,6 @@ void set_dax_cached(struct dax_device *dax_dev)
  }
--EXPORT_SYMBOL_GPL(__set_dax_synchronous);
-+EXPORT_SYMBOL_GPL(set_dax_synchronous);
+ EXPORT_SYMBOL_GPL(set_dax_cached);
  
+-void set_dax_nomcsafe(struct dax_device *dax_dev)
+-{
+-	set_bit(DAXDEV_NOMCSAFE, &dax_dev->flags);
+-}
+-EXPORT_SYMBOL_GPL(set_dax_nomcsafe);
+-
  bool dax_alive(struct dax_device *dax_dev)
  {
+ 	lockdep_assert_held(&dax_srcu);
+diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+index 754319ce2a29b..d9c20b148ac19 100644
+--- a/fs/fuse/virtio_fs.c
++++ b/fs/fuse/virtio_fs.c
+@@ -838,7 +838,6 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+ 	if (IS_ERR(fs->dax_dev))
+ 		return PTR_ERR(fs->dax_dev);
+ 	set_dax_cached(fs->dax_dev);
+-	set_dax_nomcsafe(fs->dax_dev);
+ 	return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax,
+ 					fs->dax_dev);
+ }
 diff --git a/include/linux/dax.h b/include/linux/dax.h
-index 87ae4c9b1d65b..3bd1fdb5d5f4b 100644
+index d22cbf03d37d2..d267331bc37e7 100644
 --- a/include/linux/dax.h
 +++ b/include/linux/dax.h
-@@ -48,16 +48,8 @@ void put_dax(struct dax_device *dax_dev);
- void kill_dax(struct dax_device *dax_dev);
- void dax_write_cache(struct dax_device *dax_dev, bool wc);
- bool dax_write_cache_enabled(struct dax_device *dax_dev);
--bool __dax_synchronous(struct dax_device *dax_dev);
--static inline bool dax_synchronous(struct dax_device *dax_dev)
--{
--	return  __dax_synchronous(dax_dev);
--}
--void __set_dax_synchronous(struct dax_device *dax_dev);
--static inline void set_dax_synchronous(struct dax_device *dax_dev)
--{
--	__set_dax_synchronous(dax_dev);
--}
-+bool dax_synchronous(struct dax_device *dax_dev);
-+void set_dax_synchronous(struct dax_device *dax_dev);
- /*
-  * Check if given mapping is supported by the file / underlying device.
-  */
+@@ -90,7 +90,6 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+ #endif
+ 
+ void set_dax_cached(struct dax_device *dax_dev);
+-void set_dax_nomcsafe(struct dax_device *dax_dev);
+ 
+ struct writeback_control;
+ #if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
 -- 
 2.30.2
 
