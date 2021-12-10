@@ -1,30 +1,30 @@
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BB7CB2CBF
-	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 22:34:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F4706D13
+	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 22:34:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1639175691; x=1670711691;
+  t=1639175693; x=1670711693;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=R/5JO7omEmiTzOFLLnMYHv14gNCj/4dZe5axV61oSrw=;
-  b=bni1fKZvtbMARCI3v8CRCXu0tqiJ2EbbuTBEB9xEAMVKUrBj8ZdmIsVk
-   5uyK9tC3T/1mfp05QFEQS3LHRgtLXIPpC/TdqDB6hXwdVcMPf351zcZZ7
-   W+gouRZzgezR0ysJy3RVQZSnU5HIqIDxknMSeBaqmFNGBr51M0gnQiTmi
-   TbgXbLznkHZhDjadHpPTaaYp2PzphKbXgcvsVWuMI6q8SzG60xGBgGssf
-   7kZ+z32Q4VAgmWqlKchXtP7NUQb7B9QSM0US1bkJzHaa33BflhxQ40MxD
-   HMOo9Xcgn8UUfoZTX4lu+r1+2dQRXWMG7Xk/7Yj54v7+U4aw16rgEFKMQ
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10194"; a="301843341"
+  bh=jEfWQ/J3u0hPjKWY2OIjVkQ1WPOK8Isbg6xwo5/vLD0=;
+  b=EwTdsK1NtVB1WhwBQfJwMnJplNClFDkgz7rfxvgENfNysz1TDbRA62Ka
+   V/ankU2Myx1RFpslGa4UQrkwPLYXMG8E8KBcxGbQqg3FRI03Nw6z+a+n6
+   3/XeaWRt79B9eAx4LYAmJC6AD6BCMwnrWvUL7o4k2l8nzoVw3EviDrn7e
+   3z71mZ1GZeVVE2X02JRHDhEVSbQ4IQMEQd0NITT/pCyNNgO3r8nQ77aC6
+   almhW9htmP4CQe8lESXB6MIHlXODbyL1gkiC+/I5W535ho0SO9c5mFGU1
+   vujaiaUWgPrbSaJ+IniGuhFxYo8Uk6JD1xgCA3dZPuwetnmKpvEF5kbOY
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10194"; a="301843350"
 X-IronPort-AV: E=Sophos;i="5.88,196,1635231600"; 
-   d="scan'208";a="301843341"
+   d="scan'208";a="301843350"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:44 -0800
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:45 -0800
 X-IronPort-AV: E=Sophos;i="5.88,196,1635231600"; 
-   d="scan'208";a="504113649"
+   d="scan'208";a="504113655"
 Received: from fpchan-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.0.94])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:43 -0800
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:44 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -32,9 +32,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	fenghua.hu@intel.com,
 	QI Fuli <qi.fuli@fujitsu.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH v3 01/11] ndctl, util: add parse-configs helper
-Date: Fri, 10 Dec 2021 15:34:30 -0700
-Message-Id: <20211210223440.3946603-2-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 02/11] ndctl: make ndctl support configuration files
+Date: Fri, 10 Dec 2021 15:34:31 -0700
+Message-Id: <20211210223440.3946603-3-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211210223440.3946603-1-vishal.l.verma@intel.com>
 References: <20211210223440.3946603-1-vishal.l.verma@intel.com>
@@ -44,229 +44,161 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5770; i=vishal.l.verma@intel.com; h=from:subject; bh=FqHrI1ooeoKhvPXr7JyK0pwn8FrdD3frmKZtYGQD7QE=; b=owGbwMvMwCXGf25diOft7jLG02pJDImbr/6bWyvc4rJwn8VdiX8xUXWLL4unlTd7dIeHHr/gG1jX ea+qo5SFQYyLQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABNZzcTIMP+FT7bqA+vfoU8/bqg/sX a7RLfn63nc0pcdY2Q1kk7o/2FkOG0i+Ybr9+eQp5UHxD8f9AsREt+wIj75y5aTaYu9lyiyMgMA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5000; i=vishal.l.verma@intel.com; h=from:subject; bh=WpXwitG2R3C+mt4MMW+vxycw1yhO2F+09/vq7jZhkSk=; b=owGbwMvMwCXGf25diOft7jLG02pJDImbr/47YCcT2m5h+SOQYe5fY/u8FtXVt/PVl/iukfm8vYpl VWB4RykLgxgXg6yYIsvfPR8Zj8ltz+cJTHCEmcPKBDKEgYtTACZy8gcjw8OMqicaijPPV3Gem1aV+3 qx2KSUiaeviPi81Cl1rysyOMnwv9A+RyZt4uZnItpMF6ZGi8mr3K3xvf9+5c29B1Z2b2H34wUA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
 From: QI Fuli <qi.fuli@fujitsu.com>
 
-Add parse-config util to help ndctl commands parse ndctl global
-configuration files. This provides a parse_configs_prefix() helper which
-uses the iniparser APIs to read all applicable config files, and either
-return a 'value' for a requested 'key', or perform a callback if
-requested. The operation is defined by a 'struct config' which
-encapsulates the key to search for, the location to store the value, and
-any callbacks to be executed.
+Add a 'config_path' to ndctl_ctx for supporting ndctl global configuration
+files. Any file with a .conf suffix under {sysconfdir}/ndctl.conf.d/ will
+be regarded as a global configuration file which can have INI-style config
+sections. Add an ndctl_set_config_path() API for setting the default
+configuration files' path for ndctl. Add an ndctl_get_config_path() API for
+getting ndctl configuration files' path from ndctl_ctx.
 
 Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- configure.ac         |   4 ++
- Makefile.am          |   2 +
- util/parse-configs.h |  38 ++++++++++++++++
- util/parse-configs.c | 105 +++++++++++++++++++++++++++++++++++++++++++
- ndctl/Makefile.am    |   3 +-
- 5 files changed, 151 insertions(+), 1 deletion(-)
- create mode 100644 util/parse-configs.h
- create mode 100644 util/parse-configs.c
+ configure.ac           |  5 +++--
+ ndctl/lib/private.h    |  1 +
+ ndctl/lib/libndctl.c   | 20 ++++++++++++++++++++
+ ndctl/libndctl.h       |  2 ++
+ ndctl/Makefile.am      |  4 ++--
+ ndctl/lib/Makefile.am  |  6 ++++++
+ ndctl/lib/libndctl.sym |  2 ++
+ 7 files changed, 36 insertions(+), 4 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index dc39dbe..cbd5a6f 100644
+index cbd5a6f..a264af7 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -199,6 +199,10 @@ ndctl_keysreadme=keys.readme
- AC_SUBST([ndctl_keysdir])
- AC_SUBST([ndctl_keysreadme])
+@@ -171,9 +171,10 @@ fi
+ AC_SUBST([systemd_unitdir])
+ AM_CONDITIONAL([ENABLE_SYSTEMD_UNITS], [test "x$with_systemd" = "xyes"])
  
-+AC_CHECK_HEADERS([iniparser.h],,[
-+		  AC_MSG_ERROR([iniparser.h not found, install iniparser-devel, libiniparser-dev, or so])
-+		 ])
-+
- my_CFLAGS="\
- -Wall \
- -Wchar-subscripts \
-diff --git a/Makefile.am b/Makefile.am
-index 60a1998..c547459 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -70,6 +70,8 @@ noinst_LIBRARIES += libutil.a
- libutil_a_SOURCES = \
- 	util/parse-options.c \
- 	util/parse-options.h \
-+	util/parse-configs.c \
-+	util/parse-configs.h \
- 	util/usage.c \
- 	util/size.c \
- 	util/main.c \
-diff --git a/util/parse-configs.h b/util/parse-configs.h
-new file mode 100644
-index 0000000..32783b5
---- /dev/null
-+++ b/util/parse-configs.h
-@@ -0,0 +1,38 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2021, FUJITSU LIMITED. ALL rights reserved.
-+
-+#include <dirent.h>
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <string.h>
-+#include <util/util.h>
-+
-+enum parse_conf_type {
-+	CONFIG_STRING,
-+	CONFIG_END,
-+	MONITOR_CALLBACK,
-+};
-+
-+int filter_conf_files(const struct dirent *dir);
-+
-+struct config;
-+typedef int parse_conf_cb(const struct config *, const char *config_file);
-+
-+struct config {
-+	enum parse_conf_type type;
-+	const char *key;
-+	void *value;
-+	void *defval;
-+	parse_conf_cb *callback;
-+};
-+
-+#define check_vtype(v, type) ( BUILD_BUG_ON_ZERO(!__builtin_types_compatible_p(typeof(v), type)) + v )
-+
-+#define CONF_END() { .type = CONFIG_END }
-+#define CONF_STR(k,v,d) \
-+	{ .type = CONFIG_STRING, .key = (k), .value = check_vtype(v, const char **), .defval = (d) }
-+#define CONF_MONITOR(k,f) \
-+	{ .type = MONITOR_CALLBACK, .key = (k), .callback = (f)}
-+
-+int parse_configs_prefix(const char *config_path, const char *prefix,
-+			 const struct config *configs);
-diff --git a/util/parse-configs.c b/util/parse-configs.c
-new file mode 100644
-index 0000000..61352d8
---- /dev/null
-+++ b/util/parse-configs.c
-@@ -0,0 +1,105 @@
-+// SPDX-License-Identifier: GPL-2.0
-+// Copyright (C) 2021, FUJITSU LIMITED. ALL rights reserved.
-+
-+#include <dirent.h>
-+#include <errno.h>
-+#include <fcntl.h>
-+#include <iniparser/iniparser.h>
-+#include <sys/stat.h>
-+#include <util/parse-configs.h>
-+#include <util/strbuf.h>
-+
-+int filter_conf_files(const struct dirent *dir)
+-ndctl_monitorconfdir=${sysconfdir}/ndctl
++ndctl_confdir=${sysconfdir}/ndctl.conf.d
++ndctl_conf=ndctl.conf
+ ndctl_monitorconf=monitor.conf
+-AC_SUBST([ndctl_monitorconfdir])
++AC_SUBST([ndctl_confdir])
+ AC_SUBST([ndctl_monitorconf])
+ 
+ daxctl_modprobe_datadir=${datadir}/daxctl
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 8f4510e..d442e6c 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -129,6 +129,7 @@ struct ndctl_ctx {
+ 	int regions_init;
+ 	void *userdata;
+ 	struct list_head busses;
++	const char *config_path;
+ 	int busses_init;
+ 	struct udev *udev;
+ 	struct udev_queue *udev_queue;
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 536e142..1f742ff 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -265,6 +265,22 @@ NDCTL_EXPORT void ndctl_set_userdata(struct ndctl_ctx *ctx, void *userdata)
+ 	ctx->userdata = userdata;
+ }
+ 
++NDCTL_EXPORT int ndctl_set_config_path(struct ndctl_ctx *ctx, char *config_path)
 +{
-+	if (!dir)
-+		return 0;
-+
-+	if (dir->d_type == DT_REG) {
-+		const char *ext = strrchr(dir->d_name, '.');
-+
-+		if ((!ext) || (ext == dir->d_name))
-+			return 0;
-+		if (strcmp(ext, ".conf") == 0)
-+			return 1;
-+	}
++	if ((!ctx) || (!config_path))
++		return -EINVAL;
++	ctx->config_path = config_path;
 +
 +	return 0;
 +}
 +
-+static void set_str_val(const char **value, const char *val)
++NDCTL_EXPORT const char *ndctl_get_config_path(struct ndctl_ctx *ctx)
 +{
-+	struct strbuf buf = STRBUF_INIT;
-+	size_t len = *value ? strlen(*value) : 0;
-+
-+	if (!val)
-+		return;
-+
-+	if (len) {
-+		strbuf_add(&buf, *value, len);
-+		strbuf_addstr(&buf, " ");
-+	}
-+	strbuf_addstr(&buf, val);
-+	*value = strbuf_detach(&buf, NULL);
++	if (ctx == NULL)
++		return NULL;
++	return ctx->config_path;
 +}
 +
-+static int parse_config_file(const char *config_file,
-+			const struct config *configs)
-+{
-+	dictionary *dic;
+ /**
+  * ndctl_new - instantiate a new library context
+  * @ctx: context to establish
+@@ -327,6 +343,10 @@ NDCTL_EXPORT int ndctl_new(struct ndctl_ctx **ctx)
+ 	if (!c->udev_queue)
+ 		err(c, "failed to retrieve udev queue\n");
+ 
++	rc = ndctl_set_config_path(c, NDCTL_CONF_DIR);
++	if (rc)
++		dbg(c, "Unable to set config path: %s\n", strerror(-rc));
 +
-+	if ((configs->type == MONITOR_CALLBACK) &&
-+			(strcmp(config_file, configs->key) == 0))
-+		return configs->callback(configs, configs->key);
-+
-+	dic = iniparser_load(config_file);
-+	if (!dic)
-+		return -errno;
-+
-+	for (; configs->type != CONFIG_END; configs++) {
-+		switch (configs->type) {
-+		case CONFIG_STRING:
-+			set_str_val((const char **)configs->value,
-+					iniparser_getstring(dic,
-+					configs->key, configs->defval));
-+			break;
-+		case MONITOR_CALLBACK:
-+		case CONFIG_END:
-+			break;
-+		}
-+	}
-+
-+	iniparser_freedict(dic);
-+	return 0;
-+}
-+
-+int parse_configs_prefix(const char *config_path, const char *prefix,
-+			 const struct config *configs)
-+{
-+	const char *config_file = NULL;
-+	struct dirent **namelist;
-+	int rc, count;
-+
-+	if (configs->type == MONITOR_CALLBACK)
-+		return parse_config_file(config_path, configs);
-+
-+	count = scandir(config_path, &namelist, filter_conf_files, alphasort);
-+	if (count == -1)
-+		return -errno;
-+
-+	while (count--) {
-+		char *conf_abspath;
-+
-+		config_file = namelist[count]->d_name;
-+		rc = asprintf(&conf_abspath, "%s/%s", config_path, config_file);
-+		if (rc < 0)
-+			return -ENOMEM;
-+
-+		rc = parse_config_file(conf_abspath, configs);
-+
-+		free(conf_abspath);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
+ 	c->kmod_ctx = kmod_ctx;
+ 	c->daxctl_ctx = daxctl_ctx;
+ 
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 87d07b7..3cc7f20 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -92,6 +92,8 @@ int ndctl_get_log_priority(struct ndctl_ctx *ctx);
+ void ndctl_set_log_priority(struct ndctl_ctx *ctx, int priority);
+ void ndctl_set_userdata(struct ndctl_ctx *ctx, void *userdata);
+ void *ndctl_get_userdata(struct ndctl_ctx *ctx);
++int ndctl_set_config_path(struct ndctl_ctx *ctx, char *config_path);
++const char *ndctl_get_config_path(struct ndctl_ctx *ctx);
+ 
+ enum ndctl_persistence_domain {
+ 	PERSISTENCE_NONE = 0,
 diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
-index a63b1e0..afdd03c 100644
+index afdd03c..00d2612 100644
 --- a/ndctl/Makefile.am
 +++ b/ndctl/Makefile.am
-@@ -56,7 +56,8 @@ ndctl_LDADD =\
- 	../libutil.a \
- 	$(UUID_LIBS) \
- 	$(KMOD_LIBS) \
--	$(JSON_LIBS)
-+	$(JSON_LIBS) \
-+	-liniparser
+@@ -7,7 +7,7 @@ BUILT_SOURCES = config.h
+ config.h: $(srcdir)/Makefile.am
+ 	$(AM_V_GEN) echo "/* Autogenerated by ndctl/Makefile.am */" >$@ && \
+ 	echo '#define NDCTL_CONF_FILE \
+-		"$(ndctl_monitorconfdir)/$(ndctl_monitorconf)"' >>$@
++		"$(ndctl_confdir)/$(ndctl_monitorconf)"' >>$@
+ 	$(AM_V_GEN) echo '#define NDCTL_KEYS_DIR  "$(ndctl_keysdir)"' >>$@
  
- if ENABLE_KEYUTILS
- ndctl_LDADD += -lkeyutils
+ ndctl_SOURCES = ndctl.c \
+@@ -74,7 +74,7 @@ ndctl_SOURCES += ../test/libndctl.c \
+ 		 test.c
+ endif
+ 
+-monitor_configdir = $(ndctl_monitorconfdir)
++monitor_configdir = $(ndctl_confdir)
+ monitor_config_DATA = $(ndctl_monitorconf)
+ 
+ if ENABLE_SYSTEMD_UNITS
+diff --git a/ndctl/lib/Makefile.am b/ndctl/lib/Makefile.am
+index e15bb22..0a52c01 100644
+--- a/ndctl/lib/Makefile.am
++++ b/ndctl/lib/Makefile.am
+@@ -3,6 +3,12 @@ include $(top_srcdir)/Makefile.am.in
+ %.pc: %.pc.in Makefile
+ 	$(SED_PROCESS)
+ 
++DISTCLEANFILES = config.h
++BUILT_SOURCES = config.h
++config.h: $(srcdir)/Makefile.am
++	$(AM_V_GEN) echo "/* Autogenerated by ndctl/Makefile.am */" >$@ && \
++		echo '#define NDCTL_CONF_DIR  "$(ndctl_confdir)"' >>$@
++
+ pkginclude_HEADERS = ../libndctl.h ../ndctl.h
+ lib_LTLIBRARIES = libndctl.la
+ 
+diff --git a/ndctl/lib/libndctl.sym b/ndctl/lib/libndctl.sym
+index 58afb74..66d7f21 100644
+--- a/ndctl/lib/libndctl.sym
++++ b/ndctl/lib/libndctl.sym
+@@ -454,4 +454,6 @@ LIBNDCTL_25 {
+ 
+ LIBNDCTL_26 {
+ 	ndctl_bus_nfit_translate_spa;
++	ndctl_set_config_path;
++	ndctl_get_config_path;
+ } LIBNDCTL_25;
 -- 
 2.33.1
 
