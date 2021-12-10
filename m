@@ -1,30 +1,30 @@
 Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB0822CB5
-	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 22:34:54 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9CC412EA2
+	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 22:34:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1639175694; x=1670711694;
+  t=1639175695; x=1670711695;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=y+8XReiicifM/uB1sM5khsM42aItFHtjInKCWoe5u7o=;
-  b=MpFoOQo4APQPebh86hGmyF1Ecb/JFwyosyPj1lzaEkEcArcEpoCGjhqP
-   5xJivEx40hZXmqtg0GaIOtvHAXoOoCYrz0SjITMswKiQnZVawDgrW7l3q
-   O/u1h5LIjQo+S55WUtPiiqE3S9Ric7A3O43VzBROL2XUPu+XEB2BHJ1ok
-   7B9iwDNf7Zx52isS/spq4EdOlJQAjlIpg5nKkKi86Rm00xhqAegfqAIRJ
-   tcvI+YLS1JTXjLMo79XgW+MQ1e/zAxTyB2dGfdCzR7k18ih7TiPfZVWJY
-   BGq3QXgJ51QsbeLG/m21wVLNKIrHiff9fCAVqbpO+2t7DuzKWmoIqFxWt
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10194"; a="301843368"
+  bh=RhFFPAf/1HW+Zz/Fyp2UUmTPSdk/cxIZ9yY4jpHE9vQ=;
+  b=C3ouuL3og+uO0kB4iprsYxsQTQuoBaHeSEKFL5xeV8LOhogETmnP6t2T
+   V2JViP1epMl+W2OEubwmZyL7eAhudF3Ksf6UySG63Rho8c3XSNvG6qSH7
+   /hD42ejH+foEGXjJCKl/2y6pwGDO26YuCAjHTBmzClCevT4jcKRrXliBj
+   kPu1HMe1cdYMAHg8d0ByHfjVXisE6IYhISI38uBm2xGddNxxHAZutxT7f
+   lvL1XBPnv/9vonq867/H0Vq5a5dztNaEJzsdFZgs71dmiv8CNEJIquHD0
+   TEc4vKKBnzYyPs3sDsuK14PGIPy5sirWJLW3uWfGgFzF1dM3HGGOh/33y
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10194"; a="301843376"
 X-IronPort-AV: E=Sophos;i="5.88,196,1635231600"; 
-   d="scan'208";a="301843368"
+   d="scan'208";a="301843376"
 Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:47 -0800
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:48 -0800
 X-IronPort-AV: E=Sophos;i="5.88,196,1635231600"; 
-   d="scan'208";a="504113676"
+   d="scan'208";a="504113687"
 Received: from fpchan-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.0.94])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:46 -0800
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:47 -0800
 From: Vishal Verma <vishal.l.verma@intel.com>
 To: <nvdimm@lists.linux.dev>
 Cc: Dan Williams <dan.j.williams@intel.com>,
@@ -32,9 +32,9 @@ Cc: Dan Williams <dan.j.williams@intel.com>,
 	fenghua.hu@intel.com,
 	Vishal Verma <vishal.l.verma@intel.com>,
 	QI Fuli <qi.fuli@fujitsu.com>
-Subject: [ndctl PATCH v3 07/11] daxctl: add basic config parsing support
-Date: Fri, 10 Dec 2021 15:34:36 -0700
-Message-Id: <20211210223440.3946603-8-vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 09/11] daxctl/device.c: add an option for getting params from a config file
+Date: Fri, 10 Dec 2021 15:34:38 -0700
+Message-Id: <20211210223440.3946603-10-vishal.l.verma@intel.com>
 X-Mailer: git-send-email 2.33.1
 In-Reply-To: <20211210223440.3946603-1-vishal.l.verma@intel.com>
 References: <20211210223440.3946603-1-vishal.l.verma@intel.com>
@@ -44,190 +44,278 @@ List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5927; h=from:subject; bh=y+8XReiicifM/uB1sM5khsM42aItFHtjInKCWoe5u7o=; b=owGbwMvMwCXGf25diOft7jLG02pJDImbr/4vaLyc8Fvk/Kpj0WG3ttk+v+5VPZVj3nyvbee0HE+9 mvT7fUcpC4MYF4OsmCLL3z0fGY/Jbc/nCUxwhJnDygQyhIGLUwAm4uDMyDBnWdIO8dy1AfzGsfFKGY /1Avc9j5LXi7mmuvvezgf/Fi5g+GcZ4/Oaf26y6/mK73t5Z8b+PH3lw1bfiJa/orO7d6/acpsVAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=7965; h=from:subject; bh=RhFFPAf/1HW+Zz/Fyp2UUmTPSdk/cxIZ9yY4jpHE9vQ=; b=owGbwMvMwCXGf25diOft7jLG02pJDImbr/6fl35sWQX3scLH3gLRFjsFRHOeqh+y5TQP0BWUiff7 1/6no5SFQYyLQVZMkeXvno+Mx+S25/MEJjjCzGFlAhnCwMUpABPR5mdk+D5p+ipeo63aVyIaTvsXCv ldPLxwxuS7+yuX/WiJSFgs/ZiR4fbV0ynK6aZ+qyqmzZb9q7G0sHvLtq+Jk8y/b993f5+kOgMA
 X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
 Content-Transfer-Encoding: 8bit
 
-Add support similar to ndctl and libndctl for parsing config files. This
-allows storing a config file path/list in the daxctl_ctx, and adds APIs
-for setting and retrieving it.
+Add a new option to daxctl-reconfigure-device that allows it to
+comprehend the new global config system in ndctl/daxctl. With this, the
+reconfigure-device command can query the config to match a specific
+device UUID, and operate using the parameters supplied in that INI
+section.
+
+This is in preparation to make daxctl device reconfiguration (usually
+as system-ram) policy based, so that reconfiguration can happen
+automatically on boot.
 
 Cc: QI Fuli <qi.fuli@fujitsu.com>
-Reviewed-by: QI Fuli <qi.fuli@jp.fujitsu.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- .../daxctl/daxctl-reconfigure-device.txt      |  8 ++++++++
- configure.ac                                  |  3 +++
- daxctl/lib/libdaxctl.c                        | 20 +++++++++++++++++++
- daxctl/libdaxctl.h                            |  2 ++
- Documentation/daxctl/Makefile.am              | 11 +++++++++-
- daxctl/Makefile.am                            |  3 ++-
- daxctl/lib/Makefile.am                        |  6 ++++++
- daxctl/lib/libdaxctl.sym                      |  2 ++
- 8 files changed, 53 insertions(+), 2 deletions(-)
+ daxctl/device.c    | 174 ++++++++++++++++++++++++++++++++++++++++++++-
+ daxctl/Makefile.am |   1 +
+ 2 files changed, 173 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/daxctl/daxctl-reconfigure-device.txt b/Documentation/daxctl/daxctl-reconfigure-device.txt
-index aa87d45..09556cc 100644
---- a/Documentation/daxctl/daxctl-reconfigure-device.txt
-+++ b/Documentation/daxctl/daxctl-reconfigure-device.txt
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
+diff --git a/daxctl/device.c b/daxctl/device.c
+index a427b7d..c2ff0cc 100644
+--- a/daxctl/device.c
++++ b/daxctl/device.c
+@@ -14,8 +14,10 @@
+ #include <util/filter.h>
+ #include <json-c/json.h>
+ #include <json-c/json_util.h>
++#include <ndctl/libndctl.h>
+ #include <daxctl/libdaxctl.h>
+ #include <util/parse-options.h>
++#include <util/parse-configs.h>
+ #include <ccan/array_size/array_size.h>
  
-+include::attrs.adoc[]
+ static struct {
+@@ -25,6 +27,7 @@ static struct {
+ 	const char *size;
+ 	const char *align;
+ 	const char *input;
++	bool check_config;
+ 	bool no_online;
+ 	bool no_movable;
+ 	bool force;
+@@ -65,6 +68,9 @@ enum device_action {
+ 	ACTION_DESTROY,
+ };
+ 
++#define CONF_SECTION		"reconfigure-device"
++#define CONF_NVDIMM_UUID_STR	"nvdimm.uuid"
 +
- daxctl-reconfigure-device(1)
- ============================
+ #define BASE_OPTIONS() \
+ OPT_STRING('r', "region", &param.region, "region-id", "filter by region"), \
+ OPT_BOOLEAN('u', "human", &param.human, "use human friendly number formats"), \
+@@ -75,7 +81,9 @@ OPT_STRING('m', "mode", &param.mode, "mode", "mode to switch the device to"), \
+ OPT_BOOLEAN('N', "no-online", &param.no_online, \
+ 	"don't auto-online memory sections"), \
+ OPT_BOOLEAN('f', "force", &param.force, \
+-		"attempt to offline memory sections before reconfiguration")
++		"attempt to offline memory sections before reconfiguration"), \
++OPT_BOOLEAN('C', "check-config", &param.check_config, \
++		"use config files to determine parameters for the operation")
  
-@@ -250,6 +252,12 @@ ndctl create-namespace --mode=devdax | \
- 	jq -r "\"[reconfigure-device $(uuidgen)]\", \"nvdimm.uuid = \(.uuid)\", \"mode = system-ram\"" >> $config_path
- ----
- 
-+The default location for daxctl config files is under {daxctl_confdir}/,
-+and any file with a '.conf' suffix at this location is considered. It is
-+acceptable to have multiple files containing ini-style config sections,
-+but the {section, subsection} tuple must be unique across all config files
-+under {daxctl_confdir}/.
-+
- include::../copyright.txt[]
- 
- SEE ALSO
-diff --git a/configure.ac b/configure.ac
-index 3f15a7b..39ad0d4 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -178,6 +178,9 @@ AC_SUBST([ndctl_confdir])
- AC_SUBST([ndctl_conf])
- AC_SUBST([ndctl_monitorconf])
- 
-+daxctl_confdir=${sysconfdir}/daxctl.conf.d
-+AC_SUBST([daxctl_confdir])
-+
- daxctl_modprobe_datadir=${datadir}/daxctl
- daxctl_modprobe_data=daxctl.conf
- AC_SUBST([daxctl_modprobe_datadir])
-diff --git a/daxctl/lib/libdaxctl.c b/daxctl/lib/libdaxctl.c
-index 860bd9c..f173bbb 100644
---- a/daxctl/lib/libdaxctl.c
-+++ b/daxctl/lib/libdaxctl.c
-@@ -37,6 +37,7 @@ struct daxctl_ctx {
- 	struct log_ctx ctx;
- 	int refcount;
- 	void *userdata;
-+	const char *config_path;
- 	int regions_init;
- 	struct list_head regions;
- 	struct kmod_ctx *kmod_ctx;
-@@ -68,6 +69,22 @@ DAXCTL_EXPORT void daxctl_set_userdata(struct daxctl_ctx *ctx, void *userdata)
- 	ctx->userdata = userdata;
+ #define CREATE_OPTIONS() \
+ OPT_STRING('s', "size", &param.size, "size", "size to switch the device to"), \
+@@ -218,6 +226,137 @@ err:
+ 	return rc;
  }
  
-+DAXCTL_EXPORT int daxctl_set_config_path(struct daxctl_ctx *ctx,
-+					 char *config_path)
++static int conf_string_to_bool(const char *str)
 +{
-+	if ((!ctx) || (!config_path))
-+		return -EINVAL;
-+	ctx->config_path = config_path;
++	if (!str)
++		return INT_MAX;
++	if (strncmp(str, "t", 1) == 0 ||
++			strncmp(str, "T", 1) == 0 ||
++			strncmp(str, "y", 1) == 0 ||
++			strncmp(str, "Y", 1) == 0 ||
++			strncmp(str, "1", 1) == 0)
++		return true;
++	if (strncmp(str, "f", 1) == 0 ||
++			strncmp(str, "F", 1) == 0 ||
++			strncmp(str, "n", 1) == 0 ||
++			strncmp(str, "N", 1) == 0 ||
++			strncmp(str, "0", 1) == 0)
++		return false;
++	return INT_MAX;
++}
++
++#define conf_assign_inverted_bool(p, conf_var) \
++do { \
++	if (conf_string_to_bool(conf_var) != INT_MAX) \
++		param.p = !conf_string_to_bool(conf_var); \
++} while(0)
++
++static int parse_config_reconfig_set_params(struct daxctl_ctx *ctx, const char *device,
++					    const char *uuid)
++{
++	const char *conf_online = NULL, *conf_movable = NULL;
++	const struct config configs[] = {
++		CONF_SEARCH(CONF_SECTION, CONF_NVDIMM_UUID_STR, uuid,
++			    "mode", &param.mode, NULL),
++		CONF_SEARCH(CONF_SECTION, CONF_NVDIMM_UUID_STR, uuid,
++			    "online", &conf_online, NULL),
++		CONF_SEARCH(CONF_SECTION, CONF_NVDIMM_UUID_STR, uuid,
++			    "movable", &conf_movable, NULL),
++		CONF_END(),
++	};
++	const char *prefix = "./", *daxctl_configs;
++	int rc;
++
++	daxctl_configs = daxctl_get_config_path(ctx);
++	if (daxctl_configs == NULL)
++		return 0;
++
++	rc = parse_configs_prefix(daxctl_configs, prefix, configs);
++	if (rc < 0)
++		return rc;
++
++	conf_assign_inverted_bool(no_online, conf_online);
++	conf_assign_inverted_bool(no_movable, conf_movable);
++
 +	return 0;
 +}
 +
-+DAXCTL_EXPORT const char *daxctl_get_config_path(struct daxctl_ctx *ctx)
++static bool daxctl_ndns_has_device(struct ndctl_namespace *ndns,
++				    const char *device)
 +{
-+	if (ctx == NULL)
-+		return NULL;
-+	return ctx->config_path;
++	struct daxctl_region *dax_region;
++	struct ndctl_dax *dax;
++
++	dax = ndctl_namespace_get_dax(ndns);
++	if (!dax)
++		return false;
++
++	dax_region = ndctl_dax_get_daxctl_region(dax);
++	if (dax_region) {
++		struct daxctl_dev *dev;
++
++		dev = daxctl_dev_get_first(dax_region);
++		if (dev) {
++			if (strcmp(daxctl_dev_get_devname(dev), device) == 0)
++				return true;
++		}
++	}
++	return false;
 +}
 +
- /**
-  * daxctl_new - instantiate a new library context
-  * @ctx: context to establish
-@@ -99,6 +116,9 @@ DAXCTL_EXPORT int daxctl_new(struct daxctl_ctx **ctx)
- 	*ctx = c;
- 	list_head_init(&c->regions);
- 	c->kmod_ctx = kmod_ctx;
-+	rc = daxctl_set_config_path(c, DAXCTL_CONF_DIR);
-+	if (rc)
-+		dbg(c, "Unable to set config path: %s\n", strerror(-rc));
- 
- 	return 0;
- out:
-diff --git a/daxctl/libdaxctl.h b/daxctl/libdaxctl.h
-index 683ae9c..6b6c71f 100644
---- a/daxctl/libdaxctl.h
-+++ b/daxctl/libdaxctl.h
-@@ -28,6 +28,8 @@ int daxctl_get_log_priority(struct daxctl_ctx *ctx);
- void daxctl_set_log_priority(struct daxctl_ctx *ctx, int priority);
- void daxctl_set_userdata(struct daxctl_ctx *ctx, void *userdata);
- void *daxctl_get_userdata(struct daxctl_ctx *ctx);
-+int daxctl_set_config_path(struct daxctl_ctx *ctx, char *config_path);
-+const char *daxctl_get_config_path(struct daxctl_ctx *ctx);
- 
- struct daxctl_region;
- struct daxctl_region *daxctl_new_region(struct daxctl_ctx *ctx, int id,
-diff --git a/Documentation/daxctl/Makefile.am b/Documentation/daxctl/Makefile.am
-index 5991731..9c43e61 100644
---- a/Documentation/daxctl/Makefile.am
-+++ b/Documentation/daxctl/Makefile.am
-@@ -33,11 +33,20 @@ EXTRA_DIST = $(man1_MANS)
- 
- CLEANFILES = $(man1_MANS)
- 
-+.ONESHELL:
-+attrs.adoc: $(srcdir)/Makefile.am
-+	$(AM_V_GEN) cat <<- EOF >$@
-+		:daxctl_confdir: $(daxctl_confdir)
-+		:daxctl_conf: $(daxctl_conf)
-+		:ndctl_keysdir: $(ndctl_keysdir)
-+		EOF
++static int parse_config_reconfig(struct daxctl_ctx *ctx, const char *device)
++{
++	struct ndctl_namespace *ndns;
++	struct ndctl_ctx *ndctl_ctx;
++	struct ndctl_region *region;
++	struct ndctl_bus *bus;
++	struct ndctl_dax *dax;
++	int rc, found = 0;
++	char uuid_buf[40];
++	uuid_t uuid;
 +
- XML_DEPS = \
- 	../../version.m4 \
- 	../copyright.txt \
- 	Makefile \
--	$(CONFFILE)
-+	$(CONFFILE) \
-+	attrs.adoc
++	if (strcmp(device, "all") == 0)
++		return 0;
++
++	rc = ndctl_new(&ndctl_ctx);
++	if (rc < 0)
++		return rc;
++
++        ndctl_bus_foreach(ndctl_ctx, bus) {
++		ndctl_region_foreach(bus, region) {
++			ndctl_namespace_foreach(region, ndns) {
++				if (daxctl_ndns_has_device(ndns, device)) {
++					dax = ndctl_namespace_get_dax(ndns);
++					if (!dax)
++						continue;
++					ndctl_dax_get_uuid(dax, uuid);
++					found = 1;
++				}
++			}
++		}
++	}
++
++	if (!found) {
++		fprintf(stderr, "no UUID match for %s found in config files\n",
++			device);
++		return 0;
++	}
++
++	uuid_unparse(uuid, uuid_buf);
++	return parse_config_reconfig_set_params(ctx, device, uuid_buf);
++}
++
++static int parse_device_config(struct daxctl_ctx *ctx, const char *device,
++			       enum device_action action)
++{
++	switch (action) {
++	case ACTION_RECONFIG:
++		return parse_config_reconfig(ctx, device);
++	default:
++		return 0;
++	}
++}
++
+ static const char *parse_device_options(int argc, const char **argv,
+ 		enum device_action action, const struct option *options,
+ 		const char *usage, struct daxctl_ctx *ctx)
+@@ -228,8 +367,11 @@ static const char *parse_device_options(int argc, const char **argv,
+ 	};
+ 	unsigned long long units = 1;
+ 	int i, rc = 0;
++	char *device = NULL;
  
- RM ?= rm -f
+ 	argc = parse_options(argc, argv, options, u, 0);
++	if (argc > 0)
++		device = basename(argv[0]);
  
+ 	/* Handle action-agnostic non-option arguments */
+ 	if (argc == 0 &&
+@@ -279,6 +421,34 @@ static const char *parse_device_options(int argc, const char **argv,
+ 	if (param.human)
+ 		flags |= UTIL_JSON_HUMAN;
+ 
++	/* Scan config file(s) for options. This sets param.foo accordingly */
++	if (device && param.check_config) {
++		if (param.mode || param.no_online || param.no_movable) {
++			fprintf(stderr,
++				"%s: -C cannot be used with --mode, --(no-)movable, or --(no-)online\n",
++				device);
++				usage_with_options(u, options);
++		}
++		rc = parse_device_config(ctx, device, action);
++		if (rc) {
++			fprintf(stderr, "error parsing config file: %s\n",
++				strerror(-rc));
++			return NULL;
++		}
++		if (!param.mode && !param.no_online && !param.no_movable) {
++			fprintf(stderr, "%s: missing or malformed config section\n",
++				device);
++			/*
++			 * Exit with success since the most common case is there is
++			 * no config defined for this device, and we don't want to
++			 * treat that as an error. There isn't an easy way currently
++			 * to distinguish between a malformed config entry from a
++			 * completely missing config section.
++			 */
++			exit(0);
++		}
++	}
++
+ 	/* Handle action-specific options */
+ 	switch (action) {
+ 	case ACTION_RECONFIG:
+@@ -336,7 +506,7 @@ static const char *parse_device_options(int argc, const char **argv,
+ 		return NULL;
+ 	}
+ 
+-	return argv[0];
++	return device;
+ }
+ 
+ static int dev_online_memory(struct daxctl_dev *dev)
 diff --git a/daxctl/Makefile.am b/daxctl/Makefile.am
-index 9b1313a..7ee65c4 100644
+index 7ee65c4..5cebb6c 100644
 --- a/daxctl/Makefile.am
 +++ b/daxctl/Makefile.am
-@@ -25,4 +25,5 @@ daxctl_LDADD =\
+@@ -22,6 +22,7 @@ daxctl_SOURCES =\
+ 
+ daxctl_LDADD =\
+ 	lib/libdaxctl.la \
++	../ndctl/lib/libndctl.la \
  	../libutil.a \
  	$(UUID_LIBS) \
  	$(KMOD_LIBS) \
--	$(JSON_LIBS)
-+	$(JSON_LIBS) \
-+	-liniparser
-diff --git a/daxctl/lib/Makefile.am b/daxctl/lib/Makefile.am
-index 25efd83..3c47a4b 100644
---- a/daxctl/lib/Makefile.am
-+++ b/daxctl/lib/Makefile.am
-@@ -3,6 +3,12 @@ include $(top_srcdir)/Makefile.am.in
- %.pc: %.pc.in Makefile
- 	$(SED_PROCESS)
- 
-+DISTCLEANFILES = config.h
-+BUILT_SOURCES = config.h
-+config.h: $(srcdir)/Makefile.am
-+	$(AM_V_GEN) echo "/* Autogenerated by daxctl/Makefile.am */" >$@ && \
-+		echo '#define DAXCTL_CONF_DIR  "$(daxctl_confdir)"' >>$@
-+
- pkginclude_HEADERS = ../libdaxctl.h
- lib_LTLIBRARIES = libdaxctl.la
- 
-diff --git a/daxctl/lib/libdaxctl.sym b/daxctl/lib/libdaxctl.sym
-index a13e93d..fe68fd0 100644
---- a/daxctl/lib/libdaxctl.sym
-+++ b/daxctl/lib/libdaxctl.sym
-@@ -96,4 +96,6 @@ LIBDAXCTL_9 {
- global:
- 	daxctl_dev_will_auto_online_memory;
- 	daxctl_dev_has_online_memory;
-+	daxctl_set_config_path;
-+	daxctl_get_config_path;
- } LIBDAXCTL_8;
 -- 
 2.33.1
 
