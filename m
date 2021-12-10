@@ -1,79 +1,155 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCA87173
-	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 06:57:25 +0000 (UTC)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id 4471C1F3A0;
-	Fri, 10 Dec 2021 06:57:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1639119444; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D47F468
+	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 14:05:36 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1639145135;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 in-reply-to:in-reply-to:references:references;
-	bh=DsxNbVqSHl10S77H6yDqDZ9G/tcyZqlj5Kx/Pd7vvwE=;
-	b=cKcym/fesNX5y+RYMdRCIVMDpLAo5yDUPKtJt1zSW6cvqKEX7NwWvrWM2+toz4jbIOxuhz
-	p8+/uMbtkc0oSltvf1O2GYygwF747iR6jalVciCiaqEdSyQMNTw5hokUDnt3zMbCv7GVUJ
-	l8VpPdqGh2xH/vnyxkptZP6FIZ71isI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1639119444;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=DsxNbVqSHl10S77H6yDqDZ9G/tcyZqlj5Kx/Pd7vvwE=;
-	b=whSaZOOURTQ9HhQUyEH7mgG7IDIScjhqEIW01mjt7DerodW1oRk+AwV447Y+/Lbjixoj/L
-	xCyx2X/NaNjwn5BQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+	bh=1IPYd/U/Ts1tZJpb5JWXIO6VaK+NnfSEAcLoJXiiX6k=;
+	b=FVZhbPJhHfpurZSWNWaSGKtgnHapmzVFS/pAtqNGkxF8gswnkom/yZHMy1L7jI4BRBPpJF
+	AamAOsBnJP//SBVeDZz3cDLN+jGAGAXEVypVwwXreQMgmyyL1I5KC0sayV6qTlpaG1O1xU
+	lWrUImrdPO35ZS/+qRXHVQ3NzKZdIsQ=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-507-AXVHfjlYNN-rOCr5ug7-OA-1; Fri, 10 Dec 2021 09:05:32 -0500
+X-MC-Unique: AXVHfjlYNN-rOCr5ug7-OA-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 8E45313DD2;
-	Fri, 10 Dec 2021 06:57:22 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-	by imap2.suse-dmz.suse.de with ESMTPSA
-	id j3A+GFL6smGxdgAAMHmgww
-	(envelope-from <colyli@suse.de>); Fri, 10 Dec 2021 06:57:22 +0000
-Message-ID: <a608949d-86ea-b7fd-c0c6-6dd6614202c7@suse.de>
-Date: Fri, 10 Dec 2021 14:57:20 +0800
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id ECA031017965;
+	Fri, 10 Dec 2021 14:05:29 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.22.17.42])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 7C13919C59;
+	Fri, 10 Dec 2021 14:05:02 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id AC32F2209DD; Fri, 10 Dec 2021 09:05:01 -0500 (EST)
+Date: Fri, 10 Dec 2021 09:05:01 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@de.ibm.com>,
+	Stefan Hajnoczi <stefanha@redhat.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Matthew Wilcox <willy@infradead.org>, dm-devel@redhat.com,
+	nvdimm@lists.linux.dev, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	virtualization@lists.linux-foundation.org
+Subject: Re: [PATCH 5/5] dax: always use _copy_mc_to_iter in dax_copy_to_iter
+Message-ID: <YbNejVRF5NQB0r83@redhat.com>
+References: <20211209063828.18944-1-hch@lst.de>
+ <20211209063828.18944-6-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0)
- Gecko/20100101 Thunderbird/91.3.2
-Subject: Re: [PATCH v3 2/6] badblocks: add helper routines for badblock ranges
- handling
-Content-Language: en-US
-To: Geliang Tang <geliang.tang@suse.com>
-Cc: nvdimm@lists.linux.dev, linux-block@vger.kernel.org,
- linux-raid@vger.kernel.org, Hannes Reinecke <hare@suse.de>,
- Jens Axboe <axboe@kernel.dk>, NeilBrown <neilb@suse.de>,
- Vishal L Verma <vishal.l.verma@intel.com>
-References: <20211202125245.76699-1-colyli@suse.de>
- <20211202125245.76699-3-colyli@suse.de>
- <20211209072251.GA26976@dhcp-10-157-36-190>
-From: Coly Li <colyli@suse.de>
-In-Reply-To: <20211209072251.GA26976@dhcp-10-157-36-190>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211209063828.18944-6-hch@lst.de>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 
-On 12/9/21 3:22 PM, Geliang Tang wrote:
-> Hi Coly,
->
-> Thanks for this new version!
+On Thu, Dec 09, 2021 at 07:38:28AM +0100, Christoph Hellwig wrote:
+> While using the MC-safe copy routines is rather pointless on a virtual device
+> like virtiofs,
 
-Thank you so much for the review comments. I fix all the typos and 
-change the code as you suggested with dropping extra local variables.
+I was wondering about that. Is it completely pointless.
 
-The modification will be posted in next version.
+Typically we are just mapping host page cache into qemu address space.
+That shows as virtiofs device pfn in guest and that pfn is mapped into
+guest application address space in mmap() call.
 
-Coly Li
+Given on host its DRAM, so I would not expect machine check on load side
+so there was no need to use machine check safe variant. But what if host
+filesystem is on persistent memory and using DAX. In that case load in
+guest can trigger a machine check. Not sure if that machine check will
+actually travel into the guest and unblock read() operation or not.
 
-[snip]
+But this sounds like a good change from virtiofs point of view, anyway.
+
+Thanks
+Vivek
+
+
+> it also isn't harmful at all.  So just use _copy_mc_to_iter
+> unconditionally to simplify the code.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/dax/super.c | 10 ----------
+>  fs/fuse/virtio_fs.c |  1 -
+>  include/linux/dax.h |  1 -
+>  3 files changed, 12 deletions(-)
+> 
+> diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+> index ff676a07480c8..fe783234ca669 100644
+> --- a/drivers/dax/super.c
+> +++ b/drivers/dax/super.c
+> @@ -107,8 +107,6 @@ enum dax_device_flags {
+>  	DAXDEV_SYNC,
+>  	/* do not use uncached operations to write data */
+>  	DAXDEV_CACHED,
+> -	/* do not use mcsafe operations to read data */
+> -	DAXDEV_NOMCSAFE,
+>  };
+>  
+>  /**
+> @@ -171,8 +169,6 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+>  	 * via access_ok() in vfs_red, so use the 'no check' version to bypass
+>  	 * the HARDENED_USERCOPY overhead.
+>  	 */
+> -	if (test_bit(DAXDEV_NOMCSAFE, &dax_dev->flags))
+> -		return _copy_to_iter(addr, bytes, i);
+>  	return _copy_mc_to_iter(addr, bytes, i);
+>  }
+>  
+> @@ -242,12 +238,6 @@ void set_dax_cached(struct dax_device *dax_dev)
+>  }
+>  EXPORT_SYMBOL_GPL(set_dax_cached);
+>  
+> -void set_dax_nomcsafe(struct dax_device *dax_dev)
+> -{
+> -	set_bit(DAXDEV_NOMCSAFE, &dax_dev->flags);
+> -}
+> -EXPORT_SYMBOL_GPL(set_dax_nomcsafe);
+> -
+>  bool dax_alive(struct dax_device *dax_dev)
+>  {
+>  	lockdep_assert_held(&dax_srcu);
+> diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
+> index 754319ce2a29b..d9c20b148ac19 100644
+> --- a/fs/fuse/virtio_fs.c
+> +++ b/fs/fuse/virtio_fs.c
+> @@ -838,7 +838,6 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
+>  	if (IS_ERR(fs->dax_dev))
+>  		return PTR_ERR(fs->dax_dev);
+>  	set_dax_cached(fs->dax_dev);
+> -	set_dax_nomcsafe(fs->dax_dev);
+>  	return devm_add_action_or_reset(&vdev->dev, virtio_fs_cleanup_dax,
+>  					fs->dax_dev);
+>  }
+> diff --git a/include/linux/dax.h b/include/linux/dax.h
+> index d22cbf03d37d2..d267331bc37e7 100644
+> --- a/include/linux/dax.h
+> +++ b/include/linux/dax.h
+> @@ -90,7 +90,6 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+>  #endif
+>  
+>  void set_dax_cached(struct dax_device *dax_dev);
+> -void set_dax_nomcsafe(struct dax_device *dax_dev);
+>  
+>  struct writeback_control;
+>  #if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
+> -- 
+> 2.30.2
+> 
 
