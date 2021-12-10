@@ -1,165 +1,163 @@
-Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F29B02CA1
-	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 19:41:31 +0000 (UTC)
-Received: by mail-pj1-f50.google.com with SMTP id iq11so7540915pjb.3
-        for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 11:41:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=UCZUTok6qCgscxcVXcvCADjFgjSrwItBHMXkEgTLIAI=;
-        b=4uZMY7WQnQNKTmypkZRSl+cI6gQ6P1N1NfHssYtm40mAGiZBOPyanmbhLEy3DH7Xiw
-         daGbaZ8IwUL0ye0z7OFB6HLVhcQEhtCygGfhSKaGOyWd5t9MjW4N3PLoExgk6888FDiS
-         GyVETkPp/1GCk7fBH7y4qfKBNNC5ph4/eS9uymPznAMZs4CNX9P3kH0Z5Q31+/wSBHCi
-         MPDQRV/4n8Q0oPT82ERRaNB+6Bl0w8F5WJhkcwrw1e8WEf91iDrIp7yZW+SlgnddoA6R
-         sXoGPzw9sROlOnXUfkqXFGnXSmfB90PIAOcyHXv59y2RQf3+u8h0Dt+smI7Twd0RRZaK
-         F7Tg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=UCZUTok6qCgscxcVXcvCADjFgjSrwItBHMXkEgTLIAI=;
-        b=c1C89NpvPKXFNaDr/lpodqQT0RspCn0HgLtza4QslWwSnqrwSXdaAjaGE/WcWCJagu
-         10EYp9lBtl5VT+lAAEoK2h6XBAAMoU+ThBPOjgon4eI+V3FWc5a8RGy3h6E00LaLyLU7
-         NMZySEyT/BwVYK7kNeaBXHgK1Lj/7pVF6qLmka0dgQGi+FH8Yi4z8PET3DaZY04cPyfX
-         AJZgB4OP8q4nY5+xq13fciEMVhN7rkFhVBURoOG981EKBKpHRSNr0QD8li73U0wPWMbD
-         mfanvD7NuVJtqlM0n4GfI2zipEj6bkk47vFCStCRxzY4IyelQUfxpCw7rh7zIsOnGB5p
-         ypvw==
-X-Gm-Message-State: AOAM5332e2yw8RcRhnx+B2GO2iCr2ltdLZ/zKmohDPEu26GYgJvqlvaV
-	a9S8l/LhIMH6uUDedcsxAvWabLYum3GyKhM5f4mX0A==
-X-Google-Smtp-Source: ABdhPJzOTtAyjJW2HeZHQQd1wTzH/eB2wiPEFO/qQ5orP4tQ35Gl9UelLwXxpLXrIazNtQq2SFEBXgnJJ58VbXGi9nw=
-X-Received: by 2002:a17:902:7fcd:b0:142:8ab3:ec0e with SMTP id
- t13-20020a1709027fcd00b001428ab3ec0emr76930400plb.4.1639165291320; Fri, 10
- Dec 2021 11:41:31 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0976D173
+	for <nvdimm@lists.linux.dev>; Fri, 10 Dec 2021 22:34:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1639175686; x=1670711686;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=9n8FZ3IDAMmEhnF1cTeLEU+QX645E0K21EH3b42yk0g=;
+  b=BIhYJDlGGJGU78f2Tw9AuwhOJ469S0UTs0iICl/HDOJ4uAXGmchgtcof
+   vgEKQKpOuUnwSSXUOOUP0Z4RHr/O3WH27gdFcbLvNOepdJ4sQGWGX0xQE
+   uk1eKfllaBVTsWe3Hl3izAwXKSA/5d7WPnnRH5I5IruejChZ6O8PnSueY
+   03gPmxKzjVculyveXWBcapaC8FzWth4vWdqyt9MiGQWhd9StW8pF1eK+U
+   0KzyuCY6nbaWnUDLS9pwgOt91ZeJDq6BYkX4UxxmTcJm285aQWccg5Bqe
+   /LQAI9inJCH3hDlXHj9KkMq4vBkz3WwZc3/uDnm5DY1W+dNNVmQd8+iU5
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10194"; a="238261457"
+X-IronPort-AV: E=Sophos;i="5.88,196,1635231600"; 
+   d="scan'208";a="238261457"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:45 -0800
+X-IronPort-AV: E=Sophos;i="5.88,196,1635231600"; 
+   d="scan'208";a="504113659"
+Received: from fpchan-mobl1.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.254.0.94])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Dec 2021 14:34:44 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <nvdimm@lists.linux.dev>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	QI Fuli <qi.fuli@jp.fujitsu.com>,
+	fenghua.hu@intel.com,
+	QI Fuli <qi.fuli@fujitsu.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH v3 03/11] ndctl, config: add the default ndctl configuration file
+Date: Fri, 10 Dec 2021 15:34:32 -0700
+Message-Id: <20211210223440.3946603-4-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.33.1
+In-Reply-To: <20211210223440.3946603-1-vishal.l.verma@intel.com>
+References: <20211210223440.3946603-1-vishal.l.verma@intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <163164780319.2831662.7853294454760344393.stgit@dwillia2-desk3.amr.corp.intel.com>
- <163225205828.3038145.6831131648369404859.stgit@dwillia2-desk3.amr.corp.intel.com>
- <YbOswyDRX1SEtE8C@archlinux-ax161>
-In-Reply-To: <YbOswyDRX1SEtE8C@archlinux-ax161>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 10 Dec 2021 11:41:20 -0800
-Message-ID: <CAPcyv4j=rTOTKtjsLuWT=5uU8_YD7uLVNKtHrbDZOcBa4D6TCw@mail.gmail.com>
-Subject: Re: [PATCH v6 21/21] cxl/core: Split decoder setup into alloc + add
-To: Nathan Chancellor <nathan@kernel.org>
-Cc: linux-cxl@vger.kernel.org, kernel test robot <lkp@intel.com>, 
-	Dan Carpenter <dan.carpenter@oracle.com>, Ben Widawsky <ben.widawsky@intel.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, 
-	"Weiny, Ira" <ira.weiny@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, 
-	"Schofield, Alison" <alison.schofield@intel.com>, llvm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4180; i=vishal.l.verma@intel.com; h=from:subject; bh=sBRcYTSZmw4YvrEhpP1oEOmBDKU0JX8rOdHLXa6WsJo=; b=owGbwMvMwCXGf25diOft7jLG02pJDImbr/5TWhL+QZGx4y6PtquN8LxPklteH9BXZetxr7084UZ8 o9z3jlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAEwkpIXhDy/PkqtGWxjqT9eL/4s95L Lv7I+WP1MW1/W8bOuW54j/5MPwv1aHk9t4jUuz/y++Ur/TPdsi963eEGTAb+AYeapkp+dBZgA=
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Transfer-Encoding: 8bit
 
-On Fri, Dec 10, 2021 at 11:39 AM Nathan Chancellor <nathan@kernel.org> wrot=
-e:
->
-> Hi Dan,
->
-> On Tue, Sep 21, 2021 at 12:22:16PM -0700, Dan Williams wrote:
-> > The kbuild robot reports:
-> >
-> >     drivers/cxl/core/bus.c:516:1: warning: stack frame size (1032) exce=
-eds
-> >     limit (1024) in function 'devm_cxl_add_decoder'
-> >
-> > It is also the case the devm_cxl_add_decoder() is unwieldy to use for
-> > all the different decoder types. Fix the stack usage by splitting the
-> > creation into alloc and add steps. This also allows for context
-> > specific construction before adding.
-> >
-> > With the split the caller is responsible for registering a devm callbac=
-k
-> > to trigger device_unregister() for the decoder rather than it being
-> > implicit in the decoder registration. I.e. the routine that calls alloc
-> > is responsible for calling put_device() if the "add" operation fails.
-> >
-> > Reported-by: kernel test robot <lkp@intel.com>
-> > Reported-by: Nathan Chancellor <nathan@kernel.org>
-> > Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
-> Apologies for not noticing this sooner, given that I was on the thread.
->
-> This patch as commit 48667f676189 ("cxl/core: Split decoder setup into
-> alloc + add") in mainline does not fully resolve the stack frame
-> warning. I still see an error with both GCC 11 and LLVM 12 with
-> allmodconfig minus CONFIG_KASAN.
->
-> GCC 11:
->
-> drivers/cxl/core/bus.c: In function =E2=80=98cxl_decoder_alloc=E2=80=99:
-> drivers/cxl/core/bus.c:523:1: error: the frame size of 1032 bytes is larg=
-er than 1024 bytes [-Werror=3Dframe-larger-than=3D]
->   523 | }
->       | ^
-> cc1: all warnings being treated as errors
->
-> LLVM 12:
->
-> drivers/cxl/core/bus.c:486:21: error: stack frame size of 1056 bytes in f=
-unction 'cxl_decoder_alloc' [-Werror,-Wframe-larger-than=3D]
-> struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targe=
-ts)
->                     ^
-> 1 error generated.
->
-> This is due to the cxld_const_init structure, which is allocated on the
-> stack, presumably due to the "const" change requested in v5 that was
-> applied to v6. Undoing that resolves the warning for me with both
-> compilers. I am not sure if you have a better idea for how to resolve
-> that.
->
-> diff --git a/drivers/cxl/core/bus.c b/drivers/cxl/core/bus.c
-> index ebd061d03950..46ce58376580 100644
-> --- a/drivers/cxl/core/bus.c
-> +++ b/drivers/cxl/core/bus.c
-> @@ -485,9 +485,7 @@ static int decoder_populate_targets(struct cxl_decode=
-r *cxld,
->
->  struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targ=
-ets)
->  {
-> -       struct cxl_decoder *cxld, cxld_const_init =3D {
-> -               .nr_targets =3D nr_targets,
-> -       };
-> +       struct cxl_decoder *cxld;
->         struct device *dev;
->         int rc =3D 0;
->
-> @@ -497,13 +495,13 @@ struct cxl_decoder *cxl_decoder_alloc(struct cxl_po=
-rt *port, int nr_targets)
->         cxld =3D kzalloc(struct_size(cxld, target, nr_targets), GFP_KERNE=
-L);
->         if (!cxld)
->                 return ERR_PTR(-ENOMEM);
-> -       memcpy(cxld, &cxld_const_init, sizeof(cxld_const_init));
->
->         rc =3D ida_alloc(&port->decoder_ida, GFP_KERNEL);
->         if (rc < 0)
->                 goto err;
->
->         cxld->id =3D rc;
-> +       cxld->nr_targets =3D nr_targets;
->         dev =3D &cxld->dev;
->         device_initialize(dev);
->         device_set_pm_not_required(dev);
-> diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 3af704e9b448..7c2b51746e31 100644
-> --- a/drivers/cxl/cxl.h
-> +++ b/drivers/cxl/cxl.h
-> @@ -191,7 +191,7 @@ struct cxl_decoder {
->         int interleave_granularity;
->         enum cxl_decoder_type target_type;
->         unsigned long flags;
-> -       const int nr_targets;
-> +       int nr_targets;
->         struct cxl_dport *target[];
+From: QI Fuli <qi.fuli@fujitsu.com>
 
-That change looks like the right way to go to me. Thanks for the follow-up!
+Install ndctl/ndctl.conf a default/example ndctl configuration file.
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ configure.ac      |  1 +
+ ndctl/Makefile.am |  4 +++-
+ ndctl/ndctl.conf  | 56 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 60 insertions(+), 1 deletion(-)
+ create mode 100644 ndctl/ndctl.conf
+
+diff --git a/configure.ac b/configure.ac
+index a264af7..3f15a7b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -175,6 +175,7 @@ ndctl_confdir=${sysconfdir}/ndctl.conf.d
+ ndctl_conf=ndctl.conf
+ ndctl_monitorconf=monitor.conf
+ AC_SUBST([ndctl_confdir])
++AC_SUBST([ndctl_conf])
+ AC_SUBST([ndctl_monitorconf])
+ 
+ daxctl_modprobe_datadir=${datadir}/daxctl
+diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+index 00d2612..4e99510 100644
+--- a/ndctl/Makefile.am
++++ b/ndctl/Makefile.am
+@@ -42,7 +42,7 @@ keys_configdir = $(ndctl_keysdir)
+ keys_config_DATA = $(ndctl_keysreadme)
+ endif
+ 
+-EXTRA_DIST += keys.readme monitor.conf ndctl-monitor.service
++EXTRA_DIST += keys.readme monitor.conf ndctl-monitor.service ndctl.conf
+ 
+ if ENABLE_DESTRUCTIVE
+ ndctl_SOURCES += ../test/blk_namespaces.c \
+@@ -74,6 +74,8 @@ ndctl_SOURCES += ../test/libndctl.c \
+ 		 test.c
+ endif
+ 
++ndctl_configdir = $(ndctl_confdir)
++ndctl_config_DATA = $(ndctl_conf)
+ monitor_configdir = $(ndctl_confdir)
+ monitor_config_DATA = $(ndctl_monitorconf)
+ 
+diff --git a/ndctl/ndctl.conf b/ndctl/ndctl.conf
+new file mode 100644
+index 0000000..ebb4c66
+--- /dev/null
++++ b/ndctl/ndctl.conf
+@@ -0,0 +1,56 @@
++# This is the default ndctl configuration file. It contains the
++# configuration directives that give ndctl instructions.
++# Ndctl supports multiple configuration files. All files with the
++# .conf suffix under {sysconfdir}/ndctl.conf.d will be regarded as
++# valid ndctl configuration files.
++
++# In this file, lines starting with a hash (#) are comments.
++# The configurations should be in a [section] and follow <key> = <value>
++# style. Multiple space-separated values are allowed, but except the
++# following characters: : ? / \ % " ' $ & ! * { } [ ] ( ) = < > @
++
++[core]
++# The values in [core] section work for all ndctl sub commands.
++# dimm = all
++# bus = all
++# region = all
++# namespace = all
++
++[monitor]
++# The values in [monitor] section work for ndctl monitor.
++# You can change the configuration of ndctl monitor by editing this
++# file or use [--config-file=<file>] option to override this one.
++# The changed value will work after restart ndctl monitor service.
++
++# The objects to monitor are filtered via dimm's name by setting key "dimm".
++# If this value is different from the value of [--dimm=<value>] option,
++# both of the values will work.
++# dimm = all
++
++# The objects to monitor are filtered via its parent bus by setting key "bus".
++# If this value is different from the value of [--bus=<value>] option,
++# both of the values will work.
++# bus = all
++
++# The objects to monitor are filtered via region by setting key "region".
++# If this value is different from the value of [--region=<value>] option,
++# both of the values will work.
++# region = all
++
++# The objects to monitor are filtered via namespace by setting key "namespace".
++# If this value is different from the value of [--namespace=<value>] option,
++# both of the values will work.
++# namespace = all
++
++# The DIMM events to monitor are filtered via event type by setting key
++# "dimm-event". If this value is different from the value of
++# [--dimm-event=<value>] option, both of the values will work.
++# dimm-event = all
++
++# Users can choose to output the notifications to syslog (log=syslog),
++# to standard output (log=standard) or to write into a special file (log=<file>)
++# by setting key "log". If this value is in conflict with the value of
++# [--log=<value>] option, this value will be ignored.
++# Note: Setting value to "standard" or relative path for <file> will not work
++# when running monitor as a daemon.
++# log = /var/log/ndctl/monitor.log
+-- 
+2.33.1
+
