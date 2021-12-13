@@ -1,11 +1,11 @@
 Received: from verein.lst.de (verein.lst.de [213.95.11.211])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D0872C99
-	for <nvdimm@lists.linux.dev>; Mon, 13 Dec 2021 08:24:23 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DE812C99
+	for <nvdimm@lists.linux.dev>; Mon, 13 Dec 2021 08:27:19 +0000 (UTC)
 Received: by verein.lst.de (Postfix, from userid 2407)
-	id 60ABF68BFE; Mon, 13 Dec 2021 09:24:20 +0100 (CET)
-Date: Mon, 13 Dec 2021 09:24:20 +0100
+	id 8C12868BFE; Mon, 13 Dec 2021 09:27:15 +0100 (CET)
+Date: Mon, 13 Dec 2021 09:27:15 +0100
 From: Christoph Hellwig <hch@lst.de>
 To: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>, Vishal Verma <vishal.l.verma@intel.com>,
@@ -23,10 +23,10 @@ Cc: Christoph Hellwig <hch@lst.de>, Vishal Verma <vishal.l.verma@intel.com>,
 	linux-s390 <linux-s390@vger.kernel.org>,
 	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
 	virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH 4/5] dax: remove the copy_from_iter and copy_to_iter
- methods
-Message-ID: <20211213082420.GC21462@lst.de>
-References: <20211209063828.18944-1-hch@lst.de> <20211209063828.18944-5-hch@lst.de> <CAPcyv4gZjkVW0vwNLChXCCBVF8CsSZityzSVmcGAk79-mt9yOw@mail.gmail.com>
+Subject: Re: [PATCH 1/5] uio: remove copy_from_iter_flushcache() and
+ copy_mc_to_iter()
+Message-ID: <20211213082715.GD21462@lst.de>
+References: <20211209063828.18944-1-hch@lst.de> <20211209063828.18944-2-hch@lst.de> <CAPcyv4gwfVi389e+cES=E6O13+y36OffZPCe+iZguCT_gpjmZA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -35,29 +35,20 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4gZjkVW0vwNLChXCCBVF8CsSZityzSVmcGAk79-mt9yOw@mail.gmail.com>
+In-Reply-To: <CAPcyv4gwfVi389e+cES=E6O13+y36OffZPCe+iZguCT_gpjmZA@mail.gmail.com>
 User-Agent: Mutt/1.5.17 (2007-11-01)
 
-On Sun, Dec 12, 2021 at 06:39:16AM -0800, Dan Williams wrote:
-> >         /* flag to check if device supports synchronous flush */
-> >         DAXDEV_SYNC,
-> > +       /* do not use uncached operations to write data */
-> > +       DAXDEV_CACHED,
-> > +       /* do not use mcsafe operations to read data */
-> > +       DAXDEV_NOMCSAFE,
+On Sun, Dec 12, 2021 at 06:22:20AM -0800, Dan Williams wrote:
+> > - * Use the 'no check' versions of copy_from_iter_flushcache() and
+> > - * copy_mc_to_iter() to bypass HARDENED_USERCOPY overhead. Bounds
+> > + * Use the 'no check' versions of _copy_from_iter_flushcache() and
+> > + * _copy_mc_to_iter() to bypass HARDENED_USERCOPY overhead. Bounds
+> >   * checking, both file offset and device offset, is handled by
+> >   * dax_iomap_actor()
+> >   */
 > 
-> Linus did not like the mcsafe name, and this brings it back. Let's
-> flip the polarity to positively indicate which routine to use, and to
-> match the 'nofault' style which says "copy and handle faults".
-> 
-> /* do not leave the caches dirty after writes */
-> DAXDEV_NOCACHE
-> 
-> /* handle CPU fetch exceptions during reads */
-> DAXDEV_NOMC
-> 
-> ...and then flip the use cases around.
+> This comment change does not make sense since it is saying why pmem is
+> using the "_" versions. However, I assume this whole comment goes away
+> in a later patch.
 
-Sure we can do that.  But let's finish the discussion if we actually
-need the virtiofs special casing, as it seems pretty fishy in many
-aspects.
+It does not go away in this series.
