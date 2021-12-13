@@ -1,184 +1,98 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f175.google.com (mail-pf1-f175.google.com [209.85.210.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E08292C9E
-	for <nvdimm@lists.linux.dev>; Mon, 13 Dec 2021 16:17:55 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1639412274;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=Zgm1TTb9mRYOZNW01H/VVMVpM00k6pLnOlu/2f/Ro58=;
-	b=SP5tkTlNe72PYKsm3PYDe5qhy6Qpo5oO/4t+2UxlvaLermp/pP+/wPExlTafwHp2vvVsLA
-	MwaDgMVpSTT01OO6V8rxRH5rHhiAt5C05py/wc9Tq8j52Tqm9vc9/G3P4qYOsBYB3hepvQ
-	0M0Bg6yLwF+DaZiCC8iKc4UnyphMmw4=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-56-Xi8VqCsjNuuM18ClmLa9mw-1; Mon, 13 Dec 2021 11:17:53 -0500
-X-MC-Unique: Xi8VqCsjNuuM18ClmLa9mw-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B8D261015DA0;
-	Mon, 13 Dec 2021 16:17:51 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.22.17.75])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 5A17260C9F;
-	Mon, 13 Dec 2021 16:17:50 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id D90BB2209DD; Mon, 13 Dec 2021 11:17:49 -0500 (EST)
-Date: Mon, 13 Dec 2021 11:17:49 -0500
-From: Vivek Goyal <vgoyal@redhat.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@de.ibm.com>,
-	Stefan Hajnoczi <stefanha@redhat.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Matthew Wilcox <willy@infradead.org>,
-	device-mapper development <dm-devel@redhat.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	linux-s390 <linux-s390@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	virtualization@lists.linux-foundation.org,
-	"Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Subject: Re: [PATCH 4/5] dax: remove the copy_from_iter and copy_to_iter
- methods
-Message-ID: <YbdyLc+V1xyp8sc5@redhat.com>
-References: <20211209063828.18944-1-hch@lst.de>
- <20211209063828.18944-5-hch@lst.de>
- <YbNhPXBg7G/ridkV@redhat.com>
- <CAPcyv4g4_yFqDeS+pnAZOxcB=Ua+iArK5mqn0iMG4PX6oL=F_A@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00C6868
+	for <nvdimm@lists.linux.dev>; Mon, 13 Dec 2021 16:43:41 +0000 (UTC)
+Received: by mail-pf1-f175.google.com with SMTP id r130so15469660pfc.1
+        for <nvdimm@lists.linux.dev>; Mon, 13 Dec 2021 08:43:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vyYw8u6XfcAGXDXzJlsX3xmu/UHpiQrY1MTgK5iKFVw=;
+        b=XiFSVO0CJWFC7lIKOLyuO0nHL/iPwSF4yirvRxBS9+af4O56S0PGNlreHbXCXAaP84
+         x2MkNIYnCkZJt6nRR1y/F1eTxY8BTD2UTKonNUg1K9JCTv5/HxLzy4/3O4lDerPuxb55
+         wNtDkDmWlrkFMyWmBiAeQkwSnBjf/wORUGNGO8dSmKbze+5/JaWYPD9N08wNZ0JG4NX5
+         V5TENSR5i/EgX/lga+UxQPOKVhl3og9dvfA8/wemUHLC0j89nVhG5b5aGetkDZb95bLg
+         03KLqIXXPUyeJvGWehZAJvknBTiZVAVi0MM6Ds9ewRhMTodjq4P/YqW0RLoUsUcR6kHt
+         RQ4A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vyYw8u6XfcAGXDXzJlsX3xmu/UHpiQrY1MTgK5iKFVw=;
+        b=j5gyNuND0b/2U3aVWfxLLMBNqKQYGGSSTpRv4VYwUKDnqiT7A3NqPLDO84q3euhpZ4
+         deRlFAxvIPE2mHmHJPWBy33RHPtavqeJE9627De4J1icSy7wF9A1wIwKtRFVC/SO03uj
+         aXiGAJptmdxaNuIm+kIk/ALsPAVrfPNc+ffGeF8o6U+/v4b6M9v9H0ShXdhZ69ShpoJB
+         zEMPqi1mzwrgQZIYpnVVssxR41O5BMK/+VGM4Xpoh4Y2Owjj0mtQAJerc53I5RXB1PlD
+         6IOkpXzsfPYIXbiY/h3r5GLiapWHp0uQvEo8oS5rsFNYDPdhD2xOKu7nSf5jT72cvhrO
+         Sd0g==
+X-Gm-Message-State: AOAM533Z5QohRTqDUpBwndpD2jAvKuVzH3E6aJQPUtAMs91dkbS5RmMp
+	86KjJgweks/rLqMWIMoj8+KgM+ufksFuFqvv7YMaUQ==
+X-Google-Smtp-Source: ABdhPJx2n8q1onN4jQzvRQyQbTXEvg1DJxhgaWZFSAWB2OQ1hhJNCq2enXcdrfYzpDge5Iz394R2nbo3Ocn0tDkMu6w=
+X-Received: by 2002:aa7:8d0a:0:b0:4a2:82d7:1695 with SMTP id
+ j10-20020aa78d0a000000b004a282d71695mr34765307pfe.86.1639413821384; Mon, 13
+ Dec 2021 08:43:41 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4g4_yFqDeS+pnAZOxcB=Ua+iArK5mqn0iMG4PX6oL=F_A@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+References: <20211209063828.18944-1-hch@lst.de> <20211209063828.18944-6-hch@lst.de>
+ <YbNejVRF5NQB0r83@redhat.com> <CAPcyv4i_HdnMcq6MmDMt-a5p=ojh_vsoAiES0vUYEh7HvC1O-A@mail.gmail.com>
+ <20211213082020.GA21462@lst.de>
+In-Reply-To: <20211213082020.GA21462@lst.de>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 13 Dec 2021 08:43:32 -0800
+Message-ID: <CAPcyv4g-_hth2LMUS=k3FwMCfVsSkgFOJ53-uE1wzsDVuEs_eg@mail.gmail.com>
+Subject: Re: [PATCH 5/5] dax: always use _copy_mc_to_iter in dax_copy_to_iter
+To: Christoph Hellwig <hch@lst.de>
+Cc: Vivek Goyal <vgoyal@redhat.com>, Vishal Verma <vishal.l.verma@intel.com>, 
+	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, 
+	Ira Weiny <ira.weiny@intel.com>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, 
+	Stefan Hajnoczi <stefanha@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Matthew Wilcox <willy@infradead.org>, device-mapper development <dm-devel@redhat.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390 <linux-s390@vger.kernel.org>, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>, virtualization@lists.linux-foundation.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Sun, Dec 12, 2021 at 06:44:26AM -0800, Dan Williams wrote:
-> On Fri, Dec 10, 2021 at 6:17 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> >
-> > On Thu, Dec 09, 2021 at 07:38:27AM +0100, Christoph Hellwig wrote:
-> > > These methods indirect the actual DAX read/write path.  In the end pmem
-> > > uses magic flush and mc safe variants and fuse and dcssblk use plain ones
-> > > while device mapper picks redirects to the underlying device.
+On Mon, Dec 13, 2021 at 12:20 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> On Sun, Dec 12, 2021 at 06:48:05AM -0800, Dan Williams wrote:
+> > On Fri, Dec 10, 2021 at 6:05 AM Vivek Goyal <vgoyal@redhat.com> wrote:
 > > >
-> > > Add set_dax_virtual() and set_dax_nomcsafe() APIs for fuse to skip these
-> > > special variants, then use them everywhere as they fall back to the plain
-> > > ones on s390 anyway and remove an indirect call from the read/write path
-> > > as well as a lot of boilerplate code.
+> > > On Thu, Dec 09, 2021 at 07:38:28AM +0100, Christoph Hellwig wrote:
+> > > > While using the MC-safe copy routines is rather pointless on a virtual device
+> > > > like virtiofs,
 > > >
-> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
-> > > ---
-> > >  drivers/dax/super.c           | 36 ++++++++++++++--
-> > >  drivers/md/dm-linear.c        | 20 ---------
-> > >  drivers/md/dm-log-writes.c    | 80 -----------------------------------
-> > >  drivers/md/dm-stripe.c        | 20 ---------
-> > >  drivers/md/dm.c               | 50 ----------------------
-> > >  drivers/nvdimm/pmem.c         | 20 ---------
-> > >  drivers/s390/block/dcssblk.c  | 14 ------
-> > >  fs/dax.c                      |  5 ---
-> > >  fs/fuse/virtio_fs.c           | 19 +--------
-> > >  include/linux/dax.h           |  9 ++--
-> > >  include/linux/device-mapper.h |  4 --
-> > >  11 files changed, 37 insertions(+), 240 deletions(-)
+> > > I was wondering about that. Is it completely pointless.
 > > >
-> >
-> > [..]
-> > > diff --git a/fs/fuse/virtio_fs.c b/fs/fuse/virtio_fs.c
-> > > index 5c03a0364a9bb..754319ce2a29b 100644
-> > > --- a/fs/fuse/virtio_fs.c
-> > > +++ b/fs/fuse/virtio_fs.c
-> > > @@ -753,20 +753,6 @@ static long virtio_fs_direct_access(struct dax_device *dax_dev, pgoff_t pgoff,
-> > >       return nr_pages > max_nr_pages ? max_nr_pages : nr_pages;
-> > >  }
+> > > Typically we are just mapping host page cache into qemu address space.
+> > > That shows as virtiofs device pfn in guest and that pfn is mapped into
+> > > guest application address space in mmap() call.
 > > >
-> > > -static size_t virtio_fs_copy_from_iter(struct dax_device *dax_dev,
-> > > -                                    pgoff_t pgoff, void *addr,
-> > > -                                    size_t bytes, struct iov_iter *i)
-> > > -{
-> > > -     return copy_from_iter(addr, bytes, i);
-> > > -}
-> > > -
-> > > -static size_t virtio_fs_copy_to_iter(struct dax_device *dax_dev,
-> > > -                                    pgoff_t pgoff, void *addr,
-> > > -                                    size_t bytes, struct iov_iter *i)
-> > > -{
-> > > -     return copy_to_iter(addr, bytes, i);
-> > > -}
-> > > -
-> > >  static int virtio_fs_zero_page_range(struct dax_device *dax_dev,
-> > >                                    pgoff_t pgoff, size_t nr_pages)
-> > >  {
-> > > @@ -783,8 +769,6 @@ static int virtio_fs_zero_page_range(struct dax_device *dax_dev,
-> > >
-> > >  static const struct dax_operations virtio_fs_dax_ops = {
-> > >       .direct_access = virtio_fs_direct_access,
-> > > -     .copy_from_iter = virtio_fs_copy_from_iter,
-> > > -     .copy_to_iter = virtio_fs_copy_to_iter,
-> > >       .zero_page_range = virtio_fs_zero_page_range,
-> > >  };
-> > >
-> > > @@ -853,7 +837,8 @@ static int virtio_fs_setup_dax(struct virtio_device *vdev, struct virtio_fs *fs)
-> > >       fs->dax_dev = alloc_dax(fs, &virtio_fs_dax_ops);
-> > >       if (IS_ERR(fs->dax_dev))
-> > >               return PTR_ERR(fs->dax_dev);
-> > > -
-> > > +     set_dax_cached(fs->dax_dev);
+> > > Given on host its DRAM, so I would not expect machine check on load side
+> > > so there was no need to use machine check safe variant.
 > >
-> > Looks good to me from virtiofs point of view.
-> >
-> > Reviewed-by: Vivek Goyal <vgoyal@redhat.com>
-> >
-> > Going forward, I am wondering should virtiofs use flushcache version as
-> > well. What if host filesystem is using DAX and mapping persistent memory
-> > pfn directly into qemu address space. I have never tested that.
-> >
-> > Right now we are relying on applications to do fsync/msync on virtiofs
-> > for data persistence.
-> 
-> This sounds like it would need coordination with a paravirtualized
-> driver that can indicate whether the host side is pmem or not, like
-> the virtio_pmem driver.
+> > That's a broken assumption, DRAM experiences multi-bit ECC errors.
+> > Machine checks, data aborts, etc existed before PMEM.
+>
+> So the conclusion here is that we should always use the mc safe variant?
 
-Agreed. Let me check the details of virtio_pmem driver.
+The proposal is one of the following:
 
-> However, if the guest sends any fsync/msync
-> you would still need to go explicitly cache flush any dirty page
-> because you can't necessarily trust that the guest did that already.
+1/ any paths not currently using the mc safe variant should continue
+not using it to avoid the performance regression on older platforms,
+i.e. drop this patch.
 
-So host dax functionality will already take care of that, IIUC, right?
-I see a dax_flush() call in dax_writeback_one(). I am assuming that's
-the will take care of flushing dirty pages when guest issues
-fsync()/msync(). So probably don't have to do anything extra here.
+2/ add plumbing to switch to mcsafe variant, but only on newer
+platforms, incremental new patch
 
-I think qemu should map files using MAP_SYNC though in this case though.
-Any read/writes to virtiofs files will turn into host file load/store
-operations. So flushcache in guest makes more sense with MAP_SYNC which
-should make sure any filesystem metadata will already persist after
-fault completion. And later guest can do writes followed by flush and
-ensure data persists too.
+3/ always use the mc safe variant, keep this patch
 
-IOW, I probably only need to do following.
-
-- In virtiofs virtual device, add a notion of kind of dax window or memory
-  it supports. So may be some kind of "writethrough" property of virtiofs
-  dax cache.
-
-- Use this property in virtiofs driver to decide whether to use 
-  plain copy_from_iter() or _copy_from_iter_flushcache().
-
-- qemu should use mmap(MAP_SYNC) if host filesystem is on persistent
-  memory.
-
-Thanks
-Vivek
-
+We could go with 3/ and see who screams, because 3/ is smallest
+ongoing maintenance burden. However, I feel like 1/ is the path of
+least resistance until the platforms with the need to do 'careful'
+copying age out of use.
