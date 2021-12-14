@@ -1,70 +1,87 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B3FE173
-	for <nvdimm@lists.linux.dev>; Mon, 13 Dec 2021 20:46:32 +0000 (UTC)
-X-IronPort-AV: E=McAfee;i="6200,9189,10197"; a="238639314"
-X-IronPort-AV: E=Sophos;i="5.88,203,1635231600"; 
-   d="scan'208";a="238639314"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Dec 2021 12:46:31 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,203,1635231600"; 
-   d="scan'208";a="660986846"
-Received: from black.fi.intel.com ([10.237.72.28])
-  by fmsmga001.fm.intel.com with ESMTP; 13 Dec 2021 12:46:29 -0800
-Received: by black.fi.intel.com (Postfix, from userid 1003)
-	id 11196144; Mon, 13 Dec 2021 22:46:35 +0200 (EET)
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Dan Williams <dan.j.williams@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-acpi@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	"Rafael J. Wysocki" <rafael@kernel.org>,
-	Len Brown <lenb@kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 1/1] ACPI: NFIT: Import GUID before use
-Date: Mon, 13 Dec 2021 22:46:32 +0200
-Message-Id: <20211213204632.56735-1-andriy.shevchenko@linux.intel.com>
-X-Mailer: git-send-email 2.33.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C158329CA
+	for <nvdimm@lists.linux.dev>; Tue, 14 Dec 2021 13:59:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1639490345;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=m/5pRcl9h3yj8MAkqvRPCHvPcL0c1vkmrKvq7UUnKBk=;
+	b=UzRdxE/mQTqhVgFF+18bIUa2Tn92UKJxfy17YFX3FmarrZuOVDsoyISMWw4MFQpBWRe4EI
+	+LrPqx9CtcLCnsu8CxCKZcTnRW3oviixIMI+HvwRlyPS7C7JtBSU4sfTwNVILPe/IqXSqm
+	4L11ggliQUMqUeeFcI4ym2sO6+YPmNc=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-93-0kDh8FCsOqi2t6NYQJXz-g-1; Tue, 14 Dec 2021 08:59:04 -0500
+X-MC-Unique: 0kDh8FCsOqi2t6NYQJXz-g-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BA20F1966320;
+	Tue, 14 Dec 2021 13:59:01 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.22.33.95])
+	by smtp.corp.redhat.com (Postfix) with ESMTP id 25B375BE02;
+	Tue, 14 Dec 2021 13:59:01 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+	id A5F242233DF; Tue, 14 Dec 2021 08:59:00 -0500 (EST)
+Date: Tue, 14 Dec 2021 08:59:00 -0500
+From: Vivek Goyal <vgoyal@redhat.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>,
+	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
+	Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@de.ibm.com>,
+	Stefan Hajnoczi <stefanha@redhat.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Matthew Wilcox <willy@infradead.org>,
+	device-mapper development <dm-devel@redhat.com>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	linux-s390 <linux-s390@vger.kernel.org>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	virtualization@lists.linux-foundation.org
+Subject: Re: [PATCH 5/5] dax: always use _copy_mc_to_iter in dax_copy_to_iter
+Message-ID: <YbijJOjhLAwvyNag@redhat.com>
+References: <20211209063828.18944-1-hch@lst.de>
+ <20211209063828.18944-6-hch@lst.de>
+ <YbNejVRF5NQB0r83@redhat.com>
+ <CAPcyv4i_HdnMcq6MmDMt-a5p=ojh_vsoAiES0vUYEh7HvC1O-A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4i_HdnMcq6MmDMt-a5p=ojh_vsoAiES0vUYEh7HvC1O-A@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 
-Strictly speaking the comparison between guid_t and raw buffer
-is not correct. Import GUID to variable of guid_t type and then
-compare.
+On Sun, Dec 12, 2021 at 06:48:05AM -0800, Dan Williams wrote:
+> On Fri, Dec 10, 2021 at 6:05 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > On Thu, Dec 09, 2021 at 07:38:28AM +0100, Christoph Hellwig wrote:
+> > > While using the MC-safe copy routines is rather pointless on a virtual device
+> > > like virtiofs,
+> >
+> > I was wondering about that. Is it completely pointless.
+> >
+> > Typically we are just mapping host page cache into qemu address space.
+> > That shows as virtiofs device pfn in guest and that pfn is mapped into
+> > guest application address space in mmap() call.
+> >
+> > Given on host its DRAM, so I would not expect machine check on load side
+> > so there was no need to use machine check safe variant.
+> 
+> That's a broken assumption, DRAM experiences multi-bit ECC errors.
+> Machine checks, data aborts, etc existed before PMEM.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/nfit/core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+So we should use MC safe variant when loading from DRAM as well?
+(If needed platoform support is there).
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7dd80acf92c7..e5d7f2bda13f 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -678,10 +678,12 @@ static const char *spa_type_name(u16 type)
- 
- int nfit_spa_type(struct acpi_nfit_system_address *spa)
- {
-+	guid_t guid;
- 	int i;
- 
-+	import_guid(&guid, spa->range_guid);
- 	for (i = 0; i < NFIT_UUID_MAX; i++)
--		if (guid_equal(to_nfit_uuid(i), (guid_t *)&spa->range_guid))
-+		if (guid_equal(to_nfit_uuid(i), &guid))
- 			return i;
- 	return -1;
- }
--- 
-2.33.0
+Vivek
 
