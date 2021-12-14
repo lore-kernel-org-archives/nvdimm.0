@@ -1,58 +1,32 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7A33B29CA
-	for <nvdimm@lists.linux.dev>; Tue, 14 Dec 2021 14:23:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1639491784;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=QkYkB6Kf2sa6GjT4KwY+Pd7w7SplqbJNTIRwfEOjpBQ=;
-	b=F9ADpoNOFPiVHuqNy0RnqUYfXmMTRxUPbIN/Y8zWzAJcoOmb28Z6OZmNpMgfoC1r3dHTjz
-	nM4/fwl3qCy7qenz5Uxl0Am+51Xopug1GaqioA+m43cpe95DyhSA04DGqgFJi5QV+llyJr
-	byr93UxSUGqbIpj/IdDyMG4jzRXMrpA=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-295-bjU_FyyzOjuDB6MrfzVczw-1; Tue, 14 Dec 2021 09:23:01 -0500
-X-MC-Unique: bjU_FyyzOjuDB6MrfzVczw-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	(using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CD3AD801ADC;
-	Tue, 14 Dec 2021 14:22:58 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.22.33.95])
-	by smtp.corp.redhat.com (Postfix) with ESMTP id 389FC60C9F;
-	Tue, 14 Dec 2021 14:22:43 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-	id 926EA2233DF; Tue, 14 Dec 2021 09:22:42 -0500 (EST)
-Date: Tue, 14 Dec 2021 09:22:42 -0500
-From: Vivek Goyal <vgoyal@redhat.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>,
-	Mike Snitzer <snitzer@redhat.com>, Ira Weiny <ira.weiny@intel.com>,
-	Heiko Carstens <hca@linux.ibm.com>,
-	Vasily Gorbik <gor@linux.ibm.com>,
-	Christian Borntraeger <borntraeger@de.ibm.com>,
-	Stefan Hajnoczi <stefanha@redhat.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Matthew Wilcox <willy@infradead.org>,
-	device-mapper development <dm-devel@redhat.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>,
-	linux-s390 <linux-s390@vger.kernel.org>,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH 4/5] dax: remove the copy_from_iter and copy_to_iter
- methods
-Message-ID: <YbiosqZoG8e6rDkj@redhat.com>
-References: <20211209063828.18944-1-hch@lst.de>
- <20211209063828.18944-5-hch@lst.de>
- <YbNhPXBg7G/ridkV@redhat.com>
- <CAPcyv4g4_yFqDeS+pnAZOxcB=Ua+iArK5mqn0iMG4PX6oL=F_A@mail.gmail.com>
- <20211213082318.GB21462@lst.de>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4330168
+	for <nvdimm@lists.linux.dev>; Tue, 14 Dec 2021 15:40:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=DP7R5DQlRBuwKxAcekVF/e0Cj/7RMiSBN5vbq+wyWeY=; b=nQRaDyHAbRjSXMilHileHFVTOl
+	W98orjLaE9WRiJVUXJ3wC7zh8okI+Go27Xp/k7uI0yz+mZEIkFbRyxVl4DSS1ZG0Mp+awPJpMYfHY
+	LXkzmSK29bKyxXz/n/qTmaZNjtI7DFhl7Bh4qM7+VLJLF2YUsggkl7zC2d0JsM3amVPnA9ay1PL3v
+	91gTgh3+rzRVae1v90xpW3ySE43cn3ukT+pWG2PimwNctXf9yrrxnNCEJhFigoti3TDq8iOzDmreM
+	jok5306ShlfiSR9NmhONLA+t6CpLjNbnPj51Kl1eIQ5AwpC1CRl6DaI84ZWWZ9T8gObaGjiR7kQRA
+	nPSSWXqw==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mx9uu-00Ej1C-74; Tue, 14 Dec 2021 15:40:36 +0000
+Date: Tue, 14 Dec 2021 07:40:36 -0800
+From: Christoph Hellwig <hch@infradead.org>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev, linux-mm@kvack.org,
+	linux-fsdevel@vger.kernel.org, djwong@kernel.org,
+	dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org,
+	jane.chu@oracle.com
+Subject: Re: [PATCH v8 1/9] dax: Use percpu rwsem for dax_{read,write}_lock()
+Message-ID: <Ybi69MCK5sP4ebwG@infradead.org>
+References: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
+ <20211202084856.1285285-2-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -61,53 +35,15 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20211213082318.GB21462@lst.de>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+In-Reply-To: <20211202084856.1285285-2-ruansy.fnst@fujitsu.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-On Mon, Dec 13, 2021 at 09:23:18AM +0100, Christoph Hellwig wrote:
-> On Sun, Dec 12, 2021 at 06:44:26AM -0800, Dan Williams wrote:
-> > On Fri, Dec 10, 2021 at 6:17 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > Going forward, I am wondering should virtiofs use flushcache version as
-> > > well. What if host filesystem is using DAX and mapping persistent memory
-> > > pfn directly into qemu address space. I have never tested that.
-> > >
-> > > Right now we are relying on applications to do fsync/msync on virtiofs
-> > > for data persistence.
-> > 
-> > This sounds like it would need coordination with a paravirtualized
-> > driver that can indicate whether the host side is pmem or not, like
-> > the virtio_pmem driver. However, if the guest sends any fsync/msync
-> > you would still need to go explicitly cache flush any dirty page
-> > because you can't necessarily trust that the guest did that already.
-> 
-> Do we?  The application can't really know what backend it is on, so
-> it sounds like the current virtiofs implementation doesn't really, does it?
+On Thu, Dec 02, 2021 at 04:48:48PM +0800, Shiyang Ruan wrote:
+> In order to introduce dax holder registration, we need a write lock for
+> dax.  Change the current lock to percpu_rw_semaphore and introduce a
+> write lock for registration.
 
-Agreed that application does not know what backend it is on. So virtiofs
-just offers regular posix API where applications have to do fsync/msync
-for data persistence. No support for mmap(MAP_SYNC). We don't offer persistent
-memory programming model on virtiofs. That's not the expectation. DAX 
-is used only to bypass guest page cache.
+Why do we need to change the existing, global locking for that?
 
-With this assumption, I think we might not have to use flushcache version
-at all even if shared filesystem is on persistent memory on host. 
-
-- We mmap() host files into qemu address space. So any dax store in virtiofs
-  should make corresponding pages dirty in page cache on host and when
-  and fsync()/msync() comes later, it should flush all the data to PMEM.
-
-- In case of file extending writes, virtiofs falls back to regular
-  FUSE_WRITE path (and not use DAX), and in that case host pmem driver
-  should make sure writes are flushed to pmem immediately.
-
-Are there any other path I am missing. If not, looks like we might not
-have to use flushcache version in virtiofs at all as long as we are not
-offering guest applications user space flushes and MAP_SYNC support.
-
-We still might have to use machine check safe variant though as loads
-might generate synchronous machine check. What's not clear to me is
-that if this MC safe variant should be used only in case of PMEM or
-should it be used in case of non-PMEM as well.
-
-Vivek
-
+What is the impact of this to benchmarks?  Also if we stop using srcu
+protection, we should be able to get rid of grace periods or RCU frees.
