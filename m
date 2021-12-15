@@ -1,160 +1,439 @@
-Received: from mail-pl1-f171.google.com (mail-pl1-f171.google.com [209.85.214.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 079DC2CA4
-	for <nvdimm@lists.linux.dev>; Tue, 14 Dec 2021 23:43:49 +0000 (UTC)
-Received: by mail-pl1-f171.google.com with SMTP id y7so14904182plp.0
-        for <nvdimm@lists.linux.dev>; Tue, 14 Dec 2021 15:43:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9ZgiCaY5T0l0ZMYR/Mztq5hUwLAkj4TagBnnAdRgHzk=;
-        b=o60Xt32UY2brLgl906BjCGYAiHBp6YXZoHuzVMpf/TBtDvCHXRupMf0YCfnhHpR+Vo
-         ENpVSux42eejaXSB6ZEshx3h13Zl9SmbgbENxP6Ri1p6CwkmqTTn5hcYInIIzggrD8/X
-         gk3rCFal8xdLl4fMLMU5kKB5ailzqJJUhzcKFZshEt9xR/KcqWhkCKR1oyUBKFMLV449
-         YYf1FurMhK2QwH/5A3k4eF4RmNfF8RGS96hg8jqQJNZVfEceTwyccP/YcyOJyHahBQhv
-         O6h7DDmQmI+W7XhAIKaIuECI8c4odfFfK9I0cfRBHiNPO6uLMRPqzSJyCmjraYWSUCnC
-         i3gg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9ZgiCaY5T0l0ZMYR/Mztq5hUwLAkj4TagBnnAdRgHzk=;
-        b=m6/mS7OGJXhIb6Jo++SxHYxJG0I7afBl9m8wgcqvlNbCq0ftDFovPlFo/nm1sFjAYW
-         UT8KQrwl6EhlyFFHi3tXzuPgMvhtvaME7OBuJLt3d9F9z56BkiD2+CnhTet+KJs5mD64
-         4JAkwsJnMfwTI8/pSIPi0yoBLCXpa9UK2WkO/6DiHnuW+qTUXQRUsc+lBytu7gus5nhO
-         fLF0MItw9wet+S7RWX+dT8veCwzf/SaqCppRRzy+vmW3nAC+fOKex0B2raHnWyvUK0Eb
-         3vTUcyOp3wu9U1kkjeIGLIYhkHxz9sPqsIkxegvZ9e2nmKGj5N+UPVWr+rxqgGP3nFv2
-         MaVQ==
-X-Gm-Message-State: AOAM532255Ul8RlUMpZFhYk34XoR43wfn4UCTmxabdhM4JFfyRay49ej
-	u7b9sYuZAYvN17pf9L7FBe0VN4/cY0JmHXAg9Fin9g==
-X-Google-Smtp-Source: ABdhPJy+4yBj3d67HMDz3DTq4QLF9yJ3cfSdJiIkjC96epZNko/gKghY4BBpEhMwNLi1UZe5rRHfaBU5MSuVxaK2JYI=
-X-Received: by 2002:a17:90b:1e07:: with SMTP id pg7mr8641641pjb.93.1639525429353;
- Tue, 14 Dec 2021 15:43:49 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFEFD68
+	for <nvdimm@lists.linux.dev>; Wed, 15 Dec 2021 02:01:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1639533700; x=1671069700;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=U20nyyEoj+csLH5pbQ+ETBDoOx42ji5shnMmCW347zQ=;
+  b=DRQDCIq91BGTT6XLYkRz4B5Ucb+4w6nbHwsVwavY2HNtAq2acWKMQYgj
+   GOb0y4gp2BGXTXbUf57n4SoCV49Vsc7uXBCH0XaQaMeqVjWDQUoLd1+L2
+   AniPQMn1y7nun9Sn/5WFt0FXzwRTBp8cLtbEBrR2VegrXwE+FD83s9Ai/
+   SZCsvSRZlu5BDuFBWKE7X5QMHXDB44B6KhiHNaOoLLrIVAmZAleQA5iac
+   9r80SgUFxZoXSxgauSrdGEuUCVjNxdX1pTxG84jh8M8SdNKyNbRNXn0dS
+   jwOeEvThqfxwqwDNddDiohS+DprDZJJHQ0pC2io3tx4TjTcFLAtdddhH+
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10198"; a="302503385"
+X-IronPort-AV: E=Sophos;i="5.88,207,1635231600"; 
+   d="scan'208";a="302503385"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2021 18:01:13 -0800
+X-IronPort-AV: E=Sophos;i="5.88,207,1635231600"; 
+   d="scan'208";a="465342029"
+Received: from ooniyind-mobl.amr.corp.intel.com (HELO vverma7-mobl4.amr.corp.intel.com) ([10.254.4.114])
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2021 18:01:13 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <nvdimm@lists.linux.dev>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Ben Widawsky <ben.widawsky@intel.com>,
+	<linux-cxl@vger.kernel.org>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] scripts: Add a man page template generator
+Date: Tue, 14 Dec 2021 19:01:02 -0700
+Message-Id: <20211215020102.97880-1-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.33.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211209063828.18944-1-hch@lst.de> <20211209063828.18944-5-hch@lst.de>
- <YbNhPXBg7G/ridkV@redhat.com> <CAPcyv4g4_yFqDeS+pnAZOxcB=Ua+iArK5mqn0iMG4PX6oL=F_A@mail.gmail.com>
- <20211213082318.GB21462@lst.de> <YbiosqZoG8e6rDkj@redhat.com>
- <CAPcyv4hFjKsPrPTB4NtLHiY8gyaELz9+45N1OFj3hz+uJ=9JnA@mail.gmail.com> <Ybj/azxrUyU4PZEr@redhat.com>
-In-Reply-To: <Ybj/azxrUyU4PZEr@redhat.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 14 Dec 2021 15:43:38 -0800
-Message-ID: <CAPcyv4h_iFe8U8UrXCbhAYaruFm-xg0n_U3H8wnK-uGoEubTvw@mail.gmail.com>
-Subject: Re: [PATCH 4/5] dax: remove the copy_from_iter and copy_to_iter methods
-To: Vivek Goyal <vgoyal@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>, Mike Snitzer <snitzer@redhat.com>, 
-	Ira Weiny <ira.weiny@intel.com>, Heiko Carstens <hca@linux.ibm.com>, 
-	Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, 
-	Stefan Hajnoczi <stefanha@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Matthew Wilcox <willy@infradead.org>, device-mapper development <dm-devel@redhat.com>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-s390 <linux-s390@vger.kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, virtualization@lists.linux-foundation.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-On Tue, Dec 14, 2021 at 12:33 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Tue, Dec 14, 2021 at 08:41:30AM -0800, Dan Williams wrote:
-> > On Tue, Dec 14, 2021 at 6:23 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > >
-> > > On Mon, Dec 13, 2021 at 09:23:18AM +0100, Christoph Hellwig wrote:
-> > > > On Sun, Dec 12, 2021 at 06:44:26AM -0800, Dan Williams wrote:
-> > > > > On Fri, Dec 10, 2021 at 6:17 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > > > > Going forward, I am wondering should virtiofs use flushcache version as
-> > > > > > well. What if host filesystem is using DAX and mapping persistent memory
-> > > > > > pfn directly into qemu address space. I have never tested that.
-> > > > > >
-> > > > > > Right now we are relying on applications to do fsync/msync on virtiofs
-> > > > > > for data persistence.
-> > > > >
-> > > > > This sounds like it would need coordination with a paravirtualized
-> > > > > driver that can indicate whether the host side is pmem or not, like
-> > > > > the virtio_pmem driver. However, if the guest sends any fsync/msync
-> > > > > you would still need to go explicitly cache flush any dirty page
-> > > > > because you can't necessarily trust that the guest did that already.
-> > > >
-> > > > Do we?  The application can't really know what backend it is on, so
-> > > > it sounds like the current virtiofs implementation doesn't really, does it?
-> > >
-> > > Agreed that application does not know what backend it is on. So virtiofs
-> > > just offers regular posix API where applications have to do fsync/msync
-> > > for data persistence. No support for mmap(MAP_SYNC). We don't offer persistent
-> > > memory programming model on virtiofs. That's not the expectation. DAX
-> > > is used only to bypass guest page cache.
-> > >
-> > > With this assumption, I think we might not have to use flushcache version
-> > > at all even if shared filesystem is on persistent memory on host.
-> > >
-> > > - We mmap() host files into qemu address space. So any dax store in virtiofs
-> > >   should make corresponding pages dirty in page cache on host and when
-> > >   and fsync()/msync() comes later, it should flush all the data to PMEM.
-> > >
-> > > - In case of file extending writes, virtiofs falls back to regular
-> > >   FUSE_WRITE path (and not use DAX), and in that case host pmem driver
-> > >   should make sure writes are flushed to pmem immediately.
-> > >
-> > > Are there any other path I am missing. If not, looks like we might not
-> > > have to use flushcache version in virtiofs at all as long as we are not
-> > > offering guest applications user space flushes and MAP_SYNC support.
-> > >
-> > > We still might have to use machine check safe variant though as loads
-> > > might generate synchronous machine check. What's not clear to me is
-> > > that if this MC safe variant should be used only in case of PMEM or
-> > > should it be used in case of non-PMEM as well.
-> >
-> > It should be used on any memory address that can throw exception on
-> > load, which is any physical address, in paths that can tolerate
-> > memcpy() returning an error code, most I/O paths, and can tolerate
-> > slower copy performance on older platforms that do not support MC
-> > recovery with fast string operations, to date that's only PMEM users.
->
-> Ok, So basically latest cpus can do fast string operations with MC
-> recovery so that using MC safe variant is not a problem.
->
-> Then there is range of cpus which can do MC recovery but do slower
-> versions of memcpy and that's where the issue is.
->
-> So if we knew that virtiofs dax window is backed by a pmem device
-> then we should always use MC safe variant. Even if it means paying
-> the price of slow version for the sake of correctness.
->
-> But if we are not using pmem on host, then there is no point in
-> using MC safe variant.
->
-> IOW.
->
->         if (virtiofs_backed_by_pmem) {
+Add a script to generate man page templates for the utils and libraries
+under ndctl - including cxl, libcxl, ndctl, and daxctl.
 
-No, PMEM should not be considered at all relative to whether to use MC
-or not, it is 100% a decision of whether you expect virtiofs users
-will balk more at unhandled machine checks or performance regressions
-on the platforms that set "enable_copy_mc_fragile()". See
-quirk_intel_brickland_xeon_ras_cap() and
-quirk_intel_purley_xeon_ras_cap() in arch/x86/kernel/quirks.c.
+The script can control certain include options depending on the options
+supplied, and either dump the templates to stdout, or write the actual
+files in their eventual directories, and open up an editor to further
+edit them (unless --no-edit is used).
 
->                 use_mc_safe_version
->         else
->                 use_non_mc_safe_version
->         }
->
-> Now question is, how do we know if virtiofs dax window is backed by
-> a pmem or not. I checked virtio_pmem driver and that does not seem
-> to communicate anything like that. It just communicates start of the
-> range and size of range, nothing else.
->
-> I don't have full handle on stack of modules of virtio_pmem, but my guess
-> is it probably is using MC safe version always (because it does not
-> know anthing about the backing storage).
->
-> /me will definitely like to pay penalty of slower memcpy if virtiofs
-> device is not backed by a pmem.
+Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ scripts/docsurgeon                     | 339 +++++++++++++++++++++++++
+ scripts/docsurgeon_parser_generator.m4 |  23 ++
+ 2 files changed, 362 insertions(+)
+ create mode 100755 scripts/docsurgeon
+ create mode 100644 scripts/docsurgeon_parser_generator.m4
 
-I assume you meant "not like", but again PMEM has no bearing on
-whether using that device will throw machine checks. I'm sure there
-are people that would make the opposite tradeoff.
+diff --git a/scripts/docsurgeon b/scripts/docsurgeon
+new file mode 100755
+index 0000000..ca0ad78
+--- /dev/null
++++ b/scripts/docsurgeon
+@@ -0,0 +1,339 @@
++#!/bin/bash -eE
++
++this_script="docsurgeon"
++script_dir="$(cd "$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")" && pwd)"
++env_file="${script_dir}/.env"
++if [ -e "$env_file" ]; then
++	# shellcheck source=.env
++	. "$env_file"
++fi
++
++sources_file="${script_dir}/.sources"
++
++parser_generator="${script_dir}/${this_script}_parser_generator.m4"
++parser_lib="${script_dir}/${this_script}_parser.sh"
++if [ ! -e "$parser_lib" ] || [ "$parser_generator" -nt "$parser_lib" ]; then
++	if command -V argbash > /dev/null; then
++		argbash --strip user-content "$parser_generator" -o "$parser_lib"
++	else
++		echo "error: please install argbash" >&2
++		exit 1
++	fi
++fi
++
++if [[ $1 != "bin" ]]; then
++	# shellcheck source=docsurgeon_parser.sh
++	. "${script_dir}/${this_script}_parser.sh" || { echo "Couldn't find $parser_lib" >&2; exit 1; }
++fi
++
++# some script defaults - override using '.env'
++docbase="Documentation"
++copyright_cli="// SPDX-License-Identifier: GPL-2.0"
++copyright_footer_cli="include::../copyright.txt[]"
++copyright_lib="// SPDX-License-Identifier: LGPL-2.0"
++copyright_footer_lib="include::../../copyright.txt[]"
++
++# List of files we're creating, to be edited/renamed later
++# This starts out blank, and is filled in as we go by gen_*() functions
++declare -a outfiles
++
++cleanup()
++{
++	if [ ${#outfiles[@]} -gt 0 ]; then
++		rm -f "${outfiles[@]}"
++	fi
++	set +x
++}
++
++trap cleanup EXIT
++
++auto_detect_params()
++{
++	fs=""
++	module=""
++	section=""
++
++	# if module and section were explicitly specified, respect them
++	if [[ $_arg_module ]] && [[ $_arg_section ]]; then
++		return
++	fi
++
++	# check if names are self-consistent, and determine 'fs'
++	for name in ${_arg_name[@]}; do
++		if [[ ! $fs ]]; then
++			if [[ $name == *-* ]]; then
++				fs="-"
++			elif [[ $name == *_* ]]; then
++				fs="_"
++			else
++				# can't autodetect section
++				return
++			fi
++		fi
++		if [[ $fs == "-" ]] && [[ $name == *_* ]]; then
++			die "can't auto-detect params with mixed-style names"
++		fi
++		if [[ $fs == "_" ]] && [[ $name == *-* ]]; then
++			die "can't auto-detect params with mixed-style names"
++		fi
++	done
++
++	# try to detect module name
++	for name in ${_arg_name[@]}; do
++		str=${name%%$fs*}
++		if [[ $module ]]; then
++			if [[ $str != $module ]]; then
++				die "Can't autodetect module because of mixed names ($str and $module)"
++			fi
++		else
++			module="$str"
++		fi
++	done
++
++	# try to detect section number
++	case "$fs" in
++	-)
++		section=1
++		;;
++	_)
++		section=3
++		;;
++	*)
++		die "Unknown fs, can't autodetect section number"
++		;;
++	esac
++
++	if [[ $module ]]; then
++		_arg_module="$module"
++	fi
++	if [[ $section ]]; then
++		_arg_section="$section"
++	fi
++}
++
++process_options_logic()
++{
++	if [[ $_arg_debug == "on" ]]; then
++		set -x
++	fi
++
++	auto_detect_params
++}
++
++gen_underline()
++{
++	name="$1"
++	char="$2"
++	num="${#name}"
++
++	printf -v tmpstring "%-${num}s" " "
++	echo "${tmpstring// /$char}"
++}
++
++gen_header()
++{
++	printf "\n%s\n%s\n" "$1" "$(gen_underline "$1" "=")"
++}
++
++gen_section()
++{
++	printf "\n%s\n%s\n" "$1" "$(gen_underline "$1" "-")"
++}
++
++gen_section_name()
++{
++	name="$1"
++
++	gen_section "NAME"
++	cat <<- EOF
++		$name - 
++	EOF
++}
++
++gen_section_synopsis_1()
++{
++	name="$1"
++
++	gen_section "SYNOPSIS"
++	cat <<- EOF
++		[verse]
++		'$_arg_module ${name#*-} [<options>]'
++	EOF
++}
++
++gen_section_synopsis_3()
++{
++	name="$1"
++
++	gen_section "SYNOPSIS"
++	cat <<- EOF
++		[verse]
++		----
++		#include <$_arg_module/lib$_arg_module.h>
++
++		<type> $name();
++		----
++	EOF
++}
++
++gen_section_example_1()
++{
++	name="$1"
++
++	gen_section "EXAMPLE"
++	cat <<- EOF
++		----
++		# $_arg_module ${name#*-}
++		----
++	EOF
++}
++
++gen_section_example_3()
++{
++	name="$1"
++
++	gen_section "EXAMPLE"
++	cat <<- EOF
++		See example usage in test/lib$_arg_module.c
++	EOF
++}
++
++gen_section_options_1()
++{
++	gen_section "OPTIONS"
++cat << EOF
++-o::
++--option::
++	Description
++EOF
++
++	if [[ $_arg_human_option == "on" ]]; then
++		printf "\n%s\n" "include::human-option.txt[]"
++	fi
++	if [[ $_arg_verbose_option == "on" ]]; then
++		printf "\n%s\n" "include::verbose-option.txt[]"
++	fi
++}
++
++gen_section_seealso_1()
++{
++	gen_section "SEE ALSO"
++	cat <<- EOF
++	link$_arg_module:$_arg_module-list[$_arg_section],
++	EOF
++}
++
++gen_section_seealso_3()
++{
++	gen_section "SEE ALSO"
++	cat <<- EOF
++	linklib$_arg_module:${_arg_module}_other_API[$_arg_section],
++	EOF
++}
++
++gen_cli()
++{
++	name="$1"
++	path="$docbase/$_arg_module"
++	if [ ! -d "$path" ]; then
++		die "Not found: $path"
++	fi
++
++	tmp="$(mktemp -p "$path" "$name.txt.XXXX")"
++	outfiles+=("$tmp")
++
++	# Start template generation
++	printf "%s\n" "$copyright_cli" > "$tmp"
++	gen_header "$name" >> "$tmp"
++	gen_section_name "$name" >> "$tmp"
++	gen_section_synopsis_1 "$name" >> "$tmp"
++	gen_section "DESCRIPTION" >> "$tmp"
++	gen_section_example_1 "$name" >> "$tmp"
++	gen_section_options_1 >> "$tmp"
++	printf "\n%s\n" "$copyright_footer_cli" >> "$tmp"
++	gen_section_seealso_1 >> "$tmp"
++}
++
++gen_lib()
++{
++	name="$1"
++	path="$docbase/$_arg_module/lib"
++	if [ ! -d "$path" ]; then
++		die "Not found: $path"
++	fi
++
++	tmp="$(mktemp -p "$path" "$name.txt.XXXX")"
++	outfiles+=("$tmp")
++
++	# Start template generation
++	printf "%s\n" "$copyright_lib" > "$tmp"
++	gen_header "$name($_arg_section)" >> "$tmp"
++	gen_section_name "$name" >> "$tmp"
++	gen_section_synopsis_3 "$name" >> "$tmp"
++	gen_section "DESCRIPTION" >> "$tmp"
++	gen_section "RETURN VALUE" >> "$tmp"
++	gen_section_example_3 "$name" >> "$tmp"
++	printf "\n%s\n" "$copyright_footer_lib" >> "$tmp"
++	gen_section_seealso_3 >> "$tmp"
++}
++
++gen_man()
++{
++	name="$1"
++	case "$_arg_section" in
++	1)
++		gen_cli "$name"
++		;;
++	3)
++		gen_lib "$name"
++		;;
++	*)
++		die "Unknown section: $_arg_section"
++		;;
++	esac
++}
++
++gen_include()
++{
++	echo "in gen_include"
++}
++
++main()
++{
++	process_options_logic
++
++	cmd="$_arg_command"
++	case "$cmd" in
++	gen-man)
++		for name in ${_arg_name[@]}; do
++			gen_man "$name"
++		done
++		;;
++	gen-include)
++		for name in ${_arg_name[@]}; do
++			gen_include
++		done
++		;;
++	*)
++		die "Unknown command: $cmd"
++		;;
++	esac
++
++	if [[ $_arg_dump == "on" ]]; then
++		for file in ${outfiles[@]}; do
++			echo "${file##*/}"
++			cat "$file"
++			rm "$file"
++		done
++	elif [ ${#outfiles[@]} -gt 0 ]; then
++		if [[ $_arg_edit = "on" ]]; then
++			vim -p "${outfiles[@]}"
++		fi
++
++		for file in ${outfiles[@]}; do
++			mv "$file" "${file%.*}"
++		done
++	fi
++}
++
++main "$@"
+diff --git a/scripts/docsurgeon_parser_generator.m4 b/scripts/docsurgeon_parser_generator.m4
+new file mode 100644
+index 0000000..9283c7c
+--- /dev/null
++++ b/scripts/docsurgeon_parser_generator.m4
+@@ -0,0 +1,23 @@
++#!/bin/bash
++
++# m4_ignore(
++echo "This is just a parsing library template, not the library - pass this file to 'argbash' to fix this." >&2
++exit 11  #)Created by argbash-init v2.9.0
++# Rearrange the order of options below according to what you would like to see in the help message.
++# ARG_OPTIONAL_REPEATED([name], [n], [Command or function name to generate a template for.\n Can be repeated for multiple names. ], [])
++# ARG_OPTIONAL_BOOLEAN([edit], [e], [Edit template files after creation], [on])
++# ARG_OPTIONAL_BOOLEAN([debug], [], [Debug script problems (enables set -x)], )
++# ARG_OPTIONAL_BOOLEAN([dump], [], [Write generated file to stdout instead of a file], )
++# ARG_OPTIONAL_SINGLE([module], [m], [Module (Docs subdir) in which to create the template], [])
++# ARG_OPTIONAL_SINGLE([section], [s], [man section for which to create the template], [])
++# ARG_OPTIONAL_BOOLEAN([human-option], [u], [Include the human option in 'OPTIONS'], )
++# ARG_OPTIONAL_BOOLEAN([verbose-option], [V], [Include the verbose option in 'OPTIONS'], )
++# ARG_POSITIONAL_DOUBLEDASH()
++# ARG_POSITIONAL_SINGLE([command], [Operation to perform:\n  gen-man\n  gen-include], [])
++# ARGBASH_SET_DELIM([ =])
++# ARG_OPTION_STACKING([getopt])
++# ARG_RESTRICT_VALUES([no-local-options])
++# ARG_DEFAULTS_POS
++# ARG_HELP([Tool to aid in creating and managing man page templates])
++# ARG_VERSION([echo "docsurgeon 0.1"])
++# ARGBASH_GO
+-- 
+2.33.1
+
