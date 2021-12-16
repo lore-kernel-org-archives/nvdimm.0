@@ -1,58 +1,81 @@
-Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F14AC2CA4
-	for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 07:46:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Transfer-Encoding
-	:Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
-	Sender:Reply-To:Content-ID:Content-Description;
-	bh=vcE5xITae30eveBT3POA+xHhwo2Q6buP3s15knpDWAk=; b=1NvmtU84iD7rhEWYoHr3V3n88g
-	OAJv7aoNOrpLdpLwN8Oz1upyeMGK/mS64MImUsI38e4fdymihSix5zkisblNC5odr4juDFRln35AQ
-	EzhZztmT5R5QcInMeeDB5xf3XRyYjdi+efc29SWqeqZkXVbEW39ooh60jz/vKIzSsU7nlldOK0p0/
-	ftgA8nvk6MWFFruogKAYWMmVVquHEwUgBJbKRT2wpBOblDRSsQeMhPsnKQf/JGTwwnlBlf/lAOCSJ
-	/3iBEI/gRQZS6DLZRwJBFGHWhHKWsgvIMqgVl6T6Y2onPefoluFKObDyY0Q6PSGBnCX4xAq40mGvI
-	DFEH4FAw==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-	id 1mxlTD-0040QN-VT; Thu, 16 Dec 2021 07:46:31 +0000
-Date: Wed, 15 Dec 2021 23:46:31 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Christoph Hellwig <hch@infradead.org>, linux-kernel@vger.kernel.org,
-	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org,
-	djwong@kernel.org, dan.j.williams@intel.com, david@fromorbit.com,
-	jane.chu@oracle.com
-Subject: Re: [PATCH v8 7/9] dax: add dax holder helper for filesystems
-Message-ID: <Ybru12651I+lETBq@infradead.org>
-References: <20211202084856.1285285-1-ruansy.fnst@fujitsu.com>
- <20211202084856.1285285-8-ruansy.fnst@fujitsu.com>
- <Ybi8pmieExZbd/Ee@infradead.org>
- <2c0d1b44-5b7f-f4d0-a7ca-0cf692a0cdd4@fujitsu.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 297BA2CA6
+	for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 21:42:55 +0000 (UTC)
+Received: by mail-pl1-f179.google.com with SMTP id e17so116598plh.8
+        for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 13:42:55 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=cQVeVWU9oA4d3CXlghCMlJitW2bEA58vYcUtDB3M1Eo=;
+        b=f7N6DhGAey1dvvJH9N0sqmsvVaBOJfh+F/pi827mS9bBRNLTZ7pVY4ebvpvYX+bNqK
+         LOT9R1E1XIpCGe+9Ec+kJdxT+mz4mRsl8EOl1JmevQkOaPqjxNuluwr31fM4OpROFkd2
+         R9yyM7KS2Sx5ynj/AQQTxuahm+0W3WlIiK0mGlUc+RrqJsWxs9Ab4dl7TmCAzSfP01Lk
+         vAJ/lim2Lj/ONnDMGgfFfYjF4KikstPg5AUr/kUld+NAa7iKhTKcz1nF/cvyNEsq5B2G
+         elooGb2j9R4pUOdK+3BSfRB/zvSXlCIEprDckBrsCD5HsuFqIF4HrJi1QtCgB8D/1iy0
+         EZvg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=cQVeVWU9oA4d3CXlghCMlJitW2bEA58vYcUtDB3M1Eo=;
+        b=BIOmuOxlrY6ejy8SG4nKtO5oyWIghH40dxRHAThnvWp/+YWv0qZr3YvsXTODl0XWrm
+         yZiZYAzCJLrXX09+a8CkQ8KdZW63oxFN4dOyITnDDG1TCT4DbTclDBwxfpyuLEqGlIsb
+         K90cKm1zLNvU9n5ywWNWYA162KbvbL3NdjQ4piLDH+0w7TiJIY+0BCFsiceqyPth3wgk
+         wATsiA37yhiVnyIDaYNZmQRLxIzQA0+rVVJwnWyLWKyPRLxWXDju/+FeeJjayKwcvnPO
+         Exo1riWoFoaz6zQI1sksnZkRgxh6b2XNmoY00mxXAfwVJcuAnbq8pZOSuhfKxuoQpIR7
+         WTIA==
+X-Gm-Message-State: AOAM5319OpMLjXBK5P+R13G5LiHufV+nStx/6s8FNNuorZEMswjj6f1i
+	1QKCBKMuGjQRJ2drOtOMkTDa+636C19kFpcsDgGBhQ==
+X-Google-Smtp-Source: ABdhPJzlqo161UByxDLElKvsOBIO6C6ADy+5aY+f9JsLekq7YMQPcbtDWctAwuT4e2icTl4Eyy1F0xtSF8mRaqcuSi4=
+X-Received: by 2002:a17:90b:1e49:: with SMTP id pi9mr51217pjb.220.1639690975486;
+ Thu, 16 Dec 2021 13:42:55 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2c0d1b44-5b7f-f4d0-a7ca-0cf692a0cdd4@fujitsu.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20211210223440.3946603-1-vishal.l.verma@intel.com> <20211210223440.3946603-2-vishal.l.verma@intel.com>
+In-Reply-To: <20211210223440.3946603-2-vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 16 Dec 2021 13:42:44 -0800
+Message-ID: <CAPcyv4g=jfpUQ1h09MXdDy+t7Ur3ynPP0XurSfOM7gzUPbYYpg@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 01/11] ndctl, util: add parse-configs helper
+To: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, QI Fuli <qi.fuli@jp.fujitsu.com>, 
+	"Hu, Fenghua" <fenghua.hu@intel.com>, QI Fuli <qi.fuli@fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Dec 15, 2021 at 10:21:00AM +0800, Shiyang Ruan wrote:
-> 
-> 
-> 在 2021/12/14 23:47, Christoph Hellwig 写道:
-> > On Thu, Dec 02, 2021 at 04:48:54PM +0800, Shiyang Ruan wrote:
-> > > Add these helper functions, and export them for filesystem use.
-> > 
-> > What is the point of adding these wrappers vs just calling the
-> > underlying functions?
-> 
-> I added them so that they can be called in a friendly way, even if
-> CONFIG_DAX is off.  Otherwise, we need #if IS_ENABLED(CONFIG_DAX) to wrap
-> them where they are called.
+On Fri, Dec 10, 2021 at 2:34 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+>
+> From: QI Fuli <qi.fuli@fujitsu.com>
+>
+> Add parse-config util to help ndctl commands parse ndctl global
+> configuration files. This provides a parse_configs_prefix() helper which
+> uses the iniparser APIs to read all applicable config files, and either
+> return a 'value' for a requested 'key', or perform a callback if
+> requested. The operation is defined by a 'struct config' which
+> encapsulates the key to search for, the location to store the value, and
+> any callbacks to be executed.
+>
+> Signed-off-by: QI Fuli <qi.fuli@fujitsu.com>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+[..]
+> diff --git a/ndctl/Makefile.am b/ndctl/Makefile.am
+> index a63b1e0..afdd03c 100644
+> --- a/ndctl/Makefile.am
+> +++ b/ndctl/Makefile.am
+> @@ -56,7 +56,8 @@ ndctl_LDADD =\
+>         ../libutil.a \
+>         $(UUID_LIBS) \
+>         $(KMOD_LIBS) \
+> -       $(JSON_LIBS)
+> +       $(JSON_LIBS) \
+> +       -liniparser
 
-No need for wrappers, you can stub out the underlying functions as well.
+Darn, no pkgconfig for iniparser. Oh well.
+
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
