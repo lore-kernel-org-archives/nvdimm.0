@@ -1,71 +1,88 @@
-Received: from mail-pj1-f49.google.com (mail-pj1-f49.google.com [209.85.216.49])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D515A29CA
-	for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 22:45:35 +0000 (UTC)
-Received: by mail-pj1-f49.google.com with SMTP id np3so481161pjb.4
-        for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 14:45:35 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30D3F29CA
+	for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 23:03:41 +0000 (UTC)
+Received: by mail-pj1-f52.google.com with SMTP id fv9-20020a17090b0e8900b001a6a5ab1392so849663pjb.1
+        for <nvdimm@lists.linux.dev>; Thu, 16 Dec 2021 15:03:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=AU5bvcnjro+pUZR0IisP79Qq2ETu+5BdWmCxxNFkA+g=;
-        b=kBUkDqiB5vbKn2Ft14KOvH8TMvu6IfB4naFo5DBYOQUoB12EGGyQA/L4GWWzv96NV7
-         V9oihq83zEtIGiZ+YhyShqCSPBNkWV1HO2E3rQhELhKgS9fP+uyjs28SPRlKpsDfx0PR
-         fTy4+SrZGA/oa3e/Wh3KRAsSrPtWLqbntVuaEsJgMbL1m1o5Txv3WUPaux9hAwn+98Jl
-         lP5Cs+gCdlUVzMx63tf3603P0oPBYAMCkeNMSNLitTUp0DTawJibSmVx3Lxhr0V17wA6
-         CsV7fzX1pcJQrQcItDNEgc3YIBN/SVZvWtfVgMycCYyZ/W5Nf4FvQalM1hq3PIrc71Ef
-         P4BA==
+        bh=Bw0QyROHNPSdp4ix5t9doYl+5Cs5DswGlhUBOeLua9A=;
+        b=FDx6FbgThuox+WHY19kVnr8eBsItOyoR4C6/tzN1Reyxe812TdrJcvhx7T0MWTpvu0
+         NwjFlhcZIWaHsD01aCJbiOAxksr+1fTUKY3UnkGyCaAEUJ/ADINT7rZcwx4tVKfr3i2C
+         LK82hUkK3r/RhvDceIqAgtfFUjARZbjj5f81u4BVHx0FPHuzx2taDJoUUc9ebgE6UCuy
+         oeLFGV2WsMjhu5OtVVXF9IrDfsa3xkOJ3AGD+Yz0YR6JQOPhxyNp1ZJz16kby8oVMs1/
+         bj1c/aatvhpOp2jrlLCtrgYvRPHd4YCMpwUDSmUwvFcOt59jnRgnvEW23aZ3UPu5CYUM
+         sfnw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=AU5bvcnjro+pUZR0IisP79Qq2ETu+5BdWmCxxNFkA+g=;
-        b=53fq4LUArsUn8dQ1aTaZkF0CwaicnOW63paujh4KgehqIXyjNrx9XfaEy4f0n6dHHU
-         iW5BohUnJyESwPzlH+FuIfkt94I1BIG6rz99NOnL2hYJTV8/8QDnM4ngw9ik5EVreIVC
-         MG8KYIgpm1Rt5rm5/W/bk1Iv8gDQ/8b32sS6ZETDsEDukmBLsch3/IdzqRH88AjGEUXi
-         HlRIBdnZuBN3/GqvuJS+k4X3IfdpJft/jAYkdpiqv4aJ3IGAdfW/yoVpYpE6NXWh3RKc
-         UPpdgT6x+XrI+KKiqD3FSDAmOncOLTxDQa69rmuj8N79VdQSNsVRK7VhPqVUFZvDEI+g
-         8GKQ==
-X-Gm-Message-State: AOAM532OTfiisIS3xz+GyRmXqGgvm0IkcdysHO5WMIxD2pi9ZmrjwRcs
-	Dk/0618iSqcvByKsJC7g9zdgM28OMCkgSraFwqY3cTJ3sq0=
-X-Google-Smtp-Source: ABdhPJxNYStA3tp30agMpifrnW3iu7s2/TZDm7IpBG9gAN3Ut4yiFDlW+dpMdNg2OhVS1BOjGwRRRjV+5Xa4TEoE5hk=
-X-Received: by 2002:a17:90a:e7ca:: with SMTP id kb10mr8585327pjb.8.1639694735431;
- Thu, 16 Dec 2021 14:45:35 -0800 (PST)
+        bh=Bw0QyROHNPSdp4ix5t9doYl+5Cs5DswGlhUBOeLua9A=;
+        b=S1dEohzhOJMmaNpKo1rgAcpCCTvf3S6Svt6Vs9ZyPuQGxXDH4zJlF9wnWo6iOdQH9r
+         rJSAvPCUgTg7BVo/DCJwfoXFCaootf/aVghzkg3e6YXcCuFzT966r5JZzaRncS0+OhLK
+         uCtAtbQ+e0khpZfmsK4KBaoYn5ZQi0IJDyNgEdXtMvEIpn2tYZ6KnK7XoL74/1ZmlYOq
+         wujvzpf2nR10Rvvpj0x7IjxLTKkwiouk4Vj/ZE7uROA+7rK5k7PTgCS/Im2/P/0P2hIf
+         5CPzapl0rHY2F3TlZlCIkgeks0fZ4GA2hrrkls+2e85VE4J+wQ8pc8QqL0m07aSs6Zw+
+         R7OA==
+X-Gm-Message-State: AOAM533EaLsSLTa4f4I2ss5RYO4qQgx2QY67WfLX9fxIp0IasARy7otU
+	xqu5Jx+44V+uP9mGC1lf3ph/nd4NZ0NYz0cSf+5UBtNRonE=
+X-Google-Smtp-Source: ABdhPJwJWA8hDc5GLT40nyTt39bZyiGk4BN8UKfOF0eV538v9SPOIeYprrikpWyq+HGCdm7lUwEqnJYz4MhJfd3VxdI=
+X-Received: by 2002:a17:902:8b85:b0:148:a2e8:2c35 with SMTP id
+ ay5-20020a1709028b8500b00148a2e82c35mr240723plb.132.1639695820641; Thu, 16
+ Dec 2021 15:03:40 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211210223440.3946603-1-vishal.l.verma@intel.com> <20211210223440.3946603-10-vishal.l.verma@intel.com>
-In-Reply-To: <20211210223440.3946603-10-vishal.l.verma@intel.com>
+References: <20211210223440.3946603-1-vishal.l.verma@intel.com> <20211210223440.3946603-11-vishal.l.verma@intel.com>
+In-Reply-To: <20211210223440.3946603-11-vishal.l.verma@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 16 Dec 2021 14:45:26 -0800
-Message-ID: <CAPcyv4gXVKSfc2=DBS+91p5fv+HanV_XUoFKzjxa3HKKw3pSpA@mail.gmail.com>
-Subject: Re: [ndctl PATCH v3 09/11] daxctl/device.c: add an option for getting
- params from a config file
+Date: Thu, 16 Dec 2021 15:03:31 -0800
+Message-ID: <CAPcyv4jqfS-xyz+y_u9BE1N24JkE+qA5zo3UoygnS02wececdA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 10/11] daxctl: add systemd service and udev rule
+ for automatic reconfiguration
 To: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Linux NVDIMM <nvdimm@lists.linux.dev>, QI Fuli <qi.fuli@jp.fujitsu.com>, 
 	"Hu, Fenghua" <fenghua.hu@intel.com>, QI Fuli <qi.fuli@fujitsu.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Fri, Dec 10, 2021 at 2:35 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
+On Fri, Dec 10, 2021 at 2:34 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
 >
-> Add a new option to daxctl-reconfigure-device that allows it to
-> comprehend the new global config system in ndctl/daxctl. With this, the
-> reconfigure-device command can query the config to match a specific
-> device UUID, and operate using the parameters supplied in that INI
-> section.
+> Install a systemd service that calls "daxctl-reconfigure-device
+> --check-config"  with a daxctl device passed in to it via the
+> environment.
 >
-> This is in preparation to make daxctl device reconfiguration (usually
-> as system-ram) policy based, so that reconfiguration can happen
-> automatically on boot.
+> Install a udev rule that is triggered for every daxctl device, and
+> triggers the above oneshot systemd service.
+>
+> On boot, whenever a daxctl device is found, udev triggers a
+> device-specific systemd service called, for example:
+>
+>   daxdev-reconfigure@-dev-dax0.0.service
+>
+> This initiates a daxctl-reconfigure-device with a config lookup for the
+> 'dax0.0' device. If the config has a '[reconfigure-device <unique_id>]'
+> section, it uses the information in that to set the operating mode of
+> the device.
+>
+> If any device is in an unexpected status, 'journalctl' can be used to
+> view the reconfiguration log for that device, for example:
+>
+>   journalctl --unit daxdev-reconfigure@-dev-dax0.0.service
+>
+> Update the RPM spec file to include the newly added files to the RPM
+> build.
 >
 > Cc: QI Fuli <qi.fuli@fujitsu.com>
 > Cc: Dan Williams <dan.j.williams@intel.com>
 > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 
-LGTM
+LGTM. I don't know if udev rule numbering is correct, or not, but I
+suspect the distros will tell us or fix it up in the distro package.
 
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
