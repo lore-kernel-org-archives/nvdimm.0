@@ -1,80 +1,71 @@
-Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com [209.85.167.177])
+Received: from mail-pl1-f175.google.com (mail-pl1-f175.google.com [209.85.214.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0820173
-	for <nvdimm@lists.linux.dev>; Fri, 17 Dec 2021 18:08:29 +0000 (UTC)
-Received: by mail-oi1-f177.google.com with SMTP id w64so4765769oif.10
-        for <nvdimm@lists.linux.dev>; Fri, 17 Dec 2021 10:08:29 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2035C2CA0
+	for <nvdimm@lists.linux.dev>; Fri, 17 Dec 2021 18:37:13 +0000 (UTC)
+Received: by mail-pl1-f175.google.com with SMTP id u17so2575291plg.9
+        for <nvdimm@lists.linux.dev>; Fri, 17 Dec 2021 10:37:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Jw3+o9tkTtZaFXuWp2piyMoDxF7elmFPwWeoUWpMXV8=;
+        b=xEH1wEdUSk1xmiYH6ttaReiH5aeghdNG1EYWe4VzJd8UpXsRJ0qf7fKQwfbfjoAiMD
+         qQRbrVQCNbFP0y2sBr7RPCzh8bk/vDdf0kLIHuaWJMfnressCyvgbEr13bk0uidFYB1a
+         y+GFFrk8YicAA8/KS/HEyqWKedlu8bBssZnMXN4NsSQLE7bdKAtIx/Uvv6xlyOl8L++d
+         h+OG2Bp2vB8zvWT3vgkPV+T12CqmDvx3XMFHkJfcmayOhbBsfP34YK166mx/VJxoh3Fa
+         djf3lk2phSoFObMeS7U8K9L+drSJlVtE8fO1KWvC1O3/XXgr4e04060KG0B0r2R8MaPo
+         beYQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=XGCz2Mkb3xw6Ly/YEIrj+GpLhNUOPqPMSl/tYzJrkMg=;
-        b=eLE3vJKY1NyBeqaf/VYgkEMnEhuVAQg2NRCyg3AVQv+c9peWrKbnvL1eMfuPffDhzt
-         v16u+2YU4WEjh5e5b2QCEMeQiejyU5rbE8tXOgtfKSZt2BEz+M1RaojqGPZmEm/MEskd
-         A00Hr8WDtVqeeatnLj1fJZI9wDSn+VsOCJXzbGbMQiETz072DRYXjYBKk+JzQe2N2x4G
-         l3JMvCkxAGifwmZt/4Z+kDNgSrVR46fEkQ0fvmacOlo+BgZioZctemJZCr5DqyCN2xhb
-         XNKIwPIXWPhGegwhDtzqRp3Or9xn6S7vI6puSIW+r9gOASv1tnTaCZHEIh+nEUTL6LpN
-         Yb2Q==
-X-Gm-Message-State: AOAM532/5ZWADy3VaVhtBcw/VGPTBOeaeMs7akY/IuR8oHX+yLcBbO45
-	j3sppzoqEvYCiRp92+fhwUPhW/nK3aJzSRZFKic=
-X-Google-Smtp-Source: ABdhPJzvcWJ4CbIp8GquSE1y4BVzbRL9LcXmxUSupzHHII7RqING+mGyTVf8dR4sJBAHZKUZGO8yGrju06v7Lm+hZgg=
-X-Received: by 2002:a05:6808:14c2:: with SMTP id f2mr2981766oiw.154.1639764508924;
- Fri, 17 Dec 2021 10:08:28 -0800 (PST)
+        bh=Jw3+o9tkTtZaFXuWp2piyMoDxF7elmFPwWeoUWpMXV8=;
+        b=X9FRPY88q2U0wSK/tIxAZ5D/XETgMqRsiI2LcJu5RNU9OSB5Un/VqA239r0VD5/b/e
+         Mot375qm84VcfCxZuHfOuRwHu0X35JwR6qH7388UbiZzQkZJsGvx4kwLriWX79BDnbQi
+         OnlgnGnrs+zq4hE3MglJQFDYdjvBhVrY/LqdYxo3yqcnMmc3yFsVph5hsWkPRdKcU5Ug
+         S4fo5tXL86zlAtYzKj5lz2rNhgMv78QaB+ZikUZoW+/cNE2YaQUIoS9U2+1r5vidSGil
+         esH/DIZB6c2Fh2tZEvuXJbIdw5dr33Duff+XesbvDS3u79Jh77h7ag2V5xMSDwyC49kc
+         l8+Q==
+X-Gm-Message-State: AOAM533U1cVL/04QF931VK7x+ycnkPdFdeq2ghCIlm3OZcLwlpJllvyx
+	+lF57oY1wdWh94NHvV/vzl+iqab0OyySN7KmKv4lWQ==
+X-Google-Smtp-Source: ABdhPJxDBkvgS9A026yO5Rs99/u8nNKM0OcQsqOSN3zAuOrNgAwJTO5XzM/AR0gZffNPUZNSYWtxvjhGqJ6Iy+HwKgw=
+X-Received: by 2002:a17:90b:1e07:: with SMTP id pg7mr5150038pjb.93.1639766232605;
+ Fri, 17 Dec 2021 10:37:12 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211213204632.56735-1-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20211213204632.56735-1-andriy.shevchenko@linux.intel.com>
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Fri, 17 Dec 2021 19:08:18 +0100
-Message-ID: <CAJZ5v0jq=XdH+xeHs5=wMGsu28i+r3nzZbhCNMJkfdOi65N0Gg@mail.gmail.com>
+References: <20211213204632.56735-1-andriy.shevchenko@linux.intel.com> <CAJZ5v0jq=XdH+xeHs5=wMGsu28i+r3nzZbhCNMJkfdOi65N0Gg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0jq=XdH+xeHs5=wMGsu28i+r3nzZbhCNMJkfdOi65N0Gg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 17 Dec 2021 10:37:02 -0800
+Message-ID: <CAPcyv4hA41u=RvNfvukrcRDjmw6i7t4Vg3u1cXReQGKi6MHwJA@mail.gmail.com>
 Subject: Re: [PATCH v1 1/1] ACPI: NFIT: Import GUID before use
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
-	Dan Williams <dan.j.williams@intel.com>
-Cc: nvdimm@lists.linux.dev, 
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>, 
 	ACPI Devel Maling List <linux-acpi@vger.kernel.org>, 
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vishal Verma <vishal.l.verma@intel.com>, 
-	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	"Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
+	Dave Jiang <dave.jiang@intel.com>, Ira Weiny <ira.weiny@intel.com>, Len Brown <lenb@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Dec 13, 2021 at 9:46 PM Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
+On Fri, Dec 17, 2021 at 10:10 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
-> Strictly speaking the comparison between guid_t and raw buffer
-> is not correct. Import GUID to variable of guid_t type and then
-> compare.
+> On Mon, Dec 13, 2021 at 9:46 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > Strictly speaking the comparison between guid_t and raw buffer
+> > is not correct. Import GUID to variable of guid_t type and then
+> > compare.
+> >
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 >
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Dan, are you going to take care of this or should I?
 
-Dan, are you going to take care of this or should I?
+I'll take it.
 
-> ---
->  drivers/acpi/nfit/core.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 7dd80acf92c7..e5d7f2bda13f 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -678,10 +678,12 @@ static const char *spa_type_name(u16 type)
->
->  int nfit_spa_type(struct acpi_nfit_system_address *spa)
->  {
-> +       guid_t guid;
->         int i;
->
-> +       import_guid(&guid, spa->range_guid);
->         for (i = 0; i < NFIT_UUID_MAX; i++)
-> -               if (guid_equal(to_nfit_uuid(i), (guid_t *)&spa->range_guid))
-> +               if (guid_equal(to_nfit_uuid(i), &guid))
->                         return i;
->         return -1;
->  }
-> --
-> 2.33.0
->
+Apologies for the delay in responding. I am still catching up on some
+patch merging backlog.
