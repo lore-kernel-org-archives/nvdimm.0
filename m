@@ -1,64 +1,68 @@
-Received: from mail-pg1-f170.google.com (mail-pg1-f170.google.com [209.85.215.170])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7EBE22C82
-	for <nvdimm@lists.linux.dev>; Tue, 21 Dec 2021 04:13:04 +0000 (UTC)
-Received: by mail-pg1-f170.google.com with SMTP id f125so11229211pgc.0
-        for <nvdimm@lists.linux.dev>; Mon, 20 Dec 2021 20:13:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=wKrfGiJLmo4BFy866IR6WichX7+97mPLbqHHnF9C+U0=;
-        b=tXWtVTEdB1vLnxZFgNqvM6eVRbmeCYP+Q1isSNun2AINF3tkOQoPbc5mwZLgYaXm8Y
-         k/KmzI1TmIAgdPYmIJR4UPLSck0t7tZqG+RpmSPUIbhqyf1ZAsG1lJWP7Q7fOQzn420V
-         e0vfRHW//ZFG8A3MiMAUoxPa8wKqWM2d7MDo6ELULobAAmWxxsgSx1U1Rk9HLKh/kPcq
-         FePQuH9EY0XHYGYMwMDciLuloL1ytQNqKV85cypG7RAd5k2pI4BV9C1Cwg+lLO08NMx6
-         kaK9Ce2pFU8YyNtdVlJR9iBYno7Fn9unNDzVsMxmvLiDLDohH37mHsJGRfe0qh9pEupD
-         5n1Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=wKrfGiJLmo4BFy866IR6WichX7+97mPLbqHHnF9C+U0=;
-        b=36jJZJs+ydWDATeG/GZAoRaaYGLLHJ2CPJ79a/LQcI4dPJ4HsSNIOyYiweShqNsRlP
-         05r9S1JyERKCMI5cAmC+G/CfbBoLeIyNB11nUBbPklrCsyfm6N0ecG1h332bM7dwhe2w
-         zcyBsF3v5P0MlZDuSiH/c0KOH90CXIDoVBJfIaKePRQ/4lBsEuljd9yM6Mi3Win6v03n
-         KX8nulTAKqtWfaS6ASvkCCp2BgK1lHOlz35J1qnJenBOnUpPv7Icu5Epon6vVemNMQ/B
-         S5w4N5CpBR3nQ5nteZ4esTJh4zPw8+ELg/w2/bq5fbEul/iSR5Pdt0ZdTaKYkBgTzM77
-         vNaA==
-X-Gm-Message-State: AOAM53232r+JzF6T4usDmeQ9EcW5+Nld72ycnHK2RbIba1BkpbuFVq9F
-	XvFdu2i6jz8yCvCZBgMVj+FYwqR1i2qRBvbHoKRC8Q==
-X-Google-Smtp-Source: ABdhPJxofkcdUiHzaUKIy+2kqqXjOLT/9cQ+sV/siMZg3Y8bfjR1kNm3ScUeEhTDEm/js2o4xLPKaPtXhCOBvTQOClU=
-X-Received: by 2002:a63:824a:: with SMTP id w71mr1300001pgd.74.1640059983994;
- Mon, 20 Dec 2021 20:13:03 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1E7A5173
+	for <nvdimm@lists.linux.dev>; Tue, 21 Dec 2021 04:45:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+	Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=5rGtk37LcrNh+N9Whvt+Y0DkA2xZOzII17DUWEsUco4=; b=RHHTkbFKO4fVOwSUASIK7/uQSu
+	4lmo7CCF6ndRNOTuomIglQUhaJNzfxZ8G6buWvbuscA0/d48eZmGpf6SzaZ/HPgP/8EsHn5pirnG/
+	xoMAJvPJ5U1F8tDqdX0iwSp27lfDDXRpgr7IP06y5AtTmliJ7+UktVWgoWP/NmZnjRDrbPH9YEMMP
+	v/FiL+h/ies4neEJD6bDtnxY9rBKUWrHpkBxmY9MPUXlHeFyyutkJXN6JKGq/mvcSinjmSCMehDby
+	hjvkljFmeyC/KA1mqzRspdtsAaCw2wmJqWWd9FZ52aQf1+01EqWU0ON7u4fJDrpbQmLtOKqhrRqrR
+	lcmvkECQ==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1mzX1E-002AeV-6f; Tue, 21 Dec 2021 04:44:56 +0000
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	Christoph Hellwig <hch@lst.de>,
+	linux-fsdevel@vger.kernel.org,
+	linux-xfs@vger.kernel.org,
+	nvdimm@lists.linux.dev,
+	"Darrick J. Wong" <djwong@kernel.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] iomap: Fix error handling in iomap_zero_iter()
+Date: Tue, 21 Dec 2021 04:44:50 +0000
+Message-Id: <20211221044450.517558-1-willy@infradead.org>
+X-Mailer: git-send-email 2.31.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211208091203.2927754-1-hch@lst.de> <YcD/WjYXg9LKydhY@casper.infradead.org>
-In-Reply-To: <YcD/WjYXg9LKydhY@casper.infradead.org>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 20 Dec 2021 20:12:53 -0800
-Message-ID: <CAPcyv4gfGBSWf=+WxkSPbca1BH=OeTmFoSjUBKJV-aos=YwWMA@mail.gmail.com>
-Subject: Re: [PATCH] iomap: turn the byte variable in iomap_zero_iter into a ssize_t
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	linux-xfs <linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	Dan Carpenter <dan.carpenter@oracle.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-On Mon, Dec 20, 2021 at 2:10 PM Matthew Wilcox <willy@infradead.org> wrote:
->
-> Dan, why is this erroneous commit still in your tree?
-> iomap_write_end() cannot return an errno; if an error occurs, it
-> returns zero.  The code in iomap_zero_iter() should be:
->
->                 bytes = iomap_write_end(iter, pos, bytes, bytes, page);
->                 if (WARN_ON_ONCE(bytes == 0))
->                         return -EIO;
+iomap_write_end() does not return a negative errno to indicate an
+error, but the number of bytes successfully copied.  It cannot return
+an error today, so include a debugging assertion like the one in
+iomap_unshare_iter().
 
-Care to send a fixup? I'm away from my key at present, but can get it
-pushed out later this week.
+Fixes: c6f40468657d ("fsdax: decouple zeroing from the iomap buffered I/O code")
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+---
+ fs/iomap/buffered-io.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/fs/iomap/buffered-io.c b/fs/iomap/buffered-io.c
+index f3176cf90351..955f51f94b3f 100644
+--- a/fs/iomap/buffered-io.c
++++ b/fs/iomap/buffered-io.c
+@@ -901,8 +901,8 @@ static loff_t iomap_zero_iter(struct iomap_iter *iter, bool *did_zero)
+ 		mark_page_accessed(page);
+ 
+ 		bytes = iomap_write_end(iter, pos, bytes, bytes, page);
+-		if (bytes < 0)
+-			return bytes;
++		if (WARN_ON_ONCE(bytes == 0))
++			return -EIO;
+ 
+ 		pos += bytes;
+ 		length -= bytes;
+-- 
+2.33.0
+
