@@ -1,266 +1,239 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 50D172C82
-	for <nvdimm@lists.linux.dev>; Tue, 21 Dec 2021 14:45:14 +0000 (UTC)
-Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 1BLDe3E4007416;
-	Tue, 21 Dec 2021 14:45:12 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=subject : from : to : cc
- : date : message-id : mime-version : content-type :
- content-transfer-encoding; s=pp1;
- bh=JZIucTQP22m3OkJ/9eYdM7emApqGxg8/H+46VuJTq8c=;
- b=Sa7Y9yQicsyQNGZRsEI0Xvv1jQBidyeK9aK8+McsbZ6zZxykoqiAlx/LTdUQ4n4fjVCm
- edKJFO8KdXoPQbjcB/M4/am3jhkBRvH12dz3iAcsseWw7LputuuNF5U+StM7c3zKsB8g
- dmIFnvAHTnYdzzoRLAmNd7W4d0wI8xb1ufp2VMUqUcHtNm55ZBc3oyOeRjSBDyhVP9ef
- mMkkbnSD4E24e/Vq6Shar+89f9wyPYkTKQPSNuS/0ndYngGUTsvcaPEkYjDW6Bu3MIYX
- tkR3zUxZ+AAbjUF9aQDU1kN7Nmbe5iqYXYaM1ECR0sDgYawJ8KoEa7SbBw2EdGgp/n7n NA== 
-Received: from ppma06fra.de.ibm.com (48.49.7a9f.ip4.static.sl-reverse.com [159.122.73.72])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3d3g0u9daa-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 21 Dec 2021 14:45:11 +0000
-Received: from pps.filterd (ppma06fra.de.ibm.com [127.0.0.1])
-	by ppma06fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1BLEhkkl028957;
-	Tue, 21 Dec 2021 14:45:10 GMT
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
-	by ppma06fra.de.ibm.com with ESMTP id 3d16wjwmcb-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 21 Dec 2021 14:45:10 +0000
-Received: from d06av24.portsmouth.uk.ibm.com (d06av24.portsmouth.uk.ibm.com [9.149.105.60])
-	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1BLEj5C036438510
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 21 Dec 2021 14:45:05 GMT
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 368244207D;
-	Tue, 21 Dec 2021 14:45:05 +0000 (GMT)
-Received: from d06av24.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3979742047;
-	Tue, 21 Dec 2021 14:45:04 +0000 (GMT)
-Received: from lep8c.aus.stglabs.ibm.com (unknown [9.40.192.207])
-	by d06av24.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-	Tue, 21 Dec 2021 14:45:04 +0000 (GMT)
-Subject: [ndctl REPOST PATCH v3] libndctl: Update nvdimm flags in
- ndctl_cmd_submit()
-From: Shivaprasad G Bhat <sbhat@linux.ibm.com>
-To: nvdimm@lists.linux.dev
-Cc: aneesh.kumar@linux.ibm.com, sbhat@linux.ibm.com, vaibhav@linux.ibm.com,
-        dan.j.williams@intel.com, ira.weiny@intel.com,
-        vishal.l.verma@intel.com
-Date: Tue, 21 Dec 2021 08:45:02 -0600
-Message-ID: 
- <164009789816.744139.2870779016511283907.stgit@lep8c.aus.stglabs.ibm.com>
-User-Agent: StGit/1.1+40.g1b20
+Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
+	by smtp.subspace.kernel.org (Postfix) with ESMTP id E72572C9C
+	for <nvdimm@lists.linux.dev>; Sun, 26 Dec 2021 14:35:05 +0000 (UTC)
+IronPort-Data: =?us-ascii?q?A9a23=3AaNRbs6sZkxdxgYOHX7GCiz7+dufnVD1fMUV32f8?=
+ =?us-ascii?q?akzHdYEJGY0x3yWBLXWqOP/3cNDbye49zaNyz9ENQscDWndZhTlNvqntgHilAw?=
+ =?us-ascii?q?SbnLY7Hdx+vZUt+DSFioHpPtpxYMp+ZRCwNZie0SiyFb/6x/RGQ6YnSHuClUbS?=
+ =?us-ascii?q?eZHgoLeNZYHxJZSxLyrdRbrFA0YDR7zOl4bsekuWHULOX82cc3lE8t8pvnChSU?=
+ =?us-ascii?q?MHa41v0iLCRicdj5zcyn1FNZH4WyDrYw3HQGuG4FcbiLwrPIS3Qw4/Xw/stIov?=
+ =?us-ascii?q?NfrfTeUtMTKPQPBSVlzxdXK3Kbhpq/3R0i/hkcqFHLxo/ZzahxridzP1XqJW2U?=
+ =?us-ascii?q?hZvMKvXhMwTThtZDzpje6ZB/dcrJFDm6J3OkRaWLSWEL/JGSRte0Zcj0up+H2B?=
+ =?us-ascii?q?C3fICLzUKdBqCm6S9x7fTYulnhuwiKsfxNY8Ss30myivWZd4qSJaFQePV5Ntc3?=
+ =?us-ascii?q?T41nehPG+rTY4wSbj8HRBjCfBpJNX8UBYg4kePugWPwGxVcqVSIte8y5kDQ0gV?=
+ =?us-ascii?q?60/7qKtW9UtqUScRQm26cp3na5CL9AxcHJJqTxCTt2nClgOKJliPmcIUIHba8+?=
+ =?us-ascii?q?7hhh1j77mgSDgAGEFWgrfSnh0qWRd1SMQoX9zAooKx081akJvH5XhulsDuHswQ?=
+ =?us-ascii?q?aVt54DeI38keOx7DS7gLfAXILJhZFado7pIomSycCyFCEhZXqCCZpvbnTTmiSn?=
+ =?us-ascii?q?op4Bxva1TM9dDdEPHFbC1BepYSLnW36tTqXJv4LLUJ/poSd9enM/g23?=
+IronPort-HdrOrdr: =?us-ascii?q?A9a23=3Anjpok6/PmNzmvIgRnXpuk+DkI+orL9Y04lQ7?=
+ =?us-ascii?q?vn2ZKCYlFvBw8vrCoB1173HJYUkqMk3I9ergBEDiewK4yXcW2/hzAV7KZmCP11?=
+ =?us-ascii?q?dAR7sSj7cKrQeBJwTOssZZ1YpFN5N1EcDMCzFB5vrS0U2VFMkBzbC8nJyVuQ?=
+ =?us-ascii?q?=3D=3D?=
+X-IronPort-AV: E=Sophos;i="5.88,237,1635177600"; 
+   d="scan'208";a="119563866"
+Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
+  by heian.cn.fujitsu.com with ESMTP; 26 Dec 2021 22:35:04 +0800
+Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
+	by cn.fujitsu.com (Postfix) with ESMTP id 4AB594D146EE;
+	Sun, 26 Dec 2021 22:35:03 +0800 (CST)
+Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
+ G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
+ (TLS) id 15.0.1497.23; Sun, 26 Dec 2021 22:35:05 +0800
+Received: from irides.mr.mr (10.167.225.141) by
+ G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
+ id 15.0.1497.23 via Frontend Transport; Sun, 26 Dec 2021 22:35:01 +0800
+From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
+	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
+	<linux-fsdevel@vger.kernel.org>
+CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
+	<hch@infradead.org>, <jane.chu@oracle.com>
+Subject: [PATCH v9 02/10] dax: Introduce holder for dax_device
+Date: Sun, 26 Dec 2021 22:34:31 +0800
+Message-ID: <20211226143439.3985960-3-ruansy.fnst@fujitsu.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20211226143439.3985960-1-ruansy.fnst@fujitsu.com>
+References: <20211226143439.3985960-1-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: RbRm495FC8zK38LJY2jaaFhCe75hjhKr
-X-Proofpoint-ORIG-GUID: RbRm495FC8zK38LJY2jaaFhCe75hjhKr
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.205,Aquarius:18.0.790,Hydra:6.0.425,FMLib:17.11.62.513
- definitions=2021-12-21_04,2021-12-21_01,2021-12-02_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 adultscore=0
- lowpriorityscore=0 mlxlogscore=999 spamscore=0 mlxscore=0 clxscore=1015
- impostorscore=0 bulkscore=0 suspectscore=0 priorityscore=1501 phishscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2110150000
- definitions=main-2112210068
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-yoursite-MailScanner-ID: 4AB594D146EE.A03D7
+X-yoursite-MailScanner: Found to be clean
+X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
+X-Spam-Status: No
 
-From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To easily track filesystem from a pmem device, we introduce a holder for
+dax_device structure, and also its operation.  This holder is used to
+remember who is using this dax_device:
+ - When it is the backend of a filesystem, the holder will be the
+   instance of this filesystem.
+ - When this pmem device is one of the targets in a mapped device, the
+   holder will be this mapped device.  In this case, the mapped device
+   has its own dax_device and it will follow the first rule.  So that we
+   can finally track to the filesystem we needed.
 
-Presently after performing an inject-smart the nvdimm flags reported are
-out of date as shown below where no 'smart_notify' or 'flush_fail' flags
-were reported even though they are set after injecting the smart error:
+The holder and holder_ops will be set when filesystem is being mounted,
+or an target device is being activated.
 
-$ sudo inject-smart -fU nmem0
-[
-  {
-    "dev":"nmem0",
-    "health":{
-      "health_state":"fatal",
-      "shutdown_state":"dirty",
-      "shutdown_count":0
-    }
-  }
-]
-$ sudo cat /sys/class/nd/ndctl0/device/nmem0/papr/flags
-flush_fail smart_notify
-
-This happens because nvdimm flags are only parsed once during its probe
-and not refreshed even after a inject-smart operation makes them out of
-date. To fix this the patch forces an update of nvdimm flags via newly
-introduced ndctl_refresh_dimm_flags() thats called successfully submitting
-a 'struct ndctl_cmd' in ndctl_cmd_submit(). This ensures that correct
-nvdimm flags are reported after an interaction with the kernel module which
-may trigger a change nvdimm-flags. With this implemented correct nvdimm
-flags are reported after a inject-smart operation:
-
-$ sudo ndctl inject-smart -fU nmem0
-[
-  {
-    "dev":"nmem0",
-    "flag_failed_flush":true,
-    "flag_smart_event":true,
-    "health":{
-      "health_state":"fatal",
-      "shutdown_state":"dirty",
-      "shutdown_count":0
-    }
-  }
-]
-
-The patch refactors populate_dimm_attributes() to move the nvdimm flags
-parsing code to the newly introduced ndctl_refresh_dimm_flags()
-export. Since reading nvdimm flags requires constructing path using
-'bus_prefix' which is only available during add_dimm(), the patch
-introduces a new member 'struct ndctl_dimm.bus_prefix' to cache its
-value. During ndctl_refresh_dimm_flags() the cached bus_prefix is used to
-read the contents of the nvdimm flag file and pass it on to the appropriate
-flag parsing function. Finally ndctl_refresh_dimm_flags() is invoked at the
-end of ndctl_cmd_submit() if nd-command submission succeeds.
-
-Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
 ---
- ndctl/lib/libndctl.c |   52 +++++++++++++++++++++++++++++++++++++-------------
- ndctl/lib/private.h  |    1 +
- ndctl/libndctl.h     |    1 +
- 3 files changed, 40 insertions(+), 14 deletions(-)
+ drivers/dax/super.c | 62 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dax.h | 29 +++++++++++++++++++++
+ 2 files changed, 91 insertions(+)
 
-diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
-index 36ad1e7b..70b556bd 100644
---- a/ndctl/lib/libndctl.c
-+++ b/ndctl/lib/libndctl.c
-@@ -608,6 +608,7 @@ static void free_dimm(struct ndctl_dimm *dimm)
- 	free(dimm->unique_id);
- 	free(dimm->dimm_buf);
- 	free(dimm->dimm_path);
-+	free(dimm->bus_prefix);
- 	if (dimm->module)
- 		kmod_module_unref(dimm->module);
- 	if (dimm->health_eventfd > -1)
-@@ -1670,14 +1671,34 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
- static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
- static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
+diff --git a/drivers/dax/super.c b/drivers/dax/super.c
+index c46f56e33d40..94c51f2ee133 100644
+--- a/drivers/dax/super.c
++++ b/drivers/dax/super.c
+@@ -20,15 +20,20 @@
+  * @inode: core vfs
+  * @cdev: optional character interface for "device dax"
+  * @private: dax driver private data
++ * @holder_data: holder of a dax_device: could be filesystem or mapped device
+  * @flags: state and boolean properties
++ * @ops: operations for dax_device
++ * @holder_ops: operations for the inner holder
+  */
+ struct dax_device {
+ 	struct inode inode;
+ 	struct cdev cdev;
+ 	void *private;
+ 	struct percpu_rw_semaphore rwsem;
++	void *holder_data;
+ 	unsigned long flags;
+ 	const struct dax_operations *ops;
++	const struct dax_holder_operations *holder_ops;
+ };
  
-+void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm)
+ static dev_t dax_devt;
+@@ -192,6 +197,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ }
+ EXPORT_SYMBOL_GPL(dax_zero_page_range);
+ 
++int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
++			      u64 len, int mf_flags)
 +{
-+	struct ndctl_ctx *ctx = dimm->bus->ctx;
-+	char *path = dimm->dimm_buf;
-+	char buf[SYSFS_ATTR_SIZE];
++	int rc;
 +
-+	/* Construct path to dimm flags sysfs file */
-+	sprintf(path, "%s/%s/flags", dimm->dimm_path, dimm->bus_prefix);
++	dax_read_lock(dax_dev);
++	if (!dax_alive(dax_dev)) {
++		rc = -ENXIO;
++		goto out;
++	}
 +
-+	if (sysfs_read_attr(ctx, path, buf) < 0)
++	if (!dax_dev->holder_ops) {
++		rc = -EOPNOTSUPP;
++		goto out;
++	}
++
++	rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
++out:
++	dax_read_unlock(dax_dev);
++	return rc;
++}
++EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ void arch_wb_cache_pmem(void *addr, size_t size);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
+@@ -254,6 +282,10 @@ void kill_dax(struct dax_device *dax_dev)
+ 		return;
+ 	dax_write_lock(dax_dev);
+ 	clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
++
++	/* clear holder data */
++	dax_dev->holder_ops = NULL;
++	dax_dev->holder_data = NULL;
+ 	dax_write_unlock(dax_dev);
+ }
+ EXPORT_SYMBOL_GPL(kill_dax);
+@@ -401,6 +433,36 @@ void put_dax(struct dax_device *dax_dev)
+ }
+ EXPORT_SYMBOL_GPL(put_dax);
+ 
++void dax_register_holder(struct dax_device *dax_dev, void *holder,
++		const struct dax_holder_operations *ops)
++{
++	if (!dax_alive(dax_dev))
 +		return;
 +
-+	/* Reset the flags */
-+	dimm->flags.flags = 0;
-+	if (ndctl_bus_has_nfit(dimm->bus))
-+		parse_nfit_mem_flags(dimm, buf);
-+	else if (ndctl_bus_is_papr_scm(dimm->bus))
-+		parse_papr_flags(dimm, buf);
++	dax_dev->holder_data = holder;
++	dax_dev->holder_ops = ops;
 +}
++EXPORT_SYMBOL_GPL(dax_register_holder);
 +
- static int populate_dimm_attributes(struct ndctl_dimm *dimm,
--				    const char *dimm_base,
--				    const char *bus_prefix)
-+				    const char *dimm_base)
++void dax_unregister_holder(struct dax_device *dax_dev)
++{
++	if (!dax_alive(dax_dev))
++		return;
++
++	dax_dev->holder_data = NULL;
++	dax_dev->holder_ops = NULL;
++}
++EXPORT_SYMBOL_GPL(dax_unregister_holder);
++
++void *dax_get_holder(struct dax_device *dax_dev)
++{
++	if (!dax_alive(dax_dev))
++		return NULL;
++
++	return dax_dev->holder_data;
++}
++EXPORT_SYMBOL_GPL(dax_get_holder);
++
+ /**
+  * inode_dax: convert a public inode into its dax_dev
+  * @inode: An inode with i_cdev pointing to a dax_dev
+diff --git a/include/linux/dax.h b/include/linux/dax.h
+index a146bfb80804..e16a9e0ee857 100644
+--- a/include/linux/dax.h
++++ b/include/linux/dax.h
+@@ -44,6 +44,22 @@ struct dax_operations {
+ #if IS_ENABLED(CONFIG_DAX)
+ struct dax_device *alloc_dax(void *private, const struct dax_operations *ops,
+ 		unsigned long flags);
++struct dax_holder_operations {
++	/*
++	 * notify_failure - notify memory failure into inner holder device
++	 * @dax_dev: the dax device which contains the holder
++	 * @offset: offset on this dax device where memory failure occurs
++	 * @len: length of this memory failure event
++	 * @flags: action flags for memory failure handler
++	 */
++	int (*notify_failure)(struct dax_device *dax_dev, u64 offset,
++			u64 len, int mf_flags);
++};
++
++void dax_register_holder(struct dax_device *dax_dev, void *holder,
++		const struct dax_holder_operations *ops);
++void dax_unregister_holder(struct dax_device *dax_dev);
++void *dax_get_holder(struct dax_device *dax_dev);
+ void put_dax(struct dax_device *dax_dev);
+ void kill_dax(struct dax_device *dax_dev);
+ void dax_write_cache(struct dax_device *dax_dev, bool wc);
+@@ -71,6 +87,17 @@ static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+ 	return dax_synchronous(dax_dev);
+ }
+ #else
++static inline void dax_register_holder(struct dax_device *dax_dev, void *holder,
++		const struct dax_holder_operations *ops)
++{
++}
++static inline void dax_unregister_holder(struct dax_device *dax_dev)
++{
++}
++static inline void *dax_get_holder(struct dax_device *dax_dev)
++{
++	return NULL;
++}
+ static inline struct dax_device *alloc_dax(void *private,
+ 		const struct dax_operations *ops, unsigned long flags)
  {
- 	int i, rc = -1;
- 	char buf[SYSFS_ATTR_SIZE];
- 	struct ndctl_ctx *ctx = dimm->bus->ctx;
- 	char *path = calloc(1, strlen(dimm_base) + 100);
-+	const char *bus_prefix = dimm->bus_prefix;
+@@ -209,6 +236,8 @@ size_t dax_copy_to_iter(struct dax_device *dax_dev, pgoff_t pgoff, void *addr,
+ 		size_t bytes, struct iov_iter *i);
+ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
+ 			size_t nr_pages);
++int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off, u64 len,
++		int mf_flags);
+ void dax_flush(struct dax_device *dax_dev, void *addr, size_t size);
  
- 	if (!path)
- 		return -ENOMEM;
-@@ -1761,16 +1782,10 @@ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
- 	}
- 
- 	sprintf(path, "%s/%s/flags", dimm_base, bus_prefix);
--	if (sysfs_read_attr(ctx, path, buf) == 0) {
--		if (ndctl_bus_has_nfit(dimm->bus))
--			parse_nfit_mem_flags(dimm, buf);
--		else if (ndctl_bus_is_papr_scm(dimm->bus)) {
--			dimm->cmd_family = NVDIMM_FAMILY_PAPR;
--			parse_papr_flags(dimm, buf);
--		}
--	}
--
- 	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
-+
-+	ndctl_refresh_dimm_flags(dimm);
-+
- 	rc = 0;
-  err_read:
- 
-@@ -1826,8 +1841,9 @@ static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
- 
- 		rc = 0;
- 	} else if (strcmp(buf, "nvdimm_test") == 0) {
-+		dimm->cmd_family = NVDIMM_FAMILY_PAPR;
- 		/* probe via common populate_dimm_attributes() */
--		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
-+		rc = populate_dimm_attributes(dimm, dimm_base);
- 	}
- out:
- 	free(path);
-@@ -1924,9 +1940,13 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
- 	dimm->formats = formats;
- 	/* Check if the given dimm supports nfit */
- 	if (ndctl_bus_has_nfit(bus)) {
--		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
-+		dimm->bus_prefix = strdup("nfit");
-+		rc = dimm->bus_prefix ?
-+			populate_dimm_attributes(dimm, dimm_base) : -ENOMEM;
- 	} else if (ndctl_bus_has_of_node(bus)) {
--		rc = add_papr_dimm(dimm, dimm_base);
-+		dimm->bus_prefix = strdup("papr");
-+		rc = dimm->bus_prefix ?
-+			add_papr_dimm(dimm, dimm_base) : -ENOMEM;
- 	}
- 
- 	if (rc == -ENODEV) {
-@@ -3506,6 +3526,10 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
- 		rc = -ENXIO;
- 	}
- 	close(fd);
-+
-+	/* update dimm-flags if command submitted successfully */
-+	if (!rc && cmd->dimm)
-+		ndctl_refresh_dimm_flags(cmd->dimm);
-  out:
- 	cmd->status = rc;
- 	return rc;
-diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
-index d442e6c1..cd2265ff 100644
---- a/ndctl/lib/private.h
-+++ b/ndctl/lib/private.h
-@@ -75,6 +75,7 @@ struct ndctl_dimm {
- 	char *unique_id;
- 	char *dimm_path;
- 	char *dimm_buf;
-+	char *bus_prefix;
- 	int health_eventfd;
- 	int buf_len;
- 	int id;
-diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
-index 4d5cdbf6..b1bafd6d 100644
---- a/ndctl/libndctl.h
-+++ b/ndctl/libndctl.h
-@@ -223,6 +223,7 @@ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
- int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
- int ndctl_dimm_disable(struct ndctl_dimm *dimm);
- int ndctl_dimm_enable(struct ndctl_dimm *dimm);
-+void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm);
- 
- struct ndctl_cmd;
- struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
+ ssize_t dax_iomap_rw(struct kiocb *iocb, struct iov_iter *iter,
+-- 
+2.34.1
+
 
 
