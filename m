@@ -1,28 +1,28 @@
 Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC222CA9
-	for <nvdimm@lists.linux.dev>; Mon,  3 Jan 2022 20:11:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2D342CAD
+	for <nvdimm@lists.linux.dev>; Mon,  3 Jan 2022 20:11:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641240695; x=1672776695;
+  t=1641240696; x=1672776696;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=a4ist+wRtz5MUDFftoH8bUzPjP4x2s9lbL9nKwk7uk8=;
-  b=KifmBSXoCJ9YvBLuAKqfVe3XqV51UB6JOIAqp6oO979pWkyahY59Qh+l
-   35yhfCS/U5adZe67FG0gj8xg67VtETtp9rRr4yTM/uv7BdDgpFayC2H7A
-   mGPMsVCP5dkwIZ/iUUZkB1CUvj6/IgqIID0NdLGnLHoA+XozqGGhcEoGs
-   yDaYqbijAz3YcDDxZuSh4U7LdHyyjAvQ8VwNOu5ekN/1nQaQgR01DiJkL
-   iTpXEmm0+8JM4yua88uSFGpw/YSyDRUDcZpb6n8t+qutiJbpnvcUzWKmt
-   dBsBPhq/QaRWAK1ZvMsjOhJb2U5oO62tR66PxJhPHKyrl5HHDvX+zkZbT
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10216"; a="302866886"
+  bh=i8nB8iLWmY3RrwAJboCr0xODBiC8RVy3LJGcIn0A/Y4=;
+  b=lFnnOJxcecFlrMfGT5/Mlw6XI4qS8qe5uH10tPRoE19O8DV7C7lBqnVP
+   IifmwZwoLkwiYeyG3rpDJC5cAaXTcmcrH1RMtq9/5//S4uugBq4O/k/ck
+   Tq8C3otIrGbCbP4mdcjUbSzW5ch+5GGWpRa7dgXA2RcXuo/DZSTAJi0Y4
+   LHKhGg/pS/+8rbN/K5nId6ComZLBoWyczmVn13KomuuYLzh5zHhElt06c
+   gs6s+8wZtXUYiYzjhycxYMesubPzS3OsGR6wQg++69V6B332Xo93TZvN2
+   h7esgOcG9bTxy0Ys4QZ1pbofSll79QbZHYbZwMzKfQM525l805QJDqYfb
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10216"; a="302866890"
 X-IronPort-AV: E=Sophos;i="5.88,258,1635231600"; 
-   d="scan'208";a="302866886"
+   d="scan'208";a="302866890"
 Received: from orsmga008.jf.intel.com ([10.7.209.65])
   by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jan 2022 12:11:33 -0800
 X-IronPort-AV: E=Sophos;i="5.88,258,1635231600"; 
-   d="scan'208";a="525709392"
+   d="scan'208";a="525709400"
 Received: from alison-desk.jf.intel.com (HELO localhost) ([10.54.74.41])
   by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Jan 2022 12:11:33 -0800
 From: alison.schofield@intel.com
@@ -33,9 +33,9 @@ To: Ben Widawsky <ben.widawsky@intel.com>,
 Cc: Alison Schofield <alison.schofield@intel.com>,
 	nvdimm@lists.linux.dev,
 	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH 2/7] libcxl: add accessors for capacity fields of the IDENTIFY command
-Date: Mon,  3 Jan 2022 12:16:13 -0800
-Message-Id: <577012d59f5b6b9754d2ce1147585ce5f91a3108.1641233076.git.alison.schofield@intel.com>
+Subject: [ndctl PATCH 4/7] cxl: add memdev partition information to cxl-list
+Date: Mon,  3 Jan 2022 12:16:15 -0800
+Message-Id: <78ff68a062f23cef48fb6ea1f91bcd7e11e4fa6e.1641233076.git.alison.schofield@intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <cover.1641233076.git.alison.schofield@intel.com>
 References: <cover.1641233076.git.alison.schofield@intel.com>
@@ -49,85 +49,234 @@ Content-Transfer-Encoding: 8bit
 
 From: Alison Schofield <alison.schofield@intel.com>
 
-Add accessors to retrieve total capacity, volatile only capacity,
-and persistent only capacity from the IDENTIFY mailbox command.
-These values are useful when partitioning the device.
+Add information useful for managing memdev partitions to cxl-list
+output. Include all of the fields from GET_PARTITION_INFO and the
+partitioning related fields from the IDENTIFY mailbox command.
+
+    "partition":{
+      "active_volatile_capacity":273535729664,
+      "active_persistent_capacity":0,
+      "next_volatile_capacity":0,
+      "next_persistent_capacity":0,
+      "total_capacity":273535729664,
+      "volatile_only_capacity":0,
+      "persistent_only_capacity":0,
+      "partition_alignment":268435456
+    }
 
 Signed-off-by: Alison Schofield <alison.schofield@intel.com>
 ---
- cxl/libcxl.h       |  3 +++
- cxl/lib/libcxl.c   | 29 +++++++++++++++++++++++++++++
- cxl/lib/libcxl.sym |  3 +++
- 3 files changed, 35 insertions(+)
+ Documentation/cxl/cxl-list.txt |  23 +++++++
+ util/json.h                    |   1 +
+ cxl/list.c                     |   5 ++
+ util/json.c                    | 112 +++++++++++++++++++++++++++++++++
+ 4 files changed, 141 insertions(+)
 
-diff --git a/cxl/libcxl.h b/cxl/libcxl.h
-index 7cf9061..d333b6d 100644
---- a/cxl/libcxl.h
-+++ b/cxl/libcxl.h
-@@ -68,6 +68,9 @@ int cxl_cmd_get_mbox_status(struct cxl_cmd *cmd);
- int cxl_cmd_get_out_size(struct cxl_cmd *cmd);
- struct cxl_cmd *cxl_cmd_new_identify(struct cxl_memdev *memdev);
- int cxl_cmd_identify_get_fw_rev(struct cxl_cmd *cmd, char *fw_rev, int fw_len);
-+unsigned long long cxl_cmd_identify_get_total_capacity(struct cxl_cmd *cmd);
-+unsigned long long cxl_cmd_identify_get_volatile_only_capacity(struct cxl_cmd *cmd);
-+unsigned long long cxl_cmd_identify_get_persistent_only_capacity(struct cxl_cmd *cmd);
- unsigned long long cxl_cmd_identify_get_partition_align(struct cxl_cmd *cmd);
- unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd);
- struct cxl_cmd *cxl_cmd_new_get_health_info(struct cxl_memdev *memdev);
-diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-index f3d4022..715d8e4 100644
---- a/cxl/lib/libcxl.c
-+++ b/cxl/lib/libcxl.c
-@@ -1102,6 +1102,35 @@ CXL_EXPORT unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd)
- 	return le32_to_cpu(id->lsa_size);
+diff --git a/Documentation/cxl/cxl-list.txt b/Documentation/cxl/cxl-list.txt
+index c8d10fb..e65e944 100644
+--- a/Documentation/cxl/cxl-list.txt
++++ b/Documentation/cxl/cxl-list.txt
+@@ -85,6 +85,29 @@ OPTIONS
+   }
+ ]
+ ----
++-P::
++--partition::
++	Include partition information in the memdev listing. Example listing:
++----
++# cxl list -m mem0 -P
++[
++  {
++    "memdev":"mem0",
++    "pmem_size":0,
++    "ram_size":273535729664,
++    "partition":{
++      "active_volatile_capacity":273535729664,
++      "active_persistent_capacity":0,
++      "next_volatile_capacity":0,
++      "next_persistent_capacity":0,
++      "total_capacity":273535729664,
++      "volatile_only_capacity":0,
++      "persistent_only_capacity":0,
++      "partition_alignment":268435456
++    }
++  }
++]
++----
+ 
+ include::human-option.txt[]
+ 
+diff --git a/util/json.h b/util/json.h
+index ce575e6..76a8816 100644
+--- a/util/json.h
++++ b/util/json.h
+@@ -20,6 +20,7 @@ enum util_json_flags {
+ 	UTIL_JSON_FIRMWARE	= (1 << 8),
+ 	UTIL_JSON_DAX_MAPPINGS	= (1 << 9),
+ 	UTIL_JSON_HEALTH	= (1 << 10),
++	UTIL_JSON_PARTITION	= (1 << 11),
+ };
+ 
+ struct json_object;
+diff --git a/cxl/list.c b/cxl/list.c
+index b1468b7..368ec21 100644
+--- a/cxl/list.c
++++ b/cxl/list.c
+@@ -17,6 +17,7 @@ static struct {
+ 	bool idle;
+ 	bool human;
+ 	bool health;
++	bool partition;
+ } list;
+ 
+ static unsigned long listopts_to_flags(void)
+@@ -29,6 +30,8 @@ static unsigned long listopts_to_flags(void)
+ 		flags |= UTIL_JSON_HUMAN;
+ 	if (list.health)
+ 		flags |= UTIL_JSON_HEALTH;
++	if (list.partition)
++		flags |= UTIL_JSON_PARTITION;
+ 	return flags;
  }
  
-+#define cmd_identify_get_capacity_field(cmd, field)			\
-+do {										\
-+	struct cxl_cmd_identify *c =					\
-+		(struct cxl_cmd_identify *)cmd->send_cmd->out.payload;\
-+	int rc = cxl_cmd_validate_status(cmd,					\
-+			CXL_MEM_COMMAND_ID_IDENTIFY);			\
-+	if (rc)									\
-+		return ULLONG_MAX;							\
-+	return le64_to_cpu(c->field) * CXL_CAPACITY_MULTIPLIER;			\
-+} while (0)
-+
-+CXL_EXPORT unsigned long long
-+cxl_cmd_identify_get_total_capacity(struct cxl_cmd *cmd)
+@@ -62,6 +65,8 @@ int cmd_list(int argc, const char **argv, struct cxl_ctx *ctx)
+ 				"use human friendly number formats "),
+ 		OPT_BOOLEAN('H', "health", &list.health,
+ 				"include memory device health information "),
++		OPT_BOOLEAN('P', "partition", &list.partition,
++				"include memory device partition information "),
+ 		OPT_END(),
+ 	};
+ 	const char * const u[] = {
+diff --git a/util/json.c b/util/json.c
+index f97cf07..4254dea 100644
+--- a/util/json.c
++++ b/util/json.c
+@@ -1616,6 +1616,113 @@ err_jobj:
+ 	return NULL;
+ }
+ 
++/*
++ * Present complete view of memdev partition by presenting fields from
++ * both GET_PARTITION_INFO and IDENTIFY mailbox commands.
++ */
++static struct json_object *util_cxl_memdev_partition_to_json(struct cxl_memdev *memdev,
++		unsigned long flags)
 +{
-+	cmd_identify_get_capacity_field(cmd, total_capacity);
++	struct json_object *jobj = NULL;
++	struct json_object *jpart;
++	unsigned long long cap;
++	struct cxl_cmd *cmd;
++	int rc;
++
++	jpart = json_object_new_object();
++	if (!jpart)
++		return NULL;
++	if (!memdev)
++		goto err_jobj;
++
++	/* Retrieve partition info in GET_PARTITION_INFO mbox cmd */
++	cmd = cxl_cmd_new_get_partition_info(memdev);
++	if (!cmd)
++		goto err_jobj;
++
++	rc = cxl_cmd_submit(cmd);
++	if (rc < 0)
++		goto err_cmd;
++	rc = cxl_cmd_get_mbox_status(cmd);
++	if (rc != 0)
++		goto err_cmd;
++
++	cap = cxl_cmd_get_partition_info_get_active_volatile_cap(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart,
++					"active_volatile_capacity", jobj);
++	}
++	cap = cxl_cmd_get_partition_info_get_active_persistent_cap(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart,
++					"active_persistent_capacity", jobj);
++	}
++	cap = cxl_cmd_get_partition_info_get_next_volatile_cap(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart,
++					"next_volatile_capacity", jobj);
++	}
++	cap = cxl_cmd_get_partition_info_get_next_persistent_cap(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart,
++					"next_persistent_capacity", jobj);
++	}
++	cxl_cmd_unref(cmd);
++
++	/* Retrieve partition info in the IDENTIFY mbox cmd */
++	cmd = cxl_cmd_new_identify(memdev);
++	if (!cmd)
++		goto err_jobj;
++
++	rc = cxl_cmd_submit(cmd);
++	if (rc < 0)
++		goto err_cmd;
++	rc = cxl_cmd_get_mbox_status(cmd);
++	if (rc != 0)
++		goto err_cmd;
++
++	cap = cxl_cmd_identify_get_total_capacity(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart, "total_capacity", jobj);
++	}
++	cap = cxl_cmd_identify_get_volatile_only_capacity(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart,
++					"volatile_only_capacity", jobj);
++	}
++	cap = cxl_cmd_identify_get_persistent_only_capacity(cmd);
++	if (cap != ULLONG_MAX) {
++		jobj = util_json_object_size(cap, flags);
++		if (jobj)
++			json_object_object_add(jpart,
++					"persistent_only_capacity", jobj);
++	}
++	cap = cxl_cmd_identify_get_partition_align(cmd);
++	jobj = util_json_object_size(cap, flags);
++	if (jobj)
++		json_object_object_add(jpart, "partition_alignment", jobj);
++
++	return jpart;
++
++err_cmd:
++	cxl_cmd_unref(cmd);
++err_jobj:
++	json_object_put(jpart);
++	return NULL;
 +}
 +
-+CXL_EXPORT unsigned long long
-+cxl_cmd_identify_get_volatile_only_capacity(struct cxl_cmd *cmd)
-+{
-+	cmd_identify_get_capacity_field(cmd, volatile_capacity);
-+}
-+
-+CXL_EXPORT unsigned long long
-+cxl_cmd_identify_get_persistent_only_capacity(struct cxl_cmd *cmd)
-+{
-+	cmd_identify_get_capacity_field(cmd, persistent_capacity);
-+}
-+
- CXL_EXPORT struct cxl_cmd *cxl_cmd_new_raw(struct cxl_memdev *memdev,
- 		int opcode)
+ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		unsigned long flags)
  {
-diff --git a/cxl/lib/libcxl.sym b/cxl/lib/libcxl.sym
-index 09d6d94..bed6427 100644
---- a/cxl/lib/libcxl.sym
-+++ b/cxl/lib/libcxl.sym
-@@ -31,6 +31,9 @@ global:
- 	cxl_cmd_get_out_size;
- 	cxl_cmd_new_identify;
- 	cxl_cmd_identify_get_fw_rev;
-+	cxl_cmd_identify_get_total_capacity;
-+	cxl_cmd_identify_get_volatile_only_capacity;
-+	cxl_cmd_identify_get_persistent_only_capacity;
- 	cxl_cmd_identify_get_partition_align;
- 	cxl_cmd_identify_get_label_size;
- 	cxl_cmd_new_get_health_info;
+@@ -1643,5 +1750,10 @@ struct json_object *util_cxl_memdev_to_json(struct cxl_memdev *memdev,
+ 		if (jobj)
+ 			json_object_object_add(jdev, "health", jobj);
+ 	}
++	if (flags & UTIL_JSON_PARTITION) {
++		jobj = util_cxl_memdev_partition_to_json(memdev, flags);
++		if (jobj)
++			json_object_object_add(jdev, "partition", jobj);
++	}
+ 	return jdev;
+ }
 -- 
 2.31.1
 
