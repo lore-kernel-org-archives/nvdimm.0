@@ -1,37 +1,37 @@
-Received: from mail-pg1-f171.google.com (mail-pg1-f171.google.com [209.85.215.171])
+Received: from mail-pg1-f175.google.com (mail-pg1-f175.google.com [209.85.215.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBEED173
-	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 19:20:23 +0000 (UTC)
-Received: by mail-pg1-f171.google.com with SMTP id 200so88373pgg.3
-        for <nvdimm@lists.linux.dev>; Wed, 05 Jan 2022 11:20:23 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E9E802C80
+	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 21:17:48 +0000 (UTC)
+Received: by mail-pg1-f175.google.com with SMTP id f5so271024pgk.12
+        for <nvdimm@lists.linux.dev>; Wed, 05 Jan 2022 13:17:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=Dve+wxxw9ty3Px2ty9l66SiGhuevpIEjzTRbcfS2h4g=;
-        b=8IJNIV4LzcZk4Gk1i5TwJ2/pjHaI5I/ZxjVO81zSvC7oeyj65UIb0m9RgbG8gz6Kp0
-         59mKq0TZ/S9FE0NHhMPgo6Nc/C8C0i2PbWkg7IqNVvQJUIj/VMEch0dRlzvvSTuPhsbR
-         dnICrGDtoYXsQq1BitIaSDpchHQK7QHrwe36S7aSMD0JSiKV6KmDUqRqHpc6hAr4jywd
-         XwI146AjdrfxzR2kdmIyuvZFzDzCRmYFhNABMaWpQZpI0Gzx3na1ykEIAUjZ/aXuNKEg
-         rv17ogtvQ6wW98kRgo5eNawBaWAq1psKDYwgPIMKF4m/zH5bqOV7s8wJvS0XTTuQvuu7
-         JB8Q==
+        bh=ncCC9L0WeEGzChuvJR0/68WabesH5+cAdTHSnuR8eYQ=;
+        b=fRuWCBZ33gONpGtMPl8wsjLgCQiQy7Wmiy3X1oq/2DBXxwzbc4JDSM+0dbA2bKYlRV
+         Jq/bdCQ6RUtk4h7PVQuIl80f7fC6jXCldD9VSMLz9HFNzNZTHc1lfTZtw3zL8aem+raD
+         PTrMTA9G9XJj0okCXm8iQlPaEceCAnAllllMDBzrdP4NrPOc30RmhB9ceW6DJjO0feeG
+         hgtQNE4oIj03MDPpj9yEQi3mi4VsbDUmbwHNCxgs2AXWAyUFoPKzAN89Oe/pSF+YfQ3f
+         1SjTD/MJrDfctrNx4II3BgN9/kWH6/zdeK9hrvd725mro2a3Qha4nanF0fk3yOsUSYNY
+         2Ezg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Dve+wxxw9ty3Px2ty9l66SiGhuevpIEjzTRbcfS2h4g=;
-        b=qJQnQeHPctxfo73ZPZ+ZAawVQL8R51tzez1COtDquGcZwVDkfk4Fe4r8T9Jjqm1Umk
-         sKb+TkqYaxAJSLHiXfBI8A1GJYijiY5O6YmHYGbNy+ttfqSH4rL8x4fJqIO5uHrAnNkM
-         bpE0+tLsF0Wc7VkSdrxTQXV9zqxB435OeWLbvAnkcPn9THwIvREPXs5MQkBAWjqLyQoU
-         Wi+mxHjIxG9pIt/9ohriSNrCzXT8P0MdahyORNVjBd1h5MG+effe18qZO5b4b3gRjhTI
-         6LJUHCclTa7LHN0f/XYo/d3HGDaxe8faUNIgmcBU/FfJHXJknRHsVscRArdJN7BS2diN
-         lKQQ==
-X-Gm-Message-State: AOAM5336SqJajC/lTTQiQab1cyfTKI2z9Vget7jUB3JPrn2Gc82K/UTv
-	UvTcKFl9K2JzoBDCfH+J13HVmZXvbBaVayI6LrUXWw==
-X-Google-Smtp-Source: ABdhPJz3U6I17PcLMJRT9nNHOY2Hml0MXvZXbyzvuHrppEa6CJQNVUp/+QSIaW561mi0Aw4p76wcTbR7GWuXBpuqFko=
-X-Received: by 2002:a63:ab01:: with SMTP id p1mr1426162pgf.437.1641410423361;
- Wed, 05 Jan 2022 11:20:23 -0800 (PST)
+        bh=ncCC9L0WeEGzChuvJR0/68WabesH5+cAdTHSnuR8eYQ=;
+        b=v+winZQ9GG+PyOvKe1X1EHmqd2IXBYxhVLz/Xc1u3+Xksxy5SATFo3J4/KNgDWZHuq
+         MiStbsxFEVBnufe5LLqmcA/Y7baR73JZNSSq/nNyr0aGFUGMquVezBgkOQGIBx35ghWu
+         xfiBFyPFy+1mna3QJKZ13b0MnPItb0FgcDevBJYFXMmmQ3NvA6km4TX/WRSUDK9FcNDs
+         HhV+ETTxUL1fHaaPRmSug5vPZ04vFvPcJTaVNflFZUyDQ1+7cyjsV9xfsltokX3eWBfN
+         eRASIOKRB0X5enKZTHm6jldHGon9lsGKDEQ8Isi1nGaIG735Zz4no5XUfC+ZrQxUiylO
+         kZnA==
+X-Gm-Message-State: AOAM532+D9+/5YfP21e92d7c6tMW9V1cB8zOBbkuzQ+PsncFqy0r3vpM
+	//noyo2vRKK1HKmNQQQwGNlNtH0lGUGQH+azvNSF0A==
+X-Google-Smtp-Source: ABdhPJxgli9znNEolSNy97di7dIxA0jaBSFzjSHHHebIOCoYgJOYK/Ii+cU9k3sIosh4ktBtiagjcEUcU+NH0sLpGo0=
+X-Received: by 2002:a63:ab01:: with SMTP id p1mr1770235pgf.437.1641417468262;
+ Wed, 05 Jan 2022 13:17:48 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -39,13 +39,12 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 References: <20211226143439.3985960-1-ruansy.fnst@fujitsu.com>
- <20211226143439.3985960-3-ruansy.fnst@fujitsu.com> <20220105181230.GC398655@magnolia>
- <CAPcyv4iTaneUgdBPnqcvLr4Y_nAxQp31ZdUNkSRPsQ=9CpMWHg@mail.gmail.com> <20220105185626.GE398655@magnolia>
-In-Reply-To: <20220105185626.GE398655@magnolia>
+ <20211226143439.3985960-10-ruansy.fnst@fujitsu.com> <20220105185334.GD398655@magnolia>
+In-Reply-To: <20220105185334.GD398655@magnolia>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 5 Jan 2022 11:20:12 -0800
-Message-ID: <CAPcyv4h3M9f1-C5e9kHTfPaRYR_zN4gzQWgR+ZyhNmG_SL-u+A@mail.gmail.com>
-Subject: Re: [PATCH v9 02/10] dax: Introduce holder for dax_device
+Date: Wed, 5 Jan 2022 13:17:37 -0800
+Message-ID: <CAPcyv4jYOvK57LqGzvZwyHo=4sEKmdAV1jgCzDw5eeCySPGS6w@mail.gmail.com>
+Subject: Re: [PATCH v9 09/10] xfs: Implement ->notify_failure() for XFS
 To: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>, 
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
@@ -54,135 +53,296 @@ Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>,
 	Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
 Content-Type: text/plain; charset="UTF-8"
 
-On Wed, Jan 5, 2022 at 10:56 AM Darrick J. Wong <djwong@kernel.org> wrote:
+On Wed, Jan 5, 2022 at 10:53 AM Darrick J. Wong <djwong@kernel.org> wrote:
 >
-> On Wed, Jan 05, 2022 at 10:23:08AM -0800, Dan Williams wrote:
-> > On Wed, Jan 5, 2022 at 10:12 AM Darrick J. Wong <djwong@kernel.org> wrote:
-> > >
-> > > On Sun, Dec 26, 2021 at 10:34:31PM +0800, Shiyang Ruan wrote:
-> > > > To easily track filesystem from a pmem device, we introduce a holder for
-> > > > dax_device structure, and also its operation.  This holder is used to
-> > > > remember who is using this dax_device:
-> > > >  - When it is the backend of a filesystem, the holder will be the
-> > > >    instance of this filesystem.
-> > > >  - When this pmem device is one of the targets in a mapped device, the
-> > > >    holder will be this mapped device.  In this case, the mapped device
-> > > >    has its own dax_device and it will follow the first rule.  So that we
-> > > >    can finally track to the filesystem we needed.
-> > > >
-> > > > The holder and holder_ops will be set when filesystem is being mounted,
-> > > > or an target device is being activated.
-> > > >
-> > > > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-> > > > ---
-> > > >  drivers/dax/super.c | 62 +++++++++++++++++++++++++++++++++++++++++++++
-> > > >  include/linux/dax.h | 29 +++++++++++++++++++++
-> > > >  2 files changed, 91 insertions(+)
-> > > >
-> > > > diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-> > > > index c46f56e33d40..94c51f2ee133 100644
-> > > > --- a/drivers/dax/super.c
-> > > > +++ b/drivers/dax/super.c
-> > > > @@ -20,15 +20,20 @@
-> > > >   * @inode: core vfs
-> > > >   * @cdev: optional character interface for "device dax"
-> > > >   * @private: dax driver private data
-> > > > + * @holder_data: holder of a dax_device: could be filesystem or mapped device
-> > > >   * @flags: state and boolean properties
-> > > > + * @ops: operations for dax_device
-> > > > + * @holder_ops: operations for the inner holder
-> > > >   */
-> > > >  struct dax_device {
-> > > >       struct inode inode;
-> > > >       struct cdev cdev;
-> > > >       void *private;
-> > > >       struct percpu_rw_semaphore rwsem;
-> > > > +     void *holder_data;
-> > > >       unsigned long flags;
-> > > >       const struct dax_operations *ops;
-> > > > +     const struct dax_holder_operations *holder_ops;
-> > > >  };
-> > > >
-> > > >  static dev_t dax_devt;
-> > > > @@ -192,6 +197,29 @@ int dax_zero_page_range(struct dax_device *dax_dev, pgoff_t pgoff,
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(dax_zero_page_range);
-> > > >
-> > > > +int dax_holder_notify_failure(struct dax_device *dax_dev, u64 off,
-> > > > +                           u64 len, int mf_flags)
-> > > > +{
-> > > > +     int rc;
-> > > > +
-> > > > +     dax_read_lock(dax_dev);
-> > > > +     if (!dax_alive(dax_dev)) {
-> > > > +             rc = -ENXIO;
-> > > > +             goto out;
-> > > > +     }
-> > > > +
-> > > > +     if (!dax_dev->holder_ops) {
-> > > > +             rc = -EOPNOTSUPP;
-> > > > +             goto out;
-> > > > +     }
-> > > > +
-> > > > +     rc = dax_dev->holder_ops->notify_failure(dax_dev, off, len, mf_flags);
-> > > > +out:
-> > > > +     dax_read_unlock(dax_dev);
-> > > > +     return rc;
-> > > > +}
-> > > > +EXPORT_SYMBOL_GPL(dax_holder_notify_failure);
-> > > > +
-> > > >  #ifdef CONFIG_ARCH_HAS_PMEM_API
-> > > >  void arch_wb_cache_pmem(void *addr, size_t size);
-> > > >  void dax_flush(struct dax_device *dax_dev, void *addr, size_t size)
-> > > > @@ -254,6 +282,10 @@ void kill_dax(struct dax_device *dax_dev)
-> > > >               return;
-> > > >       dax_write_lock(dax_dev);
-> > > >       clear_bit(DAXDEV_ALIVE, &dax_dev->flags);
-> > > > +
-> > > > +     /* clear holder data */
-> > > > +     dax_dev->holder_ops = NULL;
-> > > > +     dax_dev->holder_data = NULL;
-> > > >       dax_write_unlock(dax_dev);
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(kill_dax);
-> > > > @@ -401,6 +433,36 @@ void put_dax(struct dax_device *dax_dev)
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(put_dax);
-> > > >
-> > > > +void dax_register_holder(struct dax_device *dax_dev, void *holder,
-> > > > +             const struct dax_holder_operations *ops)
-> > > > +{
-> > > > +     if (!dax_alive(dax_dev))
-> > > > +             return;
-> > > > +
-> > > > +     dax_dev->holder_data = holder;
-> > > > +     dax_dev->holder_ops = ops;
-> > >
-> > > Shouldn't this return an error code if the dax device is dead or if
-> > > someone already registered a holder?  I'm pretty sure XFS should not
-> > > bind to a dax device if someone else already registered for it...
+> On Sun, Dec 26, 2021 at 10:34:38PM +0800, Shiyang Ruan wrote:
+> > Introduce xfs_notify_failure.c to handle failure related works, such as
+> > implement ->notify_failure(), register/unregister dax holder in xfs, and
+> > so on.
 > >
-> > Agree, yes.
+> > If the rmap feature of XFS enabled, we can query it to find files and
+> > metadata which are associated with the corrupt data.  For now all we do
+> > is kill processes with that file mapped into their address spaces, but
+> > future patches could actually do something about corrupt metadata.
 > >
-> > >
-> > > ...unless you want to use a notifier chain for failure events so that
-> > > there can be multiple consumers of dax failure events?
+> > After that, the memory failure needs to notify the processes who are
+> > using those files.
 > >
-> > No, I would hope not. It should be 1:1 holders to dax-devices. Similar
-> > ownership semantics like bd_prepare_to_claim().
+> > Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
+> > ---
+> >  fs/xfs/Makefile             |   1 +
+> >  fs/xfs/xfs_buf.c            |  15 +++
+> >  fs/xfs/xfs_fsops.c          |   3 +
+> >  fs/xfs/xfs_mount.h          |   1 +
+> >  fs/xfs/xfs_notify_failure.c | 189 ++++++++++++++++++++++++++++++++++++
+> >  fs/xfs/xfs_notify_failure.h |  10 ++
+> >  6 files changed, 219 insertions(+)
+> >  create mode 100644 fs/xfs/xfs_notify_failure.c
+> >  create mode 100644 fs/xfs/xfs_notify_failure.h
+> >
+> > diff --git a/fs/xfs/Makefile b/fs/xfs/Makefile
+> > index 04611a1068b4..389970b3e13b 100644
+> > --- a/fs/xfs/Makefile
+> > +++ b/fs/xfs/Makefile
+> > @@ -84,6 +84,7 @@ xfs-y                               += xfs_aops.o \
+> >                                  xfs_message.o \
+> >                                  xfs_mount.o \
+> >                                  xfs_mru_cache.o \
+> > +                                xfs_notify_failure.o \
+> >                                  xfs_pwork.o \
+> >                                  xfs_reflink.o \
+> >                                  xfs_stats.o \
+> > diff --git a/fs/xfs/xfs_buf.c b/fs/xfs/xfs_buf.c
+> > index bbb0fbd34e64..d0df7604fa9e 100644
+> > --- a/fs/xfs/xfs_buf.c
+> > +++ b/fs/xfs/xfs_buf.c
+> > @@ -19,6 +19,7 @@
+> >  #include "xfs_errortag.h"
+> >  #include "xfs_error.h"
+> >  #include "xfs_ag.h"
+> > +#include "xfs_notify_failure.h"
+> >
+> >  static struct kmem_cache *xfs_buf_cache;
+> >
+> > @@ -1892,6 +1893,8 @@ xfs_free_buftarg(
+> >       list_lru_destroy(&btp->bt_lru);
+> >
+> >       blkdev_issue_flush(btp->bt_bdev);
+> > +     if (btp->bt_daxdev)
+> > +             dax_unregister_holder(btp->bt_daxdev);
+> >       fs_put_dax(btp->bt_daxdev);
+> >
+> >       kmem_free(btp);
+> > @@ -1946,6 +1949,18 @@ xfs_alloc_buftarg(
+> >       btp->bt_dev =  bdev->bd_dev;
+> >       btp->bt_bdev = bdev;
+> >       btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off);
+> > +     if (btp->bt_daxdev) {
+> > +             dax_write_lock(btp->bt_daxdev);
+> > +             if (dax_get_holder(btp->bt_daxdev)) {
+> > +                     dax_write_unlock(btp->bt_daxdev);
+> > +                     xfs_err(mp, "DAX device already in use?!");
+> > +                     goto error_free;
+> > +             }
+> > +
+> > +             dax_register_holder(btp->bt_daxdev, mp,
+> > +                             &xfs_dax_holder_operations);
+> > +             dax_write_unlock(btp->bt_daxdev);
+> > +     }
+> >
+> >       /*
+> >        * Buffer IO error rate limiting. Limit it to no more than 10 messages
+> > diff --git a/fs/xfs/xfs_fsops.c b/fs/xfs/xfs_fsops.c
+> > index 33e26690a8c4..d4d36c5bef11 100644
+> > --- a/fs/xfs/xfs_fsops.c
+> > +++ b/fs/xfs/xfs_fsops.c
+> > @@ -542,6 +542,9 @@ xfs_do_force_shutdown(
+> >       } else if (flags & SHUTDOWN_CORRUPT_INCORE) {
+> >               tag = XFS_PTAG_SHUTDOWN_CORRUPT;
+> >               why = "Corruption of in-memory data";
+> > +     } else if (flags & SHUTDOWN_CORRUPT_ONDISK) {
+> > +             tag = XFS_PTAG_SHUTDOWN_CORRUPT;
+> > +             why = "Corruption of on-disk metadata";
+> >       } else {
+> >               tag = XFS_PTAG_SHUTDOWN_IOERROR;
+> >               why = "Metadata I/O Error";
+> > diff --git a/fs/xfs/xfs_mount.h b/fs/xfs/xfs_mount.h
+> > index 00720a02e761..47ff4ac53c4c 100644
+> > --- a/fs/xfs/xfs_mount.h
+> > +++ b/fs/xfs/xfs_mount.h
+> > @@ -435,6 +435,7 @@ void xfs_do_force_shutdown(struct xfs_mount *mp, int flags, char *fname,
+> >  #define SHUTDOWN_LOG_IO_ERROR        0x0002  /* write attempt to the log failed */
+> >  #define SHUTDOWN_FORCE_UMOUNT        0x0004  /* shutdown from a forced unmount */
+> >  #define SHUTDOWN_CORRUPT_INCORE      0x0008  /* corrupt in-memory data structures */
+> > +#define SHUTDOWN_CORRUPT_ONDISK      0x0010  /* corrupt metadata on device */
+> >
+> >  #define XFS_SHUTDOWN_STRINGS \
+> >       { SHUTDOWN_META_IO_ERROR,       "metadata_io" }, \
+> > diff --git a/fs/xfs/xfs_notify_failure.c b/fs/xfs/xfs_notify_failure.c
+> > new file mode 100644
+> > index 000000000000..a87bd08365f4
+> > --- /dev/null
+> > +++ b/fs/xfs/xfs_notify_failure.c
+> > @@ -0,0 +1,189 @@
+> > +// SPDX-License-Identifier: GPL-2.0
+> > +/*
+> > + * Copyright (c) 2021 Fujitsu.  All Rights Reserved.
+> > + */
+> > +
+> > +#include "xfs.h"
+> > +#include "xfs_shared.h"
+> > +#include "xfs_format.h"
+> > +#include "xfs_log_format.h"
+> > +#include "xfs_trans_resv.h"
+> > +#include "xfs_mount.h"
+> > +#include "xfs_alloc.h"
+> > +#include "xfs_bit.h"
+> > +#include "xfs_btree.h"
+> > +#include "xfs_inode.h"
+> > +#include "xfs_icache.h"
+> > +#include "xfs_rmap.h"
+> > +#include "xfs_rmap_btree.h"
+> > +#include "xfs_rtalloc.h"
+> > +#include "xfs_trans.h"
+> > +
+> > +#include <linux/mm.h>
+> > +#include <linux/dax.h>
+> > +
+> > +struct failure_info {
+> > +     xfs_agblock_t           startblock;
+> > +     xfs_filblks_t           blockcount;
+> > +     int                     mf_flags;
 >
-> Does each partition on a pmem device still have its own dax_device?
+> Why is blockcount a 64-bit quantity, when the failure information is
+> dealt with on a per-AG basis?  I think "xfs_extlen_t blockcount" should
+> be large enough here.  (I'll get back to this further down.)
+>
+> > +};
+> > +
+> > +static pgoff_t
+> > +xfs_failure_pgoff(
+> > +     struct xfs_mount                *mp,
+> > +     const struct xfs_rmap_irec      *rec,
+> > +     const struct failure_info       *notify)
+> > +{
+> > +     uint64_t pos = rec->rm_offset;
+>
+> Nit: indenting ^^^^^ here.
+>
+> > +
+> > +     if (notify->startblock > rec->rm_startblock)
+> > +             pos += XFS_FSB_TO_B(mp,
+> > +                             notify->startblock - rec->rm_startblock);
+> > +     return pos >> PAGE_SHIFT;
+> > +}
+> > +
+> > +static unsigned long
+> > +xfs_failure_pgcnt(
+> > +     struct xfs_mount                *mp,
+> > +     const struct xfs_rmap_irec      *rec,
+> > +     const struct failure_info       *notify)
+> > +{
+> > +     xfs_agblock_t start_rec = rec->rm_startblock;
+> > +     xfs_agblock_t end_rec = rec->rm_startblock + rec->rm_blockcount;
+> > +     xfs_agblock_t start_notify = notify->startblock;
+> > +     xfs_agblock_t end_notify = notify->startblock + notify->blockcount;
+> > +     xfs_agblock_t start_cross = max(start_rec, start_notify);
+> > +     xfs_agblock_t end_cross = min(end_rec, end_notify);
+>
+> Indenting and rather more local variables than we need?
+>
+> static unsigned long
+> xfs_failure_pgcnt(
+>         struct xfs_mount                *mp,
+>         const struct xfs_rmap_irec      *rec,
+>         const struct failure_info       *notify)
+> {
+>         xfs_agblock_t                   end_rec;
+>         xfs_agblock_t                   end_notify;
+>         xfs_agblock_t                   start_cross;
+>         xfs_agblock_t                   end_cross;
+>
+>         start_cross = max(rec->rm_startblock, notify->startblock);
+>
+>         end_rec = rec->rm_startblock + rec->rm_blockcount;
+>         end_notify = notify->startblock + notify->blockcount;
+>         end_cross = min(end_rec, end_notify);
+>
+>         return XFS_FSB_TO_B(mp, end_cross - start_cross) >> PAGE_SHIFT;
+> }
+>
+> > +
+> > +     return XFS_FSB_TO_B(mp, end_cross - start_cross) >> PAGE_SHIFT;
+> > +}
+> > +
+> > +static int
+> > +xfs_dax_failure_fn(
+> > +     struct xfs_btree_cur            *cur,
+> > +     const struct xfs_rmap_irec      *rec,
+> > +     void                            *data)
+> > +{
+> > +     struct xfs_mount                *mp = cur->bc_mp;
+> > +     struct xfs_inode                *ip;
+> > +     struct address_space            *mapping;
+> > +     struct failure_info             *notify = data;
+> > +     int                             error = 0;
+> > +
+> > +     if (XFS_RMAP_NON_INODE_OWNER(rec->rm_owner) ||
+> > +         (rec->rm_flags & (XFS_RMAP_ATTR_FORK | XFS_RMAP_BMBT_BLOCK))) {
+> > +             /* TODO check and try to fix metadata */
+> > +             xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+> > +             return -EFSCORRUPTED;
+> > +     }
+> > +
+> > +     /* Get files that incore, filter out others that are not in use. */
+> > +     error = xfs_iget(mp, cur->bc_tp, rec->rm_owner, XFS_IGET_INCORE,
+> > +                      0, &ip);
+> > +     /* Continue the rmap query if the inode isn't incore */
+> > +     if (error == -ENODATA)
+> > +             return 0;
+> > +     if (error)
+> > +             return error;
+> > +
+> > +     mapping = VFS_I(ip)->i_mapping;
+> > +     if (IS_ENABLED(CONFIG_MEMORY_FAILURE)) {
+>
+> Is there a situation where we can receive media failure notices from DAX
+> but CONFIG_MEMORY_FAILURE is not enabled?  (I think the answer is yes?)
 
-No, it never did...
+Good catch, yes, I was planning to reuse this notification
+infrastructure for the "whoops you ripped out your CXL card that was
+being used with FSDAX" case. Although, if someone builds the kernel
+with CONFIG_MEMORY_FAILURE=n then I think a lack of notification for
+that case is to be expected? Perhaps CONFIG_FSDAX should just depend
+on CONFIG_MEMORY_FAILURE when that "hot remove" failure case is added.
+For now, CONFIG_MEMORY_FAILURE is the only source of errors.
 
-Just as before, each dax-device is still associated with a gendisk /
-whole-block_device. The recent change is that instead of needing that
-partition-block_device plumbed to convert a relative block number to
-its absolute whole-block_device offset the filesystem now handles that
-at iomap_begin() time. See:
+>
+> > +             pgoff_t off = xfs_failure_pgoff(mp, rec, notify);
+> > +             unsigned long cnt = xfs_failure_pgcnt(mp, rec, notify);
+> > +
+> > +             error = mf_dax_kill_procs(mapping, off, cnt, notify->mf_flags);
+> > +     }
+>
+> If so, then we ought to do /something/ besides silently dropping the
+> error, right?  Even if that something is rudely shutting down the fs,
+> like we do for attr/bmbt mappings above?
+>
+> What I'm getting at is that I think this function should be:
+>
+> #if IS_ENABLED(CONFIG_MEMORY_FAILURE)
+> static int
+> xfs_dax_failure_fn(
+>         struct xfs_btree_cur            *cur,
+>         const struct xfs_rmap_irec      *rec,
+>         void                            *data)
+> {
+>         /* shut down if attr/bmbt record like above */
+>
+>         error = xfs_iget(...);
+>         if (error == -ENODATA)
+>                 return 0;
+>         if (error)
+>                 return error;
+>
+>         off = xfs_failure_pgoff(mp, rec, notify);
+>         cnt = xfs_failure_pgcnt(mp, rec, notify);
+>
+>         error = mf_dax_kill_procs(mapping, off, cnt, notify->mf_flags);
+>         xfs_irele(ip);
+>         return error;
+> }
+> #else
+> static int
+> xfs_dax_failure_fn(
+>         struct xfs_btree_cur            *cur,
+>         const struct xfs_rmap_irec      *rec,
+>         void                            *data)
+> {
+>         /* No other option besides shutting down the fs. */
+>         xfs_force_shutdown(mp, SHUTDOWN_CORRUPT_ONDISK);
+>         return -EFSCORRUPTED;
+> }
+> #endif /* CONFIG_MEMORY_FAILURE */
 
-                if (mapping_flags & IOMAP_DAX)
-                        iomap->addr += target->bt_dax_part_off;
-
-...in xfs_bmbt_to_iomap() (in -next). I.e. bdev_dax_pgoff() is gone
-with the lead-in reworks.
+Oh, yeah that makes sense to me.
