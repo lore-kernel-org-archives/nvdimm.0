@@ -1,72 +1,80 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C2002C9C
-	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 00:18:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641341911; x=1672877911;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=floHASOYdpfcLvJAjGooz1XwbnJEgPMj7c5hxh7mhwA=;
-  b=UozcGYt1drargOsrXywNv9pG7Kow8NG9oFhne88eZqY9RaglJtPXn3xO
-   GMjjLyAROlOuXr5yKaxbpG5imdiIOWzpXtfGlzC4tcifv/ff0mrMY1lqc
-   mB5iEp87ChdYOBBLq6+PkkqNnBxCOYSfnPpbC3Bq+ww6O8R41t+taki1f
-   CGo1LDPPCFw7M+PWWsBewKg2S+kuROAom48EBztVW6HDuIbbRfx7eKjZv
-   zwpPTwsjNPIBz1WfKtYd9vnbGisfvcCr/lBRk84+wsthg7ZUIgzpfbV0I
-   9gX3Ge3MheM5mDtH8iYFYzsb67qm3fNNwwtuX0Aik9/0H7BHw1RQrsXM0
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10217"; a="266607507"
-X-IronPort-AV: E=Sophos;i="5.88,262,1635231600"; 
-   d="scan'208";a="266607507"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 16:18:30 -0800
-X-IronPort-AV: E=Sophos;i="5.88,262,1635231600"; 
-   d="scan'208";a="760617690"
-Received: from acramesh-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.136.16])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 16:18:30 -0800
-From: Vishal Verma <vishal.l.verma@intel.com>
-To: <nvdimm@lists.linux.dev>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [ndctl PATCH] ndctl: add repology graphic to README.md
-Date: Tue,  4 Jan 2022 17:18:23 -0700
-Message-Id: <20220105001823.299797-1-vishal.l.verma@intel.com>
-X-Mailer: git-send-email 2.33.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B308E168
+	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 17:45:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C534C36AE0;
+	Wed,  5 Jan 2022 17:45:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1641404717;
+	bh=Q3V6GchDz78dmmg78l3g/qEnjx4BoPVZZK1V2rhQnWg=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Ofv2KE4rUB3IDE5zL0LXmcN71knBnGoHLvDV2Kto/Au/uS6xKi4fnQx0ec7kw172w
+	 BbDNFOrbPnuJOnu/tQCE3V9lQ2JSWQ1I1m7/yWycIU8F9uEsfOdXaldGfOgLh1Xgpb
+	 D3biVEQT9XNIZXsP9hMsWsnfhqjojMiwV0zHGZ1smVOUaE0AlOMQDfH+Vwpzjde+IZ
+	 4EI8Mn5CNoE2cfdgQzkACRm6y5W/dHKF/2rQvfDraCSyxaoyV29AuGF8wzBFLrrjtU
+	 Mhcf9BXbMVP9aEwYgBR/xsrhHli0xmRbJ4N5MsmsisGMstkwuV+eqF9nmkciju8Qzq
+	 y0rPZl0QRkSeA==
+Date: Wed, 5 Jan 2022 09:45:17 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Shiyang Ruan <ruansy.fnst@fujitsu.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-xfs <linux-xfs@vger.kernel.org>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>,
+	Linux MM <linux-mm@kvack.org>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>,
+	Jane Chu <jane.chu@oracle.com>
+Subject: Re: [PATCH v9 01/10] dax: Use percpu rwsem for
+ dax_{read,write}_lock()
+Message-ID: <20220105174517.GI31606@magnolia>
+References: <20211226143439.3985960-1-ruansy.fnst@fujitsu.com>
+ <20211226143439.3985960-2-ruansy.fnst@fujitsu.com>
+ <CAPcyv4gkxuFRGh57nYrpS8mXo+5j-7=KGNn-gULgLGthZQPo2g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=708; h=from:subject; bh=floHASOYdpfcLvJAjGooz1XwbnJEgPMj7c5hxh7mhwA=; b=owGbwMvMwCXGf25diOft7jLG02pJDIlXHh9tlmHfeqe+6xW/AvPr2A17tyc88XdrVl8f4D6j9bRf R9+kjlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAExk3idGhutqJk8+mjAHvX3EVbT7Q9 stJ6Wrynt2Ml1gfKiwnE1lrjTDH17OIzpHk+7arJO68Irl5Nam5i8KO8+s+nHt0sKp5kv6BTgA
-X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gkxuFRGh57nYrpS8mXo+5j-7=KGNn-gULgLGthZQPo2g@mail.gmail.com>
 
-Add a graphic/badge from repology showing the packaging status of ndctl
-with various distros.
+On Tue, Jan 04, 2022 at 02:44:08PM -0800, Dan Williams wrote:
+> On Sun, Dec 26, 2021 at 6:35 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
+> >
+> > In order to introduce dax holder registration, we need a write lock for
+> > dax.
+> 
+> As far as I can see, no, a write lock is not needed while the holder
+> is being registered.
+> 
+> The synchronization that is needed is to make sure that the device
+> stays live over the registration event, and that any in-flight holder
+> operations are flushed before the device transitions from live to
+> dead, and that in turn relates to the live state of the pgmap.
+> 
+> The dax device cannot switch from live to dead without first flushing
+> all readers, so holding dax_read_lock() over the register holder event
+> should be sufficient.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- README.md | 3 +++
- 1 file changed, 3 insertions(+)
+...and perhaps add a comment describing that this is what the
+synchronization primitive is really protecting against?  The first time
+I read through this patchset, I assumed the rwsem was protecting
+&dax_hosts and was confused when I saw the one use of dax_write_lock.
 
-diff --git a/README.md b/README.md
-index 89dfc87..4ab4523 100644
---- a/README.md
-+++ b/README.md
-@@ -4,6 +4,9 @@
- Utility library for managing the libnvdimm (non-volatile memory device)
- sub-system in the Linux kernel
-   
-+<a href="https://repology.org/project/ndctl/versions">
-+    <img src="https://repology.org/badge/vertical-allrepos/ndctl.svg" alt="Packaging status" align="right">
-+</a>
- 
- Build
- =====
+--D
 
-base-commit: 57be068ef6aaf94c4d9ff0c06bd41a004e4ecf2c
--- 
-2.33.1
-
+> If you are worried about 2 or more potential
+> holders colliding at registration time, I would expect that's already
+> prevented by block device exclusive holder synchronization, but you
+> could also use cmpxchg and a single pointer to a 'struct dax_holder {
+> void *holder_data, struct dax_holder_operations *holder_ops }'. If you
+> are worried about memory_failure triggering while the filesystem is
+> shutting down it can do a synchronize_srcu(&dax_srcu) if it really
+> needs to ensure that the notify path is idle after removing the holder
+> registration.
+> 
+> ...are there any cases remaining not covered by the above suggestions?
