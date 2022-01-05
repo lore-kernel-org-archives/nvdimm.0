@@ -1,37 +1,37 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9F992C80
-	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 21:32:16 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5A2352C80
+	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 21:32:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641418336; x=1672954336;
+  t=1641418342; x=1672954342;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=YG9eeeLnbMrLQY6Q0GuYOl0nHLjVehSnzpcQ/ICYIL0=;
-  b=I8OnXtGFWeHrh6Lmk8s7zyYmWM8HXF2hFljRrO84cbVQ2uy8ACDCuKxJ
-   eoA6mC3u9x2iNPNmNdfu2D9nttTlA1qkwIgWvBj6okMW7/JfN0wDhVJ2M
-   zYu6/PV0PfrgohpWlEvbgE0iMsOL86EBexuuY3WgwecTdt4X170thdKi+
-   koCfWb8/mL5cg+TZlT/IfSNImMwdLrPNZXws9yryFTosLCAQNTKRVB0OY
-   Np1xqhnsJxkvEVIEowcnt1TxIqMbea9+GWfKvPf95JHHw9Q4GoDYR4aR0
-   IJzbHO54GpbfE2sEEuu6fIPQHioAxwUNP5sQd9BP2jUW7H2+CZPrlUleb
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10217"; a="266822419"
+  bh=WkNyoqOkNabsNshuJHnilc0Rs1nFAMTQqMLYayXSN9Q=;
+  b=JJQqhIyRavKkOhLYwBpuG82/MYYKAH0lvSgFh+Y8YGIkwSQ1ojRIYwP2
+   rebhElAONaoNAqVcj1bWG//bps0DKkNQXzsVX4jRvcPnlAQ5uw0hr5nbo
+   vzLTkqEul3OHSV6L1ekGScoACrungX0w17VtJ18kYpp0ampLNnS3UF3TJ
+   x8UDDai5bXVMJlCVSIUQCxYUm1j0m6QA06No9/0C915xQTXezsOfpxCYK
+   pf/MOR50gbf4iSFxP+O5Ec4jpsRKCzOUEyXT3cIG8tcBSDNp2pRM+r9LB
+   G/YSANWfGn8euIC6dkx2XhUWpY8fF4fLrn4M+0v3Br4ZFpx+oxP2tlbul
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10217"; a="241358756"
 X-IronPort-AV: E=Sophos;i="5.88,264,1635231600"; 
-   d="scan'208";a="266822419"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jan 2022 13:32:10 -0800
+   d="scan'208";a="241358756"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jan 2022 13:32:21 -0800
 X-IronPort-AV: E=Sophos;i="5.88,264,1635231600"; 
-   d="scan'208";a="689157245"
+   d="scan'208";a="574526373"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jan 2022 13:32:10 -0800
-Subject: [ndctl PATCH v3 06/16] ndctl/test: Move sector-mode to a different
- region
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Jan 2022 13:32:21 -0800
+Subject: [ndctl PATCH v3 08/16] ndctl/test: Fix support for missing
+ dax_pmem_compat module
 From: Dan Williams <dan.j.williams@intel.com>
 To: vishal.l.verma@intel.com
 Cc: nvdimm@lists.linux.dev, linux-cxl@vger.kernel.org
-Date: Wed, 05 Jan 2022 13:32:10 -0800
-Message-ID: <164141833068.3990253.15694496866707006837.stgit@dwillia2-desk3.amr.corp.intel.com>
+Date: Wed, 05 Jan 2022 13:32:21 -0800
+Message-ID: <164141834155.3990253.5388773351209410262.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <164141829899.3990253.17547886681174580434.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <164141829899.3990253.17547886681174580434.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -44,33 +44,69 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 
-Previously the largest region on the nfit_test.1 bus belonged to a BLK-mode
-region. With the removal of BLK-mode support update the test to instead
-find a suitable PMEM region to perform the checkout.
+The kernel is moving to drop CONFIG_DEV_DAX_PMEM_COMPAT. Update
+ndctl_test_init() to not error out if dax_pmem_compat is missing. It seems
+that the original implementation of support for missing dax_pmem_compat was
+broken, or since that time newer versions of kmod_module_new_from_name() no
+longer fail when the module is missing.
 
+Fixes: b7991dbc22f3 ("ndctl/test: Relax dax_pmem_compat requirement")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- test/sector-mode.sh |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ test/core.c |   25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/test/sector-mode.sh b/test/sector-mode.sh
-index 439ef331adaf..f70b0f1786f4 100755
---- a/test/sector-mode.sh
-+++ b/test/sector-mode.sh
-@@ -19,11 +19,11 @@ reset
- reset1
+diff --git a/test/core.c b/test/core.c
+index dc1405d75c49..5d1aa23723f1 100644
+--- a/test/core.c
++++ b/test/core.c
+@@ -120,7 +120,6 @@ int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		"nfit",
+ 		"device_dax",
+ 		"dax_pmem",
+-		"dax_pmem_core",
+ 		"dax_pmem_compat",
+ 		"libnvdimm",
+ 		"nd_btt",
+@@ -180,29 +179,27 @@ int ndctl_test_init(struct kmod_ctx **ctx, struct kmod_module **mod,
+ 		/*
+ 		 * Skip device-dax bus-model modules on pre-v5.1
+ 		 */
+-		if ((strcmp(name, "dax_pmem_core") == 0
+-				|| strcmp(name, "dax_pmem_compat") == 0)
+-				&& !ndctl_test_attempt(test,
+-					KERNEL_VERSION(5, 1, 0)))
++		if ((strcmp(name, "dax_pmem_compat") == 0) &&
++		    !ndctl_test_attempt(test, KERNEL_VERSION(5, 1, 0)))
+ 			continue;
  
- rc=1
--query=". | sort_by(.size) | reverse | .[0].dev"
--NAMESPACE=$($NDCTL list -b $NFIT_TEST_BUS1 -N | jq -r "$query")
--REGION=$($NDCTL list -R --namespace=$NAMESPACE | jq -r "(.[]) | .dev")
-+query=". | sort_by(.available_size) | reverse | .[0].dev"
-+REGION=$($NDCTL list -R -b $NFIT_TEST_BUS1 | jq -r "$query")
- echo 0 > /sys/bus/nd/devices/$REGION/read_only
--$NDCTL create-namespace --no-autolabel -e $NAMESPACE -m sector -f -l 4K
-+echo $ALIGN_SIZE > /sys/bus/nd/devices/$REGION/align
-+NAMESPACE=$($NDCTL create-namespace --no-autolabel -r $REGION -m sector -f -l 4K | jq -r ".dev")
- $NDCTL create-namespace --no-autolabel -e $NAMESPACE -m dax -f -a $ALIGN_SIZE
- $NDCTL create-namespace --no-autolabel -e $NAMESPACE -m sector -f -l 4K
+ retry:
+ 		rc = kmod_module_new_from_name(*ctx, name, mod);
+-
+-		/*
+-		 * dax_pmem_compat is not required, missing is ok,
+-		 * present-but-production is not ok.
+-		 */
+-		if (rc && strcmp(name, "dax_pmem_compat") == 0)
+-			continue;
+-
+ 		if (rc) {
+-			log_err(&log_ctx, "%s.ko: missing\n", name);
++			log_err(&log_ctx, "failed to interrogate %s.ko\n",
++				name);
+ 			break;
+ 		}
  
+ 		path = kmod_module_get_path(*mod);
+ 		if (!path) {
++			/*
++			 * dax_pmem_compat is not required, missing is
++			 * ok, present-but-production is not ok.
++			 */
++			if (strcmp(name, "dax_pmem_compat") == 0)
++				continue;
++
+ 			if (family != NVDIMM_FAMILY_INTEL &&
+ 			    (strcmp(name, "nfit") == 0 ||
+ 			     strcmp(name, "nd_e820") == 0))
 
