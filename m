@@ -1,67 +1,72 @@
-Received: from mail-pf1-f180.google.com (mail-pf1-f180.google.com [209.85.210.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82FBC2C9C
-	for <nvdimm@lists.linux.dev>; Tue,  4 Jan 2022 22:56:05 +0000 (UTC)
-Received: by mail-pf1-f180.google.com with SMTP id t19so33465289pfg.9
-        for <nvdimm@lists.linux.dev>; Tue, 04 Jan 2022 14:56:05 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=QDrla7Rgv/PbJy5q1B/gTLicO7LUJ4Uh87OcS/ewnKE=;
-        b=UnQWpQr21b08H9CCzMDJ58NV59i32gSxpHT+QzAwkrO4OAmJ//j0XPMmeqp9ezNcVD
-         wc+LG30An/agayNvl+NJHt6YBjXm6O408MGhsYl9h7mvor6IRClKKERwR+G7NA4rrrxD
-         YEhHssP/S9/5wHZr2A6Ly4Y41OVCTab/vh3T/47v9/0Zl1rBfzSzhFxVXZwEhpw+OAlb
-         lHdxMEYtx8koB4EsWoqsmItGdKo9eHAhy8j0Jf078FeDyQ6lYITt2LM67Tetu3wYlKWG
-         m/cVqQ6dQgccJh3/k7W1YuPpUIzvCRVDDwWPDHRnOkQXBz8LQPfn4BPfDg0xP1ivy5we
-         53Dw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=QDrla7Rgv/PbJy5q1B/gTLicO7LUJ4Uh87OcS/ewnKE=;
-        b=S6pNtNhFeFb1bJFWywcc9iFxVf7fNTScE4Zks3LpuliKdzJZ2tUjQdTa6Iy0kxae51
-         ec9FUIqosFtW7Nr3CKe9yrTMi2hZdbwjGEp2VkpgwNyvElqcpoQvq7O6q6jSdtt4cjJy
-         3edMAffTI6uWs/bOkwrFO3kZamOz55RxeNmUND/42tb6XLHpTk9LKSxfvIMcOVX66Ezw
-         T2+89CjXJapeXXq7aHV1WAwRv0Sf85Yaj1Cu0t+W+JP3boYKeUd70AnOfH7S5VbBb+Ee
-         VOd6qkGSQGWj5l79CsUgSc/09zz30qzazL8qsd1Ta8yhjUwRBdCykZ0FAS12QP8hiPxS
-         lepQ==
-X-Gm-Message-State: AOAM530mc5AYneb9mBWkgOrh9L32xwdpi5q38HThR9wRCRdBMhFyt1Wv
-	vBVGZWb3jinhBa3nmQ+HJwK3rfwGx40S+zqsE+/qCA==
-X-Google-Smtp-Source: ABdhPJw+Vos8Ml12UKdWDConJMoM6GI2KsSQYifbyzS1cJDllpf9uH/RB9uuvuXF/vjErHmErkc/FI0EcnSktAhTHJQ=
-X-Received: by 2002:a63:79c2:: with SMTP id u185mr904600pgc.74.1641336965053;
- Tue, 04 Jan 2022 14:56:05 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9C2002C9C
+	for <nvdimm@lists.linux.dev>; Wed,  5 Jan 2022 00:18:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1641341911; x=1672877911;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=floHASOYdpfcLvJAjGooz1XwbnJEgPMj7c5hxh7mhwA=;
+  b=UozcGYt1drargOsrXywNv9pG7Kow8NG9oFhne88eZqY9RaglJtPXn3xO
+   GMjjLyAROlOuXr5yKaxbpG5imdiIOWzpXtfGlzC4tcifv/ff0mrMY1lqc
+   mB5iEp87ChdYOBBLq6+PkkqNnBxCOYSfnPpbC3Bq+ww6O8R41t+taki1f
+   CGo1LDPPCFw7M+PWWsBewKg2S+kuROAom48EBztVW6HDuIbbRfx7eKjZv
+   zwpPTwsjNPIBz1WfKtYd9vnbGisfvcCr/lBRk84+wsthg7ZUIgzpfbV0I
+   9gX3Ge3MheM5mDtH8iYFYzsb67qm3fNNwwtuX0Aik9/0H7BHw1RQrsXM0
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10217"; a="266607507"
+X-IronPort-AV: E=Sophos;i="5.88,262,1635231600"; 
+   d="scan'208";a="266607507"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 16:18:30 -0800
+X-IronPort-AV: E=Sophos;i="5.88,262,1635231600"; 
+   d="scan'208";a="760617690"
+Received: from acramesh-mobl.amr.corp.intel.com (HELO vverma7-desk.amr.corp.intel.com) ([10.251.136.16])
+  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Jan 2022 16:18:30 -0800
+From: Vishal Verma <vishal.l.verma@intel.com>
+To: <nvdimm@lists.linux.dev>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Subject: [ndctl PATCH] ndctl: add repology graphic to README.md
+Date: Tue,  4 Jan 2022 17:18:23 -0700
+Message-Id: <20220105001823.299797-1-vishal.l.verma@intel.com>
+X-Mailer: git-send-email 2.33.1
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20211226143439.3985960-1-ruansy.fnst@fujitsu.com> <20211226143439.3985960-7-ruansy.fnst@fujitsu.com>
-In-Reply-To: <20211226143439.3985960-7-ruansy.fnst@fujitsu.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 4 Jan 2022 14:55:54 -0800
-Message-ID: <CAPcyv4jVDfpHb1DCW+NLXH2YBgLghCVy8o6wrc02CXx4g-Bv7Q@mail.gmail.com>
-Subject: Re: [PATCH v9 06/10] fsdax: Introduce dax_lock_mapping_entry()
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM <linux-mm@kvack.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick J. Wong" <djwong@kernel.org>, 
-	david <david@fromorbit.com>, Christoph Hellwig <hch@infradead.org>, Jane Chu <jane.chu@oracle.com>, 
-	Christoph Hellwig <hch@lst.de>
-Content-Type: text/plain; charset="UTF-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=708; h=from:subject; bh=floHASOYdpfcLvJAjGooz1XwbnJEgPMj7c5hxh7mhwA=; b=owGbwMvMwCXGf25diOft7jLG02pJDIlXHh9tlmHfeqe+6xW/AvPr2A17tyc88XdrVl8f4D6j9bRf R9+kjlIWBjEuBlkxRZa/ez4yHpPbns8TmOAIM4eVCWQIAxenAExk3idGhutqJk8+mjAHvX3EVbT7Q9 stJ6Wrynt2Ml1gfKiwnE1lrjTDH17OIzpHk+7arJO68Irl5Nam5i8KO8+s+nHt0sKp5kv6BTgA
+X-Developer-Key: i=vishal.l.verma@intel.com; a=openpgp; fpr=F8682BE134C67A12332A2ED07AFA61BEA3B84DFF
+Content-Transfer-Encoding: 8bit
 
-On Sun, Dec 26, 2021 at 6:35 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->
-> The current dax_lock_page() locks dax entry by obtaining mapping and
-> index in page.  To support 1-to-N RMAP in NVDIMM, we need a new function
-> to lock a specific dax entry corresponding to this file's mapping,index.
-> And output the page corresponding to the specific dax entry for caller
-> use.
+Add a graphic/badge from repology showing the packaging status of ndctl
+with various distros.
 
-Is this necessary? The point of dax_lock_page() is to ensure that the
-fs does not destroy the address_space, or remap the pfn while
-memory_failure() is operating on the pfn. In the notify_failure case
-control is handed to the fs so I expect it can make those guarantees
-itself, no?
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ README.md | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/README.md b/README.md
+index 89dfc87..4ab4523 100644
+--- a/README.md
++++ b/README.md
+@@ -4,6 +4,9 @@
+ Utility library for managing the libnvdimm (non-volatile memory device)
+ sub-system in the Linux kernel
+   
++<a href="https://repology.org/project/ndctl/versions">
++    <img src="https://repology.org/badge/vertical-allrepos/ndctl.svg" alt="Packaging status" align="right">
++</a>
+ 
+ Build
+ =====
+
+base-commit: 57be068ef6aaf94c4d9ff0c06bd41a004e4ecf2c
+-- 
+2.33.1
+
