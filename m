@@ -1,102 +1,97 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 78C8C168
-	for <nvdimm@lists.linux.dev>; Thu,  6 Jan 2022 11:07:19 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AYmzJM62YYsxXXLP6vfbD5bhwkn2cJEfYwER7XOP?=
- =?us-ascii?q?LsXnJ1m8g3zIFx2scC2yEOarYNzPxftEkat+//UgAvpDcxoI2QQE+nZ1PZygU8?=
- =?us-ascii?q?JKaX7x1DatR0xu6d5SFFAQ+hyknQoGowPscEzmM9n9BDpC79SMmjfjQGOKlYAL?=
- =?us-ascii?q?5EnsZqTFMGX5JZS1Ly7ZRbr5A2bBVMivV0T/Ai5S31GyNh1aYBlkpB5er83uDi?=
- =?us-ascii?q?hhdVAQw5TTSbdgT1LPXeuJ84Jg3fcldJFOgKmVY83LTegrN8F251juxExYFAdX?=
- =?us-ascii?q?jnKv5c1ERX/jZOg3mZnh+AvDk20Yd4HdplPtT2Pk0MC+7jx2Tgtl308QLu5qrV?=
- =?us-ascii?q?S8nI6/NhP8AFRJfFkmSOIUfoueffSfj4Zb7I0ruNiGEL+9VJE0/I4wU0uhtBmR?=
- =?us-ascii?q?J7/YZNHYGaRXrr+K9wJq6TOd2j8guJcWtO5kQ0llsxDefD7A5QJTHQqzP/vdZ2?=
- =?us-ascii?q?is9goZFGvO2T8Ybdj1pYzzDbgdJN1NRD4gx9M+sh3/iY3hdrXqWu6M84C7U1gM?=
- =?us-ascii?q?Z+L7zPNvQf/SORN5JhQCcp2Tb7yL1Dw9yHN6WzzfD+XKxrujVlCj/VcQZE7jQ3?=
- =?us-ascii?q?vprhkCDg2IIBBAIWF+Tv/a0kAi9VshZJkhS/TAhxYA29Uq2Xpz+Uge+rXqsoBE?=
- =?us-ascii?q?RQZxTHvc85QXLzbDbiy6dB24ZXntRZscOqsA7X3op20WPktevAiZg2IB541r1G?=
- =?us-ascii?q?qy89Gv0YHZKazRZI3JscOfM2PG7yKlbs/4FZo8L/HaJs+DI?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3A5LJymaEMSmrMc5oMpLqE1MeALOsnbusQ8zAX?=
- =?us-ascii?q?PiFKOHhom6mj+vxG88506faKslwssR0b+OxoW5PwJE80l6QFgrX5VI3KNGbbUQ?=
- =?us-ascii?q?CTXeNfBOXZowHIKmnX8+5x8eNaebFiNduYNzNHpPe/zA6mM9tI+rW6zJw=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,266,1635177600"; 
-   d="scan'208";a="120047482"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 06 Jan 2022 19:06:07 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-	by cn.fujitsu.com (Postfix) with ESMTP id 950D24D15A4E;
-	Thu,  6 Jan 2022 19:06:04 +0800 (CST)
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 6 Jan 2022 19:06:05 +0800
-Received: from [192.168.22.28] (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 6 Jan 2022 19:06:02 +0800
-Message-ID: <0b765c02-942b-7e7a-63ca-5ee83b33991a@fujitsu.com>
-Date: Thu, 6 Jan 2022 19:06:03 +0800
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 390E02C80
+	for <nvdimm@lists.linux.dev>; Thu,  6 Jan 2022 14:42:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1641480159;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=ziI0c5zpDrfARzHWSXczYyQXV4rhV2uF5H/yu3MCuIA=;
+	b=hzjCB8vgmtRRoJgUfU+7Tqssh59RVeI0eWmS+3a235FiajsGSLfkkjpWwp66nYDVgZKDHu
+	0yztWn5AnhP0IX+hXURGGUimEoM8kpTf1fXD44UzYUNcbaFzDdLHqtYvs0e9pQmkpTQptt
+	sHvQUJudodyszxvXBV1+OGJoz3TnMns=
+Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
+ [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-632-iTa3SYG6PTWY15j9dIwOBA-1; Thu, 06 Jan 2022 09:42:38 -0500
+X-MC-Unique: iTa3SYG6PTWY15j9dIwOBA-1
+Received: by mail-qt1-f199.google.com with SMTP id s6-20020a05622a018600b002b2d93b9c73so2096906qtw.9
+        for <nvdimm@lists.linux.dev>; Thu, 06 Jan 2022 06:42:38 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=ziI0c5zpDrfARzHWSXczYyQXV4rhV2uF5H/yu3MCuIA=;
+        b=MUNYjt3ze8CVDrhNE02E6Kmqw6XPiEg/Wczt2qZPmP/RIVFyga0047kIZoDtT6QqtR
+         aqOSA9HLXUKIjOtbTEohIhKAK+x6Tx5xE6ltwPPObzcfO5kfoHmNFT1iTEH4OEV3eoEk
+         FXnuIUJbDxxc+xQ6h1I+yI08v8o/bMNGQC1tEZc18Jke4jeoPaJJBzNiJTMScHW5+SOq
+         O2XjYgKF87Clcdl/rV0t1ZRWkuBBTxufRYGpGyFOwQKvRdftMlS8VfszbJ+NkJRD0SOv
+         Tb8P0n5xF1oTRO+ks1hnr2c7PTViL8ESXXoh4fKXzL0+UUtDco7mDEcwWtUaI+Cwbvwn
+         WwHQ==
+X-Gm-Message-State: AOAM533nO7TvHTPxEVgadON4FGby8eXdVSRvxWQl5HiaJ+MXlnX+cIjD
+	BZHqOEGUwq8nNQ9hZfGXrWmOxia1qny8afOJOZqFlC759x8YVfaKON/e4V6oOG106ACOuiH2f9Y
+	eD7wryverk9tV/m0=
+X-Received: by 2002:a05:620a:bcc:: with SMTP id s12mr40958054qki.440.1641480157670;
+        Thu, 06 Jan 2022 06:42:37 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJz3FRhHacqx3hvXCbD5dR5jpsBPvBE8m7URZnWLXDzc/nf2wfv2oNDbZeyhxFZfEJhygNyDig==
+X-Received: by 2002:a05:620a:bcc:: with SMTP id s12mr40958035qki.440.1641480157454;
+        Thu, 06 Jan 2022 06:42:37 -0800 (PST)
+Received: from localhost (pool-68-160-176-52.bstnma.fios.verizon.net. [68.160.176.52])
+        by smtp.gmail.com with ESMTPSA id t3sm2038461qtc.7.2022.01.06.06.42.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 06 Jan 2022 06:42:37 -0800 (PST)
+Date: Thu, 6 Jan 2022 09:42:36 -0500
+From: Mike Snitzer <snitzer@redhat.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Dave Jiang <dave.jiang@intel.com>, Alasdair Kergon <agk@redhat.com>,
+	Ira Weiny <ira.weiny@intel.com>, Heiko Carstens <hca@linux.ibm.com>,
+	Vasily Gorbik <gor@linux.ibm.com>,
+	Christian Borntraeger <borntraeger@de.ibm.com>,
+	Vivek Goyal <vgoyal@redhat.com>,
+	Stefan Hajnoczi <stefanha@redhat.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Matthew Wilcox <willy@infradead.org>, dm-devel@redhat.com,
+	nvdimm@lists.linux.dev, linux-s390@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	virtualization@lists.linux-foundation.org
+Subject: Re: [PATCH 4/4] dax: remove the copy_from_iter and copy_to_iter
+ methods
+Message-ID: <Ydb/3P+8nvjCjYfO@redhat.com>
+References: <20211215084508.435401-1-hch@lst.de>
+ <20211215084508.435401-5-hch@lst.de>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: [PATCH v9 01/10] dax: Use percpu rwsem for
- dax_{read,write}_lock()
-To: Dan Williams <dan.j.williams@intel.com>
-CC: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-xfs
-	<linux-xfs@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, Linux MM
-	<linux-mm@kvack.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Darrick
- J. Wong" <djwong@kernel.org>, david <david@fromorbit.com>, Christoph Hellwig
-	<hch@infradead.org>, Jane Chu <jane.chu@oracle.com>
-References: <20211226143439.3985960-1-ruansy.fnst@fujitsu.com>
- <20211226143439.3985960-2-ruansy.fnst@fujitsu.com>
- <CAPcyv4gkxuFRGh57nYrpS8mXo+5j-7=KGNn-gULgLGthZQPo2g@mail.gmail.com>
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-In-Reply-To: <CAPcyv4gkxuFRGh57nYrpS8mXo+5j-7=KGNn-gULgLGthZQPo2g@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-yoursite-MailScanner-ID: 950D24D15A4E.AF7EC
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+In-Reply-To: <20211215084508.435401-5-hch@lst.de>
+Authentication-Results: relay.mimecast.com;
+	auth=pass smtp.auth=CUSA124A263 smtp.mailfrom=snitzer@redhat.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: redhat.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Wed, Dec 15 2021 at  3:45P -0500,
+Christoph Hellwig <hch@lst.de> wrote:
 
-
-在 2022/1/5 6:44, Dan Williams 写道:
-> On Sun, Dec 26, 2021 at 6:35 AM Shiyang Ruan <ruansy.fnst@fujitsu.com> wrote:
->>
->> In order to introduce dax holder registration, we need a write lock for
->> dax.
+> These methods indirect the actual DAX read/write path.  In the end pmem
+> uses magic flush and mc safe variants and fuse and dcssblk use plain ones
+> while device mapper picks redirects to the underlying device.
 > 
-> As far as I can see, no, a write lock is not needed while the holder
-> is being registered.
+> Add set_dax_nocache() and set_dax_nomc() APIs to control which copy
+> routines are used to remove indirect call from the read/write fast path
+> as well as a lot of boilerplate code.
 > 
-> The synchronization that is needed is to make sure that the device
-> stays live over the registration event, and that any in-flight holder
-> operations are flushed before the device transitions from live to
-> dead, and that in turn relates to the live state of the pgmap.
-> 
-> The dax device cannot switch from live to dead without first flushing
-> all readers, so holding dax_read_lock() over the register holder event
-> should be sufficient. If you are worried about 2 or more potential
-> holders colliding at registration time, I would expect that's already
-> prevented by block device exclusive holder synchronization, but you
-> could also use cmpxchg and a single pointer to a 'struct dax_holder {
-> void *holder_data, struct dax_holder_operations *holder_ops }'. If you
-> are worried about memory_failure triggering while the filesystem is
-> shutting down it can do a synchronize_srcu(&dax_srcu) if it really
-> needs to ensure that the notify path is idle after removing the holder
-> registration.
-> 
-> ...are there any cases remaining not covered by the above suggestions?
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Reviewed-by: Vivek Goyal <vgoyal@redhat.com> [virtiofs]
 
-OK, I think I didn't get what actual role does the dax lock play 
-before...  So, the modification of the lock is unnecessary.  I'll take 
-your two suggestions into consideration.
+Late to the game here, but quite a lot of dax DM code removed, thanks!
 
-
---
-Thanks,
-Ruan.
-
+Reviewed-by: Mike Snitzer <snitzer@redhat.com>
 
