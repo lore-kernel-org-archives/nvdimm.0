@@ -1,62 +1,66 @@
-Received: from mail-pg1-f174.google.com (mail-pg1-f174.google.com [209.85.215.174])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 384A4168
-	for <nvdimm@lists.linux.dev>; Thu,  6 Jan 2022 22:47:09 +0000 (UTC)
-Received: by mail-pg1-f174.google.com with SMTP id i8so3826294pgt.13
-        for <nvdimm@lists.linux.dev>; Thu, 06 Jan 2022 14:47:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=fSkscOE9BOBdVvhl5fpqHN/yc+QiTcotsBgdCKW/ymw=;
-        b=ySVJVexW5ljY+ds3EEbv5zTTrzy4rP02JBQegyP2ndXwAukEOTaOLfK5ZZznt+g7eU
-         2k/v5p6AcwtsOZ/jVynIgTeO7Ek1SxtoM4hFT5DUYiOXtQCCQkxu9Fz1hy539TH+Wf5B
-         LbXMnMRZqhZWE5+8HARIaSlBfViV2KAlnsqI+ezltRFkYitu47VRGbIahfH0sX1vZUTx
-         vqwJIXT6WpMQS/pTupodr7+FsbhvXI8g089vWkjq+USvInx+aD926H9nzY56+ccT/aAm
-         w+DkvZTsJSEC5eZp8+wRZL++dxiQn82Qy7TO24+XYcqtRodztROsEGLNGHYcbQatbI/b
-         kvlQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=fSkscOE9BOBdVvhl5fpqHN/yc+QiTcotsBgdCKW/ymw=;
-        b=K/gctBsKHxo5LDYcGV65NFDPoDKMiyFXRHob7cJXFd9Nf2m7HZ50yzyrPAr7IZwZgN
-         7CcHnXUGu968U2y20dEbviXPp/XXwXBUkOxZqigOB6d1akmHLL/I1E9YfU8xI/R1vIhs
-         S6KXaEfTiiKhAwsv3eQMLEmtoKZgqoD4wXzyKxn1jBsgj4fUWEMSlTfVF96/anO0hXOh
-         slCN+SZbRw+bOSG0VCOLjnEsCKGAVaPdqsypLZIVxcbFzcr1T1yUh5zgKQImARd/c1pE
-         JiXHeYiFJPeEC6H9jJcam5JGtHKrYudE9qW7NNdzf12jVvlbyLib6Do5IQOfRppQ5zID
-         rkTQ==
-X-Gm-Message-State: AOAM530Pn84lnuXvBtXOVY83vpshKXj2LPeEtdTgMRryrAT5VWqgGQZ/
-	3uU/Irtth96+bdbRjZle0WaCknHgShS2Hb/R/lzD1w==
-X-Google-Smtp-Source: ABdhPJzFLhyZDBU+kmeOdNF6km1lPjt2gxScbzWbpyi3YjO6Ym6xfOYH4FrW8FieZP8/ysUIT/Atj5Kj5jHl0NI3pKk=
-X-Received: by 2002:a63:710f:: with SMTP id m15mr23159410pgc.40.1641509228660;
- Thu, 06 Jan 2022 14:47:08 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62774173
+	for <nvdimm@lists.linux.dev>; Fri,  7 Jan 2022 19:31:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1641583867; x=1673119867;
+  h=subject:from:to:cc:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=9vKLJitBL4avQk4JOw0KZYR1d4V7xO5yUoVWk6OCNlY=;
+  b=Xx7L3d2QLD9Fex7AjrN58uU5YAnMZuxqK/BduHq0WAWr6Q2FzT71IUIA
+   Z09gFDiJyAg2wWmlf+Ttzw0ieLlIZvll2KuxvwJLwxed46zyBm/ooHKq1
+   m+FuGwPLi+ktvoCOMZGAWfegOa+CXJJemtHC3LY/LQvV6OreEEd9qphd8
+   O+uJLs6DvtI8X8J5fWNYGimNru6ft8hLyJRKxPQpAY6mS92VbZkbuX8M8
+   QPI4dol2JfhLgCttqzVtUv+UcXVBRMnCZroBxojD47yNh+vyC7NoKKV03
+   qK2PUY2dVYbIvEUqMMbUgMXLBjybFTqsxfvtXcurdzAICbaYvyF97dK48
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10219"; a="230269176"
+X-IronPort-AV: E=Sophos;i="5.88,270,1635231600"; 
+   d="scan'208";a="230269176"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2022 11:31:06 -0800
+X-IronPort-AV: E=Sophos;i="5.88,270,1635231600"; 
+   d="scan'208";a="612275947"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2022 11:31:06 -0800
+Subject: [ndctl PATCH] ndctl/build: Default asciidoctor to enabled
+From: Dan Williams <dan.j.williams@intel.com>
+To: vishal.l.verma@intel.com
+Cc: nvdimm@lists.linux.dev
+Date: Fri, 07 Jan 2022 11:31:06 -0800
+Message-ID: <164158386600.302694.5479584050156277551.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220106050940.743232-1-vishal.l.verma@intel.com> <20220106050940.743232-3-vishal.l.verma@intel.com>
-In-Reply-To: <20220106050940.743232-3-vishal.l.verma@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 6 Jan 2022 14:46:57 -0800
-Message-ID: <CAPcyv4gCLPYPixMydOfW_E77Qz+jZS1q8K8Vo2euXmC4oAL_Lw@mail.gmail.com>
-Subject: Re: [ndctl PATCH 2/3] scripts: move 'prepare-release.sh' and
- 'do_abidiff' into scripts/
-To: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On Wed, Jan 5, 2022 at 9:10 PM Vishal Verma <vishal.l.verma@intel.com> wrote:
->
-> The scripts directory in the ndctl tree is designated as the place for
-> useful developer scripts that don't need to get packaged or distributed.
-> Move the above out of contrib/ which does contain files that get
-> packaged.
->
+The autotools build infra previously defaulted asciidoctor to enabled, do
+the same for Meson.
 
-LGTM
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ meson_options.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+diff --git a/meson_options.txt b/meson_options.txt
+index 95312bfcb0d3..aa4a6dc8e12a 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -1,7 +1,7 @@
+ option('version-tag', type : 'string',
+        description : 'override the git version string')
+ option('docs', type : 'feature', value : 'enabled')
+-option('asciidoctor', type : 'feature', value : 'disabled')
++option('asciidoctor', type : 'feature', value : 'enabled')
+ option('systemd', type : 'feature', value : 'enabled')
+ option('keyutils', type : 'feature', value : 'enabled',
+   description : 'enable nvdimm device passphrase management')
+
