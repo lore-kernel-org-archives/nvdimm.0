@@ -1,66 +1,211 @@
 Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62774173
-	for <nvdimm@lists.linux.dev>; Fri,  7 Jan 2022 19:31:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 287D0173
+	for <nvdimm@lists.linux.dev>; Fri,  7 Jan 2022 19:39:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641583867; x=1673119867;
-  h=subject:from:to:cc:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=9vKLJitBL4avQk4JOw0KZYR1d4V7xO5yUoVWk6OCNlY=;
-  b=Xx7L3d2QLD9Fex7AjrN58uU5YAnMZuxqK/BduHq0WAWr6Q2FzT71IUIA
-   Z09gFDiJyAg2wWmlf+Ttzw0ieLlIZvll2KuxvwJLwxed46zyBm/ooHKq1
-   m+FuGwPLi+ktvoCOMZGAWfegOa+CXJJemtHC3LY/LQvV6OreEEd9qphd8
-   O+uJLs6DvtI8X8J5fWNYGimNru6ft8hLyJRKxPQpAY6mS92VbZkbuX8M8
-   QPI4dol2JfhLgCttqzVtUv+UcXVBRMnCZroBxojD47yNh+vyC7NoKKV03
-   qK2PUY2dVYbIvEUqMMbUgMXLBjybFTqsxfvtXcurdzAICbaYvyF97dK48
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10219"; a="230269176"
+  t=1641584350; x=1673120350;
+  h=date:from:to:subject:message-id:references:mime-version:
+   in-reply-to;
+  bh=AHDbmmtOhyCftkxkrACEYqu07BXhff8gmmgKFaPekxI=;
+  b=MvsHKtvlAstPHj/nG4+e1X6xhRwRfSEKeqhYqUdr1RNlBxMbuOf92sPY
+   eDNEoAM6a1udhsaD1valYn56ej4nHLYskiAq8X1NCxD8WVBm066CcWQ2O
+   kEKTI+sBtaHZ+6bjPYuTqgR2GKXE55RwsQ+z2U7Uus3L7ecQgRJEgaOQ/
+   rTuugxCLbtagOAg3MsPvZ4KGvfueunrCaA5QIWNQxd/vYU9/Oy7jixwp+
+   rtqCKOuQDsN9rFIPeiPqBzTAgYrM+0JTehU7v4klH+GuJrMtl6Jx9gajg
+   VAtuGS+OSZ1x6zQPakl3j8jyFvYDvRBvSVhGh4+lNrUBtAE41yA/5ogUy
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10220"; a="230270469"
 X-IronPort-AV: E=Sophos;i="5.88,270,1635231600"; 
-   d="scan'208";a="230269176"
+   d="scan'208";a="230270469"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2022 11:31:06 -0800
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2022 11:39:09 -0800
 X-IronPort-AV: E=Sophos;i="5.88,270,1635231600"; 
-   d="scan'208";a="612275947"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2022 11:31:06 -0800
-Subject: [ndctl PATCH] ndctl/build: Default asciidoctor to enabled
-From: Dan Williams <dan.j.williams@intel.com>
-To: vishal.l.verma@intel.com
-Cc: nvdimm@lists.linux.dev
-Date: Fri, 07 Jan 2022 11:31:06 -0800
-Message-ID: <164158386600.302694.5479584050156277551.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+   d="scan'208";a="612277590"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jan 2022 11:39:07 -0800
+Date: Fri, 7 Jan 2022 11:44:17 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Ben Widawsky <ben.widawsky@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>, nvdimm@lists.linux.dev,
+	linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH 0/7] Add partitioning support for CXL memdevs
+Message-ID: <20220107194417.GA803588@alison-desk>
+References: <cover.1641233076.git.alison.schofield@intel.com>
+ <20220106203246.GB178135@iweiny-DESK2.sc.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220106203246.GB178135@iweiny-DESK2.sc.intel.com>
 
-The autotools build infra previously defaulted asciidoctor to enabled, do
-the same for Meson.
+Thanks for the review Ira!
+There's one question back at you wrt adding MAN page to cover letter.
+Otherwise, I'm absorbing all your feedback.
 
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- meson_options.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/meson_options.txt b/meson_options.txt
-index 95312bfcb0d3..aa4a6dc8e12a 100644
---- a/meson_options.txt
-+++ b/meson_options.txt
-@@ -1,7 +1,7 @@
- option('version-tag', type : 'string',
-        description : 'override the git version string')
- option('docs', type : 'feature', value : 'enabled')
--option('asciidoctor', type : 'feature', value : 'disabled')
-+option('asciidoctor', type : 'feature', value : 'enabled')
- option('systemd', type : 'feature', value : 'enabled')
- option('keyutils', type : 'feature', value : 'enabled',
-   description : 'enable nvdimm device passphrase management')
+On Thu, Jan 06, 2022 at 12:32:46PM -0800, Ira Weiny wrote:
+> On Mon, Jan 03, 2022 at 12:16:11PM -0800, Schofield, Alison wrote:
+> > From: Alison Schofield <alison.schofield@intel.com>
+>  
+> First, thanks for taking this on!  :-D
+> 
+> > To support changing partitions on CXL memdevs, first provide access to device
+> > partitioning info.
+> >
+> 
+> How about:
+> 
+> Users will want to configure CXL memdevs on CXL devices which support
+> partitioning.  CXL provides get and set partition info mailbox command to do
+> this.
+> 
+> Add support to retrieve partition info and set partition info.
+> 
+> ...
+> 
 
+Will reword, thanks.
+
+> >
+> >
+> > The first 4 patches add accessors to all
+> > the partition info a CXL command parser needs in order to validate
+> > the command. This info is added to cxl list to assist the user in
+> > creating valid partition requests.
+> 
+> Great but what is a valid partition request?
+>
+
+I didn't regurgitate the restrictions here in the cover letter, nor
+in the patch commit logs. They are only visible in the MAN page, and
+I reference the MAN page in the cxl set-partition-info command patch.
+I could add a pretty version of the MAN page here to give the cover
+letter more details.
+
+Would you like to see the MAN page here?
+
+> > 
+> > # cxl list -MP
+> > [
+> >   {
+> >     "memdev":"mem0",
+> >     "pmem_size":0,
+> >     "ram_size":273535729664,
+> >     "partition":{
+> >       "active_volatile_capacity":273535729664,
+> >       "active_persistent_capacity":0,
+> >       "next_volatile_capacity":268435456,
+> >       "next_persistent_capacity":273267294208,
+> >       "total_capacity":273535729664,
+> >       "volatile_only_capacity":0,
+> >       "persistent_only_capacity":0,
+> >       "partition_alignment":268435456
+> >     }
+> >   }
+> > ]
+> > 
+> > Next introduce libcxl ioctl() interfaces for the SET_PARTITION_INFO
+> > mailbox command and the new CXL command. cxl-cli does the constraints
+> > checking. It does not offer the IMMEDIATE mode option since we do not
+> > have driver support for that yet.
+> 
+> How about something like 'cxl-cli restricts the use of the IMMEDIATE flag until
+> such time as the driver supports it'?
+
+Those words are really not true. cxl-cli doesn't restrict the flags use,
+it simply does not offer the option.
+
+> 
+> But we probably should just let the command through and rely on the driver to
+> do what it does...
+> 
+Nah. I don't think I should add -i --immediate to the command yet.
+
+(I think we covered this in chatroom)
+
+> > 
+> > # cxl set-partition-info
+> >  usage: cxl set-partition-info <mem0> [<mem1>..<memN>] [<options>]
+> > 
+> >     -v, --verbose         turn on debug
+> >     -s, --volatile_size <n>
+> >                           next volatile partition size in bytes
+> > 
+> > Guessing that
+>   ^^^^^^^^^^^^^
+>   Delete
+> 
+> 'A libcxl user can...'
+> 
+> >
+
+Will delete.
+
+
+> > a libcxl user could send the SET_PARTITION_INFO mailbox
+> > command outside of cxl-cli tool, so a kernel patch that disables the
+> > immediate bit, on the receiving end of the ioctl, follows.
+> 
+> cool!
+> 
+> > 
+> > It may be simpler to block the immediate bit in the libcxl API today,
+> > (and as I write this cover letter I'm wondering just how far this goes
+> > astray ;)) However, the kernel patch to peek in the payload sets us on
+> > the path of inspecting set-partition-info mailbox commands in the future,
+> > when immediate mode support is required.
+> 
+> I'd just delete this.  I think it is best to leave the kernel to the
+> enforcement and not complicate the user space.
+
+got it.
+
+> 
+> Ira
+> 
+> > 
+> > Testing - so far I've only tested w one memdev in a Simics env. So,
+> > next will be growing that Simics config, using cxl_test env, and 
+> > adding a unit test.
+> > 
+> > Alison Schofield (7):
+> >   libcxl: add GET_PARTITION_INFO mailbox command and accessors
+> >   libcxl: add accessors for capacity fields of the IDENTIFY command
+> >   libcxl: apply CXL_CAPACITY_MULTIPLIER to partition alignment field
+> >   cxl: add memdev partition information to cxl-list
+> >   libcxl: add interfaces for SET_PARTITION_INFO mailbox command
+> >   ndctl, util: use 'unsigned long long' type in OPT_U64 define
+> >   cxl: add command set-partition-info
+> > 
+> >  Documentation/cxl/cxl-list.txt               |  23 ++++
+> >  Documentation/cxl/cxl-set-partition-info.txt |  27 +++++
+> >  Documentation/cxl/partition-description.txt  |  15 +++
+> >  Documentation/cxl/partition-options.txt      |  19 +++
+> >  Documentation/cxl/Makefile.am                |   3 +-
+> >  cxl/builtin.h                                |   1 +
+> >  cxl/lib/private.h                            |  19 +++
+> >  cxl/libcxl.h                                 |  12 ++
+> >  util/json.h                                  |   1 +
+> >  util/parse-options.h                         |   2 +-
+> >  util/size.h                                  |   1 +
+> >  cxl/cxl.c                                    |   1 +
+> >  cxl/lib/libcxl.c                             | 117 ++++++++++++++++++-
+> >  cxl/lib/libcxl.sym                           |  11 ++
+> >  cxl/list.c                                   |   5 +
+> >  cxl/memdev.c                                 |  89 ++++++++++++++
+> >  util/json.c                                  | 112 ++++++++++++++++++
+> >  17 files changed, 455 insertions(+), 3 deletions(-)
+> >  create mode 100644 Documentation/cxl/cxl-set-partition-info.txt
+> >  create mode 100644 Documentation/cxl/partition-description.txt
+> >  create mode 100644 Documentation/cxl/partition-options.txt
+> > 
+> > -- 
+> > 2.31.1
+> > 
