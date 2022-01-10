@@ -1,44 +1,33 @@
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C8E52C9D
-	for <nvdimm@lists.linux.dev>; Mon, 10 Jan 2022 02:08:32 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1641780513; x=1673316513;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=fhnRMLo/QilbbIsk9kE7uOTlXpRYWy5r+8MKRY1tuNE=;
-  b=H2pxUb+laDfLhUbPkQFDdaoWXnu6ZHzxBbORvU8WavMFY7CYYoY+tznr
-   92Ux+/rE7/0ab73yBUuKIZva+13NayMnGUkylGLtz1wDx40RER83H52c3
-   QLRPjGH3yZgpb5VWEy4cKtVjOfaAkiQe8bhsNI4Bv4sw1+kMKNUVsTf51
-   gAG4FkI7VMth6A4UIn4s0vVw0PkMbz5eCBq8nJ+XP9gK4xZz1wKrzcVUS
-   Tf/wa0lW+vOPvcBamiFiGYiv9PVIyxoGMpdnjwxY4P9r7buBdgi9T3EO9
-   Olv8DPVQT2gwSU2ZJr0FIKZUHIkzXcMJU719ZDDrK+3/RhmPNW/5SJQsW
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10222"; a="303878894"
-X-IronPort-AV: E=Sophos;i="5.88,275,1635231600"; 
-   d="scan'208";a="303878894"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2022 18:08:32 -0800
-X-IronPort-AV: E=Sophos;i="5.88,275,1635231600"; 
-   d="scan'208";a="528087717"
-Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Jan 2022 18:08:32 -0800
-Date: Sun, 9 Jan 2022 18:13:38 -0800
-From: Alison Schofield <alison.schofield@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org
-Subject: Re: [ndctl PATCH 5/7] libcxl: add interfaces for SET_PARTITION_INFO
- mailbox command
-Message-ID: <20220110021338.GA813196@alison-desk>
-References: <cover.1641233076.git.alison.schofield@intel.com>
- <fa45e95e5d28981b4ec41db65aab82c103bff0c3.1641233076.git.alison.schofield@intel.com>
- <20220106205302.GF178135@iweiny-DESK2.sc.intel.com>
- <20220108015121.GA804835@alison-desk>
- <CAPcyv4jdt-936WpqNQv7hR2oPSFHbqsCDs40JgBJBaxZ-tHPJw@mail.gmail.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49B66168
+	for <nvdimm@lists.linux.dev>; Mon, 10 Jan 2022 19:35:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:Message-ID:
+	Subject:Cc:To:From:Date:Sender:Reply-To:Content-Transfer-Encoding:Content-ID:
+	Content-Description:In-Reply-To:References;
+	bh=ZFZ4QOFgcoyMCECZ3PkgL8BM+HFxPBx0EV0hU5cheCk=; b=kwTBNQ14Ajm4bb+p+yD8k57QkP
+	ag8IoWMx+ZceNrBHQIAX1qjPtJFmAq9bB3a4JnH2JpRIvuJYBtpHdys8Jq/5cenklNvLq/gPB+1Sg
+	2qgeP1b1J6H2Tv69ZZ1Dchmb2ZJjZjBKqVxc/SH3eNnBFhJ4iqYqyoAG6HKgY9R7CIH30swf1tj0Z
+	Gu8uqqBGWzCL6jiU7/viwFyhvJ/itxVSedkUZDGnUhNOWzn5QaeMXBfrtSKRCMeY14yLf8X1p6aFJ
+	T2ZJbBdfedchNNamYhhW0wNJ5GgzCiU5esGaF1uPdBB8x01ZyuwW4BYXYZcWtRvjnGo36PQEJY1Up
+	7sxipnQg==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1n70RN-002fyD-DM; Mon, 10 Jan 2022 19:34:49 +0000
+Date: Mon, 10 Jan 2022 19:34:49 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: linux-kernel@vger.kernel.org
+Cc: Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@nvidia.com>,
+	Joao Martins <joao.m.martins@oracle.com>,
+	John Hubbard <jhubbard@nvidia.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org,
+	netdev@vger.kernel.org, linux-mm@kvack.org,
+	linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	nvdimm@lists.linux.dev
+Subject: Phyr Starter
+Message-ID: <YdyKWeU0HTv8m7wD@casper.infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,47 +36,74 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4jdt-936WpqNQv7hR2oPSFHbqsCDs40JgBJBaxZ-tHPJw@mail.gmail.com>
 
-On Fri, Jan 07, 2022 at 06:27:40PM -0800, Dan Williams wrote:
-> On Fri, Jan 7, 2022 at 5:46 PM Alison Schofield
-> <alison.schofield@intel.com> wrote:
-> >
-> > On Thu, Jan 06, 2022 at 12:53:02PM -0800, Ira Weiny wrote:
-> > > On Mon, Jan 03, 2022 at 12:16:16PM -0800, Schofield, Alison wrote:
-> > > > From: Alison Schofield <alison.schofield@intel.com>
-> > > >
-> > > > Add APIs to allocate and send a SET_PARTITION_INFO mailbox command.
-> > > >
-> > > > +   le64 volatile_capacity;
-> > > > +   u8 flags;
-> > > > +} __attribute__((packed));
-> > > > +
-> > > > +/* CXL 2.0 8.2.9.5.2 Set Partition Info */
-> > > > +#define CXL_CMD_SET_PARTITION_INFO_NO_FLAG                         (0)
-> > > > +#define CXL_CMD_SET_PARTITION_INFO_IMMEDIATE_FLAG                  (1)
-> > >
-> > > BIT(0) and BIT(1)?
-> > >
-> > > I can't remember which bit is the immediate flag.
-> > >
-> > Immediate flag is BIT(0).
-> > Seemed awkward/overkill to use bit macro -
-> > +#define CXL_CMD_SET_PARTITION_INFO_NO_FLAG                             (0)
-> > +#define CXL_CMD_SET_PARTITION_INFO_IMMEDIATE_FLAG                      BIT(1)
-> >
-> > I just added api to use this so you'll see it in action in v2
-> > of this patchset and can comment again.
-> 
-> Why is a "no flag" definition needed? Isn't that just "!IMMEDIATE"
->
-You are right. The no flag set case is !IMMEDIATE.
+TLDR: I want to introduce a new data type:
 
->Also BIT(1) == 0x2, so that should be BIT(0), right?
-Yes IMMEDIATE FLAG IS BIT(0). 
+struct phyr {
+        phys_addr_t addr;
+        size_t len;
+};
 
-This chatter is related to using something more descriptive that '0'
-for !IMMEDIATE when the cxl command makes the call to the api. (Patch 7)
-I added a new accessor in v2 that returns the bit.
+and use it to replace bio_vec as well as using it to replace the array
+of struct pages used by get_user_pages() and friends.
 
+---
 
+There are two distinct problems I want to address: doing I/O to memory
+which does not have a struct page and efficiently doing I/O to large
+blobs of physically contiguous memory, regardless of whether it has a
+struct page.  There are some other improvements which I regard as minor.
+
+There are many types of memory that one might want to do I/O to that do
+not have a struct page, some examples:
+ - Memory on a graphics card (or other PCI card, but gfx seems to be
+   the primary provider of DRAM on the PCI bus today)
+ - DAX, or other pmem (there are some fake pages today, but this is
+   mostly a workaround for the IO problem today)
+ - Guest memory being accessed from the hypervisor (KVM needs to
+   create structpages to make this happen.  Xen doesn't ...)
+All of these kinds of memories can be addressed by the CPU and so also
+by a bus master.  That is, there is a physical address that the CPU
+can use which will address this memory, and there is a way to convert
+that to a DMA address which can be programmed into another device.
+There's no intent here to support memory which can be accessed by a
+complex scheme like writing an address to a control register and then
+accessing the memory through a FIFO; this is for memory which can be
+accessed by DMA and CPU loads and stores.
+
+For get_user_pages() and friends, we currently fill an array of struct
+pages, each one representing PAGE_SIZE bytes.  For an application that
+is using 1GB hugepages, writing 2^18 entries is a significant overhead.
+It also makes drivers hard to write as they have to recoalesce the
+struct pages, even though the VM can tell it whether those 2^18 pages
+are contiguous.
+
+On the minor side, struct phyr can represent any mappable chunk of memory.
+A bio_vec is limited to 2^32 bytes, while on 64-bit machines a phyr
+can represent larger than 4GB.  A phyr is the same size as a bio_vec
+on 64 bit (16 bytes), and the same size for 32-bit with PAE (12 bytes).
+It is smaller for 32-bit machines without PAE (8 bytes instead of 12).
+
+Finally, it may be possible to stop using scatterlist to describe the
+input to the DMA-mapping operation.  We may be able to get struct
+scatterlist down to just dma_address and dma_length, with chaining
+handled through an enclosing struct.
+
+I would like to see phyr replace bio_vec everywhere it's currently used.
+I don't have time to do that work now because I'm busy with folios.
+If someone else wants to take that on, I shall cheer from the sidelines.
+What I do intend to do is:
+
+ - Add an interface to gup.c to pin/unpin N phyrs
+ - Add a sg_map_phyrs()
+   This will take an array of phyrs and allocate an sg for them
+ - Whatever else I need to do to make one RDMA driver happy with
+   this scheme
+
+At that point, I intend to stop and let others more familiar with this
+area of the kernel continue the conversion of drivers.
+
+P.S. If you've had the Prodigy song running through your head the whole
+time you've been reading this email ... I'm sorry / You're welcome.
+If people insist, we can rename this to phys_range or something boring,
+but I quite like the spelling of phyr with the pronunciation of "fire".
