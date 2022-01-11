@@ -1,54 +1,55 @@
-Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 947D82CA7
-	for <nvdimm@lists.linux.dev>; Tue, 11 Jan 2022 19:00:15 +0000 (UTC)
-Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
-	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20BI1hdM032072;
-	Tue, 11 Jan 2022 18:59:50 GMT
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E07F52CA5
+	for <nvdimm@lists.linux.dev>; Tue, 11 Jan 2022 19:00:21 +0000 (UTC)
+Received: from pps.filterd (m0246617.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20BI29Gn021730;
+	Tue, 11 Jan 2022 19:00:16 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
- date : message-id : content-type : mime-version; s=corp-2021-07-09;
- bh=dU3OUmaZaBuqD+PTIKLIGbhcAC9qHfJqQU+JmhJBNjw=;
- b=XvpqBCLd0fBbXr0trSTr0lJRaK33bYQBlDedF0udjYYXc8yr6TokxgeQpEAvhsCok0NW
- MUuD2iZWdN5BNMgORspAwGAbgP7O/HB82POB2R69qABqPCWCnJmUFSlZz3kH5cn7cVrb
- WTrp3dLUznvBcCs+K/vUKhM5LCmiznjWOdxug98Uj+KAcjCnMGnpa/V8gIA7pldakA/F
- 6Pod8QHQdsXbNy7DkZHxlBF4Kj/lDm766w68KnTJ9D6FogsX3hLmBBKupybn4hvrm9Ih
- DiKt/+5iUb6/hbWBrWKu9CU4U20Ufx/rdHCBfrP+t/h7uejbTQLkytoNohFbylWhfkbf RQ== 
-Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
-	by mx0b-00069f02.pphosted.com with ESMTP id 3dgkhx43an-1
+ date : message-id : in-reply-to : references : content-type :
+ mime-version; s=corp-2021-07-09;
+ bh=1rfp+soIZ7vej1qqNdpuKGA18JLBYpfc5va5jA1zcDc=;
+ b=fLajsfihsSE4gxWT3Qq0BdXAny+rOBrHrYZ6Zut3Fye8nCUWUdmTRpQxEe/wp5OAcjh8
+ 6wR6m7Z3U9VVf4QyTWfxnDxzyZHzCY9GkwDwPmN6fhX4T+P2CH9jrvM7M34Y7XntZ6ft
+ BmXiYWQilrZmN+IitJQqT0N2PplHiptkVkkikGM3uAkN6Jz2uArDY3A5emrxmvOv6WAQ
+ wNeHUoMEWqWys2LD03DyK295OBOStyxlfRaiiJiO7z0l9ZT/b+NBcr5u28yC+tbG99Eb
+ IjOS3qdM2ytuSuNYnZA1yDTTPxi1o6pZY/anEAvKXAkX1muvnwDC3VzzJkRpUW8ZL6QZ uw== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3dgp7nkw16-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 11 Jan 2022 18:59:50 +0000
-Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
-	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20BIpdrC110997;
-	Tue, 11 Jan 2022 18:59:49 GMT
-Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11lp2171.outbound.protection.outlook.com [104.47.58.171])
-	by userp3020.oracle.com with ESMTP id 3df42n7d2s-1
+	Tue, 11 Jan 2022 19:00:15 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20BJ0AW5034629;
+	Tue, 11 Jan 2022 19:00:14 GMT
+Received: from nam12-dm6-obe.outbound.protection.outlook.com (mail-dm6nam12lp2174.outbound.protection.outlook.com [104.47.59.174])
+	by userp3030.oracle.com with ESMTP id 3deyqxmg1b-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 11 Jan 2022 18:59:49 +0000
+	Tue, 11 Jan 2022 19:00:13 +0000
 ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=hFV1c80YNvJIW2N9eoQ4hlMdfbHtdZDcwqaJCNIhKUlkbDK5qVmokiXDxuSwiMx5TMtFd6qrdsozb3wYF7ypFe5YbAwUmG+d91TNtuXLiS+NqucL1M/6fswiYSraWgJrLZYykrev5cUm6GXhu0x8dritmn9OZRWUlYJQXRF1aAmteA1syxqx1zBN4s7XtPu71y5Yh7WDuCBHUs6vYt9BsfUtlL+ChED4Elko9Z18kgbifC1PA4OAY5+3lPHjVuQmdt61eKFyI5LZ6FNIL2RUl4KWFMrT1iRG+jDblOirvX8UzHLtOxfErIoU21fJOGKo4inzG+aM5D89xy1Q8O9NDg==
+ b=B4v75P6xUhVmhRbApTQBowErakpQISU2Zzfyjsc4IfrcVfxI9DbHMCNo76OB+Z6crVXa+zMv0VoBKMmsBLDmWiX394IQEu+Qqrmo1z76maiy+sfX9IyW7fxuY8mn8DkFqdEzQ0TR2CwK3FvVkw+VX2UD5Nj920ZLwhWxM3RKggTPUoprN+urDrO8vS7ewEAdrK6POqPfDS8iW11NecN4lNBB2U9ZQw6XuwebPvanlzP0HgsRjLLe5UWc1xFkfIpU5IrOwIIEIxB1GV2Nvd7fPUh4LMXfuHb/iX2S8Lm5jX7mn0oucYHny7dMgN1jhxhvwPJQBVvoRSPpnTZLVnZsNQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
  s=arcselector9901;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=dU3OUmaZaBuqD+PTIKLIGbhcAC9qHfJqQU+JmhJBNjw=;
- b=CiUqgXMpJGM5PiUYWTZRYSWhL5d8yka+ngYDZ4y4/K3mrBKRKetfoULc6HmLCb91WC0DMk67gr3tyxeNZLhHTAmQQ57v+rsHWBmkuyfn6HvT8CDTvQoww1QL9d3xejO3IS1nmiE+1KbQjN4nqXhr1CTSv+/OIL4o3Rb5AONz6nwczuQdrt2d7nPW8oTvrDq5c4aQWjpFrRLwcUGLCwEVUPbVCARH/cJrUBb7Vfwf3zqsq9tlVxpCuB82gF0GgoTSWmJRfTND+xOuXKyeTPMqWc7aZUmi+Z5r4z1EndRPk84TEXdUZqhQGq1vVFTFNqyu2/0VJX10rsiNxhkMVmLWsg==
+ bh=1rfp+soIZ7vej1qqNdpuKGA18JLBYpfc5va5jA1zcDc=;
+ b=bcy02MlWZrt4e0YfhWSPA/Zb8CO/ZWIz0N3PGA9jw0PcGAOwqnC752JaFugvSzEtjTYCupIZcWj8IM/0MLSMIpZICKlkcP0snFpsRcVS4jYxFisxuRqVzfju5G+xMW/2JhL31P8rbHWaHSfuF7nTQZnXNpiPmHBpNHg2gVd8ydwH6kjRMwPiuIzlfdgA9VxhYIJ34AlBVLaJlctZhO8ihIPTuItfZEKTm5qtaoxNVRm+SR0ToMICVtOYf8qvg66dmdmAXnUxQmLU1gjE9rLveal0btFTI8lTgRuimwNVDGw6xQd3g4A1K6BOIk/eA8bVDV1WezfZrA+iiidKwf+oBg==
 ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
  smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
  dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
  d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
  h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=dU3OUmaZaBuqD+PTIKLIGbhcAC9qHfJqQU+JmhJBNjw=;
- b=OhIz3r28uQ3CI8GETDXZfOAh2LofqGDTpuvq8mC/ocGAcZhEhjVGXGnsJKSbUwAKaZWnN/woe/e05Ndg0nIp6x6wn0QioVpb+rCrkQ72DeAsq05RQgi7GQ+MJwGkdQPdoakPIucLsvkrLZrldItBKz8SQ/7hZ93bSnGuo5YDawk=
+ bh=1rfp+soIZ7vej1qqNdpuKGA18JLBYpfc5va5jA1zcDc=;
+ b=xJ0kDcHRvPhGbEtjm+OUfH4oXAIgyOkrcAQ0JvB7rDlfGCEhVKDBPp7MNpXtk71bNA99x9sj9TXdUD7nFV5CILjysDpPTez8kNnXdXV937HN/tb5xQZHNv77FB/Hnf9R1OAG99khbDggnoDrIWFQfC9zZIg6ksTYSJGLyQs4NLw=
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
- by SJ0PR10MB5647.namprd10.prod.outlook.com (2603:10b6:a03:3d7::9) with
+ by SJ0PR10MB4495.namprd10.prod.outlook.com (2603:10b6:a03:2d6::5) with
  Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4867.11; Tue, 11 Jan
- 2022 18:59:47 +0000
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4867.7; Tue, 11 Jan
+ 2022 19:00:03 +0000
 Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::6814:f6c:b361:7071]) by SJ0PR10MB4429.namprd10.prod.outlook.com
  ([fe80::6814:f6c:b361:7071%8]) with mapi id 15.20.4867.012; Tue, 11 Jan 2022
- 18:59:46 +0000
+ 19:00:03 +0000
 From: Jane Chu <jane.chu@oracle.com>
 To: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
         hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
@@ -56,10 +57,12 @@ To: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
         ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
         linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
         linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
-Subject: [PATCH v3 0/7] DAX poison recovery
-Date: Tue, 11 Jan 2022 11:59:23 -0700
-Message-Id: <20220111185930.2601421-1-jane.chu@oracle.com>
+Subject: [PATCH v3 6/7] dax: add recovery_write to dax_iomap_iter in failure path
+Date: Tue, 11 Jan 2022 11:59:29 -0700
+Message-Id: <20220111185930.2601421-7-jane.chu@oracle.com>
 X-Mailer: git-send-email 2.18.4
+In-Reply-To: <20220111185930.2601421-1-jane.chu@oracle.com>
+References: <20220111185930.2601421-1-jane.chu@oracle.com>
 Content-Type: text/plain
 X-ClientProxiedBy: BY3PR04CA0005.namprd04.prod.outlook.com
  (2603:10b6:a03:217::10) To SJ0PR10MB4429.namprd10.prod.outlook.com
@@ -71,107 +74,138 @@ List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: fb9460d2-b31e-41f2-206b-08d9d5348934
-X-MS-TrafficTypeDiagnostic: SJ0PR10MB5647:EE_
+X-MS-Office365-Filtering-Correlation-Id: 33fc787e-538d-4917-6bfb-08d9d53492f8
+X-MS-TrafficTypeDiagnostic: SJ0PR10MB4495:EE_
 X-Microsoft-Antispam-PRVS: 
-	<SJ0PR10MB5647220B43C69C9D08C0A981F3519@SJ0PR10MB5647.namprd10.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+	<SJ0PR10MB4495D8EA82C6D5748F952BFBF3519@SJ0PR10MB4495.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:6108;
 X-MS-Exchange-SenderADCheck: 1
 X-MS-Exchange-AntiSpam-Relay: 0
 X-Microsoft-Antispam: BCL:0;
 X-Microsoft-Antispam-Message-Info: 
-	ifn49xF473S6Ee10Hyvv6NYP+upsk5gtz3EFljIx/YRd3KgXY91Mxg/AsS5lJy1cYVpXSk9vaSjHCCMmOvw+i4x0MJlufE0HvyOc0xGsLBzQpneKXqp7EmRilHDRz/Ya140dyuNcwa2qXHuZMEO1C85n3v/knSV9ZNas+Sl2l4K5JktxrXE5C9XG9QgbsgvGxKXNYdtotr8ik9ZgQFlD9X3YTr08UTkEI5RhqsptnMBHIdmlA+4Yanp0xaGkZLnsxp8cfHNBpCDM7gZXRn2eDdveuW3qc4amcOQwsGjXhKKzEuSXuz+G1M5p6bys/vG4uY6sUAndzmcvLLN6eh6qjBPm4xgBggxUK5NTms8HBMzxDePT7VaHFltQJGqf0G9tYQzEiHGtW287dBfCJw+e5KrYmY5im9aiKkNTscZOc29EiR/AeATfdk6Rappgl20rFL+5quRnMSDKeovXynNn4V5uT9WAzXSE/vZunrg0KBxeSFBhVje48Bw3o+ygnFVEdGo+wpqDpduR3SfFEtk0goIu8Ts+3hUpNJJ2o9puAK4B5rxBOBDvE/FD0Zbdhll8A+WUea3NbvCor3PVxVY8iswPlP6KuuijHArJ/cdX7Kh6Lcrlb6Ot1JWW9lE2F0e0wWe/vvGg+I4BJda3rgAt8amvlKkzywlK4epPMZNE8iVGT2v9gRDrWc0R1D2BUTdzag20EQ4vWLJ/VulZGECBuYapG1jeAeFBsUdbzbkqQ0RTY3v7cZRyWTkKXzFvLMriOLeE8iIV2+4lxLVIY1yusghXg4CIHOXGVvf3Zhcm8/58fvSfTp49ql26bHRytf0j
+	9S/VVEVSLAdW5qpwLzsQohMB8LGbKdujBaZlVrk7Kh4Qy9qOJw4RzDluyIY6AMuFPQrKbG4hZPssl9ZSTWfwIkRUcW5ltjNwAur3Ko6pk3IFWvjQoYrUYu7QEroCY+TbWasF0uIfwJBOn9rTK+p3ZZ7d6E9gUJHK18D38VnuxXZ0ZXxqsnDad3JPedk3FtX+3hisEcINA3uBS+BG59ZhT7ZyODul25qfIC4sNpwZrxnRgh9jva0MmNGGnzfwF/0JgPS9rTzTZADOdO078IVfw1n/zhjPlYCC2KbWu7Y+PCzrEPZG7gn8XL8n1slKPUGFi5/3mFZnn2/TtdjYn/2VXze7yEwm1yMBxqM1ipybiEoqyDQVbvCIkxHLD0SuthKRH7Td0ljEFgJM5dZ++AhWqCJmFIdjdDkWYFUFbWsvmM6hJnA6TuQ+UQwfo9835zAFX1czrUOPqt4E/Zv70bjWPcLOizwdRAFQqt/ZqaREjIq/ZwDdB7BtRE3X87kxAJcCpYgYaHGmaHtITfGQAnkVaYkX3hIUMvkHfLe88oKd9fF9Se9yrU4+N2vPb3rHkg8CGtxS4+v9zkJIN6VHr5y7coZCHdFG5v/RH1bd9N1nu13s8nMtvPMuCRhowH71nLST/a9kX/03RF579wwf1Q3WG3ASRimql6DwAZEZocVf+3Eo70M6wbENmHgkn+fHjwAU
 X-Forefront-Antispam-Report: 
-	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(5660300002)(66476007)(508600001)(6512007)(44832011)(66556008)(66946007)(86362001)(83380400001)(1076003)(38100700002)(6486002)(36756003)(316002)(8936002)(6666004)(2616005)(966005)(921005)(7416002)(6506007)(2906002)(186003)(52116002)(8676002);DIR:OUT;SFP:1101;
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(1076003)(6666004)(5660300002)(83380400001)(6486002)(36756003)(38100700002)(2906002)(66556008)(921005)(66476007)(66946007)(7416002)(52116002)(186003)(8676002)(508600001)(8936002)(6506007)(6512007)(316002)(44832011)(2616005)(86362001);DIR:OUT;SFP:1101;
 X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
 X-MS-Exchange-AntiSpam-MessageData-0: 
-	=?us-ascii?Q?K+wilDQdSaki24aJVLpVwGKr9CvfWXM8wrAB9iC/6ogJtDu1hmQlxi0eXU+s?=
- =?us-ascii?Q?h9pSpymWJABXz64KlSAd6sv3cihwTrN3zyzuqXXBiFVn5oI018Ze+ZkxCSr+?=
- =?us-ascii?Q?5g7YkZJq7Fmoa3JwJen61jxAa0D65eI16V3bYko0O1ctCpgutx+6bWc8DmXY?=
- =?us-ascii?Q?EG7LgY8TrUGPyUawWiZyajuWHi9bWbbYlocWU/OdO3VosvnrPLk8Kw8uEZok?=
- =?us-ascii?Q?Ukw7c9Owg5tGaKq4nU78IL2WJSw6D78BeVnzdXdNYFSEzDhq7DLItuQgcumT?=
- =?us-ascii?Q?piawu1S0NEqeit1L5rAKjVu/4CZ16Z/9CVj2l0vSCUatyq6b9dsQnNkWbF2c?=
- =?us-ascii?Q?nyK3ii7kTVZWPvhIEaAHQZxKfwzPWHR6EJYNIsICrtPsxjxs8kWj9xG25Rsg?=
- =?us-ascii?Q?Lj9qxT0MTYwZdcOB/cbDyQ23gZQV8rdk6epVJnlnTcydJbMpF7rOt0nQJc7m?=
- =?us-ascii?Q?0dMDzfrSfB/pLH5t1OS6seXj6DGXho7/LTJhiU0gt9F1xsZh5Gpt45UAELMy?=
- =?us-ascii?Q?Wj6F5/i9hzFYG/myTOH8TCEC9J5WQQpo1geK9zx95nPcsYndhk0SNpFehwWg?=
- =?us-ascii?Q?8SyIuTjZ/FyVvT7yebsZptPb3wDWx01Eoh9b2nGBHDSb/8mee22l03qjz7HW?=
- =?us-ascii?Q?IzSsqauvTKLYji1zAUN2Qoy+1kO15loQqbcwHFupTu5Wd5SqV+jgeNqFd1SD?=
- =?us-ascii?Q?CD+lAaf/L2ETwYAW4PuSx83FsEGuRKRKsm+iWsyyuEpqfwoXzevqmy/9Jo0A?=
- =?us-ascii?Q?UYW+Zd25fNHWg6PShhhPUbpH5wThI5laCKAYahmg8CJYWwv84PHzHtj0XJKH?=
- =?us-ascii?Q?hi5GsxHVObdnY0ZZQgEmnwThqD1NrpsVsR+BTl0gA4tEHdYpb/rWPg8uDWHf?=
- =?us-ascii?Q?znxsiHeNehd0D+ItDpBVeeBSy47z4eiBVemfc+CbFo/gNkqxGFm7jOZXk27q?=
- =?us-ascii?Q?ULhux+bjepHDnv13pGCjoq84KN+U1PNUx+vyVMBWujVWiFITSmP9KPn6lajn?=
- =?us-ascii?Q?R4qP2r2aQ6SjOFiF77j9uR2ESb+f8ClinC9WdkQLcYWqCBQg/Hx9cYBy1u79?=
- =?us-ascii?Q?3hgM3YlH/UOgsYuLDzvm4xyPlMHYWQfNvedtONBgjmHaG9f928BGcNLBtm6A?=
- =?us-ascii?Q?8GmpUyu196L92CwMWxHO4ELUbkTsBu2e3sWYaSLxdmhvhbDVOiMC9wYojtVG?=
- =?us-ascii?Q?RwAaqGDWP9+VBTJ3EnbSk/K90YPxsRd6m/Rqxb8+97muO0UY/ZzmwLahiDco?=
- =?us-ascii?Q?hGVOXlV5p7TtIsyXrmK90/RiKfDKzXNV3WLWi8vdRq1WHJGVV6NZgYvX4DnD?=
- =?us-ascii?Q?49Mj7nQd4whYslr78ceKMoWtUrIxtzbEwln//RvZulDueBxeiQvWUMU/8qeI?=
- =?us-ascii?Q?wPa3HfGOVdnUW3I2CcftgpoKXvsCU8ucFnjKOggOonaAYnz4rCRVLUHtvkD4?=
- =?us-ascii?Q?S+APnDuH7XZP/KbdJrxkufkDlXEE/Txdhwku4UvSaLaenCx/uuUecEGfMs+2?=
- =?us-ascii?Q?yVCzGeXewfPVubhVWjWbx6mx/jcDD9jNajGSbmDomHEp4v9k/UT3/5Q/B6os?=
- =?us-ascii?Q?9BUKCvDlr2ccivJaI+isrcRFHGUbxaZt8S6Es+EklMqKUk+bLdSMiERWEFzq?=
- =?us-ascii?Q?zZIuhWn/v7eXqsbagJ26kr5gIhGktgkk0ijKV414QWnD?=
+	=?us-ascii?Q?p1OKUxPASkGdc8om1psOMzY2Aj+O55Is35JHfAHpV5AGeFgrBs+1wWAl7KBu?=
+ =?us-ascii?Q?ExJ3qN1CqquwEYVylFuDURPTZFIyuKGJlqOdLp9uJxLCTGVyCs+R/1Xv/YKj?=
+ =?us-ascii?Q?yEpYlLHcU3CsjkGw7fIyJa/PsL5sRZMAM1W3ibgPEwgtcJQMvkfXTP6Ah9By?=
+ =?us-ascii?Q?tMqmpCTXhBgWPfwIyj68XExZ8XTfJacipo23B44ZgdTZvMhQ+6mCDwzG/WyQ?=
+ =?us-ascii?Q?PLPTmNJuebzssDJJjoxwpL09shRutenE3USNxYP6OP8WdTpWJ/3ZCo+zQiUr?=
+ =?us-ascii?Q?FMRZIv5STtyW25WiO44E9YQfrI6PbjioSTaOqr3VmNlCawFFGMahc3Hk2XI5?=
+ =?us-ascii?Q?dS7OpnEvJ5EO9bBWmEU2m6WYGqxTmBvdxQqQ+jkXa0AhPc2FjmIflaVKxV0W?=
+ =?us-ascii?Q?IpH+h7UNE34Qim2u2iVlWsUNkZs5CmaXZhFhaGc+rWrUOpVDqeRWXDRFUBNC?=
+ =?us-ascii?Q?WMClfODend6WLgllh7rRgpS8q1Dwsbck6S21wmilU5TaaSpfQipHUb6Ros1z?=
+ =?us-ascii?Q?0nYX+6JeH78v/3LDabAKRJqUlmye9HEHngDTllpGmXlkxIcakSSxjtysnq2P?=
+ =?us-ascii?Q?Wqwtm3vISLIxlSVAFVsI3OHlYQUqeEev22eulmh1klo2c+T7fR5NRAC1fpQE?=
+ =?us-ascii?Q?Anju8xhIfHJWJ1iZO4POmZfWI+fElpyLqtYaLwcyk3+gj5mAG+Ojw/2YNM3Q?=
+ =?us-ascii?Q?ChydIq68wAxS65Mk8bLbB3LaKxOpkQwAa4O+gP6IrFqloXtaVF5dhBP9jjZs?=
+ =?us-ascii?Q?xXnI2Gi0ryW2P5hkNcqX93ZYeinE1nuXlEM4kUu645I9vKFhN1SryeNcyezT?=
+ =?us-ascii?Q?dsFnSYkIoPuxLgVwVOPG62jTmiXpc09cFQOCC23MQ+/GWk+Z09ViEVzigzwW?=
+ =?us-ascii?Q?Koy4/jWcTXo1hV/AAXf5hfxcolo9najT5BzUDKo+6m2rLymrrSTmglwknEz2?=
+ =?us-ascii?Q?qSMQP2x2jzCIRImmUiajiFHBTNgfVmTIIR0kDPk1IYAmRrM1UewIoxFHRXmp?=
+ =?us-ascii?Q?GMz8V0kwnNFdpZSf7vLm+LkgNtyrxDclwsOzB8rfJv3idzH8gGzrzlhNaRQm?=
+ =?us-ascii?Q?nTuJ0E953KSCPKhmzyU84hXx161+1bdFLD+4kdmkVJUM9DQ3W9pDlK3Y4+P3?=
+ =?us-ascii?Q?YZElCKi7It+7sRYU+Cmw5P+i1OeJ9F5ciHDJLKcOUF2GwfeTUywhE/lrTHpE?=
+ =?us-ascii?Q?uJ2wMEyQsYV47LTXGCdODlygy0kRgDJdTLDaaFCyAKpl/QcuEl5F4O5J7yYa?=
+ =?us-ascii?Q?k/FzbFgN55m2OjMES84htsYw6c6N3/bMt2NrbAClOYX210kVbIWLJkIXTW1W?=
+ =?us-ascii?Q?H6g+ozpyWYJY+zP4hTwS21eCQS8O11Q11Zdv2OL5EZKdT/gNIhqlbntf5+/4?=
+ =?us-ascii?Q?2b+vRgl20gQ1cLLGxzCtN9mVRwWq5LGGf0qvidCCzaGrMkNKkdGUIP1X31G0?=
+ =?us-ascii?Q?0NoxG9/tfy7a0hQyranoxGyMw58xQH40RZLFGrDA7kgpzJMsuFuiTM5C7ReG?=
+ =?us-ascii?Q?IJdfzD/HSdxHJxhuOQOncSG8ycU16fRT32fK9ofhHZZcmlbH8v/HBZXPyvoB?=
+ =?us-ascii?Q?VoQT9U5X6weJOWLLZGT9sd9SqOSYQmWaqVQ5VFBbd/pyCpgYwTdUDY999rJR?=
+ =?us-ascii?Q?bIcZpG603tA8DJrENqY5ztSAfJkEoB+GkEzVaPQmA7kz?=
 X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: fb9460d2-b31e-41f2-206b-08d9d5348934
+X-MS-Exchange-CrossTenant-Network-Message-Id: 33fc787e-538d-4917-6bfb-08d9d53492f8
 X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
 X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jan 2022 18:59:46.8706
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 11 Jan 2022 19:00:03.2934
  (UTC)
 X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
 X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
 X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: UhWgVKdX5LUoTyVeb3DC/NI5++N1iAqzS8QSOqj/L5JtJZf+TVGHeEhIrJaTepA5BY18cq6ivRR0dr8xKhHzYA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB5647
+X-MS-Exchange-CrossTenant-UserPrincipalName: rmOinlmYMoCAHchzsAzyY2vqpMqbxLlasauFwMror1n99rxilA1JGTTjOgEFy4GjN2K7qZvOAWwn2AS9J7BBIQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SJ0PR10MB4495
 X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10224 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 phishscore=0
- mlxlogscore=999 spamscore=0 bulkscore=0 malwarescore=0 suspectscore=0
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxscore=0 suspectscore=0 spamscore=0
+ mlxlogscore=999 adultscore=0 phishscore=0 malwarescore=0 bulkscore=0
  classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2110150000
- definitions=main-2201110101
-X-Proofpoint-GUID: O8L4oDIDyb68Snz-vv4Y6U5aZjS8PH-n
-X-Proofpoint-ORIG-GUID: O8L4oDIDyb68Snz-vv4Y6U5aZjS8PH-n
+ definitions=main-2201110102
+X-Proofpoint-GUID: rlgtq_5w5jJ7F6d3QEklQLH5R1rUc3_f
+X-Proofpoint-ORIG-GUID: rlgtq_5w5jJ7F6d3QEklQLH5R1rUc3_f
 
-In v3, dax recovery code path is independent of that of
-normal write. Competing dax recovery threads are serialized,
-racing read threads are guaranteed not overlapping with the
-recovery process.
+dax_iomap_iter() fails if the destination range contains poison.
+Add recovery_write to the failure code path.
 
-In this phase, the recovery granularity is page, future patch
-will explore recovery in finer granularity.
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+---
+ fs/dax.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-Please refer to below discussions for more information:
-v2:
-https://lore.kernel.org/all/20211106011638.2613039-1-jane.chu@oracle.com/
-Disussions about marking poisoned page as 'np':
-https://lore.kernel.org/all/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com/
-
-Jane Chu (7):
-  mce: fix set_mce_nospec to always unmap the whole page
-  dax: introduce dax device flag DAXDEV_RECOVERY
-  dm: make dm aware of target's DAXDEV_RECOVERY capability
-  dax: add dax_recovery_write to dax_op and dm target type
-  pmem: add pmem_recovery_write() dax op
-  dax: add recovery_write to dax_iomap_iter in failure path
-  pmem: fix pmem_do_write() avoid writing to 'np' page
-
- arch/x86/include/asm/set_memory.h |  17 ++---
- arch/x86/kernel/cpu/mce/core.c    |   6 +-
- arch/x86/mm/pat/set_memory.c      |   8 ++-
- drivers/dax/super.c               |  53 ++++++++++++++++
- drivers/md/dm-linear.c            |  13 ++++
- drivers/md/dm-log-writes.c        |  14 +++++
- drivers/md/dm-stripe.c            |  13 ++++
- drivers/md/dm-table.c             |  33 ++++++++++
- drivers/md/dm.c                   |  27 ++++++++
- drivers/nvdimm/pmem.c             | 101 +++++++++++++++++++++++++++---
- drivers/nvdimm/pmem.h             |   1 +
- fs/dax.c                          |  25 +++++++-
- include/linux/dax.h               |   9 +++
- include/linux/device-mapper.h     |   3 +
- include/linux/set_memory.h        |   2 +-
- 15 files changed, 298 insertions(+), 27 deletions(-)
-
+diff --git a/fs/dax.c b/fs/dax.c
+index e0eecd8e3a8f..c16362d3993c 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -1199,6 +1199,8 @@ int dax_truncate_page(struct inode *inode, loff_t pos, bool *did_zero,
+ }
+ EXPORT_SYMBOL_GPL(dax_truncate_page);
+ 
++typedef size_t (*iter_func_t)(struct dax_device *dax_dev, pgoff_t pgoff,
++		void *addr, size_t bytes, struct iov_iter *i);
+ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 		struct iov_iter *iter)
+ {
+@@ -1210,6 +1212,7 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 	ssize_t ret = 0;
+ 	size_t xfer;
+ 	int id;
++	iter_func_t write_func = dax_copy_from_iter;
+ 
+ 	if (iov_iter_rw(iter) == READ) {
+ 		end = min(end, i_size_read(iomi->inode));
+@@ -1249,6 +1252,17 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 
+ 		map_len = dax_direct_access(dax_dev, pgoff, PHYS_PFN(size),
+ 				&kaddr, NULL);
++		if ((map_len == -EIO) && (iov_iter_rw(iter) == WRITE)) {
++			if (dax_prep_recovery(dax_dev, &kaddr) < 0) {
++				ret = map_len;
++				break;
++			}
++			map_len = dax_direct_access(dax_dev, pgoff,
++					PHYS_PFN(size), &kaddr, NULL);
++			if (map_len > 0)
++				write_func = dax_recovery_write;
++		}
++
+ 		if (map_len < 0) {
+ 			ret = map_len;
+ 			break;
+@@ -1264,14 +1278,21 @@ static loff_t dax_iomap_iter(const struct iomap_iter *iomi,
+ 		 * The userspace address for the memory copy has already been
+ 		 * validated via access_ok() in either vfs_read() or
+ 		 * vfs_write(), depending on which operation we are doing.
++		 *	xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
++		 *			map_len, iter);
+ 		 */
+ 		if (iov_iter_rw(iter) == WRITE)
+-			xfer = dax_copy_from_iter(dax_dev, pgoff, kaddr,
+-					map_len, iter);
++			xfer = write_func(dax_dev, pgoff, kaddr, map_len, iter);
+ 		else
+ 			xfer = dax_copy_to_iter(dax_dev, pgoff, kaddr,
+ 					map_len, iter);
+ 
++		if (xfer == (ssize_t) -EIO) {
++			pr_warn("dax_ioma_iter: write_func returns-EIO\n");
++			ret = -EIO;
++			break;
++		}
++
+ 		pos += xfer;
+ 		length -= xfer;
+ 		done += xfer;
 -- 
 2.18.4
 
