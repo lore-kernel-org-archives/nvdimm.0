@@ -1,254 +1,202 @@
-Received: from mail-pl1-f180.google.com (mail-pl1-f180.google.com [209.85.214.180])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86DBE173
-	for <nvdimm@lists.linux.dev>; Tue, 11 Jan 2022 20:58:22 +0000 (UTC)
-Received: by mail-pl1-f180.google.com with SMTP id l15so658405pls.7
-        for <nvdimm@lists.linux.dev>; Tue, 11 Jan 2022 12:58:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=B/uglQFbw2IQVX0qBffrBfjH5SybRgCZv1hi96V0seY=;
-        b=Egy5W8u3dMv+djAUOc3X0EYDVA/fwdmNXAikf2hCl1lMRrj8pF4DvAimW6kgkqFv5R
-         w3pKZcMWzzD82XQ3rrZH7g7uPC8ma4TQ6tYEhbvuyWydQfF0uegfSHHJjd/xstF7kYLW
-         vhPAjC9FvI7J9X8EN7BQph/akIPbxLQOqxdxBxbr1/O1dI7Em3kCDVGGlg8RMkQos6AE
-         aQ6pMv68NgRuhslY9yK7ABGX/RYXlSDA/WXY7yrhW7MqD4vRkDSo4ks0NSAG3TldxHo7
-         1tUyjqPWvH4B5mpOWqkJ22YcIKoPXzSEhekQopCLIfLYN67oXg9y/loMLM+Oh2mnpm3S
-         YUig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=B/uglQFbw2IQVX0qBffrBfjH5SybRgCZv1hi96V0seY=;
-        b=p1ST9YMKH1b5/kQ/sHrZ1whK2flO9SygV6x8gJgbPjfrVrOZSEV0uLuRZlw95L7BV1
-         sDOKq3qILDftBQOMkYiUz1h0lIANpF/Qb3G0HixF/TNv8mngE/CoLBl8XK2XoqpBKsoM
-         qdTpBLe8+AKwBZs9+ju/4M61Lw53I5o7H93Dcy5ya18ofwJ0cQ4rh8R2HUzxlH02pnLw
-         d5gDz18deIOG8h+HWo4Jt54k7pbN7mmFvqWe1etrCSdTE3CoehF1Ihifu/ZTc9uMCv92
-         gPGo01W8QCFIDePfJzToZ/6STj3ZKoAPXAVPpHzcWNVdghmUw/QXKWmx5F3mGKdDEbIN
-         ZqHg==
-X-Gm-Message-State: AOAM531pcIDv174OLAQmd+TouLuoz6KC4YZXBN3kkxlBhnOj26Aw7YgJ
-	SfbbSaXpH9U0tFvJeGJwN+Tx6t57hWGgYzzTWY4mkA==
-X-Google-Smtp-Source: ABdhPJyX+sn2dDKTOUv7GuC4lqHIvo1lX3KlZyjo6fxApDEGNP3B/PtmdvahfKjdnSj2iyelxI/gecR7tIaSRjf6m/Y=
-X-Received: by 2002:a17:90a:7101:: with SMTP id h1mr5060013pjk.93.1641934701790;
- Tue, 11 Jan 2022 12:58:21 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id ED5DD173
+	for <nvdimm@lists.linux.dev>; Tue, 11 Jan 2022 21:25:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=7YIdvCOYX163JNG4239+4esl2HeeXcNsGWrdL0xg2YA=; b=u1Qxt2awbRu7BIYKpqKoP6QqrJ
+	PAoK0pYJO0npqFgnmoat3cPH4r/kKiEj/005I94Nhesk0TWmuGwwtHKDdKblHmH52LCLZQdaxUMhg
+	nxbzZtO9+DkzQ4KBBEJzHDNDG5VicIQZquwaVeHSY7GnkkTF16Iv6JgNgwf+gtzXgjJy8iZUNQYhx
+	se88avHiAVIvEv/82vRLQKEVEVe3QWXF7+mt20TqrOdWZFxxKXzvTsG72adiSJpSTcNxEh/Ua3kJI
+	CqVLwQ2k7pZRiVBWybULM4rcp8s5j2cHarbzzPROawS1/fyPQSFQObt7qXiJFeyLBMlol8Gm/WwOs
+	kk7cp+ZA==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1n7OeC-003ab4-K5; Tue, 11 Jan 2022 21:25:40 +0000
+Date: Tue, 11 Jan 2022 21:25:40 +0000
+From: Matthew Wilcox <willy@infradead.org>
+To: Jason Gunthorpe <jgg@nvidia.com>
+Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>,
+	Joao Martins <joao.m.martins@oracle.com>,
+	John Hubbard <jhubbard@nvidia.com>,
+	Logan Gunthorpe <logang@deltatee.com>,
+	Ming Lei <ming.lei@redhat.com>, linux-block@vger.kernel.org,
+	netdev@vger.kernel.org, linux-mm@kvack.org,
+	linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	nvdimm@lists.linux.dev
+Subject: Re: Phyr Starter
+Message-ID: <Yd311C45gpQ3LqaW@casper.infradead.org>
+References: <YdyKWeU0HTv8m7wD@casper.infradead.org>
+ <20220111004126.GJ2328285@nvidia.com>
+ <Yd0IeK5s/E0fuWqn@casper.infradead.org>
+ <20220111150142.GL2328285@nvidia.com>
+ <Yd3Nle3YN063ZFVY@casper.infradead.org>
+ <20220111202159.GO2328285@nvidia.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 11 Jan 2022 12:58:11 -0800
-Message-ID: <CAPcyv4jWm57gAL_P2JiU1vm3-CaJwzRQsoNhh_A2C-Jh1trk+w@mail.gmail.com>
-Subject: [GIT PULL] DAX / LIBNVDIMM update for v5.17
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-xfs <linux-xfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220111202159.GO2328285@nvidia.com>
 
-Hi Linus, please pull from:
+On Tue, Jan 11, 2022 at 04:21:59PM -0400, Jason Gunthorpe wrote:
+> On Tue, Jan 11, 2022 at 06:33:57PM +0000, Matthew Wilcox wrote:
+> 
+> > > Then we are we using get_user_phyr() at all if we are just storing it
+> > > in a sg?
+> > 
+> > I did consider just implementing get_user_sg() (actually 4 years ago),
+> > but that cements the use of sg as both an input and output data structure
+> > for DMA mapping, which I am under the impression we're trying to get
+> > away from.
+> 
+> I know every time I talked about a get_user_sg() Christoph is against
+> it and we need to stop using scatter list...
+> 
+> > > Also 16 entries is way to small, it should be at least a whole PMD
+> > > worth so we don't have to relock the PMD level each iteration.
+> > > 
+> > > I would like to see a flow more like:
+> > > 
+> > >   cpu_phyr_list = get_user_phyr(uptr, 1G);
+> > >   dma_phyr_list = dma_map_phyr(device, cpu_phyr_list);
+> > >   [..]
+> > >   dma_unmap_phyr(device, dma_phyr_list);
+> > >   unpin_drity_free(cpu_phy_list);
+> > > 
+> > > Where dma_map_phyr() can build a temporary SGL for old iommu drivers
+> > > compatability. iommu drivers would want to implement natively, of
+> > > course.
+> > > 
+> > > ie no loops in drivers.
+> > 
+> > Let me just rewrite that for you ...
+> > 
+> > 	umem->phyrs = get_user_phyrs(addr, size, &umem->phyr_len);
+> > 	umem->sgt = dma_map_phyrs(device, umem->phyrs, umem->phyr_len,
+> > 			DMA_BIDIRECTIONAL, dma_attr);
+> > 	...
+> > 	dma_unmap_phyr(device, umem->phyrs, umem->phyr_len, umem->sgt->sgl,
+> > 			umem->sgt->nents, DMA_BIDIRECTIONAL, dma_attr);
+> > 	sg_free_table(umem->sgt);
+> > 	free_user_phyrs(umem->phyrs, umem->phyr_len);
+> 
+> Why? As above we want to get rid of the sgl, so you are telling me to
+> adopt phyrs I need to increase the memory consumption by a hefty
+> amount to store the phyrs and still keep the sgt now? Why?
+> 
+> I don't need the sgt at all. I just need another list of physical
+> addresses for DMA. I see no issue with a phsr_list storing either CPU
+> Physical Address or DMA Physical Addresses, same data structure.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-for-5.17
+There's a difference between a phys_addr_t and a dma_addr_t.  They
+can even be different sizes; some architectures use a 32-bit dma_addr_t
+and a 64-bit phys_addr_t or vice-versa.  phyr cannot store DMA addresses.
 
-...to receive the persistent memory (DAX + LIBNVDIMM) updates for
-v5.17. The bulk of this is a rework of the dax_operations API after
-discovering the obstacles it posed to the work-in-progress DAX+reflink
-support for XFS and other copy-on-write filesystem mechanics.
-Primarily the need to plumb a block_device through the API to handle
-partition offsets was a sticking point and Christoph untangled that
-dependency in addition to other cleanups to make landing the
-DAX+reflink support easier.
+> In the fairly important passthrough DMA case the CPU list and DMA list
+> are identical, so we don't even need to do anything.
+> 
+> In the typical iommu case my dma map's phyrs is only one entry.
 
-The DAX_PMEM_COMPAT option has been around for 4 years and not only
-are distributions shipping userspace that understand the current
-configuration API, but some are not even bothering to turn this option
-on anymore, so it seems a good time to remove it per the deprecation
-schedule. Recall that this was added after the device-dax subsystem
-moved from /sys/class/dax to /sys/bus/dax for its sysfs organization.
-All recent functionality depends on /sys/bus/dax.
+That becomes a very simple sg table then.
 
-Some other miscellaneous cleanups and reflink prep patches are
-included as well, details in the tag message.
+> As an example coding - Use the first 8 bytes to encode this:
+> 
+>  51:0 - Physical address / 4k (ie pfn)
+>  56:52 - Order (simple, your order encoding can do better)
+>  61:57 - Unused
+>  63:62 - Mode, one of:
+>          00 = natural order pfn (8 bytes)
+>          01 = order aligned with length (12 bytes)
+>          10 = arbitary (12 bytes)
+> 
+> Then the optional 4 bytes are used as:
+> 
+> Mode 01 (Up to 2^48 bytes of memory on a 4k alignment)
+>   31:0 - # of order pages
+> 
+> Mode 10 (Up to 2^25 bytes of memory on a 1 byte alignment)
+>   11:0 - starting byte offset in the 4k
+>   31:12 - 20 bits, plus the 5 bit order from the first 8 bytes:
+>           length in bytes
 
-This has been in -next for several weeks, and -next is carrying
-resolution for 3 merge conflicts:
-- iomap + folio
-- ext4
-- mm
+Honestly, this looks awful to operate on.  Mandatory 8-bytes per entry
+with an optional 4 byte extension?
 
-Links to merge resolutions below:
+> > > The last case is, perhaps, a possible route to completely replace
+> > > scatterlist. Few places need true byte granularity for interior pages,
+> > > so we can invent some coding to say 'this is 8 byte aligned, and n
+> > > bytes long' that only fits < 4k or something. Exceptional cases can
+> > > then still work. I'm not sure what block needs here - is it just 512?
+> > 
+> > Replacing scatterlist is not my goal.  That seems like a lot more work
+> > for little gain.  
+> 
+> Well, I'm not comfortable with the idea above where RDMA would have to
+> take a memory penalty to use the new interface. To avoid that memory
+> penalty we need to get rid of scatterlist entirely.
+> 
+> If we do the 16 byte struct from the first email then a umem for MRs
+> will increase in memory consumption by 160% compared today's 24
+> bytes/page. I think the HPC workloads will veto this.
 
-As mentioned by Willy
-(https://lore.kernel.org/r/YdyoN7RU/JMOk/lW@casper.infradead.org) it
-collides with the pending iomap+folio work for 5.17. The resolution
-that Stephen has been carrying is here:
-(https://lore.kernel.org/all/20211224172421.3f009baa@canb.auug.org.au/).
-The changes to the mount path where the dax-device is looked up from
-the block_device also collided with the ext4 tree. Christoph's
-resolution is here:
-(https://git.infradead.org/users/hch/misc.git/commit/9cac2bce6b42),
-and that is the resolution that -next has been carrying. The mm
-collision comes from a cleanup of the memremap API and Joao's pending
-support for compound-page backed dax-devices. The merge resolution
-that -next has been carrying is here:
-(https://lore.kernel.org/r/20211207173938.6d619ba6@canb.auug.org.au).
+Huh?  We do 16 bytes per physically contiguous range.  Then, if your HPC
+workloads use an IOMMU that can map a virtually contiguous range
+into a single sg entry, it uses 24 bytes for the entire mapping.
+It should shrink.
 
-It has reviews from XFS, DM, EROFS, VIRTIO-FS, and VIRTIO-PMEM
-developers. Please pull and/or please let me know if there is a better
-way to communicate / organize conflict notifications.
+> > I just want to delete page_link, offset and length from struct
+> > scatterlist.  Given the above sequence of calls, we're going to get
+> > sg lists that aren't chained.  They may have to be vmalloced, but
+> > they should be contiguous.
+> 
+> I don't understand that? Why would the SGL out of the iommu suddenly
+> not be chained?
 
----
+Because it's being given a single set of ranges to map, instead of
+being given 512 pages at a time.
 
-The following changes since commit fa55b7dcdc43c1aa1ba12bca9d2dd4318c2a0dbf:
+> >From what I've heard I'm also not keen on a physr list using vmalloc
+> either, that is said to be quite slow?
 
-  Linux 5.16-rc1 (2021-11-14 13:56:52 -0800)
+It would only be slow for degenerate cases where the pinned memory
+is fragmented and not contiguous.
 
-are available in the Git repository at:
+> > > I would imagine a few steps to this process:
+> > >  1) 'phyr_list' datastructure, with chaining, pre-allocation, etc
+> > >  2) Wrapper around existing gup to get a phyr_list for user VA
+> > >  3) Compat 'dma_map_phyr()' that coverts a phyr_list to a sgl and back
+> > >     (However, with full performance for iommu passthrough)
+> > >  4) Patches changing RDMA/VFIO/DRM to this API
+> > >  5) Patches optimizing get_user_phyr()
+> > >  6) Patches implementing dma_map_phyr in the AMD or Intel IOMMU driver
+> > 
+> > I was thinking ...
+> > 
+> > 1. get_user_phyrs() & free_user_phyrs()
+> > 2. dma_map_phyrs() and dma_unmap_phyrs() wrappers that create a
+> >    scatterlist from phyrs and call dma_map_sg() / dma_unmap_sg() to work
+> >    with current IOMMU drivers
+> 
+> IMHO, the scatterlist has to go away. The interface should be physr
+> list in, physr list out.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm
-tags/libnvdimm-for-5.17
+That's reproducing the bad decision of the scatterlist, only with
+a different encoding.  You end up with something like:
 
-for you to fetch changes up to 9e05e95ca8dae8de4a7a1645014e1bbd9c8a4dab:
+struct neoscat {
+	dma_addr_t dma_addr;
+	phys_addr_t phys_addr;
+	size_t dma_len;
+	size_t phys_len;
+};
 
-  iomap: Fix error handling in iomap_zero_iter() (2021-12-23 14:04:11 -0800)
+and the dma_addr and dma_len are unused by all-but-the-first entry when
+you have a competent IOMMU.  We want a different data structure in and
+out, and we may as well keep using the scatterlist for the dma-map-out.
 
-----------------------------------------------------------------
-dax + libnvdimm for v5.17
-
-- Simplify the dax_operations API
-  - Eliminate bdev_dax_pgoff() in favor of the filesystem maintaining
-    and applying a partition offset to all its DAX iomap operations.
-  - Remove wrappers and device-mapper stacked callbacks for
-    ->copy_from_iter() and ->copy_to_iter() in favor of moving
-    block_device relative offset responsibility to the
-    dax_direct_access() caller.
-  - Remove the need for an @bdev in filesystem-DAX infrastructure
-  - Remove unused uio helpers copy_from_iter_flushcache() and
-    copy_mc_to_iter() as only the non-check_copy_size() versions are
-    used for DAX.
-- Prepare XFS for the pending (next merge window) DAX+reflink support
-- Remove deprecated DEV_DAX_PMEM_COMPAT support
-- Cleanup a straggling misuse of the GUID api
-
-Tags offered after the branch was cut:
-Reviewed-by: Mike Snitzer <snitzer@redhat.com>
-Link: https://lore.kernel.org/r/Ydb/3P+8nvjCjYfO@redhat.com
-
-----------------------------------------------------------------
-Andy Shevchenko (1):
-      ACPI: NFIT: Import GUID before use
-
-Christoph Hellwig (34):
-      dm: fix alloc_dax error handling in alloc_dev
-      dm: make the DAX support depend on CONFIG_FS_DAX
-      dax: remove CONFIG_DAX_DRIVER
-      dax: simplify the dax_device <-> gendisk association
-      dax: remove the pgmap sanity checks in generic_fsdax_supported
-      dax: move the partition alignment check into fs_dax_get_by_bdev
-      xfs: factor out a xfs_setup_dax_always helper
-      dax: remove dax_capable
-      dm-linear: add a linear_dax_pgoff helper
-      dm-log-writes: add a log_writes_dax_pgoff helper
-      dm-stripe: add a stripe_dax_pgoff helper
-      fsdax: remove a pointless __force cast in copy_cow_page_dax
-      fsdax: use a saner calling convention for copy_cow_page_dax
-      fsdax: simplify the pgoff calculation
-      fsdax: simplify the offset check in dax_iomap_zero
-      fsdax: factor out a dax_memzero helper
-      fsdax: decouple zeroing from the iomap buffered I/O code
-      ext2: cleanup the dax handling in ext2_fill_super
-      ext4: cleanup the dax handling in ext4_fill_super
-      xfs: move dax device handling into xfs_{alloc,free}_buftarg
-      xfs: use xfs_direct_write_iomap_ops for DAX zeroing
-      xfs: pass the mapping flags to xfs_bmbt_to_iomap
-      iomap: add a IOMAP_DAX flag
-      dax: return the partition offset from fs_dax_get_by_bdev
-      fsdax: shift partition offset handling into the file systems
-      dax: fix up some of the block device related ifdefs
-      iomap: build the block based code conditionally
-      fsdax: don't require CONFIG_BLOCK
-      memremap: remove support for external pgmap refcounts
-      iomap: turn the byte variable in iomap_zero_iter into a ssize_t
-      uio: remove copy_from_iter_flushcache() and copy_mc_to_iter()
-      dax: simplify dax_synchronous and set_dax_synchronous
-      dax: remove the DAXDEV_F_SYNC flag
-      dax: remove the copy_from_iter and copy_to_iter methods
-
-Dan Williams (1):
-      dax: Kill DEV_DAX_PMEM_COMPAT
-
-Matthew Wilcox (Oracle) (1):
-      iomap: Fix error handling in iomap_zero_iter()
-
-Shiyang Ruan (1):
-      xfs: add xfs_zero_range and xfs_truncate_page helpers
-
- Documentation/ABI/obsolete/sysfs-class-dax  |  22 ---
- drivers/acpi/nfit/core.c                    |   4 +-
- drivers/dax/Kconfig                         |  13 --
- drivers/dax/Makefile                        |   3 +-
- drivers/dax/bus.c                           |  30 +--
- drivers/dax/bus.h                           |  13 --
- drivers/dax/device.c                        |   6 +-
- drivers/dax/{pmem/core.c => pmem.c}         |  36 +++-
- drivers/dax/pmem/Makefile                   |   1 -
- drivers/dax/pmem/compat.c                   |  72 --------
- drivers/dax/pmem/pmem.c                     |  30 ---
- drivers/dax/super.c                         | 272 +++++++---------------------
- drivers/md/dm-linear.c                      |  63 ++-----
- drivers/md/dm-log-writes.c                  | 110 ++---------
- drivers/md/dm-stripe.c                      |  75 ++------
- drivers/md/dm-table.c                       |  22 +--
- drivers/md/dm-writecache.c                  |   2 +-
- drivers/md/dm.c                             |  89 ++-------
- drivers/md/dm.h                             |   4 -
- drivers/nvdimm/Kconfig                      |   2 +-
- drivers/nvdimm/pmem.c                       |  38 ++--
- drivers/pci/p2pdma.c                        |   2 +-
- drivers/s390/block/Kconfig                  |   2 +-
- drivers/s390/block/dcssblk.c                |  26 +--
- fs/Kconfig                                  |   8 +-
- fs/dax.c                                    | 157 +++++++++-------
- fs/erofs/data.c                             |  11 +-
- fs/erofs/internal.h                         |   3 +
- fs/erofs/super.c                            |  15 +-
- fs/ext2/ext2.h                              |   1 +
- fs/ext2/inode.c                             |  15 +-
- fs/ext2/super.c                             |  16 +-
- fs/ext4/ext4.h                              |   1 +
- fs/ext4/inode.c                             |  25 ++-
- fs/ext4/super.c                             |  14 +-
- fs/fuse/Kconfig                             |   2 +-
- fs/fuse/virtio_fs.c                         |  18 +-
- fs/iomap/Makefile                           |   4 +-
- fs/iomap/buffered-io.c                      |  39 ++--
- fs/xfs/libxfs/xfs_bmap.c                    |   4 +-
- fs/xfs/xfs_aops.c                           |   2 +-
- fs/xfs/xfs_bmap_util.c                      |   7 +-
- fs/xfs/xfs_buf.c                            |   8 +-
- fs/xfs/xfs_buf.h                            |   5 +-
- fs/xfs/xfs_file.c                           |   3 +-
- fs/xfs/xfs_iomap.c                          |  84 ++++++---
- fs/xfs/xfs_iomap.h                          |  12 +-
- fs/xfs/xfs_iops.c                           |   7 +-
- fs/xfs/xfs_pnfs.c                           |   4 +-
- fs/xfs/xfs_reflink.c                        |   3 +-
- fs/xfs/xfs_super.c                          |  80 ++++----
- include/linux/dax.h                         |  93 ++++------
- include/linux/device-mapper.h               |   4 -
- include/linux/iomap.h                       |   5 +
- include/linux/memremap.h                    |  18 +-
- include/linux/uio.h                         |  20 +-
- mm/memremap.c                               |  59 ++----
- tools/testing/nvdimm/Kbuild                 |   8 +-
- tools/testing/nvdimm/dax_pmem_compat_test.c |   8 -
- tools/testing/nvdimm/dax_pmem_core_test.c   |   8 -
- tools/testing/nvdimm/test/iomap.c           |  43 ++---
- tools/testing/nvdimm/test/ndtest.c          |   4 -
- tools/testing/nvdimm/test/nfit.c            |   4 -
- 63 files changed, 569 insertions(+), 1190 deletions(-)
- delete mode 100644 Documentation/ABI/obsolete/sysfs-class-dax
- rename drivers/dax/{pmem/core.c => pmem.c} (75%)
- delete mode 100644 drivers/dax/pmem/compat.c
- delete mode 100644 tools/testing/nvdimm/dax_pmem_compat_test.c
- delete mode 100644 tools/testing/nvdimm/dax_pmem_core_test.c
