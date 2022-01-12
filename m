@@ -1,96 +1,118 @@
-Received: from ale.deltatee.com (ale.deltatee.com [204.191.154.188])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 141E429CA
-	for <nvdimm@lists.linux.dev>; Tue, 11 Jan 2022 23:08:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=deltatee.com; s=20200525; h=Subject:In-Reply-To:MIME-Version:Date:
-	Message-ID:From:References:Cc:To:content-disposition;
-	bh=TIGVeVRFFto9U8rrsZTboK3dXuBBSA/4ShVJmxcPczw=; b=afngLBoxuqvBzyZsmssqQ4P38X
-	mCM56+S28Ds9cs1MIIL9eX/nS4ypMjuVQq0SIolY3enG8whn4KmK8d1o5Z9ZiLel9JXrmvNVZ9FGE
-	Oxc0o8x++jBeY21fP2IHYVaSAr7LU+LYs6tiOM/+YBugMvcsjBcc5/PgRhP3zMMgpOtrojZpjpdUo
-	wpQOdhDtfYk5lOHhak8KS6SH5MGM/tbejrIZpgLr62nIHCe3KOvrhodPHLT50WnOGE5ZTURomJ8w4
-	Mz7VL2jqUKBSBKMyGmRBcoBnAB2dA4vNq2yjkPVIipPGH7BvqQgPRHLLReU9mBeOxiYq5I3UlOCQs
-	ClMyfHLg==;
-Received: from guinness.priv.deltatee.com ([172.16.1.162])
-	by ale.deltatee.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-	(Exim 4.94.2)
-	(envelope-from <logang@deltatee.com>)
-	id 1n7QFo-009oCP-Cn; Tue, 11 Jan 2022 16:08:37 -0700
-To: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>, linux-kernel@vger.kernel.org,
- Christoph Hellwig <hch@lst.de>, Joao Martins <joao.m.martins@oracle.com>,
- John Hubbard <jhubbard@nvidia.com>, Ming Lei <ming.lei@redhat.com>,
- linux-block@vger.kernel.org, netdev@vger.kernel.org, linux-mm@kvack.org,
- linux-rdma@vger.kernel.org, dri-devel@lists.freedesktop.org,
- nvdimm@lists.linux.dev
-References: <YdyKWeU0HTv8m7wD@casper.infradead.org>
- <20220111004126.GJ2328285@nvidia.com> <Yd0IeK5s/E0fuWqn@casper.infradead.org>
- <20220111150142.GL2328285@nvidia.com> <Yd3Nle3YN063ZFVY@casper.infradead.org>
- <20220111202159.GO2328285@nvidia.com> <Yd311C45gpQ3LqaW@casper.infradead.org>
- <20220111225306.GR2328285@nvidia.com>
- <9fe2ada2-f406-778a-a5cd-264842906a31@deltatee.com>
- <20220111230224.GT2328285@nvidia.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <5c3dd9bd-abda-6c9b-8257-182f84f8f842@deltatee.com>
-Date: Tue, 11 Jan 2022 16:08:35 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EFCE2C9C
+	for <nvdimm@lists.linux.dev>; Wed, 12 Jan 2022 00:31:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1028EC36AE3;
+	Wed, 12 Jan 2022 00:31:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1641947460;
+	bh=1W+J5ZF8So/ZYJAlHulAMkWgRAhRZIU/kA0xo95V/8M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=imijIEX2oW21715cS5Xv6YaftRcFAq3XNQAG/EykRJrilaxrBooE2Wod98SB72Rnz
+	 FZqncWON5nMqn6mKjslYaN+fLLHmLLDlLmQmSu/bVU2WXxyVMfXgfAjZfCHWuofRUH
+	 tK24FFoxxjaIdoxVuPtT2j0968HjcviUFEBnWl+mfTmQp43Fhy43t1rK+EFVvM04zc
+	 1u91afsfgNKQk4D4LeHTHsW5NanEMfwwAF28OATSJblMjNEFJ3VKmJhZMrFrs4ny06
+	 j9QoCxXZCdKNtp6wmxJUsZwhcxYut2AnDerrujExgEJ8OCeGaU1DHKF83u/w5uU3rB
+	 HRQd4awpME5Xg==
+Date: Tue, 11 Jan 2022 16:30:59 -0800
+From: "Darrick J. Wong" <djwong@kernel.org>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Christoph Hellwig <hch@infradead.org>, linux-xfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [GIT PULL] iomap for 5.17
+Message-ID: <20220112003059.GH398655@magnolia>
+References: <YdyoN7RU/JMOk/lW@casper.infradead.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-In-Reply-To: <20220111230224.GT2328285@nvidia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-CA
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 172.16.1.162
-X-SA-Exim-Rcpt-To: nvdimm@lists.linux.dev, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, linux-block@vger.kernel.org, ming.lei@redhat.com, jhubbard@nvidia.com, joao.m.martins@oracle.com, hch@lst.de, linux-kernel@vger.kernel.org, willy@infradead.org, jgg@nvidia.com
-X-SA-Exim-Mail-From: logang@deltatee.com
-X-Spam-Checker-Version: SpamAssassin 3.4.6 (2021-04-09) on ale.deltatee.com
-X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=5.0 tests=ALL_TRUSTED,BAYES_00,
-	NICE_REPLY_A autolearn=ham autolearn_force=no version=3.4.6
-Subject: Re: Phyr Starter
-X-SA-Exim-Version: 4.2.1 (built Sat, 13 Feb 2021 17:57:42 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YdyoN7RU/JMOk/lW@casper.infradead.org>
 
+On Mon, Jan 10, 2022 at 09:42:15PM +0000, Matthew Wilcox wrote:
+> I know these requests usually come from Darrick, and we had intended
+> that they would come that route.  Between the holidays and various
+> things which Darrick needed to work on, he asked if I could send the
+> pull request directly.  There weren't any other iomap patches pending
+> for this release, which probably also played a role.
 
+Just to confirm this explicitly -- yes, it really did transpire that
+Matthew submitted the only iomap patches for 5.17, so I told him to go
+ahead and send a pull request straight to Linus.
 
-On 2022-01-11 4:02 p.m., Jason Gunthorpe wrote:
-> On Tue, Jan 11, 2022 at 03:57:07PM -0700, Logan Gunthorpe wrote:
->>
->>
->> On 2022-01-11 3:53 p.m., Jason Gunthorpe wrote:
->>> I just want to share the whole API that will have to exist to
->>> reasonably support this flexible array of intervals data structure..
->>
->> Is that really worth it? I feel like type safety justifies replicating a
->> bit of iteration and allocation infrastructure. Then there's no silly
->> mistakes of thinking one array is one thing when it is not.
+--D
+
+> There is a conflict between this tree and the nvdimm tree.  We've done
+> our best to make the resolution easy for you with the last patch in this
+> series ("Inline __iomap_zero_iter into its caller").  If you'd rather just
+> resolve the entire conflict yourself, feel free to drop that last patch.
 > 
-> If it is a 'a bit' then sure, but I suspect doing a good job here will
-> be a lot of code here.
+> The resolution Stephen has been carrying is here:
+> https://lore.kernel.org/all/20211224172421.3f009baa@canb.auug.org.au/
 > 
-> Look at how big scatterlist is, for instance.
-
-Yeah, but scatterlist has a ton of cruft; numerous ways to allocate,
-multiple iterators, developers using it in different ways, etc, etc.
-It's a big mess. bvec.h is much smaller (though includes stuff that
-wouldn't necessarily be appropriate here).
-
-Also some things apply to one but not the other. eg: a memcpy to/from
-function might make sense for a phy_range but makes no sense for a
-dma_range.
-
-> Maybe we could have a generic 64 bit interval arry and then two type
-> wrappers that do dma and physaddr casting? IDK.
+> The following changes since commit 2585cf9dfaaddf00b069673f27bb3f8530e2039c:
 > 
-> Not sure type safety of DMA vs CPU address is critical?
-
-I would argue it is. A DMA address is not a CPU address and should not
-be treated the same.
-
-Logan
+>   Linux 5.16-rc5 (2021-12-12 14:53:01 -0800)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.infradead.org/users/willy/linux.git tags/iomap-5.17
+> 
+> for you to fetch changes up to 4d7bd0eb72e5831ddb1288786a96448b48440825:
+> 
+>   iomap: Inline __iomap_zero_iter into its caller (2021-12-21 13:51:08 -0500)
+> 
+> ----------------------------------------------------------------
+> Convert xfs/iomap to use folios
+> 
+> This should be all that is needed for XFS to use large folios.
+> There is no code in this pull request to create large folios, but
+> no additional changes should be needed to XFS or iomap once they
+> are created.
+> 
+> ----------------------------------------------------------------
+> Matthew Wilcox (Oracle) (26):
+>       block: Add bio_add_folio()
+>       block: Add bio_for_each_folio_all()
+>       fs/buffer: Convert __block_write_begin_int() to take a folio
+>       iomap: Convert to_iomap_page to take a folio
+>       iomap: Convert iomap_page_create to take a folio
+>       iomap: Convert iomap_page_release to take a folio
+>       iomap: Convert iomap_releasepage to use a folio
+>       iomap: Add iomap_invalidate_folio
+>       iomap: Pass the iomap_page into iomap_set_range_uptodate
+>       iomap: Convert bio completions to use folios
+>       iomap: Use folio offsets instead of page offsets
+>       iomap: Convert iomap_read_inline_data to take a folio
+>       iomap: Convert readahead and readpage to use a folio
+>       iomap: Convert iomap_page_mkwrite to use a folio
+>       iomap: Allow iomap_write_begin() to be called with the full length
+>       iomap: Convert __iomap_zero_iter to use a folio
+>       iomap: Convert iomap_write_begin() and iomap_write_end() to folios
+>       iomap: Convert iomap_write_end_inline to take a folio
+>       iomap,xfs: Convert ->discard_page to ->discard_folio
+>       iomap: Simplify iomap_writepage_map()
+>       iomap: Simplify iomap_do_writepage()
+>       iomap: Convert iomap_add_to_ioend() to take a folio
+>       iomap: Convert iomap_migrate_page() to use folios
+>       iomap: Support large folios in invalidatepage
+>       xfs: Support large folios
+>       iomap: Inline __iomap_zero_iter into its caller
+> 
+>  Documentation/core-api/kernel-api.rst |   1 +
+>  block/bio.c                           |  22 ++
+>  fs/buffer.c                           |  23 +-
+>  fs/internal.h                         |   2 +-
+>  fs/iomap/buffered-io.c                | 551 +++++++++++++++++-----------------
+>  fs/xfs/xfs_aops.c                     |  24 +-
+>  fs/xfs/xfs_icache.c                   |   2 +
+>  include/linux/bio.h                   |  56 +++-
+>  include/linux/iomap.h                 |   3 +-
+>  9 files changed, 389 insertions(+), 295 deletions(-)
+> 
