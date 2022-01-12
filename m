@@ -1,28 +1,28 @@
 Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25BE02CAA;
-	Wed, 12 Jan 2022 23:48:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B5442CA2;
+	Wed, 12 Jan 2022 23:48:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1642031289; x=1673567289;
+  t=1642031290; x=1673567290;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=Fs4eWwWtKQxb4Ql0idu7hLWWW+GKm1Vhmjtj9J1yEIw=;
-  b=eailmkaa5vJCVU0ULaEi/EmVuQaSHA/X4WMHK5rh+8TI3l4HQRYrrQi2
-   2HDTCvFwFcg+iFlNjfksGv2RHzZBXCVmC4imbd2KGoioXw8QUfDb4MLVr
-   iRewGuYw2HyvwV1AGdGVHu3Oy0cF06cdBlRMPbFXvgfGmVaEkPOB5/dlZ
-   A0Kv9OeUfp6iyCdBRFYdieKP+lfJpdP1HzbIyw5bBtc3eGbzcfB33zJLp
-   8/fWjTSb7mJ94OMpsU0m3JW5XcA6IjNgMc9+HR67omQQfdZv579EgQGfw
-   nBgduzN55yl8dLPr75bzF6klAQKQYR02u5xbF4XOmiY25xFkezm9Mt5jd
+  bh=YMA0pG+JOi6lFn2sVT6bUQtUSO1rh2VV0YW8tAKi+II=;
+  b=WsOAI4qDiuvtj0PQOowu4VH7u4D9D34SecYWUW0KGg9yPzMF+wAKL9aZ
+   TZhVQufkXJ/nLu8NrsmxdI73UT15AYmW+pAWV2xItD/G66iYlk4E7U4Nl
+   ofGGcVpIkZ+0neq7UQXB4kHzd2J8jFiAwwUQ7GZsaBGhTMJo0QZYZp1NC
+   m/NBNDlEeacq+XPcKhILqxp7FnYhx54ZTKfA/ICfgzntwYYpqxpUA16Gx
+   R5LJe81kjpbnUU5oIP0Jof9t1QO4BWcc+xuV7to9dQdOXmf2U+g2WfDfV
+   CVqz/LyjCdudBr3j5OpVLK4nagXhGipQkH6ZUlnqax8qn3rGRcYXxPvj1
    w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10225"; a="243673312"
+X-IronPort-AV: E=McAfee;i="6200,9189,10225"; a="243673315"
 X-IronPort-AV: E=Sophos;i="5.88,284,1635231600"; 
-   d="scan'208";a="243673312"
+   d="scan'208";a="243673315"
 Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2022 15:48:08 -0800
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2022 15:48:09 -0800
 X-IronPort-AV: E=Sophos;i="5.88,284,1635231600"; 
-   d="scan'208";a="670324196"
+   d="scan'208";a="670324199"
 Received: from jmaclean-mobl1.amr.corp.intel.com (HELO localhost.localdomain) ([10.252.136.131])
   by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2022 15:48:08 -0800
 From: Ben Widawsky <ben.widawsky@intel.com>
@@ -37,9 +37,9 @@ Cc: patches@lists.linux.dev,
 	Ira Weiny <ira.weiny@intel.com>,
 	Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
 	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 08/15] cxl/region: Address space allocation
-Date: Wed, 12 Jan 2022 15:47:42 -0800
-Message-Id: <20220112234749.1965960-9-ben.widawsky@intel.com>
+Subject: [PATCH v2 09/15] cxl/region: Implement XHB verification
+Date: Wed, 12 Jan 2022 15:47:43 -0800
+Message-Id: <20220112234749.1965960-10-ben.widawsky@intel.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20220112234749.1965960-1-ben.widawsky@intel.com>
 References: <20220112234749.1965960-1-ben.widawsky@intel.com>
@@ -51,81 +51,182 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-When a region is not assigned a host physical address, one is picked by
-the driver. As the address will determine which CFMWS contains the
-region, it's usually a better idea to let the driver make this
-determination.
+Cross host bridge verification primarily determines if the requested
+interleave ordering can be achieved by the root decoder, which isn't as
+programmable as other decoders.
+
+The algorithm implemented here is based on the CXL Type 3 Memory Device
+Software Guide, chapter 2.13.14
 
 Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
----
- drivers/cxl/region.c | 40 ++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 38 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
-index 53046da2e131..c12d9bd22705 100644
---- a/drivers/cxl/region.c
-+++ b/drivers/cxl/region.c
-@@ -1,6 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0-only
- /* Copyright(c) 2021 Intel Corporation. All rights reserved. */
- #include <linux/platform_device.h>
-+#include <linux/genalloc.h>
- #include <linux/device.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-@@ -62,6 +63,20 @@ static struct cxl_port *get_root_decoder(const struct cxl_memdev *endpoint)
- 	return NULL;
+---
+Changes since v1:
+- Fix for_each_cxl_decoder_target definition (Jonathan)
+- Fix math XHB granularity check (Jonathan)
+- Remove bogus xhb check (Jonathan)
+- Rename ig/eniw to prevent confusion
+---
+ .clang-format        |  2 +
+ drivers/cxl/cxl.h    | 13 +++++++
+ drivers/cxl/region.c | 93 +++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 107 insertions(+), 1 deletion(-)
+
+diff --git a/.clang-format b/.clang-format
+index 15d4eaabc6b5..55f628f21722 100644
+--- a/.clang-format
++++ b/.clang-format
+@@ -169,6 +169,8 @@ ForEachMacros:
+   - 'for_each_cpu_and'
+   - 'for_each_cpu_not'
+   - 'for_each_cpu_wrap'
++  - 'for_each_cxl_decoder_target'
++  - 'for_each_cxl_endpoint'
+   - 'for_each_dapm_widgets'
+   - 'for_each_dev_addr'
+   - 'for_each_dev_scope'
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 19e65ed35796..c62e93e8a369 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -63,6 +63,19 @@ static inline int cxl_hdm_decoder_count(u32 cap_hdr)
+ 	return val ? val * 2 : 1;
  }
  
-+static void release_cxl_region(void *r)
++static inline u8 cxl_to_eniw(u8 ways)
 +{
-+	struct cxl_region *region = (struct cxl_region *)r;
-+	struct cxl_decoder *rootd = rootd_from_region(region);
-+	struct resource *res = &rootd->platform_res;
-+	resource_size_t start, size;
++	if (is_power_of_2(ways))
++		return ilog2(ways);
 +
-+	start = region->res->start;
-+	size = resource_size(region->res);
++	return ways / 3 + 8;
++}
 +
-+	__release_region(res, start, size);
-+	gen_pool_free(rootd->address_space, start, size);
++static inline u8 cxl_to_ig(u16 g)
++{
++	return 8 - ilog2(g);
++}
++
+ /* CXL 2.0 8.2.8.1 Device Capabilities Array Register */
+ #define CXLDEV_CAP_ARRAY_OFFSET 0x0
+ #define   CXLDEV_CAP_ARRAY_CAP_ID 0
+diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
+index c12d9bd22705..c01b1ab9f757 100644
+--- a/drivers/cxl/region.c
++++ b/drivers/cxl/region.c
+@@ -28,6 +28,19 @@
+  */
+ 
+ #define region_ways(region) ((region)->config.interleave_ways)
++#define region_eniw(region) (cxl_to_eniw((region)->config.interleave_ways))
++#define region_granularity(region) ((region)->config.interleave_granularity)
++#define region_ig(region) (cxl_to_ig((region)->config.interleave_granularity))
++
++#define for_each_cxl_endpoint(ep, region, idx)                                 \
++	for (idx = 0, ep = (region)->config.targets[idx];                      \
++	     idx < region_ways(region);                                        \
++	     ep = (region)->config.targets[++idx])
++
++#define for_each_cxl_decoder_target(dport, decoder, idx)                      \
++	for (idx = 0, dport = (decoder)->target[idx];                         \
++	     idx < (decoder)->nr_targets;                                     \
++	     dport = (decoder)->target[++idx])
+ 
+ static struct cxl_decoder *rootd_from_region(struct cxl_region *r)
+ {
+@@ -177,6 +190,30 @@ static bool qtg_match(const struct cxl_decoder *rootd,
+ 	return true;
+ }
+ 
++static int get_unique_hostbridges(const struct cxl_region *region,
++				  struct cxl_port **hbs)
++{
++	struct cxl_memdev *ep;
++	int i, hb_count = 0;
++
++	for_each_cxl_endpoint(ep, region, i) {
++		struct cxl_port *hb = get_hostbridge(ep);
++		bool found = false;
++		int j;
++
++		BUG_ON(!hb);
++
++		for (j = 0; j < hb_count; j++) {
++			if (hbs[j] == hb)
++				found = true;
++		}
++		if (!found)
++			hbs[hb_count++] = hb;
++	}
++
++	return hb_count;
 +}
 +
  /**
-  * sanitize_region() - Check is region is reasonably configured
-  * @region: The region to check
-@@ -111,8 +126,29 @@ static int sanitize_region(const struct cxl_region *region)
-  */
- static int allocate_address_space(struct cxl_region *region)
+  * region_xhb_config_valid() - determine cross host bridge validity
+  * @rootd: The root decoder to check against
+@@ -190,7 +227,61 @@ static bool qtg_match(const struct cxl_decoder *rootd,
+ static bool region_xhb_config_valid(const struct cxl_region *region,
+ 				    const struct cxl_decoder *rootd)
  {
--	/* TODO */
--	return 0;
-+	struct cxl_decoder *rootd = rootd_from_region(region);
-+	unsigned long start;
+-	/* TODO: */
++	struct cxl_port *hbs[CXL_DECODER_MAX_INTERLEAVE];
++	struct cxl_dport *target;
++	int rootd_ig, i;
 +
-+	start = gen_pool_alloc(rootd->address_space, region->config.size);
-+	if (!start) {
++	/* Are all devices in this region on the same CXL host bridge */
++	if (get_unique_hostbridges(region, hbs) == 1)
++		return true;
++
++	rootd_ig = cxl_to_ig(rootd->interleave_granularity);
++
++	/* CFMWS.HBIG >= Device.Label.IG */
++	if (rootd_ig < (region_ig(region))) {
 +		dev_dbg(&region->dev,
-+			"Couldn't allocate %lluM of address space",
-+			region->config.size >> 20);
-+		return -ENOMEM;
++			"%s HBIG must be greater than region IG (%d < %d)\n",
++			dev_name(&rootd->dev), rootd_ig, region_ig(region));
++		return false;
 +	}
 +
-+	region->res = __request_region(&rootd->platform_res, start,
-+				       region->config.size,
-+				       dev_name(&region->dev), IORESOURCE_MEM);
-+	if (!region->res) {
-+		dev_dbg(&region->dev, "Couldn't obtain region from %s (%pR)\n",
-+			dev_name(&rootd->dev), &rootd->platform_res);
-+		gen_pool_free(rootd->address_space, start, region->config.size);
-+		return -ENOMEM;
++	/*
++	 * ((2^(CFMWS.HBIG - Device.RLabel.IG) * (2^CFMWS.ENIW)) > Device.RLabel.NLabel)
++	 *
++	 * Linux notes: 2^CFMWS.ENIW is trying to decode the NIW. Instead we use
++	 * the look up function which supports non power of 2 interleave
++	 * configurations.
++	 */
++	if (((1 << (rootd_ig - region_ig(region))) *
++	     (1 << cxl_to_eniw(rootd->interleave_ways))) >
++	    region_ways(region)) {
++		dev_dbg(&region->dev,
++			"granularity ratio requires a larger number of devices (%d) than currently configured (%d)\n",
++			((1 << (rootd_ig - region_ig(region))) *
++			 (1 << cxl_to_eniw(rootd->interleave_ways))),
++			region_ways(region));
++		return false;
 +	}
 +
-+	return devm_add_action_or_reset(&region->dev, release_cxl_region,
-+					region);
++	/*
++	 * CFMWS.InterleaveTargetList[n] must contain all devices, x where:
++	 *	(Device[x],RegionLabel.Position >> (CFMWS.HBIG -
++	 *	Device[x].RegionLabel.InterleaveGranularity)) &
++	 *	((2^CFMWS.ENIW) - 1) = n
++	 *
++	 * Linux notes: All devices are known to have the same interleave
++	 * granularity at this point.
++	 */
++	for_each_cxl_decoder_target(target, rootd, i) {
++		if (((i >> (rootd_ig - region_granularity(region)))) &
++		    (((1 << cxl_to_eniw(rootd->interleave_ways)) - 1) !=
++		     target->port_id)) {
++			dev_dbg(&region->dev,
++				"One or more devices are not connected to the correct hostbridge.\n");
++			return false;
++		}
++	}
++
+ 	return true;
  }
  
- /**
 -- 
 2.34.1
 
