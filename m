@@ -1,185 +1,53 @@
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CDBA3FE7;
-	Wed, 12 Jan 2022 23:48:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1642031294; x=1673567294;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Sz0q31fHqc0I1mJSaBX93aEzTlZDmtfU2Ln63uj8NIM=;
-  b=DaSIxZN7VR2dmpLtuYd2UKRxZAcVocm71o9CRMd1wMeRJ5Nl2peq+21Z
-   Yotwp11xKvR/aZIKP7vAn9KDy9QcMxwFE3JS2ZkN3OfDqSF+Bg5R3gKDE
-   eSF+YNDzngtyVA0p8kIjk8iIXoiV3rRIkmIcNs3O/2fuZsjX2hJnsWt/7
-   iQSQ9lb66OesA88jZ8RPFY2VFRq9BhlSLSfu1sghk2AjPnqcOXtX6OYYO
-   gJpIaDttXBDDy/XSfD1JWuwgLWzLy48ca6GcxzdXEckMF7MWIIrGYPiJy
-   d61/hC1yOgmfYLrkxWZSuct9nIzUY1sf8aECnLwVv8Yu0Aszp5BJzjTsz
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10225"; a="243673342"
-X-IronPort-AV: E=Sophos;i="5.88,284,1635231600"; 
-   d="scan'208";a="243673342"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2022 15:48:14 -0800
-X-IronPort-AV: E=Sophos;i="5.88,284,1635231600"; 
-   d="scan'208";a="670324222"
-Received: from jmaclean-mobl1.amr.corp.intel.com (HELO localhost.localdomain) ([10.252.136.131])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Jan 2022 15:48:13 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: linux-cxl@vger.kernel.org,
-	nvdimm@lists.linux.dev,
-	linux-pci@vger.kernel.org
-Cc: patches@lists.linux.dev,
-	Bjorn Helgaas <helgaas@kernel.org>,
-	Ben Widawsky <ben.widawsky@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH v2 15/15] cxl/region: Create an nd_region
-Date: Wed, 12 Jan 2022 15:47:49 -0800
-Message-Id: <20220112234749.1965960-16-ben.widawsky@intel.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220112234749.1965960-1-ben.widawsky@intel.com>
-References: <20220112234749.1965960-1-ben.widawsky@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0B4C22C9D
+	for <nvdimm@lists.linux.dev>; Wed, 12 Jan 2022 23:49:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id ABD5BC36AEC;
+	Wed, 12 Jan 2022 23:49:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1642031359;
+	bh=6LIOU8YFSzbKtOEIq3Eni0RCENIgNqvsOWfA8tRJcO0=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=p1dgzmulzPS/LrKCor7Kd78cQ0L2pSOE+UsIbXM4a4Q+0GomTVdIvjYyjUwBsk8IF
+	 4EgD4kxmaruxesutjh8fd2gWUwAlRQFZyb+5ZrXSjFweyZhZfXhQ4oSI2jXKyV6mzd
+	 Ti/F6nKiM1L0Avp5U/VQfilr0kEuiZrvLCajnkrOH3CS2Rp+6KoUJbEg4W+Tm7d8Kj
+	 Y2Ex9/z5AiSx75zTaQGIk+56oIPLYdJBOyxpILa7eQM9+Cz1hRma80XZtYWXBpMiTI
+	 Jp7v6cK95jdO8zpM0gFpVdMsJnis+l+x4Jl0/CvMYIww28qt13vFAkgP/IY7YujToV
+	 e751h4IlZRmgA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 99BD9F6078C;
+	Wed, 12 Jan 2022 23:49:19 +0000 (UTC)
+Subject: Re: [GIT PULL] DAX / LIBNVDIMM update for v5.17
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAPcyv4jWm57gAL_P2JiU1vm3-CaJwzRQsoNhh_A2C-Jh1trk+w@mail.gmail.com>
+References: <CAPcyv4jWm57gAL_P2JiU1vm3-CaJwzRQsoNhh_A2C-Jh1trk+w@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-xfs.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAPcyv4jWm57gAL_P2JiU1vm3-CaJwzRQsoNhh_A2C-Jh1trk+w@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.17
+X-PR-Tracked-Commit-Id: 9e05e95ca8dae8de4a7a1645014e1bbd9c8a4dab
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 3acbdbf42e943d85174401357a6b6243479d4c76
+Message-Id: <164203135961.22460.18259836821302118281.pr-tracker-bot@kernel.org>
+Date: Wed, 12 Jan 2022 23:49:19 +0000
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Linux NVDIMM <nvdimm@lists.linux.dev>, linux-xfs <linux-xfs@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 
-LIBNVDIMM supports the creation of regions for both persistent and
-volatile memory ranges. The cxl_region driver is capable of handling the
-CXL side of region creation but will reuse LIBVDIMM for interfacing with
-the rest of the kernel.
+The pull request you sent on Tue, 11 Jan 2022 12:58:11 -0800:
 
-TODO: CXL regions can go away. As a result the nd_region must also be
-torn down.
+> git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-5.17
 
-TODO2: Handle mappings. LIBNVDIMM is capable of being informed about
-which parts of devices contribute to a region and validating whether or
-not the region is configured properly. To do this properly requires
-tracking allocations per device.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/3acbdbf42e943d85174401357a6b6243479d4c76
 
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
----
- drivers/cxl/core/pmem.c | 16 +++++++++++++
- drivers/cxl/cxl.h       |  1 +
- drivers/cxl/region.c    | 52 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 69 insertions(+)
+Thank you!
 
-diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-index bfcf51fbda5d..762a08c6f073 100644
---- a/drivers/cxl/core/pmem.c
-+++ b/drivers/cxl/core/pmem.c
-@@ -213,6 +213,22 @@ struct cxl_nvdimm *to_cxl_nvdimm(struct device *dev)
- }
- EXPORT_SYMBOL_NS_GPL(to_cxl_nvdimm, CXL);
- 
-+static int match_cxl_nvdimm(struct device *dev, void *data)
-+{
-+	return is_cxl_nvdimm(dev);
-+}
-+
-+struct cxl_nvdimm *cxl_find_nvdimm(struct cxl_memdev *cxlmd)
-+{
-+	struct device *dev;
-+
-+	dev = device_find_child(&cxlmd->dev, NULL, match_cxl_nvdimm);
-+	if (!dev)
-+		return NULL;
-+	return to_cxl_nvdimm(dev);
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_find_nvdimm, CXL);
-+
- static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
- {
- 	struct cxl_nvdimm *cxl_nvd;
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 6f9cabb77c08..a7b90356914d 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -434,6 +434,7 @@ bool is_cxl_nvdimm(struct device *dev);
- bool is_cxl_nvdimm_bridge(struct device *dev);
- int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd);
- struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_memdev *cxlmd);
-+struct cxl_nvdimm *cxl_find_nvdimm(struct cxl_memdev *cxlmd);
- 
- /*
-  * Unit test builds overrides this to __weak, find the 'strong' version
-diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
-index d00305655f5a..d4a7e8d47c11 100644
---- a/drivers/cxl/region.c
-+++ b/drivers/cxl/region.c
-@@ -623,6 +623,52 @@ static int bind_region(struct cxl_region *region)
- 	return rc;
- }
- 
-+static int connect_to_libnvdimm(struct cxl_region *region)
-+{
-+	struct nd_region_desc ndr_desc;
-+	struct cxl_nvdimm_bridge *nvb;
-+	struct nd_region *ndr;
-+	int rc = 0;
-+
-+	nvb = cxl_find_nvdimm_bridge(region->config.targets[0]);
-+	device_lock(&nvb->dev);
-+	if (!nvb->nvdimm_bus) {
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+
-+	ndr_desc.res = region->res;
-+
-+	ndr_desc.numa_node = memory_add_physaddr_to_nid(region->res->start);
-+	ndr_desc.target_node = phys_to_target_node(region->res->start);
-+	if (ndr_desc.numa_node == NUMA_NO_NODE) {
-+		ndr_desc.numa_node =
-+			memory_add_physaddr_to_nid(region->res->start);
-+		dev_info(&region->dev,
-+			 "changing numa node from %d to %d for CXL region %pR",
-+			 NUMA_NO_NODE, ndr_desc.numa_node, region->res);
-+	}
-+	if (ndr_desc.target_node == NUMA_NO_NODE) {
-+		ndr_desc.target_node = ndr_desc.numa_node;
-+		dev_info(&region->dev,
-+			 "changing target node from %d to %d for CXL region %pR",
-+			 NUMA_NO_NODE, ndr_desc.target_node, region->res);
-+	}
-+
-+	ndr = nvdimm_pmem_region_create(nvb->nvdimm_bus, &ndr_desc);
-+	if (IS_ERR(ndr))
-+		rc = PTR_ERR(ndr);
-+	else
-+		dev_set_drvdata(&region->dev, ndr);
-+
-+out:
-+	device_unlock(&nvb->dev);
-+	put_device(&nvb->dev);
-+	return rc;
-+}
-+
- static void region_unregister(void *dev)
- {
- 	struct cxl_region *region = to_cxl_region(dev);
-@@ -704,6 +750,12 @@ static int cxl_region_probe(struct device *dev)
- 		return ret;
- 	}
- 
-+	ret = connect_to_libnvdimm(region);
-+	if (ret) {
-+		region_unregister(dev);
-+		return ret;
-+	}
-+
- 
- 	region->active = true;
- 	dev_info(dev, "Bound");
 -- 
-2.34.1
-
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
