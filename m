@@ -1,190 +1,371 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4FA2C82;
-	Sat, 15 Jan 2022 19:01:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1642273262; x=1673809262;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=5sjtMwaMW3TxVFLwwMKGGQ41h1yf4gG/AEgyto+2auM=;
-  b=Bg2yB/MC2Po0IN5VMY1tGsv77UswRGas39/SedJJUiNDrd15tRr5rgyu
-   +49Ywh+a/DQLZObIHC63Vhedx7dd94lRiJg++QBGxt9wHjwdcShzenzGQ
-   TfvdkxZygwGbND8KTjMmxMWiGcL9aEyLOjuBx6hfSJi3zeNrpCxnZ43jD
-   WNQsGFlZoOIgvINeUvQKf0QhhbdKOjq6MnTTkzUZkuRF4457xaWz+CW7p
-   CbP6FrdFe5pbqb+dY9WZWzbLvokj9GEkCmqhE3xw21inyg/lWjL4mJNRD
-   v00STLVwv/BX/7WkLC7h0G4n4B9ApfC991X+ps4w+jejmVNPRqdKhFTcW
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10228"; a="244630126"
-X-IronPort-AV: E=Sophos;i="5.88,290,1635231600"; 
-   d="scan'208";a="244630126"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2022 11:01:01 -0800
-X-IronPort-AV: E=Sophos;i="5.88,290,1635231600"; 
-   d="scan'208";a="671179329"
-Received: from jayitada-mobl.amr.corp.intel.com (HELO intel.com) ([10.252.140.240])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jan 2022 11:01:01 -0800
-Date: Sat, 15 Jan 2022 11:00:58 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: linux-cxl@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-pci@vger.kernel.org
-Cc: patches@lists.linux.dev, Bjorn Helgaas <helgaas@kernel.org>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2 00/15] CXL Region driver
-Message-ID: <20220115190058.fbenk5doo4yyzyw6@intel.com>
-References: <20220112234749.1965960-1-ben.widawsky@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E53A173
+	for <nvdimm@lists.linux.dev>; Mon, 17 Jan 2022 08:31:01 +0000 (UTC)
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20H7XQc4023217;
+	Mon, 17 Jan 2022 08:30:51 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=+IuSd/xIT5nKaAqvVoQ7lLHCzBNPT7/QFQyMsJdGo10=;
+ b=R/8vBoKOxaCfryw5DIxLvuHBk+du7NS8upIRmTHtMRH0h6alqQAViBfZBq3Qf/YgN8cL
+ DA4YgVLFSvywQFkkU60q/sHhprGKIi7UTnSyeht3Aw8CUd1PVSRPAH4Tsg2P8ZALn0Pw
+ U/sA7c4ULgmyZ74UzdfMtXQ37oBVa8Hi9KDbkHU9fnM4Hl1ELG1NgeFMrX34eiHiWzGM
+ edsiP1VEAHVWZLOg5OzOjT5cfLOjsuIyVe5y4NVQY/wOLCA9JWh4nrnYZQs7/kqFZYdr
+ uySvOsRbgGur5NwIZonrfloTvr52YICRrabMAqXhbiBas+D9QHS3vasWaMwqWtaYC1Hr 3g== 
+Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3dn0jk4rf4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 17 Jan 2022 08:30:51 +0000
+Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
+	by ppma04dal.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 20H8M4vl002076;
+	Mon, 17 Jan 2022 08:30:50 GMT
+Received: from b01cxnp22034.gho.pok.ibm.com (b01cxnp22034.gho.pok.ibm.com [9.57.198.24])
+	by ppma04dal.us.ibm.com with ESMTP id 3dknw9q7wy-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Mon, 17 Jan 2022 08:30:50 +0000
+Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
+	by b01cxnp22034.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 20H8UmEP33685818
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Mon, 17 Jan 2022 08:30:48 GMT
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 031BDAE05C;
+	Mon, 17 Jan 2022 08:30:48 +0000 (GMT)
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3BD06AE064;
+	Mon, 17 Jan 2022 08:30:45 +0000 (GMT)
+Received: from skywalker.linux.ibm.com (unknown [9.43.65.33])
+	by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
+	Mon, 17 Jan 2022 08:30:44 +0000 (GMT)
+X-Mailer: emacs 28.0.91 (via feedmail 11-beta-1 I)
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>, nvdimm@lists.linux.dev,
+        linuxppc-dev@lists.ozlabs.org
+Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Michael Ellerman <mpe@ellerman.id.au>, Ira Weiny <ira.weiny@intel.com>,
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [PATCH v3] powerpc/papr_scm: Implement initial support for
+ injecting smart errors
+In-Reply-To: <20220113120252.1145671-1-vaibhav@linux.ibm.com>
+References: <20220113120252.1145671-1-vaibhav@linux.ibm.com>
+Date: Mon, 17 Jan 2022 14:00:42 +0530
+Message-ID: <871r167oi5.fsf@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220112234749.1965960-1-ben.widawsky@intel.com>
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: -GsnPePT11vJ1iOGVmICtim-tn1_kqbl
+X-Proofpoint-ORIG-GUID: -GsnPePT11vJ1iOGVmICtim-tn1_kqbl
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
+ definitions=2022-01-17_02,2022-01-14_01,2021-12-02_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ suspectscore=0 adultscore=0 bulkscore=0 phishscore=0 mlxlogscore=999
+ mlxscore=0 clxscore=1011 impostorscore=0 spamscore=0 malwarescore=0
+ priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2110150000 definitions=main-2201170055
 
-Dang. Responded to the wrong thread...
+Vaibhav Jain <vaibhav@linux.ibm.com> writes:
 
-v3 coming. Ignore this please.
-
-Thanks.
-Ben
-
-On 22-01-12 15:47:34, Ben Widawsky wrote:
-> Major changes since v1:
-> - bug fixes in certain calculations for region programming
-> - bug fix in for_each_cxl_decoder_target
-> - clarify ENIW and IG from ways and granularity
-> - wait_for_commit bug fix
-> - use devm management for region removal
-> - remove trace points
-> - add basic libnvdimm connection
-> 
-> Original commit message follows with minor updates for correctness.
-> 
+> Presently PAPR doesn't support injecting smart errors on an
+> NVDIMM. This makes testing the NVDIMM health reporting functionality
+> difficult as simulating NVDIMM health related events need a hacked up
+> qemu version.
+>
+> To solve this problem this patch proposes simulating certain set of
+> NVDIMM health related events in papr_scm. Specifically 'fatal' health
+> state and 'dirty' shutdown state. These error can be injected via the
+> user-space 'ndctl-inject-smart(1)' command. With the proposed patch and
+> corresponding ndctl patches following command flow is expected:
+>
+> $ sudo ndctl list -DH -d nmem0
+> ...
+>       "health_state":"ok",
+>       "shutdown_state":"clean",
+> ...
+>  # inject unsafe shutdown and fatal health error
+> $ sudo ndctl inject-smart nmem0 -Uf
+> ...
+>       "health_state":"fatal",
+>       "shutdown_state":"dirty",
+> ...
+>  # uninject all errors
+> $ sudo ndctl inject-smart nmem0 -N
+> ...
+>       "health_state":"ok",
+>       "shutdown_state":"clean",
+> ...
+>
+> The patch adds two members 'health_bitmap_mask' and
+> 'health_bitmap_override' inside struct papr_scm_priv which are then
+> bit blt'ed to the health bitmaps fetched from the hypervisor. In case
+> we are not able to fetch health information from the hypervisor we
+> service the health bitmap from these two members. These members are
+> accessible from sysfs at nmemX/papr/health_bitmap_override
+>
+> A new PDSM named 'SMART_INJECT' is proposed that accepts newly
+> introduced 'struct nd_papr_pdsm_smart_inject' as payload thats
+> exchanged between libndctl and papr_scm to indicate the requested
+> smart-error states.
+>
+> When the processing the PDSM 'SMART_INJECT', papr_pdsm_smart_inject()
+> constructs a pair or 'mask' and 'override' bitmaps from the payload
+> and bit-blt it to the 'health_bitmap_{mask, override}' members. This
+> ensures the after being fetched from the hypervisor, the health_bitmap
+> reflects requested smart-error states.
+>
+> Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
+> Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 > ---
-> 
-> This patch series introduces the CXL region driver as well as associated APIs in
-> CXL core. The region driver enables the creation of "regions" which is a concept
-> defined by the CXL 2.0 specification [1]. Region verification and programming
-> state are owned by the cxl_region driver (implemented in the cxl_region module).
-> It relies on cxl_mem to determine if devices are CXL routed, and cxl_port to
-> actually handle the programming of the HDM decoders. Much of the region driver
-> is an implementation of algorithms described in the CXL Type 3 Memory Device
-> Software Guide [2].
-> 
-> The region driver will be responsible for configuring regions found on
-> persistent capacities in the Label Storage Area (LSA), it will also enumerate
-> regions configured by BIOS, usually volatile capacities, and will allow for
-> dynamic region creation (which can then be stored in the LSA). It is the primary
-> consumer of the CXL Port [3] and CXL Mem drivers introduced previously [4]. Dan
-> has reworked those drivers which is a requirement for this branch. A cached copy
-> is included in the gitlab for this project [5]. Those patches will be posted
-> shortly.
-> 
-> The patches for the region driver could be squashed. They're broken out to aid
-> review and because that's the order they were implemented in. My preference is
-> to keep those as they are.
-> 
-> Some things are still missing and will be worked on while these are reviewed (in
-> priority order):
-> 1. Volatile regions/LSA regions (Have a plan)
-> 2. Switch ports (Have a plan)
-> 3. Decoder programming restrictions (No plan). The one know restriction I've
->    missed is to disallow programming HDM decoders that aren't in incremental
->    system physical address ranges.
-> 4. CXL region teardown -> nd_region teardown
-> 5. Stress testing
-> 
-> Here is an example of output when programming a x2 interleave region
-> 
-> # ./cxlctl create-region -n -a -s $((256<<20)) /sys/bus/cxl/devices/decoder0.0
-> [   57.564475][  T654] cxl_core:cxl_add_region:478: cxl region0.0:0: Added region0.0:0 to decoder0.0
-> [   57.608949][  T655] cxl_region:allocate_address_space:170: cxl_region region0.0:0: resource [mem 0x4c00000000-0x4c1fffffff]
-> [   57.610056][  T655] cxl_core:cxl_commit_decoder:394: cxl_port port1: decoder1.0
-> [   57.610056][  T655]  Base 0x0000004c00000000
-> [   57.610056][  T655]  Size 512M
-> [   57.610056][  T655]  IG 0 (256b)
-> [   57.610056][  T655]  ENIW 1 (x2)
-> [   57.610056][  T655]  TargetList: 0 1 -1 -1 -1 -1 -1 -1
-> [   57.613584][  T655] cxl_core:cxl_commit_decoder:394: cxl_port endpoint2: decoder2.0
-> [   57.613584][  T655]  Base 0x0000004c00000000
-> [   57.613584][  T655]  Size 512M
-> [   57.613584][  T655]  IG 0 (256b)
-> [   57.613584][  T655]  ENIW 1 (x2)
-> [   57.613584][  T655]  TargetList: -1 -1 -1 -1 -1 -1 -1 -1
-> [   57.617051][  T655] cxl_core:cxl_commit_decoder:394: cxl_port endpoint3: decoder3.0
-> [   57.617051][  T655]  Base 0x0000004c00000000
-> [   57.617051][  T655]  Size 512M
-> [   57.617051][  T655]  IG 0 (256b)
-> [   57.617051][  T655]  ENIW 1 (x2)
-> [   57.617051][  T655]  TargetList: -1 -1 -1 -1 -1 -1 -1 -1
-> [   57.619433][  T655] cxl_region region0.0:0: Bound
-> [   57.621435][  T655] cxl_core:cxl_bus_probe:1384: cxl_region region0.0:0: probe: 0
-> 
-> If you're wondering how I tested this, I've baked it into my cxlctl app [6] and
-> lib [7]. Eventually this will get absorbed by ndctl/cxl-cli/libcxl.
-> 
-> 
-> Branch can be found at gitlab [8].
-> 
+> Changelog:
+>
+> Since v2:
+> * Rebased the patch to ppc-next
+> * Added documentation for newly introduced sysfs attribute 'health_bitmap_override'
+>
+> Since v1:
+> * Updated the patch description.
+> * Removed dependency of a header movement patch.
+> * Removed '__packed' attribute for 'struct nd_papr_pdsm_smart_inject' [Aneesh]
 > ---
-> 
-> [1]: https://www.computeexpresslink.org/download-the-specification
-> [2]: https://cdrdv2.intel.com/v1/dl/getContent/643805?wapkw=CXL%20memory%20device%20sw%20guide
-> [3]: https://lore.kernel.org/linux-cxl/20211022183709.1199701-9-ben.widawsky@intel.com/
-> [4]: https://lore.kernel.org/linux-cxl/20211022183709.1199701-17-ben.widawsky@intel.com/
-> [5]: https://gitlab.com/bwidawsk/linux/-/commit/126793e22427f7975a8f2fca373764be78012e88
-> [6]: https://gitlab.com/bwidawsk-cxl/cxlctl
-> [7]: https://gitlab.com/bwidawsk-cxl/cxl_rs
-> [8]: https://gitlab.com/bwidawsk/linux/-/tree/cxl_region-v2
-> 
-> Ben Widawsky (15):
->   cxl/core: Rename find_cxl_port
->   cxl/core: Track port depth
->   cxl/region: Add region creation ABI
->   cxl/region: Introduce concept of region configuration
->   cxl/mem: Cache port created by the mem dev
->   cxl/region: Introduce a cxl_region driver
->   cxl/acpi: Handle address space allocation
->   cxl/region: Address space allocation
->   cxl/region: Implement XHB verification
->   cxl/region: HB port config verification
->   cxl/region: Add infrastructure for decoder programming
->   cxl/region: Collect host bridge decoders
->   cxl: Program decoders for regions
->   cxl/pmem: Convert nvdimm bridge API to use memdev
->   cxl/region: Create an nd_region
-> 
->  .clang-format                                 |   3 +
->  Documentation/ABI/testing/sysfs-bus-cxl       |  63 ++
->  .../driver-api/cxl/memory-devices.rst         |  14 +
->  drivers/cxl/Makefile                          |   2 +
->  drivers/cxl/acpi.c                            |  30 +
->  drivers/cxl/core/Makefile                     |   1 +
->  drivers/cxl/core/core.h                       |   4 +
->  drivers/cxl/core/hdm.c                        | 199 +++++
->  drivers/cxl/core/pmem.c                       |  19 +-
->  drivers/cxl/core/port.c                       | 132 ++-
->  drivers/cxl/core/region.c                     | 525 ++++++++++++
->  drivers/cxl/cxl.h                             |  48 +-
->  drivers/cxl/cxlmem.h                          |   9 +
->  drivers/cxl/mem.c                             |  16 +-
->  drivers/cxl/pmem.c                            |   2 +-
->  drivers/cxl/port.c                            |  42 +-
->  drivers/cxl/region.c                          | 769 ++++++++++++++++++
->  drivers/cxl/region.h                          |  47 ++
->  tools/testing/cxl/Kbuild                      |   1 +
->  19 files changed, 1903 insertions(+), 23 deletions(-)
->  create mode 100644 drivers/cxl/core/region.c
->  create mode 100644 drivers/cxl/region.c
->  create mode 100644 drivers/cxl/region.h
-> 
+>  Documentation/ABI/testing/sysfs-bus-papr-pmem | 13 +++
+>  arch/powerpc/include/uapi/asm/papr_pdsm.h     | 18 ++++
+>  arch/powerpc/platforms/pseries/papr_scm.c     | 94 ++++++++++++++++++-
+>  3 files changed, 122 insertions(+), 3 deletions(-)
+>
+> diff --git a/Documentation/ABI/testing/sysfs-bus-papr-pmem b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> index 95254cec92bf..8a0b2a7f7671 100644
+> --- a/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> +++ b/Documentation/ABI/testing/sysfs-bus-papr-pmem
+> @@ -61,3 +61,16 @@ Description:
+>  		* "CchRHCnt" : Cache Read Hit Count
+>  		* "CchWHCnt" : Cache Write Hit Count
+>  		* "FastWCnt" : Fast Write Count
+> +
+> +What:		/sys/bus/nd/devices/nmemX/papr/health_bitmap_override
+> +Date:		Jan, 2022
+> +KernelVersion:	v5.17
+> +Contact:	linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, nvdimm@lists.linux.dev,
+> +Description:
+> +		(RO) Reports the health bitmap override/mask bitmaps that are
+> +		applied to top bitmap received from PowerVM via the H_SCM_HEALTH
+> +		Hcall. Together these can be used to forcibly set/reset specific
+> +		bits returned from Hcall. These bitmaps are presently used to
+> +		simulate various health or shutdown states for an nvdimm and are
+> +		set by user-space tools like ndctl by issuing a PAPR DSM.
+> +
+> diff --git a/arch/powerpc/include/uapi/asm/papr_pdsm.h b/arch/powerpc/include/uapi/asm/papr_pdsm.h
+> index 82488b1e7276..17439925045c 100644
+> --- a/arch/powerpc/include/uapi/asm/papr_pdsm.h
+> +++ b/arch/powerpc/include/uapi/asm/papr_pdsm.h
+> @@ -116,6 +116,22 @@ struct nd_papr_pdsm_health {
+>  	};
+>  };
+>  
+> +/* Flags for injecting specific smart errors */
+> +#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
+> +#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
+> +
+> +struct nd_papr_pdsm_smart_inject {
+> +	union {
+> +		struct {
+> +			/* One or more of PDSM_SMART_INJECT_ */
+> +			__u32 flags;
+> +			__u8 fatal_enable;
+> +			__u8 unsafe_shutdown_enable;
+> +		};
+> +		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
+> +	};
+> +};
+> +
+>  /*
+>   * Methods to be embedded in ND_CMD_CALL request. These are sent to the kernel
+>   * via 'nd_cmd_pkg.nd_command' member of the ioctl struct
+> @@ -123,12 +139,14 @@ struct nd_papr_pdsm_health {
+>  enum papr_pdsm {
+>  	PAPR_PDSM_MIN = 0x0,
+>  	PAPR_PDSM_HEALTH,
+> +	PAPR_PDSM_SMART_INJECT,
+>  	PAPR_PDSM_MAX,
+>  };
+>  
+>  /* Maximal union that can hold all possible payload types */
+>  union nd_pdsm_payload {
+>  	struct nd_papr_pdsm_health health;
+> +	struct nd_papr_pdsm_smart_inject smart_inject;
+>  	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
+>  } __packed;
+>  
+> diff --git a/arch/powerpc/platforms/pseries/papr_scm.c b/arch/powerpc/platforms/pseries/papr_scm.c
+> index f48e87ac89c9..de4cf329cfb3 100644
+> --- a/arch/powerpc/platforms/pseries/papr_scm.c
+> +++ b/arch/powerpc/platforms/pseries/papr_scm.c
+> @@ -68,6 +68,10 @@
+>  #define PAPR_SCM_PERF_STATS_EYECATCHER __stringify(SCMSTATS)
+>  #define PAPR_SCM_PERF_STATS_VERSION 0x1
+>  
+> +/* Use bitblt method to override specific bits in the '_bitmap_' */
+> +#define BITBLT_BITMAP(_bitmap_, _mask_, _override_)		\
+> +	(((_bitmap_) & ~(_mask_)) | ((_mask_) & (_override_)))
+> +
+>  /* Struct holding a single performance metric */
+>  struct papr_scm_perf_stat {
+>  	u8 stat_id[8];
+> @@ -120,6 +124,12 @@ struct papr_scm_priv {
+>  
+>  	/* length of the stat buffer as expected by phyp */
+>  	size_t stat_buffer_len;
+> +
+> +	/* The bits which needs to be overridden */
+> +	u64 health_bitmap_mask;
+> +
+> +	/* The overridden values for the bits having the masks set */
+> +	u64 health_bitmap_override;
+>  };
+>  
+>  static int papr_scm_pmem_flush(struct nd_region *nd_region,
+> @@ -347,19 +357,28 @@ static ssize_t drc_pmem_query_stats(struct papr_scm_priv *p,
+>  static int __drc_pmem_query_health(struct papr_scm_priv *p)
+>  {
+>  	unsigned long ret[PLPAR_HCALL_BUFSIZE];
+> +	u64 bitmap = 0;
+>  	long rc;
+>  
+>  	/* issue the hcall */
+>  	rc = plpar_hcall(H_SCM_HEALTH, ret, p->drc_index);
+> -	if (rc != H_SUCCESS) {
+> +	if (rc == H_SUCCESS)
+> +		bitmap = ret[0] & ret[1];
+> +	else if (rc == H_FUNCTION)
+> +		dev_info_once(&p->pdev->dev,
+> +			      "Hcall H_SCM_HEALTH not implemented, assuming empty health bitmap");
+> +	else {
+> +
+>  		dev_err(&p->pdev->dev,
+>  			"Failed to query health information, Err:%ld\n", rc);
+>  		return -ENXIO;
+>  	}
+>  
+>  	p->lasthealth_jiffies = jiffies;
+> -	p->health_bitmap = ret[0] & ret[1];
+> -
+> +	/* Allow overriding specific health bits via bit blt. */
+> +	bitmap = BITBLT_BITMAP(bitmap, p->health_bitmap_mask,
+> +			       p->health_bitmap_override);
+> +	WRITE_ONCE(p->health_bitmap, bitmap);
+
+Why WRITE_ONCE ?
+
+>  	dev_dbg(&p->pdev->dev,
+>  		"Queried dimm health info. Bitmap:0x%016lx Mask:0x%016lx\n",
+>  		ret[0], ret[1]);
+> @@ -669,6 +688,54 @@ static int papr_pdsm_health(struct papr_scm_priv *p,
+>  	return rc;
+>  }
+>  
+> +/* Inject a smart error Add the dirty-shutdown-counter value to the pdsm */
+> +static int papr_pdsm_smart_inject(struct papr_scm_priv *p,
+> +				  union nd_pdsm_payload *payload)
+> +{
+> +	int rc;
+> +	u32 supported_flags = 0;
+> +	u64 mask = 0, override = 0;
+> +
+> +	/* Check for individual smart error flags and update mask and override */
+> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_HEALTH_FATAL) {
+> +		supported_flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
+> +		mask |= PAPR_PMEM_HEALTH_FATAL;
+> +		override |= payload->smart_inject.fatal_enable ?
+> +			PAPR_PMEM_HEALTH_FATAL : 0;
+> +	}
+> +
+> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_BAD_SHUTDOWN) {
+> +		supported_flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
+> +		mask |= PAPR_PMEM_SHUTDOWN_DIRTY;
+> +		override |= payload->smart_inject.unsafe_shutdown_enable ?
+> +			PAPR_PMEM_SHUTDOWN_DIRTY : 0;
+> +	}
+> +
+> +	dev_dbg(&p->pdev->dev, "[Smart-inject] Mask=%#llx override=%#llx\n",
+> +		mask, override);
+> +
+> +	/* Prevent concurrent access to dimm health bitmap related members */
+> +	rc = mutex_lock_interruptible(&p->health_mutex);
+> +	if (rc)
+> +		return rc;
+> +
+> +	/* Bitblt mask/override to corrosponding health_bitmap couterparts */
+> +	p->health_bitmap_mask = BITBLT_BITMAP(p->health_bitmap_mask,
+> +					      mask, override);
+
+is that correct? Should we do that mask & override ? Shouldn't this be 
+	p->health_bitmap_mask = BITBLT_BITMAP(p->health_bitmap_mask,
+					      mask, ~0x0UL);
+
+> +	p->health_bitmap_override = BITBLT_BITMAP(p->health_bitmap_override,
+> +						  mask, override);
+> +
+> +	/* Invalidate cached health bitmap */
+> +	p->lasthealth_jiffies = 0;
+> +
+> +	mutex_unlock(&p->health_mutex);
+> +
+> +	/* Return the supported flags back to userspace */
+> +	payload->smart_inject.flags = supported_flags;
+> +
+> +	return sizeof(struct nd_papr_pdsm_health);
+> +}
+> +
+>  /*
+>   * 'struct pdsm_cmd_desc'
+>   * Identifies supported PDSMs' expected length of in/out payloads
+> @@ -702,6 +769,12 @@ static const struct pdsm_cmd_desc __pdsm_cmd_descriptors[] = {
+>  		.size_out = sizeof(struct nd_papr_pdsm_health),
+>  		.service = papr_pdsm_health,
+>  	},
+> +
+> +	[PAPR_PDSM_SMART_INJECT] = {
+> +		.size_in = sizeof(struct nd_papr_pdsm_smart_inject),
+> +		.size_out = sizeof(struct nd_papr_pdsm_smart_inject),
+> +		.service = papr_pdsm_smart_inject,
+> +	},
+>  	/* Empty */
+>  	[PAPR_PDSM_MAX] = {
+>  		.size_in = 0,
+> @@ -838,6 +911,20 @@ static int papr_scm_ndctl(struct nvdimm_bus_descriptor *nd_desc,
+>  	return 0;
+>  }
+>  
+> +static ssize_t health_bitmap_override_show(struct device *dev,
+> +					   struct device_attribute *attr,
+> +					   char *buf)
+> +{
+> +	struct nvdimm *dimm = to_nvdimm(dev);
+> +	struct papr_scm_priv *p = nvdimm_provider_data(dimm);
+> +
+> +	return sprintf(buf, "mask=%#llx override=%#llx\n",
+> +		       READ_ONCE(p->health_bitmap_mask),
+> +		       READ_ONCE(p->health_bitmap_override));
+> +}
+> +
+> +static DEVICE_ATTR_ADMIN_RO(health_bitmap_override);
+> +
+>  static ssize_t perf_stats_show(struct device *dev,
+>  			       struct device_attribute *attr, char *buf)
+>  {
+> @@ -952,6 +1039,7 @@ static struct attribute *papr_nd_attributes[] = {
+>  	&dev_attr_flags.attr,
+>  	&dev_attr_perf_stats.attr,
+>  	&dev_attr_dirty_shutdown.attr,
+> +	&dev_attr_health_bitmap_override.attr,
+>  	NULL,
+>  };
+>  
 > -- 
 > 2.34.1
-> 
