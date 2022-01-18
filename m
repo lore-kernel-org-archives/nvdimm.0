@@ -1,167 +1,88 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CADE72C80
-	for <nvdimm@lists.linux.dev>; Mon, 17 Jan 2022 16:59:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67F59C36AE7;
-	Mon, 17 Jan 2022 16:59:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1642438777;
-	bh=wpeCaTchYmxiHGGB/zd+aYB5oc+l/iumejBoL0k8dtY=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=vOhDwI+F2C8+Njl60v59+DK7IdjzTTXzYvkAwsnuS6b2qz+cFelGMPH5PvJAF2taT
-	 X4dp1hHGWwKptbWU3TItIC94+u1JcYbty3Pvkqacn/4zf7Q35ZkPhpZjjTXLgc5j7m
-	 bcX1R+gcwfDU+V6WKW0OBkEIi5srb7Hv26FagSPFxjdsvt2oOfBW5bxb9twyFBePXr
-	 uPJR76dQH1HvaRyQpZxElcOAa+aXLx667ElvgYCnlk2l1tl3MNIuD1lvNMDFA0axce
-	 lr99NiP1J8QVhTARCUw0q3tsfjI5/ykTR1wUy7IBj6bg5OY8fruRHn0KAMuoLafdv1
-	 pZLFARRBefa0Q==
-From: Sasha Levin <sashal@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Cc: Christoph Hellwig <hch@lst.de>,
-	Mike Snitzer <snitzer@redhat.com>,
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 971FF2C9C
+	for <nvdimm@lists.linux.dev>; Tue, 18 Jan 2022 17:59:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1642528768; x=1674064768;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=CRtIESfBEA71HQ0JS1NDcLZUx6UJPI9YfbeDGWxPrcU=;
+  b=Icqm+hdYIkJzO+DEJtWu4p20DBQwVQ2yhAQRevGHBIZj+g2vWt+2wHut
+   ioUFqqGlrMnyXsc2wq4FkbBlZs0tVePY3KM0DGElWCgPNRbMYxosxBPsZ
+   2spXTWgMShkKzqC9C42/fumqv9NwM9U1PAi+9sLnByfCnU6JPMo+b67fH
+   xsdIDwh0QSlX0hpbUlVUi0LueDGhOny9FguDRBRDWKu1VsX3pEYZ+pIA1
+   8Rji4bVcJE4UpJQ/TZ3XtOpAPihGqkTuepfbs13he+wmCRORWCssRjMDa
+   WW+GtxMfhdAySsIJJK8vPe64V1frQM9+5G5kG4xhoWoDDWug+xWSDkxRz
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10230"; a="225553262"
+X-IronPort-AV: E=Sophos;i="5.88,297,1635231600"; 
+   d="scan'208";a="225553262"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2022 09:59:27 -0800
+X-IronPort-AV: E=Sophos;i="5.88,297,1635231600"; 
+   d="scan'208";a="625588407"
+Received: from iweiny-desk2.sc.intel.com (HELO localhost) ([10.3.52.147])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2022 09:59:16 -0800
+Date: Tue, 18 Jan 2022 09:59:15 -0800
+From: Ira Weiny <ira.weiny@intel.com>
+To: Vaibhav Jain <vaibhav@linux.ibm.com>
+Cc: nvdimm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
 	Dan Williams <dan.j.williams@intel.com>,
-	Sasha Levin <sashal@kernel.org>,
-	vishal.l.verma@intel.com,
-	dave.jiang@intel.com,
-	agk@redhat.com,
-	dm-devel@redhat.com,
-	nvdimm@lists.linux.dev
-Subject: [PATCH AUTOSEL 5.16 19/52] dm: make the DAX support depend on CONFIG_FS_DAX
-Date: Mon, 17 Jan 2022 11:58:20 -0500
-Message-Id: <20220117165853.1470420-19-sashal@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220117165853.1470420-1-sashal@kernel.org>
-References: <20220117165853.1470420-1-sashal@kernel.org>
+	"Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [PATCH v3] powerpc/papr_scm: Implement initial support for
+ injecting smart errors
+Message-ID: <20220118175915.GB209936@iweiny-DESK2.sc.intel.com>
+Mail-Followup-To: Vaibhav Jain <vaibhav@linux.ibm.com>,
+	nvdimm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
+	Dan Williams <dan.j.williams@intel.com>,
+	"Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
+	Michael Ellerman <mpe@ellerman.id.au>,
+	Shivaprasad G Bhat <sbhat@linux.ibm.com>
+References: <20220113120252.1145671-1-vaibhav@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220113120252.1145671-1-vaibhav@linux.ibm.com>
+User-Agent: Mutt/1.11.1 (2018-12-01)
 
-From: Christoph Hellwig <hch@lst.de>
+On Thu, Jan 13, 2022 at 05:32:52PM +0530, Vaibhav Jain wrote:
+[snip]
 
-[ Upstream commit 5d2a228b9e1319ff188f9ea89006fbe575561921 ]
+>  
+> +/* Inject a smart error Add the dirty-shutdown-counter value to the pdsm */
+> +static int papr_pdsm_smart_inject(struct papr_scm_priv *p,
+> +				  union nd_pdsm_payload *payload)
+> +{
+> +	int rc;
+> +	u32 supported_flags = 0;
+> +	u64 mask = 0, override = 0;
+> +
+> +	/* Check for individual smart error flags and update mask and override */
+> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_HEALTH_FATAL) {
+> +		supported_flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
+> +		mask |= PAPR_PMEM_HEALTH_FATAL;
+> +		override |= payload->smart_inject.fatal_enable ?
+> +			PAPR_PMEM_HEALTH_FATAL : 0;
+> +	}
+> +
+> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_BAD_SHUTDOWN) {
+> +		supported_flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
+> +		mask |= PAPR_PMEM_SHUTDOWN_DIRTY;
+> +		override |= payload->smart_inject.unsafe_shutdown_enable ?
+> +			PAPR_PMEM_SHUTDOWN_DIRTY : 0;
+> +	}
+> +
 
-The device mapper DAX support is all hanging off a block device and thus
-can't be used with device dax.  Make it depend on CONFIG_FS_DAX instead
-of CONFIG_DAX_DRIVER.  This also means that bdev_dax_pgoff only needs to
-be built under CONFIG_FS_DAX now.
+I'm struggling to see why there is a need for both a flag and an 8 bit 'enable'
+value?
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Mike Snitzer <snitzer@redhat.com>
-Link: https://lore.kernel.org/r/20211129102203.2243509-3-hch@lst.de
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/dax/super.c        | 6 ++----
- drivers/md/dm-linear.c     | 2 +-
- drivers/md/dm-log-writes.c | 2 +-
- drivers/md/dm-stripe.c     | 2 +-
- drivers/md/dm-writecache.c | 2 +-
- drivers/md/dm.c            | 2 +-
- 6 files changed, 7 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/dax/super.c b/drivers/dax/super.c
-index b882cf8106ea3..e20d0cef10a18 100644
---- a/drivers/dax/super.c
-+++ b/drivers/dax/super.c
-@@ -63,7 +63,7 @@ static int dax_host_hash(const char *host)
- 	return hashlen_hash(hashlen_string("DAX", host)) % DAX_HASH_SIZE;
- }
- 
--#ifdef CONFIG_BLOCK
-+#if defined(CONFIG_BLOCK) && defined(CONFIG_FS_DAX)
- #include <linux/blkdev.h>
- 
- int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
-@@ -80,7 +80,6 @@ int bdev_dax_pgoff(struct block_device *bdev, sector_t sector, size_t size,
- }
- EXPORT_SYMBOL(bdev_dax_pgoff);
- 
--#if IS_ENABLED(CONFIG_FS_DAX)
- /**
-  * dax_get_by_host() - temporary lookup mechanism for filesystem-dax
-  * @host: alternate name for the device registered by a dax driver
-@@ -219,8 +218,7 @@ bool dax_supported(struct dax_device *dax_dev, struct block_device *bdev,
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(dax_supported);
--#endif /* CONFIG_FS_DAX */
--#endif /* CONFIG_BLOCK */
-+#endif /* CONFIG_BLOCK && CONFIG_FS_DAX */
- 
- enum dax_device_flags {
- 	/* !alive + rcu grace period == no new operations / mappings */
-diff --git a/drivers/md/dm-linear.c b/drivers/md/dm-linear.c
-index 66ba16713f696..0a260c35aeeed 100644
---- a/drivers/md/dm-linear.c
-+++ b/drivers/md/dm-linear.c
-@@ -162,7 +162,7 @@ static int linear_iterate_devices(struct dm_target *ti,
- 	return fn(ti, lc->dev, lc->start, ti->len, data);
- }
- 
--#if IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_FS_DAX)
- static long linear_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
-diff --git a/drivers/md/dm-log-writes.c b/drivers/md/dm-log-writes.c
-index 0b3ef977ceeba..3155875d4e5b0 100644
---- a/drivers/md/dm-log-writes.c
-+++ b/drivers/md/dm-log-writes.c
-@@ -901,7 +901,7 @@ static void log_writes_io_hints(struct dm_target *ti, struct queue_limits *limit
- 	limits->io_min = limits->physical_block_size;
- }
- 
--#if IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_FS_DAX)
- static int log_dax(struct log_writes_c *lc, sector_t sector, size_t bytes,
- 		   struct iov_iter *i)
- {
-diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
-index 6660b6b53d5bf..f084607220293 100644
---- a/drivers/md/dm-stripe.c
-+++ b/drivers/md/dm-stripe.c
-@@ -300,7 +300,7 @@ static int stripe_map(struct dm_target *ti, struct bio *bio)
- 	return DM_MAPIO_REMAPPED;
- }
- 
--#if IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_FS_DAX)
- static long stripe_dax_direct_access(struct dm_target *ti, pgoff_t pgoff,
- 		long nr_pages, void **kaddr, pfn_t *pfn)
- {
-diff --git a/drivers/md/dm-writecache.c b/drivers/md/dm-writecache.c
-index 4b8991cde223d..4f31591d2d25e 100644
---- a/drivers/md/dm-writecache.c
-+++ b/drivers/md/dm-writecache.c
-@@ -38,7 +38,7 @@
- #define BITMAP_GRANULARITY	PAGE_SIZE
- #endif
- 
--#if IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && IS_ENABLED(CONFIG_DAX_DRIVER)
-+#if IS_ENABLED(CONFIG_ARCH_HAS_PMEM_API) && IS_ENABLED(CONFIG_FS_DAX)
- #define DM_WRITECACHE_HAS_PMEM
- #endif
- 
-diff --git a/drivers/md/dm.c b/drivers/md/dm.c
-index acc84dc1bded5..b93fcc91176e5 100644
---- a/drivers/md/dm.c
-+++ b/drivers/md/dm.c
-@@ -1783,7 +1783,7 @@ static struct mapped_device *alloc_dev(int minor)
- 	md->disk->private_data = md;
- 	sprintf(md->disk->disk_name, "dm-%d", minor);
- 
--	if (IS_ENABLED(CONFIG_DAX_DRIVER)) {
-+	if (IS_ENABLED(CONFIG_FS_DAX)) {
- 		md->dax_dev = alloc_dax(md, md->disk->disk_name,
- 					&dm_dax_ops, 0);
- 		if (IS_ERR(md->dax_dev)) {
--- 
-2.34.1
-
+Ira
