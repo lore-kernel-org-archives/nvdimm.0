@@ -1,325 +1,145 @@
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D04E2C82
-	for <nvdimm@lists.linux.dev>; Tue, 18 Jan 2022 20:20:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1642537252; x=1674073252;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Drb8WUegwQsVAO3IROQ+hVH5hs+0PSkrLqtelSfX7HI=;
-  b=g/f6lBrXN8EnPnvOmje208OXQyKPqo8yMVYkdtKO+dWRzAF7nGGsD5Z9
-   ShfADC5AdQWeU21RU5U82rknPBpuPycaPM031mC7fbhTWkzqZdcVJkqrP
-   NstaaPd/j95h1IWK2r//mKgfq4XGqvj+Rq3HxshQnC1vFcwWJ1GEUduEv
-   zqWtcemKj9fo17VMEaJJAMSsfjEuzxRBuVubD/VrtSPQoXk+X/8cu6r7O
-   At3P/dullo07JnjXgBaCKpIOXcMOX7c1yOzbyBwjCuYLnejxOnFQDa1nf
-   GtiA0ImRyVbdiKJBmG+Qzh9YyFMS+sWm6R59AT07EyC1MhMjjeWZJsG+X
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10231"; a="331259499"
-X-IronPort-AV: E=Sophos;i="5.88,298,1635231600"; 
-   d="scan'208";a="331259499"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2022 12:20:32 -0800
-X-IronPort-AV: E=Sophos;i="5.88,298,1635231600"; 
-   d="scan'208";a="671953875"
-Received: from alison-desk.jf.intel.com (HELO localhost) ([10.54.74.41])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2022 12:20:32 -0800
-From: alison.schofield@intel.com
-To: Ben Widawsky <ben.widawsky@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Vishal Verma <vishal.l.verma@intel.com>
-Cc: Alison Schofield <alison.schofield@intel.com>,
-	nvdimm@lists.linux.dev,
-	linux-cxl@vger.kernel.org
-Subject: [ndctl PATCH v3 6/6] cxl: add command set-partition-info
-Date: Tue, 18 Jan 2022 12:25:15 -0800
-Message-Id: <d8760a4a0ca5b28be4eee27a2581ca8c2abe3e49.1642535478.git.alison.schofield@intel.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <cover.1642535478.git.alison.schofield@intel.com>
-References: <cover.1642535478.git.alison.schofield@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E31FC2C82
+	for <nvdimm@lists.linux.dev>; Wed, 19 Jan 2022 15:05:31 +0000 (UTC)
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20JDwSoa005618;
+	Wed, 19 Jan 2022 15:05:23 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : in-reply-to : references : date : message-id : mime-version :
+ content-type; s=pp1; bh=k4RDsZfUlHh8Rt0M02e2isw9g3KmCjxqMe8EoXeQ/p8=;
+ b=tIm2CG0CIK3SATx5NAlEE1pZ8DqqC4/tHltcrddumcYLu6tCjhCrIa2QnOMjhkLEqgEm
+ 6x+VSP0pjflJhUd23+a/eh3DPcmQitkXN3cn7PeQcoRRZ82eh3ynAUIs2Tfhc/dg0/J8
+ fim1yFbQc6sP8rGsKDnqOKIw91c4ThP3xjnI3kIoF4e99dkW44WXrcSxkj4TgtOJ7M3r
+ cC0YW+FJ/0G+VRaFVbou4+EjyPeYJMj84lQkaJfJBL1Q1Wln4z/ZXyjAHFMyQQLL/vQe
+ bJhoV25fe6S9gQFLxRhfq7NM0G2LBrzjuLfJVqejuIs2rQZA3Iby6Z5m3/HbtQBMXLuG uA== 
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3dpm0g9qwa-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 19 Jan 2022 15:05:22 +0000
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+	by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 20JEw39T008140;
+	Wed, 19 Jan 2022 15:05:20 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+	by ppma03ams.nl.ibm.com with ESMTP id 3dknw9yb22-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Wed, 19 Jan 2022 15:05:20 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+	by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 20JF5GCV24838510
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 19 Jan 2022 15:05:17 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id CFBBE5205F;
+	Wed, 19 Jan 2022 15:05:16 +0000 (GMT)
+Received: from vajain21.in.ibm.com (unknown [9.43.0.186])
+	by d06av21.portsmouth.uk.ibm.com (Postfix) with SMTP id 12FC25204F;
+	Wed, 19 Jan 2022 15:05:13 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Wed, 19 Jan 2022 20:35:12 +0530
+From: Vaibhav Jain <vaibhav@linux.ibm.com>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: nvdimm@lists.linux.dev, linuxppc-dev@lists.ozlabs.org,
+        Dan Williams
+ <dan.j.williams@intel.com>,
+        "Aneesh Kumar K . V"
+ <aneesh.kumar@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Shivaprasad G Bhat <sbhat@linux.ibm.com>
+Subject: Re: [PATCH v3] powerpc/papr_scm: Implement initial support for
+ injecting smart errors
+In-Reply-To: <20220118175915.GB209936@iweiny-DESK2.sc.intel.com>
+References: <20220113120252.1145671-1-vaibhav@linux.ibm.com>
+ <20220118175915.GB209936@iweiny-DESK2.sc.intel.com>
+Date: Wed, 19 Jan 2022 20:35:12 +0530
+Message-ID: <87czknkbpz.fsf@vajain21.in.ibm.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: TL9zcTBvVWhoeWlo6VxzBOYLNCmAXd6j
+X-Proofpoint-GUID: TL9zcTBvVWhoeWlo6VxzBOYLNCmAXd6j
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
+ definitions=2022-01-19_08,2022-01-19_01,2021-12-02_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ suspectscore=0 malwarescore=0 phishscore=0 clxscore=1015 mlxscore=0
+ priorityscore=1501 impostorscore=0 adultscore=0 bulkscore=0 spamscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2110150000 definitions=main-2201190086
 
-From: Alison Schofield <alison.schofield@intel.com>
 
-Users may want to change the partition layout of a memory
-device using the CXL command line tool. Add a new CXL command,
-'cxl set-partition-info', that operates on a CXL memdev, or a
-set of memdevs, and allows the user to change the partition
-layout of the device(s).
+Hi Ira, Thanks for reviewing this patch.
 
-Synopsis:
-Usage: cxl set-partition-info <mem0> [<mem1>..<memN>] [<options>]
+Ira Weiny <ira.weiny@intel.com> writes:
 
-	-v, --verbose		turn on debug
-	-s, --volatile_size <n>
-				next volatile partition size in bytes
+> On Thu, Jan 13, 2022 at 05:32:52PM +0530, Vaibhav Jain wrote:
+> [snip]
+>
+>>  
+>> +/* Inject a smart error Add the dirty-shutdown-counter value to the pdsm */
+>> +static int papr_pdsm_smart_inject(struct papr_scm_priv *p,
+>> +				  union nd_pdsm_payload *payload)
+>> +{
+>> +	int rc;
+>> +	u32 supported_flags = 0;
+>> +	u64 mask = 0, override = 0;
+>> +
+>> +	/* Check for individual smart error flags and update mask and override */
+>> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_HEALTH_FATAL) {
+>> +		supported_flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
+>> +		mask |= PAPR_PMEM_HEALTH_FATAL;
+>> +		override |= payload->smart_inject.fatal_enable ?
+>> +			PAPR_PMEM_HEALTH_FATAL : 0;
+>> +	}
+>> +
+>> +	if (payload->smart_inject.flags & PDSM_SMART_INJECT_BAD_SHUTDOWN) {
+>> +		supported_flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
+>> +		mask |= PAPR_PMEM_SHUTDOWN_DIRTY;
+>> +		override |= payload->smart_inject.unsafe_shutdown_enable ?
+>> +			PAPR_PMEM_SHUTDOWN_DIRTY : 0;
+>> +	}
+>> +
+>
+> I'm struggling to see why there is a need for both a flag and an 8 bit 'enable'
+> value?
+>
+This is to enable the inject/uninject error usecase with ndctl which
+lets user select individual error conditions like bad_shutdown or
+fatal-health state.
 
-The included MAN page explains how to find the partitioning
-capabilities and restrictions of a CXL memory device.
+The nd_papr_pdsm_smart_inject.flag field indicates which error
+conditions needs to be tweaked and individual __u8 fields like
+'fatal_enable' are boolean values to indicate the inject/uninject state
+of that error condition.
 
-Signed-off-by: Alison Schofield <alison.schofield@intel.com>
----
- Documentation/cxl/cxl-set-partition-info.txt |  53 ++++++++++
- Documentation/cxl/meson.build                |   1 +
- cxl/builtin.h                                |   1 +
- cxl/cxl.c                                    |   1 +
- cxl/memdev.c                                 | 101 +++++++++++++++++++
- 5 files changed, 157 insertions(+)
- create mode 100644 Documentation/cxl/cxl-set-partition-info.txt
+For e.g to uninject fatal-health and inject unsafe-shutdown following
+nd_papr_pdsm_smart_inject payload can be sent:
 
-diff --git a/Documentation/cxl/cxl-set-partition-info.txt b/Documentation/cxl/cxl-set-partition-info.txt
-new file mode 100644
-index 0000000..d99a1b9
---- /dev/null
-+++ b/Documentation/cxl/cxl-set-partition-info.txt
-@@ -0,0 +1,53 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+cxl-set-partition-info(1)
-+=========================
-+
-+NAME
-+----
-+cxl-set-partition-info - set the partitioning between volatile and persistent capacity on a CXL memdev
-+
-+SYNOPSIS
-+--------
-+[verse]
-+'cxl set-partition-info <mem> [ [<mem1>..<memN>] [<options>]'
-+
-+DESCRIPTION
-+-----------
-+Partition the device into volatile and persistent capacity. The change
-+in partitioning will become the “next” configuration, to become active
-+on the next device reset.
-+
-+Use "cxl list -m <memdev> -I" to examine the partitioning capabilities
-+of a device. A partition_alignment_bytes value of zero means there are
-+no partitionable bytes available and therefore the partitions cannot be
-+changed.
-+
-+Using this command to change the size of the persistent capacity shall
-+result in the loss of data stored.
-+
-+OPTIONS
-+-------
-+<memory device(s)>::
-+include::memdev-option.txt[]
-+
-+-s::
-+--size=::
-+        Size in bytes of the volatile partition requested.
-+
-+        Size must align to the devices partition_alignment_bytes.
-+        Use 'cxl list -m <memdev> -I' to find partition_alignment_bytes.
-+
-+        Size must be less than or equal to the device's partitionable bytes.
-+        Calculate partitionable bytes by subracting the volatile_only_bytes,
-+        and the persistent_only_bytes, from the total_bytes.
-+        Use 'cxl list -m <memdev> -I' to find the above mentioned_byte values.
-+
-+-v::
-+        Turn on verbose debug messages in the library (if libcxl was built with
-+        logging and debug enabled).
-+
-+SEE ALSO
-+--------
-+linkcxl:cxl-list[1],
-+CXL-2.0 8.2.9.5.2
-diff --git a/Documentation/cxl/meson.build b/Documentation/cxl/meson.build
-index 64ce13f..0108eea 100644
---- a/Documentation/cxl/meson.build
-+++ b/Documentation/cxl/meson.build
-@@ -28,6 +28,7 @@ cxl_manpages = [
-   'cxl-read-labels.txt',
-   'cxl-write-labels.txt',
-   'cxl-zero-labels.txt',
-+  'cxl-set-partition-info.txt',
- ]
- 
- foreach man : cxl_manpages
-diff --git a/cxl/builtin.h b/cxl/builtin.h
-index 78eca6e..7f11f28 100644
---- a/cxl/builtin.h
-+++ b/cxl/builtin.h
-@@ -10,4 +10,5 @@ int cmd_read_labels(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_zero_labels(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_init_labels(int argc, const char **argv, struct cxl_ctx *ctx);
- int cmd_check_labels(int argc, const char **argv, struct cxl_ctx *ctx);
-+int cmd_set_partition_info(int argc, const char **argv, struct cxl_ctx *ctx);
- #endif /* _CXL_BUILTIN_H_ */
-diff --git a/cxl/cxl.c b/cxl/cxl.c
-index 4b1661d..3153cf0 100644
---- a/cxl/cxl.c
-+++ b/cxl/cxl.c
-@@ -64,6 +64,7 @@ static struct cmd_struct commands[] = {
- 	{ "zero-labels", .c_fn = cmd_zero_labels },
- 	{ "read-labels", .c_fn = cmd_read_labels },
- 	{ "write-labels", .c_fn = cmd_write_labels },
-+	{ "set-partition-info", .c_fn = cmd_set_partition_info },
- };
- 
- int main(int argc, const char **argv)
-diff --git a/cxl/memdev.c b/cxl/memdev.c
-index d063d51..e1348c8 100644
---- a/cxl/memdev.c
-+++ b/cxl/memdev.c
-@@ -6,6 +6,7 @@
- #include <unistd.h>
- #include <limits.h>
- #include <util/log.h>
-+#include <util/size.h>
- #include <cxl/libcxl.h>
- #include <util/parse-options.h>
- #include <ccan/minmax/minmax.h>
-@@ -24,6 +25,7 @@ static struct parameters {
- 	unsigned len;
- 	unsigned offset;
- 	bool verbose;
-+	const char *volatile_size;
- } param;
- 
- #define fail(fmt, ...) \
-@@ -48,6 +50,10 @@ OPT_UINTEGER('s', "size", &param.len, "number of label bytes to operate"), \
- OPT_UINTEGER('O', "offset", &param.offset, \
- 	"offset into the label area to start operation")
- 
-+#define SET_PARTITION_OPTIONS() \
-+OPT_STRING('s', "volatile_size",  &param.volatile_size, "volatile-size", \
-+	"next volatile partition size in bytes")
-+
- static const struct option read_options[] = {
- 	BASE_OPTIONS(),
- 	LABEL_OPTIONS(),
-@@ -68,6 +74,12 @@ static const struct option zero_options[] = {
- 	OPT_END(),
- };
- 
-+static const struct option set_partition_options[] = {
-+	BASE_OPTIONS(),
-+	SET_PARTITION_OPTIONS(),
-+	OPT_END(),
-+};
-+
- static int action_zero(struct cxl_memdev *memdev, struct action_context *actx)
- {
- 	size_t size;
-@@ -175,6 +187,80 @@ out:
- 	return rc;
- }
- 
-+static int validate_partition(struct cxl_memdev *memdev,
-+		unsigned long long volatile_request)
-+{
-+	unsigned long long total_cap, volatile_only, persistent_only;
-+	unsigned long long partitionable_bytes, partition_align_bytes;
-+	const char *devname = cxl_memdev_get_devname(memdev);
-+	struct cxl_cmd *cmd;
-+	int rc;
-+
-+	cmd = cxl_cmd_new_identify(memdev);
-+	if (!cmd)
-+		return -ENXIO;
-+	rc = cxl_cmd_submit(cmd);
-+	if (rc < 0)
-+		goto err;
-+	rc = cxl_cmd_get_mbox_status(cmd);
-+	if (rc != 0)
-+		goto err;
-+
-+	partition_align_bytes = cxl_cmd_identify_get_partition_align(cmd);
-+	if (partition_align_bytes == 0) {
-+		fprintf(stderr, "%s: no partitionable capacity\n", devname);
-+		rc = -EINVAL;
-+		goto err;
-+	}
-+
-+	total_cap = cxl_cmd_identify_get_total_bytes(cmd);
-+	volatile_only = cxl_cmd_identify_get_volatile_only_bytes(cmd);
-+	persistent_only = cxl_cmd_identify_get_persistent_only_bytes(cmd);
-+
-+	partitionable_bytes = total_cap - volatile_only - persistent_only;
-+
-+	if (volatile_request > partitionable_bytes) {
-+		fprintf(stderr, "%s: volatile size %lld exceeds partitionable capacity %lld\n",
-+			devname, volatile_request, partitionable_bytes);
-+		rc = -EINVAL;
-+		goto err;
-+	}
-+	if (!IS_ALIGNED(volatile_request, partition_align_bytes)) {
-+		fprintf(stderr, "%s: volatile size %lld is not partition aligned %lld\n",
-+			devname, volatile_request, partition_align_bytes);
-+		rc = -EINVAL;
-+	}
-+err:
-+	cxl_cmd_unref(cmd);
-+	return rc;
-+}
-+
-+static int action_set_partition(struct cxl_memdev *memdev,
-+		struct action_context *actx)
-+{
-+	const char *devname = cxl_memdev_get_devname(memdev);
-+	unsigned long long volatile_request;
-+	int rc;
-+
-+	volatile_request = parse_size64(param.volatile_size);
-+	if (volatile_request == ULLONG_MAX) {
-+		fprintf(stderr, "%s: failed to parse volatile size '%s'\n",
-+			devname, param.volatile_size);
-+		return -EINVAL;
-+	}
-+
-+	rc = validate_partition(memdev, volatile_request);
-+	if (rc)
-+		return rc;
-+
-+	rc = cxl_memdev_set_partition_info(memdev, volatile_request,
-+			!cxl_cmd_partition_info_flag_immediate());
-+	if (rc)
-+		fprintf(stderr, "%s error: %s\n", devname, strerror(-rc));
-+
-+	return rc;
-+}
-+
- static int memdev_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 		int (*action)(struct cxl_memdev *memdev, struct action_context *actx),
- 		const struct option *options, const char *usage)
-@@ -235,6 +321,11 @@ static int memdev_action(int argc, const char **argv, struct cxl_ctx *ctx,
- 		}
- 	}
- 
-+	if (action == action_set_partition && !param.volatile_size) {
-+		usage_with_options(u, options);
-+		return -EINVAL;
-+	}
-+
- 	if (param.verbose)
- 		cxl_set_log_priority(ctx, LOG_DEBUG);
- 
-@@ -323,3 +414,13 @@ int cmd_zero_labels(int argc, const char **argv, struct cxl_ctx *ctx)
- 			count > 1 ? "s" : "");
- 	return count >= 0 ? 0 : EXIT_FAILURE;
- }
-+
-+int cmd_set_partition_info(int argc, const char **argv, struct cxl_ctx *ctx)
-+{
-+	int count = memdev_action(argc, argv, ctx, action_set_partition,
-+			set_partition_options,
-+			"cxl set-partition-info <mem0> [<mem1>..<memN>] [<options>]");
-+	fprintf(stderr, "set_partition %d mem%s\n", count >= 0 ? count : 0,
-+			count > 1 ? "s" : "");
-+	return count >= 0 ? 0 : EXIT_FAILURE;
-+}
+{
+.flags = PDSM_SMART_INJECT_HEALTH_FATAL |
+       PDSM_SMART_INJECT_BAD_SHUTDOWN,
+.fatal_enable = 0,
+.unsafe_shutdown_enable = 1,
+}
+
+
+To just to inject fatal-health following nd_papr_pdsm_smart_inject
+payload can be sent:
+
+{
+.flags = PDSM_SMART_INJECT_HEALTH_FATAL,
+.fatal_enable = 1,
+.unsafe_shutdown_enable = <dont-care>,
+}
+
+
+> Ira
+>
+
 -- 
-2.31.1
-
+Cheers
+~ Vaibhav
