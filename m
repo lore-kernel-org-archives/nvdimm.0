@@ -1,44 +1,44 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E0A102FAF
-	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 20:38:17 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BBCB22CA7
+	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 20:58:36 +0000 (UTC)
 Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20OIZhn5025757;
-	Mon, 24 Jan 2022 20:38:16 GMT
+	by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20OKkRPD020853;
+	Mon, 24 Jan 2022 20:58:35 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : content-transfer-encoding : mime-version; s=pp1;
- bh=BZzyPNBoQ8RqJBZOag6uMGhZ5WCwpE7r7v67zbQ5CyM=;
- b=V7OaBD3JyWbExq/6RbX9b7XfzEwSIeLHYs2tYQvSSOc51HKr2rDE3PcAgZS5WOhU16Th
- OcxmkPIWWPuneyIGfHYt3JsKl4nTBkuCyv3QmOH9Vdwy6VW2eZQWxEzAb3xCWM7hq16O
- /kwFAnFWxt6YxP5Ysn12BWUan5KChG+Us9Nw+O7rdb8NNjF10b1ksXBdFJv5k3VPLV5c
- NeVfOFnUmxhw+dICiFNQ/esyhZshUTIogsrfbLpQTv3uq7pETj/VBeq/4kXMlOKcsNLQ
- 2g+9l+07Ekr8Bi6ijq8OBTbcuo/rd2lECr2jOrT1s+M2WlEZkeyFLaB1FldYqiMKNupX bA== 
-Received: from ppma01fra.de.ibm.com (46.49.7a9f.ip4.static.sl-reverse.com [159.122.73.70])
-	by mx0a-001b2d01.pphosted.com with ESMTP id 3dt0tukfan-1
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=/xD1WZ1gEtTFRYcvt2MpqFUXXdog5y7slp1cBIJi47U=;
+ b=satoTaL2axczAIxOskMMzt5IDhjjXb7cociKjaNecunqQvfSPDTb+juSUzv3hTcpY9QN
+ b+onsCQ/QiiqxNU4f9Ol9DuDuEYx6RLb4l8ZGxmOo1VkoJiAtqJ8eHOucAj+TFWa/X9R
+ 7CwyF+RY5xqLTiphN6QBrgsBIfn8mgT1E81aMBVVdfRiS46r8MUSnWYZHUWB1hSTS1dD
+ d4eObFzDqI+GYSanOSsyKrZRFMB70Vt9Rogo7TAKfkrMYS9SkO0ZDacSHWPf73PvJKmp
+ bRY34zQ+y+iGH9MdMlOBpbOLD8/axAXwcI9qpoLBWCDymmZ8rljLl1dcsmFx5QHMjTv3 bA== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+	by mx0a-001b2d01.pphosted.com with ESMTP id 3dt0tuktsr-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 24 Jan 2022 20:38:16 +0000
-Received: from pps.filterd (ppma01fra.de.ibm.com [127.0.0.1])
-	by ppma01fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 20OKbMp3022793;
-	Mon, 24 Jan 2022 20:38:14 GMT
-Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
-	by ppma01fra.de.ibm.com with ESMTP id 3dr9j96x24-1
+	Mon, 24 Jan 2022 20:58:35 +0000
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+	by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 20OKlTLt027083;
+	Mon, 24 Jan 2022 20:58:32 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+	by ppma04ams.nl.ibm.com with ESMTP id 3dr9j9014k-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 24 Jan 2022 20:38:13 +0000
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-	by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 20OKcAog40501740
+	Mon, 24 Jan 2022 20:58:32 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+	by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 20OKwSmU39584096
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 24 Jan 2022 20:38:10 GMT
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8BE4DA405F;
-	Mon, 24 Jan 2022 20:38:10 +0000 (GMT)
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C8AECA405B;
-	Mon, 24 Jan 2022 20:38:07 +0000 (GMT)
+	Mon, 24 Jan 2022 20:58:28 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id F3FDFA4051;
+	Mon, 24 Jan 2022 20:58:27 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 352A0A4040;
+	Mon, 24 Jan 2022 20:58:25 +0000 (GMT)
 Received: from vajain21.in.ibm.com (unknown [9.43.98.202])
-	by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with SMTP;
-	Mon, 24 Jan 2022 20:38:07 +0000 (GMT)
-Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Tue, 25 Jan 2022 02:08:06 +0530
+	by d06av23.portsmouth.uk.ibm.com (Postfix) with SMTP;
+	Mon, 24 Jan 2022 20:58:24 +0000 (GMT)
+Received: by vajain21.in.ibm.com (sSMTP sendmail emulation); Tue, 25 Jan 2022 02:28:24 +0530
 From: Vaibhav Jain <vaibhav@linux.ibm.com>
 To: nvdimm@lists.linux.dev
 Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
@@ -47,21 +47,20 @@ Cc: Vaibhav Jain <vaibhav@linux.ibm.com>,
         "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>,
         Ira Weiny <ira.weiny@intel.com>,
         Shivaprasad G Bhat <sbhat@linux.ibm.com>
-Subject: [ndctl PATCH v4] libndctl/papr: Add limited support for inject-smart
-Date: Tue, 25 Jan 2022 02:08:04 +0530
-Message-Id: <20220124203804.1490254-1-vaibhav@linux.ibm.com>
+Subject: [ndctl PATCH v4] libndctl: Update nvdimm flags in ndctl_cmd_submit()
+Date: Tue, 25 Jan 2022 02:28:22 +0530
+Message-Id: <20220124205822.1492702-1-vaibhav@linux.ibm.com>
 X-Mailer: git-send-email 2.34.1
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: S2q15eIi2Zdm1oQ66FuOv3p8G5nmoITg
-X-Proofpoint-ORIG-GUID: S2q15eIi2Zdm1oQ66FuOv3p8G5nmoITg
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: vet-5gmRp1NNoOnlQkvevvDzjamqacks
+X-Proofpoint-ORIG-GUID: vet-5gmRp1NNoOnlQkvevvDzjamqacks
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.205,Aquarius:18.0.816,Hydra:6.0.425,FMLib:17.11.62.513
  definitions=2022-01-24_09,2022-01-24_02,2021-12-02_01
@@ -71,18 +70,32 @@ X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowprio
  spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2201110000 definitions=main-2201240134
 
-Implements support for ndctl inject-smart command by providing an
-implementation of 'smart_inject*' dimm-ops callbacks. Presently only
-support for injecting unsafe-shutdown and fatal-health states is
-available.
+Presently after performing an inject-smart the nvdimm flags reported are
+out of date as shown below where no 'smart_notify' or 'flush_fail' flags
+were reported even though they are set after injecting the smart error:
 
-The patch also introduce various PAPR PDSM structures that are used to
-communicate the inject-smart errors to the papr_scm kernel
-module. This is done via SMART_INJECT PDSM which sends a payload of
-type 'struct nd_papr_pdsm_smart_inject'.
+$ sudo inject-smart -fU nmem0
+[
+  {
+    "dev":"nmem0",
+    "health":{
+      "health_state":"fatal",
+      "shutdown_state":"dirty",
+      "shutdown_count":0
+    }
+  }
+]
+$ sudo cat /sys/class/nd/ndctl0/device/nmem0/papr/flags
+flush_fail smart_notify
 
-With the patch following output from ndctl inject-smart command is
-expected for PAPR NVDIMMs:
+This happens because nvdimm flags are only parsed once during its probe
+and not refreshed even after a inject-smart operation makes them out of
+date. To fix this the patch forces an update of nvdimm flags via newly
+introduced ndctl_refresh_dimm_flags() thats called successfully submitting
+a 'struct ndctl_cmd' in ndctl_cmd_submit(). This ensures that correct
+nvdimm flags are reported after an interaction with the kernel module which
+may trigger a change nvdimm-flags. With this implemented correct nvdimm
+flags are reported after a inject-smart operation:
 
 $ sudo ndctl inject-smart -fU nmem0
 [
@@ -98,159 +111,162 @@ $ sudo ndctl inject-smart -fU nmem0
   }
 ]
 
-$ sudo ndctl inject-smart -N nmem0
-[
-  {
-    "dev":"nmem0",
-    "health":{
-      "health_state":"ok",
-      "shutdown_state":"clean",
-      "shutdown_count":0
-    }
-  }
-]
+The patch refactors populate_dimm_attributes() to move the nvdimm flags
+parsing code to the newly introduced ndctl_refresh_dimm_flags()
+export. Since reading nvdimm flags requires constructing path using
+'bus_prefix' which is only available during add_dimm(), the patch
+introduces a new member 'struct ndctl_dimm.bus_prefix' to cache its
+value. During ndctl_refresh_dimm_flags() the cached bus_prefix is used to
+read the contents of the nvdimm flag file and pass it on to the appropriate
+flag parsing function. Finally ndctl_refresh_dimm_flags() is invoked at the
+end of ndctl_cmd_submit() if nd-command submission succeeds.
 
-The patch depends on the kernel PAPR PDSM implementation for
-PDSM_SMART_INJECT posted at [1].
-
-[1] : https://lore.kernel.org/nvdimm/20220124202204.1488346-1-vaibhav@linux.ibm.com/
-Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 Signed-off-by: Vaibhav Jain <vaibhav@linux.ibm.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-
+Signed-off-by: Shivaprasad G Bhat <sbhat@linux.ibm.com>
 ---
 Changelog:
 
-Since v3:
-https://lore.kernel.org/all/164009761730.743207.3802102461166326223.stgit@lep8c.aus.stglabs.ibm.com/
-* Spit the patch from its previous patch series.
-* Updated the patch description to include link to new version of the kernel
-patch.
+Since v3-Resend:
+164009789816.744139.2870779016511283907.stgit@lep8c.aus.stglabs.ibm.com
 * Rebased this on top of latest ndctl-pending tree that includes changes to
 switch to meson build system.
 ---
- ndctl/lib/papr.c      | 61 +++++++++++++++++++++++++++++++++++++++++++
- ndctl/lib/papr_pdsm.h | 17 ++++++++++++
- 2 files changed, 78 insertions(+)
+ ndctl/lib/libndctl.c | 52 ++++++++++++++++++++++++++++++++------------
+ ndctl/lib/private.h  |  1 +
+ ndctl/libndctl.h     |  1 +
+ 3 files changed, 40 insertions(+), 14 deletions(-)
 
-diff --git a/ndctl/lib/papr.c b/ndctl/lib/papr.c
-index 46cf9c1b7341..7a1d5595b12e 100644
---- a/ndctl/lib/papr.c
-+++ b/ndctl/lib/papr.c
-@@ -221,6 +221,41 @@ static unsigned int papr_smart_get_shutdown_state(struct ndctl_cmd *cmd)
- 	return health.dimm_bad_shutdown;
- }
+diff --git a/ndctl/lib/libndctl.c b/ndctl/lib/libndctl.c
+index 5979a92c113c..abff4ececa27 100644
+--- a/ndctl/lib/libndctl.c
++++ b/ndctl/lib/libndctl.c
+@@ -608,6 +608,7 @@ static void free_dimm(struct ndctl_dimm *dimm)
+ 	free(dimm->unique_id);
+ 	free(dimm->dimm_buf);
+ 	free(dimm->dimm_path);
++	free(dimm->bus_prefix);
+ 	if (dimm->module)
+ 		kmod_module_unref(dimm->module);
+ 	if (dimm->health_eventfd > -1)
+@@ -1670,14 +1671,34 @@ static int ndctl_bind(struct ndctl_ctx *ctx, struct kmod_module *module,
+ static int ndctl_unbind(struct ndctl_ctx *ctx, const char *devpath);
+ static struct kmod_module *to_module(struct ndctl_ctx *ctx, const char *alias);
  
-+static int papr_smart_inject_supported(struct ndctl_dimm *dimm)
++void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm)
 +{
-+	if (!ndctl_dimm_is_cmd_supported(dimm, ND_CMD_CALL))
-+		return -EOPNOTSUPP;
++	struct ndctl_ctx *ctx = dimm->bus->ctx;
++	char *path = dimm->dimm_buf;
++	char buf[SYSFS_ATTR_SIZE];
 +
-+	if (!test_dimm_dsm(dimm, PAPR_PDSM_SMART_INJECT))
-+		return -EIO;
++	/* Construct path to dimm flags sysfs file */
++	sprintf(path, "%s/%s/flags", dimm->dimm_path, dimm->bus_prefix);
 +
-+	return ND_SMART_INJECT_HEALTH_STATE | ND_SMART_INJECT_UNCLEAN_SHUTDOWN;
++	if (sysfs_read_attr(ctx, path, buf) < 0)
++		return;
++
++	/* Reset the flags */
++	dimm->flags.flags = 0;
++	if (ndctl_bus_has_nfit(dimm->bus))
++		parse_nfit_mem_flags(dimm, buf);
++	else if (ndctl_bus_is_papr_scm(dimm->bus))
++		parse_papr_flags(dimm, buf);
 +}
 +
-+static int papr_smart_inject_valid(struct ndctl_cmd *cmd)
-+{
-+	if (cmd->type != ND_CMD_CALL ||
-+	    to_pdsm(cmd)->cmd_status != 0 ||
-+	    to_pdsm_cmd(cmd) != PAPR_PDSM_SMART_INJECT)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static struct ndctl_cmd *papr_new_smart_inject(struct ndctl_dimm *dimm)
-+{
-+	struct ndctl_cmd *cmd;
-+
-+	cmd = allocate_cmd(dimm, PAPR_PDSM_SMART_INJECT,
-+			sizeof(struct nd_papr_pdsm_smart_inject));
-+	if (!cmd)
-+		return NULL;
-+	/* Set the input payload size */
-+	to_ndcmd(cmd)->nd_size_in = ND_PDSM_HDR_SIZE +
-+		sizeof(struct nd_papr_pdsm_smart_inject);
-+	return cmd;
-+}
-+
- static unsigned int papr_smart_get_life_used(struct ndctl_cmd *cmd)
+ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+-				    const char *dimm_base,
+-				    const char *bus_prefix)
++				    const char *dimm_base)
  {
- 	struct nd_papr_pdsm_health health;
-@@ -255,11 +290,37 @@ static unsigned int papr_smart_get_shutdown_count(struct ndctl_cmd *cmd)
+ 	int i, rc = -1;
+ 	char buf[SYSFS_ATTR_SIZE];
+ 	struct ndctl_ctx *ctx = dimm->bus->ctx;
+ 	char *path = calloc(1, strlen(dimm_base) + 100);
++	const char *bus_prefix = dimm->bus_prefix;
  
- 	return (health.extension_flags & PDSM_DIMM_DSC_VALID) ?
- 		(health.dimm_dsc) : 0;
-+}
-+
-+static int papr_cmd_smart_inject_fatal(struct ndctl_cmd *cmd, bool enable)
-+{
-+	if (papr_smart_inject_valid(cmd) < 0)
-+		return -EINVAL;
-+
-+	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_HEALTH_FATAL;
-+	to_payload(cmd)->inject.fatal_enable = enable;
+ 	if (!path)
+ 		return -ENOMEM;
+@@ -1761,16 +1782,10 @@ static int populate_dimm_attributes(struct ndctl_dimm *dimm,
+ 	}
  
-+	return 0;
-+}
+ 	sprintf(path, "%s/%s/flags", dimm_base, bus_prefix);
+-	if (sysfs_read_attr(ctx, path, buf) == 0) {
+-		if (ndctl_bus_has_nfit(dimm->bus))
+-			parse_nfit_mem_flags(dimm, buf);
+-		else if (ndctl_bus_is_papr_scm(dimm->bus)) {
+-			dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+-			parse_papr_flags(dimm, buf);
+-		}
+-	}
+-
+ 	dimm->health_eventfd = open(path, O_RDONLY|O_CLOEXEC);
 +
-+static int papr_cmd_smart_inject_unsafe_shutdown(struct ndctl_cmd *cmd,
-+						 bool enable)
-+{
-+	if (papr_smart_inject_valid(cmd) < 0)
-+		return -EINVAL;
++	ndctl_refresh_dimm_flags(dimm);
 +
-+	to_payload(cmd)->inject.flags |= PDSM_SMART_INJECT_BAD_SHUTDOWN;
-+	to_payload(cmd)->inject.unsafe_shutdown_enable = enable;
-+
-+	return 0;
- }
+ 	rc = 0;
+  err_read:
  
- struct ndctl_dimm_ops * const papr_dimm_ops = &(struct ndctl_dimm_ops) {
- 	.cmd_is_supported = papr_cmd_is_supported,
-+	.new_smart_inject = papr_new_smart_inject,
-+	.smart_inject_supported = papr_smart_inject_supported,
-+	.smart_inject_fatal = papr_cmd_smart_inject_fatal,
-+	.smart_inject_unsafe_shutdown = papr_cmd_smart_inject_unsafe_shutdown,
- 	.smart_get_flags = papr_smart_get_flags,
- 	.get_firmware_status =  papr_get_firmware_status,
- 	.xlat_firmware_status = papr_xlat_firmware_status,
-diff --git a/ndctl/lib/papr_pdsm.h b/ndctl/lib/papr_pdsm.h
-index f45b1e40c075..20ac20f89acd 100644
---- a/ndctl/lib/papr_pdsm.h
-+++ b/ndctl/lib/papr_pdsm.h
-@@ -121,12 +121,29 @@ struct nd_papr_pdsm_health {
- enum papr_pdsm {
- 	PAPR_PDSM_MIN = 0x0,
- 	PAPR_PDSM_HEALTH,
-+	PAPR_PDSM_SMART_INJECT,
- 	PAPR_PDSM_MAX,
- };
-+/* Flags for injecting specific smart errors */
-+#define PDSM_SMART_INJECT_HEALTH_FATAL		(1 << 0)
-+#define PDSM_SMART_INJECT_BAD_SHUTDOWN		(1 << 1)
+@@ -1826,8 +1841,9 @@ static int add_papr_dimm(struct ndctl_dimm *dimm, const char *dimm_base)
+ 
+ 		rc = 0;
+ 	} else if (strcmp(buf, "nvdimm_test") == 0) {
++		dimm->cmd_family = NVDIMM_FAMILY_PAPR;
+ 		/* probe via common populate_dimm_attributes() */
+-		rc = populate_dimm_attributes(dimm, dimm_base, "papr");
++		rc = populate_dimm_attributes(dimm, dimm_base);
+ 	}
+ out:
+ 	free(path);
+@@ -1924,9 +1940,13 @@ static void *add_dimm(void *parent, int id, const char *dimm_base)
+ 	dimm->formats = formats;
+ 	/* Check if the given dimm supports nfit */
+ 	if (ndctl_bus_has_nfit(bus)) {
+-		rc = populate_dimm_attributes(dimm, dimm_base, "nfit");
++		dimm->bus_prefix = strdup("nfit");
++		rc = dimm->bus_prefix ?
++			populate_dimm_attributes(dimm, dimm_base) : -ENOMEM;
+ 	} else if (ndctl_bus_has_of_node(bus)) {
+-		rc = add_papr_dimm(dimm, dimm_base);
++		dimm->bus_prefix = strdup("papr");
++		rc = dimm->bus_prefix ?
++			add_papr_dimm(dimm, dimm_base) : -ENOMEM;
+ 	}
+ 
+ 	if (rc == -ENODEV) {
+@@ -3506,6 +3526,10 @@ NDCTL_EXPORT int ndctl_cmd_submit(struct ndctl_cmd *cmd)
+ 		rc = -ENXIO;
+ 	}
+ 	close(fd);
 +
-+struct nd_papr_pdsm_smart_inject {
-+	union {
-+		struct {
-+			/* One or more of PDSM_SMART_INJECT_ */
-+			__u32 flags;
-+			__u8 fatal_enable;
-+			__u8 unsafe_shutdown_enable;
-+		};
-+		__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
-+	};
-+};
++	/* update dimm-flags if command submitted successfully */
++	if (!rc && cmd->dimm)
++		ndctl_refresh_dimm_flags(cmd->dimm);
+  out:
+ 	cmd->status = rc;
+ 	return rc;
+diff --git a/ndctl/lib/private.h b/ndctl/lib/private.h
+index 4d8622978790..e5c56295556d 100644
+--- a/ndctl/lib/private.h
++++ b/ndctl/lib/private.h
+@@ -75,6 +75,7 @@ struct ndctl_dimm {
+ 	char *unique_id;
+ 	char *dimm_path;
+ 	char *dimm_buf;
++	char *bus_prefix;
+ 	int health_eventfd;
+ 	int buf_len;
+ 	int id;
+diff --git a/ndctl/libndctl.h b/ndctl/libndctl.h
+index 4d5cdbf6f619..b1bafd6d9788 100644
+--- a/ndctl/libndctl.h
++++ b/ndctl/libndctl.h
+@@ -223,6 +223,7 @@ int ndctl_dimm_is_active(struct ndctl_dimm *dimm);
+ int ndctl_dimm_is_enabled(struct ndctl_dimm *dimm);
+ int ndctl_dimm_disable(struct ndctl_dimm *dimm);
+ int ndctl_dimm_enable(struct ndctl_dimm *dimm);
++void ndctl_refresh_dimm_flags(struct ndctl_dimm *dimm);
  
- /* Maximal union that can hold all possible payload types */
- union nd_pdsm_payload {
- 	struct nd_papr_pdsm_health health;
-+	struct nd_papr_pdsm_smart_inject inject;
- 	__u8 buf[ND_PDSM_PAYLOAD_MAX_SIZE];
- } __attribute__((packed));
- 
+ struct ndctl_cmd;
+ struct ndctl_cmd *ndctl_bus_cmd_new_ars_cap(struct ndctl_bus *bus,
 -- 
 2.34.1
 
