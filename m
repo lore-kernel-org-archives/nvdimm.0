@@ -1,49 +1,51 @@
-Received: from mail-yb1-f173.google.com (mail-yb1-f173.google.com [209.85.219.173])
+Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com [209.85.219.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E31B173
-	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 08:51:43 +0000 (UTC)
-Received: by mail-yb1-f173.google.com with SMTP id g81so48874391ybg.10
-        for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 00:51:43 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A99C92CA3
+	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 09:01:41 +0000 (UTC)
+Received: by mail-yb1-f171.google.com with SMTP id i62so2628047ybg.5
+        for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 01:01:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=bELfTHEk6E+Ur1KnM4vcunvX6YMOTiYgaY+wBXhSmNY=;
-        b=xuzHORiZtxL4ALsbPI12Enqz7+Y7z0qaEw1VTD5rZOAhs136D3XcklFmacDAPP1Wix
-         b1LezGAI1F3NQTCI3w2mzRPC+MN6bdvFBSfGz1dtd48u5S8myG1WDGav+YscfQrYNIyT
-         bW4EIysGkBOF3+/+evUyYiHTyjBobHidSnKY3XRHsRzfufOk2nJE7LOgO/bNLOnPqckC
-         K2NOq5CLsd2a53530xwZVi/LbOfFyuiMm7xB/ASE2pT2LN7016uNyqlOtbNmhXhU6GUt
-         ztNByXTKi0m1souZOOtIvo7KOv/wq5MzYC8eEGDxp0xOL5QolSsngo80rWPP/ZmLnKM1
-         fFLg==
+        bh=qPuSl5NxTGIIFIMAw/dyMyil9mBbCPqU09NIe0oAokU=;
+        b=6llndIHFqFppJ4Gj2xb3cyh+pp6mM711rLtlQwGBakuS3Q/v/2zuj98cryr+VeHrrL
+         o2nf1CmZkHq3QGBrZz1wVwwc8efKujB3hPJQp8C18rdlsVNUx09LyjgmCG4xxoPWQIrH
+         tXOo/ee/k5v9Ic/JAECmKiaQPChSJqOuzivhyfpTWcq6rXvOTLL8Q47QcHdVdH9eQdL6
+         9P494f3fHakyK4GIkdVdr/un6XlnRhD8Slk1P+r1/j+V2wqnbtDvV8odCtEhc/ohlZU2
+         d5OwhJx6507d5A3f02MdKERpXa4k6wccCLoHWkv1h56Sik5coVN96gQjQkpXch7rsJIB
+         Z0vQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=bELfTHEk6E+Ur1KnM4vcunvX6YMOTiYgaY+wBXhSmNY=;
-        b=uxY3voZrGUxhE4aiREt2gM+ewXjNpihqJ+6fK4PGkO6IbfDVKxS/fTYVDEW8zL6B33
-         USEsgSgb69grQhMA0z9i8ODVeIctdYKtlaRfoM2TLJQ85xG97eD/qzu78Mcpoy5eTLlj
-         3+VvxaktgJd2ZYqIQ+bSTo5G+Zp8P6sxRFhNWW0YNjrT7O+VqJJi9vv32pSlN9YXdm0G
-         W6f5rFPe2b55DbSWuWwt90fy/LGsZIP1YhwNRua5NJuLQgIjkhvga1eyJwx1Hx+zNO9J
-         oDeGaUIcoAdUNQKtcRi4+GmqN58559LjFWsE7cVDFvbvPf1NISCDeudEcgmCZhcy9tBc
-         13VQ==
-X-Gm-Message-State: AOAM530AFp1Ld9VhY1/m23fjYvDaJ52JFqUuAZL7lbf33z5ggWNyxkqS
-	6bu2Va/7cpOvYYprw/qPt67/QKJvrwITLFMYfzr8CA==
-X-Google-Smtp-Source: ABdhPJw1vSctPW8saHhj1FGspU/fxdcO6t1LvGwNO4aTt6W6d1v0JCyqb15ZQrKh1+6SniqvhSjPXoVXuqbGSbR4L3Y=
-X-Received: by 2002:a25:d107:: with SMTP id i7mr20792477ybg.495.1643014302301;
- Mon, 24 Jan 2022 00:51:42 -0800 (PST)
+        bh=qPuSl5NxTGIIFIMAw/dyMyil9mBbCPqU09NIe0oAokU=;
+        b=DS9ZOrZ/YxNLDW0dB4bMyOZD7eiBu34Npvia2JYqamn0hEEmGbB5OaWpJWaDeH2eQU
+         IQ/C/BQ8Do7WvRwzKBDj1XnL2DOm0R1fXFijlaCybN+z1aTUjSwdf0t0Uau+7l1kYnBV
+         jWVfl+o9prAcQelG4bbzN8ks+ENkaj2Yd75cqPDS7mSrrGvzoHM4ACk6opHEOFfuwNkd
+         rR+J37nywH6s+RhT79WYGRJMHgr/snJMEzSo98jRwoEXpQXNtZ8OD7SXyf3PKvjDzuhx
+         9syz9gQwDi1jF9AK5AlumSxS4Odi8yhZzWPBhBEMl+AbBlvAZsntWqzSfq3XeX57Us3a
+         k2VQ==
+X-Gm-Message-State: AOAM531kuRM/TyFguqIsy3jQ3Ap8T2QGT0fzHWkertx36SjNHvqc/nsX
+	bpaxq/wKMIXGq5NzWuMYhA092QmmzLgK7PPUZ4cb8w==
+X-Google-Smtp-Source: ABdhPJxCB2+GYystUm4f6yE23AKfFLdR4LWU/ii96fyLJt0DuPLnpNq7DG11ShRdZIfMVzy8ewQT7cV3z2wTwLiVyRY=
+X-Received: by 2002:a25:6d09:: with SMTP id i9mr20946206ybc.703.1643014899644;
+ Mon, 24 Jan 2022 01:01:39 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <20220121075515.79311-1-songmuchun@bytedance.com> <Ye5WfvUdJBhZ3lME@infradead.org>
-In-Reply-To: <Ye5WfvUdJBhZ3lME@infradead.org>
+References: <20220121075515.79311-1-songmuchun@bytedance.com>
+ <20220121075515.79311-3-songmuchun@bytedance.com> <Ye5XEeMYt8c7/iMV@infradead.org>
+In-Reply-To: <Ye5XEeMYt8c7/iMV@infradead.org>
 From: Muchun Song <songmuchun@bytedance.com>
-Date: Mon, 24 Jan 2022 16:51:06 +0800
-Message-ID: <CAMZfGtUab0PS7tO0ni4Z7eSKWc0UAVQO=prc-iKNj0S67qaRtw@mail.gmail.com>
-Subject: Re: [PATCH 1/5] mm: rmap: fix cache flush on THP pages
+Date: Mon, 24 Jan 2022 17:01:03 +0800
+Message-ID: <CAMZfGtWForYqmrZJFfOVw5pQPq8idQxwT9aFcUuCJMjdE6Tf3Q@mail.gmail.com>
+Subject: Re: [PATCH 3/5] mm: page_vma_mapped: support checking if a pfn is
+ mapped into a vma
 To: Christoph Hellwig <hch@infradead.org>
 Cc: Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, 
 	Jan Kara <jack@suse.cz>, Alexander Viro <viro@zeniv.linux.org.uk>, 
@@ -56,34 +58,30 @@ Cc: Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org
 	Linux Memory Management List <linux-mm@kvack.org>
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, Jan 24, 2022 at 3:34 PM Christoph Hellwig <hch@infradead.org> wrote:
+On Mon, Jan 24, 2022 at 3:36 PM Christoph Hellwig <hch@infradead.org> wrote:
 >
-> On Fri, Jan 21, 2022 at 03:55:11PM +0800, Muchun Song wrote:
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/mm/rmap.c b/mm/rmap.c
-> > index b0fd9dc19eba..65670cb805d6 100644
-> > --- a/mm/rmap.c
-> > +++ b/mm/rmap.c
-> > @@ -974,7 +974,7 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
-> >                       if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
-> >                               continue;
-> >
-> > -                     flush_cache_page(vma, address, page_to_pfn(page));
-> > +                     flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
+> On Fri, Jan 21, 2022 at 03:55:13PM +0800, Muchun Song wrote:
+> > +     if (pvmw->pte && ((pvmw->flags & PVMW_PFN_WALK) || !PageHuge(pvmw->page)))
 >
-> Do we need a flush_cache_folio here given that we must be dealing with
-> what effectively is a folio here?
-
-I think it is a future improvement. I suspect it will be easy if
-someone wants to backport this patch. If we do not want
-someone to do this, I think it is better to introduce
-flush_cache_folio in this patch. What do you think?
-
->
-> Also please avoid the overly long line.
->
+> Please avoid the overly long line here and in a few other places.
 
 OK.
+
+>
+> > +/*
+> > + * Then at what user virtual address will none of the page be found in vma?
+>
+> Doesn't parse, what is this trying to say?
+
+Well, I am also confused.
+
+BTW, this is not introduced by me, it is introduced by:
+
+  commit 37ffe9f4d7ff ("mm/thp: fix vma_address() if virtual address
+below file offset")
+
+If it is really confusing, I can replace this line with:
+
+"Return the end user virtual address of a page within a vma"
 
 Thanks.
