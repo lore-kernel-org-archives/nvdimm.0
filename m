@@ -1,104 +1,60 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from bombadil.infradead.org (bombadil.infradead.org [198.137.202.133])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EBDF02C80
-	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 00:32:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1642984332; x=1674520332;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=zjJfWfbswenFYOz5k8X7DYO75wu8mBNq2H/tyjem1Zc=;
-  b=LFqC0lMMJTrFNdvTZi4H5qX8ssCz6F62nyqn7x8Cv7P8PmxvruWwPWcm
-   zjDxBa8SitbPD1yAx6siJyDJhvTGoWVKZwF4ziXYGEtEAnA5iCHbx6OZr
-   +yTiuQWVa5YgHVqToWsqHdIg/GlX6Wg5fwPwcK5XH5ufdoFN2SAZA4kxa
-   PySgN3BpPh0XL1veYbH6i4eNshMXwGZb+IrdF3yRBuXeg6V0kf5ySAJHO
-   E43VvQHo8VMD7Jhik4SffZmhiSPvZ+XB81X3gYhFfkon1tFdRi/pgQt8Z
-   Pq4kz5139RZlfhZYN2bJW27TPMSQaOU3c/xSnh6HPNGRPLrnOJU8uxWzj
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10236"; a="270368609"
-X-IronPort-AV: E=Sophos;i="5.88,311,1635231600"; 
-   d="scan'208";a="270368609"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2022 16:32:12 -0800
-X-IronPort-AV: E=Sophos;i="5.88,311,1635231600"; 
-   d="scan'208";a="673453970"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2022 16:32:12 -0800
-Subject: [PATCH v3 40/40] tools/testing/cxl: Add a physical_node link
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: linux-pci@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Sun, 23 Jan 2022 16:32:12 -0800
-Message-ID: <164298433209.3018233.18101085948127163720.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2002429CA
+	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 07:34:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=4MNVxTW9H1jXtPwmIwMoQW56SGaJAdlSmyToITo5YVc=; b=gtWEOwKsY5gdAbdEeRaHqZIlQa
+	3gb/QEqstFd1g/EF7xV1tYMQnY0k9bDkDeYN8nLyNu+AbVPkOmY5QqWeHIKZ0++X+CJSER8lLYx7p
+	NlFIvnNzV+n5HwOv9skzCd785iHghze3hSLCqM480dISVcKJRGFomcZE1403PfK83OFILkayCCaq5
+	hBUH5HnfKiEdlWTmVtzOl8LX2ESZxAcGtrCITiUJEH/vn6YkpJHPJkljbvTG55otziLDtJ3K0nnyg
+	P3BuLyaBZ/BK/aqkOoLO0mZZPXdzJGBzXvBjUUerw0YeYVbXD2l5QRfWRaUhSuI4/S/2vS5nEvsi+
+	rsHWKgGg==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+	id 1nBtrq-002V0m-SP; Mon, 24 Jan 2022 07:34:22 +0000
+Date: Sun, 23 Jan 2022 23:34:22 -0800
+From: Christoph Hellwig <hch@infradead.org>
+To: Muchun Song <songmuchun@bytedance.com>
+Cc: dan.j.williams@intel.com, willy@infradead.org, jack@suse.cz,
+	viro@zeniv.linux.org.uk, akpm@linux-foundation.org,
+	apopple@nvidia.com, shy828301@gmail.com, rcampbell@nvidia.com,
+	hughd@google.com, xiyuyang19@fudan.edu.cn,
+	kirill.shutemov@linux.intel.com, zwisler@kernel.org,
+	linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH 1/5] mm: rmap: fix cache flush on THP pages
+Message-ID: <Ye5WfvUdJBhZ3lME@infradead.org>
+References: <20220121075515.79311-1-songmuchun@bytedance.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220121075515.79311-1-songmuchun@bytedance.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Emulate what ACPI does to link a host bridge platform firmware device to
-device node on the PCI bus. In this case it's just self referencing
-link, but it otherwise lets the tooling test out its lookup code.
+On Fri, Jan 21, 2022 at 03:55:11PM +0800, Muchun Song wrote:
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/mm/rmap.c b/mm/rmap.c
+> index b0fd9dc19eba..65670cb805d6 100644
+> --- a/mm/rmap.c
+> +++ b/mm/rmap.c
+> @@ -974,7 +974,7 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+>  			if (!pmd_dirty(*pmd) && !pmd_write(*pmd))
+>  				continue;
+>  
+> -			flush_cache_page(vma, address, page_to_pfn(page));
+> +			flush_cache_range(vma, address, address + HPAGE_PMD_SIZE);
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/cxl/test/cxl.c |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+Do we need a flush_cache_folio here given that we must be dealing with
+what effectively is a folio here?
 
-diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
-index 1b36e67dcd7e..431f2bddf6c8 100644
---- a/tools/testing/cxl/test/cxl.c
-+++ b/tools/testing/cxl/test/cxl.c
-@@ -641,7 +641,12 @@ static __init int cxl_test_init(void)
- 			platform_device_put(pdev);
- 			goto err_bridge;
- 		}
-+
- 		cxl_host_bridge[i] = pdev;
-+		rc = sysfs_create_link(&pdev->dev.kobj, &pdev->dev.kobj,
-+				       "physical_node");
-+		if (rc)
-+			goto err_bridge;
- 	}
- 
- 	for (i = 0; i < ARRAY_SIZE(cxl_root_port); i++) {
-@@ -745,8 +750,14 @@ static __init int cxl_test_init(void)
- 	for (i = ARRAY_SIZE(cxl_root_port) - 1; i >= 0; i--)
- 		platform_device_unregister(cxl_root_port[i]);
- err_bridge:
--	for (i = ARRAY_SIZE(cxl_host_bridge) - 1; i >= 0; i--)
-+	for (i = ARRAY_SIZE(cxl_host_bridge) - 1; i >= 0; i--) {
-+		struct platform_device *pdev = cxl_host_bridge[i];
-+
-+		if (!pdev)
-+			continue;
-+		sysfs_remove_link(&pdev->dev.kobj, "physical_node");
- 		platform_device_unregister(cxl_host_bridge[i]);
-+	}
- err_populate:
- 	depopulate_all_mock_resources();
- err_gen_pool_add:
-@@ -769,8 +780,14 @@ static __exit void cxl_test_exit(void)
- 		platform_device_unregister(cxl_switch_uport[i]);
- 	for (i = ARRAY_SIZE(cxl_root_port) - 1; i >= 0; i--)
- 		platform_device_unregister(cxl_root_port[i]);
--	for (i = ARRAY_SIZE(cxl_host_bridge) - 1; i >= 0; i--)
-+	for (i = ARRAY_SIZE(cxl_host_bridge) - 1; i >= 0; i--) {
-+		struct platform_device *pdev = cxl_host_bridge[i];
-+
-+		if (!pdev)
-+			continue;
-+		sysfs_remove_link(&pdev->dev.kobj, "physical_node");
- 		platform_device_unregister(cxl_host_bridge[i]);
-+	}
- 	depopulate_all_mock_resources();
- 	gen_pool_destroy(cxl_mock_pool);
- 	unregister_cxl_mock_ops(&cxl_mock_ops);
+Also please avoid the overly long line.
 
