@@ -1,37 +1,37 @@
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68B772C80
-	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 00:30:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0B082C80
+	for <nvdimm@lists.linux.dev>; Mon, 24 Jan 2022 00:31:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1642984258; x=1674520258;
+  t=1642984263; x=1674520263;
   h=subject:from:to:cc:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=7V3Ra/ExuPLrDCzXd0F5DBtK8mU8SaZyL/uYcXMqIp4=;
-  b=ejywQzMtOPfjj3cxMDGxomtwutsbIrfBCVKMUqHDoeOyvN9ldkZ2am/V
-   SUonnPgtqWDMym7xmO225SvhAWnvLrzZursQJiaXLFwbX5bQv4CsUj287
-   WL4Afh+nokbomT1SOZfQuofXPbG3c2RccAvrT+bKg30QXTicSDQOi/+oJ
-   /umkmWzTzL9mKbI8GrTGiSy/UVMHVt1pjxqjBEerEMZNgRfRIYywrfrSY
-   mKltdGaN+Y26Wrj3D/Es0M9fNfi97OLqRMK/d6W8RuC44GROn4VqTWkP6
-   29vT27hs0KiI9SJ0YnIbFatVKO0VhJf5+PfqF3njjQikQOjg1BrCKGKtE
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10236"; a="233292474"
+  bh=9phvsEdVa2NG/oq5IvGjMBe+GhzMW82MW8Sk8mr3eO8=;
+  b=Z39eAnVL4l+JKRvTMoKeiKUz2vSK+gCkh2e+e5uT4LcnVVWVmOtzME2w
+   zTEvwGEEGCUqNqzlWBPcqC2CrIF2Iqw+1zcpL5grTUTTFpGJ+rQVuWQfe
+   mICieFRtfsD7lOB1gr3bQ6/kyoa5ttwEHzmTyXIkZYAk5raRhPhXJXgmh
+   95fZ3S96K3gBe59poOg/GjmGJTyZuV1jL8Rmtv2V23sUzbGeihqJ47ysY
+   t8dtMA/RX60NtWHqtFQMtuko34ffr0hqRXr5BGxN7LD5mTPqi9YG6MLbB
+   WpCGGMq9DfPP2jMOPmvKPWlfO5jhn9NDB5C/7Sn8O5EXjqtEKtNeebdPj
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10236"; a="332288977"
 X-IronPort-AV: E=Sophos;i="5.88,311,1635231600"; 
-   d="scan'208";a="233292474"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2022 16:30:58 -0800
+   d="scan'208";a="332288977"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2022 16:31:03 -0800
 X-IronPort-AV: E=Sophos;i="5.88,311,1635231600"; 
-   d="scan'208";a="617061726"
+   d="scan'208";a="768517306"
 Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2022 16:30:57 -0800
-Subject: [PATCH v3 26/40] cxl/pci: Store component register base in cxlds
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2022 16:31:03 -0800
+Subject: [PATCH v3 27/40] cxl/pci: Cache device DVSEC offset
 From: Dan Williams <dan.j.williams@intel.com>
 To: linux-cxl@vger.kernel.org
-Cc: Ben Widawsky <ben.widawsky@intel.com>, kernel test robot <lkp@intel.com>,
- linux-pci@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Sun, 23 Jan 2022 16:30:57 -0800
-Message-ID: <164298425711.3018233.16653457511648347954.stgit@dwillia2-desk3.amr.corp.intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>, linux-pci@vger.kernel.org,
+ nvdimm@lists.linux.dev
+Date: Sun, 23 Jan 2022 16:31:02 -0800
+Message-ID: <164298426273.3018233.9302136088649279124.stgit@dwillia2-desk3.amr.corp.intel.com>
 In-Reply-To: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
 User-Agent: StGit/0.18-3-g996c
@@ -46,65 +46,56 @@ Content-Transfer-Encoding: 7bit
 
 From: Ben Widawsky <ben.widawsky@intel.com>
 
-In preparation for defining a cxl_port object to represent the decoder
-resources of a memory expander capture the compont register base
-address.
-
-The port driver uses the component register base to enumerate the HDM
-Decoder Capability structure. Unlike other cxl_port objects the endpoint
-port decodes from upstream SPA to downstream DPA rather than upstream
-port to downstream port.
+The PCIe device DVSEC, defined in the CXL 2.0 spec, 8.1.3 is required to
+be implemented by CXL 2.0 endpoint devices. Since the information
+contained within this DVSEC will be critically important, it makes sense
+to find the value early, and error out if it cannot be found.
 
 Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
-[djbw: clarify changelog]
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/cxl/cxlmem.h |    3 +++
- drivers/cxl/pci.c    |   11 +++++++++++
- 2 files changed, 14 insertions(+)
+ drivers/cxl/cxlmem.h |    2 ++
+ drivers/cxl/pci.c    |    9 +++++++++
+ 2 files changed, 11 insertions(+)
 
 diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index fca2d1b5f6ff..90d67fff5bed 100644
+index 90d67fff5bed..cedc6d3c0448 100644
 --- a/drivers/cxl/cxlmem.h
 +++ b/drivers/cxl/cxlmem.h
-@@ -116,6 +116,7 @@ struct cxl_mbox_cmd {
-  * @active_persistent_bytes: sum of hard + soft persistent
-  * @next_volatile_bytes: volatile capacity change pending device reset
-  * @next_persistent_bytes: persistent capacity change pending device reset
-+ * @component_reg_phys: register base of component registers
-  * @mbox_send: @dev specific transport for transmitting mailbox commands
+@@ -98,6 +98,7 @@ struct cxl_mbox_cmd {
   *
-  * See section 8.2.9.5.2 Capacity Configuration and Label Storage for
-@@ -145,6 +146,8 @@ struct cxl_dev_state {
- 	u64 next_volatile_bytes;
- 	u64 next_persistent_bytes;
+  * @dev: The device associated with this CXL state
+  * @regs: Parsed register blocks
++ * @device_dvsec: Offset to the PCIe device DVSEC
+  * @payload_size: Size of space for payload
+  *                (CXL 2.0 8.2.8.4.3 Mailbox Capabilities Register)
+  * @lsa_size: Size of Label Storage Area
+@@ -126,6 +127,7 @@ struct cxl_dev_state {
+ 	struct device *dev;
  
-+	resource_size_t component_reg_phys;
-+
- 	int (*mbox_send)(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd);
- };
+ 	struct cxl_regs regs;
++	int device_dvsec;
  
+ 	size_t payload_size;
+ 	size_t lsa_size;
 diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-index c29d50660c21..e54dbdf9ac15 100644
+index e54dbdf9ac15..76de39b90351 100644
 --- a/drivers/cxl/pci.c
 +++ b/drivers/cxl/pci.c
-@@ -416,6 +416,17 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	if (rc)
- 		return rc;
+@@ -408,6 +408,15 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	if (IS_ERR(cxlds))
+ 		return PTR_ERR(cxlds);
  
-+	/*
-+	 * If the component registers can't be found, the cxl_pci driver may
-+	 * still be useful for management functions so don't return an error.
-+	 */
-+	cxlds->component_reg_phys = CXL_RESOURCE_NONE;
-+	rc = cxl_setup_regs(pdev, CXL_REGLOC_RBI_COMPONENT, &map);
-+	if (rc)
-+		dev_warn(&pdev->dev, "No component registers (%d)\n", rc);
++	cxlds->device_dvsec = pci_find_dvsec_capability(pdev,
++							PCI_DVSEC_VENDOR_ID_CXL,
++							CXL_DVSEC_PCIE_DEVICE);
++	if (!cxlds->device_dvsec) {
++		dev_err(&pdev->dev,
++			"Device DVSEC not present. Expect limited functionality.\n");
++		return -ENXIO;
++	}
 +
-+	cxlds->component_reg_phys = cxl_regmap_to_base(pdev, &map);
-+
- 	rc = cxl_pci_setup_mailbox(cxlds);
+ 	rc = cxl_setup_regs(pdev, CXL_REGLOC_RBI_MEMDEV, &map);
  	if (rc)
  		return rc;
 
