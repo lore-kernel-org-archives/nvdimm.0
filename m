@@ -1,51 +1,51 @@
-Received: from mail-pl1-f174.google.com (mail-pl1-f174.google.com [209.85.214.174])
+Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EF0F62CA3
-	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 16:07:28 +0000 (UTC)
-Received: by mail-pl1-f174.google.com with SMTP id c3so22871833pls.5
-        for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 08:07:28 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2082E2CA3
+	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 16:17:03 +0000 (UTC)
+Received: by mail-pj1-f52.google.com with SMTP id o64so162217pjo.2
+        for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 08:17:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=intel-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=Gcv5s7rBRNBJ5HHAx5BTh92SWh3a8LAuqVI+SvJy7ts=;
-        b=1COukkru4jBOb3S5Q67y/wjv81NVjc9WM7QbPEWSqbar+e9+5fYgWM77aP8uTtbr3Z
-         rkaSmJed5oJ3Uxw4vUQ2OuzqOFf5FevD6sc4kE32NVwKbcWRgFhQxXFPCmK3gwmN0WFN
-         ua4MXAaIOmZeS3Dk1iz3iLCz651wCJFjRL9RIF9VXmDAcno+lNQVeJlizh9bdgPON+qo
-         GBbBVUiuU45LurCOTJ5/xeHh0Z9w1sIKWUIq0kOIH0KYzPGhL2/9YbS+WhsGx4ReK8vR
-         ZMUEwnht2P0MunhPIix0dKSTgNbkXwb6eUDmCYvs2p2STwuS71fWw4fzKQqgNZCWkY/F
-         aEug==
+        bh=f9speIaQTCGP3s0a64E+GY3sDlR2buP1pgNXk10VrJ4=;
+        b=ldjg/ZRvhzfOem95h4B4LUKM/Y9FqXK6i8rzVXO52S9Nc52TBIJSk/tTwbkAUN1Ah1
+         K5b79yJRnq6PeNogYBc4yAsGzxOVy/sxPddjEIS/CPnwd1D/JldR9DqCC1t1n6IYKtGZ
+         +gDZmAAVjz23reFUC4OF5UzWgsxpzOPvL/pjuANg9SsA7Xc7KjvrvDvjl0GTzOFQC3QF
+         5st6aZONAiT75MqQ0I6kZxZPI/e1yL6xPkFSiBLmuBFWDlXsplmN3/Y2MWlvykgEQWZO
+         ba+1urcgh50HRfzWT497T3vuleYt/+d339UuUuzH7H5oNpvHqr+Lwp15u2EsoO3WxPg/
+         ixLA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=Gcv5s7rBRNBJ5HHAx5BTh92SWh3a8LAuqVI+SvJy7ts=;
-        b=G6wO45a7XqvdNfZELPfsu0e5SpT/ZB90Je8M1iTnQR4+SibtuFSG7e02qawPXmGrtf
-         j0PjEbUVpZMftMGhHhKZC4seCIeooJ32AupfdKgg9aVdS3Fy6KlTEEYHp1UlpDSkh45p
-         Wpjm6paZIMFkL5NeCT+O5l9dLxozvMlRJaXsaPon6YC+0H4ZMEjCxbMf07JhCiJjdLqW
-         8kEGAxXfjwcsAL7gqOo+2vXNtlkCbT81eWBWfGj6sgA+kNh30Jen7LGQCs/v4Uoh+8Bq
-         pS4+KdKfZ0rutR6/KzhGPBO9P/F9cSPKtScMO4gvAnNpfzivnCSmkYPqtveKfyYEJFSQ
-         sS4A==
-X-Gm-Message-State: AOAM530r1NHt2RCDlF9gMMiZEQd/LSb/hdmwWb63s8XPmzAVt6uchoMY
-	xZcudHP2J8E7b7RR5IVExGC/IP19DAdPNk372K78fQ==
-X-Google-Smtp-Source: ABdhPJy1McJNZUNI3CIFgkyOW7NHw2oG5bzzyaZnDTSML8CbU3gzm1uIJISlctdV3bHiMOyqV8uYp+yriwc2u97Khhs=
-X-Received: by 2002:a17:902:ce8d:b0:14b:4bc6:e81 with SMTP id
- f13-20020a170902ce8d00b0014b4bc60e81mr14603301plg.132.1643213248391; Wed, 26
- Jan 2022 08:07:28 -0800 (PST)
+        bh=f9speIaQTCGP3s0a64E+GY3sDlR2buP1pgNXk10VrJ4=;
+        b=i3YWEgJstewcX1xL3F5VICMfoFZ0BGjRU/vBCOOzKXKb35Hjqa2588E8qnrJif5huD
+         03OmexunayfW3XIH9C3wbKt9JqqU1w37O5vCer+dbEzDh1eQJ52M0ECgNcI3KTD8aZ38
+         CGr0ifMlxLyGuc/oBXOxsmXoJbNiVKL42SEgYbxid58fFefkfHPyBQZOrACpsLDXPdBP
+         GUObd7We7yuvNxknrMBlxaL+fDbb1ddm6Fgm7jqZy4N2HydmoDAdwCdg24mfxCukBWBq
+         p9kN12OCSXzpL8vAxrbMeQhBgWO8Dvuo1n0lp7SXnwiBiWNRfbZlkN8Wy9M/Cwkxu8aq
+         Jhrg==
+X-Gm-Message-State: AOAM5329UiPEVCZgkEKo9r7nbZgdHoJMdR2Hf50ThJTmFEHg+DBYO5l9
+	mGkZ2SNWW0qirJ63u40xol/vCh9JxpiP0OM/puioqw==
+X-Google-Smtp-Source: ABdhPJzJKw9/W8FxpqE1jYmr1fg568gtzdl1WozStzP5if+YmGy3p9it+BwuHdRGAyzjtEqJzJH/FgmZxpm4jer/82k=
+X-Received: by 2002:a17:902:d492:b0:14a:f3ce:37a8 with SMTP id
+ c18-20020a170902d49200b0014af3ce37a8mr23672825plg.34.1643213822552; Wed, 26
+ Jan 2022 08:17:02 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1642535478.git.alison.schofield@intel.com> <2072a34022dabcc92e3cc73b16c8008656e1084e.1642535478.git.alison.schofield@intel.com>
-In-Reply-To: <2072a34022dabcc92e3cc73b16c8008656e1084e.1642535478.git.alison.schofield@intel.com>
+References: <cover.1642535478.git.alison.schofield@intel.com> <55800f227e4d72f90fcdd49affb352fe4386f628.1642535478.git.alison.schofield@intel.com>
+In-Reply-To: <55800f227e4d72f90fcdd49affb352fe4386f628.1642535478.git.alison.schofield@intel.com>
 From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 26 Jan 2022 08:07:17 -0800
-Message-ID: <CAPcyv4jde6kd1oT2ZEoGWDiB1E6QX2pYzSHWr=38jtY6XB5ATA@mail.gmail.com>
-Subject: Re: [ndctl PATCH v3 1/6] libcxl: add GET_PARTITION_INFO mailbox
- command and accessors
+Date: Wed, 26 Jan 2022 08:16:51 -0800
+Message-ID: <CAPcyv4jcu8hbdf6+NYW3za4Q_qW=cMRWPznSyhmwhLwrNpCNXA@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 2/6] libcxl: add accessors for capacity fields of
+ the IDENTIFY command
 To: "Schofield, Alison" <alison.schofield@intel.com>
 Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
 	Vishal Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
@@ -56,32 +56,51 @@ On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
 >
 > From: Alison Schofield <alison.schofield@intel.com>
 >
-> Users need access to the CXL GET_PARTITION_INFO mailbox command
-> to inspect and confirm changes to the partition layout of a memory
-> device.
+> Users need access to a few additional fields reported by the IDENTIFY
+> mailbox command: total, volatile_only, and persistent_only capacities.
+> These values are useful when defining partition layouts.
 >
-> Add libcxl APIs to create a new GET_PARTITION_INFO mailbox command,
-> the command output data structure (privately), and accessor APIs to
-> return the different fields in the partition info output.
+> Add accessors to the libcxl API to retrieve these values from the
+> IDENTIFY command.
 >
-> Per the CXL 2.0 specification, devices report partition capacities
-> as multiples of 256MB. Define and use a capacity multiplier to
-> convert the raw data into bytes for user consumption. Use byte
-> format as the norm for all capacity values produced or consumed
-> using CXL Mailbox commands.
+> The fields are specified in multiples of 256MB per the CXL 2.0 spec.
+> Use the capacity multiplier to convert the raw data into bytes for user
+> consumption.
 >
 > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> ---
+>  cxl/lib/libcxl.c   | 29 +++++++++++++++++++++++++++++
+>  cxl/lib/libcxl.sym |  3 +++
+>  cxl/libcxl.h       |  3 +++
+>  3 files changed, 35 insertions(+)
+>
+> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
+> index 58181c0..1fd584a 100644
+> --- a/cxl/lib/libcxl.c
+> +++ b/cxl/lib/libcxl.c
+> @@ -1105,6 +1105,35 @@ CXL_EXPORT unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd)
+>         return le32_to_cpu(id->lsa_size);
+>  }
+>
+> +#define cmd_identify_get_capacity_field(cmd, field)                    \
+> +do {                                                                           \
+> +       struct cxl_cmd_identify *c =                                    \
+> +               (struct cxl_cmd_identify *)cmd->send_cmd->out.payload;\
+> +       int rc = cxl_cmd_validate_status(cmd,                                   \
+> +                       CXL_MEM_COMMAND_ID_IDENTIFY);                   \
+> +       if (rc)                                                                 \
+> +               return ULLONG_MAX;                                                      \
+> +       return le64_to_cpu(c->field) * CXL_CAPACITY_MULTIPLIER;                 \
+> +} while (0)
 
-Looks good to me, you might want to also add a short note about the
-"cxl_cmd_new_get_partition_info()" API in the "=== MEMDEV: Commands"
-section of Documentation/cxl/lib/libcxl.txt that I started here:
+This could probably just be 2 functions
 
-https://lore.kernel.org/r/164298557771.3021641.14904324834528700206.stgit@dwillia2-desk3.amr.corp.intel.com
+cmd_to_identify()
+capacity_to_bytes()
 
-Note that I'm not adding every single API there, but I think each
-cxl_cmd_new_<command_type>() API could use a short note.
+...and then the caller does:
 
-That can be a follow on depending on whether Vishal merges this first
-or the topology enumeration series.
+return capactity_to_bytes(cmd_to_identify()->field);
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+...and skip the macro. Otherwise, a macro with a "return" statement
+can be unwieldy unless that macro is defining an entire function.
