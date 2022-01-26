@@ -1,743 +1,179 @@
-Received: from mga06.intel.com (mga06.intel.com [134.134.136.31])
+Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0001F3FC7
-	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 20:16:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643228213; x=1674764213;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=ju36awwO4fJ+MlnDAWUCS616FRE8UCVNNgfXIehk6fk=;
-  b=G/rUF3evnVZ6nLRJvlQkknjNQAOI4hUzzUgB9iogBSX197i8ZzFEgOfo
-   T85gu8zv8yiqLk3M6y6bMr+eeotk+ZnBmOegSQKYyPfKkkh/1yiSN4fG7
-   Ge3bA63BhxqSc3v87wVPXISWskTxVDXWKFDwbBtMpJ8b5DLX2bj9UYcVU
-   2bsX/yBHpN0MjVGvnO0QpPcNoCs/vImutloV/N8pXWXqIdMT1eEx3pYQg
-   TLQ/LXVaoo70HahZIxYbHudVZwZqyYMKuFqXe7viFlY7MKU5K3tMZGY5P
-   O/YP5Yra5Mbwx2eHssbGZKSPPgm3cks1DamjXIdw9/3tbQS15iOGtbFOv
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="307357457"
-X-IronPort-AV: E=Sophos;i="5.88,319,1635231600"; 
-   d="scan'208";a="307357457"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 12:16:52 -0800
-X-IronPort-AV: E=Sophos;i="5.88,319,1635231600"; 
-   d="scan'208";a="535321876"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 12:16:52 -0800
-Subject: [PATCH v4 24/40] cxl/port: Add a driver for 'struct cxl_port'
- objects
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: kernel test robot <lkp@intel.com>, Ben Widawsky <ben.widawsky@intel.com>,
- linux-pci@vger.kernel.org, nvdimm@lists.linux.dev
-Date: Wed, 26 Jan 2022 12:16:52 -0800
-Message-ID: <164322817812.3708001.17146719098062400994.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <164298424635.3018233.9356036382052246767.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164298424635.3018233.9356036382052246767.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 045E53FCE
+	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 21:11:52 +0000 (UTC)
+Received: from pps.filterd (m0246627.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20QKZEt3002911;
+	Wed, 26 Jan 2022 21:11:36 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : subject :
+ date : message-id : content-type : mime-version; s=corp-2021-07-09;
+ bh=yq/Fn8lj67hbt0aENoZqIS7Gwfrfdcc4CAtyaJj8CGE=;
+ b=UWwEV2GFzgIcmW5OHV8owLIpynXbCHNvax3h5GAkAepxoIoldUxR6Y2DBK62g+cHPZFz
+ KLMfTQOJWb2c118Nvh5zukChbZLBNqgu2okyvLUdonTfueNby3NWPThNqrqicF7zAFGS
+ Ae3jR3VGxflREpISNJ8TsMnUH69MERgTrb2BJB/IckbFmEs3gWkATPUnZA44uvjvL+kL
+ SMEN69MCR3FEYjG0DLGtfT6sSuZn0l3M/TBJEf/tkYpNIOUuEvLBvp4UvImAnho3ICks
+ 5QeKmLkRFock9N0Xt5iMxfBk15IlntfnFg1jtHmGg2EsizzsLBagU71PEYjmGEOupNhS Gg== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3dswh9qmqy-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 26 Jan 2022 21:11:36 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+	by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20QL6Vj5020793;
+	Wed, 26 Jan 2022 21:11:35 GMT
+Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11lp2170.outbound.protection.outlook.com [104.47.58.170])
+	by userp3020.oracle.com with ESMTP id 3drbcrx7r0-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Wed, 26 Jan 2022 21:11:34 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=UERLexTFSJuL1YpC1ng4A63lABh6tzcOpSf730mUk7sVFEtIPg5EYiOHMhrAFrBFIqNLPHWh4mcWfRt/o1DxiwwBg+DL9tDsmF6+bn2oN89FQ/HPc1aVfklQgHioqeBm+3GerN1W4637aOnCuPAnILoCpfDv5BUH0h73+ZTrYZVpVqoxpxc8oRSjGUjgw0rtk2MGX6jD4uOsCLv7T8wotxRoYwpYFc/bTzCHqXF0r7Vn3BUf4WQy3LvzNFktbOVusLcRt5w0m7TkjA1l0CV5y2CH1AtXC0bv8hH4pfl7oCr6tFXXPhpW8oXYq2xPC1oGSMVlDxmcsJNx0MwiSfoNWg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=yq/Fn8lj67hbt0aENoZqIS7Gwfrfdcc4CAtyaJj8CGE=;
+ b=Yqgnk5Xqn1k1VACSI1WnOC/Au+ZfbTZvqyUJdkhjqt95gkQ7rAT8+RjgWpr7885FHlwKJDSi640AlLOAHzUbV/wMBv3ADwdVyuL/ridHj6x6aWOb4Nvniq+J3fA9zshsvn/pRRgIslS0yROhmjqMkTjkQ3l2OpaOCIphHAtts1OeM+JHvoG824iv3kX8RrRBxd6+gJuf6fmUmIs4yI5hb6pRhEuLLHLfoxV84+rGlLIJTfikyhaQBi9mkrxR/QFLYaeqDpunjjHvr2e4wsNkZP9du0hdGdYYLqSRULlpvyssk1ydz5JQ1WHTB3nHJvvrzNv3SjRxfod1b1oYCvBVog==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=yq/Fn8lj67hbt0aENoZqIS7Gwfrfdcc4CAtyaJj8CGE=;
+ b=kCY0FpJxPAubRBvnlOyqKxsyZaDZgEGnG8MS+X2WN/ZzY+Ks8jS1JAjDwosnyrkYg09nSe99x912IZt+9y0Wyrm4/exIYD1wftLGpdLBCrw9i6f/ldOHzqs1iCUHBPV35XBBrnAcFs9Ky3Dc9aO/VTPAnbtncCr1K7+e1l225UQ=
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
+ by DM8PR10MB5494.namprd10.prod.outlook.com (2603:10b6:8:21::5) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.4909.10; Wed, 26 Jan 2022 21:11:32 +0000
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::d034:a8db:9e32:acde]) by SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::d034:a8db:9e32:acde%4]) with mapi id 15.20.4909.019; Wed, 26 Jan 2022
+ 21:11:32 +0000
+From: Jane Chu <jane.chu@oracle.com>
+To: david@fromorbit.com, djwong@kernel.org, dan.j.williams@intel.com,
+        hch@infradead.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
+        agk@redhat.com, snitzer@redhat.com, dm-devel@redhat.com,
+        ira.weiny@intel.com, willy@infradead.org, vgoyal@redhat.com,
+        linux-fsdevel@vger.kernel.org, nvdimm@lists.linux.dev,
+        linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org
+Subject: [PATCH v4 0/7] DAX poison recovery 
+Date: Wed, 26 Jan 2022 14:11:09 -0700
+Message-Id: <20220126211116.860012-1-jane.chu@oracle.com>
+X-Mailer: git-send-email 2.18.4
+Content-Type: text/plain
+X-ClientProxiedBy: SA9PR13CA0112.namprd13.prod.outlook.com
+ (2603:10b6:806:24::27) To SJ0PR10MB4429.namprd10.prod.outlook.com
+ (2603:10b6:a03:2d1::14)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: e3ea5bfb-bfdc-4db9-533e-08d9e1106d60
+X-MS-TrafficTypeDiagnostic: DM8PR10MB5494:EE_
+X-Microsoft-Antispam-PRVS: 
+	<DM8PR10MB54943DAE7FFE0FB8403EBB07F3209@DM8PR10MB5494.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8273;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 
+	NQP06gsZBA/wEI6jUqkbEvHxFApIJ4nYXcR9CNPwQthQCNrm/8A8CW8EjG7kgwq0Akx8Aewy5mc0ASKG44j2/c/xEiNYDjhOjG8GIFNvV8nQNuf2KQdr0u6Vn8BaPHtNGnc1JXcly39Emzn8RHJnTANJ0EqXyyp39jipHiHwQeWY/d3o1MQAb9ScVBkWVcWJbu4+VUlk6NEbMk8vBE0yi30aE/Ioc57jk6LaOEonvqfcGG7nam4hVrhg2sJtcU4oNs2H1E8qE6/I1cCDvvgCkN2n47itBPJmM286JSfDKC6AhjnV2MZtU2M10EB/bR+b2YX8mIWGQNVaz449SvDugtQ7eBzeEFp7+L1JnZDZZ1iow94mljM7uvmgh1hbOfgHSn2S1RSGcBdlUdeDaqQlZi4sBgbsmFqUHI0/jpNoIZMeTe0RcDi1XdT86vzPwWNj3goPm2ZVecruws5a+xmWj8RHtRuaYzv0SpJdjhIc0o+v3BYlldboIrAI1IjdgCTqAKJ0MJk7zRVZaszdgkUR/1pylDzgdnfbu/bYU8czbTZ9u+NnTvao1kkqnZ/qGPjuujYDOtu1J1be/YUVBH4ZwosmJqGLWSTKeV/0DBUDI7W7O3VPYAdPrqmY5gHGX/tTUotpQB7SyfXOVCwAB43l0qE/AeA3Iwz0Gz5csiEcoEoSRV4EYwFVIEHQHXgjt+jGgYzIVQj40WGd5jndVFGSmMObvHMTt4xplGbOGBueWaFgTAWHIFFtCMZ9YYSkWljQqKLp17K28MOtosiLsmO8vJpJf+39hieqBnl+B+axEH7Nk6qWKRI9FUPAVz9pVH8i
+X-Forefront-Antispam-Report: 
+	CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(66946007)(52116002)(86362001)(186003)(8676002)(6666004)(966005)(7416002)(6486002)(1076003)(8936002)(921005)(508600001)(4743002)(6512007)(66476007)(2906002)(6506007)(83380400001)(2616005)(5660300002)(66556008)(36756003)(44832011)(316002)(38100700002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: 
+	=?us-ascii?Q?GFArw88L5cgtzxkBktHATQBkapiRkYF1Ueo/JpOhe2EUBt5l47i/9sVrdXJq?=
+ =?us-ascii?Q?tK2Jgipp/ZrkgC967JhMvvcK1K3lXSxTybdz3lyHlqayyqwyht7fIK4fHKPi?=
+ =?us-ascii?Q?8zKY9ISh3xZv7GKEgG5/r5M0Zy6nTXv6TziR6t9YDSkcEBFD9NBGo3V5wuBi?=
+ =?us-ascii?Q?+b6gt95q0btorvVb+eSj4okoLQDtt3qk9Tvt9ac9cEOpyT2Q0vz1k2ZrdnSB?=
+ =?us-ascii?Q?oh8RB8qpqBvvH9eHylLBx9mdmYxTAPKww9eM4nfW5sUfnhPPcBJJUz98E9Wr?=
+ =?us-ascii?Q?0QnINiExn4KNCMnTXBUC21rrdZ81+gYPsE5QLYkx/Pu0NoIAJjlfhw2MB9qJ?=
+ =?us-ascii?Q?4vZ805veyWK99sa2y3lWC2rgEEbYQuiCH9yqSGVjBeVUFH5fGAZnn+PcSb7n?=
+ =?us-ascii?Q?8k3NwlnVIlHzdx7QgDaNMM8+obeF4hIi9HZtxHZBf73IK1XkEikTHiAWKuiH?=
+ =?us-ascii?Q?TQB/ShuzDGK94mnz38qOi2PV+x1QvN9fbYXFyAdpl98esb8783fnDoJAXyBx?=
+ =?us-ascii?Q?oKG/sPw4are2b71hSGlWrmq3oCJdOOQSU+ekwqDoO31OwHUYjhfwY/AJSBg4?=
+ =?us-ascii?Q?0q8ftJeeUNCpS9rV4KOpatk836uv0Jjv3RmldV9qt4TR+E0N7/0R9EwBZBhq?=
+ =?us-ascii?Q?DjSbg33QMtpHNd6k8fjhyyymYfp7+dpzrYYTeoruSaqDu7YfrR0mVWQPYtBu?=
+ =?us-ascii?Q?2/RMZVMjooy9QG6rGJg2R4AkQ38kF1scRC81JZCj6eQTbNsgs6nQRiXlUxZu?=
+ =?us-ascii?Q?K1MFMOWEHd+i+ZcQLR3Ncv/QDJuMZaB2c+f9KNfgwEj/aDqMZY3P00Wvj1bS?=
+ =?us-ascii?Q?ViolgYjgaU4JuFPvjZhCPYc+8hCcBTVKe6V9eziu5PMP0FKkAE7PtKaUnvMV?=
+ =?us-ascii?Q?RRsiAG74kVq6RqRKwGFKxEG53kLinC0/l2WEiPIzDPANrGWvVbptsJSAkfhx?=
+ =?us-ascii?Q?JpqohfTY40mnX5kiJo4a0iyoFniyQMkqTD0Crev4/BFvUCCECj8JA/yxnMxu?=
+ =?us-ascii?Q?zEL1xIJxbz5lSjpEh2uiVY0JdV1235eVaLEyELoxf+y4aINMXUzAYTwEhg/x?=
+ =?us-ascii?Q?p8LV6BDahmBPjQ1dsYbYaxFrETfmELwlMN87zulNXrbrgZZtF64QualV6DOw?=
+ =?us-ascii?Q?JEECAvsw/67eBetpE1pHJHJDvEwUpMu6pmMKuZXYffroYe8BfUBGRIeiVFPY?=
+ =?us-ascii?Q?zRN+ZoseOhbX08FxdTk8o+4fg8hlbGv7ASQIgwsBA+ZxccjVgzdp1z/TIojQ?=
+ =?us-ascii?Q?UKVakIrqrcuwQJxJZFnpZN88LgaklEqc494IRYlacif+n8LL99MQoPlRzkNJ?=
+ =?us-ascii?Q?H3bThcwuvk22wCPMffPJAye29Z0uUv3J171PZsfpeak+9lbmguE0OksmH5ef?=
+ =?us-ascii?Q?lWAlSEKiYpezc2vsCAiAdsCg1R2AhcSpa0AJj28tVstBCHjLY1NKFKvc9U3l?=
+ =?us-ascii?Q?6oYCc62v/yZtgIZjgIB4fvUY/jCigGycZ4+HtC7nFqbnEMxR/kh72CbXNpbF?=
+ =?us-ascii?Q?RLJ/B0nzLuUVHnPhqVQU0mYdM9kQzyg6fdGfrqeW+0KxtZ7j1NZ0X5TPSrh+?=
+ =?us-ascii?Q?CUd+L1VhQ+/hoZSE6QM/OC4z9M/LumP7sSVuAZPfmiteQ9QT6nB4mJTMTLgk?=
+ =?us-ascii?Q?TFD55OL0+CiOf1WompW6DSloE5ZSlA803Z4KqVJ2AkEL?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: e3ea5bfb-bfdc-4db9-533e-08d9e1106d60
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 26 Jan 2022 21:11:32.3047
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: uiFRoDo7wg+3dslNnqoK9OEm59NGNi7BpIiRDjnex7Gt2urKzuZ3HN/3mHNTJ+Ifm9H/cafTy5OcJs0gWz5kfQ==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM8PR10MB5494
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10239 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxscore=0 malwarescore=0
+ spamscore=0 phishscore=0 suspectscore=0 adultscore=0 mlxlogscore=986
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2201110000
+ definitions=main-2201260122
+X-Proofpoint-ORIG-GUID: ApMTbeGZfrTeeXitQjSMI0Fn_BUNcJbu
+X-Proofpoint-GUID: ApMTbeGZfrTeeXitQjSMI0Fn_BUNcJbu
 
-From: Ben Widawsky <ben.widawsky@intel.com>
+In this series, dax recovery code path is independent of that of
+normal write. Competing dax recovery threads are serialized,
+racing read threads are guaranteed not overlapping with the
+recovery process.
 
-The need for a CXL port driver and a dedicated cxl_bus_type is driven by
-a need to simultaneously support 2 independent physical memory decode
-domains (cache coherent CXL.mem and uncached PCI.mmio) that also
-intersect at a single PCIe device node. A CXL Port is a device that
-advertises a  CXL Component Register block with an "HDM Decoder
-Capability Structure".
+In this phase, the recovery granularity is page, future patch
+will explore recovery in finer granularity.
 
->From Documentation/driver-api/cxl/memory-devices.rst:
+Change from v3:
+  Rebased to v5.17-rc1-81-g0280e3c58f92
 
-    Similar to how a RAID driver takes disk objects and assembles them into
-    a new logical device, the CXL subsystem is tasked to take PCIe and ACPI
-    objects and assemble them into a CXL.mem decode topology. The need for
-    runtime configuration of the CXL.mem topology is also similar to RAID in
-    that different environments with the same hardware configuration may
-    decide to assemble the topology in contrasting ways. One may choose
-    performance (RAID0) striping memory across multiple Host Bridges and
-    endpoints while another may opt for fault tolerance and disable any
-    striping in the CXL.mem topology.
+v3:
+https://lkml.org/lkml/2022/1/11/900
+v2:
+https://lore.kernel.org/all/20211106011638.2613039-1-jane.chu@oracle.com/
+Disussions about marking poisoned page as 'np':
+https://lore.kernel.org/all/CAPcyv4hrXPb1tASBZUg-GgdVs0OOFKXMXLiHmktg_kFi7YBMyQ@mail.gmail.com/
 
-The port driver identifies whether an endpoint Memory Expander is
-connected to a CXL topology. If an active (bound to the 'cxl_port'
-driver) CXL Port is not found at every PCIe Switch Upstream port and an
-active "root" CXL Port then the device is just a plain PCIe endpoint
-only capable of participating in PCI.mmio and DMA cycles, not CXL.mem
-coherent interleave sets.
+Jane Chu (7):
+  mce: fix set_mce_nospec to always unmap the whole page
+  dax: introduce dax device flag DAXDEV_RECOVERY
+  dm: make dm aware of target's DAXDEV_RECOVERY capability
+  dax: add dax_recovery_write to dax_op and dm target type
+  pmem: add pmem_recovery_write() dax op
+  dax: add recovery_write to dax_iomap_iter in failure path
+  pmem: fix pmem_do_write() avoid writing to 'np' page
 
-The 'cxl_port' driver lets the CXL subsystem leverage driver-core
-infrastructure for setup and teardown of register resources and
-communicating device activation status to userspace. The cxl_bus_type
-can rendezvous the async arrival of platform level CXL resources (via
-the 'cxl_acpi' driver) with the asynchronous enumeration of Memory
-Expander endpoints, while also implementing a hierarchical locking model
-independent of the associated 'struct pci_dev' locking model. The
-locking for dport and decoder enumeration is now handled in the core
-rather than callers.
+ arch/x86/include/asm/set_memory.h | 17 ++----
+ arch/x86/kernel/cpu/mce/core.c    |  6 +-
+ arch/x86/mm/pat/set_memory.c      |  8 ++-
+ drivers/dax/super.c               | 41 +++++++++++++
+ drivers/md/dm-linear.c            | 12 ++++
+ drivers/md/dm-log-writes.c        | 12 ++++
+ drivers/md/dm-stripe.c            | 13 ++++
+ drivers/md/dm-table.c             | 33 +++++++++++
+ drivers/md/dm.c                   | 27 +++++++++
+ drivers/nvdimm/pmem.c             | 99 ++++++++++++++++++++++++++++---
+ drivers/nvdimm/pmem.h             |  1 +
+ fs/dax.c                          | 23 ++++++-
+ include/linux/dax.h               | 33 +++++++++++
+ include/linux/device-mapper.h     |  9 +++
+ include/linux/set_memory.h        |  2 +-
+ 15 files changed, 309 insertions(+), 27 deletions(-)
 
-For now the port driver only enumerates and registers CXL resources
-(downstream port metadata and decoder resources) later it will be used
-to take action on its decoders in response to CXL.mem region
-provisioning requests.
-
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-[djbw: add theory of operation document, move enumeration infra to core]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v3:
-- Fixup a dev_err() to use @dev rather than @port->dev (Ben)
-
- Documentation/driver-api/cxl/memory-devices.rst |  302 +++++++++++++++++++++++
- drivers/cxl/Kconfig                             |    5 
- drivers/cxl/Makefile                            |    2 
- drivers/cxl/acpi.c                              |   26 --
- drivers/cxl/core/pci.c                          |    2 
- drivers/cxl/core/port.c                         |   34 ++-
- drivers/cxl/cxl.h                               |    4 
- drivers/cxl/cxlpci.h                            |    1 
- drivers/cxl/port.c                              |   63 +++++
- tools/testing/cxl/Kbuild                        |    6 
- tools/testing/cxl/test/cxl.c                    |    2 
- 11 files changed, 416 insertions(+), 31 deletions(-)
- create mode 100644 drivers/cxl/port.c
-
-diff --git a/Documentation/driver-api/cxl/memory-devices.rst b/Documentation/driver-api/cxl/memory-devices.rst
-index c8f7a16cd0e3..3498d38d7cbd 100644
---- a/Documentation/driver-api/cxl/memory-devices.rst
-+++ b/Documentation/driver-api/cxl/memory-devices.rst
-@@ -14,6 +14,303 @@ that optionally define a device's contribution to an interleaved address
- range across multiple devices underneath a host-bridge or interleaved
- across host-bridges.
- 
-+CXL Bus: Theory of Operation
-+============================
-+Similar to how a RAID driver takes disk objects and assembles them into a new
-+logical device, the CXL subsystem is tasked to take PCIe and ACPI objects and
-+assemble them into a CXL.mem decode topology. The need for runtime configuration
-+of the CXL.mem topology is also similar to RAID in that different environments
-+with the same hardware configuration may decide to assemble the topology in
-+contrasting ways. One may choose performance (RAID0) striping memory across
-+multiple Host Bridges and endpoints while another may opt for fault tolerance
-+and disable any striping in the CXL.mem topology.
-+
-+Platform firmware enumerates a menu of interleave options at the "CXL root port"
-+(Linux term for the top of the CXL decode topology). From there, PCIe topology
-+dictates which endpoints can participate in which Host Bridge decode regimes.
-+Each PCIe Switch in the path between the root and an endpoint introduces a point
-+at which the interleave can be split. For example platform firmware may say at a
-+given range only decodes to 1 one Host Bridge, but that Host Bridge may in turn
-+interleave cycles across multiple Root Ports. An intervening Switch between a
-+port and an endpoint may interleave cycles across multiple Downstream Switch
-+Ports, etc.
-+
-+Here is a sample listing of a CXL topology defined by 'cxl_test'. The 'cxl_test'
-+module generates an emulated CXL topology of 2 Host Bridges each with 2 Root
-+Ports. Each of those Root Ports are connected to 2-way switches with endpoints
-+connected to those downstream ports for a total of 8 endpoints::
-+
-+    # cxl list -BEMPu -b cxl_test
-+    {
-+      "bus":"root3",
-+      "provider":"cxl_test",
-+      "ports:root3":[
-+        {
-+          "port":"port5",
-+          "host":"cxl_host_bridge.1",
-+          "ports:port5":[
-+            {
-+              "port":"port8",
-+              "host":"cxl_switch_uport.1",
-+              "endpoints:port8":[
-+                {
-+                  "endpoint":"endpoint9",
-+                  "host":"mem2",
-+                  "memdev":{
-+                    "memdev":"mem2",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x1",
-+                    "numa_node":1,
-+                    "host":"cxl_mem.1"
-+                  }
-+                },
-+                {
-+                  "endpoint":"endpoint15",
-+                  "host":"mem6",
-+                  "memdev":{
-+                    "memdev":"mem6",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x5",
-+                    "numa_node":1,
-+                    "host":"cxl_mem.5"
-+                  }
-+                }
-+              ]
-+            },
-+            {
-+              "port":"port12",
-+              "host":"cxl_switch_uport.3",
-+              "endpoints:port12":[
-+                {
-+                  "endpoint":"endpoint17",
-+                  "host":"mem8",
-+                  "memdev":{
-+                    "memdev":"mem8",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x7",
-+                    "numa_node":1,
-+                    "host":"cxl_mem.7"
-+                  }
-+                },
-+                {
-+                  "endpoint":"endpoint13",
-+                  "host":"mem4",
-+                  "memdev":{
-+                    "memdev":"mem4",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x3",
-+                    "numa_node":1,
-+                    "host":"cxl_mem.3"
-+                  }
-+                }
-+              ]
-+            }
-+          ]
-+        },
-+        {
-+          "port":"port4",
-+          "host":"cxl_host_bridge.0",
-+          "ports:port4":[
-+            {
-+              "port":"port6",
-+              "host":"cxl_switch_uport.0",
-+              "endpoints:port6":[
-+                {
-+                  "endpoint":"endpoint7",
-+                  "host":"mem1",
-+                  "memdev":{
-+                    "memdev":"mem1",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0",
-+                    "numa_node":0,
-+                    "host":"cxl_mem.0"
-+                  }
-+                },
-+                {
-+                  "endpoint":"endpoint14",
-+                  "host":"mem5",
-+                  "memdev":{
-+                    "memdev":"mem5",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x4",
-+                    "numa_node":0,
-+                    "host":"cxl_mem.4"
-+                  }
-+                }
-+              ]
-+            },
-+            {
-+              "port":"port10",
-+              "host":"cxl_switch_uport.2",
-+              "endpoints:port10":[
-+                {
-+                  "endpoint":"endpoint16",
-+                  "host":"mem7",
-+                  "memdev":{
-+                    "memdev":"mem7",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x6",
-+                    "numa_node":0,
-+                    "host":"cxl_mem.6"
-+                  }
-+                },
-+                {
-+                  "endpoint":"endpoint11",
-+                  "host":"mem3",
-+                  "memdev":{
-+                    "memdev":"mem3",
-+                    "pmem_size":"256.00 MiB (268.44 MB)",
-+                    "ram_size":"256.00 MiB (268.44 MB)",
-+                    "serial":"0x2",
-+                    "numa_node":0,
-+                    "host":"cxl_mem.2"
-+                  }
-+                }
-+              ]
-+            }
-+          ]
-+        }
-+      ]
-+    }
-+
-+In that listing each "root", "port", and "endpoint" object correspond a kernel
-+'struct cxl_port' object. A 'cxl_port' is a device that can decode CXL.mem to
-+its descendants. So "root" claims non-PCIe enumerable platform decode ranges and
-+decodes them to "ports", "ports" decode to "endpoints", and "endpoints"
-+represent the decode from SPA (System Physical Address) to DPA (Device Physical
-+Address).
-+
-+Continuing the RAID analogy, disks have both topology metadata and on device
-+metadata that determine RAID set assembly. CXL Port topology and CXL Port link
-+status is metadata for CXL.mem set assembly. The CXL Port topology is enumerated
-+by the arrival of a CXL.mem device. I.e. unless and until the PCIe core attaches
-+the cxl_pci driver to a CXL Memory Expander there is no role for CXL Port
-+objects. Conversely for hot-unplug / removal scenarios, there is no need for
-+the Linux PCI core to tear down switch-level CXL resources because the endpoint
-+->remove() event cleans up the port data that was established to support that
-+Memory Expander.
-+
-+The port metadata and potential decode schemes that a give memory device may
-+participate can be determined via a command like::
-+
-+    # cxl list -BDMu -d root -m mem3
-+    {
-+      "bus":"root3",
-+      "provider":"cxl_test",
-+      "decoders:root3":[
-+        {
-+          "decoder":"decoder3.1",
-+          "resource":"0x8030000000",
-+          "size":"512.00 MiB (536.87 MB)",
-+          "volatile_capable":true,
-+          "nr_targets":2
-+        },
-+        {
-+          "decoder":"decoder3.3",
-+          "resource":"0x8060000000",
-+          "size":"512.00 MiB (536.87 MB)",
-+          "pmem_capable":true,
-+          "nr_targets":2
-+        },
-+        {
-+          "decoder":"decoder3.0",
-+          "resource":"0x8020000000",
-+          "size":"256.00 MiB (268.44 MB)",
-+          "volatile_capable":true,
-+          "nr_targets":1
-+        },
-+        {
-+          "decoder":"decoder3.2",
-+          "resource":"0x8050000000",
-+          "size":"256.00 MiB (268.44 MB)",
-+          "pmem_capable":true,
-+          "nr_targets":1
-+        }
-+      ],
-+      "memdevs:root3":[
-+        {
-+          "memdev":"mem3",
-+          "pmem_size":"256.00 MiB (268.44 MB)",
-+          "ram_size":"256.00 MiB (268.44 MB)",
-+          "serial":"0x2",
-+          "numa_node":0,
-+          "host":"cxl_mem.2"
-+        }
-+      ]
-+    }
-+
-+...which queries the CXL topology to ask "given CXL Memory Expander with a kernel
-+device name of 'mem3' which platform level decode ranges may this device
-+participate". A given expander can participate in multiple CXL.mem interleave
-+sets simultaneously depending on how many decoder resource it has. In this
-+example mem3 can participate in one or more of a PMEM interleave that spans to
-+Host Bridges, a PMEM interleave that targets a single Host Bridge, a Volatile
-+memory interleave that spans 2 Host Bridges, and a Volatile memory interleave
-+that only targets a single Host Bridge.
-+
-+Conversely the memory devices that can participate in a given platform level
-+decode scheme can be determined via a command like the following::
-+
-+    # cxl list -MDu -d 3.2
-+    [
-+      {
-+        "memdevs":[
-+          {
-+            "memdev":"mem1",
-+            "pmem_size":"256.00 MiB (268.44 MB)",
-+            "ram_size":"256.00 MiB (268.44 MB)",
-+            "serial":"0",
-+            "numa_node":0,
-+            "host":"cxl_mem.0"
-+          },
-+          {
-+            "memdev":"mem5",
-+            "pmem_size":"256.00 MiB (268.44 MB)",
-+            "ram_size":"256.00 MiB (268.44 MB)",
-+            "serial":"0x4",
-+            "numa_node":0,
-+            "host":"cxl_mem.4"
-+          },
-+          {
-+            "memdev":"mem7",
-+            "pmem_size":"256.00 MiB (268.44 MB)",
-+            "ram_size":"256.00 MiB (268.44 MB)",
-+            "serial":"0x6",
-+            "numa_node":0,
-+            "host":"cxl_mem.6"
-+          },
-+          {
-+            "memdev":"mem3",
-+            "pmem_size":"256.00 MiB (268.44 MB)",
-+            "ram_size":"256.00 MiB (268.44 MB)",
-+            "serial":"0x2",
-+            "numa_node":0,
-+            "host":"cxl_mem.2"
-+          }
-+        ]
-+      },
-+      {
-+        "root decoders":[
-+          {
-+            "decoder":"decoder3.2",
-+            "resource":"0x8050000000",
-+            "size":"256.00 MiB (268.44 MB)",
-+            "pmem_capable":true,
-+            "nr_targets":1
-+          }
-+        ]
-+      }
-+    ]
-+
-+...where the naming scheme for decoders is "decoder<port_id>.<instance_id>".
-+
- Driver Infrastructure
- =====================
- 
-@@ -28,6 +325,11 @@ CXL Memory Device
- .. kernel-doc:: drivers/cxl/pci.c
-    :internal:
- 
-+CXL Port
-+--------
-+.. kernel-doc:: drivers/cxl/port.c
-+   :doc: cxl port
-+
- CXL Core
- --------
- .. kernel-doc:: drivers/cxl/cxl.h
-diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
-index ef05e96f8f97..4f4f7587f6ca 100644
---- a/drivers/cxl/Kconfig
-+++ b/drivers/cxl/Kconfig
-@@ -77,4 +77,9 @@ config CXL_PMEM
- 	  provisioning the persistent memory capacity of CXL memory expanders.
- 
- 	  If unsure say 'm'.
-+
-+config CXL_PORT
-+	default CXL_BUS
-+	tristate
-+
- endif
-diff --git a/drivers/cxl/Makefile b/drivers/cxl/Makefile
-index cf07ae6cea17..56fcac2323cb 100644
---- a/drivers/cxl/Makefile
-+++ b/drivers/cxl/Makefile
-@@ -3,7 +3,9 @@ obj-$(CONFIG_CXL_BUS) += core/
- obj-$(CONFIG_CXL_PCI) += cxl_pci.o
- obj-$(CONFIG_CXL_ACPI) += cxl_acpi.o
- obj-$(CONFIG_CXL_PMEM) += cxl_pmem.o
-+obj-$(CONFIG_CXL_PORT) += cxl_port.o
- 
- cxl_pci-y := pci.o
- cxl_acpi-y := acpi.o
- cxl_pmem-y := pmem.o
-+cxl_port-y := port.o
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index 8c2ced91518b..82591642ea90 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -169,7 +169,6 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 	struct acpi_device *bridge = to_cxl_host_bridge(host, match);
- 	struct acpi_pci_root *pci_root;
- 	struct cxl_dport *dport;
--	struct cxl_hdm *cxlhdm;
- 	struct cxl_port *port;
- 	int rc;
- 
-@@ -197,28 +196,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 		return PTR_ERR(port);
- 	dev_dbg(host, "%s: add: %s\n", dev_name(match), dev_name(&port->dev));
- 
--	rc = devm_cxl_port_enumerate_dports(host, port);
--	if (rc < 0)
--		return rc;
--	cxl_device_lock(&port->dev);
--	if (rc == 1) {
--		rc = devm_cxl_add_passthrough_decoder(host, port);
--		goto out;
--	}
--
--	cxlhdm = devm_cxl_setup_hdm(host, port);
--	if (IS_ERR(cxlhdm)) {
--		rc = PTR_ERR(cxlhdm);
--		goto out;
--	}
--
--	rc = devm_cxl_enumerate_decoders(host, cxlhdm);
--	if (rc)
--		dev_err(&port->dev, "Couldn't enumerate decoders (%d)\n", rc);
--
--out:
--	cxl_device_unlock(&port->dev);
--	return rc;
-+	return 0;
- }
- 
- struct cxl_chbs_context {
-@@ -278,9 +256,7 @@ static int add_host_bridge_dport(struct device *match, void *arg)
- 		return 0;
- 	}
- 
--	cxl_device_lock(&root_port->dev);
- 	dport = devm_cxl_add_dport(host, root_port, match, uid, ctx.chbcr);
--	cxl_device_unlock(&root_port->dev);
- 	if (IS_ERR(dport)) {
- 		dev_err(host, "failed to add downstream port: %s\n",
- 			dev_name(match));
-diff --git a/drivers/cxl/core/pci.c b/drivers/cxl/core/pci.c
-index 48c9a004ae8e..a04220ebc03f 100644
---- a/drivers/cxl/core/pci.c
-+++ b/drivers/cxl/core/pci.c
-@@ -50,10 +50,8 @@ static int match_add_dports(struct pci_dev *pdev, void *data)
- 		dev_dbg(&port->dev, "failed to find component registers\n");
- 
- 	port_num = FIELD_GET(PCI_EXP_LNKCAP_PN, lnkcap);
--	cxl_device_lock(&port->dev);
- 	dport = devm_cxl_add_dport(host, port, &pdev->dev, port_num,
- 				   cxl_regmap_to_base(pdev, &map));
--	cxl_device_unlock(&port->dev);
- 	if (IS_ERR(dport)) {
- 		ctx->error = PTR_ERR(dport);
- 		return PTR_ERR(dport);
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 2b09d04d3568..682e7cdbcc9c 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -40,6 +40,11 @@ static int cxl_device_id(struct device *dev)
- 		return CXL_DEVICE_NVDIMM_BRIDGE;
- 	if (dev->type == &cxl_nvdimm_type)
- 		return CXL_DEVICE_NVDIMM;
-+	if (is_cxl_port(dev)) {
-+		if (is_cxl_root(to_cxl_port(dev)))
-+			return CXL_DEVICE_ROOT;
-+		return CXL_DEVICE_PORT;
-+	}
- 	return 0;
- }
- 
-@@ -300,6 +305,9 @@ static void unregister_port(void *_port)
- {
- 	struct cxl_port *port = _port;
- 
-+	if (!is_cxl_root(port))
-+		device_lock_assert(port->dev.parent);
-+
- 	device_unregister(&port->dev);
- }
- 
-@@ -527,14 +535,33 @@ static int add_dport(struct cxl_port *port, struct cxl_dport *new)
- 	return dup ? -EEXIST : 0;
- }
- 
-+/*
-+ * Since root-level CXL dports cannot be enumerated by PCI they are not
-+ * enumerated by the common port driver that acquires the port lock over
-+ * dport add/remove. Instead, root dports are manually added by a
-+ * platform driver and cond_port_lock() is used to take the missing port
-+ * lock in that case.
-+ */
-+static void cond_port_lock(struct cxl_port *port)
-+{
-+	if (is_cxl_root(port))
-+		cxl_device_lock(&port->dev);
-+}
-+
-+static void cond_port_unlock(struct cxl_port *port)
-+{
-+	if (is_cxl_root(port))
-+		cxl_device_unlock(&port->dev);
-+}
-+
- static void cxl_dport_remove(void *data)
- {
- 	struct cxl_dport *dport = data;
- 	struct cxl_port *port = dport->port;
- 
--	cxl_device_lock(&port->dev);
-+	cond_port_lock(port);
- 	list_del_init(&dport->list);
--	cxl_device_unlock(&port->dev);
-+	cond_port_unlock(port);
- 	put_device(dport->dport);
- }
- 
-@@ -588,7 +615,9 @@ struct cxl_dport *devm_cxl_add_dport(struct device *host, struct cxl_port *port,
- 	dport->component_reg_phys = component_reg_phys;
- 	dport->port = port;
- 
-+	cond_port_lock(port);
- 	rc = add_dport(port, dport);
-+	cond_port_unlock(port);
- 	if (rc)
- 		return ERR_PTR(rc);
- 
-@@ -887,6 +916,7 @@ static int cxl_bus_probe(struct device *dev)
- 	rc = to_cxl_drv(dev->driver)->probe(dev);
- 	cxl_nested_unlock(dev);
- 
-+	dev_dbg(dev, "probe: %d\n", rc);
- 	return rc;
- }
- 
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index ca3777061181..cee71c6e2fed 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -163,6 +163,8 @@ int cxl_map_device_regs(struct pci_dev *pdev,
- enum cxl_regloc_type;
- int cxl_find_regblock(struct pci_dev *pdev, enum cxl_regloc_type type,
- 		      struct cxl_register_map *map);
-+void __iomem *devm_cxl_iomap_block(struct device *dev, resource_size_t addr,
-+				   resource_size_t length);
- 
- #define CXL_RESOURCE_NONE ((resource_size_t) -1)
- #define CXL_TARGET_STRLEN 20
-@@ -348,6 +350,8 @@ void cxl_driver_unregister(struct cxl_driver *cxl_drv);
- 
- #define CXL_DEVICE_NVDIMM_BRIDGE	1
- #define CXL_DEVICE_NVDIMM		2
-+#define CXL_DEVICE_PORT			3
-+#define CXL_DEVICE_ROOT			4
- 
- #define MODULE_ALIAS_CXL(type) MODULE_ALIAS("cxl:t" __stringify(type) "*")
- #define CXL_MODALIAS_FMT "cxl:t%d"
-diff --git a/drivers/cxl/cxlpci.h b/drivers/cxl/cxlpci.h
-index 103636fda198..47640f19e899 100644
---- a/drivers/cxl/cxlpci.h
-+++ b/drivers/cxl/cxlpci.h
-@@ -2,6 +2,7 @@
- /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
- #ifndef __CXL_PCI_H__
- #define __CXL_PCI_H__
-+#include <linux/pci.h>
- #include "cxl.h"
- 
- #define CXL_MEMORY_PROGIF	0x10
-diff --git a/drivers/cxl/port.c b/drivers/cxl/port.c
-new file mode 100644
-index 000000000000..daa4c3c33aed
---- /dev/null
-+++ b/drivers/cxl/port.c
-@@ -0,0 +1,63 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/* Copyright(c) 2022 Intel Corporation. All rights reserved. */
-+#include <linux/device.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+
-+#include "cxlmem.h"
-+#include "cxlpci.h"
-+
-+/**
-+ * DOC: cxl port
-+ *
-+ * The port driver enumerates dport via PCI and scans for HDM
-+ * (Host-managed-Device-Memory) decoder resources via the
-+ * @component_reg_phys value passed in by the agent that registered the
-+ * port. All descendant ports of a CXL root port (described by platform
-+ * firmware) are managed in this drivers context. Each driver instance
-+ * is responsible for tearing down the driver context of immediate
-+ * descendant ports. The locking for this is validated by
-+ * CONFIG_PROVE_CXL_LOCKING.
-+ *
-+ * The primary service this driver provides is presenting APIs to other
-+ * drivers to utilize the decoders, and indicating to userspace (via bind
-+ * status) the connectivity of the CXL.mem protocol throughout the
-+ * PCIe topology.
-+ */
-+
-+static int cxl_port_probe(struct device *dev)
-+{
-+	struct cxl_port *port = to_cxl_port(dev);
-+	struct cxl_hdm *cxlhdm;
-+	int rc;
-+
-+	rc = devm_cxl_port_enumerate_dports(dev, port);
-+	if (rc < 0)
-+		return rc;
-+
-+	if (rc == 1)
-+		return devm_cxl_add_passthrough_decoder(dev, port);
-+
-+	cxlhdm = devm_cxl_setup_hdm(dev, port);
-+	if (IS_ERR(cxlhdm))
-+		return PTR_ERR(cxlhdm);
-+
-+	rc = devm_cxl_enumerate_decoders(dev, cxlhdm);
-+	if (rc) {
-+		dev_err(dev, "Couldn't enumerate decoders (%d)\n", rc);
-+		return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct cxl_driver cxl_port_driver = {
-+	.name = "cxl_port",
-+	.probe = cxl_port_probe,
-+	.id = CXL_DEVICE_PORT,
-+};
-+
-+module_cxl_driver(cxl_port_driver);
-+MODULE_LICENSE("GPL v2");
-+MODULE_IMPORT_NS(CXL);
-+MODULE_ALIAS_CXL(CXL_DEVICE_PORT);
-diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
-index 3045d7cba0db..3e2a529875ea 100644
---- a/tools/testing/cxl/Kbuild
-+++ b/tools/testing/cxl/Kbuild
-@@ -26,6 +26,12 @@ obj-m += cxl_pmem.o
- cxl_pmem-y := $(CXL_SRC)/pmem.o
- cxl_pmem-y += config_check.o
- 
-+obj-m += cxl_port.o
-+
-+cxl_port-y := $(CXL_SRC)/port.o
-+cxl_port-y += config_check.o
-+
-+
- obj-m += cxl_core.o
- 
- cxl_core-y := $(CXL_CORE_SRC)/port.o
-diff --git a/tools/testing/cxl/test/cxl.c b/tools/testing/cxl/test/cxl.c
-index 81c09380c537..ce6ace286fc7 100644
---- a/tools/testing/cxl/test/cxl.c
-+++ b/tools/testing/cxl/test/cxl.c
-@@ -437,10 +437,8 @@ static int mock_cxl_port_enumerate_dports(struct device *host,
- 		if (pdev->dev.parent != port->uport)
- 			continue;
- 
--		cxl_device_lock(&port->dev);
- 		dport = devm_cxl_add_dport(host, port, &pdev->dev, pdev->id,
- 					   CXL_RESOURCE_NONE);
--		cxl_device_unlock(&port->dev);
- 
- 		if (IS_ERR(dport)) {
- 			dev_err(dev, "failed to add dport: %s (%ld)\n",
+-- 
+2.18.4
 
