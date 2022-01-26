@@ -1,106 +1,98 @@
-Received: from mail-pj1-f52.google.com (mail-pj1-f52.google.com [209.85.216.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2082E2CA3
-	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 16:17:03 +0000 (UTC)
-Received: by mail-pj1-f52.google.com with SMTP id o64so162217pjo.2
-        for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 08:17:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=f9speIaQTCGP3s0a64E+GY3sDlR2buP1pgNXk10VrJ4=;
-        b=ldjg/ZRvhzfOem95h4B4LUKM/Y9FqXK6i8rzVXO52S9Nc52TBIJSk/tTwbkAUN1Ah1
-         K5b79yJRnq6PeNogYBc4yAsGzxOVy/sxPddjEIS/CPnwd1D/JldR9DqCC1t1n6IYKtGZ
-         +gDZmAAVjz23reFUC4OF5UzWgsxpzOPvL/pjuANg9SsA7Xc7KjvrvDvjl0GTzOFQC3QF
-         5st6aZONAiT75MqQ0I6kZxZPI/e1yL6xPkFSiBLmuBFWDlXsplmN3/Y2MWlvykgEQWZO
-         ba+1urcgh50HRfzWT497T3vuleYt/+d339UuUuzH7H5oNpvHqr+Lwp15u2EsoO3WxPg/
-         ixLA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=f9speIaQTCGP3s0a64E+GY3sDlR2buP1pgNXk10VrJ4=;
-        b=i3YWEgJstewcX1xL3F5VICMfoFZ0BGjRU/vBCOOzKXKb35Hjqa2588E8qnrJif5huD
-         03OmexunayfW3XIH9C3wbKt9JqqU1w37O5vCer+dbEzDh1eQJ52M0ECgNcI3KTD8aZ38
-         CGr0ifMlxLyGuc/oBXOxsmXoJbNiVKL42SEgYbxid58fFefkfHPyBQZOrACpsLDXPdBP
-         GUObd7We7yuvNxknrMBlxaL+fDbb1ddm6Fgm7jqZy4N2HydmoDAdwCdg24mfxCukBWBq
-         p9kN12OCSXzpL8vAxrbMeQhBgWO8Dvuo1n0lp7SXnwiBiWNRfbZlkN8Wy9M/Cwkxu8aq
-         Jhrg==
-X-Gm-Message-State: AOAM5329UiPEVCZgkEKo9r7nbZgdHoJMdR2Hf50ThJTmFEHg+DBYO5l9
-	mGkZ2SNWW0qirJ63u40xol/vCh9JxpiP0OM/puioqw==
-X-Google-Smtp-Source: ABdhPJzJKw9/W8FxpqE1jYmr1fg568gtzdl1WozStzP5if+YmGy3p9it+BwuHdRGAyzjtEqJzJH/FgmZxpm4jer/82k=
-X-Received: by 2002:a17:902:d492:b0:14a:f3ce:37a8 with SMTP id
- c18-20020a170902d49200b0014af3ce37a8mr23672825plg.34.1643213822552; Wed, 26
- Jan 2022 08:17:02 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB5E5168
+	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 16:33:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1643214804; x=1674750804;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=p4MAtAySV+/cOqYZqDJI7JxuklTsTLp/8YkISCKNiSI=;
+  b=QzN8s43WNOMxclvsD3S34DHPyhlmjfNYTDcSrqLjkaTnYSMiw8F52bWi
+   fGLCQ+rMQyQZE7Zb0PFXK1v52s3j1fpuJrwAfPkY9hxWS49o61HS4tvAT
+   ehfbIZtfSxCVmUJ8OrJUojb/zWklojSMhxH4JzRpHHo6jeWXvdeIS0qHT
+   LJsKzF06ETJ7gluXl5J/1YeheXkK5ot6848NKi45YTE6Q1E2Itg0zh3Cx
+   5K5OJP4NgurjDndQWNOfQW1ul7BkL4/OyRwWH/o3WW0cuUbpf5VpMUBOz
+   ERbfRlvNrAORZTLwpr9UdZPT3H1bYhkobsRACuSZOG+30TeOuCA+RDPEU
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10238"; a="244188339"
+X-IronPort-AV: E=Sophos;i="5.88,318,1635231600"; 
+   d="scan'208";a="244188339"
+Received: from orsmga004.jf.intel.com ([10.7.209.38])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 08:33:24 -0800
+X-IronPort-AV: E=Sophos;i="5.88,318,1635231600"; 
+   d="scan'208";a="628355956"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
+  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 08:33:23 -0800
+Date: Wed, 26 Jan 2022 08:37:56 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v3 1/6] libcxl: add GET_PARTITION_INFO mailbox
+ command and accessors
+Message-ID: <20220126163756.GA887955@alison-desk>
+References: <cover.1642535478.git.alison.schofield@intel.com>
+ <2072a34022dabcc92e3cc73b16c8008656e1084e.1642535478.git.alison.schofield@intel.com>
+ <CAPcyv4jde6kd1oT2ZEoGWDiB1E6QX2pYzSHWr=38jtY6XB5ATA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <cover.1642535478.git.alison.schofield@intel.com> <55800f227e4d72f90fcdd49affb352fe4386f628.1642535478.git.alison.schofield@intel.com>
-In-Reply-To: <55800f227e4d72f90fcdd49affb352fe4386f628.1642535478.git.alison.schofield@intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 26 Jan 2022 08:16:51 -0800
-Message-ID: <CAPcyv4jcu8hbdf6+NYW3za4Q_qW=cMRWPznSyhmwhLwrNpCNXA@mail.gmail.com>
-Subject: Re: [ndctl PATCH v3 2/6] libcxl: add accessors for capacity fields of
- the IDENTIFY command
-To: "Schofield, Alison" <alison.schofield@intel.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
-	Vishal Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
-	linux-cxl@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4jde6kd1oT2ZEoGWDiB1E6QX2pYzSHWr=38jtY6XB5ATA@mail.gmail.com>
 
-On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
->
-> From: Alison Schofield <alison.schofield@intel.com>
->
-> Users need access to a few additional fields reported by the IDENTIFY
-> mailbox command: total, volatile_only, and persistent_only capacities.
-> These values are useful when defining partition layouts.
->
-> Add accessors to the libcxl API to retrieve these values from the
-> IDENTIFY command.
->
-> The fields are specified in multiples of 256MB per the CXL 2.0 spec.
-> Use the capacity multiplier to convert the raw data into bytes for user
-> consumption.
->
-> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
-> ---
->  cxl/lib/libcxl.c   | 29 +++++++++++++++++++++++++++++
->  cxl/lib/libcxl.sym |  3 +++
->  cxl/libcxl.h       |  3 +++
->  3 files changed, 35 insertions(+)
->
-> diff --git a/cxl/lib/libcxl.c b/cxl/lib/libcxl.c
-> index 58181c0..1fd584a 100644
-> --- a/cxl/lib/libcxl.c
-> +++ b/cxl/lib/libcxl.c
-> @@ -1105,6 +1105,35 @@ CXL_EXPORT unsigned int cxl_cmd_identify_get_label_size(struct cxl_cmd *cmd)
->         return le32_to_cpu(id->lsa_size);
->  }
->
-> +#define cmd_identify_get_capacity_field(cmd, field)                    \
-> +do {                                                                           \
-> +       struct cxl_cmd_identify *c =                                    \
-> +               (struct cxl_cmd_identify *)cmd->send_cmd->out.payload;\
-> +       int rc = cxl_cmd_validate_status(cmd,                                   \
-> +                       CXL_MEM_COMMAND_ID_IDENTIFY);                   \
-> +       if (rc)                                                                 \
-> +               return ULLONG_MAX;                                                      \
-> +       return le64_to_cpu(c->field) * CXL_CAPACITY_MULTIPLIER;                 \
-> +} while (0)
+On Wed, Jan 26, 2022 at 08:07:17AM -0800, Dan Williams wrote:
+> On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
+> >
+> > From: Alison Schofield <alison.schofield@intel.com>
+> >
+> > Users need access to the CXL GET_PARTITION_INFO mailbox command
+> > to inspect and confirm changes to the partition layout of a memory
+> > device.
+> >
+> > Add libcxl APIs to create a new GET_PARTITION_INFO mailbox command,
+> > the command output data structure (privately), and accessor APIs to
+> > return the different fields in the partition info output.
+> >
+> > Per the CXL 2.0 specification, devices report partition capacities
+> > as multiples of 256MB. Define and use a capacity multiplier to
+> > convert the raw data into bytes for user consumption. Use byte
+> > format as the norm for all capacity values produced or consumed
+> > using CXL Mailbox commands.
+> >
+> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> 
+> Looks good to me, you might want to also add a short note about the
+> "cxl_cmd_new_get_partition_info()" API in the "=== MEMDEV: Commands"
+> section of Documentation/cxl/lib/libcxl.txt that I started here:
+> 
+> https://lore.kernel.org/r/164298557771.3021641.14904324834528700206.stgit@dwillia2-desk3.amr.corp.intel.com
 
-This could probably just be 2 functions
+Will do.
 
-cmd_to_identify()
-capacity_to_bytes()
+> 
+> Note that I'm not adding every single API there, but I think each
+> cxl_cmd_new_<command_type>() API could use a short note.
+> 
+> That can be a follow on depending on whether Vishal merges this first
+> or the topology enumeration series.
 
-...and then the caller does:
+Vishal - I think this should follow the topology enumeration series
+because it wants to use the cxl_filter_walk() that the topo series
+introduces. (to spit out the updated partition info upon completion
+of the set-partition-info cmd.)
 
-return capactity_to_bytes(cmd_to_identify()->field);
+So, a v4 posting will apply after topo series.
 
-...and skip the macro. Otherwise, a macro with a "return" statement
-can be unwieldy unless that macro is defining an entire function.
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+
+
+
+
