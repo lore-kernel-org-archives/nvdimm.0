@@ -1,90 +1,170 @@
-Received: from heian.cn.fujitsu.com (mail.cn.fujitsu.com [183.91.158.132])
-	by smtp.subspace.kernel.org (Postfix) with ESMTP id 9EB0A3FE5
-	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 12:41:18 +0000 (UTC)
-IronPort-Data: =?us-ascii?q?A9a23=3AHl23Na8W7L7+TAqH+V7pDrUD/3+TJUtcMsCJ2f8?=
- =?us-ascii?q?bfWQNrUpwgjRWyWdOCzzSOPiKYzGjc492aou18BwCv5GEzoJkGVdlrnsFo1Bi8?=
- =?us-ascii?q?5ScXYvDRqvT04J+FuWaFQQ/qZx2huDodKjYdVeB4Ef9WlTdhSMkj/vQH+CjULe?=
- =?us-ascii?q?s1h1ZHmeIdg9w0HqPpMZp2uaEsfDha++8kYuaT//3YTdJ6BYoWo4g0J9vnTs01?=
- =?us-ascii?q?BjEVJz0iXRlDRxDlAe2e3D4l/vzL4npR5fzatE88uJX24/+IL+FEmPxp3/BC/u?=
- =?us-ascii?q?ulPD1b08LXqXPewOJjxK6WYD72l4b+HN0if19aZLwam8O49mNt8pswdNWpNq+T?=
- =?us-ascii?q?xw1FqPRmuUBSAQeGCZ7VUFD0OadeSnm6pbMlCUqdFOpmZ2CFnoeMYQG++pfD3t?=
- =?us-ascii?q?J8PsCIjERKBuEgoqewLm7YuhqiN4qIMTiMMUYoH4I5T3QC7AkB4/CR6HL7NpD9?=
- =?us-ascii?q?DY2ms1KW/3ZYqIxZThwaxLPSx5CIFEaDNQ5hujArn3+dSBI7VeQjakp6mPQigt?=
- =?us-ascii?q?r39DFNsTZe9mPbcFUhVqD4GbH+XnpRB0XKrS3yTGF2na3mqnDkEvTWosUGfuz9?=
- =?us-ascii?q?uNCh0eazWgeThYRUDOTpfi/l177VclTJlIZ/gIwoqUosk+mVN/wW1u/unHslho?=
- =?us-ascii?q?dXcdAVu438geAzoLK7AuDQGsJVDhMbJohrsBebTgr0EKZ2sPnHhRxv7CPD3GQ7?=
- =?us-ascii?q?LGZqXW1Iyd9EIOoTUfoViNcu5+6/t511UmJE75e/GeOpoWdMVnNL/qi8UDSX4k?=
- =?us-ascii?q?usPM=3D?=
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3ApteDtqk5QNnvxXiheMZMrT45H57pDfIQ3DAb?=
- =?us-ascii?q?v31ZSRFFG/Fw9vre+MjzsCWYtN9/Yh8dcK+7UpVoLUm8yXcX2/h1AV7BZniEhI?=
- =?us-ascii?q?LAFugLgrcKqAeQeREWmNQ86Y5QN4B6CPDVSWNxlNvG5mCDeOoI8Z2q97+JiI7l?=
- =?us-ascii?q?o0tQcQ=3D=3D?=
-X-IronPort-AV: E=Sophos;i="5.88,320,1635177600"; 
-   d="scan'208";a="120913273"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 27 Jan 2022 20:41:07 +0800
-Received: from G08CNEXMBPEKD05.g08.fujitsu.local (unknown [10.167.33.204])
-	by cn.fujitsu.com (Postfix) with ESMTP id BF5584D169C7;
-	Thu, 27 Jan 2022 20:41:02 +0800 (CST)
-Received: from G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) by
- G08CNEXMBPEKD05.g08.fujitsu.local (10.167.33.204) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 27 Jan 2022 20:41:04 +0800
-Received: from G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.85) by
- G08CNEXJMPEKD02.g08.fujitsu.local (10.167.33.202) with Microsoft SMTP Server
- (TLS) id 15.0.1497.23; Thu, 27 Jan 2022 20:41:03 +0800
-Received: from irides.mr.mr (10.167.225.141) by
- G08CNEXCHPEKD09.g08.fujitsu.local (10.167.33.209) with Microsoft SMTP Server
- id 15.0.1497.23 via Frontend Transport; Thu, 27 Jan 2022 20:41:00 +0800
-From: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-To: <linux-kernel@vger.kernel.org>, <linux-xfs@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>, <linux-mm@kvack.org>,
-	<linux-fsdevel@vger.kernel.org>
-CC: <djwong@kernel.org>, <dan.j.williams@intel.com>, <david@fromorbit.com>,
-	<hch@infradead.org>, <jane.chu@oracle.com>, Christoph Hellwig <hch@lst.de>
-Subject: [PATCH v10 4/9] fsdax: fix function description
-Date: Thu, 27 Jan 2022 20:40:53 +0800
-Message-ID: <20220127124058.1172422-5-ruansy.fnst@fujitsu.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com>
-References: <20220127124058.1172422-1-ruansy.fnst@fujitsu.com>
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 070BC168;
+	Thu, 27 Jan 2022 16:14:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1643300052; x=1674836052;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=3bb9JoZDY5PZwbc2+qweKuL9rGbUODs3lF1L0htuqdY=;
+  b=Xi7L59pmAwjHvJKuAlDxQg4kFki/qCBbbLYG4337sTYHZHQdaciXIvDD
+   jvnaErhD8m6bG85uVNUASz90qQ1HnsOiicbdZu3I6T86jGB/a6aGJ6wvt
+   RGNDLz0yUZse1qKZvroStYn8kVPXpiN+kGcWNtZqhmfNa5YgesJalg8C6
+   9rRhHKsjspto/icZDmIz4kjEMnY4X+qs5aCDsU2xwl3lHVhdGtEcoAH1w
+   1Oe58+kkdpWR/ZKBd6ls8k/aqGHyjhtfl3VQRZa40bIP5nwkRNQ8ee+ad
+   vKgrDPgstR5isXK755575q3Ie/FLFh7f4Nvy1v7DKzKiMm6IeMeLIiu18
+   Q==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="271355397"
+X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
+   d="scan'208";a="271355397"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 08:14:10 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
+   d="scan'208";a="674765149"
+Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
+  by fmsmga001.fm.intel.com with ESMTP; 27 Jan 2022 08:14:07 -0800
+Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
+	(envelope-from <lkp@intel.com>)
+	id 1nD7PN-000Mm0-Ua; Thu, 27 Jan 2022 16:14:01 +0000
+Date: Fri, 28 Jan 2022 00:13:31 +0800
+From: kernel test robot <lkp@intel.com>
+To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
+	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
+	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
+Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org, djwong@kernel.org,
+	dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org,
+	jane.chu@oracle.com
+Subject: Re: [PATCH v10 1/9] dax: Introduce holder for dax_device
+Message-ID: <202201280053.mWAlT70p-lkp@intel.com>
+References: <20220127124058.1172422-2-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-yoursite-MailScanner-ID: BF5584D169C7.A1C08
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: ruansy.fnst@fujitsu.com
-X-Spam-Status: No
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220127124058.1172422-2-ruansy.fnst@fujitsu.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 
-The function name has been changed, so the description should be updated
-too.
+Hi Shiyang,
 
-Signed-off-by: Shiyang Ruan <ruansy.fnst@fujitsu.com>
-Reviewed-by: Darrick J. Wong <djwong@kernel.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Thank you for the patch! Perhaps something to improve:
+
+[auto build test WARNING on linux/master]
+[also build test WARNING on linus/master v5.17-rc1 next-20220127]
+[cannot apply to xfs-linux/for-next]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch]
+
+url:    https://github.com/0day-ci/linux/commits/Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git 2c271fe77d52a0555161926c232cd5bc07178b39
+config: arm-imx_v4_v5_defconfig (https://download.01.org/0day-ci/archive/20220128/202201280053.mWAlT70p-lkp@intel.com/config)
+compiler: clang version 14.0.0 (https://github.com/llvm/llvm-project f32dccb9a43b02ce4e540d6ba5dbbdb188f2dc7d)
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # install arm cross compiling tool for clang build
+        # apt-get install binutils-arm-linux-gnueabi
+        # https://github.com/0day-ci/linux/commit/57669ed05e93b37d995c5247eebe218ab2058c9a
+        git remote add linux-review https://github.com/0day-ci/linux
+        git fetch --no-tags linux-review Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
+        git checkout 57669ed05e93b37d995c5247eebe218ab2058c9a
+        # save the config file to linux build tree
+        mkdir build_dir
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=arm SHELL=/bin/bash fs/iomap/
+
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kernel test robot <lkp@intel.com>
+
+All warnings (new ones prefixed by >>):
+
+   In file included from fs/iomap/buffered-io.c:13:
+>> include/linux/dax.h:73:16: warning: declaration of 'struct dax_holder_operations' will not be visible outside of this function [-Wvisibility]
+                   const struct dax_holder_operations *ops)
+                                ^
+   1 warning generated.
+
+
+vim +73 include/linux/dax.h
+
+    48	
+    49	void dax_register_holder(struct dax_device *dax_dev, void *holder,
+    50			const struct dax_holder_operations *ops);
+    51	void dax_unregister_holder(struct dax_device *dax_dev);
+    52	void *dax_get_holder(struct dax_device *dax_dev);
+    53	void put_dax(struct dax_device *dax_dev);
+    54	void kill_dax(struct dax_device *dax_dev);
+    55	void dax_write_cache(struct dax_device *dax_dev, bool wc);
+    56	bool dax_write_cache_enabled(struct dax_device *dax_dev);
+    57	bool dax_synchronous(struct dax_device *dax_dev);
+    58	void set_dax_synchronous(struct dax_device *dax_dev);
+    59	/*
+    60	 * Check if given mapping is supported by the file / underlying device.
+    61	 */
+    62	static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+    63						     struct dax_device *dax_dev)
+    64	{
+    65		if (!(vma->vm_flags & VM_SYNC))
+    66			return true;
+    67		if (!IS_DAX(file_inode(vma->vm_file)))
+    68			return false;
+    69		return dax_synchronous(dax_dev);
+    70	}
+    71	#else
+    72	static inline void dax_register_holder(struct dax_device *dax_dev, void *holder,
+  > 73			const struct dax_holder_operations *ops)
+    74	{
+    75	}
+    76	static inline void dax_unregister_holder(struct dax_device *dax_dev)
+    77	{
+    78	}
+    79	static inline void *dax_get_holder(struct dax_device *dax_dev)
+    80	{
+    81		return NULL;
+    82	}
+    83	static inline struct dax_device *alloc_dax(void *private,
+    84			const struct dax_operations *ops)
+    85	{
+    86		/*
+    87		 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
+    88		 * NULL is an error or expected.
+    89		 */
+    90		return NULL;
+    91	}
+    92	static inline void put_dax(struct dax_device *dax_dev)
+    93	{
+    94	}
+    95	static inline void kill_dax(struct dax_device *dax_dev)
+    96	{
+    97	}
+    98	static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
+    99	{
+   100	}
+   101	static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
+   102	{
+   103		return false;
+   104	}
+   105	static inline bool dax_synchronous(struct dax_device *dax_dev)
+   106	{
+   107		return true;
+   108	}
+   109	static inline void set_dax_synchronous(struct dax_device *dax_dev)
+   110	{
+   111	}
+   112	static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
+   113					struct dax_device *dax_dev)
+   114	{
+   115		return !(vma->vm_flags & VM_SYNC);
+   116	}
+   117	#endif
+   118	
+
 ---
- fs/dax.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/dax.c b/fs/dax.c
-index cd03485867a7..c8d57080c1aa 100644
---- a/fs/dax.c
-+++ b/fs/dax.c
-@@ -390,7 +390,7 @@ static struct page *dax_busy_page(void *entry)
- }
- 
- /*
-- * dax_lock_mapping_entry - Lock the DAX entry corresponding to a page
-+ * dax_lock_page - Lock the DAX entry corresponding to a page
-  * @page: The page whose entry we want to lock
-  *
-  * Context: Process context.
--- 
-2.34.1
-
-
-
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
