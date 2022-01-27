@@ -1,44 +1,42 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 79E562CA1
-	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 19:39:14 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9341B2CA0
+	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 20:45:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643312354; x=1674848354;
+  t=1643316340; x=1674852340;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=eY/bKymh/uUeFbsSmJKZ1CVvViDHVKHvZv1YTayd+uk=;
-  b=TgyiV/kMrQHZVhlEZewZksvolnWtLjvJ1Lki6YktQjG5jL3JjW415Xld
-   PD0UFpQxZJKQHDuqPqcgH/aGV1nR3svs3y91p9Urf7ZZpuphFOb+bPD+z
-   Tj+HSFw34Jj2QXT0/qoNOWZOD7vPYPEDCI0vkjtL4aC9GUPVdWIN9Rclr
-   OQCO3sJfA9B3FnFze9X7dJvrdtEJKBG9dC6jJ86qlfs5dPrwCZl8k2zZ4
-   bH/X05Z0Kj8DNHkaNgt6IwWnsXOymEvs6FCIClChK0HECn/r2vP1wu+nr
-   pKtiL1jO7asikl7irbvy6XupBf7ojcW9rJLJSEUfVU23MSpbUtQaek/4z
+  bh=iW3AE0TXTvU4wk8QfsMipZ1jcNRQkRmBhEPy1lUEpyQ=;
+  b=ZmdnGOfrefHcRWe8oAYqhJjx5SGSR1vWnHGPqT+Tc2uJAg9wvMKiwyML
+   guUT2/TlZelfO1oZUt34L+VhvIAQxqRSTNkSAKBvqDSYwRv7ugz6HMydY
+   ssVRYQ8+zOdPdNb/FLFCbFpLby9te1haHVDhhoQmeXxdESqyQ6Cupto8v
+   PxzqgY0ma0R0X8WUtzkHYfZlC2LUjZVpj0CG0LyopIG8aFQAw/94eK6Ol
+   tYLrgOvoMu7CKrsFXfPpkoQK5fsLI6dbOyOEMp1AzlCo7zjiePYBy0b/q
+   m9xNFktn+OcrN01CQ/q86GytFeesVGb/8+8tKI8GNUEKWF+3x8+/K/aS0
    g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="245789382"
+X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="247181130"
 X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
-   d="scan'208";a="245789382"
+   d="scan'208";a="247181130"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 11:39:13 -0800
-X-ExtLoop1: 1
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 12:45:39 -0800
 X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
-   d="scan'208";a="618451561"
-Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
-  by FMSMGA003.fm.intel.com with ESMTP; 27 Jan 2022 11:39:10 -0800
-Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1nDAbu-000My1-2e; Thu, 27 Jan 2022 19:39:10 +0000
-Date: Fri, 28 Jan 2022 03:39:05 +0800
-From: kernel test robot <lkp@intel.com>
-To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
-	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
-	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
-Cc: kbuild-all@lists.01.org, djwong@kernel.org, dan.j.williams@intel.com,
-	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
-Subject: Re: [PATCH v10 8/9] xfs: Implement ->notify_failure() for XFS
-Message-ID: <202201280314.SI8wtlfT-lkp@intel.com>
-References: <20220127124058.1172422-9-ruansy.fnst@fujitsu.com>
+   d="scan'208";a="618467759"
+Received: from alison-desk.jf.intel.com (HELO alison-desk) ([10.54.74.41])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 12:45:39 -0800
+Date: Thu, 27 Jan 2022 12:50:09 -0800
+From: Alison Schofield <alison.schofield@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>,
+	Vishal Verma <vishal.l.verma@intel.com>,
+	Linux NVDIMM <nvdimm@lists.linux.dev>, linux-cxl@vger.kernel.org
+Subject: Re: [ndctl PATCH v3 5/6] libcxl: add interfaces for
+ SET_PARTITION_INFO mailbox command
+Message-ID: <20220127205009.GA894403@alison-desk>
+References: <cover.1642535478.git.alison.schofield@intel.com>
+ <e98fa18538c42c40b120d5c22da655d199d0329d.1642535478.git.alison.schofield@intel.com>
+ <CAPcyv4j4Nq1AAxH2CybQCH3pcBpCWgCsnY5i=OfKQXd_C_3xWA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,144 +45,81 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220127124058.1172422-9-ruansy.fnst@fujitsu.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <CAPcyv4j4Nq1AAxH2CybQCH3pcBpCWgCsnY5i=OfKQXd_C_3xWA@mail.gmail.com>
 
-Hi Shiyang,
+Hi Dan,
+Thanks for the review. I'm still working thru this, but a clarifying
+question below...
 
-Thank you for the patch! Yet something to improve:
+On Wed, Jan 26, 2022 at 03:41:14PM -0800, Dan Williams wrote:
+> On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
+> >
+> > From: Alison Schofield <alison.schofield@intel.com>
+> >
+> > Users may want the ability to change the partition layout of a CXL
+> > memory device.
+> >
+> > Add interfaces to libcxl to allocate and send a SET_PARTITION_INFO
+> > mailbox as defined in the CXL 2.0 specification.
+> >
+> > Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> > ---
+> >  cxl/lib/libcxl.c   | 50 ++++++++++++++++++++++++++++++++++++++++++++++
+> >  cxl/lib/libcxl.sym |  5 +++++
+> >  cxl/lib/private.h  |  8 ++++++++
+> >  cxl/libcxl.h       |  5 +++++
+> >  4 files changed, 68 insertions(+)
+> >
+snip
+> 
+> 
+> I don't understand what this is for?
+> 
+> Let's back up. In order to future proof against spec changes, and
+> endianness, struct packing and all other weird things that make struct
+> ABIs hard to maintain compatibility the ndctl project adopts the
+> libabc template of just not letting library consumers see any raw data
+> structures or bit fields by default [1]. For a situation like this
+> since the command only has one flag that affects the mode of operation
+> I would just go ahead and define an enum for that explicitly.
+> 
+> enum cxl_setpartition_mode {
+>     CXL_SETPART_NONE,
+>     CXL_SETPART_NEXTBOOT,
+>     CXL_SETPART_IMMEDIATE,
+> };
+> 
+> Then the main function prototype becomes:
+> 
+> int cxl_cmd_new_setpartition(struct cxl_memdev *memdev, unsigned long
+> long volatile_capacity);
+> 
+> ...with a new:
+> 
+> int cxl_cmd_setpartition_set_mode(struct cxl_cmd *cmd, enum
+> cxl_setpartition_mode mode);
+>
 
-[auto build test ERROR on linux/master]
-[also build test ERROR on linus/master v5.17-rc1 next-20220127]
-[cannot apply to xfs-linux/for-next]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch]
+I don't understand setting of the mode separately. Can it be:
 
-url:    https://github.com/0day-ci/linux/commits/Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git 2c271fe77d52a0555161926c232cd5bc07178b39
-config: ia64-defconfig (https://download.01.org/0day-ci/archive/20220128/202201280314.SI8wtlfT-lkp@intel.com/config)
-compiler: ia64-linux-gcc (GCC) 11.2.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/cb7650562991fc273fbf4c53b6e3db4bb9bb0b5e
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
-        git checkout cb7650562991fc273fbf4c53b6e3db4bb9bb0b5e
-        # save the config file to linux build tree
-        mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=ia64 SHELL=/bin/bash fs/
-
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
-
-All errors (new ones prefixed by >>):
-
-   In file included from fs/xfs/xfs_buf.h:14,
-                    from fs/xfs/xfs_linux.h:80,
-                    from fs/xfs/xfs.h:22,
-                    from fs/xfs/xfs_buf.c:6:
-   include/linux/dax.h:73:30: warning: 'struct dax_holder_operations' declared inside parameter list will not be visible outside of this definition or declaration
-      73 |                 const struct dax_holder_operations *ops)
-         |                              ^~~~~~~~~~~~~~~~~~~~~
-   fs/xfs/xfs_buf.c: In function 'xfs_alloc_buftarg':
->> fs/xfs/xfs_buf.c:1959:33: error: passing argument 3 of 'dax_register_holder' from incompatible pointer type [-Werror=incompatible-pointer-types]
-    1959 |                                 &xfs_dax_holder_operations);
-         |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~
-         |                                 |
-         |                                 const struct dax_holder_operations *
-   In file included from fs/xfs/xfs_buf.h:14,
-                    from fs/xfs/xfs_linux.h:80,
-                    from fs/xfs/xfs.h:22,
-                    from fs/xfs/xfs_buf.c:6:
-   include/linux/dax.h:73:53: note: expected 'const struct dax_holder_operations *' but argument is of type 'const struct dax_holder_operations *'
-      73 |                 const struct dax_holder_operations *ops)
-         |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
-   cc1: some warnings being treated as errors
---
-   In file included from fs/xfs/xfs_buf.h:14,
-                    from fs/xfs/xfs_linux.h:80,
-                    from fs/xfs/xfs.h:22,
-                    from fs/xfs/xfs_notify_failure.c:6:
-   include/linux/dax.h:73:30: warning: 'struct dax_holder_operations' declared inside parameter list will not be visible outside of this definition or declaration
-      73 |                 const struct dax_holder_operations *ops)
-         |                              ^~~~~~~~~~~~~~~~~~~~~
->> fs/xfs/xfs_notify_failure.c:220:14: error: variable 'xfs_dax_holder_operations' has initializer but incomplete type
-     220 | const struct dax_holder_operations xfs_dax_holder_operations = {
-         |              ^~~~~~~~~~~~~~~~~~~~~
->> fs/xfs/xfs_notify_failure.c:221:10: error: 'const struct dax_holder_operations' has no member named 'notify_failure'
-     221 |         .notify_failure         = xfs_dax_notify_failure,
-         |          ^~~~~~~~~~~~~~
-   fs/xfs/xfs_notify_failure.c:221:35: warning: excess elements in struct initializer
-     221 |         .notify_failure         = xfs_dax_notify_failure,
-         |                                   ^~~~~~~~~~~~~~~~~~~~~~
-   fs/xfs/xfs_notify_failure.c:221:35: note: (near initialization for 'xfs_dax_holder_operations')
->> fs/xfs/xfs_notify_failure.c:220:36: error: storage size of 'xfs_dax_holder_operations' isn't known
-     220 | const struct dax_holder_operations xfs_dax_holder_operations = {
-         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
+int cxl_cmd_new_setpartition(struct cxl_memdev *memdev,
+			     unsigned long long volatile_capacity,
+			     enum cxl_setpartition_mode mode);
 
 
-vim +/dax_register_holder +1959 fs/xfs/xfs_buf.c
 
-  1938	
-  1939	struct xfs_buftarg *
-  1940	xfs_alloc_buftarg(
-  1941		struct xfs_mount	*mp,
-  1942		struct block_device	*bdev)
-  1943	{
-  1944		xfs_buftarg_t		*btp;
-  1945	
-  1946		btp = kmem_zalloc(sizeof(*btp), KM_NOFS);
-  1947	
-  1948		btp->bt_mount = mp;
-  1949		btp->bt_dev =  bdev->bd_dev;
-  1950		btp->bt_bdev = bdev;
-  1951		btp->bt_daxdev = fs_dax_get_by_bdev(bdev, &btp->bt_dax_part_off);
-  1952		if (btp->bt_daxdev) {
-  1953			if (dax_get_holder(btp->bt_daxdev)) {
-  1954				xfs_err(mp, "DAX device already in use?!");
-  1955				goto error_free;
-  1956			}
-  1957	
-  1958			dax_register_holder(btp->bt_daxdev, mp,
-> 1959					&xfs_dax_holder_operations);
-  1960		}
-  1961	
-  1962		/*
-  1963		 * Buffer IO error rate limiting. Limit it to no more than 10 messages
-  1964		 * per 30 seconds so as to not spam logs too much on repeated errors.
-  1965		 */
-  1966		ratelimit_state_init(&btp->bt_ioerror_rl, 30 * HZ,
-  1967				     DEFAULT_RATELIMIT_BURST);
-  1968	
-  1969		if (xfs_setsize_buftarg_early(btp, bdev))
-  1970			goto error_free;
-  1971	
-  1972		if (list_lru_init(&btp->bt_lru))
-  1973			goto error_free;
-  1974	
-  1975		if (percpu_counter_init(&btp->bt_io_count, 0, GFP_KERNEL))
-  1976			goto error_lru;
-  1977	
-  1978		btp->bt_shrinker.count_objects = xfs_buftarg_shrink_count;
-  1979		btp->bt_shrinker.scan_objects = xfs_buftarg_shrink_scan;
-  1980		btp->bt_shrinker.seeks = DEFAULT_SEEKS;
-  1981		btp->bt_shrinker.flags = SHRINKER_NUMA_AWARE;
-  1982		if (register_shrinker(&btp->bt_shrinker))
-  1983			goto error_pcpu;
-  1984		return btp;
-  1985	
-  1986	error_pcpu:
-  1987		percpu_counter_destroy(&btp->bt_io_count);
-  1988	error_lru:
-  1989		list_lru_destroy(&btp->bt_lru);
-  1990	error_free:
-  1991		kmem_free(btp);
-  1992		return NULL;
-  1993	}
-  1994	
-
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+> ...and it becomes impossible for users to pass unsupported flag
+> values. If the specification later on adds more flags then we can add
+> more:
+> 
+> int cxl_cmd_setpartition_set_<X>(struct cxl_cmd *cmd, enum
+> cxl_setpartition_X x);
+> 
+> ...style helpers.
+> 
+> Note, I was thinking CXL_SETPART_NONE is there to catch API users that
+> forget to set a mode, but I also don't mind skipping that and just
+> defaulting cxl_cmd_new_setpartition() to CXL_SETPART_NEXTBOOT, up to
+> you.
+> 
+> [1]: https://git.kernel.org/pub/scm/linux/kernel/git/kay/libabc.git/tree/README#n99
