@@ -1,44 +1,44 @@
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FB9D2CA4
-	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 16:45:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 74BEC29CA
+	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 17:57:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643301909; x=1674837909;
+  t=1643306230; x=1674842230;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=0XYCULJz8eCwunpqt4WW86gJKS6aVCwiIa+rTXc0vrY=;
-  b=h9esfoe1i/0VwZjzney2Ji2RFvQQwKSJv5PtZXGOeUMPAJS5vcBijjXa
-   uzVGctPyQTuRy6dR9HfklwecRf60ByTuUwwfAgetL4ZNbUaZJSM0DqmE2
-   ZDUpr+xdlnWHLShM0Eb4iq7uZaHyq7q1fAYNQKqQzo7AfGMje4GvQqTMO
-   aCZQ2s6SolVw5H3T0FXqgFZkhOIi0FIZdwqnsoA3XODP1zEghvo9X7qpG
-   91SGQSzx07Xg2zo0pqZJUSX7vibzfc3muJ1XscNmI5YalW+9Ttu1y7a9y
-   KgkyjBSYBveDdm8O2QxKMEjh5xvg721BF0J20JpRsH+wpIZybE5r9eXBN
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="245748788"
+  bh=MbebQvVeK/L5gHgjdvp87DSPXN0J04vX9FIoAyBipG8=;
+  b=OvG4tM8/8NN4xXsJfW5hv+EcfuBkwtr2l7T1jBS646Z+uEt+4TH/6mnO
+   kKmuvAShYwYqtIOWJtpC7dzQs0NoEAn/NWMxKkmBjguvusuLNCanFo0Cu
+   HYPN797z4bU3NCXdEin9yNTWqBTwIFG6ZuAzqmYUms8BzZ97g6Xxp9dJu
+   NbIUYHN/XRtB4mgWGwcLCx54UsxCapDpeM+SWjjUNcyVbka8CFEUlL9/N
+   F7i5ajNwAnLLqpeIB/e1QUG4q6p/QfjWyLBrwAn2uYxWIh2HOrca/BsYK
+   0fe3hLeBuoFtO8h1XruqvRwRz7m3suluE5o5VRX+V7dKFpHDhIWIWaaJn
+   w==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="244528514"
 X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
-   d="scan'208";a="245748788"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 08:45:07 -0800
+   d="scan'208";a="244528514"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 09:57:09 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
-   d="scan'208";a="477935447"
+   d="scan'208";a="480393272"
 Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
-  by orsmga003.jf.intel.com with ESMTP; 27 Jan 2022 08:45:04 -0800
+  by orsmga006.jf.intel.com with ESMTP; 27 Jan 2022 09:57:06 -0800
 Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
 	(envelope-from <lkp@intel.com>)
-	id 1nD7tP-000MoH-LD; Thu, 27 Jan 2022 16:45:03 +0000
-Date: Fri, 28 Jan 2022 00:44:02 +0800
+	id 1nD918-000MtF-2I; Thu, 27 Jan 2022 17:57:06 +0000
+Date: Fri, 28 Jan 2022 01:56:56 +0800
 From: kernel test robot <lkp@intel.com>
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
 	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
 Cc: kbuild-all@lists.01.org, djwong@kernel.org, dan.j.williams@intel.com,
 	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
-Subject: Re: [PATCH v10 1/9] dax: Introduce holder for dax_device
-Message-ID: <202201280035.A565CZYV-lkp@intel.com>
-References: <20220127124058.1172422-2-ruansy.fnst@fujitsu.com>
+Subject: Re: [PATCH v10 8/9] xfs: Implement ->notify_failure() for XFS
+Message-ID: <202201280101.4ECasWmD-lkp@intel.com>
+References: <20220127124058.1172422-9-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
@@ -47,7 +47,7 @@ List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220127124058.1172422-2-ruansy.fnst@fujitsu.com>
+In-Reply-To: <20220127124058.1172422-9-ruansy.fnst@fujitsu.com>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 
 Hi Shiyang,
@@ -56,110 +56,58 @@ Thank you for the patch! Perhaps something to improve:
 
 [auto build test WARNING on linux/master]
 [also build test WARNING on linus/master v5.17-rc1 next-20220127]
-[cannot apply to xfs-linux/for-next hnaz-mm/master]
+[cannot apply to xfs-linux/for-next]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use '--base' as documented in
 https://git-scm.com/docs/git-format-patch]
 
 url:    https://github.com/0day-ci/linux/commits/Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git 2c271fe77d52a0555161926c232cd5bc07178b39
-config: powerpc-allnoconfig (https://download.01.org/0day-ci/archive/20220128/202201280035.A565CZYV-lkp@intel.com/config)
-compiler: powerpc-linux-gcc (GCC) 11.2.0
+config: ia64-defconfig (https://download.01.org/0day-ci/archive/20220128/202201280101.4ECasWmD-lkp@intel.com/config)
+compiler: ia64-linux-gcc (GCC) 11.2.0
 reproduce (this is a W=1 build):
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
-        # https://github.com/0day-ci/linux/commit/57669ed05e93b37d995c5247eebe218ab2058c9a
+        # https://github.com/0day-ci/linux/commit/cb7650562991fc273fbf4c53b6e3db4bb9bb0b5e
         git remote add linux-review https://github.com/0day-ci/linux
         git fetch --no-tags linux-review Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
-        git checkout 57669ed05e93b37d995c5247eebe218ab2058c9a
+        git checkout cb7650562991fc273fbf4c53b6e3db4bb9bb0b5e
         # save the config file to linux build tree
         mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=powerpc SHELL=/bin/bash
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=ia64 SHELL=/bin/bash fs/xfs/
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
 All warnings (new ones prefixed by >>):
 
-   In file included from mm/filemap.c:15:
->> include/linux/dax.h:73:30: warning: 'struct dax_holder_operations' declared inside parameter list will not be visible outside of this definition or declaration
+   In file included from fs/xfs/xfs_buf.h:14,
+                    from fs/xfs/xfs_linux.h:80,
+                    from fs/xfs/xfs.h:22,
+                    from fs/xfs/xfs_notify_failure.c:6:
+   include/linux/dax.h:73:30: warning: 'struct dax_holder_operations' declared inside parameter list will not be visible outside of this definition or declaration
       73 |                 const struct dax_holder_operations *ops)
          |                              ^~~~~~~~~~~~~~~~~~~~~
+   fs/xfs/xfs_notify_failure.c:220:14: error: variable 'xfs_dax_holder_operations' has initializer but incomplete type
+     220 | const struct dax_holder_operations xfs_dax_holder_operations = {
+         |              ^~~~~~~~~~~~~~~~~~~~~
+   fs/xfs/xfs_notify_failure.c:221:10: error: 'const struct dax_holder_operations' has no member named 'notify_failure'
+     221 |         .notify_failure         = xfs_dax_notify_failure,
+         |          ^~~~~~~~~~~~~~
+>> fs/xfs/xfs_notify_failure.c:221:35: warning: excess elements in struct initializer
+     221 |         .notify_failure         = xfs_dax_notify_failure,
+         |                                   ^~~~~~~~~~~~~~~~~~~~~~
+   fs/xfs/xfs_notify_failure.c:221:35: note: (near initialization for 'xfs_dax_holder_operations')
+   fs/xfs/xfs_notify_failure.c:220:36: error: storage size of 'xfs_dax_holder_operations' isn't known
+     220 | const struct dax_holder_operations xfs_dax_holder_operations = {
+         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-vim +73 include/linux/dax.h
+vim +221 fs/xfs/xfs_notify_failure.c
 
-    48	
-    49	void dax_register_holder(struct dax_device *dax_dev, void *holder,
-    50			const struct dax_holder_operations *ops);
-    51	void dax_unregister_holder(struct dax_device *dax_dev);
-    52	void *dax_get_holder(struct dax_device *dax_dev);
-    53	void put_dax(struct dax_device *dax_dev);
-    54	void kill_dax(struct dax_device *dax_dev);
-    55	void dax_write_cache(struct dax_device *dax_dev, bool wc);
-    56	bool dax_write_cache_enabled(struct dax_device *dax_dev);
-    57	bool dax_synchronous(struct dax_device *dax_dev);
-    58	void set_dax_synchronous(struct dax_device *dax_dev);
-    59	/*
-    60	 * Check if given mapping is supported by the file / underlying device.
-    61	 */
-    62	static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-    63						     struct dax_device *dax_dev)
-    64	{
-    65		if (!(vma->vm_flags & VM_SYNC))
-    66			return true;
-    67		if (!IS_DAX(file_inode(vma->vm_file)))
-    68			return false;
-    69		return dax_synchronous(dax_dev);
-    70	}
-    71	#else
-    72	static inline void dax_register_holder(struct dax_device *dax_dev, void *holder,
-  > 73			const struct dax_holder_operations *ops)
-    74	{
-    75	}
-    76	static inline void dax_unregister_holder(struct dax_device *dax_dev)
-    77	{
-    78	}
-    79	static inline void *dax_get_holder(struct dax_device *dax_dev)
-    80	{
-    81		return NULL;
-    82	}
-    83	static inline struct dax_device *alloc_dax(void *private,
-    84			const struct dax_operations *ops)
-    85	{
-    86		/*
-    87		 * Callers should check IS_ENABLED(CONFIG_DAX) to know if this
-    88		 * NULL is an error or expected.
-    89		 */
-    90		return NULL;
-    91	}
-    92	static inline void put_dax(struct dax_device *dax_dev)
-    93	{
-    94	}
-    95	static inline void kill_dax(struct dax_device *dax_dev)
-    96	{
-    97	}
-    98	static inline void dax_write_cache(struct dax_device *dax_dev, bool wc)
-    99	{
-   100	}
-   101	static inline bool dax_write_cache_enabled(struct dax_device *dax_dev)
-   102	{
-   103		return false;
-   104	}
-   105	static inline bool dax_synchronous(struct dax_device *dax_dev)
-   106	{
-   107		return true;
-   108	}
-   109	static inline void set_dax_synchronous(struct dax_device *dax_dev)
-   110	{
-   111	}
-   112	static inline bool daxdev_mapping_supported(struct vm_area_struct *vma,
-   113					struct dax_device *dax_dev)
-   114	{
-   115		return !(vma->vm_flags & VM_SYNC);
-   116	}
-   117	#endif
-   118	
+   219	
+   220	const struct dax_holder_operations xfs_dax_holder_operations = {
+ > 221		.notify_failure		= xfs_dax_notify_failure,
 
 ---
 0-DAY CI Kernel Test Service, Intel Corporation
