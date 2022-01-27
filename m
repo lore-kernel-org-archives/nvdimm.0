@@ -1,44 +1,43 @@
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 070BC168;
-	Thu, 27 Jan 2022 16:14:11 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FB9D2CA4
+	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 16:45:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643300052; x=1674836052;
+  t=1643301909; x=1674837909;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=3bb9JoZDY5PZwbc2+qweKuL9rGbUODs3lF1L0htuqdY=;
-  b=Xi7L59pmAwjHvJKuAlDxQg4kFki/qCBbbLYG4337sTYHZHQdaciXIvDD
-   jvnaErhD8m6bG85uVNUASz90qQ1HnsOiicbdZu3I6T86jGB/a6aGJ6wvt
-   RGNDLz0yUZse1qKZvroStYn8kVPXpiN+kGcWNtZqhmfNa5YgesJalg8C6
-   9rRhHKsjspto/icZDmIz4kjEMnY4X+qs5aCDsU2xwl3lHVhdGtEcoAH1w
-   1Oe58+kkdpWR/ZKBd6ls8k/aqGHyjhtfl3VQRZa40bIP5nwkRNQ8ee+ad
-   vKgrDPgstR5isXK755575q3Ie/FLFh7f4Nvy1v7DKzKiMm6IeMeLIiu18
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="271355397"
+  bh=0XYCULJz8eCwunpqt4WW86gJKS6aVCwiIa+rTXc0vrY=;
+  b=h9esfoe1i/0VwZjzney2Ji2RFvQQwKSJv5PtZXGOeUMPAJS5vcBijjXa
+   uzVGctPyQTuRy6dR9HfklwecRf60ByTuUwwfAgetL4ZNbUaZJSM0DqmE2
+   ZDUpr+xdlnWHLShM0Eb4iq7uZaHyq7q1fAYNQKqQzo7AfGMje4GvQqTMO
+   aCZQ2s6SolVw5H3T0FXqgFZkhOIi0FIZdwqnsoA3XODP1zEghvo9X7qpG
+   91SGQSzx07Xg2zo0pqZJUSX7vibzfc3muJ1XscNmI5YalW+9Ttu1y7a9y
+   KgkyjBSYBveDdm8O2QxKMEjh5xvg721BF0J20JpRsH+wpIZybE5r9eXBN
+   A==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="245748788"
 X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
-   d="scan'208";a="271355397"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 08:14:10 -0800
+   d="scan'208";a="245748788"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 08:45:07 -0800
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.88,321,1635231600"; 
-   d="scan'208";a="674765149"
+   d="scan'208";a="477935447"
 Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
-  by fmsmga001.fm.intel.com with ESMTP; 27 Jan 2022 08:14:07 -0800
+  by orsmga003.jf.intel.com with ESMTP; 27 Jan 2022 08:45:04 -0800
 Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
 	(envelope-from <lkp@intel.com>)
-	id 1nD7PN-000Mm0-Ua; Thu, 27 Jan 2022 16:14:01 +0000
-Date: Fri, 28 Jan 2022 00:13:31 +0800
+	id 1nD7tP-000MoH-LD; Thu, 27 Jan 2022 16:45:03 +0000
+Date: Fri, 28 Jan 2022 00:44:02 +0800
 From: kernel test robot <lkp@intel.com>
 To: Shiyang Ruan <ruansy.fnst@fujitsu.com>, linux-kernel@vger.kernel.org,
 	linux-xfs@vger.kernel.org, nvdimm@lists.linux.dev,
 	linux-mm@kvack.org, linux-fsdevel@vger.kernel.org
-Cc: llvm@lists.linux.dev, kbuild-all@lists.01.org, djwong@kernel.org,
-	dan.j.williams@intel.com, david@fromorbit.com, hch@infradead.org,
-	jane.chu@oracle.com
+Cc: kbuild-all@lists.01.org, djwong@kernel.org, dan.j.williams@intel.com,
+	david@fromorbit.com, hch@infradead.org, jane.chu@oracle.com
 Subject: Re: [PATCH v10 1/9] dax: Introduce holder for dax_device
-Message-ID: <202201280053.mWAlT70p-lkp@intel.com>
+Message-ID: <202201280035.A565CZYV-lkp@intel.com>
 References: <20220127124058.1172422-2-ruansy.fnst@fujitsu.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
@@ -57,38 +56,35 @@ Thank you for the patch! Perhaps something to improve:
 
 [auto build test WARNING on linux/master]
 [also build test WARNING on linus/master v5.17-rc1 next-20220127]
-[cannot apply to xfs-linux/for-next]
+[cannot apply to xfs-linux/for-next hnaz-mm/master]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use '--base' as documented in
 https://git-scm.com/docs/git-format-patch]
 
 url:    https://github.com/0day-ci/linux/commits/Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git 2c271fe77d52a0555161926c232cd5bc07178b39
-config: arm-imx_v4_v5_defconfig (https://download.01.org/0day-ci/archive/20220128/202201280053.mWAlT70p-lkp@intel.com/config)
-compiler: clang version 14.0.0 (https://github.com/llvm/llvm-project f32dccb9a43b02ce4e540d6ba5dbbdb188f2dc7d)
+config: powerpc-allnoconfig (https://download.01.org/0day-ci/archive/20220128/202201280035.A565CZYV-lkp@intel.com/config)
+compiler: powerpc-linux-gcc (GCC) 11.2.0
 reproduce (this is a W=1 build):
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
-        # install arm cross compiling tool for clang build
-        # apt-get install binutils-arm-linux-gnueabi
         # https://github.com/0day-ci/linux/commit/57669ed05e93b37d995c5247eebe218ab2058c9a
         git remote add linux-review https://github.com/0day-ci/linux
         git fetch --no-tags linux-review Shiyang-Ruan/fsdax-introduce-fs-query-to-support-reflink/20220127-204239
         git checkout 57669ed05e93b37d995c5247eebe218ab2058c9a
         # save the config file to linux build tree
         mkdir build_dir
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=arm SHELL=/bin/bash fs/iomap/
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.2.0 make.cross O=build_dir ARCH=powerpc SHELL=/bin/bash
 
 If you fix the issue, kindly add following tag as appropriate
 Reported-by: kernel test robot <lkp@intel.com>
 
 All warnings (new ones prefixed by >>):
 
-   In file included from fs/iomap/buffered-io.c:13:
->> include/linux/dax.h:73:16: warning: declaration of 'struct dax_holder_operations' will not be visible outside of this function [-Wvisibility]
-                   const struct dax_holder_operations *ops)
-                                ^
-   1 warning generated.
+   In file included from mm/filemap.c:15:
+>> include/linux/dax.h:73:30: warning: 'struct dax_holder_operations' declared inside parameter list will not be visible outside of this definition or declaration
+      73 |                 const struct dax_holder_operations *ops)
+         |                              ^~~~~~~~~~~~~~~~~~~~~
 
 
 vim +73 include/linux/dax.h
