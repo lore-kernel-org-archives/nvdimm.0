@@ -1,221 +1,188 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pg1-f182.google.com (mail-pg1-f182.google.com [209.85.215.182])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E2A02CA2
-	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 00:30:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643243430; x=1674779430;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=vGPJ+QXF3m4aGQpAZFqmKD5MYgp0/7v7TQGixCfkWUo=;
-  b=eNdGQiB2bpTD2nJYfYE2VIRsa4dk+B6XFVZx+uKq9J3yNfh9NPRc/vcT
-   SzX2IDFiHEbEBHQUa2060OFj+4ikeu4BlOAXSzZ4rqqtdc+gvz6Y3oM+O
-   3/iRPs0+nMDi8SJ0edXjNLcJ3o+YkIiBnSYI0ygMosEy6Uaq2F3JYE7+5
-   kHBzB/PhhCYzxw5tOlZMbqumL6h3lfTILWX5wc/alm2e7MJ/b6ScRcik2
-   e8/+5E7psw/ScIJAS0x4LXR3JQ4XKqbJNWyRHwzEmT3MrYkRUBsmAIp2J
-   dC2/AhIxYOl0XXcigQkRTT2gfbe+PJTdl6e0vsH9GqrXOIcNNCgWbF7Uz
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="230273537"
-X-IronPort-AV: E=Sophos;i="5.88,319,1635231600"; 
-   d="scan'208";a="230273537"
-Received: from orsmga001.jf.intel.com ([10.7.209.18])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 16:30:29 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.88,319,1635231600"; 
-   d="scan'208";a="563592516"
-Received: from lkp-server01.sh.intel.com (HELO 276f1b88eecb) ([10.239.97.150])
-  by orsmga001.jf.intel.com with ESMTP; 26 Jan 2022 16:30:27 -0800
-Received: from kbuild by 276f1b88eecb with local (Exim 4.92)
-	(envelope-from <lkp@intel.com>)
-	id 1nCsgE-000Lqz-B7; Thu, 27 Jan 2022 00:30:26 +0000
-Date: Thu, 27 Jan 2022 08:29:34 +0800
-From: kernel test robot <lkp@intel.com>
-To: Jonghyeon Kim <tome01@ajou.ac.kr>, dan.j.williams@intel.com
-Cc: kbuild-all@lists.01.org, vishal.l.verma@intel.com, dave.jiang@intel.com,
-	akpm@linux-foundation.org, nvdimm@lists.linux.dev,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	Jonghyeon Kim <tome01@ajou.ac.kr>
-Subject: Re: [PATCH 2/2] dax/kmem: Update spanned page stat of origin device
- node
-Message-ID: <202201270836.H8feaOM9-lkp@intel.com>
-References: <20220126170002.19754-2-tome01@ajou.ac.kr>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CA6982CA2
+	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 01:45:05 +0000 (UTC)
+Received: by mail-pg1-f182.google.com with SMTP id j10so914496pgc.6
+        for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 17:45:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=tYGK3wY4fdBRiVN5u48Y7M8NvjV74Kds/0Hqs31NUKk=;
+        b=T8MjxwC21g/W/VMj9bBTRnkhzmDWvX9Vo0/FxC1/XNa2tQTuVa0/UChFLc4QeEjNa0
+         +rTtsF2HgzcYoStq2Ycxt1V4hTOGzJ8xlo0PeELiVJGx5JcdBxExxFSre25bgOCp6FBg
+         dE/tvM4PfMdTFzWzAShPRWeD51ptqFUuQYcusqdr8ZfuipNraEoftYDnnNI0PpFCJ2Kp
+         BjD6KiBzlDtovrzlaKqR+oI1Y5oWq+ejdKuCQ16OEeOYzDYEIbt9lwIMHa9n81Qn83s4
+         Exi0aSYlsTDd9TgfsjnW5ft9vCnQGcLW+znFICAGbZCyk0behEcxZFG4qnwoAmzeIciA
+         nbbA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=tYGK3wY4fdBRiVN5u48Y7M8NvjV74Kds/0Hqs31NUKk=;
+        b=GLvpOTixpoLAxFb24VpVJvmxFt3cPnSUx+RzCAYCCB/aiZS4koygUJfXwWCxEc2yUn
+         KjcOpizGK6bja/xNLjToZKxhkl1TLcI7GieiSNB9Q+/l1Zd1Eus6PjajlRDs+HKFNKS8
+         +Fb6tLkzmuB2qGKF5Yvirc2p5SJIupcUQe4yvT2QHbzy6Kj7KYzO9bz/qrX7bLNtOpE1
+         N+g7DL8svgelVfMPF5rlbzL3VuTBFSZh2a+YLYjLFHTdpi3dnYk5/+EelSGLFkKhW01f
+         Sm6LyFg7ywJgGG1NsE+HXIhaxL0xKWs87XbfSzgJ34CcgBOVwENwSXs/geuDWd/Rr742
+         zFqg==
+X-Gm-Message-State: AOAM532NhL2tmSS0p7/PWwzb5ktmCazrRvwjFTFcOL/vBG4jSxHZ9A/U
+	HSQ/GYspkM8Nn6nqw/IS2J7VfCkqQ7+HGs1k/EwXdQ==
+X-Google-Smtp-Source: ABdhPJxjy5VA2QU5lfhoTOMwxvSDWV/AzlYSz9OA8wBGSB0C6aZ8GQECMrLT8IMY6QEWAtZHUAfbB3VW6Hei0TVDfgg=
+X-Received: by 2002:a63:4717:: with SMTP id u23mr1223011pga.74.1643247905301;
+ Wed, 26 Jan 2022 17:45:05 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220126170002.19754-2-tome01@ajou.ac.kr>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <cover.1642535478.git.alison.schofield@intel.com> <d8760a4a0ca5b28be4eee27a2581ca8c2abe3e49.1642535478.git.alison.schofield@intel.com>
+In-Reply-To: <d8760a4a0ca5b28be4eee27a2581ca8c2abe3e49.1642535478.git.alison.schofield@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Wed, 26 Jan 2022 17:44:54 -0800
+Message-ID: <CAPcyv4gx+mvAPEmYstUXAsjWY=Aq7zb4y4V+QGzwnauk1F8DEw@mail.gmail.com>
+Subject: Re: [ndctl PATCH v3 6/6] cxl: add command set-partition-info
+To: "Schofield, Alison" <alison.schofield@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>, Ira Weiny <ira.weiny@intel.com>, 
+	Vishal Verma <vishal.l.verma@intel.com>, Linux NVDIMM <nvdimm@lists.linux.dev>, 
+	linux-cxl@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hi Jonghyeon,
+On Tue, Jan 18, 2022 at 12:20 PM <alison.schofield@intel.com> wrote:
+>
+> From: Alison Schofield <alison.schofield@intel.com>
+>
+> Users may want to change the partition layout of a memory
+> device using the CXL command line tool.
 
-Thank you for the patch! Yet something to improve:
+How about:
 
-[auto build test ERROR on hnaz-mm/master]
+CXL devices may support both volatile and persistent memory capacity.
+The amount of device capacity set aside for each type is typically
+established at the factory, but some devices also allow for dynamic
+re-partitioning, add a command for this purpose.
 
-url:    https://github.com/0day-ci/linux/commits/Jonghyeon-Kim/mm-memory_hotplug-Export-shrink-span-functions-for-zone-and-node/20220127-010219
-base:   https://github.com/hnaz/linux-mm master
-config: x86_64-randconfig-a002-20220124 (https://download.01.org/0day-ci/archive/20220127/202201270836.H8feaOM9-lkp@intel.com/config)
-compiler: gcc-9 (Debian 9.3.0-22) 9.3.0
-reproduce (this is a W=1 build):
-        # https://github.com/0day-ci/linux/commit/ef33cc7f7380ddd07a3fedb42f35c1f81de401a4
-        git remote add linux-review https://github.com/0day-ci/linux
-        git fetch --no-tags linux-review Jonghyeon-Kim/mm-memory_hotplug-Export-shrink-span-functions-for-zone-and-node/20220127-010219
-        git checkout ef33cc7f7380ddd07a3fedb42f35c1f81de401a4
-        # save the config file to linux build tree
-        mkdir build_dir
-        make W=1 O=build_dir ARCH=x86_64 SHELL=/bin/bash drivers/dax/
+> Add a new CXL command,
+> 'cxl set-partition-info', that operates on a CXL memdev, or a
+> set of memdevs, and allows the user to change the partition
+> layout of the device(s).
+>
+> Synopsis:
+> Usage: cxl set-partition-info <mem0> [<mem1>..<memN>] [<options>]
 
-If you fix the issue, kindly add following tag as appropriate
-Reported-by: kernel test robot <lkp@intel.com>
+It's unfortunate that the specification kept the word "info" in the
+set-partition command name, let's leave it out of this name and just
+call this 'cxl set-partition'.
 
-All errors (new ones prefixed by >>):
+>
+>         -v, --verbose           turn on debug
+>         -s, --volatile_size <n>
+>                                 next volatile partition size in bytes
 
-   drivers/dax/kmem.c: In function 'dev_dax_kmem_probe':
->> drivers/dax/kmem.c:156:42: error: 'ZONE_DEVICE' undeclared (first use in this function)
-     156 |   struct zone *zone = &pgdat->node_zones[ZONE_DEVICE];
-         |                                          ^~~~~~~~~~~
-   drivers/dax/kmem.c:156:42: note: each undeclared identifier is reported only once for each function it appears in
+Some users will come to this tool with the thought, "I want volatile
+capacity X", others "I want pmem capacity Y". All but the most
+advanced users will not understand how the volatile setting affects
+the pmem and vice versa, nor will they understand that capacity might
+be fixed and other capacity is dynamic. So how about a set of options
+like:
 
+-t, --type=3D<volatile,pmem>
+-s,--size=3D<size>
 
-vim +/ZONE_DEVICE +156 drivers/dax/kmem.c
+...where by default -t is 'pmem' and -s is '0' for 100% of the dynamic
+capacity set to PMEM.
 
-    44	
-    45	static int dev_dax_kmem_probe(struct dev_dax *dev_dax)
-    46	{
-    47		struct device *dev = &dev_dax->dev;
-    48		unsigned long total_len = 0;
-    49		struct dax_kmem_data *data;
-    50		int i, rc, mapped = 0;
-    51		int numa_node;
-    52		int dev_node;
-    53	
-    54		/*
-    55		 * Ensure good NUMA information for the persistent memory.
-    56		 * Without this check, there is a risk that slow memory
-    57		 * could be mixed in a node with faster memory, causing
-    58		 * unavoidable performance issues.
-    59		 */
-    60		numa_node = dev_dax->target_node;
-    61		if (numa_node < 0) {
-    62			dev_warn(dev, "rejecting DAX region with invalid node: %d\n",
-    63					numa_node);
-    64			return -EINVAL;
-    65		}
-    66	
-    67		for (i = 0; i < dev_dax->nr_range; i++) {
-    68			struct range range;
-    69	
-    70			rc = dax_kmem_range(dev_dax, i, &range);
-    71			if (rc) {
-    72				dev_info(dev, "mapping%d: %#llx-%#llx too small after alignment\n",
-    73						i, range.start, range.end);
-    74				continue;
-    75			}
-    76			total_len += range_len(&range);
-    77		}
-    78	
-    79		if (!total_len) {
-    80			dev_warn(dev, "rejecting DAX region without any memory after alignment\n");
-    81			return -EINVAL;
-    82		}
-    83	
-    84		data = kzalloc(struct_size(data, res, dev_dax->nr_range), GFP_KERNEL);
-    85		if (!data)
-    86			return -ENOMEM;
-    87	
-    88		rc = -ENOMEM;
-    89		data->res_name = kstrdup(dev_name(dev), GFP_KERNEL);
-    90		if (!data->res_name)
-    91			goto err_res_name;
-    92	
-    93		rc = memory_group_register_static(numa_node, total_len);
-    94		if (rc < 0)
-    95			goto err_reg_mgid;
-    96		data->mgid = rc;
-    97	
-    98		for (i = 0; i < dev_dax->nr_range; i++) {
-    99			struct resource *res;
-   100			struct range range;
-   101	
-   102			rc = dax_kmem_range(dev_dax, i, &range);
-   103			if (rc)
-   104				continue;
-   105	
-   106			/* Region is permanently reserved if hotremove fails. */
-   107			res = request_mem_region(range.start, range_len(&range), data->res_name);
-   108			if (!res) {
-   109				dev_warn(dev, "mapping%d: %#llx-%#llx could not reserve region\n",
-   110						i, range.start, range.end);
-   111				/*
-   112				 * Once some memory has been onlined we can't
-   113				 * assume that it can be un-onlined safely.
-   114				 */
-   115				if (mapped)
-   116					continue;
-   117				rc = -EBUSY;
-   118				goto err_request_mem;
-   119			}
-   120			data->res[i] = res;
-   121	
-   122			/*
-   123			 * Set flags appropriate for System RAM.  Leave ..._BUSY clear
-   124			 * so that add_memory() can add a child resource.  Do not
-   125			 * inherit flags from the parent since it may set new flags
-   126			 * unknown to us that will break add_memory() below.
-   127			 */
-   128			res->flags = IORESOURCE_SYSTEM_RAM;
-   129	
-   130			/*
-   131			 * Ensure that future kexec'd kernels will not treat
-   132			 * this as RAM automatically.
-   133			 */
-   134			rc = add_memory_driver_managed(data->mgid, range.start,
-   135					range_len(&range), kmem_name, MHP_NID_IS_MGID);
-   136	
-   137			if (rc) {
-   138				dev_warn(dev, "mapping%d: %#llx-%#llx memory add failed\n",
-   139						i, range.start, range.end);
-   140				release_resource(res);
-   141				kfree(res);
-   142				data->res[i] = NULL;
-   143				if (mapped)
-   144					continue;
-   145				goto err_request_mem;
-   146			}
-   147			mapped++;
-   148		}
-   149	
-   150		dev_set_drvdata(dev, data);
-   151	
-   152		/* Update spanned_pages of the device numa node */
-   153		dev_node = dev_to_node(dev);
-   154		if (dev_node != numa_node && dev_node < numa_node) {
-   155			struct pglist_data *pgdat = NODE_DATA(dev_node);
- > 156			struct zone *zone = &pgdat->node_zones[ZONE_DEVICE];
-   157			unsigned long start_pfn = zone->zone_start_pfn;
-   158			unsigned long nr_pages = NODE_DATA(numa_node)->node_spanned_pages;
-   159	
-   160			shrink_zone_span(zone, start_pfn, start_pfn + nr_pages);
-   161			update_pgdat_span(pgdat);
-   162		}
-   163	
-   164		return 0;
-   165	
-   166	err_request_mem:
-   167		memory_group_unregister(data->mgid);
-   168	err_reg_mgid:
-   169		kfree(data->res_name);
-   170	err_res_name:
-   171		kfree(data);
-   172		return rc;
-   173	}
-   174	
+The tool can then help the user get what they want relative to
+whatever frame of reference led them to read the set-partition man
+page. The tool can figure out the details behind the scenes, or warn
+them if they want something impossible like setting PMEM capacity to
+1GB on a device where 2GB of PMEM is statically allocated.
 
----
-0-DAY CI Kernel Test Service, Intel Corporation
-https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
+This also helps with future proofing in case there are other types
+that come along.
+
+>
+> The included MAN page explains how to find the partitioning
+> capabilities and restrictions of a CXL memory device.
+>
+> Signed-off-by: Alison Schofield <alison.schofield@intel.com>
+> ---
+>  Documentation/cxl/cxl-set-partition-info.txt |  53 ++++++++++
+>  Documentation/cxl/meson.build                |   1 +
+>  cxl/builtin.h                                |   1 +
+>  cxl/cxl.c                                    |   1 +
+>  cxl/memdev.c                                 | 101 +++++++++++++++++++
+>  5 files changed, 157 insertions(+)
+>  create mode 100644 Documentation/cxl/cxl-set-partition-info.txt
+>
+> diff --git a/Documentation/cxl/cxl-set-partition-info.txt b/Documentation=
+/cxl/cxl-set-partition-info.txt
+> new file mode 100644
+> index 0000000..d99a1b9
+> --- /dev/null
+> +++ b/Documentation/cxl/cxl-set-partition-info.txt
+> @@ -0,0 +1,53 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +cxl-set-partition-info(1)
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+> +
+> +NAME
+> +----
+> +cxl-set-partition-info - set the partitioning between volatile and persi=
+stent capacity on a CXL memdev
+> +
+> +SYNOPSIS
+> +--------
+> +[verse]
+> +'cxl set-partition-info <mem> [ [<mem1>..<memN>] [<options>]'
+> +
+> +DESCRIPTION
+> +-----------
+> +Partition the device into volatile and persistent capacity. The change
+> +in partitioning will become the =E2=80=9Cnext=E2=80=9D configuration, to=
+ become active
+> +on the next device reset.
+> +
+> +Use "cxl list -m <memdev> -I" to examine the partitioning capabilities
+> +of a device. A partition_alignment_bytes value of zero means there are
+> +no partitionable bytes available and therefore the partitions cannot be
+> +changed.
+> +
+> +Using this command to change the size of the persistent capacity shall
+> +result in the loss of data stored.
+> +
+> +OPTIONS
+> +-------
+> +<memory device(s)>::
+> +include::memdev-option.txt[]
+> +
+> +-s::
+> +--size=3D::
+
+This is "--volatile_size" in the current patch, but that's moot with
+feedback to move to a --type + --size scheme.
+
+> +        Size in bytes of the volatile partition requested.
+> +
+> +        Size must align to the devices partition_alignment_bytes.
+> +        Use 'cxl list -m <memdev> -I' to find partition_alignment_bytes.
+
+This a static 256M, that can just be documented here.
+
+> +
+> +        Size must be less than or equal to the device's partitionable by=
+tes.
+> +        Calculate partitionable bytes by subracting the volatile_only_by=
+tes,
+
+s/subracting/subtracting/
+
+...but rather than teaching the user to input valid values, tell them
+the validation and translation the tool will do on their behalf with
+the input based on type and the details they don't need to worry
+about.
