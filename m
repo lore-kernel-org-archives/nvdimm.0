@@ -1,230 +1,181 @@
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+Received: from mx0b-00069f02.pphosted.com (mx0b-00069f02.pphosted.com [205.220.177.32])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 921872CA9
-	for <nvdimm@lists.linux.dev>; Wed, 26 Jan 2022 23:59:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643241549; x=1674777549;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=y58xquDc3V7DyNC7NTUtBsYIcGV8ga/AGHousy1DxZo=;
-  b=UnOt1f/X6xjC00vYoh5+xm16S8XDOIStEPFHahiZt4PDw5pzxq+svK2A
-   ZXxfffSlgJU6tQXTSNgl7bmOX6ylDioJgYLZjskVovn2ZAPxx68KwYDAY
-   l7Pexn6T30RlATqtQ1RHGEXtr2sAkyQE8+//NGS6s2qGho3rF68K3iWeb
-   OOR+oXrKAEnD83tkkMquW+coep3b2fHUrYe+rQysQPOrX5kvImReviSv3
-   C7E0ysNilnxTfttVsrodr8MWNNGQfm4Si3yxgLVIuTRQAj5BCEV+tWjbp
-   EOFU6oyYuSRcbDfhuVAG3F4jvGPrLrcY6iLAMjMFSaSt/gooukVCRPgT5
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="227365849"
-X-IronPort-AV: E=Sophos;i="5.88,319,1635231600"; 
-   d="scan'208";a="227365849"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 15:59:08 -0800
-X-IronPort-AV: E=Sophos;i="5.88,319,1635231600"; 
-   d="scan'208";a="628482768"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Jan 2022 15:59:07 -0800
-Subject: [PATCH v5 18/40] cxl/pmem: Introduce a find_cxl_root() helper
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Ben Widawsky <ben.widawsky@intel.com>, linux-pci@vger.kernel.org,
- nvdimm@lists.linux.dev
-Date: Wed, 26 Jan 2022 15:59:07 -0800
-Message-ID: <164324151672.3935633.11277011056733051668.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <164322333437.3694981.17087130505938650994.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164322333437.3694981.17087130505938650994.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B8B92C9D
+	for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 00:26:13 +0000 (UTC)
+Received: from pps.filterd (m0246632.ppops.net [127.0.0.1])
+	by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20QKZ7qj017314;
+	Thu, 27 Jan 2022 00:26:00 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=from : to : cc :
+ subject : date : message-id : references : in-reply-to : content-type :
+ content-id : content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=5JfvMoIRtHatb6eef4hqYYEmQS6IcLmS/YychWU1Eo0=;
+ b=k0csC3U1eXaRR+yMw7ShMdCbLefVmxaHm1aIlgfMbmMA5qP9BdZQqtLhxwuYDRIAtgc9
+ IL7k1pXKBqRUsY1EXNC2xzYfQbR7oFi7X7CD+s4TwyQxMKH1MjeivqDP1nQK5A1M17tF
+ vgtY3yygiI5NFPTfIJPPCBrSVCke9zCt7e6yGLiM27hdnlZGnWkgnUdTo/gYtdE38SHK
+ PhSqiJ6Ko1rqvTl2qqXc6datnXT/yz68Sqz/apyehprxFd5SDj8tVhbYCzqJ4+vJrhiw
+ YjRCIgqhmIPivQOyG8/+QYk7n/GpydPx7csQ8fcVBo8MfI7KaLTij8roSDgoOwAPFr+D tQ== 
+Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
+	by mx0b-00069f02.pphosted.com with ESMTP id 3dsy9s7k2t-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 27 Jan 2022 00:25:59 +0000
+Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
+	by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20R0H317046880;
+	Thu, 27 Jan 2022 00:25:58 GMT
+Received: from nam12-bn8-obe.outbound.protection.outlook.com (mail-bn8nam12lp2172.outbound.protection.outlook.com [104.47.55.172])
+	by userp3030.oracle.com with ESMTP id 3dr7227whc-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Thu, 27 Jan 2022 00:25:58 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=KtQr1ZiUlusxTf0mKYdvycer10euk+bJn4cMdAYoezNY3UOajlNuTiLCM+xEE/sGbdbgBF4CFQHfRF4aPTF+7HzguqKhHpnFcCy3H97xMOzpTucPUb1bJL85LMRphzNaHRrcuWaI69y5rsVTXhU4uMcBf07dt10FGqzAphPt12eCY09Wjs2VruhAOcdTaMM1KVe6t8ul1qSZkKKPU5n1yDWOUPrNaNsV5/RrkZKl3ZM1//JwJgbVEiSlneKEptsUZo9ML+UutDhXguXl0/GqdyFdzMO4+42jmQCXzbXM0hrtZpKLuHVza6F/JMDfFiBzVJNo8uhVA3ABZ1ZOK6VZsA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=5JfvMoIRtHatb6eef4hqYYEmQS6IcLmS/YychWU1Eo0=;
+ b=VXBYez8Kcq3kxWd8q1xmpKnrB7kCAgr6vfPX1t1CsMuN/PNb3svslCOyxp+eVAP2CgWiyy54qqkrUJZFlE6bW1I062BfApMrZkoKLEbGFs15q0+QSIzvU7Ho3xESH9RqWVnENTQY/adNK5m+tSd1elTRScK1VFgvWLWJ1SJQ4zAN5Qz/nLFgG0Fr4Ssi2/g5fbGB9BEGwcTMGu/2F+g0XszfiM7iq2xy5vjSbA+6Uxr4N7GES5yd/y1+UYuFm082k1vhakkRYimEygbpxylbyvjGBNiXaE0YOqJPBwGls4B/4zT1rvmuNGTJRV+dlLMXE9ZeoQ3ekeDy2SQsh8uClg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5JfvMoIRtHatb6eef4hqYYEmQS6IcLmS/YychWU1Eo0=;
+ b=xSg1VS6L7hTxX9pHMCkCNBnf8bzmUEP54N5qk8ITcp/arEIsKQJkECRDJlHDtkPGCh7Sjjz3eR+XQklsiCCZdJLr7eRwJ7sVnYGll6ryxaj9wE/PAL9ce1xel3ZgkKffJQdWBc/nBFO3oWAI+waWzgZ6muiJ6+YXnGgozgpaw+s=
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com (2603:10b6:a03:2d1::14)
+ by SN4PR10MB5605.namprd10.prod.outlook.com (2603:10b6:806:208::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4909.8; Thu, 27 Jan
+ 2022 00:25:56 +0000
+Received: from SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::d034:a8db:9e32:acde]) by SJ0PR10MB4429.namprd10.prod.outlook.com
+ ([fe80::d034:a8db:9e32:acde%4]) with mapi id 15.20.4909.019; Thu, 27 Jan 2022
+ 00:25:56 +0000
+From: Jane Chu <jane.chu@oracle.com>
+To: Christoph Hellwig <hch@infradead.org>
+CC: "david@fromorbit.com" <david@fromorbit.com>,
+        "djwong@kernel.org"
+	<djwong@kernel.org>,
+        "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+        "vishal.l.verma@intel.com" <vishal.l.verma@intel.com>,
+        "dave.jiang@intel.com"
+	<dave.jiang@intel.com>,
+        "agk@redhat.com" <agk@redhat.com>,
+        "snitzer@redhat.com" <snitzer@redhat.com>,
+        "dm-devel@redhat.com"
+	<dm-devel@redhat.com>,
+        "ira.weiny@intel.com" <ira.weiny@intel.com>,
+        "willy@infradead.org" <willy@infradead.org>,
+        "vgoyal@redhat.com"
+	<vgoyal@redhat.com>,
+        "linux-fsdevel@vger.kernel.org"
+	<linux-fsdevel@vger.kernel.org>,
+        "nvdimm@lists.linux.dev"
+	<nvdimm@lists.linux.dev>,
+        "linux-kernel@vger.kernel.org"
+	<linux-kernel@vger.kernel.org>,
+        "linux-xfs@vger.kernel.org"
+	<linux-xfs@vger.kernel.org>
+Subject: Re: [PATCH v3 0/7] DAX poison recovery
+Thread-Topic: [PATCH v3 0/7] DAX poison recovery
+Thread-Index: AQHYBx1mMl0+u9/A1ECT4doipsHhkaxruVyAgAEGPwCABTQgAIAEJu+A
+Date: Thu, 27 Jan 2022 00:25:55 +0000
+Message-ID: <eb09688d-2fa1-80c2-61e5-972ff58eadbf@oracle.com>
+References: <20220111185930.2601421-1-jane.chu@oracle.com>
+ <Yekxd1/MboidZo4C@infradead.org>
+ <4e8c454f-ae48-d4a2-27c4-be6ee89fc9b3@oracle.com>
+ <Ye5q7MSypmwdV4iT@infradead.org>
+In-Reply-To: <Ye5q7MSypmwdV4iT@infradead.org>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+x-ms-publictraffictype: Email
+x-ms-office365-filtering-correlation-id: bcfde5b1-7718-4436-44d5-08d9e12b95b5
+x-ms-traffictypediagnostic: SN4PR10MB5605:EE_
+x-microsoft-antispam-prvs: 
+ <SN4PR10MB5605A165BB45CB68BB202B4BF3219@SN4PR10MB5605.namprd10.prod.outlook.com>
+x-ms-oob-tlc-oobclassifiers: OLM:1417;
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: 
+ pvngJnniqeHTZRQu6d/8PEqHRwhbLeHeoCcDxdALouv9qjGvMXh8EaOsKsRQLQwjKDdazPMvN/ivFpmpLRgFrTE70VsgohceJ492il8ez5jnxpi8Vf7ROpIn5BVPHwibPX9lAjVhxcGBED1FPWIGpeAxtb0+FozHgCjVvKc3cQ7yUmi5TNeVlCIcp4wdgDWptQZWKY3TII9ObggJpXtO/1t4WtCoQNJKigEv3uYtZfi4Wq6qM7qRPxH4ZUu8T++S5eegyiKD18XoRhrbo1PY8JdICLLRikqvU3EsRYxivPnklT/HzNlt8ttxTJSN2jvr/5enEnHi22MSuy4/3z0YdCo8Z9+bp0bj3OYC2M2hD3fnBrQQ1ngB92qwjWDuNTPsadoIhyzxct/WsNqy2hIoKpjzMNbwmQ1tUVOYUBcvUBPq+0zAqApUw6O3T5iP4oz5y7H/dbss5SjQ9hj3EhYvGjYcInJ71ZR8my16Tx3jr3zynUAIO7XMuNaNc069qPbbyKy9C0h64yEP3+7SSatOdxs2rlVkoyreQ0QbBt1gfCMWCNVPhPAgkkK33fCCY/49Uga+dhgdEgtOMecYcCagv9Ine3QI8tv2RFCaqbSr4l8PU4eWa5Dyr9xkfJnKzM7FYFoWniN0fDaGyGkkP6/n/2e0xJ7nUO2yZSBMv0FnLXywKmSD/UvESyfWFIbKbCChWLW2KCzP7MyRHRRJjWxAE9xFv2PRHqWk0SL4CS7BKdnXFRfCw+oGBnaQJU32uDj0z6BgFkPEQstCg6XQCI+1Nw==
+x-forefront-antispam-report: 
+ CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:SJ0PR10MB4429.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(6486002)(71200400001)(66946007)(66446008)(122000001)(316002)(31686004)(64756008)(44832011)(6512007)(76116006)(91956017)(26005)(38100700002)(7416002)(54906003)(2906002)(4326008)(83380400001)(38070700005)(8936002)(4744005)(36756003)(31696002)(8676002)(6916009)(186003)(86362001)(508600001)(2616005)(66476007)(66556008)(5660300002)(53546011)(6506007)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: 
+ =?utf-8?B?RXEveW0vejhNVjZiOS9yR2orbnVITmRtTVV3bkpYSVcxYnlRYUE0REJjZnlY?=
+ =?utf-8?B?WkdUMEtUd1JSVDFURGNsM2F1K2NLRHpMRWw1Q0pUcnBrWnM4VFQ3aTFwdW16?=
+ =?utf-8?B?d0RGUTZNam13bnV5ZkNwMTBNb3dXcDFiaDlEUk9nUWlOUnRaazZnam5rMWkz?=
+ =?utf-8?B?MGw1Mm1YZ1pyQ0tzUHh5Zm53N04rT0EvbUhGdEtJOU82K2owOVF6RjR1Ym5r?=
+ =?utf-8?B?aS9qNHQyMnB6UjlybzZiVW5aNVlzL2pkSm9Benlja2VHWW5pYmQxWEJ5QVpm?=
+ =?utf-8?B?Rk9LMGRmenFuWWc5ay9QTEhZSWsvc3lMelRFQ3hhWVhNaUhRT0JUUTZqZ2tI?=
+ =?utf-8?B?TEI1MG5QOW1ua0JDMno3R2RNcE5ycGM1NXBNL284dHY4UlZ3cEc3bGQ2YlJr?=
+ =?utf-8?B?M2EycFlJY011RHRlTmFNc1pwbS9icEVoOVEwOFdoTy9aK1ZwNnNUM1JUU2cw?=
+ =?utf-8?B?NUMvSWVQTjBtZmlBQUovSk1Mb3VBaWFYcHo1MVlDNmNYaEZSeHJLRDREWUhL?=
+ =?utf-8?B?VnMvek1DUE9KVWFIRnZHbWQ0eWFGd2Z2dEdLM3VmemhYM3FCYzFnd29iZHBq?=
+ =?utf-8?B?ZHJRU3VzNlBNaXRZS1ZCNTRPcENCWUQwQUVTdXdOT1NHVFdJdXgwS3ZPcTda?=
+ =?utf-8?B?RldvQ0pSTWtaNGVBVXZQVDZWc3lsVXNpdm1PSGFNWHlxNnd4b1lTU0d2b0RQ?=
+ =?utf-8?B?SXVWTmZUQVFONDdWUVpSeUZIVjlHeHVIbGFJWTlCemVkSWFsdjQ0QlpJWWU1?=
+ =?utf-8?B?NXdvZTZ1ejlwcTB4WE83bWlTNm5NV1U2SUpEMGJ5dkpWZ3VCeTBoaDByOWtH?=
+ =?utf-8?B?ZDVBcmFIN2RmRFJqaWxFNitTZ1ZIMHVrY3d6NVp0Q0xyZVRPc3FpbW9VeVVx?=
+ =?utf-8?B?bHR3b0VyR3phb1F5S1VDS1pDYklPZkZSWi8yOEk5UWlBbUR5UnlCeFhmeWZ2?=
+ =?utf-8?B?SjJ0bStuVFdlWCtqZ3FLRXlkc2k0b0pMV0FzWHhDL1NLTWJKVUkvaHZWVUcy?=
+ =?utf-8?B?cUlNaDhadVl4bVZsb0RvcEdrNWk2SzdBT1h1QkN4ODd1b0t5QzFpVWhacm9Z?=
+ =?utf-8?B?VStUN1gzNXQ1L2xxa2JxdXI4ZDNQb0JBMG56QmlYcjFVbVljRU1DblVZQ3Az?=
+ =?utf-8?B?K2xxL3FxN3FFK3hnOTZqVm4wYk16WVpPbWVqdlZDVEExZ2N0TndBMUJHWEJS?=
+ =?utf-8?B?VHdGQkZGZnZ2c3hmbVNGdjROWWZtMmYyV0FUWUV0bTAyVERtcTMzNmdPcHVh?=
+ =?utf-8?B?ZzNLaEV4STRuR0dPS2swSGU4WGlDeHNydGt2MjViYnp1MkV5ZWpGcXNGbkRo?=
+ =?utf-8?B?cG15UGxkN1VIeEp4allTY1EzRDdJSWljcFhDTzVsK2p5aXg3VHFydXVTc1JN?=
+ =?utf-8?B?OVhyakJpMS9SUERZZVpzRWxNVTRabEVHMk1OcUZsUEczWStOcmh6ZWZqRkU4?=
+ =?utf-8?B?ODlER09JYWFVQVl6WUZ5MnRQZjhjc0dmanhuSksrNlQ1WVBSMFphV0tTdE5v?=
+ =?utf-8?B?RnhuWklHcWpkL0t5dG5pLzIrckcxQ010aDhnbCszVkRybmpzTnNPdmVkbzhu?=
+ =?utf-8?B?U0pHcXFMODU2L2d2azlOdHRTS0REcjdUa3ZmdUZxZ09lVFh0T3dEL2hZUDJG?=
+ =?utf-8?B?MnZwSWJhVC9ZTC92T3lkUCs2Z3dKZE9aUDRBY3FTeGh1NE0vK01meU8yZXc0?=
+ =?utf-8?B?anBuSW5yK3N6Q1c0U2FSVWx6Z25ldU1hMlJqVlU2NmY5dlIyR2NkVjFobkFM?=
+ =?utf-8?B?RnZ0Ymg2dXViWWo5ejY3bzhhT2RhUFBKQXpZS2paWmo0SExxb2F0QkRUOVFx?=
+ =?utf-8?B?TW80dW1IdlorSzRtenczTjNvQytVYUMvUTZYRXVzSDVIUC9NVnNQZ3I1b1h5?=
+ =?utf-8?B?aWRpbFZTOGJzZDRBVlE2OUpuY09qTzNBR05YNGRHU2twV1BLek1ISk4zeXpK?=
+ =?utf-8?B?TkI2OXYzQ2RUZFNBbmJJT3lDZWFMOE9OelVwWFJFL2RPV1psL3ZuKzFjM0ta?=
+ =?utf-8?B?NzhRWCt0T1V1d2tqMnB6ZGZJS29ScXNBZmsyNVU4c2lmK2U2cEZSNkhDL0V2?=
+ =?utf-8?B?VE03bTV5Ly9KRFptVDAyQVAvYlpYb0lHQURlWlpKQlpXaGl2UU93NkszeWdw?=
+ =?utf-8?B?Vy9wQXA0c3BLSWhDbkJMM0hTVkpFQ2crSERrOUJYdjJUR3FaT3BSNFRiOU4v?=
+ =?utf-8?B?ZHc9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <D7ADC38D4B7FFF418AF7B8B42C5651E4@namprd10.prod.outlook.com>
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: SJ0PR10MB4429.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: bcfde5b1-7718-4436-44d5-08d9e12b95b5
+X-MS-Exchange-CrossTenant-originalarrivaltime: 27 Jan 2022 00:25:56.0382
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: 2LcuAIdlHeNX3L6ylCu2tb0TjZe0WTp6v3VtPa0haavtutMFwnhOZbpiHfEiFw/tylFf1/72SXr1/laCbu5EZA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SN4PR10MB5605
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10239 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 malwarescore=0 mlxlogscore=946
+ adultscore=0 spamscore=0 bulkscore=0 mlxscore=0 phishscore=0
+ suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2201110000 definitions=main-2201270000
+X-Proofpoint-GUID: _9Kn0o8E__aAen6zdxizj9bXtfKVpt6o
+X-Proofpoint-ORIG-GUID: _9Kn0o8E__aAen6zdxizj9bXtfKVpt6o
 
-In preparation for switch port enumeration while also preserving the
-potential for multi-domain / multi-root CXL topologies. Introduce a
-'struct device' generic mechanism for retrieving a root CXL port, if one
-is registered. Note that the only know multi-domain CXL configurations
-are running the cxl_test unit test on a system that also publishes an
-ACPI0017 device.
-
-With this in hand the nvdimm-bridge lookup can be with
-device_find_child() instead of bus_find_device() + custom mocked lookup
-infrastructure in cxl_test.
-
-The mechanism looks for a 2nd level port since the root level topology
-is platform-firmware specific and the 2nd level down follows standard
-PCIe topology expectations. The cxl_acpi 2nd level is associated with a
-PCIe Root Port.
-
-Reported-by: Ben Widawsky <ben.widawsky@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v4:
-- reset @iter each loop otherwise only the first dport can be scanned.
-
- drivers/cxl/core/pmem.c       |   14 ++++++++---
- drivers/cxl/core/port.c       |   50 +++++++++++++++++++++++++++++++++++++++++
- drivers/cxl/cxl.h             |    1 +
- tools/testing/cxl/Kbuild      |    2 --
- tools/testing/cxl/mock_pmem.c |   24 --------------------
- 5 files changed, 61 insertions(+), 30 deletions(-)
- delete mode 100644 tools/testing/cxl/mock_pmem.c
-
-diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-index 40b3f5030496..8de240c4d96b 100644
---- a/drivers/cxl/core/pmem.c
-+++ b/drivers/cxl/core/pmem.c
-@@ -57,24 +57,30 @@ bool is_cxl_nvdimm_bridge(struct device *dev)
- }
- EXPORT_SYMBOL_NS_GPL(is_cxl_nvdimm_bridge, CXL);
- 
--__mock int match_nvdimm_bridge(struct device *dev, const void *data)
-+static int match_nvdimm_bridge(struct device *dev, void *data)
- {
- 	return is_cxl_nvdimm_bridge(dev);
- }
- 
- struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_nvdimm *cxl_nvd)
- {
-+	struct cxl_port *port = find_cxl_root(&cxl_nvd->dev);
- 	struct device *dev;
- 
--	dev = bus_find_device(&cxl_bus_type, NULL, cxl_nvd, match_nvdimm_bridge);
-+	if (!port)
-+		return NULL;
-+
-+	dev = device_find_child(&port->dev, NULL, match_nvdimm_bridge);
-+	put_device(&port->dev);
-+
- 	if (!dev)
- 		return NULL;
-+
- 	return to_cxl_nvdimm_bridge(dev);
- }
- EXPORT_SYMBOL_NS_GPL(cxl_find_nvdimm_bridge, CXL);
- 
--static struct cxl_nvdimm_bridge *
--cxl_nvdimm_bridge_alloc(struct cxl_port *port)
-+static struct cxl_nvdimm_bridge *cxl_nvdimm_bridge_alloc(struct cxl_port *port)
- {
- 	struct cxl_nvdimm_bridge *cxl_nvb;
- 	struct device *dev;
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 4c921c49f967..6447f12ef71d 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -457,6 +457,56 @@ int devm_cxl_register_pci_bus(struct device *host, struct device *uport,
- }
- EXPORT_SYMBOL_NS_GPL(devm_cxl_register_pci_bus, CXL);
- 
-+/* Find a 2nd level CXL port that has a dport that is an ancestor of @match */
-+static int match_cxl_root_child(struct device *dev, const void *match)
-+{
-+	const struct device *iter = NULL;
-+	struct cxl_port *port, *parent;
-+	struct cxl_dport *dport;
-+
-+	if (!is_cxl_port(dev))
-+		return 0;
-+
-+	port = to_cxl_port(dev);
-+	if (is_cxl_root(port))
-+		return 0;
-+
-+	parent = to_cxl_port(port->dev.parent);
-+	if (!is_cxl_root(parent))
-+		return 0;
-+
-+	cxl_device_lock(&port->dev);
-+	list_for_each_entry(dport, &port->dports, list) {
-+		iter = match;
-+		while (iter) {
-+			if (iter == dport->dport)
-+				goto out;
-+			iter = iter->parent;
-+		}
-+	}
-+out:
-+	cxl_device_unlock(&port->dev);
-+
-+	return !!iter;
-+}
-+
-+struct cxl_port *find_cxl_root(struct device *dev)
-+{
-+	struct device *port_dev;
-+	struct cxl_port *root;
-+
-+	port_dev =
-+		bus_find_device(&cxl_bus_type, NULL, dev, match_cxl_root_child);
-+	if (!port_dev)
-+		return NULL;
-+
-+	root = to_cxl_port(port_dev->parent);
-+	get_device(&root->dev);
-+	put_device(port_dev);
-+	return root;
-+}
-+EXPORT_SYMBOL_NS_GPL(find_cxl_root, CXL);
-+
- static struct cxl_dport *find_dport(struct cxl_port *port, int id)
- {
- 	struct cxl_dport *dport;
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 4e8d504546c5..7523e4d60953 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -298,6 +298,7 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
- 
- int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
- 		  resource_size_t component_reg_phys);
-+struct cxl_port *find_cxl_root(struct device *dev);
- 
- struct cxl_decoder *to_cxl_decoder(struct device *dev);
- bool is_root_decoder(struct device *dev);
-diff --git a/tools/testing/cxl/Kbuild b/tools/testing/cxl/Kbuild
-index 3299fb0977b2..ddaee8a2c418 100644
---- a/tools/testing/cxl/Kbuild
-+++ b/tools/testing/cxl/Kbuild
-@@ -32,6 +32,4 @@ cxl_core-y += $(CXL_CORE_SRC)/memdev.o
- cxl_core-y += $(CXL_CORE_SRC)/mbox.o
- cxl_core-y += config_check.o
- 
--cxl_core-y += mock_pmem.o
--
- obj-m += test/
-diff --git a/tools/testing/cxl/mock_pmem.c b/tools/testing/cxl/mock_pmem.c
-deleted file mode 100644
-index f7315e6f52c0..000000000000
---- a/tools/testing/cxl/mock_pmem.c
-+++ /dev/null
-@@ -1,24 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/* Copyright(c) 2021 Intel Corporation. All rights reserved. */
--#include <cxl.h>
--#include "test/mock.h"
--#include <core/core.h>
--
--int match_nvdimm_bridge(struct device *dev, const void *data)
--{
--	int index, rc = 0;
--	struct cxl_mock_ops *ops = get_cxl_mock_ops(&index);
--	const struct cxl_nvdimm *cxl_nvd = data;
--
--	if (ops) {
--		if (dev->type == &cxl_nvdimm_bridge_type &&
--		    (ops->is_mock_dev(dev->parent->parent) ==
--		     ops->is_mock_dev(cxl_nvd->dev.parent->parent)))
--			rc = 1;
--	} else
--		rc = dev->type == &cxl_nvdimm_bridge_type;
--
--	put_cxl_mock_ops(index);
--
--	return rc;
--}
-
+T24gMS8yNC8yMDIyIDE6MDEgQU0sIENocmlzdG9waCBIZWxsd2lnIHdyb3RlOg0KPiBPbiBGcmks
+IEphbiAyMSwgMjAyMiBhdCAwMTozMzo0MEFNICswMDAwLCBKYW5lIENodSB3cm90ZToNCj4+PiBX
+aGF0IHRyZWUgaXMgdGhpcyBhZ2FpbnN0PyBJIGNhbid0IGFwcGx5IGl0IHRvIGVpdGhlciA1LjE2
+IG9yIExpbnVzJw0KPj4+IGN1cnJlbnQgdHJlZS4NCj4+DQo+PiBJdCB3YXMgYmFzZWQgb24geW91
+ciAnZGF4LWJsb2NrLWNsZWFudXAnIGJyYW5jaCBhIHdoaWxlIGJhY2suDQo+IA0KPiBEbyB5b3Ug
+aGF2ZSBhIGdpdCB0cmVlIHdpdGggeW91ciBwYXRjaGVzIGluY2x1ZGVkIGF2YWlsYWJsZSBzb21l
+d2hlcmU/DQoNClNvcnJ5IEkgZG9uJ3QgaGF2ZSBhIGdpdCB0cmVlLCBzbyBJIHJlYmFzZWQgdGhl
+IHNlcmllcyB0byANCnY1LjE3LXJjMS04MS1nMDI4MGUzYzU4ZjksIGhvcGUgdGhhdCBoZWxwcy4N
+Cg0KLWphbmUNCg0K
