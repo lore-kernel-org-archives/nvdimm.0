@@ -1,212 +1,238 @@
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pj1-f48.google.com (mail-pj1-f48.google.com [209.85.216.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 226302C9E;
-	Fri, 28 Jan 2022 00:27:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643329651; x=1674865651;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=qnDCWzwqZN3I15w/s8Qb2KClLbLckceUFz3RVBc72fw=;
-  b=hA3O46E7AOzj4Nvho6GaB0Ib+oD1+jidJBRA+gN7O1SCSV7G5cSMjgxq
-   lh7hbfLheMI0q0juI+gWPN9QJ/t8FoKeOYadB1R3pqfClJfMwc/hodYkF
-   ch+pIqrW2XIdOrdEofCNJd6+hq6SKTSZwwEt5L4hFxAARrDPQ/yvI8wos
-   VGczjXnPJpQMkdYiOf3TF4zzCamUfIzIspxP60zDpGgc7Ohm8g1HkqJxv
-   x+bUaGVwzxY2r4d/t9rUcfLHaMPyKMd9mGv9dpouQDqyRvY4dHwYy4od5
-   15nMgeZXfWnHbzRABwopsxagf120NGRwdD/tUoAcAQAB1uBNbPnWNcoRa
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="226982096"
-X-IronPort-AV: E=Sophos;i="5.88,322,1635231600"; 
-   d="scan'208";a="226982096"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 16:27:30 -0800
-X-IronPort-AV: E=Sophos;i="5.88,322,1635231600"; 
-   d="scan'208";a="674909665"
-Received: from vrao2-mobl1.gar.corp.intel.com (HELO localhost.localdomain) ([10.252.129.6])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 16:27:30 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: patches@lists.linux.dev,
-	Ben Widawsky <ben.widawsky@intel.com>,
-	kernel test robot <lkp@intel.com>,
-	Alison Schofield <alison.schofield@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Ira Weiny <ira.weiny@intel.com>,
-	Jonathan Cameron <Jonathan.Cameron@Huawei.com>,
-	Vishal Verma <vishal.l.verma@intel.com>,
-	Bjorn Helgaas <helgaas@kernel.org>,
-	nvdimm@lists.linux.dev,
-	linux-pci@vger.kernel.org
-Subject: [PATCH v3 14/14] cxl/region: Create an nd_region
-Date: Thu, 27 Jan 2022 16:27:07 -0800
-Message-Id: <20220128002707.391076-15-ben.widawsky@intel.com>
-X-Mailer: git-send-email 2.35.0
-In-Reply-To: <20220128002707.391076-1-ben.widawsky@intel.com>
-References: <20220128002707.391076-1-ben.widawsky@intel.com>
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 927082C82
+	for <nvdimm@lists.linux.dev>; Fri, 28 Jan 2022 04:20:05 +0000 (UTC)
+Received: by mail-pj1-f48.google.com with SMTP id z14-20020a17090ab10e00b001b6175d4040so4128160pjq.0
+        for <nvdimm@lists.linux.dev>; Thu, 27 Jan 2022 20:20:05 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ajou.ac.kr; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=xP6WrADaNbB0GbMBvmvKXCGpVRVlLUvmPuBP6oo9BPE=;
+        b=Nog1IxHG8ewwb12bB4cc99R9HJGwAV3G2dAdD7/9IZhUQC/N6BcZBeQZed6JDRcLFg
+         r7+RtZnUgUcp0EfjFQfi5mYbIrPwS5ERtIu9qh9F9fGRiT3tSZMoISAyhLblGe6hOuud
+         0notX9+1XeuqkKOTwWtxgdKApu5uPJXcPU4ds=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=xP6WrADaNbB0GbMBvmvKXCGpVRVlLUvmPuBP6oo9BPE=;
+        b=w6ei7N97qJPC+vMiiYeG/pQsC8OVLgslZEveCpMEKJf8zaJOVsblQTtxV0yxkBnXpS
+         nv4lVjwTzoVYuJLIoxMhcW84wwuOBIaELXAYZNcJZQ4IxgTf/KemaENhB2zcC351Irz0
+         /WI6wYTxUPx4SY6PsuJbku0ZSVQDi8p7pOUfHXtU0YVDrPl6VlCkRp4JGPAQjf2zNB/5
+         kVd3XfJGkdUImeRXY2actcM3KHClax42v2PcyEPg1+d2ARZ6+G+mk4imnLa33+7pKkJk
+         Kr297FZf/IBVQxYHtOIpZ4qb+GjGCBDnRDuy61V+JdrbUD65p8+/ReX6qWekWFHRrplB
+         GULA==
+X-Gm-Message-State: AOAM531lbAzkkhPhkRBvdsn2/yqVDqpWHPxHq9/J2wYQqeXGbIMD1e6J
+	e9Zg4rGFfGz+wuGIQMF95KW/OQ==
+X-Google-Smtp-Source: ABdhPJy6v7QquJ7Gewn9ovJal1hBbR4rfVL8RsZmH7cOJxXAY98IlDPTrp4SsItB8MmrIHlLHtX4kg==
+X-Received: by 2002:a17:90a:7102:: with SMTP id h2mr7854820pjk.65.1643343604488;
+        Thu, 27 Jan 2022 20:20:04 -0800 (PST)
+Received: from swarm08 ([210.107.197.32])
+        by smtp.gmail.com with ESMTPSA id a38sm7135993pfx.46.2022.01.27.20.20.02
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 27 Jan 2022 20:20:04 -0800 (PST)
+Date: Fri, 28 Jan 2022 13:19:59 +0900
+From: Jonghyeon Kim <tome01@ajou.ac.kr>
+To: David Hildenbrand <david@redhat.com>
+Cc: dan.j.williams@intel.com, vishal.l.verma@intel.com,
+	dave.jiang@intel.com, akpm@linux-foundation.org,
+	nvdimm@lists.linux.dev, linux-kernel@vger.kernel.org,
+	linux-mm@kvack.org
+Subject: Re: [PATCH 1/2] mm/memory_hotplug: Export shrink span functions for
+ zone and node
+Message-ID: <20220128041959.GA20345@swarm08>
+References: <20220126170002.19754-1-tome01@ajou.ac.kr>
+ <5d02ea0e-aca6-a64b-23de-bc9307572d17@redhat.com>
+ <20220127094142.GA31409@swarm08>
+ <696b782f-0b50-9861-a34d-cf750d4244bd@redhat.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <696b782f-0b50-9861-a34d-cf750d4244bd@redhat.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 
-LIBNVDIMM supports the creation of regions for both persistent and
-volatile memory ranges. The cxl_region driver is capable of handling the
-CXL side of region creation but will reuse LIBVDIMM for interfacing with
-the rest of the kernel.
+On Thu, Jan 27, 2022 at 10:54:23AM +0100, David Hildenbrand wrote:
+> On 27.01.22 10:41, Jonghyeon Kim wrote:
+> > On Wed, Jan 26, 2022 at 06:04:50PM +0100, David Hildenbrand wrote:
+> >> On 26.01.22 18:00, Jonghyeon Kim wrote:
+> >>> Export shrink_zone_span() and update_pgdat_span() functions to head
+> >>> file. We need to update real number of spanned pages for NUMA nodes and
+> >>> zones when we add memory device node such as device dax memory.
+> >>>
+> >>
+> >> Can you elaborate a bit more what you intend to fix?
+> >>
+> >> Memory onlining/offlining is reponsible for updating the node/zone span,
+> >> and that's triggered when the dax/kmem mamory gets onlined/offlined.
+> >>
+> > Sure, sorry for the lack of explanation of the intended fix.
+> > 
+> > Before onlining nvdimm memory using dax(devdax or fsdax), these memory belong to
+> > cpu NUMA nodes, which extends span pages of node/zone as a ZONE_DEVICE. So there
+> > is no problem because node/zone contain these additional non-visible memory
+> > devices to the system.
+> > But, if we online dax-memory, zone[ZONE_DEVICE] of CPU NUMA node is hot-plugged
+> > to new NUMA node(but CPU-less). I think there is no need to hold
+> > zone[ZONE_DEVICE] pages on the original node.
+> > 
+> > Additionally, spanned pages are also used to calculate the end pfn of a node.
+> > Thus, it is needed to maintain accurate page stats for node/zone.
+> > 
+> > My machine contains two CPU-socket consisting of DRAM and Intel DCPMM
+> > (DC persistent memory modules) with App-Direct mode.
+> > 
+> > Below are my test results.
+> > 
+> > Before memory onlining:
+> > 
+> > 	# ndctl create-namespace --mode=devdax
+> > 	# ndctl create-namespace --mode=devdax
+> > 	# cat /proc/zoneinfo | grep -E "Node|spanned" | paste - -
+> > 	Node 0, zone      DMA	        spanned  4095
+> > 	Node 0, zone    DMA32	        spanned  1044480
+> > 	Node 0, zone   Normal	        spanned  7864320
+> > 	Node 0, zone  Movable	        spanned  0
+> > 	Node 0, zone   Device	        spanned  66060288
+> > 	Node 1, zone      DMA	        spanned  0
+> > 	Node 1, zone    DMA32	        spanned  0
+> > 	Node 1, zone   Normal	        spanned  8388608
+> > 	Node 1, zone  Movable	        spanned  0
+> > 	Node 1, zone   Device	        spanned  66060288
+> > 
+> > After memory onlining:
+> > 
+> > 	# daxctl reconfigure-device --mode=system-ram --no-online dax0.0
+> > 	# daxctl reconfigure-device --mode=system-ram --no-online dax1.0
+> > 
+> > 	# cat /proc/zoneinfo | grep -E "Node|spanned" | paste - -
+> > 	Node 0, zone      DMA	        spanned  4095
+> > 	Node 0, zone    DMA32	        spanned  1044480
+> > 	Node 0, zone   Normal	        spanned  7864320
+> > 	Node 0, zone  Movable	        spanned  0
+> > 	Node 0, zone   Device	        spanned  66060288
+> > 	Node 1, zone      DMA	        spanned  0
+> > 	Node 1, zone    DMA32	        spanned  0
+> > 	Node 1, zone   Normal	        spanned  8388608
+> > 	Node 1, zone  Movable	        spanned  0
+> > 	Node 1, zone   Device	        spanned  66060288
+> > 	Node 2, zone      DMA	        spanned  0
+> > 	Node 2, zone    DMA32	        spanned  0
+> > 	Node 2, zone   Normal	        spanned  65011712
+> > 	Node 2, zone  Movable	        spanned  0
+> > 	Node 2, zone   Device	        spanned  0
+> > 	Node 3, zone      DMA	        spanned  0
+> > 	Node 3, zone    DMA32	        spanned  0
+> > 	Node 3, zone   Normal	        spanned  65011712
+> > 	Node 3, zone  Movable	        spanned  0
+> > 	Node 3, zone   Device	        spanned  0
+> > 
+> > As we can see, Node 0 and 1 still have zone_device pages after memory onlining.
+> > This causes problem that Node 0 and Node 2 have same end of pfn values, also 
+> > Node 1 and Node 3 have same problem.
+> 
+> Thanks for the information, that makes it clearer.
+> 
+> While this unfortunate, the node/zone span is something fairly
+> unreliable/unusable for user space. Nodes and zones can overlap just easily.
+> 
+> What counts are present/managed pages in the node/zone.
+> 
+> So at least I don't count this as something that "needs fixing",
+> it's more something that's nice to handle better if easily possible.
+> 
+> See below.
+> 
+> > 
+> >>> Signed-off-by: Jonghyeon Kim <tome01@ajou.ac.kr>
+> >>> ---
+> >>>  include/linux/memory_hotplug.h | 3 +++
+> >>>  mm/memory_hotplug.c            | 6 ++++--
+> >>>  2 files changed, 7 insertions(+), 2 deletions(-)
+> >>>
+> >>> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> >>> index be48e003a518..25c7f60c317e 100644
+> >>> --- a/include/linux/memory_hotplug.h
+> >>> +++ b/include/linux/memory_hotplug.h
+> >>> @@ -337,6 +337,9 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+> >>>  extern void remove_pfn_range_from_zone(struct zone *zone,
+> >>>  				       unsigned long start_pfn,
+> >>>  				       unsigned long nr_pages);
+> >>> +extern void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+> >>> +			     unsigned long end_pfn);
+> >>> +extern void update_pgdat_span(struct pglist_data *pgdat);
+> >>>  extern bool is_memblock_offlined(struct memory_block *mem);
+> >>>  extern int sparse_add_section(int nid, unsigned long pfn,
+> >>>  		unsigned long nr_pages, struct vmem_altmap *altmap);
+> >>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> >>> index 2a9627dc784c..38f46a9ef853 100644
+> >>> --- a/mm/memory_hotplug.c
+> >>> +++ b/mm/memory_hotplug.c
+> >>> @@ -389,7 +389,7 @@ static unsigned long find_biggest_section_pfn(int nid, struct zone *zone,
+> >>>  	return 0;
+> >>>  }
+> >>>  
+> >>> -static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+> >>> +void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+> >>>  			     unsigned long end_pfn)
+> >>>  {
+> >>>  	unsigned long pfn;
+> >>> @@ -428,8 +428,9 @@ static void shrink_zone_span(struct zone *zone, unsigned long start_pfn,
+> >>>  		}
+> >>>  	}
+> >>>  }
+> >>> +EXPORT_SYMBOL_GPL(shrink_zone_span);
+> >>
+> >> Exporting both as symbols feels very wrong. This is memory
+> >> onlining/offlining internal stuff.
+> > 
+> > I agree with you that your comment. I will find another approach to avoid
+> > directly using onlining/offlining internal stuff while updating node/zone span.
+> 
+> IIRC, to handle what you intend to handle properly want to look into teaching
+> remove_pfn_range_from_zone() to handle zone_is_zone_device().
+> 
+> There is a big fat comment:
+> 
+> 	/*
+> 	 * Zone shrinking code cannot properly deal with ZONE_DEVICE. So
+> 	 * we will not try to shrink the zones - which is okay as
+> 	 * set_zone_contiguous() cannot deal with ZONE_DEVICE either way.
+> 	 */
+> 	if (zone_is_zone_device(zone))
+> 		return;
+> 
+> 
+> Similarly, try_offline_node() spells this out:
+> 
+> 	/*
+> 	 * If the node still spans pages (especially ZONE_DEVICE), don't
+> 	 * offline it. A node spans memory after move_pfn_range_to_zone(),
+> 	 * e.g., after the memory block was onlined.
+> 	 */
+> 	if (pgdat->node_spanned_pages)
+> 		return;
+> 
+> 
+> So once you handle remove_pfn_range_from_zone() cleanly, you'll cleanly handle
+> try_offline_node() implicitly.
+> 
+> Trying to update the node span manually without teaching node/zone shrinking code how to
+> handle ZONE_DEVICE properly is just a hack that will only sometimes work. Especially, it
+> won't work if the range of interest is still surrounded by other ranges.
+> 
 
-TODO: CXL regions can go away. As a result the nd_region must also be
-torn down.
+Thanks for your pointing out, I missed those comments.
+I will keep trying to handle node/zone span updating process.
 
-TODO2: Handle mappings. LIBNVDIMM is capable of being informed about
-which parts of devices contribute to a region and validating whether or
-not the region is configured properly. To do this properly requires
-tracking allocations per device.
-
-Reported-by: kernel test robot <lkp@intel.com> (v2)
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
----
-Changes since v2:
-- Check nvb is non-null
-- Give a dev_dbg for non-existent nvdimm_bus
----
- drivers/cxl/Kconfig     |  3 ++-
- drivers/cxl/core/pmem.c | 16 ++++++++++++
- drivers/cxl/cxl.h       |  1 +
- drivers/cxl/region.c    | 58 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 77 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/cxl/Kconfig b/drivers/cxl/Kconfig
-index 742847503c16..054dc78d6f7d 100644
---- a/drivers/cxl/Kconfig
-+++ b/drivers/cxl/Kconfig
-@@ -99,7 +99,8 @@ config CXL_PORT
- 	tristate
- 
- config CXL_REGION
--	default CXL_PORT
-+	depends on CXL_PMEM
-+	default CXL_BUS
- 	tristate
- 
- endif
-diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
-index 7e431667ade1..58dc6fba3130 100644
---- a/drivers/cxl/core/pmem.c
-+++ b/drivers/cxl/core/pmem.c
-@@ -220,6 +220,22 @@ struct cxl_nvdimm *to_cxl_nvdimm(struct device *dev)
- }
- EXPORT_SYMBOL_NS_GPL(to_cxl_nvdimm, CXL);
- 
-+static int match_cxl_nvdimm(struct device *dev, void *data)
-+{
-+	return is_cxl_nvdimm(dev);
-+}
-+
-+struct cxl_nvdimm *cxl_find_nvdimm(struct cxl_memdev *cxlmd)
-+{
-+	struct device *dev;
-+
-+	dev = device_find_child(&cxlmd->dev, NULL, match_cxl_nvdimm);
-+	if (!dev)
-+		return NULL;
-+	return to_cxl_nvdimm(dev);
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_find_nvdimm, CXL);
-+
- static struct cxl_nvdimm *cxl_nvdimm_alloc(struct cxl_memdev *cxlmd)
- {
- 	struct cxl_nvdimm *cxl_nvd;
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index 062654204eca..7eb8f36af30b 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -480,6 +480,7 @@ bool is_cxl_nvdimm(struct device *dev);
- bool is_cxl_nvdimm_bridge(struct device *dev);
- int devm_cxl_add_nvdimm(struct device *host, struct cxl_memdev *cxlmd);
- struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct device *dev);
-+struct cxl_nvdimm *cxl_find_nvdimm(struct cxl_memdev *cxlmd);
- 
- /*
-  * Unit test builds overrides this to __weak, find the 'strong' version
-diff --git a/drivers/cxl/region.c b/drivers/cxl/region.c
-index ac290677534d..be472560fc6a 100644
---- a/drivers/cxl/region.c
-+++ b/drivers/cxl/region.c
-@@ -708,6 +708,58 @@ static int bind_region(struct cxl_region *cxlr)
- 	return rc;
- }
- 
-+static int connect_to_libnvdimm(struct cxl_region *region)
-+{
-+	struct nd_region_desc ndr_desc;
-+	struct cxl_nvdimm_bridge *nvb;
-+	struct nd_region *ndr;
-+	int rc = 0;
-+
-+	nvb = cxl_find_nvdimm_bridge(&region->config.targets[0]->dev);
-+	if (!nvb) {
-+		dev_dbg(&region->dev, "Couldn't find nvdimm bridge\n");
-+		return -ENODEV;
-+	}
-+
-+	device_lock(&nvb->dev);
-+	if (!nvb->nvdimm_bus) {
-+		dev_dbg(&nvb->dev, "Couldn't find nvdimm bridge's bus\n");
-+		rc = -ENXIO;
-+		goto out;
-+	}
-+
-+	memset(&ndr_desc, 0, sizeof(ndr_desc));
-+
-+	ndr_desc.res = region->res;
-+
-+	ndr_desc.numa_node = memory_add_physaddr_to_nid(region->res->start);
-+	ndr_desc.target_node = phys_to_target_node(region->res->start);
-+	if (ndr_desc.numa_node == NUMA_NO_NODE) {
-+		ndr_desc.numa_node =
-+			memory_add_physaddr_to_nid(region->res->start);
-+		dev_info(&region->dev,
-+			 "changing numa node from %d to %d for CXL region %pR",
-+			 NUMA_NO_NODE, ndr_desc.numa_node, region->res);
-+	}
-+	if (ndr_desc.target_node == NUMA_NO_NODE) {
-+		ndr_desc.target_node = ndr_desc.numa_node;
-+		dev_info(&region->dev,
-+			 "changing target node from %d to %d for CXL region %pR",
-+			 NUMA_NO_NODE, ndr_desc.target_node, region->res);
-+	}
-+
-+	ndr = nvdimm_pmem_region_create(nvb->nvdimm_bus, &ndr_desc);
-+	if (IS_ERR(ndr))
-+		rc = PTR_ERR(ndr);
-+	else
-+		dev_set_drvdata(&region->dev, ndr);
-+
-+out:
-+	device_unlock(&nvb->dev);
-+	put_device(&nvb->dev);
-+	return rc;
-+}
-+
- static void region_unregister(void *dev)
- {
- 	struct cxl_region *region = to_cxl_region(dev);
-@@ -791,6 +843,12 @@ static int cxl_region_probe(struct device *dev)
- 		return ret;
- 	}
- 
-+	ret = connect_to_libnvdimm(cxlr);
-+	if (ret) {
-+		region_unregister(dev);
-+		return ret;
-+	}
-+
- 	cxlr->active = true;
- 	dev_info(dev, "Bound");
- 	return devm_add_action_or_reset(dev, region_unregister, dev);
--- 
-2.35.0
-
+> -- 
+> Thanks,
+> 
+> David / dhildenb
+> 
