@@ -1,29 +1,29 @@
 Received: from frasgout.his.huawei.com (frasgout.his.huawei.com [185.176.79.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C6A22CA5
-	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 16:05:01 +0000 (UTC)
-Received: from fraeml745-chm.china.huawei.com (unknown [172.18.147.207])
-	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4JnXtz5shjz67jfG;
-	Tue,  1 Feb 2022 00:04:27 +0800 (CST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BE0F2CA5
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 16:19:05 +0000 (UTC)
+Received: from fraeml714-chm.china.huawei.com (unknown [172.18.147.207])
+	by frasgout.his.huawei.com (SkyGuard) with ESMTP id 4JnY7X3gmmz67mMG;
+	Tue,  1 Feb 2022 00:15:20 +0800 (CST)
 Received: from lhreml710-chm.china.huawei.com (10.201.108.61) by
- fraeml745-chm.china.huawei.com (10.206.15.226) with Microsoft SMTP Server
+ fraeml714-chm.china.huawei.com (10.206.15.33) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.21; Mon, 31 Jan 2022 17:04:58 +0100
+ 15.1.2308.21; Mon, 31 Jan 2022 17:19:03 +0100
 Received: from localhost (10.47.73.212) by lhreml710-chm.china.huawei.com
  (10.201.108.61) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id 15.1.2308.21; Mon, 31 Jan
- 2022 16:04:57 +0000
-Date: Mon, 31 Jan 2022 16:04:52 +0000
+ 2022 16:19:02 +0000
+Date: Mon, 31 Jan 2022 16:18:56 +0000
 From: Jonathan Cameron <Jonathan.Cameron@Huawei.com>
 To: Dan Williams <dan.j.williams@intel.com>
-CC: <linux-cxl@vger.kernel.org>, <linux-pci@vger.kernel.org>,
-	<nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v3 17/40] cxl/port: Introduce cxl_port_to_pci_bus()
-Message-ID: <20220131160452.00007f45@Huawei.com>
-In-Reply-To: <164298420951.3018233.1498794101372312682.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<164298420951.3018233.1498794101372312682.stgit@dwillia2-desk3.amr.corp.intel.com>
+CC: <linux-cxl@vger.kernel.org>, Ben Widawsky <ben.widawsky@intel.com>,
+	<linux-pci@vger.kernel.org>, <nvdimm@lists.linux.dev>
+Subject: Re: [PATCH v5 18/40] cxl/pmem: Introduce a find_cxl_root() helper
+Message-ID: <20220131161856.00005cd0@Huawei.com>
+In-Reply-To: <164324151672.3935633.11277011056733051668.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <164322333437.3694981.17087130505938650994.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<164324151672.3935633.11277011056733051668.stgit@dwillia2-desk3.amr.corp.intel.com>
 Organization: Huawei Technologies Research and Development (UK) Ltd.
 X-Mailer: Claws Mail 4.0.0 (GTK+ 3.24.29; i686-w64-mingw32)
 Precedence: bulk
@@ -39,132 +39,169 @@ X-ClientProxiedBy: lhreml704-chm.china.huawei.com (10.201.108.53) To
  lhreml710-chm.china.huawei.com (10.201.108.61)
 X-CFilter-Loop: Reflected
 
-On Sun, 23 Jan 2022 16:30:09 -0800
+On Wed, 26 Jan 2022 15:59:07 -0800
 Dan Williams <dan.j.williams@intel.com> wrote:
 
-> Add a helper for converting a PCI enumerated cxl_port into the pci_bus
-> that hosts its dports. For switch ports this is trivial, but for root
-> ports there is no generic way to go from a platform defined host bridge
-> device, like ACPI0016 to its corresponding pci_bus. Rather than spill
-> ACPI goop outside of the cxl_acpi driver, just arrange for it to
-> register an xarray translation from the uport device to the
-> corresponding pci_bus.
+> In preparation for switch port enumeration while also preserving the
+> potential for multi-domain / multi-root CXL topologies. Introduce a
+> 'struct device' generic mechanism for retrieving a root CXL port, if one
+> is registered. Note that the only know multi-domain CXL configurations
+> are running the cxl_test unit test on a system that also publishes an
+> ACPI0017 device.
 > 
-> This is in preparation for centralizing dport enumeration in the core.
+> With this in hand the nvdimm-bridge lookup can be with
+> device_find_child() instead of bus_find_device() + custom mocked lookup
+> infrastructure in cxl_test.
 > 
+> The mechanism looks for a 2nd level port since the root level topology
+> is platform-firmware specific and the 2nd level down follows standard
+> PCIe topology expectations. The cxl_acpi 2nd level is associated with a
+> PCIe Root Port.
+> 
+> Reported-by: Ben Widawsky <ben.widawsky@intel.com>
 > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Trivial comment inline. Otherwise LGTM
+A question inline.
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Thanks,
+
+Jonathan
 
 > ---
->  drivers/cxl/acpi.c      |   14 +++++++++-----
->  drivers/cxl/core/port.c |   37 +++++++++++++++++++++++++++++++++++++
->  drivers/cxl/cxl.h       |    3 +++
->  3 files changed, 49 insertions(+), 5 deletions(-)
+> Changes since v4:
+> - reset @iter each loop otherwise only the first dport can be scanned.
 > 
-> diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-> index 93d1dc56892a..ab2b76532272 100644
-> --- a/drivers/cxl/acpi.c
-> +++ b/drivers/cxl/acpi.c
-> @@ -225,17 +225,21 @@ static int add_host_bridge_uport(struct device *match, void *arg)
->  		return 0;
->  	}
->  
-> +	/*
-> +	 * Note that this lookup already succeeded in
-> +	 * to_cxl_host_bridge(), so no need to check for failure here
-> +	 */
-> +	pci_root = acpi_pci_find_root(bridge->handle);
-> +	rc = devm_cxl_register_pci_bus(host, match, pci_root->bus);
-> +	if (rc)
-> +		return rc;
-> +
->  	port = devm_cxl_add_port(host, match, dport->component_reg_phys,
->  				 root_port);
->  	if (IS_ERR(port))
->  		return PTR_ERR(port);
->  	dev_dbg(host, "%s: add: %s\n", dev_name(match), dev_name(&port->dev));
->  
-> -	/*
-> -	 * Note that this lookup already succeeded in
-> -	 * to_cxl_host_bridge(), so no need to check for failure here
-> -	 */
-> -	pci_root = acpi_pci_find_root(bridge->handle);
->  	ctx = (struct cxl_walk_context){
->  		.dev = host,
->  		.root = pci_root->bus,
-> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-> index 58089ea09aa3..e1372fe13a11 100644
-> --- a/drivers/cxl/core/port.c
-> +++ b/drivers/cxl/core/port.c
-> @@ -25,6 +25,7 @@
->   */
->  
->  static DEFINE_IDA(cxl_port_ida);
-> +static DEFINE_XARRAY(cxl_root_buses);
->  
->  static ssize_t devtype_show(struct device *dev, struct device_attribute *attr,
->  			    char *buf)
-> @@ -420,6 +421,42 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
+>  drivers/cxl/core/pmem.c       |   14 ++++++++---
+>  drivers/cxl/core/port.c       |   50 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/cxl/cxl.h             |    1 +
+>  tools/testing/cxl/Kbuild      |    2 --
+>  tools/testing/cxl/mock_pmem.c |   24 --------------------
+>  5 files changed, 61 insertions(+), 30 deletions(-)
+>  delete mode 100644 tools/testing/cxl/mock_pmem.c
+> 
+> diff --git a/drivers/cxl/core/pmem.c b/drivers/cxl/core/pmem.c
+> index 40b3f5030496..8de240c4d96b 100644
+> --- a/drivers/cxl/core/pmem.c
+> +++ b/drivers/cxl/core/pmem.c
+> @@ -57,24 +57,30 @@ bool is_cxl_nvdimm_bridge(struct device *dev)
 >  }
->  EXPORT_SYMBOL_NS_GPL(devm_cxl_add_port, CXL);
+>  EXPORT_SYMBOL_NS_GPL(is_cxl_nvdimm_bridge, CXL);
 >  
-> +struct pci_bus *cxl_port_to_pci_bus(struct cxl_port *port)
-> +{
-> +	/* There is no pci_bus associated with a CXL platform-root port */
-> +	if (is_cxl_root(port))
+> -__mock int match_nvdimm_bridge(struct device *dev, const void *data)
+> +static int match_nvdimm_bridge(struct device *dev, void *data)
+>  {
+>  	return is_cxl_nvdimm_bridge(dev);
+>  }
+>  
+>  struct cxl_nvdimm_bridge *cxl_find_nvdimm_bridge(struct cxl_nvdimm *cxl_nvd)
+>  {
+> +	struct cxl_port *port = find_cxl_root(&cxl_nvd->dev);
+>  	struct device *dev;
+>  
+> -	dev = bus_find_device(&cxl_bus_type, NULL, cxl_nvd, match_nvdimm_bridge);
+> +	if (!port)
 > +		return NULL;
 > +
-> +	if (dev_is_pci(port->uport)) {
-> +		struct pci_dev *pdev = to_pci_dev(port->uport);
+> +	dev = device_find_child(&port->dev, NULL, match_nvdimm_bridge);
+> +	put_device(&port->dev);
 > +
-> +		return pdev->subordinate;
+>  	if (!dev)
+>  		return NULL;
+> +
+>  	return to_cxl_nvdimm_bridge(dev);
+>  }
+>  EXPORT_SYMBOL_NS_GPL(cxl_find_nvdimm_bridge, CXL);
+>  
+> -static struct cxl_nvdimm_bridge *
+> -cxl_nvdimm_bridge_alloc(struct cxl_port *port)
+> +static struct cxl_nvdimm_bridge *cxl_nvdimm_bridge_alloc(struct cxl_port *port)
+>  {
+>  	struct cxl_nvdimm_bridge *cxl_nvb;
+>  	struct device *dev;
+> diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+> index 4c921c49f967..6447f12ef71d 100644
+> --- a/drivers/cxl/core/port.c
+> +++ b/drivers/cxl/core/port.c
+> @@ -457,6 +457,56 @@ int devm_cxl_register_pci_bus(struct device *host, struct device *uport,
+>  }
+>  EXPORT_SYMBOL_NS_GPL(devm_cxl_register_pci_bus, CXL);
+>  
+> +/* Find a 2nd level CXL port that has a dport that is an ancestor of @match */
+> +static int match_cxl_root_child(struct device *dev, const void *match)
+> +{
+> +	const struct device *iter = NULL;
+> +	struct cxl_port *port, *parent;
+> +	struct cxl_dport *dport;
+> +
+> +	if (!is_cxl_port(dev))
+> +		return 0;
+> +
+> +	port = to_cxl_port(dev);
+> +	if (is_cxl_root(port))
+> +		return 0;
+> +
+> +	parent = to_cxl_port(port->dev.parent);
+> +	if (!is_cxl_root(parent))
+> +		return 0;
+> +
+> +	cxl_device_lock(&port->dev);
+> +	list_for_each_entry(dport, &port->dports, list) {
+> +		iter = match;
+
+This confuses me.  In the call below to bus_find_device()
+data == NULL, which ends up as match here.
+
+So how does that ever find a match?
+
+> +		while (iter) {
+> +			if (iter == dport->dport)
+> +				goto out;
+> +			iter = iter->parent;
+> +		}
 > +	}
+> +out:
+> +	cxl_device_unlock(&port->dev);
 > +
-> +	return xa_load(&cxl_root_buses, (unsigned long)port->uport);
-> +}
-> +EXPORT_SYMBOL_NS_GPL(cxl_port_to_pci_bus, CXL);
-> +
-> +static void unregister_pci_bus(void *uport)
-> +{
-> +	xa_erase(&cxl_root_buses, (unsigned long) uport);
+> +	return !!iter;
 
-Trivial: Inconsistent spacing before uport.
+return iter; should be sufficient as docs just say non zero for a match
+in bus_find_device() match functions.
 
 > +}
 > +
-> +int devm_cxl_register_pci_bus(struct device *host, struct device *uport,
-> +			      struct pci_bus *bus)
+> +struct cxl_port *find_cxl_root(struct device *dev)
 > +{
-> +	int rc;
+> +	struct device *port_dev;
+> +	struct cxl_port *root;
 > +
-> +	if (dev_is_pci(uport))
-> +		return -EINVAL;
+> +	port_dev =
+> +		bus_find_device(&cxl_bus_type, NULL, dev, match_cxl_root_child);
+
+Line breaking is rather ugly to my eye.  Perhaps break
+parameter list up instead?
+
+> +	if (!port_dev)
+> +		return NULL;
 > +
-> +	rc = xa_insert(&cxl_root_buses, (unsigned long)uport, bus, GFP_KERNEL);
-> +	if (rc)
-> +		return rc;
-> +	return devm_add_action_or_reset(host, unregister_pci_bus, uport);
+> +	root = to_cxl_port(port_dev->parent);
+> +	get_device(&root->dev);
+> +	put_device(port_dev);
+> +	return root;
 > +}
-> +EXPORT_SYMBOL_NS_GPL(devm_cxl_register_pci_bus, CXL);
+> +EXPORT_SYMBOL_NS_GPL(find_cxl_root, CXL);
 > +
 >  static struct cxl_dport *find_dport(struct cxl_port *port, int id)
 >  {
 >  	struct cxl_dport *dport;
 > diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-> index 47c256ad105f..4e8d504546c5 100644
+> index 4e8d504546c5..7523e4d60953 100644
 > --- a/drivers/cxl/cxl.h
 > +++ b/drivers/cxl/cxl.h
-> @@ -289,6 +289,9 @@ static inline bool is_cxl_root(struct cxl_port *port)
+> @@ -298,6 +298,7 @@ struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
 >  
->  bool is_cxl_port(struct device *dev);
->  struct cxl_port *to_cxl_port(struct device *dev);
-> +int devm_cxl_register_pci_bus(struct device *host, struct device *uport,
-> +			      struct pci_bus *bus);
-> +struct pci_bus *cxl_port_to_pci_bus(struct cxl_port *port);
->  struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
->  				   resource_size_t component_reg_phys,
->  				   struct cxl_port *parent_port);
-> 
+>  int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
+>  		  resource_size_t component_reg_phys);
+> +struct cxl_port *find_cxl_root(struct device *dev);
+>  
+>  struct cxl_decoder *to_cxl_decoder(struct device *dev);
+>  bool is_root_decoder(struct device *dev);
 
