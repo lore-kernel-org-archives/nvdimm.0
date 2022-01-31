@@ -1,163 +1,175 @@
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E7222C80
-	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 23:25:09 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 824A52C80
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 23:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643671509; x=1675207509;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=1vDoarDPWwF0kZS0T6AI+s35dInLmtiPrhZoO0Wd/vc=;
-  b=nNcf+5SIE9DOfW3YiZaXtxraLy2UHyRaMCNGkr4o+KkCo7wd/XVRTZOv
-   Xy045P3ohjzz7BisMm1keImubmdVCiXlp0umvivZi9HEbZqUwZdN41ZX0
-   Rn9N2hkwQJWOKjEC9sxMvlG54oZaXmSkgVldwUKW/OS98r6trK1sg2mb2
-   LIN+C69tS6vuYKvobcppOkaSv6Rhy/4UEo59tm2Wwl1TPFYZzKDqaTf0G
-   hkyfClUI8o/pY1BmZWxifTn7z580YV2qQmVj+zVwR8fp7kCENP78ykDVr
-   7tooCU0YKlg6hYY5+s5gtc2yvNKgmMDmNh13mSrlZkGMj73yVjFcIrDJJ
-   w==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="247526785"
+  t=1643672119; x=1675208119;
+  h=subject:from:to:cc:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=eEJU5QLLSBr1mXOJ8eM9Ty+9C3BosFULoxCbvemD8DM=;
+  b=eQqEn+qYKmPLBHr+0a5pZ6IAMUQxRo/QDnkgeZmgegsdoVl+0QUtOy2M
+   AH5pdHkXeaTyvb0kkqKKl2iLnLGIdi0F6Nu6PGkN+rQJYB8iA/WrowdbA
+   NBRAdyIEA7qABMnq1MRS/1Y58I2iUHr5kOz0tAjF4gI2beD8XFQnW+v8x
+   2Rm9nUV4+q7/SGCYlnqtZe//Rumdvth+ujmX6BmJz8/0/t9XibQJqxcXU
+   aVO4ClycMdulqiUBCfLfgIq4zgh8GQdzzcyT4lv/hIUOObf5+JomULblZ
+   TOGc7NlUiPu1ZoDpr9tp3HaSpSM35mQSXPnPo16wwD31iP3P55CNoj+Fg
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="227547569"
 X-IronPort-AV: E=Sophos;i="5.88,332,1635231600"; 
-   d="scan'208";a="247526785"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 15:25:08 -0800
+   d="scan'208";a="227547569"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 15:35:18 -0800
 X-IronPort-AV: E=Sophos;i="5.88,332,1635231600"; 
-   d="scan'208";a="522839637"
-Received: from sssheth-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.130.247])
-  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 15:25:08 -0800
-Date: Mon, 31 Jan 2022 15:25:07 -0800
-From: Ben Widawsky <ben.widawsky@intel.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-cxl@vger.kernel.org,
-	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
-	Linux PCI <linux-pci@vger.kernel.org>,
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Subject: Re: [PATCH v3 02/40] cxl/pci: Implement Interface Ready Timeout
-Message-ID: <20220131232507.jz4tsjk4uzcunnre@intel.com>
-References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
- <164298412919.3018233.12491722885382120190.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20220131222101.tckwbcxheuuorkiq@intel.com>
- <CAPcyv4gGMsUbJ=Cu8U0B2Znz6+jE6PcDCALNfxJzvAHZZccVvQ@mail.gmail.com>
+   d="scan'208";a="479394016"
+Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
+  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 15:35:18 -0800
+Subject: [PATCH v5 16/40] cxl/core/port: Use dedicated lock for decoder
+ target list
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-cxl@vger.kernel.org
+Cc: Ben Widawsky <ben.widawsky@intel.com>, linux-pci@vger.kernel.org,
+ nvdimm@lists.linux.dev
+Date: Mon, 31 Jan 2022 15:35:18 -0800
+Message-ID: <164367209095.208169.1171673319121271280.stgit@dwillia2-desk3.amr.corp.intel.com>
+In-Reply-To: <164316562430.3437160.122223070771602475.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <164316562430.3437160.122223070771602475.stgit@dwillia2-desk3.amr.corp.intel.com>
+User-Agent: StGit/0.18-3-g996c
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gGMsUbJ=Cu8U0B2Znz6+jE6PcDCALNfxJzvAHZZccVvQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 
-On 22-01-31 15:11:05, Dan Williams wrote:
-> On Mon, Jan 31, 2022 at 2:21 PM Ben Widawsky <ben.widawsky@intel.com> wrote:
-> >
-> > On 22-01-23 16:28:49, Dan Williams wrote:
-> > > From: Ben Widawsky <ben.widawsky@intel.com>
-> > >
-> > > The original driver implementation used the doorbell timeout for the
-> > > Mailbox Interface Ready bit to piggy back off of, since the latter does
-> > > not have a defined timeout. This functionality, introduced in commit
-> > > 8adaf747c9f0 ("cxl/mem: Find device capabilities"), needs improvement as
-> > > the recent "Add Mailbox Ready Time" ECN timeout indicates that the
-> > > mailbox ready time can be significantly longer that 2 seconds.
-> > >
-> > > While the specification limits the maximum timeout to 256s, the cxl_pci
-> > > driver gives up on the mailbox after 60s. This value corresponds with
-> > > important timeout values already present in the kernel. A module
-> > > parameter is provided as an emergency override and represents the
-> > > default Linux policy for all devices.
-> > >
-> > > Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-> > > Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> > > [djbw: add modparam, drop check_device_status()]
-> > > Co-developed-by: Dan Williams <dan.j.williams@intel.com>
-> > > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> > > ---
-> > >  drivers/cxl/pci.c |   35 +++++++++++++++++++++++++++++++++++
-> > >  1 file changed, 35 insertions(+)
-> > >
-> > > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-> > > index 8dc91fd3396a..ed8de9eac970 100644
-> > > --- a/drivers/cxl/pci.c
-> > > +++ b/drivers/cxl/pci.c
-> > > @@ -1,7 +1,9 @@
-> > >  // SPDX-License-Identifier: GPL-2.0-only
-> > >  /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
-> > >  #include <linux/io-64-nonatomic-lo-hi.h>
-> > > +#include <linux/moduleparam.h>
-> > >  #include <linux/module.h>
-> > > +#include <linux/delay.h>
-> > >  #include <linux/sizes.h>
-> > >  #include <linux/mutex.h>
-> > >  #include <linux/list.h>
-> > > @@ -35,6 +37,20 @@
-> > >  /* CXL 2.0 - 8.2.8.4 */
-> > >  #define CXL_MAILBOX_TIMEOUT_MS (2 * HZ)
-> > >
-> > > +/*
-> > > + * CXL 2.0 ECN "Add Mailbox Ready Time" defines a capability field to
-> > > + * dictate how long to wait for the mailbox to become ready. The new
-> > > + * field allows the device to tell software the amount of time to wait
-> > > + * before mailbox ready. This field per the spec theoretically allows
-> > > + * for up to 255 seconds. 255 seconds is unreasonably long, its longer
-> > > + * than the maximum SATA port link recovery wait. Default to 60 seconds
-> > > + * until someone builds a CXL device that needs more time in practice.
-> > > + */
-> > > +static unsigned short mbox_ready_timeout = 60;
-> > > +module_param(mbox_ready_timeout, ushort, 0600);
-> >
-> > Any reason not to make it 0644?
-> >
-> 
-> Are there any tooling scenarios where this information is usable by non-root?
+Lockdep reports:
 
-Just for ease of debug. If I get a bug report with this, first thing I'm going
-to do is ask for the timeout value. Perhaps it's expected the person who filed
-the bug will have root access.
+ ======================================================
+ WARNING: possible circular locking dependency detected
+ 5.16.0-rc1+ #142 Tainted: G           OE
+ ------------------------------------------------------
+ cxl/1220 is trying to acquire lock:
+ ffff979b85475460 (kn->active#144){++++}-{0:0}, at: __kernfs_remove+0x1ab/0x1e0
 
-> 
-> > > +MODULE_PARM_DESC(mbox_ready_timeout,
-> > > +              "seconds to wait for mailbox ready status");
-> > > +
-> > >  static int cxl_pci_mbox_wait_for_doorbell(struct cxl_dev_state *cxlds)
-> > >  {
-> > >       const unsigned long start = jiffies;
-> > > @@ -281,6 +297,25 @@ static int cxl_pci_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *c
-> > >  static int cxl_pci_setup_mailbox(struct cxl_dev_state *cxlds)
-> > >  {
-> > >       const int cap = readl(cxlds->regs.mbox + CXLDEV_MBOX_CAPS_OFFSET);
-> > > +     unsigned long timeout;
-> > > +     u64 md_status;
-> > > +
-> > > +     timeout = jiffies + mbox_ready_timeout * HZ;
-> > > +     do {
-> > > +             md_status = readq(cxlds->regs.memdev + CXLMDEV_STATUS_OFFSET);
-> > > +             if (md_status & CXLMDEV_MBOX_IF_READY)
-> > > +                     break;
-> > > +             if (msleep_interruptible(100))
-> > > +                     break;
-> > > +     } while (!time_after(jiffies, timeout));
-> >
-> > Just pointing out the [probably] obvious. If the user specifies a zero second
-> > timeout, the code will still wait 100ms.
-> 
-> Sure, is that going to be a problem in practice? I expect the
-> overwhelming common case is that the mailbox is already ready by this
-> point, so it's a zero-wait.
-> 
+ but task is already holding lock:
+ ffff979b87ab38e8 (&dev->lockdep_mutex#2/4){+.+.}-{3:3}, at: cxl_remove_ep+0x50c/0x5c0 [cxl_core]
 
-No problem I can see in practice.
+...where cxl_remove_ep() is a helper that wants to delete ports while
+holding a lock on the host device for that port. That sets up a lockdep
+violation whereby target_list_show() can not rely holding the decoder's
+device lock while walking the target_list. Switch to a dedicated seqlock
+for this purpose.
 
-> >
-> > > +
-> > > +     if (!(md_status & CXLMDEV_MBOX_IF_READY)) {
-> > > +             dev_err(cxlds->dev,
-> > > +                     "timeout awaiting mailbox ready, device state:%s%s\n",
-> > > +                     md_status & CXLMDEV_DEV_FATAL ? " fatal" : "",
-> > > +                     md_status & CXLMDEV_FW_HALT ? " firmware-halt" : "");
-> > > +             return -EIO;
-> > > +     }
-> > >
-> > >       cxlds->mbox_send = cxl_pci_mbox_send;
-> > >       cxlds->payload_size =
-> > >
+Reported-by: Ben Widawsky <ben.widawsky@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+Changes since v4:
+- Cleanup error exit condition (Jonathan)
+
+ drivers/cxl/core/port.c |   30 +++++++++++++++++++++++-------
+ drivers/cxl/cxl.h       |    2 ++
+ 2 files changed, 25 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
+index 9285cdb734b2..fc5d86222bc3 100644
+--- a/drivers/cxl/core/port.c
++++ b/drivers/cxl/core/port.c
+@@ -104,14 +104,11 @@ static ssize_t target_type_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(target_type);
+ 
+-static ssize_t target_list_show(struct device *dev,
+-			       struct device_attribute *attr, char *buf)
++static ssize_t emit_target_list(struct cxl_decoder *cxld, char *buf)
+ {
+-	struct cxl_decoder *cxld = to_cxl_decoder(dev);
+ 	ssize_t offset = 0;
+ 	int i, rc = 0;
+ 
+-	cxl_device_lock(dev);
+ 	for (i = 0; i < cxld->interleave_ways; i++) {
+ 		struct cxl_dport *dport = cxld->target[i];
+ 		struct cxl_dport *next = NULL;
+@@ -124,13 +121,29 @@ static ssize_t target_list_show(struct device *dev,
+ 		rc = sysfs_emit_at(buf, offset, "%d%s", dport->port_id,
+ 				   next ? "," : "");
+ 		if (rc < 0)
+-			break;
++			return rc;
+ 		offset += rc;
+ 	}
+-	cxl_device_unlock(dev);
++
++	return offset;
++}
++
++static ssize_t target_list_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct cxl_decoder *cxld = to_cxl_decoder(dev);
++	ssize_t offset;
++	unsigned int seq;
++	int rc;
++
++	do {
++		seq = read_seqbegin(&cxld->target_lock);
++		rc = emit_target_list(cxld, buf);
++	} while (read_seqretry(&cxld->target_lock, seq));
+ 
+ 	if (rc < 0)
+ 		return rc;
++	offset = rc;
+ 
+ 	rc = sysfs_emit_at(buf, offset, "\n");
+ 	if (rc < 0)
+@@ -494,15 +507,17 @@ static int decoder_populate_targets(struct cxl_decoder *cxld,
+ 		goto out_unlock;
+ 	}
+ 
++	write_seqlock(&cxld->target_lock);
+ 	for (i = 0; i < cxld->nr_targets; i++) {
+ 		struct cxl_dport *dport = find_dport(port, target_map[i]);
+ 
+ 		if (!dport) {
+ 			rc = -ENXIO;
+-			goto out_unlock;
++			break;
+ 		}
+ 		cxld->target[i] = dport;
+ 	}
++	write_sequnlock(&cxld->target_lock);
+ 
+ out_unlock:
+ 	cxl_device_unlock(&port->dev);
+@@ -543,6 +558,7 @@ static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
+ 
+ 	cxld->id = rc;
+ 	cxld->nr_targets = nr_targets;
++	seqlock_init(&cxld->target_lock);
+ 	dev = &cxld->dev;
+ 	device_initialize(dev);
+ 	device_set_pm_not_required(dev);
+diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
+index 6a38d2e1f3dd..e79162999088 100644
+--- a/drivers/cxl/cxl.h
++++ b/drivers/cxl/cxl.h
+@@ -185,6 +185,7 @@ enum cxl_decoder_type {
+  * @interleave_granularity: data stride per dport
+  * @target_type: accelerator vs expander (type2 vs type3) selector
+  * @flags: memory type capabilities and locking
++ * @target_lock: coordinate coherent reads of the target list
+  * @nr_targets: number of elements in @target
+  * @target: active ordered target list in current decoder configuration
+  */
+@@ -199,6 +200,7 @@ struct cxl_decoder {
+ 	int interleave_granularity;
+ 	enum cxl_decoder_type target_type;
+ 	unsigned long flags;
++	seqlock_t target_lock;
+ 	int nr_targets;
+ 	struct cxl_dport *target[];
+ };
+
