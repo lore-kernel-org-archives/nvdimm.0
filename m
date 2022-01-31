@@ -1,161 +1,141 @@
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69FFB2C82
-	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 21:56:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2F2D2C82
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 22:21:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643666172; x=1675202172;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=K7qga3eZ1iQPzkhpO0/Tpd0vzWpBCsIwWSgi0Hbgg/w=;
-  b=Rnzn1/h9pyoeR04Sztv0rPKvsWBj2vYp9Q/2OBouR/Iz1UErMuKJZ/bC
-   sQfV9ABSOm90SpCPSkeNcDWs03gTGaFyfp6fr7EDYk708SuqJ+X11AvjE
-   9OCB3DFiruVTM3S1jP40faPBuiheRw15Tk3rlSKVoqgSRieAwB2YZHlWA
-   kL11/IOBzVlWxsUtbjwMH+ZsFlj+QFTSYfD9hJvb+aTRTUdJHV88kbH8F
-   IGI7Zmshi7Dv9eVmKspWs0f+WWy3CsUGnOV9EjWWAUU2a7GQG/DR9GRA8
-   mjburlfHBZE+XMiHuLrJDAsxeAokKgz5k+Qd5ewN2JXTbdGKpep3k5Gwv
+  t=1643667664; x=1675203664;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=xLvWi7iNzzHbAeE/HUpENMW6kzoJZd4Uqflerx8m0/E=;
+  b=cWkKBQERPNRWMETNYnChJQ4rrrjxVRCbH8cffHOc6IJi4Qb1AMnFrl/S
+   2pd3JFKoNA9qtzk0k8W87cdtbhyJns8Yu9GemGvcPGDXdRmLoqYqkZHq3
+   bg7/htupTZ7xiXTf2zrEsfM8rf/8Fysf26ouhrN3KZ8Nu0qejundhrfC6
+   L2JOWZE73u21FWmx2w9K7f9l1wjbag+1MMtJLYZA1s2AvSk95vuPE4r5V
+   r2iZml22wa/KfKGonItvJsbn5rUyfqLklf4tE4IZlFlRFD0DWXAlWcvJl
+   X6w5mcbsacPjh3N4r7gPBSFhKIAu7le6mY4UAcAdlcraEPLC8Lf9SHbcQ
    g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="247776327"
+X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="333919092"
 X-IronPort-AV: E=Sophos;i="5.88,331,1635231600"; 
-   d="scan'208";a="247776327"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 13:56:11 -0800
+   d="scan'208";a="333919092"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 14:21:03 -0800
 X-IronPort-AV: E=Sophos;i="5.88,331,1635231600"; 
-   d="scan'208";a="537510990"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 13:56:11 -0800
-Subject: [PATCH v4 30/40] cxl/pci: Emit device serial number
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, linux-pci@vger.kernel.org,
- nvdimm@lists.linux.dev
-Date: Mon, 31 Jan 2022 13:56:11 -0800
-Message-ID: <164366608838.196598.16856227191534267098.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <164298427918.3018233.8524862534398549106.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164298427918.3018233.8524862534398549106.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+   d="scan'208";a="619535111"
+Received: from sssheth-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.130.247])
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 14:21:03 -0800
+Date: Mon, 31 Jan 2022 14:21:01 -0800
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-cxl@vger.kernel.org,
+	Jonathan Cameron <Jonathan.Cameron@huawei.com>,
+	linux-pci@vger.kernel.org, nvdimm@lists.linux.dev
+Subject: Re: [PATCH v3 02/40] cxl/pci: Implement Interface Ready Timeout
+Message-ID: <20220131222101.tckwbcxheuuorkiq@intel.com>
+References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <164298412919.3018233.12491722885382120190.stgit@dwillia2-desk3.amr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <164298412919.3018233.12491722885382120190.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-Per the CXL specification (8.1.12.2 Memory Device PCIe Capabilities and
-Extended Capabilities) the Device Serial Number capability is mandatory.
-Emit it for user tooling to identify devices.
+On 22-01-23 16:28:49, Dan Williams wrote:
+> From: Ben Widawsky <ben.widawsky@intel.com>
+> 
+> The original driver implementation used the doorbell timeout for the
+> Mailbox Interface Ready bit to piggy back off of, since the latter does
+> not have a defined timeout. This functionality, introduced in commit
+> 8adaf747c9f0 ("cxl/mem: Find device capabilities"), needs improvement as
+> the recent "Add Mailbox Ready Time" ECN timeout indicates that the
+> mailbox ready time can be significantly longer that 2 seconds.
+> 
+> While the specification limits the maximum timeout to 256s, the cxl_pci
+> driver gives up on the mailbox after 60s. This value corresponds with
+> important timeout values already present in the kernel. A module
+> parameter is provided as an emergency override and represents the
+> default Linux policy for all devices.
+> 
+> Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+> [djbw: add modparam, drop check_device_status()]
+> Co-developed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+>  drivers/cxl/pci.c |   35 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+> 
+> diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+> index 8dc91fd3396a..ed8de9eac970 100644
+> --- a/drivers/cxl/pci.c
+> +++ b/drivers/cxl/pci.c
+> @@ -1,7 +1,9 @@
+>  // SPDX-License-Identifier: GPL-2.0-only
+>  /* Copyright(c) 2020 Intel Corporation. All rights reserved. */
+>  #include <linux/io-64-nonatomic-lo-hi.h>
+> +#include <linux/moduleparam.h>
+>  #include <linux/module.h>
+> +#include <linux/delay.h>
+>  #include <linux/sizes.h>
+>  #include <linux/mutex.h>
+>  #include <linux/list.h>
+> @@ -35,6 +37,20 @@
+>  /* CXL 2.0 - 8.2.8.4 */
+>  #define CXL_MAILBOX_TIMEOUT_MS (2 * HZ)
+>  
+> +/*
+> + * CXL 2.0 ECN "Add Mailbox Ready Time" defines a capability field to
+> + * dictate how long to wait for the mailbox to become ready. The new
+> + * field allows the device to tell software the amount of time to wait
+> + * before mailbox ready. This field per the spec theoretically allows
+> + * for up to 255 seconds. 255 seconds is unreasonably long, its longer
+> + * than the maximum SATA port link recovery wait. Default to 60 seconds
+> + * until someone builds a CXL device that needs more time in practice.
+> + */
+> +static unsigned short mbox_ready_timeout = 60;
+> +module_param(mbox_ready_timeout, ushort, 0600);
 
-It is reasonable to ask whether the attribute should be added to the
-list of PCI sysfs device attributes. The PCI layer can optionally emit
-it too, but the CXL subsystem is aiming to preserve its independence and
-the possibility of CXL topologies with non-PCI devices in it. To date
-that has only proven useful for the 'cxl_test' model, but as can be seen
-with seen with ACPI0016 devices, sometimes all that is needed is a
-platform firmware table to point to CXL Component Registers in MMIO
-space to define a "CXL" device.
+Any reason not to make it 0644?
 
-Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v3:
-- Fixup changelog to clarify why CXL is emitting this attribute
-  regardless of whether PCI later emits it. (Jonathan)
+> +MODULE_PARM_DESC(mbox_ready_timeout,
+> +		 "seconds to wait for mailbox ready status");
+> +
+>  static int cxl_pci_mbox_wait_for_doorbell(struct cxl_dev_state *cxlds)
+>  {
+>  	const unsigned long start = jiffies;
+> @@ -281,6 +297,25 @@ static int cxl_pci_mbox_send(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *c
+>  static int cxl_pci_setup_mailbox(struct cxl_dev_state *cxlds)
+>  {
+>  	const int cap = readl(cxlds->regs.mbox + CXLDEV_MBOX_CAPS_OFFSET);
+> +	unsigned long timeout;
+> +	u64 md_status;
+> +
+> +	timeout = jiffies + mbox_ready_timeout * HZ;
+> +	do {
+> +		md_status = readq(cxlds->regs.memdev + CXLMDEV_STATUS_OFFSET);
+> +		if (md_status & CXLMDEV_MBOX_IF_READY)
+> +			break;
+> +		if (msleep_interruptible(100))
+> +			break;
+> +	} while (!time_after(jiffies, timeout));
 
- Documentation/ABI/testing/sysfs-bus-cxl |    9 +++++++++
- drivers/cxl/core/memdev.c               |   11 +++++++++++
- drivers/cxl/cxlmem.h                    |    2 ++
- drivers/cxl/pci.c                       |    1 +
- tools/testing/cxl/test/mem.c            |    1 +
- 5 files changed, 24 insertions(+)
+Just pointing out the [probably] obvious. If the user specifies a zero second
+timeout, the code will still wait 100ms.
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
-index 6d8cbf3355b5..87c0e5e65322 100644
---- a/Documentation/ABI/testing/sysfs-bus-cxl
-+++ b/Documentation/ABI/testing/sysfs-bus-cxl
-@@ -25,6 +25,15 @@ Description:
- 		identically named field in the Identify Memory Device Output
- 		Payload in the CXL-2.0 specification.
- 
-+What:		/sys/bus/cxl/devices/memX/serial
-+Date:		January, 2022
-+KernelVersion:	v5.18
-+Contact:	linux-cxl@vger.kernel.org
-+Description:
-+		(RO) 64-bit serial number per the PCIe Device Serial Number
-+		capability. Mandatory for CXL devices, see CXL 2.0 8.1.12.2
-+		Memory Device PCIe Capabilities and Extended Capabilities.
-+
- What:		/sys/bus/cxl/devices/*/devtype
- Date:		June, 2021
- KernelVersion:	v5.14
-diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
-index 61029cb7ac62..1e574b052583 100644
---- a/drivers/cxl/core/memdev.c
-+++ b/drivers/cxl/core/memdev.c
-@@ -89,7 +89,18 @@ static ssize_t pmem_size_show(struct device *dev, struct device_attribute *attr,
- static struct device_attribute dev_attr_pmem_size =
- 	__ATTR(size, 0444, pmem_size_show, NULL);
- 
-+static ssize_t serial_show(struct device *dev, struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
-+	struct cxl_dev_state *cxlds = cxlmd->cxlds;
-+
-+	return sysfs_emit(buf, "%#llx\n", cxlds->serial);
-+}
-+static DEVICE_ATTR_RO(serial);
-+
- static struct attribute *cxl_memdev_attributes[] = {
-+	&dev_attr_serial.attr,
- 	&dev_attr_firmware_version.attr,
- 	&dev_attr_payload_max.attr,
- 	&dev_attr_label_storage_size.attr,
-diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
-index e70838e5dc17..0ba0cf8dcdbc 100644
---- a/drivers/cxl/cxlmem.h
-+++ b/drivers/cxl/cxlmem.h
-@@ -131,6 +131,7 @@ struct cxl_endpoint_dvsec_info {
-  * @next_persistent_bytes: persistent capacity change pending device reset
-  * @component_reg_phys: register base of component registers
-  * @info: Cached DVSEC information about the device.
-+ * @serial: PCIe Device Serial Number
-  * @mbox_send: @dev specific transport for transmitting mailbox commands
-  * @wait_media_ready: @dev specific method to await media ready
-  *
-@@ -164,6 +165,7 @@ struct cxl_dev_state {
- 
- 	resource_size_t component_reg_phys;
- 	struct cxl_endpoint_dvsec_info info;
-+	u64 serial;
- 
- 	int (*mbox_send)(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd);
- 	int (*wait_media_ready)(struct cxl_dev_state *cxlds);
-diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
-index 513cb0e2a70a..9252e1f4b18c 100644
---- a/drivers/cxl/pci.c
-+++ b/drivers/cxl/pci.c
-@@ -557,6 +557,7 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 	if (IS_ERR(cxlds))
- 		return PTR_ERR(cxlds);
- 
-+	cxlds->serial = pci_get_dsn(pdev);
- 	cxlds->cxl_dvsec = pci_find_dvsec_capability(
- 		pdev, PCI_DVSEC_VENDOR_ID_CXL, CXL_DVSEC);
- 	if (!cxlds->cxl_dvsec) {
-diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
-index 3af3f94de0c3..36ef337c775c 100644
---- a/tools/testing/cxl/test/mem.c
-+++ b/tools/testing/cxl/test/mem.c
-@@ -268,6 +268,7 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
- 	if (IS_ERR(cxlds))
- 		return PTR_ERR(cxlds);
- 
-+	cxlds->serial = pdev->id;
- 	cxlds->mbox_send = cxl_mock_mbox_send;
- 	cxlds->wait_media_ready = cxl_mock_wait_media_ready;
- 	cxlds->payload_size = SZ_4K;
-
+> +
+> +	if (!(md_status & CXLMDEV_MBOX_IF_READY)) {
+> +		dev_err(cxlds->dev,
+> +			"timeout awaiting mailbox ready, device state:%s%s\n",
+> +			md_status & CXLMDEV_DEV_FATAL ? " fatal" : "",
+> +			md_status & CXLMDEV_FW_HALT ? " firmware-halt" : "");
+> +		return -EIO;
+> +	}
+>  
+>  	cxlds->mbox_send = cxl_pci_mbox_send;
+>  	cxlds->payload_size =
+> 
