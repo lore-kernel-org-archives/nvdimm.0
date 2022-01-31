@@ -1,245 +1,181 @@
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f172.google.com (mail-pf1-f172.google.com [209.85.210.172])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A68512C82
-	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 21:33:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643664799; x=1675200799;
-  h=subject:from:to:cc:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=AKxtkV2nWEtyxc0yUPzos0ai3+HqJxpnpoG1PScXq/Q=;
-  b=IAXE9QLaLPTQ0TuRXAm5t4sorcnYuRyVGcA2kUuS62engnaAj8rxNYif
-   HJ1n8Tn/lyAFsXvPuaXuaRXqBV/umS5RPs/4uL+CWaY3HZesj/rEpa+Fk
-   3cvATDZGvvqwsu3C7ht5dzZVHG4VDRw7InXogZ/ETHzZK9JhGTLk2ZufH
-   vcuBC2kIoZ9zA+r6AR3KX9QYl3aN92aSTmfM+MrWr5jOzypWGw7TV0c6x
-   BhODkQ5MXH0jw5hMNzFBN191BBSG2rj4G1jG/w7KgJ9pIBWiT2wf4rZa4
-   gvFNa5U30mZJ4ZYelUKoi2BNu/R8A4nKyiN4pb89f9OpfF9pXstiV8DR+
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="231126357"
-X-IronPort-AV: E=Sophos;i="5.88,331,1635231600"; 
-   d="scan'208";a="231126357"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 13:33:19 -0800
-X-IronPort-AV: E=Sophos;i="5.88,331,1635231600"; 
-   d="scan'208";a="479361253"
-Received: from dwillia2-desk3.jf.intel.com (HELO dwillia2-desk3.amr.corp.intel.com) ([10.54.39.25])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 13:33:13 -0800
-Subject: [PATCH v4 11/40] cxl/core/port: Clarify decoder creation
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-cxl@vger.kernel.org
-Cc: Ben Widawsky <ben.widawsky@intel.com>, linux-pci@vger.kernel.org,
- nvdimm@lists.linux.dev
-Date: Mon, 31 Jan 2022 13:33:13 -0800
-Message-ID: <164366463014.111117.9714595404002687111.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <164298417755.3018233.850001481653928773.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <164298417755.3018233.850001481653928773.stgit@dwillia2-desk3.amr.corp.intel.com>
-User-Agent: StGit/0.18-3-g996c
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 680FC2C82
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 21:43:58 +0000 (UTC)
+Received: by mail-pf1-f172.google.com with SMTP id a8so14016996pfa.6
+        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 13:43:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=intel-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3jxXZThJIzE+4Gckt++FGSz2Pu9JjRopo3Xig1HrSHc=;
+        b=bm/ITtXnJAD8LJUGDmeSbRM0VzFtUZbpQLz+fe9NO1jtm0zEh1YFv0w7rpmV0QuTUM
+         KOuoX0HrFRAhgotl19/vPQo738rMhYe0ape2cBDj3f5on/+ZLrDd7G1jwp28eKzNoLPb
+         Gwu0QSt2rkHVn9MWXj65Q4Nfj6fjpNbaFVSEN+6u6M/5bCNclkszdjoCKEnxNbvjZtdF
+         fpc9D1snIXJpLrk3THD042HgEdgbda3Kb+7HlzQZbrqUBOEd2TWSqVj/FS9KAwLGra/J
+         lJmfWX1Zm8riG8RLudJhP5y5Ohfsdsw2LTL0GgDqgmEgUsd89fLa3Gh5M/AsSLgjdYuz
+         juSg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3jxXZThJIzE+4Gckt++FGSz2Pu9JjRopo3Xig1HrSHc=;
+        b=I08xjG9vks+F/lk7pf76eWCZ55YdEhEgFkYMSB6K8B11/ZLr56qYQ8WCU4f0r+9Qrw
+         9oDsUUDLRggAfGuEM7WbdI6xkDb69HIQwMScJ0NqzFxoNAKrYJ+LU4RYYyTff79qcYwV
+         wzwuZS4WVNoe8syAXj8rZ5t/h0+hMzsR608WXxQDpxcHc0n5hDsyjuvnHHPtN0Dp+Gx5
+         zTpbjy2ZBRt2F7T2e8+0Aa1LrO26xCVnyQ8SgRgpobSrtH8xnZtrQI3243/K8j4TP+gY
+         1w8kI7vT1IZIVynQoEwXQPQmi2Z5K5+BWUpq4gxF73GRxMdO0TfK1v+rW2qBMjhT/q1E
+         +sqw==
+X-Gm-Message-State: AOAM531OCWoAjsLqw3C9ZlNemJaQhyhwvBGWWRd1PPhAhRQHdsoNarln
+	RmcbAX61Ey4IEWd1sP9/0CfIzjWOCQ+fG2qDdmtzlplADXk=
+X-Google-Smtp-Source: ABdhPJzEa/9vbL2N945MJQj/FXMyvKX4BKl7uBKY3Lynyxr/tHKAKoiBX6hODCEUse1ZaD0Jhb4Pnl6ZixV5SFUJWTE=
+X-Received: by 2002:a63:4717:: with SMTP id u23mr18605335pga.74.1643665437778;
+ Mon, 31 Jan 2022 13:43:57 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <164298427918.3018233.8524862534398549106.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20220131183339.00004b6d@Huawei.com>
+In-Reply-To: <20220131183339.00004b6d@Huawei.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Mon, 31 Jan 2022 13:43:49 -0800
+Message-ID: <CAPcyv4g55upvoFpjF4+z8GHHH887nx6Hh6Hr0Z+Qws_HXiynww@mail.gmail.com>
+Subject: Re: [PATCH v3 30/40] cxl/pci: Emit device serial number
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>, 
+	Linux NVDIMM <nvdimm@lists.linux.dev>
+Content-Type: text/plain; charset="UTF-8"
 
-From: Ben Widawsky <ben.widawsky@intel.com>
+On Mon, Jan 31, 2022 at 10:34 AM Jonathan Cameron
+<Jonathan.Cameron@huawei.com> wrote:
+>
+> On Sun, 23 Jan 2022 16:31:19 -0800
+> Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> > Per the CXL specification (8.1.12.2 Memory Device PCIe Capabilities and
+> > Extended Capabilities) the Device Serial Number capability is mandatory.
+> > Emit it for user tooling to identify devices.
+> >
+> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+>
+> Guess we should add this to the todo list for Qemu emulation.
+> I wonder a bit if it is something that should really be done at the
+> PCI device level.  Maybe a question for Bjorn.
 
-Add wrappers for the creation of decoder objects at the root level and
-switch level, and keep the core helper private to cxl/core/port.c. Root
-decoders are static descriptors conveyed from platform firmware (e.g.
-ACPI CFMWS). Switch decoders are CXL standard decoders enumerated via
-the HDM decoder capability structure. The base address for the HDM
-decoder capability structure may be conveyed either by PCIe or platform
-firmware (ACPI CEDT.CHBS).
+The PCI layer can optionally emit it too, but on the CXL side I am
+aiming to preserve its independence and the possibility of CXL
+topologies with non-PCI devices in it. To date that has only proven
+useful for the 'cxl_test' model, but as we've already seen with
+ACPI0016 devices, sometimes all that is needed is a platform firmware
+table to point to component registers in MMIO space to define a "CXL"
+device.
 
-Additionally, the kdoc descriptions for these helpers and their
-dependencies is updated.
+> If not, then this is fine as far as I am concerned.
 
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-[djbw: fixup changelog, clarify kdoc]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Changes since v3:
-- Clarify 'switch' in cxl_switch_decoder_alloc() kdoc (Jonathan)
-- Clarify 'root' in cxl_root_decoder_alloc() kdoc (Jonathan)
-- Add comment explaing how is_cxl_root() works (Jonathan)
-- Fixup changelog to mention doc additions (Jonathan)
+I can at least add the above note to the changelog to clarify.
 
- drivers/cxl/acpi.c      |    4 +-
- drivers/cxl/core/port.c |   83 ++++++++++++++++++++++++++++++++++++++++++-----
- drivers/cxl/cxl.h       |   16 ++++++++-
- 3 files changed, 92 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/cxl/acpi.c b/drivers/cxl/acpi.c
-index da70f1836db6..0b267eabb15e 100644
---- a/drivers/cxl/acpi.c
-+++ b/drivers/cxl/acpi.c
-@@ -102,7 +102,7 @@ static int cxl_parse_cfmws(union acpi_subtable_headers *header, void *arg,
- 	for (i = 0; i < CFMWS_INTERLEAVE_WAYS(cfmws); i++)
- 		target_map[i] = cfmws->interleave_targets[i];
- 
--	cxld = cxl_decoder_alloc(root_port, CFMWS_INTERLEAVE_WAYS(cfmws));
-+	cxld = cxl_root_decoder_alloc(root_port, CFMWS_INTERLEAVE_WAYS(cfmws));
- 	if (IS_ERR(cxld))
- 		return 0;
- 
-@@ -260,7 +260,7 @@ static int add_host_bridge_uport(struct device *match, void *arg)
- 	 * dport. Disable the range until the first CXL region is enumerated /
- 	 * activated.
- 	 */
--	cxld = cxl_decoder_alloc(port, 1);
-+	cxld = cxl_switch_decoder_alloc(port, 1);
- 	if (IS_ERR(cxld))
- 		return PTR_ERR(cxld);
- 
-diff --git a/drivers/cxl/core/port.c b/drivers/cxl/core/port.c
-index 63c76cb2a2ec..88ffec71464a 100644
---- a/drivers/cxl/core/port.c
-+++ b/drivers/cxl/core/port.c
-@@ -495,13 +495,26 @@ static int decoder_populate_targets(struct cxl_decoder *cxld,
- 	return rc;
- }
- 
--struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets)
-+/**
-+ * cxl_decoder_alloc - Allocate a new CXL decoder
-+ * @port: owning port of this decoder
-+ * @nr_targets: downstream targets accessible by this decoder. All upstream
-+ *		ports and root ports must have at least 1 target.
-+ *
-+ * A port should contain one or more decoders. Each of those decoders enable
-+ * some address space for CXL.mem utilization. A decoder is expected to be
-+ * configured by the caller before registering.
-+ *
-+ * Return: A new cxl decoder to be registered by cxl_decoder_add()
-+ */
-+static struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port,
-+					     unsigned int nr_targets)
- {
- 	struct cxl_decoder *cxld;
- 	struct device *dev;
- 	int rc = 0;
- 
--	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE || nr_targets < 1)
-+	if (nr_targets > CXL_DECODER_MAX_INTERLEAVE || nr_targets == 0)
- 		return ERR_PTR(-EINVAL);
- 
- 	cxld = kzalloc(struct_size(cxld, target, nr_targets), GFP_KERNEL);
-@@ -519,20 +532,74 @@ struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets)
- 	device_set_pm_not_required(dev);
- 	dev->parent = &port->dev;
- 	dev->bus = &cxl_bus_type;
--
--	/* root ports do not have a cxl_port_type parent */
--	if (port->dev.parent->type == &cxl_port_type)
--		dev->type = &cxl_decoder_switch_type;
-+	if (is_cxl_root(port))
-+		cxld->dev.type = &cxl_decoder_root_type;
- 	else
--		dev->type = &cxl_decoder_root_type;
-+		cxld->dev.type = &cxl_decoder_switch_type;
- 
- 	return cxld;
- err:
- 	kfree(cxld);
- 	return ERR_PTR(rc);
- }
--EXPORT_SYMBOL_NS_GPL(cxl_decoder_alloc, CXL);
- 
-+/**
-+ * cxl_root_decoder_alloc - Allocate a root level decoder
-+ * @port: owning CXL root of this decoder
-+ * @nr_targets: static number of downstream targets
-+ *
-+ * Return: A new cxl decoder to be registered by cxl_decoder_add(). A
-+ * 'CXL root' decoder is one that decodes from a top-level / static platform
-+ * firmware description of CXL resources into a CXL standard decode
-+ * topology.
-+ */
-+struct cxl_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
-+					   unsigned int nr_targets)
-+{
-+	if (!is_cxl_root(port))
-+		return ERR_PTR(-EINVAL);
-+
-+	return cxl_decoder_alloc(port, nr_targets);
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_root_decoder_alloc, CXL);
-+
-+/**
-+ * cxl_switch_decoder_alloc - Allocate a switch level decoder
-+ * @port: owning CXL switch port of this decoder
-+ * @nr_targets: max number of dynamically addressable downstream targets
-+ *
-+ * Return: A new cxl decoder to be registered by cxl_decoder_add(). A
-+ * 'switch' decoder is any decoder that can be enumerated by PCIe
-+ * topology and the HDM Decoder Capability. This includes the decoders
-+ * that sit between Switch Upstream Ports / Switch Downstream Ports and
-+ * Host Bridges / Root Ports.
-+ */
-+struct cxl_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
-+					     unsigned int nr_targets)
-+{
-+	if (is_cxl_root(port))
-+		return ERR_PTR(-EINVAL);
-+
-+	return cxl_decoder_alloc(port, nr_targets);
-+}
-+EXPORT_SYMBOL_NS_GPL(cxl_switch_decoder_alloc, CXL);
-+
-+/**
-+ * cxl_decoder_add - Add a decoder with targets
-+ * @cxld: The cxl decoder allocated by cxl_decoder_alloc()
-+ * @target_map: A list of downstream ports that this decoder can direct memory
-+ *              traffic to. These numbers should correspond with the port number
-+ *              in the PCIe Link Capabilities structure.
-+ *
-+ * Certain types of decoders may not have any targets. The main example of this
-+ * is an endpoint device. A more awkward example is a hostbridge whose root
-+ * ports get hot added (technically possible, though unlikely).
-+ *
-+ * Context: Process context. Takes and releases the cxld's device lock.
-+ *
-+ * Return: Negative error code if the decoder wasn't properly configured; else
-+ *	   returns 0.
-+ */
- int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map)
- {
- 	struct cxl_port *port;
-diff --git a/drivers/cxl/cxl.h b/drivers/cxl/cxl.h
-index bfd95acea66c..621a70e023c1 100644
---- a/drivers/cxl/cxl.h
-+++ b/drivers/cxl/cxl.h
-@@ -278,6 +278,17 @@ struct cxl_dport {
- 	struct list_head list;
- };
- 
-+/*
-+ * The platform firmware device hosting the root is also the top of the
-+ * CXL port topology. All other CXL ports have another CXL port as their
-+ * parent and their ->uport / host device is out-of-line of the port
-+ * ancestry.
-+ */
-+static inline bool is_cxl_root(struct cxl_port *port)
-+{
-+	return port->uport == port->dev.parent;
-+}
-+
- struct cxl_port *to_cxl_port(struct device *dev);
- struct cxl_port *devm_cxl_add_port(struct device *host, struct device *uport,
- 				   resource_size_t component_reg_phys,
-@@ -288,7 +299,10 @@ int cxl_add_dport(struct cxl_port *port, struct device *dport, int port_id,
- 
- struct cxl_decoder *to_cxl_decoder(struct device *dev);
- bool is_root_decoder(struct device *dev);
--struct cxl_decoder *cxl_decoder_alloc(struct cxl_port *port, int nr_targets);
-+struct cxl_decoder *cxl_root_decoder_alloc(struct cxl_port *port,
-+					   unsigned int nr_targets);
-+struct cxl_decoder *cxl_switch_decoder_alloc(struct cxl_port *port,
-+					     unsigned int nr_targets);
- int cxl_decoder_add(struct cxl_decoder *cxld, int *target_map);
- int cxl_decoder_autoremove(struct device *host, struct cxl_decoder *cxld);
- 
-
+>
+> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+>
+> > ---
+> >  Documentation/ABI/testing/sysfs-bus-cxl |    9 +++++++++
+> >  drivers/cxl/core/memdev.c               |   11 +++++++++++
+> >  drivers/cxl/cxlmem.h                    |    2 ++
+> >  drivers/cxl/pci.c                       |    1 +
+> >  tools/testing/cxl/test/mem.c            |    1 +
+> >  5 files changed, 24 insertions(+)
+> >
+> > diff --git a/Documentation/ABI/testing/sysfs-bus-cxl b/Documentation/ABI/testing/sysfs-bus-cxl
+> > index 6d8cbf3355b5..87c0e5e65322 100644
+> > --- a/Documentation/ABI/testing/sysfs-bus-cxl
+> > +++ b/Documentation/ABI/testing/sysfs-bus-cxl
+> > @@ -25,6 +25,15 @@ Description:
+> >               identically named field in the Identify Memory Device Output
+> >               Payload in the CXL-2.0 specification.
+> >
+> > +What:                /sys/bus/cxl/devices/memX/serial
+> > +Date:                January, 2022
+> > +KernelVersion:       v5.18
+> > +Contact:     linux-cxl@vger.kernel.org
+> > +Description:
+> > +             (RO) 64-bit serial number per the PCIe Device Serial Number
+> > +             capability. Mandatory for CXL devices, see CXL 2.0 8.1.12.2
+> > +             Memory Device PCIe Capabilities and Extended Capabilities.
+> > +
+> >  What:                /sys/bus/cxl/devices/*/devtype
+> >  Date:                June, 2021
+> >  KernelVersion:       v5.14
+> > diff --git a/drivers/cxl/core/memdev.c b/drivers/cxl/core/memdev.c
+> > index 61029cb7ac62..1e574b052583 100644
+> > --- a/drivers/cxl/core/memdev.c
+> > +++ b/drivers/cxl/core/memdev.c
+> > @@ -89,7 +89,18 @@ static ssize_t pmem_size_show(struct device *dev, struct device_attribute *attr,
+> >  static struct device_attribute dev_attr_pmem_size =
+> >       __ATTR(size, 0444, pmem_size_show, NULL);
+> >
+> > +static ssize_t serial_show(struct device *dev, struct device_attribute *attr,
+> > +                        char *buf)
+> > +{
+> > +     struct cxl_memdev *cxlmd = to_cxl_memdev(dev);
+> > +     struct cxl_dev_state *cxlds = cxlmd->cxlds;
+> > +
+> > +     return sysfs_emit(buf, "%#llx\n", cxlds->serial);
+> > +}
+> > +static DEVICE_ATTR_RO(serial);
+> > +
+> >  static struct attribute *cxl_memdev_attributes[] = {
+> > +     &dev_attr_serial.attr,
+> >       &dev_attr_firmware_version.attr,
+> >       &dev_attr_payload_max.attr,
+> >       &dev_attr_label_storage_size.attr,
+> > diff --git a/drivers/cxl/cxlmem.h b/drivers/cxl/cxlmem.h
+> > index e70838e5dc17..0ba0cf8dcdbc 100644
+> > --- a/drivers/cxl/cxlmem.h
+> > +++ b/drivers/cxl/cxlmem.h
+> > @@ -131,6 +131,7 @@ struct cxl_endpoint_dvsec_info {
+> >   * @next_persistent_bytes: persistent capacity change pending device reset
+> >   * @component_reg_phys: register base of component registers
+> >   * @info: Cached DVSEC information about the device.
+> > + * @serial: PCIe Device Serial Number
+> >   * @mbox_send: @dev specific transport for transmitting mailbox commands
+> >   * @wait_media_ready: @dev specific method to await media ready
+> >   *
+> > @@ -164,6 +165,7 @@ struct cxl_dev_state {
+> >
+> >       resource_size_t component_reg_phys;
+> >       struct cxl_endpoint_dvsec_info info;
+> > +     u64 serial;
+> >
+> >       int (*mbox_send)(struct cxl_dev_state *cxlds, struct cxl_mbox_cmd *cmd);
+> >       int (*wait_media_ready)(struct cxl_dev_state *cxlds);
+> > diff --git a/drivers/cxl/pci.c b/drivers/cxl/pci.c
+> > index 513cb0e2a70a..9252e1f4b18c 100644
+> > --- a/drivers/cxl/pci.c
+> > +++ b/drivers/cxl/pci.c
+> > @@ -557,6 +557,7 @@ static int cxl_pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+> >       if (IS_ERR(cxlds))
+> >               return PTR_ERR(cxlds);
+> >
+> > +     cxlds->serial = pci_get_dsn(pdev);
+> >       cxlds->cxl_dvsec = pci_find_dvsec_capability(
+> >               pdev, PCI_DVSEC_VENDOR_ID_CXL, CXL_DVSEC);
+> >       if (!cxlds->cxl_dvsec) {
+> > diff --git a/tools/testing/cxl/test/mem.c b/tools/testing/cxl/test/mem.c
+> > index 3af3f94de0c3..36ef337c775c 100644
+> > --- a/tools/testing/cxl/test/mem.c
+> > +++ b/tools/testing/cxl/test/mem.c
+> > @@ -268,6 +268,7 @@ static int cxl_mock_mem_probe(struct platform_device *pdev)
+> >       if (IS_ERR(cxlds))
+> >               return PTR_ERR(cxlds);
+> >
+> > +     cxlds->serial = pdev->id;
+> >       cxlds->mbox_send = cxl_mock_mbox_send;
+> >       cxlds->wait_media_ready = cxl_mock_wait_media_ready;
+> >       cxlds->payload_size = SZ_4K;
+> >
+>
