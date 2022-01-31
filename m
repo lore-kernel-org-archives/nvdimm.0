@@ -1,70 +1,57 @@
-Received: from mail-pl1-f181.google.com (mail-pl1-f181.google.com [209.85.214.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CA712C82
-	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 22:29:42 +0000 (UTC)
-Received: by mail-pl1-f181.google.com with SMTP id l13so5117031plg.9
-        for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 14:29:42 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=intel-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=BRkB2wipl7+jhUqvhRWOl4c9knyQgjfnb91drCfn3VM=;
-        b=J/67zQAd5y8SNt2WlbqkgxafOmsYqxM/lvBo58anjlSDI+giv+9a2US1AL1DkHQQPS
-         7FfgAtp9h5kxEP2jhOD4EBU/iB7aYHCjzAgkNMQCYfwSW7Bw7Rq36duG0x5Drf7zaprA
-         br/s4ZcjSbDhT5A/zdtPrxYM4kxDqST3hsHJwaSEBjE+AgfAjmDKsrh2H6J5Pb1xceOM
-         AVGpY0diQSoj1JZUyPsA7iw8geStuynoDqgmBwUVIOLtEHmk4tEoToXg/FS5sr3BhV5L
-         bfeanuhcGnUJURDYGVkRRwK5HN4TF8QFznilZYzapFL6nb3lmNkg4zUydjm24/o3EnJB
-         5Y4Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=BRkB2wipl7+jhUqvhRWOl4c9knyQgjfnb91drCfn3VM=;
-        b=yKWGK/B3IsDTsiNVCGNStu+PkKOnEeNQtcVmXMKoJ57lezqa0U9JVcmuY32RIRSvvr
-         JBz0S0cbTnvVhmiPQ/dimN3DFOeR2bHG8B3CySd81fL3OwhO6klM23l5HpnHfnYBxhpl
-         iIgeoCBEQZ68w0oxpUiIh+HMI0OVpyJt3F84EAyEEyM0wXEFRY6zuzKdcKRTof5D0ISn
-         8Wb8U8RIdCEPhC/eQT46G6JVy40cM5fL67nYzJdFdKJkP90m/jz2oFWTV3tDAkgclgWj
-         swafyyMZxJf7e+XW4TbIDisoNEivV870fK/N/X34DjHb4JtVC7frnvDpqN1oYxgaavsF
-         7FdQ==
-X-Gm-Message-State: AOAM531tC5HnpU+6KT7DbC2Y4TE9syWZ5UZ0aVa0lZeGQmkDS+SzcNO0
-	mYfuLK0/MSd36U1RaWPQn1BCwZn/fYisdiRhTiwm63wKIv4=
-X-Google-Smtp-Source: ABdhPJz07t1Yd9XkjGJzVP7cdliEvXQKPZm2/2/PGEcdxIjnCdxc2cNfzZfYJjHUVM32OPwLgMM+HE7p9CSgIHG6cgk=
-X-Received: by 2002:a17:90a:640e:: with SMTP id g14mr36623090pjj.8.1643668182515;
- Mon, 31 Jan 2022 14:29:42 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F87C2C80
+	for <nvdimm@lists.linux.dev>; Mon, 31 Jan 2022 22:34:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1643668459; x=1675204459;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=guc+t4X8qIxtDZg/LzaCnykg5raQFyS2HDN3b5+XTRY=;
+  b=UmRrrpaiL+IxX1YGYci4uw4WimcEL4AjzPS0bjtdZUwo7MuTm0RJtg17
+   341AxixPcmuMmLmi8QK0tpryPE2gs16p7XXgge2oiovKo/dQDwHTwSJYD
+   k83dD2v3kwWY4ePhsnrGcW6BFeXVo4bMnyTGgaPRjxu+oUd96zFkbTV2q
+   8sA7in7M/nk/S3yCIVRFDq07CTLquPtYYw1qBp35aFTJXeSdilNmYO729
+   wUJpkzqXurnigPa9dox8utXYid+mT+jiASuRouhpIK3nIfQ87Nu9w0B45
+   p7u0psQf7CBa3XqDQ5MMHXD5tHFn3p2SjttzElk8HQ2BCqa8uqN+wLJZa
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10244"; a="247517696"
+X-IronPort-AV: E=Sophos;i="5.88,331,1635231600"; 
+   d="scan'208";a="247517696"
+Received: from fmsmga004.fm.intel.com ([10.253.24.48])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 14:34:08 -0800
+X-IronPort-AV: E=Sophos;i="5.88,331,1635231600"; 
+   d="scan'208";a="598981452"
+Received: from sssheth-mobl1.amr.corp.intel.com (HELO intel.com) ([10.252.130.247])
+  by fmsmga004-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2022 14:34:08 -0800
+Date: Mon, 31 Jan 2022 14:34:06 -0800
+From: Ben Widawsky <ben.widawsky@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-cxl@vger.kernel.org, linux-pci@vger.kernel.org,
+	nvdimm@lists.linux.dev
+Subject: Re: [PATCH v3 08/40] cxl/core/port: Rename bus.c to port.c
+Message-ID: <20220131223406.cbtqnytamfy5jsdx@intel.com>
+References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <164298416136.3018233.15442880970000855425.stgit@dwillia2-desk3.amr.corp.intel.com>
 Precedence: bulk
 X-Mailing-List: nvdimm@lists.linux.dev
 List-Id: <nvdimm.lists.linux.dev>
 List-Subscribe: <mailto:nvdimm+subscribe@lists.linux.dev>
 List-Unsubscribe: <mailto:nvdimm+unsubscribe@lists.linux.dev>
 MIME-Version: 1.0
-References: <164298411792.3018233.7493009997525360044.stgit@dwillia2-desk3.amr.corp.intel.com>
- <164298418268.3018233.17790073375430834911.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20220131145358.0000322a@Huawei.com>
-In-Reply-To: <20220131145358.0000322a@Huawei.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 31 Jan 2022 14:29:34 -0800
-Message-ID: <CAPcyv4iUGhR7EQ5WkxpqZg+9eFzK9LwrhSWZSZzZKmjiRO5sDQ@mail.gmail.com>
-Subject: Re: [PATCH v3 12/40] cxl/core: Fix cxl_probe_component_regs() error message
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: linux-cxl@vger.kernel.org, Linux PCI <linux-pci@vger.kernel.org>, 
-	Linux NVDIMM <nvdimm@lists.linux.dev>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <164298416136.3018233.15442880970000855425.stgit@dwillia2-desk3.amr.corp.intel.com>
 
-On Mon, Jan 31, 2022 at 6:54 AM Jonathan Cameron
-<Jonathan.Cameron@huawei.com> wrote:
->
-> On Sun, 23 Jan 2022 16:29:42 -0800
-> Dan Williams <dan.j.williams@intel.com> wrote:
->
-> > Fix a '\n' vs '/n' typo.
-> >
-> > Fixes: 08422378c4ad ("cxl/pci: Add HDM decoder capabilities")
-> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> FWIW
->
-> Reviewed-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-> Possibly worth pulling this out and sending separately.
+On 22-01-23 16:29:21, Dan Williams wrote:
+> Given it is dominated by port infrastructure, and will only acquire
+> more, rename bus.c to port.c.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Ben Widawsky <ben.widawsky@intel.com>
 
-Yeah, if some other for-5.17 material shows up I might send this along
-too in advance of v5.18.
+[snip]
+
+I wouldn't be opposed to keep bus.c for some of the core functionality, but that
+file would be so small at this point it's fine to save for later.
